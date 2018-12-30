@@ -25,26 +25,26 @@ DEFINES += QT_DEPRECATED_WARNINGS
 CONFIG += c++11
 
 SOURCES += \
-        main.cpp \
-        controlscreen.cpp \
-        pdfdoc.cpp \
-        presentationscreen.cpp \
-        pagelabel.cpp \
-        clocklabel.cpp \
-        timer.cpp \
-        pagenumberedit.cpp
+        src/main.cpp \
+        src/controlscreen.cpp \
+        src/pdfdoc.cpp \
+        src/presentationscreen.cpp \
+        src/pagelabel.cpp \
+        src/clocklabel.cpp \
+        src/timer.cpp \
+        src/pagenumberedit.cpp
 
 HEADERS += \
-        controlscreen.h \
-        pdfdoc.h \
-        presentationscreen.h \
-        pagelabel.h \
-        clocklabel.h \
-        timer.h \
-        pagenumberedit.h
+        src/controlscreen.h \
+        src/pdfdoc.h \
+        src/presentationscreen.h \
+        src/pagelabel.h \
+        src/clocklabel.h \
+        src/timer.h \
+        src/pagenumberedit.h
 
 FORMS += \
-        controlscreen.ui
+        src/controlscreen.ui
 
 INCLUDEPATH += /usr/include/poppler/qt5
 LIBS += -L/usr/lib/ -lpoppler-qt5

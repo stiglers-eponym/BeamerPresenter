@@ -14,8 +14,8 @@
 #include <QMainWindow>
 #include <QKeyEvent>
 #include <QHBoxLayout>
-#include "pdfdoc.h"
-#include "pagelabel.h"
+#include "src/pdfdoc.h"
+#include "src/pagelabel.h"
 
 class PresentationScreen : public QWidget
 {

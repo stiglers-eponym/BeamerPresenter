@@ -12,10 +12,10 @@
 #include <QMainWindow>
 #include <QLabel>
 #include <QKeyEvent>
-#include "pdfdoc.h"
-#include "timer.h"
-#include "pagenumberedit.h"
-#include "presentationscreen.h"
+#include "src/pdfdoc.h"
+#include "src/timer.h"
+#include "src/pagenumberedit.h"
+#include "src/presentationscreen.h"
 
 namespace Ui {
     class ControlScreen;

@@ -1022,22 +1022,22 @@
   <customwidget>
    <class>PageLabel</class>
    <extends>QLabel</extends>
-   <header>pagelabel.h</header>
+   <header>src/pagelabel.h</header>
   </customwidget>
   <customwidget>
    <class>ClockLabel</class>
    <extends>QLabel</extends>
-   <header>clocklabel.h</header>
+   <header>src/clocklabel.h</header>
   </customwidget>
   <customwidget>
    <class>PageNumberEdit</class>
    <extends>QLineEdit</extends>
-   <header>pagenumberedit.h</header>
+   <header>src/pagenumberedit.h</header>
   </customwidget>
   <customwidget>
    <class>Timer</class>
    <extends>QLabel</extends>
-   <header>timer.h</header>
+   <header>src/timer.h</header>
   </customwidget>
  </customwidgets>
  <resources/>
