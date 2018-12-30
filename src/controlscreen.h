@@ -43,7 +43,8 @@ private:
     PresentationScreen* presentationScreen;
 
 signals:
-    void sendNewPageNumber(int pageNumber);
+    void sendNewPageNumber(int const pageNumber);
+    void sendTimerString(QString const timerString);
     void sendCloseSignal();
 
 public slots:

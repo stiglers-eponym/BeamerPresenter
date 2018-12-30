@@ -30,6 +30,7 @@ public slots:
     void pauseTimer();
     void resetTimer();
     void continueTimer();
+    void receiveTimerString(QString const & timerString);
 
 private slots:
     void showTime();

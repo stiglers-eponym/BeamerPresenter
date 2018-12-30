@@ -48,6 +48,8 @@ ControlScreen::ControlScreen(QString presentationPath, QString notesPath, QWidge
     QObject::connect(ui->text_current_slide, &PageNumberEdit::sendPageShiftReturn, this, &ControlScreen::receivePageShiftReturn);
     QObject::connect(ui->text_current_slide, &PageNumberEdit::sendEscape, this, &ControlScreen::resetFocus);
     QObject::connect(ui->label_timer, &Timer::sendEscape, this, &ControlScreen::resetFocus);
+
+    QObject::connect(this, &ControlScreen::sendTimerString, ui->label_timer, &Timer::receiveTimerString);
 }
 
 ControlScreen::~ControlScreen()

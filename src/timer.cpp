@@ -30,11 +30,18 @@ Timer::~Timer()
     delete timer;
 }
 
+void Timer::receiveTimerString(QString const & timerString)
+{
+    timerEdit->setText(timerString);
+    setDeadline();
+}
+
 void Timer::setTimerWidget(QLineEdit * setTimerEdit)
 {
     timerEdit = setTimerEdit;
     timer = new QTimer(this);
     QObject::connect(timerEdit, &QLineEdit::returnPressed, this, &Timer::setDeadline);
+    QObject::connect(timerEdit, &QLineEdit::returnPressed, this, &Timer::continueTimer);
     QObject::connect(timer, &QTimer::timeout, this, &Timer::showTime);
     // TODO: connect escape in timer to sendEscape()
 }
@@ -63,10 +70,6 @@ void Timer::setDeadline()
         emit sendNoAlert();
     else
         emit sendAlert();
-    if (!running) {
-        timer->start(1000);
-        running = true;
-    }
     QPalette palette = QPalette();
     palette.setColor(QPalette::Window, Qt::white);
     setPalette(palette);
