@@ -1,0 +1,17 @@
+BeamerPresenter
+
+* Hide pointer on presentation screen
+* Documentation and help function
+* Improve layout
+* Search
+* Implement other link types
+
+* Mode to browse slides on control screen
+* Draw in presentation
+* Draw mode for control screen
+
+* Animations
+	* strange embedded pdf features (video, audio, JavaScript)
+	* other video or audio?
+	* python or whatever elements?
+	* connection to pyqtgraph and paraview?

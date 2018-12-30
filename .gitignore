@@ -1,0 +1,16 @@
+# git
+.gitconfig
+
+# qtcreator
+*.autosave
+*.pro.user
+
+# c, c++
+*.so
+*.o
+a.out
+
+# vim
+.*.swp
+.*.swo
+.ycm_extra_conf.py
