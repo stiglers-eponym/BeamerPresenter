@@ -22,8 +22,11 @@ PresentationScreen::PresentationScreen(PdfDoc* presentationDoc, QWidget *parent)
     layout->setContentsMargins(0, 0, 0, 0);
     layout->addWidget( label, 0, 0 );
     label->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-    QObject::connect(label, &PageLabel::sendNewPageNumber, this, &PresentationScreen::receiveNewPageNumber);
-    QObject::connect(label, &PageLabel::sendNewPageNumber, this, &PresentationScreen::sendNewPageNumber);
+    QObject::connect(label, &PageLabel::sendNewPageNumber,       this, &PresentationScreen::receiveNewPageNumber);
+    QObject::connect(label, &PageLabel::sendNewPageNumber,       this, &PresentationScreen::sendNewPageNumber);
+    QObject::connect(label, &PageLabel::timeoutSignal,           this, &PresentationScreen::receiveTimeoutSignal);
+    QObject::connect(this, &PresentationScreen::togglePointerVisibilitySignal, label, &PageLabel::togglePointerVisibility);
+    label->togglePointerVisibility();
     show();
 }
 
@@ -49,8 +52,17 @@ void PresentationScreen::renderPage( const int pageNumber )
         label->renderPage( presentation->getPage(pageNumber) );
 }
 
+void PresentationScreen::receiveTimeoutSignal()
+{
+    //std::cout << "reveiceNextPageSignal: " << label->pageNumber() << std::endl;
+    renderPage( label->pageNumber() + 1 );
+    if ( label->getDuration() < 0 || label->getDuration() > 0.5 )
+        emit sendPageShift();
+}
+
 void PresentationScreen::receiveNewPageNumber( const int pageNumber )
 {
+    //std::cout << "reveiceNewPageNumber: " << pageNumber << std::endl;
     renderPage(pageNumber);
 }
 
@@ -67,17 +79,23 @@ void PresentationScreen::keyPressEvent( QKeyEvent * event )
         case Qt::Key_Down:
         case Qt::Key_PageDown:
             renderPage( label->pageNumber() + 1 );
-            emit sendPageShiftReturn();
+            if ( label->getDuration() < 0 || label->getDuration() > 0.5 )
+                emit sendPageShift();
         break;
         case Qt::Key_Left:
         case Qt::Key_Up:
         case Qt::Key_PageUp:
             renderPage( label->pageNumber() - 1 );
-            emit sendPageShiftReturn();
+            if ( label->getDuration() < 0 || label->getDuration() > 0.5 )
+                emit sendPageShift();
         break;
         case Qt::Key_Space:
             renderPage( label->pageNumber() );
-            emit sendPageShiftReturn();
+            if ( label->getDuration() < 0 || label->getDuration() > 0.5 )
+                emit sendPageShift();
+        break;
+        case Qt::Key_O:
+            emit togglePointerVisibilitySignal();
         break;
         default:
             emit sendKeyEvent(event);

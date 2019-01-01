@@ -25,17 +25,17 @@ PageLabel::PageLabel(Poppler::Page* page, QWidget* parent) : QLabel(parent)
     }
 }
 
+PageLabel::~PageLabel()
+{
+    links.clear();
+    linkPositions.clear();
+}
+
 PageLabel::PageLabel(QWidget* parent) : QLabel(parent)
 {
     page = nullptr;
     links = QList<Poppler::Link*>();
     linkPositions = QList<QRect*>();
-}
-
-PageLabel::~PageLabel()
-{
-    links.clear();
-    linkPositions.clear();
 }
 
 int PageLabel::pageNumber()
@@ -76,6 +76,17 @@ void PageLabel::renderPage(Poppler::Page* page)
                 );
         linkPositions.append( absolute );
     }
+
+    duration = page->duration();
+    if ( duration > 0) {
+        //std::cout << duration << std::endl;
+        QTimer::singleShot(int(1000*duration), this, &PageLabel::timeoutSignal);
+    }
+}
+
+double PageLabel::getDuration() const
+{
+    return duration;
 }
 
 void PageLabel::mouseReleaseEvent(QMouseEvent * event)
@@ -136,4 +147,34 @@ void PageLabel::mouseReleaseEvent(QMouseEvent * event)
             }
         }
     }
+}
+
+void PageLabel::togglePointerVisibility()
+{
+    if ( pointer_visible ) {
+        pointer_visible = false;
+        setMouseTracking(false);
+        this->setCursor( Qt::BlankCursor );
+    }
+    else {
+        pointer_visible = true;
+        setMouseTracking(true);
+        this->setCursor( Qt::ArrowCursor );
+    }
+}
+
+void PageLabel::mouseMoveEvent(QMouseEvent * event)
+{
+    if (!pointer_visible)
+        return;
+    bool is_arrow_pointer = this->cursor() == Qt::ArrowCursor;
+    Q_FOREACH(QRect* link_rect, linkPositions) {
+        if (link_rect->contains(event->pos())) {
+            if (is_arrow_pointer)
+                this->setCursor(Qt::PointingHandCursor);
+            return;
+        }
+    }
+    if (!is_arrow_pointer)
+        this->setCursor(Qt::ArrowCursor);
 }

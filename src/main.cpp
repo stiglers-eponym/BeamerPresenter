@@ -21,14 +21,14 @@ int main(int argc, char *argv[])
     parser.setApplicationDescription(
             "\nSimple dual screen pdf presentation software.\n"
             "Shortcuts:\n"
-            "  q                quit\n"
-            "  g                go to page (set focus to page number edit)\n"
-            "  p                pause / continue timer\n"
-            "  r                reset timer\n"
-            "  space            update layout and start timer\n"
-            "  Up / Down        go to previous / next slide\n"
-            "  Left / Right     go to previous / next slide\n"
-            "  PageUp/PageDown  go to previous / next slide and start timer"
+            "  q                    quit\n"
+            "  g                    go to page (set focus to page number edit)\n"
+            "  p                    pause / continue timer\n"
+            "  r                    reset timer\n"
+            "  o                    toggle pointer visbility (only on presentation screen)\n"
+            "  space                update layout and start timer\n"
+            "  Left/Up/PageUp       go to previous slide and start or continue timer\n"
+            "  Right/Down/PageDown  go to next slide and start or continue timer\n"
         );
     parser.addHelpOption();
     parser.addPositionalArgument("<slides.pdf>", "Slides for a presentation");

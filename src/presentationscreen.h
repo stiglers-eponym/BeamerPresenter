@@ -39,12 +39,14 @@ private:
 signals:
     void sendNewPageNumber(const int pageNumber);
     void sendCloseSignal();
-    void sendPageShiftReturn(const int shift = 0);
+    void sendPageShift(const int shift = 0);
     void sendKeyEvent(QKeyEvent * event);
+    void togglePointerVisibilitySignal();
 
 public slots:
     void receiveNewPageNumber(const int pageNumber);
     void receiveCloseSignal();
+    void receiveTimeoutSignal();
 };
 
 #endif // PRESENTATIONSCREEN_H
