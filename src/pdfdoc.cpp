@@ -15,6 +15,7 @@ PdfDoc::PdfDoc(QString pathToPdf)
 
 PdfDoc::~PdfDoc()
 {
+    qDeleteAll(pdfPages);
     pdfPages.clear();
     delete popplerDoc;
 }
@@ -26,6 +27,7 @@ void PdfDoc::loadDocument()
         std::cerr << "This file is encrypted. Encryption is not supported." << std::endl;
     }
     if (popplerDoc->isLocked()) {
+        // TODO: use a nicer way of entering passwords (a QDialog?)
         std::cout << "WARNING: File " << pdfPath.toStdString() << ":\n"
                   << "This file is locked. Support for locked files is HIGHLY EXPERIMENTAL!" << std::endl
                   << "You can try to enter your password here.\n"

@@ -14,6 +14,9 @@
 #include <QLabel>
 #include <QTimer>
 #include <QMovie>
+#include <QDir>
+#include <QVideoWidgetControl>
+#include <QMediaService>
 #include <QMediaPlayer>
 #include <QMediaPlaylist>
 #include <QVideoWidget>
@@ -32,14 +35,18 @@ public:
     void renderPage(Poppler::Page* page);
     int pageNumber();
     double getDuration() const;
+    void setPresentationStatus(bool const status);
+    void setShowVideos(bool const showVideos);
 
 private:
-    QMediaPlayer * player = nullptr;
-    QMediaPlaylist * playlist = nullptr;
+    QList<QMediaPlayer*> videoPlayers;
+    QList<QMediaPlaylist*> videoPlaylists;
     QList<Poppler::Link*> links;
     QList<QRect*> linkPositions;
-    QList<QRect*> moviePositions;
+    QList<QRect*> videoPositions;
     QList<QVideoWidget*> videoWidgets;
+    bool isPresentation = true;
+    bool showVideos = true;
 
 protected:
     void mouseReleaseEvent(QMouseEvent * event);

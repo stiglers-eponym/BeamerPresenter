@@ -22,6 +22,9 @@ ControlScreen::ControlScreen(QString presentationPath, QString notesPath, QWidge
     numberOfPages = presentation->popplerDoc->numPages();
     ui->text_number_slides->setText( QString::fromStdString( std::to_string(numberOfPages) ) );
     ui->text_current_slide->setNumberOfPages(numberOfPages);
+    ui->notes_label->setPresentationStatus(false);
+    ui->current_slide_label->setShowVideos(false);
+    ui->next_slide_label->setShowVideos(false);
     ui->notes_label->setFocus();
 
     presentationScreen = new PresentationScreen( presentation );

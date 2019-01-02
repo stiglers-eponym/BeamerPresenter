@@ -20,6 +20,10 @@ class ClockLabel : public QLabel
 
 public:
     ClockLabel(QWidget* parent = nullptr);
+    ~ClockLabel();
+
+private:
+    QTimer * timer = nullptr;
 
 private slots:
     void showTime();

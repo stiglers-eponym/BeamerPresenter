@@ -29,6 +29,9 @@ int main(int argc, char *argv[])
             "  space                update layout and start timer or continue\n"
             "  Left/Up/PageUp       go to previous slide and start or continue timer\n"
             "  Right/Down/PageDown  go to next slide and start or continue timer\n"
+            "\n"
+            "This program has experimental support for videos.\n"
+            "Many options which can be provided in a pdf are not supported by this program.\n"
         );
     parser.addHelpOption();
     parser.addPositionalArgument("<slides.pdf>", "Slides for a presentation");

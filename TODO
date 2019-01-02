@@ -1,12 +1,15 @@
 BeamerPresenter
 
-* Finish video annotations
-* Add sound
+* Fix all memory leaks
+* Support locked and encrypted pdfs: Enter passwords in QDialog? hide password input!
+
+* Video control bar
+* improve videos
+* Add sound (and other multimedia content?)
 
 * Improve layout
 * Search document
 * Implement other link types
-* Support locked and encrypted pdfs: hide password input!
 
 * Mode to browse slides on control screen
 * Option to show table of content on control screen (with links)

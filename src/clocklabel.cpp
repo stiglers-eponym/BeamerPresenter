@@ -10,10 +10,15 @@
 
 ClockLabel::ClockLabel(QWidget* parent) : QLabel(parent)
 {
-    QTimer *timer = new QTimer(this);
+    timer = new QTimer(this);
     connect(timer, &QTimer::timeout, this, &ClockLabel::showTime);
     timer->start(1000);
     showTime();
+}
+
+ClockLabel::~ClockLabel()
+{
+    delete timer;
 }
 
 void ClockLabel::showTime()
