@@ -13,7 +13,12 @@
 #include <QWidget>
 #include <QLabel>
 #include <QTimer>
+#include <QMovie>
+#include <QMediaPlayer>
+#include <QMediaPlaylist>
+#include <QVideoWidget>
 #include <QMouseEvent>
+#include <QDesktopServices>
 #include <poppler-qt5.h>
 
 class PageLabel : public QLabel
@@ -26,9 +31,15 @@ public:
     ~PageLabel();
     void renderPage(Poppler::Page* page);
     int pageNumber();
+    double getDuration() const;
+
+private:
+    QMediaPlayer * player = nullptr;
+    QMediaPlaylist * playlist = nullptr;
     QList<Poppler::Link*> links;
     QList<QRect*> linkPositions;
-    double getDuration() const;
+    QList<QRect*> moviePositions;
+    QList<QVideoWidget*> videoWidgets;
 
 protected:
     void mouseReleaseEvent(QMouseEvent * event);

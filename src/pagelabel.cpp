@@ -10,25 +10,7 @@
 
 PageLabel::PageLabel(Poppler::Page* page, QWidget* parent) : QLabel(parent)
 {
-    this->page = page;
-    links = page->links();
-    linkPositions = QList<QRect*>();
-    Q_FOREACH(Poppler::Link* link, links) {
-        QRectF relative = link->linkArea();
-        QRect * absolute = new QRect(
-                    int(relative.x()*window()->width()),
-                    int(relative.y()*window()->height()),
-                    int(relative.width()*window()->width()),
-                    int(relative.height()*window()->height())
-                );
-        linkPositions.append( absolute );
-    }
-}
-
-PageLabel::~PageLabel()
-{
-    links.clear();
-    linkPositions.clear();
+    renderPage(page);
 }
 
 PageLabel::PageLabel(QWidget* parent) : QLabel(parent)
@@ -36,6 +18,12 @@ PageLabel::PageLabel(QWidget* parent) : QLabel(parent)
     page = nullptr;
     links = QList<Poppler::Link*>();
     linkPositions = QList<QRect*>();
+}
+
+PageLabel::~PageLabel()
+{
+    links.clear();
+    linkPositions.clear();
 }
 
 int PageLabel::pageNumber()
@@ -78,9 +66,46 @@ void PageLabel::renderPage(Poppler::Page* page)
     }
 
     duration = page->duration();
-    if ( duration > 0) {
-        //std::cout << duration << std::endl;
+    if ( duration > 0)
         QTimer::singleShot(int(1000*duration), this, &PageLabel::timeoutSignal);
+    Poppler::PageTransition* transition = page->transition();
+    if (transition->type() != Poppler::PageTransition::Replace)
+        std::cout << "Unsupported page transition of type " << transition->type() << std::endl;
+    //if (page->annotations().size() != 0)
+    //    std::cout << "This page contains annotations, which are not supported." << std::endl;
+
+    // Show videos. This part is work in progress.
+    QSet<Poppler::Annotation::SubType> movieType = QSet<Poppler::Annotation::SubType>();
+    movieType.insert(Poppler::Annotation::AMovie);
+    QList<Poppler::Annotation*> movies = page->annotations(movieType);
+    videoWidgets.clear();
+    moviePositions.clear();
+    for (int i=0; i<movies.size(); i++) {
+        Poppler::MovieAnnotation* annotation = (Poppler::MovieAnnotation*) movies.at(i);
+        QRectF relative = annotation->boundary();
+        QRect * absolute = new QRect(
+                    shift_x+int(relative.x()*scale_x),
+                    shift_y+int(relative.y()*scale_y),
+                    int(relative.width()*scale_x),
+                    int(relative.height()*scale_y)
+                );
+        if ( player == nullptr )
+            player = new QMediaPlayer(this);
+        if ( playlist == nullptr )
+            playlist = new QMediaPlaylist(player);
+        player->setPlaylist(playlist);
+        // TODO: fix paths, allow for relative paths
+        playlist->addMedia( QUrl::fromLocalFile(annotation->movie()->url()) );
+        //if (annotation->movie()->showPosterImage())
+        //    TODO: show poster image
+        // TODO: controls, interaction
+        QVideoWidget * video = new QVideoWidget(this);
+        videoWidgets.append(video);
+        player->setVideoOutput(video);
+        video->setGeometry(*absolute);
+        video->show();
+        playlist->next();
+        player->play();
     }
 }
 
@@ -97,8 +122,7 @@ void PageLabel::mouseReleaseEvent(QMouseEvent * event)
             {
                 case Poppler::Link::Goto:
                     if ( linkPositions.at(i)->contains(event->pos()) ) {
-                        //std::cout << "Emit new page number signal" << std::endl;
-                        emit sendNewPageNumber( ( (Poppler::LinkGoto*) links.at(i))->destination().pageNumber() - 1 );
+                        emit sendNewPageNumber( ((Poppler::LinkGoto*) links.at(i))->destination().pageNumber() - 1 );
                     }
                 break;
                 case Poppler::Link::Execute:
@@ -106,8 +130,9 @@ void PageLabel::mouseReleaseEvent(QMouseEvent * event)
                         std::cout << "Unsupported link of type execute" << std::endl;
                 break;
                 case Poppler::Link::Browse:
-                    if ( linkPositions.at(i)->contains(event->pos()) )
-                        std::cout << "Unsupported link of type browse" << std::endl;
+                    if ( linkPositions.at(i)->contains(event->pos()) ) {
+                        QDesktopServices::openUrl( QUrl( ((Poppler::LinkBrowse*) links.at(i))->url(), QUrl::TolerantMode ) );
+                    }
                 break;
                 case Poppler::Link::Action:
                     if ( linkPositions.at(i)->contains(event->pos()) ) {

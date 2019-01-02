@@ -22,6 +22,22 @@ PdfDoc::~PdfDoc()
 void PdfDoc::loadDocument()
 {
     popplerDoc = Poppler::Document::load(pdfPath);
+    if (popplerDoc->isEncrypted()) {
+        std::cerr << "This file is encrypted. Encryption is not supported." << std::endl;
+    }
+    if (popplerDoc->isLocked()) {
+        std::cout << "WARNING: File " << pdfPath.toStdString() << ":\n"
+                  << "This file is locked. Support for locked files is HIGHLY EXPERIMENTAL!" << std::endl
+                  << "You can try to enter your password here.\n"
+                  << "YOUR PASSWORD WILL BE VISIBLE IF YOU ENTER IT HERE!" << std::endl;
+        std::string ownerPassword;
+        std::string userPassword;
+        std::cout << "Owner password (NOT HIDDEN!): ";
+        std::cin >> ownerPassword;
+        std::cout << "User password (NOT HIDDEN!): ";
+        std::cin >> userPassword;
+        popplerDoc->unlock(QByteArray::fromStdString(ownerPassword), QByteArray::fromStdString(userPassword));
+    }
     popplerDoc->setRenderHint( Poppler::Document::Antialiasing );
     popplerDoc->setRenderHint( Poppler::Document::TextAntialiasing );
     popplerDoc->setRenderHint( Poppler::Document::TextHinting );
@@ -30,6 +46,13 @@ void PdfDoc::loadDocument()
         Poppler::Page * p = popplerDoc->page(i);
         pdfPages.append( p );
     }
+
+    if (popplerDoc->hasOptionalContent())
+        std::cout << "This file has optional content. Optional content is not supported." << std::endl;
+    if (popplerDoc->hasEmbeddedFiles())
+        std::cout << "This file contains embedded files. Embedded files are not supported." << std::endl;
+    if (popplerDoc->scripts().size() != 0)
+        std::cout << "This file contains JavaScript scripts. JavaScript is not supported." << std::endl;
 }
 
 QSize PdfDoc::getPageSize(int const pageNumber) const

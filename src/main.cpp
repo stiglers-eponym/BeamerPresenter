@@ -25,8 +25,8 @@ int main(int argc, char *argv[])
             "  g                    go to page (set focus to page number edit)\n"
             "  p                    pause / continue timer\n"
             "  r                    reset timer\n"
-            "  o                    toggle pointer visbility (only on presentation screen)\n"
-            "  space                update layout and start timer\n"
+            "  o                    toggle cursor visbility (only on presentation screen)\n"
+            "  space                update layout and start timer or continue\n"
             "  Left/Up/PageUp       go to previous slide and start or continue timer\n"
             "  Right/Down/PageDown  go to next slide and start or continue timer\n"
         );
@@ -36,6 +36,7 @@ int main(int argc, char *argv[])
     parser.addOptions({
         {{"t", "timer"}, "set timer to <time>.\nPossible formats are \"[m]m\", \"[m]m:ss\" and \"h:mm:ss\".", "time"},
     });
+
     parser.process(app);
     if (parser.positionalArguments().size() != 2)
         parser.showHelp(1);
@@ -45,6 +46,5 @@ int main(int argc, char *argv[])
     emit w.sendNewPageNumber(0);
     if ( !parser.value("t").isEmpty() )
         emit w.sendTimerString(parser.value("t"));
-
     return app.exec();
 }

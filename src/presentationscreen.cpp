@@ -54,7 +54,6 @@ void PresentationScreen::renderPage( const int pageNumber )
 
 void PresentationScreen::receiveTimeoutSignal()
 {
-    //std::cout << "reveiceNextPageSignal: " << label->pageNumber() << std::endl;
     renderPage( label->pageNumber() + 1 );
     if ( label->getDuration() < 0 || label->getDuration() > 0.5 )
         emit sendPageShift();
@@ -62,7 +61,6 @@ void PresentationScreen::receiveTimeoutSignal()
 
 void PresentationScreen::receiveNewPageNumber( const int pageNumber )
 {
-    //std::cout << "reveiceNewPageNumber: " << pageNumber << std::endl;
     renderPage(pageNumber);
 }
 

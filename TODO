@@ -1,14 +1,20 @@
 BeamerPresenter
 
+* Finish video annotations
+* Add sound
+
 * Improve layout
 * Search document
 * Implement other link types
+* Support locked and encrypted pdfs: hide password input!
 
 * Mode to browse slides on control screen
+* Option to show table of content on control screen (with links)
 * Draw in presentation
 * Draw mode for control screen
+* Page transitions
 
-* Animations
+* Other animations
 	* strange embedded pdf features (video, audio, JavaScript)
 	* other video or audio?
 	* python or whatever elements?

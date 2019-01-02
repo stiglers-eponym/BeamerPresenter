@@ -14,6 +14,7 @@ ControlScreen::ControlScreen(QString presentationPath, QString notesPath, QWidge
     ui(new Ui::ControlScreen)
 {
     ui->setupUi(this);
+    setWindowTitle("BeamerPresenter: " + notesPath);
     presentation = new PdfDoc( presentationPath );
     presentation->loadDocument();
     notes = new PdfDoc( notesPath );
@@ -24,6 +25,7 @@ ControlScreen::ControlScreen(QString presentationPath, QString notesPath, QWidge
     ui->notes_label->setFocus();
 
     presentationScreen = new PresentationScreen( presentation );
+    presentationScreen->setWindowTitle("BeamerPresenter: " + presentationPath);
 
     // Page requests from the labels:
     // These are emitted if links are clicked.
@@ -137,15 +139,12 @@ void ControlScreen::receiveNewPageNumber(int const pageNumber)
 
 void ControlScreen::receivePageShiftEdit(int const shift)
 {
-    std::cout << "receivePageShiftEdit" << std::endl;
     renderPage( currentPageNumber + shift );
 }
 
 void ControlScreen::receivePageShiftReturn(int const shift)
 {
     int pageNumber = presentationScreen->getPageNumber() + shift;
-    //std::cout << "receivePageShiftReturn: sending new page number " << pageNumber << std::endl;
-    //emit sendNewPageNumber( pageNumber );
     renderPage( pageNumber );
     ui->label_timer->continueTimer();
 }
