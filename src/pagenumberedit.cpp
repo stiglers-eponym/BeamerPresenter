@@ -10,8 +10,12 @@
 
 PageNumberEdit::PageNumberEdit(QWidget * parent) : QLineEdit(parent)
 {
-    //connect(this, &PageNumberEdit::returnPressed, this, &PageNumberEdit::receiveReturnSignal);
     connect(this, &PageNumberEdit::textChanged, this, &PageNumberEdit::receiveEditSignal);
+}
+
+PageNumberEdit::~PageNumberEdit()
+{
+    disconnect(this, &PageNumberEdit::textChanged, this, &PageNumberEdit::receiveEditSignal);
 }
 
 void PageNumberEdit::setNumberOfPages(const int numberOfPages)

@@ -18,6 +18,7 @@ ClockLabel::ClockLabel(QWidget* parent) : QLabel(parent)
 
 ClockLabel::~ClockLabel()
 {
+    disconnect(timer, &QTimer::timeout, this, &ClockLabel::showTime);
     delete timer;
 }
 

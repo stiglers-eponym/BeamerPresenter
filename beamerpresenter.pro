@@ -32,7 +32,8 @@ SOURCES += \
         src/pagelabel.cpp \
         src/clocklabel.cpp \
         src/timer.cpp \
-        src/pagenumberedit.cpp
+        src/pagenumberedit.cpp \
+    src/videowidget.cpp
 
 HEADERS += \
         src/controlscreen.h \
@@ -41,7 +42,8 @@ HEADERS += \
         src/pagelabel.h \
         src/clocklabel.h \
         src/timer.h \
-        src/pagenumberedit.h
+        src/pagenumberedit.h \
+    src/videowidget.h
 
 FORMS += \
         src/controlscreen.ui

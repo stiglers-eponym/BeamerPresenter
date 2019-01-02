@@ -23,8 +23,8 @@ ControlScreen::ControlScreen(QString presentationPath, QString notesPath, QWidge
     ui->text_number_slides->setText( QString::fromStdString( std::to_string(numberOfPages) ) );
     ui->text_current_slide->setNumberOfPages(numberOfPages);
     ui->notes_label->setPresentationStatus(false);
-    ui->current_slide_label->setShowVideos(false);
-    ui->next_slide_label->setShowVideos(false);
+    ui->current_slide_label->setShowMultimedia(false);
+    ui->next_slide_label->setShowMultimedia(false);
     ui->notes_label->setFocus();
 
     presentationScreen = new PresentationScreen( presentation );
@@ -71,6 +71,40 @@ ControlScreen::ControlScreen(QString presentationPath, QString notesPath, QWidge
 
 ControlScreen::~ControlScreen()
 {
+    QObject::disconnect(ui->notes_label,         &PageLabel::sendNewPageNumber, this, &ControlScreen::receiveNewPageNumber);
+    QObject::disconnect(ui->current_slide_label, &PageLabel::sendNewPageNumber, this, &ControlScreen::receiveNewPageNumber);
+    QObject::disconnect(ui->next_slide_label,    &PageLabel::sendNewPageNumber, this, &ControlScreen::receiveNewPageNumber);
+    QObject::disconnect(ui->notes_label,         &PageLabel::sendNewPageNumber, presentationScreen, &PresentationScreen::receiveNewPageNumber);
+    QObject::disconnect(ui->current_slide_label, &PageLabel::sendNewPageNumber, presentationScreen, &PresentationScreen::receiveNewPageNumber);
+    QObject::disconnect(ui->next_slide_label,    &PageLabel::sendNewPageNumber, presentationScreen, &PresentationScreen::receiveNewPageNumber);
+
+    // Navigation signals emitted by PresentationScreen:
+    QObject::disconnect(presentationScreen, &PresentationScreen::sendPageShift,     this, &ControlScreen::receivePageShiftReturn);
+    QObject::disconnect(presentationScreen, &PresentationScreen::sendNewPageNumber, this, &ControlScreen::receiveNewPageNumber);
+
+    // Other signals emitted by PresentationScreen
+    QObject::disconnect(presentationScreen, &PresentationScreen::sendKeyEvent,    this, &ControlScreen::keyPressEvent);
+    QObject::disconnect(presentationScreen, &PresentationScreen::sendCloseSignal, this, &ControlScreen::receiveCloseSignal);
+
+    // Signals sent back to PresentationScreen
+    QObject::disconnect(this, &ControlScreen::sendNewPageNumber, presentationScreen, &PresentationScreen::receiveNewPageNumber);
+    QObject::disconnect(this, &ControlScreen::sendCloseSignal,   presentationScreen, &PresentationScreen::receiveCloseSignal);
+
+    ui->label_timer->setTimerWidget( ui->edit_timer );
+    // Signals emitted by the timer
+    QObject::disconnect(ui->label_timer, &Timer::sendAlert,   this, &ControlScreen::receiveTimerAlert);
+    QObject::disconnect(ui->label_timer, &Timer::sendNoAlert, this, &ControlScreen::resetTimerAlert);
+    QObject::disconnect(ui->label_timer, &Timer::sendEscape,  this, &ControlScreen::resetFocus);
+    // Signals sent back to the timer
+    QObject::disconnect(this, &ControlScreen::sendTimerString, ui->label_timer, &Timer::receiveTimerString);
+
+    // Signals emitted by the page number editor
+    QObject::disconnect(ui->text_current_slide, &PageNumberEdit::sendPageNumberReturn, presentationScreen, &PresentationScreen::receiveNewPageNumber);
+    QObject::disconnect(ui->text_current_slide, &PageNumberEdit::sendPageShiftReturn,  presentationScreen, &PresentationScreen::receiveNewPageNumber);
+    QObject::disconnect(ui->text_current_slide, &PageNumberEdit::sendPageNumberEdit,  this, &ControlScreen::receiveNewPageNumber);
+    QObject::disconnect(ui->text_current_slide, &PageNumberEdit::sendPageShiftEdit,   this, &ControlScreen::receivePageShiftEdit);
+    QObject::disconnect(ui->text_current_slide, &PageNumberEdit::sendPageShiftReturn, this, &ControlScreen::receivePageShiftReturn);
+    QObject::disconnect(ui->text_current_slide, &PageNumberEdit::sendEscape,          this, &ControlScreen::resetFocus);
     delete notes;
     delete presentationScreen;
     delete ui;

@@ -18,10 +18,10 @@ PageLabel::PageLabel(QWidget* parent) : QLabel(parent)
     page = nullptr;
     links = QList<Poppler::Link*>();
     linkPositions = QList<QRect*>();
-    videoPlayers = QList<QMediaPlayer*>();
-    videoPlaylists = QList<QMediaPlaylist*>();
-    videoWidgets = QList<QVideoWidget*>();
+    videoWidgets = QList<VideoWidget*>();
     videoPositions = QList<QRect*>();
+    soundPositions = QList<QRect*>();
+    soundPlayers = QList<QMediaPlayer*>();
 }
 
 PageLabel::~PageLabel()
@@ -34,10 +34,10 @@ PageLabel::~PageLabel()
     videoPositions.clear();
     qDeleteAll(videoWidgets);
     videoWidgets.clear();
-    qDeleteAll(videoPlaylists);
-    videoPlaylists.clear();
-    qDeleteAll(videoPlayers);
-    videoPlayers.clear();
+    qDeleteAll(soundPositions);
+    soundPositions.clear();
+    qDeleteAll(soundPlayers);
+    soundPlayers.clear();
     page = nullptr;
 }
 
@@ -54,12 +54,12 @@ void PageLabel::renderPage(Poppler::Page* page)
     linkPositions.clear();
     qDeleteAll(videoPositions);
     videoPositions.clear();
-    qDeleteAll(videoPlaylists);
-    videoPlaylists.clear();
     qDeleteAll(videoWidgets);
     videoWidgets.clear();
-    qDeleteAll(videoPlayers);
-    videoPlayers.clear();
+    qDeleteAll(soundPositions);
+    soundPositions.clear();
+    qDeleteAll(soundPlayers);
+    soundPlayers.clear();
 
     this->page = page;
     QSize pageSize = page->pageSize();
@@ -97,18 +97,16 @@ void PageLabel::renderPage(Poppler::Page* page)
     Poppler::PageTransition* transition = page->transition();
     if (transition->type() != Poppler::PageTransition::Replace)
         std::cout << "Unsupported page transition of type " << transition->type() << std::endl;
-    //if (page->annotations().size() != 0)
-    //    std::cout << "This page contains annotations, which are not supported." << std::endl;
 
     // Show videos. This part is work in progress.
     // TODO: This is probably inefficient.
-    if (showVideos) {
+    if (showMultimedia) {
+        // Currently videos are started directly.
         QSet<Poppler::Annotation::SubType> videoType = QSet<Poppler::Annotation::SubType>();
         videoType.insert(Poppler::Annotation::AMovie);
         QList<Poppler::Annotation*> videos = page->annotations(videoType);
         for (int i=0; i<videos.size(); i++) {
             Poppler::MovieAnnotation* annotation = (Poppler::MovieAnnotation*) videos.at(i);
-            Poppler::MovieObject * movie = annotation->movie();
             QRectF relative = annotation->boundary();
             QRect * absolute = new QRect(
                         shift_x+int(relative.x()*scale_x),
@@ -116,54 +114,44 @@ void PageLabel::renderPage(Poppler::Page* page)
                         int(relative.width()*scale_x),
                         int(relative.height()*scale_y)
                     );
-            movie->playMode();
             videoPositions.append(absolute);
-            QMediaPlayer * player = new QMediaPlayer(this);
-            videoPlayers.append(player);
-            QMediaPlaylist * playlist = new QMediaPlaylist(player);
-            videoPlaylists.append(playlist);
-            QVideoWidget * video = new QVideoWidget(this);
-            videoWidgets.append(video);
-            //QPalette palette = QPalette();
-            //palette.setColor(QPalette::Background, Qt::white);
-            //video->setPalette(palette);
-            //video->setAutoFillBackground(true);
-            player->setPlaylist(playlist);
-            player->setVideoOutput(video);
-            video->setGeometry(*absolute);
-            video->setMouseTracking(true); // TODO: It should be possible to do this more efficiently
 
-            QUrl url = QUrl(movie->url());
-            if (!url.isValid())
-                QUrl url = QUrl::fromLocalFile(movie->url());
-            if (url.isRelative())
-                url = QUrl::fromLocalFile( QDir(".").absoluteFilePath( url.path()) );
-            playlist->addMedia( url );
-            // TODO: Check if poster image is shown correctly, otherwise show it with
-            // if (movie->showPosterImage())
+            VideoWidget * video = new VideoWidget(annotation->movie(), this);
+            videoWidgets.append(video);
+            video->setGeometry(*absolute);
             video->show();
-            playlist->next();
-            switch (movie->playMode()) {
-                case Poppler::MovieObject::PlayOpen:
-                    // TODO: PlayOpen leaves controls open (but they are not implemented yet).
-                case Poppler::MovieObject::PlayOnce:
-                    playlist->setPlaybackMode(QMediaPlaylist::CurrentItemOnce);
-                break;
-                case Poppler::MovieObject::PlayPalindrome:
-                    std::cout << "This video should be played in palindrome mode, which is not supported.\n"
-                              << "The video will be played in loop mode instead." << std::endl;
-                    // TODO: implement backward play and palindrome mode
-                case Poppler::MovieObject::PlayRepeat:
-                    playlist->setPlaybackMode(QMediaPlaylist::CurrentItemInLoop);
-                break;
-            }
-            player->play();
-            if (movie->showControls() || !isPresentation) {
-                // TODO: video control bar
-            }
         }
         qDeleteAll(videos);
         videos.clear();
+
+        // Untested!
+        QSet<Poppler::Annotation::SubType> soundType = QSet<Poppler::Annotation::SubType>();
+        soundType.insert(Poppler::Annotation::ASound);
+        QList<Poppler::Annotation*> sounds = page->annotations(soundType);
+        for (int i=0; i<sounds.size(); i++) {
+            std::cout << "WARNING: Support for sound is untested!" << std::endl;
+            Poppler::SoundAnnotation* annotation = (Poppler::SoundAnnotation*) sounds.at(i);
+            QRectF relative = annotation->boundary();
+            QRect * absolute = new QRect(
+                        shift_x+int(relative.x()*scale_x),
+                        shift_y+int(relative.y()*scale_y),
+                        int(relative.width()*scale_x),
+                        int(relative.height()*scale_y)
+                    );
+            soundPositions.append(absolute);
+
+            Poppler::SoundObject * sound = annotation->sound();
+            QMediaPlayer * player = new QMediaPlayer(this);
+            QUrl url = QUrl(sound->url());
+            if (!url.isValid())
+                QUrl url = QUrl::fromLocalFile(sound->url());
+            if (url.isRelative())
+                url = QUrl::fromLocalFile( QDir(".").absoluteFilePath( url.path()) );
+            player->setMedia( url );
+            soundPlayers.append(player);
+        }
+        qDeleteAll(sounds);
+        sounds.clear();
     }
 }
 
@@ -172,9 +160,9 @@ void PageLabel::setPresentationStatus(bool const isPresentation)
     this->isPresentation = isPresentation;
 }
 
-void PageLabel::setShowVideos(const bool showVideos)
+void PageLabel::setShowMultimedia(const bool showMultimedia)
 {
-    this->showVideos = showVideos;
+    this->showMultimedia = showMultimedia;
 }
 
 double PageLabel::getDuration() const
@@ -230,12 +218,12 @@ void PageLabel::mouseReleaseEvent(QMouseEvent * event)
                 }
             }
         }
-        for (int i=0; i<videoPositions.size(); i++) {
-            if ( videoPositions.at(i)->contains(event->pos()) ) {
-                if ( videoPlayers.at(i)->state() == QMediaPlayer::PlayingState )
-                    videoPlayers.at(i)->pause();
+        for (int i=0; i<soundPositions.size(); i++) {
+            if (soundPositions.at(i)->contains(event->pos())) {
+                if (soundPlayers.at(i)->state() == QMediaPlayer::PlayingState)
+                    soundPlayers.at(i)->pause();
                 else
-                    videoPlayers.at(i)->play();
+                    soundPlayers.at(i)->play();
             }
         }
     }
@@ -247,12 +235,12 @@ void PageLabel::togglePointerVisibility()
     if ( pointer_visible ) {
         pointer_visible = false;
         setMouseTracking(false);
-        this->setCursor( Qt::BlankCursor );
+        setCursor( Qt::BlankCursor );
     }
     else {
         pointer_visible = true;
         setMouseTracking(true);
-        this->setCursor( Qt::ArrowCursor );
+        setCursor( Qt::ArrowCursor );
     }
 }
 
@@ -260,21 +248,22 @@ void PageLabel::mouseMoveEvent(QMouseEvent * event)
 {
     if (!pointer_visible)
         return;
-    bool is_arrow_pointer = this->cursor() == Qt::ArrowCursor;
+    bool is_arrow_pointer = cursor() == Qt::ArrowCursor;
     Q_FOREACH(QRect* link_rect, linkPositions) {
         if (link_rect->contains(event->pos())) {
             if (is_arrow_pointer)
-                this->setCursor(Qt::PointingHandCursor);
+                setCursor(Qt::PointingHandCursor);
             return;
         }
     }
-    Q_FOREACH(QRect* video_rect, videoPositions) {
-        if (video_rect->contains(event->pos())) {
+    Q_FOREACH(QRect* sound_rect, soundPositions) {
+        if (sound_rect->contains(event->pos())) {
             if (is_arrow_pointer)
-                this->setCursor(Qt::PointingHandCursor);
+                setCursor(Qt::PointingHandCursor);
             return;
         }
     }
     if (!is_arrow_pointer)
-        this->setCursor(Qt::ArrowCursor);
+        setCursor(Qt::ArrowCursor);
+    event->accept();
 }

@@ -19,6 +19,7 @@ class PageNumberEdit : public QLineEdit
 
 public:
     PageNumberEdit(QWidget * parent = nullptr);
+    ~PageNumberEdit();
     void setNumberOfPages(const int numberOfPages);
 
 protected:

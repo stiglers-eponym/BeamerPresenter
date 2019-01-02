@@ -32,6 +32,10 @@ PresentationScreen::PresentationScreen(PdfDoc* presentationDoc, QWidget *parent)
 
 PresentationScreen::~PresentationScreen()
 {
+    QObject::disconnect(label, &PageLabel::sendNewPageNumber,       this, &PresentationScreen::receiveNewPageNumber);
+    QObject::disconnect(label, &PageLabel::sendNewPageNumber,       this, &PresentationScreen::sendNewPageNumber);
+    QObject::disconnect(label, &PageLabel::timeoutSignal,           this, &PresentationScreen::receiveTimeoutSignal);
+    QObject::disconnect(this, &PresentationScreen::togglePointerVisibilitySignal, label, &PageLabel::togglePointerVisibility);
     delete label;
     delete presentation;
     delete layout;
