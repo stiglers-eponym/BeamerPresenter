@@ -1,12 +1,11 @@
 BeamerPresenter
 
-* Avoid short black flash when showing video
-* Fix all memory leaks
-* Support locked and encrypted pdfs: Enter passwords in QDialog? hide password input!
+* Always check for memory leaks!
 
-* Video control bar
-* improve videos
-* Add sound (and other multimedia content?)
+* Support locked and encrypted pdfs: Enter passwords in QDialog? hide password input!
+* Video and sound control bar
+* improve videos (palindrome mode, make autostart optional)
+* test and improve sound
 
 * Improve layout
 * Search document
@@ -25,3 +24,4 @@ BeamerPresenter
 	* connection to pyqtgraph and paraview?
 
 * Make dependence on qt5-multimedia optional
+* Avoid short black flash when showing video
