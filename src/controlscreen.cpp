@@ -33,78 +33,88 @@ ControlScreen::ControlScreen(QString presentationPath, QString notesPath, QWidge
     // Page requests from the labels:
     // These are emitted if links are clicked.
     // These events are send to ControlScreen and PresentationScreen
-    QObject::connect(ui->notes_label,         &PageLabel::sendNewPageNumber, this, &ControlScreen::receiveNewPageNumber);
-    QObject::connect(ui->current_slide_label, &PageLabel::sendNewPageNumber, this, &ControlScreen::receiveNewPageNumber);
-    QObject::connect(ui->next_slide_label,    &PageLabel::sendNewPageNumber, this, &ControlScreen::receiveNewPageNumber);
-    QObject::connect(ui->notes_label,         &PageLabel::sendNewPageNumber, presentationScreen, &PresentationScreen::receiveNewPageNumber);
-    QObject::connect(ui->current_slide_label, &PageLabel::sendNewPageNumber, presentationScreen, &PresentationScreen::receiveNewPageNumber);
-    QObject::connect(ui->next_slide_label,    &PageLabel::sendNewPageNumber, presentationScreen, &PresentationScreen::receiveNewPageNumber);
+    connect(ui->notes_label,         &PageLabel::sendNewPageNumber, this, &ControlScreen::receiveNewPageNumber);
+    connect(ui->current_slide_label, &PageLabel::sendNewPageNumber, this, &ControlScreen::receiveNewPageNumber);
+    connect(ui->next_slide_label,    &PageLabel::sendNewPageNumber, this, &ControlScreen::receiveNewPageNumber);
+    connect(ui->notes_label,         &PageLabel::sendNewPageNumber, presentationScreen, &PresentationScreen::receiveNewPageNumber);
+    connect(ui->current_slide_label, &PageLabel::sendNewPageNumber, presentationScreen, &PresentationScreen::receiveNewPageNumber);
+    connect(ui->next_slide_label,    &PageLabel::sendNewPageNumber, presentationScreen, &PresentationScreen::receiveNewPageNumber);
 
     // Navigation signals emitted by PresentationScreen:
-    QObject::connect(presentationScreen, &PresentationScreen::sendPageShift,     this, &ControlScreen::receivePageShiftReturn);
-    QObject::connect(presentationScreen, &PresentationScreen::sendNewPageNumber, this, &ControlScreen::receiveNewPageNumber);
+    connect(presentationScreen, &PresentationScreen::sendPageShift,     this, &ControlScreen::receivePageShiftReturn);
+    connect(presentationScreen, &PresentationScreen::sendNewPageNumber, this, &ControlScreen::receiveNewPageNumber);
 
     // Other signals emitted by PresentationScreen
-    QObject::connect(presentationScreen, &PresentationScreen::sendKeyEvent,    this, &ControlScreen::keyPressEvent);
-    QObject::connect(presentationScreen, &PresentationScreen::sendCloseSignal, this, &ControlScreen::receiveCloseSignal);
+    connect(presentationScreen, &PresentationScreen::sendKeyEvent,    this, &ControlScreen::keyPressEvent);
+    connect(presentationScreen, &PresentationScreen::sendCloseSignal, this, &ControlScreen::receiveCloseSignal);
 
     // Signals sent back to PresentationScreen
-    QObject::connect(this, &ControlScreen::sendNewPageNumber, presentationScreen, &PresentationScreen::receiveNewPageNumber);
-    QObject::connect(this, &ControlScreen::sendCloseSignal,   presentationScreen, &PresentationScreen::receiveCloseSignal);
+    connect(this, &ControlScreen::sendNewPageNumber, presentationScreen, &PresentationScreen::receiveNewPageNumber);
+    connect(this, &ControlScreen::sendCloseSignal,   presentationScreen, &PresentationScreen::receiveCloseSignal);
 
     ui->label_timer->setTimerWidget( ui->edit_timer );
     // Signals emitted by the timer
-    QObject::connect(ui->label_timer, &Timer::sendAlert,   this, &ControlScreen::receiveTimerAlert);
-    QObject::connect(ui->label_timer, &Timer::sendNoAlert, this, &ControlScreen::resetTimerAlert);
-    QObject::connect(ui->label_timer, &Timer::sendEscape,  this, &ControlScreen::resetFocus);
+    connect(ui->label_timer, &Timer::sendAlert,   this, &ControlScreen::receiveTimerAlert);
+    connect(ui->label_timer, &Timer::sendNoAlert, this, &ControlScreen::resetTimerAlert);
+    connect(ui->label_timer, &Timer::sendEscape,  this, &ControlScreen::resetFocus);
     // Signals sent back to the timer
-    QObject::connect(this, &ControlScreen::sendTimerString, ui->label_timer, &Timer::receiveTimerString);
+    connect(this, &ControlScreen::sendTimerString, ui->label_timer, &Timer::receiveTimerString);
+    connect(this, &ControlScreen::sendTimeoutInterval, ui->label_timer, &Timer::receiveTimeoutInterval);
+
+    // Signals sent to the page labels
+    connect(this, &ControlScreen::sendAutostartDelay, ui->notes_label, &PageLabel::setAutostartDelay);
+    connect(this, &ControlScreen::sendAutostartDelay, presentationScreen->getLabel(), &PageLabel::setAutostartDelay);
 
     // Signals emitted by the page number editor
-    QObject::connect(ui->text_current_slide, &PageNumberEdit::sendPageNumberReturn, presentationScreen, &PresentationScreen::receiveNewPageNumber);
-    QObject::connect(ui->text_current_slide, &PageNumberEdit::sendPageShiftReturn,  presentationScreen, &PresentationScreen::receiveNewPageNumber);
-    QObject::connect(ui->text_current_slide, &PageNumberEdit::sendPageNumberEdit,  this, &ControlScreen::receiveNewPageNumber);
-    QObject::connect(ui->text_current_slide, &PageNumberEdit::sendPageShiftEdit,   this, &ControlScreen::receivePageShiftEdit);
-    QObject::connect(ui->text_current_slide, &PageNumberEdit::sendPageShiftReturn, this, &ControlScreen::receivePageShiftReturn);
-    QObject::connect(ui->text_current_slide, &PageNumberEdit::sendEscape,          this, &ControlScreen::resetFocus);
+    connect(ui->text_current_slide, &PageNumberEdit::sendPageNumberReturn, presentationScreen, &PresentationScreen::receiveNewPageNumber);
+    connect(ui->text_current_slide, &PageNumberEdit::sendPageShiftReturn,  presentationScreen, &PresentationScreen::receiveNewPageNumber);
+    connect(ui->text_current_slide, &PageNumberEdit::sendPageNumberEdit,  this, &ControlScreen::receiveNewPageNumber);
+    connect(ui->text_current_slide, &PageNumberEdit::sendPageShiftEdit,   this, &ControlScreen::receivePageShiftEdit);
+    connect(ui->text_current_slide, &PageNumberEdit::sendPageShiftReturn, this, &ControlScreen::receivePageShiftReturn);
+    connect(ui->text_current_slide, &PageNumberEdit::sendEscape,          this, &ControlScreen::resetFocus);
 }
 
 ControlScreen::~ControlScreen()
 {
-    QObject::disconnect(ui->notes_label,         &PageLabel::sendNewPageNumber, this, &ControlScreen::receiveNewPageNumber);
-    QObject::disconnect(ui->current_slide_label, &PageLabel::sendNewPageNumber, this, &ControlScreen::receiveNewPageNumber);
-    QObject::disconnect(ui->next_slide_label,    &PageLabel::sendNewPageNumber, this, &ControlScreen::receiveNewPageNumber);
-    QObject::disconnect(ui->notes_label,         &PageLabel::sendNewPageNumber, presentationScreen, &PresentationScreen::receiveNewPageNumber);
-    QObject::disconnect(ui->current_slide_label, &PageLabel::sendNewPageNumber, presentationScreen, &PresentationScreen::receiveNewPageNumber);
-    QObject::disconnect(ui->next_slide_label,    &PageLabel::sendNewPageNumber, presentationScreen, &PresentationScreen::receiveNewPageNumber);
+    disconnect(ui->notes_label,         &PageLabel::sendNewPageNumber, this, &ControlScreen::receiveNewPageNumber);
+    disconnect(ui->current_slide_label, &PageLabel::sendNewPageNumber, this, &ControlScreen::receiveNewPageNumber);
+    disconnect(ui->next_slide_label,    &PageLabel::sendNewPageNumber, this, &ControlScreen::receiveNewPageNumber);
+    disconnect(ui->notes_label,         &PageLabel::sendNewPageNumber, presentationScreen, &PresentationScreen::receiveNewPageNumber);
+    disconnect(ui->current_slide_label, &PageLabel::sendNewPageNumber, presentationScreen, &PresentationScreen::receiveNewPageNumber);
+    disconnect(ui->next_slide_label,    &PageLabel::sendNewPageNumber, presentationScreen, &PresentationScreen::receiveNewPageNumber);
 
     // Navigation signals emitted by PresentationScreen:
-    QObject::disconnect(presentationScreen, &PresentationScreen::sendPageShift,     this, &ControlScreen::receivePageShiftReturn);
-    QObject::disconnect(presentationScreen, &PresentationScreen::sendNewPageNumber, this, &ControlScreen::receiveNewPageNumber);
+    disconnect(presentationScreen, &PresentationScreen::sendPageShift,     this, &ControlScreen::receivePageShiftReturn);
+    disconnect(presentationScreen, &PresentationScreen::sendNewPageNumber, this, &ControlScreen::receiveNewPageNumber);
 
     // Other signals emitted by PresentationScreen
-    QObject::disconnect(presentationScreen, &PresentationScreen::sendKeyEvent,    this, &ControlScreen::keyPressEvent);
-    QObject::disconnect(presentationScreen, &PresentationScreen::sendCloseSignal, this, &ControlScreen::receiveCloseSignal);
+    disconnect(presentationScreen, &PresentationScreen::sendKeyEvent,    this, &ControlScreen::keyPressEvent);
+    disconnect(presentationScreen, &PresentationScreen::sendCloseSignal, this, &ControlScreen::receiveCloseSignal);
 
     // Signals sent back to PresentationScreen
-    QObject::disconnect(this, &ControlScreen::sendNewPageNumber, presentationScreen, &PresentationScreen::receiveNewPageNumber);
-    QObject::disconnect(this, &ControlScreen::sendCloseSignal,   presentationScreen, &PresentationScreen::receiveCloseSignal);
+    disconnect(this, &ControlScreen::sendNewPageNumber, presentationScreen, &PresentationScreen::receiveNewPageNumber);
+    disconnect(this, &ControlScreen::sendCloseSignal,   presentationScreen, &PresentationScreen::receiveCloseSignal);
 
     ui->label_timer->setTimerWidget( ui->edit_timer );
     // Signals emitted by the timer
-    QObject::disconnect(ui->label_timer, &Timer::sendAlert,   this, &ControlScreen::receiveTimerAlert);
-    QObject::disconnect(ui->label_timer, &Timer::sendNoAlert, this, &ControlScreen::resetTimerAlert);
-    QObject::disconnect(ui->label_timer, &Timer::sendEscape,  this, &ControlScreen::resetFocus);
+    disconnect(ui->label_timer, &Timer::sendAlert,   this, &ControlScreen::receiveTimerAlert);
+    disconnect(ui->label_timer, &Timer::sendNoAlert, this, &ControlScreen::resetTimerAlert);
+    disconnect(ui->label_timer, &Timer::sendEscape,  this, &ControlScreen::resetFocus);
     // Signals sent back to the timer
-    QObject::disconnect(this, &ControlScreen::sendTimerString, ui->label_timer, &Timer::receiveTimerString);
+    disconnect(this, &ControlScreen::sendTimerString, ui->label_timer, &Timer::receiveTimerString);
+    disconnect(this, &ControlScreen::sendTimeoutInterval, ui->label_timer, &Timer::receiveTimeoutInterval);
+
+    // Signals sent to the page labels
+    disconnect(this, &ControlScreen::sendAutostartDelay, ui->notes_label, &PageLabel::setAutostartDelay);
+    disconnect(this, &ControlScreen::sendAutostartDelay, presentationScreen->getLabel(), &PageLabel::setAutostartDelay);
 
     // Signals emitted by the page number editor
-    QObject::disconnect(ui->text_current_slide, &PageNumberEdit::sendPageNumberReturn, presentationScreen, &PresentationScreen::receiveNewPageNumber);
-    QObject::disconnect(ui->text_current_slide, &PageNumberEdit::sendPageShiftReturn,  presentationScreen, &PresentationScreen::receiveNewPageNumber);
-    QObject::disconnect(ui->text_current_slide, &PageNumberEdit::sendPageNumberEdit,  this, &ControlScreen::receiveNewPageNumber);
-    QObject::disconnect(ui->text_current_slide, &PageNumberEdit::sendPageShiftEdit,   this, &ControlScreen::receivePageShiftEdit);
-    QObject::disconnect(ui->text_current_slide, &PageNumberEdit::sendPageShiftReturn, this, &ControlScreen::receivePageShiftReturn);
-    QObject::disconnect(ui->text_current_slide, &PageNumberEdit::sendEscape,          this, &ControlScreen::resetFocus);
+    disconnect(ui->text_current_slide, &PageNumberEdit::sendPageNumberReturn, presentationScreen, &PresentationScreen::receiveNewPageNumber);
+    disconnect(ui->text_current_slide, &PageNumberEdit::sendPageShiftReturn,  presentationScreen, &PresentationScreen::receiveNewPageNumber);
+    disconnect(ui->text_current_slide, &PageNumberEdit::sendPageNumberEdit,  this, &ControlScreen::receiveNewPageNumber);
+    disconnect(ui->text_current_slide, &PageNumberEdit::sendPageShiftEdit,   this, &ControlScreen::receivePageShiftEdit);
+    disconnect(ui->text_current_slide, &PageNumberEdit::sendPageShiftReturn, this, &ControlScreen::receivePageShiftReturn);
+    disconnect(ui->text_current_slide, &PageNumberEdit::sendEscape,          this, &ControlScreen::resetFocus);
     delete notes;
     delete presentationScreen;
     delete ui;

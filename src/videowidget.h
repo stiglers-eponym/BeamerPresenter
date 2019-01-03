@@ -30,6 +30,9 @@ protected:
 private:
     QMediaPlayer * player;
 
+public slots:
+    void play();
+
 private slots:
     void showPosterImage(QMediaPlayer::State state);
     void bouncePalindromeVideo(QMediaPlayer::State state);

@@ -10,7 +10,7 @@ VideoWidget::VideoWidget(Poppler::MovieObject * movie, QWidget * parent) : QVide
     if (!image.isNull())
         palette->setBrush( QPalette::Window, QBrush(image));
     setPalette(*palette);
-    //delete palette;
+    delete palette;
     setAutoFillBackground(true);
 
     QUrl url = QUrl(movie->url());
@@ -21,19 +21,18 @@ VideoWidget::VideoWidget(Poppler::MovieObject * movie, QWidget * parent) : QVide
     player->setMedia( url );
     // TODO: Check if poster image is shown correctly, otherwise show it with
     // if (movie->showPosterImage())
-    player->play();
     switch (movie->playMode()) {
         case Poppler::MovieObject::PlayOpen:
-            // TODO: PlayOpen leaves controls open (but they are not implemented yet).
+            // TODO: PlayOpen should leave controls open (but they are not implemented yet).
         case Poppler::MovieObject::PlayOnce:
-            QObject::connect(player, &QMediaPlayer::stateChanged, this, &VideoWidget::showPosterImage);
+            connect(player, &QMediaPlayer::stateChanged, this, &VideoWidget::showPosterImage);
         break;
         case Poppler::MovieObject::PlayPalindrome:
             std::cout << "WARNING: play mode=palindrome does not work as it should." << std::endl;
-            QObject::connect(player, &QMediaPlayer::stateChanged, this, &VideoWidget::bouncePalindromeVideo);
+            connect(player, &QMediaPlayer::stateChanged, this, &VideoWidget::bouncePalindromeVideo);
         break;
         case Poppler::MovieObject::PlayRepeat:
-            QObject::connect(player, &QMediaPlayer::stateChanged, this, &VideoWidget::restartVideo);
+            connect(player, &QMediaPlayer::stateChanged, this, &VideoWidget::restartVideo);
         break;
     }
     if (movie->showControls()) {
@@ -48,10 +47,16 @@ VideoWidget::VideoWidget(Poppler::MovieObject * movie, QWidget * parent) : QVide
 VideoWidget::~VideoWidget()
 {
     player->stop();
-    QObject::disconnect(player, &QMediaPlayer::stateChanged, this, &VideoWidget::showPosterImage);
-    QObject::disconnect(player, &QMediaPlayer::stateChanged, this, &VideoWidget::bouncePalindromeVideo);
-    QObject::disconnect(player, &QMediaPlayer::stateChanged, this, &VideoWidget::restartVideo);
+    disconnect(player, &QMediaPlayer::stateChanged, this, &VideoWidget::showPosterImage);
+    disconnect(player, &QMediaPlayer::stateChanged, this, &VideoWidget::bouncePalindromeVideo);
+    disconnect(player, &QMediaPlayer::stateChanged, this, &VideoWidget::restartVideo);
     delete player;
+}
+
+void VideoWidget::play()
+{
+    show();
+    player->play();
 }
 
 void VideoWidget::showPosterImage(QMediaPlayer::State state)

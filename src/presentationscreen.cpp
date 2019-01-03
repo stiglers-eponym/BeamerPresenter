@@ -22,23 +22,28 @@ PresentationScreen::PresentationScreen(PdfDoc* presentationDoc, QWidget *parent)
     layout->setContentsMargins(0, 0, 0, 0);
     layout->addWidget( label, 0, 0 );
     label->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-    QObject::connect(label, &PageLabel::sendNewPageNumber,       this, &PresentationScreen::receiveNewPageNumber);
-    QObject::connect(label, &PageLabel::sendNewPageNumber,       this, &PresentationScreen::sendNewPageNumber);
-    QObject::connect(label, &PageLabel::timeoutSignal,           this, &PresentationScreen::receiveTimeoutSignal);
-    QObject::connect(this, &PresentationScreen::togglePointerVisibilitySignal, label, &PageLabel::togglePointerVisibility);
+    connect(label, &PageLabel::sendNewPageNumber,       this, &PresentationScreen::receiveNewPageNumber);
+    connect(label, &PageLabel::sendNewPageNumber,       this, &PresentationScreen::sendNewPageNumber);
+    connect(label, &PageLabel::timeoutSignal,           this, &PresentationScreen::receiveTimeoutSignal);
+    connect(this, &PresentationScreen::togglePointerVisibilitySignal, label, &PageLabel::togglePointerVisibility);
     label->togglePointerVisibility();
     show();
 }
 
 PresentationScreen::~PresentationScreen()
 {
-    QObject::disconnect(label, &PageLabel::sendNewPageNumber,       this, &PresentationScreen::receiveNewPageNumber);
-    QObject::disconnect(label, &PageLabel::sendNewPageNumber,       this, &PresentationScreen::sendNewPageNumber);
-    QObject::disconnect(label, &PageLabel::timeoutSignal,           this, &PresentationScreen::receiveTimeoutSignal);
-    QObject::disconnect(this, &PresentationScreen::togglePointerVisibilitySignal, label, &PageLabel::togglePointerVisibility);
+    disconnect(label, &PageLabel::sendNewPageNumber,       this, &PresentationScreen::receiveNewPageNumber);
+    disconnect(label, &PageLabel::sendNewPageNumber,       this, &PresentationScreen::sendNewPageNumber);
+    disconnect(label, &PageLabel::timeoutSignal,           this, &PresentationScreen::receiveTimeoutSignal);
+    disconnect(this, &PresentationScreen::togglePointerVisibilitySignal, label, &PageLabel::togglePointerVisibility);
     delete label;
     delete presentation;
     delete layout;
+}
+
+PageLabel const * PresentationScreen::getLabel()
+{
+    return label;
 }
 
 int PresentationScreen::getPageNumber() const

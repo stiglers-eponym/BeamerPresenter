@@ -26,6 +26,7 @@ PageLabel::PageLabel(QWidget* parent) : QLabel(parent)
 
 PageLabel::~PageLabel()
 {
+    delete timer;
     qDeleteAll(links);
     links.clear();
     qDeleteAll(linkPositions);
@@ -39,6 +40,11 @@ PageLabel::~PageLabel()
     qDeleteAll(soundPlayers);
     soundPlayers.clear();
     page = nullptr;
+}
+
+void PageLabel::setAutostartDelay(double const delay)
+{
+    autostartDelay = delay;
 }
 
 int PageLabel::pageNumber()
@@ -118,8 +124,6 @@ void PageLabel::renderPage(Poppler::Page* page)
 
             VideoWidget * video = new VideoWidget(annotation->movie(), this);
             videoWidgets.append(video);
-            video->setGeometry(*absolute);
-            video->show();
         }
         qDeleteAll(videos);
         videos.clear();
@@ -152,6 +156,30 @@ void PageLabel::renderPage(Poppler::Page* page)
         }
         qDeleteAll(sounds);
         sounds.clear();
+    }
+    if (autostartDelay > 0.1) {
+        // autostart with delay
+        delete timer;
+        timer = new QTimer();
+        timer->setSingleShot(true);
+        connect(timer, &QTimer::timeout, this, &PageLabel::startAllMultimedia );
+        timer->start(int(autostartDelay*1000));
+    }
+    else if (autostartDelay > -0.1) {
+        // autostart without delay
+        startAllMultimedia();
+    }
+}
+
+void PageLabel::startAllMultimedia()
+{
+    for (int i=0; i<videoWidgets.size(); i++) {
+        videoWidgets.at(i)->setGeometry(*videoPositions.at(i));
+        videoWidgets.at(i)->show();
+        videoWidgets.at(i)->play();
+    }
+    Q_FOREACH(QMediaPlayer * sound, soundPlayers) {
+        sound->play();
     }
 }
 

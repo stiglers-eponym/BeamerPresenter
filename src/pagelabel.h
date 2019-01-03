@@ -43,6 +43,8 @@ private:
     QList<QMediaPlayer*> soundPlayers;
     bool isPresentation = true;
     bool showMultimedia = true;
+    double autostartDelay = 0.;
+    QTimer * timer = nullptr;
 
 protected:
     void mouseReleaseEvent(QMouseEvent * event);
@@ -55,6 +57,10 @@ private:
 
 public slots:
     void togglePointerVisibility();
+    void setAutostartDelay(double const delay);
+
+private slots:
+    void startAllMultimedia();
 
 signals:
     void sendNewPageNumber(int const pageNumber);

@@ -31,6 +31,7 @@ public slots:
     void resetTimer();
     void continueTimer();
     void receiveTimerString(QString const & timerString);
+    void receiveTimeoutInterval(int const interval);
 
 private slots:
     void showTime();
@@ -46,7 +47,7 @@ private:
     QTime * time;
     QTimer * timer;
     bool running = false;
-    const int colorTimeInterval = 150;
+    int colorTimeInterval = 150;
 };
 
 #endif // TIMER_H

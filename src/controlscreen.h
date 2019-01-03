@@ -45,6 +45,8 @@ private:
 signals:
     void sendNewPageNumber(int const pageNumber);
     void sendTimerString(QString const timerString);
+    void sendTimeoutInterval(int const interval);
+    void sendAutostartDelay(double const timeout);
     void sendCloseSignal();
 
 public slots:
