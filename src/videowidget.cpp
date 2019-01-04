@@ -1,3 +1,11 @@
+/*
+ * This file is part of BeamerPresent.
+ *
+ * BeamerPresent is free and unencumbered public domain software.
+ * For more information, see http://unlicense.org/ or the accompanying
+ * UNLICENSE file.
+ */
+
 #include "videowidget.h"
 
 VideoWidget::VideoWidget(Poppler::MovieAnnotation const * annotation, QWidget * parent) : QVideoWidget(parent)

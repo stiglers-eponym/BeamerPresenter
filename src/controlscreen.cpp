@@ -14,12 +14,28 @@ ControlScreen::ControlScreen(QString presentationPath, QString notesPath, QWidge
     ui(new Ui::ControlScreen)
 {
     ui->setupUi(this);
-    setWindowTitle("BeamerPresenter: " + notesPath);
+
+    // Load presentation pdf
     presentation = new PdfDoc( presentationPath );
     presentation->loadDocument();
-    notes = new PdfDoc( notesPath );
-    notes->loadDocument();
     numberOfPages = presentation->popplerDoc->numPages();
+
+    // Set up presentation screen
+    presentationScreen = new PresentationScreen( presentation );
+    presentationScreen->setWindowTitle("BeamerPresenter: " + presentationPath);
+
+    // Load notes pdf
+    if (notesPath.isEmpty()) {
+        notes = presentation;
+        setWindowTitle("BeamerPresenter: " + presentationPath);
+    }
+    else {
+        notes = new PdfDoc( notesPath );
+        setWindowTitle("BeamerPresenter: " + notesPath);
+    }
+    notes->loadDocument();
+
+    // Set up the widgets
     ui->text_number_slides->setText( QString::fromStdString( std::to_string(numberOfPages) ) );
     ui->text_current_slide->setNumberOfPages(numberOfPages);
     ui->notes_label->setPresentationStatus(false);
@@ -27,8 +43,6 @@ ControlScreen::ControlScreen(QString presentationPath, QString notesPath, QWidge
     ui->next_slide_label->setShowMultimedia(false);
     ui->notes_label->setFocus();
 
-    presentationScreen = new PresentationScreen( presentation );
-    presentationScreen->setWindowTitle("BeamerPresenter: " + presentationPath);
 
     // Page requests from the labels:
     // These are emitted if links are clicked.
@@ -68,6 +82,7 @@ ControlScreen::ControlScreen(QString presentationPath, QString notesPath, QWidge
     connect(this, &ControlScreen::playMultimedia, presentationScreen->getLabel(), &PageLabel::startAllMultimedia);
     connect(this, &ControlScreen::pauseMultimedia, ui->notes_label, &PageLabel::pauseAllMultimedia);
     connect(this, &ControlScreen::pauseMultimedia, presentationScreen->getLabel(), &PageLabel::pauseAllMultimedia);
+    connect(this, &ControlScreen::sendAnimationDelay, presentationScreen->getLabel(), &PageLabel::setAnimationDelay);
 
     // Signals emitted by the page number editor
     connect(ui->text_current_slide, &PageNumberEdit::sendPageNumberReturn, presentationScreen, &PresentationScreen::receiveNewPageNumber);
@@ -115,6 +130,7 @@ ControlScreen::~ControlScreen()
     disconnect(this, &ControlScreen::playMultimedia, presentationScreen->getLabel(), &PageLabel::startAllMultimedia);
     disconnect(this, &ControlScreen::pauseMultimedia, ui->notes_label, &PageLabel::pauseAllMultimedia);
     disconnect(this, &ControlScreen::pauseMultimedia, presentationScreen->getLabel(), &PageLabel::pauseAllMultimedia);
+    disconnect(this, &ControlScreen::sendAnimationDelay, presentationScreen->getLabel(), &PageLabel::setAnimationDelay);
 
     // Signals emitted by the page number editor
     disconnect(ui->text_current_slide, &PageNumberEdit::sendPageNumberReturn, presentationScreen, &PresentationScreen::receiveNewPageNumber);
@@ -123,7 +139,8 @@ ControlScreen::~ControlScreen()
     disconnect(ui->text_current_slide, &PageNumberEdit::sendPageShiftEdit,   this, &ControlScreen::receivePageShiftEdit);
     disconnect(ui->text_current_slide, &PageNumberEdit::sendPageShiftReturn, this, &ControlScreen::receivePageShiftReturn);
     disconnect(ui->text_current_slide, &PageNumberEdit::sendEscape,          this, &ControlScreen::resetFocus);
-    delete notes;
+    if (notes != presentation)
+        delete notes;
     delete presentationScreen;
     delete ui;
 }

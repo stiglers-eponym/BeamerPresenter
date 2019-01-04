@@ -52,6 +52,11 @@ int PageLabel::pageNumber()
     return page->index();
 }
 
+void PageLabel::setAnimationDelay(int const delay_ms)
+{
+    minimumAnimationDelay = delay_ms;
+}
+
 void PageLabel::renderPage(Poppler::Page* page)
 {
     qDeleteAll(links);
@@ -102,7 +107,7 @@ void PageLabel::renderPage(Poppler::Page* page)
         QTimer::singleShot(int(1000*duration), this, &PageLabel::timeoutSignal);
     else if ( duration > -0.01) {
         update();
-        QTimer::singleShot(int(20), this, &PageLabel::timeoutSignal);
+        QTimer::singleShot(int(minimumAnimationDelay), this, &PageLabel::timeoutSignal);
     }
     Poppler::PageTransition* transition = page->transition();
     if (transition->type() != Poppler::PageTransition::Replace)

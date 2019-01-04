@@ -1,3 +1,11 @@
+/*
+ * This file is part of BeamerPresent.
+ *
+ * BeamerPresent is free and unencumbered public domain software.
+ * For more information, see http://unlicense.org/ or the accompanying
+ * UNLICENSE file.
+ */
+
 #ifndef VIDEOWIDGET_H
 #define VIDEOWIDGET_H
 

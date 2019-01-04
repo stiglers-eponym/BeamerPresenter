@@ -36,37 +36,58 @@ int main(int argc, char *argv[])
         );
     parser.addHelpOption();
     parser.addPositionalArgument("<slides.pdf>", "Slides for a presentation");
-    parser.addPositionalArgument("<notes.pdf>",  "Notes for the presentation\n(should have the same number of pages as <slides.pdf>)");
+    parser.addPositionalArgument("<notes.pdf>",  "Notes for the presentation (optional, should have the same number of pages as <slides.pdf>)");
     parser.addOptions({
         {{"t", "timer"}, "set timer to <time>.\nPossible formats are \"[m]m\", \"[m]m:ss\" and \"h:mm:ss\".", "time"},
         {{"a", "autoplay"}, "true, false or number: start video and audio content when entering a slide.\nA number is interpreted as a delay in seconds, after which multimedia content is started.", "value"},
+        {{"m", "min-delay"}, "set minimum time per frame in milliseconds.\nThis is useful when using \\animation in LaTeX beamer.", "ms"},
         {{"d", "tolerance"}, "tolerance for the presentation time in seconds.\nThe timer will be white <secs> before the timeout, green when the timeout is reached, yellow <secs> after the timeout and red 2*<secs> after the timeout.", "secs"},
     });
 
     parser.process(app);
-    if (parser.positionalArguments().size() != 2)
+    ControlScreen * w;
+    if (parser.positionalArguments().size() == 1)
+        w = new ControlScreen(parser.positionalArguments().at(0));
+    else if (parser.positionalArguments().size() == 2)
+        w = new ControlScreen(parser.positionalArguments().at(0), parser.positionalArguments().at(1));
+    else
         parser.showHelp(1);
-    ControlScreen w(parser.positionalArguments().at(0), parser.positionalArguments().at(1));
     if ( !parser.value("t").isEmpty() )
-        emit w.sendTimerString(parser.value("t"));
-    if ( !parser.value("d").isEmpty() )
-        emit w.sendTimeoutInterval(parser.value("d").toInt());
+        emit w->sendTimerString(parser.value("t"));
+    if ( !parser.value("d").isEmpty() ) {
+        bool success;
+        int tolerance = parser.value("d").toInt(&success);
+        if (success)
+            emit w->sendTimeoutInterval(tolerance);
+        else
+            std::cerr << "option \"" << parser.value("d").toStdString() << "\" to tolerance not understood." << std::endl;
+    }
+    if ( !parser.value("m").isEmpty() ) {
+        bool success;
+        int delay = parser.value("m").toInt(&success);
+        if (success)
+            emit w->sendAnimationDelay(delay);
+        else
+            std::cerr << "option \"" << parser.value("m").toStdString() << "\" to min-delay not understood." << std::endl;
+    }
     if ( !parser.value("a").isEmpty() ) {
         double delay = 0.;
         bool success;
         QString a = parser.value("a").toLower();
         delay = a.toDouble(&success);
         if (success)
-            emit w.sendAutostartDelay(delay);
+            emit w->sendAutostartDelay(delay);
         else if (a == "true")
-            emit w.sendAutostartDelay(0.);
+            emit w->sendAutostartDelay(0.);
         else if (a == "false")
-            emit w.sendAutostartDelay(-2.);
+            emit w->sendAutostartDelay(-2.);
         else
             std::cerr << "option \"" << parser.value("a").toStdString() << "\" to autoplay not understood." << std::endl;
     }
-    w.show();
-    emit w.sendNewPageNumber(0);
-    w.renderPage(0);
-    return app.exec();
+    w->show();
+    emit w->sendNewPageNumber(0);
+    w->renderPage(0);
+    int status = app.exec();
+    delete w;
+    return status;
 }

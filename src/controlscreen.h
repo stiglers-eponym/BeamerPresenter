@@ -26,7 +26,7 @@ class ControlScreen : public QMainWindow
     Q_OBJECT
 
 public:
-    explicit ControlScreen(QString presentationPath = "", QString notesPath = "", QWidget *parent = nullptr);
+    explicit ControlScreen(QString presentationPath, QString notesPath = "", QWidget *parent = nullptr);
     ~ControlScreen();
     void renderPage(int const pageNumber);
 
@@ -50,6 +50,7 @@ signals:
     void sendCloseSignal();
     void playMultimedia();
     void pauseMultimedia();
+    void sendAnimationDelay(int const delay_ms);
 
 public slots:
     void receiveNewPageNumber(int const pageNumber);

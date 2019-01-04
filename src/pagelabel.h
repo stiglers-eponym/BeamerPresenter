@@ -42,8 +42,9 @@ private:
     QList<QRect*> soundPositions;
     bool isPresentation = true;
     bool showMultimedia = true;
-    double autostartDelay = 0.;
+    double autostartDelay = 0.; // delay for starting multimedia content in s
     QTimer * timer = nullptr;
+    int minimumAnimationDelay = 20; // minimum frame time in ms
 
 protected:
     void mouseReleaseEvent(QMouseEvent * event);
@@ -59,6 +60,7 @@ public slots:
     void setAutostartDelay(double const delay);
     void pauseAllMultimedia();
     void startAllMultimedia();
+    void setAnimationDelay(int const delay_ms);
 
 signals:
     void sendNewPageNumber(int const pageNumber);
