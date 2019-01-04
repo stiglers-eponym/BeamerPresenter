@@ -1,17 +1,21 @@
 #include "videowidget.h"
 
-VideoWidget::VideoWidget(Poppler::MovieObject * movie, QWidget * parent) : QVideoWidget(parent)
+VideoWidget::VideoWidget(Poppler::MovieAnnotation const * annotation, QWidget * parent) : QVideoWidget(parent)
 {
+    this->annotation = annotation;
     setMouseTracking(true);
     player = new QMediaPlayer(this);
     player->setVideoOutput(this);
-    QPalette * palette = new QPalette();
-    QImage image = movie->posterImage();
-    if (!image.isNull())
-        palette->setBrush( QPalette::Window, QBrush(image));
-    setPalette(*palette);
-    delete palette;
-    setAutoFillBackground(true);
+    Poppler::MovieObject * movie = annotation->movie();
+    if (movie->showPosterImage()) {
+        QPalette * palette = new QPalette();
+        posterImage = movie->posterImage();
+        if (!posterImage.isNull())
+            palette->setBrush( QPalette::Window, QBrush(posterImage));
+        setPalette(*palette);
+        delete palette;
+        setAutoFillBackground(true);
+    }
 
     QUrl url = QUrl(movie->url());
     if (!url.isValid())
@@ -19,8 +23,6 @@ VideoWidget::VideoWidget(Poppler::MovieObject * movie, QWidget * parent) : QVide
     if (url.isRelative())
         url = QUrl::fromLocalFile( QDir(".").absoluteFilePath( url.path()) );
     player->setMedia( url );
-    // TODO: Check if poster image is shown correctly, otherwise show it with
-    // if (movie->showPosterImage())
     switch (movie->playMode()) {
         case Poppler::MovieObject::PlayOpen:
             // TODO: PlayOpen should leave controls open (but they are not implemented yet).
@@ -50,19 +52,41 @@ VideoWidget::~VideoWidget()
     disconnect(player, &QMediaPlayer::stateChanged, this, &VideoWidget::showPosterImage);
     disconnect(player, &QMediaPlayer::stateChanged, this, &VideoWidget::bouncePalindromeVideo);
     disconnect(player, &QMediaPlayer::stateChanged, this, &VideoWidget::restartVideo);
+    delete annotation;
     delete player;
+}
+
+Poppler::MovieAnnotation const * VideoWidget::getAnnotation()
+{
+    return annotation;
 }
 
 void VideoWidget::play()
 {
-    show();
+    if (player->mediaStatus() == QMediaPlayer::EndOfMedia)
+        player->bind(this);
     player->play();
+}
+
+void VideoWidget::pause()
+{
+    if (player->state() == QMediaPlayer::PlayingState)
+        player->pause();
+}
+
+QMediaPlayer::State VideoWidget::state() const
+{
+    return player->state();
 }
 
 void VideoWidget::showPosterImage(QMediaPlayer::State state)
 {
-    if (state == QMediaPlayer::StoppedState)
-        update();
+    if (state == QMediaPlayer::StoppedState && player->mediaStatus() == QMediaPlayer::EndOfMedia) {
+        // Unbinding and binding this to the player is probably an ugly way of solving this.
+        // TODO: find a better way of writing this.
+        player->unbind(this);
+        show();
+    }
 }
 
 void VideoWidget::bouncePalindromeVideo(QMediaPlayer::State state)
@@ -93,8 +117,11 @@ void VideoWidget::mouseReleaseEvent(QMouseEvent * event)
     if ( event->button() == Qt::LeftButton ) {
         if ( player->state() == QMediaPlayer::PlayingState )
             player->pause();
-        else
+        else {
+            if (player->mediaStatus() == QMediaPlayer::EndOfMedia)
+                player->bind(this);
             player->play();
+        }
     }
     event->accept();
 }

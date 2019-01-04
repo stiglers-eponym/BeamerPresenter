@@ -31,16 +31,15 @@ public:
     double getDuration() const;
     void setPresentationStatus(bool const status);
     void setShowMultimedia(bool const showVideos);
+    bool hasActiveMultimediaContent() const;
 
 private:
-    QList<QMediaPlayer*> videoPlayers;
-    QList<QMediaPlaylist*> videoPlaylists;
     QList<Poppler::Link*> links;
     QList<QRect*> linkPositions;
-    QList<QRect*> videoPositions;
     QList<VideoWidget*> videoWidgets;
-    QList<QRect*> soundPositions;
+    QList<QRect*> videoPositions;
     QList<QMediaPlayer*> soundPlayers;
+    QList<QRect*> soundPositions;
     bool isPresentation = true;
     bool showMultimedia = true;
     double autostartDelay = 0.;
@@ -58,8 +57,7 @@ private:
 public slots:
     void togglePointerVisibility();
     void setAutostartDelay(double const delay);
-
-private slots:
+    void pauseAllMultimedia();
     void startAllMultimedia();
 
 signals:

@@ -26,6 +26,7 @@ int main(int argc, char *argv[])
             "  p                       pause / continue timer\n"
             "  r                       reset timer\n"
             "  o                       toggle cursor visbility (only on presentation screen)\n"
+            "  m                       play or pause all multimedia content\n"
             "  space                   update layout and start timer or continue\n"
             "  Left, Up, PageUp        go to previous slide and start or continue timer\n"
             "  Right, Down, PageDown   go to next slide and start or continue timer\n"

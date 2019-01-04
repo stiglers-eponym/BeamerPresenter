@@ -8,6 +8,7 @@
 #include <QMouseEvent>
 #include <QUrl>
 #include <QDir>
+#include <QImage>
 #include <QBrush>
 #include <poppler-qt5.h>
 #include <QVideoWidget>
@@ -20,8 +21,10 @@ class VideoWidget : public QVideoWidget
     Q_OBJECT
 
 public:
-    VideoWidget(Poppler::MovieObject * movie, QWidget * parent = nullptr);
+    VideoWidget(Poppler::MovieAnnotation const * annotation, QWidget * parent = nullptr);
     ~VideoWidget();
+    QMediaPlayer::State state() const;
+    Poppler::MovieAnnotation const * getAnnotation();
 
 protected:
     void mouseReleaseEvent(QMouseEvent * event);
@@ -29,9 +32,12 @@ protected:
 
 private:
     QMediaPlayer * player;
+    QImage posterImage;
+    Poppler::MovieAnnotation const * annotation;
 
 public slots:
     void play();
+    void pause();
 
 private slots:
     void showPosterImage(QMediaPlayer::State state);

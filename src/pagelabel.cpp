@@ -98,8 +98,12 @@ void PageLabel::renderPage(Poppler::Page* page)
     }
 
     duration = page->duration();
-    if ( duration > 0)
+    if ( duration > 0.01)
         QTimer::singleShot(int(1000*duration), this, &PageLabel::timeoutSignal);
+    else if ( duration > -0.01) {
+        update();
+        QTimer::singleShot(int(20), this, &PageLabel::timeoutSignal);
+    }
     Poppler::PageTransition* transition = page->transition();
     if (transition->type() != Poppler::PageTransition::Replace)
         std::cout << "Unsupported page transition of type " << transition->type() << std::endl;
@@ -107,12 +111,12 @@ void PageLabel::renderPage(Poppler::Page* page)
     // Show videos. This part is work in progress.
     // TODO: This is probably inefficient.
     if (showMultimedia) {
-        // Currently videos are started directly.
+        // Video
         QSet<Poppler::Annotation::SubType> videoType = QSet<Poppler::Annotation::SubType>();
         videoType.insert(Poppler::Annotation::AMovie);
         QList<Poppler::Annotation*> videos = page->annotations(videoType);
         for (int i=0; i<videos.size(); i++) {
-            Poppler::MovieAnnotation* annotation = (Poppler::MovieAnnotation*) videos.at(i);
+            Poppler::MovieAnnotation * annotation = (Poppler::MovieAnnotation*) videos.at(i);
             QRectF relative = annotation->boundary();
             QRect * absolute = new QRect(
                         shift_x+int(relative.x()*scale_x),
@@ -122,13 +126,12 @@ void PageLabel::renderPage(Poppler::Page* page)
                     );
             videoPositions.append(absolute);
 
-            VideoWidget * video = new VideoWidget(annotation->movie(), this);
+            VideoWidget * video = new VideoWidget(annotation, this);
             videoWidgets.append(video);
         }
-        qDeleteAll(videos);
         videos.clear();
 
-        // Untested!
+        // Audio (Untested!)
         QSet<Poppler::Annotation::SubType> soundType = QSet<Poppler::Annotation::SubType>();
         soundType.insert(Poppler::Annotation::ASound);
         QList<Poppler::Annotation*> sounds = page->annotations(soundType);
@@ -156,18 +159,20 @@ void PageLabel::renderPage(Poppler::Page* page)
         }
         qDeleteAll(sounds);
         sounds.clear();
-    }
-    if (autostartDelay > 0.1) {
-        // autostart with delay
-        delete timer;
-        timer = new QTimer();
-        timer->setSingleShot(true);
-        connect(timer, &QTimer::timeout, this, &PageLabel::startAllMultimedia );
-        timer->start(int(autostartDelay*1000));
-    }
-    else if (autostartDelay > -0.1) {
-        // autostart without delay
-        startAllMultimedia();
+
+        // Autostart
+        if (autostartDelay > 0.1) {
+            // autostart with delay
+            delete timer;
+            timer = new QTimer();
+            timer->setSingleShot(true);
+            connect(timer, &QTimer::timeout, this, &PageLabel::startAllMultimedia );
+            timer->start(int(autostartDelay*1000));
+        }
+        else if (autostartDelay > -0.1) {
+            // autostart without delay
+            startAllMultimedia();
+        }
     }
 }
 
@@ -178,9 +183,29 @@ void PageLabel::startAllMultimedia()
         videoWidgets.at(i)->show();
         videoWidgets.at(i)->play();
     }
-    Q_FOREACH(QMediaPlayer * sound, soundPlayers) {
+    Q_FOREACH(QMediaPlayer * sound, soundPlayers)
         sound->play();
+}
+
+void PageLabel::pauseAllMultimedia()
+{
+    Q_FOREACH(VideoWidget * video, videoWidgets)
+        video->pause();
+    Q_FOREACH(QMediaPlayer * sound, soundPlayers)
+        sound->pause();
+}
+
+bool PageLabel::hasActiveMultimediaContent() const
+{
+    Q_FOREACH(VideoWidget * video, videoWidgets) {
+        if (video->state() == QMediaPlayer::PlayingState)
+            return true;
     }
+    Q_FOREACH(QMediaPlayer * sound, soundPlayers) {
+        if (sound->state() == QMediaPlayer::PlayingState)
+            return true;
+    }
+    return false;
 }
 
 void PageLabel::setPresentationStatus(bool const isPresentation)
@@ -225,7 +250,14 @@ void PageLabel::mouseReleaseEvent(QMouseEvent * event)
                         std::cout << "Unsupported link of type sound" << std::endl;
                     break;
                     case Poppler::Link::Movie:
-                        std::cout << "Unsupported link of type movie" << std::endl;
+                        {
+                            std::cout << "Unsupported link of type video." << std::endl;
+                            Poppler::LinkMovie* link = (Poppler::LinkMovie*) links.at(i);
+                            Q_FOREACH(VideoWidget * video, videoWidgets) {
+                                if (link->isReferencedAnnotation(video->getAnnotation()))
+                                    video->play();
+                            }
+                        }
                     break;
                     case Poppler::Link::Rendition:
                         std::cout << "Unsupported link of type rendition" << std::endl;

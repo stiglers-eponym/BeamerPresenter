@@ -64,6 +64,10 @@ ControlScreen::ControlScreen(QString presentationPath, QString notesPath, QWidge
     // Signals sent to the page labels
     connect(this, &ControlScreen::sendAutostartDelay, ui->notes_label, &PageLabel::setAutostartDelay);
     connect(this, &ControlScreen::sendAutostartDelay, presentationScreen->getLabel(), &PageLabel::setAutostartDelay);
+    connect(this, &ControlScreen::playMultimedia, ui->notes_label, &PageLabel::startAllMultimedia);
+    connect(this, &ControlScreen::playMultimedia, presentationScreen->getLabel(), &PageLabel::startAllMultimedia);
+    connect(this, &ControlScreen::pauseMultimedia, ui->notes_label, &PageLabel::pauseAllMultimedia);
+    connect(this, &ControlScreen::pauseMultimedia, presentationScreen->getLabel(), &PageLabel::pauseAllMultimedia);
 
     // Signals emitted by the page number editor
     connect(ui->text_current_slide, &PageNumberEdit::sendPageNumberReturn, presentationScreen, &PresentationScreen::receiveNewPageNumber);
@@ -107,6 +111,10 @@ ControlScreen::~ControlScreen()
     // Signals sent to the page labels
     disconnect(this, &ControlScreen::sendAutostartDelay, ui->notes_label, &PageLabel::setAutostartDelay);
     disconnect(this, &ControlScreen::sendAutostartDelay, presentationScreen->getLabel(), &PageLabel::setAutostartDelay);
+    disconnect(this, &ControlScreen::playMultimedia, ui->notes_label, &PageLabel::startAllMultimedia);
+    disconnect(this, &ControlScreen::playMultimedia, presentationScreen->getLabel(), &PageLabel::startAllMultimedia);
+    disconnect(this, &ControlScreen::pauseMultimedia, ui->notes_label, &PageLabel::pauseAllMultimedia);
+    disconnect(this, &ControlScreen::pauseMultimedia, presentationScreen->getLabel(), &PageLabel::pauseAllMultimedia);
 
     // Signals emitted by the page number editor
     disconnect(ui->text_current_slide, &PageNumberEdit::sendPageNumberReturn, presentationScreen, &PresentationScreen::receiveNewPageNumber);
@@ -251,6 +259,15 @@ void ControlScreen::keyPressEvent( QKeyEvent * event )
         break;
         case Qt::Key_R:
             ui->label_timer->resetTimer();
+        break;
+        case Qt::Key_M:
+            {
+                bool running = ui->notes_label->hasActiveMultimediaContent() || presentationScreen->getLabel()->hasActiveMultimediaContent();
+                if (running)
+                    emit pauseMultimedia();
+                else
+                    emit playMultimedia();
+            }
         break;
     }
     event->accept();

@@ -48,6 +48,8 @@ signals:
     void sendTimeoutInterval(int const interval);
     void sendAutostartDelay(double const timeout);
     void sendCloseSignal();
+    void playMultimedia();
+    void pauseMultimedia();
 
 public slots:
     void receiveNewPageNumber(int const pageNumber);

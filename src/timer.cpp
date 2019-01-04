@@ -21,6 +21,9 @@ Timer::Timer(QLineEdit * setTimerEdit, QWidget * parent) : QLabel(parent)
     deadline = new QTime(0,0,0,0);
     time = new QTime(0,0,0,0);
     setTimerWidget(setTimerEdit);
+    QPalette palette = QPalette(this->palette());
+    palette.setColor(QPalette::WindowText, Qt::gray);
+    setPalette(palette);
 }
 
 Timer::~Timer()
@@ -46,6 +49,9 @@ void Timer::setTimerWidget(QLineEdit * setTimerEdit)
     connect(timerEdit, &QLineEdit::returnPressed, this, &Timer::setDeadline);
     connect(timerEdit, &QLineEdit::returnPressed, this, &Timer::sendEscape);
     connect(timer, &QTimer::timeout, this, &Timer::showTime);
+    QPalette palette = QPalette(this->palette());
+    palette.setColor(QPalette::WindowText, Qt::gray);
+    setPalette(palette);
     // TODO: connect escape in timer to sendEscape()
 }
 
@@ -88,6 +94,8 @@ void Timer::setDeadline()
         else
             palette.setColor(QPalette::Window, Qt::red);
     }
+    if (!running)
+        palette.setColor(QPalette::WindowText, Qt::gray);
     setPalette(palette);
 }
 
@@ -140,6 +148,8 @@ void Timer::resetTimer()
         else
             palette.setColor(QPalette::Window, Qt::red);
     }
+    if (!running)
+        palette.setColor(QPalette::WindowText, Qt::gray);
     setPalette(palette);
 }
 
