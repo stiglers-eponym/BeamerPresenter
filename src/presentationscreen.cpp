@@ -12,10 +12,13 @@ PresentationScreen::PresentationScreen(PdfDoc* presentationDoc, QWidget *parent)
 {
     presentation = presentationDoc;
     setGeometry(0, 0, 1920, 1080);
-    setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+    setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Ignored);
+    setMinimumSize(120, 90);
     QPalette palette = QPalette();
     palette.setColor(QPalette::Window, QPalette::Shadow);
     setPalette(palette);
+
+    // label will contain the slide as a pixmap
     label = new PageLabel(this);
     label->setAlignment(Qt::AlignCenter);
     layout = new QGridLayout(this);
@@ -116,9 +119,22 @@ void PresentationScreen::keyPressEvent( QKeyEvent * event )
         case Qt::Key_O:
             emit togglePointerVisibilitySignal();
             break;
+        case Qt::Key_F:
+        case Qt::Key_F11:
+            if (this->windowState() == Qt::WindowFullScreen)
+                showNormal();
+            else
+                showFullScreen();
+            break;
         default:
             emit sendKeyEvent(event);
             break;
     }
     event->accept();
+}
+
+void PresentationScreen::resizeEvent(QResizeEvent *event)
+{
+    label->clearCache();
+    label->renderPage( label->getPage() );
 }

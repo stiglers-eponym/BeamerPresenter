@@ -59,6 +59,15 @@ ControlScreen::ControlScreen(QString presentationPath, QString notesPath, QWidge
     connect(ui->next_slide_label,    &PageLabel::focusPageNumberEdit, this, &ControlScreen::focusPageNumberEdit);
     connect(presentationScreen->getLabel(), &PageLabel::focusPageNumberEdit, this, &ControlScreen::focusPageNumberEdit);
 
+    connect(ui->notes_label,         &PageLabel::sendShowFullscreen, this, &ControlScreen::showFullScreen);
+    connect(ui->current_slide_label, &PageLabel::sendShowFullscreen, this, &ControlScreen::showFullScreen);
+    connect(ui->next_slide_label,    &PageLabel::sendShowFullscreen, this, &ControlScreen::showFullScreen);
+    connect(presentationScreen->getLabel(), &PageLabel::sendShowFullscreen, this, &ControlScreen::showFullScreen);
+    connect(ui->notes_label,         &PageLabel::sendShowFullscreen, presentationScreen, &PresentationScreen::showFullScreen);
+    connect(ui->current_slide_label, &PageLabel::sendShowFullscreen, presentationScreen, &PresentationScreen::showFullScreen);
+    connect(ui->next_slide_label,    &PageLabel::sendShowFullscreen, presentationScreen, &PresentationScreen::showFullScreen);
+    connect(presentationScreen->getLabel(), &PageLabel::sendShowFullscreen, presentationScreen, &PresentationScreen::showFullScreen);
+
     // Navigation signals emitted by PresentationScreen:
     connect(presentationScreen, &PresentationScreen::sendPageShift,     this, &ControlScreen::receivePageShiftReturn);
     connect(presentationScreen, &PresentationScreen::sendNewPageNumber, this, &ControlScreen::receiveNewPageNumber);
@@ -118,6 +127,15 @@ ControlScreen::~ControlScreen()
     disconnect(ui->current_slide_label, &PageLabel::focusPageNumberEdit, this, &ControlScreen::focusPageNumberEdit);
     disconnect(ui->next_slide_label,    &PageLabel::focusPageNumberEdit, this, &ControlScreen::focusPageNumberEdit);
     disconnect(presentationScreen->getLabel(), &PageLabel::focusPageNumberEdit, this, &ControlScreen::focusPageNumberEdit);
+
+    disconnect(ui->notes_label,         &PageLabel::sendShowFullscreen, this, &ControlScreen::showFullScreen);
+    disconnect(ui->current_slide_label, &PageLabel::sendShowFullscreen, this, &ControlScreen::showFullScreen);
+    disconnect(ui->next_slide_label,    &PageLabel::sendShowFullscreen, this, &ControlScreen::showFullScreen);
+    disconnect(presentationScreen->getLabel(), &PageLabel::sendShowFullscreen, this, &ControlScreen::showFullScreen);
+    disconnect(ui->notes_label,         &PageLabel::sendShowFullscreen, presentationScreen, &PresentationScreen::showFullScreen);
+    disconnect(ui->current_slide_label, &PageLabel::sendShowFullscreen, presentationScreen, &PresentationScreen::showFullScreen);
+    disconnect(ui->next_slide_label,    &PageLabel::sendShowFullscreen, presentationScreen, &PresentationScreen::showFullScreen);
+    disconnect(presentationScreen->getLabel(), &PageLabel::sendShowFullscreen, presentationScreen, &PresentationScreen::showFullScreen);
 
     // Navigation signals emitted by PresentationScreen:
     disconnect(presentationScreen, &PresentationScreen::sendPageShift,     this, &ControlScreen::receivePageShiftReturn);
@@ -285,8 +303,8 @@ void ControlScreen::keyPressEvent( QKeyEvent * event )
         case Qt::Key_Right:
         case Qt::Key_Down:
         case Qt::Key_PageDown:
-            emit sendNewPageNumber( currentPageNumber );
-            renderPage( ++currentPageNumber );
+            emit sendNewPageNumber( ++currentPageNumber );
+            renderPage( currentPageNumber );
             ui->label_timer->continueTimer();
             emit sendUpdateCache();
             updateCache();
@@ -294,8 +312,8 @@ void ControlScreen::keyPressEvent( QKeyEvent * event )
         case Qt::Key_Left:
         case Qt::Key_Up:
         case Qt::Key_PageUp:
-            emit sendNewPageNumber( currentPageNumber );
-            renderPage( --currentPageNumber );
+            emit sendNewPageNumber( --currentPageNumber );
+            renderPage( currentPageNumber );
             ui->label_timer->continueTimer();
             emit sendUpdateCache();
             updateCache();
@@ -344,6 +362,24 @@ void ControlScreen::keyPressEvent( QKeyEvent * event )
                     emit playMultimedia();
             }
             break;
+        case Qt::Key_F:
+        case Qt::Key_F11:
+            if (this->windowState() == Qt::WindowFullScreen)
+                showNormal();
+            else
+                showFullScreen();
+            break;
     }
     event->accept();
+}
+
+void ControlScreen::resizeEvent(QResizeEvent *event)
+{
+    recalcLayout(currentPageNumber);
+    ui->notes_label->clearCache();
+    ui->current_slide_label->clearCache();
+    ui->next_slide_label->clearCache();
+    ui->notes_label->renderPage( ui->notes_label->getPage() );
+    ui->current_slide_label->renderPage( ui->current_slide_label->getPage() );
+    ui->next_slide_label->renderPage( ui->next_slide_label->getPage() );
 }

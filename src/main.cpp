@@ -30,6 +30,7 @@ int main(int argc, char *argv[])
             "  space                   update layout and start timer or continue\n"
             "  Left, Up, PageUp        go to previous slide and start or continue timer\n"
             "  Right, Down, PageDown   go to next slide and start or continue timer\n"
+            "  F11, f                  toggle fullscreen (only for current window)\n"
             "\n"
             "This program has experimental support for videos.\n"
             "Many options which can be provided in a pdf are not supported by this program.\n"
@@ -52,8 +53,8 @@ int main(int argc, char *argv[])
         w = new ControlScreen(parser.positionalArguments().at(0), parser.positionalArguments().at(1));
     else
         parser.showHelp(1);
-    if ( !parser.value("t").isEmpty() )
-        emit w->sendTimerString(parser.value("t"));
+
+    // Set tolerance for presentation time
     if ( !parser.value("d").isEmpty() ) {
         bool success;
         int tolerance = parser.value("d").toInt(&success);
@@ -62,6 +63,12 @@ int main(int argc, char *argv[])
         else
             std::cerr << "option \"" << parser.value("d").toStdString() << "\" to tolerance not understood." << std::endl;
     }
+
+    // Set presentation time
+    if ( !parser.value("t").isEmpty() )
+        emit w->sendTimerString(parser.value("t"));
+
+    // Set minimum time per frame
     if ( !parser.value("m").isEmpty() ) {
         bool success;
         int delay = parser.value("m").toInt(&success);
@@ -70,6 +77,8 @@ int main(int argc, char *argv[])
         else
             std::cerr << "option \"" << parser.value("m").toStdString() << "\" to min-delay not understood." << std::endl;
     }
+
+    // Set autostart or delay for multimedia content
     if ( !parser.value("a").isEmpty() ) {
         double delay = 0.;
         bool success;
@@ -84,9 +93,16 @@ int main(int argc, char *argv[])
         else
             std::cerr << "option \"" << parser.value("a").toStdString() << "\" to autoplay not understood." << std::endl;
     }
+
     w->show();
+    // Render first page on presentation screen
     emit w->sendNewPageNumber(0);
+    // Render first page on control screen
     w->renderPage(0);
+    // Here one could update the cache.
+    // But you probably first want to adjust the window size and then update it with key shortcut space.
+    //emit w->sendUpdateCache();
+    //w->updateCache();
     int status = app.exec();
     delete w;
     return status;

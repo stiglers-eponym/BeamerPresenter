@@ -88,6 +88,8 @@ void PageLabel::clearLists()
 void PageLabel::renderPage(Poppler::Page * page)
 {
     clearLists();
+    if (page == nullptr)
+        return;
 
     this->page = page;
     QSize pageSize = page->pageSize();
@@ -359,12 +361,12 @@ void PageLabel::mouseReleaseEvent(QMouseEvent * event)
                                     std::cout << "Unsupported link action: find." << std::endl;
                                     break;
                                 case Poppler::LinkAction::Presentation:
-                                    std::cout << "Unsupported link action: presentation." << std::endl;
-                                    std::cout << "This pdf viewer is always in presentation mode." << std::endl;
+                                    // untested
+                                    emit sendShowFullscreen();
                                     break;
                                 case Poppler::LinkAction::EndPresentation:
-                                    std::cout << "Unsupported link action: end presentation." << std::endl;
-                                    std::cout << "This pdf viewer is always in presentation mode." << std::endl;
+                                    // untested
+                                    emit sendEndFullscreen();
                                     break;
                                 case Poppler::LinkAction::HistoryBack:
                                     // TODO: implement this
@@ -457,4 +459,14 @@ void PageLabel::mouseMoveEvent(QMouseEvent * event)
     if (!is_arrow_pointer)
         setCursor(Qt::ArrowCursor);
     event->accept();
+}
+
+Poppler::Page * PageLabel::getPage()
+{
+    return page;
+}
+
+void PageLabel::clearCache()
+{
+    cachedIndex = -1;
 }

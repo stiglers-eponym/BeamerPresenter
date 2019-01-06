@@ -39,6 +39,8 @@ public:
     void updateCache(QPixmap * pixmap, int const index);
     QPixmap * getCache();
     int getCacheIndex() const;
+    Poppler::Page * getPage();
+    void clearCache();
 
 private:
     void clearLists();
@@ -80,6 +82,8 @@ signals:
     void sendCloseSignal();
     void focusPageNumberEdit();
     void timeoutSignal();
+    void sendShowFullscreen();
+    void sendEndFullscreen();
 };
 
 #endif // PAGE_H
