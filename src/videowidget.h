@@ -9,20 +9,16 @@
 #ifndef VIDEOWIDGET_H
 #define VIDEOWIDGET_H
 
-#include <QObject>
+#include <iostream>
 #include <QWidget>
 #include <QMediaPlayer>
-#include <QMediaPlaylist>
-#include <QMouseEvent>
+#include <QVideoWidget>
 #include <QUrl>
 #include <QDir>
 #include <QImage>
 #include <QBrush>
-#include <poppler-qt5.h>
-#include <QVideoWidget>
-#include <iostream>
-#include <QKeyEvent>
 #include <QMouseEvent>
+#include <poppler-qt5.h>
 
 class VideoWidget : public QVideoWidget
 {

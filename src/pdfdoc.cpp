@@ -23,9 +23,6 @@ PdfDoc::~PdfDoc()
 void PdfDoc::loadDocument()
 {
     popplerDoc = Poppler::Document::load(pdfPath);
-    if (popplerDoc->isEncrypted()) {
-        std::cerr << "This file is encrypted. Encryption is not supported." << std::endl;
-    }
     if (popplerDoc->isLocked()) {
         // TODO: use a nicer way of entering passwords (a QDialog?)
         std::cout << "WARNING: File " << pdfPath.toStdString() << ":\n"

@@ -11,7 +11,6 @@
 
 #include <QMainWindow>
 #include <QLabel>
-#include <QSlider>
 #include <QKeyEvent>
 #include "src/mediaslider.h"
 #include "src/pdfdoc.h"
@@ -53,6 +52,7 @@ signals:
     void playMultimedia();
     void pauseMultimedia();
     void sendAnimationDelay(int const delay_ms);
+    void sendUpdateCache();
 
 public slots:
     void receiveNewPageNumber(int const pageNumber);
@@ -64,6 +64,7 @@ public slots:
     void resetFocus();
     void focusPageNumberEdit();
     void addMultimediaSliders(int const n);
+    void updateCache();
 };
 
 #endif // CONTROLSCREEN_H

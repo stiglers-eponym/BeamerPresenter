@@ -59,6 +59,13 @@ void PresentationScreen::renderPage( const int pageNumber )
         label->renderPage( presentation->getPage(pageNumber) );
 }
 
+void PresentationScreen::updateCache()
+{
+    int pageNumber = label->pageNumber() + 1;
+    if (pageNumber < presentation->popplerDoc->numPages())
+        label->updateCache( presentation->getPage(pageNumber) );
+}
+
 void PresentationScreen::receiveTimeoutSignal()
 {
     renderPage( label->pageNumber() + 1 );
@@ -86,6 +93,9 @@ void PresentationScreen::keyPressEvent( QKeyEvent * event )
             renderPage( label->pageNumber() + 1 );
             if ( label->getDuration() < 0 || label->getDuration() > 0.5 )
                 emit sendPageShift();
+            updateCache();
+            if ( label->getDuration() < 0 || label->getDuration() > 0.5 )
+                emit sendUpdateCache();
             break;
         case Qt::Key_Left:
         case Qt::Key_Up:
@@ -93,11 +103,15 @@ void PresentationScreen::keyPressEvent( QKeyEvent * event )
             renderPage( label->pageNumber() - 1 );
             if ( label->getDuration() < 0 || label->getDuration() > 0.5 )
                 emit sendPageShift();
+            updateCache();
+            if ( label->getDuration() < 0 || label->getDuration() > 0.5 )
+                emit sendUpdateCache();
             break;
         case Qt::Key_Space:
             renderPage( label->pageNumber() );
-            if ( label->getDuration() < 0 || label->getDuration() > 0.5 )
-                emit sendPageShift();
+            emit sendPageShift();
+            updateCache();
+            emit sendUpdateCache();
             break;
         case Qt::Key_O:
             emit togglePointerVisibilitySignal();

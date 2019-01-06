@@ -35,8 +35,13 @@ public:
     void setShowMultimedia(bool const showVideos);
     bool hasActiveMultimediaContent() const;
     void setMultimediaSliders(QList<MediaSlider *> sliderList);
+    void updateCache(Poppler::Page * page);
+    void updateCache(QPixmap * pixmap, int const index);
+    QPixmap * getCache();
+    int getCacheIndex() const;
 
 private:
+    void clearLists();
     QList<Poppler::Link*> links;
     QList<QRect*> linkPositions;
     QList<VideoWidget*> videoWidgets;
@@ -44,12 +49,14 @@ private:
     QList<QMediaPlayer*> soundPlayers;
     QList<QRect*> soundPositions;
     QList<MediaSlider*> sliders;
+    QPixmap cachedPixmap;
+    int cachedIndex = -1;
+    QTimer * timer = nullptr;
+    double resolution;
     bool isPresentation = true;
     bool showMultimedia = true;
     double autostartDelay = 0.; // delay for starting multimedia content in s
-    QTimer * timer = nullptr;
     int minimumAnimationDelay = 20; // minimum frame time in ms
-    void clearLists();
 
 protected:
     void mouseReleaseEvent(QMouseEvent * event);

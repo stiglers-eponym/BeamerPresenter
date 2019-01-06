@@ -66,11 +66,13 @@ ControlScreen::ControlScreen(QString presentationPath, QString notesPath, QWidge
     // Other signals emitted by PresentationScreen
     connect(presentationScreen, &PresentationScreen::sendKeyEvent,    this, &ControlScreen::keyPressEvent);
     connect(presentationScreen, &PresentationScreen::sendCloseSignal, this, &ControlScreen::receiveCloseSignal);
+    connect(presentationScreen, &PresentationScreen::sendUpdateCache, this, &ControlScreen::updateCache);
     connect(presentationScreen->getLabel(), &PageLabel::requestMultimediaSliders, this, &ControlScreen::addMultimediaSliders);
 
     // Signals sent back to PresentationScreen
     connect(this, &ControlScreen::sendNewPageNumber, presentationScreen, &PresentationScreen::receiveNewPageNumber);
     connect(this, &ControlScreen::sendCloseSignal,   presentationScreen, &PresentationScreen::receiveCloseSignal);
+    connect(this, &ControlScreen::sendUpdateCache,   presentationScreen, &PresentationScreen::updateCache);
     connect(ui->notes_label, &PageLabel::sendCloseSignal, presentationScreen, &PresentationScreen::receiveCloseSignal);
     connect(presentationScreen->getLabel(), &PageLabel::sendCloseSignal, presentationScreen, &PresentationScreen::receiveCloseSignal);
     connect(ui->notes_label, &PageLabel::sendCloseSignal, this, &ControlScreen::receiveCloseSignal);
@@ -120,6 +122,7 @@ ControlScreen::~ControlScreen()
     // Navigation signals emitted by PresentationScreen:
     disconnect(presentationScreen, &PresentationScreen::sendPageShift,     this, &ControlScreen::receivePageShiftReturn);
     disconnect(presentationScreen, &PresentationScreen::sendNewPageNumber, this, &ControlScreen::receiveNewPageNumber);
+    disconnect(presentationScreen, &PresentationScreen::sendUpdateCache, this, &ControlScreen::updateCache);
     disconnect(presentationScreen->getLabel(), &PageLabel::requestMultimediaSliders, this, &ControlScreen::addMultimediaSliders);
 
     // Other signals emitted by PresentationScreen
@@ -129,6 +132,11 @@ ControlScreen::~ControlScreen()
     // Signals sent back to PresentationScreen
     disconnect(this, &ControlScreen::sendNewPageNumber, presentationScreen, &PresentationScreen::receiveNewPageNumber);
     disconnect(this, &ControlScreen::sendCloseSignal,   presentationScreen, &PresentationScreen::receiveCloseSignal);
+    disconnect(this, &ControlScreen::sendUpdateCache,   presentationScreen, &PresentationScreen::updateCache);
+    disconnect(ui->notes_label, &PageLabel::sendCloseSignal, presentationScreen, &PresentationScreen::receiveCloseSignal);
+    disconnect(presentationScreen->getLabel(), &PageLabel::sendCloseSignal, presentationScreen, &PresentationScreen::receiveCloseSignal);
+    disconnect(ui->notes_label, &PageLabel::sendCloseSignal, this, &ControlScreen::receiveCloseSignal);
+    disconnect(presentationScreen->getLabel(), &PageLabel::sendCloseSignal, this, &ControlScreen::receiveCloseSignal);
 
     ui->label_timer->setTimerWidget( ui->edit_timer );
     // Signals emitted by the timer
@@ -223,14 +231,30 @@ void ControlScreen::renderPage( int const pageNumber )
     else
         currentPageNumber = pageNumber;
     recalcLayout(currentPageNumber);
-    ui->current_slide_label->renderPage( presentation->getPage(currentPageNumber) );
-    if (currentPageNumber + 1 < presentation->popplerDoc->numPages())
-        ui->next_slide_label->renderPage( presentation->getPage(currentPageNumber+1) );
-    else
-        ui->next_slide_label->renderPage( presentation->getPage(currentPageNumber) );
     if (currentPageNumber < notes->popplerDoc->numPages())
         ui->notes_label->renderPage( notes->getPage(currentPageNumber) );
+    if (currentPageNumber + 1 < presentation->popplerDoc->numPages()) {
+        ui->current_slide_label->renderPage( presentation->getPage(currentPageNumber) );
+        ui->current_slide_label->updateCache( presentation->getPage(currentPageNumber+1) );
+        ui->next_slide_label->updateCache( ui->current_slide_label->getCache(), currentPageNumber+1 );
+        ui->next_slide_label->renderPage( presentation->getPage(currentPageNumber+1) );
+    }
+    else {
+        ui->current_slide_label->updateCache( presentation->getPage(currentPageNumber) );
+        ui->current_slide_label->renderPage( presentation->getPage(currentPageNumber) );
+        ui->next_slide_label->updateCache( ui->current_slide_label->getCache(), currentPageNumber );
+        ui->next_slide_label->renderPage( presentation->getPage(currentPageNumber) );
+    }
     ui->text_current_slide->setText( QString::fromStdString( std::to_string(currentPageNumber+1) ) );
+}
+
+void ControlScreen::updateCache()
+{
+    if (currentPageNumber + 1 < notes->popplerDoc->numPages()) {
+        ui->notes_label->updateCache( notes->getPage(currentPageNumber+1) );
+        if (currentPageNumber + 2 < presentation->popplerDoc->numPages())
+            ui->next_slide_label->updateCache( presentation->getPage(currentPageNumber+2) );
+    }
 }
 
 void ControlScreen::receiveNewPageNumber(int const pageNumber)
@@ -261,36 +285,41 @@ void ControlScreen::keyPressEvent( QKeyEvent * event )
         case Qt::Key_Right:
         case Qt::Key_Down:
         case Qt::Key_PageDown:
-            renderPage( ++currentPageNumber );
-            //std::cout << "key signal: sending new page number " << currentPageNumber << std::endl;
             emit sendNewPageNumber( currentPageNumber );
+            renderPage( ++currentPageNumber );
             ui->label_timer->continueTimer();
+            emit sendUpdateCache();
+            updateCache();
             break;
         case Qt::Key_Left:
         case Qt::Key_Up:
         case Qt::Key_PageUp:
-            renderPage( --currentPageNumber );
-            //std::cout << "key signal: sending new page number " << currentPageNumber << std::endl;
             emit sendNewPageNumber( currentPageNumber );
+            renderPage( --currentPageNumber );
             ui->label_timer->continueTimer();
+            emit sendUpdateCache();
+            updateCache();
             break;
         case Qt::Key_Space:
-            renderPage( currentPageNumber );
-            //std::cout << "key signal: sending new page number " << currentPageNumber << std::endl;
             emit sendNewPageNumber( currentPageNumber );
+            renderPage( currentPageNumber );
             ui->label_timer->continueTimer();
+            emit sendUpdateCache();
+            updateCache();
             break;
         case Qt::Key_End:
             currentPageNumber = numberOfPages - 1;
-            renderPage( currentPageNumber );
-            //std::cout << "key signal: sending new page number " << currentPageNumber << std::endl;
             emit sendNewPageNumber( currentPageNumber );
+            renderPage( currentPageNumber );
+            emit sendUpdateCache();
+            updateCache();
             break;
         case Qt::Key_Home:
             currentPageNumber = 0;
-            renderPage( currentPageNumber );
-            //std::cout << "key signal: sending new page number " << currentPageNumber << std::endl;
             emit sendNewPageNumber( currentPageNumber );
+            renderPage( currentPageNumber );
+            emit sendUpdateCache();
+            updateCache();
             break;
         case Qt::Key_Q:
             emit sendCloseSignal();

@@ -66,7 +66,7 @@ void PageLabel::clearLists()
             }
         }
         else {
-            std::cout << "This should never happen. Something went wrong when cleaning up sliders." << std::endl;
+            std::cout << "Something unexpected happened while trying to delete up sliders." << std::endl;
         }
     }
     qDeleteAll(sliders);
@@ -85,14 +85,13 @@ void PageLabel::clearLists()
     soundPlayers.clear();
 }
 
-void PageLabel::renderPage(Poppler::Page* page)
+void PageLabel::renderPage(Poppler::Page * page)
 {
     clearLists();
 
     this->page = page;
     QSize pageSize = page->pageSize();
     int shift_x=0, shift_y=0;
-    double resolution;
     if ( width() * pageSize.height() > height() * pageSize.width() ) {
         // the width of the label is larger than required
         resolution = double( height() ) / pageSize.height();
@@ -104,7 +103,10 @@ void PageLabel::renderPage(Poppler::Page* page)
         shift_y = int( height()/2 - resolution/2 * pageSize.height() );
     }
     double scale_x=resolution*pageSize.width(), scale_y=resolution*pageSize.height();
-    setPixmap( QPixmap::fromImage( page->renderToImage( 72*resolution, 72*resolution ) ) );
+    if (page->index() == cachedIndex)
+        setPixmap( cachedPixmap );
+    else
+        setPixmap( QPixmap::fromImage( page->renderToImage( 72*resolution, 72*resolution ) ) );
 
     // Collect link areas in pixels
     links = page->links();
@@ -199,6 +201,30 @@ void PageLabel::renderPage(Poppler::Page* page)
         // Add slider
         emit requestMultimediaSliders(videoWidgets.size() + soundPlayers.size());
     }
+}
+
+void PageLabel::updateCache(QPixmap * pixmap, int const index)
+{
+    cachedIndex = index;
+    cachedPixmap = *pixmap;
+}
+
+void PageLabel::updateCache(Poppler::Page * nextPage)
+{
+    if ((page->duration() < -0.01  || page->duration() > 0.1) && (nextPage->index() != cachedIndex)) {
+        cachedIndex = nextPage->index();
+        cachedPixmap = QPixmap::fromImage( nextPage->renderToImage(72*resolution, 72*resolution) );
+    }
+}
+
+QPixmap * PageLabel::getCache()
+{
+    return &cachedPixmap;
+}
+
+int PageLabel::getCacheIndex() const
+{
+    return cachedIndex;
 }
 
 void PageLabel::setMultimediaSliders(QList<MediaSlider *> sliderList)

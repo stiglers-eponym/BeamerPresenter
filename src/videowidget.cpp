@@ -154,7 +154,7 @@ void VideoWidget::mouseReleaseEvent(QMouseEvent * event)
 
 void VideoWidget::mouseMoveEvent(QMouseEvent * event)
 {
-    if (cursor() != Qt::PointingHandCursor)
+    if (cursor() == Qt::ArrowCursor)
         setCursor(Qt::PointingHandCursor);
     event->accept();
 }

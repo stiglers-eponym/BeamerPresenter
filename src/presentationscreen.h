@@ -10,10 +10,8 @@
 #define PRESENTATIONSCREEN_H
 
 #include <iostream>
-
-#include <QMainWindow>
 #include <QKeyEvent>
-#include <QHBoxLayout>
+#include <QGridLayout>
 #include "src/pdfdoc.h"
 #include "src/pagelabel.h"
 
@@ -26,6 +24,7 @@ public:
     ~PresentationScreen();
     void renderPage(const int pageNumber = 0);
     int getPageNumber() const;
+    void updateCache();
     int* currentPageNumber;
     PageLabel * getLabel();
 
@@ -43,6 +42,7 @@ signals:
     void sendPageShift(const int shift = 0);
     void sendKeyEvent(QKeyEvent * event);
     void togglePointerVisibilitySignal();
+    void sendUpdateCache();
 
 public slots:
     void receiveNewPageNumber(const int pageNumber);
