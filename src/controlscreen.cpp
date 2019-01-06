@@ -54,6 +54,11 @@ ControlScreen::ControlScreen(QString presentationPath, QString notesPath, QWidge
     connect(ui->current_slide_label, &PageLabel::sendNewPageNumber, presentationScreen, &PresentationScreen::receiveNewPageNumber);
     connect(ui->next_slide_label,    &PageLabel::sendNewPageNumber, presentationScreen, &PresentationScreen::receiveNewPageNumber);
 
+    connect(ui->notes_label,         &PageLabel::focusPageNumberEdit, this, &ControlScreen::focusPageNumberEdit);
+    connect(ui->current_slide_label, &PageLabel::focusPageNumberEdit, this, &ControlScreen::focusPageNumberEdit);
+    connect(ui->next_slide_label,    &PageLabel::focusPageNumberEdit, this, &ControlScreen::focusPageNumberEdit);
+    connect(presentationScreen->getLabel(), &PageLabel::focusPageNumberEdit, this, &ControlScreen::focusPageNumberEdit);
+
     // Navigation signals emitted by PresentationScreen:
     connect(presentationScreen, &PresentationScreen::sendPageShift,     this, &ControlScreen::receivePageShiftReturn);
     connect(presentationScreen, &PresentationScreen::sendNewPageNumber, this, &ControlScreen::receiveNewPageNumber);
@@ -61,10 +66,15 @@ ControlScreen::ControlScreen(QString presentationPath, QString notesPath, QWidge
     // Other signals emitted by PresentationScreen
     connect(presentationScreen, &PresentationScreen::sendKeyEvent,    this, &ControlScreen::keyPressEvent);
     connect(presentationScreen, &PresentationScreen::sendCloseSignal, this, &ControlScreen::receiveCloseSignal);
+    connect(presentationScreen->getLabel(), &PageLabel::requestMultimediaSliders, this, &ControlScreen::addMultimediaSliders);
 
     // Signals sent back to PresentationScreen
     connect(this, &ControlScreen::sendNewPageNumber, presentationScreen, &PresentationScreen::receiveNewPageNumber);
     connect(this, &ControlScreen::sendCloseSignal,   presentationScreen, &PresentationScreen::receiveCloseSignal);
+    connect(ui->notes_label, &PageLabel::sendCloseSignal, presentationScreen, &PresentationScreen::receiveCloseSignal);
+    connect(presentationScreen->getLabel(), &PageLabel::sendCloseSignal, presentationScreen, &PresentationScreen::receiveCloseSignal);
+    connect(ui->notes_label, &PageLabel::sendCloseSignal, this, &ControlScreen::receiveCloseSignal);
+    connect(presentationScreen->getLabel(), &PageLabel::sendCloseSignal, this, &ControlScreen::receiveCloseSignal);
 
     ui->label_timer->setTimerWidget( ui->edit_timer );
     // Signals emitted by the timer
@@ -102,9 +112,15 @@ ControlScreen::~ControlScreen()
     disconnect(ui->current_slide_label, &PageLabel::sendNewPageNumber, presentationScreen, &PresentationScreen::receiveNewPageNumber);
     disconnect(ui->next_slide_label,    &PageLabel::sendNewPageNumber, presentationScreen, &PresentationScreen::receiveNewPageNumber);
 
+    disconnect(ui->notes_label,         &PageLabel::focusPageNumberEdit, this, &ControlScreen::focusPageNumberEdit);
+    disconnect(ui->current_slide_label, &PageLabel::focusPageNumberEdit, this, &ControlScreen::focusPageNumberEdit);
+    disconnect(ui->next_slide_label,    &PageLabel::focusPageNumberEdit, this, &ControlScreen::focusPageNumberEdit);
+    disconnect(presentationScreen->getLabel(), &PageLabel::focusPageNumberEdit, this, &ControlScreen::focusPageNumberEdit);
+
     // Navigation signals emitted by PresentationScreen:
     disconnect(presentationScreen, &PresentationScreen::sendPageShift,     this, &ControlScreen::receivePageShiftReturn);
     disconnect(presentationScreen, &PresentationScreen::sendNewPageNumber, this, &ControlScreen::receiveNewPageNumber);
+    disconnect(presentationScreen->getLabel(), &PageLabel::requestMultimediaSliders, this, &ControlScreen::addMultimediaSliders);
 
     // Other signals emitted by PresentationScreen
     disconnect(presentationScreen, &PresentationScreen::sendKeyEvent,    this, &ControlScreen::keyPressEvent);
@@ -161,6 +177,22 @@ void ControlScreen::recalcLayout(const int pageNumber)
     updateGeometry();
 }
 
+void ControlScreen::focusPageNumberEdit()
+{
+    ui->text_current_slide->setFocus();
+}
+
+void ControlScreen::addMultimediaSliders(int const n)
+{
+    QList<MediaSlider*> sliderList = QList<MediaSlider*>();
+    for (int i=0; i<n; i++) {
+        MediaSlider * slider = new MediaSlider(this);
+        ui->overviewLayout->addWidget(slider);
+        sliderList.append(slider);
+    }
+    presentationScreen->getLabel()->setMultimediaSliders(sliderList);
+}
+
 void ControlScreen::resetFocus()
 {
     if (currentPageNumber != presentationScreen->getPageNumber())
@@ -186,14 +218,11 @@ void ControlScreen::resetTimerAlert()
 
 void ControlScreen::renderPage( int const pageNumber )
 {
-    currentPageNumber = pageNumber;
-    recalcLayout(pageNumber);
-    if (pageNumber<0) {
-        currentPageNumber = 0;
-    }
-    else if (pageNumber >= numberOfPages) {
+    if (pageNumber < 0 || pageNumber >= numberOfPages)
         currentPageNumber = numberOfPages - 1;
-    }
+    else
+        currentPageNumber = pageNumber;
+    recalcLayout(currentPageNumber);
     ui->current_slide_label->renderPage( presentation->getPage(currentPageNumber) );
     if (currentPageNumber + 1 < presentation->popplerDoc->numPages())
         ui->next_slide_label->renderPage( presentation->getPage(currentPageNumber+1) );
@@ -236,7 +265,7 @@ void ControlScreen::keyPressEvent( QKeyEvent * event )
             //std::cout << "key signal: sending new page number " << currentPageNumber << std::endl;
             emit sendNewPageNumber( currentPageNumber );
             ui->label_timer->continueTimer();
-        break;
+            break;
         case Qt::Key_Left:
         case Qt::Key_Up:
         case Qt::Key_PageUp:
@@ -244,39 +273,39 @@ void ControlScreen::keyPressEvent( QKeyEvent * event )
             //std::cout << "key signal: sending new page number " << currentPageNumber << std::endl;
             emit sendNewPageNumber( currentPageNumber );
             ui->label_timer->continueTimer();
-        break;
+            break;
         case Qt::Key_Space:
             renderPage( currentPageNumber );
             //std::cout << "key signal: sending new page number " << currentPageNumber << std::endl;
             emit sendNewPageNumber( currentPageNumber );
             ui->label_timer->continueTimer();
-        break;
+            break;
         case Qt::Key_End:
             currentPageNumber = numberOfPages - 1;
             renderPage( currentPageNumber );
             //std::cout << "key signal: sending new page number " << currentPageNumber << std::endl;
             emit sendNewPageNumber( currentPageNumber );
-        break;
+            break;
         case Qt::Key_Home:
             currentPageNumber = 0;
             renderPage( currentPageNumber );
             //std::cout << "key signal: sending new page number " << currentPageNumber << std::endl;
             emit sendNewPageNumber( currentPageNumber );
-        break;
+            break;
         case Qt::Key_Q:
             emit sendCloseSignal();
             close();
-        break;
+            break;
         case Qt::Key_G:
             ui->text_current_slide->setText("");
             ui->text_current_slide->setFocus();
-        break;
+            break;
         case Qt::Key_P:
             ui->label_timer->pauseTimer();
-        break;
+            break;
         case Qt::Key_R:
             ui->label_timer->resetTimer();
-        break;
+            break;
         case Qt::Key_M:
             {
                 bool running = ui->notes_label->hasActiveMultimediaContent() || presentationScreen->getLabel()->hasActiveMultimediaContent();
@@ -285,7 +314,7 @@ void ControlScreen::keyPressEvent( QKeyEvent * event )
                 else
                     emit playMultimedia();
             }
-        break;
+            break;
     }
     event->accept();
 }

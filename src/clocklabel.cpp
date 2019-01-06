@@ -8,7 +8,7 @@
 
 #include "clocklabel.h"
 
-ClockLabel::ClockLabel(QWidget* parent) : QLabel(parent)
+ClockLabel::ClockLabel(QWidget * parent) : QLabel(parent)
 {
     timer = new QTimer(this);
     connect(timer, &QTimer::timeout, this, &ClockLabel::showTime);

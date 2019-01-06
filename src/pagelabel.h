@@ -13,10 +13,12 @@
 #include <QWidget>
 #include <QLabel>
 #include <QTimer>
+#include <QSlider>
 #include <QMouseEvent>
 #include <QDesktopServices>
 #include <poppler-qt5.h>
 #include "videowidget.h"
+#include "src/mediaslider.h"
 
 class PageLabel : public QLabel
 {
@@ -32,6 +34,7 @@ public:
     void setPresentationStatus(bool const status);
     void setShowMultimedia(bool const showVideos);
     bool hasActiveMultimediaContent() const;
+    void setMultimediaSliders(QList<MediaSlider *> sliderList);
 
 private:
     QList<Poppler::Link*> links;
@@ -40,11 +43,13 @@ private:
     QList<QRect*> videoPositions;
     QList<QMediaPlayer*> soundPlayers;
     QList<QRect*> soundPositions;
+    QList<MediaSlider*> sliders;
     bool isPresentation = true;
     bool showMultimedia = true;
     double autostartDelay = 0.; // delay for starting multimedia content in s
     QTimer * timer = nullptr;
     int minimumAnimationDelay = 20; // minimum frame time in ms
+    void clearLists();
 
 protected:
     void mouseReleaseEvent(QMouseEvent * event);
@@ -64,6 +69,9 @@ public slots:
 
 signals:
     void sendNewPageNumber(int const pageNumber);
+    void requestMultimediaSliders(int const n);
+    void sendCloseSignal();
+    void focusPageNumberEdit();
     void timeoutSignal();
 };
 

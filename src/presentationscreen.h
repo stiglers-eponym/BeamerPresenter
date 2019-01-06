@@ -27,7 +27,7 @@ public:
     void renderPage(const int pageNumber = 0);
     int getPageNumber() const;
     int* currentPageNumber;
-    PageLabel const * getLabel();
+    PageLabel * getLabel();
 
 protected:
     void keyPressEvent( QKeyEvent * event );

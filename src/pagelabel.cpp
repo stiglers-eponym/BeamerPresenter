@@ -27,18 +27,7 @@ PageLabel::PageLabel(QWidget* parent) : QLabel(parent)
 PageLabel::~PageLabel()
 {
     delete timer;
-    qDeleteAll(links);
-    links.clear();
-    qDeleteAll(linkPositions);
-    linkPositions.clear();
-    qDeleteAll(videoPositions);
-    videoPositions.clear();
-    qDeleteAll(videoWidgets);
-    videoWidgets.clear();
-    qDeleteAll(soundPositions);
-    soundPositions.clear();
-    qDeleteAll(soundPlayers);
-    soundPlayers.clear();
+    clearLists();
     page = nullptr;
 }
 
@@ -57,8 +46,31 @@ void PageLabel::setAnimationDelay(int const delay_ms)
     minimumAnimationDelay = delay_ms;
 }
 
-void PageLabel::renderPage(Poppler::Page* page)
+void PageLabel::clearLists()
 {
+    if (sliders.size() != 0) {
+        if (sliders.size() == videoWidgets.size() + soundPlayers.size()) {
+            for (int i=0; i<videoWidgets.size(); i++) {
+                MediaSlider * slider = sliders.at(i);
+                VideoWidget * video = videoWidgets.at(i);
+                disconnect(video->getPlayer(), &QMediaPlayer::durationChanged, slider, &MediaSlider::setMaximum);
+                disconnect(slider, &MediaSlider::sliderMoved, video, &VideoWidget::setPosition);
+                disconnect(video->getPlayer(), &QMediaPlayer::positionChanged, slider, &MediaSlider::setValue);
+            }
+            for (int i=0; i<soundPlayers.size(); i++) {
+                MediaSlider * slider = sliders.at(i + videoWidgets.size());
+                QMediaPlayer * player = soundPlayers.at(i);
+                disconnect(player, &QMediaPlayer::durationChanged, slider, &MediaSlider::setMaximum);
+                disconnect(slider, &MediaSlider::sliderMoved, player, &QMediaPlayer::setPosition);
+                disconnect(player, &QMediaPlayer::positionChanged, slider, &MediaSlider::setValue);
+            }
+        }
+        else {
+            std::cout << "This should never happen. Something went wrong when cleaning up sliders." << std::endl;
+        }
+    }
+    qDeleteAll(sliders);
+    sliders.clear();
     qDeleteAll(links);
     links.clear();
     qDeleteAll(linkPositions);
@@ -71,6 +83,11 @@ void PageLabel::renderPage(Poppler::Page* page)
     soundPositions.clear();
     qDeleteAll(soundPlayers);
     soundPlayers.clear();
+}
+
+void PageLabel::renderPage(Poppler::Page* page)
+{
+    clearLists();
 
     this->page = page;
     QSize pageSize = page->pageSize();
@@ -178,7 +195,41 @@ void PageLabel::renderPage(Poppler::Page* page)
             // autostart without delay
             startAllMultimedia();
         }
+
+        // Add slider
+        emit requestMultimediaSliders(videoWidgets.size() + soundPlayers.size());
     }
+}
+
+void PageLabel::setMultimediaSliders(QList<MediaSlider *> sliderList)
+{
+    if (sliders.size() != 0) {
+        std::cout << "Something unexpected happened: There is a problem with the media sliders." << std::endl;
+        return;
+    }
+    sliders = sliderList;
+    for (int i=0; i<videoWidgets.size(); i++) {
+        MediaSlider * slider = sliders.at(i);
+        VideoWidget * video = videoWidgets.at(i);
+        connect(video->getPlayer(), &QMediaPlayer::durationChanged, slider, &MediaSlider::setMaximum);
+        int const duration = int(video->getDuration()/100);
+        if (duration > 0)
+            slider->setMaximum(duration);
+        connect(slider, &MediaSlider::sliderMoved, video, &VideoWidget::setPosition);
+        connect(video->getPlayer(), &QMediaPlayer::positionChanged, slider, &MediaSlider::setValue);
+    }
+    for (int i=0; i<soundPlayers.size(); i++) {
+        MediaSlider * slider = sliders.at(i + videoWidgets.size());
+        QMediaPlayer * player = soundPlayers.at(i);
+        slider->setRange(0, int(player->duration()));
+        connect(player, &QMediaPlayer::durationChanged, slider, &MediaSlider::setMaximum);
+        int const duration = int(player->duration()/100);
+        if (duration > 0)
+            slider->setMaximum(duration);
+        connect(slider, &MediaSlider::sliderMoved, player, &QMediaPlayer::setPosition);
+        connect(player, &QMediaPlayer::positionChanged, slider, &MediaSlider::setValue);
+    }
+    show();
 }
 
 void PageLabel::startAllMultimedia()
@@ -239,16 +290,65 @@ void PageLabel::mouseReleaseEvent(QMouseEvent * event)
                         emit sendNewPageNumber( ((Poppler::LinkGoto*) links.at(i))->destination().pageNumber() - 1 );
                     break;
                     case Poppler::Link::Execute:
-                        std::cout << "Unsupported link of type execute" << std::endl;
+                        {
+                            std::cout << "Unsupported link of type execute:" << std::endl;
+                            Poppler::LinkExecute * link = (Poppler::LinkExecute*) links.at(i);
+                            if (!link->parameters().isEmpty())
+                                std::cout << "Execution parameters: " << link->parameters().toStdString() << std::endl;
+                            std::cout << "File to be executed: " << link->fileName().toStdString() << std::endl;
+                        }
                     break;
                     case Poppler::Link::Browse:
                         QDesktopServices::openUrl( QUrl( ((Poppler::LinkBrowse*) links.at(i))->url(), QUrl::TolerantMode ) );
                     break;
                     case Poppler::Link::Action:
                         {
-                            Poppler::LinkAction* actionLink = (Poppler::LinkAction*) links.at(i);
-                            Poppler::LinkAction::ActionType action = actionLink->actionType();
-                            std::cout << "Unsupported link of type action: ActionType = " << action << std::endl;
+                            Poppler::LinkAction* link = (Poppler::LinkAction*) links.at(i);
+                            switch (link->actionType())
+                            {
+                                case Poppler::LinkAction::Quit:
+                                case Poppler::LinkAction::Close:
+                                    emit sendCloseSignal();
+                                    break;
+                                case Poppler::LinkAction::Print:
+                                    std::cout << "Unsupported link action: print." << std::endl;
+                                    break;
+                                case Poppler::LinkAction::GoToPage:
+                                    emit focusPageNumberEdit();
+                                    break;
+                                case Poppler::LinkAction::PageNext:
+                                    emit sendNewPageNumber( pageNumber() + 1 );
+                                    break;
+                                case Poppler::LinkAction::PagePrev:
+                                    emit sendNewPageNumber( pageNumber() - 1 );
+                                    break;
+                                case Poppler::LinkAction::PageFirst:
+                                    emit sendNewPageNumber(0);
+                                    break;
+                                case Poppler::LinkAction::PageLast:
+                                    emit sendNewPageNumber(-1);
+                                    break;
+                                case Poppler::LinkAction::Find:
+                                    // TODO: implement this
+                                    std::cout << "Unsupported link action: find." << std::endl;
+                                    break;
+                                case Poppler::LinkAction::Presentation:
+                                    std::cout << "Unsupported link action: presentation." << std::endl;
+                                    std::cout << "This pdf viewer is always in presentation mode." << std::endl;
+                                    break;
+                                case Poppler::LinkAction::EndPresentation:
+                                    std::cout << "Unsupported link action: end presentation." << std::endl;
+                                    std::cout << "This pdf viewer is always in presentation mode." << std::endl;
+                                    break;
+                                case Poppler::LinkAction::HistoryBack:
+                                    // TODO: implement this
+                                    std::cout << "Unsupported link action: history back." << std::endl;
+                                    break;
+                                case Poppler::LinkAction::HistoryForward:
+                                    // TODO: implement this
+                                    std::cout << "Unsupported link action: history forward." << std::endl;
+                                    break;
+                            };
                         }
                     break;
                     case Poppler::Link::Sound:

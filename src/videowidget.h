@@ -32,7 +32,9 @@ public:
     VideoWidget(Poppler::MovieAnnotation const * annotation, QWidget * parent = nullptr);
     ~VideoWidget();
     QMediaPlayer::State state() const;
-    Poppler::MovieAnnotation const * getAnnotation();
+    Poppler::MovieAnnotation const * getAnnotation() const;
+    qint64 getDuration() const;
+    QMediaPlayer const * getPlayer() const;
 
 protected:
     void mouseReleaseEvent(QMouseEvent * event);
@@ -46,11 +48,16 @@ private:
 public slots:
     void play();
     void pause();
+    void setPosition(qint64 const position);
 
 private slots:
     void showPosterImage(QMediaPlayer::State state);
     void bouncePalindromeVideo(QMediaPlayer::State state);
     void restartVideo(QMediaPlayer::State state);
+
+signals:
+    void positionChanged(qint64 const position);
+    void durationChanged(qint64 const position);
 };
 
 #endif // VIDEOWIDGET_H

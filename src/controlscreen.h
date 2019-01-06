@@ -11,7 +11,9 @@
 
 #include <QMainWindow>
 #include <QLabel>
+#include <QSlider>
 #include <QKeyEvent>
+#include "src/mediaslider.h"
 #include "src/pdfdoc.h"
 #include "src/timer.h"
 #include "src/pagenumberedit.h"
@@ -60,6 +62,8 @@ public slots:
     void receiveTimerAlert();
     void resetTimerAlert();
     void resetFocus();
+    void focusPageNumberEdit();
+    void addMultimediaSliders(int const n);
 };
 
 #endif // CONTROLSCREEN_H

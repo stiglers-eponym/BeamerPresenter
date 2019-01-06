@@ -40,9 +40,10 @@ void PdfDoc::loadDocument()
         std::cin >> userPassword;
         popplerDoc->unlock(QByteArray::fromStdString(ownerPassword), QByteArray::fromStdString(userPassword));
     }
-    popplerDoc->setRenderHint( Poppler::Document::Antialiasing );
-    popplerDoc->setRenderHint( Poppler::Document::TextAntialiasing );
-    popplerDoc->setRenderHint( Poppler::Document::TextHinting );
+    popplerDoc->setRenderHint(Poppler::Document::TextAntialiasing);
+    popplerDoc->setRenderHint(Poppler::Document::TextHinting);
+    popplerDoc->setRenderHint(Poppler::Document::ThinLineShape);
+    popplerDoc->setRenderHint(Poppler::Document::Antialiasing);
 
     for ( int i=0; i < popplerDoc->numPages(); i++ ) {
         Poppler::Page * p = popplerDoc->page(i);

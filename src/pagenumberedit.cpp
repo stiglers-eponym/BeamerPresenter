@@ -41,24 +41,24 @@ void PageNumberEdit::keyPressEvent(QKeyEvent * event)
     {
         case Qt::Key_PageDown:
             emit sendPageShiftReturn(1);
-        break;
+            break;
         case Qt::Key_PageUp:
             emit sendPageShiftReturn(-1);
-        break;
+            break;
         case Qt::Key_Down:
             emit sendPageShiftEdit(1);
-        break;
+            break;
         case Qt::Key_Up:
             emit sendPageShiftEdit(-1);
-        break;
+            break;
         case Qt::Key_End:
             setText( QString::fromStdString( std::to_string( numberOfPages )) );
             emit sendPageNumberEdit( numberOfPages - 1 );
-        break;
+            break;
         case Qt::Key_Home:
             setText( "1" );
             emit sendPageNumberEdit( 0 );
-        break;
+            break;
         case Qt::Key_0:
         case Qt::Key_1:
         case Qt::Key_2:
@@ -75,13 +75,13 @@ void PageNumberEdit::keyPressEvent(QKeyEvent * event)
         case Qt::Key_Right:
         case Qt::Key_Control:
             QLineEdit::keyPressEvent(event);
-        break;
+            break;
         case Qt::Key_Escape:
             emit sendEscape();
-        break;
+            break;
         case Qt::Key_Return:
             emit sendPageNumberReturn( text().toInt() - 1 );
-        break;
+            break;
     }
     event->accept();
 }

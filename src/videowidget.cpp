@@ -36,14 +36,14 @@ VideoWidget::VideoWidget(Poppler::MovieAnnotation const * annotation, QWidget * 
             // TODO: PlayOpen should leave controls open (but they are not implemented yet).
         case Poppler::MovieObject::PlayOnce:
             connect(player, &QMediaPlayer::stateChanged, this, &VideoWidget::showPosterImage);
-        break;
+            break;
         case Poppler::MovieObject::PlayPalindrome:
             std::cout << "WARNING: play mode=palindrome does not work as it should." << std::endl;
             connect(player, &QMediaPlayer::stateChanged, this, &VideoWidget::bouncePalindromeVideo);
-        break;
+            break;
         case Poppler::MovieObject::PlayRepeat:
             connect(player, &QMediaPlayer::stateChanged, this, &VideoWidget::restartVideo);
-        break;
+            break;
     }
     if (movie->showControls()) {
         // TODO: video control bar
@@ -52,6 +52,8 @@ VideoWidget::VideoWidget(Poppler::MovieAnnotation const * annotation, QWidget * 
     // I like these results, but I don't know whether this is what other people would expect.
     // Please write me a comment if you would prefer an other way of handling the aspect ratio.
     setAspectRatioMode(Qt::IgnoreAspectRatio);
+    connect(player, &QMediaPlayer::positionChanged, this, &VideoWidget::positionChanged);
+    connect(player, &QMediaPlayer::durationChanged, this, &VideoWidget::positionChanged);
 }
 
 VideoWidget::~VideoWidget()
@@ -60,11 +62,28 @@ VideoWidget::~VideoWidget()
     disconnect(player, &QMediaPlayer::stateChanged, this, &VideoWidget::showPosterImage);
     disconnect(player, &QMediaPlayer::stateChanged, this, &VideoWidget::bouncePalindromeVideo);
     disconnect(player, &QMediaPlayer::stateChanged, this, &VideoWidget::restartVideo);
+    disconnect(player, &QMediaPlayer::positionChanged, this, &VideoWidget::positionChanged);
+    disconnect(player, &QMediaPlayer::durationChanged, this, &VideoWidget::positionChanged);
     delete annotation;
     delete player;
 }
 
-Poppler::MovieAnnotation const * VideoWidget::getAnnotation()
+QMediaPlayer const * VideoWidget::getPlayer() const
+{
+    return player;
+}
+
+qint64 VideoWidget::getDuration() const
+{
+    return player->duration();
+}
+
+void VideoWidget::setPosition(qint64 const position)
+{
+    player->setPosition(position);
+}
+
+Poppler::MovieAnnotation const * VideoWidget::getAnnotation() const
 {
     return annotation;
 }
@@ -99,15 +118,14 @@ void VideoWidget::showPosterImage(QMediaPlayer::State state)
 
 void VideoWidget::bouncePalindromeVideo(QMediaPlayer::State state)
 {
-    // TODO: The result of this function is not what it should be
+    // TODO: The result of this function is not what it should be.
+    // But this could also depend on the encoding of the video.
     if (state == QMediaPlayer::StoppedState) {
-        player->pause();
+        disconnect(player, &QMediaPlayer::stateChanged, this, &VideoWidget::bouncePalindromeVideo);
+        player->stop();
         player->setPlaybackRate(-player->playbackRate());
-        if (player->playbackRate() > 0)
-            player->setPosition(0);
-        else
-            player->setPosition(player->duration());
         player->play();
+        connect(player, &QMediaPlayer::stateChanged, this, &VideoWidget::bouncePalindromeVideo);
     }
 }
 

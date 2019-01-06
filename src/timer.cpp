@@ -61,19 +61,19 @@ void Timer::setDeadline()
     {
         case 1:
             *deadline = QTime::fromString(timerEdit->text(), "m");
-        break;
+            break;
         case 2:
             *deadline = QTime::fromString(timerEdit->text(), "mm");
-        break;
+            break;
         case 4:
             *deadline = QTime::fromString(timerEdit->text(), "m:ss");
-        break;
+            break;
         case 5:
             *deadline = QTime::fromString(timerEdit->text(), "mm:ss");
-        break;
+            break;
         case 7:
             *deadline = QTime::fromString(timerEdit->text(), "h:mm:ss");
-        break;
+            break;
     }
     QPalette palette = QPalette();
     int const diff = time->secsTo(*deadline);
