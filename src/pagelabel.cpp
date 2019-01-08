@@ -131,7 +131,7 @@ void PageLabel::renderPage(Poppler::Page * page)
         QTimer::singleShot(int(minimumAnimationDelay), this, &PageLabel::timeoutSignal);
     }
     Poppler::PageTransition* transition = page->transition();
-    if (transition->type() != Poppler::PageTransition::Replace)
+    if (transition != nullptr && transition->type() != Poppler::PageTransition::Replace)
         std::cout << "Unsupported page transition of type " << transition->type() << std::endl;
 
     // Show videos. This part is work in progress.
@@ -213,7 +213,14 @@ void PageLabel::updateCache(QPixmap * pixmap, int const index)
 
 void PageLabel::updateCache(Poppler::Page * nextPage)
 {
-    if ((page->duration() < -0.01  || page->duration() > 0.1) && (nextPage->index() != cachedIndex)) {
+    if (page == nullptr) {
+        page = nextPage;
+        cachedIndex = nextPage->index();
+        cachedPixmap = QPixmap::fromImage( nextPage->renderToImage(72*resolution, 72*resolution) );
+        return;
+    }
+    double const nextDuration = nextPage->duration();
+    if (nextPage->index() != cachedIndex && ( nextDuration < -0.01  || nextDuration > 0.1) ) {
         cachedIndex = nextPage->index();
         cachedPixmap = QPixmap::fromImage( nextPage->renderToImage(72*resolution, 72*resolution) );
     }
