@@ -301,7 +301,6 @@ void ControlScreen::keyPressEvent( QKeyEvent * event )
 {
     switch ( event->key() ) {
         case Qt::Key_Right:
-        case Qt::Key_Down:
         case Qt::Key_PageDown:
             emit sendNewPageNumber( ++currentPageNumber );
             renderPage( currentPageNumber );
@@ -310,9 +309,26 @@ void ControlScreen::keyPressEvent( QKeyEvent * event )
             updateCache();
             break;
         case Qt::Key_Left:
-        case Qt::Key_Up:
         case Qt::Key_PageUp:
-            emit sendNewPageNumber( --currentPageNumber );
+            if (currentPageNumber > 0) {
+                emit sendNewPageNumber( --currentPageNumber );
+                renderPage( currentPageNumber );
+                ui->label_timer->continueTimer();
+                emit sendUpdateCache();
+                updateCache();
+            }
+            break;
+        case Qt::Key_Down:
+            currentPageNumber = notes->getNextSlideIndex(currentPageNumber);
+            emit sendNewPageNumber( currentPageNumber );
+            renderPage( currentPageNumber );
+            ui->label_timer->continueTimer();
+            emit sendUpdateCache();
+            updateCache();
+            break;
+        case Qt::Key_Up:
+            currentPageNumber = notes->getPreviousSlideEnd(currentPageNumber);
+            emit sendNewPageNumber( currentPageNumber );
             renderPage( currentPageNumber );
             ui->label_timer->continueTimer();
             emit sendUpdateCache();

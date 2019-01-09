@@ -91,7 +91,6 @@ void PresentationScreen::keyPressEvent( QKeyEvent * event )
     // TODO: Find a nicer way to do this
     switch ( event->key() ) {
         case Qt::Key_Right:
-        case Qt::Key_Down:
         case Qt::Key_PageDown:
             renderPage( label->pageNumber() + 1 );
             if ( label->getDuration() < 0 || label->getDuration() > 0.5 )
@@ -101,14 +100,38 @@ void PresentationScreen::keyPressEvent( QKeyEvent * event )
                 emit sendUpdateCache();
             break;
         case Qt::Key_Left:
-        case Qt::Key_Up:
         case Qt::Key_PageUp:
-            renderPage( label->pageNumber() - 1 );
-            if ( label->getDuration() < 0 || label->getDuration() > 0.5 )
-                emit sendPageShift();
-            updateCache();
-            if ( label->getDuration() < 0 || label->getDuration() > 0.5 )
+            {
+                int page = label->pageNumber() - 1;
+                if (page >= 0) {
+                    renderPage( label->pageNumber() - 1 );
+                    if ( label->getDuration() < 0 || label->getDuration() > 0.5 )
+                        emit sendPageShift();
+                    updateCache();
+                    if ( label->getDuration() < 0 || label->getDuration() > 0.5 )
+                        emit sendUpdateCache();
+                }
+            }
+            break;
+        //case Qt::Key_E: // For those who prefere vim shortcuts
+        case Qt::Key_Down:
+            {
+                int pageNumber = presentation->getNextSlideIndex(label->pageNumber());
+                renderPage( pageNumber );
+                emit sendNewPageNumber( pageNumber );
+                updateCache();
                 emit sendUpdateCache();
+            }
+            break;
+        //case Qt::Key_B: // For those who prefere vim shortcuts
+        case Qt::Key_Up:
+            {
+                int pageNumber = presentation->getPreviousSlideEnd(label->pageNumber());
+                renderPage( pageNumber );
+                emit sendNewPageNumber( pageNumber );
+                updateCache();
+                emit sendUpdateCache();
+            }
             break;
         case Qt::Key_Space:
             renderPage( label->pageNumber() );

@@ -25,14 +25,15 @@ public:
     void loadDocument();
     Poppler::Page* getPage(int pageNumber) const;
     QSize getPageSize(int const pageNumber) const;
-    //QImage renderPage(int pageNumber, QSize size=QSize(-1,-1)) const;
-    //void renderToLabel(QLabel* label, int pageNumber);
+    int getNextSlideIndex(int const index) const;
+    int getPreviousSlideEnd(int const index) const;
 
-    Poppler::Document *popplerDoc;
+    Poppler::Document *popplerDoc = nullptr;
 
 private:
     QString pdfPath;
     QList<Poppler::Page*> pdfPages;
+    QList<QString> labels;
 
 signals:
 

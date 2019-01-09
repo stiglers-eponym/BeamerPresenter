@@ -1,9 +1,6 @@
 BeamerPresenter
 
-* Further testing with different pdfs: fix all memory errors
-
-* Option to jump to the next / previous differing page number
-* show number of slides with same page number
+* Man page
 * Support locked and encrypted pdfs: Enter passwords in QDialog? hide password input!
 * Use scroll events to browse slides
 * Better video and sound control bar

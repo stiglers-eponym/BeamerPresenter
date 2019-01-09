@@ -17,6 +17,7 @@ PdfDoc::~PdfDoc()
 {
     qDeleteAll(pdfPages);
     pdfPages.clear();
+    labels.clear();
     delete popplerDoc;
 }
 
@@ -42,9 +43,13 @@ void PdfDoc::loadDocument()
     popplerDoc->setRenderHint(Poppler::Document::ThinLineShape);
     popplerDoc->setRenderHint(Poppler::Document::Antialiasing);
 
+    qDeleteAll(pdfPages);
+    pdfPages.clear();
+    labels.clear();
     for ( int i=0; i < popplerDoc->numPages(); i++ ) {
         Poppler::Page * p = popplerDoc->page(i);
         pdfPages.append( p );
+        labels.append( p->label() );
     }
 
     if (popplerDoc->hasOptionalContent())
@@ -71,4 +76,24 @@ Poppler::Page* PdfDoc::getPage(int pageNumber) const
     if (pageNumber >= popplerDoc->numPages())
         return pdfPages.at(popplerDoc->numPages()-1);
     return pdfPages.at(pageNumber);
+}
+
+int PdfDoc::getNextSlideIndex(int const index) const
+{
+    QString label = labels.at(index);
+    for (int i=index; i<popplerDoc->numPages(); i++) {
+        if (label != labels.at(i))
+            return i;
+    }
+    return popplerDoc->numPages()-1;
+}
+
+int PdfDoc::getPreviousSlideEnd(int const index) const
+{
+    QString label = labels.at(index);
+    for (int i=index; i>0; i--) {
+        if (label != labels.at(i))
+            return i;
+    }
+    return 0;
 }
