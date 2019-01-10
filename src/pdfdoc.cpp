@@ -92,8 +92,14 @@ int PdfDoc::getPreviousSlideEnd(int const index) const
 {
     QString label = labels.at(index);
     for (int i=index; i>0; i--) {
-        if (label != labels.at(i))
-            return i;
+        if (label != labels.at(i)) {
+            double duration = pdfPages.at(i)->duration();
+            int j=i;
+            // Don't return the index of a slides which is shown for less than one second
+            while (duration > -0.01 && duration < 1. && (labels.at(j) == labels.at(i)))
+                duration = pdfPages.at(--j)->duration();
+            return j;
+        }
     }
     return 0;
 }

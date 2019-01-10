@@ -12,6 +12,7 @@
 #include <QObject>
 #include <QWidget>
 #include <QSlider>
+#include <QKeyEvent>
 #include <iostream>
 
 class MediaSlider : public QSlider
@@ -24,11 +25,16 @@ public:
     void setMaximum(qint64 const max);
     void setValue(qint64 const value);
 
+protected:
+    void keyPressEvent(QKeyEvent * event);
+
 public slots:
     void emitSliderMoved(int const value);
 
 signals:
     void sliderMoved(qint64 const value);
+    void sendKeyEvent(QKeyEvent * event);
+    void sendEscapeEvent();
 };
 
 #endif // MEDIASLIDER_H

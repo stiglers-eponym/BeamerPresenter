@@ -28,9 +28,8 @@ Timer::Timer(QLineEdit * setTimerEdit, QWidget * parent) : QLabel(parent)
 
 Timer::~Timer()
 {
-    disconnect(timerEdit, &QLineEdit::returnPressed, this, &Timer::setDeadline);
-    disconnect(timerEdit, &QLineEdit::returnPressed, this, &Timer::sendEscape);
-    disconnect(timer, &QTimer::timeout, this, &Timer::showTime);
+    timerEdit->disconnect();
+    timer->disconnect();
     delete deadline;
     delete time;
     delete timer;

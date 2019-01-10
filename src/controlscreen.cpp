@@ -116,71 +116,14 @@ ControlScreen::ControlScreen(QString presentationPath, QString notesPath, QWidge
 
 ControlScreen::~ControlScreen()
 {
-    disconnect(ui->notes_label,         &PageLabel::sendNewPageNumber, this, &ControlScreen::receiveNewPageNumber);
-    disconnect(ui->current_slide_label, &PageLabel::sendNewPageNumber, this, &ControlScreen::receiveNewPageNumber);
-    disconnect(ui->next_slide_label,    &PageLabel::sendNewPageNumber, this, &ControlScreen::receiveNewPageNumber);
-    disconnect(ui->notes_label,         &PageLabel::sendNewPageNumber, presentationScreen, &PresentationScreen::receiveNewPageNumber);
-    disconnect(ui->current_slide_label, &PageLabel::sendNewPageNumber, presentationScreen, &PresentationScreen::receiveNewPageNumber);
-    disconnect(ui->next_slide_label,    &PageLabel::sendNewPageNumber, presentationScreen, &PresentationScreen::receiveNewPageNumber);
-
-    disconnect(ui->notes_label,         &PageLabel::focusPageNumberEdit, this, &ControlScreen::focusPageNumberEdit);
-    disconnect(ui->current_slide_label, &PageLabel::focusPageNumberEdit, this, &ControlScreen::focusPageNumberEdit);
-    disconnect(ui->next_slide_label,    &PageLabel::focusPageNumberEdit, this, &ControlScreen::focusPageNumberEdit);
-    disconnect(presentationScreen->getLabel(), &PageLabel::focusPageNumberEdit, this, &ControlScreen::focusPageNumberEdit);
-
-    disconnect(ui->notes_label,         &PageLabel::sendShowFullscreen, this, &ControlScreen::showFullScreen);
-    disconnect(ui->current_slide_label, &PageLabel::sendShowFullscreen, this, &ControlScreen::showFullScreen);
-    disconnect(ui->next_slide_label,    &PageLabel::sendShowFullscreen, this, &ControlScreen::showFullScreen);
-    disconnect(presentationScreen->getLabel(), &PageLabel::sendShowFullscreen, this, &ControlScreen::showFullScreen);
-    disconnect(ui->notes_label,         &PageLabel::sendShowFullscreen, presentationScreen, &PresentationScreen::showFullScreen);
-    disconnect(ui->current_slide_label, &PageLabel::sendShowFullscreen, presentationScreen, &PresentationScreen::showFullScreen);
-    disconnect(ui->next_slide_label,    &PageLabel::sendShowFullscreen, presentationScreen, &PresentationScreen::showFullScreen);
-    disconnect(presentationScreen->getLabel(), &PageLabel::sendShowFullscreen, presentationScreen, &PresentationScreen::showFullScreen);
-
-    // Navigation signals emitted by PresentationScreen:
-    disconnect(presentationScreen, &PresentationScreen::sendPageShift,     this, &ControlScreen::receivePageShiftReturn);
-    disconnect(presentationScreen, &PresentationScreen::sendNewPageNumber, this, &ControlScreen::receiveNewPageNumber);
-    disconnect(presentationScreen, &PresentationScreen::sendUpdateCache, this, &ControlScreen::updateCache);
-    disconnect(presentationScreen->getLabel(), &PageLabel::requestMultimediaSliders, this, &ControlScreen::addMultimediaSliders);
-
-    // Other signals emitted by PresentationScreen
-    disconnect(presentationScreen, &PresentationScreen::sendKeyEvent,    this, &ControlScreen::keyPressEvent);
-    disconnect(presentationScreen, &PresentationScreen::sendCloseSignal, this, &ControlScreen::receiveCloseSignal);
-
-    // Signals sent back to PresentationScreen
-    disconnect(this, &ControlScreen::sendNewPageNumber, presentationScreen, &PresentationScreen::receiveNewPageNumber);
-    disconnect(this, &ControlScreen::sendCloseSignal,   presentationScreen, &PresentationScreen::receiveCloseSignal);
-    disconnect(this, &ControlScreen::sendUpdateCache,   presentationScreen, &PresentationScreen::updateCache);
-    disconnect(ui->notes_label, &PageLabel::sendCloseSignal, presentationScreen, &PresentationScreen::receiveCloseSignal);
-    disconnect(presentationScreen->getLabel(), &PageLabel::sendCloseSignal, presentationScreen, &PresentationScreen::receiveCloseSignal);
-    disconnect(ui->notes_label, &PageLabel::sendCloseSignal, this, &ControlScreen::receiveCloseSignal);
-    disconnect(presentationScreen->getLabel(), &PageLabel::sendCloseSignal, this, &ControlScreen::receiveCloseSignal);
-
-    ui->label_timer->setTimerWidget( ui->edit_timer );
-    // Signals emitted by the timer
-    disconnect(ui->label_timer, &Timer::sendAlert,   this, &ControlScreen::receiveTimerAlert);
-    disconnect(ui->label_timer, &Timer::sendNoAlert, this, &ControlScreen::resetTimerAlert);
-    disconnect(ui->label_timer, &Timer::sendEscape,  this, &ControlScreen::resetFocus);
-    // Signals sent back to the timer
-    disconnect(this, &ControlScreen::sendTimerString, ui->label_timer, &Timer::receiveTimerString);
-    disconnect(this, &ControlScreen::sendTimeoutInterval, ui->label_timer, &Timer::receiveTimeoutInterval);
-
-    // Signals sent to the page labels
-    disconnect(this, &ControlScreen::sendAutostartDelay, ui->notes_label, &PageLabel::setAutostartDelay);
-    disconnect(this, &ControlScreen::sendAutostartDelay, presentationScreen->getLabel(), &PageLabel::setAutostartDelay);
-    disconnect(this, &ControlScreen::playMultimedia, ui->notes_label, &PageLabel::startAllMultimedia);
-    disconnect(this, &ControlScreen::playMultimedia, presentationScreen->getLabel(), &PageLabel::startAllMultimedia);
-    disconnect(this, &ControlScreen::pauseMultimedia, ui->notes_label, &PageLabel::pauseAllMultimedia);
-    disconnect(this, &ControlScreen::pauseMultimedia, presentationScreen->getLabel(), &PageLabel::pauseAllMultimedia);
-    disconnect(this, &ControlScreen::sendAnimationDelay, presentationScreen->getLabel(), &PageLabel::setAnimationDelay);
-
-    // Signals emitted by the page number editor
-    disconnect(ui->text_current_slide, &PageNumberEdit::sendPageNumberReturn, presentationScreen, &PresentationScreen::receiveNewPageNumber);
-    disconnect(ui->text_current_slide, &PageNumberEdit::sendPageShiftReturn,  presentationScreen, &PresentationScreen::receiveNewPageNumber);
-    disconnect(ui->text_current_slide, &PageNumberEdit::sendPageNumberEdit,  this, &ControlScreen::receiveNewPageNumber);
-    disconnect(ui->text_current_slide, &PageNumberEdit::sendPageShiftEdit,   this, &ControlScreen::receivePageShiftEdit);
-    disconnect(ui->text_current_slide, &PageNumberEdit::sendPageShiftReturn, this, &ControlScreen::receivePageShiftReturn);
-    disconnect(ui->text_current_slide, &PageNumberEdit::sendEscape,          this, &ControlScreen::resetFocus);
+    ui->notes_label->disconnect();
+    ui->current_slide_label->disconnect();
+    ui->next_slide_label->disconnect();
+    ui->label_timer->disconnect();
+    ui->text_current_slide->disconnect();
+    presentationScreen->getLabel()->disconnect();
+    presentationScreen->disconnect();
+    disconnect();
     if (notes != presentation)
         delete notes;
     delete presentationScreen;
@@ -215,6 +158,8 @@ void ControlScreen::addMultimediaSliders(int const n)
         MediaSlider * slider = new MediaSlider(this);
         ui->overviewLayout->addWidget(slider);
         sliderList.append(slider);
+        connect(slider, &MediaSlider::sendEscapeEvent, this, &ControlScreen::resetFocus);
+        connect(slider, &MediaSlider::sendKeyEvent, this, &ControlScreen::keyPressEvent);
     }
     presentationScreen->getLabel()->setMultimediaSliders(sliderList);
 }

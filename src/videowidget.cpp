@@ -59,11 +59,7 @@ VideoWidget::VideoWidget(Poppler::MovieAnnotation const * annotation, QWidget * 
 VideoWidget::~VideoWidget()
 {
     player->stop();
-    disconnect(player, &QMediaPlayer::stateChanged, this, &VideoWidget::showPosterImage);
-    disconnect(player, &QMediaPlayer::stateChanged, this, &VideoWidget::bouncePalindromeVideo);
-    disconnect(player, &QMediaPlayer::stateChanged, this, &VideoWidget::restartVideo);
-    disconnect(player, &QMediaPlayer::positionChanged, this, &VideoWidget::positionChanged);
-    disconnect(player, &QMediaPlayer::durationChanged, this, &VideoWidget::positionChanged);
+    player->disconnect();
     delete annotation;
     delete player;
 }

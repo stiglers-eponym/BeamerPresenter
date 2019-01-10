@@ -15,7 +15,7 @@ PageNumberEdit::PageNumberEdit(QWidget * parent) : QLineEdit(parent)
 
 PageNumberEdit::~PageNumberEdit()
 {
-    disconnect(this, &PageNumberEdit::textChanged, this, &PageNumberEdit::receiveEditSignal);
+    disconnect();
 }
 
 void PageNumberEdit::setNumberOfPages(const int numberOfPages)
