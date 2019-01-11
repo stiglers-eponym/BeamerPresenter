@@ -36,9 +36,9 @@ PresentationScreen::PresentationScreen(PdfDoc* presentationDoc, QWidget *parent)
 PresentationScreen::~PresentationScreen()
 {
     label->disconnect();
+    //delete presentation;
     disconnect();
     delete label;
-    delete presentation;
     delete layout;
 }
 

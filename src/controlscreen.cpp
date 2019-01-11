@@ -9,7 +9,7 @@
 #include "controlscreen.h"
 #include "ui_controlscreen.h"
 
-ControlScreen::ControlScreen(QString presentationPath, QString notesPath, QWidget *parent) :
+ControlScreen::ControlScreen(QString presentationPath, QString notesPath, QWidget * parent) :
     QMainWindow(parent),
     ui(new Ui::ControlScreen)
 {
@@ -31,9 +31,9 @@ ControlScreen::ControlScreen(QString presentationPath, QString notesPath, QWidge
     }
     else {
         notes = new PdfDoc( notesPath );
+        notes->loadDocument();
         setWindowTitle("BeamerPresenter: " + notesPath);
     }
-    notes->loadDocument();
 
     // Set up the widgets
     ui->text_number_slides->setText( QString::fromStdString( std::to_string(numberOfPages) ) );
@@ -93,25 +93,25 @@ ControlScreen::ControlScreen(QString presentationPath, QString notesPath, QWidge
     connect(ui->label_timer, &Timer::sendNoAlert, this, &ControlScreen::resetTimerAlert);
     connect(ui->label_timer, &Timer::sendEscape,  this, &ControlScreen::resetFocus);
     // Signals sent back to the timer
-    connect(this, &ControlScreen::sendTimerString, ui->label_timer, &Timer::receiveTimerString);
+    connect(this, &ControlScreen::sendTimerString,     ui->label_timer, &Timer::receiveTimerString);
     connect(this, &ControlScreen::sendTimeoutInterval, ui->label_timer, &Timer::receiveTimeoutInterval);
 
     // Signals sent to the page labels
     connect(this, &ControlScreen::sendAutostartDelay, ui->notes_label, &PageLabel::setAutostartDelay);
     connect(this, &ControlScreen::sendAutostartDelay, presentationScreen->getLabel(), &PageLabel::setAutostartDelay);
-    connect(this, &ControlScreen::playMultimedia, ui->notes_label, &PageLabel::startAllMultimedia);
-    connect(this, &ControlScreen::playMultimedia, presentationScreen->getLabel(), &PageLabel::startAllMultimedia);
-    connect(this, &ControlScreen::pauseMultimedia, ui->notes_label, &PageLabel::pauseAllMultimedia);
-    connect(this, &ControlScreen::pauseMultimedia, presentationScreen->getLabel(), &PageLabel::pauseAllMultimedia);
+    connect(this, &ControlScreen::playMultimedia,     ui->notes_label, &PageLabel::startAllMultimedia);
+    connect(this, &ControlScreen::playMultimedia,     presentationScreen->getLabel(), &PageLabel::startAllMultimedia);
+    connect(this, &ControlScreen::pauseMultimedia,    ui->notes_label, &PageLabel::pauseAllMultimedia);
+    connect(this, &ControlScreen::pauseMultimedia,    presentationScreen->getLabel(), &PageLabel::pauseAllMultimedia);
     connect(this, &ControlScreen::sendAnimationDelay, presentationScreen->getLabel(), &PageLabel::setAnimationDelay);
 
     // Signals emitted by the page number editor
     connect(ui->text_current_slide, &PageNumberEdit::sendPageNumberReturn, presentationScreen, &PresentationScreen::receiveNewPageNumber);
     connect(ui->text_current_slide, &PageNumberEdit::sendPageShiftReturn,  presentationScreen, &PresentationScreen::receiveNewPageNumber);
-    connect(ui->text_current_slide, &PageNumberEdit::sendPageNumberEdit,  this, &ControlScreen::receiveNewPageNumber);
-    connect(ui->text_current_slide, &PageNumberEdit::sendPageShiftEdit,   this, &ControlScreen::receivePageShiftEdit);
-    connect(ui->text_current_slide, &PageNumberEdit::sendPageShiftReturn, this, &ControlScreen::receivePageShiftReturn);
-    connect(ui->text_current_slide, &PageNumberEdit::sendEscape,          this, &ControlScreen::resetFocus);
+    connect(ui->text_current_slide, &PageNumberEdit::sendPageNumberEdit,   this, &ControlScreen::receiveNewPageNumber);
+    connect(ui->text_current_slide, &PageNumberEdit::sendPageShiftEdit,    this, &ControlScreen::receivePageShiftEdit);
+    connect(ui->text_current_slide, &PageNumberEdit::sendPageShiftReturn,  this, &ControlScreen::receivePageShiftReturn);
+    connect(ui->text_current_slide, &PageNumberEdit::sendEscape,           this, &ControlScreen::resetFocus);
 }
 
 ControlScreen::~ControlScreen()
@@ -123,19 +123,31 @@ ControlScreen::~ControlScreen()
     ui->text_current_slide->disconnect();
     presentationScreen->getLabel()->disconnect();
     presentationScreen->disconnect();
-    disconnect();
     if (notes != presentation)
         delete notes;
+    delete presentation;
     delete presentationScreen;
+    disconnect();
     delete ui;
+}
+
+void ControlScreen::setPagePart(int const pagePart)
+{
+    this->pagePart = pagePart;
+    ui->notes_label->setPagePart(-pagePart);
+    ui->current_slide_label->setPagePart(pagePart);
+    ui->next_slide_label->setPagePart(pagePart);
+    presentationScreen->getLabel()->setPagePart(pagePart);
 }
 
 void ControlScreen::recalcLayout(const int pageNumber)
 {
     double screenRatio = double(height()) / width();
     QSize notesSize = notes->getPageSize(pageNumber);
-    double notesSizeRation = double(notesSize.height()) / notesSize.width();
-    double relativeNotesWidth = notesSizeRation / screenRatio;
+    double notesSizeRatio = double(notesSize.height()) / notesSize.width();
+    if (pagePart != 0)
+        notesSizeRatio *= 2;
+    double relativeNotesWidth = notesSizeRatio / screenRatio;
     if (relativeNotesWidth > 0.75)
         relativeNotesWidth = 0.75;
     ui->notes_label->setGeometry(0, 0, int(relativeNotesWidth*width()), height());

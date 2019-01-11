@@ -23,6 +23,10 @@ PdfDoc::~PdfDoc()
 
 void PdfDoc::loadDocument()
 {
+    if (popplerDoc != nullptr) {
+        std::cerr << "WARNING: A document has already been loaded. Deleting it in order to avoid memory leaks." << std::endl;
+        delete popplerDoc;
+    }
     popplerDoc = Poppler::Document::load(pdfPath);
     if (popplerDoc->isLocked()) {
         // TODO: use a nicer way of entering passwords (a QDialog?)
@@ -102,4 +106,9 @@ int PdfDoc::getPreviousSlideEnd(int const index) const
         }
     }
     return 0;
+}
+
+void PdfDoc::setPagePart(int const state)
+{
+    pagePart = state;
 }

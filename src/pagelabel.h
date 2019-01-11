@@ -41,6 +41,7 @@ public:
     int getCacheIndex() const;
     Poppler::Page * getPage();
     void clearCache();
+    void setPagePart(int const state);
 
 private:
     void clearLists();
@@ -59,6 +60,7 @@ private:
     bool showMultimedia = true;
     double autostartDelay = 0.; // delay for starting multimedia content in s
     int minimumAnimationDelay = 20; // minimum frame time in ms
+    int pagePart = 0;
 
 protected:
     void mouseReleaseEvent(QMouseEvent * event);

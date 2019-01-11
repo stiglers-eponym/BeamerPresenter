@@ -28,9 +28,10 @@ class ControlScreen : public QMainWindow
     Q_OBJECT
 
 public:
-    explicit ControlScreen(QString presentationPath, QString notesPath = "", QWidget *parent = nullptr);
+    explicit ControlScreen(QString presentationPath, QString notesPath = "", QWidget * parent = nullptr);
     ~ControlScreen();
     void renderPage(int const pageNumber);
+    void setPagePart(int const pagePart);
 
 protected:
     void keyPressEvent( QKeyEvent * event );
@@ -39,11 +40,12 @@ protected:
 private:
     void recalcLayout(int const pageNumber);
     Ui::ControlScreen *ui;
+    PresentationScreen* presentationScreen;
     PdfDoc* presentation;
     PdfDoc* notes;
     int numberOfPages;
     int currentPageNumber = 0;
-    PresentationScreen* presentationScreen;
+    int pagePart = 0;
 
 signals:
     void sendNewPageNumber(int const pageNumber);

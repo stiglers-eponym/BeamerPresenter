@@ -21,23 +21,20 @@ int main(int argc, char *argv[])
     parser.setApplicationDescription(
             "\nSimple dual screen pdf presentation software.\n"
             "Shortcuts:\n"
-            "  q                 Quit\n"
-            "  g                 Go to page (set focus to page number edit)\n"
-            "  p                 Pause / continue timer\n"
-            "  r                 Reset timer\n"
-            "  o                 Toggle cursor visbility (only on presentation screen)\n"
-            "  m                 Play or pause all multimedia content\n"
-            "  space             Update layout and start timer or continue\n"
-            "  Left, PageUp      Go to previous slide and start or continue timer\n"
-            "  Right, PageDown   Go to next slide and start or continue timer\n"
-            "  Up                Go to the previous slide until the page label changes.\n"
-            "                    In beamer presentations: last overlay of the previous slide.\n"
-            "  Down              Go to the next slide until the page label changes.\n"
-            "                    In beamer presentations: first overlay of the next slide.\n"
-            "  F11, f            Toggle fullscreen (only for current window)\n"
-            "\n"
-            "This program has limited support for videos and animation.\n"
-            "Many options which can be provided in a pdf are not supported by this viewer.\n"
+            "  q                Quit\n"
+            "  g                Go to page (set focus to page number edit)\n"
+            "  p                Pause / continue timer\n"
+            "  r                Reset timer\n"
+            "  o                Toggle cursor visbility (only on presentation screen)\n"
+            "  m                Play or pause all multimedia content\n"
+            "  space            Update layout and start timer or continue\n"
+            "  Left, PageUp     Go to previous slide and start or continue timer\n"
+            "  Right, PageDown  Go to next slide and start or continue timer\n"
+            "  Up               Go to the previous slide until the page label changes.\n"
+            "                   In beamer presentations: last overlay of the previous slide.\n"
+            "  Down             Go to the next slide until the page label changes.\n"
+            "                   In beamer presentations: first overlay of the next slide.\n"
+            "  F11, f           Toggle fullscreen (only for current window)\n"
         );
     parser.addHelpOption();
     parser.addPositionalArgument("<slides.pdf>", "Slides for a presentation");
@@ -47,6 +44,7 @@ int main(int argc, char *argv[])
         {{"a", "autoplay"}, "true, false or number: Start video and audio content when entering a slide.\nA number is interpreted as a delay in seconds, after which multimedia content is started.", "value"},
         {{"m", "min-delay"}, "Set minimum time per frame in milliseconds.\nThis is useful when using \\animation in LaTeX beamer.", "ms"},
         {{"d", "tolerance"}, "Tolerance for the presentation time in seconds.\nThe timer will be white <secs> before the timeout, green when the timeout is reached, yellow <secs> after the timeout and red 2*<secs> after the timeout.", "secs"},
+        {{"p", "page-part"}, "Set half of the page to be the presentation, the other half to be the notes. Values are \"l\" or \"r\" for presentation on the left or right half of the page, respectively.\nIf the presentation was created with \"\\setbeameroption{show notes on second screen=right}\", you should use \"--page-part=right\".", "side"},
     });
 
     parser.process(app);
@@ -57,6 +55,17 @@ int main(int argc, char *argv[])
         w = new ControlScreen(parser.positionalArguments().at(0), parser.positionalArguments().at(1));
     else
         parser.showHelp(1);
+
+    // Set split page if necessary
+    if ( !parser.value("p").isEmpty() ) {
+        QString value = parser.value("p");
+        if ( value == "r" || value == "right" )
+            w->setPagePart(1);
+        else if ( value == "l" || value == "left" )
+            w->setPagePart(-1);
+        else
+            std::cerr << "option \"" << parser.value("p").toStdString() << "\" to page-part not understood." << std::endl;
+    }
 
     // Set tolerance for presentation time
     if ( !parser.value("d").isEmpty() ) {

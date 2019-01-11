@@ -94,21 +94,38 @@ void PageLabel::renderPage(Poppler::Page * page)
     this->page = page;
     QSize pageSize = page->pageSize();
     int shift_x=0, shift_y=0;
-    if ( width() * pageSize.height() > height() * pageSize.width() ) {
+    int pageHeight=pageSize.height(), pageWidth=pageSize.width();
+    if (pagePart != 0)
+        pageWidth /= 2;
+    if ( width() * pageHeight > height() * pageWidth ) {
         // the width of the label is larger than required
-        resolution = double( height() ) / pageSize.height();
-        shift_x = int( width()/2 - resolution/2 * pageSize.width() );
+        resolution = double( height() ) / pageHeight;
+        shift_x = int( width()/2 - resolution/2 * pageWidth );
     }
     else {
         // the height of the label is larger than required
-        resolution = double( width() ) / pageSize.width();
-        shift_y = int( height()/2 - resolution/2 * pageSize.height() );
+        resolution = double( width() ) / pageWidth;
+        shift_y = int( height()/2 - resolution/2 * pageHeight );
     }
-    double scale_x=resolution*pageSize.width(), scale_y=resolution*pageSize.height();
+    double scale_x=resolution*pageWidth, scale_y=resolution*pageHeight;
+    if (pagePart !=0) {
+        scale_x *= 2;
+        if (pagePart == -1)
+            shift_x -= width();
+    }
     if (page->index() == cachedIndex)
         setPixmap( cachedPixmap );
-    else
-        setPixmap( QPixmap::fromImage( page->renderToImage( 72*resolution, 72*resolution ) ) );
+    else {
+        if (pagePart == 0)
+            setPixmap( QPixmap::fromImage( page->renderToImage( 72*resolution, 72*resolution ) ) );
+        else {
+            QImage image = page->renderToImage( 72*resolution, 72*resolution );
+            if (pagePart == 1)
+                setPixmap( QPixmap::fromImage( image.copy(0, 0, image.width()/2, image.height()) ) );
+            else
+                setPixmap( QPixmap::fromImage( image.copy(image.width()/2, 0, image.width()/2, image.height()) ) );
+        }
+    }
 
     // Collect link areas in pixels
     links = page->links();
@@ -216,13 +233,29 @@ void PageLabel::updateCache(Poppler::Page * nextPage)
     if (page == nullptr) {
         page = nextPage;
         cachedIndex = nextPage->index();
-        cachedPixmap = QPixmap::fromImage( nextPage->renderToImage(72*resolution, 72*resolution) );
+        if (pagePart == 0)
+            cachedPixmap = QPixmap::fromImage( nextPage->renderToImage( 72*resolution, 72*resolution ) );
+        else {
+            QImage image = nextPage->renderToImage( 72*resolution, 72*resolution );
+            if (pagePart == 1)
+                cachedPixmap = QPixmap::fromImage( image.copy(0, 0, image.width()/2, image.height()) );
+            else
+                cachedPixmap = QPixmap::fromImage( image.copy(image.width()/2, 0, image.width()/2, image.height()) );
+        }
         return;
     }
     double const nextDuration = nextPage->duration();
     if (nextPage->index() != cachedIndex && ( nextDuration < -0.01  || nextDuration > 0.1) ) {
         cachedIndex = nextPage->index();
-        cachedPixmap = QPixmap::fromImage( nextPage->renderToImage(72*resolution, 72*resolution) );
+        if (pagePart == 0)
+            cachedPixmap = QPixmap::fromImage( nextPage->renderToImage( 72*resolution, 72*resolution ) );
+        else {
+            QImage image = nextPage->renderToImage( 72*resolution, 72*resolution );
+            if (pagePart == 1)
+                cachedPixmap = QPixmap::fromImage( image.copy(0, 0, image.width()/2, image.height()) );
+            else
+                cachedPixmap = QPixmap::fromImage( image.copy(image.width()/2, 0, image.width()/2, image.height()) );
+        }
     }
 }
 
@@ -476,4 +509,9 @@ Poppler::Page * PageLabel::getPage()
 void PageLabel::clearCache()
 {
     cachedIndex = -1;
+}
+
+void PageLabel::setPagePart(int const state)
+{
+    pagePart = state;
 }
