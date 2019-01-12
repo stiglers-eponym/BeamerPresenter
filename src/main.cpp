@@ -60,17 +60,19 @@ int main(int argc, char *argv[])
     });
     parser.process(app);
 
-    // set up settings manager
+    // set up a settings manager
+    // This is only tested on linux! I don't know whether it will work in Windows or MacOS
     #ifdef Q_OS_MAC
-    QSettings settings("github.com/stiglers-eponym/BeamerPresenter", "beamerpresenter");
+    // untested!
+    QSettings settings(QSettings::IniFormat, QSettings::UserScope, "beamerpresenter", "beamerpresenter");
     #elif Q_OS_WIN
-    QSettings settings("beamerpresenter", "beamerpresenter");
+    // untested!
+    QSettings settings(QSettings::IniFormat, QSettings::UserScope, "beamerpresenter", "beamerpresenter");
     #else
-    // Only Linux is tested
-    QSettings settings("beamerpresenter", "beamerpresenter");
+    QSettings settings(QSettings::NativeFormat, QSettings::UserScope, "beamerpresenter", "beamerpresenter");
     #endif
-    // TODO
 
+    // Create the GUI
     ControlScreen * w;
     if (parser.positionalArguments().size() == 1)
         w = new ControlScreen(parser.positionalArguments().at(0));
@@ -79,15 +81,47 @@ int main(int argc, char *argv[])
     else
         parser.showHelp(1);
 
-    // Set split page if necessary
+    { // set colors
+        QColor bgColor, textColor, presentationColor;
+        if (settings.contains("notes background color"))
+            bgColor = settings.value("notes background color").value<QColor>();
+        else
+            bgColor = Qt::gray;
+        if (settings.contains("notes text color"))
+            textColor = settings.value("notes text color").value<QColor>();
+        else
+            textColor = Qt::black;
+        if (settings.contains("presentation color"))
+            presentationColor = settings.value("presentation color").value<QColor>();
+        else
+            presentationColor = Qt::black;
+        w->setColor(bgColor, textColor);
+        w->setPresentationColor(presentationColor);
+    }
+
+    // Read the arguments in parser.
+    // Each argument can have a default value in settings.
+
+    // Split page if necessary
     if ( !parser.value("p").isEmpty() ) {
         QString value = parser.value("p");
         if ( value == "r" || value == "right" )
             w->setPagePart(1);
         else if ( value == "l" || value == "left" )
             w->setPagePart(-1);
+        else if (value == "none" || value == "0") {}
         else
             std::cerr << "option \"" << parser.value("p").toStdString() << "\" to page-part not understood." << std::endl;
+    }
+    else if ( settings.contains("page-part")) {
+        QString value = settings.value("page-part").toString();
+        if ( value == "r" || value == "right" )
+            w->setPagePart(1);
+        else if ( value == "l" || value == "left" )
+            w->setPagePart(-1);
+        else if (value == "none" || value == "0") {}
+        else
+            std::cerr << "option \"" << settings.value("page-part").toString().toStdString() << "\" to page-part in config not understood." << std::endl;
     }
 
     // Set tolerance for presentation time
@@ -99,10 +133,20 @@ int main(int argc, char *argv[])
         else
             std::cerr << "option \"" << parser.value("d").toStdString() << "\" to tolerance not understood." << std::endl;
     }
+    else if (settings.contains("tolerance")) {
+        bool success;
+        int tolerance = settings.value("tolerance").toInt(&success);
+        if (success)
+            emit w->sendTimeoutInterval(tolerance);
+        else
+            std::cerr << "option \"" << settings.value("tolerance").toString().toStdString() << "\" to tolerance in config not understood." << std::endl;
+    }
 
     // Set presentation time
     if ( !parser.value("t").isEmpty() )
         emit w->sendTimerString(parser.value("t"));
+    else if (settings.contains("timer"))
+        emit w->sendTimerString(settings.value("timer").toStringList().at(0));
 
     // Set minimum time per frame
     if ( !parser.value("m").isEmpty() ) {
@@ -112,6 +156,14 @@ int main(int argc, char *argv[])
             emit w->sendAnimationDelay(delay);
         else
             std::cerr << "option \"" << parser.value("m").toStdString() << "\" to min-delay not understood." << std::endl;
+    }
+    else if (settings.contains("min-delay")) {
+        bool success;
+        int delay = settings.value("min-delay").toInt(&success);
+        if (success)
+            emit w->sendAnimationDelay(delay);
+        else
+            std::cerr << "option \"" << settings.value("min-delay").toString().toStdString() << "\" to min-delay in config not understood." << std::endl;
     }
 
     // Set autostart or delay for multimedia content
@@ -129,7 +181,23 @@ int main(int argc, char *argv[])
         else
             std::cerr << "option \"" << parser.value("a").toStdString() << "\" to autoplay not understood." << std::endl;
     }
+    else if ( settings.contains("autoplay") ) {
+        double delay = 0.;
+        bool success;
+        QString a = settings.value("autoplay").toString().toLower();
+        delay = a.toDouble(&success);
+        if (success)
+            emit w->sendAutostartDelay(delay);
+        else if (a == "true")
+            emit w->sendAutostartDelay(0.);
+        else if (a == "false")
+            emit w->sendAutostartDelay(-2.);
+        else
+            std::cerr << "option \"" << settings.value("autoplay").toString().toStdString() << "\" to autoplay in config not understood." << std::endl;
+    }
 
+
+    // show the GUI
     w->show();
     // Render first page on presentation screen
     emit w->sendNewPageNumber(0);

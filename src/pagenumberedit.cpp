@@ -55,11 +55,17 @@ void PageNumberEdit::keyPressEvent(QKeyEvent * event)
         case Qt::Key_PageUp:
             emit sendPageShiftReturn(-1);
             break;
-        case Qt::Key_Down:
+        case Qt::Key_Right:
             emit sendPageShiftEdit(1);
             break;
-        case Qt::Key_Up:
+        case Qt::Key_Down:
+            emit sendNextSlideStart();
+            break;
+        case Qt::Key_Left:
             emit sendPageShiftEdit(-1);
+            break;
+        case Qt::Key_Up:
+            emit sendPreviousSlideEnd();
             break;
         case Qt::Key_End:
             setText( QString::fromStdString( std::to_string( numberOfPages )) );
@@ -81,8 +87,6 @@ void PageNumberEdit::keyPressEvent(QKeyEvent * event)
         case Qt::Key_9:
         case Qt::Key_Backspace:
         case Qt::Key_Delete:
-        case Qt::Key_Left:
-        case Qt::Key_Right:
         case Qt::Key_Control:
             QLineEdit::keyPressEvent(event);
             break;

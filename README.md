@@ -34,6 +34,15 @@ beamerpresenter <presentation.pdf> <notes.pdf>
 For more options and usage possibilities use `beamerpresenter --help`.
 
 
+## Settings
+Settings can be placed in a file `beamerpresenter.conf` (on platforms other than
+Linux: `beamerpresenter.ini`). An example configuration file is provided.
+The configuration can only be edited directly with a text editor.
+
+This program is only tested on a Linux system. Using configuration files might
+lead to platform specific problems.
+
+
 ## Patching LaTeX beamer
 The typical usage case requires notes with the same page number as the
 presentation. Generating such notes in LaTeX beamer can be achieved by applying

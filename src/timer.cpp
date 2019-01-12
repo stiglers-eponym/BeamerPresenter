@@ -131,6 +131,9 @@ void Timer::continueTimer()
     if (!deadline->isNull() && !running) {
         timer->start(1000);
         running = true;
+        QPalette palette = QPalette(this->palette());
+        palette.setColor(QPalette::WindowText, Qt::black);
+        setPalette(palette);
     }
 }
 

@@ -120,6 +120,8 @@ ControlScreen::ControlScreen(QString presentationPath, QString notesPath, QWidge
     connect(ui->text_current_slide, &PageNumberEdit::sendPageShiftReturn,  presentationScreen, &PresentationScreen::receiveNewPageNumber);
     connect(ui->text_current_slide, &PageNumberEdit::sendPageNumberEdit,   this, &ControlScreen::receiveNewPageNumber);
     connect(ui->text_current_slide, &PageNumberEdit::sendPageShiftEdit,    this, &ControlScreen::receivePageShiftEdit);
+    connect(ui->text_current_slide, &PageNumberEdit::sendNextSlideStart,   this, &ControlScreen::receiveNextSlideStart);
+    connect(ui->text_current_slide, &PageNumberEdit::sendPreviousSlideEnd, this, &ControlScreen::receivePreviousSlideEnd);
     connect(ui->text_current_slide, &PageNumberEdit::sendPageShiftReturn,  this, &ControlScreen::receivePageShiftReturn);
     connect(ui->text_current_slide, &PageNumberEdit::sendEscape,           this, &ControlScreen::resetFocus);
 }
@@ -249,7 +251,20 @@ void ControlScreen::receiveNewPageNumber(int const pageNumber)
 
 void ControlScreen::receivePageShiftEdit(int const shift)
 {
-    renderPage( currentPageNumber + shift );
+    if (currentPageNumber + shift > 0)
+        renderPage( currentPageNumber + shift );
+}
+
+void ControlScreen::receivePreviousSlideEnd()
+{
+    if (currentPageNumber > 0)
+        renderPage( notes->getPreviousSlideEnd(currentPageNumber) );
+}
+
+void ControlScreen::receiveNextSlideStart()
+{
+    if (currentPageNumber < numberOfPages - 1)
+        renderPage( notes->getNextSlideIndex(currentPageNumber) );
 }
 
 void ControlScreen::receivePageShiftReturn(int const shift)
@@ -356,7 +371,7 @@ void ControlScreen::keyPressEvent( QKeyEvent * event )
     event->accept();
 }
 
-void ControlScreen::resizeEvent(QResizeEvent *event)
+void ControlScreen::resizeEvent(QResizeEvent * event)
 {
     recalcLayout(currentPageNumber);
     ui->notes_label->clearCache();
@@ -365,4 +380,22 @@ void ControlScreen::resizeEvent(QResizeEvent *event)
     ui->notes_label->renderPage( ui->notes_label->getPage() );
     ui->current_slide_label->renderPage( ui->current_slide_label->getPage() );
     ui->next_slide_label->renderPage( ui->next_slide_label->getPage() );
+}
+
+void ControlScreen::setColor(const QColor bgColor, const QColor textColor)
+{
+    QPalette newPalette(palette());
+    newPalette.setColor(QPalette::Background, bgColor);
+    newPalette.setColor(QPalette::Text, textColor);
+    newPalette.setColor(QPalette::WindowText, textColor);
+    setPalette(newPalette);
+    newPalette.setColor(QPalette::Base, bgColor);
+    ui->text_current_slide->setPalette(newPalette);
+}
+
+void ControlScreen::setPresentationColor(const QColor color)
+{
+    QPalette newPalette(presentationScreen->palette());
+    newPalette.setColor(QPalette::Background, color);
+    presentationScreen->setPalette(newPalette);
 }

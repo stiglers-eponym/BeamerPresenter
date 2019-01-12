@@ -44,6 +44,8 @@ signals:
     void sendPageNumberEdit(int const pageNumber);
     void sendPageShiftReturn(int const shift);
     void sendPageShiftEdit(int const shift);
+    void sendNextSlideStart();
+    void sendPreviousSlideEnd();
     void sendEscape();
 
 private:

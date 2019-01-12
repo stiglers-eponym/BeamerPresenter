@@ -42,6 +42,8 @@ public:
     ~ControlScreen();
     void renderPage(int const pageNumber);
     void setPagePart(int const pagePart);
+    void setColor(QColor const bgColor = Qt::gray, QColor const textColor = Qt::black);
+    void setPresentationColor(QColor const color = Qt::black);
 
 protected:
     void keyPressEvent( QKeyEvent * event );
@@ -69,6 +71,8 @@ signals:
     void sendUpdateCache();
 
 public slots:
+    void receivePreviousSlideEnd();
+    void receiveNextSlideStart();
     void receiveNewPageNumber(int const pageNumber);
     void receivePageShiftEdit(int const shift = 0);
     void receivePageShiftReturn(int const shift = 0);
