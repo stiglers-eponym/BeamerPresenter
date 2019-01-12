@@ -39,14 +39,14 @@ int main(int argc, char *argv[])
             "  r                Reset timer\n"
             "  o                Toggle cursor visbility (only on presentation screen)\n"
             "  m                Play or pause all multimedia content\n"
-            "  space            Update layout and start timer or continue\n"
+            "  space            Update layout and start or continue timer\n"
             "  Left, PageUp     Go to previous slide and start or continue timer\n"
             "  Right, PageDown  Go to next slide and start or continue timer\n"
             "  Up               Go to the previous slide until the page label changes.\n"
             "                   In beamer presentations: last overlay of the previous slide.\n"
             "  Down             Go to the next slide until the page label changes.\n"
             "                   In beamer presentations: first overlay of the next slide.\n"
-            "  F11, f           Toggle fullscreen (only for current window)\n"
+            "  F11, f           Toggle fullscreen (only for current window)"
         );
     parser.addHelpOption();
     parser.addPositionalArgument("<slides.pdf>", "Slides for a presentation");

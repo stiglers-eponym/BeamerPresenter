@@ -1,6 +1,7 @@
 BeamerPresenter
 
-* Man page
+* Sound
+
 * Support locked and encrypted pdfs: Enter passwords in QDialog? hide password input!
 * Use scroll events to browse slides
 * Better video and sound control bar

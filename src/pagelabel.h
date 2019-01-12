@@ -69,7 +69,7 @@ private:
     bool isPresentation = true;
     bool showMultimedia = true;
     double autostartDelay = 0.; // delay for starting multimedia content in s
-    int minimumAnimationDelay = 20; // minimum frame time in ms
+    int minimumAnimationDelay = 40; // minimum frame time in ms
     int pagePart = 0;
 
 protected:

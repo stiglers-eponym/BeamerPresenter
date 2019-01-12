@@ -1,0 +1,219 @@
+.TH beamerpresenter 1 "12 January 2019"
+.
+.SH NAME
+beamerpresenter \- dual-screen PDF presenter
+.
+.
+.SH SYNOPSIS
+.
+.SY beamerpresenter
+.OP \-t timer
+.OP \-a play
+.OP \-m delay
+.OP \-d tol
+.OP \-p part
+.I presentation.pdf
+.RI [ notes.pdf ]
+.
+.SY beamerpresenter
+.BR \-h " | " \-\-help
+.
+.
+.SH DESCRIPTION
+.
+.B BeamerPresenter
+is a Qt5-based presentation viewer which shows a presentation and notes for the speaker in two different windows.
+It is designed primarily for usage with LaTeX-beamer generated presentations and notes.
+Slides and notes must be PDF documents.
+.PP
+Along with the notes,
+.B BeamerPresenter
+shows images of the current and next slide and a timer.
+.
+.
+.SH OPTIONS
+.
+.TP
+.B \-h \-\-help
+Displays this help.
+.
+.TP
+.BI "\-t \-\-timer " time
+.RI "Set timer to " "time" ". Possible formats are ""[m]m"", ""[m]m:ss"" and ""h:mm:ss""."
+.
+.TP
+.BI "\-a \-\-autoplay " play
+true, false or number: Start video and audio content when entering a slide. A number is interpreted as a delay in seconds, after which multimedia content is started.
+.
+.TP
+.BI "\-m \-\-min-delay " delay
+Set minimum time per frame in milliseconds. This is useful when using \\animation in LaTeX beamer.
+.
+.TP
+.BI "\-d \-\-tolerance " secs
+.RI "Tolerance for the presentation time in seconds. The timer will be white " secs " before the timeout, green when the timeout is reached, yellow " secs " after the timeout and red 2*" secs " after the timeout."
+.
+.TP
+.BI "\-p \-\-page-part " side
+Set half of the page to be the presentation, the other half to be the notes. Values are "l" or "r" for presentation on the left or right half of the page, respectively. If the presentation was created with "\\setbeameroption{show notes on second screen=right}", you should use
+.B \-\-page-part 
+.IR right .
+.
+.
+.SH KEYBINDINGS
+.
+.TP
+.B q
+Quit
+.
+.TP
+.B g
+Go to page (set focus to page number edit)
+.
+.TP
+.B p
+Pause or continue timer
+.
+.TP
+.B r
+Reset timer
+.
+.TP
+.B o
+Toggle cursor visbility (only on presentation screen)
+.
+.TP
+.B m
+Play or pause all multimedia content
+.
+.TP
+.B space
+Update layout and start or continue timer
+.
+.TP
+.BR Left ", " PageUp
+Go to previous slide and start or continue timer
+.
+.TP
+.BR Right ", " PageDown
+Go to next slide and start or continue timer
+.
+.TP
+.B Up
+Go to the previous slide until the page label changes. In beamer presentations: last overlay of the previous slide.
+.
+.TP
+.B Down
+Go to the next slide until the page label changes. In beamer presentations: first overlay of the next slide.
+.
+.TP
+.BR F11 ", " f
+Toggle full screen (only for current window)
+.
+.
+.SH FEATURES
+.
+.SS Links
+Following links to pages or web pages can be followed on each image showing a page.
+When clicking on a link on presentation screen, on the notes slide or on the preview of the current or next slide with the right mouse button,
+.B BeamerPresenter
+will try to follow the link.
+.
+.SS Browse Notes
+By changing the current page number in the corresponding text field, the note page and the preview of the current and next slide on the control screen will be updated immediately.
+The presentation screen will be updated only when pressing
+.BR return ", " PageUp ", or " PageDown .
+.
+.SS Cache
+Currently only the next slide is pre rendered and saved as cache.
+This speeds up the presentation when showing the slides in correct order without animations.
+.
+.SS Multimedia Support
+.B BeamerPresenter
+can show videos, which are linked in the PDF as annotation.
+For each video in the presentation a slider is created and shown in the lower right corner of the control screen.
+Videos can also be shown in the notes, but there is no synchronization between different videos.
+All multimedia content can be started immediately when entering a frame by using the option
+.BR \-a " or " \-\-autoplay .
+.PP
+Playing audio files will hopefully be supported soon.
+.
+.SS Animations
+Simple animations can be created by showing slides in rapid succession.
+When using LaTeX beamer, this can be achieved by using the options \\animation.
+The minimum delay time for the frames, which have their duration set to zero, can be specified with
+.BR \-m " or " \-\-min-delay .
+.
+.SS Overlays
+You can jump to the next or previous page with a different page label by using the shortcuts
+.BR Up " or " Down .
+For presentations created with LaTeX beamer using overlays, this jumps to the next or previous slide, which differs by more than an overlay.
+.
+.SS Beamer Option "show notes on second screen"
+Beamer can combine notes and presentation into one PDF file by using the option "show slides on second screen".
+The resulting PDF file can be read by
+.B BeamerPresenter
+with the option
+.BR \-p ", or " \-\-page-part
+.
+.
+.SH CONFIG
+A configuration located in
+.I $HOME/.config/beamerpresenter.conf
+can be used to set colors and default options for the command line arguments.
+The colors can be provided as color names known to Qt or as RGB values in hexadecimal format #RRGGBB.
+.PP
+The supported options are
+.TP
+.BR "presentation color" "=black"
+background color of the presentation window
+.
+.TP
+.BR "notes background color" "=gray"
+background color of the control screen
+.
+.TP
+.BR "notes text color" "=black"
+text color of the control screen
+.
+.TP
+.BR autoplay =true
+default option for the command line argument
+.BR \-a " or " \-\-autoplay .
+.
+.TP
+.BR min-delay =40
+default option for the command line argument
+.BR \-m " or " \-\-min-delay .
+.
+.TP
+.BR tolerance =150
+default option for the command line argument
+.BR \-d " or " \-\-tolerance .
+.
+.TP
+.BR page-part =none
+default option for the command line argument
+.BR \-p " or " \-\-page-part .
+.
+.TP
+.BR timer
+default option for the command line argument
+.BR \-t " or " \-\-timer .
+.
+.
+.SH BUGS
+.
+Bugs can be reported at the
+.UR https://github.com/stiglers-eponym/BeamerPresenter/issues
+issue tracker
+.UE .
+.
+.
+.
+.SH SEE ALSO
+.
+There are other programs, which show notes along a pdf. Some examples are
+.BR pympress (1),
+.BR dspdfviewer "(1) and"
+.BR pdfpc (1)
