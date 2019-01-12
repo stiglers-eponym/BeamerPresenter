@@ -16,8 +16,8 @@ beamer sometimes behaves unexpectedly in this mode.
 
 
 ## Build
-To build and use this project you need to have the qt5 multimedia module and the
-poppler qt5 bindings installed.
+To build and use this project you need to have the Qt5 multimedia module and the
+poppler Qt5 bindings installed.
 
 Download an compile this project:
 ```sh
@@ -64,4 +64,4 @@ Alternatively you can use beamer's option to combine presentation and notes:
 \usepackage{pgfpages}
 \setbeameroption{show notes on second screen=right}
 ```
-In this case links on the note page might require some patches in LaTeX.
+In this case links on the notes pages might require some patches in LaTeX.

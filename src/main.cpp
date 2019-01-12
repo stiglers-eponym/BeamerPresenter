@@ -1,12 +1,23 @@
 /*
- * This file is part of BeamerPresent.
- *
- * BeamerPresent is free and unencumbered public domain software.
- * For more information, see http://unlicense.org/ or the accompanying
- * UNLICENSE file.
+ * This file is part of BeamerPresenter.
+ * Copyright (C) 2019  stiglers-eponym
+
+ * BeamerPresenter is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+
+ * BeamerPresenter is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+
+ * You should have received a copy of the GNU General Public License
+ * along with BeamerPresenter. If not, see <https://www.gnu.org/licenses/>.
  */
 
 #include <iostream>
+#include <QSettings>
 #include <QApplication>
 #include <QCommandLineParser>
 #include "controlscreen.h"
@@ -17,6 +28,7 @@ int main(int argc, char *argv[])
     QApplication app(argc, argv);
     QApplication::setApplicationName("beamerpresenter");
 
+    // set up command line argument parser
     QCommandLineParser parser;
     parser.setApplicationDescription(
             "\nSimple dual screen pdf presentation software.\n"
@@ -46,8 +58,19 @@ int main(int argc, char *argv[])
         {{"d", "tolerance"}, "Tolerance for the presentation time in seconds.\nThe timer will be white <secs> before the timeout, green when the timeout is reached, yellow <secs> after the timeout and red 2*<secs> after the timeout.", "secs"},
         {{"p", "page-part"}, "Set half of the page to be the presentation, the other half to be the notes. Values are \"l\" or \"r\" for presentation on the left or right half of the page, respectively.\nIf the presentation was created with \"\\setbeameroption{show notes on second screen=right}\", you should use \"--page-part=right\".", "side"},
     });
-
     parser.process(app);
+
+    // set up settings manager
+    #ifdef Q_OS_MAC
+    QSettings settings("github.com/stiglers-eponym/BeamerPresenter", "beamerpresenter");
+    #elif Q_OS_WIN
+    QSettings settings("beamerpresenter", "beamerpresenter");
+    #else
+    // Only Linux is tested
+    QSettings settings("beamerpresenter", "beamerpresenter");
+    #endif
+    // TODO
+
     ControlScreen * w;
     if (parser.positionalArguments().size() == 1)
         w = new ControlScreen(parser.positionalArguments().at(0));
