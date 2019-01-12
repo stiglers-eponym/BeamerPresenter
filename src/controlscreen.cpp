@@ -114,6 +114,7 @@ ControlScreen::ControlScreen(QString presentationPath, QString notesPath, QWidge
     connect(this, &ControlScreen::pauseMultimedia,    ui->notes_label, &PageLabel::pauseAllMultimedia);
     connect(this, &ControlScreen::pauseMultimedia,    presentationScreen->getLabel(), &PageLabel::pauseAllMultimedia);
     connect(this, &ControlScreen::sendAnimationDelay, presentationScreen->getLabel(), &PageLabel::setAnimationDelay);
+    connect(this, &ControlScreen::togglePointerVisibilitySignal, presentationScreen->getLabel(), &PageLabel::togglePointerVisibility);
 
     // Signals emitted by the page number editor
     connect(ui->text_current_slide, &PageNumberEdit::sendPageNumberReturn, presentationScreen, &PresentationScreen::receiveNewPageNumber);
@@ -350,6 +351,9 @@ void ControlScreen::keyPressEvent( QKeyEvent * event )
             break;
         case Qt::Key_R:
             ui->label_timer->resetTimer();
+            break;
+        case Qt::Key_O:
+            emit togglePointerVisibilitySignal();
             break;
         case Qt::Key_M:
             {

@@ -60,6 +60,7 @@ private:
     int pagePart = 0;
 
 signals:
+    void togglePointerVisibilitySignal();
     void sendNewPageNumber(int const pageNumber);
     void sendTimerString(QString const timerString);
     void sendTimeoutInterval(int const interval);

@@ -32,6 +32,8 @@ PageLabel::PageLabel(QWidget* parent) : QLabel(parent)
     videoPositions = QList<QRect*>();
     soundPositions = QList<QRect*>();
     soundPlayers = QList<QMediaPlayer*>();
+    linkSoundPositions = QList<QRect*>();
+    linkSoundPlayers = QList<QMediaPlayer*>();
 }
 
 PageLabel::~PageLabel()
@@ -59,7 +61,7 @@ void PageLabel::setAnimationDelay(int const delay_ms)
 void PageLabel::clearLists()
 {
     if (sliders.size() != 0) {
-        if (sliders.size() == videoWidgets.size() + soundPlayers.size()) {
+        if (sliders.size() == videoWidgets.size() + soundPlayers.size() + linkSoundPlayers.size()) {
             for (int i=0; i<videoWidgets.size(); i++) {
                 MediaSlider * slider = sliders.at(i);
                 VideoWidget * video = videoWidgets.at(i);
@@ -67,11 +69,18 @@ void PageLabel::clearLists()
                 disconnect(slider, &MediaSlider::sliderMoved, video, &VideoWidget::setPosition);
                 disconnect(video->getPlayer(), &QMediaPlayer::positionChanged, slider, &MediaSlider::setValue);
             }
-            for (int i=0; i<soundPlayers.size(); i++) {
+            for (int i=0; i<linkSoundPlayers.size(); i++) {
                 MediaSlider * slider = sliders.at(i + videoWidgets.size());
+                QMediaPlayer * player = linkSoundPlayers.at(i);
+                disconnect(player, &QMediaPlayer::durationChanged, slider, &MediaSlider::setMaximum);
+                disconnect(slider, &MediaSlider::sliderMoved,      player, &QMediaPlayer::setPosition);
+                disconnect(player, &QMediaPlayer::positionChanged, slider, &MediaSlider::setValue);
+            }
+            for (int i=0; i<soundPlayers.size(); i++) {
+                MediaSlider * slider = sliders.at(i + videoWidgets.size() + linkSoundPlayers.size());
                 QMediaPlayer * player = soundPlayers.at(i);
                 disconnect(player, &QMediaPlayer::durationChanged, slider, &MediaSlider::setMaximum);
-                disconnect(slider, &MediaSlider::sliderMoved, player, &QMediaPlayer::setPosition);
+                disconnect(slider, &MediaSlider::sliderMoved,      player, &QMediaPlayer::setPosition);
                 disconnect(player, &QMediaPlayer::positionChanged, slider, &MediaSlider::setValue);
             }
         }
@@ -93,10 +102,15 @@ void PageLabel::clearLists()
     soundPositions.clear();
     qDeleteAll(soundPlayers);
     soundPlayers.clear();
+    qDeleteAll(linkSoundPositions);
+    linkSoundPositions.clear();
+    qDeleteAll(linkSoundPlayers);
+    linkSoundPlayers.clear();
 }
 
 void PageLabel::renderPage(Poppler::Page * page)
 {
+    emit slideChange();
     clearLists();
     if (page == nullptr)
         return;
@@ -184,12 +198,12 @@ void PageLabel::renderPage(Poppler::Page * page)
         }
         videos.clear();
 
-        // Audio (Untested!)
+        // Audio as annotations (Untested, I don't know whether this is useful for anything)
         QSet<Poppler::Annotation::SubType> soundType = QSet<Poppler::Annotation::SubType>();
         soundType.insert(Poppler::Annotation::ASound);
         QList<Poppler::Annotation*> sounds = page->annotations(soundType);
         for (int i=0; i<sounds.size(); i++) {
-            std::cout << "WARNING: Support for sound is untested!" << std::endl;
+            std::cout << "WARNING: Support for sound in annotations is untested!" << std::endl;
             Poppler::SoundAnnotation* annotation = (Poppler::SoundAnnotation*) sounds.at(i);
             QRectF relative = annotation->boundary();
             QRect * absolute = new QRect(
@@ -213,6 +227,30 @@ void PageLabel::renderPage(Poppler::Page * page)
         qDeleteAll(sounds);
         sounds.clear();
 
+        // Audio links
+        Q_FOREACH(Poppler::Link * link, links) {
+            if (link->linkType() != Poppler::Link::Sound)
+                continue;
+            QRectF relative = link->linkArea();
+            QRect * absolute = new QRect(
+                        shift_x+int(relative.x()*scale_x),
+                        shift_y+int(relative.y()*scale_y),
+                        int(relative.width()*scale_x),
+                        int(relative.height()*scale_y)
+                    );
+            linkSoundPositions.append(absolute);
+
+            Poppler::SoundObject * sound = ((Poppler::LinkSound*) link)->sound();
+            QMediaPlayer * player = new QMediaPlayer(this);
+            QUrl url = QUrl(sound->url());
+            if (!url.isValid())
+                QUrl url = QUrl::fromLocalFile(sound->url());
+            if (url.isRelative())
+                url = QUrl::fromLocalFile( QDir(".").absoluteFilePath( url.path()) );
+            player->setMedia( url );
+            linkSoundPlayers.append(player);
+        }
+
         // Autostart
         if (autostartDelay > 0.1) {
             // autostart with delay
@@ -228,7 +266,7 @@ void PageLabel::renderPage(Poppler::Page * page)
         }
 
         // Add slider
-        emit requestMultimediaSliders(videoWidgets.size() + soundPlayers.size());
+        emit requestMultimediaSliders(videoWidgets.size() + linkSoundPlayers.size() + soundPlayers.size());
     }
 }
 
@@ -296,8 +334,19 @@ void PageLabel::setMultimediaSliders(QList<MediaSlider *> sliderList)
         connect(slider, &MediaSlider::sliderMoved, video, &VideoWidget::setPosition);
         connect(video->getPlayer(), &QMediaPlayer::positionChanged, slider, &MediaSlider::setValue);
     }
-    for (int i=0; i<soundPlayers.size(); i++) {
+    for (int i=0; i<linkSoundPlayers.size(); i++) {
         MediaSlider * slider = sliders.at(i + videoWidgets.size());
+        QMediaPlayer * player = linkSoundPlayers.at(i);
+        slider->setRange(0, int(player->duration()));
+        connect(player, &QMediaPlayer::durationChanged, slider, &MediaSlider::setMaximum);
+        int const duration = int(player->duration()/100);
+        if (duration > 0)
+            slider->setMaximum(duration);
+        connect(slider, &MediaSlider::sliderMoved, player, &QMediaPlayer::setPosition);
+        connect(player, &QMediaPlayer::positionChanged, slider, &MediaSlider::setValue);
+    }
+    for (int i=0; i<soundPlayers.size(); i++) {
+        MediaSlider * slider = sliders.at(i + videoWidgets.size() + linkSoundPlayers.size());
         QMediaPlayer * player = soundPlayers.at(i);
         slider->setRange(0, int(player->duration()));
         connect(player, &QMediaPlayer::durationChanged, slider, &MediaSlider::setMaximum);
@@ -319,6 +368,8 @@ void PageLabel::startAllMultimedia()
     }
     Q_FOREACH(QMediaPlayer * sound, soundPlayers)
         sound->play();
+    Q_FOREACH(QMediaPlayer * sound, linkSoundPlayers)
+        sound->play();
 }
 
 void PageLabel::pauseAllMultimedia()
@@ -326,6 +377,8 @@ void PageLabel::pauseAllMultimedia()
     Q_FOREACH(VideoWidget * video, videoWidgets)
         video->pause();
     Q_FOREACH(QMediaPlayer * sound, soundPlayers)
+        sound->pause();
+    Q_FOREACH(QMediaPlayer * sound, linkSoundPlayers)
         sound->pause();
 }
 
@@ -336,6 +389,10 @@ bool PageLabel::hasActiveMultimediaContent() const
             return true;
     }
     Q_FOREACH(QMediaPlayer * sound, soundPlayers) {
+        if (sound->state() == QMediaPlayer::PlayingState)
+            return true;
+    }
+    Q_FOREACH(QMediaPlayer * sound, linkSoundPlayers) {
         if (sound->state() == QMediaPlayer::PlayingState)
             return true;
     }
@@ -430,12 +487,66 @@ void PageLabel::mouseReleaseEvent(QMouseEvent * event)
                         }
                     break;
                     case Poppler::Link::Sound:
-                        std::cout << "Unsupported link of type sound" << std::endl;
+                        {
+                            Poppler::LinkSound * link = (Poppler::LinkSound*) links.at(i);
+                            Poppler::SoundObject * sound = link->sound();
+                            if (sound->soundType() == Poppler::SoundObject::External) {
+                                // This is inefficient, but usually linkSoundPlayerPositions.size()==1
+                                for (int j=0; j<linkSoundPositions.size(); j++) {
+                                    if (linkSoundPositions.at(j)->contains(event->pos())) {
+                                        if (linkSoundPlayers.at(j)->state() == QMediaPlayer::PlayingState)
+                                            linkSoundPlayers.at(j)->pause();
+                                        else
+                                            linkSoundPlayers.at(j)->play();
+                                        break;
+                                    }
+                                }
+                            }
+                            else { // untested
+                                // Most of the code in this scope is copied from stackoverflow.
+                                // I have not tested it, because I don't have a pdf file with embedded sound.
+                                // Sound can also be embedded as optional content, which is not supported by this PDF viewer.
+                                std::cout << "Playing embedded sound files is VERY EXPERIMENTAL." << std::endl;
+                                std::cout << "Controling the playback is only possible with external files." << std::endl;
+                                QByteArray data = sound->data();
+                                QBuffer * audio_buffer = new QBuffer(&data);
+                                sound->soundEncoding();
+                                QAudioFormat format;
+                                // The function names indicate that I can translate the coding to from sound to format:
+                                format.setSampleSize(sound->bitsPerSample());
+                                format.setSampleRate(sound->samplingRate());
+                                format.setChannelCount(sound->channels());
+                                // These seem to be some default options... Just try if it works.
+                                format.setCodec("audio/pcm");
+                                format.setByteOrder(QAudioFormat::BigEndian);
+                                switch (sound->soundEncoding())
+                                {
+                                    case Poppler::SoundObject::SoundEncoding::Raw:
+                                        format.setSampleType(QAudioFormat::UnSignedInt);
+                                        break;
+                                    case Poppler::SoundObject::SoundEncoding::Signed:
+                                        format.setSampleType(QAudioFormat::SignedInt);
+                                        break;
+                                    case Poppler::SoundObject::SoundEncoding::ALaw:
+                                    case Poppler::SoundObject::SoundEncoding::muLaw:
+                                        // I have no idea what this means...
+                                        break;
+                                }
+                                QAudioDeviceInfo info(QAudioDeviceInfo::defaultOutputDevice());
+                                if (!info.isFormatSupported(format)) {
+                                    std::cerr << "Audio format of embedded sound not supported by backend." << std::endl;
+                                    return;
+                                }
+                                QAudioOutput * output = new QAudioOutput(info, format);
+                                output->start(audio_buffer);
+                                connect(this, &PageLabel::slideChange, this, [&](){ delete output; delete audio_buffer; });
+                            }
+                        }
                     break;
                     case Poppler::Link::Movie:
                         {
                             std::cout << "Unsupported link of type video." << std::endl;
-                            Poppler::LinkMovie* link = (Poppler::LinkMovie*) links.at(i);
+                            Poppler::LinkMovie * link = (Poppler::LinkMovie*) links.at(i);
                             Q_FOREACH(VideoWidget * video, videoWidgets) {
                                 if (link->isReferencedAnnotation(video->getAnnotation()))
                                     video->play();

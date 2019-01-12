@@ -1,17 +1,16 @@
 BeamerPresenter
 
-* Sound
-
 * Support locked and encrypted pdfs: Enter passwords in QDialog? hide password input!
 * Use scroll events to browse slides
 * Better video and sound control bar
+* Improve sound (check whether it should be run in a loop, support embedded files)
 * Improve videos (palindrome mode, make autostart optional)
-* Test sound
 
 * Improve layout
 * Improve cache
 * Search document
 * Implement other link types (history, search)
+* Implement optional content (e.g. for sound)
 
 * Mode to browse slides on control screen
 * Option to show table of content on control screen (with links)

@@ -25,6 +25,10 @@
 #include <QTimer>
 #include <QSlider>
 #include <QMouseEvent>
+#include <QBuffer>
+#include <QAudioFormat>
+#include <QAudioOutput>
+#include <QAudioDeviceInfo>
 #include <QDesktopServices>
 #include <poppler-qt5.h>
 #include "videowidget.h"
@@ -61,6 +65,8 @@ private:
     QList<QRect*> videoPositions;
     QList<QMediaPlayer*> soundPlayers;
     QList<QRect*> soundPositions;
+    QList<QMediaPlayer*> linkSoundPlayers;
+    QList<QRect*> linkSoundPositions;
     QList<MediaSlider*> sliders;
     QPixmap cachedPixmap;
     int cachedIndex = -1;
@@ -96,6 +102,7 @@ signals:
     void timeoutSignal();
     void sendShowFullscreen();
     void sendEndFullscreen();
+    void slideChange();
 };
 
 #endif // PAGE_H
