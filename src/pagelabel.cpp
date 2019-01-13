@@ -100,7 +100,7 @@ void PageLabel::clearLists()
     linkSoundPlayers.clear();
 }
 
-void PageLabel::renderPage(Poppler::Page * page)
+void PageLabel::renderPage(Poppler::Page * page, bool setDuration)
 {
     emit slideChange();
     clearLists();
@@ -156,12 +156,14 @@ void PageLabel::renderPage(Poppler::Page * page)
         linkPositions.append( absolute );
     }
 
-    duration = page->duration();
-    if ( duration > 0.01)
-        QTimer::singleShot(int(1000*duration), this, &PageLabel::timeoutSignal);
-    else if ( duration > -0.01) {
-        update();
-        QTimer::singleShot(int(minimumAnimationDelay), this, &PageLabel::timeoutSignal);
+    if (setDuration) {
+        duration = page->duration();
+        if ( duration > 0.01)
+            QTimer::singleShot(int(1000*duration), this, &PageLabel::timeoutSignal);
+        else if ( duration > -0.01) {
+            update();
+            QTimer::singleShot(int(minimumAnimationDelay), this, &PageLabel::timeoutSignal);
+        }
     }
     Poppler::PageTransition* transition = page->transition();
     if (transition != nullptr && transition->type() != Poppler::PageTransition::Replace)

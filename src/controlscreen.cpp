@@ -118,6 +118,7 @@ ControlScreen::ControlScreen(QString presentationPath, QString notesPath, QWidge
     connect(presentationScreen, &PresentationScreen::sendCloseSignal, this, &ControlScreen::receiveCloseSignal);
     connect(presentationScreen, &PresentationScreen::sendUpdateCache, this, &ControlScreen::updateCache);
     connect(presentationScreen->getLabel(), &PageLabel::requestMultimediaSliders, this, &ControlScreen::addMultimediaSliders);
+    connect(presentationScreen, &PresentationScreen::focusPageNumberEdit, this, &ControlScreen::focusPageNumberEdit);
 
     // Signals sent back to PresentationScreen
     connect(this, &ControlScreen::sendNewPageNumber, presentationScreen, &PresentationScreen::receiveNewPageNumber);
@@ -204,6 +205,7 @@ void ControlScreen::recalcLayout(const int pageNumber)
 
 void ControlScreen::focusPageNumberEdit()
 {
+    this->activateWindow();
     ui->text_current_slide->setFocus();
 }
 
@@ -251,18 +253,18 @@ void ControlScreen::renderPage( int const pageNumber )
         currentPageNumber = pageNumber;
     recalcLayout(currentPageNumber);
     if (currentPageNumber < notes->getDoc()->numPages())
-        ui->notes_label->renderPage( notes->getPage(currentPageNumber) );
+        ui->notes_label->renderPage( notes->getPage(currentPageNumber), false );
     if (currentPageNumber + 1 < presentation->getDoc()->numPages()) {
-        ui->current_slide_label->renderPage( presentation->getPage(currentPageNumber) );
+        ui->current_slide_label->renderPage( presentation->getPage(currentPageNumber), false );
         ui->current_slide_label->updateCache( presentation->getPage(currentPageNumber+1) );
         ui->next_slide_label->updateCache( ui->current_slide_label->getCache(), currentPageNumber+1 );
-        ui->next_slide_label->renderPage( presentation->getPage(currentPageNumber+1) );
+        ui->next_slide_label->renderPage( presentation->getPage(currentPageNumber+1), false );
     }
     else {
         ui->current_slide_label->updateCache( presentation->getPage(currentPageNumber) );
-        ui->current_slide_label->renderPage( presentation->getPage(currentPageNumber) );
+        ui->current_slide_label->renderPage( presentation->getPage(currentPageNumber), false );
         ui->next_slide_label->updateCache( ui->current_slide_label->getCache(), currentPageNumber );
-        ui->next_slide_label->renderPage( presentation->getPage(currentPageNumber) );
+        ui->next_slide_label->renderPage( presentation->getPage(currentPageNumber), false );
     }
     ui->text_current_slide->setText( QString::fromStdString( std::to_string(currentPageNumber+1) ) );
 }
@@ -374,7 +376,6 @@ void ControlScreen::keyPressEvent( QKeyEvent * event )
             close();
             break;
         case Qt::Key_G:
-            ui->text_current_slide->setText("");
             ui->text_current_slide->setFocus();
             break;
         case Qt::Key_P:
@@ -395,6 +396,11 @@ void ControlScreen::keyPressEvent( QKeyEvent * event )
                     emit playMultimedia();
             }
             break;
+        case Qt::Key_Return:
+            if (presentationScreen->getLabel()->pageNumber() != currentPageNumber)
+                emit sendNewPageNumber(currentPageNumber);
+            ui->label_timer->continueTimer();
+            break;
         case Qt::Key_F:
         case Qt::Key_F11:
             if (this->windowState() == Qt::WindowFullScreen)
@@ -406,7 +412,7 @@ void ControlScreen::keyPressEvent( QKeyEvent * event )
     event->accept();
 }
 
-void ControlScreen::resizeEvent(QResizeEvent * event)
+void ControlScreen::resizeEvent(QResizeEvent* event)
 {
     recalcLayout(currentPageNumber);
     ui->notes_label->clearCache();
@@ -433,4 +439,45 @@ void ControlScreen::setPresentationColor(const QColor color)
     QPalette newPalette(presentationScreen->palette());
     newPalette.setColor(QPalette::Background, color);
     presentationScreen->setPalette(newPalette);
+}
+
+void ControlScreen::wheelEvent(QWheelEvent* event)
+{
+    // Change the signs in the beginning, this makes the rest less confusing.
+    int deltaPix = -event->pixelDelta().y();
+    int deltaAngle = -event->angleDelta().y();
+    int deltaPages;
+    // If a touch pad was used for scrolling:
+    if (deltaPix != 0) {
+        if (deltaPix > 50)
+            deltaPages = deltaPix / 50;
+        else if (deltaPix > 10)
+            deltaPages = 1;
+        else if (deltaPix < -50)
+            deltaPages = deltaPix / 50 + 1;
+        else if (deltaPix < -10)
+            deltaPages = -1;
+        else
+            deltaPages = 0;
+    }
+    // If a mouse wheel was used for scrolling:
+    else {
+        if (deltaAngle > 120)
+            deltaPages = deltaAngle / 120;
+        else if (deltaAngle > 0)
+            deltaPages = 1;
+        else if (deltaAngle < -120)
+            deltaPages = deltaAngle / 120 + 1;
+        else if (deltaAngle < 0)
+            deltaPages = -1;
+        else
+            deltaPages = 0;
+    }
+    if (deltaPages + currentPageNumber < 0) {
+        if (currentPageNumber != 0)
+            renderPage(0);
+    }
+    else if (deltaPages != 0)
+        renderPage( currentPageNumber + deltaPages );
+    event->accept();
 }

@@ -21,6 +21,7 @@
 
 #include <iostream>
 #include <QKeyEvent>
+#include <QWheelEvent>
 #include <QGridLayout>
 #include "src/pdfdoc.h"
 #include "src/pagelabel.h"
@@ -30,17 +31,17 @@ class PresentationScreen : public QWidget
     Q_OBJECT
 
 public:
-    explicit PresentationScreen(PdfDoc* presentationDoc, QWidget *parent = nullptr);
+    explicit PresentationScreen(PdfDoc* presentationDoc, QWidget* parent = nullptr);
     ~PresentationScreen();
-    void renderPage(const int pageNumber = 0);
+    void renderPage(int const pageNumber = 0, bool const setDuration = false);
     int getPageNumber() const;
     void updateCache();
-    int* currentPageNumber;
     PageLabel * getLabel();
 
 protected:
-    void keyPressEvent( QKeyEvent * event );
-    void resizeEvent( QResizeEvent * event );
+    void keyPressEvent( QKeyEvent* event );
+    void resizeEvent( QResizeEvent* event );
+    void wheelEvent( QWheelEvent* event );
 
 private:
     QGridLayout* layout;
@@ -51,9 +52,10 @@ signals:
     void sendNewPageNumber(const int pageNumber);
     void sendCloseSignal();
     void sendPageShift(const int shift = 0);
-    void sendKeyEvent(QKeyEvent * event);
+    void sendKeyEvent(QKeyEvent* event);
     void togglePointerVisibilitySignal();
     void sendUpdateCache();
+    void focusPageNumberEdit();
 
 public slots:
     void receiveNewPageNumber(const int pageNumber);

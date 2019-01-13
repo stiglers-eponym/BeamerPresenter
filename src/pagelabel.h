@@ -42,18 +42,18 @@ public:
     PageLabel(QWidget* parent);
     PageLabel(Poppler::Page* page, QWidget* parent);
     ~PageLabel();
-    void renderPage(Poppler::Page* page);
+    void renderPage(Poppler::Page* page, bool setDuration=true);
     int pageNumber();
     double getDuration() const;
     void setPresentationStatus(bool const status);
     void setShowMultimedia(bool const showVideos);
     bool hasActiveMultimediaContent() const;
-    void setMultimediaSliders(QList<MediaSlider *> sliderList);
-    void updateCache(Poppler::Page * page);
-    void updateCache(QPixmap * pixmap, int const index);
-    QPixmap * getCache();
+    void setMultimediaSliders(QList<MediaSlider*> sliderList);
+    void updateCache(Poppler::Page* page);
+    void updateCache(QPixmap* pixmap, int const index);
+    QPixmap* getCache();
     int getCacheIndex() const;
-    Poppler::Page * getPage();
+    Poppler::Page* getPage();
     void clearCache();
     void setPagePart(int const state);
 
@@ -70,7 +70,7 @@ private:
     QList<MediaSlider*> sliders;
     QPixmap cachedPixmap;
     int cachedIndex = -1;
-    QTimer * timer = nullptr;
+    QTimer* timer = nullptr;
     double resolution;
     bool isPresentation = true;
     bool showMultimedia = true;
@@ -79,8 +79,8 @@ private:
     int pagePart = 0;
 
 protected:
-    void mouseReleaseEvent(QMouseEvent * event);
-    void mouseMoveEvent( QMouseEvent * event );
+    void mouseReleaseEvent(QMouseEvent* event);
+    void mouseMoveEvent( QMouseEvent* event );
 
 private:
     Poppler::Page* page;

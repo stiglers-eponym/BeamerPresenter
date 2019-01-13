@@ -23,6 +23,7 @@
 #include <QLabel>
 #include <QKeyEvent>
 #include <QResizeEvent>
+#include <QWheelEvent>
 #include <QFileInfo>
 #include "src/mediaslider.h"
 #include "src/pdfdoc.h"
@@ -49,6 +50,7 @@ public:
 protected:
     void keyPressEvent( QKeyEvent * event );
     void resizeEvent( QResizeEvent * event );
+    void wheelEvent( QWheelEvent * event );
 
 private:
     void recalcLayout(int const pageNumber);

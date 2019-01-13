@@ -48,6 +48,7 @@ int main(int argc, char *argv[])
             "  Down             Go to the next slide until the page label changes.\n"
             "                   In beamer presentations: first overlay of the next slide.\n"
             "  F11, f           Toggle fullscreen (only for current window)"
+            "  return           Accept the page number from the notes and continue presentation\n"
         );
     parser.addHelpOption();
     parser.addPositionalArgument("<slides.pdf>", "Slides for a presentation");
@@ -217,6 +218,7 @@ int main(int argc, char *argv[])
 
     // show the GUI
     w->show();
+    w->activateWindow();
     // Render first page on presentation screen
     emit w->sendNewPageNumber(0);
     // Render first page on control screen

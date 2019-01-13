@@ -63,52 +63,61 @@ Set half of the page to be the presentation, the other half to be the notes. Val
 .SH KEYBINDINGS
 .
 .TP
+.B Mouse wheel
+Scroll through presentation. If the presentation screen (the window showing the presentation) is the active window, all displayed pages will be updated. The duration of a page as defined by the PDF will be ignored. If the control screen (the window showing notes) is focused, only the pages on the control screen will be updated. You can continue the presentation with the page currently shown on the control screen by pressing
+.BR return .
+.
+.TP
 .B q
-Quit
+Quit.
 .
 .TP
 .B g
-Go to page (set focus to page number edit)
+Go to page (set focus to page number edit). This will make the control screen the active window.
 .
 .TP
 .B p
-Pause or continue timer
+Pause or continue timer.
 .
 .TP
 .B r
-Reset timer
+Reset timer.
 .
 .TP
 .B o
-Toggle cursor visbility (only on presentation screen)
+Toggle cursor visbility (only on the presentation screen).
 .
 .TP
 .B m
-Play or pause all multimedia content
+Play or pause all multimedia content on the current slide.
 .
 .TP
 .B space
-Update layout and start or continue timer
+Update layout, reload page and start or continue timer.
 .
 .TP
 .BR Left ", " PageUp
-Go to previous slide and start or continue timer
+Go to previous slide and start or continue timer.
 .
 .TP
 .BR Right ", " PageDown
-Go to next slide and start or continue timer
+Go to next slide and start or continue timer.
 .
 .TP
 .B Up
-Go to the previous slide until the page label changes. In beamer presentations: last overlay of the previous slide.
+Go to the previous slide until the page label changes. In beamer presentations: Go to the last overlay of the previous slide.
 .
 .TP
 .B Down
-Go to the next slide until the page label changes. In beamer presentations: first overlay of the next slide.
+Go to the next slide until the page label changes. In beamer presentations: Go to the first overlay of the next slide.
 .
 .TP
 .BR F11 ", " f
-Toggle full screen (only for current window)
+Toggle full screen of the active window.
+.
+.TP
+.B return
+Set page number of the presentation to the page number on the control screen and start or continue timer.
 .
 .
 .SH FEATURES

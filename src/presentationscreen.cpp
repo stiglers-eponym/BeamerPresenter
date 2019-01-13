@@ -62,12 +62,12 @@ int PresentationScreen::getPageNumber() const
     return label->pageNumber();
 }
 
-void PresentationScreen::renderPage( const int pageNumber )
+void PresentationScreen::renderPage( int const pageNumber, bool const setDuration )
 {
     if ( pageNumber < 0 || pageNumber >= presentation->getDoc()->numPages() )
-        label->renderPage( presentation->getPage( presentation->getDoc()->numPages() - 1 ) );
+        label->renderPage( presentation->getPage( presentation->getDoc()->numPages() - 1 ), setDuration );
     else
-        label->renderPage( presentation->getPage(pageNumber) );
+        label->renderPage( presentation->getPage(pageNumber), setDuration );
 }
 
 void PresentationScreen::updateCache()
@@ -79,14 +79,14 @@ void PresentationScreen::updateCache()
 
 void PresentationScreen::receiveTimeoutSignal()
 {
-    renderPage( label->pageNumber() + 1 );
+    renderPage( label->pageNumber() + 1, true );
     if ( label->getDuration() < 0 || label->getDuration() > 0.5 )
         emit sendPageShift();
 }
 
 void PresentationScreen::receiveNewPageNumber( const int pageNumber )
 {
-    renderPage(pageNumber);
+    renderPage(pageNumber, true);
 }
 
 void PresentationScreen::receiveCloseSignal()
@@ -94,13 +94,13 @@ void PresentationScreen::receiveCloseSignal()
     close();
 }
 
-void PresentationScreen::keyPressEvent( QKeyEvent * event )
+void PresentationScreen::keyPressEvent( QKeyEvent* event )
 {
     // TODO: Find a nicer way to do this
     switch ( event->key() ) {
         case Qt::Key_Right:
         case Qt::Key_PageDown:
-            renderPage( label->pageNumber() + 1 );
+            renderPage( label->pageNumber() + 1, true );
             if ( label->getDuration() < 0 || label->getDuration() > 0.5 )
                 emit sendPageShift();
             updateCache();
@@ -112,7 +112,7 @@ void PresentationScreen::keyPressEvent( QKeyEvent * event )
             {
                 int page = label->pageNumber() - 1;
                 if (page >= 0) {
-                    renderPage( label->pageNumber() - 1 );
+                    renderPage( label->pageNumber() - 1, true );
                     if ( label->getDuration() < 0 || label->getDuration() > 0.5 )
                         emit sendPageShift();
                     updateCache();
@@ -125,7 +125,7 @@ void PresentationScreen::keyPressEvent( QKeyEvent * event )
         case Qt::Key_Down:
             {
                 int pageNumber = presentation->getNextSlideIndex(label->pageNumber());
-                renderPage( pageNumber );
+                renderPage( pageNumber, true );
                 emit sendNewPageNumber( pageNumber );
                 updateCache();
                 emit sendUpdateCache();
@@ -135,14 +135,17 @@ void PresentationScreen::keyPressEvent( QKeyEvent * event )
         case Qt::Key_Up:
             {
                 int pageNumber = presentation->getPreviousSlideEnd(label->pageNumber());
-                renderPage( pageNumber );
+                renderPage( pageNumber, true );
                 emit sendNewPageNumber( pageNumber );
                 updateCache();
                 emit sendUpdateCache();
             }
             break;
+        case Qt::Key_G:
+            emit focusPageNumberEdit();
+            break;
         case Qt::Key_Space:
-            renderPage( label->pageNumber() );
+            renderPage( label->pageNumber(), true );
             emit sendPageShift();
             updateCache();
             emit sendUpdateCache();
@@ -164,8 +167,56 @@ void PresentationScreen::keyPressEvent( QKeyEvent * event )
     event->accept();
 }
 
-void PresentationScreen::resizeEvent(QResizeEvent *event)
+void PresentationScreen::resizeEvent(QResizeEvent* event)
 {
     label->clearCache();
-    label->renderPage( label->getPage() );
+    label->renderPage( label->getPage(), true );
+}
+
+void PresentationScreen::wheelEvent(QWheelEvent* event)
+{
+    // Change the signs in the beginning, this makes the rest less confusing.
+    int deltaPix = -event->pixelDelta().y();
+    int deltaAngle = -event->angleDelta().y();
+    int deltaPages;
+    // If a touch pad was used for scrolling:
+    if (deltaPix != 0) {
+        if (deltaPix > 50)
+            deltaPages = deltaPix / 50;
+        else if (deltaPix > 10)
+            deltaPages = 1;
+        else if (deltaPix < -50)
+            deltaPages = deltaPix / 50 + 1;
+        else if (deltaPix < -10)
+            deltaPages = -1;
+        else
+            deltaPages = 0;
+    }
+    // If a mouse wheel was used for scrolling:
+    else {
+        if (deltaAngle > 120)
+            deltaPages = deltaAngle / 120;
+        else if (deltaAngle > 0)
+            deltaPages = 1;
+        else if (deltaAngle < -120)
+            deltaPages = deltaAngle / 120 + 1;
+        else if (deltaAngle < 0)
+            deltaPages = -1;
+        else
+            deltaPages = 0;
+    }
+    if (deltaPages != 0) {
+        int currentPage = label->pageNumber();
+        if (deltaPages + currentPage < 0) {
+            if (currentPage != 0) {
+                renderPage(0, false);
+                emit sendNewPageNumber(0);
+            }
+        }
+        else {
+            renderPage(currentPage + deltaPages, false);
+            emit sendNewPageNumber(currentPage + deltaPages);
+        }
+    }
+    event->accept();
 }
