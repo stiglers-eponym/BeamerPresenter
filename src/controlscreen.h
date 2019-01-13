@@ -25,11 +25,11 @@
 #include <QResizeEvent>
 #include <QWheelEvent>
 #include <QFileInfo>
-#include "src/mediaslider.h"
-#include "src/pdfdoc.h"
-#include "src/timer.h"
-#include "src/pagenumberedit.h"
-#include "src/presentationscreen.h"
+#include "mediaslider.h"
+#include "pdfdoc.h"
+#include "timer.h"
+#include "pagenumberedit.h"
+#include "presentationscreen.h"
 
 namespace Ui {
     class ControlScreen;
@@ -40,7 +40,7 @@ class ControlScreen : public QMainWindow
     Q_OBJECT
 
 public:
-    explicit ControlScreen(QString presentationPath, QString notesPath = "", QWidget * parent = nullptr);
+    explicit ControlScreen(QString presentationPath, QString notesPath = "", QWidget* parent = nullptr);
     ~ControlScreen();
     void renderPage(int const pageNumber);
     void setPagePart(int const pagePart);
@@ -48,9 +48,9 @@ public:
     void setPresentationColor(QColor const color = Qt::black);
 
 protected:
-    void keyPressEvent( QKeyEvent * event );
-    void resizeEvent( QResizeEvent * event );
-    void wheelEvent( QWheelEvent * event );
+    void keyPressEvent(QKeyEvent* event);
+    void resizeEvent(QResizeEvent* event);
+    void wheelEvent(QWheelEvent* event);
 
 private:
     void recalcLayout(int const pageNumber);

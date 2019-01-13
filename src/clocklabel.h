@@ -33,7 +33,7 @@ public:
     ~ClockLabel();
 
 private:
-    QTimer * timer = nullptr;
+    QTimer* timer = nullptr;
 
 private slots:
     void showTime();

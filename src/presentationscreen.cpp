@@ -18,7 +18,7 @@
 
 #include "presentationscreen.h"
 
-PresentationScreen::PresentationScreen(PdfDoc* presentationDoc, QWidget *parent) : QWidget(parent)
+PresentationScreen::PresentationScreen(PdfDoc* presentationDoc, QWidget* parent) : QWidget(parent)
 {
     presentation = presentationDoc;
     setGeometry(0, 0, 1920, 1080);
@@ -62,7 +62,7 @@ int PresentationScreen::getPageNumber() const
     return label->pageNumber();
 }
 
-void PresentationScreen::renderPage( int const pageNumber, bool const setDuration )
+void PresentationScreen::renderPage(int const pageNumber, bool const setDuration)
 {
     if ( pageNumber < 0 || pageNumber >= presentation->getDoc()->numPages() )
         label->renderPage( presentation->getPage( presentation->getDoc()->numPages() - 1 ), setDuration );
@@ -84,7 +84,7 @@ void PresentationScreen::receiveTimeoutSignal()
         emit sendPageShift();
 }
 
-void PresentationScreen::receiveNewPageNumber( const int pageNumber )
+void PresentationScreen::receiveNewPageNumber(const int pageNumber)
 {
     renderPage(pageNumber, true);
 }
@@ -94,7 +94,7 @@ void PresentationScreen::receiveCloseSignal()
     close();
 }
 
-void PresentationScreen::keyPressEvent( QKeyEvent* event )
+void PresentationScreen::keyPressEvent(QKeyEvent* event)
 {
     // TODO: Find a nicer way to do this
     switch ( event->key() ) {

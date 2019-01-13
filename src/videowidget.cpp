@@ -18,7 +18,7 @@
 
 #include "videowidget.h"
 
-VideoWidget::VideoWidget(Poppler::MovieAnnotation const * annotation, QWidget * parent) : QVideoWidget(parent)
+VideoWidget::VideoWidget(Poppler::MovieAnnotation const * annotation, QWidget* parent) : QVideoWidget(parent)
 {
     this->annotation = annotation;
     setMouseTracking(true);
@@ -144,7 +144,7 @@ void VideoWidget::restartVideo(QMediaPlayer::State state)
     }
 }
 
-void VideoWidget::mouseReleaseEvent(QMouseEvent * event)
+void VideoWidget::mouseReleaseEvent(QMouseEvent* event)
 {
     if ( event->button() == Qt::LeftButton ) {
         if ( player->state() == QMediaPlayer::PlayingState )
@@ -158,7 +158,7 @@ void VideoWidget::mouseReleaseEvent(QMouseEvent * event)
     event->accept();
 }
 
-void VideoWidget::mouseMoveEvent(QMouseEvent * event)
+void VideoWidget::mouseMoveEvent(QMouseEvent* event)
 {
     if (cursor() == Qt::ArrowCursor)
         setCursor(Qt::PointingHandCursor);

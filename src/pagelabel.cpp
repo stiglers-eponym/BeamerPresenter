@@ -40,7 +40,7 @@ void PageLabel::setAutostartDelay(double const delay)
     autostartDelay = delay;
 }
 
-int PageLabel::pageNumber()
+int PageLabel::pageNumber() const
 {
     return page->index();
 }
@@ -100,7 +100,7 @@ void PageLabel::clearLists()
     linkSoundPlayers.clear();
 }
 
-void PageLabel::renderPage(Poppler::Page * page, bool setDuration)
+void PageLabel::renderPage(Poppler::Page* page, bool setDuration)
 {
     emit slideChange();
     clearLists();
@@ -264,13 +264,13 @@ void PageLabel::renderPage(Poppler::Page * page, bool setDuration)
     }
 }
 
-void PageLabel::updateCache(QPixmap * pixmap, int const index)
+void PageLabel::updateCache(QPixmap* pixmap, int const index)
 {
     cachedIndex = index;
     cachedPixmap = *pixmap;
 }
 
-void PageLabel::updateCache(Poppler::Page * nextPage)
+void PageLabel::updateCache(Poppler::Page* nextPage)
 {
     if (page == nullptr) {
         page = nextPage;
@@ -301,7 +301,7 @@ void PageLabel::updateCache(Poppler::Page * nextPage)
     }
 }
 
-QPixmap * PageLabel::getCache()
+QPixmap* PageLabel::getCache()
 {
     return &cachedPixmap;
 }
@@ -311,7 +311,7 @@ int PageLabel::getCacheIndex() const
     return cachedIndex;
 }
 
-void PageLabel::setMultimediaSliders(QList<MediaSlider *> sliderList)
+void PageLabel::setMultimediaSliders(QList<MediaSlider*> sliderList)
 {
     if (sliders.size() != 0) {
         std::cout << "Something unexpected happened: There is a problem with the media sliders." << std::endl;
@@ -378,15 +378,15 @@ void PageLabel::pauseAllMultimedia()
 
 bool PageLabel::hasActiveMultimediaContent() const
 {
-    Q_FOREACH(VideoWidget * video, videoWidgets) {
+    Q_FOREACH(VideoWidget* video, videoWidgets) {
         if (video->state() == QMediaPlayer::PlayingState)
             return true;
     }
-    Q_FOREACH(QMediaPlayer * sound, soundPlayers) {
+    Q_FOREACH(QMediaPlayer* sound, soundPlayers) {
         if (sound->state() == QMediaPlayer::PlayingState)
             return true;
     }
-    Q_FOREACH(QMediaPlayer * sound, linkSoundPlayers) {
+    Q_FOREACH(QMediaPlayer* sound, linkSoundPlayers) {
         if (sound->state() == QMediaPlayer::PlayingState)
             return true;
     }
@@ -408,7 +408,7 @@ double PageLabel::getDuration() const
     return duration;
 }
 
-void PageLabel::mouseReleaseEvent(QMouseEvent * event)
+void PageLabel::mouseReleaseEvent(QMouseEvent* event)
 {
     if (event->button() == Qt::LeftButton) {
         for (int i=0; i<links.size(); i++) {
@@ -592,7 +592,7 @@ void PageLabel::togglePointerVisibility()
     }
 }
 
-void PageLabel::mouseMoveEvent(QMouseEvent * event)
+void PageLabel::mouseMoveEvent(QMouseEvent* event)
 {
     if (!pointer_visible)
         return;
@@ -616,7 +616,7 @@ void PageLabel::mouseMoveEvent(QMouseEvent * event)
     event->accept();
 }
 
-Poppler::Page * PageLabel::getPage()
+Poppler::Page* PageLabel::getPage()
 {
     return page;
 }

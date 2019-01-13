@@ -19,7 +19,7 @@
 #include "controlscreen.h"
 #include "ui_controlscreen.h"
 
-ControlScreen::ControlScreen(QString presentationPath, QString notesPath, QWidget * parent) :
+ControlScreen::ControlScreen(QString presentationPath, QString notesPath, QWidget* parent) :
     QMainWindow(parent),
     ui(new Ui::ControlScreen)
 {
@@ -245,7 +245,7 @@ void ControlScreen::resetTimerAlert()
     ui->edit_timer->setPalette(palette);
 }
 
-void ControlScreen::renderPage( int const pageNumber )
+void ControlScreen::renderPage(int const pageNumber)
 {
     if (pageNumber < 0 || pageNumber >= numberOfPages)
         currentPageNumber = numberOfPages - 1;
@@ -313,7 +313,7 @@ void ControlScreen::receiveCloseSignal()
     close();
 }
 
-void ControlScreen::keyPressEvent( QKeyEvent * event )
+void ControlScreen::keyPressEvent(QKeyEvent* event)
 {
     switch ( event->key() ) {
         case Qt::Key_Right:

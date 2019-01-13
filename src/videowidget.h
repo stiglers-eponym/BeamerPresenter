@@ -35,7 +35,7 @@ class VideoWidget : public QVideoWidget
     Q_OBJECT
 
 public:
-    VideoWidget(Poppler::MovieAnnotation const * annotation, QWidget * parent = nullptr);
+    VideoWidget(Poppler::MovieAnnotation const * annotation, QWidget* parent = nullptr);
     ~VideoWidget();
     QMediaPlayer::State state() const;
     Poppler::MovieAnnotation const * getAnnotation() const;
@@ -43,11 +43,11 @@ public:
     QMediaPlayer const * getPlayer() const;
 
 protected:
-    void mouseReleaseEvent(QMouseEvent * event);
-    void mouseMoveEvent(QMouseEvent * event);
+    void mouseReleaseEvent(QMouseEvent* event);
+    void mouseMoveEvent(QMouseEvent* event);
 
 private:
-    QMediaPlayer * player;
+    QMediaPlayer* player;
     QImage posterImage;
     Poppler::MovieAnnotation const * annotation;
 

@@ -18,14 +18,14 @@
 
 #include "timer.h"
 
-Timer::Timer(QWidget * parent) : QLabel(parent)
+Timer::Timer(QWidget* parent) : QLabel(parent)
 {
     setText("00:00");
     deadline = new QTime(0,0,0,0);
     time = new QTime(0,0,0,0);
 }
 
-Timer::Timer(QLineEdit * setTimerEdit, QWidget * parent) : QLabel(parent)
+Timer::Timer(QLineEdit* setTimerEdit, QWidget* parent) : QLabel(parent)
 {
     setText("00:00");
     deadline = new QTime(0,0,0,0);
@@ -51,7 +51,7 @@ void Timer::receiveTimerString(QString const & timerString)
     setDeadline();
 }
 
-void Timer::setTimerWidget(QLineEdit * setTimerEdit)
+void Timer::setTimerWidget(QLineEdit* setTimerEdit)
 {
     timerEdit = setTimerEdit;
     timer = new QTimer(this);

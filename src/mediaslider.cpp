@@ -18,7 +18,7 @@
 
 #include "mediaslider.h"
 
-MediaSlider::MediaSlider(QWidget * parent) : QSlider(Qt::Horizontal, parent)
+MediaSlider::MediaSlider(QWidget* parent) : QSlider(Qt::Horizontal, parent)
 {
     setFocusPolicy(Qt::StrongFocus);
     setRange(0, 10);
@@ -47,7 +47,7 @@ void MediaSlider::emitSliderMoved(int const value)
     emit sliderMoved(100*qint64(value));
 }
 
-void MediaSlider::keyPressEvent(QKeyEvent * event)
+void MediaSlider::keyPressEvent(QKeyEvent* event)
 {
     switch (event->key())
     {

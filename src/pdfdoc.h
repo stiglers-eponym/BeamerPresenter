@@ -33,7 +33,7 @@ public:
     PdfDoc(QString pathToPdf = "");
     ~PdfDoc();
     void loadDocument();
-    Poppler::Page * getPage(int pageNumber) const;
+    Poppler::Page* getPage(int pageNumber) const;
     QSize getPageSize(int const pageNumber) const;
     int getNextSlideIndex(int const index) const;
     int getPreviousSlideEnd(int const index) const;
@@ -41,7 +41,7 @@ public:
     Poppler::Document const * getDoc() const;
 
 private:
-    Poppler::Document * popplerDoc = nullptr;
+    Poppler::Document* popplerDoc = nullptr;
     QString pdfPath;
     QList<Poppler::Page*> pdfPages;
     QList<QString> labels;

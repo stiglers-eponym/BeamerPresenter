@@ -91,11 +91,11 @@ int main(int argc, char *argv[])
         // Check whether a note file should be expected
         if (parser.value("p").isEmpty()) {
             if (!settings.contains("page-part") || settings.value("page-part").toString()=="none" || settings.value("page-part").toString()=="0")
-                QString notesPath = QFileDialog::getOpenFileName(nullptr, "Open Notes", presentationPath, "Documents (*.pdf)");
+                notesPath = QFileDialog::getOpenFileName(nullptr, "Open Notes", presentationPath, "Documents (*.pdf)");
         }
         else {
             if (parser.value("p")=="none" || parser.value("p")=="0")
-                QString notesPath = QFileDialog::getOpenFileName(nullptr, "Open Notes", presentationPath, "Documents (*.pdf)");
+                notesPath = QFileDialog::getOpenFileName(nullptr, "Open Notes", presentationPath, "Documents (*.pdf)");
         }
         w = new ControlScreen(presentationPath, notesPath);
     }

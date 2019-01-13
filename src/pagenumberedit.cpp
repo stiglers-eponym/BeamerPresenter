@@ -18,7 +18,7 @@
 
 #include "pagenumberedit.h"
 
-PageNumberEdit::PageNumberEdit(QWidget * parent) : QLineEdit(parent)
+PageNumberEdit::PageNumberEdit(QWidget* parent) : QLineEdit(parent)
 {
     connect(this, &PageNumberEdit::textChanged, this, &PageNumberEdit::receiveEditSignal);
 }
@@ -45,7 +45,7 @@ void PageNumberEdit::receiveEditSignal(const QString string)
         emit sendPageNumberEdit( pageNumber - 1 );
 }
 
-void PageNumberEdit::keyPressEvent(QKeyEvent * event)
+void PageNumberEdit::keyPressEvent(QKeyEvent* event)
 {
     switch (event->key())
     {
@@ -68,7 +68,7 @@ void PageNumberEdit::keyPressEvent(QKeyEvent * event)
             emit sendPreviousSlideEnd();
             break;
         case Qt::Key_End:
-            setText( QString::fromStdString( std::to_string( numberOfPages )) );
+            setText( QString::fromStdString( std::to_string(numberOfPages) ) );
             emit sendPageNumberEdit( numberOfPages - 1 );
             break;
         case Qt::Key_Home:

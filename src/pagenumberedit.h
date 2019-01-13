@@ -28,12 +28,12 @@ class PageNumberEdit : public QLineEdit
     Q_OBJECT
 
 public:
-    PageNumberEdit(QWidget * parent = nullptr);
+    PageNumberEdit(QWidget* parent = nullptr);
     ~PageNumberEdit();
     void setNumberOfPages(const int numberOfPages);
 
 protected:
-    void keyPressEvent(QKeyEvent * event);
+    void keyPressEvent(QKeyEvent* event);
 
 private slots:
     void receiveReturnSignal();

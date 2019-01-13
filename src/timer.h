@@ -30,10 +30,10 @@ class Timer : public QLabel
     Q_OBJECT
 
 public:
-    Timer(QWidget * parent = nullptr);
-    Timer(QLineEdit * setTimerEdit, QWidget * parent = nullptr);
+    Timer(QWidget* parent = nullptr);
+    Timer(QLineEdit* setTimerEdit, QWidget* parent = nullptr);
     ~Timer();
-    void setTimerWidget(QLineEdit * setTimerEdit);
+    void setTimerWidget(QLineEdit* setTimerEdit);
 
 public slots:
     void setDeadline();
@@ -52,10 +52,10 @@ signals:
     void sendEscape();
 
 private:
-    QLineEdit * timerEdit;
-    QTime * deadline;
-    QTime * time;
-    QTimer * timer;
+    QLineEdit* timerEdit;
+    QTime* deadline;
+    QTime* time;
+    QTimer* timer;
     bool running = false;
     int colorTimeInterval = 150;
 };

@@ -30,20 +30,20 @@ class MediaSlider : public QSlider
     Q_OBJECT
 
 public:
-    MediaSlider(QWidget * parent = nullptr);
+    MediaSlider(QWidget* parent = nullptr);
     ~MediaSlider();
     void setMaximum(qint64 const max);
     void setValue(qint64 const value);
 
 protected:
-    void keyPressEvent(QKeyEvent * event);
+    void keyPressEvent(QKeyEvent* event);
 
 public slots:
     void emitSliderMoved(int const value);
 
 signals:
     void sliderMoved(qint64 const value);
-    void sendKeyEvent(QKeyEvent * event);
+    void sendKeyEvent(QKeyEvent* event);
     void sendEscapeEvent();
 };
 

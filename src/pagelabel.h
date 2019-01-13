@@ -32,7 +32,7 @@
 #include <QDesktopServices>
 #include <poppler-qt5.h>
 #include "videowidget.h"
-#include "src/mediaslider.h"
+#include "mediaslider.h"
 
 class PageLabel : public QLabel
 {
@@ -43,7 +43,7 @@ public:
     PageLabel(Poppler::Page* page, QWidget* parent);
     ~PageLabel();
     void renderPage(Poppler::Page* page, bool setDuration=true);
-    int pageNumber();
+    int pageNumber() const;
     double getDuration() const;
     void setPresentationStatus(bool const status);
     void setShowMultimedia(bool const showVideos);
@@ -80,7 +80,7 @@ private:
 
 protected:
     void mouseReleaseEvent(QMouseEvent* event);
-    void mouseMoveEvent( QMouseEvent* event );
+    void mouseMoveEvent(QMouseEvent* event);
 
 private:
     Poppler::Page* page;

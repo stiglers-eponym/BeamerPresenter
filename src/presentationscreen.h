@@ -23,8 +23,8 @@
 #include <QKeyEvent>
 #include <QWheelEvent>
 #include <QGridLayout>
-#include "src/pdfdoc.h"
-#include "src/pagelabel.h"
+#include "pdfdoc.h"
+#include "pagelabel.h"
 
 class PresentationScreen : public QWidget
 {
@@ -36,12 +36,12 @@ public:
     void renderPage(int const pageNumber = 0, bool const setDuration = false);
     int getPageNumber() const;
     void updateCache();
-    PageLabel * getLabel();
+    PageLabel* getLabel();
 
 protected:
-    void keyPressEvent( QKeyEvent* event );
-    void resizeEvent( QResizeEvent* event );
-    void wheelEvent( QWheelEvent* event );
+    void keyPressEvent(QKeyEvent* event);
+    void resizeEvent(QResizeEvent* event);
+    void wheelEvent(QWheelEvent* event);
 
 private:
     QGridLayout* layout;
