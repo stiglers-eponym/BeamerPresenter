@@ -19,6 +19,7 @@
 #include <iostream>
 #include <QSettings>
 #include <QApplication>
+#include <QFileDialog>
 #include <QCommandLineParser>
 #include "controlscreen.h"
 #include "presentationscreen.h"
@@ -61,7 +62,7 @@ int main(int argc, char *argv[])
     parser.process(app);
 
     // set up a settings manager
-    // This is only tested on linux! I don't know whether it will work in Windows or MacOS
+    // This is only tested on Linux! I don't know whether it will work in Windows or MacOS
     #ifdef Q_OS_MAC
     // untested!
     QSettings settings(QSettings::IniFormat, QSettings::UserScope, "beamerpresenter", "beamerpresenter");
@@ -78,8 +79,25 @@ int main(int argc, char *argv[])
         w = new ControlScreen(parser.positionalArguments().at(0));
     else if (parser.positionalArguments().size() == 2)
         w = new ControlScreen(parser.positionalArguments().at(0), parser.positionalArguments().at(1));
-    else
-        parser.showHelp(1);
+    else {
+        // Open files in a QFileDialog
+        QString presentationPath = QFileDialog::getOpenFileName(nullptr, "Open Slides", "", "Documents (*.pdf)");
+        if (presentationPath.isEmpty()) {
+            std::cerr << "No presentation file specified" << std::endl;
+            exit(1);
+        }
+        QString notesPath = "";
+        // Check whether a note file should be expected
+        if (parser.value("p").isEmpty()) {
+            if (!settings.contains("page-part") || settings.value("page-part").toString()=="none" || settings.value("page-part").toString()=="0")
+                QString notesPath = QFileDialog::getOpenFileName(nullptr, "Open Notes", presentationPath, "Documents (*.pdf)");
+        }
+        else {
+            if (parser.value("p")=="none" || parser.value("p")=="0")
+                QString notesPath = QFileDialog::getOpenFileName(nullptr, "Open Notes", presentationPath, "Documents (*.pdf)");
+        }
+        w = new ControlScreen(presentationPath, notesPath);
+    }
 
     { // set colors
         QColor bgColor, textColor, presentationColor;

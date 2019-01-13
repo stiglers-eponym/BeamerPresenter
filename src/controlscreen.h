@@ -23,6 +23,7 @@
 #include <QLabel>
 #include <QKeyEvent>
 #include <QResizeEvent>
+#include <QFileInfo>
 #include "src/mediaslider.h"
 #include "src/pdfdoc.h"
 #include "src/timer.h"

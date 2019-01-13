@@ -31,6 +31,11 @@ PdfDoc::~PdfDoc()
     delete popplerDoc;
 }
 
+Poppler::Document const * PdfDoc::getDoc() const
+{
+    return popplerDoc;
+}
+
 void PdfDoc::loadDocument()
 {
     if (popplerDoc != nullptr) {
@@ -38,6 +43,8 @@ void PdfDoc::loadDocument()
         delete popplerDoc;
     }
     popplerDoc = Poppler::Document::load(pdfPath);
+    if (popplerDoc == nullptr)
+        return;
     if (popplerDoc->isLocked()) {
         // TODO: use a nicer way of entering passwords (a QDialog?)
         std::cout << "WARNING: File " << pdfPath.toStdString() << ":\n"
@@ -83,7 +90,7 @@ QSize PdfDoc::getPageSize(int const pageNumber) const
     return pdfPages.at(pageNumber)->pageSize();
 }
 
-Poppler::Page* PdfDoc::getPage(int pageNumber) const
+Poppler::Page * PdfDoc::getPage(int pageNumber) const
 {
     if (pageNumber < 0)
         return pdfPages.at(0);

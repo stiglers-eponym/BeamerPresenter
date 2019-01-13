@@ -23,12 +23,37 @@ ControlScreen::ControlScreen(QString presentationPath, QString notesPath, QWidge
     QMainWindow(parent),
     ui(new Ui::ControlScreen)
 {
+    { // Check if files are valid
+        if (presentationPath.isEmpty()) {
+            std::cerr << "No presentation file specified" << std::endl;
+            close();
+            exit(1);
+        }
+        QFileInfo checkPresentation(presentationPath);
+        if (!checkPresentation.exists() || (!checkPresentation.isFile() && !checkPresentation.isSymLink()) ) {
+            std::cerr << "Not a file: " << presentationPath.toStdString() << std::endl;
+            close();
+            exit(1);
+        }
+        if (!notesPath.isEmpty()) {
+            QFileInfo checkNotes(notesPath);
+            if (!checkNotes.exists() || (!checkNotes.isFile() && !checkNotes.isSymLink()) ) {
+                std::cerr << "WARNING: Ignoring invalid notes files: " << notesPath.toStdString() << std::endl;
+                notesPath = "";
+            }
+        }
+    }
     ui->setupUi(this);
 
     // Load presentation pdf
     presentation = new PdfDoc( presentationPath );
     presentation->loadDocument();
-    numberOfPages = presentation->popplerDoc->numPages();
+    if (presentation->getDoc() == nullptr) {
+        std::cerr << "File could not be opened as PDF: " << presentationPath.toStdString() << std::endl;
+        close();
+        exit(1);
+    }
+    numberOfPages = presentation->getDoc()->numPages();
 
     // Set up presentation screen
     presentationScreen = new PresentationScreen( presentation );
@@ -42,7 +67,13 @@ ControlScreen::ControlScreen(QString presentationPath, QString notesPath, QWidge
     else {
         notes = new PdfDoc( notesPath );
         notes->loadDocument();
-        setWindowTitle("BeamerPresenter: " + notesPath);
+        if (notes->getDoc() == nullptr) {
+            std::cerr << "File could not be opened as PDF: " << notesPath.toStdString() << std::endl;
+            notes = presentation;
+            setWindowTitle("BeamerPresenter: " + presentationPath);
+        }
+        else
+            setWindowTitle("BeamerPresenter: " + notesPath);
     }
 
     // Set up the widgets
@@ -219,9 +250,9 @@ void ControlScreen::renderPage( int const pageNumber )
     else
         currentPageNumber = pageNumber;
     recalcLayout(currentPageNumber);
-    if (currentPageNumber < notes->popplerDoc->numPages())
+    if (currentPageNumber < notes->getDoc()->numPages())
         ui->notes_label->renderPage( notes->getPage(currentPageNumber) );
-    if (currentPageNumber + 1 < presentation->popplerDoc->numPages()) {
+    if (currentPageNumber + 1 < presentation->getDoc()->numPages()) {
         ui->current_slide_label->renderPage( presentation->getPage(currentPageNumber) );
         ui->current_slide_label->updateCache( presentation->getPage(currentPageNumber+1) );
         ui->next_slide_label->updateCache( ui->current_slide_label->getCache(), currentPageNumber+1 );
@@ -238,9 +269,9 @@ void ControlScreen::renderPage( int const pageNumber )
 
 void ControlScreen::updateCache()
 {
-    if (currentPageNumber + 1 < notes->popplerDoc->numPages()) {
+    if (currentPageNumber + 1 < notes->getDoc()->numPages()) {
         ui->notes_label->updateCache( notes->getPage(currentPageNumber+1) );
-        if (currentPageNumber + 2 < presentation->popplerDoc->numPages())
+        if (currentPageNumber + 2 < presentation->getDoc()->numPages())
             ui->next_slide_label->updateCache( presentation->getPage(currentPageNumber+2) );
     }
 }

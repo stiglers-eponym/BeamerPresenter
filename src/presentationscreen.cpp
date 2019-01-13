@@ -64,8 +64,8 @@ int PresentationScreen::getPageNumber() const
 
 void PresentationScreen::renderPage( const int pageNumber )
 {
-    if ( pageNumber < 0 || pageNumber >= presentation->popplerDoc->numPages() )
-        label->renderPage( presentation->getPage( presentation->popplerDoc->numPages() - 1 ) );
+    if ( pageNumber < 0 || pageNumber >= presentation->getDoc()->numPages() )
+        label->renderPage( presentation->getPage( presentation->getDoc()->numPages() - 1 ) );
     else
         label->renderPage( presentation->getPage(pageNumber) );
 }
@@ -73,7 +73,7 @@ void PresentationScreen::renderPage( const int pageNumber )
 void PresentationScreen::updateCache()
 {
     int pageNumber = label->pageNumber() + 1;
-    if (pageNumber < presentation->popplerDoc->numPages())
+    if (pageNumber < presentation->getDoc()->numPages())
         label->updateCache( presentation->getPage(pageNumber) );
 }
 

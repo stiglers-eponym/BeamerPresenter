@@ -26,14 +26,6 @@ PageLabel::PageLabel(Poppler::Page* page, QWidget* parent) : QLabel(parent)
 PageLabel::PageLabel(QWidget* parent) : QLabel(parent)
 {
     page = nullptr;
-    links = QList<Poppler::Link*>();
-    linkPositions = QList<QRect*>();
-    videoWidgets = QList<VideoWidget*>();
-    videoPositions = QList<QRect*>();
-    soundPositions = QList<QRect*>();
-    soundPlayers = QList<QMediaPlayer*>();
-    linkSoundPositions = QList<QRect*>();
-    linkSoundPlayers = QList<QMediaPlayer*>();
 }
 
 PageLabel::~PageLabel()

@@ -38,10 +38,10 @@ public:
     int getNextSlideIndex(int const index) const;
     int getPreviousSlideEnd(int const index) const;
     void setPagePart(int const state);
-
-    Poppler::Document * popplerDoc = nullptr;
+    Poppler::Document const * getDoc() const;
 
 private:
+    Poppler::Document * popplerDoc = nullptr;
     QString pdfPath;
     QList<Poppler::Page*> pdfPages;
     QList<QString> labels;
