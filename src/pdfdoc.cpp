@@ -39,7 +39,7 @@ Poppler::Document const * PdfDoc::getDoc() const
 void PdfDoc::loadDocument()
 {
     if (popplerDoc != nullptr) {
-        std::cerr << "WARNING: A document has already been loaded. Deleting it in order to avoid memory leaks." << std::endl;
+        qWarning() << "WARNING: A document has already been loaded. Deleting it in order to avoid memory leaks.";
         delete popplerDoc;
     }
     popplerDoc = Poppler::Document::load(pdfPath);
@@ -74,11 +74,11 @@ void PdfDoc::loadDocument()
     }
 
     if (popplerDoc->hasOptionalContent())
-        std::cout << "This file has optional content. Optional content is not supported." << std::endl;
+        qWarning() << "This file has optional content. Optional content is not supported.";
     if (popplerDoc->hasEmbeddedFiles())
-        std::cout << "This file contains embedded files. Embedded files are not supported." << std::endl;
+        qWarning() << "This file contains embedded files. Embedded files are not supported.";
     if (popplerDoc->scripts().size() != 0)
-        std::cout << "This file contains JavaScript scripts. JavaScript is not supported." << std::endl;
+        qWarning() << "This file contains JavaScript scripts. JavaScript is not supported.";
 }
 
 QSize PdfDoc::getPageSize(int const pageNumber) const

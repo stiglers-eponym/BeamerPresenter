@@ -48,7 +48,7 @@ VideoWidget::VideoWidget(Poppler::MovieAnnotation const * annotation, QWidget* p
             connect(player, &QMediaPlayer::stateChanged, this, &VideoWidget::showPosterImage);
             break;
         case Poppler::MovieObject::PlayPalindrome:
-            std::cout << "WARNING: play mode=palindrome does not work as it should." << std::endl;
+            qWarning() << "WARNING: play mode=palindrome does not work as it should.";
             connect(player, &QMediaPlayer::stateChanged, this, &VideoWidget::bouncePalindromeVideo);
             break;
         case Poppler::MovieObject::PlayRepeat:

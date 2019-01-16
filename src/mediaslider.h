@@ -23,7 +23,7 @@
 #include <QWidget>
 #include <QSlider>
 #include <QKeyEvent>
-#include <iostream>
+#include <QtDebug>
 
 class MediaSlider : public QSlider
 {

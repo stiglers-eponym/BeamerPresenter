@@ -20,7 +20,7 @@
 #define PDFWIDGET_H
 
 #include <iostream>
-
+#include <QtDebug>
 #include <QWidget>
 #include <QLabel>
 #include <poppler-qt5.h>

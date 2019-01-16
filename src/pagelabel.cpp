@@ -76,9 +76,8 @@ void PageLabel::clearLists()
                 disconnect(player, &QMediaPlayer::positionChanged, slider, &MediaSlider::setValue);
             }
         }
-        else {
-            std::cout << "Something unexpected happened while trying to delete up sliders." << std::endl;
-        }
+        else
+            qDebug() << "Something unexpected happened while trying to delete up sliders.";
     }
     qDeleteAll(sliders);
     sliders.clear();
@@ -98,6 +97,8 @@ void PageLabel::clearLists()
     linkSoundPositions.clear();
     qDeleteAll(linkSoundPlayers);
     linkSoundPlayers.clear();
+    qDeleteAll(embeddedWindows);
+    embeddedWindows.clear();
 }
 
 void PageLabel::renderPage(Poppler::Page* page, bool setDuration)
@@ -167,7 +168,7 @@ void PageLabel::renderPage(Poppler::Page* page, bool setDuration)
     }
     Poppler::PageTransition* transition = page->transition();
     if (transition != nullptr && transition->type() != Poppler::PageTransition::Replace)
-        std::cout << "Unsupported page transition of type " << transition->type() << std::endl;
+        qInfo() << "Unsupported page transition of type " << transition->type();
 
     // Show videos. This part is work in progress.
     // TODO: This is probably inefficient.
@@ -197,7 +198,7 @@ void PageLabel::renderPage(Poppler::Page* page, bool setDuration)
         soundType.insert(Poppler::Annotation::ASound);
         QList<Poppler::Annotation*> sounds = page->annotations(soundType);
         for (int i=0; i<sounds.size(); i++) {
-            std::cout << "WARNING: Support for sound in annotations is untested!" << std::endl;
+            qWarning() << "WARNING: Support for sound in annotations is untested!";
             Poppler::SoundAnnotation* annotation = (Poppler::SoundAnnotation*) sounds.at(i);
             QRectF relative = annotation->boundary();
             QRect * absolute = new QRect(
@@ -314,7 +315,7 @@ int PageLabel::getCacheIndex() const
 void PageLabel::setMultimediaSliders(QList<MediaSlider*> sliderList)
 {
     if (sliders.size() != 0) {
-        std::cout << "Something unexpected happened: There is a problem with the media sliders." << std::endl;
+        qWarning() << "Something unexpected happened: There is a problem with the media sliders.";
         return;
     }
     sliders = sliderList;
@@ -420,11 +421,30 @@ void PageLabel::mouseReleaseEvent(QMouseEvent* event)
                     break;
                     case Poppler::Link::Execute:
                         {
-                            std::cout << "Unsupported link of type execute:" << std::endl;
-                            Poppler::LinkExecute * link = (Poppler::LinkExecute*) links.at(i);
+                            Poppler::LinkExecute* link = (Poppler::LinkExecute*) links.at(i);
                             if (!link->parameters().isEmpty())
-                                std::cout << "Execution parameters: " << link->parameters().toStdString() << std::endl;
-                            std::cout << "File to be executed: " << link->fileName().toStdString() << std::endl;
+                                // It seems like I can't set and read these parameters.
+                                // If anyone knows how to set these parameters in LaTeX for a Linux system, please let me know.
+                                qInfo() << "Link of type execute with ignored parameters: " << link->parameters();
+                            QUrl url = QUrl( link->fileName(), QUrl::TolerantMode );
+                            if (!urlSplitCharacter.isEmpty()) {
+                                QString fileName = url.fileName();
+                                QStringList splitFileName = fileName.split(urlSplitCharacter);
+                                if (splitFileName.length() > 1) {
+                                    // TODO: change file name in url and use the rest as parameters
+                                    if (urlSplitCharacter.contains("embed")) {
+                                        qWarning() << "This is VERY EXPERIMENTAL";
+                                        // Embed the executed program in a widget.
+                                        // This widget should be created earlier
+                                        EmbeddedWindow* embedded = EmbeddedWindow::createWindow(splitFileName.first()); // TODO: handle arguments
+                                        embeddedWindows.append(embedded);
+                                        embedded->setGeometry(*linkPositions.at(i));
+                                        embedded->show();
+                                    }
+
+                                }
+                            }
+                            QDesktopServices::openUrl(url);
                         }
                     break;
                     case Poppler::Link::Browse:
@@ -440,7 +460,7 @@ void PageLabel::mouseReleaseEvent(QMouseEvent* event)
                                     emit sendCloseSignal();
                                     break;
                                 case Poppler::LinkAction::Print:
-                                    std::cout << "Unsupported link action: print." << std::endl;
+                                    qInfo() << "Unsupported link action: print.";
                                     break;
                                 case Poppler::LinkAction::GoToPage:
                                     emit focusPageNumberEdit();
@@ -459,7 +479,7 @@ void PageLabel::mouseReleaseEvent(QMouseEvent* event)
                                     break;
                                 case Poppler::LinkAction::Find:
                                     // TODO: implement this
-                                    std::cout << "Unsupported link action: find." << std::endl;
+                                    qInfo() << "Unsupported link action: find.";
                                     break;
                                 case Poppler::LinkAction::Presentation:
                                     // untested
@@ -471,11 +491,11 @@ void PageLabel::mouseReleaseEvent(QMouseEvent* event)
                                     break;
                                 case Poppler::LinkAction::HistoryBack:
                                     // TODO: implement this
-                                    std::cout << "Unsupported link action: history back." << std::endl;
+                                    qInfo() << "Unsupported link action: history back.";
                                     break;
                                 case Poppler::LinkAction::HistoryForward:
                                     // TODO: implement this
-                                    std::cout << "Unsupported link action: history forward." << std::endl;
+                                    qInfo() << "Unsupported link action: history forward.";
                                     break;
                             };
                         }
@@ -500,8 +520,8 @@ void PageLabel::mouseReleaseEvent(QMouseEvent* event)
                                 // Most of the code in this scope is copied from stackoverflow.
                                 // I have not tested it, because I don't have a pdf file with embedded sound.
                                 // Sound can also be embedded as optional content, which is not supported by this PDF viewer.
-                                std::cout << "Playing embedded sound files is VERY EXPERIMENTAL." << std::endl;
-                                std::cout << "Controling the playback is only possible with external files." << std::endl;
+                                qWarning() << "Playing embedded sound files is VERY EXPERIMENTAL.\n"
+                                           << "Controling the playback is only possible with external files.";
                                 QByteArray data = sound->data();
                                 QBuffer * audio_buffer = new QBuffer(&data);
                                 sound->soundEncoding();
@@ -528,7 +548,7 @@ void PageLabel::mouseReleaseEvent(QMouseEvent* event)
                                 }
                                 QAudioDeviceInfo info(QAudioDeviceInfo::defaultOutputDevice());
                                 if (!info.isFormatSupported(format)) {
-                                    std::cerr << "Audio format of embedded sound not supported by backend." << std::endl;
+                                    qWarning() << "Audio format of embedded sound not supported by backend.";
                                     return;
                                 }
                                 QAudioOutput * output = new QAudioOutput(info, format);
@@ -539,7 +559,7 @@ void PageLabel::mouseReleaseEvent(QMouseEvent* event)
                     break;
                     case Poppler::Link::Movie:
                         {
-                            std::cout << "Unsupported link of type video." << std::endl;
+                            qInfo() << "Unsupported link of type video.";
                             Poppler::LinkMovie * link = (Poppler::LinkMovie*) links.at(i);
                             Q_FOREACH(VideoWidget * video, videoWidgets) {
                                 if (link->isReferencedAnnotation(video->getAnnotation()))
@@ -548,20 +568,20 @@ void PageLabel::mouseReleaseEvent(QMouseEvent* event)
                         }
                     break;
                     case Poppler::Link::Rendition:
-                        std::cout << "Unsupported link of type rendition" << std::endl;
+                        qInfo() << "Unsupported link of type rendition";
                     break;
                     case Poppler::Link::JavaScript:
-                        std::cout << "Unsupported link of type JavaScript" << std::endl;
+                        qInfo() << "Unsupported link of type JavaScript";
                     break;
                     case Poppler::Link::OCGState:
                         if ( linkPositions.at(i)->contains(event->pos()) )
-                            std::cout << "Unsupported link of type OCGState" << std::endl;
+                            qInfo() << "Unsupported link of type OCGState";
                     break;
                     case Poppler::Link::Hide:
-                        std::cout << "Unsupported link of type hide" << std::endl;
+                        qInfo() << "Unsupported link of type hide";
                     break;
                     case Poppler::Link::None:
-                        std::cout << "Unsupported link of type none" << std::endl;
+                        qInfo() << "Unsupported link of type none";
                     break;
                 }
             }

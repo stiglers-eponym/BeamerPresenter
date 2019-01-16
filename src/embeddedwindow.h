@@ -16,48 +16,32 @@
  * along with BeamerPresenter. If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef TIMER_H
-#define TIMER_H
+#ifndef EMBEDDEDWINDOW_H
+#define EMBEDDEDWINDOW_H
 
 #include <QtDebug>
-#include <QLabel>
-#include <QLineEdit>
-#include <QTime>
-#include <QTimer>
+#include <QWidget>
+#include <QWindow>
+#include <QProcess>
 
-class Timer : public QLabel
+class EmbeddedWindow : public QWidget
 {
     Q_OBJECT
 
 public:
-    Timer(QWidget* parent = nullptr);
-    Timer(QLineEdit* setTimerEdit, QWidget* parent = nullptr);
-    ~Timer();
-    void setTimerWidget(QLineEdit* setTimerEdit);
-
-public slots:
-    void setDeadline();
-    void pauseTimer();
-    void resetTimer();
-    void continueTimer();
-    void receiveTimerString(QString const & timerString);
-    void receiveTimeoutInterval(int const interval);
-
-private slots:
-    void showTime();
-
-signals:
-    void sendAlert();
-    void sendNoAlert();
-    void sendEscape();
+    explicit EmbeddedWindow(QWidget* parent = nullptr);
+    ~EmbeddedWindow();
+    static EmbeddedWindow* createWindow(QString const program, QStringList const arguments = QStringList(), QWidget* parent = nullptr);
 
 private:
-    QLineEdit* timerEdit;
-    QTime* deadline;
-    QTime* time;
-    QTimer* timer;
-    bool running = false;
-    int colorTimeInterval = 150;
+    void setProcess(QProcess* process);
+    void setWindow(QWindow* window);
+    QProcess* process = nullptr;
+    QWindow* window = nullptr;
+
+signals:
+
+public slots:
 };
 
-#endif // TIMER_H
+#endif // EMBEDDEDWINDOW_H

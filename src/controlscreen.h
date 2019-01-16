@@ -24,6 +24,7 @@
 #include <QKeyEvent>
 #include <QResizeEvent>
 #include <QWheelEvent>
+#include <QtDebug>
 #include <QFileInfo>
 #include "mediaslider.h"
 #include "pdfdoc.h"

@@ -34,7 +34,8 @@ SOURCES += \
         src/timer.cpp \
         src/pagenumberedit.cpp \
         src/videowidget.cpp \
-        src/mediaslider.cpp
+        src/mediaslider.cpp \
+        src/embeddedwindow.cpp
 
 HEADERS += \
         src/controlscreen.h \
@@ -45,7 +46,8 @@ HEADERS += \
         src/timer.h \
         src/pagenumberedit.h \
         src/videowidget.h \
-        src/mediaslider.h
+        src/mediaslider.h \
+        src/embeddedwindow.h
 
 FORMS += \
         src/controlscreen.ui

@@ -25,20 +25,20 @@ ControlScreen::ControlScreen(QString presentationPath, QString notesPath, QWidge
 {
     { // Check if files are valid
         if (presentationPath.isEmpty()) {
-            std::cerr << "No presentation file specified" << std::endl;
+            qCritical() << "No presentation file specified";
             close();
             exit(1);
         }
         QFileInfo checkPresentation(presentationPath);
         if (!checkPresentation.exists() || (!checkPresentation.isFile() && !checkPresentation.isSymLink()) ) {
-            std::cerr << "Not a file: " << presentationPath.toStdString() << std::endl;
+            qCritical() << "Not a file: " << presentationPath;
             close();
             exit(1);
         }
         if (!notesPath.isEmpty()) {
             QFileInfo checkNotes(notesPath);
             if (!checkNotes.exists() || (!checkNotes.isFile() && !checkNotes.isSymLink()) ) {
-                std::cerr << "WARNING: Ignoring invalid notes files: " << notesPath.toStdString() << std::endl;
+                qWarning() << "WARNING: Ignoring invalid notes files: " << notesPath;
                 notesPath = "";
             }
         }
@@ -48,8 +48,8 @@ ControlScreen::ControlScreen(QString presentationPath, QString notesPath, QWidge
     // Load presentation pdf
     presentation = new PdfDoc( presentationPath );
     presentation->loadDocument();
-    if (presentation->getDoc() == nullptr) {
-        std::cerr << "File could not be opened as PDF: " << presentationPath.toStdString() << std::endl;
+    if (presentation->getDoc() == nullptr){
+        qCritical() << "File could not be opened as PDF: " << presentationPath;
         close();
         exit(1);
     }
@@ -68,7 +68,7 @@ ControlScreen::ControlScreen(QString presentationPath, QString notesPath, QWidge
         notes = new PdfDoc( notesPath );
         notes->loadDocument();
         if (notes->getDoc() == nullptr) {
-            std::cerr << "File could not be opened as PDF: " << notesPath.toStdString() << std::endl;
+            qWarning() << "File could not be opened as PDF: " << notesPath;
             notes = presentation;
             setWindowTitle("BeamerPresenter: " + presentationPath);
         }

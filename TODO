@@ -1,5 +1,12 @@
 BeamerPresenter
 
+* Embed external applications:
+	QProcess and QWidget::createWindowContainer (-> need to know window ID, platform dependent!)
+	-> optionally interpret url of execution link as name + arguments (-> option "embed") separated by character (e.g. "&", set in options and config)
+	-> or provide list of files (with wildcard characters) -> also set in options and config
+	-> need to know window ID: Find solution for X11 or use stdout of executed program
+	-> examples with matplotlib, pyqtgraph and video player
+
 * Better video and sound control bar
 * Improve sound (check whether it should be run in a loop, support embedded files)
 * Improve videos (palindrome mode, make autostart optional)
@@ -18,10 +25,9 @@ BeamerPresenter
 * Page transitions
 
 * Other animations
-	* strange embedded pdf features (video, audio, JavaScript)
+	* strange embedded pdf features (video, audio, JavaScript?)
 	* other video or audio?
 	* python or whatever elements?
-	* connection to pyqtgraph and paraview?
 
-* Make dependence on qt5-multimedia optional
+* Make dependence on qt5-multimedia optional?
 * Avoid short black flash when showing video

@@ -19,7 +19,7 @@
 #ifndef PAGE_H
 #define PAGE_H
 
-#include <iostream>
+#include <QtDebug>
 #include <QWidget>
 #include <QLabel>
 #include <QTimer>
@@ -33,6 +33,7 @@
 #include <poppler-qt5.h>
 #include "videowidget.h"
 #include "mediaslider.h"
+#include "embeddedwindow.h"
 
 class PageLabel : public QLabel
 {
@@ -68,6 +69,7 @@ private:
     QList<QMediaPlayer*> linkSoundPlayers;
     QList<QRect*> linkSoundPositions;
     QList<MediaSlider*> sliders;
+    QList<EmbeddedWindow*> embeddedWindows;
     QPixmap cachedPixmap;
     int cachedIndex = -1;
     QTimer* timer = nullptr;
@@ -77,6 +79,7 @@ private:
     double autostartDelay = 0.; // delay for starting multimedia content in s
     int minimumAnimationDelay = 40; // minimum frame time in ms
     int pagePart = 0;
+    QString urlSplitCharacter = ""; // TODO: use this to split urls into url and parameters
 
 protected:
     void mouseReleaseEvent(QMouseEvent* event);

@@ -19,7 +19,7 @@
 #ifndef VIDEOWIDGET_H
 #define VIDEOWIDGET_H
 
-#include <iostream>
+#include <QtDebug>
 #include <QWidget>
 #include <QMediaPlayer>
 #include <QVideoWidget>

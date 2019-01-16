@@ -19,7 +19,7 @@
 #ifndef PRESENTATIONSCREEN_H
 #define PRESENTATIONSCREEN_H
 
-#include <iostream>
+#include <QtDebug>
 #include <QKeyEvent>
 #include <QWheelEvent>
 #include <QGridLayout>
