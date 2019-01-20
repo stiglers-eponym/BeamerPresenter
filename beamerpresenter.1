@@ -22,9 +22,7 @@ beamerpresenter \- dual-screen PDF presenter
 .SH DESCRIPTION
 .
 .B BeamerPresenter
-is a Qt5-based presentation viewer which shows a presentation and notes for the speaker in two different windows.
-It is designed primarily for usage with LaTeX-beamer generated presentations and notes.
-Slides and notes must be PDF documents.
+is a Qt5-based presentation viewer which shows a presentation and notes for the speaker in two different windows. It is designed primarily for usage with LaTeX-beamer generated presentations and notes. Slides and notes must be PDF documents.
 .PP
 Along with the notes,
 .B BeamerPresenter
@@ -59,13 +57,27 @@ Set half of the page to be the presentation, the other half to be the notes. Val
 .B \-\-page-part 
 .IR right .
 .
+.TP
+.BI "\-e \-\-embed " files
+Mark these files for embedding if an execution link points to them. Multiple files should be separated only by a comma (not space!).
+.
+.TP
+.BI "\-w \-\-pid2wid " program
+Path to a program, which takes a process ID as an argument and returns the window ID of the corresponding window. This can be an executable shell script using
+.BR wmctrl (1)
+with the command
+.B echo
+.IR "$(( " "16#" "$("
+.BR wmctrl " -lp | " sed " -n
+.RI """s/^0x\e([0-9a-f]\e+\e) \e+[0-9]\e+ \e+" $1 " .*$/\e1/p"" " ") ))"
+.
 .
 .SH KEYBINDINGS
 .
 .TP
 .B Mouse wheel
 Scroll through presentation. If the presentation screen (the window showing the presentation) is the active window, all displayed pages will be updated. The duration of a page as defined by the PDF will be ignored. If the control screen (the window showing notes) is focused, only the pages on the control screen will be updated. You can continue the presentation with the page currently shown on the control screen by pressing
-.BR return .
+.BR return ". If you want to continue with the slide shown on the presentation screen, you can use the usual navigation keys or " escape .
 .
 .TP
 .B q
@@ -119,49 +131,61 @@ Toggle full screen of the active window.
 .B return
 Set page number of the presentation to the page number on the control screen and start or continue timer.
 .
+.TP
+.B escape
+Set page number of the control screen to the page number of the presentation. When browsing your notes, this will bring you back to the current slide.
+.
+.TP
+.B e
+Start all embedded applications on the currently shown slide.
 .
 .SH FEATURES
 .
 .SS Links
-Following links to pages or web pages can be followed on each image showing a page.
-When clicking on a link on presentation screen, on the notes slide or on the preview of the current or next slide with the right mouse button,
+Following links to pages or web pages can be followed on each image showing a page. When clicking on a link on presentation screen, on the notes slide or on the preview of the current or next slide with the right mouse button,
 .B BeamerPresenter
 will try to follow the link.
 .
 .SS Browse Notes
-By changing the current page number in the corresponding text field, the note page and the preview of the current and next slide on the control screen will be updated immediately.
-The presentation screen will be updated only when pressing
+By changing the current page number in the corresponding text field, the note page and the preview of the current and next slide on the control screen will be updated immediately. The same is true if you scroll with the mouse wheel on the control screen. The presentation screen will be updated only when pressing
 .BR return ", " PageUp ", or " PageDown .
-.
-.SS Cache
-Currently only the next slide is pre rendered and saved as cache.
-This speeds up the presentation when showing the slides in correct order without animations.
-.
-.SS Multimedia Support
-.B BeamerPresenter
-can show videos, which are linked in the PDF as annotation.
-For each video in the presentation a slider is created and shown in the lower right corner of the control screen.
-Videos can also be shown in the notes, but there is no synchronization between different videos.
-All multimedia content can be started immediately when entering a frame by using the option
-.BR \-a " or " \-\-autoplay .
-.PP
-Audio files which are links from the PDF to external files can also be played.
-Embedded sounds are not supported.
-.
-.SS Animations
-Simple animations can be created by showing slides in rapid succession.
-When using LaTeX beamer, this can be achieved by using the options \\animation.
-The minimum delay time for the frames, which have their duration set to zero, can be specified with
-.BR \-m " or " \-\-min-delay .
+You can escape this mode and go back to the current slide on the presentation by pressing
+.BR escape .
 .
 .SS Overlays
 You can jump to the next or previous page with a different page label by using the shortcuts
 .BR Up " or " Down .
 For presentations created with LaTeX beamer using overlays, this jumps to the next or previous slide, which differs by more than an overlay.
 .
-.SS Beamer Option "show notes on second screen"
-Beamer can combine notes and presentation into one PDF file by using the option "show slides on second screen".
-The resulting PDF file can be read by
+.SS Cache
+Currently only the next slide is pre rendered and saved as cache. This speeds up the presentation when showing the slides in correct order without animations.
+.
+.SS Multimedia Support
+.B BeamerPresenter
+can show videos, which are linked in the PDF as annotation. For each video in the presentation a slider is created and shown in the lower right corner of the control screen. Videos can also be shown in the notes, but there is no synchronization between different videos. All multimedia content can be started immediately when entering a frame by using the option
+.BR \-a " or " \-\-autoplay .
+.PP
+Audio files which are links from the PDF to external files can also be played. Embedded sounds are not supported.
+.
+.SS Animations
+Simple animations can be created by showing slides in rapid succession. When using LaTeX beamer, this can be achieved by using the options \\animation. The minimum delay time for the frames, which have their duration set to zero, can be specified with
+.BR \-m " or " \-\-min-delay .
+.
+.SS Embedded Applications
+A link in the PDF pointing to an external application will usually be handled by the desktop services. But you can also specify programs, which will be executed directly when pressing the link.
+.B BeamerPresenter
+will try to embed the window created by the external program in the area of the link, by which it was created.
+.PP
+This requires that
+.B BeamerPresenter
+knows the window ID of this window. The simplest way of getting the window ID is by using an external application (e.g. a shell script using wmctrl), which tells you the window ID for a given process ID. The path so such an application can be provided by the argument to
+.BR \-w " or " \-\-pid2wid
+or by the corresponding default value in the configuration file. If no such application is specified,
+.B BeamerPresenter
+will try to read the window ID from the first line of the standard output of the external program.
+.
+.SS Beamer option "show notes on second screen"
+Beamer can combine notes and presentation into one PDF file by using the option "show slides on second screen". The resulting PDF file can be read by
 .B BeamerPresenter
 with the option
 .BR \-p ", or " \-\-page-part
@@ -170,8 +194,7 @@ with the option
 .SH CONFIG
 A configuration located in
 .I $HOME/.config/beamerpresenter.conf
-can be used to set colors and default options for the command line arguments.
-The colors can be provided as color names known to Qt or as RGB values in hexadecimal format #RRGGBB.
+can be used to set colors and default options for the command line arguments. The colors can be provided as color names known to Qt or as RGB values in hexadecimal format #RRGGBB.
 .PP
 The supported options are
 .TP
@@ -210,6 +233,16 @@ default option for the command line argument
 .BR timer
 default option for the command line argument
 .BR \-t " or " \-\-timer .
+.
+.TP
+.BR embed
+default option for the command line argument
+.BR \-e " or " \-\-embed .
+.
+.TP
+.BR pid2wid
+default option for the command line argument
+.BR \-w " or " \-\-pid2wid .
 .
 .
 .SH BUGS

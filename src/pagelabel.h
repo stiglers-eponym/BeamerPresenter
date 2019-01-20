@@ -45,7 +45,7 @@ public:
     PageLabel(QWidget* parent);
     PageLabel(Poppler::Page* page, QWidget* parent);
     ~PageLabel();
-    void renderPage(Poppler::Page* page, bool setDuration=true);
+    void renderPage(Poppler::Page* page, bool const setDuration=true, bool const killProcesses=true);
     int pageNumber() const;
     double getDuration() const;
     void setPresentationStatus(bool const status);
@@ -60,17 +60,17 @@ public:
     void clearCache();
     void setPagePart(int const state);
     void setEmbedFileList(const QStringList& files);
+    void startAllEmbeddedApplications();
 
 private:
-    void clearLists();
+    void clearLists(bool const killProcesses=true);
     QList<Poppler::Link*> links;
     QList<QRect*> linkPositions;
     QList<VideoWidget*> videoWidgets;
     QList<QRect*> videoPositions;
     QList<QMediaPlayer*> soundPlayers;
     QList<QRect*> soundPositions;
-    QList<QMediaPlayer*> linkSoundPlayers;
-    QList<QRect*> linkSoundPositions;
+    QMap<int,QMediaPlayer*> linkSoundPlayers;
     QList<MediaSlider*> sliders;
     QMap<int,QProcess*> processes;
     QMap<int,QWidget*> embeddedWidgets;
@@ -108,6 +108,7 @@ public slots:
     void createEmbeddedWindowsFromPID();
     void setPid2Wid(QString const & program);
     void receiveWid(WId const wid, int const index);
+    void clearProcesses(int const exitCode);
 
 signals:
     void sendNewPageNumber(int const pageNumber);

@@ -23,7 +23,7 @@ PidWidCaller::PidWidCaller(QString const& pid2wid, Q_PID const pid, int const in
     this->index = index;
     QStringList arguments;
     arguments << QString::fromStdString(std::to_string(pid));
-    qDebug() << "Call PID to WID:" << pid2wid << arguments;
+    qDebug() << "Calling PID to WID:" << pid2wid << arguments;
     start(pid2wid, arguments);
     connect(this, SIGNAL(finished(int)), this, SLOT(sendResult(int)));
 }
@@ -38,13 +38,13 @@ void PidWidCaller::sendResult(int const exitCode)
     qint64 outputLength = readLine(output, sizeof(output));
     if (outputLength != -1) {
         QString winIdString(output);
-        qDebug() << "Read WID:" << winIdString;
+        qDebug() << "Return value of PID to WID:" << winIdString;
         bool success;
         WId wid = (WId) winIdString.toLongLong(&success, 10);
         if (success && wid!=0)
             emit sendWid(wid, index);
         else
-            qWarning() << "Could not read window id";
+            qWarning() << "Could not read window ID";
     }
     else
         qWarning() << "Call to external translator from PID to Window ID had unexpected output";

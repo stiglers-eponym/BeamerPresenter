@@ -170,7 +170,7 @@ void PresentationScreen::keyPressEvent(QKeyEvent* event)
 void PresentationScreen::resizeEvent(QResizeEvent* event)
 {
     label->clearCache();
-    label->renderPage( label->getPage(), true );
+    label->renderPage(label->getPage(), true, false);
 }
 
 void PresentationScreen::wheelEvent(QWheelEvent* event)

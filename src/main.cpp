@@ -40,6 +40,7 @@ int main(int argc, char *argv[])
             "  r                Reset timer\n"
             "  o                Toggle cursor visbility (only on presentation screen)\n"
             "  m                Play or pause all multimedia content\n"
+            "  e                Start all embedded applications\n"
             "  space            Update layout and start or continue timer\n"
             "  Left, PageUp     Go to previous slide and start or continue timer\n"
             "  Right, PageDown  Go to next slide and start or continue timer\n"
@@ -47,7 +48,7 @@ int main(int argc, char *argv[])
             "                   In beamer presentations: last overlay of the previous slide.\n"
             "  Down             Go to the next slide until the page label changes.\n"
             "                   In beamer presentations: first overlay of the next slide.\n"
-            "  F11, f           Toggle fullscreen (only for current window)"
+            "  F11, f           Toggle fullscreen (only for current window)\n"
             "  return           Accept the page number from the notes and continue presentation\n"
             "  escape           Go to the note page for the current slide\n"
         );
@@ -219,15 +220,21 @@ int main(int argc, char *argv[])
     }
 
     // Set files, which will be executed in an embedded widget
+    // TODO: Wildcard characters
     if (!parser.value("e").isEmpty()) {
         const QStringList files = parser.value("e").split(",");
         w->setEmbedFileList(files);
     }
+    else if ( settings.contains("embed") ) {
+        const QStringList files = settings.value("embed").toStringList();
+        w->setEmbedFileList(files);
+    }
 
     // Set program, which will convert PIDs to Window IDs
-    if (!parser.value("w").isEmpty()) {
+    if (!parser.value("w").isEmpty())
         w->setPid2WidConverter(parser.value("w"));
-    }
+    else if ( settings.contains("pid2wid") )
+        w->setPid2WidConverter(settings.value("pid2wid").toString());
 
 
     // show the GUI

@@ -1,7 +1,6 @@
 BeamerPresenter
 
-* Embed external applications
-
+* Embed external applications: more testing, use wildecards
 * Improve layout: Scale texts (especially timer) if necessary; avoid that note pages label is rendered for a calculated size, which is larger than the real size.
 
 * Better video and sound control bar
@@ -23,7 +22,6 @@ BeamerPresenter
 * Other animations
 	* strange embedded pdf features (video, audio, JavaScript?)
 	* other video or audio?
-	* python or whatever elements?
 
 * Make dependence on qt5-multimedia optional?
 * Avoid short black flash when showing video

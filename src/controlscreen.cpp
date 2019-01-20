@@ -225,7 +225,7 @@ void ControlScreen::addMultimediaSliders(int const n)
 void ControlScreen::resetFocus()
 {
     if (currentPageNumber != presentationScreen->getPageNumber())
-        renderPage( presentationScreen->getPageNumber() );
+        renderPage(presentationScreen->getPageNumber());
     ui->notes_label->setFocus();
 }
 
@@ -413,6 +413,10 @@ void ControlScreen::keyPressEvent(QKeyEvent* event)
             else
                 showFullScreen();
             break;
+        case Qt::Key_E:
+            presentationScreen->getLabel()->startAllEmbeddedApplications();
+            ui->notes_label->startAllEmbeddedApplications();
+            break;
         case Qt::Key_Escape:
             if (presentationScreen->getPageNumber() != currentPageNumber) {
                 currentPageNumber = presentationScreen->getPageNumber();
@@ -429,9 +433,9 @@ void ControlScreen::resizeEvent(QResizeEvent* event)
     ui->notes_label->clearCache();
     ui->current_slide_label->clearCache();
     ui->next_slide_label->clearCache();
-    ui->notes_label->renderPage( ui->notes_label->getPage() );
-    ui->current_slide_label->renderPage( ui->current_slide_label->getPage() );
-    ui->next_slide_label->renderPage( ui->next_slide_label->getPage() );
+    ui->notes_label->renderPage(ui->notes_label->getPage(), false, false);
+    ui->current_slide_label->renderPage(ui->current_slide_label->getPage(), false, false);
+    ui->next_slide_label->renderPage(ui->next_slide_label->getPage(), false, false);
 }
 
 void ControlScreen::setColor(const QColor bgColor, const QColor textColor)
@@ -489,7 +493,7 @@ void ControlScreen::wheelEvent(QWheelEvent* event)
             renderPage(0);
     }
     else if (deltaPages != 0)
-        renderPage( currentPageNumber + deltaPages );
+        renderPage(currentPageNumber + deltaPages);
     event->accept();
 }
 
