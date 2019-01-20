@@ -49,6 +49,7 @@ int main(int argc, char *argv[])
             "                   In beamer presentations: first overlay of the next slide.\n"
             "  F11, f           Toggle fullscreen (only for current window)"
             "  return           Accept the page number from the notes and continue presentation\n"
+            "  escape           Go to the note page for the current slide\n"
         );
     parser.addHelpOption();
     parser.addPositionalArgument("<slides.pdf>", "Slides for a presentation");
@@ -59,6 +60,8 @@ int main(int argc, char *argv[])
         {{"m", "min-delay"}, "Set minimum time per frame in milliseconds.\nThis is useful when using \\animation in LaTeX beamer.", "ms"},
         {{"d", "tolerance"}, "Tolerance for the presentation time in seconds.\nThe timer will be white <secs> before the timeout, green when the timeout is reached, yellow <secs> after the timeout and red 2*<secs> after the timeout.", "secs"},
         {{"p", "page-part"}, "Set half of the page to be the presentation, the other half to be the notes. Values are \"l\" or \"r\" for presentation on the left or right half of the page, respectively.\nIf the presentation was created with \"\\setbeameroption{show notes on second screen=right}\", you should use \"--page-part=right\".", "side"},
+        {{"e", "embed"}, "file1,file2,... Mark these files for embedding if an execution link points to them.", "files"},
+        {{"w", "pid2wid"}, "Program that converts a PID to a Window ID.", "file"}
     });
     parser.process(app);
 
@@ -77,9 +80,9 @@ int main(int argc, char *argv[])
     // Create the GUI
     ControlScreen * w;
     if (parser.positionalArguments().size() == 1)
-        w = new ControlScreen(parser.positionalArguments().at(0));
+        w = new ControlScreen(parser.positionalArguments()[0]);
     else if (parser.positionalArguments().size() == 2)
-        w = new ControlScreen(parser.positionalArguments().at(0), parser.positionalArguments().at(1));
+        w = new ControlScreen(parser.positionalArguments()[0], parser.positionalArguments()[1]);
     else {
         // Open files in a QFileDialog
         QString presentationPath = QFileDialog::getOpenFileName(nullptr, "Open Slides", "", "Documents (*.pdf)");
@@ -165,7 +168,7 @@ int main(int argc, char *argv[])
     if ( !parser.value("t").isEmpty() )
         emit w->sendTimerString(parser.value("t"));
     else if (settings.contains("timer"))
-        emit w->sendTimerString(settings.value("timer").toStringList().at(0));
+        emit w->sendTimerString(settings.value("timer").toStringList()[0]);
 
     // Set minimum time per frame
     if ( !parser.value("m").isEmpty() ) {
@@ -213,6 +216,17 @@ int main(int argc, char *argv[])
             emit w->sendAutostartDelay(-2.);
         else
             std::cerr << "option \"" << settings.value("autoplay").toString().toStdString() << "\" to autoplay in config not understood." << std::endl;
+    }
+
+    // Set files, which will be executed in an embedded widget
+    if (!parser.value("e").isEmpty()) {
+        const QStringList files = parser.value("e").split(",");
+        w->setEmbedFileList(files);
+    }
+
+    // Set program, which will convert PIDs to Window IDs
+    if (!parser.value("w").isEmpty()) {
+        w->setPid2WidConverter(parser.value("w"));
     }
 
 

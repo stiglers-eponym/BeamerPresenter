@@ -18,36 +18,32 @@
 
 #include "embeddedwindow.h"
 
-EmbeddedWindow::EmbeddedWindow(QWidget* parent) : QWidget(parent)
+EmbeddedWindow::EmbeddedWindow(QProcess* process, QWidget* parent) : QWidget(parent)
 {
-}
-
-EmbeddedWindow* EmbeddedWindow::createWindow(QString const program, QStringList const arguments, QWidget* parent)
-{
-    QProcess* process = new QProcess(parent);
-    process->start(program, arguments);
-
+    qDebug() << "Creating embedded window";
+    qDebug() << "Program: " << process->program();
+    this->process = process;
     // The program should output the window ID to standard output in hexadecimal format.
     char output[64];
+    qDebug() << "Start reading standard output of process";
     qint64 outputLength = process->readLine(output, sizeof(output));
+    qDebug() << "Finished reading standard output of process";
     if (outputLength == -1) {
         qWarning() << "Could not read window id";
-        return nullptr;
+        return;
     }
     QString winIdString(output);
+    qDebug() << "Output was: " << winIdString;
     bool success;
-    WId wid = (WId) winIdString.toLongLong(&success, 16);
+    WId wid = (WId) winIdString.toLongLong(&success, 10);
     if (!success) {
         qWarning() << "Could not read window id";
-        return nullptr;
+        return;
     }
+    qDebug() << "Window ID: " << wid;
     // TODO: get the window ID from process (PID) in X11
 
-    QWindow* window = QWindow::fromWinId(wid);
-    EmbeddedWindow* embedded = (EmbeddedWindow*) createWindowContainer(window, parent);
-    embedded->setProcess(process);
-    embedded->setWindow(window);
-    return embedded;
+    window = QWindow::fromWinId(wid);
 }
 
 EmbeddedWindow::~EmbeddedWindow()

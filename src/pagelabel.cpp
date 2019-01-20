@@ -52,25 +52,26 @@ void PageLabel::setAnimationDelay(int const delay_ms)
 
 void PageLabel::clearLists()
 {
+    qDebug() << "Clearing content of PageLabel";
     if (sliders.size() != 0) {
         if (sliders.size() == videoWidgets.size() + soundPlayers.size() + linkSoundPlayers.size()) {
             for (int i=0; i<videoWidgets.size(); i++) {
-                MediaSlider * slider = sliders.at(i);
-                VideoWidget * video = videoWidgets.at(i);
+                MediaSlider * slider = sliders[i];
+                VideoWidget * video = videoWidgets[i];
                 disconnect(video->getPlayer(), &QMediaPlayer::durationChanged, slider, &MediaSlider::setMaximum);
                 disconnect(slider, &MediaSlider::sliderMoved, video, &VideoWidget::setPosition);
                 disconnect(video->getPlayer(), &QMediaPlayer::positionChanged, slider, &MediaSlider::setValue);
             }
             for (int i=0; i<linkSoundPlayers.size(); i++) {
-                MediaSlider * slider = sliders.at(i + videoWidgets.size());
-                QMediaPlayer * player = linkSoundPlayers.at(i);
+                MediaSlider * slider = sliders[i + videoWidgets.size()];
+                QMediaPlayer * player = linkSoundPlayers[i];
                 disconnect(player, &QMediaPlayer::durationChanged, slider, &MediaSlider::setMaximum);
                 disconnect(slider, &MediaSlider::sliderMoved,      player, &QMediaPlayer::setPosition);
                 disconnect(player, &QMediaPlayer::positionChanged, slider, &MediaSlider::setValue);
             }
             for (int i=0; i<soundPlayers.size(); i++) {
-                MediaSlider * slider = sliders.at(i + videoWidgets.size() + linkSoundPlayers.size());
-                QMediaPlayer * player = soundPlayers.at(i);
+                MediaSlider * slider = sliders[i + videoWidgets.size() + linkSoundPlayers.size()];
+                QMediaPlayer * player = soundPlayers[i];
                 disconnect(player, &QMediaPlayer::durationChanged, slider, &MediaSlider::setMaximum);
                 disconnect(slider, &MediaSlider::sliderMoved,      player, &QMediaPlayer::setPosition);
                 disconnect(player, &QMediaPlayer::positionChanged, slider, &MediaSlider::setValue);
@@ -79,6 +80,8 @@ void PageLabel::clearLists()
         else
             qDebug() << "Something unexpected happened while trying to delete up sliders.";
     }
+    qDeleteAll(pidWidCallers);
+    pidWidCallers.clear();
     qDeleteAll(sliders);
     sliders.clear();
     qDeleteAll(links);
@@ -97,8 +100,15 @@ void PageLabel::clearLists()
     linkSoundPositions.clear();
     qDeleteAll(linkSoundPlayers);
     linkSoundPlayers.clear();
-    qDeleteAll(embeddedWindows);
-    embeddedWindows.clear();
+    for(QMap<int,QProcess*>::iterator it=processes.begin(); it!=processes.end(); it++) {
+        if (it.value() != nullptr && it.value()->state() == QProcess::Running)
+            it.value()->kill();
+        delete it.value();
+        it.value() = nullptr;
+    }
+    processes.clear();
+    qDeleteAll(embeddedWidgets);
+    embeddedWidgets.clear();
 }
 
 void PageLabel::renderPage(Poppler::Page* page, bool setDuration)
@@ -154,7 +164,7 @@ void PageLabel::renderPage(Poppler::Page* page, bool setDuration)
                     int(relative.width()*scale_x),
                     int(relative.height()*scale_y)
                 );
-        linkPositions.append( absolute );
+        linkPositions.append(absolute);
     }
 
     if (setDuration) {
@@ -178,7 +188,7 @@ void PageLabel::renderPage(Poppler::Page* page, bool setDuration)
         videoType.insert(Poppler::Annotation::AMovie);
         QList<Poppler::Annotation*> videos = page->annotations(videoType);
         for (int i=0; i<videos.size(); i++) {
-            Poppler::MovieAnnotation * annotation = (Poppler::MovieAnnotation*) videos.at(i);
+            Poppler::MovieAnnotation * annotation = (Poppler::MovieAnnotation*) videos[i];
             QRectF relative = annotation->boundary();
             QRect * absolute = new QRect(
                         shift_x+int(relative.x()*scale_x),
@@ -199,7 +209,7 @@ void PageLabel::renderPage(Poppler::Page* page, bool setDuration)
         QList<Poppler::Annotation*> sounds = page->annotations(soundType);
         for (int i=0; i<sounds.size(); i++) {
             qWarning() << "WARNING: Support for sound in annotations is untested!";
-            Poppler::SoundAnnotation* annotation = (Poppler::SoundAnnotation*) sounds.at(i);
+            Poppler::SoundAnnotation* annotation = (Poppler::SoundAnnotation*) sounds[i];
             QRectF relative = annotation->boundary();
             QRect * absolute = new QRect(
                         shift_x+int(relative.x()*scale_x),
@@ -222,28 +232,47 @@ void PageLabel::renderPage(Poppler::Page* page, bool setDuration)
         qDeleteAll(sounds);
         sounds.clear();
 
-        // Audio links
-        Q_FOREACH(Poppler::Link * link, links) {
-            if (link->linkType() != Poppler::Link::Sound)
-                continue;
-            QRectF relative = link->linkArea();
-            QRect * absolute = new QRect(
-                        shift_x+int(relative.x()*scale_x),
-                        shift_y+int(relative.y()*scale_y),
-                        int(relative.width()*scale_x),
-                        int(relative.height()*scale_y)
-                    );
-            linkSoundPositions.append(absolute);
-
-            Poppler::SoundObject * sound = ((Poppler::LinkSound*) link)->sound();
-            QMediaPlayer * player = new QMediaPlayer(this);
-            QUrl url = QUrl(sound->url());
-            if (!url.isValid())
-                QUrl url = QUrl::fromLocalFile(sound->url());
-            if (url.isRelative())
-                url = QUrl::fromLocalFile( QDir(".").absoluteFilePath( url.path()) );
-            player->setMedia( url );
-            linkSoundPlayers.append(player);
+        for (int i=0; i<links.size(); i++) {
+            // Audio links
+            switch (links[i]->linkType())
+            {
+                case Poppler::Link::Sound:
+                    {
+                        linkSoundPositions.append(linkPositions[i]);
+                        Poppler::SoundObject * sound = ((Poppler::LinkSound*) links[i])->sound();
+                        QMediaPlayer * player = new QMediaPlayer(this);
+                        QUrl url = QUrl(sound->url());
+                        if (!url.isValid())
+                            QUrl url = QUrl::fromLocalFile(sound->url());
+                        if (url.isRelative())
+                            url = QUrl::fromLocalFile( QDir(".").absoluteFilePath( url.path()) );
+                        player->setMedia( url );
+                        linkSoundPlayers.append(player);
+                        break;
+                    }
+                case Poppler::Link::Execute:
+                    {
+                        Poppler::LinkExecute* link = (Poppler::LinkExecute*) links[i];
+                        QStringList splitFileName = QStringList();
+                        if (!urlSplitCharacter.isEmpty())
+                            splitFileName = link->fileName().split(urlSplitCharacter);
+                        else
+                            splitFileName.append(link->fileName());
+                        QUrl url = QUrl(splitFileName[0], QUrl::TolerantMode);
+                        splitFileName.append(link->parameters());
+                        if (embedFileList.contains(splitFileName[0]) || embedFileList.contains(url.fileName())) {
+                            embeddedWidgets.insert(i, nullptr);
+                            processes.insert(i, nullptr);
+                        }
+                        else if (splitFileName.length() > 1) {
+                            if (splitFileName.contains("embed")) {
+                                embeddedWidgets.insert(i, nullptr);
+                                processes.insert(i, nullptr);
+                            }
+                        }
+                        break;
+                    }
+            }
         }
 
         // Autostart
@@ -320,8 +349,8 @@ void PageLabel::setMultimediaSliders(QList<MediaSlider*> sliderList)
     }
     sliders = sliderList;
     for (int i=0; i<videoWidgets.size(); i++) {
-        MediaSlider * slider = sliders.at(i);
-        VideoWidget * video = videoWidgets.at(i);
+        MediaSlider * slider = sliders[i];
+        VideoWidget * video = videoWidgets[i];
         connect(video->getPlayer(), &QMediaPlayer::durationChanged, slider, &MediaSlider::setMaximum);
         int const duration = int(video->getDuration()/100);
         if (duration > 0)
@@ -330,8 +359,8 @@ void PageLabel::setMultimediaSliders(QList<MediaSlider*> sliderList)
         connect(video->getPlayer(), &QMediaPlayer::positionChanged, slider, &MediaSlider::setValue);
     }
     for (int i=0; i<linkSoundPlayers.size(); i++) {
-        MediaSlider * slider = sliders.at(i + videoWidgets.size());
-        QMediaPlayer * player = linkSoundPlayers.at(i);
+        MediaSlider * slider = sliders[i + videoWidgets.size()];
+        QMediaPlayer * player = linkSoundPlayers[i];
         slider->setRange(0, int(player->duration()));
         connect(player, &QMediaPlayer::durationChanged, slider, &MediaSlider::setMaximum);
         int const duration = int(player->duration()/100);
@@ -341,8 +370,8 @@ void PageLabel::setMultimediaSliders(QList<MediaSlider*> sliderList)
         connect(player, &QMediaPlayer::positionChanged, slider, &MediaSlider::setValue);
     }
     for (int i=0; i<soundPlayers.size(); i++) {
-        MediaSlider * slider = sliders.at(i + videoWidgets.size() + linkSoundPlayers.size());
-        QMediaPlayer * player = soundPlayers.at(i);
+        MediaSlider * slider = sliders[i + videoWidgets.size() + linkSoundPlayers.size()];
+        QMediaPlayer * player = soundPlayers[i];
         slider->setRange(0, int(player->duration()));
         connect(player, &QMediaPlayer::durationChanged, slider, &MediaSlider::setMaximum);
         int const duration = int(player->duration()/100);
@@ -357,9 +386,9 @@ void PageLabel::setMultimediaSliders(QList<MediaSlider*> sliderList)
 void PageLabel::startAllMultimedia()
 {
     for (int i=0; i<videoWidgets.size(); i++) {
-        videoWidgets.at(i)->setGeometry(*videoPositions.at(i));
-        videoWidgets.at(i)->show();
-        videoWidgets.at(i)->play();
+        videoWidgets[i]->setGeometry(*videoPositions[i]);
+        videoWidgets[i]->show();
+        videoWidgets[i]->play();
     }
     Q_FOREACH(QMediaPlayer * sound, soundPlayers)
         sound->play();
@@ -413,46 +442,61 @@ void PageLabel::mouseReleaseEvent(QMouseEvent* event)
 {
     if (event->button() == Qt::LeftButton) {
         for (int i=0; i<links.size(); i++) {
-            if ( linkPositions.at(i)->contains(event->pos()) ) {
-                switch ( links.at(i)->linkType() )
+            if ( linkPositions[i]->contains(event->pos()) ) {
+                switch ( links[i]->linkType() )
                 {
                     case Poppler::Link::Goto:
-                        emit sendNewPageNumber( ((Poppler::LinkGoto*) links.at(i))->destination().pageNumber() - 1 );
+                        emit sendNewPageNumber( ((Poppler::LinkGoto*) links[i])->destination().pageNumber() - 1 );
                     break;
                     case Poppler::Link::Execute:
                         {
-                            Poppler::LinkExecute* link = (Poppler::LinkExecute*) links.at(i);
-                            if (!link->parameters().isEmpty())
-                                // It seems like I can't set and read these parameters.
-                                // If anyone knows how to set these parameters in LaTeX for a Linux system, please let me know.
-                                qInfo() << "Link of type execute with ignored parameters: " << link->parameters();
-                            QUrl url = QUrl( link->fileName(), QUrl::TolerantMode );
-                            if (!urlSplitCharacter.isEmpty()) {
-                                QString fileName = url.fileName();
-                                QStringList splitFileName = fileName.split(urlSplitCharacter);
-                                if (splitFileName.length() > 1) {
-                                    // TODO: change file name in url and use the rest as parameters
-                                    if (urlSplitCharacter.contains("embed")) {
-                                        qWarning() << "This is VERY EXPERIMENTAL";
-                                        // Embed the executed program in a widget.
-                                        // This widget should be created earlier
-                                        EmbeddedWindow* embedded = EmbeddedWindow::createWindow(splitFileName.first()); // TODO: handle arguments
-                                        embeddedWindows.append(embedded);
-                                        embedded->setGeometry(*linkPositions.at(i));
-                                        embedded->show();
-                                    }
-
+                            Poppler::LinkExecute* link = (Poppler::LinkExecute*) links[i];
+                            QStringList splitFileName = QStringList();
+                            if (!urlSplitCharacter.isEmpty())
+                                splitFileName = link->fileName().split(urlSplitCharacter);
+                            else
+                                splitFileName.append(link->fileName());
+                            QUrl url = QUrl(splitFileName[0], QUrl::TolerantMode);
+                            splitFileName.append(link->parameters());
+                            QString fileName = splitFileName[0];
+                            splitFileName.pop_front();
+                            if (embeddedWidgets.contains(i)) {
+                                if (embeddedWidgets[i] != nullptr)
+                                    break;
+                                if (processes[i] != nullptr)
+                                    break;
+                                qWarning() << "This is VERY EXPERIMENTAL";
+                                // Embed the executed program in a widget.
+                                // TODO: handle arguments
+                                if (pid2wid.isEmpty()) {
+                                    QProcess* process = new QProcess(this);
+                                    connect(process, &QProcess::readyReadStandardOutput, this, &PageLabel::createEmbeddedWindow);
+                                    process->start(fileName, splitFileName);
+                                    processes[i] = process;
+                                    qDebug() << "Started process:" << process->program();
+                                }
+                                else {
+                                    QProcess* process = new QProcess(this);
+                                    process->start(fileName, splitFileName);
+                                    processes[i] = process;
+                                    qDebug() << "Started process:" << process->program();
+                                    processTimer = new QTimer(this);
+                                    processTimer->start(200);
+                                    connect(processTimer, &QTimer::timeout, this, &PageLabel::createEmbeddedWindowsFromPID);
                                 }
                             }
-                            QDesktopServices::openUrl(url);
+                            else {
+                                // TODO: handle arguments
+                                QDesktopServices::openUrl(url);
+                            }
                         }
                     break;
                     case Poppler::Link::Browse:
-                        QDesktopServices::openUrl( QUrl( ((Poppler::LinkBrowse*) links.at(i))->url(), QUrl::TolerantMode ) );
+                        QDesktopServices::openUrl( QUrl( ((Poppler::LinkBrowse*) links[i])->url(), QUrl::TolerantMode ) );
                     break;
                     case Poppler::Link::Action:
                         {
-                            Poppler::LinkAction* link = (Poppler::LinkAction*) links.at(i);
+                            Poppler::LinkAction* link = (Poppler::LinkAction*) links[i];
                             switch (link->actionType())
                             {
                                 case Poppler::LinkAction::Quit:
@@ -502,16 +546,16 @@ void PageLabel::mouseReleaseEvent(QMouseEvent* event)
                     break;
                     case Poppler::Link::Sound:
                         {
-                            Poppler::LinkSound * link = (Poppler::LinkSound*) links.at(i);
+                            Poppler::LinkSound * link = (Poppler::LinkSound*) links[i];
                             Poppler::SoundObject * sound = link->sound();
                             if (sound->soundType() == Poppler::SoundObject::External) {
                                 // This is inefficient, but usually linkSoundPlayerPositions.size()==1
                                 for (int j=0; j<linkSoundPositions.size(); j++) {
-                                    if (linkSoundPositions.at(j)->contains(event->pos())) {
-                                        if (linkSoundPlayers.at(j)->state() == QMediaPlayer::PlayingState)
-                                            linkSoundPlayers.at(j)->pause();
+                                    if (linkSoundPositions[j]->contains(event->pos())) {
+                                        if (linkSoundPlayers[j]->state() == QMediaPlayer::PlayingState)
+                                            linkSoundPlayers[j]->pause();
                                         else
-                                            linkSoundPlayers.at(j)->play();
+                                            linkSoundPlayers[j]->play();
                                         break;
                                     }
                                 }
@@ -560,7 +604,7 @@ void PageLabel::mouseReleaseEvent(QMouseEvent* event)
                     case Poppler::Link::Movie:
                         {
                             qInfo() << "Unsupported link of type video.";
-                            Poppler::LinkMovie * link = (Poppler::LinkMovie*) links.at(i);
+                            Poppler::LinkMovie * link = (Poppler::LinkMovie*) links[i];
                             Q_FOREACH(VideoWidget * video, videoWidgets) {
                                 if (link->isReferencedAnnotation(video->getAnnotation()))
                                     video->play();
@@ -574,7 +618,7 @@ void PageLabel::mouseReleaseEvent(QMouseEvent* event)
                         qInfo() << "Unsupported link of type JavaScript";
                     break;
                     case Poppler::Link::OCGState:
-                        if ( linkPositions.at(i)->contains(event->pos()) )
+                        if ( linkPositions[i]->contains(event->pos()) )
                             qInfo() << "Unsupported link of type OCGState";
                     break;
                     case Poppler::Link::Hide:
@@ -587,11 +631,11 @@ void PageLabel::mouseReleaseEvent(QMouseEvent* event)
             }
         }
         for (int i=0; i<soundPositions.size(); i++) {
-            if (soundPositions.at(i)->contains(event->pos())) {
-                if (soundPlayers.at(i)->state() == QMediaPlayer::PlayingState)
-                    soundPlayers.at(i)->pause();
+            if (soundPositions[i]->contains(event->pos())) {
+                if (soundPlayers[i]->state() == QMediaPlayer::PlayingState)
+                    soundPlayers[i]->pause();
                 else
-                    soundPlayers.at(i)->play();
+                    soundPlayers[i]->play();
             }
         }
     }
@@ -649,4 +693,90 @@ void PageLabel::clearCache()
 void PageLabel::setPagePart(int const state)
 {
     pagePart = state;
+}
+
+void PageLabel::setEmbedFileList(const QStringList &files)
+{
+    embedFileList = files;
+}
+
+void PageLabel::createEmbeddedWindow()
+{
+    qDebug() << "Entering createEmbeddedWindow()";
+    for(QMap<int,QProcess*>::iterator it=processes.begin(); it!=processes.end(); it++) {
+        char output[64];
+        qint64 outputLength = it.value()->readLine(output, sizeof(output));
+        if (outputLength != -1) {
+            qDebug() << "Got non-trivial output";
+            QString winIdString(output);
+            bool success;
+            WId wid = (WId) winIdString.toLongLong(&success, 10);
+            if (!success) {
+                qWarning() << "Could not read window id";
+                continue;
+            }
+            QRect winGeometry = *linkPositions[it.key()];
+            if (winGeometry.height() < 0) {
+                winGeometry.setY(winGeometry.y() + winGeometry.height());
+                winGeometry.setHeight(-linkPositions[it.key()]->height());
+            }
+            QWindow* newWindow = QWindow::fromWinId(wid);
+            QWidget* newWidget = createWindowContainer(newWindow, this);
+            newWidget->setMinimumSize(winGeometry.width(), winGeometry.height());
+            newWidget->setMaximumSize(winGeometry.width(), winGeometry.height());
+            newWidget->show();
+            newWidget->setGeometry(winGeometry);
+            embeddedWidgets[it.key()] = newWidget;
+            return;
+        }
+    }
+    qWarning() << "No standard output found in any process";
+}
+
+void PageLabel::createEmbeddedWindowsFromPID()
+{
+    qDebug() << "Entering createEmbeddedWindowsFromPID()";
+    if (pid2wid.isEmpty()) {
+        qCritical() << "No program for translation PID -> window ID specified";
+        return;
+    }
+    bool anyCandidates = false;
+    for(QMap<int,QProcess*>::iterator it=processes.begin(); it!=processes.end(); it++) {
+        if (it.value() != nullptr && embeddedWidgets[it.key()] == nullptr) {
+            qDebug() << "Process ID:" << it.value()->pid()+1;
+            PidWidCaller* pidWidCaller = new PidWidCaller(pid2wid, it.value()->pid()+1, it.key(), this);
+            connect(pidWidCaller, &PidWidCaller::sendWid, this, &PageLabel::receiveWid);
+            pidWidCallers.insert(pidWidCaller);
+            anyCandidates = true;
+        }
+    }
+    // TODO: Stop the timer also if something goes wrong
+    if (!anyCandidates)
+        processTimer->stop();
+}
+
+void PageLabel::setPid2Wid(QString const & program)
+{
+    pid2wid = program;
+}
+
+void PageLabel::receiveWid(WId const wid, int const index)
+{
+    qDebug() << "Received WID:" << wid;
+    if (embeddedWidgets[index] != nullptr || processes[index] == nullptr) {
+        qWarning() << "Something strange happened with embedded processes. This is a bug.";
+        return;
+    }
+    QRect winGeometry = *linkPositions[index];
+    if (winGeometry.height() < 0) {
+        winGeometry.setY(winGeometry.y() + winGeometry.height());
+        winGeometry.setHeight(-linkPositions[index]->height());
+    }
+    QWindow* newWindow = QWindow::fromWinId(wid);
+    QWidget* newWidget = createWindowContainer(newWindow, this);
+    newWidget->setMinimumSize(winGeometry.width(), winGeometry.height());
+    newWidget->setMaximumSize(winGeometry.width(), winGeometry.height());
+    newWidget->show();
+    newWidget->setGeometry(winGeometry);
+    embeddedWidgets[index] = newWidget;
 }

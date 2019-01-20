@@ -84,26 +84,26 @@ void PdfDoc::loadDocument()
 QSize PdfDoc::getPageSize(int const pageNumber) const
 {
     if (pageNumber < 0)
-        return pdfPages.at(0)->pageSize();
+        return pdfPages[0]->pageSize();
     if (pageNumber >= popplerDoc->numPages())
-        return pdfPages.at(popplerDoc->numPages()-1)->pageSize();
-    return pdfPages.at(pageNumber)->pageSize();
+        return pdfPages[popplerDoc->numPages()-1]->pageSize();
+    return pdfPages[pageNumber]->pageSize();
 }
 
 Poppler::Page * PdfDoc::getPage(int pageNumber) const
 {
     if (pageNumber < 0)
-        return pdfPages.at(0);
+        return pdfPages[0];
     if (pageNumber >= popplerDoc->numPages())
-        return pdfPages.at(popplerDoc->numPages()-1);
-    return pdfPages.at(pageNumber);
+        return pdfPages[popplerDoc->numPages()-1];
+    return pdfPages[pageNumber];
 }
 
 int PdfDoc::getNextSlideIndex(int const index) const
 {
-    QString label = labels.at(index);
+    QString label = labels[index];
     for (int i=index; i<popplerDoc->numPages(); i++) {
-        if (label != labels.at(i))
+        if (label != labels[i])
             return i;
     }
     return popplerDoc->numPages()-1;
@@ -111,14 +111,14 @@ int PdfDoc::getNextSlideIndex(int const index) const
 
 int PdfDoc::getPreviousSlideEnd(int const index) const
 {
-    QString label = labels.at(index);
+    QString label = labels[index];
     for (int i=index; i>0; i--) {
-        if (label != labels.at(i)) {
-            double duration = pdfPages.at(i)->duration();
+        if (label != labels[i]) {
+            double duration = pdfPages[i]->duration();
             int j=i;
             // Don't return the index of a slides which is shown for less than one second
-            while (duration > -0.01 && duration < 1. && (labels.at(j) == labels.at(i)))
-                duration = pdfPages.at(--j)->duration();
+            while (duration > -0.01 && duration < 1. && (labels[j] == labels[i]))
+                duration = pdfPages[--j]->duration();
             return j;
         }
     }

@@ -16,31 +16,29 @@
  * along with BeamerPresenter. If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef EMBEDDEDWINDOW_H
-#define EMBEDDEDWINDOW_H
+#ifndef PIDWIDCALLER_H
+#define PIDWIDCALLER_H
 
-#include <QtDebug>
 #include <QWidget>
 #include <QWindow>
 #include <QProcess>
+#include <QtDebug>
 
-class EmbeddedWindow : public QWidget
+class PidWidCaller : public QProcess
 {
     Q_OBJECT
 
 public:
-    explicit EmbeddedWindow(QProcess* process, QWidget* parent = nullptr);
-    ~EmbeddedWindow();
+    explicit PidWidCaller(QString const& pid2wid, Q_PID const pid, int const index, QWidget* parent = nullptr);
 
 private:
-    void setProcess(QProcess* process);
-    void setWindow(QWindow* window);
-    QProcess* process = nullptr;
-    QWindow* window = nullptr;
-
-signals:
+    int index;
 
 public slots:
+    void sendResult(int const exitCode);
+
+signals:
+    void sendWid(WId const wid, int const index);
 };
 
-#endif // EMBEDDEDWINDOW_H
+#endif // PIDWIDCALLER_H

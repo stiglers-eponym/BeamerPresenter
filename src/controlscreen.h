@@ -47,6 +47,7 @@ public:
     void setPagePart(int const pagePart);
     void setColor(QColor const bgColor = Qt::gray, QColor const textColor = Qt::black);
     void setPresentationColor(QColor const color = Qt::black);
+    void setEmbedFileList(const QStringList& files);
 
 protected:
     void keyPressEvent(QKeyEvent* event);
@@ -88,6 +89,7 @@ public slots:
     void focusPageNumberEdit();
     void addMultimediaSliders(int const n);
     void updateCache();
+    void setPid2WidConverter(QString const& program);
 };
 
 #endif // CONTROLSCREEN_H

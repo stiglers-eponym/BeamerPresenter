@@ -35,7 +35,7 @@ SOURCES += \
         src/pagenumberedit.cpp \
         src/videowidget.cpp \
         src/mediaslider.cpp \
-        src/embeddedwindow.cpp
+        src/pidwidcaller.cpp
 
 HEADERS += \
         src/controlscreen.h \
@@ -47,7 +47,7 @@ HEADERS += \
         src/pagenumberedit.h \
         src/videowidget.h \
         src/mediaslider.h \
-        src/embeddedwindow.h
+        src/pidwidcaller.h
 
 FORMS += \
         src/controlscreen.ui

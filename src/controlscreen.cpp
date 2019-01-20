@@ -318,56 +318,61 @@ void ControlScreen::keyPressEvent(QKeyEvent* event)
     switch ( event->key() ) {
         case Qt::Key_Right:
         case Qt::Key_PageDown:
-            emit sendNewPageNumber( ++currentPageNumber );
-            renderPage( currentPageNumber );
+            currentPageNumber = presentationScreen->getPageNumber() + 1;
+            emit sendNewPageNumber(currentPageNumber);
+            renderPage(currentPageNumber);
             ui->label_timer->continueTimer();
             emit sendUpdateCache();
             updateCache();
             break;
         case Qt::Key_Left:
         case Qt::Key_PageUp:
-            if (currentPageNumber > 0) {
-                emit sendNewPageNumber( --currentPageNumber );
-                renderPage( currentPageNumber );
+            currentPageNumber = presentationScreen->getPageNumber() - 1;
+            if (currentPageNumber >= 0) {
+                emit sendNewPageNumber(currentPageNumber);
+                renderPage(currentPageNumber);
                 ui->label_timer->continueTimer();
                 emit sendUpdateCache();
                 updateCache();
             }
+            else
+                currentPageNumber = 0;
             break;
         case Qt::Key_Down:
-            currentPageNumber = notes->getNextSlideIndex(currentPageNumber);
-            emit sendNewPageNumber( currentPageNumber );
-            renderPage( currentPageNumber );
+            currentPageNumber = notes->getNextSlideIndex(presentationScreen->getPageNumber());
+            emit sendNewPageNumber(currentPageNumber);
+            renderPage(currentPageNumber);
             ui->label_timer->continueTimer();
             emit sendUpdateCache();
             updateCache();
             break;
         case Qt::Key_Up:
-            currentPageNumber = notes->getPreviousSlideEnd(currentPageNumber);
-            emit sendNewPageNumber( currentPageNumber );
-            renderPage( currentPageNumber );
+            currentPageNumber = notes->getPreviousSlideEnd(presentationScreen->getPageNumber());
+            emit sendNewPageNumber(currentPageNumber);
+            renderPage(currentPageNumber);
             ui->label_timer->continueTimer();
             emit sendUpdateCache();
             updateCache();
             break;
         case Qt::Key_Space:
-            emit sendNewPageNumber( currentPageNumber );
-            renderPage( currentPageNumber );
+            currentPageNumber = presentationScreen->getPageNumber();
+            emit sendNewPageNumber(currentPageNumber);
+            renderPage(currentPageNumber);
             ui->label_timer->continueTimer();
             emit sendUpdateCache();
             updateCache();
             break;
         case Qt::Key_End:
             currentPageNumber = numberOfPages - 1;
-            emit sendNewPageNumber( currentPageNumber );
-            renderPage( currentPageNumber );
+            emit sendNewPageNumber(currentPageNumber);
+            renderPage(currentPageNumber);
             emit sendUpdateCache();
             updateCache();
             break;
         case Qt::Key_Home:
             currentPageNumber = 0;
-            emit sendNewPageNumber( currentPageNumber );
-            renderPage( currentPageNumber );
+            emit sendNewPageNumber(currentPageNumber);
+            renderPage(currentPageNumber);
             emit sendUpdateCache();
             updateCache();
             break;
@@ -408,6 +413,12 @@ void ControlScreen::keyPressEvent(QKeyEvent* event)
             else
                 showFullScreen();
             break;
+        case Qt::Key_Escape:
+            if (presentationScreen->getPageNumber() != currentPageNumber) {
+                currentPageNumber = presentationScreen->getPageNumber();
+                renderPage(currentPageNumber);
+                updateCache();
+            }
     }
     event->accept();
 }
@@ -480,4 +491,22 @@ void ControlScreen::wheelEvent(QWheelEvent* event)
     else if (deltaPages != 0)
         renderPage( currentPageNumber + deltaPages );
     event->accept();
+}
+
+void ControlScreen::setEmbedFileList(const QStringList &files)
+{
+    ui->notes_label->setEmbedFileList(files);
+    presentationScreen->getLabel()->setEmbedFileList(files);
+}
+
+
+void ControlScreen::setPid2WidConverter(QString const& program)
+{
+    QFileInfo fileinfo = QFileInfo(program);
+    if (fileinfo.isFile() && fileinfo.isExecutable()) {
+        ui->notes_label->setPid2Wid(program);
+        presentationScreen->getLabel()->setPid2Wid(program);
+    }
+    else
+        qWarning() << "Can't use program: not a file or not executable." << program;
 }

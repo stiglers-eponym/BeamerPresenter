@@ -21,7 +21,9 @@
 
 #include <QtDebug>
 #include <QWidget>
+#include <QWindow>
 #include <QLabel>
+#include <QProcess>
 #include <QTimer>
 #include <QSlider>
 #include <QMouseEvent>
@@ -33,7 +35,7 @@
 #include <poppler-qt5.h>
 #include "videowidget.h"
 #include "mediaslider.h"
-#include "embeddedwindow.h"
+#include "pidwidcaller.h"
 
 class PageLabel : public QLabel
 {
@@ -57,6 +59,7 @@ public:
     Poppler::Page* getPage();
     void clearCache();
     void setPagePart(int const state);
+    void setEmbedFileList(const QStringList& files);
 
 private:
     void clearLists();
@@ -69,7 +72,12 @@ private:
     QList<QMediaPlayer*> linkSoundPlayers;
     QList<QRect*> linkSoundPositions;
     QList<MediaSlider*> sliders;
-    QList<EmbeddedWindow*> embeddedWindows;
+    QMap<int,QProcess*> processes;
+    QMap<int,QWidget*> embeddedWidgets;
+    QSet<PidWidCaller*> pidWidCallers;
+    QString pid2wid;
+    QTimer* processTimer = nullptr;
+    QStringList embedFileList;
     QPixmap cachedPixmap;
     int cachedIndex = -1;
     QTimer* timer = nullptr;
@@ -96,6 +104,10 @@ public slots:
     void pauseAllMultimedia();
     void startAllMultimedia();
     void setAnimationDelay(int const delay_ms);
+    void createEmbeddedWindow();
+    void createEmbeddedWindowsFromPID();
+    void setPid2Wid(QString const & program);
+    void receiveWid(WId const wid, int const index);
 
 signals:
     void sendNewPageNumber(int const pageNumber);
