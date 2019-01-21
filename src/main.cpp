@@ -62,7 +62,8 @@ int main(int argc, char *argv[])
         {{"d", "tolerance"}, "Tolerance for the presentation time in seconds.\nThe timer will be white <secs> before the timeout, green when the timeout is reached, yellow <secs> after the timeout and red 2*<secs> after the timeout.", "secs"},
         {{"p", "page-part"}, "Set half of the page to be the presentation, the other half to be the notes. Values are \"l\" or \"r\" for presentation on the left or right half of the page, respectively.\nIf the presentation was created with \"\\setbeameroption{show notes on second screen=right}\", you should use \"--page-part=right\".", "side"},
         {{"e", "embed"}, "file1,file2,... Mark these files for embedding if an execution link points to them.", "files"},
-        {{"w", "pid2wid"}, "Program that converts a PID to a Window ID.", "file"}
+        {{"w", "pid2wid"}, "Program that converts a PID to a Window ID.", "file"},
+        {{"u", "urlsplit"}, "Character which is used to split links into an url and arguments.", "char"}
     });
     parser.process(app);
 
@@ -231,10 +232,18 @@ int main(int argc, char *argv[])
     }
 
     // Set program, which will convert PIDs to Window IDs
-    if (!parser.value("w").isEmpty())
+    if (!parser.value("w").isEmpty()) {
+        if (parser.value("w").toLower() != "none")
         w->setPid2WidConverter(parser.value("w"));
+    }
     else if ( settings.contains("pid2wid") )
         w->setPid2WidConverter(settings.value("pid2wid").toString());
+
+    // Set character, which is used to split links into a file name and arguments
+    if (!parser.value("u").isEmpty())
+        w->setUrlSplitCharacter(parser.value("u"));
+    else if ( settings.contains("urlsplit") )
+        w->setUrlSplitCharacter(settings.value("urlsplit").toString());
 
 
     // show the GUI

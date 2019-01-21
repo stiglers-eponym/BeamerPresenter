@@ -61,6 +61,7 @@ public:
     void setPagePart(int const state);
     void setEmbedFileList(const QStringList& files);
     void startAllEmbeddedApplications();
+    void setUrlSplitCharacter(QString const& splitCharacter);
 
 private:
     void clearLists(bool const killProcesses=true);
@@ -87,7 +88,8 @@ private:
     double autostartDelay = 0.; // delay for starting multimedia content in s
     int minimumAnimationDelay = 40; // minimum frame time in ms
     int pagePart = 0;
-    QString urlSplitCharacter = ""; // TODO: use this to split urls into url and parameters
+    QString urlSplitCharacter = "";
+    int minDelayEmbeddedWindows = 50;
 
 protected:
     void mouseReleaseEvent(QMouseEvent* event);
@@ -108,7 +110,7 @@ public slots:
     void createEmbeddedWindowsFromPID();
     void setPid2Wid(QString const & program);
     void receiveWid(WId const wid, int const index);
-    void clearProcesses(int const exitCode);
+    void clearProcesses(int const exitCode, QProcess::ExitStatus const exitStatus);
 
 signals:
     void sendNewPageNumber(int const pageNumber);

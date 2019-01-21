@@ -67,10 +67,10 @@ void PdfDoc::loadDocument()
     qDeleteAll(pdfPages);
     pdfPages.clear();
     labels.clear();
-    for ( int i=0; i < popplerDoc->numPages(); i++ ) {
-        Poppler::Page * p = popplerDoc->page(i);
-        pdfPages.append( p );
-        labels.append( p->label() );
+    for (int i=0; i < popplerDoc->numPages(); i++) {
+        Poppler::Page* p = popplerDoc->page(i);
+        pdfPages.append(p);
+        labels.append(p->label());
     }
 
     if (popplerDoc->hasOptionalContent())

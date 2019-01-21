@@ -18,7 +18,7 @@
 
 #include "videowidget.h"
 
-VideoWidget::VideoWidget(Poppler::MovieAnnotation const * annotation, QWidget* parent) : QVideoWidget(parent)
+VideoWidget::VideoWidget(Poppler::MovieAnnotation const* annotation, QString const& urlSplitCharacter, QWidget* parent) : QVideoWidget(parent)
 {
     this->annotation = annotation;
     setMouseTracking(true);
@@ -35,12 +35,19 @@ VideoWidget::VideoWidget(Poppler::MovieAnnotation const * annotation, QWidget* p
         setAutoFillBackground(true);
     }
 
-    QUrl url = QUrl(movie->url());
+    QUrl url = QUrl(movie->url(), QUrl::TolerantMode);
+    QStringList splitFileName = QStringList(); // TODO: use these arguments
+    // TODO: test this
+    if (!urlSplitCharacter.isEmpty()) {
+        splitFileName = movie->url().split(urlSplitCharacter);
+        url = QUrl(splitFileName[0], QUrl::TolerantMode);
+        splitFileName.pop_front();
+    }
     if (!url.isValid())
-        QUrl url = QUrl::fromLocalFile(movie->url());
+        url = QUrl::fromLocalFile(url.path());
     if (url.isRelative())
-        url = QUrl::fromLocalFile( QDir(".").absoluteFilePath( url.path()) );
-    player->setMedia( url );
+        url = QUrl::fromLocalFile(QDir(".").absoluteFilePath(url.path()));
+    player->setMedia(url);
     switch (movie->playMode()) {
         case Poppler::MovieObject::PlayOpen:
             // TODO: PlayOpen should leave controls open (but they are not implemented yet).

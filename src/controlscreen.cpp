@@ -504,7 +504,7 @@ void ControlScreen::setEmbedFileList(const QStringList &files)
 }
 
 
-void ControlScreen::setPid2WidConverter(QString const& program)
+void ControlScreen::setPid2WidConverter(QString const &program)
 {
     QFileInfo fileinfo = QFileInfo(program);
     if (fileinfo.isFile() && fileinfo.isExecutable()) {
@@ -513,4 +513,10 @@ void ControlScreen::setPid2WidConverter(QString const& program)
     }
     else
         qWarning() << "Can't use program: not a file or not executable." << program;
+}
+
+void ControlScreen::setUrlSplitCharacter(QString const &splitCharacter)
+{
+    ui->notes_label->setUrlSplitCharacter(splitCharacter);
+    presentationScreen->getLabel()->setUrlSplitCharacter(splitCharacter);
 }

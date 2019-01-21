@@ -1,7 +1,9 @@
 BeamerPresenter
 
+* Multimedia: use arguments (urlSplitCharacter)
 * Embed external applications: more testing, use wildecards
 * Improve layout: Scale texts (especially timer) if necessary; avoid that note pages label is rendered for a calculated size, which is larger than the real size.
+* update documentation
 
 * Better video and sound control bar
 * Improve sound (check whether it should be run in a loop, support embedded files)
