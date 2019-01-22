@@ -280,31 +280,31 @@ void ControlScreen::updateCache()
 
 void ControlScreen::receiveNewPageNumber(int const pageNumber)
 {
-    renderPage( pageNumber );
+    renderPage(pageNumber);
 }
 
 void ControlScreen::receivePageShiftEdit(int const shift)
 {
     if (currentPageNumber + shift > 0)
-        renderPage( currentPageNumber + shift );
+        renderPage(currentPageNumber + shift);
 }
 
 void ControlScreen::receivePreviousSlideEnd()
 {
     if (currentPageNumber > 0)
-        renderPage( notes->getPreviousSlideEnd(currentPageNumber) );
+        renderPage(notes->getPreviousSlideEnd(currentPageNumber));
 }
 
 void ControlScreen::receiveNextSlideStart()
 {
     if (currentPageNumber < numberOfPages - 1)
-        renderPage( notes->getNextSlideIndex(currentPageNumber) );
+        renderPage(notes->getNextSlideIndex(currentPageNumber));
 }
 
 void ControlScreen::receivePageShiftReturn(int const shift)
 {
     int pageNumber = presentationScreen->getPageNumber() + shift;
-    renderPage( pageNumber );
+    renderPage(pageNumber);
     ui->label_timer->continueTimer();
 }
 

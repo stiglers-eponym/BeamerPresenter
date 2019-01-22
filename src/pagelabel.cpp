@@ -20,7 +20,7 @@
 
 PageLabel::PageLabel(Poppler::Page* page, QWidget* parent) : QLabel(parent)
 {
-    renderPage(page);
+    renderPage(page, false, false);
 }
 
 PageLabel::PageLabel(QWidget* parent) : QLabel(parent)
@@ -31,7 +31,23 @@ PageLabel::PageLabel(QWidget* parent) : QLabel(parent)
 PageLabel::~PageLabel()
 {
     delete timer;
-    clearLists();
+    clearLists(true);
+    for (QMap<int,QMap<int,QProcess*>>::iterator map=processes.begin(); map!=processes.end(); map++) {
+        for (QMap<int,QProcess*>::iterator process=map->begin(); process!=map->end(); process++) {
+            if (*process != nullptr) {
+                (*process)->terminate();
+                delete *process;
+            }
+        }
+    }
+    for (QMap<int,QMap<int,QWidget*>>::iterator map=embeddedWidgets.begin(); map!=embeddedWidgets.end(); map++) {
+        for (QMap<int,QWidget*>::iterator widget=map->begin(); widget!=map->end(); widget++) {
+            if (*widget != nullptr) {
+                (*widget)->close();
+                delete *widget;
+            }
+        }
+    }
     page = nullptr;
 }
 
@@ -42,7 +58,7 @@ void PageLabel::setAutostartDelay(double const delay)
 
 int PageLabel::pageNumber() const
 {
-    return page->index();
+    return pageIndex;
 }
 
 void PageLabel::setAnimationDelay(int const delay_ms)
@@ -93,21 +109,14 @@ void PageLabel::clearLists(bool const killProcesses)
     if (killProcesses) {
         qDeleteAll(pidWidCallers);
         pidWidCallers.clear();
-        delete processTimer;
-        processTimer = nullptr;
-        for(QMap<int,QProcess*>::iterator it=processes.begin(); it!=processes.end(); it++) {
-            if (it.value() == nullptr)
-                continue;
-            disconnect(it.value(), SIGNAL(finished(int, QProcess::ExitStatus const)), this, SLOT(clearProcesses(int const, QProcess::ExitStatus const)));
-            if (it.value()->state()==QProcess::Running) {
-                qDebug() << "Terminating process";
-                it.value()->terminate();
+        if (processTimer != nullptr)
+            processTimer->stop();
+        if (embeddedWidgets.contains(pageIndex)) {
+            for (QMap<int,QWidget*>::iterator widget=embeddedWidgets[pageIndex].begin(); widget!=embeddedWidgets[pageIndex].end(); widget++) {
+                if (*widget != nullptr)
+                    (*widget)->hide();
             }
-            it.value()->deleteLater();
         }
-        processes.clear();
-        qDeleteAll(embeddedWidgets);
-        embeddedWidgets.clear();
     }
 }
 
@@ -119,6 +128,7 @@ void PageLabel::renderPage(Poppler::Page* page, bool const setDuration, bool con
         return;
 
     this->page = page;
+    pageIndex = page->index();
     QSize pageSize = page->pageSize();
     int shift_x=0, shift_y=0;
     int pageHeight=pageSize.height(), pageWidth=pageSize.width();
@@ -140,7 +150,7 @@ void PageLabel::renderPage(Poppler::Page* page, bool const setDuration, bool con
         if (pagePart == -1)
             shift_x -= width();
     }
-    if (page->index() == cachedIndex)
+    if (pageIndex == cachedIndex)
         setPixmap( cachedPixmap );
     else {
         if (pagePart == 0)
@@ -254,7 +264,18 @@ void PageLabel::renderPage(Poppler::Page* page, bool const setDuration, bool con
                         break;
                     }
                 case Poppler::Link::Execute:
-                    if (killProcesses) {
+                    if (embeddedWidgets.contains(pageIndex) && embeddedWidgets[pageIndex].contains(i) && embeddedWidgets[pageIndex][i]!=nullptr) {
+                        QRect winGeometry = *linkPositions[i];
+                        if (winGeometry.height() < 0) {
+                            winGeometry.setY(winGeometry.y() + winGeometry.height());
+                            winGeometry.setHeight(-linkPositions[i]->height());
+                        }
+                        embeddedWidgets[pageIndex][i]->setMinimumSize(winGeometry.width(), winGeometry.height());
+                        embeddedWidgets[pageIndex][i]->setMaximumSize(winGeometry.width(), winGeometry.height());
+                        embeddedWidgets[pageIndex][i]->setGeometry(winGeometry);
+                        embeddedWidgets[pageIndex][i]->show();
+                    }
+                    else if (!(processes.contains(pageIndex) && processes[pageIndex].contains(i) && processes[pageIndex][i] != nullptr)) {
                         Poppler::LinkExecute* link = (Poppler::LinkExecute*) links[i];
                         QStringList splitFileName = QStringList();
                         if (!urlSplitCharacter.isEmpty())
@@ -264,26 +285,19 @@ void PageLabel::renderPage(Poppler::Page* page, bool const setDuration, bool con
                         QUrl url = QUrl(splitFileName[0], QUrl::TolerantMode);
                         splitFileName.append(link->parameters());
                         if (embedFileList.contains(splitFileName[0]) || embedFileList.contains(url.fileName())) {
-                            embeddedWidgets[i] = nullptr;
-                            processes[i] = nullptr;
+                            qDebug() << "Setting up widgets for embedded applications";
+                            splitFileName.removeAll("embed");
+                            embeddedWidgets[pageIndex][i] = nullptr;
+                            processes[pageIndex][i] = nullptr;
                         }
                         else if (splitFileName.length() > 1) {
                             if (splitFileName.contains("embed")) {
+                                qDebug() << "Setting up widgets for embedded applications";
                                 splitFileName.removeAll("embed");
-                                embeddedWidgets[i] = nullptr;
-                                processes[i] = nullptr;
+                                embeddedWidgets[pageIndex][i] = nullptr;
+                                processes[pageIndex][i] = nullptr;
                             }
                         }
-                    }
-                    else if (embeddedWidgets.contains(i) && embeddedWidgets[i]!=nullptr) {
-                        QRect winGeometry = *linkPositions[i];
-                        if (winGeometry.height() < 0) {
-                            winGeometry.setY(winGeometry.y() + winGeometry.height());
-                            winGeometry.setHeight(-linkPositions[i]->height());
-                        }
-                        embeddedWidgets[i]->setMinimumSize(winGeometry.width(), winGeometry.height());
-                        embeddedWidgets[i]->setMaximumSize(winGeometry.width(), winGeometry.height());
-                        embeddedWidgets[i]->setGeometry(winGeometry);
                     }
                     break;
             }
@@ -458,7 +472,7 @@ void PageLabel::mouseReleaseEvent(QMouseEvent* event)
                         emit sendNewPageNumber( ((Poppler::LinkGoto*) links[i])->destination().pageNumber() - 1 );
                     break;
                     case Poppler::Link::Execute:
-                        {
+                        if (embeddedWidgets.contains(pageIndex)) {
                             Poppler::LinkExecute* link = (Poppler::LinkExecute*) links[i];
                             QStringList splitFileName = QStringList();
                             if (!urlSplitCharacter.isEmpty())
@@ -469,10 +483,10 @@ void PageLabel::mouseReleaseEvent(QMouseEvent* event)
                             splitFileName.append(link->parameters());
                             QString fileName = splitFileName[0];
                             splitFileName.pop_front();
-                            if (embeddedWidgets.contains(i)) {
-                                if (embeddedWidgets[i] != nullptr)
+                            if (embeddedWidgets[pageIndex].contains(i)) {
+                                if (embeddedWidgets[pageIndex][i] != nullptr)
                                     break;
-                                if (processes[i] != nullptr)
+                                if (processes[pageIndex][i] != nullptr)
                                     break;
                                 qWarning() << "This feature is experimental: embedding external applications.";
                                 splitFileName.removeAll("embed");
@@ -482,14 +496,14 @@ void PageLabel::mouseReleaseEvent(QMouseEvent* event)
                                     connect(process, &QProcess::readyReadStandardOutput, this, &PageLabel::createEmbeddedWindow);
                                     connect(process, SIGNAL(finished(int, QProcess::ExitStatus const)), this, SLOT(clearProcesses(int const, QProcess::ExitStatus const)));
                                     process->start(fileName, splitFileName);
-                                    processes[i] = process;
+                                    processes[pageIndex][i] = process;
                                     qDebug() << "Started process:" << process->program() << splitFileName;
                                 }
                                 else {
                                     QProcess* process = new QProcess(this);
                                     connect(process, SIGNAL(finished(int, QProcess::ExitStatus const)), this, SLOT(clearProcesses(int const, QProcess::ExitStatus const)));
                                     process->start(fileName, splitFileName);
-                                    processes[i] = process;
+                                    processes[pageIndex][i] = process;
                                     qDebug() << "Started process:" << process->program() << splitFileName;
                                     // Wait some time before trying to get the window ID
                                     // The window has to be created first.
@@ -523,10 +537,10 @@ void PageLabel::mouseReleaseEvent(QMouseEvent* event)
                                     emit focusPageNumberEdit();
                                     break;
                                 case Poppler::LinkAction::PageNext:
-                                    emit sendNewPageNumber( pageNumber() + 1 );
+                                    emit sendNewPageNumber(pageIndex + 1);
                                     break;
                                 case Poppler::LinkAction::PagePrev:
-                                    emit sendNewPageNumber( pageNumber() - 1 );
+                                    emit sendNewPageNumber(pageIndex - 1);
                                     break;
                                 case Poppler::LinkAction::PageFirst:
                                     emit sendNewPageNumber(0);
@@ -716,13 +730,13 @@ void PageLabel::setEmbedFileList(const QStringList &files)
 
 void PageLabel::createEmbeddedWindow()
 {
-    for(QMap<int,QProcess*>::iterator it=processes.begin(); it!=processes.end(); it++) {
+    for(QMap<int,QProcess*>::iterator it=processes[pageIndex].begin(); it!=processes[pageIndex].end(); it++) {
         if (it.value() == nullptr)
             continue;
         char output[64];
         qint64 outputLength = it.value()->readLine(output, sizeof(output));
         if (outputLength != -1) {
-            qDebug() << "Creating embedded window from program standard output:" << output;
+            qDebug() << "Creating embedded window with id from program standard output:" << output;
             QString winIdString(output);
             bool success;
             WId wid = (WId) winIdString.toLongLong(&success, 10);
@@ -741,7 +755,7 @@ void PageLabel::createEmbeddedWindow()
             newWidget->setMaximumSize(winGeometry.width(), winGeometry.height());
             newWidget->show();
             newWidget->setGeometry(winGeometry);
-            embeddedWidgets[it.key()] = newWidget;
+            embeddedWidgets[pageIndex][it.key()] = newWidget;
             return;
         }
         else
@@ -757,8 +771,8 @@ void PageLabel::createEmbeddedWindowsFromPID()
         return;
     }
     bool anyCandidates = false;
-    for(QMap<int,QProcess*>::iterator it=processes.begin(); it!=processes.end(); it++) {
-        if (it.value() != nullptr && embeddedWidgets[it.key()] == nullptr) {
+    for(QMap<int,QProcess*>::iterator it=processes[pageIndex].begin(); it!=processes[pageIndex].end(); it++) {
+        if (it.value() != nullptr && embeddedWidgets[pageIndex][it.key()] == nullptr) {
             PidWidCaller* pidWidCaller = new PidWidCaller(pid2wid, it.value()->pid(), it.key(), this);
             connect(pidWidCaller, &PidWidCaller::sendWid, this, &PageLabel::receiveWid);
             pidWidCallers.insert(pidWidCaller);
@@ -780,8 +794,9 @@ void PageLabel::setPid2Wid(QString const & program)
 void PageLabel::receiveWid(WId const wid, int const index)
 {
     qDebug() << "Received WID:" << wid;
-    if (embeddedWidgets[index] != nullptr || processes[index] == nullptr) {
+    if (embeddedWidgets[pageIndex][index] != nullptr || processes[pageIndex][index] == nullptr) {
         qWarning() << "Something strange happened with embedded processes. This is a bug.";
+        qDebug() << "widget:" << embeddedWidgets[pageIndex][index] << "process:" << processes[pageIndex][index];
         return;
     }
     QRect winGeometry = *linkPositions[index];
@@ -795,13 +810,13 @@ void PageLabel::receiveWid(WId const wid, int const index)
     newWidget->setMaximumSize(winGeometry.width(), winGeometry.height());
     newWidget->show();
     newWidget->setGeometry(winGeometry);
-    embeddedWidgets[index] = newWidget;
+    embeddedWidgets[pageIndex][index] = newWidget;
 }
 
 void PageLabel::startAllEmbeddedApplications()
 {
     qWarning() << "This feature is experimental: embedding external applications.";
-    for(QMap<int,QProcess*>::iterator it=processes.begin(); it!=processes.end(); it++) {
+    for(QMap<int,QProcess*>::iterator it=processes[pageIndex].begin(); it!=processes[pageIndex].end(); it++) {
         Poppler::LinkExecute* link = (Poppler::LinkExecute*) links[it.key()];
         QStringList splitFileName = QStringList();
         if (!urlSplitCharacter.isEmpty())
@@ -812,7 +827,7 @@ void PageLabel::startAllEmbeddedApplications()
         splitFileName.append(link->parameters());
         QString fileName = splitFileName[0];
         splitFileName.pop_front();
-        if (embeddedWidgets[it.key()] != nullptr)
+        if (embeddedWidgets[pageIndex][it.key()] != nullptr)
             break;
         if (it.value() != nullptr)
             break;
@@ -839,23 +854,21 @@ void PageLabel::startAllEmbeddedApplications()
 
 void PageLabel::clearProcesses(int const exitCode, QProcess::ExitStatus const exitStatus)
 {
-    for(QMap<int,QProcess*>::iterator it=processes.begin(); it!=processes.end(); it++) {
+    for(QMap<int,QProcess*>::iterator it=processes[pageIndex].begin(); it!=processes[pageIndex].end(); it++) {
         if (it.value() != nullptr && it.value()->state() == QProcess::NotRunning) {
-            qDebug() << "Process closed, deleting widget";
+            qDebug() << "Process closed, deleting process and widget";
             if (it.value()->exitStatus()==QProcess::CrashExit)
                 qWarning() << "Embedded application crashed";
             else if (it.value()->exitCode()!=0)
                 qWarning() << "Embedded application finished with exit code" << it.value()->exitCode();
             it.value()->deleteLater();
             it.value() = nullptr;
-            if (embeddedWidgets[it.key()] != nullptr) {
-                qDebug() << "Deleting widget";
-                if (embeddedWidgets[it.key()]->isVisible())
-                    embeddedWidgets[it.key()]->close();
-                delete embeddedWidgets[it.key()];
-                embeddedWidgets[it.key()] = nullptr;
+            if (embeddedWidgets[pageIndex][it.key()] != nullptr) {
+                if (embeddedWidgets[pageIndex][it.key()]->isVisible())
+                    embeddedWidgets[pageIndex][it.key()]->close();
+                delete embeddedWidgets[pageIndex][it.key()];
+                embeddedWidgets[pageIndex][it.key()] = nullptr;
             }
-            qDebug() << "Finished deleting embedded application";
         }
     }
 }

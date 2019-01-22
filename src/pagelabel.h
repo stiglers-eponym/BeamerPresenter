@@ -73,8 +73,8 @@ private:
     QList<QRect*> soundPositions;
     QMap<int,QMediaPlayer*> linkSoundPlayers;
     QList<MediaSlider*> sliders;
-    QMap<int,QProcess*> processes;
-    QMap<int,QWidget*> embeddedWidgets;
+    QMap<int,QMap<int,QProcess*>> processes;
+    QMap<int,QMap<int,QWidget*>> embeddedWidgets;
     QSet<PidWidCaller*> pidWidCallers;
     QString pid2wid;
     QTimer* processTimer = nullptr;
@@ -90,6 +90,7 @@ private:
     int pagePart = 0;
     QString urlSplitCharacter = "";
     int minDelayEmbeddedWindows = 50;
+    int pageIndex = 0;
 
 protected:
     void mouseReleaseEvent(QMouseEvent* event);

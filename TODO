@@ -1,7 +1,8 @@
 BeamerPresenter
 
+* Embedded applications: debug, test, use wildecards
+* Handle focus of embedded windows
 * Multimedia: use arguments (urlSplitCharacter)
-* Embed external applications: more testing, use wildecards
 * Improve layout: Scale texts (especially timer) if necessary; avoid that note pages label is rendered for a calculated size, which is larger than the real size.
 * update documentation
 
