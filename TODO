@@ -1,14 +1,13 @@
 BeamerPresenter
 
+* Embedded applications: Terminate processes correctly before closing the window
 * Embedded applications: debug, test, use wildecards
 * Handle focus of embedded windows
-* Multimedia: use arguments (urlSplitCharacter)
-* Improve layout: Scale texts (especially timer) if necessary; avoid that note pages label is rendered for a calculated size, which is larger than the real size.
 * update documentation
 
-* Better video and sound control bar
-* Improve sound (check whether it should be run in a loop, support embedded files)
-* Improve videos (palindrome mode, make autostart optional)
+* Multimedia: allow more arguments
+* Multimedia: Better control bar
+* Multimedia: more options, more testing, embedded files
 
 * Improve cache
 * Search document

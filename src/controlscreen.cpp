@@ -187,20 +187,47 @@ void ControlScreen::setPagePart(int const pagePart)
 
 void ControlScreen::recalcLayout(const int pageNumber)
 {
+    // Calculate a good size for the notes side bar
     double screenRatio = double(height()) / width();
+    if (screenRatio > 1)
+        screenRatio = 1.;
     QSize notesSize = notes->getPageSize(pageNumber);
     double notesSizeRatio = double(notesSize.height()) / notesSize.width();
+    // Adjustment if the pdf includes slides and notes
     if (pagePart != 0)
         notesSizeRatio *= 2;
     double relativeNotesWidth = notesSizeRatio / screenRatio;
     if (relativeNotesWidth > 0.75)
         relativeNotesWidth = 0.75;
-    ui->notes_label->setGeometry(0, 0, int(relativeNotesWidth*width()), height());
-    ui->current_slide_label->setMaximumWidth( int( (1-relativeNotesWidth)*width() ) );
-    ui->next_slide_label->setMaximumWidth( int( (1-relativeNotesWidth)*width() ) );
-    ui->gridLayout->setColumnStretch(0, int( relativeNotesWidth*width() ));
-    ui->gridLayout->setColumnStretch(1, int( (1-relativeNotesWidth)*width() ));
+    int sideWidth = int((1-relativeNotesWidth)*width());
+
+    // Set layout
+    ui->notes_label->setGeometry(0, 0, width()-sideWidth, height());
+    ui->current_slide_label->setMaximumWidth(sideWidth);
+    ui->next_slide_label->setMaximumWidth(sideWidth);
+    ui->gridLayout->setColumnStretch(0, width()-sideWidth);
+    ui->gridLayout->setColumnStretch(1, sideWidth);
     updateGeometry();
+
+    // Adjust font sizes
+    if (sideWidth < 300) {
+        QFont font = ui->label_timer->font();
+        font.setPixelSize(sideWidth/6);
+        ui->label_timer->setFont(font);
+        font.setPixelSize(sideWidth/10);
+        ui->edit_timer->setFont(font);
+        font.setPixelSize(sideWidth/6);
+        ui->label_clock->setFont(font);
+    }
+    else {
+        QFont font = ui->label_timer->font();
+        font.setPixelSize(50);
+        ui->label_timer->setFont(font);
+        font.setPixelSize(30);
+        ui->edit_timer->setFont(font);
+        font.setPixelSize(50);
+        ui->label_clock->setFont(font);
+    }
 }
 
 void ControlScreen::focusPageNumberEdit()

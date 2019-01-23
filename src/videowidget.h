@@ -41,6 +41,7 @@ public:
     Poppler::MovieAnnotation const * getAnnotation() const;
     qint64 getDuration() const;
     QMediaPlayer const * getPlayer() const;
+    bool getAutoplay() const;
 
 protected:
     void mouseReleaseEvent(QMouseEvent* event);
@@ -49,6 +50,7 @@ protected:
 private:
     QMediaPlayer* player;
     QImage posterImage;
+    bool autoplay = false;
     Poppler::MovieAnnotation const * annotation;
 
 public slots:
@@ -57,9 +59,9 @@ public slots:
     void setPosition(qint64 const position);
 
 private slots:
-    void showPosterImage(QMediaPlayer::State state);
-    void bouncePalindromeVideo(QMediaPlayer::State state);
-    void restartVideo(QMediaPlayer::State state);
+    void showPosterImage(QMediaPlayer::MediaStatus state);
+    void bouncePalindromeVideo(QMediaPlayer::MediaStatus status);
+    void restartVideo(QMediaPlayer::MediaStatus status);
 
 signals:
     void positionChanged(qint64 const position);

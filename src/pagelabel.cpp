@@ -228,12 +228,28 @@ void PageLabel::renderPage(Poppler::Page* page, bool const setDuration, bool con
 
             Poppler::SoundObject* sound = ((Poppler::SoundAnnotation*) *it)->sound();
             QMediaPlayer* player = new QMediaPlayer(this);
-            QUrl url = QUrl(sound->url());
+            QUrl url = QUrl(sound->url(), QUrl::TolerantMode);
+            QStringList splitFileName = QStringList();
+            // TODO: test this
+            if (!urlSplitCharacter.isEmpty()) {
+                splitFileName = sound->url().split(urlSplitCharacter);
+                url = QUrl(splitFileName[0], QUrl::TolerantMode);
+                splitFileName.pop_front();
+            }
             if (!url.isValid())
-                QUrl url = QUrl::fromLocalFile(sound->url());
+                url = QUrl::fromLocalFile(url.path());
             if (url.isRelative())
-                url = QUrl::fromLocalFile( QDir(".").absoluteFilePath( url.path()) );
-            player->setMedia( url );
+                url = QUrl::fromLocalFile(QDir(".").absoluteFilePath(url.path()));
+            player->setMedia(url);
+            // Untested!
+            if (splitFileName.contains("loop")) {
+                qDebug() << "Using untested option loop for sound";
+                connect(player, &QMediaPlayer::mediaStatusChanged, player, [&](QMediaPlayer::MediaStatus const status){if(status==QMediaPlayer::EndOfMedia) player->play();});
+            }
+            if (splitFileName.contains("autostart")) {
+                qDebug() << "Using untested option autostart for sound";
+                player->play();
+            }
             soundPlayers.append(player);
         }
         qDeleteAll(sounds);
@@ -248,7 +264,7 @@ void PageLabel::renderPage(Poppler::Page* page, bool const setDuration, bool con
                         Poppler::SoundObject * sound = ((Poppler::LinkSound*) links[i])->sound();
                         QMediaPlayer * player = new QMediaPlayer(this);
                         QUrl url = QUrl(sound->url(), QUrl::TolerantMode);
-                        QStringList splitFileName = QStringList(); // TODO: use these arguments
+                        QStringList splitFileName = QStringList();
                         // TODO: test this
                         if (!urlSplitCharacter.isEmpty()) {
                             splitFileName = sound->url().split(urlSplitCharacter);
@@ -261,6 +277,15 @@ void PageLabel::renderPage(Poppler::Page* page, bool const setDuration, bool con
                             url = QUrl::fromLocalFile(QDir(".").absoluteFilePath(url.path()));
                         player->setMedia(url);
                         linkSoundPlayers[i] = player;
+                        // Untested!
+                        if (splitFileName.contains("loop")) {
+                            qDebug() << "Using untested option loop for sound";
+                            connect(player, &QMediaPlayer::mediaStatusChanged, player, [&](QMediaPlayer::MediaStatus const status){if(status==QMediaPlayer::EndOfMedia) player->play();});
+                        }
+                        if (splitFileName.contains("autostart")) {
+                            qDebug() << "Using untested option autostart for sound";
+                            player->play();
+                        }
                         break;
                     }
                 case Poppler::Link::Execute:
@@ -285,15 +310,11 @@ void PageLabel::renderPage(Poppler::Page* page, bool const setDuration, bool con
                         QUrl url = QUrl(splitFileName[0], QUrl::TolerantMode);
                         splitFileName.append(link->parameters());
                         if (embedFileList.contains(splitFileName[0]) || embedFileList.contains(url.fileName())) {
-                            qDebug() << "Setting up widgets for embedded applications";
-                            splitFileName.removeAll("embed");
                             embeddedWidgets[pageIndex][i] = nullptr;
                             processes[pageIndex][i] = nullptr;
                         }
                         else if (splitFileName.length() > 1) {
                             if (splitFileName.contains("embed")) {
-                                qDebug() << "Setting up widgets for embedded applications";
-                                splitFileName.removeAll("embed");
                                 embeddedWidgets[pageIndex][i] = nullptr;
                                 processes[pageIndex][i] = nullptr;
                             }
@@ -303,6 +324,15 @@ void PageLabel::renderPage(Poppler::Page* page, bool const setDuration, bool con
             }
         }
 
+        // Autostart if the option is set as arguments in the pdf
+        for (int i=0; i<videoWidgets.size(); i++) {
+            if (videoWidgets[i]->getAutoplay()) {
+                qDebug() << "Untested option autostart for video";
+                videoWidgets[i]->setGeometry(*videoPositions[i]);
+                videoWidgets[i]->show();
+                videoWidgets[i]->play();
+            }
+        }
         // Autostart
         if (autostartDelay > 0.1) {
             // autostart with delay

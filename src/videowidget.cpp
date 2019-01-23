@@ -24,9 +24,9 @@ VideoWidget::VideoWidget(Poppler::MovieAnnotation const* annotation, QString con
     setMouseTracking(true);
     player = new QMediaPlayer(this);
     player->setVideoOutput(this);
-    Poppler::MovieObject * movie = annotation->movie();
+    Poppler::MovieObject* movie = annotation->movie();
     if (movie->showPosterImage()) {
-        QPalette * palette = new QPalette();
+        QPalette* palette = new QPalette();
         posterImage = movie->posterImage();
         if (!posterImage.isNull())
             palette->setBrush( QPalette::Window, QBrush(posterImage));
@@ -48,29 +48,41 @@ VideoWidget::VideoWidget(Poppler::MovieAnnotation const* annotation, QString con
     if (url.isRelative())
         url = QUrl::fromLocalFile(QDir(".").absoluteFilePath(url.path()));
     player->setMedia(url);
-    switch (movie->playMode()) {
-        case Poppler::MovieObject::PlayOpen:
-            // TODO: PlayOpen should leave controls open (but they are not implemented yet).
-        case Poppler::MovieObject::PlayOnce:
-            connect(player, &QMediaPlayer::stateChanged, this, &VideoWidget::showPosterImage);
-            break;
-        case Poppler::MovieObject::PlayPalindrome:
-            qWarning() << "WARNING: play mode=palindrome does not work as it should.";
-            connect(player, &QMediaPlayer::stateChanged, this, &VideoWidget::bouncePalindromeVideo);
-            break;
-        case Poppler::MovieObject::PlayRepeat:
-            connect(player, &QMediaPlayer::stateChanged, this, &VideoWidget::restartVideo);
-            break;
+    if (splitFileName.contains("mute"))
+        player->setMuted(true);
+    if (splitFileName.contains("loop")) {
+        connect(player, &QMediaPlayer::mediaStatusChanged, this, &VideoWidget::restartVideo);
     }
-    if (movie->showControls()) {
-        // TODO: video control bar
+    else {
+        switch (movie->playMode())
+        {
+            case Poppler::MovieObject::PlayOpen:
+                // TODO: PlayOpen should leave controls open (but they are not implemented yet).
+            case Poppler::MovieObject::PlayOnce:
+                connect(player, &QMediaPlayer::mediaStatusChanged, this, &VideoWidget::showPosterImage);
+                break;
+            case Poppler::MovieObject::PlayPalindrome:
+                qWarning() << "WARNING: play mode=palindrome does not work as it should.";
+                connect(player, &QMediaPlayer::mediaStatusChanged, this, &VideoWidget::bouncePalindromeVideo);
+                break;
+            case Poppler::MovieObject::PlayRepeat:
+                connect(player, &QMediaPlayer::mediaStatusChanged, this, &VideoWidget::restartVideo);
+                break;
+        }
     }
+
+    // TODO: video control bar
+    // if (movie->showControls())
+
     // Scale the video such that it fits the widget size.
     // I like these results, but I don't know whether this is what other people would expect.
     // Please write me a comment if you would prefer an other way of handling the aspect ratio.
     setAspectRatioMode(Qt::IgnoreAspectRatio);
     connect(player, &QMediaPlayer::positionChanged, this, &VideoWidget::positionChanged);
     connect(player, &QMediaPlayer::durationChanged, this, &VideoWidget::positionChanged);
+
+    if (splitFileName.contains("autostart"))
+        autoplay = true;
 }
 
 VideoWidget::~VideoWidget()
@@ -119,9 +131,9 @@ QMediaPlayer::State VideoWidget::state() const
     return player->state();
 }
 
-void VideoWidget::showPosterImage(QMediaPlayer::State state)
+void VideoWidget::showPosterImage(QMediaPlayer::MediaStatus status)
 {
-    if (state == QMediaPlayer::StoppedState && player->mediaStatus() == QMediaPlayer::EndOfMedia) {
+    if (status == QMediaPlayer::EndOfMedia) {
         // Unbinding and binding this to the player is probably an ugly way of solving this.
         // TODO: find a better way of writing this.
         player->unbind(this);
@@ -129,26 +141,22 @@ void VideoWidget::showPosterImage(QMediaPlayer::State state)
     }
 }
 
-void VideoWidget::bouncePalindromeVideo(QMediaPlayer::State state)
+void VideoWidget::bouncePalindromeVideo(QMediaPlayer::MediaStatus status)
 {
     // TODO: The result of this function is not what it should be.
     // But this could also depend on the encoding of the video.
-    if (state == QMediaPlayer::StoppedState) {
-        disconnect(player, &QMediaPlayer::stateChanged, this, &VideoWidget::bouncePalindromeVideo);
+    if (status == QMediaPlayer::EndOfMedia) {
         player->stop();
         player->setPlaybackRate(-player->playbackRate());
         player->play();
-        connect(player, &QMediaPlayer::stateChanged, this, &VideoWidget::bouncePalindromeVideo);
     }
 }
 
-void VideoWidget::restartVideo(QMediaPlayer::State state)
+void VideoWidget::restartVideo(QMediaPlayer::MediaStatus status)
 {
-    if (state == QMediaPlayer::StoppedState) {
-        if (player->mediaStatus() == QMediaPlayer::EndOfMedia)
-            player->setPosition(0);
-        player->play();
-    }
+    if (status == QMediaPlayer::EndOfMedia)
+        player->setPosition(0);
+    player->play();
 }
 
 void VideoWidget::mouseReleaseEvent(QMouseEvent* event)
@@ -170,4 +178,9 @@ void VideoWidget::mouseMoveEvent(QMouseEvent* event)
     if (cursor() == Qt::ArrowCursor)
         setCursor(Qt::PointingHandCursor);
     event->accept();
+}
+
+bool VideoWidget::getAutoplay() const
+{
+    return autoplay;
 }

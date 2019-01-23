@@ -69,7 +69,12 @@ with the command
 .B echo
 .IR "$(( " "16#" "$("
 .BR wmctrl " -lp | " sed " -n
-.RI """s/^0x\e([0-9a-f]\e+\e) \e+[0-9]\e+ \e+" $1 " .*$/\e1/p"" " ") ))"
+.RI "\[dq]s/^0x\e([0-9a-f]\e+\e) \e+[0-9]\e+ \e+" $1 " .*$/\e1/p\[dq] " ") ))"
+.
+.TP
+.BI "\-u \-\-urlsplit " character
+Use this character (it may also be a sequence) to split links into a link path and a list of arguments. Using PDFs with such links can be convenient, but will make the links work only in this application. This does not follow the PDF standards. Possible arguments are
+.BR embed " (for executables), " autoplay " (for videos and sounds) and " loop " (for videos and sounds)."
 .
 .
 .SH KEYBINDINGS
@@ -211,38 +216,43 @@ text color of the control screen
 .
 .TP
 .BR autoplay =true
-default option for the command line argument
+overwrite default value for the command line argument
 .BR \-a " or " \-\-autoplay .
 .
 .TP
 .BR min-delay =40
-default option for the command line argument
+overwrite default value for the command line argument
 .BR \-m " or " \-\-min-delay .
 .
 .TP
 .BR tolerance =150
-default option for the command line argument
+overwrite default value for the command line argument
 .BR \-d " or " \-\-tolerance .
 .
 .TP
 .BR page-part =none
-default option for the command line argument
+set default value for the command line argument
 .BR \-p " or " \-\-page-part .
 .
 .TP
-.BR timer
-default option for the command line argument
+.B timer
+set default value for the command line argument
 .BR \-t " or " \-\-timer .
 .
 .TP
-.BR embed
-default option for the command line argument
+.B embed
+set default value for the command line argument
 .BR \-e " or " \-\-embed .
 .
 .TP
-.BR pid2wid
-default option for the command line argument
+.B pid2wid
+set default value for the command line argument
 .BR \-w " or " \-\-pid2wid .
+.
+.TP
+.B urlsplit
+set default value for the command line argument
+.BR \-u " or " \-\-urlsplit .
 .
 .
 .SH BUGS
