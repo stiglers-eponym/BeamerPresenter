@@ -93,8 +93,8 @@ private:
     int pageIndex = 0;
 
 protected:
-    void mouseReleaseEvent(QMouseEvent* event);
-    void mouseMoveEvent(QMouseEvent* event);
+    void mouseReleaseEvent(QMouseEvent* event) override;
+    void mouseMoveEvent(QMouseEvent* event) override;
 
 private:
     Poppler::Page* page;

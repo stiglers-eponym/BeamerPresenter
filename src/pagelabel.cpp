@@ -500,7 +500,7 @@ void PageLabel::mouseReleaseEvent(QMouseEvent* event)
                 {
                     case Poppler::Link::Goto:
                         emit sendNewPageNumber( ((Poppler::LinkGoto*) links[i])->destination().pageNumber() - 1 );
-                    break;
+                        return;
                     case Poppler::Link::Execute:
                         if (embeddedWidgets.contains(pageIndex)) {
                             Poppler::LinkExecute* link = (Poppler::LinkExecute*) links[i];
@@ -547,10 +547,10 @@ void PageLabel::mouseReleaseEvent(QMouseEvent* event)
                                 QDesktopServices::openUrl(url);
                             }
                         }
-                    break;
+                        break;
                     case Poppler::Link::Browse:
                         QDesktopServices::openUrl( QUrl( ((Poppler::LinkBrowse*) links[i])->url(), QUrl::TolerantMode ) );
-                    break;
+                        break;
                     case Poppler::Link::Action:
                         {
                             Poppler::LinkAction* link = (Poppler::LinkAction*) links[i];
@@ -559,7 +559,7 @@ void PageLabel::mouseReleaseEvent(QMouseEvent* event)
                                 case Poppler::LinkAction::Quit:
                                 case Poppler::LinkAction::Close:
                                     emit sendCloseSignal();
-                                    break;
+                                    return;
                                 case Poppler::LinkAction::Print:
                                     qInfo() << "Unsupported link action: print.";
                                     break;
@@ -568,16 +568,16 @@ void PageLabel::mouseReleaseEvent(QMouseEvent* event)
                                     break;
                                 case Poppler::LinkAction::PageNext:
                                     emit sendNewPageNumber(pageIndex + 1);
-                                    break;
+                                    return;
                                 case Poppler::LinkAction::PagePrev:
                                     emit sendNewPageNumber(pageIndex - 1);
-                                    break;
+                                    return;
                                 case Poppler::LinkAction::PageFirst:
                                     emit sendNewPageNumber(0);
-                                    break;
+                                    return;
                                 case Poppler::LinkAction::PageLast:
                                     emit sendNewPageNumber(-1);
-                                    break;
+                                    return;
                                 case Poppler::LinkAction::Find:
                                     // TODO: implement this
                                     qInfo() << "Unsupported link action: find.";
@@ -600,7 +600,7 @@ void PageLabel::mouseReleaseEvent(QMouseEvent* event)
                                     break;
                             };
                         }
-                    break;
+                        break;
                     case Poppler::Link::Sound:
                         {
                             Poppler::LinkSound* link = (Poppler::LinkSound*) links[i];
@@ -658,7 +658,7 @@ void PageLabel::mouseReleaseEvent(QMouseEvent* event)
                             }
                             */
                         }
-                    break;
+                        break;
                     case Poppler::Link::Movie:
                         {
                             qInfo() << "Unsupported link of type video.";
@@ -668,23 +668,23 @@ void PageLabel::mouseReleaseEvent(QMouseEvent* event)
                                     video->play();
                             }
                         }
-                    break;
+                        break;
                     case Poppler::Link::Rendition:
                         qInfo() << "Unsupported link of type rendition";
-                    break;
+                        break;
                     case Poppler::Link::JavaScript:
                         qInfo() << "Unsupported link of type JavaScript";
-                    break;
+                        break;
                     case Poppler::Link::OCGState:
                         if ( linkPositions[i]->contains(event->pos()) )
                             qInfo() << "Unsupported link of type OCGState";
-                    break;
+                        break;
                     case Poppler::Link::Hide:
                         qInfo() << "Unsupported link of type hide";
-                    break;
+                        break;
                     case Poppler::Link::None:
                         qInfo() << "Unsupported link of type none";
-                    break;
+                        break;
                 }
             }
         }
