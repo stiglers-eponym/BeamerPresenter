@@ -50,10 +50,22 @@ void PageNumberEdit::keyPressEvent(QKeyEvent* event)
     switch (event->key())
     {
         case Qt::Key_PageDown:
-            emit sendPageShiftReturn(1);
+            {
+                int page = text().toInt();
+                if (page < numberOfPages) {
+                    emit sendPageNumberReturn(page);
+                    emit sendPageNumberEdit(page);
+                }
+            }
             break;
         case Qt::Key_PageUp:
-            emit sendPageShiftReturn(-1);
+            {
+                int page = text().toInt() - 2;
+                if (page >= 0) {
+                    emit sendPageNumberReturn(page);
+                    emit sendPageNumberEdit(page);
+                }
+            }
             break;
         case Qt::Key_Right:
             emit sendPageShiftEdit(1);
@@ -68,12 +80,17 @@ void PageNumberEdit::keyPressEvent(QKeyEvent* event)
             emit sendPreviousSlideEnd();
             break;
         case Qt::Key_End:
-            setText( QString::fromStdString( std::to_string(numberOfPages) ) );
-            emit sendPageNumberEdit( numberOfPages - 1 );
+            emit sendPageNumberEdit(numberOfPages - 1);
             break;
         case Qt::Key_Home:
-            setText( "1" );
-            emit sendPageNumberEdit( 0 );
+            emit sendPageNumberEdit(0);
+            break;
+        case Qt::Key_Return:
+            emit sendPageNumberReturn(text().toInt() - 1);
+            emit sendEscape();
+            break;
+        case Qt::Key_Escape:
+            emit sendEscape();
             break;
         case Qt::Key_0:
         case Qt::Key_1:
@@ -89,12 +106,6 @@ void PageNumberEdit::keyPressEvent(QKeyEvent* event)
         case Qt::Key_Delete:
         case Qt::Key_Control:
             QLineEdit::keyPressEvent(event);
-            break;
-        case Qt::Key_Escape:
-            emit sendEscape();
-            break;
-        case Qt::Key_Return:
-            emit sendPageNumberReturn( text().toInt() - 1 );
             break;
     }
     event->accept();

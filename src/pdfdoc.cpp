@@ -61,8 +61,10 @@ void PdfDoc::loadDocument()
     }
     popplerDoc->setRenderHint(Poppler::Document::TextAntialiasing);
     popplerDoc->setRenderHint(Poppler::Document::TextHinting);
-    popplerDoc->setRenderHint(Poppler::Document::ThinLineShape);
+    popplerDoc->setRenderHint(Poppler::Document::TextSlightHinting);
     popplerDoc->setRenderHint(Poppler::Document::Antialiasing);
+    popplerDoc->setRenderHint(Poppler::Document::ThinLineShape);
+    popplerDoc->setRenderHint(Poppler::Document::HideAnnotations);
 
     qDeleteAll(pdfPages);
     pdfPages.clear();

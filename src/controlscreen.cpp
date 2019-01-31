@@ -150,12 +150,10 @@ ControlScreen::ControlScreen(QString presentationPath, QString notesPath, QWidge
 
     // Signals emitted by the page number editor
     connect(ui->text_current_slide, &PageNumberEdit::sendPageNumberReturn, presentationScreen, &PresentationScreen::receiveNewPageNumber);
-    connect(ui->text_current_slide, &PageNumberEdit::sendPageShiftReturn,  presentationScreen, &PresentationScreen::receiveNewPageNumber);
     connect(ui->text_current_slide, &PageNumberEdit::sendPageNumberEdit,   this, &ControlScreen::receiveNewPageNumber);
     connect(ui->text_current_slide, &PageNumberEdit::sendPageShiftEdit,    this, &ControlScreen::receivePageShiftEdit);
     connect(ui->text_current_slide, &PageNumberEdit::sendNextSlideStart,   this, &ControlScreen::receiveNextSlideStart);
     connect(ui->text_current_slide, &PageNumberEdit::sendPreviousSlideEnd, this, &ControlScreen::receivePreviousSlideEnd);
-    connect(ui->text_current_slide, &PageNumberEdit::sendPageShiftReturn,  this, &ControlScreen::receivePageShiftReturn);
     connect(ui->text_current_slide, &PageNumberEdit::sendEscape,           this, &ControlScreen::resetFocus);
 }
 
@@ -312,13 +310,13 @@ void ControlScreen::receiveNewPageNumber(int const pageNumber)
 
 void ControlScreen::receivePageShiftEdit(int const shift)
 {
-    if (currentPageNumber + shift > 0)
+    if (currentPageNumber + shift >= 0)
         renderPage(currentPageNumber + shift);
 }
 
 void ControlScreen::receivePreviousSlideEnd()
 {
-    if (currentPageNumber > 0)
+    if (currentPageNumber >= 0)
         renderPage(notes->getPreviousSlideEnd(currentPageNumber));
 }
 
@@ -491,16 +489,11 @@ void ControlScreen::wheelEvent(QWheelEvent* event)
     int deltaPages;
     // If a touch pad was used for scrolling:
     if (deltaPix != 0) {
-        if (deltaPix > 50)
-            deltaPages = deltaPix / 50;
-        else if (deltaPix > 10)
-            deltaPages = 1;
-        else if (deltaPix < -50)
-            deltaPages = deltaPix / 50 + 1;
-        else if (deltaPix < -10)
-            deltaPages = -1;
-        else
-            deltaPages = 0;
+        scrollState += deltaPix;
+        deltaPages = scrollState / scrollDelta;
+        if (deltaPages<0)
+            deltaPages++;
+        scrollState -= scrollDelta*deltaPages;
     }
     // If a mouse wheel was used for scrolling:
     else {
@@ -522,6 +515,11 @@ void ControlScreen::wheelEvent(QWheelEvent* event)
     else if (deltaPages != 0)
         renderPage(currentPageNumber + deltaPages);
     event->accept();
+}
+
+void ControlScreen::setScrollDelta(const int scrollDelta)
+{
+    this->scrollDelta = scrollDelta;
 }
 
 void ControlScreen::setEmbedFileList(const QStringList &files)

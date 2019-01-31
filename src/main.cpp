@@ -63,7 +63,8 @@ int main(int argc, char *argv[])
         {{"p", "page-part"}, "Set half of the page to be the presentation, the other half to be the notes. Values are \"l\" or \"r\" for presentation on the left or right half of the page, respectively.\nIf the presentation was created with \"\\setbeameroption{show notes on second screen=right}\", you should use \"--page-part=right\".", "side"},
         {{"e", "embed"}, "file1,file2,... Mark these files for embedding if an execution link points to them.", "files"},
         {{"w", "pid2wid"}, "Program that converts a PID to a Window ID.", "file"},
-        {{"u", "urlsplit"}, "Character which is used to split links into an url and arguments.", "char"}
+        {{"u", "urlsplit"}, "Character which is used to split links into an url and arguments.", "char"},
+        {{"s", "scrollstep"}, "Number of pixels which represent a scroll step for a touch pad scroll signal.", "int"}
     });
     parser.process(app);
 
@@ -234,7 +235,7 @@ int main(int argc, char *argv[])
     // Set program, which will convert PIDs to Window IDs
     if (!parser.value("w").isEmpty()) {
         if (parser.value("w").toLower() != "none")
-        w->setPid2WidConverter(parser.value("w"));
+            w->setPid2WidConverter(parser.value("w"));
     }
     else if ( settings.contains("pid2wid") )
         w->setPid2WidConverter(settings.value("pid2wid").toString());
@@ -244,6 +245,24 @@ int main(int argc, char *argv[])
         w->setUrlSplitCharacter(parser.value("u"));
     else if ( settings.contains("urlsplit") )
         w->setUrlSplitCharacter(settings.value("urlsplit").toString());
+
+    // Set scroll step for touch pad input devices
+    if (!parser.value("s").isEmpty()) {
+        bool success;
+        int step = parser.value("s").toInt(&success);
+        if (success)
+            w->setScrollDelta(step);
+        else
+            std::cerr << "option \"" << parser.value("s").toStdString() << "\" to scrollstep not understood." << std::endl;
+    }
+    else if ( settings.contains("scrollstep") ) {
+        bool success;
+        int step = settings.value("scrollstep").toInt(&success);
+        if (success)
+            w->setScrollDelta(step);
+        else
+            std::cerr << "option \"" << parser.value("s").toStdString() << "\" to scrollstep not understood." << std::endl;
+    }
 
 
     // show the GUI

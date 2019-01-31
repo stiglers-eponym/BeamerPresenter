@@ -50,6 +50,7 @@ public:
     void setEmbedFileList(const QStringList &files);
     void setPid2WidConverter(QString const &program);
     void setUrlSplitCharacter(QString const &splitCharacter);
+    void setScrollDelta(int const scrollDelta);
 
 protected:
     void keyPressEvent(QKeyEvent* event);
@@ -65,6 +66,8 @@ private:
     int numberOfPages;
     int currentPageNumber = 0;
     int pagePart = 0;
+    int scrollDelta = 200;
+    int scrollState = 0;
 
 signals:
     void togglePointerVisibilitySignal();

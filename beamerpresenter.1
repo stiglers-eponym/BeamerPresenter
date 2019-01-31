@@ -76,6 +76,10 @@ with the command
 Use this character (it may also be a sequence) to split links into a link path and a list of arguments. Using PDFs with such links can be convenient, but will make the links work only in this application. This does not follow the PDF standards. Possible arguments are
 .BR embed " (for executables), " autoplay " (for videos and sounds) and " loop " (for videos and sounds)."
 .
+.TP
+.BI "\-s \-\-scrollstep " integer
+Touch pads quantify scroll events as numbers of pixels. This option sets the number of pixels, which are interpreted as the step between two pages. A larger number makes the scrolling slower.
+.
 .
 .SH KEYBINDINGS
 .
@@ -253,6 +257,11 @@ set default value for the command line argument
 .B urlsplit
 set default value for the command line argument
 .BR \-u " or " \-\-urlsplit .
+.
+.TP
+.BR scrollstep =200
+overwrite default value for the command line argument
+.BR \-s " or " \-\-scrollstep .
 .
 .
 .SH BUGS

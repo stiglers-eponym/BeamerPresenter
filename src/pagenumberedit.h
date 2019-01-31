@@ -42,7 +42,6 @@ private slots:
 signals:
     void sendPageNumberReturn(int const pageNumber);
     void sendPageNumberEdit(int const pageNumber);
-    void sendPageShiftReturn(int const shift);
     void sendPageShiftEdit(int const shift);
     void sendNextSlideStart();
     void sendPreviousSlideEnd();
