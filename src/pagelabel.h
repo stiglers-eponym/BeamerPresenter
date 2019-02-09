@@ -45,26 +45,31 @@ public:
     PageLabel(QWidget* parent);
     PageLabel(Poppler::Page* page, QWidget* parent);
     ~PageLabel();
-    void renderPage(Poppler::Page* page, bool const setDuration=true, bool const killProcesses=true);
-    int pageNumber() const;
-    double getDuration() const;
-    void setPresentationStatus(bool const status);
-    void setShowMultimedia(bool const showVideos);
+    void renderPage(Poppler::Page* page, bool const setDuration=true, bool const killProcesses=true, QPixmap* pixmap=nullptr);
     bool hasActiveMultimediaContent() const;
-    void setMultimediaSliders(QList<MediaSlider*> sliderList);
-    void updateCache(Poppler::Page* page);
-    void updateCache(QPixmap* pixmap, int const index);
-    QPixmap* getCache();
-    int getCacheIndex() const;
-    Poppler::Page* getPage();
+    long int updateCache(Poppler::Page* page);
+    long int updateCache(QPixmap* pixmap, int const index);
+    long int clearCachePage(int const index);
     void clearCache();
-    void setPagePart(int const state);
-    void setEmbedFileList(const QStringList& files);
     void startAllEmbeddedApplications();
-    void setUrlSplitCharacter(QString const& splitCharacter);
+    long int getCacheSize() const;
+    int getCacheNumber() const {return cache.size();}
+
+    void setMultimediaSliders(QList<MediaSlider*> sliderList);
+    void setPresentationStatus(bool const status) {isPresentation=status;}
+    void setShowMultimedia(bool const showMultimedia) {this->showMultimedia=showMultimedia;}
+    void setUrlSplitCharacter(QString const& splitCharacter) {urlSplitCharacter=splitCharacter;}
+    void setPagePart(int const state) {pagePart=state;}
+    void setEmbedFileList(const QStringList& files) {embedFileList=files;}
+
+    QPixmap* getCache(int const index);
+    int pageNumber() const {return pageIndex;}
+    Poppler::Page* getPage() {return page;}
+    double getDuration() const {return  duration;}
 
 private:
     void clearLists(bool const killProcesses=true);
+    QMap<int,QByteArray*> cache;
     QList<Poppler::Link*> links;
     QList<QRect*> linkPositions;
     QList<VideoWidget*> videoWidgets;
@@ -79,8 +84,6 @@ private:
     QString pid2wid;
     QTimer* processTimer = nullptr;
     QStringList embedFileList;
-    QPixmap cachedPixmap;
-    int cachedIndex = -1;
     QTimer* timer = nullptr;
     double resolution;
     bool isPresentation = true;
@@ -93,8 +96,8 @@ private:
     int pageIndex = 0;
 
 protected:
-    void mouseReleaseEvent(QMouseEvent* event) override;
-    void mouseMoveEvent(QMouseEvent* event) override;
+    void mouseReleaseEvent(QMouseEvent* event);
+    void mouseMoveEvent(QMouseEvent* event);
 
 private:
     Poppler::Page* page;
@@ -103,15 +106,15 @@ private:
 
 public slots:
     void togglePointerVisibility();
-    void setAutostartDelay(double const delay);
     void pauseAllMultimedia();
     void startAllMultimedia();
-    void setAnimationDelay(int const delay_ms);
     void createEmbeddedWindow();
     void createEmbeddedWindowsFromPID();
-    void setPid2Wid(QString const & program);
     void receiveWid(WId const wid, int const index);
     void clearProcesses(int const exitCode, QProcess::ExitStatus const exitStatus);
+    void setAutostartDelay(double const delay) {autostartDelay=delay;}
+    void setAnimationDelay(int const delay_ms) {minimumAnimationDelay=delay_ms;}
+    void setPid2Wid(QString const & program) {pid2wid=program;}
 
 signals:
     void sendNewPageNumber(int const pageNumber);

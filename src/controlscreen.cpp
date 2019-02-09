@@ -54,6 +54,7 @@ ControlScreen::ControlScreen(QString presentationPath, QString notesPath, QWidge
         exit(1);
     }
     numberOfPages = presentation->getDoc()->numPages();
+    maxCacheNumber = numberOfPages;
 
     // Set up presentation screen
     presentationScreen = new PresentationScreen( presentation );
@@ -123,7 +124,6 @@ ControlScreen::ControlScreen(QString presentationPath, QString notesPath, QWidge
     // Signals sent back to PresentationScreen
     connect(this, &ControlScreen::sendNewPageNumber, presentationScreen, &PresentationScreen::receiveNewPageNumber);
     connect(this, &ControlScreen::sendCloseSignal,   presentationScreen, &PresentationScreen::receiveCloseSignal);
-    connect(this, &ControlScreen::sendUpdateCache,   presentationScreen, &PresentationScreen::updateCache);
     connect(ui->notes_label, &PageLabel::sendCloseSignal, presentationScreen, &PresentationScreen::receiveCloseSignal);
     connect(presentationScreen->getLabel(), &PageLabel::sendCloseSignal, presentationScreen, &PresentationScreen::receiveCloseSignal);
     connect(ui->notes_label, &PageLabel::sendCloseSignal, this, &ControlScreen::receiveCloseSignal);
@@ -155,10 +155,15 @@ ControlScreen::ControlScreen(QString presentationPath, QString notesPath, QWidge
     connect(ui->text_current_slide, &PageNumberEdit::sendNextSlideStart,   this, &ControlScreen::receiveNextSlideStart);
     connect(ui->text_current_slide, &PageNumberEdit::sendPreviousSlideEnd, this, &ControlScreen::receivePreviousSlideEnd);
     connect(ui->text_current_slide, &PageNumberEdit::sendEscape,           this, &ControlScreen::resetFocus);
+
+    connect(cacheTimer, SIGNAL(timeout()), this, SLOT(updateCacheStep()));
 }
 
 ControlScreen::~ControlScreen()
 {
+    cacheTimer->stop();
+    cacheTimer->disconnect();
+    delete cacheTimer;
     ui->notes_label->disconnect();
     ui->current_slide_label->disconnect();
     ui->next_slide_label->disconnect();
@@ -282,36 +287,129 @@ void ControlScreen::renderPage(int const pageNumber)
     if (currentPageNumber + 1 < presentation->getDoc()->numPages()) {
         ui->current_slide_label->renderPage( presentation->getPage(currentPageNumber), false );
         ui->current_slide_label->updateCache( presentation->getPage(currentPageNumber+1) );
-        ui->next_slide_label->updateCache( ui->current_slide_label->getCache(), currentPageNumber+1 );
-        ui->next_slide_label->renderPage( presentation->getPage(currentPageNumber+1), false );
+        ui->next_slide_label->renderPage( presentation->getPage(currentPageNumber+1), false, true, ui->current_slide_label->getCache(currentPageNumber+1) );
     }
     else {
         ui->current_slide_label->updateCache( presentation->getPage(currentPageNumber) );
         ui->current_slide_label->renderPage( presentation->getPage(currentPageNumber), false );
-        ui->next_slide_label->updateCache( ui->current_slide_label->getCache(), currentPageNumber );
-        ui->next_slide_label->renderPage( presentation->getPage(currentPageNumber), false );
+        ui->next_slide_label->renderPage( presentation->getPage(currentPageNumber), false, true, ui->current_slide_label->getCache(currentPageNumber) );
     }
     ui->text_current_slide->setText( QString::fromStdString( std::to_string(currentPageNumber+1) ) );
 }
 
 void ControlScreen::updateCache()
 {
-    if (currentPageNumber + 1 < notes->getDoc()->numPages()) {
-        ui->notes_label->updateCache( notes->getPage(currentPageNumber+1) );
-        if (currentPageNumber + 2 < presentation->getDoc()->numPages())
-            ui->next_slide_label->updateCache( presentation->getPage(currentPageNumber+2) );
+    cacheTimer->stop();
+    // Number of currently cached slides
+    cacheNumber = presentationScreen->getLabel()->getCacheNumber();
+    // Size of currently cached slides (set to -infinity if it shoule be ignored)
+    if (maxCacheSize > 0)
+        cacheSize = presentationScreen->getLabel()->getCacheSize()
+             + ui->notes_label->getCacheSize()
+             + ui->current_slide_label->getCacheSize();
+    else
+        cacheSize = -4294967296;
+
+    // Current page:
+    const int start_page = presentationScreen->getPageNumber();
+    // Cache all pages between start_page and last_cached-1
+    first_cached = start_page;
+    last_cached = start_page;
+    // Delete all pages <first_delete and >last_delete
+    first_delete = 0;
+    last_delete = numberOfPages-1;
+    // Cache current page
+    presentationScreen->getLabel()->updateCache(presentation->getPage(start_page));
+    ui->current_slide_label->updateCache(presentation->getPage(start_page));
+    ui->notes_label->updateCache(notes->getPage(start_page));
+    qDebug() << "Cached current page" << start_page;
+    cacheTimer->start();
+}
+
+void ControlScreen::updateCacheStep()
+{
+    // TODO: improve this, avoid caching pages which will directly be freed again
+    if (last_cached >= last_delete) {
+        cacheTimer->stop();
+        qDebug() << "Stopped cache timer";
+        return;
     }
+    long int delta = 0;
+    // Current page:
+    const int start_page = presentationScreen->getPageNumber();
+    if (first_cached > start_page || last_cached < start_page) {
+        cacheTimer->stop();
+        qDebug() << "Stopped cache timer";
+        return;
+    }
+    // Free space if necessary
+    while (cacheSize > maxCacheSize || cacheNumber > maxCacheNumber) {
+        if (last_delete > 3*start_page - 2*first_delete) {
+            delta = presentationScreen->getLabel()->clearCachePage(last_delete);
+            if (delta != 0) {
+                qDebug() << "Freed last page" << last_delete;
+                cacheNumber--;
+                cacheSize -= delta;
+            }
+            cacheSize -= ui->notes_label->clearCachePage(last_delete)
+                    + ui->current_slide_label->clearCachePage(last_delete);
+            last_delete--;
+        }
+        else {
+            delta = presentationScreen->getLabel()->clearCachePage(first_delete);
+            if (delta != 0) {
+                qDebug() << "Freed first page" << first_delete;
+                cacheNumber--;
+                cacheSize -= delta;
+            }
+            cacheSize -= ui->notes_label->clearCachePage(first_delete)
+                    + ui->current_slide_label->clearCachePage(first_delete);
+            first_delete++;
+        }
+    }
+    if (last_cached >= last_delete) {
+        cacheTimer->stop();
+        qDebug() << "Stopped cache timer";
+        return;
+    }
+    if ( (last_cached == last_delete-1 || last_cached-start_page >= 2*cacheNumber/3)
+            && (cacheNumber >= maxCacheNumber || (cacheNumber && maxCacheSize-cacheSize < cacheSize/cacheNumber) ) ) {
+        cacheTimer->stop();
+        qDebug() << "Stopped cache timer";
+        return;
+    }
+    // Cache the page last_cached
+    last_cached++;
+    delta = presentationScreen->getLabel()->updateCache(presentation->getPage(last_cached));
+    if (delta != 0) {
+        qDebug() << "Cached last page" << last_cached;
+        cacheNumber++;
+        cacheSize += delta;
+    }
+    cacheSize += ui->notes_label->updateCache(notes->getPage(last_cached))
+            + ui->current_slide_label->updateCache(presentation->getPage(last_cached));
+}
+
+void ControlScreen::setCacheNumber(const int number)
+{
+    if (number < 0)
+        maxCacheNumber = numberOfPages;
+    else
+        maxCacheNumber = number;
 }
 
 void ControlScreen::receiveNewPageNumber(int const pageNumber)
 {
     renderPage(pageNumber);
+    presentationScreen->updateCache(currentPageNumber);
 }
 
 void ControlScreen::receivePageShiftEdit(int const shift)
 {
-    if (currentPageNumber + shift >= 0)
+    if (currentPageNumber + shift >= 0) {
         renderPage(currentPageNumber + shift);
+        presentationScreen->updateCache(currentPageNumber);
+    }
 }
 
 void ControlScreen::receivePreviousSlideEnd()
@@ -340,14 +438,13 @@ void ControlScreen::receiveCloseSignal()
 
 void ControlScreen::keyPressEvent(QKeyEvent* event)
 {
-    switch ( event->key() ) {
+    switch (event->key()) {
         case Qt::Key_Right:
         case Qt::Key_PageDown:
             currentPageNumber = presentationScreen->getPageNumber() + 1;
             emit sendNewPageNumber(currentPageNumber);
             renderPage(currentPageNumber);
             ui->label_timer->continueTimer();
-            emit sendUpdateCache();
             updateCache();
             break;
         case Qt::Key_Left:
@@ -357,7 +454,6 @@ void ControlScreen::keyPressEvent(QKeyEvent* event)
                 emit sendNewPageNumber(currentPageNumber);
                 renderPage(currentPageNumber);
                 ui->label_timer->continueTimer();
-                emit sendUpdateCache();
                 updateCache();
             }
             else
@@ -368,7 +464,6 @@ void ControlScreen::keyPressEvent(QKeyEvent* event)
             emit sendNewPageNumber(currentPageNumber);
             renderPage(currentPageNumber);
             ui->label_timer->continueTimer();
-            emit sendUpdateCache();
             updateCache();
             break;
         case Qt::Key_Up:
@@ -376,7 +471,6 @@ void ControlScreen::keyPressEvent(QKeyEvent* event)
             emit sendNewPageNumber(currentPageNumber);
             renderPage(currentPageNumber);
             ui->label_timer->continueTimer();
-            emit sendUpdateCache();
             updateCache();
             break;
         case Qt::Key_Space:
@@ -384,21 +478,21 @@ void ControlScreen::keyPressEvent(QKeyEvent* event)
             emit sendNewPageNumber(currentPageNumber);
             renderPage(currentPageNumber);
             ui->label_timer->continueTimer();
-            emit sendUpdateCache();
+            updateCache();
+            break;
+        case Qt::Key_C:
             updateCache();
             break;
         case Qt::Key_End:
             currentPageNumber = numberOfPages - 1;
             emit sendNewPageNumber(currentPageNumber);
             renderPage(currentPageNumber);
-            emit sendUpdateCache();
             updateCache();
             break;
         case Qt::Key_Home:
             currentPageNumber = 0;
             emit sendNewPageNumber(currentPageNumber);
             renderPage(currentPageNumber);
-            emit sendUpdateCache();
             updateCache();
             break;
         case Qt::Key_Q:
@@ -512,14 +606,11 @@ void ControlScreen::wheelEvent(QWheelEvent* event)
         if (currentPageNumber != 0)
             renderPage(0);
     }
-    else if (deltaPages != 0)
+    else if (deltaPages != 0) {
         renderPage(currentPageNumber + deltaPages);
+        presentationScreen->updateCache(currentPageNumber);
+    }
     event->accept();
-}
-
-void ControlScreen::setScrollDelta(const int scrollDelta)
-{
-    this->scrollDelta = scrollDelta;
 }
 
 void ControlScreen::setEmbedFileList(const QStringList &files)
@@ -527,7 +618,6 @@ void ControlScreen::setEmbedFileList(const QStringList &files)
     ui->notes_label->setEmbedFileList(files);
     presentationScreen->getLabel()->setEmbedFileList(files);
 }
-
 
 void ControlScreen::setPid2WidConverter(QString const &program)
 {

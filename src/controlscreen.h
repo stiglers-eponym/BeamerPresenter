@@ -50,7 +50,9 @@ public:
     void setEmbedFileList(const QStringList &files);
     void setPid2WidConverter(QString const &program);
     void setUrlSplitCharacter(QString const &splitCharacter);
-    void setScrollDelta(int const scrollDelta);
+    void setScrollDelta(int const scrollDelta) {this->scrollDelta=scrollDelta;}
+    void setCacheNumber(int const number);
+    void setCacheSize(long int const size) {maxCacheSize=size;}
 
 protected:
     void keyPressEvent(QKeyEvent* event);
@@ -63,11 +65,23 @@ private:
     PresentationScreen* presentationScreen;
     PdfDoc* presentation;
     PdfDoc* notes;
+    QTimer* cacheTimer = new QTimer(this);
     int numberOfPages;
     int currentPageNumber = 0;
     int pagePart = 0;
     int scrollDelta = 200;
     int scrollState = 0;
+    int maxCacheNumber = 10;
+    long int maxCacheSize = 104857600;
+    int first_delete = 0;
+    int last_delete;
+    int first_cached = 0;
+    int last_cached = 0;
+    long int cacheSize = 0;
+    int cacheNumber = 0;
+
+private slots:
+    void updateCacheStep();
 
 signals:
     void togglePointerVisibilitySignal();
@@ -79,7 +93,6 @@ signals:
     void playMultimedia();
     void pauseMultimedia();
     void sendAnimationDelay(int const delay_ms);
-    void sendUpdateCache();
 
 public slots:
     void receivePreviousSlideEnd();

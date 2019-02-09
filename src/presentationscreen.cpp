@@ -33,11 +33,11 @@ PresentationScreen::PresentationScreen(PdfDoc* presentationDoc, QWidget* parent)
     label->setAlignment(Qt::AlignCenter);
     layout = new QGridLayout(this);
     layout->setContentsMargins(0, 0, 0, 0);
-    layout->addWidget( label, 0, 0 );
+    layout->addWidget(label, 0, 0);
     label->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-    connect(label, &PageLabel::sendNewPageNumber,       this, &PresentationScreen::receiveNewPageNumber);
-    connect(label, &PageLabel::sendNewPageNumber,       this, &PresentationScreen::sendNewPageNumber);
-    connect(label, &PageLabel::timeoutSignal,           this, &PresentationScreen::receiveTimeoutSignal);
+    connect(label, &PageLabel::sendNewPageNumber, this, &PresentationScreen::receiveNewPageNumber);
+    connect(label, &PageLabel::sendNewPageNumber, this, &PresentationScreen::sendNewPageNumber);
+    connect(label, &PageLabel::timeoutSignal,     this, &PresentationScreen::receiveTimeoutSignal);
     connect(this, &PresentationScreen::togglePointerVisibilitySignal, label, &PageLabel::togglePointerVisibility);
     label->togglePointerVisibility();
     show();
@@ -52,34 +52,23 @@ PresentationScreen::~PresentationScreen()
     delete layout;
 }
 
-PageLabel * PresentationScreen::getLabel()
-{
-    return label;
-}
-
-int PresentationScreen::getPageNumber() const
-{
-    return label->pageNumber();
-}
-
 void PresentationScreen::renderPage(int const pageNumber, bool const setDuration)
 {
     if ( pageNumber < 0 || pageNumber >= presentation->getDoc()->numPages() )
-        label->renderPage( presentation->getPage( presentation->getDoc()->numPages() - 1 ), setDuration );
+        label->renderPage(presentation->getPage( presentation->getDoc()->numPages() - 1 ), setDuration);
     else
-        label->renderPage( presentation->getPage(pageNumber), setDuration );
+        label->renderPage(presentation->getPage(pageNumber), setDuration);
 }
 
-void PresentationScreen::updateCache()
+void PresentationScreen::updateCache(int const pageNumber)
 {
-    int pageNumber = label->pageNumber() + 1;
-    if (pageNumber < presentation->getDoc()->numPages())
+    if (pageNumber>=0 && pageNumber < presentation->getDoc()->numPages())
         label->updateCache( presentation->getPage(pageNumber) );
 }
 
 void PresentationScreen::receiveTimeoutSignal()
 {
-    renderPage( label->pageNumber() + 1, true );
+    renderPage(label->pageNumber() + 1, true);
     if ( label->getDuration() < 0 || label->getDuration() > 0.5 )
         emit sendPageShift();
 }
@@ -100,10 +89,9 @@ void PresentationScreen::keyPressEvent(QKeyEvent* event)
     switch ( event->key() ) {
         case Qt::Key_Right:
         case Qt::Key_PageDown:
-            renderPage( label->pageNumber() + 1, true );
+            renderPage(label->pageNumber() + 1, true);
             if ( label->getDuration() < 0 || label->getDuration() > 0.5 )
                 emit sendPageShift();
-            updateCache();
             if ( label->getDuration() < 0 || label->getDuration() > 0.5 )
                 emit sendUpdateCache();
             break;
@@ -112,10 +100,9 @@ void PresentationScreen::keyPressEvent(QKeyEvent* event)
             {
                 int page = label->pageNumber() - 1;
                 if (page >= 0) {
-                    renderPage( label->pageNumber() - 1, true );
+                    renderPage(label->pageNumber() - 1, true);
                     if ( label->getDuration() < 0 || label->getDuration() > 0.5 )
                         emit sendPageShift();
-                    updateCache();
                     if ( label->getDuration() < 0 || label->getDuration() > 0.5 )
                         emit sendUpdateCache();
                 }
@@ -125,9 +112,8 @@ void PresentationScreen::keyPressEvent(QKeyEvent* event)
         case Qt::Key_Down:
             {
                 int pageNumber = presentation->getNextSlideIndex(label->pageNumber());
-                renderPage( pageNumber, true );
-                emit sendNewPageNumber( pageNumber );
-                updateCache();
+                renderPage(pageNumber, true);
+                emit sendNewPageNumber(pageNumber);
                 emit sendUpdateCache();
             }
             break;
@@ -135,9 +121,8 @@ void PresentationScreen::keyPressEvent(QKeyEvent* event)
         case Qt::Key_Up:
             {
                 int pageNumber = presentation->getPreviousSlideEnd(label->pageNumber());
-                renderPage( pageNumber, true );
-                emit sendNewPageNumber( pageNumber );
-                updateCache();
+                renderPage(pageNumber, true);
+                emit sendNewPageNumber(pageNumber);
                 emit sendUpdateCache();
             }
             break;
@@ -145,9 +130,8 @@ void PresentationScreen::keyPressEvent(QKeyEvent* event)
             emit focusPageNumberEdit();
             break;
         case Qt::Key_Space:
-            renderPage( label->pageNumber(), true );
+            renderPage(label->pageNumber(), true);
             emit sendPageShift();
-            updateCache();
             emit sendUpdateCache();
             break;
         case Qt::Key_O:

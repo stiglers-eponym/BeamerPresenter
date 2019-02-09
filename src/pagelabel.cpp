@@ -48,22 +48,8 @@ PageLabel::~PageLabel()
             }
         }
     }
+    clearCache();
     page = nullptr;
-}
-
-void PageLabel::setAutostartDelay(double const delay)
-{
-    autostartDelay = delay;
-}
-
-int PageLabel::pageNumber() const
-{
-    return pageIndex;
-}
-
-void PageLabel::setAnimationDelay(int const delay_ms)
-{
-    minimumAnimationDelay = delay_ms;
 }
 
 void PageLabel::clearLists(bool const killProcesses)
@@ -120,7 +106,7 @@ void PageLabel::clearLists(bool const killProcesses)
     }
 }
 
-void PageLabel::renderPage(Poppler::Page* page, bool const setDuration, bool const killProcesses)
+void PageLabel::renderPage(Poppler::Page* page, bool const setDuration, bool const killProcesses, QPixmap* pixmap)
 {
     emit slideChange();
     clearLists(killProcesses);
@@ -150,8 +136,13 @@ void PageLabel::renderPage(Poppler::Page* page, bool const setDuration, bool con
         if (pagePart == -1)
             shift_x -= width();
     }
-    if (pageIndex == cachedIndex)
-        setPixmap( cachedPixmap );
+    if (pixmap != nullptr) {
+        setPixmap(*pixmap);
+    }
+    else if (cache.contains(pageIndex)) {
+        // TODO
+        setPixmap( *getCache(pageIndex) );
+    }
     else {
         if (pagePart == 0)
             setPixmap( QPixmap::fromImage( page->renderToImage( 72*resolution, 72*resolution ) ) );
@@ -163,6 +154,7 @@ void PageLabel::renderPage(Poppler::Page* page, bool const setDuration, bool con
                 setPixmap( QPixmap::fromImage( image.copy(image.width()/2, 0, image.width()/2, image.height()) ) );
         }
     }
+    repaint();
 
     // Collect link areas in pixels
     links = page->links();
@@ -352,51 +344,74 @@ void PageLabel::renderPage(Poppler::Page* page, bool const setDuration, bool con
     }
 }
 
-void PageLabel::updateCache(QPixmap* pixmap, int const index)
+long int PageLabel::updateCache(QPixmap* pixmap, int const index)
 {
-    cachedIndex = index;
-    cachedPixmap = *pixmap;
+    QByteArray* bytes = new QByteArray();
+    QBuffer buffer(bytes);
+    buffer.open(QIODevice::WriteOnly);
+    pixmap->save(&buffer, "PNG");
+    cache[index] = bytes;
+    return bytes->size();
 }
 
-void PageLabel::updateCache(Poppler::Page* nextPage)
+long int PageLabel::updateCache(Poppler::Page* cachePage)
 {
-    if (page == nullptr) {
-        page = nextPage;
-        cachedIndex = nextPage->index();
-        if (pagePart == 0)
-            cachedPixmap = QPixmap::fromImage( nextPage->renderToImage( 72*resolution, 72*resolution ) );
-        else {
-            QImage image = nextPage->renderToImage( 72*resolution, 72*resolution );
-            if (pagePart == 1)
-                cachedPixmap = QPixmap::fromImage( image.copy(0, 0, image.width()/2, image.height()) );
-            else
-                cachedPixmap = QPixmap::fromImage( image.copy(image.width()/2, 0, image.width()/2, image.height()) );
-        }
-        return;
+    int index;
+    QPixmap pixmap;
+    index = cachePage->index();
+    if (cache.contains(index))
+        return 0;
+    if (pagePart == 0)
+        pixmap = QPixmap::fromImage( cachePage->renderToImage( 72*resolution, 72*resolution ) );
+    else {
+        QImage image = cachePage->renderToImage( 72*resolution, 72*resolution );
+        if (pagePart == 1)
+            pixmap = QPixmap::fromImage( image.copy(0, 0, image.width()/2, image.height()) );
+        else
+            pixmap = QPixmap::fromImage( image.copy(image.width()/2, 0, image.width()/2, image.height()) );
     }
-    double const nextDuration = nextPage->duration();
-    if (nextPage->index() != cachedIndex && ( nextDuration < -0.01  || nextDuration > 0.1) ) {
-        cachedIndex = nextPage->index();
-        if (pagePart == 0)
-            cachedPixmap = QPixmap::fromImage( nextPage->renderToImage( 72*resolution, 72*resolution ) );
-        else {
-            QImage image = nextPage->renderToImage( 72*resolution, 72*resolution );
-            if (pagePart == 1)
-                cachedPixmap = QPixmap::fromImage( image.copy(0, 0, image.width()/2, image.height()) );
-            else
-                cachedPixmap = QPixmap::fromImage( image.copy(image.width()/2, 0, image.width()/2, image.height()) );
-        }
+    QByteArray* bytes = new QByteArray();
+    QBuffer buffer(bytes);
+    buffer.open(QIODevice::WriteOnly);
+    pixmap.save(&buffer, "PNG");
+    cache[index] = bytes;
+    return bytes->size();
+}
+
+QPixmap* PageLabel::getCache(int const index)
+{
+    QPixmap * pixmap = new QPixmap();
+    pixmap->loadFromData(*cache[index], "PNG");
+    return pixmap;
+}
+
+long int PageLabel::getCacheSize() const
+{
+    long int size=0;
+    for (QMap<int,QByteArray*>::const_iterator it=cache.cbegin(); it!=cache.cend(); it++) {
+        size += it.value()->size();
     }
+    return size;
 }
 
-QPixmap* PageLabel::getCache()
+void PageLabel::clearCache()
 {
-    return &cachedPixmap;
+    for (QMap<int,QByteArray*>::iterator bytes=cache.begin(); bytes!=cache.end(); bytes++) {
+        delete bytes.value();
+    }
+    cache.clear();
 }
 
-int PageLabel::getCacheIndex() const
+long int PageLabel::clearCachePage(const int index)
 {
-    return cachedIndex;
+    if (cache.contains(index)) {
+        long int size = cache[index]->size();
+        delete cache[index];
+        cache.remove(index);
+        return size;
+    }
+    else
+        return 0;
 }
 
 void PageLabel::setMultimediaSliders(QList<MediaSlider*> sliderList)
@@ -474,21 +489,6 @@ bool PageLabel::hasActiveMultimediaContent() const
             return true;
     }
     return false;
-}
-
-void PageLabel::setPresentationStatus(bool const isPresentation)
-{
-    this->isPresentation = isPresentation;
-}
-
-void PageLabel::setShowMultimedia(const bool showMultimedia)
-{
-    this->showMultimedia = showMultimedia;
-}
-
-double PageLabel::getDuration() const
-{
-    return duration;
 }
 
 void PageLabel::mouseReleaseEvent(QMouseEvent* event)
@@ -738,26 +738,6 @@ void PageLabel::mouseMoveEvent(QMouseEvent* event)
     event->accept();
 }
 
-Poppler::Page* PageLabel::getPage()
-{
-    return page;
-}
-
-void PageLabel::clearCache()
-{
-    cachedIndex = -1;
-}
-
-void PageLabel::setPagePart(int const state)
-{
-    pagePart = state;
-}
-
-void PageLabel::setEmbedFileList(const QStringList &files)
-{
-    embedFileList = files;
-}
-
 void PageLabel::createEmbeddedWindow()
 {
     for(QMap<int,QProcess*>::iterator it=processes[pageIndex].begin(); it!=processes[pageIndex].end(); it++) {
@@ -814,11 +794,6 @@ void PageLabel::createEmbeddedWindowsFromPID()
         processTimer->stop();
     else
         processTimer->setInterval(1.5*processTimer->interval());
-}
-
-void PageLabel::setPid2Wid(QString const & program)
-{
-    pid2wid = program;
 }
 
 void PageLabel::receiveWid(WId const wid, int const index)
@@ -901,9 +876,4 @@ void PageLabel::clearProcesses(int const exitCode, QProcess::ExitStatus const ex
             }
         }
     }
-}
-
-void PageLabel::setUrlSplitCharacter(QString const& splitCharacter)
-{
-    urlSplitCharacter = splitCharacter;
 }

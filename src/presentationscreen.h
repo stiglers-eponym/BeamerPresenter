@@ -34,9 +34,9 @@ public:
     explicit PresentationScreen(PdfDoc* presentationDoc, QWidget* parent = nullptr);
     ~PresentationScreen();
     void renderPage(int const pageNumber = 0, bool const setDuration = false);
-    int getPageNumber() const;
-    void updateCache();
-    PageLabel* getLabel();
+    void updateCache(int const pageNumber);
+    int getPageNumber() const {return label->pageNumber();}
+    PageLabel* getLabel() {return label;}
 
 protected:
     void keyPressEvent(QKeyEvent* event);

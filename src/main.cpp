@@ -41,6 +41,7 @@ int main(int argc, char *argv[])
             "  o                Toggle cursor visbility (only on presentation screen)\n"
             "  m                Play or pause all multimedia content\n"
             "  e                Start all embedded applications\n"
+            "  c                Update cache\n" // TODO: not implemented yet
             "  space            Update layout and start or continue timer\n"
             "  Left, PageUp     Go to previous slide and start or continue timer\n"
             "  Right, PageDown  Go to next slide and start or continue timer\n"
@@ -64,7 +65,9 @@ int main(int argc, char *argv[])
         {{"e", "embed"}, "file1,file2,... Mark these files for embedding if an execution link points to them.", "files"},
         {{"w", "pid2wid"}, "Program that converts a PID to a Window ID.", "file"},
         {{"u", "urlsplit"}, "Character which is used to split links into an url and arguments.", "char"},
-        {{"s", "scrollstep"}, "Number of pixels which represent a scroll step for a touch pad scroll signal.", "int"}
+        {{"s", "scrollstep"}, "Number of pixels which represent a scroll step for a touch pad scroll signal.", "int"},
+        {{"c", "cache"}, "Number of slides that will be cached. If this is -1, all slides will be cached.", "int"},
+        {{"M", "memory"}, "Maximum size of cache in MiB.", "int"},
     });
     parser.process(app);
 
@@ -261,7 +264,43 @@ int main(int argc, char *argv[])
         if (success)
             w->setScrollDelta(step);
         else
-            std::cerr << "option \"" << parser.value("s").toStdString() << "\" to scrollstep not understood." << std::endl;
+            std::cerr << "option \"" << settings.value("scrollstep").toString().toStdString() << "\" to scrollstep in config not understood." << std::endl;
+    }
+
+    // Set maximum number of cached slides
+    if (!parser.value("c").isEmpty()) {
+        bool success;
+        int num = parser.value("c").toInt(&success);
+        if (success)
+            w->setCacheNumber(num);
+        else
+            std::cerr << "option \"" << parser.value("c").toStdString() << "\" to cache not understood." << std::endl;
+    }
+    else if ( settings.contains("cache") ) {
+        bool success;
+        int num = settings.value("cache").toInt(&success);
+        if (success)
+            w->setCacheNumber(num);
+        else
+            std::cerr << "option \"" << settings.value("cache").toString().toStdString() << "\" to cache in config not understood." << std::endl;
+    }
+
+    // Set maximum cache size
+    if (!parser.value("M").isEmpty()) {
+        bool success;
+        int size = parser.value("M").toInt(&success);
+        if (success)
+            w->setCacheSize(1048576L * size);
+        else
+            std::cerr << "option \"" << parser.value("M").toStdString() << "\" to memory not understood." << std::endl;
+    }
+    else if ( settings.contains("memory") ) {
+        bool success;
+        int size = settings.value("memory").toInt(&success);
+        if (success)
+            w->setCacheSize(1048576L * size);
+        else
+            std::cerr << "option \"" << settings.value("memory").toString().toStdString() << "\" to memory in config not understood." << std::endl;
     }
 
 
