@@ -1,5 +1,7 @@
 BeamerPresenter
 
+* Cache: test, clean up the code, improve
+
 * Embedded applications: Terminate processes correctly before closing the window
 * Embedded applications: debug, test, use wildecards
 * Handle focus of embedded windows
@@ -9,7 +11,6 @@ BeamerPresenter
 * Multimedia: Better control bar
 * Multimedia: more options, more testing, embedded files
 
-* Improve cache
 * Search document
 * Support locked and encrypted pdfs: Enter passwords in QDialog? hide password input!
 * Implement other link types (history, search)

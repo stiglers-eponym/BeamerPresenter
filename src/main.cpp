@@ -66,8 +66,8 @@ int main(int argc, char *argv[])
         {{"w", "pid2wid"}, "Program that converts a PID to a Window ID.", "file"},
         {{"u", "urlsplit"}, "Character which is used to split links into an url and arguments.", "char"},
         {{"s", "scrollstep"}, "Number of pixels which represent a scroll step for a touch pad scroll signal.", "int"},
-        {{"c", "cache"}, "Number of slides that will be cached. If this is -1, all slides will be cached.", "int"},
-        {{"M", "memory"}, "Maximum size of cache in MiB.", "int"},
+        {{"c", "cache"}, "Number of slides that will be cached. A negative number is treated as infinity.", "int"},
+        {{"M", "memory"}, "Maximum size of cache in MiB. A negative number is treated as infinity.", "int"},
     });
     parser.process(app);
 
@@ -131,7 +131,7 @@ int main(int argc, char *argv[])
     // Each argument can have a default value in settings.
 
     // Split page if necessary
-    if ( !parser.value("p").isEmpty() ) {
+    if (!parser.value("p").isEmpty()) {
         QString value = parser.value("p");
         if ( value == "r" || value == "right" )
             w->setPagePart(1);
@@ -141,7 +141,7 @@ int main(int argc, char *argv[])
         else
             std::cerr << "option \"" << parser.value("p").toStdString() << "\" to page-part not understood." << std::endl;
     }
-    else if ( settings.contains("page-part")) {
+    else if (settings.contains("page-part")) {
         QString value = settings.value("page-part").toString();
         if ( value == "r" || value == "right" )
             w->setPagePart(1);
@@ -153,7 +153,7 @@ int main(int argc, char *argv[])
     }
 
     // Set tolerance for presentation time
-    if ( !parser.value("d").isEmpty() ) {
+    if (!parser.value("d").isEmpty()) {
         bool success;
         int tolerance = parser.value("d").toInt(&success);
         if (success)
@@ -171,13 +171,13 @@ int main(int argc, char *argv[])
     }
 
     // Set presentation time
-    if ( !parser.value("t").isEmpty() )
+    if (!parser.value("t").isEmpty())
         emit w->sendTimerString(parser.value("t"));
     else if (settings.contains("timer"))
         emit w->sendTimerString(settings.value("timer").toStringList()[0]);
 
     // Set minimum time per frame
-    if ( !parser.value("m").isEmpty() ) {
+    if (!parser.value("m").isEmpty()) {
         bool success;
         int delay = parser.value("m").toInt(&success);
         if (success)
@@ -195,7 +195,7 @@ int main(int argc, char *argv[])
     }
 
     // Set autostart or delay for multimedia content
-    if ( !parser.value("a").isEmpty() ) {
+    if (!parser.value("a").isEmpty()) {
         double delay = 0.;
         bool success;
         QString a = parser.value("a").toLower();
@@ -209,7 +209,7 @@ int main(int argc, char *argv[])
         else
             std::cerr << "option \"" << parser.value("a").toStdString() << "\" to autoplay not understood." << std::endl;
     }
-    else if ( settings.contains("autoplay") ) {
+    else if (settings.contains("autoplay")) {
         double delay = 0.;
         bool success;
         QString a = settings.value("autoplay").toString().toLower();
@@ -230,7 +230,7 @@ int main(int argc, char *argv[])
         const QStringList files = parser.value("e").split(",");
         w->setEmbedFileList(files);
     }
-    else if ( settings.contains("embed") ) {
+    else if (settings.contains("embed")) {
         const QStringList files = settings.value("embed").toStringList();
         w->setEmbedFileList(files);
     }
@@ -240,7 +240,7 @@ int main(int argc, char *argv[])
         if (parser.value("w").toLower() != "none")
             w->setPid2WidConverter(parser.value("w"));
     }
-    else if ( settings.contains("pid2wid") )
+    else if (settings.contains("pid2wid"))
         w->setPid2WidConverter(settings.value("pid2wid").toString());
 
     // Set character, which is used to split links into a file name and arguments
@@ -258,7 +258,7 @@ int main(int argc, char *argv[])
         else
             std::cerr << "option \"" << parser.value("s").toStdString() << "\" to scrollstep not understood." << std::endl;
     }
-    else if ( settings.contains("scrollstep") ) {
+    else if (settings.contains("scrollstep")) {
         bool success;
         int step = settings.value("scrollstep").toInt(&success);
         if (success)
@@ -276,7 +276,7 @@ int main(int argc, char *argv[])
         else
             std::cerr << "option \"" << parser.value("c").toStdString() << "\" to cache not understood." << std::endl;
     }
-    else if ( settings.contains("cache") ) {
+    else if (settings.contains("cache")) {
         bool success;
         int num = settings.value("cache").toInt(&success);
         if (success)
@@ -294,7 +294,7 @@ int main(int argc, char *argv[])
         else
             std::cerr << "option \"" << parser.value("M").toStdString() << "\" to memory not understood." << std::endl;
     }
-    else if ( settings.contains("memory") ) {
+    else if (settings.contains("memory")) {
         bool success;
         int size = settings.value("memory").toInt(&success);
         if (success)

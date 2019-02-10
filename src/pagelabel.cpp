@@ -20,7 +20,7 @@
 
 PageLabel::PageLabel(Poppler::Page* page, QWidget* parent) : QLabel(parent)
 {
-    renderPage(page, false, false);
+    renderPage(page, false);
 }
 
 PageLabel::PageLabel(QWidget* parent) : QLabel(parent)
@@ -31,7 +31,8 @@ PageLabel::PageLabel(QWidget* parent) : QLabel(parent)
 PageLabel::~PageLabel()
 {
     delete timer;
-    clearLists(true);
+    clearLists();
+    clearProcessCallers();
     for (QMap<int,QMap<int,QProcess*>>::iterator map=processes.begin(); map!=processes.end(); map++) {
         for (QMap<int,QProcess*>::iterator process=map->begin(); process!=map->end(); process++) {
             if (*process != nullptr) {
@@ -52,7 +53,7 @@ PageLabel::~PageLabel()
     page = nullptr;
 }
 
-void PageLabel::clearLists(bool const killProcesses)
+void PageLabel::clearLists()
 {
     if (sliders.size() != 0) {
         if (sliders.size() == videoWidgets.size() + soundPlayers.size() + linkSoundPlayers.size()) {
@@ -92,26 +93,30 @@ void PageLabel::clearLists(bool const killProcesses)
     soundPlayers.clear();
     qDeleteAll(linkSoundPlayers);
     linkSoundPlayers.clear();
-    if (killProcesses) {
-        qDeleteAll(pidWidCallers);
-        pidWidCallers.clear();
-        if (processTimer != nullptr)
-            processTimer->stop();
-        if (embeddedWidgets.contains(pageIndex)) {
-            for (QMap<int,QWidget*>::iterator widget=embeddedWidgets[pageIndex].begin(); widget!=embeddedWidgets[pageIndex].end(); widget++) {
-                if (*widget != nullptr)
-                    (*widget)->hide();
-            }
+}
+
+void PageLabel::clearProcessCallers()
+{
+    qDeleteAll(pidWidCallers);
+    pidWidCallers.clear();
+    if (processTimer != nullptr)
+        processTimer->stop();
+    if (embeddedWidgets.contains(pageIndex)) {
+        for (QMap<int,QWidget*>::iterator widget=embeddedWidgets[pageIndex].begin(); widget!=embeddedWidgets[pageIndex].end(); widget++) {
+            if (*widget != nullptr)
+                (*widget)->hide();
         }
     }
 }
 
-void PageLabel::renderPage(Poppler::Page* page, bool const setDuration, bool const killProcesses, QPixmap* pixmap)
+void PageLabel::renderPage(Poppler::Page* page, bool const setDuration, QPixmap* pixmap)
 {
     emit slideChange();
-    clearLists(killProcesses);
+    clearLists();
     if (page == nullptr)
         return;
+    if (this->page != nullptr && page->index() != this->page->index())
+        clearProcessCallers();
 
     this->page = page;
     pageIndex = page->index();
@@ -136,12 +141,12 @@ void PageLabel::renderPage(Poppler::Page* page, bool const setDuration, bool con
         if (pagePart == -1)
             shift_x -= width();
     }
-    if (pixmap != nullptr) {
+    if (pixmap != nullptr)
         setPixmap(*pixmap);
-    }
     else if (cache.contains(pageIndex)) {
-        // TODO
-        setPixmap( *getCache(pageIndex) );
+        QPixmap* pixmap = getCache(pageIndex);
+        setPixmap(*pixmap);
+        delete pixmap;
     }
     else {
         if (pagePart == 0)
@@ -169,7 +174,7 @@ void PageLabel::renderPage(Poppler::Page* page, bool const setDuration, bool con
         linkPositions.append(absolute);
     }
 
-    if (setDuration) {
+    if (isPresentation && setDuration) {
         duration = page->duration();
         if ( duration > 0.01)
             QTimer::singleShot(int(1000*duration), this, &PageLabel::timeoutSignal);
@@ -182,7 +187,7 @@ void PageLabel::renderPage(Poppler::Page* page, bool const setDuration, bool con
     if (transition != nullptr && transition->type() != Poppler::PageTransition::Replace)
         qInfo() << "Unsupported page transition of type " << transition->type();
 
-    // Show videos. This part is work in progress.
+    // Multimedia content. This part is work in progress.
     // TODO: This is probably inefficient.
     if (showMultimedia) {
         // Video
@@ -344,8 +349,10 @@ void PageLabel::renderPage(Poppler::Page* page, bool const setDuration, bool con
     }
 }
 
-long int PageLabel::updateCache(QPixmap* pixmap, int const index)
+long int PageLabel::updateCache(QPixmap const* pixmap, int const index)
 {
+    if (pixmap->isNull())
+        return 0;
     QByteArray* bytes = new QByteArray();
     QBuffer buffer(bytes);
     buffer.open(QIODevice::WriteOnly);
@@ -354,7 +361,7 @@ long int PageLabel::updateCache(QPixmap* pixmap, int const index)
     return bytes->size();
 }
 
-long int PageLabel::updateCache(Poppler::Page* cachePage)
+long int PageLabel::updateCache(Poppler::Page const * cachePage)
 {
     int index;
     QPixmap pixmap;
@@ -370,12 +377,34 @@ long int PageLabel::updateCache(Poppler::Page* cachePage)
         else
             pixmap = QPixmap::fromImage( image.copy(image.width()/2, 0, image.width()/2, image.height()) );
     }
+    // This check is repeated, because it could be possible that the cache is overwritten while the image is rendered.
+    if (cache.contains(index))
+        return 0;
     QByteArray* bytes = new QByteArray();
     QBuffer buffer(bytes);
     buffer.open(QIODevice::WriteOnly);
     pixmap.save(&buffer, "PNG");
     cache[index] = bytes;
     return bytes->size();
+}
+
+QPixmap PageLabel::getPixmap(Poppler::Page const * cachePage) const
+{
+    int index;
+    QPixmap pixmap;
+    index = cachePage->index();
+    if (cache.contains(index))
+        return pixmap;
+    if (pagePart == 0)
+        pixmap = QPixmap::fromImage( cachePage->renderToImage( 72*resolution, 72*resolution ) );
+    else {
+        QImage image = cachePage->renderToImage( 72*resolution, 72*resolution );
+        if (pagePart == 1)
+            pixmap = QPixmap::fromImage( image.copy(0, 0, image.width()/2, image.height()) );
+        else
+            pixmap = QPixmap::fromImage( image.copy(image.width()/2, 0, image.width()/2, image.height()) );
+    }
+    return pixmap;
 }
 
 QPixmap* PageLabel::getCache(int const index)

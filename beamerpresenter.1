@@ -80,6 +80,14 @@ Use this character (it may also be a sequence) to split links into a link path a
 .BI "\-s \-\-scrollstep " integer
 Touch pads quantify scroll events as numbers of pixels. This option sets the number of pixels, which are interpreted as the step between two pages. A larger number makes the scrolling slower.
 .
+.TP
+.BI "\-c \-\-cache " integer
+Set the maximum number of slides, which are rendered to images and stored in a compressed cache. A negative number is treated as infinity.
+.
+.TP
+.BI "\-M \-\-memory " integer
+Set the maximum cache size in MiB. A negative number is treated as infinity.
+.
 .
 .SH KEYBINDINGS
 .
@@ -148,6 +156,10 @@ Set page number of the control screen to the page number of the presentation. Wh
 .B e
 Start all embedded applications on the currently shown slide.
 .
+.TP
+.B c
+Update cached slides if necessary. An update of the cache is also triggered by a change of the current slide and by updating the current slide.
+.
 .SH FEATURES
 .
 .SS Links
@@ -167,7 +179,15 @@ You can jump to the next or previous page with a different page label by using t
 For presentations created with LaTeX beamer using overlays, this jumps to the next or previous slide, which differs by more than an overlay.
 .
 .SS Cache
-Currently only the next slide is pre rendered and saved as cache. This speeds up the presentation when showing the slides in correct order without animations.
+Slides are rendered to a compressed cache in order to allow faster slide changes. The number of cached slides and the memory usage can be limited by the options
+.BR cache " and " memory .
+By default up to 100 MiB are used for cached slides.
+The cache implementation is useful and stable if all slides are rendered to cache. While rendering slides into cache, the performance of
+.B BeamerPresenter
+is negatively affected. For immediate slide changes during your presentation, you should make sure that all slides are rendered to cache for the correct window size before the actual presentation begins.
+Restricting the cache size can also affect the performance and might lead to unstable behavior.
+Caching slides can be switched off completely with the command line option
+.BR -c 0.
 .
 .SS Multimedia Support
 .B BeamerPresenter
@@ -262,6 +282,16 @@ set default value for the command line argument
 .BR scrollstep =200
 overwrite default value for the command line argument
 .BR \-s " or " \-\-scrollstep .
+.
+.TP
+.BR cache =-1
+overwrite default value for the command line argument
+.BR \-c " or " \-\-cache .
+.
+.TP
+.BR scrollstep =100
+overwrite default value for the command line argument
+.BR \-M " or " \-\-memory .
 .
 .
 .SH BUGS

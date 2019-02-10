@@ -45,10 +45,11 @@ public:
     PageLabel(QWidget* parent);
     PageLabel(Poppler::Page* page, QWidget* parent);
     ~PageLabel();
-    void renderPage(Poppler::Page* page, bool const setDuration=true, bool const killProcesses=true, QPixmap* pixmap=nullptr);
+    void renderPage(Poppler::Page* page, bool const setDuration=true, QPixmap* pixmap=nullptr);
     bool hasActiveMultimediaContent() const;
-    long int updateCache(Poppler::Page* page);
-    long int updateCache(QPixmap* pixmap, int const index);
+    long int updateCache(Poppler::Page const * page);
+    long int updateCache(QPixmap const* pixmap, int const index);
+    QPixmap getPixmap(Poppler::Page const * page) const;
     long int clearCachePage(int const index);
     void clearCache();
     void startAllEmbeddedApplications();
@@ -66,9 +67,11 @@ public:
     int pageNumber() const {return pageIndex;}
     Poppler::Page* getPage() {return page;}
     double getDuration() const {return  duration;}
+    bool cacheContains(int const index) {return cache.contains(index);}
 
 private:
-    void clearLists(bool const killProcesses=true);
+    void clearLists();
+    void clearProcessCallers();
     QMap<int,QByteArray*> cache;
     QList<Poppler::Link*> links;
     QList<QRect*> linkPositions;

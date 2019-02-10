@@ -20,6 +20,7 @@
 #define CONTROLSCREEN_H
 
 #include <QMainWindow>
+#include <QThread>
 #include <QLabel>
 #include <QKeyEvent>
 #include <QResizeEvent>
@@ -31,6 +32,7 @@
 #include "timer.h"
 #include "pagenumberedit.h"
 #include "presentationscreen.h"
+#include "cacheupdatethread.h"
 
 namespace Ui {
     class ControlScreen;
@@ -79,6 +81,7 @@ private:
     int last_cached = 0;
     long int cacheSize = 0;
     int cacheNumber = 0;
+    char cacheProcessRunning = 0;
 
 private slots:
     void updateCacheStep();
@@ -95,6 +98,7 @@ signals:
     void sendAnimationDelay(int const delay_ms);
 
 public slots:
+    void receiveCache(QPixmap const& pres, QPixmap const& note, QPixmap const& small, int const index);
     void receivePreviousSlideEnd();
     void receiveNextSlideStart();
     void receiveNewPageNumber(int const pageNumber);
