@@ -60,12 +60,6 @@ void PresentationScreen::renderPage(int const pageNumber, bool const setDuration
         label->renderPage(presentation->getPage(pageNumber), setDuration);
 }
 
-void PresentationScreen::updateCache(int const pageNumber)
-{
-    if (pageNumber>=0 && pageNumber < presentation->getDoc()->numPages())
-        label->updateCache( presentation->getPage(pageNumber) );
-}
-
 void PresentationScreen::receiveTimeoutSignal()
 {
     renderPage(label->pageNumber() + 1, true);
@@ -155,6 +149,7 @@ void PresentationScreen::resizeEvent(QResizeEvent* event)
 {
     label->clearCache();
     label->renderPage(label->getPage(), true);
+    emit clearPresentationCacheRequest();
 }
 
 void PresentationScreen::wheelEvent(QWheelEvent* event)

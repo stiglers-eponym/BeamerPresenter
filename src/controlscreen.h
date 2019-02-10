@@ -54,7 +54,7 @@ public:
     void setUrlSplitCharacter(QString const &splitCharacter);
     void setScrollDelta(int const scrollDelta) {this->scrollDelta=scrollDelta;}
     void setCacheNumber(int const number);
-    void setCacheSize(long int const size) {maxCacheSize=size;}
+    void setCacheSize(long int const size);
 
 protected:
     void keyPressEvent(QKeyEvent* event);
@@ -68,6 +68,7 @@ private:
     PdfDoc* presentation;
     PdfDoc* notes;
     QTimer* cacheTimer = new QTimer(this);
+    CacheUpdateThread* cacheThread = new CacheUpdateThread(this);
     int numberOfPages;
     int currentPageNumber = 0;
     int pagePart = 0;
@@ -81,7 +82,6 @@ private:
     int last_cached = 0;
     long int cacheSize = 0;
     int cacheNumber = 0;
-    char cacheProcessRunning = 0;
 
 private slots:
     void updateCacheStep();
@@ -98,7 +98,7 @@ signals:
     void sendAnimationDelay(int const delay_ms);
 
 public slots:
-    void receiveCache(QPixmap const& pres, QPixmap const& note, QPixmap const& small, int const index);
+    void receiveCache(QByteArray const* pres, QByteArray const* note, QByteArray const* small, int const index);
     void receivePreviousSlideEnd();
     void receiveNextSlideStart();
     void receiveNewPageNumber(int const pageNumber);
@@ -111,6 +111,7 @@ public slots:
     void focusPageNumberEdit();
     void addMultimediaSliders(int const n);
     void updateCache();
+    void clearPresentationCache();
 };
 
 #endif // CONTROLSCREEN_H

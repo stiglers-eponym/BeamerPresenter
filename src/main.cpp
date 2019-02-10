@@ -24,8 +24,11 @@
 #include "controlscreen.h"
 #include "presentationscreen.h"
 
+
 int main(int argc, char *argv[])
 {
+    qSetMessagePattern("%{time process} %{if-debug}D%{endif}%{if-info}INFO%{endif}%{if-warning}WARNING%{endif}%{if-critical}CRITICAL%{endif}%{if-fatal}FATAL%{endif}%{if-category} %{category}%{endif}%{if-debug} %{file}:%{line}%{endif} - %{message}%{if-fatal} from %{backtrace [depth=3]}%{endif}");
+
     QApplication app(argc, argv);
     QApplication::setApplicationName("beamerpresenter");
 
@@ -41,7 +44,7 @@ int main(int argc, char *argv[])
             "  o                Toggle cursor visbility (only on presentation screen)\n"
             "  m                Play or pause all multimedia content\n"
             "  e                Start all embedded applications\n"
-            "  c                Update cache\n" // TODO: not implemented yet
+            "  c                Update cache\n"
             "  space            Update layout and start or continue timer\n"
             "  Left, PageUp     Go to previous slide and start or continue timer\n"
             "  Right, PageDown  Go to next slide and start or continue timer\n"

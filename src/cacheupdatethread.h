@@ -19,7 +19,7 @@ private:
     Poppler::Page const* presPage;
     Poppler::Page const* notePage;
 signals:
-    void resultsReady(QPixmap const& pres, QPixmap const& note, QPixmap const& small, int const index);
+    void resultsReady(QByteArray const* pres, QByteArray const* note, QByteArray const* small, int const index);
 };
 
 #endif // CACHEUPDATETHREAD_H

@@ -179,13 +179,10 @@ You can jump to the next or previous page with a different page label by using t
 For presentations created with LaTeX beamer using overlays, this jumps to the next or previous slide, which differs by more than an overlay.
 .
 .SS Cache
-Slides are rendered to a compressed cache in order to allow faster slide changes. The number of cached slides and the memory usage can be limited by the options
+Slides are rendered to a compressed cache in order to allow for much faster slide changes. The number of cached slides and the memory usage can be limited by the options
 .BR cache " and " memory .
 By default up to 100 MiB are used for cached slides.
-The cache implementation is useful and stable if all slides are rendered to cache. While rendering slides into cache, the performance of
-.B BeamerPresenter
-is negatively affected. For immediate slide changes during your presentation, you should make sure that all slides are rendered to cache for the correct window size before the actual presentation begins.
-Restricting the cache size can also affect the performance and might lead to unstable behavior.
+Restricting the cache size can affect the performance and might lead to unstable behavior.
 Caching slides can be switched off completely with the command line option
 .BR -c 0.
 .

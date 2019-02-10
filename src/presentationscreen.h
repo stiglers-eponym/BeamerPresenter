@@ -34,7 +34,6 @@ public:
     explicit PresentationScreen(PdfDoc* presentationDoc, QWidget* parent = nullptr);
     ~PresentationScreen();
     void renderPage(int const pageNumber = 0, bool const setDuration = false);
-    void updateCache(int const pageNumber);
     int getPageNumber() const {return label->pageNumber();}
     PageLabel* getLabel() {return label;}
 
@@ -56,6 +55,7 @@ signals:
     void togglePointerVisibilitySignal();
     void sendUpdateCache();
     void focusPageNumberEdit();
+    void clearPresentationCacheRequest();
 
 public slots:
     void receiveNewPageNumber(const int pageNumber);

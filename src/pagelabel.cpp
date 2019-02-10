@@ -149,15 +149,10 @@ void PageLabel::renderPage(Poppler::Page* page, bool const setDuration, QPixmap*
         delete pixmap;
     }
     else {
-        if (pagePart == 0)
-            setPixmap( QPixmap::fromImage( page->renderToImage( 72*resolution, 72*resolution ) ) );
-        else {
-            QImage image = page->renderToImage( 72*resolution, 72*resolution );
-            if (pagePart == 1)
-                setPixmap( QPixmap::fromImage( image.copy(0, 0, image.width()/2, image.height()) ) );
-            else
-                setPixmap( QPixmap::fromImage( image.copy(image.width()/2, 0, image.width()/2, image.height()) ) );
-        }
+        QPixmap const pixmap = getPixmap(page);
+        setPixmap(pixmap);
+        if (useCache)
+            updateCache(&pixmap, page->index());
     }
     repaint();
 
@@ -361,6 +356,16 @@ long int PageLabel::updateCache(QPixmap const* pixmap, int const index)
     return bytes->size();
 }
 
+long int PageLabel::updateCache(QByteArray const* bytes, int const index)
+{
+    if (bytes->isNull() || bytes->isEmpty())
+        return 0;
+    else if (cache.contains(index))
+        delete cache[index];
+    cache[index] = bytes;
+    return bytes->size();
+}
+
 long int PageLabel::updateCache(Poppler::Page const * cachePage)
 {
     int index;
@@ -407,17 +412,26 @@ QPixmap PageLabel::getPixmap(Poppler::Page const * cachePage) const
     return pixmap;
 }
 
-QPixmap* PageLabel::getCache(int const index)
+QPixmap* PageLabel::getCache(int const index) const
 {
     QPixmap * pixmap = new QPixmap();
-    pixmap->loadFromData(*cache[index], "PNG");
+    if (cache.contains(index))
+        pixmap->loadFromData(*cache[index], "PNG");
     return pixmap;
+}
+
+QByteArray const* PageLabel::getCachedBytes(int const index) const
+{
+    if (cache.contains(index))
+        return cache[index];
+    else
+        return new QByteArray();
 }
 
 long int PageLabel::getCacheSize() const
 {
     long int size=0;
-    for (QMap<int,QByteArray*>::const_iterator it=cache.cbegin(); it!=cache.cend(); it++) {
+    for (QMap<int,QByteArray const*>::const_iterator it=cache.cbegin(); it!=cache.cend(); it++) {
         size += it.value()->size();
     }
     return size;
@@ -425,7 +439,7 @@ long int PageLabel::getCacheSize() const
 
 void PageLabel::clearCache()
 {
-    for (QMap<int,QByteArray*>::iterator bytes=cache.begin(); bytes!=cache.end(); bytes++) {
+    for (QMap<int,QByteArray const*>::iterator bytes=cache.begin(); bytes!=cache.end(); bytes++) {
         delete bytes.value();
     }
     cache.clear();

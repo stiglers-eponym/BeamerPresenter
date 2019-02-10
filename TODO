@@ -1,6 +1,7 @@
 BeamerPresenter
 
 * Cache: test, clean up the code, improve
+* Render presentation screen and control screen in parallel
 
 * Embedded applications: Terminate processes correctly before closing the window
 * Embedded applications: debug, test, use wildecards

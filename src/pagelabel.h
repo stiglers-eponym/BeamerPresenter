@@ -49,6 +49,7 @@ public:
     bool hasActiveMultimediaContent() const;
     long int updateCache(Poppler::Page const * page);
     long int updateCache(QPixmap const* pixmap, int const index);
+    long int updateCache(QByteArray const* pixmap, int const index);
     QPixmap getPixmap(Poppler::Page const * page) const;
     long int clearCachePage(int const index);
     void clearCache();
@@ -62,8 +63,10 @@ public:
     void setUrlSplitCharacter(QString const& splitCharacter) {urlSplitCharacter=splitCharacter;}
     void setPagePart(int const state) {pagePart=state;}
     void setEmbedFileList(const QStringList& files) {embedFileList=files;}
+    void setUseCache(bool const use) {useCache=use;}
 
-    QPixmap* getCache(int const index);
+    QPixmap* getCache(int const index) const;
+    QByteArray const* getCachedBytes(int const index) const;
     int pageNumber() const {return pageIndex;}
     Poppler::Page* getPage() {return page;}
     double getDuration() const {return  duration;}
@@ -72,7 +75,7 @@ public:
 private:
     void clearLists();
     void clearProcessCallers();
-    QMap<int,QByteArray*> cache;
+    QMap<int,QByteArray const*> cache;
     QList<Poppler::Link*> links;
     QList<QRect*> linkPositions;
     QList<VideoWidget*> videoWidgets;
@@ -97,6 +100,7 @@ private:
     QString urlSplitCharacter = "";
     int minDelayEmbeddedWindows = 50;
     int pageIndex = 0;
+    bool useCache = true;
 
 protected:
     void mouseReleaseEvent(QMouseEvent* event);
