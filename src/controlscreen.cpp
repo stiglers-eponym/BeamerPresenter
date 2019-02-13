@@ -38,7 +38,7 @@ ControlScreen::ControlScreen(QString presentationPath, QString notesPath, QWidge
         if (!notesPath.isEmpty()) {
             QFileInfo checkNotes(notesPath);
             if (!checkNotes.exists() || (!checkNotes.isFile() && !checkNotes.isSymLink()) ) {
-                qWarning() << "WARNING: Ignoring invalid notes files: " << notesPath;
+                qWarning() << "Ignoring invalid notes files: " << notesPath;
                 notesPath = "";
             }
         }
@@ -171,9 +171,11 @@ ControlScreen::~ControlScreen()
     cacheTimer->stop();
     cacheTimer->disconnect();
     delete cacheTimer;
-    if (cacheThread->isRunning())
-        cacheThread->terminate();
-    cacheThread->deleteLater();
+    if (cacheThread->isRunning()) {
+        cacheThread->quit();
+        cacheThread->wait();
+    }
+    delete cacheThread;
     ui->notes_label->disconnect();
     ui->current_slide_label->disconnect();
     ui->next_slide_label->disconnect();
@@ -340,7 +342,6 @@ void ControlScreen::updateCache()
     else
         cacheSize = -4294967296;
 
-    // Current page:
     if (first_cached > currentPageNumber || last_cached < currentPageNumber) {
         // we are outside the simply connected cache region: reset cache numbers
         cacheThread->requestInterruption();
@@ -371,28 +372,28 @@ void ControlScreen::updateCacheStep()
     // Free space if necessary
     long int delta;
     while (cacheSize > maxCacheSize || cacheNumber > maxCacheNumber) {
-        // Approximately 1/3 of the cached slides should be previous slides
-        if (last_delete > 3*currentPageNumber - 2*first_delete) {
+        // Start deleting later slides if less than 1/4 of the caches slides are previous slides
+        if (last_delete > 4*currentPageNumber - 3*first_delete) {
             delta = presentationScreen->getLabel()->clearCachePage(last_delete);
+            cacheSize -= ui->notes_label->clearCachePage(last_delete)
+                    + ui->current_slide_label->clearCachePage(last_delete);
             if (delta != 0) {
                 cacheNumber--;
                 cacheSize -= delta;
                 qDebug() << "Freed last page" << last_delete << ". Cache size" << cacheSize << "B";
             }
-            cacheSize -= ui->notes_label->clearCachePage(last_delete)
-                    + ui->current_slide_label->clearCachePage(last_delete);
             last_delete--;
             last_cached = last_delete > last_cached ? last_cached : last_delete;
         }
         else {
             delta = presentationScreen->getLabel()->clearCachePage(first_delete);
+            cacheSize -= ui->notes_label->clearCachePage(first_delete)
+                    + ui->current_slide_label->clearCachePage(first_delete);
             if (delta != 0) {
                 cacheNumber--;
                 cacheSize -= delta;
                 qDebug() << "Freed first page" << first_delete << ". Cache size" << cacheSize << "B";
             }
-            cacheSize -= ui->notes_label->clearCachePage(first_delete)
-                    + ui->current_slide_label->clearCachePage(first_delete);
             first_delete++;
             first_cached = first_cached > first_delete ? first_cached : first_delete;
         }
@@ -402,35 +403,46 @@ void ControlScreen::updateCacheStep()
             return;
         }
     }
-    if (last_cached == numberOfPages-1 && first_cached > first_delete && 2*maxCacheNumber > 3*cacheNumber && 2*maxCacheSize > 3*cacheSize) {
-        // cache first_cached-1
-        if (!presentationScreen->getLabel()->cacheContains(first_cached-1)) {
-            cacheTimer->stop();
-            cacheThread->setPages(presentation->getPage(first_cached-1), notes->getPage(first_cached-1));
-            cacheThread->start();
+    if (last_cached+1 == numberOfPages) {
+        if (first_cached > first_delete && (maxCacheNumber==numberOfPages || 2*maxCacheNumber > 3*cacheNumber) && 2*maxCacheSize > 3*cacheSize) {
+            // cache first_cached-1
+            if (!presentationScreen->getLabel()->cacheContains(first_cached-1)) {
+                cacheTimer->stop();
+                cacheThread->setPages(presentation->getPage(first_cached-1), notes->getPage(first_cached-1));
+                cacheThread->start();
+            }
+            else {
+                first_cached--;
+                cacheSize += ui->notes_label->updateCache(notes->getPage(first_cached))
+                             + ui->current_slide_label->updateCache(presentation->getPage(first_cached));
+            }
+            return;
         }
         else {
-            first_cached--;
-            cacheSize += ui->notes_label->updateCache(notes->getPage(first_cached))
-                         + ui->current_slide_label->updateCache(presentation->getPage(first_cached));
+            cacheTimer->stop();
+            qDebug() << "Stopped cache timer" << first_delete << first_cached << currentPageNumber << last_cached << last_delete;
+            return;
         }
     }
-    else if ( (last_cached == last_delete || 3*(last_cached-currentPageNumber) >= 2*maxCacheNumber)
-            && (cacheNumber >= maxCacheNumber || (maxCacheSize-cacheSize)*cacheNumber < cacheSize) ) {
+    // Don't continue if it is likely that the next cached page would directly be deleted.
+    else if ( (last_cached == last_delete || 3*(last_cached-currentPageNumber+1) >= 2*maxCacheNumber)
+            && (cacheNumber >= maxCacheNumber || (maxCacheSize-cacheSize)*cacheNumber < 2*cacheSize) ) {
         cacheTimer->stop();
         qDebug() << "Stopped cache timer" << first_delete << first_cached << currentPageNumber << last_cached << last_delete;
         return;
     }
-    // Cache the page last_cached+1
-    if (!presentationScreen->getLabel()->cacheContains(last_cached+1) && last_cached+1 < numberOfPages) {
-        cacheTimer->stop();
-        cacheThread->setPages(presentation->getPage(last_cached+1), notes->getPage(last_cached+1));
-        cacheThread->start();
-    }
     else {
-        last_cached++;
-        cacheSize += ui->notes_label->updateCache(notes->getPage(last_cached))
-                     + ui->current_slide_label->updateCache(presentation->getPage(last_cached));
+        // Cache the page last_cached+1
+        if (!presentationScreen->getLabel()->cacheContains(last_cached+1)) {
+            cacheTimer->stop();
+            cacheThread->setPages(presentation->getPage(last_cached+1), notes->getPage(last_cached+1));
+            cacheThread->start();
+        }
+        else {
+            last_cached++;
+            cacheSize += ui->notes_label->updateCache(notes->getPage(last_cached))
+                         + ui->current_slide_label->updateCache(presentation->getPage(last_cached));
+        }
     }
 }
 
@@ -447,16 +459,20 @@ void ControlScreen::receiveCache(QByteArray const* pres, QByteArray const* note,
                      + ui->notes_label->updateCache(note, index)
                      + ui->current_slide_label->updateCache(small, index);
         cacheNumber++;
-        if (cacheNumber==numberOfPages)
+        qDebug() << "Cached page" << index << "; Cache size" << cacheSize << "B";
+        if (cacheNumber==numberOfPages) {
             qInfo() << "All slides are rendered to cache. Cache size:" << cacheSize << "B";
-        qDebug() << "Cached page" << index << ". Cache size" << cacheSize << "B";
+            first_cached = 0;
+            last_cached = numberOfPages-1;
+            return;
+        }
     }
     if (index == last_cached+1)
         last_cached++;
     else if (index == first_cached-1)
         first_cached--;
-    cacheThread->wait(100);
-    cacheTimer->start();
+    if (cacheThread->wait(100))
+        cacheTimer->start();
 }
 
 void ControlScreen::setCacheNumber(const int number)
@@ -641,8 +657,8 @@ void ControlScreen::resizeEvent(QResizeEvent* event)
 {
     cacheThread->requestInterruption();
     recalcLayout(currentPageNumber);
-    last_cached = presentationScreen->getPageNumber();
-    first_cached = last_cached;
+    first_cached = presentationScreen->getPageNumber();
+    last_cached = first_cached-1;
     first_delete = 0;
     last_delete = numberOfPages-1;
     ui->notes_label->clearCache();
@@ -656,8 +672,8 @@ void ControlScreen::resizeEvent(QResizeEvent* event)
 void ControlScreen::clearPresentationCache()
 {
     cacheThread->requestInterruption();
-    last_cached = presentationScreen->getPageNumber();
-    first_cached = last_cached;
+    first_cached = presentationScreen->getPageNumber();
+    last_cached = first_cached-1;
     first_delete = 0;
     last_delete = numberOfPages-1;
 }

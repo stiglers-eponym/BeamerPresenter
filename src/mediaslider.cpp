@@ -58,6 +58,18 @@ void MediaSlider::keyPressEvent(QKeyEvent* event)
         case Qt::Key_PageDown:
         case Qt::Key_Up:
         case Qt::Key_Down:
+        case Qt::Key_Return:
+        case Qt::Key_M:
+        case Qt::Key_End:
+        case Qt::Key_Home:
+        case Qt::Key_G:
+        case Qt::Key_C:
+        case Qt::Key_Q:
+        case Qt::Key_P:
+        case Qt::Key_R:
+        case Qt::Key_O:
+        case Qt::Key_F:
+        case Qt::Key_E:
             emit sendKeyEvent(event);
             break;
         default:

@@ -208,7 +208,7 @@ void PageLabel::renderPage(Poppler::Page* page, bool const setDuration, QPixmap*
         soundType.insert(Poppler::Annotation::ASound);
         QList<Poppler::Annotation*> sounds = page->annotations(soundType);
         for (QList<Poppler::Annotation*>::iterator it = sounds.begin(); it!=sounds.end(); it++) {
-            qWarning() << "WARNING: Support for sound in annotations is untested!";
+            qWarning() << "Support for sound in annotations is untested!";
             QRectF relative = (*it)->boundary();
             QRect * absolute = new QRect(
                         shift_x+int(relative.x()*scale_x),

@@ -79,7 +79,7 @@ private:
     int first_delete = 0;
     int last_delete;
     int first_cached = 0;
-    int last_cached = 0;
+    int last_cached = -1;
     long int cacheSize = 0;
     int cacheNumber = 0;
 
