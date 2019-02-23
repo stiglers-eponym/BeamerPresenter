@@ -31,11 +31,6 @@ PdfDoc::~PdfDoc()
     delete popplerDoc;
 }
 
-Poppler::Document const * PdfDoc::getDoc() const
-{
-    return popplerDoc;
-}
-
 void PdfDoc::loadDocument()
 {
     if (popplerDoc != nullptr) {
@@ -47,7 +42,7 @@ void PdfDoc::loadDocument()
         return;
     if (popplerDoc->isLocked()) {
         // TODO: use a nicer way of entering passwords (a QDialog?)
-        std::cout << "WARNING: File " << pdfPath.toStdString() << ":\n"
+        std::cout << "WARNING: File " << qPrintable(pdfPath) << ":\n"
                   << "This file is locked. Support for locked files is HIGHLY EXPERIMENTAL!" << std::endl
                   << "You can try to enter your password here.\n"
                   << "YOUR PASSWORD WILL BE VISIBLE IF YOU ENTER IT HERE!" << std::endl;
@@ -127,7 +122,10 @@ int PdfDoc::getPreviousSlideEnd(int const index) const
     return 0;
 }
 
-void PdfDoc::setPagePart(int const state)
+int PdfDoc::destToSlide(QString const & dest) const
 {
-    pagePart = state;
+    Poppler::LinkDestination* linkDest = popplerDoc->linkDestination(dest);
+    if (linkDest==nullptr)
+        return -1;
+    return linkDest->pageNumber()-1;
 }

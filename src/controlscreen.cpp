@@ -56,6 +56,9 @@ ControlScreen::ControlScreen(QString presentationPath, QString notesPath, QWidge
     numberOfPages = presentation->getDoc()->numPages();
     maxCacheNumber = numberOfPages;
     last_delete = numberOfPages-1;
+    tocBox = new TocBox(this);
+    tocBox->setGeometry(ui->notes_label->geometry());
+    tocBox->hide();
 
     // Set up presentation screen
     presentationScreen = new PresentationScreen( presentation );
@@ -163,10 +166,14 @@ ControlScreen::ControlScreen(QString presentationPath, QString notesPath, QWidge
     cacheThread->setLabels(presentationScreen->getLabel(), ui->notes_label, ui->current_slide_label);
     connect(cacheThread, &CacheUpdateThread::resultsReady, this, &ControlScreen::receiveCache);
     connect(presentationScreen, &PresentationScreen::clearPresentationCacheRequest, this, &ControlScreen::clearPresentationCache);
+
+    // TOC
+    connect(tocBox, &TocBox::sendDest, this, &ControlScreen::receiveDest);
 }
 
 ControlScreen::~ControlScreen()
 {
+    delete tocBox;
     cacheThread->requestInterruption();
     cacheTimer->stop();
     cacheTimer->disconnect();
@@ -222,6 +229,7 @@ void ControlScreen::recalcLayout(const int pageNumber)
     ui->next_slide_label->setMaximumWidth(sideWidth);
     ui->gridLayout->setColumnStretch(0, width()-sideWidth);
     ui->gridLayout->setColumnStretch(1, sideWidth);
+    tocBox->setGeometry(0.1*(width()-sideWidth), 0, 0.8*(width()-sideWidth), height());
     updateGeometry();
 
     // Adjust font sizes
@@ -499,10 +507,36 @@ void ControlScreen::setCacheSize(const long size)
     maxCacheSize = size;
 }
 
+void ControlScreen::setTocLevel(const int level)
+{
+    if (level<1) {
+        qWarning() << "toc-depth set to minimum value 1";
+        tocBox->setUnfoldLevel(1);
+    }
+    else if (level>4) {
+        qWarning() << "toc-depth set to maximum value 4";
+        tocBox->setUnfoldLevel(4);
+    }
+    else
+        tocBox->setUnfoldLevel(level);
+}
+
 void ControlScreen::receiveNewPageNumber(int const pageNumber)
 {
     renderPage(pageNumber);
     updateCache();
+}
+
+void ControlScreen::receiveDest(QString const& dest)
+{
+    hideToc();
+    int const pageNumber = presentation->destToSlide(dest);
+    if (pageNumber>=0 && pageNumber<numberOfPages) {
+        emit sendNewPageNumber(pageNumber);
+        renderPage(pageNumber);
+        ui->label_timer->continueTimer();
+        updateCache();
+    }
 }
 
 void ControlScreen::receivePageShiftEdit(int const shift)
@@ -550,6 +584,7 @@ void ControlScreen::keyPressEvent(QKeyEvent* event)
             currentPageNumber = presentationScreen->getPageNumber() + 1;
             emit sendNewPageNumber(currentPageNumber);
             renderPage(currentPageNumber);
+            hideToc();
             ui->label_timer->continueTimer();
             updateCache();
             break;
@@ -559,6 +594,7 @@ void ControlScreen::keyPressEvent(QKeyEvent* event)
             if (currentPageNumber >= 0) {
                 emit sendNewPageNumber(currentPageNumber);
                 renderPage(currentPageNumber);
+                hideToc();
                 ui->label_timer->continueTimer();
                 updateCache();
             }
@@ -569,6 +605,7 @@ void ControlScreen::keyPressEvent(QKeyEvent* event)
             currentPageNumber = notes->getNextSlideIndex(presentationScreen->getPageNumber());
             emit sendNewPageNumber(currentPageNumber);
             renderPage(currentPageNumber);
+            hideToc();
             ui->label_timer->continueTimer();
             updateCache();
             break;
@@ -576,6 +613,7 @@ void ControlScreen::keyPressEvent(QKeyEvent* event)
             currentPageNumber = notes->getPreviousSlideEnd(presentationScreen->getPageNumber());
             emit sendNewPageNumber(currentPageNumber);
             renderPage(currentPageNumber);
+            hideToc();
             ui->label_timer->continueTimer();
             updateCache();
             break;
@@ -583,6 +621,7 @@ void ControlScreen::keyPressEvent(QKeyEvent* event)
             currentPageNumber = presentationScreen->getPageNumber();
             emit sendNewPageNumber(currentPageNumber);
             renderPage(currentPageNumber);
+            hideToc();
             ui->label_timer->continueTimer();
             updateCache();
             break;
@@ -593,12 +632,14 @@ void ControlScreen::keyPressEvent(QKeyEvent* event)
             currentPageNumber = numberOfPages - 1;
             emit sendNewPageNumber(currentPageNumber);
             renderPage(currentPageNumber);
+            hideToc();
             updateCache();
             break;
         case Qt::Key_Home:
             currentPageNumber = 0;
             emit sendNewPageNumber(currentPageNumber);
             renderPage(currentPageNumber);
+            hideToc();
             updateCache();
             break;
         case Qt::Key_Q:
@@ -606,6 +647,7 @@ void ControlScreen::keyPressEvent(QKeyEvent* event)
             close();
             break;
         case Qt::Key_G:
+            hideToc();
             ui->text_current_slide->setFocus();
             break;
         case Qt::Key_P:
@@ -626,9 +668,13 @@ void ControlScreen::keyPressEvent(QKeyEvent* event)
                     emit playMultimedia();
             }
             break;
+        case Qt::Key_T:
+            showToc();
+            break;
         case Qt::Key_Return:
             if (presentationScreen->getLabel()->pageNumber() != currentPageNumber)
                 emit sendNewPageNumber(currentPageNumber);
+            hideToc();
             updateCache();
             ui->label_timer->continueTimer();
             break;
@@ -649,6 +695,7 @@ void ControlScreen::keyPressEvent(QKeyEvent* event)
                 renderPage(currentPageNumber);
                 updateCache();
             }
+            hideToc();
     }
     event->accept();
 }
@@ -755,4 +802,26 @@ void ControlScreen::setUrlSplitCharacter(QString const &splitCharacter)
 {
     ui->notes_label->setUrlSplitCharacter(splitCharacter);
     presentationScreen->getLabel()->setUrlSplitCharacter(splitCharacter);
+}
+
+void ControlScreen::showToc()
+{
+    if (tocBox->needUpdate())
+        tocBox->createToc(presentation->getToc());
+    if (!tocBox->hasToc()) {
+        qWarning() << "This document does not contain a table of contents";
+        return;
+    }
+    if (!this->isActiveWindow())
+        this->activateWindow();
+    ui->notes_label->hide();
+    tocBox->show();
+    tocBox->setFocus();
+}
+
+void ControlScreen::hideToc()
+{
+    tocBox->hide();
+    ui->notes_label->show();
+    ui->notes_label->setFocus();
 }

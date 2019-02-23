@@ -88,6 +88,10 @@ Set the maximum number of slides, which are rendered to images and stored in a c
 .BI "\-M \-\-memory " integer
 Set the maximum cache size in MiB. A negative number is treated as infinity.
 .
+.TP
+.BI "\-l \-\-toc-depth " integer
+.RB "Number of levels in the table of contents, which will be shown on the control screen with shortcut " t ". Possible values range from 1 and 4. An additional level will be shown as a popup menu if necessary."
+.
 .
 .SH KEYBINDINGS
 .
@@ -121,6 +125,10 @@ Toggle cursor visbility (only on the presentation screen).
 Play or pause all multimedia content on the current slide.
 .
 .TP
+.B t
+Show table of contents on the control screen.
+.
+.TP
 .B space
 Update layout, reload page and start or continue timer.
 .
@@ -150,7 +158,7 @@ Set page number of the presentation to the page number on the control screen and
 .
 .TP
 .B escape
-Set page number of the control screen to the page number of the presentation. When browsing your notes, this will bring you back to the current slide.
+Set page number of the control screen to the page number of the presentation. When browsing your notes, this will bring you back to the current slide. Also hide the table of contents if it is shown.
 .
 .TP
 .B e
@@ -172,6 +180,9 @@ By changing the current page number in the corresponding text field, the note pa
 .BR return ", " PageUp ", or " PageDown .
 You can escape this mode and go back to the current slide on the presentation by pressing
 .BR escape .
+.
+.SS Browse Table of Contents
+.RB "You can show a table of contents on the control screen with shortcut " t " for quick navigation. The maximum level of subsections shown in the table of contents can be controlled with the option " \-l " or " \-\-toc-depth ". For entries with more levels, one additional level is shown as a popup menu."
 .
 .SS Overlays
 You can jump to the next or previous page with a different page label by using the shortcuts
@@ -289,6 +300,11 @@ overwrite default value for the command line argument
 .BR scrollstep =100
 overwrite default value for the command line argument
 .BR \-M " or " \-\-memory .
+.
+.TP
+.BR toc-depth =2
+overwrite default value for the command line argument
+.BR \-l " or " \-\-toc-depth .
 .
 .
 .SH BUGS

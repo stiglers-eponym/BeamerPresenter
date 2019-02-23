@@ -45,6 +45,7 @@ int main(int argc, char *argv[])
             "  m                Play or pause all multimedia content\n"
             "  e                Start all embedded applications\n"
             "  c                Update cache\n"
+            "  t                Show table of contents on control screen\n"
             "  space            Update layout and start or continue timer\n"
             "  Left, PageUp     Go to previous slide and start or continue timer\n"
             "  Right, PageDown  Go to next slide and start or continue timer\n"
@@ -54,7 +55,7 @@ int main(int argc, char *argv[])
             "                   In beamer presentations: first overlay of the next slide.\n"
             "  F11, f           Toggle fullscreen (only for current window)\n"
             "  return           Accept the page number from the notes and continue presentation\n"
-            "  escape           Go to the note page for the current slide\n"
+            "  escape           Go to the note page for the current slide. Hide table of contents.\n"
         );
     parser.addHelpOption();
     parser.addPositionalArgument("<slides.pdf>", "Slides for a presentation");
@@ -71,6 +72,7 @@ int main(int argc, char *argv[])
         {{"s", "scrollstep"}, "Number of pixels which represent a scroll step for a touch pad scroll signal.", "int"},
         {{"c", "cache"}, "Number of slides that will be cached. A negative number is treated as infinity.", "int"},
         {{"M", "memory"}, "Maximum size of cache in MiB. A negative number is treated as infinity.", "int"},
+        {{"l", "toc-depth"}, "Number of levels of the table of contents which are shown.", "int"},
     });
     parser.process(app);
 
@@ -304,6 +306,24 @@ int main(int argc, char *argv[])
             w->setCacheSize(1048576L * size);
         else
             std::cerr << "option \"" << settings.value("memory").toString().toStdString() << "\" to memory in config not understood." << std::endl;
+    }
+
+    // Set number of visible TOC levels
+    if (!parser.value("l").isEmpty()) {
+        bool success;
+        int num = parser.value("l").toInt(&success);
+        if (success)
+            w->setTocLevel(num);
+        else
+            std::cerr << "option \"" << parser.value("l").toStdString() << "\" to toc-depth not understood." << std::endl;
+    }
+    else if (settings.contains("toc-depth")) {
+        bool success;
+        int num = settings.value("toc-depth").toInt(&success);
+        if (success)
+            w->setTocLevel(num);
+        else
+            std::cerr << "option \"" << settings.value("toc-depth").toString().toStdString() << "\" to toc-depth in config not understood." << std::endl;
     }
 
 

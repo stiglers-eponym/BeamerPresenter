@@ -24,10 +24,18 @@
 #include <QWidget>
 #include <QLabel>
 #include <poppler-qt5.h>
+#include <QDomDocument>
 
 class PdfDoc : public QObject
 {
     Q_OBJECT
+
+private:
+    Poppler::Document* popplerDoc = nullptr;
+    QString pdfPath;
+    QList<Poppler::Page*> pdfPages;
+    QList<QString> labels;
+    int pagePart = 0;
 
 public:
     PdfDoc(QString pathToPdf = "");
@@ -37,19 +45,10 @@ public:
     QSize getPageSize(int const pageNumber) const;
     int getNextSlideIndex(int const index) const;
     int getPreviousSlideEnd(int const index) const;
-    void setPagePart(int const state);
-    Poppler::Document const * getDoc() const;
-
-private:
-    Poppler::Document* popplerDoc = nullptr;
-    QString pdfPath;
-    QList<Poppler::Page*> pdfPages;
-    QList<QString> labels;
-    int pagePart = 0;
-
-signals:
-
-public slots:
+    void setPagePart(int const state) {pagePart = state;}
+    Poppler::Document const * getDoc() const {return popplerDoc;}
+    QDomDocument const * getToc() const {return popplerDoc->toc();}
+    int destToSlide(QString const & dest) const;
 };
 
 #endif // PDFWIDGET_H

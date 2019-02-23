@@ -1,12 +1,11 @@
 BeamerPresenter
 
 * Cache: test, clean up the code, improve
-* Render presentation screen and control screen in parallel
+* Render to cache using multiple threads
 
 * Embedded applications: Terminate processes correctly before closing the window
 * Embedded applications: debug, test, use wildecards
 * Handle focus of embedded windows
-* update documentation
 
 * Multimedia: allow more arguments
 * Multimedia: Better control bar
@@ -18,14 +17,11 @@ BeamerPresenter
 * Implement optional content (e.g. for sound)
 
 * Mode to browse slides on control screen
-* Option to show table of content on control screen (with links)
 * Draw in presentation
-* Draw mode for control screen
 * Page transitions
 
 * Other animations
 	* strange embedded pdf features (video, audio, JavaScript?)
 	* other video or audio?
 
-* Make dependence on qt5-multimedia optional?
 * Avoid short black flash when showing video

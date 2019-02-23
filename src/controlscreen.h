@@ -33,6 +33,7 @@
 #include "pagenumberedit.h"
 #include "presentationscreen.h"
 #include "cacheupdatethread.h"
+#include "tocbox.h"
 
 namespace Ui {
     class ControlScreen;
@@ -55,6 +56,7 @@ public:
     void setScrollDelta(int const scrollDelta) {this->scrollDelta=scrollDelta;}
     void setCacheNumber(int const number);
     void setCacheSize(long int const size);
+    void setTocLevel(int const level);
 
 protected:
     void keyPressEvent(QKeyEvent* event);
@@ -69,6 +71,7 @@ private:
     PdfDoc* notes;
     QTimer* cacheTimer = new QTimer(this);
     CacheUpdateThread* cacheThread = new CacheUpdateThread(this);
+    TocBox* tocBox = nullptr;
     int numberOfPages;
     int currentPageNumber = 0;
     int pagePart = 0;
@@ -99,6 +102,7 @@ signals:
 
 public slots:
     void receiveCache(QByteArray const* pres, QByteArray const* note, QByteArray const* small, int const index);
+    void receiveDest(QString const& dest);
     void receivePreviousSlideEnd();
     void receiveNextSlideStart();
     void receiveNewPageNumber(int const pageNumber);
@@ -112,6 +116,8 @@ public slots:
     void addMultimediaSliders(int const n);
     void updateCache();
     void clearPresentationCache();
+    void showToc();
+    void hideToc();
 };
 
 #endif // CONTROLSCREEN_H

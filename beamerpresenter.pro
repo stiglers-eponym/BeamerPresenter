@@ -4,7 +4,7 @@
 #
 #-------------------------------------------------
 
-QT       += core gui multimedia multimediawidgets
+QT       += core gui multimedia multimediawidgets xml
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
@@ -37,7 +37,10 @@ SOURCES += \
         src/videowidget.cpp \
         src/mediaslider.cpp \
         src/pidwidcaller.cpp \
-        src/cacheupdatethread.cpp
+        src/cacheupdatethread.cpp \
+        src/tocbox.cpp \
+        src/tocbutton.cpp \
+        src/tocaction.cpp
 
 HEADERS += \
         src/controlscreen.h \
@@ -50,7 +53,10 @@ HEADERS += \
         src/videowidget.h \
         src/mediaslider.h \
         src/pidwidcaller.h \
-        src/cacheupdatethread.h
+        src/cacheupdatethread.h \
+        src/tocbox.h \
+        src/tocbutton.h \
+        src/tocaction.h
 
 FORMS += \
         src/controlscreen.ui
