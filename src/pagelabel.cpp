@@ -358,7 +358,7 @@ long int PageLabel::updateCache(QPixmap const* pixmap, int const index)
 
 long int PageLabel::updateCache(QByteArray const* bytes, int const index)
 {
-    if (bytes->isNull() || bytes->isEmpty())
+    if (bytes==nullptr || bytes->isNull() || bytes->isEmpty())
         return 0;
     else if (cache.contains(index))
         delete cache[index];

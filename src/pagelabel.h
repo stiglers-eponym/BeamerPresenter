@@ -70,7 +70,7 @@ public:
     int pageNumber() const {return pageIndex;}
     Poppler::Page* getPage() {return page;}
     double getDuration() const {return  duration;}
-    bool cacheContains(int const index) {return cache.contains(index);}
+    bool cacheContains(int const index) const {return cache.contains(index);}
 
 private:
     void clearLists();

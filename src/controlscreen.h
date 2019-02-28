@@ -57,6 +57,7 @@ public:
     void setCacheNumber(int const number);
     void setCacheSize(long int const size);
     void setTocLevel(int const level);
+    void setRenderer(QStringList command);
 
 protected:
     void keyPressEvent(QKeyEvent* event);

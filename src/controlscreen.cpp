@@ -82,7 +82,7 @@ ControlScreen::ControlScreen(QString presentationPath, QString notesPath, QWidge
     }
 
     // Set up the widgets
-    ui->text_number_slides->setText( QString::fromStdString( std::to_string(numberOfPages) ) );
+    ui->text_number_slides->setText(QString::number(numberOfPages));
     ui->text_current_slide->setNumberOfPages(numberOfPages);
     ui->notes_label->setPresentationStatus(false);
     ui->current_slide_label->setShowMultimedia(false);
@@ -330,7 +330,7 @@ void ControlScreen::renderPage(int const pageNumber)
         ui->next_slide_label->renderPage(page, false, pixmap);
         delete pixmap;
     }
-    ui->text_current_slide->setText(QString::fromStdString(std::to_string(currentPageNumber+1)));
+    ui->text_current_slide->setText(QString::number(currentPageNumber+1));
 }
 
 void ControlScreen::updateCache()
@@ -824,4 +824,25 @@ void ControlScreen::hideToc()
     tocBox->hide();
     ui->notes_label->show();
     ui->notes_label->setFocus();
+}
+
+void ControlScreen::setRenderer(QStringList command)
+{
+    if (command.size() == 1) {
+        if (command[0]=="poppler")
+            cacheThread->setRenderer(Renderer::poppler);
+        else if (command[0]=="custom") {
+            if (cacheThread->hasRenderCommand())
+                cacheThread->setRenderer(Renderer::custom);
+            else
+                qWarning() << "Ignored request to use undefined custom renderer";
+        }
+        else
+            qWarning() << "Ignored request to use undefined custom renderer";
+    }
+    else {
+        QString program = command[0];
+        command.removeFirst();
+        cacheThread->setCustomRenderer(program, presentation->getPath(), notes->getPath(), command);
+    }
 }

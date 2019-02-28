@@ -22,7 +22,7 @@ PidWidCaller::PidWidCaller(QString const& pid2wid, Q_PID const pid, int const in
 {
     this->index = index;
     QStringList arguments;
-    arguments << QString::fromStdString(std::to_string(pid));
+    arguments << QString::number(pid);
     qDebug() << "Calling PID to WID:" << pid2wid << arguments;
     start(pid2wid, arguments);
     connect(this, SIGNAL(finished(int)), this, SLOT(sendResult(int)));

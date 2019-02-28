@@ -40,7 +40,8 @@ SOURCES += \
         src/cacheupdatethread.cpp \
         src/tocbox.cpp \
         src/tocbutton.cpp \
-        src/tocaction.cpp
+        src/tocaction.cpp \
+        src/externalrenderer.cpp
 
 HEADERS += \
         src/controlscreen.h \
@@ -56,7 +57,8 @@ HEADERS += \
         src/cacheupdatethread.h \
         src/tocbox.h \
         src/tocbutton.h \
-        src/tocaction.h
+        src/tocaction.h \
+        src/externalrenderer.h
 
 FORMS += \
         src/controlscreen.ui

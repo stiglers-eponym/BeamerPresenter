@@ -73,6 +73,7 @@ int main(int argc, char *argv[])
         {{"c", "cache"}, "Number of slides that will be cached. A negative number is treated as infinity.", "int"},
         {{"M", "memory"}, "Maximum size of cache in MiB. A negative number is treated as infinity.", "int"},
         {{"l", "toc-depth"}, "Number of levels of the table of contents which are shown.", "int"},
+        {{"r", "renderer"}, "[EXPERIMENTAL] \"poppler\" or \"custom\" or command: Renderer used for cached pages", "name"},
     });
     parser.process(app);
 
@@ -324,6 +325,19 @@ int main(int argc, char *argv[])
             w->setTocLevel(num);
         else
             std::cerr << "option \"" << settings.value("toc-depth").toString().toStdString() << "\" to toc-depth in config not understood." << std::endl;
+    }
+
+    // Set renderer
+    if (!parser.value("r").isEmpty()) {
+        if (parser.value("r") == "poppler") {}
+        else if  (parser.value("r") == "custom") {
+            w->setRenderer(settings.value("renderer").toStringList());
+        }
+        else
+            w->setRenderer(parser.value("r").split(" "));
+    }
+    else if (settings.contains("renderer")) {
+        w->setRenderer(settings.value("renderer").toStringList());
     }
 
 
