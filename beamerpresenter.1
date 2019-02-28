@@ -7,11 +7,19 @@ beamerpresenter \- dual-screen PDF presenter
 .SH SYNOPSIS
 .
 .SY beamerpresenter
-.OP \-t timer
 .OP \-a play
-.OP \-m delay
+.OP \-c cache
 .OP \-d tol
+.OP \-e embed
+.OP \-l levels
+.OP \-m delay
+.OP \-M memory
 .OP \-p part
+.OP \-r renderer
+.OP \-s step
+.OP \-t timer
+.OP \-u char
+.OP \-w program
 .I presentation.pdf
 .RI [ notes.pdf ]
 .
@@ -36,20 +44,32 @@ shows images of the current and next slide and a timer.
 Displays this help.
 .
 .TP
-.BI "\-t \-\-timer " time
-.RI "Set timer to " "time" ". Possible formats are ""[m]m"", ""[m]m:ss"" and ""h:mm:ss""."
-.
-.TP
 .BI "\-a \-\-autoplay " play
 true, false or number: Start video and audio content when entering a slide. A number is interpreted as a delay in seconds, after which multimedia content is started.
+.
+.TP
+.BI "\-c \-\-cache " integer
+Set the maximum number of slides, which are rendered to images and stored in a compressed cache. A negative number is treated as infinity.
+.
+.TP
+.BI "\-d \-\-tolerance " secs
+.RI "Tolerance for the presentation time in seconds. The timer will be white " secs " before the timeout, green when the timeout is reached, yellow " secs " after the timeout and red 2*" secs " after the timeout."
+.
+.TP
+.BI "\-e \-\-embed " files
+Mark these files for embedding if an execution link points to them. Multiple files should be separated only by a comma (not space!).
+.
+.TP
+.BI "\-l \-\-toc-depth " integer
+.RB "Number of levels in the table of contents, which will be shown on the control screen with shortcut " t ". Possible values range from 1 and 4. An additional level will be shown as a popup menu if necessary."
 .
 .TP
 .BI "\-m \-\-min-delay " delay
 Set minimum time per frame in milliseconds. This is useful when using \\animation in LaTeX beamer.
 .
 .TP
-.BI "\-d \-\-tolerance " secs
-.RI "Tolerance for the presentation time in seconds. The timer will be white " secs " before the timeout, green when the timeout is reached, yellow " secs " after the timeout and red 2*" secs " after the timeout."
+.BI "\-M \-\-memory " integer
+Set the maximum cache size in MiB. A negative number is treated as infinity.
 .
 .TP
 .BI "\-p \-\-page-part " side
@@ -58,8 +78,30 @@ Set half of the page to be the presentation, the other half to be the notes. Val
 .IR right .
 .
 .TP
-.BI "\-e \-\-embed " files
-Mark these files for embedding if an execution link points to them. Multiple files should be separated only by a comma (not space!).
+.BI "\-r \-\-renderer " command
+Command for calling an external PDF renderer, which will be used for rendering slides to a compressed cache.
+This should be either "poppler" (for using the internal renderer), "custom" (for using a renderer, which is defined in the config file) or a command.
+The command should can a renderer, which renders a specific page of a PDF file to a png image of fixed size, such that it can be shown in a window with given width and height and writes the image to the standard output.
+The command should contain the tokens "%file" for the pdf file name, "%page" for the page number, "%width" for the image width in pixels and "%height" for the height in pixels.
+Note that a failing command will not necessarily be handled correctly or lead to a warning.
+
+An example for a command using
+.BR "mutool draw " "from the " MuPDF " project is"
+.RB \[dq] "mutool draw"
+.IR -F "png " -w "%width " -h "%height " -o "- %file %page\[dq]."
+.
+.TP
+.BI "\-s \-\-scrollstep " integer
+Touch pads quantify scroll events as numbers of pixels. This option sets the number of pixels, which are interpreted as the step between two pages. A larger number makes the scrolling slower.
+.
+.TP
+.BI "\-t \-\-timer " time
+.RI "Set timer to " "time" ". Possible formats are ""[m]m"", ""[m]m:ss"" and ""h:mm:ss""."
+.
+.TP
+.BI "\-u \-\-urlsplit " character
+Use this character (it may also be a sequence) to split links into a link path and a list of arguments. Using PDFs with such links can be convenient, but will make the links work only in this application. This does not follow the PDF standards. Possible arguments are
+.BR embed " (for executables), " autoplay " (for videos and sounds) and " loop " (for videos and sounds)."
 .
 .TP
 .BI "\-w \-\-pid2wid " program
@@ -71,27 +113,6 @@ with the command
 .BR wmctrl " -lp | " sed " -n
 .RI "\[dq]s/^0x\e([0-9a-f]\e+\e) \e+[0-9]\e+ \e+" $1 " .*$/\e1/p\[dq] " ") ))"
 .
-.TP
-.BI "\-u \-\-urlsplit " character
-Use this character (it may also be a sequence) to split links into a link path and a list of arguments. Using PDFs with such links can be convenient, but will make the links work only in this application. This does not follow the PDF standards. Possible arguments are
-.BR embed " (for executables), " autoplay " (for videos and sounds) and " loop " (for videos and sounds)."
-.
-.TP
-.BI "\-s \-\-scrollstep " integer
-Touch pads quantify scroll events as numbers of pixels. This option sets the number of pixels, which are interpreted as the step between two pages. A larger number makes the scrolling slower.
-.
-.TP
-.BI "\-c \-\-cache " integer
-Set the maximum number of slides, which are rendered to images and stored in a compressed cache. A negative number is treated as infinity.
-.
-.TP
-.BI "\-M \-\-memory " integer
-Set the maximum cache size in MiB. A negative number is treated as infinity.
-.
-.TP
-.BI "\-l \-\-toc-depth " integer
-.RB "Number of levels in the table of contents, which will be shown on the control screen with shortcut " t ". Possible values range from 1 and 4. An additional level will be shown as a popup menu if necessary."
-.
 .
 .SH KEYBINDINGS
 .
@@ -101,32 +122,44 @@ Scroll through presentation. If the presentation screen (the window showing the 
 .BR return ". If you want to continue with the slide shown on the presentation screen, you can use the usual navigation keys or " escape .
 .
 .TP
-.B q
-Quit.
+.B c
+Update cached slides if necessary. An update of the cache is also triggered by a change of the current slide and by updating the current slide.
+.
+.TP
+.B e
+Start all embedded applications on the currently shown slide.
 .
 .TP
 .B g
 Go to page (set focus to page number edit). This will make the control screen the active window.
 .
 .TP
-.B p
-Pause or continue timer.
-.
-.TP
-.B r
-Reset timer.
+.B m
+Play or pause all multimedia content on the current slide.
 .
 .TP
 .B o
 Toggle cursor visbility (only on the presentation screen).
 .
 .TP
-.B m
-Play or pause all multimedia content on the current slide.
+.B p
+Pause or continue timer.
+.
+.TP
+.B q
+Quit.
+.
+.TP
+.B r
+Reset timer.
 .
 .TP
 .B t
 Show table of contents on the control screen.
+.
+.TP
+.B u
+Check if the PDF files have changed and reload them if necessary (experimental feature).
 .
 .TP
 .B space
@@ -160,14 +193,6 @@ Set page number of the presentation to the page number on the control screen and
 .B escape
 Set page number of the control screen to the page number of the presentation. When browsing your notes, this will bring you back to the current slide. Also hide the table of contents if it is shown.
 .
-.TP
-.B e
-Start all embedded applications on the currently shown slide.
-.
-.TP
-.B c
-Update cached slides if necessary. An update of the cache is also triggered by a change of the current slide and by updating the current slide.
-.
 .SH FEATURES
 .
 .SS Links
@@ -196,6 +221,12 @@ By default up to 100 MiB are used for cached slides.
 Restricting the cache size can affect the performance and might lead to unstable behavior.
 Caching slides can be switched off completely with the command line option
 .BR -c 0.
+.PP
+Rendering to cache can be done using a custom PDF renderer. While
+.B BeamerPresenter
+is based on the Qt5 bindngs of poppler, rendering to cache can be done using any renderer, which can be called from the command line, accepts a filename, page number and page size as arguments and writes a rendered pdf page as png image to standard output.
+An example of such a PDF renderer, which improves both speed and quality of the output image, is
+.BR "mutool draw " "from the " MuPDF " project."
 .
 .SS Multimedia Support
 .B BeamerPresenter
@@ -305,6 +336,13 @@ overwrite default value for the command line argument
 .BR toc-depth =2
 overwrite default value for the command line argument
 .BR \-l " or " \-\-toc-depth .
+.
+.TP
+.BR renderer
+Set the command for an external renderer. This will set the default value of the command line argument
+.BR \-r " or " \-\-renderer " to \[dq]custom\[dq].
+If this option is set, the internal renderer can be used with the command line argument
+.RB \[dq] \-r " poppler\[dq]."
 .
 .
 .SH BUGS

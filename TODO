@@ -1,7 +1,8 @@
 BeamerPresenter
 
-* Cache: test, clean up the code, improve
-* Render to cache using multiple threads
+* Cache management: test, clean up the code, improve
+* Make poppler rendering to cache more efficient (use multiple threads)
+* custom cache renderer: avoid killing custom renderer
 
 * Embedded applications: Terminate processes correctly before closing the window
 * Embedded applications: debug, test, use wildecards

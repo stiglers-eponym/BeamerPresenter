@@ -23,6 +23,7 @@
 #include <QtDebug>
 #include <QWidget>
 #include <QLabel>
+#include <QFileInfo>
 #include <poppler-qt5.h>
 #include <QDomDocument>
 
@@ -40,7 +41,7 @@ private:
 public:
     PdfDoc(QString pathToPdf = "");
     ~PdfDoc();
-    void loadDocument();
+    bool loadDocument();
     Poppler::Page* getPage(int pageNumber) const;
     QSize getPageSize(int const pageNumber) const;
     int getNextSlideIndex(int const index) const;

@@ -53,6 +53,7 @@ public:
     QPixmap getPixmap(Poppler::Page const * page) const;
     long int clearCachePage(int const index);
     void clearCache();
+    void clearAll();
     void startAllEmbeddedApplications();
     long int getCacheSize() const;
     int getCacheNumber() const {return cache.size();}

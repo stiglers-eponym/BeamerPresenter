@@ -38,7 +38,7 @@ ControlScreen::ControlScreen(QString presentationPath, QString notesPath, QWidge
         if (!notesPath.isEmpty()) {
             QFileInfo checkNotes(notesPath);
             if (!checkNotes.exists() || (!checkNotes.isFile() && !checkNotes.isSymLink()) ) {
-                qWarning() << "Ignoring invalid notes files: " << notesPath;
+                qCritical() << "Ignoring invalid notes files: " << notesPath;
                 notesPath = "";
             }
         }
@@ -73,7 +73,7 @@ ControlScreen::ControlScreen(QString presentationPath, QString notesPath, QWidge
         notes = new PdfDoc( notesPath );
         notes->loadDocument();
         if (notes->getDoc() == nullptr) {
-            qWarning() << "File could not be opened as PDF: " << notesPath;
+            qCritical() << "File could not be opened as PDF: " << notesPath;
             notes = presentation;
             setWindowTitle("BeamerPresenter: " + presentationPath);
         }
@@ -625,9 +625,6 @@ void ControlScreen::keyPressEvent(QKeyEvent* event)
             ui->label_timer->continueTimer();
             updateCache();
             break;
-        case Qt::Key_C:
-            updateCache();
-            break;
         case Qt::Key_End:
             currentPageNumber = numberOfPages - 1;
             emit sendNewPageNumber(currentPageNumber);
@@ -642,22 +639,16 @@ void ControlScreen::keyPressEvent(QKeyEvent* event)
             hideToc();
             updateCache();
             break;
-        case Qt::Key_Q:
-            emit sendCloseSignal();
-            close();
+        case Qt::Key_C:
+            updateCache();
+            break;
+        case Qt::Key_E:
+            presentationScreen->getLabel()->startAllEmbeddedApplications();
+            ui->notes_label->startAllEmbeddedApplications();
             break;
         case Qt::Key_G:
             hideToc();
             ui->text_current_slide->setFocus();
-            break;
-        case Qt::Key_P:
-            ui->label_timer->pauseTimer();
-            break;
-        case Qt::Key_R:
-            ui->label_timer->resetTimer();
-            break;
-        case Qt::Key_O:
-            emit togglePointerVisibilitySignal();
             break;
         case Qt::Key_M:
             {
@@ -668,8 +659,24 @@ void ControlScreen::keyPressEvent(QKeyEvent* event)
                     emit playMultimedia();
             }
             break;
+        case Qt::Key_O:
+            emit togglePointerVisibilitySignal();
+            break;
+        case Qt::Key_P:
+            ui->label_timer->pauseTimer();
+            break;
+        case Qt::Key_Q:
+            emit sendCloseSignal();
+            close();
+            break;
+        case Qt::Key_R:
+            ui->label_timer->resetTimer();
+            break;
         case Qt::Key_T:
             showToc();
+            break;
+        case Qt::Key_U:
+            reloadFiles();
             break;
         case Qt::Key_Return:
             if (presentationScreen->getLabel()->pageNumber() != currentPageNumber)
@@ -684,10 +691,6 @@ void ControlScreen::keyPressEvent(QKeyEvent* event)
                 showNormal();
             else
                 showFullScreen();
-            break;
-        case Qt::Key_E:
-            presentationScreen->getLabel()->startAllEmbeddedApplications();
-            ui->notes_label->startAllEmbeddedApplications();
             break;
         case Qt::Key_Escape:
             if (presentationScreen->getPageNumber() != currentPageNumber) {
@@ -795,7 +798,7 @@ void ControlScreen::setPid2WidConverter(QString const &program)
         presentationScreen->getLabel()->setPid2Wid(program);
     }
     else
-        qWarning() << "Can't use program: not a file or not executable." << program;
+        qCritical() << "Can't use program: not a file or not executable." << program;
 }
 
 void ControlScreen::setUrlSplitCharacter(QString const &splitCharacter)
@@ -835,14 +838,66 @@ void ControlScreen::setRenderer(QStringList command)
             if (cacheThread->hasRenderCommand())
                 cacheThread->setRenderer(Renderer::custom);
             else
-                qWarning() << "Ignored request to use undefined custom renderer";
+                qCritical() << "Ignored request to use undefined custom renderer";
         }
         else
-            qWarning() << "Ignored request to use undefined custom renderer";
+            qCritical() << "Ignored request to use custom renderer without arguments";
     }
     else {
         QString program = command[0];
         command.removeFirst();
+        if (command.filter("%file").isEmpty()) {
+            qCritical() << "Ignored request to use custom renderer without %file in arguments";
+            return;
+        }
+        if (command.filter("%page").isEmpty()) {
+            qCritical() << "Ignored request to use custom renderer without %page in arguments";
+            return;
+        }
+        if (command.filter("%width").isEmpty())
+            qWarning() << "Custom renderer does not use %width in arguments";
+        if (command.filter("%height").isEmpty())
+            qWarning() << "Custom renderer does not use %height in arguments";
         cacheThread->setCustomRenderer(program, presentation->getPath(), notes->getPath(), command);
     }
+}
+
+void ControlScreen::reloadFiles()
+{
+    cacheThread->requestInterruption();
+    if (!cacheThread->wait(1000))
+        qCritical() << "Could not stop running cache process.";
+    bool change = false;
+    if (notes->loadDocument()) {
+        qDebug() << "Reloading notes file";
+        change = true;
+        ui->notes_label->clearAll();
+        recalcLayout(currentPageNumber);
+    }
+    if (presentation->loadDocument()) {
+        qDebug() << "Reloading presentation file";
+        change = true;
+        bool unlimitedCache = numberOfPages==maxCacheNumber;
+        numberOfPages = presentation->getDoc()->numPages();
+        if (unlimitedCache)
+            maxCacheNumber = numberOfPages;
+        presentationScreen->getLabel()->clearAll();
+        emit sendNewPageNumber(presentationScreen->getLabel()->pageNumber());
+        ui->current_slide_label->clearAll();
+        ui->next_slide_label->clearAll();
+        hideToc();
+        tocBox->setOutdated();
+        tocBox->createToc(presentation->getToc());
+    }
+    if (change) {
+        qWarning() << "Reloading files is experimental!";
+        first_cached = currentPageNumber;
+        last_cached = first_cached-1;
+        first_delete = 0;
+        last_delete = numberOfPages-1;
+        renderPage(currentPageNumber);
+        ui->text_number_slides->setText(QString::number(numberOfPages));
+        ui->text_current_slide->setNumberOfPages(numberOfPages);
+    }
+    updateCache();
 }

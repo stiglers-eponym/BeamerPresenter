@@ -31,17 +31,24 @@ PdfDoc::~PdfDoc()
     delete popplerDoc;
 }
 
-void PdfDoc::loadDocument()
+bool PdfDoc::loadDocument()
 {
     if (popplerDoc != nullptr) {
-        qWarning() << "WARNING: A document has already been loaded. Deleting it in order to avoid memory leaks.";
-        delete popplerDoc;
+        if (QFileInfo(pdfPath).lastModified() > popplerDoc->modificationDate()) {
+            qDeleteAll(pdfPages);
+            pdfPages.clear();
+            labels.clear();
+            delete popplerDoc;
+        }
+        else
+            return false;
     }
     popplerDoc = Poppler::Document::load(pdfPath);
     if (popplerDoc == nullptr)
-        return;
+        return false;
     if (popplerDoc->isLocked()) {
         // TODO: use a nicer way of entering passwords (a QDialog?)
+        qCritical() << "Support for locked files is HIGHLY EXPERIMENTAL:";
         std::cout << "WARNING: File " << qPrintable(pdfPath) << ":\n"
                   << "This file is locked. Support for locked files is HIGHLY EXPERIMENTAL!" << std::endl
                   << "You can try to enter your password here.\n"
@@ -76,6 +83,7 @@ void PdfDoc::loadDocument()
         qWarning() << "This file contains embedded files. Embedded files are not supported.";
     if (popplerDoc->scripts().size() != 0)
         qWarning() << "This file contains JavaScript scripts. JavaScript is not supported.";
+    return true;
 }
 
 QSize PdfDoc::getPageSize(int const pageNumber) const

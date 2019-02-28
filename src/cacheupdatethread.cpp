@@ -1,3 +1,21 @@
+/*
+ * This file is part of BeamerPresenter.
+ * Copyright (C) 2019  stiglers-eponym
+
+ * BeamerPresenter is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+
+ * BeamerPresenter is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+
+ * You should have received a copy of the GNU General Public License
+ * along with BeamerPresenter. If not, see <https://www.gnu.org/licenses/>.
+ */
+
 #include "cacheupdatethread.h"
 
 void CacheUpdateThread::run()
@@ -40,15 +58,14 @@ void CacheUpdateThread::run()
     }
     else if (mode==Renderer::custom) {
         int const index = presPage->index();
-        qDebug() << index;
         ExternalRenderer* presRenderer  = new ExternalRenderer(index);
         if (!presLabel->cacheContains(index)) {
             QStringList presArguments = QStringList(renderArguments);
             presArguments.replaceInStrings("%file", presFileName);
-            presArguments.replaceInStrings("%page", QString::number(index));
+            presArguments.replaceInStrings("%page", QString::number(index+1));
             presArguments.replaceInStrings("%width", QString::number(presLabel->width()));
             presArguments.replaceInStrings("%height", QString::number(presLabel->height()));
-            qDebug() << "Calling external renderer:" << renderCommand << presArguments;
+            //qDebug() << "Calling external renderer:" << renderCommand << presArguments;
             presRenderer->start(renderCommand, presArguments);
         }
 
@@ -56,10 +73,10 @@ void CacheUpdateThread::run()
         if (!noteLabel->cacheContains(index)) {
             QStringList noteArguments = QStringList(renderArguments);
             noteArguments.replaceInStrings("%file", noteFileName);
-            noteArguments.replaceInStrings("%page", QString::number(index));
+            noteArguments.replaceInStrings("%page", QString::number(index+1));
             noteArguments.replaceInStrings("%width", QString::number(noteLabel->width()));
             noteArguments.replaceInStrings("%height", QString::number(noteLabel->height()));
-            qDebug() << "Calling external renderer:" << renderCommand << noteArguments;
+            //qDebug() << "Calling external renderer:" << renderCommand << noteArguments;
             noteRenderer->start(renderCommand, noteArguments);
         }
 
@@ -67,10 +84,10 @@ void CacheUpdateThread::run()
         if (!smallLabel->cacheContains(index)) {
             QStringList smallArguments = QStringList(renderArguments);
             smallArguments.replaceInStrings("%file", presFileName);
-            smallArguments.replaceInStrings("%page", QString::number(index));
+            smallArguments.replaceInStrings("%page", QString::number(index+1));
             smallArguments.replaceInStrings("%width", QString::number(smallLabel->width()));
             smallArguments.replaceInStrings("%height", QString::number(smallLabel->height()));
-            qDebug() << "Calling external renderer:" << renderCommand << smallArguments;
+            //qDebug() << "Calling external renderer:" << renderCommand << smallArguments;
             smallRenderer->start(renderCommand, smallArguments);
         }
 
@@ -95,13 +112,16 @@ void CacheUpdateThread::run()
             else
                 smallRenderer->kill();
         }
+		delete presRenderer;
+		delete noteRenderer;
+		delete smallRenderer;
         if (isInterruptionRequested()) {
             delete pres;
             delete note;
             delete small;
-            return;
         }
-        emit resultsReady(pres, note, small, index);
+		else
+			emit resultsReady(pres, note, small, index);
     }
 }
 

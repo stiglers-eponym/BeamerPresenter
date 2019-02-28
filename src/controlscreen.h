@@ -66,6 +66,7 @@ protected:
 
 private:
     void recalcLayout(int const pageNumber);
+    void reloadFiles();
     Ui::ControlScreen *ui;
     PresentationScreen* presentationScreen;
     PdfDoc* presentation;

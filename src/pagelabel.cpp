@@ -53,6 +53,30 @@ PageLabel::~PageLabel()
     page = nullptr;
 }
 
+void PageLabel::clearAll()
+{
+    clearLists();
+    clearProcessCallers();
+    for (QMap<int,QMap<int,QProcess*>>::iterator map=processes.begin(); map!=processes.end(); map++) {
+        for (QMap<int,QProcess*>::iterator process=map->begin(); process!=map->end(); process++) {
+            if (*process != nullptr) {
+                (*process)->terminate();
+                delete *process;
+            }
+        }
+    }
+    for (QMap<int,QMap<int,QWidget*>>::iterator map=embeddedWidgets.begin(); map!=embeddedWidgets.end(); map++) {
+        for (QMap<int,QWidget*>::iterator widget=map->begin(); widget!=map->end(); widget++) {
+            if (*widget != nullptr) {
+                (*widget)->close();
+                delete *widget;
+            }
+        }
+    }
+    clearCache();
+    page = nullptr;
+}
+
 void PageLabel::clearLists()
 {
     if (sliders.size() != 0) {
@@ -794,7 +818,7 @@ void PageLabel::createEmbeddedWindow()
             bool success;
             WId wid = (WId) winIdString.toLongLong(&success, 10);
             if (!success) {
-                qWarning() << "Could not read window id";
+                qCritical() << "Could not read window id";
                 continue;
             }
             QRect winGeometry = *linkPositions[it.key()];
@@ -812,7 +836,7 @@ void PageLabel::createEmbeddedWindow()
             return;
         }
         else
-            qDebug() << "Problem when reading program standard output";
+            qWarning() << "Problem when reading program standard output";
     }
     qWarning() << "No standard output found in any process";
 }

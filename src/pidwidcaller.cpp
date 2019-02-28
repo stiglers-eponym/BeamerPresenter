@@ -31,7 +31,7 @@ PidWidCaller::PidWidCaller(QString const& pid2wid, Q_PID const pid, int const in
 void PidWidCaller::sendResult(int const exitCode)
 {
     if (exitCode != 0) {
-        qWarning() << "Call to external translator from PID to Window ID failed, exit code" << exitCode;
+        qCritical() << "Call to external translator from PID to Window ID failed, exit code" << exitCode;
         return;
     }
     char output[64];
@@ -44,8 +44,8 @@ void PidWidCaller::sendResult(int const exitCode)
         if (success && wid!=0)
             emit sendWid(wid, index);
         else
-            qWarning() << "Could not read window ID";
+            qCritical() << "Could not read window ID";
     }
     else
-        qWarning() << "Call to external translator from PID to Window ID had unexpected output";
+        qCritical() << "Call to external translator from PID to Window ID had unexpected output";
 }
