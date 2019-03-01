@@ -53,8 +53,8 @@ signals:
 
 private:
     QLineEdit* timerEdit;
-    QTime* deadline;
-    QTime* time;
+    QTime deadline = QTime(0,0,0,0);
+    QTime time = QTime(0,0,0,0);
     QTimer* timer;
     bool running = false;
     int colorTimeInterval = 150;

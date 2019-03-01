@@ -82,8 +82,10 @@ Set half of the page to be the presentation, the other half to be the notes. Val
 Command for calling an external PDF renderer, which will be used for rendering slides to a compressed cache.
 This should be either "poppler" (for using the internal renderer), "custom" (for using a renderer, which is defined in the config file) or a command.
 The command should can a renderer, which renders a specific page of a PDF file to a png image of fixed size, such that it can be shown in a window with given width and height and writes the image to the standard output.
-The command should contain the tokens "%file" for the pdf file name, "%page" for the page number, "%width" for the image width in pixels and "%height" for the height in pixels.
+The command should contain the tokens "%file" for the PDF file name, "%page" for the page number, "%width" for the image width in pixels and "%height" for the height in pixels.
 Note that a failing command will not necessarily be handled correctly or lead to a warning.
+This option is incompatible with
+.BR \-\-page-part "=[left or right]."
 
 An example for a command using
 .BR "mutool draw " "from the " MuPDF " project is"
@@ -139,7 +141,7 @@ Play or pause all multimedia content on the current slide.
 .
 .TP
 .B o
-Toggle cursor visbility (only on the presentation screen).
+Toggle cursor visibility (only on the presentation screen).
 .
 .TP
 .B p
@@ -224,7 +226,7 @@ Caching slides can be switched off completely with the command line option
 .PP
 Rendering to cache can be done using a custom PDF renderer. While
 .B BeamerPresenter
-is based on the Qt5 bindngs of poppler, rendering to cache can be done using any renderer, which can be called from the command line, accepts a filename, page number and page size as arguments and writes a rendered pdf page as png image to standard output.
+is based on the Qt5 bindings of poppler, rendering to cache can be done using any renderer, which can be called from the command line, accepts a filename, page number and page size as arguments and writes a rendered PDF page as png image to standard output.
 An example of such a PDF renderer, which improves both speed and quality of the output image, is
 .BR "mutool draw " "from the " MuPDF " project."
 .

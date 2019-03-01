@@ -37,6 +37,7 @@ private:
     QList<Poppler::Page*> pdfPages;
     QList<QString> labels;
     int pagePart = 0;
+    QDateTime lastModified = QDateTime();
 
 public:
     PdfDoc(QString pathToPdf = "");

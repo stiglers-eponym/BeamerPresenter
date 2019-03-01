@@ -147,7 +147,7 @@ void PageLabel::renderPage(Poppler::Page* page, bool const setDuration, QPixmap*
     QSize pageSize = page->pageSize();
     int shift_x=0, shift_y=0;
     int pageHeight=pageSize.height(), pageWidth=pageSize.width();
-    if (pagePart != 0)
+    if (pagePart != FullPage)
         pageWidth /= 2;
     if ( width() * pageHeight > height() * pageWidth ) {
         // the width of the label is larger than required
@@ -160,9 +160,9 @@ void PageLabel::renderPage(Poppler::Page* page, bool const setDuration, QPixmap*
         shift_y = int( height()/2 - resolution/2 * pageHeight );
     }
     double scale_x=resolution*pageWidth, scale_y=resolution*pageHeight;
-    if (pagePart !=0) {
+    if (pagePart != FullPage) {
         scale_x *= 2;
-        if (pagePart == -1)
+        if (pagePart == RightHalf)
             shift_x -= width();
     }
     if (pixmap != nullptr)
@@ -397,11 +397,11 @@ long int PageLabel::updateCache(Poppler::Page const * cachePage)
     index = cachePage->index();
     if (cache.contains(index))
         return 0;
-    if (pagePart == 0)
+    if (pagePart == FullPage)
         pixmap = QPixmap::fromImage( cachePage->renderToImage( 72*resolution, 72*resolution ) );
     else {
         QImage image = cachePage->renderToImage( 72*resolution, 72*resolution );
-        if (pagePart == 1)
+        if (pagePart == LeftHalf)
             pixmap = QPixmap::fromImage( image.copy(0, 0, image.width()/2, image.height()) );
         else
             pixmap = QPixmap::fromImage( image.copy(image.width()/2, 0, image.width()/2, image.height()) );
@@ -424,11 +424,11 @@ QPixmap PageLabel::getPixmap(Poppler::Page const * cachePage) const
     index = cachePage->index();
     if (cache.contains(index))
         return pixmap;
-    if (pagePart == 0)
+    if (pagePart == FullPage)
         pixmap = QPixmap::fromImage( cachePage->renderToImage( 72*resolution, 72*resolution ) );
     else {
         QImage image = cachePage->renderToImage( 72*resolution, 72*resolution );
-        if (pagePart == 1)
+        if (pagePart == LeftHalf)
             pixmap = QPixmap::fromImage( image.copy(0, 0, image.width()/2, image.height()) );
         else
             pixmap = QPixmap::fromImage( image.copy(image.width()/2, 0, image.width()/2, image.height()) );

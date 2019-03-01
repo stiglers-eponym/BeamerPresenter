@@ -47,7 +47,7 @@ public:
     explicit ControlScreen(QString presentationPath, QString notesPath = "", QWidget* parent = nullptr);
     ~ControlScreen();
     void renderPage(int const pageNumber);
-    void setPagePart(int const pagePart);
+    void setPagePart(PagePart const pagePart);
     void setColor(QColor const bgColor = Qt::gray, QColor const textColor = Qt::black);
     void setPresentationColor(QColor const color = Qt::black);
     void setEmbedFileList(const QStringList &files);
@@ -57,7 +57,7 @@ public:
     void setCacheNumber(int const number);
     void setCacheSize(long int const size);
     void setTocLevel(int const level);
-    void setRenderer(QStringList command);
+    bool setRenderer(QStringList command);
 
 protected:
     void keyPressEvent(QKeyEvent* event);
@@ -76,7 +76,7 @@ private:
     TocBox* tocBox = nullptr;
     int numberOfPages;
     int currentPageNumber = 0;
-    int pagePart = 0;
+    PagePart pagePart = FullPage;
     int scrollDelta = 200;
     int scrollState = 0;
     int maxCacheNumber = 10;

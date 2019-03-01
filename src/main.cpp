@@ -91,41 +91,57 @@ int main(int argc, char *argv[])
     #endif
 
     // Create the GUI
+    // w will be the object which manages everything.
     ControlScreen * w;
-    if (parser.positionalArguments().size() == 1)
-        w = new ControlScreen(parser.positionalArguments()[0]);
-    else if (parser.positionalArguments().size() == 2)
-        w = new ControlScreen(parser.positionalArguments()[0], parser.positionalArguments()[1]);
-    else {
-        // Open files in a QFileDialog
-        QString presentationPath = QFileDialog::getOpenFileName(nullptr, "Open Slides", "", "Documents (*.pdf)");
-        if (presentationPath.isEmpty()) {
-            qCritical() << "No presentation file specified";
-            exit(1);
-        }
-        QString notesPath = "";
-        // Check whether a note file should be expected
-        if (parser.value("p").isEmpty()) {
-            if (!settings.contains("page-part") || settings.value("page-part").toString()=="none" || settings.value("page-part").toString()=="0")
-                notesPath = QFileDialog::getOpenFileName(nullptr, "Open Notes", presentationPath, "Documents (*.pdf)");
-        }
-        else {
-            if (parser.value("p")=="none" || parser.value("p")=="0")
-                notesPath = QFileDialog::getOpenFileName(nullptr, "Open Notes", presentationPath, "Documents (*.pdf)");
-        }
-        w = new ControlScreen(presentationPath, notesPath);
+
+    // Handle positional arguments for the pdf files:
+    switch (parser.positionalArguments().size()) {
+        case 1:
+            // If only a presentation file is given:
+            w = new ControlScreen(parser.positionalArguments()[0]);
+            break;
+        case 2:
+            // If a note file and a presentation file are given:
+            w = new ControlScreen(parser.positionalArguments()[0], parser.positionalArguments()[1]);
+            break;
+        case 0:
+            // No files given: Open files in a QFileDialog
+            {
+                QString presentationPath = QFileDialog::getOpenFileName(nullptr, "Open Slides", "", "Documents (*.pdf)");
+                if (presentationPath.isEmpty()) {
+                    qCritical() << "No presentation file specified";
+                    parser.showHelp(1);
+                }
+                QString notesPath = "";
+                // Check if the presentation file should include notes (beamer option show notes on second screen).
+                // If the presenation file is interpreted as a normal presentation, open a note file in a QFileDialog.
+                if (parser.value("p").isEmpty()) {
+                    if (!settings.contains("page-part") || settings.value("page-part").toString()=="none" || settings.value("page-part").toString()=="0")
+                        notesPath = QFileDialog::getOpenFileName(nullptr, "Open Notes", presentationPath, "Documents (*.pdf)");
+                }
+                else if (parser.value("p")=="none" || parser.value("p")=="0")
+                    notesPath = QFileDialog::getOpenFileName(nullptr, "Open Notes", presentationPath, "Documents (*.pdf)");
+                w = new ControlScreen(presentationPath, notesPath);
+            }
+            break;
+        default:
+            qCritical() << "Received more than 2 positional arguments.";
+            parser.showHelp(1);
     }
 
     { // set colors
         QColor bgColor, textColor, presentationColor;
+        // notes background color: background of the control screen
         if (settings.contains("notes background color"))
             bgColor = settings.value("notes background color").value<QColor>();
         else
             bgColor = Qt::gray;
+        // notes text color: text color on the control screen
         if (settings.contains("notes text color"))
             textColor = settings.value("notes text color").value<QColor>();
         else
             textColor = Qt::black;
+        // presentation color: background color on the presentation screen
         if (settings.contains("presentation color"))
             presentationColor = settings.value("presentation color").value<QColor>();
         else
@@ -137,26 +153,35 @@ int main(int argc, char *argv[])
     // Read the arguments in parser.
     // Each argument can have a default value in settings.
 
-    // Split page if necessary
+    // Split page if necessary (beamer option show notes on second screen)
     if (!parser.value("p").isEmpty()) {
         QString value = parser.value("p");
         if ( value == "r" || value == "right" )
-            w->setPagePart(1);
+            w->setPagePart(RightHalf);
         else if ( value == "l" || value == "left" )
-            w->setPagePart(-1);
-        else if (value == "none" || value == "0") {}
-        else
-            qCritical() << "option \"" << parser.value("p") << "\" to page-part not understood.";
+            w->setPagePart(LeftHalf);
+        else if (value != "none" && value != "0") {
+            qCritical() << "option \"" << value << "\" to page-part not understood.";
+            // Try to get a default option from the config file
+            if (settings.contains("page-part")) {
+                value = settings.value("page-part").toString();
+                if ( value == "r" || value == "right" )
+                    w->setPagePart(RightHalf);
+                else if ( value == "l" || value == "left" )
+                    w->setPagePart(LeftHalf);
+                else if (value != "none" && value != "0")
+                    qCritical() << "option \"" << value << "\" to page-part in config not understood.";
+            }
+        }
     }
     else if (settings.contains("page-part")) {
         QString value = settings.value("page-part").toString();
         if ( value == "r" || value == "right" )
-            w->setPagePart(1);
+            w->setPagePart(RightHalf);
         else if ( value == "l" || value == "left" )
-            w->setPagePart(-1);
-        else if (value == "none" || value == "0") {}
-        else
-            qCritical() << "option \"" << settings.value("page-part") << "\" to page-part in config not understood.";
+            w->setPagePart(LeftHalf);
+        else if (value != "none" && value != "0")
+            qCritical() << "option \"" << value << "\" to page-part in config not understood.";
     }
 
     // Set tolerance for presentation time
@@ -165,8 +190,17 @@ int main(int argc, char *argv[])
         int tolerance = parser.value("d").toInt(&success);
         if (success)
             emit w->sendTimeoutInterval(tolerance);
-        else
+        else {
             qCritical() << "option \"" << parser.value("d") << "\" to tolerance not understood.";
+            // Try to get a default option from the config file
+            if (settings.contains("tolerance")) {
+                tolerance = settings.value("tolerance").toInt(&success);
+                if (success)
+                    emit w->sendTimeoutInterval(tolerance);
+                else
+                    qCritical() << "option \"" << settings.value("tolerance") << "\" to tolerance in config not understood.";
+            }
+        }
     }
     else if (settings.contains("tolerance")) {
         bool success;
@@ -189,8 +223,17 @@ int main(int argc, char *argv[])
         int delay = parser.value("m").toInt(&success);
         if (success)
             emit w->sendAnimationDelay(delay);
-        else
+        else {
             qCritical() << "option \"" << parser.value("m") << "\" to min-delay not understood.";
+            // Try to get a default option from the config file
+            if (settings.contains("min-delay")) {
+                delay = settings.value("min-delay").toInt(&success);
+                if (success)
+                    emit w->sendAnimationDelay(delay);
+                else
+                    qCritical() << "option \"" << settings.value("min-delay") << "\" to min-delay in config not understood.";
+            }
+        }
     }
     else if (settings.contains("min-delay")) {
         bool success;
@@ -203,7 +246,7 @@ int main(int argc, char *argv[])
 
     // Set autostart or delay for multimedia content
     if (!parser.value("a").isEmpty()) {
-        double delay = 0.;
+        double delay;
         bool success;
         QString a = parser.value("a").toLower();
         delay = a.toDouble(&success);
@@ -213,11 +256,25 @@ int main(int argc, char *argv[])
             emit w->sendAutostartDelay(0.);
         else if (a == "false")
             emit w->sendAutostartDelay(-2.);
-        else
+        else {
             qCritical() << "option \"" << parser.value("a") << "\" to autoplay not understood.";
+            // Try to get a default option from the config file
+            if (settings.contains("autoplay")) {
+                a = settings.value("autoplay").toString().toLower();
+                delay = a.toDouble(&success);
+                if (success)
+                    emit w->sendAutostartDelay(delay);
+                else if (a == "true")
+                    emit w->sendAutostartDelay(0.);
+                else if (a == "false")
+                    emit w->sendAutostartDelay(-2.);
+                else
+                    qCritical() << "option \"" << settings.value("autoplay") << "\" to autoplay in config not understood.";
+            }
+        }
     }
     else if (settings.contains("autoplay")) {
-        double delay = 0.;
+        double delay;
         bool success;
         QString a = settings.value("autoplay").toString().toLower();
         delay = a.toDouble(&success);
@@ -247,13 +304,16 @@ int main(int argc, char *argv[])
         if (parser.value("w").toLower() != "none")
             w->setPid2WidConverter(parser.value("w"));
     }
-    else if (settings.contains("pid2wid"))
-        w->setPid2WidConverter(settings.value("pid2wid").toString());
+    else if (settings.contains("pid2wid")) {
+        QString string = settings.value("pid2wid").toString();
+        if (string.toLower() != "none")
+            w->setPid2WidConverter(string);
+    }
 
     // Set character, which is used to split links into a file name and arguments
     if (!parser.value("u").isEmpty())
         w->setUrlSplitCharacter(parser.value("u"));
-    else if ( settings.contains("urlsplit") )
+    else if (settings.contains("urlsplit"))
         w->setUrlSplitCharacter(settings.value("urlsplit").toString());
 
     // Set scroll step for touch pad input devices
@@ -262,8 +322,17 @@ int main(int argc, char *argv[])
         int step = parser.value("s").toInt(&success);
         if (success)
             w->setScrollDelta(step);
-        else
+        else {
             qCritical() << "option \"" << parser.value("s") << "\" to scrollstep not understood.";
+            // Try to get a default option from the config file
+            if (settings.contains("scrollstep")) {
+                step = settings.value("scrollstep").toInt(&success);
+                if (success)
+                    w->setScrollDelta(step);
+                else
+                    qCritical() << "option \"" << settings.value("scrollstep") << "\" to scrollstep in config not understood.";
+            }
+        }
     }
     else if (settings.contains("scrollstep")) {
         bool success;
@@ -280,8 +349,17 @@ int main(int argc, char *argv[])
         int num = parser.value("c").toInt(&success);
         if (success)
             w->setCacheNumber(num);
-        else
+        else {
             qCritical() << "option \"" << parser.value("c") << "\" to cache not understood.";
+            // Try to get a default option from the config file
+            if (settings.contains("cache")) {
+                num = settings.value("cache").toInt(&success);
+                if (success)
+                    w->setCacheNumber(num);
+                else
+                    qCritical() << "option \"" << settings.value("cache") << "\" to cache in config not understood.";
+            }
+        }
     }
     else if (settings.contains("cache")) {
         bool success;
@@ -298,8 +376,17 @@ int main(int argc, char *argv[])
         int size = parser.value("M").toInt(&success);
         if (success)
             w->setCacheSize(1048576L * size);
-        else
+        else {
             qCritical() << "option \"" << parser.value("M") << "\" to memory not understood.";
+            // Try to get a default option from the config file
+            if (settings.contains("memory")) {
+                size = settings.value("memory").toInt(&success);
+                if (success)
+                    w->setCacheSize(1048576L * size);
+                else
+                    qCritical() << "option \"" << settings.value("memory") << "\" to memory in config not understood.";
+            }
+        }
     }
     else if (settings.contains("memory")) {
         bool success;
@@ -316,8 +403,17 @@ int main(int argc, char *argv[])
         int num = parser.value("l").toInt(&success);
         if (success)
             w->setTocLevel(num);
-        else
+        else {
             qCritical() << "option \"" << parser.value("l") << "\" to toc-depth not understood.";
+            // Try to get a default option from the config file
+            if (settings.contains("toc-depth")) {
+                num = settings.value("toc-depth").toInt(&success);
+                if (success)
+                    w->setTocLevel(num);
+                else
+                    qCritical() << "option \"" << settings.value("toc-depth") << "\" to toc-depth in config not understood.";
+            }
+        }
     }
     else if (settings.contains("toc-depth")) {
         bool success;
@@ -336,8 +432,11 @@ int main(int argc, char *argv[])
             else
                 qCritical() << "Ignored request to use undefined custom renderer";
         }
-        else if (parser.value("r") != "poppler")
-            w->setRenderer(parser.value("r").split(" "));
+        else if (parser.value("r") != "poppler") {
+            if (!w->setRenderer(parser.value("r").split(" ")) && settings.contains("renderer"))
+                w->setRenderer(settings.value("renderer").toString().split(" "));
+        }
+
     }
     else if (settings.contains("renderer"))
         w->setRenderer(settings.value("renderer").toString().split(" "));
@@ -346,14 +445,17 @@ int main(int argc, char *argv[])
     // show the GUI
     w->show();
     w->activateWindow();
+
     // Render first page on presentation screen
     emit w->sendNewPageNumber(0);
     // Render first page on control screen
     w->renderPage(0);
+
     // Here one could update the cache.
     // But you probably first want to adjust the window size and then update it with key shortcut space.
-    //emit w->sendUpdateCache();
     //w->updateCache();
+
+    // start the execution loop
     int status = app.exec();
     delete w;
     return status;

@@ -21,15 +21,11 @@
 Timer::Timer(QWidget* parent) : QLabel(parent)
 {
     setText("00:00");
-    deadline = new QTime(0,0,0,0);
-    time = new QTime(0,0,0,0);
 }
 
 Timer::Timer(QLineEdit* setTimerEdit, QWidget* parent) : QLabel(parent)
 {
     setText("00:00");
-    deadline = new QTime(0,0,0,0);
-    time = new QTime(0,0,0,0);
     setTimerWidget(setTimerEdit);
     QPalette palette = QPalette(this->palette());
     palette.setColor(QPalette::WindowText, Qt::gray);
@@ -40,12 +36,10 @@ Timer::~Timer()
 {
     timerEdit->disconnect();
     timer->disconnect();
-    delete deadline;
-    delete time;
     delete timer;
 }
 
-void Timer::receiveTimerString(QString const & timerString)
+void Timer::receiveTimerString(QString const& timerString)
 {
     timerEdit->setText(timerString);
     setDeadline();
@@ -66,26 +60,31 @@ void Timer::setTimerWidget(QLineEdit* setTimerEdit)
 
 void Timer::setDeadline()
 {
-    switch ( timerEdit->text().length() )
+    switch (timerEdit->text().length())
     {
         case 1:
-            *deadline = QTime::fromString(timerEdit->text(), "m");
+            deadline = QTime::fromString(timerEdit->text(), "m");
             break;
         case 2:
-            *deadline = QTime::fromString(timerEdit->text(), "mm");
+            deadline = QTime::fromString(timerEdit->text(), "mm");
             break;
         case 4:
-            *deadline = QTime::fromString(timerEdit->text(), "m:ss");
+            deadline = QTime::fromString(timerEdit->text(), "m:ss");
             break;
         case 5:
-            *deadline = QTime::fromString(timerEdit->text(), "mm:ss");
+            deadline = QTime::fromString(timerEdit->text(), "mm:ss");
             break;
         case 7:
-            *deadline = QTime::fromString(timerEdit->text(), "h:mm:ss");
+            deadline = QTime::fromString(timerEdit->text(), "h:mm:ss");
             break;
     }
+    if (deadline.isNull() || !deadline.isValid()) {
+        qCritical() << "Unable to set timer";
+        deadline = QTime(0,0,0,0);
+        setText("00:00");
+    }
     QPalette palette = QPalette();
-    int const diff = time->secsTo(*deadline);
+    int const diff = time.secsTo(deadline);
     if (diff > 0) {
         emit sendNoAlert();
         if (diff < colorTimeInterval)
@@ -128,7 +127,7 @@ void Timer::pauseTimer()
 
 void Timer::continueTimer()
 {
-    if (!deadline->isNull() && !running) {
+    if (!deadline.isNull() && !running) {
         timer->start(1000);
         running = true;
         QPalette palette = QPalette(this->palette());
@@ -139,10 +138,10 @@ void Timer::continueTimer()
 
 void Timer::resetTimer()
 {
-    time->setHMS(0,0,0);
+    time.setHMS(0,0,0);
     setText("00:00");
     QPalette palette = QPalette();
-    int const diff = time->secsTo(*deadline);
+    int const diff = time.secsTo(deadline);
     if (diff > 0) {
         emit sendNoAlert();
         if (diff < colorTimeInterval)
@@ -167,16 +166,16 @@ void Timer::resetTimer()
 
 void Timer::showTime()
 {
-    *time = time->addSecs(1);
-    if ( time->hour() )
-        setText( time->toString("h:mm:ss") );
+    time = time.addSecs(1);
+    if (time.hour()!=0)
+        setText(time.toString("h:mm:ss"));
     else
-        setText( time->toString("mm:ss") );
-    int diff = time->secsTo(*deadline);
+        setText(time.toString("mm:ss"));
+    int diff = time.secsTo(deadline);
     if (diff == 0) {
         emit sendAlert();
     }
-    if ((diff >=0) && (diff < colorTimeInterval)) {
+    if ((diff >=0 ) && (diff < colorTimeInterval)) {
         QPalette palette = QPalette();
         palette.setColor(QPalette::Window, QColor::fromRgb(256*diff/colorTimeInterval, 255, 256*diff/colorTimeInterval) );
         setPalette(palette);

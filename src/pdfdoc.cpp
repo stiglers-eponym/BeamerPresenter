@@ -34,7 +34,8 @@ PdfDoc::~PdfDoc()
 bool PdfDoc::loadDocument()
 {
     if (popplerDoc != nullptr) {
-        if (QFileInfo(pdfPath).lastModified() > popplerDoc->modificationDate()) {
+        // Check whether the file has been updated
+        if (QFileInfo(pdfPath).lastModified() > lastModified) {
             qDeleteAll(pdfPages);
             pdfPages.clear();
             labels.clear();
@@ -43,9 +44,27 @@ bool PdfDoc::loadDocument()
         else
             return false;
     }
+    { // Check if the file is valid and readable and save its last modification time
+        QFileInfo file = QFileInfo(pdfPath);
+        if (!file.exists() || !file.isFile()) {
+            qCritical() << "Trying to use a non-existing file:" << pdfPath;
+            return false;
+        }
+        else if (!file.isReadable()) {
+            qCritical() << "Trying to use a unreadable file:" << pdfPath;
+            return false;
+        }
+        if (file.suffix().toLower() != "pdf")
+            qWarning() << "Interpreting the following file as PDF file:" << pdfPath;
+        lastModified = file.lastModified();
+    }
+
+    // Load the file
     popplerDoc = Poppler::Document::load(pdfPath);
-    if (popplerDoc == nullptr)
+    if (popplerDoc == nullptr) {
+        qCritical() << "Failed to open document";
         return false;
+    }
     if (popplerDoc->isLocked()) {
         // TODO: use a nicer way of entering passwords (a QDialog?)
         qCritical() << "Support for locked files is HIGHLY EXPERIMENTAL:";
@@ -59,8 +78,13 @@ bool PdfDoc::loadDocument()
         std::cin >> ownerPassword;
         std::cout << "User password (NOT HIDDEN!): ";
         std::cin >> userPassword;
-        popplerDoc->unlock(QByteArray::fromStdString(ownerPassword), QByteArray::fromStdString(userPassword));
+        if (!popplerDoc->unlock(QByteArray::fromStdString(ownerPassword), QByteArray::fromStdString(userPassword))) {
+            qCritical() << "Failed to unlock document";
+            return false;
+        }
     }
+
+    // Set rendering hints
     popplerDoc->setRenderHint(Poppler::Document::TextAntialiasing);
     popplerDoc->setRenderHint(Poppler::Document::TextHinting);
     popplerDoc->setRenderHint(Poppler::Document::TextSlightHinting);
@@ -68,15 +92,19 @@ bool PdfDoc::loadDocument()
     popplerDoc->setRenderHint(Poppler::Document::ThinLineShape);
     popplerDoc->setRenderHint(Poppler::Document::HideAnnotations);
 
+    // Clear old lists
     qDeleteAll(pdfPages);
     pdfPages.clear();
     labels.clear();
+
+    // Create new lists of pages and labels
     for (int i=0; i < popplerDoc->numPages(); i++) {
         Poppler::Page* p = popplerDoc->page(i);
         pdfPages.append(p);
         labels.append(p->label());
     }
 
+    // Check document contents and print warnings if unimplemented features are found.
     if (popplerDoc->hasOptionalContent())
         qWarning() << "This file has optional content. Optional content is not supported.";
     if (popplerDoc->hasEmbeddedFiles())

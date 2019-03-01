@@ -37,6 +37,12 @@
 #include "mediaslider.h"
 #include "pidwidcaller.h"
 
+enum PagePart {
+    LeftHalf = 1,
+    FullPage = 0,
+    RightHalf = -1,
+};
+
 class PageLabel : public QLabel
 {
     Q_OBJECT
@@ -62,7 +68,7 @@ public:
     void setPresentationStatus(bool const status) {isPresentation=status;}
     void setShowMultimedia(bool const showMultimedia) {this->showMultimedia=showMultimedia;}
     void setUrlSplitCharacter(QString const& splitCharacter) {urlSplitCharacter=splitCharacter;}
-    void setPagePart(int const state) {pagePart=state;}
+    void setPagePart(PagePart const state) {pagePart=state;}
     void setEmbedFileList(const QStringList& files) {embedFileList=files;}
     void setUseCache(bool const use) {useCache=use;}
 
@@ -97,7 +103,7 @@ private:
     bool showMultimedia = true;
     double autostartDelay = 0.; // delay for starting multimedia content in s
     int minimumAnimationDelay = 40; // minimum frame time in ms
-    int pagePart = 0;
+    PagePart pagePart = FullPage;
     QString urlSplitCharacter = "";
     int minDelayEmbeddedWindows = 50;
     int pageIndex = 0;
