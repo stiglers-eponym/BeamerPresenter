@@ -63,7 +63,10 @@ void CacheUpdateThread::run()
             QStringList presArguments = QStringList(renderArguments);
             presArguments.replaceInStrings("%file", presFileName);
             presArguments.replaceInStrings("%page", QString::number(index+1));
-            presArguments.replaceInStrings("%width", QString::number(presLabel->width()));
+            if (pagePart==FullPage)
+                presArguments.replaceInStrings("%width", QString::number(presLabel->width()));
+            else
+                presArguments.replaceInStrings("%width", QString::number(2*presLabel->width()));
             presArguments.replaceInStrings("%height", QString::number(presLabel->height()));
             //qDebug() << "Calling external renderer:" << renderCommand << presArguments;
             presRenderer->start(renderCommand, presArguments);
@@ -74,7 +77,10 @@ void CacheUpdateThread::run()
             QStringList noteArguments = QStringList(renderArguments);
             noteArguments.replaceInStrings("%file", noteFileName);
             noteArguments.replaceInStrings("%page", QString::number(index+1));
-            noteArguments.replaceInStrings("%width", QString::number(noteLabel->width()));
+            if (pagePart==FullPage)
+                noteArguments.replaceInStrings("%width", QString::number(noteLabel->width()));
+            else
+                noteArguments.replaceInStrings("%width", QString::number(2*noteLabel->width()));
             noteArguments.replaceInStrings("%height", QString::number(noteLabel->height()));
             //qDebug() << "Calling external renderer:" << renderCommand << noteArguments;
             noteRenderer->start(renderCommand, noteArguments);
@@ -85,7 +91,10 @@ void CacheUpdateThread::run()
             QStringList smallArguments = QStringList(renderArguments);
             smallArguments.replaceInStrings("%file", presFileName);
             smallArguments.replaceInStrings("%page", QString::number(index+1));
-            smallArguments.replaceInStrings("%width", QString::number(smallLabel->width()));
+            if (pagePart==FullPage)
+                smallArguments.replaceInStrings("%width", QString::number(smallLabel->width()));
+            else
+                smallArguments.replaceInStrings("%width", QString::number(2*smallLabel->width()));
             smallArguments.replaceInStrings("%height", QString::number(smallLabel->height()));
             //qDebug() << "Calling external renderer:" << renderCommand << smallArguments;
             smallRenderer->start(renderCommand, smallArguments);

@@ -214,11 +214,11 @@ void ControlScreen::setPagePart(PagePart const pagePart)
             ui->notes_label->setPagePart(FullPage);
             break;
         case LeftHalf:
-            setRenderer({"poppler"});
+            cacheThread->setPagePart(LeftHalf);
             ui->notes_label->setPagePart(RightHalf);
             break;
         case RightHalf:
-            setRenderer({"poppler"});
+            cacheThread->setPagePart(RightHalf);
             ui->notes_label->setPagePart(LeftHalf);
             break;
     }
@@ -331,6 +331,12 @@ void ControlScreen::renderPage(int const pageNumber)
         currentPageNumber = numberOfPages - 1;
     else
         currentPageNumber = pageNumber;
+
+    // Recalculate layout the window size has changed.
+    if (size() != oldSize) {
+        recalcLayout(currentPageNumber);
+        oldSize = size();
+    }
 
     // Update the notes label
     // The note document could have fewer pages than the presentation document:
@@ -807,6 +813,7 @@ void ControlScreen::resizeEvent(QResizeEvent* event)
     cacheThread->requestInterruption();
     cacheTimer->stop();
     recalcLayout(currentPageNumber);
+    oldSize = event->size();
     first_cached = presentationScreen->getPageNumber();
     last_cached = first_cached-1;
     first_delete = 0;
@@ -945,13 +952,6 @@ bool ControlScreen::setRenderer(QStringList command)
 {
     // Set a command for an external renderer.
     // This function also checks whether the command uses the arguments %file, %page, %width and %height
-
-    // Using an external renderer does not work for pagePart!=FullPage.
-    if (pagePart!=FullPage) {
-        if (command.size()!=1 || command[0]!="poppler")
-            qCritical() << "Using an external renderer does not work in combination with page-part=[left or right]. Ignoring request to use a custom renderer.";
-        return false;
-    }
 
     if (command.size() == 1) {
         if (command[0]=="poppler") {

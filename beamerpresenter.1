@@ -84,8 +84,6 @@ This should be either "poppler" (for using the internal renderer), "custom" (for
 The command should can a renderer, which renders a specific page of a PDF file to a png image of fixed size, such that it can be shown in a window with given width and height and writes the image to the standard output.
 The command should contain the tokens "%file" for the PDF file name, "%page" for the page number, "%width" for the image width in pixels and "%height" for the height in pixels.
 Note that a failing command will not necessarily be handled correctly or lead to a warning.
-This option is incompatible with
-.BR \-\-page-part "=[left or right]."
 
 An example for a command using
 .BR "mutool draw " "from the " MuPDF " project is"

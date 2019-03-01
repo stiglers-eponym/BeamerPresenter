@@ -43,6 +43,7 @@ private:
     PageLabel const* smallLabel;
     Poppler::Page const* presPage;
     Poppler::Page const* notePage;
+    PagePart pagePart = FullPage;
 
 public:
     CacheUpdateThread(QObject* parent=nullptr) : QThread(parent) {}
@@ -51,6 +52,7 @@ public:
     void setPages(Poppler::Page const* pres, Poppler::Page const* note);
     void setRenderer(Renderer renderer) {mode=renderer;}
     bool hasRenderCommand() {return !renderCommand.isEmpty();}
+    void setPagePart(PagePart const part) {pagePart=part;}
     void run() override;
 
 signals:

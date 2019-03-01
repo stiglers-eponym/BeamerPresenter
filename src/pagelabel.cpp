@@ -141,6 +141,10 @@ void PageLabel::renderPage(Poppler::Page* page, bool const setDuration, QPixmap*
         return;
     if (this->page != nullptr && page->index() != this->page->index())
         clearProcessCallers();
+    if (size() != oldSize) {
+        clearCache();
+        oldSize = size();
+    }
 
     this->page = page;
     pageIndex = page->index();
@@ -165,11 +169,50 @@ void PageLabel::renderPage(Poppler::Page* page, bool const setDuration, QPixmap*
         if (pagePart == RightHalf)
             shift_x -= width();
     }
-    if (pixmap != nullptr)
-        setPixmap(*pixmap);
+    if (pixmap != nullptr) {
+        if (pagePart != FullPage) {
+            // The pixmap might show both notes and presentation.
+            QPixmap const* oldPixmap = this->pixmap();
+            int referenceWidth;
+            if (oldPixmap==nullptr || oldPixmap->isNull())
+                referenceWidth = int(1.5*width());
+            else
+                referenceWidth = int(1.9*oldPixmap->width());
+            if (pixmap->width() > referenceWidth) {
+                // Assume that the pixmap shows notes and presentation.
+                if (pagePart == LeftHalf)
+                    setPixmap(pixmap->copy(0, 0, pixmap->width()/2, pixmap->height()));
+                else
+                    setPixmap(pixmap->copy(pixmap->width()/2, 0, pixmap->width()/2, pixmap->height()));
+            }
+            else
+                setPixmap(*pixmap);
+        }
+        else
+            setPixmap(*pixmap);
+    }
     else if (cache.contains(pageIndex)) {
         QPixmap* pixmap = getCache(pageIndex);
-        setPixmap(*pixmap);
+        if (pagePart != FullPage) {
+            // The pixmap might show both notes and presentation.
+            QPixmap const* oldPixmap = this->pixmap();
+            int referenceWidth;
+            if (oldPixmap==nullptr || oldPixmap->isNull())
+                referenceWidth = int(1.5*width());
+            else
+                referenceWidth = int(1.9*oldPixmap->width());
+            if (pixmap->width() > referenceWidth) {
+                // Assume that the pixmap shows notes and presentation.
+                if (pagePart == LeftHalf)
+                    setPixmap(pixmap->copy(0, 0, pixmap->width()/2, pixmap->height()));
+                else
+                    setPixmap(pixmap->copy(pixmap->width()/2, 0, pixmap->width()/2, pixmap->height()));
+            }
+            else
+                setPixmap(*pixmap);
+        }
+        else
+            setPixmap(*pixmap);
         delete pixmap;
     }
     else {

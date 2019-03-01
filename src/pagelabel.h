@@ -108,6 +108,7 @@ private:
     int minDelayEmbeddedWindows = 50;
     int pageIndex = 0;
     bool useCache = true;
+    QSize oldSize = QSize();
 
 protected:
     void mouseReleaseEvent(QMouseEvent* event);

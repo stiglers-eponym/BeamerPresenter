@@ -87,6 +87,7 @@ private:
     int last_cached = -1;
     long int cacheSize = 0;
     int cacheNumber = 0;
+    QSize oldSize = QSize();
 
 private slots:
     void updateCacheStep();
