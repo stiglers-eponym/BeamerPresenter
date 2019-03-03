@@ -58,7 +58,8 @@ public:
     long int clearCachePage(int const index);
     void clearCache();
     void clearAll();
-    void startAllEmbeddedApplications();
+    void startAllEmbeddedApplications(int const index);
+    void initEmbeddedApplications(Poppler::Page const* page);
 
     void setMultimediaSliders(QList<MediaSlider*> sliderList);
     void setPresentationStatus(bool const status) {isPresentation=status;}
@@ -84,15 +85,17 @@ private:
     Poppler::Page* page;
     QMap<int,QByteArray const*> cache;
     QList<Poppler::Link*> links;
-    QList<QRect*> linkPositions;
+    QList<QRect> linkPositions;
     QList<VideoWidget*> videoWidgets;
-    QList<QRect*> videoPositions;
+    QList<QRect> videoPositions;
     QList<QMediaPlayer*> soundPlayers;
-    QList<QRect*> soundPositions;
+    QList<QRect> soundPositions;
     QMap<int,QMediaPlayer*> linkSoundPlayers;
     QList<MediaSlider*> sliders;
     QMap<int,QMap<int,QProcess*>> processes;
     QMap<int,QMap<int,QWidget*>> embeddedWidgets;
+    QMap<int,QMap<int,QRect>> embeddedPositions;
+    QMap<int,QMap<int,QStringList>> embeddedCommands;
     QTimer* processTimer = nullptr;
     QTimer* autostartTimer = nullptr;
     QTimer* autostartEmbeddedTimer = nullptr;
@@ -100,14 +103,14 @@ private:
     QStringList embedFileList;
     QString pid2wid;
     QString urlSplitCharacter = "";
-    PagePart pagePart = FullPage;
+    PagePart pagePart = FullPage; // Which part of the page is shown on this label
     double resolution; // resolution in pixels per point = dpi/72
     double autostartDelay = -1.; // delay for starting multimedia content in s
     double autostartEmbeddedDelay = -1.; // delay for starting embedded applications in s
     double duration; // duration of the current page in s
     int minimumAnimationDelay = 40; // minimum frame time in ms
-    int minDelayEmbeddedWindows = 50;
-    int pageIndex = 0;
+    int minDelayEmbeddedWindows = 50; // delay in ms, after which pid2wid is called to search for a window.
+    int pageIndex = 0; // page number
     bool isPresentation = true;
     bool showMultimedia = true;
     bool useCache = true;

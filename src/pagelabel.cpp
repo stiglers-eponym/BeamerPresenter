@@ -40,6 +40,8 @@ void PageLabel::clearAll()
     // Clear all contents of the label.
     // This function is called when the document is reloaded or the program is closed and everything should be cleaned up.
     clearLists();
+    embeddedPositions.clear();
+    embeddedCommands.clear();
     // Clear running processes for embedded applications
     if (processTimer != nullptr)
         processTimer->stop();
@@ -89,15 +91,12 @@ void PageLabel::clearLists()
     // Delete multimedia content
     qDeleteAll(sliders);
     sliders.clear();
-    qDeleteAll(linkPositions);
     linkPositions.clear();
     qDeleteAll(links);
     links.clear();
-    qDeleteAll(videoPositions);
     videoPositions.clear();
     qDeleteAll(videoWidgets);
     videoWidgets.clear();
-    qDeleteAll(soundPositions);
     soundPositions.clear();
     qDeleteAll(soundPlayers);
     soundPlayers.clear();
@@ -221,13 +220,12 @@ void PageLabel::renderPage(Poppler::Page* page, bool const setDuration, QPixmap 
     links = page->links();
     Q_FOREACH(Poppler::Link* link, links) {
         QRectF relative = link->linkArea();
-        QRect* absolute = new QRect(
+        linkPositions.append(QRect(
                     shift_x+int(relative.x()*scale_x),
                     shift_y+int(relative.y()*scale_y),
                     int(relative.width()*scale_x),
                     int(relative.height()*scale_y)
-                );
-        linkPositions.append(absolute);
+                ));
     }
 
     // Multimedia content. This part is work in progress.
@@ -242,15 +240,14 @@ void PageLabel::renderPage(Poppler::Page* page, bool const setDuration, QPixmap 
         // Save the positions of all video annotations and create a video widget for each of them.
         for (QList<Poppler::Annotation*>::iterator annotation=videos.begin(); annotation!=videos.end(); annotation++) {
             Poppler::MovieAnnotation* video = (Poppler::MovieAnnotation*) *annotation;
+            videoWidgets.append(new VideoWidget(video, urlSplitCharacter, this));
             QRectF relative = video->boundary();
-            QRect* absolute = new QRect(
+            videoPositions.append(QRect(
                     shift_x+int(relative.x()*scale_x),
                     shift_y+int(relative.y()*scale_y),
                     int(relative.width()*scale_x),
                     int(relative.height()*scale_y)
-                );
-            videoPositions.append(absolute);
-            videoWidgets.append(new VideoWidget(video, urlSplitCharacter, this));
+                ));
         }
         // The list "videos" is cleaned, but its items (annotation pointers) are not deleted! The video widgets take ownership of the annotations.
         videos.clear();
@@ -263,14 +260,15 @@ void PageLabel::renderPage(Poppler::Page* page, bool const setDuration, QPixmap 
         // Save the positions of all audio annotations and create a sound player for each of them.
         for (QList<Poppler::Annotation*>::iterator it = sounds.begin(); it!=sounds.end(); it++) {
             qWarning() << "Support for sound in annotations is untested!";
-            QRectF relative = (*it)->boundary();
-            QRect * absolute = new QRect(
-                        shift_x+int(relative.x()*scale_x),
-                        shift_y+int(relative.y()*scale_y),
-                        int(relative.width()*scale_x),
-                        int(relative.height()*scale_y)
-                    );
-            soundPositions.append(absolute);
+            {
+                QRectF relative = (*it)->boundary();
+                soundPositions.append(QRect(
+                            shift_x+int(relative.x()*scale_x),
+                            shift_y+int(relative.y()*scale_y),
+                            int(relative.width()*scale_x),
+                            int(relative.height()*scale_y)
+                        ));
+            }
 
             Poppler::SoundObject* sound = ((Poppler::SoundAnnotation*) *it)->sound();
             QMediaPlayer* player = new QMediaPlayer(this);
@@ -341,15 +339,17 @@ void PageLabel::renderPage(Poppler::Page* page, bool const setDuration, QPixmap 
                     // First case: the execution link points to an application, which exists already as an application widget.
                     // In this case the widget just needs to be shown in the correct position and size.
                     if (embeddedWidgets.contains(pageIndex) && embeddedWidgets[pageIndex].contains(i) && embeddedWidgets[pageIndex][i]!=nullptr) {
-                        QRect winGeometry = *linkPositions[i];
+                        QRect winGeometry = linkPositions[i];
                         if (winGeometry.height() < 0) {
                             winGeometry.setY(winGeometry.y() + winGeometry.height());
-                            winGeometry.setHeight(-linkPositions[i]->height());
+                            winGeometry.setHeight(-linkPositions[i].height());
                         }
-                        embeddedWidgets[pageIndex][i]->setMinimumSize(winGeometry.width(), winGeometry.height());
-                        embeddedWidgets[pageIndex][i]->setMaximumSize(winGeometry.width(), winGeometry.height());
-                        embeddedWidgets[pageIndex][i]->setGeometry(winGeometry);
-                        embeddedWidgets[pageIndex][i]->show();
+                        QWidget* widget = embeddedWidgets[pageIndex][i];
+                        widget->setMinimumSize(winGeometry.width(), winGeometry.height());
+                        widget->setMaximumSize(winGeometry.width(), winGeometry.height());
+                        widget->setGeometry(winGeometry);
+                        widget->show();
+                        embeddedPositions[pageIndex][i] = winGeometry;
                     }
                     // Second case: There exists no process for this execution link.
                     // In this case we need to check, whether this application should be executed in an embedded window.
@@ -363,17 +363,18 @@ void PageLabel::renderPage(Poppler::Page* page, bool const setDuration, QPixmap 
                             splitFileName.append(link->fileName());
                         QUrl url = QUrl(splitFileName[0], QUrl::TolerantMode);
                         splitFileName.append(link->parameters());
-                        // Is the program contained in embedFileList?
-                        if (embedFileList.contains(splitFileName[0]) || embedFileList.contains(url.fileName())) {
+                        if (embedFileList.contains(splitFileName[0]) || embedFileList.contains(url.fileName()) || (splitFileName.length() > 1 && splitFileName.contains("embed"))) {
                             embeddedWidgets[pageIndex][i] = nullptr;
                             processes[pageIndex][i] = nullptr;
-                        }
-                        // Do the arguments of the link indicate, that the program should be executed as an embedded application?
-                        else if (splitFileName.length() > 1) {
-                            if (splitFileName.contains("embed")) {
-                                embeddedWidgets[pageIndex][i] = nullptr;
-                                processes[pageIndex][i] = nullptr;
+                            splitFileName.removeAll("embed"); // We know that the file will be embedded. This is not an argument for the program.
+                            splitFileName.removeAll("");
+                            embeddedCommands[pageIndex][i] = splitFileName;
+                            QRect winGeometry = linkPositions[i];
+                            if (winGeometry.height() < 0) {
+                                winGeometry.setY(winGeometry.y() + winGeometry.height());
+                                winGeometry.setHeight(-linkPositions[i].height());
                             }
+                            embeddedPositions[pageIndex][i] = winGeometry;
                         }
                     }
                     break;
@@ -384,7 +385,7 @@ void PageLabel::renderPage(Poppler::Page* page, bool const setDuration, QPixmap 
         for (int i=0; i<videoWidgets.size(); i++) {
             if (videoWidgets[i]->getAutoplay()) {
                 qDebug() << "Untested option autostart for video";
-                videoWidgets[i]->setGeometry(*videoPositions[i]);
+                videoWidgets[i]->setGeometry(videoPositions[i]);
                 videoWidgets[i]->show();
                 videoWidgets[i]->play();
             }
@@ -411,17 +412,133 @@ void PageLabel::renderPage(Poppler::Page* page, bool const setDuration, QPixmap 
                 delete autostartEmbeddedTimer;
                 autostartEmbeddedTimer = new QTimer();
                 autostartEmbeddedTimer->setSingleShot(true);
-                connect(autostartEmbeddedTimer, &QTimer::timeout, this, &PageLabel::startAllEmbeddedApplications);
+                connect(autostartEmbeddedTimer, &QTimer::timeout, this, [&](){startAllEmbeddedApplications(pageIndex);});
                 autostartEmbeddedTimer->start(int(autostartEmbeddedDelay*1000));
             }
             else if (autostartEmbeddedDelay > -0.01)
                 // autostart without delay
-                startAllEmbeddedApplications();
+                startAllEmbeddedApplications(pageIndex);
         }
 
         // Add slider
         emit requestMultimediaSliders(videoWidgets.size() + linkSoundPlayers.size() + soundPlayers.size());
     }
+}
+
+void PageLabel::initEmbeddedApplications(Poppler::Page const* page)
+{
+    // Initialize all embedded applications for a given page.
+    // The applications are not started yet, but their positions are calculated and the commands are saved.
+    // After this function, PageLabel::startAllEmbeddedApplications can be used to start the applications.
+    QList<Poppler::Link*> links;
+    int const index = page->index();
+    if (index == pageIndex)
+        links = this->links;
+    else
+        links = page->links();
+    bool containsNewEmbeddedWidgets = false;
+
+    // Find embedded programs.
+    for (int i=0; i<links.length(); i++) {
+        if (links[i]->linkType()==Poppler::Link::Execute) {
+            // Execution links can point to applications, which should be embedded in the presentation
+            if (!(processes.contains(index) && processes[index].contains(i) && processes[index][i] != nullptr)) {
+                Poppler::LinkExecute* link = (Poppler::LinkExecute*) links[i];
+                // Get file path (url) and arguments
+                QStringList splitFileName = QStringList();
+                if (!urlSplitCharacter.isEmpty())
+                    splitFileName = link->fileName().split(urlSplitCharacter);
+                else
+                    splitFileName.append(link->fileName());
+                QUrl url = QUrl(splitFileName[0], QUrl::TolerantMode);
+                splitFileName.append(link->parameters());
+                if (embedFileList.contains(splitFileName[0]) || embedFileList.contains(url.fileName()) || (splitFileName.length() > 1 && splitFileName.contains("embed"))) {
+                    embeddedWidgets[index][i] = nullptr;
+                    processes[index][i] = nullptr;
+                    splitFileName.removeAll("embed"); // We know that the file will be embedded. This is not an argument for the program.
+                    splitFileName.removeAll("");
+                    embeddedCommands[index][i] = splitFileName;
+                    containsNewEmbeddedWidgets = true;
+                }
+            }
+        }
+    }
+
+    // If this slide contains embedded applications, calculate and save their position.
+    if (containsNewEmbeddedWidgets) {
+        if (index == pageIndex) {
+            for (QMap<int,QWidget*>::key_iterator key_it=embeddedWidgets[index].keyBegin(); key_it!=embeddedWidgets[index].keyEnd(); key_it++) {
+                if (embeddedPositions.contains(index) && embeddedPositions[index].contains(*key_it))
+                    continue;
+                if (*key_it >= linkPositions.length()) {
+                    qCritical() << "Something strange happened with the link positions / embedded applications.";
+                    continue;
+                }
+                QRect winGeometry = linkPositions[*key_it];
+                if (winGeometry.height() < 0) {
+                    winGeometry.setY(winGeometry.y() + winGeometry.height());
+                    winGeometry.setHeight(-linkPositions[*key_it].height());
+                }
+                embeddedPositions[index][*key_it] = winGeometry;
+            }
+        }
+        else {
+            int shift_x=0, shift_y=0;
+            double resolution = this->resolution;
+            QSize pageSize = page->pageSize();
+            // This is given in point = inch/72 ≈ 0.353mm (Did they choose these units to bother programmers?)
+
+            // Place the page as an image of the correct size at the correct position
+            // The lower left corner of the image will be located at (shift_x, shift_y)
+            int pageHeight=pageSize.height(), pageWidth=pageSize.width();
+            // The page image must be split if the beamer option "notes on second screen" is set.
+            if (pagePart != FullPage)
+                pageWidth /= 2;
+            // Check it width or height is the limiting constraint for the size of the displayed slide and calculate the resolution
+            // resolution is calculated in pixels per point = dpi/72.
+            if (width() * pageHeight > height() * pageWidth) {
+                // the width of the label is larger than required
+                resolution = double(height()) / pageHeight;
+                shift_x = int(width()/2 - resolution/2 * pageWidth);
+            }
+            else {
+                // the height of the label is larger than required
+                resolution = double(width()) / pageWidth;
+                shift_y = int(height()/2 - resolution/2 * pageHeight);
+            }
+
+            // Calculate the size of the image relative to the label size
+            double scale_x=resolution*pageWidth, scale_y=resolution*pageHeight;
+            // Adjustments if only parts of the page are shown:
+            if (pagePart != FullPage) {
+                scale_x *= 2;
+                // If only the right half of the page will be shown, the position of the page (relevant for link positions) must be adjusted.
+                if (pagePart == RightHalf)
+                    shift_x -= width();
+            }
+            for (QMap<int,QWidget*>::key_iterator key_it=embeddedWidgets[index].keyBegin(); key_it!=embeddedWidgets[index].keyEnd(); key_it++) {
+                if (embeddedPositions.contains(index) && embeddedPositions[index].contains(*key_it))
+                    continue;
+                QRectF relative = links[*key_it]->linkArea();
+                QRect winGeometry = QRect(
+                            shift_x+int(relative.x()*scale_x),
+                            shift_y+int(relative.y()*scale_y),
+                            int(relative.width()*scale_x),
+                            int(relative.height()*scale_y)
+                        );
+                if (winGeometry.height() < 0) {
+                    int const height = -winGeometry.height();
+                    winGeometry.setY(winGeometry.y() + winGeometry.height());
+                    winGeometry.setHeight(height);
+                }
+                embeddedPositions[index][*key_it] = winGeometry;
+            }
+        }
+        qDebug() << "Initialized embedded applications on page" << index;
+    }
+
+    if (index != pageIndex)
+        qDeleteAll(links);
 }
 
 long int PageLabel::updateCache(QPixmap const* pixmap, int const index)
@@ -619,7 +736,7 @@ void PageLabel::startAllMultimedia()
     for (int i=0; i<videoWidgets.size(); i++) {
         // The size of a video widget is set the first time it gets shown.
         // Setting this directly at initialization caused some problems.
-        videoWidgets[i]->setGeometry(*videoPositions[i]);
+        videoWidgets[i]->setGeometry(videoPositions[i]);
         videoWidgets[i]->show();
         videoWidgets[i]->play();
     }
@@ -661,7 +778,7 @@ void PageLabel::mouseReleaseEvent(QMouseEvent* event)
 {
     if (event->button() == Qt::LeftButton) {
         for (int i=0; i<links.size(); i++) {
-            if (linkPositions[i]->contains(event->pos())) {
+            if (linkPositions[i].contains(event->pos())) {
                 switch ( links[i]->linkType() )
                 {
                     case Poppler::Link::Goto:
@@ -675,33 +792,24 @@ void PageLabel::mouseReleaseEvent(QMouseEvent* event)
                             // First case: the execution link points to an application, which exists already as an application widget.
                             // In this case the widget just needs to be shown in the correct position and size.
                             if (embeddedWidgets[pageIndex][i] != nullptr) {
-                                QRect winGeometry = *linkPositions[i];
-                                if (winGeometry.height() < 0) {
-                                    winGeometry.setY(winGeometry.y() + winGeometry.height());
-                                    winGeometry.setHeight(-linkPositions[i]->height());
+                                if (!(embeddedPositions.contains(pageIndex) && embeddedPositions[pageIndex].contains(i))) {
+                                    qCritical() << "Something very unexpected happened with embedded applications.";
+                                    continue;
                                 }
-                                embeddedWidgets[pageIndex][i]->setMinimumSize(winGeometry.width(), winGeometry.height());
-                                embeddedWidgets[pageIndex][i]->setMaximumSize(winGeometry.width(), winGeometry.height());
-                                embeddedWidgets[pageIndex][i]->setGeometry(winGeometry);
-                                embeddedWidgets[pageIndex][i]->show();
+                                QRect const* winGeometry = &embeddedPositions[pageIndex][i];
+                                QWidget* widget = embeddedWidgets[pageIndex][i];
+                                widget->setMinimumSize(winGeometry->width(), winGeometry->height());
+                                widget->setMaximumSize(winGeometry->width(), winGeometry->height());
+                                widget->setGeometry(*winGeometry);
+                                widget->show();
                                 return;
                             }
                             // Second case: There exists no process for this execution link.
                             // In this case we need to check, whether this application should be executed in an embedded window.
                             if (processes.contains(pageIndex) && processes[pageIndex].contains(i) && processes[pageIndex][i] == nullptr) {
-                                // Get file name (url) and arguments.
-                                Poppler::LinkExecute* link = (Poppler::LinkExecute*) links[i];
-                                QStringList splitFileName = QStringList();
-                                if (!urlSplitCharacter.isEmpty())
-                                    splitFileName = link->fileName().split(urlSplitCharacter);
-                                else
-                                    splitFileName.append(link->fileName());
-                                QUrl url = QUrl(splitFileName[0], QUrl::TolerantMode);
-                                splitFileName.append(link->parameters());
+                                QStringList splitFileName = embeddedCommands[pageIndex][i];
                                 QString fileName = splitFileName[0];
                                 splitFileName.removeFirst();
-                                splitFileName.removeAll("embed"); // We know that the file will be embedded. This is not an argument for the program.
-                                splitFileName.removeAll("");
                                 // External windows can only be embedded when we know their window ID.
                                 // This WID can be obtained by an other external program (pid2wid)
                                 // or from the executed application itself via standard output.
@@ -886,7 +994,7 @@ void PageLabel::mouseReleaseEvent(QMouseEvent* event)
             }
         }
         for (int i=0; i<soundPositions.size(); i++) {
-            if (soundPositions[i]->contains(event->pos())) {
+            if (soundPositions[i].contains(event->pos())) {
                 if (soundPlayers[i]->state() == QMediaPlayer::PlayingState)
                     soundPlayers[i]->pause();
                 else
@@ -917,15 +1025,15 @@ void PageLabel::mouseMoveEvent(QMouseEvent* event)
     if (!pointer_visible)
         return;
     bool is_arrow_pointer = cursor() == Qt::ArrowCursor;
-    Q_FOREACH(QRect* link_rect, linkPositions) {
-        if (link_rect->contains(event->pos())) {
+    for (QList<QRect>::const_iterator pos_it=linkPositions.cbegin(); pos_it!=linkPositions.cend(); pos_it++) {
+        if (pos_it->contains(event->pos())) {
             if (is_arrow_pointer)
                 setCursor(Qt::PointingHandCursor);
             return;
         }
     }
-    Q_FOREACH(QRect* sound_rect, soundPositions) {
-        if (sound_rect->contains(event->pos())) {
+    for (QList<QRect>::const_iterator pos_it=soundPositions.cbegin(); pos_it!=soundPositions.cend(); pos_it++) {
+        if (pos_it->contains(event->pos())) {
             if (is_arrow_pointer)
                 setCursor(Qt::PointingHandCursor);
             return;
@@ -957,11 +1065,11 @@ void PageLabel::createEmbeddedWindow()
                     continue;
                 }
                 // Geometry of the embedded window:
-                QRect winGeometry = *linkPositions[process_it.key()];
-                if (winGeometry.height() < 0) {
-                    winGeometry.setY(winGeometry.y() + winGeometry.height());
-                    winGeometry.setHeight(-linkPositions[process_it.key()]->height());
+                if (!(embeddedPositions.contains(page_it.key()) && embeddedPositions[page_it.key()].contains(process_it.key()))) {
+                    qCritical() << "Something very unexpected happened with embedded applications.";
+                    continue;
                 }
+                QRect const* winGeometry = &embeddedPositions[page_it.key()][process_it.key()];
                 // Get the window:
                 QWindow* newWindow = QWindow::fromWinId(wid);
                 // Without the following two lines, key events are sometimes not sent to the embedded window:
@@ -969,11 +1077,11 @@ void PageLabel::createEmbeddedWindow()
                 newWindow->hide();
                 // Turn the window into a widget, which can be embedded in the presentation (or control) window:
                 QWidget* newWidget = createWindowContainer(newWindow, this);
-                newWidget->setMinimumSize(winGeometry.width(), winGeometry.height());
-                newWidget->setMaximumSize(winGeometry.width(), winGeometry.height());
+                newWidget->setMinimumSize(winGeometry->width(), winGeometry->height());
+                newWidget->setMaximumSize(winGeometry->width(), winGeometry->height());
                 if (page_it.key()==pageIndex)
                     newWidget->show();
-                newWidget->setGeometry(winGeometry);
+                newWidget->setGeometry(*winGeometry);
                 embeddedWidgets[pageIndex][process_it.key()] = newWidget;
                 return;
             }
@@ -996,7 +1104,7 @@ void PageLabel::createEmbeddedWindowsFromPID()
     // For all processes, which are note connected to a window ID yet, start a PidWidCaller to check if a corresponding window can be found.
     for(QMap<int,QMap<int,QProcess*>>::iterator page_it=processes.begin(); page_it!=processes.end(); page_it++) {
         for(QMap<int,QProcess*>::iterator process_it=page_it.value().begin(); process_it!=page_it.value().end(); process_it++) {
-            if (process_it.value() != nullptr && embeddedWidgets[pageIndex][process_it.key()] == nullptr) {
+            if (process_it.value() != nullptr && embeddedWidgets[page_it.key()][process_it.key()] == nullptr) {
                 PidWidCaller* pidWidCaller = new PidWidCaller(pid2wid, process_it.value()->pid(), page_it.key(), process_it.key(), this);
                 connect(pidWidCaller, &PidWidCaller::sendWid, this, &PageLabel::receiveWid);
                 anyCandidates = true;
@@ -1030,11 +1138,11 @@ void PageLabel::receiveWid(WId const wid, int const page, int const index)
         return;
     }
     // Geometry of the embedded window:
-    QRect winGeometry = *linkPositions[index];
-    if (winGeometry.height() < 0) {
-        winGeometry.setY(winGeometry.y() + winGeometry.height());
-        winGeometry.setHeight(-linkPositions[index]->height());
+    if (!(embeddedPositions.contains(page) && embeddedPositions[page].contains(index))) {
+        qCritical() << "Something very unexpected happened with embedded applications.";
+        return;
     }
+    QRect const* winGeometry = &embeddedPositions[page][index];
     // Get the window:
     QWindow* newWindow = QWindow::fromWinId(wid);
     // Without the following two lines, key events are sometimes not sent to the embedded window:
@@ -1042,35 +1150,38 @@ void PageLabel::receiveWid(WId const wid, int const page, int const index)
     newWindow->hide();
     // Turn the window into a widget, which can be embedded in the presentation (or control) window:
     QWidget* newWidget = createWindowContainer(newWindow, this);
-    newWidget->setMinimumSize(winGeometry.width(), winGeometry.height());
-    newWidget->setMaximumSize(winGeometry.width(), winGeometry.height());
+    newWidget->setMinimumSize(winGeometry->width(), winGeometry->height());
+    newWidget->setMaximumSize(winGeometry->width(), winGeometry->height());
     if (page==pageIndex)
         newWidget->show();
-    newWidget->setGeometry(winGeometry);
+    newWidget->setGeometry(*winGeometry);
     embeddedWidgets[page][index] = newWidget;
 }
 
-void PageLabel::startAllEmbeddedApplications()
+void PageLabel::startAllEmbeddedApplications(int const index)
 {
     // Start all embedded applications of the current slide.
-    for(QMap<int,QProcess*>::iterator it=processes[pageIndex].begin(); it!=processes[pageIndex].end(); it++) {
+    if (!processes.contains(index))
+        return;
+    for(QMap<int,QProcess*>::iterator it=processes[index].begin(); it!=processes[index].end(); it++) {
         // Some items must be created in renderPage. If these don't exist, something must be wrong.
-        if (!(embeddedWidgets.contains(pageIndex) && embeddedWidgets[pageIndex].contains(it.key()))) {
+        if (!(embeddedWidgets.contains(index) && embeddedWidgets[index].contains(it.key()))) {
             qCritical() << "Something unexpected happened with an embedded application.";
             continue;
         }
         // If the embedded window exists: Check if it is hidden, show it and continue.
-        if (embeddedWidgets[pageIndex][it.key()] != nullptr) {
-            if (embeddedWidgets[pageIndex][it.key()]->isHidden()) {
-                QRect winGeometry = *linkPositions[it.key()];
-                if (winGeometry.height() < 0) {
-                    winGeometry.setY(winGeometry.y() + winGeometry.height());
-                    winGeometry.setHeight(-linkPositions[it.key()]->height());
+        if (embeddedWidgets[index][it.key()] != nullptr) {
+            if (embeddedWidgets[index][it.key()]->isHidden()) {
+                if (!(embeddedPositions.contains(index) && embeddedPositions[index].contains(it.key()))) {
+                    qCritical() << "Something very unexpected happened with embedded applications.";
+                    continue;
                 }
-                embeddedWidgets[pageIndex][it.key()]->setMinimumSize(winGeometry.width(), winGeometry.height());
-                embeddedWidgets[pageIndex][it.key()]->setMaximumSize(winGeometry.width(), winGeometry.height());
-                embeddedWidgets[pageIndex][it.key()]->setGeometry(winGeometry);
-                embeddedWidgets[pageIndex][it.key()]->show();
+                QRect const* winGeometry = &embeddedPositions[index][it.key()];
+                QWidget* widget = embeddedWidgets[index][it.key()];
+                widget->setMinimumSize(winGeometry->width(), winGeometry->height());
+                widget->setMaximumSize(winGeometry->width(), winGeometry->height());
+                widget->setGeometry(*winGeometry);
+                widget->show();
             }
             continue;
         }
@@ -1078,19 +1189,10 @@ void PageLabel::startAllEmbeddedApplications()
         if (it.value() != nullptr)
             continue;
 
-        // Get file path (url) and arguments.
-        Poppler::LinkExecute* link = (Poppler::LinkExecute*) links[it.key()];
-        QStringList splitFileName = QStringList();
-        if (!urlSplitCharacter.isEmpty())
-            splitFileName = link->fileName().split(urlSplitCharacter);
-        else
-            splitFileName.append(link->fileName());
-        QUrl url = QUrl(splitFileName[0], QUrl::TolerantMode);
-        splitFileName.append(link->parameters());
+        QStringList splitFileName = embeddedCommands[index][it.key()];
         QString fileName = splitFileName[0];
         splitFileName.removeFirst();
-        splitFileName.removeAll("embed"); // We know that the file will be embedded. This is not an argument for the program.
-        splitFileName.removeAll("");
+
         // External windows can only be embedded when we know their window ID.
         // This WID can be obtained by an other external program (pid2wid)
         // or from the executed application itself via standard output.

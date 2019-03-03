@@ -1,9 +1,6 @@
 BeamerPresenter
 
 * Cache management: test, clean up the code, improve
-* Make poppler rendering to cache more efficient (use multiple threads)
-* custom cache renderer: avoid killing custom renderer
-
 * Embedded applications: Terminate processes correctly before closing the window
 * Embedded applications: debug, test, use wildecards
 * Handle focus of embedded windows
@@ -16,6 +13,7 @@ BeamerPresenter
 * Support locked and encrypted pdfs: Enter passwords in QDialog? hide password input!
 * Implement other link types (history, search)
 * Implement optional content (e.g. for sound)
+* Make poppler rendering to cache more efficient (use multiple threads)
 
 * Mode to browse slides on control screen
 * Draw in presentation

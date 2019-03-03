@@ -38,7 +38,8 @@ int main(int argc, char *argv[])
             "\nSimple dual screen pdf presentation software.\n"
             "Shortcuts:\n"
             "  c                Update cache\n"
-            "  e                Start all embedded applications\n"
+            "  e                Start all embedded applications on the current slide\n"
+            "  E                Start all embedded applications on all slides\n"
             "  g                Go to page (set focus to page number edit)\n"
             "  m                Play or pause all multimedia content\n"
             "  o                Toggle cursor visbility (only on presentation screen)\n"
@@ -497,7 +498,7 @@ int main(int argc, char *argv[])
     w->renderPage(0);
 
     // Here one could update the cache.
-    // But you probably first want to adjust the window size and then update it with key shortcut space.
+    // But you probably first want to adjust the window size and then update it with key shortcut c.
     //w->updateCache();
 
     // start the execution loop

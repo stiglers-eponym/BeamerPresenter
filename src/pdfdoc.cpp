@@ -33,6 +33,10 @@ PdfDoc::~PdfDoc()
 
 bool PdfDoc::loadDocument()
 {
+    // (Re)load the pdf document.
+    // Return true if a new document has been loaded and false otherwise.
+    // If a document has been loaded before, this function checks whether the file has been updated and reloads it if necessary.
+
     if (popplerDoc != nullptr) {
         // Check whether the file has been updated
         if (QFileInfo(pdfPath).lastModified() > lastModified) {
@@ -65,6 +69,8 @@ bool PdfDoc::loadDocument()
         qCritical() << "Failed to open document";
         return false;
     }
+    // PDF files can be locked.
+    // Locked pdf files are not really supported, as you can see:
     if (popplerDoc->isLocked()) {
         // TODO: use a nicer way of entering passwords (a QDialog?)
         qCritical() << "Support for locked files is HIGHLY EXPERIMENTAL:";
@@ -116,6 +122,7 @@ bool PdfDoc::loadDocument()
 
 QSize PdfDoc::getPageSize(int const pageNumber) const
 {
+    // Return page size in point = inch/72 ≈ 0.353mm (I hate these units...)
     if (pageNumber < 0)
         return pdfPages[0]->pageSize();
     if (pageNumber >= popplerDoc->numPages())
@@ -125,6 +132,7 @@ QSize PdfDoc::getPageSize(int const pageNumber) const
 
 Poppler::Page * PdfDoc::getPage(int pageNumber) const
 {
+    // Check if page number is valid and return page.
     if (pageNumber < 0)
         return pdfPages[0];
     if (pageNumber >= popplerDoc->numPages())
@@ -134,6 +142,7 @@ Poppler::Page * PdfDoc::getPage(int pageNumber) const
 
 int PdfDoc::getNextSlideIndex(int const index) const
 {
+    // Return the index of the next slide, which is not just an overlay of the current slide.
     QString label = labels[index];
     for (int i=index; i<popplerDoc->numPages(); i++) {
         if (label != labels[i])
@@ -144,6 +153,7 @@ int PdfDoc::getNextSlideIndex(int const index) const
 
 int PdfDoc::getPreviousSlideEnd(int const index) const
 {
+    // Return the index of the last overlay of the previous slide.
     QString label = labels[index];
     for (int i=index; i>0; i--) {
         if (label != labels[i]) {
@@ -160,6 +170,7 @@ int PdfDoc::getPreviousSlideEnd(int const index) const
 
 int PdfDoc::destToSlide(QString const & dest) const
 {
+    // Return the index of the page, which is bookmarked as dest in the pdf.
     Poppler::LinkDestination* linkDest = popplerDoc->linkDestination(dest);
     if (linkDest==nullptr)
         return -1;

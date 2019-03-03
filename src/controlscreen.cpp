@@ -748,8 +748,12 @@ void ControlScreen::keyPressEvent(QKeyEvent* event)
             updateCache();
             break;
         case Qt::Key_E:
-            presentationScreen->getLabel()->startAllEmbeddedApplications();
-            //ui->notes_label->startAllEmbeddedApplications();
+            if (event->text() == "e") {
+                presentationScreen->getLabel()->startAllEmbeddedApplications(presentationScreen->getPageNumber());
+                //ui->notes_label->startAllEmbeddedApplications(currentPageNumber);
+            }
+            else if (event->text() == "E")
+                startAllEmbeddedApplications();
             break;
         case Qt::Key_G:
             hideToc();
@@ -806,6 +810,18 @@ void ControlScreen::keyPressEvent(QKeyEvent* event)
             hideToc();
     }
     event->accept();
+}
+
+void ControlScreen::startAllEmbeddedApplications()
+{
+    // Start all embedded applications of the presentation on all pages.
+    qDebug() << "Starting all embedded applications on all pages.";
+    QList<Poppler::Page*> const pages = presentation->getPages();
+    PageLabel* label = presentationScreen->getLabel();
+    for (QList<Poppler::Page*>::const_iterator page_it=pages.cbegin(); page_it!=pages.cend(); page_it++) {
+        label->initEmbeddedApplications(*page_it);
+        label->startAllEmbeddedApplications((*page_it)->index());
+    }
 }
 
 void ControlScreen::resizeEvent(QResizeEvent* event)

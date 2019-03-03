@@ -52,6 +52,7 @@ public:
     QDomDocument const * getToc() const {return popplerDoc->toc();}
     int destToSlide(QString const & dest) const;
     QString const& getPath() {return pdfPath;}
+    QList<Poppler::Page*> const& getPages() const {return pdfPages;}
 };
 
 #endif // PDFWIDGET_H
