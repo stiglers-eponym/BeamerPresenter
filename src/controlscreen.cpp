@@ -151,8 +151,10 @@ ControlScreen::ControlScreen(QString presentationPath, QString notesPath, QWidge
     connect(this, &ControlScreen::sendTimeoutInterval, ui->label_timer, &Timer::receiveTimeoutInterval);
 
     // Signals sent to the page labels
-    connect(this, &ControlScreen::sendAutostartDelay, ui->notes_label, &PageLabel::setAutostartDelay);
+    //connect(this, &ControlScreen::sendAutostartDelay, ui->notes_label, &PageLabel::setAutostartDelay);
     connect(this, &ControlScreen::sendAutostartDelay, presentationScreen->getLabel(), &PageLabel::setAutostartDelay);
+    //connect(this, &ControlScreen::sendAutostartEmbeddedDelay, ui->notes_label, &PageLabel::setAutostartEmbeddedDelay);
+    connect(this, &ControlScreen::sendAutostartEmbeddedDelay, presentationScreen->getLabel(), &PageLabel::setAutostartEmbeddedDelay);
     connect(this, &ControlScreen::playMultimedia,     ui->notes_label, &PageLabel::startAllMultimedia);
     connect(this, &ControlScreen::playMultimedia,     presentationScreen->getLabel(), &PageLabel::startAllMultimedia);
     connect(this, &ControlScreen::pauseMultimedia,    ui->notes_label, &PageLabel::pauseAllMultimedia);
@@ -353,7 +355,7 @@ void ControlScreen::renderPage(int const pageNumber)
             // Render the next slide to the current slide label's cache
             ui->current_slide_label->updateCache(presentation->getPage(currentPageNumber+1));
             // Now show the cached page on the next slide label
-            QPixmap* pixmap = ui->current_slide_label->getCache(currentPageNumber+1);
+            QPixmap const* pixmap = ui->current_slide_label->getCache(currentPageNumber+1);
             ui->next_slide_label->renderPage(presentation->getPage(currentPageNumber+1), false, pixmap);
             delete pixmap;
         }
@@ -363,7 +365,7 @@ void ControlScreen::renderPage(int const pageNumber)
     else { // If we have not reached the last page (there is no next page)
         // Get page and pixmap for current page.
         Poppler::Page* page = presentation->getPage(currentPageNumber);
-        QPixmap* pixmap = ui->current_slide_label->getCache(currentPageNumber);
+        QPixmap const* pixmap = ui->current_slide_label->getCache(currentPageNumber);
         // Show the page on the current and next slide label.
         if (pixmap->isNull()) {
             // The page was not cached. Render it on current slide label.
@@ -747,7 +749,7 @@ void ControlScreen::keyPressEvent(QKeyEvent* event)
             break;
         case Qt::Key_E:
             presentationScreen->getLabel()->startAllEmbeddedApplications();
-            ui->notes_label->startAllEmbeddedApplications();
+            //ui->notes_label->startAllEmbeddedApplications();
             break;
         case Qt::Key_G:
             hideToc();

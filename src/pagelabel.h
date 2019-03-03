@@ -51,18 +51,14 @@ public:
     PageLabel(QWidget* parent);
     PageLabel(Poppler::Page* page, QWidget* parent);
     ~PageLabel();
-    void renderPage(Poppler::Page* page, bool const setDuration=true, QPixmap* pixmap=nullptr);
-    bool hasActiveMultimediaContent() const;
-    long int updateCache(Poppler::Page const * page);
+    void renderPage(Poppler::Page* page, bool const setDuration=true, QPixmap const* pixmap=nullptr);
+    long int updateCache(Poppler::Page const* page);
     long int updateCache(QPixmap const* pixmap, int const index);
     long int updateCache(QByteArray const* pixmap, int const index);
-    QPixmap getPixmap(Poppler::Page const * page) const;
     long int clearCachePage(int const index);
     void clearCache();
     void clearAll();
     void startAllEmbeddedApplications();
-    long int getCacheSize() const;
-    int getCacheNumber() const {return cache.size();}
 
     void setMultimediaSliders(QList<MediaSlider*> sliderList);
     void setPresentationStatus(bool const status) {isPresentation=status;}
@@ -72,16 +68,20 @@ public:
     void setEmbedFileList(const QStringList& files) {embedFileList=files;}
     void setUseCache(bool const use) {useCache=use;}
 
-    QPixmap* getCache(int const index) const;
+    long int getCacheSize() const;
+    int getCacheNumber() const {return cache.size();}
+    QPixmap getPixmap(Poppler::Page const* page) const;
+    QPixmap const* getCache(int const index) const;
     QByteArray const* getCachedBytes(int const index) const;
     int pageNumber() const {return pageIndex;}
     Poppler::Page* getPage() {return page;}
-    double getDuration() const {return  duration;}
+    double getDuration() const {return duration;}
     bool cacheContains(int const index) const {return cache.contains(index);}
+    bool hasActiveMultimediaContent() const;
 
 private:
     void clearLists();
-    void clearProcessCallers();
+    Poppler::Page* page;
     QMap<int,QByteArray const*> cache;
     QList<Poppler::Link*> links;
     QList<QRect*> linkPositions;
@@ -93,31 +93,29 @@ private:
     QList<MediaSlider*> sliders;
     QMap<int,QMap<int,QProcess*>> processes;
     QMap<int,QMap<int,QWidget*>> embeddedWidgets;
-    QSet<PidWidCaller*> pidWidCallers;
-    QString pid2wid;
     QTimer* processTimer = nullptr;
+    QTimer* autostartTimer = nullptr;
+    QTimer* autostartEmbeddedTimer = nullptr;
+    QSize oldSize = QSize();
     QStringList embedFileList;
-    QTimer* timer = nullptr;
-    double resolution;
-    bool isPresentation = true;
-    bool showMultimedia = true;
-    double autostartDelay = 0.; // delay for starting multimedia content in s
-    int minimumAnimationDelay = 40; // minimum frame time in ms
-    PagePart pagePart = FullPage;
+    QString pid2wid;
     QString urlSplitCharacter = "";
+    PagePart pagePart = FullPage;
+    double resolution; // resolution in pixels per point = dpi/72
+    double autostartDelay = -1.; // delay for starting multimedia content in s
+    double autostartEmbeddedDelay = -1.; // delay for starting embedded applications in s
+    double duration; // duration of the current page in s
+    int minimumAnimationDelay = 40; // minimum frame time in ms
     int minDelayEmbeddedWindows = 50;
     int pageIndex = 0;
+    bool isPresentation = true;
+    bool showMultimedia = true;
     bool useCache = true;
-    QSize oldSize = QSize();
+    bool pointer_visible = true;
 
 protected:
     void mouseReleaseEvent(QMouseEvent* event);
     void mouseMoveEvent(QMouseEvent* event);
-
-private:
-    Poppler::Page* page;
-    double duration;
-    bool pointer_visible = true;
 
 public slots:
     void togglePointerVisibility();
@@ -125,9 +123,10 @@ public slots:
     void startAllMultimedia();
     void createEmbeddedWindow();
     void createEmbeddedWindowsFromPID();
-    void receiveWid(WId const wid, int const index);
+    void receiveWid(WId const wid, int const page, int const index);
     void clearProcesses(int const exitCode, QProcess::ExitStatus const exitStatus);
     void setAutostartDelay(double const delay) {autostartDelay=delay;}
+    void setAutostartEmbeddedDelay(double const delay) {autostartEmbeddedDelay=delay;}
     void setAnimationDelay(int const delay_ms) {minimumAnimationDelay=delay_ms;}
     void setPid2Wid(QString const & program) {pid2wid=program;}
 
@@ -139,7 +138,7 @@ signals:
     void timeoutSignal();
     void sendShowFullscreen();
     void sendEndFullscreen();
-    void slideChange();
+    //void slideChange();
 };
 
 #endif // PAGE_H

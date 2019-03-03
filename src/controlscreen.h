@@ -98,6 +98,7 @@ signals:
     void sendTimerString(QString const timerString);
     void sendTimeoutInterval(int const interval);
     void sendAutostartDelay(double const timeout);
+    void sendAutostartEmbeddedDelay(double const timeout);
     void sendCloseSignal();
     void playMultimedia();
     void pauseMultimedia();

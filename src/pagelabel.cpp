@@ -30,41 +30,35 @@ PageLabel::PageLabel(QWidget* parent) : QLabel(parent)
 
 PageLabel::~PageLabel()
 {
-    delete timer;
-    clearLists();
-    clearProcessCallers();
-    for (QMap<int,QMap<int,QProcess*>>::iterator map=processes.begin(); map!=processes.end(); map++) {
-        for (QMap<int,QProcess*>::iterator process=map->begin(); process!=map->end(); process++) {
-            if (*process != nullptr) {
-                (*process)->terminate();
-                delete *process;
-            }
-        }
-    }
-    for (QMap<int,QMap<int,QWidget*>>::iterator map=embeddedWidgets.begin(); map!=embeddedWidgets.end(); map++) {
-        for (QMap<int,QWidget*>::iterator widget=map->begin(); widget!=map->end(); widget++) {
-            if (*widget != nullptr) {
-                (*widget)->close();
-                delete *widget;
-            }
-        }
-    }
-    clearCache();
-    page = nullptr;
+    delete autostartTimer;
+    delete autostartEmbeddedTimer;
+    clearAll();
 }
 
 void PageLabel::clearAll()
 {
+    // Clear all contents of the label.
+    // This function is called when the document is reloaded or the program is closed and everything should be cleaned up.
     clearLists();
-    clearProcessCallers();
+    // Clear running processes for embedded applications
+    if (processTimer != nullptr)
+        processTimer->stop();
+    if (embeddedWidgets.contains(pageIndex)) {
+        for (QMap<int,QWidget*>::iterator widget=embeddedWidgets[pageIndex].begin(); widget!=embeddedWidgets[pageIndex].end(); widget++) {
+            if (*widget != nullptr)
+                (*widget)->hide();
+        }
+    }
     for (QMap<int,QMap<int,QProcess*>>::iterator map=processes.begin(); map!=processes.end(); map++) {
         for (QMap<int,QProcess*>::iterator process=map->begin(); process!=map->end(); process++) {
             if (*process != nullptr) {
                 (*process)->terminate();
+                (*process)->waitForFinished(1000);
                 delete *process;
             }
         }
     }
+    // Delete widgets of embedded applications
     for (QMap<int,QMap<int,QWidget*>>::iterator map=embeddedWidgets.begin(); map!=embeddedWidgets.end(); map++) {
         for (QMap<int,QWidget*>::iterator widget=map->begin(); widget!=map->end(); widget++) {
             if (*widget != nullptr) {
@@ -79,34 +73,26 @@ void PageLabel::clearAll()
 
 void PageLabel::clearLists()
 {
-    if (sliders.size() != 0) {
-        if (sliders.size() == videoWidgets.size() + soundPlayers.size() + linkSoundPlayers.size()) {
-            QList<MediaSlider*>::iterator slider = sliders.begin();
-            for (QList<VideoWidget*>::iterator video = videoWidgets.begin(); video!=videoWidgets.end(); video++, slider++) {
-                disconnect((*video)->getPlayer(), &QMediaPlayer::durationChanged, *slider, &MediaSlider::setMaximum);
-                disconnect(*slider, &MediaSlider::sliderMoved, (*video), &VideoWidget::setPosition);
-                disconnect((*video)->getPlayer(), &QMediaPlayer::positionChanged, *slider, &MediaSlider::setValue);
-            }
-            for (QMap<int,QMediaPlayer*>::iterator it=linkSoundPlayers.begin(); it!=linkSoundPlayers.end(); it++, slider++) {
-                disconnect(it.value(), &QMediaPlayer::durationChanged, *slider, &MediaSlider::setMaximum);
-                disconnect(*slider,    &MediaSlider::sliderMoved,      it.value(), &QMediaPlayer::setPosition);
-                disconnect(it.value(), &QMediaPlayer::positionChanged, *slider, &MediaSlider::setValue);
-            }
-            for (QList<QMediaPlayer*>::iterator player = soundPlayers.begin(); player!=soundPlayers.end(); player++, slider++) {
-                disconnect(*player, &QMediaPlayer::durationChanged, *slider, &MediaSlider::setMaximum);
-                disconnect(*slider, &MediaSlider::sliderMoved,      *player, &QMediaPlayer::setPosition);
-                disconnect(*player, &QMediaPlayer::positionChanged, *slider, &MediaSlider::setValue);
-            }
-        }
-        else
-            qDebug() << "Something unexpected happened while trying to delete up sliders.";
-    }
+    // Clear page specific content.
+    // This function is called when going to an other page.
+    // It deletes all multimedia content associated with the current page.
+
+    // Disconnect multimedia content
+    for (QList<MediaSlider*>::iterator slider=sliders.begin(); slider!=sliders.end(); slider++)
+        (*slider)->disconnect();
+    for (QList<VideoWidget*>::iterator video=videoWidgets.begin(); video!=videoWidgets.end(); video++)
+        (*video)->getPlayer()->disconnect();
+    for (QMap<int,QMediaPlayer*>::iterator player_it=linkSoundPlayers.begin(); player_it!=linkSoundPlayers.end(); player_it++)
+        player_it.value()->disconnect();
+    for (QList<QMediaPlayer*>::iterator player_it=soundPlayers.begin(); player_it!=soundPlayers.end(); player_it++)
+        (*player_it)->disconnect();
+    // Delete multimedia content
     qDeleteAll(sliders);
     sliders.clear();
-    qDeleteAll(links);
-    links.clear();
     qDeleteAll(linkPositions);
     linkPositions.clear();
+    qDeleteAll(links);
+    links.clear();
     qDeleteAll(videoPositions);
     videoPositions.clear();
     qDeleteAll(videoWidgets);
@@ -119,59 +105,70 @@ void PageLabel::clearLists()
     linkSoundPlayers.clear();
 }
 
-void PageLabel::clearProcessCallers()
+void PageLabel::renderPage(Poppler::Page* page, bool const setDuration, QPixmap const* pixmap)
 {
-    qDeleteAll(pidWidCallers);
-    pidWidCallers.clear();
-    if (processTimer != nullptr)
-        processTimer->stop();
-    if (embeddedWidgets.contains(pageIndex)) {
-        for (QMap<int,QWidget*>::iterator widget=embeddedWidgets[pageIndex].begin(); widget!=embeddedWidgets[pageIndex].end(); widget++) {
-            if (*widget != nullptr)
-                (*widget)->hide();
-        }
-    }
-}
-
-void PageLabel::renderPage(Poppler::Page* page, bool const setDuration, QPixmap* pixmap)
-{
-    emit slideChange();
+    //emit slideChange();
     clearLists();
     if (page == nullptr)
         return;
-    if (this->page != nullptr && page->index() != this->page->index())
-        clearProcessCallers();
+    if (pageIndex != page->index() && embeddedWidgets.contains(pageIndex))
+        for (QMap<int,QWidget*>::iterator widget=embeddedWidgets[pageIndex].begin(); widget!=embeddedWidgets[pageIndex].end(); widget++)
+            if (*widget != nullptr)
+                (*widget)->hide();
+    // Old cached images are useless if the label size has changed:
     if (size() != oldSize) {
         clearCache();
         oldSize = size();
     }
 
+    // Set the new page and basic properties
     this->page = page;
     pageIndex = page->index();
     QSize pageSize = page->pageSize();
+    // This is given in point = inch/72 ≈ 0.353mm (Did they choose these units to bother programmers?)
+
+    // Place the page as an image of the correct size at the correct position
+    // The lower left corner of the image will be located at (shift_x, shift_y)
     int shift_x=0, shift_y=0;
     int pageHeight=pageSize.height(), pageWidth=pageSize.width();
+    // The page image must be split if the beamer option "notes on second screen" is set.
     if (pagePart != FullPage)
         pageWidth /= 2;
-    if ( width() * pageHeight > height() * pageWidth ) {
+    // Check it width or height is the limiting constraint for the size of the displayed slide and calculate the resolution
+    // resolution is calculated in pixels per point = dpi/72.
+    if (width() * pageHeight > height() * pageWidth) {
         // the width of the label is larger than required
-        resolution = double( height() ) / pageHeight;
-        shift_x = int( width()/2 - resolution/2 * pageWidth );
+        resolution = double(height()) / pageHeight;
+        shift_x = int(width()/2 - resolution/2 * pageWidth);
     }
     else {
         // the height of the label is larger than required
-        resolution = double( width() ) / pageWidth;
-        shift_y = int( height()/2 - resolution/2 * pageHeight );
+        resolution = double(width()) / pageWidth;
+        shift_y = int(height()/2 - resolution/2 * pageHeight);
     }
+
+    // Calculate the size of the image relative to the label size
     double scale_x=resolution*pageWidth, scale_y=resolution*pageHeight;
+    // Adjustments if only parts of the page are shown:
     if (pagePart != FullPage) {
         scale_x *= 2;
+        // If only the right half of the page will be shown, the position of the page (relevant for link positions) must be adjusted.
         if (pagePart == RightHalf)
             shift_x -= width();
     }
+
+    // Presentations can have fancy slide transitions. But those cannot be shown (yet).
+    // TODO: implement slide transitions
+    Poppler::PageTransition* transition = page->transition();
+    if (transition != nullptr && transition->type() != Poppler::PageTransition::Replace)
+        qInfo() << "Unsupported slide transition of type " << transition->type();
+
+    // Display the image
     if (pixmap != nullptr) {
+        // A pixmap was passed to this function. Display this pixmap as the page image.
         if (pagePart != FullPage) {
             // The pixmap might show both notes and presentation.
+            // Check the width to decide whether the image shows only the relevant part or the full page.
             QPixmap const* oldPixmap = this->pixmap();
             int referenceWidth;
             if (oldPixmap==nullptr || oldPixmap->isNull())
@@ -192,42 +189,39 @@ void PageLabel::renderPage(Poppler::Page* page, bool const setDuration, QPixmap*
             setPixmap(*pixmap);
     }
     else if (cache.contains(pageIndex)) {
-        QPixmap* pixmap = getCache(pageIndex);
-        if (pagePart != FullPage) {
-            // The pixmap might show both notes and presentation.
-            QPixmap const* oldPixmap = this->pixmap();
-            int referenceWidth;
-            if (oldPixmap==nullptr || oldPixmap->isNull())
-                referenceWidth = int(1.5*width());
-            else
-                referenceWidth = int(1.9*oldPixmap->width());
-            if (pixmap->width() > referenceWidth) {
-                // Assume that the pixmap shows notes and presentation.
-                if (pagePart == LeftHalf)
-                    setPixmap(pixmap->copy(0, 0, pixmap->width()/2, pixmap->height()));
-                else
-                    setPixmap(pixmap->copy(pixmap->width()/2, 0, pixmap->width()/2, pixmap->height()));
-            }
-            else
-                setPixmap(*pixmap);
-        }
-        else
-            setPixmap(*pixmap);
+        // There exists a cached image for this page. Display this image as the page image.
+        QPixmap const* pixmap = getCache(pageIndex);
+        setPixmap(*pixmap);
         delete pixmap;
     }
     else {
+        // A new page image has to be rendered.
         QPixmap const pixmap = getPixmap(page);
         setPixmap(pixmap);
+        // Save this image to cache.
         if (useCache)
             updateCache(&pixmap, page->index());
     }
+    // Show the page on the screen.
     repaint();
 
-    // Collect link areas in pixels
+    // Presentation slides can have a "duration" property.
+    // In this case: go to the next page after that given time.
+    if (isPresentation && setDuration) {
+        duration = page->duration(); // duration of the current page in s
+        // For durations longer than the minimum animation delay: use the duration
+        if (duration*1000 > minimumAnimationDelay)
+            QTimer::singleShot(int(1000*duration), this, &PageLabel::timeoutSignal);
+        // For durations of approximately 0: use the minimum animation delay
+        else if (duration > -1e-6)
+            QTimer::singleShot(minimumAnimationDelay, this, &PageLabel::timeoutSignal);
+    }
+
+    // Collect link areas in pixels (positions relative to the lower left edge of the label)
     links = page->links();
     Q_FOREACH(Poppler::Link* link, links) {
         QRectF relative = link->linkArea();
-        QRect * absolute = new QRect(
+        QRect* absolute = new QRect(
                     shift_x+int(relative.x()*scale_x),
                     shift_y+int(relative.y()*scale_y),
                     int(relative.width()*scale_x),
@@ -236,26 +230,16 @@ void PageLabel::renderPage(Poppler::Page* page, bool const setDuration, QPixmap*
         linkPositions.append(absolute);
     }
 
-    if (isPresentation && setDuration) {
-        duration = page->duration();
-        if ( duration > 0.01)
-            QTimer::singleShot(int(1000*duration), this, &PageLabel::timeoutSignal);
-        else if ( duration > -0.01) {
-            update();
-            QTimer::singleShot(int(minimumAnimationDelay), this, &PageLabel::timeoutSignal);
-        }
-    }
-    Poppler::PageTransition* transition = page->transition();
-    if (transition != nullptr && transition->type() != Poppler::PageTransition::Replace)
-        qInfo() << "Unsupported page transition of type " << transition->type();
-
     // Multimedia content. This part is work in progress.
+    // Execution links for embedded applications are also handled here.
     // TODO: This is probably inefficient.
     if (showMultimedia) {
-        // Video
+        // Videos
+        // Get a list of all video annotations on this page.
         QSet<Poppler::Annotation::SubType> videoType = QSet<Poppler::Annotation::SubType>();
         videoType.insert(Poppler::Annotation::AMovie);
         QList<Poppler::Annotation*> videos = page->annotations(videoType);
+        // Save the positions of all video annotations and create a video widget for each of them.
         for (QList<Poppler::Annotation*>::iterator annotation=videos.begin(); annotation!=videos.end(); annotation++) {
             Poppler::MovieAnnotation* video = (Poppler::MovieAnnotation*) *annotation;
             QRectF relative = video->boundary();
@@ -268,12 +252,15 @@ void PageLabel::renderPage(Poppler::Page* page, bool const setDuration, QPixmap*
             videoPositions.append(absolute);
             videoWidgets.append(new VideoWidget(video, urlSplitCharacter, this));
         }
+        // The list "videos" is cleaned, but its items (annotation pointers) are not deleted! The video widgets take ownership of the annotations.
         videos.clear();
 
         // Audio as annotations (Untested, I don't know whether this is useful for anything)
+        // Get a list of all audio annotations on this page.
         QSet<Poppler::Annotation::SubType> soundType = QSet<Poppler::Annotation::SubType>();
         soundType.insert(Poppler::Annotation::ASound);
         QList<Poppler::Annotation*> sounds = page->annotations(soundType);
+        // Save the positions of all audio annotations and create a sound player for each of them.
         for (QList<Poppler::Annotation*>::iterator it = sounds.begin(); it!=sounds.end(); it++) {
             qWarning() << "Support for sound in annotations is untested!";
             QRectF relative = (*it)->boundary();
@@ -289,6 +276,7 @@ void PageLabel::renderPage(Poppler::Page* page, bool const setDuration, QPixmap*
             QMediaPlayer* player = new QMediaPlayer(this);
             QUrl url = QUrl(sound->url(), QUrl::TolerantMode);
             QStringList splitFileName = QStringList();
+            // Get file path (url) and arguments
             // TODO: test this
             if (!urlSplitCharacter.isEmpty()) {
                 splitFileName = sound->url().split(urlSplitCharacter);
@@ -314,14 +302,14 @@ void PageLabel::renderPage(Poppler::Page* page, bool const setDuration, QPixmap*
         qDeleteAll(sounds);
         sounds.clear();
 
+        // links of type sound and execution are represented as own objects:
         for (int i=0; i<links.size(); i++) {
-            // Audio links
             switch (links[i]->linkType())
             {
                 case Poppler::Link::Sound:
-                    {
-                        Poppler::SoundObject * sound = ((Poppler::LinkSound*) links[i])->sound();
-                        QMediaPlayer * player = new QMediaPlayer(this);
+                    { // Audio links
+                        Poppler::SoundObject* sound = ((Poppler::LinkSound*) links[i])->sound();
+                        QMediaPlayer* player = new QMediaPlayer(this);
                         QUrl url = QUrl(sound->url(), QUrl::TolerantMode);
                         QStringList splitFileName = QStringList();
                         // TODO: test this
@@ -345,9 +333,13 @@ void PageLabel::renderPage(Poppler::Page* page, bool const setDuration, QPixmap*
                             qDebug() << "Using untested option autostart for sound";
                             player->play();
                         }
-                        break;
                     }
+                    break;
                 case Poppler::Link::Execute:
+                    // Execution links can point to applications, which should be embedded in the presentation
+
+                    // First case: the execution link points to an application, which exists already as an application widget.
+                    // In this case the widget just needs to be shown in the correct position and size.
                     if (embeddedWidgets.contains(pageIndex) && embeddedWidgets[pageIndex].contains(i) && embeddedWidgets[pageIndex][i]!=nullptr) {
                         QRect winGeometry = *linkPositions[i];
                         if (winGeometry.height() < 0) {
@@ -359,8 +351,11 @@ void PageLabel::renderPage(Poppler::Page* page, bool const setDuration, QPixmap*
                         embeddedWidgets[pageIndex][i]->setGeometry(winGeometry);
                         embeddedWidgets[pageIndex][i]->show();
                     }
+                    // Second case: There exists no process for this execution link.
+                    // In this case we need to check, whether this application should be executed in an embedded window.
                     else if (!(processes.contains(pageIndex) && processes[pageIndex].contains(i) && processes[pageIndex][i] != nullptr)) {
                         Poppler::LinkExecute* link = (Poppler::LinkExecute*) links[i];
+                        // Get file path (url) and arguments
                         QStringList splitFileName = QStringList();
                         if (!urlSplitCharacter.isEmpty())
                             splitFileName = link->fileName().split(urlSplitCharacter);
@@ -368,10 +363,12 @@ void PageLabel::renderPage(Poppler::Page* page, bool const setDuration, QPixmap*
                             splitFileName.append(link->fileName());
                         QUrl url = QUrl(splitFileName[0], QUrl::TolerantMode);
                         splitFileName.append(link->parameters());
+                        // Is the program contained in embedFileList?
                         if (embedFileList.contains(splitFileName[0]) || embedFileList.contains(url.fileName())) {
                             embeddedWidgets[pageIndex][i] = nullptr;
                             processes[pageIndex][i] = nullptr;
                         }
+                        // Do the arguments of the link indicate, that the program should be executed as an embedded application?
                         else if (splitFileName.length() > 1) {
                             if (splitFileName.contains("embed")) {
                                 embeddedWidgets[pageIndex][i] = nullptr;
@@ -383,7 +380,7 @@ void PageLabel::renderPage(Poppler::Page* page, bool const setDuration, QPixmap*
             }
         }
 
-        // Autostart if the option is set as arguments in the pdf
+        // Autostart video widgets if the option is set as arguments in the video annotation in the pdf
         for (int i=0; i<videoWidgets.size(); i++) {
             if (videoWidgets[i]->getAutoplay()) {
                 qDebug() << "Untested option autostart for video";
@@ -392,18 +389,34 @@ void PageLabel::renderPage(Poppler::Page* page, bool const setDuration, QPixmap*
                 videoWidgets[i]->play();
             }
         }
-        // Autostart
-        if (autostartDelay > 0.1) {
-            // autostart with delay
-            delete timer;
-            timer = new QTimer();
-            timer->setSingleShot(true);
-            connect(timer, &QTimer::timeout, this, &PageLabel::startAllMultimedia );
-            timer->start(int(autostartDelay*1000));
+        // Autostart multimedia if the option is set in BeamerPresenter
+        if (videoWidgets.size() + soundPlayers.size() + linkSoundPlayers.size() != 0) {
+            if (autostartDelay > 0.01) {
+                // autostart with delay
+                delete autostartTimer;
+                autostartTimer = new QTimer();
+                autostartTimer->setSingleShot(true);
+                connect(autostartTimer, &QTimer::timeout, this, &PageLabel::startAllMultimedia);
+                autostartTimer->start(int(autostartDelay*1000));
+            }
+            else if (autostartDelay > -0.01)
+                // autostart without delay
+                startAllMultimedia();
         }
-        else if (autostartDelay > -0.1) {
-            // autostart without delay
-            startAllMultimedia();
+
+        // Autostart embedded applications if the option is set in BeamerPresenter
+        if (embeddedWidgets.contains(pageIndex)) {
+            if (autostartEmbeddedDelay > 0.01) {
+                // autostart with delay
+                delete autostartEmbeddedTimer;
+                autostartEmbeddedTimer = new QTimer();
+                autostartEmbeddedTimer->setSingleShot(true);
+                connect(autostartEmbeddedTimer, &QTimer::timeout, this, &PageLabel::startAllEmbeddedApplications);
+                autostartEmbeddedTimer->start(int(autostartEmbeddedDelay*1000));
+            }
+            else if (autostartEmbeddedDelay > -0.01)
+                // autostart without delay
+                startAllEmbeddedApplications();
         }
 
         // Add slider
@@ -413,8 +426,10 @@ void PageLabel::renderPage(Poppler::Page* page, bool const setDuration, QPixmap*
 
 long int PageLabel::updateCache(QPixmap const* pixmap, int const index)
 {
-    if (pixmap->isNull())
+    // Save the pixmap to (compressed) cache of page index and return the size of the compressed image.
+    if (pixmap==nullptr || pixmap->isNull())
         return 0;
+    // The image will be compressed and written to a QByteArray.
     QByteArray* bytes = new QByteArray();
     QBuffer buffer(bytes);
     buffer.open(QIODevice::WriteOnly);
@@ -425,6 +440,7 @@ long int PageLabel::updateCache(QPixmap const* pixmap, int const index)
 
 long int PageLabel::updateCache(QByteArray const* bytes, int const index)
 {
+    // Write bytes to the cache of page index and return the size of bytes.
     if (bytes==nullptr || bytes->isNull() || bytes->isEmpty())
         return 0;
     else if (cache.contains(index))
@@ -433,57 +449,87 @@ long int PageLabel::updateCache(QByteArray const* bytes, int const index)
     return bytes->size();
 }
 
-long int PageLabel::updateCache(Poppler::Page const * cachePage)
+long int PageLabel::updateCache(Poppler::Page const* cachePage)
 {
-    int index;
-    QPixmap pixmap;
-    index = cachePage->index();
+    // Check whether the cachePage exists in cache. If yes, return 0.
+    // Otherwise, render the given page using the internal renderer,
+    // write the compressed image to cache and return the size of the compressed image.
+
+    int index = cachePage->index();
+    // Check whether the page exists in cache.
     if (cache.contains(index))
         return 0;
-    if (pagePart == FullPage)
-        pixmap = QPixmap::fromImage( cachePage->renderToImage( 72*resolution, 72*resolution ) );
-    else {
-        QImage image = cachePage->renderToImage( 72*resolution, 72*resolution );
-        if (pagePart == LeftHalf)
-            pixmap = QPixmap::fromImage( image.copy(0, 0, image.width()/2, image.height()) );
-        else
-            pixmap = QPixmap::fromImage( image.copy(image.width()/2, 0, image.width()/2, image.height()) );
-    }
+
+    // Render the page to a pixmap
+    QImage image = cachePage->renderToImage(72*resolution, 72*resolution);
+    // if pagePart != FullPage: Reduce the image to the relevant part.
+    if (pagePart == LeftHalf)
+        image = image.copy(0, 0, image.width()/2, image.height());
+    else if (pagePart == RightHalf)
+        image = image.copy(image.width()/2, 0, image.width()/2, image.height());
+
     // This check is repeated, because it could be possible that the cache is overwritten while the image is rendered.
     if (cache.contains(index))
         return 0;
+
+    // Write the image in png format to a QBytesArray
     QByteArray* bytes = new QByteArray();
     QBuffer buffer(bytes);
     buffer.open(QIODevice::WriteOnly);
-    pixmap.save(&buffer, "PNG");
+    image.save(&buffer, "PNG");
     cache[index] = bytes;
     return bytes->size();
 }
 
-QPixmap PageLabel::getPixmap(Poppler::Page const * cachePage) const
+QPixmap PageLabel::getPixmap(Poppler::Page const* cachePage) const
 {
-    int index;
+    // Return a pixmap representing the current page.
     QPixmap pixmap;
-    index = cachePage->index();
-    if (cache.contains(index))
-        return pixmap;
-    if (pagePart == FullPage)
-        pixmap = QPixmap::fromImage( cachePage->renderToImage( 72*resolution, 72*resolution ) );
+    if (cache.contains(cachePage->index())) {
+        // The page exists in cache. Use the cache instead of rendering it again.
+        QPixmap const* pixpointer = getCache(cachePage->index());
+        pixmap = *pixpointer;
+        delete pixpointer;
+    }
+    else if (pagePart == FullPage)
+        pixmap = QPixmap::fromImage(cachePage->renderToImage(72*resolution, 72*resolution));
     else {
-        QImage image = cachePage->renderToImage( 72*resolution, 72*resolution );
+        QImage image = cachePage->renderToImage(72*resolution, 72*resolution);
         if (pagePart == LeftHalf)
-            pixmap = QPixmap::fromImage( image.copy(0, 0, image.width()/2, image.height()) );
+            pixmap = QPixmap::fromImage(image.copy(0, 0, image.width()/2, image.height()));
         else
-            pixmap = QPixmap::fromImage( image.copy(image.width()/2, 0, image.width()/2, image.height()) );
+            pixmap = QPixmap::fromImage(image.copy(image.width()/2, 0, image.width()/2, image.height()));
     }
     return pixmap;
 }
 
-QPixmap* PageLabel::getCache(int const index) const
+QPixmap const* PageLabel::getCache(int const index) const
 {
-    QPixmap * pixmap = new QPixmap();
-    if (cache.contains(index))
+    // Get a pixmap from cache.
+    QPixmap* pixmap = new QPixmap();
+    if (cache.contains(index)) {
         pixmap->loadFromData(*cache[index], "PNG");
+        // If an external renderer is used, cached images always show the full page.
+        // But if pagePart != FullPage, only one half of the image should be shown.
+        if (pagePart != FullPage) {
+            // The cached pixmap might show both notes and presentation.
+            // Check the width to decide whether the image shows only the relevant part or the full page.
+            int referenceWidth;
+            if (this->pixmap()==nullptr || this->pixmap()->isNull())
+                referenceWidth = int(1.5*width());
+            else
+                referenceWidth = int(1.9*this->pixmap()->width());
+            if (pixmap->width() > referenceWidth) {
+                // Assume that the pixmap shows notes and presentation.
+                QPixmap* oldpixmap = pixmap;
+                if (pagePart == LeftHalf)
+                    pixmap = new QPixmap(pixmap->copy(0, 0, pixmap->width()/2, pixmap->height()));
+                else
+                    pixmap = new QPixmap(pixmap->copy(pixmap->width()/2, 0, pixmap->width()/2, pixmap->height()));
+                delete oldpixmap;
+            }
+        }
+    }
     return pixmap;
 }
 
@@ -497,6 +543,7 @@ QByteArray const* PageLabel::getCachedBytes(int const index) const
 
 long int PageLabel::getCacheSize() const
 {
+    // Return the total size of all cached images of this label in bytes.
     long int size=0;
     for (QMap<int,QByteArray const*>::const_iterator it=cache.cbegin(); it!=cache.cend(); it++) {
         size += it.value()->size();
@@ -506,7 +553,8 @@ long int PageLabel::getCacheSize() const
 
 void PageLabel::clearCache()
 {
-    for (QMap<int,QByteArray const*>::iterator bytes=cache.begin(); bytes!=cache.end(); bytes++) {
+    // Remove all images from cache.
+    for (QMap<int,QByteArray const*>::const_iterator bytes=cache.cbegin(); bytes!=cache.cend(); bytes++) {
         delete bytes.value();
     }
     cache.clear();
@@ -514,6 +562,8 @@ void PageLabel::clearCache()
 
 long int PageLabel::clearCachePage(const int index)
 {
+    // Delete the given page (page number index+1) from cache and return its size.
+    // Return 0 if the page does not exist in cache.
     if (cache.contains(index)) {
         long int size = cache[index]->size();
         delete cache[index];
@@ -526,11 +576,14 @@ long int PageLabel::clearCachePage(const int index)
 
 void PageLabel::setMultimediaSliders(QList<MediaSlider*> sliderList)
 {
-    if (sliders.size() != 0) {
-        qWarning() << "Something unexpected happened: There is a problem with the media sliders.";
+    // Connect multimedia content of the current slide to the given sliders.
+    // this takes ownership of the items of sliderList.
+    if (sliders.size() != 0 || sliderList.size() != videoWidgets.size() + linkSoundPlayers.size() + soundPlayers.size()) {
+        qCritical() << "Something unexpected happened: There is a problem with the media sliders.";
         return;
     }
     sliders = sliderList;
+    // TODO: better multimedia controls
     QList<MediaSlider*>::iterator slider = sliders.begin();
     for (QList<VideoWidget*>::iterator video = videoWidgets.begin(); video!=videoWidgets.end(); video++, slider++) {
         connect((*video)->getPlayer(), &QMediaPlayer::durationChanged, *slider, &MediaSlider::setMaximum);
@@ -564,6 +617,8 @@ void PageLabel::setMultimediaSliders(QList<MediaSlider*> sliderList)
 void PageLabel::startAllMultimedia()
 {
     for (int i=0; i<videoWidgets.size(); i++) {
+        // The size of a video widget is set the first time it gets shown.
+        // Setting this directly at initialization caused some problems.
         videoWidgets[i]->setGeometry(*videoPositions[i]);
         videoWidgets[i]->show();
         videoWidgets[i]->play();
@@ -586,6 +641,7 @@ void PageLabel::pauseAllMultimedia()
 
 bool PageLabel::hasActiveMultimediaContent() const
 {
+    // Return true if any multimedia content is currently being played
     Q_FOREACH(VideoWidget* video, videoWidgets) {
         if (video->state() == QMediaPlayer::PlayingState)
             return true;
@@ -605,33 +661,52 @@ void PageLabel::mouseReleaseEvent(QMouseEvent* event)
 {
     if (event->button() == Qt::LeftButton) {
         for (int i=0; i<links.size(); i++) {
-            if ( linkPositions[i]->contains(event->pos()) ) {
+            if (linkPositions[i]->contains(event->pos())) {
                 switch ( links[i]->linkType() )
                 {
                     case Poppler::Link::Goto:
+                        // Link to an other page
                         emit sendNewPageNumber( ((Poppler::LinkGoto*) links[i])->destination().pageNumber() - 1 );
                         return;
                     case Poppler::Link::Execute:
-                        if (embeddedWidgets.contains(pageIndex)) {
-                            Poppler::LinkExecute* link = (Poppler::LinkExecute*) links[i];
-                            QStringList splitFileName = QStringList();
-                            if (!urlSplitCharacter.isEmpty())
-                                splitFileName = link->fileName().split(urlSplitCharacter);
-                            else
-                                splitFileName.append(link->fileName());
-                            QUrl url = QUrl(splitFileName[0], QUrl::TolerantMode);
-                            splitFileName.append(link->parameters());
-                            QString fileName = splitFileName[0];
-                            splitFileName.pop_front();
-                            if (embeddedWidgets[pageIndex].contains(i)) {
-                                if (embeddedWidgets[pageIndex][i] != nullptr)
-                                    break;
-                                if (processes[pageIndex][i] != nullptr)
-                                    break;
-                                qWarning() << "This feature is experimental: embedding external applications.";
-                                splitFileName.removeAll("embed");
+                        // Handle execution links, which are marked for execution as an embedded application.
+                        // In this case, a corresponding item has been added to embeddedWidgets in renderPage.
+                        if (embeddedWidgets.contains(pageIndex) && embeddedWidgets[pageIndex].contains(i)) {
+                            // First case: the execution link points to an application, which exists already as an application widget.
+                            // In this case the widget just needs to be shown in the correct position and size.
+                            if (embeddedWidgets[pageIndex][i] != nullptr) {
+                                QRect winGeometry = *linkPositions[i];
+                                if (winGeometry.height() < 0) {
+                                    winGeometry.setY(winGeometry.y() + winGeometry.height());
+                                    winGeometry.setHeight(-linkPositions[i]->height());
+                                }
+                                embeddedWidgets[pageIndex][i]->setMinimumSize(winGeometry.width(), winGeometry.height());
+                                embeddedWidgets[pageIndex][i]->setMaximumSize(winGeometry.width(), winGeometry.height());
+                                embeddedWidgets[pageIndex][i]->setGeometry(winGeometry);
+                                embeddedWidgets[pageIndex][i]->show();
+                                return;
+                            }
+                            // Second case: There exists no process for this execution link.
+                            // In this case we need to check, whether this application should be executed in an embedded window.
+                            if (processes.contains(pageIndex) && processes[pageIndex].contains(i) && processes[pageIndex][i] == nullptr) {
+                                // Get file name (url) and arguments.
+                                Poppler::LinkExecute* link = (Poppler::LinkExecute*) links[i];
+                                QStringList splitFileName = QStringList();
+                                if (!urlSplitCharacter.isEmpty())
+                                    splitFileName = link->fileName().split(urlSplitCharacter);
+                                else
+                                    splitFileName.append(link->fileName());
+                                QUrl url = QUrl(splitFileName[0], QUrl::TolerantMode);
+                                splitFileName.append(link->parameters());
+                                QString fileName = splitFileName[0];
+                                splitFileName.removeFirst();
+                                splitFileName.removeAll("embed"); // We know that the file will be embedded. This is not an argument for the program.
                                 splitFileName.removeAll("");
+                                // External windows can only be embedded when we know their window ID.
+                                // This WID can be obtained by an other external program (pid2wid)
+                                // or from the executed application itself via standard output.
                                 if (pid2wid.isEmpty()) {
+                                    // If there is no program which tells us the window ID from the progess ID, we hope that the application, which we want to embed, tells us its WID via standard output.
                                     QProcess* process = new QProcess(this);
                                     connect(process, &QProcess::readyReadStandardOutput, this, &PageLabel::createEmbeddedWindow);
                                     connect(process, SIGNAL(finished(int, QProcess::ExitStatus const)), this, SLOT(clearProcesses(int const, QProcess::ExitStatus const)));
@@ -640,6 +715,7 @@ void PageLabel::mouseReleaseEvent(QMouseEvent* event)
                                     qDebug() << "Started process:" << process->program() << splitFileName;
                                 }
                                 else {
+                                    // If we know a program for converting process IDs to window IDs, this will be used to get the WID.
                                     QProcess* process = new QProcess(this);
                                     connect(process, SIGNAL(finished(int, QProcess::ExitStatus const)), this, SLOT(clearProcesses(int const, QProcess::ExitStatus const)));
                                     process->start(fileName, splitFileName);
@@ -650,16 +726,28 @@ void PageLabel::mouseReleaseEvent(QMouseEvent* event)
                                     processTimer = new QTimer(this);
                                     processTimer->start(minDelayEmbeddedWindows);
                                     connect(processTimer, &QTimer::timeout, this, &PageLabel::createEmbeddedWindowsFromPID);
+                                    // createEmbeddedWindowsFromPID will be called frequently until there exists a window corresponding to the process ID
+                                    // The time between two calls of createEmbeddedWindowsFromPID will be increased exponentially.
                                 }
+                                return;
                             }
-                            else {
-                                // TODO: handle arguments
-                                QDesktopServices::openUrl(url);
-                            }
+                        }
+                        // Execution links not marked for embedding are handed to the desktop services.
+                        else {
+                            Poppler::LinkExecute* link = (Poppler::LinkExecute*) links[i];
+                            QStringList splitFileName = QStringList();
+                            if (!urlSplitCharacter.isEmpty())
+                                splitFileName = link->fileName().split(urlSplitCharacter);
+                            else
+                                splitFileName.append(link->fileName());
+                            QUrl url = QUrl(splitFileName[0], QUrl::TolerantMode);
+                            // TODO: handle arguments
+                            QDesktopServices::openUrl(url);
                         }
                         break;
                     case Poppler::Link::Browse:
-                        QDesktopServices::openUrl( QUrl( ((Poppler::LinkBrowse*) links[i])->url(), QUrl::TolerantMode ) );
+                        // Link to file or website
+                        QDesktopServices::openUrl( QUrl(((Poppler::LinkBrowse*) links[i])->url(), QUrl::TolerantMode) );
                         break;
                     case Poppler::Link::Action:
                         {
@@ -716,17 +804,16 @@ void PageLabel::mouseReleaseEvent(QMouseEvent* event)
                             Poppler::LinkSound* link = (Poppler::LinkSound*) links[i];
                             Poppler::SoundObject* sound = link->sound();
                             if (sound->soundType() == Poppler::SoundObject::External) {
-                                // This is inefficient, but usually linkSoundPlayerPositions.size()==1
                                 if (linkSoundPlayers[i]->state() == QMediaPlayer::PlayingState)
                                     linkSoundPlayers[i]->pause();
                                 else
                                     linkSoundPlayers[i]->play();
-                                break;
                             }
                             else
                                 qWarning() << "Playing embedded sound files is not supported.";
                             /*
-                            // The following code would probably just cause segmentation faults
+                            // Untested code for embedded sound files:
+                            // The following code would probably just cause segmentation faults!
                             else { // untested
                                 // Most of the code in this scope is copied from stackoverflow.
                                 // I have not tested it, because I don't have a pdf file with embedded sound.
@@ -771,7 +858,8 @@ void PageLabel::mouseReleaseEvent(QMouseEvent* event)
                         break;
                     case Poppler::Link::Movie:
                         {
-                            qInfo() << "Unsupported link of type video.";
+                            qInfo() << "Unsupported link of type video. If this works, you should be surprised.";
+                            // I don't know if the following lines make any sense.
                             Poppler::LinkMovie* link = (Poppler::LinkMovie*) links[i];
                             Q_FOREACH(VideoWidget* video, videoWidgets) {
                                 if (link->isReferencedAnnotation(video->getAnnotation()))
@@ -786,8 +874,7 @@ void PageLabel::mouseReleaseEvent(QMouseEvent* event)
                         qInfo() << "Unsupported link of type JavaScript";
                         break;
                     case Poppler::Link::OCGState:
-                        if ( linkPositions[i]->contains(event->pos()) )
-                            qInfo() << "Unsupported link of type OCGState";
+                        qInfo() << "Unsupported link of type OCGState";
                         break;
                     case Poppler::Link::Hide:
                         qInfo() << "Unsupported link of type hide";
@@ -812,20 +899,21 @@ void PageLabel::mouseReleaseEvent(QMouseEvent* event)
 
 void PageLabel::togglePointerVisibility()
 {
-    if ( pointer_visible ) {
+    if (pointer_visible) {
         pointer_visible = false;
         setMouseTracking(false);
-        setCursor( Qt::BlankCursor );
+        setCursor(Qt::BlankCursor);
     }
     else {
         pointer_visible = true;
         setMouseTracking(true);
-        setCursor( Qt::ArrowCursor );
+        setCursor(Qt::ArrowCursor);
     }
 }
 
 void PageLabel::mouseMoveEvent(QMouseEvent* event)
 {
+    // Show the cursor as Qt::PointingHandCursor when hoovering links
     if (!pointer_visible)
         return;
     bool is_arrow_pointer = cursor() == Qt::ArrowCursor;
@@ -850,88 +938,147 @@ void PageLabel::mouseMoveEvent(QMouseEvent* event)
 
 void PageLabel::createEmbeddedWindow()
 {
-    for(QMap<int,QProcess*>::iterator it=processes[pageIndex].begin(); it!=processes[pageIndex].end(); it++) {
-        if (it.value() == nullptr)
-            continue;
-        char output[64];
-        qint64 outputLength = it.value()->readLine(output, sizeof(output));
-        if (outputLength != -1) {
-            qDebug() << "Creating embedded window with id from program standard output:" << output;
-            QString winIdString(output);
-            bool success;
-            WId wid = (WId) winIdString.toLongLong(&success, 10);
-            if (!success) {
-                qCritical() << "Could not read window id";
+    // This function is used to create embedded windows if pid2wid is not set.
+    // It is called when a process for an embedded application has written something to standard output, of which we hope that it is a window ID.
+    for(QMap<int,QMap<int,QProcess*>>::const_iterator page_it=processes.cbegin(); page_it!=processes.cend(); page_it++) {
+        for(QMap<int,QProcess*>::const_iterator process_it=page_it.value().cbegin(); process_it!=page_it.value().cend(); process_it++) {
+            if (process_it.value() == nullptr)
                 continue;
+            // output will contain the output of the program.
+            char output[64];
+            qint64 outputLength = process_it.value()->readLine(output, sizeof(output));
+            if (outputLength != -1) {
+                qDebug() << "Trying to create embedded window with id from program standard output:" << output;
+                QString winIdString = QString(output);
+                bool success;
+                WId wid = WId(winIdString.toLongLong(&success, 10));
+                if (!success) {
+                    qCritical() << "Could not interpret output as window id";
+                    continue;
+                }
+                // Geometry of the embedded window:
+                QRect winGeometry = *linkPositions[process_it.key()];
+                if (winGeometry.height() < 0) {
+                    winGeometry.setY(winGeometry.y() + winGeometry.height());
+                    winGeometry.setHeight(-linkPositions[process_it.key()]->height());
+                }
+                // Get the window:
+                QWindow* newWindow = QWindow::fromWinId(wid);
+                // Without the following two lines, key events are sometimes not sent to the embedded window:
+                newWindow->show();
+                newWindow->hide();
+                // Turn the window into a widget, which can be embedded in the presentation (or control) window:
+                QWidget* newWidget = createWindowContainer(newWindow, this);
+                newWidget->setMinimumSize(winGeometry.width(), winGeometry.height());
+                newWidget->setMaximumSize(winGeometry.width(), winGeometry.height());
+                if (page_it.key()==pageIndex)
+                    newWidget->show();
+                newWidget->setGeometry(winGeometry);
+                embeddedWidgets[pageIndex][process_it.key()] = newWidget;
+                return;
             }
-            QRect winGeometry = *linkPositions[it.key()];
-            if (winGeometry.height() < 0) {
-                winGeometry.setY(winGeometry.y() + winGeometry.height());
-                winGeometry.setHeight(-linkPositions[it.key()]->height());
-            }
-            QWindow* newWindow = QWindow::fromWinId(wid);
-            QWidget* newWidget = createWindowContainer(newWindow, this);
-            newWidget->setMinimumSize(winGeometry.width(), winGeometry.height());
-            newWidget->setMaximumSize(winGeometry.width(), winGeometry.height());
-            newWidget->show();
-            newWidget->setGeometry(winGeometry);
-            embeddedWidgets[pageIndex][it.key()] = newWidget;
-            return;
+            else
+                qWarning() << "Problem when reading program standard output (probably it was not a window ID).";
         }
-        else
-            qWarning() << "Problem when reading program standard output";
     }
     qWarning() << "No standard output found in any process";
 }
 
 void PageLabel::createEmbeddedWindowsFromPID()
 {
+    // This function is used to create embedded windows if pid2wid is set.
+    // It is called from a timer with exponentially increasing timesteps.
     if (pid2wid.isEmpty()) {
         qCritical() << "No program for translation PID -> window ID specified";
         return;
     }
     bool anyCandidates = false;
-    for(QMap<int,QProcess*>::iterator it=processes[pageIndex].begin(); it!=processes[pageIndex].end(); it++) {
-        if (it.value() != nullptr && embeddedWidgets[pageIndex][it.key()] == nullptr) {
-            PidWidCaller* pidWidCaller = new PidWidCaller(pid2wid, it.value()->pid(), it.key(), this);
-            connect(pidWidCaller, &PidWidCaller::sendWid, this, &PageLabel::receiveWid);
-            pidWidCallers.insert(pidWidCaller);
-            anyCandidates = true;
+    // For all processes, which are note connected to a window ID yet, start a PidWidCaller to check if a corresponding window can be found.
+    for(QMap<int,QMap<int,QProcess*>>::iterator page_it=processes.begin(); page_it!=processes.end(); page_it++) {
+        for(QMap<int,QProcess*>::iterator process_it=page_it.value().begin(); process_it!=page_it.value().end(); process_it++) {
+            if (process_it.value() != nullptr && embeddedWidgets[pageIndex][process_it.key()] == nullptr) {
+                PidWidCaller* pidWidCaller = new PidWidCaller(pid2wid, process_it.value()->pid(), page_it.key(), process_it.key(), this);
+                connect(pidWidCaller, &PidWidCaller::sendWid, this, &PageLabel::receiveWid);
+                anyCandidates = true;
+            }
         }
     }
-    // TODO: Stop the timer also if something goes wrong
+    // If there are no more processes waiting for a window ID: stop the timer
     if (!anyCandidates)
         processTimer->stop();
     else
-        processTimer->setInterval(1.5*processTimer->interval());
+        // Increase the timestep
+        processTimer->setInterval(int(1.5*processTimer->interval()));
+    // TODO: Stop the timer if something goes wrong
 }
 
-void PageLabel::receiveWid(WId const wid, int const index)
+void PageLabel::receiveWid(WId const wid, int const page, int const index)
 {
+    // This function receives a window ID from a PidWidCaller and embeds the corresponding window in the PageLabel.
     qDebug() << "Received WID:" << wid;
-    if (embeddedWidgets[pageIndex][index] != nullptr || processes[pageIndex][index] == nullptr) {
-        qWarning() << "Something strange happened with embedded processes. This is a bug.";
-        qDebug() << "widget:" << embeddedWidgets[pageIndex][index] << "process:" << processes[pageIndex][index];
+    if (!(embeddedWidgets.contains(page)
+            && embeddedWidgets[page].contains(index)
+            && (embeddedWidgets[page][index]==nullptr)
+            && processes.contains(page)
+            && processes[page].contains(index)
+            && processes[page][index] != nullptr)) {
+        qDebug() << "Received WID in unexpected configuration:";
+        if (embeddedWidgets.contains(page) && embeddedWidgets[page].contains(index) && processes.contains(page) && processes[page].contains(index))
+            qDebug() << "widget:" << embeddedWidgets[pageIndex][index] << "process:" << processes[pageIndex][index];
+        else
+            qDebug() << "Some entries don't exist!";
         return;
     }
+    // Geometry of the embedded window:
     QRect winGeometry = *linkPositions[index];
     if (winGeometry.height() < 0) {
         winGeometry.setY(winGeometry.y() + winGeometry.height());
         winGeometry.setHeight(-linkPositions[index]->height());
     }
+    // Get the window:
     QWindow* newWindow = QWindow::fromWinId(wid);
+    // Without the following two lines, key events are sometimes not sent to the embedded window:
+    newWindow->show();
+    newWindow->hide();
+    // Turn the window into a widget, which can be embedded in the presentation (or control) window:
     QWidget* newWidget = createWindowContainer(newWindow, this);
     newWidget->setMinimumSize(winGeometry.width(), winGeometry.height());
     newWidget->setMaximumSize(winGeometry.width(), winGeometry.height());
-    newWidget->show();
+    if (page==pageIndex)
+        newWidget->show();
     newWidget->setGeometry(winGeometry);
-    embeddedWidgets[pageIndex][index] = newWidget;
+    embeddedWidgets[page][index] = newWidget;
 }
 
 void PageLabel::startAllEmbeddedApplications()
 {
-    qWarning() << "This feature is experimental: embedding external applications.";
+    // Start all embedded applications of the current slide.
     for(QMap<int,QProcess*>::iterator it=processes[pageIndex].begin(); it!=processes[pageIndex].end(); it++) {
+        // Some items must be created in renderPage. If these don't exist, something must be wrong.
+        if (!(embeddedWidgets.contains(pageIndex) && embeddedWidgets[pageIndex].contains(it.key()))) {
+            qCritical() << "Something unexpected happened with an embedded application.";
+            continue;
+        }
+        // If the embedded window exists: Check if it is hidden, show it and continue.
+        if (embeddedWidgets[pageIndex][it.key()] != nullptr) {
+            if (embeddedWidgets[pageIndex][it.key()]->isHidden()) {
+                QRect winGeometry = *linkPositions[it.key()];
+                if (winGeometry.height() < 0) {
+                    winGeometry.setY(winGeometry.y() + winGeometry.height());
+                    winGeometry.setHeight(-linkPositions[it.key()]->height());
+                }
+                embeddedWidgets[pageIndex][it.key()]->setMinimumSize(winGeometry.width(), winGeometry.height());
+                embeddedWidgets[pageIndex][it.key()]->setMaximumSize(winGeometry.width(), winGeometry.height());
+                embeddedWidgets[pageIndex][it.key()]->setGeometry(winGeometry);
+                embeddedWidgets[pageIndex][it.key()]->show();
+            }
+            continue;
+        }
+        // If a process is already running, there is nothing to be done for this application.
+        if (it.value() != nullptr)
+            continue;
+
+        // Get file path (url) and arguments.
         Poppler::LinkExecute* link = (Poppler::LinkExecute*) links[it.key()];
         QStringList splitFileName = QStringList();
         if (!urlSplitCharacter.isEmpty())
@@ -941,20 +1088,25 @@ void PageLabel::startAllEmbeddedApplications()
         QUrl url = QUrl(splitFileName[0], QUrl::TolerantMode);
         splitFileName.append(link->parameters());
         QString fileName = splitFileName[0];
-        splitFileName.pop_front();
-        if (embeddedWidgets[pageIndex][it.key()] != nullptr)
-            break;
-        if (it.value() != nullptr)
-            break;
+        splitFileName.removeFirst();
+        splitFileName.removeAll("embed"); // We know that the file will be embedded. This is not an argument for the program.
+        splitFileName.removeAll("");
+        // External windows can only be embedded when we know their window ID.
+        // This WID can be obtained by an other external program (pid2wid)
+        // or from the executed application itself via standard output.
         if (pid2wid.isEmpty()) {
+            // If there is no program which tells us the window ID from the progess ID, we hope that the application, which we want to embed, tells us its WID via standard output.
             QProcess* process = new QProcess(this);
             connect(process, &QProcess::readyReadStandardOutput, this, &PageLabel::createEmbeddedWindow);
+            connect(process, SIGNAL(finished(int, QProcess::ExitStatus const)), this, SLOT(clearProcesses(int const, QProcess::ExitStatus const)));
             process->start(fileName, splitFileName);
             it.value() = process;
             qDebug() << "Started process:" << process->program();
         }
         else {
+            // If we know a program for converting process IDs to window IDs, this will be used to get the WID.
             QProcess* process = new QProcess(this);
+            connect(process, SIGNAL(finished(int, QProcess::ExitStatus const)), this, SLOT(clearProcesses(int const, QProcess::ExitStatus const)));
             process->start(fileName, splitFileName);
             it.value() = process;
             qDebug() << "Started process:" << process->program();
@@ -963,12 +1115,17 @@ void PageLabel::startAllEmbeddedApplications()
             processTimer = new QTimer(this);
             processTimer->start(minDelayEmbeddedWindows);
             connect(processTimer, &QTimer::timeout, this, &PageLabel::createEmbeddedWindowsFromPID);
+            // createEmbeddedWindowsFromPID will be called frequently until there exists a window corresponding to the process ID
+            // The time between two calls of createEmbeddedWindowsFromPID will be increased exponentially.
         }
     }
 }
 
 void PageLabel::clearProcesses(int const exitCode, QProcess::ExitStatus const exitStatus)
 {
+    // This function is called when an embedded application exits.
+    // It tries to clean up all closed embedded applications:
+    // Delete the process and the widget and set both to nullptr.
     for(QMap<int,QProcess*>::iterator it=processes[pageIndex].begin(); it!=processes[pageIndex].end(); it++) {
         if (it.value() != nullptr && it.value()->state() == QProcess::NotRunning) {
             qDebug() << "Process closed, deleting process and widget";
@@ -979,8 +1136,6 @@ void PageLabel::clearProcesses(int const exitCode, QProcess::ExitStatus const ex
             it.value()->deleteLater();
             it.value() = nullptr;
             if (embeddedWidgets[pageIndex][it.key()] != nullptr) {
-                if (embeddedWidgets[pageIndex][it.key()]->isVisible())
-                    embeddedWidgets[pageIndex][it.key()]->close();
                 delete embeddedWidgets[pageIndex][it.key()];
                 embeddedWidgets[pageIndex][it.key()] = nullptr;
             }

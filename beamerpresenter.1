@@ -7,12 +7,13 @@ beamerpresenter \- dual-screen PDF presenter
 .SH SYNOPSIS
 .
 .SY beamerpresenter
-.OP \-a play
+.OP \-a autoplay-delay
+.OP \-A embedded-delay
 .OP \-c cache
 .OP \-d tol
 .OP \-e embed
 .OP \-l levels
-.OP \-m delay
+.OP \-m min-delay
 .OP \-M memory
 .OP \-p part
 .OP \-r renderer
@@ -44,8 +45,12 @@ shows images of the current and next slide and a timer.
 Displays this help.
 .
 .TP
-.BI "\-a \-\-autoplay " play
+.BI "\-a \-\-autoplay " delay
 true, false or number: Start video and audio content when entering a slide. A number is interpreted as a delay in seconds, after which multimedia content is started.
+.
+.TP
+.BI "\-A \-\-autoplay-emb " delay
+true, false or number: Start embedded applications when entering a slide. A number is interpreted as a delay in seconds, after which embedded applications are started.
 .
 .TP
 .BI "\-c \-\-cache " integer
@@ -278,9 +283,14 @@ background color of the control screen
 text color of the control screen
 .
 .TP
-.BR autoplay =true
+.BR autoplay =false
 overwrite default value for the command line argument
 .BR \-a " or " \-\-autoplay .
+.
+.TP
+.BR autoplay-emb =false
+overwrite default value for the command line argument
+.BR \-A " or " \-\-autoplay-emb .
 .
 .TP
 .BR min-delay =40

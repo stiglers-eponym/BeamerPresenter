@@ -18,9 +18,10 @@
 
 #include "pidwidcaller.h"
 
-PidWidCaller::PidWidCaller(QString const& pid2wid, Q_PID const pid, int const index, QWidget* parent) : QProcess(parent)
+PidWidCaller::PidWidCaller(QString const& pid2wid, Q_PID const pid, int const page, int const index, QWidget* parent) : QProcess(parent)
 {
     this->index = index;
+    this->page = page;
     QStringList arguments;
     arguments << QString::number(pid);
     qDebug() << "Calling PID to WID:" << pid2wid << arguments;
@@ -42,10 +43,12 @@ void PidWidCaller::sendResult(int const exitCode)
         bool success;
         WId wid = (WId) winIdString.toLongLong(&success, 10);
         if (success && wid!=0)
-            emit sendWid(wid, index);
+            emit sendWid(wid, page, index);
         else
-            qCritical() << "Could not read window ID";
+            qWarning() << "Could not read window ID";
     }
     else
         qCritical() << "Call to external translator from PID to Window ID had unexpected output";
+    waitForFinished(10000);
+    deleteLater();
 }

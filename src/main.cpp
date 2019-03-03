@@ -63,6 +63,7 @@ int main(int argc, char *argv[])
     parser.addPositionalArgument("<notes.pdf>",  "Notes for the presentation (optional, should have the same number of pages as <slides.pdf>)");
     parser.addOptions({
         {{"a", "autoplay"}, "true, false or number: Start video and audio content when entering a slide.\nA number is interpreted as a delay in seconds, after which multimedia content is started.", "value"},
+        {{"A", "autostart-emb"}, "true, false or number: Start embedded applications when entering a slide.\nA number is interpreted as a delay in seconds, after which applications are started.", "value"},
         {{"c", "cache"}, "Number of slides that will be cached. A negative number is treated as infinity.", "int"},
         {{"d", "tolerance"}, "Tolerance for the presentation time in seconds.\nThe timer will be white <secs> before the timeout, green when the timeout is reached, yellow <secs> after the timeout and red 2*<secs> after the timeout.", "secs"},
         {{"e", "embed"}, "file1,file2,... Mark these files for embedding if an execution link points to them.", "files"},
@@ -286,6 +287,50 @@ int main(int argc, char *argv[])
             emit w->sendAutostartDelay(-2.);
         else
             qCritical() << "option \"" << settings.value("autoplay") << "\" to autoplay in config not understood.";
+    }
+
+    // Set autostart or delay for embedded applications
+    if (!parser.value("A").isEmpty()) {
+        double delay;
+        bool success;
+        QString a = parser.value("A").toLower();
+        delay = a.toDouble(&success);
+        if (success)
+            emit w->sendAutostartEmbeddedDelay(delay);
+        else if (a == "true")
+            emit w->sendAutostartEmbeddedDelay(0.);
+        else if (a == "false")
+            emit w->sendAutostartEmbeddedDelay(-2.);
+        else {
+            qCritical() << "option \"" << parser.value("A") << "\" to autoplay not understood.";
+            // Try to get a default option from the config file
+            if (settings.contains("autostart-emb")) {
+                a = settings.value("autostart-emb").toString().toLower();
+                delay = a.toDouble(&success);
+                if (success)
+                    emit w->sendAutostartEmbeddedDelay(delay);
+                else if (a == "true")
+                    emit w->sendAutostartEmbeddedDelay(0.);
+                else if (a == "false")
+                    emit w->sendAutostartEmbeddedDelay(-2.);
+                else
+                    qCritical() << "option \"" << settings.value("autostart-emb") << "\" to autoplay in config not understood.";
+            }
+        }
+    }
+    else if (settings.contains("autostart-emb")) {
+        double delay;
+        bool success;
+        QString a = settings.value("autostart-emb").toString().toLower();
+        delay = a.toDouble(&success);
+        if (success)
+            emit w->sendAutostartEmbeddedDelay(delay);
+        else if (a == "true")
+            emit w->sendAutostartEmbeddedDelay(0.);
+        else if (a == "false")
+            emit w->sendAutostartEmbeddedDelay(-2.);
+        else
+            qCritical() << "option \"" << settings.value("autostart-emb") << "\" to autoplay in config not understood.";
     }
 
     // Set files, which will be executed in an embedded widget

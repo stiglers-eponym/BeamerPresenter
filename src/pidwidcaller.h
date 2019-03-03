@@ -29,16 +29,17 @@ class PidWidCaller : public QProcess
     Q_OBJECT
 
 public:
-    explicit PidWidCaller(QString const& pid2wid, Q_PID const pid, int const index, QWidget* parent = nullptr);
+    explicit PidWidCaller(QString const& pid2wid, Q_PID const pid, int const page, int const index, QWidget* parent = nullptr);
 
 private:
+    int page;
     int index;
 
 public slots:
     void sendResult(int const exitCode);
 
 signals:
-    void sendWid(WId const wid, int const index);
+    void sendWid(WId const wid, int const page, int const index);
 };
 
 #endif // PIDWIDCALLER_H
