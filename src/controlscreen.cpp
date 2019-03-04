@@ -155,9 +155,9 @@ ControlScreen::ControlScreen(QString presentationPath, QString notesPath, QWidge
     connect(this, &ControlScreen::sendAutostartDelay, presentationScreen->getLabel(), &PageLabel::setAutostartDelay);
     //connect(this, &ControlScreen::sendAutostartEmbeddedDelay, ui->notes_label, &PageLabel::setAutostartEmbeddedDelay);
     connect(this, &ControlScreen::sendAutostartEmbeddedDelay, presentationScreen->getLabel(), &PageLabel::setAutostartEmbeddedDelay);
-    connect(this, &ControlScreen::playMultimedia,     ui->notes_label, &PageLabel::startAllMultimedia);
+    //connect(this, &ControlScreen::playMultimedia,     ui->notes_label, &PageLabel::startAllMultimedia);
     connect(this, &ControlScreen::playMultimedia,     presentationScreen->getLabel(), &PageLabel::startAllMultimedia);
-    connect(this, &ControlScreen::pauseMultimedia,    ui->notes_label, &PageLabel::pauseAllMultimedia);
+    //connect(this, &ControlScreen::pauseMultimedia,    ui->notes_label, &PageLabel::pauseAllMultimedia);
     connect(this, &ControlScreen::pauseMultimedia,    presentationScreen->getLabel(), &PageLabel::pauseAllMultimedia);
     connect(this, &ControlScreen::sendAnimationDelay, presentationScreen->getLabel(), &PageLabel::setAnimationDelay);
     connect(this, &ControlScreen::togglePointerVisibilitySignal, presentationScreen->getLabel(), &PageLabel::togglePointerVisibility);
@@ -343,7 +343,7 @@ void ControlScreen::renderPage(int const pageNumber)
     // Update the notes label
     // The note document could have fewer pages than the presentation document:
     if (currentPageNumber < notes->getDoc()->numPages())
-        ui->notes_label->renderPage( notes->getPage(currentPageNumber), false );
+        ui->notes_label->renderPage(notes->getPage(currentPageNumber), false);
     else
         qWarning() << "Reached the end of the note file.";
 

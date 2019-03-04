@@ -37,11 +37,11 @@ class VideoWidget : public QVideoWidget
 public:
     VideoWidget(Poppler::MovieAnnotation const * annotation, QString const& urlSplitCharacter = "", QWidget* parent = nullptr);
     ~VideoWidget();
-    QMediaPlayer::State state() const;
-    Poppler::MovieAnnotation const * getAnnotation() const;
-    qint64 getDuration() const;
-    QMediaPlayer const * getPlayer() const;
-    bool getAutoplay() const;
+    Poppler::MovieAnnotation const * getAnnotation() const {return annotation;}
+    qint64 getDuration() const {return player->duration();}
+    QMediaPlayer const * getPlayer() const {return player;}
+    QMediaPlayer::State state() const {return player->state();}
+    bool getAutoplay() const {return autoplay;}
 
 protected:
     void mouseReleaseEvent(QMouseEvent* event);
@@ -56,10 +56,10 @@ private:
 public slots:
     void play();
     void pause();
-    void setPosition(qint64 const position);
+    void setPosition(qint64 const position) {player->setPosition(position);}
 
 private slots:
-    void showPosterImage(QMediaPlayer::MediaStatus state);
+    void showPosterImage(QMediaPlayer::MediaStatus status);
     void bouncePalindromeVideo(QMediaPlayer::MediaStatus status);
     void restartVideo(QMediaPlayer::MediaStatus status);
 

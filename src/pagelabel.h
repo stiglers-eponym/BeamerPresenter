@@ -60,6 +60,7 @@ public:
     void clearAll();
     void startAllEmbeddedApplications(int const index);
     void initEmbeddedApplications(Poppler::Page const* page);
+    void avoidMultimediaBug();
 
     void setMultimediaSliders(QList<MediaSlider*> sliderList);
     void setPresentationStatus(bool const status) {isPresentation=status;}

@@ -36,8 +36,7 @@ VideoWidget::VideoWidget(Poppler::MovieAnnotation const* annotation, QString con
     }
 
     QUrl url = QUrl(movie->url(), QUrl::TolerantMode);
-    QStringList splitFileName = QStringList(); // TODO: use these arguments
-    // TODO: test this
+    QStringList splitFileName;
     if (!urlSplitCharacter.isEmpty()) {
         splitFileName = movie->url().split(urlSplitCharacter);
         url = QUrl(splitFileName[0], QUrl::TolerantMode);
@@ -50,9 +49,8 @@ VideoWidget::VideoWidget(Poppler::MovieAnnotation const* annotation, QString con
     player->setMedia(url);
     if (splitFileName.contains("mute"))
         player->setMuted(true);
-    if (splitFileName.contains("loop")) {
+    if (splitFileName.contains("loop"))
         connect(player, &QMediaPlayer::mediaStatusChanged, this, &VideoWidget::restartVideo);
-    }
     else {
         switch (movie->playMode())
         {
@@ -72,7 +70,7 @@ VideoWidget::VideoWidget(Poppler::MovieAnnotation const* annotation, QString con
     }
 
     // TODO: video control bar
-    // if (movie->showControls())
+    // if (movie->showControls()) { TODO }
 
     // Scale the video such that it fits the widget size.
     // I like these results, but I don't know whether this is what other people would expect.
@@ -93,29 +91,10 @@ VideoWidget::~VideoWidget()
     delete player;
 }
 
-QMediaPlayer const * VideoWidget::getPlayer() const
-{
-    return player;
-}
-
-qint64 VideoWidget::getDuration() const
-{
-    return player->duration();
-}
-
-void VideoWidget::setPosition(qint64 const position)
-{
-    player->setPosition(position);
-}
-
-Poppler::MovieAnnotation const * VideoWidget::getAnnotation() const
-{
-    return annotation;
-}
-
 void VideoWidget::play()
 {
-    if (player->mediaStatus() == QMediaPlayer::EndOfMedia)
+    QMediaPlayer::MediaStatus status = player->mediaStatus();
+    if (status==QMediaPlayer::LoadingMedia || status==QMediaPlayer::EndOfMedia)
         player->bind(this);
     player->play();
 }
@@ -126,14 +105,9 @@ void VideoWidget::pause()
         player->pause();
 }
 
-QMediaPlayer::State VideoWidget::state() const
-{
-    return player->state();
-}
-
 void VideoWidget::showPosterImage(QMediaPlayer::MediaStatus status)
 {
-    if (status == QMediaPlayer::EndOfMedia) {
+    if (status==QMediaPlayer::LoadingMedia || status==QMediaPlayer::EndOfMedia) {
         // Unbinding and binding this to the player is probably an ugly way of solving this.
         // TODO: find a better way of writing this.
         player->unbind(this);
@@ -145,7 +119,7 @@ void VideoWidget::bouncePalindromeVideo(QMediaPlayer::MediaStatus status)
 {
     // TODO: The result of this function is not what it should be.
     // But this could also depend on the encoding of the video.
-    if (status == QMediaPlayer::EndOfMedia) {
+    if (status==QMediaPlayer::LoadingMedia || status==QMediaPlayer::EndOfMedia) {
         player->stop();
         player->setPlaybackRate(-player->playbackRate());
         player->play();
@@ -154,9 +128,10 @@ void VideoWidget::bouncePalindromeVideo(QMediaPlayer::MediaStatus status)
 
 void VideoWidget::restartVideo(QMediaPlayer::MediaStatus status)
 {
-    if (status == QMediaPlayer::EndOfMedia)
+    if (status==QMediaPlayer::LoadingMedia || status==QMediaPlayer::EndOfMedia) {
         player->setPosition(0);
-    player->play();
+        player->play();
+    }
 }
 
 void VideoWidget::mouseReleaseEvent(QMouseEvent* event)
@@ -165,7 +140,8 @@ void VideoWidget::mouseReleaseEvent(QMouseEvent* event)
         if ( player->state() == QMediaPlayer::PlayingState )
             player->pause();
         else {
-            if (player->mediaStatus() == QMediaPlayer::EndOfMedia)
+            QMediaPlayer::MediaStatus status = player->mediaStatus();
+            if (status==QMediaPlayer::LoadingMedia || status==QMediaPlayer::EndOfMedia)
                 player->bind(this);
             player->play();
         }
@@ -178,9 +154,4 @@ void VideoWidget::mouseMoveEvent(QMouseEvent* event)
     if (cursor() == Qt::ArrowCursor)
         setCursor(Qt::PointingHandCursor);
     event->accept();
-}
-
-bool VideoWidget::getAutoplay() const
-{
-    return autoplay;
 }

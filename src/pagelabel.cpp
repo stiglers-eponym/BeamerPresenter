@@ -366,6 +366,8 @@ void PageLabel::renderPage(Poppler::Page* page, bool const setDuration, QPixmap 
                         QUrl url = QUrl(splitFileName[0], QUrl::TolerantMode);
                         splitFileName.append(link->parameters());
                         if (embedFileList.contains(splitFileName[0]) || embedFileList.contains(url.fileName()) || (splitFileName.length() > 1 && splitFileName.contains("embed"))) {
+                            if (embeddedWidgets.isEmpty())
+                                avoidMultimediaBug();
                             embeddedWidgets[pageIndex][i] = nullptr;
                             processes[pageIndex][i] = nullptr;
                             splitFileName.removeAll("embed"); // We know that the file will be embedded. This is not an argument for the program.
@@ -427,6 +429,19 @@ void PageLabel::renderPage(Poppler::Page* page, bool const setDuration, QPixmap 
     }
 }
 
+void PageLabel::avoidMultimediaBug()
+{
+    // TODO: find a better way to avoid this problem
+    // This is a very ugly and inefficient way of avoiding compatibility problems of combining videos and embedded applications.
+    // Probably this strange behavior without function is caused by unconventional handling of external windows.
+    // I don't know what problems occure on platforms other than Linux!
+    QVideoWidget* dummy = new QVideoWidget(this);
+    QMediaPlayer* dummy_player = new QMediaPlayer(this);
+    dummy_player->setVideoOutput(dummy);
+    delete dummy_player;
+    delete dummy;
+}
+
 void PageLabel::initEmbeddedApplications(Poppler::Page const* page)
 {
     // Initialize all embedded applications for a given page.
@@ -455,6 +470,8 @@ void PageLabel::initEmbeddedApplications(Poppler::Page const* page)
                 QUrl url = QUrl(splitFileName[0], QUrl::TolerantMode);
                 splitFileName.append(link->parameters());
                 if (embedFileList.contains(splitFileName[0]) || embedFileList.contains(url.fileName()) || (splitFileName.length() > 1 && splitFileName.contains("embed"))) {
+                    if (embeddedWidgets.isEmpty())
+                        avoidMultimediaBug();
                     embeddedWidgets[index][i] = nullptr;
                     processes[index][i] = nullptr;
                     splitFileName.removeAll("embed"); // We know that the file will be embedded. This is not an argument for the program.
@@ -1001,6 +1018,18 @@ void PageLabel::mouseReleaseEvent(QMouseEvent* event)
                     soundPlayers[i]->play();
             }
         }
+        for (int i=0; i<videoPositions.size(); i++) {
+            if (videoPositions[i].contains(event->pos())) {
+                if (videoWidgets[i]->state() == QMediaPlayer::PlayingState)
+                    videoWidgets[i]->pause();
+                else {
+                    videoWidgets[i]->setGeometry(videoPositions[i]);
+                    videoWidgets[i]->show();
+                    videoWidgets[i]->play();
+                }
+                return;
+            }
+        }
     }
     event->accept();
 }
@@ -1033,6 +1062,13 @@ void PageLabel::mouseMoveEvent(QMouseEvent* event)
         }
     }
     for (QList<QRect>::const_iterator pos_it=soundPositions.cbegin(); pos_it!=soundPositions.cend(); pos_it++) {
+        if (pos_it->contains(event->pos())) {
+            if (is_arrow_pointer)
+                setCursor(Qt::PointingHandCursor);
+            return;
+        }
+    }
+    for (QList<QRect>::const_iterator pos_it=videoPositions.cbegin(); pos_it!=videoPositions.cend(); pos_it++) {
         if (pos_it->contains(event->pos())) {
             if (is_arrow_pointer)
                 setCursor(Qt::PointingHandCursor);
@@ -1081,6 +1117,12 @@ void PageLabel::createEmbeddedWindow()
                 newWidget->setMaximumSize(winGeometry->width(), winGeometry->height());
                 if (page_it.key()==pageIndex)
                     newWidget->show();
+                else {
+                    newWidget->setVisible(false);
+                    newWidget->show();
+                    newWidget->hide();
+                    newWidget->setVisible(true);
+                }
                 newWidget->setGeometry(*winGeometry);
                 embeddedWidgets[pageIndex][process_it.key()] = newWidget;
                 return;
@@ -1152,8 +1194,10 @@ void PageLabel::receiveWid(WId const wid, int const page, int const index)
     QWidget* newWidget = createWindowContainer(newWindow, this);
     newWidget->setMinimumSize(winGeometry->width(), winGeometry->height());
     newWidget->setMaximumSize(winGeometry->width(), winGeometry->height());
-    if (page==pageIndex)
-        newWidget->show();
+    // Showing and hiding the widget here if page!=pageIndex makes showing the widget faster.
+    newWidget->show();
+    if (page!=pageIndex)
+        newWidget->hide();
     newWidget->setGeometry(*winGeometry);
     embeddedWidgets[page][index] = newWidget;
 }
@@ -1171,7 +1215,7 @@ void PageLabel::startAllEmbeddedApplications(int const index)
         }
         // If the embedded window exists: Check if it is hidden, show it and continue.
         if (embeddedWidgets[index][it.key()] != nullptr) {
-            if (embeddedWidgets[index][it.key()]->isHidden()) {
+            if (index==pageIndex && embeddedWidgets[index][it.key()]->isHidden()) {
                 if (!(embeddedPositions.contains(index) && embeddedPositions[index].contains(it.key()))) {
                     qCritical() << "Something very unexpected happened with embedded applications.";
                     continue;

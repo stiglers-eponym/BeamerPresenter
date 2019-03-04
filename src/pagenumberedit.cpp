@@ -20,7 +20,7 @@
 
 PageNumberEdit::PageNumberEdit(QWidget* parent) : QLineEdit(parent)
 {
-    connect(this, &PageNumberEdit::textChanged, this, &PageNumberEdit::receiveEditSignal);
+    connect(this, &PageNumberEdit::textEdited, this, &PageNumberEdit::receiveEditSignal);
 }
 
 PageNumberEdit::~PageNumberEdit()
@@ -35,14 +35,14 @@ void PageNumberEdit::setNumberOfPages(const int numberOfPages)
 
 void PageNumberEdit::receiveReturnSignal()
 {
-    emit sendPageNumberReturn( text().toInt() - 1 );
+    emit sendPageNumberReturn(text().toInt() - 1);
 }
 
 void PageNumberEdit::receiveEditSignal(const QString string)
 {
     int pageNumber = string.toInt();
     if ((pageNumber > 0) && (pageNumber <= numberOfPages))
-        emit sendPageNumberEdit( pageNumber - 1 );
+        emit sendPageNumberEdit(pageNumber - 1);
 }
 
 void PageNumberEdit::keyPressEvent(QKeyEvent* event)

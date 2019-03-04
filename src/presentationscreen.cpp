@@ -20,6 +20,7 @@
 
 PresentationScreen::PresentationScreen(PdfDoc* presentationDoc, QWidget* parent) : QWidget(parent)
 {
+    setAttribute(Qt::WA_NativeWindow);
     presentation = presentationDoc;
     setGeometry(0, 0, 1920, 1080);
     setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Ignored);
@@ -54,8 +55,8 @@ PresentationScreen::~PresentationScreen()
 
 void PresentationScreen::renderPage(int const pageNumber, bool const setDuration)
 {
-    if ( pageNumber < 0 || pageNumber >= presentation->getDoc()->numPages() )
-        label->renderPage(presentation->getPage( presentation->getDoc()->numPages() - 1 ), setDuration);
+    if (pageNumber < 0 || pageNumber >= presentation->getDoc()->numPages())
+        label->renderPage(presentation->getPage(presentation->getDoc()->numPages() - 1), setDuration);
     else
         label->renderPage(presentation->getPage(pageNumber), setDuration);
 }
@@ -63,7 +64,7 @@ void PresentationScreen::renderPage(int const pageNumber, bool const setDuration
 void PresentationScreen::receiveTimeoutSignal()
 {
     renderPage(label->pageNumber() + 1, true);
-    if ( label->getDuration() < 0 || label->getDuration() > 0.5 )
+    if (label->getDuration() < 0 || label->getDuration() > 0.5)
         emit sendPageShift();
 }
 
@@ -79,8 +80,7 @@ void PresentationScreen::receiveCloseSignal()
 
 void PresentationScreen::keyPressEvent(QKeyEvent* event)
 {
-    // TODO: Find a nicer way to do this
-    switch ( event->key() ) {
+    switch (event->key()) {
         case Qt::Key_Right:
         case Qt::Key_PageDown:
             renderPage(label->pageNumber() + 1, true);

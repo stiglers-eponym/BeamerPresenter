@@ -22,6 +22,7 @@
 #include <QWidget>
 #include <QLineEdit>
 #include <QKeyEvent>
+#include <QDebug>
 
 class PageNumberEdit : public QLineEdit
 {
