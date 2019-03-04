@@ -96,7 +96,7 @@ private:
     QMap<int,QMap<int,QWidget*>> embeddedWidgets;
     QMap<int,QMap<int,QRect>> embeddedPositions;
     QMap<int,QMap<int,QStringList>> embeddedCommands;
-    QTimer* processTimer = nullptr;
+    QTimer* processTimer = new QTimer(this);
     QTimer* autostartTimer = nullptr;
     QTimer* autostartEmbeddedTimer = nullptr;
     QSize oldSize = QSize();

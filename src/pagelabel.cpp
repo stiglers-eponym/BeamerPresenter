@@ -21,11 +21,13 @@
 PageLabel::PageLabel(Poppler::Page* page, QWidget* parent) : QLabel(parent)
 {
     renderPage(page, false);
+    connect(processTimer, &QTimer::timeout, this, &PageLabel::createEmbeddedWindowsFromPID);
 }
 
 PageLabel::PageLabel(QWidget* parent) : QLabel(parent)
 {
     page = nullptr;
+    connect(processTimer, &QTimer::timeout, this, &PageLabel::createEmbeddedWindowsFromPID);
 }
 
 PageLabel::~PageLabel()
@@ -33,6 +35,7 @@ PageLabel::~PageLabel()
     delete autostartTimer;
     delete autostartEmbeddedTimer;
     clearAll();
+    delete processTimer;
 }
 
 void PageLabel::clearAll()
@@ -43,8 +46,7 @@ void PageLabel::clearAll()
     embeddedPositions.clear();
     embeddedCommands.clear();
     // Clear running processes for embedded applications
-    if (processTimer != nullptr)
-        processTimer->stop();
+    processTimer->stop();
     if (embeddedWidgets.contains(pageIndex)) {
         for (QMap<int,QWidget*>::iterator widget=embeddedWidgets[pageIndex].begin(); widget!=embeddedWidgets[pageIndex].end(); widget++) {
             if (*widget != nullptr)
@@ -831,9 +833,7 @@ void PageLabel::mouseReleaseEvent(QMouseEvent* event)
                                     qDebug() << "Started process:" << process->program() << splitFileName;
                                     // Wait some time before trying to get the window ID
                                     // The window has to be created first.
-                                    processTimer = new QTimer(this);
                                     processTimer->start(minDelayEmbeddedWindows);
-                                    connect(processTimer, &QTimer::timeout, this, &PageLabel::createEmbeddedWindowsFromPID);
                                     // createEmbeddedWindowsFromPID will be called frequently until there exists a window corresponding to the process ID
                                     // The time between two calls of createEmbeddedWindowsFromPID will be increased exponentially.
                                 }
@@ -1214,9 +1214,8 @@ void PageLabel::startAllEmbeddedApplications(int const index)
             qDebug() << "Started process:" << process->program();
             // Wait some time before trying to get the window ID
             // The window has to be created first.
-            processTimer = new QTimer(this);
+            processTimer->stop();
             processTimer->start(minDelayEmbeddedWindows);
-            connect(processTimer, &QTimer::timeout, this, &PageLabel::createEmbeddedWindowsFromPID);
             // createEmbeddedWindowsFromPID will be called frequently until there exists a window corresponding to the process ID
             // The time between two calls of createEmbeddedWindowsFromPID will be increased exponentially.
         }
