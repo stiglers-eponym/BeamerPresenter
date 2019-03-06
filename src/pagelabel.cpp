@@ -20,21 +20,29 @@
 
 PageLabel::PageLabel(Poppler::Page* page, QWidget* parent) : QLabel(parent)
 {
-    renderPage(page, false);
     connect(processTimer, &QTimer::timeout, this, &PageLabel::createEmbeddedWindowsFromPID);
+    autostartEmbeddedTimer->setSingleShot(true);
+    connect(autostartEmbeddedTimer, &QTimer::timeout, this, [&](){startAllEmbeddedApplications(pageIndex);});
+    autostartTimer->setSingleShot(true);
+    connect(autostartTimer, &QTimer::timeout, this, &PageLabel::startAllMultimedia);
+    renderPage(page, false);
 }
 
 PageLabel::PageLabel(QWidget* parent) : QLabel(parent)
 {
     page = nullptr;
     connect(processTimer, &QTimer::timeout, this, &PageLabel::createEmbeddedWindowsFromPID);
+    autostartEmbeddedTimer->setSingleShot(true);
+    connect(autostartEmbeddedTimer, &QTimer::timeout, this, [&](){startAllEmbeddedApplications(pageIndex);});
+    autostartTimer->setSingleShot(true);
+    connect(autostartTimer, &QTimer::timeout, this, &PageLabel::startAllMultimedia);
 }
 
 PageLabel::~PageLabel()
 {
+    clearAll();
     delete autostartTimer;
     delete autostartEmbeddedTimer;
-    clearAll();
     delete processTimer;
 }
 
@@ -42,35 +50,35 @@ void PageLabel::clearAll()
 {
     // Clear all contents of the label.
     // This function is called when the document is reloaded or the program is closed and everything should be cleaned up.
+    processTimer->stop();
+    autostartTimer->stop();
+    autostartEmbeddedTimer->stop();
     clearLists();
     embeddedPositions.clear();
     embeddedCommands.clear();
     // Clear running processes for embedded applications
-    processTimer->stop();
-    if (embeddedWidgets.contains(pageIndex)) {
-        for (QMap<int,QWidget*>::iterator widget=embeddedWidgets[pageIndex].begin(); widget!=embeddedWidgets[pageIndex].end(); widget++) {
-            if (*widget != nullptr)
-                (*widget)->hide();
-        }
-    }
     for (QMap<int,QMap<int,QProcess*>>::iterator map=processes.begin(); map!=processes.end(); map++) {
-        for (QMap<int,QProcess*>::iterator process=map->begin(); process!=map->end(); process++) {
+        for (QMap<int,QProcess*>::const_iterator process=map->cbegin(); process!=map->cend(); process++) {
             if (*process != nullptr) {
                 (*process)->terminate();
                 (*process)->waitForFinished(1000);
                 delete *process;
             }
         }
+        map->clear();
     }
+    processes.clear();
     // Delete widgets of embedded applications
     for (QMap<int,QMap<int,QWidget*>>::iterator map=embeddedWidgets.begin(); map!=embeddedWidgets.end(); map++) {
-        for (QMap<int,QWidget*>::iterator widget=map->begin(); widget!=map->end(); widget++) {
+        for (QMap<int,QWidget*>::const_iterator widget=map->cbegin(); widget!=map->cend(); widget++) {
             if (*widget != nullptr) {
                 (*widget)->close();
                 delete *widget;
             }
         }
+        map->clear();
     }
+    embeddedWidgets.clear();
     clearCache();
     page = nullptr;
 }
@@ -82,13 +90,13 @@ void PageLabel::clearLists()
     // It deletes all multimedia content associated with the current page.
 
     // Disconnect multimedia content
-    for (QList<MediaSlider*>::iterator slider=sliders.begin(); slider!=sliders.end(); slider++)
+    for (QList<MediaSlider*>::const_iterator slider=sliders.cbegin(); slider!=sliders.cend(); slider++)
         (*slider)->disconnect();
-    for (QList<VideoWidget*>::iterator video=videoWidgets.begin(); video!=videoWidgets.end(); video++)
+    for (QList<VideoWidget*>::const_iterator video=videoWidgets.cbegin(); video!=videoWidgets.cend(); video++)
         (*video)->getPlayer()->disconnect();
-    for (QMap<int,QMediaPlayer*>::iterator player_it=linkSoundPlayers.begin(); player_it!=linkSoundPlayers.end(); player_it++)
+    for (QMap<int,QMediaPlayer*>::const_iterator player_it=linkSoundPlayers.cbegin(); player_it!=linkSoundPlayers.cend(); player_it++)
         player_it.value()->disconnect();
-    for (QList<QMediaPlayer*>::iterator player_it=soundPlayers.begin(); player_it!=soundPlayers.end(); player_it++)
+    for (QList<QMediaPlayer*>::const_iterator player_it=soundPlayers.cbegin(); player_it!=soundPlayers.cend(); player_it++)
         (*player_it)->disconnect();
     // Delete multimedia content
     qDeleteAll(sliders);
@@ -113,7 +121,7 @@ void PageLabel::renderPage(Poppler::Page* page, bool const setDuration, QPixmap 
     if (page == nullptr)
         return;
     if (pageIndex != page->index() && embeddedWidgets.contains(pageIndex))
-        for (QMap<int,QWidget*>::iterator widget=embeddedWidgets[pageIndex].begin(); widget!=embeddedWidgets[pageIndex].end(); widget++)
+        for (QMap<int,QWidget*>::const_iterator widget=embeddedWidgets[pageIndex].cbegin(); widget!=embeddedWidgets[pageIndex].cend(); widget++)
             if (*widget != nullptr)
                 (*widget)->hide();
     // Old cached images are useless if the label size has changed:
@@ -240,7 +248,7 @@ void PageLabel::renderPage(Poppler::Page* page, bool const setDuration, QPixmap 
         videoType.insert(Poppler::Annotation::AMovie);
         QList<Poppler::Annotation*> videos = page->annotations(videoType);
         // Save the positions of all video annotations and create a video widget for each of them.
-        for (QList<Poppler::Annotation*>::iterator annotation=videos.begin(); annotation!=videos.end(); annotation++) {
+        for (QList<Poppler::Annotation*>::const_iterator annotation=videos.cbegin(); annotation!=videos.cend(); annotation++) {
             Poppler::MovieAnnotation* video = (Poppler::MovieAnnotation*) *annotation;
             videoWidgets.append(new VideoWidget(video, urlSplitCharacter, this));
             QRectF relative = video->boundary();
@@ -260,7 +268,7 @@ void PageLabel::renderPage(Poppler::Page* page, bool const setDuration, QPixmap 
         soundType.insert(Poppler::Annotation::ASound);
         QList<Poppler::Annotation*> sounds = page->annotations(soundType);
         // Save the positions of all audio annotations and create a sound player for each of them.
-        for (QList<Poppler::Annotation*>::iterator it = sounds.begin(); it!=sounds.end(); it++) {
+        for (QList<Poppler::Annotation*>::const_iterator it = sounds.cbegin(); it!=sounds.cend(); it++) {
             qWarning() << "Support for sound in annotations is untested!";
             {
                 QRectF relative = (*it)->boundary();
@@ -396,14 +404,9 @@ void PageLabel::renderPage(Poppler::Page* page, bool const setDuration, QPixmap 
         }
         // Autostart multimedia if the option is set in BeamerPresenter
         if (videoWidgets.size() + soundPlayers.size() + linkSoundPlayers.size() != 0) {
-            if (autostartDelay > 0.01) {
+            if (autostartDelay > 0.01)
                 // autostart with delay
-                delete autostartTimer;
-                autostartTimer = new QTimer();
-                autostartTimer->setSingleShot(true);
-                connect(autostartTimer, &QTimer::timeout, this, &PageLabel::startAllMultimedia);
                 autostartTimer->start(int(autostartDelay*1000));
-            }
             else if (autostartDelay > -0.01)
                 // autostart without delay
                 startAllMultimedia();
@@ -411,14 +414,9 @@ void PageLabel::renderPage(Poppler::Page* page, bool const setDuration, QPixmap 
 
         // Autostart embedded applications if the option is set in BeamerPresenter
         if (embeddedWidgets.contains(pageIndex)) {
-            if (autostartEmbeddedDelay > 0.01) {
+            if (autostartEmbeddedDelay > 0.01)
                 // autostart with delay
-                delete autostartEmbeddedTimer;
-                autostartEmbeddedTimer = new QTimer();
-                autostartEmbeddedTimer->setSingleShot(true);
-                connect(autostartEmbeddedTimer, &QTimer::timeout, this, [&](){startAllEmbeddedApplications(pageIndex);});
                 autostartEmbeddedTimer->start(int(autostartEmbeddedDelay*1000));
-            }
             else if (autostartEmbeddedDelay > -0.01)
                 // autostart without delay
                 startAllEmbeddedApplications(pageIndex);
@@ -434,7 +432,7 @@ void PageLabel::avoidMultimediaBug()
     // TODO: find a better way to avoid this problem
     // This is a very ugly and inefficient way of avoiding compatibility problems of combining videos and embedded applications.
     // Probably this strange behavior without function is caused by unconventional handling of external windows.
-    // I don't know what problems occure on platforms other than Linux!
+    // I don't know what problems occure on platforms other than GNU/Linux!
     QVideoWidget* dummy = new QVideoWidget(this);
     QMediaPlayer* dummy_player = new QMediaPlayer(this);
     dummy_player->setVideoOutput(dummy);
@@ -720,8 +718,8 @@ void PageLabel::setMultimediaSliders(QList<MediaSlider*> sliderList)
     }
     sliders = sliderList;
     // TODO: better multimedia controls
-    QList<MediaSlider*>::iterator slider = sliders.begin();
-    for (QList<VideoWidget*>::iterator video = videoWidgets.begin(); video!=videoWidgets.end(); video++, slider++) {
+    QList<MediaSlider*>::const_iterator slider = sliders.cbegin();
+    for (QList<VideoWidget*>::const_iterator video = videoWidgets.cbegin(); video!=videoWidgets.cend(); video++, slider++) {
         connect((*video)->getPlayer(), &QMediaPlayer::durationChanged, *slider, &MediaSlider::setMaximum);
         int const duration = int((*video)->getDuration()/100);
         if (duration > 0)
@@ -729,7 +727,7 @@ void PageLabel::setMultimediaSliders(QList<MediaSlider*> sliderList)
         connect(*slider, &MediaSlider::sliderMoved, *video, &VideoWidget::setPosition);
         connect((*video)->getPlayer(), &QMediaPlayer::positionChanged, *slider, &MediaSlider::setValue);
     }
-    for (QMap<int,QMediaPlayer*>::iterator it=linkSoundPlayers.begin(); it!=linkSoundPlayers.end(); it++, slider++) {
+    for (QMap<int,QMediaPlayer*>::const_iterator it=linkSoundPlayers.cbegin(); it!=linkSoundPlayers.cend(); it++, slider++) {
         (*slider)->setRange(0, int(it.value()->duration()));
         connect(it.value(), &QMediaPlayer::durationChanged, *slider, &MediaSlider::setMaximum);
         int const duration = int(it.value()->duration()/100);
@@ -738,7 +736,7 @@ void PageLabel::setMultimediaSliders(QList<MediaSlider*> sliderList)
         connect(*slider, &MediaSlider::sliderMoved, it.value(), &QMediaPlayer::setPosition);
         connect(it.value(), &QMediaPlayer::positionChanged, *slider, &MediaSlider::setValue);
     }
-    for (QList<QMediaPlayer*>::iterator player = soundPlayers.begin(); player!=soundPlayers.end(); player++, slider++) {
+    for (QList<QMediaPlayer*>::const_iterator player = soundPlayers.cbegin(); player!=soundPlayers.cend(); player++, slider++) {
         (*slider)->setRange(0, int((*player)->duration()));
         connect(*player, &QMediaPlayer::durationChanged, *slider, &MediaSlider::setMaximum);
         int const duration = int((*player)->duration()/100);
@@ -1144,8 +1142,8 @@ void PageLabel::createEmbeddedWindowsFromPID()
     }
     bool anyCandidates = false;
     // For all processes, which are note connected to a window ID yet, start a PidWidCaller to check if a corresponding window can be found.
-    for(QMap<int,QMap<int,QProcess*>>::iterator page_it=processes.begin(); page_it!=processes.end(); page_it++) {
-        for(QMap<int,QProcess*>::iterator process_it=page_it.value().begin(); process_it!=page_it.value().end(); process_it++) {
+    for(QMap<int,QMap<int,QProcess*>>::const_iterator page_it=processes.cbegin(); page_it!=processes.cend(); page_it++) {
+        for(QMap<int,QProcess*>::const_iterator process_it=page_it.value().cbegin(); process_it!=page_it.value().cend(); process_it++) {
             if (process_it.value() != nullptr && embeddedWidgets[page_it.key()][process_it.key()] == nullptr) {
                 PidWidCaller* pidWidCaller = new PidWidCaller(pid2wid, process_it.value()->pid(), page_it.key(), process_it.key(), this);
                 connect(pidWidCaller, &PidWidCaller::sendWid, this, &PageLabel::receiveWid);

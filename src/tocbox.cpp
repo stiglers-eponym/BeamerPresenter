@@ -29,7 +29,7 @@ void TocBox::createToc(const QDomDocument *toc)
     if (!need_update || toc==nullptr || toc->isNull())
         return;
     if (this->toc != nullptr) {
-        for (QList<QMenu*>::iterator menu=menus.begin(); menu!=menus.end(); menu++)
+        for (QList<QMenu*>::const_iterator menu=menus.cbegin(); menu!=menus.cend(); menu++)
             qDeleteAll((*menu)->actions());
         qDeleteAll(menus);
         menus.clear();
@@ -94,7 +94,7 @@ void TocBox::recursiveTocCreator(QDomNode const& n, int const level)
 TocBox::~TocBox()
 {
     disconnect();
-    for (QList<QMenu*>::iterator menu=menus.begin(); menu!=menus.end(); menu++)
+    for (QList<QMenu*>::const_iterator menu=menus.cbegin(); menu!=menus.cend(); menu++)
         qDeleteAll((*menu)->actions());
     qDeleteAll(menus);
     qDeleteAll(buttons);

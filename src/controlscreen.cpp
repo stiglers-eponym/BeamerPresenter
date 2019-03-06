@@ -141,7 +141,7 @@ ControlScreen::ControlScreen(QString presentationPath, QString notesPath, QWidge
     connect(ui->notes_label, &PageLabel::sendCloseSignal, this, &ControlScreen::receiveCloseSignal);
     connect(presentationScreen->getLabel(), &PageLabel::sendCloseSignal, this, &ControlScreen::receiveCloseSignal);
 
-    ui->label_timer->setTimerWidget( ui->edit_timer );
+    ui->label_timer->setTimerWidget(ui->edit_timer);
     // Signals emitted by the timer
     connect(ui->label_timer, &Timer::sendAlert,   this, &ControlScreen::receiveTimerAlert);
     connect(ui->label_timer, &Timer::sendNoAlert, this, &ControlScreen::resetTimerAlert);
@@ -151,6 +151,7 @@ ControlScreen::ControlScreen(QString presentationPath, QString notesPath, QWidge
     connect(this, &ControlScreen::sendTimeoutInterval, ui->label_timer, &Timer::receiveTimeoutInterval);
 
     // Signals sent to the page labels
+    // Autostart of media on the control screen can be enabled by uncommenting the following lines.
     //connect(this, &ControlScreen::sendAutostartDelay, ui->notes_label, &PageLabel::setAutostartDelay);
     connect(this, &ControlScreen::sendAutostartDelay, presentationScreen->getLabel(), &PageLabel::setAutostartDelay);
     //connect(this, &ControlScreen::sendAutostartEmbeddedDelay, ui->notes_label, &PageLabel::setAutostartEmbeddedDelay);
@@ -1023,6 +1024,7 @@ void ControlScreen::reloadFiles()
     }
 
     bool change = false;
+    bool sameFile = presentation->getPath()==notes->getPath();
     // Reload notes file
     if (notes->loadDocument()) {
         qInfo() << "Reloading notes file";
@@ -1031,15 +1033,15 @@ void ControlScreen::reloadFiles()
         recalcLayout(currentPageNumber);
     }
     // Reload presentation file
-    if (presentation->loadDocument()) {
+    if ((sameFile && change) || (!sameFile && presentation->loadDocument())) {
         qInfo() << "Reloading presentation file";
         change = true;
         bool unlimitedCache = numberOfPages==maxCacheNumber;
         numberOfPages = presentation->getDoc()->numPages();
         if (unlimitedCache)
             maxCacheNumber = numberOfPages;
-        presentationScreen->getLabel()->clearAll();
-        emit sendNewPageNumber(presentationScreen->getLabel()->pageNumber());
+        presentationScreen->updatedFile();
+        presentationScreen->renderPage(presentationScreen->getLabel()->pageNumber(), false);
         ui->current_slide_label->clearAll();
         ui->next_slide_label->clearAll();
         hideToc();

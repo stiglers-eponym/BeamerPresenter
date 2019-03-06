@@ -34,10 +34,10 @@ For more options and usage possibilities use `beamerpresenter --help` the man pa
 
 ## Settings
 Settings can be placed in a file `beamerpresenter.conf` (on platforms other than
-Linux: `beamerpresenter.ini`). An example configuration file is provided.
+GNU/Linux: `beamerpresenter.ini`). An example configuration file is provided.
 The configuration can only be edited directly with a text editor.
 
-This program is only tested on a Linux system. Using configuration files might
+This program is only tested on a GNU/Linux system. Using configuration files might
 lead to platform specific problems.
 
 

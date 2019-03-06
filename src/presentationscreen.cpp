@@ -28,6 +28,7 @@ PresentationScreen::PresentationScreen(PdfDoc* presentationDoc, QWidget* parent)
     QPalette palette = QPalette();
     palette.setColor(QPalette::Window, QPalette::Shadow);
     setPalette(palette);
+    numberOfPages = presentationDoc->getDoc()->numPages();
 
     // label will contain the slide as a pixmap
     label = new PageLabel(this);
@@ -55,8 +56,8 @@ PresentationScreen::~PresentationScreen()
 
 void PresentationScreen::renderPage(int const pageNumber, bool const setDuration)
 {
-    if (pageNumber < 0 || pageNumber >= presentation->getDoc()->numPages())
-        label->renderPage(presentation->getPage(presentation->getDoc()->numPages() - 1), setDuration);
+    if (pageNumber < 0 || pageNumber >= numberOfPages)
+        label->renderPage(presentation->getPage(numberOfPages - 1), setDuration);
     else
         label->renderPage(presentation->getPage(pageNumber), setDuration);
 }
@@ -198,4 +199,10 @@ void PresentationScreen::wheelEvent(QWheelEvent* event)
         }
     }
     event->accept();
+}
+
+void PresentationScreen::updatedFile()
+{
+    numberOfPages = presentation->getDoc()->numPages();
+    label->clearAll();
 }

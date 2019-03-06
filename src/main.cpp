@@ -81,7 +81,7 @@ int main(int argc, char *argv[])
     parser.process(app);
 
     // set up a settings manager
-    // This is only tested on Linux! I don't know whether it will work in Windows or MacOS
+    // This is only tested on GNU/Linux! I don't know whether it will work in Windows or MacOS
     #ifdef Q_OS_MAC
     // untested!
     QSettings settings(QSettings::IniFormat, QSettings::UserScope, "beamerpresenter", "beamerpresenter");

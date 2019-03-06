@@ -36,6 +36,7 @@ public:
     void renderPage(int const pageNumber = 0, bool const setDuration = false);
     int getPageNumber() const {return label->pageNumber();}
     PageLabel* getLabel() {return label;}
+    void updatedFile();
 
 protected:
     void keyPressEvent(QKeyEvent* event);
@@ -46,6 +47,7 @@ private:
     QGridLayout* layout;
     PdfDoc* presentation;
     PageLabel* label;
+    int numberOfPages;
 
 signals:
     void sendNewPageNumber(const int pageNumber);

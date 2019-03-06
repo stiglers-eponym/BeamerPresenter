@@ -97,9 +97,9 @@ private:
     QMap<int,QMap<int,QWidget*>> embeddedWidgets;
     QMap<int,QMap<int,QRect>> embeddedPositions;
     QMap<int,QMap<int,QStringList>> embeddedCommands;
-    QTimer* processTimer = new QTimer(this);
-    QTimer* autostartTimer = nullptr;
-    QTimer* autostartEmbeddedTimer = nullptr;
+    QTimer* const processTimer = new QTimer(this);
+    QTimer* const autostartTimer = new QTimer(this);
+    QTimer* const autostartEmbeddedTimer = new QTimer(this);
     QSize oldSize = QSize();
     QStringList embedFileList;
     QString pid2wid;
