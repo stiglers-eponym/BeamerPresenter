@@ -35,7 +35,8 @@ VideoWidget::VideoWidget(Poppler::MovieAnnotation const* annotation, QString con
         setAutoFillBackground(true);
     }
 
-    QUrl url = QUrl(movie->url(), QUrl::TolerantMode);
+    filename = movie->url();
+    QUrl url = QUrl(filename, QUrl::TolerantMode);
     QStringList splitFileName;
     if (!urlSplitCharacter.isEmpty()) {
         splitFileName = movie->url().split(urlSplitCharacter);

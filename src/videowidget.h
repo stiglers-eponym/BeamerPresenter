@@ -42,6 +42,7 @@ public:
     QMediaPlayer const * getPlayer() const {return player;}
     QMediaPlayer::State state() const {return player->state();}
     bool getAutoplay() const {return autoplay;}
+    QString const& getUrl() const {return filename;}
 
 protected:
     void mouseReleaseEvent(QMouseEvent* event);
@@ -50,6 +51,7 @@ protected:
 private:
     QMediaPlayer* player;
     QImage posterImage;
+    QString filename;
     bool autoplay = false;
     Poppler::MovieAnnotation const * annotation;
 

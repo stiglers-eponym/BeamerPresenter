@@ -59,7 +59,7 @@ public:
     void clearCache();
     void clearAll();
     void startAllEmbeddedApplications(int const index);
-    void initEmbeddedApplications(Poppler::Page const* page);
+    void initEmbeddedApplications(Poppler::Page const* page, bool const isOverlay = false);
     void avoidMultimediaBug();
 
     void setMultimediaSliders(QList<MediaSlider*> sliderList);
@@ -93,10 +93,11 @@ private:
     QList<QRect> soundPositions;
     QMap<int,QMediaPlayer*> linkSoundPlayers;
     QList<MediaSlider*> sliders;
-    QMap<int,QMap<int,QProcess*>> processes;
-    QMap<int,QMap<int,QWidget*>> embeddedWidgets;
-    QMap<int,QMap<int,QRect>> embeddedPositions;
-    QMap<int,QMap<int,QStringList>> embeddedCommands;
+    QMap<int,QMap<int,int>> embedMap;
+    QList<QProcess*> processes;
+    QList<QWidget*> embedWidgets;
+    QList<QRect> embedPositions;
+    QList<QStringList> embedCommands;
     QTimer* const processTimer = new QTimer(this);
     QTimer* const autostartTimer = new QTimer(this);
     QTimer* const autostartEmbeddedTimer = new QTimer(this);
@@ -142,7 +143,6 @@ signals:
     void timeoutSignal();
     void sendShowFullscreen();
     void sendEndFullscreen();
-    //void slideChange();
 };
 
 #endif // PAGE_H
