@@ -49,6 +49,6 @@ void PidWidCaller::sendResult(int const exitCode)
     }
     else
         qCritical() << "Call to external translator from PID to Window ID had unexpected output";
-    waitForFinished(10000);
+    waitForFinished(1000);
     deleteLater();
 }

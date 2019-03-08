@@ -819,11 +819,9 @@ void ControlScreen::startAllEmbeddedApplications()
     qDebug() << "Starting all embedded applications on all pages.";
     QList<Poppler::Page*> const pages = presentation->getPages();
     PageLabel* label = presentationScreen->getLabel();
-    label->initEmbeddedApplications(pages[0], false);
-    label->startAllEmbeddedApplications(0);
-    for (int i=1; i<numberOfPages; i++) {
-        label->initEmbeddedApplications(pages[i], pages[i]->label()==pages[i-1]->label());
-        label->startAllEmbeddedApplications(pages[i]->index());
+    for (QList<Poppler::Page*>::const_iterator page_it=pages.cbegin(); page_it!=pages.cend(); page_it++) {
+        label->initEmbeddedApplications(*page_it);
+        label->startAllEmbeddedApplications((*page_it)->index());
     }
 }
 

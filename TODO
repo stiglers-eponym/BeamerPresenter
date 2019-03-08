@@ -1,7 +1,5 @@
 BeamerPresenter
 
-* Correct and improve embedded widgets: Especially embedPositions
-* Only one instance of each application, no matter how often it is embedded? Option for that?
 * More focus on overlays in general
 
 * Cache management: test, clean up the code, improve

@@ -59,7 +59,7 @@ public:
     void clearCache();
     void clearAll();
     void startAllEmbeddedApplications(int const index);
-    void initEmbeddedApplications(Poppler::Page const* page, bool const isOverlay = false);
+    void initEmbeddedApplications(Poppler::Page const* page);
     void avoidMultimediaBug();
 
     void setMultimediaSliders(QList<MediaSlider*> sliderList);
@@ -83,7 +83,7 @@ public:
 
 private:
     void clearLists();
-    Poppler::Page* page;
+    Poppler::Page* page = nullptr;
     QMap<int,QByteArray const*> cache;
     QList<Poppler::Link*> links;
     QList<QRect> linkPositions;
@@ -91,8 +91,10 @@ private:
     QList<QRect> videoPositions;
     QList<QMediaPlayer*> soundPlayers;
     QList<QRect> soundPositions;
-    QMap<int,QMediaPlayer*> linkSoundPlayers;
-    QList<MediaSlider*> sliders;
+    QMap<int,QMediaPlayer*> soundLinkPlayers;
+    QMap<int,MediaSlider*> videoSliders;
+    QMap<int,MediaSlider*> soundSliders;
+    QMap<int,MediaSlider*> soundLinkSliders;
     QMap<int,QMap<int,int>> embedMap;
     QList<QProcess*> processes;
     QList<QWidget*> embedWidgets;
