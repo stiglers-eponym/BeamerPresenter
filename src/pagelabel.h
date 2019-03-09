@@ -35,7 +35,7 @@
 #include <poppler-qt5.h>
 #include "videowidget.h"
 #include "mediaslider.h"
-#include "pidwidcaller.h"
+#include "embedapp.h"
 
 enum PagePart {
     LeftHalf = 1,
@@ -96,11 +96,8 @@ private:
     QMap<int,MediaSlider*> soundSliders;
     QMap<int,MediaSlider*> soundLinkSliders;
     QMap<int,QMap<int,int>> embedMap;
-    QList<QProcess*> processes;
-    QList<QWidget*> embedWidgets;
+    QList<EmbedApp*> embedApps;
     QList<QRect> embedPositions;
-    QList<QStringList> embedCommands;
-    QTimer* const processTimer = new QTimer(this);
     QTimer* const autostartTimer = new QTimer(this);
     QTimer* const autostartEmbeddedTimer = new QTimer(this);
     QSize oldSize = QSize();
@@ -113,7 +110,6 @@ private:
     double autostartEmbeddedDelay = -1.; // delay for starting embedded applications in s
     double duration; // duration of the current page in s
     int minimumAnimationDelay = 40; // minimum frame time in ms
-    int minDelayEmbeddedWindows = 50; // delay in ms, after which pid2wid is called to search for a window.
     int pageIndex = 0; // page number
     bool isPresentation = true;
     bool showMultimedia = true;
@@ -128,10 +124,7 @@ public slots:
     void togglePointerVisibility();
     void pauseAllMultimedia();
     void startAllMultimedia();
-    void createEmbeddedWindow();
-    void createEmbeddedWindowsFromPID();
-    void receiveWid(WId const wid, int const page, int const index);
-    void clearProcesses(int const exitCode, QProcess::ExitStatus const exitStatus);
+    void receiveEmbedApp(EmbedApp* app);
     void setAutostartDelay(double const delay) {autostartDelay=delay;}
     void setAutostartEmbeddedDelay(double const delay) {autostartEmbeddedDelay=delay;}
     void setAnimationDelay(int const delay_ms) {minimumAnimationDelay=delay_ms;}

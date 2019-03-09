@@ -36,12 +36,12 @@ SOURCES += \
         src/pagenumberedit.cpp \
         src/videowidget.cpp \
         src/mediaslider.cpp \
-        src/pidwidcaller.cpp \
         src/cacheupdatethread.cpp \
         src/tocbox.cpp \
         src/tocbutton.cpp \
         src/tocaction.cpp \
-        src/externalrenderer.cpp
+        src/externalrenderer.cpp \
+        src/embedapp.cpp
 
 HEADERS += \
         src/controlscreen.h \
@@ -53,12 +53,12 @@ HEADERS += \
         src/pagenumberedit.h \
         src/videowidget.h \
         src/mediaslider.h \
-        src/pidwidcaller.h \
         src/cacheupdatethread.h \
         src/tocbox.h \
         src/tocbutton.h \
         src/tocaction.h \
-        src/externalrenderer.h
+        src/externalrenderer.h \
+        src/embedapp.h
 
 FORMS += \
         src/controlscreen.ui

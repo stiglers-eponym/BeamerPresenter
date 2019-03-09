@@ -20,7 +20,6 @@
 
 PageLabel::PageLabel(Poppler::Page* page, QWidget* parent) : QLabel(parent)
 {
-    connect(processTimer, &QTimer::timeout, this, &PageLabel::createEmbeddedWindowsFromPID);
     autostartEmbeddedTimer->setSingleShot(true);
     connect(autostartEmbeddedTimer, &QTimer::timeout, this, [&](){startAllEmbeddedApplications(pageIndex);});
     autostartTimer->setSingleShot(true);
@@ -30,7 +29,6 @@ PageLabel::PageLabel(Poppler::Page* page, QWidget* parent) : QLabel(parent)
 
 PageLabel::PageLabel(QWidget* parent) : QLabel(parent)
 {
-    connect(processTimer, &QTimer::timeout, this, &PageLabel::createEmbeddedWindowsFromPID);
     autostartEmbeddedTimer->setSingleShot(true);
     connect(autostartEmbeddedTimer, &QTimer::timeout, this, [&](){startAllEmbeddedApplications(pageIndex);});
     autostartTimer->setSingleShot(true);
@@ -42,38 +40,21 @@ PageLabel::~PageLabel()
     clearAll();
     delete autostartTimer;
     delete autostartEmbeddedTimer;
-    delete processTimer;
 }
 
 void PageLabel::clearAll()
 {
     // Clear all contents of the label.
     // This function is called when the document is reloaded or the program is closed and everything should be cleaned up.
-    processTimer->stop();
     autostartTimer->stop();
     autostartEmbeddedTimer->stop();
     clearLists();
-    embedPositions.clear();
-    embedCommands.clear();
-    // Clear running processes for embedded applications
-    for (QList<QProcess*>::const_iterator process_it=processes.begin(); process_it!=processes.end(); process_it++) {
-        if (*process_it != nullptr) {
-            (*process_it)->terminate();
-            (*process_it)->waitForFinished(1000);
-            delete *process_it;
-        }
-    }
-    processes.clear();
-    embedMap.clear();
-    // Delete widgets of embedded applications
-    for (QList<QWidget*>::const_iterator widget_it=embedWidgets.begin(); widget_it!=embedWidgets.end(); widget_it++) {
-        if (*widget_it != nullptr) {
-            (*widget_it)->close();
-            delete *widget_it;
-        }
-    }
-    embedWidgets.clear();
     clearCache();
+    // Clear embedded applications
+    embedPositions.clear();
+    qDeleteAll(embedApps);
+    embedApps.clear();
+    embedMap.clear();
     page = nullptr;
 }
 
@@ -254,13 +235,13 @@ void PageLabel::renderPage(Poppler::Page* page, bool const setDuration, QPixmap 
                 int idx = -1;
                 if (embedMap.contains(pageIndex) && embedMap[pageIndex].contains(i))
                     idx = embedMap[pageIndex][i];
-                if (idx!=-1 && embedWidgets[idx]!=nullptr) {
+                if (idx!=-1 && embedApps[idx]->isReady()) {
                     QRect winGeometry = linkPositions[i];
                     if (winGeometry.height() < 0) {
                         winGeometry.setY(winGeometry.y() + winGeometry.height());
                         winGeometry.setHeight(-linkPositions[i].height());
                     }
-                    QWidget* widget = embedWidgets[idx];
+                    QWidget* widget = embedApps[idx]->getWidget();
                     if (winGeometry!=embedPositions[idx]) {
                         widget->setMinimumSize(winGeometry.width(), winGeometry.height());
                         widget->setMaximumSize(winGeometry.width(), winGeometry.height());
@@ -271,7 +252,7 @@ void PageLabel::renderPage(Poppler::Page* page, bool const setDuration, QPixmap 
                 }
                 // Second case: There exists no process for this execution link.
                 // In this case we need to check, whether this application should be executed in an embedded window.
-                else if (idx==-1 || processes[idx] == nullptr) {
+                else if (idx==-1 || !embedApps[idx]->isStarted()) {
                     Poppler::LinkExecute* const link = (Poppler::LinkExecute*) links[i];
                     // Get file path (url) and arguments
                     QStringList splitFileName = QStringList();
@@ -284,7 +265,7 @@ void PageLabel::renderPage(Poppler::Page* page, bool const setDuration, QPixmap 
                     if (embedFileList.contains(splitFileName[0]) || embedFileList.contains(url.fileName()) || (splitFileName.length() > 1 && splitFileName.contains("embed"))) {
                         splitFileName.removeAll("embed"); // We know that the file will be embedded. This is not an argument for the program.
                         splitFileName.removeAll("");
-                        if (embedWidgets.isEmpty())
+                        if (embedApps.isEmpty())
                             avoidMultimediaBug();
                         QRect winGeometry = linkPositions[i];
                         if (winGeometry.height() < 0) {
@@ -296,12 +277,13 @@ void PageLabel::renderPage(Poppler::Page* page, bool const setDuration, QPixmap 
                             // Check if the same application exists already on an other page.
                             for (QMap<int,QMap<int,int>>::const_iterator page_it = embedMap.cbegin(); page_it!=embedMap.cend(); page_it++) {
                                 for (QMap<int,int>::const_iterator idx_it = (*page_it).cbegin(); idx_it!=(*page_it).cend(); idx_it++) {
-                                    if (embedCommands[*idx_it] == splitFileName) {
+                                    if (embedApps[*idx_it]->getCommand() == splitFileName) {
                                         embedMap[pageIndex][i] = *idx_it;
                                         embedPositions[*idx_it] = winGeometry;
+                                        embedApps[*idx_it]->addLocation(pageIndex, i);
                                         found = true;
-                                        if (embedWidgets[*idx_it] != nullptr) {
-                                            QWidget* widget = embedWidgets[*idx_it];
+                                        if (embedApps[*idx_it]->isReady()) {
+                                            QWidget* widget = embedApps[*idx_it]->getWidget();
                                             widget->setMinimumSize(winGeometry.width(), winGeometry.height());
                                             widget->setMaximumSize(winGeometry.width(), winGeometry.height());
                                             widget->setGeometry(winGeometry);
@@ -314,34 +296,30 @@ void PageLabel::renderPage(Poppler::Page* page, bool const setDuration, QPixmap 
                                     break;
                             }
                             if (!found) {
-                                embedMap[pageIndex][i] = embedWidgets.length();
-                                embedWidgets.append(nullptr);
-                                embedCommands.append(splitFileName);
+                                embedMap[pageIndex][i] = embedApps.length();
+                                EmbedApp* const app = new EmbedApp(splitFileName, pid2wid, pageIndex, i, this);
+                                connect(app, &EmbedApp::widgetReady, this, &PageLabel::receiveEmbedApp);
+                                embedApps.append(app);
                                 embedPositions.append(winGeometry);
-                                processes.append(nullptr);
                             }
                         }
-                        else {
-                            embedWidgets[idx] = nullptr;
-                            processes[idx] = nullptr;
-                            embedCommands[idx] = splitFileName;
+                        else
                             embedPositions[idx] = winGeometry;
-                        }
                     }
                 }
             }
         }
         // Hide embedded widgets from other pages
         if (embedMap.contains(pageIndex)) {
-            for (int i=0; i<embedWidgets.size(); i++) {
-                if (embedWidgets[i]!=nullptr && !embedMap[pageIndex].values().contains(i))
-                    embedWidgets[i]->hide();
+            for (int i=0; i<embedApps.size(); i++) {
+                if (embedApps[i]->isReady() && !embedApps[i]->isOnPage(pageIndex))
+                    embedApps[i]->getWidget()->hide();
             }
         }
         else {
-            for (int i=0; i<embedWidgets.size(); i++) {
-                if (embedWidgets[i]!=nullptr)
-                    embedWidgets[i]->hide();
+            for (int i=0; i<embedApps.size(); i++) {
+                if (embedApps[i]->isReady())
+                    embedApps[i]->getWidget()->hide();
             }
         }
         repaint();
@@ -685,57 +663,45 @@ void PageLabel::initEmbeddedApplications(Poppler::Page const* page)
 
     // Find embedded programs.
     for (int i=0; i<links.length(); i++) {
-        if (links[i]->linkType()==Poppler::Link::Execute) {
+        if (links[i]->linkType()==Poppler::Link::Execute && !(embedMap.contains(index) && embedMap[index].contains(i))) {
             // Execution links can point to applications, which should be embedded in the presentation
-            int idx = -1;
-            if (embedMap.contains(index) && embedMap[index].contains(i))
-                idx = embedMap[index][i];
-            if (idx==-1 || processes[idx]==nullptr) {
-                Poppler::LinkExecute* const link = (Poppler::LinkExecute*) links[i];
-                // Get file path (url) and arguments
-                QStringList splitFileName = QStringList();
-                if (!urlSplitCharacter.isEmpty())
-                    splitFileName = link->fileName().split(urlSplitCharacter);
-                else
-                    splitFileName.append(link->fileName());
-                QUrl url = QUrl(splitFileName[0], QUrl::TolerantMode);
-                splitFileName.append(link->parameters());
-                if (embedFileList.contains(splitFileName[0]) || embedFileList.contains(url.fileName()) || (splitFileName.length() > 1 && splitFileName.contains("embed"))) {
-                    splitFileName.removeAll("embed"); // We know that the file will be embedded. This is not an argument for the program.
-                    splitFileName.removeAll("");
-                    if (embedWidgets.isEmpty())
-                        avoidMultimediaBug();
-                    if (idx == -1) {
-                        bool found = false;
-                        // Check if the same application exists already on an other page.
-                        for (QMap<int,QMap<int,int>>::const_iterator page_it = embedMap.cbegin(); page_it!=embedMap.cend(); page_it++) {
-                            for (QMap<int,int>::const_iterator idx_it = (*page_it).cbegin(); idx_it!=(*page_it).cend(); idx_it++) {
-                                if (embedCommands[*idx_it] == splitFileName) {
-                                    embedMap[index][i] = *idx_it;
-                                    embedPositions[*idx_it] = QRect();
-                                    found = true;
-                                    break;
-                                }
-                            }
-                            if (found)
-                                break;
-                        }
-                        if (!found) {
-                            embedMap[index][i] = embedWidgets.length();
-                            embedWidgets.append(nullptr);
-                            embedCommands.append(splitFileName);
-                            embedPositions.append(QRect());
-                            processes.append(nullptr);
+            Poppler::LinkExecute* const link = (Poppler::LinkExecute*) links[i];
+            // Get file path (url) and arguments
+            QStringList splitFileName = QStringList();
+            if (!urlSplitCharacter.isEmpty())
+                splitFileName = link->fileName().split(urlSplitCharacter);
+            else
+                splitFileName.append(link->fileName());
+            QUrl url = QUrl(splitFileName[0], QUrl::TolerantMode);
+            splitFileName.append(link->parameters());
+            if (embedFileList.contains(splitFileName[0]) || embedFileList.contains(url.fileName()) || (splitFileName.length() > 1 && splitFileName.contains("embed"))) {
+                splitFileName.removeAll("embed"); // We know that the file will be embedded. This is not an argument for the program.
+                splitFileName.removeAll("");
+                if (embedApps.isEmpty())
+                    avoidMultimediaBug();
+                bool found = false;
+                // Check if the same application exists already on an other page.
+                for (QMap<int,QMap<int,int>>::const_iterator page_it = embedMap.cbegin(); page_it!=embedMap.cend(); page_it++) {
+                    for (QMap<int,int>::const_iterator idx_it = (*page_it).cbegin(); idx_it!=(*page_it).cend(); idx_it++) {
+                        if (embedApps[*idx_it]->getCommand() == splitFileName) {
+                            embedMap[index][i] = *idx_it;
+                            embedPositions[*idx_it] = QRect();
+                            embedApps[*idx_it]->addLocation(index, i);
+                            found = true;
+                            break;
                         }
                     }
-                    else {
-                        embedWidgets[idx] = nullptr;
-                        processes[idx] = nullptr;
-                        embedCommands[idx] = splitFileName;
-                        embedPositions[idx] = QRect();
-                    }
-                    containsNewEmbeddedWidgets = true;
+                    if (found)
+                        break;
                 }
+                if (!found) {
+                    embedMap[index][i] = embedApps.length();
+                    EmbedApp* const app = new EmbedApp(splitFileName, pid2wid, index, i, this);
+                    connect(app, &EmbedApp::widgetReady, this, &PageLabel::receiveEmbedApp);
+                    embedApps.append(app);
+                    embedPositions.append(QRect());
+                }
+                containsNewEmbeddedWidgets = true;
             }
         }
     }
@@ -751,8 +717,8 @@ void PageLabel::initEmbeddedApplications(Poppler::Page const* page)
                         winGeometry.setHeight(-linkPositions[idx_it.key()].height());
                     }
                     embedPositions[*idx_it] = winGeometry;
-                    if (embedWidgets[*idx_it]!=nullptr) {
-                        QWidget* const widget = embedWidgets[*idx_it];
+                    if (embedApps[*idx_it]->isReady()) {
+                        QWidget* const widget = embedApps[*idx_it]->getWidget();
                         widget->setMinimumSize(winGeometry.width(), winGeometry.height());
                         widget->setMaximumSize(winGeometry.width(), winGeometry.height());
                         widget->setGeometry(winGeometry);
@@ -1082,48 +1048,19 @@ void PageLabel::mouseReleaseEvent(QMouseEvent* event)
                             int const idx = embedMap[pageIndex][i];
                             // First case: the execution link points to an application, which exists already as an application widget.
                             // In this case the widget just needs to be shown in the correct position and size.
-                            if (embedWidgets[idx] != nullptr) {
+                            if (embedApps[idx]->isReady()) {
                                 QRect const* winGeometry = &embedPositions[idx];
-                                QWidget* widget = embedWidgets[idx];
+                                QWidget* widget = embedApps[idx]->getWidget();
                                 widget->setMinimumSize(winGeometry->width(), winGeometry->height());
                                 widget->setMaximumSize(winGeometry->width(), winGeometry->height());
                                 widget->setGeometry(*winGeometry);
                                 widget->show();
-                                return;
+                                break;
                             }
                             // Second case: There exists no process for this execution link.
                             // In this case we need to check, whether this application should be executed in an embedded window.
-                            if (processes[idx] == nullptr) {
-                                QStringList splitFileName = embedCommands[idx];
-                                QString fileName = splitFileName[0];
-                                splitFileName.removeFirst();
-                                // External windows can only be embedded when we know their window ID.
-                                // This WID can be obtained by an other external program (pid2wid)
-                                // or from the executed application itself via standard output.
-                                if (pid2wid.isEmpty()) {
-                                    // If there is no program which tells us the window ID from the progess ID, we hope that the application, which we want to embed, tells us its WID via standard output.
-                                    QProcess* process = new QProcess(this);
-                                    connect(process, &QProcess::readyReadStandardOutput, this, &PageLabel::createEmbeddedWindow);
-                                    connect(process, SIGNAL(finished(int, QProcess::ExitStatus const)), this, SLOT(clearProcesses(int const, QProcess::ExitStatus const)));
-                                    process->start(fileName, splitFileName);
-                                    processes[idx] = process;
-                                    qDebug() << "Started process:" << process->program() << splitFileName;
-                                }
-                                else {
-                                    // If we know a program for converting process IDs to window IDs, this will be used to get the WID.
-                                    QProcess* process = new QProcess(this);
-                                    connect(process, SIGNAL(finished(int, QProcess::ExitStatus const)), this, SLOT(clearProcesses(int const, QProcess::ExitStatus const)));
-                                    process->start(fileName, splitFileName);
-                                    processes[idx] = process;
-                                    qDebug() << "Started process:" << process->program() << splitFileName;
-                                    // Wait some time before trying to get the window ID
-                                    // The window has to be created first.
-                                    processTimer->start(minDelayEmbeddedWindows);
-                                    // createEmbeddedWindowsFromPID will be called frequently until there exists a window corresponding to the process ID
-                                    // The time between two calls of createEmbeddedWindowsFromPID will be increased exponentially.
-                                }
-                                return;
-                            }
+                            embedApps[idx]->start();
+                            break;
                         }
                         // Execution links not marked for embedding are handed to the desktop services.
                         else {
@@ -1305,107 +1242,21 @@ void PageLabel::mouseMoveEvent(QMouseEvent* event)
     event->accept();
 }
 
-void PageLabel::createEmbeddedWindow()
+void PageLabel::receiveEmbedApp(EmbedApp* app)
 {
-    // This function is used to create embedded windows if pid2wid is not set.
-    // It is called when a process for an embedded application has written something to standard output, of which we hope that it is a window ID.
-    for (int i=0; i<embedWidgets.length(); i++) {
-        if (processes[i] == nullptr)
-            continue;
-        // output will contain the output of the program.
-        char output[64];
-        qint64 outputLength = processes[i]->readLine(output, sizeof(output));
-        if (outputLength != -1) {
-            qDebug() << "Trying to create embedded window with id from program standard output:" << output;
-            QString winIdString = QString(output);
-            bool success;
-            WId wid = WId(winIdString.toLongLong(&success, 10));
-            if (!success) {
-                qCritical() << "Could not interpret output as window id";
-                continue;
-            }
-            // Geometry of the embedded window:
-            QRect const* winGeometry = &embedPositions[i];
-            // Get the window:
-            QWindow* newWindow = QWindow::fromWinId(wid);
-            // Without the following two lines, key events are sometimes not sent to the embedded window:
-            newWindow->show();
-            newWindow->hide();
-            // Turn the window into a widget, which can be embedded in the presentation (or control) window:
-            QWidget* newWidget = createWindowContainer(newWindow, this);
-            newWidget->setMinimumSize(winGeometry->width(), winGeometry->height());
-            newWidget->setMaximumSize(winGeometry->width(), winGeometry->height());
-            newWidget->setGeometry(*winGeometry);
-            newWidget->show();
-            if (!(embedMap.contains(pageIndex) && embedMap[pageIndex].values().contains(i)))
-                newWidget->hide();
-            embedWidgets[i] = newWidget;
-            return;
-        }
-        else
-            qWarning() << "Problem when reading program standard output (probably it was not a window ID).";
-    }
-    qWarning() << "No standard output found in any process";
-}
-
-void PageLabel::createEmbeddedWindowsFromPID()
-{
-    // This function is used to create embedded windows if pid2wid is set.
-    // It is called from a timer with exponentially increasing timesteps.
-    if (pid2wid.isEmpty()) {
-        qCritical() << "No program for translation PID -> window ID specified";
-        return;
-    }
-    // For all processes, which are note connected to a window ID yet, start a PidWidCaller to check if a corresponding window can be found.
-    QList<int> alreadyStarted;
-    for(QMap<int,QMap<int,int>>::const_iterator page_it=embedMap.cbegin(); page_it!=embedMap.cend(); page_it++) {
-        for(QMap<int,int>::const_iterator idx_it=(*page_it).cbegin(); idx_it!=(*page_it).cend(); idx_it++) {
-            if (processes[*idx_it] != nullptr && embedWidgets[*idx_it] == nullptr && !alreadyStarted.contains(*idx_it)) {
-                PidWidCaller* pidWidCaller = new PidWidCaller(pid2wid, processes[*idx_it]->pid(), page_it.key(), idx_it.key(), this);
-                connect(pidWidCaller, &PidWidCaller::sendWid, this, &PageLabel::receiveWid);
-                alreadyStarted.append(*idx_it);
-            }
-        }
-    }
-    // If there are no more processes waiting for a window ID: stop the timer
-    if (alreadyStarted.isEmpty())
-        processTimer->stop();
-    else
-        // Increase the timestep
-        processTimer->setInterval(int(1.5*processTimer->interval()));
-    // TODO: Stop the timer if something goes wrong
-}
-
-void PageLabel::receiveWid(WId const wid, int const page, int const index)
-{
-    // This function receives a window ID from a PidWidCaller and embeds the corresponding window in the PageLabel.
-    qDebug() << "Received WID:" << wid;
-    if (!(embedMap.contains(page) && embedMap[page].contains(index))) {
-        qDebug() << "Some entries don't exist!";
-        return;
-    }
-    int const idx = embedMap[page][index];
-    if (embedWidgets[idx]!=nullptr || processes[idx]==nullptr) {
-        qDebug() << "Received WID in unexpected configuration. widget:" << embedWidgets[idx] << "process:" << processes[idx];
-        return;
-    }
     // Geometry of the embedded window:
-    QRect const* const winGeometry = &embedPositions[idx];
-    // Get the window:
-    QWindow* const newWindow = QWindow::fromWinId(wid);
-    // Without the following two lines, key events are sometimes not sent to the embedded window:
-    newWindow->show();
-    newWindow->hide();
+    int const*const location = app->getNextLocation(pageIndex);
+    int const idx = embedMap[location[0]][location[1]];
+    QRect const*const winGeometry = &embedPositions[idx];
     // Turn the window into a widget, which can be embedded in the presentation (or control) window:
-    QWidget* const newWidget = createWindowContainer(newWindow, this);
-    newWidget->setMinimumSize(winGeometry->width(), winGeometry->height());
-    newWidget->setMaximumSize(winGeometry->width(), winGeometry->height());
+    QWidget* const widget = app->getWidget();
+    widget->setMinimumSize(winGeometry->width(), winGeometry->height());
+    widget->setMaximumSize(winGeometry->width(), winGeometry->height());
     // Showing and hiding the widget here if page!=pageIndex makes showing the widget faster.
-    newWidget->setGeometry(*winGeometry);
-    newWidget->show();
-    if (page!=pageIndex && !embedMap[pageIndex].values().contains(idx))
-        newWidget->hide();
-    embedWidgets[idx] = newWidget;
+    widget->setGeometry(*winGeometry);
+    widget->show();
+    if (location[0]!=pageIndex)
+        widget->hide();
 }
 
 void PageLabel::startAllEmbeddedApplications(int const index)
@@ -1413,74 +1264,6 @@ void PageLabel::startAllEmbeddedApplications(int const index)
     // Start all embedded applications of the given slide (slide number = index)
     if (!embedMap.contains(index))
         return;
-    for(QMap<int,int>::const_iterator idx_it=embedMap[index].cbegin(); idx_it!=embedMap[index].cend(); idx_it++) {
-        // If the embedded window exists: Check if it is hidden, show it and continue.
-        if (embedWidgets[*idx_it] != nullptr) {
-            if (index==pageIndex) {
-                QRect const* const winGeometry = &embedPositions[*idx_it];
-                QWidget* const widget = embedWidgets[*idx_it];
-                widget->setMinimumSize(winGeometry->width(), winGeometry->height());
-                widget->setMaximumSize(winGeometry->width(), winGeometry->height());
-                widget->setGeometry(*winGeometry);
-                widget->show();
-            }
-            continue;
-        }
-        // If a process is already running, there is nothing to be done for this application.
-        if (processes[*idx_it] != nullptr)
-            continue;
-
-        QStringList splitFileName = embedCommands[*idx_it];
-        QString fileName = splitFileName[0];
-        splitFileName.removeFirst();
-
-        // External windows can only be embedded when we know their window ID.
-        // This WID can be obtained by an other external program (pid2wid)
-        // or from the executed application itself via standard output.
-        if (pid2wid.isEmpty()) {
-            // If there is no program which tells us the window ID from the progess ID, we hope that the application, which we want to embed, tells us its WID via standard output.
-            QProcess* const process = new QProcess(this);
-            connect(process, &QProcess::readyReadStandardOutput, this, &PageLabel::createEmbeddedWindow);
-            connect(process, SIGNAL(finished(int, QProcess::ExitStatus const)), this, SLOT(clearProcesses(int const, QProcess::ExitStatus const)));
-            process->start(fileName, splitFileName);
-            processes[*idx_it] = process;
-            qDebug() << "Started process:" << process->program();
-        }
-        else {
-            // If we know a program for converting process IDs to window IDs, this will be used to get the WID.
-            QProcess* const process = new QProcess(this);
-            connect(process, SIGNAL(finished(int, QProcess::ExitStatus const)), this, SLOT(clearProcesses(int const, QProcess::ExitStatus const)));
-            process->start(fileName, splitFileName);
-            processes[*idx_it] = process;
-            qDebug() << "Started process:" << process->program();
-            // Wait some time before trying to get the window ID
-            // The window has to be created first.
-            processTimer->stop();
-            processTimer->start(minDelayEmbeddedWindows);
-            // createEmbeddedWindowsFromPID will be called frequently until there exists a window corresponding to the process ID
-            // The time between two calls of createEmbeddedWindowsFromPID will be increased exponentially.
-        }
-    }
-}
-
-void PageLabel::clearProcesses(int const exitCode, QProcess::ExitStatus const exitStatus)
-{
-    // This function is called when an embedded application exits.
-    // It tries to clean up all closed embedded applications:
-    // Delete the process and the widget and set both to nullptr.
-    for (int i=0; i<embedWidgets.length(); i++) {
-        if (processes[i] != nullptr && processes[i]->state() == QProcess::NotRunning) {
-            qDebug() << "Process closed, deleting process and widget";
-            if (processes[i]->exitStatus()==QProcess::CrashExit)
-                qCritical() << "Embedded application crashed";
-            else if (processes[i]->exitCode()!=0)
-                qWarning() << "Embedded application finished with exit code" << processes[i]->exitCode();
-            processes[i]->deleteLater();
-            processes[i] = nullptr;
-            if (embedWidgets[i] != nullptr) {
-                delete embedWidgets[i];
-                embedWidgets[i] = nullptr;
-            }
-        }
-    }
+    for(QMap<int,int>::const_iterator idx_it=embedMap[index].cbegin(); idx_it!=embedMap[index].cend(); idx_it++)
+        embedApps[*idx_it]->start();
 }
