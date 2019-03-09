@@ -49,18 +49,18 @@ void EmbedApp::start()
      * 1. Create an EmbedApp object.
      * 2. Start the application with EmbedApp::start()
      *    Now it depends on whether pid2wid is empty:
-     * 3a.   If pid2wid is empty:
-     * 3a.1. Wait until the application writes to standard output.
-     *       This will call createFromStdOut, which reads the window ID.
-     *       If createFromStdOut succeeds, it will call create(wid).
-     * 3b.   If pid2wid is not empty
-     * 3b.1. pid2widTimer is started. On timeout it calls getWidFromPid
-     * 3b.2. getWidFromPid stops pid2widTimer and creates a QProcess pid2widProcess,
-     *       which tries to get the window ID from an external application.
-     * 3b.3. When pid2widProcess writes to standard output, receiveWidFromPid tries to read the window ID.
-     *       If receiveWidFromPid succeeds, it will call create(wid).
-     *       If it fails, it restarts pid2widTimer with an increased interval.
-     *       Thus the steps in 3b are repeated until receiveWidFromPid succeeds.
+     * 3a.  If pid2wid is empty:
+     * 3a.1 Wait until the application writes to standard output.
+     *      This will call createFromStdOut, which reads the window ID.
+     *      If createFromStdOut succeeds, it will call create(wid).
+     * 3b.  If pid2wid is not empty
+     * 3b.1 pid2widTimer is started. On timeout it calls getWidFromPid
+     * 3b.2 getWidFromPid stops pid2widTimer and creates a QProcess pid2widProcess,
+     *      which tries to get the window ID from an external application.
+     * 3b.3 When pid2widProcess writes to standard output, receiveWidFromPid tries to read the window ID.
+     *      If receiveWidFromPid succeeds, it will call create(wid).
+     *      If it fails, it restarts pid2widTimer with an increased interval.
+     *      Thus the steps in 3b are repeated until receiveWidFromPid succeeds.
      * 4. create(wid) takes control over the external window and puts it in widget.
      * 5. emit widgetReady(this). PageLabel will then set the correct geometry and show the widget.
      */

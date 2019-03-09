@@ -130,7 +130,7 @@ QSize PdfDoc::getPageSize(int const pageNumber) const
     return pdfPages[pageNumber]->pageSize();
 }
 
-Poppler::Page * PdfDoc::getPage(int pageNumber) const
+Poppler::Page* PdfDoc::getPage(int pageNumber) const
 {
     // Check if page number is valid and return page.
     if (pageNumber < 0)
@@ -174,5 +174,7 @@ int PdfDoc::destToSlide(QString const & dest) const
     Poppler::LinkDestination* linkDest = popplerDoc->linkDestination(dest);
     if (linkDest==nullptr)
         return -1;
-    return linkDest->pageNumber()-1;
+    int const page = linkDest->pageNumber() - 1;
+    delete linkDest;
+    return page;
 }
