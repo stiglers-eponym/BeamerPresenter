@@ -205,9 +205,9 @@ Set page number of the control screen to the page number of the presentation. Wh
 .SH FEATURES
 .
 .SS Links
-Following links to pages or web pages can be followed on each image showing a page. When clicking on a link on presentation screen, on the notes slide or on the preview of the current or next slide with the right mouse button,
+When clicking on a link on the presentation screen, on the notes slide or on the preview of the current or next slide with the right mouse button,
 .B BeamerPresenter
-will try to follow the link.
+will try to follow the link. Links to multimedia content and embedded applications are disabled for the preview slides.
 .
 .SS Browse Notes
 By changing the current page number in the corresponding text field, the note page and the preview of the current and next slide on the control screen will be updated immediately. The same is true if you scroll with the mouse wheel on the control screen. The presentation screen will be updated only when pressing
@@ -219,15 +219,17 @@ You can escape this mode and go back to the current slide on the presentation by
 .RB "You can show a table of contents on the control screen with shortcut " t " for quick navigation. The maximum level of subsections shown in the table of contents can be controlled with the option " \-l " or " \-\-toc-depth ". For entries with more levels, one additional level is shown as a popup menu."
 .
 .SS Overlays
-You can jump to the next or previous page with a different page label by using the shortcuts
-.BR Up " or " Down .
+Multimedia content and embedded applications are aware of overlays. If a video is shown on consecutive slides with the same page label, it will continue playing without interuption when switching within these slides. The same works for embedded applications independent of the page label.
+.PP
+You can jump to the next or previous slide with a different page label by using the arrow keys
+.BR Up " and " Down .
 For presentations created with LaTeX beamer using overlays, this jumps to the next or previous slide, which differs by more than an overlay.
 .
 .SS Cache
 Slides are rendered to a compressed cache in order to allow for much faster slide changes. The number of cached slides and the memory usage can be limited by the options
 .BR cache " and " memory .
-By default up to 100 MiB are used for cached slides.
-Restricting the cache size can affect the performance and might lead to unstable behavior.
+By default up to 100 MiB are used for cached slides, which is usually enough even for long presentations.
+Restricting the cache size to a small (but nonzero) value can affect the performance and might lead to unstable behavior.
 Caching slides can be switched off completely with the command line option
 .BR -c 0.
 .PP

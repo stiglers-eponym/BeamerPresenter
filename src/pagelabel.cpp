@@ -1403,7 +1403,7 @@ void PageLabel::receiveWid(WId const wid, int const page, int const index)
     // Showing and hiding the widget here if page!=pageIndex makes showing the widget faster.
     newWidget->setGeometry(*winGeometry);
     newWidget->show();
-    if (page!=pageIndex)
+    if (page!=pageIndex && !embedMap[pageIndex].values().contains(idx))
         newWidget->hide();
     embedWidgets[idx] = newWidget;
 }

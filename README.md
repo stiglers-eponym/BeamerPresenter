@@ -32,6 +32,22 @@ beamerpresenter <presentation.pdf> [<notes.pdf>]
 For more options and usage possibilities use `beamerpresenter --help` the man page.
 
 
+## Features
+An extended list of features can be found in the manual (`beamerpresenter.1`).
+*	Control window with a notes slide, previews of the current and next
+	presentation slide, a timer, a clock and the current slide number.
+*	Cache: All slides are rendered to a compressed cache.
+	The total cache size can be limited.
+*	Videos and Sounds: You can add videos and audio files to your presentation.
+	Videos continue playing on different overlays, if the same video should be
+	shown these overlays. Overlays are defined as slides with the same page number.
+*	Embed Applications: You can show windows created by external applications in
+	a presentation. This can be used to show interactive plots.
+	Details can be found in the manual (`beamerpresenter.1`).
+*	Simple navigation through links, scrolling, a table of contents on the
+	control screen and shortcuts for skipping overlays.
+
+
 ## Settings
 Settings can be placed in a file `beamerpresenter.conf` (on platforms other than
 GNU/Linux: `beamerpresenter.ini`). An example configuration file is provided.
@@ -71,20 +87,8 @@ Alternatively you can use beamer's option to combine presentation and notes:
 \usepackage{pgfpages}
 \setbeameroption{show notes on second screen=right}
 ```
-In this case links on the notes pages might require some patches in LaTeX.
+In both cases links on the notes pages might require some patches in LaTeX.
 
-
-## Embed Applications
-You can make external programs fit into your presentation, which can be useful
-for showing interactive plots.
-Call the program from a link in the PDF and embed the window of the program in
-the link area inside the PDF. This requires that BeamerPresenter knows the
-window ID of your program. It can either be given in the standard output of the
-program or by using an external application, which takes the process ID as an
-argument and returns the window ID.
-
-An example of a shell script using `wmctrl` for this purpose is:
-```sh
-#!/bin/bash
-echo $(( 16#$(wmctrl -lp | sed -n "s/^0x\([0-9a-f]\+\) \+[0-9]\+ \+$1 .*$/\1/p") ))
-```
+Even without notes, showing two different PDF documents can be useful. For
+example when the presentation has an aspect ratio of 16:9, the notes page can
+be used to show the same presentation with an aspect ratio of 4:3.
