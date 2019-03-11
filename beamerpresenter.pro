@@ -35,7 +35,6 @@ SOURCES += \
         src/timer.cpp \
         src/pagenumberedit.cpp \
         src/videowidget.cpp \
-        src/mediaslider.cpp \
         src/cacheupdatethread.cpp \
         src/tocbox.cpp \
         src/tocbutton.cpp \
@@ -52,7 +51,6 @@ HEADERS += \
         src/timer.h \
         src/pagenumberedit.h \
         src/videowidget.h \
-        src/mediaslider.h \
         src/cacheupdatethread.h \
         src/tocbox.h \
         src/tocbutton.h \

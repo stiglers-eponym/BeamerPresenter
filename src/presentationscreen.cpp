@@ -20,7 +20,7 @@
 
 PresentationScreen::PresentationScreen(PdfDoc* presentationDoc, QWidget* parent) : QWidget(parent)
 {
-    setAttribute(Qt::WA_NativeWindow);
+    //setAttribute(Qt::WA_NativeWindow);
     presentation = presentationDoc;
     setGeometry(0, 0, 1920, 1080);
     setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Ignored);

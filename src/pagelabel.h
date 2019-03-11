@@ -34,7 +34,6 @@
 #include <QDesktopServices>
 #include <poppler-qt5.h>
 #include "videowidget.h"
-#include "mediaslider.h"
 #include "embedapp.h"
 
 enum PagePart {
@@ -62,7 +61,7 @@ public:
     void initEmbeddedApplications(Poppler::Page const* page);
     void avoidMultimediaBug();
 
-    void setMultimediaSliders(QList<MediaSlider*> sliderList);
+    void setMultimediaSliders(QList<QSlider*> sliderList);
     void setPresentationStatus(bool const status) {isPresentation=status;}
     void setShowMultimedia(bool const showMultimedia) {this->showMultimedia=showMultimedia;}
     void setUrlSplitCharacter(QString const& splitCharacter) {urlSplitCharacter=splitCharacter;}
@@ -92,9 +91,9 @@ private:
     QList<QMediaPlayer*> soundPlayers;
     QList<QRect> soundPositions;
     QMap<int,QMediaPlayer*> soundLinkPlayers;
-    QMap<int,MediaSlider*> videoSliders;
-    QMap<int,MediaSlider*> soundSliders;
-    QMap<int,MediaSlider*> soundLinkSliders;
+    QMap<int,QSlider*> videoSliders;
+    QMap<int,QSlider*> soundSliders;
+    QMap<int,QSlider*> soundLinkSliders;
     QMap<int,QMap<int,int>> embedMap;
     QList<EmbedApp*> embedApps;
     QList<QRect> embedPositions;

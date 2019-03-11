@@ -27,7 +27,7 @@
 #include <QWheelEvent>
 #include <QtDebug>
 #include <QFileInfo>
-#include "mediaslider.h"
+#include <QSlider>
 #include "pdfdoc.h"
 #include "timer.h"
 #include "pagenumberedit.h"

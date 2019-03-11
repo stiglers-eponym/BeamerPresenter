@@ -39,7 +39,7 @@ public:
     ~VideoWidget();
     Poppler::MovieAnnotation const * getAnnotation() const {return annotation;}
     qint64 getDuration() const {return player->duration();}
-    QMediaPlayer const * getPlayer() const {return player;}
+    QMediaPlayer* getPlayer() {return player;}
     QMediaPlayer::State state() const {return player->state();}
     bool getAutoplay() const {return autoplay;}
     QString const& getUrl() const {return filename;}

@@ -34,6 +34,7 @@ public:
     ~EmbedApp();
     void addLocation(int const page, int const index) {pages.append(page); indices.append(index);}
     QWidget* getWidget() {return widget;}
+    QWindow* getWindow() {return window;}
     QProcess* getProcess() {return process;}
     bool isStarted() const {return process!=nullptr;}
     bool isReady() const {return widget!=nullptr;}

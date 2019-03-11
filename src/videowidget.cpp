@@ -22,7 +22,7 @@ VideoWidget::VideoWidget(Poppler::MovieAnnotation const* annotation, QString con
 {
     this->annotation = annotation;
     setMouseTracking(true);
-    player = new QMediaPlayer(this);
+    player = new QMediaPlayer(this, QMediaPlayer::VideoSurface);
     player->setVideoOutput(this);
     Poppler::MovieObject* movie = annotation->movie();
     if (movie->showPosterImage()) {
@@ -77,8 +77,6 @@ VideoWidget::VideoWidget(Poppler::MovieAnnotation const* annotation, QString con
     // I like these results, but I don't know whether this is what other people would expect.
     // Please write me a comment if you would prefer an other way of handling the aspect ratio.
     setAspectRatioMode(Qt::IgnoreAspectRatio);
-    connect(player, &QMediaPlayer::positionChanged, this, &VideoWidget::positionChanged);
-    connect(player, &QMediaPlayer::durationChanged, this, &VideoWidget::positionChanged);
 
     if (splitFileName.contains("autostart"))
         autoplay = true;

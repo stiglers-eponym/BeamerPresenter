@@ -30,7 +30,7 @@ EmbedApp::EmbedApp(QStringList const& command, QString const& pid2wid, int const
 
 EmbedApp::~EmbedApp()
 {
-    delete pid2widTimer;
+    // Everything gets deleted in EmbedApp::clearProcess when the process finishes.
     if (process!=nullptr && process->state()!=QProcess::NotRunning) {
         process->terminate();
         if (process->state()!=QProcess::NotRunning && !process->waitForFinished(10000)) {
@@ -38,7 +38,6 @@ EmbedApp::~EmbedApp()
             process->kill();
         }
     }
-    delete process;
 }
 
 void EmbedApp::start()
@@ -93,6 +92,7 @@ void EmbedApp::start()
 
 void EmbedApp::clearProcess(int const exitCode, QProcess::ExitStatus const exitStatus)
 {
+    qDebug() << "Process ended";
     // Reset this to the state immediately after it was created.
     if (exitStatus==QProcess::CrashExit)
         qCritical() << "Embedded application crashed";
@@ -108,6 +108,7 @@ void EmbedApp::clearProcess(int const exitCode, QProcess::ExitStatus const exitS
     window->close();
     delete widget;
     widget = nullptr;
+    window = nullptr;
     if (process!=nullptr && process->state()!=QProcess::NotRunning) {
         process->terminate();
         if (process->state()!=QProcess::NotRunning && !process->waitForFinished(10000)) {
@@ -124,7 +125,7 @@ void EmbedApp::getWidFromPid()
     pid2widTimer->stop();
     if (pid2widProcess==nullptr) {
         pid2widProcess = new QProcess(this);
-        connect(pid2widProcess, QOverload<int>::of(&QProcess::finished), this, &EmbedApp::receiveWidFromPid);
+        connect(pid2widProcess, SIGNAL(finished(int const)), this, SLOT(receiveWidFromPid(int const)));
     }
     pid2widProcess->start(pid2wid, QStringList() << QString::number(process->pid()));
 }

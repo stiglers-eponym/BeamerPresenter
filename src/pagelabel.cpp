@@ -312,8 +312,10 @@ void PageLabel::renderPage(Poppler::Page* page, bool const setDuration, QPixmap 
         // Hide embedded widgets from other pages
         if (embedMap.contains(pageIndex)) {
             for (int i=0; i<embedApps.size(); i++) {
-                if (embedApps[i]->isReady() && !embedApps[i]->isOnPage(pageIndex))
+                if (embedApps[i]->isReady() && !embedApps[i]->isOnPage(pageIndex)) {
+                    // TODO: This can lead to weird segfaults.
                     embedApps[i]->getWidget()->hide();
+                }
             }
         }
         else {
@@ -446,7 +448,7 @@ void PageLabel::renderPage(Poppler::Page* page, bool const setDuration, QPixmap 
                         break;
                 }
                 // If no player was found, create a new one.
-                QMediaPlayer* player = new QMediaPlayer(this);
+                QMediaPlayer* player = new QMediaPlayer(this, QMediaPlayer::LowLatency);
                 player->setMedia(url);
                 soundLinkPlayers[i] = player;
                 newSliders++;
@@ -520,7 +522,7 @@ void PageLabel::renderPage(Poppler::Page* page, bool const setDuration, QPixmap 
                     }
                 }
                 if (!found) {
-                    QMediaPlayer* player = new QMediaPlayer(this);
+                    QMediaPlayer* player = new QMediaPlayer(this, QMediaPlayer::LowLatency);
                     player->setMedia(url);
                     // Untested!
                     if (splitFileName.contains("loop")) {
@@ -569,7 +571,7 @@ void PageLabel::renderPage(Poppler::Page* page, bool const setDuration, QPixmap 
                 }
 
                 Poppler::SoundObject* sound = ((Poppler::SoundAnnotation*) *it)->sound();
-                QMediaPlayer* player = new QMediaPlayer(this);
+                QMediaPlayer* player = new QMediaPlayer(this, QMediaPlayer::LowLatency);
                 QUrl url = QUrl(sound->url(), QUrl::TolerantMode);
                 QStringList splitFileName = QStringList();
                 // Get file path (url) and arguments
@@ -791,7 +793,7 @@ long int PageLabel::clearCachePage(const int index)
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 //// Multimedia
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-void PageLabel::setMultimediaSliders(QList<MediaSlider*> sliderList)
+void PageLabel::setMultimediaSliders(QList<QSlider*> sliderList)
 {
     // Connect multimedia content of the current slide to the given sliders.
     // this takes ownership of the items of sliderList.
@@ -801,15 +803,13 @@ void PageLabel::setMultimediaSliders(QList<MediaSlider*> sliderList)
         return;
     }
     // TODO: better multimedia controls
-    QList<MediaSlider*>::const_iterator slider = sliderList.cbegin();
+    QList<QSlider*>::const_iterator slider = sliderList.cbegin();
     for (int i=0; i<videoWidgets.size(); i++) {
         if (!videoSliders.contains(i)) {
-            connect(videoWidgets[i]->getPlayer(), &QMediaPlayer::durationChanged, *slider, &MediaSlider::setMaximum);
-            int const duration = int(videoWidgets[i]->getDuration()/100);
-            if (duration > 0)
-                (*slider)->setMaximum(duration);
-            connect(*slider, &MediaSlider::sliderMoved, videoWidgets[i], &VideoWidget::setPosition);
-            connect(videoWidgets[i]->getPlayer(), &QMediaPlayer::positionChanged, *slider, &MediaSlider::setValue);
+            (*slider)->setRange(0, int(videoWidgets[i]->getDuration()));
+            connect(*slider, &QAbstractSlider::sliderMoved, videoWidgets[i]->getPlayer(), &QMediaPlayer::setPosition);
+            connect(videoWidgets[i]->getPlayer(), &QMediaPlayer::positionChanged, *slider, &QSlider::setValue);
+            connect(videoWidgets[i]->getPlayer(), &QMediaPlayer::durationChanged, *slider, &QSlider::setMaximum);
             videoSliders[i] = *slider;
             slider++;
         }
@@ -817,12 +817,9 @@ void PageLabel::setMultimediaSliders(QList<MediaSlider*> sliderList)
     for (QMap<int,QMediaPlayer*>::const_iterator it=soundLinkPlayers.cbegin(); it!=soundLinkPlayers.cend(); it++, slider++) {
         if (!soundLinkSliders.contains(it.key())) {
             (*slider)->setRange(0, int((*it)->duration()));
-            connect(*it, &QMediaPlayer::durationChanged, *slider, &MediaSlider::setMaximum);
-            int const duration = int((*it)->duration()/100);
-            if (duration > 0)
-                (*slider)->setMaximum(duration);
-            connect(*slider, &MediaSlider::sliderMoved, *it, &QMediaPlayer::setPosition);
-            connect(*it, &QMediaPlayer::positionChanged, *slider, &MediaSlider::setValue);
+            connect(*slider, &QAbstractSlider::sliderMoved, *it, &QMediaPlayer::setPosition);
+            connect(*it, &QMediaPlayer::positionChanged, *slider, &QSlider::setValue);
+            connect(*it, &QMediaPlayer::durationChanged, *slider, &QSlider::setMaximum);
             soundLinkSliders[it.key()] = *slider;
             slider++;
         }
@@ -830,12 +827,9 @@ void PageLabel::setMultimediaSliders(QList<MediaSlider*> sliderList)
     for (int i=0; i<soundPlayers.size(); i++) {
         if (!soundSliders.contains(i)) {
             (*slider)->setRange(0, int(soundPlayers[i]->duration()));
-            connect(soundPlayers[i], &QMediaPlayer::durationChanged, *slider, &MediaSlider::setMaximum);
-            int const duration = int(soundPlayers[i]->duration()/100);
-            if (duration > 0)
-                (*slider)->setMaximum(duration);
-            connect(*slider, &MediaSlider::sliderMoved, soundPlayers[i], &QMediaPlayer::setPosition);
-            connect(soundPlayers[i], &QMediaPlayer::positionChanged, *slider, &MediaSlider::setValue);
+            connect(*slider, &QAbstractSlider::sliderMoved, soundPlayers[i], &QMediaPlayer::setPosition);
+            connect(soundPlayers[i], &QMediaPlayer::positionChanged, *slider, &QSlider::setValue);
+            connect(soundPlayers[i], &QMediaPlayer::durationChanged, *slider, &QSlider::setMaximum);
             soundSliders[i] = *slider;
             slider++;
         }
@@ -1271,10 +1265,10 @@ void PageLabel::avoidMultimediaBug()
 {
     // TODO: find a better way to avoid this problem
     // This is a very ugly and inefficient way of avoiding compatibility problems of combining videos and embedded applications.
-    // Probably this strange behavior without function is caused by unconventional handling of external windows.
+    // Probably the strange behavior without this function is caused by unconventional handling of external windows.
     // I don't know what problems occure on platforms other than GNU/Linux!
     QVideoWidget* dummy = new QVideoWidget(this);
-    QMediaPlayer* dummy_player = new QMediaPlayer(this);
+    QMediaPlayer* dummy_player = new QMediaPlayer(this, QMediaPlayer::VideoSurface);
     dummy_player->setVideoOutput(dummy);
     delete dummy_player;
     delete dummy;

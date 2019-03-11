@@ -1,6 +1,8 @@
 BeamerPresenter
 
-* More focus on overlays in general
+* Multimedia sliders: key bindings and signals slider <-> player
+* TOC: key bindings
+* Videos: cache them when reaching previous slide?
 
 * Cache management: test, clean up the code, improve
 * Embedded applications: Terminate processes correctly before closing the window
@@ -9,7 +11,7 @@ BeamerPresenter
 
 * Multimedia: allow more arguments
 * Multimedia: Better control bar
-* Multimedia: more options, more testing, embedded files
+* Embedded sounds
 
 * Search document
 * Support locked and encrypted pdfs: Enter passwords in QDialog? hide password input!

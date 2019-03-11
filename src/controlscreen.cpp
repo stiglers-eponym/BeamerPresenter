@@ -287,13 +287,11 @@ void ControlScreen::focusPageNumberEdit()
 void ControlScreen::addMultimediaSliders(int const n)
 {
     // Add n sliders at the bottom of the sidebar
-    QList<MediaSlider*> sliderList = QList<MediaSlider*>();
+    QList<QSlider*> sliderList = QList<QSlider*>();
     for (int i=0; i<n; i++) {
-        MediaSlider * slider = new MediaSlider(this);
+        QSlider* slider = new QSlider(Qt::Horizontal, this);
         ui->overviewLayout->addWidget(slider);
         sliderList.append(slider);
-        connect(slider, &MediaSlider::sendEscapeEvent, this, &ControlScreen::resetFocus);
-        connect(slider, &MediaSlider::sendKeyEvent, this, &ControlScreen::keyPressEvent);
     }
     // Send the sliders to the presentation label, where they will be connected to multimedia objects.
     // The presentation label takes ownership of the sliders and will delete them when going to the next slide.
