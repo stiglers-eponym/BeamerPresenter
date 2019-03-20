@@ -37,6 +37,7 @@ public:
     int getPageNumber() const {return label->pageNumber();}
     PageLabel* getLabel() {return label;}
     void updatedFile();
+    void setScrollDelta(int const scrollDelta) {this->scrollDelta=scrollDelta;}
 
 protected:
     void keyPressEvent(QKeyEvent* event);
@@ -48,6 +49,8 @@ private:
     PdfDoc* presentation;
     PageLabel* label;
     int numberOfPages;
+    int scrollDelta = 200;
+    int scrollState = 0;
 
 signals:
     void sendNewPageNumber(const int pageNumber);

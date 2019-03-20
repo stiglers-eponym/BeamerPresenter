@@ -53,7 +53,7 @@ public:
     void setEmbedFileList(const QStringList &files);
     void setPid2WidConverter(QString const &program);
     void setUrlSplitCharacter(QString const &splitCharacter);
-    void setScrollDelta(int const scrollDelta) {this->scrollDelta=scrollDelta;}
+    void setScrollDelta(int const scrollDelta);
     void setCacheNumber(int const number);
     void setCacheSize(long int const size);
     void setTocLevel(int const level);

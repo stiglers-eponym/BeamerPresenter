@@ -875,6 +875,12 @@ void ControlScreen::setPresentationColor(const QColor color)
     presentationScreen->setPalette(newPalette);
 }
 
+void ControlScreen::setScrollDelta(const int scrollDelta)
+{
+    this->scrollDelta = scrollDelta;
+    presentationScreen->setScrollDelta(scrollDelta);
+}
+
 void ControlScreen::wheelEvent(QWheelEvent* event)
 {
     // Handle mouse wheel or touch pad scrolling events.

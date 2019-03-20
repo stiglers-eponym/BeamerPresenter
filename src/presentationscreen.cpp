@@ -155,22 +155,19 @@ void PresentationScreen::resizeEvent(QResizeEvent* event)
 
 void PresentationScreen::wheelEvent(QWheelEvent* event)
 {
+    // Handle mouse wheel or touch pad scrolling events.
+
     // Change the signs in the beginning, this makes the rest less confusing.
     int deltaPix = -event->pixelDelta().y();
     int deltaAngle = -event->angleDelta().y();
     int deltaPages;
     // If a touch pad was used for scrolling:
     if (deltaPix != 0) {
-        if (deltaPix > 50)
-            deltaPages = deltaPix / 50;
-        else if (deltaPix > 10)
-            deltaPages = 1;
-        else if (deltaPix < -50)
-            deltaPages = deltaPix / 50 + 1;
-        else if (deltaPix < -10)
-            deltaPages = -1;
-        else
-            deltaPages = 0;
+        scrollState += deltaPix;
+        deltaPages = scrollState / scrollDelta;
+        if (deltaPages<0)
+            deltaPages++;
+        scrollState -= scrollDelta*deltaPages;
     }
     // If a mouse wheel was used for scrolling:
     else {
