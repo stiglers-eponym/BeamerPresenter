@@ -50,6 +50,8 @@ void PageLabel::clearAll()
     autostartEmbeddedTimer->stop();
     clearLists();
     clearCache();
+    qDeleteAll(cachedVideoWidgets);
+    cachedVideoWidgets.clear();
     // Clear embedded applications
     embedPositions.clear();
     qDeleteAll(embedApps);
@@ -88,6 +90,8 @@ void PageLabel::renderPage(Poppler::Page* page, bool const setDuration, QPixmap 
         return;
 
     // Use overlay specific options
+    // A page is called an overlay of the previously rendered page, if they have the same label.
+    // This is also the case, if the same page is rendered again (e.g. because the window is resized).
     bool const isOverlay = this->page!=nullptr && page->label()==this->page->label();
     if (isOverlay) {
         qDeleteAll(links);
@@ -324,7 +328,16 @@ void PageLabel::renderPage(Poppler::Page* page, bool const setDuration, QPixmap 
                     embedApps[i]->getWidget()->hide();
             }
         }
-        repaint();
+
+        // This can be a good point for repainting.
+        // Repainting later is only reasonable if videos will be shown quickly,
+        // because they have been loaded to cache, and will be started immediately.
+        // When a method is reached, which can take long time, the widget will be repainted if (notRepainted==true).
+        bool notRepainted = true;
+        if (!cacheVideos || autostartDelay < -0.01 || autostartDelay > 0.01) {
+            repaint();
+            notRepainted = false;
+        }
 
         // Handle multimedia content.
         int newSliders = 0;
@@ -344,65 +357,60 @@ void PageLabel::renderPage(Poppler::Page* page, bool const setDuration, QPixmap 
                 videoSliders.clear();
             }
         }
-        else if (isOverlay && !videoWidgets.isEmpty()) {
-            // Untested!
-            // TODO: Make sure that things get deleted if necessary!
-            QList<VideoWidget*> oldVideos = videoWidgets;
+        else if (isOverlay) {
+            videoWidgets.append(cachedVideoWidgets);
+            cachedVideoWidgets = videoWidgets;
             videoWidgets.clear();
-            for (QList<Poppler::Annotation*>::const_iterator annotation=videos.cbegin(); annotation!=videos.cend(); annotation++) {
-                Poppler::MovieAnnotation* video = (Poppler::MovieAnnotation*) *annotation;
-                Poppler::MovieObject* movie = video->movie();
-                bool found=false;
-                for (QList<VideoWidget*>::iterator widget_it=oldVideos.begin(); widget_it!=oldVideos.end(); widget_it++) {
-                    if (*widget_it != nullptr && (*widget_it)->getUrl() == movie->url()) {
-                        videoWidgets.append(*widget_it);
-                        // Setting *widget_it to nullptr makes sure that this videoWidget will not be deleted when cleaning up oldVideos.
-                        *widget_it = nullptr;
-                        found = true;
-                        break;
-                    }
-                }
-                QRectF relative = video->boundary();
-                videoPositions.append(QRect(
-                        shift_x+int(relative.x()*scale_x),
-                        shift_y+int(relative.y()*scale_y),
-                        int(relative.width()*scale_x),
-                        int(relative.height()*scale_y)
-                    ));
-                if (found)
-                    delete video;
-                else {
-                    videoWidgets.append(new VideoWidget(video, urlSplitCharacter, this));
-                    newSliders++;
-                }
-            }
-            // Clean up old video widgets and sliders:
-            for (int i=0; i<oldVideos.size(); i++) {
-                if (oldVideos[i]!=nullptr) {
-                    delete oldVideos[i];
-                    if (videoSliders.contains(i)) {
-                        delete videoSliders[i];
-                        videoSliders.remove(i);
-                    }
-                    else
-                        qDebug() << "No slider found: page" << pageIndex << "old video index" << i;
-                }
-            }
         }
-        else {
-            for (QList<Poppler::Annotation*>::const_iterator annotation=videos.cbegin(); annotation!=videos.cend(); annotation++) {
-                Poppler::MovieAnnotation* video = (Poppler::MovieAnnotation*) *annotation;
+        for (QList<Poppler::Annotation*>::const_iterator annotation=videos.cbegin(); annotation!=videos.cend(); annotation++) {
+            Poppler::MovieAnnotation* video = (Poppler::MovieAnnotation*) *annotation;
+            Poppler::MovieObject* movie = video->movie();
+            bool found = false;
+            for (QList<VideoWidget*>::iterator widget_it=cachedVideoWidgets.begin(); widget_it!=cachedVideoWidgets.end(); widget_it++) {
+                qDebug() << (*widget_it)->getUrl() << movie->url();
+                if (*widget_it != nullptr && (*widget_it)->getUrl() == movie->url()) {
+                    videoWidgets.append(*widget_it);
+                    // Setting *widget_it to nullptr makes sure that this videoWidget will not be deleted when cleaning up oldVideos.
+                    *widget_it = nullptr;
+                    found = true;
+                    break;
+                }
+            }
+            QRectF relative = video->boundary();
+            videoPositions.append(QRect(
+                    shift_x+int(relative.x()*scale_x),
+                    shift_y+int(relative.y()*scale_y),
+                    int(relative.width()*scale_x),
+                    int(relative.height()*scale_y)
+                ));
+            if (found)
+                delete video;
+            else {
+                if (notRepainted) {
+                    repaint();
+                    notRepainted = false;
+                }
+                qDebug() << "Loading new video widget:" << movie->url();
                 videoWidgets.append(new VideoWidget(video, urlSplitCharacter, this));
-                QRectF relative = video->boundary();
-                videoPositions.append(QRect(
-                        shift_x+int(relative.x()*scale_x),
-                        shift_y+int(relative.y()*scale_y),
-                        int(relative.width()*scale_x),
-                        int(relative.height()*scale_y)
-                    ));
-                newSliders++;
             }
+            newSliders++;
         }
+        // Clean up old video widgets and sliders:
+        for (int i=0; i<cachedVideoWidgets.size(); i++) {
+            if (cachedVideoWidgets[i]!=nullptr) {
+                // This cached video widget was useless and gets deleted.
+                delete cachedVideoWidgets[i];
+                if (videoSliders.contains(i)) {
+                    delete videoSliders[i];
+                    videoSliders.remove(i);
+                }
+            }
+            else if (videoSliders.contains(i))
+                // If we continue using a video widget, which already has a slider (because it is
+                // in an overlay), we need one new slider less.
+                newSliders--;
+        }
+        cachedVideoWidgets.clear();
         // The list "videos" is cleaned, but its items (annotation pointers) are not deleted! The video widgets take ownership of the annotations.
         videos.clear();
 
@@ -414,6 +422,11 @@ void PageLabel::renderPage(Poppler::Page* page, bool const setDuration, QPixmap 
         }
         for (int i=0; i<links.size(); i++) {
             if (links[i]->linkType() == Poppler::Link::Sound) {
+                // This can take relatively long. Repainting here is usually reasonable.
+                if (notRepainted) {
+                    repaint();
+                    notRepainted = false;
+                }
                 // Audio links
                 Poppler::SoundObject* sound = ((Poppler::LinkSound*) links[i])->sound();
                 if (sound->soundType() == Poppler::SoundObject::Embedded) {
@@ -491,6 +504,10 @@ void PageLabel::renderPage(Poppler::Page* page, bool const setDuration, QPixmap 
             }
         }
         else if (isOverlay && !soundPlayers.isEmpty()) {
+            if (notRepainted) {
+                repaint();
+                notRepainted = false;
+            }
             // Untested!
             // TODO: Make sure that things get deleted if necessary!
             QList<QMediaPlayer*> oldSounds = soundPlayers;
@@ -558,6 +575,10 @@ void PageLabel::renderPage(Poppler::Page* page, bool const setDuration, QPixmap 
             }
         }
         else {
+            if (notRepainted) {
+                repaint();
+                notRepainted = false;
+            }
             for (QList<Poppler::Annotation*>::const_iterator it = sounds.cbegin(); it!=sounds.cend(); it++) {
                 qWarning() << "Support for sound in annotations is untested!";
                 {
@@ -620,6 +641,8 @@ void PageLabel::renderPage(Poppler::Page* page, bool const setDuration, QPixmap 
                 // autostart without delay
                 startAllMultimedia();
         }
+        if (notRepainted)
+            repaint();
 
         // Autostart embedded applications if the option is set in BeamerPresenter
         if (embedMap.contains(pageIndex)) {
@@ -640,6 +663,35 @@ void PageLabel::renderPage(Poppler::Page* page, bool const setDuration, QPixmap 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 //// Cache management and image rendering
 ////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void PageLabel::updateCacheVideos(const Poppler::Page *page)
+{
+    if (page->index()==this->pageIndex)
+        return;
+    // Get a list of all video annotations on this page.
+    QSet<Poppler::Annotation::SubType> videoType = QSet<Poppler::Annotation::SubType>();
+    videoType.insert(Poppler::Annotation::AMovie);
+    QList<Poppler::Annotation*> videos = page->annotations(videoType);
+    for (QList<Poppler::Annotation*>::const_iterator annotation=videos.cbegin(); annotation!=videos.cend(); annotation++) {
+        Poppler::MovieAnnotation* video = (Poppler::MovieAnnotation*) *annotation;
+        Poppler::MovieObject* movie = video->movie();
+        bool found = false;
+        for (QList<VideoWidget*>::iterator widget_it=cachedVideoWidgets.begin(); widget_it!=cachedVideoWidgets.end(); widget_it++) {
+            if (*widget_it != nullptr && (*widget_it)->getUrl() == movie->url()) {
+                found = true;
+                break;
+            }
+        }
+        if (found)
+            delete video;
+        else {
+            qDebug() << "Cache new video widget:" << movie->url();
+            cachedVideoWidgets.append(new VideoWidget(video, urlSplitCharacter, this));
+        }
+    }
+    videos.clear();
+}
+
 long int PageLabel::updateCache(QPixmap const* pixmap, int const index)
 {
     // Save the pixmap to (compressed) cache of page index and return the size of the compressed image.

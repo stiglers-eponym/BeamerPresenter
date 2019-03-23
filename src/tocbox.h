@@ -21,7 +21,6 @@
 
 #include <QWidget>
 #include <QMenu>
-#include <QDebug>
 #include <QVBoxLayout>
 #include <QDomDocument>
 #include "tocbutton.h"

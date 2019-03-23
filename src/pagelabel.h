@@ -19,19 +19,14 @@
 #ifndef PAGE_H
 #define PAGE_H
 
-#include <QtDebug>
 #include <QWidget>
-#include <QWindow>
 #include <QLabel>
-#include <QProcess>
 #include <QTimer>
 #include <QSlider>
 #include <QMouseEvent>
 #include <QBuffer>
-#include <QAudioFormat>
-#include <QAudioOutput>
-#include <QAudioDeviceInfo>
 #include <QDesktopServices>
+#include <QMediaPlayer>
 #include <poppler-qt5.h>
 #include "videowidget.h"
 #include "embedapp.h"
@@ -55,6 +50,7 @@ public:
     long int updateCache(QPixmap const* pixmap, int const index);
     long int updateCache(QByteArray const* pixmap, int const index);
     long int clearCachePage(int const index);
+    void updateCacheVideos(Poppler::Page const* page);
     void clearCache();
     void clearAll();
     void startAllEmbeddedApplications(int const index);
@@ -68,6 +64,7 @@ public:
     void setPagePart(PagePart const state) {pagePart=state;}
     void setEmbedFileList(const QStringList& files) {embedFileList=files;}
     void setUseCache(bool const use) {useCache=use;}
+    void setCacheVideos(bool const cache) {cacheVideos=cache;}
 
     long int getCacheSize() const;
     int getCacheNumber() const {return cache.size();}
@@ -87,6 +84,7 @@ private:
     QList<Poppler::Link*> links;
     QList<QRect> linkPositions;
     QList<VideoWidget*> videoWidgets;
+    QList<VideoWidget*> cachedVideoWidgets;
     QList<QRect> videoPositions;
     QList<QMediaPlayer*> soundPlayers;
     QList<QRect> soundPositions;
@@ -114,6 +112,7 @@ private:
     bool showMultimedia = true;
     bool useCache = true;
     bool pointer_visible = true;
+    bool cacheVideos = true;
 
 protected:
     void mouseReleaseEvent(QMouseEvent* event);

@@ -19,6 +19,7 @@
 #ifndef TOCACTION_H
 #define TOCACTION_H
 
+#include <QtDebug>
 #include <QAction>
 
 class TocAction : public QAction

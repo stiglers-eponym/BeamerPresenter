@@ -19,7 +19,6 @@
 #ifndef PRESENTATIONSCREEN_H
 #define PRESENTATIONSCREEN_H
 
-#include <QtDebug>
 #include <QKeyEvent>
 #include <QWheelEvent>
 #include <QGridLayout>
@@ -38,6 +37,7 @@ public:
     PageLabel* getLabel() {return label;}
     void updatedFile();
     void setScrollDelta(int const scrollDelta) {this->scrollDelta=scrollDelta;}
+    void setCacheVideos(bool const cache) {cacheVideos=cache; label->setCacheVideos(cache);}
 
 protected:
     void keyPressEvent(QKeyEvent* event);
@@ -45,12 +45,16 @@ protected:
     void wheelEvent(QWheelEvent* event);
 
 private:
+    void updateVideoCache();
+    QTimer* videoCacheTimer = new QTimer();
     QGridLayout* layout;
     PdfDoc* presentation;
     PageLabel* label;
     int numberOfPages;
+    int pageIndex;
     int scrollDelta = 200;
     int scrollState = 0;
+    bool cacheVideos = true;
 
 signals:
     void sendNewPageNumber(const int pageNumber);

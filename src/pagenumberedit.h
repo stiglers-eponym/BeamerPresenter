@@ -19,10 +19,10 @@
 #ifndef PAGENUMBEREDIT_H
 #define PAGENUMBEREDIT_H
 
+#include <QtDebug>
 #include <QWidget>
 #include <QLineEdit>
 #include <QKeyEvent>
-#include <QDebug>
 
 class PageNumberEdit : public QLineEdit
 {

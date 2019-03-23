@@ -19,6 +19,7 @@
 #ifndef TOCBUTTON_H
 #define TOCBUTTON_H
 
+#include <QtDebug>
 #include <QPushButton>
 
 class TocButton : public QPushButton

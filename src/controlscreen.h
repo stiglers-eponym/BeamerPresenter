@@ -25,7 +25,6 @@
 #include <QKeyEvent>
 #include <QResizeEvent>
 #include <QWheelEvent>
-#include <QtDebug>
 #include <QFileInfo>
 #include <QSlider>
 #include "pdfdoc.h"
@@ -58,6 +57,7 @@ public:
     void setCacheSize(long int const size);
     void setTocLevel(int const level);
     bool setRenderer(QStringList command);
+    void setCacheVideos(bool const cache) {presentationScreen->setCacheVideos(cache);}
 
 protected:
     void keyPressEvent(QKeyEvent* event);

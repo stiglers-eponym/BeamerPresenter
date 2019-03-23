@@ -76,6 +76,7 @@ int main(int argc, char *argv[])
         {{"s", "scrollstep"}, "Number of pixels which represent a scroll step for a touch pad scroll signal.", "int"},
         {{"t", "timer"}, "Set timer to <time>.\nPossible formats are \"[m]m\", \"[m]m:ss\" and \"h:mm:ss\".", "time"},
         {{"u", "urlsplit"}, "Character which is used to split links into an url and arguments.", "char"},
+        {{"v", "video-cache"}, "Preload videos for the following slide.", "bool"},
         {{"w", "pid2wid"}, "Program that converts a PID to a Window ID.", "file"},
     });
     parser.process(app);
@@ -486,6 +487,34 @@ int main(int argc, char *argv[])
     }
     else if (settings.contains("renderer"))
         w->setRenderer(settings.value("renderer").toString().split(" "));
+
+    // Set video cache
+    if (!parser.value("v").isEmpty()) {
+        QString value = parser.value("v").toLower();
+        if (value == "true")
+            w->setCacheVideos(true);
+        else if (value == "false")
+            w->setCacheVideos(false);
+        else if (settings.contains("video-cache")) {
+            qCritical() << "option \"" << parser.value("v") << "\" to video-cache not understood.";
+            value = settings.value("video-cache").toString().toLower();
+            if (value == "true")
+                w->setCacheVideos(true);
+            else if (value == "false")
+                w->setCacheVideos(false);
+            else
+                qCritical() << "option \"" << settings.value("video-cache") << "\" to video-cache in config not understood.";
+        }
+    }
+    else if (settings.contains("video-cache")) {
+        QString value = settings.value("video-cache").toString().toLower();
+        if (value == "true")
+            w->setCacheVideos(true);
+        else if (value == "false")
+            w->setCacheVideos(false);
+        else
+            qCritical() << "option \"" << settings.value("video-cache") << "\" to video-cache in config not understood.";
+    }
 
 
     // show the GUI

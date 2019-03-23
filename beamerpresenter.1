@@ -118,6 +118,10 @@ with the command
 .BR wmctrl " -lp | " sed " -n
 .RI "\[dq]s/^0x\e([0-9a-f]\e+\e) \e+[0-9]\e+ \e+" $1 " .*$/\e1/p\[dq] " ") ))"
 .
+.TP
+.BI "\-v \-\-video-cache " bool
+If set to true, videos will be loaded to cache when reaching the slide before the one containing the video.
+.
 .
 .SH KEYBINDINGS
 .
@@ -344,9 +348,14 @@ overwrite default value for the command line argument
 .BR \-c " or " \-\-cache .
 .
 .TP
-.BR scrollstep =100
+.BR memory =100
 overwrite default value for the command line argument
 .BR \-M " or " \-\-memory .
+.
+.TP
+.BR video-cache =true
+overwrite default value for the command line argument
+.BR \-v " or " \-\-video-cache .
 .
 .TP
 .BR toc-depth =2

@@ -29,6 +29,8 @@ PresentationScreen::PresentationScreen(PdfDoc* presentationDoc, QWidget* parent)
     palette.setColor(QPalette::Window, QPalette::Shadow);
     setPalette(palette);
     numberOfPages = presentationDoc->getDoc()->numPages();
+    videoCacheTimer->setSingleShot(true);
+    connect(videoCacheTimer, &QTimer::timeout, this, &PresentationScreen::updateVideoCache);
 
     // label will contain the slide as a pixmap
     label = new PageLabel(this);
@@ -48,6 +50,7 @@ PresentationScreen::PresentationScreen(PdfDoc* presentationDoc, QWidget* parent)
 PresentationScreen::~PresentationScreen()
 {
     label->disconnect();
+    delete videoCacheTimer;
     //delete presentation;
     disconnect();
     delete label;
@@ -56,10 +59,23 @@ PresentationScreen::~PresentationScreen()
 
 void PresentationScreen::renderPage(int const pageNumber, bool const setDuration)
 {
-    if (pageNumber < 0 || pageNumber >= numberOfPages)
+    if (pageNumber < 0 || pageNumber >= numberOfPages) {
         label->renderPage(presentation->getPage(numberOfPages - 1), setDuration);
-    else
+        pageIndex = numberOfPages - 1;
+    }
+    else {
         label->renderPage(presentation->getPage(pageNumber), setDuration);
+        pageIndex = pageNumber;
+    }
+    // Update video cache
+    if (cacheVideos)
+        videoCacheTimer->start();
+}
+
+void PresentationScreen::updateVideoCache()
+{
+    if (pageIndex+1 < numberOfPages)
+        label->updateCacheVideos(presentation->getPage(pageIndex+1));
 }
 
 void PresentationScreen::receiveTimeoutSignal()

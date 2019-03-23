@@ -19,11 +19,11 @@
 #ifndef EMBEDAPP_H
 #define EMBEDAPP_H
 
+#include <QtDebug>
 #include <QWidget>
 #include <QWindow>
 #include <QProcess>
 #include <QTimer>
-#include <QDebug>
 
 class EmbedApp : public QObject
 {
