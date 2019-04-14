@@ -77,6 +77,10 @@ Set minimum time per frame in milliseconds. This is useful when using \\animatio
 Set the maximum cache size in MiB. A negative number is treated as infinity. The real memory usage can be slightly larger than this limit, because slides are rendered to cache without any knowledge about their size in memory beforehand.
 .
 .TP
+.BI "\-o \-\-columns " integer
+Set the number of columns of slides, which will be shown in the overview mode on the control screen.
+.
+.TP
 .BI "\-p \-\-page-part " side
 Set half of the page to be the presentation, the other half to be the notes. Values are "l" or "r" for presentation on the left or right half of the page, respectively. If the presentation was created with "\\setbeameroption{show notes on second screen=right}", you should use
 .B \-\-page-part 
@@ -175,6 +179,11 @@ Pause or continue timer.
 .B Reset timer
 .
 .TP
+.B s
+.B show overview
+Show overview of all slides on the control screen.
+.
+.TP
 .B t
 .B show TOC
 Show table of contents on the control screen.
@@ -222,7 +231,7 @@ Set page number of the presentation to the page number on the control screen and
 .TP
 .B escape
 .B sync from presentation screen
-Set page number of the control screen to the page number of the presentation. When browsing your notes, this will bring you back to the current slide. Also hide the table of contents if it is shown.
+Set page number of the control screen to the page number of the presentation. When browsing your notes, this will bring you back to the current slide. Also hide the table of contents and the overview of all slides if one of them is shown.
 .
 .SH FEATURES
 .
@@ -237,8 +246,10 @@ By changing the current page number in the corresponding text field, the note pa
 You can escape this mode and go back to the current slide on the presentation by pressing
 .BR escape .
 .
-.SS Browse Table of Contents
+.SS Browse Table of Contents and overview
 .RB "You can show a table of contents on the control screen with shortcut " t " for quick navigation. The maximum level of subsections shown in the table of contents can be controlled with the option " \-l " or " \-\-toc-depth ". For entries with more levels, one additional level is shown as a popup menu."
+.PP
+.RB "An overview of all presentation slides is shown on the control screen with the key binding " s ". The number of columns in this overview mode can be controlled with the option " \-o " or " \-\-columns .
 .
 .SS Overlays
 Multimedia content and embedded applications are aware of overlays. If a video is shown on consecutive slides with the same page label, it will continue playing without interuption when switching within these slides. The same works for embedded applications independent of the page label.
@@ -343,6 +354,14 @@ Quit.
 .TP
 .B reset timer
 Reset timer.
+.
+.TP
+.B show overview
+Show overview of all slides on the control screen.
+.
+.TP
+.B hide overview
+Hide overview of all slides if it is shown.
 .
 .TP
 .B show TOC
@@ -478,6 +497,11 @@ overwrite default value for the command line argument
 .BR toc-depth =2
 overwrite default value for the command line argument
 .BR \-l " or " \-\-toc-depth .
+.
+.TP
+.BR columns =5
+overwrite default value for the command line argument
+.BR \-o " or " \-\-columns .
 .
 .TP
 .BR renderer

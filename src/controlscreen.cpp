@@ -89,6 +89,11 @@ ControlScreen::ControlScreen(QString presentationPath, QString notesPath, QWidge
     tocBox->setGeometry(ui->notes_label->geometry());
     tocBox->hide();
 
+    // overviewBox will be used to show an overview of all slides on the control screen
+    overviewBox = new OverviewBox(this);
+    overviewBox->setGeometry(ui->notes_label->geometry());
+    overviewBox->hide();
+
     // Set up the widgets
     ui->text_number_slides->setText(QString::number(numberOfPages));
     ui->text_current_slide->setNumberOfPages(numberOfPages);
@@ -180,11 +185,16 @@ ControlScreen::ControlScreen(QString presentationPath, QString notesPath, QWidge
 
     // TOC
     connect(tocBox, &TocBox::sendDest, this, &ControlScreen::receiveDest);
+
+    // Overview box
+    connect(overviewBox, &OverviewBox::sendPageNumber, presentationScreen, &PresentationScreen::receiveNewPageNumber);
+    connect(overviewBox, &OverviewBox::sendPageNumber, this, &ControlScreen::receiveNewPageNumber);
 }
 
 ControlScreen::~ControlScreen()
 {
     delete tocBox;
+    delete overviewBox;
     cacheThread->requestInterruption();
     cacheTimer->stop();
     cacheTimer->disconnect();
@@ -257,6 +267,7 @@ void ControlScreen::recalcLayout(const int pageNumber)
     ui->gridLayout->setColumnStretch(0, width()-sideWidth);
     ui->gridLayout->setColumnStretch(1, sideWidth);
     tocBox->setGeometry(int(0.1*(width()-sideWidth)), 0, int(0.8*(width()-sideWidth)), height());
+    overviewBox->setGeometry(0, 0, width()-sideWidth, height());
     updateGeometry();
 
     // Adjust font sizes
@@ -695,6 +706,7 @@ void ControlScreen::keyPressEvent(QKeyEvent* event)
             emit sendNewPageNumber(currentPageNumber);
             renderPage(currentPageNumber);
             hideToc();
+            hideOverview();
             ui->label_timer->continueTimer();
             updateCache();
             break;
@@ -704,6 +716,7 @@ void ControlScreen::keyPressEvent(QKeyEvent* event)
                 emit sendNewPageNumber(currentPageNumber);
                 renderPage(currentPageNumber);
                 hideToc();
+                hideOverview();
                 ui->label_timer->continueTimer();
                 updateCache();
             }
@@ -713,17 +726,20 @@ void ControlScreen::keyPressEvent(QKeyEvent* event)
         case KeyAction::NextCurrentScreen:
             renderPage(++currentPageNumber);
             hideToc();
+            hideOverview();
             break;
         case KeyAction::PreviousCurrentScreen:
             if (currentPageNumber > 0)
                 renderPage(--currentPageNumber);
             hideToc();
+            hideOverview();
             break;
         case KeyAction::NextSkippingOverlays:
             currentPageNumber = notes->getNextSlideIndex(presentationScreen->getPageNumber());
             emit sendNewPageNumber(currentPageNumber);
             renderPage(currentPageNumber);
             hideToc();
+            hideOverview();
             ui->label_timer->continueTimer();
             updateCache();
             break;
@@ -732,6 +748,7 @@ void ControlScreen::keyPressEvent(QKeyEvent* event)
             emit sendNewPageNumber(currentPageNumber);
             renderPage(currentPageNumber);
             hideToc();
+            hideOverview();
             ui->label_timer->continueTimer();
             updateCache();
             break;
@@ -740,6 +757,7 @@ void ControlScreen::keyPressEvent(QKeyEvent* event)
             emit sendNewPageNumber(currentPageNumber);
             renderPage(currentPageNumber);
             hideToc();
+            hideOverview();
             ui->label_timer->continueTimer();
             updateCache();
             break;
@@ -748,6 +766,7 @@ void ControlScreen::keyPressEvent(QKeyEvent* event)
             emit sendNewPageNumber(currentPageNumber);
             renderPage(currentPageNumber);
             hideToc();
+            hideOverview();
             updateCache();
             break;
         case KeyAction::FirstPage:
@@ -755,6 +774,7 @@ void ControlScreen::keyPressEvent(QKeyEvent* event)
             emit sendNewPageNumber(currentPageNumber);
             renderPage(currentPageNumber);
             hideToc();
+            hideOverview();
             updateCache();
             break;
         case KeyAction::UpdateCache:
@@ -769,6 +789,7 @@ void ControlScreen::keyPressEvent(QKeyEvent* event)
             break;
         case KeyAction::GoToPage:
             hideToc();
+            hideOverview();
             ui->text_current_slide->setFocus();
             break;
         case KeyAction::PlayMultimedia:
@@ -795,6 +816,12 @@ void ControlScreen::keyPressEvent(QKeyEvent* event)
         case KeyAction::HideTOC:
             hideToc();
             break;
+        case KeyAction::ShowOverview:
+            showOverview();
+            break;
+        case KeyAction::HideOverview:
+            hideOverview();
+            break;
         case KeyAction::Reload:
             reloadFiles();
             break;
@@ -802,6 +829,7 @@ void ControlScreen::keyPressEvent(QKeyEvent* event)
             if (presentationScreen->getLabel()->pageNumber() != currentPageNumber)
                 emit sendNewPageNumber(currentPageNumber);
             hideToc();
+            hideOverview();
             updateCache();
             ui->label_timer->continueTimer();
             break;
@@ -831,7 +859,7 @@ void ControlScreen::startAllEmbeddedApplications()
 {
     // Start all embedded applications of the presentation on all pages.
     qDebug() << "Starting all embedded applications on all pages.";
-    QList<Poppler::Page*> const pages = presentation->getPages();
+    QList<Poppler::Page*> const pages = *presentation->getPages();
     PageLabel* label = presentationScreen->getLabel();
     for (QList<Poppler::Page*>::const_iterator page_it=pages.cbegin(); page_it!=pages.cend(); page_it++) {
         label->initEmbeddedApplications(*page_it);
@@ -854,6 +882,7 @@ void ControlScreen::resizeEvent(QResizeEvent* event)
     ui->notes_label->clearCache();
     ui->current_slide_label->clearCache();
     ui->next_slide_label->clearCache();
+    overviewBox->setOutdated();
     // Render current page.
     ui->notes_label->renderPage(ui->notes_label->getPage(), false);
     ui->current_slide_label->renderPage(ui->current_slide_label->getPage(), false);
@@ -966,6 +995,7 @@ void ControlScreen::setUrlSplitCharacter(QString const &splitCharacter)
 void ControlScreen::showToc()
 {
     // Show table of contents on the control screen (above the notes label).
+    hideOverview();
     if (tocBox->needUpdate())
         tocBox->createToc(presentation->getToc());
     if (!tocBox->hasToc()) {
@@ -983,6 +1013,29 @@ void ControlScreen::hideToc()
 {
     // Hide table of contents
     tocBox->hide();
+    ui->notes_label->show();
+    ui->notes_label->setFocus();
+}
+
+void ControlScreen::showOverview()
+{
+    // Show overview on the control screen (above the notes label).
+    hideToc();
+    cacheThread->requestInterruption();
+    cacheTimer->stop();
+    if (overviewBox->needsUpdate())
+        overviewBox->create(presentation, overviewColumns);
+    if (!this->isActiveWindow())
+        this->activateWindow();
+    ui->notes_label->hide();
+    overviewBox->show();
+    overviewBox->setFocus();
+}
+
+void ControlScreen::hideOverview()
+{
+    // Hide overview
+    overviewBox->hide();
     ui->notes_label->show();
     ui->notes_label->setFocus();
 }
@@ -1067,6 +1120,9 @@ void ControlScreen::reloadFiles()
         hideToc();
         tocBox->setOutdated();
         tocBox->createToc(presentation->getToc());
+        hideOverview();
+        overviewBox->create(presentation, overviewColumns);
+        overviewBox->setOutdated();
     }
     // If one of the two files has changed: Reset cache region and render pages on control screen.
     if (change) {

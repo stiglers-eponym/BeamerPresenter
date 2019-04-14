@@ -54,6 +54,8 @@ const QMap<QString, int> keyActionMap {
     {"pause timer", KeyAction::PauseTimer},
     {"reset timer", KeyAction::ResetTimer},
     {"show toc", KeyAction::ShowTOC},
+    {"hide overview", KeyAction::HideOverview},
+    {"show overview", KeyAction::ShowOverview},
     {"hide toc", KeyAction::HideTOC},
     {"toggle cursor", KeyAction::ToggleCursor},
     {"full screen", KeyAction::FullScreen},
@@ -85,6 +87,7 @@ const QMap<int, QList<int>> defaultKeyMap = {
     {Qt::Key_P, {KeyAction::PauseTimer}},
     {Qt::Key_R, {KeyAction::ResetTimer}},
     {Qt::Key_T, {KeyAction::ShowTOC}},
+    {Qt::Key_S, {KeyAction::ShowOverview}},
     {Qt::Key_O, {KeyAction::ToggleCursor}},
     {Qt::Key_F, {KeyAction::FullScreen}},
     {Qt::Key_U, {KeyAction::Reload}},
@@ -115,6 +118,7 @@ int main(int argc, char *argv[])
             "  q                Quit\n"
             "  r                Reset timer\n"
             "  t                Show table of contents on control screen\n"
+            "  s                Show overview of all slides on control screen\n"
             "  u                Check if files have changed and reload them if necessary\n"
             "  space            Update layout and start or continue timer\n"
             "  Left, PageUp     Go to previous slide and start or continue timer\n"
@@ -140,6 +144,7 @@ int main(int argc, char *argv[])
         {{"l", "toc-depth"}, "Number of levels of the table of contents which are shown.", "int"},
         {{"m", "min-delay"}, "Set minimum time per frame in milliseconds.\nThis is useful when using \\animation in LaTeX beamer.", "ms"},
         {{"M", "memory"}, "Maximum size of cache in MiB. A negative number is treated as infinity.", "int"},
+        {{"o", "columns"}, "Number of columns in overview.", "int"},
         {{"p", "page-part"}, "Set half of the page to be the presentation, the other half to be the notes. Values are \"l\" or \"r\" for presentation on the left or right half of the page, respectively.\nIf the presentation was created with \"\\setbeameroption{show notes on second screen=right}\", you should use \"--page-part=right\".", "side"},
         {{"r", "renderer"}, "\"poppler\", \"custom\" or command: Command for rendering pdf pages to cached images. This command should write a png image to standard output using the arguments %file (path to file), %page (page number), %width and %height (image size in pixels).", "string"},
         {{"s", "scrollstep"}, "Number of pixels which represent a scroll step for a touch pad scroll signal.", "int"},
@@ -383,6 +388,33 @@ int main(int argc, char *argv[])
             emit w->sendAutostartDelay(-2.);
         else
             qCritical() << "option \"" << settings.value("autoplay") << "\" to autoplay in config not understood.";
+    }
+
+    // Set number of columns in overview
+    if (!parser.value("o").isEmpty()) {
+        bool success;
+        int columns = parser.value("o").toInt(&success);
+        if (success)
+            w->setOverviewColumns(columns);
+        else {
+            qCritical() << "option \"" << parser.value("o") << "\" to columns not understood.";
+            // Try to get a default option from the config file
+            if (settings.contains("min-delay")) {
+                columns = settings.value("min-delay").toInt(&success);
+                if (success)
+                    w->setOverviewColumns(columns);
+                else
+                    qCritical() << "option \"" << settings.value("columns") << "\" to columns in config not understood.";
+            }
+        }
+    }
+    else if (settings.contains("columns")) {
+        bool success;
+        int columns = settings.value("columns").toInt(&success);
+        if (success)
+            w->setOverviewColumns(columns);
+        else
+            qCritical() << "option \"" << settings.value("columns") << "\" to columns in config not understood.";
     }
 
     // Set autostart or delay for embedded applications

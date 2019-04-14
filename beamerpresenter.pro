@@ -40,7 +40,9 @@ SOURCES += \
         src/tocbutton.cpp \
         src/tocaction.cpp \
         src/externalrenderer.cpp \
-        src/embedapp.cpp
+        src/embedapp.cpp \
+        src/overviewframe.cpp \
+        src/overviewbox.cpp
 
 HEADERS += \
         src/controlscreen.h \
@@ -56,7 +58,9 @@ HEADERS += \
         src/tocbutton.h \
         src/tocaction.h \
         src/externalrenderer.h \
-        src/embedapp.h
+        src/embedapp.h \
+        src/overviewframe.h \
+        src/overviewbox.h
 
 FORMS += \
         src/controlscreen.ui

@@ -33,6 +33,7 @@
 #include "presentationscreen.h"
 #include "cacheupdatethread.h"
 #include "tocbox.h"
+#include "overviewbox.h"
 
 namespace Ui {
     class ControlScreen;
@@ -56,6 +57,7 @@ public:
     void setCacheNumber(int const number);
     void setCacheSize(long int const size);
     void setTocLevel(int const level);
+    void setOverviewColumns(int const columns) {overviewColumns=columns;}
     bool setRenderer(QStringList command);
     void setCacheVideos(bool const cache) {presentationScreen->setCacheVideos(cache);}
     void setKeyMap(QMap<int, QList<int>>* keymap);
@@ -78,6 +80,8 @@ private:
     QTimer* cacheTimer = new QTimer(this);
     CacheUpdateThread* cacheThread = new CacheUpdateThread(this);
     TocBox* tocBox = nullptr;
+    OverviewBox* overviewBox = nullptr;
+    int overviewColumns = 5;
     int numberOfPages;
     int currentPageNumber = 0;
     PagePart pagePart = FullPage;
@@ -129,6 +133,8 @@ public slots:
     void clearPresentationCache();
     void showToc();
     void hideToc();
+    void showOverview();
+    void hideOverview();
 };
 
 #endif // CONTROLSCREEN_H

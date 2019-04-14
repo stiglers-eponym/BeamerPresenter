@@ -60,6 +60,8 @@ enum KeyAction {
     ResetTimer,
     ShowTOC,
     HideTOC,
+    ShowOverview,
+    HideOverview,
     ToggleCursor,
     FullScreen,
     Reload,
