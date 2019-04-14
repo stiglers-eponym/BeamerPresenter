@@ -38,6 +38,7 @@ public:
     void updatedFile();
     void setScrollDelta(int const scrollDelta) {this->scrollDelta=scrollDelta;}
     void setCacheVideos(bool const cache) {cacheVideos=cache; label->setCacheVideos(cache);}
+    void setKeyMap(QMap<int, QList<int>>* keymap) {this->keymap=keymap;} // PresentationScreen does not own this object!
 
 protected:
     void keyPressEvent(QKeyEvent* event);
@@ -55,6 +56,7 @@ private:
     int scrollDelta = 200;
     int scrollState = 0;
     bool cacheVideos = true;
+    QMap<int, QList<int>>* keymap; // PresentationScreen does not own this object!
 
 signals:
     void sendNewPageNumber(const int pageNumber);

@@ -1,8 +1,8 @@
 BeamerPresenter
 
+* Overview mode for control screen
 * Multimedia sliders: key bindings and signals slider <-> player
 * TOC: key bindings
-* Videos: cache them when reaching previous slide?
 
 * Cache management: test, clean up the code, improve
 * Embedded applications: Terminate processes correctly before closing the window
@@ -19,7 +19,6 @@ BeamerPresenter
 * Implement optional content (e.g. for sound)
 * Make poppler rendering to cache more efficient (use multiple threads)
 
-* Mode to browse slides on control screen
 * Draw in presentation
 * Page transitions
 

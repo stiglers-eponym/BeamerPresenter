@@ -21,8 +21,75 @@
 #include <QApplication>
 #include <QFileDialog>
 #include <QCommandLineParser>
+#include <QKeySequence>
 #include "controlscreen.h"
 #include "presentationscreen.h"
+
+const QMap<QString, int> keyActionMap {
+    {"previous", KeyAction::Previous},
+    {"next", KeyAction::Next},
+    {"previous current screen", KeyAction::PreviousCurrentScreen},
+    {"next current screen", KeyAction::NextCurrentScreen},
+    {"previous skipping overlays", KeyAction::PreviousSkippingOverlays},
+    {"next skipping overlays", KeyAction::NextSkippingOverlays},
+    {"go to page", KeyAction::GoToPage},
+    {"go to slide", KeyAction::GoToPage},
+    {"last page", KeyAction::LastPage},
+    {"last slide", KeyAction::LastPage},
+    {"first page", KeyAction::FirstPage},
+    {"first slide", KeyAction::FirstPage},
+    {"sync from control screen", KeyAction::SyncFromControlScreen},
+    {"sync from presentation screen", KeyAction::SyncFromPresentationScreen},
+    {"update", KeyAction::Update},
+
+    {"update cache", KeyAction::UpdateCache},
+    {"start embedded current page", KeyAction::StartEmbeddedCurrentSlide},
+    {"start embedded current slide", KeyAction::StartEmbeddedCurrentSlide},
+    {"start embedded applications current page", KeyAction::StartEmbeddedCurrentSlide},
+    {"start embedded applications current slide", KeyAction::StartEmbeddedCurrentSlide},
+    {"start all embedded", KeyAction::StartAllEmbedded},
+    {"start all embedded applications", KeyAction::StartAllEmbedded},
+    {"play multimedia", KeyAction::PlayMultimedia},
+
+    {"pause timer", KeyAction::PauseTimer},
+    {"reset timer", KeyAction::ResetTimer},
+    {"show toc", KeyAction::ShowTOC},
+    {"hide toc", KeyAction::HideTOC},
+    {"toggle cursor", KeyAction::ToggleCursor},
+    {"full screen", KeyAction::FullScreen},
+    {"reload", KeyAction::Reload},
+    {"quit", KeyAction::Quit}
+};
+
+const QMap<int, QList<int>> defaultKeyMap = {
+    {Qt::Key_PageUp, {KeyAction::Previous}},
+    {Qt::Key_PageDown, {KeyAction::Next}},
+    {Qt::Key_Left, {KeyAction::Previous}},
+    {Qt::Key_Right, {KeyAction::Next}},
+    //{Qt::Key_Left, {KeyAction::PreviousCurrentScreen}},
+    //{Qt::Key_Right, {KeyAction::NextCurrentScreen}},
+    {Qt::Key_Up, {KeyAction::PreviousSkippingOverlays}},
+    {Qt::Key_Down, {KeyAction::NextSkippingOverlays}},
+    {Qt::Key_G, {KeyAction::GoToPage}},
+    {Qt::Key_End, {KeyAction::LastPage}},
+    {Qt::Key_Home, {KeyAction::FirstPage}},
+    {Qt::Key_Return, {KeyAction::SyncFromControlScreen}},
+    {Qt::Key_Escape, {KeyAction::SyncFromPresentationScreen, KeyAction::HideTOC}},
+    {Qt::Key_Space, {KeyAction::Update}},
+
+    {Qt::Key_C, {KeyAction::UpdateCache}},
+    {Qt::Key_E, {KeyAction::StartEmbeddedCurrentSlide}},
+    {Qt::Key_E+Qt::ShiftModifier, {KeyAction::StartAllEmbedded}},
+    {Qt::Key_M, {KeyAction::PlayMultimedia}},
+
+    {Qt::Key_P, {KeyAction::PauseTimer}},
+    {Qt::Key_R, {KeyAction::ResetTimer}},
+    {Qt::Key_T, {KeyAction::ShowTOC}},
+    {Qt::Key_O, {KeyAction::ToggleCursor}},
+    {Qt::Key_F, {KeyAction::FullScreen}},
+    {Qt::Key_U, {KeyAction::Reload}},
+    {Qt::Key_Q, {KeyAction::Quit}}
+};
 
 
 int main(int argc, char *argv[])
@@ -30,13 +97,14 @@ int main(int argc, char *argv[])
     qSetMessagePattern("%{time process} %{if-debug}D%{endif}%{if-info}INFO%{endif}%{if-warning}WARNING%{endif}%{if-critical}CRITICAL%{endif}%{if-fatal}FATAL%{endif}%{if-category} %{category}%{endif}%{if-debug} %{file}:%{line}%{endif} - %{message}%{if-fatal} from %{backtrace [depth=3]}%{endif}");
 
     QApplication app(argc, argv);
-    QApplication::setApplicationName("beamerpresenter");
+    app.setApplicationName("BeamerPresenter");
+    //app.setApplicationVersion("0.1");
 
     // set up command line argument parser
     QCommandLineParser parser;
     parser.setApplicationDescription(
             "\nSimple dual screen pdf presentation software.\n"
-            "Shortcuts:\n"
+            "Default shortcuts:\n"
             "  c                Update cache\n"
             "  e                Start all embedded applications on the current slide\n"
             "  E                Start all embedded applications on all slides\n"
@@ -60,6 +128,7 @@ int main(int argc, char *argv[])
             "  escape           Go to the note page for the current slide. Hide table of contents.\n"
         );
     parser.addHelpOption();
+    //parser.addVersionOption();
     parser.addPositionalArgument("<slides.pdf>", "Slides for a presentation");
     parser.addPositionalArgument("<notes.pdf>",  "Notes for the presentation (optional, should have the same number of pages as <slides.pdf>)");
     parser.addOptions({
@@ -152,6 +221,31 @@ int main(int argc, char *argv[])
         w->setColor(bgColor, textColor);
         w->setPresentationColor(presentationColor);
     }
+
+    // Handle keyboard shortcuts
+    settings.beginGroup("keys");
+    QStringList keys = settings.childKeys();
+    if (keys.isEmpty())
+        w->setKeyMap(new QMap<int, QList<int>>(defaultKeyMap));
+    else {
+        for (QStringList::const_iterator key_it=keys.cbegin(); key_it!=keys.cend(); key_it++) {
+            QKeySequence keySequence = QKeySequence(*key_it, QKeySequence::NativeText);
+            const int key = keySequence[0]+keySequence[1]+keySequence[2]+keySequence[3];
+            if (key!=0) {
+                QStringList actions = settings.value(*key_it).toStringList();
+                for (QStringList::const_iterator action_it=actions.begin(); action_it!=actions.cend(); action_it++) {
+                    const int action = keyActionMap.value(action_it->toLower(), -1);
+                    if (action!=-1)
+                        w->setKeyMapItem(key, action);
+                    else
+                        qCritical() << "Could not understand action" << *action_it << "for key" << *key_it;
+                }
+            }
+            else
+                qCritical() << "Could not understand key" << *key_it;
+        }
+    }
+    settings.endGroup();
 
     // Read the arguments in parser.
     // Each argument can have a default value in settings.

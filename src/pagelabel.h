@@ -37,6 +37,35 @@ enum PagePart {
     RightHalf = -1,
 };
 
+enum KeyAction {
+    Previous,
+    Next,
+    PreviousCurrentScreen,
+    NextCurrentScreen,
+    PreviousSkippingOverlays,
+    NextSkippingOverlays,
+    GoToPage,
+    LastPage,
+    FirstPage,
+    SyncFromControlScreen,
+    SyncFromPresentationScreen,
+    Update,
+
+    UpdateCache,
+    StartEmbeddedCurrentSlide,
+    StartAllEmbedded,
+    PlayMultimedia,
+
+    PauseTimer,
+    ResetTimer,
+    ShowTOC,
+    HideTOC,
+    ToggleCursor,
+    FullScreen,
+    Reload,
+    Quit
+};
+
 class PageLabel : public QLabel
 {
     Q_OBJECT

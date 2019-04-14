@@ -74,7 +74,7 @@ Set minimum time per frame in milliseconds. This is useful when using \\animatio
 .
 .TP
 .BI "\-M \-\-memory " integer
-Set the maximum cache size in MiB. A negative number is treated as infinity.
+Set the maximum cache size in MiB. A negative number is treated as infinity. The real memory usage can be slightly larger than this limit, because slides are rendered to cache without any knowledge about their size in memory beforehand.
 .
 .TP
 .BI "\-p \-\-page-part " side
@@ -123,8 +123,9 @@ with the command
 If set to true, videos will be loaded to cache when reaching the slide before the one containing the video.
 .
 .
-.SH KEYBINDINGS
+.SH DEFAULT KEY BINDINGS
 .
+Key bindings can be changed in the  configuration file. The default configuration is the following.
 .TP
 .B Mouse wheel
 Scroll through presentation. If the presentation screen (the window showing the presentation) is the active window, all displayed pages will be updated. The duration of a page as defined by the PDF will be ignored. If the control screen (the window showing notes) is focused, only the pages on the control screen will be updated. You can continue the presentation with the page currently shown on the control screen by pressing
@@ -132,78 +133,95 @@ Scroll through presentation. If the presentation screen (the window showing the 
 .
 .TP
 .B c
+.B update cache
 Update cached slides if necessary. An update of the cache is also triggered by a change of the current slide and by updating the current slide.
 .
 .TP
 .B e
+.B start embedded current slide
 Start all embedded applications on the currently shown slide.
 .
 .TP
 .B E
+.B start all embedded
 Start all embedded applications on all slides.
 .
 .TP
 .B g
+.B go to page
 Go to page (set focus to page number edit). This will make the control screen the active window.
 .
 .TP
 .B m
+.B play multimedia
 Play or pause all multimedia content on the current slide.
 .
 .TP
 .B o
+.B toggle cursor
 Toggle cursor visibility (only on the presentation screen).
 .
 .TP
 .B p
+.B pause timer
 Pause or continue timer.
 .
 .TP
 .B q
-Quit.
+.B Quit
 .
 .TP
 .B r
-Reset timer.
+.B Reset timer
 .
 .TP
 .B t
+.B show TOC
 Show table of contents on the control screen.
 .
 .TP
 .B u
+.B reload
 Check if the PDF files have changed and reload them if necessary (experimental feature).
 .
 .TP
 .B space
+.B update
 Update layout, reload page and start or continue timer.
 .
 .TP
 .BR Left ", " PageUp
+.B previous
 Go to previous slide and start or continue timer.
 .
 .TP
 .BR Right ", " PageDown
+.B next
 Go to next slide and start or continue timer.
 .
 .TP
 .B Up
+.B previous skipping overlays
 Go to the previous slide until the page label changes. In beamer presentations: Go to the last overlay of the previous slide.
 .
 .TP
 .B Down
+.B next skipping overlays
 Go to the next slide until the page label changes. In beamer presentations: Go to the first overlay of the next slide.
 .
 .TP
 .BR F11 ", " f
+.B full screen
 Toggle full screen of the active window.
 .
 .TP
 .B return
+.B sync from control screen
 Set page number of the presentation to the page number on the control screen and start or continue timer.
 .
 .TP
 .B escape
+.B sync from presentation screen
 Set page number of the control screen to the page number of the presentation. When browsing your notes, this will bring you back to the current slide. Also hide the table of contents if it is shown.
 .
 .SH FEATURES
@@ -275,11 +293,110 @@ with the option
 .
 .
 .SH CONFIG
-A configuration located in
+A configuration file located at
 .I $HOME/.config/beamerpresenter.conf
-can be used to set colors and default options for the command line arguments. The colors can be provided as color names known to Qt or as RGB values in hexadecimal format #RRGGBB.
+can be used to set key bindings, colors and default options for the command line arguments. The colors can be provided as color names known to Qt or as RGB or ARGB values in hexadecimal format.
+An example configuration, which can be used as a template for setting up your own preferences, can be found at
+.UR https://github.com/stiglers-eponym/BeamerPresenter
+or in /etc/beamerpresenter/beamerpresenter.conf (depending on your installation).
 .PP
-The supported options are
+Key bindings are defined in the form
+
+.BI "keys/" "modifiers + key name " = " action1" , " action2",
+.BR ... .
+
+Key names and modifiers are passed to QKeySequence, which converts them to key codes. Multiple actions can be passed to a single key code and should be separated by a comma.
+The actions are case insensitive. Possible actions are
+.
+.TP
+.B update cache
+Update cached slides if necessary.
+.
+.TP
+.BR "start embedded current slide" ", " "start embedded applications current page" ", ..."
+Start all embedded applications on the currently shown slide.
+.
+.TP
+.BR "start all embedded" " or " "start all embedded applications"
+Start all embedded applications on all slides.
+.
+.TP
+.BR "go to page" " or " "go to slide"
+Go to page (set focus to page number edit). This will make the control screen the active window.
+.
+.TP
+.B play multimedia
+Play or pause all multimedia content on the current slide.
+.
+.TP
+.B toggle cursor
+Toggle cursor visibility (only on the presentation screen).
+.
+.TP
+.B pause timer
+Pause or continue timer.
+.
+.TP
+.B quit
+Quit.
+.
+.TP
+.B reset timer
+Reset timer.
+.
+.TP
+.B show TOC
+Show table of contents on the control screen.
+.
+.TP
+.B hide TOC
+Hide the table of contents if it is shown.
+.
+.TP
+.B reload
+Check if the PDF files have changed and reload them if necessary (experimental feature).
+.
+.TP
+.B update
+Update layout, reload page and start or continue timer.
+.
+.TP
+.B previous
+Go to previous slide and start or continue timer.
+.
+.TP
+.B next
+Go to next slide and start or continue timer.
+.
+.TP
+.B previous current screen
+Show the previous slide only on the currently active screen.
+.
+.TP
+.B next current screen
+Show the next slide only on the currently active screen.
+.
+.TP
+.B previous skipping overlays
+Go to the previous slide until the page label changes. In beamer presentations: Go to the last overlay of the previous slide.
+.
+.TP
+.B next skipping overlays
+Go to the next slide until the page label changes. In beamer presentations: Go to the first overlay of the next slide.
+.
+.TP
+.B full screen
+Toggle full screen of the active window.
+.
+.TP
+.B sync from control screen
+Set page number of the presentation to the page number on the control screen and start or continue timer.
+.
+.TP
+.B sync from presentation screen
+Set page number of the control screen to the page number of the presentation. When browsing your notes, this will bring you back to the current slide.
+.PP
+Other options are
 .TP
 .BR "presentation color" "=black"
 background color of the presentation window

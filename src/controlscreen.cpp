@@ -65,6 +65,7 @@ ControlScreen::ControlScreen(QString presentationPath, QString notesPath, QWidge
     // Set up presentation screen
     presentationScreen = new PresentationScreen(presentation);
     presentationScreen->setWindowTitle("BeamerPresenter: " + presentationPath);
+    presentationScreen->setKeyMap(keymap);
 
     // Load notes pdf
     if (notesPath.isNull() || notesPath.isEmpty()) {
@@ -202,6 +203,7 @@ ControlScreen::~ControlScreen()
     presentationScreen->disconnect();
     if (notes != presentation)
         delete notes;
+    delete keymap;
     delete presentation;
     delete presentationScreen;
     disconnect();
@@ -682,9 +684,13 @@ void ControlScreen::receiveCloseSignal()
 
 void ControlScreen::keyPressEvent(QKeyEvent* event)
 {
-    switch (event->key()) {
-        case Qt::Key_Right:
-        case Qt::Key_PageDown:
+    // Key codes are given as key + modifiers.
+    QMap<int, QList<int>>::iterator map_it = keymap->find(event->key() + event->modifiers());
+    if (map_it==keymap->end())
+        return;
+    for (QList<int>::const_iterator action_it=map_it->cbegin(); action_it!=map_it->cend(); action_it++) {
+        switch (*action_it) {
+        case KeyAction::Next:
             currentPageNumber = presentationScreen->getPageNumber() + 1;
             emit sendNewPageNumber(currentPageNumber);
             renderPage(currentPageNumber);
@@ -692,8 +698,7 @@ void ControlScreen::keyPressEvent(QKeyEvent* event)
             ui->label_timer->continueTimer();
             updateCache();
             break;
-        case Qt::Key_Left:
-        case Qt::Key_PageUp:
+        case KeyAction::Previous:
             currentPageNumber = presentationScreen->getPageNumber() - 1;
             if (currentPageNumber >= 0) {
                 emit sendNewPageNumber(currentPageNumber);
@@ -705,7 +710,16 @@ void ControlScreen::keyPressEvent(QKeyEvent* event)
             else
                 currentPageNumber = 0;
             break;
-        case Qt::Key_Down:
+        case KeyAction::NextCurrentScreen:
+            renderPage(++currentPageNumber);
+            hideToc();
+            break;
+        case KeyAction::PreviousCurrentScreen:
+            if (currentPageNumber > 0)
+                renderPage(--currentPageNumber);
+            hideToc();
+            break;
+        case KeyAction::NextSkippingOverlays:
             currentPageNumber = notes->getNextSlideIndex(presentationScreen->getPageNumber());
             emit sendNewPageNumber(currentPageNumber);
             renderPage(currentPageNumber);
@@ -713,7 +727,7 @@ void ControlScreen::keyPressEvent(QKeyEvent* event)
             ui->label_timer->continueTimer();
             updateCache();
             break;
-        case Qt::Key_Up:
+        case KeyAction::PreviousSkippingOverlays:
             currentPageNumber = notes->getPreviousSlideEnd(presentationScreen->getPageNumber());
             emit sendNewPageNumber(currentPageNumber);
             renderPage(currentPageNumber);
@@ -721,7 +735,7 @@ void ControlScreen::keyPressEvent(QKeyEvent* event)
             ui->label_timer->continueTimer();
             updateCache();
             break;
-        case Qt::Key_Space:
+        case KeyAction::Update:
             currentPageNumber = presentationScreen->getPageNumber();
             emit sendNewPageNumber(currentPageNumber);
             renderPage(currentPageNumber);
@@ -729,36 +743,35 @@ void ControlScreen::keyPressEvent(QKeyEvent* event)
             ui->label_timer->continueTimer();
             updateCache();
             break;
-        case Qt::Key_End:
+        case KeyAction::LastPage:
             currentPageNumber = numberOfPages - 1;
             emit sendNewPageNumber(currentPageNumber);
             renderPage(currentPageNumber);
             hideToc();
             updateCache();
             break;
-        case Qt::Key_Home:
+        case KeyAction::FirstPage:
             currentPageNumber = 0;
             emit sendNewPageNumber(currentPageNumber);
             renderPage(currentPageNumber);
             hideToc();
             updateCache();
             break;
-        case Qt::Key_C:
+        case KeyAction::UpdateCache:
             updateCache();
             break;
-        case Qt::Key_E:
-            if (event->text() == "e") {
-                presentationScreen->getLabel()->startAllEmbeddedApplications(presentationScreen->getPageNumber());
-                //ui->notes_label->startAllEmbeddedApplications(currentPageNumber);
-            }
-            else if (event->text() == "E")
-                startAllEmbeddedApplications();
+        case KeyAction::StartEmbeddedCurrentSlide:
+            presentationScreen->getLabel()->startAllEmbeddedApplications(presentationScreen->getPageNumber());
+            //ui->notes_label->startAllEmbeddedApplications(currentPageNumber);
             break;
-        case Qt::Key_G:
+        case KeyAction::StartAllEmbedded:
+            startAllEmbeddedApplications();
+            break;
+        case KeyAction::GoToPage:
             hideToc();
             ui->text_current_slide->setFocus();
             break;
-        case Qt::Key_M:
+        case KeyAction::PlayMultimedia:
             {
                 bool running = ui->notes_label->hasActiveMultimediaContent() || presentationScreen->getLabel()->hasActiveMultimediaContent();
                 if (running)
@@ -767,46 +780,49 @@ void ControlScreen::keyPressEvent(QKeyEvent* event)
                     emit playMultimedia();
             }
             break;
-        case Qt::Key_O:
+        case KeyAction::ToggleCursor:
             emit togglePointerVisibilitySignal();
             break;
-        case Qt::Key_P:
+        case KeyAction::PauseTimer:
             ui->label_timer->pauseTimer();
             break;
-        case Qt::Key_Q:
-            emit sendCloseSignal();
-            close();
-            break;
-        case Qt::Key_R:
+        case KeyAction::ResetTimer:
             ui->label_timer->resetTimer();
             break;
-        case Qt::Key_T:
+        case KeyAction::ShowTOC:
             showToc();
             break;
-        case Qt::Key_U:
+        case KeyAction::HideTOC:
+            hideToc();
+            break;
+        case KeyAction::Reload:
             reloadFiles();
             break;
-        case Qt::Key_Return:
+        case KeyAction::SyncFromControlScreen:
             if (presentationScreen->getLabel()->pageNumber() != currentPageNumber)
                 emit sendNewPageNumber(currentPageNumber);
             hideToc();
             updateCache();
             ui->label_timer->continueTimer();
             break;
-        case Qt::Key_F:
-        case Qt::Key_F11:
-            if (this->windowState() == Qt::WindowFullScreen)
-                showNormal();
-            else
-                showFullScreen();
-            break;
-        case Qt::Key_Escape:
+        case KeyAction::SyncFromPresentationScreen:
             if (presentationScreen->getPageNumber() != currentPageNumber) {
                 currentPageNumber = presentationScreen->getPageNumber();
                 renderPage(currentPageNumber);
                 updateCache();
             }
-            hideToc();
+            break;
+        case KeyAction::FullScreen:
+            if (this->windowState() == Qt::WindowFullScreen)
+                showNormal();
+            else
+                showFullScreen();
+            break;
+        case KeyAction::Quit:
+            emit sendCloseSignal();
+            close();
+            break;
+        }
     }
     event->accept();
 }
@@ -1064,4 +1080,20 @@ void ControlScreen::reloadFiles()
         ui->text_current_slide->setNumberOfPages(numberOfPages);
     }
     updateCache();
+}
+
+void ControlScreen::setKeyMap(QMap<int, QList<int>> *keymap)
+{
+    delete this->keymap;
+    this->keymap = keymap;
+    presentationScreen->setKeyMap(keymap);
+}
+
+void ControlScreen::setKeyMapItem(const int key, const int action)
+{
+    QMap<int, QList<int>>::iterator map_it = keymap->find(key);
+    if (map_it==keymap->end())
+        keymap->insert(key, {action});
+    else
+        map_it->append(action);
 }

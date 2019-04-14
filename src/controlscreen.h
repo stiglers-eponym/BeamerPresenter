@@ -58,6 +58,9 @@ public:
     void setTocLevel(int const level);
     bool setRenderer(QStringList command);
     void setCacheVideos(bool const cache) {presentationScreen->setCacheVideos(cache);}
+    void setKeyMap(QMap<int, QList<int>>* keymap);
+    void unsetKeyMapItem(const int key) {keymap->remove(key);}
+    void setKeyMapItem(const int key, const int action);
 
 protected:
     void keyPressEvent(QKeyEvent* event);
@@ -89,6 +92,9 @@ private:
     long int cacheSize = 0;
     int cacheNumber = 0;
     QSize oldSize = QSize();
+
+    // keymap maps (key code + modifiers) to a list of KeyActions.
+    QMap<int, QList<int>>* keymap = new QMap<int, QList<int>>();
 
 private slots:
     void updateCacheStep();

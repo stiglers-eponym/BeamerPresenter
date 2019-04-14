@@ -97,21 +97,23 @@ void PresentationScreen::receiveCloseSignal()
 
 void PresentationScreen::keyPressEvent(QKeyEvent* event)
 {
-    switch (event->key()) {
-        case Qt::Key_Right:
-        case Qt::Key_PageDown:
+    QMap<int, QList<int>>::iterator map_it = keymap->find(event->key() + event->modifiers());
+    if (map_it==keymap->end())
+        return;
+    for (QList<int>::const_iterator action_it=map_it->cbegin(); action_it!=map_it->cend(); action_it++) {
+        switch (event->key()) {
+        case KeyAction::Next:
             renderPage(label->pageNumber() + 1, true);
             if ( label->getDuration() < 0 || label->getDuration() > 0.5 )
                 emit sendPageShift();
             if ( label->getDuration() < 0 || label->getDuration() > 0.5 )
                 emit sendUpdateCache();
             break;
-        case Qt::Key_Left:
-        case Qt::Key_PageUp:
+        case KeyAction::Previous:
             {
                 int page = label->pageNumber() - 1;
                 if (page >= 0) {
-                    renderPage(label->pageNumber() - 1, true);
+                    renderPage(page, true);
                     if ( label->getDuration() < 0 || label->getDuration() > 0.5 )
                         emit sendPageShift();
                     if ( label->getDuration() < 0 || label->getDuration() > 0.5 )
@@ -119,8 +121,17 @@ void PresentationScreen::keyPressEvent(QKeyEvent* event)
                 }
             }
             break;
-        //case Qt::Key_E: // For those who prefere vim shortcuts
-        case Qt::Key_Down:
+        case KeyAction::NextCurrentScreen:
+            renderPage(label->pageNumber() + 1, true);
+            break;
+        case KeyAction::PreviousCurrentScreen:
+            {
+                int page = label->pageNumber() - 1;
+                if (page >= 0)
+                    renderPage(page, true);
+            }
+            break;
+        case KeyAction::NextSkippingOverlays:
             {
                 int pageNumber = presentation->getNextSlideIndex(label->pageNumber());
                 renderPage(pageNumber, true);
@@ -128,8 +139,7 @@ void PresentationScreen::keyPressEvent(QKeyEvent* event)
                 emit sendUpdateCache();
             }
             break;
-        //case Qt::Key_B: // For those who prefere vim shortcuts
-        case Qt::Key_Up:
+        case KeyAction::PreviousSkippingOverlays:
             {
                 int pageNumber = presentation->getPreviousSlideEnd(label->pageNumber());
                 renderPage(pageNumber, true);
@@ -137,19 +147,18 @@ void PresentationScreen::keyPressEvent(QKeyEvent* event)
                 emit sendUpdateCache();
             }
             break;
-        case Qt::Key_G:
+        case KeyAction::GoToPage:
             emit focusPageNumberEdit();
             break;
-        case Qt::Key_Space:
+        case KeyAction::Update:
             renderPage(label->pageNumber(), true);
             emit sendPageShift();
             emit sendUpdateCache();
             break;
-        case Qt::Key_O:
+        case KeyAction::ToggleCursor:
             emit togglePointerVisibilitySignal();
             break;
-        case Qt::Key_F:
-        case Qt::Key_F11:
+        case KeyAction::FullScreen:
             if (this->windowState() == Qt::WindowFullScreen)
                 showNormal();
             else
@@ -158,6 +167,7 @@ void PresentationScreen::keyPressEvent(QKeyEvent* event)
         default:
             emit sendKeyEvent(event);
             break;
+        }
     }
     event->accept();
 }
