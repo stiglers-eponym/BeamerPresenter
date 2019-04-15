@@ -20,6 +20,7 @@
 
 Timer::Timer(QWidget* parent) : QLabel(parent)
 {
+    timerPalette = QPalette(this->palette());
     setText("00:00");
 }
 
@@ -27,9 +28,9 @@ Timer::Timer(QLineEdit* setTimerEdit, QWidget* parent) : QLabel(parent)
 {
     setText("00:00");
     setTimerWidget(setTimerEdit);
-    QPalette palette = QPalette(this->palette());
-    palette.setColor(QPalette::WindowText, Qt::gray);
-    setPalette(palette);
+    timerPalette = QPalette(this->palette());
+    timerPalette.setColor(QPalette::WindowText, Qt::gray);
+    setPalette(timerPalette);
 }
 
 Timer::~Timer()
@@ -52,9 +53,8 @@ void Timer::setTimerWidget(QLineEdit* setTimerEdit)
     connect(timerEdit, &QLineEdit::returnPressed, this, &Timer::setDeadline);
     connect(timerEdit, &QLineEdit::returnPressed, this, &Timer::sendEscape);
     connect(timer, &QTimer::timeout, this, &Timer::showTime);
-    QPalette palette = QPalette(this->palette());
-    palette.setColor(QPalette::WindowText, Qt::gray);
-    setPalette(palette);
+    timerPalette.setColor(QPalette::WindowText, Qt::gray);
+    setPalette(timerPalette);
     // TODO: connect escape in timer to sendEscape()
 }
 
@@ -83,28 +83,29 @@ void Timer::setDeadline()
         deadline = QTime(0,0,0,0);
         setText("00:00");
     }
-    QPalette palette = QPalette();
-    int const diff = time.secsTo(deadline);
-    if (diff > 0) {
-        emit sendNoAlert();
-        if (diff < colorTimeInterval)
-            palette.setColor(QPalette::Window, QColor::fromRgb(256*diff/colorTimeInterval, 255, 256*diff/colorTimeInterval) );
-        else
-            palette.setColor(QPalette::Window, Qt::white);
-        setPalette(palette);
-    }
-    else {
-        emit sendAlert();
-        if (diff > -colorTimeInterval)
-            palette.setColor(QPalette::Window, QColor::fromRgb(-256*diff/colorTimeInterval, 255, 0) );
-        else if (diff > -2*colorTimeInterval)
-            palette.setColor(QPalette::Window, QColor::fromRgb(255, 511+256*diff/colorTimeInterval, 0) );
-        else
-            palette.setColor(QPalette::Window, Qt::red);
-    }
     if (!running)
-        palette.setColor(QPalette::WindowText, Qt::gray);
-    setPalette(palette);
+        timerPalette.setColor(QPalette::WindowText, Qt::gray);
+    int const diff = deadline.secsTo(time);
+    if (diff < 0)
+        emit sendNoAlert();
+    else
+        emit sendAlert();
+    if (diff <= colorTimes[0]) {
+        timerPalette.setColor(QPalette::Window, colors[0]);
+        setPalette(timerPalette);
+        return;
+    }
+    for (int i=1; i<colorTimes.length(); i++) {
+        if (diff <= colorTimes[i]) {
+            double rel = double(diff - colorTimes[i-1])/(colorTimes[i]-colorTimes[i-1]);
+            double irel = 1.-rel;
+            timerPalette.setColor(QPalette::Window, QColor(int(rel*colors[i].red()+irel*colors[i-1].red()), int(rel*colors[i].green()+irel*colors[i-1].green()), int(rel*colors[i].blue()+irel*colors[i-1].blue()), int(rel*colors[i].alpha()+irel*colors[i-1].alpha())));
+            setPalette(timerPalette);
+            return;
+        }
+    }
+    timerPalette.setColor(QPalette::Window, colors.last());
+    setPalette(timerPalette);
 }
 
 void Timer::pauseTimer()
@@ -112,16 +113,14 @@ void Timer::pauseTimer()
     if (running) {
         timer->stop();
         running = false;
-        QPalette palette = QPalette(this->palette());
-        palette.setColor(QPalette::WindowText, Qt::gray);
-        setPalette(palette);
+        timerPalette.setColor(QPalette::WindowText, Qt::gray);
+        setPalette(timerPalette);
     }
     else {
         timer->start(1000);
         running = true;
-        QPalette palette = QPalette(this->palette());
-        palette.setColor(QPalette::WindowText, Qt::black);
-        setPalette(palette);
+        timerPalette.setColor(QPalette::WindowText, Qt::black);
+        setPalette(timerPalette);
     }
 }
 
@@ -130,9 +129,8 @@ void Timer::continueTimer()
     if (!deadline.isNull() && !running) {
         timer->start(1000);
         running = true;
-        QPalette palette = QPalette(this->palette());
-        palette.setColor(QPalette::WindowText, Qt::black);
-        setPalette(palette);
+        timerPalette.setColor(QPalette::WindowText, Qt::black);
+        setPalette(timerPalette);
     }
 }
 
@@ -140,28 +138,12 @@ void Timer::resetTimer()
 {
     time.setHMS(0,0,0);
     setText("00:00");
-    QPalette palette = QPalette();
-    int const diff = time.secsTo(deadline);
-    if (diff > 0) {
-        emit sendNoAlert();
-        if (diff < colorTimeInterval)
-            palette.setColor(QPalette::Window, QColor::fromRgb(256*diff/colorTimeInterval, 255, 256*diff/colorTimeInterval) );
-        else
-            palette.setColor(QPalette::Window, Qt::white);
-        setPalette(palette);
-    }
-    else {
-        emit sendAlert();
-        if (diff > -colorTimeInterval)
-            palette.setColor(QPalette::Window, QColor::fromRgb(-256*diff/colorTimeInterval, 255, 0) );
-        else if (diff > -2*colorTimeInterval)
-            palette.setColor(QPalette::Window, QColor::fromRgb(255, 511+256*diff/colorTimeInterval, 0) );
-        else
-            palette.setColor(QPalette::Window, Qt::red);
-    }
     if (!running)
-        palette.setColor(QPalette::WindowText, Qt::gray);
-    setPalette(palette);
+        timerPalette.setColor(QPalette::WindowText, Qt::gray);
+    emit sendNoAlert();
+    timerPalette.setColor(QPalette::Window, colors.first());
+    setPalette(timerPalette);
+    return;
 }
 
 void Timer::showTime()
@@ -171,28 +153,23 @@ void Timer::showTime()
         setText(time.toString("h:mm:ss"));
     else
         setText(time.toString("mm:ss"));
-    int diff = time.secsTo(deadline);
-    if (diff == 0) {
+    int const diff = deadline.secsTo(time);
+    if (diff == 0)
         emit sendAlert();
+    if (diff <= colorTimes[0]) {
+        timerPalette.setColor(QPalette::Window, colors[0]);
+        setPalette(timerPalette);
+        return;
     }
-    if ((diff >=0 ) && (diff < colorTimeInterval)) {
-        QPalette palette = QPalette();
-        palette.setColor(QPalette::Window, QColor::fromRgb(256*diff/colorTimeInterval, 255, 256*diff/colorTimeInterval) );
-        setPalette(palette);
+    for (int i=1; i<colorTimes.length(); i++) {
+        if (diff <= colorTimes[i]) {
+            double rel = double(diff - colorTimes[i-1])/(colorTimes[i]-colorTimes[i-1]);
+            double irel = 1.-rel;
+            timerPalette.setColor(QPalette::Window, QColor(int(rel*colors[i].red()+irel*colors[i-1].red()), int(rel*colors[i].green()+irel*colors[i-1].green()), int(rel*colors[i].blue()+irel*colors[i-1].blue()), int(rel*colors[i].alpha()+irel*colors[i-1].alpha())));
+            setPalette(timerPalette);
+            return;
+        }
     }
-    else if ((diff < 0) && (diff > -colorTimeInterval)) {
-        QPalette palette = QPalette();
-        palette.setColor(QPalette::Window, QColor::fromRgb(-256*diff/colorTimeInterval, 255, 0) );
-        setPalette(palette);
-    }
-    else if ((diff <= -colorTimeInterval) && (diff > -2*colorTimeInterval)) {
-        QPalette palette = QPalette();
-        palette.setColor(QPalette::Window, QColor::fromRgb(255, 511+256*diff/colorTimeInterval, 0) );
-        setPalette(palette);
-    }
-}
-
-void Timer::receiveTimeoutInterval(int const interval)
-{
-    colorTimeInterval = interval;
+    timerPalette.setColor(QPalette::Window, colors.last());
+    setPalette(timerPalette);
 }

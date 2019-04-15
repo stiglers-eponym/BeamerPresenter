@@ -107,7 +107,7 @@ signals:
     void togglePointerVisibilitySignal();
     void sendNewPageNumber(int const pageNumber);
     void sendTimerString(QString const timerString);
-    void sendTimeoutInterval(int const interval);
+    void sendTimerColors(QList<int> times, QList<QColor> colors);
     void sendAutostartDelay(double const timeout);
     void sendAutostartEmbeddedDelay(double const timeout);
     void sendCloseSignal();

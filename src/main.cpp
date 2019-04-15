@@ -139,7 +139,6 @@ int main(int argc, char *argv[])
         {{"a", "autoplay"}, "true, false or number: Start video and audio content when entering a slide.\nA number is interpreted as a delay in seconds, after which multimedia content is started.", "value"},
         {{"A", "autostart-emb"}, "true, false or number: Start embedded applications when entering a slide.\nA number is interpreted as a delay in seconds, after which applications are started.", "value"},
         {{"c", "cache"}, "Number of slides that will be cached. A negative number is treated as infinity.", "int"},
-        {{"d", "tolerance"}, "Tolerance for the presentation time in seconds.\nThe timer will be white <secs> before the timeout, green when the timeout is reached, yellow <secs> after the timeout and red 2*<secs> after the timeout.", "secs"},
         {{"e", "embed"}, "file1,file2,... Mark these files for embedding if an execution link points to them.", "files"},
         {{"l", "toc-depth"}, "Number of levels of the table of contents which are shown.", "int"},
         {{"m", "min-delay"}, "Set minimum time per frame in milliseconds.\nThis is useful when using \\animation in LaTeX beamer.", "ms"},
@@ -227,30 +226,61 @@ int main(int argc, char *argv[])
         w->setPresentationColor(presentationColor);
     }
 
-    // Handle keyboard shortcuts
-    settings.beginGroup("keys");
-    QStringList keys = settings.childKeys();
-    if (keys.isEmpty())
-        w->setKeyMap(new QMap<int, QList<int>>(defaultKeyMap));
-    else {
-        for (QStringList::const_iterator key_it=keys.cbegin(); key_it!=keys.cend(); key_it++) {
-            QKeySequence keySequence = QKeySequence(*key_it, QKeySequence::NativeText);
-            const int key = keySequence[0]+keySequence[1]+keySequence[2]+keySequence[3];
-            if (key!=0) {
-                QStringList actions = settings.value(*key_it).toStringList();
-                for (QStringList::const_iterator action_it=actions.begin(); action_it!=actions.cend(); action_it++) {
-                    const int action = keyActionMap.value(action_it->toLower(), -1);
-                    if (action!=-1)
-                        w->setKeyMapItem(key, action);
+    { // Set colors for presentation timer
+        settings.beginGroup("timer");
+        // All elements in the group timer should be points (time, color).
+        QStringList keys = settings.childKeys();
+        if (keys.isEmpty())
+            w->sendTimerColors({-150,0,150}, {Qt::white, Qt::green, Qt::red});
+        else {
+            // Use a QMap to store the values, because it is automatically sorted by the keys.
+            QMap<int,QColor> map;
+            bool ok;
+            int time;
+            QColor color;
+            for (QStringList::const_iterator key_it=keys.cbegin(); key_it!=keys.cend(); key_it++) {
+                time = (*key_it).toInt(&ok);
+                if (ok) {
+                    color = QColor(settings.value(*key_it).toString());
+                    if (color.isValid())
+                        map[time] = color;
                     else
-                        qCritical() << "Could not understand action" << *action_it << "for key" << *key_it;
+                        qCritical() << "Color" << settings.value(*key_it) << "not understood. Should be a color.";
                 }
+                else
+                    qCritical() << "Time interval" << *key_it << "not understood. Should be an integer.";
             }
-            else
-                qCritical() << "Could not understand key" << *key_it;
+            w->sendTimerColors(map.keys(), map.values());
         }
+        settings.endGroup();
     }
-    settings.endGroup();
+
+
+    { // Handle keyboard shortcuts
+        settings.beginGroup("keys");
+        QStringList keys = settings.childKeys();
+        if (keys.isEmpty())
+            w->setKeyMap(new QMap<int, QList<int>>(defaultKeyMap));
+        else {
+            for (QStringList::const_iterator key_it=keys.cbegin(); key_it!=keys.cend(); key_it++) {
+                QKeySequence keySequence = QKeySequence(*key_it, QKeySequence::NativeText);
+                const int key = keySequence[0]+keySequence[1]+keySequence[2]+keySequence[3];
+                if (key!=0) {
+                    QStringList actions = settings.value(*key_it).toStringList();
+                    for (QStringList::const_iterator action_it=actions.begin(); action_it!=actions.cend(); action_it++) {
+                        const int action = keyActionMap.value(action_it->toLower(), -1);
+                        if (action!=-1)
+                            w->setKeyMapItem(key, action);
+                        else
+                            qCritical() << "Could not understand action" << *action_it << "for key" << *key_it;
+                    }
+                }
+                else
+                    qCritical() << "Could not understand key" << *key_it;
+            }
+        }
+        settings.endGroup();
+    }
 
     // Read the arguments in parser.
     // Each argument can have a default value in settings.
@@ -284,33 +314,6 @@ int main(int argc, char *argv[])
             w->setPagePart(LeftHalf);
         else if (value != "none" && value != "0")
             qCritical() << "option \"" << value << "\" to page-part in config not understood.";
-    }
-
-    // Set tolerance for presentation time
-    if (!parser.value("d").isEmpty()) {
-        bool success;
-        int tolerance = parser.value("d").toInt(&success);
-        if (success)
-            emit w->sendTimeoutInterval(tolerance);
-        else {
-            qCritical() << "option \"" << parser.value("d") << "\" to tolerance not understood.";
-            // Try to get a default option from the config file
-            if (settings.contains("tolerance")) {
-                tolerance = settings.value("tolerance").toInt(&success);
-                if (success)
-                    emit w->sendTimeoutInterval(tolerance);
-                else
-                    qCritical() << "option \"" << settings.value("tolerance") << "\" to tolerance in config not understood.";
-            }
-        }
-    }
-    else if (settings.contains("tolerance")) {
-        bool success;
-        int tolerance = settings.value("tolerance").toInt(&success);
-        if (success)
-            emit w->sendTimeoutInterval(tolerance);
-        else
-            qCritical() << "option \"" << settings.value("tolerance") << "\" to tolerance in config not understood.";
     }
 
     // Set presentation time

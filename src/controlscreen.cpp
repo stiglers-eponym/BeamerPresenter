@@ -154,7 +154,7 @@ ControlScreen::ControlScreen(QString presentationPath, QString notesPath, QWidge
     connect(ui->label_timer, &Timer::sendEscape,  this, &ControlScreen::resetFocus);
     // Signals sent back to the timer
     connect(this, &ControlScreen::sendTimerString,     ui->label_timer, &Timer::receiveTimerString);
-    connect(this, &ControlScreen::sendTimeoutInterval, ui->label_timer, &Timer::receiveTimeoutInterval);
+    connect(this, &ControlScreen::sendTimerColors, ui->label_timer, &Timer::receiveColors);
 
     // Signals sent to the page labels
     // Autostart of media on the control screen can be enabled by uncommenting the following lines.

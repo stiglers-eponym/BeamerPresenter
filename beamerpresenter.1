@@ -1,7 +1,7 @@
-.TH beamerpresenter 1 "12 January 2019"
+.TH BeamerPresenter 1 "15 April 2019"
 .
 .SH NAME
-beamerpresenter \- dual-screen PDF presenter
+BeamerPresenter \- dual-screen PDF presenter
 .
 .
 .SH SYNOPSIS
@@ -10,16 +10,17 @@ beamerpresenter \- dual-screen PDF presenter
 .OP \-a autoplay-delay
 .OP \-A embedded-delay
 .OP \-c cache
-.OP \-d tol
 .OP \-e embed
 .OP \-l levels
 .OP \-m min-delay
 .OP \-M memory
+.OP \-o columns
 .OP \-p part
 .OP \-r renderer
 .OP \-s step
 .OP \-t timer
 .OP \-u char
+.OP \-v video-cache
 .OP \-w program
 .I presentation.pdf
 .RI [ notes.pdf ]
@@ -55,10 +56,6 @@ true, false or number: Start embedded applications when entering a slide. A numb
 .TP
 .BI "\-c \-\-cache " integer
 Set the maximum number of slides, which are rendered to images and stored in a compressed cache. A negative number is treated as infinity.
-.
-.TP
-.BI "\-d \-\-tolerance " secs
-.RI "Tolerance for the presentation time in seconds. The timer will be white " secs " before the timeout, green when the timeout is reached, yellow " secs " after the timeout and red 2*" secs " after the timeout."
 .
 .TP
 .BI "\-e \-\-embed " files
@@ -310,7 +307,9 @@ can be used to set key bindings, colors and default options for the command line
 An example configuration, which can be used as a template for setting up your own preferences, can be found at
 .UR https://github.com/stiglers-eponym/BeamerPresenter
 or in /etc/beamerpresenter/beamerpresenter.conf (depending on your installation).
-.PP
+.
+.SS Key bindings
+.
 Key bindings are defined in the form
 
 .BI "keys/" "modifiers + key name " = " action1" , " action2",
@@ -414,8 +413,11 @@ Set page number of the presentation to the page number on the control screen and
 .TP
 .B sync from presentation screen
 Set page number of the control screen to the page number of the presentation. When browsing your notes, this will bring you back to the current slide.
-.PP
-Other options are
+.
+.SS Colors
+.
+.RI "Colors can be specified as name known to Qt5, an RGB value or an ARGB value in hexadecimal format, e.g. as " red ", " #ff0000 " or " #ffff0000 .
+In the configuration you can define the following colors.
 .TP
 .BR "presentation color" "=black"
 background color of the presentation window
@@ -428,6 +430,15 @@ background color of the control screen
 .BR "notes text color" "=black"
 text color of the control screen
 .
+.TP
+.BI "timer/" time = color
+.
+The timer can change its color depending on the time relative to your target presentation time. In this form you can specify colors for specific times relative to the timeout. The color of the timer will be changed linearly between two such time points.
+.RI "Here " time " is the time interval (timeout - now) in seconds, e.g. " time=-60 " is one minute before you reach the timeout.
+.
+.SS Default values for command line arguments
+.
+The following default values for command line arguments can be set in the config file.
 .TP
 .BR autoplay =false
 overwrite default value for the command line argument
@@ -442,11 +453,6 @@ overwrite default value for the command line argument
 .BR min-delay =40
 overwrite default value for the command line argument
 .BR \-m " or " \-\-min-delay .
-.
-.TP
-.BR tolerance =150
-overwrite default value for the command line argument
-.BR \-d " or " \-\-tolerance .
 .
 .TP
 .BR page-part =none
