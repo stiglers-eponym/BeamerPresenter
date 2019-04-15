@@ -116,6 +116,7 @@ signals:
     void sendAnimationDelay(int const delay_ms);
 
 public slots:
+    // TODO: Some of these functions are not used as slots. Tidy up!
     void receiveCache(QByteArray const* pres, QByteArray const* note, QByteArray const* small, int const index);
     void receiveDest(QString const& dest);
     void receivePreviousSlideEnd();
@@ -133,6 +134,7 @@ public slots:
     void clearPresentationCache();
     void showToc();
     void hideToc();
+    void showNotes();
     void showOverview();
     void hideOverview();
 };

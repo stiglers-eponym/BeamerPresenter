@@ -189,6 +189,7 @@ ControlScreen::ControlScreen(QString presentationPath, QString notesPath, QWidge
     // Overview box
     connect(overviewBox, &OverviewBox::sendPageNumber, presentationScreen, &PresentationScreen::receiveNewPageNumber);
     connect(overviewBox, &OverviewBox::sendPageNumber, this, &ControlScreen::receiveNewPageNumber);
+    connect(overviewBox, &OverviewBox::sendReturn, this, &ControlScreen::showNotes);
 }
 
 ControlScreen::~ControlScreen()
@@ -705,8 +706,7 @@ void ControlScreen::keyPressEvent(QKeyEvent* event)
             currentPageNumber = presentationScreen->getPageNumber() + 1;
             emit sendNewPageNumber(currentPageNumber);
             renderPage(currentPageNumber);
-            hideToc();
-            hideOverview();
+            showNotes();
             ui->label_timer->continueTimer();
             updateCache();
             break;
@@ -715,8 +715,7 @@ void ControlScreen::keyPressEvent(QKeyEvent* event)
             if (currentPageNumber >= 0) {
                 emit sendNewPageNumber(currentPageNumber);
                 renderPage(currentPageNumber);
-                hideToc();
-                hideOverview();
+                showNotes();
                 ui->label_timer->continueTimer();
                 updateCache();
             }
@@ -725,21 +724,18 @@ void ControlScreen::keyPressEvent(QKeyEvent* event)
             break;
         case KeyAction::NextCurrentScreen:
             renderPage(++currentPageNumber);
-            hideToc();
-            hideOverview();
+            showNotes();
             break;
         case KeyAction::PreviousCurrentScreen:
             if (currentPageNumber > 0)
                 renderPage(--currentPageNumber);
-            hideToc();
-            hideOverview();
+            showNotes();
             break;
         case KeyAction::NextSkippingOverlays:
             currentPageNumber = notes->getNextSlideIndex(presentationScreen->getPageNumber());
             emit sendNewPageNumber(currentPageNumber);
             renderPage(currentPageNumber);
-            hideToc();
-            hideOverview();
+            showNotes();
             ui->label_timer->continueTimer();
             updateCache();
             break;
@@ -747,8 +743,7 @@ void ControlScreen::keyPressEvent(QKeyEvent* event)
             currentPageNumber = notes->getPreviousSlideEnd(presentationScreen->getPageNumber());
             emit sendNewPageNumber(currentPageNumber);
             renderPage(currentPageNumber);
-            hideToc();
-            hideOverview();
+            showNotes();
             ui->label_timer->continueTimer();
             updateCache();
             break;
@@ -756,8 +751,7 @@ void ControlScreen::keyPressEvent(QKeyEvent* event)
             currentPageNumber = presentationScreen->getPageNumber();
             emit sendNewPageNumber(currentPageNumber);
             renderPage(currentPageNumber);
-            hideToc();
-            hideOverview();
+            showNotes();
             ui->label_timer->continueTimer();
             updateCache();
             break;
@@ -765,16 +759,14 @@ void ControlScreen::keyPressEvent(QKeyEvent* event)
             currentPageNumber = numberOfPages - 1;
             emit sendNewPageNumber(currentPageNumber);
             renderPage(currentPageNumber);
-            hideToc();
-            hideOverview();
+            showNotes();
             updateCache();
             break;
         case KeyAction::FirstPage:
             currentPageNumber = 0;
             emit sendNewPageNumber(currentPageNumber);
             renderPage(currentPageNumber);
-            hideToc();
-            hideOverview();
+            showNotes();
             updateCache();
             break;
         case KeyAction::UpdateCache:
@@ -788,8 +780,7 @@ void ControlScreen::keyPressEvent(QKeyEvent* event)
             startAllEmbeddedApplications();
             break;
         case KeyAction::GoToPage:
-            hideToc();
-            hideOverview();
+            showNotes();
             ui->text_current_slide->setFocus();
             break;
         case KeyAction::PlayMultimedia:
@@ -828,8 +819,7 @@ void ControlScreen::keyPressEvent(QKeyEvent* event)
         case KeyAction::SyncFromControlScreen:
             if (presentationScreen->getLabel()->pageNumber() != currentPageNumber)
                 emit sendNewPageNumber(currentPageNumber);
-            hideToc();
-            hideOverview();
+            showNotes();
             updateCache();
             ui->label_timer->continueTimer();
             break;
@@ -1017,14 +1007,24 @@ void ControlScreen::hideToc()
     ui->notes_label->setFocus();
 }
 
+void ControlScreen::showNotes()
+{
+    // Equivalent to hideToc(); hideOverview();
+    tocBox->hide();
+    overviewBox->hide();
+    ui->notes_label->show();
+    ui->notes_label->setFocus();
+}
+
 void ControlScreen::showOverview()
 {
     // Show overview on the control screen (above the notes label).
     hideToc();
-    cacheThread->requestInterruption();
-    cacheTimer->stop();
-    if (overviewBox->needsUpdate())
+    if (overviewBox->needsUpdate()) {
+        cacheThread->requestInterruption();
+        cacheTimer->stop();
         overviewBox->create(presentation, overviewColumns);
+    }
     if (!this->isActiveWindow())
         this->activateWindow();
     ui->notes_label->hide();
@@ -1117,11 +1117,10 @@ void ControlScreen::reloadFiles()
         presentationScreen->renderPage(presentationScreen->getLabel()->pageNumber(), false);
         ui->current_slide_label->clearAll();
         ui->next_slide_label->clearAll();
-        hideToc();
+        // Hide TOC and overview and set them outdated
+        showNotes();
         tocBox->setOutdated();
         tocBox->createToc(presentation->getToc());
-        hideOverview();
-        overviewBox->create(presentation, overviewColumns);
         overviewBox->setOutdated();
     }
     // If one of the two files has changed: Reset cache region and render pages on control screen.
@@ -1140,6 +1139,7 @@ void ControlScreen::reloadFiles()
 
 void ControlScreen::setKeyMap(QMap<int, QList<int>> *keymap)
 {
+    // Set the key bindings
     delete this->keymap;
     this->keymap = keymap;
     presentationScreen->setKeyMap(keymap);
@@ -1147,6 +1147,7 @@ void ControlScreen::setKeyMap(QMap<int, QList<int>> *keymap)
 
 void ControlScreen::setKeyMapItem(const int key, const int action)
 {
+    // Add an action to a key
     QMap<int, QList<int>>::iterator map_it = keymap->find(key);
     if (map_it==keymap->end())
         keymap->insert(key, {action});

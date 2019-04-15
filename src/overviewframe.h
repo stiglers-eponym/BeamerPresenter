@@ -41,6 +41,7 @@ public:
 
 signals:
     void activated(int const page);
+    void sendReturn();
 };
 
 #endif // OVERVIEWFRAME_H

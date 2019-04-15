@@ -45,6 +45,7 @@ public:
 
 signals:
     void sendPageNumber(int const page);
+    void sendReturn();
 
 public slots:
 };

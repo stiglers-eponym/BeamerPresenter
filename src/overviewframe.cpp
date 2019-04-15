@@ -33,6 +33,7 @@ void OverviewFrame::keyPressEvent(QKeyEvent* event)
 {
     if (event->key() == Qt::Key_Return) {
         emit activated(page);
+        emit sendReturn();
         event->accept();
     }
 }

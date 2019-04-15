@@ -53,6 +53,7 @@ void OverviewBox::create(PdfDoc const* doc, int const columns)
         layout->addWidget(frame, i/columns, i%columns);
         frame->setPixmap(QPixmap::fromImage((*page_it)->renderToImage(resolution, resolution)));
         connect(frame, &OverviewFrame::activated, this, &OverviewBox::sendPageNumber);
+        connect(frame, &OverviewFrame::sendReturn, this, &OverviewBox::sendReturn);
     }
     outdated = false;
     show();
