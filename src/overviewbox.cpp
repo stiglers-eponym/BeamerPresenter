@@ -46,15 +46,28 @@ void OverviewBox::create(PdfDoc const* doc, int const columns)
     int i=0;
     double resolution;
     for (QList<Poppler::Page*>::const_iterator page_it=pages.cbegin(); page_it!=pages.cend(); page_it++, i++) {
-        OverviewFrame* frame = new OverviewFrame((*page_it)->index(), this);
+        OverviewFrame* frame = new OverviewFrame((*page_it)->index(), columns, this);
         // TODO: handle beamer option notes on second screen
         frames.append(frame);
         resolution = 72*frameWidth / (*page_it)->pageSize().width();
         layout->addWidget(frame, i/columns, i%columns);
         frame->setPixmap(QPixmap::fromImage((*page_it)->renderToImage(resolution, resolution)));
-        connect(frame, &OverviewFrame::activated, this, &OverviewBox::sendPageNumber);
+        connect(frame, &OverviewFrame::selected, this, &OverviewBox::sendPageNumber);
+        connect(frame, &OverviewFrame::activated, this, &OverviewBox::setFocused);
         connect(frame, &OverviewFrame::sendReturn, this, &OverviewBox::sendReturn);
     }
     outdated = false;
     show();
+}
+
+void OverviewBox::setFocused(int page)
+{
+    if (page < 0)
+        page = 0;
+    else if (page >= frames.length())
+        page = frames.length()-1;
+    frames[focused]->deactivate();
+    focused = page;
+    frames[focused]->activate();
+    ensureWidgetVisible(frames[focused]);
 }

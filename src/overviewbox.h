@@ -35,6 +35,7 @@ private:
     QWidget* client;
     bool outdated=true;
     int columns;
+    int focused = 0;
 
 public:
     explicit OverviewBox(QWidget* parent = nullptr);
@@ -42,6 +43,7 @@ public:
     void create(PdfDoc const* doc, int const columns = 5);
     bool needsUpdate() {return outdated;}
     void setOutdated() {outdated=true;}
+    void setFocused(int const page);
 
 signals:
     void sendPageNumber(int const page);

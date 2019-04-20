@@ -202,7 +202,7 @@ void PresentationScreen::wheelEvent(QWheelEvent* event)
         else if (deltaAngle > 0)
             deltaPages = 1;
         else if (deltaAngle < -120)
-            deltaPages = deltaAngle / 120 + 1;
+            deltaPages = -((-deltaAngle) / 120);
         else if (deltaAngle < 0)
             deltaPages = -1;
         else
