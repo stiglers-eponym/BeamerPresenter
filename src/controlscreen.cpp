@@ -732,7 +732,7 @@ void ControlScreen::keyPressEvent(QKeyEvent* event)
             showNotes();
             break;
         case KeyAction::NextSkippingOverlays:
-            currentPageNumber = notes->getNextSlideIndex(presentationScreen->getPageNumber());
+            currentPageNumber = presentation->getNextSlideIndex(presentationScreen->getPageNumber());
             emit sendNewPageNumber(currentPageNumber);
             renderPage(currentPageNumber);
             showNotes();
@@ -740,7 +740,7 @@ void ControlScreen::keyPressEvent(QKeyEvent* event)
             updateCache();
             break;
         case KeyAction::PreviousSkippingOverlays:
-            currentPageNumber = notes->getPreviousSlideEnd(presentationScreen->getPageNumber());
+            currentPageNumber = presentation->getPreviousSlideEnd(presentationScreen->getPageNumber());
             emit sendNewPageNumber(currentPageNumber);
             renderPage(currentPageNumber);
             showNotes();

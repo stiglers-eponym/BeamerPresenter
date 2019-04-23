@@ -4,6 +4,7 @@
 # qtcreator
 *.autosave
 *.pro.user
+*.pro.user.*
 
 # c, c++
 *.so
