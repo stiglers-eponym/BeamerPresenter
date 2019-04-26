@@ -11,6 +11,7 @@ BeamerPresenter \- dual-screen PDF presenter
 .OP \-A embedded-delay
 .OP \-c cache
 .OP \-e embed
+.OP \-j json
 .OP \-l levels
 .OP \-m min-delay
 .OP \-M memory
@@ -60,6 +61,10 @@ Set the maximum number of slides, which are rendered to images and stored in a c
 .TP
 .BI "\-e \-\-embed " files
 Mark these files for embedding if an execution link points to them. Multiple files should be separated only by a comma (not space!).
+.
+.TP
+.BI "\-j \-\-json " file
+Select a local configuration file. The file must be in JSON format and can contain the same configuration as the global configuration file. Additionally, it can contain a map of slides to times, at which you want to finish the slide. These times are used to adjust the color of the timer.
 .
 .TP
 .BI "\-l \-\-toc-depth " integer
@@ -516,6 +521,11 @@ Set the command for an external renderer. This will set the default value of the
 If this option is set, the internal renderer can be used with the command line argument
 .RB \[dq] \-r " poppler\[dq]."
 .
+.SS Local configuration file
+.
+Additionally to the global configuration you can specify a local configuration file, which contains settings in JSON format. The local configuration overrides the global configuration and can be overridden by command line arguments. Since this file is in JSON format, the syntax of groups of arguments has to be adapted.
+.RI "E.g. instead of \[dq]" "timer/time = color1" " ...\[dq] you should write " "\[dq]timer\[dq]: {\[dq]time1\[dq]: \[dq]color1\[dq], \[dq]time2\[dq]: \[dq]color2\[dq]}," .
+.RB "The local configuration file may additionally contain a map " "page times" ", which defines times at which you want to finish certain slides. It has the format " "slide number: time" " where " time " is in the format mm:ss."
 .
 .SH BUGS
 .

@@ -70,6 +70,7 @@ void PresentationScreen::renderPage(int const pageNumber, bool const setDuration
     // Update video cache
     if (cacheVideos)
         videoCacheTimer->start();
+    emit pageChanged(presentation->getSlideNumber(pageNumber));
 }
 
 void PresentationScreen::updateVideoCache()

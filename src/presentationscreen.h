@@ -67,6 +67,7 @@ signals:
     void sendUpdateCache();
     void focusPageNumberEdit();
     void clearPresentationCacheRequest();
+    void pageChanged(int const pageNumber);
 
 public slots:
     void receiveNewPageNumber(const int pageNumber);

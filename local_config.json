@@ -1,0 +1,89 @@
+{
+	"presentation": "presentation.pdf",
+	"notes": "notes.pdf",
+	"time": "20:00",
+	"columns": 4,
+	"toc-depth": 2,
+
+	"page times": {
+		 "1":  "1:00",
+		 "2":  "2:00",
+		 "3":  "3:00",
+		 "4":  "4:00",
+		 "5":  "5:00",
+		 "6":  "6:00",
+		 "7":  "7:00",
+		 "8":  "8:00",
+		 "9":  "9:00",
+		"10": "10:00",
+		"11": "11:00",
+		"12": "12:00",
+		"13": "13:00",
+		"14": "14:00",
+		"15": "15:00",
+		"16": "16:00",
+		"17": "17:00",
+		"18": "18:00",
+		"19": "19:00",
+		"20": "20:00"
+	},
+
+	"presentation color": "black",
+	"notes background color": "#C0C0C0",
+	"notes text color": "black",
+
+	"autoplay": false,
+	"autoplay-emb": false,
+
+	"min-delay": 40,
+	"page-part": "none",
+
+	"timer": {
+		"-300": "#ffffff",
+		"-150": "#0080ff",
+		"0":    "#00ff00",
+		"150":  "#ffff00",
+		"300":  "#ff0000",
+		"600":  "#e00080"
+	},
+
+	"pid2wid": "/path/to/pid2wid.sh",
+	"embed": {},
+	"urlsplit": "&",
+
+	"scrollstep": 200,
+
+	"cache": -1,
+	"memory": 200,
+	"video-cache": false,
+
+	"renderer": "mutool draw -F png -w %width -h %height -o- %file %page",
+
+	"keys": {
+		"PgUp": "previous",
+		"PgDown": "next",
+		"Left": "previous",
+		"Right": "next",
+		"Up": "previous skipping overlays",
+		"Down": "next skipping overlays",
+		"g": "go to page",
+		"End": "last page",
+		"Home": "first page",
+		"Return": "sync from control screen",
+		"Escape": [ "sync from presentation screen", "hide TOC", "hide overview" ],
+		"t": "show TOC",
+		"s": "show overview",
+		"c": "update cache",
+		"p": "pause timer",
+		"r": "reset timer",
+		"o": "toggle cursor",
+		"m": "play multimedia",
+		"e": "start embedded applications current slide",
+		"Shift+e": "start all embedded applications",
+		"f": "full screen",
+		"F11": "full screen",
+		"u": "reload",
+		"q": "quit",
+		"space": "update"
+	}
+}

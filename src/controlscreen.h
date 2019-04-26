@@ -58,11 +58,12 @@ public:
     void setCacheSize(long int const size);
     void setTocLevel(int const level);
     void setOverviewColumns(int const columns) {overviewColumns=columns;}
-    bool setRenderer(QStringList command);
+    void setRenderer(QStringList command);
     void setCacheVideos(bool const cache) {presentationScreen->setCacheVideos(cache);}
     void setKeyMap(QMap<int, QList<int>>* keymap);
     void unsetKeyMapItem(const int key) {keymap->remove(key);}
     void setKeyMapItem(const int key, const int action);
+    void setTimerMap(QMap<int, QTime>& timeMap);
 
 protected:
     void keyPressEvent(QKeyEvent* event);

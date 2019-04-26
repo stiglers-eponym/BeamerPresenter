@@ -43,16 +43,19 @@ public:
     PdfDoc(QString pathToPdf = "");
     ~PdfDoc();
     bool loadDocument();
-    Poppler::Page* getPage(int pageNumber) const;
+
+    Poppler::Document const * getDoc() const {return popplerDoc;}
     QList<Poppler::Page*> const* getPages() const {return &pdfPages;}
+    Poppler::Page* getPage(int pageNumber) const;
+    QDomDocument const * getToc() const {return popplerDoc->toc();}
     QSize getPageSize(int const pageNumber) const;
     int getNextSlideIndex(int const index) const;
     int getPreviousSlideEnd(int const index) const;
-    void setPagePart(int const state) {pagePart = state;}
-    Poppler::Document const * getDoc() const {return popplerDoc;}
-    QDomDocument const * getToc() const {return popplerDoc->toc();}
+    int getSlideNumber(int const page) const {return pdfPages[page]->label().toInt();}
     int destToSlide(QString const & dest) const;
     QString const& getPath() {return pdfPath;}
+
+    void setPagePart(int const state) {pagePart = state;}
 };
 
 #endif // PDFWIDGET_H

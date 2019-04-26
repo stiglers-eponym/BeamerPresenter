@@ -36,7 +36,6 @@ Timer::Timer(QLineEdit* setTimerEdit, QWidget* parent) : QLabel(parent)
 Timer::~Timer()
 {
     timerEdit->disconnect();
-    timer->disconnect();
     delete timer;
 }
 
@@ -50,6 +49,7 @@ void Timer::setTimerWidget(QLineEdit* setTimerEdit)
 {
     timerEdit = setTimerEdit;
     timer = new QTimer(this);
+    connect(timerEdit, &QLineEdit::editingFinished, this, &Timer::setDeadline); // TODO: Check whether this causes problems.
     connect(timerEdit, &QLineEdit::returnPressed, this, &Timer::setDeadline);
     connect(timerEdit, &QLineEdit::returnPressed, this, &Timer::sendEscape);
     connect(timer, &QTimer::timeout, this, &Timer::showTime);
@@ -82,30 +82,17 @@ void Timer::setDeadline()
         qCritical() << "Unable to set timer";
         deadline = QTime(0,0,0,0);
         setText("00:00");
+        throw 1;
     }
+    if (timeMap.isEmpty())
+        currentFrameTime = &deadline;
     if (!running)
         timerPalette.setColor(QPalette::WindowText, Qt::gray);
-    int const diff = deadline.secsTo(time);
-    if (diff < 0)
+    if (deadline > time)
         emit sendNoAlert();
     else
         emit sendAlert();
-    if (diff <= colorTimes[0]) {
-        timerPalette.setColor(QPalette::Window, colors[0]);
-        setPalette(timerPalette);
-        return;
-    }
-    for (int i=1; i<colorTimes.length(); i++) {
-        if (diff <= colorTimes[i]) {
-            double rel = double(diff - colorTimes[i-1])/(colorTimes[i]-colorTimes[i-1]);
-            double irel = 1.-rel;
-            timerPalette.setColor(QPalette::Window, QColor(int(rel*colors[i].red()+irel*colors[i-1].red()), int(rel*colors[i].green()+irel*colors[i-1].green()), int(rel*colors[i].blue()+irel*colors[i-1].blue()), int(rel*colors[i].alpha()+irel*colors[i-1].alpha())));
-            setPalette(timerPalette);
-            return;
-        }
-    }
-    timerPalette.setColor(QPalette::Window, colors.last());
-    setPalette(timerPalette);
+    updateColor();
 }
 
 void Timer::pauseTimer()
@@ -153,9 +140,14 @@ void Timer::showTime()
         setText(time.toString("h:mm:ss"));
     else
         setText(time.toString("mm:ss"));
-    int const diff = deadline.secsTo(time);
-    if (diff == 0)
+    if (time == deadline)
         emit sendAlert();
+    updateColor();
+}
+
+void Timer::updateColor()
+{
+    int const diff = currentFrameTime->secsTo(time);
     if (diff <= colorTimes[0]) {
         timerPalette.setColor(QPalette::Window, colors[0]);
         setPalette(timerPalette);
@@ -172,4 +164,20 @@ void Timer::showTime()
     }
     timerPalette.setColor(QPalette::Window, colors.last());
     setPalette(timerPalette);
+}
+
+void Timer::setTimeMap(QMap<int, QTime> &timeMap)
+{
+    this->timeMap = timeMap;
+    if (timeMap.isEmpty())
+        currentFrameTime = &deadline;
+    else
+        currentFrameTime = &timeMap.last();
+}
+
+void Timer::setPage(int const page)
+{
+    if (!timeMap.isEmpty())
+        currentFrameTime = &*timeMap.upperBound(page);
+    updateColor();
 }

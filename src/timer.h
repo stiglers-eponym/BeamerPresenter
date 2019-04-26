@@ -34,12 +34,14 @@ public:
     Timer(QLineEdit* setTimerEdit, QWidget* parent = nullptr);
     ~Timer();
     void setTimerWidget(QLineEdit* setTimerEdit);
+    void setTimeMap(QMap<int, QTime>& timeMap);
 
 public slots:
     void setDeadline();
     void pauseTimer();
     void resetTimer();
     void continueTimer();
+    void setPage(int const page);
     void receiveTimerString(QString const & timerString);
     void receiveColors(QList<int> times, QList<QColor> colors) {colorTimes=times; this->colors=colors;}
 
@@ -52,6 +54,7 @@ signals:
     void sendEscape();
 
 private:
+    void updateColor();
     QLineEdit* timerEdit;
     QTime deadline = QTime(0,0,0,0);
     QTime time = QTime(0,0,0,0);
@@ -60,6 +63,8 @@ private:
     QList<int> colorTimes = {0};
     QList<QColor> colors = {Qt::white};
     QPalette timerPalette;
+    QMap<int, QTime> timeMap = {};
+    QTime const* currentFrameTime = &deadline;
 };
 
 #endif // TIMER_H

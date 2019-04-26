@@ -153,8 +153,9 @@ ControlScreen::ControlScreen(QString presentationPath, QString notesPath, QWidge
     connect(ui->label_timer, &Timer::sendNoAlert, this, &ControlScreen::resetTimerAlert);
     connect(ui->label_timer, &Timer::sendEscape,  this, &ControlScreen::resetFocus);
     // Signals sent back to the timer
-    connect(this, &ControlScreen::sendTimerString,     ui->label_timer, &Timer::receiveTimerString);
+    connect(this, &ControlScreen::sendTimerString, ui->label_timer, &Timer::receiveTimerString);
     connect(this, &ControlScreen::sendTimerColors, ui->label_timer, &Timer::receiveColors);
+    connect(presentationScreen, &PresentationScreen::pageChanged, ui->label_timer, &Timer::setPage);
 
     // Signals sent to the page labels
     // Autostart of media on the control screen can be enabled by uncommenting the following lines.
@@ -1040,7 +1041,7 @@ void ControlScreen::hideOverview()
     ui->notes_label->setFocus();
 }
 
-bool ControlScreen::setRenderer(QStringList command)
+void ControlScreen::setRenderer(QStringList command)
 {
     // Set a command for an external renderer.
     // This function also checks whether the command uses the arguments %file, %page, %width and %height
@@ -1048,35 +1049,35 @@ bool ControlScreen::setRenderer(QStringList command)
     if (command.size() == 1) {
         if (command[0]=="poppler") {
             cacheThread->setRenderer(Renderer::poppler);
-            return true;
+            return;
         }
         if (command[0]=="custom") {
             if (cacheThread->hasRenderCommand()) {
                 cacheThread->setRenderer(Renderer::custom);
-                return true;
+                return;
             }
             qCritical() << "Ignored request to use undefined custom renderer";
         }
         else
             qCritical() << "Ignored request to use custom renderer without arguments";
-        return false;
+        throw 1;
     }
     QString program = command[0];
     command.removeFirst();
     if (command.filter("%file").isEmpty()) {
         qCritical() << "Ignored request to use custom renderer without %file in arguments";
-        return false;
+        throw 2;
     }
     if (command.filter("%page").isEmpty()) {
         qCritical() << "Ignored request to use custom renderer without %page in arguments";
-        return false;
+        throw 3;
     }
     if (command.filter("%width").isEmpty())
         qWarning() << "Custom renderer does not use %width in arguments";
     if (command.filter("%height").isEmpty())
         qWarning() << "Custom renderer does not use %height in arguments";
     cacheThread->setCustomRenderer(program, presentation->getPath(), notes->getPath(), command);
-    return true;
+    return;
 }
 
 void ControlScreen::reloadFiles()
@@ -1153,4 +1154,11 @@ void ControlScreen::setKeyMapItem(const int key, const int action)
         keymap->insert(key, {action});
     else
         map_it->append(action);
+}
+
+void ControlScreen::setTimerMap(QMap<int, QTime> &timeMap)
+{
+    // Set times per slide for timer color change
+    ui->label_timer->setTimeMap(timeMap);
+    ui->label_timer->setPage(presentationScreen->getPageNumber());
 }
