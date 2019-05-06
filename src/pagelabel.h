@@ -30,43 +30,7 @@
 #include <poppler-qt5.h>
 #include "videowidget.h"
 #include "embedapp.h"
-
-enum PagePart {
-    LeftHalf = 1,
-    FullPage = 0,
-    RightHalf = -1,
-};
-
-enum KeyAction {
-    Previous,
-    Next,
-    PreviousCurrentScreen,
-    NextCurrentScreen,
-    PreviousSkippingOverlays,
-    NextSkippingOverlays,
-    GoToPage,
-    LastPage,
-    FirstPage,
-    SyncFromControlScreen,
-    SyncFromPresentationScreen,
-    Update,
-
-    UpdateCache,
-    StartEmbeddedCurrentSlide,
-    StartAllEmbedded,
-    PlayMultimedia,
-
-    PauseTimer,
-    ResetTimer,
-    ShowTOC,
-    HideTOC,
-    ShowOverview,
-    HideOverview,
-    ToggleCursor,
-    FullScreen,
-    Reload,
-    Quit
-};
+#include "enumerates.h"
 
 class PageLabel : public QLabel
 {

@@ -46,6 +46,7 @@ SOURCES += \
 
 HEADERS += \
         src/controlscreen.h \
+        src/enumerates.h \
         src/pdfdoc.h \
         src/presentationscreen.h \
         src/pagelabel.h \

@@ -24,6 +24,7 @@
 #include <QGridLayout>
 #include "overviewframe.h"
 #include "pdfdoc.h"
+#include "enumerates.h"
 
 class OverviewBox : public QScrollArea
 {
@@ -40,7 +41,7 @@ private:
 public:
     explicit OverviewBox(QWidget* parent = nullptr);
     ~OverviewBox();
-    void create(PdfDoc const* doc, int const columns = 5);
+    void create(PdfDoc const* doc, int const columns = 5, PagePart const pagePart = PagePart::FullPage);
     bool needsUpdate() {return outdated;}
     void setOutdated() {outdated=true;}
     void setFocused(int const page);

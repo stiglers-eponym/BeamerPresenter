@@ -37,41 +37,32 @@ bool PdfDoc::loadDocument()
     // Return true if a new document has been loaded and false otherwise.
     // If a document has been loaded before, this function checks whether the file has been updated and reloads it if necessary.
 
-    if (popplerDoc != nullptr) {
-        // Check whether the file has been updated
-        if (QFileInfo(pdfPath).lastModified() > lastModified) {
-            qDeleteAll(pdfPages);
-            pdfPages.clear();
-            labels.clear();
-            delete popplerDoc;
-        }
-        else
-            return false;
+    // Check if the file is valid and readable and save its last modification time
+    QFileInfo file = QFileInfo(pdfPath);
+    if (!file.exists() || !file.isFile()) {
+        qCritical() << "Trying to use a non-existing file:" << pdfPath;
+        return false;
     }
-    { // Check if the file is valid and readable and save its last modification time
-        QFileInfo file = QFileInfo(pdfPath);
-        if (!file.exists() || !file.isFile()) {
-            qCritical() << "Trying to use a non-existing file:" << pdfPath;
-            return false;
-        }
-        else if (!file.isReadable()) {
-            qCritical() << "Trying to use a unreadable file:" << pdfPath;
-            return false;
-        }
-        if (file.suffix().toLower() != "pdf")
-            qWarning() << "Interpreting the following file as PDF file:" << pdfPath;
-        lastModified = file.lastModified();
+    else if (!file.isReadable()) {
+        qCritical() << "Trying to use a unreadable file:" << pdfPath;
+        return false;
     }
+    if (file.suffix().toLower() != "pdf")
+        qWarning() << "Interpreting the following file as PDF file:" << pdfPath;
+
+    // Check whether the file has been updated
+    if (popplerDoc != nullptr && QFileInfo(pdfPath).lastModified() <= lastModified)
+        return false;
 
     // Load the file
-    popplerDoc = Poppler::Document::load(pdfPath);
-    if (popplerDoc == nullptr) {
+    Poppler::Document* newDoc = Poppler::Document::load(pdfPath);
+    if (newDoc == nullptr) {
         qCritical() << "Failed to open document";
         return false;
     }
     // PDF files can be locked.
     // Locked pdf files are not really supported, as you can see:
-    if (popplerDoc->isLocked()) {
+    if (newDoc->isLocked()) {
         // TODO: use a nicer way of entering passwords (a QDialog?)
         qCritical() << "Support for locked files is HIGHLY EXPERIMENTAL:";
         std::cout << "WARNING: File " << qPrintable(pdfPath) << ":\n"
@@ -84,19 +75,20 @@ bool PdfDoc::loadDocument()
         std::cin >> ownerPassword;
         std::cout << "User password (NOT HIDDEN!): ";
         std::cin >> userPassword;
-        if (!popplerDoc->unlock(QByteArray::fromStdString(ownerPassword), QByteArray::fromStdString(userPassword))) {
+        if (!newDoc->unlock(QByteArray::fromStdString(ownerPassword), QByteArray::fromStdString(userPassword))) {
             qCritical() << "Failed to unlock document";
+            delete newDoc;
             return false;
         }
     }
 
     // Set rendering hints
-    popplerDoc->setRenderHint(Poppler::Document::TextAntialiasing);
-    popplerDoc->setRenderHint(Poppler::Document::TextHinting);
-    popplerDoc->setRenderHint(Poppler::Document::TextSlightHinting);
-    popplerDoc->setRenderHint(Poppler::Document::Antialiasing);
-    popplerDoc->setRenderHint(Poppler::Document::ThinLineShape);
-    popplerDoc->setRenderHint(Poppler::Document::HideAnnotations);
+    newDoc->setRenderHint(Poppler::Document::TextAntialiasing);
+    newDoc->setRenderHint(Poppler::Document::TextHinting);
+    newDoc->setRenderHint(Poppler::Document::TextSlightHinting);
+    newDoc->setRenderHint(Poppler::Document::Antialiasing);
+    newDoc->setRenderHint(Poppler::Document::ThinLineShape);
+    newDoc->setRenderHint(Poppler::Document::HideAnnotations);
 
     // Clear old lists
     qDeleteAll(pdfPages);
@@ -104,19 +96,23 @@ bool PdfDoc::loadDocument()
     labels.clear();
 
     // Create new lists of pages and labels
-    for (int i=0; i < popplerDoc->numPages(); i++) {
-        Poppler::Page* p = popplerDoc->page(i);
+    for (int i=0; i < newDoc->numPages(); i++) {
+        Poppler::Page* p = newDoc->page(i);
         pdfPages.append(p);
         labels.append(p->label());
     }
 
     // Check document contents and print warnings if unimplemented features are found.
-    if (popplerDoc->hasOptionalContent())
+    if (newDoc->hasOptionalContent())
         qWarning() << "This file has optional content. Optional content is not supported.";
-    if (popplerDoc->hasEmbeddedFiles())
+    if (newDoc->hasEmbeddedFiles())
         qWarning() << "This file contains embedded files. Embedded files are not supported.";
-    if (popplerDoc->scripts().size() != 0)
+    if (newDoc->scripts().size() != 0)
         qWarning() << "This file contains JavaScript scripts. JavaScript is not supported.";
+
+    delete popplerDoc;
+    popplerDoc = newDoc;
+    lastModified = file.lastModified();
     return true;
 }
 

@@ -1024,7 +1024,7 @@ void ControlScreen::showOverview()
     if (overviewBox->needsUpdate()) {
         cacheThread->requestInterruption();
         cacheTimer->stop();
-        overviewBox->create(presentation, overviewColumns);
+        overviewBox->create(presentation, overviewColumns, pagePart);
     }
     if (!this->isActiveWindow())
         this->activateWindow();
@@ -1126,7 +1126,6 @@ void ControlScreen::reloadFiles()
     }
     // If one of the two files has changed: Reset cache region and render pages on control screen.
     if (change) {
-        qWarning() << "Reloading files is experimental!";
         first_cached = currentPageNumber;
         last_cached = first_cached-1;
         first_delete = 0;

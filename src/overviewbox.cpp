@@ -34,7 +34,7 @@ OverviewBox::~OverviewBox()
     frames.clear();
 }
 
-void OverviewBox::create(PdfDoc const* doc, int const columns)
+void OverviewBox::create(PdfDoc const* doc, int const columns, PagePart const pagePart)
 {
     qDeleteAll(frames);
     frames.clear();
@@ -47,11 +47,20 @@ void OverviewBox::create(PdfDoc const* doc, int const columns)
     double resolution;
     for (QList<Poppler::Page*>::const_iterator page_it=pages.cbegin(); page_it!=pages.cend(); page_it++, i++) {
         OverviewFrame* frame = new OverviewFrame((*page_it)->index(), columns, this);
-        // TODO: handle beamer option notes on second screen
         frames.append(frame);
         resolution = 72*frameWidth / (*page_it)->pageSize().width();
         layout->addWidget(frame, i/columns, i%columns);
-        frame->setPixmap(QPixmap::fromImage((*page_it)->renderToImage(resolution, resolution)));
+        QPixmap pixmap;
+        if (pagePart == FullPage)
+            pixmap = QPixmap::fromImage((*page_it)->renderToImage(resolution, resolution));
+        else {
+            QImage image = (*page_it)->renderToImage(2*resolution, 2*resolution);
+            if (pagePart == LeftHalf)
+                pixmap = QPixmap::fromImage(image.copy(0, 0, image.width()/2, image.height()));
+            else
+                pixmap = QPixmap::fromImage(image.copy(image.width()/2, 0, image.width()/2, image.height()));
+        }
+        frame->setPixmap(pixmap);
         connect(frame, &OverviewFrame::selected, this, &OverviewBox::sendPageNumber);
         connect(frame, &OverviewFrame::activated, this, &OverviewBox::setFocused);
         connect(frame, &OverviewFrame::sendReturn, this, &OverviewBox::sendReturn);
