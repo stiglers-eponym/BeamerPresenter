@@ -90,6 +90,7 @@ private:
     QMap<int,QMap<int,int>> embedMap;
     QList<EmbedApp*> embedApps;
     QList<QRect> embedPositions;
+    QTimer* const timeoutTimer = new QTimer(this);
     QTimer* const autostartTimer = new QTimer(this);
     QTimer* const autostartEmbeddedTimer = new QTimer(this);
     QSize oldSize = QSize();

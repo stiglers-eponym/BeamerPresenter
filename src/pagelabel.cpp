@@ -24,6 +24,8 @@ PageLabel::PageLabel(Poppler::Page* page, QWidget* parent) : QLabel(parent)
     connect(autostartEmbeddedTimer, &QTimer::timeout, this, [&](){startAllEmbeddedApplications(pageIndex);});
     autostartTimer->setSingleShot(true);
     connect(autostartTimer, &QTimer::timeout, this, &PageLabel::startAllMultimedia);
+    timeoutTimer->setSingleShot(true);
+    connect(timeoutTimer, &QTimer::timeout, this, &PageLabel::timeoutSignal);
     renderPage(page, false);
 }
 
@@ -33,11 +35,17 @@ PageLabel::PageLabel(QWidget* parent) : QLabel(parent)
     connect(autostartEmbeddedTimer, &QTimer::timeout, this, [&](){startAllEmbeddedApplications(pageIndex);});
     autostartTimer->setSingleShot(true);
     connect(autostartTimer, &QTimer::timeout, this, &PageLabel::startAllMultimedia);
+    timeoutTimer->setSingleShot(true);
+    connect(timeoutTimer, &QTimer::timeout, this, &PageLabel::timeoutSignal);
 }
 
 PageLabel::~PageLabel()
 {
+    timeoutTimer->stop();
+    autostartTimer->stop();
+    autostartEmbeddedTimer->stop();
     clearAll();
+    delete timeoutTimer;
     delete autostartTimer;
     delete autostartEmbeddedTimer;
 }
@@ -86,6 +94,7 @@ void PageLabel::clearLists()
 
 void PageLabel::renderPage(Poppler::Page* page, bool const setDuration, QPixmap const* pixmap)
 {
+    timeoutTimer->stop();
     if (page == nullptr)
         return;
 
@@ -202,13 +211,13 @@ void PageLabel::renderPage(Poppler::Page* page, bool const setDuration, QPixmap 
         duration = page->duration(); // duration of the current page in s
         // For durations longer than the minimum animation delay: use the duration
         if (duration*1000 > minimumAnimationDelay) {
-            QTimer::singleShot(int(1000*duration), this, &PageLabel::timeoutSignal);
+            timeoutTimer->start(int(1000*duration));
             if (duration < 0.5)
                 repaint();
         }
         // For durations of approximately 0: use the minimum animation delay
         else if (duration > -1e-6) {
-            QTimer::singleShot(minimumAnimationDelay, this, &PageLabel::timeoutSignal);
+            timeoutTimer->start(minimumAnimationDelay);
             repaint();
         }
     }

@@ -88,7 +88,8 @@ void PresentationScreen::receiveTimeoutSignal()
 
 void PresentationScreen::receiveNewPageNumber(const int pageNumber)
 {
-    renderPage(pageNumber, true);
+    // TODO: fix duration: define clearly when the duration is set and when not.
+    renderPage(pageNumber, pageNumber>pageIndex);
 }
 
 void PresentationScreen::receiveCloseSignal()
@@ -114,7 +115,7 @@ void PresentationScreen::keyPressEvent(QKeyEvent* event)
             {
                 int page = label->pageNumber() - 1;
                 if (page >= 0) {
-                    renderPage(page, true);
+                    renderPage(page, false);
                     if ( label->getDuration() < 0 || label->getDuration() > 0.5 )
                         emit sendPageShift();
                     if ( label->getDuration() < 0 || label->getDuration() > 0.5 )
@@ -129,13 +130,13 @@ void PresentationScreen::keyPressEvent(QKeyEvent* event)
             {
                 int page = label->pageNumber() - 1;
                 if (page >= 0)
-                    renderPage(page, true);
+                    renderPage(page, false);
             }
             break;
         case KeyAction::NextSkippingOverlays:
             {
                 int pageNumber = presentation->getNextSlideIndex(label->pageNumber());
-                renderPage(pageNumber, true);
+                renderPage(pageNumber, false);
                 emit sendNewPageNumber(pageNumber);
                 emit sendUpdateCache();
             }
@@ -143,7 +144,7 @@ void PresentationScreen::keyPressEvent(QKeyEvent* event)
         case KeyAction::PreviousSkippingOverlays:
             {
                 int pageNumber = presentation->getPreviousSlideEnd(label->pageNumber());
-                renderPage(pageNumber, true);
+                renderPage(pageNumber, false);
                 emit sendNewPageNumber(pageNumber);
                 emit sendUpdateCache();
             }
@@ -152,7 +153,7 @@ void PresentationScreen::keyPressEvent(QKeyEvent* event)
             emit focusPageNumberEdit();
             break;
         case KeyAction::Update:
-            renderPage(label->pageNumber(), true);
+            renderPage(label->pageNumber(), false);
             emit sendPageShift();
             emit sendUpdateCache();
             break;
@@ -176,7 +177,7 @@ void PresentationScreen::keyPressEvent(QKeyEvent* event)
 void PresentationScreen::resizeEvent(QResizeEvent* event)
 {
     label->clearCache();
-    label->renderPage(label->getPage(), true);
+    label->renderPage(label->getPage(), false);
     emit clearPresentationCacheRequest();
 }
 
