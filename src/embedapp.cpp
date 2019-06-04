@@ -105,7 +105,6 @@ void EmbedApp::clearProcess(int const exitCode, QProcess::ExitStatus const exitS
     }
     delete pid2widProcess;
     pid2widProcess = nullptr;
-    window->close();
     delete widget;
     widget = nullptr;
     window = nullptr;

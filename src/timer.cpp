@@ -172,13 +172,13 @@ void Timer::setTimeMap(QMap<int, QTime> &timeMap)
     if (timeMap.isEmpty())
         currentFrameTime = &deadline;
     else
-        currentFrameTime = &timeMap.last();
+        currentFrameTime = &timeMap.first();
 }
 
 void Timer::setPage(int const page)
 {
     if (!timeMap.isEmpty()) {
-        QMap<int, QTime>::const_iterator it = timeMap.upperBound(page);
+        QMap<int, QTime>::const_iterator it = timeMap.upperBound(page-1);
         if (it == timeMap.end())
             //currentFrameTime = &timeMap.last();
             currentFrameTime = &deadline;

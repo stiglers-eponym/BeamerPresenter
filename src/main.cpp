@@ -452,25 +452,60 @@ int main(int argc, char *argv[])
         bool ok;
         int key, min, sec;
         QStringList timeSplit;
+        QTime time;
         for (QVariantMap::const_iterator it=variantMap.cbegin(); it!=variantMap.cend(); it++) {
             key = it.key().toInt(&ok);
             if (!ok) {
                 qCritical() << "In local config / page times: Did not understand slide number" << it.key();
                 continue;
             }
-            timeSplit = it->toString().split(":");
-            if (timeSplit.length()==2) {
-                min = timeSplit[0].toInt(&ok);
-                if (ok) {
-                    sec = timeSplit[1].toInt(&ok);
-                    if (ok) {
-                        map.insert(key, QTime(0, min, sec));
-                        continue;
+            switch(it->toString().count(':')) {
+            case 0:
+                switch(it->toString().count('.')) {
+                case 0:
+                    time = QTime::fromString(it->toString(), "m");
+                    break;
+                case 1:
+                    time = QTime::fromString(it->toString(), "m.s");
+                    if (!time.isValid()) {
+                        time = QTime::fromString(it->toString(), "m.ss");
+                        if (!time.isValid()) {
+                            time = QTime::fromString(it->toString(), "mm.ss");
+                        }
+                    }
+                    break;
+                case 2:
+                    time = QTime::fromString(it->toString(), "h.mm.ss");
+                    if (!time.isValid())
+                        time = QTime::fromString(it->toString(), "h.m.s");
+                    break;
+                default:
+                    qCritical() << "In local config / page times: Did not understand time" << *it;
+                    continue;
+                }
+                break;
+            case 1:
+                time = QTime::fromString(it->toString(), "m:s");
+                if (!time.isValid()) {
+                    time = QTime::fromString(it->toString(), "m:ss");
+                    if (!time.isValid()) {
+                        time = QTime::fromString(it->toString(), "mm:ss");
                     }
                 }
+                break;
+            case 2:
+                time = QTime::fromString(it->toString(), "h:mm:ss");
+                if (!time.isValid())
+                    time = QTime::fromString(it->toString(), "h:m:s");
+                break;
+            default:
+                qCritical() << "In local config / page times: Did not understand time" << *it;
+                continue;
             }
-            qCritical() << "In local config / page times: Did not understand time" << *it << "Required format: \"mm:ss\"";
-            continue;
+            if (time.isValid())
+                map.insert(key, time);
+            else
+                qCritical() << "In local config / page times: Did not understand time" << *it;
         }
         w->setTimerMap(map);
     }
