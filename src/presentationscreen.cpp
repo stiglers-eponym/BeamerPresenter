@@ -99,7 +99,7 @@ void PresentationScreen::receiveCloseSignal()
 
 void PresentationScreen::keyPressEvent(QKeyEvent* event)
 {
-    QMap<int, QList<int>>::iterator map_it = keymap->find(event->key() + event->modifiers());
+    QMap<int, QList<int>>::iterator map_it = keymap->find(event->key() + static_cast<int>(event->modifiers()));
     if (map_it==keymap->end())
         return;
     for (QList<int>::const_iterator action_it=map_it->cbegin(); action_it!=map_it->cend(); action_it++) {

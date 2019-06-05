@@ -450,8 +450,7 @@ int main(int argc, char *argv[])
         QMap<int, QTime> map;
         QVariantMap variantMap = local["page times"].value<QVariantMap>();
         bool ok;
-        int key, min, sec;
-        QStringList timeSplit;
+        int key;
         QTime time;
         for (QVariantMap::const_iterator it=variantMap.cbegin(); it!=variantMap.cend(); it++) {
             key = it.key().toInt(&ok);

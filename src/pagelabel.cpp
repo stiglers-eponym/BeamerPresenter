@@ -266,7 +266,7 @@ void PageLabel::renderPage(Poppler::Page* page, bool const setDuration, QPixmap 
                 // Second case: There exists no process for this execution link.
                 // In this case we need to check, whether this application should be executed in an embedded window.
                 else if (idx==-1 || !embedApps[idx]->isStarted()) {
-                    Poppler::LinkExecute* const link = (Poppler::LinkExecute*) links[i];
+                    Poppler::LinkExecute* const link = static_cast<Poppler::LinkExecute*>(links[i]);
                     // Get file path (url) and arguments
                     QStringList splitFileName = QStringList();
                     if (!urlSplitCharacter.isEmpty())
@@ -372,7 +372,7 @@ void PageLabel::renderPage(Poppler::Page* page, bool const setDuration, QPixmap 
             videoWidgets.clear();
         }
         for (QList<Poppler::Annotation*>::const_iterator annotation=videos.cbegin(); annotation!=videos.cend(); annotation++) {
-            Poppler::MovieAnnotation* video = (Poppler::MovieAnnotation*) *annotation;
+            Poppler::MovieAnnotation* video = static_cast<Poppler::MovieAnnotation*>(*annotation);
             Poppler::MovieObject* movie = video->movie();
             bool found = false;
             for (QList<VideoWidget*>::iterator widget_it=cachedVideoWidgets.begin(); widget_it!=cachedVideoWidgets.end(); widget_it++) {
@@ -437,7 +437,7 @@ void PageLabel::renderPage(Poppler::Page* page, bool const setDuration, QPixmap 
                     notRepainted = false;
                 }
                 // Audio links
-                Poppler::SoundObject* sound = ((Poppler::LinkSound*) links[i])->sound();
+                Poppler::SoundObject* sound = static_cast<Poppler::LinkSound*>(links[i])->sound();
                 if (sound->soundType() == Poppler::SoundObject::Embedded) {
                     qWarning() << "Embedded sound files are not supported.";
                     break;
@@ -522,7 +522,7 @@ void PageLabel::renderPage(Poppler::Page* page, bool const setDuration, QPixmap 
             QList<QMediaPlayer*> oldSounds = soundPlayers;
             soundPlayers.clear();
             for (QList<Poppler::Annotation*>::const_iterator annotation=sounds.cbegin(); annotation!=sounds.cend(); annotation++) {
-                Poppler::SoundObject* sound = ((Poppler::SoundAnnotation*) *annotation)->sound();
+                Poppler::SoundObject* sound = static_cast<Poppler::SoundAnnotation*>(*annotation)->sound();
                 bool found=false;
                 QUrl url = QUrl(sound->url(), QUrl::TolerantMode);
                 QStringList splitFileName = QStringList();
@@ -600,7 +600,7 @@ void PageLabel::renderPage(Poppler::Page* page, bool const setDuration, QPixmap 
                             ));
                 }
 
-                Poppler::SoundObject* sound = ((Poppler::SoundAnnotation*) *it)->sound();
+                Poppler::SoundObject* sound = static_cast<Poppler::SoundAnnotation*>(*it)->sound();
                 QMediaPlayer* player = new QMediaPlayer(this, QMediaPlayer::LowLatency);
                 QUrl url = QUrl(sound->url(), QUrl::TolerantMode);
                 QStringList splitFileName = QStringList();
@@ -682,7 +682,7 @@ void PageLabel::updateCacheVideos(const Poppler::Page *page)
     videoType.insert(Poppler::Annotation::AMovie);
     QList<Poppler::Annotation*> videos = page->annotations(videoType);
     for (QList<Poppler::Annotation*>::const_iterator annotation=videos.cbegin(); annotation!=videos.cend(); annotation++) {
-        Poppler::MovieAnnotation* video = (Poppler::MovieAnnotation*) *annotation;
+        Poppler::MovieAnnotation* video = static_cast<Poppler::MovieAnnotation*>(*annotation);
         Poppler::MovieObject* movie = video->movie();
         bool found = false;
         for (QList<VideoWidget*>::iterator widget_it=cachedVideoWidgets.begin(); widget_it!=cachedVideoWidgets.end(); widget_it++) {
@@ -951,8 +951,15 @@ void PageLabel::mouseReleaseEvent(QMouseEvent* event)
                 switch ( links[i]->linkType() )
                 {
                     case Poppler::Link::Goto:
-                        // Link to an other page
-                        emit sendNewPageNumber( ((Poppler::LinkGoto*) links[i])->destination().pageNumber() - 1 );
+                        if (static_cast<Poppler::LinkGoto*>(links[i])->isExternal()) {
+                            // Link to an other document
+                            QString filename = static_cast<Poppler::LinkGoto*>(links[i])->fileName();
+                            QDesktopServices::openUrl(QUrl(filename, QUrl::TolerantMode));
+                        }
+                        else {
+                            // Link to an other page
+                            emit sendNewPageNumber( static_cast<Poppler::LinkGoto*>(links[i])->destination().pageNumber() - 1 );
+                        }
                         return;
                     case Poppler::Link::Execute:
                         // Handle execution links, which are marked for execution as an embedded application.
@@ -977,7 +984,7 @@ void PageLabel::mouseReleaseEvent(QMouseEvent* event)
                         }
                         // Execution links not marked for embedding are handed to the desktop services.
                         else {
-                            Poppler::LinkExecute* link = (Poppler::LinkExecute*) links[i];
+                            Poppler::LinkExecute* link = static_cast<Poppler::LinkExecute*>(links[i]);
                             QStringList splitFileName = QStringList();
                             if (!urlSplitCharacter.isEmpty())
                                 splitFileName = link->fileName().split(urlSplitCharacter);
@@ -990,11 +997,11 @@ void PageLabel::mouseReleaseEvent(QMouseEvent* event)
                         break;
                     case Poppler::Link::Browse:
                         // Link to file or website
-                        QDesktopServices::openUrl( QUrl(((Poppler::LinkBrowse*) links[i])->url(), QUrl::TolerantMode) );
+                        QDesktopServices::openUrl( QUrl(static_cast<Poppler::LinkBrowse*>(links[i])->url(), QUrl::TolerantMode) );
                         break;
                     case Poppler::Link::Action:
                         {
-                            Poppler::LinkAction* link = (Poppler::LinkAction*) links[i];
+                            Poppler::LinkAction* link = static_cast<Poppler::LinkAction*>(links[i]);
                             switch (link->actionType())
                             {
                                 case Poppler::LinkAction::Quit:
@@ -1039,12 +1046,12 @@ void PageLabel::mouseReleaseEvent(QMouseEvent* event)
                                     // TODO: implement this
                                     qInfo() << "Unsupported link action: history forward.";
                                     break;
-                            };
+                            }
                         }
                         break;
                     case Poppler::Link::Sound:
                         {
-                            Poppler::LinkSound* link = (Poppler::LinkSound*) links[i];
+                            Poppler::LinkSound* link = static_cast<Poppler::LinkSound*>(links[i]);
                             Poppler::SoundObject* sound = link->sound();
                             if (sound->soundType() == Poppler::SoundObject::External) {
                                 if (soundLinkPlayers[i]->state() == QMediaPlayer::PlayingState)
@@ -1060,7 +1067,7 @@ void PageLabel::mouseReleaseEvent(QMouseEvent* event)
                         {
                             qInfo() << "Unsupported link of type video. If this works, you should be surprised.";
                             // I don't know if the following lines make any sense.
-                            Poppler::LinkMovie* link = (Poppler::LinkMovie*) links[i];
+                            Poppler::LinkMovie* link = static_cast<Poppler::LinkMovie*>(links[i]);
                             Q_FOREACH(VideoWidget* video, videoWidgets) {
                                 if (link->isReferencedAnnotation(video->getAnnotation()))
                                     video->play();
@@ -1192,7 +1199,7 @@ void PageLabel::initEmbeddedApplications(Poppler::Page const* page)
     for (int i=0; i<links.length(); i++) {
         if (links[i]->linkType()==Poppler::Link::Execute && !(embedMap.contains(index) && embedMap[index].contains(i))) {
             // Execution links can point to applications, which should be embedded in the presentation
-            Poppler::LinkExecute* const link = (Poppler::LinkExecute*) links[i];
+            Poppler::LinkExecute* const link = static_cast<Poppler::LinkExecute*>(links[i]);
             // Get file path (url) and arguments
             QStringList splitFileName = QStringList();
             if (!urlSplitCharacter.isEmpty())

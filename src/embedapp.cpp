@@ -180,7 +180,7 @@ void EmbedApp::create(const WId wid)
     window->show();
     window->hide();
     // Turn the window into a widget, which can be embedded in the presentation (or control) window:
-    widget = QWidget::createWindowContainer(window, (QWidget*) parent());
+    widget = QWidget::createWindowContainer(window, static_cast<QWidget*>(parent()));
     emit widgetReady(this);
 }
 
