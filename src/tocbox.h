@@ -23,6 +23,8 @@
 #include <QMenu>
 #include <QVBoxLayout>
 #include <QDomDocument>
+#include <QGuiApplication>
+#include <QComboBox>
 #include "tocbutton.h"
 #include "tocaction.h"
 

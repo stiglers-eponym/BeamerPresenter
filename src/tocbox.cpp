@@ -72,22 +72,54 @@ void TocBox::recursiveTocCreator(QDomNode const& n, int const level)
         }
     }
     else if (!n1.isNull()) {
-        QMenu* menu = new QMenu(dest, this);
-        QString const dest = e.attribute("DestinationName", "");
-        TocAction * action = new TocAction(indentStrings[0] + e.tagName(), dest, this);
-        connect(action, &TocAction::activated, this, [&](QString const dest){sendDest(dest);});
-        menu->addAction(action);
-        while (!n1.isNull()) {
-            QDomElement e = n1.toElement();
-            if (e.isNull())
-                continue;
+        if (QGuiApplication::platformName() == "wayland") {
+            // Unstable patch because menus don't work in wayland (at least on my system)
+            button->disconnect();
+            QWidget * list = new QWidget(this);
+            list->setLocale(button->locale());
+            connect(button, &TocButton::clicked, list, &QWidget::show);
+            QVBoxLayout * listLayout = new QVBoxLayout(list);
+            list->setLayout(listLayout);
+            list->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+            listLayout->setSizeConstraint(QVBoxLayout::SetMinimumSize);
             QString const dest = e.attribute("DestinationName", "");
-            TocAction * action = new TocAction(indentStrings[1] + e.tagName(), dest, this);
+            TocButton * button = new TocButton(indentStrings[0] + e.tagName(), dest, list);
+            connect(button, &TocButton::activated, this, [&](QString const dest){sendDest(dest);});
+            connect(button, &TocButton::activated, list, &QWidget::hide);
+            listLayout->addWidget(button);
+            while (!n1.isNull()) {
+                QDomElement e = n1.toElement();
+                if (e.isNull())
+                    continue;
+                QString const dest = e.attribute("DestinationName", "");
+                TocButton * button = new TocButton(indentStrings[1] + e.tagName(), dest, list);
+                connect(button, &TocButton::activated, this, [&](QString const dest){sendDest(dest);});
+                connect(button, &TocButton::activated, list, &QWidget::hide);
+                listLayout->addWidget(button);
+                n1 = n1.nextSibling();
+            }
+            list->setAutoFillBackground(true);
+            list->hide();
+        }
+        else {
+            QMenu* menu = new QMenu(dest, this);
+            menus.append(menu);
+            QString const dest = e.attribute("DestinationName", "");
+            TocAction * action = new TocAction(indentStrings[0] + e.tagName(), dest, this);
             connect(action, &TocAction::activated, this, [&](QString const dest){sendDest(dest);});
             menu->addAction(action);
-            n1 = n1.nextSibling();
+            while (!n1.isNull()) {
+                QDomElement e = n1.toElement();
+                if (e.isNull())
+                    continue;
+                QString const dest = e.attribute("DestinationName", "");
+                TocAction * action = new TocAction(indentStrings[1] + e.tagName(), dest, this);
+                connect(action, &TocAction::activated, this, [&](QString const dest){sendDest(dest);});
+                menu->addAction(action);
+                n1 = n1.nextSibling();
+            }
+            button->setMenu(menu);
         }
-        button->setMenu(menu);
     }
 }
 
