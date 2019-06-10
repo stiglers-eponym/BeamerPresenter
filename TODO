@@ -1,5 +1,7 @@
 BeamerPresenter
 
+* App freezes in wayland if one window is invisible
+
 * Draw in presentation
 
 * Segfaults when embedded applications stop or get closed?

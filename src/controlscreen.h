@@ -64,8 +64,6 @@ public:
     void unsetKeyMapItem(const int key) {keymap->remove(key);}
     void setKeyMapItem(const int key, const int action);
     void setTimerMap(QMap<int, QTime>& timeMap);
-    void setTransitionFrameTime(int const time) {presentationScreen->getLabel()->setTransitionFrameTime(time);}
-    void setTransitionBlinds(int const blinds) {presentationScreen->getLabel()->setTransitionBlinds(blinds);}
 
 protected:
     void keyPressEvent(QKeyEvent* event);

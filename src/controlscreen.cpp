@@ -337,6 +337,7 @@ void ControlScreen::resetTimerAlert()
 
 void ControlScreen::renderPage(int const pageNumber)
 {
+    qDebug() << "Called ControlScreen::renderPage" << pageNumber;
     // Update all page labels on the control screen to show the given page number.
     // This uses cached pages if such are available.
 
@@ -354,11 +355,13 @@ void ControlScreen::renderPage(int const pageNumber)
 
     // Update the notes label
     // The note document could have fewer pages than the presentation document:
+    qDebug() << "Render note page" << currentPageNumber;
     if (currentPageNumber < notes->getDoc()->numPages())
         ui->notes_label->renderPage(notes->getPage(currentPageNumber), false);
     else
         qWarning() << "Reached the end of the note file.";
 
+    qDebug() << "Render small slide labels" << currentPageNumber;
     // Update the current and next slide label.
     // If we have not reached the last page (there exists a next page):
     if (currentPageNumber + 1 < presentation->getDoc()->numPages()) {
@@ -367,9 +370,8 @@ void ControlScreen::renderPage(int const pageNumber)
             // Render the next slide to the current slide label's cache
             ui->current_slide_label->updateCache(presentation->getPage(currentPageNumber+1));
             // Now show the cached page on the next slide label
-            QPixmap const* pixmap = ui->current_slide_label->getCache(currentPageNumber+1);
-            ui->next_slide_label->renderPage(presentation->getPage(currentPageNumber+1), false, pixmap);
-            delete pixmap;
+            QPixmap const pixmap = ui->current_slide_label->getCache(currentPageNumber+1);
+            ui->next_slide_label->renderPage(presentation->getPage(currentPageNumber+1), false, &pixmap);
         }
         else // No cache: this is inefficient.
             ui->next_slide_label->renderPage(presentation->getPage(currentPageNumber+1));
@@ -377,18 +379,16 @@ void ControlScreen::renderPage(int const pageNumber)
     else { // If we have not reached the last page (there is no next page)
         // Get page and pixmap for current page.
         Poppler::Page* page = presentation->getPage(currentPageNumber);
-        QPixmap const* pixmap = ui->current_slide_label->getCache(currentPageNumber);
+        QPixmap pixmap = ui->current_slide_label->getCache(currentPageNumber);
         // Show the page on the current and next slide label.
-        if (pixmap->isNull()) {
+        if (pixmap.isNull()) {
             // The page was not cached. Render it on current slide label.
             ui->current_slide_label->renderPage(page);
-            delete pixmap;
             pixmap = ui->current_slide_label->getCache(currentPageNumber);
         }
         else
-            ui->current_slide_label->renderPage(page, false, pixmap);
-        ui->next_slide_label->renderPage(page, false, pixmap);
-        delete pixmap;
+            ui->current_slide_label->renderPage(page, false, &pixmap);
+        ui->next_slide_label->renderPage(page, false, &pixmap);
     }
     // Update the page number
     ui->text_current_slide->setText(QString::number(currentPageNumber+1));

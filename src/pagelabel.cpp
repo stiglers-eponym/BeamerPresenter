@@ -18,7 +18,7 @@
 
 #include "pagelabel.h"
 
-PageLabel::PageLabel(Poppler::Page* page, QWidget* parent) : QLabel(parent)
+PageLabel::PageLabel(Poppler::Page* page, QWidget* parent) : QOpenGLWidget(parent)
 {
     autostartEmbeddedTimer->setSingleShot(true);
     connect(autostartEmbeddedTimer, &QTimer::timeout, this, [&](){startAllEmbeddedApplications(pageIndex);});
@@ -29,7 +29,7 @@ PageLabel::PageLabel(Poppler::Page* page, QWidget* parent) : QLabel(parent)
     renderPage(page, false);
 }
 
-PageLabel::PageLabel(QWidget* parent) : QLabel(parent)
+PageLabel::PageLabel(QWidget* parent) : QOpenGLWidget(parent)
 {
     autostartEmbeddedTimer->setSingleShot(true);
     connect(autostartEmbeddedTimer, &QTimer::timeout, this, [&](){startAllEmbeddedApplications(pageIndex);});
@@ -45,20 +45,9 @@ PageLabel::~PageLabel()
     autostartTimer->stop();
     autostartEmbeddedTimer->stop();
     clearAll();
-    delete transitionWidget;
     delete timeoutTimer;
     delete autostartTimer;
     delete autostartEmbeddedTimer;
-}
-
-void PageLabel::setPresentationStatus(const bool status)
-{
-    isPresentation = status;
-    if (isPresentation && transitionWidget==nullptr) {
-        transitionWidget = new TransitionWidget(this);
-        transitionWidget->show();
-    }
-    transitionWidget->hide();
 }
 
 void PageLabel::clearAll()
@@ -103,8 +92,9 @@ void PageLabel::clearLists()
     soundLinkPlayers.clear();
 }
 
-void PageLabel::renderPage(Poppler::Page* page, bool const setDuration, QPixmap const* pixmap)
+void PageLabel::renderPage(Poppler::Page* page, bool const setDuration, QPixmap const* pix)
 {
+    qDebug() << "Called render page" << geometry() << isPresentation;
     timeoutTimer->stop();
     if (page == nullptr)
         return;
@@ -136,8 +126,7 @@ void PageLabel::renderPage(Poppler::Page* page, bool const setDuration, QPixmap 
     // This is given in point = inch/72 ≈ 0.353mm (Did they choose these units to bother programmers?)
 
     // Place the page as an image of the correct size at the correct position
-    // The lower left corner of the image will be located at (shift_x, shift_y)
-    int shift_x=0, shift_y=0;
+    // The lower left corner of the image will be located at (shiftx, shifty)
     int pageHeight=pageSize.height(), pageWidth=pageSize.width();
     // The page image must be split if the beamer option "notes on second screen" is set.
     if (pagePart != FullPage)
@@ -147,22 +136,14 @@ void PageLabel::renderPage(Poppler::Page* page, bool const setDuration, QPixmap 
     if (width() * pageHeight > height() * pageWidth) {
         // the width of the label is larger than required
         resolution = double(height()) / pageHeight;
-        shift_x = int(width()/2 - resolution/2 * pageWidth);
-        if (isPresentation) {
-            transitionWidget->setGeometry(shift_x, 0, width()-2*shift_x, height());
-            transitionWidget->show();
-            transitionWidget->hide();
-        }
+        shiftx = int(width()/2 - resolution/2 * pageWidth);
+        shifty = 0;
     }
     else {
         // the height of the label is larger than required
         resolution = double(width()) / pageWidth;
-        shift_y = int(height()/2 - resolution/2 * pageHeight);
-        if (isPresentation) {
-            transitionWidget->setGeometry(0, shift_y, width(), height()-2*shift_y);
-            transitionWidget->show();
-            transitionWidget->hide();
-        }
+        shifty = int(height()/2 - resolution/2 * pageHeight);
+        shiftx = 0;
     }
 
     // Calculate the size of the image relative to the label size
@@ -172,55 +153,47 @@ void PageLabel::renderPage(Poppler::Page* page, bool const setDuration, QPixmap 
         scale_x *= 2;
         // If only the right half of the page will be shown, the position of the page (relevant for link positions) must be adjusted.
         if (pagePart == RightHalf)
-            shift_x -= width();
+            shiftx -= width();
     }
 
-    // Display the image
-    if (pixmap != nullptr) {
+    // Get the image
+    if (pix != nullptr) {
         // A pixmap was passed to this function. Display this pixmap as the page image.
         if (pagePart != FullPage) {
             // The pixmap might show both notes and presentation.
             // Check the width to decide whether the image shows only the relevant part or the full page.
-            QPixmap const* oldPixmap = this->pixmap();
-            int referenceWidth;
-            if (oldPixmap==nullptr || oldPixmap->isNull())
-                referenceWidth = int(1.5*width());
-            else
-                referenceWidth = int(1.9*oldPixmap->width());
-            if (pixmap->width() > referenceWidth) {
+            if (pix->width() > 1.5*pixmap.width()) {
                 // Assume that the pixmap shows notes and presentation.
                 if (pagePart == LeftHalf)
-                    changePixmap(pixmap->copy(0, 0, pixmap->width()/2, pixmap->height()));
+                    pixmap = pix->copy(0, 0, pix->width()/2, pix->height());
                 else
-                    changePixmap(pixmap->copy(pixmap->width()/2, 0, pixmap->width()/2, pixmap->height()));
+                    pixmap = pix->copy(pix->width()/2, 0, pix->width()/2, pix->height());
             }
             else
-                changePixmap(*pixmap);
+                pixmap = *pix;
         }
         else
-            changePixmap(*pixmap);
+            pixmap = *pix;
     }
     else if (cache.contains(pageIndex)) {
         // There exists a cached image for this page. Display this image as the page image.
-        // TODO: Is this efficient? It doesn't look like...
-        QPixmap const* pixmap = getCache(pageIndex);
-        changePixmap(pixmap->copy());
-        delete pixmap;
+        pixmap = getCache(pageIndex);
     }
     else {
         // A new page image has to be rendered.
-        QPixmap const pixmap = getPixmap(page);
-        changePixmap(pixmap);
+        pixmap = getPixmap(page);
         // Save this image to cache.
         if (useCache)
             updateCache(&pixmap, page->index());
     }
+    if (isPresentation)
+        animate();
 
     // Show the page on the screen.
     // One could show the page in any case to make it slightly more responsive, but this can lead to a short interruption by a different image.
     // All operations before the next call to repaint() are usually very fast.
     if (!showMultimedia)
-        repaint();
+        update();
 
     // Presentation slides can have a "duration" property.
     // In this case: go to the next page after that given time.
@@ -230,12 +203,12 @@ void PageLabel::renderPage(Poppler::Page* page, bool const setDuration, QPixmap 
         if (duration*1000 > minimumAnimationDelay) {
             timeoutTimer->start(int(1000*duration));
             if (duration < 0.5)
-                repaint();
+                update();
         }
         // For durations of approximately 0: use the minimum animation delay
         else if (duration > -1e-6) {
             timeoutTimer->start(minimumAnimationDelay);
-            repaint();
+            update();
         }
     }
 
@@ -244,8 +217,8 @@ void PageLabel::renderPage(Poppler::Page* page, bool const setDuration, QPixmap 
     Q_FOREACH(Poppler::Link* link, links) {
         QRectF relative = link->linkArea();
         linkPositions.append(QRect(
-                    shift_x+int(relative.x()*scale_x),
-                    shift_y+int(relative.y()*scale_y),
+                    shiftx+int(relative.x()*scale_x),
+                    shifty+int(relative.y()*scale_y),
                     int(relative.width()*scale_x),
                     int(relative.height()*scale_y)
                 ));
@@ -361,7 +334,7 @@ void PageLabel::renderPage(Poppler::Page* page, bool const setDuration, QPixmap 
         // When a method is reached, which can take long time, the widget will be repainted if (notRepainted==true).
         bool notRepainted = true;
         if (!cacheVideos || autostartDelay < -0.01 || autostartDelay > 0.01) {
-            repaint();
+            update();
             notRepainted = false;
         }
 
@@ -404,8 +377,8 @@ void PageLabel::renderPage(Poppler::Page* page, bool const setDuration, QPixmap 
             }
             QRectF relative = video->boundary();
             videoPositions.append(QRect(
-                    shift_x+int(relative.x()*scale_x),
-                    shift_y+int(relative.y()*scale_y),
+                    shiftx+int(relative.x()*scale_x),
+                    shifty+int(relative.y()*scale_y),
                     int(relative.width()*scale_x),
                     int(relative.height()*scale_y)
                 ));
@@ -413,7 +386,7 @@ void PageLabel::renderPage(Poppler::Page* page, bool const setDuration, QPixmap 
                 delete video;
             else {
                 if (notRepainted) {
-                    repaint();
+                    update();
                     notRepainted = false;
                 }
                 qDebug() << "Loading new video widget:" << movie->url();
@@ -450,7 +423,7 @@ void PageLabel::renderPage(Poppler::Page* page, bool const setDuration, QPixmap 
             if (links[i]->linkType() == Poppler::Link::Sound) {
                 // This can take relatively long. Repainting here is usually reasonable.
                 if (notRepainted) {
-                    repaint();
+                    update();
                     notRepainted = false;
                 }
                 // Audio links
@@ -531,7 +504,7 @@ void PageLabel::renderPage(Poppler::Page* page, bool const setDuration, QPixmap 
         }
         else if (isOverlay && !soundPlayers.isEmpty()) {
             if (notRepainted) {
-                repaint();
+                update();
                 notRepainted = false;
             }
             // Untested!
@@ -581,8 +554,8 @@ void PageLabel::renderPage(Poppler::Page* page, bool const setDuration, QPixmap 
                 }
                 QRectF relative = (*annotation)->boundary();
                 videoPositions.append(QRect(
-                        shift_x+int(relative.x()*scale_x),
-                        shift_y+int(relative.y()*scale_y),
+                        shiftx+int(relative.x()*scale_x),
+                        shifty+int(relative.y()*scale_y),
                         int(relative.width()*scale_x),
                         int(relative.height()*scale_y)
                     ));
@@ -602,7 +575,7 @@ void PageLabel::renderPage(Poppler::Page* page, bool const setDuration, QPixmap 
         }
         else {
             if (notRepainted) {
-                repaint();
+                update();
                 notRepainted = false;
             }
             for (QList<Poppler::Annotation*>::const_iterator it = sounds.cbegin(); it!=sounds.cend(); it++) {
@@ -610,8 +583,8 @@ void PageLabel::renderPage(Poppler::Page* page, bool const setDuration, QPixmap 
                 {
                     QRectF relative = (*it)->boundary();
                     soundPositions.append(QRect(
-                                shift_x+int(relative.x()*scale_x),
-                                shift_y+int(relative.y()*scale_y),
+                                shiftx+int(relative.x()*scale_x),
+                                shifty+int(relative.y()*scale_y),
                                 int(relative.width()*scale_x),
                                 int(relative.height()*scale_y)
                             ));
@@ -668,7 +641,7 @@ void PageLabel::renderPage(Poppler::Page* page, bool const setDuration, QPixmap 
                 startAllMultimedia();
         }
         if (notRepainted)
-            repaint();
+            update();
 
         // Autostart embedded applications if the option is set in BeamerPresenter
         if (embedMap.contains(pageIndex)) {
@@ -684,25 +657,20 @@ void PageLabel::renderPage(Poppler::Page* page, bool const setDuration, QPixmap 
         if (newSliders!=0)
             emit requestMultimediaSliders(newSliders);
     }
+    qDebug() << "Exit render page";
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 //// Cache management and image rendering
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void PageLabel::changePixmap(const QPixmap pixmap)
+void PageLabel::paintEvent(QPaintEvent *event)
 {
-    // Set pixmap of this.
-    // If this is the presentation label, show slide transitions.
-    if (isPresentation) {
-        if (page->transition() != nullptr) {
-            transitionWidget->shiftImages(pixmap);
-            transitionWidget->animate(page->transition());
-        }
-        else
-            transitionWidget->hide();
-    }
-    setPixmap(pixmap);
+    QPainter painter;
+    painter.begin(this);
+    painter.fillRect(rect(), background);
+    painter.drawPixmap(shiftx, shifty, pixmap);
+    painter.end();
 }
 
 void PageLabel::updateCacheVideos(const Poppler::Page *page)
@@ -796,9 +764,7 @@ QPixmap PageLabel::getPixmap(Poppler::Page const* cachePage) const
     QPixmap pixmap;
     if (cache.contains(cachePage->index())) {
         // The page exists in cache. Use the cache instead of rendering it again.
-        QPixmap const* pixpointer = getCache(cachePage->index());
-        pixmap = *pixpointer;
-        delete pixpointer;
+        pixmap = getCache(cachePage->index());
     }
     else if (pagePart == FullPage)
         pixmap = QPixmap::fromImage(cachePage->renderToImage(72*resolution, 72*resolution));
@@ -812,30 +778,23 @@ QPixmap PageLabel::getPixmap(Poppler::Page const* cachePage) const
     return pixmap;
 }
 
-QPixmap const* PageLabel::getCache(int const index) const
+QPixmap const PageLabel::getCache(int const index) const
 {
     // Get a pixmap from cache.
-    QPixmap* pixmap = new QPixmap();
+    QPixmap pixmap;
     if (cache.contains(index)) {
-        pixmap->loadFromData(*cache[index], "PNG");
+        pixmap.loadFromData(*cache[index], "PNG");
         // If an external renderer is used, cached images always show the full page.
         // But if pagePart != FullPage, only one half of the image should be shown.
         if (pagePart != FullPage) {
             // The cached pixmap might show both notes and presentation.
             // Check the width to decide whether the image shows only the relevant part or the full page.
-            int referenceWidth;
-            if (this->pixmap()==nullptr || this->pixmap()->isNull())
-                referenceWidth = int(1.5*width());
-            else
-                referenceWidth = int(1.9*this->pixmap()->width());
-            if (pixmap->width() > referenceWidth) {
+            if (pixmap.width() > 1.5*width()) {
                 // Assume that the pixmap shows notes and presentation.
-                QPixmap* oldpixmap = pixmap;
                 if (pagePart == LeftHalf)
-                    pixmap = new QPixmap(pixmap->copy(0, 0, pixmap->width()/2, pixmap->height()));
+                    pixmap = pixmap.copy(0, 0, pixmap.width()/2, pixmap.height());
                 else
-                    pixmap = new QPixmap(pixmap->copy(pixmap->width()/2, 0, pixmap->width()/2, pixmap->height()));
-                delete oldpixmap;
+                    pixmap = pixmap.copy(pixmap.width()/2, 0, pixmap.width()/2, pixmap.height());
             }
         }
     }

@@ -19,13 +19,15 @@
 #ifndef PRESENTATIONSCREEN_H
 #define PRESENTATIONSCREEN_H
 
+#include <QOpenGLWidget>
 #include <QKeyEvent>
 #include <QWheelEvent>
 #include <QGridLayout>
 #include "pdfdoc.h"
 #include "pagelabel.h"
+#include "transitionwidget.h"
 
-class PresentationScreen : public QWidget
+class PresentationScreen : public QOpenGLWidget
 {
     Q_OBJECT
 
@@ -50,7 +52,7 @@ private:
     QTimer* videoCacheTimer = new QTimer();
     QGridLayout* layout;
     PdfDoc* presentation;
-    PageLabel* label;
+    TransitionWidget* label;
     int numberOfPages;
     int pageIndex;
     int scrollDelta = 200;

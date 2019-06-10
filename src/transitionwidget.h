@@ -25,31 +25,32 @@
 #include <QDebug>
 #include <QTimer>
 #include <poppler-page-transition.h>
+#include "pagelabel.h"
 
-class TransitionWidget : public QOpenGLWidget
+class TransitionWidget : public PageLabel
 {
     Q_OBJECT
 
 private:
     int elapsed = 0;  // in ms
-    int duration = 0; // in ms
+    int transition_duration = 0; // in ms
     int dt = 25;      // in ms
     int n_blinds = 8;
     int picwidth;
     int picheight;
-    QPixmap picinit;
-    QPixmap picfinal;
     QTimer timer;
     QPainter painter;
     void (TransitionWidget::*paint)();
+
+protected:
+    QPixmap picinit;
+    void paintEvent(QPaintEvent* event) override;
+    void animate() override;
 
 public:
     TransitionWidget(QWidget* parent=nullptr);
     void setFrameTime(int const time) {dt=time;}
     void setBlinds(int const blinds) {n_blinds=blinds;}
-    void shiftImages(QPixmap const pic);
-    void animate(Poppler::PageTransition const* transition);
-    void animationStep();
     void paintSplitHI();
     void paintSplitVI();
     void paintSplitHO();

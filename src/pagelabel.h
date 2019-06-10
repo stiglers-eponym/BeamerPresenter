@@ -20,7 +20,8 @@
 #define PAGE_H
 
 #include <QWidget>
-#include <QLabel>
+#include <QOpenGLWidget>
+#include <QPainter>
 #include <QTimer>
 #include <QSlider>
 #include <QMouseEvent>
@@ -31,16 +32,15 @@
 #include "videowidget.h"
 #include "embedapp.h"
 #include "enumerates.h"
-#include "transitionwidget.h"
 
-class PageLabel : public QLabel
+class PageLabel : public QOpenGLWidget
 {
     Q_OBJECT
 
 public:
     PageLabel(QWidget* parent);
     PageLabel(Poppler::Page* page, QWidget* parent);
-    ~PageLabel();
+    ~PageLabel() override;
     void renderPage(Poppler::Page* page, bool const setDuration=true, QPixmap const* pixmap=nullptr);
     long int updateCache(Poppler::Page const* page);
     long int updateCache(QPixmap const* pixmap, int const index);
@@ -61,13 +61,11 @@ public:
     void setEmbedFileList(const QStringList& files) {embedFileList=files;}
     void setUseCache(bool const use) {useCache=use;}
     void setCacheVideos(bool const cache) {cacheVideos=cache;}
-    void setTransitionFrameTime(int const time) {if (isPresentation && transitionWidget!=nullptr) transitionWidget->setFrameTime(time);}
-    void setTransitionBlinds(int const blinds) {if (isPresentation && transitionWidget!=nullptr) transitionWidget->setBlinds(blinds);}
 
     long int getCacheSize() const;
     int getCacheNumber() const {return cache.size();}
     QPixmap getPixmap(Poppler::Page const* page) const;
-    QPixmap const* getCache(int const index) const;
+    QPixmap const getCache(int const index) const;
     QByteArray const* getCachedBytes(int const index) const;
     int pageNumber() const {return pageIndex;}
     Poppler::Page* getPage() {return page;}
@@ -77,10 +75,6 @@ public:
 
 private:
     void clearLists();
-    void changePixmap(QPixmap const pixmap);
-    Poppler::Page* page = nullptr;
-    TransitionWidget * transitionWidget = nullptr;
-    QMap<int,QByteArray const*> cache;
     QList<Poppler::Link*> links;
     QList<QRect> linkPositions;
     QList<VideoWidget*> videoWidgets;
@@ -102,22 +96,32 @@ private:
     QStringList embedFileList;
     QString pid2wid;
     QString urlSplitCharacter = "";
-    PagePart pagePart = FullPage; // Which part of the page is shown on this label
-    double resolution; // resolution in pixels per point = dpi/72
     double autostartDelay = -1.; // delay for starting multimedia content in s
     double autostartEmbeddedDelay = -1.; // delay for starting embedded applications in s
-    double duration; // duration of the current page in s
     int minimumAnimationDelay = 40; // minimum frame time in ms
+    bool cacheVideos = true;
+
+protected:
+    virtual void animate() {}
+    QBrush background = QBrush(QColor(0,0,0));
+    Poppler::Page* page = nullptr;
+    QMap<int,QByteArray const*> cache;
+    PagePart pagePart = FullPage; // Which part of the page is shown on this label
+    int shiftx;
+    int shifty;
+    QPixmap pixmap;
+    double resolution; // resolution in pixels per point = dpi/72
+    double duration; // duration of the current page in s
     int pageIndex = 0; // page number
     bool isPresentation = false;
     bool showMultimedia = false;
     bool useCache = true;
     bool pointer_visible = true;
-    bool cacheVideos = true;
 
-protected:
-    void mouseReleaseEvent(QMouseEvent* event);
-    void mouseMoveEvent(QMouseEvent* event);
+    //void resizeGL(int w, int h) override;
+    void mouseReleaseEvent(QMouseEvent* event) override;
+    void mouseMoveEvent(QMouseEvent* event) override;
+    virtual void paintEvent(QPaintEvent* event) override;
 
 public slots:
     void togglePointerVisibility();

@@ -18,7 +18,7 @@
 
 #include "presentationscreen.h"
 
-PresentationScreen::PresentationScreen(PdfDoc* presentationDoc, QWidget* parent) : QWidget(parent)
+PresentationScreen::PresentationScreen(PdfDoc* presentationDoc, QWidget* parent) : QOpenGLWidget(parent)
 {
     //setAttribute(Qt::WA_NativeWindow);
     presentation = presentationDoc;
@@ -33,9 +33,7 @@ PresentationScreen::PresentationScreen(PdfDoc* presentationDoc, QWidget* parent)
     connect(videoCacheTimer, &QTimer::timeout, this, &PresentationScreen::updateVideoCache);
 
     // label will contain the slide as a pixmap
-    label = new PageLabel(this);
-    label->setAlignment(Qt::AlignCenter);
-    label->setPresentationStatus(true);
+    label = new TransitionWidget(this);
     label->setShowMultimedia(true);
     layout = new QGridLayout(this);
     layout->setContentsMargins(0, 0, 0, 0);
@@ -61,6 +59,7 @@ PresentationScreen::~PresentationScreen()
 
 void PresentationScreen::renderPage(int const pageNumber, bool const setDuration)
 {
+    qDebug() << "Calling PageLabel::renderPage";
     if (pageNumber < 0 || pageNumber >= numberOfPages) {
         label->renderPage(presentation->getPage(numberOfPages - 1), setDuration);
         pageIndex = numberOfPages - 1;
@@ -69,6 +68,7 @@ void PresentationScreen::renderPage(int const pageNumber, bool const setDuration
         label->renderPage(presentation->getPage(pageNumber), setDuration);
         pageIndex = pageNumber;
     }
+    qDebug() << "done";
     // Update video cache
     if (cacheVideos)
         videoCacheTimer->start();
@@ -101,12 +101,14 @@ void PresentationScreen::receiveCloseSignal()
 
 void PresentationScreen::keyPressEvent(QKeyEvent* event)
 {
+    qDebug() << event;
     QMap<int, QList<int>>::iterator map_it = keymap->find(event->key() + static_cast<int>(event->modifiers()));
     if (map_it==keymap->end())
         return;
     for (QList<int>::const_iterator action_it=map_it->cbegin(); action_it!=map_it->cend(); action_it++) {
         switch (event->key()) {
         case KeyAction::Next:
+            qDebug() << "Key action next on presentation screen";
             renderPage(label->pageNumber() + 1, true);
             if ( label->getDuration() < 0 || label->getDuration() > 0.5 )
                 emit sendPageShift();

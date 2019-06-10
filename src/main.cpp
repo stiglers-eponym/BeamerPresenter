@@ -683,13 +683,13 @@ int main(int argc, char *argv[])
         value = intFromConfig(parser, local, settings, "min-delay", 40);
         emit w->sendAnimationDelay(value);
 
-        // Set frame time in slide transitions
-        value = intFromConfig(parser, local, settings, "frame-time", 33);
-        emit w->setTransitionFrameTime(value);
+        //// Set frame time in slide transitions
+        //value = intFromConfig(parser, local, settings, "frame-time", 33);
+        //emit w->setTransitionFrameTime(value);
 
-        // Set number of blinds in blinds slide transition
-        value = intFromConfig(parser, local, settings, "blinds", 8);
-        emit w->setTransitionBlinds(value);
+        //// Set number of blinds in blinds slide transition
+        //value = intFromConfig(parser, local, settings, "blinds", 8);
+        //emit w->setTransitionBlinds(value);
 
         // Set number of columns in overview
         value = intFromConfig(parser, local, settings, "columns", 5);
