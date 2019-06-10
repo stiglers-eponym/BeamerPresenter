@@ -30,11 +30,11 @@ SOURCES += \
         src/controlscreen.cpp \
         src/pdfdoc.cpp \
         src/presentationscreen.cpp \
-        src/pagelabel.cpp \
+        src/pagewidget.cpp \
         src/clocklabel.cpp \
         src/timer.cpp \
         src/pagenumberedit.cpp \
-        src/transitionwidget.cpp \
+        src/presentationwidget.cpp \
         src/videowidget.cpp \
         src/cacheupdatethread.cpp \
         src/tocbox.cpp \
@@ -50,11 +50,11 @@ HEADERS += \
         src/enumerates.h \
         src/pdfdoc.h \
         src/presentationscreen.h \
-        src/pagelabel.h \
+        src/pagewidget.h \
         src/clocklabel.h \
         src/timer.h \
         src/pagenumberedit.h \
-        src/transitionwidget.h \
+        src/presentationwidget.h \
         src/videowidget.h \
         src/cacheupdatethread.h \
         src/tocbox.h \

@@ -24,8 +24,8 @@
 #include <QWheelEvent>
 #include <QGridLayout>
 #include "pdfdoc.h"
-#include "pagelabel.h"
-#include "transitionwidget.h"
+#include "pagewidget.h"
+#include "presentationwidget.h"
 
 class PresentationScreen : public QOpenGLWidget
 {
@@ -35,11 +35,11 @@ public:
     explicit PresentationScreen(PdfDoc* presentationDoc, QWidget* parent = nullptr);
     ~PresentationScreen();
     void renderPage(int const pageNumber = 0, bool const setDuration = false);
-    int getPageNumber() const {return label->pageNumber();}
-    PageLabel* getLabel() {return label;}
+    int getPageNumber() const {return presWidget->pageNumber();}
+    PageWidget* getPageWidget() {return presWidget;}
     void updatedFile();
     void setScrollDelta(int const scrollDelta) {this->scrollDelta=scrollDelta;}
-    void setCacheVideos(bool const cache) {cacheVideos=cache; label->setCacheVideos(cache);}
+    void setCacheVideos(bool const cache) {cacheVideos=cache; presWidget->setCacheVideos(cache);}
     void setKeyMap(QMap<int, QList<int>>* keymap) {this->keymap=keymap;} // PresentationScreen does not own this object!
 
 protected:
@@ -52,7 +52,7 @@ private:
     QTimer* videoCacheTimer = new QTimer();
     QGridLayout* layout;
     PdfDoc* presentation;
-    TransitionWidget* label;
+    PresentationWidget* presWidget;
     int numberOfPages;
     int pageIndex;
     int scrollDelta = 200;

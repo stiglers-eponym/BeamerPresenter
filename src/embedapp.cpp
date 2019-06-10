@@ -61,7 +61,7 @@ void EmbedApp::start()
      *      If it fails, it restarts pid2widTimer with an increased interval.
      *      Thus the steps in 3b are repeated until receiveWidFromPid succeeds.
      * 4. create(wid) takes control over the external window and puts it in widget.
-     * 5. emit widgetReady(this). PageLabel will then set the correct geometry and show the widget.
+     * 5. emit widgetReady(this). PageWidget will then set the correct geometry and show the widget.
      */
     if (process != nullptr)
         return;
@@ -174,7 +174,7 @@ void EmbedApp::createFromStdOut()
 
 void EmbedApp::create(const WId wid)
 {
-    // Take control over the window and tell parent (PageLabel), that the widget is ready.
+    // Take control over the window and tell parent (PageWidget), that the widget is ready.
     window = QWindow::fromWinId(wid);
     // Without the following two lines, key events are sometimes not sent to the embedded window:
     window->show();

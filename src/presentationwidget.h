@@ -25,9 +25,9 @@
 #include <QDebug>
 #include <QTimer>
 #include <poppler-page-transition.h>
-#include "pagelabel.h"
+#include "pagewidget.h"
 
-class TransitionWidget : public PageLabel
+class PresentationWidget : public PageWidget
 {
     Q_OBJECT
 
@@ -40,15 +40,20 @@ private:
     int picheight;
     QTimer timer;
     QPainter painter;
-    void (TransitionWidget::*paint)();
+    void (PresentationWidget::*paint)();
 
 protected:
+    QTimer* const timeoutTimer = new QTimer(this);
+    int minimumAnimationDelay = 40; // minimum frame time in ms
     QPixmap picinit;
-    void paintEvent(QPaintEvent* event) override;
+    void paintGL() override;
     void animate() override;
+    void endAnimation() override;
+    void setDuration() override;
 
 public:
-    TransitionWidget(QWidget* parent=nullptr);
+    PresentationWidget(QWidget* parent=nullptr);
+    ~PresentationWidget() override;
     void setFrameTime(int const time) {dt=time;}
     void setBlinds(int const blinds) {n_blinds=blinds;}
     void paintSplitHI();
@@ -73,8 +78,11 @@ public:
     void paintCover();
     void paintUncover();
     void paintFade();
+
+public slots:
+    void setAnimationDelay(int const delay_ms) override {minimumAnimationDelay=delay_ms;}
 };
 
-typedef void (TransitionWidget::*paint)();
+typedef void (PresentationWidget::*paint)();
 
 #endif // TRANSITIONWIDGET_H

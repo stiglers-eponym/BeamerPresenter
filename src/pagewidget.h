@@ -33,14 +33,14 @@
 #include "embedapp.h"
 #include "enumerates.h"
 
-class PageLabel : public QOpenGLWidget
+class PageWidget : public QOpenGLWidget
 {
     Q_OBJECT
 
 public:
-    PageLabel(QWidget* parent);
-    PageLabel(Poppler::Page* page, QWidget* parent);
-    ~PageLabel() override;
+    PageWidget(QWidget* parent);
+    PageWidget(Poppler::Page* page, QWidget* parent);
+    ~PageWidget() override;
     void renderPage(Poppler::Page* page, bool const setDuration=true, QPixmap const* pixmap=nullptr);
     long int updateCache(Poppler::Page const* page);
     long int updateCache(QPixmap const* pixmap, int const index);
@@ -61,6 +61,7 @@ public:
     void setEmbedFileList(const QStringList& files) {embedFileList=files;}
     void setUseCache(bool const use) {useCache=use;}
     void setCacheVideos(bool const cache) {cacheVideos=cache;}
+    void setBackground(QBrush bg) {background=bg;}
 
     long int getCacheSize() const;
     int getCacheNumber() const {return cache.size();}
@@ -89,7 +90,6 @@ private:
     QMap<int,QMap<int,int>> embedMap;
     QList<EmbedApp*> embedApps;
     QList<QRect> embedPositions;
-    QTimer* const timeoutTimer = new QTimer(this);
     QTimer* const autostartTimer = new QTimer(this);
     QTimer* const autostartEmbeddedTimer = new QTimer(this);
     QSize oldSize = QSize();
@@ -98,11 +98,12 @@ private:
     QString urlSplitCharacter = "";
     double autostartDelay = -1.; // delay for starting multimedia content in s
     double autostartEmbeddedDelay = -1.; // delay for starting embedded applications in s
-    int minimumAnimationDelay = 40; // minimum frame time in ms
     bool cacheVideos = true;
 
 protected:
     virtual void animate() {}
+    virtual void endAnimation() {}
+    virtual void setDuration() {}
     QBrush background = QBrush(QColor(0,0,0));
     Poppler::Page* page = nullptr;
     QMap<int,QByteArray const*> cache;
@@ -113,7 +114,6 @@ protected:
     double resolution; // resolution in pixels per point = dpi/72
     double duration; // duration of the current page in s
     int pageIndex = 0; // page number
-    bool isPresentation = false;
     bool showMultimedia = false;
     bool useCache = true;
     bool pointer_visible = true;
@@ -121,7 +121,7 @@ protected:
     //void resizeGL(int w, int h) override;
     void mouseReleaseEvent(QMouseEvent* event) override;
     void mouseMoveEvent(QMouseEvent* event) override;
-    virtual void paintEvent(QPaintEvent* event) override;
+    virtual void paintGL() override;
 
 public slots:
     void togglePointerVisibility();
@@ -130,7 +130,7 @@ public slots:
     void receiveEmbedApp(EmbedApp* app);
     void setAutostartDelay(double const delay) {autostartDelay=delay;}
     void setAutostartEmbeddedDelay(double const delay) {autostartEmbeddedDelay=delay;}
-    void setAnimationDelay(int const delay_ms) {minimumAnimationDelay=delay_ms;}
+    virtual void setAnimationDelay(int const delay_ms) {}
     void setPid2Wid(QString const & program) {pid2wid=program;}
 
 signals:

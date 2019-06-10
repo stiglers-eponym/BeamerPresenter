@@ -86,45 +86,45 @@ ControlScreen::ControlScreen(QString presentationPath, QString notesPath, QWidge
 
     // tocBox will be used to show the table of contents on the control screen
     tocBox = new TocBox(this);
-    tocBox->setGeometry(ui->notes_label->geometry());
+    tocBox->setGeometry(ui->notes_widget->geometry());
     tocBox->hide();
 
     // overviewBox will be used to show an overview of all slides on the control screen
     overviewBox = new OverviewBox(this);
-    overviewBox->setGeometry(ui->notes_label->geometry());
+    overviewBox->setGeometry(ui->notes_widget->geometry());
     overviewBox->hide();
 
     // Set up the widgets
     ui->text_number_slides->setText(QString::number(numberOfPages));
     ui->text_current_slide->setNumberOfPages(numberOfPages);
-    ui->notes_label->setShowMultimedia(true);
-    ui->next_slide_label->setUseCache(false);
-    ui->notes_label->setFocus();
+    ui->notes_widget->setShowMultimedia(true);
+    ui->next_slide->setUseCache(false);
+    ui->notes_widget->setFocus();
 
 
     // Page requests from the labels:
     // These are emitted if links are clicked.
     // These events are send to ControlScreen and PresentationScreen
-    connect(ui->notes_label,         &PageLabel::sendNewPageNumber, this, &ControlScreen::receiveNewPageNumber);
-    connect(ui->current_slide_label, &PageLabel::sendNewPageNumber, this, &ControlScreen::receiveNewPageNumber);
-    connect(ui->next_slide_label,    &PageLabel::sendNewPageNumber, this, &ControlScreen::receiveNewPageNumber);
-    connect(ui->notes_label,         &PageLabel::sendNewPageNumber, presentationScreen, &PresentationScreen::receiveNewPageNumber);
-    connect(ui->current_slide_label, &PageLabel::sendNewPageNumber, presentationScreen, &PresentationScreen::receiveNewPageNumber);
-    connect(ui->next_slide_label,    &PageLabel::sendNewPageNumber, presentationScreen, &PresentationScreen::receiveNewPageNumber);
+    connect(ui->notes_widget,  &PageWidget::sendNewPageNumber, this, &ControlScreen::receiveNewPageNumber);
+    connect(ui->current_slide, &PageWidget::sendNewPageNumber, this, &ControlScreen::receiveNewPageNumber);
+    connect(ui->next_slide,    &PageWidget::sendNewPageNumber, this, &ControlScreen::receiveNewPageNumber);
+    connect(ui->notes_widget,  &PageWidget::sendNewPageNumber, presentationScreen, &PresentationScreen::receiveNewPageNumber);
+    connect(ui->current_slide, &PageWidget::sendNewPageNumber, presentationScreen, &PresentationScreen::receiveNewPageNumber);
+    connect(ui->next_slide,    &PageWidget::sendNewPageNumber, presentationScreen, &PresentationScreen::receiveNewPageNumber);
 
-    connect(ui->notes_label,         &PageLabel::focusPageNumberEdit, this, &ControlScreen::focusPageNumberEdit);
-    connect(ui->current_slide_label, &PageLabel::focusPageNumberEdit, this, &ControlScreen::focusPageNumberEdit);
-    connect(ui->next_slide_label,    &PageLabel::focusPageNumberEdit, this, &ControlScreen::focusPageNumberEdit);
-    connect(presentationScreen->getLabel(), &PageLabel::focusPageNumberEdit, this, &ControlScreen::focusPageNumberEdit);
+    connect(ui->notes_widget,  &PageWidget::focusPageNumberEdit, this, &ControlScreen::focusPageNumberEdit);
+    connect(ui->current_slide, &PageWidget::focusPageNumberEdit, this, &ControlScreen::focusPageNumberEdit);
+    connect(ui->next_slide,    &PageWidget::focusPageNumberEdit, this, &ControlScreen::focusPageNumberEdit);
+    connect(presentationScreen->getPageWidget(), &PageWidget::focusPageNumberEdit, this, &ControlScreen::focusPageNumberEdit);
 
-    connect(ui->notes_label,         &PageLabel::sendShowFullscreen, this, &ControlScreen::showFullScreen);
-    connect(ui->current_slide_label, &PageLabel::sendShowFullscreen, this, &ControlScreen::showFullScreen);
-    connect(ui->next_slide_label,    &PageLabel::sendShowFullscreen, this, &ControlScreen::showFullScreen);
-    connect(presentationScreen->getLabel(), &PageLabel::sendShowFullscreen, this, &ControlScreen::showFullScreen);
-    connect(ui->notes_label,         &PageLabel::sendShowFullscreen, presentationScreen, &PresentationScreen::showFullScreen);
-    connect(ui->current_slide_label, &PageLabel::sendShowFullscreen, presentationScreen, &PresentationScreen::showFullScreen);
-    connect(ui->next_slide_label,    &PageLabel::sendShowFullscreen, presentationScreen, &PresentationScreen::showFullScreen);
-    connect(presentationScreen->getLabel(), &PageLabel::sendShowFullscreen, presentationScreen, &PresentationScreen::showFullScreen);
+    connect(ui->notes_widget,  &PageWidget::sendShowFullscreen, this, &ControlScreen::showFullScreen);
+    connect(ui->current_slide, &PageWidget::sendShowFullscreen, this, &ControlScreen::showFullScreen);
+    connect(ui->next_slide,    &PageWidget::sendShowFullscreen, this, &ControlScreen::showFullScreen);
+    connect(presentationScreen->getPageWidget(), &PageWidget::sendShowFullscreen, this, &ControlScreen::showFullScreen);
+    connect(ui->notes_widget,  &PageWidget::sendShowFullscreen, presentationScreen, &PresentationScreen::showFullScreen);
+    connect(ui->current_slide, &PageWidget::sendShowFullscreen, presentationScreen, &PresentationScreen::showFullScreen);
+    connect(ui->next_slide,    &PageWidget::sendShowFullscreen, presentationScreen, &PresentationScreen::showFullScreen);
+    connect(presentationScreen->getPageWidget(), &PageWidget::sendShowFullscreen, presentationScreen, &PresentationScreen::showFullScreen);
 
     // Navigation signals emitted by PresentationScreen:
     connect(presentationScreen, &PresentationScreen::sendPageShift,     this, &ControlScreen::receivePageShiftReturn);
@@ -134,16 +134,16 @@ ControlScreen::ControlScreen(QString presentationPath, QString notesPath, QWidge
     connect(presentationScreen, &PresentationScreen::sendKeyEvent,    this, &ControlScreen::keyPressEvent);
     connect(presentationScreen, &PresentationScreen::sendCloseSignal, this, &ControlScreen::receiveCloseSignal);
     connect(presentationScreen, SIGNAL(sendUpdateCache()), this, SLOT(updateCache()));
-    connect(presentationScreen->getLabel(), &PageLabel::requestMultimediaSliders, this, &ControlScreen::addMultimediaSliders);
+    connect(presentationScreen->getPageWidget(), &PageWidget::requestMultimediaSliders, this, &ControlScreen::addMultimediaSliders);
     connect(presentationScreen, &PresentationScreen::focusPageNumberEdit, this, &ControlScreen::focusPageNumberEdit);
 
     // Signals sent back to PresentationScreen
     connect(this, &ControlScreen::sendNewPageNumber, presentationScreen, &PresentationScreen::receiveNewPageNumber);
     connect(this, &ControlScreen::sendCloseSignal,   presentationScreen, &PresentationScreen::receiveCloseSignal);
-    connect(ui->notes_label, &PageLabel::sendCloseSignal, presentationScreen, &PresentationScreen::receiveCloseSignal);
-    connect(presentationScreen->getLabel(), &PageLabel::sendCloseSignal, presentationScreen, &PresentationScreen::receiveCloseSignal);
-    connect(ui->notes_label, &PageLabel::sendCloseSignal, this, &ControlScreen::receiveCloseSignal);
-    connect(presentationScreen->getLabel(), &PageLabel::sendCloseSignal, this, &ControlScreen::receiveCloseSignal);
+    connect(ui->notes_widget, &PageWidget::sendCloseSignal, presentationScreen, &PresentationScreen::receiveCloseSignal);
+    connect(presentationScreen->getPageWidget(), &PageWidget::sendCloseSignal, presentationScreen, &PresentationScreen::receiveCloseSignal);
+    connect(ui->notes_widget, &PageWidget::sendCloseSignal, this, &ControlScreen::receiveCloseSignal);
+    connect(presentationScreen->getPageWidget(), &PageWidget::sendCloseSignal, this, &ControlScreen::receiveCloseSignal);
 
     ui->label_timer->setTimerWidget(ui->edit_timer);
     // Signals emitted by the timer
@@ -157,16 +157,16 @@ ControlScreen::ControlScreen(QString presentationPath, QString notesPath, QWidge
 
     // Signals sent to the page labels
     // Autostart of media on the control screen can be enabled by uncommenting the following lines.
-    //connect(this, &ControlScreen::sendAutostartDelay, ui->notes_label, &PageLabel::setAutostartDelay);
-    connect(this, &ControlScreen::sendAutostartDelay, presentationScreen->getLabel(), &PageLabel::setAutostartDelay);
-    //connect(this, &ControlScreen::sendAutostartEmbeddedDelay, ui->notes_label, &PageLabel::setAutostartEmbeddedDelay);
-    connect(this, &ControlScreen::sendAutostartEmbeddedDelay, presentationScreen->getLabel(), &PageLabel::setAutostartEmbeddedDelay);
-    //connect(this, &ControlScreen::playMultimedia,     ui->notes_label, &PageLabel::startAllMultimedia);
-    connect(this, &ControlScreen::playMultimedia,     presentationScreen->getLabel(), &PageLabel::startAllMultimedia);
-    //connect(this, &ControlScreen::pauseMultimedia,    ui->notes_label, &PageLabel::pauseAllMultimedia);
-    connect(this, &ControlScreen::pauseMultimedia,    presentationScreen->getLabel(), &PageLabel::pauseAllMultimedia);
-    connect(this, &ControlScreen::sendAnimationDelay, presentationScreen->getLabel(), &PageLabel::setAnimationDelay);
-    connect(this, &ControlScreen::togglePointerVisibilitySignal, presentationScreen->getLabel(), &PageLabel::togglePointerVisibility);
+    //connect(this, &ControlScreen::sendAutostartDelay, ui->notes_widget, &PageWidget::setAutostartDelay);
+    connect(this, &ControlScreen::sendAutostartDelay, presentationScreen->getPageWidget(), &PageWidget::setAutostartDelay);
+    //connect(this, &ControlScreen::sendAutostartEmbeddedDelay, ui->notes_widget, &PageWidget::setAutostartEmbeddedDelay);
+    connect(this, &ControlScreen::sendAutostartEmbeddedDelay, presentationScreen->getPageWidget(), &PageWidget::setAutostartEmbeddedDelay);
+    //connect(this, &ControlScreen::playMultimedia,     ui->notes_widget, &PageWidget::startAllMultimedia);
+    connect(this, &ControlScreen::playMultimedia,     presentationScreen->getPageWidget(), &PageWidget::startAllMultimedia);
+    //connect(this, &ControlScreen::pauseMultimedia,    ui->notes_widget, &PageWidget::pauseAllMultimedia);
+    connect(this, &ControlScreen::pauseMultimedia,    presentationScreen->getPageWidget(), &PageWidget::pauseAllMultimedia);
+    connect(this, &ControlScreen::sendAnimationDelay, presentationScreen->getPageWidget(), &PageWidget::setAnimationDelay);
+    connect(this, &ControlScreen::togglePointerVisibilitySignal, presentationScreen->getPageWidget(), &PageWidget::togglePointerVisibility);
 
     // Signals emitted by the page number editor
     connect(ui->text_current_slide, &PageNumberEdit::sendPageNumberReturn, presentationScreen, &PresentationScreen::receiveNewPageNumber);
@@ -178,7 +178,7 @@ ControlScreen::ControlScreen(QString presentationPath, QString notesPath, QWidge
 
     // Cache handling
     connect(cacheTimer, SIGNAL(timeout()), this, SLOT(updateCacheStep()));
-    cacheThread->setLabels(presentationScreen->getLabel(), ui->notes_label, ui->current_slide_label);
+    cacheThread->setLabels(presentationScreen->getPageWidget(), ui->notes_widget, ui->current_slide);
     connect(cacheThread, &CacheUpdateThread::resultsReady, this, &ControlScreen::receiveCache);
     connect(presentationScreen, &PresentationScreen::clearPresentationCacheRequest, this, &ControlScreen::clearPresentationCache);
 
@@ -204,12 +204,12 @@ ControlScreen::~ControlScreen()
         cacheThread->wait();
     }
     delete cacheThread;
-    ui->notes_label->disconnect();
-    ui->current_slide_label->disconnect();
-    ui->next_slide_label->disconnect();
+    ui->notes_widget->disconnect();
+    ui->current_slide->disconnect();
+    ui->next_slide->disconnect();
     ui->label_timer->disconnect();
     ui->text_current_slide->disconnect();
-    presentationScreen->getLabel()->disconnect();
+    presentationScreen->getPageWidget()->disconnect();
     presentationScreen->disconnect();
     if (notes != presentation)
         delete notes;
@@ -226,20 +226,20 @@ void ControlScreen::setPagePart(PagePart const pagePart)
     this->pagePart = pagePart;
     switch (pagePart) {
         case FullPage:
-            ui->notes_label->setPagePart(FullPage);
+            ui->notes_widget->setPagePart(FullPage);
             break;
         case LeftHalf:
             cacheThread->setPagePart(LeftHalf);
-            ui->notes_label->setPagePart(RightHalf);
+            ui->notes_widget->setPagePart(RightHalf);
             break;
         case RightHalf:
             cacheThread->setPagePart(RightHalf);
-            ui->notes_label->setPagePart(LeftHalf);
+            ui->notes_widget->setPagePart(LeftHalf);
             break;
     }
-    ui->current_slide_label->setPagePart(pagePart);
-    ui->next_slide_label->setPagePart(pagePart);
-    presentationScreen->getLabel()->setPagePart(pagePart);
+    ui->current_slide->setPagePart(pagePart);
+    ui->next_slide->setPagePart(pagePart);
+    presentationScreen->getPageWidget()->setPagePart(pagePart);
 }
 
 void ControlScreen::recalcLayout(const int pageNumber)
@@ -261,9 +261,9 @@ void ControlScreen::recalcLayout(const int pageNumber)
     int sideWidth = int((1-relativeNotesWidth)*width());
 
     // Set layout
-    ui->notes_label->setGeometry(0, 0, width()-sideWidth, height());
-    ui->current_slide_label->setMaximumWidth(sideWidth);
-    ui->next_slide_label->setMaximumWidth(sideWidth);
+    ui->notes_widget->setGeometry(0, 0, width()-sideWidth, height());
+    ui->current_slide->setMaximumWidth(sideWidth);
+    ui->next_slide->setMaximumWidth(sideWidth);
     ui->gridLayout->setColumnStretch(0, width()-sideWidth);
     ui->gridLayout->setColumnStretch(1, sideWidth);
     tocBox->setGeometry(int(0.1*(width()-sideWidth)), 0, int(0.8*(width()-sideWidth)), height());
@@ -308,7 +308,7 @@ void ControlScreen::addMultimediaSliders(int const n)
     }
     // Send the sliders to the presentation label, where they will be connected to multimedia objects.
     // The presentation label takes ownership of the sliders and will delete them when going to the next slide.
-    presentationScreen->getLabel()->setMultimediaSliders(sliderList);
+    presentationScreen->getPageWidget()->setMultimediaSliders(sliderList);
 }
 
 void ControlScreen::resetFocus()
@@ -316,7 +316,7 @@ void ControlScreen::resetFocus()
     // Make sure that the control screen shows the same page as the presentation screen and set focus to the notes label.
     if (currentPageNumber != presentationScreen->getPageNumber())
         renderPage(presentationScreen->getPageNumber());
-    ui->notes_label->setFocus();
+    ui->notes_widget->setFocus();
 }
 
 void ControlScreen::receiveTimerAlert()
@@ -337,7 +337,6 @@ void ControlScreen::resetTimerAlert()
 
 void ControlScreen::renderPage(int const pageNumber)
 {
-    qDebug() << "Called ControlScreen::renderPage" << pageNumber;
     // Update all page labels on the control screen to show the given page number.
     // This uses cached pages if such are available.
 
@@ -355,40 +354,38 @@ void ControlScreen::renderPage(int const pageNumber)
 
     // Update the notes label
     // The note document could have fewer pages than the presentation document:
-    qDebug() << "Render note page" << currentPageNumber;
     if (currentPageNumber < notes->getDoc()->numPages())
-        ui->notes_label->renderPage(notes->getPage(currentPageNumber), false);
+        ui->notes_widget->renderPage(notes->getPage(currentPageNumber), false);
     else
         qWarning() << "Reached the end of the note file.";
 
-    qDebug() << "Render small slide labels" << currentPageNumber;
     // Update the current and next slide label.
     // If we have not reached the last page (there exists a next page):
     if (currentPageNumber + 1 < presentation->getDoc()->numPages()) {
-        ui->current_slide_label->renderPage(presentation->getPage(currentPageNumber), false);
+        ui->current_slide->renderPage(presentation->getPage(currentPageNumber), false);
         if (maxCacheSize!=0 && maxCacheNumber!=0) {
             // Render the next slide to the current slide label's cache
-            ui->current_slide_label->updateCache(presentation->getPage(currentPageNumber+1));
+            ui->current_slide->updateCache(presentation->getPage(currentPageNumber+1));
             // Now show the cached page on the next slide label
-            QPixmap const pixmap = ui->current_slide_label->getCache(currentPageNumber+1);
-            ui->next_slide_label->renderPage(presentation->getPage(currentPageNumber+1), false, &pixmap);
+            QPixmap const pixmap = ui->current_slide->getCache(currentPageNumber+1);
+            ui->next_slide->renderPage(presentation->getPage(currentPageNumber+1), false, &pixmap);
         }
         else // No cache: this is inefficient.
-            ui->next_slide_label->renderPage(presentation->getPage(currentPageNumber+1));
+            ui->next_slide->renderPage(presentation->getPage(currentPageNumber+1));
     }
     else { // If we have not reached the last page (there is no next page)
         // Get page and pixmap for current page.
         Poppler::Page* page = presentation->getPage(currentPageNumber);
-        QPixmap pixmap = ui->current_slide_label->getCache(currentPageNumber);
+        QPixmap pixmap = ui->current_slide->getCache(currentPageNumber);
         // Show the page on the current and next slide label.
         if (pixmap.isNull()) {
             // The page was not cached. Render it on current slide label.
-            ui->current_slide_label->renderPage(page);
-            pixmap = ui->current_slide_label->getCache(currentPageNumber);
+            ui->current_slide->renderPage(page);
+            pixmap = ui->current_slide->getCache(currentPageNumber);
         }
         else
-            ui->current_slide_label->renderPage(page, false, &pixmap);
-        ui->next_slide_label->renderPage(page, false, &pixmap);
+            ui->current_slide->renderPage(page, false, &pixmap);
+        ui->next_slide->renderPage(page, false, &pixmap);
     }
     // Update the page number
     ui->text_current_slide->setText(QString::number(currentPageNumber+1));
@@ -406,15 +403,15 @@ void ControlScreen::updateCache()
     // Stop running cache updates
     cacheTimer->stop();
     // Number of currently cached slides
-    cacheNumber = presentationScreen->getLabel()->getCacheNumber();
+    cacheNumber = presentationScreen->getPageWidget()->getCacheNumber();
     if (cacheNumber == numberOfPages)
         // All slides are cached
         return;
     // Size of currently cached slides in memory (set to -infinity if it should be ignored)
     if (maxCacheSize > 0)
-        cacheSize = presentationScreen->getLabel()->getCacheSize()
-             + ui->notes_label->getCacheSize()
-             + ui->current_slide_label->getCacheSize();
+        cacheSize = presentationScreen->getPageWidget()->getCacheSize()
+             + ui->notes_widget->getCacheSize()
+             + ui->current_slide->getCacheSize();
     else
         // This is approximately -infinity and means that the cache size is unlimited:
         cacheSize = -4294967296; // -4GiB
@@ -469,7 +466,7 @@ void ControlScreen::updateCacheStep()
     *    This is where the main work is done. The rendering does not affect the main thread.
     *    cacheThread can optionally use an external renderer.
     *    When the rendering is done, cacheThread sends the results to receiveCache.
-    * 5. receiveCache saves the cached pages to the pagelabels' cache.
+    * 5. receiveCache saves the cached pages to the pagewidgets' cache.
     *    If all pages have been rendered to cache, it sends an info message.
     *    Otherwise it starts cacheTimer again.
     */
@@ -486,9 +483,9 @@ void ControlScreen::updateCacheStep()
     while (cacheSize > maxCacheSize || cacheNumber > maxCacheNumber) {
         // Start deleting later slides if less than 1/4 of the caches slides are previous slides
         if (last_delete > 4*currentPageNumber - 3*first_delete) {
-            delta = presentationScreen->getLabel()->clearCachePage(last_delete);
-            cacheSize -= ui->notes_label->clearCachePage(last_delete)
-                    + ui->current_slide_label->clearCachePage(last_delete);
+            delta = presentationScreen->getPageWidget()->clearCachePage(last_delete);
+            cacheSize -= ui->notes_widget->clearCachePage(last_delete)
+                    + ui->current_slide->clearCachePage(last_delete);
             if (delta != 0) {
                 cacheNumber--;
                 cacheSize -= delta;
@@ -498,9 +495,9 @@ void ControlScreen::updateCacheStep()
             last_cached = last_delete > last_cached ? last_cached : last_delete;
         }
         else {
-            delta = presentationScreen->getLabel()->clearCachePage(first_delete);
-            cacheSize -= ui->notes_label->clearCachePage(first_delete)
-                    + ui->current_slide_label->clearCachePage(first_delete);
+            delta = presentationScreen->getPageWidget()->clearCachePage(first_delete);
+            cacheSize -= ui->notes_widget->clearCachePage(first_delete)
+                    + ui->current_slide->clearCachePage(first_delete);
             if (delta != 0) {
                 cacheNumber--;
                 cacheSize -= delta;
@@ -518,15 +515,15 @@ void ControlScreen::updateCacheStep()
     if (last_cached+1 == numberOfPages) {
         if (first_cached > first_delete && (maxCacheNumber==numberOfPages || 2*maxCacheNumber > 3*cacheNumber) && 2*maxCacheSize > 3*cacheSize) {
             // cache first_cached-1
-            if (!presentationScreen->getLabel()->cacheContains(first_cached-1)) {
+            if (!presentationScreen->getPageWidget()->cacheContains(first_cached-1)) {
                 cacheTimer->stop();
                 cacheThread->setPages(presentation->getPage(first_cached-1), notes->getPage(first_cached-1));
                 cacheThread->start();
             }
             else {
                 first_cached--;
-                cacheSize += ui->notes_label->updateCache(notes->getPage(first_cached))
-                             + ui->current_slide_label->updateCache(presentation->getPage(first_cached));
+                cacheSize += ui->notes_widget->updateCache(notes->getPage(first_cached))
+                             + ui->current_slide->updateCache(presentation->getPage(first_cached));
             }
             return;
         }
@@ -545,7 +542,7 @@ void ControlScreen::updateCacheStep()
     }
     else {
         // Cache the page last_cached+1
-        if (!presentationScreen->getLabel()->cacheContains(last_cached+1)) {
+        if (!presentationScreen->getPageWidget()->cacheContains(last_cached+1)) {
             cacheTimer->stop();
             cacheThread->setPages(presentation->getPage(last_cached+1), notes->getPage(last_cached+1));
             cacheThread->start();
@@ -555,24 +552,24 @@ void ControlScreen::updateCacheStep()
             // This might be inefficient if the control screen has been resized.
             // But usually the cached pages for presentation screen and control screen should not differ.
             last_cached++;
-            cacheSize += ui->notes_label->updateCache(notes->getPage(last_cached))
-                         + ui->current_slide_label->updateCache(presentation->getPage(last_cached));
+            cacheSize += ui->notes_widget->updateCache(notes->getPage(last_cached))
+                         + ui->current_slide->updateCache(presentation->getPage(last_cached));
         }
     }
 }
 
 void ControlScreen::receiveCache(QByteArray const* pres, QByteArray const* note, QByteArray const* small, int const index)
 {
-    if (presentationScreen->getLabel()->cacheContains(index)) {
+    if (presentationScreen->getPageWidget()->cacheContains(index)) {
         qDebug() << "Page is already cached:" << index << ". Cache size" << cacheSize << "B";
-        presentationScreen->getLabel()->updateCache(pres, index);
-        ui->notes_label->updateCache(note, index);
-        ui->current_slide_label->updateCache(small, index);
+        presentationScreen->getPageWidget()->updateCache(pres, index);
+        ui->notes_widget->updateCache(note, index);
+        ui->current_slide->updateCache(small, index);
     }
     else {
-        cacheSize += presentationScreen->getLabel()->updateCache(pres, index)
-                     + ui->notes_label->updateCache(note, index)
-                     + ui->current_slide_label->updateCache(small, index);
+        cacheSize += presentationScreen->getPageWidget()->updateCache(pres, index)
+                     + ui->notes_widget->updateCache(note, index)
+                     + ui->current_slide->updateCache(small, index);
         cacheNumber++;
         qDebug() << "Cached page" << index << "; Cache size" << cacheSize << "B";
         if (cacheNumber==numberOfPages) {
@@ -597,9 +594,9 @@ void ControlScreen::setCacheNumber(const int number)
     if (number < 0)
         maxCacheNumber = numberOfPages;
     else if (number==0) {
-        ui->current_slide_label->setUseCache(false);
-        ui->notes_label->setUseCache(false);
-        presentationScreen->getLabel()->setUseCache(false);
+        ui->current_slide->setUseCache(false);
+        ui->notes_widget->setUseCache(false);
+        presentationScreen->getPageWidget()->setUseCache(false);
         maxCacheNumber = 0;
     }
     else
@@ -611,9 +608,9 @@ void ControlScreen::setCacheSize(const long size)
     // Set maximum memory used for cached pages (in bytes).
     // A negative number is interpreted as infinity.
     if (cacheSize==0) {
-        ui->current_slide_label->setUseCache(false);
-        ui->notes_label->setUseCache(false);
-        presentationScreen->getLabel()->setUseCache(false);
+        ui->current_slide->setUseCache(false);
+        ui->notes_widget->setUseCache(false);
+        presentationScreen->getPageWidget()->setUseCache(false);
     }
     maxCacheSize = size;
 }
@@ -772,8 +769,8 @@ void ControlScreen::keyPressEvent(QKeyEvent* event)
             updateCache();
             break;
         case KeyAction::StartEmbeddedCurrentSlide:
-            presentationScreen->getLabel()->startAllEmbeddedApplications(presentationScreen->getPageNumber());
-            //ui->notes_label->startAllEmbeddedApplications(currentPageNumber);
+            presentationScreen->getPageWidget()->startAllEmbeddedApplications(presentationScreen->getPageNumber());
+            //ui->notes_widget->startAllEmbeddedApplications(currentPageNumber);
             break;
         case KeyAction::StartAllEmbedded:
             startAllEmbeddedApplications();
@@ -784,7 +781,7 @@ void ControlScreen::keyPressEvent(QKeyEvent* event)
             break;
         case KeyAction::PlayMultimedia:
             {
-                bool running = ui->notes_label->hasActiveMultimediaContent() || presentationScreen->getLabel()->hasActiveMultimediaContent();
+                bool running = ui->notes_widget->hasActiveMultimediaContent() || presentationScreen->getPageWidget()->hasActiveMultimediaContent();
                 if (running)
                     emit pauseMultimedia();
                 else
@@ -816,7 +813,7 @@ void ControlScreen::keyPressEvent(QKeyEvent* event)
             reloadFiles();
             break;
         case KeyAction::SyncFromControlScreen:
-            if (presentationScreen->getLabel()->pageNumber() != currentPageNumber)
+            if (presentationScreen->getPageWidget()->pageNumber() != currentPageNumber)
                 emit sendNewPageNumber(currentPageNumber);
             showNotes();
             updateCache();
@@ -849,7 +846,7 @@ void ControlScreen::startAllEmbeddedApplications()
     // Start all embedded applications of the presentation on all pages.
     qDebug() << "Starting all embedded applications on all pages.";
     QList<Poppler::Page*> const pages = *presentation->getPages();
-    PageLabel* label = presentationScreen->getLabel();
+    PageWidget* label = presentationScreen->getPageWidget();
     for (QList<Poppler::Page*>::const_iterator page_it=pages.cbegin(); page_it!=pages.cend(); page_it++) {
         label->initEmbeddedApplications(*page_it);
         label->startAllEmbeddedApplications((*page_it)->index());
@@ -868,14 +865,14 @@ void ControlScreen::resizeEvent(QResizeEvent* event)
     last_cached = first_cached-1;
     first_delete = 0;
     last_delete = numberOfPages-1;
-    ui->notes_label->clearCache();
-    ui->current_slide_label->clearCache();
-    ui->next_slide_label->clearCache();
+    ui->notes_widget->clearCache();
+    ui->current_slide->clearCache();
+    ui->next_slide->clearCache();
     overviewBox->setOutdated();
     // Render current page.
-    ui->notes_label->renderPage(ui->notes_label->getPage(), false);
-    ui->current_slide_label->renderPage(ui->current_slide_label->getPage(), false);
-    ui->next_slide_label->renderPage(ui->next_slide_label->getPage(), false);
+    ui->notes_widget->renderPage(ui->notes_widget->getPage(), false);
+    ui->current_slide->renderPage(ui->current_slide->getPage(), false);
+    ui->next_slide->renderPage(ui->next_slide->getPage(), false);
 }
 
 void ControlScreen::clearPresentationCache()
@@ -899,6 +896,9 @@ void ControlScreen::setColor(const QColor bgColor, const QColor textColor)
     setPalette(newPalette);
     newPalette.setColor(QPalette::Base, bgColor);
     ui->text_current_slide->setPalette(newPalette);
+    ui->notes_widget->setBackground(QBrush(bgColor));
+    ui->current_slide->setBackground(QBrush(bgColor));
+    ui->next_slide->setBackground(QBrush(bgColor));
 }
 
 void ControlScreen::setPresentationColor(const QColor color)
@@ -907,6 +907,7 @@ void ControlScreen::setPresentationColor(const QColor color)
     QPalette newPalette(presentationScreen->palette());
     newPalette.setColor(QPalette::Background, color);
     presentationScreen->setPalette(newPalette);
+    presentationScreen->getPageWidget()->setBackground(QBrush(color));
 }
 
 void ControlScreen::setScrollDelta(const int scrollDelta)
@@ -958,8 +959,8 @@ void ControlScreen::wheelEvent(QWheelEvent* event)
 void ControlScreen::setEmbedFileList(const QStringList &files)
 {
     // Set list of files, which should be be executed as embedded widgets if they are linked in the PDF.
-    ui->notes_label->setEmbedFileList(files);
-    presentationScreen->getLabel()->setEmbedFileList(files);
+    ui->notes_widget->setEmbedFileList(files);
+    presentationScreen->getPageWidget()->setEmbedFileList(files);
 }
 
 void ControlScreen::setPid2WidConverter(QString const &program)
@@ -967,8 +968,8 @@ void ControlScreen::setPid2WidConverter(QString const &program)
     // Set an external program for converting process IDs to window IDs.
     QFileInfo fileinfo = QFileInfo(program);
     if (fileinfo.isFile() && fileinfo.isExecutable()) {
-        ui->notes_label->setPid2Wid(program);
-        presentationScreen->getLabel()->setPid2Wid(program);
+        ui->notes_widget->setPid2Wid(program);
+        presentationScreen->getPageWidget()->setPid2Wid(program);
     }
     else
         qCritical() << "Can't use program: not a file or not executable." << program;
@@ -977,8 +978,8 @@ void ControlScreen::setPid2WidConverter(QString const &program)
 void ControlScreen::setUrlSplitCharacter(QString const &splitCharacter)
 {
     // Set a character, which splits links to files into file paths and arguments.
-    ui->notes_label->setUrlSplitCharacter(splitCharacter);
-    presentationScreen->getLabel()->setUrlSplitCharacter(splitCharacter);
+    ui->notes_widget->setUrlSplitCharacter(splitCharacter);
+    presentationScreen->getPageWidget()->setUrlSplitCharacter(splitCharacter);
 }
 
 void ControlScreen::showToc()
@@ -993,7 +994,7 @@ void ControlScreen::showToc()
     }
     if (!this->isActiveWindow())
         this->activateWindow();
-    ui->notes_label->hide();
+    ui->notes_widget->hide();
     tocBox->show();
     tocBox->setFocus();
 }
@@ -1002,8 +1003,8 @@ void ControlScreen::hideToc()
 {
     // Hide table of contents
     tocBox->hide();
-    ui->notes_label->show();
-    ui->notes_label->setFocus();
+    ui->notes_widget->show();
+    ui->notes_widget->setFocus();
 }
 
 void ControlScreen::showNotes()
@@ -1011,8 +1012,8 @@ void ControlScreen::showNotes()
     // Equivalent to hideToc(); hideOverview();
     tocBox->hide();
     overviewBox->hide();
-    ui->notes_label->show();
-    ui->notes_label->setFocus();
+    ui->notes_widget->show();
+    ui->notes_widget->setFocus();
 }
 
 void ControlScreen::showOverview()
@@ -1026,7 +1027,7 @@ void ControlScreen::showOverview()
     }
     if (!this->isActiveWindow())
         this->activateWindow();
-    ui->notes_label->hide();
+    ui->notes_widget->hide();
     overviewBox->show();
     overviewBox->setFocused(presentationScreen->getPageNumber());
 }
@@ -1035,8 +1036,8 @@ void ControlScreen::hideOverview()
 {
     // Hide overview
     overviewBox->hide();
-    ui->notes_label->show();
-    ui->notes_label->setFocus();
+    ui->notes_widget->show();
+    ui->notes_widget->setFocus();
 }
 
 void ControlScreen::setRenderer(QStringList command)
@@ -1101,7 +1102,7 @@ void ControlScreen::reloadFiles()
     if (notes->loadDocument()) {
         qInfo() << "Reloading notes file";
         change = true;
-        ui->notes_label->clearAll();
+        ui->notes_widget->clearAll();
         recalcLayout(currentPageNumber);
     }
     // Reload presentation file
@@ -1113,9 +1114,9 @@ void ControlScreen::reloadFiles()
         if (unlimitedCache)
             maxCacheNumber = numberOfPages;
         presentationScreen->updatedFile();
-        presentationScreen->renderPage(presentationScreen->getLabel()->pageNumber(), false);
-        ui->current_slide_label->clearAll();
-        ui->next_slide_label->clearAll();
+        presentationScreen->renderPage(presentationScreen->getPageWidget()->pageNumber(), false);
+        ui->current_slide->clearAll();
+        ui->next_slide->clearAll();
         // Hide TOC and overview and set them outdated
         showNotes();
         tocBox->setOutdated();

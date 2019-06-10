@@ -32,43 +32,41 @@ PresentationScreen::PresentationScreen(PdfDoc* presentationDoc, QWidget* parent)
     videoCacheTimer->setSingleShot(true);
     connect(videoCacheTimer, &QTimer::timeout, this, &PresentationScreen::updateVideoCache);
 
-    // label will contain the slide as a pixmap
-    label = new TransitionWidget(this);
-    label->setShowMultimedia(true);
+    // presWidget will contain the slide as a pixmap
+    presWidget = new PresentationWidget(this);
+    presWidget->setShowMultimedia(true);
     layout = new QGridLayout(this);
     layout->setContentsMargins(0, 0, 0, 0);
-    layout->addWidget(label, 0, 0);
-    label->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-    connect(label, &PageLabel::sendNewPageNumber, this, &PresentationScreen::receiveNewPageNumber);
-    connect(label, &PageLabel::sendNewPageNumber, this, &PresentationScreen::sendNewPageNumber);
-    connect(label, &PageLabel::timeoutSignal,     this, &PresentationScreen::receiveTimeoutSignal);
-    connect(this, &PresentationScreen::togglePointerVisibilitySignal, label, &PageLabel::togglePointerVisibility);
-    label->togglePointerVisibility();
+    layout->addWidget(presWidget, 0, 0);
+    presWidget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+    connect(presWidget, &PageWidget::sendNewPageNumber, this, &PresentationScreen::receiveNewPageNumber);
+    connect(presWidget, &PageWidget::sendNewPageNumber, this, &PresentationScreen::sendNewPageNumber);
+    connect(presWidget, &PageWidget::timeoutSignal,     this, &PresentationScreen::receiveTimeoutSignal);
+    connect(this, &PresentationScreen::togglePointerVisibilitySignal, presWidget, &PageWidget::togglePointerVisibility);
+    presWidget->togglePointerVisibility();
     show();
 }
 
 PresentationScreen::~PresentationScreen()
 {
-    label->disconnect();
+    presWidget->disconnect();
     delete videoCacheTimer;
     //delete presentation;
     disconnect();
-    delete label;
+    delete presWidget;
     delete layout;
 }
 
 void PresentationScreen::renderPage(int const pageNumber, bool const setDuration)
 {
-    qDebug() << "Calling PageLabel::renderPage";
     if (pageNumber < 0 || pageNumber >= numberOfPages) {
-        label->renderPage(presentation->getPage(numberOfPages - 1), setDuration);
+        presWidget->renderPage(presentation->getPage(numberOfPages - 1), setDuration);
         pageIndex = numberOfPages - 1;
     }
     else {
-        label->renderPage(presentation->getPage(pageNumber), setDuration);
+        presWidget->renderPage(presentation->getPage(pageNumber), setDuration);
         pageIndex = pageNumber;
     }
-    qDebug() << "done";
     // Update video cache
     if (cacheVideos)
         videoCacheTimer->start();
@@ -78,13 +76,13 @@ void PresentationScreen::renderPage(int const pageNumber, bool const setDuration
 void PresentationScreen::updateVideoCache()
 {
     if (pageIndex+1 < numberOfPages)
-        label->updateCacheVideos(presentation->getPage(pageIndex+1));
+        presWidget->updateCacheVideos(presentation->getPage(pageIndex+1));
 }
 
 void PresentationScreen::receiveTimeoutSignal()
 {
-    renderPage(label->pageNumber() + 1, true);
-    if (label->getDuration() < 0 || label->getDuration() > 0.5)
+    renderPage(presWidget->pageNumber() + 1, true);
+    if (presWidget->getDuration() < 0 || presWidget->getDuration() > 0.5)
         emit sendPageShift();
 }
 
@@ -101,45 +99,43 @@ void PresentationScreen::receiveCloseSignal()
 
 void PresentationScreen::keyPressEvent(QKeyEvent* event)
 {
-    qDebug() << event;
     QMap<int, QList<int>>::iterator map_it = keymap->find(event->key() + static_cast<int>(event->modifiers()));
     if (map_it==keymap->end())
         return;
     for (QList<int>::const_iterator action_it=map_it->cbegin(); action_it!=map_it->cend(); action_it++) {
         switch (event->key()) {
         case KeyAction::Next:
-            qDebug() << "Key action next on presentation screen";
-            renderPage(label->pageNumber() + 1, true);
-            if ( label->getDuration() < 0 || label->getDuration() > 0.5 )
+            renderPage(presWidget->pageNumber() + 1, true);
+            if ( presWidget->getDuration() < 0 || presWidget->getDuration() > 0.5 )
                 emit sendPageShift();
-            if ( label->getDuration() < 0 || label->getDuration() > 0.5 )
+            if ( presWidget->getDuration() < 0 || presWidget->getDuration() > 0.5 )
                 emit sendUpdateCache();
             break;
         case KeyAction::Previous:
             {
-                int page = label->pageNumber() - 1;
+                int page = presWidget->pageNumber() - 1;
                 if (page >= 0) {
                     renderPage(page, false);
-                    if ( label->getDuration() < 0 || label->getDuration() > 0.5 )
+                    if ( presWidget->getDuration() < 0 || presWidget->getDuration() > 0.5 )
                         emit sendPageShift();
-                    if ( label->getDuration() < 0 || label->getDuration() > 0.5 )
+                    if ( presWidget->getDuration() < 0 || presWidget->getDuration() > 0.5 )
                         emit sendUpdateCache();
                 }
             }
             break;
         case KeyAction::NextCurrentScreen:
-            renderPage(label->pageNumber() + 1, true);
+            renderPage(presWidget->pageNumber() + 1, true);
             break;
         case KeyAction::PreviousCurrentScreen:
             {
-                int page = label->pageNumber() - 1;
+                int page = presWidget->pageNumber() - 1;
                 if (page >= 0)
                     renderPage(page, false);
             }
             break;
         case KeyAction::NextSkippingOverlays:
             {
-                int pageNumber = presentation->getNextSlideIndex(label->pageNumber());
+                int pageNumber = presentation->getNextSlideIndex(presWidget->pageNumber());
                 renderPage(pageNumber, false);
                 emit sendNewPageNumber(pageNumber);
                 emit sendUpdateCache();
@@ -147,7 +143,7 @@ void PresentationScreen::keyPressEvent(QKeyEvent* event)
             break;
         case KeyAction::PreviousSkippingOverlays:
             {
-                int pageNumber = presentation->getPreviousSlideEnd(label->pageNumber());
+                int pageNumber = presentation->getPreviousSlideEnd(presWidget->pageNumber());
                 renderPage(pageNumber, false);
                 emit sendNewPageNumber(pageNumber);
                 emit sendUpdateCache();
@@ -157,7 +153,7 @@ void PresentationScreen::keyPressEvent(QKeyEvent* event)
             emit focusPageNumberEdit();
             break;
         case KeyAction::Update:
-            renderPage(label->pageNumber(), false);
+            renderPage(presWidget->pageNumber(), false);
             emit sendPageShift();
             emit sendUpdateCache();
             break;
@@ -180,8 +176,8 @@ void PresentationScreen::keyPressEvent(QKeyEvent* event)
 
 void PresentationScreen::resizeEvent(QResizeEvent* event)
 {
-    label->clearCache();
-    label->renderPage(label->getPage(), false);
+    presWidget->clearCache();
+    presWidget->renderPage(presWidget->getPage(), false);
     emit clearPresentationCacheRequest();
 }
 
@@ -215,7 +211,7 @@ void PresentationScreen::wheelEvent(QWheelEvent* event)
             deltaPages = 0;
     }
     if (deltaPages != 0) {
-        int currentPage = label->pageNumber();
+        int currentPage = presWidget->pageNumber();
         if (deltaPages + currentPage < 0) {
             if (currentPage != 0) {
                 renderPage(0, false);
@@ -233,5 +229,5 @@ void PresentationScreen::wheelEvent(QWheelEvent* event)
 void PresentationScreen::updatedFile()
 {
     numberOfPages = presentation->getDoc()->numPages();
-    label->clearAll();
+    presWidget->clearAll();
 }

@@ -16,41 +16,35 @@
  * along with BeamerPresenter. If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include "pagelabel.h"
+#include "pagewidget.h"
 
-PageLabel::PageLabel(Poppler::Page* page, QWidget* parent) : QOpenGLWidget(parent)
+PageWidget::PageWidget(Poppler::Page* page, QWidget* parent) : QOpenGLWidget(parent)
 {
     autostartEmbeddedTimer->setSingleShot(true);
     connect(autostartEmbeddedTimer, &QTimer::timeout, this, [&](){startAllEmbeddedApplications(pageIndex);});
     autostartTimer->setSingleShot(true);
-    connect(autostartTimer, &QTimer::timeout, this, &PageLabel::startAllMultimedia);
-    timeoutTimer->setSingleShot(true);
-    connect(timeoutTimer, &QTimer::timeout, this, &PageLabel::timeoutSignal);
+    connect(autostartTimer, &QTimer::timeout, this, &PageWidget::startAllMultimedia);
     renderPage(page, false);
 }
 
-PageLabel::PageLabel(QWidget* parent) : QOpenGLWidget(parent)
+PageWidget::PageWidget(QWidget* parent) : QOpenGLWidget(parent)
 {
     autostartEmbeddedTimer->setSingleShot(true);
     connect(autostartEmbeddedTimer, &QTimer::timeout, this, [&](){startAllEmbeddedApplications(pageIndex);});
     autostartTimer->setSingleShot(true);
-    connect(autostartTimer, &QTimer::timeout, this, &PageLabel::startAllMultimedia);
-    timeoutTimer->setSingleShot(true);
-    connect(timeoutTimer, &QTimer::timeout, this, &PageLabel::timeoutSignal);
+    connect(autostartTimer, &QTimer::timeout, this, &PageWidget::startAllMultimedia);
 }
 
-PageLabel::~PageLabel()
+PageWidget::~PageWidget()
 {
-    timeoutTimer->stop();
     autostartTimer->stop();
     autostartEmbeddedTimer->stop();
     clearAll();
-    delete timeoutTimer;
     delete autostartTimer;
     delete autostartEmbeddedTimer;
 }
 
-void PageLabel::clearAll()
+void PageWidget::clearAll()
 {
     // Clear all contents of the label.
     // This function is called when the document is reloaded or the program is closed and everything should be cleaned up.
@@ -68,7 +62,7 @@ void PageLabel::clearAll()
     page = nullptr;
 }
 
-void PageLabel::clearLists()
+void PageWidget::clearLists()
 {
     // Clear page specific content.
     // This function is called when going to an other page, which is not just an overlay of the previous page.
@@ -92,10 +86,9 @@ void PageLabel::clearLists()
     soundLinkPlayers.clear();
 }
 
-void PageLabel::renderPage(Poppler::Page* page, bool const setDuration, QPixmap const* pix)
+void PageWidget::renderPage(Poppler::Page* page, bool const hasDuration, QPixmap const* pix)
 {
-    qDebug() << "Called render page" << geometry() << isPresentation;
-    timeoutTimer->stop();
+    endAnimation();
     if (page == nullptr)
         return;
 
@@ -186,31 +179,18 @@ void PageLabel::renderPage(Poppler::Page* page, bool const setDuration, QPixmap 
         if (useCache)
             updateCache(&pixmap, page->index());
     }
-    if (isPresentation)
-        animate();
 
     // Show the page on the screen.
     // One could show the page in any case to make it slightly more responsive, but this can lead to a short interruption by a different image.
-    // All operations before the next call to repaint() are usually very fast.
+    // All operations before the next call to update() are usually very fast.
     if (!showMultimedia)
         update();
 
     // Presentation slides can have a "duration" property.
     // In this case: go to the next page after that given time.
-    if (isPresentation && setDuration) {
-        duration = page->duration(); // duration of the current page in s
-        // For durations longer than the minimum animation delay: use the duration
-        if (duration*1000 > minimumAnimationDelay) {
-            timeoutTimer->start(int(1000*duration));
-            if (duration < 0.5)
-                update();
-        }
-        // For durations of approximately 0: use the minimum animation delay
-        else if (duration > -1e-6) {
-            timeoutTimer->start(minimumAnimationDelay);
-            update();
-        }
-    }
+    if (hasDuration)
+        setDuration();
+    animate();
 
     // Collect link areas in pixels (positions relative to the lower left edge of the label)
     links = page->links();
@@ -301,7 +281,7 @@ void PageLabel::renderPage(Poppler::Page* page, bool const setDuration, QPixmap 
                             if (!found) {
                                 embedMap[pageIndex][i] = embedApps.length();
                                 EmbedApp* const app = new EmbedApp(splitFileName, pid2wid, pageIndex, i, this);
-                                connect(app, &EmbedApp::widgetReady, this, &PageLabel::receiveEmbedApp);
+                                connect(app, &EmbedApp::widgetReady, this, &PageWidget::receiveEmbedApp);
                                 embedApps.append(app);
                                 embedPositions.append(winGeometry);
                             }
@@ -657,14 +637,13 @@ void PageLabel::renderPage(Poppler::Page* page, bool const setDuration, QPixmap 
         if (newSliders!=0)
             emit requestMultimediaSliders(newSliders);
     }
-    qDebug() << "Exit render page";
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 //// Cache management and image rendering
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void PageLabel::paintEvent(QPaintEvent *event)
+void PageWidget::paintGL()
 {
     QPainter painter;
     painter.begin(this);
@@ -673,7 +652,7 @@ void PageLabel::paintEvent(QPaintEvent *event)
     painter.end();
 }
 
-void PageLabel::updateCacheVideos(const Poppler::Page *page)
+void PageWidget::updateCacheVideos(const Poppler::Page *page)
 {
     if (page->index()==this->pageIndex)
         return;
@@ -701,7 +680,7 @@ void PageLabel::updateCacheVideos(const Poppler::Page *page)
     videos.clear();
 }
 
-long int PageLabel::updateCache(QPixmap const* pixmap, int const index)
+long int PageWidget::updateCache(QPixmap const* pixmap, int const index)
 {
     // Save the pixmap to (compressed) cache of page index and return the size of the compressed image.
     if (pixmap==nullptr || pixmap->isNull())
@@ -715,7 +694,7 @@ long int PageLabel::updateCache(QPixmap const* pixmap, int const index)
     return bytes->size();
 }
 
-long int PageLabel::updateCache(QByteArray const* bytes, int const index)
+long int PageWidget::updateCache(QByteArray const* bytes, int const index)
 {
     // Write bytes to the cache of page index and return the size of bytes.
     if (bytes==nullptr || bytes->isNull() || bytes->isEmpty())
@@ -726,7 +705,7 @@ long int PageLabel::updateCache(QByteArray const* bytes, int const index)
     return bytes->size();
 }
 
-long int PageLabel::updateCache(Poppler::Page const* cachePage)
+long int PageWidget::updateCache(Poppler::Page const* cachePage)
 {
     // Check whether the cachePage exists in cache. If yes, return 0.
     // Otherwise, render the given page using the internal renderer,
@@ -758,7 +737,7 @@ long int PageLabel::updateCache(Poppler::Page const* cachePage)
     return bytes->size();
 }
 
-QPixmap PageLabel::getPixmap(Poppler::Page const* cachePage) const
+QPixmap PageWidget::getPixmap(Poppler::Page const* cachePage) const
 {
     // Return a pixmap representing the current page.
     QPixmap pixmap;
@@ -778,7 +757,7 @@ QPixmap PageLabel::getPixmap(Poppler::Page const* cachePage) const
     return pixmap;
 }
 
-QPixmap const PageLabel::getCache(int const index) const
+QPixmap const PageWidget::getCache(int const index) const
 {
     // Get a pixmap from cache.
     QPixmap pixmap;
@@ -801,7 +780,7 @@ QPixmap const PageLabel::getCache(int const index) const
     return pixmap;
 }
 
-QByteArray const* PageLabel::getCachedBytes(int const index) const
+QByteArray const* PageWidget::getCachedBytes(int const index) const
 {
     if (cache.contains(index))
         return cache[index];
@@ -809,7 +788,7 @@ QByteArray const* PageLabel::getCachedBytes(int const index) const
         return new QByteArray();
 }
 
-long int PageLabel::getCacheSize() const
+long int PageWidget::getCacheSize() const
 {
     // Return the total size of all cached images of this label in bytes.
     long int size=0;
@@ -819,7 +798,7 @@ long int PageLabel::getCacheSize() const
     return size;
 }
 
-void PageLabel::clearCache()
+void PageWidget::clearCache()
 {
     // Remove all images from cache.
     for (QMap<int,QByteArray const*>::const_iterator bytes=cache.cbegin(); bytes!=cache.cend(); bytes++) {
@@ -828,7 +807,7 @@ void PageLabel::clearCache()
     cache.clear();
 }
 
-long int PageLabel::clearCachePage(const int index)
+long int PageWidget::clearCachePage(const int index)
 {
     // Delete the given page (page number index+1) from cache and return its size.
     // Return 0 if the page does not exist in cache.
@@ -845,7 +824,7 @@ long int PageLabel::clearCachePage(const int index)
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 //// Multimedia
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-void PageLabel::setMultimediaSliders(QList<QSlider*> sliderList)
+void PageWidget::setMultimediaSliders(QList<QSlider*> sliderList)
 {
     // Connect multimedia content of the current slide to the given sliders.
     // this takes ownership of the items of sliderList.
@@ -888,7 +867,7 @@ void PageLabel::setMultimediaSliders(QList<QSlider*> sliderList)
     }
 }
 
-void PageLabel::startAllMultimedia()
+void PageWidget::startAllMultimedia()
 {
     for (int i=0; i<videoWidgets.size(); i++) {
         // The size of a video widget is set the first time it gets shown.
@@ -903,7 +882,7 @@ void PageLabel::startAllMultimedia()
         sound->play();
 }
 
-void PageLabel::pauseAllMultimedia()
+void PageWidget::pauseAllMultimedia()
 {
     Q_FOREACH(VideoWidget* video, videoWidgets)
         video->pause();
@@ -913,7 +892,7 @@ void PageLabel::pauseAllMultimedia()
         sound->pause();
 }
 
-bool PageLabel::hasActiveMultimediaContent() const
+bool PageWidget::hasActiveMultimediaContent() const
 {
     // Return true if any multimedia content is currently being played
     Q_FOREACH(VideoWidget* video, videoWidgets) {
@@ -934,7 +913,7 @@ bool PageLabel::hasActiveMultimediaContent() const
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 //// Mouse events
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-void PageLabel::mouseReleaseEvent(QMouseEvent* event)
+void PageWidget::mouseReleaseEvent(QMouseEvent* event)
 {
     if (event->button() == Qt::LeftButton) {
         for (int i=0; i<links.size(); i++) {
@@ -1107,7 +1086,7 @@ void PageLabel::mouseReleaseEvent(QMouseEvent* event)
     event->accept();
 }
 
-void PageLabel::mouseMoveEvent(QMouseEvent* event)
+void PageWidget::mouseMoveEvent(QMouseEvent* event)
 {
     // Show the cursor as Qt::PointingHandCursor when hoovering links
     if (!pointer_visible)
@@ -1139,7 +1118,7 @@ void PageLabel::mouseMoveEvent(QMouseEvent* event)
     event->accept();
 }
 
-void PageLabel::togglePointerVisibility()
+void PageWidget::togglePointerVisibility()
 {
     if (pointer_visible) {
         pointer_visible = false;
@@ -1156,7 +1135,7 @@ void PageLabel::togglePointerVisibility()
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 //// Embedded applications
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-void PageLabel::receiveEmbedApp(EmbedApp* app)
+void PageWidget::receiveEmbedApp(EmbedApp* app)
 {
     // Geometry of the embedded window:
     int const*const location = app->getNextLocation(pageIndex);
@@ -1173,11 +1152,11 @@ void PageLabel::receiveEmbedApp(EmbedApp* app)
         widget->hide();
 }
 
-void PageLabel::initEmbeddedApplications(Poppler::Page const* page)
+void PageWidget::initEmbeddedApplications(Poppler::Page const* page)
 {
     // Initialize all embedded applications for a given page.
     // The applications are not started yet, but their positions are calculated and the commands are saved.
-    // After this function, PageLabel::startAllEmbeddedApplications can be used to start the applications.
+    // After this function, PageWidget::startAllEmbeddedApplications can be used to start the applications.
     QList<Poppler::Link*> links;
     int const index = page->index();
     if (index == pageIndex)
@@ -1222,7 +1201,7 @@ void PageLabel::initEmbeddedApplications(Poppler::Page const* page)
                 if (!found) {
                     embedMap[index][i] = embedApps.length();
                     EmbedApp* const app = new EmbedApp(splitFileName, pid2wid, index, i, this);
-                    connect(app, &EmbedApp::widgetReady, this, &PageLabel::receiveEmbedApp);
+                    connect(app, &EmbedApp::widgetReady, this, &PageWidget::receiveEmbedApp);
                     embedApps.append(app);
                     embedPositions.append(QRect());
                 }
@@ -1311,7 +1290,7 @@ void PageLabel::initEmbeddedApplications(Poppler::Page const* page)
         qDeleteAll(links);
 }
 
-void PageLabel::startAllEmbeddedApplications(int const index)
+void PageWidget::startAllEmbeddedApplications(int const index)
 {
     // Start all embedded applications of the given slide (slide number = index)
     if (!embedMap.contains(index))
@@ -1320,7 +1299,7 @@ void PageLabel::startAllEmbeddedApplications(int const index)
         embedApps[*idx_it]->start();
 }
 
-void PageLabel::avoidMultimediaBug()
+void PageWidget::avoidMultimediaBug()
 {
     // TODO: find a better way to avoid this problem
     // This is a very ugly and inefficient way of avoiding compatibility problems of combining videos and embedded applications.
