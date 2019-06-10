@@ -31,6 +31,7 @@
 #include "videowidget.h"
 #include "embedapp.h"
 #include "enumerates.h"
+#include "transitionwidget.h"
 
 class PageLabel : public QLabel
 {
@@ -53,7 +54,7 @@ public:
     void avoidMultimediaBug();
 
     void setMultimediaSliders(QList<QSlider*> sliderList);
-    void setPresentationStatus(bool const status) {isPresentation=status;}
+    void setPresentationStatus(bool const status);
     void setShowMultimedia(bool const showMultimedia) {this->showMultimedia=showMultimedia;}
     void setUrlSplitCharacter(QString const& splitCharacter) {urlSplitCharacter=splitCharacter;}
     void setPagePart(PagePart const state) {pagePart=state;}
@@ -74,7 +75,9 @@ public:
 
 private:
     void clearLists();
+    void changePixmap(QPixmap const pixmap);
     Poppler::Page* page = nullptr;
+    TransitionWidget * transitionWidget = nullptr;
     QMap<int,QByteArray const*> cache;
     QList<Poppler::Link*> links;
     QList<QRect> linkPositions;
@@ -104,8 +107,8 @@ private:
     double duration; // duration of the current page in s
     int minimumAnimationDelay = 40; // minimum frame time in ms
     int pageIndex = 0; // page number
-    bool isPresentation = true;
-    bool showMultimedia = true;
+    bool isPresentation = false;
+    bool showMultimedia = false;
     bool useCache = true;
     bool pointer_visible = true;
     bool cacheVideos = true;

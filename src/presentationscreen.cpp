@@ -35,6 +35,8 @@ PresentationScreen::PresentationScreen(PdfDoc* presentationDoc, QWidget* parent)
     // label will contain the slide as a pixmap
     label = new PageLabel(this);
     label->setAlignment(Qt::AlignCenter);
+    label->setPresentationStatus(true);
+    label->setShowMultimedia(true);
     layout = new QGridLayout(this);
     layout->setContentsMargins(0, 0, 0, 0);
     layout->addWidget(label, 0, 0);

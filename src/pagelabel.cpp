@@ -50,6 +50,16 @@ PageLabel::~PageLabel()
     delete autostartEmbeddedTimer;
 }
 
+void PageLabel::setPresentationStatus(const bool status)
+{
+    isPresentation = status;
+    if (isPresentation && transitionWidget==nullptr) {
+        transitionWidget = new TransitionWidget(this);
+        transitionWidget->show();
+    }
+    transitionWidget->hide();
+}
+
 void PageLabel::clearAll()
 {
     // Clear all contents of the label.
@@ -137,11 +147,15 @@ void PageLabel::renderPage(Poppler::Page* page, bool const setDuration, QPixmap 
         // the width of the label is larger than required
         resolution = double(height()) / pageHeight;
         shift_x = int(width()/2 - resolution/2 * pageWidth);
+        if (isPresentation)
+            transitionWidget->setGeometry(shift_x, 0, width()-2*shift_x, height());
     }
     else {
         // the height of the label is larger than required
         resolution = double(width()) / pageWidth;
         shift_y = int(height()/2 - resolution/2 * pageHeight);
+        if (isPresentation)
+            transitionWidget->setGeometry(0, shift_y, width(), height()-2*shift_y);
     }
 
     // Calculate the size of the image relative to the label size
@@ -153,12 +167,6 @@ void PageLabel::renderPage(Poppler::Page* page, bool const setDuration, QPixmap 
         if (pagePart == RightHalf)
             shift_x -= width();
     }
-
-    // Presentations can have fancy slide transitions. But those cannot be shown (yet).
-    // TODO: implement slide transitions
-    Poppler::PageTransition const* const transition = page->transition();
-    if (transition != nullptr && transition->type() != Poppler::PageTransition::Replace)
-        qInfo() << "Unsupported slide transition of type " << transition->type();
 
     // Display the image
     if (pixmap != nullptr) {
@@ -175,30 +183,32 @@ void PageLabel::renderPage(Poppler::Page* page, bool const setDuration, QPixmap 
             if (pixmap->width() > referenceWidth) {
                 // Assume that the pixmap shows notes and presentation.
                 if (pagePart == LeftHalf)
-                    setPixmap(pixmap->copy(0, 0, pixmap->width()/2, pixmap->height()));
+                    changePixmap(pixmap->copy(0, 0, pixmap->width()/2, pixmap->height()));
                 else
-                    setPixmap(pixmap->copy(pixmap->width()/2, 0, pixmap->width()/2, pixmap->height()));
+                    changePixmap(pixmap->copy(pixmap->width()/2, 0, pixmap->width()/2, pixmap->height()));
             }
             else
-                setPixmap(*pixmap);
+                changePixmap(*pixmap);
         }
         else
-            setPixmap(*pixmap);
+            changePixmap(*pixmap);
     }
     else if (cache.contains(pageIndex)) {
         // There exists a cached image for this page. Display this image as the page image.
+        // TODO: Is this efficient? It doesn't look like...
         QPixmap const* pixmap = getCache(pageIndex);
-        setPixmap(*pixmap);
+        changePixmap(pixmap->copy());
         delete pixmap;
     }
     else {
         // A new page image has to be rendered.
         QPixmap const pixmap = getPixmap(page);
-        setPixmap(pixmap);
+        changePixmap(pixmap);
         // Save this image to cache.
         if (useCache)
             updateCache(&pixmap, page->index());
     }
+
     // Show the page on the screen.
     // One could show the page in any case to make it slightly more responsive, but this can lead to a short interruption by a different image.
     // All operations before the next call to repaint() are usually very fast.
@@ -672,6 +682,21 @@ void PageLabel::renderPage(Poppler::Page* page, bool const setDuration, QPixmap 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 //// Cache management and image rendering
 ////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void PageLabel::changePixmap(const QPixmap pixmap)
+{
+    // Set pixmap of this.
+    // If this is the presentation label, show slide transitions.
+    if (isPresentation) {
+        if (page->transition() != nullptr) {
+            transitionWidget->shiftImages(pixmap);
+            transitionWidget->animate(page->transition());
+        }
+        else
+            transitionWidget->hide();
+    }
+    setPixmap(pixmap);
+}
 
 void PageLabel::updateCacheVideos(const Poppler::Page *page)
 {

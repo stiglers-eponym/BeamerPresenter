@@ -97,9 +97,7 @@ ControlScreen::ControlScreen(QString presentationPath, QString notesPath, QWidge
     // Set up the widgets
     ui->text_number_slides->setText(QString::number(numberOfPages));
     ui->text_current_slide->setNumberOfPages(numberOfPages);
-    ui->notes_label->setPresentationStatus(false);
-    ui->current_slide_label->setShowMultimedia(false);
-    ui->next_slide_label->setShowMultimedia(false);
+    ui->notes_label->setShowMultimedia(true);
     ui->next_slide_label->setUseCache(false);
     ui->notes_label->setFocus();
 

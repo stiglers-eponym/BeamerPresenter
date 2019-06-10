@@ -34,6 +34,7 @@ SOURCES += \
         src/clocklabel.cpp \
         src/timer.cpp \
         src/pagenumberedit.cpp \
+        src/transitionwidget.cpp \
         src/videowidget.cpp \
         src/cacheupdatethread.cpp \
         src/tocbox.cpp \
@@ -53,6 +54,7 @@ HEADERS += \
         src/clocklabel.h \
         src/timer.h \
         src/pagenumberedit.h \
+        src/transitionwidget.h \
         src/videowidget.h \
         src/cacheupdatethread.h \
         src/tocbox.h \
