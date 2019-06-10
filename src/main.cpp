@@ -24,6 +24,7 @@
 #include <QKeySequence>
 #include <QJsonObject>
 #include <QJsonDocument>
+#include <QMimeDatabase>
 #include "controlscreen.h"
 #include "presentationscreen.h"
 
@@ -216,8 +217,11 @@ int main(int argc, char *argv[])
     parser.addOptions({
         {{"a", "autoplay"}, "true, false or number: Start video and audio content when entering a slide.\nA number is interpreted as a delay in seconds, after which multimedia content is started.", "value"},
         {{"A", "autostart-emb"}, "true, false or number: Start embedded applications when entering a slide.\nA number is interpreted as a delay in seconds, after which applications are started.", "value"},
+        {{"b", "blinds"}, "Number of blinds in binds slide transition", "int"},
         {{"c", "cache"}, "Number of slides that will be cached. A negative number is treated as infinity.", "int"},
         {{"e", "embed"}, "file1,file2,... Mark these files for embedding if an execution link points to them.", "files"},
+        {{"f", "frame-time"}, "frame time of slide transitions in ms", "int"},
+        {{"j", "json"}, "Local JSON configuration file.", "file"},
         {{"l", "toc-depth"}, "Number of levels of the table of contents which are shown.", "int"},
         {{"m", "min-delay"}, "Set minimum time per frame in milliseconds.\nThis is useful when using \\animation in LaTeX beamer.", "ms"},
         {{"M", "memory"}, "Maximum size of cache in MiB. A negative number is treated as infinity.", "int"},
@@ -229,7 +233,6 @@ int main(int argc, char *argv[])
         {{"u", "urlsplit"}, "Character which is used to split links into an url and arguments.", "char"},
         {{"v", "video-cache"}, "Preload videos for the following slide.", "bool"},
         {{"w", "pid2wid"}, "Program that converts a PID to a Window ID.", "file"},
-        {{"j", "json"}, "Local JSON configuration file.", "file"},
     });
     parser.process(app);
 
@@ -273,9 +276,49 @@ int main(int argc, char *argv[])
     // Handle positional arguments for the pdf files:
     switch (parser.positionalArguments().size()) {
     case 1:
-        // If only a presentation file is given:
-        w = new ControlScreen(parser.positionalArguments()[0]);
-        break;
+        {
+        if (!QFileInfo(parser.positionalArguments()[0]).exists()) {
+            qCritical() << "File" << parser.positionalArguments()[0] << "does not exist!";
+            return 1;
+        }
+        QMimeDatabase db;
+        QMimeType type = db.mimeTypeForFile(parser.positionalArguments()[0], QMimeDatabase::MatchContent);
+        if (!type.isValid()) {
+            type = db.mimeTypeForFile(parser.positionalArguments()[0], QMimeDatabase::MatchExtension);
+            if (!type.isValid()) {
+                qCritical() << "Did not understand type of file" << parser.positionalArguments()[0];
+                return 1;
+            }
+        }
+        if (type.suffixes().contains("pdf", Qt::CaseInsensitive)) {
+            // If only a presentation file is given:
+            w = new ControlScreen(parser.positionalArguments()[0]);
+            break;
+        }
+        else if (type.suffixes().contains("txt") || type.suffixes().contains("json")) {
+            // If a config file is given:
+            QFile jsonFile(parser.positionalArguments()[0]);
+            jsonFile.open(QFile::ReadOnly);
+            QJsonParseError* error = nullptr;
+            QJsonDocument jsonDoc = QJsonDocument::fromJson(jsonFile.readAll(), error);
+            if (jsonDoc.isNull() || jsonDoc.isEmpty()) {
+                qCritical() << "Failed to load local configuration file: File is empty or parsing JSON failed";
+                if (error != nullptr)
+                    qInfo() << "Reported error:" << error->errorString();
+            }
+            else
+                local = jsonDoc.object().toVariantMap();
+                if (local.contains("presentation")) {
+                    if (local.contains("notes"))
+                        w = new ControlScreen(local.value("presentation").toString(), local.value("notes").toString());
+                    else
+                        w = new ControlScreen(local.value("presentation").toString());
+                    break;
+                }
+            }
+        }
+        qCritical() << "Could not find presentation file. Argument was" << parser.positionalArguments()[0];
+        return 1;
     case 2:
         // If a note file and a presentation file are given:
         w = new ControlScreen(parser.positionalArguments()[0], parser.positionalArguments()[1]);
@@ -636,9 +679,17 @@ int main(int argc, char *argv[])
     { // Settings with integer values
         int value;
 
-        // Set minimum time per frame
+        // Set minimum time per frame in animations
         value = intFromConfig(parser, local, settings, "min-delay", 40);
         emit w->sendAnimationDelay(value);
+
+        // Set frame time in slide transitions
+        value = intFromConfig(parser, local, settings, "frame-time", 33);
+        emit w->setTransitionFrameTime(value);
+
+        // Set number of blinds in blinds slide transition
+        value = intFromConfig(parser, local, settings, "blinds", 8);
+        emit w->setTransitionBlinds(value);
 
         // Set number of columns in overview
         value = intFromConfig(parser, local, settings, "columns", 5);

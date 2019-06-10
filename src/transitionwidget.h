@@ -31,9 +31,9 @@ class TransitionWidget : public QOpenGLWidget
     Q_OBJECT
 
 private:
-    int elapsed = 0;
-    int duration = 0;
-    int dt = 20;
+    int elapsed = 0;  // in ms
+    int duration = 0; // in ms
+    int dt = 25;      // in ms
     int n_blinds = 8;
     int picwidth;
     int picheight;
@@ -50,8 +50,10 @@ public:
     void shiftImages(QPixmap const pic);
     void animate(Poppler::PageTransition const* transition);
     void animationStep();
-    void paintSplitH();
-    void paintSplitV();
+    void paintSplitHI();
+    void paintSplitVI();
+    void paintSplitHO();
+    void paintSplitVO();
     void paintBlindsH();
     void paintBlindsV();
     void paintBoxO();

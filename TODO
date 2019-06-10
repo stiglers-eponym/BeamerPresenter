@@ -1,5 +1,9 @@
 BeamerPresenter
 
+* Draw in presentation
+
+* Segfaults when embedded applications stop or get closed?
+
 * Make timer editable
 * Multimedia sliders: key bindings and signals slider <-> player
 * TOC: key bindings
@@ -19,11 +23,4 @@ BeamerPresenter
 * Implement optional content (e.g. for sound)
 * Make poppler rendering to cache more efficient (use multiple threads)
 
-* Draw in presentation
-* Page transitions
-
-* Other animations
-	* strange embedded pdf features (video, audio, JavaScript?)
-	* other video or audio?
-
-* Avoid short black flash when showing video
+* Avoid short black flash when showing video or page transition

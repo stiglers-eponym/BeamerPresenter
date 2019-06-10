@@ -61,6 +61,8 @@ public:
     void setEmbedFileList(const QStringList& files) {embedFileList=files;}
     void setUseCache(bool const use) {useCache=use;}
     void setCacheVideos(bool const cache) {cacheVideos=cache;}
+    void setTransitionFrameTime(int const time) {if (isPresentation && transitionWidget!=nullptr) transitionWidget->setFrameTime(time);}
+    void setTransitionBlinds(int const blinds) {if (isPresentation && transitionWidget!=nullptr) transitionWidget->setBlinds(blinds);}
 
     long int getCacheSize() const;
     int getCacheNumber() const {return cache.size();}

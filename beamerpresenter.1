@@ -8,21 +8,12 @@ BeamerPresenter \- dual-screen PDF presenter
 .
 .SY beamerpresenter
 .OP \-a autoplay-delay
-.OP \-A embedded-delay
 .OP \-c cache
-.OP \-e embed
-.OP \-j json
-.OP \-l levels
 .OP \-m min-delay
 .OP \-M memory
-.OP \-o columns
 .OP \-p part
-.OP \-r renderer
-.OP \-s step
 .OP \-t timer
 .OP \-u char
-.OP \-v video-cache
-.OP \-w program
 .I presentation.pdf
 .RI [ notes.pdf ]
 .
@@ -55,12 +46,20 @@ true, false or number: Start video and audio content when entering a slide. A nu
 true, false or number: Start embedded applications when entering a slide. A number is interpreted as a delay in seconds, after which embedded applications are started.
 .
 .TP
+.BI "\-b \-\-blinds " integer
+Set number of blinds in blinds slide transition.
+.
+.TP
 .BI "\-c \-\-cache " integer
 Set the maximum number of slides, which are rendered to images and stored in a compressed cache. A negative number is treated as infinity.
 .
 .TP
 .BI "\-e \-\-embed " files
 Mark these files for embedding if an execution link points to them. Multiple files should be separated only by a comma (not space!).
+.
+.TP
+.BI "\-f \-\-frame-time " ms
+Set the time per frame in slide transitions in ms.
 .
 .TP
 .BI "\-j \-\-json " file
@@ -285,6 +284,10 @@ Audio files which are links from the PDF to external files can also be played. E
 Simple animations can be created by showing slides in rapid succession. When using LaTeX beamer, this can be achieved by using the options \\animation. The minimum delay time for the frames, which have their duration set to zero, can be specified with
 .BR \-m " or " \-\-min-delay .
 .
+.SS Slide transitions
+Some slide transitions are implemented using OpenGL rendering. The frame time for slide transitions can be set using
+.BR \-f " or " \-\-frame-time .
+.
 .SS Embedded Applications
 A link in the PDF pointing to an external application will usually be handled by the desktop services. But you can also specify programs, which will be executed directly when pressing the link.
 .B BeamerPresenter
@@ -473,6 +476,16 @@ set default value for the command line argument
 .B embed
 set default value for the command line argument
 .BR \-e " or " \-\-embed .
+.
+.TP
+.B blinds =8
+set default value for the command line argument
+.BR \-b " or " \-\-blinds
+.
+.TP
+.B frame-time =25
+set default value for the command line argument
+.BR \-f " or " \-\-frame-time .
 .
 .TP
 .B pid2wid

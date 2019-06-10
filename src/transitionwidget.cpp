@@ -58,10 +58,18 @@ void TransitionWidget::animate(Poppler::PageTransition const* transition) {
         return;
     case Poppler::PageTransition::Split:
         qDebug () << "Transition split";
-        if (transition->alignment() == Poppler::PageTransition::Horizontal)
-            paint = &TransitionWidget::paintSplitH;
-        else
-            paint = &TransitionWidget::paintSplitV;
+        if (transition->alignment() == Poppler::PageTransition::Horizontal) {
+            if (transition->direction() == Poppler::PageTransition::Inward)
+                paint = &TransitionWidget::paintSplitHI;
+            else
+                paint = &TransitionWidget::paintSplitHO;
+        }
+        else {
+            if (transition->direction() == Poppler::PageTransition::Inward)
+                paint = &TransitionWidget::paintSplitVI;
+            else
+                paint = &TransitionWidget::paintSplitVO;
+        }
         break;
     case Poppler::PageTransition::Blinds:
         qDebug () << "Transition blinds";
@@ -71,7 +79,7 @@ void TransitionWidget::animate(Poppler::PageTransition const* transition) {
             paint = &TransitionWidget::paintBlindsV;
         break;
     case Poppler::PageTransition::Box:
-        qWarning () << "Unsupported transition type: box";
+        qDebug () << "Transition box";
         if (transition->direction() == Poppler::PageTransition::Inward)
             paint = &TransitionWidget::paintBoxI;
         else
@@ -168,43 +176,82 @@ void TransitionWidget::paintWipeRight()
 void TransitionWidget::paintBlindsV()
 {
     int const shift = elapsed>dt ? ((elapsed-dt)*picwidth)/(n_blinds*duration) - 1 : 0;
+    int width = (picwidth*elapsed)/(n_blinds*duration) - shift;
+    if (width==0)
+        width = 1;
     for (int i=0; i<n_blinds; i++)
-        painter.drawPixmap(i*picwidth/n_blinds+shift, 0, picfinal, i*picwidth/n_blinds+shift, 0, (picwidth*elapsed)/(n_blinds*duration)-shift, -1);
+        painter.drawPixmap(i*picwidth/n_blinds+shift, 0, picfinal, i*picwidth/n_blinds+shift, 0, width, -1);
 }
 
 void TransitionWidget::paintBlindsH()
 {
     int const shift = elapsed>dt ? ((elapsed-dt)*picheight)/(n_blinds*duration) - 1 : 0;
+    int height = (picheight*elapsed)/(n_blinds*duration)-shift;
+    if (height==0)
+        height = 1;
     for (int i=0; i<n_blinds; i++)
-        painter.drawPixmap(0, i*picheight/n_blinds+shift, picfinal, 0, i*picheight/n_blinds+shift, picwidth, (picheight*elapsed)/(n_blinds*duration)-shift);
+        painter.drawPixmap(0, i*picheight/n_blinds+shift, picfinal, 0, i*picheight/n_blinds+shift, -1, height);
 }
 
 void TransitionWidget::paintBoxO()
 {
-    timer.stop();
-    hide();
-    return;
+    int const width = (elapsed*picwidth)/duration;
+    int const height = (elapsed*picheight)/duration;
+    painter.drawPixmap((picwidth-width)/2, (picheight-height)/2, picfinal, (picwidth-width)/2, (picheight-height)/2, width, height);
+
+    // The following code should be more efficient, but it caused rendering errors when I tried it.
+    //int const width = (elapsed*picwidth)/duration;
+    //int const height = (elapsed*picheight)/duration;
+    //int const dw = (dt*picwidth)/(2*duration);
+    //int const dh = (dt*picheight)/(2*duration);
+    //painter.drawPixmap((picwidth-width)/2, (picheight-height)/2, picfinal, (picwidth-width)/2, (picheight-height)/2, width, dh);
+    //painter.drawPixmap((picwidth-width)/2, (picheight-height)/2+dh, picfinal, (picwidth-width)/2, (picheight-height)/2, dw, height-2*dh);
+    //painter.drawPixmap((picwidth-width)/2, (picheight+height)/2-dh, picfinal, (picwidth-width)/2, (picheight+height)/2-dh, width, dh);
+    //painter.drawPixmap((picwidth+width)/2-dw, (picheight-height)/2, picfinal, (picwidth+width)/2-dw, (picheight-height)/2, dw, height-2*dh);
 }
 
 void TransitionWidget::paintBoxI()
 {
-    timer.stop();
-    hide();
-    return;
+    int const width = (elapsed*picwidth)/duration;
+    int const height = (elapsed*picheight)/duration;
+    int const dw = (dt*picwidth)/(2*duration)+1;
+    int const dh = (dt*picheight)/(2*duration)+1;
+    painter.drawPixmap(width/2-dw, height/2-dh, picfinal, width/2-dw, height/2-dh, picwidth-width+2*dw, dh);
+    painter.drawPixmap(width/2-dw, height/2, picfinal, width/2-dw, height/2, dw, picheight-height+1);
+    painter.drawPixmap(width/2-dw, picheight-height/2, picfinal, width/2-dw, picheight-height/2, picwidth-width+2*dw, dh);
+    painter.drawPixmap(picwidth-width/2, height/2, picfinal, picwidth-width/2, height/2, dw, picheight-height+1);
 }
 
-void TransitionWidget::paintSplitH()
+void TransitionWidget::paintSplitHO()
 {
-    timer.stop();
-    hide();
-    return;
+    int const height = (elapsed*picheight)/duration;
+    int const dh = (dt*picheight)/duration + 1;
+    painter.drawPixmap(0, (picheight-height)/2, picfinal, 0, (picheight-height)/2, -1, dh);
+    painter.drawPixmap(0, (picheight+height)/2-dh, picfinal, 0, (picheight+height)/2-dh, -1, dh);
 }
 
-void TransitionWidget::paintSplitV()
+void TransitionWidget::paintSplitVO()
 {
-    timer.stop();
-    hide();
-    return;
+    int const width = (elapsed*picwidth)/duration;
+    int const dw = (dt*picheight)/duration + 1;
+    painter.drawPixmap((picwidth-width)/2, 0, picfinal, (picwidth-width)/2, 0, dw, -1);
+    painter.drawPixmap((picwidth+width)/2-dw, 0, picfinal, (picwidth+width)/2-dw, 0, dw, -1);
+}
+
+void TransitionWidget::paintSplitHI()
+{
+    int const height = (elapsed*picheight)/duration;
+    int const dh = (dt*picheight)/duration + 1;
+    painter.drawPixmap(0, height/2-dh, picfinal, 0, height/2-dh, -1, dh);
+    painter.drawPixmap(0, picheight-height/2, picfinal, 0, picheight-height/2, -1, dh);
+}
+
+void TransitionWidget::paintSplitVI()
+{
+    int const width = (elapsed*picwidth)/duration;
+    int const dw = (dt*picheight)/duration + 1;
+    painter.drawPixmap(width/2-dw, 0, picfinal, width/2-dw, 0, dw, -1);
+    painter.drawPixmap(picwidth-width/2, 0, picfinal, picwidth-width/2, 0, dw, -1);
 }
 
 void TransitionWidget::paintDissolve()
@@ -273,6 +320,7 @@ void TransitionWidget::paintUncover()
 
 void TransitionWidget::paintFade()
 {
+    painter.drawRect(0, 0, picwidth, picheight);
     painter.setOpacity(static_cast<double>(duration - elapsed)/duration);
     painter.drawPixmap(0, 0, picinit);
     painter.setOpacity(static_cast<double>(elapsed)/duration);

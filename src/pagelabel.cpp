@@ -45,6 +45,7 @@ PageLabel::~PageLabel()
     autostartTimer->stop();
     autostartEmbeddedTimer->stop();
     clearAll();
+    delete transitionWidget;
     delete timeoutTimer;
     delete autostartTimer;
     delete autostartEmbeddedTimer;
@@ -147,15 +148,21 @@ void PageLabel::renderPage(Poppler::Page* page, bool const setDuration, QPixmap 
         // the width of the label is larger than required
         resolution = double(height()) / pageHeight;
         shift_x = int(width()/2 - resolution/2 * pageWidth);
-        if (isPresentation)
+        if (isPresentation) {
             transitionWidget->setGeometry(shift_x, 0, width()-2*shift_x, height());
+            transitionWidget->show();
+            transitionWidget->hide();
+        }
     }
     else {
         // the height of the label is larger than required
         resolution = double(width()) / pageWidth;
         shift_y = int(height()/2 - resolution/2 * pageHeight);
-        if (isPresentation)
+        if (isPresentation) {
             transitionWidget->setGeometry(0, shift_y, width(), height()-2*shift_y);
+            transitionWidget->show();
+            transitionWidget->hide();
+        }
     }
 
     // Calculate the size of the image relative to the label size
