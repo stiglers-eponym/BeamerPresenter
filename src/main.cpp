@@ -219,6 +219,7 @@ int main(int argc, char *argv[])
         {{"A", "autostart-emb"}, "true, false or number: Start embedded applications when entering a slide.\nA number is interpreted as a delay in seconds, after which applications are started.", "value"},
         {{"b", "blinds"}, "Number of blinds in binds slide transition", "int"},
         {{"c", "cache"}, "Number of slides that will be cached. A negative number is treated as infinity.", "int"},
+        {{"d", "no-transitions"}, "Disable slide transitions."},
         {{"e", "embed"}, "file1,file2,... Mark these files for embedding if an execution link points to them.", "files"},
         {{"f", "frame-time"}, "frame time of slide transitions in ms", "int"},
         {{"j", "json"}, "Local JSON configuration file.", "file"},
@@ -719,6 +720,17 @@ int main(int argc, char *argv[])
         w->setTocLevel(value);
     }
 
+    // Disable slide transitions
+    if (parser.isSet("d"))
+        w->disableSlideTransitions();
+    else if (local.contains("no-transitions")) {
+        // This is rather unintuitive. Just set any value...
+        QString string = local.value("no-transitions").toString().toLower();
+        if ((QStringList() << "" << "true" << "no-transitions" << "no transitions" << "1").contains(string))
+            w->disableSlideTransitions();
+    }
+    else if (settings.contains("no-transitions"))
+        w->disableSlideTransitions();
 
     // Settings, which can cause exceptions
 

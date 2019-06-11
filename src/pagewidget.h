@@ -128,6 +128,8 @@ public slots:
     void setAutostartDelay(double const delay) {autostartDelay=delay;}
     void setAutostartEmbeddedDelay(double const delay) {autostartEmbeddedDelay=delay;}
     virtual void setAnimationDelay(int const) {}
+    virtual void disableTransitions() {}
+    virtual void enableTransitions() {}
     void setPid2Wid(QString const & program) {pid2wid=program;}
 
 signals:

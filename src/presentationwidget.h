@@ -48,6 +48,8 @@ protected:
     void animate() override;
     void endAnimation() override;
     void setDuration() override;
+    void disableTransitions() override;
+    void enableTransitions() override {elapsed=0;}
 
 public:
     PresentationWidget(QWidget* parent=nullptr);

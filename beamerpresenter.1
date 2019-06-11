@@ -54,6 +54,10 @@ Set number of blinds in blinds slide transition.
 Set the maximum number of slides, which are rendered to images and stored in a compressed cache. A negative number is treated as infinity.
 .
 .TP
+.BI "\-d \-\-no-transitions "
+Disable all slide transition.
+.
+.TP
 .BI "\-e \-\-embed " files
 Mark these files for embedding if an execution link points to them. Multiple files should be separated only by a comma (not space!).
 .
@@ -285,7 +289,7 @@ Simple animations can be created by showing slides in rapid succession. When usi
 .BR \-m " or " \-\-min-delay .
 .
 .SS Slide transitions
-.BR BeamerPresenter " supports an incomplete set of slide transitions. The frame time for slide transitions can be set using " \-f " or " \-\-frame-time .
+.BR BeamerPresenter " supports an incomplete set of slide transitions. The frame time for slide transitions can be set using " \-f " or " \-\-frame-time ". Slide transitions can be disabled completely with the option " \-d " or " \-\-no-transitions .
 .
 .SS Embedded Applications
 A link in the PDF pointing to an external application will usually be handled by the desktop services. But you can also specify programs, which will be executed directly when pressing the link.
@@ -480,6 +484,10 @@ set default value for the command line argument
 .B blinds =8
 set default value for the command line argument
 .BR \-b " or " \-\-blinds
+.
+.TP
+.B no-transitions
+.RB "disable all slide transitions by setting " \-\-no-transitions " by default.
 .
 .TP
 .B frame-time =25

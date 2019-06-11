@@ -34,15 +34,20 @@ PresentationWidget::~PresentationWidget()
 
 void PresentationWidget::paintEvent(QPaintEvent*)
 {
-    if (elapsed >= transition_duration) {
+    if (elapsed < 0) {
+        QPainter painter(this);
+        painter.drawPixmap(shiftx, shifty, pixmap);
+    }
+    else if (elapsed >= transition_duration) {
         timer.stop();
         QPainter painter(this);
         painter.drawPixmap(shiftx, shifty, pixmap);
         picinit = pixmap;
-        return;
     }
-    elapsed += dt;
-    (this->*paint)();
+    else {
+        elapsed += dt;
+        (this->*paint)();
+    }
 }
 
 void PresentationWidget::endAnimation()
@@ -70,9 +75,23 @@ void PresentationWidget::setDuration()
     }
 }
 
+void PresentationWidget::disableTransitions()
+{
+    timer.stop();
+    elapsed = -1;
+    transition_duration = 0;
+    picinit = QPixmap();
+}
+
 void PresentationWidget::animate() {
     // TODO: Test and implement more transitions
-    Poppler::PageTransition const* transition = page->transition();
+
+    // elapsed < 0 disables slide transitions.
+    if (elapsed < 0) {
+        update();
+        return;
+    }
+    elapsed = 0;
     timer.stop();
     if (pixmap.isNull()) {
         transition_duration = 0;
@@ -80,6 +99,7 @@ void PresentationWidget::animate() {
     }
     picwidth = pixmap.width();
     picheight = pixmap.height();
+    Poppler::PageTransition const* transition = page->transition();
     if (transition == nullptr || picinit.isNull() || (duration>-1e-6 && 250*duration < dt)) {
         transition_duration = 0;
         update();
@@ -175,7 +195,6 @@ void PresentationWidget::animate() {
         break;
     }
     transition_duration = static_cast<int>(1000*transition->durationReal());
-    elapsed = 0;
     timer.start(dt);
 }
 

@@ -64,6 +64,7 @@ public:
     void unsetKeyMapItem(const int key) {keymap->remove(key);}
     void setKeyMapItem(const int key, const int action);
     void setTimerMap(QMap<int, QTime>& timeMap);
+    void disableSlideTransitions() {presentationScreen->getPageWidget()->disableTransitions();}
 
 protected:
     void keyPressEvent(QKeyEvent* event);
