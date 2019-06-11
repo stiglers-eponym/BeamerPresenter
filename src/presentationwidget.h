@@ -38,7 +38,6 @@ private:
     int picwidth;
     int picheight;
     QTimer timer;
-    QPainter painter;
     void (PresentationWidget::*paint)();
 
 protected:

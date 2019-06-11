@@ -645,10 +645,8 @@ void PageWidget::renderPage(Poppler::Page* page, bool const hasDuration, QPixmap
 
 void PageWidget::paintEvent(QPaintEvent*)
 {
-    QPainter painter;
-    painter.begin(this);
+    QPainter painter(this);
     painter.drawPixmap(shiftx, shifty, pixmap);
-    painter.end();
 }
 
 void PageWidget::updateCacheVideos(const Poppler::Page *page)
