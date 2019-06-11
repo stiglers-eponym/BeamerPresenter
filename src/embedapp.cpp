@@ -90,6 +90,12 @@ void EmbedApp::start()
     }
 }
 
+void EmbedApp::update()
+{
+    if (widget!=nullptr && widget->isVisible())
+        widget->update();
+}
+
 void EmbedApp::clearProcess(int const exitCode, QProcess::ExitStatus const exitStatus)
 {
     qDebug() << "Process ended";

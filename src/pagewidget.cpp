@@ -18,7 +18,7 @@
 
 #include "pagewidget.h"
 
-PageWidget::PageWidget(Poppler::Page* page, QWidget* parent) : QOpenGLWidget(parent)
+PageWidget::PageWidget(Poppler::Page* page, QWidget* parent) : QWidget(parent)
 {
     autostartEmbeddedTimer->setSingleShot(true);
     connect(autostartEmbeddedTimer, &QTimer::timeout, this, [&](){startAllEmbeddedApplications(pageIndex);});
@@ -27,7 +27,7 @@ PageWidget::PageWidget(Poppler::Page* page, QWidget* parent) : QOpenGLWidget(par
     renderPage(page, false);
 }
 
-PageWidget::PageWidget(QWidget* parent) : QOpenGLWidget(parent)
+PageWidget::PageWidget(QWidget* parent) : QWidget(parent)
 {
     autostartEmbeddedTimer->setSingleShot(true);
     connect(autostartEmbeddedTimer, &QTimer::timeout, this, [&](){startAllEmbeddedApplications(pageIndex);});
@@ -643,11 +643,10 @@ void PageWidget::renderPage(Poppler::Page* page, bool const hasDuration, QPixmap
 //// Cache management and image rendering
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void PageWidget::paintGL()
+void PageWidget::paintEvent(QPaintEvent*)
 {
     QPainter painter;
     painter.begin(this);
-    painter.fillRect(rect(), background);
     painter.drawPixmap(shiftx, shifty, pixmap);
     painter.end();
 }

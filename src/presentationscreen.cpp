@@ -18,7 +18,7 @@
 
 #include "presentationscreen.h"
 
-PresentationScreen::PresentationScreen(PdfDoc* presentationDoc, QWidget* parent) : QOpenGLWidget(parent)
+PresentationScreen::PresentationScreen(PdfDoc* presentationDoc, QWidget* parent) : QWidget(parent)
 {
     //setAttribute(Qt::WA_NativeWindow);
     presentation = presentationDoc;
@@ -174,7 +174,7 @@ void PresentationScreen::keyPressEvent(QKeyEvent* event)
     event->accept();
 }
 
-void PresentationScreen::resizeEvent(QResizeEvent* event)
+void PresentationScreen::resizeEvent(QResizeEvent*)
 {
     presWidget->clearCache();
     presWidget->renderPage(presWidget->getPage(), false);

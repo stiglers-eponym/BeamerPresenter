@@ -896,9 +896,6 @@ void ControlScreen::setColor(const QColor bgColor, const QColor textColor)
     setPalette(newPalette);
     newPalette.setColor(QPalette::Base, bgColor);
     ui->text_current_slide->setPalette(newPalette);
-    ui->notes_widget->setBackground(QBrush(bgColor));
-    ui->current_slide->setBackground(QBrush(bgColor));
-    ui->next_slide->setBackground(QBrush(bgColor));
 }
 
 void ControlScreen::setPresentationColor(const QColor color)
@@ -907,7 +904,6 @@ void ControlScreen::setPresentationColor(const QColor color)
     QPalette newPalette(presentationScreen->palette());
     newPalette.setColor(QPalette::Background, color);
     presentationScreen->setPalette(newPalette);
-    presentationScreen->getPageWidget()->setBackground(QBrush(color));
 }
 
 void ControlScreen::setScrollDelta(const int scrollDelta)

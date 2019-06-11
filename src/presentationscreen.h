@@ -19,7 +19,6 @@
 #ifndef PRESENTATIONSCREEN_H
 #define PRESENTATIONSCREEN_H
 
-#include <QOpenGLWidget>
 #include <QKeyEvent>
 #include <QWheelEvent>
 #include <QGridLayout>
@@ -27,7 +26,7 @@
 #include "pagewidget.h"
 #include "presentationwidget.h"
 
-class PresentationScreen : public QOpenGLWidget
+class PresentationScreen : public QWidget
 {
     Q_OBJECT
 
@@ -44,7 +43,7 @@ public:
 
 protected:
     void keyPressEvent(QKeyEvent* event);
-    void resizeEvent(QResizeEvent* event);
+    void resizeEvent(QResizeEvent*);
     void wheelEvent(QWheelEvent* event);
 
 private:

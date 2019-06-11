@@ -1,10 +1,8 @@
 BeamerPresenter
 
-* App freezes in wayland if one window is invisible
+* Segfault when embedded application appears during slide change?
 
 * Draw in presentation
-
-* Segfaults when embedded applications stop or get closed?
 
 * Make timer editable
 * Multimedia sliders: key bindings and signals slider <-> player

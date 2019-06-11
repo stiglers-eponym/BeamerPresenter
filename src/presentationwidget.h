@@ -21,7 +21,6 @@
 
 #include <QObject>
 #include <QPainter>
-#include <QOpenGLWidget>
 #include <QDebug>
 #include <QTimer>
 #include <poppler-page-transition.h>
@@ -46,7 +45,7 @@ protected:
     QTimer* const timeoutTimer = new QTimer(this);
     int minimumAnimationDelay = 40; // minimum frame time in ms
     QPixmap picinit;
-    void paintGL() override;
+    void paintEvent(QPaintEvent*) override;
     void animate() override;
     void endAnimation() override;
     void setDuration() override;

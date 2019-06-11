@@ -306,7 +306,7 @@ int main(int argc, char *argv[])
                 if (error != nullptr)
                     qInfo() << "Reported error:" << error->errorString();
             }
-            else
+            else {
                 local = jsonDoc.object().toVariantMap();
                 if (local.contains("presentation")) {
                     if (local.contains("notes"))
@@ -316,6 +316,7 @@ int main(int argc, char *argv[])
                     break;
                 }
             }
+        }
         }
         qCritical() << "Could not find presentation file. Argument was" << parser.positionalArguments()[0];
         return 1;
@@ -727,13 +728,13 @@ int main(int argc, char *argv[])
             throw 0;
         emit w->sendTimerString(parser.value("t"));
     }
-    catch (int const err) {
+    catch (int const) {
         try {
             if (!local.contains("time"))
                 throw 0;
             emit w->sendTimerString(local.value("time").toStringList()[0]);
         }
-        catch (int const err) {
+        catch (int const) {
             if (settings.contains("time"))
                 emit w->sendTimerString(settings.value("time").toStringList()[0]);
         }
@@ -763,7 +764,7 @@ int main(int argc, char *argv[])
                 try {
                     w->setRenderer(settings.value("renderer").toString().split(" "));
                 }
-                catch (int const err) {
+                catch (int const) {
                     qCritical() << "Failed to set custom renderer from configuration";
                 }
             }

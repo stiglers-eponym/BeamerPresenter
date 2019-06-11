@@ -42,6 +42,7 @@ public:
     bool isOnPage(int const page) const {return pages.contains(page);}
     int* getNextLocation(int const page) const;
     void start();
+    void update();
 
 private:
     void clearProcess(int const exitCode, QProcess::ExitStatus const exitStatus);

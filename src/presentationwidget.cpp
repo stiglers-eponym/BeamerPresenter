@@ -20,11 +20,9 @@
 
 PresentationWidget::PresentationWidget(QWidget* parent) : PageWidget(parent)
 {
-    connect(&timer, &QTimer::timeout, this, QOverload<>::of(&QOpenGLWidget::update));
+    connect(&timer, &QTimer::timeout, this, QOverload<>::of(&QWidget::update));
     timeoutTimer->setSingleShot(true);
     connect(timeoutTimer, &QTimer::timeout, this, &PageWidget::timeoutSignal);
-    // TODO: Check whether disabling partial updates and redrawing everything would be more efficient.
-    setUpdateBehavior(PartialUpdate);
 }
 
 PresentationWidget::~PresentationWidget()
@@ -34,12 +32,11 @@ PresentationWidget::~PresentationWidget()
     delete timeoutTimer;
 }
 
-void PresentationWidget::paintGL()
+void PresentationWidget::paintEvent(QPaintEvent*)
 {
     if (elapsed >= transition_duration) {
         timer.stop();
         painter.begin(this);
-        painter.fillRect(rect(), background);
         painter.drawPixmap(shiftx, shifty, pixmap);
         painter.end();
         picinit = pixmap;
@@ -62,46 +59,44 @@ void PresentationWidget::endAnimation()
 
 void PresentationWidget::setDuration()
 {
-        duration = page->duration(); // duration of the current page in s
-        // For durations longer than the minimum animation delay: use the duration
-        if (duration*1000 > minimumAnimationDelay) {
-            timeoutTimer->start(int(1000*duration));
-            if (duration < 0.5)
-                update();
-        }
-        // For durations of approximately 0: use the minimum animation delay
-        else if (duration > -1e-6) {
-            timeoutTimer->start(minimumAnimationDelay);
+    duration = page->duration(); // duration of the current page in s
+    // For durations longer than the minimum animation delay: use the duration
+    if (duration*1000 > minimumAnimationDelay) {
+        timeoutTimer->start(int(1000*duration));
+        if (duration < 0.5)
             update();
-        }
+    }
+    // For durations of approximately 0: use the minimum animation delay
+    else if (duration > -1e-6) {
+        timeoutTimer->start(minimumAnimationDelay);
+        update();
+    }
 }
 
 void PresentationWidget::animate() {
     // TODO: Test and implement more transitions
     Poppler::PageTransition const* transition = page->transition();
     timer.stop();
-    if (pixmap.isNull())
+    if (pixmap.isNull()) {
+        transition_duration = 0;
         return;
+    }
     picwidth = pixmap.width();
     picheight = pixmap.height();
     if (transition == nullptr || picinit.isNull() || (duration>-1e-6 && 250*duration < dt)) {
-        makeCurrent();
+        transition_duration = 0;
         painter.begin(this);
-        painter.fillRect(rect(), background);
         painter.drawPixmap(shiftx, shifty, pixmap);
         painter.end();
-        doneCurrent();
         picinit = pixmap;
         return;
     }
     switch (transition->type()) {
     case Poppler::PageTransition::Replace:
-        makeCurrent();
+        transition_duration = 0;
         painter.begin(this);
-        painter.fillRect(rect(), background);
         painter.drawPixmap(shiftx, shifty, pixmap);
         painter.end();
-        doneCurrent();
         picinit = pixmap;
         return;
     case Poppler::PageTransition::Split:
@@ -188,120 +183,120 @@ void PresentationWidget::animate() {
     }
     transition_duration = static_cast<int>(1000*transition->durationReal());
     elapsed = 0;
-    makeCurrent();
     painter.begin(this);
-    painter.fillRect(rect(), background);
     painter.drawPixmap(shiftx, shifty, picinit);
     painter.end();
-    doneCurrent();
     timer.start(dt);
 }
 
 void PresentationWidget::paintWipeUp()
 {
     int const split = picheight - elapsed*picheight/transition_duration;
-    painter.drawPixmap(shiftx, split+shifty, pixmap, 0, split, 0, split + dt*picheight/transition_duration + 1);
+    painter.drawPixmap(shiftx, shifty, picinit, 0, 0, 0, split);
+    painter.drawPixmap(shiftx, split+shifty, pixmap, 0, split, -1, -1);
 }
 
 void PresentationWidget::paintWipeDown()
 {
     int const split = elapsed*picheight/transition_duration;
-    int const start = split - dt*picheight/transition_duration - 1;
-    painter.drawPixmap(shiftx, start+shifty, pixmap, 0, start, 0, split);
+    painter.drawPixmap(shiftx, shifty, picinit, 0, 0, 0, split);
+    painter.drawPixmap(shiftx, split+shifty, pixmap, 0, split, -1, -1);
 }
 
 void PresentationWidget::paintWipeLeft()
 {
     int const split = picwidth - elapsed*picwidth/transition_duration;
-    painter.drawPixmap(shiftx+split, shifty, pixmap, split, 0, split + dt*picwidth/transition_duration + 1, 0);
+    painter.drawPixmap(shiftx, shifty, picinit, 0, 0, split, -1);
+    painter.drawPixmap(shiftx+split, shifty, pixmap, split, 0, -1, -1);
 }
 
 void PresentationWidget::paintWipeRight()
 {
     int const split = elapsed*picwidth/transition_duration;
-    int const start = split - dt*picwidth/transition_duration - 1;
-    painter.drawPixmap(start+shiftx, shifty, pixmap, start, 0, split, 0);
+    painter.drawPixmap(shiftx, shifty, picinit, 0, 0, split, -1);
+    painter.drawPixmap(shiftx+split, shifty, pixmap, split, 0, -1, -1);
 }
 
 void PresentationWidget::paintBlindsV()
 {
-    int const shift = elapsed>dt ? ((elapsed-dt)*picwidth)/(n_blinds*transition_duration) - 1 : 0;
-    int width = (picwidth*elapsed)/(n_blinds*transition_duration) - shift;
+    int width = (picwidth*elapsed)/(n_blinds*transition_duration);
     if (width==0)
         width = 1;
+    painter.drawPixmap(shiftx, shifty, picinit);
     for (int i=0; i<n_blinds; i++)
-        painter.drawPixmap(shiftx+i*picwidth/n_blinds+shift, shifty, pixmap, i*picwidth/n_blinds+shift, 0, width, -1);
+        painter.drawPixmap(shiftx+i*picwidth/n_blinds, shifty, pixmap, i*picwidth/n_blinds, 0, width, -1);
 }
 
 void PresentationWidget::paintBlindsH()
 {
-    int const shift = elapsed>dt ? ((elapsed-dt)*picheight)/(n_blinds*transition_duration) - 1 : 0;
-    int height = (picheight*elapsed)/(n_blinds*transition_duration)-shift;
+    //int const shift = elapsed>dt ? ((elapsed-dt)*picheight)/(n_blinds*transition_duration) - 1 : 0;
+    int height = (picheight*elapsed)/(n_blinds*transition_duration);
     if (height==0)
         height = 1;
-    for (int i=0; i<n_blinds; i++)
-        painter.drawPixmap(shiftx, i*picheight/n_blinds+shift+shifty, pixmap, 0, i*picheight/n_blinds+shift, -1, height);
+    painter.drawPixmap(shiftx, shifty, picinit);
+    for (int i=0; i<n_blinds; i++) {
+        painter.drawPixmap(shiftx, i*picheight/n_blinds+shifty, pixmap, 0, i*picheight/n_blinds, -1, height);
+    }
 }
 
 void PresentationWidget::paintBoxO()
 {
     int const width = (elapsed*picwidth)/transition_duration;
     int const height = (elapsed*picheight)/transition_duration;
+    painter.drawPixmap(shiftx, shifty, picinit);
     painter.drawPixmap(shiftx+(picwidth-width)/2, shifty+(picheight-height)/2, pixmap, (picwidth-width)/2, (picheight-height)/2, width, height);
-
-    // The following code should be more efficient, but it caused rendering errors when I tried it.
-    //int const width = (elapsed*picwidth)/transition_duration;
-    //int const height = (elapsed*picheight)/transition_duration;
-    //int const dw = (dt*picwidth)/(2*transition_duration);
-    //int const dh = (dt*picheight)/(2*transition_duration);
-    //painter.drawPixmap(shiftx+(picwidth-width)/2, shifty+(picheight-height)/2, pixmap, (picwidth-width)/2, (picheight-height)/2, width, dh);
-    //painter.drawPixmap(shiftx+(picwidth-width)/2, shifty+(picheight-height)/2+dh, pixmap, (picwidth-width)/2, (picheight-height)/2, dw, height-2*dh);
-    //painter.drawPixmap(shiftx+(picwidth-width)/2, shifty+(picheight+height)/2-dh, pixmap, (picwidth-width)/2, (picheight+height)/2-dh, width, dh);
-    //painter.drawPixmap(shiftx+(picwidth+width)/2-dw, shifty+(picheight-height)/2, pixmap, (picwidth+width)/2-dw, (picheight-height)/2, dw, height-2*dh);
 }
 
 void PresentationWidget::paintBoxI()
 {
     int const width = (elapsed*picwidth)/transition_duration;
     int const height = (elapsed*picheight)/transition_duration;
-    int const dw = (dt*picwidth)/(2*transition_duration)+1;
-    int const dh = (dt*picheight)/(2*transition_duration)+1;
-    painter.drawPixmap(shiftx+width/2-dw, shifty+height/2-dh, pixmap, width/2-dw, height/2-dh, picwidth-width+2*dw, dh);
-    painter.drawPixmap(shiftx+width/2-dw, shifty+height/2, pixmap, width/2-dw, height/2, dw, picheight-height+1);
-    painter.drawPixmap(shiftx+width/2-dw, shifty+picheight-height/2, pixmap, width/2-dw, picheight-height/2, picwidth-width+2*dw, dh);
-    painter.drawPixmap(shiftx+picwidth-width/2, shifty+height/2, pixmap, picwidth-width/2, height/2, dw, picheight-height+1);
+    if (height*width==0)
+        painter.drawPixmap(shiftx, shifty, pixmap);
+    else {
+        painter.drawPixmap(shiftx, shifty, pixmap);
+        painter.drawPixmap(shiftx+width/2, shifty+height/2, picinit, width/2, height/2, picwidth-width, picheight-height);
+    }
 }
 
 void PresentationWidget::paintSplitHO()
 {
     int const height = (elapsed*picheight)/transition_duration;
-    int const dh = (dt*picheight)/transition_duration + 1;
-    painter.drawPixmap(shiftx, shifty+(picheight-height)/2, pixmap, 0, (picheight-height)/2, -1, dh);
-    painter.drawPixmap(shiftx, shifty+(picheight+height)/2-dh, pixmap, 0, (picheight+height)/2-dh, -1, dh);
+    painter.drawPixmap(shiftx, shifty, picinit, 0, 0, -1, (picheight-height)/2+1);
+    painter.drawPixmap(shiftx, shifty+(picheight+height)/2, picinit, 0, (picheight+height)/2, -1, (picheight-height)/2+1);
+    painter.drawPixmap(shiftx, shifty+(picheight-height)/2, pixmap, 0, (picheight-height)/2, -1, height);
 }
 
 void PresentationWidget::paintSplitVO()
 {
     int const width = (elapsed*picwidth)/transition_duration;
-    int const dw = (dt*picheight)/transition_duration + 1;
-    painter.drawPixmap(shiftx+(picwidth-width)/2, shifty, pixmap, (picwidth-width)/2, 0, dw, -1);
-    painter.drawPixmap(shiftx+(picwidth+width)/2-dw, shifty, pixmap, (picwidth+width)/2-dw, 0, dw, -1);
+    painter.drawPixmap(shiftx, shifty, picinit, 0, 0, (picwidth-width)/2+1, -1);
+    painter.drawPixmap(shiftx+(picwidth+width)/2, shifty, picinit, (picwidth+width)/2, 0, (picwidth-width)/2+1, -1);
+    painter.drawPixmap(shiftx+(picwidth-width)/2, shifty, pixmap, (picwidth-width)/2, 0, width, -1);
 }
 
 void PresentationWidget::paintSplitHI()
 {
-    int const height = (elapsed*picheight)/transition_duration;
-    int const dh = (dt*picheight)/transition_duration + 1;
-    painter.drawPixmap(shiftx, shifty+height/2-dh, pixmap, 0, height/2-dh, -1, dh);
-    painter.drawPixmap(shiftx, shifty+picheight-height/2, pixmap, 0, picheight-height/2, -1, dh);
+    int const height = picheight - (elapsed*picheight)/transition_duration;
+    if (height==0)
+        painter.drawPixmap(shiftx, shifty, pixmap);
+    else {
+        painter.drawPixmap(shiftx, shifty, pixmap, 0, 0, -1, (picheight-height)/2+1);
+        painter.drawPixmap(shiftx, shifty+(picheight+height)/2, pixmap, 0, (picheight+height)/2, -1, (picheight-height)/2+1);
+        painter.drawPixmap(shiftx, shifty+(picheight-height)/2, picinit, 0, (picheight-height)/2, -1, height);
+    }
 }
 
 void PresentationWidget::paintSplitVI()
 {
-    int const width = (elapsed*picwidth)/transition_duration;
-    int const dw = (dt*picheight)/transition_duration + 1;
-    painter.drawPixmap(shiftx+width/2-dw, shifty, pixmap, width/2-dw, 0, dw, -1);
-    painter.drawPixmap(shiftx+picwidth-width/2, shifty, pixmap, picwidth-width/2, 0, dw, -1);
+    int const width = picwidth - (elapsed*picwidth)/transition_duration;
+    if (width==0)
+        painter.drawPixmap(shiftx, shifty, pixmap);
+    else {
+        painter.drawPixmap(shiftx, shifty, pixmap, 0, 0, (picwidth-width)/2+1, -1);
+        painter.drawPixmap(shiftx+(picwidth+width)/2, shifty, pixmap, (picwidth+width)/2, 0, (picwidth-width)/2+1, -1);
+        painter.drawPixmap(shiftx+(picwidth-width)/2, shifty, picinit, (picwidth-width)/2, 0, width, -1);
+    }
 }
 
 void PresentationWidget::paintDissolve()
@@ -314,13 +309,15 @@ void PresentationWidget::paintDissolve()
 void PresentationWidget::paintGlitter()
 {
     // TODO
-    elapsed = transition_duration;
+    painter.drawPixmap(shiftx, shifty, pixmap);
+    transition_duration = 0;
 }
 
 void PresentationWidget::paintFly()
 {
     // TODO
-    elapsed = transition_duration;
+    painter.drawPixmap(shiftx, shifty, pixmap);
+    transition_duration = 0;
 }
 
 void PresentationWidget::paintPushUp()
@@ -354,19 +351,20 @@ void PresentationWidget::paintPushRight()
 void PresentationWidget::paintCover()
 {
     // TODO
-    elapsed = transition_duration;
+    painter.drawPixmap(shiftx, shifty, pixmap);
+    transition_duration = 0;
 }
 
 void PresentationWidget::paintUncover()
 {
     // TODO
-    elapsed = transition_duration;
+    painter.drawPixmap(shiftx, shifty, pixmap);
+    transition_duration = 0;
 }
 
 
 void PresentationWidget::paintFade()
 {
-    painter.drawRect(shiftx, shifty, picwidth, picheight);
     painter.setOpacity(static_cast<double>(transition_duration - elapsed)/transition_duration);
     painter.drawPixmap(shiftx, shifty, picinit);
     painter.setOpacity(static_cast<double>(elapsed)/transition_duration);

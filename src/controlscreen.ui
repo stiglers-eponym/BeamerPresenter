@@ -1046,7 +1046,7 @@
   </customwidget>
   <customwidget>
    <class>PageWidget</class>
-   <extends>QOpenGLWidget</extends>
+   <extends>QWidget</extends>
    <header>src/pagewidget.h</header>
   </customwidget>
  </customwidgets>

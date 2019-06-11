@@ -20,7 +20,6 @@
 #define PAGE_H
 
 #include <QWidget>
-#include <QOpenGLWidget>
 #include <QPainter>
 #include <QTimer>
 #include <QSlider>
@@ -33,7 +32,7 @@
 #include "embedapp.h"
 #include "enumerates.h"
 
-class PageWidget : public QOpenGLWidget
+class PageWidget : public QWidget
 {
     Q_OBJECT
 
@@ -61,7 +60,6 @@ public:
     void setEmbedFileList(const QStringList& files) {embedFileList=files;}
     void setUseCache(bool const use) {useCache=use;}
     void setCacheVideos(bool const cache) {cacheVideos=cache;}
-    void setBackground(QBrush bg) {background=bg;}
 
     long int getCacheSize() const;
     int getCacheNumber() const {return cache.size();}
@@ -78,7 +76,6 @@ private:
     void clearLists();
     QList<Poppler::Link*> links;
     QList<QRect> linkPositions;
-    QList<VideoWidget*> videoWidgets;
     QList<VideoWidget*> cachedVideoWidgets;
     QList<QRect> videoPositions;
     QList<QMediaPlayer*> soundPlayers;
@@ -88,7 +85,6 @@ private:
     QMap<int,QSlider*> soundSliders;
     QMap<int,QSlider*> soundLinkSliders;
     QMap<int,QMap<int,int>> embedMap;
-    QList<EmbedApp*> embedApps;
     QList<QRect> embedPositions;
     QTimer* const autostartTimer = new QTimer(this);
     QTimer* const autostartEmbeddedTimer = new QTimer(this);
@@ -104,7 +100,8 @@ protected:
     virtual void animate() {}
     virtual void endAnimation() {}
     virtual void setDuration() {}
-    QBrush background = QBrush(QColor(0,0,0));
+    QList<VideoWidget*> videoWidgets;
+    QList<EmbedApp*> embedApps;
     Poppler::Page* page = nullptr;
     QMap<int,QByteArray const*> cache;
     PagePart pagePart = FullPage; // Which part of the page is shown on this label
@@ -121,7 +118,7 @@ protected:
     //void resizeGL(int w, int h) override;
     void mouseReleaseEvent(QMouseEvent* event) override;
     void mouseMoveEvent(QMouseEvent* event) override;
-    virtual void paintGL() override;
+    virtual void paintEvent(QPaintEvent*) override;
 
 public slots:
     void togglePointerVisibility();
@@ -130,7 +127,7 @@ public slots:
     void receiveEmbedApp(EmbedApp* app);
     void setAutostartDelay(double const delay) {autostartDelay=delay;}
     void setAutostartEmbeddedDelay(double const delay) {autostartEmbeddedDelay=delay;}
-    virtual void setAnimationDelay(int const delay_ms) {}
+    virtual void setAnimationDelay(int const) {}
     void setPid2Wid(QString const & program) {pid2wid=program;}
 
 signals:
