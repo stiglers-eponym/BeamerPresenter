@@ -226,6 +226,7 @@ int main(int argc, char *argv[])
         {{"l", "toc-depth"}, "Number of levels of the table of contents which are shown.", "int"},
         {{"m", "min-delay"}, "Set minimum time per frame in milliseconds.\nThis is useful when using \\animation in LaTeX beamer.", "ms"},
         {{"M", "memory"}, "Maximum size of cache in MiB. A negative number is treated as infinity.", "int"},
+        {{"n", "no-notes"}, "show only presentation and no notes."},
         {{"o", "columns"}, "Number of columns in overview.", "int"},
         {{"p", "page-part"}, "Set half of the page to be the presentation, the other half to be the notes. Values are \"l\" or \"r\" for presentation on the left or right half of the page, respectively.\nIf the presentation was created with \"\\setbeameroption{show notes on second screen=right}\", you should use \"--page-part=right\".", "side"},
         {{"r", "renderer"}, "\"poppler\", \"custom\" or command: Command for rendering pdf pages to cached images. This command should write a png image to standard output using the arguments %file (path to file), %page (page number), %width and %height (image size in pixels).", "string"},
@@ -234,6 +235,7 @@ int main(int argc, char *argv[])
         {{"u", "urlsplit"}, "Character which is used to split links into an url and arguments.", "char"},
         {{"v", "video-cache"}, "Preload videos for the following slide.", "bool"},
         {{"w", "pid2wid"}, "Program that converts a PID to a Window ID.", "file"},
+        {"force-show", "force showing notes or presentation (if in a framebuffer) independent of QPA platform plugin."},
     });
     parser.process(app);
 
@@ -786,9 +788,69 @@ int main(int argc, char *argv[])
     }
 
 
-    // show the GUI
-    w->show();
-    w->activateWindow();
+    { // Show the GUI depending on the QPA backend
+        bool showNotes = !parser.isSet("n");
+        if (showNotes && local.contains("no-notes")) {
+            // This is rather unintuitive. Just set any value...
+            QString string = local.value("no-notes").toString().toLower();
+            if (QStringList({"", "true", "no-notes", "1"}).contains(string))
+                showNotes = false;
+        }
+        else if (settings.contains("no-notes") && !parser.isSet("force-show"))
+            showNotes = false;
+        // show the GUI
+        if (QStringList({"xcb", "wayland", "wayland-egl"}).contains(app.platformName())) {
+            if (showNotes) {
+                w->show();
+                w->activateWindow();
+            }
+        }
+        else if (QStringList({"wayland-xcomposite-egl", "wayland-xcomposite-glx", "windows", "direct2d","iOS", "cocoa", "haiku"}).contains(app.platformName())) {
+            qInfo() << "BeamerPresenter has not been tested on a similar platform. Your feedback would be very welcome!";
+            qInfo() << "Using QPA platform plugin" << app.platformName();
+            if (showNotes) {
+                w->show();
+                w->activateWindow();
+            }
+        }
+        else if (QStringList({"qnx", "android", "minimal", "minimalegl", "offscreen", "vnc", "mirclient", "winrt"}).contains(app.platformName())) {
+            if (parser.isSet("force-show")) {
+                qWarning() << "You are using a QPA platform plugin, which might cause problems when trying to show two windows.";
+                qInfo() << "QPA platform plugin is:" << app.platformName();
+                qInfo() << "BeamerPresenter has not been tested on a similar platform. Your feedback would be very welcome!";
+                w->show();
+                w->activateWindow();
+            }
+            else {
+                qWarning() << "You are using a QPA platform plugin, which might cause problems when trying to show two windows. Showing only the presentation window.";
+                qInfo() << "You can force showing notes with the option --force-show";
+                qInfo() << "QPA platform plugin is:" << app.platformName();
+                qInfo() << "BeamerPresenter has not been tested on a similar platform. Your feedback would be very welcome!";
+            }
+        }
+        else if (QStringList({"eglfs", "linuxfb", "directfb", "kms", "openwfd", "bsdfb"}).contains(app.platformName())) {
+            qCritical() << "You are using a QPA platform plugin, on which BeamerPresenter might freeze and block your system.";
+            qInfo() << "QPA platform plugin is:" << app.platformName();
+            if (parser.isSet("force-show")) {
+                qWarning() << "Continuing anyway, because you have set --force-show";
+                qInfo() << "BeamerPresenter has not been tested on a similar platform. Your feedback would be very welcome!";
+            }
+            else {
+                qInfo() << "Exiting now to avoid crashing you system. You can force showing the presentation with --force-show.";
+                return 1;
+           }
+        }
+        else {
+            qWarning() << "You are using an unknown QPA platform plugin.";
+            qInfo() << "QPA platform plugin is:" << app.platformName();
+            qInfo() << "BeamerPresenter has not been tested on a similar platform. Your feedback would be very welcome!";
+            if (showNotes) {
+                qInfo() << "If your platform (plugin) is not able to show two windows, please use the option -n or --no-notes.";
+                w->show();
+                w->activateWindow();
+            }
+        }
+    }
 
     // Render first page on presentation screen
     emit w->sendNewPageNumber(0);

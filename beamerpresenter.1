@@ -82,6 +82,10 @@ Set minimum time per frame in milliseconds. This is useful when using \\animatio
 Set the maximum cache size in MiB. A negative number is treated as infinity. The real memory usage can be slightly larger than this limit, because slides are rendered to cache without any knowledge about their size in memory beforehand.
 .
 .TP
+.B \-n \-\-no-notes
+Show only the presentation window and no notes. This will only hide the notes window and does not improve the performance.
+.
+.TP
 .BI "\-o \-\-columns " integer
 Set the number of columns of slides, which will be shown in the overview mode on the control screen.
 .
@@ -130,6 +134,10 @@ with the command
 .TP
 .BI "\-v \-\-video-cache " bool
 If set to true, videos will be loaded to cache when reaching the slide before the one containing the video.
+.
+.TP
+.B \-\-force-show
+.RB "Show the notes window even if showing two windows might cause problems on your platform. If you are using a frame buffer QPA backend, this forces showing a single window (the presentation) although " BeamerPresenter " will probably freeze and your system might be blocked."
 .
 .
 .SH DEFAULT KEY BINDINGS
@@ -535,11 +543,15 @@ overwrite default value for the command line argument
 .BR \-o " or " \-\-columns .
 .
 .TP
-.BR renderer
+.B renderer
 Set the command for an external renderer. This will set the default value of the command line argument
 .BR \-r " or " \-\-renderer " to \[dq]custom\[dq].
 If this option is set, the internal renderer can be used with the command line argument
 .RB \[dq] \-r " poppler\[dq]."
+.
+.TP
+.B no-notes
+Show only the presentation and no notes.
 .
 .SS Local configuration file
 .

@@ -115,12 +115,12 @@ void PageWidget::renderPage(Poppler::Page* page, bool const hasDuration, QPixmap
     // Set the new page and basic properties
     this->page = page;
     pageIndex = page->index();
-    QSize pageSize = page->pageSize();
+    QSizeF pageSize = page->pageSizeF();
     // This is given in point = inch/72 ≈ 0.353mm (Did they choose these units to bother programmers?)
 
     // Place the page as an image of the correct size at the correct position
     // The lower left corner of the image will be located at (shiftx, shifty)
-    int pageHeight=pageSize.height(), pageWidth=pageSize.width();
+    double pageHeight=pageSize.height(), pageWidth=pageSize.width();
     // The page image must be split if the beamer option "notes on second screen" is set.
     if (pagePart != FullPage)
         pageWidth /= 2;
@@ -139,7 +139,7 @@ void PageWidget::renderPage(Poppler::Page* page, bool const hasDuration, QPixmap
         shiftx = 0;
     }
 
-    // Calculate the size of the image relative to the label size
+    // Calculate the size of the image in pixels
     double scale_x=resolution*pageWidth, scale_y=resolution*pageHeight;
     // Adjustments if only parts of the page are shown:
     if (pagePart != FullPage) {
@@ -168,16 +168,30 @@ void PageWidget::renderPage(Poppler::Page* page, bool const hasDuration, QPixmap
         else
             pixmap = *pix;
     }
-    else if (cache.contains(pageIndex)) {
-        // There exists a cached image for this page. Display this image as the page image.
-        pixmap = getCache(pageIndex);
-    }
     else {
-        // A new page image has to be rendered.
-        pixmap = getPixmap(page);
-        // Save this image to cache.
-        if (useCache)
-            updateCache(&pixmap, page->index());
+        bool updateRequired = true;
+        if (cache.contains(pageIndex)) {
+            // The page exists in cache. Use the cache instead of rendering it again.
+            pixmap = getCache(pageIndex);
+            int picwidth = int(resolution*pageWidth), picheight = int(resolution*pageHeight);
+            if (abs(picwidth-pixmap.width())<2 && abs(picheight-pixmap.height())<2)
+                updateRequired = false;
+        }
+        if (updateRequired) {
+            // A new page image has to be rendered.
+            if (pagePart == FullPage)
+                pixmap = QPixmap::fromImage(page->renderToImage(72*resolution, 72*resolution));
+            else {
+                QImage image = page->renderToImage(72*resolution, 72*resolution);
+                if (pagePart == LeftHalf)
+                    pixmap = QPixmap::fromImage(image.copy(0, 0, image.width()/2, image.height()));
+                else
+                    pixmap = QPixmap::fromImage(image.copy(image.width()/2, 0, image.width()/2, image.height()));
+            }
+            // Save this image to cache.
+            if (useCache)
+                updateCache(&pixmap, page->index());
+        }
     }
 
     // Show the page on the screen.
@@ -741,8 +755,12 @@ QPixmap PageWidget::getPixmap(Poppler::Page const* cachePage) const
     if (cache.contains(cachePage->index())) {
         // The page exists in cache. Use the cache instead of rendering it again.
         pixmap = getCache(cachePage->index());
+        QSizeF size = page->pageSizeF();
+        int picwidth = int(resolution*size.width()), picheight = int(resolution*size.height());
+        if (abs(picwidth-pixmap.width())<2 && abs(picheight-pixmap.height())<2)
+            return pixmap;
     }
-    else if (pagePart == FullPage)
+    if (pagePart == FullPage)
         pixmap = QPixmap::fromImage(cachePage->renderToImage(72*resolution, 72*resolution));
     else {
         QImage image = cachePage->renderToImage(72*resolution, 72*resolution);
