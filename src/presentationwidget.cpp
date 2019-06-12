@@ -38,7 +38,7 @@ void PresentationWidget::paintEvent(QPaintEvent*)
         QPainter painter(this);
         painter.drawPixmap(shiftx, shifty, pixmap);
     }
-    else if (elapsed >= transition_duration) {
+    else if (elapsed+dt >= transition_duration) {
         timer.stop();
         QPainter painter(this);
         painter.drawPixmap(shiftx, shifty, pixmap);
@@ -160,11 +160,13 @@ void PresentationWidget::animate() {
         paint = &PresentationWidget::paintDissolve;
         break;
     case Poppler::PageTransition::Glitter:
-        qWarning () << "Unsupported transition type: Glitter";
+        qDebug () << "Transition glitter";
         paint = &PresentationWidget::paintGlitter;
         break;
     case Poppler::PageTransition::Fly:
-        qDebug () << "Transition fly";
+        qWarning () << "Unsupported slide transition fly";
+        qInfo() << "If you know how this slide transition should look like, please tell me:";
+        qInfo() << "    https://github.com/stiglers-eponym/BeamerPresenter/issues";
         paint = &PresentationWidget::paintFly;
         break;
     case Poppler::PageTransition::Push:
@@ -182,12 +184,33 @@ void PresentationWidget::animate() {
         }
         break;
     case Poppler::PageTransition::Cover:
-        qWarning () << "Unsupported transition of type cover";
-        paint = &PresentationWidget::paintCover;
+        {
+        qDebug () << "Transition cover" << transition->angle();
+        int angle = (360 + transition->angle()) % 360;
+        if (angle < 45 || angle > 315)
+            paint = &PresentationWidget::paintCoverRight;
+        else if (angle < 135)
+            paint = &PresentationWidget::paintCoverUp;
+        else if (angle < 225)
+            paint = &PresentationWidget::paintCoverLeft;
+        else
+            paint = &PresentationWidget::paintCoverDown;
+        }
         break;
     case Poppler::PageTransition::Uncover:
-        qWarning () << "Unsupported transition of type uncover";
-        paint = &PresentationWidget::paintUncover;
+        {
+        qDebug () << "Transition uncover" << transition->angle();
+        int angle = (360 + transition->angle()) % 360;
+        if (angle < 45 || angle > 315)
+            paint = &PresentationWidget::paintUncoverRight;
+        else if (angle < 135)
+            paint = &PresentationWidget::paintUncoverUp;
+        else if (angle < 225)
+            paint = &PresentationWidget::paintUncoverLeft;
+        else
+            paint = &PresentationWidget::paintUncoverDown;
+        }
+
         break;
     case Poppler::PageTransition::Fade:
         qDebug () << "Transition fade";
@@ -267,7 +290,7 @@ void PresentationWidget::paintBoxI()
     QPainter painter(this);
     int const width = (elapsed*picwidth)/transition_duration;
     int const height = (elapsed*picheight)/transition_duration;
-    if ((picwidth-width)*(picheight-height)==0)
+    if (picwidth == width || picheight == height)
         painter.drawPixmap(shiftx, shifty, pixmap);
     else {
         painter.drawPixmap(shiftx, shifty, pixmap);
@@ -297,26 +320,18 @@ void PresentationWidget::paintSplitHI()
 {
     QPainter painter(this);
     int const height = picheight - (elapsed*picheight)/transition_duration;
-    if (height==0)
-        painter.drawPixmap(shiftx, shifty, pixmap);
-    else {
-        painter.drawPixmap(shiftx, shifty, pixmap, 0, 0, -1, (picheight-height)/2+1);
-        painter.drawPixmap(shiftx, shifty+(picheight+height)/2, pixmap, 0, (picheight+height)/2, -1, (picheight-height)/2+1);
-        painter.drawPixmap(shiftx, shifty+(picheight-height)/2, picinit, 0, (picheight-height)/2, -1, height);
-    }
+    painter.drawPixmap(shiftx, shifty, pixmap, 0, 0, -1, (picheight-height)/2+1);
+    painter.drawPixmap(shiftx, shifty+(picheight+height)/2, pixmap, 0, (picheight+height)/2, -1, (picheight-height)/2+1);
+    painter.drawPixmap(shiftx, shifty+(picheight-height)/2, picinit, 0, (picheight-height)/2, -1, height);
 }
 
 void PresentationWidget::paintSplitVI()
 {
     QPainter painter(this);
     int const width = picwidth - (elapsed*picwidth)/transition_duration;
-    if (width==0)
-        painter.drawPixmap(shiftx, shifty, pixmap);
-    else {
-        painter.drawPixmap(shiftx, shifty, pixmap, 0, 0, (picwidth-width)/2+1, -1);
-        painter.drawPixmap(shiftx+(picwidth+width)/2, shifty, pixmap, (picwidth+width)/2, 0, (picwidth-width)/2+1, -1);
-        painter.drawPixmap(shiftx+(picwidth-width)/2, shifty, picinit, (picwidth-width)/2, 0, width, -1);
-    }
+    painter.drawPixmap(shiftx, shifty, pixmap, 0, 0, (picwidth-width)/2+1, -1);
+    painter.drawPixmap(shiftx+(picwidth+width)/2, shifty, pixmap, (picwidth+width)/2, 0, (picwidth-width)/2+1, -1);
+    painter.drawPixmap(shiftx+(picwidth-width)/2, shifty, picinit, (picwidth-width)/2, 0, width, -1);
 }
 
 void PresentationWidget::paintDissolve()
@@ -327,17 +342,28 @@ void PresentationWidget::paintDissolve()
     painter.drawPixmap(shiftx, shifty, pixmap);
 }
 
+int const glitter[] = {8, 118, 37, 106, 155, 67, 113, 92, 140, 163, 57, 82, 14, 72, 12, 54, 43, 139, 91, 156, 108, 149, 98, 138, 32, 166, 58, 159, 60, 39, 62, 131, 40, 147, 145, 46, 153, 110, 93, 132, 85, 3, 78, 18, 87, 119, 165, 31, 109, 121, 28, 101, 127, 50, 96, 0, 95, 164, 100, 64, 2, 23, 105, 158, 49, 29, 52, 35, 13, 146, 154, 111, 45, 102, 55, 42, 15, 79, 1, 114, 27, 122, 104, 84, 53, 73, 126, 143, 157, 16, 59, 123, 74, 51, 24, 88, 11, 161, 135, 47, 4, 152, 86, 34, 130, 66, 17, 25, 89, 38, 160, 65, 112, 26, 63, 148, 48, 70, 22, 61, 33, 9, 141, 128, 162, 41, 19, 36, 77, 129, 68, 107, 20, 69, 81, 125, 94, 124, 90, 120, 133, 7, 75, 71, 116, 137, 150, 21, 30, 103, 5, 134, 115, 83, 10, 117, 144, 97, 142, 76, 151, 99, 56, 44, 6, 80, 136};
+int const nglitter = 167;
+int const glitterpixel = 30;
+
 void PresentationWidget::paintGlitter()
 {
-    // TODO
+    int const n = picwidth*picheight/glitterpixel;
+    int const steps = (nglitter*elapsed)/transition_duration;
+    int const w = picwidth/glitterpixel;
     QPainter painter(this);
-    painter.drawPixmap(shiftx, shifty, pixmap);
-    transition_duration = 0;
+    painter.drawPixmap(shiftx, shifty, picinit);
+    for (int j=0; j<steps; j++) {
+        for (int i=glitter[j]%nglitter; i<n; i+=nglitter) {
+            painter.drawPixmap(shiftx+glitterpixel*(i%w), shifty+glitterpixel*(i/w), pixmap, glitterpixel*(i%w), glitterpixel*(i/w), glitterpixel, glitterpixel);
+        }
+    }
 }
 
 void PresentationWidget::paintFly()
 {
     // TODO
+    // How should this transition look like?
     QPainter painter(this);
     painter.drawPixmap(shiftx, shifty, pixmap);
     transition_duration = 0;
@@ -346,51 +372,110 @@ void PresentationWidget::paintFly()
 void PresentationWidget::paintPushUp()
 {
     QPainter painter(this);
-    int const split = picheight - elapsed*picheight/transition_duration;
-    painter.drawPixmap(shiftx, shifty, picinit, 0, picheight- split, 0, 0);
-    painter.drawPixmap(shiftx, split, pixmap, 0, 0, 0, split);
+    int const split = elapsed*picheight/transition_duration;
+    painter.drawPixmap(shiftx, shifty, picinit, 0, split, 0, 0);
+    if (split!=0)
+        painter.drawPixmap(shiftx, shifty+picheight-split, pixmap, 0, 0, -1, split);
 }
 
 void PresentationWidget::paintPushDown()
 {
     QPainter painter(this);
     int const split = elapsed*picheight/transition_duration;
-    painter.drawPixmap(shiftx, split, picinit, 0, 0, 0, picheight- split);
-    painter.drawPixmap(shiftx, shifty, pixmap, 0, picheight - split, 0, 0);
+    painter.drawPixmap(shiftx, shifty+split, picinit, 0, 0, -1, picheight-split);
+    if (split!=0)
+        painter.drawPixmap(shiftx, shifty, pixmap, 0, picheight-split, -1, -1);
 }
 
 void PresentationWidget::paintPushLeft()
 {
     QPainter painter(this);
-    int const split = picwidth - elapsed*picwidth/transition_duration;
-    painter.drawPixmap(shiftx, shifty, picinit, picwidth- split, 0, 0, 0);
-    painter.drawPixmap(shiftx+split, shifty, pixmap, 0, 0, split, 0);
+    int const split = elapsed*picwidth/transition_duration;
+    painter.drawPixmap(shiftx, shifty, picinit, split, 0, -1, -1);
+    if (split!=0)
+        painter.drawPixmap(shiftx+picwidth-split, shifty, pixmap, 0, 0, split, -1);
 }
 
 void PresentationWidget::paintPushRight()
 {
     QPainter painter(this);
     int const split = elapsed*picwidth/transition_duration;
-    painter.drawPixmap(shiftx+split, shifty, picinit, 0, 0, picwidth- split, 0);
-    painter.drawPixmap(shiftx, shifty, pixmap, picwidth - split, 0, 0, 0);
+    painter.drawPixmap(shiftx+split, shifty, picinit, 0, 0, picwidth-split, -1);
+    if (split!=0)
+        painter.drawPixmap(shiftx, shifty, pixmap, picwidth-split, 0, -1, -1);
 }
 
-void PresentationWidget::paintCover()
+void PresentationWidget::paintCoverUp()
 {
-    // TODO
     QPainter painter(this);
-    painter.drawPixmap(shiftx, shifty, pixmap);
-    transition_duration = 0;
+    int const split = (elapsed*picheight)/transition_duration;
+    painter.drawPixmap(shiftx, shifty, picinit, 0, 0, -1, picheight-split);
+    if (split != 0)
+        painter.drawPixmap(shiftx, shifty+picheight-split, pixmap, 0, 0, -1, split);
 }
 
-void PresentationWidget::paintUncover()
+void PresentationWidget::paintCoverDown()
 {
-    // TODO
     QPainter painter(this);
-    painter.drawPixmap(shiftx, shifty, pixmap);
-    transition_duration = 0;
+    int const split = (elapsed*picheight)/transition_duration;
+    painter.drawPixmap(shiftx, shifty+split, picinit, 0, split, -1, -1);
+    if (split != 0)
+        painter.drawPixmap(shiftx, shifty, pixmap, 0, picheight-split, -1, -1);
 }
 
+void PresentationWidget::paintCoverLeft()
+{
+    QPainter painter(this);
+    int const split = (elapsed*picwidth)/transition_duration;
+    painter.drawPixmap(shiftx, shifty, picinit, 0, 0, picwidth-split, -1);
+    if (split != 0)
+        painter.drawPixmap(shiftx+picwidth-split, shifty, pixmap, 0, 0, picwidth, -1);
+}
+
+void PresentationWidget::paintCoverRight()
+{
+    QPainter painter(this);
+    int const split = (elapsed*picwidth)/transition_duration;
+    painter.drawPixmap(shiftx+split, shifty, picinit, split, 0, -1, -1);
+    if (split != 0)
+        painter.drawPixmap(shiftx, shifty, pixmap, picwidth-split, 0, -1, -1);
+}
+
+void PresentationWidget::paintUncoverDown()
+{
+    QPainter painter(this);
+    int const split = (elapsed*picheight)/transition_duration;
+    if (split != 0)
+        painter.drawPixmap(shiftx, shifty+split, picinit, 0, 0, -1, picheight-split);
+    painter.drawPixmap(shiftx, shifty, pixmap, 0, 0, -1, split);
+}
+
+void PresentationWidget::paintUncoverUp()
+{
+    QPainter painter(this);
+    int const split = (elapsed*picheight)/transition_duration;
+    if (split != 0)
+        painter.drawPixmap(shiftx, shifty, picinit, 0, split, -1, -1);
+    painter.drawPixmap(shiftx, shifty+picheight-split, pixmap, 0, picheight-split, -1, -1);
+}
+
+void PresentationWidget::paintUncoverRight()
+{
+    QPainter painter(this);
+    int const split = (elapsed*picwidth)/transition_duration;
+    if (split != 0)
+        painter.drawPixmap(shiftx+split, shifty, picinit, 0, 0, picwidth-split, -1);
+    painter.drawPixmap(shiftx, shifty, pixmap, 0, 0, split, -1);
+}
+
+void PresentationWidget::paintUncoverLeft()
+{
+    QPainter painter(this);
+    int const split = (elapsed*picwidth)/transition_duration;
+    if (split != 0)
+        painter.drawPixmap(shiftx, shifty, picinit, split, 0, -1, -1);
+    painter.drawPixmap(shiftx+picwidth-split, shifty, pixmap, picwidth-split, 0, -1, -1);
+}
 
 void PresentationWidget::paintFade()
 {

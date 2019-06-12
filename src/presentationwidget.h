@@ -75,8 +75,14 @@ public:
     void paintPushDown();
     void paintPushLeft();
     void paintPushRight();
-    void paintCover();
-    void paintUncover();
+    void paintCoverUp();
+    void paintCoverDown();
+    void paintCoverLeft();
+    void paintCoverRight();
+    void paintUncoverUp();
+    void paintUncoverDown();
+    void paintUncoverLeft();
+    void paintUncoverRight();
     void paintFade();
 
 public slots:
