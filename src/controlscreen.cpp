@@ -912,6 +912,12 @@ void ControlScreen::setScrollDelta(const int scrollDelta)
     presentationScreen->setScrollDelta(scrollDelta);
 }
 
+void ControlScreen::setForceTouchpad()
+{
+    forceIsTouchpad = true;
+    presentationScreen->setForceTouchpad();
+}
+
 void ControlScreen::wheelEvent(QWheelEvent* event)
 {
     // Handle mouse wheel or touch pad scrolling events.
@@ -920,9 +926,17 @@ void ControlScreen::wheelEvent(QWheelEvent* event)
     int deltaPix = -event->pixelDelta().y();
     int deltaAngle = -event->angleDelta().y();
     int deltaPages;
+    qDebug () << deltaPix << deltaAngle;
     // If a touch pad was used for scrolling:
     if (deltaPix != 0) {
         scrollState += deltaPix;
+        deltaPages = scrollState / scrollDelta;
+        if (deltaPages<0)
+            deltaPages++;
+        scrollState -= scrollDelta*deltaPages;
+    }
+    else if (forceIsTouchpad) {
+        scrollState += deltaAngle;
         deltaPages = scrollState / scrollDelta;
         if (deltaPages<0)
             deltaPages++;

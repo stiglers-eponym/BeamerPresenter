@@ -1,7 +1,7 @@
 BeamerPresenter
 
+* cache management can crash, disabling cache completely (occurred after reloading files)
 * Segfault when embedded application appears during slide change?
-
 * Draw in presentation
 
 * Make timer editable
@@ -24,3 +24,4 @@ BeamerPresenter
 * Make poppler rendering to cache more efficient (use multiple threads)
 
 * Avoid short black flash when showing video or page transition
+* use OpenGL again?

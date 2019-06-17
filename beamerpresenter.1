@@ -139,6 +139,10 @@ If set to true, videos will be loaded to cache when reaching the slide before th
 .B \-\-force-show
 .RB "Show the notes window even if showing two windows might cause problems on your platform. If you are using a frame buffer QPA backend, this forces showing a single window (the presentation) although " BeamerPresenter " will probably freeze and your system might be blocked."
 .
+.TP
+.B \-\-force-touchpad
+Treat all scrolling signals as touch pads.
+.
 .
 .SH DEFAULT KEY BINDINGS
 .
@@ -516,6 +520,10 @@ set default value for the command line argument
 .BR scrollstep =200
 overwrite default value for the command line argument
 .BR \-s " or " \-\-scrollstep .
+.
+.TP
+.BR force-touchpad false
+treat all scrolling signals as touch pads.
 .
 .TP
 .BR cache =-1

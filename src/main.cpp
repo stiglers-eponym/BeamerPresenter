@@ -221,12 +221,12 @@ int main(int argc, char *argv[])
         {{"c", "cache"}, "Number of slides that will be cached. A negative number is treated as infinity.", "int"},
         {{"d", "no-transitions"}, "Disable slide transitions."},
         {{"e", "embed"}, "file1,file2,... Mark these files for embedding if an execution link points to them.", "files"},
-        {{"f", "frame-time"}, "frame time of slide transitions in ms", "int"},
+        {{"f", "frame-time"}, "Frame time of slide transitions in ms", "int"},
         {{"j", "json"}, "Local JSON configuration file.", "file"},
         {{"l", "toc-depth"}, "Number of levels of the table of contents which are shown.", "int"},
         {{"m", "min-delay"}, "Set minimum time per frame in milliseconds.\nThis is useful when using \\animation in LaTeX beamer.", "ms"},
         {{"M", "memory"}, "Maximum size of cache in MiB. A negative number is treated as infinity.", "int"},
-        {{"n", "no-notes"}, "show only presentation and no notes."},
+        {{"n", "no-notes"}, "Show only presentation and no notes."},
         {{"o", "columns"}, "Number of columns in overview.", "int"},
         {{"p", "page-part"}, "Set half of the page to be the presentation, the other half to be the notes. Values are \"l\" or \"r\" for presentation on the left or right half of the page, respectively.\nIf the presentation was created with \"\\setbeameroption{show notes on second screen=right}\", you should use \"--page-part=right\".", "side"},
         {{"r", "renderer"}, "\"poppler\", \"custom\" or command: Command for rendering pdf pages to cached images. This command should write a png image to standard output using the arguments %file (path to file), %page (page number), %width and %height (image size in pixels).", "string"},
@@ -235,7 +235,8 @@ int main(int argc, char *argv[])
         {{"u", "urlsplit"}, "Character which is used to split links into an url and arguments.", "char"},
         {{"v", "video-cache"}, "Preload videos for the following slide.", "bool"},
         {{"w", "pid2wid"}, "Program that converts a PID to a Window ID.", "file"},
-        {"force-show", "force showing notes or presentation (if in a framebuffer) independent of QPA platform plugin."},
+        {"force-show", "Force showing notes or presentation (if in a framebuffer) independent of QPA platform plugin."},
+        {"force-touchpad", "Treat every scroll input as touch pad."},
     });
     parser.process(app);
 
@@ -728,11 +729,23 @@ int main(int argc, char *argv[])
     else if (local.contains("no-transitions")) {
         // This is rather unintuitive. Just set any value...
         QString string = local.value("no-transitions").toString().toLower();
-        if ((QStringList() << "" << "true" << "no-transitions" << "no transitions" << "1").contains(string))
+        if (QStringList({"", "true", "no-transitions", "no transitions", "1"}).contains(string))
             w->disableSlideTransitions();
     }
     else if (settings.contains("no-transitions"))
         w->disableSlideTransitions();
+
+    // Treat all scroll inputs as touch pads
+    if (parser.isSet("force-touchpad"))
+        w->setForceTouchpad();
+    else if (local.contains("force-touchpad")) {
+        // This is rather unintuitive. Just set any value...
+        QString string = local.value("force-touchpad").toString().toLower();
+        if (QStringList({"", "true", "force touchpad", "1"}).contains(string))
+            w->setForceTouchpad();
+    }
+    else if (settings.contains("force-touchpad"))
+        w->setForceTouchpad();
 
     // Settings, which can cause exceptions
 

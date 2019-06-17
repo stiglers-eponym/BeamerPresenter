@@ -38,6 +38,7 @@ public:
     PageWidget* getPageWidget() {return presWidget;}
     void updatedFile();
     void setScrollDelta(int const scrollDelta) {this->scrollDelta=scrollDelta;}
+    void setForceTouchpad() {forceIsTouchpad=true;}
     void setCacheVideos(bool const cache) {cacheVideos=cache; presWidget->setCacheVideos(cache);}
     void setKeyMap(QMap<int, QList<int>>* keymap) {this->keymap=keymap;} // PresentationScreen does not own this object!
 
@@ -54,6 +55,7 @@ private:
     PresentationWidget* presWidget;
     int numberOfPages;
     int pageIndex;
+    bool forceIsTouchpad = false;
     int scrollDelta = 200;
     int scrollState = 0;
     bool cacheVideos = true;

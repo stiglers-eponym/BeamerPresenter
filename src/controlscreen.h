@@ -54,6 +54,7 @@ public:
     void setPid2WidConverter(QString const &program);
     void setUrlSplitCharacter(QString const &splitCharacter);
     void setScrollDelta(int const scrollDelta);
+    void setForceTouchpad();
     void setCacheNumber(int const number);
     void setCacheSize(long int const size);
     void setTocLevel(int const level);
@@ -87,6 +88,7 @@ private:
     int numberOfPages;
     int currentPageNumber = 0;
     PagePart pagePart = FullPage;
+    bool forceIsTouchpad = false;
     int scrollDelta = 200;
     int scrollState = 0;
     int maxCacheNumber = 10;

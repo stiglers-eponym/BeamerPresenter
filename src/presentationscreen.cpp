@@ -197,6 +197,13 @@ void PresentationScreen::wheelEvent(QWheelEvent* event)
             deltaPages++;
         scrollState -= scrollDelta*deltaPages;
     }
+    else if (forceIsTouchpad) {
+        scrollState += deltaAngle;
+        deltaPages = scrollState / scrollDelta;
+        if (deltaPages<0)
+            deltaPages++;
+        scrollState -= scrollDelta*deltaPages;
+    }
     // If a mouse wheel was used for scrolling:
     else {
         if (deltaAngle > 120)
