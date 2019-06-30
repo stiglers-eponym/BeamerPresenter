@@ -35,7 +35,6 @@ public:
     ~PresentationScreen();
     void renderPage(int const pageNumber = 0, bool const setDuration = false);
     int getPageNumber() const {return slide->pageNumber();}
-    PresentationSlide* getPageWidget() {return slide;}
     void updatedFile();
     void setScrollDelta(int const scrollDelta) {this->scrollDelta=scrollDelta;}
     void setForceTouchpad() {forceIsTouchpad=true;}

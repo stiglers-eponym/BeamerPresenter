@@ -35,7 +35,6 @@ public:
     explicit MediaSlide(Poppler::Page* page, QWidget* parent=nullptr);
     ~MediaSlide() override {clearAll();}
     void renderPage(Poppler::Page* page, bool const hasDuration, QPixmap const* pixmap=nullptr);
-    virtual void clearAll() override;
     void startAllEmbeddedApplications(int const index);
     void initEmbeddedApplications(Poppler::Page const* page);
     void avoidMultimediaBug();
@@ -44,10 +43,12 @@ public:
     void setEmbedFileList(const QStringList& files) {embedFileList=files;}
     bool hasActiveMultimediaContent() const;
     void updateCacheVideos(Poppler::Page const* page);
+    virtual void clearAll() override;
 
 protected:
     void mouseReleaseEvent(QMouseEvent* event) override;
     void mouseMoveEvent(QMouseEvent* event) override;
+    void followHyperlinks(QPoint const& pos);
     virtual void clearLists();
     QList<VideoWidget*> videoWidgets;
     QList<EmbedApp*> embedApps;

@@ -38,7 +38,7 @@ private:
     int picwidth;
     int picheight;
     QTimer timer;
-    void (PresentationSlide::*paint)();
+    void (PresentationSlide::*paint)(QPainter&);
 
 protected:
     QTimer* const timeoutTimer = new QTimer(this);
@@ -48,7 +48,7 @@ protected:
     void paintEvent(QPaintEvent*) override;
     void animate() override;
     void endAnimation() override;
-    void setDuration();
+    void setDuration() override;
     void enableTransitions() {elapsed=0;}
 
 public:
@@ -58,34 +58,34 @@ public:
     double getDuration() const {return duration;}
     void setFrameTime(int const time) {dt=time;}
     void setBlinds(int const blinds) {n_blinds=blinds;}
-    void paintSplitHI();
-    void paintSplitVI();
-    void paintSplitHO();
-    void paintSplitVO();
-    void paintBlindsH();
-    void paintBlindsV();
-    void paintBoxO();
-    void paintBoxI();
-    void paintWipeUp();
-    void paintWipeDown();
-    void paintWipeLeft();
-    void paintWipeRight();
-    void paintDissolve();
-    void paintGlitter();
-    void paintFly();
-    void paintPushUp();
-    void paintPushDown();
-    void paintPushLeft();
-    void paintPushRight();
-    void paintCoverUp();
-    void paintCoverDown();
-    void paintCoverLeft();
-    void paintCoverRight();
-    void paintUncoverUp();
-    void paintUncoverDown();
-    void paintUncoverLeft();
-    void paintUncoverRight();
-    void paintFade();
+    void paintSplitHI(QPainter& painter);
+    void paintSplitVI(QPainter& painter);
+    void paintSplitHO(QPainter& painter);
+    void paintSplitVO(QPainter& painter);
+    void paintBlindsH(QPainter& painter);
+    void paintBlindsV(QPainter& painter);
+    void paintBoxO(QPainter& painter);
+    void paintBoxI(QPainter& painter);
+    void paintWipeUp(QPainter& painter);
+    void paintWipeDown(QPainter& painter);
+    void paintWipeLeft(QPainter& painter);
+    void paintWipeRight(QPainter& painter);
+    void paintDissolve(QPainter& painter);
+    void paintGlitter(QPainter& painter);
+    void paintFly(QPainter& painter);
+    void paintPushUp(QPainter& painter);
+    void paintPushDown(QPainter& painter);
+    void paintPushLeft(QPainter& painter);
+    void paintPushRight(QPainter& painter);
+    void paintCoverUp(QPainter& painter);
+    void paintCoverDown(QPainter& painter);
+    void paintCoverLeft(QPainter& painter);
+    void paintCoverRight(QPainter& painter);
+    void paintUncoverUp(QPainter& painter);
+    void paintUncoverDown(QPainter& painter);
+    void paintUncoverLeft(QPainter& painter);
+    void paintUncoverRight(QPainter& painter);
+    void paintFade(QPainter& painter);
 
 public slots:
     void setAnimationDelay(int const delay_ms) {minimumAnimationDelay=delay_ms;}

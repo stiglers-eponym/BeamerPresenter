@@ -65,7 +65,7 @@ public:
     void unsetKeyMapItem(const int key) {keymap->remove(key);}
     void setKeyMapItem(const int key, const int action);
     void setTimerMap(QMap<int, QTime>& timeMap);
-    void disableSlideTransitions() {presentationScreen->getPageWidget()->disableTransitions();}
+    void disableSlideTransitions() {presentationScreen->slide->disableTransitions();}
     // TODO: tool selection (draw, highlight, pointer, TOC, overview, notes)
     // TODO: restructure cache management, return all images separately?
 

@@ -756,174 +756,179 @@ bool MediaSlide::hasActiveMultimediaContent() const
 void MediaSlide::mouseReleaseEvent(QMouseEvent* event)
 {
     if (event->button() == Qt::LeftButton) {
-        for (int i=0; i<links.size(); i++) {
-            if (linkPositions[i].contains(event->pos())) {
-                switch ( links[i]->linkType() )
-                {
-                    case Poppler::Link::Goto:
-                        if (static_cast<Poppler::LinkGoto*>(links[i])->isExternal()) {
-                            // Link to an other document
-                            QString filename = static_cast<Poppler::LinkGoto*>(links[i])->fileName();
-                            QDesktopServices::openUrl(QUrl(filename, QUrl::TolerantMode));
-                        }
-                        else {
-                            // Link to an other page
-                            emit sendNewPageNumber( static_cast<Poppler::LinkGoto*>(links[i])->destination().pageNumber() - 1 );
-                        }
-                        return;
-                    case Poppler::Link::Execute:
-                        // Handle execution links, which are marked for execution as an embedded application.
-                        // In this case, a corresponding item has been added to embeddedWidgets in renderPage.
-                        if (embedMap.contains(pageIndex) && embedMap[pageIndex].contains(i)) {
-                            int const idx = embedMap[pageIndex][i];
-                            // First case: the execution link points to an application, which exists already as an application widget.
-                            // In this case the widget just needs to be shown in the correct position and size.
-                            if (embedApps[idx]->isReady()) {
-                                QRect const* winGeometry = &embedPositions[idx];
-                                QWidget* widget = embedApps[idx]->getWidget();
-                                widget->setMinimumSize(winGeometry->width(), winGeometry->height());
-                                widget->setMaximumSize(winGeometry->width(), winGeometry->height());
-                                widget->setGeometry(*winGeometry);
-                                widget->show();
-                                break;
-                            }
-                            // Second case: There exists no process for this execution link.
-                            // In this case we need to check, whether this application should be executed in an embedded window.
-                            embedApps[idx]->start();
+        followHyperlinks(event->pos());
+    }
+    event->accept();
+}
+
+void MediaSlide::followHyperlinks(QPoint const& pos)
+{
+    for (int i=0; i<links.size(); i++) {
+        if (linkPositions[i].contains(pos)) {
+            switch ( links[i]->linkType() )
+            {
+                case Poppler::Link::Goto:
+                    if (static_cast<Poppler::LinkGoto*>(links[i])->isExternal()) {
+                        // Link to an other document
+                        QString filename = static_cast<Poppler::LinkGoto*>(links[i])->fileName();
+                        QDesktopServices::openUrl(QUrl(filename, QUrl::TolerantMode));
+                    }
+                    else {
+                        // Link to an other page
+                        emit sendNewPageNumber( static_cast<Poppler::LinkGoto*>(links[i])->destination().pageNumber() - 1 );
+                    }
+                    return;
+                case Poppler::Link::Execute:
+                    // Handle execution links, which are marked for execution as an embedded application.
+                    // In this case, a corresponding item has been added to embeddedWidgets in renderPage.
+                    if (embedMap.contains(pageIndex) && embedMap[pageIndex].contains(i)) {
+                        int const idx = embedMap[pageIndex][i];
+                        // First case: the execution link points to an application, which exists already as an application widget.
+                        // In this case the widget just needs to be shown in the correct position and size.
+                        if (embedApps[idx]->isReady()) {
+                            QRect const* winGeometry = &embedPositions[idx];
+                            QWidget* widget = embedApps[idx]->getWidget();
+                            widget->setMinimumSize(winGeometry->width(), winGeometry->height());
+                            widget->setMaximumSize(winGeometry->width(), winGeometry->height());
+                            widget->setGeometry(*winGeometry);
+                            widget->show();
                             break;
                         }
-                        // Execution links not marked for embedding are handed to the desktop services.
-                        else {
-                            Poppler::LinkExecute* link = static_cast<Poppler::LinkExecute*>(links[i]);
-                            QStringList splitFileName = QStringList();
-                            if (!urlSplitCharacter.isEmpty())
-                                splitFileName = link->fileName().split(urlSplitCharacter);
+                        // Second case: There exists no process for this execution link.
+                        // In this case we need to check, whether this application should be executed in an embedded window.
+                        embedApps[idx]->start();
+                        break;
+                    }
+                    // Execution links not marked for embedding are handed to the desktop services.
+                    else {
+                        Poppler::LinkExecute* link = static_cast<Poppler::LinkExecute*>(links[i]);
+                        QStringList splitFileName = QStringList();
+                        if (!urlSplitCharacter.isEmpty())
+                            splitFileName = link->fileName().split(urlSplitCharacter);
+                        else
+                            splitFileName.append(link->fileName());
+                        QUrl url = QUrl(splitFileName[0], QUrl::TolerantMode);
+                        // TODO: handle arguments
+                        QDesktopServices::openUrl(url);
+                    }
+                    break;
+                case Poppler::Link::Browse:
+                    // Link to file or website
+                    QDesktopServices::openUrl( QUrl(static_cast<Poppler::LinkBrowse*>(links[i])->url(), QUrl::TolerantMode) );
+                    break;
+                case Poppler::Link::Action:
+                    {
+                        Poppler::LinkAction* link = static_cast<Poppler::LinkAction*>(links[i]);
+                        switch (link->actionType())
+                        {
+                            case Poppler::LinkAction::Quit:
+                            case Poppler::LinkAction::Close:
+                                emit sendCloseSignal();
+                                return;
+                            case Poppler::LinkAction::Print:
+                                qInfo() << "Unsupported link action: print.";
+                                break;
+                            case Poppler::LinkAction::GoToPage:
+                                emit focusPageNumberEdit();
+                                break;
+                            case Poppler::LinkAction::PageNext:
+                                emit sendNewPageNumber(pageIndex + 1);
+                                return;
+                            case Poppler::LinkAction::PagePrev:
+                                emit sendNewPageNumber(pageIndex - 1);
+                                return;
+                            case Poppler::LinkAction::PageFirst:
+                                emit sendNewPageNumber(0);
+                                return;
+                            case Poppler::LinkAction::PageLast:
+                                emit sendNewPageNumber(-1);
+                                return;
+                            case Poppler::LinkAction::Find:
+                                // TODO: implement this
+                                qInfo() << "Unsupported link action: find.";
+                                break;
+                            case Poppler::LinkAction::Presentation:
+                                // untested
+                                emit sendShowFullscreen();
+                                break;
+                            case Poppler::LinkAction::EndPresentation:
+                                // untested
+                                emit sendEndFullscreen();
+                                break;
+                            case Poppler::LinkAction::HistoryBack:
+                                // TODO: implement this
+                                qInfo() << "Unsupported link action: history back.";
+                                break;
+                            case Poppler::LinkAction::HistoryForward:
+                                // TODO: implement this
+                                qInfo() << "Unsupported link action: history forward.";
+                                break;
+                        }
+                    }
+                    break;
+                case Poppler::Link::Sound:
+                    {
+                        Poppler::LinkSound* link = static_cast<Poppler::LinkSound*>(links[i]);
+                        Poppler::SoundObject* sound = link->sound();
+                        if (sound->soundType() == Poppler::SoundObject::External) {
+                            if (soundLinkPlayers[i]->state() == QMediaPlayer::PlayingState)
+                                soundLinkPlayers[i]->pause();
                             else
-                                splitFileName.append(link->fileName());
-                            QUrl url = QUrl(splitFileName[0], QUrl::TolerantMode);
-                            // TODO: handle arguments
-                            QDesktopServices::openUrl(url);
+                                soundLinkPlayers[i]->play();
                         }
-                        break;
-                    case Poppler::Link::Browse:
-                        // Link to file or website
-                        QDesktopServices::openUrl( QUrl(static_cast<Poppler::LinkBrowse*>(links[i])->url(), QUrl::TolerantMode) );
-                        break;
-                    case Poppler::Link::Action:
-                        {
-                            Poppler::LinkAction* link = static_cast<Poppler::LinkAction*>(links[i]);
-                            switch (link->actionType())
-                            {
-                                case Poppler::LinkAction::Quit:
-                                case Poppler::LinkAction::Close:
-                                    emit sendCloseSignal();
-                                    return;
-                                case Poppler::LinkAction::Print:
-                                    qInfo() << "Unsupported link action: print.";
-                                    break;
-                                case Poppler::LinkAction::GoToPage:
-                                    emit focusPageNumberEdit();
-                                    break;
-                                case Poppler::LinkAction::PageNext:
-                                    emit sendNewPageNumber(pageIndex + 1);
-                                    return;
-                                case Poppler::LinkAction::PagePrev:
-                                    emit sendNewPageNumber(pageIndex - 1);
-                                    return;
-                                case Poppler::LinkAction::PageFirst:
-                                    emit sendNewPageNumber(0);
-                                    return;
-                                case Poppler::LinkAction::PageLast:
-                                    emit sendNewPageNumber(-1);
-                                    return;
-                                case Poppler::LinkAction::Find:
-                                    // TODO: implement this
-                                    qInfo() << "Unsupported link action: find.";
-                                    break;
-                                case Poppler::LinkAction::Presentation:
-                                    // untested
-                                    emit sendShowFullscreen();
-                                    break;
-                                case Poppler::LinkAction::EndPresentation:
-                                    // untested
-                                    emit sendEndFullscreen();
-                                    break;
-                                case Poppler::LinkAction::HistoryBack:
-                                    // TODO: implement this
-                                    qInfo() << "Unsupported link action: history back.";
-                                    break;
-                                case Poppler::LinkAction::HistoryForward:
-                                    // TODO: implement this
-                                    qInfo() << "Unsupported link action: history forward.";
-                                    break;
-                            }
+                        else
+                            qWarning() << "Playing embedded sound files is not supported.";
+                    }
+                    break;
+                case Poppler::Link::Movie:
+                    {
+                        qInfo() << "Unsupported link of type video. If this works, you should be surprised.";
+                        // I don't know if the following lines make any sense.
+                        Poppler::LinkMovie* link = static_cast<Poppler::LinkMovie*>(links[i]);
+                        Q_FOREACH(VideoWidget* video, videoWidgets) {
+                            if (link->isReferencedAnnotation(video->getAnnotation()))
+                                video->play();
                         }
-                        break;
-                    case Poppler::Link::Sound:
-                        {
-                            Poppler::LinkSound* link = static_cast<Poppler::LinkSound*>(links[i]);
-                            Poppler::SoundObject* sound = link->sound();
-                            if (sound->soundType() == Poppler::SoundObject::External) {
-                                if (soundLinkPlayers[i]->state() == QMediaPlayer::PlayingState)
-                                    soundLinkPlayers[i]->pause();
-                                else
-                                    soundLinkPlayers[i]->play();
-                            }
-                            else
-                                qWarning() << "Playing embedded sound files is not supported.";
-                        }
-                        break;
-                    case Poppler::Link::Movie:
-                        {
-                            qInfo() << "Unsupported link of type video. If this works, you should be surprised.";
-                            // I don't know if the following lines make any sense.
-                            Poppler::LinkMovie* link = static_cast<Poppler::LinkMovie*>(links[i]);
-                            Q_FOREACH(VideoWidget* video, videoWidgets) {
-                                if (link->isReferencedAnnotation(video->getAnnotation()))
-                                    video->play();
-                            }
-                        }
-                        break;
-                    case Poppler::Link::Rendition:
-                        qInfo() << "Unsupported link of type rendition";
-                        break;
-                    case Poppler::Link::JavaScript:
-                        qInfo() << "Unsupported link of type JavaScript";
-                        break;
-                    case Poppler::Link::OCGState:
-                        qInfo() << "Unsupported link of type OCGState";
-                        break;
-                    case Poppler::Link::Hide:
-                        qInfo() << "Unsupported link of type hide";
-                        break;
-                    case Poppler::Link::None:
-                        qInfo() << "Unsupported link of type none";
-                        break;
-                }
-            }
-        }
-        for (int i=0; i<soundPositions.size(); i++) {
-            if (soundPositions[i].contains(event->pos())) {
-                if (soundPlayers[i]->state() == QMediaPlayer::PlayingState)
-                    soundPlayers[i]->pause();
-                else
-                    soundPlayers[i]->play();
-            }
-        }
-        for (int i=0; i<videoPositions.size(); i++) {
-            if (videoPositions[i].contains(event->pos())) {
-                if (videoWidgets[i]->state() == QMediaPlayer::PlayingState)
-                    videoWidgets[i]->pause();
-                else {
-                    videoWidgets[i]->setGeometry(videoPositions[i]);
-                    videoWidgets[i]->show();
-                    videoWidgets[i]->play();
-                }
-                return;
+                    }
+                    break;
+                case Poppler::Link::Rendition:
+                    qInfo() << "Unsupported link of type rendition";
+                    break;
+                case Poppler::Link::JavaScript:
+                    qInfo() << "Unsupported link of type JavaScript";
+                    break;
+                case Poppler::Link::OCGState:
+                    qInfo() << "Unsupported link of type OCGState";
+                    break;
+                case Poppler::Link::Hide:
+                    qInfo() << "Unsupported link of type hide";
+                    break;
+                case Poppler::Link::None:
+                    qInfo() << "Unsupported link of type none";
+                    break;
             }
         }
     }
-    event->accept();
+    for (int i=0; i<soundPositions.size(); i++) {
+        if (soundPositions[i].contains(pos)) {
+            if (soundPlayers[i]->state() == QMediaPlayer::PlayingState)
+                soundPlayers[i]->pause();
+            else
+                soundPlayers[i]->play();
+        }
+    }
+    for (int i=0; i<videoPositions.size(); i++) {
+        if (videoPositions[i].contains(pos)) {
+            if (videoWidgets[i]->state() == QMediaPlayer::PlayingState)
+                videoWidgets[i]->pause();
+            else {
+                videoWidgets[i]->setGeometry(videoPositions[i]);
+                videoWidgets[i]->show();
+                videoWidgets[i]->play();
+            }
+            return;
+        }
+    }
 }
 
 void MediaSlide::mouseMoveEvent(QMouseEvent* event)

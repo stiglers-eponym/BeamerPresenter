@@ -303,7 +303,7 @@ Simple animations can be created by showing slides in rapid succession. When usi
 .SS Slide transitions
 .BR BeamerPresenter " supports an incomplete set of slide transitions. The frame time for slide transitions can be set using " \-f " or " \-\-frame-time ". Slide transitions can be disabled completely with the option " \-d " or " \-\-no-transitions .
 .
-.SS Embedded Applications
+.SS Embedded applications
 A link in the PDF pointing to an external application will usually be handled by the desktop services. But you can also specify programs, which will be executed directly when pressing the link.
 .B BeamerPresenter
 will try to embed the window created by the external program in the area of the link, by which it was created.
@@ -321,6 +321,9 @@ Beamer can combine notes and presentation into one PDF file by using the option 
 .B BeamerPresenter
 with the option
 .BR \-p ", or " \-\-page-part
+.
+.SS Draw in presentation (experimental!)
+It is now possible to draw in the presentation. More tools, documentation and probably a better interface will follow. Until then you can only access the different pens by using customized key bindings.
 .
 .
 .SH CONFIG
@@ -436,6 +439,26 @@ Set page number of the presentation to the page number on the control screen and
 .TP
 .B sync from presentation screen
 Set page number of the control screen to the page number of the presentation. When browsing your notes, this will bring you back to the current slide.
+.
+.TP
+.B clear annotations
+Delete all drawings on the current page.
+.
+.TP
+.B hand tool
+Return from drawing mode to normal mode.
+.
+.TP
+.B red pen
+Draw in the presentation with a red pen.
+.
+.TP
+.B green pen
+Draw in the presentation with a green pen.
+.
+.TP
+.B highlighter
+Draw in the presentation with a yellow highlighter.
 .
 .SS Colors
 .

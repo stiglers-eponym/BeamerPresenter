@@ -63,7 +63,15 @@ const QMap<QString, int> keyActionMap {
     {"toggle cursor", KeyAction::ToggleCursor},
     {"full screen", KeyAction::FullScreen},
     {"reload", KeyAction::Reload},
-    {"quit", KeyAction::Quit}
+    {"quit", KeyAction::Quit},
+
+    {"clear annotations", KeyAction::ClearAnnotations},
+    {"hand tool", KeyAction::DrawNone},
+    {"red pen", KeyAction::DrawRedPen},
+    {"green pen", KeyAction::DrawGreenPen},
+    {"highlighter", KeyAction::DrawHighlighter},
+    {"torch", KeyAction::DrawTorch},
+    {"pointer", KeyAction::DrawPointer}
 };
 
 const QMap<int, QList<int>> defaultKeyMap = {

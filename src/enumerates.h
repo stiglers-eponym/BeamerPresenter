@@ -53,7 +53,26 @@ enum KeyAction {
     ToggleCursor,
     FullScreen,
     Reload,
-    Quit
+    Quit,
+
+    ClearAnnotations,
+    DrawNone,
+    DrawRedPen,
+    DrawGreenPen,
+    DrawHighlighter,
+    DrawTorch,
+    DrawPointer
+};
+
+enum DrawTool {
+    None,
+    Highlighter,
+    RedPen,
+    GreenPen,
+    Pointer,
+    Torch,
+    Erase,
+    //Ellipse
 };
 
 #endif // ENUMERATES_H

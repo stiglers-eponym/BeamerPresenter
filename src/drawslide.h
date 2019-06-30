@@ -21,12 +21,26 @@
 
 #include "mediaslide.h"
 
+// TODO: move pen strokes to different layer (extra widget) above multimedia widgets
+
 class DrawSlide : public MediaSlide
 {
 public:
     explicit DrawSlide(QWidget* parent=nullptr) : MediaSlide(parent) {}
     explicit DrawSlide(Poppler::Page* page, QWidget* parent=nullptr) : MediaSlide(page, parent) {}
     ~DrawSlide() override {clearAll();}
+    void setTool(DrawTool const newtool) {tool = newtool;}
+    void clearPageAnnotations();
+    void clearAllAnnotations();
+
+protected:
+    void drawAnnotations(QPainter& painter);
+    void paintEvent(QPaintEvent*) override;
+    void mousePressEvent(QMouseEvent* event) override;
+    void mouseReleaseEvent(QMouseEvent* event) override;
+    void mouseMoveEvent(QMouseEvent* event) override;
+    DrawTool tool = None;
+    QMap<int, QMap<DrawTool, QPainterPath>> paths;
 };
 
 #endif // DRAWSLIDE_H
