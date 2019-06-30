@@ -27,14 +27,17 @@ CONFIG += c++14
 
 SOURCES += \
         src/main.cpp \
-        src/controlscreen.cpp \
         src/pdfdoc.cpp \
+        src/basicslide.cpp \
+        src/previewslide.cpp \
+        src/mediaslide.cpp \
+        src/drawslide.cpp \
+        src/presentationslide.cpp \
+        src/controlscreen.cpp \
         src/presentationscreen.cpp \
-        src/pagewidget.cpp \
         src/clocklabel.cpp \
         src/timer.cpp \
         src/pagenumberedit.cpp \
-        src/presentationwidget.cpp \
         src/videowidget.cpp \
         src/cacheupdatethread.cpp \
         src/tocbox.cpp \
@@ -46,15 +49,18 @@ SOURCES += \
         src/overviewbox.cpp
 
 HEADERS += \
-        src/controlscreen.h \
         src/enumerates.h \
         src/pdfdoc.h \
+        src/basicslide.h \
+        src/previewslide.h \
+        src/mediaslide.h \
+        src/drawslide.h \
+        src/controlscreen.h \
         src/presentationscreen.h \
-        src/pagewidget.h \
         src/clocklabel.h \
+        src/presentationslide.h \
         src/timer.h \
         src/pagenumberedit.h \
-        src/presentationwidget.h \
         src/videowidget.h \
         src/cacheupdatethread.h \
         src/tocbox.h \

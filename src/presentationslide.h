@@ -24,9 +24,9 @@
 #include <QDebug>
 #include <QTimer>
 #include <poppler-page-transition.h>
-#include "pagewidget.h"
+#include "drawslide.h"
 
-class PresentationWidget : public PageWidget
+class PresentationSlide : public DrawSlide
 {
     Q_OBJECT
 
@@ -38,22 +38,24 @@ private:
     int picwidth;
     int picheight;
     QTimer timer;
-    void (PresentationWidget::*paint)();
+    void (PresentationSlide::*paint)();
 
 protected:
     QTimer* const timeoutTimer = new QTimer(this);
     int minimumAnimationDelay = 40; // minimum frame time in ms
     QPixmap picinit;
+    double duration; // duration of the current page in s
     void paintEvent(QPaintEvent*) override;
     void animate() override;
     void endAnimation() override;
-    void setDuration() override;
-    void disableTransitions() override;
-    void enableTransitions() override {elapsed=0;}
+    void setDuration();
+    void enableTransitions() {elapsed=0;}
 
 public:
-    PresentationWidget(QWidget* parent=nullptr);
-    ~PresentationWidget() override;
+    PresentationSlide(QWidget* parent=nullptr);
+    ~PresentationSlide() override;
+    void disableTransitions();
+    double getDuration() const {return duration;}
     void setFrameTime(int const time) {dt=time;}
     void setBlinds(int const blinds) {n_blinds=blinds;}
     void paintSplitHI();
@@ -86,9 +88,12 @@ public:
     void paintFade();
 
 public slots:
-    void setAnimationDelay(int const delay_ms) override {minimumAnimationDelay=delay_ms;}
+    void setAnimationDelay(int const delay_ms) {minimumAnimationDelay=delay_ms;}
+
+signals:
+    void timeoutSignal();
 };
 
-typedef void (PresentationWidget::*paint)();
+typedef void (PresentationSlide::*paint)();
 
 #endif // TRANSITIONWIDGET_H

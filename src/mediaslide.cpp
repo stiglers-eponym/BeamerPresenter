@@ -16,35 +16,26 @@
  * along with BeamerPresenter. If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include "pagewidget.h"
+#include "mediaslide.h"
 
-PageWidget::PageWidget(Poppler::Page* page, QWidget* parent) : QWidget(parent)
+MediaSlide::MediaSlide(Poppler::Page* page, QWidget* parent) : PreviewSlide(parent)
 {
     autostartEmbeddedTimer->setSingleShot(true);
     connect(autostartEmbeddedTimer, &QTimer::timeout, this, [&](){startAllEmbeddedApplications(pageIndex);});
     autostartTimer->setSingleShot(true);
-    connect(autostartTimer, &QTimer::timeout, this, &PageWidget::startAllMultimedia);
+    connect(autostartTimer, &QTimer::timeout, this, &MediaSlide::startAllMultimedia);
     renderPage(page, false);
 }
 
-PageWidget::PageWidget(QWidget* parent) : QWidget(parent)
+MediaSlide::MediaSlide(QWidget* parent) : PreviewSlide(parent)
 {
     autostartEmbeddedTimer->setSingleShot(true);
     connect(autostartEmbeddedTimer, &QTimer::timeout, this, [&](){startAllEmbeddedApplications(pageIndex);});
     autostartTimer->setSingleShot(true);
-    connect(autostartTimer, &QTimer::timeout, this, &PageWidget::startAllMultimedia);
+    connect(autostartTimer, &QTimer::timeout, this, &MediaSlide::startAllMultimedia);
 }
 
-PageWidget::~PageWidget()
-{
-    autostartTimer->stop();
-    autostartEmbeddedTimer->stop();
-    clearAll();
-    delete autostartTimer;
-    delete autostartEmbeddedTimer;
-}
-
-void PageWidget::clearAll()
+void MediaSlide::clearAll()
 {
     // Clear all contents of the label.
     // This function is called when the document is reloaded or the program is closed and everything should be cleaned up.
@@ -62,7 +53,7 @@ void PageWidget::clearAll()
     page = nullptr;
 }
 
-void PageWidget::clearLists()
+void MediaSlide::clearLists()
 {
     // Clear page specific content.
     // This function is called when going to an other page, which is not just an overlay of the previous page.
@@ -86,7 +77,7 @@ void PageWidget::clearLists()
     soundLinkPlayers.clear();
 }
 
-void PageWidget::renderPage(Poppler::Page* page, bool const hasDuration, QPixmap const* pix)
+void MediaSlide::renderPage(Poppler::Page* page, bool const hasDuration, QPixmap const* pix)
 {
     endAnimation();
     if (page == nullptr)
@@ -194,12 +185,6 @@ void PageWidget::renderPage(Poppler::Page* page, bool const hasDuration, QPixmap
         }
     }
 
-    // Show the page on the screen.
-    // One could show the page in any case to make it slightly more responsive, but this can lead to a short interruption by a different image.
-    // All operations before the next call to update() are usually very fast.
-    if (!showMultimedia)
-        update();
-
     // Presentation slides can have a "duration" property.
     // In this case: go to the next page after that given time.
     if (hasDuration)
@@ -220,87 +205,86 @@ void PageWidget::renderPage(Poppler::Page* page, bool const hasDuration, QPixmap
 
     // Multimedia content. This part is work in progress.
     // Execution links for embedded applications are also handled here.
-    if (showMultimedia) {
-        // Handle embedded applications
-        for (int i=0; i<links.size(); i++) {
-            if (links[i]->linkType() == Poppler::Link::Execute) {
-                // Execution links can point to applications, which should be embedded in the presentation
+    // Handle embedded applications
+    for (int i=0; i<links.size(); i++) {
+        if (links[i]->linkType() == Poppler::Link::Execute) {
+            // Execution links can point to applications, which should be embedded in the presentation
 
-                // First case: the execution link points to an application, which exists already as an application widget.
-                // In this case the widget just needs to be shown in the correct position and size.
-                // Index of the embedded widget & process:
-                int idx = -1;
-                if (embedMap.contains(pageIndex) && embedMap[pageIndex].contains(i))
-                    idx = embedMap[pageIndex][i];
-                if (idx!=-1 && embedApps[idx]->isReady()) {
+            // First case: the execution link points to an application, which exists already as an application widget.
+            // In this case the widget just needs to be shown in the correct position and size.
+            // Index of the embedded widget & process:
+            int idx = -1;
+            if (embedMap.contains(pageIndex) && embedMap[pageIndex].contains(i))
+                idx = embedMap[pageIndex][i];
+            if (idx!=-1 && embedApps[idx]->isReady()) {
+                QRect winGeometry = linkPositions[i];
+                if (winGeometry.height() < 0) {
+                    winGeometry.setY(winGeometry.y() + winGeometry.height());
+                    winGeometry.setHeight(-linkPositions[i].height());
+                }
+                QWidget* widget = embedApps[idx]->getWidget();
+                if (winGeometry!=embedPositions[idx]) {
+                    widget->setMinimumSize(winGeometry.width(), winGeometry.height());
+                    widget->setMaximumSize(winGeometry.width(), winGeometry.height());
+                    widget->setGeometry(winGeometry);
+                    embedPositions[idx] = winGeometry;
+                }
+                widget->show();
+            }
+            // Second case: There exists no process for this execution link.
+            // In this case we need to check, whether this application should be executed in an embedded window.
+            else if (idx==-1 || !embedApps[idx]->isStarted()) {
+                Poppler::LinkExecute* const link = static_cast<Poppler::LinkExecute*>(links[i]);
+                // Get file path (url) and arguments
+                QStringList splitFileName = QStringList();
+                if (!urlSplitCharacter.isEmpty())
+                    splitFileName = link->fileName().split(urlSplitCharacter);
+                else
+                    splitFileName.append(link->fileName());
+                QUrl url = QUrl(splitFileName[0], QUrl::TolerantMode);
+                splitFileName.append(link->parameters());
+                if (embedFileList.contains(splitFileName[0]) || embedFileList.contains(url.fileName()) || (splitFileName.length() > 1 && splitFileName.contains("embed"))) {
+                    splitFileName.removeAll("embed"); // We know that the file will be embedded. This is not an argument for the program.
+                    splitFileName.removeAll("");
+                    if (embedApps.isEmpty())
+                        avoidMultimediaBug();
                     QRect winGeometry = linkPositions[i];
                     if (winGeometry.height() < 0) {
                         winGeometry.setY(winGeometry.y() + winGeometry.height());
                         winGeometry.setHeight(-linkPositions[i].height());
                     }
-                    QWidget* widget = embedApps[idx]->getWidget();
-                    if (winGeometry!=embedPositions[idx]) {
-                        widget->setMinimumSize(winGeometry.width(), winGeometry.height());
-                        widget->setMaximumSize(winGeometry.width(), winGeometry.height());
-                        widget->setGeometry(winGeometry);
-                        embedPositions[idx] = winGeometry;
-                    }
-                    widget->show();
-                }
-                // Second case: There exists no process for this execution link.
-                // In this case we need to check, whether this application should be executed in an embedded window.
-                else if (idx==-1 || !embedApps[idx]->isStarted()) {
-                    Poppler::LinkExecute* const link = static_cast<Poppler::LinkExecute*>(links[i]);
-                    // Get file path (url) and arguments
-                    QStringList splitFileName = QStringList();
-                    if (!urlSplitCharacter.isEmpty())
-                        splitFileName = link->fileName().split(urlSplitCharacter);
-                    else
-                        splitFileName.append(link->fileName());
-                    QUrl url = QUrl(splitFileName[0], QUrl::TolerantMode);
-                    splitFileName.append(link->parameters());
-                    if (embedFileList.contains(splitFileName[0]) || embedFileList.contains(url.fileName()) || (splitFileName.length() > 1 && splitFileName.contains("embed"))) {
-                        splitFileName.removeAll("embed"); // We know that the file will be embedded. This is not an argument for the program.
-                        splitFileName.removeAll("");
-                        if (embedApps.isEmpty())
-                            avoidMultimediaBug();
-                        QRect winGeometry = linkPositions[i];
-                        if (winGeometry.height() < 0) {
-                            winGeometry.setY(winGeometry.y() + winGeometry.height());
-                            winGeometry.setHeight(-linkPositions[i].height());
-                        }
-                        if (idx == -1) {
-                            bool found = false;
-                            // Check if the same application exists already on an other page.
-                            for (QMap<int,QMap<int,int>>::const_iterator page_it = embedMap.cbegin(); page_it!=embedMap.cend(); page_it++) {
-                                for (QMap<int,int>::const_iterator idx_it = (*page_it).cbegin(); idx_it!=(*page_it).cend(); idx_it++) {
-                                    if (embedApps[*idx_it]->getCommand() == splitFileName) {
-                                        embedMap[pageIndex][i] = *idx_it;
-                                        embedPositions[*idx_it] = winGeometry;
-                                        embedApps[*idx_it]->addLocation(pageIndex, i);
-                                        found = true;
-                                        if (embedApps[*idx_it]->isReady()) {
-                                            QWidget* widget = embedApps[*idx_it]->getWidget();
-                                            widget->setMinimumSize(winGeometry.width(), winGeometry.height());
-                                            widget->setMaximumSize(winGeometry.width(), winGeometry.height());
-                                            widget->setGeometry(winGeometry);
-                                            widget->show();
-                                        }
-                                        break;
+                    if (idx == -1) {
+                        bool found = false;
+                        // Check if the same application exists already on an other page.
+                        for (QMap<int,QMap<int,int>>::const_iterator page_it = embedMap.cbegin(); page_it!=embedMap.cend(); page_it++) {
+                            for (QMap<int,int>::const_iterator idx_it = (*page_it).cbegin(); idx_it!=(*page_it).cend(); idx_it++) {
+                                if (embedApps[*idx_it]->getCommand() == splitFileName) {
+                                    embedMap[pageIndex][i] = *idx_it;
+                                    embedPositions[*idx_it] = winGeometry;
+                                    embedApps[*idx_it]->addLocation(pageIndex, i);
+                                    found = true;
+                                    if (embedApps[*idx_it]->isReady()) {
+                                        QWidget* widget = embedApps[*idx_it]->getWidget();
+                                        widget->setMinimumSize(winGeometry.width(), winGeometry.height());
+                                        widget->setMaximumSize(winGeometry.width(), winGeometry.height());
+                                        widget->setGeometry(winGeometry);
+                                        widget->show();
                                     }
-                                }
-                                if (found)
                                     break;
+                                }
                             }
-                            if (!found) {
-                                embedMap[pageIndex][i] = embedApps.length();
-                                EmbedApp* const app = new EmbedApp(splitFileName, pid2wid, pageIndex, i, this);
-                                connect(app, &EmbedApp::widgetReady, this, &PageWidget::receiveEmbedApp);
-                                embedApps.append(app);
-                                embedPositions.append(winGeometry);
-                            }
+                            if (found)
+                                break;
                         }
-                        else
+                        if (!found) {
+                            embedMap[pageIndex][i] = embedApps.length();
+                            EmbedApp* const app = new EmbedApp(splitFileName, pid2wid, pageIndex, i, this);
+                            connect(app, &EmbedApp::widgetReady, this, &MediaSlide::receiveEmbedApp);
+                            embedApps.append(app);
+                            embedPositions.append(winGeometry);
+                        }
+                    }
+                    else
                             embedPositions[idx] = winGeometry;
                     }
                 }
@@ -650,20 +634,9 @@ void PageWidget::renderPage(Poppler::Page* page, bool const hasDuration, QPixmap
         // Add sliders
         if (newSliders!=0)
             emit requestMultimediaSliders(newSliders);
-    }
 }
 
-////////////////////////////////////////////////////////////////////////////////////////////////////
-//// Cache management and image rendering
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-void PageWidget::paintEvent(QPaintEvent*)
-{
-    QPainter painter(this);
-    painter.drawPixmap(shiftx, shifty, pixmap);
-}
-
-void PageWidget::updateCacheVideos(const Poppler::Page *page)
+void MediaSlide::updateCacheVideos(const Poppler::Page *page)
 {
     if (page->index()==this->pageIndex)
         return;
@@ -691,155 +664,7 @@ void PageWidget::updateCacheVideos(const Poppler::Page *page)
     videos.clear();
 }
 
-long int PageWidget::updateCache(QPixmap const* pixmap, int const index)
-{
-    // Save the pixmap to (compressed) cache of page index and return the size of the compressed image.
-    if (pixmap==nullptr || pixmap->isNull())
-        return 0;
-    // The image will be compressed and written to a QByteArray.
-    QByteArray* bytes = new QByteArray();
-    QBuffer buffer(bytes);
-    buffer.open(QIODevice::WriteOnly);
-    pixmap->save(&buffer, "PNG");
-    cache[index] = bytes;
-    return bytes->size();
-}
-
-long int PageWidget::updateCache(QByteArray const* bytes, int const index)
-{
-    // Write bytes to the cache of page index and return the size of bytes.
-    if (bytes==nullptr || bytes->isNull() || bytes->isEmpty())
-        return 0;
-    else if (cache.contains(index))
-        delete cache[index];
-    cache[index] = bytes;
-    return bytes->size();
-}
-
-long int PageWidget::updateCache(Poppler::Page const* cachePage)
-{
-    // Check whether the cachePage exists in cache. If yes, return 0.
-    // Otherwise, render the given page using the internal renderer,
-    // write the compressed image to cache and return the size of the compressed image.
-
-    int index = cachePage->index();
-    // Check whether the page exists in cache.
-    if (cache.contains(index))
-        return 0;
-
-    // Render the page to a pixmap
-    QImage image = cachePage->renderToImage(72*resolution, 72*resolution);
-    // if pagePart != FullPage: Reduce the image to the relevant part.
-    if (pagePart == LeftHalf)
-        image = image.copy(0, 0, image.width()/2, image.height());
-    else if (pagePart == RightHalf)
-        image = image.copy(image.width()/2, 0, image.width()/2, image.height());
-
-    // This check is repeated, because it could be possible that the cache is overwritten while the image is rendered.
-    if (cache.contains(index))
-        return 0;
-
-    // Write the image in png format to a QBytesArray
-    QByteArray* bytes = new QByteArray();
-    QBuffer buffer(bytes);
-    buffer.open(QIODevice::WriteOnly);
-    image.save(&buffer, "PNG");
-    cache[index] = bytes;
-    return bytes->size();
-}
-
-QPixmap PageWidget::getPixmap(Poppler::Page const* cachePage) const
-{
-    // Return a pixmap representing the current page.
-    QPixmap pixmap;
-    if (cache.contains(cachePage->index())) {
-        // The page exists in cache. Use the cache instead of rendering it again.
-        pixmap = getCache(cachePage->index());
-        QSizeF size = page->pageSizeF();
-        int picwidth = int(resolution*size.width()), picheight = int(resolution*size.height());
-        if (abs(picwidth-pixmap.width())<2 && abs(picheight-pixmap.height())<2)
-            return pixmap;
-    }
-    if (pagePart == FullPage)
-        pixmap = QPixmap::fromImage(cachePage->renderToImage(72*resolution, 72*resolution));
-    else {
-        QImage image = cachePage->renderToImage(72*resolution, 72*resolution);
-        if (pagePart == LeftHalf)
-            pixmap = QPixmap::fromImage(image.copy(0, 0, image.width()/2, image.height()));
-        else
-            pixmap = QPixmap::fromImage(image.copy(image.width()/2, 0, image.width()/2, image.height()));
-    }
-    return pixmap;
-}
-
-QPixmap const PageWidget::getCache(int const index) const
-{
-    // Get a pixmap from cache.
-    QPixmap pixmap;
-    if (cache.contains(index)) {
-        pixmap.loadFromData(*cache[index], "PNG");
-        // If an external renderer is used, cached images always show the full page.
-        // But if pagePart != FullPage, only one half of the image should be shown.
-        if (pagePart != FullPage) {
-            // The cached pixmap might show both notes and presentation.
-            // Check the width to decide whether the image shows only the relevant part or the full page.
-            if (pixmap.width() > 1.5*width()) {
-                // Assume that the pixmap shows notes and presentation.
-                if (pagePart == LeftHalf)
-                    pixmap = pixmap.copy(0, 0, pixmap.width()/2, pixmap.height());
-                else
-                    pixmap = pixmap.copy(pixmap.width()/2, 0, pixmap.width()/2, pixmap.height());
-            }
-        }
-    }
-    return pixmap;
-}
-
-QByteArray const* PageWidget::getCachedBytes(int const index) const
-{
-    if (cache.contains(index))
-        return cache[index];
-    else
-        return new QByteArray();
-}
-
-long int PageWidget::getCacheSize() const
-{
-    // Return the total size of all cached images of this label in bytes.
-    long int size=0;
-    for (QMap<int,QByteArray const*>::const_iterator it=cache.cbegin(); it!=cache.cend(); it++) {
-        size += (*it)->size();
-    }
-    return size;
-}
-
-void PageWidget::clearCache()
-{
-    // Remove all images from cache.
-    for (QMap<int,QByteArray const*>::const_iterator bytes=cache.cbegin(); bytes!=cache.cend(); bytes++) {
-        delete *bytes;
-    }
-    cache.clear();
-}
-
-long int PageWidget::clearCachePage(const int index)
-{
-    // Delete the given page (page number index+1) from cache and return its size.
-    // Return 0 if the page does not exist in cache.
-    if (cache.contains(index)) {
-        long int size = cache[index]->size();
-        delete cache[index];
-        cache.remove(index);
-        return size;
-    }
-    else
-        return 0;
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-//// Multimedia
-////////////////////////////////////////////////////////////////////////////////////////////////////
-void PageWidget::setMultimediaSliders(QList<QSlider*> sliderList)
+void MediaSlide::setMultimediaSliders(QList<QSlider*> sliderList)
 {
     // Connect multimedia content of the current slide to the given sliders.
     // this takes ownership of the items of sliderList.
@@ -882,7 +707,7 @@ void PageWidget::setMultimediaSliders(QList<QSlider*> sliderList)
     }
 }
 
-void PageWidget::startAllMultimedia()
+void MediaSlide::startAllMultimedia()
 {
     for (int i=0; i<videoWidgets.size(); i++) {
         // The size of a video widget is set the first time it gets shown.
@@ -897,7 +722,7 @@ void PageWidget::startAllMultimedia()
         sound->play();
 }
 
-void PageWidget::pauseAllMultimedia()
+void MediaSlide::pauseAllMultimedia()
 {
     Q_FOREACH(VideoWidget* video, videoWidgets)
         video->pause();
@@ -907,7 +732,7 @@ void PageWidget::pauseAllMultimedia()
         sound->pause();
 }
 
-bool PageWidget::hasActiveMultimediaContent() const
+bool MediaSlide::hasActiveMultimediaContent() const
 {
     // Return true if any multimedia content is currently being played
     Q_FOREACH(VideoWidget* video, videoWidgets) {
@@ -928,7 +753,7 @@ bool PageWidget::hasActiveMultimediaContent() const
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 //// Mouse events
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-void PageWidget::mouseReleaseEvent(QMouseEvent* event)
+void MediaSlide::mouseReleaseEvent(QMouseEvent* event)
 {
     if (event->button() == Qt::LeftButton) {
         for (int i=0; i<links.size(); i++) {
@@ -1101,7 +926,7 @@ void PageWidget::mouseReleaseEvent(QMouseEvent* event)
     event->accept();
 }
 
-void PageWidget::mouseMoveEvent(QMouseEvent* event)
+void MediaSlide::mouseMoveEvent(QMouseEvent* event)
 {
     // Show the cursor as Qt::PointingHandCursor when hoovering links
     if (!pointer_visible)
@@ -1133,24 +958,7 @@ void PageWidget::mouseMoveEvent(QMouseEvent* event)
     event->accept();
 }
 
-void PageWidget::togglePointerVisibility()
-{
-    if (pointer_visible) {
-        pointer_visible = false;
-        setMouseTracking(false);
-        setCursor(Qt::BlankCursor);
-    }
-    else {
-        pointer_visible = true;
-        setMouseTracking(true);
-        setCursor(Qt::ArrowCursor);
-    }
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-//// Embedded applications
-////////////////////////////////////////////////////////////////////////////////////////////////////
-void PageWidget::receiveEmbedApp(EmbedApp* app)
+void MediaSlide::receiveEmbedApp(EmbedApp* app)
 {
     // Geometry of the embedded window:
     int const*const location = app->getNextLocation(pageIndex);
@@ -1167,11 +975,11 @@ void PageWidget::receiveEmbedApp(EmbedApp* app)
         widget->hide();
 }
 
-void PageWidget::initEmbeddedApplications(Poppler::Page const* page)
+void MediaSlide::initEmbeddedApplications(Poppler::Page const* page)
 {
     // Initialize all embedded applications for a given page.
     // The applications are not started yet, but their positions are calculated and the commands are saved.
-    // After this function, PageWidget::startAllEmbeddedApplications can be used to start the applications.
+    // After this function, MediaSlide::startAllEmbeddedApplications can be used to start the applications.
     QList<Poppler::Link*> links;
     int const index = page->index();
     if (index == pageIndex)
@@ -1216,7 +1024,7 @@ void PageWidget::initEmbeddedApplications(Poppler::Page const* page)
                 if (!found) {
                     embedMap[index][i] = embedApps.length();
                     EmbedApp* const app = new EmbedApp(splitFileName, pid2wid, index, i, this);
-                    connect(app, &EmbedApp::widgetReady, this, &PageWidget::receiveEmbedApp);
+                    connect(app, &EmbedApp::widgetReady, this, &MediaSlide::receiveEmbedApp);
                     embedApps.append(app);
                     embedPositions.append(QRect());
                 }
@@ -1305,7 +1113,7 @@ void PageWidget::initEmbeddedApplications(Poppler::Page const* page)
         qDeleteAll(links);
 }
 
-void PageWidget::startAllEmbeddedApplications(int const index)
+void MediaSlide::startAllEmbeddedApplications(int const index)
 {
     // Start all embedded applications of the given slide (slide number = index)
     if (!embedMap.contains(index))
@@ -1314,7 +1122,7 @@ void PageWidget::startAllEmbeddedApplications(int const index)
         embedApps[*idx_it]->start();
 }
 
-void PageWidget::avoidMultimediaBug()
+void MediaSlide::avoidMultimediaBug()
 {
     // TODO: find a better way to avoid this problem
     // This is a very ugly and inefficient way of avoiding compatibility problems of combining videos and embedded applications.

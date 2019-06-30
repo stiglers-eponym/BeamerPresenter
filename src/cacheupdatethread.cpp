@@ -134,7 +134,7 @@ void CacheUpdateThread::run()
     }
 }
 
-void CacheUpdateThread::setLabels(const PageWidget *pres, const PageWidget *note, const PageWidget *small)
+void CacheUpdateThread::setLabels(const PreviewSlide *pres, const PreviewSlide *note, const PreviewSlide *small)
 {
     presLabel = pres;
     noteLabel = note;

@@ -20,7 +20,7 @@
 #define CACHEUPDATETHREAD_H
 
 #include <QThread>
-#include "pagewidget.h"
+#include "previewslide.h"
 #include "externalrenderer.h"
 
 enum Renderer {
@@ -38,9 +38,9 @@ private:
     QString presFileName = "";
     QString noteFileName = "";
     QStringList renderArguments = {};
-    PageWidget const* presLabel;
-    PageWidget const* noteLabel;
-    PageWidget const* smallLabel;
+    PreviewSlide const* presLabel;
+    PreviewSlide const* noteLabel;
+    PreviewSlide const* smallLabel;
     Poppler::Page const* presPage;
     Poppler::Page const* notePage;
     PagePart pagePart = FullPage;
@@ -48,7 +48,7 @@ private:
 public:
     CacheUpdateThread(QObject* parent=nullptr) : QThread(parent) {}
     void setCustomRenderer(QString const& renderCommand, QString const& presFileName, QString const& noteFileName, QStringList const& renderArguments, Renderer renderer = Renderer::custom);
-    void setLabels(PageWidget const* pres, PageWidget const* note, PageWidget const* small);
+    void setLabels(PreviewSlide const* pres, PreviewSlide const* note, PreviewSlide const* small);
     void setPages(Poppler::Page const* pres, Poppler::Page const* note);
     void setRenderer(Renderer renderer) {mode=renderer;}
     bool hasRenderCommand() {return !renderCommand.isEmpty();}

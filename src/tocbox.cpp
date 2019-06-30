@@ -18,6 +18,8 @@
 
 #include "tocbox.h"
 
+// TODO: use BasicSlide for slide previews.
+
 TocBox::TocBox(QWidget* parent) : QWidget(parent)
 {
     layout = new QVBoxLayout(this);

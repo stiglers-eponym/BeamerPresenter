@@ -66,6 +66,8 @@ public:
     void setKeyMapItem(const int key, const int action);
     void setTimerMap(QMap<int, QTime>& timeMap);
     void disableSlideTransitions() {presentationScreen->getPageWidget()->disableTransitions();}
+    // TODO: tool selection (draw, highlight, pointer, TOC, overview, notes)
+    // TODO: restructure cache management, return all images separately?
 
 protected:
     void keyPressEvent(QKeyEvent* event);

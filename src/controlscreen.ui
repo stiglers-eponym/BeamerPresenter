@@ -935,7 +935,7 @@
        <number>0</number>
       </property>
       <item>
-       <widget class="PageWidget" name="current_slide">
+       <widget class="PreviewSlide" name="current_slide" native="true">
         <property name="sizePolicy">
          <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
           <horstretch>0</horstretch>
@@ -960,7 +960,7 @@
        </widget>
       </item>
       <item>
-       <widget class="PageWidget" name="next_slide">
+       <widget class="PreviewSlide" name="next_slide" native="true">
         <property name="sizePolicy">
          <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
           <horstretch>0</horstretch>
@@ -1000,7 +1000,7 @@
      </spacer>
     </item>
     <item row="0" column="0" rowspan="9">
-     <widget class="PageWidget" name="notes_widget">
+     <widget class="MediaSlide" name="notes_widget" native="true">
       <property name="sizePolicy">
        <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
         <horstretch>0</horstretch>
@@ -1045,9 +1045,16 @@
    <header>src/timer.h</header>
   </customwidget>
   <customwidget>
-   <class>PageWidget</class>
+   <class>PreviewSlide</class>
    <extends>QWidget</extends>
-   <header>src/pagewidget.h</header>
+   <header>src/previewslide.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>MediaSlide</class>
+   <extends>QWidget</extends>
+   <header>src/mediaslide.h</header>
+   <container>1</container>
   </customwidget>
  </customwidgets>
  <resources/>
