@@ -102,6 +102,7 @@ ControlScreen::ControlScreen(QString presentationPath, QString notesPath, QWidge
 
     // Tool selector
     connect(ui->tool_selector, &ToolSelector::sendNewTool, presentationScreen->slide, &DrawSlide::setTool);
+    connect(ui->tool_selector, &ToolSelector::sendClear, presentationScreen->slide, &DrawSlide::clearAllAnnotations);
     connect(ui->tool_selector, &ToolSelector::sendDrawMode, this, &ControlScreen::toggleDrawMode);
 
 
@@ -274,6 +275,11 @@ void ControlScreen::recalcLayout(const int pageNumber)
     ui->gridLayout->setColumnStretch(1, sideWidth);
     tocBox->setGeometry(int(0.1*(width()-sideWidth)), 0, int(0.8*(width()-sideWidth)), height());
     overviewBox->setGeometry(0, 0, width()-sideWidth, height());
+    ui->tool_selector->setMaximumWidth(sideWidth);
+    if (drawSlide != nullptr) {
+        drawSlide->setGeometry(ui->notes_widget->rect());
+        drawSlide->setSizes(presentationScreen->slide->getSizes());
+    }
     updateGeometry();
 
     // Adjust font sizes
@@ -924,10 +930,6 @@ void ControlScreen::resizeEvent(QResizeEvent* event)
     ui->notes_widget->renderPage(ui->notes_widget->getPage(), false);
     ui->current_slide->renderPage(ui->current_slide->getPage());
     ui->next_slide->renderPage(ui->next_slide->getPage());
-    if (drawSlide != nullptr) {
-        drawSlide->setGeometry(ui->notes_widget->rect());
-        drawSlide->setSizes(presentationScreen->slide->getSizes());
-    }
 }
 
 void ControlScreen::clearPresentationCache()
@@ -1236,6 +1238,7 @@ void ControlScreen::showDrawSlide()
         drawSlide = new DrawSlide(this);
         drawSlide->setFocusPolicy(Qt::ClickFocus);
         connect(ui->tool_selector, &ToolSelector::sendNewTool, drawSlide, &DrawSlide::setTool);
+        connect(ui->tool_selector, &ToolSelector::sendClear, drawSlide, &DrawSlide::clearAllAnnotations);
         connect(drawSlide, &DrawSlide::pathsChanged, presentationScreen->slide, &DrawSlide::setPaths);
         connect(presentationScreen->slide, &DrawSlide::pathsChanged, drawSlide, &DrawSlide::setPaths);
         connect(drawSlide, &DrawSlide::pointerPositionChanged, presentationScreen->slide, &DrawSlide::setPointerPosition);

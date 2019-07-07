@@ -39,16 +39,20 @@ ToolSelector::ToolSelector(QWidget* parent) : QWidget(parent)
     torch.setText("torch");
     magnifier.setText("magnifier");
     handTool.setText("hand tool");
+    clearAnnotations.setText("clear");
+    eraser.setText("eraser");
 
     layout = new QGridLayout(this);
     layout->addWidget(&drawMode, 1, 1);
-    layout->addWidget(&redPen, 1, 2);
-    layout->addWidget(&greenPen, 1, 3);
-    layout->addWidget(&highlighter, 1, 4);
+    layout->addWidget(&eraser, 1, 2);
+    layout->addWidget(&redPen, 1, 3);
+    layout->addWidget(&greenPen, 1, 4);
+    layout->addWidget(&highlighter, 1, 5);
     layout->addWidget(&handTool, 2, 1);
-    layout->addWidget(&pointer, 2, 2);
-    layout->addWidget(&torch, 2, 3);
-    layout->addWidget(&magnifier, 2, 4);
+    layout->addWidget(&clearAnnotations, 2, 2);
+    layout->addWidget(&pointer, 2, 3);
+    layout->addWidget(&torch, 2, 4);
+    layout->addWidget(&magnifier, 2, 5);
     setLayout(layout);
     connect(&redPen, &QPushButton::released, this, [&](){sendNewTool(RedPen);});
     connect(&greenPen, &QPushButton::released, this, [&](){sendNewTool(GreenPen);});
@@ -56,6 +60,8 @@ ToolSelector::ToolSelector(QWidget* parent) : QWidget(parent)
     connect(&pointer, &QPushButton::released, this, [&](){sendNewTool(Pointer);});
     connect(&torch, &QPushButton::released, this, [&](){sendNewTool(Torch);});
     connect(&magnifier, &QPushButton::released, this, [&](){sendNewTool(Magnifier);});
+    connect(&eraser, &QPushButton::released, this, [&](){sendNewTool(Eraser);});
     connect(&handTool, &QPushButton::released, this, [&](){sendNewTool(None);});
     connect(&drawMode, &QPushButton::released, this, &ToolSelector::sendDrawMode);
+    connect(&clearAnnotations, &QPushButton::released, this, &ToolSelector::sendClear);
 }

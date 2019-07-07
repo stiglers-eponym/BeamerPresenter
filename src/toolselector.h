@@ -36,6 +36,8 @@ private:
     QPushButton torch;
     QPushButton pointer;
     QPushButton handTool;
+    QPushButton clearAnnotations;
+    QPushButton eraser;
     QGridLayout* layout;
 
 public:
@@ -45,6 +47,7 @@ public:
 signals:
     void sendNewTool(DrawTool const tool);
     void sendDrawMode();
+    void sendClear();
 };
 
 #endif // TOOLSELECTOR_H
