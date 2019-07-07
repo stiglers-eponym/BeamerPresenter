@@ -20,6 +20,7 @@
 #define DRAWSLIDE_H
 
 #include "mediaslide.h"
+#include "drawpath.h"
 
 // TODO: move pen strokes to different layer (extra widget) above multimedia widgets
 
@@ -39,8 +40,9 @@ protected:
     void mousePressEvent(QMouseEvent* event) override;
     void mouseReleaseEvent(QMouseEvent* event) override;
     void mouseMoveEvent(QMouseEvent* event) override;
+    void erase(QPointF const& point);
     DrawTool tool = None;
-    QMap<int, QMap<DrawTool, QPainterPath>> paths;
+    QMap<int, QMap<DrawTool, QList<DrawPath>>> paths;
 };
 
 #endif // DRAWSLIDE_H

@@ -72,6 +72,7 @@ enum DrawTool {
     Pointer,
     Torch,
     Erase,
+    Magnifier,
     //Ellipse
 };
 

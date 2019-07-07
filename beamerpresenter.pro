@@ -46,7 +46,8 @@ SOURCES += \
         src/externalrenderer.cpp \
         src/embedapp.cpp \
         src/overviewframe.cpp \
-        src/overviewbox.cpp
+        src/overviewbox.cpp \
+        src/drawpath.cpp
 
 HEADERS += \
         src/enumerates.h \
@@ -69,7 +70,8 @@ HEADERS += \
         src/externalrenderer.h \
         src/embedapp.h \
         src/overviewframe.h \
-        src/overviewbox.h
+        src/overviewbox.h \
+        src/drawpath.h
 
 FORMS += \
         src/controlscreen.ui

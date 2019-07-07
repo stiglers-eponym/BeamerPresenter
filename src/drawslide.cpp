@@ -45,17 +45,20 @@ void DrawSlide::drawAnnotations(QPainter &painter)
         if (paths[pageIndex].contains(RedPen)) {
             painter.setCompositionMode(QPainter::CompositionMode_SourceOver);
             painter.setPen(QPen(QColor(255,0,0), 3));
-            painter.drawPath(paths[pageIndex][RedPen]);
+            for (QList<DrawPath>::const_iterator it=paths[pageIndex][RedPen].cbegin(); it!=paths[pageIndex][RedPen].cend(); it++)
+                painter.drawPolyline(it->data(), it->number());
         }
         if (paths[pageIndex].contains(GreenPen)) {
             painter.setCompositionMode(QPainter::CompositionMode_SourceOver);
             painter.setPen(QPen(QColor(0,191,0), 3));
-            painter.drawPath(paths[pageIndex][GreenPen]);
+            for (QList<DrawPath>::const_iterator it=paths[pageIndex][GreenPen].cbegin(); it!=paths[pageIndex][GreenPen].cend(); it++)
+                painter.drawPolyline(it->data(), it->number());
         }
         if (paths[pageIndex].contains(Highlighter)) {
             painter.setCompositionMode(QPainter::CompositionMode_Darken);
             painter.setPen(QPen(QColor(255,255,0), 30, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin));
-            painter.drawPath(paths[pageIndex][Highlighter]);
+            for (QList<DrawPath>::const_iterator it=paths[pageIndex][Highlighter].cbegin(); it!=paths[pageIndex][Highlighter].cend(); it++)
+                painter.drawPolyline(it->data(), it->number());
         }
     }
     // TODO: pointer, torch, ...
@@ -74,10 +77,9 @@ void DrawSlide::mousePressEvent(QMouseEvent *event)
         case RedPen:
         case GreenPen:
         case Highlighter:
-            if (paths.contains(pageIndex) && paths[pageIndex].contains(tool))
-                paths[pageIndex][tool].moveTo(event->localPos());
-            else
-                paths[pageIndex][tool] = QPainterPath(event->localPos());
+            if (!paths.contains(pageIndex) || !paths[pageIndex].contains(tool))
+                paths[pageIndex][tool] = QList<DrawPath>();
+            paths[pageIndex][tool].append(DrawPath(event->localPos()));
             break;
         case Erase:
             // TODO
@@ -86,10 +88,15 @@ void DrawSlide::mousePressEvent(QMouseEvent *event)
         case Pointer:
             // TODO
             break;
+        case Magnifier:
+            // TODO
+            // render enlarged page
+            break;
         }
         break;
     case Qt::RightButton:
-        // TODO: eraser
+        erase(event->localPos());
+        update();
         break;
     default:
         break;
@@ -120,22 +127,55 @@ void DrawSlide::mouseMoveEvent(QMouseEvent *event)
         case RedPen:
         case GreenPen:
         case Highlighter:
-            if (paths.contains(pageIndex) && paths[pageIndex].contains(tool)) {
-                paths[pageIndex][tool].lineTo(event->localPos());
+            if (paths.contains(pageIndex) && paths[pageIndex].contains(tool) && paths[pageIndex][tool].length()>0) {
+                paths[pageIndex][tool].last().append(event->localPos());
                 update();
             }
             break;
         case Erase:
-            // TODO
+            erase(event->localPos());
+            update();
             break;
         case Torch:
         case Pointer:
             // TODO
             break;
+        case Magnifier:
+            // TODO
+            break;
         }
         break;
     case Qt::RightButton:
-        // TODO: eraser
+        erase(event->localPos());
+        update();
         break;
+    }
+}
+
+void DrawSlide::erase(const QPointF &point)
+{
+    if (!paths.contains(pageIndex))
+        return;
+    for (QMap<DrawTool, QList<DrawPath>>::iterator tool_it = paths[pageIndex].begin(); tool_it != paths[pageIndex].end(); tool_it++) {
+        for (int i=0, length=tool_it->length(); i<length; i++) {
+            QVector<int> splits = (*tool_it)[i].intersects(point);
+            if (splits.isEmpty())
+                continue;
+            if (splits.first() > 1)
+                tool_it->append((*tool_it)[i].split(0, splits.first()-1));
+            for (int s=0; s<splits.size()-1; s++) {
+                if (splits[s+1]-splits[s] > 3) {
+                    tool_it->append((*tool_it)[i].split(splits[s]+1, splits[s+1]-1));
+                    s++;
+                }
+            }
+            if (splits.last() < (*tool_it)[i].number()-2)
+                tool_it->append((*tool_it)[i].split(splits.last()+1, (*tool_it)[i].number()));
+            (*tool_it)[i].clear();
+        }
+        for (int i=0; i<tool_it->length(); i++) {
+            if ((*tool_it)[i].isEmpty())
+                tool_it->removeAt(i);
+        }
     }
 }
