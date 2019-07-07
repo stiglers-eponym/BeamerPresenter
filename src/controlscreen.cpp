@@ -100,6 +100,10 @@ ControlScreen::ControlScreen(QString presentationPath, QString notesPath, QWidge
     ui->next_slide->setUseCache(false);
     ui->notes_widget->setFocus();
 
+    // Tool selector
+    connect(ui->tool_selector, &ToolSelector::sendNewTool, presentationScreen->slide, &DrawSlide::setTool);
+    connect(ui->tool_selector, &ToolSelector::sendDrawMode, this, &ControlScreen::toggleDrawMode);
+
 
     // Page requests from the labels:
     // These are emitted if links are clicked.
@@ -203,6 +207,8 @@ ControlScreen::~ControlScreen()
         cacheThread->wait();
     }
     delete cacheThread;
+    if (drawSlide != nullptr)
+        drawSlide->disconnect();
     ui->notes_widget->disconnect();
     ui->current_slide->disconnect();
     ui->next_slide->disconnect();
@@ -213,6 +219,7 @@ ControlScreen::~ControlScreen()
     if (notes != presentation)
         delete notes;
     delete keymap;
+    delete drawSlide;
     delete presentation;
     delete presentationScreen;
     disconnect();
@@ -809,9 +816,7 @@ void ControlScreen::keyPressEvent(QKeyEvent* event)
             hideOverview();
             break;
         case KeyAction::HideDrawSlide:
-            if (drawSlide != nullptr)
-                drawSlide->hide();
-            ui->notes_widget->show();
+            hideDrawSlide();
             break;
         case KeyAction::Reload:
             reloadFiles();
@@ -919,6 +924,10 @@ void ControlScreen::resizeEvent(QResizeEvent* event)
     ui->notes_widget->renderPage(ui->notes_widget->getPage(), false);
     ui->current_slide->renderPage(ui->current_slide->getPage());
     ui->next_slide->renderPage(ui->next_slide->getPage());
+    if (drawSlide != nullptr) {
+        drawSlide->setGeometry(ui->notes_widget->rect());
+        drawSlide->setSizes(presentationScreen->slide->getSizes());
+    }
 }
 
 void ControlScreen::clearPresentationCache()
@@ -1222,13 +1231,25 @@ void ControlScreen::setTimerMap(QMap<int, QTime> &timeMap)
 
 void ControlScreen::showDrawSlide()
 {
+    // Draw slide and tool selector
     if (drawSlide == nullptr) {
         drawSlide = new DrawSlide(this);
         drawSlide->setFocusPolicy(Qt::ClickFocus);
-        drawSlide->setSizes(presentationScreen->slide->getSizes());
+        connect(ui->tool_selector, &ToolSelector::sendNewTool, drawSlide, &DrawSlide::setTool);
+        connect(drawSlide, &DrawSlide::pathsChanged, presentationScreen->slide, &DrawSlide::setPaths);
+        connect(presentationScreen->slide, &DrawSlide::pathsChanged, drawSlide, &DrawSlide::setPaths);
+        connect(drawSlide, &DrawSlide::pointerPositionChanged, presentationScreen->slide, &DrawSlide::setPointerPosition);
+        connect(presentationScreen->slide, &DrawSlide::pointerPositionChanged, drawSlide, &DrawSlide::setPointerPosition);
+        connect(drawSlide, &DrawSlide::sendRelax, presentationScreen->slide, &DrawSlide::relax);
+        connect(presentationScreen->slide, &DrawSlide::sendRelax, drawSlide, &DrawSlide::relax);
+        connect(presentationScreen->slide, &BasicSlide::pageNumberChanged, drawSlide, [&](int const pageNumber) {drawSlide->renderPage(presentation->getPage(pageNumber), false);});
+        connect(drawSlide, &PreviewSlide::sendNewPageNumber, presentationScreen, &PresentationScreen::receiveNewPageNumber);
+        connect(drawSlide, &PreviewSlide::sendNewPageNumber, this, &ControlScreen::renderPage);
     }
+
     drawSlide->setTool(presentationScreen->slide->getTool());
     drawSlide->setGeometry(ui->notes_widget->rect());
+    drawSlide->setSizes(presentationScreen->slide->getSizes());
     ui->notes_widget->hide();
     // TODO: synchronize video content
     drawSlide->renderPage(presentationScreen->slide->getPage(), false);
@@ -1248,13 +1269,21 @@ void ControlScreen::showDrawSlide()
     for (QMap<DrawTool, QList<DrawPath>>::const_iterator tool_it = paths[label].cbegin(); tool_it != paths[label].cend(); tool_it++)
         drawSlide->setPaths(label, tool_it.key(), *tool_it, sx, sy, res);
     drawSlide->update();
-    connect(drawSlide, &DrawSlide::pathsChanged, presentationScreen->slide, &DrawSlide::setPaths);
-    connect(presentationScreen->slide, &DrawSlide::pathsChanged, drawSlide, &DrawSlide::setPaths);
-    connect(drawSlide, &DrawSlide::pointerPositionChanged, presentationScreen->slide, &DrawSlide::setPointerPosition);
-    connect(presentationScreen->slide, &DrawSlide::pointerPositionChanged, drawSlide, &DrawSlide::setPointerPosition);
-    connect(drawSlide, &DrawSlide::sendRelax, presentationScreen->slide, &DrawSlide::relax);
-    connect(presentationScreen->slide, &DrawSlide::sendRelax, drawSlide, &DrawSlide::relax);
-    connect(presentationScreen->slide, &BasicSlide::pageNumberChanged, drawSlide, [&](int const pageNumber) {drawSlide->renderPage(presentation->getPage(pageNumber), false);});
-    connect(drawSlide, &PreviewSlide::sendNewPageNumber, presentationScreen, &PresentationScreen::receiveNewPageNumber);
-    connect(drawSlide, &PreviewSlide::sendNewPageNumber, this, &ControlScreen::renderPage);
+}
+
+void ControlScreen::toggleDrawMode()
+{
+    if (drawSlide == nullptr || drawSlide->isHidden())
+        showDrawSlide();
+    else
+        hideDrawSlide();
+}
+
+void ControlScreen::hideDrawSlide()
+{
+    if (drawSlide != nullptr) {
+        delete drawSlide;
+        drawSlide = nullptr;
+    }
+    ui->notes_widget->show();
 }

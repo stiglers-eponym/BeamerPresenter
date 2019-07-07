@@ -38,6 +38,7 @@ SOURCES += \
         src/clocklabel.cpp \
         src/timer.cpp \
         src/pagenumberedit.cpp \
+        src/toolselector.cpp \
         src/videowidget.cpp \
         src/cacheupdatethread.cpp \
         src/tocbox.cpp \
@@ -62,6 +63,7 @@ HEADERS += \
         src/presentationslide.h \
         src/timer.h \
         src/pagenumberedit.h \
+        src/toolselector.h \
         src/videowidget.h \
         src/cacheupdatethread.h \
         src/tocbox.h \

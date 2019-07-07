@@ -34,7 +34,7 @@
 #include "cacheupdatethread.h"
 #include "tocbox.h"
 #include "overviewbox.h"
-//#include "drawslide.h"
+#include "toolselector.h"
 
 namespace Ui {
     class ControlScreen;
@@ -69,7 +69,7 @@ public:
     void disableSlideTransitions() {presentationScreen->slide->disableTransitions();}
     void setToolSize(DrawTool const tool, int const size) {presentationScreen->slide->setSize(tool, size);}
     void showDrawSlide();
-    // TODO: tool selection (draw, highlight, pointer, TOC, overview, notes)
+    void hideDrawSlide();
     // TODO: restructure cache management, return all images separately?
 
 protected:
@@ -147,6 +147,7 @@ public slots:
     void showNotes();
     void showOverview();
     void hideOverview();
+    void toggleDrawMode();
 };
 
 #endif // CONTROLSCREEN_H

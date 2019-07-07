@@ -168,9 +168,13 @@ void DrawSlide::mousePressEvent(QMouseEvent *event)
             erase(event->localPos());
             update();
             break;
+        case Magnifier:
+            if (enlargedPage.isNull() || enlargedPageNumber!=pageIndex) {
+                enlargedPageNumber = pageIndex;
+                enlargedPage = page->renderToImage(144*resolution, 144*resolution);
+            }
         case Torch:
         case Pointer:
-        case Magnifier:
             pointerPosition = event->localPos();
             update();
             emit pointerPositionChanged(pointerPosition, shiftx, shifty, resolution);
