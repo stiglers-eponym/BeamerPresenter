@@ -808,6 +808,11 @@ void ControlScreen::keyPressEvent(QKeyEvent* event)
         case KeyAction::HideOverview:
             hideOverview();
             break;
+        case KeyAction::HideDrawSlide:
+            if (drawSlide != nullptr)
+                drawSlide->hide();
+            ui->notes_widget->show();
+            break;
         case KeyAction::Reload:
             reloadFiles();
             break;
@@ -837,27 +842,46 @@ void ControlScreen::keyPressEvent(QKeyEvent* event)
             break;
         case KeyAction::ClearAnnotations:
             presentationScreen->slide->clearPageAnnotations();
+            if (drawSlide != nullptr)
+                drawSlide->clearPageAnnotations();
             break;
         case KeyAction::DrawNone:
             presentationScreen->slide->setTool(None);
+            if (drawSlide != nullptr)
+                drawSlide->setTool(None);
             break;
         case KeyAction::DrawRedPen:
             presentationScreen->slide->setTool(RedPen);
+            if (drawSlide != nullptr)
+                drawSlide->setTool(RedPen);
             break;
         case KeyAction::DrawGreenPen:
             presentationScreen->slide->setTool(GreenPen);
+            if (drawSlide != nullptr)
+                drawSlide->setTool(GreenPen);
             break;
         case KeyAction::DrawHighlighter:
             presentationScreen->slide->setTool(Highlighter);
+            if (drawSlide != nullptr)
+                drawSlide->setTool(Highlighter);
             break;
         case KeyAction::DrawTorch:
             presentationScreen->slide->setTool(Torch);
+            if (drawSlide != nullptr)
+                drawSlide->setTool(Torch);
             break;
         case KeyAction::DrawPointer:
             presentationScreen->slide->setTool(Pointer);
+            if (drawSlide != nullptr)
+                drawSlide->setTool(Pointer);
             break;
         case KeyAction::DrawMagnifier:
             presentationScreen->slide->setTool(Magnifier);
+            if (drawSlide != nullptr)
+                drawSlide->setTool(Magnifier);
+            break;
+        case KeyAction::DrawMode:
+            showDrawSlide();
             break;
         }
     }
@@ -948,7 +972,6 @@ void ControlScreen::wheelEvent(QWheelEvent* event)
     int deltaPix = -event->pixelDelta().y();
     int deltaAngle = -event->angleDelta().y();
     int deltaPages;
-    qDebug () << deltaPix << deltaAngle;
     // If a touch pad was used for scrolling:
     if (deltaPix != 0) {
         scrollState += deltaPix;
@@ -1028,6 +1051,7 @@ void ControlScreen::showToc()
         this->activateWindow();
     ui->notes_widget->hide();
     tocBox->show();
+    tocBox->raise();
     tocBox->setFocus();
 }
 
@@ -1044,8 +1068,10 @@ void ControlScreen::showNotes()
     // Equivalent to hideToc(); hideOverview();
     tocBox->hide();
     overviewBox->hide();
-    ui->notes_widget->show();
-    ui->notes_widget->setFocus();
+    if (drawSlide == nullptr || drawSlide->isHidden()) {
+        ui->notes_widget->show();
+        ui->notes_widget->setFocus();
+    }
 }
 
 void ControlScreen::showOverview()
@@ -1061,6 +1087,7 @@ void ControlScreen::showOverview()
         this->activateWindow();
     ui->notes_widget->hide();
     overviewBox->show();
+    overviewBox->raise();
     overviewBox->setFocused(presentationScreen->getPageNumber());
 }
 
@@ -1191,4 +1218,43 @@ void ControlScreen::setTimerMap(QMap<int, QTime> &timeMap)
     // Set times per slide for timer color change
     ui->label_timer->setTimeMap(timeMap);
     ui->label_timer->setPage(presentationScreen->getPageNumber());
+}
+
+void ControlScreen::showDrawSlide()
+{
+    if (drawSlide == nullptr) {
+        drawSlide = new DrawSlide(this);
+        drawSlide->setFocusPolicy(Qt::ClickFocus);
+        drawSlide->setSizes(presentationScreen->slide->getSizes());
+    }
+    drawSlide->setTool(presentationScreen->slide->getTool());
+    drawSlide->setGeometry(ui->notes_widget->rect());
+    ui->notes_widget->hide();
+    // TODO: synchronize video content
+    drawSlide->renderPage(presentationScreen->slide->getPage(), false);
+    drawSlide->show();
+    drawSlide->setFocus();
+    int const sx=presentationScreen->slide->getXshift(), sy=presentationScreen->slide->getYshift();
+    double res = presentationScreen->slide->getResolution();
+    double scale = drawSlide->getResolution() / res;
+    drawSlide->setSize(GreenPen, presentationScreen->slide->getSize(GreenPen));
+    drawSlide->setSize(RedPen, presentationScreen->slide->getSize(RedPen));
+    drawSlide->setSize(Pointer, presentationScreen->slide->getSize(Pointer));
+    drawSlide->setSize(Highlighter, static_cast<int>(scale*presentationScreen->slide->getSize(Highlighter)+0.5));
+    drawSlide->setSize(Torch, static_cast<int>(scale*presentationScreen->slide->getSize(Torch)));
+    drawSlide->setSize(Magnifier, static_cast<int>(scale*presentationScreen->slide->getSize(Magnifier)));
+    QString label = presentationScreen->slide->getPage()->label();
+    QMap<QString, QMap<DrawTool, QList<DrawPath>>> const paths = presentationScreen->slide->getPaths();
+    for (QMap<DrawTool, QList<DrawPath>>::const_iterator tool_it = paths[label].cbegin(); tool_it != paths[label].cend(); tool_it++)
+        drawSlide->setPaths(label, tool_it.key(), *tool_it, sx, sy, res);
+    drawSlide->update();
+    connect(drawSlide, &DrawSlide::pathsChanged, presentationScreen->slide, &DrawSlide::setPaths);
+    connect(presentationScreen->slide, &DrawSlide::pathsChanged, drawSlide, &DrawSlide::setPaths);
+    connect(drawSlide, &DrawSlide::pointerPositionChanged, presentationScreen->slide, &DrawSlide::setPointerPosition);
+    connect(presentationScreen->slide, &DrawSlide::pointerPositionChanged, drawSlide, &DrawSlide::setPointerPosition);
+    connect(drawSlide, &DrawSlide::sendRelax, presentationScreen->slide, &DrawSlide::relax);
+    connect(presentationScreen->slide, &DrawSlide::sendRelax, drawSlide, &DrawSlide::relax);
+    connect(presentationScreen->slide, &BasicSlide::pageNumberChanged, drawSlide, [&](int const pageNumber) {drawSlide->renderPage(presentation->getPage(pageNumber), false);});
+    connect(drawSlide, &PreviewSlide::sendNewPageNumber, presentationScreen, &PresentationScreen::receiveNewPageNumber);
+    connect(drawSlide, &PreviewSlide::sendNewPageNumber, this, &ControlScreen::renderPage);
 }

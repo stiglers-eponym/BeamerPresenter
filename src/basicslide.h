@@ -52,6 +52,7 @@ protected:
     bool pointer_visible = true;
 
 signals:
+    void pageNumberChanged(int const pageNumber);
     void sendNewPageNumber(int const pageNumber);
     void sendCloseSignal();
     void focusPageNumberEdit();

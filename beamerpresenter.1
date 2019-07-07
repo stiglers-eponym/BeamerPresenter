@@ -347,7 +347,7 @@ with the option
 .BR \-p ", or " \-\-page-part
 .
 .SS Draw in presentation
-It is now possible to draw in the presentation. As of now you can only access the different pens by using customized key bindings. Besides simple drawing with pens and a highlighter you can emphasize parts of a slide using a torch, a magnifier and a pointer.
+It is now possible to draw in the presentation. As of now you can only access the different pens by using customized key bindings. Besides simple drawing with pens and a highlighter you can emphasize parts of a slide using a torch, a magnifier and a pointer. In a draw mode all tools are synchronization between control screen and presentation screen.
 .
 .
 .SH CONFIG
@@ -463,6 +463,14 @@ Set page number of the presentation to the page number on the control screen and
 .TP
 .B sync from presentation screen
 Set page number of the control screen to the page number of the presentation. When browsing your notes, this will bring you back to the current slide.
+.
+.TP
+.B draw mode
+Enter drawing mode: draw in the presentation slide on the control screen. In this mode all tools are synchronized between presentation screen and control screen.
+.
+.TP
+.B hide draw slide
+Exit drawing mode: control screen shows notes again.
 .
 .TP
 .B clear annotations

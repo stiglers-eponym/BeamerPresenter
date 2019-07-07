@@ -34,6 +34,7 @@
 #include "cacheupdatethread.h"
 #include "tocbox.h"
 #include "overviewbox.h"
+//#include "drawslide.h"
 
 namespace Ui {
     class ControlScreen;
@@ -67,6 +68,7 @@ public:
     void setTimerMap(QMap<int, QTime>& timeMap);
     void disableSlideTransitions() {presentationScreen->slide->disableTransitions();}
     void setToolSize(DrawTool const tool, int const size) {presentationScreen->slide->setSize(tool, size);}
+    void showDrawSlide();
     // TODO: tool selection (draw, highlight, pointer, TOC, overview, notes)
     // TODO: restructure cache management, return all images separately?
 
@@ -103,6 +105,7 @@ private:
     long int cacheSize = 0;
     int cacheNumber = 0;
     QSize oldSize = QSize();
+    DrawSlide* drawSlide = nullptr;
 
     // keymap maps (key code + modifiers) to a list of KeyActions.
     QMap<int, QList<int>>* keymap = new QMap<int, QList<int>>();

@@ -36,21 +36,31 @@ void DrawSlide::paintEvent(QPaintEvent*)
 {
     QPainter painter(this);
     painter.drawPixmap(shiftx, shifty, pixmap);
+    drawAnnotations(painter);
 }
 
 void DrawSlide::setTool(const DrawTool newtool)
 {
-     tool = newtool;
-     if (pointer_visible) {
-         setMouseTracking(true);
-         setCursor(Qt::ArrowCursor);
-     }
-     else if (tool == Pointer)
-         setMouseTracking(true);
-     else
-         setMouseTracking(false);
-     if (tool != Magnifier)
-         enlargedPage = QImage();
+    tool = newtool;
+    if (pointer_visible) {
+        setMouseTracking(true);
+        setCursor(Qt::ArrowCursor);
+    }
+    else if (tool == Pointer)
+        setMouseTracking(true);
+    else
+        setMouseTracking(false);
+    if (tool == Magnifier) {
+        pointerPosition = QPointF();
+        if (enlargedPage.isNull() || enlargedPageNumber!=pageIndex) {
+            enlargedPageNumber = pageIndex;
+            enlargedPage = page->renderToImage(144*resolution, 144*resolution);
+        }
+    }
+    else
+        enlargedPage = QImage();
+    if (tool == Torch)
+        pointerPosition = QPointF();
 }
 
 void DrawSlide::togglePointerVisibility()
@@ -116,10 +126,11 @@ void DrawSlide::drawAnnotations(QPainter &painter)
         painter.drawPoint(pointerPosition);
     }
     else if (tool == Torch && !pointerPosition.isNull()) {
-        QPainterPath path;
-        path.addRect(rect());
-        path.addEllipse(pointerPosition, sizes[Torch], sizes[Torch]);
-        painter.fillPath(path, QColor(0,0,0,48));
+        QPainterPath rectpath;
+        rectpath.addRect(shiftx, shifty, pixmap.width(), pixmap.height());
+        QPainterPath circpath;
+        circpath.addEllipse(pointerPosition, sizes[Torch], sizes[Torch]);
+        painter.fillPath(rectpath-circpath, QColor(0,0,0,48));
     }
     else if (tool == Magnifier && !pointerPosition.isNull()) {
         painter.setCompositionMode(QPainter::CompositionMode_SourceOver);
@@ -159,16 +170,10 @@ void DrawSlide::mousePressEvent(QMouseEvent *event)
             break;
         case Torch:
         case Pointer:
-            pointerPosition = event->localPos();
-            update();
-            break;
         case Magnifier:
-            if (enlargedPage.isNull() || enlargedPageNumber!=pageIndex) {
-                enlargedPageNumber = pageIndex;
-                enlargedPage = page->renderToImage(144*resolution, 144*resolution);
-            }
             pointerPosition = event->localPos();
             update();
+            emit pointerPositionChanged(pointerPosition, shiftx, shifty, resolution);
             break;
         }
         break;
@@ -191,6 +196,7 @@ void DrawSlide::mouseReleaseEvent(QMouseEvent *event)
         pointerPosition = QPointF();
         update();
     }
+    emit sendRelax();
     event->accept();
 }
 
@@ -198,6 +204,7 @@ void DrawSlide::mouseMoveEvent(QMouseEvent *event)
 {
     if (tool == Pointer) {
         pointerPosition = event->localPos();
+        emit pointerPositionChanged(pointerPosition, shiftx, shifty, resolution);
         update();
     }
     switch (event->buttons())
@@ -217,6 +224,7 @@ void DrawSlide::mouseMoveEvent(QMouseEvent *event)
             if (paths.contains(page->label()) && paths[page->label()].contains(tool) && paths[page->label()][tool].length()>0) {
                 paths[page->label()][tool].last().append(event->localPos());
                 update();
+                emit pathsChanged(page->label(), tool, paths[page->label()][tool], shiftx, shifty, resolution);
             }
             break;
         case Eraser:
@@ -227,14 +235,15 @@ void DrawSlide::mouseMoveEvent(QMouseEvent *event)
         case Magnifier:
             pointerPosition = event->localPos();
             update();
+            emit pointerPositionChanged(pointerPosition, shiftx, shifty, resolution);
             break;
         }
         break;
     case Qt::RightButton:
         erase(event->localPos());
         update();
-            break;
-        }
+        break;
+    }
     event->accept();
 }
 
@@ -264,10 +273,40 @@ void DrawSlide::erase(const QPointF &point)
                 tool_it->removeAt(i);
         }
     }
+    emit pathsChanged(page->label(), GreenPen, paths[page->label()][GreenPen], shiftx, shifty, resolution);
+    emit pathsChanged(page->label(), RedPen, paths[page->label()][RedPen], shiftx, shifty, resolution);
+    emit pathsChanged(page->label(), Highlighter, paths[page->label()][Highlighter], shiftx, shifty, resolution);
 }
 
 void DrawSlide::clearCache()
 {
     PreviewSlide::clearCache();
     enlargedPage = QImage();
+}
+
+void DrawSlide::setPaths(QString const page, DrawTool const tool, QList<DrawPath> const& list, int const xshift, int const yshift, double const resolution)
+{
+    if (paths.contains(page) && paths[page].contains(tool))
+        paths[page][tool].clear();
+    else
+        paths[page][tool] = QList<DrawPath>();
+    QPointF shift = QPointF(this->shiftx, this->shifty) - this->resolution/resolution*QPointF(xshift, yshift);
+    for (QList<DrawPath>::const_iterator it = list.cbegin(); it!=list.cend(); it++)
+        paths[page][tool].append(DrawPath(*it, shift, this->resolution/resolution));
+    update();
+}
+
+void DrawSlide::setPointerPosition(QPointF const point, int const xshift, int const yshift, double const resolution)
+{
+    pointerPosition = (point - QPointF(xshift, yshift)) * this->resolution/resolution + QPointF(this->shiftx, this->shifty);
+    if (tool == Pointer || tool == Magnifier || tool == Torch)
+        update();
+}
+
+void DrawSlide::relax()
+{
+    if (tool == Torch || tool == Magnifier) {
+        pointerPosition = QPointF();
+        update();
+    }
 }

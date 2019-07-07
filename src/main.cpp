@@ -72,7 +72,9 @@ const QMap<QString, int> keyActionMap {
     {"highlighter", KeyAction::DrawHighlighter},
     {"torch", KeyAction::DrawTorch},
     {"pointer", KeyAction::DrawPointer},
-    {"magnifier", KeyAction::DrawMagnifier}
+    {"magnifier", KeyAction::DrawMagnifier},
+    {"draw mode", KeyAction::DrawMode},
+    {"hide draw slide", KeyAction::HideDrawSlide},
 };
 
 const QMap<int, QList<int>> defaultKeyMap = {
@@ -88,7 +90,7 @@ const QMap<int, QList<int>> defaultKeyMap = {
     {Qt::Key_End, {KeyAction::LastPage}},
     {Qt::Key_Home, {KeyAction::FirstPage}},
     {Qt::Key_Return, {KeyAction::SyncFromControlScreen}},
-    {Qt::Key_Escape, {KeyAction::SyncFromPresentationScreen, KeyAction::HideTOC}},
+    {Qt::Key_Escape, {KeyAction::SyncFromPresentationScreen, KeyAction::HideTOC, KeyAction::HideOverview, KeyAction::HideDrawSlide}},
     {Qt::Key_Space, {KeyAction::Update}},
 
     {Qt::Key_C, {KeyAction::UpdateCache}},

@@ -79,10 +79,11 @@ void Timer::setDeadline()
             break;
     }
     if (deadline.isNull() || !deadline.isValid()) {
-        qCritical() << "Unable to set timer";
+        qWarning() << "Unable to set timer";
         deadline = QTime(0,0,0,0);
         setText("00:00");
-        throw 1;
+        // TODO: do something more clever and less dangerous:
+        //throw 1;
     }
     if (timeMap.isEmpty())
         currentFrameTime = &deadline;

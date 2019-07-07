@@ -50,6 +50,7 @@ enum KeyAction {
     HideTOC,
     ShowOverview,
     HideOverview,
+    HideDrawSlide,
     ToggleCursor,
     FullScreen,
     Reload,
@@ -62,7 +63,8 @@ enum KeyAction {
     DrawHighlighter,
     DrawTorch,
     DrawPointer,
-    DrawMagnifier
+    DrawMagnifier,
+    DrawMode,
 };
 
 enum DrawTool {

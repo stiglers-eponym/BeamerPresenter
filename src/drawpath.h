@@ -35,6 +35,7 @@ public:
     DrawPath(QPointF* const points, int const number, int const eraser_size = 10);
     DrawPath(DrawPath const& old) {path=old.path; outer=old.outer; eraser_size=old.eraser_size;}
     DrawPath(DrawPath const&& old) {path=old.path; outer=old.outer; eraser_size=old.eraser_size;}
+    DrawPath(DrawPath const& old, QPointF const shift, double const scale);
     ~DrawPath() {path.clear();}
     void setEraserSize(int const size);
     void clear() {path.clear(); outer=QRectF();}

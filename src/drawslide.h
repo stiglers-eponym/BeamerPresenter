@@ -19,6 +19,8 @@
 #ifndef DRAWSLIDE_H
 #define DRAWSLIDE_H
 
+#include <QObject>
+#include <QDebug>
 #include "mediaslide.h"
 #include "drawpath.h"
 
@@ -26,22 +28,30 @@
 
 class DrawSlide : public MediaSlide
 {
+    Q_OBJECT
 public:
     explicit DrawSlide(QWidget* parent=nullptr) : MediaSlide(parent) {}
     explicit DrawSlide(Poppler::Page* page, QWidget* parent=nullptr) : MediaSlide(page, parent) {}
     ~DrawSlide() override {clearAll();}
-    void setTool(DrawTool const newtool);
     void clearPageAnnotations();
     void clearAllAnnotations();
-    void clearCache() override;
+    virtual void clearCache() override;
     void setSize(DrawTool const tool, int const size);
+    QMap<QString, QMap<DrawTool, QList<DrawPath>>> const& getPaths() const {return paths;}
+    int const& getXshift() const {return shiftx;}
+    int const& getYshift() const {return shifty;}
+    double const& getResolution() const {return resolution;}
+    DrawTool getTool() const {return tool;}
+    QMap<DrawTool, int> const& getSizes() const {return sizes;}
+    int getSize(DrawTool const tool) {return sizes[tool];}
+    void setSizes(QMap<DrawTool, int> const& newSizes) {sizes = newSizes;}
 
 protected:
     void drawAnnotations(QPainter& painter);
-    void paintEvent(QPaintEvent*) override;
-    void mousePressEvent(QMouseEvent* event) override;
-    void mouseReleaseEvent(QMouseEvent* event) override;
-    void mouseMoveEvent(QMouseEvent* event) override;
+    virtual void paintEvent(QPaintEvent*) override;
+    virtual void mousePressEvent(QMouseEvent* event) override;
+    virtual void mouseReleaseEvent(QMouseEvent* event) override;
+    virtual void mouseMoveEvent(QMouseEvent* event) override;
     void erase(QPointF const& point);
     DrawTool tool = None;
     QMap<QString, QMap<DrawTool, QList<DrawPath>>> paths;
@@ -50,9 +60,18 @@ protected:
     int enlargedPageNumber;
     QMap<DrawTool, int> sizes = {{Magnifier,120}, {Torch,80}, {Pointer,10}, {Highlighter,30}, {RedPen,3}, {GreenPen,3}, {Eraser,10}};
 
-
 public slots:
-    void togglePointerVisibility() override;
+    virtual void togglePointerVisibility() override;
+    void setPaths(QString const page, DrawTool const tool, QList<DrawPath> const& list, int const xshift, int const yshift, double const resolution);
+    void setPointerPosition(QPointF const point, int const xshift, int const yshift, double const resolution);
+    void setTool(DrawTool const newtool);
+    void relax();
+
+signals:
+    void pointerPositionChanged(QPointF const point, int const xshift, int const yshift, double const resolution);
+    void pathsChanged(QString const page, DrawTool const tool, QList<DrawPath> const& list, int const xshift, int const yshift, double const resolution);
+    void sendToolChanged(DrawTool const tool);
+    void sendRelax();
 };
 
 #endif // DRAWSLIDE_H

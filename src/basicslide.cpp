@@ -90,6 +90,7 @@ void BasicSlide::renderPage(Poppler::Page* page, QPixmap const* pix)
     // One could show the page in any case to make it slightly more responsive, but this can lead to a short interruption by a different image.
     // All operations before the next call to update() are usually very fast.
     update();
+    emit pageNumberChanged(pageIndex);
 }
 
 void BasicSlide::paintEvent(QPaintEvent*)

@@ -287,302 +287,236 @@ void MediaSlide::renderPage(Poppler::Page* page, bool const hasDuration, QPixmap
                     else
                             embedPositions[idx] = winGeometry;
                     }
-                }
             }
         }
-        // Hide embedded widgets from other pages
-        if (embedMap.contains(pageIndex)) {
-            for (int i=0; i<embedApps.size(); i++) {
-                if (embedApps[i]->isReady() && !embedApps[i]->isOnPage(pageIndex)) {
-                    // TODO: This can lead to weird segfaults.
-                    embedApps[i]->getWidget()->hide();
-                }
+    }
+    // Hide embedded widgets from other pages
+    if (embedMap.contains(pageIndex)) {
+        for (int i=0; i<embedApps.size(); i++) {
+            if (embedApps[i]->isReady() && !embedApps[i]->isOnPage(pageIndex)) {
+                // TODO: This can lead to weird segfaults.
+                embedApps[i]->getWidget()->hide();
             }
         }
-        else {
-            for (int i=0; i<embedApps.size(); i++) {
-                if (embedApps[i]->isReady())
-                    embedApps[i]->getWidget()->hide();
-            }
+    }
+    else {
+        for (int i=0; i<embedApps.size(); i++) {
+            if (embedApps[i]->isReady())
+                embedApps[i]->getWidget()->hide();
         }
+    }
 
-        // This can be a good point for repainting.
-        // Repainting later is only reasonable if videos will be shown quickly,
-        // because they have been loaded to cache, and will be started immediately.
-        // When a method is reached, which can take long time, the widget will be repainted if (notRepainted==true).
-        bool notRepainted = true;
-        if (!cacheVideos || autostartDelay < -0.01 || autostartDelay > 0.01) {
-            update();
-            notRepainted = false;
-        }
+    // This can be a good point for repainting.
+    // Repainting later is only reasonable if videos will be shown quickly,
+    // because they have been loaded to cache, and will be started immediately.
+    // When a method is reached, which can take long time, the widget will be repainted if (notRepainted==true).
+    bool notRepainted = true;
+    if (!cacheVideos || autostartDelay < -0.01 || autostartDelay > 0.01) {
+        update();
+        notRepainted = false;
+    }
 
-        // Handle multimedia content.
-        int newSliders = 0;
+    // Handle multimedia content.
+    int newSliders = 0;
 
-        // Videos
-        // Get a list of all video annotations on this page.
-        QSet<Poppler::Annotation::SubType> videoType = QSet<Poppler::Annotation::SubType>();
-        videoType.insert(Poppler::Annotation::AMovie);
-        QList<Poppler::Annotation*> videos = page->annotations(videoType);
-        // Save the positions of all video annotations and create a video widget for each of them.
-        // This can take quite long and should thus be done after hiding embedded applications from other pages.
-        if (videos.isEmpty()) {
-            if (isOverlay) {
-                qDeleteAll(videoWidgets);
-                videoWidgets.clear();
-                qDeleteAll(videoSliders);
-                videoSliders.clear();
-            }
-        }
-        else if (isOverlay) {
-            videoWidgets.append(cachedVideoWidgets);
-            cachedVideoWidgets = videoWidgets;
-            videoWidgets.clear();
-        }
-        for (QList<Poppler::Annotation*>::const_iterator annotation=videos.cbegin(); annotation!=videos.cend(); annotation++) {
-            Poppler::MovieAnnotation* video = static_cast<Poppler::MovieAnnotation*>(*annotation);
-            Poppler::MovieObject* movie = video->movie();
-            bool found = false;
-            for (QList<VideoWidget*>::iterator widget_it=cachedVideoWidgets.begin(); widget_it!=cachedVideoWidgets.end(); widget_it++) {
-                qDebug() << (*widget_it)->getUrl() << movie->url();
-                if (*widget_it != nullptr && (*widget_it)->getUrl() == movie->url()) {
-                    videoWidgets.append(*widget_it);
-                    // Setting *widget_it to nullptr makes sure that this videoWidget will not be deleted when cleaning up oldVideos.
-                    *widget_it = nullptr;
-                    found = true;
-                    break;
-                }
-            }
-            QRectF relative = video->boundary();
-            videoPositions.append(QRect(
-                    shiftx+int(relative.x()*scale_x),
-                    shifty+int(relative.y()*scale_y),
-                    int(relative.width()*scale_x),
-                    int(relative.height()*scale_y)
-                ));
-            if (found)
-                delete video;
-            else {
-                if (notRepainted) {
-                    update();
-                    notRepainted = false;
-                }
-                qDebug() << "Loading new video widget:" << movie->url();
-                videoWidgets.append(new VideoWidget(video, urlSplitCharacter, this));
-            }
-            newSliders++;
-        }
-        // Clean up old video widgets and sliders:
-        for (int i=0; i<cachedVideoWidgets.size(); i++) {
-            if (cachedVideoWidgets[i]!=nullptr) {
-                // This cached video widget was useless and gets deleted.
-                delete cachedVideoWidgets[i];
-                if (videoSliders.contains(i)) {
-                    delete videoSliders[i];
-                    videoSliders.remove(i);
-                }
-            }
-            else if (videoSliders.contains(i))
-                // If we continue using a video widget, which already has a slider (because it is
-                // in an overlay), we need one new slider less.
-                newSliders--;
-        }
-        cachedVideoWidgets.clear();
-        // The list "videos" is cleaned, but its items (annotation pointers) are not deleted! The video widgets take ownership of the annotations.
-        videos.clear();
-
-        // Sound links
-        QList<QMediaPlayer*> oldSoundLinks;
+    // Videos
+    // Get a list of all video annotations on this page.
+    QSet<Poppler::Annotation::SubType> videoType = QSet<Poppler::Annotation::SubType>();
+    videoType.insert(Poppler::Annotation::AMovie);
+    QList<Poppler::Annotation*> videos = page->annotations(videoType);
+    // Save the positions of all video annotations and create a video widget for each of them.
+    // This can take quite long and should thus be done after hiding embedded applications from other pages.
+    if (videos.isEmpty()) {
         if (isOverlay) {
-            oldSoundLinks = soundLinkPlayers.values();
-            soundLinkPlayers.clear();
+            qDeleteAll(videoWidgets);
+            videoWidgets.clear();
+            qDeleteAll(videoSliders);
+            videoSliders.clear();
         }
-        for (int i=0; i<links.size(); i++) {
-            if (links[i]->linkType() == Poppler::Link::Sound) {
-                // This can take relatively long. Repainting here is usually reasonable.
-                if (notRepainted) {
-                    update();
-                    notRepainted = false;
-                }
-                // Audio links
-                Poppler::SoundObject* sound = static_cast<Poppler::LinkSound*>(links[i])->sound();
-                if (sound->soundType() == Poppler::SoundObject::Embedded) {
-                    qWarning() << "Embedded sound files are not supported.";
-                    break;
-                }
-                QUrl url = QUrl(sound->url(), QUrl::TolerantMode);
-                QStringList splitFileName = QStringList();
-                // TODO: test this
-                if (!urlSplitCharacter.isEmpty()) {
-                    splitFileName = sound->url().split(urlSplitCharacter);
-                    url = QUrl(splitFileName[0], QUrl::TolerantMode);
-                    splitFileName.pop_front();
-                }
-                if (!url.isValid())
-                    url = QUrl::fromLocalFile(url.path());
-                if (url.isRelative())
-                    url = QUrl::fromLocalFile(QDir(".").absoluteFilePath(url.path()));
-                if (isOverlay && !oldSoundLinks.isEmpty()) {
-                    bool found=false;
-                    for (QList<QMediaPlayer*>::iterator player_it=oldSoundLinks.begin(); player_it!=oldSoundLinks.end(); player_it++) {
-                        QMediaContent media = (*player_it)->media();
-                        // TODO: reliable check if the media names match
-                        if (*player_it != nullptr && !media.isNull() && media.canonicalUrl()==url) {
-                            soundLinkPlayers[i]= *player_it;
-                            *player_it = nullptr;
-                            found = true;
-                            break;
-                        }
-                    }
-                    if (found)
-                        break;
-                }
-                // If no player was found, create a new one.
-                QMediaPlayer* player = new QMediaPlayer(this, QMediaPlayer::LowLatency);
-                player->setMedia(url);
-                soundLinkPlayers[i] = player;
-                newSliders++;
-                // Untested!
-                if (splitFileName.contains("loop")) {
-                    qDebug() << "Using untested option loop for sound";
-                    connect(player, &QMediaPlayer::mediaStatusChanged, player, [&](QMediaPlayer::MediaStatus const status){if(status==QMediaPlayer::EndOfMedia) player->play();});
-                }
-                if (splitFileName.contains("autostart")) {
-                    qDebug() << "Using untested option autostart for sound";
-                    player->play();
-                }
+    }
+    else if (isOverlay) {
+        videoWidgets.append(cachedVideoWidgets);
+        cachedVideoWidgets = videoWidgets;
+        videoWidgets.clear();
+    }
+    for (QList<Poppler::Annotation*>::const_iterator annotation=videos.cbegin(); annotation!=videos.cend(); annotation++) {
+        Poppler::MovieAnnotation* video = static_cast<Poppler::MovieAnnotation*>(*annotation);
+        Poppler::MovieObject* movie = video->movie();
+        bool found = false;
+        for (QList<VideoWidget*>::iterator widget_it=cachedVideoWidgets.begin(); widget_it!=cachedVideoWidgets.end(); widget_it++) {
+            qDebug() << (*widget_it)->getUrl() << movie->url();
+            if (*widget_it != nullptr && (*widget_it)->getUrl() == movie->url()) {
+                videoWidgets.append(*widget_it);
+                // Setting *widget_it to nullptr makes sure that this videoWidget will not be deleted when cleaning up oldVideos.
+                *widget_it = nullptr;
+                found = true;
+                break;
             }
         }
-        // Clean up old sound link players and sliders:
-        for (int i=0; i<oldSoundLinks.size(); i++) {
-            if (oldSoundLinks[i]!=nullptr) {
-                delete oldSoundLinks[i];
-                if (soundLinkSliders.contains(i)) {
-                    delete soundLinkSliders[i];
-                    soundLinkSliders.remove(i);
-                }
-                else
-                    qDebug() << "No slider found: page" << pageIndex << "old sound index" << i;
-            }
-        }
-
-        // Audio as annotations (Untested, I don't know whether this is useful for anything)
-        // Get a list of all audio annotations on this page.
-        QSet<Poppler::Annotation::SubType> soundType = QSet<Poppler::Annotation::SubType>();
-        soundType.insert(Poppler::Annotation::ASound);
-        QList<Poppler::Annotation*> sounds = page->annotations(soundType);
-        // Save the positions of all audio annotations and create a sound player for each of them.
-        if (sounds.isEmpty()) {
-            if (isOverlay) {
-                qDeleteAll(soundPlayers);
-                soundPlayers.clear();
-                qDeleteAll(soundSliders);
-                soundSliders.clear();
-            }
-        }
-        else if (isOverlay && !soundPlayers.isEmpty()) {
+        QRectF relative = video->boundary();
+        videoPositions.append(QRect(
+                shiftx+int(relative.x()*scale_x),
+                shifty+int(relative.y()*scale_y),
+                int(relative.width()*scale_x),
+                int(relative.height()*scale_y)
+            ));
+        if (found)
+            delete video;
+        else {
             if (notRepainted) {
                 update();
                 notRepainted = false;
             }
-            // Untested!
-            // TODO: Make sure that things get deleted if necessary!
-            QList<QMediaPlayer*> oldSounds = soundPlayers;
-            soundPlayers.clear();
-            for (QList<Poppler::Annotation*>::const_iterator annotation=sounds.cbegin(); annotation!=sounds.cend(); annotation++) {
-                Poppler::SoundObject* sound = static_cast<Poppler::SoundAnnotation*>(*annotation)->sound();
+            qDebug() << "Loading new video widget:" << movie->url();
+            videoWidgets.append(new VideoWidget(video, urlSplitCharacter, this));
+        }
+        newSliders++;
+    }
+    // Clean up old video widgets and sliders:
+    for (int i=0; i<cachedVideoWidgets.size(); i++) {
+        if (cachedVideoWidgets[i]!=nullptr) {
+            // This cached video widget was useless and gets deleted.
+            delete cachedVideoWidgets[i];
+            if (videoSliders.contains(i)) {
+                delete videoSliders[i];
+                videoSliders.remove(i);
+            }
+        }
+        else if (videoSliders.contains(i))
+            // If we continue using a video widget, which already has a slider (because it is
+            // in an overlay), we need one new slider less.
+            newSliders--;
+    }
+    cachedVideoWidgets.clear();
+    // The list "videos" is cleaned, but its items (annotation pointers) are not deleted! The video widgets take ownership of the annotations.
+    videos.clear();
+
+    // Sound links
+    QList<QMediaPlayer*> oldSoundLinks;
+    if (isOverlay) {
+        oldSoundLinks = soundLinkPlayers.values();
+        soundLinkPlayers.clear();
+    }
+    for (int i=0; i<links.size(); i++) {
+        if (links[i]->linkType() == Poppler::Link::Sound) {
+            // This can take relatively long. Repainting here is usually reasonable.
+            if (notRepainted) {
+                update();
+                notRepainted = false;
+            }
+            // Audio links
+            Poppler::SoundObject* sound = static_cast<Poppler::LinkSound*>(links[i])->sound();
+            if (sound->soundType() == Poppler::SoundObject::Embedded) {
+                qWarning() << "Embedded sound files are not supported.";
+                break;
+            }
+            QUrl url = QUrl(sound->url(), QUrl::TolerantMode);
+            QStringList splitFileName = QStringList();
+            // TODO: test this
+            if (!urlSplitCharacter.isEmpty()) {
+                splitFileName = sound->url().split(urlSplitCharacter);
+                url = QUrl(splitFileName[0], QUrl::TolerantMode);
+                splitFileName.pop_front();
+            }
+            if (!url.isValid())
+                url = QUrl::fromLocalFile(url.path());
+            if (url.isRelative())
+                url = QUrl::fromLocalFile(QDir(".").absoluteFilePath(url.path()));
+            if (isOverlay && !oldSoundLinks.isEmpty()) {
                 bool found=false;
-                QUrl url = QUrl(sound->url(), QUrl::TolerantMode);
-                QStringList splitFileName = QStringList();
-                // Get file path (url) and arguments
-                // TODO: test this
-                if (!urlSplitCharacter.isEmpty()) {
-                    splitFileName = sound->url().split(urlSplitCharacter);
-                    url = QUrl(splitFileName[0], QUrl::TolerantMode);
-                    splitFileName.pop_front();
-                }
-                if (!url.isValid())
-                    url = QUrl::fromLocalFile(url.path());
-                if (url.isRelative())
-                    url = QUrl::fromLocalFile(QDir(".").absoluteFilePath(url.path()));
-                for (QList<QMediaPlayer*>::iterator player_it=oldSounds.begin(); player_it!=oldSounds.end(); player_it++) {
+                for (QList<QMediaPlayer*>::iterator player_it=oldSoundLinks.begin(); player_it!=oldSoundLinks.end(); player_it++) {
                     QMediaContent media = (*player_it)->media();
                     // TODO: reliable check if the media names match
                     if (*player_it != nullptr && !media.isNull() && media.canonicalUrl()==url) {
-                        soundPlayers.append(*player_it);
+                        soundLinkPlayers[i]= *player_it;
                         *player_it = nullptr;
                         found = true;
                         break;
                     }
                 }
-                if (!found) {
-                    QMediaPlayer* player = new QMediaPlayer(this, QMediaPlayer::LowLatency);
-                    player->setMedia(url);
-                    // Untested!
-                    if (splitFileName.contains("loop")) {
-                        qDebug() << "Using untested option loop for sound";
-                        connect(player, &QMediaPlayer::mediaStatusChanged, player, [&](QMediaPlayer::MediaStatus const status){if(status==QMediaPlayer::EndOfMedia) player->play();});
-                    }
-                    if (splitFileName.contains("autostart")) {
-                        qDebug() << "Using untested option autostart for sound";
-                        player->play();
-                    }
-                    soundPlayers.append(player);
-                    newSliders++;
-                }
-                QRectF relative = (*annotation)->boundary();
-                videoPositions.append(QRect(
-                        shiftx+int(relative.x()*scale_x),
-                        shifty+int(relative.y()*scale_y),
-                        int(relative.width()*scale_x),
-                        int(relative.height()*scale_y)
-                    ));
+                if (found)
+                    break;
             }
-            // Clean up old sound players and sliders:
-            for (int i=0; i<oldSounds.size(); i++) {
-                if (oldSounds[i]!=nullptr) {
-                    delete oldSounds[i];
-                    if (soundSliders.contains(i)) {
-                        delete soundSliders[i];
-                        soundSliders.remove(i);
-                    }
-                    else
-                        qDebug() << "No slider found: page" << pageIndex << "old sound index" << i;
-                }
+            // If no player was found, create a new one.
+            QMediaPlayer* player = new QMediaPlayer(this, QMediaPlayer::LowLatency);
+            player->setMedia(url);
+            soundLinkPlayers[i] = player;
+            newSliders++;
+            // Untested!
+            if (splitFileName.contains("loop")) {
+                qDebug() << "Using untested option loop for sound";
+                connect(player, &QMediaPlayer::mediaStatusChanged, player, [&](QMediaPlayer::MediaStatus const status){if(status==QMediaPlayer::EndOfMedia) player->play();});
+            }
+            if (splitFileName.contains("autostart")) {
+                qDebug() << "Using untested option autostart for sound";
+                player->play();
             }
         }
-        else {
-            if (notRepainted) {
-                update();
-                notRepainted = false;
+    }
+    // Clean up old sound link players and sliders:
+    for (int i=0; i<oldSoundLinks.size(); i++) {
+        if (oldSoundLinks[i]!=nullptr) {
+            delete oldSoundLinks[i];
+            if (soundLinkSliders.contains(i)) {
+                delete soundLinkSliders[i];
+                soundLinkSliders.remove(i);
             }
-            for (QList<Poppler::Annotation*>::const_iterator it = sounds.cbegin(); it!=sounds.cend(); it++) {
-                qWarning() << "Support for sound in annotations is untested!";
-                {
-                    QRectF relative = (*it)->boundary();
-                    soundPositions.append(QRect(
-                                shiftx+int(relative.x()*scale_x),
-                                shifty+int(relative.y()*scale_y),
-                                int(relative.width()*scale_x),
-                                int(relative.height()*scale_y)
-                            ));
-                }
+            else
+                qDebug() << "No slider found: page" << pageIndex << "old sound index" << i;
+        }
+    }
 
-                Poppler::SoundObject* sound = static_cast<Poppler::SoundAnnotation*>(*it)->sound();
-                QMediaPlayer* player = new QMediaPlayer(this, QMediaPlayer::LowLatency);
-                QUrl url = QUrl(sound->url(), QUrl::TolerantMode);
-                QStringList splitFileName = QStringList();
-                // Get file path (url) and arguments
-                // TODO: test this
-                if (!urlSplitCharacter.isEmpty()) {
-                    splitFileName = sound->url().split(urlSplitCharacter);
-                    url = QUrl(splitFileName[0], QUrl::TolerantMode);
-                    splitFileName.pop_front();
+    // Audio as annotations (Untested, I don't know whether this is useful for anything)
+    // Get a list of all audio annotations on this page.
+    QSet<Poppler::Annotation::SubType> soundType = QSet<Poppler::Annotation::SubType>();
+    soundType.insert(Poppler::Annotation::ASound);
+    QList<Poppler::Annotation*> sounds = page->annotations(soundType);
+    // Save the positions of all audio annotations and create a sound player for each of them.
+    if (sounds.isEmpty()) {
+        if (isOverlay) {
+            qDeleteAll(soundPlayers);
+            soundPlayers.clear();
+            qDeleteAll(soundSliders);
+            soundSliders.clear();
+        }
+    }
+    else if (isOverlay && !soundPlayers.isEmpty()) {
+        if (notRepainted) {
+            update();
+            notRepainted = false;
+        }
+        // Untested!
+        // TODO: Make sure that things get deleted if necessary!
+        QList<QMediaPlayer*> oldSounds = soundPlayers;
+        soundPlayers.clear();
+        for (QList<Poppler::Annotation*>::const_iterator annotation=sounds.cbegin(); annotation!=sounds.cend(); annotation++) {
+            Poppler::SoundObject* sound = static_cast<Poppler::SoundAnnotation*>(*annotation)->sound();
+            bool found=false;
+            QUrl url = QUrl(sound->url(), QUrl::TolerantMode);
+            QStringList splitFileName = QStringList();
+            // Get file path (url) and arguments
+            // TODO: test this
+            if (!urlSplitCharacter.isEmpty()) {
+                splitFileName = sound->url().split(urlSplitCharacter);
+                url = QUrl(splitFileName[0], QUrl::TolerantMode);
+                splitFileName.pop_front();
+            }
+            if (!url.isValid())
+                url = QUrl::fromLocalFile(url.path());
+            if (url.isRelative())
+                url = QUrl::fromLocalFile(QDir(".").absoluteFilePath(url.path()));
+            for (QList<QMediaPlayer*>::iterator player_it=oldSounds.begin(); player_it!=oldSounds.end(); player_it++) {
+                QMediaContent media = (*player_it)->media();
+                // TODO: reliable check if the media names match
+                if (*player_it != nullptr && !media.isNull() && media.canonicalUrl()==url) {
+                    soundPlayers.append(*player_it);
+                    *player_it = nullptr;
+                    found = true;
+                    break;
                 }
-                if (!url.isValid())
-                    url = QUrl::fromLocalFile(url.path());
-                if (url.isRelative())
-                    url = QUrl::fromLocalFile(QDir(".").absoluteFilePath(url.path()));
+            }
+            if (!found) {
+                QMediaPlayer* player = new QMediaPlayer(this, QMediaPlayer::LowLatency);
                 player->setMedia(url);
                 // Untested!
                 if (splitFileName.contains("loop")) {
@@ -596,44 +530,111 @@ void MediaSlide::renderPage(Poppler::Page* page, bool const hasDuration, QPixmap
                 soundPlayers.append(player);
                 newSliders++;
             }
+            QRectF relative = (*annotation)->boundary();
+            videoPositions.append(QRect(
+                    shiftx+int(relative.x()*scale_x),
+                    shifty+int(relative.y()*scale_y),
+                    int(relative.width()*scale_x),
+                    int(relative.height()*scale_y)
+                ));
         }
-        qDeleteAll(sounds);
-        sounds.clear();
-
-        // Autostart video widgets if the option is set as arguments in the video annotation in the pdf
-        for (int i=0; i<videoWidgets.size(); i++) {
-            if (videoWidgets[i]->getAutoplay()) {
-                qDebug() << "Untested option autostart for video";
-                videoWidgets[i]->setGeometry(videoPositions[i]);
-                videoWidgets[i]->show();
-                videoWidgets[i]->play();
+        // Clean up old sound players and sliders:
+        for (int i=0; i<oldSounds.size(); i++) {
+            if (oldSounds[i]!=nullptr) {
+                delete oldSounds[i];
+                if (soundSliders.contains(i)) {
+                    delete soundSliders[i];
+                    soundSliders.remove(i);
+                }
+                else
+                    qDebug() << "No slider found: page" << pageIndex << "old sound index" << i;
             }
         }
-        // Autostart multimedia if the option is set in BeamerPresenter
-        if (videoWidgets.size() + soundPlayers.size() + soundLinkPlayers.size() != 0) {
-            if (autostartDelay > 0.01)
-                // autostart with delay
-                autostartTimer->start(int(autostartDelay*1000));
-            else if (autostartDelay > -0.01)
-                // autostart without delay
-                startAllMultimedia();
-        }
-        if (notRepainted)
+    }
+    else {
+        if (notRepainted) {
             update();
-
-        // Autostart embedded applications if the option is set in BeamerPresenter
-        if (embedMap.contains(pageIndex)) {
-            if (autostartEmbeddedDelay > 0.01)
-                // autostart with delay
-                autostartEmbeddedTimer->start(int(autostartEmbeddedDelay*1000));
-            else if (autostartEmbeddedDelay > -0.01)
-                // autostart without delay
-                startAllEmbeddedApplications(pageIndex);
+            notRepainted = false;
         }
+        for (QList<Poppler::Annotation*>::const_iterator it = sounds.cbegin(); it!=sounds.cend(); it++) {
+            qWarning() << "Support for sound in annotations is untested!";
+            {
+                QRectF relative = (*it)->boundary();
+                soundPositions.append(QRect(
+                            shiftx+int(relative.x()*scale_x),
+                            shifty+int(relative.y()*scale_y),
+                            int(relative.width()*scale_x),
+                            int(relative.height()*scale_y)
+                        ));
+            }
 
-        // Add sliders
-        if (newSliders!=0)
-            emit requestMultimediaSliders(newSliders);
+            Poppler::SoundObject* sound = static_cast<Poppler::SoundAnnotation*>(*it)->sound();
+            QMediaPlayer* player = new QMediaPlayer(this, QMediaPlayer::LowLatency);
+            QUrl url = QUrl(sound->url(), QUrl::TolerantMode);
+            QStringList splitFileName = QStringList();
+            // Get file path (url) and arguments
+            // TODO: test this
+            if (!urlSplitCharacter.isEmpty()) {
+                splitFileName = sound->url().split(urlSplitCharacter);
+                url = QUrl(splitFileName[0], QUrl::TolerantMode);
+                splitFileName.pop_front();
+            }
+            if (!url.isValid())
+                url = QUrl::fromLocalFile(url.path());
+            if (url.isRelative())
+                url = QUrl::fromLocalFile(QDir(".").absoluteFilePath(url.path()));
+            player->setMedia(url);
+            // Untested!
+            if (splitFileName.contains("loop")) {
+                qDebug() << "Using untested option loop for sound";
+                connect(player, &QMediaPlayer::mediaStatusChanged, player, [&](QMediaPlayer::MediaStatus const status){if(status==QMediaPlayer::EndOfMedia) player->play();});
+            }
+            if (splitFileName.contains("autostart")) {
+                qDebug() << "Using untested option autostart for sound";
+                player->play();
+            }
+            soundPlayers.append(player);
+            newSliders++;
+        }
+    }
+    qDeleteAll(sounds);
+    sounds.clear();
+
+    // Autostart video widgets if the option is set as arguments in the video annotation in the pdf
+    for (int i=0; i<videoWidgets.size(); i++) {
+        if (videoWidgets[i]->getAutoplay()) {
+            qDebug() << "Untested option autostart for video";
+            videoWidgets[i]->setGeometry(videoPositions[i]);
+            videoWidgets[i]->show();
+            videoWidgets[i]->play();
+        }
+    }
+    // Autostart multimedia if the option is set in BeamerPresenter
+    if (videoWidgets.size() + soundPlayers.size() + soundLinkPlayers.size() != 0) {
+        if (autostartDelay > 0.01)
+            // autostart with delay
+            autostartTimer->start(int(autostartDelay*1000));
+        else if (autostartDelay > -0.01)
+            // autostart without delay
+            startAllMultimedia();
+    }
+    if (notRepainted)
+        update();
+
+    // Autostart embedded applications if the option is set in BeamerPresenter
+    if (embedMap.contains(pageIndex)) {
+        if (autostartEmbeddedDelay > 0.01)
+            // autostart with delay
+            autostartEmbeddedTimer->start(int(autostartEmbeddedDelay*1000));
+        else if (autostartEmbeddedDelay > -0.01)
+            // autostart without delay
+            startAllEmbeddedApplications(pageIndex);
+    }
+
+    // Add sliders
+    if (newSliders!=0)
+        emit requestMultimediaSliders(newSliders);
+    emit pageNumberChanged(pageIndex);
 }
 
 void MediaSlide::updateCacheVideos(const Poppler::Page *page)
