@@ -143,6 +143,30 @@ If set to true, videos will be loaded to cache when reaching the slide before th
 .B \-\-force-touchpad
 Treat all scrolling signals as touch pads.
 .
+.TP
+.BI \-\-pen-width " integer"
+Line width of the pens in pixels.
+.
+.TP
+.BI \-\-highlighter-width " integer"
+Line width of the highlighter in pixels.
+.
+.TP
+.BI \-\-eraser-size " integer"
+Radius of the eraser in pixels.
+.
+.TP
+.BI \-\-magnifier-size " integer"
+Radius of the magnifier in pixels.
+.
+.TP
+.BI \-\-torch-size " integer"
+Radius of the torch in pixels.
+.
+.TP
+.BI \-\-pointer-size " integer"
+Radius of the pointer in pixels.
+.
 .
 .SH DEFAULT KEY BINDINGS
 .
@@ -322,8 +346,8 @@ Beamer can combine notes and presentation into one PDF file by using the option 
 with the option
 .BR \-p ", or " \-\-page-part
 .
-.SS Draw in presentation (experimental!)
-It is now possible to draw in the presentation. More tools, documentation and probably a better interface will follow. Until then you can only access the different pens by using customized key bindings.
+.SS Draw in presentation
+It is now possible to draw in the presentation. As of now you can only access the different pens by using customized key bindings. Besides simple drawing with pens and a highlighter you can emphasize parts of a slide using a torch, a magnifier and a pointer.
 .
 .
 .SH CONFIG
@@ -460,6 +484,22 @@ Draw in the presentation with a green pen.
 .B highlighter
 Draw in the presentation with a yellow highlighter.
 .
+.TP
+.B eraser
+Erase strokes of pens and of the highlighter.
+.
+.TP
+.B torch
+Emphasize a region of the current slide with a torch.
+.
+.TP
+.B magnifier
+Enlarge a region of the current slide with a magnifier.
+.
+.TP
+.B pointer
+Highlight a point on the slide with a red pointer.
+.
 .SS Colors
 .
 .RI "Colors can be specified as name known to Qt5, an RGB value or an ARGB value in hexadecimal format, e.g. as " red ", " #ff0000 " or " #ffff0000 .
@@ -583,6 +623,36 @@ If this option is set, the internal renderer can be used with the command line a
 .TP
 .B no-notes
 Show only the presentation and no notes.
+.
+.TP
+.BR pen-width =3
+overwrite default value for the command line argument
+.B \-\-pen-width .
+.
+.TP
+.BR highlighter-width =30
+overwrite default value for the command line argument
+.B \-\-highlighter-width .
+.
+.TP
+.BR eraser-size =10
+overwrite default value for the command line argument
+.B \-\-eraser-size .
+.
+.TP
+.BR magnifier-size =120
+overwrite default value for the command line argument
+.B \-\-magnifier-size .
+.
+.TP
+.BR torch-size =80
+overwrite default value for the command line argument
+.B \-\-torch-size .
+.
+.TP
+.BR pointer-size =10
+overwrite default value for the command line argument
+.B \-\-pointer-size .
 .
 .SS Local configuration file
 .

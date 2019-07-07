@@ -30,9 +30,11 @@ public:
     explicit DrawSlide(QWidget* parent=nullptr) : MediaSlide(parent) {}
     explicit DrawSlide(Poppler::Page* page, QWidget* parent=nullptr) : MediaSlide(page, parent) {}
     ~DrawSlide() override {clearAll();}
-    void setTool(DrawTool const newtool) {tool = newtool;}
+    void setTool(DrawTool const newtool);
     void clearPageAnnotations();
     void clearAllAnnotations();
+    void clearCache() override;
+    void setSize(DrawTool const tool, int const size);
 
 protected:
     void drawAnnotations(QPainter& painter);
@@ -42,7 +44,15 @@ protected:
     void mouseMoveEvent(QMouseEvent* event) override;
     void erase(QPointF const& point);
     DrawTool tool = None;
-    QMap<int, QMap<DrawTool, QList<DrawPath>>> paths;
+    QMap<QString, QMap<DrawTool, QList<DrawPath>>> paths;
+    QPointF pointerPosition = QPointF();
+    QImage enlargedPage;
+    int enlargedPageNumber;
+    QMap<DrawTool, int> sizes = {{Magnifier,120}, {Torch,80}, {Pointer,10}, {Highlighter,30}, {RedPen,3}, {GreenPen,3}, {Eraser,10}};
+
+
+public slots:
+    void togglePointerVisibility() override;
 };
 
 #endif // DRAWSLIDE_H

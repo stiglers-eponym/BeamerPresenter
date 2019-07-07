@@ -31,11 +31,12 @@ private:
     QRectF outer = QRectF();
     int eraser_size = 10;
 public:
-    DrawPath(QPointF const& start);
-    DrawPath(QPointF* const points, int const number);
+    DrawPath(QPointF const& start, int const eraser_size = 10);
+    DrawPath(QPointF* const points, int const number, int const eraser_size = 10);
     DrawPath(DrawPath const& old) {path=old.path; outer=old.outer; eraser_size=old.eraser_size;}
     DrawPath(DrawPath const&& old) {path=old.path; outer=old.outer; eraser_size=old.eraser_size;}
     ~DrawPath() {path.clear();}
+    void setEraserSize(int const size);
     void clear() {path.clear(); outer=QRectF();}
     bool isEmpty() {return path.isEmpty();}
     int number() const {return path.length();}

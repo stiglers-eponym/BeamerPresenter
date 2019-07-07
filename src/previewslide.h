@@ -36,7 +36,7 @@ public:
     long int updateCache(QByteArray const* pixmap, int const index);
     long int clearCachePage(int const index);
     void updateCacheVideos(Poppler::Page const* page);
-    void clearCache();
+    virtual void clearCache();
     void setUseCache(bool const use) {useCache=use;}
     long int getCacheSize() const;
     int getCacheNumber() const {return cache.size();}

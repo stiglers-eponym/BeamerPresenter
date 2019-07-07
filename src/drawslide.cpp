@@ -26,8 +26,8 @@ void DrawSlide::clearAllAnnotations()
 
 void DrawSlide::clearPageAnnotations()
 {
-    if (paths.contains(pageIndex)) {
-        paths[pageIndex].clear();
+    if (paths.contains(page->label())) {
+        paths[page->label()].clear();
         update();
     }
 }
@@ -38,30 +38,102 @@ void DrawSlide::paintEvent(QPaintEvent*)
     painter.drawPixmap(shiftx, shifty, pixmap);
 }
 
+void DrawSlide::setTool(const DrawTool newtool)
+{
+     tool = newtool;
+     if (pointer_visible) {
+         setMouseTracking(true);
+         setCursor(Qt::ArrowCursor);
+     }
+     else if (tool == Pointer)
+         setMouseTracking(true);
+     else
+         setMouseTracking(false);
+     if (tool != Magnifier)
+         enlargedPage = QImage();
+}
+
+void DrawSlide::togglePointerVisibility()
+{
+    if (pointer_visible) {
+        pointer_visible = false;
+        setCursor(Qt::BlankCursor);
+        if (tool != Pointer)
+            setMouseTracking(false);
+    }
+    else {
+        pointer_visible = true;
+        if (tool != Pointer)
+            setCursor(Qt::ArrowCursor);
+        setMouseTracking(true);
+    }
+}
+
+void DrawSlide::setSize(const DrawTool tool, const int size)
+{
+    if (size < 1) {
+        qWarning() << "Setting a tool size < 1 does not make any sense. Ignoring this.";
+        return;
+    }
+    if (tool == Eraser) {
+        for (QMap<QString, QMap<DrawTool, QList<DrawPath>>>::iterator page_it = paths.begin(); page_it != paths.end(); page_it++) {
+            for (QMap<DrawTool, QList<DrawPath>>::iterator tool_it = page_it->begin(); tool_it != page_it->end(); tool_it++) {
+                for (QList<DrawPath>::iterator path_it=tool_it->begin(); path_it!=tool_it->end(); path_it++) {
+                    path_it->setEraserSize(size);
+                }
+            }
+        }
+    }
+    sizes[tool] = size;
+}
+
 void DrawSlide::drawAnnotations(QPainter &painter)
 {
-    if (paths.contains(pageIndex)) {
-        painter.setRenderHint(QPainter::Antialiasing);
-        if (paths[pageIndex].contains(RedPen)) {
+    painter.setRenderHint(QPainter::Antialiasing);
+    if (paths.contains(page->label())) {
+        if (paths[page->label()].contains(GreenPen)) {
             painter.setCompositionMode(QPainter::CompositionMode_SourceOver);
-            painter.setPen(QPen(QColor(255,0,0), 3));
-            for (QList<DrawPath>::const_iterator it=paths[pageIndex][RedPen].cbegin(); it!=paths[pageIndex][RedPen].cend(); it++)
+            painter.setPen(QPen(QColor(0,191,0), sizes[GreenPen]));
+            for (QList<DrawPath>::const_iterator it=paths[page->label()][GreenPen].cbegin(); it!=paths[page->label()][GreenPen].cend(); it++)
                 painter.drawPolyline(it->data(), it->number());
         }
-        if (paths[pageIndex].contains(GreenPen)) {
+        if (paths[page->label()].contains(RedPen)) {
             painter.setCompositionMode(QPainter::CompositionMode_SourceOver);
-            painter.setPen(QPen(QColor(0,191,0), 3));
-            for (QList<DrawPath>::const_iterator it=paths[pageIndex][GreenPen].cbegin(); it!=paths[pageIndex][GreenPen].cend(); it++)
+            painter.setPen(QPen(QColor(255,0,0), sizes[RedPen]));
+            for (QList<DrawPath>::const_iterator it=paths[page->label()][RedPen].cbegin(); it!=paths[page->label()][RedPen].cend(); it++)
                 painter.drawPolyline(it->data(), it->number());
         }
-        if (paths[pageIndex].contains(Highlighter)) {
+        if (paths[page->label()].contains(Highlighter)) {
             painter.setCompositionMode(QPainter::CompositionMode_Darken);
-            painter.setPen(QPen(QColor(255,255,0), 30, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin));
-            for (QList<DrawPath>::const_iterator it=paths[pageIndex][Highlighter].cbegin(); it!=paths[pageIndex][Highlighter].cend(); it++)
+            painter.setPen(QPen(QColor(255,255,0), sizes[Highlighter], Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin));
+            for (QList<DrawPath>::const_iterator it=paths[page->label()][Highlighter].cbegin(); it!=paths[page->label()][Highlighter].cend(); it++)
                 painter.drawPolyline(it->data(), it->number());
         }
     }
-    // TODO: pointer, torch, ...
+    if (tool == Pointer) {
+        painter.setCompositionMode(QPainter::CompositionMode_Darken);
+        painter.setPen(QPen(QColor(255,0,0,191), sizes[Pointer], Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin));
+        painter.drawPoint(pointerPosition);
+    }
+    else if (tool == Torch && !pointerPosition.isNull()) {
+        QPainterPath path;
+        path.addRect(rect());
+        path.addEllipse(pointerPosition, sizes[Torch], sizes[Torch]);
+        painter.fillPath(path, QColor(0,0,0,48));
+    }
+    else if (tool == Magnifier && !pointerPosition.isNull()) {
+        painter.setCompositionMode(QPainter::CompositionMode_SourceOver);
+        painter.setClipping(true);
+        QPainterPath path;
+        path.addEllipse(pointerPosition, sizes[Magnifier], sizes[Magnifier]);
+        painter.setClipPath(path, Qt::ReplaceClip);
+        //painter.setClipRegion(QRegion(pointerPosition.x()-sizes[Magnifier], pointerPosition.y()-sizes[Magnifier], 2*sizes[Magnifier], 2*sizes[Magnifier], QRegion::Ellipse), Qt::ClipOperation::ReplaceClip);
+        painter.drawImage(QRectF(pointerPosition.x()-sizes[Magnifier], pointerPosition.y()-sizes[Magnifier], 2*sizes[Magnifier], 2*sizes[Magnifier]),
+                          enlargedPage,
+                          QRectF(2*(pointerPosition.x()-shiftx) - sizes[Magnifier], 2*(pointerPosition.y()-shifty) - sizes[Magnifier], 2*sizes[Magnifier], 2*sizes[Magnifier]));
+        painter.setPen(QPen(QColor(32,32,32,64), 2));
+        painter.drawEllipse(pointerPosition, sizes[Magnifier], sizes[Magnifier]);
+    }
 }
 
 void DrawSlide::mousePressEvent(QMouseEvent *event)
@@ -77,20 +149,26 @@ void DrawSlide::mousePressEvent(QMouseEvent *event)
         case RedPen:
         case GreenPen:
         case Highlighter:
-            if (!paths.contains(pageIndex) || !paths[pageIndex].contains(tool))
-                paths[pageIndex][tool] = QList<DrawPath>();
-            paths[pageIndex][tool].append(DrawPath(event->localPos()));
+            if (!paths.contains(page->label()) || !paths[page->label()].contains(tool))
+                paths[page->label()][tool] = QList<DrawPath>();
+            paths[page->label()][tool].append(DrawPath(event->localPos(), sizes[Eraser]));
             break;
-        case Erase:
-            // TODO
+        case Eraser:
+            erase(event->localPos());
+            update();
             break;
         case Torch:
         case Pointer:
-            // TODO
+            pointerPosition = event->localPos();
+            update();
             break;
         case Magnifier:
-            // TODO
-            // render enlarged page
+            if (enlargedPage.isNull() || enlargedPageNumber!=pageIndex) {
+                enlargedPageNumber = pageIndex;
+                enlargedPage = page->renderToImage(144*resolution, 144*resolution);
+            }
+            pointerPosition = event->localPos();
+            update();
             break;
         }
         break;
@@ -101,18 +179,27 @@ void DrawSlide::mousePressEvent(QMouseEvent *event)
     default:
         break;
     }
+    event->accept();
 }
 
 void DrawSlide::mouseReleaseEvent(QMouseEvent *event)
 {
     // Middle mouse button always follows hyperlinks.
-    if ((tool == None && event->button() == Qt::LeftButton) || event->button() == Qt::MidButton)
+    if (((tool == None || tool == Pointer) && event->button() == Qt::LeftButton) || event->button() == Qt::MidButton)
         followHyperlinks(event->pos());
+    else if (tool == Torch || tool == Magnifier) {
+        pointerPosition = QPointF();
+        update();
+    }
     event->accept();
 }
 
 void DrawSlide::mouseMoveEvent(QMouseEvent *event)
 {
+    if (tool == Pointer) {
+        pointerPosition = event->localPos();
+        update();
+    }
     switch (event->buttons())
     {
     case Qt::NoButton:
@@ -127,36 +214,35 @@ void DrawSlide::mouseMoveEvent(QMouseEvent *event)
         case RedPen:
         case GreenPen:
         case Highlighter:
-            if (paths.contains(pageIndex) && paths[pageIndex].contains(tool) && paths[pageIndex][tool].length()>0) {
-                paths[pageIndex][tool].last().append(event->localPos());
+            if (paths.contains(page->label()) && paths[page->label()].contains(tool) && paths[page->label()][tool].length()>0) {
+                paths[page->label()][tool].last().append(event->localPos());
                 update();
             }
             break;
-        case Erase:
+        case Eraser:
             erase(event->localPos());
             update();
             break;
         case Torch:
-        case Pointer:
-            // TODO
-            break;
         case Magnifier:
-            // TODO
+            pointerPosition = event->localPos();
+            update();
             break;
         }
         break;
     case Qt::RightButton:
         erase(event->localPos());
         update();
-        break;
-    }
+            break;
+        }
+    event->accept();
 }
 
 void DrawSlide::erase(const QPointF &point)
 {
-    if (!paths.contains(pageIndex))
+    if (!paths.contains(page->label()))
         return;
-    for (QMap<DrawTool, QList<DrawPath>>::iterator tool_it = paths[pageIndex].begin(); tool_it != paths[pageIndex].end(); tool_it++) {
+    for (QMap<DrawTool, QList<DrawPath>>::iterator tool_it = paths[page->label()].begin(); tool_it != paths[page->label()].end(); tool_it++) {
         for (int i=0, length=tool_it->length(); i<length; i++) {
             QVector<int> splits = (*tool_it)[i].intersects(point);
             if (splits.isEmpty())
@@ -178,4 +264,10 @@ void DrawSlide::erase(const QPointF &point)
                 tool_it->removeAt(i);
         }
     }
+}
+
+void DrawSlide::clearCache()
+{
+    PreviewSlide::clearCache();
+    enlargedPage = QImage();
 }

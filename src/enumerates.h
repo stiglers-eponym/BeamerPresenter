@@ -61,7 +61,8 @@ enum KeyAction {
     DrawGreenPen,
     DrawHighlighter,
     DrawTorch,
-    DrawPointer
+    DrawPointer,
+    DrawMagnifier
 };
 
 enum DrawTool {
@@ -71,9 +72,8 @@ enum DrawTool {
     GreenPen,
     Pointer,
     Torch,
-    Erase,
+    Eraser,
     Magnifier,
-    //Ellipse
 };
 
 #endif // ENUMERATES_H

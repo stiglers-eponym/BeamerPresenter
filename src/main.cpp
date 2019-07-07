@@ -71,7 +71,8 @@ const QMap<QString, int> keyActionMap {
     {"green pen", KeyAction::DrawGreenPen},
     {"highlighter", KeyAction::DrawHighlighter},
     {"torch", KeyAction::DrawTorch},
-    {"pointer", KeyAction::DrawPointer}
+    {"pointer", KeyAction::DrawPointer},
+    {"magnifier", KeyAction::DrawMagnifier}
 };
 
 const QMap<int, QList<int>> defaultKeyMap = {
@@ -110,7 +111,9 @@ double doubleFromConfig(QCommandLineParser const& parser, QVariantMap const& loc
     // Handle arguments that are either double or bool
     bool ok;
     double result;
-    QString value = parser.value(name).toLower();
+    QString value;
+    if (parser.optionNames().contains(name))
+        value = parser.value(name).toLower();
     if (!value.isEmpty()) {
         result = value.toDouble(&ok);
         if (ok)
@@ -157,7 +160,7 @@ int intFromConfig(QCommandLineParser const& parser, QVariantMap const& local, QS
 {
     bool ok;
     int result;
-    if (!parser.value(name).isEmpty()) {
+    if (parser.optionNames().contains(name) && !parser.value(name).isEmpty()) {
         result = parser.value(name).toInt(&ok);
         if (ok)
             return result;
@@ -245,6 +248,12 @@ int main(int argc, char *argv[])
         {{"w", "pid2wid"}, "Program that converts a PID to a Window ID.", "file"},
         {"force-show", "Force showing notes or presentation (if in a framebuffer) independent of QPA platform plugin."},
         {"force-touchpad", "Treat every scroll input as touch pad."},
+        {"magnifier-size", "Radius of magnifier.", "pixels"},
+        {"pointer-size", "Radius of magnifier.", "pixels"},
+        {"torch-size", "Radius of torch.", "pixels"},
+        {"highlighter-width", "Line width of highlighter.", "pixels"},
+        {"pen-width", "Line width of pens.", "pixels"},
+        {"eraser-size", "Radius of eraser.", "pixels"},
     });
     parser.process(app);
 
@@ -729,6 +738,21 @@ int main(int argc, char *argv[])
             qCritical() << "You tried to set a number of TOC levels < 1. You shouldn't expect anyting reasonable!";
         else
         w->setTocLevel(value);
+
+        // Set size of draw tools
+        value  = intFromConfig(parser, local, settings, "magnifier-size", 120);
+        w->setToolSize(Magnifier, value);
+        value  = intFromConfig(parser, local, settings, "pointer-size", 10);
+        w->setToolSize(Pointer, value);
+        value  = intFromConfig(parser, local, settings, "torch-size", 80);
+        w->setToolSize(Torch, value);
+        value  = intFromConfig(parser, local, settings, "highlighter-width", 30);
+        w->setToolSize(Highlighter, value);
+        value  = intFromConfig(parser, local, settings, "pen-width", 3);
+        w->setToolSize(RedPen, value);
+        w->setToolSize(GreenPen, value);
+        value  = intFromConfig(parser, local, settings, "eraser-size", 10);
+        w->setToolSize(Eraser, value);
     }
 
     // Disable slide transitions

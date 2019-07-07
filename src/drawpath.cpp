@@ -23,14 +23,24 @@ double square(double const a)
     return a*a;
 }
 
-DrawPath::DrawPath(QPointF const& start)
+void DrawPath::setEraserSize(const int size)
+{
+    if (eraser_size < 1) {
+        qWarning() << "Setting an eraser size < 1 does not make any sense. Ignoring this.";
+        return;
+    }
+    eraser_size=size;
+}
+
+DrawPath::DrawPath(QPointF const& start, int const eraser_size)
 {
     path = QVector<QPointF>();
     path.append(start);
     outer = QRectF(start.x(), start.y(), 0, 0);
+    this->eraser_size = eraser_size;
 }
 
-DrawPath::DrawPath(QPointF* const points, int const number)
+DrawPath::DrawPath(QPointF* const points, int const number, int const eraser_size)
 {
     path = QVector<QPointF>(number);
     if (number == 0)
@@ -48,6 +58,7 @@ DrawPath::DrawPath(QPointF* const points, int const number)
             top = points[i].y();
     }
     outer = QRectF(left-eraser_size, top-eraser_size, right-left+2*eraser_size, bottom-top+2*eraser_size);
+    this->eraser_size = eraser_size;
 }
 
 void DrawPath::append(QPointF const& point)
@@ -88,5 +99,5 @@ DrawPath DrawPath::split(int start, int end)
     }
     if (end > path.length())
         end = path.length();
-    return DrawPath(path.data()+start, end-start);
+    return DrawPath(path.data()+start, end-start, eraser_size);
 }

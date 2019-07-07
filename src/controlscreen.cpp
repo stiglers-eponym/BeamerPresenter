@@ -856,6 +856,9 @@ void ControlScreen::keyPressEvent(QKeyEvent* event)
         case KeyAction::DrawPointer:
             presentationScreen->slide->setTool(Pointer);
             break;
+        case KeyAction::DrawMagnifier:
+            presentationScreen->slide->setTool(Magnifier);
+            break;
         }
     }
     event->accept();

@@ -59,7 +59,7 @@ signals:
     void sendEndFullscreen();
 
 public slots:
-    void togglePointerVisibility();
+    virtual void togglePointerVisibility();
 };
 
 #endif // BASICSLIDE_H
