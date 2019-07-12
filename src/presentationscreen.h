@@ -53,7 +53,7 @@ private:
     PdfDoc* presentation;
     PresentationSlide* slide;
     int numberOfPages;
-    int pageIndex;
+    int pageIndex = 0;
     bool forceIsTouchpad = false;
     int scrollDelta = 200;
     int scrollState = 0;

@@ -76,6 +76,21 @@ void PresentationSlide::setDuration()
     }
 }
 
+void PresentationSlide::togglePointerVisibility()
+{
+    if (pointer_visible) {
+        pointer_visible = false;
+        setCursor(Qt::BlankCursor);
+        if (tool != Pointer)
+            setMouseTracking(false);
+    }
+    else {
+        pointer_visible = true;
+        setCursor(Qt::ArrowCursor);
+        setMouseTracking(true);
+    }
+}
+
 void PresentationSlide::disableTransitions()
 {
     timer.stop();

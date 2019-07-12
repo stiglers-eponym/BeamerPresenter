@@ -42,9 +42,8 @@ public:
     int const& getYshift() const {return shifty;}
     double const& getResolution() const {return resolution;}
     DrawTool getTool() const {return tool;}
-    QMap<DrawTool, int> const& getSizes() const {return sizes;}
     int getSize(DrawTool const tool) {return sizes[tool];}
-    void setSizes(QMap<DrawTool, int> const& newSizes) {sizes = newSizes;}
+    void setScaledPixmap(QPixmap const& pix);
 
 protected:
     void drawAnnotations(QPainter& painter);
@@ -52,6 +51,7 @@ protected:
     virtual void mousePressEvent(QMouseEvent* event) override;
     virtual void mouseReleaseEvent(QMouseEvent* event) override;
     virtual void mouseMoveEvent(QMouseEvent* event) override;
+    virtual void resizeEvent(QResizeEvent*) override;
     void erase(QPointF const& point);
     DrawTool tool = None;
     QMap<QString, QMap<DrawTool, QList<DrawPath>>> paths;
@@ -59,9 +59,9 @@ protected:
     QImage enlargedPage;
     int enlargedPageNumber;
     QMap<DrawTool, int> sizes = {{Magnifier,120}, {Torch,80}, {Pointer,10}, {Highlighter,30}, {RedPen,3}, {GreenPen,3}, {Eraser,10}};
+    bool pointer_visible = true;
 
 public slots:
-    virtual void togglePointerVisibility() override;
     void setPaths(QString const page, DrawTool const tool, QList<DrawPath> const& list, int const xshift, int const yshift, double const resolution);
     void setPointerPosition(QPointF const point, int const xshift, int const yshift, double const resolution);
     void setTool(DrawTool const newtool);

@@ -44,7 +44,7 @@ protected:
     QTimer* const timeoutTimer = new QTimer(this);
     int minimumAnimationDelay = 40; // minimum frame time in ms
     QPixmap picinit;
-    double duration; // duration of the current page in s
+    double duration = -1.; // duration of the current page in s
     void paintEvent(QPaintEvent*) override;
     void animate() override;
     void endAnimation() override;
@@ -54,6 +54,7 @@ protected:
 public:
     PresentationSlide(QWidget* parent=nullptr);
     ~PresentationSlide() override;
+    QPixmap const& getCurrentPixmap() const {return pixmap;}
     void disableTransitions();
     double getDuration() const {return duration;}
     void setFrameTime(int const time) {dt=time;}
@@ -88,6 +89,7 @@ public:
     void paintFade(QPainter& painter);
 
 public slots:
+    void togglePointerVisibility();
     void setAnimationDelay(int const delay_ms) {minimumAnimationDelay=delay_ms;}
 
 signals:

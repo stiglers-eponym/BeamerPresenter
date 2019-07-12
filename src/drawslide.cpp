@@ -39,18 +39,61 @@ void DrawSlide::paintEvent(QPaintEvent*)
     drawAnnotations(painter);
 }
 
+void DrawSlide::resizeEvent(QResizeEvent*)
+{
+    if (resolution < 0)
+        return;
+    enlargedPage = QImage();
+    int const oldshiftx = shiftx, oldshifty = shifty;
+    double const oldRes = resolution;
+    QSizeF pageSize = page->pageSizeF();
+    double pageWidth=pageSize.width();
+    if (pagePart != FullPage)
+        pageWidth /= 2;
+    if (width() * pageSize.height() > height() * pageWidth) {
+        resolution = double(height()) / pageSize.height();
+        shiftx = int(width()/2 - resolution/2 * pageWidth);
+        shifty = 0;
+    }
+    else {
+        resolution = double(width()) / pageWidth;
+        shifty = int(height()/2 - resolution/2 * pageSize.height());
+        shiftx = 0;
+    }
+    QPointF shift = QPointF(shiftx, shifty) - resolution/oldRes*QPointF(oldshiftx, oldshifty);
+    for (QMap<QString, QMap<DrawTool, QList<DrawPath>>>::iterator page_it = paths.begin(); page_it != paths.end(); page_it++)
+        for (QMap<DrawTool, QList<DrawPath>>::iterator tool_it = page_it->begin(); tool_it != page_it->end(); tool_it++)
+            for (QList<DrawPath>::iterator path_it = tool_it->begin(); path_it != tool_it->end(); path_it++)
+                path_it->transform(shift, resolution/oldRes);
+}
+
+void DrawSlide::setScaledPixmap(QPixmap const& pix)
+{
+    if (shiftx == 0)
+        pixmap = pix.scaledToWidth(width());
+    else
+        pixmap = pix.scaledToHeight(height());
+}
+
 void DrawSlide::setTool(const DrawTool newtool)
 {
     tool = newtool;
-    if (pointer_visible) {
-        setMouseTracking(true);
-        setCursor(Qt::ArrowCursor);
-    }
-    else if (tool == Pointer)
-        setMouseTracking(true);
-    else
+    // TODO: fancy cursors
+    if (!pointer_visible && tool != Pointer)
         setMouseTracking(false);
-    if (tool == Magnifier) {
+    if (tool == Torch) {
+        enlargedPage = QImage();
+        pointerPosition = QPointF();
+    }
+    else if (tool == Pointer) {
+        enlargedPage = QImage();
+        setMouseTracking(true);
+        if (underMouse()) {
+            pointerPosition = mapFromGlobal(QCursor::pos());
+            emit pointerPositionChanged(pointerPosition, shiftx, shifty, resolution);
+        }
+    }
+    else if (tool == Magnifier) {
         pointerPosition = QPointF();
         if (enlargedPage.isNull() || enlargedPageNumber!=pageIndex) {
             enlargedPageNumber = pageIndex;
@@ -59,24 +102,7 @@ void DrawSlide::setTool(const DrawTool newtool)
     }
     else
         enlargedPage = QImage();
-    if (tool == Torch)
-        pointerPosition = QPointF();
-}
-
-void DrawSlide::togglePointerVisibility()
-{
-    if (pointer_visible) {
-        pointer_visible = false;
-        setCursor(Qt::BlankCursor);
-        if (tool != Pointer)
-            setMouseTracking(false);
-    }
-    else {
-        pointer_visible = true;
-        if (tool != Pointer)
-            setCursor(Qt::ArrowCursor);
-        setMouseTracking(true);
-    }
+    update();
 }
 
 void DrawSlide::setSize(const DrawTool tool, const int size)
@@ -172,6 +198,7 @@ void DrawSlide::mousePressEvent(QMouseEvent *event)
             if (enlargedPage.isNull() || enlargedPageNumber!=pageIndex) {
                 enlargedPageNumber = pageIndex;
                 enlargedPage = page->renderToImage(144*resolution, 144*resolution);
+                //TODO: show annotations in magnifier
             }
         case Torch:
         case Pointer:
@@ -214,13 +241,15 @@ void DrawSlide::mouseMoveEvent(QMouseEvent *event)
     switch (event->buttons())
     {
     case Qt::NoButton:
-        MediaSlide::mouseMoveEvent(event);
+        if (pointer_visible)
+            MediaSlide::mouseMoveEvent(event);
         break;
     case Qt::LeftButton:
         switch (tool)
         {
         case None:
-            MediaSlide::mouseMoveEvent(event);
+            if (pointer_visible)
+                MediaSlide::mouseMoveEvent(event);
             break;
         case RedPen:
         case GreenPen:

@@ -98,17 +98,3 @@ void BasicSlide::paintEvent(QPaintEvent*)
     QPainter painter(this);
     painter.drawPixmap(shiftx, shifty, pixmap);
 }
-
-void BasicSlide::togglePointerVisibility()
-{
-    if (pointer_visible) {
-        pointer_visible = false;
-        setMouseTracking(false);
-        setCursor(Qt::BlankCursor);
-    }
-    else {
-        pointer_visible = true;
-        setMouseTracking(true);
-        setCursor(Qt::ArrowCursor);
-    }
-}

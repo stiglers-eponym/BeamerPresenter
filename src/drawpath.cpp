@@ -67,7 +67,16 @@ DrawPath::DrawPath(DrawPath const& old, QPointF const shift, double const scale)
      for (int i=0; i<old.path.length(); i++)
          path[i] = scale*old.path[i] + shift;
      outer = QRectF(scale*old.outer.topLeft() + shift, scale*old.outer.bottomRight() + shift);
-     eraser_size = static_cast<int>(scale*old.eraser_size+0.5);
+     eraser_size = old.eraser_size;
+     //eraser_size = static_cast<int>(scale*old.eraser_size+0.5);
+}
+
+void DrawPath::transform(QPointF const&shift, const double scale)
+{
+     for (int i=0; i<path.length(); i++)
+         path[i] = scale*path[i] + shift;
+     outer = QRectF(scale*outer.topLeft() + shift, scale*outer.bottomRight() + shift);
+     //eraser_size = static_cast<int>(scale*eraser_size+0.5);
 }
 
 void DrawPath::append(QPointF const& point)

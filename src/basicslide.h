@@ -47,9 +47,8 @@ protected:
     int shiftx;
     int shifty;
     QPixmap pixmap;
-    double resolution; // resolution in pixels per point = dpi/72
-    int pageIndex = 0; // page number
-    bool pointer_visible = true;
+    double resolution = -1.; // resolution in pixels per point = dpi/72
+    int pageIndex; // page number
 
 signals:
     void pageNumberChanged(int const pageNumber);
@@ -58,9 +57,6 @@ signals:
     void focusPageNumberEdit();
     void sendShowFullscreen();
     void sendEndFullscreen();
-
-public slots:
-    virtual void togglePointerVisibility();
 };
 
 #endif // BASICSLIDE_H

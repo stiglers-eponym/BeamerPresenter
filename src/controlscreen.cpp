@@ -71,6 +71,20 @@ ControlScreen::ControlScreen(QString presentationPath, QString notesPath, QWidge
     if (notesPath.isNull() || notesPath.isEmpty()) {
         notes = presentation;
         setWindowTitle("BeamerPresenter: " + presentationPath);
+        ui->notes_widget->clearAll();
+        ui->notes_widget = new DrawSlide(this);
+        ui->notes_widget->setFocusPolicy(Qt::ClickFocus);
+        drawSlide = static_cast<DrawSlide*>(ui->notes_widget);
+        connect(ui->tool_selector, &ToolSelector::sendNewTool, drawSlide, &DrawSlide::setTool);
+        connect(ui->tool_selector, &ToolSelector::sendClear, drawSlide, &DrawSlide::clearAllAnnotations);
+        connect(drawSlide, &DrawSlide::pathsChanged, presentationScreen->slide, &DrawSlide::setPaths);
+        connect(presentationScreen->slide, &DrawSlide::pathsChanged, drawSlide, &DrawSlide::setPaths);
+        connect(drawSlide, &DrawSlide::pointerPositionChanged, presentationScreen->slide, &DrawSlide::setPointerPosition);
+        connect(presentationScreen->slide, &DrawSlide::pointerPositionChanged, drawSlide, &DrawSlide::setPointerPosition);
+        connect(drawSlide, &DrawSlide::sendRelax, presentationScreen->slide, &DrawSlide::relax);
+        connect(presentationScreen->slide, &DrawSlide::sendRelax, drawSlide, &DrawSlide::relax);
+        //drawSlide->setTool(presentationScreen->slide->getTool());
+        // TODO: synchronize video content
     }
     else {
         notes = new PdfDoc(notesPath);
@@ -170,7 +184,7 @@ ControlScreen::ControlScreen(QString presentationPath, QString notesPath, QWidge
     connect(this, &ControlScreen::pauseMultimedia,    ui->notes_widget, &MediaSlide::pauseAllMultimedia);
     connect(this, &ControlScreen::pauseMultimedia,    presentationScreen->slide, &MediaSlide::pauseAllMultimedia);
     connect(this, &ControlScreen::sendAnimationDelay, presentationScreen->slide, &PresentationSlide::setAnimationDelay);
-    connect(this, &ControlScreen::togglePointerVisibilitySignal, presentationScreen->slide, &MediaSlide::togglePointerVisibility);
+    connect(this, &ControlScreen::togglePointerVisibilitySignal, presentationScreen->slide, &PresentationSlide::togglePointerVisibility);
 
     // Signals emitted by the page number editor
     connect(ui->text_current_slide, &PageNumberEdit::sendPageNumberReturn, presentationScreen, &PresentationScreen::receiveNewPageNumber);
@@ -208,7 +222,7 @@ ControlScreen::~ControlScreen()
         cacheThread->wait();
     }
     delete cacheThread;
-    if (drawSlide != nullptr)
+    if (drawSlide != nullptr && drawSlide != ui->notes_widget)
         drawSlide->disconnect();
     ui->notes_widget->disconnect();
     ui->current_slide->disconnect();
@@ -220,7 +234,8 @@ ControlScreen::~ControlScreen()
     if (notes != presentation)
         delete notes;
     delete keymap;
-    delete drawSlide;
+    if (drawSlide != ui->notes_widget)
+        delete drawSlide;
     delete presentation;
     delete presentationScreen;
     disconnect();
@@ -277,8 +292,17 @@ void ControlScreen::recalcLayout(const int pageNumber)
     overviewBox->setGeometry(0, 0, width()-sideWidth, height());
     ui->tool_selector->setMaximumWidth(sideWidth);
     if (drawSlide != nullptr) {
-        drawSlide->setGeometry(ui->notes_widget->rect());
-        drawSlide->setSizes(presentationScreen->slide->getSizes());
+        double scale = drawSlide->getResolution() / presentationScreen->slide->getResolution();
+        drawSlide->setSize(GreenPen, presentationScreen->slide->getSize(GreenPen));
+        drawSlide->setSize(RedPen, presentationScreen->slide->getSize(RedPen));
+        drawSlide->setSize(Pointer, presentationScreen->slide->getSize(Pointer));
+        drawSlide->setSize(Highlighter, static_cast<int>(scale*presentationScreen->slide->getSize(Highlighter)+0.5));
+        drawSlide->setSize(Torch, static_cast<int>(scale*presentationScreen->slide->getSize(Torch)));
+        drawSlide->setSize(Magnifier, static_cast<int>(scale*presentationScreen->slide->getSize(Magnifier)));
+        if (drawSlide != ui->notes_widget) {
+            drawSlide->setGeometry(ui->notes_widget->rect());
+            drawSlide->setScaledPixmap(presentationScreen->slide->getCurrentPixmap());
+        }
     }
     updateGeometry();
 
@@ -1237,6 +1261,7 @@ void ControlScreen::showDrawSlide()
     if (drawSlide == nullptr) {
         drawSlide = new DrawSlide(this);
         drawSlide->setFocusPolicy(Qt::ClickFocus);
+        drawSlide->setUseCache(false);
         connect(ui->tool_selector, &ToolSelector::sendNewTool, drawSlide, &DrawSlide::setTool);
         connect(ui->tool_selector, &ToolSelector::sendClear, drawSlide, &DrawSlide::clearAllAnnotations);
         connect(drawSlide, &DrawSlide::pathsChanged, presentationScreen->slide, &DrawSlide::setPaths);
@@ -1249,10 +1274,11 @@ void ControlScreen::showDrawSlide()
         connect(drawSlide, &PreviewSlide::sendNewPageNumber, presentationScreen, &PresentationScreen::receiveNewPageNumber);
         connect(drawSlide, &PreviewSlide::sendNewPageNumber, this, &ControlScreen::renderPage);
     }
+    else if (drawSlide == ui->notes_widget)
+        return;
 
     drawSlide->setTool(presentationScreen->slide->getTool());
     drawSlide->setGeometry(ui->notes_widget->rect());
-    drawSlide->setSizes(presentationScreen->slide->getSizes());
     ui->notes_widget->hide();
     // TODO: synchronize video content
     drawSlide->renderPage(presentationScreen->slide->getPage(), false);
@@ -1284,7 +1310,7 @@ void ControlScreen::toggleDrawMode()
 
 void ControlScreen::hideDrawSlide()
 {
-    if (drawSlide != nullptr) {
+    if (drawSlide != nullptr && drawSlide != ui->notes_widget) {
         delete drawSlide;
         drawSlide = nullptr;
     }

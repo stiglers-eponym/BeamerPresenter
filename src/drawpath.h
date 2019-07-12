@@ -37,6 +37,7 @@ public:
     DrawPath(DrawPath const&& old) {path=old.path; outer=old.outer; eraser_size=old.eraser_size;}
     DrawPath(DrawPath const& old, QPointF const shift, double const scale);
     ~DrawPath() {path.clear();}
+    void transform(QPointF const& shift, double const scale);
     void setEraserSize(int const size);
     void clear() {path.clear(); outer=QRectF();}
     bool isEmpty() {return path.isEmpty();}
