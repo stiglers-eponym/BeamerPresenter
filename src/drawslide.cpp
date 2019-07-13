@@ -200,6 +200,7 @@ void DrawSlide::mousePressEvent(QMouseEvent *event)
                 enlargedPage = page->renderToImage(144*resolution, 144*resolution);
                 //TODO: show annotations in magnifier
             }
+        [[clang::fallthrough]];
         case Torch:
         case Pointer:
             pointerPosition = event->localPos();
@@ -317,21 +318,25 @@ void DrawSlide::clearCache()
     enlargedPage = QImage();
 }
 
-void DrawSlide::setPaths(QString const page, DrawTool const tool, QList<DrawPath> const& list, int const xshift, int const yshift, double const resolution)
+void DrawSlide::setPaths(QString const pagelabel, DrawTool const tool, QList<DrawPath> const& list, int const refshiftx, int const refshifty, double const refresolution)
 {
-    if (paths.contains(page) && paths[page].contains(tool))
-        paths[page][tool].clear();
+    if (paths.contains(pagelabel) && paths[pagelabel].contains(tool))
+        paths[pagelabel][tool].clear();
     else
-        paths[page][tool] = QList<DrawPath>();
-    QPointF shift = QPointF(this->shiftx, this->shifty) - this->resolution/resolution*QPointF(xshift, yshift);
+        paths[pagelabel][tool] = QList<DrawPath>();
+    QPointF shift = QPointF(shiftx, shifty) - resolution/refresolution*QPointF(refshiftx, refshifty);
     for (QList<DrawPath>::const_iterator it = list.cbegin(); it!=list.cend(); it++)
-        paths[page][tool].append(DrawPath(*it, shift, this->resolution/resolution));
+        paths[pagelabel][tool].append(DrawPath(*it, shift, resolution/refresolution));
     update();
 }
 
-void DrawSlide::setPointerPosition(QPointF const point, int const xshift, int const yshift, double const resolution)
+void DrawSlide::setPointerPosition(QPointF const point, int const refshiftx, int const refshifty, double const refresolution)
 {
-    pointerPosition = (point - QPointF(xshift, yshift)) * this->resolution/resolution + QPointF(this->shiftx, this->shifty);
+    pointerPosition = (point - QPointF(refshiftx, refshifty)) * resolution/refresolution + QPointF(shiftx, shifty);
+    if (tool == Magnifier && (enlargedPage.isNull() || enlargedPageNumber!=pageIndex)) {
+        enlargedPageNumber = pageIndex;
+        enlargedPage = page->renderToImage(144*resolution, 144*resolution);
+    }
     if (tool == Pointer || tool == Magnifier || tool == Torch)
         update();
 }

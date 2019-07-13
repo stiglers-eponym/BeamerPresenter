@@ -62,14 +62,14 @@ protected:
     bool pointer_visible = true;
 
 public slots:
-    void setPaths(QString const page, DrawTool const tool, QList<DrawPath> const& list, int const xshift, int const yshift, double const resolution);
-    void setPointerPosition(QPointF const point, int const xshift, int const yshift, double const resolution);
+    void setPaths(QString const pagelabel, DrawTool const tool, QList<DrawPath> const& list, int const refshiftx, int const refshifty, double const refresolution);
+    void setPointerPosition(QPointF const point, int const refshiftx, int const refshifty, double const refresolution);
     void setTool(DrawTool const newtool);
     void relax();
 
 signals:
-    void pointerPositionChanged(QPointF const point, int const xshift, int const yshift, double const resolution);
-    void pathsChanged(QString const page, DrawTool const tool, QList<DrawPath> const& list, int const xshift, int const yshift, double const resolution);
+    void pointerPositionChanged(QPointF const point, int const refshiftx, int const refshifty, double const refresolution);
+    void pathsChanged(QString const pagelabel, DrawTool const tool, QList<DrawPath> const& list, int const refshiftx, int const refshifty, double const refresolution);
     void sendToolChanged(DrawTool const tool);
     void sendRelax();
 };

@@ -50,6 +50,7 @@ protected:
     void endAnimation() override;
     void setDuration() override;
     void enableTransitions() {elapsed=0;}
+    void updateFromTimer();
 
 public:
     PresentationSlide(QWidget* parent=nullptr);

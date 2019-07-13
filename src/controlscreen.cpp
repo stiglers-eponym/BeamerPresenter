@@ -1277,11 +1277,11 @@ void ControlScreen::showDrawSlide()
     else if (drawSlide == ui->notes_widget)
         return;
 
-    drawSlide->setTool(presentationScreen->slide->getTool());
     drawSlide->setGeometry(ui->notes_widget->rect());
+    drawSlide->renderPage(presentationScreen->slide->getPage(), false);
+    drawSlide->setTool(presentationScreen->slide->getTool());
     ui->notes_widget->hide();
     // TODO: synchronize video content
-    drawSlide->renderPage(presentationScreen->slide->getPage(), false);
     drawSlide->show();
     drawSlide->setFocus();
     int const sx=presentationScreen->slide->getXshift(), sy=presentationScreen->slide->getYshift();

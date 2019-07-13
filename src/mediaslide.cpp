@@ -86,7 +86,7 @@ void MediaSlide::renderPage(Poppler::Page* page, bool const hasDuration, QPixmap
     // Use overlay specific options
     // A page is called an overlay of the previously rendered page, if they have the same label.
     // This is also the case, if the same page is rendered again (e.g. because the window is resized).
-    bool const isOverlay = this->page!=nullptr && page->label()==this->page->label();
+    isOverlay = this->page!=nullptr && page->label()==this->page->label();
     if (isOverlay) {
         qDeleteAll(links);
         linkPositions.clear();
