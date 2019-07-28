@@ -1,5 +1,6 @@
 BeamerPresenter
 
+* no background color set when running in manjaro-xfce
 * cache management can crash, disabling cache completely (occurred after reloading files): not simply reproducible
 * Segfault when embedded application appears during slide change?
 * Draw in presentation:

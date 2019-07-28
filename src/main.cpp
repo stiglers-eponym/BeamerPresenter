@@ -105,7 +105,7 @@ const QMap<int, QList<int>> defaultKeyMap = {
     {Qt::Key_O, {KeyAction::ToggleCursor}},
     {Qt::Key_F, {KeyAction::FullScreen}},
     {Qt::Key_U, {KeyAction::Reload}},
-    {Qt::Key_Q, {KeyAction::Quit}}
+    {Qt::Key_Q+Qt::CTRL, {KeyAction::Quit}}
 };
 
 double doubleFromConfig(QCommandLineParser const& parser, QVariantMap const& local, QSettings const& settings, QString name, double const def)
