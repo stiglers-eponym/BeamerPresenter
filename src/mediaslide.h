@@ -70,7 +70,7 @@ protected:
     double autostartEmbeddedDelay = -1.; // delay for starting embedded applications in s
     bool cacheVideos = true;
     bool isOverlay = false;
-    virtual void animate() {}
+    virtual void animate(Poppler::PageTransition const * const = nullptr) {}
     virtual void endAnimation() {}
     virtual void setDuration() {}
 

@@ -103,6 +103,10 @@ void MediaSlide::renderPage(Poppler::Page* page, bool const hasDuration, QPixmap
         oldSize = size();
     }
 
+    Poppler::PageTransition const * oldTransition = nullptr;
+    if (this->page != nullptr && page->index() < this->page->index())
+        oldTransition = this->page->transition();
+
     // Set the new page and basic properties
     this->page = page;
     pageIndex = page->index();
@@ -189,7 +193,7 @@ void MediaSlide::renderPage(Poppler::Page* page, bool const hasDuration, QPixmap
     // In this case: go to the next page after that given time.
     if (hasDuration)
         setDuration();
-    animate();
+    animate(oldTransition);
 
     // Collect link areas in pixels (positions relative to the lower left edge of the label)
     links = page->links();

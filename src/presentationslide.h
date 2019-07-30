@@ -39,6 +39,8 @@ private:
     int picheight;
     QTimer timer;
     void (PresentationSlide::*paint)(QPainter&);
+    QPixmap changes; // only for transition fly
+    int virtual_transition_duration = 100; // only for transition fly
 
 protected:
     QTimer* const timeoutTimer = new QTimer(this);
@@ -46,7 +48,7 @@ protected:
     QPixmap picinit;
     double duration = -1.; // duration of the current page in s
     void paintEvent(QPaintEvent*) override;
-    void animate() override;
+    void animate(Poppler::PageTransition const * const oldTransition = nullptr) override;
     void endAnimation() override;
     void setDuration() override;
     void enableTransitions() {elapsed=0;}
@@ -74,7 +76,14 @@ public:
     void paintWipeRight(QPainter& painter);
     void paintDissolve(QPainter& painter);
     void paintGlitter(QPainter& painter);
-    void paintFly(QPainter& painter);
+    void paintFlyInUp(QPainter& painter);
+    void paintFlyInDown(QPainter& painter);
+    void paintFlyInRight(QPainter& painter);
+    void paintFlyInLeft(QPainter& painter);
+    void paintFlyOutUp(QPainter& painter);
+    void paintFlyOutDown(QPainter& painter);
+    void paintFlyOutRight(QPainter& painter);
+    void paintFlyOutLeft(QPainter& painter);
     void paintPushUp(QPainter& painter);
     void paintPushDown(QPainter& painter);
     void paintPushLeft(QPainter& painter);

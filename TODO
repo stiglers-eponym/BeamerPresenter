@@ -28,5 +28,5 @@ BeamerPresenter
 * Implement optional content (e.g. for sound)
 * Make poppler rendering to cache more efficient (use multiple threads)
 
-* Avoid short black flash when showing video or page transition
+* Avoid short black flash when showing video
 * use OpenGL again?
