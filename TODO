@@ -6,8 +6,9 @@ BeamerPresenter
 * Draw in presentation:
 	*	show annotations in magnifier
 	*	show annotations on top of video content
-	*	improve annotations in slide transitions
 	*	sync multimedia content
+	*	Check slide transitions and improve efficiency
+	*	use OpenGL again?
 
 * Make timer editable
 * Multimedia sliders: key bindings and signals slider <-> player

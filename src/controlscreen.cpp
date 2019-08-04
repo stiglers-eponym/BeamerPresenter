@@ -97,6 +97,9 @@ ControlScreen::ControlScreen(QString presentationPath, QString notesPath, QWidge
         else
             setWindowTitle("BeamerPresenter: " + notesPath);
     }
+    ui->notes_widget->setDoc(notes);
+    ui->current_slide->setDoc(presentation);
+    ui->next_slide->setDoc(presentation);
 
     // tocBox will be used to show the table of contents on the control screen
     tocBox = new TocBox(this);
@@ -196,7 +199,7 @@ ControlScreen::ControlScreen(QString presentationPath, QString notesPath, QWidge
 
     // Cache handling
     connect(cacheTimer, SIGNAL(timeout()), this, SLOT(updateCacheStep()));
-    cacheThread->setLabels(presentationScreen->slide, ui->notes_widget, ui->current_slide);
+    cacheThread->setSlideWidgets(presentationScreen->slide, ui->notes_widget, ui->current_slide);
     connect(cacheThread, &CacheUpdateThread::resultsReady, this, &ControlScreen::receiveCache);
     connect(presentationScreen, &PresentationScreen::clearPresentationCacheRequest, this, &ControlScreen::clearPresentationCache);
 
@@ -295,6 +298,8 @@ void ControlScreen::recalcLayout(const int pageNumber)
         double scale = drawSlide->getResolution() / presentationScreen->slide->getResolution();
         drawSlide->setSize(GreenPen, presentationScreen->slide->getSize(GreenPen));
         drawSlide->setSize(RedPen, presentationScreen->slide->getSize(RedPen));
+        if (scale < 0.)
+            scale = 1.;
         drawSlide->setSize(Pointer, presentationScreen->slide->getSize(Pointer));
         drawSlide->setSize(Highlighter, static_cast<int>(scale*presentationScreen->slide->getSize(Highlighter)+0.5));
         drawSlide->setSize(Torch, static_cast<int>(scale*presentationScreen->slide->getSize(Torch)));
@@ -391,7 +396,7 @@ void ControlScreen::renderPage(int const pageNumber)
     // Update the notes label
     // The note document could have fewer pages than the presentation document:
     if (currentPageNumber < notes->getDoc()->numPages())
-        ui->notes_widget->renderPage(notes->getPage(currentPageNumber), false);
+        ui->notes_widget->renderPage(currentPageNumber, false);
     else
         qWarning() << "Reached the end of the note file.";
 
@@ -399,73 +404,71 @@ void ControlScreen::renderPage(int const pageNumber)
     if (drawSlide == nullptr) {
         // If we have not reached the last page (there exists a next page):
         if (currentPageNumber + 1 < presentation->getDoc()->numPages()) {
-            ui->current_slide->renderPage(presentation->getPage(currentPageNumber));
+            ui->current_slide->renderPage(currentPageNumber);
             if (maxCacheSize!=0 && maxCacheNumber!=0) {
                 // Render the next slide to the current slide label's cache
-                ui->current_slide->updateCache(presentation->getPage(currentPageNumber+1));
+                ui->current_slide->updateCache(currentPageNumber+1);
                 // Now show the cached page on the next slide label
                 QPixmap const pixmap = ui->current_slide->getCache(currentPageNumber+1);
-                ui->next_slide->renderPage(presentation->getPage(currentPageNumber+1), &pixmap);
+                ui->next_slide->renderPage(currentPageNumber+1, &pixmap);
             }
             else // No cache: this is inefficient.
-                ui->next_slide->renderPage(presentation->getPage(currentPageNumber+1));
+                ui->next_slide->renderPage(currentPageNumber+1);
         }
         else { // If we have reached the last page (there is no next page)
             // Get page and pixmap for current page.
-            Poppler::Page* page = presentation->getPage(currentPageNumber);
             QPixmap pixmap = ui->current_slide->getCache(currentPageNumber);
             // Show the page on the current and next slide label.
             if (pixmap.isNull()) {
                 // The page was not cached. Render it on current slide label.
-                ui->current_slide->renderPage(page);
+                ui->current_slide->renderPage(currentPageNumber);
                 pixmap = ui->current_slide->getCache(currentPageNumber);
             }
             else
-                ui->current_slide->renderPage(page, &pixmap);
-            ui->next_slide->renderPage(page, &pixmap);
+                ui->current_slide->renderPage(currentPageNumber, &pixmap);
+            ui->next_slide->renderPage(currentPageNumber, &pixmap);
         }
     }
     else {
         // If we have not reached the last page (there exists a next page):
         if (currentPageNumber + 2 < presentation->getDoc()->numPages()) {
-            ui->current_slide->renderPage(presentation->getPage(currentPageNumber+1));
+            ui->current_slide->renderPage(currentPageNumber+1);
             if (maxCacheSize!=0 && maxCacheNumber!=0) {
                 // Render the next slide to the current slide label's cache
-                ui->current_slide->updateCache(presentation->getPage(currentPageNumber+2));
+                ui->current_slide->updateCache(currentPageNumber+2);
                 // Now show the cached page on the next slide label
                 QPixmap const pixmap = ui->current_slide->getCache(currentPageNumber+2);
-                ui->next_slide->renderPage(presentation->getPage(currentPageNumber+2), &pixmap);
+                ui->next_slide->renderPage(currentPageNumber+2, &pixmap);
             }
             else // No cache: this is inefficient.
-                ui->next_slide->renderPage(presentation->getPage(currentPageNumber+2));
+                ui->next_slide->renderPage(currentPageNumber+2);
         }
         else if (currentPageNumber + 2 == presentation->getDoc()->numPages()) {
             // Show the last two slides (current and next slide)
-            ui->current_slide->renderPage(presentation->getPage(currentPageNumber));
+            ui->current_slide->renderPage(currentPageNumber);
             if (maxCacheSize!=0 && maxCacheNumber!=0) {
                 // Render the next slide to the current slide label's cache
-                ui->current_slide->updateCache(presentation->getPage(currentPageNumber+1));
+                ui->current_slide->updateCache(currentPageNumber+1);
                 // Now show the cached page on the next slide label
                 QPixmap const pixmap = ui->current_slide->getCache(currentPageNumber+1);
-                ui->next_slide->renderPage(presentation->getPage(currentPageNumber+1), &pixmap);
+                ui->next_slide->renderPage(currentPageNumber+1, &pixmap);
             }
             else // No cache: this is inefficient.
-                ui->next_slide->renderPage(presentation->getPage(currentPageNumber+2));
+                ui->next_slide->renderPage(currentPageNumber+2);
         }
         else { // If we have reached the last page (there is no next page)
             // Show the last slide twice
             // Get page and pixmap for current page.
-            Poppler::Page* page = presentation->getPage(currentPageNumber);
             QPixmap pixmap = ui->current_slide->getCache(currentPageNumber);
             // Show the page on the current and next slide label.
             if (pixmap.isNull()) {
                 // The page was not cached. Render it on current slide label.
-                ui->current_slide->renderPage(page);
+                ui->current_slide->renderPage(currentPageNumber);
                 pixmap = ui->current_slide->getCache(currentPageNumber);
             }
             else
-                ui->current_slide->renderPage(page, &pixmap);
-            ui->next_slide->renderPage(page, &pixmap);
+                ui->current_slide->renderPage(currentPageNumber, &pixmap);
+            ui->next_slide->renderPage(currentPageNumber, &pixmap);
         }
     }
     // Update the page number
@@ -598,13 +601,13 @@ void ControlScreen::updateCacheStep()
             // cache first_cached-1
             if (!presentationScreen->slide->cacheContains(first_cached-1)) {
                 cacheTimer->stop();
-                cacheThread->setPages(presentation->getPage(first_cached-1), notes->getPage(first_cached-1));
+                cacheThread->setPage(first_cached-1);
                 cacheThread->start();
             }
             else {
                 first_cached--;
-                cacheSize += ui->notes_widget->updateCache(notes->getPage(first_cached))
-                             + ui->current_slide->updateCache(presentation->getPage(first_cached));
+                cacheSize += ui->notes_widget->updateCache(first_cached)
+                             + ui->current_slide->updateCache(first_cached);
             }
             return;
         }
@@ -625,7 +628,7 @@ void ControlScreen::updateCacheStep()
         // Cache the page last_cached+1
         if (!presentationScreen->slide->cacheContains(last_cached+1)) {
             cacheTimer->stop();
-            cacheThread->setPages(presentation->getPage(last_cached+1), notes->getPage(last_cached+1));
+            cacheThread->setPage(last_cached+1);
             cacheThread->start();
         }
         else {
@@ -633,8 +636,8 @@ void ControlScreen::updateCacheStep()
             // This might be inefficient if the control screen has been resized.
             // But usually the cached pages for presentation screen and control screen should not differ.
             last_cached++;
-            cacheSize += ui->notes_widget->updateCache(notes->getPage(last_cached))
-                         + ui->current_slide->updateCache(presentation->getPage(last_cached));
+            cacheSize += ui->notes_widget->updateCache(last_cached)
+                         + ui->current_slide->updateCache(last_cached);
         }
     }
 }
@@ -972,10 +975,9 @@ void ControlScreen::startAllEmbeddedApplications()
 {
     // Start all embedded applications of the presentation on all pages.
     qDebug() << "Starting all embedded applications on all pages.";
-    QList<Poppler::Page*> const pages = *presentation->getPages();
-    for (QList<Poppler::Page*>::const_iterator page_it=pages.cbegin(); page_it!=pages.cend(); page_it++) {
-        presentationScreen->slide->initEmbeddedApplications(*page_it);
-        presentationScreen->slide->startAllEmbeddedApplications((*page_it)->index());
+    for (int i=0; i<presentation->getDoc()->numPages(); i++) {
+        presentationScreen->slide->initEmbeddedApplications(i);
+        presentationScreen->slide->startAllEmbeddedApplications(i);
     }
 }
 
@@ -996,9 +998,9 @@ void ControlScreen::resizeEvent(QResizeEvent* event)
     ui->next_slide->clearCache();
     overviewBox->setOutdated();
     // Render current page.
-    ui->notes_widget->renderPage(ui->notes_widget->getPage(), false);
-    ui->current_slide->renderPage(ui->current_slide->getPage());
-    ui->next_slide->renderPage(ui->next_slide->getPage());
+    ui->notes_widget->renderPage(ui->notes_widget->pageNumber(), false);
+    ui->current_slide->renderPage(ui->current_slide->pageNumber());
+    ui->next_slide->renderPage(ui->next_slide->pageNumber());
 }
 
 void ControlScreen::clearPresentationCache()
@@ -1315,7 +1317,7 @@ void ControlScreen::showDrawSlide()
         connect(presentationScreen->slide, &DrawSlide::pointerPositionChanged, drawSlide, &DrawSlide::setPointerPosition);
         connect(drawSlide, &DrawSlide::sendRelax, presentationScreen->slide, &DrawSlide::relax);
         connect(presentationScreen->slide, &DrawSlide::sendRelax, drawSlide, &DrawSlide::relax);
-        connect(presentationScreen->slide, &BasicSlide::pageNumberChanged, drawSlide, [&](int const pageNumber) {drawSlide->renderPage(presentation->getPage(pageNumber), false);});
+        connect(presentationScreen->slide, &BasicSlide::pageNumberChanged, drawSlide, [&](int const pageNumber) {drawSlide->renderPage(pageNumber, false);});
         connect(drawSlide, &PreviewSlide::sendNewPageNumber, presentationScreen, &PresentationScreen::receiveNewPageNumber);
         connect(drawSlide, &PreviewSlide::sendNewPageNumber, this, &ControlScreen::renderPage);
     }
@@ -1323,7 +1325,7 @@ void ControlScreen::showDrawSlide()
         return;
 
     drawSlide->setGeometry(ui->notes_widget->rect());
-    drawSlide->renderPage(presentationScreen->slide->getPage(), false);
+    drawSlide->renderPage(presentationScreen->slide->pageNumber(), false);
     drawSlide->setTool(presentationScreen->slide->getTool());
     ui->notes_widget->hide();
     // TODO: synchronize video content

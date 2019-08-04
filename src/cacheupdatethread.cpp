@@ -21,13 +21,13 @@
 void CacheUpdateThread::run()
 {
     if (mode==Renderer::poppler) {
-        QPixmap presimg = presLabel->getPixmap(presPage);
+        QPixmap presimg = presLabel->getPixmap(page);
         if (isInterruptionRequested())
             return;
-        QPixmap noteimg = noteLabel->getPixmap(notePage);
+        QPixmap noteimg = noteLabel->getPixmap(page);
         if (isInterruptionRequested())
             return;
-        QPixmap smallimg = smallLabel->getPixmap(presPage);
+        QPixmap smallimg = smallLabel->getPixmap(page);
         if (isInterruptionRequested())
             return;
         QByteArray* pres = new QByteArray();
@@ -54,15 +54,14 @@ void CacheUpdateThread::run()
             delete small;
             return;
         }
-        emit resultsReady(pres, note, small, presPage->index());
+        emit resultsReady(pres, note, small, page);
     }
     else if (mode==Renderer::custom) {
-        int const index = presPage->index();
-        ExternalRenderer* presRenderer  = new ExternalRenderer(index);
-        if (!presLabel->cacheContains(index)) {
+        ExternalRenderer* presRenderer  = new ExternalRenderer(page);
+        if (!presLabel->cacheContains(page)) {
             QStringList presArguments = QStringList(renderArguments);
             presArguments.replaceInStrings("%file", presFileName);
-            presArguments.replaceInStrings("%page", QString::number(index+1));
+            presArguments.replaceInStrings("%page", QString::number(page+1));
             if (pagePart==FullPage)
                 presArguments.replaceInStrings("%width", QString::number(presLabel->width()));
             else
@@ -72,11 +71,11 @@ void CacheUpdateThread::run()
             presRenderer->start(renderCommand, presArguments);
         }
 
-        ExternalRenderer* noteRenderer  = new ExternalRenderer(index);
-        if (!noteLabel->cacheContains(index)) {
+        ExternalRenderer* noteRenderer  = new ExternalRenderer(page);
+        if (!noteLabel->cacheContains(page)) {
             QStringList noteArguments = QStringList(renderArguments);
             noteArguments.replaceInStrings("%file", noteFileName);
-            noteArguments.replaceInStrings("%page", QString::number(index+1));
+            noteArguments.replaceInStrings("%page", QString::number(page+1));
             if (pagePart==FullPage)
                 noteArguments.replaceInStrings("%width", QString::number(noteLabel->width()));
             else
@@ -86,11 +85,11 @@ void CacheUpdateThread::run()
             noteRenderer->start(renderCommand, noteArguments);
         }
 
-        ExternalRenderer* smallRenderer  = new ExternalRenderer(index);
-        if (!smallLabel->cacheContains(index)) {
+        ExternalRenderer* smallRenderer  = new ExternalRenderer(page);
+        if (!smallLabel->cacheContains(page)) {
             QStringList smallArguments = QStringList(renderArguments);
             smallArguments.replaceInStrings("%file", presFileName);
-            smallArguments.replaceInStrings("%page", QString::number(index+1));
+            smallArguments.replaceInStrings("%page", QString::number(page+1));
             if (pagePart==FullPage)
                 smallArguments.replaceInStrings("%width", QString::number(smallLabel->width()));
             else
@@ -103,19 +102,19 @@ void CacheUpdateThread::run()
         QByteArray const* pres = nullptr;
         QByteArray const* note = nullptr;
         QByteArray const* small = nullptr;
-        if (!presLabel->cacheContains(index)) {
+        if (!presLabel->cacheContains(page)) {
             if (presRenderer->waitForFinished(60000))
                 pres = presRenderer->getBytes();
             else
                 presRenderer->kill();
         }
-        if (!noteLabel->cacheContains(index)) {
+        if (!noteLabel->cacheContains(page)) {
             if (noteRenderer->waitForFinished(60000))
                 note = noteRenderer->getBytes();
             else
                 noteRenderer->kill();
         }
-        if (!smallLabel->cacheContains(index)) {
+        if (!smallLabel->cacheContains(page)) {
             if (smallRenderer->waitForFinished(60000))
                 small = smallRenderer->getBytes();
             else
@@ -130,21 +129,15 @@ void CacheUpdateThread::run()
             delete small;
         }
 		else
-			emit resultsReady(pres, note, small, index);
+            emit resultsReady(pres, note, small, page);
     }
 }
 
-void CacheUpdateThread::setLabels(const PreviewSlide *pres, const PreviewSlide *note, const PreviewSlide *small)
+void CacheUpdateThread::setSlideWidgets(const PreviewSlide *pres, const PreviewSlide *note, const PreviewSlide *small)
 {
     presLabel = pres;
     noteLabel = note;
     smallLabel = small;
-}
-
-void CacheUpdateThread::setPages(const Poppler::Page *pres, const Poppler::Page *note)
-{
-    presPage = pres;
-    notePage = note;
 }
 
 void CacheUpdateThread::setCustomRenderer(const QString &renderCommand, const QString &presFileName, const QString &noteFileName, const QStringList &renderArguments, Renderer renderer)

@@ -25,6 +25,7 @@
 #include <poppler-qt5.h>
 #include <QDebug>
 #include "enumerates.h"
+#include "pdfdoc.h"
 
 class BasicSlide : public QWidget
 {
@@ -32,13 +33,14 @@ class BasicSlide : public QWidget
 
 public:
     explicit BasicSlide(QWidget* parent = nullptr) : QWidget(parent) {}
-    explicit BasicSlide(Poppler::Page* page, QWidget* parent=nullptr) : QWidget(parent) {renderPage(page);}
+    explicit BasicSlide(PdfDoc const*const document, int const pageNumber, QWidget* parent=nullptr);
     ~BasicSlide() override {}
-    virtual void renderPage(Poppler::Page* page, QPixmap const* pixmap=nullptr);
+    virtual void renderPage(int const pageNumber, QPixmap const* pix=nullptr);
     void setPagePart(PagePart const state) {pagePart=state;}
     int pageNumber() const {return pageIndex;}
     Poppler::Page* getPage() {return page;}
     virtual void clearAll() {page=nullptr;}
+    void setDoc(PdfDoc const*const document) {doc=document;}
 
 protected:
     virtual void paintEvent(QPaintEvent*) override;
@@ -48,7 +50,8 @@ protected:
     int shifty;
     QPixmap pixmap;
     double resolution = -1.; // resolution in pixels per point = dpi/72
-    int pageIndex; // page number
+    int pageIndex = 0; // page number
+    PdfDoc const * doc = nullptr;
 
 signals:
     void pageNumberChanged(int const pageNumber);

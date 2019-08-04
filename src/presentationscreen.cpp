@@ -33,7 +33,7 @@ PresentationScreen::PresentationScreen(PdfDoc* presentationDoc, QWidget* parent)
     connect(videoCacheTimer, &QTimer::timeout, this, &PresentationScreen::updateVideoCache);
 
     // slide will contain the slide as a pixmap
-    slide = new PresentationSlide(this);
+    slide = new PresentationSlide(presentation, this);
     layout = new QGridLayout(this);
     layout->setContentsMargins(0, 0, 0, 0);
     layout->addWidget(slide, 0, 0);
@@ -59,11 +59,11 @@ PresentationScreen::~PresentationScreen()
 void PresentationScreen::renderPage(int const pageNumber, bool const setDuration)
 {
     if (pageNumber < 0 || pageNumber >= numberOfPages) {
-        slide->renderPage(presentation->getPage(numberOfPages - 1), setDuration);
+        slide->renderPage(numberOfPages - 1, setDuration);
         pageIndex = numberOfPages - 1;
     }
     else {
-        slide->renderPage(presentation->getPage(pageNumber), setDuration);
+        slide->renderPage(pageNumber, setDuration);
         pageIndex = pageNumber;
     }
     // Update video cache
@@ -75,7 +75,7 @@ void PresentationScreen::renderPage(int const pageNumber, bool const setDuration
 void PresentationScreen::updateVideoCache()
 {
     if (pageIndex+1 < numberOfPages)
-        slide->updateCacheVideos(presentation->getPage(pageIndex+1));
+        slide->updateCacheVideos(pageIndex+1);
 }
 
 void PresentationScreen::receiveTimeoutSignal()
@@ -176,7 +176,7 @@ void PresentationScreen::keyPressEvent(QKeyEvent* event)
 void PresentationScreen::resizeEvent(QResizeEvent*)
 {
     slide->clearCache();
-    slide->renderPage(slide->getPage(), false);
+    slide->renderPage(slide->pageNumber(), false);
     emit clearPresentationCacheRequest();
 }
 

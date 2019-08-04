@@ -32,17 +32,17 @@ class MediaSlide : public PreviewSlide
     Q_OBJECT
 public:
     explicit MediaSlide(QWidget* parent=nullptr);
-    explicit MediaSlide(Poppler::Page* page, QWidget* parent=nullptr);
+    explicit MediaSlide(PdfDoc const * const document, int const pageNumber, QWidget* parent=nullptr);
     ~MediaSlide() override {clearAll();}
-    void renderPage(Poppler::Page* page, bool const hasDuration, QPixmap const* pixmap=nullptr);
+    void renderPage(int const pageNumber, bool const hasDuration, QPixmap const* pixmap=nullptr);
     void startAllEmbeddedApplications(int const index);
-    void initEmbeddedApplications(Poppler::Page const* page);
+    void initEmbeddedApplications(int const pageNumber);
     void avoidMultimediaBug();
     void setCacheVideos(bool const cache) {cacheVideos=cache;}
     void setMultimediaSliders(QList<QSlider*> sliderList);
     void setEmbedFileList(const QStringList& files) {embedFileList=files;}
     bool hasActiveMultimediaContent() const;
-    void updateCacheVideos(Poppler::Page const* page);
+    void updateCacheVideos(int const pageNumber);
     virtual void clearAll() override;
 
 protected:
@@ -69,8 +69,7 @@ protected:
     double autostartDelay = -1.; // delay for starting multimedia content in s
     double autostartEmbeddedDelay = -1.; // delay for starting embedded applications in s
     bool cacheVideos = true;
-    bool isOverlay = false;
-    virtual void animate(Poppler::PageTransition const * const = nullptr) {}
+    virtual void animate(int const = -1) {}
     virtual void endAnimation() {}
     virtual void setDuration() {}
 

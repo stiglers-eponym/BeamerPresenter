@@ -18,14 +18,21 @@
 
 #include "basicslide.h"
 
-void BasicSlide::renderPage(Poppler::Page* page, QPixmap const* pix)
+BasicSlide::BasicSlide(PdfDoc const * const document, int const pageNumber, QWidget* parent) : QWidget(parent)
 {
-    if (page == nullptr)
+    doc = document;
+    renderPage(pageNumber);
+    pageIndex = pageNumber;
+}
+
+void BasicSlide::renderPage(const int pageNumber, const QPixmap *pix)
+{
+    if (pageNumber < 0 || pageNumber >= doc->getDoc()->numPages())
         return;
 
     // Set the new page and basic properties
-    this->page = page;
-    pageIndex = page->index();
+    pageIndex = pageNumber;
+    page = doc->getPage(pageNumber);
     QSizeF pageSize = page->pageSizeF();
     // This is given in point = inch/72 ≈ 0.353mm (Did they choose these units to bother programmers?)
 

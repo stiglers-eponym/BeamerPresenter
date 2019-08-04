@@ -174,3 +174,13 @@ int PdfDoc::destToSlide(QString const & dest) const
     delete linkDest;
     return page;
 }
+
+QString const& PdfDoc::getLabel(int const pageNumber) const
+{
+    if (pageNumber<0)
+        return labels.first();
+    else if (pageNumber>popplerDoc->numPages())
+        return labels.last();
+    else
+        return labels[pageNumber];
+}

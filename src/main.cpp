@@ -114,7 +114,7 @@ double doubleFromConfig(QCommandLineParser const& parser, QVariantMap const& loc
     bool ok;
     double result;
     QString value;
-    if (parser.optionNames().contains(name))
+    if (parser.isSet(name))
         value = parser.value(name).toLower();
     if (!value.isEmpty()) {
         result = value.toDouble(&ok);
@@ -162,7 +162,7 @@ int intFromConfig(QCommandLineParser const& parser, QVariantMap const& local, QS
 {
     bool ok;
     int result;
-    if (parser.optionNames().contains(name) && !parser.value(name).isEmpty()) {
+    if (parser.isSet(name) && !parser.value(name).isEmpty()) {
         result = parser.value(name).toInt(&ok);
         if (ok)
             return result;
@@ -207,7 +207,7 @@ int main(int argc, char *argv[])
             "  m                Play or pause all multimedia content\n"
             "  o                Toggle cursor visbility (only on presentation screen)\n"
             "  p                Pause / continue timer\n"
-            "  q                Quit\n"
+            "  Ctrl + q         Quit\n"
             "  r                Reset timer\n"
             "  t                Show table of contents on control screen\n"
             "  s                Show overview of all slides on control screen\n"
@@ -707,13 +707,13 @@ int main(int argc, char *argv[])
         value = intFromConfig(parser, local, settings, "min-delay", 40);
         emit w->sendAnimationDelay(value);
 
-        //// Set frame time in slide transitions
-        //value = intFromConfig(parser, local, settings, "frame-time", 33);
-        //emit w->setTransitionFrameTime(value);
+        // Set frame time in slide transitions
+        value = intFromConfig(parser, local, settings, "frame-time", 33);
+        emit w->setTransitionFrameTime(value);
 
-        //// Set number of blinds in blinds slide transition
-        //value = intFromConfig(parser, local, settings, "blinds", 8);
-        //emit w->setTransitionBlinds(value);
+        // Set number of blinds in blinds slide transition
+        value = intFromConfig(parser, local, settings, "blinds", 8);
+        emit w->setTransitionBlinds(value);
 
         // Set number of columns in overview
         value = intFromConfig(parser, local, settings, "columns", 5);

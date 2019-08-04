@@ -31,7 +31,7 @@ class DrawSlide : public MediaSlide
     Q_OBJECT
 public:
     explicit DrawSlide(QWidget* parent=nullptr) : MediaSlide(parent) {}
-    explicit DrawSlide(Poppler::Page* page, QWidget* parent=nullptr) : MediaSlide(page, parent) {}
+    explicit DrawSlide(PdfDoc const*const document, int const pageNumber, QWidget* parent=nullptr) : MediaSlide(document, pageNumber, parent) {}
     ~DrawSlide() override {clearAll();}
     void clearPageAnnotations();
     void clearAllAnnotations();

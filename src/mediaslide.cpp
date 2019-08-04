@@ -18,13 +18,14 @@
 
 #include "mediaslide.h"
 
-MediaSlide::MediaSlide(Poppler::Page* page, QWidget* parent) : PreviewSlide(parent)
+MediaSlide::MediaSlide(PdfDoc const*const document, int const pageNumber, QWidget* parent) : PreviewSlide(parent)
 {
+    doc = document;
     autostartEmbeddedTimer->setSingleShot(true);
     connect(autostartEmbeddedTimer, &QTimer::timeout, this, [&](){startAllEmbeddedApplications(pageIndex);});
     autostartTimer->setSingleShot(true);
     connect(autostartTimer, &QTimer::timeout, this, &MediaSlide::startAllMultimedia);
-    renderPage(page, false);
+    renderPage(pageNumber, false);
 }
 
 MediaSlide::MediaSlide(QWidget* parent) : PreviewSlide(parent)
@@ -77,16 +78,16 @@ void MediaSlide::clearLists()
     soundLinkPlayers.clear();
 }
 
-void MediaSlide::renderPage(Poppler::Page* page, bool const hasDuration, QPixmap const* pix)
+void MediaSlide::renderPage(int const pageNumber, bool const hasDuration, QPixmap const* pix)
 {
     endAnimation();
-    if (page == nullptr)
+    if (pageNumber < 0 || pageNumber >= doc->getDoc()->numPages())
         return;
 
     // Use overlay specific options
     // A page is called an overlay of the previously rendered page, if they have the same label.
     // This is also the case, if the same page is rendered again (e.g. because the window is resized).
-    isOverlay = this->page!=nullptr && page->label()==this->page->label();
+    bool isOverlay = page!=nullptr && page->label() == doc->getLabel(pageNumber);
     if (isOverlay) {
         qDeleteAll(links);
         linkPositions.clear();
@@ -103,13 +104,10 @@ void MediaSlide::renderPage(Poppler::Page* page, bool const hasDuration, QPixmap
         oldSize = size();
     }
 
-    Poppler::PageTransition const * oldTransition = nullptr;
-    if (this->page != nullptr && page->index() < this->page->index())
-        oldTransition = this->page->transition();
-
     // Set the new page and basic properties
-    this->page = page;
-    pageIndex = page->index();
+    int const oldPageIndex = pageIndex;
+    pageIndex = pageNumber;
+    page = doc->getPage(pageNumber);
     QSizeF pageSize = page->pageSizeF();
     // This is given in point = inch/72 ≈ 0.353mm (Did they choose these units to bother programmers?)
 
@@ -193,7 +191,7 @@ void MediaSlide::renderPage(Poppler::Page* page, bool const hasDuration, QPixmap
     // In this case: go to the next page after that given time.
     if (hasDuration)
         setDuration();
-    animate(oldTransition);
+    animate(oldPageIndex);
 
     // Collect link areas in pixels (positions relative to the lower left edge of the label)
     links = page->links();
@@ -641,12 +639,15 @@ void MediaSlide::renderPage(Poppler::Page* page, bool const hasDuration, QPixmap
     emit pageNumberChanged(pageIndex);
 }
 
-void MediaSlide::updateCacheVideos(const Poppler::Page *page)
+void MediaSlide::updateCacheVideos(int const pageNumber)
 {
-    if (page->index()==this->pageIndex)
+    if (pageNumber==pageIndex)
         return;
-    // Get a list of all video annotations on this page.
+    // Get a list of all video annotations on that page.
     QSet<Poppler::Annotation::SubType> videoType = QSet<Poppler::Annotation::SubType>();
+    Poppler::Page const* page = doc->getPage(pageNumber);
+    if (page == nullptr)
+        return;
     videoType.insert(Poppler::Annotation::AMovie);
     QList<Poppler::Annotation*> videos = page->annotations(videoType);
     for (QList<Poppler::Annotation*>::const_iterator annotation=videos.cbegin(); annotation!=videos.cend(); annotation++) {
@@ -983,22 +984,23 @@ void MediaSlide::receiveEmbedApp(EmbedApp* app)
         widget->hide();
 }
 
-void MediaSlide::initEmbeddedApplications(Poppler::Page const* page)
+void MediaSlide::initEmbeddedApplications(int const pageNumber)
 {
     // Initialize all embedded applications for a given page.
     // The applications are not started yet, but their positions are calculated and the commands are saved.
     // After this function, MediaSlide::startAllEmbeddedApplications can be used to start the applications.
     QList<Poppler::Link*> links;
-    int const index = page->index();
-    if (index == pageIndex)
+    if (pageNumber == pageIndex)
         links = this->links;
+    else if (pageNumber<0 || pageNumber>=doc->getDoc()->numPages())
+        return;
     else
-        links = page->links();
+        links = doc->getPage(pageNumber)->links();
     bool containsNewEmbeddedWidgets = false;
 
     // Find embedded programs.
     for (int i=0; i<links.length(); i++) {
-        if (links[i]->linkType()==Poppler::Link::Execute && !(embedMap.contains(index) && embedMap[index].contains(i))) {
+        if (links[i]->linkType()==Poppler::Link::Execute && !(embedMap.contains(pageNumber) && embedMap[pageNumber].contains(i))) {
             // Execution links can point to applications, which should be embedded in the presentation
             Poppler::LinkExecute* const link = static_cast<Poppler::LinkExecute*>(links[i]);
             // Get file path (url) and arguments
@@ -1019,9 +1021,9 @@ void MediaSlide::initEmbeddedApplications(Poppler::Page const* page)
                 for (QMap<int,QMap<int,int>>::const_iterator page_it = embedMap.cbegin(); page_it!=embedMap.cend(); page_it++) {
                     for (QMap<int,int>::const_iterator idx_it = (*page_it).cbegin(); idx_it!=(*page_it).cend(); idx_it++) {
                         if (embedApps[*idx_it]->getCommand() == splitFileName) {
-                            embedMap[index][i] = *idx_it;
+                            embedMap[pageNumber][i] = *idx_it;
                             embedPositions[*idx_it] = QRect();
-                            embedApps[*idx_it]->addLocation(index, i);
+                            embedApps[*idx_it]->addLocation(pageNumber, i);
                             found = true;
                             break;
                         }
@@ -1030,8 +1032,8 @@ void MediaSlide::initEmbeddedApplications(Poppler::Page const* page)
                         break;
                 }
                 if (!found) {
-                    embedMap[index][i] = embedApps.length();
-                    EmbedApp* const app = new EmbedApp(splitFileName, pid2wid, index, i, this);
+                    embedMap[pageNumber][i] = embedApps.length();
+                    EmbedApp* const app = new EmbedApp(splitFileName, pid2wid, pageNumber, i, this);
                     connect(app, &EmbedApp::widgetReady, this, &MediaSlide::receiveEmbedApp);
                     embedApps.append(app);
                     embedPositions.append(QRect());
@@ -1043,8 +1045,8 @@ void MediaSlide::initEmbeddedApplications(Poppler::Page const* page)
 
     // If this slide contains embedded applications, calculate and save their position.
     if (containsNewEmbeddedWidgets) {
-        if (index == pageIndex) {
-            for (QMap<int,int>::const_iterator idx_it=embedMap[index].cbegin(); idx_it!=embedMap[index].cend(); idx_it++) {
+        if (pageNumber == pageIndex) {
+            for (QMap<int,int>::const_iterator idx_it=embedMap[pageNumber].cbegin(); idx_it!=embedMap[pageNumber].cend(); idx_it++) {
                 if (embedPositions[*idx_it].isNull()) {
                     QRect winGeometry = linkPositions[idx_it.key()];
                     if (winGeometry.height() < 0) {
@@ -1065,7 +1067,7 @@ void MediaSlide::initEmbeddedApplications(Poppler::Page const* page)
         else {
             int shift_x=0, shift_y=0;
             double resolution = this->resolution;
-            QSize pageSize = page->pageSize();
+            QSize pageSize = doc->getPage(pageNumber)->pageSize();
             // This is given in point = inch/72 ≈ 0.353mm (Did they choose these units to bother programmers?)
 
             // Place the page as an image of the correct size at the correct position
@@ -1096,7 +1098,7 @@ void MediaSlide::initEmbeddedApplications(Poppler::Page const* page)
                 if (pagePart == RightHalf)
                     shift_x -= width();
             }
-            for (QMap<int,int>::const_iterator idx_it=embedMap[index].cbegin(); idx_it!=embedMap[index].cend(); idx_it++) {
+            for (QMap<int,int>::const_iterator idx_it=embedMap[pageNumber].cbegin(); idx_it!=embedMap[pageNumber].cend(); idx_it++) {
                 if (embedPositions[*idx_it].isNull()) {
                     QRectF relative = links[idx_it.key()]->linkArea();
                     QRect winGeometry = QRect(
@@ -1117,7 +1119,7 @@ void MediaSlide::initEmbeddedApplications(Poppler::Page const* page)
     }
 
     // If the links were not stolen from the page, they should be deleted.
-    if (index != pageIndex)
+    if (pageNumber != pageIndex)
         qDeleteAll(links);
 }
 

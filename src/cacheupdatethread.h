@@ -41,17 +41,16 @@ private:
     PreviewSlide const* presLabel;
     PreviewSlide const* noteLabel;
     PreviewSlide const* smallLabel;
-    Poppler::Page const* presPage;
-    Poppler::Page const* notePage;
+    int page = 0;
     PagePart pagePart = FullPage;
 
 public:
     CacheUpdateThread(QObject* parent=nullptr) : QThread(parent) {}
     void setCustomRenderer(QString const& renderCommand, QString const& presFileName, QString const& noteFileName, QStringList const& renderArguments, Renderer renderer = Renderer::custom);
-    void setLabels(PreviewSlide const* pres, PreviewSlide const* note, PreviewSlide const* small);
-    void setPages(Poppler::Page const* pres, Poppler::Page const* note);
+    void setSlideWidgets(PreviewSlide const* pres, PreviewSlide const* note, PreviewSlide const* small);
+    void setPage(int const newpage) {page=newpage;}
     void setRenderer(Renderer renderer) {mode=renderer;}
-    bool hasRenderCommand() {return !renderCommand.isEmpty();}
+    bool hasRenderCommand() const {return !renderCommand.isEmpty();}
     void setPagePart(PagePart const part) {pagePart=part;}
     void run() override;
 

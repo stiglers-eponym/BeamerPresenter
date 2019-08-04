@@ -18,6 +18,13 @@
 
 #include "previewslide.h"
 
+PreviewSlide::PreviewSlide(PdfDoc const * const document, int const pageNumber, QWidget* parent) : BasicSlide(parent)
+{
+    doc = document;
+    renderPage(pageNumber);
+    pageIndex = pageNumber;
+}
+
 PreviewSlide::~PreviewSlide()
 {
     // Clear all contents of the label.
@@ -29,9 +36,9 @@ PreviewSlide::~PreviewSlide()
     page = nullptr;
 }
 
-void PreviewSlide::renderPage(Poppler::Page* page, QPixmap const* pix)
+void PreviewSlide::renderPage(int const pageNumber, QPixmap const* pix)
 {
-    if (page == nullptr)
+    if (pageNumber < 0 || pageNumber >= doc->getDoc()->numPages())
         return;
 
     // Use overlay specific options
@@ -48,8 +55,8 @@ void PreviewSlide::renderPage(Poppler::Page* page, QPixmap const* pix)
     }
 
     // Set the new page and basic properties
-    this->page = page;
-    pageIndex = page->index();
+    pageIndex = pageNumber;
+    page = doc->getPage(pageNumber);
     QSizeF pageSize = page->pageSizeF();
     // This is given in point = inch/72 ≈ 0.353mm (Did they choose these units to bother programmers?)
 
@@ -172,18 +179,18 @@ long int PreviewSlide::updateCache(QByteArray const* bytes, int const index)
     return bytes->size();
 }
 
-long int PreviewSlide::updateCache(Poppler::Page const* cachePage)
+long int PreviewSlide::updateCache(int const pageNumber)
 {
     // Check whether the cachePage exists in cache. If yes, return 0.
     // Otherwise, render the given page using the internal renderer,
     // write the compressed image to cache and return the size of the compressed image.
 
-    int index = cachePage->index();
     // Check whether the page exists in cache.
-    if (cache.contains(index))
+    if (cache.contains(pageNumber) || pageNumber<0 || pageNumber>doc->getDoc()->numPages())
         return 0;
 
     // Render the page to a pixmap
+    Poppler::Page const* cachePage = doc->getPage(pageNumber);
     QImage image = cachePage->renderToImage(72*resolution, 72*resolution);
     // if pagePart != FullPage: Reduce the image to the relevant part.
     if (pagePart == LeftHalf)
@@ -192,7 +199,7 @@ long int PreviewSlide::updateCache(Poppler::Page const* cachePage)
         image = image.copy(image.width()/2, 0, image.width()/2, image.height());
 
     // This check is repeated, because it could be possible that the cache is overwritten while the image is rendered.
-    if (cache.contains(index))
+    if (cache.contains(pageNumber))
         return 0;
 
     // Write the image in png format to a QBytesArray
@@ -200,22 +207,23 @@ long int PreviewSlide::updateCache(Poppler::Page const* cachePage)
     QBuffer buffer(bytes);
     buffer.open(QIODevice::WriteOnly);
     image.save(&buffer, "PNG");
-    cache[index] = bytes;
+    cache[pageNumber] = bytes;
     return bytes->size();
 }
 
-QPixmap PreviewSlide::getPixmap(Poppler::Page const* cachePage) const
+QPixmap PreviewSlide::getPixmap(int const pageNumber) const
 {
     // Return a pixmap representing the current page.
     QPixmap pixmap;
-    if (cache.contains(cachePage->index())) {
+    if (cache.contains(pageNumber)) {
         // The page exists in cache. Use the cache instead of rendering it again.
-        pixmap = getCache(cachePage->index());
+        pixmap = getCache(pageNumber);
         QSizeF size = page->pageSizeF();
         int picwidth = int(resolution*size.width()), picheight = int(resolution*size.height());
         if (abs(picwidth-pixmap.width())<2 && abs(picheight-pixmap.height())<2)
             return pixmap;
     }
+    Poppler::Page const* cachePage = doc->getPage(pageNumber);
     if (pagePart == FullPage)
         pixmap = QPixmap::fromImage(cachePage->renderToImage(72*resolution, 72*resolution));
     else {

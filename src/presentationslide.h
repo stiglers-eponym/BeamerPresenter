@@ -44,24 +44,27 @@ private:
 
 protected:
     QTimer* const timeoutTimer = new QTimer(this);
-    int minimumAnimationDelay = 40; // minimum frame time in ms
+    int minimumAnimationDelay = 50; // minimum frame time in ms
     QPixmap picinit;
+    QPixmap picfinal;
     double duration = -1.; // duration of the current page in s
     void paintEvent(QPaintEvent*) override;
-    void animate(Poppler::PageTransition const * const oldTransition = nullptr) override;
+    void animate(int const oldPgaeIndex = -1) override;
     void endAnimation() override;
     void setDuration() override;
     void enableTransitions() {elapsed=0;}
     void updateFromTimer();
+    void drawPointer(QPainter& painter);
+    void updateImages(int const oldPage);
 
 public:
-    PresentationSlide(QWidget* parent=nullptr);
+    PresentationSlide(PdfDoc const*const document, QWidget* parent=nullptr);
     ~PresentationSlide() override;
     QPixmap const& getCurrentPixmap() const {return pixmap;}
+    void setBlindsNumber(int const n) {n_blinds=n;}
+    void setFrameTime(int const time) {dt=time;}
     void disableTransitions();
     double getDuration() const {return duration;}
-    void setFrameTime(int const time) {dt=time;}
-    void setBlinds(int const blinds) {n_blinds=blinds;}
     void paintSplitHI(QPainter& painter);
     void paintSplitVI(QPainter& painter);
     void paintSplitHO(QPainter& painter);

@@ -28,19 +28,18 @@ class PreviewSlide : public BasicSlide
     Q_OBJECT
 public:
     explicit PreviewSlide(QWidget* parent=nullptr) : BasicSlide(parent) {}
-    explicit PreviewSlide(Poppler::Page* page, QWidget* parent=nullptr) : BasicSlide(parent) {renderPage(page);}
+    explicit PreviewSlide(PdfDoc const * const document, int const pageNumber, QWidget* parent=nullptr);
     ~PreviewSlide() override;
-    virtual void renderPage(Poppler::Page* page, QPixmap const* pixmap=nullptr) override;
-    long int updateCache(Poppler::Page const* page);
+    virtual void renderPage(int const pageNumber, QPixmap const* pix=nullptr) override;
+    long int updateCache(int const pageNumber);
     long int updateCache(QPixmap const* pixmap, int const index);
     long int updateCache(QByteArray const* pixmap, int const index);
     long int clearCachePage(int const index);
-    void updateCacheVideos(Poppler::Page const* page);
     virtual void clearCache();
     void setUseCache(bool const use) {useCache=use;}
     long int getCacheSize() const;
     int getCacheNumber() const {return cache.size();}
-    QPixmap getPixmap(Poppler::Page const* page) const;
+    QPixmap getPixmap(int const pageNumber) const;
     QPixmap const getCache(int const index) const;
     QByteArray const* getCachedBytes(int const index) const;
     bool cacheContains(int const index) const {return cache.contains(index);}
