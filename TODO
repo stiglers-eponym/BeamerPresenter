@@ -4,7 +4,6 @@ BeamerPresenter
 * cache management can crash, disabling cache completely (occurred after reloading files): not simply reproducible
 * Segfault when embedded application appears during slide change?
 * Draw in presentation:
-	*	show annotations in magnifier
 	*	show annotations on top of video content
 	*	sync multimedia content
 	*	Check slide transitions and improve efficiency

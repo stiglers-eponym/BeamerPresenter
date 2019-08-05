@@ -29,6 +29,10 @@ void DrawSlide::clearPageAnnotations()
     if (paths.contains(page->label())) {
         paths[page->label()].clear();
         update();
+        if (tool == Magnifier) {
+            enlargedPage = QPixmap();
+            updateEnlargedPage();
+        }
     }
 }
 
@@ -43,7 +47,7 @@ void DrawSlide::resizeEvent(QResizeEvent*)
 {
     if (resolution < 0)
         return;
-    enlargedPage = QImage();
+    enlargedPage = QPixmap();
     int const oldshiftx = shiftx, oldshifty = shifty;
     double const oldRes = resolution;
     QSizeF pageSize = page->pageSizeF();
@@ -82,11 +86,11 @@ void DrawSlide::setTool(const DrawTool newtool)
     if (!pointer_visible && tool != Pointer)
         setMouseTracking(false);
     if (tool == Torch) {
-        enlargedPage = QImage();
+        enlargedPage = QPixmap();
         pointerPosition = QPointF();
     }
     else if (tool == Pointer) {
-        enlargedPage = QImage();
+        enlargedPage = QPixmap();
         setMouseTracking(true);
         if (underMouse()) {
             pointerPosition = mapFromGlobal(QCursor::pos());
@@ -95,13 +99,10 @@ void DrawSlide::setTool(const DrawTool newtool)
     }
     else if (tool == Magnifier) {
         pointerPosition = QPointF();
-        if (enlargedPage.isNull() || enlargedPageNumber!=pageIndex) {
-            enlargedPageNumber = pageIndex;
-            enlargedPage = page->renderToImage(144*resolution, 144*resolution);
-        }
+        updateEnlargedPage();
     }
     else
-        enlargedPage = QImage();
+        enlargedPage = QPixmap();
     update();
 }
 
@@ -165,9 +166,9 @@ void DrawSlide::drawAnnotations(QPainter &painter)
         path.addEllipse(pointerPosition, sizes[Magnifier], sizes[Magnifier]);
         painter.setClipPath(path, Qt::ReplaceClip);
         //painter.setClipRegion(QRegion(pointerPosition.x()-sizes[Magnifier], pointerPosition.y()-sizes[Magnifier], 2*sizes[Magnifier], 2*sizes[Magnifier], QRegion::Ellipse), Qt::ClipOperation::ReplaceClip);
-        painter.drawImage(QRectF(pointerPosition.x()-sizes[Magnifier], pointerPosition.y()-sizes[Magnifier], 2*sizes[Magnifier], 2*sizes[Magnifier]),
+        painter.drawPixmap(QRectF(pointerPosition.x()-sizes[Magnifier], pointerPosition.y()-sizes[Magnifier], 2*sizes[Magnifier], 2*sizes[Magnifier]),
                           enlargedPage,
-                          QRectF(2*(pointerPosition.x()-shiftx) - sizes[Magnifier], 2*(pointerPosition.y()-shifty) - sizes[Magnifier], 2*sizes[Magnifier], 2*sizes[Magnifier]));
+                          QRectF(2*pointerPosition.x() - sizes[Magnifier], 2*pointerPosition.y() - sizes[Magnifier], 2*sizes[Magnifier], 2*sizes[Magnifier]));
         painter.setPen(QPen(QColor(32,32,32,64), 2));
         painter.drawEllipse(pointerPosition, sizes[Magnifier], sizes[Magnifier]);
     }
@@ -195,11 +196,7 @@ void DrawSlide::mousePressEvent(QMouseEvent *event)
             update();
             break;
         case Magnifier:
-            if (enlargedPage.isNull() || enlargedPageNumber!=pageIndex) {
-                enlargedPageNumber = pageIndex;
-                enlargedPage = page->renderToImage(144*resolution, 144*resolution);
-                //TODO: show annotations in magnifier
-            }
+            updateEnlargedPage();
         [[clang::fallthrough]];
         case Torch:
         case Pointer:
@@ -315,7 +312,7 @@ void DrawSlide::erase(const QPointF &point)
 void DrawSlide::clearCache()
 {
     PreviewSlide::clearCache();
-    enlargedPage = QImage();
+    enlargedPage = QPixmap();
 }
 
 void DrawSlide::setPaths(QString const pagelabel, DrawTool const tool, QList<DrawPath> const& list, int const refshiftx, int const refshifty, double const refresolution)
@@ -333,10 +330,8 @@ void DrawSlide::setPaths(QString const pagelabel, DrawTool const tool, QList<Dra
 void DrawSlide::setPointerPosition(QPointF const point, int const refshiftx, int const refshifty, double const refresolution)
 {
     pointerPosition = (point - QPointF(refshiftx, refshifty)) * resolution/refresolution + QPointF(shiftx, shifty);
-    if (tool == Magnifier && (enlargedPage.isNull() || enlargedPageNumber!=pageIndex)) {
-        enlargedPageNumber = pageIndex;
-        enlargedPage = page->renderToImage(144*resolution, 144*resolution);
-    }
+    if (tool == Magnifier)
+        updateEnlargedPage();
     if (tool == Pointer || tool == Magnifier || tool == Torch)
         update();
 }
@@ -346,5 +341,45 @@ void DrawSlide::relax()
     if (tool == Torch || tool == Magnifier) {
         pointerPosition = QPointF();
         update();
+    }
+}
+
+void DrawSlide::updateEnlargedPage()
+{
+    if (!enlargedPage.isNull() && enlargedPageNumber==pageIndex)
+        return;
+    enlargedPageNumber = pageIndex;
+    enlargedPage = QPixmap(2*size());
+    enlargedPage.fill(QColor(0,0,0,0));
+    QPainter painter;
+    painter.begin(&enlargedPage);
+    painter.drawImage(2*shiftx, 2*shifty, page->renderToImage(144*resolution, 144*resolution));
+    painter.setRenderHint(QPainter::Antialiasing);
+    qDebug() << "redrawing enlarged page";
+    if (paths.contains(page->label())) {
+        if (paths[page->label()].contains(GreenPen)) {
+            painter.setCompositionMode(QPainter::CompositionMode_SourceOver);
+            painter.setPen(QPen(QColor(0,191,0), 2*sizes[GreenPen]));
+            for (QList<DrawPath>::const_iterator it=paths[page->label()][GreenPen].cbegin(); it!=paths[page->label()][GreenPen].cend(); it++) {
+                DrawPath tmp(*it, QPointF(0,0), 2.);
+                painter.drawPolyline(tmp.data(), tmp.number());
+            }
+        }
+        if (paths[page->label()].contains(RedPen)) {
+            painter.setCompositionMode(QPainter::CompositionMode_SourceOver);
+            painter.setPen(QPen(QColor(255,0,0), 2*sizes[RedPen]));
+            for (QList<DrawPath>::const_iterator it=paths[page->label()][RedPen].cbegin(); it!=paths[page->label()][RedPen].cend(); it++) {
+                DrawPath tmp(*it, QPointF(0,0), 2.);
+                painter.drawPolyline(tmp.data(), tmp.number());
+            }
+        }
+        if (paths[page->label()].contains(Highlighter)) {
+            painter.setCompositionMode(QPainter::CompositionMode_Darken);
+            painter.setPen(QPen(QColor(255,255,0), 2*sizes[Highlighter], Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin));
+            for (QList<DrawPath>::const_iterator it=paths[page->label()][Highlighter].cbegin(); it!=paths[page->label()][Highlighter].cend(); it++) {
+                DrawPath tmp(*it, QPointF(0,0), 2.);
+                painter.drawPolyline(tmp.data(), tmp.number());
+            }
+        }
     }
 }

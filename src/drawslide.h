@@ -44,6 +44,7 @@ public:
     DrawTool getTool() const {return tool;}
     int getSize(DrawTool const tool) {return sizes[tool];}
     void setScaledPixmap(QPixmap const& pix);
+    void updateEnlargedPage();
 
 protected:
     void drawAnnotations(QPainter& painter);
@@ -56,7 +57,7 @@ protected:
     DrawTool tool = None;
     QMap<QString, QMap<DrawTool, QList<DrawPath>>> paths;
     QPointF pointerPosition = QPointF();
-    QImage enlargedPage;
+    QPixmap enlargedPage;
     int enlargedPageNumber;
     QMap<DrawTool, int> sizes = {{Magnifier,120}, {Torch,80}, {Pointer,10}, {Highlighter,30}, {RedPen,3}, {GreenPen,3}, {Eraser,10}};
     bool pointer_visible = true;
