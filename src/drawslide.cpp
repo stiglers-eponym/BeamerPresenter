@@ -18,6 +18,16 @@
 
 #include "drawslide.h"
 
+DrawSlide::DrawSlide(QWidget* parent) : MediaSlide(parent)
+{
+    connect(this, &MediaSlide::pageNumberChanged, this, [&](int const){updateEnlargedPage();});
+}
+
+DrawSlide::DrawSlide(PdfDoc const*const document, int const pageNumber, QWidget* parent) : MediaSlide(document, pageNumber, parent)
+{
+    connect(this, &MediaSlide::pageNumberChanged, this, [&](int const){updateEnlargedPage();});
+}
+
 void DrawSlide::clearAllAnnotations()
 {
     paths.clear();
@@ -29,10 +39,8 @@ void DrawSlide::clearPageAnnotations()
     if (paths.contains(page->label())) {
         paths[page->label()].clear();
         update();
-        if (tool == Magnifier) {
-            enlargedPage = QPixmap();
+        if (tool == Magnifier)
             updateEnlargedPage();
-        }
     }
 }
 
@@ -99,7 +107,8 @@ void DrawSlide::setTool(const DrawTool newtool)
     }
     else if (tool == Magnifier) {
         pointerPosition = QPointF();
-        updateEnlargedPage();
+        if (enlargedPage.isNull())
+            updateEnlargedPage();
     }
     else
         enlargedPage = QPixmap();
@@ -196,7 +205,8 @@ void DrawSlide::mousePressEvent(QMouseEvent *event)
             update();
             break;
         case Magnifier:
-            updateEnlargedPage();
+            if (enlargedPage.isNull())
+                updateEnlargedPage();
         [[clang::fallthrough]];
         case Torch:
         case Pointer:
@@ -221,8 +231,17 @@ void DrawSlide::mouseReleaseEvent(QMouseEvent *event)
     // Middle mouse button always follows hyperlinks.
     if (((tool == None || tool == Pointer) && event->button() == Qt::LeftButton) || event->button() == Qt::MidButton)
         followHyperlinks(event->pos());
-    else if (tool == Torch || tool == Magnifier) {
+    else if (tool == Torch) {
         pointerPosition = QPointF();
+        update();
+    }
+    else if (tool == Magnifier) {
+        pointerPosition = QPointF();
+        // Update enlarged page after eraser was used:
+        if (event->button() == Qt::RightButton) {
+            updateEnlargedPage();
+            emit sendUpdateEnlargedPage();
+        }
         update();
     }
     emit sendRelax();
@@ -330,7 +349,7 @@ void DrawSlide::setPaths(QString const pagelabel, DrawTool const tool, QList<Dra
 void DrawSlide::setPointerPosition(QPointF const point, int const refshiftx, int const refshifty, double const refresolution)
 {
     pointerPosition = (point - QPointF(refshiftx, refshifty)) * resolution/refresolution + QPointF(shiftx, shifty);
-    if (tool == Magnifier)
+    if (tool == Magnifier && enlargedPage.isNull())
         updateEnlargedPage();
     if (tool == Pointer || tool == Magnifier || tool == Torch)
         update();
@@ -346,16 +365,17 @@ void DrawSlide::relax()
 
 void DrawSlide::updateEnlargedPage()
 {
-    if (!enlargedPage.isNull() && enlargedPageNumber==pageIndex)
+    if (tool != Magnifier) {
+        if (!enlargedPage.isNull())
+            enlargedPage = QPixmap();
         return;
-    enlargedPageNumber = pageIndex;
+    }
     enlargedPage = QPixmap(2*size());
     enlargedPage.fill(QColor(0,0,0,0));
     QPainter painter;
     painter.begin(&enlargedPage);
     painter.drawImage(2*shiftx, 2*shifty, page->renderToImage(144*resolution, 144*resolution));
     painter.setRenderHint(QPainter::Antialiasing);
-    qDebug() << "redrawing enlarged page";
     if (paths.contains(page->label())) {
         if (paths[page->label()].contains(GreenPen)) {
             painter.setCompositionMode(QPainter::CompositionMode_SourceOver);

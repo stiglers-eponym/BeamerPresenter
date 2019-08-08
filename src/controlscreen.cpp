@@ -83,6 +83,8 @@ ControlScreen::ControlScreen(QString presentationPath, QString notesPath, QWidge
         connect(presentationScreen->slide, &DrawSlide::pointerPositionChanged, drawSlide, &DrawSlide::setPointerPosition);
         connect(drawSlide, &DrawSlide::sendRelax, presentationScreen->slide, &DrawSlide::relax);
         connect(presentationScreen->slide, &DrawSlide::sendRelax, drawSlide, &DrawSlide::relax);
+        connect(drawSlide, &DrawSlide::sendUpdateEnlargedPage, presentationScreen->slide, &DrawSlide::updateEnlargedPage);
+        connect(presentationScreen->slide, &DrawSlide::sendUpdateEnlargedPage, drawSlide, &DrawSlide::updateEnlargedPage);
         //drawSlide->setTool(presentationScreen->slide->getTool());
         // TODO: synchronize video content
     }
@@ -1307,6 +1309,7 @@ void ControlScreen::showDrawSlide()
     // Draw slide and tool selector
     if (drawSlide == nullptr) {
         drawSlide = new DrawSlide(this);
+        drawSlide->setDoc(presentation);
         drawSlide->setFocusPolicy(Qt::ClickFocus);
         drawSlide->setUseCache(false);
         connect(ui->tool_selector, &ToolSelector::sendNewTool, drawSlide, &DrawSlide::setTool);
@@ -1317,6 +1320,8 @@ void ControlScreen::showDrawSlide()
         connect(presentationScreen->slide, &DrawSlide::pointerPositionChanged, drawSlide, &DrawSlide::setPointerPosition);
         connect(drawSlide, &DrawSlide::sendRelax, presentationScreen->slide, &DrawSlide::relax);
         connect(presentationScreen->slide, &DrawSlide::sendRelax, drawSlide, &DrawSlide::relax);
+        connect(drawSlide, &DrawSlide::sendUpdateEnlargedPage, presentationScreen->slide, &DrawSlide::updateEnlargedPage);
+        connect(presentationScreen->slide, &DrawSlide::sendUpdateEnlargedPage, drawSlide, &DrawSlide::updateEnlargedPage);
         connect(presentationScreen->slide, &BasicSlide::pageNumberChanged, drawSlide, [&](int const pageNumber) {drawSlide->renderPage(pageNumber, false);});
         connect(drawSlide, &PreviewSlide::sendNewPageNumber, presentationScreen, &PresentationScreen::receiveNewPageNumber);
         connect(drawSlide, &PreviewSlide::sendNewPageNumber, this, &ControlScreen::renderPage);

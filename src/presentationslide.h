@@ -31,13 +31,12 @@ class PresentationSlide : public DrawSlide
     Q_OBJECT
 
 private:
-    int elapsed = 0;  // in ms
     int transition_duration = 0; // in ms
-    int dt = 25;      // in ms
     int n_blinds = 8;
     int picwidth;
     int picheight;
     QTimer timer;
+    QTimer remainTimer;
     void (PresentationSlide::*paint)(QPainter&);
     QPixmap changes; // only for transition fly
     int virtual_transition_duration = 100; // only for transition fly
@@ -52,8 +51,6 @@ protected:
     void animate(int const oldPgaeIndex = -1) override;
     void endAnimation() override;
     void setDuration() override;
-    void enableTransitions() {elapsed=0;}
-    void updateFromTimer();
     void drawPointer(QPainter& painter);
     void updateImages(int const oldPage);
 
@@ -62,7 +59,7 @@ public:
     ~PresentationSlide() override;
     QPixmap const& getCurrentPixmap() const {return pixmap;}
     void setBlindsNumber(int const n) {n_blinds=n;}
-    void setFrameTime(int const time) {dt=time;}
+    void enableTransitions() {transition_duration = 0;}
     void disableTransitions();
     double getDuration() const {return duration;}
     void paintSplitHI(QPainter& painter);

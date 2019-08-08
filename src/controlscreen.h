@@ -68,7 +68,6 @@ public:
     void setTimerMap(QMap<int, QTime>& timeMap);
     void disableSlideTransitions() {presentationScreen->slide->disableTransitions();}
     void setToolSize(DrawTool const tool, int const size) {presentationScreen->slide->setSize(tool, size);}
-    void setTransitionFrameTime(int const time) {presentationScreen->slide->setFrameTime(time);}
     void setTransitionBlinds(int const n) {presentationScreen->slide->setBlindsNumber(n);}
     void showDrawSlide();
     void hideDrawSlide();

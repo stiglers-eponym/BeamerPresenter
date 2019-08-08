@@ -62,10 +62,6 @@ Disable all slide transition.
 Mark these files for embedding if an execution link points to them. Multiple files should be separated only by a comma (not space!).
 .
 .TP
-.BI "\-f \-\-frame-time " ms
-Set the time per frame in slide transitions in ms.
-.
-.TP
 .BI "\-j \-\-json " file
 Select a local configuration file. The file must be in JSON format and can contain the same configuration as the global configuration file. Additionally, it can contain a map of slides to times, at which you want to finish the slide. These times are used to adjust the color of the timer.
 .
@@ -325,7 +321,8 @@ Simple animations can be created by showing slides in rapid succession. When usi
 .BR \-m " or " \-\-min-delay .
 .
 .SS Slide transitions
-.BR BeamerPresenter " supports an incomplete set of slide transitions. The frame time for slide transitions can be set using " \-f " or " \-\-frame-time ". Slide transitions can be disabled completely with the option " \-d " or " \-\-no-transitions .
+.BR BeamerPresenter " supports slide transitions. Slide transitions can be disabled completely with the option " \-d " or " \-\-no-transitions .
+.RB "For transitions of type \[dq]fly\[dq] which are not marked as rectangular, " BeamerPresenter " uses transparency effects which usually only look good for text flying in or out."
 .
 .SS Embedded applications
 A link in the PDF pointing to an external application will usually be handled by the desktop services. But you can also specify programs, which will be executed directly when pressing the link.
@@ -571,11 +568,6 @@ set default value for the command line argument
 .TP
 .B no-transitions
 .RB "disable all slide transitions by setting " \-\-no-transitions " by default.
-.
-.TP
-.B frame-time =25
-set default value for the command line argument
-.BR \-f " or " \-\-frame-time .
 .
 .TP
 .B pid2wid

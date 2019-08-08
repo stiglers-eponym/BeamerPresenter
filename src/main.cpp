@@ -234,7 +234,6 @@ int main(int argc, char *argv[])
         {{"c", "cache"}, "Number of slides that will be cached. A negative number is treated as infinity.", "int"},
         {{"d", "no-transitions"}, "Disable slide transitions."},
         {{"e", "embed"}, "file1,file2,... Mark these files for embedding if an execution link points to them.", "files"},
-        {{"f", "frame-time"}, "Frame time of slide transitions in ms", "int"},
         {{"j", "json"}, "Local JSON configuration file.", "file"},
         {{"l", "toc-depth"}, "Number of levels of the table of contents which are shown.", "int"},
         {{"m", "min-delay"}, "Set minimum time per frame in milliseconds.\nThis is useful when using \\animation in LaTeX beamer.", "ms"},
@@ -706,10 +705,6 @@ int main(int argc, char *argv[])
         // Set minimum time per frame in animations
         value = intFromConfig(parser, local, settings, "min-delay", 40);
         emit w->sendAnimationDelay(value);
-
-        // Set frame time in slide transitions
-        value = intFromConfig(parser, local, settings, "frame-time", 33);
-        emit w->setTransitionFrameTime(value);
 
         // Set number of blinds in blinds slide transition
         value = intFromConfig(parser, local, settings, "blinds", 8);

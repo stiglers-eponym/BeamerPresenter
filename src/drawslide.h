@@ -30,8 +30,8 @@ class DrawSlide : public MediaSlide
 {
     Q_OBJECT
 public:
-    explicit DrawSlide(QWidget* parent=nullptr) : MediaSlide(parent) {}
-    explicit DrawSlide(PdfDoc const*const document, int const pageNumber, QWidget* parent=nullptr) : MediaSlide(document, pageNumber, parent) {}
+    explicit DrawSlide(QWidget* parent=nullptr);
+    explicit DrawSlide(PdfDoc const*const document, int const pageNumber, QWidget* parent=nullptr);
     ~DrawSlide() override {clearAll();}
     void clearPageAnnotations();
     void clearAllAnnotations();
@@ -58,7 +58,6 @@ protected:
     QMap<QString, QMap<DrawTool, QList<DrawPath>>> paths;
     QPointF pointerPosition = QPointF();
     QPixmap enlargedPage;
-    int enlargedPageNumber;
     QMap<DrawTool, int> sizes = {{Magnifier,120}, {Torch,80}, {Pointer,10}, {Highlighter,30}, {RedPen,3}, {GreenPen,3}, {Eraser,10}};
     bool pointer_visible = true;
 
@@ -72,6 +71,7 @@ signals:
     void pointerPositionChanged(QPointF const point, int const refshiftx, int const refshifty, double const refresolution);
     void pathsChanged(QString const pagelabel, DrawTool const tool, QList<DrawPath> const& list, int const refshiftx, int const refshifty, double const refresolution);
     void sendToolChanged(DrawTool const tool);
+    void sendUpdateEnlargedPage();
     void sendRelax();
 };
 
