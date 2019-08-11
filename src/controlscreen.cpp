@@ -85,8 +85,12 @@ ControlScreen::ControlScreen(QString presentationPath, QString notesPath, QWidge
         connect(presentationScreen->slide, &DrawSlide::sendRelax, drawSlide, &DrawSlide::relax);
         connect(drawSlide, &DrawSlide::sendUpdateEnlargedPage, presentationScreen->slide, &DrawSlide::updateEnlargedPage);
         connect(presentationScreen->slide, &DrawSlide::sendUpdateEnlargedPage, drawSlide, &DrawSlide::updateEnlargedPage);
+        connect(drawSlide, &MediaSlide::sendPlayVideo,  presentationScreen->slide, &MediaSlide::playVideo);
+        connect(drawSlide, &MediaSlide::sendPauseVideo, presentationScreen->slide, &MediaSlide::pauseVideo);
+        connect(presentationScreen->slide, &MediaSlide::sendPlayVideo,  drawSlide, &MediaSlide::playVideo);
+        connect(presentationScreen->slide, &MediaSlide::sendPauseVideo, drawSlide, &MediaSlide::pauseVideo);
+        drawSlide->setMuted(true);
         //drawSlide->setTool(presentationScreen->slide->getTool());
-        // TODO: synchronize video content
     }
     else {
         notes = new PdfDoc(notesPath);
@@ -158,6 +162,8 @@ ControlScreen::ControlScreen(QString presentationPath, QString notesPath, QWidge
     connect(presentationScreen, &PresentationScreen::sendCloseSignal, this, &ControlScreen::receiveCloseSignal);
     connect(presentationScreen, SIGNAL(sendUpdateCache()), this, SLOT(updateCache()));
     connect(presentationScreen->slide, &MediaSlide::requestMultimediaSliders, this, &ControlScreen::addMultimediaSliders);
+    if (drawSlide!=nullptr)
+        connect(drawSlide, &MediaSlide::requestMultimediaSliders, this, &ControlScreen::interconnectMultimediaSliders);
     connect(presentationScreen, &PresentationScreen::focusPageNumberEdit, this, &ControlScreen::focusPageNumberEdit);
 
     // Signals sent back to PresentationScreen
@@ -182,6 +188,8 @@ ControlScreen::ControlScreen(QString presentationPath, QString notesPath, QWidge
     // Autostart of media on the control screen can be enabled by uncommenting the following lines.
     //connect(this, &ControlScreen::sendAutostartDelay, ui->notes_widget, &MediaSlide::setAutostartDelay);
     connect(this, &ControlScreen::sendAutostartDelay, presentationScreen->slide, &MediaSlide::setAutostartDelay);
+    if (drawSlide != nullptr)
+        connect(this, &ControlScreen::sendAutostartDelay, drawSlide, &MediaSlide::setAutostartDelay);
     //connect(this, &ControlScreen::sendAutostartEmbeddedDelay, ui->notes_widget, &MediaSlide::setAutostartEmbeddedDelay);
     connect(this, &ControlScreen::sendAutostartEmbeddedDelay, presentationScreen->slide, &MediaSlide::setAutostartEmbeddedDelay);
     //connect(this, &ControlScreen::playMultimedia,     ui->notes_widget, &MediaSlide::startAllMultimedia);
@@ -276,6 +284,8 @@ void ControlScreen::recalcLayout(const int pageNumber)
     if (screenRatio > 1)
         screenRatio = 1.;
     QSize notesSize = notes->getPageSize(pageNumber);
+    if (drawSlide != nullptr && drawSlide != ui->notes_widget)
+        notesSize = presentation->getPageSize(pageNumber);
     double notesSizeRatio = double(notesSize.height()) / notesSize.width();
     // Adjustment if the pdf includes slides and notes
     if (pagePart != FullPage)
@@ -352,6 +362,13 @@ void ControlScreen::addMultimediaSliders(int const n)
     // Send the sliders to the presentation label, where they will be connected to multimedia objects.
     // The presentation label takes ownership of the sliders and will delete them when going to the next slide.
     presentationScreen->slide->setMultimediaSliders(sliderList);
+}
+
+void ControlScreen::interconnectMultimediaSliders(int const n)
+{
+    if (drawSlide == nullptr || n!=presentationScreen->slide->getSliderNumber())
+        return;
+    drawSlide->connectVideoSliders(presentationScreen->slide->getVideoSliders());
 }
 
 void ControlScreen::resetFocus()
@@ -1021,10 +1038,10 @@ void ControlScreen::setColor(const QColor bgColor, const QColor textColor)
     // Set background and text color for the control screen.
     QPalette newPalette(palette());
     newPalette.setColor(QPalette::Background, bgColor);
+    newPalette.setColor(QPalette::Base, bgColor);
     newPalette.setColor(QPalette::Text, textColor);
     newPalette.setColor(QPalette::WindowText, textColor);
     setPalette(newPalette);
-    newPalette.setColor(QPalette::Base, bgColor);
     ui->text_current_slide->setPalette(newPalette);
 }
 
@@ -1033,6 +1050,7 @@ void ControlScreen::setPresentationColor(const QColor color)
     // set background color for the presentation screen.
     QPalette newPalette(presentationScreen->palette());
     newPalette.setColor(QPalette::Background, color);
+    newPalette.setColor(QPalette::Base, color);
     presentationScreen->setPalette(newPalette);
 }
 
@@ -1325,15 +1343,21 @@ void ControlScreen::showDrawSlide()
         connect(presentationScreen->slide, &BasicSlide::pageNumberChanged, drawSlide, [&](int const pageNumber) {drawSlide->renderPage(pageNumber, false);});
         connect(drawSlide, &PreviewSlide::sendNewPageNumber, presentationScreen, &PresentationScreen::receiveNewPageNumber);
         connect(drawSlide, &PreviewSlide::sendNewPageNumber, this, &ControlScreen::renderPage);
+        connect(drawSlide, &MediaSlide::requestMultimediaSliders, this, &ControlScreen::interconnectMultimediaSliders);
+        connect(drawSlide, &MediaSlide::sendPlayVideo,  presentationScreen->slide, &MediaSlide::playVideo);
+        connect(drawSlide, &MediaSlide::sendPauseVideo, presentationScreen->slide, &MediaSlide::pauseVideo);
+        connect(presentationScreen->slide, &MediaSlide::sendPlayVideo,  drawSlide, &MediaSlide::playVideo);
+        connect(presentationScreen->slide, &MediaSlide::sendPauseVideo, drawSlide, &MediaSlide::pauseVideo);
     }
     else if (drawSlide == ui->notes_widget)
         return;
 
+    drawSlide->setMuted(true);
     drawSlide->setGeometry(ui->notes_widget->rect());
+    recalcLayout(currentPageNumber);
     drawSlide->renderPage(presentationScreen->slide->pageNumber(), false);
     drawSlide->setTool(presentationScreen->slide->getTool());
     ui->notes_widget->hide();
-    // TODO: synchronize video content
     drawSlide->show();
     drawSlide->setFocus();
     int const sx=presentationScreen->slide->getXshift(), sy=presentationScreen->slide->getYshift();
@@ -1351,6 +1375,7 @@ void ControlScreen::showDrawSlide()
         drawSlide->setPaths(label, tool_it.key(), *tool_it, sx, sy, res);
     drawSlide->update();
     renderPage(currentPageNumber);
+    drawSlide->setAutostartDelay(presentationScreen->slide->getAutostartDelay());
 }
 
 void ControlScreen::toggleDrawMode()
@@ -1363,10 +1388,14 @@ void ControlScreen::toggleDrawMode()
 
 void ControlScreen::hideDrawSlide()
 {
+    // TODO: fix this: switching while a video is playing leads to broken VideoWidgets
     if (drawSlide != nullptr && drawSlide != ui->notes_widget) {
+        drawSlide->hide();
         delete drawSlide;
         drawSlide = nullptr;
     }
+    recalcLayout(currentPageNumber);
     ui->notes_widget->show();
     renderPage(currentPageNumber);
+    ui->notes_widget->showAllWidgets(); // This function does not exactly what it should do.
 }

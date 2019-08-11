@@ -154,16 +154,16 @@ void PreviewSlide::renderPage(int const pageNumber, QPixmap const* pix)
     }
 }
 
-long int PreviewSlide::updateCache(QPixmap const* pixmap, int const index)
+long int PreviewSlide::updateCache(QPixmap const* pix, int const index)
 {
     // Save the pixmap to (compressed) cache of page index and return the size of the compressed image.
-    if (pixmap==nullptr || pixmap->isNull())
+    if (pix==nullptr || pix->isNull())
         return 0;
     // The image will be compressed and written to a QByteArray.
     QByteArray* bytes = new QByteArray();
     QBuffer buffer(bytes);
     buffer.open(QIODevice::WriteOnly);
-    pixmap->save(&buffer, "PNG");
+    pix->save(&buffer, "PNG");
     cache[index] = bytes;
     return bytes->size();
 }

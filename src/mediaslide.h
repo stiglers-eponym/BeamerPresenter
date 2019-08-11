@@ -38,14 +38,21 @@ public:
     void startAllEmbeddedApplications(int const index);
     void initEmbeddedApplications(int const pageNumber);
     void avoidMultimediaBug();
-    void setCacheVideos(bool const cache) {cacheVideos=cache;}
+    void setCacheVideos(bool const cacheThem) {cacheVideos=cacheThem;}
     void setMultimediaSliders(QList<QSlider*> sliderList);
     void setEmbedFileList(const QStringList& files) {embedFileList=files;}
     bool hasActiveMultimediaContent() const;
     void updateCacheVideos(int const pageNumber);
+    double getAutostartDelay() const {return autostartDelay;}
+    int getSliderNumber() const {return videoSliders.size()+soundSliders.size()+soundLinkSliders.size();}
+    void connectVideoSliders(QMap<int,QSlider*> const& sliders);
+    QMap<int,QSlider*> const& getVideoSliders() {return videoSliders;}
     virtual void clearAll() override;
+    void setMuted(bool muted) {mute=muted;}
+    void showAllWidgets();
 
 protected:
+    bool mute = false;
     void mouseReleaseEvent(QMouseEvent* event) override;
     void mouseMoveEvent(QMouseEvent* event) override;
     void followHyperlinks(QPoint const& pos);
@@ -76,13 +83,19 @@ protected:
 public slots:
     void pauseAllMultimedia();
     void startAllMultimedia();
+    void playVideo(int const i);
+    void pauseVideo(int const i);
     void receiveEmbedApp(EmbedApp* app);
     void setAutostartDelay(double const delay) {autostartDelay=delay;}
     void setAutostartEmbeddedDelay(double const delay) {autostartEmbeddedDelay=delay;}
     void setPid2Wid(QString const & program) {pid2wid=program;}
+    void receivePlayEvent(VideoWidget *const ptr) {emit sendPlayVideo(videoWidgets.indexOf(ptr));}
+    void receivePauseEvent(VideoWidget *const ptr) {emit sendPauseVideo(videoWidgets.indexOf(ptr));}
 
 signals:
     void requestMultimediaSliders(int const n);
+    void sendPlayVideo(int const i);
+    void sendPauseVideo(int const i);
 };
 
 #endif // MEDIASLIDE_H

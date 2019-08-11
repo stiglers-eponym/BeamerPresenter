@@ -174,7 +174,6 @@ void DrawSlide::drawAnnotations(QPainter &painter)
         QPainterPath path;
         path.addEllipse(pointerPosition, sizes[Magnifier], sizes[Magnifier]);
         painter.setClipPath(path, Qt::ReplaceClip);
-        //painter.setClipRegion(QRegion(pointerPosition.x()-sizes[Magnifier], pointerPosition.y()-sizes[Magnifier], 2*sizes[Magnifier], 2*sizes[Magnifier], QRegion::Ellipse), Qt::ClipOperation::ReplaceClip);
         painter.drawPixmap(QRectF(pointerPosition.x()-sizes[Magnifier], pointerPosition.y()-sizes[Magnifier], 2*sizes[Magnifier], 2*sizes[Magnifier]),
                           enlargedPage,
                           QRectF(2*pointerPosition.x() - sizes[Magnifier], 2*pointerPosition.y() - sizes[Magnifier], 2*sizes[Magnifier], 2*sizes[Magnifier]));
@@ -286,6 +285,8 @@ void DrawSlide::mouseMoveEvent(QMouseEvent *event)
             pointerPosition = event->localPos();
             update();
             emit pointerPositionChanged(pointerPosition, shiftx, shifty, resolution);
+            break;
+        case Pointer:
             break;
         }
         break;

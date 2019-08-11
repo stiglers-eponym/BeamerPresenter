@@ -32,8 +32,8 @@ public:
     ~PreviewSlide() override;
     virtual void renderPage(int const pageNumber, QPixmap const* pix=nullptr) override;
     long int updateCache(int const pageNumber);
-    long int updateCache(QPixmap const* pixmap, int const index);
-    long int updateCache(QByteArray const* pixmap, int const index);
+    long int updateCache(QPixmap const* pix, int const index);
+    long int updateCache(QByteArray const* bytes, int const index);
     long int clearCachePage(int const index);
     virtual void clearCache();
     void setUseCache(bool const use) {useCache=use;}

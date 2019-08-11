@@ -141,6 +141,7 @@ public slots:
     void resetFocus();
     void focusPageNumberEdit();
     void addMultimediaSliders(int const n);
+    void interconnectMultimediaSliders(int const n);
     void updateCache();
     void clearPresentationCache();
     void showToc();

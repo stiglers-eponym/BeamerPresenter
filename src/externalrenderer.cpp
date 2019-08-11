@@ -22,7 +22,6 @@ ExternalRenderer::ExternalRenderer(int const page, QObject* parent) : QProcess(p
 {
     this->page = page;
     connect(this, SIGNAL(finished(int const, QProcess::ExitStatus)), this, SLOT(returnImage(int const, QProcess::ExitStatus)));
-    //execute(command, arguments << QString(page));
 }
 
 void ExternalRenderer::returnImage(int const exitCode, QProcess::ExitStatus exitStatus)

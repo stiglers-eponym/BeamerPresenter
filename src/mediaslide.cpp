@@ -371,6 +371,10 @@ void MediaSlide::renderPage(int const pageNumber, bool const hasDuration, QPixma
             }
             qDebug() << "Loading new video widget:" << movie->url();
             videoWidgets.append(new VideoWidget(video, urlSplitCharacter, this));
+            videoWidgets.last()->setMute(mute);
+            videoWidgets.last()->setGeometry(videoPositions.last());
+            connect(videoWidgets.last(), &VideoWidget::sendPlayVideo, this, &MediaSlide::receivePlayEvent);
+            connect(videoWidgets.last(), &VideoWidget::sendPauseVideo, this, &MediaSlide::receivePauseEvent);
         }
         newSliders++;
     }
@@ -636,7 +640,8 @@ void MediaSlide::renderPage(int const pageNumber, bool const hasDuration, QPixma
     // Add sliders
     if (newSliders!=0)
         emit requestMultimediaSliders(newSliders);
-    emit pageNumberChanged(pageIndex);
+    if (!hasDuration || page->duration()<0 || page->duration()>0.1)
+        emit pageNumberChanged(pageIndex);
 }
 
 void MediaSlide::updateCacheVideos(int const pageNumber)
@@ -665,6 +670,9 @@ void MediaSlide::updateCacheVideos(int const pageNumber)
         else {
             qDebug() << "Cache new video widget:" << movie->url();
             cachedVideoWidgets.append(new VideoWidget(video, urlSplitCharacter, this));
+            cachedVideoWidgets.last()->setMute(mute);
+            connect(cachedVideoWidgets.last(), &VideoWidget::sendPlayVideo, this, &MediaSlide::receivePlayEvent);
+            connect(cachedVideoWidgets.last(), &VideoWidget::sendPauseVideo, this, &MediaSlide::receivePauseEvent);
         }
     }
     videos.clear();
@@ -713,6 +721,14 @@ void MediaSlide::setMultimediaSliders(QList<QSlider*> sliderList)
     }
 }
 
+void MediaSlide::connectVideoSliders(QMap<int,QSlider*> const& sliders)
+{
+    if (sliders.size() != videoWidgets.size())
+        return;
+    for (int i=0; i<videoWidgets.size(); i++)
+        connect(sliders[i], &QAbstractSlider::sliderMoved, videoWidgets[i]->getPlayer(), &QMediaPlayer::setPosition);
+}
+
 void MediaSlide::startAllMultimedia()
 {
     for (int i=0; i<videoWidgets.size(); i++) {
@@ -721,6 +737,7 @@ void MediaSlide::startAllMultimedia()
         videoWidgets[i]->setGeometry(videoPositions[i]);
         videoWidgets[i]->show();
         videoWidgets[i]->play();
+        emit sendPlayVideo(i);
     }
     Q_FOREACH(QMediaPlayer* sound, soundPlayers)
         sound->play();
@@ -730,12 +747,30 @@ void MediaSlide::startAllMultimedia()
 
 void MediaSlide::pauseAllMultimedia()
 {
-    Q_FOREACH(VideoWidget* video, videoWidgets)
-        video->pause();
+    for (int i=0; i<videoWidgets.length(); i++) {
+        videoWidgets[i]->pause();
+        emit sendPauseVideo(i);
+    }
     Q_FOREACH(QMediaPlayer* sound, soundPlayers)
         sound->pause();
     Q_FOREACH(QMediaPlayer* sound, soundLinkPlayers)
         sound->pause();
+}
+
+void MediaSlide::playVideo(int const i)
+{
+    if (i<0 || i>=videoWidgets.length() || videoWidgets[i]==nullptr)
+        return;
+    videoWidgets[i]->setGeometry(videoPositions[i]);
+    videoWidgets[i]->show();
+    videoWidgets[i]->play();
+}
+
+void MediaSlide::pauseVideo(int const i)
+{
+    if (i<0 || i>=videoWidgets.length() || videoWidgets[i]==nullptr)
+        return;
+    videoWidgets[i]->pause();
 }
 
 bool MediaSlide::hasActiveMultimediaContent() const
@@ -891,9 +926,11 @@ void MediaSlide::followHyperlinks(QPoint const& pos)
                         qInfo() << "Unsupported link of type video. If this works, you should be surprised.";
                         // I don't know if the following lines make any sense.
                         Poppler::LinkMovie* link = static_cast<Poppler::LinkMovie*>(links[i]);
-                        Q_FOREACH(VideoWidget* video, videoWidgets) {
-                            if (link->isReferencedAnnotation(video->getAnnotation()))
-                                video->play();
+                        for (int i=0; i<videoWidgets.length(); i++) {
+                            if (link->isReferencedAnnotation(videoWidgets[i]->getAnnotation())) {
+                                videoWidgets[i]->play();
+                                emit sendPlayVideo(i);
+                            }
                         }
                     }
                     break;
@@ -925,12 +962,15 @@ void MediaSlide::followHyperlinks(QPoint const& pos)
     }
     for (int i=0; i<videoPositions.size(); i++) {
         if (videoPositions[i].contains(pos)) {
-            if (videoWidgets[i]->state() == QMediaPlayer::PlayingState)
+            if (videoWidgets[i]->state() == QMediaPlayer::PlayingState) {
                 videoWidgets[i]->pause();
+                emit sendPauseVideo(i);
+            }
             else {
                 videoWidgets[i]->setGeometry(videoPositions[i]);
                 videoWidgets[i]->show();
                 videoWidgets[i]->play();
+                emit sendPlayVideo(i);
             }
             return;
         }
@@ -1143,4 +1183,26 @@ void MediaSlide::avoidMultimediaBug()
     dummy_player->setVideoOutput(dummy);
     delete dummy_player;
     delete dummy;
+}
+
+void MediaSlide::showAllWidgets()
+{
+    // TODO: fix this!
+    if (videoWidgets.size() == videoPositions.size()) {
+        for (int i=0; i<videoWidgets.size(); i++) {
+            videoWidgets[i]->setGeometry(videoPositions[i]);
+            videoWidgets[i]->show();
+            videoWidgets[i]->raise();
+        }
+    }
+    if (embedMap.contains(pageIndex) && embedMap[pageIndex].size() == embedPositions.size()) {
+        for (int i=0; i<embedPositions.size(); i++) {
+            if (embedApps[embedMap[pageIndex][i]] != nullptr && embedApps[embedMap[pageIndex][i]]->isReady()) {
+                embedApps[embedMap[pageIndex][i]]->getWidget()->setGeometry(embedPositions[i]);
+                embedApps[embedMap[pageIndex][i]]->getWidget()->show();
+                embedApps[embedMap[pageIndex][i]]->getWidget()->raise();
+            }
+        }
+    }
+    update();
 }

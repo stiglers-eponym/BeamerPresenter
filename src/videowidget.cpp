@@ -136,13 +136,14 @@ void VideoWidget::restartVideo(QMediaPlayer::MediaStatus status)
 void VideoWidget::mouseReleaseEvent(QMouseEvent* event)
 {
     if ( event->button() == Qt::LeftButton ) {
-        if ( player->state() == QMediaPlayer::PlayingState )
+        if ( player->state() == QMediaPlayer::PlayingState ) {
             player->pause();
+            emit sendPauseVideo(this);
+        }
         else {
-            QMediaPlayer::MediaStatus status = player->mediaStatus();
-            if (status==QMediaPlayer::LoadingMedia || status==QMediaPlayer::EndOfMedia)
-                player->bind(this);
+            player->bind(this);
             player->play();
+            emit sendPlayVideo(this);
         }
     }
     event->accept();

@@ -1,6 +1,7 @@
 BeamerPresenter
 
-* no background color set when running in manjaro-xfce
+* Video widgets break when switching between notes and draw mode
+* Video widgets often have data stream errors: sync them better, use only one player?
 * cache management can crash, disabling cache completely (occurred after reloading files): not simply reproducible
 * Segfault when embedded application appears during slide change?
 * Draw in presentation:

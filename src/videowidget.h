@@ -43,10 +43,11 @@ public:
     QMediaPlayer::State state() const {return player->state();}
     bool getAutoplay() const {return autoplay;}
     QString const& getUrl() const {return filename;}
+    void setMute(bool const mute) {player->setMuted(mute);}
 
 protected:
-    void mouseReleaseEvent(QMouseEvent* event);
-    void mouseMoveEvent(QMouseEvent* event);
+    void mouseReleaseEvent(QMouseEvent* event) override;
+    void mouseMoveEvent(QMouseEvent* event) override;
 
 private:
     QMediaPlayer* player;
@@ -68,6 +69,8 @@ private slots:
 signals:
     void positionChanged(qint64 const position);
     void durationChanged(qint64 const position);
+    void sendPlayVideo(VideoWidget *const ptr);
+    void sendPauseVideo(VideoWidget *const ptr);
 };
 
 #endif // VIDEOWIDGET_H
