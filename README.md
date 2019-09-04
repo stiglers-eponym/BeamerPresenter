@@ -22,6 +22,42 @@ qmake && make
 Showing videos in a presentation additionally requires the installation of some
 GStreamer plugins.
 
+### Installation on Arch Linux
+You can install the package beamerpresenter from the AUR.
+
+### Installation on Ubuntu
+First install the dependences (note that this changes the default Qt version to Qt 5):
+```sh
+apt install qt5-qmake qt5-default libpoppler-qt5-dev qtmultimedia5-dev
+```
+Optionally install `libqt5multimedia5-plugins` for multimedia content.
+
+Then download the source and build:
+```sh
+git clone https://github.com/stiglers-eponym/BeamerPresenter.git
+cd BeamerPresenter
+qmake && make
+```
+You should now have the following files:
+
+*	executable `beamerpresenter`
+*	man page `beamerpresenter.1`
+*	default configuration file `beamerpresenter.conf`
+*	other files for experimental use: `local_config.json` and `pid2wid.sh`
+
+For a installation you may want to copy these files to the following locations:
+```sh
+cp beamerpresenter ~/bin/beamerpresenter # or cp beamerpresenter /usr/bin/beamerpresenter
+gzip beamerpresenter.1 && cp beamerpresenter.1.gz /usr/share/man/man1/beamerpresenter.1.gz
+mkdir -p ~/.config/beamerpresenter.conf && cp beamerpresenter.conf ~/.config/beamerpresenter/beamerpresenter.conf
+# or cp beamerpresenter.conf ~/.config/beamerpresenter.conf
+```
+Afterwards you can remove the build directory `BeamerPresenter`:
+```sh
+cd ..
+rm -r BeamerPresenter
+```
+
 
 ## Usage
 ```sh
@@ -42,19 +78,19 @@ An extended list of features can be found in the manual (`beamerpresenter.1`).
 	are in time.
 *	Cache: All slides are rendered to a compressed cache.
 	The total cache size and the number of slides in cache can be limited.
+*	Slide transitions: BeamerPresenter probably all slide transitions which are
+	available for PDFs.
 *	Multimedia: You can add videos and audio files to your presentation.
 	A video will continue playing if embedded on two consecutive slides with
 	the same page label (overlays in LaTeX beamer).
 *	Animations: You can create simple animations by showing slides in rapid
 	succession. The minimal delay between two frame can be defined in the
 	configuration.
-*	Slide transitions: BeamerPresenter probably supports most of the slide
-	transitions which are available for PDFs.
 *	Simple navigation through links, scrolling, a table of contents and an
 	overview of all slides on the speaker's screen and shortcuts for skipping
 	overlays.
-*	Embed Applications: If you are using X11, you can show windows created by
-	external applications in a presentation.
+*	(Experimental:) Embed Applications: If you are using X11, you can show
+	windows created by external applications in a presentation.
 
 
 ## Settings
