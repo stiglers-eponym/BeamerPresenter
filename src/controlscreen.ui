@@ -160,15 +160,6 @@
        </color>
       </brush>
      </colorrole>
-     <colorrole role="PlaceholderText">
-      <brush brushstyle="SolidPattern">
-       <color alpha="128">
-        <red>0</red>
-        <green>0</green>
-        <blue>0</blue>
-       </color>
-      </brush>
-     </colorrole>
     </active>
     <inactive>
      <colorrole role="WindowText">
@@ -306,15 +297,6 @@
        </color>
       </brush>
      </colorrole>
-     <colorrole role="PlaceholderText">
-      <brush brushstyle="SolidPattern">
-       <color alpha="128">
-        <red>0</red>
-        <green>0</green>
-        <blue>0</blue>
-       </color>
-      </brush>
-     </colorrole>
     </inactive>
     <disabled>
      <colorrole role="WindowText">
@@ -446,15 +428,6 @@
      <colorrole role="ToolTipText">
       <brush brushstyle="SolidPattern">
        <color alpha="255">
-        <red>0</red>
-        <green>0</green>
-        <blue>0</blue>
-       </color>
-      </brush>
-     </colorrole>
-     <colorrole role="PlaceholderText">
-      <brush brushstyle="SolidPattern">
-       <color alpha="128">
         <red>0</red>
         <green>0</green>
         <blue>0</blue>
@@ -682,7 +655,7 @@
          </font>
         </property>
         <property name="inputMethodHints">
-         <set>Qt::ImhNoAutoUppercase|Qt::ImhNoEditMenu|Qt::ImhNoPredictiveText|Qt::ImhNoTextHandles|Qt::ImhPreferNumbers|Qt::ImhTime</set>
+         <set>Qt::ImhNoAutoUppercase|Qt::ImhNoPredictiveText|Qt::ImhPreferNumbers|Qt::ImhTime</set>
         </property>
         <property name="inputMask">
          <string notr="true"/>

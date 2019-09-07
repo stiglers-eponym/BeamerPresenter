@@ -418,7 +418,7 @@ void PreviewSlide::mouseReleaseEvent(QMouseEvent* event)
 void PreviewSlide::mouseMoveEvent(QMouseEvent* event)
 {
     // Show the cursor as Qt::PointingHandCursor when hoovering links
-    bool is_arrow_pointer = cursor() == Qt::ArrowCursor;
+    bool is_arrow_pointer = cursor().shape() == Qt::ArrowCursor;
     for (QList<QRect>::const_iterator pos_it=linkPositions.cbegin(); pos_it!=linkPositions.cend(); pos_it++) {
         if (pos_it->contains(event->pos())) {
             if (is_arrow_pointer)
