@@ -11,7 +11,7 @@ BeamerPresenter is only tested on GNU/Linux with X11 and wayland.
 
 ## Build
 To build and use this project you need to have the Qt5 multimedia module and the
-poppler Qt5 bindings installed.
+poppler Qt5 bindings with poppler >= 0.70 installed.
 
 Download an compile this project:
 ```sh
@@ -26,6 +26,9 @@ GStreamer plugins.
 You can install the package beamerpresenter from the AUR.
 
 ### Installation on Ubuntu
+Note: Only ubuntu >= 19.04 provides poppler >= 0.70.
+In older versions of ubuntu you need to upgrade popper manually in order to install BeamerPresenter.
+
 First install the dependences (note that this changes the default Qt version to Qt 5):
 ```sh
 apt install qt5-qmake qt5-default libpoppler-qt5-dev qtmultimedia5-dev
