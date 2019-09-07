@@ -46,7 +46,7 @@ void OverviewBox::create(PdfDoc const* doc, int const columns, PagePart const pa
     int i=0;
     double resolution;
     for (QList<Poppler::Page*>::const_iterator page_it=pages.cbegin(); page_it!=pages.cend(); page_it++, i++) {
-        OverviewFrame* frame = new OverviewFrame((*page_it)->index(), columns, this);
+        OverviewFrame* frame = new OverviewFrame(i, columns, this);
         frames.append(frame);
         resolution = 72*frameWidth / (*page_it)->pageSize().width();
         layout->addWidget(frame, i/columns, i%columns);

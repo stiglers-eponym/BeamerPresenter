@@ -369,7 +369,10 @@ int main(int argc, char *argv[])
             }
             else if (parser.value("p")=="none" || parser.value("p")=="0")
                 notesPath = QFileDialog::getOpenFileName(nullptr, "Open Notes", presentationPath, "Documents (*.pdf)");
-            w = new ControlScreen(presentationPath, notesPath);
+            if (notesPath == presentationPath)
+                w = new ControlScreen(presentationPath);
+            else
+                w = new ControlScreen(presentationPath, notesPath);
         }
         break;
     default:

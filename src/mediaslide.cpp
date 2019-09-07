@@ -183,7 +183,7 @@ void MediaSlide::renderPage(int const pageNumber, bool const hasDuration, QPixma
             }
             // Save this image to cache.
             if (useCache)
-                updateCache(&pixmap, page->index());
+                updateCache(&pixmap, pageNumber);
         }
     }
 
@@ -943,9 +943,9 @@ void MediaSlide::followHyperlinks(QPoint const& pos)
                 case Poppler::Link::OCGState:
                     qInfo() << "Unsupported link of type OCGState";
                     break;
-                case Poppler::Link::Hide:
-                    qInfo() << "Unsupported link of type hide";
-                    break;
+                //case Poppler::Link::Hide:
+                //    qInfo() << "Unsupported link of type hide";
+                //    break;
                 case Poppler::Link::None:
                     qInfo() << "Unsupported link of type none";
                     break;
