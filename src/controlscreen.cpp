@@ -412,15 +412,15 @@ void ControlScreen::renderPage(int const pageNumber)
         oldSize = size();
     }
 
-    // Update the notes label
-    // The note document could have fewer pages than the presentation document:
-    if (currentPageNumber < notes->getDoc()->numPages())
-        ui->notes_widget->renderPage(currentPageNumber, false);
-    else
-        qWarning() << "Reached the end of the note file.";
-
-    // Update the current and next slide label.
     if (drawSlide == nullptr) {
+        // Update notes
+        // The note document could have fewer pages than the presentation document:
+        if (currentPageNumber < notes->getDoc()->numPages())
+            ui->notes_widget->renderPage(currentPageNumber, false);
+        else
+            qWarning() << "Reached the end of the note file.";
+
+        // Update current and next slide previews
         // If we have not reached the last page (there exists a next page):
         if (currentPageNumber + 1 < presentation->getDoc()->numPages()) {
             ui->current_slide->renderPage(currentPageNumber);
@@ -447,8 +447,17 @@ void ControlScreen::renderPage(int const pageNumber)
                 ui->current_slide->renderPage(currentPageNumber, &pixmap);
             ui->next_slide->renderPage(currentPageNumber, &pixmap);
         }
+        if (presentationScreen->slide->getTool() == Magnifier) {
+            ui->current_slide->repaint();
+            ui->next_slide->repaint();
+        }
+        presentationScreen->slide->updateEnlargedPage();
     }
     else {
+        // Update current slide
+        drawSlide->renderPage(currentPageNumber, false);
+
+        // Update next slide previews
         // If we have not reached the last page (there exists a next page):
         if (currentPageNumber + 2 < presentation->getDoc()->numPages()) {
             ui->current_slide->renderPage(currentPageNumber+1);
@@ -489,6 +498,13 @@ void ControlScreen::renderPage(int const pageNumber)
                 ui->current_slide->renderPage(currentPageNumber, &pixmap);
             ui->next_slide->renderPage(currentPageNumber, &pixmap);
         }
+        if (presentationScreen->slide->getTool() == Magnifier) {
+            ui->current_slide->repaint();
+            ui->next_slide->repaint();
+        }
+
+        drawSlide->updateEnlargedPage();
+        presentationScreen->slide->updateEnlargedPage();
     }
     // Update the page number
     ui->text_current_slide->setText(QString::number(currentPageNumber+1));
@@ -1340,7 +1356,6 @@ void ControlScreen::showDrawSlide()
         connect(presentationScreen->slide, &DrawSlide::sendRelax, drawSlide, &DrawSlide::relax);
         connect(drawSlide, &DrawSlide::sendUpdateEnlargedPage, presentationScreen->slide, &DrawSlide::updateEnlargedPage);
         connect(presentationScreen->slide, &DrawSlide::sendUpdateEnlargedPage, drawSlide, &DrawSlide::updateEnlargedPage);
-        connect(presentationScreen->slide, &BasicSlide::pageNumberChanged, drawSlide, [&](int const pageNumber) {drawSlide->renderPage(pageNumber, false);});
         connect(drawSlide, &PreviewSlide::sendNewPageNumber, presentationScreen, &PresentationScreen::receiveNewPageNumber);
         connect(drawSlide, &PreviewSlide::sendNewPageNumber, this, &ControlScreen::renderPage);
         connect(drawSlide, &MediaSlide::requestMultimediaSliders, this, &ControlScreen::interconnectMultimediaSliders);

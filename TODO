@@ -1,5 +1,7 @@
 BeamerPresenter
 
+* Bug report for Qt5.13 in wayland: paintEvent not drawn immediately
+
 * Video widgets break when switching between notes and draw mode
 * Video widgets often have data stream errors: sync them better, use only one player?
 * cache management can crash, disabling cache completely (occurred after reloading files): not simply reproducible
@@ -12,7 +14,9 @@ BeamerPresenter
 
 * Make timer editable
 * Multimedia sliders: key bindings and signals slider <-> player
+* use thumbnails in overviewbox
 * TOC: key bindings
+* Embedded multimedia, RichMediaAnnotations
 
 * Cache management: test, clean up the code, improve
 * Embedded applications: Terminate processes correctly before closing the window

@@ -16,6 +16,7 @@ TEMPLATE = app
 # depend on your compiler). Please consult the documentation of the
 # deprecated API in order to know how to port your code away from it.
 DEFINES += QT_DEPRECATED_WARNINGS
+CONFIG += qt
 CONFIG(release, debug|release):DEFINES += QT_NO_DEBUG_OUTPUT
 
 # You can also make your code fail to compile if you use deprecated APIs.
@@ -78,8 +79,33 @@ HEADERS += \
 FORMS += \
         src/controlscreen.ui
 
-INCLUDEPATH += /usr/include/poppler/qt5
-LIBS += -L/usr/lib/ -lpoppler-qt5
+unix {
+	INCLUDEPATH += /usr/include/poppler/qt5
+	LIBS += -L/usr/lib/ -lpoppler-qt5
+}
+#macx {
+#	# Testing required!
+#	INCLUDEPATH += /usr/include/poppler/qt5
+#	LIBS += -L/usr/lib/ -lpoppler-qt5
+#}
+#win32 {
+#	# Testing required!
+#	INCLUDEPATH += /usr/include/poppler/qt5
+#	LIBS += -L/usr/lib/ -lpoppler-qt5
+#}
+
+# TODO: libraries for Windows (and mac)
+
+unix {
+	documentation.path = /usr/share/man/man1
+	documentation.extra = gzip -9 $$TARGET.1
+	documentation.file = $$TARGET.1.gz
+
+	configuration.path = /etc/$$TARGET/
+	configuration.path = $$TARGET.conf pid2wid.sh
+
+	INSTALLS += documentation configuration
+}
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin

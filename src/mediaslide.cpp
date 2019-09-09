@@ -314,7 +314,7 @@ void MediaSlide::renderPage(int const pageNumber, bool const hasDuration, QPixma
     // When a method is reached, which can take long time, the widget will be repainted if (notRepainted==true).
     bool notRepainted = true;
     if (!cacheVideos || autostartDelay < -0.01 || autostartDelay > 0.01) {
-        update();
+        repaint();
         notRepainted = false;
     }
 
@@ -366,7 +366,7 @@ void MediaSlide::renderPage(int const pageNumber, bool const hasDuration, QPixma
             delete video;
         else {
             if (notRepainted) {
-                update();
+                repaint();
                 notRepainted = false;
             }
             qDebug() << "Loading new video widget:" << movie->url();
@@ -407,7 +407,7 @@ void MediaSlide::renderPage(int const pageNumber, bool const hasDuration, QPixma
         if (links[i]->linkType() == Poppler::Link::Sound) {
             // This can take relatively long. Repainting here is usually reasonable.
             if (notRepainted) {
-                update();
+                repaint();
                 notRepainted = false;
             }
             // Audio links
@@ -488,7 +488,7 @@ void MediaSlide::renderPage(int const pageNumber, bool const hasDuration, QPixma
     }
     else if (isOverlay && !soundPlayers.isEmpty()) {
         if (notRepainted) {
-            update();
+            repaint();
             notRepainted = false;
         }
         // Untested!
@@ -559,7 +559,7 @@ void MediaSlide::renderPage(int const pageNumber, bool const hasDuration, QPixma
     }
     else {
         if (notRepainted) {
-            update();
+            repaint();
             notRepainted = false;
         }
         for (QList<Poppler::Annotation*>::const_iterator it = sounds.cbegin(); it!=sounds.cend(); it++) {
@@ -625,7 +625,7 @@ void MediaSlide::renderPage(int const pageNumber, bool const hasDuration, QPixma
             startAllMultimedia();
     }
     if (notRepainted)
-        update();
+        repaint();
 
     // Autostart embedded applications if the option is set in BeamerPresenter
     if (embedMap.contains(pageIndex)) {
@@ -640,8 +640,6 @@ void MediaSlide::renderPage(int const pageNumber, bool const hasDuration, QPixma
     // Add sliders
     if (newSliders!=0)
         emit requestMultimediaSliders(newSliders);
-    if (!hasDuration || page->duration()<0 || page->duration()>0.1)
-        emit pageNumberChanged(pageIndex);
 }
 
 void MediaSlide::updateCacheVideos(int const pageNumber)
@@ -934,21 +932,25 @@ void MediaSlide::followHyperlinks(QPoint const& pos)
                         }
                     }
                     break;
-                case Poppler::Link::Rendition:
+                /*
+                case Poppler::Link::Rendition: // TODO: could be supported
                     qInfo() << "Unsupported link of type rendition";
                     break;
                 case Poppler::Link::JavaScript:
                     qInfo() << "Unsupported link of type JavaScript";
                     break;
-                case Poppler::Link::OCGState:
+                case Poppler::Link::OCGState: // requires popper >= 0.50
                     qInfo() << "Unsupported link of type OCGState";
                     break;
-                //case Poppler::Link::Hide:
-                //    qInfo() << "Unsupported link of type hide";
-                //    break;
+                case Poppler::Link::Hide: // requires poppler >= 0.64
+                    qInfo() << "Unsupported link of type hide";
+                    break;
                 case Poppler::Link::None:
                     qInfo() << "Unsupported link of type none";
                     break;
+                */
+                default:
+                    qInfo() << "Unsupported link type" << links[i]->linkType();
             }
         }
     }

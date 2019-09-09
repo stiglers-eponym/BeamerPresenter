@@ -388,26 +388,28 @@ void PreviewSlide::mouseReleaseEvent(QMouseEvent* event)
                         }
                         break;
                     case Poppler::Link::Sound:
+                    case Poppler::Link::Movie:
                         qInfo() << "Playing multimedia is not supported in this widget.";
                         break;
-                    case Poppler::Link::Movie:
-                        qInfo() << "Unsupported link of type video.";
-                        break;
+                    /*
                     case Poppler::Link::Rendition:
                         qInfo() << "Unsupported link of type rendition";
                         break;
                     case Poppler::Link::JavaScript:
                         qInfo() << "Unsupported link of type JavaScript";
                         break;
-                    case Poppler::Link::OCGState:
+                    case Poppler::Link::OCGState: // requires popper >= 0.50
                         qInfo() << "Unsupported link of type OCGState";
                         break;
-                    //case Poppler::Link::Hide:
-                    //    qInfo() << "Unsupported link of type hide";
-                    //    break;
+                    case Poppler::Link::Hide: // requires poppler >= 0.64
+                        qInfo() << "Unsupported link of type hide";
+                        break;
                     case Poppler::Link::None:
                         qInfo() << "Unsupported link of type none";
                         break;
+                    */
+                    default:
+                        qInfo() << "Unsupported link type" << links[i]->linkType();
                 }
             }
         }

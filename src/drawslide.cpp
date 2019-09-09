@@ -18,16 +18,6 @@
 
 #include "drawslide.h"
 
-DrawSlide::DrawSlide(QWidget* parent) : MediaSlide(parent)
-{
-    connect(this, &MediaSlide::pageNumberChanged, this, [&](int const){updateEnlargedPage();});
-}
-
-DrawSlide::DrawSlide(PdfDoc const*const document, int const pageNumber, QWidget* parent) : MediaSlide(document, pageNumber, parent)
-{
-    connect(this, &MediaSlide::pageNumberChanged, this, [&](int const){updateEnlargedPage();});
-}
-
 void DrawSlide::clearAllAnnotations()
 {
     paths.clear();

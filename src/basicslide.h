@@ -54,7 +54,6 @@ protected:
     PdfDoc const * doc = nullptr;
 
 signals:
-    void pageNumberChanged(int const pageNumber);
     void sendNewPageNumber(int const pageNumber);
     void sendCloseSignal();
     void focusPageNumberEdit();
