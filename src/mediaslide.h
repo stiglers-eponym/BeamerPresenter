@@ -77,7 +77,7 @@ protected:
     double autostartEmbeddedDelay = -1.; // delay for starting embedded applications in s
     bool cacheVideos = true;
     virtual void animate(int const = -1) {}
-    virtual void endAnimation() {}
+    virtual void stopAnimation() {}
     virtual void setDuration() {}
 
 public slots:

@@ -38,7 +38,7 @@ public:
     void updatedFile();
     void setScrollDelta(int const scrollDelta) {this->scrollDelta=scrollDelta;}
     void setForceTouchpad() {forceIsTouchpad=true;}
-    void setCacheVideos(bool const cache) {cacheVideos=cache; slide->setCacheVideos(cache);}
+    void setCacheVideos(bool const cache);
     void setKeyMap(QMap<int, QList<int>>* keymap) {this->keymap=keymap;} // PresentationScreen does not own this object!
 
 protected:
@@ -63,10 +63,9 @@ private:
 signals:
     void sendNewPageNumber(const int pageNumber);
     void sendCloseSignal();
-    void sendPageShift(const int shift = 0);
+    void sendAdaptPage();
     void sendKeyEvent(QKeyEvent* event);
     void togglePointerVisibilitySignal();
-    void sendUpdateCache();
     void focusPageNumberEdit();
     void clearPresentationCacheRequest();
     void pageChanged(int const pageNumber);

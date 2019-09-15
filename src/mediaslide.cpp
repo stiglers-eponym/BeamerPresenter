@@ -80,7 +80,7 @@ void MediaSlide::clearLists()
 
 void MediaSlide::renderPage(int const pageNumber, bool const hasDuration, QPixmap const* pix)
 {
-    endAnimation();
+    stopAnimation();
     if (pageNumber < 0 || pageNumber >= doc->getDoc()->numPages())
         return;
 
@@ -182,7 +182,7 @@ void MediaSlide::renderPage(int const pageNumber, bool const hasDuration, QPixma
                     pixmap = QPixmap::fromImage(image.copy(image.width()/2, 0, image.width()/2, image.height()));
             }
             // Save this image to cache.
-            if (useCache)
+            if (useCache == 1)
                 updateCache(&pixmap, pageNumber);
         }
     }

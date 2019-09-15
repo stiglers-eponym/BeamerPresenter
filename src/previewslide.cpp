@@ -131,7 +131,7 @@ void PreviewSlide::renderPage(int const pageNumber, QPixmap const* pix)
                     pixmap = QPixmap::fromImage(image.copy(image.width()/2, 0, image.width()/2, image.height()));
             }
             // Save this image to cache.
-            if (useCache)
+            if (useCache == 1)
                 updateCache(&pixmap, pageNumber);
         }
     }

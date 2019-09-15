@@ -120,7 +120,7 @@ ControlScreen::ControlScreen(QString presentationPath, QString notesPath, QWidge
     // Set up the widgets
     ui->text_number_slides->setText(QString::number(numberOfPages));
     ui->text_current_slide->setNumberOfPages(numberOfPages);
-    ui->next_slide->setUseCache(false);
+    ui->next_slide->setUseCache(0);
     ui->notes_widget->setFocus();
 
     // Tool selector
@@ -154,13 +154,12 @@ ControlScreen::ControlScreen(QString presentationPath, QString notesPath, QWidge
     connect(presentationScreen->slide, &BasicSlide::sendShowFullscreen, presentationScreen, &PresentationScreen::showFullScreen);
 
     // Navigation signals emitted by PresentationScreen:
-    connect(presentationScreen, &PresentationScreen::sendPageShift,     this, &ControlScreen::receivePageShiftReturn);
+    connect(presentationScreen, &PresentationScreen::sendAdaptPage,     this, &ControlScreen::adaptPage);
     connect(presentationScreen, &PresentationScreen::sendNewPageNumber, this, &ControlScreen::receiveNewPageNumber);
 
     // Other signals emitted by PresentationScreen
     connect(presentationScreen, &PresentationScreen::sendKeyEvent,    this, &ControlScreen::keyPressEvent);
     connect(presentationScreen, &PresentationScreen::sendCloseSignal, this, &ControlScreen::receiveCloseSignal);
-    connect(presentationScreen, SIGNAL(sendUpdateCache()), this, SLOT(updateCache()));
     connect(presentationScreen->slide, &MediaSlide::requestMultimediaSliders, this, &ControlScreen::addMultimediaSliders);
     if (drawSlide!=nullptr)
         connect(drawSlide, &MediaSlide::requestMultimediaSliders, this, &ControlScreen::interconnectMultimediaSliders);
@@ -454,6 +453,15 @@ void ControlScreen::renderPage(int const pageNumber)
         presentationScreen->slide->updateEnlargedPage();
     }
     else {
+        // It is possible that presentationScreen->slide contains paths which have not been copied to drawSlide yet.
+        QString label = presentation->getLabel(currentPageNumber);
+        if (!drawSlide->getPaths().contains(label)) {
+            QMap<QString, QMap<DrawTool, QList<DrawPath>>> const paths = presentationScreen->slide->getPaths();
+            int const sx=presentationScreen->slide->getXshift(), sy=presentationScreen->slide->getYshift();
+            double res = presentationScreen->slide->getResolution();
+            for (QMap<DrawTool, QList<DrawPath>>::const_iterator tool_it = paths[label].cbegin(); tool_it != paths[label].cend(); tool_it++)
+                drawSlide->setPaths(label, tool_it.key(), *tool_it, sx, sy, res);
+        }
         // Update current slide
         drawSlide->renderPage(currentPageNumber, false);
 
@@ -713,9 +721,9 @@ void ControlScreen::setCacheNumber(const int number)
     if (number < 0)
         maxCacheNumber = numberOfPages;
     else if (number==0) {
-        ui->current_slide->setUseCache(false);
-        ui->notes_widget->setUseCache(false);
-        presentationScreen->slide->setUseCache(false);
+        ui->current_slide->setUseCache(0);
+        ui->notes_widget->setUseCache(0);
+        presentationScreen->slide->setUseCache(0);
         maxCacheNumber = 0;
     }
     else
@@ -727,9 +735,9 @@ void ControlScreen::setCacheSize(const long size)
     // Set maximum memory used for cached pages (in bytes).
     // A negative number is interpreted as infinity.
     if (cacheSize==0) {
-        ui->current_slide->setUseCache(false);
-        ui->notes_widget->setUseCache(false);
-        presentationScreen->slide->setUseCache(false);
+        ui->current_slide->setUseCache(0);
+        ui->notes_widget->setUseCache(0);
+        presentationScreen->slide->setUseCache(0);
     }
     maxCacheSize = size;
 }
@@ -795,13 +803,14 @@ void ControlScreen::receiveNextSlideStart()
     }
 }
 
-void ControlScreen::receivePageShiftReturn(int const shift)
+void ControlScreen::adaptPage()
 {
-    // Go to page shifted relative to the page shown on the presentation screen page.
-    int pageNumber = presentationScreen->getPageNumber() + shift;
-    renderPage(pageNumber);
     ui->label_timer->continueTimer();
-    updateCache();
+    // Go to page shifted relative to the page shown on the presentation screen page.
+    if (presentationScreen->slide->getDuration() < 0 || presentationScreen->slide->getDuration() > 0.5) {
+        renderPage(presentationScreen->getPageNumber());
+        updateCache();
+    }
 }
 
 void ControlScreen::receiveCloseSignal()
@@ -820,22 +829,19 @@ void ControlScreen::keyPressEvent(QKeyEvent* event)
         case KeyAction::Next:
             currentPageNumber = presentationScreen->getPageNumber() + 1;
             emit sendNewPageNumber(currentPageNumber);
-            renderPage(currentPageNumber);
             showNotes();
             ui->label_timer->continueTimer();
-            updateCache();
             break;
         case KeyAction::Previous:
             currentPageNumber = presentationScreen->getPageNumber() - 1;
             if (currentPageNumber >= 0) {
                 emit sendNewPageNumber(currentPageNumber);
-                renderPage(currentPageNumber);
                 showNotes();
                 ui->label_timer->continueTimer();
-                updateCache();
             }
-            else
+            else {
                 currentPageNumber = 0;
+            }
             break;
         case KeyAction::NextCurrentScreen:
             renderPage(++currentPageNumber);
@@ -849,40 +855,30 @@ void ControlScreen::keyPressEvent(QKeyEvent* event)
         case KeyAction::NextSkippingOverlays:
             currentPageNumber = presentation->getNextSlideIndex(presentationScreen->getPageNumber());
             emit sendNewPageNumber(currentPageNumber);
-            renderPage(currentPageNumber);
             showNotes();
             ui->label_timer->continueTimer();
-            updateCache();
             break;
         case KeyAction::PreviousSkippingOverlays:
             currentPageNumber = presentation->getPreviousSlideEnd(presentationScreen->getPageNumber());
             emit sendNewPageNumber(currentPageNumber);
-            renderPage(currentPageNumber);
             showNotes();
             ui->label_timer->continueTimer();
-            updateCache();
             break;
         case KeyAction::Update:
             currentPageNumber = presentationScreen->getPageNumber();
             emit sendNewPageNumber(currentPageNumber);
-            renderPage(currentPageNumber);
             showNotes();
             ui->label_timer->continueTimer();
-            updateCache();
             break;
         case KeyAction::LastPage:
             currentPageNumber = numberOfPages - 1;
             emit sendNewPageNumber(currentPageNumber);
-            renderPage(currentPageNumber);
             showNotes();
-            updateCache();
             break;
         case KeyAction::FirstPage:
             currentPageNumber = 0;
             emit sendNewPageNumber(currentPageNumber);
-            renderPage(currentPageNumber);
             showNotes();
-            updateCache();
             break;
         case KeyAction::UpdateCache:
             updateCache();
@@ -1253,6 +1249,9 @@ void ControlScreen::setRenderer(QStringList command)
     if (command.filter("%height").isEmpty())
         qWarning() << "Custom renderer does not use %height in arguments";
     cacheThread->setCustomRenderer(program, presentation->getPath(), notes->getPath(), command);
+    presentationScreen->slide->setUseCache(2);
+    ui->notes_widget->setUseCache(2);
+    qDebug() << "set render command to" << program << presentation->getPath() << notes->getPath() << command;
     return;
 }
 
@@ -1345,7 +1344,7 @@ void ControlScreen::showDrawSlide()
         drawSlide = new DrawSlide(this);
         drawSlide->setDoc(presentation);
         drawSlide->setFocusPolicy(Qt::ClickFocus);
-        drawSlide->setUseCache(false);
+        drawSlide->setUseCache(0);
         connect(ui->tool_selector, &ToolSelector::sendNewTool, drawSlide, &DrawSlide::setTool);
         connect(ui->tool_selector, &ToolSelector::sendClear, drawSlide, &DrawSlide::clearAllAnnotations);
         connect(drawSlide, &DrawSlide::pathsChanged, presentationScreen->slide, &DrawSlide::setPaths);

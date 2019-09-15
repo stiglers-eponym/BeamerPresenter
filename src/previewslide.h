@@ -36,7 +36,7 @@ public:
     long int updateCache(QByteArray const* bytes, int const index);
     long int clearCachePage(int const index);
     virtual void clearCache();
-    void setUseCache(bool const use) {useCache=use;}
+    void setUseCache(char const use) {useCache=use;}
     long int getCacheSize() const;
     int getCacheNumber() const {return cache.size();}
     QPixmap getPixmap(int const pageNumber) const;
@@ -51,7 +51,7 @@ protected:
     QMap<int,QByteArray const*> cache;
     QSize oldSize;
     QString urlSplitCharacter = "";
-    bool useCache = true;
+    char useCache = 1; // 0=don't cache; 1=use cache with internal renderer; 2=use cache with external renderer
     void mouseReleaseEvent(QMouseEvent* event) override;
     void mouseMoveEvent(QMouseEvent* event) override;
 };

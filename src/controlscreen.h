@@ -134,7 +134,7 @@ public slots:
     void receiveNextSlideStart();
     void receiveNewPageNumber(int const pageNumber);
     void receivePageShiftEdit(int const shift = 0);
-    void receivePageShiftReturn(int const shift = 0);
+    void adaptPage();
     void receiveCloseSignal();
     void receiveTimerAlert();
     void resetTimerAlert();

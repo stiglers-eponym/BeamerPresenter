@@ -21,7 +21,7 @@
 PresentationSlide::PresentationSlide(PdfDoc const*const document, QWidget* parent) : DrawSlide(parent)
 {
     doc = document;
-    connect(&timer, &QTimer::timeout, this, QOverload<>::of(&PresentationSlide::update));
+    connect(&timer, &QTimer::timeout, this, QOverload<>::of(&PresentationSlide::repaint));
     timeoutTimer->setSingleShot(true);
     connect(timeoutTimer, &QTimer::timeout, this, &PresentationSlide::timeoutSignal);
     remainTimer.setSingleShot(true);
@@ -68,6 +68,13 @@ void PresentationSlide::drawPointer(QPainter& painter)
 
 void PresentationSlide::endAnimation()
 {
+    stopAnimation();
+    repaint();
+    emit endAnimationSignal();
+}
+
+void PresentationSlide::stopAnimation()
+{
     timeoutTimer->stop();
     timer.stop();
     remainTimer.stop();
@@ -77,7 +84,6 @@ void PresentationSlide::endAnimation()
         picinit = QPixmap();
     if (!picfinal.isNull())
         picfinal = QPixmap();
-    update();
 }
 
 void PresentationSlide::setDuration()
@@ -191,6 +197,7 @@ void PresentationSlide::animate(int const oldPageIndex) {
     remainTimer.stop();
     if (pixmap.isNull()) {
         transition_duration = 0;
+        endAnimation();
         return;
     }
     picwidth = pixmap.width();
@@ -214,7 +221,7 @@ void PresentationSlide::animate(int const oldPageIndex) {
     case Poppler::PageTransition::Replace:
         {
         transition_duration = 0;
-        update();
+        endAnimation();
         return;
         }
     case Poppler::PageTransition::Split:

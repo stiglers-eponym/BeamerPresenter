@@ -49,7 +49,8 @@ protected:
     double duration = -1.; // duration of the current page in s
     void paintEvent(QPaintEvent*) override;
     void animate(int const oldPgaeIndex = -1) override;
-    void endAnimation() override;
+    void endAnimation();
+    void stopAnimation() override;
     void setDuration() override;
     void drawPointer(QPainter& painter);
     void updateImages(int const oldPage);
@@ -104,6 +105,7 @@ public slots:
 
 signals:
     void timeoutSignal();
+    void endAnimationSignal();
 };
 
 typedef void (PresentationSlide::*paint)();
