@@ -516,6 +516,7 @@ void ControlScreen::renderPage(int const pageNumber)
     }
     // Update the page number
     ui->text_current_slide->setText(QString::number(currentPageNumber+1));
+    update();
 }
 
 void ControlScreen::updateCache()
