@@ -32,7 +32,7 @@ class PresentationScreen : public QWidget
 
 public:
     explicit PresentationScreen(PdfDoc* presentationDoc, QWidget* parent = nullptr);
-    ~PresentationScreen();
+    ~PresentationScreen() override;
     void renderPage(int const pageNumber = 0, bool const setDuration = false);
     int getPageNumber() const {return slide->pageNumber();}
     void updatedFile();
@@ -42,9 +42,9 @@ public:
     void setKeyMap(QMap<int, QList<int>>* keymap) {this->keymap=keymap;} // PresentationScreen does not own this object!
 
 protected:
-    void keyPressEvent(QKeyEvent* event);
-    void resizeEvent(QResizeEvent*);
-    void wheelEvent(QWheelEvent* event);
+    void keyPressEvent(QKeyEvent* event) override {emit sendKeyEvent(event);}
+    void resizeEvent(QResizeEvent*) override;
+    void wheelEvent(QWheelEvent* event) override;
 
 private:
     void updateVideoCache();

@@ -19,6 +19,8 @@
 #include "controlscreen.h"
 #include "ui_controlscreen.h"
 
+// TODO: tidy up! Separate and reorganize cache management; reorganize signals, slots, events, ...
+
 ControlScreen::ControlScreen(QString presentationPath, QString notesPath, QWidget* parent) :
     QMainWindow(parent),
     ui(new Ui::ControlScreen)
@@ -172,6 +174,7 @@ ControlScreen::ControlScreen(QString presentationPath, QString notesPath, QWidge
     connect(presentationScreen->slide, &BasicSlide::sendCloseSignal, presentationScreen, &PresentationScreen::receiveCloseSignal);
     connect(ui->notes_widget, &BasicSlide::sendCloseSignal, this, &ControlScreen::receiveCloseSignal);
     connect(presentationScreen->slide, &BasicSlide::sendCloseSignal, this, &ControlScreen::receiveCloseSignal);
+    connect(presentationScreen->slide, &PresentationSlide::requestUpdateNotes, this, &ControlScreen::renderPage);
 
     ui->label_timer->setTimerWidget(ui->edit_timer);
     // Signals emitted by the timer
@@ -844,11 +847,11 @@ void ControlScreen::keyPressEvent(QKeyEvent* event)
                 currentPageNumber = 0;
             }
             break;
-        case KeyAction::NextCurrentScreen:
+        case KeyAction::NextCurrentScreen: // Remove this: "current screen" is not useful
             renderPage(++currentPageNumber);
             showNotes();
             break;
-        case KeyAction::PreviousCurrentScreen:
+        case KeyAction::PreviousCurrentScreen:// Remove this: "current screen" is not useful
             if (currentPageNumber > 0)
                 renderPage(--currentPageNumber);
             showNotes();

@@ -106,6 +106,7 @@ public slots:
 signals:
     void timeoutSignal();
     void endAnimationSignal();
+    void requestUpdateNotes(int const i);
 };
 
 typedef void (PresentationSlide::*paint)();

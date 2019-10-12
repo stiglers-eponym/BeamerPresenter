@@ -71,6 +71,7 @@ void PresentationSlide::endAnimation()
     stopAnimation();
     repaint();
     emit endAnimationSignal();
+    emit requestUpdateNotes(pageIndex);
 }
 
 void PresentationSlide::stopAnimation()
@@ -484,6 +485,7 @@ void PresentationSlide::animate(int const oldPageIndex) {
         paint = &PresentationSlide::paintFade;
         break;
     }
+    emit requestUpdateNotes(pageIndex);
     remainTimer.start();
     timer.start(0);
 }
