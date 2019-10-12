@@ -13,11 +13,12 @@ BeamerPresenter is only tested on GNU/Linux with X11 and wayland.
 To build and use this project you need to have the Qt5 multimedia module and the
 poppler Qt5 bindings installed.
 
-Download an compile this project:
+Download, compile and install this project on GNU/Linux systems:
 ```sh
 git clone https://github.com/stiglers-eponym/BeamerPresenter.git
 cd BeamerPresenter
 qmake && make
+make install
 ```
 Showing videos in a presentation additionally requires the installation of some
 GStreamer plugins.
@@ -40,25 +41,12 @@ git clone https://github.com/stiglers-eponym/BeamerPresenter.git
 cd BeamerPresenter
 qmake && make
 ```
-You should now have the following files:
-
-*	executable `beamerpresenter`
-*	man page `beamerpresenter.1`
-*	default configuration file `beamerpresenter.conf`
-*	other files for experimental use: `local_config.json` and `pid2wid.sh`
-
-For a installation you may want to copy these files to the following locations:
+You can install BeamerPresenter using `make install`, but it is recommended to use `checkinstall`
 ```sh
-cp beamerpresenter ~/bin/beamerpresenter # or cp beamerpresenter /usr/bin/beamerpresenter
-gzip beamerpresenter.1 && cp beamerpresenter.1.gz /usr/share/man/man1/beamerpresenter.1.gz
-mkdir -p ~/.config/beamerpresenter.conf && cp beamerpresenter.conf ~/.config/beamerpresenter/beamerpresenter.conf
-# or cp beamerpresenter.conf ~/.config/beamerpresenter.conf
+apt install checkinstall
+checkinstall make install
 ```
-Afterwards you can remove the build directory `BeamerPresenter`:
-```sh
-cd ..
-rm -r BeamerPresenter
-```
+in order to keep track of all installed files using apt.
 
 
 ## Usage
@@ -69,7 +57,7 @@ For more options and usage possibilities use `beamerpresenter --help` and the
 man page.
 
 If you start `beamerpresenter` without any arguments, it will show a file dialog
-in which you can pick you presentation file.
+in which you can pick you presentation and notes file.
 
 
 ## Features

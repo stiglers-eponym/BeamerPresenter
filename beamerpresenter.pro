@@ -80,8 +80,8 @@ FORMS += \
         src/controlscreen.ui
 
 unix {
-	INCLUDEPATH += /usr/include/poppler/qt5
-	LIBS += -L/usr/lib/ -lpoppler-qt5
+    INCLUDEPATH += /usr/include/poppler/qt5
+    LIBS += -L /usr/lib/ -lpoppler-qt5
 }
 #macx {
 #	# Testing required!
@@ -97,17 +97,14 @@ unix {
 # TODO: libraries for Windows (and mac)
 
 unix {
-	documentation.path = /usr/share/man/man1
-	documentation.extra = gzip -9 $$TARGET.1
-	documentation.file = $$TARGET.1.gz
+    documentation.path = /usr/share/man/man1
+    documentation.extra = ls $${TARGET}.1.gz || gzip -9 $${TARGET}.1
+    documentation.files = $${TARGET}.1.gz
 
-	configuration.path = /etc/$$TARGET/
-	configuration.path = $$TARGET.conf pid2wid.sh
+    configuration.path = /etc/$${TARGET}/
+    configuration.files = $${TARGET}.conf pid2wid.sh
 
-	INSTALLS += documentation configuration
+    target.path = /usr/bin/
+
+    INSTALLS += documentation configuration target
 }
-
-# Default rules for deployment.
-qnx: target.path = /tmp/$${TARGET}/bin
-else: unix:!android: target.path = /opt/$${TARGET}/bin
-!isEmpty(target.path): INSTALLS += target
