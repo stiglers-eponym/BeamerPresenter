@@ -158,10 +158,11 @@ ControlScreen::ControlScreen(QString presentationPath, QString notesPath, QWidge
     // Navigation signals emitted by PresentationScreen:
     connect(presentationScreen->slide, &PresentationSlide::sendAdaptPage, this, &ControlScreen::adaptPage);
     connect(presentationScreen, &PresentationScreen::sendNewPageNumber, this, &ControlScreen::receiveNewPageNumber);
+    connect(presentationScreen->slide, &PresentationSlide::sendNewPageNumber, this, &ControlScreen::receiveNewPageNumber);
 
     // Other signals emitted by PresentationScreen
     connect(presentationScreen, &PresentationScreen::sendKeyEvent,    this, &ControlScreen::keyPressEvent);
-    connect(presentationScreen, &PresentationScreen::sendCloseSignal, this, &ControlScreen::receiveCloseSignal);
+    connect(presentationScreen, &PresentationScreen::sendCloseSignal, this, &ControlScreen::close);
     connect(presentationScreen->slide, &MediaSlide::requestMultimediaSliders, this, &ControlScreen::addMultimediaSliders);
     if (drawSlide!=nullptr)
         connect(drawSlide, &MediaSlide::requestMultimediaSliders, this, &ControlScreen::interconnectMultimediaSliders);
@@ -169,11 +170,11 @@ ControlScreen::ControlScreen(QString presentationPath, QString notesPath, QWidge
 
     // Signals sent back to PresentationScreen
     connect(this, &ControlScreen::sendNewPageNumber, presentationScreen, &PresentationScreen::receiveNewPageNumber);
-    connect(this, &ControlScreen::sendCloseSignal,   presentationScreen, &PresentationScreen::receiveCloseSignal);
-    connect(ui->notes_widget, &BasicSlide::sendCloseSignal, presentationScreen, &PresentationScreen::receiveCloseSignal);
-    connect(presentationScreen->slide, &BasicSlide::sendCloseSignal, presentationScreen, &PresentationScreen::receiveCloseSignal);
-    connect(ui->notes_widget, &BasicSlide::sendCloseSignal, this, &ControlScreen::receiveCloseSignal);
-    connect(presentationScreen->slide, &BasicSlide::sendCloseSignal, this, &ControlScreen::receiveCloseSignal);
+    connect(this, &ControlScreen::sendCloseSignal,   presentationScreen, &PresentationScreen::close);
+    connect(ui->notes_widget, &BasicSlide::sendCloseSignal, presentationScreen, &PresentationScreen::close);
+    connect(presentationScreen->slide, &BasicSlide::sendCloseSignal, presentationScreen, &PresentationScreen::close);
+    connect(ui->notes_widget, &BasicSlide::sendCloseSignal, this, &ControlScreen::close);
+    connect(presentationScreen->slide, &BasicSlide::sendCloseSignal, this, &ControlScreen::close);
     connect(presentationScreen->slide, &PresentationSlide::requestUpdateNotes, this, &ControlScreen::renderPage);
 
     ui->label_timer->setTimerWidget(ui->edit_timer);
@@ -816,11 +817,6 @@ void ControlScreen::adaptPage()
     }
 }
 
-void ControlScreen::receiveCloseSignal()
-{
-    close();
-}
-
 void ControlScreen::keyPressEvent(QKeyEvent* event)
 {
     // Key codes are given as key + modifiers.
@@ -846,11 +842,11 @@ void ControlScreen::keyPressEvent(QKeyEvent* event)
                 currentPageNumber = 0;
             }
             break;
-        case KeyAction::NextCurrentScreen: // Remove this: "current screen" is not useful
+        case KeyAction::NextNotes:
             renderPage(++currentPageNumber);
             showNotes();
             break;
-        case KeyAction::PreviousCurrentScreen:// Remove this: "current screen" is not useful
+        case KeyAction::PreviousNotes:
             if (currentPageNumber > 0)
                 renderPage(--currentPageNumber);
             showNotes();
@@ -866,6 +862,18 @@ void ControlScreen::keyPressEvent(QKeyEvent* event)
             emit sendNewPageNumber(currentPageNumber);
             showNotes();
             ui->label_timer->continueTimer();
+            break;
+        case KeyAction::NextNotesSkippingOverlays:
+            currentPageNumber = presentation->getNextSlideIndex(currentPageNumber);
+            renderPage(currentPageNumber);
+            showNotes();
+            break;
+        case KeyAction::PreviousNotesSkippingOverlays:
+            if (currentPageNumber > 0) {
+                currentPageNumber = presentation->getPreviousSlideEnd(currentPageNumber);
+                renderPage(currentPageNumber);
+            }
+            showNotes();
             break;
         case KeyAction::Update:
             currentPageNumber = presentationScreen->getPageNumber();
