@@ -95,6 +95,7 @@ void BasicSlide::renderPage(const int pageNumber, const QPixmap *pix)
 
     // Show the page on the screen.
     update();
+    qDebug() << "rendered basic slide:" << this << pageNumber;
 }
 
 void BasicSlide::paintEvent(QPaintEvent*)

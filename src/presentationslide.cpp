@@ -71,7 +71,8 @@ void PresentationSlide::endAnimation()
     stopAnimation();
     repaint();
     emit endAnimationSignal();
-    emit requestUpdateNotes(pageIndex);
+    qDebug() << "send adapt page from endAnimation(): page" << pageIndex;
+    emit sendAdaptPage();
 }
 
 void PresentationSlide::stopAnimation()
@@ -485,6 +486,7 @@ void PresentationSlide::animate(int const oldPageIndex) {
         paint = &PresentationSlide::paintFade;
         break;
     }
+    qDebug() << "requets update notes from animate(): page" << pageIndex;
     emit requestUpdateNotes(pageIndex);
     remainTimer.start();
     timer.start(0);

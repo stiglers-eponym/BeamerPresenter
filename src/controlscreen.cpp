@@ -156,7 +156,7 @@ ControlScreen::ControlScreen(QString presentationPath, QString notesPath, QWidge
     connect(presentationScreen->slide, &BasicSlide::sendShowFullscreen, presentationScreen, &PresentationScreen::showFullScreen);
 
     // Navigation signals emitted by PresentationScreen:
-    connect(presentationScreen, &PresentationScreen::sendAdaptPage,     this, &ControlScreen::adaptPage);
+    connect(presentationScreen->slide, &PresentationSlide::sendAdaptPage, this, &ControlScreen::adaptPage);
     connect(presentationScreen, &PresentationScreen::sendNewPageNumber, this, &ControlScreen::receiveNewPageNumber);
 
     // Other signals emitted by PresentationScreen
@@ -401,6 +401,7 @@ void ControlScreen::renderPage(int const pageNumber)
 {
     // Update all page labels on the control screen to show the given page number.
     // This uses cached pages if such are available.
+    qDebug() << "entered ControlScreen::renderPage: updating notes, page" << pageNumber;
 
     // Negative page numbers are interpreted as signal for going to the last page.
     if (pageNumber < 0 || pageNumber >= numberOfPages)
@@ -456,7 +457,7 @@ void ControlScreen::renderPage(int const pageNumber)
         presentationScreen->slide->updateEnlargedPage();
     }
     else {
-        // It is possible that presentationScreen->slide contains paths which have not been copied to drawSlide yet.
+        // It is possible that presentationScreen->slide contains drawings which have not been copied to drawSlide yet.
         QString label = presentation->getLabel(currentPageNumber);
         if (!drawSlide->getPaths().contains(label)) {
             QMap<QString, QMap<DrawTool, QList<DrawPath>>> const paths = presentationScreen->slide->getPaths();
@@ -519,7 +520,8 @@ void ControlScreen::renderPage(int const pageNumber)
     }
     // Update the page number
     ui->text_current_slide->setText(QString::number(currentPageNumber+1));
-    update();
+    qDebug() << "finished updating notes";
+    //repaint(); // uncomment to force repaint: if debug messages ("finished updating notes") are visible but notes are not updated.
 }
 
 void ControlScreen::updateCache()
