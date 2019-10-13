@@ -230,6 +230,7 @@ void PresentationSlide::animate(int const oldPageIndex) {
     case Poppler::PageTransition::Replace:
         {
         transition_duration = 0;
+        qDebug() << "Transition replace";
         endAnimation();
         return;
         }
