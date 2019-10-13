@@ -194,12 +194,14 @@ void PresentationSlide::updateImages(int const oldPage)
 void PresentationSlide::animate(int const oldPageIndex) {
     qDebug() << "called animate";
     if (transition_duration < 0 || oldPageIndex == pageIndex) {
+        qDebug() << "slide not changed or transition_duration<0";
         endAnimation();
         return;
     }
     timer.stop();
     remainTimer.stop();
     if (pixmap.isNull()) {
+        qDebug() << "pixmap.isNull()";
         transition_duration = 0;
         endAnimation();
         return;
@@ -208,6 +210,7 @@ void PresentationSlide::animate(int const oldPageIndex) {
     picheight = pixmap.height();
     Poppler::PageTransition const* transition = page->transition();
     if (transition == nullptr || (duration>-1e-6 && duration < .05)) {
+        qDebug() << "Frame has very short duration: no call to endAnimation";
         transition_duration = 0;
         update();
         return;
@@ -216,11 +219,13 @@ void PresentationSlide::animate(int const oldPageIndex) {
         transition = doc->getPage(oldPageIndex)->transition();
     transition_duration = static_cast<int>(1000*transition->durationReal());
     if (transition_duration < 5) {
+        qDebug() << "transition_duration < 5";
         endAnimation();
         return;
     }
     updateImages(oldPageIndex);
     remainTimer.setInterval(transition_duration-2);
+    qDebug() << "switch transition types";
     switch (transition->type()) {
     case Poppler::PageTransition::Replace:
         {
@@ -488,7 +493,7 @@ void PresentationSlide::animate(int const oldPageIndex) {
         paint = &PresentationSlide::paintFade;
         break;
     }
-    qDebug() << "requets update notes from animate(): page" << pageIndex;
+    qDebug() << "request update notes from animate(): page" << pageIndex;
     emit requestUpdateNotes(pageIndex);
     remainTimer.start();
     timer.start(0);
