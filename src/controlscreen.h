@@ -130,12 +130,11 @@ public slots:
     // TODO: Some of these functions are not used as slots. Tidy up!
     void receiveCache(QByteArray const* pres, QByteArray const* note, QByteArray const* small, int const index);
     void receiveDest(QString const& dest);
-    void receivePreviousSlideEnd();
-    void receiveNextSlideStart();
+    void receivePreviousSlideEnd(); // go to last overlay of previous slide
+    void receiveNextSlideStart(); // go to first overlay of next slide
     void receiveNewPageNumber(int const pageNumber);
     void receivePageShiftEdit(int const shift = 0);
     void adaptPage();
-    void receiveCloseSignal();
     void receiveTimerAlert();
     void resetTimerAlert();
     void resetFocus();

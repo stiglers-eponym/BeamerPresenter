@@ -71,8 +71,7 @@ signals:
 
 public slots:
     void receiveNewPageNumber(const int pageNumber);
-    void receiveCloseSignal();
-    void receiveTimeoutSignal();
+    void receiveTimeoutSignal() {renderPage(slide->pageNumber() + 1, true);}
 };
 
 #endif // PRESENTATIONSCREEN_H
