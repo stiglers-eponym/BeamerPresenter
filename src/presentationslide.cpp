@@ -209,7 +209,13 @@ void PresentationSlide::animate(int const oldPageIndex) {
     picwidth = pixmap.width();
     picheight = pixmap.height();
     Poppler::PageTransition const* transition = page->transition();
-    if (transition == nullptr || (duration>-1e-6 && duration < .05)) {
+    if (transition == nullptr) {
+        qDebug() << "slide has no transition";
+        transition_duration = 0;
+        endAnimation();
+        return;
+    }
+    if (duration>-1e-6 && duration < .05) {
         qDebug() << "Frame has very short duration: no call to endAnimation";
         transition_duration = 0;
         update();
