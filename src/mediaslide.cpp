@@ -80,6 +80,7 @@ void MediaSlide::clearLists()
 
 void MediaSlide::renderPage(int const pageNumber, bool const hasDuration, QPixmap const* pix)
 {
+    qDebug() << "Entered MediaSlide::renderPage" << pageNumber << hasDuration;
     stopAnimation();
     if (pageNumber < 0 || pageNumber >= doc->getDoc()->numPages())
         return;
@@ -191,6 +192,7 @@ void MediaSlide::renderPage(int const pageNumber, bool const hasDuration, QPixma
     // In this case: go to the next page after that given time.
     if (hasDuration)
         setDuration();
+    qDebug() << "calling MediaSlide::animate. old & new page:" << oldPageIndex << pageNumber;
     animate(oldPageIndex);
 
     // Collect link areas in pixels (positions relative to the lower left edge of the label)

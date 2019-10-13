@@ -68,6 +68,7 @@ void PresentationSlide::drawPointer(QPainter& painter)
 
 void PresentationSlide::endAnimation()
 {
+    qDebug() << "called endAnimation()";
     stopAnimation();
     repaint();
     emit endAnimationSignal();
@@ -191,6 +192,7 @@ void PresentationSlide::updateImages(int const oldPage)
 }
 
 void PresentationSlide::animate(int const oldPageIndex) {
+    qDebug() << "called animate";
     if (transition_duration < 0 || oldPageIndex == pageIndex) {
         endAnimation();
         return;
