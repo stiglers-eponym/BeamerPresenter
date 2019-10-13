@@ -31,7 +31,7 @@ Note: BeamerPresenter requires Qt >= 5.9 (versions 5.6 - 5.8 are untested), whic
 
 First install the dependences (note that this changes the default Qt version to Qt 5):
 ```sh
-apt install qt5-qmake qt5-default libpoppler-qt5-dev qtmultimedia5-dev
+sudo apt install qt5-qmake qt5-default libpoppler-qt5-dev qtmultimedia5-dev
 ```
 Optionally install `libqt5multimedia5-plugins` for multimedia content.
 
@@ -41,10 +41,11 @@ git clone https://github.com/stiglers-eponym/BeamerPresenter.git
 cd BeamerPresenter
 qmake && make
 ```
-You can install BeamerPresenter using `make install`, but it is recommended to use `checkinstall`
+You can install BeamerPresenter using `sudo make install`, but it is recommended to use `checkinstall`
 ```sh
-apt install checkinstall
-checkinstall make install
+sudo apt install checkinstall
+echo 'Simple dual screen pdf viewer' > description-pak
+sudo checkinstall -D --pkglicense=GPL3 --requires=libpoppler-qt5,qtmultimedia5 --pkgsource=github.com/stiglers-eponym/BeamerPresenter make install
 ```
 in order to keep track of all installed files using apt.
 

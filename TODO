@@ -8,10 +8,10 @@ BeamerPresenter
 * Video widgets often have data stream errors: sync them better, use only one player?
 * cache management can crash, disabling cache completely (occurred after reloading files): not simply reproducible
 * Draw in presentation:
-	*	show annotations on top of video content
-	*	sync multimedia content
-	*	Check slide transitions and improve efficiency
-	*	use OpenGL again?
+	* show annotations on top of video content
+	* sync multimedia content
+	* Check slide transitions and improve efficiency
+	* use OpenGL again?
 
 * Make timer editable
 * Multimedia sliders: key bindings and signals slider <-> player

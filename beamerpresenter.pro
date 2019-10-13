@@ -4,9 +4,13 @@
 #
 #-------------------------------------------------
 
-QT       += core gui multimedia multimediawidgets xml
+requires(greaterThan(QT_MAJOR_VERSION, 4))
+equals(QT_MAJOR_VERSION, 4) {
+	requires(greaterThan(QT_MINOR_VERSION, 5))
+	smallerThan(QT_MINOR_VERSION, 9):message("Using Qt version < 5.9 is untested!.")
+}
 
-greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
+QT       += core gui multimedia multimediawidgets xml widgets
 
 CONFIG(debug):QMAKE_LFLAGS += -rdynamic
 TARGET = beamerpresenter
