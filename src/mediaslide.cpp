@@ -757,7 +757,7 @@ void MediaSlide::pauseAllMultimedia()
 
 void MediaSlide::playVideo(int const i)
 {
-    if (i<0 || i>=videoWidgets.length() || videoWidgets[i]==nullptr)
+    if (i<0 || i>=videoWidgets.length() || videoWidgets[i]==nullptr || i>=videoPositions.length())
         return;
     videoWidgets[i]->setGeometry(videoPositions[i]);
     videoWidgets[i]->show();
