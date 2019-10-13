@@ -4,14 +4,17 @@
 #
 #-------------------------------------------------
 
-QT       += core gui multimedia multimediawidgets xml
+requires(greaterThan(QT_MAJOR_VERSION, 4))
+equals(QT_MAJOR_VERSION, 4) {
+	requires(greaterThan(QT_MINOR_VERSION, 5))
+	smallerThan(QT_MINOR_VERSION, 9):message("Using Qt version < 5.9 is untested!.")
+}
 
-greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
+QT       += core gui multimedia multimediawidgets xml widgets
+
 
 TARGET = beamerpresenter
 TEMPLATE = app
-
-QMAKE_LFLAGS += -rdynamic
 
 # The following define makes your compiler emit warnings if you use
 # any feature of Qt which has been marked as deprecated (the exact warnings
@@ -19,7 +22,7 @@ QMAKE_LFLAGS += -rdynamic
 # deprecated API in order to know how to port your code away from it.
 DEFINES += QT_DEPRECATED_WARNINGS
 CONFIG += qt
-CONFIG(release, debug|release):DEFINES += QT_NO_DEBUG_OUTPUT
+QMAKE_LFLAGS += -rdynamic
 
 # You can also make your code fail to compile if you use deprecated APIs.
 # In order to do so, uncomment the following line.
