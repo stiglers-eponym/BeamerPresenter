@@ -63,7 +63,6 @@ private:
 signals:
     void sendNewPageNumber(const int pageNumber);
     void sendCloseSignal();
-    void sendAdaptPage();
     void sendKeyEvent(QKeyEvent* event);
     void togglePointerVisibilitySignal();
     void focusPageNumberEdit();

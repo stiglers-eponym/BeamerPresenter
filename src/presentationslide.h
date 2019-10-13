@@ -106,6 +106,7 @@ public slots:
 signals:
     void timeoutSignal();
     void endAnimationSignal();
+    void sendAdaptPage();
     void requestUpdateNotes(int const i);
 };
 

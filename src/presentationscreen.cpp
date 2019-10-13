@@ -43,7 +43,6 @@ PresentationScreen::PresentationScreen(PdfDoc* presentationDoc, QWidget* parent)
     connect(slide, &PresentationSlide::sendNewPageNumber, this, &PresentationScreen::sendNewPageNumber);
     connect(slide, &PresentationSlide::timeoutSignal,     this, &PresentationScreen::receiveTimeoutSignal);
     connect(this, &PresentationScreen::togglePointerVisibilitySignal, slide, &PresentationSlide::togglePointerVisibility);
-    connect(slide, &PresentationSlide::endAnimationSignal, this, &PresentationScreen::sendAdaptPage);
     connect(slide, &PresentationSlide::endAnimationSignal, videoCacheTimer, QOverload<>::of(&QTimer::start));
     slide->togglePointerVisibility();
     show();
@@ -87,8 +86,6 @@ void PresentationScreen::updateVideoCache()
 void PresentationScreen::receiveTimeoutSignal()
 {
     renderPage(slide->pageNumber() + 1, true);
-    if (slide->getDuration() < 0 || slide->getDuration() > 0.5)
-        emit sendAdaptPage();
 }
 
 void PresentationScreen::receiveNewPageNumber(const int pageNumber)

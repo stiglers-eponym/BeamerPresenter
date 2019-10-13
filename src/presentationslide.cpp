@@ -71,7 +71,7 @@ void PresentationSlide::endAnimation()
     stopAnimation();
     repaint();
     emit endAnimationSignal();
-    emit requestUpdateNotes(pageIndex);
+    emit sendAdaptPage();
 }
 
 void PresentationSlide::stopAnimation()
