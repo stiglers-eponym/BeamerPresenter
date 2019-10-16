@@ -511,13 +511,13 @@ void ControlScreen::renderPage(int const pageNumber)
                 ui->current_slide->renderPage(currentPageNumber, &pixmap);
             ui->next_slide->renderPage(currentPageNumber, &pixmap);
         }
-        if (presentationScreen->slide->getTool() == Magnifier) {
+        if (presentationScreen->slide->getTool() == Magnifier) { // TODO: improve this.
             ui->current_slide->repaint();
             ui->next_slide->repaint();
         }
 
-        drawSlide->updateEnlargedPage();
         presentationScreen->slide->updateEnlargedPage();
+        drawSlide->updateEnlargedPage();
     }
     // Update the page number
     ui->text_current_slide->setText(QString::number(currentPageNumber+1));
