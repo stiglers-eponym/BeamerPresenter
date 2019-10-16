@@ -402,7 +402,6 @@ void ControlScreen::renderPage(int const pageNumber)
 {
     // Update all page labels on the control screen to show the given page number.
     // This uses cached pages if such are available.
-    qDebug() << "entered ControlScreen::renderPage: updating notes, page" << pageNumber;
 
     // Negative page numbers are interpreted as signal for going to the last page.
     if (pageNumber < 0 || pageNumber >= numberOfPages)
@@ -511,18 +510,16 @@ void ControlScreen::renderPage(int const pageNumber)
                 ui->current_slide->renderPage(currentPageNumber, &pixmap);
             ui->next_slide->renderPage(currentPageNumber, &pixmap);
         }
-        if (presentationScreen->slide->getTool() == Magnifier) {
+        if (presentationScreen->slide->getTool() == Magnifier) { // TODO: improve this.
             ui->current_slide->repaint();
             ui->next_slide->repaint();
         }
 
-        drawSlide->updateEnlargedPage();
         presentationScreen->slide->updateEnlargedPage();
+        drawSlide->updateEnlargedPage();
     }
     // Update the page number
     ui->text_current_slide->setText(QString::number(currentPageNumber+1));
-    qDebug() << "finished updating notes";
-    //repaint(); // uncomment to force repaint: if debug messages ("finished updating notes") are visible but notes are not updated.
 }
 
 void ControlScreen::updateCache()

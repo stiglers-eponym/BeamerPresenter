@@ -3,6 +3,7 @@ BeamerPresenter
 * Segfault when starting embedded application from the wrong screen
 * Bug report for Qt5.13 in wayland: paintEvent not drawn immediately
 * tidy up event handling and signals sent between the two windows
+* key bindings for navigation without slide transitions
 
 * Video widgets break when switching between notes and draw mode
 * Video widgets often have data stream errors: sync them better, use only one player?

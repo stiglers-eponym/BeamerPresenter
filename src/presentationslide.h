@@ -37,7 +37,7 @@ private:
     int picheight;
     QTimer timer;
     QTimer remainTimer;
-    void (PresentationSlide::*paint)(QPainter&);
+    void (PresentationSlide::*paint)(QPainter&) = nullptr;
     QPixmap changes; // only for transition fly
     int virtual_transition_duration = 100; // only for transition fly
 

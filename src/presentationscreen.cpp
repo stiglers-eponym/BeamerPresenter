@@ -72,7 +72,6 @@ void PresentationScreen::renderPage(int const pageNumber, bool const setDuration
         pageIndex = numberOfPages - 1;
     else
         pageIndex = pageNumber;
-    qDebug() << "PresentationScreen renderPage: render presentation page" << pageNumber << setDuration;
     slide->renderPage(pageIndex, setDuration);
     emit pageChanged(presentation->getSlideNumber(pageIndex));
 }
