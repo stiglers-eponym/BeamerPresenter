@@ -47,7 +47,7 @@ class ControlScreen : public QMainWindow
 public:
     explicit ControlScreen(QString presentationPath, QString notesPath = "", QWidget* parent = nullptr);
     ~ControlScreen();
-    void renderPage(int const pageNumber);
+    void renderPage(int const pageNumber, bool const full = true);
     void setPagePart(PagePart const pagePart);
     void setColor(QColor const bgColor = Qt::gray, QColor const textColor = Qt::black);
     void setPresentationColor(QColor const color = Qt::black);
@@ -116,7 +116,7 @@ private slots:
 
 signals:
     void togglePointerVisibilitySignal();
-    void sendNewPageNumber(int const pageNumber);
+    void sendNewPageNumber(int const pageNumber, bool const setDuration);
     void sendTimerString(QString const timerString);
     void sendTimerColors(QList<int> times, QList<QColor> colors);
     void sendAutostartDelay(double const timeout);

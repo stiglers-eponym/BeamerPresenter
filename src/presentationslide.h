@@ -107,7 +107,7 @@ signals:
     void timeoutSignal();
     void endAnimationSignal();
     void sendAdaptPage();
-    void requestUpdateNotes(int const i);
+    void requestUpdateNotes(int const i, bool const full);
 };
 
 typedef void (PresentationSlide::*paint)();

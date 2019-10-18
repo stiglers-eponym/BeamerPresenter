@@ -68,11 +68,11 @@ void PresentationSlide::drawPointer(QPainter& painter)
 
 void PresentationSlide::endAnimation()
 {
-    qDebug() << "called endAnimation()";
     stopAnimation();
     repaint();
+    qDebug() << "sending endAnimationSignal()";
     emit endAnimationSignal();
-    qDebug() << "send adapt page from endAnimation(): page" << pageIndex;
+    qDebug() << "sending sendAdaptPage(page): page" << pageIndex;
     emit sendAdaptPage();
 }
 
@@ -501,7 +501,7 @@ void PresentationSlide::animate(int const oldPageIndex) {
         break;
     }
     qDebug() << "request update notes from animate(): page" << pageIndex;
-    emit requestUpdateNotes(pageIndex);
+    emit requestUpdateNotes(pageIndex, false);
     remainTimer.start();
     timer.start(0);
 }

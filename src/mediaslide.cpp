@@ -166,7 +166,7 @@ void MediaSlide::renderPage(int const pageNumber, bool const hasDuration, QPixma
         bool updateRequired = true;
         if (cache.contains(pageIndex)) {
             // The page exists in cache. Use the cache instead of rendering it again.
-            pixmap = getCache(pageIndex);
+            pixmap = getCache(pageIndex); // This is usually the slowest part: ca. 10 ms for notes
             int picwidth = int(resolution*pageWidth), picheight = int(resolution*pageHeight);
             if (abs(picwidth-pixmap.width())<2 && abs(picheight-pixmap.height())<2)
                 updateRequired = false;
@@ -192,7 +192,6 @@ void MediaSlide::renderPage(int const pageNumber, bool const hasDuration, QPixma
     // In this case: go to the next page after that given time.
     if (hasDuration)
         setDuration();
-    qDebug() << "calling MediaSlide::animate. old & new page:" << oldPageIndex << pageNumber << this;
     animate(oldPageIndex);
 
     // Collect link areas in pixels (positions relative to the lower left edge of the label)

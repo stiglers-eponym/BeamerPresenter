@@ -361,6 +361,7 @@ void DrawSlide::updateEnlargedPage()
             enlargedPage = QPixmap();
         return;
     }
+    qDebug() << "Updating enlarged page" << this;
     enlargedPage = QPixmap(2*size());
     enlargedPage.fill(QColor(0,0,0,0));
     QPainter painter;
