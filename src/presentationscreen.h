@@ -48,7 +48,6 @@ protected:
 
 private:
     void updateVideoCache();
-    QTimer* videoCacheTimer = new QTimer();
     QGridLayout* layout;
     PdfDoc* presentation;
     PresentationSlide* slide;

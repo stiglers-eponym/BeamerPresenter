@@ -106,8 +106,6 @@ void MediaSlide::renderPage(int const pageNumber, bool const hasDuration, QPixma
     }
 
     // Set the new page and basic properties
-    int const oldPageIndex = pageIndex;
-    pageIndex = pageNumber;
     page = doc->getPage(pageNumber);
     QSizeF pageSize = page->pageSizeF();
     // This is given in point = inch/72 ≈ 0.353mm (Did they choose these units to bother programmers?)
@@ -164,9 +162,10 @@ void MediaSlide::renderPage(int const pageNumber, bool const hasDuration, QPixma
     }
     else {
         bool updateRequired = true;
-        if (cache.contains(pageIndex)) {
+        if (cache.contains(pageNumber)) {
             // The page exists in cache. Use the cache instead of rendering it again.
-            pixmap = getCache(pageIndex); // This is usually the slowest part: ca. 10 ms for notes
+            if (pageIndex != pageNumber)
+                pixmap = getCache(pageNumber); // This is still slow compared to the rest of this function (can be >30 ms)
             int picwidth = int(resolution*pageWidth), picheight = int(resolution*pageHeight);
             if (abs(picwidth-pixmap.width())<2 && abs(picheight-pixmap.height())<2)
                 updateRequired = false;
@@ -190,6 +189,8 @@ void MediaSlide::renderPage(int const pageNumber, bool const hasDuration, QPixma
 
     // Presentation slides can have a "duration" property.
     // In this case: go to the next page after that given time.
+    int const oldPageIndex = pageIndex;
+    pageIndex = pageNumber;
     if (hasDuration)
         setDuration();
     animate(oldPageIndex);

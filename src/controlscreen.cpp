@@ -451,11 +451,6 @@ void ControlScreen::renderPage(int const pageNumber, bool const full)
                 ui->current_slide->renderPage(currentPageNumber, &pixmap);
             ui->next_slide->renderPage(currentPageNumber, &pixmap);
         }
-        if (full && presentationScreen->slide->getTool() == Magnifier) {
-            ui->current_slide->repaint();
-            ui->next_slide->repaint();
-            presentationScreen->slide->updateEnlargedPage();
-        }
     }
     else {
         // It is possible that presentationScreen->slide contains drawings which have not been copied to drawSlide yet.
@@ -511,17 +506,22 @@ void ControlScreen::renderPage(int const pageNumber, bool const full)
                 ui->current_slide->renderPage(currentPageNumber, &pixmap);
             ui->next_slide->renderPage(currentPageNumber, &pixmap);
         }
-        if (full && presentationScreen->slide->getTool() == Magnifier) { // TODO: improve this.
-            ui->current_slide->repaint();
-            ui->next_slide->repaint();
-            presentationScreen->slide->updateEnlargedPage();
-            drawSlide->updateEnlargedPage();
-        }
     }
     // Update the page number
     ui->text_current_slide->setText(QString::number(currentPageNumber+1));
+    if (full) {
+        // Some extras which may take some time
+        qDebug() << "calling update enlarged pages and updated video cache";
+        if (presentationScreen->slide->getTool() == Magnifier) {
+            ui->current_slide->repaint();
+            ui->next_slide->repaint();
+            presentationScreen->slide->updateEnlargedPage();
+            if (drawSlide != nullptr)
+                drawSlide->updateEnlargedPage();
+        }
+        presentationScreen->updateVideoCache();
+    }
     qDebug() << "finished updating notes";
-    //repaint(); // uncomment to force repaint: if debug messages ("finished updating notes") are visible but notes are not updated.
 }
 
 void ControlScreen::updateCache()
