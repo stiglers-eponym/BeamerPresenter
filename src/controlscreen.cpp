@@ -137,9 +137,9 @@ ControlScreen::ControlScreen(QString presentationPath, QString notesPath, QWidge
     connect(ui->notes_widget,  &BasicSlide::sendNewPageNumber, this, &ControlScreen::receiveNewPageNumber);
     connect(ui->current_slide, &BasicSlide::sendNewPageNumber, this, &ControlScreen::receiveNewPageNumber);
     connect(ui->next_slide,    &BasicSlide::sendNewPageNumber, this, &ControlScreen::receiveNewPageNumber);
-    connect(ui->notes_widget,  &BasicSlide::sendNewPageNumber, presentationScreen, &PresentationScreen::receiveNewPageNumber);
-    connect(ui->current_slide, &BasicSlide::sendNewPageNumber, presentationScreen, &PresentationScreen::receiveNewPageNumber);
-    connect(ui->next_slide,    &BasicSlide::sendNewPageNumber, presentationScreen, &PresentationScreen::receiveNewPageNumber);
+    connect(ui->notes_widget,  &BasicSlide::sendNewPageNumber, presentationScreen, &PresentationScreen::receiveNewPage);
+    connect(ui->current_slide, &BasicSlide::sendNewPageNumber, presentationScreen, &PresentationScreen::receiveNewPage);
+    connect(ui->next_slide,    &BasicSlide::sendNewPageNumber, presentationScreen, &PresentationScreen::receiveNewPage);
 
     connect(ui->notes_widget,  &BasicSlide::focusPageNumberEdit, this, &ControlScreen::focusPageNumberEdit);
     connect(ui->current_slide, &BasicSlide::focusPageNumberEdit, this, &ControlScreen::focusPageNumberEdit);
@@ -169,7 +169,7 @@ ControlScreen::ControlScreen(QString presentationPath, QString notesPath, QWidge
     connect(presentationScreen, &PresentationScreen::focusPageNumberEdit, this, &ControlScreen::focusPageNumberEdit);
 
     // Signals sent back to PresentationScreen
-    connect(this, &ControlScreen::sendNewPageNumber, presentationScreen, &PresentationScreen::receiveNewPageNumber);
+    connect(this, &ControlScreen::sendNewPageNumber, presentationScreen, &PresentationScreen::renderPage);
     connect(this, &ControlScreen::sendCloseSignal,   presentationScreen, &PresentationScreen::close);
     connect(ui->notes_widget, &BasicSlide::sendCloseSignal, presentationScreen, &PresentationScreen::close);
     connect(presentationScreen->slide, &BasicSlide::sendCloseSignal, presentationScreen, &PresentationScreen::close);
@@ -203,7 +203,7 @@ ControlScreen::ControlScreen(QString presentationPath, QString notesPath, QWidge
     connect(this, &ControlScreen::togglePointerVisibilitySignal, presentationScreen->slide, &PresentationSlide::togglePointerVisibility);
 
     // Signals emitted by the page number editor
-    connect(ui->text_current_slide, &PageNumberEdit::sendPageNumberReturn, presentationScreen, &PresentationScreen::receiveNewPageNumber);
+    connect(ui->text_current_slide, &PageNumberEdit::sendPageNumberReturn, presentationScreen, &PresentationScreen::receiveNewPage);
     connect(ui->text_current_slide, &PageNumberEdit::sendPageNumberEdit,   this, &ControlScreen::receiveNewPageNumber);
     connect(ui->text_current_slide, &PageNumberEdit::sendPageShiftEdit,    this, &ControlScreen::receivePageShiftEdit);
     connect(ui->text_current_slide, &PageNumberEdit::sendNextSlideStart,   this, &ControlScreen::receiveNextSlideStart);
@@ -220,7 +220,7 @@ ControlScreen::ControlScreen(QString presentationPath, QString notesPath, QWidge
     connect(tocBox, &TocBox::sendDest, this, &ControlScreen::receiveDest);
 
     // Overview box
-    connect(overviewBox, &OverviewBox::sendPageNumber, presentationScreen, &PresentationScreen::receiveNewPageNumber);
+    connect(overviewBox, &OverviewBox::sendPageNumber, presentationScreen, [&](int const pageNumber){presentationScreen->renderPage(pageNumber, false);});
     connect(overviewBox, &OverviewBox::sendPageNumber, this, &ControlScreen::receiveNewPageNumber);
     connect(overviewBox, &OverviewBox::sendReturn, this, &ControlScreen::showNotes);
 }
@@ -398,7 +398,7 @@ void ControlScreen::resetTimerAlert()
     ui->edit_timer->setPalette(palette);
 }
 
-void ControlScreen::renderPage(int const pageNumber)
+void ControlScreen::renderPage(int const pageNumber, bool const full)
 {
     // Update all page labels on the control screen to show the given page number.
     // This uses cached pages if such are available.
@@ -409,8 +409,8 @@ void ControlScreen::renderPage(int const pageNumber)
     else
         currentPageNumber = pageNumber;
 
-    // Recalculate layout the window size has changed.
-    if (size() != oldSize) {
+    // Recalculate layout if the window size has changed.
+    if (full && size() != oldSize) {
         recalcLayout(currentPageNumber);
         oldSize = size();
     }
@@ -434,7 +434,7 @@ void ControlScreen::renderPage(int const pageNumber)
                 QPixmap const pixmap = ui->current_slide->getCache(currentPageNumber+1);
                 ui->next_slide->renderPage(currentPageNumber+1, &pixmap);
             }
-            else // No cache: this is inefficient.
+            else if (full) // No cache: this is inefficient.
                 ui->next_slide->renderPage(currentPageNumber+1);
         }
         else { // If we have reached the last page (there is no next page)
@@ -450,11 +450,6 @@ void ControlScreen::renderPage(int const pageNumber)
                 ui->current_slide->renderPage(currentPageNumber, &pixmap);
             ui->next_slide->renderPage(currentPageNumber, &pixmap);
         }
-        if (presentationScreen->slide->getTool() == Magnifier) {
-            ui->current_slide->repaint();
-            ui->next_slide->repaint();
-        }
-        presentationScreen->slide->updateEnlargedPage();
     }
     else {
         // It is possible that presentationScreen->slide contains drawings which have not been copied to drawSlide yet.
@@ -510,16 +505,20 @@ void ControlScreen::renderPage(int const pageNumber)
                 ui->current_slide->renderPage(currentPageNumber, &pixmap);
             ui->next_slide->renderPage(currentPageNumber, &pixmap);
         }
-        if (presentationScreen->slide->getTool() == Magnifier) { // TODO: improve this.
-            ui->current_slide->repaint();
-            ui->next_slide->repaint();
-        }
-
-        presentationScreen->slide->updateEnlargedPage();
-        drawSlide->updateEnlargedPage();
     }
     // Update the page number
     ui->text_current_slide->setText(QString::number(currentPageNumber+1));
+    if (full) {
+        // Some extras which may take some time
+        if (presentationScreen->slide->getTool() == Magnifier) {
+            ui->current_slide->repaint();
+            ui->next_slide->repaint();
+            presentationScreen->slide->updateEnlargedPage();
+            if (drawSlide != nullptr)
+                drawSlide->updateEnlargedPage();
+        }
+        presentationScreen->updateVideoCache();
+    }
 }
 
 void ControlScreen::updateCache()
@@ -773,7 +772,7 @@ void ControlScreen::receiveDest(QString const& dest)
     hideToc();
     int const pageNumber = presentation->destToSlide(dest);
     if (pageNumber>=0 && pageNumber<numberOfPages) {
-        emit sendNewPageNumber(pageNumber);
+        emit sendNewPageNumber(pageNumber, true);
         renderPage(pageNumber);
         ui->label_timer->continueTimer();
         updateCache();
@@ -827,14 +826,14 @@ void ControlScreen::keyPressEvent(QKeyEvent* event)
         switch (*action_it) {
         case KeyAction::Next:
             currentPageNumber = presentationScreen->getPageNumber() + 1;
-            emit sendNewPageNumber(currentPageNumber);
+            emit sendNewPageNumber(currentPageNumber, true);
             showNotes();
             ui->label_timer->continueTimer();
             break;
         case KeyAction::Previous:
             currentPageNumber = presentationScreen->getPageNumber() - 1;
             if (currentPageNumber >= 0) {
-                emit sendNewPageNumber(currentPageNumber);
+                emit sendNewPageNumber(currentPageNumber, false);
                 showNotes();
                 ui->label_timer->continueTimer();
             }
@@ -853,13 +852,13 @@ void ControlScreen::keyPressEvent(QKeyEvent* event)
             break;
         case KeyAction::NextSkippingOverlays:
             currentPageNumber = presentation->getNextSlideIndex(presentationScreen->getPageNumber());
-            emit sendNewPageNumber(currentPageNumber);
+            emit sendNewPageNumber(currentPageNumber, true);
             showNotes();
             ui->label_timer->continueTimer();
             break;
         case KeyAction::PreviousSkippingOverlays:
             currentPageNumber = presentation->getPreviousSlideEnd(presentationScreen->getPageNumber());
-            emit sendNewPageNumber(currentPageNumber);
+            emit sendNewPageNumber(currentPageNumber, false);
             showNotes();
             ui->label_timer->continueTimer();
             break;
@@ -877,18 +876,18 @@ void ControlScreen::keyPressEvent(QKeyEvent* event)
             break;
         case KeyAction::Update:
             currentPageNumber = presentationScreen->getPageNumber();
-            emit sendNewPageNumber(currentPageNumber);
+            emit sendNewPageNumber(currentPageNumber, true); // TODO: what happens to duration if page is updated?
             showNotes();
             ui->label_timer->continueTimer();
             break;
         case KeyAction::LastPage:
             currentPageNumber = numberOfPages - 1;
-            emit sendNewPageNumber(currentPageNumber);
+            emit sendNewPageNumber(currentPageNumber, false);
             showNotes();
             break;
         case KeyAction::FirstPage:
             currentPageNumber = 0;
-            emit sendNewPageNumber(currentPageNumber);
+            emit sendNewPageNumber(currentPageNumber, true);
             showNotes();
             break;
         case KeyAction::UpdateCache:
@@ -943,7 +942,7 @@ void ControlScreen::keyPressEvent(QKeyEvent* event)
             break;
         case KeyAction::SyncFromControlScreen:
             if (presentationScreen->slide->pageNumber() != currentPageNumber)
-                emit sendNewPageNumber(currentPageNumber);
+                emit sendNewPageNumber(currentPageNumber, true); // TODO: make this configurable (true/false)?
             showNotes();
             updateCache();
             ui->label_timer->continueTimer();
@@ -1366,8 +1365,8 @@ void ControlScreen::showDrawSlide()
         connect(presentationScreen->slide, &DrawSlide::sendRelax, drawSlide, &DrawSlide::relax);
         connect(drawSlide, &DrawSlide::sendUpdateEnlargedPage, presentationScreen->slide, &DrawSlide::updateEnlargedPage);
         connect(presentationScreen->slide, &DrawSlide::sendUpdateEnlargedPage, drawSlide, &DrawSlide::updateEnlargedPage);
-        connect(drawSlide, &PreviewSlide::sendNewPageNumber, presentationScreen, &PresentationScreen::receiveNewPageNumber);
-        connect(drawSlide, &PreviewSlide::sendNewPageNumber, this, &ControlScreen::renderPage);
+        connect(drawSlide, &PreviewSlide::sendNewPageNumber, presentationScreen, &PresentationScreen::receiveNewPage);
+        connect(drawSlide, &PreviewSlide::sendNewPageNumber, this, [&](int const pageNumber){renderPage(pageNumber);});
         connect(drawSlide, &MediaSlide::requestMultimediaSliders, this, &ControlScreen::interconnectMultimediaSliders);
         connect(drawSlide, &MediaSlide::sendPlayVideo,  presentationScreen->slide, &MediaSlide::playVideo);
         connect(drawSlide, &MediaSlide::sendPauseVideo, presentationScreen->slide, &MediaSlide::pauseVideo);

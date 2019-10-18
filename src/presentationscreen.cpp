@@ -29,9 +29,6 @@ PresentationScreen::PresentationScreen(PdfDoc* presentationDoc, QWidget* parent)
     palette.setColor(QPalette::Window, QPalette::Shadow);
     setPalette(palette);
     numberOfPages = presentationDoc->getDoc()->numPages();
-    videoCacheTimer->setSingleShot(true);
-    videoCacheTimer->setInterval(0);
-    connect(videoCacheTimer, &QTimer::timeout, this, &PresentationScreen::updateVideoCache);
 
     // slide will contain the slide as a pixmap
     slide = new PresentationSlide(presentation, this);
@@ -39,10 +36,9 @@ PresentationScreen::PresentationScreen(PdfDoc* presentationDoc, QWidget* parent)
     layout->setContentsMargins(0, 0, 0, 0);
     layout->addWidget(slide, 0, 0);
     slide->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-    connect(slide, &PresentationSlide::sendNewPageNumber, this, &PresentationScreen::receiveNewPageNumber);
+    connect(slide, &PresentationSlide::sendNewPageNumber, this, &PresentationScreen::receiveNewPage);
     connect(slide, &PresentationSlide::timeoutSignal,     this, &PresentationScreen::receiveTimeoutSignal);
     connect(this, &PresentationScreen::togglePointerVisibilitySignal, slide, &PresentationSlide::togglePointerVisibility);
-    connect(slide, &PresentationSlide::endAnimationSignal, videoCacheTimer, QOverload<>::of(&QTimer::start));
     slide->togglePointerVisibility();
     show();
 }
@@ -50,7 +46,6 @@ PresentationScreen::PresentationScreen(PdfDoc* presentationDoc, QWidget* parent)
 PresentationScreen::~PresentationScreen()
 {
     slide->disconnect();
-    delete videoCacheTimer;
     //delete presentation;
     disconnect();
     delete slide;
@@ -61,9 +56,6 @@ void PresentationScreen::setCacheVideos(const bool cache)
 {
     cacheVideos=cache;
     slide->setCacheVideos(cache);
-    disconnect(slide, &PresentationSlide::endAnimationSignal, this->videoCacheTimer, QOverload<>::of(&QTimer::start));
-    if (cacheVideos)
-        connect(slide, &PresentationSlide::endAnimationSignal, this->videoCacheTimer, QOverload<>::of(&QTimer::start));
 }
 
 void PresentationScreen::renderPage(int const pageNumber, bool const setDuration)
@@ -78,14 +70,8 @@ void PresentationScreen::renderPage(int const pageNumber, bool const setDuration
 
 void PresentationScreen::updateVideoCache()
 {
-    if (pageIndex+1 < numberOfPages)
+    if (cacheVideos && pageIndex+1 < numberOfPages)
         slide->updateCacheVideos(pageIndex+1);
-}
-
-void PresentationScreen::receiveNewPageNumber(const int pageNumber)
-{
-    // TODO: fix duration: define clearly when the duration is set and when not.
-    renderPage(pageNumber, pageNumber>pageIndex);
 }
 
 void PresentationScreen::resizeEvent(QResizeEvent*)

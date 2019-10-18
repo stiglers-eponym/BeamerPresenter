@@ -900,7 +900,7 @@ int main(int argc, char *argv[])
     }
 
     // Render first page on presentation screen
-    emit w->sendNewPageNumber(0);
+    emit w->sendNewPageNumber(0, false);
     // Render first page on control screen
     w->renderPage(0);
 

@@ -70,7 +70,6 @@ void PresentationSlide::endAnimation()
 {
     stopAnimation();
     repaint();
-    emit endAnimationSignal();
     emit sendAdaptPage();
 }
 
@@ -490,7 +489,7 @@ void PresentationSlide::animate(int const oldPageIndex) {
         paint = &PresentationSlide::paintFade;
         break;
     }
-    emit requestUpdateNotes(pageIndex);
+    emit requestUpdateNotes(pageIndex, false);
     remainTimer.start();
     timer.start(0);
 }
