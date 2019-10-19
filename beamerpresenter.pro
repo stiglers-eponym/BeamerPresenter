@@ -6,8 +6,8 @@
 
 requires(greaterThan(QT_MAJOR_VERSION, 4))
 equals(QT_MAJOR_VERSION, 4) {
-	requires(greaterThan(QT_MINOR_VERSION, 5))
-	smallerThan(QT_MINOR_VERSION, 9):message("Using Qt version < 5.9 is untested!.")
+    requires(greaterThan(QT_MINOR_VERSION, 5))
+    smallerThan(QT_MINOR_VERSION, 9):message("Using Qt version < 5.9 is untested!.")
 }
 
 QT       += core gui multimedia multimediawidgets xml widgets
@@ -22,7 +22,9 @@ TEMPLATE = app
 # deprecated API in order to know how to port your code away from it.
 DEFINES += QT_DEPRECATED_WARNINGS
 CONFIG += qt
-CONFIG(debug):QMAKE_LFLAGS += -rdynamic
+unix {
+    CONFIG(debug):QMAKE_LFLAGS += -rdynamic
+}
 CONFIG(release, debug|release):DEFINES += QT_NO_DEBUG_OUTPUT
 
 # You can also make your code fail to compile if you use deprecated APIs.
@@ -90,15 +92,20 @@ unix {
     LIBS += -L /usr/lib/ -lpoppler-qt5
 }
 #macx {
-#	# Testing required!
-#	INCLUDEPATH += /usr/include/poppler/qt5
-#	LIBS += -L/usr/lib/ -lpoppler-qt5
+#   # Testing required!
+#   INCLUDEPATH += /usr/include/poppler/qt5
+#   LIBS += -L/usr/lib/ -lpoppler-qt5
 #}
-#win32 {
-#	# Testing required!
-#	INCLUDEPATH += /usr/include/poppler/qt5
-#	LIBS += -L/usr/lib/ -lpoppler-qt5
-#}
+win32 {
+    ## Please configure this according to your poppler installation.
+    ## The configuration will probably have the following form:
+    #INCLUDEPATH += C:\...\poppler-0.??.?-win??
+    #LIBS += -LC:\...\poppler-0.??.?-win?? -lpoppler-qt5
+
+    ## For windows you only find very binaries for poppler-qt5.
+    ## If you use them:
+    DEFINE += OLD_POPPLER_VERSION
+}
 
 # TODO: libraries for Windows (and mac)
 

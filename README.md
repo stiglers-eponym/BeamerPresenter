@@ -3,10 +3,8 @@ BeamerPresenter is a PDF viewer for presentations, which shows presentation
 slides in one window and notes for the speaker (or the same presentation
 slides) with some additional information in a second window.
 
-BeamerPresenter is mainly tested with presentations created by LaTeX beamer and
-tries to implement all features available in LaTeX beamer.
-
-BeamerPresenter is only tested on GNU/Linux with X11 and wayland.
+BeamerPresenter is mainly tested on GNU/Linux with X11 or wayland using
+presentations created by LaTeX beamer.
 
 
 ## Build
@@ -48,6 +46,17 @@ echo 'Simple dual screen pdf viewer' > description-pak
 sudo checkinstall -D --pkglicense=GPL3 --requires=libpoppler-qt5,qtmultimedia5 --pkgsource=github.com/stiglers-eponym/BeamerPresenter make install
 ```
 in order to keep track of all installed files using apt.
+
+### MS Windows
+Building on MS Windows is possible, but you need to define the directory
+containing the poppler-qt5 header and library manually in beamerpresenter.pro
+(line 100). Also the installation has to be done manually.
+You need to make sure that beamerpresenter.exe has access to the libraries,
+e.g. by copying all necessary .ddl files to the same directory as
+beamerpresenter.exe.
+
+For multimedia content you need to make sure that the required codecs are
+installed.
 
 
 ## Usage

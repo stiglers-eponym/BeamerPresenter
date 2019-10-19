@@ -23,6 +23,9 @@
 #include <QWidget>
 #include <QWindow>
 #include <QProcess>
+#ifdef Q_OS_WIN
+#include <Windows.h>
+#endif
 #include <QTimer>
 
 class EmbedApp : public QObject

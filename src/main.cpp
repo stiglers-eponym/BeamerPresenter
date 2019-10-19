@@ -260,17 +260,21 @@ int main(int argc, char *argv[])
     });
     parser.process(app);
 
-    // set up a settings manager
-    // This is only tested on GNU/Linux! I don't know whether it will work in Windows or MacOS
-    #ifdef Q_OS_MAC
+    // Set up a settings manager
+    // This is basically designed for GNU/Linux, where it loads $dir/beamerpresenter/beamerpresenter.conf for dir in $XDG_CONFIG_DIRS.
+    // On MS Windows this (probably) tries to load a file USER_HOME\AppData\Roaming\beamerpresenter.ini or USER_HOME\AppData\Roaming\beamerpresenter\beamerpresenter.ini.
+    // I don't know what happens on a Mac.
+#ifdef Q_OS_MAC
     // untested!
     QSettings settings(QSettings::IniFormat, QSettings::UserScope, "beamerpresenter", "beamerpresenter");
-    #elif Q_OS_WIN
-    // untested!
+#else
+#ifdef Q_OS_WIN
     QSettings settings(QSettings::IniFormat, QSettings::UserScope, "beamerpresenter", "beamerpresenter");
-    #else
+#else
     QSettings settings(QSettings::NativeFormat, QSettings::UserScope, "beamerpresenter", "beamerpresenter");
-    #endif
+#endif
+#endif
+    qDebug() << "Loaded settings:" << settings.allKeys();
 
     // Load an optional local configuration file
     // This file can be used to set e.g. times per slide.

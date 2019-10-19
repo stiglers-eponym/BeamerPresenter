@@ -132,7 +132,12 @@ void EmbedApp::getWidFromPid()
         pid2widProcess = new QProcess(this);
         connect(pid2widProcess, SIGNAL(finished(int const)), this, SLOT(receiveWidFromPid(int const)));
     }
+	// TODO: disable embedded applications completely in non-Unix systems?
+#ifdef Q_OS_WIN
+    pid2widProcess->start(pid2wid, QStringList() << QString::number(process->pid()->dwProcessId));
+#else
     pid2widProcess->start(pid2wid, QStringList() << QString::number(process->pid()));
+#endif
 }
 
 void EmbedApp::receiveWidFromPid(int const exitCode)

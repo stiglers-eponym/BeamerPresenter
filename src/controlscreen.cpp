@@ -544,7 +544,7 @@ void ControlScreen::updateCache()
              + ui->current_slide->getCacheSize();
     else
         // This is approximately -infinity and means that the cache size is unlimited:
-        cacheSize = -4294967296; // -4GiB
+        cacheSize = -2147483647; // -4GiB
 
     // There should be a simply connected region of cached pages between first_cached and last_cached.
     if (first_cached > currentPageNumber || last_cached < currentPageNumber) {

@@ -88,7 +88,10 @@ bool PdfDoc::loadDocument()
     newDoc->setRenderHint(Poppler::Document::TextSlightHinting);
     newDoc->setRenderHint(Poppler::Document::Antialiasing);
     newDoc->setRenderHint(Poppler::Document::ThinLineShape);
+#ifdef OLD_POPPLER_VERSION
+#else
     newDoc->setRenderHint(Poppler::Document::HideAnnotations);
+#endif
 
     // Clear old lists
     qDeleteAll(pdfPages);

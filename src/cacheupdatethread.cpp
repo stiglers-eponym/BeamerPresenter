@@ -120,15 +120,15 @@ void CacheUpdateThread::run()
             else
                 smallRenderer->kill();
         }
-		delete presRenderer;
-		delete noteRenderer;
-		delete smallRenderer;
+        delete presRenderer;
+        delete noteRenderer;
+        delete smallRenderer;
         if (isInterruptionRequested()) {
             delete pres;
             delete note;
             delete small;
         }
-		else
+        else
             emit resultsReady(pres, note, small, page);
     }
 }
