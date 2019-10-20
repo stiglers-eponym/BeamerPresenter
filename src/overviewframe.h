@@ -19,7 +19,7 @@
 #ifndef OVERVIEWFRAME_H
 #define OVERVIEWFRAME_H
 
-#include <QObject>
+#include <QtDebug>
 #include <QLabel>
 #include <QMouseEvent>
 #include <QKeyEvent>

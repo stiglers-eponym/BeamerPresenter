@@ -19,8 +19,6 @@
 #ifndef DRAWSLIDE_H
 #define DRAWSLIDE_H
 
-#include <QObject>
-#include <QDebug>
 #include "mediaslide.h"
 #include "drawpath.h"
 
@@ -36,15 +34,16 @@ public:
     void clearPageAnnotations();
     void clearAllAnnotations();
     virtual void clearCache() override;
+    void updateEnlargedPage();
     void setSize(DrawTool const tool, int const size);
+    void setScaledPixmap(QPixmap const& pix);
+
     QMap<QString, QMap<DrawTool, QList<DrawPath>>> const& getPaths() const {return paths;}
     int const& getXshift() const {return shiftx;}
     int const& getYshift() const {return shifty;}
     double const& getResolution() const {return resolution;}
     DrawTool getTool() const {return tool;}
-    int getSize(DrawTool const tool) {return sizes[tool];}
-    void setScaledPixmap(QPixmap const& pix);
-    void updateEnlargedPage();
+    int getSize(DrawTool const tool) const {return sizes[tool];}
 
 protected:
     void drawAnnotations(QPainter& painter);

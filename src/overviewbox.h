@@ -19,7 +19,7 @@
 #ifndef OVERVIEWBOX_H
 #define OVERVIEWBOX_H
 
-#include <QObject>
+#include <QtDebug>
 #include <QScrollArea>
 #include <QGridLayout>
 #include "overviewframe.h"
@@ -42,7 +42,7 @@ public:
     explicit OverviewBox(QWidget* parent = nullptr);
     ~OverviewBox();
     void create(PdfDoc const* doc, int const columns = 5, PagePart const pagePart = PagePart::FullPage);
-    bool needsUpdate() {return outdated;}
+    bool needsUpdate() const {return outdated;}
     void setOutdated() {outdated=true;}
     void setFocused(int const page);
 

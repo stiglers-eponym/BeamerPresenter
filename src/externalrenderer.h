@@ -20,7 +20,6 @@
 #define EXTERNALRENDERER_H
 
 #include <QtDebug>
-#include <QWidget>
 #include <QProcess>
 
 class ExternalRenderer : public QProcess
@@ -29,7 +28,7 @@ class ExternalRenderer : public QProcess
 
 public:
     ExternalRenderer(int const page, QObject* parent = nullptr);
-    QByteArray const* getBytes() {return bytes;}
+    QByteArray const* getBytes() const {return bytes;}
 
 private:
     int page;

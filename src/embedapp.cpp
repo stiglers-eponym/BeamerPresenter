@@ -101,7 +101,7 @@ void EmbedApp::clearProcess(int const exitCode, QProcess::ExitStatus const exitS
     qDebug() << "Process ended";
     // Reset this to the state immediately after it was created.
     if (exitStatus==QProcess::CrashExit)
-        qCritical() << "Embedded application crashed";
+        qWarning() << "Embedded application crashed";
     if (exitCode !=0)
         qWarning() << "Embedded application finished with exit code" << exitCode;
     pid2widTimer->stop();
@@ -132,7 +132,6 @@ void EmbedApp::getWidFromPid()
         pid2widProcess = new QProcess(this);
         connect(pid2widProcess, SIGNAL(finished(int const)), this, SLOT(receiveWidFromPid(int const)));
     }
-	// TODO: disable embedded applications completely in non-Unix systems?
 #ifdef Q_OS_WIN
     pid2widProcess->start(pid2wid, QStringList() << QString::number(process->pid()->dwProcessId));
 #else
@@ -217,4 +216,10 @@ int* EmbedApp::getNextLocation(int const page) const
     tuple[0] = pages[idx];
     tuple[1] = indices[idx];
     return tuple;
+}
+
+void EmbedApp::terminate()
+{
+    if (process != nullptr && process->state()==QProcess::Running)
+        process->terminate();
 }

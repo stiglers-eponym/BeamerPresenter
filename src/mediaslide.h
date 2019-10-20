@@ -21,10 +21,10 @@
 
 #include "previewslide.h"
 #include "videowidget.h"
+#ifdef EMBEDDED_APPLICATIONS_ENABLED
 #include "embedapp.h"
+#endif
 #include <QSlider>
-#include <QDesktopServices>
-#include <QMediaPlayer>
 #include <QTimer>
 
 class MediaSlide : public PreviewSlide
@@ -35,12 +35,8 @@ public:
     explicit MediaSlide(PdfDoc const * const document, int const pageNumber, QWidget* parent=nullptr);
     ~MediaSlide() override {clearAll();}
     void renderPage(int const pageNumber, bool const hasDuration, QPixmap const* pixmap=nullptr);
-    void startAllEmbeddedApplications(int const index);
-    void initEmbeddedApplications(int const pageNumber);
-    void avoidMultimediaBug();
     void setCacheVideos(bool const cacheThem) {cacheVideos=cacheThem;}
     void setMultimediaSliders(QList<QSlider*> sliderList);
-    void setEmbedFileList(const QStringList& files) {embedFileList=files;}
     bool hasActiveMultimediaContent() const;
     void updateCacheVideos(int const pageNumber);
     double getAutostartDelay() const {return autostartDelay;}
@@ -50,6 +46,14 @@ public:
     virtual void clearAll() override;
     void setMuted(bool muted) {mute=muted;}
     void showAllWidgets();
+#ifdef EMBEDDED_APPLICATIONS_ENABLED
+    void avoidMultimediaBug(); // TODO: fix this!
+    void startAllEmbeddedApplications(int const index);
+    void initEmbeddedApplications(int const pageNumber);
+    void setEmbedFileList(const QStringList& files) {embedFileList=files;}
+    void closeEmbeddedApplications(int const index);
+    void closeAllEmbeddedApplications();
+#endif
 
 protected:
     bool mute = false;
@@ -58,7 +62,6 @@ protected:
     void followHyperlinks(QPoint const& pos);
     virtual void clearLists();
     QList<VideoWidget*> videoWidgets;
-    QList<EmbedApp*> embedApps;
     QList<VideoWidget*> cachedVideoWidgets;
     QList<QRect> videoPositions;
     QList<QMediaPlayer*> soundPlayers;
@@ -67,15 +70,18 @@ protected:
     QMap<int,QSlider*> videoSliders;
     QMap<int,QSlider*> soundSliders;
     QMap<int,QSlider*> soundLinkSliders;
+    QTimer* const autostartTimer = new QTimer(this);
+    double autostartDelay = -1.; // delay for starting multimedia content in s
+    bool cacheVideos = true;
+#ifdef EMBEDDED_APPLICATIONS_ENABLED
+    QString pid2wid;
+    QTimer* const autostartEmbeddedTimer = new QTimer(this);
+    QList<EmbedApp*> embedApps;
     QMap<int,QMap<int,int>> embedMap;
     QList<QRect> embedPositions;
-    QTimer* const autostartTimer = new QTimer(this);
-    QTimer* const autostartEmbeddedTimer = new QTimer(this);
     QStringList embedFileList;
-    QString pid2wid;
-    double autostartDelay = -1.; // delay for starting multimedia content in s
     double autostartEmbeddedDelay = -1.; // delay for starting embedded applications in s
-    bool cacheVideos = true;
+#endif
     virtual void animate(int const = -1) {}
     virtual void stopAnimation() {}
     virtual void setDuration() {}
@@ -85,12 +91,14 @@ public slots:
     void startAllMultimedia();
     void playVideo(int const i);
     void pauseVideo(int const i);
-    void receiveEmbedApp(EmbedApp* app);
-    void setAutostartDelay(double const delay) {autostartDelay=delay;}
-    void setAutostartEmbeddedDelay(double const delay) {autostartEmbeddedDelay=delay;}
-    void setPid2Wid(QString const & program) {pid2wid=program;}
     void receivePlayEvent(VideoWidget *const ptr) {emit sendPlayVideo(videoWidgets.indexOf(ptr));}
     void receivePauseEvent(VideoWidget *const ptr) {emit sendPauseVideo(videoWidgets.indexOf(ptr));}
+    void setAutostartDelay(double const delay) {autostartDelay=delay;}
+#ifdef EMBEDDED_APPLICATIONS_ENABLED
+    void setPid2Wid(QString const & program) {pid2wid=program;}
+    void receiveEmbedApp(EmbedApp* app);
+    void setAutostartEmbeddedDelay(double const delay) {autostartEmbeddedDelay=delay;}
+#endif
 
 signals:
     void requestMultimediaSliders(int const n);

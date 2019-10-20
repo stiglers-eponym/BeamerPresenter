@@ -36,7 +36,7 @@ class VideoWidget : public QVideoWidget
 
 public:
     VideoWidget(Poppler::MovieAnnotation const * annotation, QString const& urlSplitCharacter = "", QWidget* parent = nullptr);
-    ~VideoWidget();
+    ~VideoWidget() override;
     Poppler::MovieAnnotation const * getAnnotation() const {return annotation;}
     qint64 getDuration() const {return player->duration();}
     QMediaPlayer* getPlayer() {return player;}

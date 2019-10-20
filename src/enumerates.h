@@ -42,8 +42,12 @@ enum KeyAction {
     Update,
 
     UpdateCache,
+#ifdef EMBEDDED_APPLICATIONS_ENABLED
     StartEmbeddedCurrentSlide,
     StartAllEmbedded,
+    CloseEmbeddedCurrentSlide,
+    CloseAllEmbedded,
+#endif
     PlayMultimedia,
 
     PauseTimer,

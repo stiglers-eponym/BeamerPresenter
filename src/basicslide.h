@@ -19,11 +19,8 @@
 #ifndef BASICSLIDE_H
 #define BASICSLIDE_H
 
-#include <QWidget>
 #include <QPainter>
 #include <QDesktopServices>
-#include <poppler-qt5.h>
-#include <QDebug>
 #include "enumerates.h"
 #include "pdfdoc.h"
 

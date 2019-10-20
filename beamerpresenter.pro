@@ -10,7 +10,7 @@ equals(QT_MAJOR_VERSION, 4) {
     smallerThan(QT_MINOR_VERSION, 9):message("Using Qt version < 5.9 is untested!.")
 }
 
-QT       += core gui multimedia multimediawidgets xml widgets
+QT += core gui multimedia multimediawidgets xml widgets
 
 
 TARGET = beamerpresenter
@@ -24,6 +24,7 @@ DEFINES += QT_DEPRECATED_WARNINGS
 CONFIG += qt
 unix {
     CONFIG(debug):QMAKE_LFLAGS += -rdynamic
+    DEFINES += EMBEDDED_APPLICATIONS_ENABLED
 }
 CONFIG(release, debug|release):DEFINES += QT_NO_DEBUG_OUTPUT
 
@@ -54,7 +55,6 @@ SOURCES += \
         src/tocbutton.cpp \
         src/tocaction.cpp \
         src/externalrenderer.cpp \
-        src/embedapp.cpp \
         src/overviewframe.cpp \
         src/overviewbox.cpp \
         src/drawpath.cpp
@@ -79,10 +79,14 @@ HEADERS += \
         src/tocbutton.h \
         src/tocaction.h \
         src/externalrenderer.h \
-        src/embedapp.h \
         src/overviewframe.h \
         src/overviewbox.h \
         src/drawpath.h
+
+contains(DEFINES, EMBEDDED_APPLICATIONS_ENABLED) {
+    SOURCES += src/embedapp.cpp
+    HEADERS += src/embedapp.h
+}
 
 FORMS += \
         src/controlscreen.ui
@@ -91,23 +95,18 @@ unix {
     INCLUDEPATH += /usr/include/poppler/qt5
     LIBS += -L /usr/lib/ -lpoppler-qt5
 }
-#macx {
-#   # Testing required!
-#   INCLUDEPATH += /usr/include/poppler/qt5
-#   LIBS += -L/usr/lib/ -lpoppler-qt5
-#}
+macx {
+    ## Please configure this according to your poppler installation.
+    ## Installation on Mac is untested.
+    #INCLUDEPATH += ...
+    #LIBS += ...
+}
 win32 {
     ## Please configure this according to your poppler installation.
     ## The configuration will probably have the following form:
     #INCLUDEPATH += C:\...\poppler-0.??.?-win??
     #LIBS += -LC:\...\poppler-0.??.?-win?? -lpoppler-qt5
-
-    ## For windows you only find very binaries for poppler-qt5.
-    ## If you use them:
-    DEFINE += OLD_POPPLER_VERSION
 }
-
-# TODO: libraries for Windows (and mac)
 
 unix {
     documentation.path = /usr/share/man/man1

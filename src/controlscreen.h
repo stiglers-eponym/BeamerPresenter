@@ -20,13 +20,7 @@
 #define CONTROLSCREEN_H
 
 #include <QMainWindow>
-#include <QThread>
 #include <QLabel>
-#include <QKeyEvent>
-#include <QResizeEvent>
-#include <QWheelEvent>
-#include <QFileInfo>
-#include <QSlider>
 #include "pdfdoc.h"
 #include "timer.h"
 #include "pagenumberedit.h"
@@ -51,8 +45,10 @@ public:
     void setPagePart(PagePart const pagePart);
     void setColor(QColor const bgColor = Qt::gray, QColor const textColor = Qt::black);
     void setPresentationColor(QColor const color = Qt::black);
+#ifdef EMBEDDED_APPLICATIONS_ENABLED
     void setEmbedFileList(const QStringList &files);
     void setPid2WidConverter(QString const &program);
+#endif
     void setUrlSplitCharacter(QString const &splitCharacter);
     void setScrollDelta(int const scrollDelta);
     void setForceTouchpad();
@@ -81,7 +77,9 @@ protected:
 private:
     void recalcLayout(int const pageNumber);
     void reloadFiles();
+#ifdef EMBEDDED_APPLICATIONS_ENABLED
     void startAllEmbeddedApplications();
+#endif
     Ui::ControlScreen *ui;
     PresentationScreen* presentationScreen;
     PdfDoc* presentation;
@@ -120,7 +118,9 @@ signals:
     void sendTimerString(QString const timerString);
     void sendTimerColors(QList<int> times, QList<QColor> colors);
     void sendAutostartDelay(double const timeout);
+#ifdef EMBEDDED_APPLICATIONS_ENABLED
     void sendAutostartEmbeddedDelay(double const timeout);
+#endif
     void sendCloseSignal();
     void playMultimedia();
     void pauseMultimedia();

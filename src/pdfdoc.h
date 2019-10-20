@@ -19,12 +19,12 @@
 #ifndef PDFWIDGET_H
 #define PDFWIDGET_H
 
-#include <iostream>
 #include <QtDebug>
+#include <iostream>
 #include <QWidget>
-#include <QLabel>
 #include <QFileInfo>
 #include <poppler-qt5.h>
+#include <poppler-version.h>
 #include <QDomDocument>
 
 class PdfDoc : public QObject
@@ -54,7 +54,7 @@ public:
     int getPreviousSlideEnd(int const index) const;
     int getSlideNumber(int const page) const {return pdfPages[page]->label().toInt();}
     int destToSlide(QString const & dest) const;
-    QString const& getPath() {return pdfPath;}
+    QString const& getPath() const {return pdfPath;}
 
     void setPagePart(int const state) {pagePart = state;}
 };

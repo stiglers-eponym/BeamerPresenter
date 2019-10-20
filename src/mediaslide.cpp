@@ -21,8 +21,10 @@
 MediaSlide::MediaSlide(PdfDoc const*const document, int const pageNumber, QWidget* parent) : PreviewSlide(parent)
 {
     doc = document;
+#ifdef EMBEDDED_APPLICATIONS_ENABLED
     autostartEmbeddedTimer->setSingleShot(true);
     connect(autostartEmbeddedTimer, &QTimer::timeout, this, [&](){startAllEmbeddedApplications(pageIndex);});
+#endif
     autostartTimer->setSingleShot(true);
     connect(autostartTimer, &QTimer::timeout, this, &MediaSlide::startAllMultimedia);
     renderPage(pageNumber, false);
@@ -30,8 +32,10 @@ MediaSlide::MediaSlide(PdfDoc const*const document, int const pageNumber, QWidge
 
 MediaSlide::MediaSlide(QWidget* parent) : PreviewSlide(parent)
 {
+#ifdef EMBEDDED_APPLICATIONS_ENABLED
     autostartEmbeddedTimer->setSingleShot(true);
     connect(autostartEmbeddedTimer, &QTimer::timeout, this, [&](){startAllEmbeddedApplications(pageIndex);});
+#endif
     autostartTimer->setSingleShot(true);
     connect(autostartTimer, &QTimer::timeout, this, &MediaSlide::startAllMultimedia);
 }
@@ -41,16 +45,20 @@ void MediaSlide::clearAll()
     // Clear all contents of the label.
     // This function is called when the document is reloaded or the program is closed and everything should be cleaned up.
     autostartTimer->stop();
+#ifdef EMBEDDED_APPLICATIONS_ENABLED
     autostartEmbeddedTimer->stop();
+#endif
     clearLists();
     clearCache();
     qDeleteAll(cachedVideoWidgets);
     cachedVideoWidgets.clear();
+#ifdef EMBEDDED_APPLICATIONS_ENABLED
     // Clear embedded applications
     embedPositions.clear();
     qDeleteAll(embedApps);
     embedApps.clear();
     embedMap.clear();
+#endif
     page = nullptr;
 }
 
@@ -208,6 +216,7 @@ void MediaSlide::renderPage(int const pageNumber, bool const hasDuration, QPixma
 
     // Multimedia content.
     // Execution links for embedded applications are also handled here.
+#ifdef EMBEDDED_APPLICATIONS_ENABLED
     // Handle embedded applications
     for (int i=0; i<links.size(); i++) {
         if (links[i]->linkType() == Poppler::Link::Execute) {
@@ -308,6 +317,7 @@ void MediaSlide::renderPage(int const pageNumber, bool const hasDuration, QPixma
                 embedApps[i]->getWidget()->hide();
         }
     }
+#endif
 
     // This can be a good point for repainting.
     // Repainting later is only reasonable if videos will be shown quickly,
@@ -628,6 +638,7 @@ void MediaSlide::renderPage(int const pageNumber, bool const hasDuration, QPixma
     if (notRepainted)
         repaint();
 
+#ifdef EMBEDDED_APPLICATIONS_ENABLED
     // Autostart embedded applications if the option is set in BeamerPresenter
     if (embedMap.contains(pageIndex)) {
         if (autostartEmbeddedDelay > 0.01)
@@ -637,6 +648,7 @@ void MediaSlide::renderPage(int const pageNumber, bool const hasDuration, QPixma
             // autostart without delay
             startAllEmbeddedApplications(pageIndex);
     }
+#endif
 
     // Add sliders
     if (newSliders!=0)
@@ -819,6 +831,7 @@ void MediaSlide::followHyperlinks(QPoint const& pos)
                     }
                     return;
                 case Poppler::Link::Execute:
+#ifdef EMBEDDED_APPLICATIONS_ENABLED
                     // Handle execution links, which are marked for execution as an embedded application.
                     // In this case, a corresponding item has been added to embeddedWidgets in renderPage.
                     if (embedMap.contains(pageIndex) && embedMap[pageIndex].contains(i)) {
@@ -840,7 +853,9 @@ void MediaSlide::followHyperlinks(QPoint const& pos)
                         break;
                     }
                     // Execution links not marked for embedding are handed to the desktop services.
-                    else {
+                    else
+#endif
+                    {
                         Poppler::LinkExecute* link = static_cast<Poppler::LinkExecute*>(links[i]);
                         QStringList splitFileName = QStringList();
                         if (!urlSplitCharacter.isEmpty())
@@ -1010,6 +1025,7 @@ void MediaSlide::mouseMoveEvent(QMouseEvent* event)
     event->accept();
 }
 
+#ifdef EMBEDDED_APPLICATIONS_ENABLED
 void MediaSlide::receiveEmbedApp(EmbedApp* app)
 {
     // Geometry of the embedded window:
@@ -1188,6 +1204,22 @@ void MediaSlide::avoidMultimediaBug()
     delete dummy;
 }
 
+void MediaSlide::closeEmbeddedApplications(int const index)
+{
+    // Close all embedded applications of the given slide (slide number = index)
+    if (!embedMap.contains(index))
+        return;
+    for(QMap<int,int>::const_iterator idx_it=embedMap[index].cbegin(); idx_it!=embedMap[index].cend(); idx_it++)
+        embedApps[*idx_it]->terminate();
+}
+
+void MediaSlide::closeAllEmbeddedApplications()
+{
+    for (QList<EmbedApp*>::iterator app_it=embedApps.begin(); app_it!=embedApps.end(); app_it++)
+        (*app_it)->terminate();
+}
+#endif
+
 void MediaSlide::showAllWidgets()
 {
     // TODO: fix this!
@@ -1198,6 +1230,7 @@ void MediaSlide::showAllWidgets()
             videoWidgets[i]->raise();
         }
     }
+#ifdef EMBEDDED_APPLICATIONS_ENABLED
     if (embedMap.contains(pageIndex) && embedMap[pageIndex].size() == embedPositions.size()) {
         for (int i=0; i<embedPositions.size(); i++) {
             if (embedApps[embedMap[pageIndex][i]] != nullptr && embedApps[embedMap[pageIndex][i]]->isReady()) {
@@ -1207,5 +1240,6 @@ void MediaSlide::showAllWidgets()
             }
         }
     }
+#endif
     update();
 }

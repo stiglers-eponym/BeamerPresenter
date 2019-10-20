@@ -16,7 +16,6 @@
  * along with BeamerPresenter. If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include <iostream>
 #include <QSettings>
 #include <QApplication>
 #include <QFileDialog>
@@ -26,7 +25,6 @@
 #include <QJsonDocument>
 #include <QMimeDatabase>
 #include "controlscreen.h"
-#include "presentationscreen.h"
 
 const QMap<QString, int> keyActionMap {
     {"previous", KeyAction::Previous},
@@ -48,12 +46,20 @@ const QMap<QString, int> keyActionMap {
     {"update", KeyAction::Update},
 
     {"update cache", KeyAction::UpdateCache},
+#ifdef EMBEDDED_APPLICATIONS_ENABLED
     {"start embedded current page", KeyAction::StartEmbeddedCurrentSlide},
     {"start embedded current slide", KeyAction::StartEmbeddedCurrentSlide},
     {"start embedded applications current page", KeyAction::StartEmbeddedCurrentSlide},
     {"start embedded applications current slide", KeyAction::StartEmbeddedCurrentSlide},
     {"start all embedded", KeyAction::StartAllEmbedded},
     {"start all embedded applications", KeyAction::StartAllEmbedded},
+    {"close all embedded", KeyAction::CloseAllEmbedded},
+    {"close all embedded applications", KeyAction::CloseAllEmbedded},
+    {"close embedded current page", KeyAction::CloseEmbeddedCurrentSlide},
+    {"close embedded current slide", KeyAction::CloseEmbeddedCurrentSlide},
+    {"close embedded applications current page", KeyAction::CloseEmbeddedCurrentSlide},
+    {"close embedded applications current slide", KeyAction::CloseEmbeddedCurrentSlide},
+#endif
     {"play multimedia", KeyAction::PlayMultimedia},
 
     {"pause timer", KeyAction::PauseTimer},
@@ -84,8 +90,6 @@ const QMap<int, QList<int>> defaultKeyMap = {
     {Qt::Key_PageDown, {KeyAction::Next}},
     {Qt::Key_Left, {KeyAction::Previous}},
     {Qt::Key_Right, {KeyAction::Next}},
-    //{Qt::Key_Left, {KeyAction::PreviousCurrentScreen}},
-    //{Qt::Key_Right, {KeyAction::NextCurrentScreen}},
     {Qt::Key_Up, {KeyAction::PreviousSkippingOverlays}},
     {Qt::Key_Down, {KeyAction::NextSkippingOverlays}},
     {Qt::Key_G, {KeyAction::GoToPage}},
@@ -96,8 +100,10 @@ const QMap<int, QList<int>> defaultKeyMap = {
     {Qt::Key_Space, {KeyAction::Update}},
 
     {Qt::Key_C, {KeyAction::UpdateCache}},
+#ifdef EMBEDDED_APPLICATIONS_ENABLED
     {Qt::Key_E, {KeyAction::StartEmbeddedCurrentSlide}},
     {Qt::Key_E+Qt::ShiftModifier, {KeyAction::StartAllEmbedded}},
+#endif
     {Qt::Key_M, {KeyAction::PlayMultimedia}},
 
     {Qt::Key_P, {KeyAction::PauseTimer}},
@@ -195,16 +201,22 @@ int main(int argc, char *argv[])
 
     QApplication app(argc, argv);
     app.setApplicationName("BeamerPresenter");
-    //app.setApplicationVersion("0.1");
+#ifdef QT_DEBUG
+    app.setApplicationVersion("0.1.0+debugging, based on poppler " POPPLER_VERSION " and Qt " QT_VERSION_STR);
+#else
+    app.setApplicationVersion("0.1.0 based on poppler " POPPLER_VERSION " and Qt " QT_VERSION_STR);
+#endif
 
     // set up command line argument parser
     QCommandLineParser parser;
-    parser.setApplicationDescription(
+    parser.setApplicationDescription( // TODO: keep this up to date.
             "\nSimple dual screen pdf presentation software.\n"
             "Default shortcuts:\n"
             "  c                Update cache\n"
+#ifdef EMBEDDED_APPLICATIONS_ENABLED
             "  e                Start all embedded applications on the current slide\n"
             "  E                Start all embedded applications on all slides\n"
+#endif
             "  g                Go to page (set focus to page number edit)\n"
             "  m                Play or pause all multimedia content\n"
             "  o                Toggle cursor visbility (only on presentation screen)\n"
@@ -231,11 +243,15 @@ int main(int argc, char *argv[])
     parser.addPositionalArgument("<notes.pdf>",  "Notes for the presentation (optional, should have the same number of pages as <slides.pdf>)");
     parser.addOptions({
         {{"a", "autoplay"}, "true, false or number: Start video and audio content when entering a slide.\nA number is interpreted as a delay in seconds, after which multimedia content is started.", "value"},
+#ifdef EMBEDDED_APPLICATIONS_ENABLED
         {{"A", "autostart-emb"}, "true, false or number: Start embedded applications when entering a slide.\nA number is interpreted as a delay in seconds, after which applications are started.", "value"},
+#endif
         {{"b", "blinds"}, "Number of blinds in binds slide transition", "int"},
         {{"c", "cache"}, "Number of slides that will be cached. A negative number is treated as infinity.", "int"},
         {{"d", "no-transitions"}, "Disable slide transitions."},
+#ifdef EMBEDDED_APPLICATIONS_ENABLED
         {{"e", "embed"}, "file1,file2,... Mark these files for embedding if an execution link points to them.", "files"},
+#endif
         {{"j", "json"}, "Local JSON configuration file.", "file"},
         {{"l", "toc-depth"}, "Number of levels of the table of contents which are shown.", "int"},
         {{"m", "min-delay"}, "Set minimum time per frame in milliseconds.\nThis is useful when using \\animation in LaTeX beamer.", "ms"},
@@ -248,7 +264,9 @@ int main(int argc, char *argv[])
         {{"t", "time"}, "Set presentation time.\nPossible formats are \"[m]m\", \"[m]m:ss\" and \"h:mm:ss\".", "time"},
         {{"u", "urlsplit"}, "Character which is used to split links into an url and arguments.", "char"},
         {{"v", "video-cache"}, "Preload videos for the following slide.", "bool"},
+#ifdef EMBEDDED_APPLICATIONS_ENABLED
         {{"w", "pid2wid"}, "Program that converts a PID to a Window ID.", "file"},
+#endif
         {"force-show", "Force showing notes or presentation (if in a framebuffer) independent of QPA platform plugin."},
         {"force-touchpad", "Treat every scroll input as touch pad."},
         {"magnifier-size", "Radius of magnifier.", "pixels"},
@@ -663,6 +681,7 @@ int main(int argc, char *argv[])
 
     // Simple options
 
+#ifdef EMBEDDED_APPLICATIONS_ENABLED
     // Set files, which will be executed in an embedded widget
     // TODO: Wildcard characters
     if (!parser.value("e").isEmpty())
@@ -687,6 +706,7 @@ int main(int argc, char *argv[])
         if (string.toLower() != "none")
             w->setPid2WidConverter(string);
     }
+#endif
 
     // Set character, which is used to split links into a file name and arguments
     if (!parser.value("u").isEmpty())
@@ -703,9 +723,11 @@ int main(int argc, char *argv[])
         value = doubleFromConfig(parser, local, settings, "autoplay", -2.);
         emit w->sendAutostartDelay(value);
 
+#ifdef EMBEDDED_APPLICATIONS_ENABLED
         // Set autostart or delay for embedded applications
         value = doubleFromConfig(parser, local, settings, "autostart-emb", -2.);
         emit w->sendAutostartEmbeddedDelay(value);
+#endif
     }
 
     { // Settings with integer values

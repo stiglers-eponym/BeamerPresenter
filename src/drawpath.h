@@ -19,10 +19,10 @@
 #ifndef DRAWPATH_H
 #define DRAWPATH_H
 
+#include<QtDebug>
 #include<QVector>
 #include<QPointF>
 #include<QRectF>
-#include<QDebug>
 
 class DrawPath
 {

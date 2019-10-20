@@ -44,6 +44,7 @@ true, false or number: Start video and audio content when entering a slide. A nu
 .TP
 .BI "\-A \-\-autoplay-emb " delay
 true, false or number: Start embedded applications when entering a slide. A number is interpreted as a delay in seconds, after which embedded applications are started.
+Not available if embedded applications were disabled at compile time.
 .
 .TP
 .BI "\-b \-\-blinds " integer
@@ -60,6 +61,7 @@ Disable all slide transition.
 .TP
 .BI "\-e \-\-embed " files
 Mark these files for embedding if an execution link points to them. Multiple files should be separated only by a comma (not space!).
+Not available if embedded applications were disabled at compile time.
 .
 .TP
 .BI "\-j \-\-json " file
@@ -126,6 +128,8 @@ with the command
 .IR "$(( " "16#" "$("
 .BR wmctrl " -lp | " sed " -n
 .RI "\[dq]s/^0x\e([0-9a-f]\e+\e) \e+[0-9]\e+ \e+" $1 " .*$/\e1/p\[dq] " ") ))"
+
+Not available if embedded applications were disabled at compile time.
 .
 .TP
 .BI "\-v \-\-video-cache " bool
@@ -181,11 +185,13 @@ Update cached slides if necessary. An update of the cache is also triggered by a
 .B e
 .B start embedded current slide
 Start all embedded applications on the currently shown slide.
+Not available if embedded applications were disabled at compile time.
 .
 .TP
 .B E
 .B start all embedded
 Start all embedded applications on all slides.
+Not available if embedded applications were disabled at compile time.
 .
 .TP
 .B g
@@ -336,6 +342,7 @@ knows the window ID of this window. The simplest way of getting the window ID is
 or by the corresponding default value in the configuration file. If no such application is specified,
 .B BeamerPresenter
 will try to read the window ID from the first line of the standard output of the external program.
+Embedded applications can be disabled at compile time.
 .
 .SS Beamer option "show notes on second screen"
 Beamer can combine notes and presentation into one PDF file by using the option "show slides on second screen". The resulting PDF file can be read by
@@ -372,10 +379,22 @@ Update cached slides if necessary.
 .TP
 .BR "start embedded current slide" ", " "start embedded applications current page" ", ..."
 Start all embedded applications on the currently shown slide.
+Not available if embedded applications were disabled at compile time.
 .
 .TP
 .BR "start all embedded" " or " "start all embedded applications"
 Start all embedded applications on all slides.
+Not available if embedded applications were disabled at compile time.
+.
+.TP
+.BR "close embedded current slide" ", " "close embedded applications current page" ", ..."
+Try to terminate all embedded applications on the current slide.
+Not available if embedded applications were disabled at compile time.
+.
+.TP
+.BR "close all embedded" or "close all embedded applications"
+Try to terminate all embedded applications on all slides.
+Not available if embedded applications were disabled at compile time.
 .
 .TP
 .BR "go to page" " or " "go to slide"

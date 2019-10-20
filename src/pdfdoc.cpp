@@ -88,8 +88,7 @@ bool PdfDoc::loadDocument()
     newDoc->setRenderHint(Poppler::Document::TextSlightHinting);
     newDoc->setRenderHint(Poppler::Document::Antialiasing);
     newDoc->setRenderHint(Poppler::Document::ThinLineShape);
-#ifdef OLD_POPPLER_VERSION
-#else
+#if POPPLER_VERSION_MAJOR > 0 or POPPLER_VERSION_MINOR >= 60
     newDoc->setRenderHint(Poppler::Document::HideAnnotations);
 #endif
 

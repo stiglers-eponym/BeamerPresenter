@@ -19,10 +19,6 @@
 #ifndef TRANSITIONWIDGET_H
 #define TRANSITIONWIDGET_H
 
-#include <QObject>
-#include <QPainter>
-#include <QDebug>
-#include <QTimer>
 #include <poppler-page-transition.h>
 #include "drawslide.h"
 

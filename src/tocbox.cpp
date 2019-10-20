@@ -76,6 +76,7 @@ void TocBox::recursiveTocCreator(QDomNode const& n, int const level)
     else if (!n1.isNull()) {
         if (QGuiApplication::platformName() == "wayland") {
             // Unstable patch because menus don't work in wayland (at least on my system)
+            // TODO: check if this is fixed in wayland
             button->disconnect();
             QWidget * list = new QWidget(this);
             list->setLocale(button->locale());

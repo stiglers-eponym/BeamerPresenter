@@ -55,7 +55,6 @@ void PreviewSlide::renderPage(int const pageNumber, QPixmap const* pix)
     }
 
     // Set the new page and basic properties
-    pageIndex = pageNumber;
     page = doc->getPage(pageNumber);
     QSizeF pageSize = page->pageSizeF();
     // This is given in point = inch/72 ≈ 0.353mm (Did they choose these units to bother programmers?)
@@ -114,7 +113,8 @@ void PreviewSlide::renderPage(int const pageNumber, QPixmap const* pix)
         bool updateRequired = true;
         if (cache.contains(pageIndex)) {
             // The page exists in cache. Use the cache instead of rendering it again.
-            pixmap = getCache(pageIndex);
+            if (pageIndex != pageNumber)
+                pixmap = getCache(pageNumber);
             int picwidth = int(resolution*pageWidth), picheight = int(resolution*pageHeight);
             if (abs(picwidth-pixmap.width())<2 && abs(picheight-pixmap.height())<2)
                 updateRequired = false;
@@ -135,6 +135,7 @@ void PreviewSlide::renderPage(int const pageNumber, QPixmap const* pix)
                 updateCache(&pixmap, pageNumber);
         }
     }
+    pageIndex = pageNumber;
 
     // Show the page on the screen.
     // One could show the page in any case to make it slightly more responsive, but this can lead to a short interruption by a different image.
@@ -211,7 +212,7 @@ long int PreviewSlide::updateCache(int const pageNumber)
     return bytes->size();
 }
 
-QPixmap PreviewSlide::getPixmap(int const pageNumber) const
+QPixmap const PreviewSlide::getPixmap(int const pageNumber) const
 {
     // Return a pixmap representing the current page.
     QPixmap pixmap;

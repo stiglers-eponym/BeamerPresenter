@@ -36,6 +36,9 @@ public:
     explicit EmbedApp(QStringList const& command, QString const& pid2wid, int const page, int const index, QWidget* parent = nullptr);
     ~EmbedApp();
     void addLocation(int const page, int const index) {pages.append(page); indices.append(index);}
+    void start();
+    void update();
+    void terminate();
     QWidget* getWidget() {return widget;}
     QWindow* getWindow() {return window;}
     QProcess* getProcess() {return process;}
@@ -44,8 +47,6 @@ public:
     QStringList const& getCommand() const {return command;}
     bool isOnPage(int const page) const {return pages.contains(page);}
     int* getNextLocation(int const page) const;
-    void start();
-    void update();
 
 private:
     void clearProcess(int const exitCode, QProcess::ExitStatus const exitStatus);

@@ -193,8 +193,10 @@ ControlScreen::ControlScreen(QString presentationPath, QString notesPath, QWidge
     connect(this, &ControlScreen::sendAutostartDelay, presentationScreen->slide, &MediaSlide::setAutostartDelay);
     if (drawSlide != nullptr)
         connect(this, &ControlScreen::sendAutostartDelay, drawSlide, &MediaSlide::setAutostartDelay);
+#ifdef EMBEDDED_APPLICATIONS_ENABLED
     //connect(this, &ControlScreen::sendAutostartEmbeddedDelay, ui->notes_widget, &MediaSlide::setAutostartEmbeddedDelay);
     connect(this, &ControlScreen::sendAutostartEmbeddedDelay, presentationScreen->slide, &MediaSlide::setAutostartEmbeddedDelay);
+#endif
     //connect(this, &ControlScreen::playMultimedia,     ui->notes_widget, &MediaSlide::startAllMultimedia);
     connect(this, &ControlScreen::playMultimedia,     presentationScreen->slide, &MediaSlide::startAllMultimedia);
     connect(this, &ControlScreen::pauseMultimedia,    ui->notes_widget, &MediaSlide::pauseAllMultimedia);
@@ -544,7 +546,7 @@ void ControlScreen::updateCache()
              + ui->current_slide->getCacheSize();
     else
         // This is approximately -infinity and means that the cache size is unlimited:
-        cacheSize = -2147483647; // -4GiB
+        cacheSize = -8589934591l; // -8GiB
 
     // There should be a simply connected region of cached pages between first_cached and last_cached.
     if (first_cached > currentPageNumber || last_cached < currentPageNumber) {
@@ -893,6 +895,7 @@ void ControlScreen::keyPressEvent(QKeyEvent* event)
         case KeyAction::UpdateCache:
             updateCache();
             break;
+#ifdef EMBEDDED_APPLICATIONS_ENABLED
         case KeyAction::StartEmbeddedCurrentSlide:
             presentationScreen->slide->startAllEmbeddedApplications(presentationScreen->getPageNumber());
             //ui->notes_widget->startAllEmbeddedApplications(currentPageNumber);
@@ -900,6 +903,17 @@ void ControlScreen::keyPressEvent(QKeyEvent* event)
         case KeyAction::StartAllEmbedded:
             startAllEmbeddedApplications();
             break;
+        case KeyAction::CloseEmbeddedCurrentSlide:
+        {
+            presentationScreen->slide->closeEmbeddedApplications(presentationScreen->getPageNumber());
+            ui->notes_widget->closeEmbeddedApplications(presentationScreen->getPageNumber());
+        }
+            break;
+        case KeyAction::CloseAllEmbedded:
+            presentationScreen->slide->closeAllEmbeddedApplications();
+            ui->notes_widget->closeAllEmbeddedApplications();
+            break;
+#endif
         case KeyAction::GoToPage:
             showNotes();
             ui->text_current_slide->setFocus();
@@ -1012,6 +1026,7 @@ void ControlScreen::keyPressEvent(QKeyEvent* event)
     event->accept();
 }
 
+#ifdef EMBEDDED_APPLICATIONS_ENABLED
 void ControlScreen::startAllEmbeddedApplications()
 {
     // Start all embedded applications of the presentation on all pages.
@@ -1021,6 +1036,7 @@ void ControlScreen::startAllEmbeddedApplications()
         presentationScreen->slide->startAllEmbeddedApplications(i);
     }
 }
+#endif
 
 void ControlScreen::resizeEvent(QResizeEvent* event)
 {
@@ -1135,6 +1151,7 @@ void ControlScreen::wheelEvent(QWheelEvent* event)
     event->accept();
 }
 
+#ifdef EMBEDDED_APPLICATIONS_ENABLED
 void ControlScreen::setEmbedFileList(const QStringList &files)
 {
     // Set list of files, which should be be executed as embedded widgets if they are linked in the PDF.
@@ -1153,6 +1170,7 @@ void ControlScreen::setPid2WidConverter(QString const &program)
     else
         qCritical() << "Can't use program: not a file or not executable." << program;
 }
+#endif
 
 void ControlScreen::setUrlSplitCharacter(QString const &splitCharacter)
 {

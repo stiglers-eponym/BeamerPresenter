@@ -19,7 +19,6 @@
 #ifndef TOOLSELECTOR_H
 #define TOOLSELECTOR_H
 
-#include <QWidget>
 #include <QPushButton>
 #include <QGridLayout>
 #include "drawslide.h"

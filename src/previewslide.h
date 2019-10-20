@@ -39,7 +39,7 @@ public:
     void setUseCache(char const use) {useCache=use;}
     long int getCacheSize() const;
     int getCacheNumber() const {return cache.size();}
-    QPixmap getPixmap(int const pageNumber) const;
+    QPixmap const getPixmap(int const pageNumber) const;
     QPixmap const getCache(int const index) const;
     QByteArray const* getCachedBytes(int const index) const;
     bool cacheContains(int const index) const {return cache.contains(index);}
