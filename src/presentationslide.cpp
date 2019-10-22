@@ -53,11 +53,11 @@ void PresentationSlide::drawPointer(QPainter& painter)
 {
     painter.setOpacity(1.);
     painter.setCompositionMode(QPainter::CompositionMode_Darken);
-    if (tool == Pointer) {
+    if (tool.tool == Pointer) {
         painter.setPen(QPen(QColor(255,0,0,191), sizes[Pointer], Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin));
         painter.drawPoint(pointerPosition);
     }
-    else if (tool == Torch && !pointerPosition.isNull()) {
+    else if (tool.tool == Torch && !pointerPosition.isNull()) {
         QPainterPath rectpath;
         rectpath.addRect(shiftx, shifty, pixmap.width(), pixmap.height());
         QPainterPath circpath;
@@ -107,7 +107,7 @@ void PresentationSlide::togglePointerVisibility()
     if (pointer_visible) {
         pointer_visible = false;
         setCursor(Qt::BlankCursor);
-        if (tool != Pointer)
+        if (tool.tool != Pointer)
             setMouseTracking(false);
     }
     else {
@@ -137,26 +137,7 @@ void PresentationSlide::updateImages(int const oldPage)
         QString const& label = doc->getLabel(oldPage);
         painter.setRenderHint(QPainter::Antialiasing);
         painter.drawPixmap(shiftx, shifty, getPixmap(oldPage));
-        if (paths.contains(label)) {
-            if (paths[label].contains(GreenPen)) {
-                painter.setCompositionMode(QPainter::CompositionMode_SourceOver);
-                painter.setPen(QPen(QColor(0,191,0), sizes[GreenPen]));
-                for (QList<DrawPath>::const_iterator it=paths[label][GreenPen].cbegin(); it!=paths[label][GreenPen].cend(); it++)
-                    painter.drawPolyline(it->data(), it->number());
-            }
-            if (paths[label].contains(RedPen)) {
-                painter.setCompositionMode(QPainter::CompositionMode_SourceOver);
-                painter.setPen(QPen(QColor(255,0,0), sizes[RedPen]));
-                for (QList<DrawPath>::const_iterator it=paths[label][RedPen].cbegin(); it!=paths[label][RedPen].cend(); it++)
-                    painter.drawPolyline(it->data(), it->number());
-            }
-            if (paths[label].contains(Highlighter)) {
-                painter.setCompositionMode(QPainter::CompositionMode_Darken);
-                painter.setPen(QPen(QColor(255,255,0), sizes[Highlighter], Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin));
-                for (QList<DrawPath>::const_iterator it=paths[label][Highlighter].cbegin(); it!=paths[label][Highlighter].cend(); it++)
-                    painter.drawPolyline(it->data(), it->number());
-            }
-        }
+        drawPaths(painter, label);
     }
     {
         picfinal = QPixmap(size());
@@ -165,26 +146,7 @@ void PresentationSlide::updateImages(int const oldPage)
         painter.begin(&picfinal);
         painter.setRenderHint(QPainter::Antialiasing);
         painter.drawPixmap(shiftx, shifty, pixmap);
-        if (paths.contains(page->label())) {
-            if (paths[page->label()].contains(GreenPen)) {
-                painter.setCompositionMode(QPainter::CompositionMode_SourceOver);
-                painter.setPen(QPen(QColor(0,191,0), sizes[GreenPen]));
-                for (QList<DrawPath>::const_iterator it=paths[page->label()][GreenPen].cbegin(); it!=paths[page->label()][GreenPen].cend(); it++)
-                    painter.drawPolyline(it->data(), it->number());
-            }
-            if (paths[page->label()].contains(RedPen)) {
-                painter.setCompositionMode(QPainter::CompositionMode_SourceOver);
-                painter.setPen(QPen(QColor(255,0,0), sizes[RedPen]));
-                for (QList<DrawPath>::const_iterator it=paths[page->label()][RedPen].cbegin(); it!=paths[page->label()][RedPen].cend(); it++)
-                    painter.drawPolyline(it->data(), it->number());
-            }
-            if (paths[page->label()].contains(Highlighter)) {
-                painter.setCompositionMode(QPainter::CompositionMode_Darken);
-                painter.setPen(QPen(QColor(255,255,0), sizes[Highlighter], Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin));
-                for (QList<DrawPath>::const_iterator it=paths[page->label()][Highlighter].cbegin(); it!=paths[page->label()][Highlighter].cend(); it++)
-                    painter.drawPolyline(it->data(), it->number());
-            }
-        }
+        drawPaths(painter, page->label());
     }
 }
 

@@ -21,14 +21,15 @@
 ToolSelector::ToolSelector(QWidget* parent) : QWidget(parent)
 {
     // TODO: fancy labels
+    // TODO: use flexible colors
     drawMode.setText("draw");
     QPalette palette;
-    palette.setColor(QPalette::ButtonText, QColor(255,0,0));
-    redPen.setPalette(palette);
-    redPen.setText("red");
-    palette.setColor(QPalette::ButtonText, QColor(0,191,0));
-    greenPen.setPalette(palette);
-    greenPen.setText("green");
+    palette.setColor(QPalette::ButtonText, pen1color);
+    pen1.setPalette(palette);
+    pen1.setText("pen");
+    palette.setColor(QPalette::ButtonText, pen2color);
+    pen2.setPalette(palette);
+    pen2.setText("pen");
     palette.setColor(QPalette::ButtonText, Qt::black);
     palette.setColor(QPalette::Button, QColor(255,255,0));
     highlighter.setPalette(palette);
@@ -45,8 +46,8 @@ ToolSelector::ToolSelector(QWidget* parent) : QWidget(parent)
     layout = new QGridLayout(this);
     layout->addWidget(&drawMode, 1, 1);
     layout->addWidget(&eraser, 1, 2);
-    layout->addWidget(&redPen, 1, 3);
-    layout->addWidget(&greenPen, 1, 4);
+    layout->addWidget(&pen1, 1, 3);
+    layout->addWidget(&pen2, 1, 4);
     layout->addWidget(&highlighter, 1, 5);
     layout->addWidget(&handTool, 2, 1);
     layout->addWidget(&clearAnnotations, 2, 2);
@@ -54,14 +55,14 @@ ToolSelector::ToolSelector(QWidget* parent) : QWidget(parent)
     layout->addWidget(&torch, 2, 4);
     layout->addWidget(&magnifier, 2, 5);
     setLayout(layout);
-    connect(&redPen, &QPushButton::released, this, [&](){sendNewTool(RedPen);});
-    connect(&greenPen, &QPushButton::released, this, [&](){sendNewTool(GreenPen);});
-    connect(&highlighter, &QPushButton::released, this, [&](){sendNewTool(Highlighter);});
-    connect(&pointer, &QPushButton::released, this, [&](){sendNewTool(Pointer);});
-    connect(&torch, &QPushButton::released, this, [&](){sendNewTool(Torch);});
-    connect(&magnifier, &QPushButton::released, this, [&](){sendNewTool(Magnifier);});
-    connect(&eraser, &QPushButton::released, this, [&](){sendNewTool(Eraser);});
-    connect(&handTool, &QPushButton::released, this, [&](){sendNewTool(None);});
+    connect(&pen1, &QPushButton::released, this, [&](){sendNewTool({Pen, pen1color});});
+    connect(&pen2, &QPushButton::released, this, [&](){sendNewTool({Pen, pen2color});});
+    connect(&highlighter, &QPushButton::released, this, [&](){sendNewTool({Highlighter, highlightercolor});});
+    connect(&pointer, &QPushButton::released, this, [&](){sendNewTool({Pointer, pointercolor});});
+    connect(&torch, &QPushButton::released, this, [&](){sendNewTool({Torch, torchcolor});});
+    connect(&magnifier, &QPushButton::released, this, [&](){sendNewTool({Magnifier, magnifiercolor});});
+    connect(&eraser, &QPushButton::released, this, [&](){sendNewTool({Eraser, QColor()});});
+    connect(&handTool, &QPushButton::released, this, [&](){sendNewTool({None, QColor()});});
     connect(&drawMode, &QPushButton::released, this, &ToolSelector::sendDrawMode);
     connect(&clearAnnotations, &QPushButton::released, this, &ToolSelector::sendClear);
 }

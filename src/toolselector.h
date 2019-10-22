@@ -28,8 +28,8 @@ class ToolSelector : public QWidget
     Q_OBJECT
 private:
     QPushButton drawMode;
-    QPushButton redPen;
-    QPushButton greenPen;
+    QPushButton pen1;
+    QPushButton pen2;
     QPushButton highlighter;
     QPushButton magnifier;
     QPushButton torch;
@@ -38,13 +38,24 @@ private:
     QPushButton clearAnnotations;
     QPushButton eraser;
     QGridLayout* layout;
+    QColor pen1color = QColor("red");
+    QColor pen2color = QColor("green");
+    QColor highlightercolor = QColor(255,255,0,191);
+    QColor pointercolor = QColor(255,0,0,191);
+    QColor magnifiercolor = QColor(64,64,64,64);
+    QColor torchcolor = QColor(0,0,0,64);
 
 public:
     explicit ToolSelector(QWidget *parent = nullptr);
     ~ToolSelector() {delete layout;}
+    void setPenColors(QColor const color1, QColor const color2) {pen1color=color1; pen2color=color2;}
+    void setHighlighterColor(QColor const color) {highlightercolor=color;}
+    void setPointerColor(QColor const color) {pointercolor=color;}
+    void setMagnifierColor(QColor const color) {magnifiercolor=color;}
+    void setTorchColor(QColor const color) {torchcolor=color;}
 
 signals:
-    void sendNewTool(DrawTool const tool);
+    void sendNewTool(ColoredDrawTool const tool);
     void sendDrawMode();
     void sendClear();
 };

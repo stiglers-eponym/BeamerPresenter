@@ -64,6 +64,7 @@ public:
     void setTimerMap(QMap<int, QTime>& timeMap);
     void disableSlideTransitions() {presentationScreen->slide->disableTransitions();}
     void setToolSize(DrawTool const tool, int const size) {presentationScreen->slide->setSize(tool, size);}
+    void setToolForKey(int const key, ColoredDrawTool tool) {tools[key] = tool;}
     void setTransitionBlinds(int const n) {presentationScreen->slide->setBlindsNumber(n);}
     void showDrawSlide();
     void hideDrawSlide();
@@ -108,6 +109,7 @@ private:
 
     // keymap maps (key code + modifiers) to a list of KeyActions.
     QMap<int, QList<int>>* keymap = new QMap<int, QList<int>>();
+    QMap<int, ColoredDrawTool> tools;
 
 private slots:
     void updateCacheStep();

@@ -75,11 +75,9 @@ const QMap<QString, int> keyActionMap {
 
     {"clear annotations", KeyAction::ClearAnnotations},
     {"hand tool", KeyAction::DrawNone},
-    {"red pen", KeyAction::DrawRedPen},
-    {"green pen", KeyAction::DrawGreenPen},
+    {"pointer", KeyAction::DrawPointer},
     {"highlighter", KeyAction::DrawHighlighter},
     {"torch", KeyAction::DrawTorch},
-    {"pointer", KeyAction::DrawPointer},
     {"magnifier", KeyAction::DrawMagnifier},
     {"draw mode", KeyAction::DrawMode},
     {"hide draw slide", KeyAction::HideDrawSlide},
@@ -192,6 +190,46 @@ int intFromConfig(QCommandLineParser const& parser, QVariantMap const& local, QS
             qCritical() << "option \"" << settings.value(name) << "\" to" << name << "in config not understood. Should be an integer.";
     }
     return def;
+}
+
+bool sendKeyMapItem(ControlScreen* w, int const key, QStringList const& actions)
+{
+    bool failed = false;
+    for (QStringList::const_iterator action_it=actions.begin(); action_it!=actions.cend(); action_it++) {
+        const int action = keyActionMap.value(action_it->toLower(), -1);
+        if (action!=-1)
+            w->setKeyMapItem(key, action);
+        else {
+            QStringList split_action = action_it->toLower().split(' ');
+            if (split_action.size() != 2)
+                failed = true;
+            else if (split_action.first() == "pen") {
+                QColor color = QColor(split_action[1]);
+                w->setToolForKey(key, {Pen, color});
+            }
+            else if (split_action.first() == "highlighter") {
+                QColor color = QColor(split_action[1]);
+                w->setToolForKey(key, {Highlighter, color});
+            }
+            else if (split_action.first() == "pointer") {
+                QColor color = QColor(split_action[1]);
+                w->setToolForKey(key, {Pointer, color});
+            }
+            else if (split_action.first() == "torch") {
+                QColor color = QColor(split_action[1]);
+                w->setToolForKey(key, {Torch, color});
+            }
+            else if (split_action.first() == "magnifier") {
+                QColor color = QColor(split_action[1]);
+                w->setToolForKey(key, {Magnifier, color});
+            }
+            else {
+                qCritical() << "Could not understand action" << *action_it;
+                failed = true;
+            }
+        }
+    }
+    return failed;
 }
 
 
@@ -491,25 +529,20 @@ int main(int argc, char *argv[])
 
     if (local.contains("keys")) { // Handle key bindings
         QVariantMap variantMap = local["keys"].value<QVariantMap>();
-        QList<QString> keys = variantMap.keys();
+        QStringList keys = variantMap.keys();
         if (keys.isEmpty())
             w->setKeyMap(new QMap<int, QList<int>>(defaultKeyMap));
         else {
-            for (QList<QString>::const_iterator key_it=keys.cbegin(); key_it!=keys.cend(); key_it++) {
+            for (QStringList::const_iterator key_it=keys.cbegin(); key_it!=keys.cend(); key_it++) {
                 QKeySequence keySequence = QKeySequence(*key_it, QKeySequence::NativeText);
                 const int key = keySequence[0]+keySequence[1]+keySequence[2]+keySequence[3];
-                if (key!=0) {
-                    QStringList actions = variantMap[*key_it].toStringList();
-                    for (QStringList::const_iterator action_it=actions.begin(); action_it!=actions.cend(); action_it++) {
-                        const int action = keyActionMap.value(action_it->toLower(), -1);
-                        if (action!=-1)
-                            w->setKeyMapItem(key, action);
-                        else
-                            qCritical() << "Could not understand action" << *action_it << "for key" << *key_it;
-                    }
-                }
-                else
+                if (key == 0)
                     qCritical() << "Could not understand key" << *key_it;
+                else {
+                    QStringList actions = variantMap[*key_it].toStringList();
+                    if (sendKeyMapItem(w, key, actions))
+                        qWarning() << "Could not understand action(s) in" << actions << "for key" << *key_it;
+                }
             }
         }
     }
@@ -522,18 +555,13 @@ int main(int argc, char *argv[])
             for (QStringList::const_iterator key_it=keys.cbegin(); key_it!=keys.cend(); key_it++) {
                 QKeySequence keySequence = QKeySequence(*key_it, QKeySequence::NativeText);
                 const int key = keySequence[0]+keySequence[1]+keySequence[2]+keySequence[3];
-                if (key!=0) {
-                    QStringList actions = settings.value(*key_it).toStringList();
-                    for (QStringList::const_iterator action_it=actions.begin(); action_it!=actions.cend(); action_it++) {
-                        const int action = keyActionMap.value(action_it->toLower(), -1);
-                        if (action!=-1)
-                            w->setKeyMapItem(key, action);
-                        else
-                            qCritical() << "Could not understand action" << *action_it << "for key" << *key_it;
-                    }
-                }
-                else
+                if (key == 0)
                     qCritical() << "Could not understand key" << *key_it;
+                else {
+                    QStringList actions = settings.value(*key_it).toStringList();
+                    if (sendKeyMapItem(w, key, actions))
+                        qWarning() << "Could not understand action(s) in" << actions << "for key" << *key_it;
+                }
             }
         }
         settings.endGroup();
@@ -777,10 +805,10 @@ int main(int argc, char *argv[])
         value  = intFromConfig(parser, local, settings, "highlighter-width", 30);
         w->setToolSize(Highlighter, value);
         value  = intFromConfig(parser, local, settings, "pen-width", 3);
-        w->setToolSize(RedPen, value);
-        w->setToolSize(GreenPen, value);
+        w->setToolSize(Pen, value);
         value  = intFromConfig(parser, local, settings, "eraser-size", 10);
         w->setToolSize(Eraser, value);
+        // TODO: read colors from config
     }
 
     // Disable slide transitions

@@ -351,7 +351,7 @@ with the option
 .BR \-p ", or " \-\-page-part
 .
 .SS Draw in presentation
-It is now possible to draw in the presentation. You can access different pens and other tools by using customized key bindings or a buttons on the control screen. Besides simple drawing with pens and a highlighter you can emphasize parts of a slide using a torch, a magnifier and a pointer. In a draw mode all tools are synchronized between control screen and presentation screen.
+You can draw in the presentation. You can access pens with customized colors and other tools by using customized key bindings or buttons on the control screen. Besides simple drawing with pens and highlighters you can emphasize parts of a slide using a torch, a magnifier and a pointer. In drawing mode all tools are synchronized between control screen and presentation screen.
 .
 .
 .SH CONFIG
@@ -497,32 +497,29 @@ Delete all drawings on the current page.
 Return from drawing mode to normal mode.
 .
 .TP
-.B red pen
-Draw in the presentation with a red pen.
+.BI pen <color>
+Draw in the presentation with a pen of given color (given as a color name known to Qt, #rrggbb or #aarrggbb). Here the color argument is mandatory.
 .
 .TP
-.B green pen
-Draw in the presentation with a green pen.
-.
-.TP
-.B highlighter
-Draw in the presentation with a yellow highlighter.
+.B highlighter [<color>]
+Draw in the presentation with a highlighter. The default color is #c0ffff00 (yellow).
 .
 .TP
 .B eraser
 Erase strokes of pens and of the highlighter.
 .
 .TP
-.B torch
-Emphasize a region of the current slide with a torch.
+.B torch [<color>]
+Emphasize a region of the current slide with a torch. The rest of the presentation is colored with <color>. Use the #aarrggbb format to specify an alpha channel.
 .
 .TP
-.B magnifier
+.B magnifier [<color>]
 Enlarge a region of the current slide with a magnifier.
 .
 .TP
-.B pointer
-Highlight a point on the slide with a red pointer.
+.B pointer [<color>]
+Highlight a point on the slide with a pointer. The default color is #c0ff0000 (red).
+.
 .
 .SS Colors
 .

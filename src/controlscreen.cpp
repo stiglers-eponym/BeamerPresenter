@@ -77,7 +77,7 @@ ControlScreen::ControlScreen(QString presentationPath, QString notesPath, QWidge
         ui->notes_widget = new DrawSlide(this);
         ui->notes_widget->setFocusPolicy(Qt::ClickFocus);
         drawSlide = static_cast<DrawSlide*>(ui->notes_widget);
-        connect(ui->tool_selector, &ToolSelector::sendNewTool, drawSlide, &DrawSlide::setTool);
+        connect(ui->tool_selector, &ToolSelector::sendNewTool, drawSlide, QOverload<const ColoredDrawTool>::of(&DrawSlide::setTool));
         connect(ui->tool_selector, &ToolSelector::sendClear, drawSlide, &DrawSlide::clearAllAnnotations);
         connect(drawSlide, &DrawSlide::pathsChanged, presentationScreen->slide, &DrawSlide::setPaths);
         connect(presentationScreen->slide, &DrawSlide::pathsChanged, drawSlide, &DrawSlide::setPaths);
@@ -126,7 +126,7 @@ ControlScreen::ControlScreen(QString presentationPath, QString notesPath, QWidge
     ui->notes_widget->setFocus();
 
     // Tool selector
-    connect(ui->tool_selector, &ToolSelector::sendNewTool, presentationScreen->slide, &DrawSlide::setTool);
+    connect(ui->tool_selector, &ToolSelector::sendNewTool, presentationScreen->slide, QOverload<const ColoredDrawTool>::of(&DrawSlide::setTool));
     connect(ui->tool_selector, &ToolSelector::sendClear, presentationScreen->slide, &DrawSlide::clearAllAnnotations);
     connect(ui->tool_selector, &ToolSelector::sendDrawMode, this, &ControlScreen::toggleDrawMode);
 
@@ -313,8 +313,7 @@ void ControlScreen::recalcLayout(const int pageNumber)
     ui->tool_selector->setMaximumWidth(sideWidth);
     if (drawSlide != nullptr) {
         double scale = drawSlide->getResolution() / presentationScreen->slide->getResolution();
-        drawSlide->setSize(GreenPen, presentationScreen->slide->getSize(GreenPen));
-        drawSlide->setSize(RedPen, presentationScreen->slide->getSize(RedPen));
+        drawSlide->setSize(Pen, presentationScreen->slide->getSize(Pen));
         if (scale < 0.)
             scale = 1.;
         drawSlide->setSize(Pointer, presentationScreen->slide->getSize(Pointer));
@@ -457,10 +456,10 @@ void ControlScreen::renderPage(int const pageNumber, bool const full)
         // It is possible that presentationScreen->slide contains drawings which have not been copied to drawSlide yet.
         QString label = presentation->getLabel(currentPageNumber);
         if (!drawSlide->getPaths().contains(label)) {
-            QMap<QString, QMap<DrawTool, QList<DrawPath>>> const paths = presentationScreen->slide->getPaths();
+            QMap<QString, QMap<ColoredDrawTool, QList<DrawPath>>> const paths = presentationScreen->slide->getPaths();
             int const sx=presentationScreen->slide->getXshift(), sy=presentationScreen->slide->getYshift();
             double res = presentationScreen->slide->getResolution();
-            for (QMap<DrawTool, QList<DrawPath>>::const_iterator tool_it = paths[label].cbegin(); tool_it != paths[label].cend(); tool_it++)
+            for (QMap<ColoredDrawTool, QList<DrawPath>>::const_iterator tool_it = paths[label].cbegin(); tool_it != paths[label].cend(); tool_it++)
                 drawSlide->setPaths(label, tool_it.key(), *tool_it, sx, sy, res);
         }
         // Update current slide
@@ -512,7 +511,7 @@ void ControlScreen::renderPage(int const pageNumber, bool const full)
     ui->text_current_slide->setText(QString::number(currentPageNumber+1));
     if (full) {
         // Some extras which may take some time
-        if (presentationScreen->slide->getTool() == Magnifier) {
+        if (presentationScreen->slide->getTool().tool == Magnifier) {
             ui->current_slide->repaint();
             ui->next_slide->repaint();
             presentationScreen->slide->updateEnlargedPage();
@@ -821,7 +820,13 @@ void ControlScreen::adaptPage()
 void ControlScreen::keyPressEvent(QKeyEvent* event)
 {
     // Key codes are given as key + modifiers.
-    QMap<int, QList<int>>::iterator map_it = keymap->find(event->key() + static_cast<int>(event->modifiers()));
+    const int key = event->key() + static_cast<int>(event->modifiers());
+    if (tools.contains(key)) {
+        presentationScreen->slide->setTool(tools[key]);
+        if (drawSlide != nullptr)
+            drawSlide->setTool(tools[key]);
+    }
+    QMap<int, QList<int>>::iterator map_it = keymap->find(key);
     if (map_it==keymap->end())
         return;
     for (QList<int>::const_iterator action_it=map_it->cbegin(); action_it!=map_it->cend(); action_it++) {
@@ -988,35 +993,25 @@ void ControlScreen::keyPressEvent(QKeyEvent* event)
             if (drawSlide != nullptr)
                 drawSlide->setTool(None);
             break;
-        case KeyAction::DrawRedPen:
-            presentationScreen->slide->setTool(RedPen);
+        case KeyAction::DrawPointer:
+            presentationScreen->slide->setTool(Pointer, QColor(255,0,0,191));
             if (drawSlide != nullptr)
-                drawSlide->setTool(RedPen);
-            break;
-        case KeyAction::DrawGreenPen:
-            presentationScreen->slide->setTool(GreenPen);
-            if (drawSlide != nullptr)
-                drawSlide->setTool(GreenPen);
+                drawSlide->setTool(Pointer, QColor(255,0,0,191));
             break;
         case KeyAction::DrawHighlighter:
-            presentationScreen->slide->setTool(Highlighter);
+            presentationScreen->slide->setTool(Highlighter, QColor(255,255,0,191));
             if (drawSlide != nullptr)
-                drawSlide->setTool(Highlighter);
+                drawSlide->setTool(Highlighter, QColor(255,255,0,191));
             break;
         case KeyAction::DrawTorch:
-            presentationScreen->slide->setTool(Torch);
+            presentationScreen->slide->setTool(Torch, QColor(0,0,0,64));
             if (drawSlide != nullptr)
-                drawSlide->setTool(Torch);
-            break;
-        case KeyAction::DrawPointer:
-            presentationScreen->slide->setTool(Pointer);
-            if (drawSlide != nullptr)
-                drawSlide->setTool(Pointer);
+                drawSlide->setTool(Torch, QColor(0,0,0,64));
             break;
         case KeyAction::DrawMagnifier:
-            presentationScreen->slide->setTool(Magnifier);
+            presentationScreen->slide->setTool(Magnifier, QColor(64,64,64,64));
             if (drawSlide != nullptr)
-                drawSlide->setTool(Magnifier);
+                drawSlide->setTool(Magnifier, QColor(64,64,64,64));
             break;
         case KeyAction::DrawMode:
             showDrawSlide();
@@ -1373,7 +1368,7 @@ void ControlScreen::showDrawSlide()
         drawSlide->setDoc(presentation);
         drawSlide->setFocusPolicy(Qt::ClickFocus);
         drawSlide->setUseCache(0);
-        connect(ui->tool_selector, &ToolSelector::sendNewTool, drawSlide, &DrawSlide::setTool);
+        connect(ui->tool_selector, &ToolSelector::sendNewTool, drawSlide, QOverload<const ColoredDrawTool>::of(&DrawSlide::setTool));
         connect(ui->tool_selector, &ToolSelector::sendClear, drawSlide, &DrawSlide::clearAllAnnotations);
         connect(drawSlide, &DrawSlide::pathsChanged, presentationScreen->slide, &DrawSlide::setPaths);
         connect(presentationScreen->slide, &DrawSlide::pathsChanged, drawSlide, &DrawSlide::setPaths);
@@ -1405,15 +1400,14 @@ void ControlScreen::showDrawSlide()
     int const sx=presentationScreen->slide->getXshift(), sy=presentationScreen->slide->getYshift();
     double res = presentationScreen->slide->getResolution();
     double scale = drawSlide->getResolution() / res;
-    drawSlide->setSize(GreenPen, presentationScreen->slide->getSize(GreenPen));
-    drawSlide->setSize(RedPen, presentationScreen->slide->getSize(RedPen));
+    drawSlide->setSize(Pen, presentationScreen->slide->getSize(Pen));
     drawSlide->setSize(Pointer, presentationScreen->slide->getSize(Pointer));
     drawSlide->setSize(Highlighter, static_cast<int>(scale*presentationScreen->slide->getSize(Highlighter)+0.5));
     drawSlide->setSize(Torch, static_cast<int>(scale*presentationScreen->slide->getSize(Torch)));
     drawSlide->setSize(Magnifier, static_cast<int>(scale*presentationScreen->slide->getSize(Magnifier)));
     QString label = presentationScreen->slide->getPage()->label();
-    QMap<QString, QMap<DrawTool, QList<DrawPath>>> const paths = presentationScreen->slide->getPaths();
-    for (QMap<DrawTool, QList<DrawPath>>::const_iterator tool_it = paths[label].cbegin(); tool_it != paths[label].cend(); tool_it++)
+    QMap<QString, QMap<ColoredDrawTool, QList<DrawPath>>> const paths = presentationScreen->slide->getPaths();
+    for (QMap<ColoredDrawTool, QList<DrawPath>>::const_iterator tool_it = paths[label].cbegin(); tool_it != paths[label].cend(); tool_it++)
         drawSlide->setPaths(label, tool_it.key(), *tool_it, sx, sy, res);
     drawSlide->update();
     renderPage(currentPageNumber);
