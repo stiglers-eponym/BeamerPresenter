@@ -23,6 +23,7 @@
 #include<QVector>
 #include<QPointF>
 #include<QRectF>
+#include "enumerates.h"
 
 class DrawPath
 {
@@ -30,23 +31,28 @@ private:
     QVector<QPointF> path;
     QRectF outer = QRectF();
     int eraser_size = 10;
+    ColoredDrawTool tool;
+    unsigned int hash = 0;
 public:
-    DrawPath(QPointF const& start, int const eraser_size = 10);
-    DrawPath(QPointF* const points, int const number, int const eraser_size = 10);
-    DrawPath(DrawPath const& old) {path=old.path; outer=old.outer; eraser_size=old.eraser_size;}
-    DrawPath(DrawPath const&& old) {path=old.path; outer=old.outer; eraser_size=old.eraser_size;}
+    DrawPath(ColoredDrawTool const& tool, QPointF const& start, int const eraser_size = 10);
+    DrawPath(ColoredDrawTool const& tool, QPointF* const points, int const number, int const eraser_size = 10);
     DrawPath(DrawPath const& old, QPointF const shift, double const scale);
+    DrawPath(DrawPath const& old);
     ~DrawPath() {path.clear();}
     void transform(QPointF const& shift, double const scale);
+    void updateHash();
     void setEraserSize(int const size);
-    void clear() {path.clear(); outer=QRectF();}
-    bool isEmpty() {return path.isEmpty();}
+    void clear() {path.clear(); outer=QRectF(); hash=0;}
+    unsigned int getHash() const {return hash;}
+    bool isEmpty() const {return path.isEmpty();}
     int number() const {return path.length();}
+    DrawTool getTool() const {return tool.tool;}
+    QColor const& getColor() const {return tool.color;}
     QPointF const* data() const {return path.constData();}
     QRectF const& getOuter() const {return outer;}
     QVector<int> intersects(QPointF const& point) const;
     void append(QPointF const& point);
-    DrawPath split(int start, int end);
+    DrawPath* split(int start, int end);
     DrawPath operator=(DrawPath const& old) {path.clear(); return DrawPath(old);}
     DrawPath operator=(DrawPath const&& old) {path.clear(); return DrawPath(old);}
 };

@@ -43,8 +43,8 @@ protected:
     virtual void paintEvent(QPaintEvent*) override;
     Poppler::Page* page = nullptr;
     PagePart pagePart = FullPage; // Which part of the page is shown on this label
-    int shiftx;
-    int shifty;
+    int shiftx = 0;
+    int shifty = 0;
     QPixmap pixmap;
     double resolution = -1.; // resolution in pixels per point = dpi/72
     int pageIndex = 0; // page number

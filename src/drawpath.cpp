@@ -32,15 +32,17 @@ void DrawPath::setEraserSize(const int size)
     eraser_size=size;
 }
 
-DrawPath::DrawPath(QPointF const& start, int const eraser_size)
+DrawPath::DrawPath(ColoredDrawTool const& tool, QPointF const& start, int const eraser_size)
 {
     path = QVector<QPointF>();
     path.append(start);
     outer = QRectF(start.x(), start.y(), 0, 0);
     this->eraser_size = eraser_size;
+    this->tool = tool;
+    updateHash();
 }
 
-DrawPath::DrawPath(QPointF* const points, int const number, int const eraser_size)
+DrawPath::DrawPath(ColoredDrawTool const& tool, QPointF* const points, int const number, int const eraser_size)
 {
     path = QVector<QPointF>(number);
     if (number == 0)
@@ -59,16 +61,29 @@ DrawPath::DrawPath(QPointF* const points, int const number, int const eraser_siz
     }
     outer = QRectF(left-eraser_size, top-eraser_size, right-left+2*eraser_size, bottom-top+2*eraser_size);
     this->eraser_size = eraser_size;
+    this->tool = tool;
+    updateHash();
 }
 
 DrawPath::DrawPath(DrawPath const& old, QPointF const shift, double const scale)
 {
-     path = QVector<QPointF>(old.path.length());
-     for (int i=0; i<old.path.length(); i++)
-         path[i] = scale*old.path[i] + shift;
-     outer = QRectF(scale*old.outer.topLeft() + shift, scale*old.outer.bottomRight() + shift);
-     eraser_size = old.eraser_size;
-     //eraser_size = static_cast<int>(scale*old.eraser_size+0.5);
+    path = QVector<QPointF>(old.path.length());
+    for (int i=0; i<old.path.length(); i++)
+        path[i] = scale*old.path[i] + shift;
+    outer = QRectF(scale*old.outer.topLeft() + shift, scale*old.outer.bottomRight() + shift);
+    eraser_size = old.eraser_size;
+    //eraser_size = static_cast<int>(scale*old.eraser_size+0.5);
+    tool = old.tool;
+    hash = old.hash;
+}
+
+DrawPath::DrawPath(DrawPath const& old)
+{
+    path = old.path;
+    outer = old.outer;
+    eraser_size = old.eraser_size;
+    tool = old.tool;
+    hash = old.hash;
 }
 
 void DrawPath::transform(QPointF const&shift, const double scale)
@@ -92,6 +107,7 @@ void DrawPath::append(QPointF const& point)
         else if (point.y()+eraser_size > outer.bottom())
             outer.setBottom(point.y()+eraser_size);
     }
+    hash ^= static_cast<unsigned int>(std::hash<double>{}(point.x() + 1e5*point.y())) + (hash << 6) + (hash >> 2);
 }
 
 QVector<int> DrawPath::intersects(QPointF const& point) const
@@ -108,14 +124,26 @@ QVector<int> DrawPath::intersects(QPointF const& point) const
      return vec;
 }
 
-DrawPath DrawPath::split(int start, int end)
+DrawPath* DrawPath::split(int start, int end)
 {
     if (start < 0) {
         if (end >= path.length())
-            return *this;
+            return this;
         start = 0;
     }
     if (end > path.length())
         end = path.length();
-    return DrawPath(path.data()+start, end-start, eraser_size);
+    return new DrawPath(tool, path.data()+start, end-start, eraser_size);
+}
+
+void DrawPath::updateHash()
+{
+    hash = static_cast<unsigned int>(std::hash<int>{}(tool.tool));
+    hash ^= static_cast<unsigned int>(tool.color.red())   + (hash << 6) + (hash >> 2);
+    hash ^= static_cast<unsigned int>(tool.color.green()) + (hash << 6) + (hash >> 2);
+    hash ^= static_cast<unsigned int>(tool.color.blue())  + (hash << 6) + (hash >> 2);
+    hash ^= static_cast<unsigned int>(tool.color.alpha()) + (hash << 6) + (hash >> 2);
+    for (auto& p : path)
+        hash ^= static_cast<unsigned int>(std::hash<double>{}(p.x() + 1e5*p.y())) + (hash << 6) + (hash >> 2);
+    qDebug() << "updated hash:" << hash;
 }

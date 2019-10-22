@@ -28,6 +28,10 @@ bool operator<(ColoredDrawTool tool1, ColoredDrawTool tool2)
 
 void DrawSlide::clearAllAnnotations()
 {
+    for (QMap<QString, QList<DrawPath*>>::iterator it=paths.begin(); it!=paths.end(); it++) {
+        qDeleteAll(*it);
+        it->clear();
+    }
     paths.clear();
     update();
 }
@@ -35,6 +39,7 @@ void DrawSlide::clearAllAnnotations()
 void DrawSlide::clearPageAnnotations()
 {
     if (paths.contains(page->label())) {
+        qDeleteAll(paths[page->label()]);
         paths[page->label()].clear();
         update();
         if (tool.tool == Magnifier)
@@ -71,10 +76,9 @@ void DrawSlide::resizeEvent(QResizeEvent*)
         shiftx = 0;
     }
     QPointF shift = QPointF(shiftx, shifty) - resolution/oldRes*QPointF(oldshiftx, oldshifty);
-    for (QMap<QString, QMap<ColoredDrawTool, QList<DrawPath>>>::iterator page_it = paths.begin(); page_it != paths.end(); page_it++)
-        for (QMap<ColoredDrawTool, QList<DrawPath>>::iterator tool_it = page_it->begin(); tool_it != page_it->end(); tool_it++)
-            for (QList<DrawPath>::iterator path_it = tool_it->begin(); path_it != tool_it->end(); path_it++)
-                path_it->transform(shift, resolution/oldRes);
+    for (QMap<QString, QList<DrawPath*>>::iterator page_it = paths.begin(); page_it != paths.end(); page_it++)
+        for (QList<DrawPath*>::iterator path_it = page_it->begin(); path_it != page_it->end(); path_it++)
+            (*path_it)->transform(shift, resolution/oldRes);
 }
 
 void DrawSlide::setScaledPixmap(QPixmap const& pix)
@@ -120,13 +124,9 @@ void DrawSlide::setSize(const DrawTool tool, const int size)
         return;
     }
     if (tool == Eraser) {
-        for (QMap<QString, QMap<ColoredDrawTool, QList<DrawPath>>>::iterator page_it = paths.begin(); page_it != paths.end(); page_it++) {
-            for (QMap<ColoredDrawTool, QList<DrawPath>>::iterator tool_it = page_it->begin(); tool_it != page_it->end(); tool_it++) {
-                for (QList<DrawPath>::iterator path_it=tool_it->begin(); path_it!=tool_it->end(); path_it++) {
-                    path_it->setEraserSize(size);
-                }
-            }
-        }
+        for (QMap<QString, QList<DrawPath*>>::iterator page_it = paths.begin(); page_it != paths.end(); page_it++)
+            for (QList<DrawPath*>::iterator path_it=page_it->begin(); path_it!=page_it->end(); path_it++)
+                (*path_it)->setEraserSize(size);
     }
     sizes[tool] = size;
 }
@@ -134,20 +134,17 @@ void DrawSlide::setSize(const DrawTool tool, const int size)
 void DrawSlide::drawPaths(QPainter &painter, QString const label)
 {
     if (paths.contains(label)) {
-        // TODO: put this in an own function
-        for (QMap<ColoredDrawTool, QList<DrawPath>>::const_iterator map_it=paths[label].cbegin(); map_it!=paths[label].cend(); map_it++) {
-            switch (map_it.key().tool) {
+        for (QList<DrawPath*>::const_iterator path_it=paths[label].cbegin(); path_it!=paths[label].cend(); path_it++) {
+            switch ((*path_it)->getTool()) {
             case Pen:
                 painter.setCompositionMode(QPainter::CompositionMode_SourceOver);
-                painter.setPen(QPen(map_it.key().color, sizes[Pen]));
-                for (QList<DrawPath>::const_iterator path_it=map_it->cbegin(); path_it!=map_it->cend(); path_it++)
-                    painter.drawPolyline(path_it->data(), path_it->number());
+                painter.setPen(QPen((*path_it)->getColor(), sizes[Pen]));
+                painter.drawPolyline((*path_it)->data(), (*path_it)->number());
                 break;
             case Highlighter:
                 painter.setCompositionMode(QPainter::CompositionMode_Darken);
-                painter.setPen(QPen(map_it.key().color, sizes[Highlighter], Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin));
-                for (QList<DrawPath>::const_iterator path_it=map_it->cbegin(); path_it!=map_it->cend(); path_it++)
-                    painter.drawPolyline(path_it->data(), path_it->number());
+                painter.setPen(QPen((*path_it)->getColor(), sizes[Highlighter], Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin));
+                painter.drawPolyline((*path_it)->data(), (*path_it)->number());
                 break;
             default:
                 break;
@@ -168,6 +165,7 @@ void DrawSlide::drawAnnotations(QPainter &painter)
         break;
     case Torch:
         if (!pointerPosition.isNull()) {
+            painter.setCompositionMode(QPainter::CompositionMode_SourceOver);
             QPainterPath rectpath;
             rectpath.addRect(shiftx, shifty, pixmap.width(), pixmap.height());
             QPainterPath circpath;
@@ -206,9 +204,9 @@ void DrawSlide::mousePressEvent(QMouseEvent *event)
             return;
         case Pen:
         case Highlighter:
-            if (!paths.contains(page->label()) || !paths[page->label()].contains(tool))
-                paths[page->label()][tool] = QList<DrawPath>();
-            paths[page->label()][tool].append(DrawPath(event->localPos(), sizes[Eraser]));
+            if (!paths.contains(page->label()))
+                paths[page->label()] = QList<DrawPath*>();
+            paths[page->label()].append(new DrawPath(tool, event->localPos(), sizes[Eraser]));
             break;
         case Eraser:
             erase(event->localPos());
@@ -258,6 +256,10 @@ void DrawSlide::mouseReleaseEvent(QMouseEvent *event)
         }
         update();
         break;
+    case Pen:
+    case Highlighter:
+        paths[page->label()].last()->updateHash();
+        break;
     default:
         break;
     }
@@ -287,10 +289,10 @@ void DrawSlide::mouseMoveEvent(QMouseEvent *event)
             break;
         case Pen:
         case Highlighter:
-            if (paths.contains(page->label()) && paths[page->label()].contains(tool) && paths[page->label()][tool].length()>0) {
-                paths[page->label()][tool].last().append(event->localPos());
+            if (paths.contains(page->label()) && paths[page->label()].length()>0) {
+                paths[page->label()].last()->append(event->localPos());
                 update();
-                emit pathsChanged(page->label(), tool, paths[page->label()][tool], shiftx, shifty, resolution);
+                emit pathsChanged(page->label(), paths[page->label()], shiftx, shifty, resolution);
             }
             break;
         case Eraser:
@@ -319,29 +321,40 @@ void DrawSlide::erase(const QPointF &point)
 {
     if (!paths.contains(page->label()))
         return;
-    for (QMap<ColoredDrawTool, QList<DrawPath>>::iterator tool_it = paths[page->label()].begin(); tool_it != paths[page->label()].end(); tool_it++) {
-        for (int i=0, length=tool_it->length(); i<length; i++) {
-            QVector<int> splits = (*tool_it)[i].intersects(point);
-            if (splits.isEmpty())
-                continue;
-            if (splits.first() > 1)
-                tool_it->append((*tool_it)[i].split(0, splits.first()-1));
-            for (int s=0; s<splits.size()-1; s++) {
-                if (splits[s+1]-splits[s] > 3) {
-                    tool_it->append((*tool_it)[i].split(splits[s]+1, splits[s+1]-1));
-                    s++;
-                }
+    QList<DrawPath*>& path_list = paths[page->label()];
+    int const oldsize=path_list.size();
+    bool changed = false;
+    for (int i=0; i<oldsize; i++) {
+        QVector<int> splits = path_list[i]->intersects(point);
+        if (splits.isEmpty())
+            continue;
+        changed = true;
+        if (splits.first() > 1)
+            path_list.append(path_list[i]->split(0, splits.first()-1));
+        for (int s=0; s<splits.size()-1; s++) {
+            if (splits[s+1]-splits[s] > 3) {
+                path_list.append(path_list[i]->split(splits[s]+1, splits[s+1]-1));
+                s++;
             }
-            if (splits.last() < (*tool_it)[i].number()-2)
-                tool_it->append((*tool_it)[i].split(splits.last()+1, (*tool_it)[i].number()));
-            (*tool_it)[i].clear();
         }
-        for (int i=0; i<tool_it->length(); i++) {
-            if ((*tool_it)[i].isEmpty())
-                tool_it->removeAt(i);
-        }
-        emit pathsChanged(page->label(), tool_it.key(), tool_it.value(), shiftx, shifty, resolution);
+        if (splits.last() < path_list[i]->number()-2)
+            path_list.append(path_list[i]->split(splits.last()+1, path_list[i]->number()));
+        delete path_list[i];
+        path_list[i] = nullptr;
     }
+    for (int i=0; i<oldsize && i<path_list.size();) {
+        if (path_list[i] == nullptr)
+            path_list.removeAt(i);
+        //else if (path_list[i]->isEmpty()) { // this should never happen...
+        //    qDebug() << "this should no happen.";
+        //    delete path_list[i];
+        //    path_list.removeAt(i);
+        //}
+        else
+            i++;
+    }
+    if (changed)
+        emit pathsChanged(page->label(), path_list, shiftx, shifty, resolution);
 }
 
 void DrawSlide::clearCache()
@@ -350,15 +363,29 @@ void DrawSlide::clearCache()
     enlargedPage = QPixmap();
 }
 
-void DrawSlide::setPaths(QString const pagelabel, ColoredDrawTool const tool, QList<DrawPath> const& list, int const refshiftx, int const refshifty, double const refresolution)
+void DrawSlide::setPaths(QString const pagelabel, QList<DrawPath*> const& list, int const refshiftx, int const refshifty, double const refresolution)
 {
-    if (paths.contains(pagelabel) && paths[pagelabel].contains(tool))
-        paths[pagelabel][tool].clear();
-    else
-        paths[pagelabel][tool] = QList<DrawPath>();
     QPointF shift = QPointF(shiftx, shifty) - resolution/refresolution*QPointF(refshiftx, refshifty);
-    for (QList<DrawPath>::const_iterator it = list.cbegin(); it!=list.cend(); it++)
-        paths[pagelabel][tool].append(DrawPath(*it, shift, resolution/refresolution));
+    if (!paths.contains(pagelabel)) {
+        paths[pagelabel] = QList<DrawPath*>();
+        for (QList<DrawPath*>::const_iterator it = list.cbegin(); it!=list.cend(); it++)
+            paths[pagelabel].append(new DrawPath(**it, shift, resolution/refresolution));
+    }
+    else {
+        QMap<unsigned int, int> oldHashs;
+        for (int i=0; i<paths[pagelabel].length(); i++)
+            oldHashs[paths[pagelabel][i]->getHash()] = i;
+        for (QList<DrawPath*>::const_iterator it = list.cbegin(); it!=list.cend(); it++) {
+            if (oldHashs.remove((*it)->getHash()) == 0)
+                paths[pagelabel].append(new DrawPath(**it, shift, resolution/refresolution));
+        }
+        QList<int> remove = oldHashs.values();
+        std::sort(remove.begin(), remove.end());
+        for (QList<int>::const_iterator it=remove.cend()-1; it!=remove.cbegin()-1; it--) {
+            delete paths[pagelabel][*it];
+            paths[pagelabel].removeAt(*it);
+        }
+    }
     update();
 }
 
@@ -393,24 +420,24 @@ void DrawSlide::updateEnlargedPage()
     painter.drawImage(2*shiftx, 2*shifty, page->renderToImage(144*resolution, 144*resolution));
     painter.setRenderHint(QPainter::Antialiasing);
     if (paths.contains(page->label())) {
-        for (QMap<ColoredDrawTool, QList<DrawPath>>::const_iterator map_it=paths[page->label()].cbegin(); map_it!=paths[page->label()].cend(); map_it++) {
-            switch (map_it.key().tool) {
+        for (QList<DrawPath*>::const_iterator path_it=paths[page->label()].cbegin(); path_it!=paths[page->label()].cend(); path_it++) {
+            switch ((*path_it)->getTool()) {
             case Pen:
+            {
                 painter.setCompositionMode(QPainter::CompositionMode_SourceOver);
-                painter.setPen(QPen(map_it.key().color, 2*sizes[Pen]));
-                for (QList<DrawPath>::const_iterator path_it=map_it->cbegin(); path_it!=map_it->cend(); path_it++) {
-                    DrawPath tmp(*path_it, QPointF(0,0), 2.);
-                    painter.drawPolyline(tmp.data(), tmp.number());
-                }
+                painter.setPen(QPen((*path_it)->getColor(), 2*sizes[Pen]));
+                DrawPath tmp(**path_it, QPointF(0,0), 2.);
+                painter.drawPolyline(tmp.data(), tmp.number());
                 break;
+            }
             case Highlighter:
+            {
                 painter.setCompositionMode(QPainter::CompositionMode_Darken);
-                painter.setPen(QPen(map_it.key().color, 2*sizes[Highlighter]));
-                for (QList<DrawPath>::const_iterator path_it=map_it->cbegin(); path_it!=map_it->cend(); path_it++) {
-                    DrawPath tmp(*path_it, QPointF(0,0), 2.);
-                    painter.drawPolyline(tmp.data(), tmp.number());
-                }
+                painter.setPen(QPen((*path_it)->getColor(), 2*sizes[Highlighter]));
+                DrawPath tmp(**path_it, QPointF(0,0), 2.);
+                painter.drawPolyline(tmp.data(), tmp.number());
                 break;
+            }
             default:
                 break;
             }

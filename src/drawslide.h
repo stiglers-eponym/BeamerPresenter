@@ -30,7 +30,7 @@ class DrawSlide : public MediaSlide
 public:
     explicit DrawSlide(QWidget* parent=nullptr) : MediaSlide(parent) {}
     explicit DrawSlide(PdfDoc const*const document, int const pageNumber, QWidget* parent=nullptr) : MediaSlide(document, pageNumber, parent) {}
-    ~DrawSlide() override {clearAll();}
+    ~DrawSlide() override {clearAllAnnotations(); clearAll();}
     void clearPageAnnotations();
     void clearAllAnnotations();
     virtual void clearCache() override;
@@ -38,7 +38,7 @@ public:
     void setSize(DrawTool const tool, int const size);
     void setScaledPixmap(QPixmap const& pix);
 
-    QMap<QString, QMap<ColoredDrawTool, QList<DrawPath>>> const& getPaths() const {return paths;}
+    QMap<QString, QList<DrawPath*>> const& getPaths() const {return paths;}
     int const& getXshift() const {return shiftx;}
     int const& getYshift() const {return shifty;}
     double const& getResolution() const {return resolution;}
@@ -55,14 +55,14 @@ protected:
     virtual void resizeEvent(QResizeEvent*) override;
     void erase(QPointF const& point);
     ColoredDrawTool tool = {None, Qt::black};
-    QMap<QString, QMap<ColoredDrawTool, QList<DrawPath>>> paths;
+    QMap<QString, QList<DrawPath*>> paths;
     QPointF pointerPosition = QPointF();
     QPixmap enlargedPage;
     QMap<DrawTool, int> sizes = {{Magnifier,120}, {Torch,80}, {Pointer,10}, {Highlighter,30}, {Pen,3}, {Eraser,10}};
     bool pointer_visible = true;
 
 public slots:
-    void setPaths(QString const pagelabel, ColoredDrawTool const tool, QList<DrawPath> const& list, int const refshiftx, int const refshifty, double const refresolution);
+    void setPaths(QString const pagelabel, QList<DrawPath*> const& list, int const refshiftx, int const refshifty, double const refresolution);
     void setPointerPosition(QPointF const point, int const refshiftx, int const refshifty, double const refresolution);
     void setTool(ColoredDrawTool const newtool);
     void setTool(DrawTool const newtool, QColor const color=QColor()) {setTool({newtool, color});}
@@ -70,7 +70,7 @@ public slots:
 
 signals:
     void pointerPositionChanged(QPointF const point, int const refshiftx, int const refshifty, double const refresolution);
-    void pathsChanged(QString const pagelabel, ColoredDrawTool const tool, QList<DrawPath> const& list, int const refshiftx, int const refshifty, double const refresolution);
+    void pathsChanged(QString const pagelabel, QList<DrawPath*> const& list, int const refshiftx, int const refshifty, double const refresolution);
     void sendToolChanged(ColoredDrawTool const tool);
     void sendUpdateEnlargedPage();
     void sendRelax();

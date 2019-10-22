@@ -456,11 +456,9 @@ void ControlScreen::renderPage(int const pageNumber, bool const full)
         // It is possible that presentationScreen->slide contains drawings which have not been copied to drawSlide yet.
         QString label = presentation->getLabel(currentPageNumber);
         if (!drawSlide->getPaths().contains(label)) {
-            QMap<QString, QMap<ColoredDrawTool, QList<DrawPath>>> const paths = presentationScreen->slide->getPaths();
             int const sx=presentationScreen->slide->getXshift(), sy=presentationScreen->slide->getYshift();
             double res = presentationScreen->slide->getResolution();
-            for (QMap<ColoredDrawTool, QList<DrawPath>>::const_iterator tool_it = paths[label].cbegin(); tool_it != paths[label].cend(); tool_it++)
-                drawSlide->setPaths(label, tool_it.key(), *tool_it, sx, sy, res);
+            drawSlide->setPaths(label, presentationScreen->slide->getPaths()[label], sx, sy, res);
         }
         // Update current slide
         drawSlide->renderPage(currentPageNumber, false);
@@ -1406,9 +1404,7 @@ void ControlScreen::showDrawSlide()
     drawSlide->setSize(Torch, static_cast<int>(scale*presentationScreen->slide->getSize(Torch)));
     drawSlide->setSize(Magnifier, static_cast<int>(scale*presentationScreen->slide->getSize(Magnifier)));
     QString label = presentationScreen->slide->getPage()->label();
-    QMap<QString, QMap<ColoredDrawTool, QList<DrawPath>>> const paths = presentationScreen->slide->getPaths();
-    for (QMap<ColoredDrawTool, QList<DrawPath>>::const_iterator tool_it = paths[label].cbegin(); tool_it != paths[label].cend(); tool_it++)
-        drawSlide->setPaths(label, tool_it.key(), *tool_it, sx, sy, res);
+    drawSlide->setPaths(label, presentationScreen->slide->getPaths()[label], sx, sy, res);
     drawSlide->update();
     renderPage(currentPageNumber);
     drawSlide->setAutostartDelay(presentationScreen->slide->getAutostartDelay());
