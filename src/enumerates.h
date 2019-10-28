@@ -19,7 +19,7 @@
 #ifndef ENUMERATES_H
 #define ENUMERATES_H
 
-#include<QColor>
+#include <QColor>
 
 enum PagePart {
     LeftHalf = 1,
@@ -28,6 +28,8 @@ enum PagePart {
 };
 
 enum KeyAction {
+    NoAction,
+
     Previous,
     Next,
     PreviousNotes,
@@ -69,6 +71,9 @@ enum KeyAction {
     DrawTorch,
     DrawMagnifier,
     DrawMode,
+    ToggleDrawMode,
+    DrawPen,
+    DrawEraser,
     DrawHighlighter,
     DrawPointer,
 };
@@ -82,6 +87,7 @@ enum DrawTool {
     Eraser,
     Magnifier,
 };
+
 struct ColoredDrawTool {
     DrawTool tool;
     QColor color;

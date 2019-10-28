@@ -351,7 +351,7 @@ with the option
 .BR \-p ", or " \-\-page-part
 .
 .SS Draw in presentation
-You can draw in the presentation. You can access pens with customized colors and other tools by using customized key bindings or buttons on the control screen. Besides simple drawing with pens and highlighters you can emphasize parts of a slide using a torch, a magnifier and a pointer. In drawing mode all tools are synchronized between control screen and presentation screen.
+You can draw in the presentation. You can access pens with customized colors and other tools by using key bindings or buttons on the control screen. Besides simple drawing with pens and highlighters you can emphasize parts of a slide using a torch, a magnifier and a pointer. In drawing mode all tools are synchronized between control screen and presentation screen.
 .
 .
 .SH CONFIG
@@ -543,6 +543,17 @@ text color of the control screen
 The timer can change its color depending on the time relative to your target presentation time. In this form you can specify colors for specific times relative to the timeout. The color of the timer will be changed linearly between two such time points.
 .RI "Here " time " is the time interval (timeout - now) in seconds, e.g. " time=-60 " is one minute before you reach the timeout.
 .
+.
+.SS Buttons
+.
+On the control screen there are some buttons, which can be used to select different drawing tools, to switch between drawing and notes mode, and for other useful actions.
+The buttons can be customized using the following configuration:
+.
+.TP
+.BI "tools/" xy = action
+maps an action (using the same syntax as actions assigned to key bindings) to a button. Here x and y are integers between 0 and 9 (or between 0 and f in hexadecimal format) indicating row and column of the button.
+.
+.
 .SS Default values for command line arguments
 .
 The following default values for command line arguments can be set in the config file.
@@ -669,6 +680,7 @@ overwrite default value for the command line argument
 .BR pointer-size =10
 overwrite default value for the command line argument
 .B \-\-pointer-size .
+.
 .
 .SS Local configuration file
 .

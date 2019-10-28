@@ -26,7 +26,7 @@
 #include <QMimeDatabase>
 #include "controlscreen.h"
 
-const QMap<QString, int> keyActionMap {
+static const QMap<QString, int> keyActionMap {
     {"previous", KeyAction::Previous},
     {"next", KeyAction::Next},
     {"previous notes", KeyAction::PreviousNotes},
@@ -75,15 +75,29 @@ const QMap<QString, int> keyActionMap {
 
     {"clear annotations", KeyAction::ClearAnnotations},
     {"hand tool", KeyAction::DrawNone},
+    {"none", KeyAction::DrawNone},
     {"pointer", KeyAction::DrawPointer},
+    {"pen", KeyAction::DrawPen},
     {"highlighter", KeyAction::DrawHighlighter},
     {"torch", KeyAction::DrawTorch},
     {"magnifier", KeyAction::DrawMagnifier},
     {"draw mode", KeyAction::DrawMode},
+    {"eraser", KeyAction::DrawEraser},
+    {"toggle draw mode", KeyAction::ToggleDrawMode},
     {"hide draw slide", KeyAction::HideDrawSlide},
 };
 
-const QMap<int, QList<int>> defaultKeyMap = {
+static const QMap<QString, int> toolMap {
+    {"pen", DrawTool::Pen},
+    {"highlighter", DrawTool::Highlighter},
+    {"none", DrawTool::None},
+    {"pointer", DrawTool::Pointer},
+    {"eraser", DrawTool::Eraser},
+    {"torch", DrawTool::Torch},
+    {"magnifier", DrawTool::Magnifier},
+};
+
+static const QMap<int, QList<int>> defaultKeyMap = {
     {Qt::Key_PageUp, {KeyAction::Previous}},
     {Qt::Key_PageDown, {KeyAction::Next}},
     {Qt::Key_Left, {KeyAction::Previous}},
@@ -112,6 +126,31 @@ const QMap<int, QList<int>> defaultKeyMap = {
     {Qt::Key_F, {KeyAction::FullScreen}},
     {Qt::Key_U, {KeyAction::Reload}},
     {Qt::Key_Q+Qt::CTRL, {KeyAction::Quit}}
+};
+
+static const QMap<unsigned char, QList<KeyAction>> defaultActionMap {
+    {0, {KeyAction::ToggleDrawMode}},
+    {1, {KeyAction::DrawEraser}},
+    {2, {KeyAction::DrawPen}},
+    {3, {KeyAction::DrawPen}},
+    {4, {KeyAction::DrawHighlighter}},
+    {16, {KeyAction::PlayMultimedia}},
+    {17, {KeyAction::ClearAnnotations}},
+    {18, {KeyAction::DrawPointer}},
+    {19, {KeyAction::DrawTorch}},
+    {20, {KeyAction::DrawMagnifier}},
+};
+static const QMap<unsigned char, QColor> defaultColorMap {
+    {0, QColor()},
+    {1, QColor()},
+    {2, QColor("red")},
+    {3, QColor("green")},
+    {4, QColor(255,255,0,191)},
+    {16, QColor()},
+    {17, QColor()},
+    {18, QColor(255,0,0,191)},
+    {19, QColor()},
+    {20, QColor()},
 };
 
 double doubleFromConfig(QCommandLineParser const& parser, QVariantMap const& local, QSettings const& settings, QString name, double const def)
@@ -196,37 +235,23 @@ bool sendKeyMapItem(ControlScreen* w, int const key, QStringList const& actions)
 {
     bool failed = false;
     for (QStringList::const_iterator action_it=actions.begin(); action_it!=actions.cend(); action_it++) {
-        const int action = keyActionMap.value(action_it->toLower(), -1);
-        if (action!=-1)
+        int const action = keyActionMap.value(action_it->toLower(), -1);
+        if (action != -1)
             w->setKeyMapItem(key, action);
         else {
             QStringList split_action = action_it->toLower().split(' ');
-            if (split_action.size() != 2)
+            if (split_action.size() != 2) {
                 failed = true;
-            else if (split_action.first() == "pen") {
-                QColor color = QColor(split_action[1]);
-                w->setToolForKey(key, {Pen, color});
+                continue;
             }
-            else if (split_action.first() == "highlighter") {
-                QColor color = QColor(split_action[1]);
-                w->setToolForKey(key, {Highlighter, color});
-            }
-            else if (split_action.first() == "pointer") {
-                QColor color = QColor(split_action[1]);
-                w->setToolForKey(key, {Pointer, color});
-            }
-            else if (split_action.first() == "torch") {
-                QColor color = QColor(split_action[1]);
-                w->setToolForKey(key, {Torch, color});
-            }
-            else if (split_action.first() == "magnifier") {
-                QColor color = QColor(split_action[1]);
-                w->setToolForKey(key, {Magnifier, color});
-            }
-            else {
+            const int action = keyActionMap.value(split_action.first(), -1);
+            if (action == -1) {
                 qCritical() << "Could not understand action" << *action_it;
                 failed = true;
+                continue;
             }
+            QColor color = QColor(split_action[1]);
+            w->setToolForKey(key, {static_cast<DrawTool>(action), color});
         }
     }
     return failed;
@@ -471,7 +496,8 @@ int main(int argc, char *argv[])
 
     // Handle array / map arguments
 
-    if (local.contains("timer")) { // Set colors for presentation timer
+    // Set colors for presentation timer
+    if (local.contains("timer")) {
         QVariantMap variantMap = local["timer"].value<QVariantMap>();
         QList<QString> keys = variantMap.keys();
         if (keys.isEmpty())
@@ -497,7 +523,7 @@ int main(int argc, char *argv[])
             w->sendTimerColors(map.keys(), map.values());
         }
     }
-    else { // Set colors for presentation timer
+    else {
         settings.beginGroup("timer");
         // All elements in the group timer should be points (time, color).
         QStringList keys = settings.childKeys();
@@ -526,8 +552,8 @@ int main(int argc, char *argv[])
         settings.endGroup();
     }
 
-
-    if (local.contains("keys")) { // Handle key bindings
+    // Handle key bindings
+    if (local.contains("keys")) {
         QVariantMap variantMap = local["keys"].value<QVariantMap>();
         QStringList keys = variantMap.keys();
         if (keys.isEmpty())
@@ -537,7 +563,7 @@ int main(int argc, char *argv[])
                 QKeySequence keySequence = QKeySequence(*key_it, QKeySequence::NativeText);
                 const int key = keySequence[0]+keySequence[1]+keySequence[2]+keySequence[3];
                 if (key == 0)
-                    qCritical() << "Could not understand key" << *key_it;
+                    qWarning() << "Could not understand key" << *key_it;
                 else {
                     QStringList actions = variantMap[*key_it].toStringList();
                     if (sendKeyMapItem(w, key, actions))
@@ -546,7 +572,7 @@ int main(int argc, char *argv[])
             }
         }
     }
-    else { // Handle key bindings
+    else {
         settings.beginGroup("keys");
         QStringList keys = settings.childKeys();
         if (keys.isEmpty())
@@ -556,7 +582,7 @@ int main(int argc, char *argv[])
                 QKeySequence keySequence = QKeySequence(*key_it, QKeySequence::NativeText);
                 const int key = keySequence[0]+keySequence[1]+keySequence[2]+keySequence[3];
                 if (key == 0)
-                    qCritical() << "Could not understand key" << *key_it;
+                    qWarning() << "Could not understand key" << *key_it;
                 else {
                     QStringList actions = settings.value(*key_it).toStringList();
                     if (sendKeyMapItem(w, key, actions))
@@ -565,6 +591,104 @@ int main(int argc, char *argv[])
             }
         }
         settings.endGroup();
+    }
+
+    // TODO: make this more compact:
+    if (local.contains("tools")) {
+        QVariantMap variantMap = local["tools"].value<QVariantMap>();
+        QStringList stringkeys = variantMap.keys();
+        if (stringkeys.isEmpty())
+            w->getToolSelector()->setTools(2, 5, defaultActionMap, defaultColorMap);
+        else {
+            QMap<unsigned char, QList<KeyAction>> actionMap;
+            QMap<unsigned char, QColor> colorMap;
+            QList<unsigned char> keys;
+            unsigned char nrows = 0;
+            unsigned char ncols = 0;
+            bool ok;
+            for (QStringList::const_iterator key_it=stringkeys.cbegin(); key_it!=stringkeys.cend(); key_it++) {
+                keys.append(static_cast<unsigned char>(key_it->toUShort(&ok, 16)));
+                if (!ok) {
+                    keys.pop_back();
+                    qWarning() << "Could not understand index" << *key_it << "which should be an integer.";
+                    continue;
+                }
+                if (16*nrows <= keys.last())
+                    nrows = static_cast<unsigned char>(keys.last()/16) + 1;
+                if (ncols <= keys.last()%16)
+                    ncols = keys.last()%16 + 1;
+                QStringList actions = variantMap[*key_it].toStringList();
+                actionMap[keys.last()] = QList<KeyAction>();
+                for (QStringList::const_iterator action_it=actions.begin(); action_it!=actions.cend(); action_it++) {
+                    const int action = keyActionMap.value(action_it->toLower(), -1);
+                    if (action != -1)
+                        actionMap[keys.last()].append(static_cast<KeyAction>(action));
+                    else {
+                        QStringList split_action = action_it->toLower().split(' ');
+                        if (split_action.size() != 2) {
+                            qWarning() << "Could not understand action" << *action_it;
+                            continue;
+                        }
+                        int const action = keyActionMap.value(split_action.first(), -1);
+                        if (action == -1)
+                            qWarning() << "Could not understand action" << *action_it;
+                        else {
+                            actionMap[keys.last()].append(static_cast<KeyAction>(action));
+                            colorMap[keys.last()] = QColor(split_action[1]);
+                        }
+                    }
+                }
+            }
+            w->getToolSelector()->setTools(nrows, ncols, actionMap, colorMap);
+        }
+    }
+    else {
+        settings.beginGroup("tools");
+        QStringList stringkeys = settings.childKeys();
+        if (stringkeys.isEmpty())
+            w->getToolSelector()->setTools(2, 5, defaultActionMap, defaultColorMap);
+        else {
+            QMap<unsigned char, QList<KeyAction>> actionMap;
+            QMap<unsigned char, QColor> colorMap;
+            QList<unsigned char> keys;
+            unsigned char nrows = 0;
+            unsigned char ncols = 0;
+            bool ok;
+            for (QStringList::const_iterator key_it=stringkeys.cbegin(); key_it!=stringkeys.cend(); key_it++) {
+                keys.append(static_cast<unsigned char>(key_it->toUShort(&ok, 16)));
+                if (!ok) {
+                    keys.pop_back();
+                    qWarning() << "Could not understand index" << *key_it << "which should be an integer.";
+                    continue;
+                }
+                if (16*nrows <= keys.last())
+                    nrows = static_cast<unsigned char>(keys.last()/16) + 1;
+                if (ncols <= keys.last()%16)
+                    ncols = keys.last()%16 + 1;
+                QStringList actions = settings.value(*key_it).toStringList();
+                actionMap[keys.last()] = QList<KeyAction>();
+                for (QStringList::const_iterator action_it=actions.begin(); action_it!=actions.cend(); action_it++) {
+                    const int action = keyActionMap.value(action_it->toLower(), -1);
+                    if (action != -1)
+                        actionMap[keys.last()].append(static_cast<KeyAction>(action));
+                    else {
+                        QStringList split_action = action_it->toLower().split(' ');
+                        if (split_action.size() != 2) {
+                            qWarning() << "Could not understand action" << *action_it;
+                            continue;
+                        }
+                        int const action = keyActionMap.value(split_action.first(), -1);
+                        if (action == -1)
+                            qWarning() << "Could not understand action" << *action_it;
+                        else {
+                            actionMap[keys.last()].append(static_cast<KeyAction>(action));
+                            colorMap[keys.last()] = QColor(split_action[1]);
+                        }
+                    }
+                }
+            }
+            w->getToolSelector()->setTools(nrows, ncols, actionMap, colorMap);
+        }
     }
 
     if (local.contains("page times")) { // set times per slide for timer color change

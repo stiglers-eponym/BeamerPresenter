@@ -68,6 +68,7 @@ public:
     void setTransitionBlinds(int const n) {presentationScreen->slide->setBlindsNumber(n);}
     void showDrawSlide();
     void hideDrawSlide();
+    ToolSelector* getToolSelector();
     // TODO: restructure cache management, return all images separately?
 
 protected:
@@ -130,6 +131,7 @@ signals:
 
 public slots:
     // TODO: Some of these functions are not used as slots. Tidy up!
+    void handleKeyAction(KeyAction const action);
     void receiveCache(QByteArray const* pres, QByteArray const* note, QByteArray const* small, int const index);
     void receiveDest(QString const& dest);
     void receivePreviousSlideEnd(); // go to last overlay of previous slide
