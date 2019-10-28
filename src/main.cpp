@@ -244,14 +244,14 @@ bool sendKeyMapItem(ControlScreen* w, int const key, QStringList const& actions)
                 failed = true;
                 continue;
             }
-            const int action = keyActionMap.value(split_action.first(), -1);
-            if (action == -1) {
+            const int tool = toolMap.value(split_action.first(), -1);
+            if (tool == -1) {
                 qCritical() << "Could not understand action" << *action_it;
                 failed = true;
                 continue;
             }
             QColor color = QColor(split_action[1]);
-            w->setToolForKey(key, {static_cast<DrawTool>(action), color});
+            w->setToolForKey(key, {static_cast<DrawTool>(tool), color});
         }
     }
     return failed;
