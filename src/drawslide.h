@@ -35,7 +35,7 @@ public:
     void clearAllAnnotations();
     virtual void clearCache() override;
     void updateEnlargedPage();
-    void setSize(DrawTool const tool, int const size);
+    void setSize(DrawTool const tool, int size);
     void setScaledPixmap(QPixmap const& pix);
 
     QMap<QString, QList<DrawPath*>> const& getPaths() const {return paths;}

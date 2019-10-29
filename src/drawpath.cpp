@@ -145,5 +145,5 @@ void DrawPath::updateHash()
     hash ^= static_cast<unsigned int>(tool.color.alpha()) + (hash << 6) + (hash >> 2);
     for (auto& p : path)
         hash ^= static_cast<unsigned int>(std::hash<double>{}(p.x() + 1e5*p.y())) + (hash << 6) + (hash >> 2);
-    qDebug() << "updated hash:" << hash;
+    //qDebug() << "updated hash:" << hash;
 }

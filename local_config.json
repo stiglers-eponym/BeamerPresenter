@@ -85,5 +85,18 @@
 		"u": "reload",
 		"q": "quit",
 		"space": "update"
+	},
+
+	"tools": {
+		"00": "pen red",
+		"01": "pen green",
+		"02": "pen blue",
+		"03": "pen black",
+		"04": "pointer",
+		"10": "toggle draw mode",
+		"11": "eraser",
+		"12": "clear annotations",
+		"13": "magnifier",
+		"14": "torch"
 	}
 }

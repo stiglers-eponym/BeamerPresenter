@@ -1417,8 +1417,8 @@ void ControlScreen::showDrawSlide()
     int const sx=presentationScreen->slide->getXshift(), sy=presentationScreen->slide->getYshift();
     double res = presentationScreen->slide->getResolution();
     double scale = drawSlide->getResolution() / res;
-    drawSlide->setSize(Pen, presentationScreen->slide->getSize(Pen));
-    drawSlide->setSize(Pointer, presentationScreen->slide->getSize(Pointer));
+    drawSlide->setSize(Pen, static_cast<int>(scale*presentationScreen->slide->getSize(Pen)+0.5));
+    drawSlide->setSize(Pointer, static_cast<int>(scale*presentationScreen->slide->getSize(Pointer)+0.5));
     drawSlide->setSize(Highlighter, static_cast<int>(scale*presentationScreen->slide->getSize(Highlighter)+0.5));
     drawSlide->setSize(Torch, static_cast<int>(scale*presentationScreen->slide->getSize(Torch)));
     drawSlide->setSize(Magnifier, static_cast<int>(scale*presentationScreen->slide->getSize(Magnifier)));

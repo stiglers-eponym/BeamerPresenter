@@ -117,12 +117,10 @@ void DrawSlide::setTool(const ColoredDrawTool newtool)
     update();
 }
 
-void DrawSlide::setSize(const DrawTool tool, const int size)
+void DrawSlide::setSize(DrawTool const tool, int size)
 {
-    if (size < 1) {
-        qWarning() << "Setting a tool size < 1 does not make any sense. Ignoring this.";
-        return;
-    }
+    if (size < 1)
+        size = 1;
     if (tool == Eraser) {
         for (QMap<QString, QList<DrawPath*>>::iterator page_it = paths.begin(); page_it != paths.end(); page_it++)
             for (QList<DrawPath*>::iterator path_it=page_it->begin(); path_it!=page_it->end(); path_it++)
