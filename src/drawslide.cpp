@@ -328,19 +328,19 @@ void DrawSlide::erase(const QPointF &point)
             continue;
         changed = true;
         if (splits.first() > 1)
-            path_list.append(path_list[i]->split(0, splits.first()-1));
+            path_list.insert(i+1, path_list[i]->split(0, splits.first()-1));
         for (int s=0; s<splits.size()-1; s++) {
             if (splits[s+1]-splits[s] > 3) {
-                path_list.append(path_list[i]->split(splits[s]+1, splits[s+1]-1));
+                path_list.insert(i+1, path_list[i]->split(splits[s]+1, splits[s+1]-1));
                 s++;
             }
         }
         if (splits.last() < path_list[i]->number()-2)
-            path_list.append(path_list[i]->split(splits.last()+1, path_list[i]->number()));
+            path_list.insert(i+1, path_list[i]->split(splits.last()+1, path_list[i]->number()));
         delete path_list[i];
         path_list[i] = nullptr;
     }
-    for (int i=0; i<oldsize && i<path_list.size();) {
+    for (int i=0; i<path_list.size();) {
         if (path_list[i] == nullptr)
             path_list.removeAt(i);
         //else if (path_list[i]->isEmpty()) { // this should never happen...
