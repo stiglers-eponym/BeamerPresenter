@@ -97,6 +97,8 @@ public:
 
 public slots:
     void togglePointerVisibility();
+    void showPointer();
+    void hidePointer();
     void setAnimationDelay(int const delay_ms) {minimumAnimationDelay=delay_ms;}
 
 signals:

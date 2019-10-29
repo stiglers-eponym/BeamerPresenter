@@ -39,8 +39,9 @@ public:
 public slots:
     void setDeadline();
     void pauseTimer();
-    void resetTimer();
     void continueTimer();
+    void toggleTimer();
+    void resetTimer();
     void setPage(int const page);
     void receiveTimerString(QString const & timerString);
     void receiveColors(QList<int> times, QList<QColor> colors) {colorTimes=times; this->colors=colors;}

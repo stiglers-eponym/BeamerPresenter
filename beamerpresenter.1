@@ -136,6 +136,10 @@ Not available if embedded applications were disabled at compile time.
 If set to true, videos will be loaded to cache when reaching the slide before the one containing the video.
 .
 .TP
+.BI \-\-icon-path " path"
+Path used to search for icons, e.g. /usr/share/icons/default.
+.
+.TP
 .B \-\-force-show
 .RB "Show the notes window even if showing two windows might cause problems on your platform. If you are using a frame buffer QPA backend, this forces showing a single window (the presentation) although " BeamerPresenter " will probably freeze and your system might be blocked."
 .
@@ -200,18 +204,21 @@ Go to page (set focus to page number edit). This will make the control screen th
 .
 .TP
 .B m
-.B play multimedia
+.B play pause multimedia
 Play or pause all multimedia content on the current slide.
+.BR "Analogous options: " "play multimedia" , " pause multimedia" .
 .
 .TP
 .B o
 .B toggle cursor
 Toggle cursor visibility (only on the presentation screen).
+.BR "Analogous options: " "show cursor" , " hide cursor" .
 .
 .TP
 .B p
-.B pause timer
+.B toggle timer
 Pause or continue timer.
+.BR "Analogous options: " "continue timer" , " pause timer" .
 .
 .TP
 .B q
@@ -223,13 +230,15 @@ Pause or continue timer.
 .
 .TP
 .B s
-.B show overview
-Show overview of all slides on the control screen.
+.B toggle overview
+Show or hide overview of all slides on the control screen.
+.BR "Analogous options: " "show overview" , " hide overview" .
 .
 .TP
 .B t
-.B show TOC
-Show table of contents on the control screen.
+.B toggle TOC
+Show or hide table of contents on the control screen.
+.BR "Analogous options: " "show TOC" , " hide TOC" .
 .
 .TP
 .B u
@@ -614,6 +623,11 @@ overwrite default value for the command line argument
 .TP
 .BR force-touchpad =false
 treat all scrolling signals as touch pads.
+.
+.TP
+.B icon-path
+set default value for the command line argument
+.BR \-\-icon-path .
 .
 .TP
 .BR cache =-1

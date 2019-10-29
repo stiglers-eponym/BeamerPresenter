@@ -19,30 +19,83 @@
 #include "toolbutton.h"
 
 static const QMap<KeyAction, QString> actionNames = {
+    {Previous, "prev"},
+    {Next, "next"},
+    {PreviousNotes, "prev (notes)"},
+    {NextNotes, "next (notes)"},
+    {PreviousSkippingOverlays, "prev slide"},
+    {NextSkippingOverlays, "next slide"},
+    {PreviousNotesSkippingOverlays, "prev slide (notes)"},
+    {NextNotesSkippingOverlays, "ntext slide (notes)"},
+    {GoToPage, "goto"},
+    {LastPage, "last"},
+    {FirstPage, "first"},
+    {SyncFromControlScreen, "sync presentation"},
+    {SyncFromPresentationScreen, "sync control"},
+    {Update, "update"},
+    {UpdateCache, "update cache"},
+
+#ifdef EMBEDDED_APPLICATIONS_ENABLED
+    {StartEmbeddedCurrentSlide, "embedded"},
+    {StartAllEmbedded, "all embedded"},
+    {CloseEmbeddedCurrentSlide, "close embedded"},
+    {CloseAllEmbedded, "close all embedded"},
+#endif
+    {PlayMultimedia, "play media"},
+    {PauseMultimedia, "pause media"},
+    {PlayPauseMultimedia, "play/pause"},
+
+    {PlayPauseTimer, "timer"},
+    {ContinueTimer, "continue timer"},
+    {PauseTimer, "pause timer"},
+    {ResetTimer, "reset timer"},
+    {ToggleTOC, "TOC"},
+    {ShowTOC, "TOC"},
+    {HideTOC, "hide TOC"},
+    {ToggleOverview, "overview"},
+    {ShowOverview, "overview"},
+    {HideOverview, "hide overview"},
+    {HideDrawSlide, "end drawing"},
+    {ToggleCursor, "cursor"},
+    {ShowCursor, "show cursor"},
+    {HideCursor, "hide cursor"},
+    {FullScreen, "full screen"},
+    {Reload, "reload"},
+    {Quit, "quit"},
+
+    {ClearAnnotations, "clear"},
+    {DrawNone, "Hand"},
+    {ToggleDrawMode, "Draw"},
     {DrawMode, "Draw"},
     {ToggleDrawMode, "Draw"},
     {DrawEraser, "Eraser"},
     {DrawPen, "Pen"},
-    {DrawHighlighter, "Highlighter"},
+    {DrawHighlighter, "Highlight"},
     {DrawPointer, "Pointer"},
     {DrawMagnifier, "Magnifier"},
     {DrawTorch, "Torch"},
-    {DrawNone, "Hand"},
-    {ClearAnnotations, "Clear"},
-    {Previous, "prev"},
-    {Next, "next"},
-    {PlayMultimedia, "play"},
-    // TODO: more names, fancy unicode symbols, ...
 };
 
-// TODO: use this at other places or do something more efficient (less hard coded lists)
-static const QMap<KeyAction, DrawTool> actionToToolMap = {
-    {DrawEraser, Eraser},
-    {DrawPen, Pen},
-    {DrawHighlighter, Highlighter},
-    {DrawPointer, Pointer},
-    {DrawMagnifier, Magnifier},
-    {DrawTorch, Torch},
+static const QMap<KeyAction, QString> actionIconNames = {
+    {PlayMultimedia, "media-playback-start"},
+    {PauseMultimedia, "media-playback-stop"},
+    {PlayPauseMultimedia, "media-playback-pause"},
+    {Next, "go-next"},
+    {Previous, "go-previous"},
+    {FirstPage, "go-first"},
+    {LastPage, "go-last"},
+    {GoToPage, "go-jump"},
+    {PreviousSkippingOverlays, "go-up"},
+    {NextSkippingOverlays, "go-down"},
+    {Quit, "application-exit"},
+    {FullScreen, "view-fullscreen"},
+    {Update, "view-refresh"},
+    {ClearAnnotations, "edit-clear"},
+    {PauseTimer, "media-playback-pause"},
+#ifdef EMBEDDED_APPLICATIONS_ENABLED
+    {StartEmbeddedCurrentSlide, "application-x-executable"},
+#endif
+    // TODO: more and better icons
 };
 
 ToolButton::ToolButton(QList<KeyAction> const actions, QColor const color, QWidget* parent) : QPushButton(parent)
@@ -60,9 +113,18 @@ ToolButton::ToolButton(QList<KeyAction> const actions, QColor const color, QWidg
     else if (color.lightness() > color.alpha()/2)
         palette.setColor(QPalette::Button, color);
     setPalette(palette);
-    setText(actionNames.value(actions[0], QString::number(actions[0], 16)));
+    QString const iconname = actionIconNames.value(actions[0], "");
+    if (iconname.isEmpty())
+        setText(actionNames.value(actions[0], QString::number(actions[0], 16)));
+    else {
+        QIcon const icon = QIcon::fromTheme(iconname);
+        if (icon.isNull())
+            setText(actionNames.value(actions[0], QString::number(actions[0], 16)));
+        else
+            setIcon(icon);
+    }
     if (actions.size() == 1 && color != QColor(0,0,0,0))
-        tool = actionToToolMap.value(actions.first(), None);
+        tool = actionToToolMap.value(actions.first(), {None, color}).tool;
 }
 
 void ToolButton::onClicked()

@@ -200,7 +200,6 @@ ControlScreen::ControlScreen(QString presentationPath, QString notesPath, QWidge
     connect(this, &ControlScreen::pauseMultimedia,    ui->notes_widget, &MediaSlide::pauseAllMultimedia);
     connect(this, &ControlScreen::pauseMultimedia,    presentationScreen->slide, &MediaSlide::pauseAllMultimedia);
     connect(this, &ControlScreen::sendAnimationDelay, presentationScreen->slide, &PresentationSlide::setAnimationDelay);
-    connect(this, &ControlScreen::togglePointerVisibilitySignal, presentationScreen->slide, &PresentationSlide::togglePointerVisibility);
 
     // Signals emitted by the page number editor
     connect(ui->text_current_slide, &PageNumberEdit::sendPageNumberReturn, presentationScreen, &PresentationScreen::receiveNewPage);
@@ -926,6 +925,12 @@ void ControlScreen::handleKeyAction(KeyAction const action)
         ui->text_current_slide->setFocus();
         break;
     case KeyAction::PlayMultimedia:
+        emit playMultimedia();
+        break;
+    case KeyAction::PauseMultimedia:
+        emit pauseMultimedia();
+        break;
+    case KeyAction::PlayPauseMultimedia:
         {
             bool running = ui->notes_widget->hasActiveMultimediaContent() || presentationScreen->slide->hasActiveMultimediaContent();
             if (running)
@@ -934,8 +939,20 @@ void ControlScreen::handleKeyAction(KeyAction const action)
                 emit playMultimedia();
         }
         break;
+    case KeyAction::ShowCursor:
+        presentationScreen->slide->showPointer();
+        break;
+    case KeyAction::HideCursor:
+        presentationScreen->slide->hidePointer();
+        break;
     case KeyAction::ToggleCursor:
-        emit togglePointerVisibilitySignal();
+        presentationScreen->slide->togglePointerVisibility();
+        break;
+    case KeyAction::PlayPauseTimer:
+        ui->label_timer->toggleTimer();
+        break;
+    case KeyAction::ContinueTimer:
+        ui->label_timer->continueTimer();
         break;
     case KeyAction::PauseTimer:
         ui->label_timer->pauseTimer();
@@ -949,11 +966,23 @@ void ControlScreen::handleKeyAction(KeyAction const action)
     case KeyAction::HideTOC:
         hideToc();
         break;
+    case KeyAction::ToggleTOC:
+        if (tocBox->isVisible())
+            hideToc();
+        else
+            showToc();
+        break;
     case KeyAction::ShowOverview:
         showOverview();
         break;
     case KeyAction::HideOverview:
         hideOverview();
+        break;
+    case KeyAction::ToggleOverview:
+        if (overviewBox->isVisible())
+            hideOverview();
+        else
+            showOverview();
         break;
     case KeyAction::HideDrawSlide:
         hideDrawSlide();
@@ -995,35 +1024,10 @@ void ControlScreen::handleKeyAction(KeyAction const action)
         if (drawSlide != nullptr)
             drawSlide->setTool(None);
         break;
-    case KeyAction::DrawPointer:
-        presentationScreen->slide->setTool(Pointer, QColor(255,0,0,191));
-        if (drawSlide != nullptr)
-            drawSlide->setTool(Pointer, QColor(255,0,0,191));
-        break;
-    case KeyAction::DrawHighlighter:
-        presentationScreen->slide->setTool(Highlighter, QColor(255,255,0,191));
-        if (drawSlide != nullptr)
-            drawSlide->setTool(Highlighter, QColor(255,255,0,191));
-        break;
-    case KeyAction::DrawPen:
-        presentationScreen->slide->setTool(Pen, QColor());
-        if (drawSlide != nullptr)
-            drawSlide->setTool(Pen, QColor());
-        break;
     case KeyAction::DrawEraser:
         presentationScreen->slide->setTool(Eraser, QColor());
         if (drawSlide != nullptr)
             drawSlide->setTool(Eraser, QColor());
-        break;
-    case KeyAction::DrawTorch:
-        presentationScreen->slide->setTool(Torch, QColor(0,0,0,64));
-        if (drawSlide != nullptr)
-            drawSlide->setTool(Torch, QColor(0,0,0,64));
-        break;
-    case KeyAction::DrawMagnifier:
-        presentationScreen->slide->setTool(Magnifier, QColor(64,64,64,64));
-        if (drawSlide != nullptr)
-            drawSlide->setTool(Magnifier, QColor(64,64,64,64));
         break;
     case KeyAction::DrawMode:
         showDrawSlide();
@@ -1035,6 +1039,14 @@ void ControlScreen::handleKeyAction(KeyAction const action)
             hideDrawSlide();
         break;
     case NoAction:
+        break;
+    default:
+        ColoredDrawTool const tool = actionToToolMap.value(action, {None, QColor()});
+        if (tool.tool != None) {
+            presentationScreen->slide->setTool(tool);
+            if (drawSlide != nullptr)
+                drawSlide->setTool(tool);
+        }
         break;
     }
 }

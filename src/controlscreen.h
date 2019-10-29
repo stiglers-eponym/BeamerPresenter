@@ -116,7 +116,6 @@ private slots:
     void updateCacheStep();
 
 signals:
-    void togglePointerVisibilitySignal();
     void sendNewPageNumber(int const pageNumber, bool const setDuration);
     void sendTimerString(QString const timerString);
     void sendTimerColors(QList<int> times, QList<QColor> colors);

@@ -96,20 +96,20 @@ void Timer::setDeadline()
     updateColor();
 }
 
+void Timer::toggleTimer()
+{
+    if (running)
+        pauseTimer();
+    else
+        continueTimer();
+}
+
 void Timer::pauseTimer()
 {
-    if (running) {
-        timer->stop();
-        running = false;
-        timerPalette.setColor(QPalette::WindowText, Qt::gray);
-        setPalette(timerPalette);
-    }
-    else {
-        timer->start(1000);
-        running = true;
-        timerPalette.setColor(QPalette::WindowText, Qt::black);
-        setPalette(timerPalette);
-    }
+    timer->stop();
+    running = false;
+    timerPalette.setColor(QPalette::WindowText, Qt::gray);
+    setPalette(timerPalette);
 }
 
 void Timer::continueTimer()

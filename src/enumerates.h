@@ -20,6 +20,7 @@
 #define ENUMERATES_H
 
 #include <QColor>
+#include <QMap>
 
 enum PagePart {
     LeftHalf = 1,
@@ -44,24 +45,32 @@ enum KeyAction {
     SyncFromControlScreen,
     SyncFromPresentationScreen,
     Update,
-
     UpdateCache,
+
 #ifdef EMBEDDED_APPLICATIONS_ENABLED
     StartEmbeddedCurrentSlide,
     StartAllEmbedded,
     CloseEmbeddedCurrentSlide,
     CloseAllEmbedded,
 #endif
+    PlayPauseMultimedia,
     PlayMultimedia,
+    PauseMultimedia,
 
+    PlayPauseTimer,
+    ContinueTimer,
     PauseTimer,
     ResetTimer,
+    ToggleTOC,
     ShowTOC,
     HideTOC,
+    ToggleOverview,
     ShowOverview,
     HideOverview,
     HideDrawSlide,
     ToggleCursor,
+    ShowCursor,
+    HideCursor,
     FullScreen,
     Reload,
     Quit,
@@ -91,6 +100,15 @@ enum DrawTool {
 struct ColoredDrawTool {
     DrawTool tool;
     QColor color;
+};
+
+// Default tools for key actions:
+static const QMap<KeyAction, ColoredDrawTool> actionToToolMap = {
+    {DrawPen, {Pen,Qt::black}},
+    {DrawHighlighter, {Highlighter,QColor(255,255,0,191)}},
+    {DrawPointer, {Pointer,QColor(255,0,0,191)}},
+    {DrawMagnifier, {Magnifier, QColor(64,64,64,64)}},
+    {DrawTorch, {Torch, QColor(0,0,0,64)}},
 };
 
 #endif // ENUMERATES_H

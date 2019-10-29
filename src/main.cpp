@@ -61,14 +61,23 @@ static const QMap<QString, int> keyActionMap {
     {"close embedded applications current slide", KeyAction::CloseEmbeddedCurrentSlide},
 #endif
     {"play multimedia", KeyAction::PlayMultimedia},
+    {"pause multimedia", KeyAction::PauseMultimedia},
+    {"play pause multimedia", KeyAction::PlayPauseMultimedia},
+    {"toggle multimedia", KeyAction::PlayPauseMultimedia},
 
+    {"toggle timer", KeyAction::PlayPauseTimer},
     {"pause timer", KeyAction::PauseTimer},
+    {"continue timer", KeyAction::ContinueTimer},
     {"reset timer", KeyAction::ResetTimer},
+    {"toggle toc", KeyAction::ToggleTOC},
     {"show toc", KeyAction::ShowTOC},
+    {"hide toc", KeyAction::HideTOC},
     {"hide overview", KeyAction::HideOverview},
     {"show overview", KeyAction::ShowOverview},
-    {"hide toc", KeyAction::HideTOC},
+    {"toggle overview", KeyAction::ToggleOverview},
     {"toggle cursor", KeyAction::ToggleCursor},
+    {"show cursor", KeyAction::ShowCursor},
+    {"hide cursor", KeyAction::HideCursor},
     {"full screen", KeyAction::FullScreen},
     {"reload", KeyAction::Reload},
     {"quit", KeyAction::Quit},
@@ -306,6 +315,7 @@ int main(int argc, char *argv[])
         {"highlighter-width", "Line width of highlighter.", "pixels"},
         {"pen-width", "Line width of pens.", "pixels"},
         {"eraser-size", "Radius of eraser.", "pixels"},
+        {"icon-path", "Set path for default icons, e.g. /usr/share/icons/default", "path"},
     });
     parser.process(app);
 
@@ -521,131 +531,131 @@ int main(int argc, char *argv[])
     }
 
     { // Handle key bindings
-    QMap<int, QStringList> inputMap;
-    if (local.contains("keys")) {
-        QVariantMap variantMap = local["tools"].value<QVariantMap>();
-        int key;
-        for (QVariantMap::const_iterator var_it=variantMap.cbegin(); var_it!=variantMap.cend(); var_it++) {
-            QKeySequence keySequence = QKeySequence(var_it.key(), QKeySequence::NativeText);
-            key = keySequence[0]+keySequence[1]+keySequence[2]+keySequence[3];
-            if (key == 0)
-                qWarning() << "Could not understand key" << var_it.key();
-            else
-                inputMap[key] = var_it->toStringList();
+        QMap<int, QStringList> inputMap;
+        if (local.contains("keys")) {
+            QVariantMap variantMap = local["keys"].value<QVariantMap>();
+            int key;
+            for (QVariantMap::const_iterator var_it=variantMap.cbegin(); var_it!=variantMap.cend(); var_it++) {
+                QKeySequence keySequence = QKeySequence(var_it.key(), QKeySequence::NativeText);
+                key = keySequence[0]+keySequence[1]+keySequence[2]+keySequence[3];
+                if (key == 0)
+                    qWarning() << "Could not understand key" << var_it.key();
+                else
+                    inputMap[key] = var_it->toStringList();
+            }
         }
-    }
-    else {
-        settings.beginGroup("keys");
-        int key;
-        QStringList const keys = settings.allKeys();
-        for (QStringList::const_iterator key_it=keys.cbegin(); key_it!=keys.cend(); key_it++) {
-            QKeySequence keySequence = QKeySequence(*key_it, QKeySequence::NativeText);
-            key = keySequence[0]+keySequence[1]+keySequence[2]+keySequence[3];
-            if (key == 0)
-                qWarning() << "Could not understand key" << *key_it;
-            else
-                inputMap[key] = settings.value(*key_it).toStringList();
+        else {
+            settings.beginGroup("keys");
+            int key;
+            QStringList const keys = settings.allKeys();
+            for (QStringList::const_iterator key_it=keys.cbegin(); key_it!=keys.cend(); key_it++) {
+                QKeySequence keySequence = QKeySequence(*key_it, QKeySequence::NativeText);
+                key = keySequence[0]+keySequence[1]+keySequence[2]+keySequence[3];
+                if (key == 0)
+                    qWarning() << "Could not understand key" << *key_it;
+                else
+                    inputMap[key] = settings.value(*key_it).toStringList();
+            }
+            settings.endGroup();
         }
-        settings.endGroup();
-    }
-    if (inputMap.isEmpty())
-        w->setKeyMap(new QMap<int, QList<int>>(defaultKeyMap));
-    else {
-        for (QMap<int, QStringList>::const_iterator it=inputMap.cbegin(); it!=inputMap.cend(); it++) {
-            for (QStringList::const_iterator action_it=it->begin(); action_it!=it->cend(); action_it++) {
-                int const action = keyActionMap.value(action_it->toLower(), -1);
-                if (action != -1)
-                    w->setKeyMapItem(it.key(), action);
-                else {
-                    QStringList split_action = action_it->toLower().split(' ');
-                    if (split_action.size() != 2) {
-                        qCritical() << "Could not understand action" << *action_it << "for key" << it.key();
-                        continue;
+        if (inputMap.isEmpty())
+            w->setKeyMap(new QMap<int, QList<int>>(defaultKeyMap));
+        else {
+            for (QMap<int, QStringList>::const_iterator it=inputMap.cbegin(); it!=inputMap.cend(); it++) {
+                for (QStringList::const_iterator action_it=it->begin(); action_it!=it->cend(); action_it++) {
+                    int const action = keyActionMap.value(action_it->toLower(), -1);
+                    if (action != -1)
+                        w->setKeyMapItem(it.key(), action);
+                    else {
+                        QStringList split_action = action_it->toLower().split(' ');
+                        if (split_action.size() != 2) {
+                            qCritical() << "Could not understand action" << *action_it << "for key" << it.key();
+                            continue;
+                        }
+                        const int tool = toolMap.value(split_action.first(), -1);
+                        if (tool == -1) {
+                            qCritical() << "Could not understand action" << *action_it << "for key" << it.key();
+                            continue;
+                        }
+                        QColor color = QColor(split_action[1]);
+                        w->setToolForKey(it.key(), {static_cast<DrawTool>(tool), color});
                     }
-                    const int tool = toolMap.value(split_action.first(), -1);
-                    if (tool == -1) {
-                        qCritical() << "Could not understand action" << *action_it << "for key" << it.key();
-                        continue;
-                    }
-                    QColor color = QColor(split_action[1]);
-                    w->setToolForKey(it.key(), {static_cast<DrawTool>(tool), color});
                 }
             }
         }
-    }
     }
 
     { // Configure tool selector (buttons)
-    QMap<unsigned char, QStringList> inputMap;
-    if (local.contains("tools")) {
-        QVariantMap variantMap = local["tools"].value<QVariantMap>();
-        bool ok;
-        unsigned char key;
-        for (QVariantMap::const_iterator var_it=variantMap.cbegin(); var_it!=variantMap.cend(); var_it++) {
-            if (var_it.key().length() != 2) {
-                qWarning() << "Could not understand index" << var_it.key() << "which should be a two digit integer.";
-                continue;
+        QMap<unsigned char, QStringList> inputMap;
+        if (local.contains("tools")) {
+            QVariantMap variantMap = local["tools"].value<QVariantMap>();
+            bool ok;
+            unsigned char key;
+            for (QVariantMap::const_iterator var_it=variantMap.cbegin(); var_it!=variantMap.cend(); var_it++) {
+                if (var_it.key().length() != 2) {
+                    qWarning() << "Could not understand index" << var_it.key() << "which should be a two digit integer.";
+                    continue;
+                }
+                key = static_cast<unsigned char>(var_it.key().toUShort(&ok, 16));
+                if (ok)
+                    inputMap[key] = var_it->toStringList();
+                else
+                    qWarning() << "Could not understand index" << var_it.key() << "which should be a two digit integer.";
             }
-            key = static_cast<unsigned char>(var_it.key().toUShort(&ok, 16));
-            if (ok)
-                inputMap[key] = var_it->toStringList();
-            else
-                qWarning() << "Could not understand index" << var_it.key() << "which should be a two digit integer.";
         }
-    }
-    else {
-        settings.beginGroup("tools");
-        bool ok;
-        unsigned char key;
-        QStringList const keys = settings.allKeys();
-        for (QStringList::const_iterator key_it=keys.cbegin(); key_it!=keys.cend(); key_it++) {
-            if (key_it->length() != 2) {
-                qWarning() << "Could not understand index" << *key_it << "which should be a two digit integer.";
-                continue;
+        else {
+            settings.beginGroup("tools");
+            bool ok;
+            unsigned char key;
+            QStringList const keys = settings.allKeys();
+            for (QStringList::const_iterator key_it=keys.cbegin(); key_it!=keys.cend(); key_it++) {
+                if (key_it->length() != 2) {
+                    qWarning() << "Could not understand index" << *key_it << "which should be a two digit integer.";
+                    continue;
+                }
+                key = static_cast<unsigned char>(key_it->toUShort(&ok, 16));
+                if (ok)
+                    inputMap[key] = settings.value(*key_it).toStringList();
+                else
+                    qWarning() << "Could not understand index" << *key_it << "which should be a two digit integer.";
             }
-            key = static_cast<unsigned char>(key_it->toUShort(&ok, 16));
-            if (ok)
-                inputMap[key] = settings.value(*key_it).toStringList();
-            else
-                qWarning() << "Could not understand index" << *key_it << "which should be a two digit integer.";
+            settings.endGroup();
         }
-        settings.endGroup();
-    }
-    if (inputMap.isEmpty())
-        w->getToolSelector()->setTools(2, 5, defaultActionMap, defaultColorMap);
-    else {
-        QMap<unsigned char, QList<KeyAction>> actionMap;
-        QMap<unsigned char, QColor> colorMap;
-        unsigned char nrows = 0;
-        unsigned char ncols = 0;
-        for (QMap<unsigned char, QStringList>::const_iterator it=inputMap.cbegin(); it!=inputMap.cend(); it++) {
-            if (16*nrows <= it.key())
-                nrows = static_cast<unsigned char>(it.key()/16) + 1;
-            if (ncols <= it.key()%16)
-                ncols = it.key()%16 + 1;
-            actionMap[it.key()] = QList<KeyAction>();
-            for (QStringList::const_iterator action_it=it->begin(); action_it!=it->cend(); action_it++) {
-                const int action = keyActionMap.value(action_it->toLower(), -1);
-                if (action != -1)
-                    actionMap[it.key()].append(static_cast<KeyAction>(action));
-                else {
-                    QStringList split_action = action_it->toLower().split(' ');
-                    if (split_action.size() != 2) {
-                        qWarning() << "Could not understand action" << *action_it;
-                        continue;
-                    }
-                    int const action = keyActionMap.value(split_action.first(), -1);
-                    if (action == -1)
-                        qWarning() << "Could not understand action" << *action_it;
-                    else {
+        if (inputMap.isEmpty())
+            w->getToolSelector()->setTools(2, 5, defaultActionMap, defaultColorMap);
+        else {
+            QMap<unsigned char, QList<KeyAction>> actionMap;
+            QMap<unsigned char, QColor> colorMap;
+            unsigned char nrows = 0;
+            unsigned char ncols = 0;
+            for (QMap<unsigned char, QStringList>::const_iterator it=inputMap.cbegin(); it!=inputMap.cend(); it++) {
+                if (16*nrows <= it.key())
+                    nrows = static_cast<unsigned char>(it.key()/16) + 1;
+                if (ncols <= it.key()%16)
+                    ncols = it.key()%16 + 1;
+                actionMap[it.key()] = QList<KeyAction>();
+                for (QStringList::const_iterator action_it=it->begin(); action_it!=it->cend(); action_it++) {
+                    const int action = keyActionMap.value(action_it->toLower(), -1);
+                    if (action != -1)
                         actionMap[it.key()].append(static_cast<KeyAction>(action));
-                        colorMap[it.key()] = QColor(split_action[1]);
+                    else {
+                        QStringList split_action = action_it->toLower().split(' ');
+                        if (split_action.size() != 2) {
+                            qWarning() << "Could not understand action" << *action_it;
+                            continue;
+                        }
+                        int const action = keyActionMap.value(split_action.first(), -1);
+                        if (action == -1)
+                            qWarning() << "Could not understand action" << *action_it;
+                        else {
+                            actionMap[it.key()].append(static_cast<KeyAction>(action));
+                            colorMap[it.key()] = QColor(split_action[1]);
+                        }
                     }
                 }
             }
+            w->getToolSelector()->setTools(nrows, ncols, actionMap, colorMap);
         }
-        w->getToolSelector()->setTools(nrows, ncols, actionMap, colorMap);
-    }
     }
 
     if (local.contains("page times")) { // set times per slide for timer color change
@@ -816,6 +826,30 @@ int main(int argc, char *argv[])
             w->setPid2WidConverter(string);
     }
 #endif
+
+    { // Set icon path
+        QString icontheme = parser.value("icon-path");
+        if (!icontheme.isEmpty() && !QFileInfo(icontheme).isDir()) {
+            qWarning() << "icon path" << icontheme << "not understood: should be a directory";
+            icontheme = QString();
+        }
+        if (icontheme.isEmpty())
+            icontheme = local.value("icon-theme", "").toString();
+        if (!icontheme.isEmpty() && !QFileInfo(icontheme).isDir()) {
+            qWarning() << "icon path" << icontheme << "not understood: should be a directory";
+            icontheme = QString();
+        }
+        if (icontheme.isEmpty())
+            icontheme = settings.value("icon-theme", "").toString();
+        if (!icontheme.isEmpty()) {
+            if (QFileInfo(icontheme).isDir()) {
+                QIcon::setThemeSearchPaths({icontheme});
+                QIcon::setThemeName(icontheme);
+            }
+            else
+                qWarning() << "icon path" << icontheme << "not understood: should be a directory";
+        }
+    }
 
     // Set character, which is used to split links into a file name and arguments
     if (!parser.value("u").isEmpty())

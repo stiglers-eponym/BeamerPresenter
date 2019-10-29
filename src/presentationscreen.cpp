@@ -38,8 +38,7 @@ PresentationScreen::PresentationScreen(PdfDoc* presentationDoc, QWidget* parent)
     slide->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
     connect(slide, &PresentationSlide::sendNewPageNumber, this, &PresentationScreen::receiveNewPage);
     connect(slide, &PresentationSlide::timeoutSignal,     this, &PresentationScreen::receiveTimeoutSignal);
-    connect(this, &PresentationScreen::togglePointerVisibilitySignal, slide, &PresentationSlide::togglePointerVisibility);
-    slide->togglePointerVisibility();
+    slide->hidePointer();
     show();
 }
 
