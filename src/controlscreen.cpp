@@ -314,9 +314,9 @@ void ControlScreen::recalcLayout(const int pageNumber)
         if (scale < 0.)
             scale = 1.;
         drawSlide->setSize(Pointer, presentationScreen->slide->getSize(Pointer));
-        drawSlide->setSize(Highlighter, static_cast<int>(scale*presentationScreen->slide->getSize(Highlighter)+0.5));
-        drawSlide->setSize(Torch, static_cast<int>(scale*presentationScreen->slide->getSize(Torch)));
-        drawSlide->setSize(Magnifier, static_cast<int>(scale*presentationScreen->slide->getSize(Magnifier)));
+        drawSlide->setSize(Highlighter, static_cast<quint16>(scale*presentationScreen->slide->getSize(Highlighter)+0.5));
+        drawSlide->setSize(Torch, static_cast<quint16>(scale*presentationScreen->slide->getSize(Torch)));
+        drawSlide->setSize(Magnifier, static_cast<quint16>(scale*presentationScreen->slide->getSize(Magnifier)));
         if (drawSlide != ui->notes_widget) {
             drawSlide->setGeometry(ui->notes_widget->rect());
             drawSlide->setScaledPixmap(presentationScreen->slide->getCurrentPixmap());
@@ -1038,6 +1038,20 @@ void ControlScreen::handleKeyAction(KeyAction const action)
         else if (drawSlide != ui->notes_widget)
             hideDrawSlide();
         break;
+    case KeyAction::SaveDrawings:
+        {
+            QString const savePath = QFileDialog::getSaveFileName(this, "Save drawings");
+            if (!savePath.isEmpty())
+                presentationScreen->slide->saveDrawings(savePath);
+        }
+        break;
+    case KeyAction::LoadDrawings:
+        {
+            QString const loadPath = QFileDialog::getOpenFileName(this, "Load drawings");
+            if (!loadPath.isEmpty())
+                presentationScreen->slide->loadDrawings(loadPath);
+        }
+        break;
     case NoAction:
         break;
     default:
@@ -1427,13 +1441,13 @@ void ControlScreen::showDrawSlide()
     drawSlide->show();
     drawSlide->setFocus();
     int const sx=presentationScreen->slide->getXshift(), sy=presentationScreen->slide->getYshift();
-    double res = presentationScreen->slide->getResolution();
-    double scale = drawSlide->getResolution() / res;
-    drawSlide->setSize(Pen, static_cast<int>(scale*presentationScreen->slide->getSize(Pen)+0.5));
-    drawSlide->setSize(Pointer, static_cast<int>(scale*presentationScreen->slide->getSize(Pointer)+0.5));
-    drawSlide->setSize(Highlighter, static_cast<int>(scale*presentationScreen->slide->getSize(Highlighter)+0.5));
-    drawSlide->setSize(Torch, static_cast<int>(scale*presentationScreen->slide->getSize(Torch)));
-    drawSlide->setSize(Magnifier, static_cast<int>(scale*presentationScreen->slide->getSize(Magnifier)));
+    double const res = presentationScreen->slide->getResolution();
+    double const scale = drawSlide->getResolution() / res;
+    drawSlide->setSize(Pen, static_cast<quint16>(scale*presentationScreen->slide->getSize(Pen)+0.5));
+    drawSlide->setSize(Pointer, static_cast<quint16>(scale*presentationScreen->slide->getSize(Pointer)+0.5));
+    drawSlide->setSize(Highlighter, static_cast<quint16>(scale*presentationScreen->slide->getSize(Highlighter)+0.5));
+    drawSlide->setSize(Torch, static_cast<quint16>(scale*presentationScreen->slide->getSize(Torch)));
+    drawSlide->setSize(Magnifier, static_cast<quint16>(scale*presentationScreen->slide->getSize(Magnifier)));
     QString label = presentationScreen->slide->getPage()->label();
     drawSlide->setPaths(label, presentationScreen->slide->getPaths()[label], sx, sy, res);
     drawSlide->update();

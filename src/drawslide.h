@@ -19,6 +19,7 @@
 #ifndef DRAWSLIDE_H
 #define DRAWSLIDE_H
 
+#include <QDataStream>
 #include "mediaslide.h"
 #include "drawpath.h"
 
@@ -35,7 +36,7 @@ public:
     void clearAllAnnotations();
     virtual void clearCache() override;
     void updateEnlargedPage();
-    void setSize(DrawTool const tool, int size);
+    void setSize(DrawTool const tool, quint16 size);
     void setScaledPixmap(QPixmap const& pix);
 
     QMap<QString, QList<DrawPath*>> const& getPaths() const {return paths;}
@@ -43,7 +44,9 @@ public:
     int const& getYshift() const {return shifty;}
     double const& getResolution() const {return resolution;}
     ColoredDrawTool getTool() const {return tool;}
-    int getSize(DrawTool const tool) const {return sizes[tool];}
+    quint16 getSize(DrawTool const tool) const {return sizes[tool];}
+    void saveDrawings(QString const& filename) const;
+    void loadDrawings(QString const& filename);
 
 protected:
     void drawAnnotations(QPainter& painter);
@@ -58,7 +61,7 @@ protected:
     QMap<QString, QList<DrawPath*>> paths;
     QPointF pointerPosition = QPointF();
     QPixmap enlargedPage;
-    QMap<DrawTool, int> sizes = {{Magnifier,120}, {Torch,80}, {Pointer,10}, {Highlighter,30}, {Pen,3}, {Eraser,10}};
+    QMap<unsigned int, quint16> sizes = {{Magnifier,120}, {Torch,80}, {Pointer,10}, {Highlighter,30}, {Pen,3}, {Eraser,10}};
     bool pointer_visible = true;
 
 public slots:

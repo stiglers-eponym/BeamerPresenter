@@ -23,7 +23,7 @@ double square(double const a)
     return a*a;
 }
 
-void DrawPath::setEraserSize(const int size)
+void DrawPath::setEraserSize(const quint16 size)
 {
     if (eraser_size < 1) {
         qWarning() << "Setting an eraser size < 1 does not make any sense. Ignoring this.";
@@ -32,7 +32,7 @@ void DrawPath::setEraserSize(const int size)
     eraser_size=size;
 }
 
-DrawPath::DrawPath(ColoredDrawTool const& tool, QPointF const& start, int const eraser_size)
+DrawPath::DrawPath(ColoredDrawTool const& tool, QPointF const& start, quint16 const eraser_size)
 {
     path = QVector<QPointF>();
     path.append(start);
@@ -42,7 +42,7 @@ DrawPath::DrawPath(ColoredDrawTool const& tool, QPointF const& start, int const 
     updateHash();
 }
 
-DrawPath::DrawPath(ColoredDrawTool const& tool, QPointF* const points, int const number, int const eraser_size)
+DrawPath::DrawPath(ColoredDrawTool const& tool, QPointF* const points, int const number, quint16 const eraser_size)
 {
     path = QVector<QPointF>(number);
     if (number == 0)
@@ -146,4 +146,37 @@ void DrawPath::updateHash()
     for (auto& p : path)
         hash ^= static_cast<unsigned int>(std::hash<double>{}(p.x() + 1e5*p.y())) + (hash << 6) + (hash >> 2);
     //qDebug() << "updated hash:" << hash;
+}
+
+void DrawPath::toIntVector(QVector<float>& vec, int const xshift, int const yshift, int const width, int const height) const
+{
+    for (auto point : path) {
+        vec.append(static_cast<float>(point.x() - xshift)/width);
+        vec.append(static_cast<float>(point.y() - yshift)/height);
+    }
+}
+
+
+DrawPath::DrawPath(ColoredDrawTool const& tool, QVector<float> const& vec, int const xshift, int const yshift, int const width, int const height, quint16 const eraser_size)
+{
+    this->eraser_size = eraser_size;
+    this->tool = tool;
+    path = QVector<QPointF>();
+    double left=width+2*xshift, right=0, top=height+2*yshift, bottom=0;
+    double x, y;
+    for (QVector<float>::const_iterator it=vec.cbegin(); it!=vec.cend();) {
+        x = xshift + width*static_cast<qreal>(*it++);
+        y = yshift + height*static_cast<qreal>(*it++);
+        path.append(QPointF(x, y));
+        if (left > x)
+            left = x;
+        else if (right < x)
+            right = x;
+        if (bottom < y)
+            bottom = y;
+        else if (top > y)
+            top = y;
+    }
+    outer = QRectF(left-eraser_size, top-eraser_size, right-left+2*eraser_size, bottom-top+2*eraser_size);
+    updateHash();
 }

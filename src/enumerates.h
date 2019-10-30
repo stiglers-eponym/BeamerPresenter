@@ -85,6 +85,9 @@ enum KeyAction {
     DrawEraser,
     DrawHighlighter,
     DrawPointer,
+
+    SaveDrawings,
+    LoadDrawings
 };
 
 enum DrawTool {

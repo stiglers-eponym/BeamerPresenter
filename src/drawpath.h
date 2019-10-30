@@ -30,18 +30,20 @@ class DrawPath
 private:
     QVector<QPointF> path;
     QRectF outer = QRectF();
-    int eraser_size = 10;
+    quint16 eraser_size = 10;
     ColoredDrawTool tool;
     unsigned int hash = 0;
 public:
-    DrawPath(ColoredDrawTool const& tool, QPointF const& start, int const eraser_size = 10);
-    DrawPath(ColoredDrawTool const& tool, QPointF* const points, int const number, int const eraser_size = 10);
+    DrawPath(ColoredDrawTool const& tool, QPointF const& start, quint16 const eraser_size = 10);
+    DrawPath(ColoredDrawTool const& tool, QPointF* const points, int const number, quint16 const eraser_size = 10);
     DrawPath(DrawPath const& old, QPointF const shift, double const scale);
     DrawPath(DrawPath const& old);
+    DrawPath(ColoredDrawTool const& tool, QVector<float> const& vec, int const xshift, int const yshift, int const width, int const height, quint16 const eraser_size);
     ~DrawPath() {path.clear();}
+    void toIntVector(QVector<float>& vec, int const xshift, int const yshift, int const width, int const height) const;
     void transform(QPointF const& shift, double const scale);
     void updateHash();
-    void setEraserSize(int const size);
+    void setEraserSize(quint16 const size);
     void clear() {path.clear(); outer=QRectF(); hash=0;}
     unsigned int getHash() const {return hash;}
     bool isEmpty() const {return path.isEmpty();}

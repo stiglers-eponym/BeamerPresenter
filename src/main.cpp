@@ -18,7 +18,6 @@
 
 #include <QSettings>
 #include <QApplication>
-#include <QFileDialog>
 #include <QCommandLineParser>
 #include <QKeySequence>
 #include <QJsonObject>
@@ -94,6 +93,8 @@ static const QMap<QString, int> keyActionMap {
     {"eraser", KeyAction::DrawEraser},
     {"toggle draw mode", KeyAction::ToggleDrawMode},
     {"hide draw slide", KeyAction::HideDrawSlide},
+    {"save drawings", KeyAction::SaveDrawings},
+    {"load drawings", KeyAction::LoadDrawings},
 };
 
 static const QMap<QString, int> toolMap {
@@ -125,9 +126,9 @@ static const QMap<int, QList<int>> defaultKeyMap = {
     {Qt::Key_E, {KeyAction::StartEmbeddedCurrentSlide}},
     {Qt::Key_E+Qt::ShiftModifier, {KeyAction::StartAllEmbedded}},
 #endif
-    {Qt::Key_M, {KeyAction::PlayMultimedia}},
+    {Qt::Key_M, {KeyAction::PlayPauseMultimedia}},
 
-    {Qt::Key_P, {KeyAction::PauseTimer}},
+    {Qt::Key_P, {KeyAction::PlayPauseTimer}},
     {Qt::Key_R, {KeyAction::ResetTimer}},
     {Qt::Key_T, {KeyAction::ShowTOC}},
     {Qt::Key_S, {KeyAction::ShowOverview}},

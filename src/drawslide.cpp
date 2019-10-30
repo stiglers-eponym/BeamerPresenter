@@ -117,7 +117,7 @@ void DrawSlide::setTool(const ColoredDrawTool newtool)
     update();
 }
 
-void DrawSlide::setSize(DrawTool const tool, int size)
+void DrawSlide::setSize(DrawTool const tool, quint16 size)
 {
     if (size < 1)
         size = 1;
@@ -441,4 +441,72 @@ void DrawSlide::updateEnlargedPage()
             }
         }
     }
+}
+
+void DrawSlide::saveDrawings(QString const& filename) const
+{
+    // Save drawings in a strange data format.
+    qInfo() << "Saving files is experimental. Files might contain errors or might be unreadable for later versions of BeamerPresenter";
+    QFile file(filename);
+    file.open(QIODevice::WriteOnly);
+    int const w = width()-2*shiftx, h = height()-2*shifty;
+    QDataStream stream(&file);
+    stream << QString(FILE_DESCRIPTION);
+    stream << doc->getPath();
+    stream << sizes;
+    qDebug() << sizes;
+    stream << static_cast<quint16>(paths.size());
+    qDebug() << paths.size();
+    for (QMap<QString, QList<DrawPath*>>::const_iterator page_it=paths.cbegin(); page_it!=paths.cend(); page_it++) {
+        stream << page_it.key() << static_cast<quint16>(page_it->length());
+        qDebug() << page_it.key() << page_it->length();
+        for (QList<DrawPath*>::const_iterator path_it=page_it->cbegin(); path_it!=page_it->cend(); path_it++) {
+            QVector<float> vec;
+            (*path_it)->toIntVector(vec, shiftx, shifty, w, h);
+            stream << static_cast<unsigned int>((*path_it)->getTool()) << (*path_it)->getColor() << vec;
+            qDebug() << (*path_it)->getTool() << (*path_it)->getColor() << vec.size();
+        }
+    }
+}
+
+void DrawSlide::loadDrawings(QString const& filename)
+{
+    // Load drawings from the strange data format.
+    qInfo() << "Loading files is experimental. Files might contain errors or might be unreadable for later versions of BeamerPresenter";
+    QFile file(filename);
+    file.open(QIODevice::ReadOnly);
+    int const w = width()-2*shiftx, h = height()-2*shifty;
+    QDataStream stream(&file);
+    QString description;
+    stream >> description;
+    if (description != FILE_DESCRIPTION) {
+        qCritical() << "Invalid file: wrong file description.";
+        return;
+    }
+    QString docpath;
+    stream >> docpath;
+    if (docpath != doc->getPath())
+        qWarning() << "This drawing file was generated for a different PDF file path.";
+    clearAllAnnotations();
+    stream >> sizes;
+    qDebug() << sizes;
+    quint16 npages, npaths;
+    stream >> npages;
+    qDebug() << npages;
+    QString pagelabel;
+    int tool;
+    QColor color;
+    for (int pageidx=0; pageidx<npages; pageidx++) {
+        stream >> pagelabel >> npaths;
+        qDebug() << pagelabel << npaths;
+        paths[pagelabel] = QList<DrawPath*>();
+        for (int pathidx=0; pathidx<npaths; pathidx++) {
+            QVector<float> vec;
+            stream >> tool >> color >> vec;
+            qDebug() << tool << color << vec.size();
+            paths[pagelabel].append(new DrawPath({static_cast<DrawTool>(tool), color}, vec, shiftx, shifty, w, h, sizes[Eraser]));
+        }
+        emit pathsChanged(pagelabel, paths[pagelabel], shiftx, shifty, resolution);
+    }
+    update();
 }

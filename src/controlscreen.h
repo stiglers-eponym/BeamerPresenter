@@ -20,6 +20,7 @@
 #define CONTROLSCREEN_H
 
 #include <QMainWindow>
+#include <QFileDialog>
 #include <QLabel>
 #include "pdfdoc.h"
 #include "timer.h"
