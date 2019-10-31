@@ -26,6 +26,7 @@
 #include <poppler-qt5.h>
 #include <poppler-version.h>
 #include <QDomDocument>
+#include "enumerates.h"
 
 class PdfDoc : public QObject
 {
@@ -36,7 +37,7 @@ private:
     QString pdfPath;
     QList<Poppler::Page*> pdfPages;
     QList<QString> labels;
-    int pagePart = 0;
+    PagePart pagePart = PagePart::FullPage;
     QDateTime lastModified = QDateTime();
 
 public:
@@ -56,7 +57,7 @@ public:
     int destToSlide(QString const & dest) const;
     QString const& getPath() const {return pdfPath;}
 
-    void setPagePart(int const state) {pagePart = state;}
+    void setPagePart(PagePart const state) {pagePart = state;}
 };
 
 #endif // PDFWIDGET_H

@@ -25,7 +25,7 @@
 #include <QMimeDatabase>
 #include "controlscreen.h"
 
-static const QMap<QString, int> keyActionMap {
+static const QMap<QString, KeyAction> keyActionMap {
     {"previous", KeyAction::Previous},
     {"next", KeyAction::Next},
     {"previous notes", KeyAction::PreviousNotes},
@@ -90,25 +90,29 @@ static const QMap<QString, int> keyActionMap {
     {"highlighter", KeyAction::DrawHighlighter},
     {"torch", KeyAction::DrawTorch},
     {"magnifier", KeyAction::DrawMagnifier},
-    {"draw mode", KeyAction::DrawMode},
     {"eraser", KeyAction::DrawEraser},
+
     {"toggle draw mode", KeyAction::ToggleDrawMode},
+    {"enter draw mode", KeyAction::DrawMode},
+    {"draw mode", KeyAction::DrawMode},
     {"hide draw slide", KeyAction::HideDrawSlide},
+    {"end draw mode", KeyAction::HideDrawSlide},
+    {"end drawing", KeyAction::HideDrawSlide},
     {"save drawings", KeyAction::SaveDrawings},
     {"load drawings", KeyAction::LoadDrawings},
 };
 
-static const QMap<QString, int> toolMap {
+static const QMap<QString, DrawTool> toolMap {
     {"pen", DrawTool::Pen},
     {"highlighter", DrawTool::Highlighter},
-    {"none", DrawTool::None},
+    {"none", DrawTool::NoTool},
     {"pointer", DrawTool::Pointer},
     {"eraser", DrawTool::Eraser},
     {"torch", DrawTool::Torch},
     {"magnifier", DrawTool::Magnifier},
 };
 
-static const QMap<int, QList<int>> defaultKeyMap = {
+static const QMap<quint32, QList<KeyAction>> defaultKeyMap = {
     {Qt::Key_PageUp, {KeyAction::Previous}},
     {Qt::Key_PageDown, {KeyAction::Next}},
     {Qt::Key_Left, {KeyAction::Previous}},
@@ -139,7 +143,8 @@ static const QMap<int, QList<int>> defaultKeyMap = {
     {Qt::Key_Q+Qt::CTRL, {KeyAction::Quit}}
 };
 
-static const QMap<unsigned char, QList<KeyAction>> defaultActionMap {
+// Default configuration for tool selector (buttons)
+static const QMap<quint8, QList<KeyAction>> defaultActionMap {
     {0, {KeyAction::ToggleDrawMode}},
     {1, {KeyAction::DrawEraser}},
     {2, {KeyAction::DrawPen}},
@@ -151,7 +156,7 @@ static const QMap<unsigned char, QList<KeyAction>> defaultActionMap {
     {19, {KeyAction::DrawTorch}},
     {20, {KeyAction::DrawMagnifier}},
 };
-static const QMap<unsigned char, QColor> defaultColorMap {
+static const QMap<quint8, QColor> defaultColorMap {
     {2, QColor("red")},
     {3, QColor("green")},
     {4, QColor(255,255,0,191)},
@@ -208,26 +213,37 @@ double doubleFromConfig(QCommandLineParser const& parser, QVariantMap const& loc
     return def;
 }
 
-int intFromConfig(QCommandLineParser const& parser, QVariantMap const& local, QSettings const& settings, QString name, int const def)
+template <class T>
+T intFromConfig(QCommandLineParser const& parser, QVariantMap const& local, QSettings const& settings, QString name, T const def)
 {
     bool ok;
-    int result;
+    bool const is_signed = T(-1) < 0;
+    T result;
     if (parser.isSet(name) && !parser.value(name).isEmpty()) {
-        result = parser.value(name).toInt(&ok);
+        if (is_signed)
+            result = T(parser.value(name).toInt(&ok));
+        else
+            result = T(parser.value(name).toUInt(&ok));
         if (ok)
             return result;
         else
             qCritical() << "option \"" << parser.value(name) << "\" to" << name << "not understood. Should be an integer.";
     }
     if (local.contains(name)) {
-        result = local.value(name).toInt(&ok);
+        if (is_signed)
+            result = T(local.value(name).toInt(&ok));
+        else
+            result = T(local.value(name).toUInt(&ok));
         if (ok)
             return result;
         else
             qCritical() << "option \"" << settings.value(name) << "\" to" << name << "in local config not understood. Should be an integer.";
     }
     if (settings.contains(name)) {
-        result = settings.value(name).toInt(&ok);
+        if (is_signed)
+            result = T(settings.value(name).toInt(&ok));
+        else
+            result = T(settings.value(name).toUInt(&ok));
         if (ok)
             return result;
         else
@@ -561,13 +577,13 @@ int main(int argc, char *argv[])
     }
 
     { // Handle key bindings
-        QMap<int, QStringList> inputMap;
+        QMap<quint32, QStringList> inputMap;
         if (local.contains("keys")) {
             QVariantMap variantMap = local["keys"].value<QVariantMap>();
-            int key;
+            quint32 key;
             for (QVariantMap::const_iterator var_it=variantMap.cbegin(); var_it!=variantMap.cend(); var_it++) {
                 QKeySequence keySequence = QKeySequence(var_it.key(), QKeySequence::NativeText);
-                key = keySequence[0]+keySequence[1]+keySequence[2]+keySequence[3];
+                key = quint32(keySequence[0]+keySequence[1]+keySequence[2]+keySequence[3]);
                 if (key == 0)
                     qWarning() << "Could not understand key" << var_it.key();
                 else
@@ -576,11 +592,11 @@ int main(int argc, char *argv[])
         }
         else {
             settings.beginGroup("keys");
-            int key;
+            quint32 key;
             QStringList const keys = settings.allKeys();
             for (QStringList::const_iterator key_it=keys.cbegin(); key_it!=keys.cend(); key_it++) {
                 QKeySequence keySequence = QKeySequence(*key_it, QKeySequence::NativeText);
-                key = keySequence[0]+keySequence[1]+keySequence[2]+keySequence[3];
+                key = quint32(keySequence[0]+keySequence[1]+keySequence[2]+keySequence[3]);
                 if (key == 0)
                     qWarning() << "Could not understand key" << *key_it;
                 else
@@ -589,12 +605,12 @@ int main(int argc, char *argv[])
             settings.endGroup();
         }
         if (inputMap.isEmpty())
-            w->setKeyMap(new QMap<int, QList<int>>(defaultKeyMap));
+            w->setKeyMap(new QMap<quint32, QList<KeyAction>>(defaultKeyMap));
         else {
-            for (QMap<int, QStringList>::const_iterator it=inputMap.cbegin(); it!=inputMap.cend(); it++) {
+            for (QMap<quint32, QStringList>::const_iterator it=inputMap.cbegin(); it!=inputMap.cend(); it++) {
                 for (QStringList::const_iterator action_it=it->begin(); action_it!=it->cend(); action_it++) {
-                    int const action = keyActionMap.value(action_it->toLower(), -1);
-                    if (action != -1)
+                    KeyAction const action = keyActionMap.value(action_it->toLower(), KeyAction::NoAction);
+                    if (action != NoAction)
                         w->setKeyMapItem(it.key(), action);
                     else {
                         QStringList split_action = action_it->toLower().split(' ');
@@ -602,8 +618,8 @@ int main(int argc, char *argv[])
                             qCritical() << "Could not understand action" << *action_it << "for key" << it.key();
                             continue;
                         }
-                        const int tool = toolMap.value(split_action.first(), -1);
-                        if (tool == -1) {
+                        quint16 const tool = toolMap.value(split_action.first(), InvalidTool);
+                        if (tool == InvalidTool) {
                             qCritical() << "Could not understand action" << *action_it << "for key" << it.key();
                             continue;
                         }
@@ -616,17 +632,17 @@ int main(int argc, char *argv[])
     }
 
     { // Configure tool selector (buttons)
-        QMap<unsigned char, QStringList> inputMap;
+        QMap<quint8, QStringList> inputMap;
         if (local.contains("tools")) {
             QVariantMap variantMap = local["tools"].value<QVariantMap>();
             bool ok;
-            unsigned char key;
+            quint8 key;
             for (QVariantMap::const_iterator var_it=variantMap.cbegin(); var_it!=variantMap.cend(); var_it++) {
                 if (var_it.key().length() != 2) {
                     qWarning() << "Could not understand index" << var_it.key() << "which should be a two digit integer.";
                     continue;
                 }
-                key = static_cast<unsigned char>(var_it.key().toUShort(&ok, 16));
+                key = quint8(var_it.key().toUShort(&ok, 16));
                 if (ok)
                     inputMap[key] = var_it->toStringList();
                 else
@@ -636,14 +652,14 @@ int main(int argc, char *argv[])
         else {
             settings.beginGroup("tools");
             bool ok;
-            unsigned char key;
+            quint8 key;
             QStringList const keys = settings.allKeys();
             for (QStringList::const_iterator key_it=keys.cbegin(); key_it!=keys.cend(); key_it++) {
                 if (key_it->length() != 2) {
                     qWarning() << "Could not understand index" << *key_it << "which should be a two digit integer.";
                     continue;
                 }
-                key = static_cast<unsigned char>(key_it->toUShort(&ok, 16));
+                key = quint8(key_it->toUShort(&ok, 16));
                 if (ok)
                     inputMap[key] = settings.value(*key_it).toStringList();
                 else
@@ -654,19 +670,19 @@ int main(int argc, char *argv[])
         if (inputMap.isEmpty())
             w->getToolSelector()->setTools(2, 5, defaultActionMap, defaultColorMap);
         else {
-            QMap<unsigned char, QList<KeyAction>> actionMap;
-            QMap<unsigned char, QColor> colorMap;
-            unsigned char nrows = 0;
-            unsigned char ncols = 0;
-            for (QMap<unsigned char, QStringList>::const_iterator it=inputMap.cbegin(); it!=inputMap.cend(); it++) {
+            QMap<quint8, QList<KeyAction>> actionMap;
+            QMap<quint8, QColor> colorMap;
+            quint8 nrows = 0;
+            quint8 ncols = 0;
+            for (QMap<quint8, QStringList>::const_iterator it=inputMap.cbegin(); it!=inputMap.cend(); it++) {
                 if (16*nrows <= it.key())
-                    nrows = static_cast<unsigned char>(it.key()/16) + 1;
+                    nrows = quint8(it.key()/16) + 1;
                 if (ncols <= it.key()%16)
                     ncols = it.key()%16 + 1;
                 actionMap[it.key()] = QList<KeyAction>();
                 for (QStringList::const_iterator action_it=it->begin(); action_it!=it->cend(); action_it++) {
-                    const int action = keyActionMap.value(action_it->toLower(), -1);
-                    if (action != -1)
+                    KeyAction const action = keyActionMap.value(action_it->toLower(), NoAction);
+                    if (action != NoAction)
                         actionMap[it.key()].append(static_cast<KeyAction>(action));
                     else {
                         QStringList split_action = action_it->toLower().split(' ');
@@ -674,8 +690,8 @@ int main(int argc, char *argv[])
                             qWarning() << "Could not understand action" << *action_it;
                             continue;
                         }
-                        int const action = keyActionMap.value(split_action.first(), -1);
-                        if (action == -1)
+                        KeyAction const action = keyActionMap.value(split_action.first(), NoAction);
+                        if (action == NoAction)
                             qWarning() << "Could not understand action" << *action_it;
                         else {
                             actionMap[it.key()].append(static_cast<KeyAction>(action));
@@ -903,57 +919,66 @@ int main(int argc, char *argv[])
 #endif
     }
 
-    { // Settings with integer values
-        int value;
+    // Settings with integer values
+    {
+        quint32 value;
 
         // Set minimum time per frame in animations
-        value = intFromConfig(parser, local, settings, "min-delay", 40);
+        value = intFromConfig<quint32>(parser, local, settings, "min-delay", 40);
         emit w->sendAnimationDelay(value);
 
+        // Set maximum cache size
+        value = intFromConfig<quint32>(parser, local, settings, "memory", 100);
+        w->setCacheSize(1048576L * value);
+    }
+    {
+        quint8 value;
+
         // Set number of blinds in blinds slide transition
-        value = intFromConfig(parser, local, settings, "blinds", 8);
+        value = intFromConfig<quint8>(parser, local, settings, "blinds", 8);
         emit w->setTransitionBlinds(value);
 
         // Set number of columns in overview
-        value = intFromConfig(parser, local, settings, "columns", 5);
+        value = intFromConfig<quint8>(parser, local, settings, "columns", 5);
         if (value<1)
             qCritical() << "You tried to set a number of columns < 1. You shouldn't expect anyting reasonable!";
         else
             w->setOverviewColumns(value);
 
-        // Set scroll step for touch pad input devices
-        value = intFromConfig(parser, local, settings, "scrollstep", 200);
-        w->setScrollDelta(value);
-
-        // Set maximum number of cached slides
-        value = intFromConfig(parser, local, settings, "cache", -1);
-        w->setCacheNumber(value);
-
-        // Set maximum cache size
-        value = intFromConfig(parser, local, settings, "memory", 100);
-        w->setCacheSize(1048576L * value);
-
         // Set number of visible TOC levels
-        value = intFromConfig(parser, local, settings, "toc-depth", 2);
+        value = intFromConfig<quint8>(parser, local, settings, "toc-depth", 2);
         if (value<1)
             qCritical() << "You tried to set a number of TOC levels < 1. You shouldn't expect anyting reasonable!";
         else
         w->setTocLevel(value);
+    }
+    {
+        int value;
+
+        // Set scroll step for touch pad input devices
+        value = intFromConfig<int>(parser, local, settings, "scrollstep", 200);
+        w->setScrollDelta(value);
+
+        // Set maximum number of cached slides
+        value = intFromConfig<int>(parser, local, settings, "cache", -1);
+        w->setCacheNumber(value);
+    }
+    {
+        quint16 value;
 
         // Set size of draw tools
-        value  = intFromConfig(parser, local, settings, "magnifier-size", 120);
+        value  = intFromConfig<quint16>(parser, local, settings, "magnifier-size", 120);
         w->setToolSize(Magnifier, value);
-        value  = intFromConfig(parser, local, settings, "pointer-size", 10);
+        value  = intFromConfig<quint16>(parser, local, settings, "pointer-size", 10);
         w->setToolSize(Pointer, value);
-        value  = intFromConfig(parser, local, settings, "torch-size", 80);
+        value  = intFromConfig<quint16>(parser, local, settings, "torch-size", 80);
         w->setToolSize(Torch, value);
-        value  = intFromConfig(parser, local, settings, "highlighter-width", 30);
+        value  = intFromConfig<quint16>(parser, local, settings, "highlighter-width", 30);
         w->setToolSize(Highlighter, value);
-        value  = intFromConfig(parser, local, settings, "pen-width", 3);
+        value  = intFromConfig<quint16>(parser, local, settings, "pen-width", 3);
         w->setToolSize(Pen, value);
-        value  = intFromConfig(parser, local, settings, "eraser-size", 10);
+        value  = intFromConfig<quint16>(parser, local, settings, "eraser-size", 10);
         w->setToolSize(Eraser, value);
-        // TODO: read colors from config
     }
 
     // Disable slide transitions

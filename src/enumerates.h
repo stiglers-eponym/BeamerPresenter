@@ -91,7 +91,8 @@ enum KeyAction {
 };
 
 enum DrawTool {
-    None,
+    NoTool,
+    InvalidTool,
     Highlighter,
     Pen,
     Pointer,

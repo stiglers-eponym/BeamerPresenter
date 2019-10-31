@@ -39,7 +39,6 @@ public:
     void setScrollDelta(int const scrollDelta) {this->scrollDelta=scrollDelta;}
     void setForceTouchpad() {forceIsTouchpad=true;}
     void setCacheVideos(bool const cache);
-    void setKeyMap(QMap<int, QList<int>>* keymap) {this->keymap=keymap;} // PresentationScreen does not own this object!
 
 protected:
     void keyPressEvent(QKeyEvent* event) override {emit sendKeyEvent(event);}
@@ -57,7 +56,6 @@ private:
     int scrollDelta = 200;
     int scrollState = 0;
     bool cacheVideos = true;
-    QMap<int, QList<int>>* keymap; // PresentationScreen does not own this object!
 
 signals:
     void sendNewPageNumber(const int pageNumber);

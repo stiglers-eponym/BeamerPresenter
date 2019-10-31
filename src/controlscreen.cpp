@@ -69,7 +69,6 @@ ControlScreen::ControlScreen(QString presentationPath, QString notesPath, QWidge
     // Set up presentation screen
     presentationScreen = new PresentationScreen(presentation);
     presentationScreen->setWindowTitle("BeamerPresenter: " + presentationPath);
-    presentationScreen->setKeyMap(keymap);
 
     // Load notes pdf
     if (notesPath.isNull() || notesPath.isEmpty()) {
@@ -455,7 +454,7 @@ void ControlScreen::renderPage(int const pageNumber, bool const full)
         // It is possible that presentationScreen->slide contains drawings which have not been copied to drawSlide yet.
         QString label = presentation->getLabel(currentPageNumber);
         if (!drawSlide->getPaths().contains(label)) {
-            int const sx=presentationScreen->slide->getXshift(), sy=presentationScreen->slide->getYshift();
+            quint16 const sx=presentationScreen->slide->getXshift(), sy=presentationScreen->slide->getYshift();
             double res = presentationScreen->slide->getResolution();
             drawSlide->setPaths(label, presentationScreen->slide->getPaths()[label], sx, sy, res);
         }
@@ -542,7 +541,7 @@ void ControlScreen::updateCache()
              + ui->current_slide->getCacheSize();
     else
         // This is approximately -infinity and means that the cache size is unlimited:
-        cacheSize = -8589934591l; // -8GiB
+        cacheSize = -8589934591L; // -8GiB
 
     // There should be a simply connected region of cached pages between first_cached and last_cached.
     if (first_cached > currentPageNumber || last_cached < currentPageNumber) {
@@ -715,7 +714,7 @@ void ControlScreen::receiveCache(QByteArray const* pres, QByteArray const* note,
         cacheTimer->start();
 }
 
-void ControlScreen::setCacheNumber(const int number)
+void ControlScreen::setCacheNumber(int const number)
 {
     // Set maximum number of slides, which should be rendered to cache.
     // A negative number is interpreted as infinity.
@@ -731,7 +730,7 @@ void ControlScreen::setCacheNumber(const int number)
         maxCacheNumber = number;
 }
 
-void ControlScreen::setCacheSize(const long size)
+void ControlScreen::setCacheSize(qint64 const size)
 {
     // Set maximum memory used for cached pages (in bytes).
     // A negative number is interpreted as infinity.
@@ -743,7 +742,7 @@ void ControlScreen::setCacheSize(const long size)
     maxCacheSize = size;
 }
 
-void ControlScreen::setTocLevel(const int level)
+void ControlScreen::setTocLevel(quint8 const level)
 {
     // Set maximum level of sections / subsections shown in the table of contents.
     if (level<1) {
@@ -817,17 +816,17 @@ void ControlScreen::adaptPage()
 void ControlScreen::keyPressEvent(QKeyEvent* event)
 {
     // Key codes are given as key + modifiers.
-    const int key = event->key() + static_cast<int>(event->modifiers());
+    quint32 const key = quint32(event->key()) + quint32(event->modifiers());
     if (tools.contains(key)) {
         presentationScreen->slide->setTool(tools[key]);
         if (drawSlide != nullptr)
             drawSlide->setTool(tools[key]);
     }
-    QMap<int, QList<int>>::iterator map_it = keymap->find(key);
+    QMap<quint32, QList<KeyAction>>::iterator map_it = keymap->find(key);
     if (map_it == keymap->end())
         return;
-    for (QList<int>::const_iterator action_it=map_it->cbegin(); action_it!=map_it->cend(); action_it++)
-        handleKeyAction(static_cast<KeyAction>(*action_it));
+    for (QList<KeyAction>::const_iterator action_it=map_it->cbegin(); action_it!=map_it->cend(); action_it++)
+        handleKeyAction(*action_it);
     event->accept();
 }
 
@@ -1022,9 +1021,9 @@ void ControlScreen::handleKeyAction(KeyAction const action)
             drawSlide->clearPageAnnotations();
         break;
     case KeyAction::DrawNone:
-        presentationScreen->slide->setTool(None);
+        presentationScreen->slide->setTool(NoTool);
         if (drawSlide != nullptr)
-            drawSlide->setTool(None);
+            drawSlide->setTool(NoTool);
         break;
     case KeyAction::DrawEraser:
         presentationScreen->slide->setTool(Eraser, QColor());
@@ -1057,8 +1056,8 @@ void ControlScreen::handleKeyAction(KeyAction const action)
     case NoAction:
         break;
     default:
-        ColoredDrawTool const tool = actionToToolMap.value(action, {None, QColor()});
-        if (tool.tool != None) {
+        ColoredDrawTool const tool = actionToToolMap.value(action, {InvalidTool, QColor()});
+        if (tool.tool != InvalidTool) {
             presentationScreen->slide->setTool(tool);
             if (drawSlide != nullptr)
                 drawSlide->setTool(tool);
@@ -1381,18 +1380,17 @@ void ControlScreen::reloadFiles()
     updateCache();
 }
 
-void ControlScreen::setKeyMap(QMap<int, QList<int>> *keymap)
+void ControlScreen::setKeyMap(QMap<quint32, QList<KeyAction>>* keymap)
 {
     // Set the key bindings
     delete this->keymap;
     this->keymap = keymap;
-    presentationScreen->setKeyMap(keymap);
 }
 
-void ControlScreen::setKeyMapItem(const int key, const int action)
+void ControlScreen::setKeyMapItem(quint32 const key, KeyAction const action)
 {
     // Add an action to a key
-    QMap<int, QList<int>>::iterator map_it = keymap->find(key);
+    QMap<quint32, QList<KeyAction>>::iterator map_it = keymap->find(key);
     if (map_it==keymap->end())
         keymap->insert(key, {action});
     else
@@ -1442,7 +1440,7 @@ void ControlScreen::showDrawSlide()
     ui->notes_widget->hide();
     drawSlide->show();
     drawSlide->setFocus();
-    int const sx=presentationScreen->slide->getXshift(), sy=presentationScreen->slide->getYshift();
+    quint16 const sx=presentationScreen->slide->getXshift(), sy=presentationScreen->slide->getYshift();
     double const res = presentationScreen->slide->getResolution();
     double const scale = drawSlide->getResolution() / res;
     drawSlide->setSize(Pen, static_cast<quint16>(scale*presentationScreen->slide->getSize(Pen)+0.5));

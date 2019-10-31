@@ -18,7 +18,7 @@
 
 #include "overviewframe.h"
 
-OverviewFrame::OverviewFrame(int const page, int const columns, QWidget* parent) : QLabel(parent)
+OverviewFrame::OverviewFrame(int const page, quint8 const columns, QWidget* parent) : QLabel(parent)
 {
     this->page = page;
     this->columns = columns;
@@ -56,7 +56,7 @@ void OverviewFrame::keyPressEvent(QKeyEvent* event)
         break;
     case Qt::Key_End:
         // Go to page "infinity"
-        emit activated(1048576);
+        emit activated(1073741824);
         break;
     case Qt::Key_PageUp:
         emit activated(page-1);

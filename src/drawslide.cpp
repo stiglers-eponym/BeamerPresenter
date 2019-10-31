@@ -59,7 +59,7 @@ void DrawSlide::resizeEvent(QResizeEvent*)
     if (resolution < 0)
         return;
     enlargedPage = QPixmap();
-    int const oldshiftx = shiftx, oldshifty = shifty;
+    quint16 const oldshiftx = shiftx, oldshifty = shifty;
     double const oldRes = resolution;
     QSizeF pageSize = page->pageSizeF();
     double pageWidth=pageSize.width();
@@ -67,12 +67,12 @@ void DrawSlide::resizeEvent(QResizeEvent*)
         pageWidth /= 2;
     if (width() * pageSize.height() > height() * pageWidth) {
         resolution = double(height()) / pageSize.height();
-        shiftx = int(width()/2 - resolution/2 * pageWidth);
+        shiftx = quint16(width()/2 - resolution/2 * pageWidth);
         shifty = 0;
     }
     else {
         resolution = double(width()) / pageWidth;
-        shifty = int(height()/2 - resolution/2 * pageSize.height());
+        shifty = quint16(height()/2 - resolution/2 * pageSize.height());
         shiftx = 0;
     }
     QPointF shift = QPointF(shiftx, shifty) - resolution/oldRes*QPointF(oldshiftx, oldshifty);
@@ -202,8 +202,6 @@ void DrawSlide::mousePressEvent(QMouseEvent *event)
         // Left mouse button is used for painting.
         switch (tool.tool)
         {
-        case None:
-            return;
         case Pen:
         case Highlighter:
             if (!paths.contains(page->label()))
@@ -224,6 +222,8 @@ void DrawSlide::mousePressEvent(QMouseEvent *event)
             update();
             emit pointerPositionChanged(pointerPosition, shiftx, shifty, resolution);
             break;
+        default:
+            return;
         }
         break;
     case Qt::RightButton:
@@ -240,7 +240,7 @@ void DrawSlide::mouseReleaseEvent(QMouseEvent *event)
 {
     // Middle mouse button always follows hyperlinks.
     switch (tool.tool) {
-    case None:
+    case NoTool:
     case Pointer:
         if (event->button() == Qt::LeftButton || event->button() == Qt::MidButton)
             followHyperlinks(event->pos());
@@ -285,10 +285,6 @@ void DrawSlide::mouseMoveEvent(QMouseEvent *event)
     case Qt::LeftButton:
         switch (tool.tool)
         {
-        case None:
-            if (pointer_visible)
-                MediaSlide::mouseMoveEvent(event);
-            break;
         case Pen:
         case Highlighter:
             if (paths.contains(page->label()) && paths[page->label()].length()>0) {
@@ -309,6 +305,9 @@ void DrawSlide::mouseMoveEvent(QMouseEvent *event)
             break;
         case Pointer:
             break;
+        default:
+            if (pointer_visible)
+                MediaSlide::mouseMoveEvent(event);
         }
         break;
     case Qt::RightButton:
@@ -365,7 +364,7 @@ void DrawSlide::clearCache()
     enlargedPage = QPixmap();
 }
 
-void DrawSlide::setPaths(QString const pagelabel, QList<DrawPath*> const& list, int const refshiftx, int const refshifty, double const refresolution)
+void DrawSlide::setPaths(QString const pagelabel, QList<DrawPath*> const& list, quint16 const refshiftx, quint16 const refshifty, double const refresolution)
 {
     QPointF shift = QPointF(shiftx, shifty) - resolution/refresolution*QPointF(refshiftx, refshifty);
     if (!paths.contains(pagelabel)) {
@@ -374,7 +373,7 @@ void DrawSlide::setPaths(QString const pagelabel, QList<DrawPath*> const& list, 
             paths[pagelabel].append(new DrawPath(**it, shift, resolution/refresolution));
     }
     else {
-        QMap<unsigned int, int> oldHashs;
+        QMap<quint32, int> oldHashs;
         for (int i=0; i<paths[pagelabel].length(); i++)
             oldHashs[paths[pagelabel][i]->getHash()] = i;
         for (QList<DrawPath*>::const_iterator it = list.cbegin(); it!=list.cend(); it++) {
@@ -391,7 +390,7 @@ void DrawSlide::setPaths(QString const pagelabel, QList<DrawPath*> const& list, 
     update();
 }
 
-void DrawSlide::setPointerPosition(QPointF const point, int const refshiftx, int const refshifty, double const refresolution)
+void DrawSlide::setPointerPosition(QPointF const point, quint16 const refshiftx, quint16 const refshifty, double const refresolution)
 {
     pointerPosition = (point - QPointF(refshiftx, refshifty)) * resolution/refresolution + QPointF(shiftx, shifty);
     if (tool.tool == Magnifier && enlargedPage.isNull())
@@ -453,25 +452,30 @@ void DrawSlide::saveDrawings(QString const& filename, QString const& notefile) c
     qInfo() << "Saving files is experimental. Files might contain errors or might be unreadable for later versions of BeamerPresenter";
     QFile file(filename);
     file.open(QIODevice::WriteOnly);
-    int const w = width()-2*shiftx, h = height()-2*shifty;
     QDataStream stream(&file);
     stream.setVersion(QDataStream::Qt_5_0);
-    stream << static_cast<quint32>(0x2CA7D9F8);
+    stream  << static_cast<quint32>(0x2CA7D9F8)
+            << static_cast<quint16>(stream.version())
+            << doc->getPath()
+            << notefile;
     if (stream.status() == QDataStream::WriteFailed) {
         qCritical() << "Failed to write to file: File is not writable.";
         return;
     }
-    stream  << static_cast<quint16>(stream.version())
-            << doc->getPath()
-            << notefile
-            << sizes
-            << static_cast<quint16>(paths.size());
+    {
+        QMap<quint16, quint16> newsizes;
+        for (QMap<DrawTool, quint16>::const_iterator size_it=sizes.cbegin(); size_it!=sizes.cend(); size_it++)
+            newsizes[static_cast<quint16>(size_it.key())] = *size_it;
+        stream << newsizes;
+    }
+    stream << static_cast<quint16>(paths.size());
+    quint16 const w = quint16(width()-2*shiftx), h = quint16(height()-2*shifty);
     for (QMap<QString, QList<DrawPath*>>::const_iterator page_it=paths.cbegin(); page_it!=paths.cend(); page_it++) {
         stream << page_it.key() << static_cast<quint16>(page_it->length());
         for (QList<DrawPath*>::const_iterator path_it=page_it->cbegin(); path_it!=page_it->cend(); path_it++) {
             QVector<float> vec;
             (*path_it)->toIntVector(vec, shiftx, shifty, w, h);
-            stream << static_cast<unsigned int>((*path_it)->getTool()) << (*path_it)->getColor() << vec;
+            stream << static_cast<quint16>((*path_it)->getTool()) << (*path_it)->getColor() << vec;
         }
     }
     if (stream.status() != QDataStream::Ok) {
@@ -493,7 +497,6 @@ void DrawSlide::loadDrawings(QString const& filename)
         qCritical() << "Loading file failed: file is not readable.";
         return;
     }
-    int const w = width()-2*shiftx, h = height()-2*shifty;
     QDataStream stream(&file);
     stream.setVersion(QDataStream::Qt_5_0);
     {
@@ -512,7 +515,6 @@ void DrawSlide::loadDrawings(QString const& filename)
     {
         QString docpath, notepath;
         stream >> docpath >> notepath;
-        qDebug() << docpath << notepath;
         if (stream.status() != QDataStream::Ok) {
             qCritical() << "Failed to load file: File is corrupt.";
             return;
@@ -521,14 +523,14 @@ void DrawSlide::loadDrawings(QString const& filename)
             qWarning() << "This drawing file was generated for a different PDF file path.";
     }
     {
-        QMap<unsigned int, quint16> newsizes;
+        QMap<quint16, quint16> newsizes;
         stream >> newsizes;
         if (stream.status() != QDataStream::Ok) {
             qCritical() << "Failed to load file: File is corrupt.";
             return;
         }
-        for (QMap<unsigned int, quint16>::const_iterator size_it=newsizes.cbegin(); size_it!=newsizes.cend(); size_it++)
-            sizes[size_it.key()] = *size_it;
+        for (QMap<quint16, quint16>::const_iterator size_it=newsizes.cbegin(); size_it!=newsizes.cend(); size_it++)
+            sizes[static_cast<DrawTool>(size_it.key())] = *size_it;
     }
     quint16 npages, npaths;
     stream >> npages;
@@ -537,8 +539,9 @@ void DrawSlide::loadDrawings(QString const& filename)
         return;
     }
     clearAllAnnotations();
+    quint16 const w = quint16(width()-2*shiftx), h = quint16(height()-2*shifty);
     QString pagelabel;
-    int tool;
+    quint16 tool;
     QColor color;
     for (int pageidx=0; pageidx<npages; pageidx++) {
         stream >> pagelabel >> npaths;

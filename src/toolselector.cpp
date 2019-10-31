@@ -18,12 +18,12 @@
 
 #include "toolselector.h"
 
-void ToolSelector::setTools(const unsigned char nrows, const unsigned char ncols, QMap<unsigned char, QList<KeyAction>> const& actions, QMap<unsigned char, QColor> const& colors)
+void ToolSelector::setTools(const quint8 nrows, const quint8 ncols, QMap<quint8, QList<KeyAction>> const& actions, QMap<quint8, QColor> const& colors)
 {
     this->nrows = nrows;
     this->ncols = ncols;
     layout = new QGridLayout(this);
-    for (QMap<unsigned char, QList<KeyAction>>::const_iterator it=actions.cbegin(); it!=actions.cend(); it++) {
+    for (QMap<quint8, QList<KeyAction>>::const_iterator it=actions.cbegin(); it!=actions.cend(); it++) {
         ToolButton* button = new ToolButton(*it, colors.value(it.key(), QColor(0,0,0,0)), this);
         buttons[it.key()] = button;
         connect(button, &ToolButton::sendTool, this, &ToolSelector::sendNewTool);

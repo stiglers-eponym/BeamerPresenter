@@ -32,7 +32,7 @@ private:
     QRectF outer = QRectF();
     quint16 eraser_size = 10;
     ColoredDrawTool tool;
-    unsigned int hash = 0;
+    quint32 hash = 0;
 public:
     DrawPath(ColoredDrawTool const& tool, QPointF const& start, quint16 const eraser_size = 10);
     DrawPath(ColoredDrawTool const& tool, QPointF* const points, int const number, quint16 const eraser_size = 10);
@@ -45,7 +45,7 @@ public:
     void updateHash();
     void setEraserSize(quint16 const size);
     void clear() {path.clear(); outer=QRectF(); hash=0;}
-    unsigned int getHash() const {return hash;}
+    quint32 getHash() const {return hash;}
     bool isEmpty() const {return path.isEmpty();}
     int number() const {return path.length();}
     DrawTool getTool() const {return tool.tool;}

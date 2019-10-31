@@ -70,13 +70,13 @@ void PreviewSlide::renderPage(int const pageNumber, QPixmap const* pix)
     if (width() * pageHeight > height() * pageWidth) {
         // the width of the label is larger than required
         resolution = double(height()) / pageHeight;
-        shiftx = int(width()/2 - resolution/2 * pageWidth);
+        shiftx = quint16(width()/2 - resolution/2 * pageWidth);
         shifty = 0;
     }
     else {
         // the height of the label is larger than required
         resolution = double(width()) / pageWidth;
-        shifty = int(height()/2 - resolution/2 * pageHeight);
+        shifty = quint16(height()/2 - resolution/2 * pageHeight);
         shiftx = 0;
     }
 
@@ -155,7 +155,7 @@ void PreviewSlide::renderPage(int const pageNumber, QPixmap const* pix)
     }
 }
 
-long int PreviewSlide::updateCache(QPixmap const* pix, int const index)
+qint64 PreviewSlide::updateCache(QPixmap const* pix, int const index)
 {
     // Save the pixmap to (compressed) cache of page index and return the size of the compressed image.
     if (pix==nullptr || pix->isNull())
@@ -166,10 +166,10 @@ long int PreviewSlide::updateCache(QPixmap const* pix, int const index)
     buffer.open(QIODevice::WriteOnly);
     pix->save(&buffer, "PNG");
     cache[index] = bytes;
-    return bytes->size();
+    return qint64(bytes->size());
 }
 
-long int PreviewSlide::updateCache(QByteArray const* bytes, int const index)
+qint64 PreviewSlide::updateCache(QByteArray const* bytes, int const index)
 {
     // Write bytes to the cache of page index and return the size of bytes.
     if (bytes==nullptr || bytes->isNull() || bytes->isEmpty())
@@ -177,10 +177,10 @@ long int PreviewSlide::updateCache(QByteArray const* bytes, int const index)
     else if (cache.contains(index))
         delete cache[index];
     cache[index] = bytes;
-    return bytes->size();
+    return qint64(bytes->size());
 }
 
-long int PreviewSlide::updateCache(int const pageNumber)
+qint64 PreviewSlide::updateCache(int const pageNumber)
 {
     // Check whether the cachePage exists in cache. If yes, return 0.
     // Otherwise, render the given page using the internal renderer,
@@ -209,7 +209,7 @@ long int PreviewSlide::updateCache(int const pageNumber)
     buffer.open(QIODevice::WriteOnly);
     image.save(&buffer, "PNG");
     cache[pageNumber] = bytes;
-    return bytes->size();
+    return qint64(bytes->size());
 }
 
 QPixmap const PreviewSlide::getPixmap(int const pageNumber) const
@@ -268,12 +268,12 @@ QByteArray const* PreviewSlide::getCachedBytes(int const index) const
         return new QByteArray();
 }
 
-long int PreviewSlide::getCacheSize() const
+qint64 PreviewSlide::getCacheSize() const
 {
     // Return the total size of all cached images of this label in bytes.
-    long int size=0;
+    qint64 size=0;
     for (QMap<int,QByteArray const*>::const_iterator it=cache.cbegin(); it!=cache.cend(); it++) {
-        size += (*it)->size();
+        size += qint64((*it)->size());
     }
     return size;
 }
@@ -281,18 +281,17 @@ long int PreviewSlide::getCacheSize() const
 void PreviewSlide::clearCache()
 {
     // Remove all images from cache.
-    for (QMap<int,QByteArray const*>::const_iterator bytes=cache.cbegin(); bytes!=cache.cend(); bytes++) {
+    for (QMap<int,QByteArray const*>::const_iterator bytes=cache.cbegin(); bytes!=cache.cend(); bytes++)
         delete *bytes;
-    }
     cache.clear();
 }
 
-long int PreviewSlide::clearCachePage(const int index)
+qint64 PreviewSlide::clearCachePage(const int index)
 {
     // Delete the given page (page number index+1) from cache and return its size.
     // Return 0 if the page does not exist in cache.
     if (cache.contains(index)) {
-        long int size = cache[index]->size();
+        qint64 size = qint64(cache[index]->size());
         delete cache[index];
         cache.remove(index);
         return size;

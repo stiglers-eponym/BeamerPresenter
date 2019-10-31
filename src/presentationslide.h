@@ -27,10 +27,10 @@ class PresentationSlide : public DrawSlide
     Q_OBJECT
 
 private:
-    int transition_duration = 0; // in ms
-    int n_blinds = 8;
-    int picwidth;
-    int picheight;
+    qint32 transition_duration = 0; // in ms
+    quint8 n_blinds = 8;
+    quint16 picwidth;
+    quint16 picheight;
     QTimer timer;
     QTimer remainTimer;
     void (PresentationSlide::*paint)(QPainter&) = nullptr;
@@ -55,7 +55,7 @@ public:
     PresentationSlide(PdfDoc const*const document, QWidget* parent=nullptr);
     ~PresentationSlide() override;
     QPixmap const& getCurrentPixmap() const {return pixmap;}
-    void setBlindsNumber(int const n) {n_blinds=n;}
+    void setBlindsNumber(quint8 const n) {n_blinds=n;}
     void enableTransitions() {transition_duration = 0;}
     void disableTransitions();
     double getDuration() const {return duration;}

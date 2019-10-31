@@ -40,8 +40,6 @@ public:
     void setScaledPixmap(QPixmap const& pix);
 
     QMap<QString, QList<DrawPath*>> const& getPaths() const {return paths;}
-    int const& getXshift() const {return shiftx;}
-    int const& getYshift() const {return shifty;}
     double const& getResolution() const {return resolution;}
     ColoredDrawTool getTool() const {return tool;}
     quint16 getSize(DrawTool const tool) const {return sizes[tool];}
@@ -57,23 +55,23 @@ protected:
     virtual void mouseMoveEvent(QMouseEvent* event) override;
     virtual void resizeEvent(QResizeEvent*) override;
     void erase(QPointF const& point);
-    ColoredDrawTool tool = {None, Qt::black};
+    ColoredDrawTool tool = {NoTool, Qt::black};
     QMap<QString, QList<DrawPath*>> paths;
     QPointF pointerPosition = QPointF();
     QPixmap enlargedPage;
-    QMap<unsigned int, quint16> sizes = {{Magnifier,120}, {Torch,80}, {Pointer,10}, {Highlighter,30}, {Pen,3}, {Eraser,10}};
+    QMap<DrawTool, quint16> sizes = {{Magnifier,120}, {Torch,80}, {Pointer,10}, {Highlighter,30}, {Pen,3}, {Eraser,10}};
     bool pointer_visible = true;
 
 public slots:
-    void setPaths(QString const pagelabel, QList<DrawPath*> const& list, int const refshiftx, int const refshifty, double const refresolution);
-    void setPointerPosition(QPointF const point, int const refshiftx, int const refshifty, double const refresolution);
+    void setPaths(QString const pagelabel, QList<DrawPath*> const& list, quint16 const refshiftx, quint16 const refshifty, double const refresolution);
+    void setPointerPosition(QPointF const point, quint16 const refshiftx, quint16 const refshifty, double const refresolution);
     void setTool(ColoredDrawTool const newtool);
     void setTool(DrawTool const newtool, QColor const color=QColor()) {setTool({newtool, color});}
     void relax();
 
 signals:
-    void pointerPositionChanged(QPointF const point, int const refshiftx, int const refshifty, double const refresolution);
-    void pathsChanged(QString const pagelabel, QList<DrawPath*> const& list, int const refshiftx, int const refshifty, double const refresolution);
+    void pointerPositionChanged(QPointF const point, quint16 const refshiftx, quint16 const refshifty, double const refresolution);
+    void pathsChanged(QString const pagelabel, QList<DrawPath*> const& list, quint16 const refshiftx, quint16 const refshifty, double const refresolution);
     void sendToolChanged(ColoredDrawTool const tool);
     void sendUpdateEnlargedPage();
     void sendRelax();

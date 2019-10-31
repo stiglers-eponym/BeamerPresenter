@@ -28,15 +28,15 @@ class ToolSelector : public QWidget
 {
     Q_OBJECT
 private:
-    QMap<unsigned char, ToolButton*> buttons;
+    QMap<quint8, ToolButton*> buttons;
     QGridLayout* layout = nullptr;
-    int nrows = 2;
-    int ncols = 5;
+    quint8 nrows = 2;
+    quint8 ncols = 5;
 
 public:
     explicit ToolSelector(QWidget *parent = nullptr) : QWidget(parent) {}
     ~ToolSelector() {qDeleteAll(buttons); delete layout;}
-    void setTools(unsigned char const nrows, unsigned char const ncols, QMap<unsigned char, QList<KeyAction>> const& actionMap, QMap<unsigned char, QColor> const& colorMap);
+    void setTools(quint8 const nrows, quint8 const ncols, QMap<quint8, QList<KeyAction>> const& actionMap, QMap<quint8, QColor> const& colorMap);
 
 signals:
     void sendNewTool(ColoredDrawTool const tool);

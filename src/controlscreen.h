@@ -54,18 +54,18 @@ public:
     void setScrollDelta(int const scrollDelta);
     void setForceTouchpad();
     void setCacheNumber(int const number);
-    void setCacheSize(long int const size);
-    void setTocLevel(int const level);
-    void setOverviewColumns(int const columns) {overviewColumns=columns;}
+    void setCacheSize(qint64 const size);
+    void setTocLevel(quint8 const level);
+    void setOverviewColumns(quint8 const columns) {overviewColumns=columns;}
     void setRenderer(QStringList command);
     void setCacheVideos(bool const cache) {presentationScreen->setCacheVideos(cache);}
-    void setKeyMap(QMap<int, QList<int>>* keymap);
-    void unsetKeyMapItem(const int key) {keymap->remove(key);}
-    void setKeyMapItem(const int key, const int action);
+    void setKeyMap(QMap<quint32, QList<KeyAction>>* keymap);
+    void unsetKeyMapItem(quint32 const key) {keymap->remove(key);}
+    void setKeyMapItem(quint32 const key, KeyAction const action);
     void setTimerMap(QMap<int, QTime>& timeMap);
     void disableSlideTransitions() {presentationScreen->slide->disableTransitions();}
     void setToolSize(DrawTool const tool, quint16 const size) {presentationScreen->slide->setSize(tool, size);}
-    void setToolForKey(int const key, ColoredDrawTool tool) {tools[key] = tool;}
+    void setToolForKey(quint32 const key, ColoredDrawTool tool) {tools[key] = tool;}
     void setTransitionBlinds(int const n) {presentationScreen->slide->setBlindsNumber(n);}
     void showDrawSlide();
     void hideDrawSlide();
@@ -92,7 +92,7 @@ private:
     CacheUpdateThread* cacheThread = new CacheUpdateThread(this);
     TocBox* tocBox = nullptr;
     OverviewBox* overviewBox = nullptr;
-    int overviewColumns = 5;
+    quint8 overviewColumns = 5;
     int numberOfPages;
     int currentPageNumber = 0;
     PagePart pagePart = FullPage;
@@ -100,19 +100,19 @@ private:
     int scrollDelta = 200;
     int scrollState = 0;
     int maxCacheNumber = 10;
-    long int maxCacheSize = 104857600;
+    qint64 maxCacheSize = 104857600;
     int first_delete = 0;
     int last_delete;
     int first_cached = 0;
     int last_cached = -1;
-    long int cacheSize = 0;
+    qint64 cacheSize = 0;
     int cacheNumber = 0;
     QSize oldSize = QSize();
     DrawSlide* drawSlide = nullptr;
 
     // keymap maps (key code + modifiers) to a list of KeyActions.
-    QMap<int, QList<int>>* keymap = new QMap<int, QList<int>>();
-    QMap<int, ColoredDrawTool> tools;
+    QMap<quint32, QList<KeyAction>>* keymap = new QMap<quint32, QList<KeyAction>>();
+    QMap<quint32, ColoredDrawTool> tools;
 
 private slots:
     void updateCacheStep();
@@ -120,7 +120,7 @@ private slots:
 signals:
     void sendNewPageNumber(int const pageNumber, bool const setDuration);
     void sendTimerString(QString const timerString);
-    void sendTimerColors(QList<int> times, QList<QColor> colors);
+    void sendTimerColors(QList<qint32> times, QList<QColor> colors);
     void sendAutostartDelay(double const timeout);
 #ifdef EMBEDDED_APPLICATIONS_ENABLED
     void sendAutostartEmbeddedDelay(double const timeout);
@@ -128,7 +128,7 @@ signals:
     void sendCloseSignal();
     void playMultimedia();
     void pauseMultimedia();
-    void sendAnimationDelay(int const delay_ms);
+    void sendAnimationDelay(quint32 const delay_ms);
 
 public slots:
     // TODO: Some of these functions are not used as slots. Tidy up!

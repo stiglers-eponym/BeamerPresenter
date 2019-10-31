@@ -77,44 +77,41 @@ Not available if embedded applications were disabled at compile time.
 Go to page (set focus to page number edit). This will make the control screen the active window.
 .
 .TP
-.B play multimedia
+.BR "play pause multimedia " or " toggle multimedia"
 Play or pause all multimedia content on the current slide.
+.RB Analogous: " play multimedia " and " pause multimedia" .
 .
 .TP
 .B toggle cursor
-Toggle cursor visibility (only on the presentation screen).
+Toggle cursor visibility on the presentation screen.
+.RB Analogous: " show cursor " and " hide cursor" .
 .
 .TP
-.B pause timer
+.B toggle timer
 Pause or continue timer.
+.RB Analogous: " continue timer " and " pause timer" .
+.
+.TP
+.B reset timer
+Set elapsed time to 0.
 .
 .TP
 .B quit
 Quit.
 .
 .TP
-.B reset timer
-Reset timer.
+.B toggle overview
+Show or hide overview of all slides on the control screen.
+.RB Analogous: " show overview " and " hide overview" .
 .
 .TP
-.B show overview
-Show overview of all slides on the control screen.
-.
-.TP
-.B hide overview
-Hide overview of all slides if it is shown.
-.
-.TP
-.B show TOC
+.B toggle TOC
 Show table of contents on the control screen.
-.
-.TP
-.B hide TOC
-Hide the table of contents if it is shown.
+.RB Analogous: " show TOC " and " hide TOC" .
 .
 .TP
 .B reload
-Check if the PDF files have changed and reload them if necessary (experimental feature).
+Check if the PDF files have changed and reload them if necessary.
 .
 .TP
 .B update
@@ -157,12 +154,9 @@ Set page number of the presentation to the page number on the control screen and
 Set page number of the control screen to the page number of the presentation. When browsing your notes, this will bring you back to the current slide.
 .
 .TP
-.B draw mode
-Enter drawing mode: draw in the presentation slide on the control screen. In this mode all tools are synchronized between presentation screen and control screen.
-.
-.TP
-.B hide draw slide
-Exit drawing mode: control screen shows notes again.
+.B toggle draw mode
+Toggle drawing mode: draw in the presentation slide on the control screen. In this mode all tools are synchronized between presentation screen and control screen.
+.RB Analogous: "enter draw mode" = "draw mode " and "end draw mode" = "hide draw slide" .
 .
 .TP
 .B clear annotations
@@ -170,7 +164,7 @@ Delete all drawings on the current page.
 .
 .TP
 .B hand tool
-Return from drawing mode to normal mode.
+Set the current draw tool or highlight tool to "no tool".
 .
 .TP
 .BI pen " <color>"

@@ -27,7 +27,7 @@ BasicSlide::BasicSlide(PdfDoc const * const document, int const pageNumber, QWid
 
 void BasicSlide::renderPage(const int pageNumber, const QPixmap *pix)
 {
-    if (pageNumber < 0 || pageNumber >= doc->getDoc()->numPages())
+    if (pageNumber >= doc->getDoc()->numPages())
         return;
 
     // Set the new page and basic properties
@@ -47,13 +47,13 @@ void BasicSlide::renderPage(const int pageNumber, const QPixmap *pix)
     if (width() * pageHeight > height() * pageWidth) {
         // the width of the label is larger than required
         resolution = double(height()) / pageHeight;
-        shiftx = int(width()/2 - resolution/2 * pageWidth);
+        shiftx = quint16(width()/2 - resolution/2 * pageWidth);
         shifty = 0;
     }
     else {
         // the height of the label is larger than required
         resolution = double(width()) / pageWidth;
-        shifty = int(height()/2 - resolution/2 * pageHeight);
+        shifty = quint16(height()/2 - resolution/2 * pageHeight);
         shiftx = 0;
     }
 

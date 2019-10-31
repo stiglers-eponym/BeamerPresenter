@@ -72,7 +72,7 @@ DrawPath::DrawPath(DrawPath const& old, QPointF const shift, double const scale)
         path[i] = scale*old.path[i] + shift;
     outer = QRectF(scale*old.outer.topLeft() + shift, scale*old.outer.bottomRight() + shift);
     eraser_size = old.eraser_size;
-    //eraser_size = static_cast<int>(scale*old.eraser_size+0.5);
+    //eraser_size = quint16(scale*old.eraser_size+0.5);
     tool = old.tool;
     hash = old.hash;
 }
@@ -107,7 +107,7 @@ void DrawPath::append(QPointF const& point)
         else if (point.y()+eraser_size > outer.bottom())
             outer.setBottom(point.y()+eraser_size);
     }
-    hash ^= static_cast<unsigned int>(std::hash<double>{}(point.x() + 1e5*point.y())) + (hash << 6) + (hash >> 2);
+    hash ^= quint32(std::hash<double>{}(point.x() + 1e5*point.y())) + (hash << 6) + (hash >> 2);
 }
 
 QVector<int> DrawPath::intersects(QPointF const& point) const
@@ -138,14 +138,13 @@ DrawPath* DrawPath::split(int start, int end)
 
 void DrawPath::updateHash()
 {
-    hash = static_cast<unsigned int>(std::hash<int>{}(tool.tool));
-    hash ^= static_cast<unsigned int>(tool.color.red())   + (hash << 6) + (hash >> 2);
-    hash ^= static_cast<unsigned int>(tool.color.green()) + (hash << 6) + (hash >> 2);
-    hash ^= static_cast<unsigned int>(tool.color.blue())  + (hash << 6) + (hash >> 2);
-    hash ^= static_cast<unsigned int>(tool.color.alpha()) + (hash << 6) + (hash >> 2);
+    hash = quint32(std::hash<int>{}(tool.tool));
+    hash ^= quint32(tool.color.red())   + (hash << 6) + (hash >> 2);
+    hash ^= quint32(tool.color.green()) + (hash << 6) + (hash >> 2);
+    hash ^= quint32(tool.color.blue())  + (hash << 6) + (hash >> 2);
+    hash ^= quint32(tool.color.alpha()) + (hash << 6) + (hash >> 2);
     for (auto& p : path)
-        hash ^= static_cast<unsigned int>(std::hash<double>{}(p.x() + 1e5*p.y())) + (hash << 6) + (hash >> 2);
-    //qDebug() << "updated hash:" << hash;
+        hash ^= quint32(std::hash<double>{}(p.x() + 1e5*p.y())) + (hash << 6) + (hash >> 2);
 }
 
 void DrawPath::toIntVector(QVector<float>& vec, int const xshift, int const yshift, int const width, int const height) const

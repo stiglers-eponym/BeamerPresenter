@@ -35,18 +35,18 @@ class TocBox : public QWidget
 private:
     QStringList const indentStrings = {"  ", "    ➤ ", "       - ", "          + "};
     QDomDocument const * toc = nullptr;
-    int unfoldLevel = 2;
+    quint8 unfoldLevel = 2;
     QVBoxLayout* layout;
     QList<TocButton*> buttons;
     QList<QMenu*> menus;
-    void recursiveTocCreator(QDomNode const& node, int const level);
+    void recursiveTocCreator(QDomNode const& node, quint8 const level);
     bool need_update = true;
 
 public:
     TocBox(QWidget* parent = nullptr);
     ~TocBox();
     void createToc(QDomDocument const* toc);
-    void setUnfoldLevel(int const level);
+    void setUnfoldLevel(quint8 const level);
     bool needUpdate() {return need_update;}
     void setOutdated() {need_update=true;}
     bool hasToc() {return toc!=nullptr;}

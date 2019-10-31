@@ -64,19 +64,18 @@ static const QMap<KeyAction, QString> actionNames = {
     {Quit, "quit"},
 
     {ClearAnnotations, "clear"},
-    {DrawNone, "Hand"},
-    {ToggleDrawMode, "Draw"},
-    {DrawMode, "Draw"},
-    {ToggleDrawMode, "Draw"},
-    {DrawEraser, "Eraser"},
-    {DrawPen, "Pen"},
-    {DrawHighlighter, "Highlight"},
-    {DrawPointer, "Pointer"},
-    {DrawMagnifier, "Magnifier"},
-    {DrawTorch, "Torch"},
+    {DrawNone, "hand"},
+    {ToggleDrawMode, "draw"},
+    {DrawMode, "draw"},
+    {DrawEraser, "eraser"},
+    {DrawPen, "pen"},
+    {DrawHighlighter, "highlight"},
+    {DrawPointer, "pointer"},
+    {DrawMagnifier, "magnifier"},
+    {DrawTorch, "torch"},
 
-    {SaveDrawings, "Save"},
-    {LoadDrawings, "Open"},
+    {SaveDrawings, "save"},
+    {LoadDrawings, "open"},
 };
 
 static const QMap<KeyAction, QString> actionIconNames = {
@@ -129,12 +128,12 @@ ToolButton::ToolButton(QList<KeyAction> const actions, QColor const color, QWidg
             setIcon(icon);
     }
     if (actions.size() == 1 && color != QColor(0,0,0,0))
-        tool = actionToToolMap.value(actions.first(), {None, color}).tool;
+        tool = actionToToolMap.value(actions.first(), {InvalidTool, color}).tool;
 }
 
 void ToolButton::onClicked()
 {
-    if (tool == None) {
+    if (tool == InvalidTool) {
         for (auto action : actions)
             emit sendAction(action);
     }

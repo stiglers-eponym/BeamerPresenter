@@ -31,13 +31,13 @@ public:
     explicit PreviewSlide(PdfDoc const * const document, int const pageNumber, QWidget* parent=nullptr);
     ~PreviewSlide() override;
     virtual void renderPage(int const pageNumber, QPixmap const* pix=nullptr) override;
-    long int updateCache(int const pageNumber);
-    long int updateCache(QPixmap const* pix, int const index);
-    long int updateCache(QByteArray const* bytes, int const index);
-    long int clearCachePage(int const index);
+    qint64 updateCache(int const pageNumber);
+    qint64 updateCache(QPixmap const* pix, int const index);
+    qint64 updateCache(QByteArray const* bytes, int const index);
+    qint64 clearCachePage(int const index);
     virtual void clearCache();
     void setUseCache(char const use) {useCache=use;}
-    long int getCacheSize() const;
+    qint64 getCacheSize() const;
     int getCacheNumber() const {return cache.size();}
     QPixmap const getPixmap(int const pageNumber) const;
     QPixmap const getCache(int const index) const;

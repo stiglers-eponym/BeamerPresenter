@@ -35,13 +35,13 @@ private:
     QList<OverviewFrame*> frames;
     QWidget* client;
     bool outdated=true;
-    int columns;
+    quint8 columns;
     int focused = 0;
 
 public:
     explicit OverviewBox(QWidget* parent = nullptr);
     ~OverviewBox();
-    void create(PdfDoc const* doc, int const columns = 5, PagePart const pagePart = PagePart::FullPage);
+    void create(PdfDoc const* doc, quint8 const columns = 5, PagePart const pagePart = PagePart::FullPage);
     bool needsUpdate() const {return outdated;}
     void setOutdated() {outdated=true;}
     void setFocused(int const page);

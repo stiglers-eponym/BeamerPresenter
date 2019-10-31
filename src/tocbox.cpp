@@ -48,7 +48,7 @@ void TocBox::createToc(const QDomDocument *toc)
     need_update = false;
 }
 
-void TocBox::setUnfoldLevel(const int level)
+void TocBox::setUnfoldLevel(const quint8 level)
 {
     if (unfoldLevel!=level) {
         need_update = true;
@@ -56,7 +56,7 @@ void TocBox::setUnfoldLevel(const int level)
     }
 }
 
-void TocBox::recursiveTocCreator(QDomNode const& n, int const level)
+void TocBox::recursiveTocCreator(QDomNode const& n, quint8 const level)
 {
     QDomElement e = n.toElement();
     if (e.isNull())

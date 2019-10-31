@@ -34,7 +34,7 @@ OverviewBox::~OverviewBox()
     frames.clear();
 }
 
-void OverviewBox::create(PdfDoc const* doc, int const columns, PagePart const pagePart)
+void OverviewBox::create(PdfDoc const* doc, quint8 const columns, PagePart const pagePart)
 {
     qDeleteAll(frames);
     frames.clear();
