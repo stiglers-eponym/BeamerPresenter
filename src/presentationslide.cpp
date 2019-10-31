@@ -21,6 +21,7 @@
 PresentationSlide::PresentationSlide(PdfDoc const*const document, QWidget* parent) : DrawSlide(parent)
 {
     doc = document;
+    seed = static_cast<unsigned int>(std::hash<std::string>{}(doc->getPath().split('/').last().toStdString()));
     connect(&timer, &QTimer::timeout, this, QOverload<>::of(&PresentationSlide::repaint));
     timeoutTimer->setSingleShot(true);
     connect(timeoutTimer, &QTimer::timeout, this, &PresentationSlide::timeoutSignal);
@@ -34,6 +35,10 @@ PresentationSlide::~PresentationSlide()
     remainTimer.stop();
     timeoutTimer->stop();
     delete timeoutTimer;
+    if (glitter != nullptr) {
+        delete[] glitter;
+        glitter = nullptr;
+    }
 }
 
 void PresentationSlide::paintEvent(QPaintEvent*)
@@ -68,8 +73,13 @@ void PresentationSlide::drawPointer(QPainter& painter)
 
 void PresentationSlide::endAnimation()
 {
+    qDebug() << "Ending Animation";
     stopAnimation();
     repaint();
+    if (glitter != nullptr) {
+        delete[] glitter;
+        glitter = nullptr;
+    }
     emit sendAdaptPage();
 }
 
@@ -248,6 +258,7 @@ void PresentationSlide::animate(int const oldPageIndex) {
         break;
     case Poppler::PageTransition::Glitter:
         qDebug () << "Transition glitter";
+        initGlitter();
         paint = &PresentationSlide::paintGlitter;
         break;
     case Poppler::PageTransition::Fly:
@@ -571,21 +582,38 @@ void PresentationSlide::paintDissolve(QPainter& painter)
     painter.drawPixmap(0, 0, picfinal);
 }
 
-int const glitter[] = {8, 118, 37, 106, 155, 67, 113, 92, 140, 163, 57, 82, 14, 72, 12, 54, 43, 139, 91, 156, 108, 149, 98, 138, 32, 166, 58, 159, 60, 39, 62, 131, 40, 147, 145, 46, 153, 110, 93, 132, 85, 3, 78, 18, 87, 119, 165, 31, 109, 121, 28, 101, 127, 50, 96, 0, 95, 164, 100, 64, 2, 23, 105, 158, 49, 29, 52, 35, 13, 146, 154, 111, 45, 102, 55, 42, 15, 79, 1, 114, 27, 122, 104, 84, 53, 73, 126, 143, 157, 16, 59, 123, 74, 51, 24, 88, 11, 161, 135, 47, 4, 152, 86, 34, 130, 66, 17, 25, 89, 38, 160, 65, 112, 26, 63, 148, 48, 70, 22, 61, 33, 9, 141, 128, 162, 41, 19, 36, 77, 129, 68, 107, 20, 69, 81, 125, 94, 124, 90, 120, 133, 7, 75, 71, 116, 137, 150, 21, 30, 103, 5, 134, 115, 83, 10, 117, 144, 97, 142, 76, 151, 99, 56, 44, 6, 80, 136};
-int const nglitter = 167;
-int const glitterpixel = 30;
-
 void PresentationSlide::paintGlitter(QPainter& painter)
 {
-    int const n = width()*height()/glitterpixel;
-    int const steps = (nglitter*(transition_duration - remainTimer.remainingTime()))/transition_duration;
-    int const w = width()/glitterpixel;
+    if (glitter == nullptr)
+        return;
+    qint32 const n = width()*height()/glitterpixel, w = width()/glitterpixel;
+    qint16 const steps = qint16((nglitter*(transition_duration - remainTimer.remainingTime()))/transition_duration);
     painter.drawPixmap(0, 0, picinit);
-    for (int j=0; j<steps; j++) {
-        for (int i=glitter[j]%nglitter; i<n; i+=nglitter) {
+    for (qint16 j=0; j<steps; j++) {
+        for (qint32 i=glitter[j]%nglitter; i<n; i+=nglitter) {
             painter.drawPixmap(glitterpixel*(i%w), glitterpixel*(i/w), picfinal, glitterpixel*(i%w), glitterpixel*(i/w), glitterpixel, glitterpixel);
         }
     }
+}
+
+void PresentationSlide::initGlitter()
+{
+    unsigned int seed = this->seed + static_cast<unsigned int>(pageIndex+transition_duration);
+    if (glitter != nullptr)
+        delete[] glitter;
+    glitter = new quint16[nglitter];
+    for (quint16 i=0; i<nglitter; i++)
+        glitter[i] = i;
+    std::shuffle(glitter, glitter+nglitter, std::default_random_engine(seed));
+}
+
+void PresentationSlide::setGlitterSteps(quint16 const number)
+{
+    if (glitter != nullptr) {
+        delete[] glitter;
+        glitter = nullptr;
+    }
+    nglitter = number;
 }
 
 void PresentationSlide::paintFlyInUp(QPainter& painter)

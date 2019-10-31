@@ -58,19 +58,16 @@ public:
     void setTocLevel(quint8 const level);
     void setOverviewColumns(quint8 const columns) {overviewColumns=columns;}
     void setRenderer(QStringList command);
-    void setCacheVideos(bool const cache) {presentationScreen->setCacheVideos(cache);}
     void setKeyMap(QMap<quint32, QList<KeyAction>>* keymap);
     void unsetKeyMapItem(quint32 const key) {keymap->remove(key);}
     void setKeyMapItem(quint32 const key, KeyAction const action);
     void setTimerMap(QMap<int, QTime>& timeMap);
-    void disableSlideTransitions() {presentationScreen->slide->disableTransitions();}
-    void setToolSize(DrawTool const tool, quint16 const size) {presentationScreen->slide->setSize(tool, size);}
     void setToolForKey(quint32 const key, ColoredDrawTool tool) {tools[key] = tool;}
-    void setTransitionBlinds(int const n) {presentationScreen->slide->setBlindsNumber(n);}
     void showDrawSlide();
     void hideDrawSlide();
     void loadDrawings(QString const& filename) {presentationScreen->slide->loadDrawings(filename);}
     ToolSelector* getToolSelector();
+    PresentationSlide* getPresentationSlide() {return presentationScreen->slide;}
     // TODO: restructure cache management, return all images separately?
 
 protected:

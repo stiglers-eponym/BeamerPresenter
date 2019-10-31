@@ -19,6 +19,7 @@
 #ifndef TRANSITIONWIDGET_H
 #define TRANSITIONWIDGET_H
 
+#include <random>
 #include <poppler-page-transition.h>
 #include "drawslide.h"
 
@@ -36,6 +37,10 @@ private:
     void (PresentationSlide::*paint)(QPainter&) = nullptr;
     QPixmap changes; // only for transition fly
     int virtual_transition_duration = 100; // only for transition fly
+    quint16* glitter = nullptr;
+    quint16 nglitter = 167;
+    quint16 glitterpixel = 30;
+    unsigned int seed = 0;
 
 protected:
     QTimer* const timeoutTimer = new QTimer(this);
@@ -55,6 +60,9 @@ public:
     PresentationSlide(PdfDoc const*const document, QWidget* parent=nullptr);
     ~PresentationSlide() override;
     QPixmap const& getCurrentPixmap() const {return pixmap;}
+    void initGlitter();
+    void setGlitterSteps(quint16 const number);
+    void setGlitterPixel(quint16 const pixel) {glitterpixel=pixel;}
     void setBlindsNumber(quint8 const n) {n_blinds=n;}
     void enableTransitions() {transition_duration = 0;}
     void disableTransitions();

@@ -38,7 +38,6 @@ public:
     void updatedFile();
     void setScrollDelta(int const scrollDelta) {this->scrollDelta=scrollDelta;}
     void setForceTouchpad() {forceIsTouchpad=true;}
-    void setCacheVideos(bool const cache);
 
 protected:
     void keyPressEvent(QKeyEvent* event) override {emit sendKeyEvent(event);}
@@ -46,7 +45,6 @@ protected:
     void wheelEvent(QWheelEvent* event) override;
 
 private:
-    void updateVideoCache();
     QGridLayout* layout;
     PdfDoc* presentation;
     PresentationSlide* slide;

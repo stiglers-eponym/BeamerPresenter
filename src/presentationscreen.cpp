@@ -51,12 +51,6 @@ PresentationScreen::~PresentationScreen()
     delete layout;
 }
 
-void PresentationScreen::setCacheVideos(const bool cache)
-{
-    cacheVideos=cache;
-    slide->setCacheVideos(cache);
-}
-
 void PresentationScreen::renderPage(int const pageNumber, bool const setDuration)
 {
     if (pageNumber < 0 || pageNumber >= numberOfPages)
@@ -65,12 +59,6 @@ void PresentationScreen::renderPage(int const pageNumber, bool const setDuration
         pageIndex = pageNumber;
     slide->renderPage(pageIndex, setDuration);
     emit pageChanged(presentation->getSlideNumber(pageIndex));
-}
-
-void PresentationScreen::updateVideoCache()
-{
-    if (cacheVideos && pageIndex+1 < numberOfPages)
-        slide->updateCacheVideos(pageIndex+1);
 }
 
 void PresentationScreen::resizeEvent(QResizeEvent*)

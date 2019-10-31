@@ -33,6 +33,8 @@ enum KeyAction {
 
     Previous,
     Next,
+    PreviousNoTransition,
+    NextNoTransition,
     PreviousNotes,
     NextNotes,
     PreviousSkippingOverlays,

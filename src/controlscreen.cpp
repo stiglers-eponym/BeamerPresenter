@@ -454,7 +454,7 @@ void ControlScreen::renderPage(int const pageNumber, bool const full)
         // It is possible that presentationScreen->slide contains drawings which have not been copied to drawSlide yet.
         QString label = presentation->getLabel(currentPageNumber);
         if (!drawSlide->getPaths().contains(label)) {
-            quint16 const sx=presentationScreen->slide->getXshift(), sy=presentationScreen->slide->getYshift();
+            qint16 const sx=presentationScreen->slide->getXshift(), sy=presentationScreen->slide->getYshift();
             double res = presentationScreen->slide->getResolution();
             drawSlide->setPaths(label, presentationScreen->slide->getPaths()[label], sx, sy, res);
         }
@@ -514,7 +514,7 @@ void ControlScreen::renderPage(int const pageNumber, bool const full)
             if (drawSlide != nullptr)
                 drawSlide->updateEnlargedPage();
         }
-        presentationScreen->updateVideoCache();
+        presentationScreen->slide->updateCacheVideos(presentationScreen->pageIndex+1);
     }
 }
 
@@ -805,6 +805,8 @@ void ControlScreen::receiveNextSlideStart()
 
 void ControlScreen::adaptPage()
 {
+    // Synchronize the notes page to the presentation page.
+    // This function is called after the page of the presentation is changed.
     ui->label_timer->continueTimer();
     // Go to page shifted relative to the page shown on the presentation screen page.
     if (presentationScreen->slide->getDuration() < 0 || presentationScreen->slide->getDuration() > 0.5) {
@@ -832,6 +834,7 @@ void ControlScreen::keyPressEvent(QKeyEvent* event)
 
 void ControlScreen::handleKeyAction(KeyAction const action)
 {
+    // Handle any kind of action sent by a key binding or a button.
     switch (action) {
     case KeyAction::Next:
         currentPageNumber = presentationScreen->getPageNumber() + 1;
@@ -882,6 +885,26 @@ void ControlScreen::handleKeyAction(KeyAction const action)
             renderPage(currentPageNumber);
         }
         showNotes();
+        break;
+    case KeyAction::PreviousNoTransition:
+        currentPageNumber = presentationScreen->getPageNumber() - 1;
+        presentationScreen->slide->disableTransitions();
+        if (currentPageNumber >= 0) {
+            emit sendNewPageNumber(currentPageNumber, false);
+            showNotes();
+            ui->label_timer->continueTimer();
+        }
+        else
+            currentPageNumber = 0;
+        presentationScreen->slide->enableTransitions();
+        break;
+    case KeyAction::NextNoTransition:
+        currentPageNumber = presentationScreen->getPageNumber() + 1;
+        presentationScreen->slide->disableTransitions();
+        emit sendNewPageNumber(currentPageNumber, true);
+        presentationScreen->slide->enableTransitions();
+        showNotes();
+        ui->label_timer->continueTimer();
         break;
     case KeyAction::Update:
         currentPageNumber = presentationScreen->getPageNumber();
@@ -1440,7 +1463,7 @@ void ControlScreen::showDrawSlide()
     ui->notes_widget->hide();
     drawSlide->show();
     drawSlide->setFocus();
-    quint16 const sx=presentationScreen->slide->getXshift(), sy=presentationScreen->slide->getYshift();
+    qint16 const sx=presentationScreen->slide->getXshift(), sy=presentationScreen->slide->getYshift();
     double const res = presentationScreen->slide->getResolution();
     double const scale = drawSlide->getResolution() / res;
     drawSlide->setSize(Pen, static_cast<quint16>(scale*presentationScreen->slide->getSize(Pen)+0.5));

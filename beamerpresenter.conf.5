@@ -142,6 +142,14 @@ Go to the previous slide until the page label changes. In beamer presentations: 
 Go to the next slide until the page label changes. In beamer presentations: Go to the first overlay of the next slide.
 .
 .TP
+.B previous no transition
+Go to previous slide without a slide transition and start or continue timer.
+.
+.TP
+.B next no transition
+Go to next slide without a slide transition and start or continue timer.
+.
+.TP
 .B full screen
 Toggle full screen of the active window.
 .
@@ -288,10 +296,23 @@ This sets the default value for the command line argument
 .BR \-e " or " \-\-embed .
 .
 .TP
-.B blinds =8
+.BR blinds =8
 integer: Set the number of blinds used in the blinds slide transition.
-This sets the default value for the command line argument
+This overwrites the default value for the command line argument
 .BR \-b " or " \-\-blinds .
+.
+.TP
+.BR glitter-pixel =30
+Set the size (length) of glitter pixel in glitter slide transition.
+This overwrites the default value for the command line argument
+.BR \-g " or " \-\-glitter-pixel .
+.
+.TP
+.BR glitter-steps =167
+Set number of independent glitter pixels in glitter slide transition. This number times the glitter pixel size divided by the screen width should not be approximately an integer or a fraction like 1/2, 1/3, 3/2, ...
+Best results are obtained for prime numbers of order 1000 (depending on pixel size and the screen resolution). Larger numbers lead to more randomness, but require more computational power.
+This overwrites the default value for the command line argument
+.BR \-G " or " \-\-glitter-steps .
 .
 .TP
 .B no-transitions

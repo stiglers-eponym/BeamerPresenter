@@ -28,6 +28,8 @@
 static const QMap<QString, KeyAction> keyActionMap {
     {"previous", KeyAction::Previous},
     {"next", KeyAction::Next},
+    {"previous no transition", KeyAction::PreviousNoTransition},
+    {"next no transition", KeyAction::NextNoTransition},
     {"previous notes", KeyAction::PreviousNotes},
     {"next notes", KeyAction::NextNotes},
     {"previous skipping overlays", KeyAction::PreviousSkippingOverlays},
@@ -310,6 +312,8 @@ int main(int argc, char *argv[])
 #ifdef EMBEDDED_APPLICATIONS_ENABLED
         {{"e", "embed"}, "file1,file2,... Mark these files for embedding if an execution link points to them.", "files"},
 #endif
+        {{"g", "glitter-pixel"}, "size of glitter pixel in glitter slide transition", "int"},
+        {{"G", "glitter-steps"}, "number of independent random glitter pixels in glitter slide transition", "int"},
         {{"j", "json"}, "Local JSON configuration file.", "file"},
         {{"l", "toc-depth"}, "Number of levels of the table of contents which are shown.", "int"},
         {{"m", "min-delay"}, "Set minimum time per frame in milliseconds.\nThis is useful when using \\animation in LaTeX beamer.", "ms"},
@@ -810,11 +814,11 @@ int main(int argc, char *argv[])
         if (!parser.value("v").isEmpty()) {
             QString value = parser.value("v").toLower();
             if (value == "true") {
-                w->setCacheVideos(true);
+                w->getPresentationSlide()->setCacheVideos(true);
                 found = true;
             }
             else if (value == "false") {
-                w->setCacheVideos(false);
+                w->getPresentationSlide()->setCacheVideos(false);
                 found = true;
             }
             else
@@ -823,11 +827,11 @@ int main(int argc, char *argv[])
         if (!found && local.contains("video-cache")) {
             QString value = settings.value("video-cache").toString().toLower();
             if (value == "true") {
-                w->setCacheVideos(true);
+                w->getPresentationSlide()->setCacheVideos(true);
                 found = true;
             }
             else if (value == "false") {
-                w->setCacheVideos(false);
+                w->getPresentationSlide()->setCacheVideos(false);
                 found = true;
             }
             else
@@ -836,9 +840,9 @@ int main(int argc, char *argv[])
         if (!found && settings.contains("video-cache")) {
             QString value = settings.value("video-cache").toString().toLower();
             if (value == "true")
-                w->setCacheVideos(true);
+                w->getPresentationSlide()->setCacheVideos(true);
             else if (value == "false")
-                w->setCacheVideos(false);
+                w->getPresentationSlide()->setCacheVideos(false);
             else
                 qCritical() << "option \"" << settings.value("video-cache") << "\" to video-cache in config not understood.";
         }
@@ -936,7 +940,7 @@ int main(int argc, char *argv[])
 
         // Set number of blinds in blinds slide transition
         value = intFromConfig<quint8>(parser, local, settings, "blinds", 8);
-        emit w->setTransitionBlinds(value);
+        w->getPresentationSlide()->setBlindsNumber(value);
 
         // Set number of columns in overview
         value = intFromConfig<quint8>(parser, local, settings, "columns", 5);
@@ -968,30 +972,36 @@ int main(int argc, char *argv[])
 
         // Set size of draw tools
         value  = intFromConfig<quint16>(parser, local, settings, "magnifier-size", 120);
-        w->setToolSize(Magnifier, value);
+        w->getPresentationSlide()->setSize(Magnifier, value);
         value  = intFromConfig<quint16>(parser, local, settings, "pointer-size", 10);
-        w->setToolSize(Pointer, value);
+        w->getPresentationSlide()->setSize(Pointer, value);
         value  = intFromConfig<quint16>(parser, local, settings, "torch-size", 80);
-        w->setToolSize(Torch, value);
+        w->getPresentationSlide()->setSize(Torch, value);
         value  = intFromConfig<quint16>(parser, local, settings, "highlighter-width", 30);
-        w->setToolSize(Highlighter, value);
+        w->getPresentationSlide()->setSize(Highlighter, value);
         value  = intFromConfig<quint16>(parser, local, settings, "pen-width", 3);
-        w->setToolSize(Pen, value);
+        w->getPresentationSlide()->setSize(Pen, value);
         value  = intFromConfig<quint16>(parser, local, settings, "eraser-size", 10);
-        w->setToolSize(Eraser, value);
+        w->getPresentationSlide()->setSize(Eraser, value);
+
+        // Set number of glitter steps and size of glitter pixels
+        value  = intFromConfig<quint16>(parser, local, settings, "glitter-pixel", 30);
+        w->getPresentationSlide()->setGlitterPixel(value);
+        value  = intFromConfig<quint16>(parser, local, settings, "glitter-steps", 30);
+        w->getPresentationSlide()->setGlitterSteps(value);
     }
 
     // Disable slide transitions
     if (parser.isSet("d"))
-        w->disableSlideTransitions();
+        w->getPresentationSlide()->disableTransitions();
     else if (local.contains("no-transitions")) {
         // This is rather unintuitive. Just set any value...
         QString string = local.value("no-transitions").toString().toLower();
         if (QStringList({"", "true", "no-transitions", "no transitions", "1"}).contains(string))
-            w->disableSlideTransitions();
+            w->getPresentationSlide()->disableTransitions();
     }
     else if (settings.contains("no-transitions"))
-        w->disableSlideTransitions();
+        w->getPresentationSlide()->disableTransitions();
 
     // Treat all scroll inputs as touch pads
     if (parser.isSet("force-touchpad"))

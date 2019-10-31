@@ -63,6 +63,13 @@ Disable all slide transition.
 Mark these files for embedding if an execution link points to them. Multiple files should be separated only by a comma (not space!).
 Not available if embedded applications were disabled at compile time.
 .
+.TP "\-g \-\-glitter-pixel " int
+Set size (length) of glitter pixel in glitter slide transition. The default value is 30.
+.
+.TP "\-G \-\-glitter-steps " int
+Set number of independent glitter pixels in glitter slide transition. This number times the glitter pixel size divided by the screen width should not be approximately an integer or a fraction like 1/2, 1/3, 3/2, ...
+Best results are obtained for prime numbers of order 1000 (depending on pixel size and the screen resolution). Larger numbers lead to more randomness, but require more computational power. The default value is 167.
+.
 .TP
 .BI "\-j \-\-json " file
 Select a local configuration file. The file must be in JSON format and can contain the same configuration as the global configuration file. Additionally, it can contain a map of slides to times, at which you want to finish the slide. These times are used to adjust the color of the timer.
