@@ -63,15 +63,15 @@ protected:
     bool pointer_visible = true;
 
 public slots:
-    void setPaths(QString const pagelabel, QList<DrawPath*> const& list, quint16 const refshiftx, quint16 const refshifty, double const refresolution);
-    void setPointerPosition(QPointF const point, quint16 const refshiftx, quint16 const refshifty, double const refresolution);
+    void setPaths(QString const pagelabel, QList<DrawPath*> const& list, qint16 const refshiftx, qint16 const refshifty, double const refresolution);
+    void setPointerPosition(QPointF const point, qint16 const refshiftx, qint16 const refshifty, double const refresolution);
     void setTool(ColoredDrawTool const newtool);
     void setTool(DrawTool const newtool, QColor const color=QColor()) {setTool({newtool, color});}
     void relax();
 
 signals:
-    void pointerPositionChanged(QPointF const point, quint16 const refshiftx, quint16 const refshifty, double const refresolution);
-    void pathsChanged(QString const pagelabel, QList<DrawPath*> const& list, quint16 const refshiftx, quint16 const refshifty, double const refresolution);
+    void pointerPositionChanged(QPointF const point, qint16 const refshiftx, qint16 const refshifty, double const refresolution);
+    void pathsChanged(QString const pagelabel, QList<DrawPath*> const& list, qint16 const refshiftx, qint16 const refshifty, double const refresolution);
     void sendToolChanged(ColoredDrawTool const tool);
     void sendUpdateEnlargedPage();
     void sendRelax();

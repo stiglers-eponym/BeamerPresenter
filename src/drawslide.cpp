@@ -59,7 +59,7 @@ void DrawSlide::resizeEvent(QResizeEvent*)
     if (resolution < 0)
         return;
     enlargedPage = QPixmap();
-    quint16 const oldshiftx = shiftx, oldshifty = shifty;
+    qint16 const oldshiftx = shiftx, oldshifty = shifty;
     double const oldRes = resolution;
     QSizeF pageSize = page->pageSizeF();
     double pageWidth=pageSize.width();
@@ -67,12 +67,12 @@ void DrawSlide::resizeEvent(QResizeEvent*)
         pageWidth /= 2;
     if (width() * pageSize.height() > height() * pageWidth) {
         resolution = double(height()) / pageSize.height();
-        shiftx = quint16(width()/2 - resolution/2 * pageWidth);
+        shiftx = qint16(width()/2 - resolution/2 * pageWidth);
         shifty = 0;
     }
     else {
         resolution = double(width()) / pageWidth;
-        shifty = quint16(height()/2 - resolution/2 * pageSize.height());
+        shifty = qint16(height()/2 - resolution/2 * pageSize.height());
         shiftx = 0;
     }
     QPointF shift = QPointF(shiftx, shifty) - resolution/oldRes*QPointF(oldshiftx, oldshifty);
@@ -364,7 +364,7 @@ void DrawSlide::clearCache()
     enlargedPage = QPixmap();
 }
 
-void DrawSlide::setPaths(QString const pagelabel, QList<DrawPath*> const& list, quint16 const refshiftx, quint16 const refshifty, double const refresolution)
+void DrawSlide::setPaths(QString const pagelabel, QList<DrawPath*> const& list, qint16 const refshiftx, qint16 const refshifty, double const refresolution)
 {
     QPointF shift = QPointF(shiftx, shifty) - resolution/refresolution*QPointF(refshiftx, refshifty);
     if (!paths.contains(pagelabel)) {
@@ -390,7 +390,7 @@ void DrawSlide::setPaths(QString const pagelabel, QList<DrawPath*> const& list, 
     update();
 }
 
-void DrawSlide::setPointerPosition(QPointF const point, quint16 const refshiftx, quint16 const refshifty, double const refresolution)
+void DrawSlide::setPointerPosition(QPointF const point, qint16 const refshiftx, qint16 const refshifty, double const refresolution)
 {
     pointerPosition = (point - QPointF(refshiftx, refshifty)) * resolution/refresolution + QPointF(shiftx, shifty);
     if (tool.tool == Magnifier && enlargedPage.isNull())
@@ -469,7 +469,7 @@ void DrawSlide::saveDrawings(QString const& filename, QString const& notefile) c
         stream << newsizes;
     }
     stream << static_cast<quint16>(paths.size());
-    quint16 const w = quint16(width()-2*shiftx), h = quint16(height()-2*shifty);
+    qint16 const w = qint16(width()-2*shiftx), h = qint16(height()-2*shifty);
     for (QMap<QString, QList<DrawPath*>>::const_iterator page_it=paths.cbegin(); page_it!=paths.cend(); page_it++) {
         stream << page_it.key() << static_cast<quint16>(page_it->length());
         for (QList<DrawPath*>::const_iterator path_it=page_it->cbegin(); path_it!=page_it->cend(); path_it++) {
@@ -539,7 +539,7 @@ void DrawSlide::loadDrawings(QString const& filename)
         return;
     }
     clearAllAnnotations();
-    quint16 const w = quint16(width()-2*shiftx), h = quint16(height()-2*shifty);
+    qint16 const w = qint16(width()-2*shiftx), h = qint16(height()-2*shifty);
     QString pagelabel;
     quint16 tool;
     QColor color;

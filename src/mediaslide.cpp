@@ -128,13 +128,13 @@ void MediaSlide::renderPage(int const pageNumber, bool const hasDuration, QPixma
     if (width() * pageHeight > height() * pageWidth) {
         // the width of the label is larger than required
         resolution = double(height()) / pageHeight;
-        shiftx = quint16(width()/2 - resolution/2 * pageWidth);
+        shiftx = qint16(width()/2 - resolution/2 * pageWidth);
         shifty = 0;
     }
     else {
         // the height of the label is larger than required
         resolution = double(width()) / pageWidth;
-        shifty = quint16(height()/2 - resolution/2 * pageHeight);
+        shifty = qint16(height()/2 - resolution/2 * pageHeight);
         shiftx = 0;
     }
 
@@ -207,10 +207,10 @@ void MediaSlide::renderPage(int const pageNumber, bool const hasDuration, QPixma
     Q_FOREACH(Poppler::Link* link, links) {
         QRectF relative = link->linkArea();
         linkPositions.append(QRect(
-                    shiftx+quint16(relative.x()*scale_x),
-                    shifty+quint16(relative.y()*scale_y),
-                    quint16(relative.width()*scale_x),
-                    quint16(relative.height()*scale_y)
+                    shiftx+int(relative.x()*scale_x),
+                    shifty+int(relative.y()*scale_y),
+                    int(relative.width()*scale_x),
+                    int(relative.height()*scale_y)
                 ));
     }
 
@@ -368,10 +368,10 @@ void MediaSlide::renderPage(int const pageNumber, bool const hasDuration, QPixma
         }
         QRectF relative = video->boundary();
         videoPositions.append(QRect(
-                shiftx+quint16(relative.x()*scale_x),
-                shifty+quint16(relative.y()*scale_y),
-                quint16(relative.width()*scale_x),
-                quint16(relative.height()*scale_y)
+                shiftx+int(relative.x()*scale_x),
+                shifty+int(relative.y()*scale_y),
+                int(relative.width()*scale_x),
+                int(relative.height()*scale_y)
             ));
         if (found)
             delete video;
@@ -549,10 +549,10 @@ void MediaSlide::renderPage(int const pageNumber, bool const hasDuration, QPixma
             }
             QRectF relative = (*annotation)->boundary();
             videoPositions.append(QRect(
-                    shiftx+quint16(relative.x()*scale_x),
-                    shifty+quint16(relative.y()*scale_y),
-                    quint16(relative.width()*scale_x),
-                    quint16(relative.height()*scale_y)
+                    shiftx+int(relative.x()*scale_x),
+                    shifty+int(relative.y()*scale_y),
+                    int(relative.width()*scale_x),
+                    int(relative.height()*scale_y)
                 ));
         }
         // Clean up old sound players and sliders:
@@ -578,10 +578,10 @@ void MediaSlide::renderPage(int const pageNumber, bool const hasDuration, QPixma
             {
                 QRectF relative = (*it)->boundary();
                 soundPositions.append(QRect(
-                            shiftx+quint16(relative.x()*scale_x),
-                            shifty+quint16(relative.y()*scale_y),
-                            quint16(relative.width()*scale_x),
-                            quint16(relative.height()*scale_y)
+                            shiftx+int(relative.x()*scale_x),
+                            shifty+int(relative.y()*scale_y),
+                            int(relative.width()*scale_x),
+                            int(relative.height()*scale_y)
                         ));
             }
 
@@ -1141,12 +1141,12 @@ void MediaSlide::initEmbeddedApplications(int const pageNumber)
             if (width() * pageHeight > height() * pageWidth) {
                 // the width of the label is larger than required
                 resolution = double(height()) / pageHeight;
-                shift_x = quint16(width()/2 - resolution/2 * pageWidth);
+                shift_x = qint16(width()/2 - resolution/2 * pageWidth);
             }
             else {
                 // the height of the label is larger than required
                 resolution = double(width()) / pageWidth;
-                shift_y = quint16(height()/2 - resolution/2 * pageHeight);
+                shift_y = qint16(height()/2 - resolution/2 * pageHeight);
             }
 
             // Calculate the size of the image relative to the label size
@@ -1162,10 +1162,10 @@ void MediaSlide::initEmbeddedApplications(int const pageNumber)
                 if (embedPositions[*idx_it].isNull()) {
                     QRectF relative = links[idx_it.key()]->linkArea();
                     QRect winGeometry = QRect(
-                                shift_x+quint16(relative.x()*scale_x),
-                                shift_y+quint16(relative.y()*scale_y),
-                                quint16(relative.width()*scale_x),
-                                quint16(relative.height()*scale_y)
+                                shift_x+int(relative.x()*scale_x),
+                                shift_y+int(relative.y()*scale_y),
+                                int(relative.width()*scale_x),
+                                int(relative.height()*scale_y)
                             );
                     if (winGeometry.height() < 0) {
                         int const height = -winGeometry.height();

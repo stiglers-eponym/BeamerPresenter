@@ -38,15 +38,15 @@ public:
     virtual void clearAll() {page=nullptr;}
     void setDoc(PdfDoc const*const document) {doc=document;}
     Poppler::Page* getPage() {return page;}
-    quint16 const& getXshift() const {return shiftx;}
-    quint16 const& getYshift() const {return shifty;}
+    qint16 const& getXshift() const {return shiftx;}
+    qint16 const& getYshift() const {return shifty;}
 
 protected:
     virtual void paintEvent(QPaintEvent*) override;
     Poppler::Page* page = nullptr;
     PagePart pagePart = FullPage; // Which part of the page is shown on this label
-    quint16 shiftx = 0;
-    quint16 shifty = 0;
+    qint16 shiftx = 0;
+    qint16 shifty = 0;
     QPixmap pixmap;
     double resolution = -1.; // resolution in pixels per point = dpi/72
     int pageIndex = 0; // page number
