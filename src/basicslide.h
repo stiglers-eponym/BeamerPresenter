@@ -24,8 +24,6 @@
 #include "enumerates.h"
 #include "pdfdoc.h"
 
-#define FILE_DESCRIPTION "BeamerPresenter drawings"
-
 class BasicSlide : public QWidget
 {
     Q_OBJECT

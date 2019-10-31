@@ -451,21 +451,27 @@ void DrawSlide::saveDrawings(QString const& filename) const
     file.open(QIODevice::WriteOnly);
     int const w = width()-2*shiftx, h = height()-2*shifty;
     QDataStream stream(&file);
-    stream << QString(FILE_DESCRIPTION);
+    stream.setVersion(QDataStream::Qt_5_0);
+    stream << static_cast<quint32>(0x2CA7D9F8);
+    if (stream.status() == QDataStream::WriteFailed) {
+        qCritical() << "Failed to write to file: File is not writable.";
+        return;
+    }
+    stream << static_cast<quint16>(QDataStream::Qt_5_0);
     stream << doc->getPath();
     stream << sizes;
-    qDebug() << sizes;
     stream << static_cast<quint16>(paths.size());
-    qDebug() << paths.size();
     for (QMap<QString, QList<DrawPath*>>::const_iterator page_it=paths.cbegin(); page_it!=paths.cend(); page_it++) {
         stream << page_it.key() << static_cast<quint16>(page_it->length());
-        qDebug() << page_it.key() << page_it->length();
         for (QList<DrawPath*>::const_iterator path_it=page_it->cbegin(); path_it!=page_it->cend(); path_it++) {
             QVector<float> vec;
             (*path_it)->toIntVector(vec, shiftx, shifty, w, h);
             stream << static_cast<unsigned int>((*path_it)->getTool()) << (*path_it)->getColor() << vec;
-            qDebug() << (*path_it)->getTool() << (*path_it)->getColor() << vec.size();
         }
+    }
+    if (stream.status() != QDataStream::Ok) {
+        qCritical() << "Error occurred while writing to file.";
+        return;
     }
 }
 
@@ -477,33 +483,58 @@ void DrawSlide::loadDrawings(QString const& filename)
     file.open(QIODevice::ReadOnly);
     int const w = width()-2*shiftx, h = height()-2*shifty;
     QDataStream stream(&file);
-    QString description;
-    stream >> description;
-    if (description != FILE_DESCRIPTION) {
-        qCritical() << "Invalid file: wrong file description.";
+    stream.setVersion(QDataStream::Qt_5_0);
+    quint32 magic;
+    stream >> magic;
+    if (magic != 0x2CA7D9F8) {
+        qCritical() << "Invalid file: wrong magic number.";
         return;
     }
+    quint16 version;
+    stream >> version;
+    stream.setVersion(version);
     QString docpath;
     stream >> docpath;
+    if (stream.status() != QDataStream::Ok) {
+        qCritical() << "Failed to load file: File is corrupt.";
+        return;
+    }
     if (docpath != doc->getPath())
         qWarning() << "This drawing file was generated for a different PDF file path.";
-    clearAllAnnotations();
-    stream >> sizes;
-    qDebug() << sizes;
+    {
+        QMap<unsigned int, quint16> newsizes;
+        stream >> newsizes;
+        if (stream.status() != QDataStream::Ok) {
+            qCritical() << "Failed to load file: File is corrupt.";
+            return;
+        }
+        for (QMap<unsigned int, quint16>::const_iterator size_it=newsizes.cbegin(); size_it!=newsizes.cend(); size_it++)
+            sizes[size_it.key()] = *size_it;
+    }
     quint16 npages, npaths;
     stream >> npages;
-    qDebug() << npages;
+    if (stream.status() != QDataStream::Ok) {
+        qCritical() << "Failed to load file: File is corrupt.";
+        return;
+    }
+    clearAllAnnotations();
     QString pagelabel;
     int tool;
     QColor color;
     for (int pageidx=0; pageidx<npages; pageidx++) {
         stream >> pagelabel >> npaths;
-        qDebug() << pagelabel << npaths;
+        if (stream.status() != QDataStream::Ok) {
+            qCritical() << "Interrupted reading file: File is corrupt.";
+            break;
+        }
         paths[pagelabel] = QList<DrawPath*>();
         for (int pathidx=0; pathidx<npaths; pathidx++) {
             QVector<float> vec;
             stream >> tool >> color >> vec;
-            qDebug() << tool << color << vec.size();
+            if (stream.status() != QDataStream::Ok) {
+                qCritical() << "Interrupted reading file: File is corrupt.";
+                break;
+            }
             paths[pagelabel].append(new DrawPath({static_cast<DrawTool>(tool), color}, vec, shiftx, shifty, w, h, sizes[Eraser]));
         }
         emit pathsChanged(pagelabel, paths[pagelabel], shiftx, shifty, resolution);
