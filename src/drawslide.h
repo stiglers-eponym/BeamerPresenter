@@ -45,12 +45,12 @@ public:
     double const& getResolution() const {return resolution;}
     ColoredDrawTool getTool() const {return tool;}
     quint16 getSize(DrawTool const tool) const {return sizes[tool];}
-    void saveDrawings(QString const& filename) const;
+    void saveDrawings(QString const& filename, QString const& notefile = "") const;
     void loadDrawings(QString const& filename);
 
 protected:
     void drawAnnotations(QPainter& painter);
-    void drawPaths(QPainter& painter, QString const label);
+    void drawPaths(QPainter& painter, QString const label, bool const clip=false);
     virtual void paintEvent(QPaintEvent*) override;
     virtual void mousePressEvent(QMouseEvent* event) override;
     virtual void mouseReleaseEvent(QMouseEvent* event) override;

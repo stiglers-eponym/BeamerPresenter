@@ -39,6 +39,8 @@ ControlScreen::ControlScreen(QString presentationPath, QString notesPath, QWidge
             deleteLater();
             exit(1);
         }
+        if (notesPath == presentationPath)
+            notesPath = "";
         if (!notesPath.isEmpty()) {
             QFileInfo checkNotes(notesPath);
             if (!checkNotes.exists() || (!checkNotes.isFile() && !checkNotes.isSymLink()) ) {
@@ -310,10 +312,10 @@ void ControlScreen::recalcLayout(const int pageNumber)
     ui->tool_selector->setMaximumWidth(sideWidth);
     if (drawSlide != nullptr) {
         double scale = drawSlide->getResolution() / presentationScreen->slide->getResolution();
-        drawSlide->setSize(Pen, presentationScreen->slide->getSize(Pen));
         if (scale < 0.)
             scale = 1.;
-        drawSlide->setSize(Pointer, presentationScreen->slide->getSize(Pointer));
+        drawSlide->setSize(Pen, static_cast<quint16>(scale*presentationScreen->slide->getSize(Pen)+0.5));
+        drawSlide->setSize(Pointer, static_cast<quint16>(scale*presentationScreen->slide->getSize(Pointer)+0.5));
         drawSlide->setSize(Highlighter, static_cast<quint16>(scale*presentationScreen->slide->getSize(Highlighter)+0.5));
         drawSlide->setSize(Torch, static_cast<quint16>(scale*presentationScreen->slide->getSize(Torch)));
         drawSlide->setSize(Magnifier, static_cast<quint16>(scale*presentationScreen->slide->getSize(Magnifier)));
@@ -1042,7 +1044,7 @@ void ControlScreen::handleKeyAction(KeyAction const action)
         {
             QString const savePath = QFileDialog::getSaveFileName(this, "Save drawings");
             if (!savePath.isEmpty())
-                presentationScreen->slide->saveDrawings(savePath);
+                presentationScreen->slide->saveDrawings(savePath, notes->getPath());
         }
         break;
     case KeyAction::LoadDrawings:
@@ -1448,7 +1450,7 @@ void ControlScreen::showDrawSlide()
     drawSlide->setSize(Highlighter, static_cast<quint16>(scale*presentationScreen->slide->getSize(Highlighter)+0.5));
     drawSlide->setSize(Torch, static_cast<quint16>(scale*presentationScreen->slide->getSize(Torch)));
     drawSlide->setSize(Magnifier, static_cast<quint16>(scale*presentationScreen->slide->getSize(Magnifier)));
-    QString label = presentationScreen->slide->getPage()->label();
+    QString const label = presentationScreen->slide->getPage()->label();
     drawSlide->setPaths(label, presentationScreen->slide->getPaths()[label], sx, sy, res);
     drawSlide->update();
     renderPage(currentPageNumber);

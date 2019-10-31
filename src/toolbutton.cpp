@@ -74,6 +74,9 @@ static const QMap<KeyAction, QString> actionNames = {
     {DrawPointer, "Pointer"},
     {DrawMagnifier, "Magnifier"},
     {DrawTorch, "Torch"},
+
+    {SaveDrawings, "Save"},
+    {LoadDrawings, "Open"},
 };
 
 static const QMap<KeyAction, QString> actionIconNames = {
@@ -95,6 +98,8 @@ static const QMap<KeyAction, QString> actionIconNames = {
 #ifdef EMBEDDED_APPLICATIONS_ENABLED
     {StartEmbeddedCurrentSlide, "application-x-executable"},
 #endif
+    {SaveDrawings, "document-save"},
+    {LoadDrawings, "document-open"},
     // TODO: more and better icons
 };
 

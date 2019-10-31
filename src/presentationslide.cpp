@@ -145,7 +145,7 @@ void PresentationSlide::updateImages(int const oldPage)
         QString const& label = doc->getLabel(oldPage);
         painter.setRenderHint(QPainter::Antialiasing);
         painter.drawPixmap(shiftx, shifty, getPixmap(oldPage));
-        drawPaths(painter, label);
+        drawPaths(painter, label, true);
     }
     {
         picfinal = QPixmap(size());
@@ -154,7 +154,7 @@ void PresentationSlide::updateImages(int const oldPage)
         painter.begin(&picfinal);
         painter.setRenderHint(QPainter::Antialiasing);
         painter.drawPixmap(shiftx, shifty, pixmap);
-        drawPaths(painter, page->label());
+        drawPaths(painter, page->label(), true);
     }
 }
 

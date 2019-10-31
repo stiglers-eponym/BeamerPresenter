@@ -1,0 +1,446 @@
+.TH beamerpresenter.conf 5 "15 April 2019"
+.
+.SH NAME
+beamerpresenter.conf - configuration file for BeamerPresenter
+.
+.
+.SH DESCRIPTION
+.
+.B BeamerPresenter
+is a Qt5-based presentation viewer which shows a presentation and notes for the speaker in two different windows.
+It can be configured using a file beamerpresenter.conf in
+.IR <dir>/beamerpresenter.conf " or " <dir>/beamerpresenter/beamerpresenter.conf
+.RI "where " <dir> " is " $HOME/.config " or any directory listed in " $XDG_CONFIG_DIRS .
+The configuration defines key bindings, colors, buttons and default options for command line arguments.
+.
+.
+.SH FORMAT
+.
+Values are assigned to keys using the usual syntax
+.IR key = value
+where each key value pair needs an own line.
+Instead of a single value some options support lists of values:
+.IR key = value1 , value2 , value3 .
+.RI "Some options can be set (activated) by just adding " key " to the config file without any value."
+Lines can be commented out using #. Commenting out parts of a line is not supported.
+
+In some cases the usual syntax is extended to groups of keys, reading
+.IR group / key = value .
+Special values include colors which can be specified as color names known to Qt or in the hexadecimal formats #rrggbb or #aarrggbb.
+.RI "For some values different formulations are allowed (e.g. writing " page " or " slide " is equivalent)."
+
+An example configuration, which can be used as a template for setting up your own preferences, can be found at
+.UR https://github.com/stiglers-eponym/BeamerPresenter
+or in /etc/beamerpresenter/beamerpresenter.conf (depending on your installation).
+.
+.
+.SH OPTIONS
+.
+.SH Key bindings
+.
+Key bindings are defined in the form
+
+.BI "keys/" "modifiers + key " = " action1" , " action2",
+.BR ... .
+
+Key names and modifiers are passed to QKeySequence, which converts them to key codes.
+.RI "Examples of valid key codes are " previous ", " shift+s ", and " ctrl+shift+x .
+
+Multiple actions can be passed to a single key code and should be separated by a comma. The actions are case insensitive. Possible actions are
+.
+.TP
+.B update cache
+Update cached slides if necessary.
+.
+.TP
+.BR "start embedded current slide" ", " "start embedded applications current page" ", ..."
+Start all embedded applications on the currently shown slide.
+Not available if embedded applications were disabled at compile time.
+.
+.TP
+.BR "start all embedded" " or " "start all embedded applications"
+Start all embedded applications on all slides.
+Not available if embedded applications were disabled at compile time.
+.
+.TP
+.BR "close embedded current slide" ", " "close embedded applications current page" ", ..."
+Try to terminate all embedded applications on the current slide.
+Not available if embedded applications were disabled at compile time.
+.
+.TP
+.BR "close all embedded " or " close all embedded applications"
+Try to terminate all embedded applications on all slides.
+Not available if embedded applications were disabled at compile time.
+.
+.TP
+.BR "go to" , " go to page" " or " "go to slide"
+Go to page (set focus to page number edit). This will make the control screen the active window.
+.
+.TP
+.B play multimedia
+Play or pause all multimedia content on the current slide.
+.
+.TP
+.B toggle cursor
+Toggle cursor visibility (only on the presentation screen).
+.
+.TP
+.B pause timer
+Pause or continue timer.
+.
+.TP
+.B quit
+Quit.
+.
+.TP
+.B reset timer
+Reset timer.
+.
+.TP
+.B show overview
+Show overview of all slides on the control screen.
+.
+.TP
+.B hide overview
+Hide overview of all slides if it is shown.
+.
+.TP
+.B show TOC
+Show table of contents on the control screen.
+.
+.TP
+.B hide TOC
+Hide the table of contents if it is shown.
+.
+.TP
+.B reload
+Check if the PDF files have changed and reload them if necessary (experimental feature).
+.
+.TP
+.B update
+Update layout, reload page and start or continue timer.
+.
+.TP
+.B previous
+Go to previous slide and start or continue timer.
+.
+.TP
+.B next
+Go to next slide and start or continue timer.
+.
+.TP
+.B previous current screen
+Show the previous slide only on the currently active screen.
+.
+.TP
+.B next current screen
+Show the next slide only on the currently active screen.
+.
+.TP
+.B previous skipping overlays
+Go to the previous slide until the page label changes. In beamer presentations: Go to the last overlay of the previous slide.
+.
+.TP
+.B next skipping overlays
+Go to the next slide until the page label changes. In beamer presentations: Go to the first overlay of the next slide.
+.
+.TP
+.B full screen
+Toggle full screen of the active window.
+.
+.TP
+.B sync from control screen
+Set page number of the presentation to the page number on the control screen and start or continue timer.
+.
+.TP
+.B sync from presentation screen
+Set page number of the control screen to the page number of the presentation. When browsing your notes, this will bring you back to the current slide.
+.
+.TP
+.B draw mode
+Enter drawing mode: draw in the presentation slide on the control screen. In this mode all tools are synchronized between presentation screen and control screen.
+.
+.TP
+.B hide draw slide
+Exit drawing mode: control screen shows notes again.
+.
+.TP
+.B clear annotations
+Delete all drawings on the current page.
+.
+.TP
+.B hand tool
+Return from drawing mode to normal mode.
+.
+.TP
+.BI pen " <color>"
+Draw in the presentation with a pen of given color (given as a color name known to Qt, #rrggbb or #aarrggbb). Here the color argument is mandatory.
+.
+.TP
+.BI highlighter " [<color>]"
+Draw in the presentation with a highlighter. The default color is #c0ffff00 (yellow).
+.
+.TP
+.B eraser
+Erase strokes of pens and of the highlighter.
+.
+.TP
+.BI torch " [<color>]"
+Emphasize a region of the current slide with a torch. The rest of the presentation is colored with <color>. Use the #aarrggbb format to specify an alpha channel.
+.
+.TP
+.BI magnifier " [<color>]"
+Enlarge a region of the current slide with a magnifier.
+.
+.TP
+.BI pointer " [<color>]"
+Highlight a point on the slide with a pointer. The default color is #c0ff0000 (red).
+.
+.TP
+.B save drawings
+Save drawings to a file. This opens a file dialog in which you specify an output file name.
+Note that saving and loading drawings is experimental and files may not be readable for later versions of BeamerPresenter!
+.
+.TP
+.B load drawings
+Load drawings from file. This opens a file dialog in which you select a file which was created using BeamerPresenter.
+Note that saving and loading drawings is experimental and files may not be readable for later versions of BeamerPresenter!
+.
+.
+.SS Colors
+.
+.RI "Colors can be specified as name known to Qt5, an RGB value or an ARGB value in hexadecimal format, e.g. as " red ", " #ff0000 " or " #ffff0000 .
+In the configuration you can define the following colors.
+.TP
+.BR "presentation color" "=black"
+background color of the presentation window
+.
+.TP
+.BR "notes background color" "=gray"
+background color of the control screen
+.
+.TP
+.BR "notes text color" "=black"
+text color of the control screen
+.
+.TP
+.BI "timer/" time = color
+.
+The timer can change its color depending on the time relative to your target presentation time. In this form you can specify colors for specific times relative to the timeout. The color of the timer will be changed linearly between two such time points.
+.RI "Here " time " is the time interval (timeout - now) in seconds, e.g. " time=-60 " is one minute before you reach the timeout.
+.
+.
+.SS Buttons
+.
+On the control screen there are some buttons, which can be used to select different drawing tools, to switch between drawing and notes mode, and for other useful actions.
+The buttons can be customized using the following configuration:
+.
+.TP
+.BI "tools/" xy = action
+maps an action to a button. x and y are integers between 0 and 9 (or between 0 and f in hexadecimal format) indicating row and column of the button.
+.IR action " can be any value as passed to a key binding."
+.
+.
+.SS Default values for command line arguments
+.
+For each command line argument of the form
+.BI \-\- argument
+you can define a default value in beamerpresenter.conf using the syntax
+.IR argument = value .
+Possible arguments and their default values are:
+.
+.TP
+.BR autoplay =false
+true, false or number: Start video and audio content when entering a slide. A number is interpreted as a delay in seconds, after which multimedia content is started.
+.PP
+This overwrites the default value for the command line argument
+.BR \-a " or " \-\-autoplay .
+.
+.TP
+.BR autoplay-emb =false
+true, false or number: Start embedded applications when entering a slide. A number is interpreted as a delay in seconds, after which embedded applications are started.
+Not available if embedded applications were disabled at compile time.
+.PP
+This overwrites the default value for the command line argument
+.BR \-A " or " \-\-autoplay-emb .
+.
+.TP
+.BR min-delay =40
+.PP
+Set the minimum time per frame in milliseconds. This is useful when using \\animation in LaTeX beamer.
+This overwrites the default value for the command line argument
+.BR \-m " or " \-\-min-delay .
+.
+.TP
+.BR page-part =none
+Set half of the page to be the presentation, the other half to be the notes. Values are "l" or "r" for presentation on the left or right half of the page, respectively. If the presentation was created with "\\setbeameroption{show notes on second screen=right}", you should use
+.B \-\-page-part 
+.IR right .
+This sets the default value for the command line argument
+.BR \-p " or " \-\-page-part .
+.
+.TP
+.B timer
+.IR time :
+.RI "Set timer to " "time" ". Possible formats are ""[m]m"", ""[m]m:ss"" and ""h:mm:ss""."
+This sets the default value for the command line argument
+.BR \-t " or " \-\-timer .
+.
+.TP
+.B embed
+List of files which are marked for embedding if an execution link points to them. Multiple files should be separated only by a comma (not space!).
+This option is not available if embedded applications were disabled at compile time.
+This sets the default value for the command line argument
+.BR \-e " or " \-\-embed .
+.
+.TP
+.B blinds =8
+integer: Set the number of blinds used in the blinds slide transition.
+This sets the default value for the command line argument
+.BR \-b " or " \-\-blinds .
+.
+.TP
+.B no-transitions
+.RB "disable all slide transitions. This sets the option " \-\-no-transitions " by default.
+.
+.TP
+.B pid2wid
+.IR path :
+Path to a program, which takes a process ID as an argument and returns the window ID of the corresponding window. This can be an executable shell script using
+.BR wmctrl (1)
+with the command
+.B echo
+.IR "$(( " "16#" "$("
+.BR wmctrl " -lp | " sed " -n
+.RI "\[dq]s/^0x\e([0-9a-f]\e+\e) \e+[0-9]\e+ \e+" $1 " .*$/\e1/p\[dq] " ") ))"
+.PP
+This option is not available if embedded applications were disabled at compile time.
+This sets the default value for the command line argument
+.BR \-w " or " \-\-pid2wid .
+.
+.TP
+.B urlsplit
+.IR string :
+Use this character (it may also be a sequence) to split links into a link path and a list of arguments. Using PDFs with such links can be convenient, but will make the links work only in this application. This does not follow the PDF standards. Possible arguments are
+.BR embed " (for executables), " autoplay " (for videos and sounds) and " loop " (for videos and sounds)."
+This option sets the default value for the command line argument
+.BR \-u " or " \-\-urlsplit .
+.
+.TP
+.BR scrollstep =200
+integer:
+Touch pads quantify scroll events as numbers of pixels. This option sets the number of pixels, which are interpreted as the step between two pages. A larger number makes the scrolling slower.
+This overwrites the default value for the command line argument
+.BR \-s " or " \-\-scrollstep .
+.
+.TP
+.BR force-touchpad =false
+treat all scrolling signals as touch pads.
+.RB "This sets the command line argument " \-\-force-touchpad " by default."
+.
+.TP
+.B icon-path
+.IR directory :
+Set the path used to search for icons, e.g. /usr/share/icons/default.
+This overwrites the default value for the command line argument
+.BR \-\-icon-path .
+.
+.TP
+.BR cache =-1
+integer: Set the maximum number of slides, which are rendered to images and stored in a compressed cache. A negative number is treated as infinity.
+This overwrites the default value for the command line argument
+.BR \-c " or " \-\-cache .
+.RB "Independent of this configuration the maximum size of cache can be specified approximately using the option " memory .
+.
+.TP
+.BR memory =100
+integer:
+Set the maximum cache size in MiB. A negative number is treated as infinity. The real memory usage can be slightly larger than this limit, because slides are rendered to cache without any knowledge about their size in memory beforehand.
+This overwrites the default value for the command line argument
+.BR \-M " or " \-\-memory .
+.
+.TP
+.BR video-cache =true
+.IR bool :
+If set to true, videos will be loaded to cache when reaching the slide before the one containing the video.
+This overwrites the default value for the command line argument
+.BR \-v " or " \-\-video-cache .
+.
+.TP
+.BR toc-depth =2
+integer:
+.RB "Number of levels in the table of contents, which will be shown on the control screen with the default shortcut " t ". Possible values range from 1 and 4. An additional level will be shown as a popup menu if necessary."
+This overwrites the default value for the command line argument
+.BR \-l " or " \-\-toc-depth .
+.
+.TP
+.BR columns =5
+integer: Set the number of columns of slides, which will be shown in the overview mode on the control screen.
+This overwrites the default value for the command line argument
+.BR \-o " or " \-\-columns .
+.
+.TP
+.B renderer
+string:
+Set a command for calling an external PDF renderer, which will be used for rendering slides to a compressed cache.
+The command should call a renderer, which renders a specific page of a PDF file to a png image of fixed size, such that it can be shown in a window with given width and height and writes the image to the standard output.
+The command should contain the tokens "%file" for the PDF file name, "%page" for the page number, "%width" for the image width in pixels and "%height" for the height in pixels.
+Note that a failing command will not necessarily be handled correctly or lead to a warning.
+.PP
+An example for a command using
+.BR "mutool draw " "from the " MuPDF " project is"
+.RB \[dq] "mutool draw"
+.IR -F "png " -w "%width " -h "%height " -o "- %file %page\[dq]."
+.PP
+This will set the default value of the command line argument
+.BR \-r " or " \-\-renderer " to \[dq]custom\[dq].
+If this option is set, the internal renderer can be used with the command line argument
+.RB \[dq] \-r " poppler\[dq]."
+.
+.TP
+.B no-notes
+Show only the presentation and no notes. This will only hide the notes window and does not significantly improve the performance or reduce the required memory.
+.
+.TP
+.BR pen-width =3
+.IR integer :
+Line width of pens in pixels, overwriting the default value for the command line argument
+.B \-\-pen-width .
+.
+.TP
+.BR highlighter-width =30
+.IR integer :
+Line width of highlighters in pixels, overwriting the default value for the command line argument
+.B \-\-highlighter-width .
+.
+.TP
+.BR eraser-size =10
+.IR integer :
+Radius of the eraser in pixels, overwriting the default value for the command line argument
+.B \-\-eraser-size .
+.
+.TP
+.BR magnifier-size =120
+.IR integer :
+Radius of the magnifier in pixels, overwriting the default value for the command line argument
+.B \-\-magnifier-size .
+.
+.TP
+.BR torch-size =80
+.IR integer :
+Radius of the torch in pixels, overwriting the default value for the command line argument
+.B \-\-torch-size .
+.
+.TP
+.BR pointer-size =10
+.IR integer :
+Radius of pointers in pixels, overwriting the default value for the command line argument
+.B \-\-pointer-size .
+.
+.
+.SH BUGS
+.
+Bugs can be reported at the
+.UR https://github.com/stiglers-eponym/BeamerPresenter/issues
+issue tracker
+.UE .

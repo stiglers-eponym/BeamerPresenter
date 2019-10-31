@@ -34,6 +34,7 @@ static const QMap<QString, int> keyActionMap {
     {"next skipping overlays", KeyAction::NextSkippingOverlays},
     {"previous notes skipping overlays", KeyAction::PreviousNotesSkippingOverlays},
     {"next notes skipping overlays", KeyAction::NextNotesSkippingOverlays},
+    {"go to", KeyAction::GoToPage},
     {"go to page", KeyAction::GoToPage},
     {"go to slide", KeyAction::GoToPage},
     {"last page", KeyAction::LastPage},
@@ -401,6 +402,34 @@ int main(int argc, char *argv[])
                         w = new ControlScreen(local.value("presentation").toString(), local.value("notes").toString());
                     else
                         w = new ControlScreen(local.value("presentation").toString());
+                    break;
+                }
+            }
+        }
+        else {
+            // Try to read file as BeamerPresenter drawing binary
+            QFile file(parser.positionalArguments()[0]);
+            if (file.open(QIODevice::ReadOnly)) {
+                QDataStream stream(&file);
+                stream.setVersion(QDataStream::Qt_5_0);
+                quint32 magic;
+                stream >> magic;
+                if (stream.status() == QDataStream::Ok && magic == 0x2CA7D9F8) {
+                    quint16 version;
+                    stream >> version;
+                    stream.setVersion(version);
+                    QString prespath, notepath;
+                    stream >> prespath >> notepath;
+                    if (stream.status() != QDataStream::Ok) {
+                        qCritical() << "Failed to open drawings file" << parser.positionalArguments()[0] << ". File is corrupt";
+                        return 1;
+                    }
+                    if (!QFileInfo(prespath).exists()) {
+                        qCritical() << "Failed to open PDF file" << prespath << "refered to in" << parser.positionalArguments()[0] << ". File does not exist.";
+                        return 1;
+                    }
+                    w = new ControlScreen(prespath, notepath);
+                    local["drawings"] = parser.positionalArguments()[0];
                     break;
                 }
             }
@@ -1073,6 +1102,11 @@ int main(int argc, char *argv[])
     emit w->sendNewPageNumber(0, false);
     // Render first page on control screen
     w->renderPage(0);
+
+    if (local.contains("drawings")) {
+        QString drawpath = local.value("drawings").toString();
+        w->loadDrawings(drawpath);
+    }
 
     // Here one could update the cache.
     // But you probably first want to adjust the window size and then update it with key shortcut c.

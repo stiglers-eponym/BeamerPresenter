@@ -129,7 +129,7 @@ void DrawSlide::setSize(DrawTool const tool, quint16 size)
     sizes[tool] = size;
 }
 
-void DrawSlide::drawPaths(QPainter &painter, QString const label)
+void DrawSlide::drawPaths(QPainter &painter, QString const label, bool const clip)
 {
     if (paths.contains(label)) {
         for (QList<DrawPath*>::const_iterator path_it=paths[label].cbegin(); path_it!=paths[label].cend(); path_it++) {
@@ -140,9 +140,13 @@ void DrawSlide::drawPaths(QPainter &painter, QString const label)
                 painter.drawPolyline((*path_it)->data(), (*path_it)->number());
                 break;
             case Highlighter:
+                if (clip)
+                    painter.setClipRect(shiftx, shifty, width()-2*shiftx, height()-2*shifty);
                 painter.setCompositionMode(QPainter::CompositionMode_Darken);
                 painter.setPen(QPen((*path_it)->getColor(), sizes[Highlighter], Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin));
                 painter.drawPolyline((*path_it)->data(), (*path_it)->number());
+                if (clip)
+                    painter.setClipRect(rect());
                 break;
             default:
                 break;
@@ -443,7 +447,7 @@ void DrawSlide::updateEnlargedPage()
     }
 }
 
-void DrawSlide::saveDrawings(QString const& filename) const
+void DrawSlide::saveDrawings(QString const& filename, QString const& notefile) const
 {
     // Save drawings in a strange data format.
     qInfo() << "Saving files is experimental. Files might contain errors or might be unreadable for later versions of BeamerPresenter";
@@ -457,10 +461,11 @@ void DrawSlide::saveDrawings(QString const& filename) const
         qCritical() << "Failed to write to file: File is not writable.";
         return;
     }
-    stream << static_cast<quint16>(QDataStream::Qt_5_0);
-    stream << doc->getPath();
-    stream << sizes;
-    stream << static_cast<quint16>(paths.size());
+    stream  << static_cast<quint16>(stream.version())
+            << doc->getPath()
+            << notefile
+            << sizes
+            << static_cast<quint16>(paths.size());
     for (QMap<QString, QList<DrawPath*>>::const_iterator page_it=paths.cbegin(); page_it!=paths.cend(); page_it++) {
         stream << page_it.key() << static_cast<quint16>(page_it->length());
         for (QList<DrawPath*>::const_iterator path_it=page_it->cbegin(); path_it!=page_it->cend(); path_it++) {
@@ -480,27 +485,41 @@ void DrawSlide::loadDrawings(QString const& filename)
     // Load drawings from the strange data format.
     qInfo() << "Loading files is experimental. Files might contain errors or might be unreadable for later versions of BeamerPresenter";
     QFile file(filename);
-    file.open(QIODevice::ReadOnly);
+    if (!file.exists()) {
+        qCritical() << "Loading file failed: file does not exist.";
+        return;
+    }
+    if (!file.open(QIODevice::ReadOnly)) {
+        qCritical() << "Loading file failed: file is not readable.";
+        return;
+    }
     int const w = width()-2*shiftx, h = height()-2*shifty;
     QDataStream stream(&file);
     stream.setVersion(QDataStream::Qt_5_0);
-    quint32 magic;
-    stream >> magic;
-    if (magic != 0x2CA7D9F8) {
-        qCritical() << "Invalid file: wrong magic number.";
-        return;
+    {
+        quint32 magic;
+        stream >> magic;
+        if (magic != 0x2CA7D9F8) {
+            qCritical() << "Invalid file: wrong magic number.";
+            return;
+        }
     }
-    quint16 version;
-    stream >> version;
-    stream.setVersion(version);
-    QString docpath;
-    stream >> docpath;
-    if (stream.status() != QDataStream::Ok) {
-        qCritical() << "Failed to load file: File is corrupt.";
-        return;
+    {
+        quint16 version;
+        stream >> version;
+        stream.setVersion(version);
     }
-    if (docpath != doc->getPath())
-        qWarning() << "This drawing file was generated for a different PDF file path.";
+    {
+        QString docpath, notepath;
+        stream >> docpath >> notepath;
+        qDebug() << docpath << notepath;
+        if (stream.status() != QDataStream::Ok) {
+            qCritical() << "Failed to load file: File is corrupt.";
+            return;
+        }
+        if (docpath != doc->getPath())
+            qWarning() << "This drawing file was generated for a different PDF file path.";
+    }
     {
         QMap<unsigned int, quint16> newsizes;
         stream >> newsizes;

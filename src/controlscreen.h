@@ -64,11 +64,12 @@ public:
     void setKeyMapItem(const int key, const int action);
     void setTimerMap(QMap<int, QTime>& timeMap);
     void disableSlideTransitions() {presentationScreen->slide->disableTransitions();}
-    void setToolSize(DrawTool const tool, int const size) {presentationScreen->slide->setSize(tool, size);}
+    void setToolSize(DrawTool const tool, quint16 const size) {presentationScreen->slide->setSize(tool, size);}
     void setToolForKey(int const key, ColoredDrawTool tool) {tools[key] = tool;}
     void setTransitionBlinds(int const n) {presentationScreen->slide->setBlindsNumber(n);}
     void showDrawSlide();
     void hideDrawSlide();
+    void loadDrawings(QString const& filename) {presentationScreen->slide->loadDrawings(filename);}
     ToolSelector* getToolSelector();
     // TODO: restructure cache management, return all images separately?
 

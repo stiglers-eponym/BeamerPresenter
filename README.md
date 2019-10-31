@@ -64,7 +64,7 @@ installed.
 beamerpresenter [options] <presentation.pdf> [<notes.pdf>]
 ```
 For more options and usage possibilities use `beamerpresenter --help` and the
-man page.
+man pages.
 
 If you start `beamerpresenter` without any arguments, it will show a file dialog
 in which you can pick you presentation and notes file.
@@ -89,6 +89,11 @@ An extended list of features can be found in the manual (`beamerpresenter.1`).
 *	Simple navigation through links, scrolling, a table of contents and an
 	overview of all slides on the speaker's screen and shortcuts for skipping
 	overlays.
+*	Draw in presentation: You can use different pens and highlighters to draw
+	in the presentation. Drawings are synchronized between notes screen and
+	presentation screen. You can use a pointer, torch and magnifier to
+	highlight parts of the presentation.
+	Drawings can be saved to an experimental binary file format.
 *	(Experimental:) Embed Applications: If you are using X11, you can show
 	windows created by external applications in a presentation.
 
