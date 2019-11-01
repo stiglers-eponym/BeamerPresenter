@@ -184,7 +184,7 @@ void DrawSlide::drawAnnotations(QPainter &painter)
             painter.setClipPath(path, Qt::ReplaceClip);
             painter.drawPixmap(QRectF(pointerPosition.x()-sizes[Magnifier], pointerPosition.y()-sizes[Magnifier], 2*sizes[Magnifier], 2*sizes[Magnifier]),
                               enlargedPage,
-                              QRectF(2*pointerPosition.x() - sizes[Magnifier], 2*pointerPosition.y() - sizes[Magnifier], 2*sizes[Magnifier], 2*sizes[Magnifier]));
+                              QRectF(magnification*pointerPosition.x() - sizes[Magnifier], magnification*pointerPosition.y() - sizes[Magnifier], 2*sizes[Magnifier], 2*sizes[Magnifier]));
             painter.setPen(QPen(tool.color, 2));
             painter.drawEllipse(pointerPosition, sizes[Magnifier], sizes[Magnifier]);
         }
@@ -414,11 +414,11 @@ void DrawSlide::updateEnlargedPage()
             enlargedPage = QPixmap();
         return;
     }
-    enlargedPage = QPixmap(2*size());
+    enlargedPage = QPixmap(magnification*size());
     enlargedPage.fill(QColor(0,0,0,0));
     QPainter painter;
     painter.begin(&enlargedPage);
-    painter.drawImage(2*shiftx, 2*shifty, page->renderToImage(144*resolution, 144*resolution));
+    painter.drawImage(int(magnification*shiftx), int(magnification*shifty), page->renderToImage(72*magnification*resolution, 72*magnification*resolution));
     painter.setRenderHint(QPainter::Antialiasing);
     if (paths.contains(page->label())) {
         for (QList<DrawPath*>::const_iterator path_it=paths[page->label()].cbegin(); path_it!=paths[page->label()].cend(); path_it++) {
@@ -426,16 +426,16 @@ void DrawSlide::updateEnlargedPage()
             case Pen:
             {
                 painter.setCompositionMode(QPainter::CompositionMode_SourceOver);
-                painter.setPen(QPen((*path_it)->getColor(), 2*sizes[Pen]));
-                DrawPath tmp(**path_it, QPointF(0,0), 2.);
+                painter.setPen(QPen((*path_it)->getColor(), magnification*sizes[Pen]));
+                DrawPath tmp(**path_it, QPointF(0,0), magnification);
                 painter.drawPolyline(tmp.data(), tmp.number());
                 break;
             }
             case Highlighter:
             {
                 painter.setCompositionMode(QPainter::CompositionMode_Darken);
-                painter.setPen(QPen((*path_it)->getColor(), 2*sizes[Highlighter]));
-                DrawPath tmp(**path_it, QPointF(0,0), 2.);
+                painter.setPen(QPen((*path_it)->getColor(), magnification*sizes[Highlighter]));
+                DrawPath tmp(**path_it, QPointF(0,0), magnification);
                 painter.drawPolyline(tmp.data(), tmp.number());
                 break;
             }
@@ -562,4 +562,17 @@ void DrawSlide::loadDrawings(QString const& filename)
         emit pathsChanged(pagelabel, paths[pagelabel], shiftx, shifty, resolution);
     }
     update();
+}
+
+void DrawSlide::setMagnification(qreal const mag)
+{
+    if (mag <= 0.) {
+        qWarning() << "Cannot set magnification to negative value";
+        return;
+    }
+    magnification = mag;
+    if (!enlargedPage.isNull()) {
+        enlargedPage = QPixmap();
+        updateEnlargedPage();
+    }
 }

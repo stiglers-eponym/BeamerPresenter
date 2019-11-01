@@ -187,15 +187,6 @@ ControlScreen::ControlScreen(QString presentationPath, QString notesPath, QWidge
     connect(presentationScreen, &PresentationScreen::pageChanged, ui->label_timer, &Timer::setPage);
 
     // Signals sent to the page labels
-    // Autostart of media on the control screen can be enabled by uncommenting the following lines.
-    //connect(this, &ControlScreen::sendAutostartDelay, ui->notes_widget, &MediaSlide::setAutostartDelay);
-    connect(this, &ControlScreen::sendAutostartDelay, presentationScreen->slide, &MediaSlide::setAutostartDelay);
-    if (drawSlide != nullptr)
-        connect(this, &ControlScreen::sendAutostartDelay, drawSlide, &MediaSlide::setAutostartDelay);
-#ifdef EMBEDDED_APPLICATIONS_ENABLED
-    //connect(this, &ControlScreen::sendAutostartEmbeddedDelay, ui->notes_widget, &MediaSlide::setAutostartEmbeddedDelay);
-    connect(this, &ControlScreen::sendAutostartEmbeddedDelay, presentationScreen->slide, &MediaSlide::setAutostartEmbeddedDelay);
-#endif
     //connect(this, &ControlScreen::playMultimedia,     ui->notes_widget, &MediaSlide::startAllMultimedia);
     connect(this, &ControlScreen::playMultimedia,     presentationScreen->slide, &MediaSlide::startAllMultimedia);
     connect(this, &ControlScreen::pauseMultimedia,    ui->notes_widget, &MediaSlide::pauseAllMultimedia);
@@ -1503,4 +1494,20 @@ void ControlScreen::hideDrawSlide()
 ToolSelector* ControlScreen::getToolSelector()
 {
      return ui->tool_selector;
+}
+
+void ControlScreen::setMagnification(const qreal mag)
+{
+    presentationScreen->slide->setMagnification(mag);
+    if (drawSlide != nullptr)
+        drawSlide->setMagnification(mag);
+}
+
+void ControlScreen::setAutostartDelay(const double timeout)
+{
+    // Autostart of media on the control screen can be enabled by uncommenting the following line.
+    //ui->notes_widget->setAutostartDelay(timeout);
+    presentationScreen->slide->setAutostartDelay(timeout);
+    if (drawSlide != nullptr)
+        drawSlide->setAutostartDelay(timeout);
 }

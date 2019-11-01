@@ -63,6 +63,8 @@ public:
     void setKeyMapItem(quint32 const key, KeyAction const action);
     void setTimerMap(QMap<int, QTime>& timeMap);
     void setToolForKey(quint32 const key, ColoredDrawTool tool) {tools[key] = tool;}
+    void setMagnification(qreal const mag);
+    void setAutostartDelay(double const timeout);
     void showDrawSlide();
     void hideDrawSlide();
     void loadDrawings(QString const& filename) {presentationScreen->slide->loadDrawings(filename);}
@@ -118,10 +120,6 @@ signals:
     void sendNewPageNumber(int const pageNumber, bool const setDuration);
     void sendTimerString(QString const timerString);
     void sendTimerColors(QList<qint32> times, QList<QColor> colors);
-    void sendAutostartDelay(double const timeout);
-#ifdef EMBEDDED_APPLICATIONS_ENABLED
-    void sendAutostartEmbeddedDelay(double const timeout);
-#endif
     void sendCloseSignal();
     void playMultimedia();
     void pauseMultimedia();

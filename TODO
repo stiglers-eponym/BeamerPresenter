@@ -1,11 +1,9 @@
 BeamerPresenter
 
 * Segfault when starting embedded application from the wrong screen (not reproducible?)
-* Delay in showing multimeia and embedded applications (especially when using magnifier)
 * Bug report for Qt5.13 in wayland: paintEvent not drawn immediately
 
 * Video widgets break when switching between notes and draw mode
-* Video widgets often have data stream errors: sync them better, use only one player?
 * cache management can crash, disabling cache completely (occurred after reloading files): not simply reproducible
 * Draw in presentation:
 	* show annotations on top of video content

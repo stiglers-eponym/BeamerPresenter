@@ -332,6 +332,7 @@ int main(int argc, char *argv[])
         {"force-show", "Force showing notes or presentation (if in a framebuffer) independent of QPA platform plugin."},
         {"force-touchpad", "Treat every scroll input as touch pad."},
         {"magnifier-size", "Radius of magnifier.", "pixels"},
+        {"magnification", "Magnification factor of magnifier.", "number"},
         {"pointer-size", "Radius of magnifier.", "pixels"},
         {"torch-size", "Radius of torch.", "pixels"},
         {"highlighter-width", "Line width of highlighter.", "pixels"},
@@ -914,12 +915,16 @@ int main(int argc, char *argv[])
         // Set autostart or delay for multimedia content
         double value;
         value = doubleFromConfig(parser, local, settings, "autoplay", -2.);
-        emit w->sendAutostartDelay(value);
+        emit w->setAutostartDelay(value);
+
+        // Set magnification factor
+        value = doubleFromConfig(parser, local, settings, "magnification", 2.);
+        w->setMagnification(value);
 
 #ifdef EMBEDDED_APPLICATIONS_ENABLED
         // Set autostart or delay for embedded applications
         value = doubleFromConfig(parser, local, settings, "autostart-emb", -2.);
-        emit w->sendAutostartEmbeddedDelay(value);
+        w->getPresentationSlide()->setAutostartEmbeddedDelay(value);
 #endif
     }
 
@@ -929,7 +934,7 @@ int main(int argc, char *argv[])
 
         // Set minimum time per frame in animations
         value = intFromConfig<quint32>(parser, local, settings, "min-delay", 40);
-        emit w->sendAnimationDelay(value);
+        w->sendAnimationDelay(value);
 
         // Set maximum cache size
         value = intFromConfig<quint32>(parser, local, settings, "memory", 100);

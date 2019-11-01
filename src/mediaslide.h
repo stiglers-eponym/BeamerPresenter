@@ -37,6 +37,7 @@ public:
     void renderPage(int const pageNumber, bool const hasDuration, QPixmap const* pixmap=nullptr);
     void setCacheVideos(bool const cacheThem) {cacheVideos=cacheThem;}
     void setMultimediaSliders(QList<QSlider*> sliderList);
+    void setAutostartDelay(double const delay) {autostartDelay=delay;}
     bool hasActiveMultimediaContent() const;
     void updateCacheVideos(int const pageNumber);
     double getAutostartDelay() const {return autostartDelay;}
@@ -53,6 +54,8 @@ public:
     void setEmbedFileList(const QStringList& files) {embedFileList=files;}
     void closeEmbeddedApplications(int const index);
     void closeAllEmbeddedApplications();
+    void setAutostartEmbeddedDelay(double const delay) {autostartEmbeddedDelay=delay;}
+    void setPid2Wid(QString const & program) {pid2wid=program;}
 #endif
 
 protected:
@@ -93,11 +96,8 @@ public slots:
     void pauseVideo(int const i);
     void receivePlayEvent(VideoWidget *const ptr) {emit sendPlayVideo(videoWidgets.indexOf(ptr));}
     void receivePauseEvent(VideoWidget *const ptr) {emit sendPauseVideo(videoWidgets.indexOf(ptr));}
-    void setAutostartDelay(double const delay) {autostartDelay=delay;}
 #ifdef EMBEDDED_APPLICATIONS_ENABLED
-    void setPid2Wid(QString const & program) {pid2wid=program;}
     void receiveEmbedApp(EmbedApp* app);
-    void setAutostartEmbeddedDelay(double const delay) {autostartEmbeddedDelay=delay;}
 #endif
 
 signals:

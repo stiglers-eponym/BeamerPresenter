@@ -38,6 +38,8 @@ public:
     void updateEnlargedPage();
     void setSize(DrawTool const tool, quint16 size);
     void setScaledPixmap(QPixmap const& pix);
+    void setMagnification(qreal const mag);
+    qreal getMagnification() const {return magnification;}
 
     QMap<QString, QList<DrawPath*>> const& getPaths() const {return paths;}
     double const& getResolution() const {return resolution;}
@@ -61,6 +63,7 @@ protected:
     QPixmap enlargedPage;
     QMap<DrawTool, quint16> sizes = {{Magnifier,120}, {Torch,80}, {Pointer,10}, {Highlighter,30}, {Pen,3}, {Eraser,10}};
     bool pointer_visible = true;
+    qreal magnification = 2.;
 
 public slots:
     void setPaths(QString const pagelabel, QList<DrawPath*> const& list, qint16 const refshiftx, qint16 const refshifty, double const refresolution);
