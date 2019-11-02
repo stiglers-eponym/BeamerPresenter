@@ -8,7 +8,6 @@ BeamerPresenter
 * Draw in presentation:
 	* show annotations on top of video content
 	* sync multimedia content
-	* Check slide transitions and improve efficiency
 	* use OpenGL again?
 
 * Make timer editable
@@ -33,4 +32,3 @@ BeamerPresenter
 * Make poppler rendering to cache more efficient (use multiple threads)
 
 * Avoid short black flash when showing video
-* use OpenGL again?

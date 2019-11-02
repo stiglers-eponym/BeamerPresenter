@@ -19,6 +19,7 @@
 #ifndef BASICSLIDE_H
 #define BASICSLIDE_H
 
+#include <QWidget>
 #include <QPainter>
 #include <QDesktopServices>
 #include "enumerates.h"

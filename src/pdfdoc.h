@@ -21,17 +21,14 @@
 
 #include <QtDebug>
 #include <iostream>
-#include <QWidget>
 #include <QFileInfo>
 #include <poppler-qt5.h>
 #include <poppler-version.h>
 #include <QDomDocument>
 #include "enumerates.h"
 
-class PdfDoc : public QObject
+class PdfDoc
 {
-    Q_OBJECT
-
 private:
     Poppler::Document* popplerDoc = nullptr;
     QString pdfPath;

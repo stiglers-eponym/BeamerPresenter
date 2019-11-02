@@ -57,6 +57,7 @@ protected:
     virtual void mouseMoveEvent(QMouseEvent* event) override;
     virtual void resizeEvent(QResizeEvent*) override;
     virtual void animate(int const oldPageIndex = -1) override;
+    virtual void repaintIfPresentation() {update();}
     void erase(QPointF const& point);
     ColoredDrawTool tool = {NoTool, Qt::black};
     QMap<QString, QList<DrawPath*>> paths;

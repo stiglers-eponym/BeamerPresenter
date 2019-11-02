@@ -55,6 +55,7 @@ protected:
     void setDuration() override;
     void drawPointer(QPainter& painter);
     void updateImages(int const oldPage);
+    void repaintIfPresentation() override {repaint();}
 
 public:
     PresentationSlide(PdfDoc const*const document, QWidget* parent=nullptr);

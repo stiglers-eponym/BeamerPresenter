@@ -146,7 +146,6 @@ void DrawSlide::updatePathCache()
             painter.drawPixmap(shiftx, shifty, pixmap);
         painter.setRenderHint(QPainter::Antialiasing);
         drawPaths(painter, page->label());
-        painter.end();
         end_cache = paths[page->label()].length();
     }
 }
@@ -402,7 +401,7 @@ void DrawSlide::erase(const QPointF &point)
     }
     if (changed) {
         end_cache = -1;
-        update();
+        repaintIfPresentation();
         emit pathsChanged(page->label(), path_list, shiftx, shifty, resolution);
     }
 }
@@ -411,6 +410,8 @@ void DrawSlide::clearCache()
 {
     PreviewSlide::clearCache();
     enlargedPage = QPixmap();
+    end_cache = -1;
+    pixpaths = QPixmap();
 }
 
 void DrawSlide::setPathsQuick(QString const pagelabel, QList<DrawPath*> const& list, qint16 const refshiftx, qint16 const refshifty, double const refresolution)
@@ -423,9 +424,11 @@ void DrawSlide::setPathsQuick(QString const pagelabel, QList<DrawPath*> const& l
     }
     else if (diff == 1)
         paths[pagelabel].append(new DrawPath(*list.last(), shift, resolution/refresolution));
-    else
+    else {
+        qDebug() << "set paths quick failed!" << this;
         setPaths(pagelabel, list, refshiftx, refshifty, refresolution);
-    update();
+    }
+    repaintIfPresentation();
 }
 
 void DrawSlide::setPaths(QString const pagelabel, QList<DrawPath*> const& list, qint16 const refshiftx, qint16 const refshifty, double const refresolution)
@@ -475,8 +478,7 @@ void DrawSlide::setPaths(QString const pagelabel, QList<DrawPath*> const& list, 
     }
     end_cache = -1;
     updatePathCache();
-    update();
-    emit sendUpdatePathCache();
+    repaintIfPresentation();
 }
 
 void DrawSlide::setPointerPosition(QPointF const point, qint16 const refshiftx, qint16 const refshifty, double const refresolution)
@@ -670,7 +672,6 @@ void DrawSlide::animate(const int oldPageIndex)
 {
      if (oldPageIndex != pageIndex) {
          end_cache = -1;
-         if (!pixpaths.isNull())
-             pixpaths = QPixmap();
+         updatePathCache();
      }
 }
