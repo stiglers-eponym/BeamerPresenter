@@ -545,8 +545,8 @@ void DrawSlide::saveDrawings(QString const& filename, QString const& notefile) c
     stream.setVersion(QDataStream::Qt_5_0);
     stream  << static_cast<quint32>(0x2CA7D9F8)
             << static_cast<quint16>(stream.version())
-            << doc->getPath()
-            << notefile;
+            << QFileInfo(doc->getPath()).absoluteFilePath()
+            << QFileInfo(notefile).absoluteFilePath();
     if (stream.status() == QDataStream::WriteFailed) {
         qCritical() << "Failed to write to file: File is not writable.";
         return;

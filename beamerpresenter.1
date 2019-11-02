@@ -7,15 +7,17 @@ BeamerPresenter \- dual-screen PDF presenter
 .SH SYNOPSIS
 .
 .SY beamerpresenter
-.OP \-a autoplay-delay
-.OP \-c cache
-.OP \-m min-delay
-.OP \-M memory
-.OP \-p part
-.OP \-t timer
-.OP \-u char
+.RI [ options ]
 .I presentation.pdf
 .RI [ notes.pdf ]
+.
+.SY beamerpresenter
+.RI [ options ]
+.I local-config.json
+.
+.SY beamerpresenter
+.RI [ options ]
+.I drawings.bp
 .
 .SY beamerpresenter
 .BR \-h " | " \-\-help
@@ -63,10 +65,12 @@ Disable all slide transition.
 Mark these files for embedding if an execution link points to them. Multiple files should be separated only by a comma (not space!).
 Not available if embedded applications were disabled at compile time.
 .
-.TP "\-g \-\-glitter-pixel " int
+.TP
+.BI "\-g \-\-glitter-pixel " integer
 Set size (length) of glitter pixel in glitter slide transition. The default value is 30.
 .
-.TP "\-G \-\-glitter-steps " int
+.TP
+.BI "\-G \-\-glitter-steps " integer
 Set number of independent glitter pixels in glitter slide transition. This number times the glitter pixel size divided by the screen width should not be approximately an integer or a fraction like 1/2, 1/3, 3/2, ...
 Best results are obtained for prime numbers of order 1000 (depending on pixel size and the screen resolution). Larger numbers lead to more randomness, but require more computational power. The default value is 167.
 .
@@ -76,7 +80,7 @@ Select a local configuration file. The file must be in JSON format and can conta
 .
 .TP
 .BI "\-l \-\-toc-depth " integer
-.RB "Number of levels in the table of contents, which will be shown on the control screen with shortcut " t ". Possible values range from 1 and 4. An additional level will be shown as a popup menu if necessary."
+.RB "Number of levels in the table of contents, which will be shown on the control screen with shortcut " t ". Possible values range from 1 and 4. An additional level will be shown as a pop-up menu if necessary."
 .
 .TP
 .BI "\-m \-\-min-delay " delay
@@ -139,7 +143,7 @@ with the command
 Not available if embedded applications were disabled at compile time.
 .
 .TP
-.BI "\-v \-\-video-cache " bool
+.BI "\-v \-\-video-cache " boolean
 If set to true, videos will be loaded to cache when reaching the slide before the one containing the video.
 .
 .TP
@@ -310,12 +314,12 @@ You can escape this mode and go back to the current slide on the presentation by
 .BR escape .
 .
 .SS Browse Table of Contents and overview
-.RB "You can show a table of contents on the control screen with shortcut " t " for quick navigation. The maximum level of subsections shown in the table of contents can be controlled with the option " \-l " or " \-\-toc-depth ". For entries with more levels, one additional level is shown as a popup menu."
+.RB "You can show a table of contents on the control screen with shortcut " t " for quick navigation. The maximum level of subsections shown in the table of contents can be controlled with the option " \-l " or " \-\-toc-depth ". For entries with more levels, one additional level is shown as a pop-up menu."
 .PP
 .RB "An overview of all presentation slides is shown on the control screen with the key binding " s ". The number of columns in this overview mode can be controlled with the option " \-o " or " \-\-columns .
 .
 .SS Overlays
-Multimedia content and embedded applications are aware of overlays. If a video is shown on consecutive slides with the same page label, it will continue playing without interuption when switching within these slides. The same works for embedded applications independent of the page label.
+Multimedia content and embedded applications are aware of overlays. If a video is shown on consecutive slides with the same page label, it will continue playing without interruption when switching within these slides. The same works for embedded applications independent of the page label.
 .PP
 You can jump to the next or previous slide with a different page label by using the arrow keys
 .BR Up " and " Down .
@@ -331,7 +335,7 @@ Caching slides can be switched off completely with the command line option
 .PP
 Rendering to cache can be done using a custom PDF renderer. While
 .B BeamerPresenter
-is based on the Qt5 bindings of poppler, rendering to cache can be done using any renderer, which can be called from the command line, accepts a filename, page number and page size as arguments and writes a rendered PDF page as png image to standard output.
+is based on the Qt5 bindings of poppler, rendering to cache can be done using any renderer, which can be called from the command line, accepts a filename, page number and page size as arguments and writes a rendered PDF page as PNG image to standard output.
 An example of such a PDF renderer, which improves both speed and quality of the output image, is
 .BR "mutool draw " "from the " MuPDF " project."
 .
@@ -378,7 +382,7 @@ This is done using the key actions
 .BR "save drawings" and "load drawings" .
 .
 .
-.SH CONFIG
+.SH CONFIGURATION
 .
 .RB "The documentation of the configuration file beamerpresenter.conf can be found in " beamerpresenter.conf (5).
 
@@ -397,7 +401,7 @@ issue tracker
 .
 .SH SEE ALSO
 .
-There are other programs, which show notes along a pdf. Some examples are
+There are other programs which show notes along a PDF. Some examples are
 .BR pympress (1),
 .BR dspdfviewer "(1) and"
 .BR pdfpc (1)

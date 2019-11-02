@@ -254,7 +254,6 @@ Possible arguments and their default values are:
 .TP
 .BR autoplay =false
 true, false or number: Start video and audio content when entering a slide. A number is interpreted as a delay in seconds, after which multimedia content is started.
-.PP
 This overwrites the default value for the command line argument
 .BR \-a " or " \-\-autoplay .
 .
@@ -262,13 +261,11 @@ This overwrites the default value for the command line argument
 .BR autoplay-emb =false
 true, false or number: Start embedded applications when entering a slide. A number is interpreted as a delay in seconds, after which embedded applications are started.
 Not available if embedded applications were disabled at compile time.
-.PP
 This overwrites the default value for the command line argument
 .BR \-A " or " \-\-autoplay-emb .
 .
 .TP
 .BR min-delay =40
-.PP
 Set the minimum time per frame in milliseconds. This is useful when using \\animation in LaTeX beamer.
 This overwrites the default value for the command line argument
 .BR \-m " or " \-\-min-delay .
@@ -324,11 +321,12 @@ This overwrites the default value for the command line argument
 Path to a program, which takes a process ID as an argument and returns the window ID of the corresponding window. This can be an executable shell script using
 .BR wmctrl (1)
 with the command
+
 .B echo
 .IR "$(( " "16#" "$("
 .BR wmctrl " -lp | " sed " -n
 .RI "\[dq]s/^0x\e([0-9a-f]\e+\e) \e+[0-9]\e+ \e+" $1 " .*$/\e1/p\[dq] " ") ))"
-.PP
+
 This option is not available if embedded applications were disabled at compile time.
 This sets the default value for the command line argument
 .BR \-w " or " \-\-pid2wid .
@@ -401,12 +399,12 @@ Set a command for calling an external PDF renderer, which will be used for rende
 The command should call a renderer, which renders a specific page of a PDF file to a png image of fixed size, such that it can be shown in a window with given width and height and writes the image to the standard output.
 The command should contain the tokens "%file" for the PDF file name, "%page" for the page number, "%width" for the image width in pixels and "%height" for the height in pixels.
 Note that a failing command will not necessarily be handled correctly or lead to a warning.
-.PP
+
 An example for a command using
 .BR "mutool draw " "from the " MuPDF " project is"
 .RB \[dq] "mutool draw"
 .IR -F "png " -w "%width " -h "%height " -o "- %file %page\[dq]."
-.PP
+
 This will set the default value of the command line argument
 .BR \-r " or " \-\-renderer " to \[dq]custom\[dq].
 If this option is set, the internal renderer can be used with the command line argument
