@@ -49,7 +49,10 @@ void PresentationSlide::paintEvent(QPaintEvent*)
         drawPointer(painter);
     }
     else {
-        painter.drawPixmap(shiftx, shifty, pixmap);
+        if (pixpaths.isNull())
+            painter.drawPixmap(shiftx, shifty, pixmap);
+        else
+            painter.drawPixmap(0, 0, pixpaths);
         drawAnnotations(painter);
     }
 }
@@ -73,7 +76,6 @@ void PresentationSlide::drawPointer(QPainter& painter)
 
 void PresentationSlide::endAnimation()
 {
-    qDebug() << "Ending Animation";
     stopAnimation();
     repaint();
     if (glitter != nullptr) {
@@ -169,6 +171,11 @@ void PresentationSlide::updateImages(int const oldPage)
 }
 
 void PresentationSlide::animate(int const oldPageIndex) {
+    if (oldPageIndex != pageIndex) {
+        end_cache = -1;
+         if (!pixpaths.isNull())
+             pixpaths = QPixmap();
+    }
     if (duration>-1e-6 && duration < .05) {
         transition_duration = 0;
         update();

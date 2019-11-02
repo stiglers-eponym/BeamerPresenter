@@ -33,11 +33,17 @@ void DrawSlide::clearAllAnnotations()
         it->clear();
     }
     paths.clear();
+    end_cache = -1;
+    if (!pixpaths.isNull())
+        pixpaths = QPixmap();
     update();
 }
 
 void DrawSlide::clearPageAnnotations()
 {
+    end_cache = -1;
+    if (!pixpaths.isNull())
+        pixpaths = QPixmap();
     if (paths.contains(page->label())) {
         qDeleteAll(paths[page->label()]);
         paths[page->label()].clear();
@@ -50,7 +56,10 @@ void DrawSlide::clearPageAnnotations()
 void DrawSlide::paintEvent(QPaintEvent*)
 {
     QPainter painter(this);
-    painter.drawPixmap(shiftx, shifty, pixmap);
+    if (pixpaths.isNull() || end_cache < 1)
+        painter.drawPixmap(shiftx, shifty, pixmap);
+    else
+        painter.drawPixmap(0, 0, pixpaths);
     drawAnnotations(painter);
 }
 
@@ -117,6 +126,31 @@ void DrawSlide::setTool(const ColoredDrawTool newtool)
     update();
 }
 
+void DrawSlide::updatePathCache()
+{
+    if (paths[page->label()].isEmpty()) {
+        end_cache = -1;
+        if (!pixpaths.isNull())
+            pixpaths = QPixmap();
+    }
+    else {
+        if (pixpaths.isNull())
+            end_cache = -1;
+        if (end_cache == -1) {
+            pixpaths = QPixmap(size());
+            pixpaths.fill(palette().base().color());
+        }
+        QPainter painter;
+        painter.begin(&pixpaths);
+        if (end_cache == -1)
+            painter.drawPixmap(shiftx, shifty, pixmap);
+        painter.setRenderHint(QPainter::Antialiasing);
+        drawPaths(painter, page->label());
+        painter.end();
+        end_cache = paths[page->label()].length();
+    }
+}
+
 void DrawSlide::setSize(DrawTool const tool, quint16 size)
 {
     if (size < 1)
@@ -132,7 +166,10 @@ void DrawSlide::setSize(DrawTool const tool, quint16 size)
 void DrawSlide::drawPaths(QPainter &painter, QString const label, bool const clip)
 {
     if (paths.contains(label)) {
-        for (QList<DrawPath*>::const_iterator path_it=paths[label].cbegin(); path_it!=paths[label].cend(); path_it++) {
+        QList<DrawPath*>::const_iterator path_it = paths[label].cbegin();
+        if (label == page->label() && end_cache > 0)
+            path_it += end_cache;
+        for (; path_it!=paths[label].cend(); path_it++) {
             switch ((*path_it)->getTool()) {
             case Pen:
                 painter.setCompositionMode(QPainter::CompositionMode_SourceOver);
@@ -238,30 +275,40 @@ void DrawSlide::mousePressEvent(QMouseEvent *event)
 
 void DrawSlide::mouseReleaseEvent(QMouseEvent *event)
 {
-    // Middle mouse button always follows hyperlinks.
-    switch (tool.tool) {
-    case NoTool:
-    case Pointer:
-        if (event->button() == Qt::LeftButton || event->button() == Qt::MidButton)
-            followHyperlinks(event->pos());
-        break;
-    case Torch:
-        pointerPosition = QPointF();
-        update();
-        break;
-    case Magnifier:
-        pointerPosition = QPointF();
-        // Update enlarged page after eraser was used:
-        if (event->button() == Qt::RightButton) {
+    switch (event->button())
+    {
+    case Qt::RightButton:
+        updatePathCache();
+        emit sendUpdatePathCache();
+        if (tool.tool == Magnifier) {
             updateEnlargedPage();
             emit sendUpdateEnlargedPage();
+            update();
         }
-        update();
         break;
-    case Pen:
-    case Highlighter:
-        if (!paths[page->label()].isEmpty())
-            paths[page->label()].last()->updateHash();
+    case Qt::LeftButton:
+        switch (tool.tool) {
+        case NoTool:
+        case Pointer:
+            followHyperlinks(event->pos());
+            break;
+        case Torch:
+        case Magnifier:
+            pointerPosition = QPointF();
+            update();
+            break;
+        case Pen:
+        case Highlighter:
+        case Eraser:
+            updatePathCache();
+            emit sendUpdatePathCache();
+            break;
+        default:
+            break;
+        }
+        break;
+    case Qt::MidButton:
+        followHyperlinks(event->pos());
         break;
     default:
         break;
@@ -296,7 +343,6 @@ void DrawSlide::mouseMoveEvent(QMouseEvent *event)
             break;
         case Eraser:
             erase(event->localPos());
-            update();
             break;
         case Torch:
         case Magnifier:
@@ -313,7 +359,6 @@ void DrawSlide::mouseMoveEvent(QMouseEvent *event)
         break;
     case Qt::RightButton:
         erase(event->localPos());
-        update();
         break;
     }
     event->accept();
@@ -355,8 +400,11 @@ void DrawSlide::erase(const QPointF &point)
         else
             i++;
     }
-    if (changed)
+    if (changed) {
+        end_cache = -1;
+        update();
         emit pathsChanged(page->label(), path_list, shiftx, shifty, resolution);
+    }
 }
 
 void DrawSlide::clearCache()
@@ -425,7 +473,10 @@ void DrawSlide::setPaths(QString const pagelabel, QList<DrawPath*> const& list, 
                 paths[pagelabel].append(new DrawPath(**(new_it++), shift, resolution/refresolution));
         }
     }
+    end_cache = -1;
+    updatePathCache();
     update();
+    emit sendUpdatePathCache();
 }
 
 void DrawSlide::setPointerPosition(QPointF const point, qint16 const refshiftx, qint16 const refshifty, double const refresolution)
@@ -613,4 +664,13 @@ void DrawSlide::setMagnification(qreal const mag)
         enlargedPage = QPixmap();
         updateEnlargedPage();
     }
+}
+
+void DrawSlide::animate(const int oldPageIndex)
+{
+     if (oldPageIndex != pageIndex) {
+         end_cache = -1;
+         if (!pixpaths.isNull())
+             pixpaths = QPixmap();
+     }
 }

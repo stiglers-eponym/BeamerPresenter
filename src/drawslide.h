@@ -56,6 +56,7 @@ protected:
     virtual void mouseReleaseEvent(QMouseEvent* event) override;
     virtual void mouseMoveEvent(QMouseEvent* event) override;
     virtual void resizeEvent(QResizeEvent*) override;
+    virtual void animate(int const oldPageIndex = -1) override;
     void erase(QPointF const& point);
     ColoredDrawTool tool = {NoTool, Qt::black};
     QMap<QString, QList<DrawPath*>> paths;
@@ -64,6 +65,8 @@ protected:
     QMap<DrawTool, quint16> sizes = {{Magnifier,120}, {Torch,80}, {Pointer,10}, {Highlighter,30}, {Pen,3}, {Eraser,10}};
     bool pointer_visible = true;
     qreal magnification = 2.;
+    QPixmap pixpaths;
+    int end_cache = -1;
 
 public slots:
     void setPaths(QString const pagelabel, QList<DrawPath*> const& list, qint16 const refshiftx, qint16 const refshifty, double const refresolution);
@@ -71,6 +74,7 @@ public slots:
     void setPointerPosition(QPointF const point, qint16 const refshiftx, qint16 const refshifty, double const refresolution);
     void setTool(ColoredDrawTool const newtool);
     void setTool(DrawTool const newtool, QColor const color=QColor()) {setTool({newtool, color});}
+    void updatePathCache();
     void relax();
 
 signals:
@@ -80,6 +84,7 @@ signals:
     void sendToolChanged(ColoredDrawTool const tool);
     void sendUpdateEnlargedPage();
     void sendRelax();
+    void sendUpdatePathCache();
 };
 
 #endif // DRAWSLIDE_H
