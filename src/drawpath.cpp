@@ -77,6 +77,17 @@ DrawPath::DrawPath(DrawPath const& old, QPointF const shift, double const scale)
     hash = old.hash;
 }
 
+bool DrawPath::update(DrawPath const& new_path, QPointF const shift, double const scale)
+{
+    if (new_path.tool.tool != tool.tool || new_path.tool.color != tool.color || new_path.path.length() < path.length())
+        return false;
+    for (int i=path.length(); i<new_path.path.length();)
+        path.append(scale*new_path.path[i++] + shift);
+    outer = QRectF(scale*new_path.outer.topLeft() + shift, scale*new_path.outer.bottomRight() + shift);
+    hash = new_path.hash;
+    return true;
+}
+
 DrawPath::DrawPath(DrawPath const& old)
 {
     path = old.path;

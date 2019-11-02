@@ -79,6 +79,8 @@ ControlScreen::ControlScreen(QString presentationPath, QString notesPath, QWidge
         ui->notes_widget->setFocusPolicy(Qt::ClickFocus);
         drawSlide = static_cast<DrawSlide*>(ui->notes_widget);
         connect(ui->tool_selector, &ToolSelector::sendNewTool, drawSlide, QOverload<const ColoredDrawTool>::of(&DrawSlide::setTool));
+        connect(drawSlide, &DrawSlide::pathsChangedQuick, presentationScreen->slide, &DrawSlide::setPathsQuick);
+        connect(presentationScreen->slide, &DrawSlide::pathsChangedQuick, drawSlide, &DrawSlide::setPathsQuick);
         connect(drawSlide, &DrawSlide::pathsChanged, presentationScreen->slide, &DrawSlide::setPaths);
         connect(presentationScreen->slide, &DrawSlide::pathsChanged, drawSlide, &DrawSlide::setPaths);
         connect(drawSlide, &DrawSlide::pointerPositionChanged, presentationScreen->slide, &DrawSlide::setPointerPosition);
@@ -1427,6 +1429,8 @@ void ControlScreen::showDrawSlide()
         drawSlide->setFocusPolicy(Qt::ClickFocus);
         drawSlide->setUseCache(0);
         connect(ui->tool_selector, &ToolSelector::sendNewTool, drawSlide, QOverload<const ColoredDrawTool>::of(&DrawSlide::setTool));
+        connect(drawSlide, &DrawSlide::pathsChangedQuick, presentationScreen->slide, &DrawSlide::setPathsQuick);
+        connect(presentationScreen->slide, &DrawSlide::pathsChangedQuick, drawSlide, &DrawSlide::setPathsQuick);
         connect(drawSlide, &DrawSlide::pathsChanged, presentationScreen->slide, &DrawSlide::setPaths);
         connect(presentationScreen->slide, &DrawSlide::pathsChanged, drawSlide, &DrawSlide::setPaths);
         connect(drawSlide, &DrawSlide::pointerPositionChanged, presentationScreen->slide, &DrawSlide::setPointerPosition);

@@ -42,6 +42,7 @@ public:
     ~DrawPath() {path.clear();}
     void toIntVector(QVector<float>& vec, int const xshift, int const yshift, int const width, int const height) const;
     void transform(QPointF const& shift, double const scale);
+    bool update(DrawPath const& new_path, QPointF const shift, double const scale);
     void updateHash();
     void setEraserSize(quint16 const size);
     void clear() {path.clear(); outer=QRectF(); hash=0;}

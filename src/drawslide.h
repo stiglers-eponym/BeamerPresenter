@@ -67,6 +67,7 @@ protected:
 
 public slots:
     void setPaths(QString const pagelabel, QList<DrawPath*> const& list, qint16 const refshiftx, qint16 const refshifty, double const refresolution);
+    void setPathsQuick(QString const pagelabel, QList<DrawPath*> const& list, qint16 const refshiftx, qint16 const refshifty, double const refresolution);
     void setPointerPosition(QPointF const point, qint16 const refshiftx, qint16 const refshifty, double const refresolution);
     void setTool(ColoredDrawTool const newtool);
     void setTool(DrawTool const newtool, QColor const color=QColor()) {setTool({newtool, color});}
@@ -74,6 +75,7 @@ public slots:
 
 signals:
     void pointerPositionChanged(QPointF const point, qint16 const refshiftx, qint16 const refshifty, double const refresolution);
+    void pathsChangedQuick(QString const pagelabel, QList<DrawPath*> const& list, qint16 const refshiftx, qint16 const refshifty, double const refresolution);
     void pathsChanged(QString const pagelabel, QList<DrawPath*> const& list, qint16 const refshiftx, qint16 const refshifty, double const refresolution);
     void sendToolChanged(ColoredDrawTool const tool);
     void sendUpdateEnlargedPage();

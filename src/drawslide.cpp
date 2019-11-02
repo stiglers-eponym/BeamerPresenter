@@ -260,7 +260,8 @@ void DrawSlide::mouseReleaseEvent(QMouseEvent *event)
         break;
     case Pen:
     case Highlighter:
-        paths[page->label()].last()->updateHash();
+        if (!paths[page->label()].isEmpty())
+            paths[page->label()].last()->updateHash();
         break;
     default:
         break;
@@ -287,10 +288,10 @@ void DrawSlide::mouseMoveEvent(QMouseEvent *event)
         {
         case Pen:
         case Highlighter:
-            if (paths.contains(page->label()) && paths[page->label()].length()>0) {
+            if (!paths[page->label()].isEmpty()) {
                 paths[page->label()].last()->append(event->localPos());
                 update();
-                emit pathsChanged(page->label(), paths[page->label()], shiftx, shifty, resolution);
+                emit pathsChangedQuick(page->label(), paths[page->label()], shiftx, shifty, resolution);
             }
             break;
         case Eraser:
@@ -320,7 +321,7 @@ void DrawSlide::mouseMoveEvent(QMouseEvent *event)
 
 void DrawSlide::erase(const QPointF &point)
 {
-    if (!paths.contains(page->label()))
+    if (paths[page->label()].isEmpty())
         return;
     QList<DrawPath*>& path_list = paths[page->label()];
     int const oldsize=path_list.size();
@@ -364,6 +365,21 @@ void DrawSlide::clearCache()
     enlargedPage = QPixmap();
 }
 
+void DrawSlide::setPathsQuick(QString const pagelabel, QList<DrawPath*> const& list, qint16 const refshiftx, qint16 const refshifty, double const refresolution)
+{
+    QPointF shift = QPointF(shiftx, shifty) - resolution/refresolution*QPointF(refshiftx, refshifty);
+    int const diff = list.length() - paths[pagelabel].length();
+    if (diff == 0) {
+        if (!paths[pagelabel].last()->update(*list.last(), shift, resolution/refresolution))
+            setPaths(pagelabel, list, refshiftx, refshifty, refresolution);
+    }
+    else if (diff == 1)
+        paths[pagelabel].append(new DrawPath(*list.last(), shift, resolution/refresolution));
+    else
+        setPaths(pagelabel, list, refshiftx, refshifty, refresolution);
+    update();
+}
+
 void DrawSlide::setPaths(QString const pagelabel, QList<DrawPath*> const& list, qint16 const refshiftx, qint16 const refshifty, double const refresolution)
 {
     QPointF shift = QPointF(shiftx, shifty) - resolution/refresolution*QPointF(refshiftx, refshifty);
@@ -373,18 +389,40 @@ void DrawSlide::setPaths(QString const pagelabel, QList<DrawPath*> const& list, 
             paths[pagelabel].append(new DrawPath(**it, shift, resolution/refresolution));
     }
     else {
-        QMap<quint32, int> oldHashs;
-        for (int i=0; i<paths[pagelabel].length(); i++)
-            oldHashs[paths[pagelabel][i]->getHash()] = i;
-        for (QList<DrawPath*>::const_iterator it = list.cbegin(); it!=list.cend(); it++) {
-            if (oldHashs.remove((*it)->getHash()) == 0)
-                paths[pagelabel].append(new DrawPath(**it, shift, resolution/refresolution));
+        // Basic assumption: If list and paths[pagelabel] both contain two elements, then these elements appear in the same order in both lists.
+        QList<DrawPath*>::const_iterator new_it=list.cbegin();
+        QList<DrawPath*>::iterator old_it=paths[pagelabel].begin();
+        for (;new_it<list.cend() && old_it<paths[pagelabel].end() && (*new_it)->getHash() == (*old_it)->getHash(); new_it++, old_it++) {}
+        if (old_it >= paths[pagelabel].end()-1) {
+            if (old_it == paths[pagelabel].end()-1) {
+                delete *old_it;
+                paths[pagelabel].pop_back();
+            }
+            while (new_it < list.cend())
+                paths[pagelabel].append(new DrawPath(**(new_it++), shift, resolution/refresolution));
         }
-        QList<int> remove = oldHashs.values();
-        std::sort(remove.begin(), remove.end());
-        for (QList<int>::const_iterator it=remove.cend()-1; it!=remove.cbegin()-1; it--) {
-            delete paths[pagelabel][*it];
-            paths[pagelabel].removeAt(*it);
+        else {
+            // create look up table for new hashs
+            QMap<quint32, QList<DrawPath*>::const_iterator> newHashs;
+            for (QList<DrawPath*>::const_iterator it=new_it; it<list.cend(); it++)
+                newHashs[(*it)->getHash()] = it;
+            // adjust paths
+            for (QList<DrawPath*>::const_iterator next; old_it<paths[pagelabel].end();) {
+                // next new path which exists already in the old paths:
+                next = newHashs.value((*old_it)->getHash(), list.cend());
+                if (next == list.cend()) {
+                    delete *old_it;
+                    old_it = paths[pagelabel].erase(old_it);
+                }
+                else {
+                    while (new_it < next)
+                        old_it = paths[pagelabel].insert(old_it, new DrawPath(**(new_it++), shift, resolution/refresolution)) + 1;
+                    new_it++;
+                    old_it++;
+                }
+            }
+            while (new_it < list.cend())
+                paths[pagelabel].append(new DrawPath(**(new_it++), shift, resolution/refresolution));
         }
     }
     update();
