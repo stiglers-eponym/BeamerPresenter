@@ -47,13 +47,13 @@ void BasicSlide::renderPage(const int pageNumber, const QPixmap *pix)
     if (width() * pageHeight > height() * pageWidth) {
         // the width of the label is larger than required
         resolution = double(height()) / pageHeight;
-        shiftx = quint16(width()/2 - resolution/2 * pageWidth);
+        shiftx = qint16(width()/2 - resolution/2 * pageWidth);
         shifty = 0;
     }
     else {
         // the height of the label is larger than required
         resolution = double(width()) / pageWidth;
-        shifty = quint16(height()/2 - resolution/2 * pageHeight);
+        shifty = qint16(height()/2 - resolution/2 * pageHeight);
         shiftx = 0;
     }
 

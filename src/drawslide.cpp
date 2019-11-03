@@ -424,6 +424,18 @@ void DrawSlide::setPathsQuick(QString const pagelabel, QList<DrawPath*> const& l
     }
     else if (diff == 1)
         paths[pagelabel].append(new DrawPath(*list.last(), shift, resolution/refresolution));
+    else if (diff < 0) {
+        if (-diff >= paths[pagelabel].length()) {
+            qDeleteAll(paths[pagelabel]);
+            paths[pagelabel].clear();
+        }
+        else {
+            for (int i=diff; i++<0;)
+                delete paths[pagelabel].takeLast();
+        }
+        end_cache = -1;
+        pixpaths = QPixmap();
+    }
     else {
         qDebug() << "set paths quick failed!" << this;
         setPaths(pagelabel, list, refshiftx, refshifty, refresolution);

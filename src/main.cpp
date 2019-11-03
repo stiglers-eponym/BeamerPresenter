@@ -100,6 +100,8 @@ static const QMap<QString, KeyAction> keyActionMap {
     {"hide draw slide", KeyAction::HideDrawSlide},
     {"end draw mode", KeyAction::HideDrawSlide},
     {"end drawing", KeyAction::HideDrawSlide},
+    {"undo drawing", KeyAction::UndoDrawing},
+    {"redo drawing", KeyAction::RedoDrawing},
     {"save drawings", KeyAction::SaveDrawings},
     {"load drawings", KeyAction::LoadDrawings},
 };
@@ -142,7 +144,9 @@ static const QMap<quint32, QList<KeyAction>> defaultKeyMap = {
     {Qt::Key_O, {KeyAction::ToggleCursor}},
     {Qt::Key_F, {KeyAction::FullScreen}},
     {Qt::Key_U, {KeyAction::Reload}},
-    {Qt::Key_Q+Qt::CTRL, {KeyAction::Quit}}
+    {Qt::Key_Q+Qt::CTRL, {KeyAction::Quit}},
+    {Qt::Key_Z+Qt::CTRL, {KeyAction::UndoDrawing}},
+    {Qt::Key_Y+Qt::CTRL, {KeyAction::RedoDrawing}},
 };
 
 // Default configuration for tool selector (buttons)

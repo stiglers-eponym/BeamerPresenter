@@ -199,6 +199,14 @@ Enlarge a region of the current slide with a magnifier.
 Highlight a point on the slide with a pointer. The default color is #c0ff0000 (red).
 .
 .TP
+.B undo drawing
+Undo the last drawing (with pen or highlighter). Erasing can not be undone! Technically this just removes the last path.
+.
+.TP
+.B redo drawing
+Restore a previously undone path.
+.
+.TP
 .B save drawings
 Save drawings to a file. This opens a file dialog in which you specify an output file name.
 Note that saving and loading drawings is experimental and files may not be readable for later versions of BeamerPresenter!

@@ -74,6 +74,33 @@ void PresentationSlide::drawPointer(QPainter& painter)
     }
 }
 
+void PresentationSlide::undoPath()
+{
+    if (!paths[page->label()].isEmpty()) {
+        undonePaths.append(paths[page->label()].takeLast());
+        end_cache = -1;
+        pixpaths = QPixmap();
+        repaint();
+        emit pathsChangedQuick(page->label(), paths[page->label()], shiftx, shifty, resolution);
+    }
+}
+
+void PresentationSlide::redoPath()
+{
+    if (!undonePaths.isEmpty()) {
+        paths[page->label()].append(undonePaths.takeLast());
+        repaint();
+        emit pathsChangedQuick(page->label(), paths[page->label()], shiftx, shifty, resolution);
+    }
+}
+
+void PresentationSlide::clearLists()
+{
+    MediaSlide::clearLists();
+    qDeleteAll(undonePaths);
+    undonePaths.clear();
+}
+
 void PresentationSlide::endAnimation()
 {
     stopAnimation();

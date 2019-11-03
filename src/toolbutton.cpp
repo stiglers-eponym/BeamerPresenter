@@ -92,13 +92,15 @@ static const QMap<KeyAction, QString> actionIconNames = {
     {Quit, "application-exit"},
     {FullScreen, "view-fullscreen"},
     {Update, "view-refresh"},
-    {ClearAnnotations, "edit-clear"},
+    {ClearAnnotations, "edit-delete"},
     {PauseTimer, "media-playback-pause"},
 #ifdef EMBEDDED_APPLICATIONS_ENABLED
     {StartEmbeddedCurrentSlide, "application-x-executable"},
 #endif
     {SaveDrawings, "document-save"},
     {LoadDrawings, "document-open"},
+    {UndoDrawing, "edit-undo"},
+    {RedoDrawing, "edit-redo"},
     // TODO: more and better icons
 };
 

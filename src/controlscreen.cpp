@@ -1057,6 +1057,12 @@ void ControlScreen::handleKeyAction(KeyAction const action)
         else if (drawSlide != ui->notes_widget)
             hideDrawSlide();
         break;
+    case KeyAction::UndoDrawing:
+        presentationScreen->slide->undoPath();
+        break;
+    case KeyAction::RedoDrawing:
+        presentationScreen->slide->redoPath();
+        break;
     case KeyAction::SaveDrawings:
         {
             QString const savePath = QFileDialog::getSaveFileName(this, "Save drawings");
