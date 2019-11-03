@@ -54,6 +54,29 @@ void PreviewSlide::renderPage(int const pageNumber, QPixmap const* pix)
         oldSize = size();
     }
 
+    QPair<double,double> scale = basicRenderPage(pageNumber, pix);
+    pageIndex = pageNumber;
+
+    // Show the page on the screen.
+    // One could show the page in any case to make it slightly more responsive, but this can lead to a short interruption by a different image.
+    // All operations before the next call to update() are usually very fast.
+    update();
+
+    // Collect link areas in pixels (positions relative to the lower left edge of the label)
+    links = page->links();
+    Q_FOREACH(Poppler::Link* link, links) {
+        QRectF relative = link->linkArea();
+        linkPositions.append(QRect(
+                    shiftx+int(relative.x()*scale.first),
+                    shifty+int(relative.y()*scale.second),
+                    int(relative.width()*scale.first),
+                    int(relative.height()*scale.second)
+                ));
+    }
+}
+
+QPair<double,double> PreviewSlide::basicRenderPage(int const pageNumber, QPixmap const* pix)
+{
     // Set the new page and basic properties
     page = doc->getPage(pageNumber);
     QSizeF pageSize = page->pageSizeF();
@@ -135,24 +158,7 @@ void PreviewSlide::renderPage(int const pageNumber, QPixmap const* pix)
                 updateCache(&pixmap, pageNumber);
         }
     }
-    pageIndex = pageNumber;
-
-    // Show the page on the screen.
-    // One could show the page in any case to make it slightly more responsive, but this can lead to a short interruption by a different image.
-    // All operations before the next call to update() are usually very fast.
-    update();
-
-    // Collect link areas in pixels (positions relative to the lower left edge of the label)
-    links = page->links();
-    Q_FOREACH(Poppler::Link* link, links) {
-        QRectF relative = link->linkArea();
-        linkPositions.append(QRect(
-                    shiftx+int(relative.x()*scale_x),
-                    shifty+int(relative.y()*scale_y),
-                    int(relative.width()*scale_x),
-                    int(relative.height()*scale_y)
-                ));
-    }
+    return {scale_x, scale_y};
 }
 
 qint64 PreviewSlide::updateCache(QPixmap const* pix, int const index)

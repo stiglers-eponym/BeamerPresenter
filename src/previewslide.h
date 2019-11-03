@@ -54,6 +54,7 @@ protected:
     char useCache = 1; // 0=don't cache; 1=use cache with internal renderer; 2=use cache with external renderer
     void mouseReleaseEvent(QMouseEvent* event) override;
     void mouseMoveEvent(QMouseEvent* event) override;
+    QPair<double,double> basicRenderPage(int const pageNumber, QPixmap const* pix);
 };
 
 #endif // PREVIEWSLIDE_H

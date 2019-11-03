@@ -112,87 +112,7 @@ void MediaSlide::renderPage(int const pageNumber, bool const hasDuration, QPixma
         oldSize = size();
     }
 
-    // Set the new page and basic properties
-    page = doc->getPage(pageNumber);
-    QSizeF pageSize = page->pageSizeF();
-    // This is given in point = inch/72 ≈ 0.353mm (Did they choose these units to bother programmers?)
-
-    // Place the page as an image of the correct size at the correct position
-    // The lower left corner of the image will be located at (shiftx, shifty)
-    double pageHeight=pageSize.height(), pageWidth=pageSize.width();
-    // The page image must be split if the beamer option "notes on second screen" is set.
-    if (pagePart != FullPage)
-        pageWidth /= 2;
-    // Check it width or height is the limiting constraint for the size of the displayed slide and calculate the resolution
-    // resolution is calculated in pixels per point = dpi/72.
-    if (width() * pageHeight > height() * pageWidth) {
-        // the width of the label is larger than required
-        resolution = double(height()) / pageHeight;
-        shiftx = qint16(width()/2 - resolution/2 * pageWidth);
-        shifty = 0;
-    }
-    else {
-        // the height of the label is larger than required
-        resolution = double(width()) / pageWidth;
-        shifty = qint16(height()/2 - resolution/2 * pageHeight);
-        shiftx = 0;
-    }
-
-    // Calculate the size of the image in pixels
-    double scale_x=resolution*pageWidth, scale_y=resolution*pageHeight;
-    // Adjustments if only parts of the page are shown:
-    if (pagePart != FullPage) {
-        scale_x *= 2;
-        // If only the right half of the page will be shown, the position of the page (relevant for link positions) must be adjusted.
-        if (pagePart == RightHalf)
-            shiftx -= width();
-    }
-
-    // Get the image
-    if (pix != nullptr) {
-        // A pixmap was passed to this function. Display this pixmap as the page image.
-        if (pagePart != FullPage) {
-            // The pixmap might show both notes and presentation.
-            // Check the width to decide whether the image shows only the relevant part or the full page.
-            if (pix->width() > 1.5*pixmap.width()) {
-                // Assume that the pixmap shows notes and presentation.
-                if (pagePart == LeftHalf)
-                    pixmap = pix->copy(0, 0, pix->width()/2, pix->height());
-                else
-                    pixmap = pix->copy(pix->width()/2, 0, pix->width()/2, pix->height());
-            }
-            else
-                pixmap = *pix;
-        }
-        else
-            pixmap = *pix;
-    }
-    else {
-        bool updateRequired = true;
-        if (cache.contains(pageNumber)) {
-            // The page exists in cache. Use the cache instead of rendering it again.
-            if (pageIndex != pageNumber)
-                pixmap = getCache(pageNumber); // This is still slow compared to the rest of this function (can be >30 ms)
-            int picwidth = int(resolution*pageWidth), picheight = int(resolution*pageHeight);
-            if (abs(picwidth-pixmap.width())<2 && abs(picheight-pixmap.height())<2)
-                updateRequired = false;
-        }
-        if (updateRequired) {
-            // A new page image has to be rendered.
-            if (pagePart == FullPage)
-                pixmap = QPixmap::fromImage(page->renderToImage(72*resolution, 72*resolution));
-            else {
-                QImage image = page->renderToImage(72*resolution, 72*resolution);
-                if (pagePart == LeftHalf)
-                    pixmap = QPixmap::fromImage(image.copy(0, 0, image.width()/2, image.height()));
-                else
-                    pixmap = QPixmap::fromImage(image.copy(image.width()/2, 0, image.width()/2, image.height()));
-            }
-            // Save this image to cache.
-            if (useCache == 1)
-                updateCache(&pixmap, pageNumber);
-        }
-    }
+    QPair<double,double> scale = basicRenderPage(pageNumber, pix);
 
     // Presentation slides can have a "duration" property.
     // In this case: go to the next page after that given time.
@@ -207,10 +127,10 @@ void MediaSlide::renderPage(int const pageNumber, bool const hasDuration, QPixma
     Q_FOREACH(Poppler::Link* link, links) {
         QRectF relative = link->linkArea();
         linkPositions.append(QRect(
-                    shiftx+int(relative.x()*scale_x),
-                    shifty+int(relative.y()*scale_y),
-                    int(relative.width()*scale_x),
-                    int(relative.height()*scale_y)
+                    shiftx+int(relative.x()*scale.first),
+                    shifty+int(relative.y()*scale.second),
+                    int(relative.width()*scale.first),
+                    int(relative.height()*scale.second)
                 ));
     }
 
@@ -368,10 +288,10 @@ void MediaSlide::renderPage(int const pageNumber, bool const hasDuration, QPixma
         }
         QRectF relative = video->boundary();
         videoPositions.append(QRect(
-                shiftx+int(relative.x()*scale_x),
-                shifty+int(relative.y()*scale_y),
-                int(relative.width()*scale_x),
-                int(relative.height()*scale_y)
+                shiftx+int(relative.x()*scale.first),
+                shifty+int(relative.y()*scale.second),
+                int(relative.width()*scale.first),
+                int(relative.height()*scale.second)
             ));
         if (found)
             delete video;
@@ -549,10 +469,10 @@ void MediaSlide::renderPage(int const pageNumber, bool const hasDuration, QPixma
             }
             QRectF relative = (*annotation)->boundary();
             videoPositions.append(QRect(
-                    shiftx+int(relative.x()*scale_x),
-                    shifty+int(relative.y()*scale_y),
-                    int(relative.width()*scale_x),
-                    int(relative.height()*scale_y)
+                    shiftx+int(relative.x()*scale.first),
+                    shifty+int(relative.y()*scale.second),
+                    int(relative.width()*scale.first),
+                    int(relative.height()*scale.second)
                 ));
         }
         // Clean up old sound players and sliders:
@@ -578,10 +498,10 @@ void MediaSlide::renderPage(int const pageNumber, bool const hasDuration, QPixma
             {
                 QRectF relative = (*it)->boundary();
                 soundPositions.append(QRect(
-                            shiftx+int(relative.x()*scale_x),
-                            shifty+int(relative.y()*scale_y),
-                            int(relative.width()*scale_x),
-                            int(relative.height()*scale_y)
+                            shiftx+int(relative.x()*scale.first),
+                            shifty+int(relative.y()*scale.second),
+                            int(relative.width()*scale.first),
+                            int(relative.height()*scale.second)
                         ));
             }
 
