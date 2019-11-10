@@ -55,6 +55,13 @@ protected:
     void mouseReleaseEvent(QMouseEvent* event) override;
     void mouseMoveEvent(QMouseEvent* event) override;
     QPair<double,double> basicRenderPage(int const pageNumber, QPixmap const* pix);
+
+signals:
+    void sendNewPageNumber(int const pageNumber);
+    void sendCloseSignal();
+    void focusPageNumberEdit();
+    void sendShowFullscreen();
+    void sendEndFullscreen();
 };
 
 #endif // PREVIEWSLIDE_H

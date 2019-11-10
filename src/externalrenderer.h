@@ -34,8 +34,8 @@ private:
     int page;
     QByteArray const* bytes = nullptr;
 
-public slots:
-    void returnImage(int const exitCode, QProcess::ExitStatus exitStatus);
+protected slots:
+    void returnImage(int const exitCode, QProcess::ExitStatus const exitStatus);
 
 signals:
     void sendImage(QByteArray const* bytes, int const page);

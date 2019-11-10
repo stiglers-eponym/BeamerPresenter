@@ -40,15 +40,15 @@ bool PdfDoc::loadDocument()
     // Check if the file is valid and readable and save its last modification time
     QFileInfo file = QFileInfo(pdfPath);
     if (!file.exists() || !file.isFile()) {
-        qCritical() << "Trying to use a non-existing file:" << pdfPath;
+        qCritical() << "File does not exist or is not a file:" << pdfPath;
         return false;
     }
     else if (!file.isReadable()) {
-        qCritical() << "Trying to use a unreadable file:" << pdfPath;
+        qCritical() << "File is unreadable:" << pdfPath;
         return false;
     }
     if (file.suffix().toLower() != "pdf")
-        qWarning() << "Interpreting the following file as PDF file:" << pdfPath;
+        qWarning() << "Interpreting the following file as PDF:" << pdfPath;
 
     // Check whether the file has been updated
     if (popplerDoc != nullptr && QFileInfo(pdfPath).lastModified() <= lastModified)
@@ -61,21 +61,17 @@ bool PdfDoc::loadDocument()
         return false;
     }
     // PDF files can be locked.
-    // Locked pdf files are not really supported, as you can see:
+    // Using locked pdf files is untested.
     if (newDoc->isLocked()) {
-        // TODO: use a nicer way of entering passwords (a QDialog?)
-        qCritical() << "Support for locked files is HIGHLY EXPERIMENTAL:";
-        std::cout << "WARNING: File " << qPrintable(pdfPath) << ":\n"
-                  << "This file is locked. Support for locked files is HIGHLY EXPERIMENTAL!" << std::endl
-                  << "You can try to enter your password here.\n"
-                  << "YOUR PASSWORD WILL BE VISIBLE IF YOU ENTER IT HERE!" << std::endl;
-        std::string ownerPassword;
-        std::string userPassword;
-        std::cout << "Owner password (NOT HIDDEN!): ";
-        std::cin >> ownerPassword;
-        std::cout << "User password (NOT HIDDEN!): ";
-        std::cin >> userPassword;
-        if (!newDoc->unlock(QByteArray::fromStdString(ownerPassword), QByteArray::fromStdString(userPassword))) {
+        bool ok;
+        QString userPassword = QInputDialog::getText(nullptr, "User password for " + pdfPath, "Using locked PDF files is untested!\nUser password:", QLineEdit::Password, "", &ok);
+        if (!ok) {
+            qCritical() << "No user password provided for locked document";
+            delete newDoc;
+            return false;
+        }
+        QString ownerPassword = QInputDialog::getText(nullptr, "Owner password for " + pdfPath, "Using locked PDF files is untested!\nOwner password:", QLineEdit::Password, "", &ok);
+        if (!newDoc->unlock(QByteArray::fromStdString(ownerPassword.toStdString()), QByteArray::fromStdString(userPassword.toStdString()))) {
             qCritical() << "Failed to unlock document";
             delete newDoc;
             return false;

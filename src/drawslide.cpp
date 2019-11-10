@@ -537,7 +537,7 @@ void DrawSlide::updateEnlargedPage()
             case Highlighter:
             {
                 painter.setCompositionMode(QPainter::CompositionMode_Darken);
-                painter.setPen(QPen((*path_it)->getColor(), magnification*sizes[Highlighter]));
+                painter.setPen(QPen((*path_it)->getColor(), magnification*sizes[Highlighter], Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin));
                 DrawPath tmp(**path_it, QPointF(0,0), magnification);
                 painter.drawPolyline(tmp.data(), tmp.number());
                 break;

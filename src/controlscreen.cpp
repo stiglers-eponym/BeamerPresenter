@@ -41,7 +41,7 @@ ControlScreen::ControlScreen(QString presentationPath, QString notesPath, QWidge
         }
         if (notesPath == presentationPath)
             notesPath = "";
-        if (!notesPath.isEmpty()) {
+        else if (!notesPath.isEmpty()) {
             QFileInfo checkNotes(notesPath);
             if (!checkNotes.exists() || (!checkNotes.isFile() && !checkNotes.isSymLink()) ) {
                 qCritical() << "Ignoring invalid notes files: " << notesPath;
@@ -71,7 +71,16 @@ ControlScreen::ControlScreen(QString presentationPath, QString notesPath, QWidge
     presentationScreen->setWindowTitle("BeamerPresenter: " + presentationPath);
 
     // Load notes pdf
-    if (notesPath.isNull() || notesPath.isEmpty()) {
+    if (!notesPath.isEmpty()) {
+        notes = new PdfDoc(notesPath);
+        if (notes->loadDocument())
+            setWindowTitle("BeamerPresenter: " + notesPath);
+        else {
+            qCritical() << "File could not be opened as PDF: " << notesPath;
+            notesPath = "";
+        }
+    }
+    if (notesPath.isEmpty()) {
         notes = presentation;
         setWindowTitle("BeamerPresenter: " + presentationPath);
         ui->notes_widget->clearAll();
@@ -96,18 +105,6 @@ ControlScreen::ControlScreen(QString presentationPath, QString notesPath, QWidge
         connect(presentationScreen->slide, &MediaSlide::sendPlayVideo,  drawSlide, &MediaSlide::playVideo);
         connect(presentationScreen->slide, &MediaSlide::sendPauseVideo, drawSlide, &MediaSlide::pauseVideo);
         drawSlide->setMuted(true);
-        //drawSlide->setTool(presentationScreen->slide->getTool());
-    }
-    else {
-        notes = new PdfDoc(notesPath);
-        notes->loadDocument();
-        if (notes->getDoc() == nullptr) {
-            qCritical() << "File could not be opened as PDF: " << notesPath;
-            notes = presentation;
-            setWindowTitle("BeamerPresenter: " + presentationPath);
-        }
-        else
-            setWindowTitle("BeamerPresenter: " + notesPath);
     }
     ui->notes_widget->setDoc(notes);
     ui->current_slide->setDoc(presentation);
@@ -137,26 +134,26 @@ ControlScreen::ControlScreen(QString presentationPath, QString notesPath, QWidge
     // Page requests from the labels:
     // These are emitted if links are clicked.
     // These events are send to ControlScreen and PresentationScreen
-    connect(ui->notes_widget,  &BasicSlide::sendNewPageNumber, this, &ControlScreen::receiveNewPageNumber);
-    connect(ui->current_slide, &BasicSlide::sendNewPageNumber, this, &ControlScreen::receiveNewPageNumber);
-    connect(ui->next_slide,    &BasicSlide::sendNewPageNumber, this, &ControlScreen::receiveNewPageNumber);
-    connect(ui->notes_widget,  &BasicSlide::sendNewPageNumber, presentationScreen, &PresentationScreen::receiveNewPage);
-    connect(ui->current_slide, &BasicSlide::sendNewPageNumber, presentationScreen, &PresentationScreen::receiveNewPage);
-    connect(ui->next_slide,    &BasicSlide::sendNewPageNumber, presentationScreen, &PresentationScreen::receiveNewPage);
+    connect(ui->notes_widget,  &PreviewSlide::sendNewPageNumber, this, &ControlScreen::receiveNewPageNumber);
+    connect(ui->current_slide, &PreviewSlide::sendNewPageNumber, this, &ControlScreen::receiveNewPageNumber);
+    connect(ui->next_slide,    &PreviewSlide::sendNewPageNumber, this, &ControlScreen::receiveNewPageNumber);
+    connect(ui->notes_widget,  &PreviewSlide::sendNewPageNumber, presentationScreen, &PresentationScreen::receiveNewPage);
+    connect(ui->current_slide, &PreviewSlide::sendNewPageNumber, presentationScreen, &PresentationScreen::receiveNewPage);
+    connect(ui->next_slide,    &PreviewSlide::sendNewPageNumber, presentationScreen, &PresentationScreen::receiveNewPage);
 
-    connect(ui->notes_widget,  &BasicSlide::focusPageNumberEdit, this, &ControlScreen::focusPageNumberEdit);
-    connect(ui->current_slide, &BasicSlide::focusPageNumberEdit, this, &ControlScreen::focusPageNumberEdit);
-    connect(ui->next_slide,    &BasicSlide::focusPageNumberEdit, this, &ControlScreen::focusPageNumberEdit);
-    connect(presentationScreen->slide, &BasicSlide::focusPageNumberEdit, this, &ControlScreen::focusPageNumberEdit);
+    connect(ui->notes_widget,  &PreviewSlide::focusPageNumberEdit, this, &ControlScreen::focusPageNumberEdit);
+    connect(ui->current_slide, &PreviewSlide::focusPageNumberEdit, this, &ControlScreen::focusPageNumberEdit);
+    connect(ui->next_slide,    &PreviewSlide::focusPageNumberEdit, this, &ControlScreen::focusPageNumberEdit);
+    connect(presentationScreen->slide, &PreviewSlide::focusPageNumberEdit, this, &ControlScreen::focusPageNumberEdit);
 
-    connect(ui->notes_widget,  &BasicSlide::sendShowFullscreen, this, &ControlScreen::showFullScreen);
-    connect(ui->current_slide, &BasicSlide::sendShowFullscreen, this, &ControlScreen::showFullScreen);
-    connect(ui->next_slide,    &BasicSlide::sendShowFullscreen, this, &ControlScreen::showFullScreen);
-    connect(presentationScreen->slide, &BasicSlide::sendShowFullscreen, this, &ControlScreen::showFullScreen);
-    connect(ui->notes_widget,  &BasicSlide::sendShowFullscreen, presentationScreen, &PresentationScreen::showFullScreen);
-    connect(ui->current_slide, &BasicSlide::sendShowFullscreen, presentationScreen, &PresentationScreen::showFullScreen);
-    connect(ui->next_slide,    &BasicSlide::sendShowFullscreen, presentationScreen, &PresentationScreen::showFullScreen);
-    connect(presentationScreen->slide, &BasicSlide::sendShowFullscreen, presentationScreen, &PresentationScreen::showFullScreen);
+    connect(ui->notes_widget,  &PreviewSlide::sendShowFullscreen, this, &ControlScreen::showFullScreen);
+    connect(ui->current_slide, &PreviewSlide::sendShowFullscreen, this, &ControlScreen::showFullScreen);
+    connect(ui->next_slide,    &PreviewSlide::sendShowFullscreen, this, &ControlScreen::showFullScreen);
+    connect(presentationScreen->slide, &PreviewSlide::sendShowFullscreen, this, &ControlScreen::showFullScreen);
+    connect(ui->notes_widget,  &PreviewSlide::sendShowFullscreen, presentationScreen, &PresentationScreen::showFullScreen);
+    connect(ui->current_slide, &PreviewSlide::sendShowFullscreen, presentationScreen, &PresentationScreen::showFullScreen);
+    connect(ui->next_slide,    &PreviewSlide::sendShowFullscreen, presentationScreen, &PresentationScreen::showFullScreen);
+    connect(presentationScreen->slide, &PreviewSlide::sendShowFullscreen, presentationScreen, &PresentationScreen::showFullScreen);
 
     // Navigation signals emitted by PresentationScreen:
     connect(presentationScreen->slide, &PresentationSlide::sendAdaptPage, this, &ControlScreen::adaptPage);
@@ -174,10 +171,10 @@ ControlScreen::ControlScreen(QString presentationPath, QString notesPath, QWidge
     // Signals sent back to PresentationScreen
     connect(this, &ControlScreen::sendNewPageNumber, presentationScreen, &PresentationScreen::renderPage);
     connect(this, &ControlScreen::sendCloseSignal,   presentationScreen, &PresentationScreen::close);
-    connect(ui->notes_widget, &BasicSlide::sendCloseSignal, presentationScreen, &PresentationScreen::close);
-    connect(presentationScreen->slide, &BasicSlide::sendCloseSignal, presentationScreen, &PresentationScreen::close);
-    connect(ui->notes_widget, &BasicSlide::sendCloseSignal, this, &ControlScreen::close);
-    connect(presentationScreen->slide, &BasicSlide::sendCloseSignal, this, &ControlScreen::close);
+    connect(ui->notes_widget, &PreviewSlide::sendCloseSignal, presentationScreen, &PresentationScreen::close);
+    connect(presentationScreen->slide, &PreviewSlide::sendCloseSignal, presentationScreen, &PresentationScreen::close);
+    connect(ui->notes_widget, &PreviewSlide::sendCloseSignal, this, &ControlScreen::close);
+    connect(presentationScreen->slide, &PreviewSlide::sendCloseSignal, this, &ControlScreen::close);
     connect(presentationScreen->slide, &PresentationSlide::requestUpdateNotes, this, &ControlScreen::renderPage);
 
     ui->label_timer->setTimerWidget(ui->edit_timer);
@@ -206,7 +203,7 @@ ControlScreen::ControlScreen(QString presentationPath, QString notesPath, QWidge
     connect(ui->text_current_slide, &PageNumberEdit::sendEscape,           this, &ControlScreen::resetFocus);
 
     // Cache handling
-    connect(cacheTimer, SIGNAL(timeout()), this, SLOT(updateCacheStep()));
+    connect(cacheTimer, &QTimer::timeout, this, &ControlScreen::updateCacheStep);
     cacheThread->setSlideWidgets(presentationScreen->slide, ui->notes_widget, ui->current_slide);
     connect(cacheThread, &CacheUpdateThread::resultsReady, this, &ControlScreen::receiveCache);
     connect(presentationScreen, &PresentationScreen::clearPresentationCacheRequest, this, &ControlScreen::clearPresentationCache);
@@ -1052,7 +1049,7 @@ void ControlScreen::handleKeyAction(KeyAction const action)
         showDrawSlide();
         break;
     case KeyAction::ToggleDrawMode:
-        if (drawSlide == nullptr)
+        if (drawSlide == nullptr || drawSlide->isHidden())
             showDrawSlide();
         else if (drawSlide != ui->notes_widget)
             hideDrawSlide();
@@ -1481,14 +1478,6 @@ void ControlScreen::showDrawSlide()
     drawSlide->update();
     renderPage(currentPageNumber);
     drawSlide->setAutostartDelay(presentationScreen->slide->getAutostartDelay());
-}
-
-void ControlScreen::toggleDrawMode()
-{
-    if (drawSlide == nullptr || drawSlide->isHidden())
-        showDrawSlide();
-    else
-        hideDrawSlide();
 }
 
 void ControlScreen::hideDrawSlide()

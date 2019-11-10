@@ -130,7 +130,7 @@ void EmbedApp::getWidFromPid()
     pid2widTimer->stop();
     if (pid2widProcess==nullptr) {
         pid2widProcess = new QProcess(this);
-        connect(pid2widProcess, SIGNAL(finished(int const)), this, SLOT(receiveWidFromPid(int const)));
+        connect(pid2widProcess, QOverload<int const, QProcess::ExitStatus const>::of(&QProcess::finished), this, &EmbedApp::receiveWidFromPid);
     }
 #ifdef Q_OS_WIN
     pid2widProcess->start(pid2wid, QStringList() << QString::number(process->pid()->dwProcessId));
@@ -139,9 +139,9 @@ void EmbedApp::getWidFromPid()
 #endif
 }
 
-void EmbedApp::receiveWidFromPid(int const exitCode)
+void EmbedApp::receiveWidFromPid(int const exitCode, QProcess::ExitStatus const status)
 {
-    if (exitCode != 0)
+    if (status == QProcess::CrashExit || exitCode != 0)
         qWarning() << "Call to external translator from PID to Window ID failed, exit code" << exitCode;
     char output[64];
     qint64 outputLength = pid2widProcess->readLine(output, sizeof(output));

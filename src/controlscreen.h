@@ -41,7 +41,7 @@ class ControlScreen : public QMainWindow
 
 public:
     explicit ControlScreen(QString presentationPath, QString notesPath = "", QWidget* parent = nullptr);
-    ~ControlScreen();
+    ~ControlScreen() override;
     void renderPage(int const pageNumber, bool const full = true);
     void setPagePart(PagePart const pagePart);
     void setColor(QColor const bgColor = Qt::gray, QColor const textColor = Qt::black);
@@ -70,12 +70,17 @@ public:
     void loadDrawings(QString const& filename) {presentationScreen->slide->loadDrawings(filename);}
     ToolSelector* getToolSelector();
     PresentationSlide* getPresentationSlide() {return presentationScreen->slide;}
+    void showToc();
+    void hideToc();
+    void showOverview();
+    void hideOverview();
+    void updateCache();
     // TODO: restructure cache management, return all images separately?
 
 protected:
-    void keyPressEvent(QKeyEvent* event);
-    void resizeEvent(QResizeEvent* event);
-    void wheelEvent(QWheelEvent* event);
+    void keyPressEvent(QKeyEvent* event) override;
+    void resizeEvent(QResizeEvent* event) override;
+    void wheelEvent(QWheelEvent* event) override;
 
 private:
     void recalcLayout(int const pageNumber);
@@ -106,7 +111,7 @@ private:
     int last_cached = -1;
     qint64 cacheSize = 0;
     int cacheNumber = 0;
-    QSize oldSize = QSize();
+    QSize oldSize;
     DrawSlide* drawSlide = nullptr;
 
     // keymap maps (key code + modifiers) to a list of KeyActions.
@@ -115,15 +120,6 @@ private:
 
 private slots:
     void updateCacheStep();
-
-signals:
-    void sendNewPageNumber(int const pageNumber, bool const setDuration);
-    void sendTimerString(QString const timerString);
-    void sendTimerColors(QList<qint32> times, QList<QColor> colors);
-    void sendCloseSignal();
-    void playMultimedia();
-    void pauseMultimedia();
-    void sendAnimationDelay(quint32 const delay_ms);
 
 public slots:
     // TODO: Some of these functions are not used as slots. Tidy up!
@@ -141,14 +137,17 @@ public slots:
     void focusPageNumberEdit();
     void addMultimediaSliders(int const n);
     void interconnectMultimediaSliders(int const n);
-    void updateCache();
     void clearPresentationCache();
-    void showToc();
-    void hideToc();
     void showNotes();
-    void showOverview();
-    void hideOverview();
-    void toggleDrawMode();
+
+signals:
+    void sendNewPageNumber(int const pageNumber, bool const setDuration);
+    void sendTimerString(QString const timerString);
+    void sendTimerColors(QList<qint32> times, QList<QColor> colors);
+    void sendCloseSignal();
+    void playMultimedia();
+    void pauseMultimedia();
+    void sendAnimationDelay(quint32 const delay_ms);
 };
 
 #endif // CONTROLSCREEN_H

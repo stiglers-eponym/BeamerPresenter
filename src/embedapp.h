@@ -68,7 +68,7 @@ signals:
     void widgetReady(EmbedApp* embedApp);
 
 private slots:
-    void receiveWidFromPid(int const exitCode);
+    void receiveWidFromPid(int const exitCode, QProcess::ExitStatus const status);
     void createFromStdOut();
 };
 

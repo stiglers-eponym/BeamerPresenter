@@ -25,6 +25,7 @@
 #include <poppler-qt5.h>
 #include <poppler-version.h>
 #include <QDomDocument>
+#include <QInputDialog>
 #include "enumerates.h"
 
 class PdfDoc

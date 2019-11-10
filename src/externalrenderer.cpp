@@ -21,10 +21,10 @@
 ExternalRenderer::ExternalRenderer(int const page, QObject* parent) : QProcess(parent)
 {
     this->page = page;
-    connect(this, SIGNAL(finished(int const, QProcess::ExitStatus)), this, SLOT(returnImage(int const, QProcess::ExitStatus)));
+    connect(this, QOverload<int const, QProcess::ExitStatus const>::of(&QProcess::finished), this, &ExternalRenderer::returnImage);
 }
 
-void ExternalRenderer::returnImage(int const exitCode, QProcess::ExitStatus exitStatus)
+void ExternalRenderer::returnImage(int const exitCode, QProcess::ExitStatus const exitStatus)
 {
     if (exitStatus != 0 || exitCode != 0) {
         qWarning() << "Call to external renderer failed, exit code" << exitCode;

@@ -52,13 +52,6 @@ protected:
     double resolution = -1.; // resolution in pixels per point = dpi/72
     int pageIndex = 0; // page number
     PdfDoc const * doc = nullptr;
-
-signals:
-    void sendNewPageNumber(int const pageNumber);
-    void sendCloseSignal();
-    void focusPageNumberEdit();
-    void sendShowFullscreen();
-    void sendEndFullscreen();
 };
 
 #endif // BASICSLIDE_H
