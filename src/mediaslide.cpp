@@ -577,7 +577,7 @@ void MediaSlide::renderPage(int const pageNumber, bool const hasDuration, QPixma
 
 void MediaSlide::updateCacheVideos(int const pageNumber)
 {
-    if (pageNumber==pageIndex || !cacheVideos)
+    if (pageNumber==pageIndex || !cacheVideos || page==nullptr)
         return;
     // Get a list of all video annotations on that page.
     QSet<Poppler::Annotation::SubType> videoType = QSet<Poppler::Annotation::SubType>();

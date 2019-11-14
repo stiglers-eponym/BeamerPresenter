@@ -44,7 +44,7 @@ void DrawSlide::clearPageAnnotations()
     end_cache = -1;
     if (!pixpaths.isNull())
         pixpaths = QPixmap();
-    if (paths.contains(page->label())) {
+    if (page != nullptr && paths.contains(page->label())) {
         qDeleteAll(paths[page->label()]);
         paths[page->label()].clear();
         update();
@@ -65,7 +65,7 @@ void DrawSlide::paintEvent(QPaintEvent*)
 
 void DrawSlide::resizeEvent(QResizeEvent*)
 {
-    if (resolution < 0)
+    if (resolution < 0 || page == nullptr)
         return;
     enlargedPage = QPixmap();
     qint16 const oldshiftx = shiftx, oldshifty = shifty;
@@ -128,6 +128,8 @@ void DrawSlide::setTool(const ColoredDrawTool newtool)
 
 void DrawSlide::updatePathCache()
 {
+    if (page == nullptr)
+        return;
     if (paths[page->label()].isEmpty()) {
         end_cache = -1;
         if (!pixpaths.isNull())
@@ -164,6 +166,8 @@ void DrawSlide::setSize(DrawTool const tool, quint16 size)
 
 void DrawSlide::drawPaths(QPainter &painter, QString const label, bool const clip)
 {
+    if (page == nullptr)
+        return;
     if (paths.contains(label)) {
         QList<DrawPath*>::const_iterator path_it = paths[label].cbegin();
         if (label == page->label() && end_cache > 0)
@@ -193,6 +197,8 @@ void DrawSlide::drawPaths(QPainter &painter, QString const label, bool const cli
 
 void DrawSlide::drawAnnotations(QPainter &painter)
 {
+    if (page == nullptr)
+        return;
     painter.setRenderHint(QPainter::Antialiasing);
     drawPaths(painter, page->label());
     switch (tool.tool) {
@@ -232,6 +238,8 @@ void DrawSlide::drawAnnotations(QPainter &painter)
 
 void DrawSlide::mousePressEvent(QMouseEvent *event)
 {
+    if (page == nullptr)
+        return;
     switch (event->buttons())
     {
     case Qt::LeftButton:
@@ -274,6 +282,8 @@ void DrawSlide::mousePressEvent(QMouseEvent *event)
 
 void DrawSlide::mouseReleaseEvent(QMouseEvent *event)
 {
+    if (page == nullptr)
+        return;
     switch (event->button())
     {
     case Qt::RightButton:
@@ -318,6 +328,8 @@ void DrawSlide::mouseReleaseEvent(QMouseEvent *event)
 
 void DrawSlide::mouseMoveEvent(QMouseEvent *event)
 {
+    if (page == nullptr)
+        return;
     if (tool.tool == Pointer) {
         pointerPosition = event->localPos();
         emit pointerPositionChanged(pointerPosition, shiftx, shifty, resolution);
@@ -365,7 +377,7 @@ void DrawSlide::mouseMoveEvent(QMouseEvent *event)
 
 void DrawSlide::erase(const QPointF &point)
 {
-    if (paths[page->label()].isEmpty())
+    if (page == nullptr || paths[page->label()].isEmpty())
         return;
     QList<DrawPath*>& path_list = paths[page->label()];
     int const oldsize=path_list.size();
@@ -512,7 +524,7 @@ void DrawSlide::relax()
 
 void DrawSlide::updateEnlargedPage()
 {
-    if (tool.tool != Magnifier) {
+    if (tool.tool != Magnifier || page == nullptr) {
         if (!enlargedPage.isNull())
             enlargedPage = QPixmap();
         return;

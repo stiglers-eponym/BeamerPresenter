@@ -400,6 +400,17 @@ void ControlScreen::renderPage(int const pageNumber, bool const full)
     else
         currentPageNumber = pageNumber;
 
+    if (!isVisible()) {
+        ui->text_current_slide->setText(QString::number(currentPageNumber+1));
+        if (full) {
+            // Some extras which may take some time
+            if (presentationScreen->slide->getTool().tool == Magnifier)
+                presentationScreen->slide->updateEnlargedPage();
+            presentationScreen->slide->updateCacheVideos(presentationScreen->pageIndex+1);
+        }
+        return;
+    }
+
     // Recalculate layout if the window size has changed.
     if (full && size() != oldSize) {
         recalcLayout(currentPageNumber);
@@ -445,7 +456,7 @@ void ControlScreen::renderPage(int const pageNumber, bool const full)
     else {
         // It is possible that presentationScreen->slide contains drawings which have not been copied to drawSlide yet.
         QString label = presentation->getLabel(currentPageNumber);
-        if (!drawSlide->getPaths().contains(label)) {
+        if (drawSlide->getPage() != nullptr && !drawSlide->getPaths().contains(label)) {
             qint16 const sx=presentationScreen->slide->getXshift(), sy=presentationScreen->slide->getYshift();
             double res = presentationScreen->slide->getResolution();
             drawSlide->setPaths(label, presentationScreen->slide->getPaths()[label], sx, sy, res);
@@ -831,7 +842,8 @@ void ControlScreen::handleKeyAction(KeyAction const action)
     case KeyAction::Next:
         currentPageNumber = presentationScreen->getPageNumber() + 1;
         emit sendNewPageNumber(currentPageNumber, true);
-        showNotes();
+        if (isVisible())
+            showNotes();
         ui->label_timer->continueTimer();
         break;
     case KeyAction::Previous:
@@ -846,37 +858,47 @@ void ControlScreen::handleKeyAction(KeyAction const action)
         }
         break;
     case KeyAction::NextNotes:
-        renderPage(++currentPageNumber);
-        showNotes();
+        if (isVisible()) {
+            renderPage(++currentPageNumber);
+            showNotes();
+        }
         break;
     case KeyAction::PreviousNotes:
-        if (currentPageNumber > 0)
-            renderPage(--currentPageNumber);
-        showNotes();
+        if (isVisible()) {
+            if (currentPageNumber > 0)
+                renderPage(--currentPageNumber);
+            showNotes();
+        }
         break;
     case KeyAction::NextSkippingOverlays:
         currentPageNumber = presentation->getNextSlideIndex(presentationScreen->getPageNumber());
         emit sendNewPageNumber(currentPageNumber, true);
-        showNotes();
+        if (isVisible())
+            showNotes();
         ui->label_timer->continueTimer();
         break;
     case KeyAction::PreviousSkippingOverlays:
         currentPageNumber = presentation->getPreviousSlideEnd(presentationScreen->getPageNumber());
         emit sendNewPageNumber(currentPageNumber, false);
-        showNotes();
+        if (isVisible())
+            showNotes();
         ui->label_timer->continueTimer();
         break;
     case KeyAction::NextNotesSkippingOverlays:
-        currentPageNumber = presentation->getNextSlideIndex(currentPageNumber);
-        renderPage(currentPageNumber);
-        showNotes();
+        if (isVisible()) {
+            currentPageNumber = presentation->getNextSlideIndex(currentPageNumber);
+            renderPage(currentPageNumber);
+            showNotes();
+        }
         break;
     case KeyAction::PreviousNotesSkippingOverlays:
-        if (currentPageNumber > 0) {
-            currentPageNumber = presentation->getPreviousSlideEnd(currentPageNumber);
-            renderPage(currentPageNumber);
+        if (isVisible()) {
+            if (currentPageNumber > 0) {
+                currentPageNumber = presentation->getPreviousSlideEnd(currentPageNumber);
+                renderPage(currentPageNumber);
+            }
+            showNotes();
         }
-        showNotes();
         break;
     case KeyAction::PreviousNoTransition:
         currentPageNumber = presentationScreen->getPageNumber() - 1;
@@ -895,24 +917,28 @@ void ControlScreen::handleKeyAction(KeyAction const action)
         presentationScreen->slide->disableTransitions();
         emit sendNewPageNumber(currentPageNumber, true);
         presentationScreen->slide->enableTransitions();
-        showNotes();
+        if (isVisible())
+            showNotes();
         ui->label_timer->continueTimer();
         break;
     case KeyAction::Update:
         currentPageNumber = presentationScreen->getPageNumber();
         emit sendNewPageNumber(currentPageNumber, true); // TODO: what happens to duration if page is updated?
-        showNotes();
+        if (isVisible())
+            showNotes();
         ui->label_timer->continueTimer();
         break;
     case KeyAction::LastPage:
         currentPageNumber = numberOfPages - 1;
         emit sendNewPageNumber(currentPageNumber, false);
-        showNotes();
+        if (isVisible())
+            showNotes();
         break;
     case KeyAction::FirstPage:
         currentPageNumber = 0;
         emit sendNewPageNumber(currentPageNumber, true);
-        showNotes();
+        if (isVisible())
+            showNotes();
         break;
     case KeyAction::UpdateCache:
         updateCache();
@@ -937,8 +963,10 @@ void ControlScreen::handleKeyAction(KeyAction const action)
         break;
 #endif
     case KeyAction::GoToPage:
-        showNotes();
-        ui->text_current_slide->setFocus();
+        if (isVisible()) {
+            showNotes();
+            ui->text_current_slide->setFocus();
+        }
         break;
     case KeyAction::PlayMultimedia:
         emit playMultimedia();
@@ -977,44 +1005,51 @@ void ControlScreen::handleKeyAction(KeyAction const action)
         ui->label_timer->resetTimer();
         break;
     case KeyAction::ShowTOC:
-        showToc();
+        if (isVisible())
+            showToc();
         break;
     case KeyAction::HideTOC:
-        hideToc();
+        if (isVisible())
+            hideToc();
         break;
     case KeyAction::ToggleTOC:
         if (tocBox->isVisible())
             hideToc();
-        else
+        else if (isVisible())
             showToc();
         break;
     case KeyAction::ShowOverview:
-        showOverview();
+        if (isVisible())
+            showOverview();
         break;
     case KeyAction::HideOverview:
-        hideOverview();
+        if (isVisible())
+            hideOverview();
         break;
     case KeyAction::ToggleOverview:
         if (overviewBox->isVisible())
             hideOverview();
-        else
+        else if (isVisible())
             showOverview();
         break;
     case KeyAction::HideDrawSlide:
-        hideDrawSlide();
+        if (isVisible())
+            hideDrawSlide();
         break;
     case KeyAction::Reload:
         reloadFiles();
         break;
     case KeyAction::SyncFromControlScreen:
-        if (presentationScreen->slide->pageNumber() != currentPageNumber)
-            emit sendNewPageNumber(currentPageNumber, true); // TODO: make this configurable (true/false)?
-        showNotes();
-        updateCache();
-        ui->label_timer->continueTimer();
+        if (isVisible()) {
+            if (presentationScreen->slide->pageNumber() != currentPageNumber)
+                emit sendNewPageNumber(currentPageNumber, true); // TODO: make this configurable (true/false)?
+            showNotes();
+            updateCache();
+            ui->label_timer->continueTimer();
+        }
         break;
     case KeyAction::SyncFromPresentationScreen:
-        if (presentationScreen->getPageNumber() != currentPageNumber) {
+        if (isVisible() && presentationScreen->getPageNumber() != currentPageNumber) {
             currentPageNumber = presentationScreen->getPageNumber();
             renderPage(currentPageNumber);
             updateCache();
@@ -1046,13 +1081,16 @@ void ControlScreen::handleKeyAction(KeyAction const action)
             drawSlide->setTool(Eraser, QColor());
         break;
     case KeyAction::DrawMode:
-        showDrawSlide();
+        if (isVisible())
+            showDrawSlide();
         break;
     case KeyAction::ToggleDrawMode:
-        if (drawSlide == nullptr || drawSlide->isHidden())
-            showDrawSlide();
-        else if (drawSlide != ui->notes_widget)
-            hideDrawSlide();
+        if (isVisible()) {
+            if (drawSlide == nullptr || drawSlide->isHidden())
+                showDrawSlide();
+            else if (drawSlide != ui->notes_widget)
+                hideDrawSlide();
+        }
         break;
     case KeyAction::UndoDrawing:
         presentationScreen->slide->undoPath();

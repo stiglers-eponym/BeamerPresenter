@@ -111,14 +111,18 @@ win32 {
 }
 
 unix {
-    documentation.path = /usr/share/man/man1
-    documentation.extra = ls $${TARGET}.1.gz || gzip -9 $${TARGET}.1
-    documentation.files = $${TARGET}.1.gz
+    doc1.path = /usr/share/man/man1/
+    doc1.extra = ls $${TARGET}.1.gz || gzip -9 $${TARGET}.1; $(INSTALL_FILE) $${PWD}/$${TARGET}.1.gz $(INSTALL_ROOT)/usr/share/man/man1/$${TARGET}.1.gz
+    #doc1.files = $${TARGET}.1.gz # doesn't work
+
+    doc5.path = /usr/share/man/man5/
+    doc5.extra = ls $${TARGET}.conf.5.gz || gzip -9 $${TARGET}.conf.5; $(INSTALL_FILE) $${PWD}/$${TARGET}.conf.5.gz $(INSTALL_ROOT)/usr/share/man/man1/$${TARGET}.conf.5.gz
+    #doc5.files = $${TARGET}.conf.5.gz # doesn't work
 
     configuration.path = /etc/$${TARGET}/
     configuration.files = $${TARGET}.conf pid2wid.sh
 
     target.path = /usr/bin/
 
-    INSTALLS += documentation configuration target
+    INSTALLS += doc1 doc5 configuration target
 }

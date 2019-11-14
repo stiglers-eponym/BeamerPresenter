@@ -222,6 +222,8 @@ QPixmap const PreviewSlide::getPixmap(int const pageNumber) const
 {
     // Return a pixmap representing the current page.
     QPixmap pixmap;
+    if (page == nullptr)
+        return pixmap;
     if (cache.contains(pageNumber)) {
         // The page exists in cache. Use the cache instead of rendering it again.
         pixmap = getCache(pageNumber);
