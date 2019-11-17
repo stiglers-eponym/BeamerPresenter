@@ -65,23 +65,20 @@ void EmbedApp::start()
      */
     if (process != nullptr)
         return;
-    QStringList splitFileName = command;
-    QString fileName = splitFileName[0];
-    splitFileName.removeFirst();
     if (pid2wid.isEmpty()) {
         // If there is no program which tells us the window ID from the progess ID, we hope that the application, which we want to embed, tells us its WID via standard output.
         process = new QProcess(this);
         connect(process, &QProcess::readyReadStandardOutput, this, &EmbedApp::createFromStdOut);
         connect(process, QOverload<int const, QProcess::ExitStatus const>::of(&QProcess::finished), this, &EmbedApp::clearProcess);
-        process->start(fileName, splitFileName);
+        process->start(command.join(" "));
         qDebug() << "Started process:" << process->program();
     }
     else {
         // If we know a program for converting process IDs to window IDs, this will be used to get the WID.
         process = new QProcess(this);
         connect(process, QOverload<int const, QProcess::ExitStatus const>::of(&QProcess::finished), this, &EmbedApp::clearProcess);
-        process->start(fileName, splitFileName);
-        qDebug() << "Started process:" << process->program();
+        process->start(command.join(" "));
+        qDebug() << "Started process:" << process->program() << process->pid();
         // Wait some time before trying to get the window ID
         // The window has to be created first.
         pid2widTimer->start(minDelayPidWidCaller);
@@ -143,19 +140,23 @@ void EmbedApp::receiveWidFromPid(int const exitCode, QProcess::ExitStatus const 
 {
     if (status == QProcess::CrashExit || exitCode != 0)
         qWarning() << "Call to external translator from PID to Window ID failed, exit code" << exitCode;
-    char output[64];
-    qint64 outputLength = pid2widProcess->readLine(output, sizeof(output));
-    if (outputLength == -1)
-        qCritical() << "Call to external translator from PID to Window ID had unexpected output";
+    if (process->state() == QProcess::NotRunning)
+        qWarning() << "Process" << command.join(" ") << "not running. Assuming that it has ended.";
     else {
-        QString winIdString(output);
-        qDebug() << "Return value of PID to WID:" << winIdString;
-        bool success;
-        WId wid = WId(winIdString.toLongLong(&success, 10));
-        if (success && wid!=0)
-            create(wid);
-        else
-            pid2widTimer->start(int(1.5*pid2widTimer->interval()));
+        char output[64];
+        qint64 outputLength = pid2widProcess->readLine(output, sizeof(output));
+        if (outputLength == -1)
+            qCritical() << "Call to external translator from PID to Window ID had unexpected output";
+        else {
+            QString winIdString(output);
+            qDebug() << "Return value of PID to WID:" << winIdString;
+            bool success;
+            WId wid = WId(winIdString.toLongLong(&success, 10));
+            if (success && wid!=0)
+                create(wid);
+            else
+                pid2widTimer->start(int(1.5*pid2widTimer->interval()));
+        }
     }
     pid2widProcess->waitForFinished(1000);
     delete pid2widProcess;
