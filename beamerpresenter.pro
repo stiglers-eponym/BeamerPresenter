@@ -4,6 +4,8 @@
 #
 #-------------------------------------------------
 
+VERSION = 0.1.0
+
 requires(greaterThan(QT_MAJOR_VERSION, 4))
 equals(QT_MAJOR_VERSION, 4) {
     requires(greaterThan(QT_MINOR_VERSION, 5))
@@ -21,6 +23,7 @@ TEMPLATE = app
 # depend on your compiler). Please consult the documentation of the
 # deprecated API in order to know how to port your code away from it.
 DEFINES += QT_DEPRECATED_WARNINGS
+DEFINES += APP_VERSION=\\\"$$VERSION\\\"
 CONFIG += qt
 unix {
     CONFIG(debug):QMAKE_LFLAGS += -rdynamic

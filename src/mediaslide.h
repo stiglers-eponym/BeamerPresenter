@@ -43,9 +43,10 @@ public:
     double getAutostartDelay() const {return autostartDelay;}
     int getSliderNumber() const {return videoSliders.size()+soundSliders.size()+soundLinkSliders.size();}
     void connectVideoSliders(QMap<int,QSlider*> const& sliders);
+    bool isMuted() const {return mute;}
     QMap<int,QSlider*> const& getVideoSliders() {return videoSliders;}
     virtual void clearAll() override;
-    void setMuted(bool muted) {mute=muted;}
+    void setMuted(bool muted);
     void showAllWidgets();
 #ifdef EMBEDDED_APPLICATIONS_ENABLED
     void avoidMultimediaBug(); // TODO: fix this!

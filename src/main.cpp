@@ -67,6 +67,16 @@ static const QMap<QString, KeyAction> keyActionMap {
     {"play pause multimedia", KeyAction::PlayPauseMultimedia},
     {"toggle multimedia", KeyAction::PlayPauseMultimedia},
 
+    {"toggle mute",              KeyAction::ToggleMuteAll},
+    {"toggle mute presentation", KeyAction::ToggleMutePresentation},
+    {"toggle mute notes",        KeyAction::ToggleMuteNotes},
+    {"mute",              KeyAction::MuteAll},
+    {"mute presentation", KeyAction::MutePresentation},
+    {"mute notes",        KeyAction::MuteNotes},
+    {"unmute",              KeyAction::UnmuteAll},
+    {"unmute presentation", KeyAction::UnmutePresentation},
+    {"unmute notes",        KeyAction::UnmuteNotes},
+
     {"toggle timer", KeyAction::PlayPauseTimer},
     {"pause timer", KeyAction::PauseTimer},
     {"continue timer", KeyAction::ContinueTimer},
@@ -219,6 +229,41 @@ double doubleFromConfig(QCommandLineParser const& parser, QVariantMap const& loc
     return def;
 }
 
+bool boolFromConfig(QCommandLineParser const& parser, QVariantMap const& local, QSettings const& settings, QString name, bool const return_value)
+{
+    // Handle arguments that are either double or bool
+    QString value;
+    if (parser.isSet(name))
+        value = parser.value(name).toLower();
+    if (!value.isEmpty()) {
+        if (value == "true")
+            return true;
+        else if (value == "false")
+            return false;
+        else
+            qCritical() << "option \"" << parser.value(name) << "\" to" << name << "not understood. Should be true or false.";
+    }
+    if (local.contains(name)) {
+        value = local.value(name).toString().toLower();
+        if (value == "true")
+            return true;
+        else if (value == "false")
+            return false;
+        else
+            qCritical() << "option \"" << settings.value(name) << "\" to" << name << "in local config not understood. Should be true or false.";
+    }
+    if (settings.contains(name)) {
+        value = settings.value(name).toString().toLower();
+        if (value == "true")
+            return true;
+        else if (value == "false")
+            return false;
+        else
+            qCritical() << "option \"" << settings.value(name) << "\" to" << name << "in config not understood. Should be true or false.";
+    }
+    return return_value;
+}
+
 template <class T>
 T intFromConfig(QCommandLineParser const& parser, QVariantMap const& local, QSettings const& settings, QString name, T const def)
 {
@@ -266,9 +311,9 @@ int main(int argc, char *argv[])
     QApplication app(argc, argv);
     app.setApplicationName("BeamerPresenter");
 #ifdef QT_DEBUG
-    app.setApplicationVersion("0.1.0+debugging, based on poppler " POPPLER_VERSION " and Qt " QT_VERSION_STR);
+    app.setApplicationVersion(APP_VERSION " debugging, (poppler=" POPPLER_VERSION ", Qt=" QT_VERSION_STR ")");
 #else
-    app.setApplicationVersion("0.1.0 based on poppler " POPPLER_VERSION " and Qt " QT_VERSION_STR);
+    app.setApplicationVersion(APP_VERSION " (poppler=" POPPLER_VERSION ", Qt=" QT_VERSION_STR ")");
 #endif
 
     // set up command line argument parser
@@ -337,6 +382,8 @@ int main(int argc, char *argv[])
         {"force-touchpad", "Treat every scroll input as touch pad."},
         {"magnifier-size", "Radius of magnifier.", "pixels"},
         {"magnification", "Magnification factor of magnifier.", "number"},
+        {"mute-presentation", "Mute presentation (default: false)", "bool"},
+        {"mute-notes", "Mute notes (default: true)", "bool"},
         {"pointer-size", "Radius of magnifier.", "pixels"},
         {"torch-size", "Radius of torch.", "pixels"},
         {"highlighter-width", "Line width of highlighter.", "pixels"},
@@ -814,43 +861,6 @@ int main(int argc, char *argv[])
                 else if (value != "none" && value != "0")
                     qCritical() << "option \"" << value << "\" to page-part in config not understood.";
         }
-
-        // Set video cache
-        if (!parser.value("v").isEmpty()) {
-            QString value = parser.value("v").toLower();
-            if (value == "true") {
-                w->getPresentationSlide()->setCacheVideos(true);
-                found = true;
-            }
-            else if (value == "false") {
-                w->getPresentationSlide()->setCacheVideos(false);
-                found = true;
-            }
-            else
-                qCritical() << "option \"" << parser.value("v") << "\" to video-cache not understood.";
-        }
-        if (!found && local.contains("video-cache")) {
-            QString value = settings.value("video-cache").toString().toLower();
-            if (value == "true") {
-                w->getPresentationSlide()->setCacheVideos(true);
-                found = true;
-            }
-            else if (value == "false") {
-                w->getPresentationSlide()->setCacheVideos(false);
-                found = true;
-            }
-            else
-                qCritical() << "option \"" << local.value("video-cache") << "\" to video-cache in local config not understood.";
-        }
-        if (!found && settings.contains("video-cache")) {
-            QString value = settings.value("video-cache").toString().toLower();
-            if (value == "true")
-                w->getPresentationSlide()->setCacheVideos(true);
-            else if (value == "false")
-                w->getPresentationSlide()->setCacheVideos(false);
-            else
-                qCritical() << "option \"" << settings.value("video-cache") << "\" to video-cache in config not understood.";
-        }
     }
 
     // Simple options
@@ -914,6 +924,17 @@ int main(int argc, char *argv[])
     else if (settings.contains("urlsplit"))
         w->setUrlSplitCharacter(settings.value("urlsplit").toString());
 
+    { // Handle settings which are boolean values.
+        bool value;
+        value = boolFromConfig(parser, local, settings, "video-cache", true);
+        w->getPresentationSlide()->setCacheVideos(true);
+
+        value = boolFromConfig(parser, local, settings, "mute-presentation", false);
+        w->getPresentationSlide()->setMuted(value);
+
+        value = boolFromConfig(parser, local, settings, "mute-notes", true);
+        w->getNotesSlide()->setMuted(value);
+    }
 
     { // Handle settings that are either double or bool
         // Set autostart or delay for multimedia content

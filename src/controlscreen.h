@@ -70,6 +70,7 @@ public:
     void loadDrawings(QString const& filename) {presentationScreen->slide->loadDrawings(filename);}
     ToolSelector* getToolSelector();
     PresentationSlide* getPresentationSlide() {return presentationScreen->slide;}
+    MediaSlide* getNotesSlide();
     void showToc();
     void hideToc();
     void showOverview();

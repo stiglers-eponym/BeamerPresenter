@@ -59,6 +59,16 @@ enum KeyAction {
     PlayMultimedia,
     PauseMultimedia,
 
+    ToggleMuteAll,
+    ToggleMuteNotes,
+    ToggleMutePresentation,
+    MuteAll,
+    MuteNotes,
+    MutePresentation,
+    UnmuteAll,
+    UnmuteNotes,
+    UnmutePresentation,
+
     PlayPauseTimer,
     ContinueTimer,
     PauseTimer,

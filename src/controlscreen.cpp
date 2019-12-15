@@ -983,6 +983,51 @@ void ControlScreen::handleKeyAction(KeyAction const action)
                 emit playMultimedia();
         }
         break;
+    case KeyAction::ToggleMuteAll:
+    {
+        bool mute = !presentationScreen->slide->isMuted();
+        presentationScreen->slide->setMuted(mute);
+        ui->notes_widget->setMuted(mute);
+        if (drawSlide != nullptr && drawSlide != ui->notes_widget)
+            drawSlide->setMuted(mute);
+        break;
+    }
+    case KeyAction::ToggleMuteNotes:
+        ui->notes_widget->setMuted(!ui->notes_widget->isMuted());
+        if (drawSlide != nullptr && drawSlide != ui->notes_widget)
+            drawSlide->setMuted(ui->notes_widget->isMuted());
+        break;
+    case KeyAction::ToggleMutePresentation:
+        presentationScreen->slide->setMuted(!presentationScreen->slide->isMuted());
+        break;
+    case KeyAction::MuteAll:
+        presentationScreen->slide->setMuted(true);
+        ui->notes_widget->setMuted(true);
+        if (drawSlide != nullptr && drawSlide != ui->notes_widget)
+            drawSlide->setMuted(true);
+        break;
+    case KeyAction::MuteNotes:
+        ui->notes_widget->setMuted(true);
+        if (drawSlide != nullptr && drawSlide != ui->notes_widget)
+            drawSlide->setMuted(true);
+        break;
+    case KeyAction::MutePresentation:
+        presentationScreen->slide->setMuted(true);
+        break;
+    case KeyAction::UnmuteAll:
+        presentationScreen->slide->setMuted(false);
+        ui->notes_widget->setMuted(false);
+        if (drawSlide != nullptr && drawSlide != ui->notes_widget)
+            drawSlide->setMuted(false);
+        break;
+    case KeyAction::UnmuteNotes:
+        ui->notes_widget->setMuted(false);
+        if (drawSlide != nullptr && drawSlide != ui->notes_widget)
+            drawSlide->setMuted(false);
+        break;
+    case KeyAction::UnmutePresentation:
+        presentationScreen->slide->setMuted(false);
+        break;
     case KeyAction::ShowCursor:
         presentationScreen->slide->showPointer();
         break;
@@ -1495,7 +1540,7 @@ void ControlScreen::showDrawSlide()
     else if (drawSlide == ui->notes_widget)
         return;
 
-    drawSlide->setMuted(true);
+    drawSlide->setMuted(ui->notes_widget->isMuted());
     drawSlide->setGeometry(ui->notes_widget->rect());
     recalcLayout(currentPageNumber);
     drawSlide->renderPage(presentationScreen->slide->pageNumber(), false);

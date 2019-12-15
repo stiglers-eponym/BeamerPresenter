@@ -376,6 +376,7 @@ void MediaSlide::renderPage(int const pageNumber, bool const hasDuration, QPixma
             }
             // If no player was found, create a new one.
             QMediaPlayer* player = new QMediaPlayer(this, QMediaPlayer::LowLatency);
+            player->setMuted(mute);
             player->setMedia(url);
             soundLinkPlayers[i] = player;
             newSliders++;
@@ -454,6 +455,7 @@ void MediaSlide::renderPage(int const pageNumber, bool const hasDuration, QPixma
             }
             if (!found) {
                 QMediaPlayer* player = new QMediaPlayer(this, QMediaPlayer::LowLatency);
+                player->setMuted(mute);
                 player->setMedia(url);
                 // Untested!
                 if (splitFileName.contains("loop")) {
@@ -507,6 +509,7 @@ void MediaSlide::renderPage(int const pageNumber, bool const hasDuration, QPixma
 
             Poppler::SoundObject* sound = static_cast<Poppler::SoundAnnotation*>(*it)->sound();
             QMediaPlayer* player = new QMediaPlayer(this, QMediaPlayer::LowLatency);
+            player->setMuted(mute);
             QUrl url = QUrl(sound->url(), QUrl::TolerantMode);
             QStringList splitFileName = QStringList();
             // Get file path (url) and arguments
@@ -1163,4 +1166,19 @@ void MediaSlide::showAllWidgets()
     }
 #endif
     update();
+}
+
+void MediaSlide::setMuted(bool muted)
+{
+    if (mute == muted)
+        return;
+    mute = muted;
+    for (QList<VideoWidget*>::const_iterator it = videoWidgets.cbegin(); it != videoWidgets.cend(); it++)
+        (*it)->setMute(mute);
+    for (QList<VideoWidget*>::const_iterator it = cachedVideoWidgets.cbegin(); it != cachedVideoWidgets.cend(); it++)
+        (*it)->setMute(mute);
+    for (QList<QMediaPlayer*>::const_iterator it = soundPlayers.cbegin(); it != soundPlayers.cend(); it++)
+        (*it)->setMuted(mute);
+    for (QMap<int, QMediaPlayer*>::const_iterator it = soundLinkPlayers.cbegin(); it != soundLinkPlayers.cend(); it++)
+        (*it)->setMuted(mute);
 }
