@@ -1597,3 +1597,8 @@ void ControlScreen::setAutostartDelay(const double timeout)
     if (drawSlide != nullptr)
         drawSlide->setAutostartDelay(timeout);
 }
+
+MediaSlide* ControlScreen::getNotesSlide()
+{
+    return ui->notes_widget;
+}
