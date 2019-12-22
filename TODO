@@ -1,6 +1,12 @@
 BeamerPresenter
 
 * Document code!
+* Key bindings for multimedia control
+* synchronize multimedia on drawslide and presentationslide
+* Multimedia: allow more arguments
+* Multimedia: Better control bar
+* Key bindings for TOC and overview
+* use thumbnails in overviewbox?
 
 * Undo erasing in draw mode?
 * Segfault when starting embedded application from the wrong screen (not reproducible?)
@@ -14,18 +20,11 @@ BeamerPresenter
 	* use OpenGL again?
 
 * Make timer editable
-* Multimedia sliders: key bindings and signals slider <-> player
-* use thumbnails in overviewbox
-* TOC: key bindings
 * Embedded multimedia, RichMediaAnnotations
-
 * Cache management: test, clean up the code, improve
-
-* Multimedia: allow more arguments
-* Multimedia: Better control bar
-* Embedded sounds
 
 * Search document
 * Implement other link types (history, search)
 * Implement optional content (e.g. for sound)
 * Make poppler rendering to cache more efficient (use multiple threads)
+* Set times per slide for non-integer page labels
