@@ -1050,23 +1050,23 @@ int main(int argc, char *argv[])
             }
             // Try to convert the value to a time.
             QString timestring = it->toString().replace(":", ".");
-            switch(timestring.count('.')) {
+            switch (timestring.count('.')) {
             case 0:
-                time = QTime::fromString(it->toString(), "m");
+                time = QTime::fromString(timestring, "m");
                 break;
             case 1:
-                time = QTime::fromString(it->toString(), "m.ss");
+                time = QTime::fromString(timestring, "m.ss");
                 if (!time.isValid()) {
-                    time = QTime::fromString(it->toString(), "mm.ss");
+                    time = QTime::fromString(timestring, "mm.ss");
                     if (!time.isValid()) {
-                        time = QTime::fromString(it->toString(), "m.s");
+                        time = QTime::fromString(timestring, "m.s");
                     }
                 }
                 break;
             case 2:
-                time = QTime::fromString(it->toString(), "h.mm.ss");
+                time = QTime::fromString(timestring, "h.mm.ss");
                 if (!time.isValid())
-                    time = QTime::fromString(it->toString(), "h.m.s");
+                    time = QTime::fromString(timestring, "h.m.s");
                 break;
             default:
                 qCritical() << "In local config / page times: Did not understand time" << *it;
