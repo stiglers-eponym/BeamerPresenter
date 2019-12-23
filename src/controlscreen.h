@@ -31,18 +31,28 @@
 #include "overviewbox.h"
 #include "toolselector.h"
 
+// Namespace for te user interface from controlscreen.ui. I don't really know why.
+// This probably follows a strange Qt convention.
 namespace Ui {
     class ControlScreen;
 }
 
+/// Window on speaker screen, which controls the whole application.
 class ControlScreen : public QMainWindow
 {
     Q_OBJECT
 
 public:
+    // Constructor and destructor
     explicit ControlScreen(QString presentationPath, QString notesPath = "", QWidget* parent = nullptr);
     ~ControlScreen() override;
+
+    // Render pages on the control screen
     void renderPage(int const pageNumber, bool const full = true);
+    // Update cache
+    void updateCache();
+
+    // Functions setting different properties from options (only used from main.cpp)
     void setPagePart(PagePart const pagePart);
     void setColor(QColor const bgColor = Qt::gray, QColor const textColor = Qt::black);
     void setPresentationColor(QColor const color = Qt::black);
@@ -59,96 +69,156 @@ public:
     void setOverviewColumns(quint8 const columns) {overviewColumns=columns;}
     void setRenderer(QStringList command);
     void setKeyMap(QMap<quint32, QList<KeyAction>>* keymap);
-    void unsetKeyMapItem(quint32 const key) {keymap->remove(key);}
+    //void unsetKeyMapItem(quint32 const key) {keymap->remove(key);}
     void setKeyMapItem(quint32 const key, KeyAction const action);
     void setTimerMap(QMap<int, QTime>& timeMap);
     void setToolForKey(quint32 const key, ColoredDrawTool tool) {tools[key] = tool;}
     void setMagnification(qreal const mag);
     void setAutostartDelay(double const timeout);
+    void setTimerColors(QList<qint32> times, QList<QColor> colors);
+    void setTimerString(QString const timerString);
+    /// Configure minimum frame time for animations created by showing slides in rapid succession.
+    void setAnimationDelay(quint32 const delay_ms) {presentationScreen->slide->setAnimationDelay(delay_ms);}
+
+    // Load drawings from file (also used only from main.cpp)
+    void loadDrawings(QString const& filename) {presentationScreen->slide->loadDrawings(filename);}
+
+    // Show or hide different widgets on the notes area.
+    // This activates different modes: drawing, TOC, and overview mode.
     void showDrawSlide();
     void hideDrawSlide();
-    void loadDrawings(QString const& filename) {presentationScreen->slide->loadDrawings(filename);}
-    ToolSelector* getToolSelector();
-    PresentationSlide* getPresentationSlide() {return presentationScreen->slide;}
-    MediaSlide* getNotesSlide();
     void showToc();
     void hideToc();
     void showOverview();
     void hideOverview();
-    void updateCache();
-    // TODO: restructure cache management, return all images separately?
+
+    // Get different widgets
+    ToolSelector* getToolSelector();
+    PresentationSlide* getPresentationSlide() {return presentationScreen->slide;}
+    MediaSlide* getNotesSlide();
 
 protected:
+    // Handle events
     void keyPressEvent(QKeyEvent* event) override;
     void resizeEvent(QResizeEvent* event) override;
     void wheelEvent(QWheelEvent* event) override;
 
 private:
+    // Update layout (if window size is changed).
     void recalcLayout(int const pageNumber);
+    // Reload pdf files.
     void reloadFiles();
 #ifdef EMBEDDED_APPLICATIONS_ENABLED
+    // Start embedded applications on all slides.
     void startAllEmbeddedApplications();
 #endif
-    Ui::ControlScreen *ui;
+
+    // User interface (created from controlscreen.ui)
+    Ui::ControlScreen* ui;
+    // Presentation Screen (own window containing presentation slide)
     PresentationScreen* presentationScreen;
+
+    // PDF documents
     PdfDoc* presentation;
     PdfDoc* notes;
+
+    // Objects handling cache: timer, and thread
     QTimer* cacheTimer = new QTimer(this);
     CacheUpdateThread* cacheThread = new CacheUpdateThread(this);
+
+    // Widgets shown above notes: TOC, overview, and drawSlide
+    /// Widget showing the table of contents on the control screen.
     TocBox* tocBox = nullptr;
+    /// Widget showing an overview of thumbnail slides on the control screen.
     OverviewBox* overviewBox = nullptr;
+    /// Current presentation slide shown on the control screen,
+    /// which can be used for drawing and is synchronized with the slide shown on the presentation screen.
+    DrawSlide* drawSlide = nullptr;
+
+    // Configuration. These values are set in main.cpp and will not be changed afterwards.
     quint8 overviewColumns = 5;
-    int numberOfPages;
-    int currentPageNumber = 0;
     PagePart pagePart = FullPage;
     bool forceIsTouchpad = false;
     int scrollDelta = 200;
-    int scrollState = 0;
     int maxCacheNumber = 10;
     qint64 maxCacheSize = 104857600;
-    int first_delete = 0;
-    int last_delete;
-    int first_cached = 0;
-    int last_cached = -1;
-    qint64 cacheSize = 0;
-    int cacheNumber = 0;
-    QSize oldSize;
-    DrawSlide* drawSlide = nullptr;
-
-    // keymap maps (key code + modifiers) to a list of KeyActions.
+    // Key bindings.
+    /// Map of key codes (key code + modifiers) to lists of KeyActions.
     QMap<quint32, QList<KeyAction>>* keymap = new QMap<quint32, QList<KeyAction>>();
+    /// Map of key codes (key code + modifiers) to drawing tools.
     QMap<quint32, ColoredDrawTool> tools;
 
+    // Variables
+    /// Index of current page
+    int currentPageNumber = 0;
+    /// Scroll state for scrolling with touch pads: Single scroll events sum up to a total scroll event.
+    /// If abs(scrollState) exceedes a threshold, the page is changed.
+    int scrollState = 0;
+    /// Size of currently shown slide.
+    QSize oldSize;
+    /// Total number of pages
+    int numberOfPages;
+
+    // Variables used for cache management
+    /// All pages < first_delete are not saved in cache.
+    /// Usually this page will be deleted when cache size should be reduced.
+    int first_delete = 0;
+    /// All pages > last_delete are not saved in cache.
+    /// In some case this page will be deleted when cache size should be reduced.
+    int last_delete;
+    /// Beginning of the connected set of cached pages.
+    int first_cached = 0;
+    /// End of the connected set of cached pages.
+    int last_cached = -1;
+    /// Memory used by cache in bytes.
+    qint64 cacheSize = 0;
+    /// Number of cached pages.
+    int cacheNumber = 0;
+
 private slots:
+    /// Select a page which should be rendered to cache and free cache space if necessary.
     void updateCacheStep();
 
 public slots:
     // TODO: Some of these functions are not used as slots. Tidy up!
+    /// Handle actions sent from key event or tool selector.
     void handleKeyAction(KeyAction const action);
+    /// Receive cached slide as png images.
     void receiveCache(QByteArray const* pres, QByteArray const* note, QByteArray const* small, int const index);
+    /// Receive a TOC destination and go the the corresponding slide.
     void receiveDest(QString const& dest);
-    void receivePreviousSlideEnd(); // go to last overlay of previous slide
-    void receiveNextSlideStart(); // go to first overlay of next slide
+    /// Go to last overlay of previous slide.
+    void receivePreviousSlideEnd();
+    /// Go to first overlay of next slide.
+    void receiveNextSlideStart();
+    /// Go to page.
     void receiveNewPageNumber(int const pageNumber);
-    void receivePageShiftEdit(int const shift = 0);
+    /// Shift page in notes without changing page in presentation..
+    void receivePageShiftEdit(int const shift = 0); // TODO: remove?
+    /// Synchronize presentation page to notes page.
     void adaptPage();
+    /// Receive an alert from timer.
     void receiveTimerAlert();
+    /// Deactivate a timer alert.
     void resetTimerAlert();
+    /// Activate the control screen (window) and show the same in notes as in presentation.
     void resetFocus();
+    /// Focus on page number editor. The page number can then be edited by entering a number.
     void focusPageNumberEdit();
+    /// Add sliders on control screen to control multimedia content.
     void addMultimediaSliders(int const n);
+    /// Connect the multimedia sliders to multimedia content on the draw slide.
     void interconnectMultimediaSliders(int const n);
+    /// Clear cache.
     void clearPresentationCache();
+    /// Show notes. This hides other widgets which can be shown above notes (TOC, overview, draw slide).
     void showNotes();
 
 signals:
+    /// Send a new page number with or without starting a timer for the new slide.
     void sendNewPageNumber(int const pageNumber, bool const setDuration);
-    void sendTimerString(QString const timerString);
-    void sendTimerColors(QList<qint32> times, QList<QColor> colors);
+    /// Close the presentation window.
     void sendCloseSignal();
-    void playMultimedia();
-    void pauseMultimedia();
-    void sendAnimationDelay(quint32 const delay_ms);
 };
 
 #endif // CONTROLSCREEN_H

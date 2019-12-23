@@ -1,8 +1,9 @@
 BeamerPresenter
 
 * Document code!
-* Key bindings for multimedia control
 * synchronize multimedia on drawslide and presentationslide
+* handle close signals
+* Key bindings for multimedia control
 * Multimedia: allow more arguments
 * Multimedia: Better control bar
 * Key bindings for TOC and overview

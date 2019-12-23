@@ -59,7 +59,6 @@ signals:
     void sendNewPageNumber(const int pageNumber);
     void sendCloseSignal();
     void sendKeyEvent(QKeyEvent* event);
-    void focusPageNumberEdit();
     void clearPresentationCacheRequest();
     void pageChanged(int const pageNumber);
 

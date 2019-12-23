@@ -34,7 +34,7 @@ private:
     QGridLayout* layout;
     QList<OverviewFrame*> frames;
     QWidget* client;
-    bool outdated=true;
+    bool outdated = true;
     quint8 columns;
     int focused = 0;
 

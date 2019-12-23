@@ -47,6 +47,7 @@ void PageNumberEdit::receiveEditSignal(const QString string)
 
 void PageNumberEdit::keyPressEvent(QKeyEvent* event)
 {
+    // TODO: use custom key bindings.
     switch (event->key())
     {
         case Qt::Key_PageDown:

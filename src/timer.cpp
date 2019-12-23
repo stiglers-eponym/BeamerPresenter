@@ -39,12 +39,6 @@ Timer::~Timer()
     delete timer;
 }
 
-void Timer::receiveTimerString(QString const& timerString)
-{
-    timerEdit->setText(timerString);
-    setDeadline();
-}
-
 void Timer::setTimerWidget(QLineEdit* setTimerEdit)
 {
     timerEdit = setTimerEdit;

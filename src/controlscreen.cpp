@@ -21,17 +21,22 @@
 
 // TODO: tidy up! Separate and reorganize cache management; reorganize signals, slots, events, ...
 
+/// Construct control screen.
+/// Create the GUI including PresentationScreen and connect the widgets.
 ControlScreen::ControlScreen(QString presentationPath, QString notesPath, QWidget* parent) :
     QMainWindow(parent),
     ui(new Ui::ControlScreen)
 {
-    { // Check if files are valid
+    // Check if files are valid.
+    {
+        // Check whether presentation is empty.
         if (presentationPath.isEmpty()) {
             qCritical() << "No presentation file specified";
             close();
             deleteLater();
             exit(1);
         }
+        // Check whether presentation exists.
         QFileInfo checkPresentation(presentationPath);
         if (!checkPresentation.exists() || (!checkPresentation.isFile() && !checkPresentation.isSymLink()) ) {
             qCritical() << "Not a file: " << presentationPath;
@@ -39,9 +44,11 @@ ControlScreen::ControlScreen(QString presentationPath, QString notesPath, QWidge
             deleteLater();
             exit(1);
         }
+        // Check whether notes are given in a separate file.
         if (notesPath == presentationPath)
             notesPath = "";
         else if (!notesPath.isEmpty()) {
+            // Check whether the notes file exists.
             QFileInfo checkNotes(notesPath);
             if (!checkNotes.exists() || (!checkNotes.isFile() && !checkNotes.isSymLink()) ) {
                 qCritical() << "Ignoring invalid notes files: " << notesPath;
@@ -49,91 +56,136 @@ ControlScreen::ControlScreen(QString presentationPath, QString notesPath, QWidge
             }
         }
     }
-    // Create GUI
+    // Create the UI for the control screen.
     ui->setupUi(this);
 
-    // Load presentation pdf
+    // Create the presentation pdf document.
     presentation = new PdfDoc(presentationPath);
+    // Load the document and check whether it was loaded successfully.
     if (!presentation->loadDocument()) {
         qCritical() << "Could not open document: " << presentationPath;
         close();
         deleteLater();
         exit(1);
     }
+    // Save the total number of pages.
     numberOfPages = presentation->getDoc()->numPages();
 
-    // Some numbers for cache management
+    // Some numbers for cache management.
+    // Maximum number of cached pages is by default the total number of pages.
     maxCacheNumber = numberOfPages;
+    // last_delete points to the last page which has not been deleted yet.
+    // No pages have been deleted from cache yet.
     last_delete = numberOfPages-1;
 
-    // Set up presentation screen
+    // Set up presentation screen.
+    // The presentation screen is shown immediately.
     presentationScreen = new PresentationScreen(presentation);
+    // Set the window title.
     presentationScreen->setWindowTitle("BeamerPresenter: " + presentationPath);
 
-    // Load notes pdf
+    // Load the notes pdf document if a separate notes file is given.
     if (!notesPath.isEmpty()) {
+        // Create the notes document.
         notes = new PdfDoc(notesPath);
+        // Load the document and check whether it was loaded successfully.
         if (notes->loadDocument())
             setWindowTitle("BeamerPresenter: " + notesPath);
         else {
             qCritical() << "File could not be opened as PDF: " << notesPath;
+            // Notes path is reset to "" and no notes file is loaded.
             notesPath = "";
         }
     }
+    // Set up the notes widget as a draw slide.
     if (notesPath.isEmpty()) {
+        // The files are equal.
         notes = presentation;
         setWindowTitle("BeamerPresenter: " + presentationPath);
-        ui->notes_widget->clearAll();
+        // The old notes_widget (type MediaSlide) is not required anymore. It will be replaced by a DrawSlide object.
+        delete ui->notes_widget;
+        // Create the draw slide.
         ui->notes_widget = new DrawSlide(this);
+        // ui->notes_widget can get focus.
         ui->notes_widget->setFocusPolicy(Qt::ClickFocus);
+        // drawSlide equals notes_widget.
         drawSlide = static_cast<DrawSlide*>(ui->notes_widget);
+
+        // Connect drawSlide to other widgets.
+        // Change draw tool
         connect(ui->tool_selector, &ToolSelector::sendNewTool, drawSlide, QOverload<const ColoredDrawTool>::of(&DrawSlide::setTool));
+        // Copy paths from draw slide to presentation slide and vice versa when drawing on one of the slides.
+        // Copy paths after moving the mouse while drawing. This assumes that only the last path is changed or a new path is created.
         connect(drawSlide, &DrawSlide::pathsChangedQuick, presentationScreen->slide, &DrawSlide::setPathsQuick);
         connect(presentationScreen->slide, &DrawSlide::pathsChangedQuick, drawSlide, &DrawSlide::setPathsQuick);
+        // Copy all paths. This completely updates all paths after using the erasor.
         connect(drawSlide, &DrawSlide::pathsChanged, presentationScreen->slide, &DrawSlide::setPaths);
         connect(presentationScreen->slide, &DrawSlide::pathsChanged, drawSlide, &DrawSlide::setPaths);
+        // Send pointer position (when using a pointer, torch or magnifier tool).
         connect(drawSlide, &DrawSlide::pointerPositionChanged, presentationScreen->slide, &DrawSlide::setPointerPosition);
         connect(presentationScreen->slide, &DrawSlide::pointerPositionChanged, drawSlide, &DrawSlide::setPointerPosition);
+        // Send relax signal when the mouse is released, which ends drawing a path.
         connect(drawSlide, &DrawSlide::sendRelax, presentationScreen->slide, &DrawSlide::relax);
         connect(presentationScreen->slide, &DrawSlide::sendRelax, drawSlide, &DrawSlide::relax);
+        // Request rendering an enlarged page as required for the magnifier.
         connect(drawSlide, &DrawSlide::sendUpdateEnlargedPage, presentationScreen->slide, &DrawSlide::updateEnlargedPage);
         connect(presentationScreen->slide, &DrawSlide::sendUpdateEnlargedPage, drawSlide, &DrawSlide::updateEnlargedPage);
+        // Paths are drawn on a transparent QPixmap for faster rendering.
+        // Signals used to request updates for this QPixmap:
         connect(drawSlide, &DrawSlide::sendUpdatePathCache, presentationScreen->slide, &DrawSlide::updatePathCache);
         connect(presentationScreen->slide, &DrawSlide::sendUpdatePathCache, drawSlide, &DrawSlide::updatePathCache);
+        // Synchronize videos on both screens.
+        // TODO: This should be improved!
         connect(drawSlide, &MediaSlide::sendPlayVideo,  presentationScreen->slide, &MediaSlide::playVideo);
         connect(drawSlide, &MediaSlide::sendPauseVideo, presentationScreen->slide, &MediaSlide::pauseVideo);
         connect(presentationScreen->slide, &MediaSlide::sendPlayVideo,  drawSlide, &MediaSlide::playVideo);
         connect(presentationScreen->slide, &MediaSlide::sendPauseVideo, drawSlide, &MediaSlide::pauseVideo);
+
+        // drawSlide should be muted, because it shows the same video content as the presentation slide.
         drawSlide->setMuted(true);
     }
+    // Send pdf documents to slide widgets on control screen.
     ui->notes_widget->setDoc(notes);
     ui->current_slide->setDoc(presentation);
     ui->next_slide->setDoc(presentation);
 
-    // tocBox will be used to show the table of contents on the control screen
+    // Create widget showing table of content (TocBox) on the control screen.
+    // tocBox is empty by default and will be updated when it is shown for the first time.
     tocBox = new TocBox(this);
+    // tocBox will be shown on top of the notes widget and should therefore have the same geometry.
     tocBox->setGeometry(ui->notes_widget->geometry());
+    // By default tocBox is hidden.
     tocBox->hide();
 
-    // overviewBox will be used to show an overview of all slides on the control screen
+    // Create widget showing thumbnail slides on the control screen.
+    // overviewBox is empty by default and will be updated when it is shown for the first time.
     overviewBox = new OverviewBox(this);
+    // overviewBox will be shown on top of the notes widget and should therefore have the same geometry.
     overviewBox->setGeometry(ui->notes_widget->geometry());
+    // By default overviewBox is hidden.
     overviewBox->hide();
 
-    // Set up the widgets
+    // Set up other widgets, which have been created by ui.
+    // Display number of pages.
     ui->text_number_slides->setText(QString::number(numberOfPages));
+    // Set number of pages (upper bound) for editable text showing current slide number.
     ui->text_current_slide->setNumberOfPages(numberOfPages);
+    // Disable cache for widget showing a preview of the next slide.
+    // Instead, the cache for the widget showing a preview of the current slide will be used.
     ui->next_slide->setUseCache(0);
+    // Focus on the notes slide widget.
     ui->notes_widget->setFocus();
 
-    // Tool selector
+    // Set up tool selector.
+    // Tool selector can send new draw tools to the presentation slide.
     connect(ui->tool_selector, &ToolSelector::sendNewTool, presentationScreen->slide, QOverload<const ColoredDrawTool>::of(&DrawSlide::setTool));
+    // Tool selector can send KeyActions to control screen.
     connect(ui->tool_selector, &ToolSelector::sendAction, this, &ControlScreen::handleKeyAction);
 
 
     // Page requests from the labels:
     // These are emitted if links are clicked.
-    // These events are send to ControlScreen and PresentationScreen
+    // These events are send to control screen and presentation screen.
     connect(ui->notes_widget,  &PreviewSlide::sendNewPageNumber, this, &ControlScreen::receiveNewPageNumber);
     connect(ui->current_slide, &PreviewSlide::sendNewPageNumber, this, &ControlScreen::receiveNewPageNumber);
     connect(ui->next_slide,    &PreviewSlide::sendNewPageNumber, this, &ControlScreen::receiveNewPageNumber);
@@ -141,11 +193,13 @@ ControlScreen::ControlScreen(QString presentationPath, QString notesPath, QWidge
     connect(ui->current_slide, &PreviewSlide::sendNewPageNumber, presentationScreen, &PresentationScreen::receiveNewPage);
     connect(ui->next_slide,    &PreviewSlide::sendNewPageNumber, presentationScreen, &PresentationScreen::receiveNewPage);
 
+    // For action links of type "go to page" (interpreted as change page number)
     connect(ui->notes_widget,  &PreviewSlide::focusPageNumberEdit, this, &ControlScreen::focusPageNumberEdit);
     connect(ui->current_slide, &PreviewSlide::focusPageNumberEdit, this, &ControlScreen::focusPageNumberEdit);
     connect(ui->next_slide,    &PreviewSlide::focusPageNumberEdit, this, &ControlScreen::focusPageNumberEdit);
     connect(presentationScreen->slide, &PreviewSlide::focusPageNumberEdit, this, &ControlScreen::focusPageNumberEdit);
 
+    // For action links of type "presentation" (interpreted as full screen)
     connect(ui->notes_widget,  &PreviewSlide::sendShowFullscreen, this, &ControlScreen::showFullScreen);
     connect(ui->current_slide, &PreviewSlide::sendShowFullscreen, this, &ControlScreen::showFullScreen);
     connect(ui->next_slide,    &PreviewSlide::sendShowFullscreen, this, &ControlScreen::showFullScreen);
@@ -155,65 +209,81 @@ ControlScreen::ControlScreen(QString presentationPath, QString notesPath, QWidge
     connect(ui->next_slide,    &PreviewSlide::sendShowFullscreen, presentationScreen, &PresentationScreen::showFullScreen);
     connect(presentationScreen->slide, &PreviewSlide::sendShowFullscreen, presentationScreen, &PresentationScreen::showFullScreen);
 
-    // Navigation signals emitted by PresentationScreen:
-    connect(presentationScreen->slide, &PresentationSlide::sendAdaptPage, this, &ControlScreen::adaptPage);
-    connect(presentationScreen, &PresentationScreen::sendNewPageNumber, this, &ControlScreen::receiveNewPageNumber);
-    connect(presentationScreen->slide, &PresentationSlide::sendNewPageNumber, this, &ControlScreen::receiveNewPageNumber);
+    // Navigation signals emitted by presentation screen.
+    // Show the same page on control screen as on presentation screen.
+    connect(presentationScreen->slide, &PresentationSlide::sendAdaptPage,      this, &ControlScreen::adaptPage);
+    // Send a new page number from presentation slide (after following a link) to control screen.
+    connect(presentationScreen->slide, &PresentationSlide::sendNewPageNumber,  this, &ControlScreen::receiveNewPageNumber);
+    // Presentation screen sends new page numbers after scrolling.
+    connect(presentationScreen,        &PresentationScreen::sendNewPageNumber, this, &ControlScreen::receiveNewPageNumber);
 
-    // Other signals emitted by PresentationScreen
+    // Other signals emitted by presentation screen.
+    // All key events are handled by control screen.
     connect(presentationScreen, &PresentationScreen::sendKeyEvent,    this, &ControlScreen::keyPressEvent);
+    // Close window (emitted after a link of action type "quit" or "close" was clicked).
     connect(presentationScreen, &PresentationScreen::sendCloseSignal, this, &ControlScreen::close);
+    // Send request for multimedia sliders from presentation screen to control screen.
+    // Then send the multimedia sliders to draw slide, where they are connected to synchronize multimedia content.
     connect(presentationScreen->slide, &MediaSlide::requestMultimediaSliders, this, &ControlScreen::addMultimediaSliders);
     if (drawSlide!=nullptr)
         connect(drawSlide, &MediaSlide::requestMultimediaSliders, this, &ControlScreen::interconnectMultimediaSliders);
-    connect(presentationScreen, &PresentationScreen::focusPageNumberEdit, this, &ControlScreen::focusPageNumberEdit);
 
-    // Signals sent back to PresentationScreen
+    // Signals sent back to presentation screen.
     connect(this, &ControlScreen::sendNewPageNumber, presentationScreen, &PresentationScreen::renderPage);
-    connect(this, &ControlScreen::sendCloseSignal,   presentationScreen, &PresentationScreen::close);
-    connect(ui->notes_widget, &PreviewSlide::sendCloseSignal, presentationScreen, &PresentationScreen::close);
-    connect(presentationScreen->slide, &PreviewSlide::sendCloseSignal, presentationScreen, &PresentationScreen::close);
-    connect(ui->notes_widget, &PreviewSlide::sendCloseSignal, this, &ControlScreen::close);
-    connect(presentationScreen->slide, &PreviewSlide::sendCloseSignal, this, &ControlScreen::close);
     connect(presentationScreen->slide, &PresentationSlide::requestUpdateNotes, this, &ControlScreen::renderPage);
+    // Close presentation screen when closing control screen. TODO: currently does not have any effect.
+    connect(this, &ControlScreen::sendCloseSignal,   presentationScreen, &PresentationScreen::close);
+    // Close window (emitted after a link of action type "quit" or "close" was clicked).
+    connect(ui->notes_widget, &PreviewSlide::sendCloseSignal, presentationScreen, &PresentationScreen::close);
+    connect(ui->notes_widget, &PreviewSlide::sendCloseSignal, this, &ControlScreen::close);
+    connect(presentationScreen->slide, &PreviewSlide::sendCloseSignal, presentationScreen, &PresentationScreen::close);
+    connect(presentationScreen->slide, &PreviewSlide::sendCloseSignal, this, &ControlScreen::close);
 
+    // Connect timer label to editable total duration.
+    // The widget ui->edit_timer is completely controled by ui->label_timer.
     ui->label_timer->setTimerWidget(ui->edit_timer);
-    // Signals emitted by the timer
-    connect(ui->label_timer, &Timer::sendAlert,   this, &ControlScreen::receiveTimerAlert);
-    connect(ui->label_timer, &Timer::sendNoAlert, this, &ControlScreen::resetTimerAlert);
-    connect(ui->label_timer, &Timer::sendEscape,  this, &ControlScreen::resetFocus);
-    // Signals sent back to the timer
-    connect(this, &ControlScreen::sendTimerString, ui->label_timer, &Timer::receiveTimerString);
-    connect(this, &ControlScreen::sendTimerColors, ui->label_timer, &Timer::receiveColors);
+    // Notify timer about new page numbers.
     connect(presentationScreen, &PresentationScreen::pageChanged, ui->label_timer, &Timer::setPage);
+    // Send alert (time passed is larger than expected total duration).
+    connect(ui->label_timer, &Timer::sendAlert,   this, &ControlScreen::receiveTimerAlert);
+    // Stop alert.
+    connect(ui->label_timer, &Timer::sendNoAlert, this, &ControlScreen::resetTimerAlert);
+    // Exit editing timer with escape key.
+    connect(ui->label_timer, &Timer::sendEscape,  this, &ControlScreen::resetFocus);
 
-    // Signals sent to the page labels
-    //connect(this, &ControlScreen::playMultimedia,     ui->notes_widget, &MediaSlide::startAllMultimedia);
-    connect(this, &ControlScreen::playMultimedia,     presentationScreen->slide, &MediaSlide::startAllMultimedia);
-    connect(this, &ControlScreen::pauseMultimedia,    ui->notes_widget, &MediaSlide::pauseAllMultimedia);
-    connect(this, &ControlScreen::pauseMultimedia,    presentationScreen->slide, &MediaSlide::pauseAllMultimedia);
-    connect(this, &ControlScreen::sendAnimationDelay, presentationScreen->slide, &PresentationSlide::setAnimationDelay);
-
-    // Signals emitted by the page number editor
+    // Signals emitted by the page number editor.
+    // Pressing return in page number editor changes the page in the presentation.
     connect(ui->text_current_slide, &PageNumberEdit::sendPageNumberReturn, presentationScreen, &PresentationScreen::receiveNewPage);
+    // Editing the number in page number editor without pressing return changes the notes pages on the control screen.
     connect(ui->text_current_slide, &PageNumberEdit::sendPageNumberEdit,   this, &ControlScreen::receiveNewPageNumber);
+    // Using arrow keys in page number editor shifts the notes pages on the control screen.
+    // Currently the key bindings in the page number editor cannot be configured.
     connect(ui->text_current_slide, &PageNumberEdit::sendPageShiftEdit,    this, &ControlScreen::receivePageShiftEdit);
+    // Using arrow keys "up" and "down" navigate to the previous or next page skipping overlays.
     connect(ui->text_current_slide, &PageNumberEdit::sendNextSlideStart,   this, &ControlScreen::receiveNextSlideStart);
     connect(ui->text_current_slide, &PageNumberEdit::sendPreviousSlideEnd, this, &ControlScreen::receivePreviousSlideEnd);
+    // The escape key resets the focus to the notes slide.
     connect(ui->text_current_slide, &PageNumberEdit::sendEscape,           this, &ControlScreen::resetFocus);
 
-    // Cache handling
-    connect(cacheTimer, &QTimer::timeout, this, &ControlScreen::updateCacheStep);
+    // Set up cache handling.
+    // Set slide widgets for cache thread. The widgets are const for the cache thread.
     cacheThread->setSlideWidgets(presentationScreen->slide, ui->notes_widget, ui->current_slide);
+    // The cache timer just makes sure that slides are rendered to cache after the main thread finished all other tasks.
+    connect(cacheTimer, &QTimer::timeout, this, &ControlScreen::updateCacheStep);
+    // Send rendered pages from cache thread to control screen.
     connect(cacheThread, &CacheUpdateThread::resultsReady, this, &ControlScreen::receiveCache);
+    // Clear presentation cache when presentation screen is resized.
     connect(presentationScreen, &PresentationScreen::clearPresentationCacheRequest, this, &ControlScreen::clearPresentationCache);
 
-    // TOC
+    // Signals emitted by the TOC box (table of contents).
+    // Send a destination in pdf (e.g. a section).
     connect(tocBox, &TocBox::sendDest, this, &ControlScreen::receiveDest);
 
-    // Overview box
+    // Signals emitted by the overview box
+    // Send new page number to presentation screen and control screen. TODO: check this.
     connect(overviewBox, &OverviewBox::sendPageNumber, presentationScreen, [&](int const pageNumber){presentationScreen->renderPage(pageNumber, false);});
     connect(overviewBox, &OverviewBox::sendPageNumber, this, &ControlScreen::receiveNewPageNumber);
+    // Exit overview box.
     connect(overviewBox, &OverviewBox::sendReturn, this, &ControlScreen::showNotes);
 }
 
@@ -808,7 +878,7 @@ void ControlScreen::receiveNextSlideStart()
 
 void ControlScreen::adaptPage()
 {
-    // Synchronize the notes page to the presentation page.
+    // Synchronize the presentation page to the notes page.
     // This function is called after the page of the presentation is changed.
     ui->label_timer->continueTimer();
     // Go to page shifted relative to the page shown on the presentation screen page.
@@ -969,18 +1039,22 @@ void ControlScreen::handleKeyAction(KeyAction const action)
         }
         break;
     case KeyAction::PlayMultimedia:
-        emit playMultimedia();
+        presentationScreen->slide->startAllMultimedia();
         break;
     case KeyAction::PauseMultimedia:
-        emit pauseMultimedia();
+        presentationScreen->slide->pauseAllMultimedia();
+        ui->notes_widget->pauseAllMultimedia();
         break;
     case KeyAction::PlayPauseMultimedia:
         {
             bool running = ui->notes_widget->hasActiveMultimediaContent() || presentationScreen->slide->hasActiveMultimediaContent();
-            if (running)
-                emit pauseMultimedia();
-            else
-                emit playMultimedia();
+            if (running) {
+                presentationScreen->slide->pauseAllMultimedia();
+                ui->notes_widget->pauseAllMultimedia();
+            }
+            else {
+                presentationScreen->slide->startAllMultimedia();
+            }
         }
         break;
     case KeyAction::ToggleMuteAll:
@@ -1229,7 +1303,7 @@ void ControlScreen::setColor(const QColor bgColor, const QColor textColor)
 
 void ControlScreen::setPresentationColor(const QColor color)
 {
-    // set background color for the presentation screen.
+    // Set background color for the presentation screen.
     QPalette newPalette(presentationScreen->palette());
     newPalette.setColor(QPalette::Background, color);
     newPalette.setColor(QPalette::Base, color);
@@ -1501,7 +1575,7 @@ void ControlScreen::setKeyMapItem(quint32 const key, KeyAction const action)
         map_it->append(action);
 }
 
-void ControlScreen::setTimerMap(QMap<int, QTime> &timeMap)
+void ControlScreen::setTimerMap(QMap<int, QTime>& timeMap)
 {
     // Set times per slide for timer color change
     ui->label_timer->setTimeMap(timeMap);
@@ -1601,4 +1675,18 @@ void ControlScreen::setAutostartDelay(const double timeout)
 MediaSlide* ControlScreen::getNotesSlide()
 {
     return ui->notes_widget;
+}
+
+/// Set the timer colors. This is only used to configure the timer.
+void ControlScreen::setTimerColors(QList<qint32> times, QList<QColor> colors)
+{
+    ui->label_timer->colorTimes=times;
+    ui->label_timer->colors=colors;
+}
+
+/// Set the timer time as a string.
+void ControlScreen::setTimerString(const QString timerString)
+{
+    ui->label_timer->timerEdit->setText(timerString);
+    ui->label_timer->setDeadline();
 }
