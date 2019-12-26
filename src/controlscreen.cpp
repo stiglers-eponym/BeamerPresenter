@@ -889,12 +889,115 @@ void ControlScreen::keyPressEvent(QKeyEvent* event)
     if (map_it == keymap->end())
         return;
     for (QList<KeyAction>::const_iterator action_it=map_it->cbegin(); action_it!=map_it->cend(); action_it++)
-        handleKeyAction(*action_it);
+        if (handleKeyAction(*action_it))
+            break;
     event->accept();
 }
 
-void ControlScreen::handleKeyAction(KeyAction const action)
+/// Return true if no further key actions should be handled.
+bool ControlScreen::handleKeyAction(KeyAction const action)
 {
+    if (tocBox->isVisible()) {
+        switch (action) {
+        case KeyAction::Down:
+        case KeyAction::Right:
+        case KeyAction::Tab:
+            // TODO
+            return true;
+        case KeyAction::Up:
+        case KeyAction::Left:
+        case KeyAction::ShiftTab:
+            // TODO
+            return true;
+        default:
+            break;
+        }
+    }
+    else if (overviewBox->isVisible()) {
+        switch (action) {
+        case KeyAction::Left:
+        case KeyAction::PreviousNotes:
+        case KeyAction::ShiftTab:
+            overviewBox->moveFocusLeft();
+            return true;
+        case KeyAction::Right:
+        case KeyAction::NextNotes:
+        case KeyAction::Tab:
+            overviewBox->moveFocusRight();
+            return true;
+        case KeyAction::Down:
+            overviewBox->moveFocusDown();
+            return true;
+        case KeyAction::Up:
+            overviewBox->moveFocusUp();
+            return true;
+        case KeyAction::End:
+            overviewBox->setFocused(1073741823);
+            return true;
+        case KeyAction::First:
+            overviewBox->setFocused(0);
+            return true;
+        case KeyAction::Return:
+            emit sendNewPageNumber(overviewBox->getPage(), true);
+            showNotes();
+            return true;
+        case KeyAction::Next:
+            currentPageNumber = presentationScreen->getPageNumber() + 1;
+            emit sendNewPageNumber(currentPageNumber, true);
+            overviewBox->setFocused(currentPageNumber);
+            break;
+        case KeyAction::Previous:
+            currentPageNumber = presentationScreen->getPageNumber() - 1;
+            if (currentPageNumber >= 0)
+                emit sendNewPageNumber(currentPageNumber, false);
+            else
+                currentPageNumber = 0;
+            overviewBox->setFocused(currentPageNumber);
+            break;
+        case KeyAction::NextSkippingOverlays:
+            currentPageNumber = presentation->getNextSlideIndex(presentationScreen->getPageNumber());
+            emit sendNewPageNumber(currentPageNumber, true);
+            overviewBox->setFocused(currentPageNumber);
+            break;
+        case KeyAction::PreviousSkippingOverlays:
+            currentPageNumber = presentation->getPreviousSlideEnd(presentationScreen->getPageNumber());
+            emit sendNewPageNumber(currentPageNumber, false);
+            overviewBox->setFocused(currentPageNumber);
+            break;
+        case KeyAction::NextNotesSkippingOverlays:
+            currentPageNumber = presentation->getNextSlideIndex(currentPageNumber);
+            overviewBox->setFocused(currentPageNumber);
+            break;
+        case KeyAction::PreviousNotesSkippingOverlays:
+            if (currentPageNumber > 0) {
+                currentPageNumber = presentation->getPreviousSlideEnd(currentPageNumber);
+                overviewBox->setFocused(currentPageNumber);
+            }
+            break;
+        case KeyAction::PreviousNoTransition:
+            currentPageNumber = presentationScreen->getPageNumber() - 1;
+            presentationScreen->slide->disableTransitions();
+            if (currentPageNumber >= 0)
+                emit sendNewPageNumber(currentPageNumber, false);
+            else
+                currentPageNumber = 0;
+            presentationScreen->slide->enableTransitions();
+            overviewBox->setFocused(currentPageNumber);
+            break;
+        case KeyAction::NextNoTransition:
+            currentPageNumber = presentationScreen->getPageNumber() + 1;
+            presentationScreen->slide->disableTransitions();
+            emit sendNewPageNumber(currentPageNumber, true);
+            presentationScreen->slide->enableTransitions();
+            overviewBox->setFocused(currentPageNumber);
+            break;
+        default:
+            break;
+        }
+    }
+    //else if (drawSlide != nullptr) {
+    //    // TODO
+    //}
     // Handle any kind of action sent by a key binding or a button.
     switch (action) {
     case KeyAction::Next:
@@ -1231,6 +1334,8 @@ void ControlScreen::handleKeyAction(KeyAction const action)
         }
         break;
     }
+    // Return false if the event was handled normally.
+    return false;
 }
 
 #ifdef EMBEDDED_APPLICATIONS_ENABLED
@@ -1430,7 +1535,7 @@ void ControlScreen::showOverview()
     if (overviewBox->needsUpdate()) {
         cacheThread->requestInterruption();
         cacheTimer->stop();
-        overviewBox->create(presentation, overviewColumns, pagePart);
+        overviewBox->create(presentation, pagePart);
     }
     if (!this->isActiveWindow())
         this->activateWindow();
@@ -1560,7 +1665,7 @@ void ControlScreen::setKeyMapItem(quint32 const key, KeyAction const action)
     QMap<quint32, QList<KeyAction>>::iterator map_it = keymap->find(key);
     if (map_it==keymap->end())
         keymap->insert(key, {action});
-    else
+    else if (!map_it->contains(action))
         map_it->append(action);
 }
 

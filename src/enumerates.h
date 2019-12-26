@@ -101,7 +101,20 @@ enum KeyAction {
     RedoDrawing,
 
     SaveDrawings,
-    LoadDrawings
+    LoadDrawings,
+
+    // Arrow keys
+    Down,
+    Up,
+    Left,
+    Right,
+    // Navigation keys
+    End,
+    First,
+    // Other important keys
+    Return,
+    Tab,
+    ShiftTab,
 };
 
 enum DrawTool {

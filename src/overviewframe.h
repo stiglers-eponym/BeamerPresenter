@@ -31,20 +31,17 @@ class OverviewFrame : public QLabel
 
 private:
     int page;
-    quint8 columns;
 
 protected:
     void mousePressEvent(QMouseEvent* event) override;
-    void keyPressEvent(QKeyEvent* event) override;
 
 public:
-    OverviewFrame(int const page, quint8 const columns, QWidget* parent = nullptr);
+    OverviewFrame(int const page, QWidget* parent = nullptr);
     void activate();
     void deactivate();
 
 signals:
     void activated(int const page);
-    void selected(int const page);
     void sendReturn();
 };
 

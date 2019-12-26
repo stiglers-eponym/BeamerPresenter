@@ -66,7 +66,7 @@ public:
     void setCacheNumber(int const number);
     void setCacheSize(qint64 const size);
     void setTocLevel(quint8 const level);
-    void setOverviewColumns(quint8 const columns) {overviewColumns=columns;}
+    void setOverviewColumns(quint8 const columns) {if (overviewBox != nullptr) overviewBox->setColumns(columns);}
     void setRenderer(QStringList command);
     void setKeyMap(QMap<quint32, QList<KeyAction>>* keymap);
     //void unsetKeyMapItem(quint32 const key) {keymap->remove(key);}
@@ -136,7 +136,6 @@ private:
     DrawSlide* drawSlide = nullptr;
 
     // Configuration. These values are set in main.cpp and will not be changed afterwards.
-    quint8 overviewColumns = 5;
     PagePart pagePart = FullPage;
     bool forceIsTouchpad = false;
     int scrollDelta = 200;
@@ -182,7 +181,7 @@ private slots:
 public slots:
     // TODO: Some of these functions are not used as slots. Tidy up!
     /// Handle actions sent from key event or tool selector.
-    void handleKeyAction(KeyAction const action);
+    bool handleKeyAction(KeyAction const action);
     /// Receive cached slide as png images.
     void receiveCache(QByteArray const* pres, QByteArray const* note, QByteArray const* small, int const index);
     /// Receive a TOC destination and go the the corresponding slide.

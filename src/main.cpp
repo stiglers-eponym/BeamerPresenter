@@ -164,6 +164,18 @@ static const QMap<quint32, QList<KeyAction>> defaultKeyMap = {
     {Qt::Key_Y+Qt::CTRL, {KeyAction::RedoDrawing}},
 };
 
+static const QMap<quint32, KeyAction> staticKeyMap = {
+    {Qt::Key_Left, KeyAction::Left},
+    {Qt::Key_Right, KeyAction::Right},
+    {Qt::Key_Up, KeyAction::Up},
+    {Qt::Key_Down, KeyAction::Down},
+    {Qt::Key_End, KeyAction::End},
+    {Qt::Key_Home, KeyAction::First},
+    {Qt::Key_Return, KeyAction::Return},
+    {Qt::Key_Tab, KeyAction::Tab},
+    {Qt::Key_Tab+Qt::SHIFT, KeyAction::ShiftTab},
+};
+
 /// Default configuration of tools for tool selector (buttons).
 /// The tool selector is an array of buttons in the lower right corner of the control screen.
 /// The keys (quint8) in this map are interpreted as two digit hexadecimal numbers, where the first digit defines the row and the second one defines the column of the button in the array.
@@ -797,6 +809,11 @@ int main(int argc, char *argv[])
     // Handle key bindings.
     {   // In the configuration actions can be defined for different keyboard actions.
         // The arguments are first read from the local or global configuration to the map "inputMap" before the arguments are interpreted.
+
+        // First set static key actions.
+        // This sends the real key for some navigation keys used in modes like overview and TOC mode.
+        for (QMap<Qt::Key, KeyAction>::const_iterator it=staticKeyMap.cbegin(); it!=staticKeyMap.cend(); it++)
+            ctrlScreen->setKeyMapItem(it.key(), *it);
 
         /// Map of key codes to a QStringList of associated key actions.
         QMap<quint32, QStringList> inputMap;

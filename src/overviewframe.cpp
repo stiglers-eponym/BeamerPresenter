@@ -18,57 +18,16 @@
 
 #include "overviewframe.h"
 
-OverviewFrame::OverviewFrame(int const page, quint8 const columns, QWidget* parent) : QLabel(parent)
+OverviewFrame::OverviewFrame(int const page, QWidget* parent) : QLabel(parent)
 {
     this->page = page;
-    this->columns = columns;
     setAlignment(Qt::AlignCenter);
 }
 
 void OverviewFrame::mousePressEvent(QMouseEvent* event)
 {
     emit activated(page);
-    emit selected(page);
     event->accept();
-}
-
-void OverviewFrame::keyPressEvent(QKeyEvent* event)
-{
-    switch (event->key()) {
-    case Qt::Key_Return:
-        emit selected(page);
-        emit sendReturn();
-        break;
-    case Qt::Key_Left:
-        emit activated(page-1);
-        break;
-    case Qt::Key_Right:
-        emit activated(page+1);
-        break;
-    case Qt::Key_Up:
-        emit activated(page-columns);
-        break;
-    case Qt::Key_Down:
-        emit activated(page+columns);
-        break;
-    case Qt::Key_Home:
-        emit activated(0);
-        break;
-    case Qt::Key_End:
-        // Go to page "infinity"
-        emit activated(1073741824);
-        break;
-    case Qt::Key_PageUp:
-        emit activated(page-1);
-        emit selected(page-1);
-        break;
-    case Qt::Key_PageDown:
-        emit activated(page+1);
-        emit selected(page+1);
-        break;
-    default:
-        event->setAccepted(false);
-    }
 }
 
 void OverviewFrame::activate()

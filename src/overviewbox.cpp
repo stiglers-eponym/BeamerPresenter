@@ -25,6 +25,7 @@ OverviewBox::OverviewBox(QWidget *parent) : QScrollArea(parent)
     setWidget(client);
     layout = new QGridLayout(this);
     client->setLayout(layout);
+    //setShortcutEnabled(false); // TODO: check what this does
     // TODO: handle keyboard shortcuts
 }
 
@@ -34,19 +35,18 @@ OverviewBox::~OverviewBox()
     frames.clear();
 }
 
-void OverviewBox::create(PdfDoc const* doc, quint8 const columns, PagePart const pagePart)
+void OverviewBox::create(PdfDoc const* doc, PagePart const pagePart)
 {
     qDeleteAll(frames);
     frames.clear();
     // TODO: get the real width of the scroll area (instead of width()-16).
     client->setFixedWidth(width() - 16);
-    this->columns = columns;
     QList<Poppler::Page*> const pages = *doc->getPages();
     double const frameWidth = double(client->width() - 2*columns - 2)/columns;
     int i=0;
     double resolution;
     for (QList<Poppler::Page*>::const_iterator page_it=pages.cbegin(); page_it!=pages.cend(); page_it++, i++) {
-        OverviewFrame* frame = new OverviewFrame(i, columns, this);
+        OverviewFrame* frame = new OverviewFrame(i, this);
         frames.append(frame);
         resolution = 72*frameWidth / (*page_it)->pageSize().width();
         layout->addWidget(frame, i/columns, i%columns);
@@ -61,9 +61,8 @@ void OverviewBox::create(PdfDoc const* doc, quint8 const columns, PagePart const
                 pixmap = QPixmap::fromImage(image.copy(image.width()/2, 0, image.width()/2, image.height()));
         }
         frame->setPixmap(pixmap);
-        connect(frame, &OverviewFrame::selected, this, &OverviewBox::sendPageNumber);
+        connect(frame, &OverviewFrame::activated, this, &OverviewBox::sendPageNumber);
         connect(frame, &OverviewFrame::activated, this, &OverviewBox::setFocused);
-        connect(frame, &OverviewFrame::sendReturn, this, &OverviewBox::sendReturn);
     }
     outdated = false;
     show();
