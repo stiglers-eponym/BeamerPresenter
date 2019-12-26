@@ -134,12 +134,6 @@ ControlScreen::ControlScreen(QString presentationPath, QString notesPath, QWidge
         // Signals used to request updates for this QPixmap:
         connect(drawSlide, &DrawSlide::sendUpdatePathCache, presentationScreen->slide, &DrawSlide::updatePathCache);
         connect(presentationScreen->slide, &DrawSlide::sendUpdatePathCache, drawSlide, &DrawSlide::updatePathCache);
-        // Synchronize videos on both screens.
-        // TODO: This should be improved!
-        connect(drawSlide, &MediaSlide::sendPlayVideo,  presentationScreen->slide, &MediaSlide::playVideo);
-        connect(drawSlide, &MediaSlide::sendPauseVideo, presentationScreen->slide, &MediaSlide::pauseVideo);
-        connect(presentationScreen->slide, &MediaSlide::sendPlayVideo,  drawSlide, &MediaSlide::playVideo);
-        connect(presentationScreen->slide, &MediaSlide::sendPauseVideo, drawSlide, &MediaSlide::pauseVideo);
 
         // drawSlide should be muted, because it shows the same video content as the presentation slide.
         drawSlide->setMuted(true);
@@ -225,8 +219,6 @@ ControlScreen::ControlScreen(QString presentationPath, QString notesPath, QWidge
     // Send request for multimedia sliders from presentation screen to control screen.
     // Then send the multimedia sliders to draw slide, where they are connected to synchronize multimedia content.
     connect(presentationScreen->slide, &MediaSlide::requestMultimediaSliders, this, &ControlScreen::addMultimediaSliders);
-    if (drawSlide!=nullptr)
-        connect(drawSlide, &MediaSlide::requestMultimediaSliders, this, &ControlScreen::interconnectMultimediaSliders);
 
     // Signals sent back to presentation screen.
     connect(this, &ControlScreen::sendNewPageNumber, presentationScreen, &PresentationScreen::renderPage);
@@ -428,13 +420,6 @@ void ControlScreen::addMultimediaSliders(int const n)
     presentationScreen->slide->setMultimediaSliders(sliderList);
 }
 
-void ControlScreen::interconnectMultimediaSliders(int const n)
-{
-    if (drawSlide == nullptr || n!=presentationScreen->slide->getSliderNumber())
-        return;
-    drawSlide->connectVideoSliders(presentationScreen->slide->getVideoSliders());
-}
-
 void ControlScreen::resetFocus()
 {
     // Make sure that the control screen shows the same page as the presentation screen and set focus to the notes label.
@@ -533,6 +518,9 @@ void ControlScreen::renderPage(int const pageNumber, bool const full)
         }
         // Update current slide
         drawSlide->renderPage(currentPageNumber, false);
+
+        // Synchronize videos
+        connectVideos(ui->notes_widget, presentationScreen->slide);
 
         // Update next slide previews
         // If we have not reached the last page (there exists a next page):
@@ -1043,7 +1031,8 @@ void ControlScreen::handleKeyAction(KeyAction const action)
         break;
     case KeyAction::PauseMultimedia:
         presentationScreen->slide->pauseAllMultimedia();
-        ui->notes_widget->pauseAllMultimedia();
+        if (ui->notes_widget != drawSlide)
+            ui->notes_widget->pauseAllMultimedia();
         break;
     case KeyAction::PlayPauseMultimedia:
         {
@@ -1605,11 +1594,6 @@ void ControlScreen::showDrawSlide()
         connect(presentationScreen->slide, &DrawSlide::sendUpdatePathCache, drawSlide, &DrawSlide::updatePathCache);
         connect(drawSlide, &PreviewSlide::sendNewPageNumber, presentationScreen, &PresentationScreen::receiveNewPage);
         connect(drawSlide, &PreviewSlide::sendNewPageNumber, this, [&](int const pageNumber){renderPage(pageNumber);});
-        connect(drawSlide, &MediaSlide::requestMultimediaSliders, this, &ControlScreen::interconnectMultimediaSliders);
-        connect(drawSlide, &MediaSlide::sendPlayVideo,  presentationScreen->slide, &MediaSlide::playVideo);
-        connect(drawSlide, &MediaSlide::sendPauseVideo, presentationScreen->slide, &MediaSlide::pauseVideo);
-        connect(presentationScreen->slide, &MediaSlide::sendPlayVideo,  drawSlide, &MediaSlide::playVideo);
-        connect(presentationScreen->slide, &MediaSlide::sendPauseVideo, drawSlide, &MediaSlide::pauseVideo);
     }
     else if (drawSlide == ui->notes_widget)
         return;

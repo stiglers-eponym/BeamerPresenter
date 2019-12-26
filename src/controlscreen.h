@@ -207,8 +207,6 @@ public slots:
     void focusPageNumberEdit();
     /// Add sliders on control screen to control multimedia content.
     void addMultimediaSliders(int const n);
-    /// Connect the multimedia sliders to multimedia content on the draw slide.
-    void interconnectMultimediaSliders(int const n);
     /// Clear cache.
     void clearPresentationCache();
     /// Show notes. This hides other widgets which can be shown above notes (TOC, overview, draw slide).

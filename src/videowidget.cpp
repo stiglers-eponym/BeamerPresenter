@@ -92,16 +92,15 @@ VideoWidget::~VideoWidget()
 
 void VideoWidget::play()
 {
-    QMediaPlayer::MediaStatus status = player->mediaStatus();
-    if (status==QMediaPlayer::LoadingMedia || status==QMediaPlayer::EndOfMedia)
+    if (player->mediaStatus()==QMediaPlayer::LoadingMedia || player->mediaStatus()==QMediaPlayer::EndOfMedia)
         player->bind(this);
     player->play();
 }
 
-void VideoWidget::pause()
+void VideoWidget::pausePosition(quint64 const position)
 {
-    if (player->state() == QMediaPlayer::PlayingState)
-        player->pause();
+    player->pause();
+    player->setPosition(position);
 }
 
 void VideoWidget::showPosterImage(QMediaPlayer::MediaStatus status)
@@ -138,12 +137,13 @@ void VideoWidget::mouseReleaseEvent(QMouseEvent* event)
     if ( event->button() == Qt::LeftButton ) {
         if ( player->state() == QMediaPlayer::PlayingState ) {
             player->pause();
-            emit sendPauseVideo(this);
+            emit sendPause();
+            emit sendPausePos(player->position());
         }
         else {
             player->bind(this);
             player->play();
-            emit sendPlayVideo(this);
+            emit sendPlay();
         }
     }
     event->accept();

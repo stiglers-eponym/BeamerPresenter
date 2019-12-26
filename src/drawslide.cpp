@@ -18,10 +18,10 @@
 
 #include "drawslide.h"
 
+/// This function is required for sorting and searching in a QMap.
 bool operator<(ColoredDrawTool tool1, ColoredDrawTool tool2)
 {
-    // This function is required for sorting and searching in a QMap.
-    // Does operaror<(QRgb, QRgb) together with == define a total order?
+    // TODO: Does operaror<(QRgb, QRgb) together with == define a total order?
     return (tool1.tool<tool2.tool || (tool1.tool==tool2.tool && tool1.color.rgb()<tool2.color.rgb()) );
 }
 

@@ -39,6 +39,7 @@ public:
     ~VideoWidget() override;
     Poppler::MovieAnnotation const * getAnnotation() const {return annotation;}
     qint64 getDuration() const {return player->duration();}
+    qint64 getPosition() const {return player->position();}
     QMediaPlayer* getPlayer() {return player;}
     QMediaPlayer::State state() const {return player->state();}
     bool getAutoplay() const {return autoplay;}
@@ -54,11 +55,12 @@ private:
     QImage posterImage;
     QString filename;
     bool autoplay = false;
-    Poppler::MovieAnnotation const * annotation;
+    Poppler::MovieAnnotation const* annotation;
 
 public slots:
     void play();
-    void pause();
+    void pause() {player->pause();}
+    void pausePosition(quint64 const position);
     void setPosition(qint64 const position) {player->setPosition(position);}
 
 private slots:
@@ -69,8 +71,9 @@ private slots:
 signals:
     void positionChanged(qint64 const position);
     void durationChanged(qint64 const position);
-    void sendPlayVideo(VideoWidget *const ptr);
-    void sendPauseVideo(VideoWidget *const ptr);
+    void sendPlay();
+    void sendPause();
+    void sendPausePos(quint64 const position);
 };
 
 #endif // VIDEOWIDGET_H

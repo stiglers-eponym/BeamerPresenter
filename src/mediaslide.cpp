@@ -18,6 +18,31 @@
 
 #include "mediaslide.h"
 
+/// Synchronize video widgets of the currently shown slide on two MediaSlide objects.
+/// presentationSlide controls the sliders. controlSlide is adapted to presentationSlide.
+void connectVideos(MediaSlide* controlSlide, MediaSlide* presentationSlide)
+{
+    if (controlSlide->pageIndex != presentationSlide->pageIndex) {
+        qDebug() << "Called connectVideos with differing slide numbers.";
+        return;
+    }
+    int const n = controlSlide->videoWidgets.size();
+    if (n != presentationSlide->videoWidgets.size() || n != presentationSlide->videoSliders.size()) {
+        qDebug() << "Called connectVideos wrong number of video widgets or sliders.";
+        return;
+    }
+    for (int i=0; i<n; i++) {
+        QWidget::connect(presentationSlide->videoWidgets[i], &VideoWidget::sendPlay, controlSlide->videoWidgets[i], &VideoWidget::play);
+        QWidget::connect(presentationSlide->videoSliders[i], &QAbstractSlider::sliderMoved, controlSlide->videoWidgets[i], &VideoWidget::setPosition);
+        QWidget::connect(presentationSlide->videoWidgets[i], &VideoWidget::sendPausePos, controlSlide->videoWidgets[i], &VideoWidget::pausePosition);
+        QWidget::connect(controlSlide->videoWidgets[i], &VideoWidget::sendPause, presentationSlide->videoWidgets[i], &VideoWidget::pause);
+        QWidget::connect(controlSlide->videoWidgets[i], &VideoWidget::sendPlay, presentationSlide->videoWidgets[i], &VideoWidget::play);
+        if (presentationSlide->videoWidgets[i]->getPlayer()->state() == QMediaPlayer::PlayingState)
+            controlSlide->videoWidgets[i]->play();
+        controlSlide->videoWidgets[i]->setPosition(presentationSlide->videoWidgets[i]->getPlayer()->position());
+    }
+}
+
 MediaSlide::MediaSlide(PdfDoc const*const document, int const pageNumber, QWidget* parent) : PreviewSlide(parent)
 {
     doc = document;
@@ -304,8 +329,6 @@ void MediaSlide::renderPage(int const pageNumber, bool const hasDuration, QPixma
             videoWidgets.append(new VideoWidget(video, urlSplitCharacter, this));
             videoWidgets.last()->setMute(mute);
             videoWidgets.last()->setGeometry(videoPositions.last());
-            connect(videoWidgets.last(), &VideoWidget::sendPlayVideo, this, &MediaSlide::receivePlayEvent);
-            connect(videoWidgets.last(), &VideoWidget::sendPauseVideo, this, &MediaSlide::receivePauseEvent);
         }
         newSliders++;
     }
@@ -364,7 +387,7 @@ void MediaSlide::renderPage(int const pageNumber, bool const hasDuration, QPixma
                 for (QList<QMediaPlayer*>::iterator player_it=oldSoundLinks.begin(); player_it!=oldSoundLinks.end(); player_it++) {
                     QMediaContent media = (*player_it)->media();
                     // TODO: reliable check if the media names match
-                    if (*player_it != nullptr && !media.isNull() && media.canonicalUrl()==url) {
+                    if (*player_it != nullptr && !media.isNull() && media.request().url()==url) {
                         soundLinkPlayers[i]= *player_it;
                         *player_it = nullptr;
                         found = true;
@@ -446,7 +469,7 @@ void MediaSlide::renderPage(int const pageNumber, bool const hasDuration, QPixma
             for (QList<QMediaPlayer*>::iterator player_it=oldSounds.begin(); player_it!=oldSounds.end(); player_it++) {
                 QMediaContent media = (*player_it)->media();
                 // TODO: reliable check if the media names match
-                if (*player_it != nullptr && !media.isNull() && media.canonicalUrl()==url) {
+                if (*player_it != nullptr && !media.isNull() && media.request().url()==url) {
                     soundPlayers.append(*player_it);
                     *player_it = nullptr;
                     found = true;
@@ -578,6 +601,7 @@ void MediaSlide::renderPage(int const pageNumber, bool const hasDuration, QPixma
         emit requestMultimediaSliders(newSliders);
 }
 
+
 void MediaSlide::updateCacheVideos(int const pageNumber)
 {
     if (pageNumber==pageIndex || !cacheVideos || page==nullptr)
@@ -605,8 +629,6 @@ void MediaSlide::updateCacheVideos(int const pageNumber)
             qDebug() << "Cache new video widget:" << movie->url();
             cachedVideoWidgets.append(new VideoWidget(video, urlSplitCharacter, this));
             cachedVideoWidgets.last()->setMute(mute);
-            connect(cachedVideoWidgets.last(), &VideoWidget::sendPlayVideo, this, &MediaSlide::receivePlayEvent);
-            connect(cachedVideoWidgets.last(), &VideoWidget::sendPauseVideo, this, &MediaSlide::receivePauseEvent);
         }
     }
     videos.clear();
@@ -655,14 +677,6 @@ void MediaSlide::setMultimediaSliders(QList<QSlider*> sliderList)
     }
 }
 
-void MediaSlide::connectVideoSliders(QMap<int,QSlider*> const& sliders)
-{
-    if (sliders.size() != videoWidgets.size())
-        return;
-    for (int i=0; i<videoWidgets.size(); i++)
-        connect(sliders[i], &QAbstractSlider::sliderMoved, videoWidgets[i]->getPlayer(), &QMediaPlayer::setPosition);
-}
-
 void MediaSlide::startAllMultimedia()
 {
     for (int i=0; i<videoWidgets.size(); i++) {
@@ -671,7 +685,7 @@ void MediaSlide::startAllMultimedia()
         videoWidgets[i]->setGeometry(videoPositions[i]);
         videoWidgets[i]->show();
         videoWidgets[i]->play();
-        emit sendPlayVideo(i);
+        emit videoWidgets[i]->sendPlay();
     }
     Q_FOREACH(QMediaPlayer* sound, soundPlayers)
         sound->play();
@@ -683,7 +697,8 @@ void MediaSlide::pauseAllMultimedia()
 {
     for (int i=0; i<videoWidgets.length(); i++) {
         videoWidgets[i]->pause();
-        emit sendPauseVideo(i);
+        emit videoWidgets[i]->sendPause();
+        emit videoWidgets[i]->sendPausePos(videoWidgets[i]->getPosition());
     }
     Q_FOREACH(QMediaPlayer* sound, soundPlayers)
         sound->pause();
@@ -691,6 +706,7 @@ void MediaSlide::pauseAllMultimedia()
         sound->pause();
 }
 
+/*
 void MediaSlide::playVideo(int const i)
 {
     if (i<0 || i>=videoWidgets.length() || videoWidgets[i]==nullptr || i>=videoPositions.length())
@@ -706,6 +722,7 @@ void MediaSlide::pauseVideo(int const i)
         return;
     videoWidgets[i]->pause();
 }
+*/
 
 bool MediaSlide::hasActiveMultimediaContent() const
 {
@@ -866,7 +883,7 @@ void MediaSlide::followHyperlinks(QPoint const& pos)
                         for (int i=0; i<videoWidgets.length(); i++) {
                             if (link->isReferencedAnnotation(videoWidgets[i]->getAnnotation())) {
                                 videoWidgets[i]->play();
-                                emit sendPlayVideo(i);
+                                emit videoWidgets[i]->sendPlay();
                             }
                         }
                     }
@@ -905,13 +922,13 @@ void MediaSlide::followHyperlinks(QPoint const& pos)
         if (videoPositions[i].contains(pos)) {
             if (videoWidgets[i]->state() == QMediaPlayer::PlayingState) {
                 videoWidgets[i]->pause();
-                emit sendPauseVideo(i);
+                emit videoWidgets[i]->sendPause();
             }
             else {
                 videoWidgets[i]->setGeometry(videoPositions[i]);
                 videoWidgets[i]->show();
                 videoWidgets[i]->play();
-                emit sendPlayVideo(i);
+                emit videoWidgets[i]->sendPlay();
             }
             return;
         }

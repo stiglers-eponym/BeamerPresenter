@@ -29,6 +29,7 @@
 
 class MediaSlide : public PreviewSlide
 {
+    friend void connectVideos(MediaSlide*, MediaSlide*);
     Q_OBJECT
 public:
     explicit MediaSlide(QWidget* parent=nullptr);
@@ -42,7 +43,6 @@ public:
     void updateCacheVideos(int const pageNumber);
     double getAutostartDelay() const {return autostartDelay;}
     int getSliderNumber() const {return videoSliders.size()+soundSliders.size()+soundLinkSliders.size();}
-    void connectVideoSliders(QMap<int,QSlider*> const& sliders);
     bool isMuted() const {return mute;}
     QMap<int,QSlider*> const& getVideoSliders() {return videoSliders;}
     virtual void clearAll() override;
@@ -93,18 +93,12 @@ protected:
 public slots:
     void pauseAllMultimedia();
     void startAllMultimedia();
-    void playVideo(int const i);
-    void pauseVideo(int const i);
-    void receivePlayEvent(VideoWidget *const ptr) {emit sendPlayVideo(videoWidgets.indexOf(ptr));}
-    void receivePauseEvent(VideoWidget *const ptr) {emit sendPauseVideo(videoWidgets.indexOf(ptr));}
 #ifdef EMBEDDED_APPLICATIONS_ENABLED
     void receiveEmbedApp(EmbedApp* app);
 #endif
 
 signals:
     void requestMultimediaSliders(int const n);
-    void sendPlayVideo(int const i);
-    void sendPauseVideo(int const i);
 };
 
 #endif // MEDIASLIDE_H
