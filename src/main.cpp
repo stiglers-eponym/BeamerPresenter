@@ -1437,6 +1437,7 @@ int main(int argc, char *argv[])
 
         // Check the QPA backend and show ctrlScreen.
         try {
+            // TODO: Checks at compile time instead of execution time.
             if (!QStringList({"xcb", "wayland", "wayland-egl", "windows"}).contains(app.platformName())) {
                 // Using an untested platform. Show some information to the user.
                 if (QStringList({"wayland-xcomposite-egl", "wayland-xcomposite-glx", "direct2d", "cocoa", "haiku"}).contains(app.platformName())) {

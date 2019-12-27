@@ -29,6 +29,9 @@ unix {
     CONFIG(debug):QMAKE_LFLAGS += -rdynamic
     DEFINES += EMBEDDED_APPLICATIONS_ENABLED
 }
+linux {
+    DEFINES += USE_WAYLAND_SUBMENU_PATCH
+}
 CONFIG(release, debug|release):DEFINES += QT_NO_DEBUG_OUTPUT
 
 # You can also make your code fail to compile if you use deprecated APIs.

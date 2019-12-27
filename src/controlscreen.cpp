@@ -1501,9 +1501,7 @@ void ControlScreen::showToc()
 {
     // Show table of contents on the control screen (above the notes label).
     hideOverview();
-    if (tocBox->needUpdate())
-        tocBox->createToc(presentation->getToc());
-    if (!tocBox->hasToc()) {
+    if (tocBox->createToc()) {
         qWarning() << "This document does not contain a table of contents";
         return;
     }
@@ -1642,7 +1640,7 @@ void ControlScreen::reloadFiles()
         // Hide TOC and overview and set them outdated
         showNotes();
         tocBox->setOutdated();
-        tocBox->createToc(presentation->getToc());
+        tocBox->createToc();
         overviewBox->setOutdated();
     }
     // If one of the two files has changed: Reset cache region and render pages on control screen.

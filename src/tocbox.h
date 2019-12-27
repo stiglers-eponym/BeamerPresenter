@@ -29,35 +29,58 @@
 #include "tocbutton.h"
 #include "tocaction.h"
 
+/// Strings indicating the different levels of different TOC entries.
+static QStringList const tocIndentStrings = {"  ", "    ➤ ", "       - ", "          + "};
+
+/// Widget showing the table of contents.
+/// This widget is shown on top of the notes widget.
 class TocBox : public QWidget
 {
     Q_OBJECT
 
 private:
-    QStringList const indentStrings = {"  ", "    ➤ ", "       - ", "          + "};
-    QDomDocument const * toc = nullptr;
+    /// table of contents as returned by poppler.
+    QDomDocument const* toc = nullptr;
+    /// Maximum level of TOC entries shown directly. One further level is shown in a drop down menu.
     quint8 unfoldLevel = 2;
+    /// Layout.
     QVBoxLayout* layout;
+    /// List of buttons (corresponding to TOC entries).
     QList<TocButton*> buttons;
+    /// List of drop down menus used to show entries one level deeper than unfoldLevel.
     QList<QMenu*> menus;
+    /// Map pages to button indices. This can be used to select the button for the current page.
     QMap<int, int> page_to_button;
+
+    /// Recursively create the table of contents.
     void recursiveTocCreator(QDomNode const& node, quint8 const level);
+
+    /// Indicates whether the TOC GUI should be updated before it is shown.
+    /// Initially the GUI is not initialized and therefore needs an update.
     bool need_update = true;
-    PdfDoc const* pdf = nullptr; // TODO: use this, send pages numbers instead of strings
+
+    /// PDF document (presentation). This is used to convert destination strings to page indices.
+    PdfDoc const* pdf = nullptr;
 
 public:
+    // Constructor, destructor.
     TocBox(QWidget* parent = nullptr);
     ~TocBox();
-    void setPdf(PdfDoc const* doc) {pdf=doc;}
-    void createToc(QDomDocument const* toc);
+    // Create or update GUI. Return true if an error occured or no TOC GUI was created.
+    bool createToc();
+    // Set the unfold level.
     void setUnfoldLevel(quint8 const level);
-    bool needUpdate() {return need_update;}
-    void setOutdated() {need_update=true;}
+    // Set the document (called only once).
+    void setPdf(PdfDoc const* doc) {pdf=doc;}
+    // Mark TOC GUI as outdated.
+    void setOutdated() {need_update = true;}
+    // Check whether a TOC has been created.
     bool hasToc() {return toc!=nullptr;}
+    // Focus on current page.
     void focusCurrent(int const page);
 
 signals:
-    //void sendDest(QString const & dest);
+    /// Send a new page number. This shows the new page on the presentation screen.
     void sendNewPage(int const page);
 };
 
