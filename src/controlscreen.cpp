@@ -1001,9 +1001,6 @@ bool ControlScreen::handleKeyAction(KeyAction const action)
             break;
         }
     }
-    //else if (drawSlide != nullptr) {
-    //    // TODO
-    //}
     // Handle any kind of action sent by a key binding or a button.
     switch (action) {
     case KeyAction::Next:

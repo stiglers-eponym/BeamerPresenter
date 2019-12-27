@@ -18,9 +18,12 @@
 
 #include "toolbutton.h"
 
+/// Map KeyActions to names shown on the tool selector buttons.
 static const QMap<KeyAction, QString> actionNames = {
     {Previous, "prev"},
     {Next, "next"},
+    {PreviousNoTransition, "prev-no-transition"},
+    {NextNoTransition, "next-no-transition"},
     {PreviousNotes, "prev (notes)"},
     {NextNotes, "next (notes)"},
     {PreviousSkippingOverlays, "prev slide"},
@@ -45,6 +48,16 @@ static const QMap<KeyAction, QString> actionNames = {
     {PauseMultimedia, "pause media"},
     {PlayPauseMultimedia, "play/pause"},
 
+    {ToggleMuteAll, "togle mute"},
+    {ToggleMuteNotes, "togle mute notes"},
+    {ToggleMutePresentation, "toggle mute pres"},
+    {MuteAll, "mute"},
+    {MuteNotes, "mute notes"},
+    {MutePresentation, "mute pres"},
+    {UnmuteAll, "unmute"},
+    {UnmuteNotes, "unmute notes"},
+    {UnmutePresentation, "unmute pres"},
+
     {PlayPauseTimer, "timer"},
     {ContinueTimer, "continue timer"},
     {PauseTimer, "pause timer"},
@@ -66,6 +79,8 @@ static const QMap<KeyAction, QString> actionNames = {
     {ClearAnnotations, "clear"},
     {DrawNone, "hand"},
     {ToggleDrawMode, "draw"},
+    {DrawTorch, "draw torch"},
+    {DrawMagnifier, "draw magnifier"},
     {DrawMode, "draw"},
     {DrawEraser, "eraser"},
     {DrawPen, "pen"},
@@ -78,6 +93,8 @@ static const QMap<KeyAction, QString> actionNames = {
     {LoadDrawings, "open"},
 };
 
+/// Map KeyActions to icon names.
+/// The icons are shown on the tool selector buttons.
 static const QMap<KeyAction, QString> actionIconNames = {
     {PlayMultimedia, "media-playback-start"},
     {PauseMultimedia, "media-playback-stop"},
@@ -101,6 +118,8 @@ static const QMap<KeyAction, QString> actionIconNames = {
     {LoadDrawings, "document-open"},
     {UndoDrawing, "edit-undo"},
     {RedoDrawing, "edit-redo"},
+    {MuteAll, "audio-volume-muted"},
+    {UnmuteAll, "audio-volume-high"},
     // TODO: more and better icons
 };
 

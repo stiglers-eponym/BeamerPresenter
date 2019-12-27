@@ -72,9 +72,11 @@ static const QMap<QString, KeyAction> keyActionMap {
     {"toggle mute presentation", KeyAction::ToggleMutePresentation},
     {"toggle mute notes",        KeyAction::ToggleMuteNotes},
     {"mute",              KeyAction::MuteAll},
+    {"mute all",          KeyAction::MuteAll},
     {"mute presentation", KeyAction::MutePresentation},
     {"mute notes",        KeyAction::MuteNotes},
     {"unmute",              KeyAction::UnmuteAll},
+    {"unmute all",          KeyAction::UnmuteAll},
     {"unmute presentation", KeyAction::UnmutePresentation},
     {"unmute notes",        KeyAction::UnmuteNotes},
 
