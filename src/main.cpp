@@ -812,7 +812,7 @@ int main(int argc, char *argv[])
 
         // First set static key actions.
         // This sends the real key for some navigation keys used in modes like overview and TOC mode.
-        for (QMap<Qt::Key, KeyAction>::const_iterator it=staticKeyMap.cbegin(); it!=staticKeyMap.cend(); it++)
+        for (QMap<quint32, KeyAction>::const_iterator it=staticKeyMap.cbegin(); it!=staticKeyMap.cend(); it++)
             ctrlScreen->setKeyMapItem(it.key(), *it);
 
         /// Map of key codes to a QStringList of associated key actions.

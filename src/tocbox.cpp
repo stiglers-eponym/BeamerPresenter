@@ -61,9 +61,10 @@ void TocBox::recursiveTocCreator(QDomNode const& n, quint8 const level)
     QDomElement e = n.toElement();
     if (e.isNull())
         return;
-    QString const dest = e.attribute("DestinationName", "");
-    TocButton * button = new TocButton(indentStrings[level] + e.tagName(), dest, this);
-    connect(button, &TocButton::activated, this, [&](QString const dest){sendDest(dest);});
+    int const dest = pdf->destToSlide(e.attribute("DestinationName", ""));
+    TocButton* button = new TocButton(indentStrings[level] + e.tagName(), dest, this);
+    connect(button, &TocButton::activated, this, [&](int const dest){sendNewPage(dest);});
+    page_to_button[dest] = buttons.length();
     buttons.append(button);
     layout->addWidget(button);
     QDomNode n1 = n.firstChild();
@@ -85,18 +86,18 @@ void TocBox::recursiveTocCreator(QDomNode const& n, quint8 const level)
             list->setLayout(listLayout);
             list->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
             listLayout->setSizeConstraint(QVBoxLayout::SetMinimumSize);
-            QString const dest = e.attribute("DestinationName", "");
+            int const dest = pdf->destToSlide(e.attribute("DestinationName", ""));
             TocButton * button = new TocButton(indentStrings[0] + e.tagName(), dest, list);
-            connect(button, &TocButton::activated, this, [&](QString const dest){sendDest(dest);});
+            connect(button, &TocButton::activated, this, [&](int const dest){sendNewPage(dest);});
             connect(button, &TocButton::activated, list, &QWidget::hide);
             listLayout->addWidget(button);
             while (!n1.isNull()) {
                 QDomElement e = n1.toElement();
                 if (e.isNull())
                     continue;
-                QString const dest = e.attribute("DestinationName", "");
+                int const dest = pdf->destToSlide(e.attribute("DestinationName", ""));
                 TocButton * button = new TocButton(indentStrings[1] + e.tagName(), dest, list);
-                connect(button, &TocButton::activated, this, [&](QString const dest){sendDest(dest);});
+                connect(button, &TocButton::activated, this, [&](int const dest){sendNewPage(dest);});
                 connect(button, &TocButton::activated, list, &QWidget::hide);
                 listLayout->addWidget(button);
                 n1 = n1.nextSibling();
@@ -105,19 +106,19 @@ void TocBox::recursiveTocCreator(QDomNode const& n, quint8 const level)
             list->hide();
         }
         else {
-            QMenu* menu = new QMenu(dest, this);
+            QMenu* menu = new QMenu(e.tagName(), this);
             menus.append(menu);
-            QString const dest = e.attribute("DestinationName", "");
+            int const dest = pdf->destToSlide(e.attribute("DestinationName", ""));
             TocAction * action = new TocAction(indentStrings[0] + e.tagName(), dest, this);
-            connect(action, &TocAction::activated, this, [&](QString const dest){sendDest(dest);});
+            connect(action, &TocAction::activated, this, [&](int const dest){sendNewPage(dest);});
             menu->addAction(action);
             while (!n1.isNull()) {
                 QDomElement e = n1.toElement();
                 if (e.isNull())
                     continue;
-                QString const dest = e.attribute("DestinationName", "");
+                int const dest = pdf->destToSlide(e.attribute("DestinationName", ""));
                 TocAction * action = new TocAction(indentStrings[1] + e.tagName(), dest, this);
-                connect(action, &TocAction::activated, this, [&](QString const dest){sendDest(dest);});
+                connect(action, &TocAction::activated, this, [&](int const dest){sendNewPage(dest);});
                 menu->addAction(action);
                 n1 = n1.nextSibling();
             }
@@ -134,6 +135,16 @@ TocBox::~TocBox()
     qDeleteAll(menus);
     qDeleteAll(buttons);
     buttons.clear();
+    page_to_button.clear();
     delete layout;
     delete toc;
+}
+
+void TocBox::focusCurrent(int const page)
+{
+    int const current = *page_to_button.lowerBound(page);
+    if (current < buttons.length())
+        buttons[current]->setFocus();
+    else
+        buttons.last()->setFocus();
 }

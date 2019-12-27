@@ -25,6 +25,7 @@
 #include <QDomDocument>
 #include <QGuiApplication>
 #include <QComboBox>
+#include "pdfdoc.h"
 #include "tocbutton.h"
 #include "tocaction.h"
 
@@ -39,20 +40,25 @@ private:
     QVBoxLayout* layout;
     QList<TocButton*> buttons;
     QList<QMenu*> menus;
+    QMap<int, int> page_to_button;
     void recursiveTocCreator(QDomNode const& node, quint8 const level);
     bool need_update = true;
+    PdfDoc const* pdf = nullptr; // TODO: use this, send pages numbers instead of strings
 
 public:
     TocBox(QWidget* parent = nullptr);
     ~TocBox();
+    void setPdf(PdfDoc const* doc) {pdf=doc;}
     void createToc(QDomDocument const* toc);
     void setUnfoldLevel(quint8 const level);
     bool needUpdate() {return need_update;}
     void setOutdated() {need_update=true;}
     bool hasToc() {return toc!=nullptr;}
+    void focusCurrent(int const page);
 
 signals:
-    void sendDest(QString const & dest);
+    //void sendDest(QString const & dest);
+    void sendNewPage(int const page);
 };
 
 #endif // TOCBOX_H

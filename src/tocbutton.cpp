@@ -18,9 +18,33 @@
 
 #include "tocbutton.h"
 
-TocButton::TocButton(QString const& text, QString const& dest, QWidget * parent) : QPushButton(text, parent)
+TocButton::TocButton(QString const& text, int const dest, QWidget* parent) : QPushButton(text, parent)
 {
     this->dest = dest;
     setStyleSheet("Text-align:left");
     connect(this, &TocButton::clicked, this, [&](){emit activated(this->dest);});
+}
+
+void TocButton::keyPressEvent(QKeyEvent *event)
+{
+    switch (event->key()) {
+    case Qt::Key_Return:
+        if (menu() == nullptr) {
+            emit activated(dest);
+            event->setAccepted(false);
+        }
+        else
+            showMenu();
+        break;
+    case Qt::Key_Space:
+        if (menu() == nullptr)
+            emit activated(dest);
+        else
+            showMenu();
+        break;
+    default:
+        //event->setAccepted(false);
+        QPushButton::keyPressEvent(event);
+        break;
+    }
 }

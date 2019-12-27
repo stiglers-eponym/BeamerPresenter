@@ -150,6 +150,8 @@ ControlScreen::ControlScreen(QString presentationPath, QString notesPath, QWidge
     tocBox->setGeometry(ui->notes_widget->geometry());
     // By default tocBox is hidden.
     tocBox->hide();
+    // Set the pdf document in the TOC box.
+    tocBox->setPdf(presentation);
 
     // Create widget showing thumbnail slides on the control screen.
     // overviewBox is empty by default and will be updated when it is shown for the first time.
@@ -269,7 +271,8 @@ ControlScreen::ControlScreen(QString presentationPath, QString notesPath, QWidge
 
     // Signals emitted by the TOC box (table of contents).
     // Send a destination in pdf (e.g. a section).
-    connect(tocBox, &TocBox::sendDest, this, &ControlScreen::receiveDest);
+    connect(tocBox, &TocBox::sendNewPage, presentationScreen, [&](int const pageNumber){presentationScreen->renderPage(pageNumber, false);});
+    connect(tocBox, &TocBox::sendNewPage, this, &ControlScreen::receiveNewPageNumber);
 
     // Signals emitted by the overview box
     // Send new page number to presentation screen and control screen. TODO: check this.
@@ -902,12 +905,15 @@ bool ControlScreen::handleKeyAction(KeyAction const action)
         case KeyAction::Down:
         case KeyAction::Right:
         case KeyAction::Tab:
-            // TODO
+            // TODO: manually handle key events?
             return true;
         case KeyAction::Up:
         case KeyAction::Left:
         case KeyAction::ShiftTab:
-            // TODO
+            // TODO: manually handle key events?
+            return true;
+        case KeyAction::Return:
+            hideToc();
             return true;
         default:
             break;
@@ -1506,7 +1512,7 @@ void ControlScreen::showToc()
     ui->notes_widget->hide();
     tocBox->show();
     tocBox->raise();
-    tocBox->setFocus();
+    tocBox->focusCurrent(currentPageNumber);
 }
 
 void ControlScreen::hideToc()

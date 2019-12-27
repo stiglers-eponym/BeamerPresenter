@@ -22,18 +22,20 @@
 #include <QtDebug>
 #include <QAction>
 
+/// Action in a drop down menu.
+/// These are the labels shown in a drop down menu of the table of contents.
 class TocAction : public QAction
 {
     Q_OBJECT
 
 private:
-    QString dest;
+    int dest;
 
 public:
-    TocAction(QString const& text = "", QString const& dest = "", QWidget * parent = nullptr);
+    TocAction(QString const& text = "", int const dest = 0, QWidget* parent = nullptr);
 
 signals:
-    void activated(QString const& dest);
+    void activated(int const dest);
 };
 
 #endif // TOCACTION_H

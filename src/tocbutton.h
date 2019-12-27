@@ -21,19 +21,23 @@
 
 #include <QtDebug>
 #include <QPushButton>
+#include <QKeyEvent>
 
 class TocButton : public QPushButton
 {
     Q_OBJECT
 
 private:
-    QString dest;
+    int dest;
+
+protected:
+    void keyPressEvent(QKeyEvent* event) override;
 
 public:
-    TocButton(QString const& text = "", QString const& dest = "", QWidget * parent = nullptr);
+    TocButton(QString const& text = "", int const dest = 0, QWidget* parent = nullptr);
 
 signals:
-    void activated(QString const& dest);
+    void activated(int const dest);
 };
 
 #endif // TOCBUTTON_H
