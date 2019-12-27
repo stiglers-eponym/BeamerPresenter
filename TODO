@@ -2,6 +2,7 @@ BeamerPresenter
 
 * Document code!
 * synchronize multimedia on drawslide and presentationslide
+* cache for draw slide
 * handle close signals
 * Key bindings for multimedia control
 * Multimedia: allow more arguments

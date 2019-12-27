@@ -523,7 +523,7 @@ void ControlScreen::renderPage(int const pageNumber, bool const full)
         drawSlide->renderPage(currentPageNumber, false);
 
         // Synchronize videos
-        connectVideos(ui->notes_widget, presentationScreen->slide);
+        connectVideos(drawSlide, presentationScreen->slide);
 
         // Update next slide previews
         // If we have not reached the last page (there exists a next page):
@@ -1137,7 +1137,7 @@ bool ControlScreen::handleKeyAction(KeyAction const action)
         break;
     case KeyAction::PauseMultimedia:
         presentationScreen->slide->pauseAllMultimedia();
-        if (ui->notes_widget != drawSlide)
+        if (drawSlide != nullptr)
             ui->notes_widget->pauseAllMultimedia();
         break;
     case KeyAction::PlayPauseMultimedia:
@@ -1681,49 +1681,80 @@ void ControlScreen::showDrawSlide()
 {
     // Draw slide and tool selector
     if (drawSlide == nullptr) {
+        // Create the draw slide.
         drawSlide = new DrawSlide(this);
         drawSlide->setDoc(presentation);
+        // ui->notes_widget can get focus.
         drawSlide->setFocusPolicy(Qt::ClickFocus);
+        // draw slide should not use cache.
+        // TODO: Optionally enable cache for draw slide.
         drawSlide->setUseCache(0);
+
+        // Connect drawSlide to other widgets.
+        // Change draw tool
         connect(ui->tool_selector, &ToolSelector::sendNewTool, drawSlide, QOverload<const ColoredDrawTool>::of(&DrawSlide::setTool));
+        // Copy paths from draw slide to presentation slide and vice versa when drawing on one of the slides.
+        // Copy paths after moving the mouse while drawing. This assumes that only the last path is changed or a new path is created.
         connect(drawSlide, &DrawSlide::pathsChangedQuick, presentationScreen->slide, &DrawSlide::setPathsQuick);
         connect(presentationScreen->slide, &DrawSlide::pathsChangedQuick, drawSlide, &DrawSlide::setPathsQuick);
+        // Copy all paths. This completely updates all paths after using the erasor.
         connect(drawSlide, &DrawSlide::pathsChanged, presentationScreen->slide, &DrawSlide::setPaths);
         connect(presentationScreen->slide, &DrawSlide::pathsChanged, drawSlide, &DrawSlide::setPaths);
+        // Send pointer position (when using a pointer, torch or magnifier tool).
         connect(drawSlide, &DrawSlide::pointerPositionChanged, presentationScreen->slide, &DrawSlide::setPointerPosition);
         connect(presentationScreen->slide, &DrawSlide::pointerPositionChanged, drawSlide, &DrawSlide::setPointerPosition);
+        // Send relax signal when the mouse is released, which ends drawing a path.
         connect(drawSlide, &DrawSlide::sendRelax, presentationScreen->slide, &DrawSlide::relax);
         connect(presentationScreen->slide, &DrawSlide::sendRelax, drawSlide, &DrawSlide::relax);
+        // Request rendering an enlarged page as required for the magnifier.
         connect(drawSlide, &DrawSlide::sendUpdateEnlargedPage, presentationScreen->slide, &DrawSlide::updateEnlargedPage);
         connect(presentationScreen->slide, &DrawSlide::sendUpdateEnlargedPage, drawSlide, &DrawSlide::updateEnlargedPage);
+        // Paths are drawn on a transparent QPixmap for faster rendering.
+        // Signals used to request updates for this QPixmap:
         connect(drawSlide, &DrawSlide::sendUpdatePathCache, presentationScreen->slide, &DrawSlide::updatePathCache);
         connect(presentationScreen->slide, &DrawSlide::sendUpdatePathCache, drawSlide, &DrawSlide::updatePathCache);
+        // drawSlide can send page change events.
         connect(drawSlide, &PreviewSlide::sendNewPageNumber, presentationScreen, &PresentationScreen::receiveNewPage);
         connect(drawSlide, &PreviewSlide::sendNewPageNumber, this, [&](int const pageNumber){renderPage(pageNumber);});
     }
     else if (drawSlide == ui->notes_widget)
         return;
 
+    // drawSlide has the same muted state as the notes.
     drawSlide->setMuted(ui->notes_widget->isMuted());
+    // drawSlide is drawn on top of the notes widget. It should thus have the same geometry.
     drawSlide->setGeometry(ui->notes_widget->rect());
+    // Recalculate layout. The layout can change because presentation and notes slides can have different aspect ratios.
     recalcLayout(currentPageNumber);
+    // Render current page on drawSlide.
     drawSlide->renderPage(presentationScreen->slide->pageNumber(), false);
+    // Set the current tool on drawSlide.
     drawSlide->setTool(presentationScreen->slide->getTool());
+    // Hide the notes and show (and focus) the drawSlide.
     ui->notes_widget->hide();
     drawSlide->show();
     drawSlide->setFocus();
+    // Get offset and resolution of presentation screen.
+    // This is needed to show existing drawings from the presentation screen on drawSlide.
     qint16 const sx=presentationScreen->slide->getXshift(), sy=presentationScreen->slide->getYshift();
     double const res = presentationScreen->slide->getResolution();
+    /// Relative size of the draw slide compared to the presentation slide.
     double const scale = drawSlide->getResolution() / res;
+    // Set tool sizes on the draw slide. Sizes are scaled such that drawings look like on the presentation slide.
     drawSlide->setSize(Pen, static_cast<quint16>(scale*presentationScreen->slide->getSize(Pen)+0.5));
     drawSlide->setSize(Pointer, static_cast<quint16>(scale*presentationScreen->slide->getSize(Pointer)+0.5));
     drawSlide->setSize(Highlighter, static_cast<quint16>(scale*presentationScreen->slide->getSize(Highlighter)+0.5));
     drawSlide->setSize(Torch, static_cast<quint16>(scale*presentationScreen->slide->getSize(Torch)));
     drawSlide->setSize(Magnifier, static_cast<quint16>(scale*presentationScreen->slide->getSize(Magnifier)));
+    // Get the current page label.
     QString const label = presentationScreen->slide->getPage()->label();
+    // Load existing drawings from the presentation screen for the current page on drawSlide.
     drawSlide->setPaths(label, presentationScreen->slide->getPaths()[label], sx, sy, res);
+    // Show the changed drawings.
     drawSlide->update();
+    // Render the current page on drawSlide. This also adapts the current and next slide previews to previews of the next two slides.
     renderPage(currentPageNumber);
+    // Set autostart delay for multimedia content on drawSlide.
     drawSlide->setAutostartDelay(presentationScreen->slide->getAutostartDelay());
 }
 
