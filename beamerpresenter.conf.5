@@ -221,6 +221,7 @@ Load drawings from file. This opens a file dialog in which you select a file whi
 Note that saving and loading drawings is experimental and files may not be readable for later versions of BeamerPresenter!
 .
 .
+.
 .SS Colors
 .
 .RI "Colors can be specified as name known to Qt5, an RGB value or an ARGB value in hexadecimal format, e.g. as " red ", " #ff0000 " or " #ffff0000 .
@@ -244,6 +245,7 @@ The timer can change its color depending on the time relative to your target pre
 .RI "Here " time " is the time interval (timeout - now) in seconds, e.g. " time=-60 " is one minute before you reach the timeout.
 .
 .
+.
 .SS Buttons
 .
 On the control screen there are some buttons, which can be used to select different drawing tools, to switch between drawing and notes mode, and for other useful actions.
@@ -253,6 +255,7 @@ The buttons can be customized using the following configuration:
 .BI "tools/" xy = action
 maps an action to a button. x and y are integers between 0 and 9 (or between 0 and f in hexadecimal format) indicating row and column of the button.
 .IR action " can be any value as passed to a key binding."
+.
 .
 .
 .SS Default values for command line arguments
@@ -350,6 +353,10 @@ Use this character (it may also be a sequence) to split links into a link path a
 .BR embed " (for executables), " autoplay " (for videos and sounds) and " loop " (for videos and sounds)."
 This option sets the default value for the command line argument
 .BR \-u " or " \-\-urlsplit .
+.
+.TP
+.BR sidebar-width =0.2
+Maximum width of the sidebar (on the right of the control screen) relative to the window width. This should be a floating point number between 0 and 1.
 .
 .TP
 .BR scrollstep =200
