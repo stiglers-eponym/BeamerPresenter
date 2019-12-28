@@ -166,6 +166,8 @@ static const QMap<quint32, QList<KeyAction>> defaultKeyMap = {
     {Qt::Key_Y+Qt::CTRL, {KeyAction::RedoDrawing}},
 };
 
+/// Map of keys to KeyActions for hard coded key bindings.
+/// The keys in this list are used in special modes (TOC and overview mode).
 static const QMap<quint32, KeyAction> staticKeyMap = {
     {Qt::Key_Left, KeyAction::Left},
     {Qt::Key_Right, KeyAction::Right},
@@ -205,9 +207,9 @@ static const QMap<quint8, QColor> defaultColorMap {
 };
 
 
-/// Read options from command line arguments, local configuration and global configuration file which should have a floating point or boolean value.
+/// Read options from command line arguments, local configuration and global configuration file which should have a nonnegative floating point or boolean value.
 /// If the argument is "true", return 0; If the argument is "false" return -2. If value is set for option <name>, return <return_value>.
-double doubleFromConfig(QCommandLineParser const& parser, QVariantMap const& local, QSettings const& settings, QString name, double const return_value)
+double doubleFromConfig(QCommandLineParser const& parser, QVariantMap const& local, QSettings const& settings, QString name, double const return_value, double const max=1e20)
 {
     bool ok;
     double result;
@@ -217,20 +219,20 @@ double doubleFromConfig(QCommandLineParser const& parser, QVariantMap const& loc
         value = parser.value(name).toLower();
         // Try to interpret the value as a number or as a boolean value.
         result = value.toDouble(&ok);
-        if (ok)
+        if (ok && result >= 0. && result < max)
             return result;
         else if (value == "true")
             return 0.;
         else if (value == "false")
             return -2.;
         else
-            qCritical() << "option \"" << parser.value(name) << "\" to" << name << "not understood. Should be a number or true/false.";
+            qWarning() << "option" << parser.value(name) << "to" << name << "not understood. Should be 0 <= number <" << max << "or true/false.";
     }
     // Check whether a local configuration file contains the option.
     if (local.contains(name)) {
         // Try to interpret the value as a number or as a boolean value.
         result = local.value(name).toDouble(&ok);
-        if (ok)
+        if (ok && result >= 0. && result < max)
             return result;
         else {
             value = local.value(name).toString().toLower();
@@ -239,14 +241,14 @@ double doubleFromConfig(QCommandLineParser const& parser, QVariantMap const& loc
             else if (value == "false")
                 return -2.;
             else
-                qCritical() << "option \"" << settings.value(name) << "\" to" << name << "in local config not understood. Should be a number or true/false.";
+                qWarning() << "option" << local.value(name) << "to" << name << "in local config not understood. Should be 0 <= number <" << max << "or true/false.";
         }
     }
     // Check whether the global configuration file contains the option.
     if (settings.contains(name)) {
         // Try to interpret the value as a number or as a boolean value.
         result = settings.value(name).toDouble(&ok);
-        if (ok)
+        if (ok && result >= 0. && result < max)
             return result;
         else {
             value = settings.value(name).toString().toLower();
@@ -255,7 +257,7 @@ double doubleFromConfig(QCommandLineParser const& parser, QVariantMap const& loc
             else if (value == "false")
                 return -2.;
             else
-                qCritical() << "option \"" << settings.value(name) << "\" to" << name << "in config not understood. Should be a number or true/false.";
+                qWarning() << "option" << settings.value(name) << "to" << name << "in config not understood. Should be 0 <= number <" << max << "or true/false.";
         }
     }
     // Return default value.
@@ -277,7 +279,7 @@ bool boolFromConfig(QCommandLineParser const& parser, QVariantMap const& local, 
         else if (value == "false")
             return false;
         else
-            qCritical() << "option \"" << parser.value(name) << "\" to" << name << "not understood. Should be true or false.";
+            qWarning() << "option" << parser.value(name) << "to" << name << "not understood. Should be true or false.";
     }
     // Check whether a local configuration file contains the option.
     if (local.contains(name)) {
@@ -288,7 +290,7 @@ bool boolFromConfig(QCommandLineParser const& parser, QVariantMap const& local, 
         else if (value == "false")
             return false;
         else
-            qCritical() << "option \"" << settings.value(name) << "\" to" << name << "in local config not understood. Should be true or false.";
+            qWarning() << "option" << local.value(name) << "to" << name << "in local config not understood. Should be true or false.";
     }
     // Check whether the global configuration file contains the option.
     if (settings.contains(name)) {
@@ -299,7 +301,7 @@ bool boolFromConfig(QCommandLineParser const& parser, QVariantMap const& local, 
         else if (value == "false")
             return false;
         else
-            qCritical() << "option \"" << settings.value(name) << "\" to" << name << "in config not understood. Should be true or false.";
+            qWarning() << "option" << settings.value(name) << "to" << name << "in config not understood. Should be true or false.";
     }
     // Return default value.
     return return_value;
@@ -325,7 +327,7 @@ T intFromConfig(QCommandLineParser const& parser, QVariantMap const& local, QSet
         if (ok)
             return result;
         else
-            qCritical() << "option \"" << parser.value(name) << "\" to" << name << "not understood. Should be an integer.";
+            qWarning() << "option" << parser.value(name) << "to" << name << "not understood. Should be an integer.";
     }
     // Check whether a local configuration file contains the option.
     if (local.contains(name)) {
@@ -337,7 +339,7 @@ T intFromConfig(QCommandLineParser const& parser, QVariantMap const& local, QSet
         if (ok)
             return result;
         else
-            qCritical() << "option \"" << settings.value(name) << "\" to" << name << "in local config not understood. Should be an integer.";
+            qWarning() << "option" << local.value(name) << "to" << name << "in local config not understood. Should be an integer.";
     }
     // Check whether the global configuration file contains the option.
     if (settings.contains(name)) {
@@ -349,7 +351,7 @@ T intFromConfig(QCommandLineParser const& parser, QVariantMap const& local, QSet
         if (ok)
             return result;
         else
-            qCritical() << "option \"" << settings.value(name) << "\" to" << name << "in config not understood. Should be an integer.";
+            qWarning() << "option" << settings.value(name) << "to" << name << "in config not understood. Should be an integer.";
     }
     // Return default value.
     return return_value;
@@ -435,12 +437,15 @@ int main(int argc, char *argv[])
 #ifdef EMBEDDED_APPLICATIONS_ENABLED
         {{"w", "pid2wid"}, "Program that converts a PID to a Window ID.", "file"},
 #endif
+#ifdef CHECK_QPA_PLATFORM
         {"force-show", "Force showing notes or presentation (if in a framebuffer) independent of QPA platform plugin."},
+#endif
         {"force-touchpad", "Treat every scroll input as touch pad."},
-        {"magnifier-size", "Radius of magnifier.", "pixels"},
-        {"magnification", "Magnification factor of magnifier.", "number"},
+        {"sidebar-width", "Minimum relative width of sidebar on control screen. Number between 0 and 1.", "float"},
         {"mute-presentation", "Mute presentation (default: false)", "bool"},
         {"mute-notes", "Mute notes (default: true)", "bool"},
+        {"magnification", "Magnification factor of magnifier.", "number"},
+        {"magnifier-size", "Radius of magnifier.", "pixels"},
         {"pointer-size", "Radius of magnifier.", "pixels"},
         {"torch-size", "Radius of torch.", "pixels"},
         {"highlighter-width", "Line width of highlighter.", "pixels"},
@@ -1258,6 +1263,10 @@ int main(int argc, char *argv[])
         value = doubleFromConfig(parser, local, settings, "autostart-emb", -2.);
         ctrlScreen->getPresentationSlide()->setAutostartEmbeddedDelay(value);
 #endif
+
+        // Set minimum sidebar width for control screen.
+        value = doubleFromConfig(parser, local, settings, "sidebar-width", 0.8, 1.);
+        ctrlScreen->setMinSidebarWidth(value);
     }
 
     // Settings with integer values
@@ -1370,6 +1379,7 @@ int main(int argc, char *argv[])
         if (parser.value("r").isEmpty()) {
             // No option given on the command line.
             // This is not an error, but formally treated as an exception here.
+            // TODO: don't treat this as an exception.
             throw 0;
         }
         else if (parser.value("r") == "custom") {
@@ -1423,6 +1433,8 @@ int main(int argc, char *argv[])
 
 
     // Decide whether ctrlScreen should be shown depending on arguments, settings and the QPA backend.
+    // Usually checking the QPA backend is not necessary. It can therefore be switched off.
+#ifdef CHECK_QPA_PLATFORM
     {
         // Check whether the notes should be shown (options "no-notes" or "n" and "force-show").
         bool showNotes = !parser.isSet("n");
@@ -1491,6 +1503,18 @@ int main(int argc, char *argv[])
         }
         catch (...) {}
     }
+#else
+    // Check whether the notes should be shown (option "no-notes" or "n").
+    if ( !(
+            parser.isSet("n")
+            || (local.contains("no-notes") && QStringList({"", "true", "no-notes", "1"}).contains(local.value("no-notes").toString().toLower()))
+            || settings.contains("no-notes")
+        ) ) {
+        // Show ctrlScreen.
+        ctrlScreen->show();
+        ctrlScreen->activateWindow();
+    }
+#endif
 
     // Render the first page on presentation screen. Do not set a frame time for this first slide.
     emit ctrlScreen->sendNewPageNumber(0, false);

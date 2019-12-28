@@ -2,7 +2,7 @@ BeamerPresenter
 
 * Document code!
 * synchronize multimedia on drawslide and presentationslide
-* cache for draw slide
+* cache for draw slide, adaptive cache for preview slides if their size changes in draw mode
 * handle close signals
 * Key bindings for multimedia control
 * Multimedia: allow more arguments

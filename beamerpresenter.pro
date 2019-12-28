@@ -6,6 +6,7 @@
 
 VERSION = 0.1.0
 
+# Check Qt version.
 requires(greaterThan(QT_MAJOR_VERSION, 4))
 equals(QT_MAJOR_VERSION, 4) {
     requires(greaterThan(QT_MINOR_VERSION, 5))
@@ -23,23 +24,29 @@ TEMPLATE = app
 # depend on your compiler). Please consult the documentation of the
 # deprecated API in order to know how to port your code away from it.
 DEFINES += QT_DEPRECATED_WARNINGS
+
+# Define the application version.
 DEFINES += APP_VERSION=\\\"$$VERSION\\\"
-CONFIG += qt
+# If the following define is uncommented, BeamerPresenter will check whether a compatible QPA platform is used.
+# It will then emit warning on untested systems and try to avoid blocking you window manager.
+# If this is commented out, all checks will be omitted.
+DEFINES += CHECK_QPA_PLATFORM
+
+CONFIG += c++14 qt
 unix {
+    # Enable better debugging.
     CONFIG(debug):QMAKE_LFLAGS += -rdynamic
+    # Enable embedded applications. This allows for X-embedding of external applications if running in X11.
     DEFINES += EMBEDDED_APPLICATIONS_ENABLED
 }
 linux {
+    # Drop down menus can cause problems in wayland.
+    # This defines activates a patch to replace drop down menus in wayland.
     DEFINES += USE_WAYLAND_SUBMENU_PATCH
 }
+
+# Disable debugging message if debugging mode is disabled.
 CONFIG(release, debug|release):DEFINES += QT_NO_DEBUG_OUTPUT
-
-# You can also make your code fail to compile if you use deprecated APIs.
-# In order to do so, uncomment the following line.
-# You can also select to disable deprecated APIs only up to a certain version of Qt.
-#DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
-
-CONFIG += c++14
 
 SOURCES += \
         src/main.cpp \
@@ -117,6 +124,9 @@ win32 {
 }
 
 unix {
+    # Commands needed for make install
+
+    # Include man pages and default configuration in make install.
     doc1.path = /usr/share/man/man1/
     doc1.extra = ls $${TARGET}.1.gz || gzip -9 $${TARGET}.1; $(INSTALL_FILE) $${PWD}/$${TARGET}.1.gz $(INSTALL_ROOT)/usr/share/man/man1/$${TARGET}.1.gz
     #doc1.files = $${TARGET}.1.gz # doesn't work

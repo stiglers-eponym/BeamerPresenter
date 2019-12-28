@@ -79,6 +79,7 @@ public:
     void setTimerString(QString const timerString);
     /// Configure minimum frame time for animations created by showing slides in rapid succession.
     void setAnimationDelay(quint32 const delay_ms) {presentationScreen->slide->setAnimationDelay(delay_ms);}
+    void setMinSidebarWidth(double const sideWidth) {maxNotesWidth = 1. - sideWidth;}
 
     // Load drawings from file (also used only from main.cpp)
     void loadDrawings(QString const& filename) {presentationScreen->slide->loadDrawings(filename);}
@@ -136,11 +137,19 @@ private:
     DrawSlide* drawSlide = nullptr;
 
     // Configuration. These values are set in main.cpp and will not be changed afterwards.
+    /// Pages in presentation pdf contain both presentation and notes.
     PagePart pagePart = FullPage;
+    /// Treat scrolling from all input devices as touch pad scrolling events.
     bool forceIsTouchpad = false;
+    /// Number of pixels on a touch pad corresponding to scrolling one slide.
     int scrollDelta = 200;
+    /// Maximum number of slides in cache.
     int maxCacheNumber = 10;
+    /// Maximum size of cache in bytes. Note that cache can get larger than this size in some situations.
     qint64 maxCacheSize = 104857600;
+    /// Maximum relative width of the notes slide.
+    /// This equals one minus minimum width of the side bar.
+    double maxNotesWidth = 0.8;
     // Key bindings.
     /// Map of key codes (key code + modifiers) to lists of KeyActions.
     QMap<quint32, QList<KeyAction>>* keymap = new QMap<quint32, QList<KeyAction>>();

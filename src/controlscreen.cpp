@@ -282,21 +282,36 @@ ControlScreen::ControlScreen(QString presentationPath, QString notesPath, QWidge
     connect(overviewBox, &OverviewBox::sendReturn, this, &ControlScreen::showNotes);
 }
 
+/// Destructor. Delete the whole GUI.
 ControlScreen::~ControlScreen()
 {
+    // Hide widgets which are shown above the notes widget.
+    showNotes();
+    // Delete widgets which would be shown above the notes widget.
     delete tocBox;
     delete overviewBox;
+
+    // Stop cache.
     cacheThread->requestInterruption();
     cacheTimer->stop();
     cacheTimer->disconnect();
     delete cacheTimer;
     if (cacheThread->isRunning()) {
         cacheThread->quit();
-        cacheThread->wait();
+        // Wait up to 10 seconds for the thread to finish. Otherwise kill it.
+        if (!cacheThread->wait(10000)) {
+            cacheThread->terminate();
+            // Wait up to 1 second for the thread to really finish.
+            cacheThread->wait(1000);
+        }
     }
+    // Delete cache thread.
     delete cacheThread;
+
+    // Disconnect draw slide.
     if (drawSlide != nullptr && drawSlide != ui->notes_widget)
         drawSlide->disconnect();
+    // Disconnect all (remaining) widgets from all signals.
     ui->notes_widget->disconnect();
     ui->current_slide->disconnect();
     ui->next_slide->disconnect();
@@ -304,21 +319,32 @@ ControlScreen::~ControlScreen()
     ui->text_current_slide->disconnect();
     presentationScreen->slide->disconnect();
     presentationScreen->disconnect();
+    disconnect();
+
+    // Delete notes pdf.
     if (notes != presentation)
         delete notes;
+    // Delete keymap.
     delete keymap;
+    // Delete draw slide.
     if (drawSlide != ui->notes_widget)
         delete drawSlide;
-    delete presentation;
+    // Delete presentation screen.
     delete presentationScreen;
-    disconnect();
+    // Delete presentation pdf.
+    delete presentation;
+    // Delete the user interface.
     delete ui;
 }
 
+/// Set pagePart (notes contained in pdf pages of presentation).
+/// This is used for documents created with LaTeX beamer with \setbeameroption{show notes on second screen=[left or right]}.
 void ControlScreen::setPagePart(PagePart const pagePart)
 {
-    // This is used for documents created with LaTeX beamer with \setbeameroption{show notes on second screen=[left or right]}
     this->pagePart = pagePart;
+    // Set page part for presentation slide.
+    presentationScreen->slide->setPagePart(pagePart);
+    // Set the page part for notes widget and cache thread.
     switch (pagePart) {
         case FullPage:
             ui->notes_widget->setPagePart(FullPage);
@@ -332,75 +358,106 @@ void ControlScreen::setPagePart(PagePart const pagePart)
             ui->notes_widget->setPagePart(LeftHalf);
             break;
     }
+    // Set page part for current and next slide preview.
     ui->current_slide->setPagePart(pagePart);
     ui->next_slide->setPagePart(pagePart);
-    presentationScreen->slide->setPagePart(pagePart);
 }
 
+/// Adapt the layout of the control screen based on the aspect ratios of presentation and notes slides.
 void ControlScreen::recalcLayout(const int pageNumber)
 {
-    // Calculate a good size for the notes side bar
+    // Calculate the size of the side bar.
+    /// Aspect ratio (height/width) of the window.
     double screenRatio = double(height()) / width();
-    if (screenRatio > 1)
-        screenRatio = 1.;
-    QSize notesSize = notes->getPageSize(pageNumber);
-    if (drawSlide != nullptr && drawSlide != ui->notes_widget)
+    /// Size of notes page (or presentation slide if drawSlide is shown).
+    QSize notesSize;
+    if (drawSlide == nullptr)
+        notesSize = notes->getPageSize(pageNumber);
+    else
         notesSize = presentation->getPageSize(pageNumber);
+    /// Aspect ratio (height/width) of the slide shown on the notes widget.
     double notesSizeRatio = double(notesSize.height()) / notesSize.width();
-    // Adjustment if the pdf includes slides and notes
+    // Correct the aspect ratio if the pdf includes slides and notes.
     if (pagePart != FullPage)
         notesSizeRatio *= 2;
-    // relative width of the notes slide on the control screen:
-    double relativeNotesWidth = notesSizeRatio / screenRatio;
-    if (relativeNotesWidth > 0.75)
-        relativeNotesWidth = 0.75;
+    /// Relative width of the notes slide on the control screen.
+    /// If the page size is scaled such that screen height == notes height, then relativeNoteWidth = screen width / notes width
+    double relativeNotesWidth = screenRatio / notesSizeRatio;
+    // Make sure that width of notes does not become too large.
+    if (relativeNotesWidth > maxNotesWidth)
+        relativeNotesWidth = maxNotesWidth;
     // width of the sidebar:
     int sideWidth = int((1-relativeNotesWidth)*width());
 
-    // Set layout
-    ui->notes_widget->setGeometry(0, 0, width()-sideWidth, height());
-    ui->current_slide->setMaximumWidth(sideWidth);
-    ui->next_slide->setMaximumWidth(sideWidth);
+    // Adapt widths of different widgets to the new sidebar width.
+    // Adapt top level grid layout (notes widget and sidebar).
     ui->gridLayout->setColumnStretch(0, width()-sideWidth);
     ui->gridLayout->setColumnStretch(1, sideWidth);
-    tocBox->setGeometry(int(0.1*(width()-sideWidth)), 0, int(0.8*(width()-sideWidth)), height());
-    overviewBox->setGeometry(0, 0, width()-sideWidth, height());
+    // Adapt notes widget geometry.
+    ui->notes_widget->setGeometry(0, 0, width()-sideWidth, height());
+    // Adapt preview slides widths.
+    ui->current_slide->setMaximumWidth(sideWidth);
+    ui->next_slide->setMaximumWidth(sideWidth);
+    // Width of tool selector.
     ui->tool_selector->setMaximumWidth(sideWidth);
+    // Width of timer labels. The colored box is expanding from its minimum width sideWidth/2.
+    ui->label_timer->setMinimumWidth(sideWidth/2);
+    // Width of total time label. The editable box is expanding to its maximum width sideWidth/3.
+    ui->edit_timer->setMaximumWidth(sideWidth/3);
+
+    // Geometry of overview widget: same as of notes widgets.
+    overviewBox->setGeometry(0, 0, width()-sideWidth, height());
+    // Geometry of TOC widget: same as of notes widgets, but with extra margins in horizontal direction.
+    tocBox->setGeometry(int(0.1*(width()-sideWidth)), 0, int(0.8*(width()-sideWidth)), height());
+
+    // Adapt sizes of draw tools if necessary.
     if (drawSlide != nullptr) {
+        /// Scale of draw slide relative to presentation slide.
         double scale = drawSlide->getResolution() / presentationScreen->slide->getResolution();
         if (scale < 0.)
             scale = 1.;
+        // Set scaled tool sizes for draw slide.
         drawSlide->setSize(Pen, static_cast<quint16>(scale*presentationScreen->slide->getSize(Pen)+0.5));
         drawSlide->setSize(Pointer, static_cast<quint16>(scale*presentationScreen->slide->getSize(Pointer)+0.5));
         drawSlide->setSize(Highlighter, static_cast<quint16>(scale*presentationScreen->slide->getSize(Highlighter)+0.5));
         drawSlide->setSize(Torch, static_cast<quint16>(scale*presentationScreen->slide->getSize(Torch)));
         drawSlide->setSize(Magnifier, static_cast<quint16>(scale*presentationScreen->slide->getSize(Magnifier)));
         if (drawSlide != ui->notes_widget) {
+            // Adapt geometry of draw slide: It should have the same geometry as the notes slide.
             drawSlide->setGeometry(ui->notes_widget->rect());
+            // Set the pixmap of draw slide from presentation slide.
+            // This has not the best quality, but it is fast compared to rendering the slide to the correct layout.
+            // The pixmap will later be rendered again. TODO: check that.
             drawSlide->setScaledPixmap(presentationScreen->slide->getCurrentPixmap());
         }
     }
-    updateGeometry();
 
-    // Adjust font sizes
-    if (sideWidth < 300) {
-        QFont font = ui->label_timer->font();
-        font.setPixelSize(sideWidth/6);
-        ui->label_timer->setFont(font);
-        font.setPixelSize(sideWidth/10);
-        ui->edit_timer->setFont(font);
-        font.setPixelSize(sideWidth/6);
-        ui->label_clock->setFont(font);
-    }
-    else {
-        QFont font = ui->label_timer->font();
-        font.setPixelSize(50);
-        ui->label_timer->setFont(font);
-        font.setPixelSize(30);
-        ui->edit_timer->setFont(font);
-        font.setPixelSize(50);
-        ui->label_clock->setFont(font);
-    }
+    // Adjust font sizes.
+    // The font size is adapted to sideWidth.
+    // But if height() is small compared to sideWidth, one should better adapt it to height().
+    // This is solved by adapting sideWidth to min(sideWidth, 0.4*height()).
+    // From here on sideWidth is not anymore the real width of the sidebar!
+    if (5*sideWidth > 2*height())
+        sideWidth = 2*height() / 5;
+    // Get the current font. Up to the font size it is the same for all labels containing text.
+    QFont font = ui->label_timer->font();
+    // Smaller font: used for editable total time and "/" between timer and editable total time.
+    font.setPixelSize(sideWidth/10+5);
+    ui->text_slash_2->setFont(font);
+    ui->edit_timer->setFont(font);
+    // Larger font: used for all other labels.
+    font.setPixelSize(sideWidth/8+7);
+    ui->label_timer->setFont(font);
+    ui->label_clock->setFont(font);
+    ui->text_slash->setFont(font);
+    ui->text_current_slide->setFont(font);
+    ui->text_number_slides->setFont(font);
+
+    // Adjust the layout containing preview slides and tool selector.
+    // Without this the size of the preview slides would not be updated directly.
+    ui->overviewLayout->activate();
+    // Notify layout system that geometry has changed.
+    updateGeometry();
 }
 
 void ControlScreen::focusPageNumberEdit()
