@@ -35,7 +35,7 @@ public:
     explicit MediaSlide(QWidget* parent=nullptr);
     explicit MediaSlide(PdfDoc const * const document, int const pageNumber, QWidget* parent=nullptr);
     ~MediaSlide() override {clearAll();}
-    void renderPage(int const pageNumber, bool const hasDuration, QPixmap const* pixmap=nullptr);
+    void renderPage(int pageNumber, bool const hasDuration, QPixmap const* pixmap=nullptr);
     void setCacheVideos(bool const cacheThem) {cacheVideos=cacheThem;}
     void setMultimediaSliders(QList<QSlider*> sliderList);
     void setAutostartDelay(double const delay) {autostartDelay=delay;}

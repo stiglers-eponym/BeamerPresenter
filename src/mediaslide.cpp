@@ -111,11 +111,13 @@ void MediaSlide::clearLists()
     soundLinkPlayers.clear();
 }
 
-void MediaSlide::renderPage(int const pageNumber, bool const hasDuration, QPixmap const* pix)
+void MediaSlide::renderPage(int pageNumber, bool const hasDuration, QPixmap const* pix)
 {
     stopAnimation();
-    if (pageNumber < 0 || pageNumber >= doc->getDoc()->numPages())
-        return;
+    if (pageNumber < 0)
+        pageNumber = 0;
+    else if (pageNumber >= doc->getDoc()->numPages())
+        pageNumber = doc->getDoc()->numPages()-1;
 
     // Use overlay specific options
     // A page is called an overlay of the previously rendered page, if they have the same label.
@@ -600,7 +602,6 @@ void MediaSlide::renderPage(int const pageNumber, bool const hasDuration, QPixma
     if (newSliders!=0)
         emit requestMultimediaSliders(newSliders);
 }
-
 
 void MediaSlide::updateCacheVideos(int const pageNumber)
 {

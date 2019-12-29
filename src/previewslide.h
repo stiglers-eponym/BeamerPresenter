@@ -30,7 +30,7 @@ public:
     explicit PreviewSlide(QWidget* parent=nullptr) : BasicSlide(parent) {}
     explicit PreviewSlide(PdfDoc const * const document, int const pageNumber, QWidget* parent=nullptr);
     ~PreviewSlide() override;
-    virtual void renderPage(int const pageNumber, QPixmap const* pix=nullptr) override;
+    virtual void renderPage(int pageNumber, QPixmap const* pix=nullptr) override;
     qint64 updateCache(int const pageNumber);
     qint64 updateCache(QPixmap const* pix, int const index);
     qint64 updateCache(QByteArray const* bytes, int const index);
@@ -45,10 +45,13 @@ public:
     bool cacheContains(int const index) const {return cache.contains(index);}
     void setUrlSplitCharacter(QString const& splitCharacter) {urlSplitCharacter=splitCharacter;}
 
+    QMap<int, QByteArray const*> ejectCache();
+    void addToCache(QMap<int, QByteArray const*> newCache);
+
 protected:
     QList<Poppler::Link*> links;
     QList<QRect> linkPositions;
-    QMap<int,QByteArray const*> cache;
+    QMap<int, QByteArray const*> cache;
     QSize oldSize;
     QString urlSplitCharacter = "";
     char useCache = 1; // 0=don't cache; 1=use cache with internal renderer; 2=use cache with external renderer

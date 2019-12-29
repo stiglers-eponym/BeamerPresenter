@@ -416,6 +416,7 @@ int main(int argc, char *argv[])
 #endif
         {{"b", "blinds"}, "Number of blinds in binds slide transition", "int"},
         {{"c", "cache"}, "Number of slides that will be cached. A negative number is treated as infinity.", "int"},
+        {{"C", "cache-all"}, "Cache also draw slide and preview slides.", "bool"},
         {{"d", "no-transitions"}, "Disable slide transitions."},
 #ifdef EMBEDDED_APPLICATIONS_ENABLED
         {{"e", "embed"}, "file1,file2,... Mark these files for embedding if an execution link points to them.", "files"},
@@ -1244,6 +1245,10 @@ int main(int argc, char *argv[])
         // Mute or unmute multimedia content on the control screen.
         value = boolFromConfig(parser, local, settings, "mute-notes", true);
         ctrlScreen->getNotesSlide()->setMuted(value);
+
+        // Cache all slide widgets or only presentation and notes slide.
+        value = boolFromConfig(parser, local, settings, "cache-all", true);
+        ctrlScreen->setCacheAll(value);
     }
 
     // Handle settings that are either double or bool

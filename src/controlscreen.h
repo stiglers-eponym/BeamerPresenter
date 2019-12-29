@@ -65,11 +65,11 @@ public:
     void setForceTouchpad();
     void setCacheNumber(int const number);
     void setCacheSize(qint64 const size);
+    void setCacheAll(bool const cache_all) {cacheAll = cache_all;}
     void setTocLevel(quint8 const level);
     void setOverviewColumns(quint8 const columns) {if (overviewBox != nullptr) overviewBox->setColumns(columns);}
     void setRenderer(QStringList command);
     void setKeyMap(QMap<quint32, QList<KeyAction>>* keymap);
-    //void unsetKeyMapItem(quint32 const key) {keymap->remove(key);}
     void setKeyMapItem(quint32 const key, KeyAction const action);
     void setTimerMap(QMap<int, QTime>& timeMap);
     void setToolForKey(quint32 const key, ColoredDrawTool tool) {tools[key] = tool;}
@@ -126,6 +126,7 @@ private:
     // Objects handling cache: timer, and thread
     QTimer* cacheTimer = new QTimer(this);
     CacheUpdateThread* cacheThread = new CacheUpdateThread(this);
+    bool cacheAll = true;
 
     // Widgets shown above notes: TOC, overview, and drawSlide
     /// Widget showing the table of contents on the control screen.
@@ -147,6 +148,11 @@ private:
     int maxCacheNumber = 10;
     /// Maximum size of cache in bytes. Note that cache can get larger than this size in some situations.
     qint64 maxCacheSize = 104857600;
+    /// Cached preview slides for standard sidebar width.
+    QMap<int, QByteArray const*> previewCache;
+    /// Cached preview slides for different sidebar width.
+    QMap<int, QByteArray const*> previewCacheX;
+
     /// Maximum relative width of the notes slide.
     /// This equals one minus minimum width of the side bar.
     double maxNotesWidth = 0.8;

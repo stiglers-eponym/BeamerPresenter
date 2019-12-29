@@ -215,7 +215,7 @@ ControlScreen::ControlScreen(QString presentationPath, QString notesPath, QWidge
 
     // Other signals emitted by presentation screen.
     // All key events are handled by control screen.
-    connect(presentationScreen, &PresentationScreen::sendKeyEvent,    this, &ControlScreen::keyPressEvent);
+    connect(presentationScreen, &PresentationScreen::sendKeyEvent, this, &ControlScreen::keyPressEvent);
     // Close window (emitted after a link of action type "quit" or "close" was clicked).
     connect(presentationScreen, &PresentationScreen::sendCloseSignal, this, &ControlScreen::close);
     // Send request for multimedia sliders from presentation screen to control screen.
@@ -226,7 +226,7 @@ ControlScreen::ControlScreen(QString presentationPath, QString notesPath, QWidge
     connect(this, &ControlScreen::sendNewPageNumber, presentationScreen, &PresentationScreen::renderPage);
     connect(presentationScreen->slide, &PresentationSlide::requestUpdateNotes, this, &ControlScreen::renderPage);
     // Close presentation screen when closing control screen. TODO: currently does not have any effect.
-    connect(this, &ControlScreen::sendCloseSignal,   presentationScreen, &PresentationScreen::close);
+    connect(this, &ControlScreen::sendCloseSignal, presentationScreen, &PresentationScreen::close);
     // Close window (emitted after a link of action type "quit" or "close" was clicked).
     connect(ui->notes_widget, &PreviewSlide::sendCloseSignal, presentationScreen, &PresentationScreen::close);
     connect(ui->notes_widget, &PreviewSlide::sendCloseSignal, this, &ControlScreen::close);
@@ -321,6 +321,12 @@ ControlScreen::~ControlScreen()
     presentationScreen->disconnect();
     disconnect();
 
+    // Delete preview cache
+    qDeleteAll(previewCache);
+    previewCache.clear();
+    qDeleteAll(previewCacheX);
+    previewCacheX.clear();
+
     // Delete notes pdf.
     if (notes != presentation)
         delete notes;
@@ -366,6 +372,14 @@ void ControlScreen::setPagePart(PagePart const pagePart)
 /// Adapt the layout of the control screen based on the aspect ratios of presentation and notes slides.
 void ControlScreen::recalcLayout(const int pageNumber)
 {
+    if (size() != oldSize) {
+        // Delete preview cache
+        qDeleteAll(previewCache);
+        previewCache.clear();
+        qDeleteAll(previewCacheX);
+        previewCacheX.clear();
+    }
+
     // Calculate the size of the side bar.
     /// Aspect ratio (height/width) of the window.
     double screenRatio = double(height()) / width();
@@ -427,7 +441,7 @@ void ControlScreen::recalcLayout(const int pageNumber)
             drawSlide->setGeometry(ui->notes_widget->rect());
             // Set the pixmap of draw slide from presentation slide.
             // This has not the best quality, but it is fast compared to rendering the slide to the correct layout.
-            // The pixmap will later be rendered again. TODO: check that.
+            // The pixmap will later be rendered again. TODO: check that. TODO: use this in other situations.
             drawSlide->setScaledPixmap(presentationScreen->slide->getCurrentPixmap());
         }
     }
@@ -506,17 +520,17 @@ void ControlScreen::resetTimerAlert()
 
 void ControlScreen::renderPage(int const pageNumber, bool const full)
 {
-    // Update all page labels on the control screen to show the given page number.
-    // This uses cached pages if such are available.
+    // Update all slide widgets on the control screen to show the given page.
 
+    // Update currentPageNumber.
     // Negative page numbers are interpreted as signal for going to the last page.
     if (pageNumber < 0 || pageNumber >= numberOfPages)
         currentPageNumber = numberOfPages - 1;
     else
         currentPageNumber = pageNumber;
 
+    // Quick version if this window is not visible. This does not update the slide widgets.
     if (!isVisible()) {
-        ui->text_current_slide->setText(QString::number(currentPageNumber+1));
         if (full) {
             // Some extras which may take some time
             if (presentationScreen->slide->getTool().tool == Magnifier)
@@ -533,14 +547,10 @@ void ControlScreen::renderPage(int const pageNumber, bool const full)
     }
 
     if (drawSlide == nullptr) {
-        // Update notes
-        // The note document could have fewer pages than the presentation document:
-        if (currentPageNumber < notes->getDoc()->numPages())
-            ui->notes_widget->renderPage(currentPageNumber, false);
-        else
-            qWarning() << "Reached the end of the note file.";
+        // Update notes.
+        ui->notes_widget->renderPage(currentPageNumber, false);
 
-        // Update current and next slide previews
+        // Update current and next slide previews.
         // If we have not reached the last page (there exists a next page):
         if (currentPageNumber + 1 < presentation->getDoc()->numPages()) {
             ui->current_slide->renderPage(currentPageNumber);
@@ -701,7 +711,7 @@ void ControlScreen::updateCacheStep()
     * Outline of the cache management:
     *
     * 0. updateCache initializes some variables and starts cacheTimer.
-    * 1. cacheTimer calls updateCacheStep in a loop whenever the main thread is not busy
+    * 1. cacheTimer calls updateCacheStep in a loop whenever the main thread is not busy.
     * 2. updateCacheStep deletes pages as long as the cache uses too much memory (or as long as too many slides are cached).
     * 3. updateCacheStep checks whether a new pages should be rendered to cache.
     *    TODO: This process of checking and finding pages should be more understandable and deterministic.
@@ -1416,6 +1426,8 @@ void ControlScreen::resizeEvent(QResizeEvent* event)
     // Stop rendering to cache, delete cached pages for the control screen labels and reset cached region.
     cacheThread->requestInterruption();
     cacheTimer->stop();
+
+    // Update layout
     recalcLayout(currentPageNumber);
     oldSize = event->size();
     first_cached = presentationScreen->getPageNumber();

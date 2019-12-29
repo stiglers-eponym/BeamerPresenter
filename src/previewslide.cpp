@@ -36,10 +36,12 @@ PreviewSlide::~PreviewSlide()
     page = nullptr;
 }
 
-void PreviewSlide::renderPage(int const pageNumber, QPixmap const* pix)
+void PreviewSlide::renderPage(int pageNumber, QPixmap const* pix)
 {
-    if (pageNumber < 0 || pageNumber >= doc->getDoc()->numPages())
-        return;
+    if (pageNumber < 0)
+        pageNumber = 0;
+    else if (pageNumber >= doc->getDoc()->numPages())
+        pageNumber = doc->getDoc()->numPages()-1;
 
     // Use overlay specific options
     // A page is called an overlay of the previously rendered page, if they have the same label.
@@ -439,4 +441,23 @@ void PreviewSlide::mouseMoveEvent(QMouseEvent* event)
     if (!is_arrow_pointer)
         setCursor(Qt::ArrowCursor);
     event->accept();
+}
+
+/// Return cache and clear own cache (without deleting it!).
+QMap<int, QByteArray const*> PreviewSlide::ejectCache()
+{
+    QMap<int, QByteArray const*> newCache = cache;
+    cache.clear();
+    return newCache;
+}
+
+/// Append the given slides to cache, overwriting existing cached images without any checks.
+void PreviewSlide::addToCache(QMap<int, QByteArray const*> newCache)
+{
+    if (cache.isEmpty())
+        cache = newCache;
+    else {
+        for (QMap<int, QByteArray const*>::const_iterator it=newCache.cbegin(); it!=newCache.cend(); it++)
+            cache[it.key()] = *it;
+    }
 }
