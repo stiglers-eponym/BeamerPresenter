@@ -23,17 +23,12 @@
 #include "previewslide.h"
 #include "externalrenderer.h"
 
-enum Renderer {
-    poppler = 0,
-    custom = 1,
-};
-
 class CacheUpdateThread : public QThread
 {
     Q_OBJECT
 
 private:
-    Renderer mode = Renderer::poppler;
+    Renderer mode = RenderPoppler;
     QString renderCommand = "";
     QString presFileName = "";
     QString noteFileName = "";
@@ -46,7 +41,7 @@ private:
 
 public:
     CacheUpdateThread(QObject* parent=nullptr) : QThread(parent) {}
-    void setCustomRenderer(QString const& renderCommand, QString const& presFileName, QString const& noteFileName, QStringList const& renderArguments, Renderer renderer = Renderer::custom);
+    void setCustomRenderer(QString const& renderCommand, QString const& presFileName, QString const& noteFileName, QStringList const& renderArguments, Renderer renderer = RenderCustom);
     void setSlideWidgets(PreviewSlide const* pres, PreviewSlide const* note, PreviewSlide const* small);
     void setPage(int const newpage) {page=newpage;}
     void setRenderer(Renderer renderer) {mode=renderer;}

@@ -218,6 +218,13 @@ enum DrawTool {
     Magnifier,
 };
 
+// TODO: remove this.
+/// External or internal renderer.
+enum Renderer {
+    RenderPoppler = 0,
+    RenderCustom = 1,
+};
+
 /// DrawTool combined with a QColor
 struct ColoredDrawTool {
     DrawTool tool;

@@ -1630,12 +1630,12 @@ void ControlScreen::setRenderer(QStringList command)
 
     if (command.size() == 1) {
         if (command[0]=="poppler") {
-            cacheThread->setRenderer(Renderer::poppler);
+            cacheThread->setRenderer(Renderer::RenderPoppler);
             return;
         }
         if (command[0]=="custom") {
             if (cacheThread->hasRenderCommand()) {
-                cacheThread->setRenderer(Renderer::custom);
+                cacheThread->setRenderer(Renderer::RenderCustom);
                 return;
             }
             qCritical() << "Ignored request to use undefined custom renderer";

@@ -1,0 +1,45 @@
+/*
+ * This file is part of BeamerPresenter.
+ * Copyright (C) 2019  stiglers-eponym
+
+ * BeamerPresenter is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+
+ * BeamerPresenter is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+
+ * You should have received a copy of the GNU General Public License
+ * along with BeamerPresenter. If not, see <https://www.gnu.org/licenses/>.
+ */
+
+#ifndef CACHETHREAD_H
+#define CACHETHREAD_H
+
+#include <QObject>
+#include <QThread>
+#include "cachemap.h"
+#include "externalrenderer.h"
+
+class CacheThread : public QThread
+{
+    Q_OBJECT
+
+private:
+    int page = 0;
+    CacheMap const* cacheMap;
+
+public:
+    //CacheThread(QObject* parent = nullptr) : QThread(parent), cacheMap(nullptr) {}
+    CacheThread(CacheMap const* cache) : QThread() {cacheMap = cache;}
+    void setPage(int const pageNumber) {page = pageNumber;}
+    void run() override;
+
+signals:
+    void resultsReady(int const page, QByteArray const* pres);
+};
+
+#endif // CACHETHREAD_H

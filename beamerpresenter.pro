@@ -49,6 +49,8 @@ linux {
 CONFIG(release, debug|release):DEFINES += QT_NO_DEBUG_OUTPUT
 
 SOURCES += \
+        src/cachemap.cpp \
+        src/cachethread.cpp \
         src/main.cpp \
         src/pdfdoc.cpp \
         src/previewslide.cpp \
@@ -73,6 +75,8 @@ SOURCES += \
         src/drawpath.cpp
 
 HEADERS += \
+        src/cachemap.h \
+        src/cachethread.h \
         src/enumerates.h \
         src/pdfdoc.h \
         src/previewslide.h \

@@ -20,7 +20,7 @@
 
 void CacheUpdateThread::run()
 {
-    if (mode==Renderer::poppler) {
+    if (mode==RenderPoppler) {
         QPixmap presimg = presLabel->getPixmap(page);
         if (isInterruptionRequested())
             return;
@@ -56,7 +56,7 @@ void CacheUpdateThread::run()
         }
         emit resultsReady(pres, note, small, page);
     }
-    else if (mode==Renderer::custom) {
+    else if (mode==RenderCustom) {
         ExternalRenderer* presRenderer  = new ExternalRenderer(page);
         if (!presLabel->cacheContains(page)) {
             QStringList presArguments = QStringList(renderArguments);
