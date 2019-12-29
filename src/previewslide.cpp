@@ -18,7 +18,7 @@
 
 #include "previewslide.h"
 
-PreviewSlide::PreviewSlide(PdfDoc const * const document, int const pageNumber, QWidget* parent) : BasicSlide(parent)
+PreviewSlide::PreviewSlide(PdfDoc const * const document, int const pageNumber, QWidget* parent) : QWidget(parent)
 {
     doc = document;
     renderPage(pageNumber);
@@ -291,8 +291,7 @@ qint64 PreviewSlide::getCacheSize() const
 void PreviewSlide::clearCache()
 {
     // Remove all images from cache.
-    for (QMap<int,QByteArray const*>::const_iterator bytes=cache.cbegin(); bytes!=cache.cend(); bytes++)
-        delete *bytes;
+    qDeleteAll(cache);
     cache.clear();
 }
 
@@ -460,4 +459,19 @@ void PreviewSlide::addToCache(QMap<int, QByteArray const*> newCache)
         for (QMap<int, QByteArray const*>::const_iterator it=newCache.cbegin(); it!=newCache.cend(); it++)
             cache[it.key()] = *it;
     }
+}
+
+void PreviewSlide::paintEvent(QPaintEvent*)
+{
+    QPainter painter(this);
+    painter.drawPixmap(shiftx, shifty, pixmap);
+}
+
+void PreviewSlide::clearAll()
+{
+    clearCache();
+    qDeleteAll(links);
+    links.clear();
+    linkPositions.clear();
+    page = nullptr;
 }

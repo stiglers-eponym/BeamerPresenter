@@ -19,18 +19,25 @@
 #ifndef PREVIEWSLIDE_H
 #define PREVIEWSLIDE_H
 
+#include <QWidget>
+#include <QPainter>
+#include <QDesktopServices>
 #include <QBuffer>
 #include <QMouseEvent>
-#include "basicslide.h"
+#include "enumerates.h"
+#include "pdfdoc.h"
 
-class PreviewSlide : public BasicSlide
+class PreviewSlide : public QWidget
 {
     Q_OBJECT
 public:
-    explicit PreviewSlide(QWidget* parent=nullptr) : BasicSlide(parent) {}
+    // Constructors and destructor.
+    explicit PreviewSlide(QWidget* parent = nullptr) : QWidget(parent) {}
     explicit PreviewSlide(PdfDoc const * const document, int const pageNumber, QWidget* parent=nullptr);
     ~PreviewSlide() override;
-    virtual void renderPage(int pageNumber, QPixmap const* pix=nullptr) override;
+
+    // Rendering and cache. TODO: rewrite.
+    virtual void renderPage(int pageNumber, QPixmap const* pix=nullptr);
     qint64 updateCache(int const pageNumber);
     qint64 updateCache(QPixmap const* pix, int const index);
     qint64 updateCache(QByteArray const* bytes, int const index);
@@ -39,25 +46,59 @@ public:
     void setUseCache(char const use) {useCache=use;}
     qint64 getCacheSize() const;
     int getCacheNumber() const {return cache.size();}
-    QPixmap const getPixmap(int const pageNumber) const;
     QPixmap const getCache(int const index) const;
     QByteArray const* getCachedBytes(int const index) const;
+    QPixmap const getPixmap(int const pageNumber) const;
     bool cacheContains(int const index) const {return cache.contains(index);}
-    void setUrlSplitCharacter(QString const& splitCharacter) {urlSplitCharacter=splitCharacter;}
-
     QMap<int, QByteArray const*> ejectCache();
     void addToCache(QMap<int, QByteArray const*> newCache);
 
+    // Set configuration.
+    void setUrlSplitCharacter(QString const& splitCharacter) {urlSplitCharacter=splitCharacter;}
+    void setPagePart(PagePart const state) {pagePart=state;}
+    /// Set pdf document;
+    void setDoc(PdfDoc const*const document) {doc=document;}
+
+    /// Get current page number
+    int pageNumber() const {return pageIndex;}
+    /// Get current pdf page.
+    Poppler::Page* getPage() {return page;}
+    /// Get position of the slide inside the widget (x direction).
+    qint16 const& getXshift() const {return shiftx;}
+    /// Get position of the slide inside the widget (y direction).
+    qint16 const& getYshift() const {return shifty;}
+
+    /// Clear all arrays owned by this.
+    virtual void clearAll();
+
 protected:
+    Poppler::Page* page = nullptr;
+    /// Which part of the page is shown on this label.
+    PagePart pagePart = FullPage;
+    qint16 shiftx = 0;
+    qint16 shifty = 0;
+    QPixmap pixmap;
+    /// resolution in pixels per point = dpi/72
+    double resolution = -1.;
+    /// page number (starting from 0).
+    int pageIndex = 0;
+    PdfDoc const* doc = nullptr;
     QList<Poppler::Link*> links;
     QList<QRect> linkPositions;
     QMap<int, QByteArray const*> cache;
     QSize oldSize;
     QString urlSplitCharacter = "";
     char useCache = 1; // 0=don't cache; 1=use cache with internal renderer; 2=use cache with external renderer
+
+    // Handle events.
     void mouseReleaseEvent(QMouseEvent* event) override;
     void mouseMoveEvent(QMouseEvent* event) override;
+
+    // Rendering. TODO: rewrite.
     QPair<double,double> basicRenderPage(int const pageNumber, QPixmap const* pix);
+
+    /// Paint widget on the screen.
+    virtual void paintEvent(QPaintEvent*) override;
 
 signals:
     void sendNewPageNumber(int const pageNumber);

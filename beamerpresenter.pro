@@ -51,7 +51,6 @@ CONFIG(release, debug|release):DEFINES += QT_NO_DEBUG_OUTPUT
 SOURCES += \
         src/main.cpp \
         src/pdfdoc.cpp \
-        src/basicslide.cpp \
         src/previewslide.cpp \
         src/mediaslide.cpp \
         src/drawslide.cpp \
@@ -76,7 +75,6 @@ SOURCES += \
 HEADERS += \
         src/enumerates.h \
         src/pdfdoc.h \
-        src/basicslide.h \
         src/previewslide.h \
         src/mediaslide.h \
         src/drawslide.h \
