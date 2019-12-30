@@ -65,7 +65,7 @@ public:
     bool threadRunning() {return cacheThread != nullptr && cacheThread->isRunning();}
 
     // Settings.
-    void setPagePart(PagePart const part) {pagePart = part;}
+    void setPagePart(PagePart const part);
     /// Change resolution. This clears cache if the resolution actually changes.
     void changeResolution(double const res);
     /// Set custom renderer. When only empty strings are given, the renderer is set to popper (internal).

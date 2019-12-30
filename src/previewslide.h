@@ -47,7 +47,7 @@ public:
 
     // Set configuration.
     void setUrlSplitCharacter(QString const& splitCharacter) {urlSplitCharacter=splitCharacter;}
-    void setPagePart(PagePart const state) {pagePart=state;}
+    void setPagePart(PagePart const state);
     /// Set pdf document;
     void setDoc(PdfDoc const*const document) {doc=document;}
 

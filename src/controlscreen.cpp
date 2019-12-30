@@ -157,6 +157,11 @@ ControlScreen::ControlScreen(QString presentationPath, QString notesPath, QWidge
     ui->current_slide->overwriteCacheMap(previewCache);
     ui->next_slide->overwriteCacheMap(previewCache);
 
+    qDebug() << "previewCache: " << previewCache;
+    qDebug() << "previewCacheX:" << previewCacheX;
+    qDebug() << "presentation cache:" << presentationScreen->slide->getCacheMap() << presentationScreen->slide;
+    qDebug() << "notes cache:" << ui->notes_widget->getCacheMap() << ui->notes_widget;
+
     // Connect cache maps.
     connect(previewCache, &CacheMap::cacheSizeChanged, this, &ControlScreen::updateCacheSize);
     connect(previewCacheX, &CacheMap::cacheSizeChanged, this, &ControlScreen::updateCacheSize);
@@ -353,19 +358,20 @@ ControlScreen::~ControlScreen()
 void ControlScreen::setPagePart(PagePart const pagePart)
 {
     this->pagePart = pagePart;
+    ui->notes_widget = new DrawSlide(presentation, 0, this);
     // Set page part for presentation slide.
     presentationScreen->slide->setPagePart(pagePart);
     // Set the page part for notes widget and cache thread.
     switch (pagePart) {
-        case FullPage:
-            ui->notes_widget->setPagePart(FullPage);
-            break;
-        case LeftHalf:
-            ui->notes_widget->setPagePart(RightHalf);
-            break;
-        case RightHalf:
-            ui->notes_widget->setPagePart(LeftHalf);
-            break;
+    case FullPage:
+        ui->notes_widget->setPagePart(FullPage);
+        break;
+    case LeftHalf:
+        ui->notes_widget->setPagePart(RightHalf);
+        break;
+    case RightHalf:
+        ui->notes_widget->setPagePart(LeftHalf);
+        break;
     }
     // Set page part for current and next slide preview.
     ui->current_slide->setPagePart(pagePart);
@@ -379,6 +385,7 @@ void ControlScreen::setPagePart(PagePart const pagePart)
 /// Adapt the layout of the control screen based on the aspect ratios of presentation and notes slides.
 void ControlScreen::recalcLayout(const int pageNumber)
 {
+    qDebug() << "recalc layout - start" << size() << oldSize << pageNumber;
     if (size() != oldSize) {
         // Delete preview cache
         previewCache->clearCache();
@@ -483,6 +490,7 @@ void ControlScreen::recalcLayout(const int pageNumber)
     }
     // Notify layout system that geometry has changed.
     updateGeometry();
+    qDebug() << "recalc layout - end" << size() << oldSize << pageNumber;
 }
 
 void ControlScreen::focusPageNumberEdit()
@@ -1371,6 +1379,7 @@ void ControlScreen::resizeEvent(QResizeEvent* event)
     // When the control screen window is resized, the sizes of the page labels change and the cached pages become useless.
     // Stop rendering to cache, delete cached pages for the control screen labels and reset cached region.
     cacheTimer->stop();
+    // TODO: kill cache threads.
 
     // Update layout
     recalcLayout(currentPageNumber);

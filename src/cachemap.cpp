@@ -60,7 +60,10 @@ qint64 CacheMap::setPixmap(int const page, QPixmap const* pix)
     QByteArray* bytes = new QByteArray();
     QBuffer buffer(bytes);
     buffer.open(QIODevice::WriteOnly);
-    pix->save(&buffer, "PNG");
+    if (!pix->save(&buffer, "PNG")) {
+        qWarning() << "Rendering failed." << this;
+        return 0;
+    }
     data[page] = bytes;
     qint64 currentSize = qint64(bytes->size());
     size += currentSize;
@@ -69,7 +72,7 @@ qint64 CacheMap::setPixmap(int const page, QPixmap const* pix)
 
 void CacheMap::clearCache()
 {
-    qDebug() << "Clear cache" << this << parent();
+    //qDebug() << "Clear cache" << this << parent();
     qDeleteAll(data);
     data.clear();
 }
@@ -85,6 +88,7 @@ void CacheMap::changeResolution(const double res)
 
 QPixmap const CacheMap::getCachedPixmap(int const page) const
 {
+    qDebug() << "get cached page" << page << this << data.contains(page);
     QPixmap pixmap;
     if (data.contains(page))
         pixmap.loadFromData(*data.value(page), "PNG");
@@ -106,8 +110,9 @@ QPixmap const CacheMap::renderPixmap(int const page) const
 
 QPixmap const CacheMap::getPixmap(int const page)
 {
+    qDebug() << "get page" << page << this << data.contains(page);
     QPixmap pixmap;
-    if (data.contains(page)) {
+    if (data.contains(page) && data.value(page) != nullptr) {
         pixmap.loadFromData(*data.value(page), "PNG");
         // Check whether pixmap has the correct size.
         QSizeF pageSize = resolution*pdf->getPageSize(page);
@@ -177,6 +182,8 @@ qint64 CacheMap::clearPage(const int page)
 
 void CacheMap::receiveBytes(int const page, QByteArray const* bytes)
 {
+    if (bytes == nullptr || bytes->isEmpty())
+        return;
     qint64 size_diff = bytes->size();
     if (data.contains(page))
         size_diff -= data[page]->size();
@@ -191,4 +198,11 @@ bool CacheMap::updateCache(int const page)
     cacheThread->setPage(page);
     cacheThread->start();
     return true;
+}
+
+void CacheMap::setPagePart(const PagePart part)
+{
+    if (pagePart != part)
+        clearCache();
+    pagePart = part;
 }

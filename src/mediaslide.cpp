@@ -137,7 +137,6 @@ void MediaSlide::renderPage(int pageNumber, bool const hasDuration)
     // Old cached images are useless if the label size has changed:
     if (size() != oldSize) {
         cache->clearCache();
-        oldSize = size();
     }
 
     QPair<double,double> scale = basicRenderPage(pageNumber);

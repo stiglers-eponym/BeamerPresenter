@@ -57,7 +57,6 @@ void PreviewSlide::renderPage(int pageNumber)
     if (size() != oldSize) {
         if (cache != nullptr)
             cache->clearCache();
-        oldSize = size();
     }
 
     QPair<double,double> scale = basicRenderPage(pageNumber);
@@ -121,8 +120,10 @@ QPair<double,double> PreviewSlide::basicRenderPage(int const pageNumber)
             shiftx -= width();
     }
 
-    if (pageIndex != pageNumber && cache != nullptr)
+    qDebug() << "get pixmap?" << pageIndex << pageNumber << oldSize << size() << cache << this;
+    if ((pageIndex != pageNumber || oldSize != size()) && cache != nullptr)
         pixmap = cache->getPixmap(pageNumber);
+    oldSize = size();
     return {scale_x, scale_y};
 }
 
@@ -294,4 +295,11 @@ QPixmap const PreviewSlide::getPixmap(int const page)
     if (cache == nullptr)
         return QPixmap();
     return cache->getPixmap(page);
+}
+
+void PreviewSlide::setPagePart(const PagePart state)
+{
+    pagePart = state;
+    if (cache != nullptr)
+        cache->setPagePart(state);
 }
