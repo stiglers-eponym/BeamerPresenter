@@ -60,7 +60,9 @@ public:
     qint64 clearPage(int const page);
 
     /// Update cache. This will start cacheTimer.
-    void updateCache(int const page);
+    bool updateCache(int const page);
+    /// Is a cache thread running?
+    bool threadRunning() {return cacheThread != nullptr && cacheThread->isRunning();}
 
     // Settings.
     void setPagePart(PagePart const part) {pagePart = part;}

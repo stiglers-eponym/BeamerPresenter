@@ -37,21 +37,8 @@ public:
     explicit PreviewSlide(PdfDoc const * const document, int const pageNumber, QWidget* parent=nullptr);
     ~PreviewSlide() override;
 
-    // Rendering and cache. TODO: rewrite.
+    // Rendering and cache.
     virtual void renderPage(int pageNumber);
-    //qint64 updateCache(int const pageNumber);
-    //qint64 updateCache(QPixmap const* pix, int const index);
-    //qint64 updateCache(QByteArray const* bytes, int const index);
-    //qint64 clearCachePage(int const index);
-    //virtual void clearCache();
-    //void setUseCache(char const use) {useCache=use;}
-    //int getCacheNumber() const {return cache.size();}
-    //QPixmap const getCache(int const index) const;
-    //QByteArray const* getCachedBytes(int const index) const;
-    //QPixmap const getPixmap(int const pageNumber) const;
-    //bool cacheContains(int const index) const {return cache->contains(index);}
-    //QMap<int, QByteArray const*> ejectCache();
-    //void addToCache(QMap<int, QByteArray const*> newCache);
     int getCacheNumber() const;
     qint64 getCacheSize() const;
     CacheMap* getCacheMap() {return cache;}
@@ -92,10 +79,9 @@ protected:
     int pageIndex = 0;
     QList<Poppler::Link*> links;
     QList<QRect> linkPositions;
-    //QMap<int, QByteArray const*> cache;
     QSize oldSize;
     QString urlSplitCharacter = "";
-    char useCache = 1; // 0=don't cache; 1=use cache with internal renderer; 2=use cache with external renderer
+    //char useCache = 1; // 0=don't cache; 1=use cache with internal renderer; 2=use cache with external renderer
 
     // Handle events.
     void mouseReleaseEvent(QMouseEvent* event) override;

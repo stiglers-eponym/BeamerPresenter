@@ -148,10 +148,11 @@ void CacheMap::receiveBytes(int const page, QByteArray const* bytes)
     emit cacheSizeChanged(size_diff);
 }
 
-void CacheMap::updateCache(int const page)
+bool CacheMap::updateCache(int const page)
 {
     if (data.contains(page))
-        return;
+        return false;
     cacheThread->setPage(page);
     cacheThread->start();
+    return true;
 }

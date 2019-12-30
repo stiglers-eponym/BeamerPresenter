@@ -198,8 +198,6 @@ public slots:
     // TODO: Some of these functions are not used as slots. Tidy up!
     /// Handle actions sent from key event or tool selector.
     bool handleKeyAction(KeyAction const action);
-    /// Receive cached slide as png images.
-    //void receiveCache(QByteArray const* pres, QByteArray const* note, QByteArray const* small, int const index);
     /// Receive a TOC destination and go the the corresponding slide.
     void receiveDest(QString const& dest);
     /// Go to last overlay of previous slide.
@@ -227,7 +225,7 @@ public slots:
     /// Show notes. This hides other widgets which can be shown above notes (TOC, overview, draw slide).
     void showNotes();
     /// Change cache size.
-    void updateCacheSize(qint64 const diff) {cacheSize += diff;}
+    void updateCacheSize(qint64 const diff);
 
 signals:
     /// Send a new page number with or without starting a timer for the new slide.

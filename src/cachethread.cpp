@@ -22,6 +22,9 @@
 
 void CacheThread::run()
 {
+    // Handle one page. This page should not change while rendering.
+    int const page = this->page;
+    qDebug() << "Cache page" << page << cacheMap << cacheMap->parent();
     QString renderCommand = cacheMap->getRenderCommand(page);
     if (renderCommand.isEmpty()) {
         QPixmap pixmap = cacheMap->renderPixmap(page);

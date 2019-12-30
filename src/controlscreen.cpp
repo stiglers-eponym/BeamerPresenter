@@ -764,6 +764,7 @@ void ControlScreen::updateCacheStep()
 
 void ControlScreen::cachePage(const int page)
 {
+    cacheTimer->stop();
     presentationScreen->slide->getCacheMap()->updateCache(page);
     ui->notes_widget->getCacheMap()->updateCache(page);
     previewCache->updateCache(page);
@@ -773,37 +774,6 @@ void ControlScreen::cachePage(const int page)
             previewCacheX->updateCache(page);
     }
 }
-
-/*
-void ControlScreen::receiveCache(QByteArray const* pres, QByteArray const* note, QByteArray const* small, int const index)
-{
-    if (presentationScreen->slide->cacheContains(index)) {
-        qDebug() << "Page is already cached:" << index << ". Cache size" << cacheSize << "B";
-        presentationScreen->slide->updateCache(pres, index);
-        ui->notes_widget->updateCache(note, index);
-        ui->current_slide->updateCache(small, index);
-    }
-    else {
-        cacheSize += presentationScreen->slide->updateCache(pres, index)
-                     + ui->notes_widget->updateCache(note, index)
-                     + ui->current_slide->updateCache(small, index);
-        cacheNumber++;
-        qDebug() << "Cached page" << index << "; Cache size" << cacheSize << "B";
-        if (cacheNumber==numberOfPages) {
-            qInfo() << "All slides are rendered to cache. Cache size:" << cacheSize << "B";
-            first_cached = 0;
-            last_cached = numberOfPages-1;
-            return;
-        }
-    }
-    if (index == last_cached+1)
-        last_cached++;
-    else if (index == first_cached-1)
-        first_cached--;
-    if (cacheThread->wait(100))
-        cacheTimer->start();
-}
-*/
 
 void ControlScreen::setCacheNumber(int const number)
 {
@@ -819,6 +789,13 @@ void ControlScreen::setCacheNumber(int const number)
     }
     else
         maxCacheNumber = number;
+}
+
+void ControlScreen::updateCacheSize(qint64 const diff)
+{
+     cacheSize += diff;
+     if (!presentationScreen->slide->getCacheMap()->threadRunning())
+         cacheTimer->start();
 }
 
 void ControlScreen::setCacheSize(qint64 const size)
