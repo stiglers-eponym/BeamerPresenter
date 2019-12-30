@@ -109,14 +109,14 @@ bool PdfDoc::loadDocument()
     return true;
 }
 
-QSize PdfDoc::getPageSize(int const pageNumber) const
+/// Return page size in point = inch/72 ≈ 0.353mm (I hate these units...)
+QSizeF PdfDoc::getPageSize(int const pageNumber) const
 {
-    // Return page size in point = inch/72 ≈ 0.353mm (I hate these units...)
     if (pageNumber < 0)
-        return pdfPages[0]->pageSize();
+        return pdfPages[0]->pageSizeF();
     if (pageNumber >= popplerDoc->numPages())
-        return pdfPages[popplerDoc->numPages()-1]->pageSize();
-    return pdfPages[pageNumber]->pageSize();
+        return pdfPages[popplerDoc->numPages()-1]->pageSizeF();
+    return pdfPages[pageNumber]->pageSizeF();
 }
 
 Poppler::Page* PdfDoc::getPage(int pageNumber) const

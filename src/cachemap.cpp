@@ -20,8 +20,7 @@
 
 CacheMap::~CacheMap()
 {
-    for (QMap<int, QByteArray const*>::const_iterator it=data.cbegin(); it!=data.cend(); it++)
-        delete *it;
+    qDeleteAll(data);
     data.clear();
     delete cacheTimer;
     // TODO: correctly kill thread
@@ -35,7 +34,7 @@ CacheMap::CacheMap(CacheMap& other) :
     pdf(other.pdf),
     resolution(other.resolution),
     pagePart(other.pagePart),
-    renderer(other.renderer),
+    renderCommand(other.renderCommand),
     cacheThread(other.cacheThread),
     cacheTimer(other.cacheTimer)
 {
@@ -70,15 +69,17 @@ qint64 CacheMap::setPixmap(int const page, QPixmap const* pix)
 
 void CacheMap::clearCache()
 {
-    for (QMap<int, QByteArray const*>::const_iterator it=data.cbegin(); it!=data.cend(); it++)
-        delete *it;
+    qDebug() << "Clear cache" << this << parent();
+    qDeleteAll(data);
     data.clear();
 }
 
 void CacheMap::changeResolution(const double res)
 {
-    if (res != resolution)
-        clearCache();
+    if (res == resolution)
+        return;
+    qDebug() << "Change resolution" << res << resolution << this << parent();
+    clearCache();
     resolution = res;
 }
 
@@ -92,6 +93,7 @@ QPixmap const CacheMap::getCachedPixmap(int const page) const
 
 QPixmap const CacheMap::renderPixmap(int const page) const
 {
+    // This should only be called from within CacheThread and CacheMap!
     Poppler::Page const* cachePage = pdf->getPage(page);
     QImage image = cachePage->renderToImage(72*resolution, 72*resolution);
     if (pagePart == FullPage)
@@ -105,20 +107,54 @@ QPixmap const CacheMap::renderPixmap(int const page) const
 QPixmap const CacheMap::getPixmap(int const page)
 {
     QPixmap pixmap;
-    if (data.contains(page))
+    if (data.contains(page)) {
         pixmap.loadFromData(*data.value(page), "PNG");
-    else {
+        // Check whether pixmap has the correct size.
+        QSizeF pageSize = resolution*pdf->getPageSize(page);
+        if (pagePart != FullPage)
+            pageSize.setWidth(pageSize.width()/2);
+        if (abs(pixmap.height() - pageSize.height()) < 2 && abs(pixmap.width() - pageSize.width()) < 2)
+            return pixmap;
+        qDebug() << "Size changed:" << pixmap.size() << pageSize;
+        // The size was wrong. Delete the old cached page.
+        emit cacheSizeChanged(-data[page]->size());
+        data.remove(page);
+    }
+    if (renderCommand.isEmpty()) {
         pixmap = renderPixmap(page);
-        setPixmap(page, &pixmap);
+        emit cacheSizeChanged(setPixmap(page, &pixmap));
+    }
+    else {
+        ExternalRenderer* renderer = new ExternalRenderer(page);
+        renderer->start(getRenderCommand(page));
+        QByteArray const* bytes = nullptr;
+        if (renderer->waitForFinished(60000))
+            bytes = renderer->getBytes();
+        else
+            renderer->kill();
+        delete renderer;
+        pixmap.loadFromData(*bytes, "PNG");
+        if (pagePart == FullPage) {
+            data[page] = bytes;
+            emit cacheSizeChanged(bytes->size());
+        }
+        else {
+            delete bytes;
+            if (pagePart == LeftHalf)
+                pixmap = pixmap.copy(0, 0, pixmap.width()/2, pixmap.height());
+            else
+                pixmap = pixmap.copy(pixmap.width()/2, 0, pixmap.width()/2, pixmap.height());
+            emit cacheSizeChanged(setPixmap(page, &pixmap));
+        }
     }
     return pixmap;
 }
 
 QString const CacheMap::getRenderCommand(int const page) const
 {
-    if (renderer.isEmpty())
-        return renderer;
-    QString command = renderer;
+    if (renderCommand.isEmpty())
+        return renderCommand;
+    QString command = renderCommand;
     command.replace("%file", pdf->getPath());
     command.replace("%page", QString::number(page+1));
     if (pagePart==FullPage)

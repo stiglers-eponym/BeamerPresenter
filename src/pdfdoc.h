@@ -47,7 +47,8 @@ public:
     QList<Poppler::Page*> const* getPages() const {return &pdfPages;}
     Poppler::Page* getPage(int pageNumber) const;
     QDomDocument const * getToc() const {return popplerDoc->toc();}
-    QSize getPageSize(int const pageNumber) const;
+    /// Page size in point = inch/72.
+    QSizeF getPageSize(int const pageNumber) const;
     QString const& getLabel(int const pageNumber) const;
     int getNextSlideIndex(int const index) const;
     int getPreviousSlideEnd(int const index) const;

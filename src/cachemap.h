@@ -69,7 +69,7 @@ public:
     /// Change resolution. This clears cache if the resolution actually changes.
     void changeResolution(double const res);
     /// Set custom renderer. When only empty strings are given, the renderer is set to popper (internal).
-    void setRenderer(QString const renderCommand = "") {renderer = renderCommand;}
+    void setRenderer(QString const renderer = "") {renderCommand = renderer;}
     /// Get renderer command.
     QString const getRenderCommand(int const page) const;
     /// Get page part.
@@ -90,7 +90,7 @@ private:
     /// Part of the page showing the relevant part for this cache.
     PagePart pagePart = FullPage;
     /// Command for external renderer.
-    QString renderer = "";
+    QString renderCommand = "";
 
     // These should remain nullptr if cache is disabled.
     CacheThread* cacheThread = nullptr;

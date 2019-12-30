@@ -389,13 +389,13 @@ void ControlScreen::recalcLayout(const int pageNumber)
     /// Aspect ratio (height/width) of the window.
     double screenRatio = double(height()) / width();
     /// Size of notes page (or presentation slide if drawSlide is shown).
-    QSize notesSize;
+    QSizeF notesSize;
     if (drawSlide == nullptr)
         notesSize = notes->getPageSize(pageNumber);
     else
         notesSize = presentation->getPageSize(pageNumber);
     /// Aspect ratio (height/width) of the slide shown on the notes widget.
-    double notesSizeRatio = double(notesSize.height()) / notesSize.width();
+    double notesSizeRatio = notesSize.height() / notesSize.width();
     // Correct the aspect ratio if the pdf includes slides and notes.
     if (pagePart != FullPage)
         notesSizeRatio *= 2;
@@ -475,6 +475,12 @@ void ControlScreen::recalcLayout(const int pageNumber)
     // Adjust the layout containing preview slides and tool selector.
     // Without this the size of the preview slides would not be updated directly.
     ui->overviewLayout->activate();
+    // Make sure that the sizes of both preview slides are exactly the same.
+    if (ui->current_slide->size() != ui->next_slide->size()) {
+        QSize minsize = ui->current_slide->size().boundedTo(ui->next_slide->size());
+        ui->current_slide->setMaximumSize(minsize);
+        ui->next_slide->setMaximumSize(minsize);
+    }
     // Notify layout system that geometry has changed.
     updateGeometry();
 }
@@ -764,6 +770,7 @@ void ControlScreen::updateCacheStep()
 
 void ControlScreen::cachePage(const int page)
 {
+    qDebug() << "Cache page" << page;
     cacheTimer->stop();
     presentationScreen->slide->getCacheMap()->updateCache(page);
     ui->notes_widget->getCacheMap()->updateCache(page);
@@ -794,7 +801,7 @@ void ControlScreen::setCacheNumber(int const number)
 void ControlScreen::updateCacheSize(qint64 const diff)
 {
      cacheSize += diff;
-     if (!presentationScreen->slide->getCacheMap()->threadRunning())
+     if (diff >= 0 && !presentationScreen->slide->getCacheMap()->threadRunning() && !ui->notes_widget->getCacheMap()->threadRunning())
          cacheTimer->start();
 }
 

@@ -293,5 +293,5 @@ QPixmap const PreviewSlide::getPixmap(int const page)
 {
     if (cache == nullptr)
         return QPixmap();
-    return cache->renderPixmap(page);
+    return cache->getPixmap(page);
 }
