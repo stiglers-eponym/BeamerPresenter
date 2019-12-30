@@ -18,9 +18,10 @@
 
 #include "tocbutton.h"
 
-TocButton::TocButton(QString const& text, int const dest, QWidget* parent) : QPushButton(text, parent)
+TocButton::TocButton(QString const& text, int const dest, QWidget* parent) :
+    QPushButton(text, parent),
+    dest(dest)
 {
-    this->dest = dest;
     setStyleSheet("Text-align:left");
     connect(this, &TocButton::clicked, this, [&](){emit activated(this->dest);});
 }

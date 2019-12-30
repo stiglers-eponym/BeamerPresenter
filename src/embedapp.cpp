@@ -18,11 +18,12 @@
 
 #include "embedapp.h"
 
-EmbedApp::EmbedApp(QStringList const& command, QString const& pid2wid, int const page, int const index, QWidget* parent) : QObject(parent)
+EmbedApp::EmbedApp(QStringList const& command, QString const& pid2wid, int const page, int const index, QWidget* parent) :
+    QObject(parent),
+    pid2widTimer(new QTimer(this)),
+    command(command),
+    pid2wid(pid2wid)
 {
-    this->pid2wid = pid2wid;
-    this->command = command;
-    pid2widTimer = new QTimer(this);
     connect(pid2widTimer, &QTimer::timeout, this, &EmbedApp::getWidFromPid);
     pages.append(page);
     indices.append(index);

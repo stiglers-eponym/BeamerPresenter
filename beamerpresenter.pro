@@ -65,7 +65,6 @@ SOURCES += \
         src/toolbutton.cpp \
         src/toolselector.cpp \
         src/videowidget.cpp \
-        src/cacheupdatethread.cpp \
         src/tocbox.cpp \
         src/tocbutton.cpp \
         src/tocaction.cpp \
@@ -91,7 +90,6 @@ HEADERS += \
         src/toolbutton.h \
         src/toolselector.h \
         src/videowidget.h \
-        src/cacheupdatethread.h \
         src/tocbox.h \
         src/tocbutton.h \
         src/tocaction.h \

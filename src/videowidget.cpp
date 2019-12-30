@@ -18,11 +18,12 @@
 
 #include "videowidget.h"
 
-VideoWidget::VideoWidget(Poppler::MovieAnnotation const* annotation, QString const& urlSplitCharacter, QWidget* parent) : QVideoWidget(parent)
+VideoWidget::VideoWidget(Poppler::MovieAnnotation const* annotation, QString const& urlSplitCharacter, QWidget* parent) :
+    QVideoWidget(parent),
+    player(new QMediaPlayer(this, QMediaPlayer::VideoSurface)),
+    annotation(annotation)
 {
-    this->annotation = annotation;
     setMouseTracking(true);
-    player = new QMediaPlayer(this, QMediaPlayer::VideoSurface);
     player->setVideoOutput(this);
     Poppler::MovieObject* movie = annotation->movie();
     if (movie->showPosterImage()) {

@@ -21,8 +21,10 @@
 
 #include <QObject>
 #include <QThread>
-#include "cachemap.h"
+#include <QPixmap>
 #include "externalrenderer.h"
+
+class CacheMap;
 
 class CacheThread : public QThread
 {
@@ -33,8 +35,9 @@ private:
     CacheMap const* cacheMap;
 
 public:
-    //CacheThread(QObject* parent = nullptr) : QThread(parent), cacheMap(nullptr) {}
-    CacheThread(CacheMap const* cache) : QThread() {cacheMap = cache;}
+    CacheThread(QObject* parent = nullptr) : QThread(parent), cacheMap(nullptr) {}
+    CacheThread(CacheMap const* cache, QObject* parent = nullptr) : QThread(parent), cacheMap(cache) {}
+    void setCacheMap(CacheMap const* cache) {cacheMap = cache;}
     void setPage(int const pageNumber) {page = pageNumber;}
     void run() override;
 

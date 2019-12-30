@@ -34,7 +34,7 @@ public:
     ~DrawSlide() override {clearAllAnnotations(); clearAll();}
     void clearPageAnnotations();
     void clearAllAnnotations();
-    virtual void clearCache() override;
+    //virtual void clearCache() override;
     void updateEnlargedPage();
     void setSize(DrawTool const tool, quint16 size);
     void setScaledPixmap(QPixmap const& pix);

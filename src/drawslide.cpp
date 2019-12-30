@@ -418,6 +418,7 @@ void DrawSlide::erase(const QPointF &point)
     }
 }
 
+/*
 void DrawSlide::clearCache()
 {
     PreviewSlide::clearCache();
@@ -425,6 +426,7 @@ void DrawSlide::clearCache()
     end_cache = -1;
     pixpaths = QPixmap();
 }
+*/
 
 void DrawSlide::setPathsQuick(QString const pagelabel, QList<DrawPath*> const& list, qint16 const refshiftx, qint16 const refshifty, double const refresolution)
 {

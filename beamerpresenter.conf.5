@@ -309,7 +309,8 @@ This sets the default value for the command line argument
 .
 .TP
 .BR blinds =8
-integer: Set the number of blinds used in the blinds slide transition.
+.IR integer :
+Set the number of blinds used in the blinds slide transition.
 This overwrites the default value for the command line argument
 .BR \-b " or " \-\-blinds .
 .
@@ -360,7 +361,7 @@ Maximum width of the sidebar (on the right of the control screen) relative to th
 .
 .TP
 .BR scrollstep =200
-integer:
+.IR integer :
 Touch pads quantify scroll events as numbers of pixels. This option sets the number of pixels, which are interpreted as the step between two pages. A larger number makes the scrolling slower.
 This overwrites the default value for the command line argument
 .BR \-s " or " \-\-scrollstep .
@@ -379,17 +380,25 @@ This overwrites the default value for the command line argument
 .
 .TP
 .BR cache =-1
-integer: Set the maximum number of slides, which are rendered to images and stored in a compressed cache. A negative number is treated as infinity.
+.IR integer :
+Set the maximum number of slides, which are rendered to images and stored in a compressed cache. A negative number is treated as infinity.
 This overwrites the default value for the command line argument
 .BR \-c " or " \-\-cache .
 .RB "Independent of this configuration the maximum size of cache can be specified approximately using the option " memory .
 .
 .TP
 .BR memory =100
-integer:
+.IR integer :
 Set the maximum cache size in MiB. A negative number is treated as infinity. The real memory usage can be slightly larger than this limit, because slides are rendered to cache without any knowledge about their size in memory beforehand.
 This overwrites the default value for the command line argument
 .BR \-M " or " \-\-memory .
+.
+.TP
+.BR cache-all =true
+.IR bool :
+Cache all slides previews or only the notes and presentation widget.
+This overwrites the default value for the command line argument
+.BR \-C " or " \-\-cache-all
 .
 .TP
 .BR video-cache =true
@@ -400,20 +409,21 @@ This overwrites the default value for the command line argument
 .
 .TP
 .BR toc-depth =2
-integer:
+.IR integer :
 .RB "Number of levels in the table of contents, which will be shown on the control screen with the default shortcut " t ". Possible values range from 1 and 4. An additional level will be shown as a popup menu if necessary."
 This overwrites the default value for the command line argument
 .BR \-l " or " \-\-toc-depth .
 .
 .TP
 .BR columns =5
-integer: Set the number of columns of slides, which will be shown in the overview mode on the control screen.
+.IR integer :
+Set the number of columns of slides, which will be shown in the overview mode on the control screen.
 This overwrites the default value for the command line argument
 .BR \-o " or " \-\-columns .
 .
 .TP
 .B renderer
-string:
+.IR string :
 Set a command for calling an external PDF renderer, which will be used for rendering slides to a compressed cache.
 The command should call a renderer, which renders a specific page of a PDF file to a png image of fixed size, such that it can be shown in a window with given width and height and writes the image to the standard output.
 The command should contain the tokens "%file" for the PDF file name, "%page" for the page number, "%width" for the image width in pixels and "%height" for the height in pixels.

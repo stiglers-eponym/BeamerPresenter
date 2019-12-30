@@ -20,10 +20,37 @@
 
 CacheMap::~CacheMap()
 {
-    qDeleteAll(data);
+    for (QMap<int, QByteArray const*>::const_iterator it=data.cbegin(); it!=data.cend(); it++)
+        delete *it;
     data.clear();
+    delete cacheTimer;
+    // TODO: correctly kill thread
+    delete cacheThread;
 }
 
+CacheMap::CacheMap(CacheMap& other) :
+    QObject(other.parent()),
+    data(other.data),
+    size(other.size),
+    pdf(other.pdf),
+    resolution(other.resolution),
+    pagePart(other.pagePart),
+    renderer(other.renderer),
+    cacheThread(other.cacheThread),
+    cacheTimer(other.cacheTimer)
+{
+    if (cacheThread != nullptr)
+        cacheThread->setCacheMap(this);
+}
+
+void CacheMap::setupCacheThread()
+{
+    cacheThread = new CacheThread(this, parent());
+    cacheTimer = new QTimer(this);
+    cacheTimer->setSingleShot(true);
+    connect(cacheTimer, &QTimer::timeout, this, [&](){cacheTimer->start();}); // TODO: find a more elegant way.
+    connect(cacheThread, &CacheThread::resultsReady, this, &CacheMap::receiveBytes);
+}
 
 /// Write the pixmap in png format to a QBytesArray at *value(page).
 qint64 CacheMap::setPixmap(int const page, QPixmap const* pix)
@@ -36,13 +63,22 @@ qint64 CacheMap::setPixmap(int const page, QPixmap const* pix)
     buffer.open(QIODevice::WriteOnly);
     pix->save(&buffer, "PNG");
     data[page] = bytes;
-    return qint64(bytes->size());
+    qint64 currentSize = qint64(bytes->size());
+    size += currentSize;
+    return currentSize;
+}
+
+void CacheMap::clearCache()
+{
+    for (QMap<int, QByteArray const*>::const_iterator it=data.cbegin(); it!=data.cend(); it++)
+        delete *it;
+    data.clear();
 }
 
 void CacheMap::changeResolution(const double res)
 {
-    qDeleteAll(data);
-    data.clear();
+    if (res != resolution)
+        clearCache();
     resolution = res;
 }
 
@@ -91,4 +127,31 @@ QString const CacheMap::getRenderCommand(int const page) const
         command.replace("%width", QString::number(int(2*resolution*pdf->getPageSize(page).width()+0.5)));
     command.replace("%height", QString::number(int(resolution*pdf->getPageSize(page).height()+0.5)));
     return command;
+}
+
+qint64 CacheMap::clearPage(const int page)
+{
+    if (!data.contains(page))
+        return 0;
+    qint64 pageSize(data[page]->size());
+    delete data[page];
+    data.remove(page);
+    return pageSize;
+}
+
+void CacheMap::receiveBytes(int const page, QByteArray const* bytes)
+{
+    qint64 size_diff = bytes->size();
+    if (data.contains(page))
+        size_diff -= data[page]->size();
+    data[page] = bytes;
+    emit cacheSizeChanged(size_diff);
+}
+
+void CacheMap::updateCache(int const page)
+{
+    if (data.contains(page))
+        return;
+    cacheThread->setPage(page);
+    cacheThread->start();
 }

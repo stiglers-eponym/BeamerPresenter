@@ -39,7 +39,7 @@ private:
     QDateTime lastModified = QDateTime();
 
 public:
-    PdfDoc(QString pathToPdf = "");
+    PdfDoc(QString pathToPdf) : pdfPath(pathToPdf) {}
     ~PdfDoc();
     bool loadDocument();
 

@@ -18,8 +18,9 @@
 
 #include "tocaction.h"
 
-TocAction::TocAction(QString const& text, int const dest, QWidget* parent) : QAction(text, parent)
+TocAction::TocAction(QString const& text, int const dest, QWidget* parent) :
+    QAction(text, parent),
+    dest(dest)
 {
-    this->dest = dest;
     connect(this, &TocAction::triggered, this, [&](){emit activated(this->dest);});
 }

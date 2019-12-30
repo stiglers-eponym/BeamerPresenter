@@ -19,10 +19,11 @@
 #include "tocbox.h"
 
 /// Basic constructor: create layout, but do not construct the TOC yet.
-TocBox::TocBox(QWidget* parent) : QWidget(parent)
+TocBox::TocBox(QWidget* parent) :
+    QWidget(parent),
+    layout(new QVBoxLayout(this))
 {
-    // Create the empty layout. This will be filled with buttons later.
-    layout = new QVBoxLayout(this);
+    // The empty layout will be filled with buttons later.
     // Use the layout.
     this->setLayout(layout);
 }

@@ -18,25 +18,28 @@
 
 #include "previewslide.h"
 
-PreviewSlide::PreviewSlide(PdfDoc const * const document, int const pageNumber, QWidget* parent) : QWidget(parent)
+PreviewSlide::PreviewSlide(PdfDoc const * const document, int const pageNumber, QWidget* parent) :
+    QWidget(parent),
+    doc(document),
+    cache(new CacheMap(document)),
+    pageIndex(pageNumber)
 {
-    doc = document;
     renderPage(pageNumber);
-    pageIndex = pageNumber;
 }
 
 PreviewSlide::~PreviewSlide()
 {
     // Clear all contents of the label.
     // This function is called when the document is reloaded or the program is closed and everything should be cleaned up.
-    clearCache();
+    if (cache != nullptr)
+        cache->clearCache();
     qDeleteAll(links);
     linkPositions.clear();
     links.clear();
     page = nullptr;
 }
 
-void PreviewSlide::renderPage(int pageNumber, QPixmap const* pix)
+void PreviewSlide::renderPage(int pageNumber)
 {
     if (pageNumber < 0)
         pageNumber = 0;
@@ -52,11 +55,12 @@ void PreviewSlide::renderPage(int pageNumber, QPixmap const* pix)
 
     // Old cached images are useless if the label size has changed:
     if (size() != oldSize) {
-        clearCache();
+        if (cache != nullptr)
+            cache->clearCache();
         oldSize = size();
     }
 
-    QPair<double,double> scale = basicRenderPage(pageNumber, pix);
+    QPair<double,double> scale = basicRenderPage(pageNumber);
     pageIndex = pageNumber;
 
     // Show the page on the screen.
@@ -77,7 +81,7 @@ void PreviewSlide::renderPage(int pageNumber, QPixmap const* pix)
     }
 }
 
-QPair<double,double> PreviewSlide::basicRenderPage(int const pageNumber, QPixmap const* pix)
+QPair<double,double> PreviewSlide::basicRenderPage(int const pageNumber)
 {
     // Set the new page and basic properties
     page = doc->getPage(pageNumber);
@@ -104,6 +108,8 @@ QPair<double,double> PreviewSlide::basicRenderPage(int const pageNumber, QPixmap
         shifty = qint16(height()/2 - resolution/2 * pageHeight);
         shiftx = 0;
     }
+    if (cache != nullptr)
+        cache->changeResolution(resolution);
 
     // Calculate the size of the image in pixels
     double scale_x=resolution*pageWidth, scale_y=resolution*pageHeight;
@@ -115,54 +121,12 @@ QPair<double,double> PreviewSlide::basicRenderPage(int const pageNumber, QPixmap
             shiftx -= width();
     }
 
-    // Get the image
-    if (pix != nullptr) {
-        // A pixmap was passed to this function. Display this pixmap as the page image.
-        if (pagePart != FullPage) {
-            // The pixmap might show both notes and presentation.
-            // Check the width to decide whether the image shows only the relevant part or the full page.
-            if (pix->width() > 1.5*pixmap.width()) {
-                // Assume that the pixmap shows notes and presentation.
-                if (pagePart == LeftHalf)
-                    pixmap = pix->copy(0, 0, pix->width()/2, pix->height());
-                else
-                    pixmap = pix->copy(pix->width()/2, 0, pix->width()/2, pix->height());
-            }
-            else
-                pixmap = *pix;
-        }
-        else
-            pixmap = *pix;
-    }
-    else {
-        bool updateRequired = true;
-        if (cache.contains(pageIndex)) {
-            // The page exists in cache. Use the cache instead of rendering it again.
-            if (pageIndex != pageNumber)
-                pixmap = getCache(pageNumber);
-            int picwidth = int(resolution*pageWidth), picheight = int(resolution*pageHeight);
-            if (abs(picwidth-pixmap.width())<2 && abs(picheight-pixmap.height())<2)
-                updateRequired = false;
-        }
-        if (updateRequired) {
-            // A new page image has to be rendered.
-            if (pagePart == FullPage)
-                pixmap = QPixmap::fromImage(page->renderToImage(72*resolution, 72*resolution));
-            else {
-                QImage image = page->renderToImage(72*resolution, 72*resolution);
-                if (pagePart == LeftHalf)
-                    pixmap = QPixmap::fromImage(image.copy(0, 0, image.width()/2, image.height()));
-                else
-                    pixmap = QPixmap::fromImage(image.copy(image.width()/2, 0, image.width()/2, image.height()));
-            }
-            // Save this image to cache.
-            if (useCache == 1)
-                updateCache(&pixmap, pageNumber);
-        }
-    }
+    if (pageIndex != pageNumber && cache != nullptr)
+        pixmap = cache->getPixmap(pageNumber);
     return {scale_x, scale_y};
 }
 
+/*
 qint64 PreviewSlide::updateCache(QPixmap const* pix, int const index)
 {
     // Save the pixmap to (compressed) cache of page index and return the size of the compressed image.
@@ -308,6 +272,7 @@ qint64 PreviewSlide::clearCachePage(const int index)
     else
         return 0;
 }
+*/
 
 void PreviewSlide::mouseReleaseEvent(QMouseEvent* event)
 {
@@ -442,6 +407,7 @@ void PreviewSlide::mouseMoveEvent(QMouseEvent* event)
     event->accept();
 }
 
+/*
 /// Return cache and clear own cache (without deleting it!).
 QMap<int, QByteArray const*> PreviewSlide::ejectCache()
 {
@@ -460,6 +426,7 @@ void PreviewSlide::addToCache(QMap<int, QByteArray const*> newCache)
             cache[it.key()] = *it;
     }
 }
+*/
 
 void PreviewSlide::paintEvent(QPaintEvent*)
 {
@@ -469,9 +436,47 @@ void PreviewSlide::paintEvent(QPaintEvent*)
 
 void PreviewSlide::clearAll()
 {
-    clearCache();
+    if (cache != nullptr)
+        cache->clearCache();
     qDeleteAll(links);
     links.clear();
     linkPositions.clear();
     page = nullptr;
 }
+
+int PreviewSlide::getCacheNumber() const
+{
+    if (cache == nullptr)
+        return 0;
+    return cache->length();
+}
+
+qint64 PreviewSlide::getCacheSize() const
+{
+    if (cache == nullptr)
+        return 0;
+    return cache->getSizeBytes();
+}
+
+QPixmap const PreviewSlide::getPixmap(int const page)
+{
+    if (cache == nullptr)
+        return QPixmap();
+    return cache->renderPixmap(page);
+}
+
+/*
+void PreviewSlide::clearCache()
+{
+    if (cache != nullptr)
+        cache->clearCache();
+}
+
+void PreviewSlide::updateCache(int const page)
+{
+    if (cache->contains(page))
+        return;
+    cacheThread->setPage(page);
+    cacheThread->start();
+}
+*/

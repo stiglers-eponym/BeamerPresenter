@@ -18,11 +18,6 @@
 
 #include "pdfdoc.h"
 
-PdfDoc::PdfDoc(QString pathToPdf)
-{
-    pdfPath = pathToPdf;
-}
-
 PdfDoc::~PdfDoc()
 {
     qDeleteAll(pdfPages);

@@ -18,12 +18,13 @@
 
 #include "overviewbox.h"
 
-OverviewBox::OverviewBox(QWidget *parent) : QScrollArea(parent)
+OverviewBox::OverviewBox(QWidget *parent) :
+    QScrollArea(parent),
+    layout(new QGridLayout(this)),
+    client(new QWidget(this))
 {
-    client = new QWidget(this);
     setWidgetResizable(true);
     setWidget(client);
-    layout = new QGridLayout(this);
     client->setLayout(layout);
     //setShortcutEnabled(false); // TODO: check what this does
     // TODO: handle keyboard shortcuts

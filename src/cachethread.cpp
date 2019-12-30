@@ -17,6 +17,7 @@
  */
 
 #include "cachethread.h"
+#include "cachemap.h"
 
 
 void CacheThread::run()

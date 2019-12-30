@@ -29,12 +29,11 @@ void DrawPath::setEraserSize(const quint16 size)
         qWarning() << "Setting an eraser size < 1 does not make any sense. Ignoring this.";
         return;
     }
-    eraser_size=size;
+    eraser_size = size;
 }
 
 DrawPath::DrawPath(ColoredDrawTool const& tool, QPointF const& start, quint16 const eraser_size)
 {
-    path = QVector<QPointF>();
     path.append(start);
     outer = QRectF(start.x(), start.y(), 0, 0);
     this->eraser_size = eraser_size;
@@ -42,9 +41,11 @@ DrawPath::DrawPath(ColoredDrawTool const& tool, QPointF const& start, quint16 co
     updateHash();
 }
 
-DrawPath::DrawPath(ColoredDrawTool const& tool, QPointF* const points, int const number, quint16 const eraser_size)
+DrawPath::DrawPath(ColoredDrawTool const& tool, QPointF* const points, int const number, quint16 const eraser_size) :
+    path(QVector<QPointF>(number)),
+    eraser_size(eraser_size),
+    tool(tool)
 {
-    path = QVector<QPointF>(number);
     if (number == 0)
         return;
     double left=points[0].x(), right=points[0].x(), top=points[0].y(), bottom=points[0].y();
@@ -60,21 +61,19 @@ DrawPath::DrawPath(ColoredDrawTool const& tool, QPointF* const points, int const
             top = points[i].y();
     }
     outer = QRectF(left-eraser_size, top-eraser_size, right-left+2*eraser_size, bottom-top+2*eraser_size);
-    this->eraser_size = eraser_size;
-    this->tool = tool;
     updateHash();
 }
 
-DrawPath::DrawPath(DrawPath const& old, QPointF const shift, double const scale)
+DrawPath::DrawPath(DrawPath const& old, QPointF const shift, double const scale) :
+    path(QVector<QPointF>(old.path.length())),
+    tool(old.tool),
+    hash(old.hash)
 {
-    path = QVector<QPointF>(old.path.length());
     for (int i=0; i<old.path.length(); i++)
         path[i] = scale*old.path[i] + shift;
     outer = QRectF(scale*old.outer.topLeft() + shift, scale*old.outer.bottomRight() + shift);
-    eraser_size = old.eraser_size;
-    //eraser_size = quint16(scale*old.eraser_size+0.5);
-    tool = old.tool;
-    hash = old.hash;
+    eraser_size = quint16(scale*old.eraser_size+0.5);
+    //eraser_size(old.eraser_size),
 }
 
 bool DrawPath::update(DrawPath const& new_path, QPointF const shift, double const scale)
@@ -88,14 +87,13 @@ bool DrawPath::update(DrawPath const& new_path, QPointF const shift, double cons
     return true;
 }
 
-DrawPath::DrawPath(DrawPath const& old)
-{
-    path = old.path;
-    outer = old.outer;
-    eraser_size = old.eraser_size;
-    tool = old.tool;
-    hash = old.hash;
-}
+DrawPath::DrawPath(DrawPath const& old) :
+    path(old.path),
+    outer(old.outer),
+    eraser_size(old.eraser_size),
+    tool(old.tool),
+    hash(old.hash)
+{}
 
 void DrawPath::transform(QPointF const&shift, const double scale)
 {

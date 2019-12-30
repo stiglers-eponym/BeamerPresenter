@@ -26,32 +26,37 @@
 #include <QMouseEvent>
 #include "enumerates.h"
 #include "pdfdoc.h"
+#include "cachemap.h"
 
 class PreviewSlide : public QWidget
 {
     Q_OBJECT
 public:
     // Constructors and destructor.
-    explicit PreviewSlide(QWidget* parent = nullptr) : QWidget(parent) {}
+    explicit PreviewSlide(QWidget* parent = nullptr) : QWidget(parent), cache(nullptr) {}
     explicit PreviewSlide(PdfDoc const * const document, int const pageNumber, QWidget* parent=nullptr);
     ~PreviewSlide() override;
 
     // Rendering and cache. TODO: rewrite.
-    virtual void renderPage(int pageNumber, QPixmap const* pix=nullptr);
-    qint64 updateCache(int const pageNumber);
-    qint64 updateCache(QPixmap const* pix, int const index);
-    qint64 updateCache(QByteArray const* bytes, int const index);
-    qint64 clearCachePage(int const index);
-    virtual void clearCache();
-    void setUseCache(char const use) {useCache=use;}
+    virtual void renderPage(int pageNumber);
+    //qint64 updateCache(int const pageNumber);
+    //qint64 updateCache(QPixmap const* pix, int const index);
+    //qint64 updateCache(QByteArray const* bytes, int const index);
+    //qint64 clearCachePage(int const index);
+    //virtual void clearCache();
+    //void setUseCache(char const use) {useCache=use;}
+    //int getCacheNumber() const {return cache.size();}
+    //QPixmap const getCache(int const index) const;
+    //QByteArray const* getCachedBytes(int const index) const;
+    //QPixmap const getPixmap(int const pageNumber) const;
+    //bool cacheContains(int const index) const {return cache->contains(index);}
+    //QMap<int, QByteArray const*> ejectCache();
+    //void addToCache(QMap<int, QByteArray const*> newCache);
+    int getCacheNumber() const;
     qint64 getCacheSize() const;
-    int getCacheNumber() const {return cache.size();}
-    QPixmap const getCache(int const index) const;
-    QByteArray const* getCachedBytes(int const index) const;
-    QPixmap const getPixmap(int const pageNumber) const;
-    bool cacheContains(int const index) const {return cache.contains(index);}
-    QMap<int, QByteArray const*> ejectCache();
-    void addToCache(QMap<int, QByteArray const*> newCache);
+    CacheMap* getCacheMap() {return cache;}
+    QPixmap const getPixmap(int const page);
+    void overwriteCacheMap(CacheMap* newCache = nullptr) {cache = newCache;}
 
     // Set configuration.
     void setUrlSplitCharacter(QString const& splitCharacter) {urlSplitCharacter=splitCharacter;}
@@ -72,7 +77,10 @@ public:
     virtual void clearAll();
 
 protected:
+    PdfDoc const* doc = nullptr;
     Poppler::Page* page = nullptr;
+    CacheMap* cache;
+
     /// Which part of the page is shown on this label.
     PagePart pagePart = FullPage;
     qint16 shiftx = 0;
@@ -82,10 +90,9 @@ protected:
     double resolution = -1.;
     /// page number (starting from 0).
     int pageIndex = 0;
-    PdfDoc const* doc = nullptr;
     QList<Poppler::Link*> links;
     QList<QRect> linkPositions;
-    QMap<int, QByteArray const*> cache;
+    //QMap<int, QByteArray const*> cache;
     QSize oldSize;
     QString urlSplitCharacter = "";
     char useCache = 1; // 0=don't cache; 1=use cache with internal renderer; 2=use cache with external renderer
@@ -95,7 +102,7 @@ protected:
     void mouseMoveEvent(QMouseEvent* event) override;
 
     // Rendering. TODO: rewrite.
-    QPair<double,double> basicRenderPage(int const pageNumber, QPixmap const* pix);
+    QPair<double,double> basicRenderPage(int const pageNumber);
 
     /// Paint widget on the screen.
     virtual void paintEvent(QPaintEvent*) override;

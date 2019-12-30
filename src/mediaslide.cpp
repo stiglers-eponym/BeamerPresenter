@@ -43,9 +43,9 @@ void connectVideos(MediaSlide* controlSlide, MediaSlide* presentationSlide)
     }
 }
 
-MediaSlide::MediaSlide(PdfDoc const*const document, int const pageNumber, QWidget* parent) : PreviewSlide(parent)
+MediaSlide::MediaSlide(PdfDoc const*const document, int const pageNumber, QWidget* parent) :
+    PreviewSlide(document, pageNumber, parent)
 {
-    doc = document;
 #ifdef EMBEDDED_APPLICATIONS_ENABLED
     autostartEmbeddedTimer->setSingleShot(true);
     connect(autostartEmbeddedTimer, &QTimer::timeout, this, [&](){startAllEmbeddedApplications(pageIndex);});
@@ -74,7 +74,8 @@ void MediaSlide::clearAll()
     autostartEmbeddedTimer->stop();
 #endif
     clearLists();
-    clearCache();
+    if (cache != nullptr)
+        cache->clearCache();
     qDeleteAll(cachedVideoWidgets);
     cachedVideoWidgets.clear();
 #ifdef EMBEDDED_APPLICATIONS_ENABLED
@@ -111,7 +112,7 @@ void MediaSlide::clearLists()
     soundLinkPlayers.clear();
 }
 
-void MediaSlide::renderPage(int pageNumber, bool const hasDuration, QPixmap const* pix)
+void MediaSlide::renderPage(int pageNumber, bool const hasDuration)
 {
     stopAnimation();
     if (pageNumber < 0)
@@ -135,11 +136,11 @@ void MediaSlide::renderPage(int pageNumber, bool const hasDuration, QPixmap cons
 
     // Old cached images are useless if the label size has changed:
     if (size() != oldSize) {
-        clearCache();
+        cache->clearCache();
         oldSize = size();
     }
 
-    QPair<double,double> scale = basicRenderPage(pageNumber, pix);
+    QPair<double,double> scale = basicRenderPage(pageNumber);
 
     // Presentation slides can have a "duration" property.
     // In this case: go to the next page after that given time.

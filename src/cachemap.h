@@ -23,17 +23,21 @@
 #include <QMap>
 #include <QBuffer>
 #include <QByteArray>
+#include <QTimer>
 #include "pdfdoc.h"
+#include "cachethread.h"
 
 class CacheMap : public QObject
 {
     Q_OBJECT
 
 public:
-    /// Constructor
-    CacheMap(PdfDoc const* doc, QObject* parent = nullptr) : QObject(parent) {pdf=doc;}
+    /// Constructors
+    CacheMap(PdfDoc const* doc, QObject* parent = nullptr) : QObject(parent), data(), pdf(doc) {setupCacheThread();}
+    CacheMap(CacheMap& other);
     /// Destructor
     ~CacheMap();
+    void setupCacheThread();
 
     // Get images from cache.
     /// Get an image from cache if available or an empty pixmap otherwise.
@@ -43,26 +47,40 @@ public:
     /// Get an image from cache or render a new image.
     QPixmap const renderPixmap(int const page) const;
     /// Get cache size in bytes.
-    qint64 getSizeBytes() const {return sizeBytes;}
+    qint64 getSizeBytes() const {return size;}
     /// Set data from pixmap.
     qint64 setPixmap(int const page, QPixmap const* pix);
+    /// Clear cache.
+    void clearCache();
+    /// Is a page contained in cache?
+    bool contains(int const page) {return data.contains(page);}
+    /// Number of cached slides.
+    int length() const {return data.size();}
+    /// Delete a page from cache and return its size.
+    qint64 clearPage(int const page);
+
+    /// Update cache. This will start cacheTimer.
+    void updateCache(int const page);
 
     // Settings.
     void setPagePart(PagePart const part) {pagePart = part;}
-    /// Change resolution. This clears cache and changes the resolution.
+    /// Change resolution. This clears cache if the resolution actually changes.
     void changeResolution(double const res);
     /// Set custom renderer. When only empty strings are given, the renderer is set to popper (internal).
-    void setRenderer(QString const& renderCommand = "", QString const& fileName = "");
+    void setRenderer(QString const renderCommand = "") {renderer = renderCommand;}
     /// Get renderer command.
     QString const getRenderCommand(int const page) const;
     /// Get page part.
     PagePart getPagePart() const {return pagePart;}
 
+public slots:
+    void receiveBytes(int const page, QByteArray const*);
+
 private:
     /// Cached slides as png images.
     QMap<int, QByteArray const*> data;
     /// Cache size in bytes.
-    qint64 sizeBytes = 0;
+    qint64 size = 0;
     /// PDF document.
     PdfDoc const* pdf;
     /// Resolution of the pixmap.
@@ -71,6 +89,13 @@ private:
     PagePart pagePart = FullPage;
     /// Command for external renderer.
     QString renderer = "";
+
+    // These should remain nullptr if cache is disabled.
+    CacheThread* cacheThread = nullptr;
+    QTimer* cacheTimer = nullptr;
+
+signals:
+    void cacheSizeChanged(qint64 const size);
 };
 
 #endif // CACHEMAP_H

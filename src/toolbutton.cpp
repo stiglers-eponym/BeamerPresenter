@@ -123,11 +123,12 @@ static const QMap<KeyAction, QString> actionIconNames = {
     // TODO: more and better icons
 };
 
-ToolButton::ToolButton(QList<KeyAction> const actions, QColor const color, QWidget* parent) : QPushButton(parent)
+ToolButton::ToolButton(QList<KeyAction> const actions, QColor const color, QWidget* parent) :
+    QPushButton(parent),
+    color(color),
+    actions(actions)
 {
     QPalette palette;
-    this->actions = actions;
-    this->color = color;
     if (actions.size() == 0) {
         this->actions = {NoAction};
         return;

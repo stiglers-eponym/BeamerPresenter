@@ -26,7 +26,6 @@
 #include "timer.h"
 #include "pagenumberedit.h"
 #include "presentationscreen.h"
-#include "cacheupdatethread.h"
 #include "tocbox.h"
 #include "overviewbox.h"
 #include "toolselector.h"
@@ -125,8 +124,10 @@ private:
 
     // Objects handling cache: timer, and thread
     QTimer* cacheTimer = new QTimer(this);
-    CacheUpdateThread* cacheThread = new CacheUpdateThread(this);
+    //CacheUpdateThread* cacheThread = new CacheUpdateThread(this);
     bool cacheAll = true;
+
+    void cachePage(int const page);
 
     // Widgets shown above notes: TOC, overview, and drawSlide
     /// Widget showing the table of contents on the control screen.
@@ -147,11 +148,11 @@ private:
     /// Maximum number of slides in cache.
     int maxCacheNumber = 10;
     /// Maximum size of cache in bytes. Note that cache can get larger than this size in some situations.
-    qint64 maxCacheSize = 104857600;
+    qint64 maxCacheSize = 104857600L;
     /// Cached preview slides for standard sidebar width.
-    QMap<int, QByteArray const*> previewCache;
+    CacheMap* previewCache = nullptr;
     /// Cached preview slides for different sidebar width.
-    QMap<int, QByteArray const*> previewCacheX;
+    CacheMap* previewCacheX = nullptr;
 
     /// Maximum relative width of the notes slide.
     /// This equals one minus minimum width of the side bar.
@@ -172,6 +173,8 @@ private:
     QSize oldSize;
     /// Total number of pages
     int numberOfPages;
+    /// Number of slides in cache.
+    int cacheNumber = 0;
 
     // Variables used for cache management
     /// All pages < first_delete are not saved in cache.
@@ -186,8 +189,6 @@ private:
     int last_cached = -1;
     /// Memory used by cache in bytes.
     qint64 cacheSize = 0;
-    /// Number of cached pages.
-    int cacheNumber = 0;
 
 private slots:
     /// Select a page which should be rendered to cache and free cache space if necessary.
@@ -198,7 +199,7 @@ public slots:
     /// Handle actions sent from key event or tool selector.
     bool handleKeyAction(KeyAction const action);
     /// Receive cached slide as png images.
-    void receiveCache(QByteArray const* pres, QByteArray const* note, QByteArray const* small, int const index);
+    //void receiveCache(QByteArray const* pres, QByteArray const* note, QByteArray const* small, int const index);
     /// Receive a TOC destination and go the the corresponding slide.
     void receiveDest(QString const& dest);
     /// Go to last overlay of previous slide.
@@ -225,6 +226,8 @@ public slots:
     void clearPresentationCache();
     /// Show notes. This hides other widgets which can be shown above notes (TOC, overview, draw slide).
     void showNotes();
+    /// Change cache size.
+    void updateCacheSize(qint64 const diff) {cacheSize += diff;}
 
 signals:
     /// Send a new page number with or without starting a timer for the new slide.

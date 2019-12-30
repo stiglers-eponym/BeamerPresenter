@@ -18,9 +18,10 @@
 
 #include "overviewframe.h"
 
-OverviewFrame::OverviewFrame(int const page, QWidget* parent) : QLabel(parent)
+OverviewFrame::OverviewFrame(int const page, QWidget* parent) :
+    QLabel(parent),
+    page(page)
 {
-    this->page = page;
     setAlignment(Qt::AlignCenter);
 }
 

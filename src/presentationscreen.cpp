@@ -18,10 +18,13 @@
 
 #include "presentationscreen.h"
 
-PresentationScreen::PresentationScreen(PdfDoc* presentationDoc, QWidget* parent) : QWidget(parent)
+PresentationScreen::PresentationScreen(PdfDoc* presentationDoc, QWidget* parent) :
+    QWidget(parent),
+    layout(new QGridLayout(this)),
+    presentation(presentationDoc),
+    slide(new PresentationSlide(presentationDoc, this))
 {
     //setAttribute(Qt::WA_NativeWindow);
-    presentation = presentationDoc;
     setGeometry(0, 0, 1920, 1080);
     setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Ignored);
     setMinimumSize(120, 90);
@@ -31,8 +34,6 @@ PresentationScreen::PresentationScreen(PdfDoc* presentationDoc, QWidget* parent)
     numberOfPages = presentationDoc->getDoc()->numPages();
 
     // slide will contain the slide as a pixmap
-    slide = new PresentationSlide(presentation, this);
-    layout = new QGridLayout(this);
     layout->setContentsMargins(0, 0, 0, 0);
     layout->addWidget(slide, 0, 0);
     slide->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
@@ -63,7 +64,8 @@ void PresentationScreen::renderPage(int const pageNumber, bool const setDuration
 
 void PresentationScreen::resizeEvent(QResizeEvent*)
 {
-    slide->clearCache();
+    if (slide->getCacheMap() != nullptr)
+        slide->getCacheMap()->clearCache();
     slide->renderPage(slide->pageNumber(), false);
     emit clearPresentationCacheRequest();
 }

@@ -18,9 +18,9 @@
 
 #include "presentationslide.h"
 
-PresentationSlide::PresentationSlide(PdfDoc const*const document, QWidget* parent) : DrawSlide(parent)
+PresentationSlide::PresentationSlide(PdfDoc const*const document, QWidget* parent) :
+    DrawSlide(document, 0, parent)
 {
-    doc = document;
     seed = static_cast<unsigned int>(std::hash<std::string>{}(doc->getPath().split('/').last().toStdString()));
     connect(&timer, &QTimer::timeout, this, QOverload<>::of(&PresentationSlide::repaint));
     timeoutTimer->setSingleShot(true);
