@@ -19,13 +19,14 @@
 #include "controlscreen.h"
 #include "ui_controlscreen.h"
 
-// TODO: tidy up! Separate and reorganize cache management; reorganize signals, slots, events, ...
+// TODO: tidy up! reorganize signals, slots, events, ...
 
 /// Construct control screen.
 /// Create the GUI including PresentationScreen and connect the widgets.
-ControlScreen::ControlScreen(QString presentationPath, QString notesPath, QWidget* parent) :
+ControlScreen::ControlScreen(QString presentationPath, QString notesPath, PagePart const page, QWidget* parent) :
     QMainWindow(parent),
-    ui(new Ui::ControlScreen)
+    ui(new Ui::ControlScreen),
+    pagePart(page)
 {
     // Check if files are valid.
     {
@@ -56,6 +57,10 @@ ControlScreen::ControlScreen(QString presentationPath, QString notesPath, QWidge
             }
         }
     }
+    if (notesPath != "" && pagePart != FullPage) {
+        qCritical() << "Provided additional notes file, but page-part is not full page. Ignoring option for page-part.";
+        pagePart = FullPage;
+    }
     // Create the UI for the control screen.
     ui->setupUi(this);
 
@@ -80,7 +85,7 @@ ControlScreen::ControlScreen(QString presentationPath, QString notesPath, QWidge
 
     // Set up presentation screen.
     // The presentation screen is shown immediately.
-    presentationScreen = new PresentationScreen(presentation);
+    presentationScreen = new PresentationScreen(presentation, pagePart);
     // Set the window title.
     presentationScreen->setWindowTitle("BeamerPresenter: " + presentationPath);
 
@@ -97,17 +102,18 @@ ControlScreen::ControlScreen(QString presentationPath, QString notesPath, QWidge
             notesPath = "";
         }
     }
-    // Set up the notes widget as a draw slide.
     if (notesPath.isEmpty()) {
-        // TODO: handle PagePart
-
+        setWindowTitle("BeamerPresenter: " + presentationPath);
         // The files are equal.
         notes = presentation;
-        setWindowTitle("BeamerPresenter: " + presentationPath);
+    }
+    if (notesPath.isEmpty() && pagePart == FullPage) {
+        // No notes are given.
+        // Set up the notes widget as a draw slide.
         // The old notes_widget (type MediaSlide) is not required anymore. It will be replaced by a DrawSlide object.
         delete ui->notes_widget;
         // Create the draw slide.
-        ui->notes_widget = new DrawSlide(presentation, 0, this);
+        ui->notes_widget = new DrawSlide(presentation, 0, FullPage, this);
         // ui->notes_widget can get focus.
         ui->notes_widget->setFocusPolicy(Qt::ClickFocus);
         // drawSlide equals notes_widget.
@@ -143,24 +149,19 @@ ControlScreen::ControlScreen(QString presentationPath, QString notesPath, QWidge
         connect(drawSlide->getCacheMap(), &CacheMap::cacheSizeChanged, this, &ControlScreen::updateCacheSize);
     }
     else {
-        ui->notes_widget->setDoc(notes);
-        ui->notes_widget->overwriteCacheMap(new CacheMap(notes, this));
+        ui->notes_widget->setDoc(notes, static_cast<PagePart>(-pagePart));
+        ui->notes_widget->overwriteCacheMap(new CacheMap(notes, static_cast<PagePart>(-pagePart), this));
     }
 
     // Send pdf documents to slide widgets on control screen.
-    ui->current_slide->setDoc(presentation);
-    ui->next_slide->setDoc(presentation);
+    ui->current_slide->setDoc(presentation, pagePart);
+    ui->next_slide->setDoc(presentation, pagePart);
 
     // Set common cache for preview slides.
-    previewCache = new CacheMap(presentation, this);
-    previewCacheX = new CacheMap(presentation, this); // TODO: create this only if necessary
+    previewCache = new CacheMap(presentation, pagePart, this);
+    previewCacheX = new CacheMap(presentation, pagePart, this); // TODO: create this only if necessary
     ui->current_slide->overwriteCacheMap(previewCache);
     ui->next_slide->overwriteCacheMap(previewCache);
-
-    qDebug() << "previewCache: " << previewCache;
-    qDebug() << "previewCacheX:" << previewCacheX;
-    qDebug() << "presentation cache:" << presentationScreen->slide->getCacheMap() << presentationScreen->slide;
-    qDebug() << "notes cache:" << ui->notes_widget->getCacheMap() << ui->notes_widget;
 
     // Connect cache maps.
     connect(previewCache, &CacheMap::cacheSizeChanged, this, &ControlScreen::updateCacheSize);
@@ -351,35 +352,6 @@ ControlScreen::~ControlScreen()
     delete presentation;
     // Delete the user interface.
     delete ui;
-}
-
-/// Set pagePart (notes contained in pdf pages of presentation).
-/// This is used for documents created with LaTeX beamer with \setbeameroption{show notes on second screen=[left or right]}.
-void ControlScreen::setPagePart(PagePart const pagePart)
-{
-    this->pagePart = pagePart;
-    ui->notes_widget = new DrawSlide(presentation, 0, this);
-    // Set page part for presentation slide.
-    presentationScreen->slide->setPagePart(pagePart);
-    // Set the page part for notes widget and cache thread.
-    switch (pagePart) {
-    case FullPage:
-        ui->notes_widget->setPagePart(FullPage);
-        break;
-    case LeftHalf:
-        ui->notes_widget->setPagePart(RightHalf);
-        break;
-    case RightHalf:
-        ui->notes_widget->setPagePart(LeftHalf);
-        break;
-    }
-    // Set page part for current and next slide preview.
-    ui->current_slide->setPagePart(pagePart);
-    ui->next_slide->setPagePart(pagePart);
-    if (drawSlide != nullptr)
-        drawSlide->setPagePart(pagePart);
-    previewCache->setPagePart(pagePart);
-    previewCacheX->setPagePart(pagePart);
 }
 
 /// Adapt the layout of the control screen based on the aspect ratios of presentation and notes slides.
@@ -1617,7 +1589,6 @@ void ControlScreen::setRenderer(QStringList command)
         drawSlide->getCacheMap()->setRenderer(program);
     previewCache->setRenderer(program);
     previewCacheX->setRenderer(program);
-    qDebug() << "set render command to" << program << presentation->getPath() << notes->getPath() << command;
     return;
 }
 
@@ -1700,7 +1671,7 @@ void ControlScreen::showDrawSlide()
     // Draw slide and tool selector
     if (drawSlide == nullptr) {
         // Create the draw slide.
-        drawSlide = new DrawSlide(presentation, currentPageNumber, this);
+        drawSlide = new DrawSlide(presentation, currentPageNumber, pagePart, this);
         // ui->notes_widget can get focus.
         drawSlide->setFocusPolicy(Qt::ClickFocus);
         // draw slide should not use cache.

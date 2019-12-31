@@ -56,8 +56,13 @@ void DrawSlide::clearPageAnnotations()
 void DrawSlide::paintEvent(QPaintEvent*)
 {
     QPainter painter(this);
-    if (pixpaths.isNull() || end_cache < 1)
-        painter.drawPixmap(shiftx, shifty, pixmap);
+    qDebug() << shiftx << shifty << pixmap.size() << this;
+    if (pixpaths.isNull() || end_cache < 1) {
+        if (pagePart == RightHalf)
+            painter.drawPixmap(shiftx + width(), shifty, pixmap);
+        else
+            painter.drawPixmap(shiftx, shifty, pixmap);
+    }
     else
         painter.drawPixmap(0, 0, pixpaths);
     drawAnnotations(painter);
@@ -144,8 +149,12 @@ void DrawSlide::updatePathCache()
         }
         QPainter painter;
         painter.begin(&pixpaths);
-        if (end_cache == -1)
+        if (end_cache == -1) {
+        if (pagePart == RightHalf)
+            painter.drawPixmap(shiftx + width(), shifty, pixmap);
+        else
             painter.drawPixmap(shiftx, shifty, pixmap);
+        }
         painter.setRenderHint(QPainter::Antialiasing);
         drawPaths(painter, page->label());
         end_cache = paths[page->label()].length();

@@ -199,10 +199,3 @@ bool CacheMap::updateCache(int const page)
     cacheThread->start();
     return true;
 }
-
-void CacheMap::setPagePart(const PagePart part)
-{
-    if (pagePart != part)
-        clearCache();
-    pagePart = part;
-}

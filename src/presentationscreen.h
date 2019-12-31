@@ -31,7 +31,7 @@ class PresentationScreen : public QWidget
     friend class ControlScreen;
 
 public:
-    explicit PresentationScreen(PdfDoc* presentationDoc, QWidget* parent = nullptr);
+    explicit PresentationScreen(PdfDoc* presentationDoc, PagePart const part, QWidget* parent = nullptr);
     ~PresentationScreen() override;
     void renderPage(int const pageNumber = 0, bool const setDuration = true);
     int getPageNumber() const {return slide->pageNumber();}

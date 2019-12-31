@@ -43,7 +43,7 @@ class ControlScreen : public QMainWindow
 
 public:
     // Constructor and destructor
-    explicit ControlScreen(QString presentationPath, QString notesPath = "", QWidget* parent = nullptr);
+    explicit ControlScreen(QString presentationPath, QString notesPath = "", PagePart const page = FullPage, QWidget* parent = nullptr);
     ~ControlScreen() override;
 
     // Render pages on the control screen
@@ -52,7 +52,6 @@ public:
     void updateCache();
 
     // Functions setting different properties from options (only used from main.cpp)
-    void setPagePart(PagePart const pagePart);
     void setColor(QColor const bgColor = Qt::gray, QColor const textColor = Qt::black);
     void setPresentationColor(QColor const color = Qt::black);
 #ifdef EMBEDDED_APPLICATIONS_ENABLED

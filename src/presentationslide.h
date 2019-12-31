@@ -60,7 +60,7 @@ protected:
     void clearLists() override;
 
 public:
-    PresentationSlide(PdfDoc const*const document, QWidget* parent=nullptr);
+    PresentationSlide(PdfDoc const*const document, PagePart const part, QWidget* parent=nullptr);
     ~PresentationSlide() override;
     QPixmap const& getCurrentPixmap() const {return pixmap;}
     void initGlitter();

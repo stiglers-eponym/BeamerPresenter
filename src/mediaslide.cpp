@@ -43,8 +43,8 @@ void connectVideos(MediaSlide* controlSlide, MediaSlide* presentationSlide)
     }
 }
 
-MediaSlide::MediaSlide(PdfDoc const*const document, int const pageNumber, QWidget* parent) :
-    PreviewSlide(document, pageNumber, parent)
+MediaSlide::MediaSlide(PdfDoc const*const document, int const pageNumber, PagePart const part, QWidget* parent) :
+    PreviewSlide(document, pageNumber, part, parent)
 {
 #ifdef EMBEDDED_APPLICATIONS_ENABLED
     autostartEmbeddedTimer->setSingleShot(true);

@@ -30,7 +30,7 @@ class DrawSlide : public MediaSlide
     Q_OBJECT
 public:
     explicit DrawSlide(QWidget* parent=nullptr) : MediaSlide(parent) {}
-    explicit DrawSlide(PdfDoc const*const document, int const pageNumber, QWidget* parent=nullptr) : MediaSlide(document, pageNumber, parent) {}
+    explicit DrawSlide(PdfDoc const*const document, int const pageNumber, PagePart const part, QWidget* parent=nullptr) : MediaSlide(document, pageNumber, part, parent) {}
     ~DrawSlide() override {clearAllAnnotations(); clearAll();}
     void clearPageAnnotations();
     void clearAllAnnotations();

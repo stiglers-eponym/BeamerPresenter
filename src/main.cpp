@@ -511,16 +511,11 @@ int main(int argc, char *argv[])
     }
 
 
-    // Create the GUI.
-    /// ctrlScreen will be the object which manages everything.
-    /// It is the window shown on the speaker's monitor.
-    /// If the option "-n" or "--no-notes" is set, ctrlScreen is not shown, but still controls everything.
-    ControlScreen* ctrlScreen;
-    // In the following ctrlScreen will be created using the positional arguments.
-    // When ctrlScreen is created, the presentation is immediately shown.
+
 
     // Handle positional arguments.
     // These should be either: 1 pdf file (the presentation) or 2 pdf files (presentation and notes) or 1 json file (the local configuration) or 1 BeamerPresenter drawings file.
+    QString presentation, notes;
     switch (parser.positionalArguments().size()) {
     case 1:
         {
@@ -542,7 +537,7 @@ int main(int argc, char *argv[])
         // If file is a pdf file, it is interpreted as the presentation file.
         if (type.suffixes().contains("pdf", Qt::CaseInsensitive)) {
             // Set up ctrlScreen using the argument as the presentation file.
-            ctrlScreen = new ControlScreen(parser.positionalArguments()[0]);
+            presentation = parser.positionalArguments()[0];
             break;
         }
         // If file is a JSON file, it is interpreted as a local configuration file.
@@ -565,10 +560,9 @@ int main(int argc, char *argv[])
                 // Check whether the JSON document contains the keys "presentation" and "notes".
                 // Use these corresponding options as files to construct ctrlScreen.
                 if (local.contains("presentation")) {
+                    presentation = local.value("presentation").toString();
                     if (local.contains("notes"))
-                        ctrlScreen = new ControlScreen(local.value("presentation").toString(), local.value("notes").toString());
-                    else
-                        ctrlScreen = new ControlScreen(local.value("presentation").toString());
+                        notes = local.value("notes").toString();
                     break;
                 }
                 // else: this will lead to an error (see later).
@@ -595,8 +589,7 @@ int main(int argc, char *argv[])
                     // Overwrite QDataStream version with the version read from the stream.
                     stream.setVersion(version);
                     // Read file paths for presentation and notes.
-                    QString prespath, notepath;
-                    stream >> prespath >> notepath;
+                    stream >> presentation >> notes;
                     // Check for errors.
                     if (stream.status() != QDataStream::Ok) {
                         qCritical() << "Failed to open drawings file" << parser.positionalArguments()[0] << ". File is corrupt";
@@ -604,13 +597,12 @@ int main(int argc, char *argv[])
                     }
                     // Check whether presentation file exists.
                     // This check could be left out (it is repeated in the constructure of ControlScreen), but like this it provides a more detailed error message.
-                    if (!QFileInfo(prespath).exists()) {
-                        qCritical() << "Failed to open PDF file" << prespath << "refered to in" << parser.positionalArguments()[0] << ". File does not exist.";
+                    if (!QFileInfo(presentation).exists()) {
+                        qCritical() << "Failed to open PDF file" << presentation << "refered to in" << parser.positionalArguments()[0] << ". File does not exist.";
                         return 1;
                     }
                     // Create ctrlScreen.
                     // notespath can be empty, which is handled correctly in the constructure of ControlScreen.
-                    ctrlScreen = new ControlScreen(prespath, notepath);
                     // Set the drawings file as a drawings file in local configuration.
                     // Later this option in local will be used to load the drawings saved in the drawings file.
                     local["drawings"] = parser.positionalArguments()[0];
@@ -626,47 +618,44 @@ int main(int argc, char *argv[])
         // Two positional arguments are given.
         // Assume that these are the two PDF files for presentation and notes.
         // All checks are done in the constructur of ControlScreen.
-        ctrlScreen = new ControlScreen(parser.positionalArguments()[0], parser.positionalArguments()[1]);
+        presentation = parser.positionalArguments()[0];
+        notes = parser.positionalArguments()[1];
         break;
     case 0:
         // No positional arguments given.
         // Check whether a local configuration file defines a local presentation file.
         if (local.contains("presentation")) {
             // Check whether notes are also given and create ctrlScreen.
+            presentation = local.value("presentation").toString();
             if (local.contains("notes"))
-                ctrlScreen = new ControlScreen(local.value("presentation").toString(), local.value("notes").toString());
-            else
-                ctrlScreen = new ControlScreen(local.value("presentation").toString());
+                notes = local.value("notes").toString();
         }
         else {
             // Find pdf files using a QFileDialog.
             // First open a QFileDialog to find a presentation file.
             /// QString containing path of presentation file
-            QString presentationPath = QFileDialog::getOpenFileName(nullptr, "Open Slides", "", "Documents (*.pdf)");
+            presentation = QFileDialog::getOpenFileName(nullptr, "Open Slides", "", "Documents (*.pdf)");
             // Check whether a file was selected.
-            if (presentationPath.isEmpty()) {
+            if (presentation.isEmpty()) {
                 qCritical() << "No presentation file specified";
                 // Exit with error showing help message.
                 parser.showHelp(1);
             }
-            /// QString containing path of notes file
-            QString notesPath = "";
             // Check if the presentation file should include notes (beamer option show notes on second screen).
             // If the presenation file is interpreted as a normal presentation, open a note file in a QFileDialog.
             if (parser.value("p").isEmpty()) {
                 if (!settings.contains("page-part") || settings.value("page-part").toString()=="none" || settings.value("page-part").toString()=="0") {
                     // Option "page-part" (indicating that the presentation should contain notes) is not set.
                     // Open notes in second QFileDialog. By default the presentation file is selected.
-                    notesPath = QFileDialog::getOpenFileName(nullptr, "Open Notes", presentationPath, "Documents (*.pdf)");
+                    notes = QFileDialog::getOpenFileName(nullptr, "Open Notes", presentation, "Documents (*.pdf)");
                 }
             }
             else if (parser.value("p")=="none" || parser.value("p")=="0") {
                 // The value of "page-part" explicitly states that the presentation file does not contain notes.
                 // Open notes in second QFileDialog. By default the presentation file is selected.
-                notesPath = QFileDialog::getOpenFileName(nullptr, "Open Notes", presentationPath, "Documents (*.pdf)");
+                notes = QFileDialog::getOpenFileName(nullptr, "Open Notes", presentation, "Documents (*.pdf)");
             }
             // Create ctrlScreen.
-            ctrlScreen = new ControlScreen(presentationPath, notesPath);
         }
         break;
     default:
@@ -674,6 +663,60 @@ int main(int argc, char *argv[])
         qCritical() << "Received more than 2 positional arguments.";
         // Exit with error showing help message.
         parser.showHelp(1);
+    }
+
+    ControlScreen* ctrlScreen;
+    {
+        PagePart pagePart = FullPage;
+        // Split page if necessary (beamer option show notes on second screen).
+        // With this option half of the pages in a pdf document contain the presentation and the other half contains the notes.
+        bool found = false;
+        // Check whether the command line arguments contain the option "page-part"
+        if (!parser.value("p").isEmpty()) {
+            QString value = parser.value("p");
+            if ( value == "r" || value == "right" ) {
+                pagePart = RightHalf;
+                found = true;
+            }
+            else if ( value == "l" || value == "left" ) {
+                pagePart = LeftHalf;
+                found = true;
+            }
+            else if (value != "none" && value != "0")
+                qCritical() << "option \"" << value << "\" to page-part not understood.";
+        }
+        // Check whether the local configuration contains the option "page-part"
+        if (!found && local.contains("page-part")) {
+            QString value = settings.value("page-part").toString();
+            if ( value == "r" || value == "right" ) {
+                pagePart = RightHalf;
+                found = true;
+            }
+            else if ( value == "l" || value == "left" ) {
+                pagePart = LeftHalf;
+                found = true;
+            }
+            else if (value != "none" && value != "0")
+                qCritical() << "option \"" << value << "\" to page-part in local config not understood.";
+        }
+        // Check whether the global configuration contains the option "page-part"
+        if (!found && settings.contains("page-part")) {
+                QString value = settings.value("page-part").toString();
+                if ( value == "r" || value == "right" )
+                    pagePart = RightHalf;
+                else if ( value == "l" || value == "left" )
+                    pagePart = LeftHalf;
+                else if (value != "none" && value != "0")
+                    qCritical() << "option \"" << value << "\" to page-part in config not understood.";
+        }
+
+        // Create the GUI.
+        /// ctrlScreen will be the object which manages everything.
+        /// It is the window shown on the speaker's monitor.
+        /// If the option "-n" or "--no-notes" is set, ctrlScreen is not shown, but still controls everything.
+        ctrlScreen = new ControlScreen(presentation, notes, pagePart);
+        // In the following ctrlScreen will be created using the positional arguments.
+        // When ctrlScreen is created, the presentation is immediately shown.
     }
 
 
@@ -1107,51 +1150,6 @@ int main(int argc, char *argv[])
         ctrlScreen->setTimerMap(map);
     }
 
-
-    // Handle non-standard options (not just strings, numbers or boolean values)
-    {
-        // Split page if necessary (beamer option show notes on second screen).
-        // With this option half of the pages in a pdf document contain the presentation and the other half contains the notes.
-        bool found = false;
-        // Check whether the command line arguments contain the option "page-part"
-        if (!parser.value("p").isEmpty()) {
-            QString value = parser.value("p");
-            if ( value == "r" || value == "right" ) {
-                ctrlScreen->setPagePart(RightHalf);
-                found = true;
-            }
-            else if ( value == "l" || value == "left" ) {
-                ctrlScreen->setPagePart(LeftHalf);
-                found = true;
-            }
-            else if (value != "none" && value != "0")
-                qCritical() << "option \"" << value << "\" to page-part not understood.";
-        }
-        // Check whether the local configuration contains the option "page-part"
-        if (!found && local.contains("page-part")) {
-            QString value = settings.value("page-part").toString();
-            if ( value == "r" || value == "right" ) {
-                ctrlScreen->setPagePart(RightHalf);
-                found = true;
-            }
-            else if ( value == "l" || value == "left" ) {
-                ctrlScreen->setPagePart(LeftHalf);
-                found = true;
-            }
-            else if (value != "none" && value != "0")
-                qCritical() << "option \"" << value << "\" to page-part in local config not understood.";
-        }
-        // Check whether the global configuration contains the option "page-part"
-        if (!found && settings.contains("page-part")) {
-                QString value = settings.value("page-part").toString();
-                if ( value == "r" || value == "right" )
-                    ctrlScreen->setPagePart(RightHalf);
-                else if ( value == "l" || value == "left" )
-                    ctrlScreen->setPagePart(LeftHalf);
-                else if (value != "none" && value != "0")
-                    qCritical() << "option \"" << value << "\" to page-part in config not understood.";
-        }
-    }
 
 
     // Simple options: just strings

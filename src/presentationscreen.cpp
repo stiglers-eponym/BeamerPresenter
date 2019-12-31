@@ -17,12 +17,13 @@
  */
 
 #include "presentationscreen.h"
+#include "enumerates.h"
 
-PresentationScreen::PresentationScreen(PdfDoc* presentationDoc, QWidget* parent) :
+PresentationScreen::PresentationScreen(PdfDoc* presentationDoc, PagePart const part, QWidget* parent) :
     QWidget(parent),
     layout(new QGridLayout(this)),
     presentation(presentationDoc),
-    slide(new PresentationSlide(presentationDoc, this))
+    slide(new PresentationSlide(presentationDoc, part, this))
 {
     //setAttribute(Qt::WA_NativeWindow);
     setGeometry(0, 0, 1920, 1080);

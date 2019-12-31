@@ -33,7 +33,7 @@ class MediaSlide : public PreviewSlide
     Q_OBJECT
 public:
     explicit MediaSlide(QWidget* parent=nullptr);
-    explicit MediaSlide(PdfDoc const * const document, int const pageNumber, QWidget* parent=nullptr);
+    explicit MediaSlide(PdfDoc const * const document, int const pageNumber, PagePart const part, QWidget* parent=nullptr);
     ~MediaSlide() override {clearAll();}
     void renderPage(int pageNumber, bool const hasDuration);
     void setCacheVideos(bool const cacheThem) {cacheVideos=cacheThem;}

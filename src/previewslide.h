@@ -34,7 +34,7 @@ class PreviewSlide : public QWidget
 public:
     // Constructors and destructor.
     explicit PreviewSlide(QWidget* parent = nullptr) : QWidget(parent), cache(nullptr) {}
-    explicit PreviewSlide(PdfDoc const * const document, int const pageNumber, QWidget* parent=nullptr);
+    explicit PreviewSlide(PdfDoc const * const document, int const pageNumber, PagePart const part, QWidget* parent=nullptr);
     ~PreviewSlide() override;
 
     // Rendering and cache.
@@ -47,9 +47,8 @@ public:
 
     // Set configuration.
     void setUrlSplitCharacter(QString const& splitCharacter) {urlSplitCharacter=splitCharacter;}
-    void setPagePart(PagePart const state);
     /// Set pdf document;
-    void setDoc(PdfDoc const*const document) {doc=document;}
+    void setDoc(PdfDoc const*const document, PagePart const part) {doc=document; pagePart=part;}
 
     /// Get current page number
     int pageNumber() const {return pageIndex;}

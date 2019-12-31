@@ -33,7 +33,7 @@ class CacheMap : public QObject
 
 public:
     /// Constructors
-    CacheMap(PdfDoc const* doc, QObject* parent = nullptr) : QObject(parent), data(), pdf(doc) {setupCacheThread();}
+    CacheMap(PdfDoc const* doc, PagePart const part, QObject* parent = nullptr) : QObject(parent), data(), pdf(doc), pagePart(part) {setupCacheThread();}
     CacheMap(CacheMap& other);
     /// Destructor
     ~CacheMap();
@@ -65,7 +65,6 @@ public:
     bool threadRunning() {return cacheThread != nullptr && cacheThread->isRunning();}
 
     // Settings.
-    void setPagePart(PagePart const part);
     /// Change resolution. This clears cache if the resolution actually changes.
     void changeResolution(double const res);
     /// Set custom renderer. When only empty strings are given, the renderer is set to popper (internal).

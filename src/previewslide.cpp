@@ -18,10 +18,11 @@
 
 #include "previewslide.h"
 
-PreviewSlide::PreviewSlide(PdfDoc const * const document, int const pageNumber, QWidget* parent) :
+PreviewSlide::PreviewSlide(PdfDoc const * const document, int const pageNumber, PagePart const part, QWidget* parent) :
     QWidget(parent),
     doc(document),
-    cache(new CacheMap(document)),
+    cache(new CacheMap(document, part)),
+    pagePart(part),
     pageIndex(pageNumber)
 {
     renderPage(pageNumber);
@@ -263,7 +264,11 @@ void PreviewSlide::mouseMoveEvent(QMouseEvent* event)
 void PreviewSlide::paintEvent(QPaintEvent*)
 {
     QPainter painter(this);
-    painter.drawPixmap(shiftx, shifty, pixmap);
+    qDebug() << shiftx << shifty << pixmap.size() << this;
+    if (pagePart == RightHalf)
+        painter.drawPixmap(shiftx + width(), shifty, pixmap);
+    else
+        painter.drawPixmap(shiftx, shifty, pixmap);
 }
 
 void PreviewSlide::clearAll()
@@ -295,11 +300,4 @@ QPixmap const PreviewSlide::getPixmap(int const page)
     if (cache == nullptr)
         return QPixmap();
     return cache->getPixmap(page);
-}
-
-void PreviewSlide::setPagePart(const PagePart state)
-{
-    pagePart = state;
-    if (cache != nullptr)
-        cache->setPagePart(state);
 }
