@@ -223,7 +223,7 @@ void PresentationSlide::animate(int const oldPageIndex) {
     picwidth = quint16(pixmap.width());
     picheight = quint16(pixmap.height());
     Poppler::PageTransition const* transition = page->transition();
-    if (transition == nullptr) {
+    if (transition == nullptr || transition->type() == Poppler::PageTransition::Replace) {
         transition_duration = 0;
         remainTimer.start(0);
         return;
@@ -238,12 +238,6 @@ void PresentationSlide::animate(int const oldPageIndex) {
     updateImages(oldPageIndex);
     remainTimer.setInterval(transition_duration-2);
     switch (transition->type()) {
-    case Poppler::PageTransition::Replace:
-        {
-        transition_duration = 0;
-        remainTimer.start(0);
-        return;
-        }
     case Poppler::PageTransition::Split:
         qDebug () << "Transition split";
         if (transition->alignment() == Poppler::PageTransition::Horizontal) {
@@ -504,6 +498,10 @@ void PresentationSlide::animate(int const oldPageIndex) {
         qDebug () << "Transition fade";
         paint = &PresentationSlide::paintFade;
         break;
+    default:
+        transition_duration = 0;
+        remainTimer.start(0);
+        return;
     }
     emit requestUpdateNotes(pageIndex, false);
     remainTimer.start();

@@ -134,11 +134,6 @@ void MediaSlide::renderPage(int pageNumber, bool const hasDuration)
     else
         clearLists();
 
-    // Old cached images are useless if the label size has changed:
-    if (size() != oldSize) {
-        cache->clearCache();
-    }
-
     QPair<double,double> scale = basicRenderPage(pageNumber);
 
     // Presentation slides can have a "duration" property.

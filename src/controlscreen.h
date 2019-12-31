@@ -63,7 +63,6 @@ public:
     void setForceTouchpad();
     void setCacheNumber(int const number);
     void setCacheSize(qint64 const size);
-    void setCacheAll(bool const cache_all) {cacheAll = cache_all;}
     void setTocLevel(quint8 const level);
     void setOverviewColumns(quint8 const columns) {if (overviewBox != nullptr) overviewBox->setColumns(columns);}
     void setRenderer(QStringList command);
@@ -111,6 +110,8 @@ private:
     // Start embedded applications on all slides.
     void startAllEmbeddedApplications();
 #endif
+    /// Terminate all cache processes.
+    void interruptCacheProcesses(unsigned long const time = 0);
 
     // User interface (created from controlscreen.ui)
     Ui::ControlScreen* ui;
@@ -123,8 +124,6 @@ private:
 
     // Objects handling cache: timer, and thread
     QTimer* cacheTimer = new QTimer(this);
-    //CacheUpdateThread* cacheThread = new CacheUpdateThread(this);
-    bool cacheAll = true;
 
     void cachePage(int const page);
 
@@ -152,6 +151,8 @@ private:
     CacheMap* previewCache = nullptr;
     /// Cached preview slides for different sidebar width.
     CacheMap* previewCacheX = nullptr;
+    /// Cached draw slide.
+    CacheMap* drawSlideCache = nullptr;
 
     /// Maximum relative width of the notes slide.
     /// This equals one minus minimum width of the side bar.
@@ -174,6 +175,8 @@ private:
     int numberOfPages;
     /// Number of slides in cache.
     int cacheNumber = 0;
+    /// Number of currently running cache threads.
+    int cacheThreadsRunning = 0;
 
     // Variables used for cache management
     /// All pages < first_delete are not saved in cache.
@@ -224,7 +227,9 @@ public slots:
     /// Show notes. This hides other widgets which can be shown above notes (TOC, overview, draw slide).
     void showNotes();
     /// Change cache size.
-    void updateCacheSize(qint64 const diff);
+    void updateCacheSize(qint64 const diff) {cacheSize += diff;}
+    /// Check whether cache threads finished.
+    void cacheThreadFinished();
 
 signals:
     /// Send a new page number with or without starting a timer for the new slide.

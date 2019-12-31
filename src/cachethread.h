@@ -31,18 +31,23 @@ class CacheThread : public QThread
     Q_OBJECT
 
 private:
+    int newPage = 0;
     int page = 0;
     CacheMap const* cacheMap;
+    QByteArray const* bytes = nullptr;
 
 public:
     CacheThread(QObject* parent = nullptr) : QThread(parent), cacheMap(nullptr) {}
     CacheThread(CacheMap const* cache, QObject* parent = nullptr) : QThread(parent), cacheMap(cache) {}
     void setCacheMap(CacheMap const* cache) {cacheMap = cache;}
-    void setPage(int const pageNumber) {page = pageNumber;}
+    void setPage(int const pageNumber) {newPage = pageNumber;}
+    /// This must be called exactly once after run() finished.
+    QByteArray const* getBytes();
+    int getPage() const {return page;}
     void run() override;
 
-signals:
-    void resultsReady(int const page, QByteArray const* pres);
+//signals:
+    //void resultsReady(int const page, QByteArray const* pres);
 };
 
 #endif // CACHETHREAD_H

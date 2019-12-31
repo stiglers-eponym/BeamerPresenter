@@ -20,11 +20,14 @@
 
 CacheMap::~CacheMap()
 {
+    cacheTimer->stop();
+    cacheThread->requestInterruption();
+    cacheThread->wait(10000);
+    cacheThread->exit();
+    delete cacheThread;
     qDeleteAll(data);
     data.clear();
     delete cacheTimer;
-    // TODO: correctly kill thread
-    delete cacheThread;
 }
 
 CacheMap::CacheMap(CacheMap& other) :
@@ -42,13 +45,17 @@ CacheMap::CacheMap(CacheMap& other) :
         cacheThread->setCacheMap(this);
 }
 
-void CacheMap::setupCacheThread()
+CacheMap::CacheMap(PdfDoc const* doc, PagePart const part, QObject* parent)
+    : QObject(parent),
+      data(),
+      pdf(doc),
+      pagePart(part)
 {
-    cacheThread = new CacheThread(this, parent());
+    cacheThread = new CacheThread(this, this);
     cacheTimer = new QTimer(this);
     cacheTimer->setSingleShot(true);
     connect(cacheTimer, &QTimer::timeout, this, [&](){cacheTimer->start();}); // TODO: find a more elegant way.
-    connect(cacheThread, &CacheThread::resultsReady, this, &CacheMap::receiveBytes);
+    connect(cacheThread, &CacheThread::finished, this, &CacheMap::receiveBytes);
 }
 
 /// Write the pixmap in png format to a QBytesArray at *value(page).
@@ -72,7 +79,7 @@ qint64 CacheMap::setPixmap(int const page, QPixmap const* pix)
 
 void CacheMap::clearCache()
 {
-    //qDebug() << "Clear cache" << this << parent();
+    qDebug() << "Clear cache" << this << parent();
     qDeleteAll(data);
     data.clear();
 }
@@ -125,6 +132,8 @@ QPixmap const CacheMap::getPixmap(int const page)
         emit cacheSizeChanged(-data[page]->size());
         data.remove(page);
     }
+    if (resolution <= 0.)
+        return pixmap;
     if (renderCommand.isEmpty()) {
         pixmap = renderPixmap(page);
         emit cacheSizeChanged(setPixmap(page, &pixmap));
@@ -180,19 +189,25 @@ qint64 CacheMap::clearPage(const int page)
     return pageSize;
 }
 
-void CacheMap::receiveBytes(int const page, QByteArray const* bytes)
+void CacheMap::receiveBytes()
 {
-    if (bytes == nullptr || bytes->isEmpty())
-        return;
-    qint64 size_diff = bytes->size();
-    if (data.contains(page))
-        size_diff -= data[page]->size();
-    data[page] = bytes;
-    emit cacheSizeChanged(size_diff);
+    QByteArray const* bytes = cacheThread->getBytes();
+    if (bytes != nullptr && !bytes->isEmpty()) {
+        qint64 size_diff = bytes->size();
+        int const page = cacheThread->getPage();
+        if (data.contains(page))
+            size_diff -= data[page]->size();
+        data[page] = bytes;
+        emit cacheSizeChanged(size_diff);
+    }
+    qDebug() << "Cache thread finished:" << this << parent();
+    emit cacheThreadFinished();
 }
 
 bool CacheMap::updateCache(int const page)
 {
+    if (resolution <= 0.)
+        return false;
     if (data.contains(page))
         return false;
     cacheThread->setPage(page);

@@ -54,12 +54,6 @@ void PreviewSlide::renderPage(int pageNumber)
     linkPositions.clear();
     links.clear();
 
-    // Old cached images are useless if the label size has changed:
-    if (size() != oldSize) {
-        if (cache != nullptr)
-            cache->clearCache();
-    }
-
     QPair<double,double> scale = basicRenderPage(pageNumber);
     pageIndex = pageNumber;
 
@@ -124,7 +118,8 @@ QPair<double,double> PreviewSlide::basicRenderPage(int const pageNumber)
     qDebug() << "get pixmap?" << pageIndex << pageNumber << oldSize << size() << cache << this;
     if ((pageIndex != pageNumber || oldSize != size()) && cache != nullptr)
         pixmap = cache->getPixmap(pageNumber);
-    oldSize = size();
+    if (cache != nullptr)
+        oldSize = size();
     return {scale_x, scale_y};
 }
 

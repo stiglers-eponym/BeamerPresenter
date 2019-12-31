@@ -33,11 +33,11 @@ class CacheMap : public QObject
 
 public:
     /// Constructors
-    CacheMap(PdfDoc const* doc, PagePart const part, QObject* parent = nullptr) : QObject(parent), data(), pdf(doc), pagePart(part) {setupCacheThread();}
+    CacheMap(PdfDoc const* doc, PagePart const part = FullPage, QObject* parent = nullptr);
     CacheMap(CacheMap& other);
     /// Destructor
     ~CacheMap();
-    void setupCacheThread();
+    CacheThread* getCacheThread() {return cacheThread;}
 
     // Get images from cache.
     /// Get an image from cache if available or an empty pixmap otherwise.
@@ -73,9 +73,11 @@ public:
     QString const getRenderCommand(int const page) const;
     /// Get page part.
     PagePart getPagePart() const {return pagePart;}
+    /// Is a valid resolution given?
+    //bool isValid() const {return resolution > 0;}
 
 public slots:
-    void receiveBytes(int const page, QByteArray const*);
+    void receiveBytes();
 
 private:
     /// Cached slides as png images.
@@ -85,7 +87,7 @@ private:
     /// PDF document.
     PdfDoc const* pdf;
     /// Resolution of the pixmap.
-    double resolution = 0.;
+    double resolution = -1.;
     /// Part of the page showing the relevant part for this cache.
     PagePart pagePart = FullPage;
     /// Command for external renderer.
@@ -97,6 +99,7 @@ private:
 
 signals:
     void cacheSizeChanged(qint64 const size);
+    void cacheThreadFinished();
 };
 
 #endif // CACHEMAP_H

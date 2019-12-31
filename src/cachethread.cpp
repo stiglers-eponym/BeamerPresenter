@@ -23,56 +23,54 @@
 void CacheThread::run()
 {
     // Handle one page. This page should not change while rendering.
-    int const page = this->page;
-    //qDebug() << "Cache page" << page << cacheMap << cacheMap->parent();
+    page = newPage;
     QString renderCommand = cacheMap->getRenderCommand(page);
     if (renderCommand.isEmpty()) {
         QPixmap pixmap = cacheMap->renderPixmap(page);
         if (isInterruptionRequested())
             return;
-        QByteArray* bytes = new QByteArray();
-        QBuffer buffer(bytes);
+        QByteArray* bytes_nonconst = new QByteArray();
+        QBuffer buffer(bytes_nonconst);
         buffer.open(QIODevice::WriteOnly);
-        if (!pixmap.save(&buffer, "PNG"))
-            return;
-        if (isInterruptionRequested())
-            delete bytes;
-        else
-            emit resultsReady(page, bytes);
+        pixmap.save(&buffer, "PNG");
+        bytes = bytes_nonconst;
     }
     else {
         ExternalRenderer* renderer = new ExternalRenderer(page);
         renderer->start(renderCommand);
         if (!renderer->waitForFinished(60000)) {
             renderer->kill();
+            bytes = nullptr;
             delete renderer;
             return;
         }
-        QByteArray const* bytes = renderer->getBytes();
+        bytes = renderer->getBytes();
         delete renderer;
-        if (cacheMap->getPagePart() == FullPage) {
-            if (bytes != nullptr)
-                emit resultsReady(page, bytes);
-            return;
+        if (cacheMap->getPagePart() != FullPage) {
+            if (isInterruptionRequested()) {
+                delete bytes;
+                bytes = nullptr;
+                return;
+            }
+            QPixmap pixmap;
+            pixmap.loadFromData(*bytes, "PNG");
+            delete bytes;
+            if (cacheMap->getPagePart() == LeftHalf)
+                pixmap = pixmap.copy(0, 0, pixmap.width()/2, pixmap.height());
+            else
+                pixmap = pixmap.copy(pixmap.width()/2, 0, pixmap.width()/2, pixmap.height());
+            QByteArray* bytes_nonconst = new QByteArray();
+            QBuffer buffer(bytes_nonconst);
+            buffer.open(QIODevice::WriteOnly);
+            pixmap.save(&buffer, "PNG");
+            bytes = bytes_nonconst;
         }
-        if (isInterruptionRequested())
-            return;
-        QPixmap pixmap;
-        pixmap.loadFromData(*bytes, "PNG");
-        delete bytes;
-        if (cacheMap->getPagePart() == LeftHalf)
-            pixmap = pixmap.copy(0, 0, pixmap.width()/2, pixmap.height());
-        else
-            pixmap = pixmap.copy(pixmap.width()/2, 0, pixmap.width()/2, pixmap.height());
-        QByteArray* newBytes = new QByteArray();
-        QBuffer buffer(newBytes);
-        buffer.open(QIODevice::WriteOnly);
-        if (!pixmap.save(&buffer, "PNG"))
-            return;
-        if (isInterruptionRequested()) {
-            delete newBytes;
-            return;
-        }
-        emit resultsReady(page, newBytes);
     }
+}
+
+QByteArray const* CacheThread::getBytes()
+{
+    QByteArray const* returnBytes = bytes;
+    bytes = nullptr;
+    return returnBytes;
 }
