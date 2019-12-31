@@ -276,20 +276,6 @@ void PreviewSlide::clearAll()
     page = nullptr;
 }
 
-int PreviewSlide::getCacheNumber() const
-{
-    if (cache == nullptr)
-        return 0;
-    return cache->length();
-}
-
-qint64 PreviewSlide::getCacheSize() const
-{
-    if (cache == nullptr)
-        return 0;
-    return cache->getSizeBytes();
-}
-
 QPixmap const PreviewSlide::getPixmap(int const page)
 {
     if (cache == nullptr)

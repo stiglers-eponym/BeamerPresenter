@@ -46,8 +46,8 @@ public:
     QPixmap const getPixmap(int const page);
     /// Get an image from cache or render a new image.
     QPixmap const renderPixmap(int const page) const;
-    /// Get cache size in bytes.
-    qint64 getSizeBytes() const {return size;}
+    /// Calculate and return cache ssize in bytes.
+    qint64 getSizeBytes() const;
     /// Set data from pixmap.
     qint64 setPixmap(int const page, QPixmap const* pix);
     /// Clear cache.
@@ -62,7 +62,7 @@ public:
     /// Update cache. This will start cacheTimer.
     bool updateCache(int const page);
     /// Is a cache thread running?
-    bool threadRunning() {return cacheThread != nullptr && cacheThread->isRunning();}
+    bool threadRunning() {return cacheThread->isRunning();}
 
     // Settings.
     /// Change resolution. This clears cache if the resolution actually changes.
@@ -82,8 +82,6 @@ public slots:
 private:
     /// Cached slides as png images.
     QMap<int, QByteArray const*> data;
-    /// Cache size in bytes.
-    qint64 size = 0;
     /// PDF document.
     PdfDoc const* pdf;
     /// Resolution of the pixmap.
@@ -94,8 +92,8 @@ private:
     QString renderCommand = "";
 
     // These should remain nullptr if cache is disabled.
-    CacheThread* cacheThread = nullptr;
-    QTimer* cacheTimer = nullptr;
+    CacheThread* cacheThread;
+    QTimer* cacheTimer;
 
 signals:
     void cacheSizeChanged(qint64 const size);

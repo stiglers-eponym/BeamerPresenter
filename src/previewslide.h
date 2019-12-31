@@ -39,11 +39,10 @@ public:
 
     // Rendering and cache.
     virtual void renderPage(int pageNumber);
-    int getCacheNumber() const;
-    qint64 getCacheSize() const;
     CacheMap* getCacheMap() {return cache;}
+    CacheMap const* getCacheMap() const {return cache;}
     QPixmap const getPixmap(int const page);
-    void overwriteCacheMap(CacheMap* newCache = nullptr) {cache = newCache;}
+    void overwriteCacheMap(CacheMap* newCache) {cache = newCache;}
 
     // Set configuration.
     void setUrlSplitCharacter(QString const& splitCharacter) {urlSplitCharacter=splitCharacter;}

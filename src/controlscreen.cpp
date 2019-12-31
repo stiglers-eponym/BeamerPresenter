@@ -57,12 +57,11 @@ ControlScreen::ControlScreen(QString presentationPath, QString notesPath, PagePa
             }
         }
     }
+    // Check whether pagePart is compatible with notesPath.
     if (notesPath != "" && pagePart != FullPage) {
         qCritical() << "Provided additional notes file, but page-part is not full page. Ignoring option for page-part.";
         pagePart = FullPage;
     }
-    // Create the UI for the control screen.
-    ui->setupUi(this);
 
     // Create the presentation pdf document.
     presentation = new PdfDoc(presentationPath);
@@ -81,7 +80,7 @@ ControlScreen::ControlScreen(QString presentationPath, QString notesPath, PagePa
     maxCacheNumber = numberOfPages;
     // last_delete points to the last page which has not been deleted yet.
     // No pages have been deleted from cache yet.
-    last_delete = numberOfPages-1;
+    last_delete = numberOfPages - 1;
 
     // Set up presentation screen.
     // The presentation screen is shown immediately.
@@ -89,24 +88,32 @@ ControlScreen::ControlScreen(QString presentationPath, QString notesPath, PagePa
     // Set the window title.
     presentationScreen->setWindowTitle("BeamerPresenter: " + presentationPath);
 
+    // Create the UI for the control screen.
+    ui->setupUi(this);
+
     // Load the notes pdf document if a separate notes file is given.
     if (!notesPath.isEmpty()) {
         // Create the notes document.
         notes = new PdfDoc(notesPath);
         // Load the document and check whether it was loaded successfully.
-        if (notes->loadDocument())
-            setWindowTitle("BeamerPresenter: " + notesPath);
-        else {
+        if (!notes->loadDocument()) {
             qCritical() << "File could not be opened as PDF: " << notesPath;
             // Notes path is reset to "" and no notes file is loaded.
             notesPath = "";
+            delete notes;
         }
     }
+
+    // Set the window title.
     if (notesPath.isEmpty()) {
         setWindowTitle("BeamerPresenter: " + presentationPath);
         // The files are equal.
         notes = presentation;
     }
+    else
+        setWindowTitle("BeamerPresenter: " + notesPath);
+
+    // Set up the slide widgets.
     if (notesPath.isEmpty() && pagePart == FullPage) {
         // No notes are given.
         // Set up the notes widget as a draw slide.
@@ -145,9 +152,6 @@ ControlScreen::ControlScreen(QString presentationPath, QString notesPath, PagePa
 
         // drawSlide should be muted, because it shows the same video content as the presentation slide.
         drawSlide->setMuted(true);
-
-        connect(drawSlide->getCacheMap(), &CacheMap::cacheSizeChanged, this, &ControlScreen::updateCacheSize);
-        connect(drawSlide->getCacheMap(), &CacheMap::cacheThreadFinished, this, &ControlScreen::cacheThreadFinished);
     }
     else {
         ui->notes_widget->setDoc(notes, static_cast<PagePart>(-pagePart));
@@ -160,15 +164,12 @@ ControlScreen::ControlScreen(QString presentationPath, QString notesPath, PagePa
 
     // Set common cache for preview slides.
     previewCache = new CacheMap(presentation, pagePart, this);
-    previewCacheX = new CacheMap(presentation, pagePart, this); // TODO: create this only if necessary
     ui->current_slide->overwriteCacheMap(previewCache);
     ui->next_slide->overwriteCacheMap(previewCache);
 
     // Connect cache maps.
     connect(previewCache, &CacheMap::cacheSizeChanged, this, &ControlScreen::updateCacheSize);
     connect(previewCache, &CacheMap::cacheThreadFinished, this, &ControlScreen::cacheThreadFinished);
-    connect(previewCacheX, &CacheMap::cacheSizeChanged, this, &ControlScreen::updateCacheSize);
-    connect(previewCacheX, &CacheMap::cacheThreadFinished, this, &ControlScreen::cacheThreadFinished);
     connect(ui->notes_widget->getCacheMap(), &CacheMap::cacheSizeChanged, this, &ControlScreen::updateCacheSize);
     connect(ui->notes_widget->getCacheMap(), &CacheMap::cacheThreadFinished, this, &ControlScreen::cacheThreadFinished);
     connect(presentationScreen->slide->getCacheMap(), &CacheMap::cacheSizeChanged, this, &ControlScreen::updateCacheSize);
@@ -280,7 +281,7 @@ ControlScreen::ControlScreen(QString presentationPath, QString notesPath, PagePa
     connect(ui->text_current_slide, &PageNumberEdit::sendPageNumberEdit,   this, &ControlScreen::receiveNewPageNumber);
     // Using arrow keys in page number editor shifts the notes pages on the control screen.
     // Currently the key bindings in the page number editor cannot be configured.
-    connect(ui->text_current_slide, &PageNumberEdit::sendPageShiftEdit,    this, &ControlScreen::receivePageShiftEdit);
+    connect(ui->text_current_slide, &PageNumberEdit::sendPageShiftEdit,    this, [&](int const shift){renderPage(currentPageNumber+shift);});
     // Using arrow keys "up" and "down" navigate to the previous or next page skipping overlays.
     connect(ui->text_current_slide, &PageNumberEdit::sendNextSlideStart,   this, &ControlScreen::receiveNextSlideStart);
     connect(ui->text_current_slide, &PageNumberEdit::sendPreviousSlideEnd, this, &ControlScreen::receivePreviousSlideEnd);
@@ -338,7 +339,10 @@ ControlScreen::~ControlScreen()
 
     // Delete preview cache
     previewCache->clearCache();
-    previewCacheX->clearCache();
+    if (previewCacheX != nullptr)
+        previewCacheX->clearCache();
+    ui->current_slide->overwriteCacheMap(previewCache);
+    ui->next_slide->overwriteCacheMap(previewCache);
 
     // Delete notes pdf.
     if (notes != presentation)
@@ -363,7 +367,10 @@ void ControlScreen::recalcLayout(const int pageNumber)
     if (size() != oldSize) {
         // Delete preview cache
         previewCache->clearCache();
-        previewCacheX->clearCache();
+        if (previewCacheX != nullptr)
+            previewCacheX->clearCache();
+        if (drawSlideCache != nullptr)
+            drawSlideCache->clearCache();
     }
 
     // Calculate the size of the side bar.
@@ -592,17 +599,26 @@ void ControlScreen::updateCache()
     // This (re)initializes the variables for cache management and starts the cacheTimer, which manages cache updates in a separate thread.
 
     if (maxCacheSize == 0 || maxCacheNumber == 0) {
-        // cache is disabled
+        // The cache managment cannot be turned of.
+        // If cache is disabled by setting maxCacheSize=0 or maxCacheNumber=0,
+        // cache needs to be cleared manually.
+        presentationScreen->slide->getCacheMap()->clearCache();
+        ui->notes_widget->getCacheMap()->clearCache();
+        previewCache->clearCache();
+        if (previewCacheX != nullptr)
+            previewCacheX->clearCache();
+        if (drawSlideCache != nullptr)
+            drawSlideCache->clearCache();
         return;
     }
 
     // Stop running cache updates
     cacheTimer->stop();
     // Number of currently cached slides
-    cacheNumber = presentationScreen->slide->getCacheNumber();
+    cacheNumber = presentationScreen->slide->getCacheMap()->length();
     if (
             cacheNumber == numberOfPages
-            && ui->notes_widget->getCacheNumber() == numberOfPages
+            && ui->notes_widget->getCacheMap()->length() == numberOfPages
             && previewCache->length() == numberOfPages
             ) {
         // All slides are cached
@@ -610,12 +626,13 @@ void ControlScreen::updateCache()
     }
     // Size of currently cached slides in memory (set to -infinity if it should be ignored)
     if (maxCacheSize > 0) {
-        cacheSize = presentationScreen->slide->getCacheSize()
-                + ui->notes_widget->getCacheSize()
-                + previewCache->getSizeBytes()
-                + previewCacheX->getSizeBytes();
-        if (drawSlide != nullptr && drawSlide != ui->notes_widget)
-            cacheSize += drawSlide->getCacheSize();
+        cacheSize = presentationScreen->slide->getCacheMap()->getSizeBytes()
+                + ui->notes_widget->getCacheMap()->getSizeBytes()
+                + previewCache->getSizeBytes();
+        if (previewCacheX != nullptr)
+            cacheSize += previewCacheX->getSizeBytes();
+        if (drawSlideCache != nullptr)
+            cacheSize += drawSlideCache->getSizeBytes();
     }
     else
         // This is approximately -infinity and means that the cache size is unlimited:
@@ -675,6 +692,7 @@ void ControlScreen::updateCacheStep()
     *    Otherwise it starts cacheTimer again.
     */
 
+    qDebug() << "Update cache step" << cacheThreadsRunning << cacheSize << maxCacheSize << cacheNumber << maxCacheNumber;
 
     // TODO: improve this, make it more deterministic, avoid caching pages which will directly be freed again
     if (
@@ -691,28 +709,17 @@ void ControlScreen::updateCacheStep()
     while (cacheSize > maxCacheSize || cacheNumber > maxCacheNumber) {
         // Start deleting later slides if less than 1/4 of the caches slides are previous slides
         if (last_delete > 4*currentPageNumber - 3*first_delete) {
-            cacheSize -= presentationScreen->slide->getCacheMap()->clearPage(last_delete)
-                        + ui->notes_widget->getCacheMap()->clearPage(last_delete)
-                        + previewCache->clearPage(last_delete);
-            if (drawSlide != nullptr && drawSlide != ui->notes_widget)
-                cacheSize -= drawSlide->getCacheMap()->clearPage(last_delete)
-                            + previewCacheX->clearPage(last_delete);
-            qDebug() << "Freed last page" << last_delete << ". Cache size" << cacheSize << "B";
+            if (freeCachePage(last_delete))
+                break;
             last_delete--;
             last_cached = last_delete > last_cached ? last_cached : last_delete;
         }
         else {
-            cacheSize -= presentationScreen->slide->getCacheMap()->clearPage(first_delete)
-                        + ui->notes_widget->getCacheMap()->clearPage(first_delete)
-                        + previewCache->clearPage(first_delete);
-            if (drawSlide != nullptr && drawSlide != ui->notes_widget)
-                cacheSize -= drawSlide->getCacheMap()->clearPage(first_delete)
-                            + previewCacheX->clearPage(first_delete);
-            qDebug() << "Freed first page" << first_delete << ". Cache size" << cacheSize << "B";
+            if (freeCachePage(first_delete))
+                break;
             first_delete++;
             first_cached = first_cached > first_delete ? first_cached : first_delete;
         }
-        cacheNumber = presentationScreen->slide->getCacheNumber();
         if (last_cached > last_delete || first_cached < first_delete) {
             cacheTimer->stop();
             qDebug() << "Stopped cache timer: need to reset cache region." << first_delete << first_cached << currentPageNumber << last_cached << last_delete;
@@ -723,7 +730,7 @@ void ControlScreen::updateCacheStep()
         if (
                 first_cached > first_delete
                 && 2*maxCacheSize > 3*cacheSize
-                && (maxCacheNumber==numberOfPages || 2*maxCacheNumber > 3*cacheNumber)
+                && (maxCacheNumber == numberOfPages || 2*maxCacheNumber > 3*cacheNumber)
                 ) {
             // cache first_cached-1
             cachePage(--first_cached);
@@ -737,13 +744,20 @@ void ControlScreen::updateCacheStep()
     }
     // Don't continue if it is likely that the next cached page would directly be deleted.
     else if (
-             // The remaining space is smaller than twice the average space needed per frame.
-             (maxCacheSize-cacheSize)*cacheNumber < 2*cacheSize
-             // And all or many slides (compared to maxCacheNumber) following the current slide are contained in cache.
-             && (last_cached == last_delete || 3*(last_cached-currentPageNumber+1) >= 2*maxCacheNumber)
+             // At least 2/3 of all cached presentation slides are actually contained in the connected cache region.
+             3*cacheNumber >= 2*presentationScreen->slide->getCacheMap()->length()
+             // More than 2/3 of available cache space is occupied.
+             && 2*maxCacheSize < 3*cacheSize
+             // Enough slides (compared to cache size) after current slide are contained in cache.
+             && (last_cached == numberOfPages || 3*(last_cached - currentPageNumber)*cacheSize > 2*cacheNumber*maxCacheSize)
+             // The remaining cache space is smaller than twice the average space needed per slide.
+             && (maxCacheSize - cacheSize)*cacheNumber < 2*cacheSize
+             // The remaining cache size is less than twice the average size needed for a presentation slide.
+             //&& presentationScreen->slide->getCacheMap()->getSizeBytes() > 3*(maxCacheSize - cacheSize)*presentationScreen->slide->getCacheMap()->length()
              ) {
         cacheTimer->stop();
         qDebug() << "Stopped cache timer" << first_delete << first_cached << currentPageNumber << last_cached << last_delete;
+        qDebug() << maxCacheSize << cacheSize << cacheNumber;
         return;
     }
     else {
@@ -752,23 +766,45 @@ void ControlScreen::updateCacheStep()
     }
 }
 
+bool ControlScreen::freeCachePage(const int page)
+{
+    // Delete page from cache.
+    if (drawSlideCache != nullptr) {
+        cacheSize -= drawSlideCache->clearPage(page);
+        if (cacheSize <= maxCacheSize && cacheNumber <= maxCacheNumber)
+            return true;
+    }
+    cacheSize -= ui->notes_widget->getCacheMap()->clearPage(page);
+    if (cacheSize <= maxCacheSize && cacheNumber <= maxCacheNumber)
+        return true;
+    if (previewCacheX != nullptr)
+        cacheSize -= previewCacheX->clearPage(page);
+    cacheSize -= previewCache->clearPage(page);
+    if (cacheSize <= maxCacheSize && cacheNumber <= maxCacheNumber)
+        return true;
+    cacheSize -= presentationScreen->slide->getCacheMap()->clearPage(page);
+    qDebug() << "Freed page" << page << ". Cache size" << cacheSize << "B";
+    cacheNumber = presentationScreen->slide->getCacheMap()->length();
+    return false;
+}
+
 void ControlScreen::cachePage(const int page)
 {
     qDebug() << "Cache page" << page;
     cacheTimer->stop();
     cacheThreadsRunning = 0;
-    if (presentationScreen->slide->getCacheMap()->updateCache(page))
+    if (presentationScreen->slide->getCacheMap()->updateCache(page)) {
         cacheThreadsRunning++;
+        cacheNumber++;
+    }
     if(ui->notes_widget->getCacheMap()->updateCache(page))
         cacheThreadsRunning++;
     if (previewCache->updateCache(page))
         cacheThreadsRunning++;
-    if (drawSlide != nullptr && drawSlide != ui->notes_widget) {
-        if (drawSlide->getCacheMap()->updateCache(page))
-            cacheThreadsRunning++;
-        if (previewCacheX != nullptr && previewCacheX->updateCache(page))
-            cacheThreadsRunning++;
-    }
+    if (drawSlideCache != nullptr && drawSlideCache->updateCache(page))
+        cacheThreadsRunning++;
+    if (previewCacheX != nullptr && previewCacheX->updateCache(page))
+        cacheThreadsRunning++;
     if (cacheThreadsRunning == 0)
         cacheTimer->start();
 }
@@ -791,7 +827,7 @@ void ControlScreen::setCacheNumber(int const number)
 
 void ControlScreen::cacheThreadFinished()
 {
-    qDebug() << "Cache thread finished:" << cacheThreadsRunning-1;
+    //qDebug() << "Cache thread finished:" << cacheThreadsRunning-1;
     if (--cacheThreadsRunning == 0)
         cacheTimer->start();
 }
@@ -801,9 +837,7 @@ void ControlScreen::setCacheSize(qint64 const size)
     // Set maximum memory used for cached pages (in bytes).
     // A negative number is interpreted as infinity.
     if (cacheSize==0) {
-        //ui->current_slide->setUseCache(0);
-        //ui->notes_widget->setUseCache(0);
-        //presentationScreen->slide->setUseCache(0);
+        // TODO
     }
     maxCacheSize = size;
 }
@@ -838,15 +872,6 @@ void ControlScreen::receiveDest(QString const& dest)
         emit sendNewPageNumber(pageNumber, true);
         renderPage(pageNumber);
         ui->label_timer->continueTimer();
-        updateCache();
-    }
-}
-
-void ControlScreen::receivePageShiftEdit(int const shift)
-{
-    // Shift the page shown on the control screen without changing the presentation screen.
-    if (currentPageNumber + shift >= 0) {
-        renderPage(currentPageNumber + shift);
         updateCache();
     }
 }
@@ -1375,12 +1400,14 @@ void ControlScreen::resizeEvent(QResizeEvent* event)
     previewCache->clearCache();
     if (previewCacheX != nullptr)
         previewCacheX->clearCache();
+    if (drawSlideCache != nullptr)
+        drawSlideCache->clearCache();
     overviewBox->setOutdated();
     // Render current page.
     ui->notes_widget->renderPage(ui->notes_widget->pageNumber(), false);
     ui->current_slide->renderPage(ui->current_slide->pageNumber());
     ui->next_slide->renderPage(ui->next_slide->pageNumber());
-    if (drawSlide != nullptr && drawSlide != ui->notes_widget)
+    if (drawSlideCache != nullptr)
         drawSlide->renderPage(presentationScreen->getPageNumber(), false);
 }
 
@@ -1596,10 +1623,11 @@ void ControlScreen::setRenderer(QStringList command)
     QString program = command.join(" ");
     presentationScreen->slide->getCacheMap()->setRenderer(program);
     ui->notes_widget->getCacheMap()->setRenderer(program);
-    if (drawSlide != nullptr && drawSlide != ui->notes_widget)
-        drawSlide->getCacheMap()->setRenderer(program);
     previewCache->setRenderer(program);
-    previewCacheX->setRenderer(program);
+    if (drawSlideCache != nullptr)
+        drawSlideCache->setRenderer(program);
+    if (previewCacheX != nullptr)
+        previewCacheX->setRenderer(program);
     return;
 }
 
@@ -1721,26 +1749,30 @@ void ControlScreen::showDrawSlide()
     // Recalculate layout. The layout can change because presentation and notes slides can have different aspect ratios.
     // Switch common cache for preview slides if the geometry changes.
     if (presentation->getPageSize(currentPageNumber) != notes->getPageSize(currentPageNumber)) {
-        ui->current_slide->overwriteCacheMap();
-        ui->next_slide->overwriteCacheMap();
+        // Temporarily set cache to nullptr to avoid clearing cache.
+        ui->current_slide->overwriteCacheMap(nullptr);
+        ui->next_slide->overwriteCacheMap(nullptr);
     }
     recalcLayout(currentPageNumber);
     // drawSlide is drawn on top of the notes widget. It should thus have the same geometry.
     if (drawSlideCache == nullptr) {
         drawSlideCache = new CacheMap(presentation, pagePart, this);
-        first_cached = currentPageNumber;
-        last_cached = currentPageNumber-1;
-        first_delete = 0;
-        last_delete = numberOfPages-1;
-        qDebug() << "Reset cache region" << first_delete << first_cached << currentPageNumber << last_cached << last_delete;
         connect(drawSlideCache, &CacheMap::cacheSizeChanged, this, &ControlScreen::updateCacheSize);
         connect(drawSlideCache, &CacheMap::cacheThreadFinished, this, &ControlScreen::cacheThreadFinished);
     }
+    first_cached = currentPageNumber;
+    last_cached = currentPageNumber-1;
+    first_delete = 0;
+    last_delete = numberOfPages-1;
+    qDebug() << "Reset cache region" << first_delete << first_cached << currentPageNumber << last_cached << last_delete;
     drawSlide->overwriteCacheMap(drawSlideCache);
     //drawSlide->renderPage(presentationScreen->getPageNumber(), false);
     if (presentation->getPageSize(currentPageNumber) != notes->getPageSize(currentPageNumber)) {
-        if (previewCacheX == nullptr)
+        if (previewCacheX == nullptr) {
             previewCacheX = new CacheMap(presentation, pagePart, this);
+            connect(previewCacheX, &CacheMap::cacheSizeChanged, this, &ControlScreen::updateCacheSize);
+            connect(previewCacheX, &CacheMap::cacheThreadFinished, this, &ControlScreen::cacheThreadFinished);
+        }
         ui->current_slide->overwriteCacheMap(previewCacheX);
         ui->next_slide->overwriteCacheMap(previewCacheX);
     }
@@ -1784,15 +1816,15 @@ void ControlScreen::hideDrawSlide()
     // TODO: fix this: switching while a video is playing leads to broken VideoWidgets
     if (drawSlide != nullptr && drawSlide != ui->notes_widget) {
         drawSlide->hide();
-        drawSlide->overwriteCacheMap();
+        drawSlide->overwriteCacheMap(nullptr);
         delete drawSlide;
         drawSlide = nullptr;
     }
     ui->notes_widget->show();
     // Switch common cache for preview slides if the geometry changes.
-    if (presentation->getPageSize(currentPageNumber) != notes->getPageSize(currentPageNumber)) {
-        ui->current_slide->overwriteCacheMap();
-        ui->next_slide->overwriteCacheMap();
+    if (ui->current_slide->getCacheMap() != previewCache) {
+        ui->current_slide->overwriteCacheMap(nullptr);
+        ui->next_slide->overwriteCacheMap(nullptr);
     }
     recalcLayout(currentPageNumber);
     if (presentation->getPageSize(currentPageNumber) != notes->getPageSize(currentPageNumber)) {
@@ -1852,8 +1884,8 @@ void ControlScreen::interruptCacheProcesses(const unsigned long time)
     previewCache->getCacheThread()->requestInterruption();
     if (previewCacheX != nullptr)
         previewCacheX->getCacheThread()->requestInterruption();
-    if (drawSlide != nullptr && drawSlide != ui->notes_widget)
-        drawSlide->getCacheMap()->getCacheThread()->requestInterruption();
+    if (drawSlideCache != nullptr)
+        drawSlideCache->getCacheThread()->requestInterruption();
     if (time != 0) {
         if (!previewCache->getCacheThread()->wait(time))
             qWarning() << "Cache thread previewCache not stopped after" << time << "ms";
@@ -1861,7 +1893,7 @@ void ControlScreen::interruptCacheProcesses(const unsigned long time)
             qWarning() << "Cache thread previewCacheX not stopped after" << time << "ms";
         if (!ui->notes_widget->getCacheMap()->getCacheThread()->wait(time))
             qWarning() << "Cache thread notes not stopped after" << time << "ms";
-        if (drawSlide != nullptr && drawSlide != ui->notes_widget && drawSlide->getCacheMap()->getCacheThread()->wait(time))
+        if (drawSlideCache != nullptr && drawSlideCache->getCacheThread()->wait(time))
             qWarning() << "Cache thread draw slide not stopped after" << time << "ms";
         if (!presentationScreen->slide->getCacheMap()->getCacheThread()->wait(time))
             qWarning() << "Cache thread presentation not stopped after" << time << "ms";
@@ -1869,8 +1901,8 @@ void ControlScreen::interruptCacheProcesses(const unsigned long time)
         if (previewCacheX != nullptr)
             previewCacheX->getCacheThread()->exit();
         ui->notes_widget->getCacheMap()->getCacheThread()->exit();
-        if (drawSlide != nullptr && drawSlide != ui->notes_widget)
-            drawSlide->getCacheMap()->getCacheThread()->exit();
+        if (drawSlideCache != nullptr)
+            drawSlideCache->getCacheThread()->exit();
         presentationScreen->slide->getCacheMap()->getCacheThread()->exit();
     }
 }

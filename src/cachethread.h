@@ -37,7 +37,6 @@ private:
     QByteArray const* bytes = nullptr;
 
 public:
-    CacheThread(QObject* parent = nullptr) : QThread(parent), cacheMap(nullptr) {}
     CacheThread(CacheMap const* cache, QObject* parent = nullptr) : QThread(parent), cacheMap(cache) {}
     void setCacheMap(CacheMap const* cache) {cacheMap = cache;}
     void setPage(int const pageNumber) {newPage = pageNumber;}
@@ -45,9 +44,6 @@ public:
     QByteArray const* getBytes();
     int getPage() const {return page;}
     void run() override;
-
-//signals:
-    //void resultsReady(int const page, QByteArray const* pres);
 };
 
 #endif // CACHETHREAD_H

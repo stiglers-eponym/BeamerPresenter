@@ -102,20 +102,22 @@ protected:
     void wheelEvent(QWheelEvent* event) override;
 
 private:
-    // Update layout (if window size is changed).
+    /// Update layout (if window size is changed).
     void recalcLayout(int const pageNumber);
-    // Reload pdf files.
+    /// Reload pdf files.
     void reloadFiles();
 #ifdef EMBEDDED_APPLICATIONS_ENABLED
-    // Start embedded applications on all slides.
+    /// Start embedded applications on all slides.
     void startAllEmbeddedApplications();
 #endif
     /// Terminate all cache processes.
     void interruptCacheProcesses(unsigned long const time = 0);
+    /// Free a page from cache. Should only be called from updateCacheStep.
+    bool freeCachePage(const int page);
 
-    // User interface (created from controlscreen.ui)
+    /// User interface (created from controlscreen.ui)
     Ui::ControlScreen* ui;
-    // Presentation Screen (own window containing presentation slide)
+    /// Presentation Screen (own window containing presentation slide)
     PresentationScreen* presentationScreen;
 
     // PDF documents
@@ -208,8 +210,6 @@ public slots:
     void receiveNextSlideStart();
     /// Go to page.
     void receiveNewPageNumber(int const pageNumber);
-    /// Shift page in notes without changing page in presentation..
-    void receivePageShiftEdit(int const shift = 0); // TODO: remove?
     /// Synchronize presentation page to notes page.
     void adaptPage();
     /// Receive an alert from timer.

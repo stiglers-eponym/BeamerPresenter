@@ -33,7 +33,6 @@ CacheMap::~CacheMap()
 CacheMap::CacheMap(CacheMap& other) :
     QObject(other.parent()),
     data(other.data),
-    size(other.size),
     pdf(other.pdf),
     resolution(other.resolution),
     pagePart(other.pagePart),
@@ -41,18 +40,17 @@ CacheMap::CacheMap(CacheMap& other) :
     cacheThread(other.cacheThread),
     cacheTimer(other.cacheTimer)
 {
-    if (cacheThread != nullptr)
-        cacheThread->setCacheMap(this);
+    cacheThread->setCacheMap(this);
 }
 
 CacheMap::CacheMap(PdfDoc const* doc, PagePart const part, QObject* parent)
     : QObject(parent),
       data(),
       pdf(doc),
-      pagePart(part)
+      pagePart(part),
+      cacheThread(new CacheThread(this, this)),
+      cacheTimer(new QTimer(this))
 {
-    cacheThread = new CacheThread(this, this);
-    cacheTimer = new QTimer(this);
     cacheTimer->setSingleShot(true);
     connect(cacheTimer, &QTimer::timeout, this, [&](){cacheTimer->start();}); // TODO: find a more elegant way.
     connect(cacheThread, &CacheThread::finished, this, &CacheMap::receiveBytes);
@@ -73,7 +71,6 @@ qint64 CacheMap::setPixmap(int const page, QPixmap const* pix)
     }
     data[page] = bytes;
     qint64 currentSize = qint64(bytes->size());
-    size += currentSize;
     return currentSize;
 }
 
@@ -95,7 +92,7 @@ void CacheMap::changeResolution(const double res)
 
 QPixmap const CacheMap::getCachedPixmap(int const page) const
 {
-    qDebug() << "get cached page" << page << this << data.contains(page);
+    //qDebug() << "get cached page" << page << this << data.contains(page);
     QPixmap pixmap;
     if (data.contains(page))
         pixmap.loadFromData(*data.value(page), "PNG");
@@ -117,7 +114,7 @@ QPixmap const CacheMap::renderPixmap(int const page) const
 
 QPixmap const CacheMap::getPixmap(int const page)
 {
-    qDebug() << "get page" << page << this << data.contains(page);
+    //qDebug() << "get page" << page << this << data.contains(page);
     QPixmap pixmap;
     if (data.contains(page) && data.value(page) != nullptr) {
         pixmap.loadFromData(*data.value(page), "PNG");
@@ -200,7 +197,7 @@ void CacheMap::receiveBytes()
         data[page] = bytes;
         emit cacheSizeChanged(size_diff);
     }
-    qDebug() << "Cache thread finished:" << this << parent();
+    //qDebug() << "Cache thread finished:" << this << parent();
     emit cacheThreadFinished();
 }
 
@@ -213,4 +210,12 @@ bool CacheMap::updateCache(int const page)
     cacheThread->setPage(page);
     cacheThread->start();
     return true;
+}
+
+qint64 CacheMap::getSizeBytes() const
+{
+    qint64 size = 0;
+    for (QMap<int, QByteArray const*>::const_iterator it=data.cbegin(); it!=data.cend(); it++)
+        size += (*it)->size();
+    return size;
 }
