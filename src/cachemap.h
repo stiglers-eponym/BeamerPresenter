@@ -73,8 +73,6 @@ public:
     QString const getRenderCommand(int const page) const;
     /// Get page part.
     PagePart getPagePart() const {return pagePart;}
-    /// Is a valid resolution given?
-    //bool isValid() const {return resolution > 0;}
 
 public slots:
     void receiveBytes();

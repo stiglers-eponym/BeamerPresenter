@@ -68,7 +68,7 @@ public:
     void setRenderer(QStringList command);
     void setKeyMap(QMap<quint32, QList<KeyAction>>* keymap);
     void setKeyMapItem(quint32 const key, KeyAction const action);
-    void setTimerMap(QMap<int, QTime>& timeMap);
+    void setTimerMap(QMap<int, qint64>& timeMap);
     void setToolForKey(quint32 const key, ColoredDrawTool tool) {tools[key] = tool;}
     void setMagnification(qreal const mag);
     void setAutostartDelay(double const timeout);
@@ -175,8 +175,6 @@ private:
     QSize oldSize;
     /// Total number of pages
     int numberOfPages;
-    /// Number of slides in cache.
-    int cacheNumber = 0;
     /// Number of currently running cache threads.
     int cacheThreadsRunning = 0;
 

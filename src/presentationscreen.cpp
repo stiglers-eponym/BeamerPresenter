@@ -47,8 +47,9 @@ PresentationScreen::PresentationScreen(PdfDoc* presentationDoc, PagePart const p
 PresentationScreen::~PresentationScreen()
 {
     slide->disconnect();
-    //delete presentation;
     disconnect();
+    delete slide->getCacheMap();
+    slide->overwriteCacheMap(nullptr);
     delete slide;
     delete layout;
 }

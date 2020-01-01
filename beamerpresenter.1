@@ -114,11 +114,12 @@ Set half of the page to be the presentation, the other half to be the notes. Val
 .
 .TP
 .BI "\-r \-\-renderer " command
-Command for calling an external PDF renderer, which will be used for rendering slides to a compressed cache.
-This should be either "poppler" (for using the internal renderer), "custom" (for using a renderer, which is defined in the config file) or a command.
-The command should call a renderer, which renders a specific page of a PDF file to a png image of fixed size, such that it can be shown in a window with given width and height and writes the image to the standard output.
+Command for calling an external PDF renderer which can be used instead of the internal poppler renderer.
+This should be either "poppler" (for using the internal renderer) or a command for using an external renderer.
+The command should call a renderer, which renders one page of a PDF file to a png image of fixed size and writes the image to the standard output.
 The command should contain the tokens "%file" for the PDF file name, "%page" for the page number, "%width" for the image width in pixels and "%height" for the height in pixels.
-Note that a failing command will not necessarily be handled correctly or lead to a warning.
+The resulting image will be shown in a window of size %width x %height. Note %width/%height is not necessarily the corrct aspect ratio of the page.
+If the command fails, this will not necessarily be handled correctly or lead to a warning.
 
 An example for a command using
 .BR "mutool draw " "from the " MuPDF " project is"

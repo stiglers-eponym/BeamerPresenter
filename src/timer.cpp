@@ -18,13 +18,23 @@
 
 #include "timer.h"
 
-Timer::Timer(QWidget* parent) : QLabel(parent)
+Timer::Timer(QWidget* parent) :
+    QLabel(parent),
+    deadline(QDateTime::currentDateTimeUtc()),
+    startTime(QDateTime::currentDateTimeUtc()),
+    timeMap(),
+    currentPageTimeIt(timeMap.cend())
 {
     timerPalette = QPalette(this->palette());
     setText("00:00");
 }
 
-Timer::Timer(QLineEdit* setTimerEdit, QWidget* parent) : QLabel(parent)
+Timer::Timer(QLineEdit* setTimerEdit, QWidget* parent) :
+    QLabel(parent),
+    deadline(QDateTime::currentDateTimeUtc()),
+    startTime(QDateTime::currentDateTimeUtc()),
+    timeMap(),
+    currentPageTimeIt(timeMap.cend())
 {
     setText("00:00");
     setTimerWidget(setTimerEdit);
@@ -54,36 +64,39 @@ void Timer::setTimerWidget(QLineEdit* setTimerEdit)
 
 void Timer::setDeadline()
 {
-    switch (timerEdit->text().length())
+    QStringList timerText = timerEdit->text().replace(".", ":").split(":");
+    qint64 diff;
+    bool ok;
+    switch (timerText.length())
     {
-        case 1:
-            deadline = QTime::fromString(timerEdit->text(), "m");
-            break;
-        case 2:
-            deadline = QTime::fromString(timerEdit->text(), "mm");
-            break;
-        case 4:
-            deadline = QTime::fromString(timerEdit->text(), "m:ss");
-            break;
-        case 5:
-            deadline = QTime::fromString(timerEdit->text(), "mm:ss");
-            break;
-        case 7:
-            deadline = QTime::fromString(timerEdit->text(), "h:mm:ss");
-            break;
+    case 1:
+        diff = 60*timerText[0].toLong(&ok);
+        break;
+    case 2:
+        diff = 60*timerText[0].toLong(&ok);
+        if (ok)
+             diff += timerText[1].toLong(&ok);
+        break;
+    case 3:
+        diff = 3600*timerText[0].toLong(&ok);
+        if (ok)
+            diff += 60*timerText[1].toLong(&ok);
+        if (ok)
+            diff += timerText[2].toLong(&ok);
+        break;
+    default:
+        diff = 0;
+        ok = false;
     }
-    if (deadline.isNull() || !deadline.isValid()) {
-        qWarning() << "Unable to set timer";
-        deadline = QTime(0,0,0,0);
-        setText("00:00");
-        // TODO: do something more clever and less dangerous:
-        //throw 1;
+    if (!ok) {
+        qWarning() << "Did not understand time input" << timerEdit->text();
+        timerEdit->setText("?");
+        timerEdit->setFocus();
     }
-    if (timeMap.isEmpty())
-        currentFrameTime = &deadline;
+    deadline = startTime.addSecs(diff);
     if (!running)
         timerPalette.setColor(QPalette::WindowText, Qt::gray);
-    if (deadline > time)
+    if (deadline > startTime)
         emit sendNoAlert();
     else
         emit sendAlert();
@@ -118,7 +131,7 @@ void Timer::continueTimer()
 
 void Timer::resetTimer()
 {
-    time.setHMS(0,0,0);
+    startTime = QDateTime::currentDateTimeUtc();
     setText("00:00");
     if (!running)
         timerPalette.setColor(QPalette::WindowText, Qt::gray);
@@ -130,19 +143,23 @@ void Timer::resetTimer()
 
 void Timer::showTime()
 {
-    time = time.addSecs(1);
-    if (time.hour()!=0)
-        setText(time.toString("h:mm:ss"));
+    qint64 const diff = startTime.msecsTo(QDateTime::currentDateTimeUtc());
+    if (diff < 3600000)
+        setText(QTime::fromMSecsSinceStartOfDay(diff).toString("mm:ss"));
     else
-        setText(time.toString("mm:ss"));
-    if (time == deadline)
+        setText(QTime::fromMSecsSinceStartOfDay(diff).toString("h:mm:ss"));
+    if (abs(QDateTime::currentDateTimeUtc().msecsTo(deadline)) < 1000)
         emit sendAlert();
     updateColor();
 }
 
 void Timer::updateColor()
 {
-    int const diff = currentFrameTime->secsTo(time);
+    int diff;
+    if (currentPageTimeIt == timeMap.cend())
+        diff = deadline.secsTo(QDateTime::currentDateTimeUtc());
+    else
+        diff = startTime.secsTo(QDateTime::currentDateTimeUtc()) - *currentPageTimeIt;
     if (diff <= colorTimes[0]) {
         timerPalette.setColor(QPalette::Window, colors[0]);
         setPalette(timerPalette);
@@ -161,24 +178,14 @@ void Timer::updateColor()
     setPalette(timerPalette);
 }
 
-void Timer::setTimeMap(QMap<int, QTime> &timeMap)
+void Timer::setTimeMap(QMap<int, qint64> &timeMap)
 {
     this->timeMap = timeMap;
-    if (timeMap.isEmpty())
-        currentFrameTime = &deadline;
-    else
-        currentFrameTime = &timeMap.first();
+    currentPageTimeIt = timeMap.cbegin();
 }
 
 void Timer::setPage(int const page)
 {
-    if (!timeMap.isEmpty()) {
-        QMap<int, QTime>::const_iterator it = timeMap.upperBound(page-1);
-        if (it == timeMap.end())
-            //currentFrameTime = &timeMap.last();
-            currentFrameTime = &deadline;
-        else
-            currentFrameTime = &*it;
-    }
+    currentPageTimeIt = timeMap.upperBound(page-1);
     updateColor();
 }

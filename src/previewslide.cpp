@@ -259,7 +259,6 @@ void PreviewSlide::mouseMoveEvent(QMouseEvent* event)
 void PreviewSlide::paintEvent(QPaintEvent*)
 {
     QPainter painter(this);
-    qDebug() << shiftx << shifty << pixmap.size() << this;
     if (pagePart == RightHalf)
         painter.drawPixmap(shiftx + width(), shifty, pixmap);
     else

@@ -1099,12 +1099,11 @@ int main(int argc, char *argv[])
     // Currently slide labels must be integers.
     if (local.contains("page times")) {
         /// Map of slide labels to times.
-        QMap<int, QTime> map;
+        QMap<int, qint64> map;
         /// QVariantMap containing all page times from the local configuration.
         QVariantMap variantMap = local["page times"].value<QVariantMap>();
-        QTime time;
         bool ok;
-        int key;
+        qint64 key;
         // Iterate over variantMap to copy its (key, value) pairs to map.
         for (QVariantMap::const_iterator it=variantMap.cbegin(); it!=variantMap.cend(); it++) {
             // Convert the label to an integer.
@@ -1115,35 +1114,35 @@ int main(int argc, char *argv[])
                 qCritical() << "In local config / page times: Did not understand slide number" << it.key();
                 continue;
             }
-            // Try to convert the value to a time.
-            QString timestring = it->toString().replace(":", ".");
-            switch (timestring.count('.')) {
-            case 0:
-                time = QTime::fromString(timestring, "m");
-                break;
+            // Try to convert the value to a number of seconds.
+            QStringList timeStringList = it->toString().replace(".", ":").split(":");
+            int time;
+            switch (timeStringList.length())
+            {
             case 1:
-                time = QTime::fromString(timestring, "m.ss");
-                if (!time.isValid()) {
-                    time = QTime::fromString(timestring, "mm.ss");
-                    if (!time.isValid()) {
-                        time = QTime::fromString(timestring, "m.s");
-                    }
-                }
+                time = 60*timeStringList[0].toLong(&ok);
                 break;
             case 2:
-                time = QTime::fromString(timestring, "h.mm.ss");
-                if (!time.isValid())
-                    time = QTime::fromString(timestring, "h.m.s");
+                 time = 60*timeStringList[0].toLong(&ok);
+                 if (ok)
+                     time += timeStringList[1].toLong(&ok);
+                break;
+            case 3:
+                time = 3600*timeStringList[0].toLong(&ok);
+                if (ok)
+                    time += 60*timeStringList[1].toLong(&ok);
+                if (ok)
+                    time += timeStringList[2].toLong(&ok);
                 break;
             default:
+                ok = false;
+            }
+            if (!ok) {
                 qCritical() << "In local config / page times: Did not understand time" << *it;
                 continue;
             }
-            // Add the (page, time) pair to map if time is valid.
-            if (time.isValid())
-                map.insert(key, time);
-            else
-                qCritical() << "In local config / page times: Did not understand time" << *it;
+            // Add the (page, time) pair to map.
+            map.insert(key, time);
         }
         // Send the timer configuration to ctrlScreen (which sends it to the timer)
         ctrlScreen->setTimerMap(map);

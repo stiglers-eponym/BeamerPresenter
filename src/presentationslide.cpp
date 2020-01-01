@@ -49,8 +49,12 @@ void PresentationSlide::paintEvent(QPaintEvent*)
         drawPointer(painter);
     }
     else {
-        if (pixpaths.isNull() || end_cache < 1)
-            painter.drawPixmap(shiftx, shifty, pixmap);
+        if (pixpaths.isNull() || end_cache < 1) {
+            if (pagePart == RightHalf)
+                painter.drawPixmap(shiftx + width(), shifty, pixmap);
+            else
+                painter.drawPixmap(shiftx, shifty, pixmap);
+        }
         else
             painter.drawPixmap(0, 0, pixpaths);
         drawAnnotations(painter);

@@ -35,7 +35,7 @@ public:
     Timer(QLineEdit* setTimerEdit, QWidget* parent = nullptr);
     ~Timer();
     void setTimerWidget(QLineEdit* setTimerEdit);
-    void setTimeMap(QMap<int, QTime>& timeMap);
+    void setTimeMap(QMap<int, qint64>& timeMap);
     void pauseTimer();
     void continueTimer();
     void toggleTimer();
@@ -56,15 +56,15 @@ signals:
 private:
     void updateColor();
     QLineEdit* timerEdit;
-    QTime deadline = QTime(0,0,0,0);
-    QTime time = QTime(0,0,0,0);
+    QDateTime deadline;
+    QDateTime startTime;
     QTimer* timer;
     bool running = false;
     QList<int> colorTimes = {0};
     QList<QColor> colors = {Qt::white};
     QPalette timerPalette;
-    QMap<int, QTime> timeMap = {};
-    QTime const* currentFrameTime = &deadline;
+    QMap<int, qint64> timeMap;
+    QMap<int, qint64>::const_iterator currentPageTimeIt;
 };
 
 #endif // TIMER_H
