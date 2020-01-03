@@ -28,35 +28,52 @@
 #include <QInputDialog>
 #include "enumerates.h"
 
+/// PDF document.
+/// This provides an interface for caching all Poppler::Page objects and reloading files.
 class PdfDoc
 {
 private:
+    /// Poppler PDF document or nullptr if no document is loaded.
     Poppler::Document* popplerDoc = nullptr;
+    /// Path to PDF file.
     QString pdfPath;
+    /// List of all PDF pages.
     QList<Poppler::Page*> pdfPages;
-    QList<QString> labels;
-    PagePart pagePart = PagePart::FullPage;
+    /// Last time of modification of the file in the form which was last loaded.
+    /// This is used to check whether it needs to be reloaded.
     QDateTime lastModified = QDateTime();
 
 public:
-    PdfDoc(QString pathToPdf) : pdfPath(pathToPdf) {}
+    /// Constructor: takes the path to the PDF file as argument. This does not load the document.
+    PdfDoc(QString const& pathToPdf) : pdfPath(pathToPdf) {}
     ~PdfDoc();
+    /// Load the document. Returns true if the document was loaded successfully and false otherwise.
     bool loadDocument();
 
-    Poppler::Document const * getDoc() const {return popplerDoc;}
+    /// Return a pointer to the PDF document.
+    Poppler::Document const* getDoc() const {return popplerDoc;}
+    /// Return a pointer to a constant list of all pages.
     QList<Poppler::Page*> const* getPages() const {return &pdfPages;}
-    Poppler::Page* getPage(int pageNumber) const;
-    QDomDocument const * getToc() const {return popplerDoc->toc();}
-    /// Page size in point = inch/72.
-    QSizeF getPageSize(int const pageNumber) const;
-    QString const& getLabel(int const pageNumber) const;
+    /// Check if page number is valid and return page.
+    Poppler::Page const* getPage(int pageNumber) const;
+    /// Return the QDomDocument representing the table of contents (TOC) of the PDF document.
+    QDomDocument const* getToc() const {return popplerDoc->toc();}
+    /// Return page size in point = inch/72.
+    QSizeF const getPageSize(int const pageNumber) const;
+    /// Return label of given page.
+    QString const getLabel(int const pageNumber) const;
+    /// Return page index (number) of the next page with different page label.
     int getNextSlideIndex(int const index) const;
+    /// Return page index (number) of the previous page with different page label.
+    /// This function skips slides which have a duration of less than one second.
     int getPreviousSlideEnd(int const index) const;
+    /// Return page label as an interger. This fails and returns 0 if page label cannot be converted to an integer.
     int getSlideNumber(int const page) const {return pdfPages[page]->label().toInt();}
-    int destToSlide(QString const & dest) const;
+    /// Return page index (number) of a destination string (from table of contents).
+    /// Return -1 if an invalid destination string is given.
+    int destToSlide(QString const& dest) const;
+    /// Return the path to the PDF file.
     QString const& getPath() const {return pdfPath;}
-
-    void setPagePart(PagePart const state) {pagePart = state;}
 };
 
 #endif // PDFWIDGET_H

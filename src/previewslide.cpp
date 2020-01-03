@@ -30,8 +30,6 @@ PreviewSlide::PreviewSlide(PdfDoc const * const document, int const pageNumber, 
 
 PreviewSlide::~PreviewSlide()
 {
-    // Clear all contents of the label.
-    // This function is called when the document is reloaded or the program is closed and everything should be cleaned up.
     if (cache != nullptr)
         cache->clearCache();
     qDeleteAll(links);
@@ -42,23 +40,28 @@ PreviewSlide::~PreviewSlide()
 
 void PreviewSlide::renderPage(int pageNumber)
 {
+    // Make sure that pageNumber is valid.
     if (pageNumber < 0)
         pageNumber = 0;
     else if (pageNumber >= doc->getDoc()->numPages())
         pageNumber = doc->getDoc()->numPages()-1;
 
-    // Use overlay specific options
+    // Use overlay specific options.
     // A page is called an overlay of the previously rendered page, if they have the same label.
     // This is also the case, if the same page is rendered again (e.g. because the window is resized).
+
+    // Clear links.
     qDeleteAll(links);
     linkPositions.clear();
     links.clear();
 
+    // Do the main rendering. This returns a pair of scales in x an y direction.
+    // These scale relative x and y coordinates in the widget to pixels in the pixmap representing the slide.
     QPair<double,double> scale = basicRenderPage(pageNumber);
+    // Update pageIndex.
     pageIndex = pageNumber;
 
     // Show the page on the screen.
-    // One could show the page in any case to make it slightly more responsive, but this can lead to a short interruption by a different image.
     // All operations before the next call to update() are usually very fast.
     update();
 
@@ -102,8 +105,11 @@ QPair<double,double> PreviewSlide::basicRenderPage(int const pageNumber)
         shifty = qint16(height()/2 - resolution/2 * pageHeight);
         shiftx = 0;
     }
-    if (cache != nullptr)
+    if (cache != nullptr) {
+        // Change the resolution on the CacheMap.
+        // This clears cache if the resolution differs from the resolution saved in cache.
         cache->changeResolution(resolution);
+    }
 
     // Calculate the size of the image in pixels
     double scale_x=resolution*pageWidth, scale_y=resolution*pageHeight;
@@ -115,16 +121,19 @@ QPair<double,double> PreviewSlide::basicRenderPage(int const pageNumber)
             shiftx -= width();
     }
 
+    // Render the pixmap if necessary.
     qDebug() << "get pixmap?" << pageIndex << pageNumber << oldSize << size() << cache << this;
+    // Check whether the page number or the widget size changed. Then update pixmap if cache is available.
     if ((pageIndex != pageNumber || oldSize != size()) && cache != nullptr)
         pixmap = cache->getPixmap(pageNumber);
-    if (cache != nullptr)
-        oldSize = size();
+    // Update size. This will later be used to check it the pixmap needs to be updated.
+    oldSize = size();
     return {scale_x, scale_y};
 }
 
 void PreviewSlide::mouseReleaseEvent(QMouseEvent* event)
 {
+    // Handle clicks on links.
     if (event->button() == Qt::LeftButton) {
         for (int i=0; i<links.size(); i++) {
             if (linkPositions[i].contains(event->pos())) {
@@ -214,23 +223,6 @@ void PreviewSlide::mouseReleaseEvent(QMouseEvent* event)
                     case Poppler::Link::Movie:
                         qInfo() << "Playing multimedia is not supported in this widget.";
                         break;
-                    /*
-                    case Poppler::Link::Rendition:
-                        qInfo() << "Unsupported link of type rendition";
-                        break;
-                    case Poppler::Link::JavaScript:
-                        qInfo() << "Unsupported link of type JavaScript";
-                        break;
-                    case Poppler::Link::OCGState: // requires popper >= 0.50
-                        qInfo() << "Unsupported link of type OCGState";
-                        break;
-                    case Poppler::Link::Hide: // requires poppler >= 0.64
-                        qInfo() << "Unsupported link of type hide";
-                        break;
-                    case Poppler::Link::None:
-                        qInfo() << "Unsupported link of type none";
-                        break;
-                    */
                     default:
                         qInfo() << "Unsupported link type" << links[i]->linkType();
                 }
@@ -244,13 +236,17 @@ void PreviewSlide::mouseMoveEvent(QMouseEvent* event)
 {
     // Show the cursor as Qt::PointingHandCursor when hoovering links
     bool is_arrow_pointer = cursor().shape() == Qt::ArrowCursor;
+    // Iterate over all link position to check whether a link position contains the cursor position.
     for (QList<QRect>::const_iterator pos_it=linkPositions.cbegin(); pos_it!=linkPositions.cend(); pos_it++) {
         if (pos_it->contains(event->pos())) {
+            // Cursor is on a link. Set it to PointingHandCursor and return.
             if (is_arrow_pointer)
                 setCursor(Qt::PointingHandCursor);
+            event->accept();
             return;
         }
     }
+    // Cursor is not on a link. Set it to ArrowCursor.
     if (!is_arrow_pointer)
         setCursor(Qt::ArrowCursor);
     event->accept();
@@ -267,11 +263,14 @@ void PreviewSlide::paintEvent(QPaintEvent*)
 
 void PreviewSlide::clearAll()
 {
+    // Clear cache (if it exists).
     if (cache != nullptr)
         cache->clearCache();
+    // Delete all links and link positions.
     qDeleteAll(links);
     links.clear();
     linkPositions.clear();
+    // Set page to nullptr.
     page = nullptr;
 }
 

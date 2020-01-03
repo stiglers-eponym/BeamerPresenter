@@ -37,7 +37,6 @@ public:
     //virtual void clearCache() override;
     void updateEnlargedPage();
     void setSize(DrawTool const tool, quint16 size);
-    void setScaledPixmap(QPixmap const& pix);
     void setMagnification(qreal const mag);
     qreal getMagnification() const {return magnification;}
 

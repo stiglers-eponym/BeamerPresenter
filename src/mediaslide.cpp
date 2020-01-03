@@ -702,24 +702,6 @@ void MediaSlide::pauseAllMultimedia()
         sound->pause();
 }
 
-/*
-void MediaSlide::playVideo(int const i)
-{
-    if (i<0 || i>=videoWidgets.length() || videoWidgets[i]==nullptr || i>=videoPositions.length())
-        return;
-    videoWidgets[i]->setGeometry(videoPositions[i]);
-    videoWidgets[i]->show();
-    videoWidgets[i]->play();
-}
-
-void MediaSlide::pauseVideo(int const i)
-{
-    if (i<0 || i>=videoWidgets.length() || videoWidgets[i]==nullptr)
-        return;
-    videoWidgets[i]->pause();
-}
-*/
-
 bool MediaSlide::hasActiveMultimediaContent() const
 {
     // Return true if any multimedia content is currently being played
@@ -884,23 +866,6 @@ void MediaSlide::followHyperlinks(QPoint const& pos)
                         }
                     }
                     break;
-                /*
-                case Poppler::Link::Rendition: // TODO: could be supported
-                    qInfo() << "Unsupported link of type rendition";
-                    break;
-                case Poppler::Link::JavaScript:
-                    qInfo() << "Unsupported link of type JavaScript";
-                    break;
-                case Poppler::Link::OCGState: // requires popper >= 0.50
-                    qInfo() << "Unsupported link of type OCGState";
-                    break;
-                case Poppler::Link::Hide: // requires poppler >= 0.64
-                    qInfo() << "Unsupported link of type hide";
-                    break;
-                case Poppler::Link::None:
-                    qInfo() << "Unsupported link of type none";
-                    break;
-                */
                 default:
                     qInfo() << "Unsupported link type" << links[i]->linkType();
             }
@@ -1130,7 +1095,7 @@ void MediaSlide::startAllEmbeddedApplications(int const index)
 
 void MediaSlide::avoidMultimediaBug()
 {
-    // TODO: find a better way to avoid this problem
+    // TODO: find a better way to avoid this problem.
     // This is a very ugly and inefficient way of avoiding compatibility problems of combining videos and embedded applications.
     // Probably the strange behavior without this function is caused by unconventional handling of external windows.
     // I don't know what problems occure on platforms other than GNU/Linux!

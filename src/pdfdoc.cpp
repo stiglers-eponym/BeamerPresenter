@@ -22,7 +22,6 @@ PdfDoc::~PdfDoc()
 {
     qDeleteAll(pdfPages);
     pdfPages.clear();
-    labels.clear();
     delete popplerDoc;
 }
 
@@ -86,13 +85,11 @@ bool PdfDoc::loadDocument()
     // Clear old lists
     qDeleteAll(pdfPages);
     pdfPages.clear();
-    labels.clear();
 
-    // Create new lists of pages and labels
+    // Create lists of pages.
     for (int i=0; i < newDoc->numPages(); i++) {
         Poppler::Page* p = newDoc->page(i);
         pdfPages.append(p);
-        labels.append(p->label());
     }
 
     // Check document contents and print warnings if unimplemented features are found.
@@ -109,9 +106,9 @@ bool PdfDoc::loadDocument()
     return true;
 }
 
-/// Return page size in point = inch/72 ≈ 0.353mm (I hate these units...)
-QSizeF PdfDoc::getPageSize(int const pageNumber) const
+QSizeF const PdfDoc::getPageSize(int const pageNumber) const
 {
+    // Return page size in point = inch/72
     if (pageNumber < 0)
         return pdfPages[0]->pageSizeF();
     if (pageNumber >= popplerDoc->numPages())
@@ -119,7 +116,7 @@ QSizeF PdfDoc::getPageSize(int const pageNumber) const
     return pdfPages[pageNumber]->pageSizeF();
 }
 
-Poppler::Page* PdfDoc::getPage(int pageNumber) const
+Poppler::Page const* PdfDoc::getPage(int pageNumber) const
 {
     // Check if page number is valid and return page.
     if (pageNumber < 0)
@@ -132,9 +129,9 @@ Poppler::Page* PdfDoc::getPage(int pageNumber) const
 int PdfDoc::getNextSlideIndex(int const index) const
 {
     // Return the index of the next slide, which is not just an overlay of the current slide.
-    QString label = labels[index];
+    QString label = pdfPages[index]->label();
     for (int i=index; i<popplerDoc->numPages(); i++) {
-        if (label != labels[i])
+        if (label != pdfPages[i]->label())
             return i;
     }
     return popplerDoc->numPages()-1;
@@ -143,13 +140,14 @@ int PdfDoc::getNextSlideIndex(int const index) const
 int PdfDoc::getPreviousSlideEnd(int const index) const
 {
     // Return the index of the last overlay of the previous slide.
-    QString label = labels[index];
-    for (int i=index; i>0; i--) {
-        if (label != labels[i]) {
+    QString label = pdfPages[index]->label();
+    for (int i=index; i>=0; i--) {
+        if (label != pdfPages[i]->label()) {
+            // Get the duration. Avoid returning a page of duration of less than one second.
             double duration = pdfPages[i]->duration();
-            int j=i;
-            // Don't return the index of a slides which is shown for less than one second
-            while (duration > -0.01 && duration < 1. && (labels[j] == labels[i]))
+            int j = i;
+            // Don't return the index of a slides which is shown for less than one second.
+            while (duration > -0.01 && duration < 1. && j > 0 && pdfPages[j]->label() == pdfPages[i]->label())
                 duration = pdfPages[--j]->duration();
             return j;
         }
@@ -161,19 +159,22 @@ int PdfDoc::destToSlide(QString const & dest) const
 {
     // Return the index of the page, which is bookmarked as dest in the pdf.
     Poppler::LinkDestination* linkDest = popplerDoc->linkDestination(dest);
-    if (linkDest==nullptr)
+    // Return -1 if an invalid destination is given.
+    if (linkDest == nullptr)
         return -1;
+    // page = page index = page number - 1
     int const page = linkDest->pageNumber() - 1;
     delete linkDest;
     return page;
 }
 
-QString const& PdfDoc::getLabel(int const pageNumber) const
+QString const PdfDoc::getLabel(int const pageNumber) const
 {
-    if (pageNumber<0)
-        return labels.first();
-    else if (pageNumber>popplerDoc->numPages())
-        return labels.last();
+    // Check whether pageNumber is valid. Return its label.
+    if (pageNumber < 0)
+        return pdfPages.first()->label();
+    else if (pageNumber < popplerDoc->numPages())
+        return pdfPages[pageNumber]->label();
     else
-        return labels[pageNumber];
+        return pdfPages.last()->label();
 }

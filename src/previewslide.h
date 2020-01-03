@@ -31,69 +31,91 @@
 class PreviewSlide : public QWidget
 {
     Q_OBJECT
+
 public:
     // Constructors and destructor.
+    /// Only create an empty widget. Cache is not initialized.
     explicit PreviewSlide(QWidget* parent = nullptr) : QWidget(parent), cache(nullptr) {}
+    /// Create a full PreviewSlide, initialize cache and show (render) the given slide number.
     explicit PreviewSlide(PdfDoc const * const document, int const pageNumber, PagePart const part, QWidget* parent=nullptr);
     ~PreviewSlide() override;
 
-    // Rendering and cache.
+    /// Show a page on the widget.
     virtual void renderPage(int pageNumber);
+    /// Cache map used to render pages.
     CacheMap* getCacheMap() {return cache;}
+    /// Cache map used to render pages.
     CacheMap const* getCacheMap() const {return cache;}
+    /// Currently shown slide as pixmap.
     QPixmap const getPixmap(int const page);
+    /// Overwrite PreviewSlide::cacheMap without deleting it.
     void overwriteCacheMap(CacheMap* newCache) {cache = newCache;}
 
     // Set configuration.
+    /// Set urlSplitCharacter.
     void setUrlSplitCharacter(QString const& splitCharacter) {urlSplitCharacter=splitCharacter;}
-    /// Set pdf document;
+    /// Set pdf document and PagePart.
     void setDoc(PdfDoc const*const document, PagePart const part) {doc=document; pagePart=part;}
 
     /// Get current page number
     int pageNumber() const {return pageIndex;}
     /// Get current pdf page.
-    Poppler::Page* getPage() {return page;}
+    Poppler::Page const* getPage() {return page;}
     /// Get position of the slide inside the widget (x direction).
     qint16 const& getXshift() const {return shiftx;}
     /// Get position of the slide inside the widget (y direction).
     qint16 const& getYshift() const {return shifty;}
 
-    /// Clear all arrays owned by this.
+    /// Clear all contents of the label.
+    /// This function is called when the document is reloaded or the program is closed and everything should be cleaned up.
     virtual void clearAll();
 
 protected:
+    /// PDF document.
     PdfDoc const* doc = nullptr;
-    Poppler::Page* page = nullptr;
+    /// Currently displayed slide.
+    Poppler::Page const* page = nullptr;
+    /// Cache map for fast rendering of pages
     CacheMap* cache;
 
-    /// Which part of the page is shown on this label.
+    /// Defines which part of the page is shown on this label.
     PagePart pagePart = FullPage;
+    /// X offset of the side in the current widget.
     qint16 shiftx = 0;
+    /// Y offset of the side in the current widget.
     qint16 shifty = 0;
+    /// Pixmap of currently displayed slide.
     QPixmap pixmap;
     /// resolution in pixels per point = dpi/72
     double resolution = -1.;
     /// page number (starting from 0).
     int pageIndex = 0;
+    /// List of links on the current slide.
     QList<Poppler::Link*> links;
+    /// List of positions of links of the current slide.
     QList<QRect> linkPositions;
+    /// Size of the widget, saved the last time when a page was rendered.
+    /// This is compared to the current size of the widget when a new page is rendered.
     QSize oldSize;
+    /// Character used to split links to files into a file path and a list of arguments.
     QString urlSplitCharacter = "";
-    //char useCache = 1; // 0=don't cache; 1=use cache with internal renderer; 2=use cache with external renderer
 
     // Handle events.
     void mouseReleaseEvent(QMouseEvent* event) override;
     void mouseMoveEvent(QMouseEvent* event) override;
 
-    // Rendering. TODO: rewrite.
+    /// Function doing the main work in PreviewSlide::renderPage and MediaSlide::renderPage.
     QPair<double,double> basicRenderPage(int const pageNumber);
 
     /// Paint widget on the screen.
     virtual void paintEvent(QPaintEvent*) override;
 
 signals:
+    /// Send a new page number to ControlScreen and PresentationScreen. The new page will be shown.
     void sendNewPageNumber(int const pageNumber);
+    /// Quit the application.
     void sendCloseSignal();
+    /// Focus on the page number editor.
     void focusPageNumberEdit();
     void sendShowFullscreen();
     void sendEndFullscreen();

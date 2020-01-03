@@ -95,14 +95,6 @@ void DrawSlide::resizeEvent(QResizeEvent*)
             (*path_it)->transform(shift, resolution/oldRes);
 }
 
-void DrawSlide::setScaledPixmap(QPixmap const& pix)
-{
-    if (shiftx == 0)
-        pixmap = pix.scaledToWidth(width());
-    else
-        pixmap = pix.scaledToHeight(height());
-}
-
 void DrawSlide::setTool(const ColoredDrawTool newtool)
 {
     tool = newtool;
