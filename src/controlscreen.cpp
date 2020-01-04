@@ -1404,7 +1404,7 @@ void ControlScreen::resizeEvent(QResizeEvent* event)
     ui->notes_widget->renderPage(ui->notes_widget->pageNumber(), false);
     ui->current_slide->renderPage(ui->current_slide->pageNumber());
     ui->next_slide->renderPage(ui->next_slide->pageNumber());
-    if (drawSlideCache != nullptr)
+    if (drawSlide != nullptr && drawSlideCache != nullptr)
         drawSlide->renderPage(presentationScreen->getPageNumber(), false);
 }
 
