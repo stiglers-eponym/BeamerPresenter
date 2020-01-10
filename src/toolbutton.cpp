@@ -140,17 +140,19 @@ ToolButton::ToolButton(QList<KeyAction> const actions, QColor const color, QWidg
         palette.setColor(QPalette::Button, color);
     setPalette(palette);
     QString const iconname = actionIconNames.value(actions[0], "");
+    QString const text = actionNames.value(actions[0], QString::number(actions[0], 16));
     if (iconname.isEmpty())
-        setText(actionNames.value(actions[0], QString::number(actions[0], 16)));
+        setText(text);
     else {
         QIcon const icon = QIcon::fromTheme(iconname);
         if (icon.isNull())
-            setText(actionNames.value(actions[0], QString::number(actions[0], 16)));
+            setText(text);
         else
             setIcon(icon);
     }
     if (actions.size() == 1 && color != QColor(0,0,0,0))
         tool = actionToToolMap.value(actions.first(), {InvalidTool, color}).tool;
+    setToolTip(text);
 }
 
 void ToolButton::onClicked()

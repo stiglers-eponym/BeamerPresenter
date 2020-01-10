@@ -91,7 +91,7 @@ void TocBox::recursiveTocCreator(QDomNode const& n, quint8 const level)
     // Get the destination page of this TOC item.
     int const dest = pdf->destToSlide(e.attribute("DestinationName", ""));
     // Create the button representing this TOC item in the GUI.
-    TocButton* button = new TocButton(tocIndentStrings[level] + e.tagName(), dest, this);
+    TocButton* button = new TocButton(tocIndentStrings[level], e.tagName(), dest, this);
     // Hand over the event if the button is pushed.
     connect(button, &TocButton::activated, this, &TocBox::sendNewPage);
     // Save the mapping of page destination to button index.
@@ -137,7 +137,7 @@ void TocBox::recursiveTocCreator(QDomNode const& n, quint8 const level)
             // Get the destination page index.
             int const dest = pdf->destToSlide(e.attribute("DestinationName", ""));
             // Create the button.
-            TocButton * button = new TocButton(tocIndentStrings[0] + e.tagName(), dest, list);
+            TocButton * button = new TocButton(tocIndentStrings[0], e.tagName(), dest, list);
             // Hand over the activation event from the button.
             connect(button, &TocButton::activated, this, &TocBox::sendNewPage);
             // Hide the submenu when an entry was selected.
@@ -152,7 +152,7 @@ void TocBox::recursiveTocCreator(QDomNode const& n, quint8 const level)
                 // Get the destination page index.
                 int const dest = pdf->destToSlide(e.attribute("DestinationName", ""));
                 // Create the button.
-                TocButton * button = new TocButton(tocIndentStrings[1] + e.tagName(), dest, list);
+                TocButton * button = new TocButton(tocIndentStrings[1], e.tagName(), dest, list);
                 // Hand over the activation event from the button.
                 connect(button, &TocButton::activated, this, &TocBox::sendNewPage);
                 // Hide the submenu when an entry was selected.
@@ -175,7 +175,7 @@ void TocBox::recursiveTocCreator(QDomNode const& n, quint8 const level)
             // Get the page index for the main TOC entry.
             int const dest = pdf->destToSlide(e.attribute("DestinationName", ""));
             // Create a TocAction (menu entry) for the main TOC entry.
-            TocAction* action = new TocAction(tocIndentStrings[0] + e.tagName(), dest, this);
+            TocAction* action = new TocAction(tocIndentStrings[0], e.tagName(), dest, this);
             // Hand over new page events from the action.
             connect(action, &TocAction::activated, this, &TocBox::sendNewPage);
             // Add the action to the menu.
@@ -186,7 +186,7 @@ void TocBox::recursiveTocCreator(QDomNode const& n, quint8 const level)
                 if (e.isNull())
                     continue;
                 int const dest = pdf->destToSlide(e.attribute("DestinationName", ""));
-                TocAction* action = new TocAction(tocIndentStrings[1] + e.tagName(), dest, this);
+                TocAction* action = new TocAction(tocIndentStrings[1], e.tagName(), dest, this);
                 connect(action, &TocAction::activated, this, &TocBox::sendNewPage);
                 menu->addAction(action);
             }

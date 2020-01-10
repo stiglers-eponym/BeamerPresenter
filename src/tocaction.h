@@ -32,7 +32,7 @@ private:
     int dest;
 
 public:
-    TocAction(QString const& text = "", int const dest = 0, QWidget* parent = nullptr);
+    TocAction(QString const& prefix = "", QString const& text = "", int const dest = 0, QWidget* parent = nullptr);
 
 signals:
     void activated(int const dest);

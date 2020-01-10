@@ -21,6 +21,7 @@
 PageNumberEdit::PageNumberEdit(QWidget* parent) : QLineEdit(parent)
 {
     connect(this, &PageNumberEdit::textEdited, this, &PageNumberEdit::receiveEditSignal);
+    setToolTip("Currently visible page number");
 }
 
 PageNumberEdit::~PageNumberEdit()

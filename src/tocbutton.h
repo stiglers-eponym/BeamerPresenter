@@ -34,7 +34,7 @@ protected:
     void keyPressEvent(QKeyEvent* event) override;
 
 public:
-    TocButton(QString const& text = "", int const dest = 0, QWidget* parent = nullptr);
+    TocButton(QString const& prefix = "", QString const& text = "", int const dest = 0, QWidget* parent = nullptr);
 
 signals:
     void activated(int const dest);

@@ -18,12 +18,13 @@
 
 #include "tocbutton.h"
 
-TocButton::TocButton(QString const& text, int const dest, QWidget* parent) :
-    QPushButton(text, parent),
+TocButton::TocButton(QString const& prefix, QString const& text, int const dest, QWidget* parent) :
+    QPushButton(prefix + text, parent),
     dest(dest)
 {
     setStyleSheet("Text-align:left");
     connect(this, &TocButton::clicked, this, [&](){emit activated(this->dest);});
+    setToolTip(text + ", page " + QString::number(dest));
 }
 
 void TocButton::keyPressEvent(QKeyEvent *event)

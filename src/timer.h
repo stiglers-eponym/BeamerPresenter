@@ -25,10 +25,12 @@
 #include <QTime>
 #include <QTimer>
 #include <iostream>
+#include <iomanip>
 
 /// Maximum time between GUI updates in ms.
 static const unsigned short MAX_UPDATE_GUI_INTERVAL_MS = 1000;
 static const unsigned short MIN_UPDATE_GUI_INTERVAL_MS = 50;
+static const unsigned short UPDATE_GUI_FRAMES = 25;
 
 class Timer : public QLabel
 {
