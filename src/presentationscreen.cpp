@@ -61,7 +61,7 @@ void PresentationScreen::renderPage(int pageNumber, bool const setDuration)
     slide->renderPage(pageNumber, setDuration);
     if (pageNumber != pageIndex) {
         pageIndex = pageNumber;
-        emit pageChanged(presentation->getSlideNumber(pageIndex));
+        emit pageChanged(presentation->getSlideNumber(pageIndex), pageNumber);
     }
 }
 

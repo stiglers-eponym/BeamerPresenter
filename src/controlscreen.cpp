@@ -362,7 +362,7 @@ ControlScreen::~ControlScreen()
 /// Adapt the layout of the control screen based on the aspect ratios of presentation and notes slides.
 void ControlScreen::recalcLayout(const int pageNumber)
 {
-    qDebug() << "recalc layout - start" << size() << oldSize << pageNumber;
+    qDebug() << "recalc layout" << size() << oldSize << pageNumber;
     if (size() != oldSize) {
         // Delete preview cache
         previewCache->clearCache();
@@ -467,7 +467,6 @@ void ControlScreen::recalcLayout(const int pageNumber)
     }
     // Notify layout system that geometry has changed.
     updateGeometry();
-    qDebug() << "recalc layout - end" << size() << oldSize << pageNumber;
 }
 
 void ControlScreen::focusPageNumberEdit()
@@ -589,7 +588,6 @@ void ControlScreen::renderPage(int const pageNumber, bool const full)
 
 void ControlScreen::updateCache()
 {
-    qDebug() << "update cache";
     // (Re)start updating cache.
     // This (re)initializes the variables for cache management and starts the cacheTimer, which manages cache updates in a separate thread.
 
@@ -1830,8 +1828,9 @@ void ControlScreen::setAutostartDelay(const double timeout)
 /// Set the timer colors. This is only used to configure the timer.
 void ControlScreen::setTimerColors(QList<qint32> times, QList<QColor> colors)
 {
-    ui->label_timer->colorTimes = times;
     ui->label_timer->colors = colors;
+    ui->label_timer->colorTimes = times;
+    ui->label_timer->updateGuiInterval();
 }
 
 /// Set the timer time as a string.

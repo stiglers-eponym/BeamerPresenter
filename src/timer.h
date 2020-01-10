@@ -24,9 +24,11 @@
 #include <QLineEdit>
 #include <QTime>
 #include <QTimer>
+#include <iostream>
 
-/// Time between GUI updates in ms.
-static const unsigned short UPDATE_GUI_INTERVAL_MS = 1000;
+/// Maximum time between GUI updates in ms.
+static const unsigned short MAX_UPDATE_GUI_INTERVAL_MS = 1000;
+static const unsigned short MIN_UPDATE_GUI_INTERVAL_MS = 50;
 
 class Timer : public QLabel
 {
@@ -43,9 +45,11 @@ public:
     void toggleTimer();
     void resetTimer();
     void setLog(bool const set_log) {log = set_log;}
+    /// Update update_gui_interval to the time scale at which the timer color changes.
+    void updateGuiInterval();
 
 public slots:
-    void setPage(int const page);
+    void setPage(int const pageLabel, int const pageNumber);
 
 private slots:
     void setDeadline();
@@ -77,6 +81,8 @@ private:
     QMap<int, quint32> timeMap;
     QMap<int, quint32>::const_iterator currentPageTimeIt;
     bool log = false;
+    /// Time between GUI updates in ms.
+    unsigned short update_gui_interval = MAX_UPDATE_GUI_INTERVAL_MS;
 };
 
 #endif // TIMER_H

@@ -137,14 +137,16 @@ void Timer::continueTimer()
         timerPalette.setColor(QPalette::WindowText, Qt::black);
         setPalette(timerPalette);
         showTime();
-        timer->start(UPDATE_GUI_INTERVAL_MS);
+        timer->start(update_gui_interval);
     }
 }
 
 void Timer::resetTimer()
 {
     setText("00:00");
+    deadline -= startTime;
     startTime = QDateTime::currentMSecsSinceEpoch();
+    deadline += startTime;
     if (pauseTime != 0) {
         pauseTime = startTime;
         timerPalette.setColor(QPalette::WindowText, Qt::gray);
@@ -162,7 +164,7 @@ void Timer::showTime()
         setText(QTime::fromMSecsSinceStartOfDay(diff).toString("mm:ss"));
     else
         setText(QTime::fromMSecsSinceStartOfDay(diff).toString("h:mm:ss"));
-    if (abs(deadline - startTime - diff) < UPDATE_GUI_INTERVAL_MS)
+    if (deadline <= startTime + diff && startTime + diff - deadline <= 2*update_gui_interval)
         emit sendAlert();
     updateColor();
 }
@@ -198,22 +200,40 @@ void Timer::setTimeMap(QMap<int, quint32> &timeMap)
     currentPageTimeIt = timeMap.cbegin();
 }
 
-void Timer::setPage(int const page)
+void Timer::setPage(int const pageLabel, int const pageNumber)
 {
-    currentPageTimeIt = timeMap.upperBound(page-1);
+    currentPageTimeIt = timeMap.upperBound(pageLabel - 1);
     updateColor();
     if (log) {
-        if (currentPageTimeIt == timeMap.cend())
-            qInfo()
-                    << "At" << QTime::currentTime().toString("h:mm:ss")
-                    << "/" << QTime::fromMSecsSinceStartOfDay(QDateTime::currentMSecsSinceEpoch() - startTime).toString("h:mm:ss")
-                    << "entered page" << page;
-        else
-            qInfo()
-                    << "At" << QTime::currentTime().toString("h:mm:ss")
-                    << "/" << QTime::fromMSecsSinceStartOfDay(QDateTime::currentMSecsSinceEpoch() - startTime).toString("h:mm:ss")
-                    << "entered page" << page
-                    << ". Target time for page" << currentPageTimeIt.key()
-                    << "is" << QTime::fromMSecsSinceStartOfDay(*currentPageTimeIt).toString("h:mm:ss");
+        std::cout
+                << QTime::currentTime().toString("h:mm:ss").toStdString() << "   "
+                << QTime::fromMSecsSinceStartOfDay(QDateTime::currentMSecsSinceEpoch() - startTime).toString("h:mm:ss").toStdString()
+                << "    entered page " << pageNumber + 1 << " (" << pageLabel << ").";
+        if (currentPageTimeIt != timeMap.cend())
+            std::cout
+                    << "    Target time for page (" << currentPageTimeIt.key()
+                    << ") is " << QTime::fromMSecsSinceStartOfDay(*currentPageTimeIt).toString("h:mm:ss").toStdString() << ".";
+        std::cout << std::endl;
     }
+}
+
+void Timer::updateGuiInterval()
+{
+    if (colorTimes.size() < 2)
+        return;
+    QList<qint32>::const_iterator it = colorTimes.cbegin() + 1;
+    unsigned int min_delta = *it - colorTimes.first();
+    unsigned int delta;
+    for (; it!=colorTimes.cend(); it++) {
+        delta = *it - *(it-1);
+        if (delta < min_delta && delta > 0)
+            min_delta = delta;
+    }
+    if (min_delta > 20 * MAX_UPDATE_GUI_INTERVAL_MS)
+        update_gui_interval = MAX_UPDATE_GUI_INTERVAL_MS;
+    else if (min_delta < 20 * MIN_UPDATE_GUI_INTERVAL_MS)
+        update_gui_interval = MIN_UPDATE_GUI_INTERVAL_MS;
+    else
+        update_gui_interval = min_delta/20;
+    qDebug() << "Set update GUI inverval to" << update_gui_interval << ". Min delta was" << min_delta;
 }
