@@ -74,7 +74,7 @@ public:
     void setToolForKey(quint32 const key, ColoredDrawTool tool) {tools[key] = tool;}
     void setMagnification(qreal const mag);
     void setAutostartDelay(double const timeout);
-    void setTimerColors(QList<qint32> times, QList<QColor> colors);
+    void setTimerColors(QList<qint32> const times, QList<QColor> const colors);
     void setTimerString(QString const timerString);
     /// Configure minimum frame time for animations created by showing slides in rapid succession.
     void setAnimationDelay(quint32 const delay_ms) {presentationScreen->slide->setAnimationDelay(delay_ms);}

@@ -1826,7 +1826,7 @@ void ControlScreen::setAutostartDelay(const double timeout)
 }
 
 /// Set the timer colors. This is only used to configure the timer.
-void ControlScreen::setTimerColors(QList<qint32> times, QList<QColor> colors)
+void ControlScreen::setTimerColors(QList<qint32> const times, QList<QColor> const colors)
 {
     ui->label_timer->colors = colors;
     ui->label_timer->colorTimes = times;

@@ -221,11 +221,10 @@ void Timer::updateGuiInterval()
 {
     if (colorTimes.size() < 2)
         return;
-    QList<qint32>::const_iterator it = colorTimes.cbegin() + 1;
-    unsigned int min_delta = *it - colorTimes.first();
+    unsigned int min_delta = colorTimes[1] - colorTimes[0];
     unsigned int delta;
-    for (; it!=colorTimes.cend(); it++) {
-        delta = *it - *(it-1);
+    for (int i=2; i<colorTimes.size(); i++) {
+        delta = colorTimes[i] - colorTimes[i-1];
         if (delta < min_delta && delta > 0)
             min_delta = delta;
     }
