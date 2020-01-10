@@ -33,7 +33,7 @@ class PresentationScreen : public QWidget
 public:
     explicit PresentationScreen(PdfDoc* presentationDoc, PagePart const part, QWidget* parent = nullptr);
     ~PresentationScreen() override;
-    void renderPage(int const pageNumber = 0, bool const setDuration = true);
+    void renderPage(int pageNumber = 0, bool const setDuration = true);
     int getPageNumber() const {return slide->pageNumber();}
     void updatedFile();
     void setScrollDelta(int const scrollDelta) {this->scrollDelta=scrollDelta;}

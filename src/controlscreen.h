@@ -29,6 +29,7 @@
 #include "tocbox.h"
 #include "overviewbox.h"
 #include "toolselector.h"
+#include "ui_controlscreen.h"
 
 // Namespace for te user interface from controlscreen.ui. I don't really know why.
 // This probably follows a strange Qt convention.
@@ -68,7 +69,8 @@ public:
     void setRenderer(QStringList command);
     void setKeyMap(QMap<quint32, QList<KeyAction>>* keymap);
     void setKeyMapItem(quint32 const key, KeyAction const action);
-    void setTimerMap(QMap<int, qint64>& timeMap);
+    /// Set times per slide for timer color change.
+    void setTimerMap(QMap<int, quint32>& timeMap) {ui->label_timer->setTimeMap(timeMap);}
     void setToolForKey(quint32 const key, ColoredDrawTool tool) {tools[key] = tool;}
     void setMagnification(qreal const mag);
     void setAutostartDelay(double const timeout);
@@ -77,6 +79,7 @@ public:
     /// Configure minimum frame time for animations created by showing slides in rapid succession.
     void setAnimationDelay(quint32 const delay_ms) {presentationScreen->slide->setAnimationDelay(delay_ms);}
     void setMinSidebarWidth(double const sideWidth) {maxNotesWidth = 1. - sideWidth;}
+    void setLogSlideChanges(bool const log) {ui->label_timer->setLog(log);}
 
     // Load drawings from file (also used only from main.cpp)
     void loadDrawings(QString const& filename) {presentationScreen->slide->loadDrawings(filename);}
@@ -91,9 +94,9 @@ public:
     void hideOverview();
 
     // Get different widgets
-    ToolSelector* getToolSelector();
+    ToolSelector* getToolSelector() {return ui->tool_selector;}
     PresentationSlide* getPresentationSlide() {return presentationScreen->slide;}
-    MediaSlide* getNotesSlide();
+    MediaSlide* getNotesSlide() {return ui->notes_widget;}
 
 protected:
     // Handle events

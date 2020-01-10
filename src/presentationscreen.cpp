@@ -54,14 +54,15 @@ PresentationScreen::~PresentationScreen()
     delete layout;
 }
 
-void PresentationScreen::renderPage(int const pageNumber, bool const setDuration)
+void PresentationScreen::renderPage(int pageNumber, bool const setDuration)
 {
     if (pageNumber < 0 || pageNumber >= numberOfPages)
-        pageIndex = numberOfPages - 1;
-    else
+        pageNumber = numberOfPages - 1;
+    slide->renderPage(pageNumber, setDuration);
+    if (pageNumber != pageIndex) {
         pageIndex = pageNumber;
-    slide->renderPage(pageIndex, setDuration);
-    emit pageChanged(presentation->getSlideNumber(pageIndex));
+        emit pageChanged(presentation->getSlideNumber(pageIndex));
+    }
 }
 
 void PresentationScreen::resizeEvent(QResizeEvent*)

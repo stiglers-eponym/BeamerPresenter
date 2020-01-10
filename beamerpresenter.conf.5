@@ -437,6 +437,13 @@ If this option is set, the internal renderer can be used with the command line a
 Show only the presentation and no notes. This will only hide the notes window and does not significantly improve the performance or reduce the required memory.
 .
 .TP
+.B log
+.IR bool :
+If set to true (or to an empty string), print times of slide changes to standard output.
+This always activates the command line argument
+.BR \-x " or " \-\-log .
+.
+.TP
 .BR pen-width =3
 .IR integer :
 Line width of pens in pixels, overwriting the default value for the command line argument

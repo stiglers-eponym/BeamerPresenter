@@ -20,8 +20,9 @@
 
 Timer::Timer(QWidget* parent) :
     QLabel(parent),
-    deadline(QDateTime::currentDateTimeUtc()),
-    startTime(QDateTime::currentDateTimeUtc()),
+    deadline(QDateTime::currentMSecsSinceEpoch()),
+    startTime(deadline),
+    pauseTime(deadline),
     timeMap(),
     currentPageTimeIt(timeMap.cend())
 {
@@ -31,8 +32,9 @@ Timer::Timer(QWidget* parent) :
 
 Timer::Timer(QLineEdit* setTimerEdit, QWidget* parent) :
     QLabel(parent),
-    deadline(QDateTime::currentDateTimeUtc()),
-    startTime(QDateTime::currentDateTimeUtc()),
+    deadline(QDateTime::currentMSecsSinceEpoch()),
+    startTime(deadline),
+    pauseTime(deadline),
     timeMap(),
     currentPageTimeIt(timeMap.cend())
 {
@@ -54,58 +56,64 @@ void Timer::setTimerWidget(QLineEdit* setTimerEdit)
     timerEdit = setTimerEdit;
     timer = new QTimer(this);
     connect(timerEdit, &QLineEdit::editingFinished, this, &Timer::setDeadline); // TODO: Check whether this causes problems.
-    connect(timerEdit, &QLineEdit::returnPressed, this, &Timer::setDeadline);
     connect(timerEdit, &QLineEdit::returnPressed, this, &Timer::sendEscape);
     connect(timer, &QTimer::timeout, this, &Timer::showTime);
     timerPalette.setColor(QPalette::WindowText, Qt::gray);
     setPalette(timerPalette);
-    // TODO: connect escape in timer to sendEscape()
 }
 
 void Timer::setDeadline()
 {
-    QStringList timerText = timerEdit->text().replace(".", ":").split(":");
-    qint64 diff;
     bool ok;
-    switch (timerText.length())
+    QStringList timeStringList = timerEdit->text().split(":");
+    if (timeStringList.length() == 1)
+        timeStringList = timerEdit->text().replace(".", ":").split(":");
+    unsigned int time;
+    switch (timeStringList.length())
     {
     case 1:
-        diff = 60*timerText[0].toLong(&ok);
+        // Expect value in minuts, convert to ms.
+        time = 60000*timeStringList[0].toUInt(&ok);
         break;
     case 2:
-        diff = 60*timerText[0].toLong(&ok);
-        if (ok)
-             diff += timerText[1].toLong(&ok);
+        // Expect value in minuts, convert to ms.
+         time = 60000*timeStringList[0].toUInt(&ok);
+         if (ok)
+            // Expect value in s, convert to ms.
+             time += 1000*timeStringList[1].toDouble(&ok);
         break;
     case 3:
-        diff = 3600*timerText[0].toLong(&ok);
+        // Expect value in h, convert to ms.
+        time = 3600000*timeStringList[0].toUInt(&ok);
         if (ok)
-            diff += 60*timerText[1].toLong(&ok);
+            // Expect value in minuts, convert to ms.
+            time += 60000*timeStringList[1].toUInt(&ok);
         if (ok)
-            diff += timerText[2].toLong(&ok);
+            // Expect value in s, convert to ms.
+            time += 1000*timeStringList[2].toDouble(&ok);
         break;
     default:
-        diff = 0;
         ok = false;
+        time = 0;
     }
     if (!ok) {
         qWarning() << "Did not understand time input" << timerEdit->text();
         timerEdit->setText("?");
         timerEdit->setFocus();
     }
-    deadline = startTime.addSecs(diff);
-    if (!running)
+    deadline = startTime + time;
+    if (pauseTime != 0)
         timerPalette.setColor(QPalette::WindowText, Qt::gray);
-    if (deadline > startTime)
-        emit sendNoAlert();
-    else
+    if (QDateTime::currentMSecsSinceEpoch() >= deadline)
         emit sendAlert();
+    else
+        emit sendNoAlert();
     updateColor();
 }
 
 void Timer::toggleTimer()
 {
-    if (running)
+    if (pauseTime == 0)
         pauseTimer();
     else
         continueTimer();
@@ -114,27 +122,33 @@ void Timer::toggleTimer()
 void Timer::pauseTimer()
 {
     timer->stop();
-    running = false;
+    pauseTime = QDateTime::currentMSecsSinceEpoch();
     timerPalette.setColor(QPalette::WindowText, Qt::gray);
     setPalette(timerPalette);
 }
 
 void Timer::continueTimer()
 {
-    if (!deadline.isNull() && !running) {
-        timer->start(1000);
-        running = true;
+    if (pauseTime != 0) {
+        qint64 const diff = QDateTime::currentMSecsSinceEpoch() - pauseTime;
+        deadline += diff;
+        startTime += diff;
+        pauseTime = 0;
         timerPalette.setColor(QPalette::WindowText, Qt::black);
         setPalette(timerPalette);
+        showTime();
+        timer->start(UPDATE_GUI_INTERVAL_MS);
     }
 }
 
 void Timer::resetTimer()
 {
-    startTime = QDateTime::currentDateTimeUtc();
     setText("00:00");
-    if (!running)
+    startTime = QDateTime::currentMSecsSinceEpoch();
+    if (pauseTime != 0) {
+        pauseTime = startTime;
         timerPalette.setColor(QPalette::WindowText, Qt::gray);
+    }
     emit sendNoAlert();
     timerPalette.setColor(QPalette::Window, colors.first());
     setPalette(timerPalette);
@@ -143,12 +157,12 @@ void Timer::resetTimer()
 
 void Timer::showTime()
 {
-    qint64 const diff = startTime.msecsTo(QDateTime::currentDateTimeUtc());
+    int const diff = QDateTime::currentMSecsSinceEpoch() - startTime;
     if (diff < 3600000)
         setText(QTime::fromMSecsSinceStartOfDay(diff).toString("mm:ss"));
     else
         setText(QTime::fromMSecsSinceStartOfDay(diff).toString("h:mm:ss"));
-    if (abs(QDateTime::currentDateTimeUtc().msecsTo(deadline)) < 1000)
+    if (abs(deadline - startTime - diff) < UPDATE_GUI_INTERVAL_MS)
         emit sendAlert();
     updateColor();
 }
@@ -157,9 +171,9 @@ void Timer::updateColor()
 {
     int diff;
     if (currentPageTimeIt == timeMap.cend())
-        diff = deadline.secsTo(QDateTime::currentDateTimeUtc());
+        diff = QDateTime::currentMSecsSinceEpoch() - deadline;
     else
-        diff = startTime.secsTo(QDateTime::currentDateTimeUtc()) - *currentPageTimeIt;
+        diff = QDateTime::currentMSecsSinceEpoch() - startTime - *currentPageTimeIt;
     if (diff <= colorTimes[0]) {
         timerPalette.setColor(QPalette::Window, colors[0]);
         setPalette(timerPalette);
@@ -167,8 +181,8 @@ void Timer::updateColor()
     }
     for (int i=1; i<colorTimes.length(); i++) {
         if (diff <= colorTimes[i]) {
-            double rel = double(diff - colorTimes[i-1])/(colorTimes[i]-colorTimes[i-1]);
-            double irel = 1.-rel;
+            double rel = double(diff - colorTimes[i-1])/(colorTimes[i] - colorTimes[i-1]);
+            double irel = 1. - rel;
             timerPalette.setColor(QPalette::Window, QColor(int(rel*colors[i].red()+irel*colors[i-1].red()), int(rel*colors[i].green()+irel*colors[i-1].green()), int(rel*colors[i].blue()+irel*colors[i-1].blue()), int(rel*colors[i].alpha()+irel*colors[i-1].alpha())));
             setPalette(timerPalette);
             return;
@@ -178,7 +192,7 @@ void Timer::updateColor()
     setPalette(timerPalette);
 }
 
-void Timer::setTimeMap(QMap<int, qint64> &timeMap)
+void Timer::setTimeMap(QMap<int, quint32> &timeMap)
 {
     this->timeMap = timeMap;
     currentPageTimeIt = timeMap.cbegin();
@@ -188,4 +202,18 @@ void Timer::setPage(int const page)
 {
     currentPageTimeIt = timeMap.upperBound(page-1);
     updateColor();
+    if (log) {
+        if (currentPageTimeIt == timeMap.cend())
+            qInfo()
+                    << "At" << QTime::currentTime().toString("h:mm:ss")
+                    << "/" << QTime::fromMSecsSinceStartOfDay(QDateTime::currentMSecsSinceEpoch() - startTime).toString("h:mm:ss")
+                    << "entered page" << page;
+        else
+            qInfo()
+                    << "At" << QTime::currentTime().toString("h:mm:ss")
+                    << "/" << QTime::fromMSecsSinceStartOfDay(QDateTime::currentMSecsSinceEpoch() - startTime).toString("h:mm:ss")
+                    << "entered page" << page
+                    << ". Target time for page" << currentPageTimeIt.key()
+                    << "is" << QTime::fromMSecsSinceStartOfDay(*currentPageTimeIt).toString("h:mm:ss");
+    }
 }

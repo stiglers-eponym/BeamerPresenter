@@ -25,6 +25,9 @@
 #include <QTime>
 #include <QTimer>
 
+/// Time between GUI updates in ms.
+static const unsigned short UPDATE_GUI_INTERVAL_MS = 1000;
+
 class Timer : public QLabel
 {
     Q_OBJECT
@@ -34,12 +37,12 @@ public:
     Timer(QWidget* parent = nullptr);
     Timer(QLineEdit* setTimerEdit, QWidget* parent = nullptr);
     ~Timer();
-    void setTimerWidget(QLineEdit* setTimerEdit);
-    void setTimeMap(QMap<int, qint64>& timeMap);
+    void setTimeMap(QMap<int, quint32>& timeMap);
     void pauseTimer();
     void continueTimer();
     void toggleTimer();
     void resetTimer();
+    void setLog(bool const set_log) {log = set_log;}
 
 public slots:
     void setPage(int const page);
@@ -54,17 +57,26 @@ signals:
     void sendEscape();
 
 private:
+    void setTimerWidget(QLineEdit* setTimerEdit);
     void updateColor();
     QLineEdit* timerEdit;
-    QDateTime deadline;
-    QDateTime startTime;
+    /// Time at which the presentation is expected to end (in ms since epoche start).
+    qint64 deadline;
+    /// Current date and time minus time spent with the timer running (in ms since epoche start).
+    /// This is a virtual starting time, corrected by time for which the timer was paused.
+    qint64 startTime;
+    /// Time at which the timer was paused (in ms since epoche start).
+    qint64 pauseTime;
+    /// QTimer triggering updates of GUI timer.
     QTimer* timer;
-    bool running = false;
-    QList<int> colorTimes = {0};
+    /// List of time differences (in ms) associated with colors.
+    QList<qint32> colorTimes = {0};
     QList<QColor> colors = {Qt::white};
     QPalette timerPalette;
-    QMap<int, qint64> timeMap;
-    QMap<int, qint64>::const_iterator currentPageTimeIt;
+    /// Map slide label (as integer) to time (in ms).
+    QMap<int, quint32> timeMap;
+    QMap<int, quint32>::const_iterator currentPageTimeIt;
+    bool log = false;
 };
 
 #endif // TIMER_H

@@ -178,3 +178,13 @@ QString const PdfDoc::getLabel(int const pageNumber) const
     else
         return pdfPages.last()->label();
 }
+
+int PdfDoc::getSlideNumber(const int page) const
+{
+    // Check whether page has a label.
+    QString label = pdfPages[page]->label();
+    if (label.isEmpty())
+        return page + 1;
+    else
+        return label.toInt();
+}

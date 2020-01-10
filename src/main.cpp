@@ -409,6 +409,7 @@ int main(int argc, char *argv[])
     //parser.addVersionOption();
     parser.addPositionalArgument("<slides.pdf>", "Slides for a presentation");
     parser.addPositionalArgument("<notes.pdf>",  "Notes for the presentation (optional, should have the same number of pages as <slides.pdf>)");
+    // TODO: change letters for option shortcuts
     parser.addOptions({
         {{"a", "autoplay"}, "true, false or number: Start video and audio content when entering a slide.\nA number is interpreted as a delay in seconds, after which multimedia content is started.", "value"},
 #ifdef EMBEDDED_APPLICATIONS_ENABLED
@@ -436,6 +437,7 @@ int main(int argc, char *argv[])
         {{"v", "video-cache"}, "Preload videos for the following slide.", "bool"},
 #ifdef EMBEDDED_APPLICATIONS_ENABLED
         {{"w", "pid2wid"}, "Program that converts a PID to a Window ID.", "file"},
+        {{"x", "log"}, "Log times of slide changes to standard output."},
 #endif
 #ifdef CHECK_QPA_PLATFORM
         {"force-show", "Force showing notes or presentation (if in a framebuffer) independent of QPA platform plugin."},
@@ -783,7 +785,7 @@ int main(int argc, char *argv[])
             // Iterate over variantMap, to copy and convert it to map.
             for (QList<QString>::const_iterator key_it=keys.cbegin(); key_it!=keys.cend(); key_it++) {
                 // Parse the keys as an integer.
-                time = (*key_it).toInt(&ok);
+                time = 1000*(*key_it).toDouble(&ok);
                 if (ok) {
                     // Parse the value argument as a QColor.
                     color = variantMap[*key_it].value<QColor>();
@@ -828,7 +830,7 @@ int main(int argc, char *argv[])
             // Iterate over all keys in the "timer" group of settings.
             for (QStringList::const_iterator key_it=keys.cbegin(); key_it!=keys.cend(); key_it++) {
                 // Parse the keys as an integer.
-                time = (*key_it).toInt(&ok);
+                time = 1000*(*key_it).toDouble(&ok);
                 if (ok) {
                     // Parse the value argument as a QColor.
                     color = settings.value(*key_it).value<QColor>();
@@ -1099,11 +1101,11 @@ int main(int argc, char *argv[])
     // Currently slide labels must be integers.
     if (local.contains("page times")) {
         /// Map of slide labels to times.
-        QMap<int, qint64> map;
+        QMap<int, quint32> map;
         /// QVariantMap containing all page times from the local configuration.
         QVariantMap variantMap = local["page times"].value<QVariantMap>();
         bool ok;
-        qint64 key;
+        quint32 key;
         // Iterate over variantMap to copy its (key, value) pairs to map.
         for (QVariantMap::const_iterator it=variantMap.cbegin(); it!=variantMap.cend(); it++) {
             // Convert the label to an integer.
@@ -1114,25 +1116,33 @@ int main(int argc, char *argv[])
                 qCritical() << "In local config / page times: Did not understand slide number" << it.key();
                 continue;
             }
-            // Try to convert the value to a number of seconds.
-            QStringList timeStringList = it->toString().replace(".", ":").split(":");
-            int time;
+            // Try to convert the value to a number of ms.
+            QStringList timeStringList = it->toString().split(":");
+            if (timeStringList.length() == 1)
+                timeStringList = it->toString().replace(".", ":").split(":");
+            unsigned int time;
             switch (timeStringList.length())
             {
             case 1:
-                time = 60*timeStringList[0].toLong(&ok);
+                // Expect value in minuts, convert to ms.
+                time = 60000*timeStringList[0].toUInt(&ok);
                 break;
             case 2:
-                 time = 60*timeStringList[0].toLong(&ok);
+                // Expect value in minuts, convert to ms.
+                 time = 60000*timeStringList[0].toUInt(&ok);
                  if (ok)
-                     time += timeStringList[1].toLong(&ok);
+                    // Expect value in s, convert to ms.
+                     time += 1000*timeStringList[1].toDouble(&ok);
                 break;
             case 3:
-                time = 3600*timeStringList[0].toLong(&ok);
+                // Expect value in h, convert to ms.
+                time = 3600000*timeStringList[0].toUInt(&ok);
                 if (ok)
-                    time += 60*timeStringList[1].toLong(&ok);
+                    // Expect value in minuts, convert to ms.
+                    time += 60000*timeStringList[1].toUInt(&ok);
                 if (ok)
-                    time += timeStringList[2].toLong(&ok);
+                    // Expect value in s, convert to ms.
+                    time += 1000*timeStringList[2].toDouble(&ok);
                 break;
             default:
                 ok = false;
@@ -1349,8 +1359,7 @@ int main(int argc, char *argv[])
         ctrlScreen->getPresentationSlide()->disableTransitions();
     else if (local.contains("no-transitions")) {
         // This is rather unintuitive. Just set any value...
-        QString string = local.value("no-transitions").toString().toLower();
-        if (QStringList({"", "true", "no-transitions", "no transitions", "1"}).contains(string))
+        if (!QStringList({"false", "no", "transitions", "0"}).contains(local.value("no-transitions").toString().toLower()))
             ctrlScreen->getPresentationSlide()->disableTransitions();
     }
     else if (settings.contains("no-transitions"))
@@ -1361,12 +1370,22 @@ int main(int argc, char *argv[])
         ctrlScreen->setForceTouchpad();
     else if (local.contains("force-touchpad")) {
         // This is rather unintuitive. Just set any value...
-        QString string = local.value("force-touchpad").toString().toLower();
-        if (QStringList({"", "true", "force touchpad", "1"}).contains(string))
+        if (!QStringList({"false", "no", "0"}).contains(local.value("force-touchpad").toString().toLower()))
             ctrlScreen->setForceTouchpad();
     }
     else if (settings.contains("force-touchpad"))
         ctrlScreen->setForceTouchpad();
+
+    // Log times of slide changes and timer value at slide changes
+    if (parser.isSet("log"))
+        ctrlScreen->setLogSlideChanges(true);
+    else if (local.contains("log")) {
+        // This is rather unintuitive. Just set any value...
+        if (!QStringList({"false", "no", "no log", "no-log", "0"}).contains(local.value("log").toString().toLower()))
+            ctrlScreen->setLogSlideChanges(true);
+    }
+    else if (settings.contains("log"))
+        ctrlScreen->setLogSlideChanges(true);
 
 
     // Settings, which can cause exceptions

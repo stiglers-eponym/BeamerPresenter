@@ -5,6 +5,7 @@ BeamerPresenter
 * Multimedia: allow more arguments
 * Multimedia: Better control bar
 * use thumbnails in overviewbox?
+* improve time per slide log
 
 * Undo erasing in draw mode?
 * Segfault when starting embedded application from the wrong screen (not reproducible?)

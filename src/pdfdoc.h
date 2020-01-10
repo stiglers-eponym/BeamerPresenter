@@ -68,7 +68,7 @@ public:
     /// This function skips slides which have a duration of less than one second.
     int getPreviousSlideEnd(int const index) const;
     /// Return page label as an interger. This fails and returns 0 if page label cannot be converted to an integer.
-    int getSlideNumber(int const page) const {return pdfPages[page]->label().toInt();}
+    int getSlideNumber(int const page) const;
     /// Return page index (number) of a destination string (from table of contents).
     /// Return -1 if an invalid destination string is given.
     int destToSlide(QString const& dest) const;

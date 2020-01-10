@@ -17,7 +17,6 @@
  */
 
 #include "controlscreen.h"
-#include "ui_controlscreen.h"
 
 // TODO: tidy up! reorganize signals, slots, events, ...
 
@@ -869,9 +868,9 @@ void ControlScreen::receiveDest(QString const& dest)
     hideToc();
     int const pageNumber = presentation->destToSlide(dest);
     if (pageNumber>=0 && pageNumber<numberOfPages) {
+        ui->label_timer->continueTimer();
         emit sendNewPageNumber(pageNumber, true);
         renderPage(pageNumber);
-        ui->label_timer->continueTimer();
         updateCache();
     }
 }
@@ -1032,17 +1031,17 @@ bool ControlScreen::handleKeyAction(KeyAction const action)
     switch (action) {
     case KeyAction::Next:
         currentPageNumber = presentationScreen->getPageNumber() + 1;
+        ui->label_timer->continueTimer();
         emit sendNewPageNumber(currentPageNumber, true);
         if (isVisible())
             showNotes();
-        ui->label_timer->continueTimer();
         break;
     case KeyAction::Previous:
         currentPageNumber = presentationScreen->getPageNumber() - 1;
         if (currentPageNumber >= 0) {
+            ui->label_timer->continueTimer();
             emit sendNewPageNumber(currentPageNumber, false);
             showNotes();
-            ui->label_timer->continueTimer();
         }
         else {
             currentPageNumber = 0;
@@ -1063,17 +1062,17 @@ bool ControlScreen::handleKeyAction(KeyAction const action)
         break;
     case KeyAction::NextSkippingOverlays:
         currentPageNumber = presentation->getNextSlideIndex(presentationScreen->getPageNumber());
+        ui->label_timer->continueTimer();
         emit sendNewPageNumber(currentPageNumber, true);
         if (isVisible())
             showNotes();
-        ui->label_timer->continueTimer();
         break;
     case KeyAction::PreviousSkippingOverlays:
         currentPageNumber = presentation->getPreviousSlideEnd(presentationScreen->getPageNumber());
+        ui->label_timer->continueTimer();
         emit sendNewPageNumber(currentPageNumber, false);
         if (isVisible())
             showNotes();
-        ui->label_timer->continueTimer();
         break;
     case KeyAction::NextNotesSkippingOverlays:
         if (isVisible()) {
@@ -1095,9 +1094,9 @@ bool ControlScreen::handleKeyAction(KeyAction const action)
         currentPageNumber = presentationScreen->getPageNumber() - 1;
         presentationScreen->slide->disableTransitions();
         if (currentPageNumber >= 0) {
+            ui->label_timer->continueTimer();
             emit sendNewPageNumber(currentPageNumber, false);
             showNotes();
-            ui->label_timer->continueTimer();
         }
         else
             currentPageNumber = 0;
@@ -1105,19 +1104,19 @@ bool ControlScreen::handleKeyAction(KeyAction const action)
         break;
     case KeyAction::NextNoTransition:
         currentPageNumber = presentationScreen->getPageNumber() + 1;
+        ui->label_timer->continueTimer();
         presentationScreen->slide->disableTransitions();
         emit sendNewPageNumber(currentPageNumber, true);
         presentationScreen->slide->enableTransitions();
         if (isVisible())
             showNotes();
-        ui->label_timer->continueTimer();
         break;
     case KeyAction::Update:
         currentPageNumber = presentationScreen->getPageNumber();
+        ui->label_timer->continueTimer();
         emit sendNewPageNumber(currentPageNumber, true); // TODO: what happens to duration if page is updated?
         if (isVisible())
             showNotes();
-        ui->label_timer->continueTimer();
         break;
     case KeyAction::LastPage:
         currentPageNumber = numberOfPages - 1;
@@ -1282,11 +1281,11 @@ bool ControlScreen::handleKeyAction(KeyAction const action)
         break;
     case KeyAction::SyncFromControlScreen:
         if (isVisible()) {
+            ui->label_timer->continueTimer();
             if (presentationScreen->slide->pageNumber() != currentPageNumber)
                 emit sendNewPageNumber(currentPageNumber, true); // TODO: make this configurable (true/false)?
             showNotes();
             updateCache();
-            ui->label_timer->continueTimer();
         }
         break;
     case KeyAction::SyncFromPresentationScreen:
@@ -1678,13 +1677,6 @@ void ControlScreen::setKeyMapItem(quint32 const key, KeyAction const action)
         map_it->append(action);
 }
 
-void ControlScreen::setTimerMap(QMap<int, qint64>& timeMap)
-{
-    // Set times per slide for timer color change
-    ui->label_timer->setTimeMap(timeMap);
-    ui->label_timer->setPage(presentationScreen->getPageNumber());
-}
-
 void ControlScreen::showDrawSlide()
 {
     // Draw slide and tool selector
@@ -1819,11 +1811,6 @@ void ControlScreen::hideDrawSlide()
     ui->notes_widget->showAllWidgets(); // This function does not exactly what it should do.
 }
 
-ToolSelector* ControlScreen::getToolSelector()
-{
-     return ui->tool_selector;
-}
-
 void ControlScreen::setMagnification(const qreal mag)
 {
     presentationScreen->slide->setMagnification(mag);
@@ -1840,16 +1827,11 @@ void ControlScreen::setAutostartDelay(const double timeout)
         drawSlide->setAutostartDelay(timeout);
 }
 
-MediaSlide* ControlScreen::getNotesSlide()
-{
-    return ui->notes_widget;
-}
-
 /// Set the timer colors. This is only used to configure the timer.
 void ControlScreen::setTimerColors(QList<qint32> times, QList<QColor> colors)
 {
-    ui->label_timer->colorTimes=times;
-    ui->label_timer->colors=colors;
+    ui->label_timer->colorTimes = times;
+    ui->label_timer->colors = colors;
 }
 
 /// Set the timer time as a string.
