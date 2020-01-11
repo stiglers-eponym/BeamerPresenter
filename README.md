@@ -22,8 +22,10 @@ Showing videos in a presentation additionally requires the installation of some
 GStreamer plugins.
 If you use an old version of poppler, please also read the remarks about the installation in ubuntu.
 
+
 ### Installation in Arch Linux
 You can install the package beamerpresenter from the AUR.
+
 
 ### Installation in Ubuntu >= 18.04
 Note: BeamerPresenter requires Qt >= 5.9 (versions 5.6 - 5.8 are untested), which is only provided by ubuntu >= 18.04.
@@ -55,13 +57,20 @@ Now you can build BeamerPresenter:
 ```sh
 qmake && make
 ```
-You can install BeamerPresenter using `sudo make install`, but it is recommended to use `checkinstall`
+You could now install BeamerPresenter using `sudo make install`, but it is recommended to use `checkinstall`
+in order to keep track of all installed files using dpkg or apt:
 ```sh
 sudo apt install checkinstall
 echo 'Simple dual screen pdf viewer' > description-pak
-sudo checkinstall -D --pkglicense=GPL3 --requires=libpoppler-qt5-1,qtmultimedia5 --pkgsource=github.com/stiglers-eponym/BeamerPresenter make install
+sudo checkinstall -D \
+	--pkglicense=GPL3 \
+	--requires=libpoppler-qt5-1,qtmultimedia5-dev \
+	--pkgsource=github.com/stiglers-eponym/BeamerPresenter \
+	make install
 ```
-in order to keep track of all installed files using apt.
+
+After the installation you can remove the packages `libpoppler-qt5-dev`, `libpoppler-dev` and `checkinstall`.
+
 
 ### MS Windows
 Building on MS Windows is possible, but you need to define the directory
@@ -94,24 +103,22 @@ An extended list of features can be found in the manual (`beamerpresenter.1`).
 	are in time.
 *	Cache: All slides are rendered to a compressed cache.
 	The total cache size and the number of slides in cache can be limited.
-*	Slide transitions: BeamerPresenter probably all slide transitions which are
-	available for PDFs.
+*	Slide transitions: BeamerPresenter probably supports probably all slide
+	transitions	which are defined in the PDF standard.
 *	Multimedia: You can add videos and audio files to your presentation.
 	A video will continue playing if embedded on two consecutive slides with
 	the same page label (overlays in LaTeX beamer).
 *	Animations: You can create simple animations by showing slides in rapid
-	succession. The minimal delay between two frame can be defined in the
+	succession. The minimal delay between two frames can be defined in the
 	configuration.
-*	Simple navigation through links, scrolling, a table of contents and an
-	overview of all slides on the speaker's screen and shortcuts for skipping
+*	Simple navigation by using links, scrolling, a table of contents, an
+	overview of all slides on the speaker's screen, and shortcuts for skipping
 	overlays.
 *	Draw in presentation: You can use different pens and highlighters to draw
 	in the presentation. Drawings are synchronized between notes screen and
 	presentation screen. You can use a pointer, torch and magnifier to
 	highlight parts of the presentation.
 	Drawings can be saved to an experimental binary file format.
-*	(Experimental:) Embed Applications: If you are using X11, you can show
-	windows created by external applications in a presentation.
 
 
 ## Settings
@@ -119,16 +126,11 @@ Settings can be placed in a file `beamerpresenter.conf` (on platforms other than
 GNU/Linux: `beamerpresenter.ini`). An example configuration file is provided.
 The configuration can only be edited directly with a text editor.
 
-This program is only tested on a GNU/Linux system. Using configuration files might
-lead to platform specific problems.
-
 
 ## Typical usage
-I typically compile my LaTeX beamer presentations once with an aspect ratio
-optimized for the projector and once with aspect ratio 4:3 for the speaker's
+I compile my LaTeX beamer presentations once with an aspect ratio optimized for
+the projector (e.g. 16:10) and once with aspect ratio 4:3 for the speaker's
 screen. The layout is less important for the speaker's screen, but it should
 leave enough space on the screen for a clock, a timer and a preview of the next
 slide.
-
-In the presentation compiled for the speaker's screen I can include additional
-notes and hyperlinks to backup slides.
+In the slides for the speaker screen I can include some additional information.

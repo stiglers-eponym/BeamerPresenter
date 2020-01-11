@@ -123,22 +123,23 @@ win32 {
 
 unix {
     # Commands needed for make install
-
     # Include man pages and default configuration in make install.
+
+    gzip_man1.depends = $${TARGET}.1
+    gzip_man1.target = $${TARGET}.1.gz
+    gzip_man1.commands = ls $${TARGET}.1.gz || gzip -9 $${TARGET}.1
+
     doc1.path = /usr/share/man/man1/
     doc1.files = $${TARGET}.1.gz
     doc1.depends = $${TARGET}.1.gz
 
+    gzip_man5.depends = $${TARGET}.conf.5
+    gzip_man5.target = $${TARGET}.conf.5.gz
+    gzip_man5.commands = ls $${TARGET}.conf.5.gz || gzip -9 $${TARGET}.conf.5
+
     doc5.path = /usr/share/man/man5/
     doc5.files = $${TARGET}.conf.5.gz
     doc5.depends = $${TARGET}.conf.5.gz
-
-    gzip_man1.depends = $${TARGET}.1
-    gzip_man5.depends = $${TARGET}.conf.5
-    gzip_man1.target = $${TARGET}.1.gz
-    gzip_man5.target = $${TARGET}.conf.5.gz
-    gzip_man1.commands = ls $${TARGET}.1.gz || gzip -9 $${TARGET}.1
-    gzip_man5.commands = ls $${TARGET}.conf.5.gz || gzip -9 $${TARGET}.conf.5
 
     configuration.path = /etc/$${TARGET}/
     configuration.files = $${TARGET}.conf pid2wid.sh

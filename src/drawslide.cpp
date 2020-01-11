@@ -56,7 +56,6 @@ void DrawSlide::clearPageAnnotations()
 void DrawSlide::paintEvent(QPaintEvent*)
 {
     QPainter painter(this);
-    qDebug() << shiftx << shifty << pixmap.size() << this;
     if (pixpaths.isNull() || end_cache < 1) {
         if (pagePart == RightHalf)
             painter.drawPixmap(shiftx + width(), shifty, pixmap);
