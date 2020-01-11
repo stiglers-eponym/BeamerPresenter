@@ -319,18 +319,26 @@ Set page number of the control screen to the page number of the presentation. Wh
 .
 .SH FEATURES
 .
-.SS Links
-When clicking on a link on the presentation screen, on the notes slide or on the preview of the current or next slide with the right mouse button,
+.SS Cache
+Slides are rendered to a compressed cache in order to allow for much faster slide changes. The number of cached slides and the memory usage can be limited by the options
+.BR cache " and " memory .
+By default up to 200 MiB are used for cached slides, which is usually enough even for long presentations.
+Note that setting cache or memory to a very small number (less than 4) can affect the performance and does not reduce the required amount of memory.
+.PP
+While
 .B BeamerPresenter
-will try to follow the link. Links to multimedia content and embedded applications are disabled for the preview slides.
+is based on the Qt5 bindings of poppler, the images of pdf pages shown on the screen can also be created using a different renderer.
+This can be any renderer which can be called from the command line, accepts a filename, page number and page size as arguments and writes a rendered PDF page as PNG image to standard output.
+An example of such a PDF renderer, which in some situations improves both speed and quality of the output image, is
+.BR "mutool draw " "from the " MuPDF " project."
 .
-.SS Browse Notes
+.SS Browse notes
 By changing the current page number in the corresponding text field, the note page and the preview of the current and next slide on the control screen will be updated immediately. The same is true if you scroll with the mouse wheel on the control screen. The presentation screen will be updated only when pressing
 .BR return ", " PageUp ", or " PageDown .
 You can escape this mode and go back to the current slide on the presentation by pressing
 .BR escape .
 .
-.SS Browse Table of Contents and overview
+.SS Browse table of contents and overview
 .RB "You can show a table of contents on the control screen with shortcut " t " for quick navigation. The maximum level of subsections shown in the table of contents can be controlled with the option " \-l " or " \-\-toc-depth ". For entries with more levels, one additional level is shown as a pop-up menu."
 .PP
 .RB "An overview of all presentation slides is shown on the control screen with the key binding " s ". The number of columns in this overview mode can be controlled with the option " \-o " or " \-\-columns .
@@ -342,21 +350,7 @@ You can jump to the next or previous slide with a different page label by using 
 .BR Up " and " Down .
 For presentations created with LaTeX beamer using overlays, this jumps to the next or previous slide, which differs by more than an overlay.
 .
-.SS Cache
-Slides are rendered to a compressed cache in order to allow for much faster slide changes. The number of cached slides and the memory usage can be limited by the options
-.BR cache " and " memory .
-By default up to 100 MiB are used for cached slides, which is usually enough even for long presentations.
-Restricting the cache size to a small (but nonzero) value can affect the performance and might lead to unstable behavior.
-Caching slides can be switched off completely with the command line option
-.BR -c 0.
-.PP
-Rendering to cache can be done using a custom PDF renderer. While
-.B BeamerPresenter
-is based on the Qt5 bindings of poppler, rendering to cache can be done using any renderer, which can be called from the command line, accepts a filename, page number and page size as arguments and writes a rendered PDF page as PNG image to standard output.
-An example of such a PDF renderer, which improves both speed and quality of the output image, is
-.BR "mutool draw " "from the " MuPDF " project."
-.
-.SS Multimedia Support
+.SS Multimedia
 .B BeamerPresenter
 can show videos, which are linked in the PDF as annotation. For each video in the presentation a slider is created and shown in the lower right corner of the control screen. Videos can also be shown in the notes, but there is no synchronization between different videos. All multimedia content can be started immediately when entering a frame by using the option
 .BR \-a " or " \-\-autoplay .
@@ -371,7 +365,7 @@ Simple animations can be created by showing slides in rapid succession. When usi
 .BR BeamerPresenter " supports slide transitions. Slide transitions can be disabled completely with the option " \-d " or " \-\-no-transitions .
 .RB "For transitions of type \[dq]fly\[dq] which are not marked as rectangular, " BeamerPresenter " uses transparency effects which usually only look good for text flying in or out."
 .
-.SS Embedded applications
+.SS Embedded applications (using X embedding)
 A link in the PDF pointing to an external application will usually be handled by the desktop services. But you can also specify programs, which will be executed directly when pressing the link.
 .B BeamerPresenter
 will try to embed the window created by the external program in the area of the link, by which it was created.

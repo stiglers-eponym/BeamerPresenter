@@ -32,7 +32,7 @@
 #include "ui_controlscreen.h"
 
 // Namespace for te user interface from controlscreen.ui. I don't really know why.
-// This probably follows a strange Qt convention.
+// This probably follows a Qt convention.
 namespace Ui {
     class ControlScreen;
 }

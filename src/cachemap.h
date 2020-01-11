@@ -27,6 +27,9 @@
 #include "pdfdoc.h"
 #include "cachethread.h"
 
+/// QObject rendering pdf pages to images and storing these in a compressed cache.
+/// This class handles the complete rendering, owns the cached pages, and owns the
+/// cache thread which is used to render pages without affecting the main thread.
 class CacheMap : public QObject
 {
     Q_OBJECT
@@ -34,7 +37,6 @@ class CacheMap : public QObject
 public:
     /// Constructors
     CacheMap(PdfDoc const* doc, PagePart const part = FullPage, QObject* parent = nullptr);
-    CacheMap(CacheMap& other);
     /// Destructor
     ~CacheMap();
     CacheThread* getCacheThread() {return cacheThread;}
@@ -59,7 +61,7 @@ public:
     /// Delete a page from cache and return its size.
     qint64 clearPage(int const page);
 
-    /// Update cache. This will start cacheTimer.
+    /// Update cache. This will start cacheThread.
     bool updateCache(int const page);
     /// Is a cache thread running?
     bool threadRunning() {return cacheThread->isRunning();}
@@ -75,6 +77,7 @@ public:
     PagePart getPagePart() const {return pagePart;}
 
 public slots:
+    /// Get cached pages from cacheThread. Called when cacheThread finishes.
     void receiveBytes();
 
 private:
@@ -88,13 +91,13 @@ private:
     PagePart pagePart = FullPage;
     /// Command for external renderer.
     QString renderCommand = "";
-
-    // These should remain nullptr if cache is disabled.
+    /// Separate thread used to render pages to compressed cache.
     CacheThread* cacheThread;
-    QTimer* cacheTimer;
 
 signals:
+    /// Notify about changes in cache size (in bytes).
     void cacheSizeChanged(qint64 const size);
+    /// Nofity that cacheThread has finished and this has received a new compressed page from cacheThread.
     void cacheThreadFinished();
 };
 

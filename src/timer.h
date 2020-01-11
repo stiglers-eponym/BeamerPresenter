@@ -29,7 +29,10 @@
 
 /// Maximum time between GUI updates in ms.
 static const unsigned short MAX_UPDATE_GUI_INTERVAL_MS = 1000;
+/// Minimum time between GUI updates in ms.
 static const unsigned short MIN_UPDATE_GUI_INTERVAL_MS = 50;
+/// Minimum number of frames used for a transition between two colors.
+/// A smaller number of frames is only used if the frame time would be smaller than MIN_UPDATE_GUI_INTERVAL_MS.
 static const unsigned short UPDATE_GUI_FRAMES = 25;
 
 class Timer : public QLabel
@@ -39,7 +42,6 @@ class Timer : public QLabel
 
 public:
     Timer(QWidget* parent = nullptr);
-    Timer(QLineEdit* setTimerEdit, QWidget* parent = nullptr);
     ~Timer();
     void setTimeMap(QMap<int, quint32>& timeMap);
     void pauseTimer();
@@ -73,7 +75,7 @@ private:
     qint64 startTime;
     /// Time at which the timer was paused (in ms since epoche start).
     qint64 pauseTime;
-    /// QTimer triggering updates of GUI timer.
+    /// QTimer triggering updates of GUI timer and of clock (ControlScreen::ui->clock_label).
     QTimer* timer;
     /// List of time differences (in ms) associated with colors.
     QList<qint32> colorTimes = {0};

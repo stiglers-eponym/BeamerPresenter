@@ -28,6 +28,9 @@
 #include "pdfdoc.h"
 #include "cachemap.h"
 
+/// Basic slide.
+/// This widget shows a slide on the screen and links of navigation and action type.
+/// For rendering of slides this contains a CacheMap object which renders slides to cache.
 class PreviewSlide : public QWidget
 {
     Q_OBJECT

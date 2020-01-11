@@ -18,42 +18,24 @@
 
 #include "cachemap.h"
 
+CacheMap::CacheMap(PdfDoc const* doc, PagePart const part, QObject* parent)
+    : QObject(parent),
+      data(),
+      pdf(doc),
+      pagePart(part),
+      cacheThread(new CacheThread(this, this))
+{
+    connect(cacheThread, &CacheThread::finished, this, &CacheMap::receiveBytes);
+}
+
 CacheMap::~CacheMap()
 {
-    cacheTimer->stop();
     cacheThread->requestInterruption();
     cacheThread->wait(10000);
     cacheThread->exit();
     delete cacheThread;
     qDeleteAll(data);
     data.clear();
-    delete cacheTimer;
-}
-
-CacheMap::CacheMap(CacheMap& other) :
-    QObject(other.parent()),
-    data(other.data),
-    pdf(other.pdf),
-    resolution(other.resolution),
-    pagePart(other.pagePart),
-    renderCommand(other.renderCommand),
-    cacheThread(other.cacheThread),
-    cacheTimer(other.cacheTimer)
-{
-    cacheThread->setCacheMap(this);
-}
-
-CacheMap::CacheMap(PdfDoc const* doc, PagePart const part, QObject* parent)
-    : QObject(parent),
-      data(),
-      pdf(doc),
-      pagePart(part),
-      cacheThread(new CacheThread(this, this)),
-      cacheTimer(new QTimer(this))
-{
-    cacheTimer->setSingleShot(true);
-    connect(cacheTimer, &QTimer::timeout, this, [&](){cacheTimer->start();}); // TODO: find a more elegant way.
-    connect(cacheThread, &CacheThread::finished, this, &CacheMap::receiveBytes);
 }
 
 /// Write the pixmap in png format to a QBytesArray at *value(page).

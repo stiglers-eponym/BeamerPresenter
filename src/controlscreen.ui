@@ -470,6 +470,10 @@
   <property name="windowTitle">
    <string>ControlScreen</string>
   </property>
+  <property name="windowIcon">
+   <iconset>
+    <normaloff>../../../../../usr/share/icons/scalable/apps/beamerpresenter.svg</normaloff>../../../../../usr/share/icons/scalable/apps/beamerpresenter.svg</iconset>
+  </property>
   <property name="documentMode">
    <bool>true</bool>
   </property>
@@ -612,7 +616,7 @@
        </spacer>
       </item>
       <item>
-       <widget class="ClockLabel" name="label_clock">
+       <widget class="QLabel" name="label_clock">
         <property name="font">
          <font>
           <pointsize>28</pointsize>
@@ -756,7 +760,7 @@
            <bool>true</bool>
           </property>
           <property name="text">
-           <string notr="true">00:00</string>
+           <string notr="true">0</string>
           </property>
           <property name="textFormat">
            <enum>Qt::PlainText</enum>
@@ -1082,11 +1086,6 @@
  </widget>
  <layoutdefault spacing="6" margin="11"/>
  <customwidgets>
-  <customwidget>
-   <class>ClockLabel</class>
-   <extends>QLabel</extends>
-   <header>src/clocklabel.h</header>
-  </customwidget>
   <customwidget>
    <class>PageNumberEdit</class>
    <extends>QLineEdit</extends>

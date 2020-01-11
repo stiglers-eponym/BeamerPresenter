@@ -100,6 +100,7 @@ bool PdfDoc::loadDocument()
     if (newDoc->scripts().size() != 0)
         qWarning() << "This file contains JavaScript scripts. JavaScript is not supported.";
 
+    // Delete the old document and replace it by the new document.
     delete popplerDoc;
     popplerDoc = newDoc;
     lastModified = file.lastModified();

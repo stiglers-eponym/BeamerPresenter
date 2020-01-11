@@ -31,21 +31,6 @@ Timer::Timer(QWidget* parent) :
     setToolTip("Time since beginning of the presentation in (h:)mm:ss");
 }
 
-Timer::Timer(QLineEdit* setTimerEdit, QWidget* parent) :
-    QLabel(parent),
-    deadline(QDateTime::currentMSecsSinceEpoch()),
-    startTime(deadline),
-    pauseTime(deadline),
-    timeMap(),
-    currentPageTimeIt(timeMap.cend())
-{
-    setText("0");
-    setTimerWidget(setTimerEdit);
-    timerPalette = QPalette(this->palette());
-    timerPalette.setColor(QPalette::WindowText, Qt::gray);
-    setPalette(timerPalette);
-}
-
 Timer::~Timer()
 {
     timerEdit->disconnect();
@@ -59,6 +44,7 @@ void Timer::setTimerWidget(QLineEdit* setTimerEdit)
     connect(timerEdit, &QLineEdit::editingFinished, this, &Timer::setDeadline);
     connect(timerEdit, &QLineEdit::returnPressed, this, &Timer::sendEscape);
     connect(timer, &QTimer::timeout, this, &Timer::showTime);
+    timer->start(update_gui_interval);
     timerPalette.setColor(QPalette::WindowText, Qt::gray);
     timerEdit->setToolTip("Estimated time of the presentation in minutes or (h:)mm:ss");
     setPalette(timerPalette);
@@ -123,7 +109,7 @@ void Timer::toggleTimer()
 
 void Timer::pauseTimer()
 {
-    timer->stop();
+    // Do not stop this->timer, because it is also used to update the clock (ControlScreen::ui->clock_label).
     pauseTime = QDateTime::currentMSecsSinceEpoch();
     timerPalette.setColor(QPalette::WindowText, Qt::gray);
     setPalette(timerPalette);
@@ -139,13 +125,12 @@ void Timer::continueTimer()
         timerPalette.setColor(QPalette::WindowText, Qt::black);
         setPalette(timerPalette);
         showTime();
-        timer->start(update_gui_interval);
     }
 }
 
 void Timer::resetTimer()
 {
-    setText("00:00");
+    setText("0");
     deadline -= startTime;
     startTime = QDateTime::currentMSecsSinceEpoch();
     deadline += startTime;
@@ -161,14 +146,16 @@ void Timer::resetTimer()
 
 void Timer::showTime()
 {
-    int const diff = QDateTime::currentMSecsSinceEpoch() - startTime;
-    if (diff < 3600000)
-        setText(QTime::fromMSecsSinceStartOfDay(diff).toString("mm:ss"));
-    else
-        setText(QTime::fromMSecsSinceStartOfDay(diff).toString("h:mm:ss"));
-    if (deadline <= startTime + diff && startTime + diff - deadline <= 2*update_gui_interval)
-        emit sendAlert();
-    updateColor();
+    if (pauseTime == 0) {
+        int const diff = QDateTime::currentMSecsSinceEpoch() - startTime;
+        if (diff < 3600000)
+            setText(QTime::fromMSecsSinceStartOfDay(diff).toString("m:ss"));
+        else
+            setText(QTime::fromMSecsSinceStartOfDay(diff).toString("h:mm:ss"));
+        if (deadline <= startTime + diff && startTime + diff - deadline <= 2*update_gui_interval)
+            emit sendAlert();
+        updateColor();
+    }
 }
 
 void Timer::updateColor()
@@ -237,9 +224,15 @@ void Timer::updateGuiInterval()
     }
     if (min_delta > UPDATE_GUI_FRAMES * MAX_UPDATE_GUI_INTERVAL_MS)
         update_gui_interval = MAX_UPDATE_GUI_INTERVAL_MS;
-    else if (min_delta < UPDATE_GUI_FRAMES * MIN_UPDATE_GUI_INTERVAL_MS)
+    else if (min_delta <= UPDATE_GUI_FRAMES * MIN_UPDATE_GUI_INTERVAL_MS)
         update_gui_interval = MIN_UPDATE_GUI_INTERVAL_MS;
-    else
+    else {
+        // Set update_gui_interval such that enough frames are shown for each color transition.
         update_gui_interval = min_delta / UPDATE_GUI_FRAMES;
+        // Decrease update_gui_interval such that 1000/update_gui_interval is (approximately) an integer.
+        // Without this, the clock could be updated in irregular intervals.
+        update_gui_interval = 1000. / (999/update_gui_interval + 1) + .999999999;
+    }
+    timer->setInterval(update_gui_interval);
     qDebug() << "Set update GUI inverval to" << update_gui_interval << ". Min delta was" << min_delta;
 }

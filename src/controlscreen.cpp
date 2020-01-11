@@ -281,6 +281,12 @@ ControlScreen::ControlScreen(QString presentationPath, QString notesPath, PagePa
     // Exit editing timer with escape key.
     connect(ui->label_timer, &Timer::sendEscape,  this, &ControlScreen::resetFocus);
 
+    // Set up clock.
+    // Clock should show current time.
+    ui->label_clock->setText(QTime::currentTime().toString("hh:mm:ss"));
+    // Clock is updated by the same timer as ui->label_timer.
+    connect(ui->label_timer->timer, &QTimer::timeout, ui->label_clock, [&](){ui->label_clock->setText(QTime::currentTime().toString("hh:mm:ss"));});
+
     // Signals emitted by the page number editor.
     // Pressing return in page number editor changes the page in the presentation.
     connect(ui->text_current_slide, &PageNumberEdit::sendPageNumberReturn, presentationScreen, &PresentationScreen::receiveNewPage);

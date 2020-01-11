@@ -1286,8 +1286,9 @@ int main(int argc, char *argv[])
 
         // Set (estimate of) the maximum cache size in MB.
         // This is the amount of RAM which BeamerPresenter should at most use for pre-rendering slides.
-        // It can happen that the cache grows beyond this size, because the size of new slides rendered to cache is only known after they have been saved to cache.
-        value = intFromConfig<quint32>(parser, local, settings, "memory", 100);
+        // It can happen that the cache grows beyond this size, because the size of new slides rendered
+        // to cache is only known after they have been saved to cache.
+        value = intFromConfig<quint32>(parser, local, settings, "memory", 200);
         ctrlScreen->setCacheSize(1048576L * value);
     }
     {

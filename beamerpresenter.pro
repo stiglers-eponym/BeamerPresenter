@@ -59,7 +59,6 @@ SOURCES += \
         src/presentationslide.cpp \
         src/controlscreen.cpp \
         src/presentationscreen.cpp \
-        src/clocklabel.cpp \
         src/timer.cpp \
         src/pagenumberedit.cpp \
         src/toolbutton.cpp \
@@ -83,7 +82,6 @@ HEADERS += \
         src/drawslide.h \
         src/controlscreen.h \
         src/presentationscreen.h \
-        src/clocklabel.h \
         src/presentationslide.h \
         src/timer.h \
         src/pagenumberedit.h \
@@ -138,7 +136,10 @@ unix {
     configuration.path = /etc/$${TARGET}/
     configuration.files = $${TARGET}.conf pid2wid.sh
 
+    icon.path = /usr/share/icons/scalable/apps/
+    icon.files = src/beamerpresenter.svg
+
     target.path = /usr/bin/
 
-    INSTALLS += doc1 doc5 configuration target
+    INSTALLS += doc1 doc5 configuration icon target
 }
