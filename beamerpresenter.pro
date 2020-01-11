@@ -126,12 +126,19 @@ unix {
 
     # Include man pages and default configuration in make install.
     doc1.path = /usr/share/man/man1/
-    doc1.extra = ls $${TARGET}.1.gz || gzip -9 $${TARGET}.1; $(INSTALL_FILE) $${PWD}/$${TARGET}.1.gz $(INSTALL_ROOT)/usr/share/man/man1/$${TARGET}.1.gz
-    #doc1.files = $${TARGET}.1.gz # doesn't work
+    doc1.files = $${TARGET}.1.gz
+    doc1.depends = $${TARGET}.1.gz
 
     doc5.path = /usr/share/man/man5/
-    doc5.extra = ls $${TARGET}.conf.5.gz || gzip -9 $${TARGET}.conf.5; $(INSTALL_FILE) $${PWD}/$${TARGET}.conf.5.gz $(INSTALL_ROOT)/usr/share/man/man1/$${TARGET}.conf.5.gz
-    #doc5.files = $${TARGET}.conf.5.gz # doesn't work
+    doc5.files = $${TARGET}.conf.5.gz
+    doc5.depends = $${TARGET}.conf.5.gz
+
+    gzip_man1.depends = $${TARGET}.1
+    gzip_man5.depends = $${TARGET}.conf.5
+    gzip_man1.target = $${TARGET}.1.gz
+    gzip_man5.target = $${TARGET}.conf.5.gz
+    gzip_man1.commands = ls $${TARGET}.1.gz || gzip -9 $${TARGET}.1
+    gzip_man5.commands = ls $${TARGET}.conf.5.gz || gzip -9 $${TARGET}.conf.5
 
     configuration.path = /etc/$${TARGET}/
     configuration.files = $${TARGET}.conf pid2wid.sh
@@ -141,5 +148,6 @@ unix {
 
     target.path = /usr/bin/
 
+    QMAKE_EXTRA_TARGETS = gzip_man1 gzip_man5
     INSTALLS += doc1 doc5 configuration icon target
 }

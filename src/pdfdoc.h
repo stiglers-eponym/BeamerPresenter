@@ -23,10 +23,18 @@
 #include <iostream>
 #include <QFileInfo>
 #include <poppler-qt5.h>
-#include <poppler-version.h>
 #include <QDomDocument>
 #include <QInputDialog>
 #include "enumerates.h"
+
+// Not available in poppler <= 0.62.0:
+#include <poppler-version.h>
+// If the above inclusion fails on you system, you can comment it out and
+// manually define the poppler version with the following commands:
+//#define POPPLER_VERSION "?.??.?"
+//#define POPPLER_VERSION_MAJOR 0
+//#define POPPLER_VERSION_MINOR ??
+//#define POPPLER_VERSION_MICRO ? // not needed
 
 /// PDF document.
 /// This provides an interface for caching all Poppler::Page objects and reloading files.

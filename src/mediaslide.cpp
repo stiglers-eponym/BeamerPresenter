@@ -384,7 +384,15 @@ void MediaSlide::renderPage(int pageNumber, bool const hasDuration)
                 for (QList<QMediaPlayer*>::iterator player_it=oldSoundLinks.begin(); player_it!=oldSoundLinks.end(); player_it++) {
                     QMediaContent media = (*player_it)->media();
                     // TODO: reliable check if the media names match
-                    if (*player_it != nullptr && !media.isNull() && media.request().url()==url) {
+                    if (
+                            *player_it != nullptr
+                            && !media.isNull()
+#if QT_VERSION_MAJOR > 5 or QT_VERSION_MINOR > 13
+                            && media.request().url() == url
+#else
+                            && media.canonicalUrl() == url
+#endif
+                            ) {
                         soundLinkPlayers[i]= *player_it;
                         *player_it = nullptr;
                         found = true;
@@ -466,7 +474,15 @@ void MediaSlide::renderPage(int pageNumber, bool const hasDuration)
             for (QList<QMediaPlayer*>::iterator player_it=oldSounds.begin(); player_it!=oldSounds.end(); player_it++) {
                 QMediaContent media = (*player_it)->media();
                 // TODO: reliable check if the media names match
-                if (*player_it != nullptr && !media.isNull() && media.request().url()==url) {
+                if (
+                        *player_it != nullptr
+                        && !media.isNull()
+#if QT_VERSION_MAJOR > 5 or QT_VERSION_MINOR > 13
+                        && media.request().url() == url
+#else
+                        && media.canonicalUrl() == url
+#endif
+                        ) {
                     soundPlayers.append(*player_it);
                     *player_it = nullptr;
                     found = true;
@@ -605,7 +621,7 @@ void MediaSlide::updateCacheVideos(int const pageNumber)
     // Get a list of all video annotations on that page.
     QSet<Poppler::Annotation::SubType> videoType = QSet<Poppler::Annotation::SubType>();
     Poppler::Page const* page = doc->getPage(pageNumber);
-    if (page == nullptr || page->index() == pageIndex)
+    if (page == nullptr || pageNumber == pageIndex)
         return;
     videoType.insert(Poppler::Annotation::AMovie);
     QList<Poppler::Annotation*> videos = page->annotations(videoType);

@@ -28,12 +28,12 @@
 #include <iomanip>
 
 /// Maximum time between GUI updates in ms.
-static const unsigned short MAX_UPDATE_GUI_INTERVAL_MS = 1000;
+static const quint16 MAX_UPDATE_GUI_INTERVAL_MS = 1000;
 /// Minimum time between GUI updates in ms.
-static const unsigned short MIN_UPDATE_GUI_INTERVAL_MS = 50;
+static const quint16 MIN_UPDATE_GUI_INTERVAL_MS = 50;
 /// Minimum number of frames used for a transition between two colors.
 /// A smaller number of frames is only used if the frame time would be smaller than MIN_UPDATE_GUI_INTERVAL_MS.
-static const unsigned short UPDATE_GUI_FRAMES = 25;
+static const quint16 UPDATE_GUI_FRAMES = 25;
 
 class Timer : public QLabel
 {
@@ -86,7 +86,7 @@ private:
     QMap<int, quint32>::const_iterator currentPageTimeIt;
     bool log = false;
     /// Time between GUI updates in ms.
-    unsigned short update_gui_interval = MAX_UPDATE_GUI_INTERVAL_MS;
+    quint16 update_gui_interval = MAX_UPDATE_GUI_INTERVAL_MS;
 };
 
 #endif // TIMER_H

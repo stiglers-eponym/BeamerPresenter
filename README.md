@@ -20,16 +20,17 @@ make install
 ```
 Showing videos in a presentation additionally requires the installation of some
 GStreamer plugins.
+If you use an old version of poppler, please also read the remarks about the installation in ubuntu.
 
-### Installation on Arch Linux
+### Installation in Arch Linux
 You can install the package beamerpresenter from the AUR.
 
-### Installation on Ubuntu >= 18.04
+### Installation in Ubuntu >= 18.04
 Note: BeamerPresenter requires Qt >= 5.9 (versions 5.6 - 5.8 are untested), which is only provided by ubuntu >= 18.04.
 
 First install the dependences (note that this changes the default Qt version to Qt 5):
 ```sh
-sudo apt install qt5-qmake qt5-default libpoppler-qt5-dev qtmultimedia5-dev
+sudo apt install git qt5-qmake qt5-default libpoppler-qt5-dev qtmultimedia5-dev
 ```
 Optionally install `libqt5multimedia5-plugins` for multimedia content.
 
@@ -37,13 +38,28 @@ Then download the source and build:
 ```sh
 git clone https://github.com/stiglers-eponym/BeamerPresenter.git
 cd BeamerPresenter
+```
+If you use an older version of ubuntu (e.g. 18.04) you need to manually enter the version of poppler in `pdfdoc.h` because `poppler-version.h` does not exist in your system.
+For this you open `src/pdfdoc.h` in an editor, comment out the line `#include <poppler-version.h>`, and uncomment the lines `#define POPPLER_VERSION...` where you need to enter your poppler version.
+For ubuntu 18.04 you should end up with
+```sh
+//#include <poppler-version.h>
+// If the above inclusion fails on you system, you can comment it out and
+// manually define the poppler version with the following commands:
+#define POPPLER_VERSION "0.62.0"
+#define POPPLER_VERSION_MAJOR 0
+#define POPPLER_VERSION_MINOR 62
+#define POPPLER_VERSION_MICRO 0 // not needed
+```
+Now you can build BeamerPresenter:
+```sh
 qmake && make
 ```
 You can install BeamerPresenter using `sudo make install`, but it is recommended to use `checkinstall`
 ```sh
 sudo apt install checkinstall
 echo 'Simple dual screen pdf viewer' > description-pak
-sudo checkinstall -D --pkglicense=GPL3 --requires=libpoppler-qt5,qtmultimedia5 --pkgsource=github.com/stiglers-eponym/BeamerPresenter make install
+sudo checkinstall -D --pkglicense=GPL3 --requires=libpoppler-qt5-1,qtmultimedia5 --pkgsource=github.com/stiglers-eponym/BeamerPresenter make install
 ```
 in order to keep track of all installed files using apt.
 

@@ -773,14 +773,14 @@ int main(int argc, char *argv[])
         QList<QString> keys = variantMap.keys();
         // If not colors are set, send the default configuration.
         if (keys.isEmpty())
-            ctrlScreen->setTimerColors({-150,0,150}, {Qt::white, Qt::green, Qt::red});
+            ctrlScreen->setTimerColors({-150000, 0, 150000}, {Qt::white, Qt::green, Qt::red});
         else {
             // Convert the arguments from QVariants to integers and colors.
             // Use a QMap to store the values, because it is automatically sorted by the keys.
             /// Translation of variantMap with types casted to int and QColor.
-            QMap<int,QColor> map;
+            QMap<qint32, QColor> map;
             bool ok;
-            int time;
+            qint32 time;
             QColor color;
             // Iterate over variantMap, to copy and convert it to map.
             for (QList<QString>::const_iterator key_it=keys.cbegin(); key_it!=keys.cend(); key_it++) {
@@ -818,14 +818,14 @@ int main(int argc, char *argv[])
         QStringList keys = settings.childKeys();
         // All elements in the group "timer" should have the form (key, value) = (int, color).
         if (keys.isEmpty())
-            ctrlScreen->setTimerColors({-150,0,150}, {Qt::white, Qt::green, Qt::red});
+            ctrlScreen->setTimerColors({-150000, 0, 150000}, {Qt::white, Qt::green, Qt::red});
         else {
             // Convert the arguments from QVariants to integers and colors.
             // Use a QMap to store the values, because it is automatically sorted by the keys.
             /// Translation of variantMap with types casted to int and QColor.
-            QMap<int,QColor> map;
+            QMap<qint32, QColor> map;
             bool ok;
-            int time;
+            qint32 time;
             QColor color;
             // Iterate over all keys in the "timer" group of settings.
             for (QStringList::const_iterator key_it=keys.cbegin(); key_it!=keys.cend(); key_it++) {
@@ -1272,7 +1272,7 @@ int main(int argc, char *argv[])
 #endif
 
         // Set minimum sidebar width for control screen.
-        value = doubleFromConfig(parser, local, settings, "sidebar-width", 0.8, 1.);
+        value = doubleFromConfig(parser, local, settings, "sidebar-width", 0.2, 1.);
         ctrlScreen->setMinSidebarWidth(value);
     }
 
