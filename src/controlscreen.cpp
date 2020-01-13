@@ -88,6 +88,9 @@ ControlScreen::ControlScreen(QString presentationPath, QString notesPath, PagePa
     presentationScreen = new PresentationScreen(presentation, pagePart);
     // Set the window title.
     presentationScreen->setWindowTitle("BeamerPresenter: " + presentationPath);
+#ifdef Q_OS_UNIX
+    setWindowIcon(QIcon("/usr/share/icons/scalable/apps/beamerpresenter.svg"));
+#endif
 
     // Create the UI for the control screen.
     ui->setupUi(this);

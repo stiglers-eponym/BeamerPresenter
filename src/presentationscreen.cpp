@@ -41,6 +41,9 @@ PresentationScreen::PresentationScreen(PdfDoc* presentationDoc, PagePart const p
     connect(slide, &PresentationSlide::sendNewPageNumber, this, &PresentationScreen::receiveNewPage);
     connect(slide, &PresentationSlide::timeoutSignal,     this, &PresentationScreen::receiveTimeoutSignal);
     slide->hidePointer();
+#ifdef Q_OS_UNIX
+    setWindowIcon(QIcon("/usr/share/icons/scalable/apps/beamerpresenter.svg"));
+#endif
     show();
 }
 

@@ -443,10 +443,6 @@
   <property name="windowTitle">
    <string>ControlScreen</string>
   </property>
-  <property name="windowIcon">
-   <iconset>
-    <normaloff>../../../../../usr/share/icons/scalable/apps/beamerpresenter.svg</normaloff>../../../../../usr/share/icons/scalable/apps/beamerpresenter.svg</iconset>
-  </property>
   <property name="documentMode">
    <bool>true</bool>
   </property>
