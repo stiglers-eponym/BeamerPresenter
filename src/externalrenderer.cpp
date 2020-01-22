@@ -21,7 +21,7 @@
 ExternalRenderer::ExternalRenderer(int const page, QObject* parent) : QProcess(parent)
 {
     this->page = page;
-    connect(this, QOverload<int const, QProcess::ExitStatus const>::of(&QProcess::finished), this, &ExternalRenderer::returnImage);
+    connect(this, static_cast<void (ExternalRenderer::*)(int const, QProcess::ExitStatus const)>(&QProcess::finished), this, &ExternalRenderer::returnImage);
 }
 
 void ExternalRenderer::returnImage(int const exitCode, QProcess::ExitStatus const exitStatus)

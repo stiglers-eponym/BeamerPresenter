@@ -70,14 +70,14 @@ void EmbedApp::start()
         // If there is no program which tells us the window ID from the progess ID, we hope that the application, which we want to embed, tells us its WID via standard output.
         process = new QProcess(this);
         connect(process, &QProcess::readyReadStandardOutput, this, &EmbedApp::createFromStdOut);
-        connect(process, QOverload<int const, QProcess::ExitStatus const>::of(&QProcess::finished), this, &EmbedApp::clearProcess);
+        connect(process, static_cast<void (QProcess::*)(int const, QProcess::ExitStatus const)>(&QProcess::finished), this, &EmbedApp::clearProcess);
         process->start(command.join(" "));
         qDebug() << "Started process:" << process->program();
     }
     else {
         // If we know a program for converting process IDs to window IDs, this will be used to get the WID.
         process = new QProcess(this);
-        connect(process, QOverload<int const, QProcess::ExitStatus const>::of(&QProcess::finished), this, &EmbedApp::clearProcess);
+        connect(process, static_cast<void (QProcess::*)(int const, QProcess::ExitStatus const)>(&QProcess::finished), this, &EmbedApp::clearProcess);
         process->start(command.join(" "));
         qDebug() << "Started process:" << process->program() << process->pid();
         // Wait some time before trying to get the window ID
@@ -128,7 +128,7 @@ void EmbedApp::getWidFromPid()
     pid2widTimer->stop();
     if (pid2widProcess==nullptr) {
         pid2widProcess = new QProcess(this);
-        connect(pid2widProcess, QOverload<int const, QProcess::ExitStatus const>::of(&QProcess::finished), this, &EmbedApp::receiveWidFromPid);
+        connect(pid2widProcess, static_cast<void (QProcess::*)(int const, QProcess::ExitStatus const)>(&QProcess::finished), this, &EmbedApp::receiveWidFromPid);
     }
 #ifdef Q_OS_WIN
     pid2widProcess->start(pid2wid, QStringList() << QString::number(process->pid()->dwProcessId));

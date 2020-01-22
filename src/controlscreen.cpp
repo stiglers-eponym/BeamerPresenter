@@ -132,7 +132,7 @@ ControlScreen::ControlScreen(QString presentationPath, QString notesPath, PagePa
 
         // Connect drawSlide to other widgets.
         // Change draw tool
-        connect(ui->tool_selector, &ToolSelector::sendNewTool, drawSlide, QOverload<const ColoredDrawTool>::of(&DrawSlide::setTool));
+        connect(ui->tool_selector, &ToolSelector::sendNewTool, drawSlide, static_cast<void (DrawSlide::*)(const ColoredDrawTool)>(&DrawSlide::setTool));
         // Copy paths from draw slide to presentation slide and vice versa when drawing on one of the slides.
         // Copy paths after moving the mouse while drawing. This assumes that only the last path is changed or a new path is created.
         connect(drawSlide, &DrawSlide::pathsChangedQuick, presentationScreen->slide, &DrawSlide::setPathsQuick);
@@ -213,7 +213,7 @@ ControlScreen::ControlScreen(QString presentationPath, QString notesPath, PagePa
 
     // Set up tool selector.
     // Tool selector can send new draw tools to the presentation slide.
-    connect(ui->tool_selector, &ToolSelector::sendNewTool, presentationScreen->slide, QOverload<const ColoredDrawTool>::of(&DrawSlide::setTool));
+    connect(ui->tool_selector, &ToolSelector::sendNewTool, presentationScreen->slide, static_cast<void (DrawSlide::*)(const ColoredDrawTool)>(&DrawSlide::setTool));
     // Tool selector can send KeyActions to control screen.
     connect(ui->tool_selector, &ToolSelector::sendAction, this, &ControlScreen::handleKeyAction);
 
@@ -1708,7 +1708,7 @@ void ControlScreen::showDrawSlide()
 
         // Connect drawSlide to other widgets.
         // Change draw tool
-        connect(ui->tool_selector, &ToolSelector::sendNewTool, drawSlide, QOverload<const ColoredDrawTool>::of(&DrawSlide::setTool));
+        connect(ui->tool_selector, &ToolSelector::sendNewTool, drawSlide, static_cast<void (DrawSlide::*)(const ColoredDrawTool)>(&DrawSlide::setTool));
         // Copy paths from draw slide to presentation slide and vice versa when drawing on one of the slides.
         // Copy paths after moving the mouse while drawing. This assumes that only the last path is changed or a new path is created.
         connect(drawSlide, &DrawSlide::pathsChangedQuick, presentationScreen->slide, &DrawSlide::setPathsQuick);

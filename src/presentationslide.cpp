@@ -22,7 +22,7 @@ PresentationSlide::PresentationSlide(PdfDoc const*const document, PagePart const
     DrawSlide(document, 0, part, parent)
 {
     seed = static_cast<unsigned int>(std::hash<std::string>{}(doc->getPath().split('/').last().toStdString()));
-    connect(&timer, &QTimer::timeout, this, QOverload<>::of(&PresentationSlide::repaint));
+    connect(&timer, &QTimer::timeout, this, static_cast<void (PresentationSlide::*)()>(&PresentationSlide::repaint));
     timeoutTimer->setSingleShot(true);
     connect(timeoutTimer, &QTimer::timeout, this, &PresentationSlide::timeoutSignal);
     remainTimer.setSingleShot(true);

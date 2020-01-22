@@ -27,9 +27,7 @@ If you use an old version of poppler, please also read the remarks about the ins
 You can install the package beamerpresenter from the AUR.
 
 
-### Installation in Ubuntu >= 18.04
-Note: BeamerPresenter requires Qt >= 5.9 (versions 5.6 - 5.8 are untested), which is only provided by ubuntu >= 18.04.
-
+### Installation in Ubuntu >= 16.04
 First install the dependences (note that this changes the default Qt version to Qt 5):
 ```sh
 sudo apt install git qt5-qmake qt5-default libpoppler-qt5-dev qtmultimedia5-dev
