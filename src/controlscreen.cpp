@@ -520,7 +520,7 @@ void ControlScreen::resetFocus()
 void ControlScreen::receiveTimerAlert()
 {
     QPalette palette = QPalette();
-    palette.setColor(QPalette::Background, Qt::red);
+    palette.setColor(QPalette::Window, Qt::red);
     palette.setColor(QPalette::Base, Qt::red);
     ui->edit_timer->setPalette(palette);
 }
@@ -528,7 +528,7 @@ void ControlScreen::receiveTimerAlert()
 void ControlScreen::resetTimerAlert()
 {
     QPalette palette = QPalette();
-    palette.setColor(QPalette::Background, Qt::darkGray);
+    palette.setColor(QPalette::Window, Qt::darkGray);
     palette.setColor(QPalette::Base, Qt::white);
     ui->edit_timer->setPalette(palette);
 }
@@ -1439,7 +1439,7 @@ void ControlScreen::setColor(const QColor bgColor, const QColor textColor)
 {
     // Set background and text color for the control screen.
     QPalette newPalette(palette());
-    newPalette.setColor(QPalette::Background, bgColor);
+    newPalette.setColor(QPalette::Window, bgColor);
     newPalette.setColor(QPalette::Base, bgColor);
     newPalette.setColor(QPalette::Text, textColor);
     newPalette.setColor(QPalette::WindowText, textColor);
@@ -1451,7 +1451,7 @@ void ControlScreen::setPresentationColor(const QColor color)
 {
     // Set background color for the presentation screen.
     QPalette newPalette(presentationScreen->palette());
-    newPalette.setColor(QPalette::Background, color);
+    newPalette.setColor(QPalette::Window, color);
     newPalette.setColor(QPalette::Base, color);
     presentationScreen->setPalette(newPalette);
 }

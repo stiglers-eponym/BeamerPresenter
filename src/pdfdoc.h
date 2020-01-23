@@ -27,11 +27,14 @@
 #include <QInputDialog>
 #include "enumerates.h"
 
+#if __has_include(<poppler-version.h>)
 // Not available in poppler <= 0.62.0:
 #include <poppler-version.h>
-// If the above inclusion fails on you system, you can comment it out and
-// manually define the poppler version with the following commands:
-//#define POPPLER_VERSION "?.??.?"
+#endif
+// If the above inclusion fails on you system, you can comment it out.
+// If no poppler version is defined, the compiler will assume that you use an old version (<0.60.0).
+// To avoid this, you can manually define your poppler version here:
+//#define POPPLER_VERSION "?.??.?" // only for the BeamerPresenter version string.
 //#define POPPLER_VERSION_MAJOR 0
 //#define POPPLER_VERSION_MINOR ??
 //#define POPPLER_VERSION_MICRO ? // not needed

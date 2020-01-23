@@ -20,7 +20,6 @@ make install
 ```
 Showing videos in a presentation additionally requires the installation of some
 GStreamer plugins.
-If you use an old version of poppler, please also read the remarks about the installation in ubuntu.
 
 
 ### Installation in Arch Linux
@@ -38,21 +37,6 @@ Then download the source and build:
 ```sh
 git clone https://github.com/stiglers-eponym/BeamerPresenter.git
 cd BeamerPresenter
-```
-If you use an older version of ubuntu (e.g. 18.04) you need to manually enter the version of poppler in `pdfdoc.h` because `poppler-version.h` does not exist in your system.
-For this you open `src/pdfdoc.h` in an editor, comment out the line `#include <poppler-version.h>`, and uncomment the lines `#define POPPLER_VERSION...` where you need to enter your poppler version.
-For ubuntu 18.04 you should end up with
-```sh
-//#include <poppler-version.h>
-// If the above inclusion fails on you system, you can comment it out and
-// manually define the poppler version with the following commands:
-#define POPPLER_VERSION "0.62.0"
-#define POPPLER_VERSION_MAJOR 0
-#define POPPLER_VERSION_MINOR 62
-#define POPPLER_VERSION_MICRO 0 // not needed
-```
-Now you can build BeamerPresenter:
-```sh
 qmake && make
 ```
 You could now install BeamerPresenter using `sudo make install`, but it is recommended to use `checkinstall`
@@ -73,7 +57,7 @@ After the installation you can remove the packages `libpoppler-qt5-dev`, `libpop
 ### MS Windows
 Building on MS Windows is possible, but you need to define the directory
 containing the poppler-qt5 header and library manually in beamerpresenter.pro
-(line 100). Also the installation has to be done manually.
+(line 120). Also the installation has to be done manually.
 You need to make sure that beamerpresenter.exe has access to the libraries,
 e.g. by copying all necessary .ddl files to the same directory as
 beamerpresenter.exe.
