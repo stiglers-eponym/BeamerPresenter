@@ -24,9 +24,9 @@ void CacheThread::run()
 {
     // Handle one page. This page should not change while rendering.
     page = newPage;
-    QString renderCommand = cacheMap->getRenderCommand(page);
+    QString renderCommand = master->getRenderCommand(page);
     if (renderCommand.isEmpty()) {
-        QPixmap pixmap = cacheMap->renderPixmap(page);
+        QPixmap pixmap = master->renderPixmap(page);
         if (isInterruptionRequested())
             return;
         QByteArray* bytes_nonconst = new QByteArray();
@@ -46,7 +46,7 @@ void CacheThread::run()
         }
         bytes = renderer->getBytes();
         delete renderer;
-        if (cacheMap->getPagePart() != FullPage) {
+        if (master->getPagePart() != FullPage) {
             if (isInterruptionRequested()) {
                 delete bytes;
                 bytes = nullptr;
@@ -55,7 +55,7 @@ void CacheThread::run()
             QPixmap pixmap;
             pixmap.loadFromData(*bytes, "PNG");
             delete bytes;
-            if (cacheMap->getPagePart() == LeftHalf)
+            if (master->getPagePart() == LeftHalf)
                 pixmap = pixmap.copy(0, 0, pixmap.width()/2, pixmap.height());
             else
                 pixmap = pixmap.copy(pixmap.width()/2, 0, pixmap.width()/2, pixmap.height());

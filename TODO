@@ -1,6 +1,7 @@
 BeamerPresenter
 
 * Document code!
+* Check (and reduce) memory usage
 * Key bindings for multimedia control
 * Multimedia: allow more arguments
 * Multimedia: Better control bar
@@ -10,6 +11,7 @@ BeamerPresenter
 * Segfault when starting embedded application from the wrong screen (not reproducible?)
 * Bug report for Qt5.13 in wayland: paintEvent not drawn immediately
 * Check how icons should be handled
+* less overloading
 
 * Video widgets break when switching between notes and draw mode
 * cache management can crash, disabling cache completely (occurred after reloading files): not simply reproducible

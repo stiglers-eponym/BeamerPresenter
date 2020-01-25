@@ -22,6 +22,7 @@
 #include <QDataStream>
 #include "mediaslide.h"
 #include "drawpath.h"
+#include "singlerenderer.h"
 
 // TODO: move pen strokes to different layer (extra widget) above multimedia widgets
 
@@ -31,11 +32,9 @@ class DrawSlide : public MediaSlide
 public:
     explicit DrawSlide(QWidget* parent=nullptr) : MediaSlide(parent) {}
     explicit DrawSlide(PdfDoc const*const document, int const pageNumber, PagePart const part, QWidget* parent=nullptr) : MediaSlide(document, pageNumber, part, parent) {}
-    ~DrawSlide() override {clearAllAnnotations(); clearAll();}
+    ~DrawSlide() override;
     void clearPageAnnotations();
     void clearAllAnnotations();
-    //virtual void clearCache() override;
-    void updateEnlargedPage();
     void setSize(DrawTool const tool, quint16 size);
     void setMagnification(qreal const mag);
     qreal getMagnification() const {return magnification;}
@@ -62,6 +61,7 @@ protected:
     QMap<QString, QList<DrawPath*>> paths;
     QPointF pointerPosition = QPointF();
     QPixmap enlargedPage;
+    SingleRenderer* enlargedPageRenderer = nullptr;
     QMap<DrawTool, quint16> sizes = {{Magnifier,120}, {Torch,80}, {Pointer,10}, {Highlighter,30}, {Pen,3}, {Eraser,10}};
     bool pointer_visible = true;
     qreal magnification = 2.;
@@ -69,6 +69,7 @@ protected:
     int end_cache = -1;
 
 public slots:
+    void updateEnlargedPage();
     void setPaths(QString const pagelabel, QList<DrawPath*> const& list, qint16 const refshiftx, qint16 const refshifty, double const refresolution);
     void setPathsQuick(QString const pagelabel, QList<DrawPath*> const& list, qint16 const refshiftx, qint16 const refshifty, double const refresolution);
     void setPointerPosition(QPointF const point, qint16 const refshiftx, qint16 const refshifty, double const refresolution);

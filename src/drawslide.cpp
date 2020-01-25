@@ -25,6 +25,12 @@ bool operator<(ColoredDrawTool tool1, ColoredDrawTool tool2)
     return (tool1.tool<tool2.tool || (tool1.tool==tool2.tool && tool1.color.rgb()<tool2.color.rgb()) );
 }
 
+DrawSlide::~DrawSlide()
+{
+    clearAllAnnotations();
+    clearAll();
+    delete enlargedPageRenderer;
+}
 
 void DrawSlide::clearAllAnnotations()
 {
@@ -72,6 +78,8 @@ void DrawSlide::resizeEvent(QResizeEvent*)
     if (resolution < 0 || page == nullptr)
         return;
     enlargedPage = QPixmap();
+    delete enlargedPageRenderer;
+    enlargedPageRenderer = nullptr;
     qint16 const oldshiftx = shiftx, oldshifty = shifty;
     double const oldRes = resolution;
     QSizeF pageSize = page->pageSizeF();
@@ -218,7 +226,7 @@ void DrawSlide::drawAnnotations(QPainter &painter)
         }
         break;
     case Magnifier:
-        if (!pointerPosition.isNull()) {
+        if (!pointerPosition.isNull() && !enlargedPage.isNull()) {
             painter.setCompositionMode(QPainter::CompositionMode_SourceOver);
             painter.setClipping(true);
             QPainterPath path;
@@ -418,16 +426,6 @@ void DrawSlide::erase(const QPointF &point)
     }
 }
 
-/*
-void DrawSlide::clearCache()
-{
-    PreviewSlide::clearCache();
-    enlargedPage = QPixmap();
-    end_cache = -1;
-    pixpaths = QPixmap();
-}
-*/
-
 void DrawSlide::setPathsQuick(QString const pagelabel, QList<DrawPath*> const& list, qint16 const refshiftx, qint16 const refshifty, double const refresolution)
 {
     QPointF shift = QPointF(shiftx, shifty) - resolution/refresolution*QPointF(refshiftx, refshifty);
@@ -526,16 +524,37 @@ void DrawSlide::relax()
 
 void DrawSlide::updateEnlargedPage()
 {
+    // Check whether an update is required.
     if (tool.tool != Magnifier || page == nullptr) {
         if (!enlargedPage.isNull())
             enlargedPage = QPixmap();
         return;
     }
+    // Create enlargedPageRenderer if necessary.
+    if (enlargedPageRenderer == nullptr) {
+        enlargedPageRenderer = new SingleRenderer(doc, pagePart, this);
+        enlargedPageRenderer->changeResolution(magnification*resolution);
+        connect(enlargedPageRenderer, &BasicRenderer::cacheThreadFinished, this, &DrawSlide::updateEnlargedPage);
+    }
+    // Render page using enlargedPageRenderer if necessary (the rendering is done in a separate thread).
+    if (enlargedPageRenderer->page != pageIndex) {
+        enlargedPage = QPixmap();
+        qDebug() << "Rendering enlarged page" << pageIndex;
+        enlargedPageRenderer->renderPage(pageIndex);
+    }
+    // Draw enlargedPage.
     enlargedPage = QPixmap(magnification*size());
     enlargedPage.fill(QColor(0,0,0,0));
     QPainter painter;
     painter.begin(&enlargedPage);
-    painter.drawImage(int(magnification*shiftx), int(magnification*shifty), page->renderToImage(72*magnification*resolution, 72*magnification*resolution));
+    // Draw the slide.
+    if (enlargedPageRenderer->data != nullptr)
+        // If a rendered page is ready in enlargedPageRenderer: show it in enlargedPage.
+        painter.drawPixmap(int(magnification*shiftx), int(magnification*shifty), enlargedPageRenderer->getPixmap());
+    else
+        // Otherwise: show a scaled version of the page image.
+        painter.drawPixmap(int(magnification*shiftx), int(magnification*shifty), pixmap.scaled(magnification*pixmap.size(), Qt::IgnoreAspectRatio, Qt::SmoothTransformation));
+    // Draw annotations.
     painter.setRenderHint(QPainter::Antialiasing);
     if (paths.contains(page->label())) {
         for (QList<DrawPath*>::const_iterator path_it=paths[page->label()].cbegin(); path_it!=paths[page->label()].cend(); path_it++) {
@@ -561,6 +580,7 @@ void DrawSlide::updateEnlargedPage()
             }
         }
     }
+    update();
 }
 
 void DrawSlide::saveDrawings(QString const& filename, QString const& notefile) const
@@ -688,6 +708,8 @@ void DrawSlide::setMagnification(qreal const mag)
         return;
     }
     magnification = mag;
+    delete enlargedPageRenderer;
+    enlargedPageRenderer = nullptr;
     if (!enlargedPage.isNull()) {
         enlargedPage = QPixmap();
         updateEnlargedPage();
@@ -699,5 +721,9 @@ void DrawSlide::animate(const int oldPageIndex)
      if (oldPageIndex != pageIndex) {
          end_cache = -1;
          updatePathCache();
+         if (tool.tool != Magnifier) {
+             delete enlargedPageRenderer;
+             enlargedPageRenderer = nullptr;
+         }
      }
 }

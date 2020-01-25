@@ -49,6 +49,7 @@ linux {
 CONFIG(release, debug|release):DEFINES += QT_NO_DEBUG_OUTPUT
 
 SOURCES += \
+        src/basicrenderer.cpp \
         src/cachemap.cpp \
         src/cachethread.cpp \
         src/main.cpp \
@@ -59,6 +60,7 @@ SOURCES += \
         src/presentationslide.cpp \
         src/controlscreen.cpp \
         src/presentationscreen.cpp \
+        src/singlerenderer.cpp \
         src/timer.cpp \
         src/pagenumberedit.cpp \
         src/toolbutton.cpp \
@@ -73,6 +75,7 @@ SOURCES += \
         src/drawpath.cpp
 
 HEADERS += \
+        src/basicrenderer.h \
         src/cachemap.h \
         src/cachethread.h \
         src/enumerates.h \
@@ -83,6 +86,7 @@ HEADERS += \
         src/controlscreen.h \
         src/presentationscreen.h \
         src/presentationslide.h \
+        src/singlerenderer.h \
         src/timer.h \
         src/pagenumberedit.h \
         src/toolbutton.h \

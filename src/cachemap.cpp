@@ -18,16 +18,6 @@
 
 #include "cachemap.h"
 
-CacheMap::CacheMap(PdfDoc const* doc, PagePart const part, QObject* parent)
-    : QObject(parent),
-      data(),
-      pdf(doc),
-      pagePart(part),
-      cacheThread(new CacheThread(this, this))
-{
-    connect(cacheThread, &CacheThread::finished, this, &CacheMap::receiveBytes);
-}
-
 CacheMap::~CacheMap()
 {
     cacheThread->requestInterruption();
@@ -81,19 +71,6 @@ QPixmap const CacheMap::getCachedPixmap(int const page) const
     return pixmap;
 }
 
-QPixmap const CacheMap::renderPixmap(int const page) const
-{
-    // This should only be called from within CacheThread and CacheMap!
-    Poppler::Page const* cachePage = pdf->getPage(page);
-    QImage image = cachePage->renderToImage(72*resolution, 72*resolution);
-    if (pagePart == FullPage)
-        return QPixmap::fromImage(image);
-    else if (pagePart == LeftHalf)
-        return QPixmap::fromImage(image.copy(0, 0, image.width()/2, image.height()));
-    else
-        return QPixmap::fromImage(image.copy(image.width()/2, 0, image.width()/2, image.height()));
-}
-
 QPixmap const CacheMap::getPixmap(int const page)
 {
     //qDebug() << "get page" << page << this << data.contains(page);
@@ -141,21 +118,6 @@ QPixmap const CacheMap::getPixmap(int const page)
         }
     }
     return pixmap;
-}
-
-QString const CacheMap::getRenderCommand(int const page) const
-{
-    if (renderCommand.isEmpty())
-        return renderCommand;
-    QString command = renderCommand;
-    command.replace("%file", pdf->getPath());
-    command.replace("%page", QString::number(page+1));
-    if (pagePart==FullPage)
-        command.replace("%width", QString::number(int(resolution*pdf->getPageSize(page).width()+0.5)));
-    else
-        command.replace("%width", QString::number(int(2*resolution*pdf->getPageSize(page).width()+0.5)));
-    command.replace("%height", QString::number(int(resolution*pdf->getPageSize(page).height()+0.5)));
-    return command;
 }
 
 qint64 CacheMap::clearPage(const int page)

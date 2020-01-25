@@ -24,7 +24,7 @@
 #include <QPixmap>
 #include "externalrenderer.h"
 
-class CacheMap;
+class BasicRenderer;
 
 /// QThread used for rendering slides to png images in cache.
 /// This thread is owned by CacheMap objects, but rendering a page to cache
@@ -39,13 +39,13 @@ private:
     /// Currently rendered page. This page is only adapted to newPage at the beginning of run().
     int page = 0;
     /// CacheMap object owning this.
-    CacheMap const* cacheMap;
+    BasicRenderer const* master;
     /// Cached page as a png image. This is accessible by CacheMap as the result of run().
     QByteArray const* bytes = nullptr;
 
 public:
     /// Constructor.
-    CacheThread(CacheMap const* cache, QObject* parent = nullptr) : QThread(parent), cacheMap(cache) {}
+    CacheThread(BasicRenderer const* cache, QObject* parent = nullptr) : QThread(parent), master(cache) {}
     /// Set page which should be rendered next.
     void setPage(int const pageNumber) {newPage = pageNumber;}
     /// This must be called exactly once after run() finished.
