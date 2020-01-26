@@ -33,6 +33,8 @@ void CacheThread::run()
         QBuffer buffer(bytes_nonconst);
         buffer.open(QIODevice::WriteOnly);
         pixmap.save(&buffer, "PNG");
+        // Usually bytes==nullptr. But if the old bytes have not been picked up, we should delete them here.
+        delete bytes;
         bytes = bytes_nonconst;
     }
     else {
@@ -40,10 +42,14 @@ void CacheThread::run()
         renderer->start(renderCommand);
         if (!renderer->waitForFinished(60000)) {
             renderer->kill();
+            // Usually bytes==nullptr. But if the old bytes have not been picked up, we should delete them here.
+            delete bytes;
             bytes = nullptr;
             delete renderer;
             return;
         }
+        // Usually bytes==nullptr. But if the old bytes have not been picked up, we should delete them here.
+        delete bytes;
         bytes = renderer->getBytes();
         delete renderer;
         if (master->getPagePart() != FullPage) {

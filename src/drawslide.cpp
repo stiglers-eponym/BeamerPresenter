@@ -541,6 +541,10 @@ void DrawSlide::updateEnlargedPage()
         enlargedPage = QPixmap();
         qDebug() << "Rendering enlarged page" << pageIndex;
         enlargedPageRenderer->renderPage(pageIndex);
+        // Return if the enlarged page image is not needed right now.
+        // This makes scanning through the slides much faster.
+        if (QApplication::mouseButtons() != Qt::LeftButton)
+            return;
     }
     // Draw enlargedPage.
     enlargedPage = QPixmap(magnification*size());

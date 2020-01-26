@@ -19,6 +19,7 @@
 #ifndef DRAWSLIDE_H
 #define DRAWSLIDE_H
 
+#include <QApplication>
 #include <QDataStream>
 #include "mediaslide.h"
 #include "drawpath.h"
