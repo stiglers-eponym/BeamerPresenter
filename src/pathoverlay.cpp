@@ -66,7 +66,9 @@ void PathOverlay::clearPageAnnotations()
 
 void PathOverlay::paintEvent(QPaintEvent*)
 {
-    raise();
+    // TODO: find a solution which works in xcb.
+    if (QApplication::platformName() == "wayland")
+        raise();
     QPainter painter(this);
     if (end_cache >= 0)
         painter.drawPixmap(0, 0, pixpaths);
@@ -75,6 +77,7 @@ void PathOverlay::paintEvent(QPaintEvent*)
 
 void PathOverlay::rescale(qint16 const oldshiftx, qint16 const oldshifty, double const oldRes)
 {
+    end_cache = -1;
     enlargedPage = QPixmap();
     delete enlargedPageRenderer;
     enlargedPageRenderer = nullptr;

@@ -188,12 +188,14 @@ void EmbedApp::create(const WId wid)
 {
     // Take control over the window and tell parent (PageWidget), that the widget is ready.
     window = QWindow::fromWinId(wid);
-    // Without the following two lines, key events are sometimes not sent to the embedded window:
-    window->show();
-    window->hide();
-    // Turn the window into a widget, which can be embedded in the presentation (or control) window:
-    widget = QWidget::createWindowContainer(window, static_cast<QWidget*>(parent()));
-    emit widgetReady(this);
+    if (window != nullptr) {
+        // Without the following two lines, key events are sometimes not sent to the embedded window:
+        window->show();
+        window->hide();
+        // Turn the window into a widget, which can be embedded in the presentation (or control) window:
+        widget = QWidget::createWindowContainer(window, static_cast<QWidget*>(parent()));
+        emit widgetReady(this);
+    }
 }
 
 int* EmbedApp::getNextLocation(int const page) const

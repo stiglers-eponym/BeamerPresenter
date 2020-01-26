@@ -51,6 +51,7 @@ VideoWidget::VideoWidget(Poppler::MovieAnnotation const* annotation, QString con
     player->setMedia(url);
     if (splitFileName.contains("mute"))
         player->setMuted(true);
+    // TODO: loop is broken in wayland.
     if (splitFileName.contains("loop"))
         connect(player, &QMediaPlayer::mediaStatusChanged, this, &VideoWidget::restartVideo);
     else {

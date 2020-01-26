@@ -65,8 +65,8 @@ void DrawSlide::resizeEvent(QResizeEvent*)
         shifty = qint16(height()/2 - resolution/2 * pageSize.height());
         shiftx = 0;
     }
-    pathOverlay->rescale(oldshiftx, oldshifty, oldRes);
     pathOverlay->setGeometry(geometry());
+    pathOverlay->rescale(oldshiftx, oldshifty, oldRes);
 }
 
 void DrawSlide::mouseReleaseEvent(QMouseEvent *event)
