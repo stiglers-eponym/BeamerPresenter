@@ -107,12 +107,7 @@ public:
     void paintFade(QPainter& painter);
 
 public slots:
-    void togglePointerVisibility();
-    void showPointer();
-    void hidePointer();
     void setAnimationDelay(int const delay_ms) {minimumAnimationDelay=delay_ms;}
-    //void undoPath();
-    //void redoPath();
 
 signals:
     void timeoutSignal();

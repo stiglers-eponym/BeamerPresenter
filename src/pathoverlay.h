@@ -57,8 +57,6 @@ protected:
     virtual void mousePressEvent(QMouseEvent* event) override;
     virtual void mouseReleaseEvent(QMouseEvent* event) override;
     virtual void mouseMoveEvent(QMouseEvent* event) override;
-    //virtual void resizeEvent(QResizeEvent*) override;
-    virtual void repaintIfPresentation() {update();}
     void rescale(qint16 const oldshiftx, qint16 const oldshifty, double const oldRes);
     void erase(QPointF const& point);
     ColoredDrawTool tool = {NoTool, Qt::black};
@@ -90,6 +88,9 @@ public slots:
     void setTool(DrawTool const newtool, QColor const color=QColor()) {setTool({newtool, color});}
     void updatePathCache();
     void relax();
+    void togglePointerVisibility();
+    void showPointer();
+    void hidePointer();
 
 signals:
     void pointerPositionChanged(QPointF const point, qint16 const refshiftx, qint16 const refshifty, double const refresolution);

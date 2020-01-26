@@ -68,7 +68,8 @@ void PathOverlay::paintEvent(QPaintEvent*)
 {
     raise();
     QPainter painter(this);
-    painter.drawPixmap(0, 0, pixpaths);
+    if (end_cache >= 0)
+        painter.drawPixmap(0, 0, pixpaths);
     drawAnnotations(painter);
 }
 
@@ -400,7 +401,7 @@ void PathOverlay::erase(const QPointF &point)
     }
     if (changed) {
         end_cache = -1;
-        repaintIfPresentation();
+        update();
         emit pathsChanged(master->page->label(), path_list, master->shiftx, master->shifty, master->resolution);
     }
 }
@@ -431,7 +432,7 @@ void PathOverlay::setPathsQuick(QString const pagelabel, QList<DrawPath*> const&
         qDebug() << "set paths quick failed!" << this;
         setPaths(pagelabel, list, refshiftx, refshifty, refresolution);
     }
-    repaintIfPresentation();
+    update();
 }
 
 void PathOverlay::setPaths(QString const pagelabel, QList<DrawPath*> const& list, qint16 const refshiftx, qint16 const refshifty, double const refresolution)
@@ -481,7 +482,7 @@ void PathOverlay::setPaths(QString const pagelabel, QList<DrawPath*> const& list
     }
     end_cache = -1;
     updatePathCache();
-    repaintIfPresentation();
+    update();
 }
 
 void PathOverlay::setPointerPosition(QPointF const point, qint16 const refshiftx, qint16 const refshifty, double const refresolution)
@@ -745,4 +746,27 @@ void PathOverlay::resetCache()
          delete enlargedPageRenderer;
          enlargedPageRenderer = nullptr;
      }
+}
+
+void PathOverlay::togglePointerVisibility()
+{
+    if (pointer_visible)
+        hidePointer();
+    else
+        showPointer();
+}
+
+void PathOverlay::showPointer()
+{
+    pointer_visible = true;
+    setCursor(Qt::ArrowCursor);
+    setMouseTracking(true);
+}
+
+void PathOverlay::hidePointer()
+{
+    pointer_visible = false;
+    setCursor(Qt::BlankCursor);
+    if (tool.tool != Pointer)
+        setMouseTracking(false);
 }

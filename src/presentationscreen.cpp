@@ -40,7 +40,7 @@ PresentationScreen::PresentationScreen(PdfDoc* presentationDoc, PagePart const p
     slide->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
     connect(slide, &PresentationSlide::sendNewPageNumber, this, &PresentationScreen::receiveNewPage);
     connect(slide, &PresentationSlide::timeoutSignal,     this, &PresentationScreen::receiveTimeoutSignal);
-    slide->hidePointer();
+    slide->getPathOverlay()->hidePointer();
 #ifdef Q_OS_UNIX
     setWindowIcon(QIcon("/usr/share/icons/scalable/apps/beamerpresenter.svg"));
 #endif

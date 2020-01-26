@@ -35,33 +35,16 @@ public:
     explicit DrawSlide(QWidget* parent=nullptr);
     explicit DrawSlide(PdfDoc const*const document, int const pageNumber, PagePart const part, QWidget* parent=nullptr);
     ~DrawSlide() override;
-    //void clearPageAnnotations();
-    //void clearAllAnnotations();
-    //void setSize(DrawTool const tool, quint16 size);
-    //void setMagnification(qreal const mag);
-    qreal getMagnification() const {return pathOverlay->magnification;}
-
     PathOverlay* getPathOverlay() {return pathOverlay;}
     QMap<QString, QList<DrawPath*>> const& getPaths() const {return pathOverlay->paths;}
     double const& getResolution() const {return resolution;}
-    ColoredDrawTool getTool() const {return pathOverlay->tool;}
-    quint16 getSize(DrawTool const tool) const {return pathOverlay->sizes[tool];}
-    //void saveDrawings(QString const& filename, QString const& notefile = "") const;
-    //void loadDrawings(QString const& filename);
 
 protected:
-    //void drawAnnotations(QPainter& painter);
-    //void drawPaths(QPainter& painter, QString const label, bool const clip=false);
     virtual void paintEvent(QPaintEvent*) override;
     virtual void mouseReleaseEvent(QMouseEvent* event) override;
-    //virtual void mouseMoveEvent(QMouseEvent* event) override;
     virtual void resizeEvent(QResizeEvent*) override;
     virtual void animate(int const oldPageIndex = -1) override;
     virtual void repaintIfPresentation() {update();}
-    //void erase(QPointF const& point);
-    //ColoredDrawTool tool = {NoTool, Qt::black};
-    /// Cursor visibility.
-    bool pointer_visible = true;
     PathOverlay* pathOverlay;
 };
 

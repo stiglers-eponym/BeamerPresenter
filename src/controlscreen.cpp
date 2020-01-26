@@ -595,7 +595,7 @@ void ControlScreen::renderPage(int const pageNumber, bool const full)
     ui->text_current_slide->setText(QString::number(currentPageNumber+1));
     if (full) {
         // Some extras which may take some time
-        if (presentationScreen->slide->getTool().tool == Magnifier) {
+        if (presentationScreen->slide->getPathOverlay()->getTool().tool == Magnifier) {
             ui->current_slide->repaint();
             ui->next_slide->repaint();
             presentationScreen->slide->getPathOverlay()->updateEnlargedPage();
@@ -1242,13 +1242,13 @@ bool ControlScreen::handleKeyAction(KeyAction const action)
         presentationScreen->slide->setMuted(false);
         break;
     case KeyAction::ShowCursor:
-        presentationScreen->slide->showPointer();
+        presentationScreen->slide->getPathOverlay()->showPointer();
         break;
     case KeyAction::HideCursor:
-        presentationScreen->slide->hidePointer();
+        presentationScreen->slide->getPathOverlay()->hidePointer();
         break;
     case KeyAction::ToggleCursor:
-        presentationScreen->slide->togglePointerVisibility();
+        presentationScreen->slide->getPathOverlay()->togglePointerVisibility();
         break;
     case KeyAction::PlayPauseTimer:
         ui->label_timer->toggleTimer();
@@ -1777,7 +1777,7 @@ void ControlScreen::showDrawSlide()
     // Render current page on drawSlide.
     drawSlide->renderPage(presentationScreen->slide->pageNumber(), false);
     // Set the current tool on drawSlide.
-    drawSlide->getPathOverlay()->setTool(presentationScreen->slide->getTool());
+    drawSlide->getPathOverlay()->setTool(presentationScreen->slide->getPathOverlay()->getTool());
     // Hide the notes and show (and focus) the drawSlide.
     ui->notes_widget->hide();
     drawSlide->show();
