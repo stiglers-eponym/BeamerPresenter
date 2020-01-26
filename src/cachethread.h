@@ -40,15 +40,20 @@ private:
     int page = 0;
     /// CacheMap object owning this.
     BasicRenderer const* master;
-    /// Cached page as a png image. This is accessible by CacheMap as the result of run().
+    /// Cached page as a png image, result of CacheThread.
+    /// This is accessible by getBytes(). Once taken by getBytes(), bytes is set to nullptr.
+    /// When cleaning up, this should thus be deleted and set to nullptr.
     QByteArray const* bytes = nullptr;
 
 public:
     /// Constructor.
     CacheThread(BasicRenderer const* cache, QObject* parent = nullptr) : QThread(parent), master(cache) {}
+    /// Destructor.
+    ~CacheThread();
     /// Set page which should be rendered next.
     void setPage(int const pageNumber) {newPage = pageNumber;}
-    /// This must be called exactly once after run() finished.
+    /// Get bytes and set bytes to nullptr. The calling function then owns the bytes.
+    /// This should be called exactly once after run() finished.
     QByteArray const* getBytes();
     /// Get page which this is currently rendering.
     int getPage() const {return page;}

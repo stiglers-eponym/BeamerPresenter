@@ -19,6 +19,12 @@
 #include "cachethread.h"
 #include "cachemap.h"
 
+CacheThread::~CacheThread()
+{
+    // Old bytes which have not been picked up could still be around. Delete them.
+    delete bytes;
+    bytes = nullptr;
+}
 
 void CacheThread::run()
 {
@@ -76,6 +82,7 @@ void CacheThread::run()
 
 QByteArray const* CacheThread::getBytes()
 {
+    // Return bytes and set bytes=nullptr.
     QByteArray const* returnBytes = bytes;
     bytes = nullptr;
     return returnBytes;
