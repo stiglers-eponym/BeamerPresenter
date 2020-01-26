@@ -24,6 +24,7 @@
 #ifdef EMBEDDED_APPLICATIONS_ENABLED
 #include "embedapp.h"
 #endif
+#include <QGraphicsView>
 #include <QSlider>
 #include <QTimer>
 

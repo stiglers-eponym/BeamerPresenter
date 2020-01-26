@@ -22,7 +22,8 @@
 #include <QtDebug>
 #include <QWidget>
 #include <QMediaPlayer>
-#include <QVideoWidget>
+#include <QGraphicsView>
+#include <QGraphicsVideoItem>
 #include <QUrl>
 #include <QDir>
 #include <QImage>
@@ -30,13 +31,13 @@
 #include <QMouseEvent>
 #include <poppler-qt5.h>
 
-class VideoWidget : public QVideoWidget
+class VideoWidget : public QObject
 {
     Q_OBJECT
 
 public:
     VideoWidget(Poppler::MovieAnnotation const * annotation, QString const& urlSplitCharacter = "", QWidget* parent = nullptr);
-    ~VideoWidget() override;
+    ~VideoWidget();
     Poppler::MovieAnnotation const * getAnnotation() const {return annotation;}
     qint64 getDuration() const {return player->duration();}
     qint64 getPosition() const {return player->position();}
@@ -45,17 +46,21 @@ public:
     bool getAutoplay() const {return autoplay;}
     QString const& getUrl() const {return filename;}
     void setMute(bool const mute) {player->setMuted(mute);}
-
-protected:
-    void mouseReleaseEvent(QMouseEvent* event) override;
-    void mouseMoveEvent(QMouseEvent* event) override;
+    void setGeometry(QRect const& rect);
+    void setGeometry(int const x, int const y, int const w, int const h);
+    void raise() {view->raise();}
+    void show() {view->show();}
 
 private:
+    QGraphicsScene* scene;
+    QGraphicsView* view;
     QMediaPlayer* player;
+    QGraphicsVideoItem* item;
     QImage posterImage;
     QString filename;
     bool autoplay = false;
     Poppler::MovieAnnotation const* annotation;
+    bool ownsScene = true;
 
 public slots:
     void play();

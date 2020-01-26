@@ -25,6 +25,7 @@ PreviewSlide::PreviewSlide(PdfDoc const * const document, int const pageNumber, 
     pagePart(part),
     pageIndex(pageNumber)
 {
+    //setAttribute(Qt::WA_OpaquePaintEvent);
     renderPage(pageNumber);
 }
 

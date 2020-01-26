@@ -19,21 +19,29 @@
 #include "videowidget.h"
 
 VideoWidget::VideoWidget(Poppler::MovieAnnotation const* annotation, QString const& urlSplitCharacter, QWidget* parent) :
-    QVideoWidget(parent),
-    player(new QMediaPlayer(this, QMediaPlayer::VideoSurface)),
+    QObject(parent),
+    scene(new QGraphicsScene(this)),
+    view(new QGraphicsView(scene, parent)),
+    player(new QMediaPlayer(view, QMediaPlayer::VideoSurface)),
+    item(new QGraphicsVideoItem),
     annotation(annotation)
 {
-    setMouseTracking(true);
-    player->setVideoOutput(this);
+    view->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    view->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    view->setStyleSheet("border: 0px");
+    scene->addItem(item);
+
+    view->setMouseTracking(true);
+    player->setVideoOutput(item);
     Poppler::MovieObject* movie = annotation->movie();
     if (movie->showPosterImage()) {
         QPalette* palette = new QPalette();
         posterImage = movie->posterImage();
         if (!posterImage.isNull())
             palette->setBrush( QPalette::Window, QBrush(posterImage));
-        setPalette(*palette);
+        view->setPalette(*palette);
         delete palette;
-        setAutoFillBackground(true);
+        view->setAutoFillBackground(true);
     }
 
     filename = movie->url();
@@ -78,10 +86,10 @@ VideoWidget::VideoWidget(Poppler::MovieAnnotation const* annotation, QString con
     // Scale the video such that it fits the widget size.
     // I like these results, but I don't know whether this is what other people would expect.
     // Please write me a comment if you would prefer an other way of handling the aspect ratio.
-    setAspectRatioMode(Qt::IgnoreAspectRatio);
-
+    item->setAspectRatioMode(Qt::IgnoreAspectRatio);
     if (splitFileName.contains("autostart"))
         autoplay = true;
+    item->show();
 }
 
 VideoWidget::~VideoWidget()
@@ -90,6 +98,9 @@ VideoWidget::~VideoWidget()
     player->disconnect();
     delete annotation;
     delete player;
+    delete view;
+    delete scene;
+    // item is owned by scene.
 }
 
 void VideoWidget::play()
@@ -111,7 +122,7 @@ void VideoWidget::showPosterImage(QMediaPlayer::MediaStatus status)
         // Unbinding and binding this to the player is probably an ugly way of solving this.
         // TODO: find a better way of writing this.
         player->unbind(this);
-        show();
+        view->show();
     }
 }
 
@@ -134,6 +145,7 @@ void VideoWidget::restartVideo(QMediaPlayer::MediaStatus status)
     }
 }
 
+/*
 void VideoWidget::mouseReleaseEvent(QMouseEvent* event)
 {
     if ( event->button() == Qt::LeftButton ) {
@@ -153,7 +165,27 @@ void VideoWidget::mouseReleaseEvent(QMouseEvent* event)
 
 void VideoWidget::mouseMoveEvent(QMouseEvent* event)
 {
-    if (cursor().shape() == Qt::ArrowCursor)
-        setCursor(Qt::PointingHandCursor);
+    if (view->cursor().shape() == Qt::ArrowCursor)
+        view->setCursor(Qt::PointingHandCursor);
     event->accept();
+}
+*/
+
+
+void VideoWidget::setGeometry(QRect const& rect)
+{
+    qDebug() << "Set geometry:" << rect;
+    view->setGeometry(rect);
+    scene->setSceneRect(rect);
+    item->setOffset(rect.topLeft());
+    item->setSize(rect.size());
+}
+
+void VideoWidget::setGeometry(int const x, int const y, int const w, int const h)
+{
+    qDebug() << "Set geometry:" << x << y << w << h;
+    view->setGeometry(x, y, w, h);
+    scene->setSceneRect(x, y, w, h);
+    item->setOffset(QPointF(x,y));
+    item->setSize(QSizeF(w,h));
 }

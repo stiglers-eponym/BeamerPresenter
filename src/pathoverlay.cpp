@@ -29,7 +29,10 @@ bool operator<(ColoredDrawTool tool1, ColoredDrawTool tool2)
 PathOverlay::PathOverlay(DrawSlide* parent) :
     QWidget(parent),
     master(parent)
-{}
+{
+    setAttribute(Qt::WA_TranslucentBackground);
+    setAttribute(Qt::WA_AlwaysStackOnTop);
+}
 
 PathOverlay::~PathOverlay()
 {
@@ -67,7 +70,7 @@ void PathOverlay::clearPageAnnotations()
 void PathOverlay::paintEvent(QPaintEvent*)
 {
     // TODO: find a solution which works in xcb.
-    if (QApplication::platformName() == "wayland")
+    //if (QApplication::platformName() == "wayland")
         raise();
     QPainter painter(this);
     if (end_cache >= 0)
