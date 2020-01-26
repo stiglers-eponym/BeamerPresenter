@@ -22,6 +22,7 @@
 #include <QtDebug>
 #include <QWidget>
 #include <QMediaPlayer>
+#include <QMediaPlaylist>
 #include <QGraphicsView>
 #include <QGraphicsVideoItem>
 #include <QUrl>
@@ -48,19 +49,24 @@ public:
     void setMute(bool const mute) {player->setMuted(mute);}
     void setGeometry(QRect const& rect);
     void setGeometry(int const x, int const y, int const w, int const h);
-    void raise() {view->raise();}
+    //void raise() {view->raise();}
+    void lower() {view->lower();}
     void show() {view->show();}
+    void hide() {view->hide();}
 
 private:
     QGraphicsScene* scene;
     QGraphicsView* view;
     QMediaPlayer* player;
     QGraphicsVideoItem* item;
+    QGraphicsPixmapItem* pixmap = nullptr;
+    QMediaPlaylist* playlist;
     QImage posterImage;
     QString filename;
     bool autoplay = false;
     Poppler::MovieAnnotation const* annotation;
     bool ownsScene = true;
+    QUrl url;
 
 public slots:
     void play();

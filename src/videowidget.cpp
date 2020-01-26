@@ -24,28 +24,28 @@ VideoWidget::VideoWidget(Poppler::MovieAnnotation const* annotation, QString con
     view(new QGraphicsView(scene, parent)),
     player(new QMediaPlayer(view, QMediaPlayer::VideoSurface)),
     item(new QGraphicsVideoItem),
+    playlist(new QMediaPlaylist(this)),
     annotation(annotation)
 {
     view->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     view->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
-    view->setStyleSheet("border: 0px");
-    scene->addItem(item);
+    view->setStyleSheet("border: 2px");
+    view->setAttribute(Qt::WA_TransparentForMouseEvents);
 
-    view->setMouseTracking(true);
     player->setVideoOutput(item);
-    Poppler::MovieObject* movie = annotation->movie();
+    Poppler::MovieObject const *const movie = annotation->movie();
     if (movie->showPosterImage()) {
-        QPalette* palette = new QPalette();
         posterImage = movie->posterImage();
-        if (!posterImage.isNull())
-            palette->setBrush( QPalette::Window, QBrush(posterImage));
-        view->setPalette(*palette);
-        delete palette;
-        view->setAutoFillBackground(true);
+        if (!posterImage.isNull()) {
+            pixmap = new QGraphicsPixmapItem(QPixmap::fromImage(posterImage));
+            scene->addItem(pixmap);
+        }
     }
+    scene->addItem(item);
+    item->show();
 
     filename = movie->url();
-    QUrl url = QUrl(filename, QUrl::TolerantMode);
+    url = QUrl(filename, QUrl::TolerantMode);
     QStringList splitFileName;
     if (!urlSplitCharacter.isEmpty()) {
         splitFileName = movie->url().split(urlSplitCharacter);
@@ -56,12 +56,12 @@ VideoWidget::VideoWidget(Poppler::MovieAnnotation const* annotation, QString con
         url = QUrl::fromLocalFile(url.path());
     if (url.isRelative())
         url = QUrl::fromLocalFile(QDir(".").absoluteFilePath(url.path()));
-    player->setMedia(url);
+    playlist->addMedia(url);
+    player->setPlaylist(playlist);
     if (splitFileName.contains("mute"))
         player->setMuted(true);
-    // TODO: loop is broken in wayland.
     if (splitFileName.contains("loop"))
-        connect(player, &QMediaPlayer::mediaStatusChanged, this, &VideoWidget::restartVideo);
+        playlist->setPlaybackMode(QMediaPlaylist::CurrentItemInLoop);
     else {
         switch (movie->playMode())
         {
@@ -89,7 +89,6 @@ VideoWidget::VideoWidget(Poppler::MovieAnnotation const* annotation, QString con
     item->setAspectRatioMode(Qt::IgnoreAspectRatio);
     if (splitFileName.contains("autostart"))
         autoplay = true;
-    item->show();
 }
 
 VideoWidget::~VideoWidget()
@@ -97,6 +96,7 @@ VideoWidget::~VideoWidget()
     player->stop();
     player->disconnect();
     delete annotation;
+    delete playlist;
     delete player;
     delete view;
     delete scene;
@@ -122,6 +122,7 @@ void VideoWidget::showPosterImage(QMediaPlayer::MediaStatus status)
         // Unbinding and binding this to the player is probably an ugly way of solving this.
         // TODO: find a better way of writing this.
         player->unbind(this);
+        scene->removeItem(item);
         view->show();
     }
 }
@@ -145,47 +146,24 @@ void VideoWidget::restartVideo(QMediaPlayer::MediaStatus status)
     }
 }
 
-/*
-void VideoWidget::mouseReleaseEvent(QMouseEvent* event)
-{
-    if ( event->button() == Qt::LeftButton ) {
-        if ( player->state() == QMediaPlayer::PlayingState ) {
-            player->pause();
-            emit sendPause();
-            emit sendPausePos(player->position());
-        }
-        else {
-            player->bind(this);
-            player->play();
-            emit sendPlay();
-        }
-    }
-    event->accept();
-}
-
-void VideoWidget::mouseMoveEvent(QMouseEvent* event)
-{
-    if (view->cursor().shape() == Qt::ArrowCursor)
-        view->setCursor(Qt::PointingHandCursor);
-    event->accept();
-}
-*/
-
-
 void VideoWidget::setGeometry(QRect const& rect)
 {
-    qDebug() << "Set geometry:" << rect;
     view->setGeometry(rect);
-    scene->setSceneRect(rect);
-    item->setOffset(rect.topLeft());
+    scene->setSceneRect(0,0,rect.width(), rect.height());
+    item->setOffset({0.,0.});
     item->setSize(rect.size());
+    scene->update(0,0,rect.width(), rect.height());
+    if (!posterImage.isNull())
+        pixmap = new QGraphicsPixmapItem(QPixmap::fromImage(posterImage).scaled(rect.size(), Qt::IgnoreAspectRatio, Qt::SmoothTransformation));
 }
 
 void VideoWidget::setGeometry(int const x, int const y, int const w, int const h)
 {
-    qDebug() << "Set geometry:" << x << y << w << h;
     view->setGeometry(x, y, w, h);
-    scene->setSceneRect(x, y, w, h);
-    item->setOffset(QPointF(x,y));
+    scene->setSceneRect(0, 0, w, h);
+    item->setOffset({0.,0.});
     item->setSize(QSizeF(w,h));
+    scene->update(0, 0, w, h);
+    if (!posterImage.isNull())
+        pixmap = new QGraphicsPixmapItem(QPixmap::fromImage(posterImage).scaled(w, h, Qt::IgnoreAspectRatio, Qt::SmoothTransformation));
 }

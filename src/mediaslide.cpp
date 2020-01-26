@@ -324,11 +324,11 @@ void MediaSlide::renderPage(int pageNumber, bool const hasDuration)
             }
             qDebug() << "Loading new video widget:" << movie->url();
             videoWidgets.append(new VideoWidget(video, urlSplitCharacter, this));
-            videoWidgets.last()->setGeometry(videoPositions.last());
             videoWidgets.last()->setMute(mute);
-            videoWidgets.last()->raise();
-            videoWidgets.last()->show();
+            videoWidgets.last()->lower();
         }
+        videoWidgets.last()->setGeometry(videoPositions.last());
+        videoWidgets.last()->show();
         newSliders++;
     }
     // Clean up old video widgets and sliders:
@@ -385,7 +385,7 @@ void MediaSlide::renderPage(int pageNumber, bool const hasDuration)
                 bool found=false;
                 for (QList<QMediaPlayer*>::iterator player_it=oldSoundLinks.begin(); player_it!=oldSoundLinks.end(); player_it++) {
                     QMediaContent media = (*player_it)->media();
-                    // TODO: reliable check if the media names match
+                    // TODO: reliably check if the media names match
                     if (
                             *player_it != nullptr
                             && !media.isNull()
@@ -583,7 +583,6 @@ void MediaSlide::renderPage(int pageNumber, bool const hasDuration)
         if (videoWidgets[i]->getAutoplay()) {
             qDebug() << "Untested option autostart for video";
             videoWidgets[i]->setGeometry(videoPositions[i]);
-            videoWidgets[i]->raise();
             videoWidgets[i]->show();
             videoWidgets[i]->play();
         }
@@ -628,6 +627,11 @@ void MediaSlide::updateCacheVideos(int const pageNumber)
         return;
     videoType.insert(Poppler::Annotation::AMovie);
     QList<Poppler::Annotation*> videos = page->annotations(videoType);
+    if (videos.isEmpty())
+        return;
+    QSizeF scale = resolution*page->pageSizeF();
+    if (pagePart != FullPage)
+        scale.setWidth(2*scale.width());
     for (QList<Poppler::Annotation*>::const_iterator annotation=videos.cbegin(); annotation!=videos.cend(); annotation++) {
         Poppler::MovieAnnotation* video = static_cast<Poppler::MovieAnnotation*>(*annotation);
         Poppler::MovieObject* movie = video->movie();
@@ -642,9 +646,19 @@ void MediaSlide::updateCacheVideos(int const pageNumber)
             delete video;
         else {
             qDebug() << "Cache new video widget:" << movie->url();
-            // TODO
-            //cachedVideoWidgets.append(new VideoWidget(video, urlSplitCharacter, this));
-            //cachedVideoWidgets.last()->setMute(mute);
+            cachedVideoWidgets.append(new VideoWidget(video, urlSplitCharacter, this));
+            cachedVideoWidgets.last()->setMute(mute);
+            QRectF relative = video->boundary();
+            cachedVideoWidgets.last()->setGeometry(
+                    shiftx+int(relative.x()*scale.width()),
+                    shifty+int(relative.y()*scale.height()),
+                    int(relative.width()*scale.width()),
+                    int(relative.height()*scale.height())
+                );
+            cachedVideoWidgets.last()->show();
+            repaint();
+            cachedVideoWidgets.last()->hide();
+            cachedVideoWidgets.last()->lower();
         }
     }
     videos.clear();
@@ -701,7 +715,6 @@ void MediaSlide::startAllMultimedia()
         videoWidgets[i]->setGeometry(videoPositions[i]);
         videoWidgets[i]->show();
         videoWidgets[i]->play();
-        videoWidgets[i]->raise();
         emit videoWidgets[i]->sendPlay();
     }
     Q_FOREACH(QMediaPlayer* sound, soundPlayers)
@@ -907,7 +920,7 @@ void MediaSlide::followHyperlinks(QPoint const& pos)
                 emit videoWidgets[i]->sendPause();
             }
             else {
-                //videoWidgets[i]->setGeometry(videoPositions[i]);
+                videoWidgets[i]->setGeometry(videoPositions[i]);
                 videoWidgets[i]->show();
                 videoWidgets[i]->play();
                 emit videoWidgets[i]->sendPlay();
@@ -1148,9 +1161,8 @@ void MediaSlide::showAllWidgets()
     // TODO: fix this!
     if (videoWidgets.size() == videoPositions.size()) {
         for (int i=0; i<videoWidgets.size(); i++) {
-            //videoWidgets[i]->setGeometry(videoPositions[i]);
+            videoWidgets[i]->setGeometry(videoPositions[i]);
             videoWidgets[i]->show();
-            //videoWidgets[i]->raise();
         }
     }
 #ifdef EMBEDDED_APPLICATIONS_ENABLED
