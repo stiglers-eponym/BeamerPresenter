@@ -3,13 +3,14 @@ BeamerPresenter is a PDF viewer for presentations, which shows presentation
 slides in one window and notes for the speaker (or the same presentation
 slides) with some additional information in a second window.
 
-BeamerPresenter is mainly tested on GNU/Linux with X11 or wayland using
+BeamerPresenter is mainly tested on Arch Linux with X11 or wayland using
 presentations created by LaTeX beamer.
 
 
 ## Build
 To build and use this project you need to have the Qt5 multimedia module and the
 poppler Qt5 bindings installed.
+If building fails on your system, please open an issue on github.
 
 Download, compile and install this project on GNU/Linux systems:
 ```sh
@@ -27,7 +28,7 @@ You can install the package beamerpresenter from the AUR.
 
 
 ### Installation in Ubuntu >= 16.04
-First install the dependences (note that this changes the default Qt version to Qt 5):
+First install the dependences (note that this changes the default Qt version to Qt5):
 ```sh
 sudo apt install git qt5-qmake qt5-default libpoppler-qt5-dev qtmultimedia5-dev
 ```
@@ -39,8 +40,9 @@ git clone https://github.com/stiglers-eponym/BeamerPresenter.git
 cd BeamerPresenter
 qmake && make
 ```
-You could now install BeamerPresenter using `sudo make install`, but it is recommended to use `checkinstall`
-in order to keep track of all installed files using dpkg or apt:
+You could now install BeamerPresenter using `sudo make install`, but it is
+recommended to use `checkinstall` in order to keep track of all installed files
+using dpkg or apt:
 ```sh
 sudo apt install checkinstall
 echo 'Simple dual screen pdf viewer' > description-pak
@@ -54,16 +56,19 @@ sudo checkinstall -D \
 After the installation you can remove the packages `libpoppler-qt5-dev`, `libpoppler-dev` and `checkinstall`.
 
 
-### MS Windows
-Building on MS Windows is possible, but you need to define the directory
-containing the poppler-qt5 header and library manually in beamerpresenter.pro
-(line 120). Also the installation has to be done manually.
-You need to make sure that beamerpresenter.exe has access to the libraries,
-e.g. by copying all necessary .ddl files to the same directory as
-beamerpresenter.exe.
+### Other OS
+For building BeamerPresenter in any other OS you need to have Qt5 and the
+poppler-qt5 library installed. Since only building in GNU/Linux is configured
+in `beamerpresenter.pro`, you also need to configure `INCLUDEPATH` and `LIBS`
+manually.
 
-For multimedia content you need to make sure that the required codecs are
-installed.
+Building on Microsoft Windows has been tested for some old version of BeamerPresenter.
+You need to define the directory containing the poppler-qt5 header and library
+manually in `beamerpresenter.pro` (line 124). Also the installation has to be
+done manually. Make sure that beamerpresenter.exe has access to the libraries,
+e.g. by copying all necessary .ddl files to the same directory as
+beamerpresenter.exe. For multimedia content you need to make sure that the
+required codecs are installed.
 
 
 ## Usage
