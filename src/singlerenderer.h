@@ -27,7 +27,7 @@
 class SingleRenderer : public BasicRenderer
 {
     Q_OBJECT
-    friend class DrawSlide;
+    friend class PathOverlay;
 
 public:
     /// Constructor

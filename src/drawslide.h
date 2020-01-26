@@ -24,69 +24,45 @@
 #include "mediaslide.h"
 #include "drawpath.h"
 #include "singlerenderer.h"
-
-// TODO: move pen strokes to different layer (extra widget) above multimedia widgets
+#include "pathoverlay.h"
 
 class DrawSlide : public MediaSlide
 {
     Q_OBJECT
-public:
-    explicit DrawSlide(QWidget* parent=nullptr) : MediaSlide(parent) {}
-    explicit DrawSlide(PdfDoc const*const document, int const pageNumber, PagePart const part, QWidget* parent=nullptr) : MediaSlide(document, pageNumber, part, parent) {}
-    ~DrawSlide() override;
-    void clearPageAnnotations();
-    void clearAllAnnotations();
-    void setSize(DrawTool const tool, quint16 size);
-    void setMagnification(qreal const mag);
-    qreal getMagnification() const {return magnification;}
+    friend class PathOverlay;
 
-    QMap<QString, QList<DrawPath*>> const& getPaths() const {return paths;}
+public:
+    explicit DrawSlide(QWidget* parent=nullptr);
+    explicit DrawSlide(PdfDoc const*const document, int const pageNumber, PagePart const part, QWidget* parent=nullptr);
+    ~DrawSlide() override;
+    //void clearPageAnnotations();
+    //void clearAllAnnotations();
+    //void setSize(DrawTool const tool, quint16 size);
+    //void setMagnification(qreal const mag);
+    qreal getMagnification() const {return pathOverlay->magnification;}
+
+    PathOverlay* getPathOverlay() {return pathOverlay;}
+    QMap<QString, QList<DrawPath*>> const& getPaths() const {return pathOverlay->paths;}
     double const& getResolution() const {return resolution;}
-    ColoredDrawTool getTool() const {return tool;}
-    quint16 getSize(DrawTool const tool) const {return sizes[tool];}
-    void saveDrawings(QString const& filename, QString const& notefile = "") const;
-    void loadDrawings(QString const& filename);
+    ColoredDrawTool getTool() const {return pathOverlay->tool;}
+    quint16 getSize(DrawTool const tool) const {return pathOverlay->sizes[tool];}
+    //void saveDrawings(QString const& filename, QString const& notefile = "") const;
+    //void loadDrawings(QString const& filename);
 
 protected:
-    void drawAnnotations(QPainter& painter);
-    void drawPaths(QPainter& painter, QString const label, bool const clip=false);
+    //void drawAnnotations(QPainter& painter);
+    //void drawPaths(QPainter& painter, QString const label, bool const clip=false);
     virtual void paintEvent(QPaintEvent*) override;
-    virtual void mousePressEvent(QMouseEvent* event) override;
     virtual void mouseReleaseEvent(QMouseEvent* event) override;
-    virtual void mouseMoveEvent(QMouseEvent* event) override;
+    //virtual void mouseMoveEvent(QMouseEvent* event) override;
     virtual void resizeEvent(QResizeEvent*) override;
     virtual void animate(int const oldPageIndex = -1) override;
     virtual void repaintIfPresentation() {update();}
-    void erase(QPointF const& point);
-    ColoredDrawTool tool = {NoTool, Qt::black};
-    QMap<QString, QList<DrawPath*>> paths;
-    QPointF pointerPosition = QPointF();
-    QPixmap enlargedPage;
-    SingleRenderer* enlargedPageRenderer = nullptr;
-    QMap<DrawTool, quint16> sizes = {{Magnifier,120}, {Torch,80}, {Pointer,10}, {Highlighter,30}, {Pen,3}, {Eraser,10}};
+    //void erase(QPointF const& point);
+    //ColoredDrawTool tool = {NoTool, Qt::black};
+    /// Cursor visibility.
     bool pointer_visible = true;
-    qreal magnification = 2.;
-    QPixmap pixpaths;
-    int end_cache = -1;
-
-public slots:
-    void updateEnlargedPage();
-    void setPaths(QString const pagelabel, QList<DrawPath*> const& list, qint16 const refshiftx, qint16 const refshifty, double const refresolution);
-    void setPathsQuick(QString const pagelabel, QList<DrawPath*> const& list, qint16 const refshiftx, qint16 const refshifty, double const refresolution);
-    void setPointerPosition(QPointF const point, qint16 const refshiftx, qint16 const refshifty, double const refresolution);
-    void setTool(ColoredDrawTool const newtool);
-    void setTool(DrawTool const newtool, QColor const color=QColor()) {setTool({newtool, color});}
-    void updatePathCache();
-    void relax();
-
-signals:
-    void pointerPositionChanged(QPointF const point, qint16 const refshiftx, qint16 const refshifty, double const refresolution);
-    void pathsChangedQuick(QString const pagelabel, QList<DrawPath*> const& list, qint16 const refshiftx, qint16 const refshifty, double const refresolution);
-    void pathsChanged(QString const pagelabel, QList<DrawPath*> const& list, qint16 const refshiftx, qint16 const refshifty, double const refresolution);
-    void sendToolChanged(ColoredDrawTool const tool);
-    void sendUpdateEnlargedPage();
-    void sendRelax();
-    void sendUpdatePathCache();
+    PathOverlay* pathOverlay;
 };
 
 #endif // DRAWSLIDE_H

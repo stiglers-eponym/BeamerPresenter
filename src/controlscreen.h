@@ -82,7 +82,7 @@ public:
     void setLogSlideChanges(bool const log) {ui->label_timer->setLog(log);}
 
     // Load drawings from file (also used only from main.cpp)
-    void loadDrawings(QString const& filename) {presentationScreen->slide->loadDrawings(filename);}
+    void loadDrawings(QString const& filename) {presentationScreen->slide->getPathOverlay()->loadDrawings(filename);}
 
     // Show or hide different widgets on the notes area.
     // This activates different modes: drawing, TOC, and overview mode.

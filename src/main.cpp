@@ -1340,17 +1340,17 @@ int main(int argc, char *argv[])
         // Set sizes of draw tools.
         // Sizes are given as radius or stroke width (see man page for more details).
         value  = intFromConfig<quint16>(parser, local, settings, "magnifier-size", 120);
-        ctrlScreen->getPresentationSlide()->setSize(Magnifier, value);
+        ctrlScreen->getPresentationSlide()->getPathOverlay()->setSize(Magnifier, value);
         value  = intFromConfig<quint16>(parser, local, settings, "pointer-size", 10);
-        ctrlScreen->getPresentationSlide()->setSize(Pointer, value);
+        ctrlScreen->getPresentationSlide()->getPathOverlay()->setSize(Pointer, value);
         value  = intFromConfig<quint16>(parser, local, settings, "torch-size", 80);
-        ctrlScreen->getPresentationSlide()->setSize(Torch, value);
+        ctrlScreen->getPresentationSlide()->getPathOverlay()->setSize(Torch, value);
         value  = intFromConfig<quint16>(parser, local, settings, "highlighter-width", 30);
-        ctrlScreen->getPresentationSlide()->setSize(Highlighter, value);
+        ctrlScreen->getPresentationSlide()->getPathOverlay()->setSize(Highlighter, value);
         value  = intFromConfig<quint16>(parser, local, settings, "pen-width", 3);
-        ctrlScreen->getPresentationSlide()->setSize(Pen, value);
+        ctrlScreen->getPresentationSlide()->getPathOverlay()->setSize(Pen, value);
         value  = intFromConfig<quint16>(parser, local, settings, "eraser-size", 10);
-        ctrlScreen->getPresentationSlide()->setSize(Eraser, value);
+        ctrlScreen->getPresentationSlide()->getPathOverlay()->setSize(Eraser, value);
 
         // Set number of glitter steps and size of glitter pixels in glitter slide transition.
         // More details can (hopefully) be found in the man page.

@@ -53,6 +53,7 @@ SOURCES += \
         src/cachemap.cpp \
         src/cachethread.cpp \
         src/main.cpp \
+        src/pathoverlay.cpp \
         src/pdfdoc.cpp \
         src/previewslide.cpp \
         src/mediaslide.cpp \
@@ -79,6 +80,7 @@ HEADERS += \
         src/cachemap.h \
         src/cachethread.h \
         src/enumerates.h \
+        src/pathoverlay.h \
         src/pdfdoc.h \
         src/previewslide.h \
         src/mediaslide.h \

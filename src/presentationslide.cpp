@@ -46,55 +46,14 @@ void PresentationSlide::paintEvent(QPaintEvent*)
     QPainter painter(this);
     if (remainTimer.isActive() && remainTimer.interval()>0 && this->paint != nullptr) {
         (this->*paint)(painter);
-        drawPointer(painter);
+        pathOverlay->drawPointer(painter);
     }
     else {
-        if (pixpaths.isNull() || end_cache < 1) {
-            if (pagePart == RightHalf)
-                painter.drawPixmap(shiftx + width(), shifty, pixmap);
-            else
-                painter.drawPixmap(shiftx, shifty, pixmap);
-        }
+        if (pagePart == RightHalf)
+            painter.drawPixmap(shiftx + width(), shifty, pixmap);
         else
-            painter.drawPixmap(0, 0, pixpaths);
-        drawAnnotations(painter);
-    }
-}
-
-void PresentationSlide::drawPointer(QPainter& painter)
-{
-    painter.setOpacity(1.);
-    painter.setCompositionMode(QPainter::CompositionMode_Darken);
-    if (tool.tool == Pointer) {
-        painter.setPen(QPen(QColor(255,0,0,191), sizes[Pointer], Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin));
-        painter.drawPoint(pointerPosition);
-    }
-    else if (tool.tool == Torch && !pointerPosition.isNull()) {
-        QPainterPath rectpath;
-        rectpath.addRect(shiftx, shifty, pixmap.width(), pixmap.height());
-        QPainterPath circpath;
-        circpath.addEllipse(pointerPosition, sizes[Torch], sizes[Torch]);
-        painter.fillPath(rectpath-circpath, QColor(0,0,0,48));
-    }
-}
-
-void PresentationSlide::undoPath()
-{
-    if (!paths[page->label()].isEmpty()) {
-        undonePaths.append(paths[page->label()].takeLast());
-        end_cache = -1;
-        pixpaths = QPixmap();
-        repaint();
-        emit pathsChangedQuick(page->label(), paths[page->label()], shiftx, shifty, resolution);
-    }
-}
-
-void PresentationSlide::redoPath()
-{
-    if (!undonePaths.isEmpty()) {
-        paths[page->label()].append(undonePaths.takeLast());
-        repaint();
-        emit pathsChangedQuick(page->label(), paths[page->label()], shiftx, shifty, resolution);
+            painter.drawPixmap(shiftx, shifty, pixmap);
+        pathOverlay->drawAnnotations(painter);
     }
 }
 
@@ -114,7 +73,7 @@ void PresentationSlide::endAnimation()
         glitter = nullptr;
     }
     emit sendAdaptPage();
-    updatePathCache();
+    pathOverlay->updatePathCache();
 }
 
 void PresentationSlide::stopAnimation()
@@ -165,7 +124,7 @@ void PresentationSlide::hidePointer()
 {
     pointer_visible = false;
     setCursor(Qt::BlankCursor);
-    if (tool.tool != Pointer)
+    if (pathOverlay->getTool().tool != Pointer)
         setMouseTracking(false);
 }
 
@@ -189,7 +148,7 @@ void PresentationSlide::updateImages(int const oldPage)
         QString const& label = doc->getLabel(oldPage);
         painter.setRenderHint(QPainter::Antialiasing);
         painter.drawPixmap(shiftx, shifty, getPixmap(oldPage));
-        drawPaths(painter, label, true);
+        pathOverlay->drawPaths(painter, label, true);
     }
     {
         picfinal = QPixmap(size());
@@ -198,15 +157,13 @@ void PresentationSlide::updateImages(int const oldPage)
         painter.begin(&picfinal);
         painter.setRenderHint(QPainter::Antialiasing);
         painter.drawPixmap(shiftx, shifty, pixmap);
-        drawPaths(painter, page->label(), true);
+        pathOverlay->drawPaths(painter, page->label(), true);
     }
 }
 
 void PresentationSlide::animate(int const oldPageIndex) {
     if (oldPageIndex != pageIndex) {
-        end_cache = -1;
-         if (!pixpaths.isNull())
-             pixpaths = QPixmap();
+        pathOverlay->resetCache();
     }
     if (duration>-1e-6 && duration < .05) {
         transition_duration = 0;

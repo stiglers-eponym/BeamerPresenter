@@ -132,27 +132,27 @@ ControlScreen::ControlScreen(QString presentationPath, QString notesPath, PagePa
 
         // Connect drawSlide to other widgets.
         // Change draw tool
-        connect(ui->tool_selector, &ToolSelector::sendNewTool, drawSlide, static_cast<void (DrawSlide::*)(const ColoredDrawTool)>(&DrawSlide::setTool));
+        connect(ui->tool_selector, &ToolSelector::sendNewTool, drawSlide->getPathOverlay(), static_cast<void (PathOverlay::*)(const ColoredDrawTool)>(&PathOverlay::setTool));
         // Copy paths from draw slide to presentation slide and vice versa when drawing on one of the slides.
         // Copy paths after moving the mouse while drawing. This assumes that only the last path is changed or a new path is created.
-        connect(drawSlide, &DrawSlide::pathsChangedQuick, presentationScreen->slide, &DrawSlide::setPathsQuick);
-        connect(presentationScreen->slide, &DrawSlide::pathsChangedQuick, drawSlide, &DrawSlide::setPathsQuick);
+        connect(drawSlide->getPathOverlay(), &PathOverlay::pathsChangedQuick, presentationScreen->slide->getPathOverlay(), &PathOverlay::setPathsQuick);
+        connect(presentationScreen->slide->getPathOverlay(), &PathOverlay::pathsChangedQuick, drawSlide->getPathOverlay(), &PathOverlay::setPathsQuick);
         // Copy all paths. This completely updates all paths after using the erasor.
-        connect(drawSlide, &DrawSlide::pathsChanged, presentationScreen->slide, &DrawSlide::setPaths);
-        connect(presentationScreen->slide, &DrawSlide::pathsChanged, drawSlide, &DrawSlide::setPaths);
+        connect(drawSlide->getPathOverlay(), &PathOverlay::pathsChanged, presentationScreen->slide->getPathOverlay(), &PathOverlay::setPaths);
+        connect(presentationScreen->slide->getPathOverlay(), &PathOverlay::pathsChanged, drawSlide->getPathOverlay(), &PathOverlay::setPaths);
         // Send pointer position (when using a pointer, torch or magnifier tool).
-        connect(drawSlide, &DrawSlide::pointerPositionChanged, presentationScreen->slide, &DrawSlide::setPointerPosition);
-        connect(presentationScreen->slide, &DrawSlide::pointerPositionChanged, drawSlide, &DrawSlide::setPointerPosition);
+        connect(drawSlide->getPathOverlay(), &PathOverlay::pointerPositionChanged, presentationScreen->slide->getPathOverlay(), &PathOverlay::setPointerPosition);
+        connect(presentationScreen->slide->getPathOverlay(), &PathOverlay::pointerPositionChanged, drawSlide->getPathOverlay(), &PathOverlay::setPointerPosition);
         // Send relax signal when the mouse is released, which ends drawing a path.
-        connect(drawSlide, &DrawSlide::sendRelax, presentationScreen->slide, &DrawSlide::relax);
-        connect(presentationScreen->slide, &DrawSlide::sendRelax, drawSlide, &DrawSlide::relax);
+        connect(drawSlide->getPathOverlay(), &PathOverlay::sendRelax, presentationScreen->slide->getPathOverlay(), &PathOverlay::relax);
+        connect(presentationScreen->slide->getPathOverlay(), &PathOverlay::sendRelax, drawSlide->getPathOverlay(), &PathOverlay::relax);
         // Request rendering an enlarged page as required for the magnifier.
-        connect(drawSlide, &DrawSlide::sendUpdateEnlargedPage, presentationScreen->slide, &DrawSlide::updateEnlargedPage);
-        connect(presentationScreen->slide, &DrawSlide::sendUpdateEnlargedPage, drawSlide, &DrawSlide::updateEnlargedPage);
+        connect(drawSlide->getPathOverlay(), &PathOverlay::sendUpdateEnlargedPage, presentationScreen->slide->getPathOverlay(), &PathOverlay::updateEnlargedPage);
+        connect(presentationScreen->slide->getPathOverlay(), &PathOverlay::sendUpdateEnlargedPage, drawSlide->getPathOverlay(), &PathOverlay::updateEnlargedPage);
         // Paths are drawn on a transparent QPixmap for faster rendering.
         // Signals used to request updates for this QPixmap:
-        connect(drawSlide, &DrawSlide::sendUpdatePathCache, presentationScreen->slide, &DrawSlide::updatePathCache);
-        connect(presentationScreen->slide, &DrawSlide::sendUpdatePathCache, drawSlide, &DrawSlide::updatePathCache);
+        connect(drawSlide->getPathOverlay(), &PathOverlay::sendUpdatePathCache, presentationScreen->slide->getPathOverlay(), &PathOverlay::updatePathCache);
+        connect(presentationScreen->slide->getPathOverlay(), &PathOverlay::sendUpdatePathCache, drawSlide->getPathOverlay(), &PathOverlay::updatePathCache);
 
         // drawSlide should be muted, because it shows the same video content as the presentation slide.
         drawSlide->setMuted(true);
@@ -213,7 +213,7 @@ ControlScreen::ControlScreen(QString presentationPath, QString notesPath, PagePa
 
     // Set up tool selector.
     // Tool selector can send new draw tools to the presentation slide.
-    connect(ui->tool_selector, &ToolSelector::sendNewTool, presentationScreen->slide, static_cast<void (DrawSlide::*)(const ColoredDrawTool)>(&DrawSlide::setTool));
+    connect(ui->tool_selector, &ToolSelector::sendNewTool, presentationScreen->slide->getPathOverlay(), static_cast<void (PathOverlay::*)(const ColoredDrawTool)>(&PathOverlay::setTool));
     // Tool selector can send KeyActions to control screen.
     connect(ui->tool_selector, &ToolSelector::sendAction, this, &ControlScreen::handleKeyAction);
 
@@ -442,11 +442,11 @@ void ControlScreen::recalcLayout(const int pageNumber)
         if (scale < 0.)
             scale = 1.;
         // Set scaled tool sizes for draw slide.
-        drawSlide->setSize(Pen, static_cast<quint16>(scale*presentationScreen->slide->getSize(Pen)+0.5));
-        drawSlide->setSize(Pointer, static_cast<quint16>(scale*presentationScreen->slide->getSize(Pointer)+0.5));
-        drawSlide->setSize(Highlighter, static_cast<quint16>(scale*presentationScreen->slide->getSize(Highlighter)+0.5));
-        drawSlide->setSize(Torch, static_cast<quint16>(scale*presentationScreen->slide->getSize(Torch)));
-        drawSlide->setSize(Magnifier, static_cast<quint16>(scale*presentationScreen->slide->getSize(Magnifier)));
+        drawSlide->getPathOverlay()->setSize(Pen, static_cast<quint16>(scale*presentationScreen->slide->getPathOverlay()->getSize(Pen)+0.5));
+        drawSlide->getPathOverlay()->setSize(Pointer, static_cast<quint16>(scale*presentationScreen->slide->getPathOverlay()->getSize(Pointer)+0.5));
+        drawSlide->getPathOverlay()->setSize(Highlighter, static_cast<quint16>(scale*presentationScreen->slide->getPathOverlay()->getSize(Highlighter)+0.5));
+        drawSlide->getPathOverlay()->setSize(Torch, static_cast<quint16>(scale*presentationScreen->slide->getPathOverlay()->getSize(Torch)));
+        drawSlide->getPathOverlay()->setSize(Magnifier, static_cast<quint16>(scale*presentationScreen->slide->getPathOverlay()->getSize(Magnifier)));
         if (drawSlide != ui->notes_widget) {
             // Adapt geometry of draw slide: It should have the same geometry as the notes slide.
             drawSlide->setGeometry(ui->notes_widget->rect());
@@ -548,8 +548,8 @@ void ControlScreen::renderPage(int const pageNumber, bool const full)
     if (!isVisible()) {
         if (full) {
             // Some extras which may take some time
-            if (presentationScreen->slide->getTool().tool == Magnifier)
-                presentationScreen->slide->updateEnlargedPage();
+            if (presentationScreen->slide->getPathOverlay()->getTool().tool == Magnifier)
+                presentationScreen->slide->getPathOverlay()->updateEnlargedPage();
             presentationScreen->slide->updateCacheVideos(presentationScreen->pageIndex+1);
         }
         return;
@@ -577,7 +577,7 @@ void ControlScreen::renderPage(int const pageNumber, bool const full)
         if (drawSlide->getPage() != nullptr && !drawSlide->getPaths().contains(label)) {
             qint16 const sx=presentationScreen->slide->getXshift(), sy=presentationScreen->slide->getYshift();
             double res = presentationScreen->slide->getResolution();
-            drawSlide->setPaths(label, presentationScreen->slide->getPaths()[label], sx, sy, res);
+            drawSlide->getPathOverlay()->setPaths(label, presentationScreen->slide->getPathOverlay()->getPaths()[label], sx, sy, res);
         }
 
         // Update current slide
@@ -598,9 +598,9 @@ void ControlScreen::renderPage(int const pageNumber, bool const full)
         if (presentationScreen->slide->getTool().tool == Magnifier) {
             ui->current_slide->repaint();
             ui->next_slide->repaint();
-            presentationScreen->slide->updateEnlargedPage();
+            presentationScreen->slide->getPathOverlay()->updateEnlargedPage();
             if (drawSlide != nullptr)
-                drawSlide->updateEnlargedPage();
+                drawSlide->getPathOverlay()->updateEnlargedPage();
         }
         presentationScreen->slide->updateCacheVideos(presentationScreen->pageIndex+1);
     }
@@ -928,9 +928,9 @@ void ControlScreen::keyPressEvent(QKeyEvent* event)
     // Key codes are given as key + modifiers.
     quint32 const key = quint32(event->key()) + quint32(event->modifiers());
     if (tools.contains(key)) {
-        presentationScreen->slide->setTool(tools[key]);
+        presentationScreen->slide->getPathOverlay()->setTool(tools[key]);
         if (drawSlide != nullptr)
-            drawSlide->setTool(tools[key]);
+            drawSlide->getPathOverlay()->setTool(tools[key]);
     }
     QMap<quint32, QList<KeyAction>>::iterator map_it = keymap->find(key);
     if (map_it == keymap->end())
@@ -1324,19 +1324,19 @@ bool ControlScreen::handleKeyAction(KeyAction const action)
         close();
         break;
     case KeyAction::ClearAnnotations:
-        presentationScreen->slide->clearPageAnnotations();
+        presentationScreen->slide->getPathOverlay()->clearPageAnnotations();
         if (drawSlide != nullptr)
-            drawSlide->clearPageAnnotations();
+            drawSlide->getPathOverlay()->clearPageAnnotations();
         break;
     case KeyAction::DrawNone:
-        presentationScreen->slide->setTool(NoTool);
+        presentationScreen->slide->getPathOverlay()->setTool(NoTool);
         if (drawSlide != nullptr)
-            drawSlide->setTool(NoTool);
+            drawSlide->getPathOverlay()->setTool(NoTool);
         break;
     case KeyAction::DrawEraser:
-        presentationScreen->slide->setTool(Eraser, QColor());
+        presentationScreen->slide->getPathOverlay()->setTool(Eraser, QColor());
         if (drawSlide != nullptr)
-            drawSlide->setTool(Eraser, QColor());
+            drawSlide->getPathOverlay()->setTool(Eraser, QColor());
         break;
     case KeyAction::DrawMode:
         if (isVisible())
@@ -1351,23 +1351,23 @@ bool ControlScreen::handleKeyAction(KeyAction const action)
         }
         break;
     case KeyAction::UndoDrawing:
-        presentationScreen->slide->undoPath();
+        presentationScreen->slide->getPathOverlay()->undoPath();
         break;
     case KeyAction::RedoDrawing:
-        presentationScreen->slide->redoPath();
+        presentationScreen->slide->getPathOverlay()->redoPath();
         break;
     case KeyAction::SaveDrawings:
         {
             QString const savePath = QFileDialog::getSaveFileName(this, "Save drawings");
             if (!savePath.isEmpty())
-                presentationScreen->slide->saveDrawings(savePath, notes->getPath());
+                presentationScreen->slide->getPathOverlay()->saveDrawings(savePath, notes->getPath());
         }
         break;
     case KeyAction::LoadDrawings:
         {
             QString const loadPath = QFileDialog::getOpenFileName(this, "Load drawings");
             if (!loadPath.isEmpty())
-                presentationScreen->slide->loadDrawings(loadPath);
+                presentationScreen->slide->getPathOverlay()->loadDrawings(loadPath);
         }
         break;
     case NoAction:
@@ -1375,9 +1375,9 @@ bool ControlScreen::handleKeyAction(KeyAction const action)
     default:
         ColoredDrawTool const tool = actionToToolMap.value(action, {InvalidTool, QColor()});
         if (tool.tool != InvalidTool) {
-            presentationScreen->slide->setTool(tool);
+            presentationScreen->slide->getPathOverlay()->setTool(tool);
             if (drawSlide != nullptr)
-                drawSlide->setTool(tool);
+                drawSlide->getPathOverlay()->setTool(tool);
         }
         break;
     }
@@ -1708,27 +1708,27 @@ void ControlScreen::showDrawSlide()
 
         // Connect drawSlide to other widgets.
         // Change draw tool
-        connect(ui->tool_selector, &ToolSelector::sendNewTool, drawSlide, static_cast<void (DrawSlide::*)(const ColoredDrawTool)>(&DrawSlide::setTool));
+        connect(ui->tool_selector, &ToolSelector::sendNewTool, drawSlide->getPathOverlay(), static_cast<void (PathOverlay::*)(const ColoredDrawTool)>(&PathOverlay::setTool));
         // Copy paths from draw slide to presentation slide and vice versa when drawing on one of the slides.
         // Copy paths after moving the mouse while drawing. This assumes that only the last path is changed or a new path is created.
-        connect(drawSlide, &DrawSlide::pathsChangedQuick, presentationScreen->slide, &DrawSlide::setPathsQuick);
-        connect(presentationScreen->slide, &DrawSlide::pathsChangedQuick, drawSlide, &DrawSlide::setPathsQuick);
+        connect(drawSlide->getPathOverlay(), &PathOverlay::pathsChangedQuick, presentationScreen->slide->getPathOverlay(), &PathOverlay::setPathsQuick);
+        connect(presentationScreen->slide->getPathOverlay(), &PathOverlay::pathsChangedQuick, drawSlide->getPathOverlay(), &PathOverlay::setPathsQuick);
         // Copy all paths. This completely updates all paths after using the erasor.
-        connect(drawSlide, &DrawSlide::pathsChanged, presentationScreen->slide, &DrawSlide::setPaths);
-        connect(presentationScreen->slide, &DrawSlide::pathsChanged, drawSlide, &DrawSlide::setPaths);
+        connect(drawSlide->getPathOverlay(), &PathOverlay::pathsChanged, presentationScreen->slide->getPathOverlay(), &PathOverlay::setPaths);
+        connect(presentationScreen->slide->getPathOverlay(), &PathOverlay::pathsChanged, drawSlide->getPathOverlay(), &PathOverlay::setPaths);
         // Send pointer position (when using a pointer, torch or magnifier tool).
-        connect(drawSlide, &DrawSlide::pointerPositionChanged, presentationScreen->slide, &DrawSlide::setPointerPosition);
-        connect(presentationScreen->slide, &DrawSlide::pointerPositionChanged, drawSlide, &DrawSlide::setPointerPosition);
+        connect(drawSlide->getPathOverlay(), &PathOverlay::pointerPositionChanged, presentationScreen->slide->getPathOverlay(), &PathOverlay::setPointerPosition);
+        connect(presentationScreen->slide->getPathOverlay(), &PathOverlay::pointerPositionChanged, drawSlide->getPathOverlay(), &PathOverlay::setPointerPosition);
         // Send relax signal when the mouse is released, which ends drawing a path.
-        connect(drawSlide, &DrawSlide::sendRelax, presentationScreen->slide, &DrawSlide::relax);
-        connect(presentationScreen->slide, &DrawSlide::sendRelax, drawSlide, &DrawSlide::relax);
+        connect(drawSlide->getPathOverlay(), &PathOverlay::sendRelax, presentationScreen->slide->getPathOverlay(), &PathOverlay::relax);
+        connect(presentationScreen->slide->getPathOverlay(), &PathOverlay::sendRelax, drawSlide->getPathOverlay(), &PathOverlay::relax);
         // Request rendering an enlarged page as required for the magnifier.
-        connect(drawSlide, &DrawSlide::sendUpdateEnlargedPage, presentationScreen->slide, &DrawSlide::updateEnlargedPage);
-        connect(presentationScreen->slide, &DrawSlide::sendUpdateEnlargedPage, drawSlide, &DrawSlide::updateEnlargedPage);
+        connect(drawSlide->getPathOverlay(), &PathOverlay::sendUpdateEnlargedPage, presentationScreen->slide->getPathOverlay(), &PathOverlay::updateEnlargedPage);
+        connect(presentationScreen->slide->getPathOverlay(), &PathOverlay::sendUpdateEnlargedPage, drawSlide->getPathOverlay(), &PathOverlay::updateEnlargedPage);
         // Paths are drawn on a transparent QPixmap for faster rendering.
         // Signals used to request updates for this QPixmap:
-        connect(drawSlide, &DrawSlide::sendUpdatePathCache, presentationScreen->slide, &DrawSlide::updatePathCache);
-        connect(presentationScreen->slide, &DrawSlide::sendUpdatePathCache, drawSlide, &DrawSlide::updatePathCache);
+        connect(drawSlide->getPathOverlay(), &PathOverlay::sendUpdatePathCache, presentationScreen->slide->getPathOverlay(), &PathOverlay::updatePathCache);
+        connect(presentationScreen->slide->getPathOverlay(), &PathOverlay::sendUpdatePathCache, drawSlide->getPathOverlay(), &PathOverlay::updatePathCache);
         // drawSlide can send page change events.
         connect(drawSlide, &PreviewSlide::sendNewPageNumber, presentationScreen, &PresentationScreen::receiveNewPage);
         connect(drawSlide, &PreviewSlide::sendNewPageNumber, this, [&](int const pageNumber){renderPage(pageNumber);});
@@ -1777,7 +1777,7 @@ void ControlScreen::showDrawSlide()
     // Render current page on drawSlide.
     drawSlide->renderPage(presentationScreen->slide->pageNumber(), false);
     // Set the current tool on drawSlide.
-    drawSlide->setTool(presentationScreen->slide->getTool());
+    drawSlide->getPathOverlay()->setTool(presentationScreen->slide->getTool());
     // Hide the notes and show (and focus) the drawSlide.
     ui->notes_widget->hide();
     drawSlide->show();
@@ -1789,15 +1789,15 @@ void ControlScreen::showDrawSlide()
     /// Relative size of the draw slide compared to the presentation slide.
     double const scale = drawSlide->getResolution() / res;
     // Set tool sizes on the draw slide. Sizes are scaled such that drawings look like on the presentation slide.
-    drawSlide->setSize(Pen, static_cast<quint16>(scale*presentationScreen->slide->getSize(Pen)+0.5));
-    drawSlide->setSize(Pointer, static_cast<quint16>(scale*presentationScreen->slide->getSize(Pointer)+0.5));
-    drawSlide->setSize(Highlighter, static_cast<quint16>(scale*presentationScreen->slide->getSize(Highlighter)+0.5));
-    drawSlide->setSize(Torch, static_cast<quint16>(scale*presentationScreen->slide->getSize(Torch)));
-    drawSlide->setSize(Magnifier, static_cast<quint16>(scale*presentationScreen->slide->getSize(Magnifier)));
+    drawSlide->getPathOverlay()->setSize(Pen, static_cast<quint16>(scale*presentationScreen->slide->getPathOverlay()->getSize(Pen)+0.5));
+    drawSlide->getPathOverlay()->setSize(Pointer, static_cast<quint16>(scale*presentationScreen->slide->getPathOverlay()->getSize(Pointer)+0.5));
+    drawSlide->getPathOverlay()->setSize(Highlighter, static_cast<quint16>(scale*presentationScreen->slide->getPathOverlay()->getSize(Highlighter)+0.5));
+    drawSlide->getPathOverlay()->setSize(Torch, static_cast<quint16>(scale*presentationScreen->slide->getPathOverlay()->getSize(Torch)));
+    drawSlide->getPathOverlay()->setSize(Magnifier, static_cast<quint16>(scale*presentationScreen->slide->getPathOverlay()->getSize(Magnifier)));
     // Get the current page label.
     QString const label = presentationScreen->slide->getPage()->label();
     // Load existing drawings from the presentation screen for the current page on drawSlide.
-    drawSlide->setPaths(label, presentationScreen->slide->getPaths()[label], sx, sy, res);
+    drawSlide->getPathOverlay()->setPaths(label, presentationScreen->slide->getPaths()[label], sx, sy, res);
     // Show the changed drawings.
     drawSlide->update();
     // Render the current page on drawSlide. This also adapts the current and next slide previews to previews of the next two slides.
@@ -1836,9 +1836,9 @@ void ControlScreen::hideDrawSlide()
 
 void ControlScreen::setMagnification(const qreal mag)
 {
-    presentationScreen->slide->setMagnification(mag);
+    presentationScreen->slide->getPathOverlay()->setMagnification(mag);
     if (drawSlide != nullptr)
-        drawSlide->setMagnification(mag);
+        drawSlide->getPathOverlay()->setMagnification(mag);
 }
 
 void ControlScreen::setAutostartDelay(const double timeout)

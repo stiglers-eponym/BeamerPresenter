@@ -111,8 +111,8 @@ public slots:
     void showPointer();
     void hidePointer();
     void setAnimationDelay(int const delay_ms) {minimumAnimationDelay=delay_ms;}
-    void undoPath();
-    void redoPath();
+    //void undoPath();
+    //void redoPath();
 
 signals:
     void timeoutSignal();
