@@ -69,6 +69,8 @@ void PathOverlay::clearPageAnnotations()
 
 void PathOverlay::paintEvent(QPaintEvent*)
 {
+    if (master->isShowingTransition())
+        return;
     QPainter painter(this);
     painter.setCompositionMode(QPainter::CompositionMode_SourceOver);
     if (end_cache >= 0)
@@ -187,11 +189,10 @@ void PathOverlay::setSize(DrawTool const tool, quint16 size)
     sizes[tool] = size;
 }
 
-void PathOverlay::drawPaths(QPainter &painter, QString const label, bool const clip, bool const toCache)
+void PathOverlay::drawPaths(QPainter &painter, QString const label, bool const animation, bool const toCache)
 {
-    if (master->page == nullptr)
-        return;
-    if (clip)
+    // TODO: reorganize the different conditions (especially animation)
+    if (animation)
         painter.setClipRect(master->shiftx, master->shifty, width()-2*master->shiftx, height()-2*master->shifty);
 
     // Draw edges of the slide: If they are not drawn explicitly, they can be transparent.
@@ -205,9 +206,11 @@ void PathOverlay::drawPaths(QPainter &painter, QString const label, bool const c
     // Draw the paths.
     if (paths.contains(label)) {
         QList<DrawPath*>::const_iterator path_it = paths[label].cbegin();
-        // If end_cache >= 0: some paths have been drawn already. Skip them.
-        if (label == master->page->label() && end_cache > 0)
-            path_it += end_cache;
+        if (!animation) {
+            // If end_cache >= 0: some paths have been drawn already. Skip them.
+            if (label == master->page->label() && end_cache > 0)
+                path_it += end_cache;
+        }
         // Iterate over all remaining paths.
         for (; path_it!=paths[label].cend(); path_it++) {
             switch ((*path_it)->getTool()) {
@@ -218,30 +221,32 @@ void PathOverlay::drawPaths(QPainter &painter, QString const label, bool const c
                 break;
             case Highlighter:
             {
-                // Highlighter needs a background to draw on (because of CompositionMode_Darken).
-                // Drawing this background is only reasonable if there is no video widget in the background.
-                // Check this.
-                QRectF outer = (*path_it)->getOuter();
-                if (hasVideoOverlap(outer)) {
-                    if (toCache) {
-                        end_cache = path_it - paths[label].cbegin();
-                        qDebug() << "Stopped caching paths:" << end_cache;
-                        return;
+                if (!animation) {
+                    // Highlighter needs a background to draw on (because of CompositionMode_Darken).
+                    // Drawing this background is only reasonable if there is no video widget in the background.
+                    // Check this.
+                    QRectF outer = (*path_it)->getOuter();
+                    if (hasVideoOverlap(outer)) {
+                        if (toCache) {
+                            end_cache = path_it - paths[label].cbegin();
+                            qDebug() << "Stopped caching paths:" << end_cache;
+                            return;
+                        }
                     }
-                }
-                else {
-                    // Draw the background form master->pixmap.
-                    painter.setClipRect(master->shiftx, master->shifty, width()-2*master->shiftx, height()-2*master->shifty);
-                    painter.setCompositionMode(QPainter::CompositionMode_DestinationOver);
-                    outer.setSize(outer.size() + (sizes[Highlighter]-sizes[Eraser])*QSizeF(.51,.51));
-                    outer.setTopLeft(outer.topLeft() - (sizes[Highlighter]-sizes[Eraser])*QPointF(.51,.51));
-                    painter.drawPixmap(outer, master->pixmap, QRectF(outer.x()-master->shiftx, outer.y()-master->shifty, outer.width(), outer.height()));
+                    else {
+                        // Draw the background form master->pixmap.
+                        painter.setClipRect(master->shiftx, master->shifty, width()-2*master->shiftx, height()-2*master->shifty);
+                        painter.setCompositionMode(QPainter::CompositionMode_DestinationOver);
+                        outer.setSize(outer.size() + (sizes[Highlighter]-sizes[Eraser])*QSizeF(.51,.51));
+                        outer.setTopLeft(outer.topLeft() - (sizes[Highlighter]-sizes[Eraser])*QPointF(.51,.51));
+                        painter.drawPixmap(outer, master->pixmap, QRectF(outer.x()-master->shiftx, outer.y()-master->shifty, outer.width(), outer.height()));
+                    }
                 }
                 // Draw the highlighter path.
                 painter.setCompositionMode(QPainter::CompositionMode_Darken);
                 painter.setPen(QPen((*path_it)->getColor(), sizes[Highlighter], Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin));
                 painter.drawPolyline((*path_it)->data(), (*path_it)->number());
-                if (!clip)
+                if (!animation)
                     painter.setClipRect(rect());
             }
                 break;
@@ -250,7 +255,7 @@ void PathOverlay::drawPaths(QPainter &painter, QString const label, bool const c
             }
         }
     }
-    if (clip)
+    if (animation)
         painter.setClipRect(rect());
     if (toCache)
         end_cache = paths[master->page->label()].length();

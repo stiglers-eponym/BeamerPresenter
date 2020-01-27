@@ -38,6 +38,7 @@ public:
     PathOverlay* getPathOverlay() {return pathOverlay;}
     QMap<QString, QList<DrawPath*>> const& getPaths() const {return pathOverlay->paths;}
     double const& getResolution() const {return resolution;}
+    virtual bool isShowingTransition() const {return false;}
 
 protected:
     virtual void paintEvent(QPaintEvent*) override;

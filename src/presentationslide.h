@@ -62,6 +62,7 @@ protected:
 public:
     PresentationSlide(PdfDoc const*const document, PagePart const part, QWidget* parent=nullptr);
     ~PresentationSlide() override;
+    bool isShowingTransition() const override {return remainTimer.isActive();}
     QPixmap const& getCurrentPixmap() const {return pixmap;}
     void initGlitter();
     void setGlitterSteps(quint16 const number);

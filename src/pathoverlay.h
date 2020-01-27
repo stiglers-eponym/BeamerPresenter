@@ -30,6 +30,7 @@ class PathOverlay : public QWidget
 {
     Q_OBJECT
     friend class DrawSlide;
+    friend class PresentationSlide;
 
 public:
     explicit PathOverlay(DrawSlide* parent);
@@ -49,7 +50,7 @@ public:
     void undoPath();
     void redoPath();
     void resetCache();
-    void drawPaths(QPainter& painter, QString const label, bool const clip=false, bool const toCache=false);
+    void drawPaths(QPainter& painter, QString const label, bool const animation=false, bool const toCache=false);
     bool hasVideoOverlap(QRectF const& rect) const;
 
 protected:

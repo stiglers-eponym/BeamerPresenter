@@ -1,5 +1,9 @@
 BeamerPresenter
 
+* drawing in slide transitions: restructure
+* Avoid that video widget graps focus and handles keyboard input (previous/next keys)
+* Synchronize video widgets (broken since rewriting video widgets)
+* Test in ubuntu
 * Start rendering enlarged page first for presentation, then for notes draw slide
 * Document code!
 * Check (and reduce) memory usage

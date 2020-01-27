@@ -53,7 +53,6 @@ void PresentationSlide::paintEvent(QPaintEvent*)
             painter.drawPixmap(shiftx + width(), shifty, pixmap);
         else
             painter.drawPixmap(shiftx, shifty, pixmap);
-        pathOverlay->update();
     }
 }
 
@@ -67,6 +66,7 @@ void PresentationSlide::clearLists()
 void PresentationSlide::endAnimation()
 {
     stopAnimation();
+    //pathOverlay->show();
     repaint();
     if (glitter != nullptr) {
         delete[] glitter;
@@ -125,7 +125,7 @@ void PresentationSlide::updateImages(int const oldPage)
         QString const& label = doc->getLabel(oldPage);
         painter.setRenderHint(QPainter::Antialiasing);
         painter.drawPixmap(shiftx, shifty, getPixmap(oldPage));
-        pathOverlay->drawPaths(painter, label, true);
+        pathOverlay->drawPaths(painter, label, true, false);
     }
     {
         picfinal = QPixmap(size());
@@ -134,7 +134,9 @@ void PresentationSlide::updateImages(int const oldPage)
         painter.begin(&picfinal);
         painter.setRenderHint(QPainter::Antialiasing);
         painter.drawPixmap(shiftx, shifty, pixmap);
-        pathOverlay->drawPaths(painter, page->label(), true);
+        if (pathOverlay->end_cache >= 0)
+            painter.drawPixmap(0, 0, pathOverlay->pixpaths);
+        pathOverlay->drawPaths(painter, page->label(), false, false);
     }
 }
 
@@ -444,6 +446,7 @@ void PresentationSlide::animate(int const oldPageIndex) {
     emit requestUpdateNotes(pageIndex, false);
     remainTimer.start();
     timer.start(0);
+    //pathOverlay->hide();
 }
 
 void PresentationSlide::paintWipeUp(QPainter& painter)
