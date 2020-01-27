@@ -42,7 +42,7 @@ void DrawSlide::paintEvent(QPaintEvent*)
         painter.drawPixmap(shiftx + width(), shifty, pixmap);
     else
         painter.drawPixmap(shiftx, shifty, pixmap);
-    pathOverlay->drawAnnotations(painter);
+    pathOverlay->update();
 }
 
 void DrawSlide::resizeEvent(QResizeEvent*)

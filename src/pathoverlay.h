@@ -49,8 +49,8 @@ public:
     void undoPath();
     void redoPath();
     void resetCache();
-    void drawPaths(QPainter& painter, QString const label, bool const clip=false);
-    void drawAnnotations(QPainter& painter);
+    void drawPaths(QPainter& painter, QString const label, bool const clip=false, bool const toCache=false);
+    bool hasVideoOverlap(QRectF const& rect) const;
 
 protected:
     virtual void paintEvent(QPaintEvent*) override;

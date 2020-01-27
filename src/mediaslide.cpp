@@ -629,9 +629,6 @@ void MediaSlide::updateCacheVideos(int const pageNumber)
     QList<Poppler::Annotation*> videos = page->annotations(videoType);
     if (videos.isEmpty())
         return;
-    QSizeF scale = resolution*page->pageSizeF();
-    if (pagePart != FullPage)
-        scale.setWidth(2*scale.width());
     for (QList<Poppler::Annotation*>::const_iterator annotation=videos.cbegin(); annotation!=videos.cend(); annotation++) {
         Poppler::MovieAnnotation* video = static_cast<Poppler::MovieAnnotation*>(*annotation);
         Poppler::MovieObject* movie = video->movie();
@@ -648,17 +645,13 @@ void MediaSlide::updateCacheVideos(int const pageNumber)
             qDebug() << "Cache new video widget:" << movie->url();
             cachedVideoWidgets.append(new VideoWidget(video, urlSplitCharacter, this));
             cachedVideoWidgets.last()->setMute(mute);
-            QRectF relative = video->boundary();
-            cachedVideoWidgets.last()->setGeometry(
-                    shiftx+int(relative.x()*scale.width()),
-                    shifty+int(relative.y()*scale.height()),
-                    int(relative.width()*scale.width()),
-                    int(relative.height()*scale.height())
-                );
+            // Ugly way of fixing video widgets:
+            cachedVideoWidgets.last()->lower();
+            cachedVideoWidgets.last()->setGeometry(0,0,1,1);
             cachedVideoWidgets.last()->show();
             repaint();
             cachedVideoWidgets.last()->hide();
-            cachedVideoWidgets.last()->lower();
+            repaint();
         }
     }
     videos.clear();

@@ -35,7 +35,7 @@ void DrawPath::setEraserSize(const quint16 size)
 DrawPath::DrawPath(ColoredDrawTool const& tool, QPointF const& start, quint16 const eraser_size)
 {
     path.append(start);
-    outer = QRectF(start.x(), start.y(), 0, 0);
+    outer = QRectF(start.x()-eraser_size, start.y()-eraser_size, 2*eraser_size, 2*eraser_size);
     this->eraser_size = eraser_size;
     this->tool = tool;
     updateHash();
@@ -73,7 +73,6 @@ DrawPath::DrawPath(DrawPath const& old, QPointF const shift, double const scale)
         path[i] = scale*old.path[i] + shift;
     outer = QRectF(scale*old.outer.topLeft() + shift, scale*old.outer.bottomRight() + shift);
     eraser_size = quint16(scale*old.eraser_size+0.5);
-    //eraser_size(old.eraser_size),
 }
 
 bool DrawPath::update(DrawPath const& new_path, QPointF const shift, double const scale)
@@ -95,27 +94,25 @@ DrawPath::DrawPath(DrawPath const& old) :
     hash(old.hash)
 {}
 
-void DrawPath::transform(QPointF const&shift, const double scale)
+void DrawPath::transform(QPointF const& shift, const double scale)
 {
      for (int i=0; i<path.length(); i++)
          path[i] = scale*path[i] + shift;
      outer = QRectF(scale*outer.topLeft() + shift, scale*outer.bottomRight() + shift);
-     //eraser_size = static_cast<int>(scale*eraser_size+0.5);
+     eraser_size = static_cast<int>(scale*eraser_size+0.5);
 }
 
 void DrawPath::append(QPointF const& point)
 {
+    if (point.x() < outer.left()+eraser_size)
+        outer.setLeft(point.x()-eraser_size);
+    else if (point.x()+eraser_size > outer.right())
+        outer.setRight(point.x()+eraser_size);
+    if (point.y() < outer.top()+eraser_size)
+        outer.setTop(point.y()-eraser_size);
+    else if (point.y()+eraser_size > outer.bottom())
+        outer.setBottom(point.y()+eraser_size);
     path.append(point);
-    if (!outer.contains(point)) {
-        if (point.x() < outer.left()+eraser_size)
-            outer.setLeft(point.x()-eraser_size);
-        else if (point.x()+eraser_size > outer.right())
-            outer.setRight(point.x()+eraser_size);
-        if (point.y() < outer.top()+eraser_size)
-            outer.setTop(point.y()-eraser_size);
-        else if (point.y()+eraser_size > outer.bottom())
-            outer.setBottom(point.y()+eraser_size);
-    }
     hash ^= quint32(std::hash<double>{}(point.x() + 1e5*point.y())) + (hash << 6) + (hash >> 2);
 }
 

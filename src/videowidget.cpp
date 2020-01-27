@@ -27,6 +27,7 @@ VideoWidget::VideoWidget(Poppler::MovieAnnotation const* annotation, QString con
     playlist(new QMediaPlaylist(this)),
     annotation(annotation)
 {
+    // TODO: try connecting two views to the same graphics scene showing the video.
     view->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     view->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     view->setStyleSheet("border: 2px");

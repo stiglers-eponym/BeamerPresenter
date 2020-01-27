@@ -69,13 +69,47 @@ void PathOverlay::clearPageAnnotations()
 
 void PathOverlay::paintEvent(QPaintEvent*)
 {
-    // TODO: find a solution which works in xcb.
-    //if (QApplication::platformName() == "wayland")
-        raise();
     QPainter painter(this);
+    painter.setCompositionMode(QPainter::CompositionMode_SourceOver);
     if (end_cache >= 0)
         painter.drawPixmap(0, 0, pixpaths);
-    drawAnnotations(painter);
+    if (master->page == nullptr)
+        return;
+    painter.setRenderHint(QPainter::Antialiasing);
+    drawPaths(painter, master->page->label());
+    switch (tool.tool) {
+    case Pointer:
+        painter.setCompositionMode(QPainter::CompositionMode_Darken);
+        painter.setPen(QPen(tool.color, sizes[Pointer], Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin));
+        painter.drawPoint(pointerPosition);
+        break;
+    case Torch:
+        if (!pointerPosition.isNull()) {
+            painter.setCompositionMode(QPainter::CompositionMode_SourceOver);
+            QPainterPath rectpath;
+            rectpath.addRect(master->shiftx, master->shifty, master->pixmap.width(), master->pixmap.height());
+            QPainterPath circpath;
+            circpath.addEllipse(pointerPosition, sizes[Torch], sizes[Torch]);
+            painter.fillPath(rectpath-circpath, tool.color);
+        }
+        break;
+    case Magnifier:
+        if (!pointerPosition.isNull() && !enlargedPage.isNull()) {
+            painter.setCompositionMode(QPainter::CompositionMode_SourceOver);
+            painter.setClipping(true);
+            QPainterPath path;
+            path.addEllipse(pointerPosition, sizes[Magnifier], sizes[Magnifier]);
+            painter.setClipPath(path, Qt::ReplaceClip);
+            painter.drawPixmap(QRectF(pointerPosition.x()-sizes[Magnifier], pointerPosition.y()-sizes[Magnifier], 2*sizes[Magnifier], 2*sizes[Magnifier]),
+                              enlargedPage,
+                              QRectF(magnification*pointerPosition.x() - sizes[Magnifier], magnification*pointerPosition.y() - sizes[Magnifier], 2*sizes[Magnifier], 2*sizes[Magnifier]));
+            painter.setPen(QPen(tool.color, 2));
+            painter.drawEllipse(pointerPosition, sizes[Magnifier], sizes[Magnifier]);
+        }
+        break;
+    default:
+        break;
+    }
 }
 
 void PathOverlay::rescale(qint16 const oldshiftx, qint16 const oldshifty, double const oldRes)
@@ -137,8 +171,7 @@ void PathOverlay::updatePathCache()
         QPainter painter;
         painter.begin(&pixpaths);
         painter.setRenderHint(QPainter::Antialiasing);
-        drawPaths(painter, master->page->label());
-        end_cache = paths[master->page->label()].length();
+        drawPaths(painter, master->page->label(), false, true);
     }
 }
 
@@ -154,14 +187,28 @@ void PathOverlay::setSize(DrawTool const tool, quint16 size)
     sizes[tool] = size;
 }
 
-void PathOverlay::drawPaths(QPainter &painter, QString const label, bool const clip)
+void PathOverlay::drawPaths(QPainter &painter, QString const label, bool const clip, bool const toCache)
 {
     if (master->page == nullptr)
         return;
+    if (clip)
+        painter.setClipRect(master->shiftx, master->shifty, width()-2*master->shiftx, height()-2*master->shifty);
+
+    // Draw edges of the slide: If they are not drawn explicitly, they can be transparent.
+    // Drawing with the highlighter on transparent edges can look ugly.
+    painter.setCompositionMode(QPainter::CompositionMode_DestinationOver);
+    painter.drawPixmap(master->shiftx, master->shifty, width(), 1, master->pixmap, 0, 0, width(), 1);
+    painter.drawPixmap(master->shiftx, height() - master->shifty - 1, width(), 1, master->pixmap, 0, master->pixmap.height()-1, width(), 1);
+    painter.drawPixmap(master->shiftx, master->shifty, 1, height(), master->pixmap, 0, 0, 1, height());
+    painter.drawPixmap(width() - master->shiftx - 1, master->shifty, 1, height(), master->pixmap, master->pixmap.width()-1, 0, 1, height());
+
+    // Draw the paths.
     if (paths.contains(label)) {
         QList<DrawPath*>::const_iterator path_it = paths[label].cbegin();
+        // If end_cache >= 0: some paths have been drawn already. Skip them.
         if (label == master->page->label() && end_cache > 0)
             path_it += end_cache;
+        // Iterate over all remaining paths.
         for (; path_it!=paths[label].cend(); path_it++) {
             switch ((*path_it)->getTool()) {
             case Pen:
@@ -170,61 +217,54 @@ void PathOverlay::drawPaths(QPainter &painter, QString const label, bool const c
                 painter.drawPolyline((*path_it)->data(), (*path_it)->number());
                 break;
             case Highlighter:
-                // TODO
-                if (clip)
+            {
+                // Highlighter needs a background to draw on (because of CompositionMode_Darken).
+                // Drawing this background is only reasonable if there is no video widget in the background.
+                // Check this.
+                QRectF outer = (*path_it)->getOuter();
+                if (hasVideoOverlap(outer)) {
+                    if (toCache) {
+                        end_cache = path_it - paths[label].cbegin();
+                        qDebug() << "Stopped caching paths:" << end_cache;
+                        return;
+                    }
+                }
+                else {
+                    // Draw the background form master->pixmap.
                     painter.setClipRect(master->shiftx, master->shifty, width()-2*master->shiftx, height()-2*master->shifty);
+                    painter.setCompositionMode(QPainter::CompositionMode_DestinationOver);
+                    outer.setSize(outer.size() + (sizes[Highlighter]-sizes[Eraser])*QSizeF(.51,.51));
+                    outer.setTopLeft(outer.topLeft() - (sizes[Highlighter]-sizes[Eraser])*QPointF(.51,.51));
+                    painter.drawPixmap(outer, master->pixmap, QRectF(outer.x()-master->shiftx, outer.y()-master->shifty, outer.width(), outer.height()));
+                }
+                // Draw the highlighter path.
                 painter.setCompositionMode(QPainter::CompositionMode_Darken);
                 painter.setPen(QPen((*path_it)->getColor(), sizes[Highlighter], Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin));
                 painter.drawPolyline((*path_it)->data(), (*path_it)->number());
-                if (clip)
+                if (!clip)
                     painter.setClipRect(rect());
+            }
                 break;
             default:
                 break;
             }
         }
     }
+    if (clip)
+        painter.setClipRect(rect());
+    if (toCache)
+        end_cache = paths[master->page->label()].length();
 }
 
-void PathOverlay::drawAnnotations(QPainter &painter)
+bool PathOverlay::hasVideoOverlap(QRectF const& rect) const
 {
-    if (master->page == nullptr)
-        return;
-    painter.setRenderHint(QPainter::Antialiasing);
-    drawPaths(painter, master->page->label());
-    switch (tool.tool) {
-    case Pointer:
-        painter.setCompositionMode(QPainter::CompositionMode_Darken);
-        painter.setPen(QPen(tool.color, sizes[Pointer], Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin));
-        painter.drawPoint(pointerPosition);
-        break;
-    case Torch:
-        if (!pointerPosition.isNull()) {
-            painter.setCompositionMode(QPainter::CompositionMode_SourceOver);
-            QPainterPath rectpath;
-            rectpath.addRect(master->shiftx, master->shifty, master->pixmap.width(), master->pixmap.height());
-            QPainterPath circpath;
-            circpath.addEllipse(pointerPosition, sizes[Torch], sizes[Torch]);
-            painter.fillPath(rectpath-circpath, tool.color);
-        }
-        break;
-    case Magnifier:
-        if (!pointerPosition.isNull() && !enlargedPage.isNull()) {
-            painter.setCompositionMode(QPainter::CompositionMode_SourceOver);
-            painter.setClipping(true);
-            QPainterPath path;
-            path.addEllipse(pointerPosition, sizes[Magnifier], sizes[Magnifier]);
-            painter.setClipPath(path, Qt::ReplaceClip);
-            painter.drawPixmap(QRectF(pointerPosition.x()-sizes[Magnifier], pointerPosition.y()-sizes[Magnifier], 2*sizes[Magnifier], 2*sizes[Magnifier]),
-                              enlargedPage,
-                              QRectF(magnification*pointerPosition.x() - sizes[Magnifier], magnification*pointerPosition.y() - sizes[Magnifier], 2*sizes[Magnifier], 2*sizes[Magnifier]));
-            painter.setPen(QPen(tool.color, 2));
-            painter.drawEllipse(pointerPosition, sizes[Magnifier], sizes[Magnifier]);
-        }
-        break;
-    default:
-        break;
+    if (master->videoPositions.isEmpty())
+        return false;
+    for (auto pos: master->videoPositions) {
+        if (pos.right() > rect.left() && pos.left() < rect.right() && pos.top() < rect.bottom() && pos.bottom() > rect.top())
+            return true;
     }
+    return false;
 }
 
 void PathOverlay::mousePressEvent(QMouseEvent *event)

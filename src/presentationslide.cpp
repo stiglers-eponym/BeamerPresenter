@@ -53,7 +53,7 @@ void PresentationSlide::paintEvent(QPaintEvent*)
             painter.drawPixmap(shiftx + width(), shifty, pixmap);
         else
             painter.drawPixmap(shiftx, shifty, pixmap);
-        pathOverlay->drawAnnotations(painter);
+        pathOverlay->update();
     }
 }
 
