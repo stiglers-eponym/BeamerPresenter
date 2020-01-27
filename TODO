@@ -1,8 +1,6 @@
 BeamerPresenter
 
-* Use QGraphicsScene to draw over video widgets also in X. (-> use OpenGL?)
 * Start rendering enlarged page first for presentation, then for notes draw slide
-* video widgets: loop broken in wayland
 * Document code!
 * Check (and reduce) memory usage
 * Key bindings for multimedia control

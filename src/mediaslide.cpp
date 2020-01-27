@@ -200,8 +200,6 @@ void MediaSlide::renderPage(int pageNumber, bool const hasDuration)
                 if (embedFileList.contains(splitFileName[0]) || embedFileList.contains(url.fileName()) || (splitFileName.length() > 1 && splitFileName.contains("embed"))) {
                     splitFileName.removeAll("embed"); // We know that the file will be embedded. This is not an argument for the program.
                     splitFileName.removeAll("");
-                    if (embedApps.isEmpty())
-                        avoidMultimediaBug();
                     QRect winGeometry = linkPositions[i];
                     if (winGeometry.height() < 0) {
                         winGeometry.setY(winGeometry.y() + winGeometry.height());
@@ -1002,8 +1000,6 @@ void MediaSlide::initEmbeddedApplications(int const pageNumber)
             if (embedFileList.contains(splitFileName[0]) || embedFileList.contains(url.fileName()) || (splitFileName.length() > 1 && splitFileName.contains("embed"))) {
                 splitFileName.removeAll("embed"); // We know that the file will be embedded. This is not an argument for the program.
                 splitFileName.removeAll("");
-                if (embedApps.isEmpty())
-                    avoidMultimediaBug();
                 bool found = false;
                 // Check if the same application exists already on an other page.
                 for (QMap<int,QMap<int,int>>::const_iterator page_it = embedMap.cbegin(); page_it!=embedMap.cend(); page_it++) {
@@ -1118,19 +1114,6 @@ void MediaSlide::startAllEmbeddedApplications(int const index)
         return;
     for(QMap<int,int>::const_iterator idx_it=embedMap[index].cbegin(); idx_it!=embedMap[index].cend(); idx_it++)
         embedApps[*idx_it]->start();
-}
-
-void MediaSlide::avoidMultimediaBug()
-{
-    // TODO: find a better way to avoid this problem.
-    // This is a very ugly and inefficient way of avoiding compatibility problems of combining videos and embedded applications.
-    // Probably the strange behavior without this function is caused by unconventional handling of external windows.
-    // I don't know what problems occure on platforms other than GNU/Linux!
-    QVideoWidget* dummy = new QVideoWidget(this);
-    QMediaPlayer* dummy_player = new QMediaPlayer(this, QMediaPlayer::VideoSurface);
-    dummy_player->setVideoOutput(dummy);
-    delete dummy_player;
-    delete dummy;
 }
 
 void MediaSlide::closeEmbeddedApplications(int const index)

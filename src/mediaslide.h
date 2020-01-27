@@ -50,7 +50,6 @@ public:
     void setMuted(bool muted);
     void showAllWidgets();
 #ifdef EMBEDDED_APPLICATIONS_ENABLED
-    void avoidMultimediaBug(); // TODO: fix this!
     void startAllEmbeddedApplications(int const index);
     void initEmbeddedApplications(int const pageNumber);
     void setEmbedFileList(const QStringList& files) {embedFileList=files;}
