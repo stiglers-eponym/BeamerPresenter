@@ -22,9 +22,9 @@
 #include <QApplication>
 #include <QDataStream>
 #include "mediaslide.h"
-#include "drawpath.h"
-#include "singlerenderer.h"
-#include "pathoverlay.h"
+#include "../draw/drawpath.h"
+#include "../pdf/singlerenderer.h"
+#include "../draw/pathoverlay.h"
 
 class DrawSlide : public MediaSlide
 {

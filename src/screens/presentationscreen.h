@@ -22,8 +22,9 @@
 #include <QKeyEvent>
 #include <QWheelEvent>
 #include <QGridLayout>
-#include "pdfdoc.h"
-#include "presentationslide.h"
+#include "../pdf/pdfdoc.h"
+#include "../slide/presentationslide.h"
+#include "../enumerates.h"
 
 class PresentationScreen : public QWidget
 {

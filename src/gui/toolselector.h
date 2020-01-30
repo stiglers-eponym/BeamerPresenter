@@ -16,35 +16,31 @@
  * along with BeamerPresenter. If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef TOOLBUTTON_H
-#define TOOLBUTTON_H
+#ifndef TOOLSELECTOR_H
+#define TOOLSELECTOR_H
 
-#include <QDebug>
 #include <QPushButton>
-#include <QMap>
-#include <QIcon>
-#include "enumerates.h"
+#include <QGridLayout>
+#include "toolbutton.h"
+#include "../slide/drawslide.h"
 
-
-class ToolButton : public QPushButton
+class ToolSelector : public QWidget
 {
     Q_OBJECT
-
 private:
-    QColor color;
-    DrawTool tool = InvalidTool;
-    QList<KeyAction> actions;
+    QMap<quint8, ToolButton*> buttons;
+    QGridLayout* layout = nullptr;
+    quint8 nrows = 2;
+    quint8 ncols = 5;
 
 public:
-    ToolButton(QList<KeyAction> const actions, QColor const color = QColor(0,0,0,0), QWidget* parent = nullptr);
-    ColoredDrawTool getDrawTool() {return {tool, color};}
-
-public slots:
-    void onClicked();
+    explicit ToolSelector(QWidget *parent = nullptr) : QWidget(parent) {}
+    ~ToolSelector() {qDeleteAll(buttons); delete layout;}
+    void setTools(quint8 const nrows, quint8 const ncols, QMap<quint8, QList<KeyAction>> const& actionMap, QMap<quint8, QColor> const& colorMap);
 
 signals:
-    void sendTool(ColoredDrawTool const tool);
+    void sendNewTool(ColoredDrawTool const tool);
     void sendAction(KeyAction const action);
 };
 
-#endif // TOOLBUTTON_H
+#endif // TOOLSELECTOR_H

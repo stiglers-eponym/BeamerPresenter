@@ -25,7 +25,7 @@
 #include <QDomDocument>
 #include <QGuiApplication>
 #include <QComboBox>
-#include "pdfdoc.h"
+#include "../pdf/pdfdoc.h"
 #include "tocbutton.h"
 #include "tocaction.h"
 

@@ -10,12 +10,12 @@
    xmlns:xlink="http://www.w3.org/1999/xlink"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
-   width="42.675079mm"
-   height="31.592787mm"
-   viewBox="0 0 42.675079 31.592787"
+   width="37.539803mm"
+   height="30.164961mm"
+   viewBox="0 0 37.539802 30.164961"
    version="1.1"
    id="svg8"
-   sodipodi:docname="icon.svg"
+   sodipodi:docname="beamerpresenter.svg"
    inkscape:version="0.92.4 5da689c313, 2019-01-14">
   <defs
      id="defs2">
@@ -86,7 +86,7 @@
        fx="67.9021"
        fy="134.65765"
        r="20.514811"
-       gradientTransform="matrix(1.264192,-0.00744494,0.00598289,0.86564289,-21.55765,19.57031)"
+       gradientTransform="matrix(1.1669464,-0.00697963,0.00552267,0.8115402,-18.127783,27.001869)"
        gradientUnits="userSpaceOnUse" />
     <linearGradient
        inkscape:collect="always"
@@ -116,20 +116,20 @@
      borderopacity="1.0"
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
-     inkscape:zoom="3.2171885"
-     inkscape:cx="52.30737"
-     inkscape:cy="67.844367"
+     inkscape:zoom="0.25103831"
+     inkscape:cx="268.05641"
+     inkscape:cy="-223.02159"
      inkscape:document-units="mm"
      inkscape:current-layer="layer1"
      showgrid="false"
-     fit-margin-left="0.2"
-     fit-margin-top="0.3"
-     fit-margin-bottom="0.2"
-     fit-margin-right="0.2"
+     fit-margin-left="0"
+     fit-margin-top="-2.7755576e-17"
+     fit-margin-bottom="0"
+     fit-margin-right="0"
      inkscape:window-width="1920"
-     inkscape:window-height="1060"
+     inkscape:window-height="1041"
      inkscape:window-x="1643"
-     inkscape:window-y="280"
+     inkscape:window-y="299"
      inkscape:window-maximized="1" />
   <metadata
      id="metadata5">
@@ -139,7 +139,7 @@
         <dc:format>image/svg+xml</dc:format>
         <dc:type
            rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
-        <dc:title />
+        <dc:title></dc:title>
       </cc:Work>
     </rdf:RDF>
   </metadata>
@@ -147,14 +147,14 @@
      inkscape:label="Layer 1"
      inkscape:groupmode="layer"
      id="layer1"
-     transform="translate(-42.71421,-122.73023)">
+     transform="translate(-42.91421,-123.95806)">
     <rect
        style="opacity:1;vector-effect:none;fill:url(#radialGradient861);fill-opacity:1;stroke:#7c8498;stroke-width:1.20000005;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;paint-order:normal"
        id="rect821"
-       width="39"
-       height="24"
-       x="45.589291"
-       y="123.63023"
+       width="36"
+       height="22.5"
+       x="43.854012"
+       y="124.55806"
        rx="0.83867359"
        ry="0.83867359" />
     <rect

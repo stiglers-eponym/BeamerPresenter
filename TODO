@@ -1,36 +1,31 @@
 BeamerPresenter
 
 * drawing in slide transitions: restructure
+* Video widgets: use one global graphics scene, connect two views to it, combine with slide transitions
 * Avoid that video widget graps focus and handles keyboard input (previous/next keys)
 * Synchronize video widgets (broken since rewriting video widgets)
 * Test in ubuntu
+
+* Use OpenGL again (at least for slide transitions)?
 * Start rendering enlarged page first for presentation, then for notes draw slide
 * Document code!
 * Check (and reduce) memory usage
 * Key bindings for multimedia control
 * Multimedia: allow more arguments
 * Multimedia: Better control bar
+* Video widgets break when switching between notes and draw mode?
 
+* better icon (and png icons)
 * use thumbnails in overviewbox?
 * Undo erasing in draw mode?
 * Segfault when starting embedded application from the wrong screen (not reproducible?)
 * Bug report for Qt5.13 in wayland: paintEvent not drawn immediately
-* Check how icons should be handled
 * less overloading
-
-* Video widgets break when switching between notes and draw mode
-* cache management can crash, disabling cache completely (occurred after reloading files): not simply reproducible
-* Draw in presentation:
-	* show annotations on top of video content
-	* sync multimedia content
-	* use OpenGL again?
 
 * Make timer editable
 * Embedded multimedia, RichMediaAnnotations
 * Cache management: test, clean up the code, improve
-
 * Search document
 * Implement other link types (history, search)
 * Implement optional content (e.g. for sound)
-* Make poppler rendering to cache more efficient (use multiple threads)
 * Set times per slide for non-integer page labels

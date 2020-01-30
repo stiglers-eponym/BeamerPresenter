@@ -24,9 +24,9 @@
 #include <QDesktopServices>
 #include <QBuffer>
 #include <QMouseEvent>
-#include "enumerates.h"
-#include "pdfdoc.h"
-#include "cachemap.h"
+#include "../enumerates.h"
+#include "../pdf/pdfdoc.h"
+#include "../pdf/cachemap.h"
 
 /// Basic slide.
 /// This widget shows a slide on the screen and links of navigation and action type.

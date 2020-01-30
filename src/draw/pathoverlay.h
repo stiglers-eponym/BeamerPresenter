@@ -22,7 +22,7 @@
 #include <QWidget>
 #include <QApplication>
 #include "drawpath.h"
-#include "singlerenderer.h"
+#include "../pdf/singlerenderer.h"
 
 class DrawSlide;
 

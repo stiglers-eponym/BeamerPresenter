@@ -17,7 +17,7 @@
  */
 
 #include "pathoverlay.h"
-#include "drawslide.h"
+#include "../slide/drawslide.h"
 
 /// This function is required for sorting and searching in a QMap.
 bool operator<(ColoredDrawTool tool1, ColoredDrawTool tool2)

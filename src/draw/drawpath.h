@@ -23,7 +23,7 @@
 #include <QVector>
 #include <QPointF>
 #include <QRectF>
-#include "enumerates.h"
+#include "../enumerates.h"
 
 class DrawPath
 {

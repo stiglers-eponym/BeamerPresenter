@@ -23,7 +23,7 @@
 #include <QJsonObject>
 #include <QJsonDocument>
 #include <QMimeDatabase>
-#include "controlscreen.h"
+#include "screens/controlscreen.h"
 
 /// Map action strings in configuration file to KeyAction (enum)
 static const QMap<QString, KeyAction> keyActionMap {

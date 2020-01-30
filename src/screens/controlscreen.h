@@ -22,13 +22,13 @@
 #include <QMainWindow>
 #include <QFileDialog>
 #include <QLabel>
-#include "pdfdoc.h"
-#include "timer.h"
-#include "pagenumberedit.h"
+#include "../pdf/pdfdoc.h"
+#include "../gui/timer.h"
+#include "../gui/pagenumberedit.h"
 #include "presentationscreen.h"
-#include "tocbox.h"
-#include "overviewbox.h"
-#include "toolselector.h"
+#include "../gui/tocbox.h"
+#include "../gui/overviewbox.h"
+#include "../gui/toolselector.h"
 #include "ui_controlscreen.h"
 
 // Namespace for te user interface from controlscreen.ui. I don't really know why.

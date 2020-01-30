@@ -20,9 +20,9 @@
 #define MEDIASLIDE_H
 
 #include "previewslide.h"
-#include "videowidget.h"
+#include "media/videowidget.h"
 #ifdef EMBEDDED_APPLICATIONS_ENABLED
-#include "embedapp.h"
+#include "media/embedapp.h"
 #endif
 #include <QGraphicsView>
 #include <QSlider>

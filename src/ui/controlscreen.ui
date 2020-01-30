@@ -1058,29 +1058,29 @@
   <customwidget>
    <class>PageNumberEdit</class>
    <extends>QLineEdit</extends>
-   <header>src/pagenumberedit.h</header>
+   <header>src/gui/pagenumberedit.h</header>
   </customwidget>
   <customwidget>
    <class>Timer</class>
    <extends>QLabel</extends>
-   <header>src/timer.h</header>
+   <header>src/gui/timer.h</header>
   </customwidget>
   <customwidget>
    <class>PreviewSlide</class>
    <extends>QWidget</extends>
-   <header>src/previewslide.h</header>
+   <header>src/slide/previewslide.h</header>
    <container>1</container>
   </customwidget>
   <customwidget>
    <class>MediaSlide</class>
    <extends>QWidget</extends>
-   <header>src/mediaslide.h</header>
+   <header>src/slide/mediaslide.h</header>
    <container>1</container>
   </customwidget>
   <customwidget>
    <class>ToolSelector</class>
    <extends>QWidget</extends>
-   <header>src/toolselector.h</header>
+   <header>src/gui/toolselector.h</header>
    <container>1</container>
   </customwidget>
  </customwidgets>

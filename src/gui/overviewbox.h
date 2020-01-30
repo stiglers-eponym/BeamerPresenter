@@ -23,8 +23,8 @@
 #include <QScrollArea>
 #include <QGridLayout>
 #include "overviewframe.h"
-#include "pdfdoc.h"
-#include "enumerates.h"
+#include "../pdf/pdfdoc.h"
+#include "../enumerates.h"
 
 class OverviewBox : public QScrollArea
 {

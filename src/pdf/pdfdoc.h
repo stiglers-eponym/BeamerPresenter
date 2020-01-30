@@ -25,7 +25,7 @@
 #include <poppler-qt5.h>
 #include <QDomDocument>
 #include <QInputDialog>
-#include "enumerates.h"
+#include "../enumerates.h"
 
 #if __has_include(<poppler-version.h>)
 // Not available in poppler <= 0.62.0:

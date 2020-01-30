@@ -26,11 +26,16 @@ TEMPLATE = app
 DEFINES += QT_DEPRECATED_WARNINGS
 
 # Define the application version.
-DEFINES += APP_VERSION=\\\"$$VERSION\\\"
+DEFINES += APP_VERSION=\\\"$${VERSION}\\\"
+
 # If the following define is uncommented, BeamerPresenter will check whether a compatible QPA platform is used.
 # It will then emit warning on untested systems and try to avoid blocking you window manager.
 # If this is commented out, all checks will be omitted.
 DEFINES += CHECK_QPA_PLATFORM
+
+# Define a path where the icon will be placed (don't forget the trailing /).
+ICON_PATH = "/usr/share/icons/hicolor/scalable/apps/"
+DEFINES += ICON_PATH=\\\"$${ICON_PATH}\\\"
 
 CONFIG += c++14 qt
 unix {
@@ -49,66 +54,66 @@ linux {
 CONFIG(release, debug|release):DEFINES += QT_NO_DEBUG_OUTPUT
 
 SOURCES += \
-        src/basicrenderer.cpp \
-        src/cachemap.cpp \
-        src/cachethread.cpp \
         src/main.cpp \
-        src/pathoverlay.cpp \
-        src/pdfdoc.cpp \
-        src/previewslide.cpp \
-        src/mediaslide.cpp \
-        src/drawslide.cpp \
-        src/presentationslide.cpp \
-        src/controlscreen.cpp \
-        src/presentationscreen.cpp \
-        src/singlerenderer.cpp \
-        src/timer.cpp \
-        src/pagenumberedit.cpp \
-        src/toolbutton.cpp \
-        src/toolselector.cpp \
-        src/videowidget.cpp \
-        src/tocbox.cpp \
-        src/tocbutton.cpp \
-        src/tocaction.cpp \
-        src/externalrenderer.cpp \
-        src/overviewframe.cpp \
-        src/overviewbox.cpp \
-        src/drawpath.cpp
+        src/pdf/pdfdoc.cpp \
+        src/pdf/externalrenderer.cpp \
+        src/pdf/basicrenderer.cpp \
+        src/pdf/singlerenderer.cpp \
+        src/pdf/cachemap.cpp \
+        src/pdf/cachethread.cpp \
+        src/screens/controlscreen.cpp \
+        src/screens/presentationscreen.cpp \
+        src/slide/previewslide.cpp \
+        src/slide/mediaslide.cpp \
+        src/slide/drawslide.cpp \
+        src/slide/presentationslide.cpp \
+        src/draw/pathoverlay.cpp \
+        src/draw/drawpath.cpp \
+        src/gui/timer.cpp \
+        src/gui/pagenumberedit.cpp \
+        src/gui/toolbutton.cpp \
+        src/gui/toolselector.cpp \
+        src/gui/tocbox.cpp \
+        src/gui/tocbutton.cpp \
+        src/gui/tocaction.cpp \
+        src/gui/overviewframe.cpp \
+        src/gui/overviewbox.cpp \
+        src/slide/media/videowidget.cpp
 
 HEADERS += \
-        src/basicrenderer.h \
-        src/cachemap.h \
-        src/cachethread.h \
         src/enumerates.h \
-        src/pathoverlay.h \
-        src/pdfdoc.h \
-        src/previewslide.h \
-        src/mediaslide.h \
-        src/drawslide.h \
-        src/controlscreen.h \
-        src/presentationscreen.h \
-        src/presentationslide.h \
-        src/singlerenderer.h \
-        src/timer.h \
-        src/pagenumberedit.h \
-        src/toolbutton.h \
-        src/toolselector.h \
-        src/videowidget.h \
-        src/tocbox.h \
-        src/tocbutton.h \
-        src/tocaction.h \
-        src/externalrenderer.h \
-        src/overviewframe.h \
-        src/overviewbox.h \
-        src/drawpath.h
+        src/pdf/pdfdoc.h \
+        src/pdf/externalrenderer.h \
+        src/pdf/basicrenderer.h \
+        src/pdf/singlerenderer.h \
+        src/pdf/cachemap.h \
+        src/pdf/cachethread.h \
+        src/screens/controlscreen.h \
+        src/screens/presentationscreen.h \
+        src/slide/previewslide.h \
+        src/slide/mediaslide.h \
+        src/slide/drawslide.h \
+        src/slide/presentationslide.h \
+        src/draw/pathoverlay.h \
+        src/draw/drawpath.h \
+        src/gui/timer.h \
+        src/gui/pagenumberedit.h \
+        src/gui/toolbutton.h \
+        src/gui/toolselector.h \
+        src/gui/tocbox.h \
+        src/gui/tocbutton.h \
+        src/gui/tocaction.h \
+        src/gui/overviewframe.h \
+        src/gui/overviewbox.h \
+        src/slide/media/videowidget.h
 
 contains(DEFINES, EMBEDDED_APPLICATIONS_ENABLED) {
-    SOURCES += src/embedapp.cpp
-    HEADERS += src/embedapp.h
+    SOURCES += src/slide/media/embedapp.cpp
+    HEADERS += src/slide/media/embedapp.h
 }
 
 FORMS += \
-        src/controlscreen.ui
+        src/ui/controlscreen.ui
 
 unix {
     INCLUDEPATH += /usr/include/poppler/qt5
@@ -131,30 +136,23 @@ unix {
     # Commands needed for make install
     # Include man pages and default configuration in make install.
 
-    gzip_man1.depends = $${TARGET}.1
-    gzip_man1.target = $${TARGET}.1.gz
-    gzip_man1.commands = ls $${TARGET}.1.gz || gzip -9 $${TARGET}.1
+    man1.path = /usr/share/man/man1/
+    man1.extra = gzip -9 man/$${TARGET}.1 || true
+    man1.CONFIG = no_check_exists
+    man1.files = man/$${TARGET}.1.gz
 
-    doc1.path = /usr/share/man/man1/
-    doc1.files = $${TARGET}.1.gz
-    doc1.depends = $${TARGET}.1.gz
-
-    gzip_man5.depends = $${TARGET}.conf.5
-    gzip_man5.target = $${TARGET}.conf.5.gz
-    gzip_man5.commands = ls $${TARGET}.conf.5.gz || gzip -9 $${TARGET}.conf.5
-
-    doc5.path = /usr/share/man/man5/
-    doc5.files = $${TARGET}.conf.5.gz
-    doc5.depends = $${TARGET}.conf.5.gz
+    man5.path = /usr/share/man/man5/
+    man5.extra = gzip -9 man/$${TARGET}.conf.5 || true
+    man5.CONFIG = no_check_exists
+    man5.files = man/$${TARGET}.conf.5.gz
 
     configuration.path = /etc/$${TARGET}/
-    configuration.files = $${TARGET}.conf pid2wid.sh
+    configuration.files = config/$${TARGET}.conf config/pid2wid.sh
 
-    icon.path = /usr/share/icons/scalable/apps/
-    icon.files = src/beamerpresenter.svg
+    icon.path = $${ICON_PATH}
+    icon.files = src/icons/beamerpresenter.svg
 
     target.path = /usr/bin/
 
-    QMAKE_EXTRA_TARGETS = gzip_man1 gzip_man5
-    INSTALLS += doc1 doc5 configuration icon target
+    INSTALLS += man1 man5 configuration icon target
 }

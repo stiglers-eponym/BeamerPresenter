@@ -17,7 +17,7 @@
  */
 
 #include "drawslide.h"
-#include "pathoverlay.h"
+#include "../draw/pathoverlay.h"
 
 DrawSlide::DrawSlide(QWidget* parent) :
     MediaSlide(parent),
@@ -42,7 +42,6 @@ void DrawSlide::paintEvent(QPaintEvent*)
         painter.drawPixmap(shiftx + width(), shifty, pixmap);
     else
         painter.drawPixmap(shiftx, shifty, pixmap);
-    pathOverlay->update();
 }
 
 void DrawSlide::resizeEvent(QResizeEvent*)

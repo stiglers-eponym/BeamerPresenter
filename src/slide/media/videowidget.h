@@ -28,8 +28,6 @@
 #include <QUrl>
 #include <QDir>
 #include <QImage>
-#include <QBrush>
-#include <QMouseEvent>
 #include <poppler-qt5.h>
 
 class VideoWidget : public QObject

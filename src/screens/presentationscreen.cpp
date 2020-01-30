@@ -17,7 +17,6 @@
  */
 
 #include "presentationscreen.h"
-#include "enumerates.h"
 
 PresentationScreen::PresentationScreen(PdfDoc* presentationDoc, PagePart const part, QWidget* parent) :
     QWidget(parent),
@@ -42,7 +41,7 @@ PresentationScreen::PresentationScreen(PdfDoc* presentationDoc, PagePart const p
     connect(slide, &PresentationSlide::timeoutSignal,     this, &PresentationScreen::receiveTimeoutSignal);
     slide->getPathOverlay()->hidePointer();
 #ifdef Q_OS_UNIX
-    setWindowIcon(QIcon("/usr/share/icons/scalable/apps/beamerpresenter.svg"));
+    setWindowIcon(QIcon(ICON_PATH "beamerpresenter.svg"));
 #endif
     show();
 }
