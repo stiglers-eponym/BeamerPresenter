@@ -447,6 +447,7 @@ int main(int argc, char *argv[])
         {{"w", "pid2wid"}, "Program that converts a PID to a Window ID.", "file"},
         {{"x", "log"}, "Log times of slide changes to standard output."},
 #endif
+        {"color-frames", "Minimum number of frames used for each color transitions in timer colors.", "int"},
 #ifdef CHECK_QPA_PLATFORM
         {"force-show", "Force showing notes or presentation (if in a framebuffer) independent of QPA platform plugin."},
 #endif
@@ -772,83 +773,61 @@ int main(int argc, char *argv[])
     // Handle arguments which define arrays or maps of variable size.
 
     // Set colors for presentation timer.
-    // This can be used to define cutom color changes depending on the time left for the presentation or for a specific slide.
-    // Check whether the argument is set in the local configuration file.
-    if (local.contains("timer")) {
-        /// Subset of arguments from local configuration which define the timer colors.
-        /// All these arguments should have the form (key, value) = (int, color).
-        QVariantMap variantMap = local["timer"].value<QVariantMap>();
-        QList<QString> keys = variantMap.keys();
-        // If not colors are set, send the default configuration.
-        if (keys.isEmpty())
-            ctrlScreen->setTimerColors({-150000, 0, 150000}, {Qt::white, Qt::green, Qt::red});
-        else {
-            // Convert the arguments from QVariants to integers and colors.
-            // Use a QMap to store the values, because it is automatically sorted by the keys.
-            /// Translation of variantMap with types casted to int and QColor.
-            QMap<qint32, QColor> map;
-            bool ok;
-            qint32 time;
-            QColor color;
-            // Iterate over variantMap, to copy and convert it to map.
-            for (QList<QString>::const_iterator key_it=keys.cbegin(); key_it!=keys.cend(); key_it++) {
-                // Parse the keys as an integer.
-                time = 1000*(*key_it).toDouble(&ok);
-                if (ok) {
-                    // Parse the value argument as a QColor.
-                    color = variantMap[*key_it].value<QColor>();
-                    if (color.isValid()) {
-                        // If successful: Write key and value to map.
-                        map[time] = color;
-                    }
-                    else {
-                        // (key,value) pairs in variantMap which cause errors will be ignored and cause an error message.
-                        qCritical() << "Color" << variantMap[*key_it].toString() << "not understood. Should be a color.";
-                    }
-                }
-                else {
-                    // (key,value) pairs in variantMap which cause errors will be ignored and cause an error message.
-                    qCritical() << "Time interval" << *key_it << "not understood. Should be an integer.";
-                }
-            }
-            // Send the times and colors to ctrlScreen.
-            // The list map.keys() is sorted. map.values() has the same order as map.keys().
-            // The arguments in the configuration file do not need to be sorted.
-            ctrlScreen->setTimerColors(map.keys(), map.values());
+    // This can be used to define custom color changes depending on the time left for the presentation or for a specific slide.
+    {
+        /// Time arguments
+        QStringList keys;
+        /// Color arguments if colors are given in local configuration file; empty otherwise
+        QVariantMap variantMap;
+
+        // Check whether the argument is set in the local configuration file.
+        if (local.contains("timer")) {
+            /// Subset of arguments from local configuration which define the timer colors.
+            /// All these arguments should have the form (key, value) = (int, color).
+            variantMap = local["timer"].value<QVariantMap>();
+            keys = variantMap.keys();
         }
-    }
-    else {
-        // If the local configuration file does not contain an argument for the timer colors,
-        // try to read the colors from the global configuration file.
-        // The timer colors form a group of arguments in the global configuration.
-        // Enter this "timer" group.
-        settings.beginGroup("timer");
-        QStringList keys = settings.childKeys();
-        // All elements in the group "timer" should have the form (key, value) = (int, color).
-        if (keys.isEmpty())
-            ctrlScreen->setTimerColors({-150000, 0, 150000}, {Qt::white, Qt::green, Qt::red});
         else {
-            // Convert the arguments from QVariants to integers and colors.
+            // If the local configuration file does not contain an argument for the timer colors,
+            // try to read the colors from the global configuration file.
+            // The timer colors form a group of arguments in the global configuration.
+            // Enter this "timer" group.
+            settings.beginGroup("timer");
+            keys = settings.childKeys();
+        }
+
+        // If no colors are set, send the default configuration.
+        if (keys.isEmpty())
+            ctrlScreen->getTimer()->setColors({-150000, 0, 150000}, {Qt::white, Qt::green, Qt::red});
+        else {
+            // Convert the arguments from variantMap or settings to integers and colors.
             // Use a QMap to store the values, because it is automatically sorted by the keys.
-            /// Translation of variantMap with types casted to int and QColor.
+            /// Translation of variantMap or settings with types casted to int and QColor.
             QMap<qint32, QColor> map;
             bool ok;
             qint32 time;
             QColor color;
-            // Iterate over all keys in the "timer" group of settings.
+            // Iterate over variantMap to copy and convert it to map.
             for (QStringList::const_iterator key_it=keys.cbegin(); key_it!=keys.cend(); key_it++) {
                 // Parse the keys as an integer.
                 time = 1000*(*key_it).toDouble(&ok);
                 if (ok) {
                     // Parse the value argument as a QColor.
-                    color = settings.value(*key_it).value<QColor>();
+                    // Check whether the value from settings or variantMap should be used.
+                    if (variantMap.isEmpty())
+                        color = settings.value(*key_it).value<QColor>();
+                    else
+                        color = variantMap[*key_it].value<QColor>();
                     if (color.isValid()) {
                         // If successful: Write key and value to map.
                         map[time] = color;
                     }
                     else {
                         // (key,value) pairs which cause errors will be ignored and cause an error message.
-                        qCritical() << "Color" << settings.value(*key_it) << "not understood. Should be a color.";
+                        if (variantMap.isEmpty())
+                            qCritical() << "Color" << settings.value(*key_it) << "not understood. Should be a color.";
+                        else
+                            qCritical() << "Color" << variantMap[*key_it].toString() << "not understood. Should be a color.";
                     }
                 }
                 else {
@@ -856,13 +835,19 @@ int main(int argc, char *argv[])
                     qCritical() << "Time interval" << *key_it << "not understood. Should be an integer.";
                 }
             }
-            // Send the times and colors to ctrlScreen.
+            // Send the times and colors to timer GUI.
             // The list map.keys() is sorted. map.values() has the same order as map.keys().
             // The arguments in the configuration file do not need to be sorted.
-            ctrlScreen->setTimerColors(map.keys(), map.values());
+            ctrlScreen->getTimer()->setColors(map.keys(), map.values());
+
+            // Get minimum number of frames for color transitions from config.
+            quint16 const min_frames = intFromConfig<quint16>(parser, local, settings, "color-frames", 25);
+            ctrlScreen->getTimer()->updateGuiInterval(min_frames);
         }
-        // Exit this "timer" group.
-        settings.endGroup();
+        // Check whether we used settings and opened a group there.
+        if (variantMap.isEmpty())
+            // Exit the "timer" group.
+            settings.endGroup();
     }
 
 
@@ -1163,7 +1148,7 @@ int main(int argc, char *argv[])
             map.insert(key, time);
         }
         // Send the timer configuration to ctrlScreen (which sends it to the timer)
-        ctrlScreen->setTimerMap(map);
+        ctrlScreen->getTimer()->setTimeMap(map);
     }
 
 
@@ -1172,11 +1157,11 @@ int main(int argc, char *argv[])
 
     // Set presentation time.
     if (!parser.value("t").isEmpty())
-        ctrlScreen->setTimerString(parser.value("t"));
+        ctrlScreen->getTimer()->setString(parser.value("t"));
     else if (local.contains("time"))
-        ctrlScreen->setTimerString(local.value("time").toStringList()[0]);
+        ctrlScreen->getTimer()->setString(local.value("time").toStringList()[0]);
     else if (settings.contains("time"))
-        ctrlScreen->setTimerString(settings.value("time").toStringList()[0]);
+        ctrlScreen->getTimer()->setString(settings.value("time").toStringList()[0]);
 
 #ifdef EMBEDDED_APPLICATIONS_ENABLED
     // Set (list of) files, which will be executed in an embedded widget (using X embedding).

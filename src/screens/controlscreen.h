@@ -69,17 +69,15 @@ public:
     void setRenderer(QStringList command);
     void setKeyMap(QMap<quint32, QList<KeyAction>>* keymap);
     void setKeyMapItem(quint32 const key, KeyAction const action);
-    /// Set times per slide for timer color change.
-    void setTimerMap(QMap<int, quint32>& timeMap) {ui->label_timer->setTimeMap(timeMap);}
     void setToolForKey(quint32 const key, ColoredDrawTool tool) {tools[key] = tool;}
     void setMagnification(qreal const mag);
     void setAutostartDelay(double const timeout);
-    void setTimerColors(QList<qint32> const times, QList<QColor> const colors);
-    void setTimerString(QString const timerString);
     /// Configure minimum frame time for animations created by showing slides in rapid succession.
     void setAnimationDelay(quint32 const delay_ms) {presentationScreen->slide->setAnimationDelay(delay_ms);}
     void setMinSidebarWidth(double const sideWidth) {maxNotesWidth = 1. - sideWidth;}
     void setLogSlideChanges(bool const log) {ui->label_timer->setLog(log);}
+    /// GUI Timer object handling presentation time.
+    Timer* getTimer() {return ui->label_timer;}
 
     // Load drawings from file (also used only from main.cpp)
     void loadDrawings(QString const& filename) {presentationScreen->slide->getPathOverlay()->loadDrawings(filename);}

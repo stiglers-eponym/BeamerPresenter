@@ -30,10 +30,7 @@
 /// Maximum time between GUI updates in ms.
 static const quint16 MAX_UPDATE_GUI_INTERVAL_MS = 1000;
 /// Minimum time between GUI updates in ms.
-static const quint16 MIN_UPDATE_GUI_INTERVAL_MS = 50;
-/// Minimum number of frames used for a transition between two colors.
-/// A smaller number of frames is only used if the frame time would be smaller than MIN_UPDATE_GUI_INTERVAL_MS.
-static const quint16 UPDATE_GUI_FRAMES = 25;
+static const quint16 MIN_UPDATE_GUI_INTERVAL_MS = 40;
 
 class Timer : public QLabel
 {
@@ -43,14 +40,20 @@ class Timer : public QLabel
 public:
     Timer(QWidget* parent = nullptr);
     ~Timer();
-    void setTimeMap(QMap<int, quint32>& timeMap);
+    /// Set times per slide for timer color change.
+    void setTimeMap(QMap<int, quint32> const& timeMap);
     void pauseTimer();
     void continueTimer();
     void toggleTimer();
     void resetTimer();
     void setLog(bool const set_log) {log = set_log;}
     /// Update update_gui_interval to the time scale at which the timer color changes.
-    void updateGuiInterval();
+    /// The argument is the minimum number of frames used for a transition between two colors.
+    void updateGuiInterval(quint16 const frames);
+    /// Set the timer time as a string.
+    void setString(QString const& string);
+    /// Set the timer colors.
+    void setColors(QList<qint32> const& times, QList<QColor> const& colors);
 
 public slots:
     void setPage(int const pageLabel, int const pageNumber);

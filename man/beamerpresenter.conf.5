@@ -367,6 +367,13 @@ This overwrites the default value for the command line argument
 .BR \-s " or " \-\-scrollstep .
 .
 .TP
+.BR color-frames =25
+Minimum number of frames shown between each timer step for a smooth transition.
+The actual frame rate can be higher, since the number of frames per second is preferably an integer. The time between two frames is always at least 40ms.
+This overwrites the default value for the command line argument
+.BR \-\-color-frames .
+.
+.TP
 .BR force-touchpad =false
 treat all scrolling signals as touch pads.
 .RB "This sets the command line argument " \-\-force-touchpad " by default."

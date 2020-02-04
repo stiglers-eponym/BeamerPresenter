@@ -183,7 +183,7 @@ void Timer::updateColor()
     setPalette(timerPalette);
 }
 
-void Timer::setTimeMap(QMap<int, quint32> &timeMap)
+void Timer::setTimeMap(QMap<int, quint32> const& timeMap)
 {
     this->timeMap = timeMap;
     currentPageTimeIt = timeMap.cbegin();
@@ -211,7 +211,7 @@ void Timer::setPage(int const pageLabel, int const pageNumber)
     }
 }
 
-void Timer::updateGuiInterval()
+void Timer::updateGuiInterval(quint16 const frames)
 {
     if (colorTimes.size() < 2)
         return;
@@ -222,17 +222,29 @@ void Timer::updateGuiInterval()
         if (delta < min_delta && delta > 0)
             min_delta = delta;
     }
-    if (min_delta > UPDATE_GUI_FRAMES * MAX_UPDATE_GUI_INTERVAL_MS)
+    if (min_delta > frames * MAX_UPDATE_GUI_INTERVAL_MS)
         update_gui_interval = MAX_UPDATE_GUI_INTERVAL_MS;
-    else if (min_delta <= UPDATE_GUI_FRAMES * MIN_UPDATE_GUI_INTERVAL_MS)
+    else if (min_delta <= frames * MIN_UPDATE_GUI_INTERVAL_MS)
         update_gui_interval = MIN_UPDATE_GUI_INTERVAL_MS;
     else {
         // Set update_gui_interval such that enough frames are shown for each color transition.
-        update_gui_interval = min_delta / UPDATE_GUI_FRAMES;
+        update_gui_interval = min_delta / frames;
         // Decrease update_gui_interval such that 1000/update_gui_interval is (approximately) an integer.
         // Without this, the clock could be updated in irregular intervals.
         update_gui_interval = 1000. / (999/update_gui_interval + 1) + .999999999;
     }
     timer->setInterval(update_gui_interval);
-    qDebug() << "Set update GUI inverval to" << update_gui_interval << ". Min delta was" << min_delta;
+    qDebug() << "Set update GUI inverval to" << update_gui_interval << ". Min delta was" << min_delta << "frames=" << frames;
+}
+
+void Timer::setString(QString const& string)
+{
+    timerEdit->setText(string);
+    setDeadline();
+}
+
+void Timer::setColors(QList<qint32> const& times, QList<QColor> const& colors)
+{
+    this->colors = colors;
+    colorTimes = times;
 }

@@ -1850,21 +1850,6 @@ void ControlScreen::setAutostartDelay(const double timeout)
         drawSlide->setAutostartDelay(timeout);
 }
 
-/// Set the timer colors. This is only used to configure the timer.
-void ControlScreen::setTimerColors(QList<qint32> const times, QList<QColor> const colors)
-{
-    ui->label_timer->colors = colors;
-    ui->label_timer->colorTimes = times;
-    ui->label_timer->updateGuiInterval();
-}
-
-/// Set the timer time as a string.
-void ControlScreen::setTimerString(const QString timerString)
-{
-    ui->label_timer->timerEdit->setText(timerString);
-    ui->label_timer->setDeadline();
-}
-
 /// Tell all cache processes to stop and wait up to <time> ms until each process is stopped.
 void ControlScreen::interruptCacheProcesses(const unsigned long time)
 {
