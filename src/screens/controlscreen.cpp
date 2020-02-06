@@ -20,8 +20,6 @@
 
 // TODO: tidy up! reorganize signals, slots, events, ...
 
-/// Construct control screen.
-/// Create the GUI including PresentationScreen and connect the widgets.
 ControlScreen::ControlScreen(QString presentationPath, QString notesPath, PagePart const page, QWidget* parent) :
     QMainWindow(parent),
     ui(new Ui::ControlScreen),
@@ -327,7 +325,6 @@ ControlScreen::ControlScreen(QString presentationPath, QString notesPath, PagePa
     ui->text_number_slides->setToolTip("Total number of pages");
 }
 
-/// Destructor. Delete the whole GUI.
 ControlScreen::~ControlScreen()
 {
     // Hide widgets which are shown above the notes widget.
@@ -378,7 +375,6 @@ ControlScreen::~ControlScreen()
     delete ui;
 }
 
-/// Adapt the layout of the control screen based on the aspect ratios of presentation and notes slides.
 void ControlScreen::recalcLayout(const int pageNumber)
 {
     qDebug() << "recalc layout" << size() << oldSize << pageNumber;
@@ -941,7 +937,6 @@ void ControlScreen::keyPressEvent(QKeyEvent* event)
     event->accept();
 }
 
-/// Return true if no further key actions should be handled.
 bool ControlScreen::handleKeyAction(KeyAction const action)
 {
     if (tocBox->isVisible()) {
@@ -1850,7 +1845,6 @@ void ControlScreen::setAutostartDelay(const double timeout)
         drawSlide->setAutostartDelay(timeout);
 }
 
-/// Tell all cache processes to stop and wait up to <time> ms until each process is stopped.
 void ControlScreen::interruptCacheProcesses(const unsigned long time)
 {
     cacheTimer->stop();

@@ -32,11 +32,12 @@ void connectVideos(MediaSlide* controlSlide, MediaSlide* presentationSlide)
         return;
     }
     for (int i=0; i<n; i++) {
-        QWidget::connect(presentationSlide->videoWidgets[i], &VideoWidget::sendPlay, controlSlide->videoWidgets[i], &VideoWidget::play);
-        QWidget::connect(presentationSlide->videoSliders[i], &QAbstractSlider::sliderMoved, controlSlide->videoWidgets[i], &VideoWidget::setPosition);
+        QWidget::connect(presentationSlide->videoWidgets[i], &VideoWidget::sendPlay,     controlSlide->videoWidgets[i], &VideoWidget::play);
+        QWidget::connect(presentationSlide->videoWidgets[i], &VideoWidget::sendPause,    controlSlide->videoWidgets[i], &VideoWidget::pause);
         QWidget::connect(presentationSlide->videoWidgets[i], &VideoWidget::sendPausePos, controlSlide->videoWidgets[i], &VideoWidget::pausePosition);
+        QWidget::connect(presentationSlide->videoSliders[i], &QAbstractSlider::sliderMoved, controlSlide->videoWidgets[i], &VideoWidget::setPosition);
+        QWidget::connect(controlSlide->videoWidgets[i], &VideoWidget::sendPlay,  presentationSlide->videoWidgets[i], &VideoWidget::play);
         QWidget::connect(controlSlide->videoWidgets[i], &VideoWidget::sendPause, presentationSlide->videoWidgets[i], &VideoWidget::pause);
-        QWidget::connect(controlSlide->videoWidgets[i], &VideoWidget::sendPlay, presentationSlide->videoWidgets[i], &VideoWidget::play);
         if (presentationSlide->videoWidgets[i]->getPlayer()->state() == QMediaPlayer::PlayingState)
             controlSlide->videoWidgets[i]->play();
         controlSlide->videoWidgets[i]->setPosition(presentationSlide->videoWidgets[i]->getPlayer()->position());
@@ -576,23 +577,27 @@ void MediaSlide::renderPage(int pageNumber, bool const hasDuration)
     qDeleteAll(sounds);
     sounds.clear();
 
-    // Autostart video widgets if the option is set as arguments in the video annotation in the pdf
-    for (int i=0; i<videoWidgets.size(); i++) {
-        if (videoWidgets[i]->getAutoplay()) {
-            qDebug() << "Untested option autostart for video";
-            videoWidgets[i]->setGeometry(videoPositions[i]);
-            videoWidgets[i]->show();
-            videoWidgets[i]->play();
+    // Autostart multimedia.
+    // TODO: autostart only new multimedia content.
+    if (newSliders > 0) {
+        // Autostart multimedia if the option is set in BeamerPresenter
+        if (autostartDelay > -0.01) {
+            if (autostartDelay > 0.01)
+                // autostart with delay
+                autostartTimer->start(int(autostartDelay*1000));
+            else if (autostartDelay > -0.01)
+                // autostart without delay
+                startAllMultimedia();
         }
-    }
-    // Autostart multimedia if the option is set in BeamerPresenter
-    if (videoWidgets.size() + soundPlayers.size() + soundLinkPlayers.size() != 0) {
-        if (autostartDelay > 0.01)
-            // autostart with delay
-            autostartTimer->start(int(autostartDelay*1000));
-        else if (autostartDelay > -0.01)
-            // autostart without delay
-            startAllMultimedia();
+        else {
+            // Autostart video widgets if the option is set as arguments in the video annotation in the pdf
+            for (int i=0; i<videoWidgets.size(); i++) {
+                if (videoWidgets[i]->getAutoplay() == 1) {
+                    qDebug() << "Untested option autostart for video";
+                    videoWidgets[i]->play();
+                }
+            }
+        }
     }
     if (notRepainted)
         repaint();
@@ -701,12 +706,13 @@ void MediaSlide::setMultimediaSliders(QList<QSlider*> sliderList)
 void MediaSlide::startAllMultimedia()
 {
     for (int i=0; i<videoWidgets.size(); i++) {
-        // The size of a video widget is set the first time it gets shown.
-        // Setting this directly at initialization caused some problems.
-        videoWidgets[i]->setGeometry(videoPositions[i]);
-        videoWidgets[i]->show();
-        videoWidgets[i]->play();
-        emit videoWidgets[i]->sendPlay();
+        if (videoWidgets[i]->getAutoplay() != -1) {
+            // The size of a video widget is updated the first time it gets shown.
+            // Setting this directly at initialization caused some problems.
+            videoWidgets[i]->show();
+            videoWidgets[i]->play();
+            emit videoWidgets[i]->sendPlay();
+        }
     }
     Q_FOREACH(QMediaPlayer* sound, soundPlayers)
         sound->play();
@@ -745,9 +751,6 @@ bool MediaSlide::hasActiveMultimediaContent() const
     return false;
 }
 
-////////////////////////////////////////////////////////////////////////////////////////////////////
-//// Mouse events
-////////////////////////////////////////////////////////////////////////////////////////////////////
 void MediaSlide::mouseReleaseEvent(QMouseEvent* event)
 {
     if (event->button() == Qt::LeftButton) {
@@ -909,9 +912,9 @@ void MediaSlide::followHyperlinks(QPoint const& pos)
             if (videoWidgets[i]->state() == QMediaPlayer::PlayingState) {
                 videoWidgets[i]->pause();
                 emit videoWidgets[i]->sendPause();
+                emit videoWidgets[i]->sendPausePos(videoWidgets[i]->getPosition());
             }
             else {
-                videoWidgets[i]->setGeometry(videoPositions[i]);
                 videoWidgets[i]->show();
                 videoWidgets[i]->play();
                 emit videoWidgets[i]->sendPlay();
@@ -1137,7 +1140,6 @@ void MediaSlide::showAllWidgets()
     // TODO: fix this!
     if (videoWidgets.size() == videoPositions.size()) {
         for (int i=0; i<videoWidgets.size(); i++) {
-            videoWidgets[i]->setGeometry(videoPositions[i]);
             videoWidgets[i]->show();
         }
     }

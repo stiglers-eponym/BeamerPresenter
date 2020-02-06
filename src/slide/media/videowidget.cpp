@@ -30,8 +30,9 @@ VideoWidget::VideoWidget(Poppler::MovieAnnotation const* annotation, QString con
     // TODO: try connecting two views to the same graphics scene showing the video.
     view->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     view->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
-    view->setStyleSheet("border: 2px");
+    view->setStyleSheet("border: 0px");
     view->setAttribute(Qt::WA_TransparentForMouseEvents);
+    view->setFocusPolicy(Qt::NoFocus);
 
     player->setVideoOutput(item);
     Poppler::MovieObject const *const movie = annotation->movie();
@@ -43,7 +44,6 @@ VideoWidget::VideoWidget(Poppler::MovieAnnotation const* annotation, QString con
         }
     }
     scene->addItem(item);
-    item->show();
 
     filename = movie->url();
     url = QUrl(filename, QUrl::TolerantMode);
@@ -57,6 +57,10 @@ VideoWidget::VideoWidget(Poppler::MovieAnnotation const* annotation, QString con
         url = QUrl::fromLocalFile(url.path());
     if (url.isRelative())
         url = QUrl::fromLocalFile(QDir(".").absoluteFilePath(url.path()));
+    if (!QFileInfo(url.fileName()).exists()) {
+        filename = "";
+        return;
+    }
     playlist->addMedia(url);
     player->setPlaylist(playlist);
     if (splitFileName.contains("mute"))
@@ -88,8 +92,13 @@ VideoWidget::VideoWidget(Poppler::MovieAnnotation const* annotation, QString con
     // I like these results, but I don't know whether this is what other people would expect.
     // Please write me a comment if you would prefer an other way of handling the aspect ratio.
     item->setAspectRatioMode(Qt::IgnoreAspectRatio);
-    if (splitFileName.contains("autostart"))
-        autoplay = true;
+
+    // Handle autostart arguments.
+    // TODO: improve and document this.
+    if (splitFileName.contains("noautostart") || splitFileName.contains("autostart=false"))
+        autoplay = -1;
+    else if (splitFileName.contains("autostart") || splitFileName.contains("autostart=true"))
+        autoplay = 1;
 }
 
 VideoWidget::~VideoWidget()
@@ -106,6 +115,7 @@ VideoWidget::~VideoWidget()
 
 void VideoWidget::play()
 {
+    item->show();
     if (player->mediaStatus()==QMediaPlayer::LoadingMedia || player->mediaStatus()==QMediaPlayer::EndOfMedia)
         player->bind(this);
     player->play();
@@ -124,7 +134,7 @@ void VideoWidget::showPosterImage(QMediaPlayer::MediaStatus status)
         // TODO: find a better way of writing this.
         player->unbind(this);
         scene->removeItem(item);
-        view->show();
+        hide();
     }
 }
 

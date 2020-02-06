@@ -43,8 +43,10 @@ class ControlScreen : public QMainWindow
     Q_OBJECT
 
 public:
-    // Constructor and destructor
+    /// Construct control screen.
+    /// Create the GUI including PresentationScreen and connect the widgets.
     explicit ControlScreen(QString presentationPath, QString notesPath = "", PagePart const page = FullPage, QWidget* parent = nullptr);
+    /// Destructor. Delete the whole GUI.
     ~ControlScreen() override;
 
     // Render pages on the control screen
@@ -103,7 +105,8 @@ protected:
     void wheelEvent(QWheelEvent* event) override;
 
 private:
-    /// Update layout (if window size is changed).
+    /// Update layout if window size is changed.
+    /// Adapt control screen based on the aspect ratios of presentation and notes slides.
     void recalcLayout(int const pageNumber);
     /// Reload pdf files.
     void reloadFiles();
@@ -111,7 +114,7 @@ private:
     /// Start embedded applications on all slides.
     void startAllEmbeddedApplications();
 #endif
-    /// Terminate all cache processes.
+    /// Tell all cache processes to stop and wait up to <time> ms until each process is stopped.
     void interruptCacheProcesses(unsigned long const time = 0);
     /// Free a page from cache. Should only be called from updateCacheStep.
     bool freeCachePage(const int page);
@@ -200,6 +203,7 @@ private slots:
 public slots:
     // TODO: Some of these functions are not used as slots. Tidy up!
     /// Handle actions sent from key event or tool selector.
+    /// Return true if no further key actions should be handled.
     bool handleKeyAction(KeyAction const action);
     /// Receive a TOC destination and go the the corresponding slide.
     void receiveDest(QString const& dest);

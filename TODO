@@ -3,8 +3,6 @@ BeamerPresenter
 * drawing in slide transitions: restructure
 * hide video widgets if they failed to load or reached end of file
 * Video widgets: use one global graphics scene, connect two views to it, combine with slide transitions
-* Avoid that video widget graps focus and handles keyboard input (previous/next keys)
-* Synchronize video widgets (broken since rewriting video widgets)
 * Test in ubuntu
 
 * Use OpenGL again (at least for slide transitions)?

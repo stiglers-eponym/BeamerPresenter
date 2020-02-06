@@ -30,6 +30,12 @@
 #include <QImage>
 #include <poppler-qt5.h>
 
+/// "Widget-like" object showing video on slides.
+/// VideoWidget contains a QGraphicsScene and everything required to show it,
+/// but aims a behaving like a regular QVideoWidget. The reason for using a
+/// QGraphicsSCene is that transparent drawing on top of the video is required.
+///
+/// Note: The structure of showing videos will hopefully change in the future.
 class VideoWidget : public QObject
 {
     Q_OBJECT
@@ -42,14 +48,14 @@ public:
     qint64 getPosition() const {return player->position();}
     QMediaPlayer* getPlayer() {return player;}
     QMediaPlayer::State state() const {return player->state();}
-    bool getAutoplay() const {return autoplay;}
+    signed char getAutoplay() const {return autoplay;}
     QString const& getUrl() const {return filename;}
     void setMute(bool const mute) {player->setMuted(mute);}
     void setGeometry(QRect const& rect);
     void setGeometry(int const x, int const y, int const w, int const h);
     //void raise() {view->raise();}
     void lower() {view->lower();}
-    void show() {view->show();}
+    void show() {if (filename != "" && playlist->error() == QMediaPlaylist::NoError) view->show();}
     void hide() {view->hide();}
 
 private:
@@ -61,9 +67,8 @@ private:
     QMediaPlaylist* playlist;
     QImage posterImage;
     QString filename;
-    bool autoplay = false;
+    signed char autoplay = 0;
     Poppler::MovieAnnotation const* annotation;
-    bool ownsScene = true;
     QUrl url;
 
 public slots:
@@ -78,10 +83,13 @@ private slots:
     void restartVideo(QMediaPlayer::MediaStatus status);
 
 signals:
+    /// position is measured in ms.
     void positionChanged(qint64 const position);
+    /// duration is measured in ms.
     void durationChanged(qint64 const position);
     void sendPlay();
     void sendPause();
+    /// Send pause signal along with current postion (in ms).
     void sendPausePos(quint64 const position);
 };
 
