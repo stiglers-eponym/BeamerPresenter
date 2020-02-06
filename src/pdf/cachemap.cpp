@@ -39,6 +39,7 @@ qint64 CacheMap::setPixmap(int const page, QPixmap const* pix)
     buffer.open(QIODevice::WriteOnly);
     if (!pix->save(&buffer, "PNG")) {
         qWarning() << "Rendering failed." << this;
+        delete bytes;
         return 0;
     }
     data[page] = bytes;

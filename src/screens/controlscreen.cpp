@@ -357,6 +357,9 @@ ControlScreen::~ControlScreen()
     previewCache->clearCache();
     delete previewCacheX;
     delete previewCache;
+    // Delete notes cache.
+    delete ui->notes_widget->getCacheMap();
+    ui->notes_widget->overwriteCacheMap(nullptr);
 
     // Delete notes pdf.
     if (notes != presentation)

@@ -28,7 +28,9 @@ class ExternalRenderer : public QProcess
 
 public:
     ExternalRenderer(int const page, QObject* parent = nullptr);
-    QByteArray const* getBytes() const {return bytes;}
+    ~ExternalRenderer() {delete bytes;}
+    /// Return bytes (pointer to generated data) and set bytes to nullptr.
+    QByteArray const* getBytes();
 
 private:
     int page;

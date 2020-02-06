@@ -33,3 +33,10 @@ void ExternalRenderer::returnImage(int const exitCode, QProcess::ExitStatus cons
     bytes = new QByteArray(readAllStandardOutput());
     emit sendImage(bytes, page);
 }
+
+QByteArray const* ExternalRenderer::getBytes()
+{
+    QByteArray const* newBytes = bytes;
+    bytes = nullptr;
+    return newBytes;
+}
