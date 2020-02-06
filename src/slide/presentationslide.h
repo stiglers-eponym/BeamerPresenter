@@ -56,7 +56,6 @@ protected:
     void setDuration() override;
     void drawPointer(QPainter& painter);
     void updateImages(int const oldPage);
-    void repaintIfPresentation() override {repaint();}
     void clearLists() override;
 
 public:
@@ -71,6 +70,7 @@ public:
     void enableTransitions() {transition_duration = 0;}
     void disableTransitions();
     double getDuration() const {return duration;}
+    bool isPresentation() override {return true;}
     void paintSplitHI(QPainter& painter);
     void paintSplitVI(QPainter& painter);
     void paintSplitHO(QPainter& painter);

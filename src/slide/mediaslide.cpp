@@ -579,7 +579,8 @@ void MediaSlide::renderPage(int pageNumber, bool const hasDuration)
 
     // Autostart multimedia.
     // TODO: autostart only new multimedia content.
-    if (newSliders > 0) {
+    if (newSliders > 0 && isPresentation()) {
+        // TODO: broken if not PresentationSlide
         // Autostart multimedia if the option is set in BeamerPresenter
         if (autostartDelay > -0.01) {
             if (autostartDelay > 0.01)

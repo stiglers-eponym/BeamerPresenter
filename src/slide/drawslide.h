@@ -45,7 +45,6 @@ protected:
     virtual void mouseReleaseEvent(QMouseEvent* event) override;
     virtual void resizeEvent(QResizeEvent*) override;
     virtual void animate(int const oldPageIndex = -1) override;
-    virtual void repaintIfPresentation() {update();}
     PathOverlay* pathOverlay;
 };
 
