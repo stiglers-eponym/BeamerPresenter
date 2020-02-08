@@ -233,17 +233,16 @@ qreal stringToReal(QString& string)
 
 /// Read options from command line arguments, local configuration and global configuration file which should have a nonnegative floating point or boolean value.
 /// If the argument is "true", return 0; If the argument is "false" return -2. If value is set for option <name>, return <return_value>.
-qreal qrealFromConfig(QCommandLineParser const& parser, QVariantMap const& local, QSettings const& settings, QString name, qreal const return_value, qreal const max=1e20)
+qreal qrealFromConfig(QCommandLineParser const& parser, QVariantMap const& local, QSettings const& settings, QString name, qreal const return_value, qreal const max=1e30)
 {
     qreal result;
     QString value;
     // Check whether the option is set in the command line arguments.
     if (parser.isSet(name)) {
         value = parser.value(name).toLower();
-        // Try to interpret the value as a number or as a boolean value.
         try {
             result = stringToReal(value);
-            if (result <= max)
+            if (result < max)
                 return result;
         }
         catch(int error) {
@@ -254,14 +253,14 @@ qreal qrealFromConfig(QCommandLineParser const& parser, QVariantMap const& local
                 return -2.;
             }
         }
-        qWarning() << "option" << parser.value(name) << "to" << name << "not understood. Should be 0 <= number <" << max << "or true/false.";
+        qWarning() << "option" << value << "to" << name << "not understood. Should be 0 <= number <" << max << "or true/false.";
     }
     // Check whether a local configuration file contains the option.
     if (local.contains(name)) {
-        // Try to interpret the value as a number or as a boolean value.
+        value = local.value(name).toString().toLower();
         try {
             result = stringToReal(value);
-            if (result <= max)
+            if (result < max)
                 return result;
         }
         catch(int error) {
@@ -272,14 +271,14 @@ qreal qrealFromConfig(QCommandLineParser const& parser, QVariantMap const& local
                 return -2.;
             }
         }
-        qWarning() << "option" << local.value(name) << "to" << name << "in local config not understood. Should be 0 <= number <" << max << "or true/false.";
+        qWarning() << "option" << value << "to" << name << "in local config not understood. Should be 0 <= number <" << max << "or true/false.";
     }
     // Check whether the global configuration file contains the option.
     if (settings.contains(name)) {
-        // Try to interpret the value as a number or as a boolean value.
+        value = settings.value(name).toString().toLower();
         try {
             result = stringToReal(value);
-            if (result <= max)
+            if (result < max)
                 return result;
         }
         catch(int error) {
@@ -290,7 +289,7 @@ qreal qrealFromConfig(QCommandLineParser const& parser, QVariantMap const& local
                 return -2.;
             }
         }
-        qWarning() << "option" << settings.value(name) << "to" << name << "in config not understood. Should be 0 <= number <" << max << "or true/false.";
+        qWarning() << "option" << value << "to" << name << "in config not understood. Should be 0 <= number <" << max << "or true/false.";
     }
     // Return default value.
     return return_value;
@@ -1289,7 +1288,7 @@ int main(int argc, char *argv[])
 
         // Set magnification factor of magnifier tool.
         // This should of course not have a boolean type.
-        value = qrealFromConfig(parser, local, settings, "magnification", 2.);
+        value = qrealFromConfig(parser, local, settings, "magnification", 2., 20.);
         ctrlScreen->setMagnification(value);
 
 #ifdef EMBEDDED_APPLICATIONS_ENABLED
