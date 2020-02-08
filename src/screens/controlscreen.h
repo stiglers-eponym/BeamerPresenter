@@ -73,10 +73,10 @@ public:
     void setKeyMapItem(quint32 const key, KeyAction const action);
     void setToolForKey(quint32 const key, ColoredDrawTool tool) {tools[key] = tool;}
     void setMagnification(qreal const mag);
-    void setAutostartDelay(double const timeout);
+    void setAutostartDelay(qreal const timeout);
     /// Configure minimum frame time for animations created by showing slides in rapid succession.
     void setAnimationDelay(quint32 const delay_ms) {presentationScreen->slide->setAnimationDelay(delay_ms);}
-    void setMinSidebarWidth(double const sideWidth) {maxNotesWidth = 1. - sideWidth;}
+    void setMinSidebarWidth(qreal const sideWidth) {maxNotesWidth = 1. - sideWidth;}
     void setLogSlideChanges(bool const log) {ui->label_timer->setLog(log);}
     /// GUI Timer object handling presentation time.
     Timer* getTimer() {return ui->label_timer;}
@@ -89,9 +89,7 @@ public:
     void showDrawSlide();
     void hideDrawSlide();
     void showToc();
-    void hideToc();
     void showOverview();
-    void hideOverview();
 
     // Get different widgets
     ToolSelector* getToolSelector() {return ui->tool_selector;}
@@ -162,7 +160,7 @@ private:
 
     /// Maximum relative width of the notes slide.
     /// This equals one minus minimum width of the side bar.
-    double maxNotesWidth = 0.8;
+    qreal maxNotesWidth = 0.8;
     // Key bindings.
     /// Map of key codes (key code + modifiers) to lists of KeyActions.
     QMap<quint32, QList<KeyAction>>* keymap = new QMap<quint32, QList<KeyAction>>();

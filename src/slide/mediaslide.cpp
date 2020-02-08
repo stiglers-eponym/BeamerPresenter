@@ -17,6 +17,7 @@
  */
 
 #include "mediaslide.h"
+#include <QApplication>
 
 /// Synchronize video widgets of the currently shown slide on two MediaSlide objects.
 /// presentationSlide controls the sliders. controlSlide is adapted to presentationSlide.
@@ -44,6 +45,7 @@ void connectVideos(MediaSlide* controlSlide, MediaSlide* presentationSlide)
     }
 }
 
+
 MediaSlide::MediaSlide(PdfDoc const*const document, int const pageNumber, PagePart const part, QWidget* parent) :
     PreviewSlide(document, pageNumber, part, parent)
 {
@@ -68,8 +70,6 @@ MediaSlide::MediaSlide(QWidget* parent) : PreviewSlide(parent)
 
 void MediaSlide::clearAll()
 {
-    // Clear all contents of the label.
-    // This function is called when the document is reloaded or the program is closed and everything should be cleaned up.
     autostartTimer->stop();
 #ifdef EMBEDDED_APPLICATIONS_ENABLED
     autostartEmbeddedTimer->stop();
@@ -91,9 +91,6 @@ void MediaSlide::clearAll()
 
 void MediaSlide::clearLists()
 {
-    // Clear page specific content.
-    // This function is called when going to an other page, which is not just an overlay of the previous page.
-    // It deletes all multimedia content associated with the current page.
     qDeleteAll(videoSliders);
     videoSliders.clear();
     qDeleteAll(soundSliders);
@@ -299,7 +296,7 @@ void MediaSlide::renderPage(int pageNumber, bool const hasDuration)
         bool found = false;
         for (QList<VideoWidget*>::iterator widget_it=cachedVideoWidgets.begin(); widget_it!=cachedVideoWidgets.end(); widget_it++) {
             qDebug() << (*widget_it)->getUrl() << movie->url();
-            if (*widget_it != nullptr && (*widget_it)->getUrl() == movie->url()) {
+            if (*widget_it != nullptr && (*widget_it)->getUrl() == movie->url() && (*widget_it)->getPlayMode() == movie->playMode()) {
                 videoWidgets.append(*widget_it);
                 // Setting *widget_it to nullptr makes sure that this videoWidget will not be deleted when cleaning up oldVideos.
                 *widget_it = nullptr;
@@ -638,7 +635,7 @@ void MediaSlide::updateCacheVideos(int const pageNumber)
         Poppler::MovieObject* movie = video->movie();
         bool found = false;
         for (QList<VideoWidget*>::iterator widget_it=cachedVideoWidgets.begin(); widget_it!=cachedVideoWidgets.end(); widget_it++) {
-            if (*widget_it != nullptr && (*widget_it)->getUrl() == movie->url()) {
+            if (*widget_it != nullptr && (*widget_it)->getUrl() == movie->url() && (*widget_it)->getPlayMode() == movie->playMode()) {
                 found = true;
                 break;
             }
@@ -752,9 +749,27 @@ bool MediaSlide::hasActiveMultimediaContent() const
     return false;
 }
 
+bool MediaSlide::hoverLink(const QPoint &pos) const
+{
+
+    for (QList<QRect>::const_iterator pos_it=linkPositions.cbegin(); pos_it!=linkPositions.cend(); pos_it++) {
+        if (pos_it->contains(pos))
+            return true;
+    }
+    for (QList<QRect>::const_iterator pos_it=soundPositions.cbegin(); pos_it!=soundPositions.cend(); pos_it++) {
+        if (pos_it->contains(pos))
+            return true;
+    }
+    for (QList<QRect>::const_iterator pos_it=videoPositions.cbegin(); pos_it!=videoPositions.cend(); pos_it++) {
+        if (pos_it->contains(pos))
+            return true;
+    }
+    return false;
+}
+
 void MediaSlide::mouseReleaseEvent(QMouseEvent* event)
 {
-    if (event->button() == Qt::LeftButton) {
+    if (event->button() == Qt::LeftButton || event->button() == Qt::MidButton) {
         followHyperlinks(event->pos());
     }
     event->accept();
@@ -927,30 +942,10 @@ void MediaSlide::followHyperlinks(QPoint const& pos)
 
 void MediaSlide::mouseMoveEvent(QMouseEvent* event)
 {
-    // Show the cursor as Qt::PointingHandCursor when hoovering links
-    bool is_arrow_pointer = cursor().shape() == Qt::ArrowCursor;
-    for (QList<QRect>::const_iterator pos_it=linkPositions.cbegin(); pos_it!=linkPositions.cend(); pos_it++) {
-        if (pos_it->contains(event->pos())) {
-            if (is_arrow_pointer)
-                setCursor(Qt::PointingHandCursor);
-            return;
-        }
-    }
-    for (QList<QRect>::const_iterator pos_it=soundPositions.cbegin(); pos_it!=soundPositions.cend(); pos_it++) {
-        if (pos_it->contains(event->pos())) {
-            if (is_arrow_pointer)
-                setCursor(Qt::PointingHandCursor);
-            return;
-        }
-    }
-    for (QList<QRect>::const_iterator pos_it=videoPositions.cbegin(); pos_it!=videoPositions.cend(); pos_it++) {
-        if (pos_it->contains(event->pos())) {
-            if (is_arrow_pointer)
-                setCursor(Qt::PointingHandCursor);
-            return;
-        }
-    }
-    if (!is_arrow_pointer)
+    // Show the cursor as Qt::PointingHandCursor when hovering links
+    if (hoverLink(event->pos()))
+        setCursor(Qt::PointingHandCursor);
+    else
         setCursor(Qt::ArrowCursor);
     event->accept();
 }
@@ -1113,7 +1108,6 @@ void MediaSlide::initEmbeddedApplications(int const pageNumber)
 
 void MediaSlide::startAllEmbeddedApplications(int const index)
 {
-    // Start all embedded applications of the given slide (slide number = index)
     if (!embedMap.contains(index))
         return;
     for(QMap<int,int>::const_iterator idx_it=embedMap[index].cbegin(); idx_it!=embedMap[index].cend(); idx_it++)
@@ -1122,7 +1116,6 @@ void MediaSlide::startAllEmbeddedApplications(int const index)
 
 void MediaSlide::closeEmbeddedApplications(int const index)
 {
-    // Close all embedded applications of the given slide (slide number = index)
     if (!embedMap.contains(index))
         return;
     for(QMap<int,int>::const_iterator idx_it=embedMap[index].cbegin(); idx_it!=embedMap[index].cend(); idx_it++)
@@ -1135,28 +1128,6 @@ void MediaSlide::closeAllEmbeddedApplications()
         (*app_it)->terminate();
 }
 #endif
-
-void MediaSlide::showAllWidgets()
-{
-    // TODO: fix this!
-    if (videoWidgets.size() == videoPositions.size()) {
-        for (int i=0; i<videoWidgets.size(); i++) {
-            videoWidgets[i]->show();
-        }
-    }
-#ifdef EMBEDDED_APPLICATIONS_ENABLED
-    if (embedMap.contains(pageIndex) && embedMap[pageIndex].size() == embedPositions.size()) {
-        for (int i=0; i<embedPositions.size(); i++) {
-            if (embedApps[embedMap[pageIndex][i]] != nullptr && embedApps[embedMap[pageIndex][i]]->isReady()) {
-                embedApps[embedMap[pageIndex][i]]->getWidget()->setGeometry(embedPositions[i]);
-                embedApps[embedMap[pageIndex][i]]->getWidget()->show();
-                embedApps[embedMap[pageIndex][i]]->getWidget()->raise();
-            }
-        }
-    }
-#endif
-    update();
-}
 
 void MediaSlide::setMuted(bool muted)
 {

@@ -35,53 +35,28 @@ DrawSlide::~DrawSlide()
     clearAll();
 }
 
-void DrawSlide::paintEvent(QPaintEvent*)
-{
-    QPainter painter(this);
-    if (pagePart == RightHalf)
-        painter.drawPixmap(shiftx + width(), shifty, pixmap);
-    else
-        painter.drawPixmap(shiftx, shifty, pixmap);
-}
-
 void DrawSlide::resizeEvent(QResizeEvent*)
 {
     if (resolution < 0 || page == nullptr)
         return;
     qint16 const oldshiftx = shiftx, oldshifty = shifty;
-    double const oldRes = resolution;
+    qreal const oldRes = resolution;
     QSizeF pageSize = page->pageSizeF();
-    double pageWidth=pageSize.width();
+    qreal pageWidth=pageSize.width();
     if (pagePart != FullPage)
         pageWidth /= 2;
     if (width() * pageSize.height() > height() * pageWidth) {
-        resolution = double(height()) / pageSize.height();
+        resolution = qreal(height()) / pageSize.height();
         shiftx = qint16(width()/2 - resolution/2 * pageWidth);
         shifty = 0;
     }
     else {
-        resolution = double(width()) / pageWidth;
+        resolution = qreal(width()) / pageWidth;
         shifty = qint16(height()/2 - resolution/2 * pageSize.height());
         shiftx = 0;
     }
     pathOverlay->setGeometry(geometry());
     pathOverlay->rescale(oldshiftx, oldshifty, oldRes);
-}
-
-void DrawSlide::mouseReleaseEvent(QMouseEvent *event)
-{
-    if (page == nullptr)
-        return;
-    switch (event->button())
-    {
-    case Qt::LeftButton:
-    case Qt::MidButton:
-        followHyperlinks(event->pos());
-        break;
-    default:
-        break;
-    }
-    event->accept();
 }
 
 void DrawSlide::animate(const int oldPageIndex)

@@ -52,6 +52,7 @@ public:
     /// Values for autoplay: +1 if autoplay is explicitly enabled, -1 if it is explicitly disabled, 0 otherwise.
     signed char getAutoplay() const {return autoplay;}
     QString const& getUrl() const {return filename;}
+    Poppler::MovieObject::PlayMode getPlayMode() const {return annotation->movie()->playMode();}
     void setMute(bool const mute) {player->setMuted(mute);}
     void setGeometry(QRect const& rect);
     void setGeometry(int const x, int const y, int const w, int const h);

@@ -26,6 +26,7 @@ bool operator<(ColoredDrawTool tool1, ColoredDrawTool tool2)
     return (tool1.tool<tool2.tool || (tool1.tool==tool2.tool && tool1.color.rgb()<tool2.color.rgb()) );
 }
 
+
 PathOverlay::PathOverlay(DrawSlide* parent) :
     QWidget(parent),
     master(parent)
@@ -336,7 +337,7 @@ void PathOverlay::mouseReleaseEvent(QMouseEvent *event)
         switch (tool.tool) {
         case NoTool:
         case Pointer:
-            event->setAccepted(false);
+            event->ignore();
             break;
         case Torch:
         case Magnifier:
@@ -354,15 +355,17 @@ void PathOverlay::mouseReleaseEvent(QMouseEvent *event)
             break;
         }
         break;
+    case Qt::MidButton:
+        event->ignore();
+        break;
     default:
-        event->setAccepted(false);
+        event->accept();
         break;
     }
     emit sendRelax();
-    //event->accept();
 }
 
-void PathOverlay::mouseMoveEvent(QMouseEvent *event)
+void PathOverlay::mouseMoveEvent(QMouseEvent* event)
 {
     if (master->page == nullptr)
         return;
@@ -374,8 +377,12 @@ void PathOverlay::mouseMoveEvent(QMouseEvent *event)
     switch (event->buttons())
     {
     case Qt::NoButton:
-        if (pointer_visible)
-            event->setAccepted(false);
+        if (pointer_visible) {
+            if (master->hoverLink(event->pos()))
+                setCursor(Qt::PointingHandCursor);
+            else
+                setCursor(Qt::ArrowCursor);
+        }
         break;
     case Qt::LeftButton:
         switch (tool.tool)
@@ -387,31 +394,32 @@ void PathOverlay::mouseMoveEvent(QMouseEvent *event)
                 update();
                 emit pathsChangedQuick(master->page->label(), paths[master->page->label()], master->shiftx, master->shifty, master->resolution);
             }
-            event->accept();
             break;
         case Eraser:
             erase(event->localPos());
-            event->accept();
             break;
         case Torch:
         case Magnifier:
             pointerPosition = event->localPos();
             update();
             emit pointerPositionChanged(pointerPosition, master->shiftx, master->shifty, master->resolution);
-            event->accept();
             break;
         case Pointer:
-            event->accept();
             break;
         default:
-            event->setAccepted(false);
+            if (pointer_visible) {
+                if (master->hoverLink(event->pos()))
+                    setCursor(Qt::PointingHandCursor);
+                else
+                    setCursor(Qt::ArrowCursor);
+            }
         }
         break;
     case Qt::RightButton:
         erase(event->localPos());
-        event->accept();
         break;
     }
+    event->accept();
 }
 
 void PathOverlay::erase(const QPointF &point)

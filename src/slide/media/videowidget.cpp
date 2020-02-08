@@ -51,10 +51,6 @@ VideoWidget::VideoWidget(Poppler::MovieAnnotation const* annotation, QString con
     item->show();
 
     filename = movie->url();
-    if (!QFileInfo(filename).exists()) {
-        filename = "";
-        return;
-    }
     QUrl url = QUrl(filename, QUrl::TolerantMode);
     QStringList splitFileName;
     if (!urlSplitCharacter.isEmpty()) {
@@ -66,6 +62,10 @@ VideoWidget::VideoWidget(Poppler::MovieAnnotation const* annotation, QString con
         url = QUrl::fromLocalFile(url.path());
     if (url.isRelative())
         url = QUrl::fromLocalFile(QDir(".").absoluteFilePath(url.path()));
+    if (url.isLocalFile() && !QFileInfo(url.toLocalFile()).exists()) {
+        filename = "";
+        return;
+    }
     playlist->addMedia(url);
     player->setPlaylist(playlist);
     if (splitFileName.contains("mute"))

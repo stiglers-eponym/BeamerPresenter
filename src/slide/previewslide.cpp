@@ -88,7 +88,7 @@ QSizeF PreviewSlide::basicRenderPage(int const pageNumber)
 
     // Place the page as an image of the correct size at the correct position
     // The lower left corner of the image will be located at (shiftx, shifty)
-    double pageHeight=pageSize.height(), pageWidth=pageSize.width();
+    qreal pageHeight=pageSize.height(), pageWidth=pageSize.width();
     // The page image must be split if the beamer option "notes on second screen" is set.
     if (pagePart != FullPage)
         pageWidth /= 2;
@@ -96,13 +96,13 @@ QSizeF PreviewSlide::basicRenderPage(int const pageNumber)
     // resolution is calculated in pixels per point = dpi/72.
     if (width() * pageHeight > height() * pageWidth) {
         // the width of the label is larger than required
-        resolution = double(height()) / pageHeight;
+        resolution = qreal(height()) / pageHeight;
         shiftx = qint16(width()/2 - resolution/2 * pageWidth);
         shifty = 0;
     }
     else {
         // the height of the label is larger than required
-        resolution = double(width()) / pageWidth;
+        resolution = qreal(width()) / pageWidth;
         shifty = qint16(height()/2 - resolution/2 * pageHeight);
         shiftx = 0;
     }
@@ -113,7 +113,7 @@ QSizeF PreviewSlide::basicRenderPage(int const pageNumber)
     }
 
     // Calculate the size of the image in pixels
-    double scale_x=resolution*pageWidth, scale_y=resolution*pageHeight;
+    qreal scale_x=resolution*pageWidth, scale_y=resolution*pageHeight;
     // Adjustments if only parts of the page are shown:
     if (pagePart != FullPage) {
         scale_x *= 2;
@@ -235,7 +235,7 @@ void PreviewSlide::mouseReleaseEvent(QMouseEvent* event)
 
 void PreviewSlide::mouseMoveEvent(QMouseEvent* event)
 {
-    // Show the cursor as Qt::PointingHandCursor when hoovering links
+    // Show the cursor as Qt::PointingHandCursor when hovering links
     bool is_arrow_pointer = cursor().shape() == Qt::ArrowCursor;
     // Iterate over all link position to check whether a link position contains the cursor position.
     for (QList<QRect>::const_iterator pos_it=linkPositions.cbegin(); pos_it!=linkPositions.cend(); pos_it++) {

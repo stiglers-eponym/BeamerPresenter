@@ -392,7 +392,7 @@ void ControlScreen::recalcLayout(const int pageNumber)
 
     // Calculate the size of the side bar.
     /// Aspect ratio (height/width) of the window.
-    double screenRatio = double(height()) / width();
+    qreal screenRatio = qreal(height()) / width();
     /// Size of notes page (or presentation slide if drawSlide is shown).
     QSizeF notesSize;
     if (drawSlide == nullptr)
@@ -400,13 +400,13 @@ void ControlScreen::recalcLayout(const int pageNumber)
     else
         notesSize = presentation->getPageSize(pageNumber);
     /// Aspect ratio (height/width) of the slide shown on the notes widget.
-    double notesSizeRatio = notesSize.height() / notesSize.width();
+    qreal notesSizeRatio = notesSize.height() / notesSize.width();
     // Correct the aspect ratio if the pdf includes slides and notes.
     if (pagePart != FullPage)
         notesSizeRatio *= 2;
     /// Relative width of the notes slide on the control screen.
     /// If the page size is scaled such that screen height == notes height, then relativeNoteWidth = screen width / notes width
-    double relativeNotesWidth = screenRatio / notesSizeRatio;
+    qreal relativeNotesWidth = screenRatio / notesSizeRatio;
     // Make sure that width of notes does not become too large.
     if (relativeNotesWidth > maxNotesWidth)
         relativeNotesWidth = maxNotesWidth;
@@ -437,7 +437,7 @@ void ControlScreen::recalcLayout(const int pageNumber)
     // Adapt sizes of draw tools if necessary.
     if (drawSlide != nullptr) {
         /// Scale of draw slide relative to presentation slide.
-        double scale = drawSlide->getResolution() / presentationScreen->slide->getResolution();
+        qreal scale = drawSlide->getResolution() / presentationScreen->slide->getResolution();
         if (scale < 0.)
             scale = 1.;
         // Set scaled tool sizes for draw slide.
@@ -573,9 +573,9 @@ void ControlScreen::renderPage(int const pageNumber, bool const full)
         // TODO: improve this part.
         // It is possible that presentationScreen->slide contains drawings which have not been copied to drawSlide yet.
         QString label = presentation->getLabel(currentPageNumber);
-        if (drawSlide->getPage() != nullptr && !drawSlide->getPaths().contains(label)) {
+        if (drawSlide->getPage() != nullptr && !drawSlide->getPathOverlay()->getPaths().contains(label)) {
             qint16 const sx=presentationScreen->slide->getXshift(), sy=presentationScreen->slide->getYshift();
-            double res = presentationScreen->slide->getResolution();
+            qreal res = presentationScreen->slide->getResolution();
             drawSlide->getPathOverlay()->setPaths(label, presentationScreen->slide->getPathOverlay()->getPaths()[label], sx, sy, res);
         }
 
@@ -882,7 +882,7 @@ void ControlScreen::receiveNewPageNumber(int const pageNumber)
 void ControlScreen::receiveDest(QString const& dest)
 {
     // Receive a TOC destination and go to the corresponding slide.
-    hideToc();
+    showNotes();
     int const pageNumber = presentation->destToSlide(dest);
     if (pageNumber>=0 && pageNumber<numberOfPages) {
         ui->label_timer->continueTimer();
@@ -955,7 +955,7 @@ bool ControlScreen::handleKeyAction(KeyAction const action)
             // TODO: manually handle key events?
             return true;
         case KeyAction::Return:
-            hideToc();
+            showNotes();
             return true;
         default:
             break;
@@ -1264,13 +1264,9 @@ bool ControlScreen::handleKeyAction(KeyAction const action)
         if (isVisible())
             showToc();
         break;
-    case KeyAction::HideTOC:
-        if (isVisible())
-            hideToc();
-        break;
     case KeyAction::ToggleTOC:
         if (tocBox->isVisible())
-            hideToc();
+            showNotes();
         else if (isVisible())
             showToc();
         break;
@@ -1278,19 +1274,18 @@ bool ControlScreen::handleKeyAction(KeyAction const action)
         if (isVisible())
             showOverview();
         break;
-    case KeyAction::HideOverview:
-        if (isVisible())
-            hideOverview();
-        break;
     case KeyAction::ToggleOverview:
         if (overviewBox->isVisible())
-            hideOverview();
+            showNotes();
         else if (isVisible())
             showOverview();
         break;
     case KeyAction::HideDrawSlide:
         if (isVisible())
             hideDrawSlide();
+        break;
+    case KeyAction::HideOverlays:
+        showNotes();
         break;
     case KeyAction::Reload:
         reloadFiles();
@@ -1544,7 +1539,7 @@ void ControlScreen::setUrlSplitCharacter(QString const &splitCharacter)
 void ControlScreen::showToc()
 {
     // Show table of contents on the control screen (above the notes label).
-    hideOverview();
+    overviewBox->hide();
     if (tocBox->createToc()) {
         qWarning() << "This document does not contain a table of contents";
         return;
@@ -1552,34 +1547,31 @@ void ControlScreen::showToc()
     if (!this->isActiveWindow())
         this->activateWindow();
     ui->notes_widget->hide();
+    if (drawSlide != nullptr)
+        drawSlide->hide();
     tocBox->show();
     tocBox->raise();
     tocBox->focusCurrent(currentPageNumber);
 }
 
-void ControlScreen::hideToc()
-{
-    // Hide table of contents
-    tocBox->hide();
-    ui->notes_widget->show();
-    ui->notes_widget->setFocus();
-}
-
 void ControlScreen::showNotes()
 {
-    // Equivalent to hideToc(); hideOverview();
     tocBox->hide();
     overviewBox->hide();
-    if (drawSlide == nullptr || drawSlide->isHidden()) {
+    if (drawSlide == nullptr) {
         ui->notes_widget->show();
         ui->notes_widget->setFocus();
+    }
+    else {
+        drawSlide->show();
+        drawSlide->setFocus();
     }
 }
 
 void ControlScreen::showOverview()
 {
     // Show overview on the control screen (above the notes label).
-    hideToc();
+    tocBox->hide();
     if (overviewBox->needsUpdate()) {
         cacheTimer->stop();
         overviewBox->create(presentation, pagePart);
@@ -1587,17 +1579,11 @@ void ControlScreen::showOverview()
     if (!this->isActiveWindow())
         this->activateWindow();
     ui->notes_widget->hide();
+    if (drawSlide != nullptr)
+        drawSlide->hide();
     overviewBox->show();
     overviewBox->raise();
     overviewBox->setFocused(presentationScreen->getPageNumber());
-}
-
-void ControlScreen::hideOverview()
-{
-    // Hide overview
-    overviewBox->hide();
-    ui->notes_widget->show();
-    ui->notes_widget->setFocus();
 }
 
 void ControlScreen::setRenderer(QStringList command)
@@ -1783,9 +1769,9 @@ void ControlScreen::showDrawSlide()
     // Get offset and resolution of presentation screen.
     // This is needed to show existing drawings from the presentation screen on drawSlide.
     qint16 const sx=presentationScreen->slide->getXshift(), sy=presentationScreen->slide->getYshift();
-    double const res = presentationScreen->slide->getResolution();
+    qreal const res = presentationScreen->slide->getResolution();
     /// Relative size of the draw slide compared to the presentation slide.
-    double const scale = drawSlide->getResolution() / res;
+    qreal const scale = drawSlide->getResolution() / res;
     // Set tool sizes on the draw slide. Sizes are scaled such that drawings look like on the presentation slide.
     drawSlide->getPathOverlay()->setSize(Pen, static_cast<quint16>(scale*presentationScreen->slide->getPathOverlay()->getSize(Pen)+0.5));
     drawSlide->getPathOverlay()->setSize(Pointer, static_cast<quint16>(scale*presentationScreen->slide->getPathOverlay()->getSize(Pointer)+0.5));
@@ -1795,7 +1781,7 @@ void ControlScreen::showDrawSlide()
     // Get the current page label.
     QString const label = presentationScreen->slide->getPage()->label();
     // Load existing drawings from the presentation screen for the current page on drawSlide.
-    drawSlide->getPathOverlay()->setPaths(label, presentationScreen->slide->getPaths()[label], sx, sy, res);
+    drawSlide->getPathOverlay()->setPaths(label, presentationScreen->slide->getPathOverlay()->getPaths()[label], sx, sy, res);
     // Show the changed drawings.
     drawSlide->update();
     // Render the current page on drawSlide. This also adapts the current and next slide previews to previews of the next two slides.
@@ -1829,7 +1815,6 @@ void ControlScreen::hideDrawSlide()
         ui->next_slide->overwriteCacheMap(previewCache);
     }
     renderPage(currentPageNumber);
-    ui->notes_widget->showAllWidgets(); // This function does not exactly what it should do.
 }
 
 void ControlScreen::setMagnification(const qreal mag)
@@ -1839,7 +1824,7 @@ void ControlScreen::setMagnification(const qreal mag)
         drawSlide->getPathOverlay()->setMagnification(mag);
 }
 
-void ControlScreen::setAutostartDelay(const double timeout)
+void ControlScreen::setAutostartDelay(const qreal timeout)
 {
     // Autostart of media on the control screen can be enabled by uncommenting the following line.
     //ui->notes_widget->setAutostartDelay(timeout);

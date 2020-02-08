@@ -33,7 +33,6 @@ void TocButton::keyPressEvent(QKeyEvent *event)
     case Qt::Key_Return:
         if (menu() == nullptr) {
             emit activated(dest);
-            event->setAccepted(false);
         }
         else
             showMenu();
@@ -45,8 +44,8 @@ void TocButton::keyPressEvent(QKeyEvent *event)
             showMenu();
         break;
     default:
-        //event->setAccepted(false);
         QPushButton::keyPressEvent(event);
         break;
     }
+    event->ignore();
 }

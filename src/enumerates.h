@@ -121,14 +121,12 @@ enum KeyAction {
     ToggleTOC,
     /// Show table of contents.
     ShowTOC,
-    /// Hide table of contents.
-    HideTOC,
     /// Show/hide overview (thumbnail slides).
     ToggleOverview,
+    /// Hide TOC and Overview, show notes or draw slide again.
+    HideOverlays,
     /// Show overview (thumbnail slides).
     ShowOverview,
-    /// Hide overview (thumbnail slides).
-    HideOverview,
     /// Hide draw slide (return to notes if separate notes are given).
     HideDrawSlide,
     /// Show/hide mouse cursor.

@@ -68,6 +68,7 @@ public:
     qint16 const& getXshift() const {return shiftx;}
     /// Get position of the slide inside the widget (y direction).
     qint16 const& getYshift() const {return shifty;}
+    qreal const& getResolution() const {return resolution;}
 
     /// Clear all contents of the label.
     /// This function is called when the document is reloaded or the program is closed and everything should be cleaned up.
@@ -91,7 +92,7 @@ protected:
     /// Pixmap of currently displayed slide.
     QPixmap pixmap;
     /// resolution in pixels per point = dpi/72
-    double resolution = -1.;
+    qreal resolution = -1.;
     /// page number (starting from 0).
     int pageIndex = 0;
     /// List of links on the current slide.

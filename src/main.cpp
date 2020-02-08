@@ -86,10 +86,10 @@ static const QMap<QString, KeyAction> keyActionMap {
     {"reset timer", KeyAction::ResetTimer},
     {"toggle toc", KeyAction::ToggleTOC},
     {"show toc", KeyAction::ShowTOC},
-    {"hide toc", KeyAction::HideTOC},
-    {"hide overview", KeyAction::HideOverview},
     {"show overview", KeyAction::ShowOverview},
     {"toggle overview", KeyAction::ToggleOverview},
+    {"hide overlays", KeyAction::HideOverlays},
+    {"show notes", KeyAction::HideOverlays},
     {"toggle cursor", KeyAction::ToggleCursor},
     {"show cursor", KeyAction::ShowCursor},
     {"hide cursor", KeyAction::HideCursor},
@@ -144,7 +144,7 @@ static const QMap<quint32, QList<KeyAction>> defaultKeyMap = {
     {Qt::Key_End, {KeyAction::LastPage}},
     {Qt::Key_Home, {KeyAction::FirstPage}},
     {Qt::Key_Return, {KeyAction::SyncFromControlScreen}},
-    {Qt::Key_Escape, {KeyAction::SyncFromPresentationScreen, KeyAction::HideTOC, KeyAction::HideOverview, KeyAction::HideDrawSlide}},
+    {Qt::Key_Escape, {KeyAction::SyncFromPresentationScreen, KeyAction::HideOverlays, KeyAction::HideDrawSlide}},
     {Qt::Key_Space, {KeyAction::Update}},
 
     {Qt::Key_C, {KeyAction::UpdateCache}},
@@ -209,10 +209,10 @@ static const QMap<quint8, QColor> defaultColorMap {
 
 /// Read options from command line arguments, local configuration and global configuration file which should have a nonnegative floating point or boolean value.
 /// If the argument is "true", return 0; If the argument is "false" return -2. If value is set for option <name>, return <return_value>.
-double doubleFromConfig(QCommandLineParser const& parser, QVariantMap const& local, QSettings const& settings, QString name, double const return_value, double const max=1e20)
+qreal qrealFromConfig(QCommandLineParser const& parser, QVariantMap const& local, QSettings const& settings, QString name, qreal const return_value, qreal const max=1e20)
 {
     bool ok;
-    double result;
+    qreal result;
     QString value;
     // Check whether the option is set in the command line arguments.
     if (parser.isSet(name)) {
@@ -1246,26 +1246,26 @@ int main(int argc, char *argv[])
         ctrlScreen->getNotesSlide()->setMuted(value);
     }
 
-    // Handle settings that are either double or bool
+    // Handle settings that are either qreal or bool
     {
-        double value;
+        qreal value;
         // Set autostart or delayed autostart of multimedia content.
-        value = doubleFromConfig(parser, local, settings, "autoplay", -2.);
+        value = qrealFromConfig(parser, local, settings, "autoplay", -2.);
         emit ctrlScreen->setAutostartDelay(value);
 
         // Set magnification factor of magnifier tool.
         // This should of course not have a boolean type.
-        value = doubleFromConfig(parser, local, settings, "magnification", 2.);
+        value = qrealFromConfig(parser, local, settings, "magnification", 2.);
         ctrlScreen->setMagnification(value);
 
 #ifdef EMBEDDED_APPLICATIONS_ENABLED
         // Set autostart or delayed autostart of embedded applications.
-        value = doubleFromConfig(parser, local, settings, "autostart-emb", -2.);
+        value = qrealFromConfig(parser, local, settings, "autostart-emb", -2.);
         ctrlScreen->getPresentationSlide()->setAutostartEmbeddedDelay(value);
 #endif
 
         // Set minimum sidebar width for control screen.
-        value = doubleFromConfig(parser, local, settings, "sidebar-width", 0.2, 1.);
+        value = qrealFromConfig(parser, local, settings, "sidebar-width", 0.2, 1.);
         ctrlScreen->setMinSidebarWidth(value);
     }
 

@@ -26,6 +26,7 @@
 #include "../pdf/singlerenderer.h"
 #include "../draw/pathoverlay.h"
 
+///
 class DrawSlide : public MediaSlide
 {
     Q_OBJECT
@@ -36,13 +37,9 @@ public:
     explicit DrawSlide(PdfDoc const*const document, int const pageNumber, PagePart const part, QWidget* parent=nullptr);
     ~DrawSlide() override;
     PathOverlay* getPathOverlay() {return pathOverlay;}
-    QMap<QString, QList<DrawPath*>> const& getPaths() const {return pathOverlay->paths;}
-    double const& getResolution() const {return resolution;}
     virtual bool isShowingTransition() const {return false;}
 
 protected:
-    virtual void paintEvent(QPaintEvent*) override;
-    virtual void mouseReleaseEvent(QMouseEvent* event) override;
     virtual void resizeEvent(QResizeEvent*) override;
     virtual void animate(int const oldPageIndex = -1) override;
     PathOverlay* pathOverlay;

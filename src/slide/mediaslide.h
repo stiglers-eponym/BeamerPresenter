@@ -36,68 +36,110 @@ public:
     explicit MediaSlide(QWidget* parent=nullptr);
     explicit MediaSlide(PdfDoc const * const document, int const pageNumber, PagePart const part, QWidget* parent=nullptr);
     ~MediaSlide() override {clearAll();}
+    /// Clear all contents of the label.
+    /// This function is called when the document is reloaded or the program is closed and everything should be cleaned up.
+    virtual void clearAll() override;
+    /// Show page on this widget.
     void renderPage(int pageNumber, bool const hasDuration);
+    /// Enabel or disable pre-loading of videos.
     void setCacheVideos(bool const cacheThem) {cacheVideos=cacheThem;}
+    /// Connect multimedia sliders to video widgets on this page.
     void setMultimediaSliders(QList<QSlider*> sliderList);
-    void setAutostartDelay(double const delay) {autostartDelay=delay;}
+    /// Configure auto play of multimedia content.
+    void setAutostartDelay(qreal const delay) {autostartDelay=delay;}
+    /// Check whether the given position is contained in a link.
+    bool hoverLink(QPoint const& pos) const;
     bool hasActiveMultimediaContent() const;
+    /// Load videos on the given page and keep them in cache until the next slide change.
     void updateCacheVideos(int const pageNumber);
-    double getAutostartDelay() const {return autostartDelay;}
+    qreal getAutostartDelay() const {return autostartDelay;}
+    /// Total number of silders required by multimedia objects on this slide.
     int getSliderNumber() const {return videoSliders.size()+soundSliders.size()+soundLinkSliders.size();}
     bool isMuted() const {return mute;}
     QMap<int,QSlider*> const& getVideoSliders() {return videoSliders;}
-    virtual void clearAll() override;
     void setMuted(bool muted);
-    void showAllWidgets();
 #ifdef EMBEDDED_APPLICATIONS_ENABLED
+    /// Start all embedded Applications on given page.
     void startAllEmbeddedApplications(int const index);
     void initEmbeddedApplications(int const pageNumber);
-    void setEmbedFileList(const QStringList& files) {embedFileList=files;}
+    /// Set list of files which should be opened as embedded applications when found in a link.
+    void setEmbedFileList(QStringList const& files) {embedFileList=files;}
+    /// Close all embedded applications of the given slide (slide number = index)
     void closeEmbeddedApplications(int const index);
+    /// Close all embedded applications on all slides.
     void closeAllEmbeddedApplications();
-    void setAutostartEmbeddedDelay(double const delay) {autostartEmbeddedDelay=delay;}
-    void setPid2Wid(QString const & program) {pid2wid=program;}
+    void setAutostartEmbeddedDelay(qreal const delay) {autostartEmbeddedDelay=delay;}
+    /// Set external program translating a process ID to a window ID.
+    void setPid2Wid(QString const& program) {pid2wid=program;}
 #endif
 
 protected:
-    bool mute = false;
-    void mouseReleaseEvent(QMouseEvent* event) override;
-    void mouseMoveEvent(QMouseEvent* event) override;
-    void followHyperlinks(QPoint const& pos);
+    /// Clear page specific content.
+    /// This function is called when going to an other page, which is not just an overlay of the previous page.
+    /// It deletes all multimedia content associated with the current page.
     virtual void clearLists();
+    /// Mouse release: handle links and annotations (including multimedia and embedded applications)
+    void mouseReleaseEvent(QMouseEvent* event) override;
+    /// Mouse move: change cursor when entering a link area.
+    void mouseMoveEvent(QMouseEvent* event) override;
+    /// Follow hyperlinks on the given position.
+    void followHyperlinks(QPoint const& pos);
+    /// List of video widgets on the current slide.
     QList<VideoWidget*> videoWidgets;
+    /// List of video widgets cached for the next slide/
     QList<VideoWidget*> cachedVideoWidgets;
+    /// List of positions of video widgets (same order as videoWidgets).
     QList<QRect> videoPositions;
+    /// List of sound players for sound annotations on the current page.
     QList<QMediaPlayer*> soundPlayers;
+    /// List of positions of sound annotations on the current page (same order as soundPlayers).
     QList<QRect> soundPositions;
-    QMap<int,QMediaPlayer*> soundLinkPlayers;
-    QMap<int,QSlider*> videoSliders;
-    QMap<int,QSlider*> soundSliders;
-    QMap<int,QSlider*> soundLinkSliders;
+    /// Map of link indices to media players for sounds. Sound links are handled independent of sound annotations.
+    QMap<int, QMediaPlayer*> soundLinkPlayers;
+    /// Sliders for video widgets: map indices of videoWidgets to sliders.
+    QMap<int, QSlider*> videoSliders;
+    /// Sliders for sound annotations: map indices of soundPlayers to sliders.
+    QMap<int, QSlider*> soundSliders;
+    /// Sliders for sound links: map link indices of sound links to sliders.
+    QMap<int, QSlider*> soundLinkSliders;
+    /// Timer for delayed auto start of multimedia content.
     QTimer* const autostartTimer = new QTimer(this);
-    double autostartDelay = -1.; // delay for starting multimedia content in s
+    bool mute = false;
+    /// delay for starting multimedia content in s. A negative value is treated as infinity.
+    qreal autostartDelay = -1.;
     bool cacheVideos = true;
 #ifdef EMBEDDED_APPLICATIONS_ENABLED
     QString pid2wid;
     QTimer* const autostartEmbeddedTimer = new QTimer(this);
+    /// List of embedded applications.
     QList<EmbedApp*> embedApps;
-    QMap<int,QMap<int,int>> embedMap;
+    /// Map page intex to (map link index on page to index of EmbedApp in embedApps).
+    QMap<int, QMap<int,int>> embedMap;
+    /// Positions (areas) of embedded applications (same order as embedApps).
     QList<QRect> embedPositions;
+    /// List of applications which should be embedded when called by a link.
     QStringList embedFileList;
-    double autostartEmbeddedDelay = -1.; // delay for starting embedded applications in s
+    /// delay for starting embedded applications in s. A negative value is treated as infinity.
+    qreal autostartEmbeddedDelay = -1.;
 #endif
+    /// Called after rendering page but before loading showing multimedia content.
+    /// This will be relevant in PresentationSlide.
     virtual void animate(int const = -1) {}
+    /// Called at the beginning of renderPage. This will be relevant in PresentationSlide.
     virtual void stopAnimation() {}
+    /// Called in renderPage. This will be relevant in PresentationSlide.
     virtual void setDuration() {}
 
 public slots:
     void pauseAllMultimedia();
     void startAllMultimedia();
 #ifdef EMBEDDED_APPLICATIONS_ENABLED
+    /// Receive an embedded application and mark it in embedMap. Show the app if it should be visible.
     void receiveEmbedApp(EmbedApp* app);
 #endif
 
 signals:
+    /// Request multimeida sliders from ControlScreen.
     void requestMultimediaSliders(int const n);
 };
 
