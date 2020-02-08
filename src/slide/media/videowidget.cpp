@@ -18,13 +18,17 @@
 
 #include "videowidget.h"
 
+// Time in ms used as buffer to bounce video in palindome mode.
+#define PALINDROME_BUFFER 2000
+
+
 VideoWidget::VideoWidget(Poppler::MovieAnnotation const* annotation, QString const& urlSplitCharacter, QWidget* parent) :
     QObject(parent),
     scene(new QGraphicsScene(this)),
     view(new QGraphicsView(scene, parent)),
     player(new QMediaPlayer(view, QMediaPlayer::VideoSurface)),
-    item(new QGraphicsVideoItem),
     playlist(new QMediaPlaylist(this)),
+    item(new QGraphicsVideoItem),
     annotation(annotation)
 {
     // TODO: try connecting two views to the same graphics scene showing the video.
@@ -44,13 +48,14 @@ VideoWidget::VideoWidget(Poppler::MovieAnnotation const* annotation, QString con
         }
     }
     scene->addItem(item);
+    item->show();
 
     filename = movie->url();
     if (!QFileInfo(filename).exists()) {
         filename = "";
         return;
     }
-    url = QUrl(filename, QUrl::TolerantMode);
+    QUrl url = QUrl(filename, QUrl::TolerantMode);
     QStringList splitFileName;
     if (!urlSplitCharacter.isEmpty()) {
         splitFileName = movie->url().split(urlSplitCharacter);
@@ -76,11 +81,11 @@ VideoWidget::VideoWidget(Poppler::MovieAnnotation const* annotation, QString con
                 connect(player, &QMediaPlayer::mediaStatusChanged, this, &VideoWidget::showPosterImage);
                 break;
             case Poppler::MovieObject::PlayPalindrome:
-                qWarning() << "WARNING: play mode=palindrome does not work as it should.";
-                connect(player, &QMediaPlayer::mediaStatusChanged, this, &VideoWidget::bouncePalindromeVideo);
+                qWarning() << "play mode=palindrome is VERY UNSTABLE and experimental."; // TODO
+                connect(player, &QMediaPlayer::positionChanged, this, &VideoWidget::bouncePalindromeVideo);
                 break;
             case Poppler::MovieObject::PlayRepeat:
-                connect(player, &QMediaPlayer::mediaStatusChanged, this, &VideoWidget::restartVideo);
+                playlist->setPlaybackMode(QMediaPlaylist::CurrentItemInLoop);
                 break;
         }
     }
@@ -115,7 +120,7 @@ VideoWidget::~VideoWidget()
 
 void VideoWidget::play()
 {
-    item->show();
+    show();
     if (player->mediaStatus()==QMediaPlayer::LoadingMedia || player->mediaStatus()==QMediaPlayer::EndOfMedia)
         player->bind(this);
     player->play();
@@ -132,28 +137,26 @@ void VideoWidget::showPosterImage(QMediaPlayer::MediaStatus status)
     if (status==QMediaPlayer::LoadingMedia || status==QMediaPlayer::EndOfMedia) {
         // Unbinding and binding this to the player is probably an ugly way of solving this.
         // TODO: find a better way of writing this.
-        player->unbind(this);
-        scene->removeItem(item);
+        playlist->setCurrentIndex(0);
+        player->setPosition(0);
         hide();
     }
 }
 
-void VideoWidget::bouncePalindromeVideo(QMediaPlayer::MediaStatus status)
+void VideoWidget::bouncePalindromeVideo(qint64 const position)
 {
-    // TODO: The result of this function is not what it should be.
-    // But this could also depend on the encoding of the video.
-    if (status==QMediaPlayer::LoadingMedia || status==QMediaPlayer::EndOfMedia) {
-        player->stop();
-        player->setPlaybackRate(-player->playbackRate());
-        player->play();
-    }
-}
-
-void VideoWidget::restartVideo(QMediaPlayer::MediaStatus status)
-{
-    if (status==QMediaPlayer::LoadingMedia || status==QMediaPlayer::EndOfMedia) {
-        player->setPosition(0);
-        player->play();
+    if (player->duration() > PALINDROME_BUFFER) {
+        if (player->duration() - position < PALINDROME_BUFFER && player->playbackRate() > 0) {
+            player->setPlaybackRate(-1.);
+            player->play();
+            qDebug() << "bounced palindrome video" << position;
+        }
+        else if (position < PALINDROME_BUFFER && player->playbackRate() < 0) {
+            player->setPlaybackRate(1.);
+            qDebug() << "bounced palindrome video" << position;
+            player->setPosition(0);
+            player->play();
+        }
     }
 }
 
@@ -177,4 +180,10 @@ void VideoWidget::setGeometry(int const x, int const y, int const w, int const h
     scene->update(0, 0, w, h);
     if (!posterImage.isNull())
         pixmap = new QGraphicsPixmapItem(QPixmap::fromImage(posterImage).scaled(w, h, Qt::IgnoreAspectRatio, Qt::SmoothTransformation));
+}
+
+void VideoWidget::show()
+{
+    if (filename != "" && playlist->error() == QMediaPlaylist::NoError)
+        view->show();
 }

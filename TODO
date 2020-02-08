@@ -1,7 +1,7 @@
 BeamerPresenter
 
 * drawing in slide transitions: restructure
-* hide video widgets if they failed to load or reached end of file
+* hide video widgets if they reached end of file
 * Video widgets: use one global graphics scene, connect two views to it, combine with slide transitions
 * Test in ubuntu
 
