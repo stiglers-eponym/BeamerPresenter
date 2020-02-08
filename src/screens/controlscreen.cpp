@@ -790,7 +790,6 @@ void ControlScreen::updateCacheStep()
 
 bool ControlScreen::freeCachePage(const int page)
 {
-    // Delete page from cache.
     if (drawSlideCache != nullptr) {
         cacheSize -= drawSlideCache->clearPage(page);
         if (cacheSize <= maxCacheSize && (maxCacheNumber >= numberOfPages || presentationScreen->slide->getCacheMap()->length() <= maxCacheNumber))
@@ -830,8 +829,6 @@ void ControlScreen::cachePage(const int page)
 
 void ControlScreen::setCacheNumber(int const number)
 {
-    // Set maximum number of slides, which should be rendered to cache.
-    // A negative number is interpreted as infinity.
     if (number < 0)
         maxCacheNumber = numberOfPages;
     else if (number == 0) {
@@ -844,15 +841,12 @@ void ControlScreen::setCacheNumber(int const number)
 
 void ControlScreen::cacheThreadFinished()
 {
-    //qDebug() << "Cache thread finished:" << cacheThreadsRunning-1;
     if (--cacheThreadsRunning == 0)
         cacheTimer->start();
 }
 
 void ControlScreen::setCacheSize(qint64 const size)
 {
-    // Set maximum memory used for cached pages (in bytes).
-    // A negative number is interpreted as infinity.
     if (cacheSize == 0)
         interruptCacheProcesses(0);
     maxCacheSize = size;
@@ -860,7 +854,6 @@ void ControlScreen::setCacheSize(qint64 const size)
 
 void ControlScreen::setTocLevel(quint8 const level)
 {
-    // Set maximum level of sections / subsections shown in the table of contents.
     if (level<1) {
         qWarning() << "toc-depth set to minimum value 1";
         tocBox->setUnfoldLevel(1);
@@ -881,7 +874,6 @@ void ControlScreen::receiveNewPageNumber(int const pageNumber)
 
 void ControlScreen::receiveDest(QString const& dest)
 {
-    // Receive a TOC destination and go to the corresponding slide.
     showNotes();
     int const pageNumber = presentation->destToSlide(dest);
     if (pageNumber>=0 && pageNumber<numberOfPages) {
@@ -1538,7 +1530,6 @@ void ControlScreen::setUrlSplitCharacter(QString const &splitCharacter)
 
 void ControlScreen::showToc()
 {
-    // Show table of contents on the control screen (above the notes label).
     overviewBox->hide();
     if (tocBox->createToc()) {
         qWarning() << "This document does not contain a table of contents";
@@ -1570,7 +1561,6 @@ void ControlScreen::showNotes()
 
 void ControlScreen::showOverview()
 {
-    // Show overview on the control screen (above the notes label).
     tocBox->hide();
     if (overviewBox->needsUpdate()) {
         cacheTimer->stop();
@@ -1615,8 +1605,6 @@ void ControlScreen::setRenderer(QStringList command)
 
 void ControlScreen::reloadFiles()
 {
-    // Reload the pdf files if they have been updated.
-
     // Stop the cache management and wait until the cacheThread finishes.
     interruptCacheProcesses(10000);
 
@@ -1664,7 +1652,6 @@ void ControlScreen::reloadFiles()
 
 void ControlScreen::setKeyMap(QMap<quint32, QList<KeyAction>>* keymap)
 {
-    // Set the key bindings
     delete this->keymap;
     this->keymap = keymap;
 }

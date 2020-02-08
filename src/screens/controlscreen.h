@@ -55,21 +55,36 @@ public:
     void updateCache();
 
     // Functions setting different properties from options (only used from main.cpp)
+    /// Set background and text color for control screen.
     void setColor(QColor const bgColor = Qt::gray, QColor const textColor = Qt::black);
+    /// Set background color for presentation screen.
     void setPresentationColor(QColor const color = Qt::black);
 #ifdef EMBEDDED_APPLICATIONS_ENABLED
     void setEmbedFileList(const QStringList &files);
     void setPid2WidConverter(QString const &program);
 #endif
     void setUrlSplitCharacter(QString const &splitCharacter);
+
+    // Configure scrolling for touchpads.
+    /// Scrolling using a touchpad: set number of pixels interpreted as one scroll step.
     void setScrollDelta(int const scrollDelta);
+    /// Treat all scroll events as touch pad scroll events.
     void setForceTouchpad();
+
+    // Configure cache.
+    /// Set maximum number of slides, which should be rendered to cache.
+    /// A negative number is interpreted as infinity.
     void setCacheNumber(int const number);
+    /// Set maximum memory used for cached pages (in bytes).
+    /// A negative number is interpreted as infinity.
     void setCacheSize(qint64 const size);
+    /// Set maximum level of sections / subsections shown in the table of contents.
     void setTocLevel(quint8 const level);
     void setOverviewColumns(quint8 const columns) {if (overviewBox != nullptr) overviewBox->setColumns(columns);}
     void setRenderer(QStringList command);
+    /// Set (overwrite) key bindings.
     void setKeyMap(QMap<quint32, QList<KeyAction>>* keymap);
+    /// Add (key, action) to key bindings.
     void setKeyMapItem(quint32 const key, KeyAction const action);
     void setToolForKey(quint32 const key, ColoredDrawTool tool) {tools[key] = tool;}
     void setMagnification(qreal const mag);
@@ -86,9 +101,13 @@ public:
 
     // Show or hide different widgets on the notes area.
     // This activates different modes: drawing, TOC, and overview mode.
+    /// Draw mode: show draw slide instead of notes. This only has an effect if a separate notes file was loaded.
     void showDrawSlide();
+    /// Exit draw mode. This only has an effect if a separate notes file was loaded.
     void hideDrawSlide();
+    /// Show table of contents on the control screen (above the notes label).
     void showToc();
+    /// Show overview on the control screen (above the notes label).
     void showOverview();
 
     // Get different widgets
@@ -106,7 +125,7 @@ private:
     /// Update layout if window size is changed.
     /// Adapt control screen based on the aspect ratios of presentation and notes slides.
     void recalcLayout(int const pageNumber);
-    /// Reload pdf files.
+    /// Reload pdf files if they have been updated.
     void reloadFiles();
 #ifdef EMBEDDED_APPLICATIONS_ENABLED
     /// Start embedded applications on all slides.
@@ -123,12 +142,15 @@ private:
     PresentationScreen* presentationScreen;
 
     // PDF documents
+    /// PDF document of the presentation.
     PdfDoc* presentation;
+    /// PDF document of notes for the speaker. If no notes are given: notes == presentation.
     PdfDoc* notes;
 
-    // Objects handling cache: timer, and thread
+    /// Timer for regular calls to cachePage.
     QTimer* cacheTimer = new QTimer(this);
 
+    /// Cache given page on all slide widgets which can handle cache.
     void cachePage(int const page);
 
     // Widgets shown above notes: TOC, overview, and drawSlide
