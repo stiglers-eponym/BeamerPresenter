@@ -207,58 +207,90 @@ static const QMap<quint8, QColor> defaultColorMap {
 };
 
 
+/// Read real value from string (handling % sign correctly).
+/// Throw useful exceptions if string represents a boolean value.
+qreal stringToReal(QString& string)
+{
+    bool ok;
+    qreal result = string.toDouble(&ok);
+    if (!ok && string.endsWith("%")) {
+        string.chop(1);
+        result = 0.01*string.toDouble(&ok);
+    }
+    if (ok) {
+        if (result >= 0.)
+            return result;
+        else
+            throw 2;
+    }
+    if (string == "true")
+        throw 0;
+    if (string == "false")
+        throw 1;
+    throw -1;
+}
+
+
 /// Read options from command line arguments, local configuration and global configuration file which should have a nonnegative floating point or boolean value.
 /// If the argument is "true", return 0; If the argument is "false" return -2. If value is set for option <name>, return <return_value>.
 qreal qrealFromConfig(QCommandLineParser const& parser, QVariantMap const& local, QSettings const& settings, QString name, qreal const return_value, qreal const max=1e20)
 {
-    bool ok;
     qreal result;
     QString value;
     // Check whether the option is set in the command line arguments.
     if (parser.isSet(name)) {
         value = parser.value(name).toLower();
         // Try to interpret the value as a number or as a boolean value.
-        result = value.toDouble(&ok);
-        if (ok && result >= 0. && result < max)
-            return result;
-        else if (value == "true")
-            return 0.;
-        else if (value == "false")
-            return -2.;
-        else
-            qWarning() << "option" << parser.value(name) << "to" << name << "not understood. Should be 0 <= number <" << max << "or true/false.";
+        try {
+            result = stringToReal(value);
+            if (result <= max)
+                return result;
+        }
+        catch(int error) {
+            switch(error) {
+            case 0:
+                return 0.;
+            case 1:
+                return -2.;
+            }
+        }
+        qWarning() << "option" << parser.value(name) << "to" << name << "not understood. Should be 0 <= number <" << max << "or true/false.";
     }
     // Check whether a local configuration file contains the option.
     if (local.contains(name)) {
         // Try to interpret the value as a number or as a boolean value.
-        result = local.value(name).toDouble(&ok);
-        if (ok && result >= 0. && result < max)
-            return result;
-        else {
-            value = local.value(name).toString().toLower();
-            if (value == "true")
-                return 0.;
-            else if (value == "false")
-                return -2.;
-            else
-                qWarning() << "option" << local.value(name) << "to" << name << "in local config not understood. Should be 0 <= number <" << max << "or true/false.";
+        try {
+            result = stringToReal(value);
+            if (result <= max)
+                return result;
         }
+        catch(int error) {
+            switch(error) {
+            case 0:
+                return 0.;
+            case 1:
+                return -2.;
+            }
+        }
+        qWarning() << "option" << local.value(name) << "to" << name << "in local config not understood. Should be 0 <= number <" << max << "or true/false.";
     }
     // Check whether the global configuration file contains the option.
     if (settings.contains(name)) {
         // Try to interpret the value as a number or as a boolean value.
-        result = settings.value(name).toDouble(&ok);
-        if (ok && result >= 0. && result < max)
-            return result;
-        else {
-            value = settings.value(name).toString().toLower();
-            if (value == "true")
-                return 0.;
-            else if (value == "false")
-                return -2.;
-            else
-                qWarning() << "option" << settings.value(name) << "to" << name << "in config not understood. Should be 0 <= number <" << max << "or true/false.";
+        try {
+            result = stringToReal(value);
+            if (result <= max)
+                return result;
         }
+        catch(int error) {
+            switch(error) {
+            case 0:
+                return 0.;
+            case 1:
+                return -2.;
+            }
+        }
+        qWarning() << "option" << settings.value(name) << "to" << name << "in config not understood. Should be 0 <= number <" << max << "or true/false.";
     }
     // Return default value.
     return return_value;
@@ -362,6 +394,7 @@ T intFromConfig(QCommandLineParser const& parser, QVariantMap const& local, QSet
 int main(int argc, char *argv[])
 {
     // Set format for debugging output, warnings etc.
+    // To overwrite this you can set the environment variable QT_MESSAGE_PATTERN.
     qSetMessagePattern("%{time process} %{if-debug}D%{endif}%{if-info}INFO%{endif}%{if-warning}WARNING%{endif}%{if-critical}CRITICAL%{endif}%{if-fatal}FATAL%{endif}%{if-category} %{category}%{endif}%{if-debug} %{file}:%{line}%{endif} - %{message}%{if-fatal} from %{backtrace [depth=3]}%{endif}");
 
     // Set up the application.
@@ -521,8 +554,6 @@ int main(int argc, char *argv[])
     }
 
 
-
-
     // Handle positional arguments.
     // These should be either: 1 pdf file (the presentation) or 2 pdf files (presentation and notes) or 1 json file (the local configuration) or 1 BeamerPresenter drawings file.
     QString presentation, notes;
@@ -675,7 +706,10 @@ int main(int argc, char *argv[])
         parser.showHelp(1);
     }
 
+
+    /// ControlScreen widget managing everything.
     ControlScreen* ctrlScreen;
+    // Create ctrlScreen and thereby the whole GUI.
     {
         PagePart pagePart = FullPage;
         // Split page if necessary (beamer option show notes on second screen).

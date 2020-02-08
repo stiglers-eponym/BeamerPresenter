@@ -1576,7 +1576,7 @@ void ControlScreen::showOverview()
     overviewBox->setFocused(presentationScreen->getPageNumber());
 }
 
-void ControlScreen::setRenderer(QStringList command)
+void ControlScreen::setRenderer(QStringList const& command)
 {
     // Set a command for an external renderer.
     // This function also checks whether the command uses the arguments %file, %page, %width and %height
@@ -1781,7 +1781,6 @@ void ControlScreen::showDrawSlide()
 
 void ControlScreen::hideDrawSlide()
 {
-    // TODO: fix this: switching while a video is playing leads to broken VideoWidgets
     if (drawSlide != nullptr && drawSlide != ui->notes_widget) {
         drawSlide->hide();
         drawSlide->overwriteCacheMap(nullptr);
@@ -1791,6 +1790,7 @@ void ControlScreen::hideDrawSlide()
         ui->next_slide->setToolTip("Preview of the next presentation slide");
     }
     ui->notes_widget->show();
+    ui->notes_widget->setFocus();
     // Switch common cache for preview slides if the geometry changes.
     if (ui->current_slide->getCacheMap() != previewCache) {
         ui->current_slide->overwriteCacheMap(nullptr);

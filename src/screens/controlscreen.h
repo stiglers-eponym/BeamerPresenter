@@ -81,17 +81,22 @@ public:
     /// Set maximum level of sections / subsections shown in the table of contents.
     void setTocLevel(quint8 const level);
     void setOverviewColumns(quint8 const columns) {if (overviewBox != nullptr) overviewBox->setColumns(columns);}
-    void setRenderer(QStringList command);
+    void setRenderer(QStringList const& command);
     /// Set (overwrite) key bindings.
     void setKeyMap(QMap<quint32, QList<KeyAction>>* keymap);
     /// Add (key, action) to key bindings.
     void setKeyMapItem(quint32 const key, KeyAction const action);
+    /// Add switching to given draw tool to key bindings for given key.
     void setToolForKey(quint32 const key, ColoredDrawTool tool) {tools[key] = tool;}
+    /// Set magnification factor for draw slides.
     void setMagnification(qreal const mag);
+    /// Set delay for multimedia content.
     void setAutostartDelay(qreal const timeout);
     /// Configure minimum frame time for animations created by showing slides in rapid succession.
     void setAnimationDelay(quint32 const delay_ms) {presentationScreen->slide->setAnimationDelay(delay_ms);}
+    /// Set minimum relative width of the sidebar on control screen.
     void setMinSidebarWidth(qreal const sideWidth) {maxNotesWidth = 1. - sideWidth;}
+    /// Enable or disable logging of slide changes to stdout.
     void setLogSlideChanges(bool const log) {ui->label_timer->setLog(log);}
     /// GUI Timer object handling presentation time.
     Timer* getTimer() {return ui->label_timer;}

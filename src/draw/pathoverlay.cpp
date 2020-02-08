@@ -369,7 +369,6 @@ void PathOverlay::mouseReleaseEvent(QMouseEvent *event)
 
 void PathOverlay::mouseMoveEvent(QMouseEvent* event)
 {
-    qDebug() << "mouse moved" << event->pos();
     if (master->page == nullptr)
         return;
     if (tool.tool == Pointer) {
