@@ -70,8 +70,6 @@ protected:
     SingleRenderer* enlargedPageRenderer = nullptr;
     /// Sizes of tools.
     QMap<DrawTool, quint16> sizes = {{Magnifier,120}, {Torch,80}, {Pointer,10}, {Highlighter,30}, {Pen,3}, {Eraser,10}};
-    /// Cursor visibility.
-    bool pointer_visible = true;
     /// Magnification factor for magnifier.
     qreal magnification = 2.;
     /// Pixmap containing only paths.

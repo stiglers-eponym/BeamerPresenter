@@ -70,7 +70,7 @@ public:
     void enableTransitions() {transition_duration = 0;}
     void disableTransitions();
     double getDuration() const {return duration;}
-    bool isPresentation() override {return true;}
+    bool isPresentation() const override {return true;}
     void paintSplitHI(QPainter& painter);
     void paintSplitVI(QPainter& painter);
     void paintSplitHO(QPainter& painter);

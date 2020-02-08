@@ -33,6 +33,8 @@ PathOverlay::PathOverlay(DrawSlide* parent) :
 {
     setAttribute(Qt::WA_TranslucentBackground);
     setAttribute(Qt::WA_AlwaysStackOnTop);
+    if (!master->isPresentation())
+        setMouseTracking(true);
 }
 
 PathOverlay::~PathOverlay()
@@ -131,7 +133,7 @@ void PathOverlay::setTool(const ColoredDrawTool newtool)
 {
     tool = newtool;
     // TODO: fancy cursors
-    if (!pointer_visible && tool.tool != Pointer)
+    if (cursor() == Qt::BlankCursor && tool.tool != Pointer)
         setMouseTracking(false);
     if (tool.tool == Torch) {
         enlargedPage = QPixmap();
@@ -367,6 +369,7 @@ void PathOverlay::mouseReleaseEvent(QMouseEvent *event)
 
 void PathOverlay::mouseMoveEvent(QMouseEvent* event)
 {
+    qDebug() << "mouse moved" << event->pos();
     if (master->page == nullptr)
         return;
     if (tool.tool == Pointer) {
@@ -377,7 +380,7 @@ void PathOverlay::mouseMoveEvent(QMouseEvent* event)
     switch (event->buttons())
     {
     case Qt::NoButton:
-        if (pointer_visible) {
+        if (cursor() != Qt::BlankCursor) {
             if (master->hoverLink(event->pos()))
                 setCursor(Qt::PointingHandCursor);
             else
@@ -407,7 +410,7 @@ void PathOverlay::mouseMoveEvent(QMouseEvent* event)
         case Pointer:
             break;
         default:
-            if (pointer_visible) {
+            if (cursor() != Qt::BlankCursor) {
                 if (master->hoverLink(event->pos()))
                     setCursor(Qt::PointingHandCursor);
                 else
@@ -809,22 +812,20 @@ void PathOverlay::resetCache()
 
 void PathOverlay::togglePointerVisibility()
 {
-    if (pointer_visible)
-        hidePointer();
-    else
+    if (cursor() == Qt::BlankCursor)
         showPointer();
+    else
+        hidePointer();
 }
 
 void PathOverlay::showPointer()
 {
-    pointer_visible = true;
     setCursor(Qt::ArrowCursor);
     setMouseTracking(true);
 }
 
 void PathOverlay::hidePointer()
 {
-    pointer_visible = false;
     setCursor(Qt::BlankCursor);
     if (tool.tool != Pointer)
         setMouseTracking(false);

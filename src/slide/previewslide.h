@@ -73,7 +73,7 @@ public:
     /// Clear all contents of the label.
     /// This function is called when the document is reloaded or the program is closed and everything should be cleaned up.
     virtual void clearAll();
-    virtual bool isPresentation() {return false;}
+    virtual bool isPresentation() const {return false;}
 
 protected:
     /// PDF document.
