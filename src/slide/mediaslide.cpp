@@ -135,7 +135,7 @@ void MediaSlide::renderPage(int pageNumber, bool const hasDuration)
     else
         clearLists();
 
-    QPair<double,double> scale = basicRenderPage(pageNumber);
+    QSizeF scale = basicRenderPage(pageNumber);
 
     // Presentation slides can have a "duration" property.
     // In this case: go to the next page after that given time.
@@ -150,10 +150,10 @@ void MediaSlide::renderPage(int pageNumber, bool const hasDuration)
     Q_FOREACH(Poppler::Link* link, links) {
         QRectF relative = link->linkArea();
         linkPositions.append(QRect(
-                    shiftx+int(relative.x()*scale.first),
-                    shifty+int(relative.y()*scale.second),
-                    int(relative.width()*scale.first),
-                    int(relative.height()*scale.second)
+                    shiftx+int(relative.x()*scale.width()),
+                    shifty+int(relative.y()*scale.height()),
+                    int(relative.width()*scale.width()),
+                    int(relative.height()*scale.height())
                 ));
     }
 
@@ -309,10 +309,10 @@ void MediaSlide::renderPage(int pageNumber, bool const hasDuration)
         }
         QRectF relative = video->boundary();
         videoPositions.append(QRect(
-                shiftx+int(relative.x()*scale.first),
-                shifty+int(relative.y()*scale.second),
-                int(relative.width()*scale.first),
-                int(relative.height()*scale.second)
+                shiftx+int(relative.x()*scale.width()),
+                shifty+int(relative.y()*scale.height()),
+                int(relative.width()*scale.width()),
+                int(relative.height()*scale.height())
             ));
         if (found)
             delete video;
@@ -508,10 +508,10 @@ void MediaSlide::renderPage(int pageNumber, bool const hasDuration)
             }
             QRectF relative = (*annotation)->boundary();
             videoPositions.append(QRect(
-                    shiftx+int(relative.x()*scale.first),
-                    shifty+int(relative.y()*scale.second),
-                    int(relative.width()*scale.first),
-                    int(relative.height()*scale.second)
+                    shiftx+int(relative.x()*scale.width()),
+                    shifty+int(relative.y()*scale.height()),
+                    int(relative.width()*scale.width()),
+                    int(relative.height()*scale.height())
                 ));
         }
         // Clean up old sound players and sliders:
@@ -537,10 +537,10 @@ void MediaSlide::renderPage(int pageNumber, bool const hasDuration)
             {
                 QRectF relative = (*it)->boundary();
                 soundPositions.append(QRect(
-                            shiftx+int(relative.x()*scale.first),
-                            shifty+int(relative.y()*scale.second),
-                            int(relative.width()*scale.first),
-                            int(relative.height()*scale.second)
+                            shiftx+int(relative.x()*scale.width()),
+                            shifty+int(relative.y()*scale.height()),
+                            int(relative.width()*scale.width()),
+                            int(relative.height()*scale.height())
                         ));
             }
 
@@ -959,8 +959,8 @@ void MediaSlide::mouseMoveEvent(QMouseEvent* event)
 void MediaSlide::receiveEmbedApp(EmbedApp* app)
 {
     // Geometry of the embedded window:
-    int const*const location = app->getNextLocation(pageIndex);
-    int const idx = embedMap[location[0]][location[1]];
+    QPair<int,int> const location = app->getNextLocation(pageIndex);
+    int const idx = embedMap[location.first][location.second];
     QRect const*const winGeometry = &embedPositions[idx];
     // Turn the window into a widget, which can be embedded in the presentation (or control) window:
     QWidget* const widget = app->getWidget();
@@ -969,7 +969,7 @@ void MediaSlide::receiveEmbedApp(EmbedApp* app)
     // Showing and hiding the widget here if page!=pageIndex makes showing the widget faster.
     widget->setGeometry(*winGeometry);
     widget->show();
-    if (location[0]!=pageIndex)
+    if (location.first != pageIndex)
         widget->hide();
 }
 

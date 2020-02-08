@@ -49,6 +49,7 @@ public:
     qint64 getPosition() const {return player->position();}
     QMediaPlayer* getPlayer() {return player;}
     QMediaPlayer::State state() const {return player->state();}
+    /// Values for autoplay: +1 if autoplay is explicitly enabled, -1 if it is explicitly disabled, 0 otherwise.
     signed char getAutoplay() const {return autoplay;}
     QString const& getUrl() const {return filename;}
     void setMute(bool const mute) {player->setMuted(mute);}

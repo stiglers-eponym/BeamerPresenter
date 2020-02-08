@@ -90,7 +90,7 @@ void EmbedApp::start()
 
 void EmbedApp::update()
 {
-    if (widget!=nullptr && widget->isVisible())
+    if (widget != nullptr && widget->isVisible())
         widget->update();
 }
 
@@ -98,7 +98,7 @@ void EmbedApp::clearProcess(int const exitCode, QProcess::ExitStatus const exitS
 {
     qDebug() << "Process ended";
     // Reset this to the state immediately after it was created.
-    if (exitStatus==QProcess::CrashExit)
+    if (exitStatus == QProcess::CrashExit)
         qWarning() << "Embedded application crashed";
     if (exitCode !=0)
         qWarning() << "Embedded application finished with exit code" << exitCode;
@@ -112,7 +112,7 @@ void EmbedApp::clearProcess(int const exitCode, QProcess::ExitStatus const exitS
     delete widget;
     widget = nullptr;
     window = nullptr;
-    if (process!=nullptr && process->state()!=QProcess::NotRunning) {
+    if (process != nullptr && process->state() != QProcess::NotRunning) {
         process->terminate();
         if (process->state()!=QProcess::NotRunning && !process->waitForFinished(10000)) {
             qCritical() << "Embedded process did not stop correctly. Killing it.";
@@ -126,7 +126,7 @@ void EmbedApp::clearProcess(int const exitCode, QProcess::ExitStatus const exitS
 void EmbedApp::getWidFromPid()
 {
     pid2widTimer->stop();
-    if (pid2widProcess==nullptr) {
+    if (pid2widProcess == nullptr) {
         pid2widProcess = new QProcess(this);
         connect(pid2widProcess, static_cast<void (QProcess::*)(int const, QProcess::ExitStatus const)>(&QProcess::finished), this, &EmbedApp::receiveWidFromPid);
     }
@@ -166,8 +166,6 @@ void EmbedApp::receiveWidFromPid(int const exitCode, QProcess::ExitStatus const 
 
 void EmbedApp::createFromStdOut()
 {
-    // Try to read window ID from standard output of process.
-    // This function is called if process writes to standard output and pid2wid is not set.
     char output[64];
     qint64 outputLength = process->readLine(output, sizeof(output));
     if (outputLength == -1)
@@ -186,7 +184,6 @@ void EmbedApp::createFromStdOut()
 
 void EmbedApp::create(const WId wid)
 {
-    // Take control over the window and tell parent (PageWidget), that the widget is ready.
     window = QWindow::fromWinId(wid);
     if (window != nullptr) {
         // Without the following two lines, key events are sometimes not sent to the embedded window:
@@ -198,11 +195,10 @@ void EmbedApp::create(const WId wid)
     }
 }
 
-int* EmbedApp::getNextLocation(int const page) const
+QPair<int,int> EmbedApp::getNextLocation(int const page) const
 {
-    // Return the next location in the presentation relativ to page, where this application appears.
     int idx = pages.indexOf(page);
-    if (idx==-1) {
+    if (idx == -1) {
         int dist=-1000000, diff;
         for (int i=0; i<pages.size(); i++) {
             if (pages[i] == page) {
@@ -216,14 +212,11 @@ int* EmbedApp::getNextLocation(int const page) const
             }
         }
     }
-    int* tuple = new int[2];
-    tuple[0] = pages[idx];
-    tuple[1] = indices[idx];
-    return tuple;
+    return {pages[idx], indices[idx]};
 }
 
 void EmbedApp::terminate()
 {
-    if (process != nullptr && process->state()==QProcess::Running)
+    if (process != nullptr && process->state() == QProcess::Running)
         process->terminate();
 }

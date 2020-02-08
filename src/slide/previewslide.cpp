@@ -58,7 +58,7 @@ void PreviewSlide::renderPage(int pageNumber)
 
     // Do the main rendering. This returns a pair of scales in x an y direction.
     // These scale relative x and y coordinates in the widget to pixels in the pixmap representing the slide.
-    QPair<double,double> scale = basicRenderPage(pageNumber);
+    QSizeF scale = basicRenderPage(pageNumber);
     // Update pageIndex.
     pageIndex = pageNumber;
 
@@ -71,15 +71,15 @@ void PreviewSlide::renderPage(int pageNumber)
     Q_FOREACH(Poppler::Link* link, links) {
         QRectF relative = link->linkArea();
         linkPositions.append(QRect(
-                    shiftx+int(relative.x()*scale.first),
-                    shifty+int(relative.y()*scale.second),
-                    int(relative.width()*scale.first),
-                    int(relative.height()*scale.second)
+                    shiftx+int(relative.x()*scale.width()),
+                    shifty+int(relative.y()*scale.height()),
+                    int(relative.width()*scale.width()),
+                    int(relative.height()*scale.height())
                 ));
     }
 }
 
-QPair<double,double> PreviewSlide::basicRenderPage(int const pageNumber)
+QSizeF PreviewSlide::basicRenderPage(int const pageNumber)
 {
     // Set the new page and basic properties
     page = doc->getPage(pageNumber);

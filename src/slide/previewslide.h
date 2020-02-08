@@ -104,12 +104,14 @@ protected:
     /// Character used to split links to files into a file path and a list of arguments.
     QString urlSplitCharacter = "";
 
-    // Handle events.
+    /// Mouse release: handle different link types.
     void mouseReleaseEvent(QMouseEvent* event) override;
+    /// Mouse moved: change cursor when mouse is moved to a link.
     void mouseMoveEvent(QMouseEvent* event) override;
 
     /// Function doing the main work in PreviewSlide::renderPage and MediaSlide::renderPage.
-    QPair<double,double> basicRenderPage(int const pageNumber);
+    /// Returns the size of the image in pixels.
+    QSizeF basicRenderPage(int const pageNumber);
 
     /// Paint widget on the screen.
     virtual void paintEvent(QPaintEvent*) override;
