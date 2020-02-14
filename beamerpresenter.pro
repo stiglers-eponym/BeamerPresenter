@@ -47,7 +47,9 @@ unix {
 linux {
     # Drop down menus can cause problems in wayland.
     # This defines activates a patch to replace drop down menus in wayland.
-    DEFINES += USE_WAYLAND_SUBMENU_PATCH
+    # With wayland 1.18.0 and Qt 5.14.1 the issue is mostly fixed.
+    #DEFINES += USE_WAYLAND_SUBMENU_PATCH
+    # TODO: drop down menues only partially visible in Wayland.
 }
 
 # Disable debugging message if debugging mode is disabled.

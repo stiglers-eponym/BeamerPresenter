@@ -1,13 +1,15 @@
 BeamerPresenter
 
+* Document code!
+* Check weird segfaults
+* search for memory leaks
 * drawing in slide transitions: restructure
 * hide video widgets if they reached end of file
 * Video widgets: use one global graphics scene, connect two views to it, combine with slide transitions
 * Test in ubuntu
 
 * Use OpenGL again (at least for slide transitions)?
-* Start rendering enlarged page first for presentation, then for notes draw slide
-* Document code!
+* Generate overview in own thread
 * Check (and reduce) memory usage
 * Key bindings for multimedia control
 * Multimedia: allow more arguments

@@ -185,3 +185,9 @@ DrawPath::DrawPath(ColoredDrawTool const& tool, QVector<float> const& vec, int c
     outer = QRectF(left-eraser_size, top-eraser_size, right-left+2*eraser_size, bottom-top+2*eraser_size);
     updateHash();
 }
+
+void DrawPath::endDrawing()
+{
+    if (path.length() == 1)
+        path.append(path[0] + QPointF(1e-6, 0));
+}

@@ -348,6 +348,10 @@ void PathOverlay::mouseReleaseEvent(QMouseEvent *event)
             break;
         case Pen:
         case Highlighter:
+            paths[master->page->label()].last()->endDrawing();
+            emit pathsChangedQuick(master->page->label(), paths[master->page->label()], master->shiftx, master->shifty, master->resolution);
+            update();
+            [[clang::fallthrough]];
         case Eraser:
             updatePathCache();
             emit sendUpdatePathCache();

@@ -233,10 +233,11 @@ ControlScreen::ControlScreen(QString presentationPath, QString notesPath, PagePa
     connect(presentationScreen->slide, &PreviewSlide::focusPageNumberEdit, this, &ControlScreen::focusPageNumberEdit);
 
     // For action links of type "presentation" (interpreted as full screen)
-    connect(ui->notes_widget,  &PreviewSlide::sendShowFullscreen, this, &ControlScreen::showFullScreen);
-    connect(ui->current_slide, &PreviewSlide::sendShowFullscreen, this, &ControlScreen::showFullScreen);
-    connect(ui->next_slide,    &PreviewSlide::sendShowFullscreen, this, &ControlScreen::showFullScreen);
-    connect(presentationScreen->slide, &PreviewSlide::sendShowFullscreen, this, &ControlScreen::showFullScreen);
+    // TODO: correct handling full screen.
+    //connect(ui->notes_widget,  &PreviewSlide::sendShowFullscreen, this, &ControlScreen::showFullScreen);
+    //connect(ui->current_slide, &PreviewSlide::sendShowFullscreen, this, &ControlScreen::showFullScreen);
+    //connect(ui->next_slide,    &PreviewSlide::sendShowFullscreen, this, &ControlScreen::showFullScreen);
+    //connect(presentationScreen->slide, &PreviewSlide::sendShowFullscreen, this, &ControlScreen::showFullScreen);
     connect(ui->notes_widget,  &PreviewSlide::sendShowFullscreen, presentationScreen, &PresentationScreen::showFullScreen);
     connect(ui->current_slide, &PreviewSlide::sendShowFullscreen, presentationScreen, &PresentationScreen::showFullScreen);
     connect(ui->next_slide,    &PreviewSlide::sendShowFullscreen, presentationScreen, &PresentationScreen::showFullScreen);
@@ -1299,10 +1300,10 @@ bool ControlScreen::handleKeyAction(KeyAction const action)
         }
         break;
     case KeyAction::FullScreen:
-        if (this->windowState() == Qt::WindowFullScreen)
-            showNormal();
+        if (presentationScreen->windowState() == Qt::WindowFullScreen)
+            presentationScreen->showNormal();
         else
-            showFullScreen();
+            presentationScreen->showFullScreen();
         break;
     case KeyAction::Quit:
         emit sendCloseSignal();
