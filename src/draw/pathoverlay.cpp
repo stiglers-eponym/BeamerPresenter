@@ -289,7 +289,7 @@ void PathOverlay::mousePressEvent(QMouseEvent *event)
         case Highlighter:
             if (!paths.contains(master->page->label()))
                 paths[master->page->label()] = QList<DrawPath*>();
-            paths[master->page->label()].append(new DrawPath(tool, event->localPos(), sizes[Eraser]));
+            paths[master->page->label()].append(new DrawPath(tool, event->localPos(), sizes[tool.tool], sizes[Eraser]));
             break;
         case Eraser:
             erase(event->localPos());
@@ -671,6 +671,88 @@ void PathOverlay::saveDrawings(QString const& filename, QString const& notefile)
     }
 }
 
+void PathOverlay::loadXML(QString const& filename)
+{
+    // Load drawings from (compressed) XML.
+    qInfo() << "Loading files is experimental. Files might contain errors or might be unreadable for later versions of BeamerPresenter";
+    QFile file(filename);
+    if (!file.exists()) {
+        qCritical() << "Loading file failed: file does not exist.";
+        return;
+    }
+    if (!file.open(QIODevice::ReadOnly)) {
+        qCritical() << "Loading file failed: file is not readable.";
+        return;
+    }
+    qDebug() << "reading doc";
+    QDomDocument doc("BeamerPresenter");
+    if (!doc.setContent(&file)) {
+        QByteArray const data = qUncompress(file.readAll());
+        if (!doc.setContent(data))
+            file.close();
+    }
+    QDomElement const root = doc.documentElement();
+    qDebug() << root.attribute("creator");
+
+    qDebug() << "reading presentation";
+    QDomElement const pres = root.firstChildElement("presentation");
+    qDebug() << "file:" << pres.attribute("file");
+    if (pres.attribute("pages").toInt() != master->doc->getDoc()->numPages())
+        qWarning() << "Number of pages does not match!";
+
+    qDebug() << "reading notes";
+    QDomElement const notes = root.firstChildElement("notes");
+    qDebug() << "file:" << notes.attribute("file");
+    if (notes.attribute("pages").toInt() != master->doc->getDoc()->numPages())
+        qWarning() << "Number of pages does not match!";
+
+    qDebug() << "reading tools";
+    for (QDomElement tool = root.firstChildElement("tool"); !tool.isNull(); tool = tool.nextSiblingElement("tool")) {
+        // TODO: handle possible errors
+        sizes[static_cast<DrawTool>(tool.attribute("id").toInt())] = tool.attribute("size").toUInt();
+    }
+
+    for (QDomElement page_element = root.firstChildElement("page"); !page_element.isNull(); page_element = page_element.nextSiblingElement("page")) {
+        qDebug() << "adding page";
+        QString const label = page_element.attribute("label");
+        qDebug() << "label" << label;
+        qreal scale;
+        QPoint shift;
+        Poppler::Page const* page = master->doc->getPage(label);
+        QSizeF size;
+        if (page == nullptr)
+            size = master->page->pageSizeF();
+        else
+            size = page->pageSizeF();
+        if (size.width() * height() >= width() * size.height()) {
+            shift.setY(( height() - size.height()/size.width() * width() )/2);
+            scale = width() / size.width();
+        }
+        else {
+            shift.setX((width() - size.width()/size.height() * height() )/2);
+            scale = height() / size.height();
+        }
+        if (paths.contains(label)) {
+            qDeleteAll(paths[label]);
+            paths[label].clear();
+        }
+        else
+            paths[label] = QList<DrawPath*>();
+        for (QDomElement stroke = page_element.firstChildElement("stroke"); !stroke.isNull(); stroke = stroke.nextSiblingElement("stroke")) {
+            qDebug() << "adding stroke";
+            DrawTool const tool = static_cast<DrawTool>(stroke.attribute("tool").toInt());
+            QColor const color = QColor(stroke.attribute("color"));
+            quint16 const size = stroke.attribute("size").toUInt();
+            QStringList const data = stroke.text().split(" ");
+            qDebug() << "creating path" << tool << color << size << data.size();
+            paths[label].append(new DrawPath({tool, color}, data, shift, scale, size, sizes[Eraser]));
+        }
+        emit pathsChanged(label, paths[label], master->shiftx, master->shifty, master->resolution);
+    }
+    file.close();
+    update();
+}
+
 void PathOverlay::saveXML(QString const& filename, PdfDoc const* notedoc) const
 {
     // Save drawings in compressed XML.
@@ -699,13 +781,11 @@ void PathOverlay::saveXML(QString const& filename, PdfDoc const* notedoc) const
     root.appendChild(notes);
 
     /*
-    QDomElement tools = doc.createElement("tools");
-    root.appendChild(tools);
     for (QMap<DrawTool, quint16>::const_iterator size_it=sizes.cbegin(); size_it!=sizes.cend(); size_it++) {
         QDomElement tool = doc.createElement("tool");
-        tools.appendChild(tool);
         tool.setAttribute("id", static_cast<quint16>(size_it.key()));
         tool.setAttribute("size", *size_it);
+        root.appendChild(tool);
     }
     */
 
@@ -725,13 +805,14 @@ void PathOverlay::saveXML(QString const& filename, PdfDoc const* notedoc) const
         else
             size = page->pageSizeF();
         if (size.width() * height() >= width() * size.height()) {
-            shift.setX(( height() - size.height()/size.width() * width() )/2);
+            shift.setY(( height() - size.height()/size.width() * width() )/2);
             scale = size.width() / width();
         }
         else {
-            shift.setY((width() - size.width()/size.height() * height() )/2);
+            shift.setX((width() - size.width()/size.height() * height() )/2);
             scale = size.height() / height();
         }
+        qDebug() << "shift:" << shift << "scale:" << scale;
         qDebug() << "iterate over paths:" << page_it->size();
         for (QList<DrawPath*>::const_iterator path_it=page_it->cbegin(); path_it!=page_it->cend(); path_it++) {
             qDebug() << "converting path to string";
@@ -742,7 +823,7 @@ void PathOverlay::saveXML(QString const& filename, PdfDoc const* notedoc) const
             page_element.appendChild(stroke);
             stroke.setAttribute("tool", (*path_it)->getTool());
             stroke.setAttribute("color", (*path_it)->getColor().name());
-            stroke.setAttribute("width", sizes[(*path_it)->getTool()]);
+            stroke.setAttribute("width", (*path_it)->getSize());
             QDomText data = doc.createTextNode(stringList.join(" "));
             stroke.appendChild(data);
         }
@@ -754,6 +835,7 @@ void PathOverlay::saveXML(QString const& filename, PdfDoc const* notedoc) const
     //QByteArray data = qCompress(doc.toByteArray());
     QByteArray data = doc.toByteArray();
     file.write(data);
+    file.close();
 }
 
 void PathOverlay::loadDrawings(QString const& filename)
@@ -830,7 +912,7 @@ void PathOverlay::loadDrawings(QString const& filename)
                 qCritical() << "Interrupted reading file: File is corrupt.";
                 break;
             }
-            paths[pagelabel].append(new DrawPath({static_cast<DrawTool>(tool), color}, vec, master->shiftx, master->shifty, w, h, sizes[Eraser]));
+            paths[pagelabel].append(new DrawPath({static_cast<DrawTool>(tool), color}, vec, master->shiftx, master->shifty, w, h, sizes[static_cast<DrawTool>(tool)], sizes[Eraser]));
         }
         emit pathsChanged(pagelabel, paths[pagelabel], master->shiftx, master->shifty, master->resolution);
     }
@@ -854,7 +936,6 @@ void PathOverlay::setMagnification(qreal const mag)
 
 void PathOverlay::drawPointer(QPainter& painter)
 {
-    // TODO
     painter.setOpacity(1.);
     painter.setCompositionMode(QPainter::CompositionMode_Darken);
     if (tool.tool == Pointer) {

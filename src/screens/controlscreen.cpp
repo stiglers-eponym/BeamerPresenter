@@ -1354,7 +1354,8 @@ bool ControlScreen::handleKeyAction(KeyAction const action)
         {
             QString const loadPath = QFileDialog::getOpenFileName(this, "Load drawings");
             if (!loadPath.isEmpty())
-                presentationScreen->slide->getPathOverlay()->loadDrawings(loadPath);
+                //presentationScreen->slide->getPathOverlay()->loadDrawings(loadPath);
+                presentationScreen->slide->getPathOverlay()->loadXML(loadPath);
         }
         break;
     case NoAction:
