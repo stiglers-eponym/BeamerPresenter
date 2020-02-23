@@ -1346,7 +1346,8 @@ bool ControlScreen::handleKeyAction(KeyAction const action)
         {
             QString const savePath = QFileDialog::getSaveFileName(this, "Save drawings");
             if (!savePath.isEmpty())
-                presentationScreen->slide->getPathOverlay()->saveDrawings(savePath, notes->getPath());
+                //presentationScreen->slide->getPathOverlay()->saveDrawings(savePath, notes->getPath());
+                presentationScreen->slide->getPathOverlay()->saveXML(savePath, notes);
         }
         break;
     case KeyAction::LoadDrawings:

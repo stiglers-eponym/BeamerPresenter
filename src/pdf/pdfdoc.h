@@ -39,6 +39,7 @@
 //#define POPPLER_VERSION_MINOR ??
 //#define POPPLER_VERSION_MICRO ? // not needed
 
+
 /// PDF document.
 /// This provides an interface for caching all Poppler::Page objects and reloading files.
 class PdfDoc
@@ -53,6 +54,8 @@ private:
     /// Last time of modification of the file in the form which was last loaded.
     /// This is used to check whether it needs to be reloaded.
     QDateTime lastModified = QDateTime();
+    /// List of labels
+    QList<QString> labels;
 
 public:
     /// Constructor: takes the path to the PDF file as argument. This does not load the document.
@@ -67,6 +70,10 @@ public:
     QList<Poppler::Page*> const* getPages() const {return &pdfPages;}
     /// Check if page number is valid and return page.
     Poppler::Page const* getPage(int pageNumber) const;
+    /// Check if page label is valid and return page.
+    Poppler::Page const* getPage(QString const& pageLabel) const;
+    /// Modification date as string.
+    QString const getLastModified() const {return lastModified.toString("yyyy-MM-dd hh:mm:ss");}
     /// Return the QDomDocument representing the table of contents (TOC) of the PDF document.
     QDomDocument const* getToc() const {return popplerDoc->toc();}
     /// Return page size in point = inch/72.

@@ -45,6 +45,8 @@ public:
     quint16 getSize(DrawTool const tool) const {return sizes[tool];}
     void saveDrawings(QString const& filename, QString const& notefile = "") const;
     void loadDrawings(QString const& filename);
+    void saveXML(QString const& filename, PdfDoc const* notedoc) const;
+    void loadXML(QString const& filename);
     void setMagnification(qreal const mag);
     void drawPointer(QPainter& painter);
     void undoPath();

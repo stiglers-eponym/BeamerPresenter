@@ -155,12 +155,20 @@ void DrawPath::updateHash()
 
 void DrawPath::toIntVector(QVector<float>& vec, int const xshift, int const yshift, int const width, int const height) const
 {
+    // Deprecate
     for (auto point : path) {
         vec.append(static_cast<float>(point.x() - xshift)/width);
         vec.append(static_cast<float>(point.y() - yshift)/height);
     }
 }
 
+void DrawPath::toText(QStringList &stringList, QPoint const shift, qreal const scale) const
+{
+    for (auto point : path) {
+        stringList << QString::number((point.x() - shift.x())*scale);
+        stringList << QString::number((point.y() - shift.y())*scale);
+    }
+}
 
 DrawPath::DrawPath(ColoredDrawTool const& tool, QVector<float> const& vec, int const xshift, int const yshift, int const width, int const height, quint16 const eraser_size)
 {

@@ -89,11 +89,13 @@ bool PdfDoc::loadDocument()
     // Clear old lists
     qDeleteAll(pdfPages);
     pdfPages.clear();
+    labels.clear();
 
     // Create lists of pages.
     for (int i=0; i < newDoc->numPages(); i++) {
         Poppler::Page* p = newDoc->page(i);
         pdfPages.append(p);
+        labels.append(p->label());
     }
 
     // Check document contents and print warnings if unimplemented features are found.
@@ -192,4 +194,12 @@ int PdfDoc::getSlideNumber(const int page) const
         return page + 1;
     else
         return label.toInt();
+}
+
+Poppler::Page const* PdfDoc::getPage(QString const& pageLabel) const
+{
+    int const idx = labels.indexOf(pageLabel);
+    if (idx > 0)
+        return pdfPages[idx];
+    return nullptr;
 }

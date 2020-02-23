@@ -43,6 +43,7 @@ public:
     /// Called when drawing ends: makes sure that a path contains at least two points such that it can be drawn.
     void endDrawing();
     void toIntVector(QVector<float>& vec, int const xshift, int const yshift, int const width, int const height) const;
+    void toText(QStringList& stringList, QPoint const shift, qreal const scale) const;
     void transform(QPointF const& shift, double const scale);
     bool update(DrawPath const& new_path, QPointF const shift, double const scale);
     void updateHash();
