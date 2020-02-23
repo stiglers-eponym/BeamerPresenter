@@ -43,9 +43,13 @@ public:
     QMap<QString, QList<DrawPath*>> const& getPaths() const {return paths;}
     ColoredDrawTool getTool() const {return tool;}
     quint16 getSize(DrawTool const tool) const {return sizes[tool];}
+    /// Deprecated
     void saveDrawings(QString const& filename, QString const& notefile = "") const;
+    /// Deprecated
     void loadDrawings(QString const& filename);
-    void saveXML(QString const& filename, PdfDoc const* notedoc) const;
+    /// Save files to compressed or uncompressed XML file.
+    void saveXML(QString const& filename, PdfDoc const* notedoc, bool const compress = true) const;
+    /// Load files from compressed or uncompressed XML file.
     void loadXML(QString const& filename);
     void setMagnification(qreal const mag);
     void drawPointer(QPainter& painter);

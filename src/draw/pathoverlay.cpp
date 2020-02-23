@@ -634,9 +634,10 @@ void PathOverlay::updateEnlargedPage()
 
 void PathOverlay::saveDrawings(QString const& filename, QString const& notefile) const
 {
-    // Deprecate
+    // Deprecated
     // Save drawings in a strange data format.
-    qInfo() << "Saving files is experimental. Files might contain errors or might be unreadable for later versions of BeamerPresenter";
+    qWarning() << "The binary file type is deprecated.";
+    qWarning() << "The saved file will be unreadable for later versions of BeamerPresenter!";
     QFile file(filename);
     file.open(QIODevice::WriteOnly);
     QDataStream stream(&file);
@@ -684,23 +685,24 @@ void PathOverlay::loadXML(QString const& filename)
         qCritical() << "Loading file failed: file is not readable.";
         return;
     }
-    qDebug() << "reading doc";
     QDomDocument doc("BeamerPresenter");
     if (!doc.setContent(&file)) {
-        QByteArray const data = qUncompress(file.readAll());
-        if (!doc.setContent(data))
+        file.close();
+        file.open(QIODevice::ReadOnly);
+        if (!doc.setContent(qUncompress(file.readAll()))) {
             file.close();
+            loadDrawings(filename);
+            return;
+        }
     }
     QDomElement const root = doc.documentElement();
     qDebug() << root.attribute("creator");
 
-    qDebug() << "reading presentation";
     QDomElement const pres = root.firstChildElement("presentation");
     qDebug() << "file:" << pres.attribute("file");
     if (pres.attribute("pages").toInt() != master->doc->getDoc()->numPages())
         qWarning() << "Number of pages does not match!";
 
-    qDebug() << "reading notes";
     QDomElement const notes = root.firstChildElement("notes");
     qDebug() << "file:" << notes.attribute("file");
     if (notes.attribute("pages").toInt() != master->doc->getDoc()->numPages())
@@ -713,9 +715,7 @@ void PathOverlay::loadXML(QString const& filename)
     }
 
     for (QDomElement page_element = root.firstChildElement("page"); !page_element.isNull(); page_element = page_element.nextSiblingElement("page")) {
-        qDebug() << "adding page";
         QString const label = page_element.attribute("label");
-        qDebug() << "label" << label;
         qreal scale;
         QPoint shift;
         Poppler::Page const* page = master->doc->getPage(label);
@@ -739,12 +739,10 @@ void PathOverlay::loadXML(QString const& filename)
         else
             paths[label] = QList<DrawPath*>();
         for (QDomElement stroke = page_element.firstChildElement("stroke"); !stroke.isNull(); stroke = stroke.nextSiblingElement("stroke")) {
-            qDebug() << "adding stroke";
             DrawTool const tool = static_cast<DrawTool>(stroke.attribute("tool").toInt());
             QColor const color = QColor(stroke.attribute("color"));
             quint16 const size = stroke.attribute("size").toUInt();
             QStringList const data = stroke.text().split(" ");
-            qDebug() << "creating path" << tool << color << size << data.size();
             paths[label].append(new DrawPath({tool, color}, data, shift, scale, size, sizes[Eraser]));
         }
         emit pathsChanged(label, paths[label], master->shiftx, master->shifty, master->resolution);
@@ -753,11 +751,10 @@ void PathOverlay::loadXML(QString const& filename)
     update();
 }
 
-void PathOverlay::saveXML(QString const& filename, PdfDoc const* notedoc) const
+void PathOverlay::saveXML(QString const& filename, PdfDoc const* notedoc, bool const compress) const
 {
     // Save drawings in compressed XML.
     qInfo() << "Saving files is experimental. Files might contain errors or might be unreadable for later versions of BeamerPresenter";
-    qDebug() << "creating doc";
     QDomDocument doc("BeamerPresenter");
     QDomElement root = doc.createElement("BeamerPresenter");
     root.setAttribute("creator", "BeamerPresenter " APP_VERSION);
@@ -766,36 +763,30 @@ void PathOverlay::saveXML(QString const& filename, PdfDoc const* notedoc) const
     QString const presentation_file = QFileInfo(master->doc->getPath()).absoluteFilePath();
     QString const notes_file = QFileInfo(notedoc->getPath()).absoluteFilePath();
 
-    qDebug() << "adding presentation";
     QDomElement pres = doc.createElement("presentation");
     pres.setAttribute("file", presentation_file);
     pres.setAttribute("pages", master->doc->getDoc()->numPages());
     pres.setAttribute("changed", master->doc->getLastModified());
     root.appendChild(pres);
 
-    qDebug() << "adding notes";
     QDomElement notes = doc.createElement("notes");
     notes.setAttribute("file", notes_file);
     notes.setAttribute("pages", notedoc->getDoc()->numPages());
     notes.setAttribute("changed", notedoc->getLastModified());
     root.appendChild(notes);
 
-    /*
     for (QMap<DrawTool, quint16>::const_iterator size_it=sizes.cbegin(); size_it!=sizes.cend(); size_it++) {
         QDomElement tool = doc.createElement("tool");
         tool.setAttribute("id", static_cast<quint16>(size_it.key()));
         tool.setAttribute("size", *size_it);
         root.appendChild(tool);
     }
-    */
 
     qDebug() << "adding pages:" << paths.size();
     for (QMap<QString, QList<DrawPath*>>::const_iterator page_it=paths.cbegin(); page_it!=paths.cend(); page_it++) {
-        qDebug() << "creating element:" << page_it.key();
         QDomElement page_element = doc.createElement("page");
         page_element.setAttribute("label", page_it.key());
         root.appendChild(page_element);
-        qDebug() << "calculating page size";
         qreal scale;
         QPoint shift;
         Poppler::Page const* page = master->doc->getPage(page_it.key());
@@ -812,13 +803,9 @@ void PathOverlay::saveXML(QString const& filename, PdfDoc const* notedoc) const
             shift.setX((width() - size.width()/size.height() * height() )/2);
             scale = size.height() / height();
         }
-        qDebug() << "shift:" << shift << "scale:" << scale;
-        qDebug() << "iterate over paths:" << page_it->size();
         for (QList<DrawPath*>::const_iterator path_it=page_it->cbegin(); path_it!=page_it->cend(); path_it++) {
-            qDebug() << "converting path to string";
             QStringList stringList;
             (*path_it)->toText(stringList, shift, scale);
-            qDebug() << "creating element";
             QDomElement stroke = doc.createElement("stroke");
             page_element.appendChild(stroke);
             stroke.setAttribute("tool", (*path_it)->getTool());
@@ -829,20 +816,21 @@ void PathOverlay::saveXML(QString const& filename, PdfDoc const* notedoc) const
         }
     }
 
-    qDebug() << "saving file";
     QFile file(filename);
     file.open(QIODevice::WriteOnly);
-    //QByteArray data = qCompress(doc.toByteArray());
-    QByteArray data = doc.toByteArray();
-    file.write(data);
+    if (compress)
+        file.write(qCompress(doc.toByteArray()));
+        // In order to unzip this compressed file using zlib, you need to remove the first four bytes:
+        // tail -c+5 compressed.bp | zlib-flate -uncompress > uncompressed.bp
+    else
+        file.write(doc.toByteArray());
     file.close();
 }
 
 void PathOverlay::loadDrawings(QString const& filename)
 {
-    // Deprecate
+    // Deprecated
     // Load drawings from the strange data format.
-    qInfo() << "Loading files is experimental. Files might contain errors or might be unreadable for later versions of BeamerPresenter";
     QFile file(filename);
     if (!file.exists()) {
         qCritical() << "Loading file failed: file does not exist.";
@@ -862,6 +850,8 @@ void PathOverlay::loadDrawings(QString const& filename)
             return;
         }
     }
+    qWarning() << "The binary file type of this file is deprecated.";
+    qWarning() << "This file will be unreadable for later versions of BeamerPresenter!";
     {
         quint16 version;
         stream >> version;

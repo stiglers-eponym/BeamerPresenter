@@ -216,13 +216,23 @@ Restore a previously undone path.
 .
 .TP
 .B save drawings
-Save drawings to a file. This opens a file dialog in which you specify an output file name.
+Save drawings to a compressed XML file. This opens a file dialog in which you specify an output file name.
 Note that saving and loading drawings is experimental and files may not be readable for later versions of BeamerPresenter!
+.
+.TP
+.B save drawings uncompressed
+Save drawings to a uncompressed XML file. This opens a file dialog in which you specify an output file name.
+Note that saving and loading drawings is experimental and files may not be readable for later versions of BeamerPresenter!
+.
+.TP
+.B save drawings legacy
+Save drawings to a legacy binary file. This opens a file dialog in which you specify an output file name.
+Note that this file format will not be readable for later versions of BeamerPresenter!
 .
 .TP
 .B load drawings
 Load drawings from file. This opens a file dialog in which you select a file which was created using BeamerPresenter.
-Note that saving and loading drawings is experimental and files may not be readable for later versions of BeamerPresenter!
+.RB "Currently loading compressed and uncompressed XML files and legacy binary files are supported. However, legacy binary files will not be supported in later versions of " BeamerPresenter .
 .
 .
 .

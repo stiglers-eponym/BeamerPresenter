@@ -117,6 +117,8 @@ static const QMap<QString, KeyAction> keyActionMap {
     {"redo drawing", KeyAction::RedoDrawing},
     {"save drawings", KeyAction::SaveDrawings},
     {"load drawings", KeyAction::LoadDrawings},
+    {"save drawings legacy", KeyAction::SaveDrawingsLegacy},
+    {"save drawings uncompressed", KeyAction::SaveDrawingsUncompressed},
 };
 
 /// Map tool strings from configuration file to DrawTool (enum).
@@ -581,7 +583,7 @@ int main(int argc, char *argv[])
             break;
         }
         // If file is a JSON file, it is interpreted as a local configuration file.
-        else if (type.suffixes().contains("txt") || type.suffixes().contains("json")) {
+        if (type.suffixes().contains("txt") || type.suffixes().contains("json")) {
             // Try to open the file.
             QFile jsonFile(parser.positionalArguments()[0]);
             jsonFile.open(QFile::ReadOnly);
@@ -590,7 +592,7 @@ int main(int argc, char *argv[])
             QJsonDocument jsonDoc = QJsonDocument::fromJson(jsonFile.readAll(), error);
             // Check for errors.
             if (jsonDoc.isNull() || jsonDoc.isEmpty()) {
-                qCritical() << "Failed to load local configuration file: File is empty or parsing JSON failed";
+                qWarning() << "Failed to load local configuration file: File is empty or parsing JSON failed";
                 if (error != nullptr)
                     qInfo() << "Reported error:" << error->errorString();
             }
@@ -605,55 +607,75 @@ int main(int argc, char *argv[])
                         notes = local.value("notes").toString();
                     break;
                 }
-                // else: this will lead to an error (see later).
-            }
-        }
-        else {
-            // Try to read file as BeamerPresenter drawing binary.
-            // Note that this file type is experimental. It might change in later versions.
-
-            // Try to open the file.
-            QFile file(parser.positionalArguments()[0]);
-            if (file.open(QIODevice::ReadOnly)) {
-                // Read the file in a QDataStream.
-                QDataStream stream(&file);
-                stream.setVersion(QDataStream::Qt_5_0);
-                // Read "magic bytes" from the stream an compare.
-                quint32 magic;
-                stream >> magic;
-                // Check for errors and whether the magic bytes match the ones defined for BeamerPresenter binaries.
-                if (stream.status() == QDataStream::Ok && magic == 0x2CA7D9F8) {
-                    // Read QDataStream version from stream.
-                    quint16 version;
-                    stream >> version;
-                    // Overwrite QDataStream version with the version read from the stream.
-                    stream.setVersion(version);
-                    // Read file paths for presentation and notes.
-                    stream >> presentation >> notes;
-                    // Check for errors.
-                    if (stream.status() != QDataStream::Ok) {
-                        qCritical() << "Failed to open drawings file" << parser.positionalArguments()[0] << ". File is corrupt";
-                        return 1;
-                    }
-                    // Check whether presentation file exists.
-                    // This check could be left out (it is repeated in the constructure of ControlScreen), but like this it provides a more detailed error message.
-                    if (!QFileInfo(presentation).exists()) {
-                        qCritical() << "Failed to open PDF file" << presentation << "refered to in" << parser.positionalArguments()[0] << ". File does not exist.";
-                        return 1;
-                    }
-                    // Create ctrlScreen.
-                    // notespath can be empty, which is handled correctly in the constructure of ControlScreen.
-                    // Set the drawings file as a drawings file in local configuration.
-                    // Later this option in local will be used to load the drawings saved in the drawings file.
-                    local["drawings"] = parser.positionalArguments()[0];
-                    break;
+                else {
+                    qCritical() << "Could not find presentation file. Argument was" << parser.positionalArguments()[0];
+                    return 1;
                 }
             }
         }
+
+        // Try to read file as BeamerPresenter drawing file (XML, compressed XML or legacy binary format).
+        QFile file(parser.positionalArguments()[0]);
+        if (!file.open(QIODevice::ReadOnly)) {
+            qCritical() << "Cannot read file:" << parser.positionalArguments()[0];
+            return 1;
         }
-        // If the above failed and ctrlScreen was not created: Exit with generic error message.
-        qCritical() << "Could not find presentation file. Argument was" << parser.positionalArguments()[0];
-        return 1;
+        // Try to open the file as (compressed) XML document.
+        QDomDocument doc("BeamerPresenter");
+        if (!doc.setContent(&file)) {
+            file.close();
+            file.open(QIODevice::ReadOnly);
+            if (!doc.setContent(qUncompress(file.readAll()))) {
+                file.close();
+                doc.clear();
+            }
+        }
+        if (doc.isNull()) {
+            // Deprecated
+            // Try to read deprecated binary file format.
+            file.open(QIODevice::ReadOnly);
+            // Read the file in a QDataStream.
+            QDataStream stream(&file);
+            stream.setVersion(QDataStream::Qt_5_0);
+            // Read "magic bytes" from the stream an compare.
+            quint32 magic;
+            stream >> magic;
+            // Check for errors and whether the magic bytes match the ones defined for BeamerPresenter binaries.
+            if (stream.status() == QDataStream::Ok && magic == 0x2CA7D9F8) {
+                // Read QDataStream version from stream.
+                quint16 version;
+                stream >> version;
+                // Overwrite QDataStream version with the version read from the stream.
+                stream.setVersion(version);
+                // Read file paths for presentation and notes.
+                stream >> presentation >> notes;
+                // Check for errors.
+                if (stream.status() != QDataStream::Ok) {
+                    qCritical() << "Failed to open drawings file" << parser.positionalArguments()[0] << ". File is corrupt";
+                    return 1;
+                }
+            }
+        }
+        else {
+            QDomElement const root = doc.documentElement();
+            QDomElement const pres_element = root.firstChildElement("presentation");
+            presentation = pres_element.attribute("file");
+            QDomElement const notes_element = root.firstChildElement("notes");
+            notes = notes_element.attribute("file");
+        }
+        // Check whether presentation file exists.
+        // This check could be left out (it is repeated in the constructure of ControlScreen), but like this it provides a more detailed error message.
+        if (!QFileInfo(presentation).exists()) {
+            qCritical() << "Failed to open PDF file" << presentation << "refered to in" << parser.positionalArguments()[0] << ". File does not exist.";
+            return 1;
+        }
+        // Create ctrlScreen.
+        // notespath can be empty, which is handled correctly in the constructure of ControlScreen.
+        // Set the drawings file as a drawings file in local configuration.
+        // Later this option in local will be used to load the drawings saved in the drawings file.
+        local["drawings"] = parser.positionalArguments()[0];
+        break;
+        }
     case 2:
         // Two positional arguments are given.
         // Assume that these are the two PDF files for presentation and notes.
@@ -1569,7 +1591,7 @@ int main(int argc, char *argv[])
     if (local.contains("drawings")) {
         QString drawpath = local.value("drawings").toString();
         // Load the drawings.
-        ctrlScreen->loadDrawings(drawpath);
+        ctrlScreen->loadXML(drawpath);
     }
 
     // Start the execution loop.

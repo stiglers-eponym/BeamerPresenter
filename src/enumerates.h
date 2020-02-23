@@ -167,10 +167,14 @@ enum KeyAction {
     /// Restore the latest deleted stroke.
     RedoDrawing,
 
-    /// Save drawings to file.
+    /// Save drawings to compressed XML file.
     SaveDrawings,
-    /// Load drawings to file.
+    /// Save drawings to uncompressed XML file.
+    SaveDrawingsUncompressed,
+    /// Load drawings from compressed or uncompressed XML file.
     LoadDrawings,
+    /// Save drawings to legacy binary file (deprecated!)
+    SaveDrawingsLegacy,
 
     // Hard coded keys used to directly pass raw key events.
     // Arrow keys
