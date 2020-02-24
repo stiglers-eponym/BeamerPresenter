@@ -24,189 +24,7 @@
 #include <QJsonDocument>
 #include <QMimeDatabase>
 #include "screens/controlscreen.h"
-
-/// Map action strings in configuration file to KeyAction (enum)
-static const QMap<QString, KeyAction> keyActionMap {
-    {"previous", KeyAction::Previous},
-    {"next", KeyAction::Next},
-    {"previous no transition", KeyAction::PreviousNoTransition},
-    {"next no transition", KeyAction::NextNoTransition},
-    {"previous notes", KeyAction::PreviousNotes},
-    {"next notes", KeyAction::NextNotes},
-    {"previous skipping overlays", KeyAction::PreviousSkippingOverlays},
-    {"next skipping overlays", KeyAction::NextSkippingOverlays},
-    {"previous notes skipping overlays", KeyAction::PreviousNotesSkippingOverlays},
-    {"next notes skipping overlays", KeyAction::NextNotesSkippingOverlays},
-    {"go to", KeyAction::GoToPage},
-    {"go to page", KeyAction::GoToPage},
-    {"go to slide", KeyAction::GoToPage},
-    {"last page", KeyAction::LastPage},
-    {"last slide", KeyAction::LastPage},
-    {"first page", KeyAction::FirstPage},
-    {"first slide", KeyAction::FirstPage},
-    {"sync from control screen", KeyAction::SyncFromControlScreen},
-    {"sync from presentation screen", KeyAction::SyncFromPresentationScreen},
-    {"update", KeyAction::Update},
-
-    {"update cache", KeyAction::UpdateCache},
-#ifdef EMBEDDED_APPLICATIONS_ENABLED
-    {"start embedded current page", KeyAction::StartEmbeddedCurrentSlide},
-    {"start embedded current slide", KeyAction::StartEmbeddedCurrentSlide},
-    {"start embedded applications current page", KeyAction::StartEmbeddedCurrentSlide},
-    {"start embedded applications current slide", KeyAction::StartEmbeddedCurrentSlide},
-    {"start all embedded", KeyAction::StartAllEmbedded},
-    {"start all embedded applications", KeyAction::StartAllEmbedded},
-    {"close all embedded", KeyAction::CloseAllEmbedded},
-    {"close all embedded applications", KeyAction::CloseAllEmbedded},
-    {"close embedded current page", KeyAction::CloseEmbeddedCurrentSlide},
-    {"close embedded current slide", KeyAction::CloseEmbeddedCurrentSlide},
-    {"close embedded applications current page", KeyAction::CloseEmbeddedCurrentSlide},
-    {"close embedded applications current slide", KeyAction::CloseEmbeddedCurrentSlide},
-#endif
-    {"play multimedia", KeyAction::PlayMultimedia},
-    {"pause multimedia", KeyAction::PauseMultimedia},
-    {"play pause multimedia", KeyAction::PlayPauseMultimedia},
-    {"toggle multimedia", KeyAction::PlayPauseMultimedia},
-
-    {"toggle mute",              KeyAction::ToggleMuteAll},
-    {"toggle mute presentation", KeyAction::ToggleMutePresentation},
-    {"toggle mute notes",        KeyAction::ToggleMuteNotes},
-    {"mute",              KeyAction::MuteAll},
-    {"mute all",          KeyAction::MuteAll},
-    {"mute presentation", KeyAction::MutePresentation},
-    {"mute notes",        KeyAction::MuteNotes},
-    {"unmute",              KeyAction::UnmuteAll},
-    {"unmute all",          KeyAction::UnmuteAll},
-    {"unmute presentation", KeyAction::UnmutePresentation},
-    {"unmute notes",        KeyAction::UnmuteNotes},
-
-    {"toggle timer", KeyAction::PlayPauseTimer},
-    {"pause timer", KeyAction::PauseTimer},
-    {"continue timer", KeyAction::ContinueTimer},
-    {"reset timer", KeyAction::ResetTimer},
-    {"toggle toc", KeyAction::ToggleTOC},
-    {"show toc", KeyAction::ShowTOC},
-    {"show overview", KeyAction::ShowOverview},
-    {"toggle overview", KeyAction::ToggleOverview},
-    {"hide overlays", KeyAction::HideOverlays},
-    {"show notes", KeyAction::HideOverlays},
-    {"toggle cursor", KeyAction::ToggleCursor},
-    {"show cursor", KeyAction::ShowCursor},
-    {"hide cursor", KeyAction::HideCursor},
-    {"full screen", KeyAction::FullScreen},
-    {"reload", KeyAction::Reload},
-    {"quit", KeyAction::Quit},
-
-    {"clear annotations", KeyAction::ClearAnnotations},
-    {"hand tool", KeyAction::DrawNone},
-    {"none", KeyAction::DrawNone},
-    {"pointer", KeyAction::DrawPointer},
-    {"pen", KeyAction::DrawPen},
-    {"highlighter", KeyAction::DrawHighlighter},
-    {"torch", KeyAction::DrawTorch},
-    {"magnifier", KeyAction::DrawMagnifier},
-    {"eraser", KeyAction::DrawEraser},
-
-    {"toggle draw mode", KeyAction::ToggleDrawMode},
-    {"enter draw mode", KeyAction::DrawMode},
-    {"draw mode", KeyAction::DrawMode},
-    {"hide draw slide", KeyAction::HideDrawSlide},
-    {"end draw mode", KeyAction::HideDrawSlide},
-    {"end drawing", KeyAction::HideDrawSlide},
-    {"undo drawing", KeyAction::UndoDrawing},
-    {"redo drawing", KeyAction::RedoDrawing},
-    {"save drawings", KeyAction::SaveDrawings},
-    {"load drawings", KeyAction::LoadDrawings},
-    {"save drawings legacy", KeyAction::SaveDrawingsLegacy},
-    {"save drawings uncompressed", KeyAction::SaveDrawingsUncompressed},
-};
-
-/// Map tool strings from configuration file to DrawTool (enum).
-/// Every tool string defined here must also be a valid key action string in keyActionMap.
-static const QMap<QString, DrawTool> toolMap {
-    {"pen", DrawTool::Pen},
-    {"highlighter", DrawTool::Highlighter},
-    {"none", DrawTool::NoTool},
-    {"pointer", DrawTool::Pointer},
-    {"eraser", DrawTool::Eraser},
-    {"torch", DrawTool::Torch},
-    {"magnifier", DrawTool::Magnifier},
-};
-
-/// Default mapping of keys to KeyAction actions.
-/// This is used if the configuration file does not define any key mapping.
-static const QMap<quint32, QList<KeyAction>> defaultKeyMap = {
-    {Qt::Key_PageUp, {KeyAction::Previous}},
-    {Qt::Key_PageDown, {KeyAction::Next}},
-    {Qt::Key_Left, {KeyAction::Previous}},
-    {Qt::Key_Right, {KeyAction::Next}},
-    {Qt::Key_Up, {KeyAction::PreviousSkippingOverlays}},
-    {Qt::Key_Down, {KeyAction::NextSkippingOverlays}},
-    {Qt::Key_G, {KeyAction::GoToPage}},
-    {Qt::Key_End, {KeyAction::LastPage}},
-    {Qt::Key_Home, {KeyAction::FirstPage}},
-    {Qt::Key_Return, {KeyAction::SyncFromControlScreen}},
-    {Qt::Key_Escape, {KeyAction::SyncFromPresentationScreen, KeyAction::HideOverlays, KeyAction::HideDrawSlide}},
-    {Qt::Key_Space, {KeyAction::Update}},
-
-    {Qt::Key_C, {KeyAction::UpdateCache}},
-#ifdef EMBEDDED_APPLICATIONS_ENABLED
-    {Qt::Key_E, {KeyAction::StartEmbeddedCurrentSlide}},
-    {Qt::Key_E+Qt::ShiftModifier, {KeyAction::StartAllEmbedded}},
-#endif
-    {Qt::Key_M, {KeyAction::PlayPauseMultimedia}},
-
-    {Qt::Key_P, {KeyAction::PlayPauseTimer}},
-    {Qt::Key_R, {KeyAction::ResetTimer}},
-    {Qt::Key_T, {KeyAction::ShowTOC}},
-    {Qt::Key_S, {KeyAction::ShowOverview}},
-    {Qt::Key_O, {KeyAction::ToggleCursor}},
-    {Qt::Key_F, {KeyAction::FullScreen}},
-    {Qt::Key_U, {KeyAction::Reload}},
-    {Qt::Key_Q+Qt::CTRL, {KeyAction::Quit}},
-    {Qt::Key_Z+Qt::CTRL, {KeyAction::UndoDrawing}},
-    {Qt::Key_Y+Qt::CTRL, {KeyAction::RedoDrawing}},
-};
-
-/// Map of keys to KeyActions for hard coded key bindings.
-/// The keys in this list are used in special modes (TOC and overview mode).
-static const QMap<quint32, KeyAction> staticKeyMap = {
-    {Qt::Key_Left, KeyAction::Left},
-    {Qt::Key_Right, KeyAction::Right},
-    {Qt::Key_Up, KeyAction::Up},
-    {Qt::Key_Down, KeyAction::Down},
-    {Qt::Key_End, KeyAction::End},
-    {Qt::Key_Home, KeyAction::First},
-    {Qt::Key_Return, KeyAction::Return},
-    {Qt::Key_Tab, KeyAction::Tab},
-    {Qt::Key_Tab+Qt::SHIFT, KeyAction::ShiftTab},
-};
-
-/// Default configuration of tools for tool selector (buttons).
-/// The tool selector is an array of buttons in the lower right corner of the control screen.
-/// The keys (quint8) in this map are interpreted as two digit hexadecimal numbers, where the first digit defines the row and the second one defines the column of the button in the array.
-/// One button can define several KeyActions.
-static const QMap<quint8, QList<KeyAction>> defaultActionMap {
-    {0, {KeyAction::ToggleDrawMode}},
-    {1, {KeyAction::DrawEraser}},
-    {2, {KeyAction::DrawPen}},
-    {3, {KeyAction::DrawPen}},
-    {4, {KeyAction::DrawHighlighter}},
-    {16, {KeyAction::PlayMultimedia}},
-    {17, {KeyAction::ClearAnnotations}},
-    {18, {KeyAction::DrawPointer}},
-    {19, {KeyAction::DrawTorch}},
-    {20, {KeyAction::DrawMagnifier}},
-};
-/// Default configuration of colors for tool selector (buttons).
-/// These colors are used by tools in tool selector.
-/// The key defines row and column as in defaultActionMap.
-static const QMap<quint8, QColor> defaultColorMap {
-    {2, QColor("red")},
-    {3, QColor("green")},
-    {4, QColor(255,255,0,191)},
-    {18, QColor(255,0,0,191)},
-};
+#include "names.h"
 
 
 /// Read real value from string (handling % sign correctly).
@@ -391,6 +209,146 @@ T intFromConfig(QCommandLineParser const& parser, QVariantMap const& local, QSet
 }
 
 
+/// Collect and interpret group of arguments representing key actions or draw tools.
+void actionsFromConfig(QMap<QString, QList<KeyAction>>& actions, QMap<QString, FullDrawTool>& tools, QVariantMap const& local, QSettings& settings, QString name)
+{
+    // Read the values from local or global config to a common format.
+    QMap<QString, QStringList> basic;
+    QMap<QString, QMap<QString, QVariant>> advanced;
+    // Try to read input from local config.
+    if (local.contains(name)) {
+        QMap<QString, QVariant> map = local[name].toMap();
+        for (QMap<QString, QVariant>::const_iterator item = map.cbegin(); item != map.cend(); item++) {
+            if (item->canConvert<QVariantMap>())
+                advanced[item.key()] = item->toMap();
+            else if (item->canConvert<QStringList>())
+                basic[item.key()] = item->toStringList();
+            else if (item->canConvert<QString>())
+                basic[item.key()] = item->toString().split(",");
+            else
+                qWarning() << "Could not understand data type:" << *item;
+        }
+    }
+    if (basic.isEmpty() && advanced.isEmpty()) {
+        // Try to read input from global config.
+        settings.beginGroup(name);
+        for (auto key : settings.childGroups()) {
+            settings.beginGroup(key);
+            advanced[key] = QMap<QString, QVariant>();
+            for (auto subkey : settings.allKeys())
+                advanced[key][subkey] = settings.value(subkey);
+            settings.endGroup();
+        }
+        for (auto key : settings.childKeys()) {
+            QVariant const variant = settings.value(key);
+            if (variant.canConvert<QStringList>())
+                basic[key] = variant.toStringList();
+            else if (variant.canConvert<QString>())
+                basic[key] = variant.toString().split(",");
+            else
+                qWarning() << "Could not understand data type:" << variant;
+        }
+        settings.endGroup();
+    }
+
+    // Interpret the values as key actions and tools.
+    for (QMap<QString, QStringList>::const_iterator it = basic.cbegin(); it != basic.cend(); it++) {
+        // Iterate over all actions (refered to as "action string" in the following) defined for each key (usually this is only one).
+        for (QStringList::const_iterator action_it=it->begin(); action_it!=it->cend(); action_it++) {
+            KeyAction const action = keyActionMap.value(action_it->toLower(), KeyAction::NoAction);
+            // If a KeyAction was found in keyActionMap for this action string: send this key binding to ctrlScreen.
+            if (action != NoAction)
+                actions[it.key()].append(action);
+            else {
+                try {
+                    // Try to interpret  as a sequence "tool color" or "tool color size", defining a drawing or highlighting tool and a color.
+                    QStringList const split_action = action_it->toLower().split(' ');
+                    // Convert the first word of the action string as a draw tool.
+                    DrawTool const tool = toolMap.value(split_action.first(), InvalidTool);
+
+                    // Actually tool != InvalidTool should imply split_action.size() > 1.
+                    // But just to be sure, we can check again.
+                    if (tool == InvalidTool || split_action.size() < 2)
+                        throw 1;
+
+                    if (action_it->contains('=')) {
+                        // Interpret all arguments as key=value pairs.
+                        QMap<QString, QString> map;
+                        for (QStringList::const_iterator attr = split_action.cbegin()+1; attr != split_action.cend(); attr++) {
+                            QStringList const keyval = attr->split('=');
+                            if (keyval.size() != 2)
+                                throw 2;
+                            map[keyval.first()] = keyval.last();
+                        }
+                        QColor const color = QColor(map.value("color"));
+                        qreal const size = map.value("size").toDouble();
+                        if (tool == Magnifier) {
+                            bool ok;
+                            qreal const magnification = map.value("magnification").toDouble(&ok);
+                            if (ok)
+                                tools[it.key()] = {tool, color, size, {magnification}};
+                            else
+                                tools[it.key()] = {tool, color, size};
+                        }
+                        else
+                            tools[it.key()] = {tool, color, size};
+                    }
+                    else {
+                        // Interpret all following arguments as color, size and magnification.
+                        QColor color = QColor(split_action[1]);
+                        qreal size = 0;
+                        bool ok = false;
+                        if (!color.isValid()) {
+                            size = split_action[1].toDouble(&ok);
+                            if (ok && split_action.size() == 3)
+                                color = QColor(split_action[2]);
+                        }
+                        if (!ok && split_action.size() == 3)
+                            size = split_action[2].toDouble(&ok);
+                        if (tool == Magnifier) {
+                            qreal magnification = 0.;
+                            if (split_action.size() > 3)
+                                magnification = split_action[3].toDouble();
+                            tools[it.key()] = {tool, color, size, {magnification}};
+                            if (split_action.size() > 4)
+                                qWarning() << "Tool has too many arguments:" << it.key() << *it;
+                        }
+                        else {
+                            tools[it.key()] = {tool, color, size};
+                            if (split_action.size() > 3)
+                                qWarning() << "Tool has too many arguments:" << it.key() << *it;
+                        }
+                    }
+                } catch (int) {
+                    qCritical() << "Could not understand action" << *action_it << "for key" << it.key();
+                }
+            }
+        }
+    }
+    for (QMap<QString, QMap<QString, QVariant>>::const_iterator it = advanced.cbegin(); it != advanced.cend(); it++) {
+        try {
+            if (!it->contains("tool"))
+                throw 0;
+            // Convert the first word of the action string as a draw tool.
+            quint16 const tool = toolMap.value(it->value("tool").toString(), InvalidTool);
+            if (tool == InvalidTool)
+                throw 1;
+            // Parse the second word of the action string as a QColor.
+            QColor const color = QColor(it->value("color").toString());
+            qreal const size = it->value("size").toDouble();
+            if (tool == Magnifier) {
+                qreal const magnification = it->value("magnification").toDouble();
+                tools[it.key()] = {static_cast<DrawTool>(tool), color, size, {magnification}};
+            }
+            else
+                tools[it.key()] = {static_cast<DrawTool>(tool), color, size};
+        } catch (int) {
+            qCritical() << "Could not understand action" << *it << "for key" << it.key();
+        }
+    }
+}
+
+
 /// Main function
 int main(int argc, char *argv[])
 {
@@ -489,12 +447,6 @@ int main(int argc, char *argv[])
         {"sidebar-width", "Minimum relative width of sidebar on control screen. Number between 0 and 1.", "float"},
         {"mute-presentation", "Mute presentation (default: false)", "bool"},
         {"mute-notes", "Mute notes (default: true)", "bool"},
-        {"magnification", "Magnification factor of magnifier.", "number"},
-        {"magnifier-size", "Radius of magnifier.", "pixels"},
-        {"pointer-size", "Radius of magnifier.", "pixels"},
-        {"torch-size", "Radius of torch.", "pixels"},
-        {"highlighter-width", "Line width of highlighter.", "pixels"},
-        {"pen-width", "Line width of pens.", "pixels"},
         {"eraser-size", "Radius of eraser.", "pixels"},
         {"icon-path", "Set path for default icons, e.g. /usr/share/icons/default", "path"},
     });
@@ -915,98 +867,38 @@ int main(int argc, char *argv[])
         for (QMap<quint32, KeyAction>::const_iterator it=staticKeyMap.cbegin(); it!=staticKeyMap.cend(); it++)
             ctrlScreen->setKeyMapItem(it.key(), *it);
 
-        /// Map of key codes to a QStringList of associated key actions.
-        QMap<quint32, QStringList> inputMap;
-        // Check whether a local configuration file defines key actions.
-        if (local.contains("keys")) {
-            // Read all options in the group "keys" in the local configuration in a QVariantMap.
-            QVariantMap variantMap = local["keys"].value<QVariantMap>();
-            quint32 key;
-            // Iterate over variantMap to interpret the key codes and write the arguments to inputMap.
-            for (QVariantMap::const_iterator var_it=variantMap.cbegin(); var_it!=variantMap.cend(); var_it++) {
-                // Parse the key as a QKeySequence.
-                QKeySequence keySequence = QKeySequence(var_it.key(), QKeySequence::NativeText);
-                // Convert the key sequence to an integer.
-                key = quint32(keySequence[0]+keySequence[1]+keySequence[2]+keySequence[3]);
-                // If parsing as QKeySequence failed: key==0. This leads to a warning, and this (key, value) pair will be ignored.
-                if (key == 0)
-                    qWarning() << "Could not understand key" << var_it.key();
-                else {
-                    // Write the converted key and the (still unconverted) action list to inputMap.
-                    inputMap[key] = var_it->toStringList();
-                }
-            }
-        }
-        else {
-            // Enter the group "keys" in the global configuration.
-            settings.beginGroup("keys");
-            quint32 key;
-            QStringList const keys = settings.allKeys();
-            // Iterate over all keys in the group "keys". This will convert the key codes to integers and save the (key, value) pairs in inputMap.
-            for (QStringList::const_iterator key_it=keys.cbegin(); key_it!=keys.cend(); key_it++) {
-                // Parse the key as a QKeySequence.
-                QKeySequence keySequence = QKeySequence(*key_it, QKeySequence::NativeText);
-                // Convert the key sequence to an integer.
-                key = quint32(keySequence[0]+keySequence[1]+keySequence[2]+keySequence[3]);
-                // If parsing as QKeySequence failed: key==0. This leads to a warning, and this (key, value) pair will be ignored.
-                if (key == 0)
-                    qWarning() << "Could not understand key" << *key_it;
-                else {
-                    // Write the converted key and the (still unconverted) action list to inputMap.
-                    inputMap[key] = settings.value(*key_it).toStringList();
-                }
-            }
-            // Exit the group "keys" in the global configuration.
-            settings.endGroup();
-        }
-        if (inputMap.isEmpty()) {
-            // If no key bindings have been defined: Send the default key map to ctrlScreen.
+        QMap<QString, QList<KeyAction>> actions;
+        QMap<QString, FullDrawTool> tools;
+        actionsFromConfig(actions, tools, local, settings, "keys");
+
+        // If no key bindings have been defined: Send the default key map to ctrlScreen.
+        if (actions.isEmpty()) {
             ctrlScreen->setKeyMap(new QMap<quint32, QList<KeyAction>>(defaultKeyMap));
         }
-        else {
-            // If a configuration for key bindings has been found, convert the key actions from QStrings to KeyActions.
-            // Iterate over all keys in inputMap.
-            for (QMap<quint32, QStringList>::const_iterator it=inputMap.cbegin(); it!=inputMap.cend(); it++) {
+        // Send key actions to control screen.
+        for (QMap<QString, QList<KeyAction>>::const_iterator it = actions.cbegin(); it != actions.cend(); it++) {
+            // Parse the key as a QKeySequence.
+            QKeySequence const keySequence = QKeySequence(it.key(), QKeySequence::NativeText);
+            // Convert the key sequence to an integer.
+            quint32 const key = quint32(keySequence[0]+keySequence[1]+keySequence[2]+keySequence[3]);
+            if (key == 0)
+                qWarning() << "Could not understand key" << it.key();
+            else {
                 // Iterate over all actions (refered to as "action string" in the following) defined for each key (usually this is only one).
-                for (QStringList::const_iterator action_it=it->begin(); action_it!=it->cend(); action_it++) {
-                    // Convert the KeyAction for each action string using keyActionMap.
-                    KeyAction const action = keyActionMap.value(action_it->toLower(), KeyAction::NoAction);
-                    // If a KeyAction was found in keyActionMap for this action string: send this key binding to ctrlScreen.
-                    if (action != NoAction)
-                        ctrlScreen->setKeyMapItem(it.key(), action);
-                    else {
-                        // The key action string is not contained in keyActionMap.
-                        // Try to interpret it as a sequence "tool color", defining a drawing or highlighting tool and a color.
-                        QStringList split_action = action_it->toLower().split(' ');
-                        if (split_action.size() != 2) {
-                            // Key action strings which are not contained in keyActionMap must consist of exactly two words (tool and color).
-                            // If this is not the case, the key action will be ignored.
-                            qCritical() << "Could not understand action" << *action_it << "for key" << it.key();
-                            continue;
-                        }
-                        // Convert the first word of the action string as a draw tool.
-                        quint16 const tool = toolMap.value(split_action.first(), InvalidTool);
-                        if (tool == InvalidTool) {
-                            // If the first word of the action string could not be understood as a draw tool, parsing the key action failed.
-                            // This key action will be ignored.
-                            qCritical() << "Could not understand action" << *action_it << "for key" << it.key();
-                            continue;
-                        }
-                        // Parse the second word of the action string as a QColor.
-                        QColor color = QColor(split_action[1]);
-                        if (!color.isValid()) {
-                            qWarning() << "Could not understand color" << split_action.last() << "set for key" << it.key() << "and tool" << split_action.first();
-                            // All tools are also valid key actions.
-                            // If the color is not valid, parse the tool as a key action and not as a tool with a color.
-                            ctrlScreen->setKeyMapItem(it.key(), keyActionMap.value(split_action.first(), KeyAction::NoAction));
-                        }
-                        else {
-                            // Send the colored draw tool to ctrlScreen.
-                            ctrlScreen->setToolForKey(it.key(), {static_cast<DrawTool>(tool), color});
-                        }
-                    }
-                }
+                for (QList<KeyAction>::const_iterator action=it->cbegin(); action!=it->cend(); action++)
+                    ctrlScreen->setKeyMapItem(key, *action);
             }
+        }
+        // Send tools to control screen.
+        for (QMap<QString, FullDrawTool>::const_iterator it = tools.cbegin(); it != tools.cend(); it++) {
+            // Parse the key as a QKeySequence.
+            QKeySequence const keySequence = QKeySequence(it.key(), QKeySequence::NativeText);
+            // Convert the key sequence to an integer.
+            quint32 const key = quint32(keySequence[0]+keySequence[1]+keySequence[2]+keySequence[3]);
+            if (key == 0)
+                qWarning() << "Could not understand key" << it.key();
+            else
+                ctrlScreen->setToolForKey(key, *it);
         }
     }
 
@@ -1014,132 +906,78 @@ int main(int argc, char *argv[])
     // Handle arguments which configure the tool selector.
     {   // The tool selector is an array of buttons in the lower right corner of the control screen.
         // Configuring the tool selector is analogous to the configuration of the key bindings.
-        // The arguments are first read from the local or global configuration to the map "inputMap" before the arguments are interpreted.
+        QMap<QString, QList<KeyAction>> actions;
+        QMap<QString, FullDrawTool> tools;
+        actionsFromConfig(actions, tools, local, settings, "tools");
 
-        /// The keys (quint8) in this map are interpreted as two digit hexadecimal numbers, where the first digit defines the row and the second one defines the column of the button in the array.
-        /// One button can define several KeyActions.
-        QMap<quint8, QStringList> inputMap;
-        // Try to read tool selector configuration from local configuration file.
-        if (local.contains("tools")) {
-            /// QVariantMap containing all options for the group "tools" in the local configuration.
-            QVariantMap variantMap = local["tools"].value<QVariantMap>();
-            bool ok;
-            quint8 key;
-            // Iterate over variantMap and copy the values to inputMap, converting the keys to a quint8.
-            for (QVariantMap::const_iterator var_it=variantMap.cbegin(); var_it!=variantMap.cend(); var_it++) {
-                // Check whether the key has the correct format.
-                if (var_it.key().length() > 2) {
-                    qWarning() << "Could not understand index" << var_it.key() << "which should be a two digit integer.";
-                    continue;
-                }
-                // Parse the key as a hexadecimal integer.
-                key = quint8(var_it.key().toUShort(&ok, 16));
-                if (ok) {
-                    // If successful, add the (key, valu) pair to the input map.
-                    inputMap[key] = var_it->toStringList();
-                }
-                else {
-                    // If the key is not understood, this (key, value) pair will be ignored.
-                    qWarning() << "Could not understand index" << var_it.key() << "which should be a two digit integer.";
-                }
-            }
-        }
-        // Try to read tool selector configuration from global configuration file.
-        else {
-            // Enter group "tools" in global configuration.
-            settings.beginGroup("tools");
-            bool ok;
-            quint8 key;
-            QStringList const keys = settings.allKeys();
-            // Iterate over all keys in the "tools" group and copy the values to inputMap, converting the keys to a quint8.
-            for (QStringList::const_iterator key_it=keys.cbegin(); key_it!=keys.cend(); key_it++) {
-                // Check whether the key has the correct format.
-                if (key_it->length() > 2) {
-                    qWarning() << "Could not understand index" << *key_it << "which should be a two digit integer.";
-                    continue;
-                }
-                // Parse the key as a hexadecimal integer.
-                key = quint8(key_it->toUShort(&ok, 16));
-                if (ok) {
-                    // If successful, add the (key, valu) pair to the input map.
-                    inputMap[key] = settings.value(*key_it).toStringList();
-                }
-                else {
-                    // If the key is not understood, this (key, value) pair will be ignored.
-                    qWarning() << "Could not understand index" << *key_it << "which should be a two digit integer.";
-                }
-            }
-            // Exit group "tools" in global configuration.
-            settings.endGroup();
-        }
-        if (inputMap.isEmpty()) {
-            // If no configuration for tool selector is found, send the default configuration.
+        // If no configuration for tool selector is found, send the default configuration.
+        if (actions.isEmpty() && tools.isEmpty()) {
             // The default configuration contains 2 rows and 5 columns.
-            ctrlScreen->getToolSelector()->setTools(2, 5, defaultActionMap, defaultColorMap);
+            ctrlScreen->getToolSelector()->setTools(2, 5, defaultActionMap, defaultToolMap);
         }
         else {
             // A new tool selector configuraton has to be created.
-            // All actions need to be converted from action strings to KeyActions or ColoredDrawTools,
+            // All actions need to be converted from action strings to KeyActions or FullDrawTools,
             // and the number of necessary rows and columns needs to be fixed.
 
             /// Map of button positions to key actions.
             QMap<quint8, QList<KeyAction>> actionMap;
-            /// Map of button positions to colors for draw tools.
-            QMap<quint8, QColor> colorMap;
+            /// Map of button positions to draw tools.
+            QMap<quint8, FullDrawTool> toolMap;
             /// Number of rows
             quint8 nrows = 0;
             /// Number of columns
             quint8 ncols = 0;
-            // Iterate over all buttons.
-            for (QMap<quint8, QStringList>::const_iterator it=inputMap.cbegin(); it!=inputMap.cend(); it++) {
-                // Check whether nrows needs to be increased.
-                if (16*nrows <= it.key()) // this is equivalent to nrows <= it.key()/16 = row index of it.key()
-                    nrows = quint8(it.key()/16) + 1; // nrows needs to be at least max(row indices) + 1, because the indices start from 0.
-                // Check whethre ncols needs to be increased.
-                if (ncols <= it.key()%16) // it.key()%16 is the column index of it.key().
-                    ncols = it.key()%16 + 1; // ncols needs to be at least max(column indices) + 1, because the indices start from 0.
 
-                // The actions used by the tool selector are the same as those used for key bindings. Therefore we call them key actions.
-                // Interpret the key action strings as KeyActions or ColoredDrawTools.
-                actionMap[it.key()] = QList<KeyAction>();
-                // Iterate over all action strings associated with one button. Usually this is only one.
-                for (QStringList::const_iterator action_it=it->begin(); action_it!=it->cend(); action_it++) {
-                    // Try to convert the action string to a KeyAction using the keyActionMap.
-                    KeyAction const action = keyActionMap.value(action_it->toLower(), NoAction);
-                    if (action != NoAction) {
-                        // If successful: add the action to the actionMap.
-                        actionMap[it.key()].append(static_cast<KeyAction>(action));
-                    }
-                    else {
-                        // The key action string is not contained in keyActionMap.
-                        // Try to interpret it as a sequence "tool color", defining a drawing or highlighting tool and a color.
-                        QStringList split_action = action_it->toLower().split(' ');
-                        if (split_action.size() != 2) {
-                            // Key action strings which are not contained in keyActionMap must consist of exactly two words (tool and color).
-                            // If this is not the case, the key action will be ignored.
-                            qWarning() << "Could not understand action" << *action_it;
-                            continue;
-                        }
-                        // Convert the first word of the action string (which should be a tool) to a KeyAction.
-                        KeyAction const action = keyActionMap.value(split_action.first(), NoAction);
-                        if (action == NoAction) {
-                            // Interpreting the action string failed. This action will be ignored.
-                            qWarning() << "Could not understand action" << *action_it;
-                        }
-                        else {
-                            // Add the KeyAction to actionMap.
-                            actionMap[it.key()].append(static_cast<KeyAction>(action));
-                            // Add the color defined by the second word of the action string to the colorMap.
-                            colorMap[it.key()] = QColor(split_action[1]);
-                            // Check whether the color is valid and remove it from the colorMap if it is not.
-                            if (!colorMap[it.key()].isValid())
-                                colorMap.remove(it.key());
-                        }
-                    }
+            // Send key actions to control screen.
+            quint8 key;
+            bool ok;
+            // Iterate over variantMap and copy the values to inputMap, converting the keys to a quint8.
+            for (QMap<QString, QList<KeyAction>>::const_iterator it = actions.cbegin(); it != actions.cend(); it++) {
+                try {
+                    if (it.key().length() > 2)
+                        throw 0;
+                    key = quint8(it.key().toUShort(&ok, 16));
+                    if (!ok)
+                        throw 1;
+                    // Check whether nrows needs to be increased.
+                    if (16*nrows <= key) // this is equivalent to nrows <= key/16 = row index of key
+                        nrows = quint8(key/16) + 1; // nrows needs to be at least max(row indices) + 1, because the indices start from 0.
+                    // Check whethre ncols needs to be increased.
+                    if (ncols <= key%16) // key%16 is the column index of key.
+                        ncols = key%16 + 1; // ncols needs to be at least max(column indices) + 1, because the indices start from 0.
+                    // Initialize actionMap[key].
+                    actionMap[key] = QList<KeyAction>();
+                    // Iterate over all actions (refered to as "action string" in the following) defined for each key (usually this is only one).
+                    for (QList<KeyAction>::const_iterator action=it->cbegin(); action!=it->cend(); action++)
+                        actionMap[key].append(*action);
+                } catch (int) {
+                    // If the key is not understood, this (key, value) pair will be ignored.
+                    qWarning() << "Could not understand index" << it.key() << "which should be a two digit integer.";
+                }
+            }
+            // Send tools to control screen.
+            for (QMap<QString, FullDrawTool>::const_iterator it = tools.cbegin(); it != tools.cend(); it++) {
+                try {
+                    if (it.key().length() > 2)
+                        throw 0;
+                    key = quint8(it.key().toUShort(&ok, 16));
+                    if (!ok)
+                        throw 1;
+                    // Check whether nrows needs to be increased.
+                    if (16*nrows <= key) // this is equivalent to nrows <= key/16 = row index of key
+                        nrows = quint8(key/16) + 1; // nrows needs to be at least max(row indices) + 1, because the indices start from 0.
+                    // Check whethre ncols needs to be increased.
+                    if (ncols <= key%16) // key%16 is the column index of key.
+                        ncols = key%16 + 1; // ncols needs to be at least max(column indices) + 1, because the indices start from 0.
+                    toolMap[key] = *it;
+                } catch (int) {
+                    // If the key is not understood, this (key, value) pair will be ignored.
+                    qWarning() << "Could not understand index" << it.key() << "which should be a two digit integer.";
                 }
             }
             // Send tool selector configuration to ctrlScreen.
-            ctrlScreen->getToolSelector()->setTools(nrows, ncols, actionMap, colorMap);
+            ctrlScreen->getToolSelector()->setTools(nrows, ncols, actionMap, toolMap);
         }
     }
 
@@ -1308,11 +1146,6 @@ int main(int argc, char *argv[])
         value = qrealFromConfig(parser, local, settings, "autoplay", -2.);
         emit ctrlScreen->setAutostartDelay(value);
 
-        // Set magnification factor of magnifier tool.
-        // This should of course not have a boolean type.
-        value = qrealFromConfig(parser, local, settings, "magnification", 2., 20.);
-        ctrlScreen->setMagnification(value);
-
 #ifdef EMBEDDED_APPLICATIONS_ENABLED
         // Set autostart or delayed autostart of embedded applications.
         value = qrealFromConfig(parser, local, settings, "autostart-emb", -2.);
@@ -1323,20 +1156,9 @@ int main(int argc, char *argv[])
         value = qrealFromConfig(parser, local, settings, "sidebar-width", 0.2, 1.);
         ctrlScreen->setMinSidebarWidth(value);
 
-        // Set sizes of draw tools.
-        // Sizes are given as radius or stroke width (see man page for more details).
-        value  = qrealFromConfig(parser, local, settings, "magnifier-size", 120., 1e6);
-        ctrlScreen->getPresentationSlide()->getPathOverlay()->setSize(Magnifier, value);
-        value  = qrealFromConfig(parser, local, settings, "pointer-size", 10, 1e6);
-        ctrlScreen->getPresentationSlide()->getPathOverlay()->setSize(Pointer, value);
-        value  = qrealFromConfig(parser, local, settings, "torch-size", 80, 1e6);
-        ctrlScreen->getPresentationSlide()->getPathOverlay()->setSize(Torch, value);
-        value  = qrealFromConfig(parser, local, settings, "highlighter-width", 30, 1e6);
-        ctrlScreen->getPresentationSlide()->getPathOverlay()->setSize(Highlighter, value);
-        value  = qrealFromConfig(parser, local, settings, "pen-width", 3, 1e5);
-        ctrlScreen->getPresentationSlide()->getPathOverlay()->setSize(Pen, value);
+        // Set radius of eraser tool.
         value  = qrealFromConfig(parser, local, settings, "eraser-size", 10, 1e5);
-        ctrlScreen->getPresentationSlide()->getPathOverlay()->setSize(Eraser, value);
+        ctrlScreen->getPresentationSlide()->getPathOverlay()->setEraserSize(value);
     }
 
     // Settings with integer values

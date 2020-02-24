@@ -1,6 +1,5 @@
 BeamerPresenter
 
-* make pen size more flexible (also in saving and loading files)
 * load (uncompressed) xopp files
 * allow non-uniform page sizes
 

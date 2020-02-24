@@ -17,6 +17,7 @@
  */
 
 #include "controlscreen.h"
+#include "../names.h"
 
 // TODO: tidy up! reorganize signals, slots, events, ...
 
@@ -130,7 +131,7 @@ ControlScreen::ControlScreen(QString presentationPath, QString notesPath, PagePa
 
         // Connect drawSlide to other widgets.
         // Change draw tool
-        connect(ui->tool_selector, &ToolSelector::sendNewTool, drawSlide->getPathOverlay(), static_cast<void (PathOverlay::*)(const ColoredDrawTool)>(&PathOverlay::setTool));
+        connect(ui->tool_selector, &ToolSelector::sendNewTool, drawSlide->getPathOverlay(), static_cast<void (PathOverlay::*)(FullDrawTool const&)>(&PathOverlay::setTool));
         // Copy paths from draw slide to presentation slide and vice versa when drawing on one of the slides.
         // Copy paths after moving the mouse while drawing. This assumes that only the last path is changed or a new path is created.
         connect(drawSlide->getPathOverlay(), &PathOverlay::pathsChangedQuick, presentationScreen->slide->getPathOverlay(), &PathOverlay::setPathsQuick);
@@ -215,7 +216,7 @@ ControlScreen::ControlScreen(QString presentationPath, QString notesPath, PagePa
 
     // Set up tool selector.
     // Tool selector can send new draw tools to the presentation slide.
-    connect(ui->tool_selector, &ToolSelector::sendNewTool, presentationScreen->slide->getPathOverlay(), static_cast<void (PathOverlay::*)(const ColoredDrawTool)>(&PathOverlay::setTool));
+    connect(ui->tool_selector, &ToolSelector::sendNewTool, presentationScreen->slide->getPathOverlay(), static_cast<void (PathOverlay::*)(FullDrawTool const&)>(&PathOverlay::setTool));
     // Tool selector can send KeyActions to control screen.
     connect(ui->tool_selector, &ToolSelector::sendAction, this, &ControlScreen::handleKeyAction);
 
@@ -447,11 +448,7 @@ void ControlScreen::recalcLayout(const int pageNumber)
         if (scale < 0.)
             scale = 1.;
         // Set scaled tool sizes for draw slide.
-        drawSlide->getPathOverlay()->setSize(Pen, scale*presentationScreen->slide->getPathOverlay()->getSize(Pen));
-        drawSlide->getPathOverlay()->setSize(Pointer, scale*presentationScreen->slide->getPathOverlay()->getSize(Pointer));
-        drawSlide->getPathOverlay()->setSize(Highlighter, scale*presentationScreen->slide->getPathOverlay()->getSize(Highlighter));
-        drawSlide->getPathOverlay()->setSize(Torch, scale*presentationScreen->slide->getPathOverlay()->getSize(Torch));
-        drawSlide->getPathOverlay()->setSize(Magnifier, scale*presentationScreen->slide->getPathOverlay()->getSize(Magnifier));
+        drawSlide->getPathOverlay()->setEraserSize(scale*presentationScreen->slide->getPathOverlay()->getEraserSize());
         if (drawSlide != ui->notes_widget) {
             // Adapt geometry of draw slide: It should have the same geometry as the notes slide.
             drawSlide->setGeometry(ui->notes_widget->rect());
@@ -1326,9 +1323,9 @@ bool ControlScreen::handleKeyAction(KeyAction const action)
             drawSlide->getPathOverlay()->setTool(NoTool);
         break;
     case KeyAction::DrawEraser:
-        presentationScreen->slide->getPathOverlay()->setTool(Eraser, QColor());
+        presentationScreen->slide->getPathOverlay()->setTool(Eraser);
         if (drawSlide != nullptr)
-            drawSlide->getPathOverlay()->setTool(Eraser, QColor());
+            drawSlide->getPathOverlay()->setTool(Eraser);
         break;
     case KeyAction::DrawMode:
         if (isVisible())
@@ -1380,7 +1377,7 @@ bool ControlScreen::handleKeyAction(KeyAction const action)
     case NoAction:
         break;
     default:
-        ColoredDrawTool const tool = actionToToolMap.value(action, {InvalidTool, QColor()});
+        FullDrawTool const tool = defaultToolConfig.value(actionToToolMap.value(action, InvalidTool));
         if (tool.tool != InvalidTool) {
             presentationScreen->slide->getPathOverlay()->setTool(tool);
             if (drawSlide != nullptr)
@@ -1701,7 +1698,7 @@ void ControlScreen::showDrawSlide()
 
         // Connect drawSlide to other widgets.
         // Change draw tool
-        connect(ui->tool_selector, &ToolSelector::sendNewTool, drawSlide->getPathOverlay(), static_cast<void (PathOverlay::*)(const ColoredDrawTool)>(&PathOverlay::setTool));
+        connect(ui->tool_selector, &ToolSelector::sendNewTool, drawSlide->getPathOverlay(), static_cast<void (PathOverlay::*)(FullDrawTool const&)>(&PathOverlay::setTool));
         // Copy paths from draw slide to presentation slide and vice versa when drawing on one of the slides.
         // Copy paths after moving the mouse while drawing. This assumes that only the last path is changed or a new path is created.
         connect(drawSlide->getPathOverlay(), &PathOverlay::pathsChangedQuick, presentationScreen->slide->getPathOverlay(), &PathOverlay::setPathsQuick);
@@ -1783,12 +1780,8 @@ void ControlScreen::showDrawSlide()
     qreal const res = presentationScreen->slide->getResolution();
     /// Relative size of the draw slide compared to the presentation slide.
     qreal const scale = drawSlide->getResolution() / res;
-    // Set tool sizes on the draw slide. Sizes are scaled such that drawings look like on the presentation slide.
-    drawSlide->getPathOverlay()->setSize(Pen, scale*presentationScreen->slide->getPathOverlay()->getSize(Pen));
-    drawSlide->getPathOverlay()->setSize(Pointer, scale*presentationScreen->slide->getPathOverlay()->getSize(Pointer));
-    drawSlide->getPathOverlay()->setSize(Highlighter, scale*presentationScreen->slide->getPathOverlay()->getSize(Highlighter));
-    drawSlide->getPathOverlay()->setSize(Torch, scale*presentationScreen->slide->getPathOverlay()->getSize(Torch));
-    drawSlide->getPathOverlay()->setSize(Magnifier, scale*presentationScreen->slide->getPathOverlay()->getSize(Magnifier));
+    // Set eraser size on the draw slide.
+    drawSlide->getPathOverlay()->setEraserSize(scale*presentationScreen->slide->getPathOverlay()->getEraserSize());
     // Get the current page label.
     QString const label = presentationScreen->slide->getPage()->label();
     // Load existing drawings from the presentation screen for the current page on drawSlide.
@@ -1830,13 +1823,6 @@ void ControlScreen::hideDrawSlide()
     renderPage(currentPageNumber);
 }
 
-void ControlScreen::setMagnification(const qreal mag)
-{
-    presentationScreen->slide->getPathOverlay()->setMagnification(mag);
-    if (drawSlide != nullptr)
-        drawSlide->getPathOverlay()->setMagnification(mag);
-}
-
 void ControlScreen::setAutostartDelay(const qreal timeout)
 {
     // Autostart of media on the control screen can be enabled by uncommenting the following line.
@@ -1875,4 +1861,15 @@ void ControlScreen::interruptCacheProcesses(const unsigned long time)
             drawSlideCache->getCacheThread()->exit();
         presentationScreen->slide->getCacheMap()->getCacheThread()->exit();
     }
+}
+
+void ControlScreen::setToolForKey(quint32 const key, FullDrawTool const& tool)
+{
+    tools[key] = tool;
+    if (tool.tool == Magnifier && tool.extras.magnification < 1e-12)
+        tools[key].extras.magnification = defaultToolConfig[Magnifier].extras.magnification;
+    if (tool.size <= 1e-12)
+        tools[key].size = defaultToolConfig[tool.tool].size;
+    if (!tool.color.isValid())
+        tools[key].color = defaultToolConfig[tool.tool].color;
 }

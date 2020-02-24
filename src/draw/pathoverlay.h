@@ -38,11 +38,9 @@ public:
 
     void clearPageAnnotations();
     void clearAllAnnotations();
-    void setSize(DrawTool const tool, qreal const size) {sizes[tool] = size;}
 
     QMap<QString, QList<DrawPath*>> const& getPaths() const {return paths;}
-    ColoredDrawTool getTool() const {return tool;}
-    qreal getSize(DrawTool const tool) const {return sizes[tool];}
+    FullDrawTool const& getTool() const {return tool;}
 
     /// Deprecated
     void saveDrawings(QString const& filename, QString const& notefile = "") const;
@@ -53,8 +51,10 @@ public:
     /// Load files from compressed or uncompressed XML file.
     void loadXML(QString const& filename);
 
-    /// Set magnification factor for magnifier.
-    void setMagnification(qreal const mag);
+    /// Set size of eraser (in point).
+    void setEraserSize(qreal const size) {eraserSize = size;}
+    /// Get size of eraser (in point).
+    qreal getEraserSize() const {return eraserSize;}
     /// Draw pointer or torch.
     void drawPointer(QPainter& painter);
     /// Move the last visible path to hidden paths.
@@ -78,8 +78,10 @@ protected:
     void rescale(qint16 const oldshiftx, qint16 const oldshifty, double const oldRes);
     /// Erase paths at given point.
     void erase(QPointF const& point);
+    /// Radius of eraser in pixel.
+    qreal eraserSize = 10.;
     /// Current draw tool.
-    ColoredDrawTool tool = {NoTool, Qt::black};
+    FullDrawTool tool = {NoTool, Qt::black, 0.};
     /// Currently visible paths.
     QMap<QString, QList<DrawPath*>> paths;
     /// Undisplayed paths which could be restored.
@@ -90,10 +92,6 @@ protected:
     QPixmap enlargedPage;
     /// Renderer for enlarged page: enables rendering of enlarged page in separate thread.
     SingleRenderer* enlargedPageRenderer = nullptr;
-    /// Sizes of tools.
-    QMap<DrawTool, qreal> sizes = {{Magnifier,120}, {Torch,80}, {Pointer,10}, {Highlighter,30}, {Pen,3}, {Eraser,10}};
-    /// Magnification factor for magnifier.
-    qreal magnification = 2.;
     /// Pixmap containing only paths.
     QPixmap pixpaths;
     /// Index of last path (of current slide) which is already rendered to pixpaths.
@@ -108,8 +106,8 @@ public slots:
     void setPaths(QString const pagelabel, QList<DrawPath*> const& list, qint16 const refshiftx, qint16 const refshifty, double const refresolution);
     void setPathsQuick(QString const pagelabel, QList<DrawPath*> const& list, qint16 const refshiftx, qint16 const refshifty, double const refresolution);
     void setPointerPosition(QPointF const point, qint16 const refshiftx, qint16 const refshifty, double const refresolution);
-    void setTool(ColoredDrawTool const newtool);
-    void setTool(DrawTool const newtool, QColor const color=QColor()) {setTool({newtool, color});}
+    void setTool(FullDrawTool const& newtool);
+    void setTool(DrawTool const newtool, QColor const color=QColor(), qreal size=-1) {setTool({newtool, color, size});}
     void updatePathCache();
     void relax();
     void togglePointerVisibility();
@@ -120,7 +118,7 @@ signals:
     void pointerPositionChanged(QPointF const point, qint16 const refshiftx, qint16 const refshifty, double const refresolution);
     void pathsChangedQuick(QString const pagelabel, QList<DrawPath*> const& list, qint16 const refshiftx, qint16 const refshifty, double const refresolution);
     void pathsChanged(QString const pagelabel, QList<DrawPath*> const& list, qint16 const refshiftx, qint16 const refshifty, double const refresolution);
-    void sendToolChanged(ColoredDrawTool const tool);
+    void sendToolChanged(FullDrawTool const tool);
     void sendUpdateEnlargedPage();
     void sendRelax();
     void sendUpdatePathCache();

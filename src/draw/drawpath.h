@@ -31,19 +31,18 @@ private:
     QVector<QPointF> path;
     /// Rectangle containing all nodes of the path.
     QRectF outer = QRectF();
-    ColoredDrawTool const tool;
-    qreal size;
+    FullDrawTool tool;
     quint32 hash = 0;
 
 public:
     /// Created new empty path.
-    DrawPath(ColoredDrawTool const& tool, QPointF const& start, qreal const size);
+    DrawPath(FullDrawTool const& tool, QPointF const& start);
     /// Create new path with given points.
-    DrawPath(ColoredDrawTool const& tool, QPointF const* const points, int const number, qreal const size);
+    DrawPath(FullDrawTool const& tool, QPointF const* const points, int const number);
     /// Deprecated: used in legacy file loading function.
-    DrawPath(ColoredDrawTool const& tool, QVector<float> const& vec, int const xshift, int const yshift, int const width, int const height, qreal const size);
+    DrawPath(FullDrawTool const& tool, QVector<float> const& vec, int const xshift, int const yshift, int const width, int const height);
     /// Read path from string list. Used in file loading function.
-    DrawPath(ColoredDrawTool const& tool, QStringList const& stringList, QPoint const shift, qreal const scale, qreal const size);
+    DrawPath(FullDrawTool const& tool, QStringList const& stringList, QPoint const shift, qreal const scale);
     DrawPath(DrawPath const& old, QPointF const shift, double const scale);
     DrawPath(DrawPath const& old);
 
@@ -67,14 +66,12 @@ public:
     bool isEmpty() const {return path.isEmpty();}
     /// Number of nodes in path.
     int number() const {return path.length();}
-    DrawTool getTool() const {return tool.tool;}
-    QColor const& getColor() const {return tool.color;}
-    qreal getSize() const {return size;}
+    FullDrawTool const& getTool() const {return tool;}
     QPointF const* data() const {return path.constData();}
     /// Rectangle containing all nodes.
     QRectF const& getOuter() const {return outer;}
     /// Rectangle containing all nodes plus a distance of the stroke width.
-    QRectF const getOuterDrawing() const {return outer.adjusted(-size-.5, -size-.5, size+.5, size+.5);}
+    QRectF const getOuterDrawing() const {return outer.adjusted(-tool.size-.5, -tool.size-.5, tool.size+.5, tool.size+.5);}
     /// Return all nodes in this path which are nearer to the given point than eraser_size.
     QVector<int> intersects(QPointF const& point, qreal const eraser_size) const;
 

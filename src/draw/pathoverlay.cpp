@@ -18,22 +18,23 @@
 
 #include "pathoverlay.h"
 #include "../slide/drawslide.h"
-
-/// Map tools to strings (used for saving to XML).
-static const QMap<DrawTool, QString> toolNames = {
-    {Highlighter, "highlighter"},
-    {Pen, "pen"},
-    {Magnifier, "magnifier"},
-    {Torch, "torch"},
-    {Pointer, "pointer"},
-    {Eraser, "eraser"},
-};
+#include "../names.h"
 
 /// This function is required for sorting and searching in a QMap.
-bool operator<(ColoredDrawTool tool1, ColoredDrawTool tool2)
+bool operator<(FullDrawTool tool1, FullDrawTool tool2)
 {
+    if (tool1.tool < tool2.tool)
+        return true;
+    if (tool1.tool > tool2.tool)
+        return false;
+    if (tool1.size < tool2.size)
+        return true;
+    if (tool1.size > tool2.size)
+        return false;
     // TODO: Does operaror<(QRgb, QRgb) together with == define a total order?
-    return (tool1.tool<tool2.tool || (tool1.tool==tool2.tool && tool1.color.rgb()<tool2.color.rgb()) );
+    if (tool1.color.rgb() < tool2.color.rgb())
+        return true;
+    return false;
 }
 
 
@@ -95,7 +96,7 @@ void PathOverlay::paintEvent(QPaintEvent*)
     switch (tool.tool) {
     case Pointer:
         painter.setCompositionMode(QPainter::CompositionMode_Darken);
-        painter.setPen(QPen(tool.color, sizes[Pointer], Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin));
+        painter.setPen(QPen(tool.color, tool.size, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin));
         painter.drawPoint(pointerPosition);
         break;
     case Torch:
@@ -104,7 +105,7 @@ void PathOverlay::paintEvent(QPaintEvent*)
             QPainterPath rectpath;
             rectpath.addRect(master->shiftx, master->shifty, master->pixmap.width(), master->pixmap.height());
             QPainterPath circpath;
-            circpath.addEllipse(pointerPosition, sizes[Torch], sizes[Torch]);
+            circpath.addEllipse(pointerPosition, tool.size, tool.size);
             painter.fillPath(rectpath-circpath, tool.color);
         }
         break;
@@ -113,13 +114,13 @@ void PathOverlay::paintEvent(QPaintEvent*)
             painter.setCompositionMode(QPainter::CompositionMode_SourceOver);
             painter.setClipping(true);
             QPainterPath path;
-            path.addEllipse(pointerPosition, sizes[Magnifier], sizes[Magnifier]);
+            path.addEllipse(pointerPosition, tool.size, tool.size);
             painter.setClipPath(path, Qt::ReplaceClip);
-            painter.drawPixmap(QRectF(pointerPosition.x()-sizes[Magnifier], pointerPosition.y()-sizes[Magnifier], 2*sizes[Magnifier], 2*sizes[Magnifier]),
+            painter.drawPixmap(QRectF(pointerPosition.x()-tool.size, pointerPosition.y()-tool.size, 2*tool.size, 2*tool.size),
                               enlargedPage,
-                              QRectF(magnification*pointerPosition.x() - sizes[Magnifier], magnification*pointerPosition.y() - sizes[Magnifier], 2*sizes[Magnifier], 2*sizes[Magnifier]));
+                              QRectF(tool.extras.magnification*pointerPosition.x() - tool.size, tool.extras.magnification*pointerPosition.y() - tool.size, 2*tool.size, 2*tool.size));
             painter.setPen(QPen(tool.color, 2));
-            painter.drawEllipse(pointerPosition, sizes[Magnifier], sizes[Magnifier]);
+            painter.drawEllipse(pointerPosition, tool.size, tool.size);
         }
         break;
     default:
@@ -139,9 +140,15 @@ void PathOverlay::rescale(qint16 const oldshiftx, qint16 const oldshifty, double
             (*path_it)->transform(shift, master->resolution/oldRes);
 }
 
-void PathOverlay::setTool(const ColoredDrawTool newtool)
+void PathOverlay::setTool(FullDrawTool const& newtool)
 {
     tool = newtool;
+    if (tool.tool == Magnifier && tool.extras.magnification < 1e-12)
+        tool.extras.magnification = defaultToolConfig[Magnifier].extras.magnification;
+    if (tool.size <= 1e-12)
+        tool.size = defaultToolConfig[tool.tool].size;
+    if (!tool.color.isValid())
+        tool.color = defaultToolConfig[tool.tool].color;
     // TODO: fancy cursors
     if (cursor() == Qt::BlankCursor && tool.tool != Pointer)
         setMouseTracking(false);
@@ -214,10 +221,11 @@ void PathOverlay::drawPaths(QPainter &painter, QString const label, bool const a
         }
         // Iterate over all remaining paths.
         for (; path_it!=paths[label].cend(); path_it++) {
-            switch ((*path_it)->getTool()) {
+            FullDrawTool const& tool = (*path_it)->getTool();
+            switch (tool.tool) {
             case Pen:
                 painter.setCompositionMode(QPainter::CompositionMode_SourceOver);
-                painter.setPen(QPen((*path_it)->getColor(), (*path_it)->getSize()));
+                painter.setPen(QPen(tool.color, tool.size));
                 painter.drawPolyline((*path_it)->data(), (*path_it)->number());
                 break;
             case Highlighter:
@@ -226,7 +234,7 @@ void PathOverlay::drawPaths(QPainter &painter, QString const label, bool const a
                     // Highlighter needs a background to draw on (because of CompositionMode_Darken).
                     // Drawing this background is only reasonable if there is no video widget in the background.
                     // Check this.
-                    QRectF outer = (*path_it)->getOuterDrawing();
+                    QRectF const outer = (*path_it)->getOuterDrawing();
                     if (hasVideoOverlap(outer)) {
                         if (toCache) {
                             end_cache = path_it - paths[label].cbegin();
@@ -243,7 +251,7 @@ void PathOverlay::drawPaths(QPainter &painter, QString const label, bool const a
                 }
                 // Draw the highlighter path.
                 painter.setCompositionMode(QPainter::CompositionMode_Darken);
-                painter.setPen(QPen((*path_it)->getColor(), (*path_it)->getSize(), Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin));
+                painter.setPen(QPen(tool.color, tool.size, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin));
                 painter.drawPolyline((*path_it)->data(), (*path_it)->number());
                 if (!animation)
                     painter.setClipRect(rect());
@@ -285,7 +293,7 @@ void PathOverlay::mousePressEvent(QMouseEvent *event)
         case Highlighter:
             if (!paths.contains(master->page->label()))
                 paths[master->page->label()] = QList<DrawPath*>();
-            paths[master->page->label()].append(new DrawPath(tool, event->localPos(), sizes[tool.tool]));
+            paths[master->page->label()].append(new DrawPath(tool, event->localPos()));
             break;
         case Eraser:
             erase(event->localPos());
@@ -432,7 +440,7 @@ void PathOverlay::erase(const QPointF &point)
     int const oldsize=path_list.size();
     bool changed = false;
     for (int i=0; i<oldsize; i++) {
-        QVector<int> splits = path_list[i]->intersects(point, sizes[Eraser]);
+        QVector<int> splits = path_list[i]->intersects(point, eraserSize);
         if (splits.isEmpty())
             continue;
         changed = true;
@@ -566,7 +574,7 @@ void PathOverlay::relax()
 void PathOverlay::updateEnlargedPage()
 {
     // Check whether an update is required.
-    if (tool.tool != Magnifier || master->page == nullptr) {
+    if (tool.tool != Magnifier || master->page == nullptr || tool.extras.magnification < 1e-12) {
         if (!enlargedPage.isNull())
             enlargedPage = QPixmap();
         return;
@@ -574,7 +582,7 @@ void PathOverlay::updateEnlargedPage()
     // Create enlargedPageRenderer if necessary.
     if (enlargedPageRenderer == nullptr) {
         enlargedPageRenderer = new SingleRenderer(master->doc, master->pagePart, this);
-        enlargedPageRenderer->changeResolution(magnification*master->resolution);
+        enlargedPageRenderer->changeResolution(tool.extras.magnification*master->resolution);
         connect(enlargedPageRenderer, &BasicRenderer::cacheThreadFinished, this, &PathOverlay::updateEnlargedPage);
     }
     // Render page using enlargedPageRenderer if necessary (the rendering is done in a separate thread).
@@ -588,35 +596,44 @@ void PathOverlay::updateEnlargedPage()
             return;
     }
     // Draw enlargedPage.
-    enlargedPage = QPixmap(magnification*size());
+    enlargedPage = QPixmap(tool.extras.magnification*size());
     enlargedPage.fill(QColor(0,0,0,0));
     QPainter painter;
     painter.begin(&enlargedPage);
     // Draw the slide.
     if (enlargedPageRenderer->resultReady())
         // If a rendered page is ready in enlargedPageRenderer: show it in enlargedPage.
-        painter.drawPixmap(int(magnification*master->shiftx), int(magnification*master->shifty), enlargedPageRenderer->getPixmap());
+        painter.drawPixmap(
+                    int(tool.extras.magnification*master->shiftx),
+                    int(tool.extras.magnification*master->shifty),
+                    enlargedPageRenderer->getPixmap()
+                    );
     else
         // Otherwise: show a scaled version of the page image.
-        painter.drawPixmap(int(magnification*master->shiftx), int(magnification*master->shifty), master->pixmap.scaled(magnification*master->pixmap.size(), Qt::IgnoreAspectRatio, Qt::SmoothTransformation));
+        painter.drawPixmap(
+                    int(tool.extras.magnification*master->shiftx),
+                    int(tool.extras.magnification*master->shifty),
+                    master->pixmap.scaled(tool.extras.magnification*master->pixmap.size(), Qt::IgnoreAspectRatio, Qt::SmoothTransformation)
+                    );
     // Draw annotations.
     painter.setRenderHint(QPainter::Antialiasing);
     if (paths.contains(master->page->label())) {
         for (QList<DrawPath*>::const_iterator path_it=paths[master->page->label()].cbegin(); path_it!=paths[master->page->label()].cend(); path_it++) {
-            switch ((*path_it)->getTool()) {
+            FullDrawTool const& tool = (*path_it)->getTool();
+            switch (tool.tool) {
             case Pen:
             {
                 painter.setCompositionMode(QPainter::CompositionMode_SourceOver);
-                painter.setPen(QPen((*path_it)->getColor(), magnification*(*path_it)->getSize()));
-                DrawPath tmp(**path_it, QPointF(0,0), magnification);
+                painter.setPen(QPen(tool.color, this->tool.extras.magnification*tool.size));
+                DrawPath tmp(**path_it, QPointF(0,0), this->tool.extras.magnification);
                 painter.drawPolyline(tmp.data(), tmp.number());
                 break;
             }
             case Highlighter:
             {
                 painter.setCompositionMode(QPainter::CompositionMode_Darken);
-                painter.setPen(QPen((*path_it)->getColor(), magnification*(*path_it)->getSize(), Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin));
-                DrawPath tmp(**path_it, QPointF(0,0), magnification);
+                painter.setPen(QPen(tool.color, this->tool.extras.magnification*tool.size, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin));
+                DrawPath tmp(**path_it, QPointF(0,0), this->tool.extras.magnification);
                 painter.drawPolyline(tmp.data(), tmp.number());
                 break;
             }
@@ -648,8 +665,8 @@ void PathOverlay::saveDrawings(QString const& filename, QString const& notefile)
     }
     {
         QMap<quint16, quint16> newsizes;
-        for (QMap<DrawTool, qreal>::const_iterator size_it=sizes.cbegin(); size_it!=sizes.cend(); size_it++)
-            newsizes[static_cast<quint16>(size_it.key())] = quint16(*size_it+0.5);
+        for (QMap<DrawTool, FullDrawTool>::const_iterator size_it=defaultToolConfig.cbegin(); size_it!=defaultToolConfig.cend(); size_it++)
+            newsizes[static_cast<quint16>(size_it.key())] = quint16(size_it->size+0.5);
         stream << newsizes;
     }
     stream << quint16(paths.size());
@@ -659,7 +676,7 @@ void PathOverlay::saveDrawings(QString const& filename, QString const& notefile)
         for (QList<DrawPath*>::const_iterator path_it=page_it->cbegin(); path_it!=page_it->cend(); path_it++) {
             QVector<float> vec;
             (*path_it)->toIntVector(vec, master->shiftx, master->shifty, w, h);
-            stream << static_cast<quint16>((*path_it)->getTool()) << (*path_it)->getColor() << vec;
+            stream << static_cast<quint16>((*path_it)->getTool().tool) << (*path_it)->getTool().color << vec;
         }
     }
     if (stream.status() != QDataStream::Ok) {
@@ -704,13 +721,6 @@ void PathOverlay::loadXML(QString const& filename)
     if (notes.attribute("pages").toInt() != master->doc->getDoc()->numPages())
         qWarning() << "Number of pages does not match!";
 
-    qDebug() << "reading tools";
-    for (QDomElement tool_element = root.firstChildElement("tool"); !tool_element.isNull(); tool_element = tool_element.nextSiblingElement("tool")) {
-        DrawTool const tool = toolNames.key(tool_element.attribute("tool"), NoTool);
-        if (tool != NoTool)
-            sizes[tool] = tool_element.attribute("size").toDouble();
-    }
-
     for (QDomElement page_element = root.firstChildElement("page"); !page_element.isNull(); page_element = page_element.nextSiblingElement("page")) {
         QString const label = page_element.attribute("label");
         qreal scale;
@@ -742,9 +752,9 @@ void PathOverlay::loadXML(QString const& filename)
                 bool ok;
                 qreal size = stroke.attribute("width").toDouble(&ok);
                 if (!ok)
-                    size = sizes[tool];
+                    size = defaultToolConfig[tool].size;
                 QStringList const data = stroke.text().split(" ");
-                paths[label].append(new DrawPath({tool, color}, data, shift, scale, size));
+                paths[label].append(new DrawPath({tool, color, size}, data, shift, scale));
             }
         }
         emit pathsChanged(label, paths[label], master->shiftx, master->shifty, master->resolution);
@@ -777,13 +787,6 @@ void PathOverlay::saveXML(QString const& filename, PdfDoc const* notedoc, bool c
     notes.setAttribute("changed", notedoc->getLastModified());
     root.appendChild(notes);
 
-    for (QMap<DrawTool, qreal>::const_iterator size_it=sizes.cbegin(); size_it!=sizes.cend(); size_it++) {
-        QDomElement tool = doc.createElement("tool");
-        tool.setAttribute("tool", toolNames.value(size_it.key(), "unknown"));
-        tool.setAttribute("size", *size_it);
-        root.appendChild(tool);
-    }
-
     qDebug() << "adding pages:" << paths.size();
     for (QMap<QString, QList<DrawPath*>>::const_iterator page_it=paths.cbegin(); page_it!=paths.cend(); page_it++) {
         QDomElement page_element = doc.createElement("page");
@@ -813,9 +816,10 @@ void PathOverlay::saveXML(QString const& filename, PdfDoc const* notedoc, bool c
             (*path_it)->toText(stringList, shift, scale);
             QDomElement stroke = doc.createElement("stroke");
             page_element.appendChild(stroke);
-            stroke.setAttribute("tool", toolNames.value((*path_it)->getTool(), "unkown"));
-            stroke.setAttribute("color", (*path_it)->getColor().name());
-            stroke.setAttribute("width", (*path_it)->getSize()*scale);
+            FullDrawTool const& tool = (*path_it)->getTool();
+            stroke.setAttribute("tool", toolNames.value(tool.tool, "unkown"));
+            stroke.setAttribute("color", tool.color.name());
+            stroke.setAttribute("width", tool.size*scale);
             QDomText data = doc.createTextNode(stringList.join(" "));
             stroke.appendChild(data);
         }
@@ -879,8 +883,6 @@ void PathOverlay::loadDrawings(QString const& filename)
             qCritical() << "Failed to load file: File is corrupt.";
             return;
         }
-        for (QMap<quint16, quint16>::const_iterator size_it=newsizes.cbegin(); size_it!=newsizes.cend(); size_it++)
-            sizes[static_cast<DrawTool>(size_it.key())] = qreal(*size_it);
     }
     quint16 npages, npaths;
     stream >> npages;
@@ -907,26 +909,11 @@ void PathOverlay::loadDrawings(QString const& filename)
                 qCritical() << "Interrupted reading file: File is corrupt.";
                 break;
             }
-            paths[pagelabel].append(new DrawPath({static_cast<DrawTool>(tool), color}, vec, master->shiftx, master->shifty, w, h, sizes[static_cast<DrawTool>(tool)]));
+            paths[pagelabel].append(new DrawPath({static_cast<DrawTool>(tool), color, defaultToolConfig[static_cast<DrawTool>(tool)].size}, vec, master->shiftx, master->shifty, w, h));
         }
         emit pathsChanged(pagelabel, paths[pagelabel], master->shiftx, master->shifty, master->resolution);
     }
     update();
-}
-
-void PathOverlay::setMagnification(qreal const mag)
-{
-    if (mag <= 0.) {
-        qWarning() << "Cannot set magnification to negative value";
-        return;
-    }
-    magnification = mag;
-    delete enlargedPageRenderer;
-    enlargedPageRenderer = nullptr;
-    if (!enlargedPage.isNull()) {
-        enlargedPage = QPixmap();
-        updateEnlargedPage();
-    }
 }
 
 void PathOverlay::drawPointer(QPainter& painter)
@@ -934,14 +921,14 @@ void PathOverlay::drawPointer(QPainter& painter)
     painter.setOpacity(1.);
     painter.setCompositionMode(QPainter::CompositionMode_Darken);
     if (tool.tool == Pointer) {
-        painter.setPen(QPen(QColor(255,0,0,191), sizes[Pointer], Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin));
+        painter.setPen(QPen(QColor(255,0,0,191), tool.size, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin));
         painter.drawPoint(pointerPosition);
     }
     else if (tool.tool == Torch && !pointerPosition.isNull()) {
         QPainterPath rectpath;
         rectpath.addRect(master->shiftx, master->shifty, master->pixmap.width(), master->pixmap.height());
         QPainterPath circpath;
-        circpath.addEllipse(pointerPosition, sizes[Torch], sizes[Torch]);
+        circpath.addEllipse(pointerPosition, tool.size, tool.size);
         painter.fillPath(rectpath-circpath, QColor(0,0,0,48));
     }
 }

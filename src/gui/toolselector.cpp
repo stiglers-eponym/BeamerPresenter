@@ -18,17 +18,21 @@
 
 #include "toolselector.h"
 
-void ToolSelector::setTools(const quint8 nrows, const quint8 ncols, QMap<quint8, QList<KeyAction>> const& actions, QMap<quint8, QColor> const& colors)
+void ToolSelector::setTools(const quint8 nrows, const quint8 ncols, QMap<quint8, QList<KeyAction>> const& actionMap, QMap<quint8, FullDrawTool> const& toolMap)
 {
     this->nrows = nrows;
     this->ncols = ncols;
     layout = new QGridLayout(this);
-    for (QMap<quint8, QList<KeyAction>>::const_iterator it=actions.cbegin(); it!=actions.cend(); it++) {
-        ToolButton* button = new ToolButton(*it, colors.value(it.key(), QColor(0,0,0,0)), this);
-        buttons[it.key()] = button;
-        connect(button, &ToolButton::sendTool, this, &ToolSelector::sendNewTool);
-        connect(button, &ToolButton::sendAction, this, &ToolSelector::sendAction);
-        layout->addWidget(button, it.key()/16+1, it.key()%16+1);
+    for (auto key : actionMap.keys() + toolMap.keys()) {
+        if (buttons.contains(key))
+            continue;
+        ToolButton* button = new ToolButton(actionMap.value(key), toolMap.value(key, {InvalidTool, QColor(), 0.}), this);
+        buttons[key] = button;
+        if (button->hasTool())
+            connect(button, &ToolButton::sendTool, this, &ToolSelector::sendNewTool);
+        if (button->hasAction())
+            connect(button, &ToolButton::sendAction, this, &ToolSelector::sendAction);
+        layout->addWidget(button, key/16+1, key%16+1);
     }
     setLayout(layout);
 }

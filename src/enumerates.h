@@ -227,19 +227,14 @@ enum Renderer {
     RenderCustom = 1,
 };
 
-/// DrawTool combined with a QColor
-struct ColoredDrawTool {
+/// DrawTool combined with a QColor and a size.
+struct FullDrawTool {
     DrawTool tool;
     QColor color;
-};
-
-/// Default tools (ColoredDrawTools) for KeyActions
-static const QMap<KeyAction, ColoredDrawTool> actionToToolMap = {
-    {DrawPen, {Pen,Qt::black}},
-    {DrawHighlighter, {Highlighter,QColor(255,255,0,191)}},
-    {DrawPointer, {Pointer,QColor(255,0,0,191)}},
-    {DrawMagnifier, {Magnifier, QColor(64,64,64,64)}},
-    {DrawTorch, {Torch, QColor(0,0,0,64)}},
+    qreal size;
+    union {
+        qreal magnification;
+    } extras = {-1.};
 };
 
 #endif // ENUMERATES_H

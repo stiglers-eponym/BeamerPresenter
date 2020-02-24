@@ -23,19 +23,17 @@ qreal square(qreal const a)
     return a*a;
 }
 
-DrawPath::DrawPath(ColoredDrawTool const& tool, QPointF const& start, qreal const size) :
-    tool(tool),
-    size(size)
+DrawPath::DrawPath(FullDrawTool const& tool, QPointF const& start) :
+    tool(tool)
 {
     path.append(start);
     outer = QRectF(start.x(), start.y(), 0, 0);
     updateHash();
 }
 
-DrawPath::DrawPath(ColoredDrawTool const& tool, QPointF const* const points, int const number, qreal const size) :
+DrawPath::DrawPath(FullDrawTool const& tool, QPointF const* const points, int const number) :
     path(QVector<QPointF>(number)),
-    tool(tool),
-    size(size)
+    tool(tool)
 {
     if (number == 0)
         return;
@@ -57,8 +55,7 @@ DrawPath::DrawPath(ColoredDrawTool const& tool, QPointF const* const points, int
 
 DrawPath::DrawPath(DrawPath const& old, QPointF const shift, double const scale) :
     path(QVector<QPointF>(old.path.length())),
-    tool(old.tool),
-    size(scale*old.size),
+    tool({old.tool.tool, old.tool.color, scale*old.tool.size}),
     hash(old.hash)
 {
     for (int i=0; i<old.path.length(); i++)
@@ -81,7 +78,6 @@ DrawPath::DrawPath(DrawPath const& old) :
     path(old.path),
     outer(old.outer),
     tool(old.tool),
-    size(old.size),
     hash(old.hash)
 {}
 
@@ -90,7 +86,7 @@ void DrawPath::transform(QPointF const& shift, const double scale)
     for (int i=0; i<path.length(); i++)
         path[i] = scale*path[i] + shift;
     outer = QRectF(scale*outer.topLeft() + shift, scale*outer.bottomRight() + shift);
-    size *= scale;
+    tool.size *= scale;
 }
 
 void DrawPath::append(QPointF const& point)
@@ -130,7 +126,7 @@ DrawPath* DrawPath::split(int start, int end)
     }
     if (end > path.length())
         end = path.length();
-    return new DrawPath(tool, path.data()+start, end-start, size);
+    return new DrawPath(tool, path.data()+start, end-start);
 }
 
 void DrawPath::updateHash()
@@ -161,9 +157,8 @@ void DrawPath::toText(QStringList &stringList, QPoint const shift, qreal const s
     }
 }
 
-DrawPath::DrawPath(ColoredDrawTool const& tool, QVector<float> const& vec, int const xshift, int const yshift, int const width, int const height, qreal const size) :
-    tool(tool),
-    size(size)
+DrawPath::DrawPath(FullDrawTool const& tool, QVector<float> const& vec, int const xshift, int const yshift, int const width, int const height) :
+    tool(tool)
 {
     // Deprecated
     double left=width+2*xshift, right=0, top=height+2*yshift, bottom=0;
@@ -185,9 +180,8 @@ DrawPath::DrawPath(ColoredDrawTool const& tool, QVector<float> const& vec, int c
     updateHash();
 }
 
-DrawPath::DrawPath(ColoredDrawTool const& tool, QStringList const& stringList, QPoint const shift, qreal const scale, qreal const size) :
-    tool(tool),
-    size(scale*size)
+DrawPath::DrawPath(FullDrawTool const& tool, QStringList const& stringList, QPoint const shift, qreal const scale) :
+    tool({tool.tool, tool.color, scale*tool.size})
 {
     if (stringList.size() % 2 != 0 || stringList.size() < 2)
         return;

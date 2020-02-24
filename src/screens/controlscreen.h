@@ -88,9 +88,7 @@ public:
     /// Add (key, action) to key bindings.
     void setKeyMapItem(quint32 const key, KeyAction const action);
     /// Add switching to given draw tool to key bindings for given key.
-    void setToolForKey(quint32 const key, ColoredDrawTool tool) {tools[key] = tool;}
-    /// Set magnification factor for draw slides.
-    void setMagnification(qreal const mag);
+    void setToolForKey(quint32 const key, FullDrawTool const& tool);
     /// Set delay for multimedia content.
     void setAutostartDelay(qreal const timeout);
     /// Configure minimum frame time for animations created by showing slides in rapid succession.
@@ -193,7 +191,7 @@ private:
     /// Map of key codes (key code + modifiers) to lists of KeyActions.
     QMap<quint32, QList<KeyAction>>* keymap = new QMap<quint32, QList<KeyAction>>();
     /// Map of key codes (key code + modifiers) to drawing tools.
-    QMap<quint32, ColoredDrawTool> tools;
+    QMap<quint32, FullDrawTool> tools;
 
     // Variables
     /// Index of current page
