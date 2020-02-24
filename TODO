@@ -1,5 +1,9 @@
 BeamerPresenter
 
+* make pen size more flexible (also in saving and loading files)
+* load (uncompressed) xopp files
+* allow non-uniform page sizes
+
 * Document code!
 * Check weird segfaults
 * search for memory leaks
@@ -15,7 +19,6 @@ BeamerPresenter
 * Multimedia: allow more arguments
 * Multimedia: Better control bar
 * Video widgets break when switching between notes and draw mode?
-* Allow non-uniform page sizes
 
 * better icon (and png icons)
 * better file type for saving drawings: xml?

@@ -78,8 +78,8 @@ static const QMap<KeyAction, QString> actionNames = {
     {ClearAnnotations, "clear"},
     {DrawNone, "hand"},
     {ToggleDrawMode, "draw"},
-    {DrawTorch, "draw torch"},
-    {DrawMagnifier, "draw magnifier"},
+    {DrawTorch, "torch"},
+    {DrawMagnifier, "magnifier"},
     {DrawMode, "draw"},
     {DrawEraser, "eraser"},
     {DrawPen, "pen"},
@@ -90,6 +90,8 @@ static const QMap<KeyAction, QString> actionNames = {
 
     {SaveDrawings, "save"},
     {LoadDrawings, "open"},
+    {SaveDrawingsLegacy, "save legacy"},
+    {SaveDrawingsUncompressed, "save uncompressed"},
 };
 
 /// Map KeyActions to icon names.
@@ -151,7 +153,8 @@ ToolButton::ToolButton(QList<KeyAction> const actions, QColor const color, QWidg
     }
     if (actions.size() == 1 && color != QColor(0,0,0,0))
         tool = actionToToolMap.value(actions.first(), {InvalidTool, color}).tool;
-    setToolTip(text);
+    if (QApplication::platformName() != "wayland")
+        setToolTip(text);
 }
 
 void ToolButton::onClicked()

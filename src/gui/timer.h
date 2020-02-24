@@ -24,6 +24,7 @@
 #include <QLineEdit>
 #include <QTime>
 #include <QTimer>
+#include <QApplication>
 #include <iostream>
 #include <iomanip>
 

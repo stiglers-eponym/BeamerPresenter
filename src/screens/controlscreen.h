@@ -22,6 +22,7 @@
 #include <QMainWindow>
 #include <QFileDialog>
 #include <QLabel>
+#include <QApplication>
 #include "../pdf/pdfdoc.h"
 #include "../gui/timer.h"
 #include "../gui/pagenumberedit.h"

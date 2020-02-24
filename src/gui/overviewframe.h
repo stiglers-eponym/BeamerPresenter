@@ -24,6 +24,7 @@
 #include <QMouseEvent>
 #include <QKeyEvent>
 #include <poppler-qt5.h>
+#include <QApplication>
 
 class OverviewFrame : public QLabel
 {

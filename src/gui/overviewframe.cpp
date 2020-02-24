@@ -23,7 +23,8 @@ OverviewFrame::OverviewFrame(int const page, QWidget* parent) :
     page(page)
 {
     setAlignment(Qt::AlignCenter);
-    setToolTip("page " + QString::number(page));
+    if (QApplication::platformName() != "wayland")
+        setToolTip("page " + QString::number(page));
 }
 
 void OverviewFrame::mousePressEvent(QMouseEvent* event)

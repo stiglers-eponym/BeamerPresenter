@@ -23,5 +23,6 @@ TocAction::TocAction(QString const& prefix, QString const& text, int const dest,
     dest(dest)
 {
     connect(this, &TocAction::triggered, this, [&](){emit activated(this->dest);});
-    setToolTip(text + ", page " + QString::number(dest));
+    if (QApplication::platformName() != "wayland")
+        setToolTip(text + ", page " + QString::number(dest));
 }

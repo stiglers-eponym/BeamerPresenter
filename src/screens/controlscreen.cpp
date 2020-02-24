@@ -155,15 +155,19 @@ ControlScreen::ControlScreen(QString presentationPath, QString notesPath, PagePa
         // drawSlide should be muted, because it shows the same video content as the presentation slide.
         drawSlide->setMuted(true);
 
-        ui->current_slide->setToolTip("Preview of the next presentation slide");
-        ui->next_slide->setToolTip("Preview of the next presentation slide but one");
+        if (QApplication::platformName() != "wayland") {
+            ui->current_slide->setToolTip("Preview of the next presentation slide");
+            ui->next_slide->setToolTip("Preview of the next presentation slide but one");
+        }
     }
     else {
         ui->notes_widget->setDoc(notes, static_cast<PagePart>(-pagePart));
         ui->notes_widget->overwriteCacheMap(new CacheMap(notes, static_cast<PagePart>(-pagePart), this));
 
-        ui->current_slide->setToolTip("Preview of the current presentation slide");
-        ui->next_slide->setToolTip("Preview of the next presentation slide");
+        if (QApplication::platformName() != "wayland") {
+            ui->current_slide->setToolTip("Preview of the current presentation slide");
+            ui->next_slide->setToolTip("Preview of the next presentation slide");
+        }
     }
 
     // Send pdf documents to slide widgets on control screen.
@@ -323,7 +327,8 @@ ControlScreen::ControlScreen(QString presentationPath, QString notesPath, PagePa
     // Exit overview box.
     connect(overviewBox, &OverviewBox::sendReturn, this, &ControlScreen::showNotes);
 
-    ui->text_number_slides->setToolTip("Total number of pages");
+    if (QApplication::platformName() != "wayland")
+        ui->text_number_slides->setToolTip("Total number of pages");
 }
 
 ControlScreen::~ControlScreen()
@@ -502,7 +507,8 @@ void ControlScreen::addMultimediaSliders(int const n)
         QSlider* slider = new QSlider(Qt::Horizontal, this);
         ui->overviewLayout->addWidget(slider);
         sliderList.append(slider);
-        slider->setToolTip("Position of multimedia content on the presentation window");
+        if (QApplication::platformName() != "wayland")
+            slider->setToolTip("Position of multimedia content on the presentation window");
     }
     // Send the sliders to the presentation label, where they will be connected to multimedia objects.
     // The presentation label takes ownership of the sliders and will delete them when going to the next slide.
@@ -1720,8 +1726,10 @@ void ControlScreen::showDrawSlide()
         connect(drawSlide, &PreviewSlide::sendNewPageNumber, presentationScreen, &PresentationScreen::receiveNewPage);
         connect(drawSlide, &PreviewSlide::sendNewPageNumber, this, [&](int const pageNumber){renderPage(pageNumber);});
 
-        ui->current_slide->setToolTip("Preview of the next presentation slide");
-        ui->next_slide->setToolTip("Preview of the next presentation slide but one");
+        if (QApplication::platformName() != "wayland") {
+            ui->current_slide->setToolTip("Preview of the next presentation slide");
+            ui->next_slide->setToolTip("Preview of the next presentation slide but one");
+        }
     }
     else if (drawSlide == ui->notes_widget)
         return;
@@ -1802,8 +1810,10 @@ void ControlScreen::hideDrawSlide()
         drawSlide->overwriteCacheMap(nullptr);
         delete drawSlide;
         drawSlide = nullptr;
-        ui->current_slide->setToolTip("Preview of the current presentation slide");
-        ui->next_slide->setToolTip("Preview of the next presentation slide");
+        if (QApplication::platformName() != "wayland") {
+            ui->current_slide->setToolTip("Preview of the current presentation slide");
+            ui->next_slide->setToolTip("Preview of the next presentation slide");
+        }
     }
     ui->notes_widget->show();
     ui->notes_widget->setFocus();
