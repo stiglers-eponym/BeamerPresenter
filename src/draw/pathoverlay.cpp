@@ -582,7 +582,7 @@ void PathOverlay::updateEnlargedPage()
         connect(enlargedPageRenderer, &BasicRenderer::cacheThreadFinished, this, &PathOverlay::updateEnlargedPage);
     }
     // Render page using enlargedPageRenderer if necessary (the rendering is done in a separate thread).
-    if (enlargedPageRenderer->page != master->pageIndex) {
+    if (enlargedPageRenderer->getPage() != master->pageIndex) {
         enlargedPage = QPixmap();
         qDebug() << "Rendering enlarged page" << master->pageIndex;
         enlargedPageRenderer->renderPage(master->pageIndex);
@@ -597,7 +597,7 @@ void PathOverlay::updateEnlargedPage()
     QPainter painter;
     painter.begin(&enlargedPage);
     // Draw the slide.
-    if (enlargedPageRenderer->data != nullptr)
+    if (enlargedPageRenderer->resultReady())
         // If a rendered page is ready in enlargedPageRenderer: show it in enlargedPage.
         painter.drawPixmap(int(magnification*master->shiftx), int(magnification*master->shifty), enlargedPageRenderer->getPixmap());
     else

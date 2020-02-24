@@ -27,7 +27,6 @@
 class SingleRenderer : public BasicRenderer
 {
     Q_OBJECT
-    friend class PathOverlay;
 
 public:
     /// Constructor
@@ -39,6 +38,8 @@ public:
     QPixmap const getPixmap();
     /// Update cache. This will start cacheThread.
     void renderPage(int const page);
+    bool resultReady() const {return data != nullptr;}
+    int getPage() const {return page;}
 
 public slots:
     /// Get cached pages from cacheThread. Called when cacheThread finishes.

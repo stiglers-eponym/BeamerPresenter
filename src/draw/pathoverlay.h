@@ -43,6 +43,7 @@ public:
     QMap<QString, QList<DrawPath*>> const& getPaths() const {return paths;}
     ColoredDrawTool getTool() const {return tool;}
     quint16 getSize(DrawTool const tool) const {return sizes[tool];}
+
     /// Deprecated
     void saveDrawings(QString const& filename, QString const& notefile = "") const;
     /// Deprecated
@@ -51,12 +52,21 @@ public:
     void saveXML(QString const& filename, PdfDoc const* notedoc, bool const compress = true) const;
     /// Load files from compressed or uncompressed XML file.
     void loadXML(QString const& filename);
+
+    /// Set magnification factor for magnifier.
     void setMagnification(qreal const mag);
+    /// Draw pointer or torch.
     void drawPointer(QPainter& painter);
+    /// Move the last visible path to hidden paths.
     void undoPath();
+    /// Move the last hidden path to visible paths.
     void redoPath();
+    /// Reset cached pixmap of path overlays and update paths cache.
     void resetCache();
+    /// Draw paths to painter (starting from end_cache).
+    /// TODO: reorganize!
     void drawPaths(QPainter& painter, QString const label, bool const animation=false, bool const toCache=false);
+    /// Does the given rectangle have any overlap with a video?
     bool hasVideoOverlap(QRectF const& rect) const;
 
 protected:
@@ -64,11 +74,17 @@ protected:
     virtual void mousePressEvent(QMouseEvent* event) override;
     virtual void mouseReleaseEvent(QMouseEvent* event) override;
     virtual void mouseMoveEvent(QMouseEvent* event) override;
+    /// Resize this widget and rescale all paths.
     void rescale(qint16 const oldshiftx, qint16 const oldshifty, double const oldRes);
+    /// Erase paths at given point.
     void erase(QPointF const& point);
+    /// Current draw tool.
     ColoredDrawTool tool = {NoTool, Qt::black};
+    /// Currently visible paths.
     QMap<QString, QList<DrawPath*>> paths;
+    /// Undisplayed paths which could be restored.
     QList<DrawPath*> undonePaths;
+    /// Current position of the pointer.
     QPointF pointerPosition = QPointF();
     /// Page enlarged by magnification factor: used for magnifier.
     QPixmap enlargedPage;
@@ -82,9 +98,12 @@ protected:
     QPixmap pixpaths;
     /// Index of last path (of current slide) which is already rendered to pixpaths.
     int end_cache = -1;
+    /// Master slide to which this overlay is attached.
     DrawSlide const* master;
 
 public slots:
+    /// Update enlarged page (required for magnifier) if necessary.
+    /// The page is rendered in a separate thread.
     void updateEnlargedPage();
     void setPaths(QString const pagelabel, QList<DrawPath*> const& list, qint16 const refshiftx, qint16 const refshifty, double const refresolution);
     void setPathsQuick(QString const pagelabel, QList<DrawPath*> const& list, qint16 const refshiftx, qint16 const refshifty, double const refresolution);

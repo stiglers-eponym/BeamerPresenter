@@ -42,7 +42,7 @@ DrawPath::DrawPath(ColoredDrawTool const& tool, QPointF const& start, quint16 co
     updateHash();
 }
 
-DrawPath::DrawPath(ColoredDrawTool const& tool, QPointF* const points, int const number, quint16 const size, quint16 const eraser_size) :
+DrawPath::DrawPath(ColoredDrawTool const& tool, QPointF const* const points, int const number, quint16 const size, quint16 const eraser_size) :
     path(QVector<QPointF>(number)),
     tool(tool),
     size(size),
@@ -229,4 +229,11 @@ void DrawPath::endDrawing()
 {
     if (path.length() == 1)
         path.append(path[0] + QPointF(1e-6, 0));
+}
+
+void DrawPath::clear()
+{
+    path.clear();
+    outer = QRectF(1e6, 1e6, -2e6, -2e6);
+    hash = 0;
 }
