@@ -447,11 +447,11 @@ void ControlScreen::recalcLayout(const int pageNumber)
         if (scale < 0.)
             scale = 1.;
         // Set scaled tool sizes for draw slide.
-        drawSlide->getPathOverlay()->setSize(Pen, static_cast<quint16>(scale*presentationScreen->slide->getPathOverlay()->getSize(Pen)+0.5));
-        drawSlide->getPathOverlay()->setSize(Pointer, static_cast<quint16>(scale*presentationScreen->slide->getPathOverlay()->getSize(Pointer)+0.5));
-        drawSlide->getPathOverlay()->setSize(Highlighter, static_cast<quint16>(scale*presentationScreen->slide->getPathOverlay()->getSize(Highlighter)+0.5));
-        drawSlide->getPathOverlay()->setSize(Torch, static_cast<quint16>(scale*presentationScreen->slide->getPathOverlay()->getSize(Torch)));
-        drawSlide->getPathOverlay()->setSize(Magnifier, static_cast<quint16>(scale*presentationScreen->slide->getPathOverlay()->getSize(Magnifier)));
+        drawSlide->getPathOverlay()->setSize(Pen, scale*presentationScreen->slide->getPathOverlay()->getSize(Pen));
+        drawSlide->getPathOverlay()->setSize(Pointer, scale*presentationScreen->slide->getPathOverlay()->getSize(Pointer));
+        drawSlide->getPathOverlay()->setSize(Highlighter, scale*presentationScreen->slide->getPathOverlay()->getSize(Highlighter));
+        drawSlide->getPathOverlay()->setSize(Torch, scale*presentationScreen->slide->getPathOverlay()->getSize(Torch));
+        drawSlide->getPathOverlay()->setSize(Magnifier, scale*presentationScreen->slide->getPathOverlay()->getSize(Magnifier));
         if (drawSlide != ui->notes_widget) {
             // Adapt geometry of draw slide: It should have the same geometry as the notes slide.
             drawSlide->setGeometry(ui->notes_widget->rect());
@@ -1784,11 +1784,11 @@ void ControlScreen::showDrawSlide()
     /// Relative size of the draw slide compared to the presentation slide.
     qreal const scale = drawSlide->getResolution() / res;
     // Set tool sizes on the draw slide. Sizes are scaled such that drawings look like on the presentation slide.
-    drawSlide->getPathOverlay()->setSize(Pen, static_cast<quint16>(scale*presentationScreen->slide->getPathOverlay()->getSize(Pen)+0.5));
-    drawSlide->getPathOverlay()->setSize(Pointer, static_cast<quint16>(scale*presentationScreen->slide->getPathOverlay()->getSize(Pointer)+0.5));
-    drawSlide->getPathOverlay()->setSize(Highlighter, static_cast<quint16>(scale*presentationScreen->slide->getPathOverlay()->getSize(Highlighter)+0.5));
-    drawSlide->getPathOverlay()->setSize(Torch, static_cast<quint16>(scale*presentationScreen->slide->getPathOverlay()->getSize(Torch)));
-    drawSlide->getPathOverlay()->setSize(Magnifier, static_cast<quint16>(scale*presentationScreen->slide->getPathOverlay()->getSize(Magnifier)));
+    drawSlide->getPathOverlay()->setSize(Pen, scale*presentationScreen->slide->getPathOverlay()->getSize(Pen));
+    drawSlide->getPathOverlay()->setSize(Pointer, scale*presentationScreen->slide->getPathOverlay()->getSize(Pointer));
+    drawSlide->getPathOverlay()->setSize(Highlighter, scale*presentationScreen->slide->getPathOverlay()->getSize(Highlighter));
+    drawSlide->getPathOverlay()->setSize(Torch, scale*presentationScreen->slide->getPathOverlay()->getSize(Torch));
+    drawSlide->getPathOverlay()->setSize(Magnifier, scale*presentationScreen->slide->getPathOverlay()->getSize(Magnifier));
     // Get the current page label.
     QString const label = presentationScreen->slide->getPage()->label();
     // Load existing drawings from the presentation screen for the current page on drawSlide.

@@ -38,11 +38,11 @@ public:
 
     void clearPageAnnotations();
     void clearAllAnnotations();
-    void setSize(DrawTool const tool, quint16 size);
+    void setSize(DrawTool const tool, qreal size);
 
     QMap<QString, QList<DrawPath*>> const& getPaths() const {return paths;}
     ColoredDrawTool getTool() const {return tool;}
-    quint16 getSize(DrawTool const tool) const {return sizes[tool];}
+    qreal getSize(DrawTool const tool) const {return sizes[tool];}
 
     /// Deprecated
     void saveDrawings(QString const& filename, QString const& notefile = "") const;
@@ -91,7 +91,7 @@ protected:
     /// Renderer for enlarged page: enables rendering of enlarged page in separate thread.
     SingleRenderer* enlargedPageRenderer = nullptr;
     /// Sizes of tools.
-    QMap<DrawTool, quint16> sizes = {{Magnifier,120}, {Torch,80}, {Pointer,10}, {Highlighter,30}, {Pen,3}, {Eraser,10}};
+    QMap<DrawTool, qreal> sizes = {{Magnifier,120}, {Torch,80}, {Pointer,10}, {Highlighter,30}, {Pen,3}, {Eraser,10}};
     /// Magnification factor for magnifier.
     qreal magnification = 2.;
     /// Pixmap containing only paths.

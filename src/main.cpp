@@ -1322,6 +1322,21 @@ int main(int argc, char *argv[])
         // Set minimum sidebar width for control screen.
         value = qrealFromConfig(parser, local, settings, "sidebar-width", 0.2, 1.);
         ctrlScreen->setMinSidebarWidth(value);
+
+        // Set sizes of draw tools.
+        // Sizes are given as radius or stroke width (see man page for more details).
+        value  = qrealFromConfig(parser, local, settings, "magnifier-size", 120., 1e6);
+        ctrlScreen->getPresentationSlide()->getPathOverlay()->setSize(Magnifier, value);
+        value  = qrealFromConfig(parser, local, settings, "pointer-size", 10, 1e6);
+        ctrlScreen->getPresentationSlide()->getPathOverlay()->setSize(Pointer, value);
+        value  = qrealFromConfig(parser, local, settings, "torch-size", 80, 1e6);
+        ctrlScreen->getPresentationSlide()->getPathOverlay()->setSize(Torch, value);
+        value  = qrealFromConfig(parser, local, settings, "highlighter-width", 30, 1e6);
+        ctrlScreen->getPresentationSlide()->getPathOverlay()->setSize(Highlighter, value);
+        value  = qrealFromConfig(parser, local, settings, "pen-width", 3, 1e5);
+        ctrlScreen->getPresentationSlide()->getPathOverlay()->setSize(Pen, value);
+        value  = qrealFromConfig(parser, local, settings, "eraser-size", 10, 1e5);
+        ctrlScreen->getPresentationSlide()->getPathOverlay()->setSize(Eraser, value);
     }
 
     // Settings with integer values
@@ -1376,21 +1391,6 @@ int main(int argc, char *argv[])
     }
     {
         quint16 value;
-
-        // Set sizes of draw tools.
-        // Sizes are given as radius or stroke width (see man page for more details).
-        value  = intFromConfig<quint16>(parser, local, settings, "magnifier-size", 120);
-        ctrlScreen->getPresentationSlide()->getPathOverlay()->setSize(Magnifier, value);
-        value  = intFromConfig<quint16>(parser, local, settings, "pointer-size", 10);
-        ctrlScreen->getPresentationSlide()->getPathOverlay()->setSize(Pointer, value);
-        value  = intFromConfig<quint16>(parser, local, settings, "torch-size", 80);
-        ctrlScreen->getPresentationSlide()->getPathOverlay()->setSize(Torch, value);
-        value  = intFromConfig<quint16>(parser, local, settings, "highlighter-width", 30);
-        ctrlScreen->getPresentationSlide()->getPathOverlay()->setSize(Highlighter, value);
-        value  = intFromConfig<quint16>(parser, local, settings, "pen-width", 3);
-        ctrlScreen->getPresentationSlide()->getPathOverlay()->setSize(Pen, value);
-        value  = intFromConfig<quint16>(parser, local, settings, "eraser-size", 10);
-        ctrlScreen->getPresentationSlide()->getPathOverlay()->setSize(Eraser, value);
 
         // Set number of glitter steps and size of glitter pixels in glitter slide transition.
         // More details can (hopefully) be found in the man page.
