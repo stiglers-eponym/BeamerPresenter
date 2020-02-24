@@ -190,16 +190,6 @@ void PathOverlay::updatePathCache()
     }
 }
 
-void PathOverlay::setSize(DrawTool const tool, qreal size)
-{
-    if (tool == Eraser) {
-        for (QMap<QString, QList<DrawPath*>>::iterator page_it = paths.begin(); page_it != paths.end(); page_it++)
-            for (QList<DrawPath*>::iterator path_it=page_it->begin(); path_it!=page_it->end(); path_it++)
-                (*path_it)->setEraserSize(size);
-    }
-    sizes[tool] = size;
-}
-
 void PathOverlay::drawPaths(QPainter &painter, QString const label, bool const animation, bool const toCache)
 {
     // TODO: reorganize the different conditions (especially animation)
@@ -275,7 +265,7 @@ bool PathOverlay::hasVideoOverlap(QRectF const& rect) const
     if (master->videoPositions.isEmpty())
         return false;
     for (auto pos: master->videoPositions) {
-        if (pos.right() > rect.left() && pos.left() < rect.right() && pos.top() < rect.bottom() && pos.bottom() > rect.top())
+        if (rect.intersects(pos))
             return true;
     }
     return false;
@@ -295,7 +285,7 @@ void PathOverlay::mousePressEvent(QMouseEvent *event)
         case Highlighter:
             if (!paths.contains(master->page->label()))
                 paths[master->page->label()] = QList<DrawPath*>();
-            paths[master->page->label()].append(new DrawPath(tool, event->localPos(), sizes[tool.tool], sizes[Eraser]));
+            paths[master->page->label()].append(new DrawPath(tool, event->localPos(), sizes[tool.tool]));
             break;
         case Eraser:
             erase(event->localPos());
@@ -442,7 +432,7 @@ void PathOverlay::erase(const QPointF &point)
     int const oldsize=path_list.size();
     bool changed = false;
     for (int i=0; i<oldsize; i++) {
-        QVector<int> splits = path_list[i]->intersects(point);
+        QVector<int> splits = path_list[i]->intersects(point, sizes[Eraser]);
         if (splits.isEmpty())
             continue;
         changed = true;
@@ -754,7 +744,7 @@ void PathOverlay::loadXML(QString const& filename)
                 if (!ok)
                     size = sizes[tool];
                 QStringList const data = stroke.text().split(" ");
-                paths[label].append(new DrawPath({tool, color}, data, shift, scale, size, sizes[Eraser]));
+                paths[label].append(new DrawPath({tool, color}, data, shift, scale, size));
             }
         }
         emit pathsChanged(label, paths[label], master->shiftx, master->shifty, master->resolution);
@@ -917,7 +907,7 @@ void PathOverlay::loadDrawings(QString const& filename)
                 qCritical() << "Interrupted reading file: File is corrupt.";
                 break;
             }
-            paths[pagelabel].append(new DrawPath({static_cast<DrawTool>(tool), color}, vec, master->shiftx, master->shifty, w, h, sizes[static_cast<DrawTool>(tool)], sizes[Eraser]));
+            paths[pagelabel].append(new DrawPath({static_cast<DrawTool>(tool), color}, vec, master->shiftx, master->shifty, w, h, sizes[static_cast<DrawTool>(tool)]));
         }
         emit pathsChanged(pagelabel, paths[pagelabel], master->shiftx, master->shifty, master->resolution);
     }

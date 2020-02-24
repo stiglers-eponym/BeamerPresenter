@@ -29,21 +29,21 @@ class DrawPath
 {
 private:
     QVector<QPointF> path;
+    /// Rectangle containing all nodes of the path.
     QRectF outer = QRectF();
     ColoredDrawTool const tool;
     qreal size;
-    qreal eraser_size = 10;
     quint32 hash = 0;
 
 public:
     /// Created new empty path.
-    DrawPath(ColoredDrawTool const& tool, QPointF const& start, qreal const size, qreal const eraser_size = 10);
+    DrawPath(ColoredDrawTool const& tool, QPointF const& start, qreal const size);
     /// Create new path with given points.
-    DrawPath(ColoredDrawTool const& tool, QPointF const* const points, int const number, qreal const size, qreal const eraser_size = 10);
+    DrawPath(ColoredDrawTool const& tool, QPointF const* const points, int const number, qreal const size);
     /// Deprecated: used in legacy file loading function.
-    DrawPath(ColoredDrawTool const& tool, QVector<float> const& vec, int const xshift, int const yshift, int const width, int const height, qreal const size, qreal const eraser_size);
+    DrawPath(ColoredDrawTool const& tool, QVector<float> const& vec, int const xshift, int const yshift, int const width, int const height, qreal const size);
     /// Read path from string list. Used in file loading function.
-    DrawPath(ColoredDrawTool const& tool, QStringList const& stringList, QPoint const shift, qreal const scale, qreal const size, qreal const eraser_size);
+    DrawPath(ColoredDrawTool const& tool, QStringList const& stringList, QPoint const shift, qreal const scale, qreal const size);
     DrawPath(DrawPath const& old, QPointF const shift, double const scale);
     DrawPath(DrawPath const& old);
 
@@ -63,8 +63,6 @@ public:
     bool update(DrawPath const& new_path, QPointF const shift, double const scale);
     void updateHash();
 
-    void setEraserSize(qreal const size);
-
     quint32 getHash() const {return hash;}
     bool isEmpty() const {return path.isEmpty();}
     /// Number of nodes in path.
@@ -73,12 +71,12 @@ public:
     QColor const& getColor() const {return tool.color;}
     qreal getSize() const {return size;}
     QPointF const* data() const {return path.constData();}
-    /// Rectangle containing all nodes plus a distance of the eraser size.
+    /// Rectangle containing all nodes.
     QRectF const& getOuter() const {return outer;}
     /// Rectangle containing all nodes plus a distance of the stroke width.
-    QRectF const getOuterDrawing() const;
+    QRectF const getOuterDrawing() const {return outer.adjusted(-size-.5, -size-.5, size+.5, size+.5);}
     /// Return all nodes in this path which are nearer to the given point than eraser_size.
-    QVector<int> intersects(QPointF const& point) const;
+    QVector<int> intersects(QPointF const& point, qreal const eraser_size) const;
 
     /// Append a new node to the path.
     void append(QPointF const& point);

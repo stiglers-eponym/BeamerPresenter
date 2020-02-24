@@ -23,30 +23,19 @@ qreal square(qreal const a)
     return a*a;
 }
 
-void DrawPath::setEraserSize(const qreal size)
-{
-    if (eraser_size < 1) {
-        qWarning() << "Setting an eraser size < 1 does not make any sense. Ignoring this.";
-        return;
-    }
-    eraser_size = size;
-}
-
-DrawPath::DrawPath(ColoredDrawTool const& tool, QPointF const& start, qreal const size, qreal const eraser_size) :
+DrawPath::DrawPath(ColoredDrawTool const& tool, QPointF const& start, qreal const size) :
     tool(tool),
-    size(size),
-    eraser_size(eraser_size)
+    size(size)
 {
     path.append(start);
-    outer = QRectF(start.x()-eraser_size, start.y()-eraser_size, 2*eraser_size, 2*eraser_size);
+    outer = QRectF(start.x(), start.y(), 0, 0);
     updateHash();
 }
 
-DrawPath::DrawPath(ColoredDrawTool const& tool, QPointF const* const points, int const number, qreal const size, qreal const eraser_size) :
+DrawPath::DrawPath(ColoredDrawTool const& tool, QPointF const* const points, int const number, qreal const size) :
     path(QVector<QPointF>(number)),
     tool(tool),
-    size(size),
-    eraser_size(eraser_size)
+    size(size)
 {
     if (number == 0)
         return;
@@ -62,7 +51,7 @@ DrawPath::DrawPath(ColoredDrawTool const& tool, QPointF const* const points, int
         else if (top > points[i].y())
             top = points[i].y();
     }
-    outer = QRectF(left-eraser_size, top-eraser_size, right-left+2*eraser_size, bottom-top+2*eraser_size);
+    outer = QRectF(left, top, right-left, bottom-top);
     updateHash();
 }
 
@@ -70,7 +59,6 @@ DrawPath::DrawPath(DrawPath const& old, QPointF const shift, double const scale)
     path(QVector<QPointF>(old.path.length())),
     tool(old.tool),
     size(scale*old.size),
-    eraser_size(scale*old.eraser_size),
     hash(old.hash)
 {
     for (int i=0; i<old.path.length(); i++)
@@ -94,7 +82,6 @@ DrawPath::DrawPath(DrawPath const& old) :
     outer(old.outer),
     tool(old.tool),
     size(old.size),
-    eraser_size(old.eraser_size),
     hash(old.hash)
 {}
 
@@ -103,27 +90,26 @@ void DrawPath::transform(QPointF const& shift, const double scale)
     for (int i=0; i<path.length(); i++)
         path[i] = scale*path[i] + shift;
     outer = QRectF(scale*outer.topLeft() + shift, scale*outer.bottomRight() + shift);
-    eraser_size = scale*eraser_size;
-    size = scale*size;
+    size *= scale;
 }
 
 void DrawPath::append(QPointF const& point)
 {
-    if (point.x() < outer.left()+eraser_size)
-        outer.setLeft(point.x()-eraser_size);
-    else if (point.x()+eraser_size > outer.right())
-        outer.setRight(point.x()+eraser_size);
-    if (point.y() < outer.top()+eraser_size)
-        outer.setTop(point.y()-eraser_size);
-    else if (point.y()+eraser_size > outer.bottom())
-        outer.setBottom(point.y()+eraser_size);
+    if (point.x() < outer.left())
+        outer.setLeft(point.x());
+    else if (point.x() > outer.right())
+        outer.setRight(point.x());
+    if (point.y() < outer.top())
+        outer.setTop(point.y());
+    else if (point.y() > outer.bottom())
+        outer.setBottom(point.y());
     path.append(point);
     hash ^= quint32(std::hash<double>{}(point.x() + 1e5*point.y())) + (hash << 6) + (hash >> 2);
 }
 
-QVector<int> DrawPath::intersects(QPointF const& point) const
+QVector<int> DrawPath::intersects(QPointF const& point, const qreal eraser_size) const
 {
-     if (!outer.contains(point))
+     if (!(outer.adjusted(-eraser_size, -eraser_size, eraser_size, eraser_size).contains(point)))
          return QVector<int>();
      QVector<int> vec = QVector<int>();
      for (int i=0; i<path.length(); i++) {
@@ -144,7 +130,7 @@ DrawPath* DrawPath::split(int start, int end)
     }
     if (end > path.length())
         end = path.length();
-    return new DrawPath(tool, path.data()+start, end-start, size, eraser_size);
+    return new DrawPath(tool, path.data()+start, end-start, size);
 }
 
 void DrawPath::updateHash()
@@ -175,10 +161,9 @@ void DrawPath::toText(QStringList &stringList, QPoint const shift, qreal const s
     }
 }
 
-DrawPath::DrawPath(ColoredDrawTool const& tool, QVector<float> const& vec, int const xshift, int const yshift, int const width, int const height, qreal const size, qreal const eraser_size) :
+DrawPath::DrawPath(ColoredDrawTool const& tool, QVector<float> const& vec, int const xshift, int const yshift, int const width, int const height, qreal const size) :
     tool(tool),
-    size(size),
-    eraser_size(eraser_size)
+    size(size)
 {
     // Deprecated
     double left=width+2*xshift, right=0, top=height+2*yshift, bottom=0;
@@ -196,14 +181,13 @@ DrawPath::DrawPath(ColoredDrawTool const& tool, QVector<float> const& vec, int c
         else if (top > y)
             top = y;
     }
-    outer = QRectF(left-eraser_size, top-eraser_size, right-left+2*eraser_size, bottom-top+2*eraser_size);
+    outer = QRectF(left, top, right-left, bottom-top);
     updateHash();
 }
 
-DrawPath::DrawPath(ColoredDrawTool const& tool, QStringList const& stringList, QPoint const shift, qreal const scale, qreal const size, qreal const eraser_size) :
+DrawPath::DrawPath(ColoredDrawTool const& tool, QStringList const& stringList, QPoint const shift, qreal const scale, qreal const size) :
     tool(tool),
-    size(scale*size),
-    eraser_size(eraser_size)
+    size(scale*size)
 {
     if (stringList.size() % 2 != 0 || stringList.size() < 2)
         return;
@@ -223,7 +207,7 @@ DrawPath::DrawPath(ColoredDrawTool const& tool, QStringList const& stringList, Q
         else if (top > y)
             top = y;
     }
-    outer = QRectF(left-eraser_size, top-eraser_size, right-left+2*eraser_size, bottom-top+2*eraser_size);
+    outer = QRectF(left, top, right-left, bottom-top);
     updateHash();
 }
 
@@ -231,12 +215,4 @@ void DrawPath::endDrawing()
 {
     if (path.length() == 1)
         path.append(path[0] + QPointF(1e-6, 0));
-}
-
-QRectF const DrawPath::getOuterDrawing() const
-{
-    QRectF rect = outer;
-    rect.setTopLeft(outer.topLeft() - (size/2 - eraser_size)*QPointF(1,1) - QPointF(.5,.5));
-    rect.setBottomRight(outer.bottomRight() + (size/2 - eraser_size)*QPointF(1,1) + QPointF(.5,.5));
-    return rect;
 }

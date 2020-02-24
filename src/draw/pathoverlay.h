@@ -38,7 +38,7 @@ public:
 
     void clearPageAnnotations();
     void clearAllAnnotations();
-    void setSize(DrawTool const tool, qreal size);
+    void setSize(DrawTool const tool, qreal const size) {sizes[tool] = size;}
 
     QMap<QString, QList<DrawPath*>> const& getPaths() const {return paths;}
     ColoredDrawTool getTool() const {return tool;}
