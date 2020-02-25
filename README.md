@@ -1,10 +1,17 @@
 # BeamerPresenter
-BeamerPresenter is a PDF viewer for presentations, which shows presentation
-slides in one window and notes for the speaker (or the same presentation
-slides) with some additional information in a second window.
+BeamerPresenter is a PDF viewer for presentations, which opens a presentation
+screen and a control screen in two different windows. The control screen
+optionally shows slides from a dedicated notes document instead of the slides
+for the audience. Additional information on the control screen includes the
+current time, a timer for the presentation, and previews of the next slides.
 
-BeamerPresenter is mainly tested on Arch Linux with X11 or wayland using
-presentations created by LaTeX beamer.
+Features include slide transitions, multimedia content, different options for
+efficient and fast navigation, and different tools for highlighting and drawing
+in the presentation.
+
+Written in Qt, BeamerPresenter is cross-platform, but mainly tested on
+Arch Linux with X11 or wayland using presentations created by LaTeX beamer.
+In general Qt programs more stable in X11 than in wayland.
 
 
 ## Build
