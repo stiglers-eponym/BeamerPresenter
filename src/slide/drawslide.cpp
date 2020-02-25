@@ -61,6 +61,6 @@ void DrawSlide::resizeEvent(QResizeEvent*)
 
 void DrawSlide::animate(const int oldPageIndex)
 {
-     if (oldPageIndex != pageIndex && (doc->getLabel(oldPageIndex) != doc->getLabel(pageIndex) || !videoWidgets.isEmpty() ))
-         pathOverlay->resetCache();
+    if (oldPageIndex != pageIndex && (doc->getLabel(oldPageIndex) != doc->getLabel(pageIndex) || !videoWidgets.isEmpty() ))
+        pathOverlay->resetCache();
 }

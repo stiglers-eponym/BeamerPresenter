@@ -688,6 +688,7 @@ void PathOverlay::saveDrawings(QString const& filename, QString const& notefile)
 void PathOverlay::loadXML(QString const& filename, PdfDoc const* notesDoc)
 {
     // Load drawings from (compressed) XML.
+    // TODO: use gunzip and open Xournal files directly.
     qInfo() << "Loading files is experimental. Files might contain errors or might be unreadable for later versions of BeamerPresenter";
     QFile file(filename);
     if (!file.exists()) {
@@ -824,7 +825,7 @@ void PathOverlay::loadXML(QString const& filename, PdfDoc const* notesDoc)
                 DrawTool const tool = toolNames.key(stroke.attribute("tool"), NoTool);
                 if (tool != NoTool) {
                     QString colorstr = stroke.attribute("color");
-                    // Colors are saved by xournal in the form #RRGGBBAA, but Qt uses #AARRGGBB.
+                    // Colors are saved by xournal in the format #RRGGBBAA, but Qt uses #AARRGGBB.
                     // Try to convert between the two formats.
                     if (colorstr[0] == '#' && colorstr.size() == 9) {
                         colorstr.insert(1, colorstr.mid(7));

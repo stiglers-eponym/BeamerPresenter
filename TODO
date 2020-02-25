@@ -1,8 +1,8 @@
 BeamerPresenter
 
-* avoid flickering drawings in overlays
 * allow non-uniform page sizes
 * new draw tool: add text
+* restructure page change events
 
 * Document code!
 * Check weird segfaults

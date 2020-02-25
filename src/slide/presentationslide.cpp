@@ -141,9 +141,8 @@ void PresentationSlide::updateImages(int const oldPage)
 }
 
 void PresentationSlide::animate(int const oldPageIndex) {
-    if (oldPageIndex != pageIndex) {
+    if (oldPageIndex != pageIndex)
         pathOverlay->resetCache();
-    }
     if (duration>-1e-6 && duration < .05) {
         transition_duration = 0;
         update();

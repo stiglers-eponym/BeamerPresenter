@@ -380,6 +380,9 @@ Saving and loading files is done using the key actions
 .BR "save drawings" and "load drawings" .
 You can also save files uncompressed or in a (deprecated) legacy binary format using
 .BR "save drawings uncompressed" and "save drawings legacy" ". Note that the legacy binary format will not be supported in future versions of " BeamerPresenter .
+It is also possible to import drawings from uncompressed Xournal or Xournal++ files. For a give .xopp or .xoj file you can use
+.BI "gunzip -c " file.xopp " > " file.xml
+.RI "and then open " file.xml " in BeamerPresenter."
 .
 .
 .SH CONFIGURATION

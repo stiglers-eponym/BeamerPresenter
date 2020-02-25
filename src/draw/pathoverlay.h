@@ -47,9 +47,10 @@ public:
     void saveDrawings(QString const& filename, QString const& notefile = "") const;
     /// Deprecated
     void loadDrawings(QString const& filename);
-    /// Save files to compressed or uncompressed XML file.
+    /// Save files to compressed or uncompressed BeamerPresenter XML file.
     void saveXML(QString const& filename, PdfDoc const* notedoc, bool const compress = true) const;
-    /// Load files from compressed or uncompressed XML file.
+    /// Load files from compressed or uncompressed BeamerPresenter XML file.
+    /// This function also supports reading uncompressed Xournal(++) XML files.
     void loadXML(QString const& filename, PdfDoc const* nodesDoc);
 
     /// Set size of eraser (in point).
