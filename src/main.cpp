@@ -616,10 +616,22 @@ int main(int argc, char *argv[])
         }
         else {
             QDomElement const root = doc.documentElement();
-            QDomElement const pres_element = root.firstChildElement("presentation");
-            presentation = pres_element.attribute("file");
-            QDomElement const notes_element = root.firstChildElement("notes");
-            notes = notes_element.attribute("file");
+            if (root.attribute("creator").contains("beamerpresenter", Qt::CaseInsensitive)) {
+                QDomElement const pres_element = root.firstChildElement("presentation");
+                presentation = pres_element.attribute("file");
+                QDomElement const notes_element = root.firstChildElement("notes");
+                notes = notes_element.attribute("file");
+            }
+            else if (root.attribute("creator").contains("xournal", Qt::CaseInsensitive)) {
+                // Try to get a filename.
+                QDomElement const first_page = root.firstChildElement("page");
+                QDomElement const first_bg = first_page.firstChildElement("background");
+                presentation = first_bg.attribute("filename");
+            }
+            else {
+                qCritical() << "Failed to understand file: Unknown creator" << root.attribute("creator");
+                return 1;
+            }
         }
         // Check whether presentation file exists.
         // This check could be left out (it is repeated in the constructure of ControlScreen), but like this it provides a more detailed error message.
@@ -638,6 +650,7 @@ int main(int argc, char *argv[])
         // Two positional arguments are given.
         // Assume that these are the two PDF files for presentation and notes.
         // All checks are done in the constructur of ControlScreen.
+        // TODO: allow first file to be an uncompressed Xournal(++) file.
         presentation = parser.positionalArguments()[0];
         notes = parser.positionalArguments()[1];
         break;
