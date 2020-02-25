@@ -63,11 +63,11 @@ public:
     void undoPath();
     /// Move the last hidden path to visible paths.
     void redoPath();
-    /// Reset cached pixmap of path overlays and update paths cache.
+    /// Reset cached pixmap of path overlays.
     void resetCache();
     /// Draw paths to painter (starting from end_cache).
     /// TODO: reorganize!
-    void drawPaths(QPainter& painter, QString const label, bool const animation=false, bool const toCache=false);
+    void drawPaths(QPainter& painter, QString const label, bool const plain=false, bool const toCache=false);
     /// Does the given rectangle have any overlap with a video?
     bool hasVideoOverlap(QRectF const& rect) const;
 

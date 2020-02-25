@@ -197,10 +197,10 @@ void PathOverlay::updatePathCache()
     }
 }
 
-void PathOverlay::drawPaths(QPainter &painter, QString const label, bool const animation, bool const toCache)
+void PathOverlay::drawPaths(QPainter &painter, QString const label, bool const plain, bool const toCache)
 {
-    // TODO: reorganize the different conditions (especially animation)
-    if (animation)
+    // TODO: reorganize the different conditions (especially plain)
+    if (plain)
         painter.setClipRect(master->shiftx, master->shifty, width()-2*master->shiftx, height()-2*master->shifty);
 
     // Draw edges of the slide: If they are not drawn explicitly, they can be transparent.
@@ -214,7 +214,7 @@ void PathOverlay::drawPaths(QPainter &painter, QString const label, bool const a
     // Draw the paths.
     if (paths.contains(label)) {
         QList<DrawPath*>::const_iterator path_it = paths[label].cbegin();
-        if (!animation) {
+        if (!plain) {
             // If end_cache >= 0: some paths have been drawn already. Skip them.
             if (label == master->page->label() && end_cache > 0)
                 path_it += end_cache;
@@ -230,7 +230,7 @@ void PathOverlay::drawPaths(QPainter &painter, QString const label, bool const a
                 break;
             case Highlighter:
             {
-                if (!animation) {
+                if (!plain) {
                     // Highlighter needs a background to draw on (because of CompositionMode_Darken).
                     // Drawing this background is only reasonable if there is no video widget in the background.
                     // Check this.
@@ -253,7 +253,7 @@ void PathOverlay::drawPaths(QPainter &painter, QString const label, bool const a
                 painter.setCompositionMode(QPainter::CompositionMode_Darken);
                 painter.setPen(QPen(tool.color, tool.size, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin));
                 painter.drawPolyline((*path_it)->data(), (*path_it)->number());
-                if (!animation)
+                if (!plain)
                     painter.setClipRect(rect());
             }
                 break;
@@ -262,7 +262,7 @@ void PathOverlay::drawPaths(QPainter &painter, QString const label, bool const a
             }
         }
     }
-    if (animation)
+    if (plain)
         painter.setClipRect(rect());
     if (toCache)
         end_cache = paths[master->page->label()].length();
@@ -325,6 +325,7 @@ void PathOverlay::mousePressEvent(QMouseEvent *event)
 
 void PathOverlay::mouseReleaseEvent(QMouseEvent *event)
 {
+    // TODO: Handle case that mouse is pressed during slide change. Currently this leads to unexpected behavior.
     if (master->page == nullptr)
         return;
     switch (event->button())
@@ -352,6 +353,8 @@ void PathOverlay::mouseReleaseEvent(QMouseEvent *event)
             break;
         case Pen:
         case Highlighter:
+            if (!paths.contains(master->page->label()) || paths[master->page->label()].isEmpty())
+                break;
             paths[master->page->label()].last()->endDrawing();
             emit pathsChangedQuick(master->page->label(), paths[master->page->label()], master->shiftx, master->shifty, master->resolution);
             update();
@@ -1028,7 +1031,7 @@ void PathOverlay::undoPath()
         undonePaths.append(paths[master->page->label()].takeLast());
         end_cache = -1;
         pixpaths = QPixmap();
-        repaint();
+        update();
         emit pathsChangedQuick(master->page->label(), paths[master->page->label()], master->shiftx, master->shifty, master->resolution);
     }
 }
@@ -1037,7 +1040,7 @@ void PathOverlay::redoPath()
 {
     if (!undonePaths.isEmpty()) {
         paths[master->page->label()].append(undonePaths.takeLast());
-        repaint();
+        update();
         emit pathsChangedQuick(master->page->label(), paths[master->page->label()], master->shiftx, master->shifty, master->resolution);
     }
 }
@@ -1045,7 +1048,6 @@ void PathOverlay::redoPath()
 void PathOverlay::resetCache()
 {
      end_cache = -1;
-     updatePathCache();
      if (tool.tool != Magnifier) {
          delete enlargedPageRenderer;
          enlargedPageRenderer = nullptr;

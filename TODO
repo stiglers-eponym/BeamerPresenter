@@ -2,7 +2,7 @@ BeamerPresenter
 
 * allow non-uniform page sizes
 * new draw tool: add text
-* restructure page change events
+* restructure rendering, especially DrawOverlay paint events (and draw cache)
 
 * Document code!
 * Check weird segfaults
