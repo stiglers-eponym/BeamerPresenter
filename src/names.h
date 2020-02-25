@@ -42,7 +42,6 @@ static const QMap<DrawTool, FullDrawTool> defaultToolConfig = {
     {NoTool, {NoTool, QColor(), 0.}},
     {InvalidTool, {InvalidTool, QColor(), 0.}},
 };
-// TODO: make it C++14 compatible?
 
 /// Default tools (FullDrawTool) for KeyActions
 static const QMap<KeyAction, DrawTool> actionToToolMap = {
@@ -322,11 +321,11 @@ static const QMap<quint32, KeyAction> staticKeyMap = {
     {Qt::Key_Tab+Qt::SHIFT, KeyAction::ShiftTab},
 };
 
-/// Default configuration of tools for tool selector (buttons).
+/// Default configuration of actions for tool selector (buttons).
 /// The tool selector is an array of buttons in the lower right corner of the control screen.
 /// The keys (quint8) in this map are interpreted as two digit hexadecimal numbers, where the first digit defines the row and the second one defines the column of the button in the array.
 /// One button can define several KeyActions.
-static const QMap<quint8, QList<KeyAction>> defaultActionMap {
+static const QMap<quint8, QList<KeyAction>> defaultToolSelectorActions {
     {0, {KeyAction::ToggleDrawMode}},
     {1, {KeyAction::DrawEraser}},
     {16, {KeyAction::PlayMultimedia}},
@@ -334,15 +333,15 @@ static const QMap<quint8, QList<KeyAction>> defaultActionMap {
     {19, {KeyAction::DrawTorch}},
     {20, {KeyAction::DrawMagnifier}},
 };
-/// Default configuration of colors for tool selector (buttons).
-/// These colors are used by tools in tool selector.
-/// The key defines row and column as in defaultActionMap.
-static const QMap<quint8, FullDrawTool> defaultToolMap {
+
+/// Default configuration of tools for tool selector (buttons).
+/// The tool selector is an array of buttons in the lower right corner of the control screen.
+/// The keys (quint8) in this map are interpreted as two digit hexadecimal numbers, where the first digit defines the row and the second one defines the column of the button in the array.
+static const QMap<quint8, FullDrawTool> defaultToolSelectorTools {
     {2, {Pen, QColor("red"), 3.}},
     {3, {Pen, QColor("green"), 3.}},
     {4, {Highlighter, QColor(255,255,0,191), 20}},
     {18, {Pointer, QColor(255,0,0,191), 10}},
 };
-
 
 #endif // NAMES_H

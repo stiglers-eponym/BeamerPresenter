@@ -913,7 +913,7 @@ int main(int argc, char *argv[])
         // If no configuration for tool selector is found, send the default configuration.
         if (actions.isEmpty() && tools.isEmpty()) {
             // The default configuration contains 2 rows and 5 columns.
-            ctrlScreen->getToolSelector()->setTools(2, 5, defaultActionMap, defaultToolMap);
+            ctrlScreen->getToolSelector()->setTools(2, 5, defaultToolSelectorActions, defaultToolSelectorTools);
         }
         else {
             // A new tool selector configuraton has to be created.
