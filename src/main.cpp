@@ -256,9 +256,12 @@ void actionsFromConfig(QMap<QString, QList<KeyAction>>& actions, QMap<QString, F
         // Iterate over all actions (refered to as "action string" in the following) defined for each key (usually this is only one).
         for (QStringList::const_iterator action_it=it->begin(); action_it!=it->cend(); action_it++) {
             KeyAction const action = keyActionMap.value(action_it->toLower(), KeyAction::NoAction);
+            // Remove spaces from key:
+            QString key = it.key();
+            key.remove(' ');
             // If a KeyAction was found in keyActionMap for this action string: send this key binding to ctrlScreen.
             if (action != NoAction)
-                actions[it.key()].append(action);
+                actions[key].append(action);
             else {
                 try {
                     // Try to interpret  as a sequence "tool color" or "tool color size", defining a drawing or highlighting tool and a color.
@@ -286,12 +289,12 @@ void actionsFromConfig(QMap<QString, QList<KeyAction>>& actions, QMap<QString, F
                             bool ok;
                             qreal const magnification = map.value("magnification").toDouble(&ok);
                             if (ok)
-                                tools[it.key()] = {tool, color, size, {magnification}};
+                                tools[key] = {tool, color, size, {magnification}};
                             else
-                                tools[it.key()] = {tool, color, size};
+                                tools[key] = {tool, color, size};
                         }
                         else
-                            tools[it.key()] = {tool, color, size};
+                            tools[key] = {tool, color, size};
                     }
                     else {
                         // Interpret all following arguments as color, size and magnification.
@@ -309,12 +312,12 @@ void actionsFromConfig(QMap<QString, QList<KeyAction>>& actions, QMap<QString, F
                             qreal magnification = 0.;
                             if (split_action.size() > 3)
                                 magnification = split_action[3].toDouble();
-                            tools[it.key()] = {tool, color, size, {magnification}};
+                            tools[key] = {tool, color, size, {magnification}};
                             if (split_action.size() > 4)
                                 qWarning() << "Tool has too many arguments:" << it.key() << *it;
                         }
                         else {
-                            tools[it.key()] = {tool, color, size};
+                            tools[key] = {tool, color, size};
                             if (split_action.size() > 3)
                                 qWarning() << "Tool has too many arguments:" << it.key() << *it;
                         }
@@ -336,12 +339,15 @@ void actionsFromConfig(QMap<QString, QList<KeyAction>>& actions, QMap<QString, F
             // Parse the second word of the action string as a QColor.
             QColor const color = QColor(it->value("color").toString());
             qreal const size = it->value("size").toDouble();
+            // Remove spaces from key:
+            QString key = it.key();
+            key.remove(' ');
             if (tool == Magnifier) {
                 qreal const magnification = it->value("magnification").toDouble();
-                tools[it.key()] = {static_cast<DrawTool>(tool), color, size, {magnification}};
+                tools[key] = {static_cast<DrawTool>(tool), color, size, {magnification}};
             }
             else
-                tools[it.key()] = {static_cast<DrawTool>(tool), color, size};
+                tools[key] = {static_cast<DrawTool>(tool), color, size};
         } catch (int) {
             qCritical() << "Could not understand action" << *it << "for key" << it.key();
         }
@@ -362,9 +368,9 @@ int main(int argc, char *argv[])
     // Set app version. The string APP_VERSION is defined in beamerpresenter.pro.
 #ifdef QT_DEBUG
 #ifdef POPPLER_VERSION
-    app.setApplicationVersion(APP_VERSION " debugging, (poppler=" POPPLER_VERSION ", Qt=" QT_VERSION_STR ")");
+    app.setApplicationVersion(APP_VERSION " debugging (poppler=" POPPLER_VERSION ", Qt=" QT_VERSION_STR ")");
 #else
-    app.setApplicationVersion(APP_VERSION " debugging, (Qt=" QT_VERSION_STR ")");
+    app.setApplicationVersion(APP_VERSION " debugging (Qt=" QT_VERSION_STR ")");
 #endif
 #else
 #ifdef POPPLER_VERSION
@@ -406,7 +412,7 @@ int main(int argc, char *argv[])
         );
     // Define command line options.
     parser.addHelpOption();
-    //parser.addVersionOption();
+    parser.addVersionOption();
     parser.addPositionalArgument("<slides.pdf>", "Slides for a presentation");
     parser.addPositionalArgument("<notes.pdf>",  "Notes for the presentation (optional, should have the same number of pages as <slides.pdf>)");
     // TODO: change letters for option shortcuts
@@ -434,7 +440,7 @@ int main(int argc, char *argv[])
         {{"s", "scrollstep"}, "Number of pixels which represent a scroll step for a touch pad scroll signal.", "int"},
         {{"t", "time"}, "Set presentation time.\nPossible formats are \"[m]m\", \"[m]m:ss\" and \"h:mm:ss\".", "time"},
         {{"u", "urlsplit"}, "Character which is used to split links into an url and arguments.", "char"},
-        {{"v", "video-cache"}, "Preload videos for the following slide.", "bool"},
+        {{"V", "video-cache"}, "Preload videos for the following slide.", "bool"},
 #ifdef EMBEDDED_APPLICATIONS_ENABLED
         {{"w", "pid2wid"}, "Program that converts a PID to a Window ID.", "file"},
         {{"x", "log"}, "Log times of slide changes to standard output."},

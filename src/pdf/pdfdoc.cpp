@@ -175,25 +175,15 @@ int PdfDoc::destToSlide(QString const & dest) const
     return page;
 }
 
-QString const PdfDoc::getLabel(int const pageNumber) const
+QString const& PdfDoc::getLabel(int const pageNumber) const
 {
     // Check whether pageNumber is valid. Return its label.
     if (pageNumber < 0)
-        return pdfPages.first()->label();
-    else if (pageNumber < popplerDoc->numPages())
-        return pdfPages[pageNumber]->label();
+        return labels.first();
+    else if (pageNumber >= popplerDoc->numPages())
+        return labels.last();
     else
-        return pdfPages.last()->label();
-}
-
-int PdfDoc::getSlideNumber(const int page) const
-{
-    // Check whether page has a label.
-    QString label = pdfPages[page]->label();
-    if (label.isEmpty())
-        return page + 1;
-    else
-        return label.toInt();
+        return labels[pageNumber];
 }
 
 Poppler::Page const* PdfDoc::getPage(QString const& pageLabel) const

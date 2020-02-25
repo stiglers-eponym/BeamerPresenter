@@ -26,7 +26,9 @@ TEMPLATE = app
 DEFINES += QT_DEPRECATED_WARNINGS
 
 # Define the application version.
-DEFINES += APP_VERSION=\\\"$${VERSION}\\\"
+#DEFINES += APP_VERSION=\\\"$${VERSION}\\\"
+# Set git version for more precise version info.
+DEFINES += APP_VERSION="\\\"$${VERSION}-$(shell git -C \""$$_PRO_FILE_PWD_"\" rev-list --count HEAD ).$(shell git -C \""$$_PRO_FILE_PWD_"\" rev-parse --short HEAD )\\\""
 
 # If the following define is uncommented, BeamerPresenter will check whether a compatible QPA platform is used.
 # It will then emit warning on untested systems and try to avoid blocking you window manager.

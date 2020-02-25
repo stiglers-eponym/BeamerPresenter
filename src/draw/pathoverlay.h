@@ -21,6 +21,7 @@
 
 #include <QWidget>
 #include <QApplication>
+#include <QRegExp>
 #include "drawpath.h"
 #include "../pdf/singlerenderer.h"
 
@@ -49,7 +50,7 @@ public:
     /// Save files to compressed or uncompressed XML file.
     void saveXML(QString const& filename, PdfDoc const* notedoc, bool const compress = true) const;
     /// Load files from compressed or uncompressed XML file.
-    void loadXML(QString const& filename);
+    void loadXML(QString const& filename, PdfDoc const* nodesDoc);
 
     /// Set size of eraser (in point).
     void setEraserSize(qreal const size) {eraserSize = size;}

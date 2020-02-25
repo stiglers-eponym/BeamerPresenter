@@ -73,20 +73,18 @@ public:
     /// Check if page label is valid and return page.
     Poppler::Page const* getPage(QString const& pageLabel) const;
     /// Modification date as string.
-    QString const getLastModified() const {return lastModified.toString("yyyy-MM-dd hh:mm:ss");}
+    QDateTime const& getLastModified() const {return lastModified;}
     /// Return the QDomDocument representing the table of contents (TOC) of the PDF document.
     QDomDocument const* getToc() const {return popplerDoc->toc();}
     /// Return page size in point = inch/72.
     QSizeF const getPageSize(int const pageNumber) const;
     /// Return label of given page.
-    QString const getLabel(int const pageNumber) const;
+    QString const& getLabel(int const pageNumber) const;
     /// Return page index (number) of the next page with different page label.
     int getNextSlideIndex(int const index) const;
     /// Return page index (number) of the previous page with different page label.
     /// This function skips slides which have a duration of less than one second.
     int getPreviousSlideEnd(int const index) const;
-    /// Return page label as an interger. This fails and returns 0 if page label cannot be converted to an integer.
-    int getSlideNumber(int const page) const;
     /// Return page index (number) of a destination string (from table of contents).
     /// Return -1 if an invalid destination string is given.
     int destToSlide(QString const& dest) const;

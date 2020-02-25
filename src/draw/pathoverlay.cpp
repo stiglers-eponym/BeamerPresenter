@@ -685,7 +685,7 @@ void PathOverlay::saveDrawings(QString const& filename, QString const& notefile)
     }
 }
 
-void PathOverlay::loadXML(QString const& filename)
+void PathOverlay::loadXML(QString const& filename, PdfDoc const* notesDoc)
 {
     // Load drawings from (compressed) XML.
     qInfo() << "Loading files is experimental. Files might contain errors or might be unreadable for later versions of BeamerPresenter";
@@ -709,55 +709,142 @@ void PathOverlay::loadXML(QString const& filename)
         }
     }
     QDomElement const root = doc.documentElement();
-    qDebug() << root.attribute("creator");
+    if (root.attribute("creator").contains("beamerpresenter", Qt::CaseInsensitive)) {
 
-    QDomElement const pres = root.firstChildElement("presentation");
-    qDebug() << "file:" << pres.attribute("file");
-    if (pres.attribute("pages").toInt() != master->doc->getDoc()->numPages())
-        qWarning() << "Number of pages does not match!";
+        // Check whether the presentation file is as expected and warn otherwise.
+        {
+            QDomElement const pres = root.firstChildElement("presentation");
+            QFileInfo const& presentation_fileinfo = QFileInfo(master->doc->getPath());
+            if (pres.attribute("file") != presentation_fileinfo.absoluteFilePath())
+                qWarning() << "This drawing file was generated for a different PDF file path.";
+            if (pres.attribute("modified") != presentation_fileinfo.lastModified().toString("yyyy-MM-dd hh:mm:ss"))
+                qWarning() << "The presentation file has been modified since writing the drawing file.";
+            if (pres.attribute("pages").toInt() != master->doc->getDoc()->numPages())
+                qWarning() << "The numbers of pages in the presentation and drawing file do not match!";
+        }
 
-    QDomElement const notes = root.firstChildElement("notes");
-    qDebug() << "file:" << notes.attribute("file");
-    if (notes.attribute("pages").toInt() != master->doc->getDoc()->numPages())
-        qWarning() << "Number of pages does not match!";
+        // Check whether the notes file is as expected and warn otherwise.
+        {
+            QDomElement const notes = root.firstChildElement("notes");
+            QFileInfo const& notes_fileinfo = QFileInfo(notesDoc->getPath());
+            if (notes.attribute("file") != notes_fileinfo.absoluteFilePath())
+                qWarning() << "This drawing file was generated for a different PDF file path.";
+            if (notes.attribute("modified") != notes_fileinfo.lastModified().toString("yyyy-MM-dd hh:mm:ss"))
+                qWarning() << "The notes file has been modified since writing the drawing file.";
+            if (notes.attribute("pages").toInt() != notesDoc->getDoc()->numPages())
+                qWarning() << "The numbers of pages in the notes and drawing file do not match!";
+        }
 
-    for (QDomElement page_element = root.firstChildElement("page"); !page_element.isNull(); page_element = page_element.nextSiblingElement("page")) {
-        QString const label = page_element.attribute("label");
-        qreal scale;
-        QPoint shift;
-        Poppler::Page const* page = master->doc->getPage(label);
-        QSizeF size;
-        if (page == nullptr)
-            size = master->page->pageSizeF();
-        else
-            size = page->pageSizeF();
-        if (size.width() * height() >= width() * size.height()) {
-            shift.setY(( height() - size.height()/size.width() * width() )/2);
-            scale = width() / size.width();
+        for (QDomElement page_element = root.firstChildElement("page"); !page_element.isNull(); page_element = page_element.nextSiblingElement("page")) {
+            QString const label = page_element.attribute("label");
+            qreal scale;
+            QPoint shift;
+            Poppler::Page const* page = master->doc->getPage(label);
+            QSizeF size;
+            if (page == nullptr)
+                size = master->page->pageSizeF();
+            else
+                size = page->pageSizeF();
+            if (size.width() * height() >= width() * size.height()) {
+                shift.setY(( height() - size.height()/size.width() * width() )/2);
+                scale = width() / size.width();
+            }
+            else {
+                shift.setX((width() - size.width()/size.height() * height() )/2);
+                scale = height() / size.height();
+            }
+            if (paths.contains(label)) {
+                qDeleteAll(paths[label]);
+                paths[label].clear();
+            }
+            else
+                paths[label] = QList<DrawPath*>();
+            for (QDomElement stroke = page_element.firstChildElement("stroke"); !stroke.isNull(); stroke = stroke.nextSiblingElement("stroke")) {
+                DrawTool const tool = toolNames.key(stroke.attribute("tool"), NoTool);
+                if (tool != NoTool) {
+                    QColor const color = QColor(stroke.attribute("color"));
+                    bool ok;
+                    qreal size = stroke.attribute("width").toDouble(&ok);
+                    if (!ok)
+                        size = defaultToolConfig[tool].size;
+                    QStringList const data = stroke.text().split(" ");
+                    paths[label].append(new DrawPath({tool, color, size}, data, shift, scale));
+                }
+            }
+            emit pathsChanged(label, paths[label], master->shiftx, master->shifty, master->resolution);
         }
-        else {
-            shift.setX((width() - size.width()/size.height() * height() )/2);
-            scale = height() / size.height();
-        }
-        if (paths.contains(label)) {
-            qDeleteAll(paths[label]);
-            paths[label].clear();
-        }
-        else
-            paths[label] = QList<DrawPath*>();
-        for (QDomElement stroke = page_element.firstChildElement("stroke"); !stroke.isNull(); stroke = stroke.nextSiblingElement("stroke")) {
-            DrawTool const tool = toolNames.key(stroke.attribute("tool"), NoTool);
-            if (tool != NoTool) {
-                QColor const color = QColor(stroke.attribute("color"));
-                bool ok;
-                qreal size = stroke.attribute("width").toDouble(&ok);
-                if (!ok)
-                    size = defaultToolConfig[tool].size;
-                QStringList const data = stroke.text().split(" ");
-                paths[label].append(new DrawPath({tool, color, size}, data, shift, scale));
+
+    }
+    else if (root.attribute("creator").contains("xournal", Qt::CaseInsensitive)) {
+        // Try to import strokes from uncompressed Xournal or Xournal++ file
+        // Get filename and compare it to presentation file.
+        {
+            QDomElement const first_page = root.firstChildElement("page");
+            if (!first_page.isNull()) {
+                QDomElement const first_bg = first_page.firstChildElement("background");
+                if (!first_bg.isNull() && first_bg.hasAttribute("filename")) {
+                    QFileInfo const& presentation_fileinfo = QFileInfo(master->doc->getPath());
+                    if (first_bg.attribute("filename") != presentation_fileinfo.absoluteFilePath())
+                        qWarning() << "This Xournal(++) file uses a different PDF file path.";
+                }
             }
         }
-        emit pathsChanged(label, paths[label], master->shiftx, master->shifty, master->resolution);
+        for (QDomElement page_element = root.firstChildElement("page"); !page_element.isNull(); page_element = page_element.nextSiblingElement("page")) {
+            QDomElement bg = page_element.firstChildElement("background");
+            if (bg.isNull())
+                continue;
+            QDomElement layer = page_element.firstChildElement("layer");
+            if (layer.isNull() || !layer.hasChildNodes())
+                continue;
+            bool ok;
+            int const pageno = bg.attribute("pageno").remove(QRegExp("[a-z]")).toInt(&ok) - 1;
+            if (!ok)
+                continue;
+            QString const label = master->doc->getLabel(pageno);
+            // TODO: handle text.
+            qreal scale;
+            QPoint shift;
+            Poppler::Page const* page = master->doc->getPage(label);
+            QSizeF size;
+            if (page == nullptr)
+                size = master->page->pageSizeF();
+            else
+                size = page->pageSizeF();
+            if (size.width() * height() >= width() * size.height()) {
+                shift.setY(( height() - size.height()/size.width() * width() )/2);
+                scale = width() / size.width();
+            }
+            else {
+                shift.setX((width() - size.width()/size.height() * height() )/2);
+                scale = height() / size.height();
+            }
+            for (QDomElement stroke = layer.firstChildElement("stroke"); !stroke.isNull(); stroke = stroke.nextSiblingElement("stroke")) {
+                // This requires that tool names are compatible with those used by Xournal(++).
+                // But since the only stroke tools are "pen" and "highlighter", this is not a problem.
+                DrawTool const tool = toolNames.key(stroke.attribute("tool"), NoTool);
+                if (tool != NoTool) {
+                    QString colorstr = stroke.attribute("color");
+                    // Colors are saved by xournal in the form #RRGGBBAA, but Qt uses #AARRGGBB.
+                    // Try to convert between the two formats.
+                    if (colorstr[0] == '#' && colorstr.size() == 9) {
+                        colorstr.insert(1, colorstr.mid(7));
+                        colorstr.truncate(9);
+                    }
+                    QColor const color = QColor(colorstr);
+                    bool ok;
+                    qreal size = stroke.attribute("width").toDouble(&ok);
+                    if (!ok)
+                        size = defaultToolConfig[tool].size;
+                    QStringList const data = stroke.text().split(" ");
+                    qDebug() << data;
+                    paths[label].append(new DrawPath({tool, color, size}, data, shift, scale));
+                }
+            }
+            emit pathsChanged(label, paths[label], master->shiftx, master->shifty, master->resolution);
+        }
+    }
+    else {
+        qWarning() << "Could not understand file: Unknown creator" << root.attribute("creator");
     }
     file.close();
     update();
@@ -769,7 +856,8 @@ void PathOverlay::saveXML(QString const& filename, PdfDoc const* notedoc, bool c
     qInfo() << "Saving files is experimental. Files might contain errors or might be unreadable for later versions of BeamerPresenter";
     QDomDocument doc("BeamerPresenter");
     QDomElement root = doc.createElement("BeamerPresenter");
-    root.setAttribute("creator", "BeamerPresenter " APP_VERSION);
+    root.setAttribute("creator", "BeamerPresenter");
+    root.setAttribute("version", APP_VERSION);
     doc.appendChild(root);
 
     QString const presentation_file = QFileInfo(master->doc->getPath()).absoluteFilePath();
@@ -778,13 +866,13 @@ void PathOverlay::saveXML(QString const& filename, PdfDoc const* notedoc, bool c
     QDomElement pres = doc.createElement("presentation");
     pres.setAttribute("file", presentation_file);
     pres.setAttribute("pages", master->doc->getDoc()->numPages());
-    pres.setAttribute("changed", master->doc->getLastModified());
+    pres.setAttribute("modified", master->doc->getLastModified().toString("yyyy-MM-dd hh:mm:ss"));
     root.appendChild(pres);
 
     QDomElement notes = doc.createElement("notes");
     notes.setAttribute("file", notes_file);
     notes.setAttribute("pages", notedoc->getDoc()->numPages());
-    notes.setAttribute("changed", notedoc->getLastModified());
+    notes.setAttribute("modified", notedoc->getLastModified().toString("yyyy-MM-dd hh:mm:ss"));
     root.appendChild(notes);
 
     qDebug() << "adding pages:" << paths.size();

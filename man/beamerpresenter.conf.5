@@ -1,7 +1,7 @@
-.TH beamerpresenter.conf 5 "28 December 2019"
+.TH beamerpresenter.conf 5 "25 February 2020"
 .
 .SH NAME
-beamerpresenter.conf - configuration file for BeamerPresenter
+beamerpresenter.conf \- configuration file for BeamerPresenter
 .
 .
 .SH DESCRIPTION
@@ -183,7 +183,7 @@ This overwrites the default value for the command line argument
 .IR bool :
 If set to true, videos will be loaded to cache when reaching the slide before the one containing the video.
 This overwrites the default value for the command line argument
-.BR \-v " or " \-\-video-cache .
+.BR \-V " or " \-\-video-cache .
 .
 .TP
 .BR toc-depth =2
@@ -420,23 +420,28 @@ Restore a previously undone path.
 .
 .TP
 .B save drawings
-Save drawings to a compressed XML file. This opens a file dialog in which you specify an output file name.
+Save drawings to a compressed XML file. This opens a file dialog in which you can specify an output file path.
+The XML file is compressed using Qt's qCompress function. It can be uncompressed using zlib after removing the first four bytes, e.g. by using the command
+.RI "\[dq]tail -c+5 " file.bp " | zlib-flate -uncompress\[dq]."
 Note that saving and loading drawings is experimental and files may not be readable for later versions of BeamerPresenter!
 .
 .TP
 .B save drawings uncompressed
-Save drawings to a uncompressed XML file. This opens a file dialog in which you specify an output file name.
+Save drawings to an uncompressed XML file. This opens a file dialog in which you can specify an output file path.
+The XML file's root node contains nodes for each page with an own label which contains annotations.
+The page nodes then contain one element for each stroke.
+.RI "These stokes have the properties " tool ", " color ", and " width " and contain as text a list of coordinates forming the stroke. The coordinates are given as alternating x and y floating point values in points (inch/72)."
 Note that saving and loading drawings is experimental and files may not be readable for later versions of BeamerPresenter!
 .
 .TP
 .B save drawings legacy
-Save drawings to a legacy binary file. This opens a file dialog in which you specify an output file name.
-Note that this file format will not be readable for later versions of BeamerPresenter!
+Save drawings to a legacy binary file. This opens a file dialog in which you can specify an output file path.
+.RB "Note that this file format will be " "unreadable for later versions of BeamerPresenter!"
 .
 .TP
 .B load drawings
-Load drawings from file. This opens a file dialog in which you select a file which was created using BeamerPresenter.
-.RB "Currently loading compressed and uncompressed XML files and legacy binary files are supported. However, legacy binary files will not be supported in later versions of " BeamerPresenter .
+Load drawings from file. This opens a file dialog in which you can select a file which was created using BeamerPresenter.
+Currently loading compressed and uncompressed XML files as well as legacy binary files is supported. However, legacy binary files will not be supported in later versions of BeamerPresenter.
 .
 .TP
 .B hand tool

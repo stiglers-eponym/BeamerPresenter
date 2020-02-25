@@ -1,7 +1,8 @@
 BeamerPresenter
 
-* load (uncompressed) xopp files
+* avoid flickering drawings in overlays
 * allow non-uniform page sizes
+* new draw tool: add text
 
 * Document code!
 * Check weird segfaults

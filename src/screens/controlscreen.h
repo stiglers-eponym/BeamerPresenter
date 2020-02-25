@@ -101,7 +101,7 @@ public:
     Timer* getTimer() {return ui->label_timer;}
 
     /// Load drawings from file (used only from main.cpp)
-    void loadXML(QString const& filename) {presentationScreen->slide->getPathOverlay()->loadXML(filename);}
+    void loadXML(QString const& filename) {presentationScreen->slide->getPathOverlay()->loadXML(filename, notes);}
 
     // Show or hide different widgets on the notes area.
     // This activates different modes: drawing, TOC, and overview mode.

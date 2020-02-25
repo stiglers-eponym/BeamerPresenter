@@ -188,7 +188,8 @@ DrawPath::DrawPath(FullDrawTool const& tool, QStringList const& stringList, QPoi
     double x = shift.x() + scale*stringList[0].toDouble();
     double y = shift.y() + scale*stringList[1].toDouble();
     double left=x, right=x, top=y, bottom=y;
-    for (QStringList::const_iterator it=stringList.cbegin()+2; it != stringList.end();) {
+    path.append(QPointF(x, y));
+    for (QStringList::const_iterator it=stringList.cbegin()+2; it != stringList.cend();) {
         x = shift.x() + scale*(it++)->toDouble();
         y = shift.y() + scale*(it++)->toDouble();
         path.append(QPointF(x, y));
