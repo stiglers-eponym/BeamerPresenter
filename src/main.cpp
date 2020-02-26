@@ -413,6 +413,7 @@ int main(int argc, char *argv[])
     // Define command line options.
     parser.addHelpOption();
     parser.addVersionOption();
+    // TODO: explain alternative positional arguments
     parser.addPositionalArgument("<slides.pdf>", "Slides for a presentation");
     parser.addPositionalArgument("<notes.pdf>",  "Notes for the presentation (optional, should have the same number of pages as <slides.pdf>)");
     // TODO: change letters for option shortcuts
@@ -455,6 +456,8 @@ int main(int argc, char *argv[])
         {"mute-notes", "Mute notes (default: true)", "bool"},
         {"eraser-size", "Radius of eraser.", "pixels"},
         {"icon-path", "Set path for default icons, e.g. /usr/share/icons/default", "path"},
+        {"presentation", "Presentation PDF file (usually first positional argument)", "path"},
+        {"notes", "Notes PDF file (usually second positional argument)", "path"},
     });
     parser.process(app);
 
@@ -513,189 +516,202 @@ int main(int argc, char *argv[])
     }
 
 
-    // Handle positional arguments.
-    // These should be either: 1 pdf file (the presentation) or 2 pdf files (presentation and notes) or 1 json file (the local configuration) or 1 BeamerPresenter drawings file.
-    QString presentation, notes;
-    switch (parser.positionalArguments().size()) {
-    case 1:
-        {
-        // Check whether the argument is a file.
-        if (!QFileInfo(parser.positionalArguments()[0]).exists()) {
-            qCritical() << "File" << parser.positionalArguments()[0] << "does not exist!";
-            return 1;
-        }
-        // Get the file type using mime types.
-        QMimeDatabase db;
-        QMimeType type = db.mimeTypeForFile(parser.positionalArguments()[0], QMimeDatabase::MatchContent);
-        if (!type.isValid()) {
-            type = db.mimeTypeForFile(parser.positionalArguments()[0], QMimeDatabase::MatchExtension);
-            if (!type.isValid()) {
-                qCritical() << "Did not understand type of file" << parser.positionalArguments()[0];
-                return 1;
-            }
-        }
-        // If file is a pdf file, it is interpreted as the presentation file.
-        if (type.suffixes().contains("pdf", Qt::CaseInsensitive)) {
-            // Set up ctrlScreen using the argument as the presentation file.
-            presentation = parser.positionalArguments()[0];
-            break;
-        }
-        // If file is a JSON file, it is interpreted as a local configuration file.
-        if (type.suffixes().contains("txt") || type.suffixes().contains("json")) {
-            // Try to open the file.
-            QFile jsonFile(parser.positionalArguments()[0]);
-            jsonFile.open(QFile::ReadOnly);
-            QJsonParseError* error = nullptr;
-            // Parse the file as JSON document.
-            QJsonDocument jsonDoc = QJsonDocument::fromJson(jsonFile.readAll(), error);
-            // Check for errors.
-            if (jsonDoc.isNull() || jsonDoc.isEmpty()) {
-                qWarning() << "Failed to load local configuration file: File is empty or parsing JSON failed";
-                if (error != nullptr)
-                    qInfo() << "Reported error:" << error->errorString();
-            }
-            else {
-                // Write the options from the JSON file in local.
-                local = jsonDoc.object().toVariantMap();
-                // Check whether the JSON document contains the keys "presentation" and "notes".
-                // Use these corresponding options as files to construct ctrlScreen.
-                if (local.contains("presentation")) {
-                    presentation = local.value("presentation").toString();
-                    if (local.contains("notes"))
-                        notes = local.value("notes").toString();
-                    break;
-                }
-                else {
-                    qCritical() << "Could not find presentation file. Argument was" << parser.positionalArguments()[0];
-                    return 1;
-                }
-            }
-        }
-
-        // Try to read file as BeamerPresenter drawing file (XML, compressed XML or legacy binary format).
-        QFile file(parser.positionalArguments()[0]);
-        if (!file.open(QIODevice::ReadOnly)) {
-            qCritical() << "Cannot read file:" << parser.positionalArguments()[0];
-            return 1;
-        }
-        // Try to open the file as (compressed) XML document.
-        QDomDocument doc("BeamerPresenter");
-        if (!doc.setContent(&file)) {
-            file.close();
-            file.open(QIODevice::ReadOnly);
-            if (!doc.setContent(qUncompress(file.readAll()))) {
-                file.close();
-                doc.clear();
-            }
-        }
-        if (doc.isNull()) {
-            // Deprecated
-            // Try to read deprecated binary file format.
-            file.open(QIODevice::ReadOnly);
-            // Read the file in a QDataStream.
-            QDataStream stream(&file);
-            stream.setVersion(QDataStream::Qt_5_0);
-            // Read "magic bytes" from the stream an compare.
-            quint32 magic;
-            stream >> magic;
-            // Check for errors and whether the magic bytes match the ones defined for BeamerPresenter binaries.
-            if (stream.status() == QDataStream::Ok && magic == 0x2CA7D9F8) {
-                // Read QDataStream version from stream.
-                quint16 version;
-                stream >> version;
-                // Overwrite QDataStream version with the version read from the stream.
-                stream.setVersion(version);
-                // Read file paths for presentation and notes.
-                stream >> presentation >> notes;
-                // Check for errors.
-                if (stream.status() != QDataStream::Ok) {
-                    qCritical() << "Failed to open drawings file" << parser.positionalArguments()[0] << ". File is corrupt";
-                    return 1;
-                }
-            }
-        }
-        else {
-            QDomElement const root = doc.documentElement();
-            if (root.attribute("creator").contains("beamerpresenter", Qt::CaseInsensitive)) {
-                QDomElement const pres_element = root.firstChildElement("presentation");
-                presentation = pres_element.attribute("file");
-                QDomElement const notes_element = root.firstChildElement("notes");
-                notes = notes_element.attribute("file");
-            }
-            else if (root.attribute("creator").contains("xournal", Qt::CaseInsensitive)) {
-                // Try to get a filename.
-                QDomElement const first_page = root.firstChildElement("page");
-                QDomElement const first_bg = first_page.firstChildElement("background");
-                presentation = first_bg.attribute("filename");
-            }
-            else {
-                qCritical() << "Failed to understand file: Unknown creator" << root.attribute("creator");
-                return 1;
-            }
-        }
-        // Check whether presentation file exists.
-        // This check could be left out (it is repeated in the constructure of ControlScreen), but like this it provides a more detailed error message.
-        if (!QFileInfo(presentation).exists()) {
-            qCritical() << "Failed to open PDF file" << presentation << "refered to in" << parser.positionalArguments()[0] << ". File does not exist.";
-            return 1;
-        }
-        // Create ctrlScreen.
-        // notespath can be empty, which is handled correctly in the constructure of ControlScreen.
-        // Set the drawings file as a drawings file in local configuration.
-        // Later this option in local will be used to load the drawings saved in the drawings file.
-        local["drawings"] = parser.positionalArguments()[0];
-        break;
-        }
-    case 2:
-        // Two positional arguments are given.
-        // Assume that these are the two PDF files for presentation and notes.
-        // All checks are done in the constructur of ControlScreen.
-        // TODO: allow first file to be an uncompressed Xournal(++) file.
-        presentation = parser.positionalArguments()[0];
-        notes = parser.positionalArguments()[1];
-        break;
-    case 0:
+    // Get presentation and notes path.
+    QString presentation = settings.value("presentation").toString();
+    QString notes = settings.value("notes").toString();
+    // Try to get both from local config.
+    if (presentation.isEmpty() && local.contains("presentation")) {
+        // Check whether notes are also given and create ctrlScreen.
+        presentation = local.value("presentation").toString();
+        if (notes.isEmpty() && local.contains("notes"))
+            notes = local.value("notes").toString();
+    }
+    if (parser.positionalArguments().isEmpty() && presentation.isEmpty()) {
         // No positional arguments given.
-        // Check whether a local configuration file defines a local presentation file.
-        if (local.contains("presentation")) {
-            // Check whether notes are also given and create ctrlScreen.
-            presentation = local.value("presentation").toString();
-            if (local.contains("notes"))
-                notes = local.value("notes").toString();
+        // Find pdf files using a QFileDialog.
+        // First open a QFileDialog to find a presentation file.
+        /// QString containing path of presentation file
+        presentation = QFileDialog::getOpenFileName(nullptr, "Open Slides", "", "Documents (*.pdf)");
+        // Check whether a file was selected.
+        if (presentation.isEmpty()) {
+            qCritical() << "No presentation file given";
+            // Exit with error showing help message.
+            parser.showHelp(1);
         }
-        else {
-            // Find pdf files using a QFileDialog.
-            // First open a QFileDialog to find a presentation file.
-            /// QString containing path of presentation file
-            presentation = QFileDialog::getOpenFileName(nullptr, "Open Slides", "", "Documents (*.pdf)");
-            // Check whether a file was selected.
-            if (presentation.isEmpty()) {
-                qCritical() << "No presentation file specified";
-                // Exit with error showing help message.
-                parser.showHelp(1);
-            }
-            // Check if the presentation file should include notes (beamer option show notes on second screen).
+        if (notes.isEmpty()) {
+            // Check whether option "page-part" (indicating that the presentation should contain notes) is set.
             // If the presenation file is interpreted as a normal presentation, open a note file in a QFileDialog.
-            if (parser.value("p").isEmpty()) {
-                if (!settings.contains("page-part") || settings.value("page-part").toString()=="none" || settings.value("page-part").toString()=="0") {
-                    // Option "page-part" (indicating that the presentation should contain notes) is not set.
-                    // Open notes in second QFileDialog. By default the presentation file is selected.
-                    notes = QFileDialog::getOpenFileName(nullptr, "Open Notes", presentation, "Documents (*.pdf)");
-                }
-            }
-            else if (parser.value("p")=="none" || parser.value("p")=="0") {
-                // The value of "page-part" explicitly states that the presentation file does not contain notes.
-                // Open notes in second QFileDialog. By default the presentation file is selected.
+            QString page_part_config;
+            if (!parser.value("p").isEmpty())
+                page_part_config = parser.value("p");
+            else if (local.contains("page-part"))
+                page_part_config = local.value("page-part").toString();
+            else if (settings.contains("page-part"))
+                page_part_config = settings.value("page-part").toString();
+            // Open notes in second QFileDialog. By default the presentation file is selected.
+            if ( page_part_config.isEmpty() || QStringList({"none", "0"}).contains(page_part_config.toLower()) )
                 notes = QFileDialog::getOpenFileName(nullptr, "Open Notes", presentation, "Documents (*.pdf)");
-            }
-            // Create ctrlScreen.
         }
-        break;
-    default:
-        // Incompatible number of arguments given.
-        qCritical() << "Received more than 2 positional arguments.";
-        // Exit with error showing help message.
-        parser.showHelp(1);
+    }
+    else {
+        // Try to interpret the first positional argument.
+        QStringList const args = parser.positionalArguments();
+        QMimeDatabase const db;
+        bool presentation_explicitly_given = settings.contains("presentation");
+        bool notes_explicitly_given = settings.contains("notes");
+        for (QStringList::const_iterator argument = args.cbegin(); argument != args.cend(); argument++) {
+            try {
+                // Check whether the argument is a file.
+                if (!QFileInfo(*argument).exists()) {
+                    qCritical() << "File" << *argument << "does not exist!";
+                    throw 1;
+                }
+                // Get the file type using mime types.
+                QMimeType type = db.mimeTypeForFile(*argument, QMimeDatabase::MatchContent);
+                if (!type.isValid()) {
+                    type = db.mimeTypeForFile(*argument, QMimeDatabase::MatchExtension);
+                    if (!type.isValid()) {
+                        qCritical() << "Did not understand type of file" << *argument;
+                        throw 2;
+                    }
+                }
+
+                if (type.suffixes().contains("pdf", Qt::CaseInsensitive)) {
+                    // If file is a pdf file, it is interpreted as the presentation file.
+                    // Set up ctrlScreen using the argument as the presentation file.
+                    if (presentation_explicitly_given) {
+                        if (notes_explicitly_given) {
+                            qCritical() << "Too many PDF files given. Ignoring file" << *argument;
+                            throw 5;
+                        }
+                        notes = *argument;
+                        notes_explicitly_given = true;
+                    }
+                    else {
+                        presentation = *argument;
+                        presentation_explicitly_given = true;
+                    }
+                    continue;
+                }
+
+                // Try to read file.
+                QFile file(*argument);
+                if (!file.open(QIODevice::ReadOnly)) {
+                    qCritical() << "Cannot read file:" << *argument;
+                    throw 3;
+                }
+                if (type.suffixes().contains("txt") || type.suffixes().contains("json")) {
+                    // If file is a JSON file, it is interpreted as a local configuration file.
+                    // Try to open the file.
+                    QJsonParseError* error = nullptr;
+                    // Parse the file as JSON document.
+                    QJsonDocument const jsonDoc = QJsonDocument::fromJson(file.readAll(), error);
+                    // Check for errors.
+                    if (jsonDoc.isNull() || jsonDoc.isEmpty()) {
+                        qWarning() << "Failed to load local configuration file: File is empty or parsing JSON failed";
+                        if (error != nullptr)
+                            qInfo() << "Reported error:" << error->errorString();
+                    }
+                    else {
+                        // Write the options from the JSON file in local.
+                        local.unite(jsonDoc.object().toVariantMap());
+                        // Check whether the JSON document contains the keys "presentation" and "notes".
+                        // Use these corresponding options as files to construct ctrlScreen.
+                        if (local.contains("presentation") && presentation.isEmpty())
+                            presentation = local.value("presentation").toString();
+                        if (local.contains("notes") && notes.isEmpty())
+                            notes = local.value("notes").toString();
+                        file.close();
+                        continue;
+                    }
+                    // Close and reopen file to read it again from the beginning.
+                    file.close();
+                    file.open(QIODevice::ReadOnly);
+                }
+
+                // Only remaining possibilitys file cannot be interpreted or is a BeamerPresenter drawing (XML, compressed XML, or legacy binary format) or an Xournal(++) file.
+                // Set the drawings file as a drawings file in local configuration.
+                // Later this option in local will be used to load the drawings saved in the drawings file.
+                local["drawings"] = *argument;
+                // Try to extract file names from this file if necessary (i.e. if file names are no known yet).
+                if (presentation.isEmpty() || notes.isEmpty()) {
+                    // Try to read file as BeamerPresenter drawing or Xournal(++) file (XML, compressed XML or legacy binary format).
+                    // Try to open the file as (compressed) XML document.
+                    QDomDocument doc("BeamerPresenter");
+                    // Try to open file as XML file.
+                    if (!doc.setContent(&file)) {
+                        // Failed: reopen file.
+                        file.close();
+                        file.open(QIODevice::ReadOnly);
+                        // Try to open file as compressed XML file.
+                        if (!doc.setContent(qUncompress(file.readAll())))
+                            doc.clear();
+                    }
+                    if (doc.isNull()) {
+                        // Deprecated
+                        // Try to read deprecated binary file format.
+                        // Read the file in a QDataStream.
+                        file.close();
+                        file.open(QIODevice::ReadOnly);
+                        QDataStream stream(&file);
+                        stream.setVersion(QDataStream::Qt_5_0);
+                        // Read "magic bytes" from the stream and compare.
+                        quint32 magic;
+                        stream >> magic;
+                        // Check for errors and whether the magic bytes match the ones defined for BeamerPresenter binaries.
+                        if (stream.status() == QDataStream::Ok && magic == 0x2CA7D9F8) {
+                            // Read QDataStream version from stream.
+                            quint16 version;
+                            stream >> version;
+                            // Overwrite QDataStream version with the version read from the stream.
+                            stream.setVersion(version);
+                            // Read file paths for presentation and notes.
+                            stream >> presentation >> notes;
+                            // Check for errors.
+                            if (stream.status() != QDataStream::Ok) {
+                                file.close();
+                                qCritical() << "Failed to open drawings file" << *argument << ". File is corrupt";
+                                throw -1;
+                            }
+                        }
+                    }
+                    else {
+                        QDomElement const root = doc.documentElement();
+                        if (root.attribute("creator").contains("beamerpresenter", Qt::CaseInsensitive)) {
+                            // Try to get file names.
+                            if (presentation.isEmpty())
+                                presentation = root.firstChildElement("presentation").attribute("file");
+                            if (notes.isEmpty())
+                                notes = root.firstChildElement("notes").attribute("file");
+                        }
+                        else if (root.attribute("creator").contains("xournal", Qt::CaseInsensitive)) {
+                            // Try to get a file name.
+                            if (presentation.isEmpty()) {
+                                QDomElement const first_page = root.firstChildElement("page");
+                                QDomElement const first_bg = first_page.firstChildElement("background");
+                                presentation = first_bg.attribute("filename");
+                            }
+                        }
+                        else {
+                            qCritical() << "Failed to understand file: Unknown creator" << root.attribute("creator");
+                            file.close();
+                            throw 4;
+                        }
+                        file.close();
+                    }
+                }
+            } catch (int const) {}
+        }
+    }
+    // Check whether presentation file exists.
+    // This check could be left out (it is repeated in the constructure of ControlScreen), but like this it provides a more detailed error message.
+    if (presentation.isEmpty()) {
+        qCritical() << "No presentation PDF file found.";
+        return 1;
+    }
+    if (!QFileInfo(presentation).exists()) {
+        qCritical() << "Presentation PDF file does not exist:" << presentation;
+        return 1;
     }
 
 

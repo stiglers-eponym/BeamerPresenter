@@ -71,7 +71,7 @@
 		"End": "last page",
 		"Home": "first page",
 		"Return": "sync from control screen",
-		"Escape": [ "sync from presentation screen", "hide TOC", "hide overview" ],
+		"Escape": [ "sync from presentation screen", "hide overlays" ],
 		"t": "show TOC",
 		"s": "show overview",
 		"c": "update cache",
