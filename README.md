@@ -15,18 +15,22 @@ In general Qt programs more stable in X11 than in wayland.
 
 ## Features
 An extended list of features can be found in the manual (`beamerpresenter.1`).
+
 *	Speaker screen showing notes, previews of the current and next slide, a
 	timer, a clock and the current slide number.
+
 <table border="0px"><tr><td>
 <img src="readme/presentation.png" width=100% title="Presentation screen">
 </td><td>
 <img src="readme/notes.png" width=100% title="Control screen">
 </td></tr></table>
+
 *	Draw in presentation: You can use different pens and highlighters to draw
 	in the presentation. Drawings are synchronized between notes screen and
 	presentation screen. You can use a pointer, torch and magnifier to
 	highlight parts of the presentation.
 	Drawings can be saved to an experimental binary file format.
+
 <table border="0px"><tr><td>
 <img src="readme/magnifier-pres.png" width=100% title="Magnifier on presentation screen">
 </td><td>
@@ -37,14 +41,17 @@ An extended list of features can be found in the manual (`beamerpresenter.1`).
 </td><td>
 <img src="readme/highlighter.png" width=100% title="Drawing on the control screen, synchronized to presentation screen">
 </td></tr></table>
+
 *	Simple navigation by using links, scrolling, a table of contents, an
 	overview of all slides on the speaker's screen, and shortcuts for skipping
 	overlays.
+
 <table border="0px"><tr><td>
 <img src="readme/overview.png" width=100% title="Overview mode">
 </td><td>
 <img src="readme/toc.png" width=100% title="Table of content (can many more entries, subsections, ...)">
 </td></tr></table>
+
 *	The timer can be configured to change its color as to indicate whether you
 	are in time.
 *	Cache: All slides are rendered to a compressed cache.
