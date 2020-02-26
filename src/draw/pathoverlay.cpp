@@ -166,7 +166,8 @@ void PathOverlay::setTool(FullDrawTool const& newtool)
     }
     else if (tool.tool == Magnifier) {
         pointerPosition = QPointF();
-        if (enlargedPage.isNull())
+        // Update enlarged page if necessary.
+        if (enlargedPage.isNull() || abs(tool.extras.magnification*width() - enlargedPage.width()) > 1 )
             updateEnlargedPage();
     }
     else
@@ -225,7 +226,7 @@ void PathOverlay::drawPaths(QPainter &painter, QString const label, bool const p
             switch (tool.tool) {
             case Pen:
                 painter.setCompositionMode(QPainter::CompositionMode_SourceOver);
-                painter.setPen(QPen(tool.color, tool.size));
+                painter.setPen(QPen(tool.color, tool.size, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin));
                 painter.drawPolyline((*path_it)->data(), (*path_it)->number());
                 break;
             case Highlighter:
@@ -585,11 +586,11 @@ void PathOverlay::updateEnlargedPage()
     // Create enlargedPageRenderer if necessary.
     if (enlargedPageRenderer == nullptr) {
         enlargedPageRenderer = new SingleRenderer(master->doc, master->pagePart, this);
-        enlargedPageRenderer->changeResolution(tool.extras.magnification*master->resolution);
         connect(enlargedPageRenderer, &BasicRenderer::cacheThreadFinished, this, &PathOverlay::updateEnlargedPage);
     }
     // Render page using enlargedPageRenderer if necessary (the rendering is done in a separate thread).
-    if (enlargedPageRenderer->getPage() != master->pageIndex) {
+    if (enlargedPageRenderer->getPage() != master->pageIndex || abs(enlargedPageRenderer->getResolution() - tool.extras.magnification*master->resolution) > 1e-6 ) {
+        enlargedPageRenderer->changeResolution(tool.extras.magnification*master->resolution);
         enlargedPage = QPixmap();
         qDebug() << "Rendering enlarged page" << master->pageIndex;
         enlargedPageRenderer->renderPage(master->pageIndex);

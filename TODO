@@ -1,38 +1,38 @@
 BeamerPresenter
 
-* allow non-uniform page sizes
-* new draw tool: add text
+Relatively simple fixes:
+* set times per slide for non-integer page labels
+
+Longer rewrite:
 * restructure rendering, especially DrawOverlay paint events (and draw cache)
-
-* Document code!
-* Check weird segfaults
-* search for memory leaks
+* allow non-uniform page sizes
 * drawing in slide transitions: restructure
+* use OpenGL again (at least for slide transitions)?
+
+Draw tools:
+* flexibly change draw tools: color and size from text input fields or sliders?
+* new draw tool: add text
+* undo erasing in draw mode
+
+Multimedia:
 * hide video widgets if they reached end of file
-* Video widgets: use one global graphics scene, connect two views to it, combine with slide transitions
-* Test in ubuntu
+* video widgets: use one global graphics scene, connect two views to it, combine with slide transitions
+* key bindings for multimedia control
+* allow more arguments
+* better control bar
 
-* Use OpenGL again (at least for slide transitions)?
-* Generate overview in own thread
-* Check (and reduce) memory usage
-* Key bindings for multimedia control
-* Multimedia: allow more arguments
-* Multimedia: Better control bar
-* Video widgets break when switching between notes and draw mode?
+General:
+* document code!
+* search for memory leaks
+* check (and reduce) memory usage
+* test in ubuntu
 
+Low priority:
 * better icon (and png icons)
-* better file type for saving drawings: xml?
-* read and write .xopp files?
+* generate overview in own thread
 * use thumbnails in overviewbox?
-* Undo erasing in draw mode?
-* Segfault when starting embedded application from the wrong screen (not reproducible?)
-* Bug report for Qt5.13 in wayland: paintEvent not drawn immediately
-* less overloading
-
 * Make timer editable
-* Embedded multimedia, RichMediaAnnotations
-* Cache management: test, clean up the code, improve
 * Search document
+* Embedded multimedia, RichMediaAnnotations
 * Implement other link types (history, search)
 * Implement optional content (e.g. for sound)
-* Set times per slide for non-integer page labels
