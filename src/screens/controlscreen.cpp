@@ -19,6 +19,14 @@
 #include "controlscreen.h"
 #include "../names.h"
 
+#ifdef DISABLE_TOOL_TIP
+#else
+static const QString preview0_tooltip = "Preview of the current presentation slide";
+static const QString preview1_tooltip = "Preview of the next presentation slide";
+static const QString preview2_tooltip = "Preview of the next presentation slide but one";
+static const QString slider_tooltip = "Position of multimedia content on the presentation window";
+#endif
+
 // TODO: tidy up! reorganize signals, slots, events, ...
 
 ControlScreen::ControlScreen(QString presentationPath, QString notesPath, PagePart const page, QWidget* parent) :
@@ -158,8 +166,8 @@ ControlScreen::ControlScreen(QString presentationPath, QString notesPath, PagePa
 
 #ifdef DISABLE_TOOL_TIP
 #else
-        ui->current_slide->setToolTip("Preview of the next presentation slide");
-        ui->next_slide->setToolTip("Preview of the next presentation slide but one");
+        ui->current_slide->setToolTip(preview1_tooltip);
+        ui->next_slide->setToolTip(preview2_tooltip);
 #endif
     }
     else {
@@ -168,8 +176,8 @@ ControlScreen::ControlScreen(QString presentationPath, QString notesPath, PagePa
 
 #ifdef DISABLE_TOOL_TIP
 #else
-        ui->current_slide->setToolTip("Preview of the current presentation slide");
-        ui->next_slide->setToolTip("Preview of the next presentation slide");
+        ui->current_slide->setToolTip(preview0_tooltip);
+        ui->next_slide->setToolTip(preview1_tooltip);
 #endif
     }
 
@@ -510,7 +518,7 @@ void ControlScreen::addMultimediaSliders(int const n)
         sliderList.append(slider);
 #ifdef DISABLE_TOOL_TIP
 #else
-        slider->setToolTip("Position of multimedia content on the presentation window");
+        slider->setToolTip(slider_tooltip);
 #endif
     }
     // Send the sliders to the presentation label, where they will be connected to multimedia objects.
@@ -1730,8 +1738,8 @@ void ControlScreen::showDrawSlide()
 
 #ifdef DISABLE_TOOL_TIP
 #else
-        ui->current_slide->setToolTip("Preview of the next presentation slide");
-        ui->next_slide->setToolTip("Preview of the next presentation slide but one");
+        ui->current_slide->setToolTip(preview1_tooltip);
+        ui->next_slide->setToolTip(preview2_tooltip);
 #endif
     }
     else if (drawSlide == ui->notes_widget)
@@ -1811,8 +1819,8 @@ void ControlScreen::hideDrawSlide()
         drawSlide = nullptr;
 #ifdef DISABLE_TOOL_TIP
 #else
-        ui->current_slide->setToolTip("Preview of the current presentation slide");
-        ui->next_slide->setToolTip("Preview of the next presentation slide");
+        ui->current_slide->setToolTip(preview0_tooltip);
+        ui->next_slide->setToolTip(preview1_tooltip);
 #endif
     }
     ui->notes_widget->show();
