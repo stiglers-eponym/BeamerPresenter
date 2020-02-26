@@ -138,8 +138,6 @@ ControlScreen::ControlScreen(QString presentationPath, QString notesPath, PagePa
         drawSlide = static_cast<DrawSlide*>(ui->notes_widget);
 
         // Connect drawSlide to other widgets.
-        // Change draw tool
-        connect(ui->tool_selector, &ToolSelector::sendNewTool, drawSlide->getPathOverlay(), static_cast<void (PathOverlay::*)(FullDrawTool const&)>(&PathOverlay::setTool));
         // Copy paths from draw slide to presentation slide and vice versa when drawing on one of the slides.
         // Copy paths after moving the mouse while drawing. This assumes that only the last path is changed or a new path is created.
         connect(drawSlide->getPathOverlay(), &PathOverlay::pathsChangedQuick, presentationScreen->slide->getPathOverlay(), &PathOverlay::setPathsQuick);
@@ -226,7 +224,7 @@ ControlScreen::ControlScreen(QString presentationPath, QString notesPath, PagePa
 
     // Set up tool selector.
     // Tool selector can send new draw tools to the presentation slide.
-    connect(ui->tool_selector, &ToolSelector::sendNewTool, presentationScreen->slide->getPathOverlay(), static_cast<void (PathOverlay::*)(FullDrawTool const&)>(&PathOverlay::setTool));
+    connect(ui->tool_selector, &ToolSelector::sendNewTool, this, &ControlScreen::distributeTools);
     // Tool selector can send KeyActions to control screen.
     connect(ui->tool_selector, &ToolSelector::sendAction, this, &ControlScreen::handleKeyAction);
 
@@ -939,7 +937,7 @@ void ControlScreen::keyPressEvent(QKeyEvent* event)
     if (tools.contains(key)) {
         presentationScreen->slide->getPathOverlay()->setTool(tools[key]);
         if (drawSlide != nullptr)
-            drawSlide->getPathOverlay()->setTool(tools[key]);
+            drawSlide->getPathOverlay()->setTool(tools[key], presentationScreen->slide->getResolution());
     }
     QMap<quint32, QList<KeyAction>>::iterator map_it = keymap->find(key);
     if (map_it == keymap->end())
@@ -1339,7 +1337,7 @@ bool ControlScreen::handleKeyAction(KeyAction const action)
     case KeyAction::DrawEraser:
         presentationScreen->slide->getPathOverlay()->setTool(Eraser);
         if (drawSlide != nullptr)
-            drawSlide->getPathOverlay()->setTool(Eraser);
+            drawSlide->getPathOverlay()->setTool(Eraser, presentationScreen->slide->getResolution());
         break;
     case KeyAction::DrawMode:
         if (isVisible())
@@ -1394,7 +1392,7 @@ bool ControlScreen::handleKeyAction(KeyAction const action)
         if (tool.tool != InvalidTool) {
             presentationScreen->slide->getPathOverlay()->setTool(tool);
             if (drawSlide != nullptr)
-                drawSlide->getPathOverlay()->setTool(tool);
+                drawSlide->getPathOverlay()->setTool(tool, presentationScreen->slide->getResolution());
         }
         break;
     }
@@ -1710,8 +1708,6 @@ void ControlScreen::showDrawSlide()
         drawSlide->setFocusPolicy(Qt::ClickFocus);
 
         // Connect drawSlide to other widgets.
-        // Change draw tool
-        connect(ui->tool_selector, &ToolSelector::sendNewTool, drawSlide->getPathOverlay(), static_cast<void (PathOverlay::*)(FullDrawTool const&)>(&PathOverlay::setTool));
         // Copy paths from draw slide to presentation slide and vice versa when drawing on one of the slides.
         // Copy paths after moving the mouse while drawing. This assumes that only the last path is changed or a new path is created.
         connect(drawSlide->getPathOverlay(), &PathOverlay::pathsChangedQuick, presentationScreen->slide->getPathOverlay(), &PathOverlay::setPathsQuick);
@@ -1783,7 +1779,7 @@ void ControlScreen::showDrawSlide()
     // Render current page on drawSlide.
     drawSlide->renderPage(presentationScreen->slide->pageNumber(), false);
     // Set the current tool on drawSlide.
-    drawSlide->getPathOverlay()->setTool(presentationScreen->slide->getPathOverlay()->getTool());
+    drawSlide->getPathOverlay()->setTool(presentationScreen->slide->getPathOverlay()->getTool(), presentationScreen->slide->getResolution());
     // Hide the notes and show (and focus) the drawSlide.
     ui->notes_widget->hide();
     drawSlide->show();
@@ -1887,4 +1883,11 @@ void ControlScreen::setToolForKey(quint32 const key, FullDrawTool const& tool)
         tools[key].size = defaultToolConfig[tool.tool].size;
     if (!tool.color.isValid())
         tools[key].color = defaultToolConfig[tool.tool].color;
+}
+
+void ControlScreen::distributeTools(FullDrawTool const& tool)
+{
+    presentationScreen->slide->getPathOverlay()->setTool(tool);
+    if (drawSlide != nullptr)
+        drawSlide->getPathOverlay()->setTool(tool, presentationScreen->slide->getResolution());
 }

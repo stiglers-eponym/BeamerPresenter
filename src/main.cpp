@@ -306,12 +306,19 @@ void actionsFromConfig(QMap<QString, QList<KeyAction>>& actions, QMap<QString, F
                             if (ok && split_action.size() == 3)
                                 color = QColor(split_action[2]);
                         }
-                        if (!ok && split_action.size() == 3)
+                        if (!ok && split_action.size() >= 3)
                             size = split_action[2].toDouble(&ok);
                         if (tool == Magnifier) {
                             qreal magnification = 0.;
                             if (split_action.size() > 3)
                                 magnification = split_action[3].toDouble();
+                            else if (ok && !color.isValid()) {
+                                // Try to interpret second argument as magnification.
+                                magnification = split_action[2].toDouble();
+                                // Don't accept any unrealistic numbers.
+                                if (magnification > 20 || magnification < 1e-4)
+                                    magnification = 0.;
+                            }
                             tools[key] = {tool, color, size, {magnification}};
                             if (split_action.size() > 4)
                                 qWarning() << "Tool has too many arguments:" << it.key() << *it;

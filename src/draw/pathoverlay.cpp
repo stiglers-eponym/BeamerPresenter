@@ -140,7 +140,7 @@ void PathOverlay::rescale(qint16 const oldshiftx, qint16 const oldshifty, double
             (*path_it)->transform(shift, master->resolution/oldRes);
 }
 
-void PathOverlay::setTool(FullDrawTool const& newtool)
+void PathOverlay::setTool(FullDrawTool const& newtool, qreal const resolution)
 {
     tool = newtool;
     if (tool.tool == Magnifier && tool.extras.magnification < 1e-12)
@@ -149,6 +149,8 @@ void PathOverlay::setTool(FullDrawTool const& newtool)
         tool.size = defaultToolConfig[tool.tool].size;
     if (!tool.color.isValid())
         tool.color = defaultToolConfig[tool.tool].color;
+    if (resolution > 0)
+        tool.size *= master->resolution/resolution;
     // TODO: fancy cursors
     if (cursor() == Qt::BlankCursor && tool.tool != Pointer)
         setMouseTracking(false);

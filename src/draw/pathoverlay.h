@@ -108,8 +108,8 @@ public slots:
     void setPaths(QString const pagelabel, QList<DrawPath*> const& list, qint16 const refshiftx, qint16 const refshifty, double const refresolution);
     void setPathsQuick(QString const pagelabel, QList<DrawPath*> const& list, qint16 const refshiftx, qint16 const refshifty, double const refresolution);
     void setPointerPosition(QPointF const point, qint16 const refshiftx, qint16 const refshifty, double const refresolution);
-    void setTool(FullDrawTool const& newtool);
-    void setTool(DrawTool const newtool, QColor const color=QColor(), qreal size=-1) {setTool({newtool, color, size});}
+    void setTool(FullDrawTool const& newtool, qreal const resolution=-1.);
+    void setTool(DrawTool const newtool, QColor const color=QColor(), qreal size=-1, qreal const resolution=-1.) {setTool({newtool, color, size}, resolution);}
     void updatePathCache();
     void relax();
     void togglePointerVisibility();
@@ -120,7 +120,7 @@ signals:
     void pointerPositionChanged(QPointF const point, qint16 const refshiftx, qint16 const refshifty, double const refresolution);
     void pathsChangedQuick(QString const pagelabel, QList<DrawPath*> const& list, qint16 const refshiftx, qint16 const refshifty, double const refresolution);
     void pathsChanged(QString const pagelabel, QList<DrawPath*> const& list, qint16 const refshiftx, qint16 const refshifty, double const refresolution);
-    void sendToolChanged(FullDrawTool const tool);
+    void sendToolChanged(FullDrawTool const tool, qreal const resolution);
     void sendUpdateEnlargedPage();
     void sendRelax();
     void sendUpdatePathCache();

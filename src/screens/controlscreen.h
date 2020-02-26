@@ -257,6 +257,8 @@ public slots:
     void updateCacheSize(qint64 const diff) {cacheSize += diff;}
     /// Check whether cache threads finished.
     void cacheThreadFinished();
+    /// Send draw tool from tool selector to draw slide and presentation.
+    void distributeTools(FullDrawTool const& tool);
 
 signals:
     /// Send a new page number with or without starting a timer for the new slide.
