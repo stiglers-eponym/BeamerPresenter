@@ -52,8 +52,10 @@ ToolButton::ToolButton(QList<KeyAction> const actions, FullDrawTool const& tool,
         else
             setIcon(icon);
     }
-    if (QApplication::platformName() != "wayland")
-        setToolTip(text);
+#ifdef DISABLE_TOOL_TIP
+#else
+    setToolTip(text);
+#endif
 }
 
 void ToolButton::onClicked()

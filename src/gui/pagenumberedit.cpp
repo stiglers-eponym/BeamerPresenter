@@ -21,8 +21,10 @@
 PageNumberEdit::PageNumberEdit(QWidget* parent) : QLineEdit(parent)
 {
     connect(this, &PageNumberEdit::textEdited, this, &PageNumberEdit::receiveEditSignal);
-    if (QApplication::platformName() != "wayland")
-        setToolTip("Currently visible page number");
+#ifdef DISABLE_TOOL_TIP
+#else
+    setToolTip("Currently visible page number");
+#endif
 }
 
 PageNumberEdit::~PageNumberEdit()

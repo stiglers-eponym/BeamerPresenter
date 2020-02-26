@@ -23,7 +23,6 @@
 #include <QPushButton>
 #include <QMap>
 #include <QIcon>
-#include <QApplication>
 #include "../enumerates.h"
 
 

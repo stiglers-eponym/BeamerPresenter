@@ -23,8 +23,10 @@ OverviewFrame::OverviewFrame(int const page, QWidget* parent) :
     page(page)
 {
     setAlignment(Qt::AlignCenter);
-    if (QApplication::platformName() != "wayland")
-        setToolTip("page " + QString::number(page));
+#ifdef DISABLE_TOOL_TIP
+#else
+    setToolTip("page " + QString::number(page));
+#endif
 }
 
 void OverviewFrame::mousePressEvent(QMouseEvent* event)

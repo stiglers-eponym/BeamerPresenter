@@ -22,7 +22,6 @@
 #include <QtDebug>
 #include <QPushButton>
 #include <QKeyEvent>
-#include <QApplication>
 
 class TocButton : public QPushButton
 {

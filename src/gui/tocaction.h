@@ -21,7 +21,6 @@
 
 #include <QtDebug>
 #include <QAction>
-#include <QApplication>
 
 /// Action in a drop down menu.
 /// These are the labels shown in a drop down menu of the table of contents.

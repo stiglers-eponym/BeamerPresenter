@@ -156,19 +156,21 @@ ControlScreen::ControlScreen(QString presentationPath, QString notesPath, PagePa
         // drawSlide should be muted, because it shows the same video content as the presentation slide.
         drawSlide->setMuted(true);
 
-        if (QApplication::platformName() != "wayland") {
-            ui->current_slide->setToolTip("Preview of the next presentation slide");
-            ui->next_slide->setToolTip("Preview of the next presentation slide but one");
-        }
+#ifdef DISABLE_TOOL_TIP
+#else
+        ui->current_slide->setToolTip("Preview of the next presentation slide");
+        ui->next_slide->setToolTip("Preview of the next presentation slide but one");
+#endif
     }
     else {
         ui->notes_widget->setDoc(notes, static_cast<PagePart>(-pagePart));
         ui->notes_widget->overwriteCacheMap(new CacheMap(notes, static_cast<PagePart>(-pagePart), this));
 
-        if (QApplication::platformName() != "wayland") {
-            ui->current_slide->setToolTip("Preview of the current presentation slide");
-            ui->next_slide->setToolTip("Preview of the next presentation slide");
-        }
+#ifdef DISABLE_TOOL_TIP
+#else
+        ui->current_slide->setToolTip("Preview of the current presentation slide");
+        ui->next_slide->setToolTip("Preview of the next presentation slide");
+#endif
     }
 
     // Send pdf documents to slide widgets on control screen.
@@ -328,8 +330,10 @@ ControlScreen::ControlScreen(QString presentationPath, QString notesPath, PagePa
     // Exit overview box.
     connect(overviewBox, &OverviewBox::sendReturn, this, &ControlScreen::showNotes);
 
-    if (QApplication::platformName() != "wayland")
-        ui->text_number_slides->setToolTip("Total number of pages");
+#ifdef DISABLE_TOOL_TIP
+#else
+    ui->text_number_slides->setToolTip("Total number of pages");
+#endif
 }
 
 ControlScreen::~ControlScreen()
@@ -504,8 +508,10 @@ void ControlScreen::addMultimediaSliders(int const n)
         QSlider* slider = new QSlider(Qt::Horizontal, this);
         ui->overviewLayout->addWidget(slider);
         sliderList.append(slider);
-        if (QApplication::platformName() != "wayland")
-            slider->setToolTip("Position of multimedia content on the presentation window");
+#ifdef DISABLE_TOOL_TIP
+#else
+        slider->setToolTip("Position of multimedia content on the presentation window");
+#endif
     }
     // Send the sliders to the presentation label, where they will be connected to multimedia objects.
     // The presentation label takes ownership of the sliders and will delete them when going to the next slide.
@@ -1722,10 +1728,11 @@ void ControlScreen::showDrawSlide()
         connect(drawSlide, &PreviewSlide::sendNewPageNumber, presentationScreen, &PresentationScreen::receiveNewPage);
         connect(drawSlide, &PreviewSlide::sendNewPageNumber, this, [&](int const pageNumber){renderPage(pageNumber);});
 
-        if (QApplication::platformName() != "wayland") {
-            ui->current_slide->setToolTip("Preview of the next presentation slide");
-            ui->next_slide->setToolTip("Preview of the next presentation slide but one");
-        }
+#ifdef DISABLE_TOOL_TIP
+#else
+        ui->current_slide->setToolTip("Preview of the next presentation slide");
+        ui->next_slide->setToolTip("Preview of the next presentation slide but one");
+#endif
     }
     else if (drawSlide == ui->notes_widget)
         return;
@@ -1802,10 +1809,11 @@ void ControlScreen::hideDrawSlide()
         drawSlide->overwriteCacheMap(nullptr);
         delete drawSlide;
         drawSlide = nullptr;
-        if (QApplication::platformName() != "wayland") {
-            ui->current_slide->setToolTip("Preview of the current presentation slide");
-            ui->next_slide->setToolTip("Preview of the next presentation slide");
-        }
+#ifdef DISABLE_TOOL_TIP
+#else
+        ui->current_slide->setToolTip("Preview of the current presentation slide");
+        ui->next_slide->setToolTip("Preview of the next presentation slide");
+#endif
     }
     ui->notes_widget->show();
     ui->notes_widget->setFocus();

@@ -24,8 +24,10 @@ TocButton::TocButton(QString const& prefix, QString const& text, int const dest,
 {
     setStyleSheet("Text-align:left");
     connect(this, &TocButton::clicked, this, [&](){emit activated(this->dest);});
-    if (QApplication::platformName() != "wayland")
-        setToolTip(text + ", page " + QString::number(dest));
+#ifdef DISABLE_TOOL_TIP
+#else
+    setToolTip(text + ", page " + QString::number(dest));
+#endif
 }
 
 void TocButton::keyPressEvent(QKeyEvent *event)

@@ -28,8 +28,10 @@ Timer::Timer(QWidget* parent) :
 {
     timerPalette = QPalette(this->palette());
     setText("0");
-    if (QApplication::platformName() != "wayland")
-        setToolTip("Time since beginning of the presentation in (h:)mm:ss");
+#ifdef DISABLE_TOOL_TIP
+#else
+    setToolTip("Time since beginning of the presentation in (h:)mm:ss");
+#endif
 }
 
 Timer::~Timer()
@@ -47,8 +49,10 @@ void Timer::setTimerWidget(QLineEdit* setTimerEdit)
     connect(timer, &QTimer::timeout, this, &Timer::showTime);
     timer->start(update_gui_interval);
     timerPalette.setColor(QPalette::WindowText, Qt::gray);
-    if (QApplication::platformName() != "wayland")
-        timerEdit->setToolTip("Estimated time of the presentation in minutes or (h:)mm:ss");
+#ifdef DISABLE_TOOL_TIP
+#else
+    timerEdit->setToolTip("Estimated time of the presentation in minutes or (h:)mm:ss");
+#endif
     setPalette(timerPalette);
 }
 

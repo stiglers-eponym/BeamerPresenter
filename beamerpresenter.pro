@@ -35,6 +35,10 @@ DEFINES += APP_VERSION="\\\"$${VERSION}-$(shell git -C \""$$_PRO_FILE_PWD_"\" re
 # If this is commented out, all checks will be omitted.
 DEFINES += CHECK_QPA_PLATFORM
 
+# In wayland Qt's toolTip function could in some cases cause segfaults.
+# Here you can disable toolTip globally at compile time to avoid this:
+#DEFINES += DISABLE_TOOL_TIP
+
 # Define a path where the icon will be placed (don't forget the trailing /).
 ICON_PATH = "/usr/share/icons/hicolor/scalable/apps/"
 DEFINES += ICON_PATH=\\\"$${ICON_PATH}\\\"
