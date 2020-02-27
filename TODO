@@ -1,22 +1,27 @@
 BeamerPresenter
 
-Relatively simple fixes:
-* set times per slide for non-integer page labels
+Simple fixes and features:
+* (target 0.1.2) handle reoccuring page labels
+* (target 0.1.1) set times per slide for non-integer page labels
+* (target 0.1.2) undo erasing in draw mode
+* (target 0.1.3) use thumbnails in overviewbox
 
-Longer rewrite:
-* restructure rendering, especially DrawOverlay paint events (and draw cache)
-* allow non-uniform page sizes
-* drawing in slide transitions: restructure
-* use OpenGL again (at least for slide transitions)?
+Medium workload:
+* (target 0.1.3) (optionally) show preview of next slide without overlays
+* (target 0.1.3) allow non-uniform page sizes
+* (target 0.1.?) flexibly change draw tools: color and size from text input fields or sliders?
+* Use gzip (optionally) and read/write compressed Xournal(++) files directly
+* (target 0.1.3) generate overview in own thread
 
-Draw tools:
-* flexibly change draw tools: color and size from text input fields or sliders?
-* new draw tool: add text
-* undo erasing in draw mode
+Longer rewrite (for later versions):
+* (target 0.1.2) restructure rendering, especially DrawOverlay paint events (and draw cache)
+* (target 0.1.4) use OpenGL again (at least for slide transitions)?
+* (target 0.1.5) drawing in slide transitions: restructure
+* (target 0.1.?) new draw tool: add text
+* (target 0.1.5) video widgets: use one global graphics scene, connect two views to it, combine with slide transitions
 
 Multimedia:
 * hide video widgets if they reached end of file
-* video widgets: use one global graphics scene, connect two views to it, combine with slide transitions
 * key bindings for multimedia control
 * allow more arguments
 * better control bar
@@ -29,8 +34,6 @@ General:
 
 Low priority:
 * better icon (and png icons)
-* generate overview in own thread
-* use thumbnails in overviewbox?
 * Make timer editable
 * Search document
 * Embedded multimedia, RichMediaAnnotations
