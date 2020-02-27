@@ -47,9 +47,11 @@ public:
     void saveDrawings(QString const& filename, QString const& notefile = "") const;
     /// Deprecated
     void loadDrawings(QString const& filename);
-    /// Save files to compressed or uncompressed BeamerPresenter XML file.
+    /// Save drawings to compressed or uncompressed BeamerPresenter XML file.
     void saveXML(QString const& filename, PdfDoc const* notedoc, bool const compress = true) const;
-    /// Load files from compressed or uncompressed BeamerPresenter XML file.
+    /// Save drawings to an XML file which should be readable for Xournal(++).
+    void saveXournal(QString const& filename) const;
+    /// Load drawings from compressed or uncompressed BeamerPresenter XML file.
     /// This function also supports reading uncompressed Xournal(++) XML files.
     void loadXML(QString const& filename, PdfDoc const* nodesDoc);
 

@@ -126,6 +126,7 @@ static const QMap<KeyAction, QString> actionNames = {
     {LoadDrawings, "open"},
     {SaveDrawingsLegacy, "save legacy"},
     {SaveDrawingsUncompressed, "save uncompressed"},
+    {SaveDrawingsXournal, "save xournal"},
 };
 
 /// Map KeyActions to icon names.
@@ -254,10 +255,22 @@ static const QMap<QString, KeyAction> keyActionMap {
     {"end drawing", KeyAction::HideDrawSlide},
     {"undo drawing", KeyAction::UndoDrawing},
     {"redo drawing", KeyAction::RedoDrawing},
+    {"undo", KeyAction::UndoDrawing},
+    {"redo", KeyAction::RedoDrawing},
     {"save drawings", KeyAction::SaveDrawings},
+    {"save drawings xournal", KeyAction::SaveDrawingsXournal},
+    {"save drawings xournal++", KeyAction::SaveDrawingsXournal},
+    {"save drawings compatibility", KeyAction::SaveDrawingsXournal},
     {"load drawings", KeyAction::LoadDrawings},
     {"save drawings legacy", KeyAction::SaveDrawingsLegacy},
     {"save drawings uncompressed", KeyAction::SaveDrawingsUncompressed},
+    {"save", KeyAction::SaveDrawings},
+    {"save xournal", KeyAction::SaveDrawingsXournal},
+    {"save xournal++", KeyAction::SaveDrawingsXournal},
+    {"save compatibility", KeyAction::SaveDrawingsXournal},
+    {"load", KeyAction::LoadDrawings},
+    {"save legacy", KeyAction::SaveDrawingsLegacy},
+    {"save uncompressed", KeyAction::SaveDrawingsUncompressed},
 };
 
 /// Map tool strings from configuration file to DrawTool (enum).

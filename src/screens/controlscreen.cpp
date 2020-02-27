@@ -1364,6 +1364,13 @@ bool ControlScreen::handleKeyAction(KeyAction const action)
                 presentationScreen->slide->getPathOverlay()->saveXML(savePath, notes);
         }
         break;
+    case KeyAction::SaveDrawingsXournal:
+        {
+            QString const savePath = QFileDialog::getSaveFileName(this, "Save drawings");
+            if (!savePath.isEmpty())
+                presentationScreen->slide->getPathOverlay()->saveXournal(savePath);
+        }
+        break;
     case KeyAction::SaveDrawingsLegacy:
         {
             QString const savePath = QFileDialog::getSaveFileName(this, "Save drawings");

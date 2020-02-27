@@ -175,6 +175,8 @@ enum KeyAction {
     LoadDrawings,
     /// Save drawings to legacy binary file (deprecated!)
     SaveDrawingsLegacy,
+    /// Save drawings to Xournal(++) compatibility XML format
+    SaveDrawingsXournal,
 
     // Hard coded keys used to directly pass raw key events.
     // Arrow keys

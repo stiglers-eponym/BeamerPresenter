@@ -882,7 +882,6 @@ void PathOverlay::saveXML(QString const& filename, PdfDoc const* notedoc, bool c
     notes.setAttribute("modified", notedoc->getLastModified().toString("yyyy-MM-dd hh:mm:ss"));
     root.appendChild(notes);
 
-    qDebug() << "adding pages:" << paths.size();
     for (QMap<QString, QList<DrawPath*>>::const_iterator page_it=paths.cbegin(); page_it!=paths.cend(); page_it++) {
         QDomElement page_element = doc.createElement("page");
         page_element.setAttribute("label", page_it.key());
@@ -907,15 +906,18 @@ void PathOverlay::saveXML(QString const& filename, PdfDoc const* notedoc, bool c
             scale = size.height() / height();
         }
         for (QList<DrawPath*>::const_iterator path_it=page_it->cbegin(); path_it!=page_it->cend(); path_it++) {
-            QStringList stringList;
-            (*path_it)->toText(stringList, shift, scale);
             QDomElement stroke = doc.createElement("stroke");
             page_element.appendChild(stroke);
             FullDrawTool const& tool = (*path_it)->getTool();
             stroke.setAttribute("tool", toolNames.value(tool.tool, "unkown"));
-            stroke.setAttribute("color", tool.color.name());
+            // Colors are saved in #AARRGGBB format.
+            stroke.setAttribute("color", tool.color.name(QColor::HexArgb));
+            // Stroke width is saved in points.
             stroke.setAttribute("width", tool.size*scale);
-            QDomText data = doc.createTextNode(stringList.join(" "));
+            // Save data as list of x and y coordinates (alternating) in points.
+            QStringList stringList;
+            (*path_it)->toText(stringList, shift, scale);
+            QDomText const data = doc.createTextNode(stringList.join(" "));
             stroke.appendChild(data);
         }
     }
@@ -928,6 +930,82 @@ void PathOverlay::saveXML(QString const& filename, PdfDoc const* notedoc, bool c
         // tail -c+5 compressed.bp | zlib-flate -uncompress > uncompressed.bp
     else
         file.write(doc.toByteArray());
+    file.close();
+}
+
+void PathOverlay::saveXournal(QString const& filename) const
+{
+    // Save drawings in a format, which can hopefully be read by Xournal(++).
+    qInfo() << "Saving to this Xournal compatibility format is experimental.";
+    QDomDocument doc("Xournal-readable");
+    QDomElement root = doc.createElement("xournal");
+    root.setAttribute("creator", "BeamerPresenter " APP_VERSION);
+    doc.appendChild(root);
+
+    // Set title.
+    {
+        QDomElement title = doc.createElement("title");
+        root.appendChild(title);
+        QDomText const title_text = doc.createTextNode("Xournal++ readable XML file created by BeamerPresenter");
+        title.appendChild(title_text);
+    }
+
+    QString presentation_file = QFileInfo(master->doc->getPath()).absoluteFilePath();
+
+    for (int i=0; i<master->doc->getDoc()->numPages(); i++) {
+        QDomElement page = doc.createElement("page");
+        QSizeF const size = master->doc->getPageSize(i);
+        page.setAttribute("width", QString::number(size.width()));
+        page.setAttribute("height", QString::number(size.height()));
+        root.appendChild(page);
+
+        QDomElement bg = doc.createElement("background");
+        bg.setAttribute("type", "pdf");
+        bg.setAttribute("domain", "absolute");
+        bg.setAttribute("filename", master->doc->getPath());
+        bg.setAttribute("pageno", QString::number(i+1) + "ll");
+        page.appendChild(bg);
+
+        QDomElement layer = doc.createElement("layer");
+        page.appendChild(layer);
+
+        /// scale page in points / pixel
+        qreal scale;
+        /// upper right corner of the page, in pixels
+        QPoint shift;
+        if (size.width() * height() >= width() * size.height()) {
+            shift.setY(( height() - size.height()/size.width() * width() )/2);
+            scale = size.width() / width();
+        }
+        else {
+            shift.setX((width() - size.width()/size.height() * height() )/2);
+            scale = size.height() / height();
+        }
+        QList<DrawPath*> const& pathlist = paths.value(master->doc->getLabel(i));
+        for (QList<DrawPath*>::const_iterator path_it=pathlist.cbegin(); path_it!=pathlist.cend(); path_it++) {
+            QDomElement stroke = doc.createElement("stroke");
+            layer.appendChild(stroke);
+            FullDrawTool const& tool = (*path_it)->getTool();
+            stroke.setAttribute("tool", toolNames.value(tool.tool, "pen"));
+            // Colors are saved by xournal in the format #RRGGBBAA, but Qt uses #AARRGGBB.
+            // Convert between the two formats.
+            QString colorstr = tool.color.name(QColor::HexArgb);
+            colorstr.append(colorstr.mid(1, 2));
+            colorstr.remove(1, 2);
+            stroke.setAttribute("color", colorstr);
+            // Stroke width is saved in points.
+            stroke.setAttribute("width", tool.size*scale);
+            // Save data as list of x and y coordinates (alternating) in points.
+            QStringList stringList;
+            (*path_it)->toText(stringList, shift, scale);
+            QDomText const data = doc.createTextNode(stringList.join(" "));
+            stroke.appendChild(data);
+        }
+    }
+
+    QFile file(filename);
+    file.open(QIODevice::WriteOnly);
+    file.write(doc.toByteArray());
     file.close();
 }
 

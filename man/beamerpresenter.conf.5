@@ -419,14 +419,14 @@ Undo the last drawing (with pen or highlighter). Erasing can not be undone! Tech
 Restore a previously undone path.
 .
 .TP
-.B save drawings
+.BR "save " or " save drawings"
 Save drawings to a compressed XML file. This opens a file dialog in which you can specify an output file path.
 The XML file is compressed using Qt's qCompress function. It can be uncompressed using zlib after removing the first four bytes, e.g. by using the command
 .RI "\[dq]tail -c+5 " file.bp " | zlib-flate -uncompress\[dq]."
 Note that saving and loading drawings is experimental and files may not be readable for later versions of BeamerPresenter!
 .
 .TP
-.B save drawings uncompressed
+.BR "save uncompressed " or " save drawings uncompressed"
 Save drawings to an uncompressed XML file. This opens a file dialog in which you can specify an output file path.
 The XML file's root node contains nodes for each page with an own label which contains annotations.
 The page nodes then contain one element for each stroke.
@@ -434,7 +434,11 @@ The page nodes then contain one element for each stroke.
 Note that saving and loading drawings is experimental and files may not be readable for later versions of BeamerPresenter!
 .
 .TP
-.B save drawings legacy
+.BR "save xournal " or " save drawings xournal"
+Save drawings in an uncompressed XML file, which should be readable for Xournal(++). Note that this only aims at providing a compatibility layer and does not produce the same files as Xournal(++).
+.
+.TP
+.BR "save legacy " or " save drawings legacy"
 Save drawings to a legacy binary file. This opens a file dialog in which you can specify an output file path.
 .RB "Note that this file format will be " "unreadable for later versions of BeamerPresenter!"
 .
