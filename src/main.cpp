@@ -1029,21 +1029,12 @@ int main(int argc, char *argv[])
     // Currently slide labels must be integers.
     if (local.contains("page times")) {
         /// Map of slide labels to times.
-        QMap<int, quint32> map;
+        QMap<QString, quint32> map;
         /// QVariantMap containing all page times from the local configuration.
         QVariantMap variantMap = local["page times"].value<QVariantMap>();
         bool ok;
-        quint32 key;
         // Iterate over variantMap to copy its (key, value) pairs to map.
         for (QVariantMap::const_iterator it=variantMap.cbegin(); it!=variantMap.cend(); it++) {
-            // Convert the label to an integer.
-            // We use integers because if only a subset of the labels is known, it should be obvious where to insert other labels.
-            key = it.key().toInt(&ok);
-            // Non-integer labels will be ignored and lead to a warning.
-            if (!ok) {
-                qCritical() << "In local config / page times: Did not understand slide number" << it.key();
-                continue;
-            }
             // Try to convert the value to a number of ms.
             QStringList timeStringList = it->toString().split(":");
             if (timeStringList.length() == 1)
@@ -1057,10 +1048,10 @@ int main(int argc, char *argv[])
                 break;
             case 2:
                 // Expect value in minuts, convert to ms.
-                 time = 60000*timeStringList[0].toUInt(&ok);
-                 if (ok)
+                time = 60000*timeStringList[0].toUInt(&ok);
+                if (ok)
                     // Expect value in s, convert to ms.
-                     time += 1000*timeStringList[1].toDouble(&ok);
+                    time += 1000*timeStringList[1].toDouble(&ok);
                 break;
             case 3:
                 // Expect value in h, convert to ms.
@@ -1080,7 +1071,7 @@ int main(int argc, char *argv[])
                 continue;
             }
             // Add the (page, time) pair to map.
-            map.insert(key, time);
+            map.insert(it.key(), time);
         }
         // Send the timer configuration to ctrlScreen (which sends it to the timer)
         ctrlScreen->getTimer()->setTimeMap(map);

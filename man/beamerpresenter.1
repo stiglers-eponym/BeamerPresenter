@@ -388,7 +388,8 @@ Drawings can be saved to compressed XML files.
 
 Additionally to the global configuration you can specify a local configuration file, which contains settings in JSON format. The local configuration overrides the global configuration and can be overridden by command line arguments. Since this file is in JSON format, the syntax of groups of arguments has to be adapted.
 .RI "E.g. instead of \[dq]" "timer/time = color1" " ...\[dq] you should write " "\[dq]timer\[dq]: {\[dq]time1\[dq]: \[dq]color1\[dq], \[dq]time2\[dq]: \[dq]color2\[dq]}," .
-.RB "The local configuration file may additionally contain a map " "page times" ", which defines times at which you want to finish certain slides. It has the format " "slide number: time" " where " time " is in the format mm:ss. Here the slide numbers refer to page labels in the pdf, but may currently only take integer values."
+.RB "The local configuration file may additionally contain a map " "page times" ", which defines times at which you want to finish certain slides. It has the format " "slide label: time" " where " time " is in the format mm:ss and " "slide label" " is the label string (not the page number) in the pdf."
+.
 .
 .SH BUGS
 .

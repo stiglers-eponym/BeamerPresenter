@@ -36,12 +36,12 @@ Timer::Timer(QWidget* parent) :
 
 Timer::~Timer()
 {
-    timerEdit->disconnect();
     delete timer;
 }
 
-void Timer::setTimerWidget(QLineEdit* setTimerEdit)
+void Timer::init(QLineEdit* setTimerEdit, PdfDoc const* presentation)
 {
+    doc = presentation;
     timerEdit = setTimerEdit;
     timer = new QTimer(this);
     connect(timerEdit, &QLineEdit::editingFinished, this, &Timer::setDeadline);
@@ -189,15 +189,21 @@ void Timer::updateColor()
     setPalette(timerPalette);
 }
 
-void Timer::setTimeMap(QMap<int, quint32> const& timeMap)
+void Timer::setTimeMap(QMap<QString, quint32> const& labelMap)
 {
-    this->timeMap = timeMap;
+    timeMap.clear();
+    int page;
+    for (QMap<QString, quint32>::const_iterator it = labelMap.cbegin(); it != labelMap.cend(); it++) {
+        page = doc->getPageNumber(it.key());
+        if (page >= 0)
+            timeMap[page] = *it;
+    }
     currentPageTimeIt = timeMap.cbegin();
 }
 
-void Timer::setPage(int const pageLabel, int const pageNumber)
+void Timer::setPage(int const pageNumber)
 {
-    currentPageTimeIt = timeMap.upperBound(pageLabel - 1);
+    currentPageTimeIt = timeMap.upperBound(pageNumber - 1);
     updateColor();
     if (log) {
         std::cout
@@ -205,11 +211,11 @@ void Timer::setPage(int const pageLabel, int const pageNumber)
                 << std::setw(10) << QTime::fromMSecsSinceStartOfDay(QDateTime::currentMSecsSinceEpoch() - startTime).toString("h:mm:ss").toStdString()
                 << "    entered page"
                 << std::setw(4) << pageNumber + 1
-                << std::setw(6) << "("+std::to_string(pageLabel)+").";
+                << std::setw(6) << "(" + doc->getLabel(pageNumber).toStdString() + ").";
         if (currentPageTimeIt != timeMap.cend())
             std::cout
                     << "    Target time for page"
-                    << std::setw(6) << "("+std::to_string(currentPageTimeIt.key())+")"
+                    << std::setw(6) << "("+doc->getLabel(currentPageTimeIt.key()).toStdString()+")"
                     << " is"
                     << std::setw(9) << QTime::fromMSecsSinceStartOfDay(*currentPageTimeIt).toString("h:mm:ss").toStdString()
                     << ".";

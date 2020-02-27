@@ -284,9 +284,9 @@ ControlScreen::ControlScreen(QString presentationPath, QString notesPath, PagePa
     connect(presentationScreen->slide, &PreviewSlide::sendCloseSignal, presentationScreen, &PresentationScreen::close);
     connect(presentationScreen->slide, &PreviewSlide::sendCloseSignal, this, &ControlScreen::close);
 
-    // Connect timer label to editable total duration.
+    // Connect timer label to presentation PDF and editable total duration.
     // The widget ui->edit_timer is completely controled by ui->label_timer.
-    ui->label_timer->setTimerWidget(ui->edit_timer);
+    ui->label_timer->init(ui->edit_timer, presentation);
     // Notify timer about new page numbers.
     connect(presentationScreen, &PresentationScreen::pageChanged, ui->label_timer, &Timer::setPage);
     // Send alert (time passed is larger than expected total duration).
@@ -300,7 +300,7 @@ ControlScreen::ControlScreen(QString presentationPath, QString notesPath, PagePa
     // Clock should show current time.
     ui->label_clock->setText(QTime::currentTime().toString("hh:mm:ss"));
     // Clock is updated by the same timer as ui->label_timer.
-    connect(ui->label_timer->timer, &QTimer::timeout, ui->label_clock, [&](){ui->label_clock->setText(QTime::currentTime().toString("hh:mm:ss"));});
+    connect(ui->label_timer->getTimer(), &QTimer::timeout, ui->label_clock, [&](){ui->label_clock->setText(QTime::currentTime().toString("hh:mm:ss"));});
 
     // Signals emitted by the page number editor.
     // Pressing return in page number editor changes the page in the presentation.

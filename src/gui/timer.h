@@ -26,6 +26,7 @@
 #include <QTimer>
 #include <iostream>
 #include <iomanip>
+#include "../pdf/pdfdoc.h"
 
 /// Maximum time between GUI updates in ms.
 static const quint16 MAX_UPDATE_GUI_INTERVAL_MS = 1000;
@@ -35,13 +36,12 @@ static const quint16 MIN_UPDATE_GUI_INTERVAL_MS = 40;
 class Timer : public QLabel
 {
     Q_OBJECT
-    friend class ControlScreen;
 
 public:
     Timer(QWidget* parent = nullptr);
     ~Timer();
     /// Set times per slide for timer color change.
-    void setTimeMap(QMap<int, quint32> const& timeMap);
+    void setTimeMap(QMap<QString, quint32> const& labelMap);
     void pauseTimer();
     void continueTimer();
     void toggleTimer();
@@ -54,9 +54,13 @@ public:
     void setString(QString const& string);
     /// Set the timer colors.
     void setColors(QList<qint32> const& times, QList<QColor> const& colors);
+    /// Set the QLineEdit widget and the presentation document.
+    /// This function MUST be called before the timer can be used!
+    void init(QLineEdit* setTimerEdit, PdfDoc const* presentation);
+    QTimer* getTimer() {return timer;}
 
 public slots:
-    void setPage(int const pageLabel, int const pageNumber);
+    void setPage(int const pageNumber);
 
 private slots:
     void setDeadline();
@@ -68,9 +72,11 @@ signals:
     void sendEscape();
 
 private:
-    void setTimerWidget(QLineEdit* setTimerEdit);
     void updateColor();
-    QLineEdit* timerEdit;
+    /// PDF document presentation
+    PdfDoc const* doc = nullptr;
+    /// Editable timer (GUI).
+    QLineEdit* timerEdit = nullptr;
     /// Time at which the presentation is expected to end (in ms since epoche start).
     qint64 deadline;
     /// Current date and time minus time spent with the timer running (in ms since epoche start).
@@ -84,7 +90,7 @@ private:
     QList<qint32> colorTimes = {0};
     QList<QColor> colors = {Qt::white};
     QPalette timerPalette;
-    /// Map slide label (as integer) to time (in ms).
+    /// Map slide numbers to time (in ms).
     QMap<int, quint32> timeMap;
     QMap<int, quint32>::const_iterator currentPageTimeIt;
     bool log = false;

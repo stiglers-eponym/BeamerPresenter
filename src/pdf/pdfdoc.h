@@ -85,6 +85,8 @@ public:
     /// Return page index (number) of the previous page with different page label.
     /// This function skips slides which have a duration of less than one second.
     int getPreviousSlideEnd(int const index) const;
+    /// Return page index (number) of given page label.
+    int getPageNumber(QString const& label) const {return labels.indexOf(label);}
     /// Return page index (number) of a destination string (from table of contents).
     /// Return -1 if an invalid destination string is given.
     int destToSlide(QString const& dest) const;
