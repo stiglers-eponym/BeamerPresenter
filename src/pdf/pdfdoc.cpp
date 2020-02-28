@@ -133,28 +133,29 @@ Poppler::Page const* PdfDoc::getPage(int pageNumber) const
     return pdfPages[pageNumber];
 }
 
-int PdfDoc::getNextSlideIndex(int const index) const
+int PdfDoc::getNextSlideIndex(QString const& label) const
 {
     // Return the index of the next slide, which is not just an overlay of the current slide.
-    QString label = pdfPages[index]->label();
-    for (int i=index; i<popplerDoc->numPages(); i++) {
-        if (label != pdfPages[i]->label())
-            return i;
-    }
-    return popplerDoc->numPages()-1;
+    // Labels could reoccur (e.g. if appendix slides start counting from 1 again).
+    // Returning labels.lastIndexOf(label) is therefore not the best solution.
+    int i = labels.indexOf(label);
+    if (i < 0)
+        return i;
+    for (; ++i < labels.size() && labels[i] == label;) {}
+    return i;
 }
 
 int PdfDoc::getPreviousSlideEnd(int const index) const
 {
     // Return the index of the last overlay of the previous slide.
-    QString label = pdfPages[index]->label();
+    QString const& label = labels[index];
     for (int i=index; i>=0; i--) {
-        if (label != pdfPages[i]->label()) {
+        if (label != labels[i]) {
             // Get the duration. Avoid returning a page of duration of less than one second.
             double duration = pdfPages[i]->duration();
             int j = i;
             // Don't return the index of a slides which is shown for less than one second.
-            while (duration > -0.01 && duration < 1. && j > 0 && pdfPages[j]->label() == pdfPages[i]->label())
+            while (duration > -0.01 && duration < 1. && j > 0 && labels[j] == labels[i])
                 duration = pdfPages[--j]->duration();
             return j;
         }

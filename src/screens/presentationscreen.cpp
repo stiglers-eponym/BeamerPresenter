@@ -63,10 +63,7 @@ void PresentationScreen::renderPage(int pageNumber, bool const setDuration)
     slide->renderPage(pageNumber, setDuration);
     if (pageNumber != pageIndex) {
         pageIndex = pageNumber;
-        bool ok;
-        int const label_int = presentation->getLabel(pageIndex).toInt(&ok);
-        if (ok)
-            emit pageChanged(label_int, pageIndex);
+        emit pageChanged(pageIndex);
     }
 }
 

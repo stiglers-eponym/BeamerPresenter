@@ -194,7 +194,7 @@ void Timer::setTimeMap(QMap<QString, quint32> const& labelMap)
     timeMap.clear();
     int page;
     for (QMap<QString, quint32>::const_iterator it = labelMap.cbegin(); it != labelMap.cend(); it++) {
-        page = doc->getPageNumber(it.key());
+        page = doc->getNextSlideIndex(it.key());
         if (page >= 0)
             timeMap[page] = *it;
     }
@@ -203,7 +203,7 @@ void Timer::setTimeMap(QMap<QString, quint32> const& labelMap)
 
 void Timer::setPage(int const pageNumber)
 {
-    currentPageTimeIt = timeMap.upperBound(pageNumber - 1);
+    currentPageTimeIt = timeMap.upperBound(pageNumber);
     updateColor();
     if (log) {
         std::cout
@@ -215,7 +215,7 @@ void Timer::setPage(int const pageNumber)
         if (currentPageTimeIt != timeMap.cend())
             std::cout
                     << "    Target time for page"
-                    << std::setw(6) << "("+doc->getLabel(currentPageTimeIt.key()).toStdString()+")"
+                    << std::setw(6) << "(" + doc->getLabel(currentPageTimeIt.key() - 1).toStdString() + ")"
                     << " is"
                     << std::setw(9) << QTime::fromMSecsSinceStartOfDay(*currentPageTimeIt).toString("h:mm:ss").toStdString()
                     << ".";

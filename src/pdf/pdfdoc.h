@@ -80,13 +80,13 @@ public:
     QSizeF const getPageSize(int const pageNumber) const;
     /// Return label of given page.
     QString const& getLabel(int const pageNumber) const;
-    /// Return page index (number) of the next page with different page label.
-    int getNextSlideIndex(int const index) const;
-    /// Return page index (number) of the previous page with different page label.
+    /// Return page index (number) of the next page with a different page label.
+    int getNextSlideIndex(int const index) const {return getNextSlideIndex(labels[index]);}
+    /// Return page index (number) of the next page with a different page label.
+    int getNextSlideIndex(QString const& label) const;
+    /// Return page index (number) of the previous page with a different page label.
     /// This function skips slides which have a duration of less than one second.
     int getPreviousSlideEnd(int const index) const;
-    /// Return page index (number) of given page label.
-    int getPageNumber(QString const& label) const {return labels.indexOf(label);}
     /// Return page index (number) of a destination string (from table of contents).
     /// Return -1 if an invalid destination string is given.
     int destToSlide(QString const& dest) const;
