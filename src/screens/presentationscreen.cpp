@@ -58,6 +58,9 @@ PresentationScreen::~PresentationScreen()
 
 void PresentationScreen::renderPage(int pageNumber, bool const setDuration)
 {
+#ifdef DEBUG_RENDERING
+    qDebug() << "Render page" << pageNumber << setDuration;
+#endif
     if (pageNumber < 0 || pageNumber >= numberOfPages)
         pageNumber = numberOfPages - 1;
     slide->renderPage(pageNumber, setDuration);
@@ -69,6 +72,9 @@ void PresentationScreen::renderPage(int pageNumber, bool const setDuration)
 
 void PresentationScreen::resizeEvent(QResizeEvent*)
 {
+#ifdef DEBUG_RENDERING
+    qDebug() << "Resize presentation screen" << size();
+#endif
     if (slide->getCacheMap() != nullptr)
         slide->getCacheMap()->clearCache();
     slide->renderPage(slide->pageNumber(), false);

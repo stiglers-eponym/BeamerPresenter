@@ -85,6 +85,9 @@ void PathOverlay::paintEvent(QPaintEvent*)
 {
     if (master->isShowingTransition())
         return;
+#ifdef DEBUG_PAINT_EVENTS
+    qDebug() << "paint path overlays" << this;
+#endif
     QPainter painter(this);
     painter.setCompositionMode(QPainter::CompositionMode_SourceOver);
     if (end_cache >= 0)
@@ -126,6 +129,9 @@ void PathOverlay::paintEvent(QPaintEvent*)
     default:
         break;
     }
+#ifdef DEBUG_PAINT_EVENTS
+    qDebug() << "end paint path overlays" << this;
+#endif
 }
 
 void PathOverlay::rescale(qint16 const oldshiftx, qint16 const oldshifty, double const oldRes)
@@ -181,6 +187,9 @@ void PathOverlay::updatePathCache()
 {
     if (master->page == nullptr)
         return;
+#ifdef DEBUG_DRAWING
+    qDebug() << "update path cache" << end_cache << this;
+#endif
     if (paths[master->page->label()].isEmpty()) {
         end_cache = -1;
         if (!pixpaths.isNull())
@@ -200,8 +209,11 @@ void PathOverlay::updatePathCache()
     }
 }
 
-void PathOverlay::drawPaths(QPainter &painter, QString const label, bool const plain, bool const toCache)
+void PathOverlay::drawPaths(QPainter &painter, QString const& label, bool const plain, bool const toCache)
 {
+#ifdef DEBUG_DRAWING
+    qDebug() << "draw paths" << label << plain << toCache << end_cache << this;
+#endif
     // TODO: reorganize the different conditions (especially plain)
     if (plain)
         painter.setClipRect(master->shiftx, master->shifty, width()-2*master->shiftx, height()-2*master->shifty);
@@ -241,7 +253,9 @@ void PathOverlay::drawPaths(QPainter &painter, QString const label, bool const p
                     if (hasVideoOverlap(outer)) {
                         if (toCache) {
                             end_cache = path_it - paths[label].cbegin();
+#ifdef DEBUG_DRAWING
                             qDebug() << "Stopped caching paths:" << end_cache;
+#endif
                             return;
                         }
                     }
@@ -443,7 +457,7 @@ void PathOverlay::erase(const QPointF &point)
     if (master->page == nullptr || paths[master->page->label()].isEmpty())
         return;
     QList<DrawPath*>& path_list = paths[master->page->label()];
-    int const oldsize=path_list.size();
+    int const oldsize = path_list.size();
     bool changed = false;
     for (int i=0; i<oldsize; i++) {
         QVector<int> splits = path_list[i]->intersects(point, eraserSize);
@@ -466,11 +480,14 @@ void PathOverlay::erase(const QPointF &point)
     for (int i=0; i<path_list.size();) {
         if (path_list[i] == nullptr)
             path_list.removeAt(i);
-        //else if (path_list[i]->isEmpty()) { // this should never happen...
-        //    qDebug() << "this should no happen.";
-        //    delete path_list[i];
-        //    path_list.removeAt(i);
-        //}
+#ifdef DEBUG_DRAWING
+        // TODO: check again:
+        else if (path_list[i]->isEmpty()) { // this should never happen...
+            qDebug() << "this should never happen.";
+            delete path_list[i];
+            path_list.removeAt(i);
+        }
+#endif
         else
             i++;
     }
@@ -504,7 +521,9 @@ void PathOverlay::setPathsQuick(QString const pagelabel, QList<DrawPath*> const&
         pixpaths = QPixmap();
     }
     else {
+#ifdef DEBUG_DRAWING
         qDebug() << "set paths quick failed!" << this;
+#endif
         setPaths(pagelabel, list, refshiftx, refshifty, refresolution);
     }
     update();
@@ -594,7 +613,9 @@ void PathOverlay::updateEnlargedPage()
     if (enlargedPageRenderer->getPage() != master->pageIndex || abs(enlargedPageRenderer->getResolution() - tool.extras.magnification*master->resolution) > 1e-6 ) {
         enlargedPageRenderer->changeResolution(tool.extras.magnification*master->resolution);
         enlargedPage = QPixmap();
+#ifdef DEBUG_DRAWING
         qDebug() << "Rendering enlarged page" << master->pageIndex;
+#endif
         enlargedPageRenderer->renderPage(master->pageIndex);
         // Return if the enlarged page image is not needed right now.
         // This makes scanning through the slides much faster.
@@ -843,7 +864,6 @@ void PathOverlay::loadXML(QString const& filename, PdfDoc const* notesDoc)
                     if (!ok)
                         size = defaultToolConfig[tool].size;
                     QStringList const data = stroke.text().split(" ");
-                    qDebug() << data;
                     paths[label].append(new DrawPath({tool, color, size}, data, shift, scale));
                 }
             }

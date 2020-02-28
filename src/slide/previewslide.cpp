@@ -41,6 +41,9 @@ PreviewSlide::~PreviewSlide()
 
 void PreviewSlide::renderPage(int pageNumber)
 {
+#ifdef DEBUG_RENDERING
+    qDebug() << "preview slide render page << pageNumber";
+#endif
     // Make sure that pageNumber is valid.
     if (pageNumber < 0)
         pageNumber = 0;
@@ -123,7 +126,9 @@ QSizeF PreviewSlide::basicRenderPage(int const pageNumber)
     }
 
     // Render the pixmap if necessary.
-    //qDebug() << "get pixmap?" << pageIndex << pageNumber << oldSize << size() << cache << this;
+#ifdef DEBUG_RENDERING
+    qDebug() << "get pixmap?" << pageIndex << pageNumber << oldSize << size() << cache << this;
+#endif
     // Check whether the page number or the widget size changed. Then update pixmap if cache is available.
     if ((pageIndex != pageNumber || oldSize != size()) && cache != nullptr)
         pixmap = cache->getPixmap(pageNumber);

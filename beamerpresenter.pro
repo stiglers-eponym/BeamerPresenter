@@ -60,6 +60,19 @@ linux {
 
 # Disable debugging message if debugging mode is disabled.
 CONFIG(release, debug|release):DEFINES += QT_NO_DEBUG_OUTPUT
+# Enable specific debugging messages
+CONFIG(debug) {
+    # TODO: include all these in the code!
+    #DEFINES += DEBUG_READ_CONFIGS
+    #DEFINES += DEBUG_CACHE
+    #DEFINES += DEBUG_RENDERING
+    #DEFINES += DEBUG_DRAWING
+    #DEFINES += DEBUG_PAINT_EVENTS
+    #DEFINES += DEBUG_KEY_ACTIONS
+    #DEFINES += DEBUG_TOOL_ACTIONS
+    #DEFINES += DEBUG_SLIDE_TRANSITIONS
+    DEFINES += DEBUG_MULTIMEDIA
+}
 
 SOURCES += \
         src/main.cpp \

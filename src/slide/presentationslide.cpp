@@ -43,6 +43,9 @@ PresentationSlide::~PresentationSlide()
 
 void PresentationSlide::paintEvent(QPaintEvent*)
 {
+#ifdef DEBUG_PAINT_EVENTS
+    qDebug() << "paint presentation slide";
+#endif
     QPainter painter(this);
     if (remainTimer.isActive() && remainTimer.interval()>0 && this->paint != nullptr) {
         (this->*paint)(painter);
@@ -65,6 +68,9 @@ void PresentationSlide::clearLists()
 
 void PresentationSlide::endAnimation()
 {
+#ifdef DEBUG_PAINT_EVENTS
+    qDebug() << "end animation";
+#endif
     stopAnimation();
     //pathOverlay->show();
     repaint();
@@ -141,6 +147,9 @@ void PresentationSlide::updateImages(int const oldPage)
 }
 
 void PresentationSlide::animate(int const oldPageIndex) {
+#ifdef DEBUG_PAINT_EVENTS
+    qDebug() << "presentation slide animate" << oldPageIndex << pageIndex;
+#endif
     if (oldPageIndex != pageIndex)
         pathOverlay->resetCache();
     if (duration>-1e-6 && duration < .05) {
@@ -178,7 +187,9 @@ void PresentationSlide::animate(int const oldPageIndex) {
     remainTimer.setInterval(transition_duration-2);
     switch (transition->type()) {
     case Poppler::PageTransition::Split:
+#ifdef DEBUG_SLIDE_TRANSITIONS
         qDebug () << "Transition split";
+#endif
         if (transition->alignment() == Poppler::PageTransition::Horizontal) {
             if ((oldPageIndex < pageIndex) ^ (transition->direction() == Poppler::PageTransition::Outward))
                 paint = &PresentationSlide::paintSplitHI;
@@ -193,14 +204,18 @@ void PresentationSlide::animate(int const oldPageIndex) {
         }
         break;
     case Poppler::PageTransition::Blinds:
+#ifdef DEBUG_SLIDE_TRANSITIONS
         qDebug () << "Transition blinds";
+#endif
         if (transition->alignment() == Poppler::PageTransition::Horizontal)
             paint = &PresentationSlide::paintBlindsH;
         else
             paint = &PresentationSlide::paintBlindsV;
         break;
     case Poppler::PageTransition::Box:
+#ifdef DEBUG_SLIDE_TRANSITIONS
         qDebug () << "Transition box";
+#endif
         if ((oldPageIndex < pageIndex) ^ (transition->direction() == Poppler::PageTransition::Outward))
             paint = &PresentationSlide::paintBoxI;
         else
@@ -208,7 +223,9 @@ void PresentationSlide::animate(int const oldPageIndex) {
         break;
     case Poppler::PageTransition::Wipe:
         {
+#ifdef DEBUG_SLIDE_TRANSITIONS
         qDebug () << "Transition wipe" << transition->angle();
+#endif
         int angle = (360 + 180*(oldPageIndex > pageIndex) + transition->angle()) % 360;
         if (angle < 45 || angle > 315)
             paint = &PresentationSlide::paintWipeRight;
@@ -221,17 +238,23 @@ void PresentationSlide::animate(int const oldPageIndex) {
         }
         break;
     case Poppler::PageTransition::Dissolve:
+#ifdef DEBUG_SLIDE_TRANSITIONS
         qDebug () << "Transition dissolve";
+#endif
         paint = &PresentationSlide::paintDissolve;
         break;
     case Poppler::PageTransition::Glitter:
+#ifdef DEBUG_SLIDE_TRANSITIONS
         qDebug () << "Transition glitter";
+#endif
         initGlitter();
         paint = &PresentationSlide::paintGlitter;
         break;
     case Poppler::PageTransition::Fly:
         {
+#ifdef DEBUG_SLIDE_TRANSITIONS
         qDebug() << "Transition fly" << transition->angle() << transition->direction() << transition->isRectangular() << transition->scale();
+#endif
         QImage oldimg, newimg;
         if ((oldPageIndex < pageIndex) ^ (transition->direction() == Poppler::PageTransition::Outward)) {
             oldimg = picinit.toImage();
@@ -368,7 +391,9 @@ void PresentationSlide::animate(int const oldPageIndex) {
         break;
     case Poppler::PageTransition::Push:
         {
+#ifdef DEBUG_SLIDE_TRANSITIONS
         qDebug () << "Transition push" << transition->angle();
+#endif
         qint16 angle = (360 + 180*(oldPageIndex > pageIndex) + transition->angle()) % 360;
         if (angle < 45 || angle > 315)
             paint = &PresentationSlide::paintPushRight;
@@ -382,7 +407,9 @@ void PresentationSlide::animate(int const oldPageIndex) {
         break;
     case Poppler::PageTransition::Cover:
         {
+#ifdef DEBUG_SLIDE_TRANSITIONS
         qDebug () << "Transition cover" << transition->angle();
+#endif
         qint16 angle = (360 + transition->angle()) % 360;
         if (oldPageIndex < pageIndex) {
             if (angle < 45 || angle > 315)
@@ -409,7 +436,9 @@ void PresentationSlide::animate(int const oldPageIndex) {
         break;
     case Poppler::PageTransition::Uncover:
         {
+#ifdef DEBUG_SLIDE_TRANSITIONS
         qDebug () << "Transition uncover" << transition->angle();
+#endif
         qint16 angle = (360 + 180*(oldPageIndex > pageIndex) + transition->angle()) % 360;
         if (oldPageIndex < pageIndex) {
             if (angle < 45 || angle > 315)
@@ -434,7 +463,9 @@ void PresentationSlide::animate(int const oldPageIndex) {
         }
         break;
     case Poppler::PageTransition::Fade:
+#ifdef DEBUG_SLIDE_TRANSITIONS
         qDebug () << "Transition fade";
+#endif
         paint = &PresentationSlide::paintFade;
         break;
     default:

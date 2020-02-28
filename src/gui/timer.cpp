@@ -246,7 +246,9 @@ void Timer::updateGuiInterval(quint16 const frames)
         update_gui_interval = 1000. / (999/update_gui_interval + 1) + .999999999;
     }
     timer->setInterval(update_gui_interval);
+#ifdef DEBUG_READ_CONFIG
     qDebug() << "Set update GUI inverval to" << update_gui_interval << ". Min delta was" << min_delta << "frames=" << frames;
+#endif
 }
 
 void Timer::setString(QString const& string)

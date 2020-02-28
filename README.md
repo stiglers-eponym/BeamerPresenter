@@ -71,7 +71,7 @@ manually.
 
 Building on Microsoft Windows has been tested for some old version of BeamerPresenter.
 You need to define the directory containing the poppler-qt5 header and library
-manually in `beamerpresenter.pro` (line 124). Also the installation has to be
+manually in `beamerpresenter.pro` (line 153). Also the installation has to be
 done manually. Make sure that beamerpresenter.exe has access to the libraries,
 e.g. by copying all necessary .ddl files to the same directory as
 beamerpresenter.exe. For multimedia content you need to make sure that the

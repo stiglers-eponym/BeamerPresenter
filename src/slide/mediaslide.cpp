@@ -24,12 +24,16 @@
 void connectVideos(MediaSlide* controlSlide, MediaSlide* presentationSlide)
 {
     if (controlSlide->pageIndex != presentationSlide->pageIndex) {
+#ifdef DEBUG_MULTIMEDIA
         qDebug() << "Called connectVideos with differing slide numbers.";
+#endif
         return;
     }
     int const n = controlSlide->videoWidgets.size();
     if (n != presentationSlide->videoWidgets.size() || n != presentationSlide->videoSliders.size()) {
+#ifdef DEBUG_MULTIMEDIA
         qDebug() << "Called connectVideos wrong number of video widgets or sliders.";
+#endif
         return;
     }
     for (int i=0; i<n; i++) {
@@ -295,7 +299,9 @@ void MediaSlide::renderPage(int pageNumber, bool const hasDuration)
         Poppler::MovieObject* movie = video->movie();
         bool found = false;
         for (QList<VideoWidget*>::iterator widget_it=cachedVideoWidgets.begin(); widget_it!=cachedVideoWidgets.end(); widget_it++) {
+#ifdef DEBUG_MULTIMEDIA
             qDebug() << (*widget_it)->getUrl() << movie->url();
+#endif
             if (*widget_it != nullptr && (*widget_it)->getUrl() == movie->url() && (*widget_it)->getPlayMode() == movie->playMode()) {
                 videoWidgets.append(*widget_it);
                 // Setting *widget_it to nullptr makes sure that this videoWidget will not be deleted when cleaning up oldVideos.
@@ -318,7 +324,9 @@ void MediaSlide::renderPage(int pageNumber, bool const hasDuration)
                 repaint();
                 notRepainted = false;
             }
+#ifdef DEBUG_MULTIMEDIA
             qDebug() << "Loading new video widget:" << movie->url();
+#endif
             videoWidgets.append(new VideoWidget(video, urlSplitCharacter, this));
             videoWidgets.last()->setMute(mute);
             videoWidgets.last()->lower();
@@ -408,11 +416,15 @@ void MediaSlide::renderPage(int pageNumber, bool const hasDuration)
             newSliders++;
             // Untested!
             if (splitFileName.contains("loop")) {
+#ifdef DEBUG_MULTIMEDIA
                 qDebug() << "Using untested option loop for sound";
+#endif
                 connect(player, &QMediaPlayer::mediaStatusChanged, player, [&](QMediaPlayer::MediaStatus const status){if(status==QMediaPlayer::EndOfMedia) player->play();});
             }
             if (splitFileName.contains("autostart")) {
+#ifdef DEBUG_MULTIMEDIA
                 qDebug() << "Using untested option autostart for sound";
+#endif
                 player->play();
             }
         }
@@ -426,7 +438,9 @@ void MediaSlide::renderPage(int pageNumber, bool const hasDuration)
                 soundLinkSliders.remove(i);
             }
             else
+#ifdef DEBUG_MULTIMEDIA
                 qDebug() << "No slider found: page" << pageIndex << "old sound index" << i;
+#endif
         }
     }
 
@@ -493,11 +507,15 @@ void MediaSlide::renderPage(int pageNumber, bool const hasDuration)
                 player->setMedia(url);
                 // Untested!
                 if (splitFileName.contains("loop")) {
+#ifdef DEBUG_MULTIMEDIA
                     qDebug() << "Using untested option loop for sound";
+#endif
                     connect(player, &QMediaPlayer::mediaStatusChanged, player, [&](QMediaPlayer::MediaStatus const status){if(status==QMediaPlayer::EndOfMedia) player->play();});
                 }
                 if (splitFileName.contains("autostart")) {
+#ifdef DEBUG_MULTIMEDIA
                     qDebug() << "Using untested option autostart for sound";
+#endif
                     player->play();
                 }
                 soundPlayers.append(player);
@@ -519,8 +537,11 @@ void MediaSlide::renderPage(int pageNumber, bool const hasDuration)
                     delete soundSliders[i];
                     soundSliders.remove(i);
                 }
-                else
+                else {
+#ifdef DEBUG_MULTIMEDIA
                     qDebug() << "No slider found: page" << pageIndex << "old sound index" << i;
+#endif
+                }
             }
         }
     }
@@ -560,11 +581,15 @@ void MediaSlide::renderPage(int pageNumber, bool const hasDuration)
             player->setMedia(url);
             // Untested!
             if (splitFileName.contains("loop")) {
+#ifdef DEBUG_MULTIMEDIA
                 qDebug() << "Using untested option loop for sound";
+#endif
                 connect(player, &QMediaPlayer::mediaStatusChanged, player, [&](QMediaPlayer::MediaStatus const status){if(status==QMediaPlayer::EndOfMedia) player->play();});
             }
             if (splitFileName.contains("autostart")) {
+#ifdef DEBUG_MULTIMEDIA
                 qDebug() << "Using untested option autostart for sound";
+#endif
                 player->play();
             }
             soundPlayers.append(player);
@@ -591,7 +616,9 @@ void MediaSlide::renderPage(int pageNumber, bool const hasDuration)
             // Autostart video widgets if the option is set as arguments in the video annotation in the pdf
             for (int i=0; i<videoWidgets.size(); i++) {
                 if (videoWidgets[i]->getAutoplay() == 1) {
+#ifdef DEBUG_MULTIMEDIA
                     qDebug() << "Untested option autostart for video";
+#endif
                     videoWidgets[i]->play();
                 }
             }
@@ -643,7 +670,9 @@ void MediaSlide::updateCacheVideos(int const pageNumber)
         if (found)
             delete video;
         else {
+#ifdef DEBUG_MULTIMEDIA
             qDebug() << "Cache new video widget:" << movie->url();
+#endif
             cachedVideoWidgets.append(new VideoWidget(video, urlSplitCharacter, this));
             cachedVideoWidgets.last()->setMute(mute);
             // Ugly way of fixing video widgets:
@@ -664,7 +693,9 @@ void MediaSlide::setMultimediaSliders(QList<QSlider*> sliderList)
     // this takes ownership of the items of sliderList.
     if (videoSliders.size() + soundSliders.size() + soundLinkSliders.size() + sliderList.size() != videoWidgets.size() + soundLinkPlayers.size() + soundPlayers.size()) {
         qCritical() << "Something unexpected happened: There is a problem with the media sliders.";
+#ifdef DEBUG_MULTIMEDIA
         qDebug() << "videos" << videoWidgets.size() << videoSliders.size() << "sound links" << soundLinkPlayers.size() << soundLinkSliders.size() << "sounds" << soundPlayers.size() << soundSliders.size() << "new sliders" << sliderList.size();
+#endif
         return;
     }
     // TODO: better multimedia controls

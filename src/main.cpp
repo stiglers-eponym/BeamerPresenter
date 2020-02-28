@@ -260,8 +260,12 @@ void actionsFromConfig(QMap<QString, QList<KeyAction>>& actions, QMap<QString, F
             QString key = it.key();
             key.remove(' ');
             // If a KeyAction was found in keyActionMap for this action string: send this key binding to ctrlScreen.
-            if (action != NoAction)
+            if (action != NoAction) {
                 actions[key].append(action);
+#ifdef DEBUG_READ_CONFIGS
+                qDebug() << "New key action:" << key << action << *action_it;
+#endif
+            }
             else {
                 try {
                     // Try to interpret  as a sequence "tool color" or "tool color size", defining a drawing or highlighting tool and a color.
@@ -329,6 +333,9 @@ void actionsFromConfig(QMap<QString, QList<KeyAction>>& actions, QMap<QString, F
                                 qWarning() << "Tool has too many arguments:" << it.key() << *it;
                         }
                     }
+#ifdef DEBUG_READ_CONFIGS
+                    qDebug() << "New tool:" << key << tools[key].tool << tools[key].color << tools[key].size << tools[key].extras.magnification;
+#endif
                 } catch (int) {
                     qCritical() << "Could not understand action" << *action_it << "for key" << it.key();
                 }
@@ -355,6 +362,9 @@ void actionsFromConfig(QMap<QString, QList<KeyAction>>& actions, QMap<QString, F
             }
             else
                 tools[key] = {static_cast<DrawTool>(tool), color, size};
+#ifdef DEBUG_READ_CONFIGS
+            qDebug() << "New tool:" << key << tools[key].tool << tools[key].color << tools[key].size << tools[key].extras.magnification;
+#endif
         } catch (int) {
             qCritical() << "Could not understand action" << *it << "for key" << it.key();
         }
@@ -490,7 +500,10 @@ int main(int argc, char *argv[])
 #endif
 #endif
 #endif
-    qDebug() << "Loaded settings:" << settings.allKeys(); // Show all settings in plain text.
+#ifdef DEBUG_READ_CONFIGS
+    //qDebug() << "Command line positional arguments:" << parser.positionalArguments();
+    qDebug() << "Loaded settings:\n" << settings.allKeys(); // Show all settings in plain text.
+#endif
 
     // Load an optional local configuration file.
     // This file can be used to set e.g. times per slide.
@@ -516,6 +529,10 @@ int main(int argc, char *argv[])
             else {
                 // Write the options in local.
                 local = jsonDoc.object().toVariantMap();
+#ifdef DEBUG_READ_CONFIGS
+                qDebug() << "Loaded local config" << parser.value("j");
+                qDebug() << local;
+#endif
             }
         }
         else
@@ -622,6 +639,10 @@ int main(int argc, char *argv[])
                     else {
                         // Write the options from the JSON file in local.
                         local.unite(jsonDoc.object().toVariantMap());
+#ifdef DEBUG_READ_CONFIGS
+                        qDebug() << "Loaded local config" << *argument;
+                        qDebug() << local;
+#endif
                         // Check whether the JSON document contains the keys "presentation" and "notes".
                         // Use these corresponding options as files to construct ctrlScreen.
                         if (local.contains("presentation") && presentation.isEmpty())
