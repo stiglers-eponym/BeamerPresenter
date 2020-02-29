@@ -26,7 +26,6 @@
 #include "../pdf/singlerenderer.h"
 #include "../draw/pathoverlay.h"
 
-///
 class DrawSlide : public MediaSlide
 {
     Q_OBJECT

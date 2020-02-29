@@ -22,7 +22,10 @@ SingleRenderer::~SingleRenderer()
 {
     cacheThread->requestInterruption();
     cacheThread->wait(10000);
-    cacheThread->exit();
+    if (cacheThread->isRunning()) {
+        cacheThread->terminate();
+        cacheThread->wait(10000);
+    }
     delete cacheThread;
     delete data;
 }

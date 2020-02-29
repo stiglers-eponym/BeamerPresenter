@@ -32,7 +32,7 @@ public:
     /// Constructor
     explicit SingleRenderer(PdfDoc const* doc, PagePart const part = FullPage, QObject* parent = nullptr): BasicRenderer(doc, part, parent) {}
     /// Destructor
-    ~SingleRenderer();
+    ~SingleRenderer() override;
 
     /// Get the cached image.
     QPixmap const getPixmap();

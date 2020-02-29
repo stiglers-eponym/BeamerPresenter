@@ -368,21 +368,64 @@ ControlScreen::~ControlScreen()
     presentationScreen->disconnect();
     disconnect();
 
-    // Delete preview cache
+    // Clear preview cache.
     ui->current_slide->overwriteCacheMap(nullptr);
     ui->next_slide->overwriteCacheMap(nullptr);
-    previewCache->clearCache();
-    delete previewCacheX;
-    delete previewCache;
+    // Interrupt cache threads.
+    presentationScreen->slide->getCacheMap()->getCacheThread()->requestInterruption();
+    ui->notes_widget->getCacheMap()->getCacheThread()->requestInterruption();
+    if (previewCache != nullptr)
+        previewCache->getCacheThread()->requestInterruption();
+    if (previewCacheX != nullptr)
+        previewCacheX->getCacheThread()->requestInterruption();
+    SingleRenderer* singleRendererPresentation = presentationScreen->slide->getPathOverlay()->getEnlargedPageRenderer();
+    if (singleRendererPresentation != nullptr)
+        singleRendererPresentation->getCacheThread()->requestInterruption();
+    SingleRenderer* singleRendererDrawSlide = nullptr;
+    if (drawSlide != nullptr) {
+        singleRendererDrawSlide = drawSlide->getPathOverlay()->getEnlargedPageRenderer();
+        if (singleRendererDrawSlide != nullptr)
+            singleRendererDrawSlide->getCacheThread()->requestInterruption();
+    }
+    if (drawSlideCache != nullptr)
+        drawSlideCache->getCacheThread()->requestInterruption();
+
+    // Clear cache maps.
+    if (previewCache != nullptr)
+        previewCache->clearCache();
+    if (previewCacheX != nullptr)
+        previewCacheX->clearCache();
+    ui->notes_widget->getCacheMap()->clearCache();
+    if (drawSlideCache != nullptr)
+        drawSlideCache->clearCache();
+    presentationScreen->slide->getCacheMap()->clearCache();
+
+    // Wait for cache threads to finish.
+    if (previewCache != nullptr)
+        previewCache->getCacheThread()->wait(10000);
+    if (previewCacheX != nullptr)
+        previewCacheX->getCacheThread()->wait(10000);
+    if (singleRendererDrawSlide != nullptr)
+        singleRendererDrawSlide->getCacheThread()->wait(10000);
+    if (singleRendererPresentation != nullptr)
+        singleRendererPresentation->getCacheThread()->wait(10000);
+    if (drawSlideCache != nullptr)
+        drawSlideCache->getCacheThread()->wait(10000);
+    ui->notes_widget->getCacheMap()->getCacheThread()->wait(10000);
+    presentationScreen->slide->getCacheMap()->getCacheThread()->wait(10000);
+
     // Delete notes cache.
     delete ui->notes_widget->getCacheMap();
     ui->notes_widget->overwriteCacheMap(nullptr);
-
     // Delete notes pdf.
     if (notes != presentation)
         delete notes;
     // Delete keymap.
     delete keymap;
+
+    // Delete preview cache.
+    delete previewCacheX;
+    delete previewCache;
     // Delete draw slide.
     if (drawSlide != ui->notes_widget)
         delete drawSlide;

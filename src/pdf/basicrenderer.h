@@ -35,6 +35,9 @@ class BasicRenderer : public QObject
 public:
     /// Constructor
     explicit BasicRenderer(PdfDoc const* doc, PagePart const part = FullPage, QObject* parent = nullptr);
+    /// Destructor
+    /// cacheThread must be deleted by destructors of child classes.
+    ~BasicRenderer() {};
     /// Get cache thread.
     CacheThread* getCacheThread() {return cacheThread;}
     /// Render page using poppler.

@@ -22,13 +22,15 @@ CacheMap::~CacheMap()
 {
     cacheThread->requestInterruption();
     cacheThread->wait(10000);
-    cacheThread->exit();
+    if (cacheThread->isRunning()) {
+        cacheThread->terminate();
+        cacheThread->wait(10000);
+    }
     delete cacheThread;
     qDeleteAll(data);
     data.clear();
 }
 
-/// Write the pixmap in png format to a QBytesArray at *value(page).
 qint64 CacheMap::setPixmap(int const page, QPixmap const* pix)
 {
     // Check whether the pixmap is empty.
@@ -42,8 +44,13 @@ qint64 CacheMap::setPixmap(int const page, QPixmap const* pix)
         delete bytes;
         return 0;
     }
-    data[page] = bytes;
     qint64 currentSize = qint64(bytes->size());
+    if (data.contains(page) && data[page] != nullptr) {
+        // Usually this should not happen.
+        currentSize -= data[page]->size();
+        delete data[page];
+    }
+    data[page] = bytes;
     return currentSize;
 }
 

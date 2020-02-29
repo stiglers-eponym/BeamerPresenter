@@ -42,6 +42,7 @@ public:
 
     QMap<QString, QList<DrawPath*>> const& getPaths() const {return paths;}
     FullDrawTool const& getTool() const {return tool;}
+    SingleRenderer* getEnlargedPageRenderer() {return enlargedPageRenderer;}
 
     /// Deprecated
     void saveDrawings(QString const& filename, QString const& notefile = "") const;
