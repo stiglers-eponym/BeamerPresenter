@@ -1,7 +1,6 @@
 BeamerPresenter
 
 Simple fixes and features:
-* better debugging output
 * (target 0.1.2) handle reoccuring page labels
 * (target 0.1.2) undo erasing in draw mode
 * (target 0.1.3) use thumbnails in overviewbox
