@@ -136,7 +136,7 @@ void MediaSlide::renderPage(int pageNumber, bool const hasDuration)
     else
         clearLists();
 
-    QSizeF scale = basicRenderPage(pageNumber);
+    QSizeF const scale = basicRenderPage(pageNumber);
 
     // Presentation slides can have a "duration" property.
     // In this case: go to the next page after that given time.

@@ -221,10 +221,6 @@ void PathOverlay::drawPaths(QPainter &painter, QString const& label, bool const 
     // Draw edges of the slide: If they are not drawn explicitly, they can be transparent.
     // Drawing with the highlighter on transparent edges can look ugly.
     painter.setCompositionMode(QPainter::CompositionMode_DestinationOver);
-    painter.drawPixmap(master->shiftx, master->shifty, width(), 1, master->pixmap, 0, 0, width(), 1);
-    painter.drawPixmap(master->shiftx, height() - master->shifty - 1, width(), 1, master->pixmap, 0, master->pixmap.height()-1, width(), 1);
-    painter.drawPixmap(master->shiftx, master->shifty, 1, height(), master->pixmap, 0, 0, 1, height());
-    painter.drawPixmap(width() - master->shiftx - 1, master->shifty, 1, height(), master->pixmap, master->pixmap.width()-1, 0, 1, height());
 
     // Draw the paths.
     if (paths.contains(label)) {
@@ -249,7 +245,7 @@ void PathOverlay::drawPaths(QPainter &painter, QString const& label, bool const 
                     // Highlighter needs a background to draw on (because of CompositionMode_Darken).
                     // Drawing this background is only reasonable if there is no video widget in the background.
                     // Check this.
-                    QRectF const outer = (*path_it)->getOuterDrawing();
+                    QRect const outer = (*path_it)->getOuterDrawing().toAlignedRect();
                     if (hasVideoOverlap(outer)) {
                         if (toCache) {
                             end_cache = path_it - paths[label].cbegin();
@@ -261,9 +257,14 @@ void PathOverlay::drawPaths(QPainter &painter, QString const& label, bool const 
                     }
                     else {
                         // Draw the background form master->pixmap.
-                        painter.setClipRect(master->shiftx, master->shifty, width()-2*master->shiftx, height()-2*master->shifty);
                         painter.setCompositionMode(QPainter::CompositionMode_DestinationOver);
-                        painter.drawPixmap(outer, master->pixmap, QRectF(outer.x()-master->shiftx, outer.y()-master->shifty, outer.width(), outer.height()));
+                        painter.drawPixmap(outer, master->pixmap, outer.translated(-master->shiftx, -master->shifty));
+                        if (
+                                (master->shiftx > 0 && ( outer.left() < master->shiftx || outer.right() > master->shiftx + master->pixmap.width() ) )
+                                || (master->shifty > 0 && ( outer.top() < master->shifty || outer.bottom() > master->shifty + master->pixmap.height() ) )
+                             ) {
+                            painter.fillRect(outer, QBrush(master->parentWidget()->palette().base()));
+                        }
                     }
                 }
                 // Draw the highlighter path.

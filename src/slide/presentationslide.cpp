@@ -152,11 +152,13 @@ void PresentationSlide::animate(int const oldPageIndex) {
 #endif
     if (oldPageIndex != pageIndex)
         pathOverlay->resetCache();
-    if (duration>-1e-6 && duration < .05) {
-        transition_duration = 0;
+    if (duration > -1e-6 && duration < .05) {
+        if (transition_duration > 0)
+            transition_duration = 0;
         update();
         return;
     }
+    // transition_duration < 0 deactivates slide transitions.
     if (transition_duration < 0 || oldPageIndex == pageIndex) {
         remainTimer.start(0);
         return;
@@ -170,14 +172,25 @@ void PresentationSlide::animate(int const oldPageIndex) {
     }
     picwidth = quint16(pixmap.width());
     picheight = quint16(pixmap.height());
-    Poppler::PageTransition const* transition = page->transition();
+
+    /// Page transition for the current slide change.
+    Poppler::PageTransition const* transition;
+    // If we move forward: transition is the transition associated with the new page.
+    if (oldPageIndex < pageIndex)
+        transition = page->transition();
+    // If we move backward: transition is the transition associated with the old page.
+    else{
+        Poppler::Page const* oldPage = doc->getPage(oldPageIndex);
+        if (oldPage == nullptr)
+            transition = nullptr;
+        else
+            transition = oldPage->transition();
+    }
     if (transition == nullptr || transition->type() == Poppler::PageTransition::Replace) {
         transition_duration = 0;
         remainTimer.start(0);
         return;
     }
-    if (oldPageIndex >= 0 && oldPageIndex > pageIndex)
-        transition = doc->getPage(oldPageIndex)->transition();
     transition_duration = static_cast<qint32>(1000*transition->durationReal());
     if (transition_duration < 5) {
         remainTimer.start(0);
