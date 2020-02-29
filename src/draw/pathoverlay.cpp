@@ -215,8 +215,6 @@ void PathOverlay::drawPaths(QPainter &painter, QString const& label, bool const 
     qDebug() << "draw paths" << label << plain << toCache << end_cache << this;
 #endif
     // TODO: reorganize the different conditions (especially plain)
-    if (plain)
-        painter.setClipRect(master->shiftx, master->shifty, width()-2*master->shiftx, height()-2*master->shifty);
 
     // Draw edges of the slide: If they are not drawn explicitly, they can be transparent.
     // Drawing with the highlighter on transparent edges can look ugly.
@@ -271,8 +269,6 @@ void PathOverlay::drawPaths(QPainter &painter, QString const& label, bool const 
                 painter.setCompositionMode(QPainter::CompositionMode_Darken);
                 painter.setPen(QPen(tool.color, tool.size, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin));
                 painter.drawPolyline((*path_it)->data(), (*path_it)->number());
-                if (!plain)
-                    painter.setClipRect(rect());
             }
                 break;
             default:
@@ -280,8 +276,6 @@ void PathOverlay::drawPaths(QPainter &painter, QString const& label, bool const 
             }
         }
     }
-    if (plain)
-        painter.setClipRect(rect());
     if (toCache)
         end_cache = paths[master->page->label()].length();
 }
