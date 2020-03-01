@@ -43,7 +43,7 @@ DEFINES += CHECK_QPA_PLATFORM
 ICON_PATH = "/usr/share/icons/hicolor/scalable/apps/"
 DEFINES += ICON_PATH=\\\"$${ICON_PATH}\\\"
 
-CONFIG += c++14 qt
+CONFIG += c++20 qt
 unix {
     # Enable better debugging.
     CONFIG(debug):QMAKE_LFLAGS += -rdynamic

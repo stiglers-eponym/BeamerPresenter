@@ -35,7 +35,12 @@ static const QMap<DrawTool, QString> toolNames = {
 static const QMap<DrawTool, FullDrawTool> defaultToolConfig = {
     {Pen, {Pen, Qt::black, 3}},
     {Highlighter, {Highlighter, QColor(255,255,0,191), 30}},
+// This is probably not a problem of the Qt version, but like this it can at least be compiled easily in ubuntu 18.04:
+#if QT_VERSION_MAJOR > 5 or (QT_VERSION_MAJOR == 5 and QT_VERSION_MINOR >= 13)
     {Pointer, {Pointer, QColor(255,0,0,191), 12, {.pointer={128, 1, true}}}},
+#else
+    {Pointer, {Pointer, QColor(255,0,0,191), 12}},
+#endif
     {Magnifier, {Magnifier, Qt::gray, 200, {.magnification=2.}}},
     {Torch, {Torch, QColor(0,0,0,64), 120}},
     {Eraser, {Eraser, QColor(), 10.}},
@@ -354,7 +359,11 @@ static const QMap<quint8, FullDrawTool> defaultToolSelectorTools {
     {2, {Pen, QColor("red"), 3.}},
     {3, {Pen, QColor("green"), 3.}},
     {4, {Highlighter, QColor(255,255,0,191), 30}},
+#if QT_VERSION_MAJOR > 5 or (QT_VERSION_MAJOR == 5 and QT_VERSION_MINOR >= 13)
     {18, {Pointer, QColor(255,0,0,191), 12, {.pointer={128, 1, true}}}},
+#else
+    {18, {Pointer, QColor(255,0,0,191), 12}},
+#endif
 };
 
 #endif // NAMES_H
