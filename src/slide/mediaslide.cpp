@@ -49,9 +49,8 @@ void connectVideos(MediaSlide* controlSlide, MediaSlide* presentationSlide)
     }
 }
 
-
-MediaSlide::MediaSlide(PdfDoc const*const document, int const pageNumber, PagePart const part, QWidget* parent) :
-    PreviewSlide(document, pageNumber, part, parent)
+MediaSlide::MediaSlide(PdfDoc const*const document, PagePart const part, QWidget* parent) :
+    PreviewSlide(document, part, parent)
 {
 #ifdef EMBEDDED_APPLICATIONS_ENABLED
     autostartEmbeddedTimer->setSingleShot(true);
@@ -59,7 +58,6 @@ MediaSlide::MediaSlide(PdfDoc const*const document, int const pageNumber, PagePa
 #endif
     autostartTimer->setSingleShot(true);
     connect(autostartTimer, &QTimer::timeout, this, &MediaSlide::startAllMultimedia);
-    renderPage(pageNumber, false);
 }
 
 MediaSlide::MediaSlide(QWidget* parent) : PreviewSlide(parent)

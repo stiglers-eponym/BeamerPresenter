@@ -60,7 +60,7 @@ signals:
     void sendNewPageNumber(const int pageNumber);
     void sendCloseSignal();
     void sendKeyEvent(QKeyEvent* event);
-    void clearPresentationCacheRequest();
+    void presentationResizeEvent();
     void pageChanged(int const pageNumber);
 
 public slots:

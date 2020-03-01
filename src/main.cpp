@@ -33,7 +33,7 @@ qreal stringToReal(QString& string)
 {
     bool ok;
     qreal result = string.toDouble(&ok);
-    if (!ok && string.endsWith("%")) {
+    if (!ok && string.endsWith('%')) {
         string.chop(1);
         result = 0.01*string.toDouble(&ok);
     }

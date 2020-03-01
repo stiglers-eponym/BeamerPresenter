@@ -114,16 +114,16 @@ void DrawPath::append(QPointF const& point)
 
 QVector<int> DrawPath::intersects(QPointF const& point, const qreal eraser_size) const
 {
-     if (!(outer.adjusted(-eraser_size, -eraser_size, eraser_size, eraser_size).contains(point)))
-         return QVector<int>();
-     QVector<int> vec = QVector<int>();
-     for (int i=0; i<path.length(); i++) {
-         if (abs(point.x() - path[i].x()) < eraser_size
-                 && abs(point.y() - path[i].y()) < eraser_size
-                 && square(point.x() - path[i].x()) + square(point.y() - path[i].y()) < square(eraser_size))
-             vec.append(i);
-     }
-     return vec;
+    if (!(outer.adjusted(-eraser_size, -eraser_size, eraser_size, eraser_size).contains(point)))
+        return QVector<int>();
+    QVector<int> vec = QVector<int>();
+    for (int i=0; i<path.length(); i++) {
+        if (abs(point.x() - path[i].x()) < eraser_size
+                && abs(point.y() - path[i].y()) < eraser_size
+                && square(point.x() - path[i].x()) + square(point.y() - path[i].y()) < square(eraser_size))
+            vec.append(i);
+    }
+    return vec;
 }
 
 DrawPath* DrawPath::split(int start, int end)

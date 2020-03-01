@@ -78,7 +78,7 @@ void PresentationScreen::resizeEvent(QResizeEvent*)
     if (slide->getCacheMap() != nullptr)
         slide->getCacheMap()->clearCache();
     slide->renderPage(slide->pageNumber(), false);
-    emit clearPresentationCacheRequest();
+    emit presentationResizeEvent();
 }
 
 void PresentationScreen::wheelEvent(QWheelEvent* event)

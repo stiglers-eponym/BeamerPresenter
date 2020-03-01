@@ -140,6 +140,7 @@ void PathOverlay::rescale(qint16 const oldshiftx, qint16 const oldshifty, double
     enlargedPage = QPixmap();
     delete enlargedPageRenderer;
     enlargedPageRenderer = nullptr;
+    eraserSize *= master->getResolution()/oldRes;
     QPointF shift = QPointF(master->shiftx, master->shifty) - master->resolution/oldRes*QPointF(oldshiftx, oldshifty);
     for (QMap<QString, QList<DrawPath*>>::iterator page_it = paths.begin(); page_it != paths.end(); page_it++)
         for (QList<DrawPath*>::iterator path_it = page_it->begin(); path_it != page_it->end(); path_it++)
@@ -158,7 +159,7 @@ void PathOverlay::setTool(FullDrawTool const& newtool, qreal const resolution)
     if (resolution > 0)
         tool.size *= master->resolution/resolution;
     // TODO: fancy cursors
-    if (cursor() == Qt::BlankCursor && tool.tool != Pointer)
+    if (cursor().shape() == Qt::BlankCursor && tool.tool != Pointer)
         setMouseTracking(false);
     if (tool.tool == Torch) {
         enlargedPage = QPixmap();
@@ -406,7 +407,7 @@ void PathOverlay::mouseMoveEvent(QMouseEvent* event)
     switch (event->buttons())
     {
     case Qt::NoButton:
-        if (cursor() != Qt::BlankCursor) {
+        if (cursor().shape() != Qt::BlankCursor) {
             if (master->hoverLink(event->pos()))
                 setCursor(Qt::PointingHandCursor);
             else
@@ -440,7 +441,7 @@ void PathOverlay::mouseMoveEvent(QMouseEvent* event)
         case Pointer:
             break;
         default:
-            if (cursor() != Qt::BlankCursor) {
+            if (cursor().shape() != Qt::BlankCursor) {
                 if (master->hoverLink(event->pos()))
                     setCursor(Qt::PointingHandCursor);
                 else
@@ -463,7 +464,7 @@ void PathOverlay::erase(const QPointF &point)
     int const oldsize = path_list.size();
     QRegion updateRegion;
     for (int i=0; i<oldsize; i++) {
-        QVector<int> splits = path_list[i]->intersects(point, eraserSize);
+        QVector<int> splits = path_list[i]->intersects(point, tool.tool == Eraser ? tool.size : eraserSize);
         if (splits.isEmpty())
             continue;
         updateRegion += path_list[i]->getOuterDrawing().toAlignedRect();
@@ -1164,7 +1165,7 @@ void PathOverlay::resetCache()
 
 void PathOverlay::togglePointerVisibility()
 {
-    if (cursor() == Qt::BlankCursor)
+    if (cursor().shape() == Qt::BlankCursor)
         showPointer();
     else
         hidePointer();

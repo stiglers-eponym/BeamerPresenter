@@ -19,7 +19,7 @@
 #include "presentationslide.h"
 
 PresentationSlide::PresentationSlide(PdfDoc const*const document, PagePart const part, QWidget* parent) :
-    DrawSlide(document, 0, part, parent)
+    DrawSlide(document, part, parent)
 {
     seed = static_cast<unsigned int>(std::hash<std::string>{}(doc->getPath().split('/').last().toStdString()));
     connect(&timer, &QTimer::timeout, this, static_cast<void (PresentationSlide::*)()>(&PresentationSlide::repaint));

@@ -131,7 +131,7 @@ ControlScreen::ControlScreen(QString presentationPath, QString notesPath, PagePa
         // The old notes_widget (type MediaSlide) is not required anymore. It will be replaced by a DrawSlide object.
         delete ui->notes_widget;
         // Create the draw slide.
-        ui->notes_widget = new DrawSlide(presentation, 0, FullPage, this);
+        ui->notes_widget = new DrawSlide(presentation, FullPage, this);
         // ui->notes_widget can get focus.
         ui->notes_widget->setFocusPolicy(Qt::ClickFocus);
         // drawSlide equals notes_widget.
@@ -322,7 +322,7 @@ ControlScreen::ControlScreen(QString presentationPath, QString notesPath, PagePa
     connect(cacheTimer, &QTimer::timeout, this, &ControlScreen::updateCacheStep);
     // Send rendered pages from cache thread to control screen.
     // Clear presentation cache when presentation screen is resized.
-    connect(presentationScreen, &PresentationScreen::clearPresentationCacheRequest, this, &ControlScreen::clearPresentationCache);
+    connect(presentationScreen, &PresentationScreen::presentationResizeEvent, this, &ControlScreen::presentationResized);
 
     // Signals emitted by the TOC box (table of contents).
     // Send a destination in pdf (e.g. a section).
@@ -496,13 +496,14 @@ void ControlScreen::recalcLayout(const int pageNumber)
     // Geometry of TOC widget: same as of notes widgets, but with extra margins in horizontal direction.
     tocBox->setGeometry(int(0.1*(width()-sideWidth)), 0, int(0.8*(width()-sideWidth)), height());
 
-    // Adapt sizes of draw tools if necessary.
+    // Adapt size of draw slide if necessary.
     if (drawSlide != nullptr) {
         /// Scale of draw slide relative to presentation slide.
         qreal scale = drawSlide->getResolution() / presentationScreen->slide->getResolution();
-        if (scale < 0.)
+        if (scale < 1e-5)
             scale = 1.;
         // Set scaled tool sizes for draw slide.
+        drawSlide->getPathOverlay()->setTool(presentationScreen->slide->getPathOverlay()->getTool(), presentationScreen->slide->getResolution());
         drawSlide->getPathOverlay()->setEraserSize(scale*presentationScreen->slide->getPathOverlay()->getEraserSize());
         if (drawSlide != ui->notes_widget) {
             // Adapt geometry of draw slide: It should have the same geometry as the notes slide.
@@ -1777,14 +1778,24 @@ void ControlScreen::resizeEvent(QResizeEvent* event)
         drawSlide->renderPage(presentationScreen->getPageNumber(), false);
 }
 
-void ControlScreen::clearPresentationCache()
+void ControlScreen::presentationResized()
 {
-    // Stop rendering to cache and reset cached region
+    // Stop rendering to cache and reset cached region.
     cacheTimer->stop();
     first_cached = presentationScreen->getPageNumber();
     last_cached = first_cached-1;
     first_delete = 0;
     last_delete = numberOfPages-1;
+
+    // Adapt tool sizes.
+    if (drawSlide != nullptr) {
+        drawSlide->getPathOverlay()->setTool(presentationScreen->slide->getPathOverlay()->getTool(), presentationScreen->slide->getResolution());
+        /// Scale of draw slide relative to presentation slide.
+        qreal scale = drawSlide->getResolution() / presentationScreen->slide->getResolution();
+        if (scale < 1e-5)
+            scale = 1.;
+        drawSlide->getPathOverlay()->setEraserSize(scale*presentationScreen->slide->getPathOverlay()->getEraserSize());
+    }
 }
 
 void ControlScreen::setColor(const QColor bgColor, const QColor textColor)
@@ -2103,9 +2114,10 @@ void ControlScreen::showDrawSlide()
     qDebug() << "Reset cache region" << first_delete << first_cached << currentPageNumber << last_cached << last_delete;
 #endif
     drawSlide->overwriteCacheMap(drawSlideCache);
-    // If notes slides have a different size than presentation slides, then change preview cache to previewCacheX.
+    // If notes slides have a different aspect ratio than presentation slides, then change preview cache to previewCacheX.
     // This cache is used because the geometry of the preview widgets will change.
-    if (presentation->getPageSize(currentPageNumber) != notes->getPageSize(currentPageNumber)) {
+    QSizeF const pressize = presentation->getPageSize(currentPageNumber), notessize = notes->getPageSize(currentPageNumber);
+    if (abs(pressize.width()*notessize.height() - pressize.height()*notessize.width()) > 1e-2) {
         if (previewCacheX == nullptr) {
             previewCacheX = new CacheMap(presentation, pagePart, this);
             connect(previewCacheX, &CacheMap::cacheSizeChanged, this, &ControlScreen::updateCacheSize);

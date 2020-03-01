@@ -34,7 +34,7 @@ class MediaSlide : public PreviewSlide
     Q_OBJECT
 public:
     explicit MediaSlide(QWidget* parent=nullptr);
-    explicit MediaSlide(PdfDoc const * const document, int const pageNumber, PagePart const part, QWidget* parent=nullptr);
+    explicit MediaSlide(PdfDoc const * const document, PagePart const part, QWidget* parent=nullptr);
     ~MediaSlide() override {clearAll();}
     /// Clear all contents of the label.
     /// This function is called when the document is reloaded or the program is closed and everything should be cleaned up.

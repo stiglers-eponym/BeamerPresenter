@@ -18,15 +18,14 @@
 
 #include "previewslide.h"
 
-PreviewSlide::PreviewSlide(PdfDoc const * const document, int const pageNumber, PagePart const part, QWidget* parent) :
+PreviewSlide::PreviewSlide(PdfDoc const * const document, PagePart const part, QWidget* parent) :
     QWidget(parent),
     doc(document),
     cache(new CacheMap(document, part)),
     pagePart(part),
-    pageIndex(pageNumber)
+    pageIndex(0)
 {
     //setAttribute(Qt::WA_OpaquePaintEvent);
-    renderPage(pageNumber);
 }
 
 PreviewSlide::~PreviewSlide()
@@ -42,7 +41,7 @@ PreviewSlide::~PreviewSlide()
 void PreviewSlide::renderPage(int pageNumber)
 {
 #ifdef DEBUG_RENDERING
-    qDebug() << "preview slide render page << pageNumber";
+    qDebug() << "preview slide render page" << pageNumber << this;
 #endif
     // Make sure that pageNumber is valid.
     if (pageNumber < 0)
@@ -61,7 +60,7 @@ void PreviewSlide::renderPage(int pageNumber)
 
     // Do the main rendering. This returns a pair of scales in x an y direction.
     // These scale relative x and y coordinates in the widget to pixels in the pixmap representing the slide.
-    QSizeF scale = basicRenderPage(pageNumber);
+    QSizeF const scale = basicRenderPage(pageNumber);
     // Update pageIndex.
     pageIndex = pageNumber;
 
@@ -82,31 +81,33 @@ void PreviewSlide::renderPage(int pageNumber)
     }
 }
 
-QSizeF PreviewSlide::basicRenderPage(int const pageNumber)
+QSizeF const PreviewSlide::basicRenderPage(int const pageNumber)
 {
+#ifdef DEBUG_RENDERING
+    qDebug() << "basic render page" << size() << this;
+#endif
     // Set the new page and basic properties
     page = doc->getPage(pageNumber);
-    QSizeF pageSize = page->pageSizeF();
     // This is given in point = inch/72 ≈ 0.353mm (Did they choose these units to bother programmers?)
+    QSizeF pageSize = page->pageSizeF();
 
     // Place the page as an image of the correct size at the correct position
     // The lower left corner of the image will be located at (shiftx, shifty)
-    qreal pageHeight=pageSize.height(), pageWidth=pageSize.width();
     // The page image must be split if the beamer option "notes on second screen" is set.
     if (pagePart != FullPage)
-        pageWidth /= 2;
+        pageSize.rwidth() /= 2;
     // Check it width or height is the limiting constraint for the size of the displayed slide and calculate the resolution
     // resolution is calculated in pixels per point = dpi/72.
-    if (width() * pageHeight > height() * pageWidth) {
+    if (width() * pageSize.height() > height() * pageSize.width()) {
         // the width of the label is larger than required
-        resolution = qreal(height()) / pageHeight;
-        shiftx = qint16(width()/2 - resolution/2 * pageWidth);
+        resolution = qreal(height()) / pageSize.height();
+        shiftx = qint16(width()/2 - resolution/2 * pageSize.width());
         shifty = 0;
     }
     else {
         // the height of the label is larger than required
-        resolution = qreal(width()) / pageWidth;
-        shifty = qint16(height()/2 - resolution/2 * pageHeight);
+        resolution = qreal(width()) / pageSize.width();
+        shifty = qint16(height()/2 - resolution/2 * pageSize.height());
         shiftx = 0;
     }
     if (cache != nullptr) {
@@ -116,7 +117,7 @@ QSizeF PreviewSlide::basicRenderPage(int const pageNumber)
     }
 
     // Calculate the size of the image in pixels
-    qreal scale_x=resolution*pageWidth, scale_y=resolution*pageHeight;
+    qreal scale_x=resolution*pageSize.width(), scale_y=resolution*pageSize.height();
     // Adjustments if only parts of the page are shown:
     if (pagePart != FullPage) {
         scale_x *= 2;
@@ -134,7 +135,7 @@ QSizeF PreviewSlide::basicRenderPage(int const pageNumber)
         pixmap = cache->getPixmap(pageNumber);
     // Update size. This will later be used to check it the pixmap needs to be updated.
     oldSize = size();
-    return {scale_x, scale_y};
+        return {scale_x, scale_y};
 }
 
 void PreviewSlide::mouseReleaseEvent(QMouseEvent* event)

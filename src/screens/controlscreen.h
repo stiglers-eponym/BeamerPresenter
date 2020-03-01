@@ -249,8 +249,8 @@ public slots:
     void focusPageNumberEdit();
     /// Add sliders on control screen to control multimedia content.
     void addMultimediaSliders(int const n);
-    /// Clear cache.
-    void clearPresentationCache();
+    /// Resize presentation window: clear cache, update tool sizes.
+    void presentationResized();
     /// Show notes. This hides other widgets which can be shown above notes (TOC, overview, draw slide).
     void showNotes();
     /// Change cache size.
