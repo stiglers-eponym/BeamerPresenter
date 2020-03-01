@@ -70,7 +70,7 @@ public:
     void resetCache();
     /// Draw paths to painter (starting from end_cache).
     /// TODO: reorganize!
-    void drawPaths(QPainter& painter, QString const& label, bool const plain=false, bool const toCache=false);
+    void drawPaths(QPainter& painter, QString const& label, QRegion const& region, bool const plain=false, bool const toCache=false);
     /// Does the given rectangle have any overlap with a video?
     bool hasVideoOverlap(QRectF const& rect) const;
 

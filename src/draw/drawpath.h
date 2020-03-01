@@ -59,7 +59,8 @@ public:
     /// The list contains (alternately) x and y coordinates in point (=inch/72).
     void toText(QStringList& stringList, QPoint const shift, qreal const scale) const;
     void transform(QPointF const& shift, double const scale);
-    bool update(DrawPath const& new_path, QPointF const shift, double const scale);
+    /// Update path and return a rectangle containing the updated region.
+    QRect const update(DrawPath const& new_path, QPointF const shift, double const scale);
     void updateHash();
 
     quint32 getHash() const {return hash;}
@@ -71,7 +72,9 @@ public:
     /// Rectangle containing all nodes.
     QRectF const& getOuter() const {return outer;}
     /// Rectangle containing all nodes plus a distance of the stroke width.
-    QRectF const getOuterDrawing() const {return outer.adjusted(-tool.size-.5, -tool.size-.5, tool.size+.5, tool.size+.5);}
+    QRectF const getOuterDrawing() const {return outer.adjusted(-tool.size/2-.5, -tool.size/2-.5, tool.size/2+.5, tool.size/2+.5);}
+    /// Return rectangle containing the last section of the stroke (last two points) as required for updating the screen.
+    QRect const getOuterLast() const;
     /// Return all nodes in this path which are nearer to the given point than eraser_size.
     QVector<int> intersects(QPointF const& point, qreal const eraser_size) const;
 

@@ -81,7 +81,7 @@ void PathOverlay::clearPageAnnotations()
     }
 }
 
-void PathOverlay::paintEvent(QPaintEvent*)
+void PathOverlay::paintEvent(QPaintEvent* event)
 {
     if (master->isShowingTransition())
         return;
@@ -95,7 +95,7 @@ void PathOverlay::paintEvent(QPaintEvent*)
     if (master->page == nullptr)
         return;
     painter.setRenderHint(QPainter::Antialiasing);
-    drawPaths(painter, master->page->label());
+    drawPaths(painter, master->page->label(), event->region());
     switch (tool.tool) {
     case Pointer:
         painter.setCompositionMode(QPainter::CompositionMode_Darken);
@@ -205,11 +205,11 @@ void PathOverlay::updatePathCache()
         QPainter painter;
         painter.begin(&pixpaths);
         painter.setRenderHint(QPainter::Antialiasing);
-        drawPaths(painter, master->page->label(), false, true);
+        drawPaths(painter, master->page->label(), QRegion(rect()), false, true);
     }
 }
 
-void PathOverlay::drawPaths(QPainter &painter, QString const& label, bool const plain, bool const toCache)
+void PathOverlay::drawPaths(QPainter &painter, QString const& label, QRegion const& region, bool const plain, bool const toCache)
 {
 #ifdef DEBUG_DRAWING
     qDebug() << "draw paths" << label << plain << toCache << end_cache << this;
@@ -230,49 +230,51 @@ void PathOverlay::drawPaths(QPainter &painter, QString const& label, bool const 
         }
         // Iterate over all remaining paths.
         for (; path_it!=paths[label].cend(); path_it++) {
-            FullDrawTool const& tool = (*path_it)->getTool();
-            switch (tool.tool) {
-            case Pen:
-                painter.setCompositionMode(QPainter::CompositionMode_SourceOver);
-                painter.setPen(QPen(tool.color, tool.size, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin));
-                painter.drawPolyline((*path_it)->data(), (*path_it)->number());
-                break;
-            case Highlighter:
-            {
-                if (!plain) {
-                    // Highlighter needs a background to draw on (because of CompositionMode_Darken).
-                    // Drawing this background is only reasonable if there is no video widget in the background.
-                    // Check this.
-                    QRect const outer = (*path_it)->getOuterDrawing().toAlignedRect();
-                    if (hasVideoOverlap(outer)) {
-                        if (toCache) {
-                            end_cache = path_it - paths[label].cbegin();
+            if (region.intersects((*path_it)->getOuterDrawing().toAlignedRect())) {
+                FullDrawTool const& tool = (*path_it)->getTool();
+                switch (tool.tool) {
+                case Pen:
+                    painter.setCompositionMode(QPainter::CompositionMode_SourceOver);
+                    painter.setPen(QPen(tool.color, tool.size, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin));
+                    painter.drawPolyline((*path_it)->data(), (*path_it)->number());
+                    break;
+                case Highlighter:
+                {
+                    if (!plain) {
+                        // Highlighter needs a background to draw on (because of CompositionMode_Darken).
+                        // Drawing this background is only reasonable if there is no video widget in the background.
+                        // Check this.
+                        QRect const outer = (*path_it)->getOuterDrawing().toAlignedRect();
+                        if (hasVideoOverlap(outer)) {
+                            if (toCache) {
+                                end_cache = path_it - paths[label].cbegin();
 #ifdef DEBUG_DRAWING
-                            qDebug() << "Stopped caching paths:" << end_cache;
+                                qDebug() << "Stopped caching paths:" << end_cache;
 #endif
-                            return;
+                                return;
+                            }
+                        }
+                        else {
+                            // Draw the background form master->pixmap.
+                            painter.setCompositionMode(QPainter::CompositionMode_DestinationOver);
+                            painter.drawPixmap(outer, master->pixmap, outer.translated(-master->shiftx, -master->shifty));
+                            if (
+                                    (master->shiftx > 0 && ( outer.left() < master->shiftx || outer.right() > master->shiftx + master->pixmap.width() ) )
+                                    || (master->shifty > 0 && ( outer.top() < master->shifty || outer.bottom() > master->shifty + master->pixmap.height() ) )
+                                 ) {
+                                painter.fillRect(outer, QBrush(master->parentWidget()->palette().base()));
+                            }
                         }
                     }
-                    else {
-                        // Draw the background form master->pixmap.
-                        painter.setCompositionMode(QPainter::CompositionMode_DestinationOver);
-                        painter.drawPixmap(outer, master->pixmap, outer.translated(-master->shiftx, -master->shifty));
-                        if (
-                                (master->shiftx > 0 && ( outer.left() < master->shiftx || outer.right() > master->shiftx + master->pixmap.width() ) )
-                                || (master->shifty > 0 && ( outer.top() < master->shifty || outer.bottom() > master->shifty + master->pixmap.height() ) )
-                             ) {
-                            painter.fillRect(outer, QBrush(master->parentWidget()->palette().base()));
-                        }
-                    }
+                    // Draw the highlighter path.
+                    painter.setCompositionMode(QPainter::CompositionMode_Darken);
+                    painter.setPen(QPen(tool.color, tool.size, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin));
+                    painter.drawPolyline((*path_it)->data(), (*path_it)->number());
                 }
-                // Draw the highlighter path.
-                painter.setCompositionMode(QPainter::CompositionMode_Darken);
-                painter.setPen(QPen(tool.color, tool.size, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin));
-                painter.drawPolyline((*path_it)->data(), (*path_it)->number());
-            }
-                break;
-            default:
-                break;
+                    break;
+                default:
+                    break;
+                }
             }
         }
     }
@@ -395,9 +397,11 @@ void PathOverlay::mouseMoveEvent(QMouseEvent* event)
     if (master->page == nullptr)
         return;
     if (tool.tool == Pointer) {
+        QRegion region = QRegion(pointerPosition.x()-tool.size, pointerPosition.y()-tool.size, 2*tool.size+2, 2*tool.size+2);
         pointerPosition = event->localPos();
+        region += QRect(pointerPosition.x()-tool.size, pointerPosition.y()-tool.size, 2*tool.size+2, 2*tool.size+2);
         emit pointerPositionChanged(pointerPosition, master->shiftx, master->shifty, master->resolution);
-        update();
+        update(region);
     }
     switch (event->buttons())
     {
@@ -416,7 +420,7 @@ void PathOverlay::mouseMoveEvent(QMouseEvent* event)
         case Highlighter:
             if (!paths[master->page->label()].isEmpty()) {
                 paths[master->page->label()].last()->append(event->localPos());
-                update();
+                update(paths[master->page->label()].last()->getOuterLast());
                 emit pathsChangedQuick(master->page->label(), paths[master->page->label()], master->shiftx, master->shifty, master->resolution);
             }
             break;
@@ -425,10 +429,14 @@ void PathOverlay::mouseMoveEvent(QMouseEvent* event)
             break;
         case Torch:
         case Magnifier:
+        {
+            QRegion region = QRegion(pointerPosition.x()-tool.size, pointerPosition.y()-tool.size, 2*tool.size+2, 2*tool.size+2);
             pointerPosition = event->localPos();
-            update();
+            region += QRect(pointerPosition.x()-tool.size, pointerPosition.y()-tool.size, 2*tool.size+2, 2*tool.size+2);
+            update(region);
             emit pointerPositionChanged(pointerPosition, master->shiftx, master->shifty, master->resolution);
             break;
+        }
         case Pointer:
             break;
         default:
@@ -453,12 +461,12 @@ void PathOverlay::erase(const QPointF &point)
         return;
     QList<DrawPath*>& path_list = paths[master->page->label()];
     int const oldsize = path_list.size();
-    bool changed = false;
+    QRegion updateRegion;
     for (int i=0; i<oldsize; i++) {
         QVector<int> splits = path_list[i]->intersects(point, eraserSize);
         if (splits.isEmpty())
             continue;
-        changed = true;
+        updateRegion += path_list[i]->getOuterDrawing().toAlignedRect();
         if (splits.first() > 1)
             path_list.insert(i+1, path_list[i]->split(0, splits.first()-1));
         for (int s=0; s<splits.size()-1; s++) {
@@ -486,9 +494,9 @@ void PathOverlay::erase(const QPointF &point)
         else
             i++;
     }
-    if (changed) {
+    if (!updateRegion.isEmpty()) {
         end_cache = -1;
-        update();
+        update(updateRegion);
         emit pathsChanged(master->page->label(), path_list, master->shiftx, master->shifty, master->resolution);
     }
 }
@@ -498,11 +506,16 @@ void PathOverlay::setPathsQuick(QString const pagelabel, QList<DrawPath*> const&
     QPointF shift = QPointF(master->shiftx, master->shifty) - master->resolution/refresolution*QPointF(refshiftx, refshifty);
     int const diff = list.length() - paths[pagelabel].length();
     if (diff == 0) {
-        if (!paths[pagelabel].last()->update(*list.last(), shift, master->resolution/refresolution))
+        QRect const rect = paths[pagelabel].last()->update(*list.last(), shift, master->resolution/refresolution);
+        if (rect.isValid())
+            update(rect);
+        else
             setPaths(pagelabel, list, refshiftx, refshifty, refresolution);
     }
-    else if (diff == 1)
+    else if (diff == 1) {
         paths[pagelabel].append(new DrawPath(*list.last(), shift, master->resolution/refresolution));
+        update(paths[pagelabel].last()->getOuterDrawing().toAlignedRect());
+    }
     else if (diff < 0) {
         if (-diff >= paths[pagelabel].length()) {
             qDeleteAll(paths[pagelabel]);
@@ -521,7 +534,6 @@ void PathOverlay::setPathsQuick(QString const pagelabel, QList<DrawPath*> const&
 #endif
         setPaths(pagelabel, list, refshiftx, refshifty, refresolution);
     }
-    update();
 }
 
 void PathOverlay::setPaths(QString const pagelabel, QList<DrawPath*> const& list, qint16 const refshiftx, qint16 const refshifty, double const refresolution)

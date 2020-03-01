@@ -137,7 +137,7 @@ void PresentationSlide::updateImages(int const oldPage)
         }
         painter.setRenderHint(QPainter::Antialiasing);
         painter.drawPixmap(shiftx, shifty, getPixmap(oldPage));
-        pathOverlay->drawPaths(painter, doc->getLabel(oldPage), true, false);
+        pathOverlay->drawPaths(painter, doc->getLabel(oldPage), QRegion(rect()), true, false);
     }
     {
         picfinal = QPixmap(size());
@@ -155,7 +155,7 @@ void PresentationSlide::updateImages(int const oldPage)
         painter.drawPixmap(shiftx, shifty, pixmap);
         if (pathOverlay->end_cache >= 0)
             painter.drawPixmap(0, 0, pathOverlay->pixpaths);
-        pathOverlay->drawPaths(painter, page->label(), false, false);
+        pathOverlay->drawPaths(painter, page->label(), QRegion(rect()), false, false);
     }
 }
 

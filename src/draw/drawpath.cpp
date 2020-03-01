@@ -63,15 +63,24 @@ DrawPath::DrawPath(DrawPath const& old, QPointF const shift, double const scale)
     outer = QRectF(scale*old.outer.topLeft() + shift, scale*old.outer.bottomRight() + shift);
 }
 
-bool DrawPath::update(DrawPath const& new_path, QPointF const shift, double const scale)
+QRect const DrawPath::update(DrawPath const& new_path, QPointF const shift, double const scale)
 {
     if (new_path.tool.tool != tool.tool || new_path.tool.color != tool.color || new_path.path.length() < path.length())
-        return false;
-    for (int i=path.length(); i<new_path.path.length();)
-        path.append(scale*new_path.path[i++] + shift);
+        return QRect(0,0,-1,-1);
+    if (new_path.path.length() == path.length() + 1) {
+        path.append(scale*new_path.path.last() + shift);
+        outer = QRectF(scale*new_path.outer.topLeft() + shift, scale*new_path.outer.bottomRight() + shift);
+        hash = new_path.hash;
+        return QRectF(path.last(), *(path.cend()-2)).normalized()
+                .adjusted(-tool.size/2-.5, -tool.size/2-.5, tool.size/2+.5, tool.size/2+.5)
+                .toAlignedRect();
+    }
+    for (QVector<QPointF>::const_iterator it = new_path.path.cbegin() + path.length(); it != new_path.path.cend();) {
+        path.append(scale*(*it++) + shift);
+    }
     outer = QRectF(scale*new_path.outer.topLeft() + shift, scale*new_path.outer.bottomRight() + shift);
     hash = new_path.hash;
-    return true;
+    return getOuterDrawing().toAlignedRect();
 }
 
 DrawPath::DrawPath(DrawPath const& old) :
@@ -210,4 +219,12 @@ void DrawPath::endDrawing()
 {
     if (path.length() == 1)
         path.append(path[0] + QPointF(1e-6, 0));
+}
+
+QRect const DrawPath::getOuterLast() const
+{
+    return QRectF(path.last(), *(path.cend()-2))
+            .normalized()
+            .adjusted(-tool.size/2-.5, -tool.size/2-.5, tool.size/2+.5, tool.size/2+.5)
+            .toAlignedRect();
 }
