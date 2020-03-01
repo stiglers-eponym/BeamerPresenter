@@ -65,12 +65,12 @@ CONFIG(debug) {
     # TODO: include all these in the code!
     #DEFINES += DEBUG_READ_CONFIGS
     #DEFINES += DEBUG_CACHE
-    #DEFINES += DEBUG_RENDERING
+    DEFINES += DEBUG_RENDERING
     #DEFINES += DEBUG_DRAWING
     #DEFINES += DEBUG_PAINT_EVENTS
     #DEFINES += DEBUG_KEY_ACTIONS
     #DEFINES += DEBUG_TOOL_ACTIONS
-    #DEFINES += DEBUG_SLIDE_TRANSITIONS
+    DEFINES += DEBUG_SLIDE_TRANSITIONS
     DEFINES += DEBUG_MULTIMEDIA
 }
 
@@ -159,19 +159,21 @@ unix {
     # Include man pages and default configuration in make install.
 
     man1.path = /usr/share/man/man1/
+    man1.CONFIG = no_check_exist no_build
     man1.extra = gzip -9 man/$${TARGET}.1 || true
-    man1.CONFIG = no_check_exists
     man1.files = man/$${TARGET}.1.gz
 
     man5.path = /usr/share/man/man5/
+    man5.CONFIG = no_check_exist no_build
     man5.extra = gzip -9 man/$${TARGET}.conf.5 || true
-    man5.CONFIG = no_check_exists
     man5.files = man/$${TARGET}.conf.5.gz
 
     configuration.path = /etc/$${TARGET}/
+    configuration.CONFIG = no_build
     configuration.files = config/$${TARGET}.conf config/pid2wid.sh
 
     icon.path = $${ICON_PATH}
+    icon.CONFIG = no_build
     icon.files = src/icons/beamerpresenter.svg
 
     target.path = /usr/bin/
