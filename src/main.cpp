@@ -291,11 +291,28 @@ void actionsFromConfig(QMap<QString, QList<KeyAction>>& actions, QMap<QString, F
                         qreal const size = map.value("size").toDouble();
                         if (tool == Magnifier) {
                             bool ok;
-                            qreal const magnification = map.value("magnification").toDouble(&ok);
+                            qreal const magnification = map["magnification"].toDouble(&ok);
                             if (ok)
                                 tools[key] = {tool, color, size, {magnification}};
                             else
                                 tools[key] = {tool, color, size};
+                        }
+                        else if (tool == Pointer) {
+                            tools[key] = {tool, color, .size=size, defaultToolConfig[Pointer].extras};
+                            bool ok;
+                            quint16 alpha = map["alpha"].toUInt(&ok);
+                            if (ok)
+                                tools[key].extras.pointer.alpha = alpha;
+                            if (map.contains("composition")) {
+                                qint8 composition = 0;
+                                if (map["composition"] == "lighten")
+                                    composition = -1;
+                                else if (map["composition"] == "darken")
+                                    composition = 1;
+                                tools[key].extras.pointer.composition = composition;
+                            }
+                            if (map["inner"] == "false")
+                                tools[key].extras.pointer.inner = false;
                         }
                         else
                             tools[key] = {tool, color, size};
@@ -328,7 +345,7 @@ void actionsFromConfig(QMap<QString, QList<KeyAction>>& actions, QMap<QString, F
                                 qWarning() << "Tool has too many arguments:" << it.key() << *it;
                         }
                         else {
-                            tools[key] = {tool, color, size};
+                            tools[key] = {tool, color, size, defaultToolConfig[tool].extras};
                             if (split_action.size() > 3)
                                 qWarning() << "Tool has too many arguments:" << it.key() << *it;
                         }
@@ -347,7 +364,7 @@ void actionsFromConfig(QMap<QString, QList<KeyAction>>& actions, QMap<QString, F
             if (!it->contains("tool"))
                 throw 0;
             // Convert the first word of the action string as a draw tool.
-            quint16 const tool = toolMap.value(it->value("tool").toString(), InvalidTool);
+            DrawTool const tool = toolMap.value(it->value("tool").toString(), InvalidTool);
             if (tool == InvalidTool)
                 throw 1;
             // Parse the second word of the action string as a QColor.
@@ -358,10 +375,27 @@ void actionsFromConfig(QMap<QString, QList<KeyAction>>& actions, QMap<QString, F
             key.remove(' ');
             if (tool == Magnifier) {
                 qreal const magnification = it->value("magnification").toDouble();
-                tools[key] = {static_cast<DrawTool>(tool), color, size, {magnification}};
+                tools[key] = {tool, color, size, {magnification}};
+            }
+            else if (tool == Pointer) {
+                tools[key] = {tool, color, .size=size, defaultToolConfig[Pointer].extras};
+                bool ok;
+                quint16 alpha = it->value("alpha").toUInt(&ok);
+                if (ok)
+                    tools[key].extras.pointer.alpha = alpha;
+                if (it->contains("composition")) {
+                    qint8 composition = 0;
+                    if (it->value("composition").toString() == "lighten")
+                        composition = -1;
+                    else if (it->value("composition").toString() == "darken")
+                        composition = 1;
+                    tools[key].extras.pointer.composition = composition;
+                }
+                if (it->value("inner").toString() == "false")
+                    tools[key].extras.pointer.inner = false;
             }
             else
-                tools[key] = {static_cast<DrawTool>(tool), color, size};
+                tools[key] = {tool, color, size};
 #ifdef DEBUG_READ_CONFIGS
             qDebug() << "New tool:" << key << tools[key].tool << tools[key].color << tools[key].size << tools[key].extras.magnification;
 #endif

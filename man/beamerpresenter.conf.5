@@ -456,11 +456,11 @@ Set the current draw tool or highlight tool to "no tool".
 .SS Draw tools
 .
 .TP
-.BI pen " [color] [size]"
+.BI pen " [color] [size=3]"
 Draw in the presentation with a pen of given color (given as a color name known to Qt, #rrggbb or #aarrggbb). The default color is black. Size is the stroke width.
 .
 .TP
-.BI highlighter " [color] [size]"
+.BI highlighter " [color] [size=30]"
 Draw in the presentation with a highlighter. The default color is #c0ffff00 (yellow). Size is the stroke width.
 .
 .TP
@@ -468,15 +468,16 @@ Draw in the presentation with a highlighter. The default color is #c0ffff00 (yel
 Erase strokes of pens and of the highlighter. Size is the radius of the disk around the cursor at which strokes (or more precisely nodes of strokes) will be deleted.
 .
 .TP
-.BI pointer " [color] [size]"
-Highlight a point on the slide with a pointer. The default color is #c0ff0000 (red). Size is the diameter of the pointer.
+.BI pointer " [color] [size=12] [alpha=128] [composition=darken] [inner=true]"
+Highlight a point on the slide with a pointer. The default color is #bfff0000 (red). Size is the diameter of the pointer.
+.RI "For better visibility of the pointer you can play with the options " alpha " and " compositoin ". By default, the pointer is best visible on a light background while dark text is still visible (" composition=darken "). For white text on dark background you should set " composition=lighten ". The " alpha " parameter (0...255) controls how much of the foreground text is still visible. The option " inner " defines whether a small non-transparent point is drawn in the center of the pointer."
 .
 .TP
-.BI torch " [color] [size]"
+.BI torch " [color] [size=120]"
 Emphasize a region of the current slide with a torch. The rest of the presentation is colored with <color>. Use the #aarrggbb format to specify an alpha channel. Size is the radius of the highlighted disk.
 .
 .TP
-.BI magnifier " [color] [size] [magnification]"
+.BI magnifier " [color] [size=200] [magnification=2]"
 Enlarge a region of the current slide with a magnifier by the magnification factor. Size is the radius of the magnifier in pixels.
 .
 .

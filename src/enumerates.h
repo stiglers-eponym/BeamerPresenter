@@ -236,7 +236,13 @@ struct FullDrawTool {
     qreal size;
     union {
         qreal magnification;
-    } extras = {-1.};
+        struct {
+            quint16 alpha;
+            /// 1 for darken, -1 for lighten, 0 for source over
+            qint8 composition;
+            bool inner;
+        } pointer;
+    } extras = {0.};
 };
 
 #endif // ENUMERATES_H

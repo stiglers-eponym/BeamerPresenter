@@ -98,7 +98,27 @@ void PathOverlay::paintEvent(QPaintEvent* event)
     drawPaths(painter, master->page->label(), event->region());
     switch (tool.tool) {
     case Pointer:
-        painter.setCompositionMode(QPainter::CompositionMode_Darken);
+        if (tool.extras.pointer.alpha > 0 && tool.extras.pointer.composition != 0) {
+            if (tool.extras.pointer.composition == 1)
+                painter.setCompositionMode(QPainter::CompositionMode_Lighten);
+            else
+                painter.setCompositionMode(QPainter::CompositionMode_Darken);
+            QColor color = tool.color;
+            color.setAlpha(tool.extras.pointer.alpha);
+            painter.setPen(QPen(color, tool.size, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin));
+            painter.drawPoint(pointerPosition);
+        }
+        if (tool.extras.pointer.inner) {
+            painter.setCompositionMode(QPainter::CompositionMode_SourceOver);
+            painter.setPen(QPen(tool.color, tool.size/3, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin));
+            painter.drawPoint(pointerPosition);
+        }
+        if (tool.extras.pointer.composition == 1)
+            painter.setCompositionMode(QPainter::CompositionMode_Darken);
+        else if (tool.extras.pointer.composition == -1)
+            painter.setCompositionMode(QPainter::CompositionMode_Lighten);
+        else
+            painter.setCompositionMode(QPainter::CompositionMode_SourceOver);
         painter.setPen(QPen(tool.color, tool.size, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin));
         painter.drawPoint(pointerPosition);
         break;

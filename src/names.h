@@ -35,9 +35,9 @@ static const QMap<DrawTool, QString> toolNames = {
 static const QMap<DrawTool, FullDrawTool> defaultToolConfig = {
     {Pen, {Pen, Qt::black, 3}},
     {Highlighter, {Highlighter, QColor(255,255,0,191), 30}},
-    {Pointer, {Pointer, QColor(255,0,0,191), 5}},
-    {Magnifier, {Magnifier, Qt::gray, 120, {2.}}},
-    {Torch, {Torch, QColor(0,0,0,64), 80}},
+    {Pointer, {Pointer, QColor(255,0,0,191), 12, {.pointer={128, 1, true}}}},
+    {Magnifier, {Magnifier, Qt::gray, 200, {.magnification=2.}}},
+    {Torch, {Torch, QColor(0,0,0,64), 120}},
     {Eraser, {Eraser, QColor(), 10.}},
     {NoTool, {NoTool, QColor(), 0.}},
     {InvalidTool, {InvalidTool, QColor(), 0.}},
@@ -353,8 +353,8 @@ static const QMap<quint8, QList<KeyAction>> defaultToolSelectorActions {
 static const QMap<quint8, FullDrawTool> defaultToolSelectorTools {
     {2, {Pen, QColor("red"), 3.}},
     {3, {Pen, QColor("green"), 3.}},
-    {4, {Highlighter, QColor(255,255,0,191), 20}},
-    {18, {Pointer, QColor(255,0,0,191), 10}},
+    {4, {Highlighter, QColor(255,255,0,191), 30}},
+    {18, {Pointer, QColor(255,0,0,191), 12, {.pointer={128, 1, true}}}},
 };
 
 #endif // NAMES_H
