@@ -72,14 +72,18 @@ void EmbedApp::start()
         connect(process, &QProcess::readyReadStandardOutput, this, &EmbedApp::createFromStdOut);
         connect(process, static_cast<void (QProcess::*)(int const, QProcess::ExitStatus const)>(&QProcess::finished), this, &EmbedApp::clearProcess);
         process->start(command.join(" "));
+#ifdef DEBUG_MULTIMEDIA
         qDebug() << "Started process:" << process->program();
+#endif
     }
     else {
         // If we know a program for converting process IDs to window IDs, this will be used to get the WID.
         process = new QProcess(this);
         connect(process, static_cast<void (QProcess::*)(int const, QProcess::ExitStatus const)>(&QProcess::finished), this, &EmbedApp::clearProcess);
         process->start(command.join(" "));
+#ifdef DEBUG_MULTIMEDIA
         qDebug() << "Started process:" << process->program() << process->pid();
+#endif
         // Wait some time before trying to get the window ID
         // The window has to be created first.
         pid2widTimer->start(minDelayPidWidCaller);
@@ -96,7 +100,9 @@ void EmbedApp::update()
 
 void EmbedApp::clearProcess(int const exitCode, QProcess::ExitStatus const exitStatus)
 {
+#ifdef DEBUG_MULTIMEDIA
     qDebug() << "Process ended";
+#endif
     // Reset this to the state immediately after it was created.
     if (exitStatus == QProcess::CrashExit)
         qWarning() << "Embedded application crashed";
@@ -150,7 +156,9 @@ void EmbedApp::receiveWidFromPid(int const exitCode, QProcess::ExitStatus const 
             qCritical() << "Call to external translator from PID to Window ID had unexpected output";
         else {
             QString winIdString(output);
+#ifdef DEBUG_MULTIMEDIA
             qDebug() << "Return value of PID to WID:" << winIdString;
+#endif
             bool success;
             WId wid = WId(winIdString.toLongLong(&success, 10));
             if (success && wid!=0)
@@ -171,7 +179,9 @@ void EmbedApp::createFromStdOut()
     if (outputLength == -1)
         qCritical() << "Embedded application had unexpected output, which could not be interpreted as a window ID.";
     else {
+#ifdef DEBUG_MULTIMEDIA
         qDebug() << "Trying to create embedded window with id from program standard output:" << output;
+#endif
         QString winIdString = QString(output);
         bool success;
         WId wid = WId(winIdString.toLongLong(&success, 10));

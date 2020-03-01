@@ -71,7 +71,7 @@
 		"End": "last page",
 		"Home": "first page",
 		"Return": "sync from control screen",
-		"Escape": [ "sync from presentation screen", "hide TOC", "hide overview" ],
+		"Escape": [ "sync from presentation screen", "hide overlays" ],
 		"t": "show TOC",
 		"s": "show overview",
 		"c": "update cache",
@@ -85,14 +85,35 @@
 		"F11": "full screen",
 		"u": "reload",
 		"q": "quit",
-		"space": "update"
+		"space": "update",
+		"Shift+r": {
+			"tool": "pen",
+			"color": "red",
+			"size": 5
+		}
 	},
 
 	"tools": {
-		"00": "pen red",
-		"01": "pen green",
-		"02": "pen blue",
-		"03": "pen black",
+		"00": {
+			"tool": "pen",
+			"color": "red",
+			"size": 5
+		},
+		"01": {
+			"tool": "pen",
+			"color" : "green",
+			"size": 5
+		},
+		"02": {
+			"tool": "pen",
+			"color" : "blue",
+			"size": 5
+		},
+		"03": {
+			"tool": "pen",
+			"color" : "black",
+			"size": 5
+		},
 		"04": "pointer",
 		"10": "toggle draw mode",
 		"11": "eraser",

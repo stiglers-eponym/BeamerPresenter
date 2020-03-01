@@ -31,19 +31,20 @@ class ToolButton : public QPushButton
     Q_OBJECT
 
 private:
-    QColor color;
-    DrawTool tool = InvalidTool;
+    FullDrawTool const tool;
     QList<KeyAction> actions;
 
 public:
-    ToolButton(QList<KeyAction> const actions, QColor const color = QColor(0,0,0,0), QWidget* parent = nullptr);
-    ColoredDrawTool getDrawTool() {return {tool, color};}
+    ToolButton(QList<KeyAction> const actions, FullDrawTool const& tool, QWidget* parent = nullptr);
+    FullDrawTool const& getTool() const {return tool;}
+    bool hasTool() const {return tool.tool != InvalidTool;}
+    bool hasAction() const {return !actions.isEmpty();}
 
 public slots:
     void onClicked();
 
 signals:
-    void sendTool(ColoredDrawTool const tool);
+    void sendTool(FullDrawTool const& tool);
     void sendAction(KeyAction const action);
 };
 

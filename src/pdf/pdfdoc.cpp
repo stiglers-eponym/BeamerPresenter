@@ -89,11 +89,13 @@ bool PdfDoc::loadDocument()
     // Clear old lists
     qDeleteAll(pdfPages);
     pdfPages.clear();
+    labels.clear();
 
     // Create lists of pages.
     for (int i=0; i < newDoc->numPages(); i++) {
         Poppler::Page* p = newDoc->page(i);
         pdfPages.append(p);
+        labels.append(p->label());
     }
 
     // Check document contents and print warnings if unimplemented features are found.
@@ -131,28 +133,29 @@ Poppler::Page const* PdfDoc::getPage(int pageNumber) const
     return pdfPages[pageNumber];
 }
 
-int PdfDoc::getNextSlideIndex(int const index) const
+int PdfDoc::getNextSlideIndex(QString const& label) const
 {
     // Return the index of the next slide, which is not just an overlay of the current slide.
-    QString label = pdfPages[index]->label();
-    for (int i=index; i<popplerDoc->numPages(); i++) {
-        if (label != pdfPages[i]->label())
-            return i;
-    }
-    return popplerDoc->numPages()-1;
+    // Labels could reoccur (e.g. if appendix slides start counting from 1 again).
+    // Returning labels.lastIndexOf(label) is therefore not the best solution.
+    int i = labels.indexOf(label);
+    if (i < 0)
+        return i;
+    for (; ++i < labels.size() && labels[i] == label;) {}
+    return i;
 }
 
 int PdfDoc::getPreviousSlideEnd(int const index) const
 {
     // Return the index of the last overlay of the previous slide.
-    QString label = pdfPages[index]->label();
+    QString const& label = labels[index];
     for (int i=index; i>=0; i--) {
-        if (label != pdfPages[i]->label()) {
+        if (label != labels[i]) {
             // Get the duration. Avoid returning a page of duration of less than one second.
             double duration = pdfPages[i]->duration();
             int j = i;
             // Don't return the index of a slides which is shown for less than one second.
-            while (duration > -0.01 && duration < 1. && j > 0 && pdfPages[j]->label() == pdfPages[i]->label())
+            while (duration > -0.01 && duration < 1. && j > 0 && labels[j] == labels[i])
                 duration = pdfPages[--j]->duration();
             return j;
         }
@@ -173,23 +176,21 @@ int PdfDoc::destToSlide(QString const & dest) const
     return page;
 }
 
-QString const PdfDoc::getLabel(int const pageNumber) const
+QString const& PdfDoc::getLabel(int const pageNumber) const
 {
     // Check whether pageNumber is valid. Return its label.
     if (pageNumber < 0)
-        return pdfPages.first()->label();
-    else if (pageNumber < popplerDoc->numPages())
-        return pdfPages[pageNumber]->label();
+        return labels.first();
+    else if (pageNumber >= popplerDoc->numPages())
+        return labels.last();
     else
-        return pdfPages.last()->label();
+        return labels[pageNumber];
 }
 
-int PdfDoc::getSlideNumber(const int page) const
+Poppler::Page const* PdfDoc::getPage(QString const& pageLabel) const
 {
-    // Check whether page has a label.
-    QString label = pdfPages[page]->label();
-    if (label.isEmpty())
-        return page + 1;
-    else
-        return label.toInt();
+    int const idx = labels.indexOf(pageLabel);
+    if (idx > 0)
+        return pdfPages[idx];
+    return nullptr;
 }

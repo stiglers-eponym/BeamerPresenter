@@ -24,187 +24,7 @@
 #include <QJsonDocument>
 #include <QMimeDatabase>
 #include "screens/controlscreen.h"
-
-/// Map action strings in configuration file to KeyAction (enum)
-static const QMap<QString, KeyAction> keyActionMap {
-    {"previous", KeyAction::Previous},
-    {"next", KeyAction::Next},
-    {"previous no transition", KeyAction::PreviousNoTransition},
-    {"next no transition", KeyAction::NextNoTransition},
-    {"previous notes", KeyAction::PreviousNotes},
-    {"next notes", KeyAction::NextNotes},
-    {"previous skipping overlays", KeyAction::PreviousSkippingOverlays},
-    {"next skipping overlays", KeyAction::NextSkippingOverlays},
-    {"previous notes skipping overlays", KeyAction::PreviousNotesSkippingOverlays},
-    {"next notes skipping overlays", KeyAction::NextNotesSkippingOverlays},
-    {"go to", KeyAction::GoToPage},
-    {"go to page", KeyAction::GoToPage},
-    {"go to slide", KeyAction::GoToPage},
-    {"last page", KeyAction::LastPage},
-    {"last slide", KeyAction::LastPage},
-    {"first page", KeyAction::FirstPage},
-    {"first slide", KeyAction::FirstPage},
-    {"sync from control screen", KeyAction::SyncFromControlScreen},
-    {"sync from presentation screen", KeyAction::SyncFromPresentationScreen},
-    {"update", KeyAction::Update},
-
-    {"update cache", KeyAction::UpdateCache},
-#ifdef EMBEDDED_APPLICATIONS_ENABLED
-    {"start embedded current page", KeyAction::StartEmbeddedCurrentSlide},
-    {"start embedded current slide", KeyAction::StartEmbeddedCurrentSlide},
-    {"start embedded applications current page", KeyAction::StartEmbeddedCurrentSlide},
-    {"start embedded applications current slide", KeyAction::StartEmbeddedCurrentSlide},
-    {"start all embedded", KeyAction::StartAllEmbedded},
-    {"start all embedded applications", KeyAction::StartAllEmbedded},
-    {"close all embedded", KeyAction::CloseAllEmbedded},
-    {"close all embedded applications", KeyAction::CloseAllEmbedded},
-    {"close embedded current page", KeyAction::CloseEmbeddedCurrentSlide},
-    {"close embedded current slide", KeyAction::CloseEmbeddedCurrentSlide},
-    {"close embedded applications current page", KeyAction::CloseEmbeddedCurrentSlide},
-    {"close embedded applications current slide", KeyAction::CloseEmbeddedCurrentSlide},
-#endif
-    {"play multimedia", KeyAction::PlayMultimedia},
-    {"pause multimedia", KeyAction::PauseMultimedia},
-    {"play pause multimedia", KeyAction::PlayPauseMultimedia},
-    {"toggle multimedia", KeyAction::PlayPauseMultimedia},
-
-    {"toggle mute",              KeyAction::ToggleMuteAll},
-    {"toggle mute presentation", KeyAction::ToggleMutePresentation},
-    {"toggle mute notes",        KeyAction::ToggleMuteNotes},
-    {"mute",              KeyAction::MuteAll},
-    {"mute all",          KeyAction::MuteAll},
-    {"mute presentation", KeyAction::MutePresentation},
-    {"mute notes",        KeyAction::MuteNotes},
-    {"unmute",              KeyAction::UnmuteAll},
-    {"unmute all",          KeyAction::UnmuteAll},
-    {"unmute presentation", KeyAction::UnmutePresentation},
-    {"unmute notes",        KeyAction::UnmuteNotes},
-
-    {"toggle timer", KeyAction::PlayPauseTimer},
-    {"pause timer", KeyAction::PauseTimer},
-    {"continue timer", KeyAction::ContinueTimer},
-    {"reset timer", KeyAction::ResetTimer},
-    {"toggle toc", KeyAction::ToggleTOC},
-    {"show toc", KeyAction::ShowTOC},
-    {"show overview", KeyAction::ShowOverview},
-    {"toggle overview", KeyAction::ToggleOverview},
-    {"hide overlays", KeyAction::HideOverlays},
-    {"show notes", KeyAction::HideOverlays},
-    {"toggle cursor", KeyAction::ToggleCursor},
-    {"show cursor", KeyAction::ShowCursor},
-    {"hide cursor", KeyAction::HideCursor},
-    {"full screen", KeyAction::FullScreen},
-    {"reload", KeyAction::Reload},
-    {"quit", KeyAction::Quit},
-
-    {"clear annotations", KeyAction::ClearAnnotations},
-    {"hand tool", KeyAction::DrawNone},
-    {"none", KeyAction::DrawNone},
-    {"pointer", KeyAction::DrawPointer},
-    {"pen", KeyAction::DrawPen},
-    {"highlighter", KeyAction::DrawHighlighter},
-    {"torch", KeyAction::DrawTorch},
-    {"magnifier", KeyAction::DrawMagnifier},
-    {"eraser", KeyAction::DrawEraser},
-
-    {"toggle draw mode", KeyAction::ToggleDrawMode},
-    {"enter draw mode", KeyAction::DrawMode},
-    {"draw mode", KeyAction::DrawMode},
-    {"hide draw slide", KeyAction::HideDrawSlide},
-    {"end draw mode", KeyAction::HideDrawSlide},
-    {"end drawing", KeyAction::HideDrawSlide},
-    {"undo drawing", KeyAction::UndoDrawing},
-    {"redo drawing", KeyAction::RedoDrawing},
-    {"save drawings", KeyAction::SaveDrawings},
-    {"load drawings", KeyAction::LoadDrawings},
-};
-
-/// Map tool strings from configuration file to DrawTool (enum).
-/// Every tool string defined here must also be a valid key action string in keyActionMap.
-static const QMap<QString, DrawTool> toolMap {
-    {"pen", DrawTool::Pen},
-    {"highlighter", DrawTool::Highlighter},
-    {"none", DrawTool::NoTool},
-    {"pointer", DrawTool::Pointer},
-    {"eraser", DrawTool::Eraser},
-    {"torch", DrawTool::Torch},
-    {"magnifier", DrawTool::Magnifier},
-};
-
-/// Default mapping of keys to KeyAction actions.
-/// This is used if the configuration file does not define any key mapping.
-static const QMap<quint32, QList<KeyAction>> defaultKeyMap = {
-    {Qt::Key_PageUp, {KeyAction::Previous}},
-    {Qt::Key_PageDown, {KeyAction::Next}},
-    {Qt::Key_Left, {KeyAction::Previous}},
-    {Qt::Key_Right, {KeyAction::Next}},
-    {Qt::Key_Up, {KeyAction::PreviousSkippingOverlays}},
-    {Qt::Key_Down, {KeyAction::NextSkippingOverlays}},
-    {Qt::Key_G, {KeyAction::GoToPage}},
-    {Qt::Key_End, {KeyAction::LastPage}},
-    {Qt::Key_Home, {KeyAction::FirstPage}},
-    {Qt::Key_Return, {KeyAction::SyncFromControlScreen}},
-    {Qt::Key_Escape, {KeyAction::SyncFromPresentationScreen, KeyAction::HideOverlays, KeyAction::HideDrawSlide}},
-    {Qt::Key_Space, {KeyAction::Update}},
-
-    {Qt::Key_C, {KeyAction::UpdateCache}},
-#ifdef EMBEDDED_APPLICATIONS_ENABLED
-    {Qt::Key_E, {KeyAction::StartEmbeddedCurrentSlide}},
-    {Qt::Key_E+Qt::ShiftModifier, {KeyAction::StartAllEmbedded}},
-#endif
-    {Qt::Key_M, {KeyAction::PlayPauseMultimedia}},
-
-    {Qt::Key_P, {KeyAction::PlayPauseTimer}},
-    {Qt::Key_R, {KeyAction::ResetTimer}},
-    {Qt::Key_T, {KeyAction::ShowTOC}},
-    {Qt::Key_S, {KeyAction::ShowOverview}},
-    {Qt::Key_O, {KeyAction::ToggleCursor}},
-    {Qt::Key_F, {KeyAction::FullScreen}},
-    {Qt::Key_U, {KeyAction::Reload}},
-    {Qt::Key_Q+Qt::CTRL, {KeyAction::Quit}},
-    {Qt::Key_Z+Qt::CTRL, {KeyAction::UndoDrawing}},
-    {Qt::Key_Y+Qt::CTRL, {KeyAction::RedoDrawing}},
-};
-
-/// Map of keys to KeyActions for hard coded key bindings.
-/// The keys in this list are used in special modes (TOC and overview mode).
-static const QMap<quint32, KeyAction> staticKeyMap = {
-    {Qt::Key_Left, KeyAction::Left},
-    {Qt::Key_Right, KeyAction::Right},
-    {Qt::Key_Up, KeyAction::Up},
-    {Qt::Key_Down, KeyAction::Down},
-    {Qt::Key_End, KeyAction::End},
-    {Qt::Key_Home, KeyAction::First},
-    {Qt::Key_Return, KeyAction::Return},
-    {Qt::Key_Tab, KeyAction::Tab},
-    {Qt::Key_Tab+Qt::SHIFT, KeyAction::ShiftTab},
-};
-
-/// Default configuration of tools for tool selector (buttons).
-/// The tool selector is an array of buttons in the lower right corner of the control screen.
-/// The keys (quint8) in this map are interpreted as two digit hexadecimal numbers, where the first digit defines the row and the second one defines the column of the button in the array.
-/// One button can define several KeyActions.
-static const QMap<quint8, QList<KeyAction>> defaultActionMap {
-    {0, {KeyAction::ToggleDrawMode}},
-    {1, {KeyAction::DrawEraser}},
-    {2, {KeyAction::DrawPen}},
-    {3, {KeyAction::DrawPen}},
-    {4, {KeyAction::DrawHighlighter}},
-    {16, {KeyAction::PlayMultimedia}},
-    {17, {KeyAction::ClearAnnotations}},
-    {18, {KeyAction::DrawPointer}},
-    {19, {KeyAction::DrawTorch}},
-    {20, {KeyAction::DrawMagnifier}},
-};
-/// Default configuration of colors for tool selector (buttons).
-/// These colors are used by tools in tool selector.
-/// The key defines row and column as in defaultActionMap.
-static const QMap<quint8, QColor> defaultColorMap {
-    {2, QColor("red")},
-    {3, QColor("green")},
-    {4, QColor(255,255,0,191)},
-    {18, QColor(255,0,0,191)},
-};
+#include "names.h"
 
 
 /// Read real value from string (handling % sign correctly).
@@ -213,7 +33,7 @@ qreal stringToReal(QString& string)
 {
     bool ok;
     qreal result = string.toDouble(&ok);
-    if (!ok && string.endsWith("%")) {
+    if (!ok && string.endsWith('%')) {
         string.chop(1);
         result = 0.01*string.toDouble(&ok);
     }
@@ -389,6 +209,203 @@ T intFromConfig(QCommandLineParser const& parser, QVariantMap const& local, QSet
 }
 
 
+/// Collect and interpret group of arguments representing key actions or draw tools.
+void actionsFromConfig(QMap<QString, QList<KeyAction>>& actions, QMap<QString, FullDrawTool>& tools, QVariantMap const& local, QSettings& settings, QString name)
+{
+    // Read the values from local or global config to a common format.
+    QMap<QString, QStringList> basic;
+    QMap<QString, QMap<QString, QVariant>> advanced;
+    // Try to read input from local config.
+    if (local.contains(name)) {
+        QMap<QString, QVariant> map = local[name].toMap();
+        for (QMap<QString, QVariant>::const_iterator item = map.cbegin(); item != map.cend(); item++) {
+            if (item->canConvert<QVariantMap>())
+                advanced[item.key()] = item->toMap();
+            else if (item->canConvert<QStringList>())
+                basic[item.key()] = item->toStringList();
+            else if (item->canConvert<QString>())
+                basic[item.key()] = item->toString().split(",");
+            else
+                qWarning() << "Could not understand data type:" << *item;
+        }
+    }
+    if (basic.isEmpty() && advanced.isEmpty()) {
+        // Try to read input from global config.
+        settings.beginGroup(name);
+        for (auto key : settings.childGroups()) {
+            settings.beginGroup(key);
+            advanced[key] = QMap<QString, QVariant>();
+            for (auto subkey : settings.allKeys())
+                advanced[key][subkey] = settings.value(subkey);
+            settings.endGroup();
+        }
+        for (auto key : settings.childKeys()) {
+            QVariant const variant = settings.value(key);
+            if (variant.canConvert<QStringList>())
+                basic[key] = variant.toStringList();
+            else if (variant.canConvert<QString>())
+                basic[key] = variant.toString().split(",");
+            else
+                qWarning() << "Could not understand data type:" << variant;
+        }
+        settings.endGroup();
+    }
+
+    // Interpret the values as key actions and tools.
+    for (QMap<QString, QStringList>::const_iterator it = basic.cbegin(); it != basic.cend(); it++) {
+        // Iterate over all actions (refered to as "action string" in the following) defined for each key (usually this is only one).
+        for (QStringList::const_iterator action_it=it->begin(); action_it!=it->cend(); action_it++) {
+            KeyAction const action = keyActionMap.value(action_it->toLower(), KeyAction::NoAction);
+            // Remove spaces from key:
+            QString key = it.key();
+            key.remove(' ');
+            // If a KeyAction was found in keyActionMap for this action string: send this key binding to ctrlScreen.
+            if (action != NoAction) {
+                actions[key].append(action);
+#ifdef DEBUG_READ_CONFIGS
+                qDebug() << "New key action:" << key << action << *action_it;
+#endif
+            }
+            else {
+                try {
+                    // Try to interpret  as a sequence "tool color" or "tool color size", defining a drawing or highlighting tool and a color.
+                    QStringList const split_action = action_it->toLower().split(' ');
+                    // Convert the first word of the action string as a draw tool.
+                    DrawTool const tool = toolMap.value(split_action.first(), InvalidTool);
+
+                    // Actually tool != InvalidTool should imply split_action.size() > 1.
+                    // But just to be sure, we can check again.
+                    if (tool == InvalidTool || split_action.size() < 2)
+                        throw 1;
+
+                    if (action_it->contains('=')) {
+                        // Interpret all arguments as key=value pairs.
+                        QMap<QString, QString> map;
+                        for (QStringList::const_iterator attr = split_action.cbegin()+1; attr != split_action.cend(); attr++) {
+                            QStringList const keyval = attr->split('=');
+                            if (keyval.size() != 2)
+                                throw 2;
+                            map[keyval.first()] = keyval.last();
+                        }
+                        QColor const color = QColor(map.value("color"));
+                        qreal const size = map.value("size").toDouble();
+                        if (tool == Magnifier) {
+                            bool ok;
+                            qreal const magnification = map["magnification"].toDouble(&ok);
+                            if (ok)
+                                tools[key] = {tool, color, size, {magnification}};
+                            else
+                                tools[key] = {tool, color, size};
+                        }
+                        else if (tool == Pointer) {
+                            tools[key] = {tool, color, .size=size, defaultToolConfig[Pointer].extras};
+                            bool ok;
+                            quint16 alpha = map["alpha"].toUInt(&ok);
+                            if (ok)
+                                tools[key].extras.pointer.alpha = alpha;
+                            if (map.contains("composition")) {
+                                qint8 composition = 0;
+                                if (map["composition"] == "lighten")
+                                    composition = -1;
+                                else if (map["composition"] == "darken")
+                                    composition = 1;
+                                tools[key].extras.pointer.composition = composition;
+                            }
+                            if (map["inner"] == "false")
+                                tools[key].extras.pointer.inner = false;
+                        }
+                        else
+                            tools[key] = {tool, color, size};
+                    }
+                    else {
+                        // Interpret all following arguments as color, size and magnification.
+                        QColor color = QColor(split_action[1]);
+                        qreal size = 0;
+                        bool ok = false;
+                        if (!color.isValid()) {
+                            size = split_action[1].toDouble(&ok);
+                            if (ok && split_action.size() == 3)
+                                color = QColor(split_action[2]);
+                        }
+                        if (!ok && split_action.size() >= 3)
+                            size = split_action[2].toDouble(&ok);
+                        if (tool == Magnifier) {
+                            qreal magnification = 0.;
+                            if (split_action.size() > 3)
+                                magnification = split_action[3].toDouble();
+                            else if (ok && !color.isValid()) {
+                                // Try to interpret second argument as magnification.
+                                magnification = split_action[2].toDouble();
+                                // Don't accept any unrealistic numbers.
+                                if (magnification > 20 || magnification < 1e-4)
+                                    magnification = 0.;
+                            }
+                            tools[key] = {tool, color, size, {magnification}};
+                            if (split_action.size() > 4)
+                                qWarning() << "Tool has too many arguments:" << it.key() << *it;
+                        }
+                        else {
+                            tools[key] = {tool, color, size, defaultToolConfig[tool].extras};
+                            if (split_action.size() > 3)
+                                qWarning() << "Tool has too many arguments:" << it.key() << *it;
+                        }
+                    }
+#ifdef DEBUG_READ_CONFIGS
+                    qDebug() << "New tool:" << key << tools[key].tool << tools[key].color << tools[key].size << tools[key].extras.magnification;
+#endif
+                } catch (int) {
+                    qCritical() << "Could not understand action" << *action_it << "for key" << it.key();
+                }
+            }
+        }
+    }
+    for (QMap<QString, QMap<QString, QVariant>>::const_iterator it = advanced.cbegin(); it != advanced.cend(); it++) {
+        try {
+            if (!it->contains("tool"))
+                throw 0;
+            // Convert the first word of the action string as a draw tool.
+            DrawTool const tool = toolMap.value(it->value("tool").toString(), InvalidTool);
+            if (tool == InvalidTool)
+                throw 1;
+            // Parse the second word of the action string as a QColor.
+            QColor const color = QColor(it->value("color").toString());
+            qreal const size = it->value("size").toDouble();
+            // Remove spaces from key:
+            QString key = it.key();
+            key.remove(' ');
+            if (tool == Magnifier) {
+                qreal const magnification = it->value("magnification").toDouble();
+                tools[key] = {tool, color, size, {magnification}};
+            }
+            else if (tool == Pointer) {
+                tools[key] = {tool, color, .size=size, defaultToolConfig[Pointer].extras};
+                bool ok;
+                quint16 alpha = it->value("alpha").toUInt(&ok);
+                if (ok)
+                    tools[key].extras.pointer.alpha = alpha;
+                if (it->contains("composition")) {
+                    qint8 composition = 0;
+                    if (it->value("composition").toString() == "lighten")
+                        composition = -1;
+                    else if (it->value("composition").toString() == "darken")
+                        composition = 1;
+                    tools[key].extras.pointer.composition = composition;
+                }
+                if (it->value("inner").toString() == "false")
+                    tools[key].extras.pointer.inner = false;
+            }
+            else
+                tools[key] = {tool, color, size};
+#ifdef DEBUG_READ_CONFIGS
+            qDebug() << "New tool:" << key << tools[key].tool << tools[key].color << tools[key].size << tools[key].extras.magnification;
+#endif
+        } catch (int) {
+            qCritical() << "Could not understand action" << *it << "for key" << it.key();
+        }
+    }
+}
+
+
 /// Main function
 int main(int argc, char *argv[])
 {
@@ -402,9 +419,9 @@ int main(int argc, char *argv[])
     // Set app version. The string APP_VERSION is defined in beamerpresenter.pro.
 #ifdef QT_DEBUG
 #ifdef POPPLER_VERSION
-    app.setApplicationVersion(APP_VERSION " debugging, (poppler=" POPPLER_VERSION ", Qt=" QT_VERSION_STR ")");
+    app.setApplicationVersion(APP_VERSION " debugging (poppler=" POPPLER_VERSION ", Qt=" QT_VERSION_STR ")");
 #else
-    app.setApplicationVersion(APP_VERSION " debugging, (Qt=" QT_VERSION_STR ")");
+    app.setApplicationVersion(APP_VERSION " debugging (Qt=" QT_VERSION_STR ")");
 #endif
 #else
 #ifdef POPPLER_VERSION
@@ -446,7 +463,8 @@ int main(int argc, char *argv[])
         );
     // Define command line options.
     parser.addHelpOption();
-    //parser.addVersionOption();
+    parser.addVersionOption();
+    // TODO: explain alternative positional arguments
     parser.addPositionalArgument("<slides.pdf>", "Slides for a presentation");
     parser.addPositionalArgument("<notes.pdf>",  "Notes for the presentation (optional, should have the same number of pages as <slides.pdf>)");
     // TODO: change letters for option shortcuts
@@ -474,7 +492,7 @@ int main(int argc, char *argv[])
         {{"s", "scrollstep"}, "Number of pixels which represent a scroll step for a touch pad scroll signal.", "int"},
         {{"t", "time"}, "Set presentation time.\nPossible formats are \"[m]m\", \"[m]m:ss\" and \"h:mm:ss\".", "time"},
         {{"u", "urlsplit"}, "Character which is used to split links into an url and arguments.", "char"},
-        {{"v", "video-cache"}, "Preload videos for the following slide.", "bool"},
+        {{"V", "video-cache"}, "Preload videos for the following slide.", "bool"},
 #ifdef EMBEDDED_APPLICATIONS_ENABLED
         {{"w", "pid2wid"}, "Program that converts a PID to a Window ID.", "file"},
         {{"x", "log"}, "Log times of slide changes to standard output."},
@@ -487,14 +505,10 @@ int main(int argc, char *argv[])
         {"sidebar-width", "Minimum relative width of sidebar on control screen. Number between 0 and 1.", "float"},
         {"mute-presentation", "Mute presentation (default: false)", "bool"},
         {"mute-notes", "Mute notes (default: true)", "bool"},
-        {"magnification", "Magnification factor of magnifier.", "number"},
-        {"magnifier-size", "Radius of magnifier.", "pixels"},
-        {"pointer-size", "Radius of magnifier.", "pixels"},
-        {"torch-size", "Radius of torch.", "pixels"},
-        {"highlighter-width", "Line width of highlighter.", "pixels"},
-        {"pen-width", "Line width of pens.", "pixels"},
         {"eraser-size", "Radius of eraser.", "pixels"},
         {"icon-path", "Set path for default icons, e.g. /usr/share/icons/default", "path"},
+        {"presentation", "Presentation PDF file (usually first positional argument)", "path"},
+        {"notes", "Notes PDF file (usually second positional argument)", "path"},
     });
     parser.process(app);
 
@@ -520,7 +534,10 @@ int main(int argc, char *argv[])
 #endif
 #endif
 #endif
-    qDebug() << "Loaded settings:" << settings.allKeys(); // Show all settings in plain text.
+#ifdef DEBUG_READ_CONFIGS
+    //qDebug() << "Command line positional arguments:" << parser.positionalArguments();
+    qDebug() << "Loaded settings:\n" << settings.allKeys(); // Show all settings in plain text.
+#endif
 
     // Load an optional local configuration file.
     // This file can be used to set e.g. times per slide.
@@ -546,6 +563,10 @@ int main(int argc, char *argv[])
             else {
                 // Write the options in local.
                 local = jsonDoc.object().toVariantMap();
+#ifdef DEBUG_READ_CONFIGS
+                qDebug() << "Loaded local config" << parser.value("j");
+                qDebug() << local;
+#endif
             }
         }
         else
@@ -553,156 +574,206 @@ int main(int argc, char *argv[])
     }
 
 
-    // Handle positional arguments.
-    // These should be either: 1 pdf file (the presentation) or 2 pdf files (presentation and notes) or 1 json file (the local configuration) or 1 BeamerPresenter drawings file.
-    QString presentation, notes;
-    switch (parser.positionalArguments().size()) {
-    case 1:
-        {
-        // Check whether the argument is a file.
-        if (!QFileInfo(parser.positionalArguments()[0]).exists()) {
-            qCritical() << "File" << parser.positionalArguments()[0] << "does not exist!";
-            return 1;
-        }
-        // Get the file type using mime types.
-        QMimeDatabase db;
-        QMimeType type = db.mimeTypeForFile(parser.positionalArguments()[0], QMimeDatabase::MatchContent);
-        if (!type.isValid()) {
-            type = db.mimeTypeForFile(parser.positionalArguments()[0], QMimeDatabase::MatchExtension);
-            if (!type.isValid()) {
-                qCritical() << "Did not understand type of file" << parser.positionalArguments()[0];
-                return 1;
-            }
-        }
-        // If file is a pdf file, it is interpreted as the presentation file.
-        if (type.suffixes().contains("pdf", Qt::CaseInsensitive)) {
-            // Set up ctrlScreen using the argument as the presentation file.
-            presentation = parser.positionalArguments()[0];
-            break;
-        }
-        // If file is a JSON file, it is interpreted as a local configuration file.
-        else if (type.suffixes().contains("txt") || type.suffixes().contains("json")) {
-            // Try to open the file.
-            QFile jsonFile(parser.positionalArguments()[0]);
-            jsonFile.open(QFile::ReadOnly);
-            QJsonParseError* error = nullptr;
-            // Parse the file as JSON document.
-            QJsonDocument jsonDoc = QJsonDocument::fromJson(jsonFile.readAll(), error);
-            // Check for errors.
-            if (jsonDoc.isNull() || jsonDoc.isEmpty()) {
-                qCritical() << "Failed to load local configuration file: File is empty or parsing JSON failed";
-                if (error != nullptr)
-                    qInfo() << "Reported error:" << error->errorString();
-            }
-            else {
-                // Write the options from the JSON file in local.
-                local = jsonDoc.object().toVariantMap();
-                // Check whether the JSON document contains the keys "presentation" and "notes".
-                // Use these corresponding options as files to construct ctrlScreen.
-                if (local.contains("presentation")) {
-                    presentation = local.value("presentation").toString();
-                    if (local.contains("notes"))
-                        notes = local.value("notes").toString();
-                    break;
-                }
-                // else: this will lead to an error (see later).
-            }
-        }
-        else {
-            // Try to read file as BeamerPresenter drawing binary.
-            // Note that this file type is experimental. It might change in later versions.
-
-            // Try to open the file.
-            QFile file(parser.positionalArguments()[0]);
-            if (file.open(QIODevice::ReadOnly)) {
-                // Read the file in a QDataStream.
-                QDataStream stream(&file);
-                stream.setVersion(QDataStream::Qt_5_0);
-                // Read "magic bytes" from the stream an compare.
-                quint32 magic;
-                stream >> magic;
-                // Check for errors and whether the magic bytes match the ones defined for BeamerPresenter binaries.
-                if (stream.status() == QDataStream::Ok && magic == 0x2CA7D9F8) {
-                    // Read QDataStream version from stream.
-                    quint16 version;
-                    stream >> version;
-                    // Overwrite QDataStream version with the version read from the stream.
-                    stream.setVersion(version);
-                    // Read file paths for presentation and notes.
-                    stream >> presentation >> notes;
-                    // Check for errors.
-                    if (stream.status() != QDataStream::Ok) {
-                        qCritical() << "Failed to open drawings file" << parser.positionalArguments()[0] << ". File is corrupt";
-                        return 1;
-                    }
-                    // Check whether presentation file exists.
-                    // This check could be left out (it is repeated in the constructure of ControlScreen), but like this it provides a more detailed error message.
-                    if (!QFileInfo(presentation).exists()) {
-                        qCritical() << "Failed to open PDF file" << presentation << "refered to in" << parser.positionalArguments()[0] << ". File does not exist.";
-                        return 1;
-                    }
-                    // Create ctrlScreen.
-                    // notespath can be empty, which is handled correctly in the constructure of ControlScreen.
-                    // Set the drawings file as a drawings file in local configuration.
-                    // Later this option in local will be used to load the drawings saved in the drawings file.
-                    local["drawings"] = parser.positionalArguments()[0];
-                    break;
-                }
-            }
-        }
-        }
-        // If the above failed and ctrlScreen was not created: Exit with generic error message.
-        qCritical() << "Could not find presentation file. Argument was" << parser.positionalArguments()[0];
-        return 1;
-    case 2:
-        // Two positional arguments are given.
-        // Assume that these are the two PDF files for presentation and notes.
-        // All checks are done in the constructur of ControlScreen.
-        presentation = parser.positionalArguments()[0];
-        notes = parser.positionalArguments()[1];
-        break;
-    case 0:
+    // Get presentation and notes path.
+    QString presentation = settings.value("presentation").toString();
+    QString notes = settings.value("notes").toString();
+    // Try to get both from local config.
+    if (presentation.isEmpty() && local.contains("presentation")) {
+        // Check whether notes are also given and create ctrlScreen.
+        presentation = local.value("presentation").toString();
+        if (notes.isEmpty() && local.contains("notes"))
+            notes = local.value("notes").toString();
+    }
+    if (parser.positionalArguments().isEmpty() && presentation.isEmpty()) {
         // No positional arguments given.
-        // Check whether a local configuration file defines a local presentation file.
-        if (local.contains("presentation")) {
-            // Check whether notes are also given and create ctrlScreen.
-            presentation = local.value("presentation").toString();
-            if (local.contains("notes"))
-                notes = local.value("notes").toString();
+        // Find pdf files using a QFileDialog.
+        // First open a QFileDialog to find a presentation file.
+        /// QString containing path of presentation file
+        presentation = QFileDialog::getOpenFileName(nullptr, "Open Slides", "", "Documents (*.pdf)");
+        // Check whether a file was selected.
+        if (presentation.isEmpty()) {
+            qCritical() << "No presentation file given";
+            // Exit with error showing help message.
+            parser.showHelp(1);
         }
-        else {
-            // Find pdf files using a QFileDialog.
-            // First open a QFileDialog to find a presentation file.
-            /// QString containing path of presentation file
-            presentation = QFileDialog::getOpenFileName(nullptr, "Open Slides", "", "Documents (*.pdf)");
-            // Check whether a file was selected.
-            if (presentation.isEmpty()) {
-                qCritical() << "No presentation file specified";
-                // Exit with error showing help message.
-                parser.showHelp(1);
-            }
-            // Check if the presentation file should include notes (beamer option show notes on second screen).
+        if (notes.isEmpty()) {
+            // Check whether option "page-part" (indicating that the presentation should contain notes) is set.
             // If the presenation file is interpreted as a normal presentation, open a note file in a QFileDialog.
-            if (parser.value("p").isEmpty()) {
-                if (!settings.contains("page-part") || settings.value("page-part").toString()=="none" || settings.value("page-part").toString()=="0") {
-                    // Option "page-part" (indicating that the presentation should contain notes) is not set.
-                    // Open notes in second QFileDialog. By default the presentation file is selected.
-                    notes = QFileDialog::getOpenFileName(nullptr, "Open Notes", presentation, "Documents (*.pdf)");
-                }
-            }
-            else if (parser.value("p")=="none" || parser.value("p")=="0") {
-                // The value of "page-part" explicitly states that the presentation file does not contain notes.
-                // Open notes in second QFileDialog. By default the presentation file is selected.
+            QString page_part_config;
+            if (!parser.value("p").isEmpty())
+                page_part_config = parser.value("p");
+            else if (local.contains("page-part"))
+                page_part_config = local.value("page-part").toString();
+            else if (settings.contains("page-part"))
+                page_part_config = settings.value("page-part").toString();
+            // Open notes in second QFileDialog. By default the presentation file is selected.
+            if ( page_part_config.isEmpty() || QStringList({"none", "0"}).contains(page_part_config.toLower()) )
                 notes = QFileDialog::getOpenFileName(nullptr, "Open Notes", presentation, "Documents (*.pdf)");
-            }
-            // Create ctrlScreen.
         }
-        break;
-    default:
-        // Incompatible number of arguments given.
-        qCritical() << "Received more than 2 positional arguments.";
-        // Exit with error showing help message.
-        parser.showHelp(1);
+    }
+    else {
+        // Try to interpret the first positional argument.
+        QStringList const args = parser.positionalArguments();
+        QMimeDatabase const db;
+        bool presentation_explicitly_given = settings.contains("presentation");
+        bool notes_explicitly_given = settings.contains("notes");
+        for (QStringList::const_iterator argument = args.cbegin(); argument != args.cend(); argument++) {
+            try {
+                // Check whether the argument is a file.
+                if (!QFileInfo(*argument).exists()) {
+                    qCritical() << "File" << *argument << "does not exist!";
+                    throw 1;
+                }
+                // Get the file type using mime types.
+                QMimeType type = db.mimeTypeForFile(*argument, QMimeDatabase::MatchContent);
+                if (!type.isValid()) {
+                    type = db.mimeTypeForFile(*argument, QMimeDatabase::MatchExtension);
+                    if (!type.isValid()) {
+                        qCritical() << "Did not understand type of file" << *argument;
+                        throw 2;
+                    }
+                }
+
+                if (type.suffixes().contains("pdf", Qt::CaseInsensitive)) {
+                    // If file is a pdf file, it is interpreted as the presentation file.
+                    // Set up ctrlScreen using the argument as the presentation file.
+                    if (presentation_explicitly_given) {
+                        if (notes_explicitly_given) {
+                            qCritical() << "Too many PDF files given. Ignoring file" << *argument;
+                            throw 5;
+                        }
+                        notes = *argument;
+                        notes_explicitly_given = true;
+                    }
+                    else {
+                        presentation = *argument;
+                        presentation_explicitly_given = true;
+                    }
+                    continue;
+                }
+
+                // Try to read file.
+                QFile file(*argument);
+                if (!file.open(QIODevice::ReadOnly)) {
+                    qCritical() << "Cannot read file:" << *argument;
+                    throw 3;
+                }
+                if (type.suffixes().contains("txt") || type.suffixes().contains("json")) {
+                    // If file is a JSON file, it is interpreted as a local configuration file.
+                    // Try to open the file.
+                    QJsonParseError* error = nullptr;
+                    // Parse the file as JSON document.
+                    QJsonDocument const jsonDoc = QJsonDocument::fromJson(file.readAll(), error);
+                    // Check for errors.
+                    if (jsonDoc.isNull() || jsonDoc.isEmpty()) {
+                        qWarning() << "Failed to load local configuration file: File is empty or parsing JSON failed";
+                        if (error != nullptr)
+                            qInfo() << "Reported error:" << error->errorString();
+                    }
+                    else {
+                        // Write the options from the JSON file in local.
+                        local.unite(jsonDoc.object().toVariantMap());
+#ifdef DEBUG_READ_CONFIGS
+                        qDebug() << "Loaded local config" << *argument;
+                        qDebug() << local;
+#endif
+                        // Check whether the JSON document contains the keys "presentation" and "notes".
+                        // Use these corresponding options as files to construct ctrlScreen.
+                        if (local.contains("presentation") && presentation.isEmpty())
+                            presentation = local.value("presentation").toString();
+                        if (local.contains("notes") && notes.isEmpty())
+                            notes = local.value("notes").toString();
+                        file.close();
+                        continue;
+                    }
+                    // Close and reopen file to read it again from the beginning.
+                    file.close();
+                    file.open(QIODevice::ReadOnly);
+                }
+
+                // Only remaining possibilitys file cannot be interpreted or is a BeamerPresenter drawing (XML, compressed XML, or legacy binary format) or an Xournal(++) file.
+                // Set the drawings file as a drawings file in local configuration.
+                // Later this option in local will be used to load the drawings saved in the drawings file.
+                local["drawings"] = *argument;
+                // Try to extract file names from this file if necessary (i.e. if file names are no known yet).
+                if (presentation.isEmpty() || notes.isEmpty()) {
+                    // Try to read file as BeamerPresenter drawing or Xournal(++) file (XML, compressed XML or legacy binary format).
+                    // Try to open the file as (compressed) XML document.
+                    QDomDocument doc("BeamerPresenter");
+                    // Try to open file as XML file.
+                    if (!doc.setContent(&file)) {
+                        // Failed: reopen file.
+                        file.close();
+                        file.open(QIODevice::ReadOnly);
+                        // Try to open file as compressed XML file.
+                        if (!doc.setContent(qUncompress(file.readAll())))
+                            doc.clear();
+                    }
+                    if (doc.isNull()) {
+                        // Deprecated
+                        // Try to read deprecated binary file format.
+                        // Read the file in a QDataStream.
+                        file.close();
+                        file.open(QIODevice::ReadOnly);
+                        QDataStream stream(&file);
+                        stream.setVersion(QDataStream::Qt_5_0);
+                        // Read "magic bytes" from the stream and compare.
+                        quint32 magic;
+                        stream >> magic;
+                        // Check for errors and whether the magic bytes match the ones defined for BeamerPresenter binaries.
+                        if (stream.status() == QDataStream::Ok && magic == 0x2CA7D9F8) {
+                            // Read QDataStream version from stream.
+                            quint16 version;
+                            stream >> version;
+                            // Overwrite QDataStream version with the version read from the stream.
+                            stream.setVersion(version);
+                            // Read file paths for presentation and notes.
+                            stream >> presentation >> notes;
+                            // Check for errors.
+                            if (stream.status() != QDataStream::Ok) {
+                                file.close();
+                                qCritical() << "Failed to open drawings file" << *argument << ". File is corrupt";
+                                throw -1;
+                            }
+                        }
+                    }
+                    else {
+                        QDomElement const root = doc.documentElement();
+                        if (root.attribute("creator").contains("beamerpresenter", Qt::CaseInsensitive)) {
+                            // Try to get file names.
+                            if (presentation.isEmpty())
+                                presentation = root.firstChildElement("presentation").attribute("file");
+                            if (notes.isEmpty())
+                                notes = root.firstChildElement("notes").attribute("file");
+                        }
+                        else if (root.attribute("creator").contains("xournal", Qt::CaseInsensitive)) {
+                            // Try to get a file name.
+                            if (presentation.isEmpty()) {
+                                QDomElement const first_page = root.firstChildElement("page");
+                                QDomElement const first_bg = first_page.firstChildElement("background");
+                                presentation = first_bg.attribute("filename");
+                            }
+                        }
+                        else {
+                            qCritical() << "Failed to understand file: Unknown creator" << root.attribute("creator");
+                            file.close();
+                            throw 4;
+                        }
+                        file.close();
+                    }
+                }
+            } catch (int const) {}
+        }
+    }
+    // Check whether presentation file exists.
+    // This check could be left out (it is repeated in the constructure of ControlScreen), but like this it provides a more detailed error message.
+    if (presentation.isEmpty()) {
+        qCritical() << "No presentation PDF file found.";
+        return 1;
+    }
+    if (!QFileInfo(presentation).exists()) {
+        qCritical() << "Presentation PDF file does not exist:" << presentation;
+        return 1;
     }
 
 
@@ -893,98 +964,38 @@ int main(int argc, char *argv[])
         for (QMap<quint32, KeyAction>::const_iterator it=staticKeyMap.cbegin(); it!=staticKeyMap.cend(); it++)
             ctrlScreen->setKeyMapItem(it.key(), *it);
 
-        /// Map of key codes to a QStringList of associated key actions.
-        QMap<quint32, QStringList> inputMap;
-        // Check whether a local configuration file defines key actions.
-        if (local.contains("keys")) {
-            // Read all options in the group "keys" in the local configuration in a QVariantMap.
-            QVariantMap variantMap = local["keys"].value<QVariantMap>();
-            quint32 key;
-            // Iterate over variantMap to interpret the key codes and write the arguments to inputMap.
-            for (QVariantMap::const_iterator var_it=variantMap.cbegin(); var_it!=variantMap.cend(); var_it++) {
-                // Parse the key as a QKeySequence.
-                QKeySequence keySequence = QKeySequence(var_it.key(), QKeySequence::NativeText);
-                // Convert the key sequence to an integer.
-                key = quint32(keySequence[0]+keySequence[1]+keySequence[2]+keySequence[3]);
-                // If parsing as QKeySequence failed: key==0. This leads to a warning, and this (key, value) pair will be ignored.
-                if (key == 0)
-                    qWarning() << "Could not understand key" << var_it.key();
-                else {
-                    // Write the converted key and the (still unconverted) action list to inputMap.
-                    inputMap[key] = var_it->toStringList();
-                }
-            }
-        }
-        else {
-            // Enter the group "keys" in the global configuration.
-            settings.beginGroup("keys");
-            quint32 key;
-            QStringList const keys = settings.allKeys();
-            // Iterate over all keys in the group "keys". This will convert the key codes to integers and save the (key, value) pairs in inputMap.
-            for (QStringList::const_iterator key_it=keys.cbegin(); key_it!=keys.cend(); key_it++) {
-                // Parse the key as a QKeySequence.
-                QKeySequence keySequence = QKeySequence(*key_it, QKeySequence::NativeText);
-                // Convert the key sequence to an integer.
-                key = quint32(keySequence[0]+keySequence[1]+keySequence[2]+keySequence[3]);
-                // If parsing as QKeySequence failed: key==0. This leads to a warning, and this (key, value) pair will be ignored.
-                if (key == 0)
-                    qWarning() << "Could not understand key" << *key_it;
-                else {
-                    // Write the converted key and the (still unconverted) action list to inputMap.
-                    inputMap[key] = settings.value(*key_it).toStringList();
-                }
-            }
-            // Exit the group "keys" in the global configuration.
-            settings.endGroup();
-        }
-        if (inputMap.isEmpty()) {
-            // If no key bindings have been defined: Send the default key map to ctrlScreen.
+        QMap<QString, QList<KeyAction>> actions;
+        QMap<QString, FullDrawTool> tools;
+        actionsFromConfig(actions, tools, local, settings, "keys");
+
+        // If no key bindings have been defined: Send the default key map to ctrlScreen.
+        if (actions.isEmpty()) {
             ctrlScreen->setKeyMap(new QMap<quint32, QList<KeyAction>>(defaultKeyMap));
         }
-        else {
-            // If a configuration for key bindings has been found, convert the key actions from QStrings to KeyActions.
-            // Iterate over all keys in inputMap.
-            for (QMap<quint32, QStringList>::const_iterator it=inputMap.cbegin(); it!=inputMap.cend(); it++) {
+        // Send key actions to control screen.
+        for (QMap<QString, QList<KeyAction>>::const_iterator it = actions.cbegin(); it != actions.cend(); it++) {
+            // Parse the key as a QKeySequence.
+            QKeySequence const keySequence = QKeySequence(it.key(), QKeySequence::NativeText);
+            // Convert the key sequence to an integer.
+            quint32 const key = quint32(keySequence[0]+keySequence[1]+keySequence[2]+keySequence[3]);
+            if (key == 0)
+                qWarning() << "Could not understand key" << it.key();
+            else {
                 // Iterate over all actions (refered to as "action string" in the following) defined for each key (usually this is only one).
-                for (QStringList::const_iterator action_it=it->begin(); action_it!=it->cend(); action_it++) {
-                    // Convert the KeyAction for each action string using keyActionMap.
-                    KeyAction const action = keyActionMap.value(action_it->toLower(), KeyAction::NoAction);
-                    // If a KeyAction was found in keyActionMap for this action string: send this key binding to ctrlScreen.
-                    if (action != NoAction)
-                        ctrlScreen->setKeyMapItem(it.key(), action);
-                    else {
-                        // The key action string is not contained in keyActionMap.
-                        // Try to interpret it as a sequence "tool color", defining a drawing or highlighting tool and a color.
-                        QStringList split_action = action_it->toLower().split(' ');
-                        if (split_action.size() != 2) {
-                            // Key action strings which are not contained in keyActionMap must consist of exactly two words (tool and color).
-                            // If this is not the case, the key action will be ignored.
-                            qCritical() << "Could not understand action" << *action_it << "for key" << it.key();
-                            continue;
-                        }
-                        // Convert the first word of the action string as a draw tool.
-                        quint16 const tool = toolMap.value(split_action.first(), InvalidTool);
-                        if (tool == InvalidTool) {
-                            // If the first word of the action string could not be understood as a draw tool, parsing the key action failed.
-                            // This key action will be ignored.
-                            qCritical() << "Could not understand action" << *action_it << "for key" << it.key();
-                            continue;
-                        }
-                        // Parse the second word of the action string as a QColor.
-                        QColor color = QColor(split_action[1]);
-                        if (!color.isValid()) {
-                            qWarning() << "Could not understand color" << split_action.last() << "set for key" << it.key() << "and tool" << split_action.first();
-                            // All tools are also valid key actions.
-                            // If the color is not valid, parse the tool as a key action and not as a tool with a color.
-                            ctrlScreen->setKeyMapItem(it.key(), keyActionMap.value(split_action.first(), KeyAction::NoAction));
-                        }
-                        else {
-                            // Send the colored draw tool to ctrlScreen.
-                            ctrlScreen->setToolForKey(it.key(), {static_cast<DrawTool>(tool), color});
-                        }
-                    }
-                }
+                for (QList<KeyAction>::const_iterator action=it->cbegin(); action!=it->cend(); action++)
+                    ctrlScreen->setKeyMapItem(key, *action);
             }
+        }
+        // Send tools to control screen.
+        for (QMap<QString, FullDrawTool>::const_iterator it = tools.cbegin(); it != tools.cend(); it++) {
+            // Parse the key as a QKeySequence.
+            QKeySequence const keySequence = QKeySequence(it.key(), QKeySequence::NativeText);
+            // Convert the key sequence to an integer.
+            quint32 const key = quint32(keySequence[0]+keySequence[1]+keySequence[2]+keySequence[3]);
+            if (key == 0)
+                qWarning() << "Could not understand key" << it.key();
+            else
+                ctrlScreen->setToolForKey(key, *it);
         }
     }
 
@@ -992,132 +1003,78 @@ int main(int argc, char *argv[])
     // Handle arguments which configure the tool selector.
     {   // The tool selector is an array of buttons in the lower right corner of the control screen.
         // Configuring the tool selector is analogous to the configuration of the key bindings.
-        // The arguments are first read from the local or global configuration to the map "inputMap" before the arguments are interpreted.
+        QMap<QString, QList<KeyAction>> actions;
+        QMap<QString, FullDrawTool> tools;
+        actionsFromConfig(actions, tools, local, settings, "tools");
 
-        /// The keys (quint8) in this map are interpreted as two digit hexadecimal numbers, where the first digit defines the row and the second one defines the column of the button in the array.
-        /// One button can define several KeyActions.
-        QMap<quint8, QStringList> inputMap;
-        // Try to read tool selector configuration from local configuration file.
-        if (local.contains("tools")) {
-            /// QVariantMap containing all options for the group "tools" in the local configuration.
-            QVariantMap variantMap = local["tools"].value<QVariantMap>();
-            bool ok;
-            quint8 key;
-            // Iterate over variantMap and copy the values to inputMap, converting the keys to a quint8.
-            for (QVariantMap::const_iterator var_it=variantMap.cbegin(); var_it!=variantMap.cend(); var_it++) {
-                // Check whether the key has the correct format.
-                if (var_it.key().length() > 2) {
-                    qWarning() << "Could not understand index" << var_it.key() << "which should be a two digit integer.";
-                    continue;
-                }
-                // Parse the key as a hexadecimal integer.
-                key = quint8(var_it.key().toUShort(&ok, 16));
-                if (ok) {
-                    // If successful, add the (key, valu) pair to the input map.
-                    inputMap[key] = var_it->toStringList();
-                }
-                else {
-                    // If the key is not understood, this (key, value) pair will be ignored.
-                    qWarning() << "Could not understand index" << var_it.key() << "which should be a two digit integer.";
-                }
-            }
-        }
-        // Try to read tool selector configuration from global configuration file.
-        else {
-            // Enter group "tools" in global configuration.
-            settings.beginGroup("tools");
-            bool ok;
-            quint8 key;
-            QStringList const keys = settings.allKeys();
-            // Iterate over all keys in the "tools" group and copy the values to inputMap, converting the keys to a quint8.
-            for (QStringList::const_iterator key_it=keys.cbegin(); key_it!=keys.cend(); key_it++) {
-                // Check whether the key has the correct format.
-                if (key_it->length() > 2) {
-                    qWarning() << "Could not understand index" << *key_it << "which should be a two digit integer.";
-                    continue;
-                }
-                // Parse the key as a hexadecimal integer.
-                key = quint8(key_it->toUShort(&ok, 16));
-                if (ok) {
-                    // If successful, add the (key, valu) pair to the input map.
-                    inputMap[key] = settings.value(*key_it).toStringList();
-                }
-                else {
-                    // If the key is not understood, this (key, value) pair will be ignored.
-                    qWarning() << "Could not understand index" << *key_it << "which should be a two digit integer.";
-                }
-            }
-            // Exit group "tools" in global configuration.
-            settings.endGroup();
-        }
-        if (inputMap.isEmpty()) {
-            // If no configuration for tool selector is found, send the default configuration.
+        // If no configuration for tool selector is found, send the default configuration.
+        if (actions.isEmpty() && tools.isEmpty()) {
             // The default configuration contains 2 rows and 5 columns.
-            ctrlScreen->getToolSelector()->setTools(2, 5, defaultActionMap, defaultColorMap);
+            ctrlScreen->getToolSelector()->setTools(2, 5, defaultToolSelectorActions, defaultToolSelectorTools);
         }
         else {
             // A new tool selector configuraton has to be created.
-            // All actions need to be converted from action strings to KeyActions or ColoredDrawTools,
+            // All actions need to be converted from action strings to KeyActions or FullDrawTools,
             // and the number of necessary rows and columns needs to be fixed.
 
             /// Map of button positions to key actions.
             QMap<quint8, QList<KeyAction>> actionMap;
-            /// Map of button positions to colors for draw tools.
-            QMap<quint8, QColor> colorMap;
+            /// Map of button positions to draw tools.
+            QMap<quint8, FullDrawTool> toolMap;
             /// Number of rows
             quint8 nrows = 0;
             /// Number of columns
             quint8 ncols = 0;
-            // Iterate over all buttons.
-            for (QMap<quint8, QStringList>::const_iterator it=inputMap.cbegin(); it!=inputMap.cend(); it++) {
-                // Check whether nrows needs to be increased.
-                if (16*nrows <= it.key()) // this is equivalent to nrows <= it.key()/16 = row index of it.key()
-                    nrows = quint8(it.key()/16) + 1; // nrows needs to be at least max(row indices) + 1, because the indices start from 0.
-                // Check whethre ncols needs to be increased.
-                if (ncols <= it.key()%16) // it.key()%16 is the column index of it.key().
-                    ncols = it.key()%16 + 1; // ncols needs to be at least max(column indices) + 1, because the indices start from 0.
 
-                // The actions used by the tool selector are the same as those used for key bindings. Therefore we call them key actions.
-                // Interpret the key action strings as KeyActions or ColoredDrawTools.
-                actionMap[it.key()] = QList<KeyAction>();
-                // Iterate over all action strings associated with one button. Usually this is only one.
-                for (QStringList::const_iterator action_it=it->begin(); action_it!=it->cend(); action_it++) {
-                    // Try to convert the action string to a KeyAction using the keyActionMap.
-                    KeyAction const action = keyActionMap.value(action_it->toLower(), NoAction);
-                    if (action != NoAction) {
-                        // If successful: add the action to the actionMap.
-                        actionMap[it.key()].append(static_cast<KeyAction>(action));
-                    }
-                    else {
-                        // The key action string is not contained in keyActionMap.
-                        // Try to interpret it as a sequence "tool color", defining a drawing or highlighting tool and a color.
-                        QStringList split_action = action_it->toLower().split(' ');
-                        if (split_action.size() != 2) {
-                            // Key action strings which are not contained in keyActionMap must consist of exactly two words (tool and color).
-                            // If this is not the case, the key action will be ignored.
-                            qWarning() << "Could not understand action" << *action_it;
-                            continue;
-                        }
-                        // Convert the first word of the action string (which should be a tool) to a KeyAction.
-                        KeyAction const action = keyActionMap.value(split_action.first(), NoAction);
-                        if (action == NoAction) {
-                            // Interpreting the action string failed. This action will be ignored.
-                            qWarning() << "Could not understand action" << *action_it;
-                        }
-                        else {
-                            // Add the KeyAction to actionMap.
-                            actionMap[it.key()].append(static_cast<KeyAction>(action));
-                            // Add the color defined by the second word of the action string to the colorMap.
-                            colorMap[it.key()] = QColor(split_action[1]);
-                            // Check whether the color is valid and remove it from the colorMap if it is not.
-                            if (!colorMap[it.key()].isValid())
-                                colorMap.remove(it.key());
-                        }
-                    }
+            // Send key actions to control screen.
+            quint8 key;
+            bool ok;
+            // Iterate over variantMap and copy the values to inputMap, converting the keys to a quint8.
+            for (QMap<QString, QList<KeyAction>>::const_iterator it = actions.cbegin(); it != actions.cend(); it++) {
+                try {
+                    if (it.key().length() > 2)
+                        throw 0;
+                    key = quint8(it.key().toUShort(&ok, 16));
+                    if (!ok)
+                        throw 1;
+                    // Check whether nrows needs to be increased.
+                    if (16*nrows <= key) // this is equivalent to nrows <= key/16 = row index of key
+                        nrows = quint8(key/16) + 1; // nrows needs to be at least max(row indices) + 1, because the indices start from 0.
+                    // Check whethre ncols needs to be increased.
+                    if (ncols <= key%16) // key%16 is the column index of key.
+                        ncols = key%16 + 1; // ncols needs to be at least max(column indices) + 1, because the indices start from 0.
+                    // Initialize actionMap[key].
+                    actionMap[key] = QList<KeyAction>();
+                    // Iterate over all actions (refered to as "action string" in the following) defined for each key (usually this is only one).
+                    for (QList<KeyAction>::const_iterator action=it->cbegin(); action!=it->cend(); action++)
+                        actionMap[key].append(*action);
+                } catch (int) {
+                    // If the key is not understood, this (key, value) pair will be ignored.
+                    qWarning() << "Could not understand index" << it.key() << "which should be a two digit integer.";
+                }
+            }
+            // Send tools to control screen.
+            for (QMap<QString, FullDrawTool>::const_iterator it = tools.cbegin(); it != tools.cend(); it++) {
+                try {
+                    if (it.key().length() > 2)
+                        throw 0;
+                    key = quint8(it.key().toUShort(&ok, 16));
+                    if (!ok)
+                        throw 1;
+                    // Check whether nrows needs to be increased.
+                    if (16*nrows <= key) // this is equivalent to nrows <= key/16 = row index of key
+                        nrows = quint8(key/16) + 1; // nrows needs to be at least max(row indices) + 1, because the indices start from 0.
+                    // Check whethre ncols needs to be increased.
+                    if (ncols <= key%16) // key%16 is the column index of key.
+                        ncols = key%16 + 1; // ncols needs to be at least max(column indices) + 1, because the indices start from 0.
+                    toolMap[key] = *it;
+                } catch (int) {
+                    // If the key is not understood, this (key, value) pair will be ignored.
+                    qWarning() << "Could not understand index" << it.key() << "which should be a two digit integer.";
                 }
             }
             // Send tool selector configuration to ctrlScreen.
-            ctrlScreen->getToolSelector()->setTools(nrows, ncols, actionMap, colorMap);
+            ctrlScreen->getToolSelector()->setTools(nrows, ncols, actionMap, toolMap);
         }
     }
 
@@ -1127,21 +1084,12 @@ int main(int argc, char *argv[])
     // Currently slide labels must be integers.
     if (local.contains("page times")) {
         /// Map of slide labels to times.
-        QMap<int, quint32> map;
+        QMap<QString, quint32> map;
         /// QVariantMap containing all page times from the local configuration.
         QVariantMap variantMap = local["page times"].value<QVariantMap>();
         bool ok;
-        quint32 key;
         // Iterate over variantMap to copy its (key, value) pairs to map.
         for (QVariantMap::const_iterator it=variantMap.cbegin(); it!=variantMap.cend(); it++) {
-            // Convert the label to an integer.
-            // We use integers because if only a subset of the labels is known, it should be obvious where to insert other labels.
-            key = it.key().toInt(&ok);
-            // Non-integer labels will be ignored and lead to a warning.
-            if (!ok) {
-                qCritical() << "In local config / page times: Did not understand slide number" << it.key();
-                continue;
-            }
             // Try to convert the value to a number of ms.
             QStringList timeStringList = it->toString().split(":");
             if (timeStringList.length() == 1)
@@ -1155,10 +1103,10 @@ int main(int argc, char *argv[])
                 break;
             case 2:
                 // Expect value in minuts, convert to ms.
-                 time = 60000*timeStringList[0].toUInt(&ok);
-                 if (ok)
+                time = 60000*timeStringList[0].toUInt(&ok);
+                if (ok)
                     // Expect value in s, convert to ms.
-                     time += 1000*timeStringList[1].toDouble(&ok);
+                    time += 1000*timeStringList[1].toDouble(&ok);
                 break;
             case 3:
                 // Expect value in h, convert to ms.
@@ -1178,7 +1126,7 @@ int main(int argc, char *argv[])
                 continue;
             }
             // Add the (page, time) pair to map.
-            map.insert(key, time);
+            map.insert(it.key(), time);
         }
         // Send the timer configuration to ctrlScreen (which sends it to the timer)
         ctrlScreen->getTimer()->setTimeMap(map);
@@ -1286,11 +1234,6 @@ int main(int argc, char *argv[])
         value = qrealFromConfig(parser, local, settings, "autoplay", -2.);
         emit ctrlScreen->setAutostartDelay(value);
 
-        // Set magnification factor of magnifier tool.
-        // This should of course not have a boolean type.
-        value = qrealFromConfig(parser, local, settings, "magnification", 2., 20.);
-        ctrlScreen->setMagnification(value);
-
 #ifdef EMBEDDED_APPLICATIONS_ENABLED
         // Set autostart or delayed autostart of embedded applications.
         value = qrealFromConfig(parser, local, settings, "autostart-emb", -2.);
@@ -1300,6 +1243,10 @@ int main(int argc, char *argv[])
         // Set minimum sidebar width for control screen.
         value = qrealFromConfig(parser, local, settings, "sidebar-width", 0.2, 1.);
         ctrlScreen->setMinSidebarWidth(value);
+
+        // Set radius of eraser tool.
+        value  = qrealFromConfig(parser, local, settings, "eraser-size", 10, 1e5);
+        ctrlScreen->getPresentationSlide()->getPathOverlay()->setEraserSize(value);
     }
 
     // Settings with integer values
@@ -1354,21 +1301,6 @@ int main(int argc, char *argv[])
     }
     {
         quint16 value;
-
-        // Set sizes of draw tools.
-        // Sizes are given as radius or stroke width (see man page for more details).
-        value  = intFromConfig<quint16>(parser, local, settings, "magnifier-size", 120);
-        ctrlScreen->getPresentationSlide()->getPathOverlay()->setSize(Magnifier, value);
-        value  = intFromConfig<quint16>(parser, local, settings, "pointer-size", 10);
-        ctrlScreen->getPresentationSlide()->getPathOverlay()->setSize(Pointer, value);
-        value  = intFromConfig<quint16>(parser, local, settings, "torch-size", 80);
-        ctrlScreen->getPresentationSlide()->getPathOverlay()->setSize(Torch, value);
-        value  = intFromConfig<quint16>(parser, local, settings, "highlighter-width", 30);
-        ctrlScreen->getPresentationSlide()->getPathOverlay()->setSize(Highlighter, value);
-        value  = intFromConfig<quint16>(parser, local, settings, "pen-width", 3);
-        ctrlScreen->getPresentationSlide()->getPathOverlay()->setSize(Pen, value);
-        value  = intFromConfig<quint16>(parser, local, settings, "eraser-size", 10);
-        ctrlScreen->getPresentationSlide()->getPathOverlay()->setSize(Eraser, value);
 
         // Set number of glitter steps and size of glitter pixels in glitter slide transition.
         // More details can (hopefully) be found in the man page.
@@ -1569,7 +1501,7 @@ int main(int argc, char *argv[])
     if (local.contains("drawings")) {
         QString drawpath = local.value("drawings").toString();
         // Load the drawings.
-        ctrlScreen->loadDrawings(drawpath);
+        ctrlScreen->loadXML(drawpath);
     }
 
     // Start the execution loop.

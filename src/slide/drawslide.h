@@ -26,7 +26,6 @@
 #include "../pdf/singlerenderer.h"
 #include "../draw/pathoverlay.h"
 
-///
 class DrawSlide : public MediaSlide
 {
     Q_OBJECT
@@ -34,7 +33,7 @@ class DrawSlide : public MediaSlide
 
 public:
     explicit DrawSlide(QWidget* parent=nullptr);
-    explicit DrawSlide(PdfDoc const*const document, int const pageNumber, PagePart const part, QWidget* parent=nullptr);
+    explicit DrawSlide(PdfDoc const*const document, PagePart const part, QWidget* parent=nullptr);
     ~DrawSlide() override;
     PathOverlay* getPathOverlay() {return pathOverlay;}
     virtual bool isShowingTransition() const {return false;}

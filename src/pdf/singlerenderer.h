@@ -27,18 +27,19 @@
 class SingleRenderer : public BasicRenderer
 {
     Q_OBJECT
-    friend class PathOverlay;
 
 public:
     /// Constructor
     explicit SingleRenderer(PdfDoc const* doc, PagePart const part = FullPage, QObject* parent = nullptr): BasicRenderer(doc, part, parent) {}
     /// Destructor
-    ~SingleRenderer();
+    ~SingleRenderer() override;
 
     /// Get the cached image.
     QPixmap const getPixmap();
     /// Update cache. This will start cacheThread.
     void renderPage(int const page);
+    bool resultReady() const {return data != nullptr;}
+    int getPage() const {return page;}
 
 public slots:
     /// Get cached pages from cacheThread. Called when cacheThread finishes.

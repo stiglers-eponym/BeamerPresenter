@@ -167,10 +167,16 @@ enum KeyAction {
     /// Restore the latest deleted stroke.
     RedoDrawing,
 
-    /// Save drawings to file.
+    /// Save drawings to compressed XML file.
     SaveDrawings,
-    /// Load drawings to file.
+    /// Save drawings to uncompressed XML file.
+    SaveDrawingsUncompressed,
+    /// Load drawings from compressed or uncompressed XML file.
     LoadDrawings,
+    /// Save drawings to legacy binary file (deprecated!)
+    SaveDrawingsLegacy,
+    /// Save drawings to Xournal(++) compatibility XML format
+    SaveDrawingsXournal,
 
     // Hard coded keys used to directly pass raw key events.
     // Arrow keys
@@ -223,19 +229,20 @@ enum Renderer {
     RenderCustom = 1,
 };
 
-/// DrawTool combined with a QColor
-struct ColoredDrawTool {
+/// DrawTool combined with a QColor and a size.
+struct FullDrawTool {
     DrawTool tool;
     QColor color;
-};
-
-/// Default tools (ColoredDrawTools) for KeyActions
-static const QMap<KeyAction, ColoredDrawTool> actionToToolMap = {
-    {DrawPen, {Pen,Qt::black}},
-    {DrawHighlighter, {Highlighter,QColor(255,255,0,191)}},
-    {DrawPointer, {Pointer,QColor(255,0,0,191)}},
-    {DrawMagnifier, {Magnifier, QColor(64,64,64,64)}},
-    {DrawTorch, {Torch, QColor(0,0,0,64)}},
+    qreal size;
+    union {
+        qreal magnification;
+        struct {
+            quint16 alpha;
+            /// 1 for darken, -1 for lighten, 0 for source over
+            qint8 composition;
+            bool inner;
+        } pointer;
+    } extras = {0.};
 };
 
 #endif // ENUMERATES_H

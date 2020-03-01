@@ -149,11 +149,15 @@ void VideoWidget::bouncePalindromeVideo(qint64 const position)
         if (player->duration() - position < PALINDROME_BUFFER && player->playbackRate() > 0) {
             player->setPlaybackRate(-1.);
             player->play();
+#ifdef DEBUG_MULTIMEDIA
             qDebug() << "bounced palindrome video" << position;
+#endif
         }
         else if (position < PALINDROME_BUFFER && player->playbackRate() < 0) {
             player->setPlaybackRate(1.);
+#ifdef DEBUG_MULTIMEDIA
             qDebug() << "bounced palindrome video" << position;
+#endif
             player->setPosition(0);
             player->play();
         }

@@ -1,4 +1,4 @@
-.TH BeamerPresenter 1 "28 December 2019"
+.TH BeamerPresenter 1 "25 February 2020"
 .
 .SH NAME
 BeamerPresenter \- dual-screen PDF presenter
@@ -152,7 +152,7 @@ with the command
 Not available if embedded applications were disabled at compile time.
 .
 .TP
-.BI "\-v \-\-video-cache " boolean
+.BI "\-V \-\-video-cache " boolean
 If set to true, videos will be loaded to cache when reaching the slide before the one containing the video.
 .
 .TP
@@ -181,32 +181,8 @@ The actual frame rate can be higher, since the number of frames per second is pr
 Treat all scrolling signals as touch pads.
 .
 .TP
-.BI \-\-pen-width " integer"
-Line width of the pens in pixels.
-.
-.TP
-.BI \-\-highlighter-width " integer"
-Line width of the highlighter in pixels.
-.
-.TP
 .BI \-\-eraser-size " integer"
-Radius of the eraser in pixels.
-.
-.TP
-.BI \-\-magnifier-size " integer"
-Radius of the magnifier in pixels.
-.
-.TP
-.BI \-\-magnification " number"
-Magnification factor of the magnifier.
-.
-.TP
-.BI \-\-torch-size " integer"
-Radius of the torch in pixels.
-.
-.TP
-.BI \-\-pointer-size " integer"
-Radius of the pointer in pixels.
+Radius of the eraser in pixels. Sizes of other tools can be set in the (local or global) configuration file.
 .
 .
 .SH DEFAULT KEY BINDINGS
@@ -399,9 +375,11 @@ with the option
 .SS Draw in presentation
 You can draw in the presentation. You can access pens with customized colors and other tools by using key bindings or buttons on the control screen. Besides simple drawing with pens and highlighters you can emphasize parts of a slide using a torch, a magnifier and a pointer. In drawing mode all tools are synchronized between control screen and presentation screen.
 .PP
-As an experimental new feature you can now save and load drawings to a binary file format.
-This is done using the key actions
-.BR "save drawings" and "load drawings" .
+Drawings can be saved to compressed XML files.
+.RB "Saving and loading files is done using the key actions " save " and " load ". You can also save files uncompressed or in a (deprecated) legacy binary format using " "save uncompressed " and " save legacy" ". Note that the legacy binary format will not be supported in future versions of " BeamerPresenter .
+.RB "Files can be saved in an uncompressed XML format readable for Xournal++ using the key action " "save xournal" ". For importing drawings from Xournal or Xournal++ files you first need to uncompress them. For a give .xopp or .xoj file you can use
+.BI "gunzip -c " file.xopp " > " file.xml
+.RI "and then open " file.xml " in BeamerPresenter."
 .
 .
 .SH CONFIGURATION
@@ -410,7 +388,8 @@ This is done using the key actions
 
 Additionally to the global configuration you can specify a local configuration file, which contains settings in JSON format. The local configuration overrides the global configuration and can be overridden by command line arguments. Since this file is in JSON format, the syntax of groups of arguments has to be adapted.
 .RI "E.g. instead of \[dq]" "timer/time = color1" " ...\[dq] you should write " "\[dq]timer\[dq]: {\[dq]time1\[dq]: \[dq]color1\[dq], \[dq]time2\[dq]: \[dq]color2\[dq]}," .
-.RB "The local configuration file may additionally contain a map " "page times" ", which defines times at which you want to finish certain slides. It has the format " "slide number: time" " where " time " is in the format mm:ss. Here the slide numbers refer to page labels in the pdf, but may currently only take integer values."
+.RB "The local configuration file may additionally contain a map " "page times" ", which defines times at which you want to finish certain slides. It has the format " "slide label: time" " where " time " is in the format mm:ss and " "slide label" " is the label string (not the page number) in the pdf."
+.
 .
 .SH BUGS
 .

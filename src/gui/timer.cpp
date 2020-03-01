@@ -28,17 +28,20 @@ Timer::Timer(QWidget* parent) :
 {
     timerPalette = QPalette(this->palette());
     setText("0");
+#ifdef DISABLE_TOOL_TIP
+#else
     setToolTip("Time since beginning of the presentation in (h:)mm:ss");
+#endif
 }
 
 Timer::~Timer()
 {
-    timerEdit->disconnect();
     delete timer;
 }
 
-void Timer::setTimerWidget(QLineEdit* setTimerEdit)
+void Timer::init(QLineEdit* setTimerEdit, PdfDoc const* presentation)
 {
+    doc = presentation;
     timerEdit = setTimerEdit;
     timer = new QTimer(this);
     connect(timerEdit, &QLineEdit::editingFinished, this, &Timer::setDeadline);
@@ -46,7 +49,10 @@ void Timer::setTimerWidget(QLineEdit* setTimerEdit)
     connect(timer, &QTimer::timeout, this, &Timer::showTime);
     timer->start(update_gui_interval);
     timerPalette.setColor(QPalette::WindowText, Qt::gray);
+#ifdef DISABLE_TOOL_TIP
+#else
     timerEdit->setToolTip("Estimated time of the presentation in minutes or (h:)mm:ss");
+#endif
     setPalette(timerPalette);
 }
 
@@ -183,15 +189,21 @@ void Timer::updateColor()
     setPalette(timerPalette);
 }
 
-void Timer::setTimeMap(QMap<int, quint32> const& timeMap)
+void Timer::setTimeMap(QMap<QString, quint32> const& labelMap)
 {
-    this->timeMap = timeMap;
+    timeMap.clear();
+    int page;
+    for (QMap<QString, quint32>::const_iterator it = labelMap.cbegin(); it != labelMap.cend(); it++) {
+        page = doc->getNextSlideIndex(it.key());
+        if (page >= 0)
+            timeMap[page] = *it;
+    }
     currentPageTimeIt = timeMap.cbegin();
 }
 
-void Timer::setPage(int const pageLabel, int const pageNumber)
+void Timer::setPage(int const pageNumber)
 {
-    currentPageTimeIt = timeMap.upperBound(pageLabel - 1);
+    currentPageTimeIt = timeMap.upperBound(pageNumber);
     updateColor();
     if (log) {
         std::cout
@@ -199,11 +211,11 @@ void Timer::setPage(int const pageLabel, int const pageNumber)
                 << std::setw(10) << QTime::fromMSecsSinceStartOfDay(QDateTime::currentMSecsSinceEpoch() - startTime).toString("h:mm:ss").toStdString()
                 << "    entered page"
                 << std::setw(4) << pageNumber + 1
-                << std::setw(6) << "("+std::to_string(pageLabel)+").";
+                << std::setw(6) << "(" + doc->getLabel(pageNumber).toStdString() + ").";
         if (currentPageTimeIt != timeMap.cend())
             std::cout
                     << "    Target time for page"
-                    << std::setw(6) << "("+std::to_string(currentPageTimeIt.key())+")"
+                    << std::setw(6) << "(" + doc->getLabel(currentPageTimeIt.key() - 1).toStdString() + ")"
                     << " is"
                     << std::setw(9) << QTime::fromMSecsSinceStartOfDay(*currentPageTimeIt).toString("h:mm:ss").toStdString()
                     << ".";
@@ -234,7 +246,9 @@ void Timer::updateGuiInterval(quint16 const frames)
         update_gui_interval = 1000. / (999/update_gui_interval + 1) + .999999999;
     }
     timer->setInterval(update_gui_interval);
+#ifdef DEBUG_READ_CONFIG
     qDebug() << "Set update GUI inverval to" << update_gui_interval << ". Min delta was" << min_delta << "frames=" << frames;
+#endif
 }
 
 void Timer::setString(QString const& string)

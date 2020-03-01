@@ -29,35 +29,59 @@ class DrawPath
 {
 private:
     QVector<QPointF> path;
+    /// Rectangle containing all nodes of the path.
     QRectF outer = QRectF();
-    quint16 eraser_size = 10;
-    ColoredDrawTool tool;
+    FullDrawTool tool;
     quint32 hash = 0;
+
 public:
-    DrawPath(ColoredDrawTool const& tool, QPointF const& start, quint16 const eraser_size = 10);
-    DrawPath(ColoredDrawTool const& tool, QPointF* const points, int const number, quint16 const eraser_size = 10);
+    /// Created new empty path.
+    DrawPath(FullDrawTool const& tool, QPointF const& start);
+    /// Create new path with given points.
+    DrawPath(FullDrawTool const& tool, QPointF const* const points, int const number);
+    /// Deprecated: used in legacy file loading function.
+    DrawPath(FullDrawTool const& tool, QVector<float> const& vec, int const xshift, int const yshift, int const width, int const height);
+    /// Read path from string list. Used in file loading function.
+    DrawPath(FullDrawTool const& tool, QStringList const& stringList, QPoint const shift, qreal const scale);
     DrawPath(DrawPath const& old, QPointF const shift, double const scale);
     DrawPath(DrawPath const& old);
-    DrawPath(ColoredDrawTool const& tool, QVector<float> const& vec, int const xshift, int const yshift, int const width, int const height, quint16 const eraser_size);
-    ~DrawPath() {path.clear();}
-    void toIntVector(QVector<float>& vec, int const xshift, int const yshift, int const width, int const height) const;
-    void transform(QPointF const& shift, double const scale);
-    bool update(DrawPath const& new_path, QPointF const shift, double const scale);
-    void updateHash();
-    void setEraserSize(quint16 const size);
-    void clear() {path.clear(); outer=QRectF(); hash=0;}
-    quint32 getHash() const {return hash;}
-    bool isEmpty() const {return path.isEmpty();}
-    int number() const {return path.length();}
-    DrawTool getTool() const {return tool.tool;}
-    QColor const& getColor() const {return tool.color;}
-    QPointF const* data() const {return path.constData();}
-    QRectF const& getOuter() const {return outer;}
-    QVector<int> intersects(QPointF const& point) const;
-    void append(QPointF const& point);
-    DrawPath* split(int start, int end);
+
     DrawPath operator=(DrawPath const& old) {path.clear(); return DrawPath(old);}
     DrawPath operator=(DrawPath const&& old) {path.clear(); return DrawPath(old);}
+
+    ~DrawPath() {path.clear();}
+
+    /// Called when drawing ends: makes sure that a path contains at least two points such that it can be drawn.
+    void endDrawing();
+    /// Deprecated: convert path in vector of floates for legacy file saving function.
+    void toIntVector(QVector<float>& vec, int const xshift, int const yshift, int const width, int const height) const;
+    /// Export path to list of strings representing numbers.
+    /// The list contains (alternately) x and y coordinates in point (=inch/72).
+    void toText(QStringList& stringList, QPoint const shift, qreal const scale) const;
+    void transform(QPointF const& shift, double const scale);
+    /// Update path and return a rectangle containing the updated region.
+    QRect const update(DrawPath const& new_path, QPointF const shift, double const scale);
+    void updateHash();
+
+    quint32 getHash() const {return hash;}
+    bool isEmpty() const {return path.isEmpty();}
+    /// Number of nodes in path.
+    int number() const {return path.length();}
+    FullDrawTool const& getTool() const {return tool;}
+    QPointF const* data() const {return path.constData();}
+    /// Rectangle containing all nodes.
+    QRectF const& getOuter() const {return outer;}
+    /// Rectangle containing all nodes plus a distance of the stroke width.
+    QRectF const getOuterDrawing() const {return outer.adjusted(-tool.size/2-.5, -tool.size/2-.5, tool.size/2+.5, tool.size/2+.5);}
+    /// Return rectangle containing the last section of the stroke (last two points) as required for updating the screen.
+    QRect const getOuterLast() const;
+    /// Return all nodes in this path which are nearer to the given point than eraser_size.
+    QVector<int> intersects(QPointF const& point, qreal const eraser_size) const;
+
+    /// Append a new node to the path.
+    void append(QPointF const& point);
+    /// Extract all nodes from index start to index end as a separate path.
+    DrawPath* split(int start, int end);
 };
 
 #endif // DRAWPATH_H

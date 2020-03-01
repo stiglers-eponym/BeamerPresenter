@@ -22,6 +22,7 @@
 #include <QMainWindow>
 #include <QFileDialog>
 #include <QLabel>
+#include <QApplication>
 #include "../pdf/pdfdoc.h"
 #include "../gui/timer.h"
 #include "../gui/pagenumberedit.h"
@@ -87,9 +88,7 @@ public:
     /// Add (key, action) to key bindings.
     void setKeyMapItem(quint32 const key, KeyAction const action);
     /// Add switching to given draw tool to key bindings for given key.
-    void setToolForKey(quint32 const key, ColoredDrawTool tool) {tools[key] = tool;}
-    /// Set magnification factor for draw slides.
-    void setMagnification(qreal const mag);
+    void setToolForKey(quint32 const key, FullDrawTool const& tool);
     /// Set delay for multimedia content.
     void setAutostartDelay(qreal const timeout);
     /// Configure minimum frame time for animations created by showing slides in rapid succession.
@@ -101,8 +100,8 @@ public:
     /// GUI Timer object handling presentation time.
     Timer* getTimer() {return ui->label_timer;}
 
-    // Load drawings from file (also used only from main.cpp)
-    void loadDrawings(QString const& filename) {presentationScreen->slide->getPathOverlay()->loadDrawings(filename);}
+    /// Load drawings from file (used only from main.cpp)
+    void loadXML(QString const& filename) {presentationScreen->slide->getPathOverlay()->loadXML(filename, notes);}
 
     // Show or hide different widgets on the notes area.
     // This activates different modes: drawing, TOC, and overview mode.
@@ -192,7 +191,7 @@ private:
     /// Map of key codes (key code + modifiers) to lists of KeyActions.
     QMap<quint32, QList<KeyAction>>* keymap = new QMap<quint32, QList<KeyAction>>();
     /// Map of key codes (key code + modifiers) to drawing tools.
-    QMap<quint32, ColoredDrawTool> tools;
+    QMap<quint32, FullDrawTool> tools;
 
     // Variables
     /// Index of current page
@@ -250,14 +249,16 @@ public slots:
     void focusPageNumberEdit();
     /// Add sliders on control screen to control multimedia content.
     void addMultimediaSliders(int const n);
-    /// Clear cache.
-    void clearPresentationCache();
+    /// Resize presentation window: clear cache, update tool sizes.
+    void presentationResized();
     /// Show notes. This hides other widgets which can be shown above notes (TOC, overview, draw slide).
     void showNotes();
     /// Change cache size.
     void updateCacheSize(qint64 const diff) {cacheSize += diff;}
     /// Check whether cache threads finished.
     void cacheThreadFinished();
+    /// Send draw tool from tool selector to draw slide and presentation.
+    void distributeTools(FullDrawTool const& tool);
 
 signals:
     /// Send a new page number with or without starting a timer for the new slide.

@@ -1,7 +1,7 @@
-.TH beamerpresenter.conf 5 "28 December 2019"
+.TH beamerpresenter.conf 5 "25 February 2020"
 .
 .SH NAME
-beamerpresenter.conf - configuration file for BeamerPresenter
+beamerpresenter.conf \- configuration file for BeamerPresenter
 .
 .
 .SH DESCRIPTION
@@ -14,15 +14,16 @@ It can be configured using a file beamerpresenter.conf in
 The configuration defines key bindings, colors, buttons and default options for command line arguments.
 .
 .
+.
 .SH FORMAT
 .
-Values are assigned to keys using the usual syntax
+Values are assigned to keys using the syntax
 .IR key = value
 where each key value pair needs an own line.
 Instead of a single value some options support lists of values:
 .IR key = value1 , value2 , value3 .
 .RI "Some options can be set (activated) by just adding " key " to the config file without any value."
-Lines can be commented out using #. Commenting out parts of a line is not supported.
+Lines can be commented out using #. Commenting out parts of a line is not possible.
 
 In some cases the usual syntax is extended to groups of keys, reading
 .IR group / key = value .
@@ -34,235 +35,8 @@ An example configuration, which can be used as a template for setting up your ow
 or in /etc/beamerpresenter/beamerpresenter.conf (depending on your installation).
 .
 .
-.SH OPTIONS
 .
-.SH Key bindings
-.
-Key bindings are defined in the form
-
-.BI "keys/" "modifiers + key " = " action1" , " action2",
-.BR ... .
-
-Key names and modifiers are passed to QKeySequence, which converts them to key codes.
-.RI "Examples of valid key codes are " previous ", " shift+s ", and " ctrl+shift+x .
-
-Multiple actions can be passed to a single key code and should be separated by a comma. The actions are case insensitive. Possible actions are
-.
-.TP
-.B update cache
-Update cached slides if necessary.
-.
-.TP
-.BR "start embedded current slide" ", " "start embedded applications current page" ", ..."
-Start all embedded applications on the currently shown slide.
-Not available if embedded applications were disabled at compile time.
-.
-.TP
-.BR "start all embedded" " or " "start all embedded applications"
-Start all embedded applications on all slides.
-Not available if embedded applications were disabled at compile time.
-.
-.TP
-.BR "close embedded current slide" ", " "close embedded applications current page" ", ..."
-Try to terminate all embedded applications on the current slide.
-Not available if embedded applications were disabled at compile time.
-.
-.TP
-.BR "close all embedded " or " close all embedded applications"
-Try to terminate all embedded applications on all slides.
-Not available if embedded applications were disabled at compile time.
-.
-.TP
-.BR "go to" , " go to page" " or " "go to slide"
-Go to page (set focus to page number edit). This will make the control screen the active window.
-.
-.TP
-.BR "play pause multimedia " or " toggle multimedia"
-Play or pause all multimedia content on the current slide.
-.RB Analogous: " play multimedia " and " pause multimedia" .
-.
-.TP
-.BR "mute" , " unmute" , " toggle mute" , " mute presentation" , " mute notes" ", ..."
-Mute or unmute presentation, notes, or both.
-.
-.TP
-.B toggle cursor
-Toggle cursor visibility on the presentation screen.
-.RB Analogous: " show cursor " and " hide cursor" .
-.
-.TP
-.B toggle timer
-Pause or continue timer.
-.RB Analogous: " continue timer " and " pause timer" .
-.
-.TP
-.B reset timer
-Set elapsed time to 0.
-.
-.TP
-.B quit
-Quit.
-.
-.TP
-.B toggle overview
-Show or hide overview of all slides on the control screen.
-.RB Analogous: " show overview" .
-.
-.TP
-.B toggle TOC
-Show table of contents on the control screen.
-.RB Analogous: " show TOC" .
-.
-.TP
-.B hide overlays
-Hide TOC and overview to show notes or draw slide again.
-.
-.TP
-.B reload
-Check if the PDF files have changed and reload them if necessary.
-.
-.TP
-.B update
-Update layout, reload page and start or continue timer.
-.
-.TP
-.B previous
-Go to previous slide and start or continue timer.
-.
-.TP
-.B next
-Go to next slide and start or continue timer.
-.
-.TP
-.B previous current screen
-Show the previous slide only on the currently active screen.
-.
-.TP
-.B next current screen
-Show the next slide only on the currently active screen.
-.
-.TP
-.B previous skipping overlays
-Go to the previous slide until the page label changes. In beamer presentations: Go to the last overlay of the previous slide.
-.
-.TP
-.B next skipping overlays
-Go to the next slide until the page label changes. In beamer presentations: Go to the first overlay of the next slide.
-.
-.TP
-.B previous no transition
-Go to previous slide without a slide transition and start or continue timer.
-.
-.TP
-.B next no transition
-Go to next slide without a slide transition and start or continue timer.
-.
-.TP
-.B full screen
-Toggle full screen of the active window.
-.
-.TP
-.B sync from control screen
-Set page number of the presentation to the page number on the control screen and start or continue timer.
-.
-.TP
-.B sync from presentation screen
-Set page number of the control screen to the page number of the presentation. When browsing your notes, this will bring you back to the current slide.
-.
-.TP
-.B toggle draw mode
-Toggle drawing mode: draw in the presentation slide on the control screen. In this mode all tools are synchronized between presentation screen and control screen.
-.RB Analogous: "enter draw mode" = "draw mode " and "end draw mode" = "hide draw slide" .
-.
-.TP
-.B clear annotations
-Delete all drawings on the current page.
-.
-.TP
-.B hand tool
-Set the current draw tool or highlight tool to "no tool".
-.
-.TP
-.BI pen " <color>"
-Draw in the presentation with a pen of given color (given as a color name known to Qt, #rrggbb or #aarrggbb). Here the color argument is mandatory.
-.
-.TP
-.BI highlighter " [<color>]"
-Draw in the presentation with a highlighter. The default color is #c0ffff00 (yellow).
-.
-.TP
-.B eraser
-Erase strokes of pens and of the highlighter.
-.
-.TP
-.BI torch " [<color>]"
-Emphasize a region of the current slide with a torch. The rest of the presentation is colored with <color>. Use the #aarrggbb format to specify an alpha channel.
-.
-.TP
-.BI magnifier " [<color>]"
-Enlarge a region of the current slide with a magnifier.
-.
-.TP
-.BI pointer " [<color>]"
-Highlight a point on the slide with a pointer. The default color is #c0ff0000 (red).
-.
-.TP
-.B undo drawing
-Undo the last drawing (with pen or highlighter). Erasing can not be undone! Technically this just removes the last path.
-.
-.TP
-.B redo drawing
-Restore a previously undone path.
-.
-.TP
-.B save drawings
-Save drawings to a file. This opens a file dialog in which you specify an output file name.
-Note that saving and loading drawings is experimental and files may not be readable for later versions of BeamerPresenter!
-.
-.TP
-.B load drawings
-Load drawings from file. This opens a file dialog in which you select a file which was created using BeamerPresenter.
-Note that saving and loading drawings is experimental and files may not be readable for later versions of BeamerPresenter!
-.
-.
-.
-.SS Colors
-.
-.RI "Colors can be specified as name known to Qt5, an RGB value or an ARGB value in hexadecimal format, e.g. as " red ", " #ff0000 " or " #ffff0000 .
-In the configuration you can define the following colors.
-.TP
-.BR "presentation color" "=black"
-background color of the presentation window
-.
-.TP
-.BR "notes background color" "=gray"
-background color of the control screen
-.
-.TP
-.BR "notes text color" "=black"
-text color of the control screen
-.
-.TP
-.BI "timer/" time = color
-.
-The timer can change its color depending on the time relative to your target presentation time. In this form you can specify colors for specific times relative to the timeout. The color of the timer will be changed linearly between two such time points.
-.RI "Here " time " is the time interval (timeout - now) in seconds, e.g. " time=-60 " is one minute before you reach the timeout.
-.
-.
-.
-.SS Buttons
-.
-On the control screen there are some buttons, which can be used to select different drawing tools, to switch between drawing and notes mode, and for other useful actions.
-The buttons can be customized using the following configuration:
-.
-.TP
-.BI "tools/" xy = action
-maps an action to a button. x and y are integers between 0 and 9 (or between 0 and f in hexadecimal format) indicating row and column of the button.
-.IR action " can be any value as passed to a key binding."
-.
-.
-.
-.SS Default values for command line arguments
+.SH DEFAULT VALUES FOR COMMAND LINE ARGUMENTS
 .
 For each command line argument of the form
 .BI \-\- argument
@@ -409,7 +183,7 @@ This overwrites the default value for the command line argument
 .IR bool :
 If set to true, videos will be loaded to cache when reaching the slide before the one containing the video.
 This overwrites the default value for the command line argument
-.BR \-v " or " \-\-video-cache .
+.BR \-V " or " \-\-video-cache .
 .
 .TP
 .BR toc-depth =2
@@ -455,46 +229,268 @@ This always activates the command line argument
 .BR \-x " or " \-\-log .
 .
 .TP
-.BR pen-width =3
-.IR integer :
-Line width of pens in pixels, overwriting the default value for the command line argument
-.B \-\-pen-width .
-.
-.TP
-.BR highlighter-width =30
-.IR integer :
-Line width of highlighters in pixels, overwriting the default value for the command line argument
-.B \-\-highlighter-width .
-.
-.TP
 .BR eraser-size =10
 .IR integer :
 Radius of the eraser in pixels, overwriting the default value for the command line argument
 .B \-\-eraser-size .
 .
+.
+.
+.SS COLORS
+.
+.RI "Colors can be specified as name known to Qt5, an RGB value or an ARGB value in hexadecimal format, e.g. as " red ", " #ff0000 " or " #ffff0000 .
+In the configuration you can define the following colors.
 .TP
-.BR magnifier-size =120
-.IR integer :
-Radius of the magnifier in pixels, overwriting the default value for the command line argument
-.B \-\-magnifier-size .
+.BR "presentation color" "=black"
+background color of the presentation window
 .
 .TP
-.BR magnification =2.0
-.IR integer :
-Magnification factor of the magnifier, overwriting the default value for the command line argument
-.B \-\-magnification .
+.BR "notes background color" "=gray"
+background color of the control screen
 .
 .TP
-.BR torch-size =80
-.IR integer :
-Radius of the torch in pixels, overwriting the default value for the command line argument
-.B \-\-torch-size .
+.BR "notes text color" "=black"
+text color of the control screen
 .
 .TP
-.BR pointer-size =10
-.IR integer :
-Radius of pointers in pixels, overwriting the default value for the command line argument
-.B \-\-pointer-size .
+.BI "timer/" time = color
+.
+The timer can change its color depending on the time relative to your target presentation time. In this form you can specify colors for specific times relative to the timeout. The color of the timer will be changed linearly between two such time points.
+.RI "Here " time " is the time interval (timeout - now) in seconds, e.g. " time=-60 " is one minute before you reach the timeout.
+.
+.
+.
+.SH KEY BINDINGS
+.
+Keyboard shortcuts can be associated with a key using the following syntax:
+
+.BI "keys/" "modifiers + key " = " action1" , " action2" ", ..."
+
+Key names and modifiers are passed to QKeySequence, which converts them to key codes.
+.RI "Examples of valid key codes are " previous ", " shift+s ", and " ctrl+shift+x .
+
+Multiple actions can be passed to a single key code and should be separated by a comma. The actions are case insensitive.
+.RI "The " actions " can be key actions as listed below or define draw tools."
+An action defining a draw tool has the form
+.RI \[dq] "<tool> [color] [size]" \[dq]
+or
+.RI \[dq] "<tool> " color=" <color> " size=" <size> \[dq].
+.RI "Here " <color> " is a color name known to Qt and " <size> " is a floating point number. For the tool " Magnifier " an additional option " magnification " may be given to define the magnification factor as a floating point value."
+.
+.
+.SS Key actions
+.
+.TP
+.B update cache
+Update cached slides if necessary.
+.
+.TP
+.BR "start embedded current slide" ", " "start embedded applications current page" ", ..."
+Start all embedded applications on the currently shown slide.
+Not available if embedded applications were disabled at compile time.
+.
+.TP
+.BR "start all embedded" " or " "start all embedded applications"
+Start all embedded applications on all slides.
+Not available if embedded applications were disabled at compile time.
+.
+.TP
+.BR "close embedded current slide" ", " "close embedded applications current page" ", ..."
+Try to terminate all embedded applications on the current slide.
+Not available if embedded applications were disabled at compile time.
+.
+.TP
+.BR "close all embedded " or " close all embedded applications"
+Try to terminate all embedded applications on all slides.
+Not available if embedded applications were disabled at compile time.
+.
+.TP
+.BR "go to" , " go to page" " or " "go to slide"
+Go to page (set focus to page number edit). This will make the control screen the active window.
+.
+.TP
+.BR "play pause multimedia " or " toggle multimedia"
+Play or pause all multimedia content on the current slide.
+.RB Analogous: " play multimedia " and " pause multimedia" .
+.
+.TP
+.BR "mute" , " unmute" , " toggle mute" , " mute presentation" , " mute notes" ", ..."
+Mute or unmute presentation, notes, or both.
+.
+.TP
+.B toggle cursor
+Toggle cursor visibility on the presentation screen.
+.RB Analogous: " show cursor " and " hide cursor" .
+.
+.TP
+.B toggle timer
+Pause or continue timer.
+.RB Analogous: " continue timer " and " pause timer" .
+.
+.TP
+.B reset timer
+Set elapsed time to 0.
+.
+.TP
+.B quit
+Quit.
+.
+.TP
+.B toggle overview
+Show or hide overview of all slides on the control screen.
+.RB Analogous: " show overview" .
+.
+.TP
+.B toggle TOC
+Show table of contents on the control screen.
+.RB Analogous: " show TOC" .
+.
+.TP
+.B hide overlays
+Hide TOC and overview to show notes or draw slide again.
+.
+.TP
+.B reload
+Check if the PDF files have changed and reload them if necessary.
+.
+.TP
+.B update
+Update layout, reload page and start or continue timer.
+.
+.TP
+.B previous
+Go to previous slide and start or continue timer.
+.
+.TP
+.B next
+Go to next slide and start or continue timer.
+.
+.TP
+.B previous current screen
+Show the previous slide only on the currently active screen.
+.
+.TP
+.B next current screen
+Show the next slide only on the currently active screen.
+.
+.TP
+.B previous skipping overlays
+Go to the previous slide until the page label changes. In beamer presentations: Go to the last overlay of the previous slide.
+.
+.TP
+.B next skipping overlays
+Go to the next slide until the page label changes. In beamer presentations: Go to the first overlay of the next slide.
+.
+.TP
+.B previous no transition
+Go to previous slide without a slide transition and start or continue timer.
+.
+.TP
+.B next no transition
+Go to next slide without a slide transition and start or continue timer.
+.
+.TP
+.B full screen
+Toggle full screen of the active window.
+.
+.TP
+.B sync from control screen
+Set page number of the presentation to the page number on the control screen and start or continue timer.
+.
+.TP
+.B sync from presentation screen
+Set page number of the control screen to the page number of the presentation. When browsing your notes, this will bring you back to the current slide.
+.
+.TP
+.B toggle draw mode
+Toggle drawing mode: draw in the presentation slide on the control screen. In this mode all tools are synchronized between presentation screen and control screen.
+.RB Analogous: "enter draw mode" = "draw mode " and "end draw mode" = "hide draw slide" .
+.
+.TP
+.B clear annotations
+Delete all drawings on the current page.
+.
+.TP
+.B undo drawing
+Undo the last drawing (with pen or highlighter). Erasing can not be undone! Technically this just removes the last path.
+.
+.TP
+.B redo drawing
+Restore a previously undone path.
+.
+.TP
+.BR "save " or " save drawings"
+Save drawings to a compressed XML file. This opens a file dialog in which you can specify an output file path.
+The XML file is compressed using Qt's qCompress function. It can be uncompressed using zlib after removing the first four bytes, e.g. by using the command
+.RI "\[dq]tail -c+5 " file.bp " | zlib-flate -uncompress\[dq]."
+Note that saving and loading drawings is experimental and files may not be readable for later versions of BeamerPresenter!
+.
+.TP
+.BR "save uncompressed " or " save drawings uncompressed"
+Save drawings to an uncompressed XML file. This opens a file dialog in which you can specify an output file path.
+The XML file's root node contains nodes for each page with an own page label which contains annotations.
+The page nodes then contain one element for each stroke.
+.RI "These stokes have the properties " tool ", " color ", and " width " and contain as text a list of coordinates forming the stroke. The coordinates are given as alternating x and y floating point values in points (inch/72)."
+Note that saving and loading drawings is experimental and files may not be readable for later versions of BeamerPresenter!
+.
+.TP
+.BR "save xournal " or " save drawings xournal"
+Save drawings in an uncompressed XML file, which should be readable for Xournal(++). Note that this only aims at providing a compatibility layer and does not produce the same files as Xournal(++).
+.
+.TP
+.BR "save legacy " or " save drawings legacy"
+Save drawings to a legacy binary file. This opens a file dialog in which you can specify an output file path.
+.RB "Note that this file format will be " "unreadable for later versions of BeamerPresenter!"
+.
+.TP
+.B load drawings
+Load drawings from file. This opens a file dialog in which you can select a file which was created using BeamerPresenter.
+With this you can load compressed and uncompressed BeamerPresenter XML files as well as legacy binary files. However, legacy binary files will not be supported in later versions of BeamerPresenter.
+You can also open uncompressed Xournal or Xournal++ files. These files can be generated from normal (compressed) Xournal(++) files using gunzip.
+.
+.TP
+.B hand tool
+Set the current draw tool or highlight tool to "no tool".
+.
+.
+.SS Draw tools
+.
+.TP
+.BI pen " [color] [size=3]"
+Draw in the presentation with a pen of given color (given as a color name known to Qt, #rrggbb or #aarrggbb). The default color is black. Size is the stroke width.
+.
+.TP
+.BI highlighter " [color] [size=30]"
+Draw in the presentation with a highlighter. The default color is #c0ffff00 (yellow). Size is the stroke width.
+.
+.TP
+.B eraser [size]
+Erase strokes of pens and of the highlighter. Size is the radius of the disk around the cursor at which strokes (or more precisely nodes of strokes) will be deleted.
+.
+.TP
+.BI pointer " [color] [size=12] [alpha=128] [composition=darken] [inner=true]"
+Highlight a point on the slide with a pointer. The default color is #bfff0000 (red). Size is the diameter of the pointer.
+.RI "For better visibility of the pointer you can play with the options " alpha " and " compositoin ". By default, the pointer is best visible on a light background while dark text is still visible (" composition=darken "). For white text on dark background you should set " composition=lighten ". The " alpha " parameter (0...255) controls how much of the foreground text is still visible. The option " inner " defines whether a small non-transparent point is drawn in the center of the pointer."
+.
+.TP
+.BI torch " [color] [size=120]"
+Emphasize a region of the current slide with a torch. The rest of the presentation is colored with <color>. Use the #aarrggbb format to specify an alpha channel. Size is the radius of the highlighted disk.
+.
+.TP
+.BI magnifier " [color] [size=200] [magnification=2]"
+Enlarge a region of the current slide with a magnifier by the magnification factor. Size is the radius of the magnifier in pixels.
+.
+.
+.
+.SS BUTTONS
+.
+On the control screen there are some buttons, which can be used to select different drawing tools, to switch between drawing and notes mode, and for other useful actions.
+The buttons can be customized using a similar syntax as the key bindings:
+
+.BI "tools/" "xy " = " action1" , " action2" ", ..."
+
+.RI "Here " x " and " y " are integers between 0 and 9 (or between 0 and f in hexadecimal format) indicating row and column of the button. The actions use the same syntax as for key bindings."
+.
 .
 .
 .SH BUGS

@@ -21,6 +21,7 @@
 
 #include <QWidget>
 #include <QApplication>
+#include <QRegExp>
 #include "drawpath.h"
 #include "../pdf/singlerenderer.h"
 
@@ -38,19 +39,39 @@ public:
 
     void clearPageAnnotations();
     void clearAllAnnotations();
-    void setSize(DrawTool const tool, quint16 size);
 
     QMap<QString, QList<DrawPath*>> const& getPaths() const {return paths;}
-    ColoredDrawTool getTool() const {return tool;}
-    quint16 getSize(DrawTool const tool) const {return sizes[tool];}
+    FullDrawTool const& getTool() const {return tool;}
+    SingleRenderer* getEnlargedPageRenderer() {return enlargedPageRenderer;}
+
+    /// Deprecated
     void saveDrawings(QString const& filename, QString const& notefile = "") const;
+    /// Deprecated
     void loadDrawings(QString const& filename);
-    void setMagnification(qreal const mag);
+    /// Save drawings to compressed or uncompressed BeamerPresenter XML file.
+    void saveXML(QString const& filename, PdfDoc const* notedoc, bool const compress = true) const;
+    /// Save drawings to an XML file which should be readable for Xournal(++).
+    void saveXournal(QString const& filename) const;
+    /// Load drawings from compressed or uncompressed BeamerPresenter XML file.
+    /// This function also supports reading uncompressed Xournal(++) XML files.
+    void loadXML(QString const& filename, PdfDoc const* nodesDoc);
+
+    /// Set size of eraser (in point).
+    void setEraserSize(qreal const size) {eraserSize = size;}
+    /// Get size of eraser (in point).
+    qreal getEraserSize() const {return eraserSize;}
+    /// Draw pointer or torch.
     void drawPointer(QPainter& painter);
+    /// Move the last visible path to hidden paths.
     void undoPath();
+    /// Move the last hidden path to visible paths.
     void redoPath();
+    /// Reset cached pixmap of path overlays.
     void resetCache();
-    void drawPaths(QPainter& painter, QString const label, bool const animation=false, bool const toCache=false);
+    /// Draw paths to painter (starting from end_cache).
+    /// TODO: reorganize!
+    void drawPaths(QPainter& painter, QString const& label, QRegion const& region, bool const plain=false, bool const toCache=false);
+    /// Does the given rectangle have any overlap with a video?
     bool hasVideoOverlap(QRectF const& rect) const;
 
 protected:
@@ -58,33 +79,40 @@ protected:
     virtual void mousePressEvent(QMouseEvent* event) override;
     virtual void mouseReleaseEvent(QMouseEvent* event) override;
     virtual void mouseMoveEvent(QMouseEvent* event) override;
+    /// Resize this widget and rescale all paths.
     void rescale(qint16 const oldshiftx, qint16 const oldshifty, double const oldRes);
+    /// Erase paths at given point.
     void erase(QPointF const& point);
-    ColoredDrawTool tool = {NoTool, Qt::black};
+    /// Radius of eraser in pixel.
+    qreal eraserSize = 10.;
+    /// Current draw tool.
+    FullDrawTool tool = {NoTool, Qt::black, 0.};
+    /// Currently visible paths.
     QMap<QString, QList<DrawPath*>> paths;
+    /// Undisplayed paths which could be restored.
     QList<DrawPath*> undonePaths;
+    /// Current position of the pointer.
     QPointF pointerPosition = QPointF();
     /// Page enlarged by magnification factor: used for magnifier.
     QPixmap enlargedPage;
     /// Renderer for enlarged page: enables rendering of enlarged page in separate thread.
     SingleRenderer* enlargedPageRenderer = nullptr;
-    /// Sizes of tools.
-    QMap<DrawTool, quint16> sizes = {{Magnifier,120}, {Torch,80}, {Pointer,10}, {Highlighter,30}, {Pen,3}, {Eraser,10}};
-    /// Magnification factor for magnifier.
-    qreal magnification = 2.;
     /// Pixmap containing only paths.
     QPixmap pixpaths;
     /// Index of last path (of current slide) which is already rendered to pixpaths.
     int end_cache = -1;
+    /// Master slide to which this overlay is attached.
     DrawSlide const* master;
 
 public slots:
+    /// Update enlarged page (required for magnifier) if necessary.
+    /// The page is rendered in a separate thread.
     void updateEnlargedPage();
     void setPaths(QString const pagelabel, QList<DrawPath*> const& list, qint16 const refshiftx, qint16 const refshifty, double const refresolution);
     void setPathsQuick(QString const pagelabel, QList<DrawPath*> const& list, qint16 const refshiftx, qint16 const refshifty, double const refresolution);
     void setPointerPosition(QPointF const point, qint16 const refshiftx, qint16 const refshifty, double const refresolution);
-    void setTool(ColoredDrawTool const newtool);
-    void setTool(DrawTool const newtool, QColor const color=QColor()) {setTool({newtool, color});}
+    void setTool(FullDrawTool const& newtool, qreal const resolution=-1.);
+    void setTool(DrawTool const newtool, QColor const color=QColor(), qreal size=-1, qreal const resolution=-1.) {setTool({newtool, color, size}, resolution);}
     void updatePathCache();
     void relax();
     void togglePointerVisibility();
@@ -95,7 +123,7 @@ signals:
     void pointerPositionChanged(QPointF const point, qint16 const refshiftx, qint16 const refshifty, double const refresolution);
     void pathsChangedQuick(QString const pagelabel, QList<DrawPath*> const& list, qint16 const refshiftx, qint16 const refshifty, double const refresolution);
     void pathsChanged(QString const pagelabel, QList<DrawPath*> const& list, qint16 const refshiftx, qint16 const refshifty, double const refresolution);
-    void sendToolChanged(ColoredDrawTool const tool);
+    void sendToolChanged(FullDrawTool const tool, qreal const resolution);
     void sendUpdateEnlargedPage();
     void sendRelax();
     void sendUpdatePathCache();

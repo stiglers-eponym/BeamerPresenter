@@ -17,6 +17,15 @@
  */
 
 #include "controlscreen.h"
+#include "../names.h"
+
+#ifdef DISABLE_TOOL_TIP
+#else
+static const QString preview0_tooltip = "Preview of the current presentation slide";
+static const QString preview1_tooltip = "Preview of the next presentation slide";
+static const QString preview2_tooltip = "Preview of the next presentation slide but one";
+static const QString slider_tooltip = "Position of multimedia content on the presentation window";
+#endif
 
 // TODO: tidy up! reorganize signals, slots, events, ...
 
@@ -122,15 +131,13 @@ ControlScreen::ControlScreen(QString presentationPath, QString notesPath, PagePa
         // The old notes_widget (type MediaSlide) is not required anymore. It will be replaced by a DrawSlide object.
         delete ui->notes_widget;
         // Create the draw slide.
-        ui->notes_widget = new DrawSlide(presentation, 0, FullPage, this);
+        ui->notes_widget = new DrawSlide(presentation, FullPage, this);
         // ui->notes_widget can get focus.
         ui->notes_widget->setFocusPolicy(Qt::ClickFocus);
         // drawSlide equals notes_widget.
         drawSlide = static_cast<DrawSlide*>(ui->notes_widget);
 
         // Connect drawSlide to other widgets.
-        // Change draw tool
-        connect(ui->tool_selector, &ToolSelector::sendNewTool, drawSlide->getPathOverlay(), static_cast<void (PathOverlay::*)(const ColoredDrawTool)>(&PathOverlay::setTool));
         // Copy paths from draw slide to presentation slide and vice versa when drawing on one of the slides.
         // Copy paths after moving the mouse while drawing. This assumes that only the last path is changed or a new path is created.
         connect(drawSlide->getPathOverlay(), &PathOverlay::pathsChangedQuick, presentationScreen->slide->getPathOverlay(), &PathOverlay::setPathsQuick);
@@ -155,15 +162,21 @@ ControlScreen::ControlScreen(QString presentationPath, QString notesPath, PagePa
         // drawSlide should be muted, because it shows the same video content as the presentation slide.
         drawSlide->setMuted(true);
 
-        ui->current_slide->setToolTip("Preview of the next presentation slide");
-        ui->next_slide->setToolTip("Preview of the next presentation slide but one");
+#ifdef DISABLE_TOOL_TIP
+#else
+        ui->current_slide->setToolTip(preview1_tooltip);
+        ui->next_slide->setToolTip(preview2_tooltip);
+#endif
     }
     else {
         ui->notes_widget->setDoc(notes, static_cast<PagePart>(-pagePart));
         ui->notes_widget->overwriteCacheMap(new CacheMap(notes, static_cast<PagePart>(-pagePart), this));
 
-        ui->current_slide->setToolTip("Preview of the current presentation slide");
-        ui->next_slide->setToolTip("Preview of the next presentation slide");
+#ifdef DISABLE_TOOL_TIP
+#else
+        ui->current_slide->setToolTip(preview0_tooltip);
+        ui->next_slide->setToolTip(preview1_tooltip);
+#endif
     }
 
     // Send pdf documents to slide widgets on control screen.
@@ -211,7 +224,7 @@ ControlScreen::ControlScreen(QString presentationPath, QString notesPath, PagePa
 
     // Set up tool selector.
     // Tool selector can send new draw tools to the presentation slide.
-    connect(ui->tool_selector, &ToolSelector::sendNewTool, presentationScreen->slide->getPathOverlay(), static_cast<void (PathOverlay::*)(const ColoredDrawTool)>(&PathOverlay::setTool));
+    connect(ui->tool_selector, &ToolSelector::sendNewTool, this, &ControlScreen::distributeTools);
     // Tool selector can send KeyActions to control screen.
     connect(ui->tool_selector, &ToolSelector::sendAction, this, &ControlScreen::handleKeyAction);
 
@@ -233,10 +246,11 @@ ControlScreen::ControlScreen(QString presentationPath, QString notesPath, PagePa
     connect(presentationScreen->slide, &PreviewSlide::focusPageNumberEdit, this, &ControlScreen::focusPageNumberEdit);
 
     // For action links of type "presentation" (interpreted as full screen)
-    connect(ui->notes_widget,  &PreviewSlide::sendShowFullscreen, this, &ControlScreen::showFullScreen);
-    connect(ui->current_slide, &PreviewSlide::sendShowFullscreen, this, &ControlScreen::showFullScreen);
-    connect(ui->next_slide,    &PreviewSlide::sendShowFullscreen, this, &ControlScreen::showFullScreen);
-    connect(presentationScreen->slide, &PreviewSlide::sendShowFullscreen, this, &ControlScreen::showFullScreen);
+    // TODO: correct handling full screen.
+    //connect(ui->notes_widget,  &PreviewSlide::sendShowFullscreen, this, &ControlScreen::showFullScreen);
+    //connect(ui->current_slide, &PreviewSlide::sendShowFullscreen, this, &ControlScreen::showFullScreen);
+    //connect(ui->next_slide,    &PreviewSlide::sendShowFullscreen, this, &ControlScreen::showFullScreen);
+    //connect(presentationScreen->slide, &PreviewSlide::sendShowFullscreen, this, &ControlScreen::showFullScreen);
     connect(ui->notes_widget,  &PreviewSlide::sendShowFullscreen, presentationScreen, &PresentationScreen::showFullScreen);
     connect(ui->current_slide, &PreviewSlide::sendShowFullscreen, presentationScreen, &PresentationScreen::showFullScreen);
     connect(ui->next_slide,    &PreviewSlide::sendShowFullscreen, presentationScreen, &PresentationScreen::showFullScreen);
@@ -270,9 +284,9 @@ ControlScreen::ControlScreen(QString presentationPath, QString notesPath, PagePa
     connect(presentationScreen->slide, &PreviewSlide::sendCloseSignal, presentationScreen, &PresentationScreen::close);
     connect(presentationScreen->slide, &PreviewSlide::sendCloseSignal, this, &ControlScreen::close);
 
-    // Connect timer label to editable total duration.
+    // Connect timer label to presentation PDF and editable total duration.
     // The widget ui->edit_timer is completely controled by ui->label_timer.
-    ui->label_timer->setTimerWidget(ui->edit_timer);
+    ui->label_timer->init(ui->edit_timer, presentation);
     // Notify timer about new page numbers.
     connect(presentationScreen, &PresentationScreen::pageChanged, ui->label_timer, &Timer::setPage);
     // Send alert (time passed is larger than expected total duration).
@@ -286,7 +300,7 @@ ControlScreen::ControlScreen(QString presentationPath, QString notesPath, PagePa
     // Clock should show current time.
     ui->label_clock->setText(QTime::currentTime().toString("hh:mm:ss"));
     // Clock is updated by the same timer as ui->label_timer.
-    connect(ui->label_timer->timer, &QTimer::timeout, ui->label_clock, [&](){ui->label_clock->setText(QTime::currentTime().toString("hh:mm:ss"));});
+    connect(ui->label_timer->getTimer(), &QTimer::timeout, ui->label_clock, [&](){ui->label_clock->setText(QTime::currentTime().toString("hh:mm:ss"));});
 
     // Signals emitted by the page number editor.
     // Pressing return in page number editor changes the page in the presentation.
@@ -308,7 +322,7 @@ ControlScreen::ControlScreen(QString presentationPath, QString notesPath, PagePa
     connect(cacheTimer, &QTimer::timeout, this, &ControlScreen::updateCacheStep);
     // Send rendered pages from cache thread to control screen.
     // Clear presentation cache when presentation screen is resized.
-    connect(presentationScreen, &PresentationScreen::clearPresentationCacheRequest, this, &ControlScreen::clearPresentationCache);
+    connect(presentationScreen, &PresentationScreen::presentationResizeEvent, this, &ControlScreen::presentationResized);
 
     // Signals emitted by the TOC box (table of contents).
     // Send a destination in pdf (e.g. a section).
@@ -322,7 +336,10 @@ ControlScreen::ControlScreen(QString presentationPath, QString notesPath, PagePa
     // Exit overview box.
     connect(overviewBox, &OverviewBox::sendReturn, this, &ControlScreen::showNotes);
 
+#ifdef DISABLE_TOOL_TIP
+#else
     ui->text_number_slides->setToolTip("Total number of pages");
+#endif
 }
 
 ControlScreen::~ControlScreen()
@@ -351,21 +368,64 @@ ControlScreen::~ControlScreen()
     presentationScreen->disconnect();
     disconnect();
 
-    // Delete preview cache
+    // Clear preview cache.
     ui->current_slide->overwriteCacheMap(nullptr);
     ui->next_slide->overwriteCacheMap(nullptr);
-    previewCache->clearCache();
-    delete previewCacheX;
-    delete previewCache;
+    // Interrupt cache threads.
+    presentationScreen->slide->getCacheMap()->getCacheThread()->requestInterruption();
+    ui->notes_widget->getCacheMap()->getCacheThread()->requestInterruption();
+    if (previewCache != nullptr)
+        previewCache->getCacheThread()->requestInterruption();
+    if (previewCacheX != nullptr)
+        previewCacheX->getCacheThread()->requestInterruption();
+    SingleRenderer* singleRendererPresentation = presentationScreen->slide->getPathOverlay()->getEnlargedPageRenderer();
+    if (singleRendererPresentation != nullptr)
+        singleRendererPresentation->getCacheThread()->requestInterruption();
+    SingleRenderer* singleRendererDrawSlide = nullptr;
+    if (drawSlide != nullptr) {
+        singleRendererDrawSlide = drawSlide->getPathOverlay()->getEnlargedPageRenderer();
+        if (singleRendererDrawSlide != nullptr)
+            singleRendererDrawSlide->getCacheThread()->requestInterruption();
+    }
+    if (drawSlideCache != nullptr)
+        drawSlideCache->getCacheThread()->requestInterruption();
+
+    // Clear cache maps.
+    if (previewCache != nullptr)
+        previewCache->clearCache();
+    if (previewCacheX != nullptr)
+        previewCacheX->clearCache();
+    ui->notes_widget->getCacheMap()->clearCache();
+    if (drawSlideCache != nullptr)
+        drawSlideCache->clearCache();
+    presentationScreen->slide->getCacheMap()->clearCache();
+
+    // Wait for cache threads to finish.
+    if (previewCache != nullptr)
+        previewCache->getCacheThread()->wait(10000);
+    if (previewCacheX != nullptr)
+        previewCacheX->getCacheThread()->wait(10000);
+    if (singleRendererDrawSlide != nullptr)
+        singleRendererDrawSlide->getCacheThread()->wait(10000);
+    if (singleRendererPresentation != nullptr)
+        singleRendererPresentation->getCacheThread()->wait(10000);
+    if (drawSlideCache != nullptr)
+        drawSlideCache->getCacheThread()->wait(10000);
+    ui->notes_widget->getCacheMap()->getCacheThread()->wait(10000);
+    presentationScreen->slide->getCacheMap()->getCacheThread()->wait(10000);
+
     // Delete notes cache.
     delete ui->notes_widget->getCacheMap();
     ui->notes_widget->overwriteCacheMap(nullptr);
-
     // Delete notes pdf.
     if (notes != presentation)
         delete notes;
     // Delete keymap.
     delete keymap;
+
+    // Delete preview cache.
+    delete previewCacheX;
+    delete previewCache;
     // Delete draw slide.
     if (drawSlide != ui->notes_widget)
         delete drawSlide;
@@ -380,7 +440,9 @@ ControlScreen::~ControlScreen()
 
 void ControlScreen::recalcLayout(const int pageNumber)
 {
+#ifdef DEBUG_RENDERING
     qDebug() << "recalc layout" << size() << oldSize << pageNumber;
+#endif
     if (size() != oldSize) {
         // Delete preview cache
         previewCache->clearCache();
@@ -434,18 +496,15 @@ void ControlScreen::recalcLayout(const int pageNumber)
     // Geometry of TOC widget: same as of notes widgets, but with extra margins in horizontal direction.
     tocBox->setGeometry(int(0.1*(width()-sideWidth)), 0, int(0.8*(width()-sideWidth)), height());
 
-    // Adapt sizes of draw tools if necessary.
+    // Adapt size of draw slide if necessary.
     if (drawSlide != nullptr) {
         /// Scale of draw slide relative to presentation slide.
         qreal scale = drawSlide->getResolution() / presentationScreen->slide->getResolution();
-        if (scale < 0.)
+        if (scale < 1e-5)
             scale = 1.;
         // Set scaled tool sizes for draw slide.
-        drawSlide->getPathOverlay()->setSize(Pen, static_cast<quint16>(scale*presentationScreen->slide->getPathOverlay()->getSize(Pen)+0.5));
-        drawSlide->getPathOverlay()->setSize(Pointer, static_cast<quint16>(scale*presentationScreen->slide->getPathOverlay()->getSize(Pointer)+0.5));
-        drawSlide->getPathOverlay()->setSize(Highlighter, static_cast<quint16>(scale*presentationScreen->slide->getPathOverlay()->getSize(Highlighter)+0.5));
-        drawSlide->getPathOverlay()->setSize(Torch, static_cast<quint16>(scale*presentationScreen->slide->getPathOverlay()->getSize(Torch)));
-        drawSlide->getPathOverlay()->setSize(Magnifier, static_cast<quint16>(scale*presentationScreen->slide->getPathOverlay()->getSize(Magnifier)));
+        drawSlide->getPathOverlay()->setTool(presentationScreen->slide->getPathOverlay()->getTool(), presentationScreen->slide->getResolution());
+        drawSlide->getPathOverlay()->setEraserSize(scale*presentationScreen->slide->getPathOverlay()->getEraserSize());
         if (drawSlide != ui->notes_widget) {
             // Adapt geometry of draw slide: It should have the same geometry as the notes slide.
             drawSlide->setGeometry(ui->notes_widget->rect());
@@ -501,7 +560,10 @@ void ControlScreen::addMultimediaSliders(int const n)
         QSlider* slider = new QSlider(Qt::Horizontal, this);
         ui->overviewLayout->addWidget(slider);
         sliderList.append(slider);
-        slider->setToolTip("Position of multimedia content on the presentation window");
+#ifdef DISABLE_TOOL_TIP
+#else
+        slider->setToolTip(slider_tooltip);
+#endif
     }
     // Send the sliders to the presentation label, where they will be connected to multimedia objects.
     // The presentation label takes ownership of the sliders and will delete them when going to the next slide.
@@ -535,6 +597,9 @@ void ControlScreen::resetTimerAlert()
 void ControlScreen::renderPage(int const pageNumber, bool const full)
 {
     // Update all slide widgets on the control screen to show the given page.
+#ifdef DEBUG_RENDERING
+    qDebug() << "Render page" << pageNumber << full;
+#endif
 
     // Update currentPageNumber.
     // Negative page numbers are interpreted as signal for going to the last page.
@@ -660,7 +725,9 @@ void ControlScreen::updateCache()
         last_cached = currentPageNumber-1;
         first_delete = 0;
         last_delete = numberOfPages-1;
+#ifdef DEBUG_CACHE
         qDebug() << "Reset cache region" << first_delete << first_cached << currentPageNumber << last_cached << last_delete;
+#endif
     }
     else {
         // TODO: check whether this is necessary.
@@ -707,7 +774,9 @@ void ControlScreen::updateCacheStep()
     *    If cacheThreadsRunning==0, starts cacheTimer again.
     */
 
-    //qDebug() << "Update cache step" << cacheThreadsRunning << cacheSize << maxCacheSize << maxCacheNumber;
+#ifdef DEBUG_CACHE
+    qDebug() << "Update cache step" << cacheThreadsRunning << cacheSize << maxCacheSize << maxCacheNumber;
+#endif
 
     // TODO: improve this, make it more deterministic, avoid caching pages which will directly be freed again
     if (
@@ -729,7 +798,9 @@ void ControlScreen::updateCacheStep()
             || last_cached < currentPageNumber-1
             ) {
         cacheTimer->stop();
+#ifdef DEBUG_CACHE
         qDebug() << "Stopped cache timer" << first_delete << first_cached << currentPageNumber << last_cached << last_delete;
+#endif
         return;
     }
     // Free space if necessary
@@ -749,7 +820,9 @@ void ControlScreen::updateCacheStep()
         }
         if (last_cached > last_delete || first_cached < first_delete) {
             cacheTimer->stop();
+#ifdef DEBUG_CACHE
             qDebug() << "Stopped cache timer: need to reset cache region." << first_delete << first_cached << currentPageNumber << last_cached << last_delete;
+#endif
             return;
         }
     }
@@ -765,7 +838,9 @@ void ControlScreen::updateCacheStep()
         }
         else {
             cacheTimer->stop();
+#ifdef DEBUG_CACHE
             qDebug() << "Stopped cache timer" << first_delete << first_cached << currentPageNumber << last_cached << last_delete;
+#endif
             return;
         }
     }
@@ -779,7 +854,9 @@ void ControlScreen::updateCacheStep()
              && (maxCacheSize - cacheSize)*presentationScreen->slide->getCacheMap()->length() < 2*cacheSize
              ) {
         cacheTimer->stop();
+#ifdef DEBUG_CACHE
         qDebug() << "Stopped cache timer" << first_delete << first_cached << currentPageNumber << last_cached << last_delete;
+#endif
         return;
     }
     else {
@@ -804,13 +881,17 @@ bool ControlScreen::freeCachePage(const int page)
     if (cacheSize <= maxCacheSize && (maxCacheNumber >= numberOfPages || presentationScreen->slide->getCacheMap()->length() <= maxCacheNumber))
         return true;
     cacheSize -= presentationScreen->slide->getCacheMap()->clearPage(page);
+#ifdef DEBUG_CACHE
     qDebug() << "Freed page" << page << ". Cache size" << cacheSize << "B";
+#endif
     return false;
 }
 
 void ControlScreen::cachePage(const int page)
 {
+#ifdef DEBUG_CACHE
     qDebug() << "Cache page" << page << cacheThreadsRunning << cacheSize;
+#endif
     cacheTimer->stop();
     cacheThreadsRunning = 0;
     if (presentationScreen->slide->getCacheMap()->updateCache(page))
@@ -921,7 +1002,10 @@ void ControlScreen::keyPressEvent(QKeyEvent* event)
     if (tools.contains(key)) {
         presentationScreen->slide->getPathOverlay()->setTool(tools[key]);
         if (drawSlide != nullptr)
-            drawSlide->getPathOverlay()->setTool(tools[key]);
+            drawSlide->getPathOverlay()->setTool(tools[key], presentationScreen->slide->getResolution());
+#ifdef DEBUG_TOOL_ACTIONS
+        qDebug() << "set tool" << tools[key].tool << tools[key].color << tools[key].size << tools[key].extras.magnification;
+#endif
     }
     QMap<quint32, QList<KeyAction>>::iterator map_it = keymap->find(key);
     if (map_it == keymap->end())
@@ -940,13 +1024,22 @@ bool ControlScreen::handleKeyAction(KeyAction const action)
         case KeyAction::Right:
         case KeyAction::Tab:
             // TODO: manually handle key events?
+#ifdef DEBUG_KEY_ACTIONS
+            qDebug() << "Navigation event in TOC box" << action;
+#endif
             return true;
         case KeyAction::Up:
         case KeyAction::Left:
         case KeyAction::ShiftTab:
             // TODO: manually handle key events?
+#ifdef DEBUG_KEY_ACTIONS
+            qDebug() << "Navigation event in TOC box" << action;
+#endif
             return true;
         case KeyAction::Return:
+#ifdef DEBUG_KEY_ACTIONS
+            qDebug() << "Return event in TOC box" << action;
+#endif
             showNotes();
             return true;
         default:
@@ -958,35 +1051,62 @@ bool ControlScreen::handleKeyAction(KeyAction const action)
         case KeyAction::Left:
         case KeyAction::PreviousNotes:
         case KeyAction::ShiftTab:
+#ifdef DEBUG_KEY_ACTIONS
+            qDebug() << "Navigation event in overview box" << action;
+#endif
             overviewBox->moveFocusLeft();
             return true;
         case KeyAction::Right:
         case KeyAction::NextNotes:
         case KeyAction::Tab:
+#ifdef DEBUG_KEY_ACTIONS
+            qDebug() << "Navigation event in overview box" << action;
+#endif
             overviewBox->moveFocusRight();
             return true;
         case KeyAction::Down:
+#ifdef DEBUG_KEY_ACTIONS
+            qDebug() << "Navigation event in overview box" << action;
+#endif
             overviewBox->moveFocusDown();
             return true;
         case KeyAction::Up:
+#ifdef DEBUG_KEY_ACTIONS
+            qDebug() << "Navigation event in overview box" << action;
+#endif
             overviewBox->moveFocusUp();
             return true;
         case KeyAction::End:
+#ifdef DEBUG_KEY_ACTIONS
+            qDebug() << "Navigation event in overview box" << action;
+#endif
             overviewBox->setFocused(1073741823);
             return true;
         case KeyAction::First:
+#ifdef DEBUG_KEY_ACTIONS
+            qDebug() << "Navigation event in overview box" << action;
+#endif
             overviewBox->setFocused(0);
             return true;
         case KeyAction::Return:
+#ifdef DEBUG_KEY_ACTIONS
+            qDebug() << "Return event in overview box" << action;
+#endif
             emit sendNewPageNumber(overviewBox->getPage(), true);
             showNotes();
             return true;
         case KeyAction::Next:
+#ifdef DEBUG_KEY_ACTIONS
+            qDebug() << "Page change event in overview box" << action;
+#endif
             currentPageNumber = presentationScreen->getPageNumber() + 1;
             emit sendNewPageNumber(currentPageNumber, true);
             overviewBox->setFocused(currentPageNumber);
             break;
         case KeyAction::Previous:
+#ifdef DEBUG_KEY_ACTIONS
+            qDebug() << "Page change event in overview box" << action;
+#endif
             currentPageNumber = presentationScreen->getPageNumber() - 1;
             if (currentPageNumber >= 0)
                 emit sendNewPageNumber(currentPageNumber, false);
@@ -995,26 +1115,41 @@ bool ControlScreen::handleKeyAction(KeyAction const action)
             overviewBox->setFocused(currentPageNumber);
             break;
         case KeyAction::NextSkippingOverlays:
+#ifdef DEBUG_KEY_ACTIONS
+            qDebug() << "Page change event in overview box" << action;
+#endif
             currentPageNumber = presentation->getNextSlideIndex(presentationScreen->getPageNumber());
             emit sendNewPageNumber(currentPageNumber, true);
             overviewBox->setFocused(currentPageNumber);
             break;
         case KeyAction::PreviousSkippingOverlays:
+#ifdef DEBUG_KEY_ACTIONS
+            qDebug() << "Page change event in overview box" << action;
+#endif
             currentPageNumber = presentation->getPreviousSlideEnd(presentationScreen->getPageNumber());
             emit sendNewPageNumber(currentPageNumber, false);
             overviewBox->setFocused(currentPageNumber);
             break;
         case KeyAction::NextNotesSkippingOverlays:
+#ifdef DEBUG_KEY_ACTIONS
+            qDebug() << "Page change notes event in overview box" << action;
+#endif
             currentPageNumber = presentation->getNextSlideIndex(currentPageNumber);
             overviewBox->setFocused(currentPageNumber);
             break;
         case KeyAction::PreviousNotesSkippingOverlays:
+#ifdef DEBUG_KEY_ACTIONS
+            qDebug() << "Page change notes event in overview box" << action;
+#endif
             if (currentPageNumber > 0) {
                 currentPageNumber = presentation->getPreviousSlideEnd(currentPageNumber);
                 overviewBox->setFocused(currentPageNumber);
             }
             break;
         case KeyAction::PreviousNoTransition:
+#ifdef DEBUG_KEY_ACTIONS
+            qDebug() << "Page change event in overview box" << action;
+#endif
             currentPageNumber = presentationScreen->getPageNumber() - 1;
             presentationScreen->slide->disableTransitions();
             if (currentPageNumber >= 0)
@@ -1025,6 +1160,9 @@ bool ControlScreen::handleKeyAction(KeyAction const action)
             overviewBox->setFocused(currentPageNumber);
             break;
         case KeyAction::NextNoTransition:
+#ifdef DEBUG_KEY_ACTIONS
+            qDebug() << "Page change event in overview box" << action;
+#endif
             currentPageNumber = presentationScreen->getPageNumber() + 1;
             presentationScreen->slide->disableTransitions();
             emit sendNewPageNumber(currentPageNumber, true);
@@ -1038,6 +1176,9 @@ bool ControlScreen::handleKeyAction(KeyAction const action)
     // Handle any kind of action sent by a key binding or a button.
     switch (action) {
     case KeyAction::Next:
+#ifdef DEBUG_KEY_ACTIONS
+            qDebug() << "Page change event" << action;
+#endif
         currentPageNumber = presentationScreen->getPageNumber() + 1;
         ui->label_timer->continueTimer();
         emit sendNewPageNumber(currentPageNumber, true);
@@ -1045,6 +1186,9 @@ bool ControlScreen::handleKeyAction(KeyAction const action)
             showNotes();
         break;
     case KeyAction::Previous:
+#ifdef DEBUG_KEY_ACTIONS
+            qDebug() << "Page change event" << action;
+#endif
         currentPageNumber = presentationScreen->getPageNumber() - 1;
         if (currentPageNumber >= 0) {
             ui->label_timer->continueTimer();
@@ -1056,12 +1200,18 @@ bool ControlScreen::handleKeyAction(KeyAction const action)
         }
         break;
     case KeyAction::NextNotes:
+#ifdef DEBUG_KEY_ACTIONS
+            qDebug() << "Page change notes event" << action;
+#endif
         if (isVisible()) {
             renderPage(++currentPageNumber);
             showNotes();
         }
         break;
     case KeyAction::PreviousNotes:
+#ifdef DEBUG_KEY_ACTIONS
+            qDebug() << "Page change notes event" << action;
+#endif
         if (isVisible()) {
             if (currentPageNumber > 0)
                 renderPage(--currentPageNumber);
@@ -1069,6 +1219,9 @@ bool ControlScreen::handleKeyAction(KeyAction const action)
         }
         break;
     case KeyAction::NextSkippingOverlays:
+#ifdef DEBUG_KEY_ACTIONS
+            qDebug() << "Page change event" << action;
+#endif
         currentPageNumber = presentation->getNextSlideIndex(presentationScreen->getPageNumber());
         ui->label_timer->continueTimer();
         emit sendNewPageNumber(currentPageNumber, true);
@@ -1076,6 +1229,9 @@ bool ControlScreen::handleKeyAction(KeyAction const action)
             showNotes();
         break;
     case KeyAction::PreviousSkippingOverlays:
+#ifdef DEBUG_KEY_ACTIONS
+            qDebug() << "Page change event" << action;
+#endif
         currentPageNumber = presentation->getPreviousSlideEnd(presentationScreen->getPageNumber());
         ui->label_timer->continueTimer();
         emit sendNewPageNumber(currentPageNumber, false);
@@ -1083,6 +1239,9 @@ bool ControlScreen::handleKeyAction(KeyAction const action)
             showNotes();
         break;
     case KeyAction::NextNotesSkippingOverlays:
+#ifdef DEBUG_KEY_ACTIONS
+            qDebug() << "Page change event" << action;
+#endif
         if (isVisible()) {
             currentPageNumber = presentation->getNextSlideIndex(currentPageNumber);
             renderPage(currentPageNumber);
@@ -1090,6 +1249,9 @@ bool ControlScreen::handleKeyAction(KeyAction const action)
         }
         break;
     case KeyAction::PreviousNotesSkippingOverlays:
+#ifdef DEBUG_KEY_ACTIONS
+            qDebug() << "Page change event" << action;
+#endif
         if (isVisible()) {
             if (currentPageNumber > 0) {
                 currentPageNumber = presentation->getPreviousSlideEnd(currentPageNumber);
@@ -1099,6 +1261,9 @@ bool ControlScreen::handleKeyAction(KeyAction const action)
         }
         break;
     case KeyAction::PreviousNoTransition:
+#ifdef DEBUG_KEY_ACTIONS
+            qDebug() << "Page change event" << action;
+#endif
         currentPageNumber = presentationScreen->getPageNumber() - 1;
         presentationScreen->slide->disableTransitions();
         if (currentPageNumber >= 0) {
@@ -1111,6 +1276,9 @@ bool ControlScreen::handleKeyAction(KeyAction const action)
         presentationScreen->slide->enableTransitions();
         break;
     case KeyAction::NextNoTransition:
+#ifdef DEBUG_KEY_ACTIONS
+            qDebug() << "Page change event" << action;
+#endif
         currentPageNumber = presentationScreen->getPageNumber() + 1;
         ui->label_timer->continueTimer();
         presentationScreen->slide->disableTransitions();
@@ -1120,6 +1288,9 @@ bool ControlScreen::handleKeyAction(KeyAction const action)
             showNotes();
         break;
     case KeyAction::Update:
+#ifdef DEBUG_KEY_ACTIONS
+            qDebug() << "Update event" << action;
+#endif
         currentPageNumber = presentationScreen->getPageNumber();
         ui->label_timer->continueTimer();
         emit sendNewPageNumber(currentPageNumber, true); // TODO: what happens to duration if page is updated?
@@ -1127,49 +1298,79 @@ bool ControlScreen::handleKeyAction(KeyAction const action)
             showNotes();
         break;
     case KeyAction::LastPage:
+#ifdef DEBUG_KEY_ACTIONS
+            qDebug() << "Page change event" << action;
+#endif
         currentPageNumber = numberOfPages - 1;
         emit sendNewPageNumber(currentPageNumber, false);
         if (isVisible())
             showNotes();
         break;
     case KeyAction::FirstPage:
+#ifdef DEBUG_KEY_ACTIONS
+            qDebug() << "Page change event" << action;
+#endif
         currentPageNumber = 0;
         emit sendNewPageNumber(currentPageNumber, true);
         if (isVisible())
             showNotes();
         break;
     case KeyAction::UpdateCache:
+#ifdef DEBUG_KEY_ACTIONS
+            qDebug() << "Update cache event" << action;
+#endif
         updateCache();
         break;
 #ifdef EMBEDDED_APPLICATIONS_ENABLED
     case KeyAction::StartEmbeddedCurrentSlide:
+#ifdef DEBUG_KEY_ACTIONS
+            qDebug() << "Start embedded event" << action;
+#endif
         presentationScreen->slide->startAllEmbeddedApplications(presentationScreen->getPageNumber());
         //ui->notes_widget->startAllEmbeddedApplications(currentPageNumber);
         break;
     case KeyAction::StartAllEmbedded:
+#ifdef DEBUG_KEY_ACTIONS
+            qDebug() << "Start embedded event" << action;
+#endif
         startAllEmbeddedApplications();
         break;
     case KeyAction::CloseEmbeddedCurrentSlide:
     {
+#ifdef DEBUG_KEY_ACTIONS
+            qDebug() << "Close embedded event" << action;
+#endif
         presentationScreen->slide->closeEmbeddedApplications(presentationScreen->getPageNumber());
         ui->notes_widget->closeEmbeddedApplications(presentationScreen->getPageNumber());
     }
         break;
     case KeyAction::CloseAllEmbedded:
+#ifdef DEBUG_KEY_ACTIONS
+            qDebug() << "Close embedded event" << action;
+#endif
         presentationScreen->slide->closeAllEmbeddedApplications();
         ui->notes_widget->closeAllEmbeddedApplications();
         break;
 #endif
     case KeyAction::GoToPage:
+#ifdef DEBUG_KEY_ACTIONS
+            qDebug() << "To to page event" << action;
+#endif
         if (isVisible()) {
             showNotes();
             ui->text_current_slide->setFocus();
         }
         break;
     case KeyAction::PlayMultimedia:
+#ifdef DEBUG_KEY_ACTIONS
+            qDebug() << "Play multimedia event" << action;
+#endif
         presentationScreen->slide->startAllMultimedia();
         break;
     case KeyAction::PauseMultimedia:
+#ifdef DEBUG_KEY_ACTIONS
+            qDebug() << "Pause multimedia event" << action;
+#endif
         presentationScreen->slide->pauseAllMultimedia();
         if (drawSlide != nullptr)
             ui->notes_widget->pauseAllMultimedia();
@@ -1178,10 +1379,16 @@ bool ControlScreen::handleKeyAction(KeyAction const action)
         {
             bool running = ui->notes_widget->hasActiveMultimediaContent() || presentationScreen->slide->hasActiveMultimediaContent();
             if (running) {
+#ifdef DEBUG_KEY_ACTIONS
+            qDebug() << "Toggle multimedia event: pause" << action;
+#endif
                 presentationScreen->slide->pauseAllMultimedia();
                 ui->notes_widget->pauseAllMultimedia();
             }
             else {
+#ifdef DEBUG_KEY_ACTIONS
+            qDebug() << "Toggle multimedia event: play" << action;
+#endif
                 presentationScreen->slide->startAllMultimedia();
             }
         }
@@ -1189,6 +1396,9 @@ bool ControlScreen::handleKeyAction(KeyAction const action)
     case KeyAction::ToggleMuteAll:
     {
         bool mute = !presentationScreen->slide->isMuted();
+#ifdef DEBUG_KEY_ACTIONS
+        qDebug() << "Toggle mute event: mute=" << mute << action;
+#endif
         presentationScreen->slide->setMuted(mute);
         ui->notes_widget->setMuted(mute);
         if (drawSlide != nullptr && drawSlide != ui->notes_widget)
@@ -1197,92 +1407,171 @@ bool ControlScreen::handleKeyAction(KeyAction const action)
     }
     case KeyAction::ToggleMuteNotes:
         ui->notes_widget->setMuted(!ui->notes_widget->isMuted());
+#ifdef DEBUG_KEY_ACTIONS
+        qDebug() << "Toggle mute notes event: mute=" << ui->notes_widget->isMuted() << action;
+#endif
         if (drawSlide != nullptr && drawSlide != ui->notes_widget)
             drawSlide->setMuted(ui->notes_widget->isMuted());
         break;
     case KeyAction::ToggleMutePresentation:
         presentationScreen->slide->setMuted(!presentationScreen->slide->isMuted());
+#ifdef DEBUG_KEY_ACTIONS
+        qDebug() << "Toggle mute presentation event: mute=" << presentationScreen->slide->isMuted() << action;
+#endif
         break;
     case KeyAction::MuteAll:
+#ifdef DEBUG_KEY_ACTIONS
+        qDebug() << "Mute all event" << action;
+#endif
         presentationScreen->slide->setMuted(true);
         ui->notes_widget->setMuted(true);
         if (drawSlide != nullptr && drawSlide != ui->notes_widget)
             drawSlide->setMuted(true);
         break;
     case KeyAction::MuteNotes:
+#ifdef DEBUG_KEY_ACTIONS
+        qDebug() << "Mute notes event" << action;
+#endif
         ui->notes_widget->setMuted(true);
         if (drawSlide != nullptr && drawSlide != ui->notes_widget)
             drawSlide->setMuted(true);
         break;
     case KeyAction::MutePresentation:
+#ifdef DEBUG_KEY_ACTIONS
+        qDebug() << "Mute presentation event" << action;
+#endif
         presentationScreen->slide->setMuted(true);
         break;
     case KeyAction::UnmuteAll:
+#ifdef DEBUG_KEY_ACTIONS
+        qDebug() << "Unmute all event" << action;
+#endif
         presentationScreen->slide->setMuted(false);
         ui->notes_widget->setMuted(false);
         if (drawSlide != nullptr && drawSlide != ui->notes_widget)
             drawSlide->setMuted(false);
         break;
     case KeyAction::UnmuteNotes:
+#ifdef DEBUG_KEY_ACTIONS
+        qDebug() << "Unmute notes event" << action;
+#endif
         ui->notes_widget->setMuted(false);
         if (drawSlide != nullptr && drawSlide != ui->notes_widget)
             drawSlide->setMuted(false);
         break;
     case KeyAction::UnmutePresentation:
+#ifdef DEBUG_KEY_ACTIONS
+        qDebug() << "Unmute presentation event" << action;
+#endif
         presentationScreen->slide->setMuted(false);
         break;
     case KeyAction::ShowCursor:
+#ifdef DEBUG_KEY_ACTIONS
+        qDebug() << "Show cursor event" << action;
+#endif
         presentationScreen->slide->getPathOverlay()->showPointer();
         break;
     case KeyAction::HideCursor:
+#ifdef DEBUG_KEY_ACTIONS
+        qDebug() << "Hide cursor event" << action;
+#endif
         presentationScreen->slide->getPathOverlay()->hidePointer();
         break;
     case KeyAction::ToggleCursor:
+#ifdef DEBUG_KEY_ACTIONS
+        qDebug() << "Toggle cursor event" << action;
+#endif
         presentationScreen->slide->getPathOverlay()->togglePointerVisibility();
         break;
     case KeyAction::PlayPauseTimer:
+#ifdef DEBUG_KEY_ACTIONS
+        qDebug() << "Toggle timer event" << action;
+#endif
         ui->label_timer->toggleTimer();
         break;
     case KeyAction::ContinueTimer:
+#ifdef DEBUG_KEY_ACTIONS
+        qDebug() << "Continue timer event" << action;
+#endif
         ui->label_timer->continueTimer();
         break;
     case KeyAction::PauseTimer:
+#ifdef DEBUG_KEY_ACTIONS
+        qDebug() << "Pause timer event" << action;
+#endif
         ui->label_timer->pauseTimer();
         break;
     case KeyAction::ResetTimer:
+#ifdef DEBUG_KEY_ACTIONS
+        qDebug() << "Reset timer event" << action;
+#endif
         ui->label_timer->resetTimer();
         break;
     case KeyAction::ShowTOC:
+#ifdef DEBUG_KEY_ACTIONS
+        qDebug() << "Show TOC event" << action;
+#endif
         if (isVisible())
             showToc();
         break;
     case KeyAction::ToggleTOC:
-        if (tocBox->isVisible())
+        if (tocBox->isVisible()) {
+#ifdef DEBUG_KEY_ACTIONS
+            qDebug() << "Toggle TOC event: hide TOC" << action;
+#endif
             showNotes();
-        else if (isVisible())
+        }
+        else if (isVisible()) {
+#ifdef DEBUG_KEY_ACTIONS
+            qDebug() << "Toggle TOC event: show TOC" << action;
+#endif
             showToc();
+        }
         break;
     case KeyAction::ShowOverview:
+#ifdef DEBUG_KEY_ACTIONS
+        qDebug() << "Show overview event" << action;
+#endif
         if (isVisible())
             showOverview();
         break;
     case KeyAction::ToggleOverview:
-        if (overviewBox->isVisible())
+        if (overviewBox->isVisible()) {
+#ifdef DEBUG_KEY_ACTIONS
+            qDebug() << "Toggle overview event: hide overview" << action;
+#endif
             showNotes();
-        else if (isVisible())
+        }
+        else if (isVisible()) {
+#ifdef DEBUG_KEY_ACTIONS
+            qDebug() << "Toggle overview event: show overview" << action;
+#endif
             showOverview();
+        }
         break;
     case KeyAction::HideDrawSlide:
+#ifdef DEBUG_KEY_ACTIONS
+        qDebug() << "Hide draw slide event" << action;
+#endif
         if (isVisible())
             hideDrawSlide();
         break;
     case KeyAction::HideOverlays:
+#ifdef DEBUG_KEY_ACTIONS
+        qDebug() << "Hide overlays event" << action;
+#endif
         showNotes();
         break;
     case KeyAction::Reload:
+#ifdef DEBUG_KEY_ACTIONS
+        qDebug() << "Reload files event" << action;
+#endif
         reloadFiles();
         break;
     case KeyAction::SyncFromControlScreen:
+#ifdef DEBUG_KEY_ACTIONS
+        qDebug() << "Sync presentation event" << action;
+#endif
         if (isVisible()) {
             ui->label_timer->continueTimer();
             if (presentationScreen->slide->pageNumber() != currentPageNumber)
@@ -1292,6 +1581,9 @@ bool ControlScreen::handleKeyAction(KeyAction const action)
         }
         break;
     case KeyAction::SyncFromPresentationScreen:
+#ifdef DEBUG_KEY_ACTIONS
+        qDebug() << "Sync notes event" << action;
+#endif
         if (isVisible() && presentationScreen->getPageNumber() != currentPageNumber) {
             currentPageNumber = presentationScreen->getPageNumber();
             renderPage(currentPageNumber);
@@ -1299,70 +1591,144 @@ bool ControlScreen::handleKeyAction(KeyAction const action)
         }
         break;
     case KeyAction::FullScreen:
-        if (this->windowState() == Qt::WindowFullScreen)
-            showNormal();
+#ifdef DEBUG_KEY_ACTIONS
+        qDebug() << "Full screen event" << action;
+#endif
+        if (presentationScreen->windowState() == Qt::WindowFullScreen)
+            presentationScreen->showNormal();
         else
-            showFullScreen();
+            presentationScreen->showFullScreen();
         break;
     case KeyAction::Quit:
+#ifdef DEBUG_KEY_ACTIONS
+        qDebug() << "Close event" << action;
+#endif
         emit sendCloseSignal();
         close();
         break;
     case KeyAction::ClearAnnotations:
+#ifdef DEBUG_KEY_ACTIONS
+        qDebug() << "Clear event" << action;
+#endif
         presentationScreen->slide->getPathOverlay()->clearPageAnnotations();
         if (drawSlide != nullptr)
             drawSlide->getPathOverlay()->clearPageAnnotations();
         break;
     case KeyAction::DrawNone:
+#ifdef DEBUG_KEY_ACTIONS
+        qDebug() << "Set tool none event" << action;
+#endif
         presentationScreen->slide->getPathOverlay()->setTool(NoTool);
         if (drawSlide != nullptr)
             drawSlide->getPathOverlay()->setTool(NoTool);
         break;
     case KeyAction::DrawEraser:
-        presentationScreen->slide->getPathOverlay()->setTool(Eraser, QColor());
+#ifdef DEBUG_KEY_ACTIONS
+        qDebug() << "Set tool eraser event" << action;
+#endif
+        presentationScreen->slide->getPathOverlay()->setTool(Eraser);
         if (drawSlide != nullptr)
-            drawSlide->getPathOverlay()->setTool(Eraser, QColor());
+            drawSlide->getPathOverlay()->setTool(Eraser, presentationScreen->slide->getResolution());
         break;
     case KeyAction::DrawMode:
+#ifdef DEBUG_KEY_ACTIONS
+        qDebug() << "Draw mode event" << action;
+#endif
         if (isVisible())
             showDrawSlide();
         break;
     case KeyAction::ToggleDrawMode:
         if (isVisible()) {
-            if (drawSlide == nullptr || drawSlide->isHidden())
+            if (drawSlide == nullptr || drawSlide->isHidden()) {
+#ifdef DEBUG_KEY_ACTIONS
+                qDebug() << "Togge draw mode event: enter draw mode" << action;
+#endif
                 showDrawSlide();
-            else if (drawSlide != ui->notes_widget)
+            }
+            else if (drawSlide != ui->notes_widget) {
+#ifdef DEBUG_KEY_ACTIONS
+                qDebug() << "Togge draw mode event: exit draw mode" << action;
+#endif
                 hideDrawSlide();
+            }
         }
         break;
     case KeyAction::UndoDrawing:
+#ifdef DEBUG_KEY_ACTIONS
+        qDebug() << "Undo drawing event" << action;
+#endif
         presentationScreen->slide->getPathOverlay()->undoPath();
         break;
     case KeyAction::RedoDrawing:
+#ifdef DEBUG_KEY_ACTIONS
+        qDebug() << "Redo drawing event" << action;
+#endif
         presentationScreen->slide->getPathOverlay()->redoPath();
         break;
     case KeyAction::SaveDrawings:
         {
+#ifdef DEBUG_KEY_ACTIONS
+            qDebug() << "Save drawings event" << action;
+#endif
             QString const savePath = QFileDialog::getSaveFileName(this, "Save drawings");
+            if (!savePath.isEmpty())
+                presentationScreen->slide->getPathOverlay()->saveXML(savePath, notes);
+        }
+        break;
+    case KeyAction::SaveDrawingsXournal:
+        {
+#ifdef DEBUG_KEY_ACTIONS
+            qDebug() << "Save drawings event" << action;
+#endif
+            QString const savePath = QFileDialog::getSaveFileName(this, "Save drawings compatibility (Xournal)");
+            if (!savePath.isEmpty())
+                presentationScreen->slide->getPathOverlay()->saveXournal(savePath);
+        }
+        break;
+    case KeyAction::SaveDrawingsLegacy:
+        {
+#ifdef DEBUG_KEY_ACTIONS
+            qDebug() << "Save drawings event" << action;
+#endif
+            QString const savePath = QFileDialog::getSaveFileName(this, "Save drawings legacy (deprecated!)");
             if (!savePath.isEmpty())
                 presentationScreen->slide->getPathOverlay()->saveDrawings(savePath, notes->getPath());
         }
         break;
+    case KeyAction::SaveDrawingsUncompressed:
+        {
+#ifdef DEBUG_KEY_ACTIONS
+            qDebug() << "Save drawings event" << action;
+#endif
+            QString const savePath = QFileDialog::getSaveFileName(this, "Save drawings uncompressed");
+            if (!savePath.isEmpty())
+                presentationScreen->slide->getPathOverlay()->saveXML(savePath, notes, false);
+        }
+        break;
     case KeyAction::LoadDrawings:
         {
+#ifdef DEBUG_KEY_ACTIONS
+            qDebug() << "Load drawings event" << action;
+#endif
             QString const loadPath = QFileDialog::getOpenFileName(this, "Load drawings");
             if (!loadPath.isEmpty())
-                presentationScreen->slide->getPathOverlay()->loadDrawings(loadPath);
+                presentationScreen->slide->getPathOverlay()->loadXML(loadPath, notes);
         }
         break;
     case NoAction:
+#ifdef DEBUG_KEY_ACTIONS
+        qDebug() << "NoAction event" << action;
+#endif
         break;
     default:
-        ColoredDrawTool const tool = actionToToolMap.value(action, {InvalidTool, QColor()});
+        FullDrawTool const tool = defaultToolConfig.value(actionToToolMap.value(action, InvalidTool));
         if (tool.tool != InvalidTool) {
+#ifdef DEBUG_TOOL_ACTIONS
+        qDebug() << "set tool" << tool.tool << tool.color << tool.size << tool.extras.magnification;
+#endif
             presentationScreen->slide->getPathOverlay()->setTool(tool);
             if (drawSlide != nullptr)
-                drawSlide->getPathOverlay()->setTool(tool);
+                drawSlide->getPathOverlay()->setTool(tool, presentationScreen->slide->getResolution());
         }
         break;
     }
@@ -1374,7 +1740,9 @@ bool ControlScreen::handleKeyAction(KeyAction const action)
 void ControlScreen::startAllEmbeddedApplications()
 {
     // Start all embedded applications of the presentation on all pages.
+#ifdef DEBUG_MULTIMEDIA
     qDebug() << "Starting all embedded applications on all pages.";
+#endif
     for (int i=0; i<presentation->getDoc()->numPages(); i++) {
         presentationScreen->slide->initEmbeddedApplications(i);
         presentationScreen->slide->startAllEmbeddedApplications(i);
@@ -1410,14 +1778,24 @@ void ControlScreen::resizeEvent(QResizeEvent* event)
         drawSlide->renderPage(presentationScreen->getPageNumber(), false);
 }
 
-void ControlScreen::clearPresentationCache()
+void ControlScreen::presentationResized()
 {
-    // Stop rendering to cache and reset cached region
+    // Stop rendering to cache and reset cached region.
     cacheTimer->stop();
     first_cached = presentationScreen->getPageNumber();
     last_cached = first_cached-1;
     first_delete = 0;
     last_delete = numberOfPages-1;
+
+    // Adapt tool sizes.
+    if (drawSlide != nullptr) {
+        drawSlide->getPathOverlay()->setTool(presentationScreen->slide->getPathOverlay()->getTool(), presentationScreen->slide->getResolution());
+        /// Scale of draw slide relative to presentation slide.
+        qreal scale = drawSlide->getResolution() / presentationScreen->slide->getResolution();
+        if (scale < 1e-5)
+            scale = 1.;
+        drawSlide->getPathOverlay()->setEraserSize(scale*presentationScreen->slide->getPathOverlay()->getEraserSize());
+    }
 }
 
 void ControlScreen::setColor(const QColor bgColor, const QColor textColor)
@@ -1678,8 +2056,6 @@ void ControlScreen::showDrawSlide()
         drawSlide->setFocusPolicy(Qt::ClickFocus);
 
         // Connect drawSlide to other widgets.
-        // Change draw tool
-        connect(ui->tool_selector, &ToolSelector::sendNewTool, drawSlide->getPathOverlay(), static_cast<void (PathOverlay::*)(const ColoredDrawTool)>(&PathOverlay::setTool));
         // Copy paths from draw slide to presentation slide and vice versa when drawing on one of the slides.
         // Copy paths after moving the mouse while drawing. This assumes that only the last path is changed or a new path is created.
         connect(drawSlide->getPathOverlay(), &PathOverlay::pathsChangedQuick, presentationScreen->slide->getPathOverlay(), &PathOverlay::setPathsQuick);
@@ -1704,8 +2080,11 @@ void ControlScreen::showDrawSlide()
         connect(drawSlide, &PreviewSlide::sendNewPageNumber, presentationScreen, &PresentationScreen::receiveNewPage);
         connect(drawSlide, &PreviewSlide::sendNewPageNumber, this, [&](int const pageNumber){renderPage(pageNumber);});
 
-        ui->current_slide->setToolTip("Preview of the next presentation slide");
-        ui->next_slide->setToolTip("Preview of the next presentation slide but one");
+#ifdef DISABLE_TOOL_TIP
+#else
+        ui->current_slide->setToolTip(preview1_tooltip);
+        ui->next_slide->setToolTip(preview2_tooltip);
+#endif
     }
     else if (drawSlide == ui->notes_widget)
         return;
@@ -1731,11 +2110,14 @@ void ControlScreen::showDrawSlide()
     last_cached = currentPageNumber-1;
     first_delete = 0;
     last_delete = numberOfPages-1;
+#ifdef DEBUG_CACHE
     qDebug() << "Reset cache region" << first_delete << first_cached << currentPageNumber << last_cached << last_delete;
+#endif
     drawSlide->overwriteCacheMap(drawSlideCache);
-    // If notes slides have a different size than presentation slides, then change preview cache to previewCacheX.
+    // If notes slides have a different aspect ratio than presentation slides, then change preview cache to previewCacheX.
     // This cache is used because the geometry of the preview widgets will change.
-    if (presentation->getPageSize(currentPageNumber) != notes->getPageSize(currentPageNumber)) {
+    QSizeF const pressize = presentation->getPageSize(currentPageNumber), notessize = notes->getPageSize(currentPageNumber);
+    if (abs(pressize.width()*notessize.height() - pressize.height()*notessize.width()) > 1e-2) {
         if (previewCacheX == nullptr) {
             previewCacheX = new CacheMap(presentation, pagePart, this);
             connect(previewCacheX, &CacheMap::cacheSizeChanged, this, &ControlScreen::updateCacheSize);
@@ -1748,7 +2130,7 @@ void ControlScreen::showDrawSlide()
     // Render current page on drawSlide.
     drawSlide->renderPage(presentationScreen->slide->pageNumber(), false);
     // Set the current tool on drawSlide.
-    drawSlide->getPathOverlay()->setTool(presentationScreen->slide->getPathOverlay()->getTool());
+    drawSlide->getPathOverlay()->setTool(presentationScreen->slide->getPathOverlay()->getTool(), presentationScreen->slide->getResolution());
     // Hide the notes and show (and focus) the drawSlide.
     ui->notes_widget->hide();
     drawSlide->show();
@@ -1759,12 +2141,8 @@ void ControlScreen::showDrawSlide()
     qreal const res = presentationScreen->slide->getResolution();
     /// Relative size of the draw slide compared to the presentation slide.
     qreal const scale = drawSlide->getResolution() / res;
-    // Set tool sizes on the draw slide. Sizes are scaled such that drawings look like on the presentation slide.
-    drawSlide->getPathOverlay()->setSize(Pen, static_cast<quint16>(scale*presentationScreen->slide->getPathOverlay()->getSize(Pen)+0.5));
-    drawSlide->getPathOverlay()->setSize(Pointer, static_cast<quint16>(scale*presentationScreen->slide->getPathOverlay()->getSize(Pointer)+0.5));
-    drawSlide->getPathOverlay()->setSize(Highlighter, static_cast<quint16>(scale*presentationScreen->slide->getPathOverlay()->getSize(Highlighter)+0.5));
-    drawSlide->getPathOverlay()->setSize(Torch, static_cast<quint16>(scale*presentationScreen->slide->getPathOverlay()->getSize(Torch)));
-    drawSlide->getPathOverlay()->setSize(Magnifier, static_cast<quint16>(scale*presentationScreen->slide->getPathOverlay()->getSize(Magnifier)));
+    // Set eraser size on the draw slide.
+    drawSlide->getPathOverlay()->setEraserSize(scale*presentationScreen->slide->getPathOverlay()->getEraserSize());
     // Get the current page label.
     QString const label = presentationScreen->slide->getPage()->label();
     // Load existing drawings from the presentation screen for the current page on drawSlide.
@@ -1786,8 +2164,11 @@ void ControlScreen::hideDrawSlide()
         drawSlide->overwriteCacheMap(nullptr);
         delete drawSlide;
         drawSlide = nullptr;
-        ui->current_slide->setToolTip("Preview of the current presentation slide");
-        ui->next_slide->setToolTip("Preview of the next presentation slide");
+#ifdef DISABLE_TOOL_TIP
+#else
+        ui->current_slide->setToolTip(preview0_tooltip);
+        ui->next_slide->setToolTip(preview1_tooltip);
+#endif
     }
     ui->notes_widget->show();
     ui->notes_widget->setFocus();
@@ -1802,13 +2183,6 @@ void ControlScreen::hideDrawSlide()
         ui->next_slide->overwriteCacheMap(previewCache);
     }
     renderPage(currentPageNumber);
-}
-
-void ControlScreen::setMagnification(const qreal mag)
-{
-    presentationScreen->slide->getPathOverlay()->setMagnification(mag);
-    if (drawSlide != nullptr)
-        drawSlide->getPathOverlay()->setMagnification(mag);
 }
 
 void ControlScreen::setAutostartDelay(const qreal timeout)
@@ -1849,4 +2223,25 @@ void ControlScreen::interruptCacheProcesses(const unsigned long time)
             drawSlideCache->getCacheThread()->exit();
         presentationScreen->slide->getCacheMap()->getCacheThread()->exit();
     }
+}
+
+void ControlScreen::setToolForKey(quint32 const key, FullDrawTool const& tool)
+{
+    tools[key] = tool;
+    if (tool.tool == Magnifier && tool.extras.magnification < 1e-12)
+        tools[key].extras.magnification = defaultToolConfig[Magnifier].extras.magnification;
+    if (tool.size <= 1e-12)
+        tools[key].size = defaultToolConfig[tool.tool].size;
+    if (!tool.color.isValid())
+        tools[key].color = defaultToolConfig[tool.tool].color;
+}
+
+void ControlScreen::distributeTools(FullDrawTool const& tool)
+{
+#ifdef DEBUG_TOOL_ACTIONS
+    qDebug() << "set tool from tool selector" << tool.tool << tool.color << tool.size << tool.extras.magnification;
+#endif
+    presentationScreen->slide->getPathOverlay()->setTool(tool);
+    if (drawSlide != nullptr)
+        drawSlide->getPathOverlay()->setTool(tool, presentationScreen->slide->getResolution());
 }

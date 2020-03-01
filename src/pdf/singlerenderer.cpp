@@ -22,7 +22,10 @@ SingleRenderer::~SingleRenderer()
 {
     cacheThread->requestInterruption();
     cacheThread->wait(10000);
-    cacheThread->exit();
+    if (cacheThread->isRunning()) {
+        cacheThread->terminate();
+        cacheThread->wait(10000);
+    }
     delete cacheThread;
     delete data;
 }
@@ -36,12 +39,10 @@ void SingleRenderer::receiveBytes()
 
 void SingleRenderer::renderPage(const int page)
 {
-    if (page != this->page) {
-        delete data;
-        data = nullptr;
-        cacheThread->setPage(page);
-        cacheThread->start();
-    }
+    delete data;
+    data = nullptr;
+    cacheThread->setPage(page);
+    cacheThread->start();
 }
 
 QPixmap const SingleRenderer::getPixmap()

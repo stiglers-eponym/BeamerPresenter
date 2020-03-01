@@ -18,12 +18,23 @@
 
 #include "pathoverlay.h"
 #include "../slide/drawslide.h"
+#include "../names.h"
 
 /// This function is required for sorting and searching in a QMap.
-bool operator<(ColoredDrawTool tool1, ColoredDrawTool tool2)
+bool operator<(FullDrawTool tool1, FullDrawTool tool2)
 {
+    if (tool1.tool < tool2.tool)
+        return true;
+    if (tool1.tool > tool2.tool)
+        return false;
+    if (tool1.size < tool2.size)
+        return true;
+    if (tool1.size > tool2.size)
+        return false;
     // TODO: Does operaror<(QRgb, QRgb) together with == define a total order?
-    return (tool1.tool<tool2.tool || (tool1.tool==tool2.tool && tool1.color.rgb()<tool2.color.rgb()) );
+    if (tool1.color.rgb() < tool2.color.rgb())
+        return true;
+    return false;
 }
 
 
@@ -70,10 +81,13 @@ void PathOverlay::clearPageAnnotations()
     }
 }
 
-void PathOverlay::paintEvent(QPaintEvent*)
+void PathOverlay::paintEvent(QPaintEvent* event)
 {
     if (master->isShowingTransition())
         return;
+#ifdef DEBUG_PAINT_EVENTS
+    qDebug() << "paint path overlays" << this;
+#endif
     QPainter painter(this);
     painter.setCompositionMode(QPainter::CompositionMode_SourceOver);
     if (end_cache >= 0)
@@ -81,11 +95,31 @@ void PathOverlay::paintEvent(QPaintEvent*)
     if (master->page == nullptr)
         return;
     painter.setRenderHint(QPainter::Antialiasing);
-    drawPaths(painter, master->page->label());
+    drawPaths(painter, master->page->label(), event->region());
     switch (tool.tool) {
     case Pointer:
-        painter.setCompositionMode(QPainter::CompositionMode_Darken);
-        painter.setPen(QPen(tool.color, sizes[Pointer], Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin));
+        if (tool.extras.pointer.alpha > 0 && tool.extras.pointer.composition != 0) {
+            if (tool.extras.pointer.composition == 1)
+                painter.setCompositionMode(QPainter::CompositionMode_Lighten);
+            else
+                painter.setCompositionMode(QPainter::CompositionMode_Darken);
+            QColor color = tool.color;
+            color.setAlpha(tool.extras.pointer.alpha);
+            painter.setPen(QPen(color, tool.size, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin));
+            painter.drawPoint(pointerPosition);
+        }
+        if (tool.extras.pointer.inner) {
+            painter.setCompositionMode(QPainter::CompositionMode_SourceOver);
+            painter.setPen(QPen(tool.color, tool.size/3, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin));
+            painter.drawPoint(pointerPosition);
+        }
+        if (tool.extras.pointer.composition == 1)
+            painter.setCompositionMode(QPainter::CompositionMode_Darken);
+        else if (tool.extras.pointer.composition == -1)
+            painter.setCompositionMode(QPainter::CompositionMode_Lighten);
+        else
+            painter.setCompositionMode(QPainter::CompositionMode_SourceOver);
+        painter.setPen(QPen(tool.color, tool.size, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin));
         painter.drawPoint(pointerPosition);
         break;
     case Torch:
@@ -94,7 +128,7 @@ void PathOverlay::paintEvent(QPaintEvent*)
             QPainterPath rectpath;
             rectpath.addRect(master->shiftx, master->shifty, master->pixmap.width(), master->pixmap.height());
             QPainterPath circpath;
-            circpath.addEllipse(pointerPosition, sizes[Torch], sizes[Torch]);
+            circpath.addEllipse(pointerPosition, tool.size, tool.size);
             painter.fillPath(rectpath-circpath, tool.color);
         }
         break;
@@ -103,18 +137,21 @@ void PathOverlay::paintEvent(QPaintEvent*)
             painter.setCompositionMode(QPainter::CompositionMode_SourceOver);
             painter.setClipping(true);
             QPainterPath path;
-            path.addEllipse(pointerPosition, sizes[Magnifier], sizes[Magnifier]);
+            path.addEllipse(pointerPosition, tool.size, tool.size);
             painter.setClipPath(path, Qt::ReplaceClip);
-            painter.drawPixmap(QRectF(pointerPosition.x()-sizes[Magnifier], pointerPosition.y()-sizes[Magnifier], 2*sizes[Magnifier], 2*sizes[Magnifier]),
+            painter.drawPixmap(QRectF(pointerPosition.x()-tool.size, pointerPosition.y()-tool.size, 2*tool.size, 2*tool.size),
                               enlargedPage,
-                              QRectF(magnification*pointerPosition.x() - sizes[Magnifier], magnification*pointerPosition.y() - sizes[Magnifier], 2*sizes[Magnifier], 2*sizes[Magnifier]));
+                              QRectF(tool.extras.magnification*pointerPosition.x() - tool.size, tool.extras.magnification*pointerPosition.y() - tool.size, 2*tool.size, 2*tool.size));
             painter.setPen(QPen(tool.color, 2));
-            painter.drawEllipse(pointerPosition, sizes[Magnifier], sizes[Magnifier]);
+            painter.drawEllipse(pointerPosition, tool.size, tool.size);
         }
         break;
     default:
         break;
     }
+#ifdef DEBUG_PAINT_EVENTS
+    qDebug() << "end paint path overlays" << this;
+#endif
 }
 
 void PathOverlay::rescale(qint16 const oldshiftx, qint16 const oldshifty, double const oldRes)
@@ -123,17 +160,26 @@ void PathOverlay::rescale(qint16 const oldshiftx, qint16 const oldshifty, double
     enlargedPage = QPixmap();
     delete enlargedPageRenderer;
     enlargedPageRenderer = nullptr;
+    eraserSize *= master->getResolution()/oldRes;
     QPointF shift = QPointF(master->shiftx, master->shifty) - master->resolution/oldRes*QPointF(oldshiftx, oldshifty);
     for (QMap<QString, QList<DrawPath*>>::iterator page_it = paths.begin(); page_it != paths.end(); page_it++)
         for (QList<DrawPath*>::iterator path_it = page_it->begin(); path_it != page_it->end(); path_it++)
             (*path_it)->transform(shift, master->resolution/oldRes);
 }
 
-void PathOverlay::setTool(const ColoredDrawTool newtool)
+void PathOverlay::setTool(FullDrawTool const& newtool, qreal const resolution)
 {
     tool = newtool;
+    if (tool.tool == Magnifier && tool.extras.magnification < 1e-12)
+        tool.extras.magnification = defaultToolConfig[Magnifier].extras.magnification;
+    if (tool.size <= 1e-12)
+        tool.size = defaultToolConfig[tool.tool].size;
+    if (!tool.color.isValid())
+        tool.color = defaultToolConfig[tool.tool].color;
+    if (resolution > 0)
+        tool.size *= master->resolution/resolution;
     // TODO: fancy cursors
-    if (cursor() == Qt::BlankCursor && tool.tool != Pointer)
+    if (cursor().shape() == Qt::BlankCursor && tool.tool != Pointer)
         setMouseTracking(false);
     if (tool.tool == Torch) {
         enlargedPage = QPixmap();
@@ -149,7 +195,8 @@ void PathOverlay::setTool(const ColoredDrawTool newtool)
     }
     else if (tool.tool == Magnifier) {
         pointerPosition = QPointF();
-        if (enlargedPage.isNull())
+        // Update enlarged page if necessary.
+        if (enlargedPage.isNull() || abs(tool.extras.magnification*width() - enlargedPage.width()) > 1 )
             updateEnlargedPage();
     }
     else
@@ -161,6 +208,9 @@ void PathOverlay::updatePathCache()
 {
     if (master->page == nullptr)
         return;
+#ifdef DEBUG_DRAWING
+    qDebug() << "update path cache" << end_cache << this;
+#endif
     if (paths[master->page->label()].isEmpty()) {
         end_cache = -1;
         if (!pixpaths.isNull())
@@ -176,90 +226,79 @@ void PathOverlay::updatePathCache()
         QPainter painter;
         painter.begin(&pixpaths);
         painter.setRenderHint(QPainter::Antialiasing);
-        drawPaths(painter, master->page->label(), false, true);
+        drawPaths(painter, master->page->label(), QRegion(rect()), false, true);
     }
 }
 
-void PathOverlay::setSize(DrawTool const tool, quint16 size)
+void PathOverlay::drawPaths(QPainter &painter, QString const& label, QRegion const& region, bool const plain, bool const toCache)
 {
-    if (size < 1)
-        size = 1;
-    if (tool == Eraser) {
-        for (QMap<QString, QList<DrawPath*>>::iterator page_it = paths.begin(); page_it != paths.end(); page_it++)
-            for (QList<DrawPath*>::iterator path_it=page_it->begin(); path_it!=page_it->end(); path_it++)
-                (*path_it)->setEraserSize(size);
-    }
-    sizes[tool] = size;
-}
-
-void PathOverlay::drawPaths(QPainter &painter, QString const label, bool const animation, bool const toCache)
-{
-    // TODO: reorganize the different conditions (especially animation)
-    if (animation)
-        painter.setClipRect(master->shiftx, master->shifty, width()-2*master->shiftx, height()-2*master->shifty);
+#ifdef DEBUG_DRAWING
+    qDebug() << "draw paths" << label << plain << toCache << end_cache << this;
+#endif
+    // TODO: reorganize the different conditions (especially plain)
 
     // Draw edges of the slide: If they are not drawn explicitly, they can be transparent.
     // Drawing with the highlighter on transparent edges can look ugly.
     painter.setCompositionMode(QPainter::CompositionMode_DestinationOver);
-    painter.drawPixmap(master->shiftx, master->shifty, width(), 1, master->pixmap, 0, 0, width(), 1);
-    painter.drawPixmap(master->shiftx, height() - master->shifty - 1, width(), 1, master->pixmap, 0, master->pixmap.height()-1, width(), 1);
-    painter.drawPixmap(master->shiftx, master->shifty, 1, height(), master->pixmap, 0, 0, 1, height());
-    painter.drawPixmap(width() - master->shiftx - 1, master->shifty, 1, height(), master->pixmap, master->pixmap.width()-1, 0, 1, height());
 
     // Draw the paths.
     if (paths.contains(label)) {
         QList<DrawPath*>::const_iterator path_it = paths[label].cbegin();
-        if (!animation) {
+        if (!plain) {
             // If end_cache >= 0: some paths have been drawn already. Skip them.
             if (label == master->page->label() && end_cache > 0)
                 path_it += end_cache;
         }
         // Iterate over all remaining paths.
         for (; path_it!=paths[label].cend(); path_it++) {
-            switch ((*path_it)->getTool()) {
-            case Pen:
-                painter.setCompositionMode(QPainter::CompositionMode_SourceOver);
-                painter.setPen(QPen((*path_it)->getColor(), sizes[Pen]));
-                painter.drawPolyline((*path_it)->data(), (*path_it)->number());
-                break;
-            case Highlighter:
-            {
-                if (!animation) {
-                    // Highlighter needs a background to draw on (because of CompositionMode_Darken).
-                    // Drawing this background is only reasonable if there is no video widget in the background.
-                    // Check this.
-                    QRectF outer = (*path_it)->getOuter();
-                    if (hasVideoOverlap(outer)) {
-                        if (toCache) {
-                            end_cache = path_it - paths[label].cbegin();
-                            qDebug() << "Stopped caching paths:" << end_cache;
-                            return;
+            if (region.intersects((*path_it)->getOuterDrawing().toAlignedRect())) {
+                FullDrawTool const& tool = (*path_it)->getTool();
+                switch (tool.tool) {
+                case Pen:
+                    painter.setCompositionMode(QPainter::CompositionMode_SourceOver);
+                    painter.setPen(QPen(tool.color, tool.size, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin));
+                    painter.drawPolyline((*path_it)->data(), (*path_it)->number());
+                    break;
+                case Highlighter:
+                {
+                    if (!plain) {
+                        // Highlighter needs a background to draw on (because of CompositionMode_Darken).
+                        // Drawing this background is only reasonable if there is no video widget in the background.
+                        // Check this.
+                        QRect const outer = (*path_it)->getOuterDrawing().toAlignedRect();
+                        if (hasVideoOverlap(outer)) {
+                            if (toCache) {
+                                end_cache = path_it - paths[label].cbegin();
+#ifdef DEBUG_DRAWING
+                                qDebug() << "Stopped caching paths:" << end_cache;
+#endif
+                                return;
+                            }
+                        }
+                        else {
+                            // Draw the background form master->pixmap.
+                            painter.setCompositionMode(QPainter::CompositionMode_DestinationOver);
+                            painter.drawPixmap(outer, master->pixmap, outer.translated(-master->shiftx, -master->shifty));
+                            if (
+                                    (master->shiftx > 0 && ( outer.left() < master->shiftx || outer.right() > master->shiftx + master->pixmap.width() ) )
+                                    || (master->shifty > 0 && ( outer.top() < master->shifty || outer.bottom() > master->shifty + master->pixmap.height() ) )
+                                 ) {
+                                painter.fillRect(outer, QBrush(master->parentWidget()->palette().base()));
+                            }
                         }
                     }
-                    else {
-                        // Draw the background form master->pixmap.
-                        painter.setClipRect(master->shiftx, master->shifty, width()-2*master->shiftx, height()-2*master->shifty);
-                        painter.setCompositionMode(QPainter::CompositionMode_DestinationOver);
-                        outer.setSize(outer.size() + (sizes[Highlighter]-sizes[Eraser])*QSizeF(.51,.51));
-                        outer.setTopLeft(outer.topLeft() - (sizes[Highlighter]-sizes[Eraser])*QPointF(.51,.51));
-                        painter.drawPixmap(outer, master->pixmap, QRectF(outer.x()-master->shiftx, outer.y()-master->shifty, outer.width(), outer.height()));
-                    }
+                    // Draw the highlighter path.
+                    painter.setCompositionMode(QPainter::CompositionMode_Darken);
+                    painter.setPen(QPen(tool.color, tool.size, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin));
+                    painter.drawPolyline((*path_it)->data(), (*path_it)->number());
                 }
-                // Draw the highlighter path.
-                painter.setCompositionMode(QPainter::CompositionMode_Darken);
-                painter.setPen(QPen((*path_it)->getColor(), sizes[Highlighter], Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin));
-                painter.drawPolyline((*path_it)->data(), (*path_it)->number());
-                if (!animation)
-                    painter.setClipRect(rect());
-            }
-                break;
-            default:
-                break;
+                    break;
+                default:
+                    break;
+                }
             }
         }
     }
-    if (animation)
-        painter.setClipRect(rect());
     if (toCache)
         end_cache = paths[master->page->label()].length();
 }
@@ -269,7 +308,7 @@ bool PathOverlay::hasVideoOverlap(QRectF const& rect) const
     if (master->videoPositions.isEmpty())
         return false;
     for (auto pos: master->videoPositions) {
-        if (pos.right() > rect.left() && pos.left() < rect.right() && pos.top() < rect.bottom() && pos.bottom() > rect.top())
+        if (rect.intersects(pos))
             return true;
     }
     return false;
@@ -289,7 +328,7 @@ void PathOverlay::mousePressEvent(QMouseEvent *event)
         case Highlighter:
             if (!paths.contains(master->page->label()))
                 paths[master->page->label()] = QList<DrawPath*>();
-            paths[master->page->label()].append(new DrawPath(tool, event->localPos(), sizes[Eraser]));
+            paths[master->page->label()].append(new DrawPath(tool, event->localPos()));
             break;
         case Eraser:
             erase(event->localPos());
@@ -321,6 +360,7 @@ void PathOverlay::mousePressEvent(QMouseEvent *event)
 
 void PathOverlay::mouseReleaseEvent(QMouseEvent *event)
 {
+    // TODO: Handle case that mouse is pressed during slide change. Currently this leads to unexpected behavior.
     if (master->page == nullptr)
         return;
     switch (event->button())
@@ -348,6 +388,12 @@ void PathOverlay::mouseReleaseEvent(QMouseEvent *event)
             break;
         case Pen:
         case Highlighter:
+            if (!paths.contains(master->page->label()) || paths[master->page->label()].isEmpty())
+                break;
+            paths[master->page->label()].last()->endDrawing();
+            emit pathsChangedQuick(master->page->label(), paths[master->page->label()], master->shiftx, master->shifty, master->resolution);
+            update();
+            [[clang::fallthrough]];
         case Eraser:
             updatePathCache();
             emit sendUpdatePathCache();
@@ -372,14 +418,16 @@ void PathOverlay::mouseMoveEvent(QMouseEvent* event)
     if (master->page == nullptr)
         return;
     if (tool.tool == Pointer) {
+        QRegion region = QRegion(pointerPosition.x()-tool.size, pointerPosition.y()-tool.size, 2*tool.size+2, 2*tool.size+2);
         pointerPosition = event->localPos();
+        region += QRect(pointerPosition.x()-tool.size, pointerPosition.y()-tool.size, 2*tool.size+2, 2*tool.size+2);
         emit pointerPositionChanged(pointerPosition, master->shiftx, master->shifty, master->resolution);
-        update();
+        update(region);
     }
     switch (event->buttons())
     {
     case Qt::NoButton:
-        if (cursor() != Qt::BlankCursor) {
+        if (cursor().shape() != Qt::BlankCursor) {
             if (master->hoverLink(event->pos()))
                 setCursor(Qt::PointingHandCursor);
             else
@@ -393,7 +441,7 @@ void PathOverlay::mouseMoveEvent(QMouseEvent* event)
         case Highlighter:
             if (!paths[master->page->label()].isEmpty()) {
                 paths[master->page->label()].last()->append(event->localPos());
-                update();
+                update(paths[master->page->label()].last()->getOuterLast());
                 emit pathsChangedQuick(master->page->label(), paths[master->page->label()], master->shiftx, master->shifty, master->resolution);
             }
             break;
@@ -402,14 +450,18 @@ void PathOverlay::mouseMoveEvent(QMouseEvent* event)
             break;
         case Torch:
         case Magnifier:
+        {
+            QRegion region = QRegion(pointerPosition.x()-tool.size, pointerPosition.y()-tool.size, 2*tool.size+2, 2*tool.size+2);
             pointerPosition = event->localPos();
-            update();
+            region += QRect(pointerPosition.x()-tool.size, pointerPosition.y()-tool.size, 2*tool.size+2, 2*tool.size+2);
+            update(region);
             emit pointerPositionChanged(pointerPosition, master->shiftx, master->shifty, master->resolution);
             break;
+        }
         case Pointer:
             break;
         default:
-            if (cursor() != Qt::BlankCursor) {
+            if (cursor().shape() != Qt::BlankCursor) {
                 if (master->hoverLink(event->pos()))
                     setCursor(Qt::PointingHandCursor);
                 else
@@ -429,13 +481,13 @@ void PathOverlay::erase(const QPointF &point)
     if (master->page == nullptr || paths[master->page->label()].isEmpty())
         return;
     QList<DrawPath*>& path_list = paths[master->page->label()];
-    int const oldsize=path_list.size();
-    bool changed = false;
+    int const oldsize = path_list.size();
+    QRegion updateRegion;
     for (int i=0; i<oldsize; i++) {
-        QVector<int> splits = path_list[i]->intersects(point);
+        QVector<int> splits = path_list[i]->intersects(point, tool.tool == Eraser ? tool.size : eraserSize);
         if (splits.isEmpty())
             continue;
-        changed = true;
+        updateRegion += path_list[i]->getOuterDrawing().toAlignedRect();
         if (splits.first() > 1)
             path_list.insert(i+1, path_list[i]->split(0, splits.first()-1));
         for (int s=0; s<splits.size()-1; s++) {
@@ -452,17 +504,20 @@ void PathOverlay::erase(const QPointF &point)
     for (int i=0; i<path_list.size();) {
         if (path_list[i] == nullptr)
             path_list.removeAt(i);
-        //else if (path_list[i]->isEmpty()) { // this should never happen...
-        //    qDebug() << "this should no happen.";
-        //    delete path_list[i];
-        //    path_list.removeAt(i);
-        //}
+#ifdef DEBUG_DRAWING
+        // TODO: check again:
+        else if (path_list[i]->isEmpty()) { // this should never happen...
+            qDebug() << "this should never happen.";
+            delete path_list[i];
+            path_list.removeAt(i);
+        }
+#endif
         else
             i++;
     }
-    if (changed) {
+    if (!updateRegion.isEmpty()) {
         end_cache = -1;
-        update();
+        update(updateRegion);
         emit pathsChanged(master->page->label(), path_list, master->shiftx, master->shifty, master->resolution);
     }
 }
@@ -472,11 +527,16 @@ void PathOverlay::setPathsQuick(QString const pagelabel, QList<DrawPath*> const&
     QPointF shift = QPointF(master->shiftx, master->shifty) - master->resolution/refresolution*QPointF(refshiftx, refshifty);
     int const diff = list.length() - paths[pagelabel].length();
     if (diff == 0) {
-        if (!paths[pagelabel].last()->update(*list.last(), shift, master->resolution/refresolution))
+        QRect const rect = paths[pagelabel].last()->update(*list.last(), shift, master->resolution/refresolution);
+        if (rect.isValid())
+            update(rect);
+        else
             setPaths(pagelabel, list, refshiftx, refshifty, refresolution);
     }
-    else if (diff == 1)
+    else if (diff == 1) {
         paths[pagelabel].append(new DrawPath(*list.last(), shift, master->resolution/refresolution));
+        update(paths[pagelabel].last()->getOuterDrawing().toAlignedRect());
+    }
     else if (diff < 0) {
         if (-diff >= paths[pagelabel].length()) {
             qDeleteAll(paths[pagelabel]);
@@ -490,10 +550,11 @@ void PathOverlay::setPathsQuick(QString const pagelabel, QList<DrawPath*> const&
         pixpaths = QPixmap();
     }
     else {
+#ifdef DEBUG_DRAWING
         qDebug() << "set paths quick failed!" << this;
+#endif
         setPaths(pagelabel, list, refshiftx, refshifty, refresolution);
     }
-    update();
 }
 
 void PathOverlay::setPaths(QString const pagelabel, QList<DrawPath*> const& list, qint16 const refshiftx, qint16 const refshifty, double const refresolution)
@@ -566,7 +627,7 @@ void PathOverlay::relax()
 void PathOverlay::updateEnlargedPage()
 {
     // Check whether an update is required.
-    if (tool.tool != Magnifier || master->page == nullptr) {
+    if (tool.tool != Magnifier || master->page == nullptr || tool.extras.magnification < 1e-12) {
         if (!enlargedPage.isNull())
             enlargedPage = QPixmap();
         return;
@@ -574,13 +635,15 @@ void PathOverlay::updateEnlargedPage()
     // Create enlargedPageRenderer if necessary.
     if (enlargedPageRenderer == nullptr) {
         enlargedPageRenderer = new SingleRenderer(master->doc, master->pagePart, this);
-        enlargedPageRenderer->changeResolution(magnification*master->resolution);
         connect(enlargedPageRenderer, &BasicRenderer::cacheThreadFinished, this, &PathOverlay::updateEnlargedPage);
     }
     // Render page using enlargedPageRenderer if necessary (the rendering is done in a separate thread).
-    if (enlargedPageRenderer->page != master->pageIndex) {
+    if (enlargedPageRenderer->getPage() != master->pageIndex || abs(enlargedPageRenderer->getResolution() - tool.extras.magnification*master->resolution) > 1e-6 ) {
+        enlargedPageRenderer->changeResolution(tool.extras.magnification*master->resolution);
         enlargedPage = QPixmap();
+#ifdef DEBUG_DRAWING
         qDebug() << "Rendering enlarged page" << master->pageIndex;
+#endif
         enlargedPageRenderer->renderPage(master->pageIndex);
         // Return if the enlarged page image is not needed right now.
         // This makes scanning through the slides much faster.
@@ -588,35 +651,44 @@ void PathOverlay::updateEnlargedPage()
             return;
     }
     // Draw enlargedPage.
-    enlargedPage = QPixmap(magnification*size());
+    enlargedPage = QPixmap(tool.extras.magnification*size());
     enlargedPage.fill(QColor(0,0,0,0));
     QPainter painter;
     painter.begin(&enlargedPage);
     // Draw the slide.
-    if (enlargedPageRenderer->data != nullptr)
+    if (enlargedPageRenderer->resultReady())
         // If a rendered page is ready in enlargedPageRenderer: show it in enlargedPage.
-        painter.drawPixmap(int(magnification*master->shiftx), int(magnification*master->shifty), enlargedPageRenderer->getPixmap());
+        painter.drawPixmap(
+                    int(tool.extras.magnification*master->shiftx),
+                    int(tool.extras.magnification*master->shifty),
+                    enlargedPageRenderer->getPixmap()
+                    );
     else
         // Otherwise: show a scaled version of the page image.
-        painter.drawPixmap(int(magnification*master->shiftx), int(magnification*master->shifty), master->pixmap.scaled(magnification*master->pixmap.size(), Qt::IgnoreAspectRatio, Qt::SmoothTransformation));
+        painter.drawPixmap(
+                    int(tool.extras.magnification*master->shiftx),
+                    int(tool.extras.magnification*master->shifty),
+                    master->pixmap.scaled(tool.extras.magnification*master->pixmap.size(), Qt::IgnoreAspectRatio, Qt::SmoothTransformation)
+                    );
     // Draw annotations.
     painter.setRenderHint(QPainter::Antialiasing);
     if (paths.contains(master->page->label())) {
         for (QList<DrawPath*>::const_iterator path_it=paths[master->page->label()].cbegin(); path_it!=paths[master->page->label()].cend(); path_it++) {
-            switch ((*path_it)->getTool()) {
+            FullDrawTool const& tool = (*path_it)->getTool();
+            switch (tool.tool) {
             case Pen:
             {
                 painter.setCompositionMode(QPainter::CompositionMode_SourceOver);
-                painter.setPen(QPen((*path_it)->getColor(), magnification*sizes[Pen]));
-                DrawPath tmp(**path_it, QPointF(0,0), magnification);
+                painter.setPen(QPen(tool.color, this->tool.extras.magnification*tool.size));
+                DrawPath tmp(**path_it, QPointF(0,0), this->tool.extras.magnification);
                 painter.drawPolyline(tmp.data(), tmp.number());
                 break;
             }
             case Highlighter:
             {
                 painter.setCompositionMode(QPainter::CompositionMode_Darken);
-                painter.setPen(QPen((*path_it)->getColor(), magnification*sizes[Highlighter], Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin));
-                DrawPath tmp(**path_it, QPointF(0,0), magnification);
+                painter.setPen(QPen(tool.color, this->tool.extras.magnification*tool.size, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin));
+                DrawPath tmp(**path_it, QPointF(0,0), this->tool.extras.magnification);
                 painter.drawPolyline(tmp.data(), tmp.number());
                 break;
             }
@@ -630,8 +702,10 @@ void PathOverlay::updateEnlargedPage()
 
 void PathOverlay::saveDrawings(QString const& filename, QString const& notefile) const
 {
+    // Deprecated
     // Save drawings in a strange data format.
-    qInfo() << "Saving files is experimental. Files might contain errors or might be unreadable for later versions of BeamerPresenter";
+    qWarning() << "The binary file type is deprecated.";
+    qWarning() << "The saved file will be unreadable for later versions of BeamerPresenter!";
     QFile file(filename);
     file.open(QIODevice::WriteOnly);
     QDataStream stream(&file);
@@ -646,18 +720,18 @@ void PathOverlay::saveDrawings(QString const& filename, QString const& notefile)
     }
     {
         QMap<quint16, quint16> newsizes;
-        for (QMap<DrawTool, quint16>::const_iterator size_it=sizes.cbegin(); size_it!=sizes.cend(); size_it++)
-            newsizes[static_cast<quint16>(size_it.key())] = *size_it;
+        for (QMap<DrawTool, FullDrawTool>::const_iterator size_it=defaultToolConfig.cbegin(); size_it!=defaultToolConfig.cend(); size_it++)
+            newsizes[static_cast<quint16>(size_it.key())] = quint16(size_it->size+0.5);
         stream << newsizes;
     }
-    stream << static_cast<quint16>(paths.size());
+    stream << quint16(paths.size());
     qint16 const w = qint16(width()-2*master->shiftx), h = qint16(height()-2*master->shifty);
     for (QMap<QString, QList<DrawPath*>>::const_iterator page_it=paths.cbegin(); page_it!=paths.cend(); page_it++) {
-        stream << page_it.key() << static_cast<quint16>(page_it->length());
+        stream << page_it.key() << quint16(page_it->length());
         for (QList<DrawPath*>::const_iterator path_it=page_it->cbegin(); path_it!=page_it->cend(); path_it++) {
             QVector<float> vec;
             (*path_it)->toIntVector(vec, master->shiftx, master->shifty, w, h);
-            stream << static_cast<quint16>((*path_it)->getTool()) << (*path_it)->getColor() << vec;
+            stream << static_cast<quint16>((*path_it)->getTool().tool) << (*path_it)->getTool().color << vec;
         }
     }
     if (stream.status() != QDataStream::Ok) {
@@ -666,10 +740,327 @@ void PathOverlay::saveDrawings(QString const& filename, QString const& notefile)
     }
 }
 
+void PathOverlay::loadXML(QString const& filename, PdfDoc const* notesDoc)
+{
+    // Load drawings from (compressed) XML.
+    // TODO: use gunzip and open Xournal files directly.
+    qInfo() << "Loading files is experimental. Files might contain errors or might be unreadable for later versions of BeamerPresenter";
+    QFile file(filename);
+    if (!file.exists()) {
+        qCritical() << "Loading file failed: file does not exist.";
+        return;
+    }
+    if (!file.open(QIODevice::ReadOnly)) {
+        qCritical() << "Loading file failed: file is not readable.";
+        return;
+    }
+    QDomDocument doc("BeamerPresenter");
+    if (!doc.setContent(&file)) {
+        file.close();
+        file.open(QIODevice::ReadOnly);
+        if (!doc.setContent(qUncompress(file.readAll()))) {
+            file.close();
+            loadDrawings(filename);
+            return;
+        }
+    }
+    QDomElement const root = doc.documentElement();
+    if (root.attribute("creator").contains("beamerpresenter", Qt::CaseInsensitive)) {
+
+        // Check whether the presentation file is as expected and warn otherwise.
+        {
+            QDomElement const pres = root.firstChildElement("presentation");
+            QFileInfo const& presentation_fileinfo = QFileInfo(master->doc->getPath());
+            if (pres.attribute("file") != presentation_fileinfo.absoluteFilePath())
+                qWarning() << "This drawing file was generated for a different PDF file path.";
+            if (pres.attribute("modified") != presentation_fileinfo.lastModified().toString("yyyy-MM-dd hh:mm:ss"))
+                qWarning() << "The presentation file has been modified since writing the drawing file.";
+            if (pres.attribute("pages").toInt() != master->doc->getDoc()->numPages())
+                qWarning() << "The numbers of pages in the presentation and drawing file do not match!";
+        }
+
+        // Check whether the notes file is as expected and warn otherwise.
+        {
+            QDomElement const notes = root.firstChildElement("notes");
+            QFileInfo const& notes_fileinfo = QFileInfo(notesDoc->getPath());
+            if (notes.attribute("file") != notes_fileinfo.absoluteFilePath())
+                qWarning() << "This drawing file was generated for a different PDF file path.";
+            if (notes.attribute("modified") != notes_fileinfo.lastModified().toString("yyyy-MM-dd hh:mm:ss"))
+                qWarning() << "The notes file has been modified since writing the drawing file.";
+            if (notes.attribute("pages").toInt() != notesDoc->getDoc()->numPages())
+                qWarning() << "The numbers of pages in the notes and drawing file do not match!";
+        }
+
+        for (QDomElement page_element = root.firstChildElement("page"); !page_element.isNull(); page_element = page_element.nextSiblingElement("page")) {
+            QString const label = page_element.attribute("label");
+            qreal scale;
+            QPoint shift;
+            Poppler::Page const* page = master->doc->getPage(label);
+            QSizeF size;
+            if (page == nullptr)
+                size = master->page->pageSizeF();
+            else
+                size = page->pageSizeF();
+            if (size.width() * height() >= width() * size.height()) {
+                shift.setY(( height() - size.height()/size.width() * width() )/2);
+                scale = width() / size.width();
+            }
+            else {
+                shift.setX((width() - size.width()/size.height() * height() )/2);
+                scale = height() / size.height();
+            }
+            if (paths.contains(label)) {
+                qDeleteAll(paths[label]);
+                paths[label].clear();
+            }
+            else
+                paths[label] = QList<DrawPath*>();
+            for (QDomElement stroke = page_element.firstChildElement("stroke"); !stroke.isNull(); stroke = stroke.nextSiblingElement("stroke")) {
+                DrawTool const tool = toolNames.key(stroke.attribute("tool"), NoTool);
+                if (tool != NoTool) {
+                    QColor const color = QColor(stroke.attribute("color"));
+                    bool ok;
+                    qreal size = stroke.attribute("width").toDouble(&ok);
+                    if (!ok)
+                        size = defaultToolConfig[tool].size;
+                    QStringList const data = stroke.text().split(" ");
+                    paths[label].append(new DrawPath({tool, color, size}, data, shift, scale));
+                }
+            }
+            emit pathsChanged(label, paths[label], master->shiftx, master->shifty, master->resolution);
+        }
+
+    }
+    else if (root.attribute("creator").contains("xournal", Qt::CaseInsensitive)) {
+        // Try to import strokes from uncompressed Xournal or Xournal++ file
+        // Get filename and compare it to presentation file.
+        {
+            QDomElement const first_page = root.firstChildElement("page");
+            if (!first_page.isNull()) {
+                QDomElement const first_bg = first_page.firstChildElement("background");
+                if (!first_bg.isNull() && first_bg.hasAttribute("filename")) {
+                    QFileInfo const& presentation_fileinfo = QFileInfo(master->doc->getPath());
+                    if (first_bg.attribute("filename") != presentation_fileinfo.absoluteFilePath())
+                        qWarning() << "This Xournal(++) file uses a different PDF file path.";
+                }
+            }
+        }
+        for (QDomElement page_element = root.firstChildElement("page"); !page_element.isNull(); page_element = page_element.nextSiblingElement("page")) {
+            QDomElement bg = page_element.firstChildElement("background");
+            if (bg.isNull())
+                continue;
+            QDomElement layer = page_element.firstChildElement("layer");
+            if (layer.isNull() || !layer.hasChildNodes())
+                continue;
+            bool ok;
+            int const pageno = bg.attribute("pageno").remove(QRegExp("[a-z]")).toInt(&ok) - 1;
+            if (!ok)
+                continue;
+            QString const label = master->doc->getLabel(pageno);
+            // TODO: handle text.
+            qreal scale;
+            QPoint shift;
+            Poppler::Page const* page = master->doc->getPage(label);
+            QSizeF size;
+            if (page == nullptr)
+                size = master->page->pageSizeF();
+            else
+                size = page->pageSizeF();
+            if (size.width() * height() >= width() * size.height()) {
+                shift.setY(( height() - size.height()/size.width() * width() )/2);
+                scale = width() / size.width();
+            }
+            else {
+                shift.setX((width() - size.width()/size.height() * height() )/2);
+                scale = height() / size.height();
+            }
+            for (QDomElement stroke = layer.firstChildElement("stroke"); !stroke.isNull(); stroke = stroke.nextSiblingElement("stroke")) {
+                // This requires that tool names are compatible with those used by Xournal(++).
+                // But since the only stroke tools are "pen" and "highlighter", this is not a problem.
+                DrawTool const tool = toolNames.key(stroke.attribute("tool"), NoTool);
+                if (tool != NoTool) {
+                    QString colorstr = stroke.attribute("color");
+                    // Colors are saved by xournal in the format #RRGGBBAA, but Qt uses #AARRGGBB.
+                    // Try to convert between the two formats.
+                    if (colorstr[0] == '#' && colorstr.size() == 9) {
+                        colorstr.insert(1, colorstr.mid(7));
+                        colorstr.truncate(9);
+                    }
+                    QColor const color = QColor(colorstr);
+                    bool ok;
+                    qreal size = stroke.attribute("width").toDouble(&ok);
+                    if (!ok)
+                        size = defaultToolConfig[tool].size;
+                    QStringList const data = stroke.text().split(" ");
+                    paths[label].append(new DrawPath({tool, color, size}, data, shift, scale));
+                }
+            }
+            emit pathsChanged(label, paths[label], master->shiftx, master->shifty, master->resolution);
+        }
+    }
+    else {
+        qWarning() << "Could not understand file: Unknown creator" << root.attribute("creator");
+    }
+    file.close();
+    update();
+}
+
+void PathOverlay::saveXML(QString const& filename, PdfDoc const* notedoc, bool const compress) const
+{
+    // Save drawings in compressed XML.
+    qInfo() << "Saving files is experimental. Files might contain errors or might be unreadable for later versions of BeamerPresenter";
+    QDomDocument doc("BeamerPresenter");
+    QDomElement root = doc.createElement("BeamerPresenter");
+    root.setAttribute("creator", "BeamerPresenter");
+    root.setAttribute("version", APP_VERSION);
+    doc.appendChild(root);
+
+    QString const presentation_file = QFileInfo(master->doc->getPath()).absoluteFilePath();
+    QString const notes_file = QFileInfo(notedoc->getPath()).absoluteFilePath();
+
+    QDomElement pres = doc.createElement("presentation");
+    pres.setAttribute("file", presentation_file);
+    pres.setAttribute("pages", master->doc->getDoc()->numPages());
+    pres.setAttribute("modified", master->doc->getLastModified().toString("yyyy-MM-dd hh:mm:ss"));
+    root.appendChild(pres);
+
+    QDomElement notes = doc.createElement("notes");
+    notes.setAttribute("file", notes_file);
+    notes.setAttribute("pages", notedoc->getDoc()->numPages());
+    notes.setAttribute("modified", notedoc->getLastModified().toString("yyyy-MM-dd hh:mm:ss"));
+    root.appendChild(notes);
+
+    for (QMap<QString, QList<DrawPath*>>::const_iterator page_it=paths.cbegin(); page_it!=paths.cend(); page_it++) {
+        QDomElement page_element = doc.createElement("page");
+        page_element.setAttribute("label", page_it.key());
+        root.appendChild(page_element);
+        Poppler::Page const* page = master->doc->getPage(page_it.key());
+        /// size of the page in points
+        QSizeF size;
+        if (page == nullptr)
+            size = master->page->pageSizeF();
+        else
+            size = page->pageSizeF();
+        /// scale page in points / pixel
+        qreal scale;
+        /// upper right corner of the page, in pixels
+        QPoint shift;
+        if (size.width() * height() >= width() * size.height()) {
+            shift.setY(( height() - size.height()/size.width() * width() )/2);
+            scale = size.width() / width();
+        }
+        else {
+            shift.setX((width() - size.width()/size.height() * height() )/2);
+            scale = size.height() / height();
+        }
+        for (QList<DrawPath*>::const_iterator path_it=page_it->cbegin(); path_it!=page_it->cend(); path_it++) {
+            QDomElement stroke = doc.createElement("stroke");
+            page_element.appendChild(stroke);
+            FullDrawTool const& tool = (*path_it)->getTool();
+            stroke.setAttribute("tool", toolNames.value(tool.tool, "unkown"));
+            // Colors are saved in #AARRGGBB format.
+            stroke.setAttribute("color", tool.color.name(QColor::HexArgb));
+            // Stroke width is saved in points.
+            stroke.setAttribute("width", tool.size*scale);
+            // Save data as list of x and y coordinates (alternating) in points.
+            QStringList stringList;
+            (*path_it)->toText(stringList, shift, scale);
+            QDomText const data = doc.createTextNode(stringList.join(" "));
+            stroke.appendChild(data);
+        }
+    }
+
+    QFile file(filename);
+    file.open(QIODevice::WriteOnly);
+    if (compress)
+        file.write(qCompress(doc.toByteArray()));
+        // In order to unzip this compressed file using zlib, you need to remove the first four bytes:
+        // tail -c+5 compressed.bp | zlib-flate -uncompress > uncompressed.bp
+    else
+        file.write(doc.toByteArray());
+    file.close();
+}
+
+void PathOverlay::saveXournal(QString const& filename) const
+{
+    // Save drawings in a format, which can hopefully be read by Xournal(++).
+    qInfo() << "Saving to this Xournal compatibility format is experimental.";
+    QDomDocument doc("Xournal-readable");
+    QDomElement root = doc.createElement("xournal");
+    root.setAttribute("creator", "BeamerPresenter " APP_VERSION);
+    doc.appendChild(root);
+
+    // Set title.
+    {
+        QDomElement title = doc.createElement("title");
+        root.appendChild(title);
+        QDomText const title_text = doc.createTextNode("Xournal++ readable XML file created by BeamerPresenter");
+        title.appendChild(title_text);
+    }
+
+    QString presentation_file = QFileInfo(master->doc->getPath()).absoluteFilePath();
+
+    for (int i=0; i<master->doc->getDoc()->numPages(); i++) {
+        QDomElement page = doc.createElement("page");
+        QSizeF const size = master->doc->getPageSize(i);
+        page.setAttribute("width", QString::number(size.width()));
+        page.setAttribute("height", QString::number(size.height()));
+        root.appendChild(page);
+
+        QDomElement bg = doc.createElement("background");
+        bg.setAttribute("type", "pdf");
+        bg.setAttribute("domain", "absolute");
+        bg.setAttribute("filename", master->doc->getPath());
+        bg.setAttribute("pageno", QString::number(i+1) + "ll");
+        page.appendChild(bg);
+
+        QDomElement layer = doc.createElement("layer");
+        page.appendChild(layer);
+
+        /// scale page in points / pixel
+        qreal scale;
+        /// upper right corner of the page, in pixels
+        QPoint shift;
+        if (size.width() * height() >= width() * size.height()) {
+            shift.setY(( height() - size.height()/size.width() * width() )/2);
+            scale = size.width() / width();
+        }
+        else {
+            shift.setX((width() - size.width()/size.height() * height() )/2);
+            scale = size.height() / height();
+        }
+        QList<DrawPath*> const& pathlist = paths.value(master->doc->getLabel(i));
+        for (QList<DrawPath*>::const_iterator path_it=pathlist.cbegin(); path_it!=pathlist.cend(); path_it++) {
+            QDomElement stroke = doc.createElement("stroke");
+            layer.appendChild(stroke);
+            FullDrawTool const& tool = (*path_it)->getTool();
+            stroke.setAttribute("tool", toolNames.value(tool.tool, "pen"));
+            // Colors are saved by xournal in the format #RRGGBBAA, but Qt uses #AARRGGBB.
+            // Convert between the two formats.
+            QString colorstr = tool.color.name(QColor::HexArgb);
+            colorstr.append(colorstr.mid(1, 2));
+            colorstr.remove(1, 2);
+            stroke.setAttribute("color", colorstr);
+            // Stroke width is saved in points.
+            stroke.setAttribute("width", tool.size*scale);
+            // Save data as list of x and y coordinates (alternating) in points.
+            QStringList stringList;
+            (*path_it)->toText(stringList, shift, scale);
+            QDomText const data = doc.createTextNode(stringList.join(" "));
+            stroke.appendChild(data);
+        }
+    }
+
+    QFile file(filename);
+    file.open(QIODevice::WriteOnly);
+    file.write(doc.toByteArray());
+    file.close();
+}
+
 void PathOverlay::loadDrawings(QString const& filename)
 {
+    // Deprecated
     // Load drawings from the strange data format.
-    qInfo() << "Loading files is experimental. Files might contain errors or might be unreadable for later versions of BeamerPresenter";
     QFile file(filename);
     if (!file.exists()) {
         qCritical() << "Loading file failed: file does not exist.";
@@ -689,6 +1080,8 @@ void PathOverlay::loadDrawings(QString const& filename)
             return;
         }
     }
+    qWarning() << "The binary file type of this file is deprecated.";
+    qWarning() << "This file will be unreadable for later versions of BeamerPresenter!";
     {
         quint16 version;
         stream >> version;
@@ -711,8 +1104,6 @@ void PathOverlay::loadDrawings(QString const& filename)
             qCritical() << "Failed to load file: File is corrupt.";
             return;
         }
-        for (QMap<quint16, quint16>::const_iterator size_it=newsizes.cbegin(); size_it!=newsizes.cend(); size_it++)
-            sizes[static_cast<DrawTool>(size_it.key())] = *size_it;
     }
     quint16 npages, npaths;
     stream >> npages;
@@ -739,42 +1130,26 @@ void PathOverlay::loadDrawings(QString const& filename)
                 qCritical() << "Interrupted reading file: File is corrupt.";
                 break;
             }
-            paths[pagelabel].append(new DrawPath({static_cast<DrawTool>(tool), color}, vec, master->shiftx, master->shifty, w, h, sizes[Eraser]));
+            paths[pagelabel].append(new DrawPath({static_cast<DrawTool>(tool), color, defaultToolConfig[static_cast<DrawTool>(tool)].size}, vec, master->shiftx, master->shifty, w, h));
         }
         emit pathsChanged(pagelabel, paths[pagelabel], master->shiftx, master->shifty, master->resolution);
     }
     update();
 }
 
-void PathOverlay::setMagnification(qreal const mag)
-{
-    if (mag <= 0.) {
-        qWarning() << "Cannot set magnification to negative value";
-        return;
-    }
-    magnification = mag;
-    delete enlargedPageRenderer;
-    enlargedPageRenderer = nullptr;
-    if (!enlargedPage.isNull()) {
-        enlargedPage = QPixmap();
-        updateEnlargedPage();
-    }
-}
-
 void PathOverlay::drawPointer(QPainter& painter)
 {
-    // TODO
     painter.setOpacity(1.);
     painter.setCompositionMode(QPainter::CompositionMode_Darken);
     if (tool.tool == Pointer) {
-        painter.setPen(QPen(QColor(255,0,0,191), sizes[Pointer], Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin));
+        painter.setPen(QPen(QColor(255,0,0,191), tool.size, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin));
         painter.drawPoint(pointerPosition);
     }
     else if (tool.tool == Torch && !pointerPosition.isNull()) {
         QPainterPath rectpath;
         rectpath.addRect(master->shiftx, master->shifty, master->pixmap.width(), master->pixmap.height());
         QPainterPath circpath;
-        circpath.addEllipse(pointerPosition, sizes[Torch], sizes[Torch]);
+        circpath.addEllipse(pointerPosition, tool.size, tool.size);
         painter.fillPath(rectpath-circpath, QColor(0,0,0,48));
     }
 }
@@ -785,7 +1160,7 @@ void PathOverlay::undoPath()
         undonePaths.append(paths[master->page->label()].takeLast());
         end_cache = -1;
         pixpaths = QPixmap();
-        repaint();
+        update();
         emit pathsChangedQuick(master->page->label(), paths[master->page->label()], master->shiftx, master->shifty, master->resolution);
     }
 }
@@ -794,7 +1169,7 @@ void PathOverlay::redoPath()
 {
     if (!undonePaths.isEmpty()) {
         paths[master->page->label()].append(undonePaths.takeLast());
-        repaint();
+        update();
         emit pathsChangedQuick(master->page->label(), paths[master->page->label()], master->shiftx, master->shifty, master->resolution);
     }
 }
@@ -802,7 +1177,6 @@ void PathOverlay::redoPath()
 void PathOverlay::resetCache()
 {
      end_cache = -1;
-     updatePathCache();
      if (tool.tool != Magnifier) {
          delete enlargedPageRenderer;
          enlargedPageRenderer = nullptr;
@@ -811,7 +1185,7 @@ void PathOverlay::resetCache()
 
 void PathOverlay::togglePointerVisibility()
 {
-    if (cursor() == Qt::BlankCursor)
+    if (cursor().shape() == Qt::BlankCursor)
         showPointer();
     else
         hidePointer();

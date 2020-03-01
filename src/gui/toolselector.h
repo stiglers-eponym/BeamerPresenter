@@ -36,10 +36,10 @@ private:
 public:
     explicit ToolSelector(QWidget *parent = nullptr) : QWidget(parent) {}
     ~ToolSelector() {qDeleteAll(buttons); delete layout;}
-    void setTools(quint8 const nrows, quint8 const ncols, QMap<quint8, QList<KeyAction>> const& actionMap, QMap<quint8, QColor> const& colorMap);
+    void setTools(quint8 const nrows, quint8 const ncols, QMap<quint8, QList<KeyAction>> const& actionMap, QMap<quint8, FullDrawTool> const& toolMap);
 
 signals:
-    void sendNewTool(ColoredDrawTool const tool);
+    void sendNewTool(FullDrawTool const& tool);
     void sendAction(KeyAction const action);
 };
 

@@ -33,7 +33,7 @@ public:
     /// Constructor
     explicit CacheMap(PdfDoc const* doc, PagePart const part = FullPage, QObject* parent = nullptr): BasicRenderer(doc, part, parent), data() {}
     /// Destructor
-    ~CacheMap();
+    ~CacheMap() override;
 
     // Get images from cache.
     /// Get an image from cache if available or an empty pixmap otherwise.
@@ -43,6 +43,7 @@ public:
     /// Calculate and return cache ssize in bytes.
     qint64 getSizeBytes() const;
     /// Set data from pixmap.
+    /// Write the pixmap in png format to a QBytesArray at *value(page).
     qint64 setPixmap(int const page, QPixmap const* pix);
     /// Clear cache.
     void clearCache();

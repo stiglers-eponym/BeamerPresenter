@@ -24,8 +24,8 @@ DrawSlide::DrawSlide(QWidget* parent) :
     pathOverlay(new PathOverlay(this))
 {}
 
-DrawSlide::DrawSlide(PdfDoc const*const document, int const pageNumber, PagePart const part, QWidget* parent) :
-    MediaSlide(document, pageNumber, part, parent),
+DrawSlide::DrawSlide(PdfDoc const*const document, PagePart const part, QWidget* parent) :
+    MediaSlide(document, part, parent),
     pathOverlay(new PathOverlay(this))
 {}
 
@@ -61,7 +61,6 @@ void DrawSlide::resizeEvent(QResizeEvent*)
 
 void DrawSlide::animate(const int oldPageIndex)
 {
-     if (oldPageIndex != pageIndex) {
-         pathOverlay->resetCache();
-     }
+    if (oldPageIndex != pageIndex)
+        pathOverlay->resetCache();
 }

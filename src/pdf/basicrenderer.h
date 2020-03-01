@@ -35,13 +35,17 @@ class BasicRenderer : public QObject
 public:
     /// Constructor
     explicit BasicRenderer(PdfDoc const* doc, PagePart const part = FullPage, QObject* parent = nullptr);
+    /// Destructor
+    /// cacheThread must be deleted by destructors of child classes.
+    ~BasicRenderer() {};
     /// Get cache thread.
     CacheThread* getCacheThread() {return cacheThread;}
     /// Render page using poppler.
     QPixmap const renderPixmap(int const page) const;
 
     /// Is a cache thread running?
-    bool threadRunning() {return cacheThread->isRunning();}
+    bool threadRunning() const {return cacheThread->isRunning();}
+    qreal getResolution() const {return resolution;}
 
     // Settings.
     /// Change resolution.
@@ -61,7 +65,7 @@ protected:
     /// PDF document.
     PdfDoc const* const pdf;
     /// Resolution of the pixmap.
-    double resolution = -1.;
+    qreal resolution = -1.;
     /// Part of the page showing the relevant part for this cache.
     PagePart const pagePart;
     /// Command for external renderer.

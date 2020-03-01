@@ -60,8 +60,8 @@ signals:
     void sendNewPageNumber(const int pageNumber);
     void sendCloseSignal();
     void sendKeyEvent(QKeyEvent* event);
-    void clearPresentationCacheRequest();
-    void pageChanged(int const pageLabel, int const pageNumber);
+    void presentationResizeEvent();
+    void pageChanged(int const pageNumber);
 
 public slots:
     void receiveTimeoutSignal() {renderPage(slide->pageNumber() + 1, true);}

@@ -39,6 +39,7 @@
 //#define POPPLER_VERSION_MINOR ??
 //#define POPPLER_VERSION_MICRO ? // not needed
 
+
 /// PDF document.
 /// This provides an interface for caching all Poppler::Page objects and reloading files.
 class PdfDoc
@@ -53,6 +54,8 @@ private:
     /// Last time of modification of the file in the form which was last loaded.
     /// This is used to check whether it needs to be reloaded.
     QDateTime lastModified = QDateTime();
+    /// List of labels
+    QList<QString> labels;
 
 public:
     /// Constructor: takes the path to the PDF file as argument. This does not load the document.
@@ -67,19 +70,23 @@ public:
     QList<Poppler::Page*> const* getPages() const {return &pdfPages;}
     /// Check if page number is valid and return page.
     Poppler::Page const* getPage(int pageNumber) const;
+    /// Check if page label is valid and return page.
+    Poppler::Page const* getPage(QString const& pageLabel) const;
+    /// Modification date as string.
+    QDateTime const& getLastModified() const {return lastModified;}
     /// Return the QDomDocument representing the table of contents (TOC) of the PDF document.
     QDomDocument const* getToc() const {return popplerDoc->toc();}
     /// Return page size in point = inch/72.
     QSizeF const getPageSize(int const pageNumber) const;
     /// Return label of given page.
-    QString const getLabel(int const pageNumber) const;
-    /// Return page index (number) of the next page with different page label.
-    int getNextSlideIndex(int const index) const;
-    /// Return page index (number) of the previous page with different page label.
+    QString const& getLabel(int const pageNumber) const;
+    /// Return page index (number) of the next page with a different page label.
+    int getNextSlideIndex(int const index) const {return getNextSlideIndex(labels[index]);}
+    /// Return page index (number) of the next page with a different page label.
+    int getNextSlideIndex(QString const& label) const;
+    /// Return page index (number) of the previous page with a different page label.
     /// This function skips slides which have a duration of less than one second.
     int getPreviousSlideEnd(int const index) const;
-    /// Return page label as an interger. This fails and returns 0 if page label cannot be converted to an integer.
-    int getSlideNumber(int const page) const;
     /// Return page index (number) of a destination string (from table of contents).
     /// Return -1 if an invalid destination string is given.
     int destToSlide(QString const& dest) const;

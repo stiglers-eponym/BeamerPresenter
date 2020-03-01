@@ -4,7 +4,7 @@
 #
 #-------------------------------------------------
 
-VERSION = 0.1.0
+VERSION = 0.1.1
 
 # Check Qt version.
 requires(greaterThan(QT_MAJOR_VERSION, 4))
@@ -26,18 +26,24 @@ TEMPLATE = app
 DEFINES += QT_DEPRECATED_WARNINGS
 
 # Define the application version.
-DEFINES += APP_VERSION=\\\"$${VERSION}\\\"
+#DEFINES += APP_VERSION=\\\"$${VERSION}\\\"
+# Set git version for more precise version info.
+DEFINES += APP_VERSION="\\\"$${VERSION}-$(shell git -C \""$$_PRO_FILE_PWD_"\" rev-list --count HEAD ).$(shell git -C \""$$_PRO_FILE_PWD_"\" rev-parse --short HEAD )\\\""
 
 # If the following define is uncommented, BeamerPresenter will check whether a compatible QPA platform is used.
 # It will then emit warning on untested systems and try to avoid blocking you window manager.
 # If this is commented out, all checks will be omitted.
 DEFINES += CHECK_QPA_PLATFORM
 
+# In wayland Qt's toolTip function could in some cases cause segfaults.
+# Here you can disable toolTip globally at compile time to avoid this:
+#DEFINES += DISABLE_TOOL_TIP
+
 # Define a path where the icon will be placed (don't forget the trailing /).
 ICON_PATH = "/usr/share/icons/hicolor/scalable/apps/"
 DEFINES += ICON_PATH=\\\"$${ICON_PATH}\\\"
 
-CONFIG += c++14 qt
+CONFIG += c++20 qt
 unix {
     # Enable better debugging.
     CONFIG(debug):QMAKE_LFLAGS += -rdynamic
@@ -47,11 +53,26 @@ unix {
 linux {
     # Drop down menus can cause problems in wayland.
     # This defines activates a patch to replace drop down menus in wayland.
-    DEFINES += USE_WAYLAND_SUBMENU_PATCH
+    # With wayland 1.18.0 and Qt 5.14.1 the issue is mostly fixed.
+    #DEFINES += USE_WAYLAND_SUBMENU_PATCH
+    # TODO: drop down menues only partially visible in Wayland.
 }
 
 # Disable debugging message if debugging mode is disabled.
 CONFIG(release, debug|release):DEFINES += QT_NO_DEBUG_OUTPUT
+# Enable specific debugging messages
+CONFIG(debug) {
+    # TODO: include all these in the code!
+    #DEFINES += DEBUG_READ_CONFIGS
+    #DEFINES += DEBUG_CACHE
+    #DEFINES += DEBUG_RENDERING
+    #DEFINES += DEBUG_DRAWING
+    #DEFINES += DEBUG_PAINT_EVENTS
+    #DEFINES += DEBUG_KEY_ACTIONS
+    #DEFINES += DEBUG_TOOL_ACTIONS
+    DEFINES += DEBUG_SLIDE_TRANSITIONS
+    DEFINES += DEBUG_MULTIMEDIA
+}
 
 SOURCES += \
         src/main.cpp \
@@ -82,6 +103,7 @@ SOURCES += \
 
 HEADERS += \
         src/enumerates.h \
+        src/names.h \
         src/pdf/pdfdoc.h \
         src/pdf/externalrenderer.h \
         src/pdf/basicrenderer.h \
@@ -137,19 +159,21 @@ unix {
     # Include man pages and default configuration in make install.
 
     man1.path = /usr/share/man/man1/
+    man1.CONFIG = no_check_exist no_build
     man1.extra = gzip -9 man/$${TARGET}.1 || true
-    man1.CONFIG = no_check_exists
     man1.files = man/$${TARGET}.1.gz
 
     man5.path = /usr/share/man/man5/
+    man5.CONFIG = no_check_exist no_build
     man5.extra = gzip -9 man/$${TARGET}.conf.5 || true
-    man5.CONFIG = no_check_exists
     man5.files = man/$${TARGET}.conf.5.gz
 
     configuration.path = /etc/$${TARGET}/
+    configuration.CONFIG = no_build
     configuration.files = config/$${TARGET}.conf config/pid2wid.sh
 
     icon.path = $${ICON_PATH}
+    icon.CONFIG = no_build
     icon.files = src/icons/beamerpresenter.svg
 
     target.path = /usr/bin/

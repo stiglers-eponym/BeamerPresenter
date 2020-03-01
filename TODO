@@ -1,32 +1,40 @@
 BeamerPresenter
 
-* drawing in slide transitions: restructure
+Simple fixes and features:
+* (target 0.1.2) handle reoccuring page labels
+* (target 0.1.2) undo erasing in draw mode
+* (target 0.1.3) use thumbnails in overviewbox
+
+Medium workload:
+* (target 0.1.3) (optionally) show preview of next slide without overlays
+* (target 0.1.3) allow non-uniform page sizes
+* (target 0.1.?) flexibly change draw tools: color and size from text input fields or sliders?
+* Use gzip (optionally) and read/write compressed Xournal(++) files directly
+* (target 0.1.3) generate overview in own thread
+
+Longer rewrite:
+* (target 0.1.2) restructure rendering, especially DrawOverlay paint events (and draw cache)
+* (target 0.1.4) use OpenGL again (at least for slide transitions)?
+* (target 0.1.5) drawing in slide transitions: restructure
+* (target 0.1.?) new draw tool: add text
+* (target 0.1.5) video widgets: use one global graphics scene, connect two views to it, combine with slide transitions
+
+Multimedia:
 * hide video widgets if they reached end of file
-* Video widgets: use one global graphics scene, connect two views to it, combine with slide transitions
-* Test in ubuntu
+* key bindings for multimedia control
+* allow more arguments
+* better control bar
 
-* Use OpenGL again (at least for slide transitions)?
-* Start rendering enlarged page first for presentation, then for notes draw slide
-* Document code!
-* Check (and reduce) memory usage
-* Key bindings for multimedia control
-* Multimedia: allow more arguments
-* Multimedia: Better control bar
-* Video widgets break when switching between notes and draw mode?
+General:
+* document code!
+* search for memory leaks
+* check (and reduce) memory usage
+* test in ubuntu
 
+Low priority:
 * better icon (and png icons)
-* better file type for saving drawings: xml?
-* read and write .xopp files?
-* use thumbnails in overviewbox?
-* Undo erasing in draw mode?
-* Segfault when starting embedded application from the wrong screen (not reproducible?)
-* Bug report for Qt5.13 in wayland: paintEvent not drawn immediately
-* less overloading
-
 * Make timer editable
-* Embedded multimedia, RichMediaAnnotations
-* Cache management: test, clean up the code, improve
 * Search document
+* Embedded multimedia, RichMediaAnnotations
 * Implement other link types (history, search)
 * Implement optional content (e.g. for sound)
-* Set times per slide for non-integer page labels

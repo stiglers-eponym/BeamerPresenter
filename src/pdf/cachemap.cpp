@@ -22,13 +22,15 @@ CacheMap::~CacheMap()
 {
     cacheThread->requestInterruption();
     cacheThread->wait(10000);
-    cacheThread->exit();
+    if (cacheThread->isRunning()) {
+        cacheThread->terminate();
+        cacheThread->wait(10000);
+    }
     delete cacheThread;
     qDeleteAll(data);
     data.clear();
 }
 
-/// Write the pixmap in png format to a QBytesArray at *value(page).
 qint64 CacheMap::setPixmap(int const page, QPixmap const* pix)
 {
     // Check whether the pixmap is empty.
@@ -42,14 +44,21 @@ qint64 CacheMap::setPixmap(int const page, QPixmap const* pix)
         delete bytes;
         return 0;
     }
-    data[page] = bytes;
     qint64 currentSize = qint64(bytes->size());
+    if (data.contains(page) && data[page] != nullptr) {
+        // Usually this should not happen.
+        currentSize -= data[page]->size();
+        delete data[page];
+    }
+    data[page] = bytes;
     return currentSize;
 }
 
 void CacheMap::clearCache()
 {
+#ifdef DEBUG_CACHE
     qDebug() << "Clear cache" << this << parent();
+#endif
     qDeleteAll(data);
     data.clear();
 }
@@ -58,14 +67,18 @@ void CacheMap::changeResolution(const double res)
 {
     if (res == resolution)
         return;
+#ifdef DEBUG_CACHE
     qDebug() << "Change resolution" << res << resolution << this << parent();
+#endif
     clearCache();
     resolution = res;
 }
 
 QPixmap const CacheMap::getCachedPixmap(int const page) const
 {
-    //qDebug() << "get cached page" << page << this << data.contains(page);
+#ifdef DEBUG_CACHE
+    qDebug() << "get cached page" << page << this << data.contains(page);
+#endif
     QPixmap pixmap;
     if (data.contains(page))
         pixmap.loadFromData(*data.value(page), "PNG");
@@ -74,7 +87,9 @@ QPixmap const CacheMap::getCachedPixmap(int const page) const
 
 QPixmap const CacheMap::getPixmap(int const page)
 {
-    //qDebug() << "get page" << page << this << data.contains(page);
+#ifdef DEBUG_CACHE
+    qDebug() << "get page" << page << this << data.contains(page);
+#endif
     QPixmap pixmap;
     if (data.contains(page) && data.value(page) != nullptr) {
         pixmap.loadFromData(*data.value(page), "PNG");
@@ -84,7 +99,9 @@ QPixmap const CacheMap::getPixmap(int const page)
             pageSize.setWidth(pageSize.width()/2);
         if (abs(pixmap.height() - pageSize.height()) < 2 && abs(pixmap.width() - pageSize.width()) < 2)
             return pixmap;
+#ifdef DEBUG_CACHE
         qDebug() << "Size changed:" << pixmap.size() << pageSize;
+#endif
         // The size was wrong. Delete the old cached page.
         emit cacheSizeChanged(-data[page]->size());
         data.remove(page);
@@ -142,7 +159,9 @@ void CacheMap::receiveBytes()
         data[page] = bytes;
         emit cacheSizeChanged(size_diff);
     }
-    //qDebug() << "Cache thread finished:" << this << parent();
+#ifdef DEBUG_CACHE
+    qDebug() << "Cache thread finished:" << this << parent();
+#endif
     emit cacheThreadFinished();
 }
 

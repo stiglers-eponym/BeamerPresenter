@@ -40,7 +40,7 @@ public:
     /// Only create an empty widget. Cache is not initialized.
     explicit PreviewSlide(QWidget* parent = nullptr) : QWidget(parent), cache(nullptr) {}
     /// Create a full PreviewSlide, initialize cache and show (render) the given slide number.
-    explicit PreviewSlide(PdfDoc const * const document, int const pageNumber, PagePart const part, QWidget* parent=nullptr);
+    explicit PreviewSlide(PdfDoc const * const document, PagePart const part, QWidget* parent=nullptr);
     ~PreviewSlide() override;
 
     /// Show a page on the widget.
@@ -112,7 +112,7 @@ protected:
 
     /// Function doing the main work in PreviewSlide::renderPage and MediaSlide::renderPage.
     /// Returns the size of the image in pixels.
-    QSizeF basicRenderPage(int const pageNumber);
+    QSizeF const basicRenderPage(int const pageNumber);
 
     /// Paint widget on the screen.
     virtual void paintEvent(QPaintEvent*) override;
