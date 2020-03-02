@@ -149,7 +149,7 @@ void MediaSlide::renderPage(int pageNumber, bool const hasDuration)
     Q_FOREACH(Poppler::Link* link, links) {
         QRectF relative = link->linkArea().normalized();
         toAbsoluteCoordinates(relative);
-        linkPositions.append(relative.toRect());
+        linkPositions.append(relative);
     }
 
     // Multimedia content.
@@ -167,13 +167,9 @@ void MediaSlide::renderPage(int pageNumber, bool const hasDuration)
             if (embedMap.contains(pageIndex) && embedMap[pageIndex].contains(i))
                 idx = embedMap[pageIndex][i];
             if (idx!=-1 && embedApps[idx]->isReady()) {
-                QRect winGeometry = linkPositions[i];
-                if (winGeometry.height() < 0) {
-                    winGeometry.setY(winGeometry.y() + winGeometry.height());
-                    winGeometry.setHeight(-linkPositions[i].height());
-                }
+                QRect const winGeometry = linkPositions[i].toAlignedRect();
                 QWidget* widget = embedApps[idx]->getWidget();
-                if (winGeometry!=embedPositions[idx]) {
+                if (winGeometry != embedPositions[idx]) {
                     widget->setMinimumSize(winGeometry.width(), winGeometry.height());
                     widget->setMaximumSize(winGeometry.width(), winGeometry.height());
                     widget->setGeometry(winGeometry);
@@ -196,11 +192,7 @@ void MediaSlide::renderPage(int pageNumber, bool const hasDuration)
                 if (embedFileList.contains(splitFileName[0]) || embedFileList.contains(url.fileName()) || (splitFileName.length() > 1 && splitFileName.contains("embed"))) {
                     splitFileName.removeAll("embed"); // We know that the file will be embedded. This is not an argument for the program.
                     splitFileName.removeAll("");
-                    QRect winGeometry = linkPositions[i];
-                    if (winGeometry.height() < 0) {
-                        winGeometry.setY(winGeometry.y() + winGeometry.height());
-                        winGeometry.setHeight(-linkPositions[i].height());
-                    }
+                    QRect const winGeometry = linkPositions[i].toAlignedRect();
                     if (idx == -1) {
                         bool found = false;
                         // Check if the same application exists already on an other page.
@@ -541,7 +533,7 @@ void MediaSlide::renderPage(int pageNumber, bool const hasDuration)
             {
                 QRectF relative = (*it)->boundary().normalized();
                 toAbsoluteCoordinates(relative);
-                soundPositions.append(relative.toRect());
+                soundPositions.append(relative);
             }
 
             Poppler::SoundObject* sound = static_cast<Poppler::SoundAnnotation*>(*it)->sound();
@@ -765,11 +757,11 @@ bool MediaSlide::hasActiveMultimediaContent() const
 bool MediaSlide::hoverLink(const QPoint &pos) const
 {
 
-    for (QList<QRect>::const_iterator pos_it=linkPositions.cbegin(); pos_it!=linkPositions.cend(); pos_it++) {
+    for (QList<QRectF>::const_iterator pos_it=linkPositions.cbegin(); pos_it!=linkPositions.cend(); pos_it++) {
         if (pos_it->contains(pos))
             return true;
     }
-    for (QList<QRect>::const_iterator pos_it=soundPositions.cbegin(); pos_it!=soundPositions.cend(); pos_it++) {
+    for (QList<QRectF>::const_iterator pos_it=soundPositions.cbegin(); pos_it!=soundPositions.cend(); pos_it++) {
         if (pos_it->contains(pos))
             return true;
     }
@@ -814,11 +806,11 @@ void MediaSlide::followHyperlinks(QPoint const& pos)
                         // First case: the execution link points to an application, which exists already as an application widget.
                         // In this case the widget just needs to be shown in the correct position and size.
                         if (embedApps[idx]->isReady()) {
-                            QRect const* winGeometry = &embedPositions[idx];
+                            QRect const& winGeometry = embedPositions[idx];
                             QWidget* widget = embedApps[idx]->getWidget();
-                            widget->setMinimumSize(winGeometry->width(), winGeometry->height());
-                            widget->setMaximumSize(winGeometry->width(), winGeometry->height());
-                            widget->setGeometry(*winGeometry);
+                            widget->setMinimumSize(winGeometry.width(), winGeometry.height());
+                            widget->setMaximumSize(winGeometry.width(), winGeometry.height());
+                            widget->setGeometry(winGeometry);
                             widget->show();
                             break;
                         }
@@ -969,13 +961,13 @@ void MediaSlide::receiveEmbedApp(EmbedApp* app)
     // Geometry of the embedded window:
     QPair<int,int> const location = app->getNextLocation(pageIndex);
     int const idx = embedMap[location.first][location.second];
-    QRect const*const winGeometry = &embedPositions[idx];
+    QRect const& winGeometry = embedPositions[idx];
     // Turn the window into a widget, which can be embedded in the presentation (or control) window:
     QWidget* const widget = app->getWidget();
-    widget->setMinimumSize(winGeometry->width(), winGeometry->height());
-    widget->setMaximumSize(winGeometry->width(), winGeometry->height());
+    widget->setMinimumSize(winGeometry.width(), winGeometry.height());
+    widget->setMaximumSize(winGeometry.width(), winGeometry.height());
     // Showing and hiding the widget here if page!=pageIndex makes showing the widget faster.
-    widget->setGeometry(*winGeometry);
+    widget->setGeometry(winGeometry);
     widget->show();
     if (location.first != pageIndex)
         widget->hide();
@@ -1044,7 +1036,7 @@ void MediaSlide::initEmbeddedApplications(int const pageNumber)
         for (QMap<int,int>::const_iterator idx_it=embedMap[pageNumber].cbegin(); idx_it!=embedMap[pageNumber].cend(); idx_it++) {
             if (embedPositions[*idx_it].isNull()) {
                 if (pageNumber == pageIndex) {
-                    QRect const winGeometry = linkPositions[idx_it.key()];
+                    QRect const winGeometry = linkPositions[idx_it.key()].toAlignedRect();
                     embedPositions[*idx_it] = winGeometry;
                     if (embedApps[*idx_it]->isReady()) {
                         QWidget* const widget = embedApps[*idx_it]->getWidget();
@@ -1057,7 +1049,7 @@ void MediaSlide::initEmbeddedApplications(int const pageNumber)
                 else {
                     QRectF relative = links[idx_it.key()]->linkArea().normalized();
                     toAbsoluteCoordinates(relative);
-                    embedPositions[*idx_it] = relative.toRect();
+                    embedPositions[*idx_it] = relative.toAlignedRect();
                 }
             }
         }

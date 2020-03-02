@@ -100,7 +100,7 @@ protected:
     /// List of links on the current slide.
     QList<Poppler::Link*> links;
     /// List of positions of links of the current slide.
-    QList<QRect> linkPositions;
+    QList<QRectF> linkPositions;
     /// Size of the widget, saved the last time when a page was rendered.
     /// This is compared to the current size of the widget when a new page is rendered.
     QSize oldSize;

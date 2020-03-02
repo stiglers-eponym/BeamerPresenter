@@ -72,7 +72,7 @@ void PreviewSlide::renderPage(int pageNumber)
     Q_FOREACH(Poppler::Link* link, links) {
         QRectF relative = link->linkArea().normalized();
         toAbsoluteCoordinates(relative);
-        linkPositions.append(relative.toRect());
+        linkPositions.append(relative);
     }
 }
 
@@ -238,7 +238,7 @@ void PreviewSlide::mouseMoveEvent(QMouseEvent* event)
     // Show the cursor as Qt::PointingHandCursor when hovering links
     bool is_arrow_pointer = cursor().shape() == Qt::ArrowCursor;
     // Iterate over all link position to check whether a link position contains the cursor position.
-    for (QList<QRect>::const_iterator pos_it=linkPositions.cbegin(); pos_it!=linkPositions.cend(); pos_it++) {
+    for (QList<QRectF>::const_iterator pos_it=linkPositions.cbegin(); pos_it!=linkPositions.cend(); pos_it++) {
         if (pos_it->contains(event->pos())) {
             // Cursor is on a link. Set it to PointingHandCursor and return.
             if (is_arrow_pointer)

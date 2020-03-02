@@ -89,11 +89,12 @@ protected:
     /// List of video widgets cached for the next slide/
     QList<VideoWidget*> cachedVideoWidgets;
     /// List of positions of video widgets (same order as videoWidgets).
+    /// Converted from precise values using QRectF::toRect
     QList<QRect> videoPositions;
     /// List of sound players for sound annotations on the current page.
     QList<QMediaPlayer*> soundPlayers;
     /// List of positions of sound annotations on the current page (same order as soundPlayers).
-    QList<QRect> soundPositions;
+    QList<QRectF> soundPositions;
     /// Map of link indices to media players for sounds. Sound links are handled independent of sound annotations.
     QMap<int, QMediaPlayer*> soundLinkPlayers;
     /// Sliders for video widgets: map indices of videoWidgets to sliders.
@@ -116,6 +117,7 @@ protected:
     /// Map page intex to (map link index on page to index of EmbedApp in embedApps).
     QMap<int, QMap<int,int>> embedMap;
     /// Positions (areas) of embedded applications (same order as embedApps).
+    /// Converted from precise values using QRectF::toAlignedRect
     QList<QRect> embedPositions;
     /// List of applications which should be embedded when called by a link.
     QStringList embedFileList;
