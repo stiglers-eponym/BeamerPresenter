@@ -134,7 +134,7 @@ void MediaSlide::renderPage(int pageNumber, bool const hasDuration)
     else
         clearLists();
 
-    QSizeF const scale = basicRenderPage(pageNumber);
+    basicRenderPage(pageNumber);
 
     // Presentation slides can have a "duration" property.
     // In this case: go to the next page after that given time.
@@ -147,13 +147,9 @@ void MediaSlide::renderPage(int pageNumber, bool const hasDuration)
     // Collect link areas in pixels (positions relative to the lower left edge of the label)
     links = page->links();
     Q_FOREACH(Poppler::Link* link, links) {
-        QRectF relative = link->linkArea();
-        linkPositions.append(QRect(
-                    shiftx+int(relative.x()*scale.width()),
-                    shifty+int(relative.y()*scale.height()),
-                    int(relative.width()*scale.width()),
-                    int(relative.height()*scale.height())
-                ));
+        QRectF relative = link->linkArea().normalized();
+        toAbsoluteCoordinates(relative);
+        linkPositions.append(relative.toRect());
     }
 
     // Multimedia content.
@@ -308,13 +304,9 @@ void MediaSlide::renderPage(int pageNumber, bool const hasDuration)
                 break;
             }
         }
-        QRectF relative = video->boundary();
-        videoPositions.append(QRect(
-                shiftx+int(relative.x()*scale.width()),
-                shifty+int(relative.y()*scale.height()),
-                int(relative.width()*scale.width()),
-                int(relative.height()*scale.height())
-            ));
+        QRectF relative = video->boundary().normalized();
+        toAbsoluteCoordinates(relative);
+        videoPositions.append(relative.toRect());
         if (found)
             delete video;
         else {
@@ -519,13 +511,9 @@ void MediaSlide::renderPage(int pageNumber, bool const hasDuration)
                 soundPlayers.append(player);
                 newSliders++;
             }
-            QRectF relative = (*annotation)->boundary();
-            videoPositions.append(QRect(
-                    shiftx+int(relative.x()*scale.width()),
-                    shifty+int(relative.y()*scale.height()),
-                    int(relative.width()*scale.width()),
-                    int(relative.height()*scale.height())
-                ));
+            QRectF relative = (*annotation)->boundary().normalized();
+            toAbsoluteCoordinates(relative);
+            videoPositions.append(relative.toRect());
         }
         // Clean up old sound players and sliders:
         for (int i=0; i<oldSounds.size(); i++) {
@@ -551,13 +539,9 @@ void MediaSlide::renderPage(int pageNumber, bool const hasDuration)
         for (QList<Poppler::Annotation*>::const_iterator it = sounds.cbegin(); it!=sounds.cend(); it++) {
             qWarning() << "Support for sound in annotations is untested!";
             {
-                QRectF relative = (*it)->boundary();
-                soundPositions.append(QRect(
-                            shiftx+int(relative.x()*scale.width()),
-                            shifty+int(relative.y()*scale.height()),
-                            int(relative.width()*scale.width()),
-                            int(relative.height()*scale.height())
-                        ));
+                QRectF relative = (*it)->boundary().normalized();
+                toAbsoluteCoordinates(relative);
+                soundPositions.append(relative.toRect());
             }
 
             Poppler::SoundObject* sound = static_cast<Poppler::SoundAnnotation*>(*it)->sound();
@@ -1057,14 +1041,10 @@ void MediaSlide::initEmbeddedApplications(int const pageNumber)
 
     // If this slide contains embedded applications, calculate and save their position.
     if (containsNewEmbeddedWidgets) {
-        if (pageNumber == pageIndex) {
-            for (QMap<int,int>::const_iterator idx_it=embedMap[pageNumber].cbegin(); idx_it!=embedMap[pageNumber].cend(); idx_it++) {
-                if (embedPositions[*idx_it].isNull()) {
-                    QRect winGeometry = linkPositions[idx_it.key()];
-                    if (winGeometry.height() < 0) {
-                        winGeometry.setY(winGeometry.y() + winGeometry.height());
-                        winGeometry.setHeight(-linkPositions[idx_it.key()].height());
-                    }
+        for (QMap<int,int>::const_iterator idx_it=embedMap[pageNumber].cbegin(); idx_it!=embedMap[pageNumber].cend(); idx_it++) {
+            if (embedPositions[*idx_it].isNull()) {
+                if (pageNumber == pageIndex) {
+                    QRect const winGeometry = linkPositions[idx_it.key()];
                     embedPositions[*idx_it] = winGeometry;
                     if (embedApps[*idx_it]->isReady()) {
                         QWidget* const widget = embedApps[*idx_it]->getWidget();
@@ -1074,57 +1054,10 @@ void MediaSlide::initEmbeddedApplications(int const pageNumber)
                         widget->show();
                     }
                 }
-            }
-        }
-        else {
-            int shift_x=0, shift_y=0;
-            double resolution = this->resolution;
-            QSize pageSize = doc->getPage(pageNumber)->pageSize();
-            // This is given in point = inch/72 ≈ 0.353mm (Did they choose these units to bother programmers?)
-
-            // Place the page as an image of the correct size at the correct position
-            // The lower left corner of the image will be located at (shift_x, shift_y)
-            int pageHeight=pageSize.height(), pageWidth=pageSize.width();
-            // The page image must be split if the beamer option "notes on second screen" is set.
-            if (pagePart != FullPage)
-                pageWidth /= 2;
-            // Check it width or height is the limiting constraint for the size of the displayed slide and calculate the resolution
-            // resolution is calculated in pixels per point = dpi/72.
-            if (width() * pageHeight > height() * pageWidth) {
-                // the width of the label is larger than required
-                resolution = double(height()) / pageHeight;
-                shift_x = qint16(width()/2 - resolution/2 * pageWidth);
-            }
-            else {
-                // the height of the label is larger than required
-                resolution = double(width()) / pageWidth;
-                shift_y = qint16(height()/2 - resolution/2 * pageHeight);
-            }
-
-            // Calculate the size of the image relative to the label size
-            double scale_x=resolution*pageWidth, scale_y=resolution*pageHeight;
-            // Adjustments if only parts of the page are shown:
-            if (pagePart != FullPage) {
-                scale_x *= 2;
-                // If only the right half of the page will be shown, the position of the page (relevant for link positions) must be adjusted.
-                if (pagePart == RightHalf)
-                    shift_x -= width();
-            }
-            for (QMap<int,int>::const_iterator idx_it=embedMap[pageNumber].cbegin(); idx_it!=embedMap[pageNumber].cend(); idx_it++) {
-                if (embedPositions[*idx_it].isNull()) {
-                    QRectF relative = links[idx_it.key()]->linkArea();
-                    QRect winGeometry = QRect(
-                                shift_x+int(relative.x()*scale_x),
-                                shift_y+int(relative.y()*scale_y),
-                                int(relative.width()*scale_x),
-                                int(relative.height()*scale_y)
-                            );
-                    if (winGeometry.height() < 0) {
-                        int const height = -winGeometry.height();
-                        winGeometry.setY(winGeometry.y() + winGeometry.height());
-                        winGeometry.setHeight(height);
-                    }
-                    embedPositions[*idx_it] = winGeometry;
+                else {
+                    QRectF relative = links[idx_it.key()]->linkArea().normalized();
+                    toAbsoluteCoordinates(relative);
+                    embedPositions[*idx_it] = relative.toRect();
                 }
             }
         }

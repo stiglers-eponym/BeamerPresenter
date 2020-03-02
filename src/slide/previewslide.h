@@ -89,6 +89,8 @@ protected:
     qint16 shiftx = 0;
     /// Y offset of the side in the current widget.
     qint16 shifty = 0;
+    /// Size of the image in pixels.
+    QSizeF scale;
     /// Pixmap of currently displayed slide.
     QPixmap pixmap;
     /// resolution in pixels per point = dpi/72
@@ -112,10 +114,12 @@ protected:
 
     /// Function doing the main work in PreviewSlide::renderPage and MediaSlide::renderPage.
     /// Returns the size of the image in pixels.
-    QSizeF const basicRenderPage(int const pageNumber);
+    void basicRenderPage(int const pageNumber);
 
     /// Paint widget on the screen.
     virtual void paintEvent(QPaintEvent*) override;
+
+    void toAbsoluteCoordinates(QRectF& relative) const;
 
 signals:
     /// Send a new page number to ControlScreen and PresentationScreen. The new page will be shown.

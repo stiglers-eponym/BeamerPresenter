@@ -1989,7 +1989,6 @@ void ControlScreen::reloadFiles()
     /// Files have changed.
     bool change = false;
     /// Presentation and notes are the same file.
-    bool sameFile = presentation->getPath() == notes->getPath();
     // Reload notes file
     if (notes->loadDocument()) {
         qInfo() << "Reloading notes file";
@@ -1998,15 +1997,14 @@ void ControlScreen::reloadFiles()
         recalcLayout(currentPageNumber);
     }
     // Reload presentation file
-    if ((sameFile && change) || (!sameFile && presentation->loadDocument())) {
+    if ((presentation == notes && change) || (presentation != notes && presentation->loadDocument())) {
         qInfo() << "Reloading presentation file";
         change = true;
-        bool unlimitedCache = numberOfPages==maxCacheNumber;
+        bool const unlimitedCache = numberOfPages==maxCacheNumber;
         numberOfPages = presentation->getDoc()->numPages();
         if (unlimitedCache)
             maxCacheNumber = numberOfPages;
         presentationScreen->updatedFile();
-        presentationScreen->renderPage(presentationScreen->slide->pageNumber(), false);
         ui->current_slide->clearAll();
         ui->next_slide->clearAll();
         // Hide TOC and overview and set them outdated

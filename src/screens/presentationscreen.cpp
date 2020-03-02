@@ -137,4 +137,5 @@ void PresentationScreen::updatedFile()
 {
     numberOfPages = presentation->getDoc()->numPages();
     slide->clearAll();
+    slide->renderPage(slide->pageNumber(), false);
 }
