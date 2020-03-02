@@ -41,7 +41,7 @@ public:
     explicit PreviewSlide(QWidget* parent = nullptr) : QWidget(parent), cache(nullptr) {}
     /// Create a full PreviewSlide, initialize cache and show (render) the given slide number.
     explicit PreviewSlide(PdfDoc const * const document, PagePart const part, QWidget* parent=nullptr);
-    ~PreviewSlide() override;
+    ~PreviewSlide() override {clearAll();}
 
     /// Show a page on the widget.
     virtual void renderPage(int pageNumber);

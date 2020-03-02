@@ -28,16 +28,6 @@ PreviewSlide::PreviewSlide(PdfDoc const * const document, PagePart const part, Q
     //setAttribute(Qt::WA_OpaquePaintEvent);
 }
 
-PreviewSlide::~PreviewSlide()
-{
-    if (cache != nullptr)
-        cache->clearCache();
-    qDeleteAll(links);
-    linkPositions.clear();
-    links.clear();
-    page = nullptr;
-}
-
 void PreviewSlide::renderPage(int pageNumber)
 {
 #ifdef DEBUG_RENDERING
@@ -126,7 +116,7 @@ void PreviewSlide::basicRenderPage(int const pageNumber)
     qDebug() << "get pixmap?" << pageIndex << pageNumber << oldSize << size() << cache << this;
 #endif
     // Check whether the page number or the widget size changed. Then update pixmap if cache is available.
-    if ((pageIndex != pageNumber || oldSize != size()) && cache != nullptr)
+    if ((pageIndex != pageNumber || oldSize != size() || pixmap.isNull()) && cache != nullptr)
         pixmap = cache->getPixmap(pageNumber);
     // Update size. This will later be used to check it the pixmap needs to be updated.
     oldSize = size();
@@ -273,6 +263,8 @@ void PreviewSlide::clearAll()
     linkPositions.clear();
     // Set page to nullptr.
     page = nullptr;
+    // Clear pixmap.
+    pixmap = QPixmap();
 }
 
 QPixmap const PreviewSlide::getPixmap(int const page)

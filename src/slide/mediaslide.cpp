@@ -89,6 +89,7 @@ void MediaSlide::clearAll()
     embedMap.clear();
 #endif
     page = nullptr;
+    pixmap = QPixmap();
 }
 
 void MediaSlide::clearLists()
@@ -114,6 +115,9 @@ void MediaSlide::clearLists()
 
 void MediaSlide::renderPage(int pageNumber, bool const hasDuration)
 {
+#ifdef DEBUG_RENDERING
+    qDebug() << "media slide render page" << pageNumber << hasDuration << this;
+#endif
     stopAnimation();
     if (pageNumber < 0)
         pageNumber = 0;
