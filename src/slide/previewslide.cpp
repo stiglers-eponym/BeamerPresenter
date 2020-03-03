@@ -28,16 +28,6 @@ PreviewSlide::PreviewSlide(PdfDoc const * const document, PagePart const part, Q
     //setAttribute(Qt::WA_OpaquePaintEvent);
 }
 
-PreviewSlide::~PreviewSlide()
-{
-    if (cache != nullptr)
-        cache->clearCache();
-    qDeleteAll(links);
-    linkPositions.clear();
-    links.clear();
-    page = nullptr;
-}
-
 void PreviewSlide::renderPage(int pageNumber)
 {
 #ifdef DEBUG_RENDERING
@@ -58,9 +48,8 @@ void PreviewSlide::renderPage(int pageNumber)
     linkPositions.clear();
     links.clear();
 
-    // Do the main rendering. This returns a pair of scales in x an y direction.
-    // These scale relative x and y coordinates in the widget to pixels in the pixmap representing the slide.
-    QSizeF const scale = basicRenderPage(pageNumber);
+    // Do the main rendering.
+    basicRenderPage(pageNumber);
     // Update pageIndex.
     pageIndex = pageNumber;
 
@@ -71,17 +60,13 @@ void PreviewSlide::renderPage(int pageNumber)
     // Collect link areas in pixels (positions relative to the lower left edge of the label)
     links = page->links();
     Q_FOREACH(Poppler::Link* link, links) {
-        QRectF relative = link->linkArea();
-        linkPositions.append(QRect(
-                    shiftx+int(relative.x()*scale.width()),
-                    shifty+int(relative.y()*scale.height()),
-                    int(relative.width()*scale.width()),
-                    int(relative.height()*scale.height())
-                ));
+        QRectF relative = link->linkArea().normalized();
+        toAbsoluteCoordinates(relative);
+        linkPositions.append(relative);
     }
 }
 
-QSizeF const PreviewSlide::basicRenderPage(int const pageNumber)
+void PreviewSlide::basicRenderPage(int const pageNumber)
 {
 #ifdef DEBUG_RENDERING
     qDebug() << "basic render page" << size() << this;
@@ -117,10 +102,10 @@ QSizeF const PreviewSlide::basicRenderPage(int const pageNumber)
     }
 
     // Calculate the size of the image in pixels
-    qreal scale_x=resolution*pageSize.width(), scale_y=resolution*pageSize.height();
+    scale = resolution*pageSize;
     // Adjustments if only parts of the page are shown:
     if (pagePart != FullPage) {
-        scale_x *= 2;
+        scale.rwidth() *= 2;
         // If only the right half of the page will be shown, the position of the page (relevant for link positions) must be adjusted.
         if (pagePart == RightHalf)
             shiftx -= width();
@@ -131,11 +116,10 @@ QSizeF const PreviewSlide::basicRenderPage(int const pageNumber)
     qDebug() << "get pixmap?" << pageIndex << pageNumber << oldSize << size() << cache << this;
 #endif
     // Check whether the page number or the widget size changed. Then update pixmap if cache is available.
-    if ((pageIndex != pageNumber || oldSize != size()) && cache != nullptr)
+    if ((pageIndex != pageNumber || oldSize != size() || pixmap.isNull()) && cache != nullptr)
         pixmap = cache->getPixmap(pageNumber);
     // Update size. This will later be used to check it the pixmap needs to be updated.
     oldSize = size();
-        return {scale_x, scale_y};
 }
 
 void PreviewSlide::mouseReleaseEvent(QMouseEvent* event)
@@ -244,7 +228,7 @@ void PreviewSlide::mouseMoveEvent(QMouseEvent* event)
     // Show the cursor as Qt::PointingHandCursor when hovering links
     bool is_arrow_pointer = cursor().shape() == Qt::ArrowCursor;
     // Iterate over all link position to check whether a link position contains the cursor position.
-    for (QList<QRect>::const_iterator pos_it=linkPositions.cbegin(); pos_it!=linkPositions.cend(); pos_it++) {
+    for (QList<QRectF>::const_iterator pos_it=linkPositions.cbegin(); pos_it!=linkPositions.cend(); pos_it++) {
         if (pos_it->contains(event->pos())) {
             // Cursor is on a link. Set it to PointingHandCursor and return.
             if (is_arrow_pointer)
@@ -279,6 +263,8 @@ void PreviewSlide::clearAll()
     linkPositions.clear();
     // Set page to nullptr.
     page = nullptr;
+    // Clear pixmap.
+    pixmap = QPixmap();
 }
 
 QPixmap const PreviewSlide::getPixmap(int const page)
@@ -286,4 +272,11 @@ QPixmap const PreviewSlide::getPixmap(int const page)
     if (cache == nullptr)
         return QPixmap();
     return cache->getPixmap(page);
+}
+
+void PreviewSlide::toAbsoluteCoordinates(QRectF& relative) const
+{
+    relative.moveTo(relative.x()*scale.width() + shiftx, relative.y()*scale.height() + shifty);
+    relative.setWidth(relative.width()*scale.width());
+    relative.setHeight(relative.height()*scale.height());
 }

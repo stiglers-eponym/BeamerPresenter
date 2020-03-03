@@ -11,6 +11,7 @@ Medium workload:
 * (target 0.1.?) flexibly change draw tools: color and size from text input fields or sliders?
 * Use gzip (optionally) and read/write compressed Xournal(++) files directly
 * (target 0.1.3) generate overview in own thread
+* optionally show next side with own label instead of next overlay
 
 Longer rewrite:
 * (target 0.1.2) restructure rendering, especially DrawOverlay paint events (and draw cache)

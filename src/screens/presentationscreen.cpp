@@ -135,6 +135,10 @@ void PresentationScreen::wheelEvent(QWheelEvent* event)
 
 void PresentationScreen::updatedFile()
 {
+#ifdef DEBUG_RENDERING
+    qDebug() << "update file";
+#endif
     numberOfPages = presentation->getDoc()->numPages();
     slide->clearAll();
+    slide->renderPage(slide->pageNumber(), false);
 }

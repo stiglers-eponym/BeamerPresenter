@@ -41,7 +41,7 @@ public:
     explicit PreviewSlide(QWidget* parent = nullptr) : QWidget(parent), cache(nullptr) {}
     /// Create a full PreviewSlide, initialize cache and show (render) the given slide number.
     explicit PreviewSlide(PdfDoc const * const document, PagePart const part, QWidget* parent=nullptr);
-    ~PreviewSlide() override;
+    ~PreviewSlide() override {clearAll();}
 
     /// Show a page on the widget.
     virtual void renderPage(int pageNumber);
@@ -89,6 +89,8 @@ protected:
     qint16 shiftx = 0;
     /// Y offset of the side in the current widget.
     qint16 shifty = 0;
+    /// Size of the image in pixels.
+    QSizeF scale;
     /// Pixmap of currently displayed slide.
     QPixmap pixmap;
     /// resolution in pixels per point = dpi/72
@@ -98,7 +100,7 @@ protected:
     /// List of links on the current slide.
     QList<Poppler::Link*> links;
     /// List of positions of links of the current slide.
-    QList<QRect> linkPositions;
+    QList<QRectF> linkPositions;
     /// Size of the widget, saved the last time when a page was rendered.
     /// This is compared to the current size of the widget when a new page is rendered.
     QSize oldSize;
@@ -112,10 +114,12 @@ protected:
 
     /// Function doing the main work in PreviewSlide::renderPage and MediaSlide::renderPage.
     /// Returns the size of the image in pixels.
-    QSizeF const basicRenderPage(int const pageNumber);
+    void basicRenderPage(int const pageNumber);
 
     /// Paint widget on the screen.
     virtual void paintEvent(QPaintEvent*) override;
+
+    void toAbsoluteCoordinates(QRectF& relative) const;
 
 signals:
     /// Send a new page number to ControlScreen and PresentationScreen. The new page will be shown.
