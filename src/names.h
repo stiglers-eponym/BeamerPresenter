@@ -43,7 +43,7 @@ static const QMap<DrawTool, FullDrawTool> defaultToolConfig = {
 #endif
     {Magnifier, {Magnifier, Qt::gray, 200, {.magnification=2.}}},
     {Torch, {Torch, QColor(0,0,0,64), 120}},
-    {Eraser, {Eraser, QColor(), 10.}},
+    {Eraser, {Eraser, QColor(128,128,128,64), 10.}},
     {NoTool, {NoTool, QColor(), 0.}},
     {InvalidTool, {InvalidTool, QColor(), 0.}},
 };
