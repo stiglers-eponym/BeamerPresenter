@@ -35,10 +35,6 @@ DEFINES += APP_VERSION="\\\"$${VERSION}-$(shell git -C \""$$_PRO_FILE_PWD_"\" re
 # If this is commented out, all checks will be omitted.
 DEFINES += CHECK_QPA_PLATFORM
 
-# In wayland Qt's toolTip function could in some cases cause segfaults.
-# Here you can disable toolTip globally at compile time to avoid this:
-#DEFINES += DISABLE_TOOL_TIP
-
 # Define a path where the icon will be placed (don't forget the trailing /).
 ICON_PATH = "/usr/share/icons/hicolor/scalable/apps/"
 DEFINES += ICON_PATH=\\\"$${ICON_PATH}\\\"
@@ -46,22 +42,30 @@ DEFINES += ICON_PATH=\\\"$${ICON_PATH}\\\"
 CONFIG += c++20 qt
 unix {
     # Enable better debugging.
-    CONFIG(debug):QMAKE_LFLAGS += -rdynamic
+    CONFIG(debug, debug|release):QMAKE_LFLAGS += -rdynamic
     # Enable embedded applications. This allows for X-embedding of external applications if running in X11.
     DEFINES += EMBEDDED_APPLICATIONS_ENABLED
 }
 linux {
-    # Drop down menus can cause problems in wayland.
-    # This defines activates a patch to replace drop down menus in wayland.
-    # With wayland 1.18.0 and Qt 5.14.1 the issue is mostly fixed.
+    # Options to avoid known bugs in Wayland.
+    # In sway I noticed that having my screens positioned at "unexpected"
+    # postions (not (0,0)) in wayland's coodinates can cause some problems
+    # in Qt, including sudden segfaults with hardly any user interaction.
+    # To avoid this, you can enable the following options.
+
+    # Disable toolTip globally at compile time to avoid segfaults in strange
+    # wayland setup:
+    #DEFINES += DISABLE_TOOL_TIP
+
+    # Replace drop down menus with an ugly patch, since they can in some
+    # situations be misplaced in wayland: (deprecated!)
     #DEFINES += USE_WAYLAND_SUBMENU_PATCH
-    # TODO: drop down menues only partially visible in Wayland.
 }
 
 # Disable debugging message if debugging mode is disabled.
 CONFIG(release, debug|release):DEFINES += QT_NO_DEBUG_OUTPUT
 # Enable specific debugging messages
-CONFIG(debug) {
+CONFIG(debug, debug|release) {
     # TODO: include all these in the code!
     #DEFINES += DEBUG_READ_CONFIGS
     #DEFINES += DEBUG_CACHE
