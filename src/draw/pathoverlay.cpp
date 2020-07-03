@@ -44,6 +44,7 @@ PathOverlay::PathOverlay(DrawSlide* parent) :
 {
     setAttribute(Qt::WA_TranslucentBackground);
     setAttribute(Qt::WA_AlwaysStackOnTop);
+    setAttribute(Qt::WA_AcceptTouchEvents);
     if (!master->isPresentation())
         setMouseTracking(true);
 }
@@ -204,6 +205,44 @@ void PathOverlay::setTool(FullDrawTool const& newtool, qreal const resolution)
     update();
 }
 
+void PathOverlay::setStylusTool(FullDrawTool const& newtool, qreal const resolution)
+{
+    // TODO: This is just copy-pasted from setTool.
+    stylusTool = newtool;
+    if (stylusTool.tool == Magnifier && stylusTool.extras.magnification < 1e-12)
+        stylusTool.extras.magnification = defaultToolConfig[Magnifier].extras.magnification;
+    if (stylusTool.size <= 1e-12)
+        stylusTool.size = defaultToolConfig[stylusTool.tool].size;
+    if (!stylusTool.color.isValid())
+        stylusTool.color = defaultToolConfig[tool.tool].color;
+    if (resolution > 0)
+        stylusTool.size *= master->resolution/resolution;
+    // TODO: fancy cursors
+    if (cursor().shape() == Qt::BlankCursor && stylusTool.tool != Pointer)
+        setMouseTracking(false);
+    if (stylusTool.tool == Torch) {
+        enlargedPage = QPixmap();
+        pointerPosition = QPointF();
+    }
+    else if (stylusTool.tool == Pointer) {
+        enlargedPage = QPixmap();
+        setMouseTracking(true);
+        if (underMouse()) {
+            pointerPosition = mapFromGlobal(QCursor::pos());
+            emit pointerPositionChanged(pointerPosition, master->shiftx, master->shifty, master->resolution);
+        }
+    }
+    else if (stylusTool.tool == Magnifier) {
+        pointerPosition = QPointF();
+        // Update enlarged page if necessary.
+        if (enlargedPage.isNull() || abs(stylusTool.extras.magnification*width() - enlargedPage.width()) > 1 )
+            updateEnlargedPage();
+    }
+    else
+        enlargedPage = QPixmap();
+    update();
+}
+
 void PathOverlay::updatePathCache()
 {
     if (master->page == nullptr)
@@ -310,6 +349,173 @@ bool PathOverlay::hasVideoOverlap(QRectF const& rect) const
     for (auto pos: master->videoPositions) {
         if (rect.intersects(pos))
             return true;
+    }
+    return false;
+}
+
+bool PathOverlay::event(QEvent *event)
+{
+    switch (event->type())
+    {
+    case QEvent::TouchBegin:
+    {
+        QTouchEvent* touchEvent = static_cast<QTouchEvent*>(event);
+        qDebug() << touchEvent;
+        break;
+    }
+    case QEvent::TouchEnd:
+        qDebug() << event;
+        break;
+    case QEvent::TouchUpdate:
+        break;
+    case QEvent::TabletPress:
+    {
+        QTabletEvent* tabletEvent = static_cast<QTabletEvent*>(event);
+        qDebug() << tabletEvent;
+        if (tabletEvent->pointerType() == QTabletEvent::Eraser) {
+            erase(tabletEvent->posF());
+            update();
+        }
+        else {
+            switch (stylusTool.tool)
+            {
+            case Pen:
+            case Highlighter:
+                if (!paths.contains(master->page->label()))
+                    paths[master->page->label()] = QList<DrawPath*>();
+                paths[master->page->label()].append(new DrawPath(stylusTool, tabletEvent->posF()));
+                break;
+            case Eraser:
+                erase(tabletEvent->posF());
+                update();
+                break;
+            case Magnifier:
+                if (enlargedPage.isNull())
+                    updateEnlargedPage();
+            [[clang::fallthrough]];
+            case Torch:
+            case Pointer:
+                pointerPosition = tabletEvent->posF();
+                update();
+                emit pointerPositionChanged(pointerPosition, master->shiftx, master->shifty, master->resolution);
+                break;
+            default:
+                return false;
+            }
+        }
+        event->accept();
+        return true;
+    }
+    case QEvent::TabletMove:
+    {
+        QTabletEvent* tabletEvent = static_cast<QTabletEvent*>(event);
+        if (stylusTool.tool == Pointer) {
+            QRegion region = QRegion(pointerPosition.x()-stylusTool.size, pointerPosition.y()-stylusTool.size, 2*stylusTool.size+2, 2*stylusTool.size+2);
+            pointerPosition = tabletEvent->posF();
+            region += QRect(pointerPosition.x()-stylusTool.size, pointerPosition.y()-stylusTool.size, 2*stylusTool.size+2, 2*stylusTool.size+2);
+            emit pointerPositionChanged(pointerPosition, master->shiftx, master->shifty, master->resolution);
+            update(region);
+        }
+        if (tabletEvent->pressure() == 0)
+            return true;
+        switch (tabletEvent->pointerType())
+        {
+        case QTabletEvent::Eraser:
+            erase(tabletEvent->posF());
+            break;
+        default:
+            switch (stylusTool.tool)
+            {
+            case Pen:
+            case Highlighter:
+                if (!paths[master->page->label()].isEmpty()) {
+                    paths[master->page->label()].last()->append(tabletEvent->posF());
+                    update(paths[master->page->label()].last()->getOuterLast());
+                    emit pathsChangedQuick(master->page->label(), paths[master->page->label()], master->shiftx, master->shifty, master->resolution);
+                }
+                break;
+            case Eraser:
+                erase(tabletEvent->posF());
+                break;
+            case Torch:
+            case Magnifier:
+            {
+                QRegion region = QRegion(pointerPosition.x()-stylusTool.size, pointerPosition.y()-stylusTool.size, 2*stylusTool.size+2, 2*stylusTool.size+2);
+                pointerPosition = tabletEvent->posF();
+                region += QRect(pointerPosition.x()-stylusTool.size, pointerPosition.y()-stylusTool.size, 2*stylusTool.size+2, 2*stylusTool.size+2);
+                update(region);
+                emit pointerPositionChanged(pointerPosition, master->shiftx, master->shifty, master->resolution);
+                break;
+            }
+            case Pointer:
+                break;
+            default:
+                if (cursor().shape() != Qt::BlankCursor) {
+                    if (master->hoverLink(tabletEvent->pos()))
+                        setCursor(Qt::PointingHandCursor);
+                    else
+                        setCursor(Qt::ArrowCursor);
+                }
+            }
+            break;
+        }
+        event->accept();
+        return true;
+    }
+    case QEvent::TabletRelease:
+    {
+        QTabletEvent* tabletEvent = static_cast<QTabletEvent*>(event);
+        switch (tabletEvent->pointerType())
+        {
+        case QTabletEvent::Eraser:
+            updatePathCache();
+            emit sendUpdatePathCache();
+            if (tool.tool == Magnifier) {
+                updateEnlargedPage();
+                emit sendUpdateEnlargedPage();
+                update();
+            }
+            break;
+        default:
+            switch (stylusTool.tool) {
+            case NoTool:
+            case Pointer:
+                event->ignore();
+                return false;
+            case Torch:
+            case Magnifier:
+                pointerPosition = QPointF();
+                update();
+                break;
+            case Pen:
+            case Highlighter:
+                if (!paths.contains(master->page->label()) || paths[master->page->label()].isEmpty())
+                    return false;
+                paths[master->page->label()].last()->endDrawing();
+                emit pathsChangedQuick(master->page->label(), paths[master->page->label()], master->shiftx, master->shifty, master->resolution);
+                update();
+                [[clang::fallthrough]];
+            case Eraser:
+                updatePathCache();
+                emit sendUpdatePathCache();
+                break;
+            default:
+                break;
+            }
+            break;
+        }
+        emit sendRelax();
+        event->accept();
+        return true;
+    }
+    case QEvent::TabletEnterProximity:
+        break;
+    case QEvent::TabletLeaveProximity:
+        break;
+    case QEvent::TabletTrackingChange:
+        break;
+    default:
+        return QWidget::event(event);
     }
     return false;
 }

@@ -79,6 +79,8 @@ protected:
     virtual void mousePressEvent(QMouseEvent* event) override;
     virtual void mouseReleaseEvent(QMouseEvent* event) override;
     virtual void mouseMoveEvent(QMouseEvent* event) override;
+    /// Overwrite event to handle touch events
+    virtual bool event(QEvent* event) override;
     /// Resize this widget and rescale all paths.
     void rescale(qint16 const oldshiftx, qint16 const oldshifty, double const oldRes);
     /// Erase paths at given point.
@@ -87,6 +89,8 @@ protected:
     qreal eraserSize = 10.;
     /// Current draw tool.
     FullDrawTool tool = {NoTool, Qt::black, 0.};
+    /// Tool for tablet events.
+    FullDrawTool stylusTool = {Pen, Qt::black, 1.};
     /// Currently visible paths.
     QMap<QString, QList<DrawPath*>> paths;
     /// Undisplayed paths which could be restored.
@@ -113,6 +117,8 @@ public slots:
     void setPointerPosition(QPointF const point, qint16 const refshiftx, qint16 const refshifty, double const refresolution);
     void setTool(FullDrawTool const& newtool, qreal const resolution=-1.);
     void setTool(DrawTool const newtool, QColor const color=QColor(), qreal size=-1, qreal const resolution=-1.) {setTool({newtool, color, size}, resolution);}
+    void setStylusTool(FullDrawTool const& newtool, qreal const resolution=-1.);
+    void setStylusTool(DrawTool const newtool, QColor const color=QColor(), qreal size=-1, qreal const resolution=-1.) {setStylusTool({newtool, color, size}, resolution);}
     void updatePathCache();
     void relax();
     void togglePointerVisibility();

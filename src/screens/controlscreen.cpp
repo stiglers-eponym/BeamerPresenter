@@ -225,6 +225,7 @@ ControlScreen::ControlScreen(QString presentationPath, QString notesPath, PagePa
     // Set up tool selector.
     // Tool selector can send new draw tools to the presentation slide.
     connect(ui->tool_selector, &ToolSelector::sendNewTool, this, &ControlScreen::distributeTools);
+    connect(ui->tool_selector, &ToolSelector::sendNewStylusTool, this, &ControlScreen::distributeStylusTools);
     // Tool selector can send KeyActions to control screen.
     connect(ui->tool_selector, &ToolSelector::sendAction, this, &ControlScreen::handleKeyAction);
 
@@ -2229,4 +2230,14 @@ void ControlScreen::distributeTools(FullDrawTool const& tool)
     presentationScreen->slide->getPathOverlay()->setTool(tool);
     if (drawSlide != nullptr)
         drawSlide->getPathOverlay()->setTool(tool, presentationScreen->slide->getResolution());
+}
+
+void ControlScreen::distributeStylusTools(FullDrawTool const& tool)
+{
+#ifdef DEBUG_TOOL_ACTIONS
+    qDebug() << "set tool from tool selector" << tool.tool << tool.color << tool.size << tool.extras.magnification;
+#endif
+    presentationScreen->slide->getPathOverlay()->setStylusTool(tool);
+    if (drawSlide != nullptr)
+        drawSlide->getPathOverlay()->setStylusTool(tool, presentationScreen->slide->getResolution());
 }
