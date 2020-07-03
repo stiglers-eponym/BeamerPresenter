@@ -74,7 +74,6 @@ bool ToolButton::event(QEvent* event)
 
 void ToolButton::onClicked()
 {
-    qDebug() << "clicked";
     if (tool.tool != InvalidTool)
         emit sendTool(tool);
     for (auto action : actions)

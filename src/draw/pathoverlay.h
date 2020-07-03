@@ -79,7 +79,7 @@ protected:
     virtual void mousePressEvent(QMouseEvent* event) override;
     virtual void mouseReleaseEvent(QMouseEvent* event) override;
     virtual void mouseMoveEvent(QMouseEvent* event) override;
-    /// Overwrite event to handle touch events
+    /// Overwrite QWidget::event to handle touch and tablet events
     virtual bool event(QEvent* event) override;
     /// Resize this widget and rescale all paths.
     void rescale(qint16 const oldshiftx, qint16 const oldshifty, double const oldRes);
@@ -90,7 +90,7 @@ protected:
     /// Current draw tool.
     FullDrawTool tool = {NoTool, Qt::black, 0.};
     /// Tool for tablet events.
-    FullDrawTool stylusTool = {Pen, Qt::black, 1.};
+    FullDrawTool stylusTool = {Pen, Qt::black, 2.5};
     /// Currently visible paths.
     QMap<QString, QList<DrawPath*>> paths;
     /// Undisplayed paths which could be restored.
