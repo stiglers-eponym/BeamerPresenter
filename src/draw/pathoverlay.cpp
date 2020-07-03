@@ -77,8 +77,7 @@ void PathOverlay::clearPageAnnotations()
         qDeleteAll(paths[master->page->label()]);
         paths[master->page->label()].clear();
         update();
-        if (tool.tool == Magnifier)
-            updateEnlargedPage();
+        updateEnlargedPage();
     }
 }
 
@@ -493,7 +492,7 @@ bool PathOverlay::event(QEvent *event)
         case QTabletEvent::Eraser:
             updatePathCache();
             emit sendUpdatePathCache();
-            if (tool.tool == Magnifier) {
+            if (tool.tool == Magnifier || stylusTool.tool == Magnifier) {
                 updateEnlargedPage();
                 emit sendUpdateEnlargedPage();
                 update();
@@ -520,6 +519,11 @@ bool PathOverlay::event(QEvent *event)
             case Eraser:
                 updatePathCache();
                 emit sendUpdatePathCache();
+                if (tool.tool == Magnifier) {
+                    updateEnlargedPage();
+                    emit sendUpdateEnlargedPage();
+                    update();
+                }
                 break;
             default:
                 break;
@@ -595,7 +599,7 @@ void PathOverlay::mouseReleaseEvent(QMouseEvent *event)
     case Qt::RightButton:
         updatePathCache();
         emit sendUpdatePathCache();
-        if (tool.tool == Magnifier) {
+        if (tool.tool == Magnifier || stylusTool.tool == Magnifier) {
             updateEnlargedPage();
             emit sendUpdateEnlargedPage();
             update();
@@ -624,6 +628,11 @@ void PathOverlay::mouseReleaseEvent(QMouseEvent *event)
         case Eraser:
             updatePathCache();
             emit sendUpdatePathCache();
+            if (stylusTool.tool == Magnifier) {
+                updateEnlargedPage();
+                emit sendUpdateEnlargedPage();
+                update();
+            }
             event->accept();
             break;
         default:
@@ -765,13 +774,20 @@ void PathOverlay::setPathsQuick(QString const pagelabel, QList<DrawPath*> const&
         update(paths[pagelabel].last()->getOuterDrawing().toAlignedRect());
     }
     else if (diff < 0) {
-        if (-diff >= paths[pagelabel].length()) {
+        if (diff == -1 && paths[pagelabel].length() >= 1) {
+           DrawPath* path = paths[pagelabel].takeLast();
+           update(path->getOuterDrawing().toAlignedRect());
+           delete path;
+        }
+        else if (-diff >= paths[pagelabel].length()) {
             qDeleteAll(paths[pagelabel]);
             paths[pagelabel].clear();
+            update();
         }
         else {
             for (int i=diff; i++<0;)
                 delete paths[pagelabel].takeLast();
+            update();
         }
         end_cache = -1;
         pixpaths = QPixmap();
@@ -920,16 +936,16 @@ void PathOverlay::updateEnlargedPage()
             case Pen:
             {
                 painter.setCompositionMode(QPainter::CompositionMode_SourceOver);
-                painter.setPen(QPen(tool.color, this->tool.extras.magnification*tool.size));
-                DrawPath tmp(**path_it, QPointF(0,0), this->tool.extras.magnification);
+                painter.setPen(QPen(tool.color, thetool->extras.magnification*tool.size));
+                DrawPath tmp(**path_it, QPointF(0,0), thetool->extras.magnification);
                 painter.drawPolyline(tmp.data(), tmp.number());
                 break;
             }
             case Highlighter:
             {
                 painter.setCompositionMode(QPainter::CompositionMode_Darken);
-                painter.setPen(QPen(tool.color, this->tool.extras.magnification*tool.size, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin));
-                DrawPath tmp(**path_it, QPointF(0,0), this->tool.extras.magnification);
+                painter.setPen(QPen(tool.color, thetool->extras.magnification*tool.size, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin));
+                DrawPath tmp(**path_it, QPointF(0,0), thetool->extras.magnification);
                 painter.drawPolyline(tmp.data(), tmp.number());
                 break;
             }
@@ -1405,7 +1421,7 @@ void PathOverlay::undoPath()
         undonePaths.append(paths[master->page->label()].takeLast());
         end_cache = -1;
         pixpaths = QPixmap();
-        update();
+        update(undonePaths.last()->getOuterDrawing().toAlignedRect());
         emit pathsChangedQuick(master->page->label(), paths[master->page->label()], master->shiftx, master->shifty, master->resolution);
     }
 }
@@ -1413,8 +1429,9 @@ void PathOverlay::undoPath()
 void PathOverlay::redoPath()
 {
     if (!undonePaths.isEmpty()) {
-        paths[master->page->label()].append(undonePaths.takeLast());
-        update();
+        DrawPath* path = undonePaths.takeLast();
+        paths[master->page->label()].append(path);
+        update(path->getOuterDrawing().toAlignedRect());
         emit pathsChangedQuick(master->page->label(), paths[master->page->label()], master->shiftx, master->shifty, master->resolution);
     }
 }
