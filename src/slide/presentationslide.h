@@ -54,7 +54,6 @@ protected:
     void endAnimation();
     void stopAnimation() override;
     void setDuration() override;
-    void drawPointer(QPainter& painter);
     void updateImages(int const oldPage);
     void clearLists() override;
 

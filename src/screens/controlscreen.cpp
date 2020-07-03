@@ -148,6 +148,8 @@ ControlScreen::ControlScreen(QString presentationPath, QString notesPath, PagePa
         // Send pointer position (when using a pointer, torch or magnifier tool).
         connect(drawSlide->getPathOverlay(), &PathOverlay::pointerPositionChanged, presentationScreen->slide->getPathOverlay(), &PathOverlay::setPointerPosition);
         connect(presentationScreen->slide->getPathOverlay(), &PathOverlay::pointerPositionChanged, drawSlide->getPathOverlay(), &PathOverlay::setPointerPosition);
+        connect(drawSlide->getPathOverlay(), &PathOverlay::stylusPositionChanged, presentationScreen->slide->getPathOverlay(), &PathOverlay::setStylusPosition);
+        connect(presentationScreen->slide->getPathOverlay(), &PathOverlay::stylusPositionChanged, drawSlide->getPathOverlay(), &PathOverlay::setStylusPosition);
         // Send relax signal when the mouse is released, which ends drawing a path.
         connect(drawSlide->getPathOverlay(), &PathOverlay::sendRelax, presentationScreen->slide->getPathOverlay(), &PathOverlay::relax);
         connect(presentationScreen->slide->getPathOverlay(), &PathOverlay::sendRelax, drawSlide->getPathOverlay(), &PathOverlay::relax);

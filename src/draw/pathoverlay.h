@@ -96,7 +96,11 @@ protected:
     /// Undisplayed paths which could be restored.
     QList<DrawPath*> undonePaths;
     /// Current position of the pointer.
+    /// (0,0) indicates that no pointing tool is currently active.
     QPointF pointerPosition = QPointF();
+    /// Current position of the stylus.
+    /// (0,0) indicates that no stylus pointing tool is currently active.
+    QPointF stylusPosition = QPointF();
     /// Page enlarged by magnification factor: used for magnifier.
     QPixmap enlargedPage;
     /// Renderer for enlarged page: enables rendering of enlarged page in separate thread.
@@ -115,6 +119,7 @@ public slots:
     void setPaths(QString const pagelabel, QList<DrawPath*> const& list, qint16 const refshiftx, qint16 const refshifty, double const refresolution);
     void setPathsQuick(QString const pagelabel, QList<DrawPath*> const& list, qint16 const refshiftx, qint16 const refshifty, double const refresolution);
     void setPointerPosition(QPointF const point, qint16 const refshiftx, qint16 const refshifty, double const refresolution);
+    void setStylusPosition(QPointF const point, qint16 const refshiftx, qint16 const refshifty, double const refresolution);
     void setTool(FullDrawTool const& newtool, qreal const resolution=-1.);
     void setTool(DrawTool const newtool, QColor const color=QColor(), qreal size=-1, qreal const resolution=-1.) {setTool({newtool, color, size}, resolution);}
     void setStylusTool(FullDrawTool const& newtool, qreal const resolution=-1.);
@@ -127,6 +132,7 @@ public slots:
 
 signals:
     void pointerPositionChanged(QPointF const point, qint16 const refshiftx, qint16 const refshifty, double const refresolution);
+    void stylusPositionChanged(QPointF const point, qint16 const refshiftx, qint16 const refshifty, double const refresolution);
     void pathsChangedQuick(QString const pagelabel, QList<DrawPath*> const& list, qint16 const refshiftx, qint16 const refshifty, double const refresolution);
     void pathsChanged(QString const pagelabel, QList<DrawPath*> const& list, qint16 const refshiftx, qint16 const refshifty, double const refresolution);
     void sendToolChanged(FullDrawTool const tool, qreal const resolution);
