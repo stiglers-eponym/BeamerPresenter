@@ -259,6 +259,7 @@ public slots:
     void cacheThreadFinished();
     /// Send draw tool from tool selector to draw slide and presentation.
     void distributeTools(FullDrawTool const& tool);
+    void distributeStylusTools(FullDrawTool const& tool);
 
 signals:
     /// Send a new page number with or without starting a timer for the new slide.

@@ -40,6 +40,7 @@ public:
 
 signals:
     void sendNewTool(FullDrawTool const& tool);
+    void sendNewStylusTool(FullDrawTool const& tool);
     void sendAction(KeyAction const action);
 };
 

@@ -1,12 +1,9 @@
 BeamerPresenter
 
-Bugs:
-* Hiding pointer does not work in Xubuntu 18.04.4 VM
-
 Simple fixes and features:
 * (target 0.1.2) mark eraser with circle
 * (target 0.1.3) handle reoccuring page labels
-* (target 0.1.3) use thumbnails in overviewbox
+* (target 0.1.3) use thumbnails in overview box
 * fill drawings as in xournalpp: fill QRect and draw boundary clipping out this QRect
 * remove support for legacy file format
 * remove submenu patch for wayland
@@ -27,6 +24,9 @@ Longer rewrite:
 * (target 0.1.2) drawing in slide transitions: restructure
 * (target 0.1.3) restructure rendering, especially DrawOverlay paint events (and draw cache)
 * (target 0.1.?) new draw tool: add text
+* (target 0.1.5) video widgets: use one global graphics scene, connect two views to it, combine with slide transitions
+* support stylus input devices (QTabletEvent: position and pressure) and tablet gestures (for navigation)
+* separate "extra features" (like drawing and multimedia) from basic features (fast navigation, cache)
 
 Multimedia:
 * hide video widgets if they reached end of file
@@ -39,6 +39,7 @@ General:
 * search for memory leaks
 * check (and reduce) memory usage
 * test in ubuntu
+* Rewrite? The old code has many problems...
 
 Low priority:
 * better icon (and png icons)

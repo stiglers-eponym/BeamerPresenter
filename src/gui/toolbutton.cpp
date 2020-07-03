@@ -24,6 +24,7 @@ ToolButton::ToolButton(QList<KeyAction> const actions, FullDrawTool const& tool,
     tool(tool),
     actions(actions)
 {
+    setAttribute(Qt::WA_AcceptTouchEvents);
     connect(this, &QPushButton::clicked, this, &ToolButton::onClicked);
     QString text;
     QString iconname;
@@ -56,6 +57,19 @@ ToolButton::ToolButton(QList<KeyAction> const actions, FullDrawTool const& tool,
 #else
     setToolTip(text);
 #endif
+}
+
+bool ToolButton::event(QEvent* event)
+{
+    if (event->type() == QEvent::TabletPress) {
+        if (tool.tool != InvalidTool)
+            emit sendStylusTool(tool);
+        for (auto action : actions)
+            emit sendAction(action);
+        event->accept();
+        return true;
+    }
+    return QPushButton::event(event);
 }
 
 void ToolButton::onClicked()
