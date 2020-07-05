@@ -6,6 +6,8 @@
 #include "src/pngpixmap.h"
 #include "src/pixcachethread.h"
 
+#define MAX_RESOLUTION_DEVIATION 1e-9
+
 class PdfMaster;
 
 /// Cache of compressed slides as PNG images.
@@ -26,8 +28,8 @@ private:
     /// Boundaries of simply connected region of cache containing current page.
     QPair<int,int> region = {INT_MAX, -1};
 
-    /// Resolution of all cached images
-    qreal resolution;
+    /// Size in which the slides should be rendered.
+    QSizeF frame;
 
     /// Quorum of memory which should be used by this.
     float maxMemory = -1.f;
@@ -65,13 +67,12 @@ public:
     void clear();
 
     /// Set maximum allowed bytes of memory used by this->cache.
+    /// Clean up memory if necessary.
     void setMaxMemory(const float memory);
 
     /// Set maximum allowed number of cache slides.
+    /// Clean up memory if necessary.
     void setMaxNumber(const int number);
-
-    /// Set resolution and clear cache if resolution changed.
-    void setResolution(const qreal &new_resolution);
 
     /// Get pixmap showing page n.
     QPixmap * pixmap(const int n) const;

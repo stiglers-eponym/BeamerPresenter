@@ -45,8 +45,15 @@ public:
     /// Create a new PdfMaster from a given file name.
     explicit PdfMaster(const QString &filename);
     ~PdfMaster();
+
     /// Reload the file. Return true if the file was updated and fals otherwise.
     bool reload();
+
+    /// Get path to PDF file.
+    const QString &getFilename() const {return pdfpath;}
+
+    /// Get size of page in points (floating point precision).
+    const QSizeF getPageSize(const int page_number) const;
 
 public slots:
     /// Paths have changed on SlideView sender. Update paths and send out a

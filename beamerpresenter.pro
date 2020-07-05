@@ -12,6 +12,9 @@ QT += core gui multimedia multimediawidgets xml widgets
 TARGET = beamerpresenter
 TEMPLATE = app
 
+# Include MuPDF: requires that mupdf libraries are installed.
+DEFINES += INCLUDE_MUPDF
+
 # The following define makes your compiler emit warnings if you use
 # any feature of Qt which has been marked as deprecated (the exact warnings
 # depend on your compiler). Please consult the documentation of the
@@ -51,27 +54,37 @@ CONFIG(debug, debug|release) {
 
 SOURCES += \
         src/drawhistorystep.cpp \
+        src/externalrenderer.cpp \
         src/main.cpp \
         src/pathcontainer.cpp \
         src/pdfmaster.cpp \
         src/pixcache.cpp \
         src/pixcachethread.cpp \
         src/pngpixmap.cpp \
+        src/popplerrenderer.cpp \
         src/preferences.cpp \
         src/slidescene.cpp \
         src/slideview.cpp
 
 HEADERS += \
+        src/abstractrenderer.h \
         src/drawhistorystep.h \
         src/enumerates.h \
+        src/externalrenderer.h \
         src/pathcontainer.h \
         src/pdfmaster.h \
         src/pixcache.h \
         src/pixcachethread.h \
         src/pngpixmap.h \
+        src/popplerrenderer.h \
         src/preferences.h \
         src/slidescene.h \
         src/slideview.h
+
+contains(DEFINES, INCLUDE_MUPDF) {
+    SOURCES += src/mupdfrenderer.cpp
+    HEADERS += src/mupdfrenderer.h
+}
 
 unix {
     INCLUDEPATH += /usr/include/poppler/qt5

@@ -5,7 +5,8 @@ PixCache::PixCache(const int thread_number, QObject *parent) :
     threads(QVector<PixCacheThread*>(thread_number))
 {
     // Create threads.
-    for (int i=0; i<thread_number; i++) {
+    for (int i=0; i<thread_number; i++)
+    {
         threads[i] = new PixCacheThread(this);
         connect(threads[i], &PixCacheThread::sendData, this, &PixCache::receiveData);
     }
@@ -17,6 +18,20 @@ PixCache::~PixCache()
     for (auto thread : threads)
         delete thread;
     clear();
+}
+
+void PixCache::setMaxMemory(const float memory)
+{
+    maxMemory = memory;
+    if (memory < usedMemory && memory >= 0)
+        limitCacheSize();
+}
+
+void PixCache::setMaxNumber(const int number)
+{
+    maxNumber = number;
+    if (number < usedMemory && number >= 0)
+        limitCacheSize();
 }
 
 void PixCache::clear()
@@ -31,14 +46,8 @@ QPixmap* PixCache::pixmap(const int n) const
 {
     if (cache.contains(n))
         return cache[n]->pixmap();
-    // TODO: render!
-}
-
-void PixCache::setResolution(const qreal &new_resolution)
-{
-    if (abs(resolution - new_resolution) > 1e-9)
-        clear();
-    resolution = new_resolution;
+    // TODO: render using the more general framework.
+    return pdfMaster->getPage()->render(72*resolution, 72*resolution);
 }
 
 void PixCache::requestRenderPage(const int n)
@@ -55,9 +64,11 @@ void PixCache::updatePageNumber(const int page_number)
     currentPage = page_number;
 
     // Update boundaries of the simply connected region.
-    if (!cache.contains(currentPage)) {
+    if (!cache.contains(currentPage))
+    {
         // If current page is not yet in cache: make sure it is first in priority queue.
-        if (priority.first() != currentPage) {
+        if (priority.first() != currentPage)
+        {
             priority.removeOne(currentPage);
             priority.push_front(currentPage);
         }
@@ -74,15 +85,20 @@ void PixCache::updatePageNumber(const int page_number)
 
     // Extend the region as far as possible by searching for gaps.
     // Use that keys in QMap are sorted and can be accessed by iterators.
-    QMap<int, const PngPixmap*>::const_iterator left = cache.find(region.first), right = cache.find(region.second);
-    if (left != cache.cend()) {
+    QMap<int, const PngPixmap*>::const_iterator
+            left = cache.find(region.first),
+            right = cache.find(region.second);
+    if (left != cache.cend())
+    {
         const auto limit = cache.cbegin() - 1;
-        while (left != limit && left.key() == region.first) {
+        while (left != limit && left.key() == region.first)
+        {
             --left;
             --region.first;
         }
     }
-    while (right != cache.cend() && right.key() == region.second) {
+    while (right != cache.cend() && right.key() == region.second)
+    {
         ++right;
         ++region.second;
     }
@@ -96,7 +112,8 @@ int PixCache::limitCacheSize()
     // Check restrictions on memory usage and number of slides
     if (maxMemory < 0 && maxNumber < 0)
         return -1;
-    if (maxNumber == 0 || maxMemory == 0) {
+    if (maxNumber == 0 || maxMemory == 0)
+    {
         clear();
         return 0;
     }
@@ -104,7 +121,8 @@ int PixCache::limitCacheSize()
     // Number of really cached slides:
     // subtract number of currently active threads, for which cache contains a nullptr.
     int cached_slides = cache.size();
-    for (QVector<PixCacheThread*>::const_iterator it = threads.cbegin(); it != threads.cend(); ++it) {
+    for (QVector<PixCacheThread*>::const_iterator it = threads.cbegin(); it != threads.cend(); ++it)
+    {
         if ((*it)->isRunning())
             --cached_slides;
     }
@@ -113,7 +131,8 @@ int PixCache::limitCacheSize()
 
     // Calculate how many slides still fit in available memory
     int allowed_slides = INT_MAX;
-    if (maxMemory > 0) {
+    if (maxMemory > 0)
+    {
         // Get currently used memory.
         // Get number of slides which still fit in available memory.
         if (usedMemory > 0 && cached_slides > 0)
@@ -147,12 +166,14 @@ int PixCache::limitCacheSize()
             break;
 
         // If more than 3/4 of the cached slides lie ahead of current page, clean up last.
-        if (last + 3*first > 4*currentPage) {
+        if (last + 3*first > 4*currentPage)
+        {
             auto it = cache.end() - 1;
             remove = it.value();
             last = (cache.erase(it) - 1).key();
         }
-        else {
+        else
+        {
             auto it = cache.begin();
             remove = it.value();
             first = cache.erase(it).key();
@@ -187,27 +208,28 @@ int PixCache::renderNext()
 {
     // Check if priority contains pages which are not yet rendered.
     int page;
-    while (!priority.isEmpty()) {
+    while (!priority.isEmpty())
+    {
         page = priority.takeFirst();
         if (!cache.contains(page))
             return page;
     }
 
     // Select region.first or region.second for rendering.
-    if (region.second + 3*region.first > 4*currentPage ) {
+    if (region.second + 3*region.first > 4*currentPage )
         return region.first--;
-    }
-    else {
+    else
         return region.second++;
-    }
 }
 
 void PixCache::startRendering()
 {
     // Clean up cache and check if there is enough space for more cached pages.
     int allowed_pages = limitCacheSize();
-    for (QVector<PixCacheThread*>::const_iterator thread = threads.cbegin(); thread != threads.cend(); ++thread) {
-        if (allowed_pages > 0 && !(*thread)->isRunning()) {
+    for (QVector<PixCacheThread*>::const_iterator thread = threads.cbegin(); thread != threads.cend(); ++thread)
+    {
+        if (allowed_pages > 0 && !(*thread)->isRunning())
+        {
             (*thread)->setPageNumber(renderNext());
             (*thread)->start();
             --allowed_pages;
@@ -218,14 +240,15 @@ void PixCache::startRendering()
 void PixCache::receiveData(const PngPixmap * const data)
 {
     // Check if the received image is still compatible with the current resolution.
-    if (abs(resolution - data->getResolution()) > 1e-9) {
+    // TODO: check resolution of data!
+    if (abs(getResolution(data->getPage()) - data->getResolution()) > MAX_RESOLUTION_DEVIATION)
+    {
         if (cache.value(data->getPage()) == nullptr)
             cache.remove(data->getPage());
         delete data;
     }
-    else {
+    else
         cache.insert(data->getPage(), data);
-    }
 
     // Start rendering next page.
     startRendering();

@@ -21,7 +21,8 @@ PngPixmap::PngPixmap(const QPixmap *pixmap, const int page, const qreal resoluti
     QBuffer buffer(bytes);
     buffer.open(QIODevice::WriteOnly);
     // Save the pixmap as png to the buffer.
-    if (!pixmap->save(&buffer, "PNG")) {
+    if (!pixmap->save(&buffer, "PNG"))
+    {
         qWarning() << "Compressing image to PNG failed";
         delete bytes;
         return;
@@ -35,7 +36,11 @@ QPixmap * PngPixmap::pixmap() const
 {
     QPixmap* pixmap = new QPixmap();
     if (!pixmap->loadFromData(*data, "PNG"))
+    {
         qWarning() << "Loading image from PNG failed";
+        delete pixmap;
+        return nullptr;
+    }
     return pixmap;
 }
 

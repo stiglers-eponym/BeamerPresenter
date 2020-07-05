@@ -27,7 +27,8 @@ bool PathContainer::undo(QGraphicsScene *scene)
     const QMap<int, QGraphicsItem*> &removeItems = history[history.length()-inHistory]->getCreatedItems();
     // Iterate over the keys in reverse order, because otherwise the indices of
     // items which we still want to delete would change.
-    for (auto it = removeItems.constEnd(); it-- != removeItems.constBegin() - 1;) {
+    for (auto it = removeItems.constEnd(); it-- != removeItems.constBegin() - 1;)
+    {
         paths.removeAt(it.key());
         // TODO: check if it is necessary to hide items explicitly.
         if (scene != nullptr)
@@ -37,10 +38,12 @@ bool PathContainer::undo(QGraphicsScene *scene)
     // Restore old items.
     // Get the old items from history.
     const QMap<int, QGraphicsItem*> &oldItems = history[history.length()-inHistory]->getDeletedItems();
-    for (auto it = oldItems.constBegin(); it != oldItems.constEnd(); ++it) {
+    for (auto it = oldItems.constBegin(); it != oldItems.constEnd(); ++it)
+    {
         paths.insert(it.key(), it.value());
         // TODO: check if it is necessary to show items explicitly.
-        if (scene != nullptr) {
+        if (scene != nullptr)
+        {
             scene->addItem(it.value());
             if (it.key() + 1 < paths.length())
                 it.value()->stackBefore(paths[it.key() + 1]);
@@ -91,7 +94,8 @@ void PathContainer::truncateHistory()
 {
     // Clean up all "redo" options:
     // Delete the last <inHistory> history entries.
-    while (inHistory > 0) {
+    while (inHistory > 0)
+    {
         // Take the last step from history (removes it from history).
         DrawHistoryStep *step = history.takeLast();
         // Delete all future objects in this step. These objects are not visible.
@@ -111,7 +115,8 @@ void PathContainer::clearHistory(int n)
 
     // Delete the first entries in history until
     // history.length() - inHistory <= n .
-    for (int i = history.length() - inHistory; i>n; i--) {
+    for (int i = history.length() - inHistory; i>n; i--)
+    {
         // Take the first step from history (removes it from history).
         DrawHistoryStep *step = history.takeFirst();
         // Delete all past objects in this step. These objects are not visible.
@@ -128,13 +133,15 @@ void PathContainer::clearPaths(QGraphicsScene *scene)
     DrawHistoryStep *step = new DrawHistoryStep();
     // Append all paths to the history step.
     // If scene != nullptr, additionally remove the items from the scene.
-    if (scene == nullptr) {
-        for (int i=0; i<paths.length(); ++i) {
+    if (scene == nullptr)
+    {
+        for (int i=0; i<paths.length(); ++i)
             step->addRemoveItem(i, paths[i]);
-        }
     }
-    else {
-        for (int i=0; i<paths.length(); ++i) {
+    else
+    {
+        for (int i=0; i<paths.length(); ++i)
+        {
             step->addRemoveItem(i, paths[i]);
             scene->removeItem(paths[i]);
         }
