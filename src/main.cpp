@@ -2,6 +2,7 @@
 #include <QSettings>
 #include <QCommandLineParser>
 #include <src/enumerates.h>
+#include "src/preferences.h"
 
 
 int main(int argc, char *argv[])

@@ -1,4 +1,5 @@
-#include "externalrenderer.h"
+#include "src/rendering/externalrenderer.h"
+#include "src/pdfmaster.h"
 
 ExternalRenderer::ExternalRenderer(const QString& command, const QStringList &arguments, const PdfMaster * const master) :
     renderingCommand(command),
@@ -25,6 +26,8 @@ const QStringList ExternalRenderer::getArguments(const int page, const qreal res
 
 const QByteArray * ExternalRenderer::renderPng(const int page, const qreal resolution) const
 {
+    if (resolution <= 0 || page < 0)
+        return nullptr;
     QProcess *process = new QProcess();
     process->start(renderingCommand, getArguments(page, resolution, "PNG"), QProcess::ReadOnly);
     if (!process->waitForFinished(MAX_PROCESS_TIME_MS))
@@ -42,6 +45,8 @@ const QByteArray * ExternalRenderer::renderPng(const int page, const qreal resol
 
 const QPixmap ExternalRenderer::renderPixmap(const int page, const qreal resolution) const
 {
+    if (resolution <= 0 || page < 0)
+        return QPixmap();
     QProcess *process = new QProcess();
     process->start(renderingCommand, getArguments(page, resolution, "PNM"), QProcess::ReadOnly);
     if (!process->waitForFinished(MAX_PROCESS_TIME_MS))
@@ -57,4 +62,17 @@ const QPixmap ExternalRenderer::renderPixmap(const int page, const qreal resolut
     if (!pixmap.loadFromData(data))
         qWarning() << "Failed to load data from external renderer";
     return pixmap;
+}
+
+bool ExternalRenderer::isValid() const
+{
+    /* Very basic check:
+    * Is a command defined?
+    * Does it take arguments?
+    * Do these arguments include file path and page?
+    */
+    return  !renderingCommand.isEmpty()
+            && !renderingArguments.isEmpty()
+            && renderingArguments.indexOf(QRegExp(".*%file.*")) != -1
+            && renderingArguments.indexOf(QRegExp(".*%page.*")) != -1;
 }

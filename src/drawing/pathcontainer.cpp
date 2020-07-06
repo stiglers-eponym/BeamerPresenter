@@ -1,4 +1,4 @@
-#include "pathcontainer.h"
+#include "src/drawing/pathcontainer.h"
 
 PathContainer::PathContainer(QObject *parent) : QObject(parent)
 {

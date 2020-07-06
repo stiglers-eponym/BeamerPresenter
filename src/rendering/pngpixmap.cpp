@@ -1,4 +1,4 @@
-#include "pngpixmap.h"
+#include "src/rendering/pngpixmap.h"
 
 PngPixmap::PngPixmap(const QByteArray *data, const int page, const qreal resolution) :
      data(data),

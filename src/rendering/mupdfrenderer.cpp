@@ -1,4 +1,4 @@
-#include "mupdfrenderer.h"
+#include "src/rendering/mupdfrenderer.h"
 
 MuPdfRenderer::MuPdfRenderer(const QString &filename)
 {
@@ -27,7 +27,7 @@ MuPdfRenderer::MuPdfRenderer(const QString &filename)
 
     // Open the document.
     // TODO: check the encoding...
-    const char * const name = filename.toUtf8().data();
+    const char * const name = filename.toLatin1().data();
     fz_try(context)
         doc = fz_open_document(context, name);
     fz_catch(context)
@@ -49,7 +49,9 @@ MuPdfRenderer::~MuPdfRenderer()
 
 const QPixmap MuPdfRenderer::renderPixmap(const int page, const qreal resolution) const
 {
-    const fz_matrix matrix = fz_scale(72.*resolution, 72.*resolution);
+    if (resolution <= 0 || page < 0)
+        return QPixmap();
+    const fz_matrix matrix = fz_scale(resolution, resolution);
     // Render page to an RGB pixmap.
     fz_pixmap *pixmap;
     fz_try(context)
@@ -101,7 +103,9 @@ const QPixmap MuPdfRenderer::renderPixmap(const int page, const qreal resolution
 
 const QByteArray * MuPdfRenderer::renderPng(const int page, const qreal resolution) const
 {
-    const fz_matrix matrix = fz_scale(72.*resolution, 72.*resolution);
+    if (resolution <= 0 || page < 0)
+        return nullptr;
+    const fz_matrix matrix = fz_scale(resolution, resolution);
     // Render page to an RGB pixmap.
     fz_pixmap *pixmap;
     fz_try(context)
@@ -128,4 +132,9 @@ const QByteArray * MuPdfRenderer::renderPng(const int page, const qreal resoluti
     const QByteArray * data = new QByteArray(reinterpret_cast<const char*>(buffer->data), buffer->len);
     fz_clear_buffer(context, buffer);
     return data;
+}
+
+bool MuPdfRenderer::isValid() const
+{
+    return (context != nullptr) && (doc != nullptr);
 }

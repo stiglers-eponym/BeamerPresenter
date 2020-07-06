@@ -1,4 +1,4 @@
-#include "preferences.h"
+#include "src/preferences.h"
 
 Preferences::Preferences()
 {

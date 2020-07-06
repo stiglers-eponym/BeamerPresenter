@@ -5,8 +5,7 @@
 #include <QGraphicsItem>
 #include <QGraphicsScene>
 #include <QList>
-#include "src/drawhistorystep.h"
-#include "src/preferences.h"
+#include "src/drawing/drawhistorystep.h"
 
 /// Collection of QGraphicsItems including a history of changes to these items.
 /// This stores drawn paths per slide even if the slide is not visible.
@@ -28,9 +27,6 @@ private:
     /// in_history == 1 means "one change before the latest version".
     /// This may never become negative or >=history.length().
     int inHistory = 0;
-
-    /// Global preferences (TODO: check if this is needed)
-    const Preferences *preferences;
 
     /// Remove all "redo" options.
     void truncateHistory();

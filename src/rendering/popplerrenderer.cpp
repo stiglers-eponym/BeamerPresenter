@@ -1,7 +1,9 @@
-#include "popplerrenderer.h"
+#include "src/rendering/popplerrenderer.h"
 
 const QPixmap PopplerRenderer::renderPixmap(const int page, const qreal resolution) const
 {
+    if (resolution <= 0 || page < 0)
+        return QPixmap();
     const Poppler::Page * const popplerPage = doc->page(page);
     if (popplerPage == nullptr)
     {
@@ -13,6 +15,8 @@ const QPixmap PopplerRenderer::renderPixmap(const int page, const qreal resoluti
 
 const QByteArray * PopplerRenderer::renderPng(const int page, const qreal resolution) const
 {
+    if (resolution <= 0 || page < 0)
+        return nullptr;
     const Poppler::Page * const popplerPage = doc->page(page);
     if (popplerPage == nullptr)
     {

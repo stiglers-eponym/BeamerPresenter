@@ -3,8 +3,8 @@
 
 #include <QObject>
 #include <QMap>
-#include "src/pngpixmap.h"
-#include "src/pixcachethread.h"
+#include "src/rendering/pngpixmap.h"
+#include "src/rendering/pixcachethread.h"
 
 #define MAX_RESOLUTION_DEVIATION 1e-9
 
@@ -29,6 +29,7 @@ private:
     QPair<int,int> region = {INT_MAX, -1};
 
     /// Size in which the slides should be rendered.
+    /// TODO: make sure this is updated.
     QSizeF frame;
 
     /// Quorum of memory which should be used by this.
@@ -59,6 +60,10 @@ private:
     /// This page must then also be rendered.
     int renderNext();
 
+    /// Calculate resolution for given page number based on this->frame.
+    /// Return resolution in pixels per inch (dpi)
+    qreal getResolution(const int page) const;
+
 public:
     explicit PixCache(const int thread_number = 1, QObject *parent = nullptr);
     ~PixCache();
@@ -75,7 +80,10 @@ public:
     void setMaxNumber(const int number);
 
     /// Get pixmap showing page n.
-    QPixmap * pixmap(const int n) const;
+    QPixmap * pixmap(const int page) const;
+    /// Get pixmap showing page n.
+    /// The non-const function additionally writes a new pixmap to cache.
+    QPixmap * pixmap(const int page);
 
     /// Total size of all cached pages in bytes
     qint64 getUsedMemory() const {return usedMemory;}

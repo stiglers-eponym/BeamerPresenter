@@ -4,11 +4,12 @@
 #include <poppler-qt5.h>
 #include <poppler-version.h>
 #include <QFileInfo>
+#include <QInputDialog>
 #include "src/slidescene.h"
 #include "src/slideview.h"
-#include "src/pathcontainer.h"
 #include "src/preferences.h"
-#include "src/pixcache.h"
+#include "src/drawing/pathcontainer.h"
+#include "src/rendering/pixcache.h"
 
 /// Full document including PDF and paths / annotations added by user.
 /// This should also manage drawings and multimedia content of the PDF.
@@ -27,9 +28,6 @@ private:
     /// the file.
     QDateTime lastModified;
 
-    /// Global preferences
-    const Preferences *preferences;
-
     /// Map of pixmap cache maps for storing cached slides.
     /// keys are int(1000*resolution).
     QMap<int, PixCache*> pixcaches;
@@ -41,19 +39,27 @@ private:
 
     // TODO: multimedia
 
+
 public:
     /// Create a new PdfMaster from a given file name.
     explicit PdfMaster(const QString &filename);
     ~PdfMaster();
 
-    /// Reload the file. Return true if the file was updated and fals otherwise.
-    bool reload();
+    /// Load or reload the file. Return true if the file was updated and false
+    /// otherwise.
+    bool loadDocument();
 
     /// Get path to PDF file.
     const QString &getFilename() const {return pdfpath;}
 
     /// Get size of page in points (floating point precision).
     const QSizeF getPageSize(const int page_number) const;
+
+    /// Get Poppler::Document.
+    const Poppler::Document * getDocument() const {return document;}
+
+    /// Get page from document. Does not check whether page exists.
+    const Poppler::Page * getPage(const int page) const {return document->page(page);}
 
 public slots:
     /// Paths have changed on SlideView sender. Update paths and send out a

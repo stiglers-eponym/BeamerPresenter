@@ -53,37 +53,37 @@ CONFIG(debug, debug|release) {
 }
 
 SOURCES += \
-        src/drawhistorystep.cpp \
-        src/externalrenderer.cpp \
         src/main.cpp \
-        src/pathcontainer.cpp \
         src/pdfmaster.cpp \
-        src/pixcache.cpp \
-        src/pixcachethread.cpp \
-        src/pngpixmap.cpp \
-        src/popplerrenderer.cpp \
         src/preferences.cpp \
+        src/rendering/popplerrenderer.cpp \
+        src/rendering/externalrenderer.cpp \
+        src/rendering/pixcache.cpp \
+        src/rendering/pixcachethread.cpp \
+        src/rendering/pngpixmap.cpp \
+        src/drawing/drawhistorystep.cpp \
+        src/drawing/pathcontainer.cpp \
         src/slidescene.cpp \
         src/slideview.cpp
 
 HEADERS += \
-        src/abstractrenderer.h \
-        src/drawhistorystep.h \
         src/enumerates.h \
-        src/externalrenderer.h \
-        src/pathcontainer.h \
         src/pdfmaster.h \
-        src/pixcache.h \
-        src/pixcachethread.h \
-        src/pngpixmap.h \
-        src/popplerrenderer.h \
         src/preferences.h \
+        src/rendering/abstractrenderer.h \
+        src/rendering/popplerrenderer.h \
+        src/rendering/externalrenderer.h \
+        src/rendering/pixcache.h \
+        src/rendering/pixcachethread.h \
+        src/rendering/pngpixmap.h \
+        src/drawing/drawhistorystep.h \
+        src/drawing/pathcontainer.h \
         src/slidescene.h \
         src/slideview.h
 
 contains(DEFINES, INCLUDE_MUPDF) {
-    SOURCES += src/mupdfrenderer.cpp
-    HEADERS += src/mupdfrenderer.h
+    SOURCES += src/rendering/mupdfrenderer.cpp
+    HEADERS += src/rendering/mupdfrenderer.h
 }
 
 unix {

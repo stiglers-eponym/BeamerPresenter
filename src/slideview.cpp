@@ -1,4 +1,4 @@
-#include "slideview.h"
+#include "src/slideview.h"
 
 SlideView::SlideView(QWidget *parent) : QGraphicsView(parent)
 {
