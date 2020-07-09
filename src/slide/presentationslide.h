@@ -43,7 +43,6 @@ private:
     unsigned int seed = 0;
 
 protected:
-    QList<DrawPath*> undonePaths;
     QTimer* const timeoutTimer = new QTimer(this);
     int minimumAnimationDelay = 50; // minimum frame time in ms
     QPixmap picinit;
@@ -55,7 +54,6 @@ protected:
     void stopAnimation() override;
     void setDuration() override;
     void updateImages(int const oldPage);
-    void clearLists() override;
 
 public:
     PresentationSlide(PdfDoc const*const document, PagePart const part, QWidget* parent=nullptr);

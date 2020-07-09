@@ -183,7 +183,7 @@ unix {
 
     desktop.path = /usr/share/applications/
     desktop.CONFIG = no_build
-    desktop.file = share/applications/beamerpresenter.desktop
+    desktop.files = share/applications/beamerpresenter.desktop
 
     target.path = /usr/bin/
 
