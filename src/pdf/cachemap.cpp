@@ -114,7 +114,12 @@ QPixmap const CacheMap::getPixmap(int const page)
     }
     else {
         ExternalRenderer* renderer = new ExternalRenderer(page);
+#if QT_VERSION_MAJOR <= 5 and QT_VERSION_MINOR < 15
         renderer->start(getRenderCommand(page));
+#else
+        QStringList renderCommandSplit = QProcess::splitCommand(getRenderCommand(page));
+        renderer->start(renderCommandSplit.takeFirst(), renderCommandSplit);
+#endif
         QByteArray const* bytes = nullptr;
         if (renderer->waitForFinished(60000))
             bytes = renderer->getBytes();

@@ -45,7 +45,12 @@ void CacheThread::run()
     }
     else {
         ExternalRenderer* renderer = new ExternalRenderer(page);
+#if QT_VERSION_MAJOR <= 5 and QT_VERSION_MINOR < 15
         renderer->start(renderCommand);
+#else
+        QStringList renderCommandSplit = QProcess::splitCommand(renderCommand);
+        renderer->start(renderCommandSplit.takeFirst(), renderCommandSplit);
+#endif
         if (!renderer->waitForFinished(60000)) {
             renderer->kill();
             // Usually bytes==nullptr. But if the old bytes have not been picked up, we should delete them here.

@@ -71,7 +71,18 @@ void EmbedApp::start()
         process = new QProcess(this);
         connect(process, &QProcess::readyReadStandardOutput, this, &EmbedApp::createFromStdOut);
         connect(process, static_cast<void (QProcess::*)(int const, QProcess::ExitStatus const)>(&QProcess::finished), this, &EmbedApp::clearProcess);
+#if QT_VERSION_MAJOR <= 5 and QT_VERSION_MINOR < 15
         process->start(command.join(" "));
+#else
+        if (command.length() == 1) {
+            QStringList arguments = QProcess::splitCommand(command.first());
+            process->start(arguments.takeFirst(), arguments);
+        }
+        else {
+            QStringList arguments = command;
+            process->start(arguments.takeFirst(), arguments);
+        }
+#endif
 #ifdef DEBUG_MULTIMEDIA
         qDebug() << "Started process:" << process->program();
 #endif
@@ -80,7 +91,18 @@ void EmbedApp::start()
         // If we know a program for converting process IDs to window IDs, this will be used to get the WID.
         process = new QProcess(this);
         connect(process, static_cast<void (QProcess::*)(int const, QProcess::ExitStatus const)>(&QProcess::finished), this, &EmbedApp::clearProcess);
+#if QT_VERSION_MAJOR <= 5 and QT_VERSION_MINOR < 15
         process->start(command.join(" "));
+#else
+        if (command.length() == 1) {
+            QStringList arguments = QProcess::splitCommand(command.first());
+            process->start(arguments.takeFirst(), arguments);
+        }
+        else {
+            QStringList arguments = command;
+            process->start(arguments.takeFirst(), arguments);
+        }
+#endif
 #ifdef DEBUG_MULTIMEDIA
         qDebug() << "Started process:" << process->program() << process->pid();
 #endif
