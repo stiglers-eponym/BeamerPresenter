@@ -35,6 +35,7 @@ Multimedia:
 * better control bar
 
 General:
+* mv src/icons share/icons (after rewriting)
 * document code!
 * search for memory leaks
 * check (and reduce) memory usage

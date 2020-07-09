@@ -298,7 +298,7 @@ void actionsFromConfig(QMap<QString, QList<KeyAction>>& actions, QMap<QString, F
                                 tools[key] = {tool, color, size};
                         }
                         else if (tool == Pointer) {
-                            tools[key] = {tool, color, .size=size, defaultToolConfig[Pointer].extras};
+                            tools[key] = {tool, color, size, defaultToolConfig[Pointer].extras};
                             bool ok;
                             quint16 alpha = map["alpha"].toUInt(&ok);
                             if (ok)
@@ -379,7 +379,7 @@ void actionsFromConfig(QMap<QString, QList<KeyAction>>& actions, QMap<QString, F
                 tools[key] = {tool, color, size, {magnification}};
             }
             else if (tool == Pointer) {
-                tools[key] = {tool, color, .size=size, defaultToolConfig[Pointer].extras};
+                tools[key] = {tool, color, size, defaultToolConfig[Pointer].extras};
                 bool ok;
                 quint16 alpha = it->value("alpha").toUInt(&ok);
                 if (ok)
@@ -673,7 +673,11 @@ int main(int argc, char *argv[])
                     }
                     else {
                         // Write the options from the JSON file in local.
+#if QT_VERSION_MINOR < 15 and QT_VERSION_MAJOR <= 5
                         local.unite(jsonDoc.object().toVariantMap());
+#else
+                        local.insert(jsonDoc.object().toVariantMap());
+#endif
 #ifdef DEBUG_READ_CONFIGS
                         qDebug() << "Loaded local config" << *argument;
                         qDebug() << local;

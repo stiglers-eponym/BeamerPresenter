@@ -22,14 +22,14 @@
 #include <QtDebug>
 #include <iostream>
 #include <QFileInfo>
-#include <poppler-qt5.h>
+#include <poppler/qt5/poppler-qt5.h>
 #include <QDomDocument>
 #include <QInputDialog>
 #include "../enumerates.h"
 
-#if __has_include(<poppler-version.h>)
+#if __has_include(<poppler/qt5/poppler-version.h>)
 // Not available in poppler <= 0.62.0:
-#include <poppler-version.h>
+#include <poppler/qt5/poppler-version.h>
 #endif
 // If the above inclusion fails on you system, you can comment it out.
 // If no poppler version is defined, the compiler will assume that you use an old version (<0.60.0).

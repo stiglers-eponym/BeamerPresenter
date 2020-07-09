@@ -20,7 +20,7 @@
 #define TRANSITIONWIDGET_H
 
 #include <random>
-#include <poppler-page-transition.h>
+#include <poppler/qt5/poppler-page-transition.h>
 #include "drawslide.h"
 
 class PresentationSlide : public DrawSlide

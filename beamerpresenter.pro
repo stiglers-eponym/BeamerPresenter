@@ -161,7 +161,7 @@ win32 {
 
 unix {
     # Commands needed for make install
-    # Include man pages and default configuration in make install.
+    # Include man pages, default configuration, icon and desktop file in make install.
 
     man1.path = /usr/share/man/man1/
     man1.CONFIG = no_check_exist no_build
@@ -181,7 +181,11 @@ unix {
     icon.CONFIG = no_build
     icon.files = src/icons/beamerpresenter.svg
 
+    desktop.path = /usr/share/applications/
+    desktop.CONFIG = no_build
+    desktop.file = share/applications/beamerpresenter.desktop
+
     target.path = /usr/bin/
 
-    INSTALLS += man1 man5 configuration icon target
+    INSTALLS += man1 man5 configuration icon desktop target
 }
