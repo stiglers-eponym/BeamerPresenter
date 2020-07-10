@@ -32,7 +32,7 @@ private:
     /// TODO: make sure this is updated.
     QSizeF frame;
 
-    /// Quorum of memory which should be used by this.
+    /// Amount of memory which should be used by this.
     float maxMemory = -1.f;
 
     /// Current size in bytes
@@ -105,7 +105,8 @@ public slots:
     void receiveData(const PngPixmap * const data);
 
 signals:
-
+    /// Inform that new page is ready.
+    void pageReady(const int page, const qreal resolution);
 };
 
 #endif // PIXCACHE_H

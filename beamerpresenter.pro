@@ -63,6 +63,9 @@ SOURCES += \
         src/rendering/pngpixmap.cpp \
         src/drawing/drawhistorystep.cpp \
         src/drawing/pathcontainer.cpp \
+        src/drawing/abstractgraphicspath.cpp \
+        src/drawing/basicgraphicspath.cpp \
+        src/drawing/fullgraphicspath.cpp \
         src/slidescene.cpp \
         src/slideview.cpp
 
@@ -78,6 +81,9 @@ HEADERS += \
         src/rendering/pngpixmap.h \
         src/drawing/drawhistorystep.h \
         src/drawing/pathcontainer.h \
+        src/drawing/abstractgraphicspath.h \
+        src/drawing/basicgraphicspath.h \
+        src/drawing/fullgraphicspath.h \
         src/slidescene.h \
         src/slideview.h
 

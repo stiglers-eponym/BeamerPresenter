@@ -2,6 +2,8 @@
 #define SLIDESCENE_H
 
 #include <QGraphicsScene>
+#include "src/drawing/fullgraphicspath.h"
+#include "src/drawing/basicgraphicspath.h"
 
 /// QGraphicsScene for a presentation slide.
 /// Handle drawing events and links?
@@ -19,6 +21,8 @@ public:
 protected:
     /// Handle various types of events
     virtual bool event(QEvent *event) override;
+    /// Stop drawing and convert just drawn path to regular path.
+    void stopDrawing();
 };
 
 #endif // SLIDESCENE_H

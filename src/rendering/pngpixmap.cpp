@@ -1,18 +1,24 @@
 #include "src/rendering/pngpixmap.h"
 
-PngPixmap::PngPixmap(const QByteArray *data, const int page, const qreal resolution) :
+PngPixmap::PngPixmap(const int page, const float resolution) :
+     data(nullptr),
+     resolution(resolution),
+     page(page)
+{};
+
+PngPixmap::PngPixmap(const QByteArray *data, const int page, const float resolution) :
      data(data),
      resolution(resolution),
      page(page)
 {};
 
-PngPixmap::PngPixmap(const QPixmap *pixmap, const int page, const qreal resolution) :
+PngPixmap::PngPixmap(const QPixmap pixmap, const int page, const float resolution) :
     data(nullptr),
     resolution(resolution),
     page(page)
 {
     // Check if the given pixmap is nontrivial
-    if (pixmap == nullptr || pixmap->isNull())
+    if (pixmap.isNull())
         return;
 
     // Save the pixmap as PNG image.
@@ -21,7 +27,7 @@ PngPixmap::PngPixmap(const QPixmap *pixmap, const int page, const qreal resoluti
     QBuffer buffer(bytes);
     buffer.open(QIODevice::WriteOnly);
     // Save the pixmap as png to the buffer.
-    if (!pixmap->save(&buffer, "PNG"))
+    if (!pixmap.save(&buffer, "PNG"))
     {
         qWarning() << "Compressing image to PNG failed";
         delete bytes;

@@ -24,7 +24,7 @@ private:
     QList<DrawHistoryStep*> history;
 
     /// Current position in history, measured from history.last().
-    /// in_history == 1 means "one change before the latest version".
+    /// inHistory == 1 means "one change before the latest version".
     /// This may never become negative or >=history.length().
     int inHistory = 0;
 
@@ -34,10 +34,6 @@ private:
 public:
     explicit PathContainer(QObject *parent = nullptr);
     ~PathContainer();
-
-    /// Update the paths. Try to do something efficient.
-    /// This also truncates history if inHistory > 0.
-    void updatePaths(...); // TODO
 
     /// Undo latest change. Return true on success and false on failure.
     bool undo(QGraphicsScene *scene = nullptr);

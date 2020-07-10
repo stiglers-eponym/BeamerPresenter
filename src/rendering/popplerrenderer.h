@@ -1,7 +1,7 @@
 #ifndef POPPLERRENDERER_H
 #define POPPLERRENDERER_H
 
-#include <poppler-qt5.h>
+#include <poppler/qt5/poppler-qt5.h>
 #include <QBuffer>
 #include <QDebug>
 #include "src/rendering/abstractrenderer.h"

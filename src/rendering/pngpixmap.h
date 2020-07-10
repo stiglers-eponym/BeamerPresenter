@@ -17,8 +17,9 @@ class PngPixmap
     const int page;
 
 public:
-    PngPixmap(const QPixmap *pixmap, const int page, const qreal resolution);
-    PngPixmap(const QByteArray *data, const int page = 0, const qreal resolution = -1.);
+    PngPixmap(const int page, const float resolution);
+    PngPixmap(const QPixmap pixmap, const int page, const float resolution);
+    PngPixmap(const QByteArray *data, const int page = 0, const float resolution = -1.);
     ~PngPixmap() {delete data;}
 
     /// Uncompress the image and return the QPixmap.

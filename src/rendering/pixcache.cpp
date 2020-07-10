@@ -339,7 +339,10 @@ void PixCache::receiveData(const PngPixmap * const data)
         delete data;
     }
     else
+    {
         cache[data->getPage()] = data;
+        emit pageReady(data->getPage(), data->getResolution());
+    }
 
     // Start rendering next page.
     startRendering();

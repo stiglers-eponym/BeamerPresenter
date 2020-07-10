@@ -1,8 +1,8 @@
 #ifndef PDFMASTER_H
 #define PDFMASTER_H
 
-#include <poppler-qt5.h>
-#include <poppler-version.h>
+#include <poppler/qt5/poppler-qt5.h>
+#include <poppler/qt5/poppler-version.h>
 #include <QFileInfo>
 #include <QInputDialog>
 #include "src/slidescene.h"
