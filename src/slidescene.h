@@ -21,12 +21,13 @@ private:
     const PdfMaster* master;
     /// Shift of currently shown page relative to the current presentation
     /// slide. Stored in the form (shift | overlay).
-    int shift;
+    int shift = 0;
 
 public:
     explicit SlideScene(const PdfMaster *master, QObject *parent = nullptr);
     /// Set shift in the form (shift | overlay).
     void setPageShift(const int relative_shift) {shift = relative_shift;}
+    const PdfMaster* getPdfMaster() {return master;}
     unsigned int identifier() const;
 
 protected:

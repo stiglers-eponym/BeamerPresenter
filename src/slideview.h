@@ -5,6 +5,7 @@
 #include "src/gui/guiwidget.h"
 
 class PixCache;
+class SlideScene;
 
 /// Slide shown on the screen: a view of SlideScene.
 /// This also draws the background (PDF page) of the slide.
@@ -19,7 +20,7 @@ class SlideView : public QGraphicsView, GuiWidget
     QPixmap currentPixmap;
 
 public:
-    explicit SlideView(QGraphicsScene *scene, PixCache *pixcache, QWidget *parent = nullptr);
+    explicit SlideView(SlideScene *scene, PixCache *pixcache = nullptr, QWidget *parent = nullptr);
 
 protected:
     /// Draw the slide to background (with correct resolution and from cache).

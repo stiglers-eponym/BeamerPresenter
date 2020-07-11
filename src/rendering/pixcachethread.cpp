@@ -44,9 +44,11 @@ bool PixCacheThread::initializeRenderer(const PdfMaster * const master)
     case AbstractRenderer::Poppler:
         renderer = new PopplerRenderer(master->getDocument());
         break;
+#ifdef INCLUDE_MUPDF
     case AbstractRenderer::MuPDF:
         renderer = new MuPdfRenderer(master->getFilename());
         break;
+#endif
     case AbstractRenderer::ExternalRenderer:
         renderer = new ExternalRenderer(preferences().rendering_command, preferences().rendering_arguments, master);
         break;

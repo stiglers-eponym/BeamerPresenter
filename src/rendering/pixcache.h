@@ -48,7 +48,7 @@ private:
     QVector<PixCacheThread*> threads;
 
     /// Pdf document owning this.
-    PdfMaster const* pdfMaster;
+    const PdfMaster *pdfMaster;
 
     /// Check cache size and delete pages if necessary.
     /// Return estimated number of pages which still fit in cache.
@@ -65,7 +65,7 @@ private:
     qreal getResolution(const int page) const;
 
 public:
-    explicit PixCache(const int thread_number = 1, QObject *parent = nullptr);
+    explicit PixCache(const PdfMaster *master, const int thread_number = 1, QObject *parent = nullptr);
     ~PixCache();
 
     /// Clear cache, delete all cached pages.
@@ -80,10 +80,10 @@ public:
     void setMaxNumber(const int number);
 
     /// Get pixmap showing page n.
-    QPixmap * pixmap(const int page) const;
+    const QPixmap pixmap(const int page) const;
     /// Get pixmap showing page n.
     /// The non-const function additionally writes a new pixmap to cache.
-    QPixmap * pixmap(const int page);
+    const QPixmap pixmap(const int page);
 
     /// Total size of all cached pages in bytes
     qint64 getUsedMemory() const {return usedMemory;}
@@ -93,6 +93,9 @@ public:
     /// This does not fully recalculate the region, but assumes that the
     /// currently saved region is indeed simply connected.
     void updatePageNumber(const int page_number);
+
+    /// Udate frame and clear cache if necessary.
+    void updateFrame(QSizeF const& size);
 
 public slots:
     /// Request rendering a page with low priority

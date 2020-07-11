@@ -96,6 +96,11 @@ contains(DEFINES, INCLUDE_MUPDF) {
 }
 
 unix {
+    contains(DEFINES, INCLUDE_MUPDF) {
+        INCLUDEPATH += /usr/include/mupdf
+        LIBS += -L /usr/lib/ -lmupdf -lmupdf-third
+        LIBS += -lm -lfreetype -lz -lharfbuzz -ljpeg -ljbig2dec -lopenjp2
+    }
     INCLUDEPATH += /usr/include/poppler/qt5
     LIBS += -L /usr/lib/ -lpoppler-qt5
 }

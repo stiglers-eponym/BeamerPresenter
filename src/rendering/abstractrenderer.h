@@ -10,12 +10,14 @@ class AbstractRenderer
 public:
     enum Renderer {
         Poppler,
+#ifdef INCLUDE_MUPDF
         MuPDF,
+#endif
         ExternalRenderer,
     };
 
-    AbstractRenderer();
-    virtual ~AbstractRenderer() = 0;
+    AbstractRenderer() {};
+    virtual ~AbstractRenderer() {};
     /// Render page to a QPixmap.
     /// Resolution is given in dpi.
     virtual const QPixmap renderPixmap(const int page, const qreal resolution) const = 0;

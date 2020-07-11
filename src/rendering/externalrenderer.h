@@ -21,7 +21,7 @@ public:
     /// Command should contain the fields %file and %page. Additionally at least
     /// one of the fields %resolution or %width and %height is required.
     ExternalRenderer(const QString& command, const QStringList& arguments, const PdfMaster * const master);
-    ~ExternalRenderer() {};
+    ~ExternalRenderer() override {};
 
     /// Render page to a QPixmap.
     /// Try to use "%format" in command.

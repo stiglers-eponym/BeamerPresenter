@@ -4,9 +4,10 @@
 #include "src/rendering/externalrenderer.h"
 #include "src/pdfmaster.h"
 
-PixCache::PixCache(const int thread_number, QObject *parent) :
+PixCache::PixCache(const PdfMaster *master, const int thread_number, QObject *parent) :
     QObject(parent),
-    threads(QVector<PixCacheThread*>(thread_number))
+    threads(QVector<PixCacheThread*>(thread_number)),
+    pdfMaster(master)
 {
     // Create threads.
     for (int i=0; i<thread_number; i++)
@@ -46,7 +47,7 @@ void PixCache::clear()
     region = {INT_MAX, -1};
 }
 
-QPixmap* PixCache::pixmap(const int page) const
+const QPixmap PixCache::pixmap(const int page) const
 {
     // Try to return a page from cache.
     if (cache.contains(page))
@@ -60,9 +61,11 @@ QPixmap* PixCache::pixmap(const int page) const
     case AbstractRenderer::Poppler:
         renderer = new PopplerRenderer(pdfMaster->getDocument());
         break;
+#ifdef INCLUDE_MUPDF
     case AbstractRenderer::MuPDF:
         renderer = new MuPdfRenderer(pdfMaster->getFilename());
         break;
+#endif
     case AbstractRenderer::ExternalRenderer:
         renderer = new ExternalRenderer(preferences().rendering_command, preferences().rendering_arguments, pdfMaster);
         break;
@@ -72,20 +75,20 @@ QPixmap* PixCache::pixmap(const int page) const
     if (!renderer->isValid())
     {
         qCritical() << "Creating renderer failed";
-        return nullptr;
+        return QPixmap();
     }
 
-    QPixmap* pixmap = new QPixmap(renderer->renderPixmap(page, getResolution(page)));
+    QPixmap pixmap = renderer->renderPixmap(page, getResolution(page));
     delete renderer;
 
-    if (pixmap == nullptr)
+    if (pixmap.isNull())
         qCritical() << "Rendering page failed";
 
     // The page is not written to cache!
     return pixmap;
 }
 
-QPixmap* PixCache::pixmap(const int page)
+const QPixmap PixCache::pixmap(const int page)
 {
     // Try to return a page from cache.
     if (cache.contains(page))
@@ -99,9 +102,11 @@ QPixmap* PixCache::pixmap(const int page)
     case AbstractRenderer::Poppler:
         renderer = new PopplerRenderer(pdfMaster->getDocument());
         break;
+#ifdef INCLUDE_MUPDF
     case AbstractRenderer::MuPDF:
         renderer = new MuPdfRenderer(pdfMaster->getFilename());
         break;
+#endif
     case AbstractRenderer::ExternalRenderer:
         renderer = new ExternalRenderer(preferences().rendering_command, preferences().rendering_arguments, pdfMaster);
         break;
@@ -111,17 +116,17 @@ QPixmap* PixCache::pixmap(const int page)
     if (!renderer->isValid())
     {
         qCritical() << "Creating renderer failed";
-        return nullptr;
+        return QPixmap();
     }
 
     const qreal resolution = getResolution(page);
-    QPixmap* pixmap = new QPixmap(renderer->renderPixmap(page, resolution));
+    QPixmap pixmap = renderer->renderPixmap(page, resolution);
     delete renderer;
 
-    if (pixmap == nullptr)
+    if (pixmap.isNull())
     {
         qCritical() << "Rendering page failed";
-        return nullptr;
+        return QPixmap();
     }
 
     // Write pixmap to cache.
@@ -363,4 +368,13 @@ qreal PixCache::getResolution(const int page) const
     }
     // page is too high, determine resolution by y direction
     return 72. * frame.height() / pageSize.height();
+}
+
+void PixCache::updateFrame(const QSizeF &size)
+{
+    if (frame != size)
+    {
+        // TODO: update and clear cache if necessary.
+    }
+    frame = size;
 }

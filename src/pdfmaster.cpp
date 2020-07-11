@@ -97,3 +97,8 @@ bool PdfMaster::loadDocument()
     }
     return true;
 }
+
+void PdfMaster::updatePaths(const SlideView* sender)
+{
+    // TODO!
+}

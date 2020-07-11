@@ -41,6 +41,7 @@ int main(int argc, char *argv[])
     // TODO: more positional arguments
     parser.addPositionalArgument("<slides.pdf>", "Slides for a presentation");
     //parser.addOptions({});
+    parser.process(app);
 
     QSettings settings(QSettings::NativeFormat, QSettings::UserScope, "beamerpresenter-new", "beamerpresenter-new");
     Preferences& wpreferences = writable_preferences();

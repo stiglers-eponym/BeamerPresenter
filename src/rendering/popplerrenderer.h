@@ -14,6 +14,7 @@ public:
     /// Create renderer. This does not perform any checks on the given document.
     /// Also rendering hints are not set here and have to be set before.
     PopplerRenderer(const Poppler::Document *document) : doc(document) {};
+    ~PopplerRenderer() override {}
     /// Render page to a QPixmap.
     /// Resolution is given in dpi.
     const QPixmap renderPixmap(const int page, const qreal resolution) const override;

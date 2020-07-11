@@ -4,6 +4,12 @@
 #include <QString>
 #include <QDebug>
 #include <mupdf/fitz.h>
+#include <mupdf/fitz/version.h>
+#include <mupdf/fitz/pixmap.h>
+#include <mupdf/fitz/write-pixmap.h>
+#include <mupdf/fitz/buffer.h>
+#include <mupdf/fitz/document.h>
+#include <mupdf/fitz/context.h>
 #include "src/rendering/abstractrenderer.h"
 
 class MuPdfRenderer : public AbstractRenderer
@@ -13,7 +19,7 @@ class MuPdfRenderer : public AbstractRenderer
 
 public:
     MuPdfRenderer(const QString &filename);
-    ~MuPdfRenderer();
+    ~MuPdfRenderer() override;
 
     /// Render page to a QPixmap.
     /// Resolution is given in dpi.

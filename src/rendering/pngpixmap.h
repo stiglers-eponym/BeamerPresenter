@@ -24,7 +24,7 @@ public:
 
     /// Uncompress the image and return the QPixmap.
     /// The caller takes ownership of the returned QPixmap.
-    QPixmap* pixmap() const;
+    const QPixmap pixmap() const;
 
     /// Size in byte of data.
     int size() const {return data->size();}

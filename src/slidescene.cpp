@@ -16,5 +16,11 @@ void SlideScene::stopDrawing()
 
 unsigned int SlideScene::identifier() const
 {
-    return qHash(QPair<int, const void*>(shift,master));
+    return qHash(QPair<int, const void*>(shift, master));
+}
+
+bool SlideScene::event(QEvent* event)
+{
+    // TODO!
+    return false;
 }

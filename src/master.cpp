@@ -8,6 +8,12 @@ Master::Master()
 
 }
 
+Master::~Master()
+{
+    qDeleteAll(windows);
+    qDeleteAll(documents);
+}
+
 bool Master::readGuiConfig(const QString &filename)
 {
     // Read file into JSON document
@@ -160,7 +166,7 @@ QWidget* Master::createWidget(QJsonObject &object, ContainerWidget *parent)
         }
         // TODO: read other properties from config
         // Create slide view.
-        SlideView *slide = new SlideView(scene, parent);
+        SlideView *slide = new SlideView(scene, nullptr, parent);
         // TODO: connect
         return slide;
     }

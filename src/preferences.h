@@ -40,15 +40,17 @@ public:
     Preferences();
 };
 
-Preferences &writable_preferences()
+static Preferences &writable_preferences()
 {
     static Preferences preferences;
     return preferences;
 }
 
+namespace {
 const Preferences &preferences()
 {
     return writable_preferences();
+}
 }
 
 #endif // PREFERENCES_H

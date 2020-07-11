@@ -19,7 +19,7 @@ class PdfMaster : public QObject
 
 private:
     /// Poppler document representing the PDF
-    Poppler::Document* document;
+    Poppler::Document* document = nullptr;
 
     /// Path to the PDF document, used for reloading
     QString pdfpath;
