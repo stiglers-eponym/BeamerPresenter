@@ -54,8 +54,8 @@ bool Master::readGuiConfig(const QString &filename)
         if (widget != nullptr)
             windows.append(widget);
     }
-    // Return true (success) if at least one window was created.
-    return !windows.isEmpty();
+    // Return true (success) if at least one window and one document were created.
+    return !windows.isEmpty() && !documents.isEmpty();
 }
 
 QWidget* Master::createWidget(QJsonObject &object, ContainerWidget *parent)
@@ -141,8 +141,11 @@ QWidget* Master::createWidget(QJsonObject &object, ContainerWidget *parent)
         if (doc == nullptr)
         {
             doc = new PdfMaster(file);
-            // TODO: connect
-            documents.append(doc);
+            connect(this, &Master::sendAction, doc, &PdfMaster::receiveAction);
+            if (object.value("master").toBool())
+                documents.prepend(doc);
+            else
+                documents.append(doc);
         }
         else {
             // If PDF files existed before, check whether we need a new SlideScene.
@@ -162,12 +165,12 @@ QWidget* Master::createWidget(QJsonObject &object, ContainerWidget *parent)
             if (shift != 0)
                 scene->setPageShift(shift);
             scenes.append(scene);
-            // TODO: connect
+            connect(this, &Master::sendAction, scene, &SlideScene::receiveAction);
         }
         // TODO: read other properties from config
         // Create slide view.
         SlideView *slide = new SlideView(scene, nullptr, parent);
-        // TODO: connect
+        connect(slide, &SlideView::sendKeyEvent, this, &Master::receiveKeyEvent);
         return slide;
     }
     case GuiWidget::Overview:
@@ -205,4 +208,29 @@ void Master::showAll() const
 {
     for (auto widget : windows)
         widget->show();
+}
+
+void Master::receiveKeyEvent(const QKeyEvent* event)
+{
+    const QMultiMap<quint32, Action> &key_actions = preferences().key_actions;
+    auto it = key_actions.constFind(event->key(), InvalidAction);
+    while (it != key_actions.cend())
+    {
+        switch (it.value())
+        {
+        case InvalidAction:
+            break;
+        case Next:
+            if (documents.first()->numberOfPages() > preferences().page + 1)
+            {
+                ++writable_preferences().page;
+                emit navigationSignal(preferences().page);
+            }
+            break;
+        default:
+            emit sendAction(it.value());
+        }
+        if ((++it).key() != static_cast<unsigned int>(event->key()))
+            break;
+    }
 }

@@ -2,6 +2,7 @@
 #define SLIDESCENE_H
 
 #include <QGraphicsScene>
+#include "src/enumerates.h"
 #include "src/drawing/fullgraphicspath.h"
 #include "src/drawing/basicgraphicspath.h"
 
@@ -35,6 +36,17 @@ protected:
     virtual bool event(QEvent *event) override;
     /// Stop drawing and convert just drawn path to regular path.
     void stopDrawing();
+
+public slots:
+    void receiveAction(const Action action);
+    /// Receive global navigation event.
+    /// The given page does not include shift.
+    void navigationEvent(const int page);
+
+signals:
+    /// Send navigation event to views.
+    /// Here page is already adapted to shift.
+    void navigationToViews(const int page);
 };
 
 #endif // SLIDESCENE_H

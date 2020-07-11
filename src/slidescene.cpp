@@ -1,4 +1,5 @@
 #include "src/slidescene.h"
+#include "src/pdfmaster.h"
 
 SlideScene::SlideScene(const PdfMaster *master, QObject *parent) :
     QGraphicsScene(parent),
@@ -23,4 +24,21 @@ bool SlideScene::event(QEvent* event)
 {
     // TODO!
     return false;
+}
+
+void SlideScene::receiveAction(const Action action)
+{
+    switch (action)
+    {
+    default:
+        break;
+    }
+}
+
+void SlideScene::navigationEvent(const int page)
+{
+    int newpage = page + (shift ^ ShiftOverlays::AnyOverlay);
+    if (shift & ShiftOverlays::AnyOverlay)
+        newpage = master->overlaysShifted(page, shift);
+    emit navigationToViews(newpage);
 }

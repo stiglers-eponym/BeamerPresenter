@@ -1,6 +1,7 @@
 #ifndef PDFMASTER_H
 #define PDFMASTER_H
 
+#include <set>
 #include <poppler/qt5/poppler-qt5.h>
 #include <poppler/qt5/poppler-version.h>
 #include <QFileInfo>
@@ -21,6 +22,9 @@ private:
     /// Poppler document representing the PDF
     Poppler::Document* document = nullptr;
 
+    /// Lookup table for page labels.
+    std::set<int> overlay_slide_indices;
+
     /// Path to the PDF document, used for reloading
     QString pdfpath;
 
@@ -38,6 +42,9 @@ private:
     QMap<int, PathContainer*> paths;
 
     // TODO: multimedia
+
+    /// Generate overlay_slide_indices.
+    void populateOverlaySlidesSet();
 
 
 public:
@@ -61,10 +68,15 @@ public:
     /// Get page from document. Does not check whether page exists.
     const Poppler::Page * getPage(const int page) const {return document->page(page);}
 
+    int numberOfPages() const {return document->numPages();}
+
+    int overlaysShifted(const int start, const int shift_overlay) const;
+
 public slots:
     /// Paths have changed on SlideView sender. Update paths and send out a
     /// signal to all SlideScenes.
     void updatePaths(const SlideView *sender);
+    void receiveAction(const Action action);
 
 signals:
     /// Notify all associated SlidesScenes that paths have changed.

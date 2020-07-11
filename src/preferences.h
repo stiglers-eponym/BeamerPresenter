@@ -35,22 +35,31 @@ public:
 
 
     // INPUT
+    QMultiMap<quint32, Action> key_actions =
+    {
+        {Qt::Key_PageDown, Action::Next},
+    };
 
+
+    // VARIABLES
+    int page = 0;
 
     Preferences();
 };
 
-static Preferences &writable_preferences()
-{
-    static Preferences preferences;
-    return preferences;
-}
 
+// TODO: understand what I'm doing here!
 namespace {
-const Preferences &preferences()
-{
-    return writable_preferences();
-}
+    static Preferences &writable_preferences()
+    {
+        static Preferences preferences;
+        return preferences;
+    }
+
+    const Preferences &preferences()
+    {
+        return writable_preferences();
+    }
 }
 
 #endif // PREFERENCES_H

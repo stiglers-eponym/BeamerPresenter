@@ -17,16 +17,21 @@ enum PagePart {
 /// by settings its shift to (shift | overlay).
 enum ShiftOverlays {
     NoOverlay = 0,
-    FirstOverlay = INT_MAX >> 2,
-    LastOverlay = INT_MAX >> 1,
+    FirstOverlay = (INT_MAX >> 2) + 1,
+    LastOverlay = (INT_MAX >> 1) + 1,
+    AnyOverlay = (LastOverlay | FirstOverlay),
 };
 
-enum KeyAction {
-    NoAction
+enum Action {
+    Next,
+    Previous,
+    NoAction,
+    InvalidAction,
+    Reload,
 };
 
 enum BasicTool {
-    NoTool
+    NoTool,
 };
 
 #endif // ENUMERATES_H

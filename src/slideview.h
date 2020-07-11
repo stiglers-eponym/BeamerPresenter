@@ -33,7 +33,7 @@ public slots:
     void pageReady(const int page, const qreal resolution);
 
 signals:
-
+    void sendKeyEvent(QKeyEvent* event);
 };
 
 #endif // SLIDE_H
