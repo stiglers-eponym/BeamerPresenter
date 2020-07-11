@@ -1,8 +1,10 @@
 #include <QApplication>
 #include <QSettings>
 #include <QCommandLineParser>
+#include <QFileDialog>
 #include <src/enumerates.h>
 #include "src/preferences.h"
+#include "src/master.h"
 
 
 int main(int argc, char *argv[])
@@ -29,7 +31,7 @@ int main(int argc, char *argv[])
     // Set up command line argument parser.
     QCommandLineParser parser;
     parser.setApplicationDescription(
-            "\nDual screen PDF presentation\n"
+            "\nModular multi screen PDF presenter\n"
             );
 
     // Define command line options.
@@ -38,16 +40,27 @@ int main(int argc, char *argv[])
 
     // TODO: more positional arguments
     parser.addPositionalArgument("<slides.pdf>", "Slides for a presentation");
-
-    // TODO: change letters for option shortcuts
     //parser.addOptions({});
 
-    ControlScreen *ctrlScreen;
-    ctrlScreen = new ControlScreen(presentation);
-    ctrlScreen->show()
+    QSettings settings(QSettings::NativeFormat, QSettings::UserScope, "beamerpresenter-new", "beamerpresenter-new");
+    Preferences& wpreferences = writable_preferences();
+    if (settings.contains("gui config"))
+        wpreferences.gui_config_file = settings.value("gui config").toString();
+
+    Master master;
+    if (parser.positionalArguments().isEmpty())
+    {
+        master.addFile("presentation", QFileDialog::getOpenFileName(nullptr, "Presentation file", "", "Documents (*.pdf)"));
+    }
+    else
+    {
+        master.addFile("presentation", parser.positionalArguments().first());
+    }
+
+    master.readGuiConfig(preferences().gui_config_file);
+    master.showAll();
 
     int status = app.exec();
 
-    delete ctrlScreen;
     return status;
 }

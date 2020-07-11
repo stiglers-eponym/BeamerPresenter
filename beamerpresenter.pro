@@ -1,11 +1,8 @@
-VERSION = 0.2.0
+VERSION = 0.2.0alpha0
 
 # Check Qt version.
 requires(greaterThan(QT_MAJOR_VERSION, 4))
-equals(QT_MAJOR_VERSION, 5) {
-    requires(greaterThan(QT_MINOR_VERSION, 5))
-    lessThan(QT_MINOR_VERSION, 9):message("Using Qt version < 5.9 is untested!.")
-}
+# TODO: Test on different Qt versions
 
 QT += core gui multimedia multimediawidgets xml widgets
 
@@ -53,7 +50,9 @@ CONFIG(debug, debug|release) {
 }
 
 SOURCES += \
+        src/gui/containerwidget.cpp \
         src/main.cpp \
+        src/master.cpp \
         src/pdfmaster.cpp \
         src/preferences.cpp \
         src/rendering/popplerrenderer.cpp \
@@ -71,6 +70,10 @@ SOURCES += \
 
 HEADERS += \
         src/enumerates.h \
+        src/gui/containerwidget.h \
+        src/gui/guiwidget.h \
+        src/master.h \
+        src/names.h \
         src/pdfmaster.h \
         src/preferences.h \
         src/rendering/abstractrenderer.h \

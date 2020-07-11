@@ -1,0 +1,32 @@
+[
+    {
+        "type" : "container",
+        "layout" : "horizontal",
+        "children" : [
+            {
+                "type" : "slide",
+                "file" : "presentation",
+                "shift" : 0,
+                "transitions" : false,
+                "multimedia" : true
+            },
+            {
+                "type" : "slide",
+                "file" : "presentation",
+                "shift" : 0,
+                "overlays" : "last",
+                "transitions" : false,
+                "multimedia" : false
+            }
+        ]
+    },
+    {
+        "type" : "slide",
+        "file" : "presentation",
+        "shift" : 0,
+        "transitions" : true,
+        "multimedia" : true,
+        "threads" : 2,
+        "master" : true
+    }
+]

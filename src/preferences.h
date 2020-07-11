@@ -31,6 +31,7 @@ public:
 
 
     // GUI
+    QString gui_config_file = "/etc/beamerpresenter/gui.json";
 
 
     // INPUT
