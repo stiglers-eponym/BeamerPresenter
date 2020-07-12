@@ -26,9 +26,13 @@ enum Action {
     InvalidAction,
     NoAction,
     Update,
-    Next,
-    Previous,
-    Reload,
+    NextPage,
+    PreviousPage,
+    NextSkippingOverlays,
+    PreviousSkippingOverlays,
+    FirstPage,
+    LastPage,
+    ReloadFiles,
 };
 
 enum BasicTool {

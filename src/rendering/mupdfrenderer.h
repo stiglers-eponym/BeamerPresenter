@@ -12,6 +12,8 @@
 #include <mupdf/fitz/context.h>
 #include "src/rendering/abstractrenderer.h"
 
+// TODO: Use one shared document and context instead of one document per renderer.
+
 class MuPdfRenderer : public AbstractRenderer
 {
     fz_context *context;

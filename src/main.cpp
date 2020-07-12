@@ -1,17 +1,18 @@
 #include <QApplication>
 #include <QSettings>
 #include <QCommandLineParser>
-#include <QFileDialog>
 #include <src/enumerates.h>
 #include "src/preferences.h"
 #include "src/master.h"
 
+/// Provides globally available writable reference to preferences.
 Preferences &writable_preferences()
 {
     static Preferences preferences;
     return preferences;
 }
 
+/// Provides globally available const reference to preferences.
 const Preferences &preferences()
 {
     return writable_preferences();
@@ -57,17 +58,11 @@ int main(int argc, char *argv[])
     //parser.addOptions({});
     parser.process(app);
 
-    QSettings settings(QSettings::NativeFormat, QSettings::UserScope, "beamerpresenter-new", "beamerpresenter-new");
     Preferences& wpreferences = writable_preferences();
-    if (settings.contains("gui config"))
-        wpreferences.gui_config_file = settings.value("gui config").toString();
+    wpreferences.loadSettings();
+    wpreferences.loadFromParser(parser);
 
     Master master;
-    if (parser.positionalArguments().isEmpty())
-        wpreferences.file_alias["presentation"] = QFileDialog::getOpenFileName(nullptr, "Presentation file", "", "Documents (*.pdf)");
-    else
-        wpreferences.file_alias["presentation"] = parser.positionalArguments().first();
-
     master.readGuiConfig(preferences().gui_config_file);
     master.showAll();
     emit master.navigationSignal(0);

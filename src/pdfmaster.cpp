@@ -176,7 +176,7 @@ void PdfMaster::receiveAction(const Action action)
 {
     switch (action)
     {
-    case Reload:
+    case ReloadFiles:
         if (loadDocument())
             // TODO: implement update
             emit update();

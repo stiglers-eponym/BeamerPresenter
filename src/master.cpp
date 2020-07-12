@@ -225,20 +225,37 @@ void Master::receiveKeyEvent(const QKeyEvent* event)
         switch (it.value())
         {
         case InvalidAction:
+        case NoAction:
             break;
-        case Next:
+        case NextPage:
             if (documents.first()->numberOfPages() > preferences().page + 1)
             {
                 ++writable_preferences().page;
                 emit navigationSignal(preferences().page);
             }
             break;
-        case Previous:
+        case PreviousPage:
             if (preferences().page > 0)
             {
                 --writable_preferences().page;
                 emit navigationSignal(preferences().page);
             }
+            break;
+        case NextSkippingOverlays:
+            writable_preferences().page = documents.first()->overlaysShifted(preferences().page, 1 | FirstOverlay);
+            emit navigationSignal(preferences().page);
+            break;
+        case PreviousSkippingOverlays:
+            writable_preferences().page = documents.first()->overlaysShifted(preferences().page, -1 | LastOverlay);
+            emit navigationSignal(preferences().page);
+            break;
+        case FirstPage:
+            writable_preferences().page = 0;
+            emit navigationSignal(0);
+            break;
+        case LastPage:
+            writable_preferences().page = documents.first()->numberOfPages() - 1;
+            emit navigationSignal(preferences().page);
             break;
         default:
             emit sendAction(it.value());
