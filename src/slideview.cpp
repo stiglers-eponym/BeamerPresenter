@@ -2,11 +2,13 @@
 #include "src/rendering/pixcache.h"
 #include "src/slidescene.h"
 
-SlideView::SlideView(SlideScene *scene, PixCache *pixcache, QWidget *parent) :
+SlideView::SlideView(SlideScene *scene, PixCache *cache, QWidget *parent) :
     QGraphicsView(scene, parent),
     GuiWidget(WidgetType::Slide),
-    pixcache(pixcache)
+    pixcache(cache)
 {
+    setAttribute(Qt::WA_AcceptTouchEvents);
+    setFocusPolicy(Qt::StrongFocus);
     if (pixcache == nullptr)
         pixcache = new PixCache(scene->getPdfMaster(), 1, this);
     pixcache->updateFrame(size());
@@ -28,4 +30,15 @@ void SlideView::pageChanged(const int page, const QSizeF &pagesize)
 void SlideView::pageReady(const int page, const qreal resolution)
 {
     // TODO
+}
+
+void SlideView::resizeEvent(QResizeEvent *event)
+{
+    pixcache->updateFrame(size());
+    pixcache->startRendering();
+}
+
+void SlideView::keyPressEvent(QKeyEvent *event)
+{
+    emit sendKeyEvent(event);
 }

@@ -23,10 +23,11 @@ enum ShiftOverlays {
 };
 
 enum Action {
+    InvalidAction,
+    NoAction,
+    Update,
     Next,
     Previous,
-    NoAction,
-    InvalidAction,
     Reload,
 };
 

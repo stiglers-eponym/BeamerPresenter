@@ -30,6 +30,10 @@ void SlideScene::receiveAction(const Action action)
 {
     switch (action)
     {
+    case Update:
+        navigationEvent(preferences().page);
+        update();
+        break;
     default:
         break;
     }
@@ -37,8 +41,8 @@ void SlideScene::receiveAction(const Action action)
 
 void SlideScene::navigationEvent(const int page)
 {
-    int newpage = page + (shift ^ ShiftOverlays::AnyOverlay);
+    int newpage = page + (shift & ~ShiftOverlays::AnyOverlay);
     if (shift & ShiftOverlays::AnyOverlay)
         newpage = master->overlaysShifted(page, shift);
-    emit navigationToViews(newpage);
+    emit navigationToViews(newpage, master->getPageSize(newpage));
 }

@@ -19,17 +19,21 @@ class Master : public QObject
 {
     Q_OBJECT
 
+    /// List of all PDF documents.
+    /// Master file is the first entry in this list.
     QList<PdfMaster*> documents;
+    /// Graphics scenes of this application. For each combination of PDF file
+    /// and page shift one scene is created.
+    /// Master scene is the first scene in the list.
     QList<SlideScene*> scenes;
+    /// List of all windows of the applications.
     QList<QWidget*> windows;
-    /// Map "presentation", "notes", ... to file names.
-    QMap<QString, QString> files;
 
 public:
     Master();
     ~Master();
+    /// Show all windows of the application.
     void showAll() const;
-    void addFile(const QString& name, const QString& path);
     /// Read configuration file and build up GUI. Return true on success.
     bool readGuiConfig(const QString& filename);
     /// Create widgets recursively.

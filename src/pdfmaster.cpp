@@ -125,24 +125,24 @@ int PdfMaster::overlaysShifted(const int start, const int shift_overlay) const
     while (shift > 0 && it != overlay_slide_indices.cbegin())
     {
         --shift;
-        --it;
+        ++it;
     }
     while (shift < 0 && it != overlay_slide_indices.cend())
     {
         ++shift;
-        ++it;
+        --it;
     }
     // Check if the iterator has reached the beginning or end of the set.
     if (it == overlay_slide_indices.cbegin())
         return 0;
     if (it == overlay_slide_indices.cend())
     {
-        if ((shift | FirstOverlay) != 0)
+        if ((shift & FirstOverlay) != 0)
             return *--it;
         return document->numPages() - 1;
     }
     // Return first or last overlay depending on overlay flags.
-    if ((shift | FirstOverlay) != 0)
+    if ((shift & FirstOverlay) != 0)
         return *--it;
     return *it - 1;
 }
@@ -177,7 +177,9 @@ void PdfMaster::receiveAction(const Action action)
     switch (action)
     {
     case Reload:
-        // TODO
+        if (loadDocument())
+            // TODO: implement update
+            emit update();
         break;
     default:
         break;

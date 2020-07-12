@@ -41,7 +41,7 @@ PngPixmap::PngPixmap(const QPixmap pixmap, const int page, const float resolutio
 const QPixmap PngPixmap::pixmap() const
 {
     QPixmap pixmap;
-    if (!pixmap.loadFromData(*data, "PNG"))
+    if (data == nullptr || !pixmap.loadFromData(*data, "PNG"))
         qWarning() << "Loading image from PNG failed";
     return pixmap;
 }

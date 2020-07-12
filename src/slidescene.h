@@ -46,7 +46,7 @@ public slots:
 signals:
     /// Send navigation event to views.
     /// Here page is already adapted to shift.
-    void navigationToViews(const int page);
+    void navigationToViews(const int page, const QSizeF &size);
 };
 
 #endif // SLIDESCENE_H

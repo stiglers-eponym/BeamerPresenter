@@ -38,7 +38,6 @@ MuPdfRenderer::MuPdfRenderer(const QString &filename)
         context =  nullptr;
         return;
     }
-    delete name; // TODO: is this correct?
 }
 
 MuPdfRenderer::~MuPdfRenderer()

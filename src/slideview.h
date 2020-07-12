@@ -15,16 +15,20 @@ class SlideView : public QGraphicsView, GuiWidget
 
     /// PixCache instance responsible for rendering PDF pages.
     /// Not owned by this!
-    PixCache* pixcache;
+    PixCache *pixcache;
     /// Pixmap representing the current slide.
     QPixmap currentPixmap;
 
 public:
-    explicit SlideView(SlideScene *scene, PixCache *pixcache = nullptr, QWidget *parent = nullptr);
+    explicit SlideView(SlideScene *scene, PixCache *cache = nullptr, QWidget *parent = nullptr);
 
 protected:
     /// Draw the slide to background (with correct resolution and from cache).
     virtual void drawBackground(QPainter *painter, const QRectF &rect) override;
+
+protected slots:
+    void resizeEvent(QResizeEvent *event) override;
+    void keyPressEvent(QKeyEvent *event) override;
 
 public slots:
     /// Inform this that the page number has changed.

@@ -6,9 +6,23 @@
 #include "src/preferences.h"
 #include "src/master.h"
 
+Preferences &writable_preferences()
+{
+    static Preferences preferences;
+    return preferences;
+}
+
+const Preferences &preferences()
+{
+    return writable_preferences();
+}
 
 int main(int argc, char *argv[])
 {
+    // Set format for debugging output, warnings etc.
+    // To overwrite this you can set the environment variable QT_MESSAGE_PATTERN.
+    qSetMessagePattern("%{time process} %{if-debug}D%{endif}%{if-info}INFO%{endif}%{if-warning}WARNING%{endif}%{if-critical}CRITICAL%{endif}%{if-fatal}FATAL%{endif}%{if-category} %{category}%{endif} %{file}:%{line} - %{message}%{if-fatal} from %{backtrace [depth=3]}%{endif}");
+
     // Set up the application.
     QApplication app(argc, argv);
     app.setApplicationName("BeamerPresenter");
@@ -50,16 +64,13 @@ int main(int argc, char *argv[])
 
     Master master;
     if (parser.positionalArguments().isEmpty())
-    {
-        master.addFile("presentation", QFileDialog::getOpenFileName(nullptr, "Presentation file", "", "Documents (*.pdf)"));
-    }
+        wpreferences.file_alias["presentation"] = QFileDialog::getOpenFileName(nullptr, "Presentation file", "", "Documents (*.pdf)");
     else
-    {
-        master.addFile("presentation", parser.positionalArguments().first());
-    }
+        wpreferences.file_alias["presentation"] = parser.positionalArguments().first();
 
     master.readGuiConfig(preferences().gui_config_file);
     master.showAll();
+    emit master.navigationSignal(0);
 
     int status = app.exec();
 

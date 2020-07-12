@@ -5,8 +5,9 @@
 #include "src/rendering/externalrenderer.h"
 #include "src/preferences.h"
 
-PixCacheThread::PixCacheThread(QObject *parent) : QThread(parent)
+PixCacheThread::PixCacheThread(const PdfMaster * const master, QObject *parent) : QThread(parent)
 {
+    initializeRenderer(master);
 }
 
 void PixCacheThread::setNextPage(const int page_number, const qreal res)
@@ -17,6 +18,7 @@ void PixCacheThread::setNextPage(const int page_number, const qreal res)
 
 void PixCacheThread::run()
 {
+    qDebug() << "Run thread" << renderer;
     // Check if a renderer is available.
     if (renderer == nullptr)
         return;

@@ -3,10 +3,12 @@
 
 #include <QObject>
 #include <QMap>
+#include <QList>
+#include <QTimer>
 #include "src/rendering/pngpixmap.h"
 #include "src/rendering/pixcachethread.h"
 
-#define MAX_RESOLUTION_DEVIATION 1e-9
+#define MAX_RESOLUTION_DEVIATION 1e-8
 
 class PdfMaster;
 
@@ -52,7 +54,7 @@ private:
 
     /// Check cache size and delete pages if necessary.
     /// Return estimated number of pages which still fit in cache.
-    /// Return -1 if cache is unlimited or empty.
+    /// Return INT_MAX if cache is unlimited or empty.
     int limitCacheSize();
 
     /// Choose a page which should be rendered next.
@@ -61,8 +63,11 @@ private:
     int renderNext();
 
     /// Calculate resolution for given page number based on this->frame.
-    /// Return resolution in pixels per inch (dpi)
+    /// Return resolution in pixels per point (72*dpi)
     qreal getResolution(const int page) const;
+
+    /// Single shot, 0 duration timer for rendering pages.
+    QTimer renderCacheTimer;
 
 public:
     explicit PixCache(const PdfMaster *master, const int thread_number = 1, QObject *parent = nullptr);
@@ -105,7 +110,7 @@ public slots:
     void startRendering();
 
     /// Receive a PngPixmap from one of the threads.
-    void receiveData(const PngPixmap * const data);
+    void receiveData(const PngPixmap *data);
 
 signals:
     /// Inform that new page is ready.

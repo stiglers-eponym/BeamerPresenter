@@ -10,7 +10,7 @@ const QPixmap PopplerRenderer::renderPixmap(const int page, const qreal resoluti
         qWarning() << "Tried to render invalid page" << page;
         return QPixmap();
     }
-    return QPixmap::fromImage(popplerPage->renderToImage(resolution, resolution));
+    return QPixmap::fromImage(popplerPage->renderToImage(72.*resolution, 72.*resolution));
 }
 
 const QByteArray * PopplerRenderer::renderPng(const int page, const qreal resolution) const
@@ -23,7 +23,7 @@ const QByteArray * PopplerRenderer::renderPng(const int page, const qreal resolu
         qWarning() << "Tried to render invalid page" << page;
         return nullptr;
     }
-    const QImage image = popplerPage->renderToImage(resolution, resolution);
+    const QImage image = popplerPage->renderToImage(72.*resolution, 72.*resolution);
     if (image.isNull())
     {
         qWarning() << "Rendering page to image failed";

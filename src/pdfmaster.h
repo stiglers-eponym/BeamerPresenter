@@ -81,6 +81,7 @@ public slots:
 signals:
     /// Notify all associated SlidesScenes that paths have changed.
     void pathsUpdated();
+    void update();
 };
 
 #endif // PDFMASTER_H

@@ -38,7 +38,11 @@ public:
     QMultiMap<quint32, Action> key_actions =
     {
         {Qt::Key_PageDown, Action::Next},
+        {Qt::Key_PageUp, Action::Previous},
+        {Qt::Key_Space, Action::Update},
     };
+    /// Map "presentation", "notes", ... to file names.
+    QMap<QString, QString> file_alias;
 
 
     // VARIABLES
@@ -48,18 +52,7 @@ public:
 };
 
 
-// TODO: understand what I'm doing here!
-namespace {
-    static Preferences &writable_preferences()
-    {
-        static Preferences preferences;
-        return preferences;
-    }
-
-    const Preferences &preferences()
-    {
-        return writable_preferences();
-    }
-}
+Preferences &writable_preferences();
+const Preferences &preferences();
 
 #endif // PREFERENCES_H

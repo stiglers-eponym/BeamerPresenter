@@ -13,7 +13,7 @@
             {
                 "type" : "slide",
                 "file" : "presentation",
-                "shift" : 0,
+                "shift" : 1,
                 "overlays" : "last",
                 "transitions" : false,
                 "multimedia" : false

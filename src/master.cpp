@@ -120,7 +120,7 @@ QWidget* Master::createWidget(QJsonObject &object, ContainerWidget *parent)
         QString file = object.value("file").toString();
         if (file.isNull())
             file = "presentation";
-        file = files.value(file, file);
+        file = preferences().file_alias.value(file, file);
         if (!QFile::exists(file))
         {
             qCritical() << "Could not load PDF file: Does not exist." << file;
@@ -149,7 +149,7 @@ QWidget* Master::createWidget(QJsonObject &object, ContainerWidget *parent)
         }
         else {
             // If PDF files existed before, check whether we need a new SlideScene.
-            for (auto sceneit : scenes)
+            for (auto &sceneit : scenes)
             {
                 if (sceneit->identifier() == qHash(QPair<int, const void*>(shift, doc)))
                 {
@@ -164,13 +164,20 @@ QWidget* Master::createWidget(QJsonObject &object, ContainerWidget *parent)
             scene = new SlideScene(doc, parent);
             if (shift != 0)
                 scene->setPageShift(shift);
-            scenes.append(scene);
+            if (object.value("master").toBool())
+                scenes.prepend(scene);
+            else
+                scenes.append(scene);
             connect(this, &Master::sendAction, scene, &SlideScene::receiveAction);
+            connect(this, &Master::navigationSignal, scene, &SlideScene::navigationEvent);
         }
+        else if (object.value("master").toBool())
+            scenes.swapItemsAt(scenes.indexOf(scene), 0);
         // TODO: read other properties from config
         // Create slide view.
         SlideView *slide = new SlideView(scene, nullptr, parent);
         connect(slide, &SlideView::sendKeyEvent, this, &Master::receiveKeyEvent);
+        connect(scene, &SlideScene::navigationToViews, slide, &SlideView::pageChanged);
         return slide;
     }
     case GuiWidget::Overview:
@@ -199,23 +206,21 @@ QWidget* Master::createWidget(QJsonObject &object, ContainerWidget *parent)
     return nullptr;
 }
 
-void Master::addFile(const QString &name, const QString &path)
-{
-    files[name] = path;
-}
-
 void Master::showAll() const
 {
-    for (auto widget : windows)
+    for (auto &widget : windows)
         widget->show();
 }
 
 void Master::receiveKeyEvent(const QKeyEvent* event)
 {
     const QMultiMap<quint32, Action> &key_actions = preferences().key_actions;
-    auto it = key_actions.constFind(event->key(), InvalidAction);
+    auto it = key_actions.constFind(event->key());
     while (it != key_actions.cend())
     {
+#ifdef DEBUG_KEY_ACTIONS
+        qDebug() << "Global key action:" << it.value();
+#endif
         switch (it.value())
         {
         case InvalidAction:
@@ -224,6 +229,13 @@ void Master::receiveKeyEvent(const QKeyEvent* event)
             if (documents.first()->numberOfPages() > preferences().page + 1)
             {
                 ++writable_preferences().page;
+                emit navigationSignal(preferences().page);
+            }
+            break;
+        case Previous:
+            if (preferences().page > 0)
+            {
+                --writable_preferences().page;
                 emit navigationSignal(preferences().page);
             }
             break;

@@ -19,7 +19,7 @@ private:
     int page;
 
 public:
-    PixCacheThread(QObject *parent = nullptr);
+    PixCacheThread(const PdfMaster * const master, QObject *parent = nullptr);
 
     /// Create a renderer based on preferences.
     /// Return true if successful and false if no renderer was created.
@@ -36,7 +36,7 @@ public:
 
 signals:
     /// Send out the data.
-    void sendData(const PngPixmap * const data);
+    void sendData(const PngPixmap *data);
 };
 
 #endif // PIXCACHETHREAD_H
