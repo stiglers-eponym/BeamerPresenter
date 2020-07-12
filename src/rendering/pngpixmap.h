@@ -18,15 +18,14 @@ class PngPixmap
 
 public:
     PngPixmap(const int page, const float resolution);
-    /// This does not take ownership of pixmap!
-    PngPixmap(const QPixmap *pixmap, const int page, const float resolution);
+    PngPixmap(const QPixmap pixmap, const int page, const float resolution);
     /// This takes ownership of data.
     PngPixmap(const QByteArray *data, const int page = 0, const float resolution = -1.);
     ~PngPixmap() {delete data;}
 
     /// Uncompress the image and return the QPixmap.
     /// The caller takes ownership of the returned QPixmap.
-    const QPixmap * pixmap() const;
+    const QPixmap pixmap() const;
 
     /// Size in byte of data.
     int size() const {return data->size();}

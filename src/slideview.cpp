@@ -22,12 +22,7 @@ SlideView::SlideView(SlideScene *scene, PixCache *cache, QWidget *parent) :
 
 void SlideView::pageChanged(const int page, const QSizeF &pageSize)
 {
-    // TODO: handle pagesize
-    const QPixmap* oldpixmap = currentPixmap;
-    qDebug() << "ask for pixmap" << page << this;
     currentPixmap = pixcache->pixmap(page);
-    qDebug() << "received pixmap" << page << this << currentPixmap->size();
-    delete oldpixmap;
     qreal resolution;
     if (pageSize.width() * height() > pageSize.height() * width())
         // page is too wide, determine resolution by x direction
@@ -37,13 +32,11 @@ void SlideView::pageChanged(const int page, const QSizeF &pageSize)
         resolution = height() / pageSize.height();
     resetTransform();
     scale(resolution, resolution);
-    qDebug() << "set scale" << page << this;
 }
 
 void SlideView::drawBackground(QPainter *painter, const QRectF &rect)
 {
-    painter->drawPixmap(scene()->sceneRect(), *currentPixmap, currentPixmap->rect());
-    qDebug() << "draw background" << this;
+    painter->drawPixmap(scene()->sceneRect(), currentPixmap, currentPixmap.rect());
 }
 
 void SlideView::pageReady(const int page, const qreal resolution)

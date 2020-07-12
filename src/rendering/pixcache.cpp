@@ -51,7 +51,7 @@ void PixCache::clear()
     region = {preferences().page, preferences().page};
 }
 
-const QPixmap * PixCache::pixmap(const int page) const
+const QPixmap PixCache::pixmap(const int page) const
 {
     qDebug() << "get pixmap const" << page;
     qreal const resolution = getResolution(page);
@@ -63,13 +63,13 @@ const QPixmap * PixCache::pixmap(const int page) const
     }
     // Check if page number is valid.
     if (page < 0 || page >= pdfMaster->numberOfPages())
-        return nullptr;
+        return QPixmap();
 
     qDebug() << "Failed to load page from cache:" << page;
     return renderNewPixmap(page);
 }
 
-const QPixmap * PixCache::renderNewPixmap(const int page) const
+const QPixmap PixCache::renderNewPixmap(const int page) const
 {
     // Use an own renderer. This is slow.
     AbstractRenderer * renderer;
@@ -93,26 +93,21 @@ const QPixmap * PixCache::renderNewPixmap(const int page) const
     if (!renderer->isValid())
     {
         qCritical() << "Creating renderer failed" << preferences().renderer;
-        return nullptr;
+        return QPixmap();
     }
 
-    const QPixmap *pix = new QPixmap(renderer->renderPixmap(page, getResolution(page)));
+    const QPixmap pix = renderer->renderPixmap(page, getResolution(page));
     delete renderer;
 
-    if (pix->isNull())
-    {
+    if (pix.isNull())
         qCritical() << "Rendering page failed" << page << getResolution(page);
-        delete pix;
-        return nullptr;
-    }
 
     // The page is not written to cache!
     return pix;
 }
 
-const QPixmap * PixCache::pixmap(const int page)
+const QPixmap PixCache::pixmap(const int page)
 {
-    qDebug() << "get pixmap non-const" << page;
     qreal const resolution = getResolution(page);
     // Try to return a page from cache.
     {
@@ -122,10 +117,10 @@ const QPixmap * PixCache::pixmap(const int page)
     }
     // Check if page number is valid.
     if (page < 0 || page >= pdfMaster->numberOfPages())
-        return nullptr;
+        return QPixmap();
 
     qDebug() << "Failed to load page from cache:" << page;
-    const QPixmap *pix = renderNewPixmap(page);
+    const QPixmap pix = renderNewPixmap(page);
 
     // Write pixmap to cache.
     const PngPixmap *png = new PngPixmap(pix, page, resolution);
