@@ -295,7 +295,7 @@ void actionsFromConfig(QMap<QString, QList<KeyAction>>& actions, QMap<QString, F
                             if (ok)
                                 tools[key] = {tool, color, size, {magnification}};
                             else
-                                tools[key] = {tool, color, size};
+                                tools[key] = {tool, color, size, {0.}};
                         }
                         else if (tool == Pointer) {
                             tools[key] = {tool, color, size, defaultToolConfig[Pointer].extras};
@@ -315,7 +315,7 @@ void actionsFromConfig(QMap<QString, QList<KeyAction>>& actions, QMap<QString, F
                                 tools[key].extras.pointer.inner = false;
                         }
                         else
-                            tools[key] = {tool, color, size};
+                            tools[key] = {tool, color, size, {0.}};
                     }
                     else {
                         // Interpret all following arguments as color, size and magnification.
@@ -396,7 +396,7 @@ void actionsFromConfig(QMap<QString, QList<KeyAction>>& actions, QMap<QString, F
                     tools[key].extras.pointer.inner = false;
             }
             else
-                tools[key] = {tool, color, size};
+                tools[key] = {tool, color, size, {0.}};
 #ifdef DEBUG_READ_CONFIGS
             qDebug() << "New tool:" << key << tools[key].tool << tools[key].color << tools[key].size << tools[key].extras.magnification;
 #endif

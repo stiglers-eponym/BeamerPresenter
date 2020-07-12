@@ -235,7 +235,7 @@ struct FullDrawTool {
             qint8 composition;
             bool inner;
         } pointer;
-    } extras = {0.};
+    } extras;
 };
 
 #endif // ENUMERATES_H

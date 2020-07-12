@@ -22,7 +22,7 @@
 #include "enumerates.h"
 
 /// Map tools to strings (used for saving to XML).
-static const QMap<DrawTool, QString> toolNames = {
+static const QMap<DrawTool, QString> toolNames {
     {Highlighter, "highlighter"},
     {Pen, "pen"},
     {Magnifier, "magnifier"},
@@ -32,24 +32,24 @@ static const QMap<DrawTool, QString> toolNames = {
 };
 
 /// Default tools (FullDrawTool) for DrawTools
-static const QMap<DrawTool, FullDrawTool> defaultToolConfig = {
-    {Pen, {Pen, Qt::black, 3}},
-    {Highlighter, {Highlighter, QColor(255,255,0,191), 30}},
+static const QMap<DrawTool, FullDrawTool> defaultToolConfig {
+    {Pen, {Pen, Qt::black, 3, {0.}}},
+    {Highlighter, {Highlighter, QColor(255,255,0,191), 30, {0.}}},
 // This is probably not a problem of the Qt version, but like this it can at least be compiled easily in ubuntu 18.04:
 #if QT_VERSION_MAJOR > 5 or (QT_VERSION_MAJOR == 5 and QT_VERSION_MINOR >= 13)
     {Pointer, {Pointer, QColor(255,0,0,191), 12, {.pointer={128, 1, true}}}},
 #else
-    {Pointer, {Pointer, QColor(255,0,0,191), 12}},
+    {Pointer, {Pointer, QColor(255,0,0,191), 12, {0.}}},
 #endif
     {Magnifier, {Magnifier, Qt::gray, 200, {.magnification=2.}}},
-    {Torch, {Torch, QColor(0,0,0,64), 120}},
-    {Eraser, {Eraser, QColor(128,128,128,64), 10.}},
-    {NoTool, {NoTool, QColor(), 0.}},
-    {InvalidTool, {InvalidTool, QColor(), 0.}},
+    {Torch, {Torch, QColor(0,0,0,64), 120, {0.}}},
+    {Eraser, {Eraser, QColor(128,128,128,64), 10., {0.}}},
+    {NoTool, {NoTool, QColor(), 0., {0.}}},
+    {InvalidTool, {InvalidTool, QColor(), 0., {0.}}},
 };
 
 /// Default tools (FullDrawTool) for KeyActions
-static const QMap<KeyAction, DrawTool> actionToToolMap = {
+static const QMap<KeyAction, DrawTool> actionToToolMap {
     {DrawPen, Pen},
     {DrawHighlighter, Highlighter},
     {DrawPointer, Pointer},
@@ -58,7 +58,7 @@ static const QMap<KeyAction, DrawTool> actionToToolMap = {
 };
 
 /// Map KeyActions to names shown on the tool selector buttons.
-static const QMap<KeyAction, QString> actionNames = {
+static const QMap<KeyAction, QString> actionNames {
     {Previous, "prev"},
     {Next, "next"},
     {PreviousNoTransition, "prev-no-transition"},
@@ -136,7 +136,7 @@ static const QMap<KeyAction, QString> actionNames = {
 
 /// Map KeyActions to icon names.
 /// The icons are shown on the tool selector buttons.
-static const QMap<KeyAction, QString> actionIconNames = {
+static const QMap<KeyAction, QString> actionIconNames {
     {PlayMultimedia, "media-playback-start"},
     {PauseMultimedia, "media-playback-stop"},
     {PlayPauseMultimedia, "media-playback-pause"},
@@ -166,7 +166,7 @@ static const QMap<KeyAction, QString> actionIconNames = {
 
 /// Map draw tools to icon names.
 /// The icons are shown on the tool selector buttons.
-static const QMap<DrawTool, QString> toolIconNames = {
+static const QMap<DrawTool, QString> toolIconNames {
     // TODO: more and better icons
 };
 
@@ -356,13 +356,13 @@ static const QMap<quint8, QList<KeyAction>> defaultToolSelectorActions {
 /// The tool selector is an array of buttons in the lower right corner of the control screen.
 /// The keys (quint8) in this map are interpreted as two digit hexadecimal numbers, where the first digit defines the row and the second one defines the column of the button in the array.
 static const QMap<quint8, FullDrawTool> defaultToolSelectorTools {
-    {2, {Pen, QColor("red"), 3.}},
-    {3, {Pen, QColor("green"), 3.}},
-    {4, {Highlighter, QColor(255,255,0,191), 30}},
+    {2, {Pen, QColor("red"), 3., {0.}}},
+    {3, {Pen, QColor("green"), 3., {0.}}},
+    {4, {Highlighter, QColor(255,255,0,191), 30, {0.}}},
 #if QT_VERSION_MAJOR > 5 or (QT_VERSION_MAJOR == 5 and QT_VERSION_MINOR >= 13)
     {18, {Pointer, QColor(255,0,0,191), 12, {.pointer={128, 1, true}}}},
 #else
-    {18, {Pointer, QColor(255,0,0,191), 12}},
+    {18, {Pointer, QColor(255,0,0,191), 12, {0.}}},
 #endif
 };
 

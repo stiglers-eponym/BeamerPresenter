@@ -1081,7 +1081,7 @@ void PathOverlay::loadXML(QString const& filename, PdfDoc const* notesDoc)
                     if (!ok)
                         size = defaultToolConfig[tool].size;
                     QStringList const data = stroke.text().split(" ");
-                    paths[label].append(new DrawPath({tool, color, size}, data, shift, scale));
+                    paths[label].append(new DrawPath({tool, color, size, {0.}}, data, shift, scale));
                 }
             }
             emit pathsChanged(label, paths[label], master->shiftx, master->shifty, master->resolution);
@@ -1149,7 +1149,7 @@ void PathOverlay::loadXML(QString const& filename, PdfDoc const* notesDoc)
                     if (!ok)
                         size = defaultToolConfig[tool].size;
                     QStringList const data = stroke.text().split(" ");
-                    paths[label].append(new DrawPath({tool, color, size}, data, shift, scale));
+                    paths[label].append(new DrawPath({tool, color, size, {0.}}, data, shift, scale));
                 }
             }
             emit pathsChanged(label, paths[label], master->shiftx, master->shifty, master->resolution);
@@ -1387,7 +1387,19 @@ void PathOverlay::loadDrawings(QString const& filename)
                 qCritical() << "Interrupted reading file: File is corrupt.";
                 break;
             }
-            paths[pagelabel].append(new DrawPath({static_cast<DrawTool>(tool), color, defaultToolConfig[static_cast<DrawTool>(tool)].size}, vec, master->shiftx, master->shifty, w, h));
+            paths[pagelabel].append( new DrawPath(
+                        {
+                            static_cast<DrawTool>(tool),
+                            color,
+                            defaultToolConfig[static_cast<DrawTool>(tool)].size,
+                            defaultToolConfig[static_cast<DrawTool>(tool)].extras
+                        },
+                        vec,
+                        master->shiftx,
+                        master->shifty,
+                        w,
+                        h
+                    ));
         }
         emit pathsChanged(pagelabel, paths[pagelabel], master->shiftx, master->shifty, master->resolution);
     }

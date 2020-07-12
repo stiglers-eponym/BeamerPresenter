@@ -55,7 +55,7 @@ DrawPath::DrawPath(FullDrawTool const& tool, QPointF const* const points, int co
 
 DrawPath::DrawPath(DrawPath const& old, QPointF const shift, double const scale) :
     path(QVector<QPointF>(old.path.length())),
-    tool({old.tool.tool, old.tool.color, scale*old.tool.size}),
+    tool({old.tool.tool, old.tool.color, scale*old.tool.size, old.tool.extras}),
     hash(old.hash)
 {
     for (int i=0; i<old.path.length(); i++)
@@ -190,7 +190,7 @@ DrawPath::DrawPath(FullDrawTool const& tool, QVector<float> const& vec, int cons
 }
 
 DrawPath::DrawPath(FullDrawTool const& tool, QStringList const& stringList, QPoint const shift, qreal const scale) :
-    tool({tool.tool, tool.color, scale*tool.size})
+    tool({tool.tool, tool.color, scale*tool.size, tool.extras})
 {
     if (stringList.size() % 2 != 0 || stringList.size() < 2)
         return;
