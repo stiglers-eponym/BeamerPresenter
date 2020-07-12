@@ -2,19 +2,18 @@
 #define MUPDFRENDERER_H
 
 #include <QDebug>
+#include <QObject>
+#include <QMetaType>
 #include "src/rendering/mupdfdocument.h"
 #include "src/rendering/abstractrenderer.h"
 
-// TODO: Use shared document and cloned contexts instead of one document per renderer.
-
-class MuPdfRenderer : public AbstractRenderer
+class MuPdfRenderer : public QObject, public AbstractRenderer
 {
-    const MuPdfDocument *doc;
-    fz_context *context;
+    Q_OBJECT
 
 public:
-    MuPdfRenderer(const MuPdfDocument *doc);
-    ~MuPdfRenderer() override;
+    MuPdfRenderer() : AbstractRenderer() {}
+    ~MuPdfRenderer() override {}
 
     /// Render page to a QPixmap.
     /// Resolution is given in dpi.
@@ -23,8 +22,11 @@ public:
     /// Resolution is given in dpi.
     const PngPixmap * renderPng(const int page, const qreal resolution) const override;
 
-    /// Check whether this is valid, i.e. has nontrivial context and document.
-    bool isValid() const override;
+    /// In the current implementation this is always valid.
+    bool isValid() const override {return true;}
+
+signals:
+    void prepareRendering(fz_context **ctx, fz_rect* bbox, fz_display_list **list, const int pagenumber, const qreal resolution) const;
 };
 
 #endif // MUPDFRENDERER_H

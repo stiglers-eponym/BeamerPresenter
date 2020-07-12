@@ -11,14 +11,14 @@ TEMPLATE = app
 
 # Include Poppler: requires that poppler-qt5 libraries are installed.
 # This is the default PDF backend.
-#DEFINES += INCLUDE_POPPLER
+DEFINES += INCLUDE_POPPLER
 
 # Include MuPDF: requires that mupdf libraries are installed.
 # This is HIGHLY EXPERIMENTAL and UNSTABLE. Some features are missing.
 # That could change if MuPDF had a reasonable documentation.
 # It is recommended to use poppler as a backend and mutools as an external
 # renderer if you want to use MuPDF's rendering.
-DEFINES += INCLUDE_MUPDF
+#DEFINES += INCLUDE_MUPDF
 
 # The following define makes your compiler emit warnings if you use
 # any feature of Qt which has been marked as deprecated (the exact warnings
@@ -112,7 +112,8 @@ contains(DEFINES, INCLUDE_MUPDF) {
             src/rendering/mupdfdocument.cpp
     HEADERS += \
             src/rendering/mupdfrenderer.h \
-            src/rendering/mupdfdocument.h \
+            src/rendering/mupdfdocument.h
+    DEFINES += FITZ_DEBUG_LOCKING
 }
 
 unix {

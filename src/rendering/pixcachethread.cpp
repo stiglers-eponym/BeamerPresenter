@@ -49,7 +49,14 @@ bool PixCacheThread::initializeRenderer(const PdfDocument * const doc)
 #endif
 #ifdef INCLUDE_MUPDF
     case AbstractRenderer::MuPDF:
-        renderer = new MuPdfRenderer(static_cast<const MuPdfDocument*>(doc));
+        renderer = new MuPdfRenderer();
+        connect(
+                    static_cast<MuPdfRenderer*>(renderer),
+                    &MuPdfRenderer::prepareRendering,
+                    static_cast<const MuPdfDocument*>(doc),
+                    &MuPdfDocument::prepareRendering,
+                    Qt::BlockingQueuedConnection
+                    );
         break;
 #endif
     case AbstractRenderer::ExternalRenderer:
@@ -62,7 +69,7 @@ bool PixCacheThread::initializeRenderer(const PdfDocument * const doc)
         return true;
 
     // Creating renderer failed. Clean up and return false.
-    qCritical() << "Creating renderer failed";
+    qCritical() << "Creating renderer failed" << preferences().renderer;
     delete renderer;
     renderer = nullptr;
     return false;

@@ -86,7 +86,14 @@ const QPixmap PixCache::renderNewPixmap(const int page) const
 #endif
 #ifdef INCLUDE_MUPDF
     case AbstractRenderer::MuPDF:
-        renderer = new MuPdfRenderer(static_cast<const MuPdfDocument*>(pdfDoc));
+        renderer = new MuPdfRenderer();
+        connect(
+                    static_cast<MuPdfRenderer*>(renderer),
+                    &MuPdfRenderer::prepareRendering,
+                    static_cast<const MuPdfDocument*>(pdfDoc),
+                    &MuPdfDocument::prepareRendering,
+                    Qt::DirectConnection
+                    );
         break;
 #endif
     case AbstractRenderer::ExternalRenderer:

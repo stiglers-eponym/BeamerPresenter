@@ -37,12 +37,13 @@ void Preferences::loadSettings()
         {
             if (renderer_str == "mupdf")
             {
-    #ifdef INCLUDE_MUPDF
+#ifdef INCLUDE_MUPDF
                 renderer = AbstractRenderer::MuPDF;
-    #else
+                pdf_backend = PdfDocument::MuPdfBackend;
+#else
                 qWarning() << "BeamerPresenter was compiled without MuPDF support. Falling back to Poppler.";
                 renderer = AbstractRenderer::Poppler;
-    #endif
+#endif
             }
             else if (renderer_str == "extern" || renderer_str == "external")
             {

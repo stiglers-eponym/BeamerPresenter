@@ -3,10 +3,29 @@
 MuPdfDocument::MuPdfDocument(const QString &filename) :
     PdfDocument(filename)
 {
+    for (auto &it : mutex)
+        it = new QMutex();
     // Load the document
     if (!loadDocument())
         qFatal("Loading document failed");
 }
+
+
+void lock_mutex(void *user, int lock)
+{
+    QVector<QMutex*> *mutex = static_cast<QVector<QMutex*>*>(user);
+    //qDebug() << "lock  " << user << lock;
+    (*mutex)[lock]->lock();
+}
+
+
+void unlock_mutex(void *user, int lock)
+{
+    QVector<QMutex*> *mutex = static_cast<QVector<QMutex*>*>(user);
+    //qDebug() << "unlock" << user << lock;
+    (*mutex)[lock]->unlock();
+}
+
 
 bool MuPdfDocument::loadDocument()
 {
@@ -26,11 +45,25 @@ bool MuPdfDocument::loadDocument()
         fz_drop_context(context);
     }
 
-    // This code is mainly copied from a MuPDF example file, see mupdf.com
+    // This code is mainly copied from MuPDF example files, see mupdf.com
 
-    // Create the Fitz context for MuPDF.
-    // TODO: add locks to avoid possible problems with multiple threads.
-    context = fz_new_context(NULL, NULL, FZ_STORE_UNLIMITED);
+    // Initialize the locking structure with function pointers to
+    // the locking functions and to the user data. In this case
+    // the user data is a pointer to the array of mutexes so the
+    // locking functions can find the relevant lock to change when
+    // they are called. This way we avoid global variables.
+
+    fz_locks_context locks;
+    locks.user = &mutex;
+    locks.lock = lock_mutex;
+    locks.unlock = unlock_mutex;
+
+    // This is the main threads context function, so supply the
+    // locking structure. This context will be used to parse all
+    // the pages from the document.
+
+    context = fz_new_context(NULL, &locks, FZ_STORE_UNLIMITED);
+
     if (context == nullptr)
     {
         qWarning() << "Failed to create Fitz context";
@@ -184,4 +217,21 @@ const QString MuPdfDocument::label(const int page) const
 {
     // TODO
     return QString::number(page);
+}
+
+void  MuPdfDocument::prepareRendering(fz_context **ctx, fz_rect *bbox, fz_display_list **list, const int pagenumber, const qreal resolution)
+{
+    *ctx = context;
+    fz_page *page = fz_load_page(context, doc, pagenumber);
+    *bbox = fz_bound_page(context, page);
+    bbox->x0 *= resolution;
+    bbox->x1 *= resolution;
+    bbox->y0 *= resolution;
+    bbox->y1 *= resolution;
+    *list = fz_new_display_list(context, *bbox);
+    fz_device *dev = fz_new_list_device(context, *list);
+    fz_run_page(context, page, dev, fz_scale(resolution, resolution), NULL);
+    fz_close_device(context, dev);
+    fz_drop_device(context, dev);
+    fz_drop_page(context, page);
 }
