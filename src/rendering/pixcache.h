@@ -8,7 +8,7 @@
 #include "src/rendering/pngpixmap.h"
 #include "src/rendering/pixcachethread.h"
 
-#define MAX_RESOLUTION_DEVIATION 1e-8
+#define MAX_RESOLUTION_DEVIATION 1e-5
 
 class PdfMaster;
 
@@ -85,10 +85,12 @@ public:
     void setMaxNumber(const int number);
 
     /// Get pixmap showing page n.
-    const QPixmap pixmap(const int page) const;
+    const QPixmap * pixmap(const int page) const;
     /// Get pixmap showing page n.
     /// The non-const function additionally writes a new pixmap to cache.
-    const QPixmap pixmap(const int page);
+    const QPixmap * pixmap(const int page);
+    /// Render pixmap which is not in cache yet.
+    const QPixmap * renderNewPixmap(const int page) const;
 
     /// Total size of all cached pages in bytes
     qint64 getUsedMemory() const {return usedMemory;}

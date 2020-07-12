@@ -51,7 +51,7 @@ void PixCache::clear()
     region = {preferences().page, preferences().page};
 }
 
-const QPixmap PixCache::pixmap(const int page) const
+const QPixmap * PixCache::pixmap(const int page) const
 {
     qDebug() << "get pixmap const" << page;
     qreal const resolution = getResolution(page);
@@ -63,10 +63,14 @@ const QPixmap PixCache::pixmap(const int page) const
     }
     // Check if page number is valid.
     if (page < 0 || page >= pdfMaster->numberOfPages())
-        return QPixmap();
+        return nullptr;
 
     qDebug() << "Failed to load page from cache:" << page;
+    return renderNewPixmap(page);
+}
 
+const QPixmap * PixCache::renderNewPixmap(const int page) const
+{
     // Use an own renderer. This is slow.
     AbstractRenderer * renderer;
     // Create the renderer without any checks.
@@ -89,26 +93,42 @@ const QPixmap PixCache::pixmap(const int page) const
     if (!renderer->isValid())
     {
         qCritical() << "Creating renderer failed" << preferences().renderer;
-        return QPixmap();
+        return nullptr;
     }
 
-    QPixmap pix = renderer->renderPixmap(page, getResolution(page));
+    const QPixmap *pix = new QPixmap(renderer->renderPixmap(page, getResolution(page)));
     delete renderer;
 
-    if (pix.isNull())
+    if (pix->isNull())
+    {
         qCritical() << "Rendering page failed" << page << getResolution(page);
+        delete pix;
+        return nullptr;
+    }
 
     // The page is not written to cache!
     return pix;
 }
 
-const QPixmap PixCache::pixmap(const int page)
+const QPixmap * PixCache::pixmap(const int page)
 {
     qDebug() << "get pixmap non-const" << page;
-    const QPixmap pix = const_cast<const PixCache*>(this)->pixmap(page);
+    qreal const resolution = getResolution(page);
+    // Try to return a page from cache.
+    {
+        const auto it = cache.constFind(page);
+        if (it != cache.cend() && *it != nullptr && abs((*it)->getResolution() - resolution) < MAX_RESOLUTION_DEVIATION)
+            return (*it)->pixmap();
+    }
+    // Check if page number is valid.
+    if (page < 0 || page >= pdfMaster->numberOfPages())
+        return nullptr;
+
+    qDebug() << "Failed to load page from cache:" << page;
+    const QPixmap *pix = renderNewPixmap(page);
 
     // Write pixmap to cache.
-    PngPixmap const* png = new PngPixmap(pix, page, getResolution(page));
+    const PngPixmap *png = new PngPixmap(pix, page, resolution);
     if (png == nullptr)
         qWarning() << "Converting pixmap to PNG failed";
     else

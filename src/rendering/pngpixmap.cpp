@@ -12,13 +12,13 @@ PngPixmap::PngPixmap(const QByteArray *data, const int page, const float resolut
      page(page)
 {};
 
-PngPixmap::PngPixmap(const QPixmap pixmap, const int page, const float resolution) :
+PngPixmap::PngPixmap(const QPixmap *pixmap, const int page, const float resolution) :
     data(nullptr),
     resolution(resolution),
     page(page)
 {
     // Check if the given pixmap is nontrivial
-    if (pixmap.isNull())
+    if (pixmap == nullptr || pixmap->isNull())
         return;
 
     // Save the pixmap as PNG image.
@@ -27,7 +27,7 @@ PngPixmap::PngPixmap(const QPixmap pixmap, const int page, const float resolutio
     QBuffer buffer(bytes);
     buffer.open(QIODevice::WriteOnly);
     // Save the pixmap as png to the buffer.
-    if (!pixmap.save(&buffer, "PNG"))
+    if (!pixmap->save(&buffer, "PNG"))
     {
         qWarning() << "Compressing image to PNG failed";
         delete bytes;
@@ -38,11 +38,13 @@ PngPixmap::PngPixmap(const QPixmap pixmap, const int page, const float resolutio
     data = bytes;
 }
 
-const QPixmap PngPixmap::pixmap() const
+const QPixmap * PngPixmap::pixmap() const
 {
-    QPixmap pixmap;
-    if (data == nullptr || !pixmap.loadFromData(*data, "PNG"))
+    QPixmap * pixmap = new QPixmap();
+    qDebug() << "start decoding" << this;
+    if (data == nullptr || !pixmap->loadFromData(*data, "PNG"))
         qWarning() << "Loading image from PNG failed";
+    qDebug() << "finished decoding" << this;
     return pixmap;
 }
 

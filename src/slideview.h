@@ -17,7 +17,7 @@ class SlideView : public QGraphicsView, GuiWidget
     /// Not owned by this!
     PixCache *pixcache;
     /// Pixmap representing the current slide.
-    QPixmap currentPixmap;
+    const QPixmap *currentPixmap;
 
 public:
     explicit SlideView(SlideScene *scene, PixCache *cache = nullptr, QWidget *parent = nullptr);
