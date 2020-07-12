@@ -2,6 +2,7 @@
 #define ABSTRACTRENDERER_H
 
 #include "src/enumerates.h"
+#include "src/rendering/pngpixmap.h"
 #include <QPixmap>
 #include <QByteArray>
 
@@ -9,11 +10,13 @@ class AbstractRenderer
 {
 public:
     enum Renderer {
-        Poppler,
-#ifdef INCLUDE_MUPDF
-        MuPDF,
+#ifdef INCLUDE_POPPLER
+        Poppler = 0,
 #endif
-        ExternalRenderer,
+#ifdef INCLUDE_MUPDF
+        MuPDF = 1,
+#endif
+        ExternalRenderer = 2,
     };
 
     AbstractRenderer() {};
@@ -23,7 +26,7 @@ public:
     virtual const QPixmap renderPixmap(const int page, const qreal resolution) const = 0;
     /// Render page to PNG image in a QByteArray.
     /// Resolution is given in dpi.
-    virtual const QByteArray * renderPng(const int page, const qreal resolution) const = 0;
+    virtual const PngPixmap * renderPng(const int page, const qreal resolution) const = 0;
     virtual bool isValid() const = 0;
 };
 

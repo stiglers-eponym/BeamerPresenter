@@ -9,7 +9,15 @@ QT += core gui multimedia multimediawidgets xml widgets
 TARGET = beamerpresenter
 TEMPLATE = app
 
+# Include Poppler: requires that poppler-qt5 libraries are installed.
+# This is the default PDF backend.
+#DEFINES += INCLUDE_POPPLER
+
 # Include MuPDF: requires that mupdf libraries are installed.
+# This is HIGHLY EXPERIMENTAL and UNSTABLE. Some features are missing.
+# That could change if MuPDF had a reasonable documentation.
+# It is recommended to use poppler as a backend and mutools as an external
+# renderer if you want to use MuPDF's rendering.
 DEFINES += INCLUDE_MUPDF
 
 # The following define makes your compiler emit warnings if you use
@@ -55,7 +63,6 @@ SOURCES += \
         src/master.cpp \
         src/pdfmaster.cpp \
         src/preferences.cpp \
-        src/rendering/popplerrenderer.cpp \
         src/rendering/externalrenderer.cpp \
         src/rendering/pixcache.cpp \
         src/rendering/pixcachethread.cpp \
@@ -77,7 +84,7 @@ HEADERS += \
         src/pdfmaster.h \
         src/preferences.h \
         src/rendering/abstractrenderer.h \
-        src/rendering/popplerrenderer.h \
+        src/rendering/pdfdocument.h \
         src/rendering/externalrenderer.h \
         src/rendering/pixcache.h \
         src/rendering/pixcachethread.h \
@@ -90,14 +97,30 @@ HEADERS += \
         src/slidescene.h \
         src/slideview.h
 
+contains(DEFINES, INCLUDE_POPPLER) {
+    SOURCES += \
+            src/rendering/popplerrenderer.cpp \
+            src/rendering/popplerdocument.cpp
+    HEADERS += \
+            src/rendering/popplerrenderer.h \
+            src/rendering/popplerdocument.h \
+}
+
 contains(DEFINES, INCLUDE_MUPDF) {
-    SOURCES += src/rendering/mupdfrenderer.cpp
-    HEADERS += src/rendering/mupdfrenderer.h
+    SOURCES += \
+            src/rendering/mupdfrenderer.cpp \
+            src/rendering/mupdfdocument.cpp
+    HEADERS += \
+            src/rendering/mupdfrenderer.h \
+            src/rendering/mupdfdocument.h \
 }
 
 unix {
-    INCLUDEPATH += /usr/include/poppler/qt5
-    LIBS += -L /usr/lib/ -lpoppler-qt5
+    LIBS += -L/usr/lib/
+    contains(DEFINES, INCLUDE_POPPLER) {
+        INCLUDEPATH += /usr/include/poppler/qt5
+        LIBS += -lpoppler-qt5
+    }
     contains(DEFINES, INCLUDE_MUPDF) {
         INCLUDEPATH += /usr/include/mupdf
         LIBS += -lmupdf -lmupdf-third

@@ -1,48 +1,13 @@
 #include "src/rendering/mupdfrenderer.h"
 
-MuPdfRenderer::MuPdfRenderer(const QString &filename)
+MuPdfRenderer::MuPdfRenderer(const MuPdfDocument *doc) :
+    doc(doc)
 {
-    // This code is mainly copied from a MuPDF example file, see mupdf.com
-
-    // Create the Fitz context for MuPDF.
-    context = fz_new_context(NULL, NULL, FZ_STORE_UNLIMITED);
-    if (context == nullptr)
-    {
-        qWarning() << "Failed to create Fitz context";
-        doc = nullptr;
-        return;
-    }
-
-    // Try to register default document handlers.
-    fz_try(context)
-        fz_register_document_handlers(context);
-    fz_catch(context)
-    {
-        qWarning() << "MuPdf cannot register document handlers:" << fz_caught_message(context);
-        doc = nullptr;
-        fz_drop_context(context);
-        context =  nullptr;
-        return;
-    }
-
-    // Open the document.
-    // TODO: check the encoding...
-    const char * const name = filename.toLatin1().data();
-    fz_try(context)
-        doc = fz_open_document(context, name);
-    fz_catch(context)
-    {
-        qWarning() << "MuPdf cannot open document:" << fz_caught_message(context);
-        doc = nullptr;
-        fz_drop_context(context);
-        context =  nullptr;
-        return;
-    }
+    context = fz_clone_context(doc->getContext());
 }
 
 MuPdfRenderer::~MuPdfRenderer()
 {
-    fz_drop_document(context, doc);
     fz_drop_context(context);
 }
 
@@ -54,7 +19,7 @@ const QPixmap MuPdfRenderer::renderPixmap(const int page, const qreal resolution
     // Render page to an RGB pixmap.
     fz_pixmap *pixmap;
     fz_try(context)
-        pixmap = fz_new_pixmap_from_page_number(context, doc, page, matrix, fz_device_rgb(context), 0);
+        pixmap = fz_new_pixmap_from_page_number(context, doc->getDocument(), page, matrix, fz_device_rgb(context), 0);
     fz_catch(context)
     {
         qWarning() << "MuPDF cannot render page:" << fz_caught_message(context);
@@ -100,7 +65,7 @@ const QPixmap MuPdfRenderer::renderPixmap(const int page, const qreal resolution
     return qpixmap;
 }
 
-const QByteArray * MuPdfRenderer::renderPng(const int page, const qreal resolution) const
+const PngPixmap * MuPdfRenderer::renderPng(const int page, const qreal resolution) const
 {
     if (resolution <= 0 || page < 0)
         return nullptr;
@@ -108,7 +73,7 @@ const QByteArray * MuPdfRenderer::renderPng(const int page, const qreal resoluti
     // Render page to an RGB pixmap.
     fz_pixmap *pixmap;
     fz_try(context)
-        pixmap = fz_new_pixmap_from_page_number(context, doc, page, matrix, fz_device_rgb(context), 0);
+        pixmap = fz_new_pixmap_from_page_number(context, doc->getDocument(), page, matrix, fz_device_rgb(context), 0);
     fz_catch(context)
     {
         qWarning() << "MuPDF cannot render page:" << fz_caught_message(context);
@@ -130,7 +95,7 @@ const QByteArray * MuPdfRenderer::renderPng(const int page, const qreal resoluti
     // Convert the buffer data to QByteArray.
     const QByteArray * data = new QByteArray(reinterpret_cast<const char*>(buffer->data), buffer->len);
     fz_clear_buffer(context, buffer);
-    return data;
+    return new PngPixmap(data, page, resolution);
 }
 
 bool MuPdfRenderer::isValid() const

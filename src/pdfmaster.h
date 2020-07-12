@@ -2,8 +2,6 @@
 #define PDFMASTER_H
 
 #include <set>
-#include <poppler/qt5/poppler-qt5.h>
-#include <poppler/qt5/poppler-version.h>
 #include <QFileInfo>
 #include <QInputDialog>
 #include "src/slidescene.h"
@@ -11,6 +9,7 @@
 #include "src/preferences.h"
 #include "src/drawing/pathcontainer.h"
 #include "src/rendering/pixcache.h"
+#include "src/rendering/pdfdocument.h"
 
 /// Full document including PDF and paths / annotations added by user.
 /// This should also manage drawings and multimedia content of the PDF.
@@ -20,7 +19,7 @@ class PdfMaster : public QObject
 
 private:
     /// Poppler document representing the PDF
-    Poppler::Document* document = nullptr;
+    PdfDocument* document = nullptr;
 
     /// Lookup table for page labels.
     std::set<int> overlay_slide_indices;
@@ -62,13 +61,9 @@ public:
     /// Get size of page in points (floating point precision).
     const QSizeF getPageSize(const int page_number) const;
 
-    /// Get Poppler::Document.
-    const Poppler::Document * getDocument() const {return document;}
+    const PdfDocument * getDocument() const {return document;}
 
-    /// Get page from document. Does not check whether page exists.
-    const Poppler::Page * getPage(const int page) const {return document->page(page);}
-
-    int numberOfPages() const {return document->numPages();}
+    int numberOfPages() const {return document->numberOfPages();}
 
     int overlaysShifted(const int start, const int shift_overlay) const;
 

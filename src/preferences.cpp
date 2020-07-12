@@ -28,6 +28,7 @@ void Preferences::loadSettings()
             page_part = RightHalf;
     }
     { // renderer
+        // TODO: INCLUDE_POPPLER
         const QString renderer_str = settings.value("renderer").toString().toLower();
 #ifdef DEBUG_READ_CONFIGS
         qDebug() << renderer_str;

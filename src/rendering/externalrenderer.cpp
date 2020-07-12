@@ -1,12 +1,11 @@
 #include "src/rendering/externalrenderer.h"
-#include "src/pdfmaster.h"
 
-ExternalRenderer::ExternalRenderer(const QString& command, const QStringList &arguments, const PdfMaster * const master) :
+ExternalRenderer::ExternalRenderer(const QString& command, const QStringList &arguments, const PdfDocument * const doc) :
     renderingCommand(command),
     renderingArguments(arguments),
-    pdfMaster(master)
+    doc(doc)
 {
-    renderingArguments.replaceInStrings("%file", master->getFilename());
+    renderingArguments.replaceInStrings("%file", doc->getPath());
 }
 
 const QStringList ExternalRenderer::getArguments(const int page, const qreal resolution, const QString &format) const
@@ -18,13 +17,13 @@ const QStringList ExternalRenderer::getArguments(const int page, const qreal res
 
     // Calculate size of target image using page and resolution.
     // TODO: first check if calculating the size is needed.
-    const QSize size = (resolution * pdfMaster->getPageSize(page)).toSize();
+    const QSize size = (resolution * doc->pageSize(page)).toSize();
     command.replaceInStrings("%width", QString::number(size.width()));
     command.replaceInStrings("%height", QString::number(size.height()));
     return command;
 }
 
-const QByteArray * ExternalRenderer::renderPng(const int page, const qreal resolution) const
+const PngPixmap * ExternalRenderer::renderPng(const int page, const qreal resolution) const
 {
     if (resolution <= 0 || page < 0)
         return nullptr;
@@ -40,7 +39,7 @@ const QByteArray * ExternalRenderer::renderPng(const int page, const qreal resol
     const QByteArray * data = new QByteArray(process->readAllStandardOutput());
     // TODO: handle error messages and exit code sent by process.
     process->deleteLater();
-    return data;
+    return new PngPixmap(data, page, resolution);
 }
 
 const QPixmap ExternalRenderer::renderPixmap(const int page, const qreal resolution) const

@@ -7,10 +7,10 @@
 #include <QTimer>
 #include "src/rendering/pngpixmap.h"
 #include "src/rendering/pixcachethread.h"
+#include "src/rendering/pdfdocument.h"
+#include "src/preferences.h"
 
 #define MAX_RESOLUTION_DEVIATION 1e-5
-
-class PdfMaster;
 
 /// Cache of compressed slides as PNG images.
 /// This does the job of rendering slides to images and storing these images
@@ -49,8 +49,8 @@ private:
     /// Threads used to render pages to cache.
     QVector<PixCacheThread*> threads;
 
-    /// Pdf document owning this.
-    const PdfMaster *pdfMaster;
+    /// Pdf document.
+    const PdfDocument *pdfDoc;
 
     /// Check cache size and delete pages if necessary.
     /// Return estimated number of pages which still fit in cache.
@@ -70,7 +70,7 @@ private:
     QTimer renderCacheTimer;
 
 public:
-    explicit PixCache(const PdfMaster *master, const int thread_number = 1, QObject *parent = nullptr);
+    explicit PixCache(const PdfDocument *doc, const int thread_number = 1, QObject *parent = nullptr);
     ~PixCache();
 
     /// Clear cache, delete all cached pages.

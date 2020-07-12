@@ -4,8 +4,8 @@
 #include <QThread>
 #include "src/rendering/pngpixmap.h"
 #include "src/rendering/abstractrenderer.h"
+#include "src/rendering/pdfdocument.h"
 
-class PdfMaster;
 
 /// Separate thread for rendering page pixmaps to (compressed) cache.
 class PixCacheThread : public QThread
@@ -19,11 +19,11 @@ private:
     int page;
 
 public:
-    PixCacheThread(const PdfMaster * const master, QObject *parent = nullptr);
+    PixCacheThread(const PdfDocument * const doc, QObject *parent = nullptr);
 
     /// Create a renderer based on preferences.
     /// Return true if successful and false if no renderer was created.
-    bool initializeRenderer(const PdfMaster * const master);
+    bool initializeRenderer(const PdfDocument * const doc);
 
     /// Do the work.
     void run() override;

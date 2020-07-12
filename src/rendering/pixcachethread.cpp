@@ -1,13 +1,16 @@
 #include "src/rendering/pixcachethread.h"
-#include "src/pdfmaster.h"
+#ifdef INCLUDE_POPPLER
 #include "src/rendering/popplerrenderer.h"
+#endif
+#ifdef INCLUDE_MUPDF
 #include "src/rendering/mupdfrenderer.h"
+#endif
 #include "src/rendering/externalrenderer.h"
 #include "src/preferences.h"
 
-PixCacheThread::PixCacheThread(const PdfMaster * const master, QObject *parent) : QThread(parent)
+PixCacheThread::PixCacheThread(const PdfDocument * const doc, QObject *parent) : QThread(parent)
 {
-    initializeRenderer(master);
+    initializeRenderer(doc);
 }
 
 void PixCacheThread::setNextPage(const int page_number, const qreal res)
@@ -25,34 +28,32 @@ void PixCacheThread::run()
 
     // Copy the variable page and resolution.
     // They might be overwritten by another thread while rendering.
-    const int page_copy = page;
-    const qreal resolution_copy = resolution;
 
     // Render the image. This is takes some time.
     // TODO: exception handling.
-    const QByteArray *data = renderer->renderPng(page_copy, resolution_copy);
+    const PngPixmap *image = renderer->renderPng(page, resolution);
 
-    // Convert to PngPixmap. Here it is important that we use the copied variables.
-    const PngPixmap *image = new PngPixmap(data, page_copy, resolution_copy);
     // Send the image to "master".
     emit sendData(image);
 }
 
-bool PixCacheThread::initializeRenderer(const PdfMaster * const master)
+bool PixCacheThread::initializeRenderer(const PdfDocument * const doc)
 {
     // Create the renderer without any checks.
     switch (preferences().renderer)
     {
+#ifdef INCLUDE_POPPLER
     case AbstractRenderer::Poppler:
-        renderer = new PopplerRenderer(master->getDocument());
+        renderer = new PopplerRenderer(static_cast<const PopplerDocument*>(doc));
         break;
+#endif
 #ifdef INCLUDE_MUPDF
     case AbstractRenderer::MuPDF:
-        renderer = new MuPdfRenderer(master->getFilename());
+        renderer = new MuPdfRenderer(static_cast<const MuPdfDocument*>(doc));
         break;
 #endif
     case AbstractRenderer::ExternalRenderer:
-        renderer = new ExternalRenderer(preferences().rendering_command, preferences().rendering_arguments, master);
+        renderer = new ExternalRenderer(preferences().rendering_command, preferences().rendering_arguments, doc);
         break;
     }
 

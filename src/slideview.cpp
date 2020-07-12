@@ -2,6 +2,7 @@
 #include "src/rendering/pixcache.h"
 #include "src/slidescene.h"
 #include "src/preferences.h"
+#include "src/pdfmaster.h"
 
 SlideView::SlideView(SlideScene *scene, PixCache *cache, QWidget *parent) :
     QGraphicsView(scene, parent),
@@ -12,7 +13,7 @@ SlideView::SlideView(SlideScene *scene, PixCache *cache, QWidget *parent) :
     setFocusPolicy(Qt::StrongFocus);
     setFrameShape(QFrame::NoFrame);
     if (pixcache == nullptr)
-        pixcache = new PixCache(scene->getPdfMaster(), 1, this);
+        pixcache = new PixCache(scene->getPdfMaster()->getDocument(), 1, this);
     pixcache->updateFrame(size());
     QPalette newpalette = palette();
     newpalette.setColor(QPalette::Base, Qt::black);

@@ -1,19 +1,22 @@
 #include "src/rendering/pixcache.h"
+#ifdef INCLUDE_POPPLER
 #include "src/rendering/popplerrenderer.h"
+#endif
+#ifdef INCLUDE_MUPDF
 #include "src/rendering/mupdfrenderer.h"
+#endif
 #include "src/rendering/externalrenderer.h"
-#include "src/pdfmaster.h"
 
-PixCache::PixCache(const PdfMaster *master, const int thread_number, QObject *parent) :
+PixCache::PixCache(const PdfDocument *doc, const int thread_number, QObject *parent) :
     QObject(parent),
     cache(),
     threads(QVector<PixCacheThread*>(thread_number)),
-    pdfMaster(master)
+    pdfDoc(doc)
 {
     // Create threads.
     for (int i=0; i<thread_number; i++)
     {
-        threads[i] = new PixCacheThread(master, this);
+        threads[i] = new PixCacheThread(doc, this);
         connect(threads[i], &PixCacheThread::sendData, this, &PixCache::receiveData);
     }
     renderCacheTimer.setSingleShot(true);
@@ -62,7 +65,7 @@ const QPixmap PixCache::pixmap(const int page) const
             return (*it)->pixmap();
     }
     // Check if page number is valid.
-    if (page < 0 || page >= pdfMaster->numberOfPages())
+    if (page < 0 || page >= pdfDoc->numberOfPages())
         return QPixmap();
 
     qDebug() << "Failed to load page from cache:" << page;
@@ -76,16 +79,18 @@ const QPixmap PixCache::renderNewPixmap(const int page) const
     // Create the renderer without any checks.
     switch (preferences().renderer)
     {
+#ifdef INCLUDE_POPPLER
     case AbstractRenderer::Poppler:
-        renderer = new PopplerRenderer(pdfMaster->getDocument());
+        renderer = new PopplerRenderer(static_cast<const PopplerDocument*>(pdfDoc));
         break;
+#endif
 #ifdef INCLUDE_MUPDF
     case AbstractRenderer::MuPDF:
-        renderer = new MuPdfRenderer(pdfMaster->getFilename());
+        renderer = new MuPdfRenderer(static_cast<const MuPdfDocument*>(pdfDoc));
         break;
 #endif
     case AbstractRenderer::ExternalRenderer:
-        renderer = new ExternalRenderer(preferences().rendering_command, preferences().rendering_arguments, pdfMaster);
+        renderer = new ExternalRenderer(preferences().rendering_command, preferences().rendering_arguments, pdfDoc);
         break;
     }
 
@@ -116,7 +121,7 @@ const QPixmap PixCache::pixmap(const int page)
             return (*it)->pixmap();
     }
     // Check if page number is valid.
-    if (page < 0 || page >= pdfMaster->numberOfPages())
+    if (page < 0 || page >= pdfDoc->numberOfPages())
         return QPixmap();
 
     qDebug() << "Failed to load page from cache:" << page;
@@ -195,7 +200,7 @@ int PixCache::limitCacheSize()
     if (maxMemory < 0 && maxNumber < 0)
     {
         // Check if all pages are already in memory.
-        if (cache.size() == pdfMaster->numberOfPages())
+        if (cache.size() == pdfDoc->numberOfPages())
             return 0;
         return INT_MAX;
     }
@@ -347,7 +352,7 @@ void PixCache::startRendering()
         {
             const int page = renderNext();
             qDebug() << "Should start thread" << page;
-            if (page < 0 || page >= pdfMaster->numberOfPages())
+            if (page < 0 || page >= pdfDoc->numberOfPages())
                 return;
             (*thread)->setNextPage(page, getResolution(page));
             (*thread)->start(QThread::LowPriority);
@@ -385,7 +390,7 @@ void PixCache::receiveData(const PngPixmap *data)
 qreal PixCache::getResolution(const int page) const
 {
     // Get page size in points
-    QSizeF pageSize = pdfMaster->getPageSize(page);
+    QSizeF pageSize = pdfDoc->pageSize(page);
     if (pageSize.isEmpty())
         return -1.;
     if (preferences().page_part != FullPage)

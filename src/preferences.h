@@ -3,6 +3,7 @@
 
 #include "src/enumerates.h"
 #include "src/rendering/abstractrenderer.h"
+#include "src/rendering/pdfdocument.h"
 #include <QSettings>
 #include <QCommandLineParser>
 #include <QFileDialog>
@@ -37,8 +38,18 @@ public:
     /// Page part corresponding to the presentation.
     PagePart page_part = FullPage;
 
+    /// PDF backend (should be same as renderer except if renderer is external)
+#ifdef INCLUDE_POPPLER
+    PdfDocument::PdfBackend pdf_backend = PdfDocument::PopplerBackend;
+#else
+    PdfDocument::PdfBackend pdf_backend = PdfDocument::MuPdfBackend;
+#endif
     /// Renderer used to convert PDF page to image.
+#ifdef INCLUDE_POPPLER
     AbstractRenderer::Renderer renderer = AbstractRenderer::Poppler;
+#else
+    AbstractRenderer::Renderer renderer = AbstractRenderer::MuPDF;
+#endif
     /// Rendering command for external renderer.
     QString rendering_command;
     /// Arguments to rendering_command.
