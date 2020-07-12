@@ -48,11 +48,12 @@ void PixCache::clear()
     qDeleteAll(cache);
     cache.clear();
     usedMemory = 0;
-    region = {INT_MAX, -1};
+    region = {preferences().page, preferences().page};
 }
 
 const QPixmap PixCache::pixmap(const int page) const
 {
+    qDebug() << "get pixmap const" << page;
     qreal const resolution = getResolution(page);
     // Try to return a page from cache.
     {
@@ -63,6 +64,8 @@ const QPixmap PixCache::pixmap(const int page) const
     // Check if page number is valid.
     if (page < 0 || page >= pdfMaster->numberOfPages())
         return QPixmap();
+
+    qDebug() << "Failed to load page from cache:" << page;
 
     // Use an own renderer. This is slow.
     AbstractRenderer * renderer;
@@ -101,6 +104,7 @@ const QPixmap PixCache::pixmap(const int page) const
 
 const QPixmap PixCache::pixmap(const int page)
 {
+    qDebug() << "get pixmap non-const" << page;
     const QPixmap pix = const_cast<const PixCache*>(this)->pixmap(page);
 
     // Write pixmap to cache.
@@ -341,7 +345,7 @@ void PixCache::receiveData(const PngPixmap *data)
 {
     qDebug() << "Received data" << data;
     // If a renderer failed, it should already have sent an error message.
-    if (data == nullptr)
+    if (data == nullptr || data->isNull())
         return;
 
     // Check if the received image is still compatible with the current resolution.

@@ -23,7 +23,7 @@ public:
     PagePart page_part = FullPage;
 
     /// Renderer used to convert PDF page to image.
-    AbstractRenderer::Renderer renderer = AbstractRenderer::Poppler;
+    AbstractRenderer::Renderer renderer = AbstractRenderer::MuPDF;
     /// Rendering command for external renderer.
     QString rendering_command;
     /// Arguments to rendering_command.

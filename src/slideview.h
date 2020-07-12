@@ -32,7 +32,7 @@ protected slots:
 
 public slots:
     /// Inform this that the page number has changed.
-    void pageChanged(const int page, const QSizeF &pagesize);
+    void pageChanged(const int page, const QSizeF &pageSize);
     /// Inform this that page is ready in pixcache.
     void pageReady(const int page, const qreal resolution);
 

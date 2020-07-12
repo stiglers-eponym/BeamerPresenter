@@ -175,6 +175,7 @@ QWidget* Master::createWidget(QJsonObject &object, ContainerWidget *parent)
             scenes.swapItemsAt(scenes.indexOf(scene), 0);
         // TODO: read other properties from config
         // Create slide view.
+        // TODO: connect slide views with same geometry (siblings in same layout) to same pixcache.
         SlideView *slide = new SlideView(scene, nullptr, parent);
         connect(slide, &SlideView::sendKeyEvent, this, &Master::receiveKeyEvent);
         connect(scene, &SlideScene::navigationToViews, slide, &SlideView::pageChanged);
