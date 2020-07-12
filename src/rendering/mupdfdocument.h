@@ -37,7 +37,7 @@ public:
     fz_document* getDocument() const {return doc;}
 
 public slots:
-    /// Prepare rendering for other threads.
+    /// Prepare rendering for other threads by initializing the given pointers.
     /// This gives the threads only access to objects which are thread save.
     void prepareRendering(fz_context **ctx, fz_rect *bbox, fz_display_list **list, const int pagenumber, const qreal resolution);
 };

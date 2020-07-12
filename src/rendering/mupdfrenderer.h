@@ -12,6 +12,10 @@ class MuPdfRenderer : public QObject, public AbstractRenderer
     Q_OBJECT
 
 public:
+    /// After creation MuPdfRenderer::prepareRendering MUST be connected to
+    /// MuPdfDocument::prepareRendering. If both object live in the same
+    /// thread, the connection type must be Qt::DirecConnection. If they live
+    /// in different threads, it must be Qt::BlockingQueuedConnection.
     MuPdfRenderer() : AbstractRenderer() {}
     ~MuPdfRenderer() override {}
 
@@ -26,6 +30,8 @@ public:
     bool isValid() const override {return true;}
 
 signals:
+    /// Let MuPdfDocument in the main thread prepare the rendering.
+    /// It initializes the values at the given pointers.
     void prepareRendering(fz_context **ctx, fz_rect* bbox, fz_display_list **list, const int pagenumber, const qreal resolution) const;
 };
 

@@ -11,11 +11,18 @@ const QPixmap MuPdfRenderer::renderPixmap(const int page, const qreal resolution
     fz_display_list *list;
     emit prepareRendering(&ctx, &bbox, &list, page, resolution);
 
+    // Create a local clone of the main thread's context.
     ctx = fz_clone_context(ctx);
+
+    // Create a new pixmap and fill it with background color (white).
+    // TODO: check if this causes problems with different PDF background colors.
     fz_pixmap *pixmap = fz_new_pixmap_with_bbox(ctx, fz_device_rgb(ctx), fz_round_rect(bbox), NULL, 0);
     fz_clear_pixmap_with_value(ctx, pixmap, 0xff);
+
+    // Create a device for rendering the given display list to pixmap.
     fz_device *dev = fz_new_draw_device(ctx, fz_scale(resolution, resolution), pixmap);
 
+    // Do the main work: Render the display list to pixmap.
     fz_try(ctx)
         fz_run_display_list(ctx, list, dev, fz_identity, bbox, NULL);
     fz_catch(ctx)
@@ -28,6 +35,7 @@ const QPixmap MuPdfRenderer::renderPixmap(const int page, const qreal resolution
         return QPixmap();
     }
 
+    // Clean up device.
     fz_close_device(ctx, dev);
     fz_drop_device(ctx, dev);
 
@@ -83,11 +91,18 @@ const PngPixmap * MuPdfRenderer::renderPng(const int page, const qreal resolutio
     fz_display_list *list;
     emit prepareRendering(&ctx, &bbox, &list, page, resolution);
 
+    // Create a local clone of the main thread's context.
     ctx = fz_clone_context(ctx);
+
+    // Create a new pixmap and fill it with background color (white).
+    // TODO: check if this causes problems with different PDF background colors.
     fz_pixmap *pixmap = fz_new_pixmap_with_bbox(ctx, fz_device_rgb(ctx), fz_round_rect(bbox), NULL, 0);
     fz_clear_pixmap_with_value(ctx, pixmap, 0xff);
+
+    // Create a device for rendering the given display list to pixmap.
     fz_device *dev = fz_new_draw_device(ctx, fz_identity, pixmap);
 
+    // Do the main work: Render the display list to pixmap.
     fz_try(ctx)
         fz_run_display_list(ctx, list, dev, fz_identity, bbox, NULL);
     fz_catch(ctx)
@@ -100,6 +115,7 @@ const PngPixmap * MuPdfRenderer::renderPng(const int page, const qreal resolutio
         return nullptr;
     }
 
+    // Clean up device.
     fz_close_device(ctx, dev);
     fz_drop_device(ctx, dev);
 

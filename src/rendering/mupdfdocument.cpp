@@ -207,7 +207,6 @@ const PngPixmap * MuPdfDocument::getPng(const int page, const qreal resolution) 
 
 const QSizeF MuPdfDocument::pageSize(const int page) const
 {
-    // TODO: check which units this uses
     fz_page *doc_page = fz_load_page(context, doc, page);
     const fz_rect bbox = fz_bound_page(context, doc_page);
     return QSizeF(bbox.x1 - bbox.x0, bbox.y1 - bbox.y0);
@@ -215,22 +214,32 @@ const QSizeF MuPdfDocument::pageSize(const int page) const
 
 const QString MuPdfDocument::label(const int page) const
 {
-    // TODO
+    // TODO: Find out how to access page labels in MuPDF
     return QString::number(page);
 }
 
-void  MuPdfDocument::prepareRendering(fz_context **ctx, fz_rect *bbox, fz_display_list **list, const int pagenumber, const qreal resolution)
+void MuPdfDocument::prepareRendering(fz_context **ctx, fz_rect *bbox, fz_display_list **list, const int pagenumber, const qreal resolution)
 {
+    // This is almost completely copied from a mupdf example.
+
+    // sender gets a references to context.
     *ctx = context;
+    // Get a page (must be done in the main thread!).
     fz_page *page = fz_load_page(context, doc, pagenumber);
+    // Calculate the boundary box and rescale it to the given resolution.
     *bbox = fz_bound_page(context, page);
     bbox->x0 *= resolution;
     bbox->x1 *= resolution;
     bbox->y0 *= resolution;
     bbox->y1 *= resolution;
+    // Prepare a display list for a drawing device.
+    // The list (and not the page itself) will then be used to render the page.
     *list = fz_new_display_list(context, *bbox);
+    // Use a fitz device to fill the list with the content of the page.
     fz_device *dev = fz_new_list_device(context, *list);
     fz_run_page(context, page, dev, fz_scale(resolution, resolution), NULL);
+
+    // clean up.
     fz_close_device(context, dev);
     fz_drop_device(context, dev);
     fz_drop_page(context, page);
