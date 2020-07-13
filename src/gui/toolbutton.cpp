@@ -64,8 +64,14 @@ bool ToolButton::event(QEvent* event)
     if (event->type() == QEvent::TabletPress) {
         if (tool.tool != InvalidTool)
             emit sendStylusTool(tool);
-        for (auto action : actions)
-            emit sendAction(action);
+        for (auto &action : actions) {
+            // Try to interpret action as tool.
+            DrawTool const atool = actionToToolMap.value(action, InvalidTool);
+            if (atool != InvalidTool)
+                emit sendStylusTool(defaultToolConfig.value(atool));
+            else
+                emit sendAction(action);
+        }
         event->accept();
         return true;
     }

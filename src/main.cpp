@@ -715,7 +715,7 @@ int main(int argc, char *argv[])
                             doc.clear();
                     }
                     if (doc.isNull()) {
-                        // Deprecated
+                        // Deprecated: only returns an error.
                         // Try to read deprecated binary file format.
                         // Read the file in a QDataStream.
                         file.close();
@@ -727,19 +727,7 @@ int main(int argc, char *argv[])
                         stream >> magic;
                         // Check for errors and whether the magic bytes match the ones defined for BeamerPresenter binaries.
                         if (stream.status() == QDataStream::Ok && magic == 0x2CA7D9F8) {
-                            // Read QDataStream version from stream.
-                            quint16 version;
-                            stream >> version;
-                            // Overwrite QDataStream version with the version read from the stream.
-                            stream.setVersion(version);
-                            // Read file paths for presentation and notes.
-                            stream >> presentation >> notes;
-                            // Check for errors.
-                            if (stream.status() != QDataStream::Ok) {
-                                file.close();
-                                qCritical() << "Failed to open drawings file" << *argument << ". File is corrupt";
-                                throw -1;
-                            }
+                            qCritical() << "Binary file format is not supported anymore since version 0.1.2.";
                         }
                     }
                     else {

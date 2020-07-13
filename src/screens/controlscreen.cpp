@@ -151,8 +151,10 @@ ControlScreen::ControlScreen(QString presentationPath, QString notesPath, PagePa
         connect(drawSlide->getPathOverlay(), &PathOverlay::stylusPositionChanged, presentationScreen->slide->getPathOverlay(), &PathOverlay::setStylusPosition);
         connect(presentationScreen->slide->getPathOverlay(), &PathOverlay::stylusPositionChanged, drawSlide->getPathOverlay(), &PathOverlay::setStylusPosition);
         // Send relax signal when the mouse is released, which ends drawing a path.
-        connect(drawSlide->getPathOverlay(), &PathOverlay::sendRelax, presentationScreen->slide->getPathOverlay(), &PathOverlay::relax);
-        connect(presentationScreen->slide->getPathOverlay(), &PathOverlay::sendRelax, drawSlide->getPathOverlay(), &PathOverlay::relax);
+        connect(drawSlide->getPathOverlay(), &PathOverlay::sendRelaxPointer, presentationScreen->slide->getPathOverlay(), &PathOverlay::relaxPointer);
+        connect(drawSlide->getPathOverlay(), &PathOverlay::sendRelaxStylus, presentationScreen->slide->getPathOverlay(), &PathOverlay::relaxStylus);
+        connect(presentationScreen->slide->getPathOverlay(), &PathOverlay::sendRelaxPointer, drawSlide->getPathOverlay(), &PathOverlay::relaxPointer);
+        connect(presentationScreen->slide->getPathOverlay(), &PathOverlay::sendRelaxStylus, drawSlide->getPathOverlay(), &PathOverlay::relaxStylus);
         // Request rendering an enlarged page as required for the magnifier.
         connect(drawSlide->getPathOverlay(), &PathOverlay::sendUpdateEnlargedPage, presentationScreen->slide->getPathOverlay(), &PathOverlay::updateEnlargedPage);
         connect(presentationScreen->slide->getPathOverlay(), &PathOverlay::sendUpdateEnlargedPage, drawSlide->getPathOverlay(), &PathOverlay::updateEnlargedPage);
@@ -1654,16 +1656,6 @@ bool ControlScreen::handleKeyAction(KeyAction const action)
                 presentationScreen->slide->getPathOverlay()->saveXournal(savePath);
         }
         break;
-    case KeyAction::SaveDrawingsLegacy:
-        {
-#ifdef DEBUG_KEY_ACTIONS
-            qDebug() << "Save drawings event" << action;
-#endif
-            QString const savePath = QFileDialog::getSaveFileName(this, "Save drawings legacy (deprecated!)");
-            if (!savePath.isEmpty())
-                presentationScreen->slide->getPathOverlay()->saveDrawings(savePath, notes->getPath());
-        }
-        break;
     case KeyAction::SaveDrawingsUncompressed:
         {
 #ifdef DEBUG_KEY_ACTIONS
@@ -2032,9 +2024,13 @@ void ControlScreen::showDrawSlide()
         // Send pointer position (when using a pointer, torch or magnifier tool).
         connect(drawSlide->getPathOverlay(), &PathOverlay::pointerPositionChanged, presentationScreen->slide->getPathOverlay(), &PathOverlay::setPointerPosition);
         connect(presentationScreen->slide->getPathOverlay(), &PathOverlay::pointerPositionChanged, drawSlide->getPathOverlay(), &PathOverlay::setPointerPosition);
+        connect(drawSlide->getPathOverlay(), &PathOverlay::stylusPositionChanged, presentationScreen->slide->getPathOverlay(), &PathOverlay::setStylusPosition);
+        connect(presentationScreen->slide->getPathOverlay(), &PathOverlay::stylusPositionChanged, drawSlide->getPathOverlay(), &PathOverlay::setStylusPosition);
         // Send relax signal when the mouse is released, which ends drawing a path.
-        connect(drawSlide->getPathOverlay(), &PathOverlay::sendRelax, presentationScreen->slide->getPathOverlay(), &PathOverlay::relax);
-        connect(presentationScreen->slide->getPathOverlay(), &PathOverlay::sendRelax, drawSlide->getPathOverlay(), &PathOverlay::relax);
+        connect(drawSlide->getPathOverlay(), &PathOverlay::sendRelaxPointer, presentationScreen->slide->getPathOverlay(), &PathOverlay::relaxPointer);
+        connect(drawSlide->getPathOverlay(), &PathOverlay::sendRelaxStylus, presentationScreen->slide->getPathOverlay(), &PathOverlay::relaxStylus);
+        connect(presentationScreen->slide->getPathOverlay(), &PathOverlay::sendRelaxPointer, drawSlide->getPathOverlay(), &PathOverlay::relaxPointer);
+        connect(presentationScreen->slide->getPathOverlay(), &PathOverlay::sendRelaxStylus, drawSlide->getPathOverlay(), &PathOverlay::relaxStylus);
         // Request rendering an enlarged page as required for the magnifier.
         connect(drawSlide->getPathOverlay(), &PathOverlay::sendUpdateEnlargedPage, presentationScreen->slide->getPathOverlay(), &PathOverlay::updateEnlargedPage);
         connect(presentationScreen->slide->getPathOverlay(), &PathOverlay::sendUpdateEnlargedPage, drawSlide->getPathOverlay(), &PathOverlay::updateEnlargedPage);
@@ -2097,6 +2093,7 @@ void ControlScreen::showDrawSlide()
     drawSlide->renderPage(presentationScreen->slide->pageNumber(), false);
     // Set the current tool on drawSlide.
     drawSlide->getPathOverlay()->setTool(presentationScreen->slide->getPathOverlay()->getTool(), presentationScreen->slide->getResolution());
+    drawSlide->getPathOverlay()->setStylusTool(presentationScreen->slide->getPathOverlay()->getStylusTool(), presentationScreen->slide->getResolution());
     // Hide the notes and show (and focus) the drawSlide.
     ui->notes_widget->hide();
     drawSlide->show();

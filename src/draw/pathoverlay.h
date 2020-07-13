@@ -42,12 +42,9 @@ public:
 
     QMap<QString, QList<DrawPath*>> const& getPaths() const {return paths;}
     FullDrawTool const& getTool() const {return tool;}
+    FullDrawTool const& getStylusTool() const {return stylusTool;}
     SingleRenderer* getEnlargedPageRenderer() {return enlargedPageRenderer;}
 
-    /// Deprecated
-    void saveDrawings(QString const& filename, QString const& notefile = "") const;
-    /// Deprecated
-    void loadDrawings(QString const& filename);
     /// Save drawings to compressed or uncompressed BeamerPresenter XML file.
     void saveXML(QString const& filename, PdfDoc const* notedoc, bool const compress = true) const;
     /// Save drawings to an XML file which should be readable for Xournal(++).
@@ -118,14 +115,17 @@ public slots:
     void updateEnlargedPage();
     void setPaths(QString const pagelabel, QList<DrawPath*> const& list, qint16 const refshiftx, qint16 const refshifty, double const refresolution);
     void setPathsQuick(QString const pagelabel, QList<DrawPath*> const& list, qint16 const refshiftx, qint16 const refshifty, double const refresolution);
+    /// Set pointerPosition. If refresolution==0, set pointerPosition to QPointF(0,0)
     void setPointerPosition(QPointF const point, qint16 const refshiftx, qint16 const refshifty, double const refresolution);
+    /// Set stylusPosition. If refresolution==0, set stylusPosition to QPointF(0,0)
     void setStylusPosition(QPointF const point, qint16 const refshiftx, qint16 const refshifty, double const refresolution);
     void setTool(FullDrawTool const& newtool, qreal const resolution=-1.);
     void setTool(DrawTool const newtool, QColor const color=QColor(), qreal size=-1, qreal const resolution=-1.) {setTool({newtool, color, size, {0.}}, resolution);}
     void setStylusTool(FullDrawTool const& newtool, qreal const resolution=-1.);
     void setStylusTool(DrawTool const newtool, QColor const color=QColor(), qreal size=-1, qreal const resolution=-1.) {setStylusTool({newtool, color, size, {0.}}, resolution);}
     void updatePathCache();
-    void relax();
+    void relaxPointer();
+    void relaxStylus();
     void togglePointerVisibility();
     void showPointer();
     void hidePointer();
@@ -137,7 +137,8 @@ signals:
     void pathsChanged(QString const pagelabel, QList<DrawPath*> const& list, qint16 const refshiftx, qint16 const refshifty, double const refresolution);
     void sendToolChanged(FullDrawTool const tool, qreal const resolution);
     void sendUpdateEnlargedPage();
-    void sendRelax();
+    void sendRelaxPointer();
+    void sendRelaxStylus();
     void sendUpdatePathCache();
 };
 

@@ -129,7 +129,6 @@ static const QMap<KeyAction, QString> actionNames {
 
     {SaveDrawings, "save"},
     {LoadDrawings, "open"},
-    {SaveDrawingsLegacy, "save legacy"},
     {SaveDrawingsUncompressed, "save uncompressed"},
     {SaveDrawingsXournal, "save xournal"},
 };
@@ -267,14 +266,12 @@ static const QMap<QString, KeyAction> keyActionMap {
     {"save drawings xournal++", KeyAction::SaveDrawingsXournal},
     {"save drawings compatibility", KeyAction::SaveDrawingsXournal},
     {"load drawings", KeyAction::LoadDrawings},
-    {"save drawings legacy", KeyAction::SaveDrawingsLegacy},
     {"save drawings uncompressed", KeyAction::SaveDrawingsUncompressed},
     {"save", KeyAction::SaveDrawings},
     {"save xournal", KeyAction::SaveDrawingsXournal},
     {"save xournal++", KeyAction::SaveDrawingsXournal},
     {"save compatibility", KeyAction::SaveDrawingsXournal},
     {"load", KeyAction::LoadDrawings},
-    {"save legacy", KeyAction::SaveDrawingsLegacy},
     {"save uncompressed", KeyAction::SaveDrawingsUncompressed},
 };
 

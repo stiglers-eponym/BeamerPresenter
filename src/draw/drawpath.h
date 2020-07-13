@@ -39,8 +39,6 @@ public:
     DrawPath(FullDrawTool const& tool, QPointF const& start);
     /// Create new path with given points.
     DrawPath(FullDrawTool const& tool, QPointF const* const points, int const number);
-    /// Deprecated: used in legacy file loading function.
-    DrawPath(FullDrawTool const& tool, QVector<float> const& vec, int const xshift, int const yshift, int const width, int const height);
     /// Read path from string list. Used in file loading function.
     DrawPath(FullDrawTool const& tool, QStringList const& stringList, QPoint const shift, qreal const scale);
     DrawPath(DrawPath const& old, QPointF const shift, double const scale);
@@ -53,8 +51,6 @@ public:
 
     /// Called when drawing ends: makes sure that a path contains at least two points such that it can be drawn.
     void endDrawing();
-    /// Deprecated: convert path in vector of floates for legacy file saving function.
-    void toIntVector(QVector<float>& vec, int const xshift, int const yshift, int const width, int const height) const;
     /// Export path to list of strings representing numbers.
     /// The list contains (alternately) x and y coordinates in point (=inch/72).
     void toText(QStringList& stringList, QPoint const shift, qreal const scale) const;

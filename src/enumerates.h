@@ -173,8 +173,6 @@ enum KeyAction {
     SaveDrawingsUncompressed,
     /// Load drawings from compressed or uncompressed XML file.
     LoadDrawings,
-    /// Save drawings to legacy binary file (deprecated!)
-    SaveDrawingsLegacy,
     /// Save drawings to Xournal(++) compatibility XML format
     SaveDrawingsXournal,
 
