@@ -95,7 +95,7 @@ bool PopplerDocument::loadDocument()
         doc = newdoc;
     else
     {
-        Poppler::Document * const olddoc = doc;
+        const Poppler::Document * const olddoc = doc;
         doc = newdoc;
         delete olddoc;
     }

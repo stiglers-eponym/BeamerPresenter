@@ -7,6 +7,10 @@
 #include <QFileInfo>
 #include "src/rendering/pdfdocument.h"
 
+/// Document representing a PDF loaded by MuPDF.
+/// This class uses Qt's signaling system to achieve thread safety and must
+/// therefore be a QObject.
+/// MuPDF requires careful treatment of separte threads!
 class MuPdfDocument : public QObject, public PdfDocument
 {
     Q_OBJECT
@@ -21,6 +25,7 @@ class MuPdfDocument : public QObject, public PdfDocument
     int number_of_pages;
 
 public:
+    /// Create new document from given filename.
     MuPdfDocument(const QString &filename);
     ~MuPdfDocument() override;
     /// page is given as page index. resolution is given in pixels per point (72*dpi).

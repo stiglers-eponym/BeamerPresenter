@@ -122,11 +122,10 @@ const QPixmap MuPdfDocument::getPixmap(const int page, const qreal resolution) c
     if (resolution <= 0 || page < 0 || page >= number_of_pages)
         return QPixmap();
 
-    const fz_matrix matrix = fz_scale(resolution, resolution);
     // Render page to an RGB pixmap.
     fz_pixmap *pixmap;
     fz_try(context)
-        pixmap = fz_new_pixmap_from_page_number(context, doc, page, matrix, fz_device_rgb(context), 0);
+        pixmap = fz_new_pixmap_from_page_number(context, doc, page, fz_scale(resolution, resolution), fz_device_rgb(context), 0);
     fz_catch(context)
     {
         qWarning() << "MuPDF cannot render page:" << fz_caught_message(context);
@@ -174,13 +173,14 @@ const QPixmap MuPdfDocument::getPixmap(const int page, const qreal resolution) c
 
 const PngPixmap * MuPdfDocument::getPng(const int page, const qreal resolution) const
 {
+    // Check if the parameters are valid.
     if (resolution <= 0 || page < 0 || page >= number_of_pages)
         return nullptr;
-    const fz_matrix matrix = fz_scale(resolution, resolution);
+
     // Render page to an RGB pixmap.
     fz_pixmap *pixmap;
     fz_try(context)
-        pixmap = fz_new_pixmap_from_page_number(context, doc, page, matrix, fz_device_rgb(context), 0);
+        pixmap = fz_new_pixmap_from_page_number(context, doc, page, fz_scale(resolution, resolution), fz_device_rgb(context), 0);
     fz_catch(context)
     {
         qWarning() << "MuPDF cannot render page:" << fz_caught_message(context);
@@ -199,6 +199,7 @@ const PngPixmap * MuPdfDocument::getPng(const int page, const qreal resolution) 
         fz_drop_buffer(context, buffer);
         return nullptr;
     }
+
     // Convert the buffer data to QByteArray.
     const QByteArray * data = new QByteArray(reinterpret_cast<const char*>(buffer->data), buffer->len);
     fz_clear_buffer(context, buffer);
@@ -207,19 +208,41 @@ const PngPixmap * MuPdfDocument::getPng(const int page, const qreal resolution) 
 
 const QSizeF MuPdfDocument::pageSize(const int page) const
 {
+    // Check if the page number is valid.
+    if (page < 0 || page >= number_of_pages)
+        return QSizeF();
+
+    // Load page.
     fz_page *doc_page = fz_load_page(context, doc, page);
+    // Get bounding box.
     const fz_rect bbox = fz_bound_page(context, doc_page);
+    // Clean up page.
+    fz_drop_page(context, doc_page);
+    // Convert bounding box to QSizeF.
+    // bbox.x0 and bbox.y0 should be 0, but keep them anyway:
     return QSizeF(bbox.x1 - bbox.x0, bbox.y1 - bbox.y0);
 }
 
 const QString MuPdfDocument::label(const int page) const
 {
+    // Check if the page number is valid.
+    if (page < 0 || page >= number_of_pages)
+        return "";
+
     // TODO: Find out how to access page labels in MuPDF
+    //qWarning() << "Accessing page label is not implemented yet!";
     return QString::number(page);
 }
 
 void MuPdfDocument::prepareRendering(fz_context **ctx, fz_rect *bbox, fz_display_list **list, const int pagenumber, const qreal resolution)
 {
+    // Check if the page number is valid.
+    // If it is not, return without changing the given pointers.
+    // The caller should note that the pointers are unchaged and handle this
+    // appropriately.
+    if (pagenumber < 0 || pagenumber >= number_of_pages)
+        return;
+
     // This is almost completely copied from a mupdf example.
 
     // sender gets a references to context.
@@ -228,10 +251,13 @@ void MuPdfDocument::prepareRendering(fz_context **ctx, fz_rect *bbox, fz_display
     fz_page *page = fz_load_page(context, doc, pagenumber);
     // Calculate the boundary box and rescale it to the given resolution.
     *bbox = fz_bound_page(context, page);
+    // bbox is now given in points. Convert to pixels using resolution, which
+    // is given in pixels per point.
     bbox->x0 *= resolution;
     bbox->x1 *= resolution;
     bbox->y0 *= resolution;
     bbox->y1 *= resolution;
+
     // Prepare a display list for a drawing device.
     // The list (and not the page itself) will then be used to render the page.
     *list = fz_new_display_list(context, *bbox);

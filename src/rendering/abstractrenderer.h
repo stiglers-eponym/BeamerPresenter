@@ -6,6 +6,8 @@
 #include <QPixmap>
 #include <QByteArray>
 
+/// Abstract rendering class. Instances of implementing classes should be save
+/// to use outside the main thread.
 class AbstractRenderer
 {
 public:

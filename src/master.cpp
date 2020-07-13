@@ -210,7 +210,10 @@ QWidget* Master::createWidget(QJsonObject &object, ContainerWidget *parent)
 void Master::showAll() const
 {
     for (auto &widget : windows)
+    {
+        widget->setGeometry(0, 0, 400, 300);
         widget->show();
+    }
 }
 
 void Master::receiveKeyEvent(const QKeyEvent* event)

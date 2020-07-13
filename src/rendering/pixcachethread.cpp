@@ -21,7 +21,6 @@ void PixCacheThread::setNextPage(const int page_number, const qreal res)
 
 void PixCacheThread::run()
 {
-    qDebug() << "Run thread" << renderer;
     // Check if a renderer is available.
     if (renderer == nullptr)
         return;

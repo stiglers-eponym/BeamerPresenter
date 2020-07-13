@@ -18,7 +18,7 @@ DEFINES += INCLUDE_POPPLER
 # That could change if MuPDF had a reasonable documentation.
 # It is recommended to use poppler as a backend and mutools as an external
 # renderer if you want to use MuPDF's rendering.
-#DEFINES += INCLUDE_MUPDF
+DEFINES += INCLUDE_MUPDF
 
 # The following define makes your compiler emit warnings if you use
 # any feature of Qt which has been marked as deprecated (the exact warnings
@@ -26,11 +26,15 @@ DEFINES += INCLUDE_POPPLER
 # deprecated API in order to know how to port your code away from it.
 DEFINES += QT_DEPRECATED_WARNINGS
 
-# Define the application version.
-#DEFINES += APP_VERSION=\\\"$${VERSION}\\\"
+# Set git version for more precise version info if possible.
+exists(.git) {
+    VERSION_STRING = "$${VERSION}-$(shell git -C \""$$_PRO_FILE_PWD_"\" rev-list --count HEAD ).$(shell git -C \""$$_PRO_FILE_PWD_"\" rev-parse --short HEAD )"
+} else {
+    VERSION_STRING = "$${VERSION}"
+}
 
-# Set git version for more precise version info.
-DEFINES += APP_VERSION="\\\"$${VERSION}-$(shell git -C \""$$_PRO_FILE_PWD_"\" rev-list --count HEAD ).$(shell git -C \""$$_PRO_FILE_PWD_"\" rev-parse --short HEAD )\\\""
+# Define the application version.
+DEFINES += APP_VERSION=\\\"$${VERSION_STRING}\\\"
 
 # Define a path where the icon will be placed (don't forget the trailing /).
 ICON_PATH = "/usr/share/icons/hicolor/scalable/apps/"

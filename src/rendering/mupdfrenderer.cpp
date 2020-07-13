@@ -6,10 +6,14 @@ const QPixmap MuPdfRenderer::renderPixmap(const int page, const qreal resolution
         return QPixmap();
 
     // Let the main thread prepare everything.
-    fz_context *ctx;
+    fz_context *ctx = nullptr;
     fz_rect bbox;
-    fz_display_list *list;
+    fz_display_list *list = nullptr;
     emit prepareRendering(&ctx, &bbox, &list, page, resolution);
+
+    // If page is not valid (too large), the nullptrs will be unchanged.
+    if (ctx == nullptr || list == nullptr)
+        return QPixmap();
 
     // Create a local clone of the main thread's context.
     ctx = fz_clone_context(ctx);
@@ -86,10 +90,14 @@ const PngPixmap * MuPdfRenderer::renderPng(const int page, const qreal resolutio
         return nullptr;
 
     // Let the main thread prepare everything.
-    fz_context *ctx;
+    fz_context *ctx = nullptr;
     fz_rect bbox;
-    fz_display_list *list;
+    fz_display_list *list = nullptr;
     emit prepareRendering(&ctx, &bbox, &list, page, resolution);
+
+    // If page is not valid (too large), the nullptrs will be unchanged.
+    if (ctx == nullptr || list == nullptr)
+        return nullptr;
 
     // Create a local clone of the main thread's context.
     ctx = fz_clone_context(ctx);

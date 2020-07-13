@@ -7,6 +7,12 @@
 #include "src/rendering/mupdfdocument.h"
 #include "src/rendering/abstractrenderer.h"
 
+/// Renderer using the MuPDF backend. This renderer requires that the PDF
+/// document has been loaded by MuPDF (and not Poppler). It achieves thread
+/// savety by using Qt's signaling system and must therefore be a QObject.
+/// The only connection to the fitz document (MuPDF's document) is provided
+/// by a signal emitted by MuPdfRenderer to MuPdfDocument. The signal must
+/// be connected whenever a new object is created.
 class MuPdfRenderer : public QObject, public AbstractRenderer
 {
     Q_OBJECT

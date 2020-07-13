@@ -8,7 +8,8 @@
 
 class PopplerDocument : public PdfDocument
 {
-    Poppler::Document *doc = nullptr;
+    const Poppler::Document *doc = nullptr;
+
 public:
     PopplerDocument(const QString &filename);
     ~PopplerDocument() override;

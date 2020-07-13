@@ -56,7 +56,6 @@ void PixCache::clear()
 
 const QPixmap PixCache::pixmap(const int page) const
 {
-    qDebug() << "get pixmap const" << page;
     qreal const resolution = getResolution(page);
     // Try to return a page from cache.
     {
@@ -68,12 +67,15 @@ const QPixmap PixCache::pixmap(const int page) const
     if (page < 0 || page >= pdfDoc->numberOfPages())
         return QPixmap();
 
-    qDebug() << "Failed to load page from cache:" << page;
     return renderNewPixmap(page);
 }
 
 const QPixmap PixCache::renderNewPixmap(const int page) const
 {
+#ifdef DEBUG_RENDERING
+    qDebug() << "Render in main thread" << page;
+#endif
+
     // Use an own renderer. This is slow.
     AbstractRenderer * renderer;
     // Create the renderer without any checks.
@@ -131,7 +133,6 @@ const QPixmap PixCache::pixmap(const int page)
     if (page < 0 || page >= pdfDoc->numberOfPages())
         return QPixmap();
 
-    qDebug() << "Failed to load page from cache:" << page;
     const QPixmap pix = renderNewPixmap(page);
 
     // Write pixmap to cache.
@@ -350,7 +351,6 @@ void PixCache::startRendering()
 {
     // Clean up cache and check if there is enough space for more cached pages.
     int allowed_pages = limitCacheSize();
-    qDebug() << "start rendering" << allowed_pages;
     if (allowed_pages <= 0)
         return;
     for (QVector<PixCacheThread*>::const_iterator thread = threads.cbegin(); thread != threads.cend(); ++thread)
@@ -358,7 +358,6 @@ void PixCache::startRendering()
         if (allowed_pages > 0 && !(*thread)->isRunning())
         {
             const int page = renderNext();
-            qDebug() << "Should start thread" << page;
             if (page < 0 || page >= pdfDoc->numberOfPages())
                 return;
             (*thread)->setNextPage(page, getResolution(page));
@@ -370,7 +369,6 @@ void PixCache::startRendering()
 
 void PixCache::receiveData(const PngPixmap *data)
 {
-    qDebug() << "Received data" << data;
     // If a renderer failed, it should already have sent an error message.
     if (data == nullptr || data->isNull())
         return;
@@ -390,7 +388,6 @@ void PixCache::receiveData(const PngPixmap *data)
     }
 
     // Start rendering next page.
-    qDebug() << "start cache timer";
     renderCacheTimer.start();
 }
 

@@ -10,6 +10,7 @@ SlideView::SlideView(SlideScene *scene, PixCache *cache, QWidget *parent) :
     pixcache(cache)
 {
     setAttribute(Qt::WA_AcceptTouchEvents);
+    setMinimumSize(4, 3);
     setFocusPolicy(Qt::StrongFocus);
     setFrameShape(QFrame::NoFrame);
     if (pixcache == nullptr)
