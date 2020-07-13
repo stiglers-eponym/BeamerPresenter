@@ -25,10 +25,15 @@ TEMPLATE = app
 # deprecated API in order to know how to port your code away from it.
 DEFINES += QT_DEPRECATED_WARNINGS
 
+# Set git version for more precise version info if possible.
+exists(.git) {
+    VERSION_STRING = "$${VERSION}-$(shell git -C \""$$_PRO_FILE_PWD_"\" rev-list --count HEAD ).$(shell git -C \""$$_PRO_FILE_PWD_"\" rev-parse --short HEAD )"
+} else {
+    VERSION_STRING = "$${VERSION}"
+}
+
 # Define the application version.
-#DEFINES += APP_VERSION=\\\"$${VERSION}\\\"
-# Set git version for more precise version info.
-DEFINES += APP_VERSION="\\\"$${VERSION}-$(shell git -C \""$$_PRO_FILE_PWD_"\" rev-list --count HEAD ).$(shell git -C \""$$_PRO_FILE_PWD_"\" rev-parse --short HEAD )\\\""
+DEFINES += APP_VERSION=\\\"$${VERSION_STRING}\\\"
 
 # If the following define is uncommented, BeamerPresenter will check whether a compatible QPA platform is used.
 # It will then emit warning on untested systems and try to avoid blocking you window manager.
@@ -56,10 +61,6 @@ linux {
     # Disable toolTip globally at compile time to avoid segfaults in strange
     # wayland setup:
     #DEFINES += DISABLE_TOOL_TIP
-
-    # Replace drop down menus with an ugly patch, since they can in some
-    # situations be misplaced in wayland: (deprecated!)
-    #DEFINES += USE_WAYLAND_SUBMENU_PATCH
 }
 
 # Disable debugging message if debugging mode is disabled.
