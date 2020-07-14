@@ -15,6 +15,7 @@
  * You should have received a copy of the GNU General Public License
  * along with BeamerPresenter. If not, see <https://www.gnu.org/licenses/>.
  */
+#include <cmath>
 
 #include "pathoverlay.h"
 #include "../slide/drawslide.h"
@@ -926,7 +927,7 @@ void PathOverlay::updateEnlargedPage()
         connect(enlargedPageRenderer, &BasicRenderer::cacheThreadFinished, this, &PathOverlay::updateEnlargedPage);
     }
     // Render page using enlargedPageRenderer if necessary (the rendering is done in a separate thread).
-    if (enlargedPageRenderer->getPage() != master->pageIndex || abs(enlargedPageRenderer->getResolution() - thetool->extras.magnification*master->resolution) > 1e-6 ) {
+    if (enlargedPageRenderer->getPage() != master->pageIndex || std::abs(enlargedPageRenderer->getResolution() - thetool->extras.magnification*master->resolution) > 1e-6 ) {
         enlargedPageRenderer->changeResolution(thetool->extras.magnification*master->resolution);
         enlargedPage = QPixmap();
 #ifdef DEBUG_DRAWING
