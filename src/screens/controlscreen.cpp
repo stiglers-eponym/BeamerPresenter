@@ -15,6 +15,7 @@
  * You should have received a copy of the GNU General Public License
  * along with BeamerPresenter. If not, see <https://www.gnu.org/licenses/>.
  */
+#include <cmath>
 
 #include "controlscreen.h"
 #include "../names.h"
@@ -2088,7 +2089,7 @@ void ControlScreen::showDrawSlide()
     // If notes slides have a different aspect ratio than presentation slides, then change preview cache to previewCacheX.
     // This cache is used because the geometry of the preview widgets will change.
     QSizeF const pressize = presentation->getPageSize(currentPageNumber), notessize = notes->getPageSize(currentPageNumber);
-    if (abs(pressize.width()*notessize.height() - pressize.height()*notessize.width()) > 1e-2) {
+    if (std::abs(pressize.width()*notessize.height() - pressize.height()*notessize.width()) > 1e-2) {
         if (previewCacheX == nullptr) {
             previewCacheX = new CacheMap(presentation, pagePart, this);
             connect(previewCacheX, &CacheMap::cacheSizeChanged, this, &ControlScreen::updateCacheSize);

@@ -15,6 +15,7 @@
  * You should have received a copy of the GNU General Public License
  * along with BeamerPresenter. If not, see <https://www.gnu.org/licenses/>.
  */
+#include <cmath>
 
 #include "drawpath.h"
 
@@ -118,8 +119,8 @@ QVector<int> DrawPath::intersects(QPointF const& point, const qreal eraser_size)
         return QVector<int>();
     QVector<int> vec = QVector<int>();
     for (int i=0; i<path.length(); i++) {
-        if (abs(point.x() - path[i].x()) < eraser_size
-                && abs(point.y() - path[i].y()) < eraser_size
+        if (std::abs(point.x() - path[i].x()) < eraser_size
+                && std::abs(point.y() - path[i].y()) < eraser_size
                 && square(point.x() - path[i].x()) + square(point.y() - path[i].y()) < square(eraser_size))
             vec.append(i);
     }
