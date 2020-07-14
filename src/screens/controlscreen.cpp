@@ -29,10 +29,10 @@ static const QString slider_tooltip = "Position of multimedia content on the pre
 
 // TODO: tidy up! reorganize signals, slots, events, ...
 
-ControlScreen::ControlScreen(QString presentationPath, QString notesPath, PagePart const page, QWidget* parent) :
+ControlScreen::ControlScreen(QString presentationPath, QString notesPath, PagePart const part, const qreal pagePartThreshold, QWidget* parent) :
     QMainWindow(parent),
     ui(new Ui::ControlScreen),
-    pagePart(page)
+    pagePart(part)
 {
     // Check if files are valid.
     {
@@ -66,7 +66,7 @@ ControlScreen::ControlScreen(QString presentationPath, QString notesPath, PagePa
         }
     }
     // Check whether pagePart is compatible with notesPath.
-    if (notesPath != "" && pagePart != FullPage) {
+    if (notesPath != "" && pagePart != FullPage && pagePartThreshold <= 0) {
         qCritical() << "Provided additional notes file, but page-part is not full page. Ignoring option for page-part.";
         pagePart = FullPage;
     }
@@ -82,6 +82,15 @@ ControlScreen::ControlScreen(QString presentationPath, QString notesPath, PagePa
     }
     // Save the total number of pages.
     numberOfPages = presentation->getDoc()->numPages();
+
+    // Check aspect ratio of given presentation file and compare it to
+    // threshold if pagePart != FullPage
+    if (notesPath == "" && pagePart != FullPage && pagePartThreshold > 0.) {
+        QSizeF const size = presentation->getPageSize(0);
+        qreal const aspectRatio = size.width() / size.height();
+        if (aspectRatio < pagePartThreshold)
+            pagePart = FullPage;
+    }
 
     // Some numbers for cache management.
     // Maximum number of cached pages is by default the total number of pages.

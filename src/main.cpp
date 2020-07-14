@@ -775,6 +775,7 @@ int main(int argc, char *argv[])
     // Create ctrlScreen and thereby the whole GUI.
     {
         PagePart pagePart = FullPage;
+        qreal threshold = -1.;
         // Split page if necessary (beamer option show notes on second screen).
         // With this option half of the pages in a pdf document contain the presentation and the other half contains the notes.
         bool found = false;
@@ -808,20 +809,25 @@ int main(int argc, char *argv[])
         }
         // Check whether the global configuration contains the option "page-part"
         if (!found && settings.contains("page-part")) {
-                QString value = settings.value("page-part").toString();
-                if ( value == "r" || value == "right" )
-                    pagePart = RightHalf;
-                else if ( value == "l" || value == "left" )
-                    pagePart = LeftHalf;
-                else if (value != "none" && value != "0")
-                    qCritical() << "option \"" << value << "\" to page-part in config not understood.";
+            // Check aspect ratio of PDF and compare to page part threshold.
+            bool success;
+            threshold = settings.value("page-part threshold").toReal(&success);
+            if (!success)
+                threshold = 2.66;
+            QString const value = settings.value("page-part").toString();
+            if ( value == "r" || value == "right" )
+                pagePart = RightHalf;
+            else if ( value == "l" || value == "left" )
+                pagePart = LeftHalf;
+            else if (value != "none" && value != "0")
+                qCritical() << "option \"" << value << "\" to page-part in config not understood.";
         }
 
         // Create the GUI.
         /// ctrlScreen will be the object which manages everything.
         /// It is the window shown on the speaker's monitor.
         /// If the option "-n" or "--no-notes" is set, ctrlScreen is not shown, but still controls everything.
-        ctrlScreen = new ControlScreen(presentation, notes, pagePart);
+        ctrlScreen = new ControlScreen(presentation, notes, pagePart, threshold);
         // In the following ctrlScreen will be created using the positional arguments.
         // When ctrlScreen is created, the presentation is immediately shown.
     }

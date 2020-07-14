@@ -46,7 +46,7 @@ class ControlScreen : public QMainWindow
 public:
     /// Construct control screen.
     /// Create the GUI including PresentationScreen and connect the widgets.
-    explicit ControlScreen(QString presentationPath, QString notesPath = "", PagePart const page = FullPage, QWidget* parent = nullptr);
+    explicit ControlScreen(QString presentationPath, QString notesPath = "", PagePart const part = FullPage, qreal const pagePartThreshold = -1., QWidget* parent = nullptr);
     /// Destructor. Delete the whole GUI.
     ~ControlScreen() override;
 
