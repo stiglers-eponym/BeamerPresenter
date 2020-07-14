@@ -979,7 +979,9 @@ void ControlScreen::adaptPage()
 void ControlScreen::keyPressEvent(QKeyEvent* event)
 {
     // Key codes are given as key + modifiers.
-    quint32 const key = quint32(event->key()) + quint32(event->modifiers());
+    // Ignore Qt::KeypadModifier since it causes trouble on MacOS and cannot be
+    // defined in QKeySequence::QKeySequence(const QString& key, QKeySequence::NativeText)
+    quint32 const key = quint32(event->key()) | (quint32(event->modifiers()) & ~Qt::KeypadModifier);
     if (tools.contains(key)) {
         presentationScreen->slide->getPathOverlay()->setTool(tools[key]);
         if (drawSlide != nullptr)
