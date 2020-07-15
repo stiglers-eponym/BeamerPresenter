@@ -24,7 +24,7 @@ const QPixmap MuPdfRenderer::renderPixmap(const int page, const qreal resolution
     fz_clear_pixmap_with_value(ctx, pixmap, 0xff);
 
     // Create a device for rendering the given display list to pixmap.
-    fz_device *dev = fz_new_draw_device(ctx, fz_scale(resolution, resolution), pixmap);
+    fz_device *dev = fz_new_draw_device(ctx, fz_identity, pixmap);
 
     // Do the main work: Render the display list to pixmap.
     fz_try(ctx)

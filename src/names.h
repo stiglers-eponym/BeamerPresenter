@@ -24,11 +24,16 @@ static const QMap<QString, GuiWidget::WidgetType> string_to_widget_type
     {"slide number", GuiWidget::SlideNumber},
 };
 
-static const QMap<Action, QString> action_names
+static const QMap<QString, Action> string_to_action_map
 {
-    {NoAction, "None"},
-    {NextPage, "Next"},
-    {PreviousPage, "Previous"},
+    {"previous", PreviousPage},
+    {"next", NextPage},
+    {"first", FirstPage},
+    {"last", LastPage},
+    {"update", Update},
+    {"next skipping overlays", NextSkippingOverlays},
+    {"previous skipping overlays", PreviousSkippingOverlays},
+    {"reload", ReloadFiles}
 };
 
 #endif // NAMES_H

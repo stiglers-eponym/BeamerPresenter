@@ -21,6 +21,8 @@ void Preferences::loadSettings()
 
     // RENDERING
     { // page_part
+        // TODO: implement!
+        // TODO: threshold for aspect ratio
         const QString page_part_str = settings.value("page part").toString().toLower();
         if (page_part_str == "left" || page_part_str == "presentation left")
             page_part = LeftHalf;
@@ -28,24 +30,13 @@ void Preferences::loadSettings()
             page_part = RightHalf;
     }
     { // renderer
-        // TODO: INCLUDE_POPPLER
         const QString renderer_str = settings.value("renderer").toString().toLower();
 #ifdef DEBUG_READ_CONFIGS
         qDebug() << renderer_str;
 #endif
         if (!renderer_str.isEmpty())
         {
-            if (renderer_str == "mupdf")
-            {
-#ifdef INCLUDE_MUPDF
-                renderer = AbstractRenderer::MuPDF;
-                pdf_backend = PdfDocument::MuPdfBackend;
-#else
-                qWarning() << "BeamerPresenter was compiled without MuPDF support. Falling back to Poppler.";
-                renderer = AbstractRenderer::Poppler;
-#endif
-            }
-            else if (renderer_str == "extern" || renderer_str == "external")
+            if (renderer_str == "extern" || renderer_str == "external")
             {
                 rendering_command = settings.value("rendering command").toString();
                 rendering_arguments = settings.value("rendering arguments").toStringList();
@@ -57,9 +48,63 @@ void Preferences::loadSettings()
                 else
                     renderer = AbstractRenderer::ExternalRenderer;
             }
-            else if (renderer_str != "poppler" && renderer_str != "default")
+            else if (renderer_str == "mupdf")
+            {
+#ifdef INCLUDE_MUPDF
+                renderer = AbstractRenderer::MuPDF;
+                pdf_backend = PdfDocument::MuPdfBackend;
+#else
+                qWarning() << "BeamerPresenter was compiled without MuPDF support. Falling back to Poppler.";
+#endif
+            }
+            else if (renderer_str == "poppler")
+            {
+#ifdef INCLUDE_POPPLER
+                renderer = AbstractRenderer::Poppler;
+                pdf_backend = PdfDocument::PopplerBackend;
+#else
+                qWarning() << "BeamerPresenter was compiled without poppler support. Falling back to MuPDF.";
+#endif
+            }
+            else
+#ifdef INCLUDE_POPPLER
                 qWarning() << "Cannot not understand renderer" << renderer_str << ". Falling back to Poppler.";
+#else
+                qWarning() << "Cannot not understand renderer" << renderer_str << ". Falling back to MuPDF.";
+#endif
         }
+    }
+
+    // INTERACTION
+    {
+        // Keyboard shortcuts
+        settings.beginGroup("keys");
+        const QStringList allKeys = settings.allKeys();
+        if (!allKeys.isEmpty())
+        {
+            key_actions.clear();
+            for (const auto& key : allKeys)
+            {
+                const QKeySequence seq(key);
+                if (seq.isEmpty())
+                {
+                    qWarning() << "Unknown key sequence in config:" << key;
+                }
+                else
+                {
+                    const quint32 seq_int = quint32(seq[0] + seq[1] + seq[2] + seq[3]);
+                    for (const auto &action_str : settings.value(key).toStringList())
+                    {
+                        const Action action = string_to_action_map.value(action_str.toLower(), Action::InvalidAction);
+                        if (action == InvalidAction)
+                            qWarning() << "Unknown action in config" << action_str << "for key" << key;
+                        else
+                            key_actions.insert(seq_int, action);
+                    }
+                }
+            }
+        }
+        settings.endGroup();
     }
 }
 
@@ -69,13 +114,4 @@ void Preferences::loadFromParser(const QCommandLineParser &parser)
         file_alias["presentation"] = QFileDialog::getOpenFileName(nullptr, "Presentation file", "", "Documents (*.pdf)");
     else
         file_alias["presentation"] = parser.positionalArguments().first();
-}
-
-void Preferences::saveSettings()
-{
-    if (!settings.isWritable())
-    {
-        qCritical() << "Cannot save settings: file not writable";
-        return;
-    }
 }

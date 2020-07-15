@@ -6,8 +6,7 @@
 #include "src/rendering/mupdfdocument.h"
 #endif
 
-PdfMaster::PdfMaster(const QString &filename) :
-    pdfpath(filename)
+PdfMaster::PdfMaster(const QString &filename)
 {
     // Load the document
 #ifdef INCLUDE_POPPLER
@@ -16,8 +15,10 @@ PdfMaster::PdfMaster(const QString &filename) :
     {
     case PdfDocument::PopplerBackend:
         document = new PopplerDocument(filename);
+        break;
     case PdfDocument::MuPdfBackend:
         document = new MuPdfDocument(filename);
+        break;
     }
 #else
     document = new PopplerDocument(filename);

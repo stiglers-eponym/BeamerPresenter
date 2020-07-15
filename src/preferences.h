@@ -2,6 +2,7 @@
 #define PREFERENCES_H
 
 #include "src/enumerates.h"
+#include "src/names.h"
 #include "src/rendering/abstractrenderer.h"
 #include "src/rendering/pdfdocument.h"
 #include <QSettings>
@@ -36,19 +37,19 @@ public:
 
     // RENDERING
     /// Page part corresponding to the presentation.
-    PagePart page_part = FullPage;
+    PagePart page_part {FullPage};
 
     /// PDF backend (should be same as renderer except if renderer is external)
 #ifdef INCLUDE_POPPLER
-    PdfDocument::PdfBackend pdf_backend = PdfDocument::PopplerBackend;
+    PdfDocument::PdfBackend pdf_backend {PdfDocument::PopplerBackend};
 #else
-    PdfDocument::PdfBackend pdf_backend = PdfDocument::MuPdfBackend;
+    PdfDocument::PdfBackend pdf_backend {PdfDocument::MuPdfBackend};
 #endif
     /// Renderer used to convert PDF page to image.
 #ifdef INCLUDE_POPPLER
-    AbstractRenderer::Renderer renderer = AbstractRenderer::Poppler;
+    AbstractRenderer::Renderer renderer {AbstractRenderer::Poppler};
 #else
-    AbstractRenderer::Renderer renderer = AbstractRenderer::MuPDF;
+    AbstractRenderer::Renderer renderer {AbstractRenderer::MuPDF};
 #endif
     /// Rendering command for external renderer.
     QString rendering_command;
@@ -57,7 +58,7 @@ public:
 
 
     // INTERACTION
-    QMultiMap<quint32, Action> key_actions =
+    QMultiMap<quint32, Action> key_actions
     {
         {Qt::Key_PageDown, Action::NextPage},
         {Qt::Key_PageUp, Action::PreviousPage},
@@ -82,7 +83,6 @@ public:
 
     Preferences();
     void loadSettings();
-    void saveSettings();
     void loadFromParser(const QCommandLineParser &parser);
 };
 

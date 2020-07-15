@@ -24,13 +24,6 @@ private:
     /// Lookup table for page labels.
     std::set<int> overlay_slide_indices;
 
-    /// Path to the PDF document, used for reloading
-    QString pdfpath;
-
-    /// Last time the PDF was edited. This is compared when trying to reload
-    /// the file.
-    QDateTime lastModified;
-
     /// Map of pixmap cache maps for storing cached slides.
     /// keys are int(1000*resolution).
     QMap<int, PixCache*> pixcaches;
@@ -56,7 +49,7 @@ public:
     bool loadDocument();
 
     /// Get path to PDF file.
-    const QString &getFilename() const {return pdfpath;}
+    const QString &getFilename() const {return document->getPath();}
 
     /// Get size of page in points (floating point precision).
     const QSizeF getPageSize(const int page_number) const;

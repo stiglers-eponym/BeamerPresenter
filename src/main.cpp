@@ -5,6 +5,15 @@
 #include "src/preferences.h"
 #include "src/master.h"
 
+// TODO: make this failsafe (poppler-version.h is not available in early
+// versions of Poppler)
+#ifdef INCLUDE_POPPLER
+#include <poppler/qt5/poppler-version.h>
+#endif
+#ifdef INCLUDE_MUPDF
+#include <mupdf/fitz/version.h>
+#endif
+
 /// Provides globally available writable reference to preferences.
 Preferences &writable_preferences()
 {
@@ -29,19 +38,18 @@ int main(int argc, char *argv[])
     app.setApplicationName("BeamerPresenter");
 
     // Set app version. The string APP_VERSION is defined in beamerpresenter.pro.
+    QString version_string = APP_VERSION " ";
+#ifdef INCLUDE_POPPLER
+    version_string += " poppler=" POPPLER_VERSION;
+#endif
+#ifdef INCLUDE_MUPDF
+    version_string += " mupdf=" FZ_VERSION;
+#endif
+    version_string += " Qt=" QT_VERSION_STR;
 #ifdef QT_DEBUG
-#ifdef POPPLER_VERSION
-    app.setApplicationVersion(APP_VERSION " debugging (poppler=" POPPLER_VERSION ", Qt=" QT_VERSION_STR ")");
-#else
-    app.setApplicationVersion(APP_VERSION " debugging (Qt=" QT_VERSION_STR ")");
+    version_string += " debugging";
 #endif
-#else // QT_DEBUG
-#ifdef POPPLER_VERSION
-    app.setApplicationVersion(APP_VERSION " (poppler=" POPPLER_VERSION ", Qt=" QT_VERSION_STR ")");
-#else
-    app.setApplicationVersion(APP_VERSION " (Qt=" QT_VERSION_STR ")");
-#endif
-#endif // not QT_DEBUG
+    app.setApplicationVersion(version_string);
 
     // Set up command line argument parser.
     QCommandLineParser parser;
