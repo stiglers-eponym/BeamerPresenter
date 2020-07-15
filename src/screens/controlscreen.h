@@ -115,9 +115,10 @@ public:
     void showOverview();
 
     // Get different widgets
-    ToolSelector* getToolSelector() {return ui->tool_selector;}
-    PresentationSlide* getPresentationSlide() {return presentationScreen->slide;}
-    MediaSlide* getNotesSlide() {return ui->notes_widget;}
+    ToolSelector* getToolSelector() const {return ui->tool_selector;}
+    PresentationSlide* getPresentationSlide() const {return presentationScreen->slide;}
+    PresentationScreen* getPresentationScreen() const {return presentationScreen;}
+    MediaSlide* getNotesSlide() const {return ui->notes_widget;}
 
 protected:
     // Handle events

@@ -1,5 +1,14 @@
 BeamerPresenter
 
+* bug when drawing with touch screen in VM: separate strokes get connected
+
+
+MAJOR REWRITING IS IN PROGRESS
+Most of the issues listed here will not be fixed in the old code (version 0.1.x),
+but (maybe) in a completely rewritten version 0.2.x.
+
+
+
 Simple fixes and features:
 * (target 0.1.2) mark eraser with circle
 * (target 0.1.3) handle reoccuring page labels

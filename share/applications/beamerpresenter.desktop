@@ -5,6 +5,6 @@ Terminal=false
 Name=BeamerPresenter
 Icon=beamerpresenter
 Comment=Simple dual screen pdf presentation software
-GenericName=Beamer presentation viewer
+GenericName=PDF Presentation viewer
 MimeType=application/pdf;application/x-pdf;
 Categories=Office;
