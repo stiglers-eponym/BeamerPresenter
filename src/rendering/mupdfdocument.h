@@ -3,15 +3,12 @@
 
 #include <mupdf/fitz.h>
 #include <QMutex>
-#include <QObject>
 #include <QFileInfo>
 #include "src/rendering/pdfdocument.h"
 
 /// Document representing a PDF loaded by MuPDF.
-/// This class uses Qt's signaling system to achieve thread safety and must
-/// therefore be a QObject.
 /// MuPDF requires careful treatment of separte threads!
-class MuPdfDocument : public QObject, public PdfDocument
+class MuPdfDocument : public PdfDocument
 {
     Q_OBJECT
 
@@ -20,13 +17,15 @@ class MuPdfDocument : public QObject, public PdfDocument
     /// document is global, don't clone if for threads.
     fz_document *doc{nullptr};
     /// Mutexes needed for parallel rendering in MuPDF.
-    QVector<QMutex*> mutex{FZ_LOCK_MAX};
+    QVector<QMutex*> mutex_list{FZ_LOCK_MAX};
+    /// Single mutext used in functions like pageSize().
+    QMutex* mutex;
     /// Total number of pages in document.
     int number_of_pages;
 
 public:
     /// Create new document from given filename.
-    MuPdfDocument(const QString &filename);
+    MuPdfDocument(const QString &filename, QObject *parent = nullptr);
     ~MuPdfDocument() override;
     /// page is given as page index. resolution is given in pixels per point (72*dpi).
     const QPixmap getPixmap(const int page, const qreal resolution) const override;
@@ -45,8 +44,6 @@ public slots:
     /// Prepare rendering for other threads by initializing the given pointers.
     /// This gives the threads only access to objects which are thread save.
     void prepareRendering(fz_context **ctx, fz_rect *bbox, fz_display_list **list, const int pagenumber, const qreal resolution);
-    /// Get page size
-    void getPageSize(QSizeF *size, const int page);
 };
 
 void lock_mutex(void *user, int lock);

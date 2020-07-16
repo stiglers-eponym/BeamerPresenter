@@ -179,37 +179,35 @@ QWidget* Master::createWidget(QJsonObject &object, ContainerWidget *parent)
         // TODO: read other properties from config
 
         // Get or create cache object.
-        const int cache_hash = object.value("cache hash").toInt(-1);
-        PixCache *pixcache;
+        PixCache *pixcache = nullptr;
+        int cache_hash = object.value("cache hash").toInt(-1);
         if (cache_hash == -1)
         {
             // -1 is the "default hash" and indicates that a new object has to
             // be created.
-            pixcache = new PixCache(scene->getPdfMaster()->getDocument(), 1);
-            pixcache->moveToThread(new QThread());
-            connect(pixcache->thread(), &QThread::started, pixcache, &PixCache::init);
-            qDebug() << "Should init now";
-            pixcache->thread()->start();
-            // Store this as hash = -2 or smaller in caches.
-            if (caches.isEmpty() || caches.firstKey() >= 0)
-                caches[-2] = pixcache;
-            else
-                caches[caches.firstKey() - 1] = pixcache;
+            // Set hash to -2 or smaller.
+            cache_hash = (caches.isEmpty() || caches.firstKey() >= 0) ? -2 : caches.firstKey() - 1;
         }
         else
         {
             // Check if a PixCache object with the given hash already exists.
             pixcache = caches.value(cache_hash, nullptr);
-            // If not, create a new one an store it in caches.
-            if (pixcache == nullptr)
-            {
-                pixcache = new PixCache(scene->getPdfMaster()->getDocument(), 1);
-                pixcache->moveToThread(new QThread());
-                connect(pixcache->thread(), &QThread::started, pixcache, &PixCache::init);
-                qDebug() << "Should init now";
-                pixcache->thread()->start();
-                caches[cache_hash] = pixcache;
-            }
+        }
+        // If necessary, create a new PixCache object an store it in caches.
+        if (pixcache == nullptr)
+        {
+            // Read number of threads from GUI config.
+            const int threads = object.value("threads").toInt(1);
+            // Create the PixCache object.
+            pixcache = new PixCache(scene->getPdfMaster()->getDocument(), threads);
+            // Move the PixCache object to an own thread.
+            pixcache->moveToThread(new QThread());
+            // Make sure that pixcache is initialized when the thread is started.
+            connect(pixcache->thread(), &QThread::started, pixcache, &PixCache::init);
+            // Start the thread.
+            pixcache->thread()->start();
+            // Keep the new pixcache in caches.
+            caches[cache_hash] = pixcache;
         }
 
         // Create slide view.

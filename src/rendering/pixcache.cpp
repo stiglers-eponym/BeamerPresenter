@@ -396,7 +396,6 @@ void PixCache::receiveData(const PngPixmap *data)
         return;
 
     // Check if the received image is still compatible with the current resolution.
-    // TODO: check resolution of data!
     if (abs(getResolution(data->getPage()) - data->getResolution()) > MAX_RESOLUTION_DEVIATION)
     {
         if (cache.value(data->getPage()) == nullptr)
@@ -416,10 +415,7 @@ qreal PixCache::getResolution(const int page) const
 {
     // Get page size in points
     QSizeF pageSize;
-    if (preferences().pdf_backend == PdfDocument::PopplerBackend)
-        pageSize = pdfDoc->pageSize(page);
-    else
-        emit getPageSize(&pageSize, page);
+    emit getPageSize(&pageSize, page);
     if (pageSize.isEmpty())
         return -1.;
     if (preferences().page_part != FullPage)

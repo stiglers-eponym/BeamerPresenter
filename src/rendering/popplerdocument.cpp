@@ -1,7 +1,7 @@
 #include "src/rendering/popplerdocument.h"
 
-PopplerDocument::PopplerDocument(const QString &filename) :
-    PdfDocument(filename)
+PopplerDocument::PopplerDocument(const QString &filename, QObject *parent) :
+    PdfDocument(filename, parent)
 {
     // Load the document
     if (!loadDocument())

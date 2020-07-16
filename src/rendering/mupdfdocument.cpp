@@ -1,9 +1,10 @@
 #include "src/rendering/mupdfdocument.h"
 
-MuPdfDocument::MuPdfDocument(const QString &filename) :
-    PdfDocument(filename)
+MuPdfDocument::MuPdfDocument(const QString &filename, QObject *parent) :
+    PdfDocument(filename, parent),
+    mutex(new QMutex())
 {
-    for (auto &it : mutex)
+    for (auto &it : mutex_list)
         it = new QMutex();
     // Load the document
     if (!loadDocument())
@@ -54,7 +55,7 @@ bool MuPdfDocument::loadDocument()
     // they are called. This way we avoid global variables.
 
     fz_locks_context locks;
-    locks.user = &mutex;
+    locks.user = &mutex_list;
     locks.lock = lock_mutex;
     locks.unlock = unlock_mutex;
 
@@ -212,20 +213,18 @@ const QSizeF MuPdfDocument::pageSize(const int page) const
     if (page < 0 || page >= number_of_pages)
         return QSizeF();
 
+    mutex->lock();
     // Load page.
     fz_page *doc_page = fz_load_page(context, doc, page);
     // Get bounding box.
     const fz_rect bbox = fz_bound_page(context, doc_page);
     // Clean up page.
     fz_drop_page(context, doc_page);
+    mutex->unlock();
+
     // Convert bounding box to QSizeF.
     // bbox.x0 and bbox.y0 should be 0, but keep them anyway:
     return QSizeF(bbox.x1 - bbox.x0, bbox.y1 - bbox.y0);
-}
-
-void MuPdfDocument::getPageSize(QSizeF *size, const int page)
-{
-    *size = pageSize(page);
 }
 
 const QString MuPdfDocument::label(const int page) const
