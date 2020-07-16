@@ -11,7 +11,7 @@ class PopplerDocument : public PdfDocument
     const Poppler::Document *doc = nullptr;
 
 public:
-    PopplerDocument(const QString &filename, QObject *parent = nullptr);
+    PopplerDocument(const QString &filename);
     ~PopplerDocument() override;
     /// page is given as page index. resolution is given in pixels per point (72*dpi).
     const QPixmap getPixmap(const int page, const qreal resolution) const override;

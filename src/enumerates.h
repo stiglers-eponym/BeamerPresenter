@@ -33,6 +33,7 @@ enum Action {
     FirstPage,
     LastPage,
     ReloadFiles,
+    Quit,
 };
 
 enum BasicTool {

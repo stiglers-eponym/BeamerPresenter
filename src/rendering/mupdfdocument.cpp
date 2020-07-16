@@ -1,7 +1,8 @@
 #include "src/rendering/mupdfdocument.h"
 
 MuPdfDocument::MuPdfDocument(const QString &filename, QObject *parent) :
-    PdfDocument(filename, parent),
+    QObject(parent),
+    PdfDocument(filename),
     mutex(new QMutex())
 {
     for (auto &it : mutex_list)
@@ -37,13 +38,15 @@ bool MuPdfDocument::loadDocument()
         qCritical() << "Given filename is not a file.";
         return false;
     }
+
+    mutex->lock();
     // Check if the file has changed since last (re)load
     if (doc != nullptr)
     {
         if (fileinfo.lastModified() == lastModified)
             return false;
-        fz_drop_document(context, doc);
-        fz_drop_context(context);
+        fz_drop_document(ctx, doc);
+        fz_drop_context(ctx);
     }
 
     // This code is mainly copied from MuPDF example files, see mupdf.com
@@ -59,63 +62,72 @@ bool MuPdfDocument::loadDocument()
     locks.lock = lock_mutex;
     locks.unlock = unlock_mutex;
 
-    // This is the main threads context function, so supply the
-    // locking structure. This context will be used to parse all
+    // This is the main threads ctx function, so supply the
+    // locking structure. This ctx will be used to parse all
     // the pages from the document.
 
-    context = fz_new_context(NULL, &locks, FZ_STORE_UNLIMITED);
+    ctx = fz_new_context(NULL, &locks, FZ_STORE_UNLIMITED);
 
-    if (context == nullptr)
+    if (ctx == nullptr)
     {
-        qWarning() << "Failed to create Fitz context";
+        qWarning() << "Failed to create Fitz ctx";
         doc = nullptr;
+        mutex->unlock();
         return false;
     }
 
     // Try to register default document handlers.
-    fz_try(context)
-        fz_register_document_handlers(context);
-    fz_catch(context)
+    fz_try(ctx)
+        fz_register_document_handlers(ctx);
+    fz_catch(ctx)
     {
-        qWarning() << "MuPdf cannot register document handlers:" << fz_caught_message(context);
+        qWarning() << "MuPdf cannot register document handlers:" << fz_caught_message(ctx);
         doc = nullptr;
-        fz_drop_context(context);
-        context =  nullptr;
+        fz_drop_context(ctx);
+        ctx =  nullptr;
+        mutex->unlock();
         return false;
     }
 
     // Open the document.
+    // TODO: Is it assume that this pointer stays valid?
+    // Check again with valgrind / gdb
+    const char *name = path.toLatin1().data();
+    fz_try(ctx)
+        doc = fz_open_document(ctx, name);
+    fz_catch(ctx)
     {
-        const char * const name = path.toLatin1().data();
-        fz_try(context)
-            doc = fz_open_document(context, name);
-        fz_catch(context)
-        {
-            qWarning() << "MuPdf cannot open document:" << fz_caught_message(context);
-            doc = nullptr;
-            fz_drop_context(context);
-            context =  nullptr;
-            return false;
-        }
+        qWarning() << "MuPdf cannot open document:" << fz_caught_message(ctx);
+        doc = nullptr;
+        fz_drop_context(ctx);
+        ctx =  nullptr;
+        mutex->unlock();
+        return false;
     }
 
     // Save the modification time.
     lastModified = fileinfo.lastModified();
 
     // Save number of pages.
-    number_of_pages = fz_count_pages(context, doc);
+    number_of_pages = fz_count_pages(ctx, doc);
+    mutex->unlock();
+
+    // Load page labels.
+    loadPageLabels();
     return number_of_pages > 0;
 }
 
 MuPdfDocument::~MuPdfDocument()
 {
-    fz_drop_document(context, doc);
-    fz_drop_context(context);
+    mutex->lock();
+    fz_drop_document(ctx, doc);
+    fz_drop_context(ctx);
+    delete mutex;
 }
 
 bool MuPdfDocument::isValid() const
 {
-    return doc != nullptr && context != nullptr && number_of_pages > 0;
+    return doc != nullptr && ctx != nullptr && number_of_pages > 0;
 }
 
 const QPixmap MuPdfDocument::getPixmap(const int page, const qreal resolution) const
@@ -125,41 +137,45 @@ const QPixmap MuPdfDocument::getPixmap(const int page, const qreal resolution) c
 
     // Render page to an RGB pixmap.
     fz_pixmap *pixmap;
-    fz_try(context)
-        pixmap = fz_new_pixmap_from_page_number(context, doc, page, fz_scale(resolution, resolution), fz_device_rgb(context), 0);
-    fz_catch(context)
+    mutex->lock();
+    fz_try(ctx)
+        pixmap = fz_new_pixmap_from_page_number(ctx, doc, page, fz_scale(resolution, resolution), fz_device_rgb(ctx), 0);
+    fz_catch(ctx)
     {
-        qWarning() << "MuPDF cannot render page:" << fz_caught_message(context);
-        fz_drop_pixmap(context, pixmap);
+        qWarning() << "MuPDF cannot render page:" << fz_caught_message(ctx);
+        fz_drop_pixmap(ctx, pixmap);
+        mutex->unlock();
         return QPixmap();
     }
 
     // Assume that the pixmap is in RGB colorspace.
     // Write the pixmap in PNM format to a buffer using MuPDF tools.
     fz_buffer *buffer;
-    fz_try(context)
-        buffer = fz_new_buffer(context, pixmap->stride * pixmap->y + 16);
-    fz_catch(context)
+    fz_try(ctx)
+        buffer = fz_new_buffer(ctx, pixmap->stride * pixmap->y + 16);
+    fz_catch(ctx)
     {
-        qWarning() << "Failed to allocate memory in Fitz buffer:" << fz_caught_message(context);
-        fz_drop_pixmap(context, pixmap);
-        fz_clear_buffer(context, buffer);
-        fz_drop_buffer(context, buffer);
+        qWarning() << "Failed to allocate memory in Fitz buffer:" << fz_caught_message(ctx);
+        fz_drop_pixmap(ctx, pixmap);
+        fz_clear_buffer(ctx, buffer);
+        fz_drop_buffer(ctx, buffer);
+        mutex->unlock();
         return QPixmap();
     }
-    fz_output *out = fz_new_output_with_buffer(context, buffer);
-    fz_try(context)
-        fz_write_pixmap_as_pnm(context, out, pixmap);
-    fz_catch(context)
+    fz_output *out = fz_new_output_with_buffer(ctx, buffer);
+    fz_try(ctx)
+        fz_write_pixmap_as_pnm(ctx, out, pixmap);
+    fz_catch(ctx)
     {
-        qWarning() << "Failed to write PNM image to buffer:" << fz_caught_message(context);
-        fz_clear_buffer(context, buffer);
-        fz_drop_buffer(context, buffer);
-        fz_drop_output(context, out);
-        fz_drop_pixmap(context, pixmap);
+        qWarning() << "Failed to write PNM image to buffer:" << fz_caught_message(ctx);
+        fz_clear_buffer(ctx, buffer);
+        fz_drop_buffer(ctx, buffer);
+        fz_drop_output(ctx, out);
+        fz_drop_pixmap(ctx, pixmap);
+        mutex->unlock();
         return QPixmap();
     }
-    fz_drop_pixmap(context, pixmap);
+    fz_drop_pixmap(ctx, pixmap);
 
     // Load the pixmap from buffer in Qt.
     QPixmap qpixmap;
@@ -167,8 +183,9 @@ const QPixmap MuPdfDocument::getPixmap(const int page, const qreal resolution) c
     {
         qWarning() << "Failed to load PNM image from buffer";
     }
-    fz_clear_buffer(context, buffer);
-    fz_drop_buffer(context, buffer);
+    fz_clear_buffer(ctx, buffer);
+    fz_drop_buffer(ctx, buffer);
+    mutex->unlock();
     return qpixmap;
 }
 
@@ -180,30 +197,34 @@ const PngPixmap * MuPdfDocument::getPng(const int page, const qreal resolution) 
 
     // Render page to an RGB pixmap.
     fz_pixmap *pixmap;
-    fz_try(context)
-        pixmap = fz_new_pixmap_from_page_number(context, doc, page, fz_scale(resolution, resolution), fz_device_rgb(context), 0);
-    fz_catch(context)
+    mutex->lock();
+    fz_try(ctx)
+        pixmap = fz_new_pixmap_from_page_number(ctx, doc, page, fz_scale(resolution, resolution), fz_device_rgb(ctx), 0);
+    fz_catch(ctx)
     {
-        qWarning() << "MuPDF cannot render page:" << fz_caught_message(context);
-        fz_drop_pixmap(context, pixmap);
+        qWarning() << "MuPDF cannot render page:" << fz_caught_message(ctx);
+        fz_drop_pixmap(ctx, pixmap);
+        mutex->unlock();
         return nullptr;
     }
 
     // Save the pixmap to buffer in PNG format.
     fz_buffer *buffer;
-    fz_try(context)
-        buffer = fz_new_buffer_from_pixmap_as_png(context, pixmap, fz_default_color_params);
-    fz_catch(context)
+    fz_try(ctx)
+        buffer = fz_new_buffer_from_pixmap_as_png(ctx, pixmap, fz_default_color_params);
+    fz_catch(ctx)
     {
-        qWarning() << "Fitz failed to write pixmap to PNG buffer:" << fz_caught_message(context);
-        fz_clear_buffer(context, buffer);
-        fz_drop_buffer(context, buffer);
+        qWarning() << "Fitz failed to write pixmap to PNG buffer:" << fz_caught_message(ctx);
+        fz_clear_buffer(ctx, buffer);
+        fz_drop_buffer(ctx, buffer);
+        mutex->unlock();
         return nullptr;
     }
 
     // Convert the buffer data to QByteArray.
     const QByteArray * data = new QByteArray(reinterpret_cast<const char*>(buffer->data), buffer->len);
-    fz_clear_buffer(context, buffer);
+    fz_clear_buffer(ctx, buffer);
+    mutex->unlock();
     return new PngPixmap(data, page, resolution);
 }
 
@@ -215,11 +236,11 @@ const QSizeF MuPdfDocument::pageSize(const int page) const
 
     mutex->lock();
     // Load page.
-    fz_page *doc_page = fz_load_page(context, doc, page);
+    fz_page *doc_page = fz_load_page(ctx, doc, page);
     // Get bounding box.
-    const fz_rect bbox = fz_bound_page(context, doc_page);
+    const fz_rect bbox = fz_bound_page(ctx, doc_page);
     // Clean up page.
-    fz_drop_page(context, doc_page);
+    fz_drop_page(ctx, doc_page);
     mutex->unlock();
 
     // Convert bounding box to QSizeF.
@@ -233,12 +254,117 @@ const QString MuPdfDocument::label(const int page) const
     if (page < 0 || page >= number_of_pages)
         return "";
 
-    // TODO: Find out how to access page labels in MuPDF
-    //qWarning() << "Accessing page label is not implemented yet!";
-    return QString::number(page);
+    if (pageLabels.isEmpty())
+        return QString::number(page);
+    return (--pageLabels.upperBound(page)).value();
 }
 
-void MuPdfDocument::prepareRendering(fz_context **ctx, fz_rect *bbox, fz_display_list **list, const int pagenumber, const qreal resolution)
+void MuPdfDocument::loadPageLabels()
+{
+    // MuPDF doesn't support page labels (!!!)
+    // Here is an implementation which lets MuPdfDocument handle page labels.
+
+    // This function is designed for documents, in which page labels consist
+    // only of prefixes. This is the case for presentations created with
+    // LaTeX beamer with overlays.
+    // Numbering styles other than decimal which are not explicitly given as
+    // strings are currently not supported.
+
+    // If you want support for other styles, please open an issue on github.
+
+    mutex->lock();
+    // This code is based on a patch by Stefan Radermacher and Albert Bloomfield
+    // (which MuPDF should finally include!)
+    // https://bugs.ghostscript.com/show_bug.cgi?id=695351
+
+    pdf_document *pdf_doc;
+    fz_try(ctx)
+        pdf_doc = pdf_document_from_fz_document(ctx, doc);
+    fz_catch(ctx)
+    {
+        qWarning() << "Failed to interpret document as PDF" << fz_caught_message(ctx);
+        mutex->unlock();
+        return;
+    }
+
+    pdf_obj *root = pdf_dict_gets(ctx, pdf_trailer(ctx, pdf_doc), "Root");
+    pdf_obj *labels = pdf_dict_gets(ctx, root, "PageLabels");
+
+    if (!pdf_is_dict(ctx, labels))
+    {
+        qWarning() << "Failed to load page labels.";
+        mutex->unlock();
+        return;
+    }
+
+    pdf_obj *nums = pdf_dict_gets(ctx, labels, "Nums");
+    if (!pdf_is_array(ctx, nums))
+    {
+        qWarning() << "Failed to interpret page labels.";
+        mutex->unlock();
+        return;
+    }
+
+    // Read the raw labels from the PDF
+    QMap<int, label_item> raw_labels;
+    {
+        const int len = pdf_array_len(ctx, nums);
+
+        for (int i = 0; i + 1 < len; i += 2)
+        {
+            pdf_obj *key = pdf_array_get(ctx, nums, i);
+            pdf_obj *val = pdf_array_get(ctx, nums, i + 1);
+
+            if (pdf_is_dict(ctx, val))
+            {
+                raw_labels.insert(
+                            pdf_to_int(ctx, key),
+                            {
+                                pdf_to_text_string(ctx, pdf_dict_gets(ctx, val, "S")),
+                                pdf_to_text_string(ctx, pdf_dict_gets(ctx, val, "P")),
+                                pdf_to_int(ctx, pdf_dict_gets(ctx, val, "St"))
+                            }
+                            );
+            }
+        }
+    }
+    mutex->unlock();
+
+    // Check if anything was found.
+    if (raw_labels.isEmpty())
+    {
+        pageLabels.clear();
+        return;
+    }
+
+    // Currently only decimal style is supported and the style option is
+    // ignored.
+    for (auto it = raw_labels.cbegin(); it != raw_labels.cend();)
+    {
+        const QString prefix = QString::fromLatin1(it->prefix);
+        if (std::string(it->style).empty())
+        {
+            // This should be the default case for presentations created with
+            // LaTeX beamer.
+            pageLabels[it++.key()] = prefix;
+        }
+        else
+        {
+            int i = it.key();
+            const int next_num = (++it == raw_labels.cend()) ? number_of_pages : it.key();
+            for (; i < next_num; i++)
+                pageLabels[i] = prefix + QString::number(i);
+        }
+    }
+
+    // The first label must always be contained in the pageLabels.
+    // This should not be necessary, but without that a broken PDF
+    // could easily produce segfaults.
+    if (pageLabels.firstKey() != 0)
+        pageLabels[0] = "";
+}
+
+void MuPdfDocument::prepareRendering(fz_context **context, fz_rect *bbox, fz_display_list **list, const int pagenumber, const qreal resolution)
 {
     // Check if the page number is valid.
     // If it is not, return without changing the given pointers.
@@ -249,12 +375,13 @@ void MuPdfDocument::prepareRendering(fz_context **ctx, fz_rect *bbox, fz_display
 
     // This is almost completely copied from a mupdf example.
 
+    mutex->lock();
     // sender gets a references to context.
-    *ctx = context;
+    *context = ctx;
     // Get a page (must be done in the main thread!).
-    fz_page *page = fz_load_page(context, doc, pagenumber);
+    fz_page *page = fz_load_page(ctx, doc, pagenumber);
     // Calculate the boundary box and rescale it to the given resolution.
-    *bbox = fz_bound_page(context, page);
+    *bbox = fz_bound_page(ctx, page);
     // bbox is now given in points. Convert to pixels using resolution, which
     // is given in pixels per point.
     bbox->x0 *= resolution;
@@ -264,13 +391,14 @@ void MuPdfDocument::prepareRendering(fz_context **ctx, fz_rect *bbox, fz_display
 
     // Prepare a display list for a drawing device.
     // The list (and not the page itself) will then be used to render the page.
-    *list = fz_new_display_list(context, *bbox);
+    *list = fz_new_display_list(ctx, *bbox);
     // Use a fitz device to fill the list with the content of the page.
-    fz_device *dev = fz_new_list_device(context, *list);
-    fz_run_page(context, page, dev, fz_scale(resolution, resolution), NULL);
+    fz_device *dev = fz_new_list_device(ctx, *list);
+    fz_run_page(ctx, page, dev, fz_scale(resolution, resolution), NULL);
 
     // clean up.
-    fz_close_device(context, dev);
-    fz_drop_device(context, dev);
-    fz_drop_page(context, page);
+    fz_close_device(ctx, dev);
+    fz_drop_device(ctx, dev);
+    fz_drop_page(ctx, page);
+    mutex->unlock();
 }

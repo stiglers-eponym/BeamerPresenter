@@ -31,13 +31,6 @@ PixCache::PixCache(const PdfDocument *doc, const int thread_number, QObject *par
                     &MuPdfDocument::prepareRendering,
                     Qt::BlockingQueuedConnection
                     );
-        connect(
-                    this,
-                    &PixCache::getPageSize,
-                    static_cast<const MuPdfDocument*>(pdfDoc),
-                    &MuPdfDocument::getPageSize,
-                    Qt::BlockingQueuedConnection
-                    );
         break;
 #endif
     case AbstractRenderer::ExternalRenderer:
@@ -414,8 +407,7 @@ void PixCache::receiveData(const PngPixmap *data)
 qreal PixCache::getResolution(const int page) const
 {
     // Get page size in points
-    QSizeF pageSize;
-    emit getPageSize(&pageSize, page);
+    QSizeF pageSize = pdfDoc->pageSize(page);
     if (pageSize.isEmpty())
         return -1.;
     if (preferences().page_part != FullPage)

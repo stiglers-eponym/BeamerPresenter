@@ -33,7 +33,8 @@ static const QMap<QString, Action> string_to_action_map
     {"update", Update},
     {"next skipping overlays", NextSkippingOverlays},
     {"previous skipping overlays", PreviousSkippingOverlays},
-    {"reload", ReloadFiles}
+    {"reload", ReloadFiles},
+    {"quit", Quit},
 };
 
 #endif // NAMES_H

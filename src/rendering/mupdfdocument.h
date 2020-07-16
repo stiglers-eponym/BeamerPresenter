@@ -2,26 +2,35 @@
 #define MUPDFDOCUMENT_H
 
 #include <mupdf/fitz.h>
+#include <mupdf/pdf.h>
 #include <QMutex>
+#include <QObject>
 #include <QFileInfo>
 #include "src/rendering/pdfdocument.h"
 
 /// Document representing a PDF loaded by MuPDF.
+/// This class uses Qt's signaling system to achieve thread safety and must
+/// therefore be a QObject. That would not be necessary for Popper, but is
+/// required for MuPDF.
 /// MuPDF requires careful treatment of separte threads!
-class MuPdfDocument : public PdfDocument
+class MuPdfDocument : public QObject, public PdfDocument
 {
     Q_OBJECT
 
     /// context should be cloned for each separate thread.
-    fz_context *context{nullptr};
+    fz_context *ctx{nullptr};
     /// document is global, don't clone if for threads.
     fz_document *doc{nullptr};
     /// Mutexes needed for parallel rendering in MuPDF.
     QVector<QMutex*> mutex_list{FZ_LOCK_MAX};
-    /// Single mutext used in functions like pageSize().
+    /// Single mutex for this.
     QMutex* mutex;
     /// Total number of pages in document.
     int number_of_pages;
+    /// Map page numbers to labels: Only the first page number with a new label
+    /// is listed here.
+    QMap<int, QString> pageLabels;
+    void loadPageLabels();
 
 public:
     /// Create new document from given filename.
@@ -37,16 +46,23 @@ public:
     int numberOfPages() const override {return number_of_pages;}
     bool isValid() const override;
     const QString label(const int page) const override;
-    fz_context* getContext() const {return context;}
+    fz_context* getContext() const {return ctx;}
     fz_document* getDocument() const {return doc;}
 
 public slots:
     /// Prepare rendering for other threads by initializing the given pointers.
     /// This gives the threads only access to objects which are thread save.
-    void prepareRendering(fz_context **ctx, fz_rect *bbox, fz_display_list **list, const int pagenumber, const qreal resolution);
+    void prepareRendering(fz_context **context, fz_rect *bbox, fz_display_list **list, const int pagenumber, const qreal resolution);
 };
 
 void lock_mutex(void *user, int lock);
 void unlock_mutex(void *user, int lock);
+
+struct label_item
+{
+    const char* style;
+    const char* prefix;
+    int start_value;
+};
 
 #endif // MUPDFDOCUMENT_H
