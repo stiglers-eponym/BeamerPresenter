@@ -9,6 +9,7 @@
 #include "src/rendering/pixcachethread.h"
 #include "src/rendering/pdfdocument.h"
 #include "src/preferences.h"
+#include "src/enumerates.h"
 
 #define MAX_RESOLUTION_DEVIATION 1e-5
 
@@ -49,8 +50,14 @@ private:
     /// Threads used to render pages to cache.
     QVector<PixCacheThread*> threads;
 
+    /// Own renderer for rendering in PixCache thread.
+    AbstractRenderer *renderer;
+
     /// Pdf document.
     const PdfDocument *pdfDoc;
+
+    /// Single shot, 0 duration timer for rendering pages.
+    QTimer *renderCacheTimer {nullptr};
 
     /// Check cache size and delete pages if necessary.
     /// Return estimated number of pages which still fit in cache.
@@ -66,11 +73,8 @@ private:
     /// Return resolution in pixels per point (72*dpi)
     qreal getResolution(const int page) const;
 
-    /// Single shot, 0 duration timer for rendering pages.
-    QTimer renderCacheTimer;
-
 public:
-    explicit PixCache(const PdfDocument *doc, const int thread_number = 1, QObject *parent = nullptr);
+    explicit PixCache(const PdfDocument *doc, const int thread_number, QObject *parent = nullptr);
     ~PixCache();
 
     /// Clear cache, delete all cached pages.
@@ -86,11 +90,10 @@ public:
 
     /// Get pixmap showing page n.
     const QPixmap pixmap(const int page) const;
+
     /// Get pixmap showing page n.
     /// The non-const function additionally writes a new pixmap to cache.
     const QPixmap pixmap(const int page);
-    /// Render pixmap which is not in cache yet.
-    const QPixmap renderNewPixmap(const int page) const;
 
     /// Total size of all cached pages in bytes
     qint64 getUsedMemory() const {return usedMemory;}
@@ -105,6 +108,13 @@ public:
     void updateFrame(QSizeF const& size);
 
 public slots:
+    /// Create renderCacheTimer.
+    /// This is an own function because it must be done in this thread.
+    void init();
+
+    /// Request rendering a page with high priority
+    void requestPage(const int n, const qreal resolution);
+
     /// Request rendering a page with low priority
     void requestRenderPage(const int n);
 
@@ -115,8 +125,10 @@ public slots:
     void receiveData(const PngPixmap *data);
 
 signals:
-    /// Inform that new page is ready.
-    void pageReady(const int page, const qreal resolution);
+    /// Send out new page.
+    void pageReady(const QPixmap pixmap, const int page) const;
+    /// Get page size from PdfDocument
+    void getPageSize(QSizeF *size, const int page) const;
 };
 
 #endif // PIXCACHE_H

@@ -10,6 +10,8 @@ Master::Master()
 
 Master::~Master()
 {
+    qDeleteAll(scenes);
+    qDeleteAll(caches);
     qDeleteAll(windows);
     qDeleteAll(documents);
 }
@@ -158,6 +160,7 @@ QWidget* Master::createWidget(QJsonObject &object, ContainerWidget *parent)
                 }
             }
         }
+
         // Create new slide scene if necessary.
         if (scene == nullptr)
         {
@@ -174,9 +177,43 @@ QWidget* Master::createWidget(QJsonObject &object, ContainerWidget *parent)
         else if (object.value("master").toBool())
             scenes.swapItemsAt(scenes.indexOf(scene), 0);
         // TODO: read other properties from config
+
+        // Get or create cache object.
+        const int cache_hash = object.value("cache hash").toInt(-1);
+        PixCache *pixcache;
+        if (cache_hash == -1)
+        {
+            // -1 is the "default hash" and indicates that a new object has to
+            // be created.
+            pixcache = new PixCache(scene->getPdfMaster()->getDocument(), 1);
+            pixcache->moveToThread(new QThread());
+            connect(pixcache->thread(), &QThread::started, pixcache, &PixCache::init);
+            qDebug() << "Should init now";
+            pixcache->thread()->start();
+            // Store this as hash = -2 or smaller in caches.
+            if (caches.isEmpty() || caches.firstKey() >= 0)
+                caches[-2] = pixcache;
+            else
+                caches[caches.firstKey() - 1] = pixcache;
+        }
+        else
+        {
+            // Check if a PixCache object with the given hash already exists.
+            pixcache = caches.value(cache_hash, nullptr);
+            // If not, create a new one an store it in caches.
+            if (pixcache == nullptr)
+            {
+                pixcache = new PixCache(scene->getPdfMaster()->getDocument(), 1);
+                pixcache->moveToThread(new QThread());
+                connect(pixcache->thread(), &QThread::started, pixcache, &PixCache::init);
+                qDebug() << "Should init now";
+                pixcache->thread()->start();
+                caches[cache_hash] = pixcache;
+            }
+        }
+
         // Create slide view.
-        // TODO: connect slide views with same geometry (siblings in same layout) to same pixcache.
-        SlideView *slide = new SlideView(scene, nullptr, parent);
+        SlideView *slide = new SlideView(scene, pixcache, parent);
         connect(slide, &SlideView::sendKeyEvent, this, &Master::receiveKeyEvent);
         connect(scene, &SlideScene::navigationToViews, slide, &SlideView::pageChanged);
         return slide;

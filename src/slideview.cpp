@@ -6,16 +6,16 @@
 
 SlideView::SlideView(SlideScene *scene, PixCache *cache, QWidget *parent) :
     QGraphicsView(scene, parent),
-    GuiWidget(WidgetType::Slide),
-    pixcache(cache)
+    GuiWidget(WidgetType::Slide)
 {
     setAttribute(Qt::WA_AcceptTouchEvents);
     setMinimumSize(4, 3);
     setFocusPolicy(Qt::StrongFocus);
     setFrameShape(QFrame::NoFrame);
-    if (pixcache == nullptr)
-        pixcache = new PixCache(scene->getPdfMaster()->getDocument(), 1, this);
-    pixcache->updateFrame(size());
+    cache->updateFrame(size());
+    connect(this, &SlideView::requestPage, cache, &PixCache::requestPage, Qt::QueuedConnection);
+    connect(cache, &PixCache::pageReady, this, &SlideView::pageReady, Qt::QueuedConnection);
+    connect(this, &SlideView::resizeCache, cache, &PixCache::updateFrame, Qt::QueuedConnection);
     QPalette newpalette = palette();
     newpalette.setColor(QPalette::Base, Qt::black);
     newpalette.setColor(QPalette::Background, Qt::black);
@@ -24,7 +24,6 @@ SlideView::SlideView(SlideScene *scene, PixCache *cache, QWidget *parent) :
 
 void SlideView::pageChanged(const int page, const QSizeF &pageSize)
 {
-    currentPixmap = pixcache->pixmap(page);
     qreal resolution;
     if (pageSize.width() * height() > pageSize.height() * width())
         // page is too wide, determine resolution by x direction
@@ -34,6 +33,9 @@ void SlideView::pageChanged(const int page, const QSizeF &pageSize)
         resolution = height() / pageSize.height();
     resetTransform();
     scale(resolution, resolution);
+    waitingForPage = page;
+    qDebug() << "Request page" << page << this;
+    emit requestPage(page, resolution);
 }
 
 void SlideView::drawBackground(QPainter *painter, const QRectF &rect)
@@ -41,16 +43,18 @@ void SlideView::drawBackground(QPainter *painter, const QRectF &rect)
     painter->drawPixmap(scene()->sceneRect(), currentPixmap, currentPixmap.rect());
 }
 
-void SlideView::pageReady(const int page, const qreal resolution)
+void SlideView::pageReady(const QPixmap pixmap, const int page)
 {
-    // TODO
+    if (waitingForPage != page)
+        return;
+    currentPixmap = pixmap;
+    waitingForPage = -1;
+    updateScene({sceneRect()});
 }
 
 void SlideView::resizeEvent(QResizeEvent *event)
 {
-    pixcache->updateFrame(size());
-    pixcache->clear();
-    pixcache->startRendering();
+    emit resizeCache(event->size());
 }
 
 void SlideView::keyPressEvent(QKeyEvent *event)

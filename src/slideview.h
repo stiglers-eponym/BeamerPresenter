@@ -2,6 +2,7 @@
 #define SLIDE_H
 
 #include <QGraphicsView>
+#include <QResizeEvent>
 #include "src/gui/guiwidget.h"
 
 class PixCache;
@@ -13,11 +14,10 @@ class SlideView : public QGraphicsView, GuiWidget
 {
     Q_OBJECT
 
-    /// PixCache instance responsible for rendering PDF pages.
-    /// Not owned by this!
-    PixCache *pixcache;
     /// Pixmap representing the current slide.
     QPixmap currentPixmap;
+    /// Currently waiting for page (-1 if not waiting for any page):
+    int waitingForPage = -1;
 
 public:
     explicit SlideView(SlideScene *scene, PixCache *cache = nullptr, QWidget *parent = nullptr);
@@ -34,10 +34,12 @@ public slots:
     /// Inform this that the page number has changed.
     void pageChanged(const int page, const QSizeF &pageSize);
     /// Inform this that page is ready in pixcache.
-    void pageReady(const int page, const qreal resolution);
+    void pageReady(const QPixmap pixmap, const int page);
 
 signals:
+    void requestPage(const int page, const qreal resolution);
     void sendKeyEvent(QKeyEvent* event);
+    void resizeCache(const QSizeF& size);
 };
 
 #endif // SLIDE_H

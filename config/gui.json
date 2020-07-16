@@ -8,7 +8,8 @@
                 "file" : "presentation",
                 "shift" : 0,
                 "transitions" : false,
-                "multimedia" : true
+                "multimedia" : true,
+                "cache hash" : 1
             },
             {
                 "type" : "slide",
@@ -16,7 +17,8 @@
                 "shift" : 1,
                 "overlays" : "last",
                 "transitions" : false,
-                "multimedia" : false
+                "multimedia" : false,
+                "cache hash" : 1
             }
         ]
     },
@@ -26,7 +28,8 @@
         "shift" : 0,
         "transitions" : true,
         "multimedia" : true,
-        "threads" : 2,
-        "master" : true
+        "threads" : 5,
+        "master" : true,
+        "cache hash" : 0
     }
 ]

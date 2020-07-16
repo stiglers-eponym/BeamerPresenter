@@ -9,23 +9,70 @@
 
 PixCache::PixCache(const PdfDocument *doc, const int thread_number, QObject *parent) :
     QObject(parent),
-    cache(),
-    threads(QVector<PixCacheThread*>(thread_number)),
     pdfDoc(doc)
 {
-    // Create threads.
-    for (int i=0; i<thread_number; i++)
+    threads = QVector<PixCacheThread*>(thread_number);
+
+    // Create the renderer without any checks.
+    switch (preferences().renderer)
     {
-        threads[i] = new PixCacheThread(doc, this);
+#ifdef INCLUDE_POPPLER
+    case AbstractRenderer::Poppler:
+        renderer = new PopplerRenderer(static_cast<const PopplerDocument*>(pdfDoc));
+        break;
+#endif
+#ifdef INCLUDE_MUPDF
+    case AbstractRenderer::MuPDF:
+        renderer = new MuPdfRenderer();
+        connect(
+                    static_cast<MuPdfRenderer*>(renderer),
+                    &MuPdfRenderer::prepareRendering,
+                    static_cast<const MuPdfDocument*>(pdfDoc),
+                    &MuPdfDocument::prepareRendering,
+                    Qt::BlockingQueuedConnection
+                    );
+        connect(
+                    this,
+                    &PixCache::getPageSize,
+                    static_cast<const MuPdfDocument*>(pdfDoc),
+                    &MuPdfDocument::getPageSize,
+                    Qt::BlockingQueuedConnection
+                    );
+        break;
+#endif
+    case AbstractRenderer::ExternalRenderer:
+        renderer = new ExternalRenderer(preferences().rendering_command, preferences().rendering_arguments, pdfDoc);
+        break;
+    }
+
+    // Check if the renderer is valid
+    if (renderer == nullptr || !renderer->isValid())
+    {
+        qCritical() << "Creating renderer failed" << preferences().renderer;
+    }
+}
+
+void PixCache::init()
+{
+    qDebug() << "init";
+    // Create threads.
+    for (int i=0; i<threads.length(); i++)
+    {
+        threads[i] = new PixCacheThread(pdfDoc, this);
         connect(threads[i], &PixCacheThread::sendData, this, &PixCache::receiveData);
     }
-    renderCacheTimer.setSingleShot(true);
-    renderCacheTimer.setInterval(0);
-    connect(&renderCacheTimer, &QTimer::timeout, this, &PixCache::startRendering);
+
+    renderCacheTimer = new QTimer(this);
+    renderCacheTimer->setSingleShot(true);
+    renderCacheTimer->setInterval(0);
+    connect(renderCacheTimer, &QTimer::timeout, this, &PixCache::startRendering);
+    qDebug() << "done";
 }
 
 PixCache::~PixCache()
 {
+    delete renderCacheTimer;
+    delete renderer;
     // TODO: correctly clean up threads!
     for (auto &thread : threads)
         delete thread;
@@ -63,58 +110,22 @@ const QPixmap PixCache::pixmap(const int page) const
         if (it != cache.cend() && *it != nullptr && abs((*it)->getResolution() - resolution) < MAX_RESOLUTION_DEVIATION)
             return (*it)->pixmap();
     }
+
     // Check if page number is valid.
     if (page < 0 || page >= pdfDoc->numberOfPages())
         return QPixmap();
 
-    return renderNewPixmap(page);
-}
-
-const QPixmap PixCache::renderNewPixmap(const int page) const
-{
-#ifdef DEBUG_RENDERING
-    qDebug() << "Render in main thread" << page;
-#endif
-
-    // Use an own renderer. This is slow.
-    AbstractRenderer * renderer;
-    // Create the renderer without any checks.
-    switch (preferences().renderer)
+    // Check if the renderer is valid
+    if (renderer == nullptr || !renderer->isValid())
     {
-#ifdef INCLUDE_POPPLER
-    case AbstractRenderer::Poppler:
-        renderer = new PopplerRenderer(static_cast<const PopplerDocument*>(pdfDoc));
-        break;
-#endif
-#ifdef INCLUDE_MUPDF
-    case AbstractRenderer::MuPDF:
-        renderer = new MuPdfRenderer();
-        connect(
-                    static_cast<MuPdfRenderer*>(renderer),
-                    &MuPdfRenderer::prepareRendering,
-                    static_cast<const MuPdfDocument*>(pdfDoc),
-                    &MuPdfDocument::prepareRendering,
-                    Qt::DirectConnection
-                    );
-        break;
-#endif
-    case AbstractRenderer::ExternalRenderer:
-        renderer = new ExternalRenderer(preferences().rendering_command, preferences().rendering_arguments, pdfDoc);
-        break;
-    }
-
-    // Check if the renderer was created successfully.
-    if (!renderer->isValid())
-    {
-        qCritical() << "Creating renderer failed" << preferences().renderer;
+        qCritical() << "Invalid renderer";
         return QPixmap();
     }
 
-    const QPixmap pix = renderer->renderPixmap(page, getResolution(page));
-    delete renderer;
+    const QPixmap pix = renderer->renderPixmap(page, resolution);
 
     if (pix.isNull())
-        qCritical() << "Rendering page failed" << page << getResolution(page);
+        qCritical() << "Rendering page failed" << page << resolution;
 
     // The page is not written to cache!
     return pix;
@@ -133,7 +144,17 @@ const QPixmap PixCache::pixmap(const int page)
     if (page < 0 || page >= pdfDoc->numberOfPages())
         return QPixmap();
 
-    const QPixmap pix = renderNewPixmap(page);
+    // Check if the renderer is valid
+    if (renderer == nullptr || !renderer->isValid())
+    {
+        qCritical() << "Invalid renderer";
+        return QPixmap();
+    }
+
+    const QPixmap pix = renderer->renderPixmap(page, resolution);
+
+    if (pix.isNull())
+        qCritical() << "Rendering page failed" << page << resolution;
 
     // Write pixmap to cache.
     const PngPixmap *png = new PngPixmap(pix, page, resolution);
@@ -151,7 +172,7 @@ void PixCache::requestRenderPage(const int n)
         priority.append(n);
 
     // Start rendering next page.
-    renderCacheTimer.start();
+    renderCacheTimer->start();
 }
 
 void PixCache::updatePageNumber(const int page_number)
@@ -199,7 +220,7 @@ void PixCache::updatePageNumber(const int page_number)
     }
 
     // Start rendering next page.
-    renderCacheTimer.start();
+    renderCacheTimer->start();
 }
 
 int PixCache::limitCacheSize()
@@ -349,6 +370,7 @@ int PixCache::renderNext()
 
 void PixCache::startRendering()
 {
+    qDebug() << "Start rendering to cache";
     // Clean up cache and check if there is enough space for more cached pages.
     int allowed_pages = limitCacheSize();
     if (allowed_pages <= 0)
@@ -384,17 +406,20 @@ void PixCache::receiveData(const PngPixmap *data)
     else
     {
         cache[data->getPage()] = data;
-        emit pageReady(data->getPage(), data->getResolution());
     }
 
     // Start rendering next page.
-    renderCacheTimer.start();
+    renderCacheTimer->start();
 }
 
 qreal PixCache::getResolution(const int page) const
 {
     // Get page size in points
-    QSizeF pageSize = pdfDoc->pageSize(page);
+    QSizeF pageSize;
+    if (preferences().pdf_backend == PdfDocument::PopplerBackend)
+        pageSize = pdfDoc->pageSize(page);
+    else
+        emit getPageSize(&pageSize, page);
     if (pageSize.isEmpty())
         return -1.;
     if (preferences().page_part != FullPage)
@@ -410,9 +435,55 @@ qreal PixCache::getResolution(const int page) const
 
 void PixCache::updateFrame(const QSizeF &size)
 {
+    qDebug() << "update frame";
     if (frame != size)
     {
-        // TODO: update and clear cache if necessary.
+        frame = size;
+        cache.clear();
     }
-    frame = size;
+}
+
+void PixCache::requestPage(const int page, const qreal resolution)
+{
+    qDebug() << "requested page" << page << resolution;
+    // Try to return a page from cache.
+    {
+        const auto it = cache.constFind(page);
+        if (it != cache.cend() && *it != nullptr && abs((*it)->getResolution() - resolution) < MAX_RESOLUTION_DEVIATION)
+        {
+            emit pageReady((*it)->pixmap(), page);
+            return;
+        }
+    }
+    // Check if page number is valid.
+    if (page < 0 || page >= pdfDoc->numberOfPages())
+        return;
+
+    // Render new page.
+    // Check if the renderer is valid
+    if (renderer == nullptr || !renderer->isValid())
+    {
+        qCritical() << "Invalid renderer";
+        return;
+    }
+
+    const QPixmap pix = renderer->renderPixmap(page, resolution);
+
+    if (pix.isNull())
+    {
+        qCritical() << "Rendering page failed" << page << resolution;
+        return;
+    }
+
+    emit pageReady(pix, page);
+
+    // Write pixmap to cache.
+    const PngPixmap *png = new PngPixmap(pix, page, resolution);
+    if (png == nullptr)
+        qWarning() << "Converting pixmap to PNG failed";
+    else
+        cache[page] = png;
+
+    // Start rendering next page.
+    renderCacheTimer->start();
 }

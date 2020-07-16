@@ -32,7 +32,6 @@ void SlideScene::receiveAction(const Action action)
     {
     case Update:
         navigationEvent(preferences().page);
-        update();
         break;
     default:
         break;

@@ -223,6 +223,11 @@ const QSizeF MuPdfDocument::pageSize(const int page) const
     return QSizeF(bbox.x1 - bbox.x0, bbox.y1 - bbox.y0);
 }
 
+void MuPdfDocument::getPageSize(QSizeF *size, const int page)
+{
+    *size = pageSize(page);
+}
+
 const QString MuPdfDocument::label(const int page) const
 {
     // Check if the page number is valid.

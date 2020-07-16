@@ -14,6 +14,7 @@
 class PdfMaster;
 class SlideScene;
 class ContainerWidget;
+class PixCache;
 
 class Master : public QObject
 {
@@ -26,6 +27,8 @@ class Master : public QObject
     /// and page shift one scene is created.
     /// Master scene is the first scene in the list.
     QList<SlideScene*> scenes;
+    /// Map of cache hashs to cache objects.
+    QMap<int, PixCache*> caches;
     /// List of all windows of the applications.
     QList<QWidget*> windows;
 

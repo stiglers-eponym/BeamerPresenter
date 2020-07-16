@@ -4,9 +4,12 @@
 #include <QWidget>
 #include "src/gui/guiwidget.h"
 
+class PixCache;
+
 class ContainerWidget : public QWidget, GuiWidget
 {
     Q_OBJECT
+
 public:
     explicit ContainerWidget(ContainerWidget *parent = nullptr);
 

@@ -45,6 +45,8 @@ public slots:
     /// Prepare rendering for other threads by initializing the given pointers.
     /// This gives the threads only access to objects which are thread save.
     void prepareRendering(fz_context **ctx, fz_rect *bbox, fz_display_list **list, const int pagenumber, const qreal resolution);
+    /// Get page size
+    void getPageSize(QSizeF *size, const int page);
 };
 
 void lock_mutex(void *user, int lock);
