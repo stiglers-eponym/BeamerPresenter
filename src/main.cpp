@@ -1407,27 +1407,9 @@ int main(int argc, char *argv[])
     }
 
 
-    {
-        // Adjust control screen size to primary screen
-        QSize const referenceSize = app.primaryScreen()->availableSize();
-        ctrlScreen->setGeometry(0, 0, 2*referenceSize.width()/3, 2*referenceSize.height()/3);
-
-        // Check for other available screens
-        QList<QScreen*> const screens = app.screens();
-        if (screens.length() != 1) {
-            // Put PresentationScreen on part of only available screen
-            ctrlScreen->getPresentationScreen()->setGeometry(20, 10, 3*referenceSize.width()/4, 3*referenceSize.height()/4);
-        }
-        else {
-            // Put PresentationScreen on the first screen which is not the primary screen.
-            // Use the complete screen size, but don't enter fullscreen mode.
-            // Adjusting windows is intentionally left for the user or the desktop environment.
-            for (auto const &screen : screens) {
-                if (screen != app.primaryScreen())
-                    ctrlScreen->getPresentationScreen()->setGeometry(screen->availableGeometry());
-            }
-        }
-    }
+    // Window sizes: Not really tested because I use a tiling window manager.
+    ctrlScreen->adjustSize();
+    ctrlScreen->getPresentationScreen()->adjustSize();
 
 
     // Decide whether ctrlScreen should be shown depending on arguments, settings and the QPA backend.

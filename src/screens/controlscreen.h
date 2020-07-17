@@ -114,6 +114,10 @@ public:
     /// Show overview on the control screen (above the notes label).
     void showOverview();
 
+    /// Set a relatively large size as size hint. Will be reduced and adapted
+    /// to screen size by Qt if necessary.
+    QSize sizeHint() const override {return QSize(1920,1080);}
+
     // Get different widgets
     ToolSelector* getToolSelector() const {return ui->tool_selector;}
     PresentationSlide* getPresentationSlide() const {return presentationScreen->slide;}
