@@ -43,11 +43,18 @@ public:
     bool loadDocument() override;
     /// Size of page in points (72*inch).
     const QSizeF pageSize(const int page) const override;
-    int numberOfPages() const override {return number_of_pages;}
     bool isValid() const override;
     const QString label(const int page) const override;
-    fz_context* getContext() const {return ctx;}
-    fz_document* getDocument() const {return doc;}
+    int overlaysShifted(const int start, const int shift_overlay) const override;
+
+    int numberOfPages() const override
+    {return number_of_pages;}
+
+    fz_context* getContext() const
+    {return ctx;}
+
+    fz_document* getDocument() const
+    {return doc;}
 
 public slots:
     /// Prepare rendering for other threads by initializing the given pointers.

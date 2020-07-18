@@ -40,9 +40,11 @@ void SlideScene::receiveAction(const Action action)
 
 void SlideScene::navigationEvent(const int page)
 {
-    int newpage = page + (shift & ~ShiftOverlays::AnyOverlay);
+    int newpage;
     if (shift & ShiftOverlays::AnyOverlay)
         newpage = master->overlaysShifted(page, shift);
+    else
+        newpage = page + shift;
     const QSizeF pagesize = master->getPageSize(newpage);
     setSceneRect(0., 0., pagesize.width(), pagesize.height());
     emit navigationToViews(newpage, pagesize);

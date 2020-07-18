@@ -10,7 +10,7 @@ class SlideScene;
 
 /// Slide shown on the screen: a view of SlideScene.
 /// This also draws the background (PDF page) of the slide.
-class SlideView : public QGraphicsView, GuiWidget
+class SlideView : public QGraphicsView, public GuiWidget
 {
     Q_OBJECT
 
@@ -21,6 +21,11 @@ class SlideView : public QGraphicsView, GuiWidget
 
 public:
     explicit SlideView(SlideScene *scene, PixCache *cache = nullptr, QWidget *parent = nullptr);
+    const QSizeF preferedSize(QSizeF const& parent_size) const override;
+    void setWidth(const qreal width) override
+    {setMinimumWidth(width);}
+    void setHeight(const qreal height) override
+    {setMinimumHeight(height);}
 
 protected:
     /// Draw the slide to background (with correct resolution and from cache).

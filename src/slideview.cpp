@@ -12,6 +12,7 @@ SlideView::SlideView(SlideScene *scene, PixCache *cache, QWidget *parent) :
     setMinimumSize(4, 3);
     setFocusPolicy(Qt::StrongFocus);
     setFrameShape(QFrame::NoFrame);
+    setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
     cache->updateFrame(size());
     connect(this, &SlideView::requestPage, cache, &PixCache::requestPage, Qt::QueuedConnection);
     connect(cache, &PixCache::pageReady, this, &SlideView::pageReady, Qt::QueuedConnection);
@@ -60,4 +61,19 @@ void SlideView::resizeEvent(QResizeEvent *event)
 void SlideView::keyPressEvent(QKeyEvent *event)
 {
     emit sendKeyEvent(event);
+}
+
+const QSizeF SlideView::preferedSize(const QSizeF &parent_size) const
+{
+    if (prefered_size.isEmpty())
+        return prefered_size;
+    const QSizeF reference = sceneRect().size();
+    const qreal aspect = reference.width() / reference.height();
+    if (aspect * prefered_size.height() * parent_size.height() > prefered_size.width() * parent_size.width())
+    {
+        // page is wider than available geometry.
+        return prefered_size.width() * parent_size.width() * QSizeF(1, 1./aspect);
+    }
+    // page is higher than available geometry.
+    return prefered_size.height() * parent_size.height() * QSizeF(aspect, 1.);
 }

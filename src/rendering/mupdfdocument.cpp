@@ -1,4 +1,5 @@
 #include "src/rendering/mupdfdocument.h"
+#include "src/enumerates.h"
 
 MuPdfDocument::MuPdfDocument(const QString &filename, QObject *parent) :
     QObject(parent),
@@ -257,6 +258,42 @@ const QString MuPdfDocument::label(const int page) const
     if (pageLabels.isEmpty())
         return QString::number(page);
     return (--pageLabels.upperBound(page)).value();
+}
+
+int MuPdfDocument::overlaysShifted(const int start, const int shift_overlay) const
+{
+    // Get the "number" part of shift_overlay by removing the "overlay" flags.
+    int shift = shift_overlay & ~ShiftOverlays::AnyOverlay;
+    // Check whether the document has non-trivial page labels and shift has
+    // non-trivial overlay flags.
+    if (pageLabels.isEmpty() || shift == shift_overlay)
+        return start + shift;
+    // Find the beginning of next slide.
+    QMap<int, QString>::const_iterator it = pageLabels.upperBound(start);
+    // Shift the iterator according to shift.
+    while (shift > 0 && it != pageLabels.cend())
+    {
+        --shift;
+        ++it;
+    }
+    while (shift < 0 && it != pageLabels.cbegin())
+    {
+        ++shift;
+        --it;
+    }
+    // Check if the iterator has reached the beginning or end of the set.
+    if (it == pageLabels.cbegin())
+        return 0;
+    if (it == pageLabels.cend())
+    {
+        if (shift_overlay & FirstOverlay)
+            return (--it).key();
+        return number_of_pages - 1;
+    }
+    // Return first or last overlay depending on overlay flags.
+    if (shift_overlay & FirstOverlay)
+        return (--it).key();
+    return it.key() - 1;
 }
 
 void MuPdfDocument::loadPageLabels()

@@ -8,6 +8,7 @@
 #include <QJsonDocument>
 #include <QBoxLayout>
 #include <QKeyEvent>
+#include <QSizePolicy>
 #include "src/enumerates.h"
 #include "src/names.h"
 
@@ -40,7 +41,7 @@ public:
     /// Read configuration file and build up GUI. Return true on success.
     bool readGuiConfig(const QString& filename);
     /// Create widgets recursively.
-    QWidget *createWidget(QJsonObject& object, ContainerWidget *parent = nullptr);
+    QPair<QWidget*, GuiWidget*> createWidget(QJsonObject& object, ContainerWidget *parent = nullptr);
 
 public slots:
     void receiveKeyEvent(QKeyEvent const* event);

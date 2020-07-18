@@ -52,15 +52,15 @@ bool Master::readGuiConfig(const QString &filename)
         }
         QJsonObject obj = it->toObject();
         // Start recursive creation of widgets.
-        QWidget* widget = createWidget(obj, nullptr);
-        if (widget != nullptr)
-            windows.append(widget);
+        const auto pair = createWidget(obj, nullptr);
+        if (pair.first != nullptr)
+            windows.append(pair.first);
     }
     // Return true (success) if at least one window and one document were created.
     return !windows.isEmpty() && !documents.isEmpty();
 }
 
-QWidget* Master::createWidget(QJsonObject &object, ContainerWidget *parent)
+QPair<QWidget*, GuiWidget*> Master::createWidget(QJsonObject &object, ContainerWidget *parent)
 {
     if (!object.contains("type"))
     {
@@ -69,7 +69,7 @@ QWidget* Master::createWidget(QJsonObject &object, ContainerWidget *parent)
         else
         {
             qCritical() << "Ignoring entry in GUI config without type.";
-            return nullptr;
+            return {nullptr, nullptr};
         }
     }
     switch (string_to_widget_type.value(object.value("type").toString(), GuiWidget::InvalidType))
@@ -99,10 +99,12 @@ QWidget* Master::createWidget(QJsonObject &object, ContainerWidget *parent)
             }
             QJsonObject obj = it->toObject();
             // Create child widgets recursively
-            layout->addWidget(createWidget(obj, widget));
+            const auto pair = createWidget(obj, widget);
+            layout->addWidget(pair.first);
+            widget->addGuiWidget(pair.second);
         }
         widget->setLayout(layout);
-        return widget;
+        return {widget, widget};
     }
     case GuiWidget::StackedWidget:
         break;
@@ -126,7 +128,7 @@ QWidget* Master::createWidget(QJsonObject &object, ContainerWidget *parent)
         if (!QFile::exists(file))
         {
             qCritical() << "Could not load PDF file: Does not exist." << file;
-            return nullptr;
+            return {nullptr, nullptr};
         }
 
         // Check whether the PDF has been loaded already, load it if necessary.
@@ -214,7 +216,11 @@ QWidget* Master::createWidget(QJsonObject &object, ContainerWidget *parent)
         SlideView *slide = new SlideView(scene, pixcache, parent);
         connect(slide, &SlideView::sendKeyEvent, this, &Master::receiveKeyEvent);
         connect(scene, &SlideScene::navigationToViews, slide, &SlideView::pageChanged);
-        return slide;
+        // Check layout.
+        const qreal height = object.value("height").toDouble(0.);
+        const qreal width = object.value("width").toDouble(0.);
+        slide->setPreferedSize(QSizeF(width, height));
+        return {slide, slide};
     }
     case GuiWidget::Overview:
         break;
@@ -236,10 +242,10 @@ QWidget* Master::createWidget(QJsonObject &object, ContainerWidget *parent)
         break;
     case GuiWidget::InvalidType:
         qCritical() << "Ignoring entry in GUI config with invalid type:" << object.value("type");
-        return nullptr;
+        return {nullptr, nullptr};
     }
     qWarning() << "Requested GUI type is not implemented yet:" << object.value("type");
-    return nullptr;
+    return {nullptr, nullptr};
 }
 
 void Master::showAll() const

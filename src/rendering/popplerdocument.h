@@ -4,11 +4,18 @@
 #include <poppler/qt5/poppler-qt5.h>
 #include <QFileInfo>
 #include <QInputDialog>
+#include <set>
 #include "src/rendering/pdfdocument.h"
 
 class PopplerDocument : public PdfDocument
 {
-    const Poppler::Document *doc = nullptr;
+    const Poppler::Document *doc {nullptr};
+
+    /// Lookup table for page labels.
+    std::set<int> overlay_slide_indices;
+
+    /// Generate overlay_slide_indices.
+    void populateOverlaySlidesSet();
 
 public:
     PopplerDocument(const QString &filename);
@@ -25,6 +32,7 @@ public:
     int numberOfPages() const override;
     bool isValid() const override;
     const QString label(const int page) const override;
+    int overlaysShifted(const int start, const int shift_overlay) const override;
 };
 
 #endif // POPPLERDOCUMENT_H

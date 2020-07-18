@@ -32,6 +32,7 @@ public:
     virtual const QSizeF pageSize(const int page) const = 0;
     virtual int numberOfPages() const = 0;
     virtual const QString label(const int page) const = 0;
+    virtual int overlaysShifted(const int start, const int shift_overlay) const = 0;
     virtual bool isValid() const = 0;
     const QString & getPath() const {return path;}
 };
