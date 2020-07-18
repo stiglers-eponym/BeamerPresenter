@@ -4,6 +4,13 @@
 #include <QDateTime>
 #include "src/rendering/pngpixmap.h"
 
+struct PdfLink {
+    /// Positive values of type are interpreted as page numbers.
+    /// Negative values are interpreted as LinkType.
+    int type;
+    QString target;
+};
+
 /// Abstract class for handling PDF documents.
 class PdfDocument
 {
@@ -34,6 +41,8 @@ public:
     virtual const QString label(const int page) const = 0;
     virtual int overlaysShifted(const int start, const int shift_overlay) const = 0;
     virtual bool isValid() const = 0;
+    /// Link at given position (in point = inch/72)
+    virtual const PdfLink linkAt(const int page, const QPointF &position) const = 0;
     const QString & getPath() const {return path;}
 };
 

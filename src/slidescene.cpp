@@ -5,7 +5,6 @@ SlideScene::SlideScene(const PdfMaster *master, QObject *parent) :
     QGraphicsScene(parent),
     master(master)
 {
-
 }
 
 void SlideScene::stopDrawing()
@@ -23,12 +22,24 @@ unsigned int SlideScene::identifier() const
 bool SlideScene::event(QEvent* event)
 {
     // TODO!
+    //qDebug() << event;
+    switch (event->type())
+    {
+    case QEvent::GraphicsSceneMouseRelease:
+    {
+        const auto mouseevent = static_cast<QGraphicsSceneMouseEvent*>(event);
+        const PdfLink link = master->resolveLink(preferences().page + shift & ~AnyOverlay, mouseevent->scenePos());
+        if (link.type >= 0)
+            emit navigationEvent(link.type);
+    }
+    }
     return false;
 }
 
-void SlideScene::keyPressEvent(QKeyEvent *event)
+void SlideScene::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
 {
     // TODO!
+    // This doesn't do anything!
 }
 
 void SlideScene::receiveAction(const Action action)

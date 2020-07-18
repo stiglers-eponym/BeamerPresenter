@@ -2,6 +2,7 @@
 #define SLIDESCENE_H
 
 #include <QGraphicsScene>
+#include <QGraphicsSceneMouseEvent>
 #include "src/enumerates.h"
 #include "src/drawing/fullgraphicspath.h"
 #include "src/drawing/basicgraphicspath.h"
@@ -34,7 +35,7 @@ public:
 protected:
     /// Handle various types of events
     virtual bool event(QEvent *event) override;
-    virtual void keyPressEvent(QKeyEvent *event) override;
+    virtual void mouseReleaseEvent(QGraphicsSceneMouseEvent *event) override;
     /// Stop drawing and convert just drawn path to regular path.
     void stopDrawing();
 

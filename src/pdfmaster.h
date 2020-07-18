@@ -47,6 +47,8 @@ public:
     const PdfDocument * getDocument() const
     {return document;}
 
+    const PdfLink resolveLink(const int page, const QPointF& position) const;
+
     int numberOfPages() const
     {return document->numberOfPages();}
 

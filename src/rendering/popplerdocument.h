@@ -33,6 +33,9 @@ public:
     bool isValid() const override;
     const QString label(const int page) const override;
     int overlaysShifted(const int start, const int shift_overlay) const override;
+
+    /// Link at given position (in point = inch/72)
+    virtual const PdfLink linkAt(const int page, const QPointF &position) const override;
 };
 
 #endif // POPPLERDOCUMENT_H

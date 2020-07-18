@@ -65,3 +65,8 @@ void PdfMaster::receiveAction(const Action action)
         break;
     }
 }
+
+const PdfLink PdfMaster::resolveLink(const int page, const QPointF &position) const
+{
+    return document->linkAt(page, position);
+}

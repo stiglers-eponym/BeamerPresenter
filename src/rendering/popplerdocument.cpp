@@ -215,3 +215,26 @@ void PopplerDocument::populateOverlaySlidesSet()
         overlay_slide_indices.clear();
     }
 }
+
+const PdfLink PopplerDocument::linkAt(const int page, const QPointF &position) const
+{
+    const QSizeF pageSize = doc->page(page)->pageSizeF();
+    const QPointF relpos = {position.x()/pageSize.width(), position.y()/pageSize.height()};
+    for (const auto link : doc->page(page)->links())
+    {
+        if (link->linkArea().normalized().contains(relpos))
+        {
+            switch (link->linkType())
+            {
+            case Poppler::Link::LinkType::Goto: {
+                Poppler::LinkGoto *gotolink = static_cast<Poppler::LinkGoto*>(link);
+                return {gotolink->destination().pageNumber()-1, ""};
+            }
+            default:
+                qDebug() << "Unsupported link" << link->linkType();
+                return {NoLink, ""};
+            }
+        }
+    }
+    return {NoLink, ""};
+}

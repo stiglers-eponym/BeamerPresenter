@@ -6,7 +6,8 @@
 
 /// Does a single PDF include both presentation and notes?
 /// In this case PagePart shows which part is currently of interest.
-enum PagePart {
+enum PagePart
+{
     FullPage = 0,
     LeftHalf = 1,
     RightHalf = -1,
@@ -15,14 +16,25 @@ enum PagePart {
 /// Page shifts are stored as integers in SlideScenes.
 /// The information about whether overlays should be considered is stored in
 /// by settings its shift to (shift | overlay).
-enum ShiftOverlays {
+enum ShiftOverlays
+{
     NoOverlay = 0,
     FirstOverlay = (INT_MAX >> 2) + 1,
     LastOverlay = (INT_MAX >> 1) + 1,
     AnyOverlay = (LastOverlay | FirstOverlay),
 };
 
-enum Action {
+enum LinkType
+{
+    NoLink = -1,
+    NavigationLink = -2,
+    ExternalLink = -3,
+    MovieLink = -4,
+    SoundLinx = -5,
+};
+
+enum Action
+{
     InvalidAction,
     NoAction,
     Update,

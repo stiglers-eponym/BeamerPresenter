@@ -54,6 +54,9 @@ public:
     fz_document* getDocument() const
     {return doc;}
 
+    /// Link at given position (in point = inch/72)
+    virtual const PdfLink linkAt(const int page, const QPointF &position) const override;
+
     /// Prepare rendering for other threads by initializing the given pointers.
     /// This gives the threads only access to objects which are thread save.
     void prepareRendering(fz_context **context, fz_rect *bbox, fz_display_list **list, const int pagenumber, const qreal resolution) const;

@@ -440,11 +440,35 @@ void MuPdfDocument::prepareRendering(fz_context **context, fz_rect *bbox, fz_dis
     mutex->unlock();
 }
 
-void MuPdfDocument::loadLinks(const int page) const
+const PdfLink MuPdfDocument::linkAt(const int page, const QPointF &position) const
 {
     mutex->lock();
     fz_page *doc_page = fz_load_page(ctx, doc, page);
-    fz_link *links = fz_load_links(ctx, doc_page);
-    fz_drop_link(ctx, links);
+    // TODO: check how this is correctly tidied up!
+    fz_link * const clink = fz_load_links(ctx, doc_page);
+    PdfLink result;
+    for (fz_link* link = clink; link != nullptr; link = link->next)
+    {
+        if (link->rect.x0 <= position.x() && link->rect.x1 >= position.x() && link->rect.y0 <= position.y() && link->rect.y1 >= position.y())
+        {
+            float x, y;
+            if (link->uri == nullptr)
+                result = {NoLink, ""};
+            else if (link->uri[0] == '#')
+            {
+                // Internal navigation link
+                fz_location location = fz_resolve_link(ctx, doc, link->uri, &x, &y);
+                result = {location.page, ""};
+            }
+            else
+            {
+                qDebug() << "Unsupported link" << link->uri;
+                result = {NoLink, ""};
+            }
+            break;
+        }
+    }
+    fz_drop_link(ctx, clink);
     mutex->unlock();
+    return result;
 }
