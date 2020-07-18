@@ -9,14 +9,9 @@
 #include "src/rendering/pdfdocument.h"
 
 /// Document representing a PDF loaded by MuPDF.
-/// This class uses Qt's signaling system to achieve thread safety and must
-/// therefore be a QObject. That would not be necessary for Popper, but is
-/// required for MuPDF.
-/// TODO: use mutex instead of signal-slot system
 /// MuPDF requires careful treatment of separte threads!
-class MuPdfDocument : public QObject, public PdfDocument
+class MuPdfDocument : public PdfDocument
 {
-    Q_OBJECT
 
     /// context should be cloned for each separate thread.
     fz_context *ctx{nullptr};
@@ -35,7 +30,7 @@ class MuPdfDocument : public QObject, public PdfDocument
 
 public:
     /// Create new document from given filename.
-    MuPdfDocument(const QString &filename, QObject *parent = nullptr);
+    MuPdfDocument(const QString &filename);
     ~MuPdfDocument() override;
     /// page is given as page index. resolution is given in pixels per point (72*dpi).
     const QPixmap getPixmap(const int page, const qreal resolution) const override;
@@ -59,10 +54,9 @@ public:
     fz_document* getDocument() const
     {return doc;}
 
-public slots:
     /// Prepare rendering for other threads by initializing the given pointers.
     /// This gives the threads only access to objects which are thread save.
-    void prepareRendering(fz_context **context, fz_rect *bbox, fz_display_list **list, const int pagenumber, const qreal resolution);
+    void prepareRendering(fz_context **context, fz_rect *bbox, fz_display_list **list, const int pagenumber, const qreal resolution) const;
 };
 
 void lock_mutex(void *user, int lock);

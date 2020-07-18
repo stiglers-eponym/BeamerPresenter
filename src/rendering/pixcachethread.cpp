@@ -48,14 +48,7 @@ bool PixCacheThread::initializeRenderer(const PdfDocument * const doc)
 #endif
 #ifdef INCLUDE_MUPDF
     case AbstractRenderer::MuPDF:
-        renderer = new MuPdfRenderer();
-        connect(
-                    static_cast<MuPdfRenderer*>(renderer),
-                    &MuPdfRenderer::prepareRendering,
-                    static_cast<const MuPdfDocument*>(doc),
-                    &MuPdfDocument::prepareRendering,
-                    Qt::BlockingQueuedConnection
-                    );
+        renderer = new MuPdfRenderer(static_cast<const MuPdfDocument*>(doc));
         break;
 #endif
     case AbstractRenderer::ExternalRenderer:

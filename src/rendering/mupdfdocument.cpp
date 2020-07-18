@@ -1,8 +1,7 @@
 #include "src/rendering/mupdfdocument.h"
 #include "src/enumerates.h"
 
-MuPdfDocument::MuPdfDocument(const QString &filename, QObject *parent) :
-    QObject(parent),
+MuPdfDocument::MuPdfDocument(const QString &filename) :
     PdfDocument(filename),
     mutex(new QMutex())
 {
@@ -402,7 +401,7 @@ void MuPdfDocument::loadPageLabels()
         pageLabels[0] = "";
 }
 
-void MuPdfDocument::prepareRendering(fz_context **context, fz_rect *bbox, fz_display_list **list, const int pagenumber, const qreal resolution)
+void MuPdfDocument::prepareRendering(fz_context **context, fz_rect *bbox, fz_display_list **list, const int pagenumber, const qreal resolution) const
 {
     // Check if the page number is valid.
     // If it is not, return without changing the given pointers.

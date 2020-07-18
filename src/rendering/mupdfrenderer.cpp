@@ -9,7 +9,7 @@ const QPixmap MuPdfRenderer::renderPixmap(const int page, const qreal resolution
     fz_context *ctx = nullptr;
     fz_rect bbox;
     fz_display_list *list = nullptr;
-    emit prepareRendering(&ctx, &bbox, &list, page, resolution);
+    doc->prepareRendering(&ctx, &bbox, &list, page, resolution);
 
     // If page is not valid (too large), the nullptrs will be unchanged.
     if (ctx == nullptr || list == nullptr)
@@ -93,7 +93,7 @@ const PngPixmap * MuPdfRenderer::renderPng(const int page, const qreal resolutio
     fz_context *ctx = nullptr;
     fz_rect bbox;
     fz_display_list *list = nullptr;
-    emit prepareRendering(&ctx, &bbox, &list, page, resolution);
+    doc->prepareRendering(&ctx, &bbox, &list, page, resolution);
 
     // If page is not valid (too large), the nullptrs will be unchanged.
     if (ctx == nullptr || list == nullptr)
