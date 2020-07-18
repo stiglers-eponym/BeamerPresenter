@@ -67,13 +67,19 @@ const QSizeF SlideView::preferedSize(const QSizeF &parent_size) const
 {
     if (prefered_size.isEmpty())
         return prefered_size;
-    const QSizeF reference = sceneRect().size();
+    QSizeF boundary = parent_size;
+    if (prefered_size.width() > 0.)
+        boundary.rwidth() *= prefered_size.width();
+    if (prefered_size.height() > 0.)
+        boundary.rheight() *= prefered_size.height();
+    const QSizeF reference = scene()->sceneRect().size();
     const qreal aspect = reference.width() / reference.height();
-    if (aspect * prefered_size.height() * parent_size.height() > prefered_size.width() * parent_size.width())
-    {
+    if (aspect * boundary.height() > boundary.width())
         // page is wider than available geometry.
-        return prefered_size.width() * parent_size.width() * QSizeF(1, 1./aspect);
-    }
-    // page is higher than available geometry.
-    return prefered_size.height() * parent_size.height() * QSizeF(aspect, 1.);
+        boundary.setHeight(boundary.width()/aspect);
+    else
+        // page is higher than available geometry.
+        boundary.setWidth(boundary.height()*aspect);
+    qDebug() << parent_size << boundary << this;
+    return boundary;
 }

@@ -9,16 +9,43 @@
                 "shift" : 0,
                 "transitions" : false,
                 "multimedia" : true,
-                "cache hash" : 1
+                "cache hash" : 1,
+                "threads" : 3
             },
             {
-                "type" : "slide",
-                "file" : "presentation",
-                "shift" : 1,
-                "overlays" : "last",
-                "transitions" : false,
-                "multimedia" : false,
-                "cache hash" : 1
+                "type" : "container",
+                "layout" : "vertical",
+                "width" : 0.3,
+                "height" : 1,
+                "children" : [
+                    {
+                        "type" : "slide",
+                        "file" : "presentation",
+                        "shift" : 0,
+                        "overlays" : "last",
+                        "transitions" : false,
+                        "multimedia" : false,
+                        "cache hash" : 2
+                    },
+                    {
+                        "type" : "slide",
+                        "file" : "presentation",
+                        "shift" : 1,
+                        "overlays" : "first",
+                        "transitions" : false,
+                        "multimedia" : false,
+                        "cache hash" : 2
+                    },
+                    {
+                        "type" : "slide",
+                        "file" : "presentation",
+                        "shift" : 1,
+                        "overlays" : "last",
+                        "transitions" : false,
+                        "multimedia" : false,
+                        "cache hash" : 2
+                    }
+                ]
             }
         ]
     },
@@ -28,7 +55,7 @@
         "shift" : 0,
         "transitions" : true,
         "multimedia" : true,
-        "threads" : 2,
+        "threads" : 5,
         "master" : true,
         "cache hash" : 0
     }

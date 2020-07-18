@@ -34,6 +34,7 @@ public:
 protected:
     /// Handle various types of events
     virtual bool event(QEvent *event) override;
+    virtual void keyPressEvent(QKeyEvent *event) override;
     /// Stop drawing and convert just drawn path to regular path.
     void stopDrawing();
 

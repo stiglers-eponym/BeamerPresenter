@@ -23,9 +23,9 @@ public:
     explicit SlideView(SlideScene *scene, PixCache *cache = nullptr, QWidget *parent = nullptr);
     const QSizeF preferedSize(QSizeF const& parent_size) const override;
     void setWidth(const qreal width) override
-    {setMinimumWidth(width);}
+    {setMaximumWidth(width);}
     void setHeight(const qreal height) override
-    {setMinimumHeight(height);}
+    {setMaximumHeight(height);}
 
 protected:
     /// Draw the slide to background (with correct resolution and from cache).

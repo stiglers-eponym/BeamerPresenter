@@ -56,6 +56,9 @@ public:
     /// Arguments to rendering_command.
     QStringList rendering_arguments;
 
+    /// Maximally allowed memory size in bytes.
+    float max_memory = -1;
+
 
     // INTERACTION
     QMultiMap<quint32, Action> key_actions

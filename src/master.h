@@ -46,6 +46,9 @@ public:
 public slots:
     void receiveKeyEvent(QKeyEvent const* event);
 
+    /// Read memory size restriction from preferences and distribute memory to pixcaches.
+    void distributeMemory();
+
 signals:
     void sendAction(const Action action);
     void navigationSignal(const int page);

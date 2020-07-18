@@ -26,6 +26,11 @@ bool SlideScene::event(QEvent* event)
     return false;
 }
 
+void SlideScene::keyPressEvent(QKeyEvent *event)
+{
+    // TODO!
+}
+
 void SlideScene::receiveAction(const Action action)
 {
     switch (action)

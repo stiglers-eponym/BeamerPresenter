@@ -12,6 +12,7 @@
 /// This class uses Qt's signaling system to achieve thread safety and must
 /// therefore be a QObject. That would not be necessary for Popper, but is
 /// required for MuPDF.
+/// TODO: use mutex instead of signal-slot system
 /// MuPDF requires careful treatment of separte threads!
 class MuPdfDocument : public QObject, public PdfDocument
 {
@@ -46,6 +47,8 @@ public:
     bool isValid() const override;
     const QString label(const int page) const override;
     int overlaysShifted(const int start, const int shift_overlay) const override;
+
+    void loadLinks(const int page) const;
 
     int numberOfPages() const override
     {return number_of_pages;}

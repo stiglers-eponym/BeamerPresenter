@@ -74,6 +74,7 @@ int main(int argc, char *argv[])
     master.readGuiConfig(preferences().gui_config_file);
     master.showAll();
     emit master.navigationSignal(0);
+    master.distributeMemory();
 
     int status = app.exec();
 

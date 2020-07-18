@@ -96,7 +96,15 @@ public:
     const QPixmap pixmap(const int page);
 
     /// Total size of all cached pages in bytes
-    qint64 getUsedMemory() const {return usedMemory;}
+    qint64 getUsedMemory() const
+    {return usedMemory;}
+
+    /// Number of pixels per page (maximum)
+    float getPixels() const
+    {return frame.width() * frame.height();}
+
+    void setScaledMemory(const float scale)
+    {setMaxMemory(scale * frame.width() * frame.height());}
 
     /// Update current page number.
     /// Update boundary of simply connected region of cached pages.

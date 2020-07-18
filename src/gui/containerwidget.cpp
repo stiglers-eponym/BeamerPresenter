@@ -8,17 +8,20 @@ ContainerWidget::ContainerWidget(ContainerWidget *parent) :
 
 const QSizeF ContainerWidget::preferedSize(const QSizeF &parent_size) const
 {
-    if (prefered_size.isEmpty() || layout() == nullptr)
-        return prefered_size;
-
-    QSizeF reference(parent_size.width() * prefered_size.width(), parent_size.height() * prefered_size.height());
+    QSizeF boundary = parent_size;
+    if (prefered_size.width() > 0.)
+        boundary.rwidth() *= prefered_size.width();
+    if (prefered_size.height() > 0.)
+        boundary.rheight() *= prefered_size.height();
+    if (layout() == nullptr)
+        return boundary;
 
     qreal requested_width = 0., requested_height = 0.;
     if (layout()->expandingDirections() == Qt::Horizontal)
     {
         for (const auto child : child_widgets)
         {
-            const QSizeF widget_wants = child->preferedSize(reference);
+            const QSizeF widget_wants = child->preferedSize(boundary);
             requested_width += widget_wants.width();
             if (requested_height < widget_wants.height())
                 requested_height = widget_wants.height();
@@ -28,13 +31,18 @@ const QSizeF ContainerWidget::preferedSize(const QSizeF &parent_size) const
     {
         for (const auto child : child_widgets)
         {
-            const QSizeF widget_wants = child->preferedSize(reference);
+            const QSizeF widget_wants = child->preferedSize(boundary);
             requested_height += widget_wants.height();
             if (requested_width < widget_wants.width())
                 requested_width = widget_wants.width();
         }
     }
-    return QSizeF(requested_width, requested_height);
+    qDebug() << requested_width << requested_height << parent_size << this;
+    if (requested_width < boundary.width())
+        boundary.setWidth(requested_width);
+    if (requested_height < boundary.height())
+        boundary.setHeight(requested_height);
+    return boundary;
 }
 
 void ContainerWidget::resizeEvent(QResizeEvent *event)
@@ -43,7 +51,7 @@ void ContainerWidget::resizeEvent(QResizeEvent *event)
     qreal requested_width = 0., requested_height = 0.;
     if (layout() == nullptr)
         return;
-    QVector<QSizeF> widgets_want;
+    QList<QSizeF> widgets_want;
     int n_free_space_widgets = 0;
     QBoxLayout *boxlayout = static_cast<QBoxLayout*>(layout());
     if (boxlayout->direction() == QBoxLayout::LeftToRight || boxlayout->direction() == QBoxLayout::RightToLeft)
@@ -64,28 +72,56 @@ void ContainerWidget::resizeEvent(QResizeEvent *event)
         }
         qDebug() << child_widgets.length() << requested_width << requested_height << this;
         const qreal scale = requested_width > width() ? width() / requested_width : 1.;
-        const qreal per_free_widget = (1. - scale * requested_width) / n_free_space_widgets;
         for (int i=0; i<child_widgets.length(); i++)
         {
             if (widgets_want[i].isValid())
             {
-                if (widgets_want[i].width() == 0.)
-                    child_widgets[i]->setWidth(per_free_widget);
-                else
+                if (widgets_want[i].width() != 0.)
                     child_widgets[i]->setWidth(scale * widgets_want[i].width());
             }
         }
-        setHeight(requested_height > height() ? height() : requested_height);
     }
-    // TODO: implement vertical layout
+    else
+    {
+        for (const auto child : child_widgets)
+        {
+            const QSizeF widget_wants = child->preferedSize(size());
+            if (widget_wants.isValid())
+            {
+                if (widget_wants.height() == 0.)
+                    n_free_space_widgets++;
+                else
+                    requested_height += widget_wants.height();
+                if (requested_width < widget_wants.width())
+                    requested_width = widget_wants.width();
+            }
+            widgets_want.append(widget_wants);
+        }
+        qDebug() << child_widgets.length() << requested_width << requested_height << this;
+        const qreal scale = requested_height > height() ? height() / requested_height : 1.;
+        for (int i=0; i<child_widgets.length(); i++)
+        {
+            if (widgets_want[i].isValid())
+            {
+                if (widgets_want[i].height() != 0.)
+                    child_widgets[i]->setHeight(scale * widgets_want[i].height());
+            }
+        }
+    }
 }
 
 void ContainerWidget::setWidth(const qreal width)
 {
-    setMinimumWidth(width);
+    if (width <= 0.)
+        setMaximumWidth(16777215);
+    else
+        setMaximumWidth(width);
 }
 
 void ContainerWidget::setHeight(const qreal height)
 {
-    setMinimumHeight(height);
+    if (height <= 0.)
+        setMaximumHeight(16777215);
+    else
+        setMaximumHeight(height);
 }

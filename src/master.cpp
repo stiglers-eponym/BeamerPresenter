@@ -56,6 +56,7 @@ bool Master::readGuiConfig(const QString &filename)
         if (pair.first != nullptr)
             windows.append(pair.first);
     }
+
     // Return true (success) if at least one window and one document were created.
     return !windows.isEmpty() && !documents.isEmpty();
 }
@@ -104,6 +105,9 @@ QPair<QWidget*, GuiWidget*> Master::createWidget(QJsonObject &object, ContainerW
             widget->addGuiWidget(pair.second);
         }
         widget->setLayout(layout);
+        const qreal height = object.value("height").toDouble(1.);
+        const qreal width = object.value("width").toDouble(1.);
+        widget->setPreferedSize(QSizeF(width, height));
         return {widget, widget};
     }
     case GuiWidget::StackedWidget:
@@ -217,8 +221,8 @@ QPair<QWidget*, GuiWidget*> Master::createWidget(QJsonObject &object, ContainerW
         connect(slide, &SlideView::sendKeyEvent, this, &Master::receiveKeyEvent);
         connect(scene, &SlideScene::navigationToViews, slide, &SlideView::pageChanged);
         // Check layout.
-        const qreal height = object.value("height").toDouble(0.);
-        const qreal width = object.value("width").toDouble(0.);
+        const qreal height = object.value("height").toDouble(1.);
+        const qreal width = object.value("width").toDouble(1.);
         slide->setPreferedSize(QSizeF(width, height));
         return {slide, slide};
     }
@@ -307,4 +311,18 @@ void Master::receiveKeyEvent(const QKeyEvent* event)
         if ((++it).key() != static_cast<unsigned int>(event->key()))
             break;
     }
+}
+
+void Master::distributeMemory()
+{
+    if (preferences().max_memory < 0)
+        return;
+    float scale = 0.;
+    for (const auto cache : caches)
+        scale += cache->getPixels();
+    if (scale <= 0)
+        return;
+    scale = preferences().max_memory / scale;
+    for (const auto cache : caches)
+        cache->setScaledMemory(scale);
 }

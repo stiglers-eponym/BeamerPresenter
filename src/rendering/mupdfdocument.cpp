@@ -123,6 +123,7 @@ MuPdfDocument::~MuPdfDocument()
     mutex->lock();
     fz_drop_document(ctx, doc);
     fz_drop_context(ctx);
+    qDeleteAll(mutex_list);
     delete mutex;
 }
 
@@ -437,5 +438,14 @@ void MuPdfDocument::prepareRendering(fz_context **context, fz_rect *bbox, fz_dis
     fz_close_device(ctx, dev);
     fz_drop_device(ctx, dev);
     fz_drop_page(ctx, page);
+    mutex->unlock();
+}
+
+void MuPdfDocument::loadLinks(const int page) const
+{
+    mutex->lock();
+    fz_page *doc_page = fz_load_page(ctx, doc, page);
+    fz_link *links = fz_load_links(ctx, doc_page);
+    fz_drop_link(ctx, links);
     mutex->unlock();
 }
