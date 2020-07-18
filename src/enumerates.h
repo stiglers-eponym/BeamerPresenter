@@ -15,7 +15,7 @@ enum PagePart
 
 /// Page shifts are stored as integers in SlideScenes.
 /// The information about whether overlays should be considered is stored in
-/// by settings its shift to (shift | overlay).
+/// the bits controlled by FirstOverlay and LastOverlay.
 enum ShiftOverlays
 {
     NoOverlay = 0,

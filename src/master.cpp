@@ -115,7 +115,7 @@ QPair<QWidget*, GuiWidget*> Master::createWidget(QJsonObject &object, ContainerW
     case GuiWidget::Slide:
     {
         // Calculate the shift for scene.
-        int shift = object.value("shift").toInt();
+        int shift = object.value("shift").toInt() & ~ShiftOverlays::AnyOverlay;
         const QString overlays = object.value("overlays").toString();
         if (overlays == "first")
             shift |= ShiftOverlays::FirstOverlay;
@@ -150,6 +150,7 @@ QPair<QWidget*, GuiWidget*> Master::createWidget(QJsonObject &object, ContainerW
         {
             doc = new PdfMaster(file);
             connect(this, &Master::sendAction, doc, &PdfMaster::receiveAction);
+            connect(doc, &PdfMaster::nagivationSignal, this, &Master::navigationSignal);
             if (object.value("master").toBool())
                 documents.prepend(doc);
             else
@@ -264,7 +265,7 @@ void Master::showAll() const
 void Master::receiveKeyEvent(const QKeyEvent* event)
 {
     const QMultiMap<quint32, Action> &key_actions = preferences().key_actions;
-    auto it = key_actions.constFind(event->key());
+    auto it = key_actions.constFind(event->key() | (event->modifiers() & ~Qt::KeypadModifier));
     while (it != key_actions.cend())
     {
 #ifdef DEBUG_KEY_ACTIONS
@@ -294,7 +295,7 @@ void Master::receiveKeyEvent(const QKeyEvent* event)
             emit navigationSignal(preferences().page);
             break;
         case PreviousSkippingOverlays:
-            writable_preferences().page = documents.first()->overlaysShifted(preferences().page, -1 | LastOverlay);
+            writable_preferences().page = documents.first()->overlaysShifted(preferences().page, -1 & ~FirstOverlay);
             emit navigationSignal(preferences().page);
             break;
         case FirstPage:
@@ -304,6 +305,14 @@ void Master::receiveKeyEvent(const QKeyEvent* event)
         case LastPage:
             writable_preferences().page = documents.first()->numberOfPages() - 1;
             emit navigationSignal(preferences().page);
+            break;
+        case Quit:
+            for (auto window : windows)
+                window->close();
+            break;
+        case ReloadFiles:
+            for (auto doc : documents)
+                doc->loadDocument();
             break;
         default:
             emit sendAction(it.value());

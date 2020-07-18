@@ -47,7 +47,7 @@ public:
     const PdfDocument * getDocument() const
     {return document;}
 
-    const PdfLink resolveLink(const int page, const QPointF& position) const;
+    void resolveLink(const int page, const QPointF& position) const;
 
     int numberOfPages() const
     {return document->numberOfPages();}
@@ -63,8 +63,9 @@ public slots:
 
 signals:
     /// Notify all associated SlidesScenes that paths have changed.
-    void pathsUpdated();
-    void update();
+    void pathsUpdated() const;
+    void nagivationSignal(const int page) const;
+    void update() const;
 };
 
 #endif // PDFMASTER_H

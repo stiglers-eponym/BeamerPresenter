@@ -50,8 +50,8 @@ public slots:
     void distributeMemory();
 
 signals:
-    void sendAction(const Action action);
-    void navigationSignal(const int page);
+    void sendAction(const Action action) const;
+    void navigationSignal(const int page) const;
 };
 
 #endif // MASTER_H

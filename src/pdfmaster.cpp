@@ -66,7 +66,9 @@ void PdfMaster::receiveAction(const Action action)
     }
 }
 
-const PdfLink PdfMaster::resolveLink(const int page, const QPointF &position) const
+void PdfMaster::resolveLink(const int page, const QPointF &position) const
 {
-    return document->linkAt(page, position);
+    const PdfLink link = document->linkAt(page, position);
+    if (link.type >= 0)
+        emit nagivationSignal(link.type);
 }

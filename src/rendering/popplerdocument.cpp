@@ -154,7 +154,7 @@ bool PopplerDocument::isValid() const
 int PopplerDocument::overlaysShifted(const int start, const int shift_overlay) const
 {
     // Get the "number" part of shift_overlay by removing the "overlay" flags.
-    int shift = shift_overlay & ~ShiftOverlays::AnyOverlay;
+    int shift = shift_overlay > 0 ? shift_overlay & ~ShiftOverlays::AnyOverlay : shift_overlay | ShiftOverlays::AnyOverlay;
     // Check whether the document has non-trivial page labels and shift has
     // non-trivial overlay flags.
     if (overlay_slide_indices.empty() || shift == shift_overlay)

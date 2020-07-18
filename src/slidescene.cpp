@@ -28,9 +28,7 @@ bool SlideScene::event(QEvent* event)
     case QEvent::GraphicsSceneMouseRelease:
     {
         const auto mouseevent = static_cast<QGraphicsSceneMouseEvent*>(event);
-        const PdfLink link = master->resolveLink(preferences().page + shift & ~AnyOverlay, mouseevent->scenePos());
-        if (link.type >= 0)
-            emit navigationEvent(link.type);
+        master->resolveLink(preferences().page + shift & ~AnyOverlay, mouseevent->scenePos());
     }
     }
     return false;
