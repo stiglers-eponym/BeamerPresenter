@@ -144,7 +144,7 @@ void PreviewSlide::mouseReleaseEvent(QMouseEvent* event)
                     case Poppler::Link::Execute:
                         // Handle execution links, which are marked for execution as an embedded application.
                         // In this case, a corresponding item has been added to embeddedWidgets in renderPage.
-                        {
+                        if (allowExternalLinks) {
                             Poppler::LinkExecute* link = static_cast<Poppler::LinkExecute*>(links[i]);
                             QStringList splitFileName = QStringList();
                             if (!urlSplitCharacter.isEmpty())
@@ -155,6 +155,8 @@ void PreviewSlide::mouseReleaseEvent(QMouseEvent* event)
                             // TODO: handle arguments
                             QDesktopServices::openUrl(url);
                         }
+                        else
+                            qWarning() << "Opening external links is disabled by default. Enable it in settings.";
                         break;
                     case Poppler::Link::Browse:
                         // Link to file or website

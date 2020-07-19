@@ -59,6 +59,7 @@ public:
     void setUrlSplitCharacter(QString const& splitCharacter) {urlSplitCharacter=splitCharacter;}
     /// Set pdf document and PagePart.
     void setDoc(PdfDoc const*const document, PagePart const part) {doc=document; pagePart=part;}
+    void setAllowExternalLinks(bool const allow) {allowExternalLinks = allow;}
 
     /// Get current page number
     int pageNumber() const {return pageIndex;}
@@ -106,6 +107,9 @@ protected:
     QSize oldSize;
     /// Character used to split links to files into a file path and a list of arguments.
     QString urlSplitCharacter = "";
+
+    /// Disable external links by default.
+    bool allowExternalLinks = false;
 
     /// Mouse release: handle different link types.
     void mouseReleaseEvent(QMouseEvent* event) override;

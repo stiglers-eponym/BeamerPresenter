@@ -53,9 +53,11 @@ This overwrites the default value for the command line argument
 .TP
 .BR autoplay-emb =false
 true, false or number: Start embedded applications when entering a slide. A number is interpreted as a delay in seconds, after which embedded applications are started.
-Not available if embedded applications were disabled at compile time.
 This overwrites the default value for the command line argument
 .BR \-A " or " \-\-autoplay-emb .
+Not available if embedded applications were disabled at compile time.
+Note that using embedded applications requires the option
+.BR external-links =true.
 .
 .TP
 .BR min-delay =40
@@ -84,11 +86,15 @@ This sets the default value for the command line argument
 .BR \-t " or " \-\-timer .
 .
 .TP
+.BR external-links =false
+Allow opening links to local files, websites, remote files etc. Only enable this if you really trust the PDFs you open with BeamerPresenter.
+Note that multimedia content is loaded even if this option is disabled. You should never open suspicious PDF files with BeamerPresenter!
+.
+.TP
 .B embed
 List of files which are marked for embedding if an execution link points to them. Multiple files should be separated only by a comma (not space!).
-This option is not available if embedded applications were disabled at compile time.
-This sets the default value for the command line argument
-.BR \-e " or " \-\-embed .
+This option is not available if embedded applications were disabled at compile time. This will have no effect unless you also allow external links using the option
+.BR external-links "=true. This sets the default value for the command line argument " \-e " or " \-\-embed .
 .
 .TP
 .BR blinds =8
@@ -441,11 +447,6 @@ Note that saving and loading drawings is experimental and files may not be reada
 .TP
 .BR "save xournal " or " save drawings xournal"
 Save drawings in an uncompressed XML file, which should be readable for Xournal(++). Note that this only aims at providing a compatibility layer and does not produce the same files as Xournal(++).
-.
-.TP
-.BR "save legacy " or " save drawings legacy"
-Save drawings to a legacy binary file. This opens a file dialog in which you can specify an output file path.
-.RB "Note that this file format will be " "unreadable for later versions of BeamerPresenter!"
 .
 .TP
 .B load drawings

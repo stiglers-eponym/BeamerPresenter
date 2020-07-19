@@ -141,7 +141,7 @@ public slots:
 #endif
 
 signals:
-    /// Request multimeida sliders from ControlScreen.
+    /// Request multimedia sliders from ControlScreen.
     void requestMultimediaSliders(int const n);
 };
 

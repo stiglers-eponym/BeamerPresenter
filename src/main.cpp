@@ -497,8 +497,9 @@ int main(int argc, char *argv[])
         {{"V", "video-cache"}, "Preload videos for the following slide.", "bool"},
 #ifdef EMBEDDED_APPLICATIONS_ENABLED
         {{"w", "pid2wid"}, "Program that converts a PID to a Window ID.", "file"},
-        {{"x", "log"}, "Log times of slide changes to standard output."},
 #endif
+        {{"x", "log"}, "Log times of slide changes to standard output."},
+        {"external-links", "Allow external links."},
         {"color-frames", "Minimum number of frames used for each color transitions in timer colors.", "int"},
 #ifdef CHECK_QPA_PLATFORM
         {"force-show", "Force showing notes or presentation (if in a framebuffer) independent of QPA platform plugin."},
@@ -1345,6 +1346,17 @@ int main(int argc, char *argv[])
     }
     else if (settings.contains("log"))
         ctrlScreen->setLogSlideChanges(true);
+
+    // Allow external links
+    if (parser.isSet("external-links"))
+        ctrlScreen->allowExternalLinks();
+    else if (local.contains("external-links")) {
+        // This is rather unintuitive. Just set any value...
+        if (local.value("external-links").toString().toLower() == "true")
+            ctrlScreen->allowExternalLinks();
+    }
+    else if (settings.contains("external-links"))
+        ctrlScreen->allowExternalLinks();
 
 
     // Settings, which can cause exceptions

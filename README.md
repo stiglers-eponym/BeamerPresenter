@@ -9,7 +9,7 @@ Features include slide transitions, multimedia content, different options for
 efficient and fast navigation, and different tools for highlighting and drawing
 in the presentation.
 
-Written in Qt, BeamerPresenter is cross-platform, but mainly tested on
+Based on Qt, BeamerPresenter is cross-platform, but mainly tested on
 Arch Linux with X11 or wayland using presentations created by LaTeX beamer.
 In general Qt programs more stable in X11 than in wayland.
 

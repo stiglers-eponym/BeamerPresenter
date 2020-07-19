@@ -46,7 +46,8 @@ true, false or number: Start video and audio content when entering a slide. A nu
 .TP
 .BI "\-A \-\-autoplay-emb " delay
 true, false or number: Start embedded applications when entering a slide. A number is interpreted as a delay in seconds, after which embedded applications are started.
-Not available if embedded applications were disabled at compile time.
+Not available if embedded applications were disabled at compile time. Note that using embedded applications requires the option
+.BR \-\-external-links " or in global settings: " external-links =true.
 .
 .TP
 .BI "\-\-mute-notes" bool
@@ -71,7 +72,8 @@ Disable all slide transition.
 .TP
 .BI "\-e \-\-embed " files
 Mark these files for embedding if an execution link points to them. Multiple files should be separated only by a comma (not space!).
-Not available if embedded applications were disabled at compile time.
+Not available if embedded applications were disabled at compile time. Note that using embedded applications requires the option
+.BR \-\-external-links " or in global settings: " external-links =true.
 .
 .TP
 .BI "\-g \-\-glitter-pixel " integer
@@ -134,6 +136,11 @@ Touch pads quantify scroll events as numbers of pixels. This option sets the num
 .TP
 .BI "\-t \-\-timer " time
 .RI "Set timer to " "time" ". Possible formats are ""[m]m"", ""[m]m:ss"" and ""h:mm:ss""."
+.
+.TP
+.BR \-external-links
+Allow opening links to local files, websites, remote files etc. Only enable this if you really trust the PDFs you open with BeamerPresenter.
+Note that multimedia content is loaded even if this option is disabled. You should never open suspicious PDF files with BeamerPresenter!
 .
 .TP
 .BI "\-u \-\-urlsplit " character
