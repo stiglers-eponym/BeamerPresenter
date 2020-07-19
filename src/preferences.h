@@ -57,7 +57,9 @@ public:
     QStringList rendering_arguments;
 
     /// Maximally allowed memory size in bytes.
-    float max_memory = -1;
+    float max_memory {-1.};
+    /// Maximally allowed number of pages in cache.
+    int max_cache_pages {-1};
 
 
     // INTERACTION

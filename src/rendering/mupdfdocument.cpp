@@ -123,6 +123,7 @@ MuPdfDocument::~MuPdfDocument()
     fz_drop_document(ctx, doc);
     fz_drop_context(ctx);
     qDeleteAll(mutex_list);
+    mutex->unlock();
     delete mutex;
 }
 

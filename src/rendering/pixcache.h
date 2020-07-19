@@ -44,9 +44,6 @@ private:
     /// Maximum number of slides in cache
     int maxNumber = -1;
 
-    /// Current page number
-    int currentPage = 0;
-
     /// Threads used to render pages to cache.
     QVector<PixCacheThread*> threads;
 
@@ -106,12 +103,6 @@ public:
     void setScaledMemory(const float scale)
     {setMaxMemory(scale * frame.width() * frame.height());}
 
-    /// Update current page number.
-    /// Update boundary of simply connected region of cached pages.
-    /// This does not fully recalculate the region, but assumes that the
-    /// currently saved region is indeed simply connected.
-    void updatePageNumber(const int page_number);
-
     /// Udate frame and clear cache if necessary.
     void updateFrame(QSizeF const& size);
 
@@ -131,6 +122,12 @@ public slots:
 
     /// Receive a PngPixmap from one of the threads.
     void receiveData(const PngPixmap *data);
+
+    /// Update current page number.
+    /// Update boundary of simply connected region of cached pages.
+    /// This does not fully recalculate the region, but assumes that the
+    /// currently saved region is indeed simply connected.
+    void pageNumberChanged(const int page);
 
 signals:
     /// Send out new page.

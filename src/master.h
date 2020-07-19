@@ -42,6 +42,7 @@ public:
     bool readGuiConfig(const QString& filename);
     /// Create widgets recursively.
     QPair<QWidget*, GuiWidget*> createWidget(QJsonObject& object, ContainerWidget *parent = nullptr);
+    qint64 getTotalCache() const;
 
 public slots:
     void receiveKeyEvent(QKeyEvent const* event);

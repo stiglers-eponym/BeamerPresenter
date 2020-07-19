@@ -147,7 +147,15 @@ const QPixmap PixCache::pixmap(const int page)
     if (png == nullptr)
         qWarning() << "Converting pixmap to PNG failed";
     else
+    {
+        if (cache.value(page, nullptr) != nullptr)
+        {
+            usedMemory -= cache[page]->size();
+            delete cache[page];
+        }
         cache[page] = png;
+        usedMemory += png->size();
+    }
 
     return pix;
 }
@@ -161,28 +169,26 @@ void PixCache::requestRenderPage(const int n)
     renderCacheTimer->start();
 }
 
-void PixCache::updatePageNumber(const int page_number)
+void PixCache::pageNumberChanged(const int page)
 {
-    currentPage = page_number;
-
     // Update boundaries of the simply connected region.
-    if (!cache.contains(currentPage))
+    if (!cache.contains(page))
     {
         // If current page is not yet in cache: make sure it is first in priority queue.
-        if (priority.first() != currentPage)
+        if (!priority.isEmpty() && priority.first() != page)
         {
-            priority.removeOne(currentPage);
-            priority.push_front(currentPage);
+            priority.removeOne(page);
+            priority.push_front(page);
         }
-        region.first = currentPage;
-        region.second = currentPage;
+        region.first = page;
+        region.second = page;
         return;
     }
 
     // Make sure that current page is inside the region.
-    if (region.first > currentPage || region.second < currentPage) {
-        region.first = currentPage - 1;
-        region.second = currentPage + 1;
+    if (region.first > page || region.second < page) {
+        region.first = page - 1;
+        region.second = page + 1;
     }
 
     // Extend the region as far as possible by searching for gaps.
@@ -217,7 +223,7 @@ int PixCache::limitCacheSize()
         // Check if all pages are already in memory.
         if (cache.size() == pdfDoc->numberOfPages())
             return 0;
-        return INT_MAX;
+        return INT_MAX >> 1;
     }
     if (maxNumber == 0 || maxMemory == 0)
     {
@@ -228,8 +234,8 @@ int PixCache::limitCacheSize()
     // Check if region is valid.
     if (region.first > region.second)
     {
-        region.first = currentPage;
-        region.second = currentPage;
+        region.first = preferences().page;
+        region.second = preferences().page;
     }
 
     // Number of really cached slides:
@@ -241,10 +247,10 @@ int PixCache::limitCacheSize()
             --cached_slides;
     }
     if (cached_slides <= 0)
-        return INT_MAX;
+        return INT_MAX >> 1;
 
     // Calculate how many slides still fit in available memory
-    int allowed_slides = INT_MAX;
+    int allowed_slides = INT_MAX >> 1;
     if (maxMemory > 0)
     {
         // Get currently used memory.
@@ -254,8 +260,8 @@ int PixCache::limitCacheSize()
         else
             allowed_slides = threads.length();
     }
-    if (maxNumber > 0 && allowed_slides + cached_slides > maxNumber)
-        allowed_slides = maxNumber - cached_slides;
+    if (maxNumber > 0 && allowed_slides + cache.size() > maxNumber)
+        allowed_slides = maxNumber - cache.size();
 
     // If threads.length() pages can be rendered without problems: return
     if (allowed_slides >= threads.length())
@@ -275,12 +281,16 @@ int PixCache::limitCacheSize()
     do {
         // If the set of cached pages is simply connected, includes the
         // current page, and lies mostly ahead of the current page,
-        // then clean stop cleaning up.
-        if (last > currentPage && last - first <= cache.size() && 2*last + 3*first > 5*currentPage)
-            break;
+        // then stop rendering to cache.
+        if ((maxNumber < 0 || cache.size() <= maxNumber)
+                && (maxMemory < 0 || usedMemory <= maxMemory)
+                && last > preferences().page
+                && last - first <= cache.size()
+                && 2*last + 3*first > 5*preferences().page)
+            return 0;
 
         // If more than 3/4 of the cached slides lie ahead of current page, clean up last.
-        if (last + 3*first > 4*currentPage)
+        if (last + 3*first > 4*preferences().page)
         {
             auto it = cache.end() - 1;
             remove = it.value();
@@ -303,9 +313,13 @@ int PixCache::limitCacheSize()
 
         // Update allowed_slides
         if (usedMemory > 0 && cached_slides > 0)
+        {
             allowed_slides = (maxMemory - usedMemory) * cached_slides / usedMemory;
-        if (allowed_slides + cached_slides > maxNumber)
-            allowed_slides = maxNumber - cached_slides;
+            if (allowed_slides + cache.size() > maxNumber)
+                allowed_slides = maxNumber - cache.size();
+        }
+        else
+            allowed_slides = maxNumber - cache.size();
 
     } while (allowed_slides < threads.length() && cached_slides > 0);
 
@@ -332,14 +346,14 @@ int PixCache::renderNext()
     // Check if region is valid.
     if (region.first > region.second)
     {
-        region.first = currentPage;
-        region.second = currentPage;
+        region.first = preferences().page;
+        region.second = preferences().page;
     }
 
     // Select region.first or region.second for rendering.
     while (true)
     {
-        if (region.second + 3*region.first > 4*currentPage && region.first >= 0)
+        if (region.second + 3*region.first > 4*preferences().page && region.first >= 0)
         {
             if (!cache.contains(region.first))
                 return region.first--;
@@ -356,7 +370,6 @@ int PixCache::renderNext()
 
 void PixCache::startRendering()
 {
-    qDebug() << "Start rendering to cache";
     // Clean up cache and check if there is enough space for more cached pages.
     int allowed_pages = limitCacheSize();
     if (allowed_pages <= 0)
@@ -390,7 +403,13 @@ void PixCache::receiveData(const PngPixmap *data)
     }
     else
     {
+        if (cache.value(data->getPage(), nullptr) != nullptr)
+        {
+            usedMemory -= cache[data->getPage()]->size();
+            delete cache[data->getPage()];
+        }
         cache[data->getPage()] = data;
+        usedMemory += data->size();
     }
 
     // Start rendering next page.
@@ -463,7 +482,15 @@ void PixCache::requestPage(const int page, const qreal resolution)
     if (png == nullptr)
         qWarning() << "Converting pixmap to PNG failed";
     else
+    {
+        if (cache.value(page, nullptr) != nullptr)
+        {
+            usedMemory -= cache[page]->size();
+            delete cache[page];
+        }
         cache[page] = png;
+        usedMemory += png->size();
+    }
 
     // Start rendering next page.
     renderCacheTimer->start();

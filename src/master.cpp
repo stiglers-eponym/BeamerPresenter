@@ -211,6 +211,9 @@ QPair<QWidget*, GuiWidget*> Master::createWidget(QJsonObject &object, ContainerW
             pixcache->moveToThread(new QThread());
             // Make sure that pixcache is initialized when the thread is started.
             connect(pixcache->thread(), &QThread::started, pixcache, &PixCache::init);
+            connect(this, &Master::navigationSignal, pixcache, &PixCache::pageNumberChanged);
+            // Set maximum number of pages in cache from settings.
+            pixcache->setMaxNumber(preferences().max_cache_pages);
             // Start the thread.
             pixcache->thread()->start();
             // Keep the new pixcache in caches.
@@ -270,6 +273,7 @@ void Master::receiveKeyEvent(const QKeyEvent* event)
     {
 #ifdef DEBUG_KEY_ACTIONS
         qDebug() << "Global key action:" << it.value();
+        qDebug() << "Cache:" << getTotalCache();
 #endif
         switch (it.value())
         {
@@ -334,4 +338,12 @@ void Master::distributeMemory()
     scale = preferences().max_memory / scale;
     for (const auto cache : caches)
         cache->setScaledMemory(scale);
+}
+
+qint64 Master::getTotalCache() const
+{
+    qint64 cache = 0;
+    for (const auto px : caches)
+        cache += px->getUsedMemory();
+    return cache;
 }

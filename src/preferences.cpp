@@ -75,6 +75,16 @@ void Preferences::loadSettings()
         }
     }
 
+    { // cache
+        bool ok;
+        max_memory = settings.value("memory").toFloat(&ok);
+        if (!ok)
+            max_memory = -1.;
+        max_cache_pages = settings.value("cache pages").toInt(&ok);
+        if (!ok)
+            max_cache_pages = -1;
+    }
+
     // INTERACTION
     {
         // Keyboard shortcuts

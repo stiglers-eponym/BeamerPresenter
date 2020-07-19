@@ -29,9 +29,11 @@ bool SlideScene::event(QEvent* event)
     {
         const auto mouseevent = static_cast<QGraphicsSceneMouseEvent*>(event);
         master->resolveLink(preferences().page + shift & ~AnyOverlay, mouseevent->scenePos());
+        return true;
     }
+    default:
+        return false;
     }
-    return false;
 }
 
 void SlideScene::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
