@@ -20,7 +20,7 @@
 #define TRANSITIONWIDGET_H
 
 #include <random>
-#include <poppler-page-transition.h>
+#include <poppler/qt5/poppler-page-transition.h>
 #include "drawslide.h"
 
 class PresentationSlide : public DrawSlide
@@ -43,7 +43,6 @@ private:
     unsigned int seed = 0;
 
 protected:
-    QList<DrawPath*> undonePaths;
     QTimer* const timeoutTimer = new QTimer(this);
     int minimumAnimationDelay = 50; // minimum frame time in ms
     QPixmap picinit;
@@ -54,9 +53,7 @@ protected:
     void endAnimation();
     void stopAnimation() override;
     void setDuration() override;
-    void drawPointer(QPainter& painter);
     void updateImages(int const oldPage);
-    void clearLists() override;
 
 public:
     PresentationSlide(PdfDoc const*const document, PagePart const part, QWidget* parent=nullptr);

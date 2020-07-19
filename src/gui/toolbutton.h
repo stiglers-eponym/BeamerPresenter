@@ -23,6 +23,7 @@
 #include <QPushButton>
 #include <QMap>
 #include <QIcon>
+#include <QEvent>
 #include "../enumerates.h"
 
 
@@ -40,12 +41,16 @@ public:
     bool hasTool() const {return tool.tool != InvalidTool;}
     bool hasAction() const {return !actions.isEmpty();}
 
+protected:
+    virtual bool event(QEvent* event) override;
+
 public slots:
     void onClicked();
 
 signals:
     void sendTool(FullDrawTool const& tool);
     void sendAction(KeyAction const action);
+    void sendStylusTool(FullDrawTool const& tool);
 };
 
 #endif // TOOLBUTTON_H

@@ -23,6 +23,7 @@
 #include <QJsonObject>
 #include <QJsonDocument>
 #include <QMimeDatabase>
+#include <QScreen>
 #include "screens/controlscreen.h"
 #include "names.h"
 
@@ -295,10 +296,10 @@ void actionsFromConfig(QMap<QString, QList<KeyAction>>& actions, QMap<QString, F
                             if (ok)
                                 tools[key] = {tool, color, size, {magnification}};
                             else
-                                tools[key] = {tool, color, size};
+                                tools[key] = {tool, color, size, {0.}};
                         }
                         else if (tool == Pointer) {
-                            tools[key] = {tool, color, .size=size, defaultToolConfig[Pointer].extras};
+                            tools[key] = {tool, color, size, defaultToolConfig[Pointer].extras};
                             bool ok;
                             quint16 alpha = map["alpha"].toUInt(&ok);
                             if (ok)
@@ -315,7 +316,7 @@ void actionsFromConfig(QMap<QString, QList<KeyAction>>& actions, QMap<QString, F
                                 tools[key].extras.pointer.inner = false;
                         }
                         else
-                            tools[key] = {tool, color, size};
+                            tools[key] = {tool, color, size, {0.}};
                     }
                     else {
                         // Interpret all following arguments as color, size and magnification.
@@ -335,7 +336,8 @@ void actionsFromConfig(QMap<QString, QList<KeyAction>>& actions, QMap<QString, F
                                 magnification = split_action[3].toDouble();
                             else if (ok && !color.isValid()) {
                                 // Try to interpret second argument as magnification.
-                                magnification = split_action[2].toDouble();
+                                if (split_action.length() > 2)
+                                    magnification = split_action[2].toDouble();
                                 // Don't accept any unrealistic numbers.
                                 if (magnification > 20 || magnification < 1e-4)
                                     magnification = 0.;
@@ -378,7 +380,7 @@ void actionsFromConfig(QMap<QString, QList<KeyAction>>& actions, QMap<QString, F
                 tools[key] = {tool, color, size, {magnification}};
             }
             else if (tool == Pointer) {
-                tools[key] = {tool, color, .size=size, defaultToolConfig[Pointer].extras};
+                tools[key] = {tool, color, size, defaultToolConfig[Pointer].extras};
                 bool ok;
                 quint16 alpha = it->value("alpha").toUInt(&ok);
                 if (ok)
@@ -395,7 +397,7 @@ void actionsFromConfig(QMap<QString, QList<KeyAction>>& actions, QMap<QString, F
                     tools[key].extras.pointer.inner = false;
             }
             else
-                tools[key] = {tool, color, size};
+                tools[key] = {tool, color, size, {0.}};
 #ifdef DEBUG_READ_CONFIGS
             qDebug() << "New tool:" << key << tools[key].tool << tools[key].color << tools[key].size << tools[key].extras.magnification;
 #endif
@@ -672,7 +674,11 @@ int main(int argc, char *argv[])
                     }
                     else {
                         // Write the options from the JSON file in local.
+#if QT_VERSION_MINOR < 15 and QT_VERSION_MAJOR <= 5
                         local.unite(jsonDoc.object().toVariantMap());
+#else
+                        local.insert(jsonDoc.object().toVariantMap());
+#endif
 #ifdef DEBUG_READ_CONFIGS
                         qDebug() << "Loaded local config" << *argument;
                         qDebug() << local;
@@ -710,7 +716,7 @@ int main(int argc, char *argv[])
                             doc.clear();
                     }
                     if (doc.isNull()) {
-                        // Deprecated
+                        // Deprecated: only returns an error.
                         // Try to read deprecated binary file format.
                         // Read the file in a QDataStream.
                         file.close();
@@ -722,19 +728,7 @@ int main(int argc, char *argv[])
                         stream >> magic;
                         // Check for errors and whether the magic bytes match the ones defined for BeamerPresenter binaries.
                         if (stream.status() == QDataStream::Ok && magic == 0x2CA7D9F8) {
-                            // Read QDataStream version from stream.
-                            quint16 version;
-                            stream >> version;
-                            // Overwrite QDataStream version with the version read from the stream.
-                            stream.setVersion(version);
-                            // Read file paths for presentation and notes.
-                            stream >> presentation >> notes;
-                            // Check for errors.
-                            if (stream.status() != QDataStream::Ok) {
-                                file.close();
-                                qCritical() << "Failed to open drawings file" << *argument << ". File is corrupt";
-                                throw -1;
-                            }
+                            qCritical() << "Binary file format is not supported anymore since version 0.1.2.";
                         }
                     }
                     else {
@@ -782,6 +776,7 @@ int main(int argc, char *argv[])
     // Create ctrlScreen and thereby the whole GUI.
     {
         PagePart pagePart = FullPage;
+        qreal threshold = -1.;
         // Split page if necessary (beamer option show notes on second screen).
         // With this option half of the pages in a pdf document contain the presentation and the other half contains the notes.
         bool found = false;
@@ -815,20 +810,25 @@ int main(int argc, char *argv[])
         }
         // Check whether the global configuration contains the option "page-part"
         if (!found && settings.contains("page-part")) {
-                QString value = settings.value("page-part").toString();
-                if ( value == "r" || value == "right" )
-                    pagePart = RightHalf;
-                else if ( value == "l" || value == "left" )
-                    pagePart = LeftHalf;
-                else if (value != "none" && value != "0")
-                    qCritical() << "option \"" << value << "\" to page-part in config not understood.";
+            // Check aspect ratio of PDF and compare to page part threshold.
+            bool success;
+            threshold = settings.value("page-part threshold").toReal(&success);
+            if (!success)
+                threshold = 2.66;
+            QString const value = settings.value("page-part").toString();
+            if ( value == "r" || value == "right" )
+                pagePart = RightHalf;
+            else if ( value == "l" || value == "left" )
+                pagePart = LeftHalf;
+            else if (value != "none" && value != "0")
+                qCritical() << "option \"" << value << "\" to page-part in config not understood.";
         }
 
         // Create the GUI.
         /// ctrlScreen will be the object which manages everything.
         /// It is the window shown on the speaker's monitor.
         /// If the option "-n" or "--no-notes" is set, ctrlScreen is not shown, but still controls everything.
-        ctrlScreen = new ControlScreen(presentation, notes, pagePart);
+        ctrlScreen = new ControlScreen(presentation, notes, pagePart, threshold);
         // In the following ctrlScreen will be created using the positional arguments.
         // When ctrlScreen is created, the presentation is immediately shown.
     }
@@ -1405,6 +1405,11 @@ int main(int argc, char *argv[])
             }
         }
     }
+
+
+    // Window sizes: Not really tested because I use a tiling window manager.
+    ctrlScreen->adjustSize();
+    ctrlScreen->getPresentationScreen()->adjustSize();
 
 
     // Decide whether ctrlScreen should be shown depending on arguments, settings and the QPA backend.

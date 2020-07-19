@@ -108,9 +108,10 @@ Set the number of columns of slides, which will be shown in the overview mode on
 .
 .TP
 .BI "\-p \-\-page-part " side
-Set half of the page to be the presentation, the other half to be the notes. Values are "l" or "r" for presentation on the left or right half of the page, respectively. If the presentation was created with "\\setbeameroption{show notes on second screen=right}", you should use
+Set half of the page to be the presentation, the other half to be the notes. Values are "left" or "right" for presentation on the left or right half of the page, respectively. If the presentation was created with "\\setbeameroption{show notes on second screen=right}", you should use
 .B \-\-page-part 
-.IR right .
+.IR left .
+You can define a default value for this option in the configuration, which will only be used if the ratio (page width / page height) lies above a threshold (by default 2.66).
 .
 .TP
 .BI "\-r \-\-renderer " command
@@ -369,11 +370,13 @@ Embedded applications can be disabled at compile time.
 .SS Beamer option "show notes on second screen"
 Beamer can combine notes and presentation into one PDF file by using the option "show slides on second screen". The resulting PDF file can be read by
 .B BeamerPresenter
-with the option
-.BR \-p ", or " \-\-page-part
+automatically or manually with the option
+.BR \-p ", or " \-\-page-part ". Note that for automatic loading you need to specify " page-part " in the global configuration or use the provided default configuration file."
 .
 .SS Draw in presentation
 You can draw in the presentation. You can access pens with customized colors and other tools by using key bindings or buttons on the control screen. Besides simple drawing with pens and highlighters you can emphasize parts of a slide using a torch, a magnifier and a pointer. In drawing mode all tools are synchronized between control screen and presentation screen.
+.PP
+It is possible to use a tablet input device, like a stylus. The draw tool of the stylus is handled separately from the tool for mouse and touch screen input events. To select a tool you can click with the pen on one of the buttons on the control screen.
 .PP
 Drawings can be saved to compressed XML files.
 .RB "Saving and loading files is done using the key actions " save " and " load ". You can also save files uncompressed or in a (deprecated) legacy binary format using " "save uncompressed " and " save legacy" ". Note that the legacy binary format will not be supported in future versions of " BeamerPresenter .

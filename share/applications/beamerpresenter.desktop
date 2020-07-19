@@ -1,0 +1,10 @@
+[Desktop Entry]
+Type=Application
+Exec=beamerpresenter %F
+Terminal=false
+Name=BeamerPresenter
+Icon=beamerpresenter
+Comment=Simple dual screen pdf presentation software
+GenericName=PDF Presentation viewer
+MimeType=application/pdf;application/x-pdf;
+Categories=Office;

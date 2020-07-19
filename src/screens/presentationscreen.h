@@ -40,6 +40,10 @@ public:
     void setScrollDelta(int const scrollDelta) {this->scrollDelta=scrollDelta;}
     void setForceTouchpad() {forceIsTouchpad=true;}
 
+    /// Set a relatively large size as size hint. Will be reduced and adapted
+    /// to screen size by Qt if necessary.
+    QSize sizeHint() const override {return QSize(1920,1080);}
+
 protected:
     void keyPressEvent(QKeyEvent* event) override {emit sendKeyEvent(event);}
     void resizeEvent(QResizeEvent*) override;

@@ -46,7 +46,7 @@ class ControlScreen : public QMainWindow
 public:
     /// Construct control screen.
     /// Create the GUI including PresentationScreen and connect the widgets.
-    explicit ControlScreen(QString presentationPath, QString notesPath = "", PagePart const page = FullPage, QWidget* parent = nullptr);
+    explicit ControlScreen(QString presentationPath, QString notesPath = "", PagePart const part = FullPage, qreal const pagePartThreshold = -1., QWidget* parent = nullptr);
     /// Destructor. Delete the whole GUI.
     ~ControlScreen() override;
 
@@ -114,10 +114,15 @@ public:
     /// Show overview on the control screen (above the notes label).
     void showOverview();
 
+    /// Set a relatively large size as size hint. Will be reduced and adapted
+    /// to screen size by Qt if necessary.
+    QSize sizeHint() const override {return QSize(1920,1080);}
+
     // Get different widgets
-    ToolSelector* getToolSelector() {return ui->tool_selector;}
-    PresentationSlide* getPresentationSlide() {return presentationScreen->slide;}
-    MediaSlide* getNotesSlide() {return ui->notes_widget;}
+    ToolSelector* getToolSelector() const {return ui->tool_selector;}
+    PresentationSlide* getPresentationSlide() const {return presentationScreen->slide;}
+    PresentationScreen* getPresentationScreen() const {return presentationScreen;}
+    MediaSlide* getNotesSlide() const {return ui->notes_widget;}
 
 protected:
     // Handle events
@@ -259,6 +264,7 @@ public slots:
     void cacheThreadFinished();
     /// Send draw tool from tool selector to draw slide and presentation.
     void distributeTools(FullDrawTool const& tool);
+    void distributeStylusTools(FullDrawTool const& tool);
 
 signals:
     /// Send a new page number with or without starting a timer for the new slide.

@@ -15,6 +15,7 @@
  * You should have received a copy of the GNU General Public License
  * along with BeamerPresenter. If not, see <https://www.gnu.org/licenses/>.
  */
+#include <cmath>
 
 #include "drawpath.h"
 
@@ -55,7 +56,7 @@ DrawPath::DrawPath(FullDrawTool const& tool, QPointF const* const points, int co
 
 DrawPath::DrawPath(DrawPath const& old, QPointF const shift, double const scale) :
     path(QVector<QPointF>(old.path.length())),
-    tool({old.tool.tool, old.tool.color, scale*old.tool.size}),
+    tool({old.tool.tool, old.tool.color, scale*old.tool.size, old.tool.extras}),
     hash(old.hash)
 {
     for (int i=0; i<old.path.length(); i++)
@@ -118,8 +119,8 @@ QVector<int> DrawPath::intersects(QPointF const& point, const qreal eraser_size)
         return QVector<int>();
     QVector<int> vec = QVector<int>();
     for (int i=0; i<path.length(); i++) {
-        if (abs(point.x() - path[i].x()) < eraser_size
-                && abs(point.y() - path[i].y()) < eraser_size
+        if (std::abs(point.x() - path[i].x()) < eraser_size
+                && std::abs(point.y() - path[i].y()) < eraser_size
                 && square(point.x() - path[i].x()) + square(point.y() - path[i].y()) < square(eraser_size))
             vec.append(i);
     }
@@ -149,15 +150,6 @@ void DrawPath::updateHash()
         hash ^= quint32(std::hash<double>{}(p.x() + 1e5*p.y())) + (hash << 6) + (hash >> 2);
 }
 
-void DrawPath::toIntVector(QVector<float>& vec, int const xshift, int const yshift, int const width, int const height) const
-{
-    // Deprecate
-    for (auto point : path) {
-        vec.append(static_cast<float>(point.x() - xshift)/width);
-        vec.append(static_cast<float>(point.y() - yshift)/height);
-    }
-}
-
 void DrawPath::toText(QStringList &stringList, QPoint const shift, qreal const scale) const
 {
     for (auto point : path) {
@@ -166,31 +158,8 @@ void DrawPath::toText(QStringList &stringList, QPoint const shift, qreal const s
     }
 }
 
-DrawPath::DrawPath(FullDrawTool const& tool, QVector<float> const& vec, int const xshift, int const yshift, int const width, int const height) :
-    tool(tool)
-{
-    // Deprecated
-    double left=width+2*xshift, right=0, top=height+2*yshift, bottom=0;
-    double x, y;
-    for (QVector<float>::const_iterator it=vec.cbegin(); it!=vec.cend();) {
-        x = xshift + width*static_cast<qreal>(*it++);
-        y = yshift + height*static_cast<qreal>(*it++);
-        path.append(QPointF(x, y));
-        if (left > x)
-            left = x;
-        else if (right < x)
-            right = x;
-        if (bottom < y)
-            bottom = y;
-        else if (top > y)
-            top = y;
-    }
-    outer = QRectF(left, top, right-left, bottom-top);
-    updateHash();
-}
-
 DrawPath::DrawPath(FullDrawTool const& tool, QStringList const& stringList, QPoint const shift, qreal const scale) :
-    tool({tool.tool, tool.color, scale*tool.size})
+    tool({tool.tool, tool.color, scale*tool.size, tool.extras})
 {
     if (stringList.size() % 2 != 0 || stringList.size() < 2)
         return;

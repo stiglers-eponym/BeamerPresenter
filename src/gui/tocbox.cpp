@@ -112,87 +112,30 @@ void TocBox::recursiveTocCreator(QDomNode const& n, quint8 const level)
     }
     // Maximum unfold level is reached: Create drop down menus instead of buttons.
     else if (!n1.isNull()) {
-#ifdef USE_WAYLAND_SUBMENU_PATCH
-        // Wayland has some problems with drop down menus.
-        // TODO: keep testing, improve this patch.
-        if (QGuiApplication::platformName() == "wayland") {
-            // Unstable patch because menus don't work in wayland (at least on my system)
-            // This patch does not handle key events correctly!
-
-            // Disconnect the button, because it will get a new function.
-            button->disconnect();
-            // Create a new widget containing a list of subitem buttons.
-            QWidget * list = new QWidget(this);
-            // ???
-            list->setLocale(button->locale());
-            // This button is used to show the widget "list" of subitems.
-            connect(button, &TocButton::clicked, list, &QWidget::show);
-            // Create a layout for the widget "list".
-            QVBoxLayout * listLayout = new QVBoxLayout(list);
-            list->setLayout(listLayout);
-            // The list should have an adaptive size.
-            list->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-            listLayout->setSizeConstraint(QVBoxLayout::SetMinimumSize);
-            // Create the button for the main TOC entry.
-            // Get the destination page index.
+        // Create a drop down menu for the next TOC level.
+        QMenu* menu = new QMenu(e.tagName(), this);
+        // Append the menu to the list of menus.
+        menus.append(menu);
+        // Get the page index for the main TOC entry.
+        int const dest = pdf->destToSlide(e.attribute("DestinationName", ""));
+        // Create a TocAction (menu entry) for the main TOC entry.
+        TocAction* action = new TocAction(tocIndentStrings[0], e.tagName(), dest, this);
+        // Hand over new page events from the action.
+        connect(action, &TocAction::activated, this, &TocBox::sendNewPage);
+        // Add the action to the menu.
+        menu->addAction(action);
+        // Add actions for the TOC subentries.
+        for (; !n1.isNull(); n1 = n1.nextSibling()) {
+            QDomElement const e = n1.toElement();
+            if (e.isNull())
+                continue;
             int const dest = pdf->destToSlide(e.attribute("DestinationName", ""));
-            // Create the button.
-            TocButton * button = new TocButton(tocIndentStrings[0], e.tagName(), dest, list);
-            // Hand over the activation event from the button.
-            connect(button, &TocButton::activated, this, &TocBox::sendNewPage);
-            // Hide the submenu when an entry was selected.
-            connect(button, &TocButton::activated, list, &QWidget::hide);
-            // Add the button to the submenu.
-            listLayout->addWidget(button);
-            // Add buttons for the TOC subentries.
-            for (; !n1.isNull(); n1 = n1.nextSibling()) {
-                QDomElement const e = n1.toElement();
-                if (e.isNull())
-                    continue;
-                // Get the destination page index.
-                int const dest = pdf->destToSlide(e.attribute("DestinationName", ""));
-                // Create the button.
-                TocButton * button = new TocButton(tocIndentStrings[1], e.tagName(), dest, list);
-                // Hand over the activation event from the button.
-                connect(button, &TocButton::activated, this, &TocBox::sendNewPage);
-                // Hide the submenu when an entry was selected.
-                connect(button, &TocButton::activated, list, &QWidget::hide);
-                // Add the button to the submenu.
-                listLayout->addWidget(button);
-            }
-            // Fill submenu background.
-            list->setAutoFillBackground(true);
-            // Hide submenu by default. It is shown when the corresponding button is pushed.
-            list->hide();
-        }
-        else
-#endif
-        {
-            // Create a drop down menu for the next TOC level.
-            QMenu* menu = new QMenu(e.tagName(), this);
-            // Append the menu to the list of menus.
-            menus.append(menu);
-            // Get the page index for the main TOC entry.
-            int const dest = pdf->destToSlide(e.attribute("DestinationName", ""));
-            // Create a TocAction (menu entry) for the main TOC entry.
-            TocAction* action = new TocAction(tocIndentStrings[0], e.tagName(), dest, this);
-            // Hand over new page events from the action.
+            TocAction* action = new TocAction(tocIndentStrings[1], e.tagName(), dest, this);
             connect(action, &TocAction::activated, this, &TocBox::sendNewPage);
-            // Add the action to the menu.
             menu->addAction(action);
-            // Add actions for the TOC subentries.
-            for (; !n1.isNull(); n1 = n1.nextSibling()) {
-                QDomElement const e = n1.toElement();
-                if (e.isNull())
-                    continue;
-                int const dest = pdf->destToSlide(e.attribute("DestinationName", ""));
-                TocAction* action = new TocAction(tocIndentStrings[1], e.tagName(), dest, this);
-                connect(action, &TocAction::activated, this, &TocBox::sendNewPage);
-                menu->addAction(action);
-            }
-            // Add the menu to the button (which has the highest allowed TOC level).
-            button->setMenu(menu);
         }
+        // Add the menu to the button (which has the highest allowed TOC level).
+        button->setMenu(menu);
     }
 }
 

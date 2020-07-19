@@ -28,7 +28,7 @@
 #include <QUrl>
 #include <QDir>
 #include <QImage>
-#include <poppler-qt5.h>
+#include <poppler/qt5/poppler-qt5.h>
 
 /// "Widget-like" object showing video on slides.
 /// VideoWidget contains a QGraphicsScene and everything required to show it,

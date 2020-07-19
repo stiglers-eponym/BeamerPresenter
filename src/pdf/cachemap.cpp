@@ -15,6 +15,7 @@
  * You should have received a copy of the GNU General Public License
  * along with BeamerPresenter. If not, see <https://www.gnu.org/licenses/>.
  */
+#include <cmath>
 
 #include "cachemap.h"
 
@@ -97,7 +98,7 @@ QPixmap const CacheMap::getPixmap(int const page)
         QSizeF pageSize = resolution*pdf->getPageSize(page);
         if (pagePart != FullPage)
             pageSize.setWidth(pageSize.width()/2);
-        if (abs(pixmap.height() - pageSize.height()) < 2 && abs(pixmap.width() - pageSize.width()) < 2)
+        if (std::abs(pixmap.height() - pageSize.height()) < 2 && std::abs(pixmap.width() - pageSize.width()) < 2)
             return pixmap;
 #ifdef DEBUG_CACHE
         qDebug() << "Size changed:" << pixmap.size() << pageSize;
@@ -114,7 +115,12 @@ QPixmap const CacheMap::getPixmap(int const page)
     }
     else {
         ExternalRenderer* renderer = new ExternalRenderer(page);
+#if QT_VERSION_MAJOR <= 5 and QT_VERSION_MINOR < 15
         renderer->start(getRenderCommand(page));
+#else
+        QStringList renderCommandSplit = QProcess::splitCommand(getRenderCommand(page));
+        renderer->start(renderCommandSplit.takeFirst(), renderCommandSplit);
+#endif
         QByteArray const* bytes = nullptr;
         if (renderer->waitForFinished(60000))
             bytes = renderer->getBytes();

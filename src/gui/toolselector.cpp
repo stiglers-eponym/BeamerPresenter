@@ -26,12 +26,13 @@ void ToolSelector::setTools(const quint8 nrows, const quint8 ncols, QMap<quint8,
     for (auto key : actionMap.keys() + toolMap.keys()) {
         if (buttons.contains(key))
             continue;
-        ToolButton* button = new ToolButton(actionMap.value(key), toolMap.value(key, {InvalidTool, QColor(), 0.}), this);
+        ToolButton* button = new ToolButton(actionMap.value(key), toolMap.value(key, {InvalidTool, QColor(), 0., {0.}}), this);
         buttons[key] = button;
         if (button->hasTool())
             connect(button, &ToolButton::sendTool, this, &ToolSelector::sendNewTool);
         if (button->hasAction())
             connect(button, &ToolButton::sendAction, this, &ToolSelector::sendAction);
+        connect(button, &ToolButton::sendStylusTool, this, &ToolSelector::sendNewStylusTool);
         layout->addWidget(button, key/16+1, key%16+1);
     }
     setLayout(layout);

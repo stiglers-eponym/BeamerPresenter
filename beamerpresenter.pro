@@ -4,7 +4,7 @@
 #
 #-------------------------------------------------
 
-VERSION = 0.1.1
+VERSION = 0.1.2
 
 # Check Qt version.
 requires(greaterThan(QT_MAJOR_VERSION, 4))
@@ -25,10 +25,15 @@ TEMPLATE = app
 # deprecated API in order to know how to port your code away from it.
 DEFINES += QT_DEPRECATED_WARNINGS
 
+# Set git version for more precise version info if possible.
+exists(.git) {
+    VERSION_STRING = "$${VERSION}-$(shell git -C \""$$_PRO_FILE_PWD_"\" rev-list --count HEAD ).$(shell git -C \""$$_PRO_FILE_PWD_"\" rev-parse --short HEAD )"
+} else {
+    VERSION_STRING = "$${VERSION}"
+}
+
 # Define the application version.
-#DEFINES += APP_VERSION=\\\"$${VERSION}\\\"
-# Set git version for more precise version info.
-DEFINES += APP_VERSION="\\\"$${VERSION}-$(shell git -C \""$$_PRO_FILE_PWD_"\" rev-list --count HEAD ).$(shell git -C \""$$_PRO_FILE_PWD_"\" rev-parse --short HEAD )\\\""
+DEFINES += APP_VERSION=\\\"$${VERSION_STRING}\\\"
 
 # If the following define is uncommented, BeamerPresenter will check whether a compatible QPA platform is used.
 # It will then emit warning on untested systems and try to avoid blocking you window manager.
@@ -39,7 +44,7 @@ DEFINES += CHECK_QPA_PLATFORM
 ICON_PATH = "/usr/share/icons/hicolor/scalable/apps/"
 DEFINES += ICON_PATH=\\\"$${ICON_PATH}\\\"
 
-CONFIG += c++20 qt
+CONFIG += c++14 qt
 unix {
     # Enable better debugging.
     CONFIG(debug, debug|release):QMAKE_LFLAGS += -rdynamic
@@ -56,10 +61,6 @@ linux {
     # Disable toolTip globally at compile time to avoid segfaults in strange
     # wayland setup:
     #DEFINES += DISABLE_TOOL_TIP
-
-    # Replace drop down menus with an ugly patch, since they can in some
-    # situations be misplaced in wayland: (deprecated!)
-    #DEFINES += USE_WAYLAND_SUBMENU_PATCH
 }
 
 # Disable debugging message if debugging mode is disabled.
@@ -74,8 +75,9 @@ CONFIG(debug, debug|release) {
     #DEFINES += DEBUG_PAINT_EVENTS
     #DEFINES += DEBUG_KEY_ACTIONS
     #DEFINES += DEBUG_TOOL_ACTIONS
-    DEFINES += DEBUG_SLIDE_TRANSITIONS
-    DEFINES += DEBUG_MULTIMEDIA
+    #DEFINES += DEBUG_INPUT
+    #DEFINES += DEBUG_SLIDE_TRANSITIONS
+    #DEFINES += DEBUG_MULTIMEDIA
 }
 
 SOURCES += \
@@ -160,7 +162,7 @@ win32 {
 
 unix {
     # Commands needed for make install
-    # Include man pages and default configuration in make install.
+    # Include man pages, default configuration, icon and desktop file in make install.
 
     man1.path = /usr/share/man/man1/
     man1.CONFIG = no_check_exist no_build
@@ -180,7 +182,11 @@ unix {
     icon.CONFIG = no_build
     icon.files = src/icons/beamerpresenter.svg
 
+    desktop.path = /usr/share/applications/
+    desktop.CONFIG = no_build
+    desktop.files = share/applications/beamerpresenter.desktop
+
     target.path = /usr/bin/
 
-    INSTALLS += man1 man5 configuration icon target
+    INSTALLS += man1 man5 configuration icon desktop target
 }

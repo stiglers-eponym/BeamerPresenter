@@ -25,7 +25,8 @@ OverviewFrame::OverviewFrame(int const page, QWidget* parent) :
     setAlignment(Qt::AlignCenter);
 #ifdef DISABLE_TOOL_TIP
 #else
-    setToolTip("page " + QString::number(page));
+    // Label is page+1, because labels should count from 1.
+    setToolTip("page " + QString::number(page + 1));
 #endif
 }
 

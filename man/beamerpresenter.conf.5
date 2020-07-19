@@ -64,12 +64,17 @@ This overwrites the default value for the command line argument
 .BR \-m " or " \-\-min-delay .
 .
 .TP
-.BR page-part =none
-Set half of the page to be the presentation, the other half to be the notes. Values are "l" or "r" for presentation on the left or right half of the page, respectively. If the presentation was created with "\\setbeameroption{show notes on second screen=right}", you should use
-.B \-\-page-part 
-.IR right .
+.BR page-part =left
+Set half of the page to be the presentation, the other half to be the notes. Values are "left" or "right" for presentation on the left or right half of the page, respectively. If you create presentations with "\\setbeameroption{show notes on second screen=right}", you should use
+.BR page-part =
+.IR left .
 This sets the default value for the command line argument
 .BR \-p " or " \-\-page-part .
+Note that if this value is set in the global configuration, it depends on the aspect ratio of the first PDF page and the value of "page-part threshold" .
+.
+.TP
+.BR "page-part threshold" =2.66
+Lower bound on aspect ratio (page width / page height) from which on a default value of "page-part" from the global configuration is used.
 .
 .TP
 .B timer

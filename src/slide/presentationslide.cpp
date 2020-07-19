@@ -59,13 +59,6 @@ void PresentationSlide::paintEvent(QPaintEvent*)
     }
 }
 
-void PresentationSlide::clearLists()
-{
-    MediaSlide::clearLists();
-    qDeleteAll(undonePaths);
-    undonePaths.clear();
-}
-
 void PresentationSlide::endAnimation()
 {
 #ifdef DEBUG_PAINT_EVENTS

@@ -15,6 +15,7 @@
  * You should have received a copy of the GNU General Public License
  * along with BeamerPresenter. If not, see <https://www.gnu.org/licenses/>.
  */
+#include <cmath>
 
 #include "pathoverlay.h"
 #include "../slide/drawslide.h"
@@ -44,6 +45,7 @@ PathOverlay::PathOverlay(DrawSlide* parent) :
 {
     setAttribute(Qt::WA_TranslucentBackground);
     setAttribute(Qt::WA_AlwaysStackOnTop);
+    setAttribute(Qt::WA_AcceptTouchEvents);
     if (!master->isPresentation())
         setMouseTracking(true);
 }
@@ -76,8 +78,7 @@ void PathOverlay::clearPageAnnotations()
         qDeleteAll(paths[master->page->label()]);
         paths[master->page->label()].clear();
         update();
-        if (tool.tool == Magnifier)
-            updateEnlargedPage();
+        updateEnlargedPage();
     }
 }
 
@@ -96,58 +97,67 @@ void PathOverlay::paintEvent(QPaintEvent* event)
         return;
     painter.setRenderHint(QPainter::Antialiasing);
     drawPaths(painter, master->page->label(), event->region());
-    switch (tool.tool) {
-    case Pointer:
-        if (tool.extras.pointer.alpha > 0 && tool.extras.pointer.composition != 0) {
-            if (tool.extras.pointer.composition == 1)
+    if (!pointerPosition.isNull() || !stylusPosition.isNull()) {
+        FullDrawTool const* thetool = &tool;
+        QPointF const* position = &pointerPosition;
+        // Choose stylus as current tool if it has nonzero position.
+        if (!stylusPosition.isNull()) {
+            thetool = &stylusTool;
+            position = &stylusPosition;
+        }
+        switch (thetool->tool) {
+        case Pointer:
+            if (thetool->extras.pointer.alpha > 0 && thetool->extras.pointer.composition != 0) {
+                if (thetool->extras.pointer.composition == 1)
+                    painter.setCompositionMode(QPainter::CompositionMode_Lighten);
+                else
+                    painter.setCompositionMode(QPainter::CompositionMode_Darken);
+                QColor color = thetool->color;
+                color.setAlpha(thetool->extras.pointer.alpha);
+                painter.setPen(QPen(color, thetool->size, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin));
+                painter.drawPoint(*position);
+            }
+            if (thetool->extras.pointer.inner) {
+                painter.setCompositionMode(QPainter::CompositionMode_SourceOver);
+                painter.setPen(QPen(thetool->color, thetool->size/3, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin));
+                painter.drawPoint(*position);
+            }
+            if (thetool->extras.pointer.composition == 1)
+                painter.setCompositionMode(QPainter::CompositionMode_Darken);
+            else if (thetool->extras.pointer.composition == -1)
                 painter.setCompositionMode(QPainter::CompositionMode_Lighten);
             else
-                painter.setCompositionMode(QPainter::CompositionMode_Darken);
-            QColor color = tool.color;
-            color.setAlpha(tool.extras.pointer.alpha);
-            painter.setPen(QPen(color, tool.size, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin));
-            painter.drawPoint(pointerPosition);
-        }
-        if (tool.extras.pointer.inner) {
-            painter.setCompositionMode(QPainter::CompositionMode_SourceOver);
-            painter.setPen(QPen(tool.color, tool.size/3, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin));
-            painter.drawPoint(pointerPosition);
-        }
-        if (tool.extras.pointer.composition == 1)
-            painter.setCompositionMode(QPainter::CompositionMode_Darken);
-        else if (tool.extras.pointer.composition == -1)
-            painter.setCompositionMode(QPainter::CompositionMode_Lighten);
-        else
-            painter.setCompositionMode(QPainter::CompositionMode_SourceOver);
-        painter.setPen(QPen(tool.color, tool.size, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin));
-        painter.drawPoint(pointerPosition);
-        break;
-    case Torch:
-        if (!pointerPosition.isNull()) {
+                painter.setCompositionMode(QPainter::CompositionMode_SourceOver);
+            painter.setPen(QPen(thetool->color, thetool->size, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin));
+            painter.drawPoint(*position);
+            break;
+        case Torch:
+        {
             painter.setCompositionMode(QPainter::CompositionMode_SourceOver);
             QPainterPath rectpath;
             rectpath.addRect(master->shiftx, master->shifty, master->pixmap.width(), master->pixmap.height());
             QPainterPath circpath;
-            circpath.addEllipse(pointerPosition, tool.size, tool.size);
-            painter.fillPath(rectpath-circpath, tool.color);
+            circpath.addEllipse(*position, thetool->size, thetool->size);
+            painter.fillPath(rectpath-circpath, thetool->color);
+            break;
         }
-        break;
-    case Magnifier:
-        if (!pointerPosition.isNull() && !enlargedPage.isNull()) {
-            painter.setCompositionMode(QPainter::CompositionMode_SourceOver);
-            painter.setClipping(true);
-            QPainterPath path;
-            path.addEllipse(pointerPosition, tool.size, tool.size);
-            painter.setClipPath(path, Qt::ReplaceClip);
-            painter.drawPixmap(QRectF(pointerPosition.x()-tool.size, pointerPosition.y()-tool.size, 2*tool.size, 2*tool.size),
-                              enlargedPage,
-                              QRectF(tool.extras.magnification*pointerPosition.x() - tool.size, tool.extras.magnification*pointerPosition.y() - tool.size, 2*tool.size, 2*tool.size));
-            painter.setPen(QPen(tool.color, 2));
-            painter.drawEllipse(pointerPosition, tool.size, tool.size);
+        case Magnifier:
+            if (!enlargedPage.isNull()) {
+                painter.setCompositionMode(QPainter::CompositionMode_SourceOver);
+                painter.setClipping(true);
+                QPainterPath path;
+                path.addEllipse(*position, thetool->size, thetool->size);
+                painter.setClipPath(path, Qt::ReplaceClip);
+                painter.drawPixmap(QRectF(position->x()-thetool->size, position->y()-thetool->size, 2*thetool->size, 2*thetool->size),
+                                  enlargedPage,
+                                  QRectF(thetool->extras.magnification*position->x() - thetool->size, thetool->extras.magnification*position->y() - thetool->size, 2*thetool->size, 2*thetool->size));
+                painter.setPen(QPen(thetool->color, 2));
+                painter.drawEllipse(*position, thetool->size, thetool->size);
+            }
+            break;
+        default:
+            break;
         }
-        break;
-    default:
-        break;
     }
 #ifdef DEBUG_PAINT_EVENTS
     qDebug() << "end paint path overlays" << this;
@@ -169,6 +179,9 @@ void PathOverlay::rescale(qint16 const oldshiftx, qint16 const oldshifty, double
 
 void PathOverlay::setTool(FullDrawTool const& newtool, qreal const resolution)
 {
+#ifdef DEBUG_INPUT
+    qDebug() << "New tool:" << newtool.tool;
+#endif
     tool = newtool;
     if (tool.tool == Magnifier && tool.extras.magnification < 1e-12)
         tool.extras.magnification = defaultToolConfig[Magnifier].extras.magnification;
@@ -181,26 +194,51 @@ void PathOverlay::setTool(FullDrawTool const& newtool, qreal const resolution)
     // TODO: fancy cursors
     if (cursor().shape() == Qt::BlankCursor && tool.tool != Pointer)
         setMouseTracking(false);
-    if (tool.tool == Torch) {
-        enlargedPage = QPixmap();
+    if (tool.tool == Torch || tool.tool == Magnifier) {
         pointerPosition = QPointF();
     }
     else if (tool.tool == Pointer) {
-        enlargedPage = QPixmap();
         setMouseTracking(true);
         if (underMouse()) {
             pointerPosition = mapFromGlobal(QCursor::pos());
             emit pointerPositionChanged(pointerPosition, master->shiftx, master->shifty, master->resolution);
         }
     }
-    else if (tool.tool == Magnifier) {
-        pointerPosition = QPointF();
-        // Update enlarged page if necessary.
-        if (enlargedPage.isNull() || abs(tool.extras.magnification*width() - enlargedPage.width()) > 1 )
-            updateEnlargedPage();
+    // Update or clear enlarged page
+    updateEnlargedPage();
+    update();
+}
+
+void PathOverlay::setStylusTool(FullDrawTool const& newtool, qreal const resolution)
+{
+#ifdef DEBUG_INPUT
+    qDebug() << "New stylus tool:" << newtool.tool;
+#endif
+    // TODO: This is just copy-pasted from setTool.
+    stylusTool = newtool;
+    if (stylusTool.tool == Magnifier && stylusTool.extras.magnification < 1e-12)
+        stylusTool.extras.magnification = defaultToolConfig[Magnifier].extras.magnification;
+    if (stylusTool.size <= 1e-12)
+        stylusTool.size = defaultToolConfig[stylusTool.tool].size;
+    if (!stylusTool.color.isValid())
+        stylusTool.color = defaultToolConfig[stylusTool.tool].color;
+    if (resolution > 0)
+        stylusTool.size *= master->resolution/resolution;
+    // TODO: fancy cursors
+    if (cursor().shape() == Qt::BlankCursor && stylusTool.tool != Pointer)
+        setMouseTracking(false);
+    if (stylusTool.tool == Torch || stylusTool.tool == Magnifier) {
+        stylusPosition = QPointF();
     }
-    else
-        enlargedPage = QPixmap();
+    else if (stylusTool.tool == Pointer) {
+        setMouseTracking(true);
+        if (underMouse()) {
+            stylusPosition = mapFromGlobal(QCursor::pos());
+            emit stylusPositionChanged(stylusPosition, master->shiftx, master->shifty, master->resolution);
+        }
+    }
+    // Update or clear enlarged page
+    updateEnlargedPage();
     update();
 }
 
@@ -314,6 +352,210 @@ bool PathOverlay::hasVideoOverlap(QRectF const& rect) const
     return false;
 }
 
+bool PathOverlay::event(QEvent *event)
+{
+    // Handle tablet and touch events. Other events will be handled by different fuctions.
+    switch (event->type())
+    {
+    case QEvent::TouchBegin:
+#ifdef DEBUG_INPUT
+    {
+        QTouchEvent* touchEvent = static_cast<QTouchEvent*>(event);
+        qDebug() << touchEvent;
+    }
+#endif
+        break;
+    case QEvent::TouchEnd:
+#ifdef DEBUG_INPUT
+    {
+        QTouchEvent* touchEvent = static_cast<QTouchEvent*>(event);
+        qDebug() << touchEvent;
+    }
+#endif
+        break;
+    case QEvent::TouchUpdate:
+        break;
+    case QEvent::TabletPress:
+    {
+        QTabletEvent* tabletEvent = static_cast<QTabletEvent*>(event);
+#ifdef DEBUG_INPUT
+        qDebug() << tabletEvent;
+#endif
+        if (tabletEvent->pointerType() == QTabletEvent::Eraser) {
+            erase(tabletEvent->posF());
+            update();
+        }
+        else {
+            switch (stylusTool.tool)
+            {
+            case Pen:
+            case Highlighter:
+                if (!paths.contains(master->page->label()))
+                    paths[master->page->label()] = QList<DrawPath*>();
+                paths[master->page->label()].append(new DrawPath(stylusTool, tabletEvent->posF()));
+                break;
+            case Eraser:
+                erase(tabletEvent->posF());
+                update();
+                break;
+            case Magnifier:
+                updateEnlargedPage();
+            [[clang::fallthrough]];
+            case Torch:
+            case Pointer:
+                stylusPosition = tabletEvent->posF();
+                update();
+                emit stylusPositionChanged(stylusPosition, master->shiftx, master->shifty, master->resolution);
+                break;
+            default:
+                return false;
+            }
+        }
+        event->accept();
+        return true;
+    }
+    case QEvent::TabletMove:
+    {
+        QTabletEvent* tabletEvent = static_cast<QTabletEvent*>(event);
+        if (tabletEvent->pressure() == 0) {
+            if (stylusTool.tool == Pointer) {
+                QRegion region = QRegion(stylusPosition.x()-stylusTool.size, stylusPosition.y()-stylusTool.size, 2*stylusTool.size+2, 2*stylusTool.size+2);
+                stylusPosition = tabletEvent->posF();
+                region += QRect(stylusPosition.x()-stylusTool.size, stylusPosition.y()-stylusTool.size, 2*stylusTool.size+2, 2*stylusTool.size+2);
+                emit stylusPositionChanged(stylusPosition, master->shiftx, master->shifty, master->resolution);
+                update(region);
+            }
+            event->accept();
+            return true;
+        }
+        switch (tabletEvent->pointerType())
+        {
+        case QTabletEvent::Eraser:
+            erase(tabletEvent->posF());
+            break;
+        default:
+            switch (stylusTool.tool)
+            {
+            case Pen:
+            case Highlighter:
+                // TODO: handle pointer simultaneously
+                if (!paths[master->page->label()].isEmpty()) {
+                    paths[master->page->label()].last()->append(tabletEvent->posF());
+                    update(paths[master->page->label()].last()->getOuterLast());
+                    emit pathsChangedQuick(master->page->label(), paths[master->page->label()], master->shiftx, master->shifty, master->resolution);
+                }
+                break;
+            case Eraser:
+                erase(tabletEvent->posF());
+                break;
+            case Torch:
+            case Magnifier:
+            {
+                QRegion region = QRegion(stylusPosition.x()-stylusTool.size, stylusPosition.y()-stylusTool.size, 2*stylusTool.size+2, 2*stylusTool.size+2);
+                stylusPosition = tabletEvent->posF();
+                region += QRect(stylusPosition.x()-stylusTool.size, stylusPosition.y()-stylusTool.size, 2*stylusTool.size+2, 2*stylusTool.size+2);
+                update(region);
+                emit stylusPositionChanged(stylusPosition, master->shiftx, master->shifty, master->resolution);
+                break;
+            }
+            case Pointer:
+            {
+                QRegion region = QRegion(stylusPosition.x()-stylusTool.size, stylusPosition.y()-stylusTool.size, 2*stylusTool.size+2, 2*stylusTool.size+2);
+                stylusPosition = tabletEvent->posF();
+                region += QRect(stylusPosition.x()-stylusTool.size, stylusPosition.y()-stylusTool.size, 2*stylusTool.size+2, 2*stylusTool.size+2);
+                emit stylusPositionChanged(stylusPosition, master->shiftx, master->shifty, master->resolution);
+                update(region);
+                break;
+            }
+            default:
+                if (cursor().shape() != Qt::BlankCursor) {
+                    if (master->hoverLink(tabletEvent->pos()))
+                        setCursor(Qt::PointingHandCursor);
+                    else
+                        setCursor(Qt::ArrowCursor);
+                }
+            }
+            break;
+        }
+        event->accept();
+        return true;
+    }
+    case QEvent::TabletRelease:
+    {
+        QTabletEvent* tabletEvent = static_cast<QTabletEvent*>(event);
+#ifdef DEBUG_INPUT
+        qDebug() << tabletEvent;
+#endif
+        if (stylusTool.tool != Pointer) {
+            if (!stylusPosition.isNull()) {
+                stylusPosition = QPointF();
+                emit stylusPositionChanged(stylusPosition, 0, 0, 0.);
+            }
+        }
+        switch (tabletEvent->pointerType())
+        {
+        case QTabletEvent::Eraser:
+            updatePathCache();
+            emit sendUpdatePathCache();
+            if (tool.tool == Magnifier || stylusTool.tool == Magnifier) {
+                updateEnlargedPage();
+                emit sendUpdateEnlargedPage();
+                update();
+            }
+            break;
+        default:
+            switch (stylusTool.tool) {
+            case NoTool:
+            case Pointer:
+                event->ignore();
+                return false;
+            case Torch:
+            case Magnifier:
+                update();
+                break;
+            case Pen:
+            case Highlighter:
+                if (!paths.contains(master->page->label()) || paths[master->page->label()].isEmpty())
+                    return false;
+                paths[master->page->label()].last()->endDrawing();
+                emit pathsChangedQuick(master->page->label(), paths[master->page->label()], master->shiftx, master->shifty, master->resolution);
+                update();
+                [[clang::fallthrough]];
+            case Eraser:
+                updatePathCache();
+                emit sendUpdatePathCache();
+                if (tool.tool == Magnifier) {
+                    updateEnlargedPage();
+                    emit sendUpdateEnlargedPage();
+                    update();
+                }
+                break;
+            default:
+                break;
+            }
+            break;
+        }
+        emit sendRelaxStylus();
+        event->accept();
+        return true;
+    }
+    case QEvent::TabletEnterProximity:
+        break;
+    case QEvent::TabletLeaveProximity:
+        if (!stylusPosition.isNull()) {
+            stylusPosition = QPointF();
+            emit stylusPositionChanged(stylusPosition, 0, 0, 0.);
+            update();
+        }
+        break;
+    case QEvent::TabletTrackingChange:
+        break;
+    default:
+        return QWidget::event(event);
+    }
+    return false;
+}
+
 void PathOverlay::mousePressEvent(QMouseEvent *event)
 {
     if (master->page == nullptr)
@@ -335,11 +577,14 @@ void PathOverlay::mousePressEvent(QMouseEvent *event)
             update();
             break;
         case Magnifier:
-            if (enlargedPage.isNull())
-                updateEnlargedPage();
+            updateEnlargedPage();
         [[clang::fallthrough]];
         case Torch:
         case Pointer:
+            if (!stylusPosition.isNull()) {
+                stylusPosition = QPointF();
+                emit stylusPositionChanged(stylusPosition, 0, 0, 0.);
+            }
             pointerPosition = event->localPos();
             update();
             emit pointerPositionChanged(pointerPosition, master->shiftx, master->shifty, master->resolution);
@@ -368,7 +613,7 @@ void PathOverlay::mouseReleaseEvent(QMouseEvent *event)
     case Qt::RightButton:
         updatePathCache();
         emit sendUpdatePathCache();
-        if (tool.tool == Magnifier) {
+        if (tool.tool == Magnifier || stylusTool.tool == Magnifier) {
             updateEnlargedPage();
             emit sendUpdateEnlargedPage();
             update();
@@ -397,6 +642,11 @@ void PathOverlay::mouseReleaseEvent(QMouseEvent *event)
         case Eraser:
             updatePathCache();
             emit sendUpdatePathCache();
+            if (stylusTool.tool == Magnifier) {
+                updateEnlargedPage();
+                emit sendUpdateEnlargedPage();
+                update();
+            }
             event->accept();
             break;
         default:
@@ -410,7 +660,8 @@ void PathOverlay::mouseReleaseEvent(QMouseEvent *event)
         event->accept();
         break;
     }
-    emit sendRelax();
+    if (tool.tool != Pointer)
+        emit sendRelaxPointer();
 }
 
 void PathOverlay::mouseMoveEvent(QMouseEvent* event)
@@ -422,6 +673,8 @@ void PathOverlay::mouseMoveEvent(QMouseEvent* event)
         pointerPosition = event->localPos();
         region += QRect(pointerPosition.x()-tool.size, pointerPosition.y()-tool.size, 2*tool.size+2, 2*tool.size+2);
         emit pointerPositionChanged(pointerPosition, master->shiftx, master->shifty, master->resolution);
+        stylusPosition = QPointF();
+        emit stylusPositionChanged(stylusPosition, 0, 0, 0.);
         update(region);
     }
     switch (event->buttons())
@@ -538,13 +791,20 @@ void PathOverlay::setPathsQuick(QString const pagelabel, QList<DrawPath*> const&
         update(paths[pagelabel].last()->getOuterDrawing().toAlignedRect());
     }
     else if (diff < 0) {
-        if (-diff >= paths[pagelabel].length()) {
+        if (diff == -1 && paths[pagelabel].length() >= 1) {
+           DrawPath* path = paths[pagelabel].takeLast();
+           update(path->getOuterDrawing().toAlignedRect());
+           delete path;
+        }
+        else if (-diff >= paths[pagelabel].length()) {
             qDeleteAll(paths[pagelabel]);
             paths[pagelabel].clear();
+            update();
         }
         else {
             for (int i=diff; i++<0;)
                 delete paths[pagelabel].takeLast();
+            update();
         }
         end_cache = -1;
         pixpaths = QPixmap();
@@ -609,25 +869,54 @@ void PathOverlay::setPaths(QString const pagelabel, QList<DrawPath*> const& list
 
 void PathOverlay::setPointerPosition(QPointF const point, qint16 const refshiftx, qint16 const refshifty, double const refresolution)
 {
-    pointerPosition = (point - QPointF(refshiftx, refshifty)) * master->resolution/refresolution + QPointF(master->shiftx, master->shifty);
-    if (tool.tool == Magnifier && enlargedPage.isNull())
-        updateEnlargedPage();
+    if (refresolution == 0.) {
+        pointerPosition = QPointF();
+    }
+    else {
+        pointerPosition = (point - QPointF(refshiftx, refshifty)) * master->resolution/refresolution + QPointF(master->shiftx, master->shifty);
+        if (tool.tool == Magnifier && enlargedPage.isNull())
+            updateEnlargedPage();
+    }
     if (tool.tool == Pointer || tool.tool == Magnifier || tool.tool == Torch)
         update();
 }
 
-void PathOverlay::relax()
+void PathOverlay::setStylusPosition(QPointF const point, qint16 const refshiftx, qint16 const refshifty, double const refresolution)
 {
-    if (tool.tool == Torch || tool.tool == Magnifier) {
-        pointerPosition = QPointF();
-        update();
+    if (refresolution == 0.) {
+        stylusPosition = QPointF();
     }
+    else {
+        stylusPosition = (point - QPointF(refshiftx, refshifty)) * master->resolution/refresolution + QPointF(master->shiftx, master->shifty);
+        if (stylusTool.tool == Magnifier && enlargedPage.isNull())
+            updateEnlargedPage();
+    }
+    if (stylusTool.tool == Pointer || stylusTool.tool == Torch || stylusTool.tool == Magnifier)
+        update();
+}
+
+void PathOverlay::relaxPointer()
+{
+    pointerPosition = QPointF();
+    if (tool.tool == Torch || tool.tool == Magnifier)
+        update();
+}
+
+void PathOverlay::relaxStylus()
+{
+    stylusPosition = QPointF();
+    if (stylusTool.tool == Torch || stylusTool.tool == Magnifier)
+        update();
 }
 
 void PathOverlay::updateEnlargedPage()
 {
+    // Select the right tool.
+    FullDrawTool const* thetool = &tool;
+    if (tool.tool != Magnifier)
+        thetool = &stylusTool;
     // Check whether an update is required.
-    if (tool.tool != Magnifier || master->page == nullptr || tool.extras.magnification < 1e-12) {
+    if (thetool->tool != Magnifier || master->page == nullptr || thetool->extras.magnification < 1e-12) {
         if (!enlargedPage.isNull())
             enlargedPage = QPixmap();
         return;
@@ -638,8 +927,8 @@ void PathOverlay::updateEnlargedPage()
         connect(enlargedPageRenderer, &BasicRenderer::cacheThreadFinished, this, &PathOverlay::updateEnlargedPage);
     }
     // Render page using enlargedPageRenderer if necessary (the rendering is done in a separate thread).
-    if (enlargedPageRenderer->getPage() != master->pageIndex || abs(enlargedPageRenderer->getResolution() - tool.extras.magnification*master->resolution) > 1e-6 ) {
-        enlargedPageRenderer->changeResolution(tool.extras.magnification*master->resolution);
+    if (enlargedPageRenderer->getPage() != master->pageIndex || std::abs(enlargedPageRenderer->getResolution() - thetool->extras.magnification*master->resolution) > 1e-6 ) {
+        enlargedPageRenderer->changeResolution(thetool->extras.magnification*master->resolution);
         enlargedPage = QPixmap();
 #ifdef DEBUG_DRAWING
         qDebug() << "Rendering enlarged page" << master->pageIndex;
@@ -651,7 +940,7 @@ void PathOverlay::updateEnlargedPage()
             return;
     }
     // Draw enlargedPage.
-    enlargedPage = QPixmap(tool.extras.magnification*size());
+    enlargedPage = QPixmap(thetool->extras.magnification*size());
     enlargedPage.fill(QColor(0,0,0,0));
     QPainter painter;
     painter.begin(&enlargedPage);
@@ -659,16 +948,16 @@ void PathOverlay::updateEnlargedPage()
     if (enlargedPageRenderer->resultReady())
         // If a rendered page is ready in enlargedPageRenderer: show it in enlargedPage.
         painter.drawPixmap(
-                    int(tool.extras.magnification*master->shiftx),
-                    int(tool.extras.magnification*master->shifty),
+                    int(thetool->extras.magnification*master->shiftx),
+                    int(thetool->extras.magnification*master->shifty),
                     enlargedPageRenderer->getPixmap()
                     );
     else
         // Otherwise: show a scaled version of the page image.
         painter.drawPixmap(
-                    int(tool.extras.magnification*master->shiftx),
-                    int(tool.extras.magnification*master->shifty),
-                    master->pixmap.scaled(tool.extras.magnification*master->pixmap.size(), Qt::IgnoreAspectRatio, Qt::SmoothTransformation)
+                    int(thetool->extras.magnification*master->shiftx),
+                    int(thetool->extras.magnification*master->shifty),
+                    master->pixmap.scaled(thetool->extras.magnification*master->pixmap.size(), Qt::IgnoreAspectRatio, Qt::SmoothTransformation)
                     );
     // Draw annotations.
     painter.setRenderHint(QPainter::Antialiasing);
@@ -679,16 +968,16 @@ void PathOverlay::updateEnlargedPage()
             case Pen:
             {
                 painter.setCompositionMode(QPainter::CompositionMode_SourceOver);
-                painter.setPen(QPen(tool.color, this->tool.extras.magnification*tool.size));
-                DrawPath tmp(**path_it, QPointF(0,0), this->tool.extras.magnification);
+                painter.setPen(QPen(tool.color, thetool->extras.magnification*tool.size));
+                DrawPath tmp(**path_it, QPointF(0,0), thetool->extras.magnification);
                 painter.drawPolyline(tmp.data(), tmp.number());
                 break;
             }
             case Highlighter:
             {
                 painter.setCompositionMode(QPainter::CompositionMode_Darken);
-                painter.setPen(QPen(tool.color, this->tool.extras.magnification*tool.size, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin));
-                DrawPath tmp(**path_it, QPointF(0,0), this->tool.extras.magnification);
+                painter.setPen(QPen(tool.color, thetool->extras.magnification*tool.size, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin));
+                DrawPath tmp(**path_it, QPointF(0,0), thetool->extras.magnification);
                 painter.drawPolyline(tmp.data(), tmp.number());
                 break;
             }
@@ -698,46 +987,6 @@ void PathOverlay::updateEnlargedPage()
         }
     }
     update();
-}
-
-void PathOverlay::saveDrawings(QString const& filename, QString const& notefile) const
-{
-    // Deprecated
-    // Save drawings in a strange data format.
-    qWarning() << "The binary file type is deprecated.";
-    qWarning() << "The saved file will be unreadable for later versions of BeamerPresenter!";
-    QFile file(filename);
-    file.open(QIODevice::WriteOnly);
-    QDataStream stream(&file);
-    stream.setVersion(QDataStream::Qt_5_0);
-    stream  << static_cast<quint32>(0x2CA7D9F8)
-            << static_cast<quint16>(stream.version())
-            << QFileInfo(master->doc->getPath()).absoluteFilePath()
-            << QFileInfo(notefile).absoluteFilePath();
-    if (stream.status() == QDataStream::WriteFailed) {
-        qCritical() << "Failed to write to file: File is not writable.";
-        return;
-    }
-    {
-        QMap<quint16, quint16> newsizes;
-        for (QMap<DrawTool, FullDrawTool>::const_iterator size_it=defaultToolConfig.cbegin(); size_it!=defaultToolConfig.cend(); size_it++)
-            newsizes[static_cast<quint16>(size_it.key())] = quint16(size_it->size+0.5);
-        stream << newsizes;
-    }
-    stream << quint16(paths.size());
-    qint16 const w = qint16(width()-2*master->shiftx), h = qint16(height()-2*master->shifty);
-    for (QMap<QString, QList<DrawPath*>>::const_iterator page_it=paths.cbegin(); page_it!=paths.cend(); page_it++) {
-        stream << page_it.key() << quint16(page_it->length());
-        for (QList<DrawPath*>::const_iterator path_it=page_it->cbegin(); path_it!=page_it->cend(); path_it++) {
-            QVector<float> vec;
-            (*path_it)->toIntVector(vec, master->shiftx, master->shifty, w, h);
-            stream << static_cast<quint16>((*path_it)->getTool().tool) << (*path_it)->getTool().color << vec;
-        }
-    }
-    if (stream.status() != QDataStream::Ok) {
-        qCritical() << "Error occurred while writing to file.";
-        return;
-    }
 }
 
 void PathOverlay::loadXML(QString const& filename, PdfDoc const* notesDoc)
@@ -760,7 +1009,6 @@ void PathOverlay::loadXML(QString const& filename, PdfDoc const* notesDoc)
         file.open(QIODevice::ReadOnly);
         if (!doc.setContent(qUncompress(file.readAll()))) {
             file.close();
-            loadDrawings(filename);
             return;
         }
     }
@@ -824,7 +1072,7 @@ void PathOverlay::loadXML(QString const& filename, PdfDoc const* notesDoc)
                     if (!ok)
                         size = defaultToolConfig[tool].size;
                     QStringList const data = stroke.text().split(" ");
-                    paths[label].append(new DrawPath({tool, color, size}, data, shift, scale));
+                    paths[label].append(new DrawPath({tool, color, size, {0.}}, data, shift, scale));
                 }
             }
             emit pathsChanged(label, paths[label], master->shiftx, master->shifty, master->resolution);
@@ -892,7 +1140,7 @@ void PathOverlay::loadXML(QString const& filename, PdfDoc const* notesDoc)
                     if (!ok)
                         size = defaultToolConfig[tool].size;
                     QStringList const data = stroke.text().split(" ");
-                    paths[label].append(new DrawPath({tool, color, size}, data, shift, scale));
+                    paths[label].append(new DrawPath({tool, color, size, {0.}}, data, shift, scale));
                 }
             }
             emit pathsChanged(label, paths[label], master->shiftx, master->shifty, master->resolution);
@@ -1057,100 +1305,52 @@ void PathOverlay::saveXournal(QString const& filename) const
     file.close();
 }
 
-void PathOverlay::loadDrawings(QString const& filename)
-{
-    // Deprecated
-    // Load drawings from the strange data format.
-    QFile file(filename);
-    if (!file.exists()) {
-        qCritical() << "Loading file failed: file does not exist.";
-        return;
-    }
-    if (!file.open(QIODevice::ReadOnly)) {
-        qCritical() << "Loading file failed: file is not readable.";
-        return;
-    }
-    QDataStream stream(&file);
-    stream.setVersion(QDataStream::Qt_5_0);
-    {
-        quint32 magic;
-        stream >> magic;
-        if (magic != 0x2CA7D9F8) {
-            qCritical() << "Invalid file: wrong magic number.";
-            return;
-        }
-    }
-    qWarning() << "The binary file type of this file is deprecated.";
-    qWarning() << "This file will be unreadable for later versions of BeamerPresenter!";
-    {
-        quint16 version;
-        stream >> version;
-        stream.setVersion(version);
-    }
-    {
-        QString docpath, notepath;
-        stream >> docpath >> notepath;
-        if (stream.status() != QDataStream::Ok) {
-            qCritical() << "Failed to load file: File is corrupt.";
-            return;
-        }
-        if (docpath != master->doc->getPath())
-            qWarning() << "This drawing file was generated for a different PDF file path.";
-    }
-    {
-        QMap<quint16, quint16> newsizes;
-        stream >> newsizes;
-        if (stream.status() != QDataStream::Ok) {
-            qCritical() << "Failed to load file: File is corrupt.";
-            return;
-        }
-    }
-    quint16 npages, npaths;
-    stream >> npages;
-    if (stream.status() != QDataStream::Ok) {
-        qCritical() << "Failed to load file: File is corrupt.";
-        return;
-    }
-    clearAllAnnotations();
-    qint16 const w = qint16(width()-2*master->shiftx), h = qint16(height()-2*master->shifty);
-    QString pagelabel;
-    quint16 tool;
-    QColor color;
-    for (int pageidx=0; pageidx<npages; pageidx++) {
-        stream >> pagelabel >> npaths;
-        if (stream.status() != QDataStream::Ok) {
-            qCritical() << "Interrupted reading file: File is corrupt.";
-            break;
-        }
-        paths[pagelabel] = QList<DrawPath*>();
-        for (int pathidx=0; pathidx<npaths; pathidx++) {
-            QVector<float> vec;
-            stream >> tool >> color >> vec;
-            if (stream.status() != QDataStream::Ok) {
-                qCritical() << "Interrupted reading file: File is corrupt.";
-                break;
-            }
-            paths[pagelabel].append(new DrawPath({static_cast<DrawTool>(tool), color, defaultToolConfig[static_cast<DrawTool>(tool)].size}, vec, master->shiftx, master->shifty, w, h));
-        }
-        emit pathsChanged(pagelabel, paths[pagelabel], master->shiftx, master->shifty, master->resolution);
-    }
-    update();
-}
-
 void PathOverlay::drawPointer(QPainter& painter)
 {
+    // This is currently only used during slide transitions.
+    // TODO: check if this still works and whether it is still necessary.
     painter.setOpacity(1.);
-    painter.setCompositionMode(QPainter::CompositionMode_Darken);
-    if (tool.tool == Pointer) {
-        painter.setPen(QPen(QColor(255,0,0,191), tool.size, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin));
-        painter.drawPoint(pointerPosition);
-    }
-    else if (tool.tool == Torch && !pointerPosition.isNull()) {
-        QPainterPath rectpath;
-        rectpath.addRect(master->shiftx, master->shifty, master->pixmap.width(), master->pixmap.height());
-        QPainterPath circpath;
-        circpath.addEllipse(pointerPosition, tool.size, tool.size);
-        painter.fillPath(rectpath-circpath, QColor(0,0,0,48));
+    if (!pointerPosition.isNull() || !stylusPosition.isNull()) {
+        FullDrawTool const* thetool = &tool;
+        QPointF const* position = &pointerPosition;
+        // Choose stylus as current tool if it has nonzero position.
+        if (!stylusPosition.isNull()) {
+            thetool = &stylusTool;
+            position = &stylusPosition;
+        }
+        if (thetool->tool == Pointer) {
+            if (thetool->extras.pointer.alpha > 0 && thetool->extras.pointer.composition != 0) {
+                if (thetool->extras.pointer.composition == 1)
+                    painter.setCompositionMode(QPainter::CompositionMode_Lighten);
+                else
+                    painter.setCompositionMode(QPainter::CompositionMode_Darken);
+                QColor color = thetool->color;
+                color.setAlpha(thetool->extras.pointer.alpha);
+                painter.setPen(QPen(color, thetool->size, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin));
+                painter.drawPoint(*position);
+            }
+            if (thetool->extras.pointer.inner) {
+                painter.setCompositionMode(QPainter::CompositionMode_SourceOver);
+                painter.setPen(QPen(thetool->color, thetool->size/3, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin));
+                painter.drawPoint(*position);
+            }
+            if (thetool->extras.pointer.composition == 1)
+                painter.setCompositionMode(QPainter::CompositionMode_Darken);
+            else if (thetool->extras.pointer.composition == -1)
+                painter.setCompositionMode(QPainter::CompositionMode_Lighten);
+            else
+                painter.setCompositionMode(QPainter::CompositionMode_SourceOver);
+            painter.setPen(QPen(thetool->color, thetool->size, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin));
+            painter.drawPoint(*position);
+        }
+        else if (thetool->tool == Torch) {
+            painter.setCompositionMode(QPainter::CompositionMode_SourceOver);
+            QPainterPath rectpath;
+            rectpath.addRect(master->shiftx, master->shifty, master->pixmap.width(), master->pixmap.height());
+            QPainterPath circpath;
+            circpath.addEllipse(*position, thetool->size, thetool->size);
+            painter.fillPath(rectpath-circpath, thetool->color);
+        }
     }
 }
 
@@ -1160,7 +1360,7 @@ void PathOverlay::undoPath()
         undonePaths.append(paths[master->page->label()].takeLast());
         end_cache = -1;
         pixpaths = QPixmap();
-        update();
+        update(undonePaths.last()->getOuterDrawing().toAlignedRect());
         emit pathsChangedQuick(master->page->label(), paths[master->page->label()], master->shiftx, master->shifty, master->resolution);
     }
 }
@@ -1168,8 +1368,9 @@ void PathOverlay::undoPath()
 void PathOverlay::redoPath()
 {
     if (!undonePaths.isEmpty()) {
-        paths[master->page->label()].append(undonePaths.takeLast());
-        update();
+        DrawPath* path = undonePaths.takeLast();
+        paths[master->page->label()].append(path);
+        update(path->getOuterDrawing().toAlignedRect());
         emit pathsChangedQuick(master->page->label(), paths[master->page->label()], master->shiftx, master->shifty, master->resolution);
     }
 }

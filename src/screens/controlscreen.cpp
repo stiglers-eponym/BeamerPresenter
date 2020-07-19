@@ -15,6 +15,7 @@
  * You should have received a copy of the GNU General Public License
  * along with BeamerPresenter. If not, see <https://www.gnu.org/licenses/>.
  */
+#include <cmath>
 
 #include "controlscreen.h"
 #include "../names.h"
@@ -29,10 +30,10 @@ static const QString slider_tooltip = "Position of multimedia content on the pre
 
 // TODO: tidy up! reorganize signals, slots, events, ...
 
-ControlScreen::ControlScreen(QString presentationPath, QString notesPath, PagePart const page, QWidget* parent) :
+ControlScreen::ControlScreen(QString presentationPath, QString notesPath, PagePart const part, const qreal pagePartThreshold, QWidget* parent) :
     QMainWindow(parent),
     ui(new Ui::ControlScreen),
-    pagePart(page)
+    pagePart(part)
 {
     // Check if files are valid.
     {
@@ -66,7 +67,7 @@ ControlScreen::ControlScreen(QString presentationPath, QString notesPath, PagePa
         }
     }
     // Check whether pagePart is compatible with notesPath.
-    if (notesPath != "" && pagePart != FullPage) {
+    if (notesPath != "" && pagePart != FullPage && pagePartThreshold <= 0) {
         qCritical() << "Provided additional notes file, but page-part is not full page. Ignoring option for page-part.";
         pagePart = FullPage;
     }
@@ -82,6 +83,15 @@ ControlScreen::ControlScreen(QString presentationPath, QString notesPath, PagePa
     }
     // Save the total number of pages.
     numberOfPages = presentation->getDoc()->numPages();
+
+    // Check aspect ratio of given presentation file and compare it to
+    // threshold if pagePart != FullPage
+    if (notesPath == "" && pagePart != FullPage && pagePartThreshold > 0.) {
+        QSizeF const size = presentation->getPageSize(0);
+        qreal const aspectRatio = size.width() / size.height();
+        if (aspectRatio < pagePartThreshold)
+            pagePart = FullPage;
+    }
 
     // Some numbers for cache management.
     // Maximum number of cached pages is by default the total number of pages.
@@ -148,9 +158,13 @@ ControlScreen::ControlScreen(QString presentationPath, QString notesPath, PagePa
         // Send pointer position (when using a pointer, torch or magnifier tool).
         connect(drawSlide->getPathOverlay(), &PathOverlay::pointerPositionChanged, presentationScreen->slide->getPathOverlay(), &PathOverlay::setPointerPosition);
         connect(presentationScreen->slide->getPathOverlay(), &PathOverlay::pointerPositionChanged, drawSlide->getPathOverlay(), &PathOverlay::setPointerPosition);
+        connect(drawSlide->getPathOverlay(), &PathOverlay::stylusPositionChanged, presentationScreen->slide->getPathOverlay(), &PathOverlay::setStylusPosition);
+        connect(presentationScreen->slide->getPathOverlay(), &PathOverlay::stylusPositionChanged, drawSlide->getPathOverlay(), &PathOverlay::setStylusPosition);
         // Send relax signal when the mouse is released, which ends drawing a path.
-        connect(drawSlide->getPathOverlay(), &PathOverlay::sendRelax, presentationScreen->slide->getPathOverlay(), &PathOverlay::relax);
-        connect(presentationScreen->slide->getPathOverlay(), &PathOverlay::sendRelax, drawSlide->getPathOverlay(), &PathOverlay::relax);
+        connect(drawSlide->getPathOverlay(), &PathOverlay::sendRelaxPointer, presentationScreen->slide->getPathOverlay(), &PathOverlay::relaxPointer);
+        connect(drawSlide->getPathOverlay(), &PathOverlay::sendRelaxStylus, presentationScreen->slide->getPathOverlay(), &PathOverlay::relaxStylus);
+        connect(presentationScreen->slide->getPathOverlay(), &PathOverlay::sendRelaxPointer, drawSlide->getPathOverlay(), &PathOverlay::relaxPointer);
+        connect(presentationScreen->slide->getPathOverlay(), &PathOverlay::sendRelaxStylus, drawSlide->getPathOverlay(), &PathOverlay::relaxStylus);
         // Request rendering an enlarged page as required for the magnifier.
         connect(drawSlide->getPathOverlay(), &PathOverlay::sendUpdateEnlargedPage, presentationScreen->slide->getPathOverlay(), &PathOverlay::updateEnlargedPage);
         connect(presentationScreen->slide->getPathOverlay(), &PathOverlay::sendUpdateEnlargedPage, drawSlide->getPathOverlay(), &PathOverlay::updateEnlargedPage);
@@ -225,6 +239,7 @@ ControlScreen::ControlScreen(QString presentationPath, QString notesPath, PagePa
     // Set up tool selector.
     // Tool selector can send new draw tools to the presentation slide.
     connect(ui->tool_selector, &ToolSelector::sendNewTool, this, &ControlScreen::distributeTools);
+    connect(ui->tool_selector, &ToolSelector::sendNewStylusTool, this, &ControlScreen::distributeStylusTools);
     // Tool selector can send KeyActions to control screen.
     connect(ui->tool_selector, &ToolSelector::sendAction, this, &ControlScreen::handleKeyAction);
 
@@ -964,7 +979,9 @@ void ControlScreen::adaptPage()
 void ControlScreen::keyPressEvent(QKeyEvent* event)
 {
     // Key codes are given as key + modifiers.
-    quint32 const key = quint32(event->key()) + quint32(event->modifiers());
+    // Ignore Qt::KeypadModifier since it causes trouble on MacOS and cannot be
+    // defined in QKeySequence::QKeySequence(const QString& key, QKeySequence::NativeText)
+    quint32 const key = quint32(event->key()) | (quint32(event->modifiers()) & ~Qt::KeypadModifier);
     if (tools.contains(key)) {
         presentationScreen->slide->getPathOverlay()->setTool(tools[key]);
         if (drawSlide != nullptr)
@@ -1651,16 +1668,6 @@ bool ControlScreen::handleKeyAction(KeyAction const action)
                 presentationScreen->slide->getPathOverlay()->saveXournal(savePath);
         }
         break;
-    case KeyAction::SaveDrawingsLegacy:
-        {
-#ifdef DEBUG_KEY_ACTIONS
-            qDebug() << "Save drawings event" << action;
-#endif
-            QString const savePath = QFileDialog::getSaveFileName(this, "Save drawings legacy (deprecated!)");
-            if (!savePath.isEmpty())
-                presentationScreen->slide->getPathOverlay()->saveDrawings(savePath, notes->getPath());
-        }
-        break;
     case KeyAction::SaveDrawingsUncompressed:
         {
 #ifdef DEBUG_KEY_ACTIONS
@@ -2029,9 +2036,13 @@ void ControlScreen::showDrawSlide()
         // Send pointer position (when using a pointer, torch or magnifier tool).
         connect(drawSlide->getPathOverlay(), &PathOverlay::pointerPositionChanged, presentationScreen->slide->getPathOverlay(), &PathOverlay::setPointerPosition);
         connect(presentationScreen->slide->getPathOverlay(), &PathOverlay::pointerPositionChanged, drawSlide->getPathOverlay(), &PathOverlay::setPointerPosition);
+        connect(drawSlide->getPathOverlay(), &PathOverlay::stylusPositionChanged, presentationScreen->slide->getPathOverlay(), &PathOverlay::setStylusPosition);
+        connect(presentationScreen->slide->getPathOverlay(), &PathOverlay::stylusPositionChanged, drawSlide->getPathOverlay(), &PathOverlay::setStylusPosition);
         // Send relax signal when the mouse is released, which ends drawing a path.
-        connect(drawSlide->getPathOverlay(), &PathOverlay::sendRelax, presentationScreen->slide->getPathOverlay(), &PathOverlay::relax);
-        connect(presentationScreen->slide->getPathOverlay(), &PathOverlay::sendRelax, drawSlide->getPathOverlay(), &PathOverlay::relax);
+        connect(drawSlide->getPathOverlay(), &PathOverlay::sendRelaxPointer, presentationScreen->slide->getPathOverlay(), &PathOverlay::relaxPointer);
+        connect(drawSlide->getPathOverlay(), &PathOverlay::sendRelaxStylus, presentationScreen->slide->getPathOverlay(), &PathOverlay::relaxStylus);
+        connect(presentationScreen->slide->getPathOverlay(), &PathOverlay::sendRelaxPointer, drawSlide->getPathOverlay(), &PathOverlay::relaxPointer);
+        connect(presentationScreen->slide->getPathOverlay(), &PathOverlay::sendRelaxStylus, drawSlide->getPathOverlay(), &PathOverlay::relaxStylus);
         // Request rendering an enlarged page as required for the magnifier.
         connect(drawSlide->getPathOverlay(), &PathOverlay::sendUpdateEnlargedPage, presentationScreen->slide->getPathOverlay(), &PathOverlay::updateEnlargedPage);
         connect(presentationScreen->slide->getPathOverlay(), &PathOverlay::sendUpdateEnlargedPage, drawSlide->getPathOverlay(), &PathOverlay::updateEnlargedPage);
@@ -2080,7 +2091,7 @@ void ControlScreen::showDrawSlide()
     // If notes slides have a different aspect ratio than presentation slides, then change preview cache to previewCacheX.
     // This cache is used because the geometry of the preview widgets will change.
     QSizeF const pressize = presentation->getPageSize(currentPageNumber), notessize = notes->getPageSize(currentPageNumber);
-    if (abs(pressize.width()*notessize.height() - pressize.height()*notessize.width()) > 1e-2) {
+    if (std::abs(pressize.width()*notessize.height() - pressize.height()*notessize.width()) > 1e-2) {
         if (previewCacheX == nullptr) {
             previewCacheX = new CacheMap(presentation, pagePart, this);
             connect(previewCacheX, &CacheMap::cacheSizeChanged, this, &ControlScreen::updateCacheSize);
@@ -2094,6 +2105,7 @@ void ControlScreen::showDrawSlide()
     drawSlide->renderPage(presentationScreen->slide->pageNumber(), false);
     // Set the current tool on drawSlide.
     drawSlide->getPathOverlay()->setTool(presentationScreen->slide->getPathOverlay()->getTool(), presentationScreen->slide->getResolution());
+    drawSlide->getPathOverlay()->setStylusTool(presentationScreen->slide->getPathOverlay()->getStylusTool(), presentationScreen->slide->getResolution());
     // Hide the notes and show (and focus) the drawSlide.
     ui->notes_widget->hide();
     drawSlide->show();
@@ -2229,4 +2241,14 @@ void ControlScreen::distributeTools(FullDrawTool const& tool)
     presentationScreen->slide->getPathOverlay()->setTool(tool);
     if (drawSlide != nullptr)
         drawSlide->getPathOverlay()->setTool(tool, presentationScreen->slide->getResolution());
+}
+
+void ControlScreen::distributeStylusTools(FullDrawTool const& tool)
+{
+#ifdef DEBUG_TOOL_ACTIONS
+    qDebug() << "set tool from tool selector" << tool.tool << tool.color << tool.size << tool.extras.magnification;
+#endif
+    presentationScreen->slide->getPathOverlay()->setStylusTool(tool);
+    if (drawSlide != nullptr)
+        drawSlide->getPathOverlay()->setStylusTool(tool, presentationScreen->slide->getResolution());
 }

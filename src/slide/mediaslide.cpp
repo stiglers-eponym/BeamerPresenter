@@ -423,8 +423,8 @@ void MediaSlide::renderPage(int pageNumber, bool const hasDuration)
                 delete soundLinkSliders[i];
                 soundLinkSliders.remove(i);
             }
-            else
 #ifdef DEBUG_MULTIMEDIA
+            else
                 qDebug() << "No slider found: page" << pageIndex << "old sound index" << i;
 #endif
         }
