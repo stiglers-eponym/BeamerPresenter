@@ -1,23 +1,24 @@
-#-------------------------------------------------
-#
-# Project created by QtCreator 2018-12-23T10:43:06
-#
-#-------------------------------------------------
-
-VERSION = 0.1.2
+VERSION = 0.2.0alpha0
 
 # Check Qt version.
 requires(greaterThan(QT_MAJOR_VERSION, 4))
-equals(QT_MAJOR_VERSION, 4) {
-    requires(greaterThan(QT_MINOR_VERSION, 5))
-    smallerThan(QT_MINOR_VERSION, 9):message("Using Qt version < 5.9 is untested!.")
-}
+# TODO: Test on different Qt versions
 
 QT += core gui multimedia multimediawidgets xml widgets
 
-
 TARGET = beamerpresenter
 TEMPLATE = app
+
+# Include Poppler: requires that poppler-qt5 libraries are installed.
+# This is the default PDF backend.
+DEFINES += INCLUDE_POPPLER
+
+# Include MuPDF: requires that mupdf libraries are installed.
+# This is HIGHLY EXPERIMENTAL and UNSTABLE. Some features are missing.
+# That could change if MuPDF had a reasonable documentation.
+# It is recommended to use poppler as a backend and mutools as an external
+# renderer if you want to use MuPDF's rendering.
+DEFINES += INCLUDE_MUPDF
 
 # The following define makes your compiler emit warnings if you use
 # any feature of Qt which has been marked as deprecated (the exact warnings
@@ -35,117 +36,101 @@ exists(.git) {
 # Define the application version.
 DEFINES += APP_VERSION=\\\"$${VERSION_STRING}\\\"
 
-# If the following define is uncommented, BeamerPresenter will check whether a compatible QPA platform is used.
-# It will then emit warning on untested systems and try to avoid blocking you window manager.
-# If this is commented out, all checks will be omitted.
-DEFINES += CHECK_QPA_PLATFORM
-
 # Define a path where the icon will be placed (don't forget the trailing /).
 ICON_PATH = "/usr/share/icons/hicolor/scalable/apps/"
 DEFINES += ICON_PATH=\\\"$${ICON_PATH}\\\"
 
-CONFIG += c++14 qt
+CONFIG += c++20 qt
 unix {
     # Enable better debugging.
     CONFIG(debug, debug|release):QMAKE_LFLAGS += -rdynamic
-    # Enable embedded applications. This allows for X-embedding of external applications if running in X11.
-    DEFINES += EMBEDDED_APPLICATIONS_ENABLED
-}
-linux {
-    # Options to avoid known bugs in Wayland.
-    # In sway I noticed that having my screens positioned at "unexpected"
-    # postions (not (0,0)) in wayland's coodinates can cause some problems
-    # in Qt, including sudden segfaults with hardly any user interaction.
-    # To avoid this, you can enable the following options.
-
-    # Disable toolTip globally at compile time to avoid segfaults in strange
-    # wayland setup:
-    #DEFINES += DISABLE_TOOL_TIP
 }
 
 # Disable debugging message if debugging mode is disabled.
 CONFIG(release, debug|release):DEFINES += QT_NO_DEBUG_OUTPUT
+
 # Enable specific debugging messages
 CONFIG(debug, debug|release) {
-    # TODO: include all these in the code!
-    #DEFINES += DEBUG_READ_CONFIGS
-    #DEFINES += DEBUG_CACHE
-    #DEFINES += DEBUG_RENDERING
-    #DEFINES += DEBUG_DRAWING
-    #DEFINES += DEBUG_PAINT_EVENTS
-    #DEFINES += DEBUG_KEY_ACTIONS
-    #DEFINES += DEBUG_TOOL_ACTIONS
-    #DEFINES += DEBUG_INPUT
-    #DEFINES += DEBUG_SLIDE_TRANSITIONS
-    #DEFINES += DEBUG_MULTIMEDIA
+    DEFINES += DEBUG_READ_CONFIGS
+    DEFINES += DEBUG_CACHE
+    DEFINES += DEBUG_RENDERING
+    DEFINES += DEBUG_DRAWING
+    DEFINES += DEBUG_KEY_ACTIONS
+    DEFINES += DEBUG_TOOL_ACTIONS
+    DEFINES += DEBUG_SLIDE_TRANSITIONS
+    DEFINES += DEBUG_MULTIMEDIA
 }
 
 SOURCES += \
+        src/gui/containerwidget.cpp \
         src/main.cpp \
-        src/pdf/pdfdoc.cpp \
-        src/pdf/externalrenderer.cpp \
-        src/pdf/basicrenderer.cpp \
-        src/pdf/singlerenderer.cpp \
-        src/pdf/cachemap.cpp \
-        src/pdf/cachethread.cpp \
-        src/screens/controlscreen.cpp \
-        src/screens/presentationscreen.cpp \
-        src/slide/previewslide.cpp \
-        src/slide/mediaslide.cpp \
-        src/slide/drawslide.cpp \
-        src/slide/presentationslide.cpp \
-        src/draw/pathoverlay.cpp \
-        src/draw/drawpath.cpp \
-        src/gui/timer.cpp \
-        src/gui/pagenumberedit.cpp \
-        src/gui/toolbutton.cpp \
-        src/gui/toolselector.cpp \
-        src/gui/tocbox.cpp \
-        src/gui/tocbutton.cpp \
-        src/gui/tocaction.cpp \
-        src/gui/overviewframe.cpp \
-        src/gui/overviewbox.cpp \
-        src/slide/media/videowidget.cpp
+        src/master.cpp \
+        src/pdfmaster.cpp \
+        src/preferences.cpp \
+        src/rendering/externalrenderer.cpp \
+        src/rendering/pixcache.cpp \
+        src/rendering/pixcachethread.cpp \
+        src/rendering/pngpixmap.cpp \
+        src/drawing/drawhistorystep.cpp \
+        src/drawing/pathcontainer.cpp \
+        src/drawing/abstractgraphicspath.cpp \
+        src/drawing/basicgraphicspath.cpp \
+        src/drawing/fullgraphicspath.cpp \
+        src/slidescene.cpp \
+        src/slideview.cpp
 
 HEADERS += \
         src/enumerates.h \
+        src/gui/containerwidget.h \
+        src/gui/guiwidget.h \
+        src/master.h \
         src/names.h \
-        src/pdf/pdfdoc.h \
-        src/pdf/externalrenderer.h \
-        src/pdf/basicrenderer.h \
-        src/pdf/singlerenderer.h \
-        src/pdf/cachemap.h \
-        src/pdf/cachethread.h \
-        src/screens/controlscreen.h \
-        src/screens/presentationscreen.h \
-        src/slide/previewslide.h \
-        src/slide/mediaslide.h \
-        src/slide/drawslide.h \
-        src/slide/presentationslide.h \
-        src/draw/pathoverlay.h \
-        src/draw/drawpath.h \
-        src/gui/timer.h \
-        src/gui/pagenumberedit.h \
-        src/gui/toolbutton.h \
-        src/gui/toolselector.h \
-        src/gui/tocbox.h \
-        src/gui/tocbutton.h \
-        src/gui/tocaction.h \
-        src/gui/overviewframe.h \
-        src/gui/overviewbox.h \
-        src/slide/media/videowidget.h
+        src/pdfmaster.h \
+        src/preferences.h \
+        src/rendering/abstractrenderer.h \
+        src/rendering/pdfdocument.h \
+        src/rendering/externalrenderer.h \
+        src/rendering/pixcache.h \
+        src/rendering/pixcachethread.h \
+        src/rendering/pngpixmap.h \
+        src/drawing/drawhistorystep.h \
+        src/drawing/pathcontainer.h \
+        src/drawing/abstractgraphicspath.h \
+        src/drawing/basicgraphicspath.h \
+        src/drawing/fullgraphicspath.h \
+        src/slidescene.h \
+        src/slideview.h
 
-contains(DEFINES, EMBEDDED_APPLICATIONS_ENABLED) {
-    SOURCES += src/slide/media/embedapp.cpp
-    HEADERS += src/slide/media/embedapp.h
+contains(DEFINES, INCLUDE_POPPLER) {
+    SOURCES += \
+            src/rendering/popplerrenderer.cpp \
+            src/rendering/popplerdocument.cpp
+    HEADERS += \
+            src/rendering/popplerrenderer.h \
+            src/rendering/popplerdocument.h \
 }
 
-FORMS += \
-        src/ui/controlscreen.ui
+contains(DEFINES, INCLUDE_MUPDF) {
+    SOURCES += \
+            src/rendering/mupdfrenderer.cpp \
+            src/rendering/mupdfdocument.cpp
+    HEADERS += \
+            src/rendering/mupdfrenderer.h \
+            src/rendering/mupdfdocument.h
+    DEFINES += FITZ_DEBUG_LOCKING
+}
 
 unix {
-    INCLUDEPATH += /usr/include/poppler/qt5
-    LIBS += -L /usr/lib/ -lpoppler-qt5
+    LIBS += -L/usr/lib/
+    contains(DEFINES, INCLUDE_POPPLER) {
+        INCLUDEPATH += /usr/include/poppler/qt5
+        LIBS += -lpoppler-qt5
+    }
+    contains(DEFINES, INCLUDE_MUPDF) {
+        INCLUDEPATH += /usr/include/mupdf
+        LIBS += -lmupdf -lmupdf-third
+        LIBS += -lm -lfreetype -lz -lharfbuzz -ljpeg -ljbig2dec -lopenjp2
+    }
 }
 macx {
     ## Please configure this according to your poppler installation.
@@ -162,7 +147,7 @@ win32 {
 
 unix {
     # Commands needed for make install
-    # Include man pages, default configuration, icon and desktop file in make install.
+    # Include man pages and default configuration in make install.
 
     man1.path = /usr/share/man/man1/
     man1.CONFIG = no_check_exist no_build
@@ -176,17 +161,13 @@ unix {
 
     configuration.path = /etc/$${TARGET}/
     configuration.CONFIG = no_build
-    configuration.files = config/$${TARGET}.conf config/pid2wid.sh
+    configuration.files = config/$${TARGET}.conf
 
     icon.path = $${ICON_PATH}
     icon.CONFIG = no_build
     icon.files = src/icons/beamerpresenter.svg
 
-    desktop.path = /usr/share/applications/
-    desktop.CONFIG = no_build
-    desktop.files = share/applications/beamerpresenter.desktop
-
     target.path = /usr/bin/
 
-    INSTALLS += man1 man5 configuration icon desktop target
+    INSTALLS += man1 man5 configuration icon target
 }
