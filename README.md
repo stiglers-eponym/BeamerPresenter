@@ -83,17 +83,24 @@ GStreamer plugins.
 
 
 ### Installation in Arch Linux
-You can install the package beamerpresenter from the AUR.
+You can install the package `beamerpresenter` or `beamerpresenter-git` from the AUR.
 
 
 ### Installation in Ubuntu >= 18.04
 First install the dependences (note that this changes the default Qt version to Qt5):
 ```sh
-sudo apt install git qt5-qmake qt5-default libpoppler-qt5-dev qtmultimedia5-dev
+sudo apt install qt5-qmake qt5-default libpoppler-qt5-dev qtmultimedia5-dev
 ```
 Optionally install `libqt5multimedia5-plugins` for multimedia content.
 
-Then download the source and build:
+Then download the source and build. To download the latest release use
+```sh
+wget https://github.com/stiglers-eponym/BeamerPresenter/archive/v0.1.2.tar.gz
+tar -xf v0.1.2.tar.gz
+cd BeamerPresenter-v0.1.2
+qmake && make
+```
+To build from current git version use
 ```sh
 git clone https://github.com/stiglers-eponym/BeamerPresenter.git
 cd BeamerPresenter
@@ -104,15 +111,15 @@ recommended to use `checkinstall` in order to keep track of all installed files
 using dpkg or apt:
 ```sh
 sudo apt install checkinstall
-echo 'Simple dual screen pdf viewer' > description-pak
+echo 'Simple dual screen pdf presentation tool' > description-pak
 sudo checkinstall -D \
 	--pkglicense=GPL3 \
-	--requires=libpoppler-qt5-1,qtmultimedia5-dev \
+	--requires=libpoppler-qt5-1,libqt5multimediawidgets5 \
 	--pkgsource=github.com/stiglers-eponym/BeamerPresenter \
 	make install
 ```
 
-After the installation you can remove the packages `libpoppler-qt5-dev`, `libpoppler-dev` and `checkinstall`.
+After the installation you can remove the packages `libpoppler-qt5-dev`, `qtmultimedia5-dev`, `libpoppler-dev` and `checkinstall`.
 
 
 ### Other OS

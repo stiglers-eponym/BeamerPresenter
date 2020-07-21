@@ -42,7 +42,12 @@ DEFINES += CHECK_QPA_PLATFORM
 
 # Define a path where the icon will be placed (don't forget the trailing /).
 ICON_PATH = "/usr/share/icons/hicolor/scalable/apps/"
-DEFINES += ICON_PATH=\\\"$${ICON_PATH}\\\"
+
+# Use resource embedded in executable for icons.
+DEFINES += ICON_PATH=\\\":/icons/\\\"
+RESOURCES += src/resources.qrc
+# Alternatively use system icon path.
+#DEFINES += ICON_PATH=\\\"$${ICON_PATH}\\\"
 
 CONFIG += c++14 qt
 unix {
