@@ -134,15 +134,27 @@ QPair<QWidget*, GuiWidget*> Master::createWidget(QJsonObject &object, ContainerW
             qCritical() << "Could not load PDF file: Does not exist." << file;
             return {nullptr, nullptr};
         }
+        const QString page_part_str = object.value("page part").toString().toLower();
+        PagePart page_part = FullPage;
+        if (page_part_str == "left")
+            page_part = LeftHalf;
+        else if (page_part_str == "right")
+            page_part = RightHalf;
 
         // Check whether the PDF has been loaded already, load it if necessary.
-        PdfMaster* doc = nullptr;
+        PdfMaster *doc = nullptr;
         SlideScene *scene = nullptr;
         for (auto docit = documents.cbegin(); docit != documents.cend(); ++docit)
         {
             if ((*docit)->getFilename() == file)
             {
                 doc = *docit;
+                if (preferences().page_part_threshold > 0.)
+                {
+                    const QSizeF reference = doc->getPageSize(0);
+                    if (reference.width() < preferences().page_part_threshold * reference.height())
+                        page_part = FullPage;
+                }
                 break;
             }
         }
@@ -151,6 +163,12 @@ QPair<QWidget*, GuiWidget*> Master::createWidget(QJsonObject &object, ContainerW
             doc = new PdfMaster(file);
             connect(this, &Master::sendAction, doc, &PdfMaster::receiveAction);
             connect(doc, &PdfMaster::nagivationSignal, this, &Master::navigationSignal);
+            if (preferences().page_part_threshold > 0.)
+            {
+                const QSizeF reference = doc->getPageSize(0);
+                if (reference.width() < preferences().page_part_threshold * reference.height())
+                    page_part = FullPage;
+            }
             if (object.value("master").toBool())
                 documents.prepend(doc);
             else
@@ -160,7 +178,7 @@ QPair<QWidget*, GuiWidget*> Master::createWidget(QJsonObject &object, ContainerW
             // If PDF files existed before, check whether we need a new SlideScene.
             for (auto &sceneit : scenes)
             {
-                if (sceneit->identifier() == qHash(QPair<int, const void*>(shift, doc)))
+                if (sceneit->identifier() == qHash(QPair<int, const void*>(shift, doc)) + page_part)
                 {
                     scene = sceneit;
                     break;
@@ -171,7 +189,7 @@ QPair<QWidget*, GuiWidget*> Master::createWidget(QJsonObject &object, ContainerW
         // Create new slide scene if necessary.
         if (scene == nullptr)
         {
-            scene = new SlideScene(doc, parent);
+            scene = new SlideScene(doc, page_part, parent);
             if (shift != 0)
                 scene->setPageShift(shift);
             if (object.value("master").toBool())
@@ -206,7 +224,7 @@ QPair<QWidget*, GuiWidget*> Master::createWidget(QJsonObject &object, ContainerW
             // Read number of threads from GUI config.
             const int threads = object.value("threads").toInt(1);
             // Create the PixCache object.
-            pixcache = new PixCache(scene->getPdfMaster()->getDocument(), threads);
+            pixcache = new PixCache(scene->getPdfMaster()->getDocument(), threads, page_part);
             // Move the PixCache object to an own thread.
             pixcache->moveToThread(new QThread());
             // Make sure that pixcache is initialized when the thread is started.

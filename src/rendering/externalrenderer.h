@@ -19,7 +19,7 @@ class ExternalRenderer : public AbstractRenderer, QObject
 public:
     /// Command should contain the fields %file and %page. Additionally at least
     /// one of the fields %resolution or %width and %height is required.
-    ExternalRenderer(const QString& command, const QStringList& arguments, const PdfDocument * const doc);
+    ExternalRenderer(const QString& command, const QStringList& arguments, const PdfDocument * const doc, const PagePart page = FullPage);
     ~ExternalRenderer() override {};
 
     /// Render page to a QPixmap.

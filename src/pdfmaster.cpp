@@ -69,6 +69,9 @@ void PdfMaster::receiveAction(const Action action)
 void PdfMaster::resolveLink(const int page, const QPointF &position) const
 {
     const PdfLink link = document->linkAt(page, position);
-    if (link.type >= 0)
+    if (link.type >= 0 && link.type < document->numberOfPages())
+    {
+        writable_preferences().page = link.type;
         emit nagivationSignal(link.type);
+    }
 }

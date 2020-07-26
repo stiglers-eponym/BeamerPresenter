@@ -15,7 +15,6 @@ class SlideScene : public QGraphicsScene
 {
     Q_OBJECT
 
-private:
     /// Path which is currently being drawn
     QList<QGraphicsLineItem*> currentPath;
     /// PDF document, including drawing paths.
@@ -24,9 +23,10 @@ private:
     /// Shift of currently shown page relative to the current presentation
     /// slide. Stored in the form (shift | overlay).
     int shift = 0;
+    const PagePart page_part;
 
 public:
-    explicit SlideScene(const PdfMaster *master, QObject *parent = nullptr);
+    explicit SlideScene(const PdfMaster *master, const PagePart part = FullPage, QObject *parent = nullptr);
     /// Set shift in the form (shift | overlay).
     void setPageShift(const int relative_shift) {shift = relative_shift;}
     const PdfMaster* getPdfMaster() {return master;}

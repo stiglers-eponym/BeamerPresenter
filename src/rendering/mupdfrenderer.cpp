@@ -15,6 +15,19 @@ const QPixmap MuPdfRenderer::renderPixmap(const int page, const qreal resolution
     if (ctx == nullptr || list == nullptr)
         return QPixmap();
 
+    // Adapt bbox to page part.
+    switch (page_part)
+    {
+    case LeftHalf:
+        bbox.x1 /= 2;
+        break;
+    case RightHalf:
+        bbox.x0 = (bbox.x0 + bbox.x1)/2;
+        break;
+    case FullPage:
+        break;
+    }
+
     // Create a local clone of the main thread's context.
     ctx = fz_clone_context(ctx);
 
@@ -98,6 +111,19 @@ const PngPixmap * MuPdfRenderer::renderPng(const int page, const qreal resolutio
     // If page is not valid (too large), the nullptrs will be unchanged.
     if (ctx == nullptr || list == nullptr)
         return nullptr;
+
+    // Adapt bbox to page part.
+    switch (page_part)
+    {
+    case LeftHalf:
+        bbox.x1 /= 2;
+        break;
+    case RightHalf:
+        bbox.x0 = (bbox.x0 + bbox.x1)/2;
+        break;
+    case FullPage:
+        break;
+    }
 
     // Create a local clone of the main thread's context.
     ctx = fz_clone_context(ctx);

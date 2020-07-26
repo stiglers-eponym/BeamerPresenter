@@ -24,6 +24,7 @@ static const QMap<QString, GuiWidget::WidgetType> string_to_widget_type
     {"slide number", GuiWidget::SlideNumber},
 };
 
+/// Translate strings appearing in config to Actions
 static const QMap<QString, Action> string_to_action_map
 {
     {"previous", PreviousPage},

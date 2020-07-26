@@ -13,7 +13,7 @@ class PopplerRenderer : public AbstractRenderer
 public:
     /// Create renderer. This does not perform any checks on the given document.
     /// Also rendering hints are not set here and have to be set before.
-    PopplerRenderer(const PopplerDocument *document) : doc(document) {};
+    PopplerRenderer(const PopplerDocument *document, const PagePart part = FullPage) : AbstractRenderer(part), doc(document) {};
     ~PopplerRenderer() override {}
     /// Render page to a QPixmap.
     /// Resolution is given in dpi.

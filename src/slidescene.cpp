@@ -1,11 +1,11 @@
 #include "src/slidescene.h"
 #include "src/pdfmaster.h"
 
-SlideScene::SlideScene(const PdfMaster *master, QObject *parent) :
+SlideScene::SlideScene(const PdfMaster *master, const PagePart part, QObject *parent) :
     QGraphicsScene(parent),
-    master(master)
-{
-}
+    master(master),
+    page_part(part)
+{}
 
 void SlideScene::stopDrawing()
 {
@@ -16,7 +16,7 @@ void SlideScene::stopDrawing()
 
 unsigned int SlideScene::identifier() const
 {
-    return qHash(QPair<int, const void*>(shift, master));
+    return qHash(QPair<int, const void*>(shift, master)) + page_part;
 }
 
 bool SlideScene::event(QEvent* event)
@@ -61,8 +61,21 @@ void SlideScene::navigationEvent(const int page)
         newpage = master->overlaysShifted(page, shift);
     else
         newpage = page + shift;
-    const QSizeF pagesize = master->getPageSize(newpage);
-    setSceneRect(0., 0., pagesize.width(), pagesize.height());
+    QSizeF pagesize = master->getPageSize(newpage);
+    switch (page_part)
+    {
+    case FullPage:
+        setSceneRect(0., 0., pagesize.width(), pagesize.height());
+        break;
+    case LeftHalf:
+        pagesize.rwidth() /= 2;
+        setSceneRect(0., 0., pagesize.width(), pagesize.height());
+        break;
+    case RightHalf:
+        pagesize.rwidth() /= 2;
+        setSceneRect(pagesize.width(), 0., pagesize.width(), pagesize.height());
+        break;
+    }
     emit navigationToViews(newpage, pagesize);
     invalidate();
 }

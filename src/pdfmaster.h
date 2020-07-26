@@ -52,6 +52,11 @@ public:
     int numberOfPages() const
     {return document->numberOfPages();}
 
+    /// Get page number of start shifted by shift_overlay.
+    /// Here in shift_overlay the bits of ShiftOverlay::FirstOverlay and
+    /// ShiftOverlay::LastOverlay control the interpretation of the shift.
+    /// Shifting with overlays means that every page with a different page
+    /// label starts a new "real" side.
     int overlaysShifted(const int start, const int shift_overlay) const
     {return document->overlaysShifted(start, shift_overlay);}
 
@@ -59,12 +64,15 @@ public slots:
     /// Paths have changed on SlideView sender. Update paths and send out a
     /// signal to all SlideScenes.
     void updatePaths(const SlideView *sender);
+    /// Handle the given action.
     void receiveAction(const Action action);
 
 signals:
     /// Notify all associated SlidesScenes that paths have changed.
     void pathsUpdated() const;
+    /// Send a navigation signal (to master).
     void nagivationSignal(const int page) const;
+    /// Notify that views need to be updated.
     void update() const;
 };
 

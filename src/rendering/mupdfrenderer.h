@@ -14,7 +14,7 @@ class MuPdfRenderer : public AbstractRenderer
     const MuPdfDocument *doc;
 
 public:
-    MuPdfRenderer(const MuPdfDocument *doc) : AbstractRenderer(), doc(doc) {}
+    MuPdfRenderer(const MuPdfDocument *doc, const PagePart part = FullPage) : AbstractRenderer(part), doc(doc) {}
     ~MuPdfRenderer() override {}
 
     /// Render page to a QPixmap.
@@ -25,7 +25,8 @@ public:
     const PngPixmap * renderPng(const int page, const qreal resolution) const override;
 
     /// In the current implementation this is always valid.
-    bool isValid() const override {return doc != nullptr && doc->isValid();}
+    bool isValid() const override
+    {return doc != nullptr && doc->isValid();}
 };
 
 #endif // MUPDFRENDERER_H

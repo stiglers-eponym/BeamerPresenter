@@ -8,9 +8,9 @@
 #include "src/rendering/externalrenderer.h"
 #include "src/preferences.h"
 
-PixCacheThread::PixCacheThread(const PdfDocument * const doc, QObject *parent) : QThread(parent)
+PixCacheThread::PixCacheThread(const PdfDocument * const doc, const PagePart page_part, QObject *parent) : QThread(parent)
 {
-    initializeRenderer(doc);
+    initializeRenderer(doc, page_part);
 }
 
 void PixCacheThread::setNextPage(const int page_number, const qreal res)
@@ -36,23 +36,23 @@ void PixCacheThread::run()
     emit sendData(image);
 }
 
-bool PixCacheThread::initializeRenderer(const PdfDocument * const doc)
+bool PixCacheThread::initializeRenderer(const PdfDocument * const doc, const PagePart page_part)
 {
     // Create the renderer without any checks.
     switch (preferences().renderer)
     {
 #ifdef INCLUDE_POPPLER
     case AbstractRenderer::Poppler:
-        renderer = new PopplerRenderer(static_cast<const PopplerDocument*>(doc));
+        renderer = new PopplerRenderer(static_cast<const PopplerDocument*>(doc), page_part);
         break;
 #endif
 #ifdef INCLUDE_MUPDF
     case AbstractRenderer::MuPDF:
-        renderer = new MuPdfRenderer(static_cast<const MuPdfDocument*>(doc));
+        renderer = new MuPdfRenderer(static_cast<const MuPdfDocument*>(doc), page_part);
         break;
 #endif
     case AbstractRenderer::ExternalRenderer:
-        renderer = new ExternalRenderer(preferences().rendering_command, preferences().rendering_arguments, doc);
+        renderer = new ExternalRenderer(preferences().rendering_command, preferences().rendering_arguments, doc, page_part);
         break;
     }
 

@@ -22,7 +22,7 @@ void Preferences::loadSettings()
     // RENDERING
     { // page_part
         // TODO: implement!
-        // TODO: threshold for aspect ratio
+        page_part_threshold = settings.value("page part threshold").toReal();
         const QString page_part_str = settings.value("page part").toString().toLower();
         if (page_part_str == "left" || page_part_str == "presentation left")
             page_part = LeftHalf;
@@ -124,4 +124,5 @@ void Preferences::loadFromParser(const QCommandLineParser &parser)
         file_alias["presentation"] = QFileDialog::getOpenFileName(nullptr, "Presentation file", "", "Documents (*.pdf)");
     else
         file_alias["presentation"] = parser.positionalArguments().first();
+    // TODO
 }

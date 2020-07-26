@@ -71,7 +71,7 @@ private:
     qreal getResolution(const int page) const;
 
 public:
-    explicit PixCache(const PdfDocument *doc, const int thread_number, QObject *parent = nullptr);
+    explicit PixCache(const PdfDocument *doc, const int thread_number, const PagePart page_part = FullPage, QObject *parent = nullptr);
     ~PixCache();
 
     /// Clear cache, delete all cached pages.

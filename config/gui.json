@@ -6,6 +6,7 @@
             {
                 "type" : "slide",
                 "file" : "presentation",
+                "page part" : "right",
                 "shift" : 0,
                 "transitions" : false,
                 "multimedia" : true,
@@ -21,6 +22,7 @@
                     {
                         "type" : "slide",
                         "file" : "presentation",
+                        "page part" : "left",
                         "shift" : 0,
                         "overlays" : "last",
                         "transitions" : false,
@@ -30,6 +32,7 @@
                     {
                         "type" : "slide",
                         "file" : "presentation",
+                        "page part" : "left",
                         "shift" : 1,
                         "overlays" : "first",
                         "transitions" : false,
@@ -39,6 +42,7 @@
                     {
                         "type" : "slide",
                         "file" : "presentation",
+                        "page part" : "left",
                         "shift" : 1,
                         "overlays" : "last",
                         "transitions" : false,
@@ -52,6 +56,7 @@
     {
         "type" : "slide",
         "file" : "presentation",
+        "page part" : "left",
         "shift" : 0,
         "transitions" : true,
         "multimedia" : true,

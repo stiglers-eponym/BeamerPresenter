@@ -1,6 +1,7 @@
 #include "src/rendering/externalrenderer.h"
 
-ExternalRenderer::ExternalRenderer(const QString& command, const QStringList &arguments, const PdfDocument * const doc) :
+ExternalRenderer::ExternalRenderer(const QString& command, const QStringList &arguments, const PdfDocument * const doc, const PagePart part) :
+    AbstractRenderer(part),
     renderingCommand(command),
     renderingArguments(arguments),
     doc(doc)

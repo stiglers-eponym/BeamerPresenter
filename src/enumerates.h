@@ -24,6 +24,9 @@ enum ShiftOverlays
     AnyOverlay = (LastOverlay | FirstOverlay),
 };
 
+/// Types of links in PDF.
+/// These are all negative, because positive values are interpreted as page
+/// numbers for internal navigation links.
 enum LinkType
 {
     NoLink = -1,
@@ -33,10 +36,12 @@ enum LinkType
     SoundLinx = -5,
 };
 
+/// Actions triggered by keyboard shortcuts or buttons.
 enum Action
 {
     InvalidAction,
     NoAction,
+    // Nagivation actions
     Update,
     NextPage,
     PreviousPage,
@@ -44,10 +49,12 @@ enum Action
     PreviousSkippingOverlays,
     FirstPage,
     LastPage,
+    // Other actions
     ReloadFiles,
     Quit,
 };
 
+/// Tools for drawing and highlighting.
 enum BasicTool {
     NoTool,
 };

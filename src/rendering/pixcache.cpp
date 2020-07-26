@@ -7,7 +7,7 @@
 #endif
 #include "src/rendering/externalrenderer.h"
 
-PixCache::PixCache(const PdfDocument *doc, const int thread_number, QObject *parent) :
+PixCache::PixCache(const PdfDocument *doc, const int thread_number, const PagePart page_part, QObject *parent) :
     QObject(parent),
     pdfDoc(doc)
 {
@@ -18,16 +18,16 @@ PixCache::PixCache(const PdfDocument *doc, const int thread_number, QObject *par
     {
 #ifdef INCLUDE_POPPLER
     case AbstractRenderer::Poppler:
-        renderer = new PopplerRenderer(static_cast<const PopplerDocument*>(pdfDoc));
+        renderer = new PopplerRenderer(static_cast<const PopplerDocument*>(pdfDoc), page_part);
         break;
 #endif
 #ifdef INCLUDE_MUPDF
     case AbstractRenderer::MuPDF:
-        renderer = new MuPdfRenderer(static_cast<const MuPdfDocument*>(pdfDoc));
+        renderer = new MuPdfRenderer(static_cast<const MuPdfDocument*>(pdfDoc), page_part);
         break;
 #endif
     case AbstractRenderer::ExternalRenderer:
-        renderer = new ExternalRenderer(preferences().rendering_command, preferences().rendering_arguments, pdfDoc);
+        renderer = new ExternalRenderer(preferences().rendering_command, preferences().rendering_arguments, pdfDoc, page_part);
         break;
     }
 
@@ -44,7 +44,7 @@ void PixCache::init()
     // Create threads.
     for (int i=0; i<threads.length(); i++)
     {
-        threads[i] = new PixCacheThread(pdfDoc, this);
+        threads[i] = new PixCacheThread(pdfDoc, renderer->pagePart(), this);
         connect(threads[i], &PixCacheThread::sendData, this, &PixCache::receiveData);
     }
 
@@ -422,7 +422,7 @@ qreal PixCache::getResolution(const int page) const
     QSizeF pageSize = pdfDoc->pageSize(page);
     if (pageSize.isEmpty())
         return -1.;
-    if (preferences().page_part != FullPage)
+    if (renderer->pagePart() != FullPage)
         pageSize.rwidth() /= 2;
     if (pageSize.width() * frame.height() > pageSize.height() * frame.width())
     {

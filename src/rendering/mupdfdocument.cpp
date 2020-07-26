@@ -137,6 +137,9 @@ const QPixmap MuPdfDocument::getPixmap(const int page, const qreal resolution) c
     if (resolution <= 0 || page < 0 || page >= number_of_pages)
         return QPixmap();
 
+    // TODO: This ignores PagePart.
+    qDebug() << "Rendering directly in MuPdfDocument";
+
     // Render page to an RGB pixmap.
     fz_pixmap *pixmap;
     mutex->lock();
@@ -196,6 +199,9 @@ const PngPixmap * MuPdfDocument::getPng(const int page, const qreal resolution) 
     // Check if the parameters are valid.
     if (resolution <= 0 || page < 0 || page >= number_of_pages)
         return nullptr;
+
+    // TODO: This ignores PagePart.
+    qDebug() << "Rendering directly in MuPdfDocument";
 
     // Render page to an RGB pixmap.
     fz_pixmap *pixmap;
@@ -447,7 +453,7 @@ const PdfLink MuPdfDocument::linkAt(const int page, const QPointF &position) con
     fz_page *doc_page = fz_load_page(ctx, doc, page);
     // TODO: check how this is correctly tidied up!
     fz_link * const clink = fz_load_links(ctx, doc_page);
-    PdfLink result;
+    PdfLink result  {NoLink, ""};
     for (fz_link* link = clink; link != nullptr; link = link->next)
     {
         if (link->rect.x0 <= position.x() && link->rect.x1 >= position.x() && link->rect.y0 <= position.y() && link->rect.y1 >= position.y())

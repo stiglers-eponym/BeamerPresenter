@@ -10,6 +10,8 @@
 /// to use outside the main thread.
 class AbstractRenderer
 {
+protected:
+    const PagePart page_part;
 public:
     enum Renderer {
 #ifdef INCLUDE_POPPLER
@@ -21,7 +23,8 @@ public:
         ExternalRenderer = 2,
     };
 
-    AbstractRenderer() {};
+    AbstractRenderer(const PagePart part = FullPage) : page_part(part) {};
+    PagePart pagePart() const {return page_part;}
     virtual ~AbstractRenderer() {};
     /// Render page to a QPixmap.
     /// Resolution is given in dpi.

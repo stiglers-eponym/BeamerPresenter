@@ -38,17 +38,17 @@ public:
     // RENDERING
     /// Page part corresponding to the presentation.
     PagePart page_part {FullPage};
+    float page_part_threshold {0.};
 
+#ifdef INCLUDE_POPPLER
     /// PDF backend (should be same as renderer except if renderer is external)
-#ifdef INCLUDE_POPPLER
     PdfDocument::PdfBackend pdf_backend {PdfDocument::PopplerBackend};
-#else
-    PdfDocument::PdfBackend pdf_backend {PdfDocument::MuPdfBackend};
-#endif
     /// Renderer used to convert PDF page to image.
-#ifdef INCLUDE_POPPLER
     AbstractRenderer::Renderer renderer {AbstractRenderer::Poppler};
 #else
+    /// PDF backend (should be same as renderer except if renderer is external)
+    PdfDocument::PdfBackend pdf_backend {PdfDocument::MuPdfBackend};
+    /// Renderer used to convert PDF page to image.
     AbstractRenderer::Renderer renderer {AbstractRenderer::MuPDF};
 #endif
     /// Rendering command for external renderer.
@@ -57,12 +57,15 @@ public:
     QStringList rendering_arguments;
 
     /// Maximally allowed memory size in bytes.
+    /// Negative numbers are interpreted as infinity.
     float max_memory {-1.};
     /// Maximally allowed number of pages in cache.
+    /// Negative numbers are interpreted as infinity.
     int max_cache_pages {-1};
 
 
     // INTERACTION
+    /// Map key combinations to actions for global keyboard shortcuts.
     QMultiMap<quint32, Action> key_actions
     {
         {Qt::Key_PageDown, Action::NextPage},
@@ -76,6 +79,7 @@ public:
     /****************************/
 
     /// Map "presentation", "notes", ... to file names.
+    /// This is needed to interpret GUI config.
     QMap<QString, QString> file_alias;
 
 
@@ -83,6 +87,7 @@ public:
     /* VARIABLES WITHOUT FIXED VALUE */
     /*********************************/
 
+    /// Current page number in reference presentation view.
     int page = 0;
 
 
@@ -92,7 +97,10 @@ public:
 };
 
 
+/// Get writable globally shared preferences object.
 Preferences &writable_preferences();
+/// Get read-only globally shared preferences object.
+/// This is the usual way of accessing preferences.
 const Preferences &preferences();
 
 #endif // PREFERENCES_H
