@@ -107,6 +107,11 @@ bool PopplerDocument::loadDocument()
 
 const QPixmap PopplerDocument::getPixmap(const int page, const qreal resolution) const
 {
+    return getPixmap(page, resolution, FullPage);
+}
+
+const QPixmap PopplerDocument::getPixmap(const int page, const qreal resolution, const PagePart page_part) const
+{
     if (resolution <= 0 || page < 0 || page >= doc->numPages())
         return QPixmap();
     const Poppler::Page * const popplerPage = doc->page(page);
@@ -115,10 +120,24 @@ const QPixmap PopplerDocument::getPixmap(const int page, const qreal resolution)
         qWarning() << "Tried to render invalid page" << page;
         return QPixmap();
     }
-    return QPixmap::fromImage(popplerPage->renderToImage(72.*resolution, 72.*resolution));
+    const QImage image = popplerPage->renderToImage(72.*resolution, 72.*resolution);
+    switch (page_part)
+    {
+    case FullPage:
+        return QPixmap::fromImage(image);
+    case LeftHalf:
+        return QPixmap::fromImage(image.copy(0, 0, image.width()/2, image.height()));
+    case RightHalf:
+        return QPixmap::fromImage(image.copy((image.width()+1)/2, 0, image.width()/2, image.height()));
+    }
 }
 
 const PngPixmap * PopplerDocument::getPng(const int page, const qreal resolution) const
+{
+    return getPng(page, resolution, FullPage);
+}
+
+const PngPixmap * PopplerDocument::getPng(const int page, const qreal resolution, const PagePart page_part) const
 {
     if (resolution <= 0 || page < 0)
         return nullptr;
@@ -128,11 +147,22 @@ const PngPixmap * PopplerDocument::getPng(const int page, const qreal resolution
         qWarning() << "Tried to render invalid page" << page;
         return nullptr;
     }
-    const QImage image = popplerPage->renderToImage(72.*resolution, 72.*resolution);
+    QImage image = popplerPage->renderToImage(72.*resolution, 72.*resolution);
     if (image.isNull())
     {
         qWarning() << "Rendering page to image failed";
         return nullptr;
+    }
+    switch (page_part)
+    {
+    case FullPage:
+        break;
+    case LeftHalf:
+        image = image.copy(0, 0, image.width()/2, image.height());
+        break;
+    case RightHalf:
+        image = image.copy((image.width()+1)/2, 0, image.width()/2, image.height());
+        break;
     }
     QByteArray* const bytes = new QByteArray();
     QBuffer buffer(bytes);

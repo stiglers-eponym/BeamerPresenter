@@ -12,7 +12,9 @@ ExternalRenderer::ExternalRenderer(const QString& command, const QStringList &ar
 const QStringList ExternalRenderer::getArguments(const int page, const qreal resolution, const QString &format) const
 {
     QStringList command = renderingArguments;
-    command.replaceInStrings("%page", QString::number(page));
+    // In mutools %page argument starts counting from 1, but internally we
+    // count pages from 0.
+    command.replaceInStrings("%page", QString::number(page + 1));
     command.replaceInStrings("%resolution", QString::number(resolution));
     command.replaceInStrings("%format", format);
 
@@ -28,19 +30,28 @@ const PngPixmap * ExternalRenderer::renderPng(const int page, const qreal resolu
 {
     if (resolution <= 0 || page < 0)
         return nullptr;
-    QProcess *process = new QProcess();
-    process->start(renderingCommand, getArguments(page, resolution, "PNG"), QProcess::ReadOnly);
-    if (!process->waitForFinished(MAX_PROCESS_TIME_MS))
+
+    if (page_part == FullPage)
     {
-        // TODO: clean up correctly
-        process->kill();
-        delete process;
-        return nullptr;
+        QProcess *process = new QProcess();
+        process->start(renderingCommand, getArguments(page, resolution, "PNG"), QProcess::ReadOnly);
+        if (!process->waitForFinished(MAX_PROCESS_TIME_MS))
+        {
+            // TODO: clean up correctly
+            process->kill();
+            delete process;
+            return nullptr;
+        }
+        const QByteArray * data = new QByteArray(process->readAllStandardOutput());
+        // TODO: handle error messages and exit code sent by process.
+        process->deleteLater();
+        return new PngPixmap(data, page, resolution);
     }
-    const QByteArray * data = new QByteArray(process->readAllStandardOutput());
-    // TODO: handle error messages and exit code sent by process.
-    process->deleteLater();
-    return new PngPixmap(data, page, resolution);
+    // If page_part != FullPage, it does not make any sense to directly load
+    // the image in compressed (png) format, since we have to decompress and
+    // split it.
+    const QPixmap pixmap = renderPixmap(page, resolution);
+    return new PngPixmap(pixmap, page, resolution);
 }
 
 const QPixmap ExternalRenderer::renderPixmap(const int page, const qreal resolution) const
@@ -61,18 +72,25 @@ const QPixmap ExternalRenderer::renderPixmap(const int page, const qreal resolut
     QPixmap pixmap;
     if (!pixmap.loadFromData(data))
         qWarning() << "Failed to load data from external renderer";
-    return pixmap;
+    switch (page_part)
+    {
+    case FullPage:
+        return pixmap;
+    case LeftHalf:
+        return pixmap.copy(0, 0, pixmap.width()/2, pixmap.height());
+    case RightHalf:
+        return pixmap.copy((pixmap.width()+1)/2, 0, pixmap.width()/2, pixmap.height());
+    }
 }
 
 bool ExternalRenderer::isValid() const
 {
     /* Very basic check:
     * Is a command defined?
-    * Does it take arguments?
-    * Do these arguments include file path and page?
+    * Does it take arguments? Do these arguments contain %page?
     */
+    qDebug() << renderingCommand << renderingArguments;
     return  !renderingCommand.isEmpty()
             && !renderingArguments.isEmpty()
-            && renderingArguments.indexOf(QRegExp(".*%file.*")) != -1
             && renderingArguments.indexOf(QRegExp(".*%page.*")) != -1;
 }

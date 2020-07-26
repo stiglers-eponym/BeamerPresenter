@@ -6,6 +6,7 @@
 #include <QInputDialog>
 #include <set>
 #include "src/rendering/pdfdocument.h"
+#include "src/enumerates.h"
 
 class PopplerDocument : public PdfDocument
 {
@@ -22,8 +23,10 @@ public:
     ~PopplerDocument() override;
     /// page is given as page index. resolution is given in pixels per point (72*dpi).
     const QPixmap getPixmap(const int page, const qreal resolution) const override;
+    const QPixmap getPixmap(const int page, const qreal resolution, const PagePart page_part) const;
     /// page is given as page index. resolution is given in pixels per point (72*dpi).
     const PngPixmap* getPng(const int page, const qreal resolution) const override;
+    const PngPixmap* getPng(const int page, const qreal resolution, const PagePart page_part) const;
     /// Load or reload the file. Return true if the file was updated and false
     /// otherwise.
     bool loadDocument() override;
