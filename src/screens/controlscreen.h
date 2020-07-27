@@ -99,6 +99,8 @@ public:
     void setLogSlideChanges(bool const log) {ui->label_timer->setLog(log);}
     /// GUI Timer object handling presentation time.
     Timer* getTimer() {return ui->label_timer;}
+    /// Allow external links.
+    void allowExternalLinks();
 
     /// Load drawings from file (used only from main.cpp)
     void loadXML(QString const& filename) {presentationScreen->slide->getPathOverlay()->loadXML(filename, notes);}
@@ -224,6 +226,8 @@ private:
     int last_cached = -1;
     /// Memory used by cache in bytes.
     qint64 cacheSize = 0;
+    /// Allow external links
+    bool allow_external_links = false;
 
 private slots:
     /// Select a page which should be rendered to cache and free cache space if necessary.

@@ -607,7 +607,7 @@ void MediaSlide::renderPage(int pageNumber, bool const hasDuration)
 
 #ifdef EMBEDDED_APPLICATIONS_ENABLED
     // Autostart embedded applications if the option is set in BeamerPresenter
-    if (embedMap.contains(pageIndex)) {
+    if (allowExternalLinks && embedMap.contains(pageIndex)) {
         if (autostartEmbeddedDelay > 0.01)
             // autostart with delay
             autostartEmbeddedTimer->start(int(autostartEmbeddedDelay*1000));
@@ -802,45 +802,52 @@ void MediaSlide::followHyperlinks(QPoint const& pos)
                     }
                     return;
                 case Poppler::Link::Execute:
+                    if (allowExternalLinks) {
 #ifdef EMBEDDED_APPLICATIONS_ENABLED
-                    // Handle execution links, which are marked for execution as an embedded application.
-                    // In this case, a corresponding item has been added to embeddedWidgets in renderPage.
-                    if (embedMap.contains(pageIndex) && embedMap[pageIndex].contains(i)) {
-                        int const idx = embedMap[pageIndex][i];
-                        // First case: the execution link points to an application, which exists already as an application widget.
-                        // In this case the widget just needs to be shown in the correct position and size.
-                        if (embedApps[idx]->isReady()) {
-                            QRect const& winGeometry = embedPositions[idx];
-                            QWidget* widget = embedApps[idx]->getWidget();
-                            widget->setMinimumSize(winGeometry.width(), winGeometry.height());
-                            widget->setMaximumSize(winGeometry.width(), winGeometry.height());
-                            widget->setGeometry(winGeometry);
-                            widget->show();
+                        // Handle execution links, which are marked for execution as an embedded application.
+                        // In this case, a corresponding item has been added to embeddedWidgets in renderPage.
+                        if (embedMap.contains(pageIndex) && embedMap[pageIndex].contains(i)) {
+                            int const idx = embedMap[pageIndex][i];
+                            // First case: the execution link points to an application, which exists already as an application widget.
+                            // In this case the widget just needs to be shown in the correct position and size.
+                            if (embedApps[idx]->isReady()) {
+                                QRect const& winGeometry = embedPositions[idx];
+                                QWidget* widget = embedApps[idx]->getWidget();
+                                widget->setMinimumSize(winGeometry.width(), winGeometry.height());
+                                widget->setMaximumSize(winGeometry.width(), winGeometry.height());
+                                widget->setGeometry(winGeometry);
+                                widget->show();
+                                break;
+                            }
+                            // Second case: There exists no process for this execution link.
+                            // In this case we need to check, whether this application should be executed in an embedded window.
+                            embedApps[idx]->start();
                             break;
                         }
-                        // Second case: There exists no process for this execution link.
-                        // In this case we need to check, whether this application should be executed in an embedded window.
-                        embedApps[idx]->start();
-                        break;
-                    }
-                    // Execution links not marked for embedding are handed to the desktop services.
-                    else
-#endif
-                    {
-                        Poppler::LinkExecute* link = static_cast<Poppler::LinkExecute*>(links[i]);
-                        QStringList splitFileName = QStringList();
-                        if (!urlSplitCharacter.isEmpty())
-                            splitFileName = link->fileName().split(urlSplitCharacter);
+                        // Execution links not marked for embedding are handed to the desktop services.
                         else
-                            splitFileName.append(link->fileName());
-                        QUrl url = QUrl(splitFileName[0], QUrl::TolerantMode);
-                        // TODO: handle arguments
-                        QDesktopServices::openUrl(url);
+#endif
+                        {
+                            Poppler::LinkExecute* link = static_cast<Poppler::LinkExecute*>(links[i]);
+                            QStringList splitFileName = QStringList();
+                            if (!urlSplitCharacter.isEmpty())
+                                splitFileName = link->fileName().split(urlSplitCharacter);
+                            else
+                                splitFileName.append(link->fileName());
+                            QUrl url = QUrl(splitFileName[0], QUrl::TolerantMode);
+                            // TODO: handle arguments
+                            QDesktopServices::openUrl(url);
+                        }
                     }
+                    else
+                        qWarning() << "Opening external links is disabled by default. Enable it in settings.";
                     break;
                 case Poppler::Link::Browse:
                     // Link to file or website
-                    QDesktopServices::openUrl( QUrl(static_cast<Poppler::LinkBrowse*>(links[i])->url(), QUrl::TolerantMode) );
+                    if (allowExternalLinks)
+                        QDesktopServices::openUrl( QUrl(static_cast<Poppler::LinkBrowse*>(links[i])->url(), QUrl::TolerantMode) );
+                    else
+                        qWarning() << "Opening external links is disabled by default. Enable it in settings.";
                     break;
                 case Poppler::Link::Action:
                     {
@@ -980,6 +987,8 @@ void MediaSlide::receiveEmbedApp(EmbedApp* app)
 // TODO: clean this up, make it more compact!
 void MediaSlide::initEmbeddedApplications(int const pageNumber)
 {
+    if (!allowExternalLinks)
+        return;
     // Initialize all embedded applications for a given page.
     // The applications are not started yet, but their positions are calculated and the commands are saved.
     // After this function, MediaSlide::startAllEmbeddedApplications can be used to start the applications.
@@ -1066,7 +1075,7 @@ void MediaSlide::initEmbeddedApplications(int const pageNumber)
 
 void MediaSlide::startAllEmbeddedApplications(int const index)
 {
-    if (!embedMap.contains(index))
+    if (!embedMap.contains(index) || !allowExternalLinks)
         return;
     for(QMap<int,int>::const_iterator idx_it=embedMap[index].cbegin(); idx_it!=embedMap[index].cend(); idx_it++)
         embedApps[*idx_it]->start();

@@ -105,9 +105,7 @@ ControlScreen::ControlScreen(QString presentationPath, QString notesPath, PagePa
     presentationScreen = new PresentationScreen(presentation, pagePart);
     // Set the window title.
     presentationScreen->setWindowTitle("BeamerPresenter: " + presentationPath);
-#ifdef Q_OS_UNIX
     setWindowIcon(QIcon(ICON_PATH "beamerpresenter.svg"));
-#endif
 
     // Create the UI for the control screen.
     ui->setupUi(this);
@@ -2024,6 +2022,7 @@ void ControlScreen::showDrawSlide()
         drawSlide->setDoc(presentation, pagePart);
         // ui->notes_widget can get focus.
         drawSlide->setFocusPolicy(Qt::ClickFocus);
+        drawSlide->setAllowExternalLinks(allow_external_links);
 
         // Connect drawSlide to other widgets.
         // Copy paths from draw slide to presentation slide and vice versa when drawing on one of the slides.
@@ -2251,4 +2250,15 @@ void ControlScreen::distributeStylusTools(FullDrawTool const& tool)
     presentationScreen->slide->getPathOverlay()->setStylusTool(tool);
     if (drawSlide != nullptr)
         drawSlide->getPathOverlay()->setStylusTool(tool, presentationScreen->slide->getResolution());
+}
+
+void ControlScreen::allowExternalLinks()
+{
+    allow_external_links = true;
+    presentationScreen->slide->setAllowExternalLinks(true);
+    ui->notes_widget->setAllowExternalLinks(true);
+    ui->next_slide->setAllowExternalLinks(true);
+    ui->current_slide->setAllowExternalLinks(true);
+    if (drawSlide != nullptr)
+        drawSlide->setAllowExternalLinks(true);
 }

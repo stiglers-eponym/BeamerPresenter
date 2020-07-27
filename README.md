@@ -9,7 +9,7 @@ Features include slide transitions, multimedia content, different options for
 efficient and fast navigation, and different tools for highlighting and drawing
 in the presentation.
 
-Written in Qt, BeamerPresenter is cross-platform, but mainly tested on
+Based on Qt, BeamerPresenter is cross-platform, but mainly tested on
 Arch Linux with X11 or wayland using presentations created by LaTeX beamer.
 In general Qt programs more stable in X11 than in wayland.
 
@@ -83,17 +83,24 @@ GStreamer plugins.
 
 
 ### Installation in Arch Linux
-You can install the package beamerpresenter from the AUR.
+You can install the package `beamerpresenter` or `beamerpresenter-git` from the AUR.
 
 
 ### Installation in Ubuntu >= 18.04
 First install the dependences (note that this changes the default Qt version to Qt5):
 ```sh
-sudo apt install git qt5-qmake qt5-default libpoppler-qt5-dev qtmultimedia5-dev
+sudo apt install g++ qt5-qmake qt5-default libpoppler-qt5-dev qtmultimedia5-dev
 ```
 Optionally install `libqt5multimedia5-plugins` for multimedia content.
 
-Then download the source and build:
+Then download the source and build. To download the latest release use
+```sh
+wget https://github.com/stiglers-eponym/BeamerPresenter/archive/v0.1.2.tar.gz
+tar -xf v0.1.2.tar.gz
+cd BeamerPresenter-v0.1.2
+qmake && make
+```
+To build from current git version use
 ```sh
 git clone https://github.com/stiglers-eponym/BeamerPresenter.git
 cd BeamerPresenter
@@ -104,36 +111,37 @@ recommended to use `checkinstall` in order to keep track of all installed files
 using dpkg or apt:
 ```sh
 sudo apt install checkinstall
-echo 'Simple dual screen pdf viewer' > description-pak
+echo 'Simple dual screen pdf presentation tool' > description-pak
 sudo checkinstall -D \
     --pkglicense=GPL3 \
-    --requires=libpoppler-qt5-1,qtmultimedia5-dev \
+    --requires=libpoppler-qt5-1,libqt5multimediawidgets5 \
     --pkgsource=github.com/stiglers-eponym/BeamerPresenter \
     make install
 ```
 
-After the installation you can remove the packages `libpoppler-qt5-dev`, `libpoppler-dev` and `checkinstall`.
+After the installation you can remove the packages `libpoppler-qt5-dev`,
+`qtmultimedia5-dev`, `libpoppler-dev` and `checkinstall`.
 
 
 ### Building in macOS
 
 First install the dependencies via [Homebrew package manager](https://brew.sh/):
 ```sh
-    brew install qt poppler
+brew install qt poppler
 ```
 
 Then download the source and build as described for ubuntu.
 For the latest git version use
 ```sh
-    git clone https://github.com/stiglers-eponym/BeamerPresenter.git
-    cd BeamerPresenter
-    qmake && make
+git clone https://github.com/stiglers-eponym/BeamerPresenter.git
+cd BeamerPresenter
+qmake && make
 ```
 
 Installation is currently not supported but opening the application can be done
 via command:
 ```sh
-    open beamerpresenter.app/Contents/MacOS/beamerpresenter
+open beamerpresenter.app/Contents/MacOS/beamerpresenter
 ```
 
 from the directory where it was built.
@@ -144,13 +152,11 @@ For building BeamerPresenter in any other OS you need to have Qt5 and the
 poppler-qt5 library installed. In `beamerpresenter.pro` you need to configure
 `INCLUDEPATH` and `LIBS` manually.
 
-Building on Microsoft Windows has been tested for some old version of BeamerPresenter.
-You need to define the directory containing the poppler-qt5 header and library
-manually in `beamerpresenter.pro` (line 153). Also the installation has to be
-done manually. Make sure that beamerpresenter.exe has access to the libraries,
-e.g. by copying all necessary .ddl files to the same directory as
-beamerpresenter.exe. For multimedia content you need to make sure that the
-required codecs are installed.
+On Microsoft Windows you can either use the Windows Subsystem for Linux or
+build directly in Windows. Using the subsystem for linux has the advantage
+that you can use recent poppler versions provided by e.g. ubuntu. But it
+requires manual configuration of the display.
+When building directly in Windows you need poppler and Qt5 for Windows.
 
 
 ## Usage
