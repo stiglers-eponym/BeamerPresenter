@@ -16,8 +16,8 @@ In general Qt programs more stable in X11 than in wayland.
 ## Features
 An extended list of features can be found in the manual (`beamerpresenter.1`).
 
-*	Speaker screen showing notes, previews of the current and next slide, a
-	timer, a clock and the current slide number.
+*   Speaker screen showing notes, previews of the current and next slide, a
+    timer, a clock and the current slide number.
 
 <table border="0px"><tr><td>
 <img src="readme/presentation.png" width=100% title="Presentation screen">
@@ -25,11 +25,11 @@ An extended list of features can be found in the manual (`beamerpresenter.1`).
 <img src="readme/notes.png" width=100% title="Control screen">
 </td></tr></table>
 
-*	Draw in presentation: You can use different pens and highlighters to draw
-	in the presentation. Drawings are synchronized between notes screen and
-	presentation screen. You can use a pointer, torch and magnifier to
-	highlight parts of the presentation.
-	Drawings can be saved to an experimental binary file format.
+*   Draw in presentation: You can use different pens and highlighters to draw
+    in the presentation. Drawings are synchronized between notes screen and
+    presentation screen. You can use a pointer, torch and magnifier to
+    highlight parts of the presentation.
+    Drawings can be saved to an experimental binary file format.
 
 <table border="0px"><tr><td>
 <img src="readme/magnifier-pres.png" width=100% title="Magnifier on presentation screen">
@@ -42,9 +42,9 @@ An extended list of features can be found in the manual (`beamerpresenter.1`).
 <img src="readme/highlighter.png" width=100% title="Drawing on the control screen, synchronized to presentation screen">
 </td></tr></table>
 
-*	Simple navigation by using links, scrolling, a table of contents, an
-	overview of all slides on the speaker's screen, and shortcuts for skipping
-	overlays.
+*   Simple navigation by using links, scrolling, a table of contents, an
+    overview of all slides on the speaker's screen, and shortcuts for skipping
+    overlays.
 
 <table border="0px"><tr><td>
 <img src="readme/overview.png" width=100% title="Overview mode">
@@ -52,18 +52,18 @@ An extended list of features can be found in the manual (`beamerpresenter.1`).
 <img src="readme/toc.png" width=100% title="Table of content (can many more entries, subsections, ...)">
 </td></tr></table>
 
-*	The timer can be configured to change its color as to indicate whether you
-	are in time.
-*	Cache: All slides are rendered to a compressed cache.
-	The total cache size and the number of slides in cache can be limited.
-*	Slide transitions: BeamerPresenter probably supports probably all slide
-	transitions	which are defined in the PDF standard.
-*	Multimedia: You can add videos and audio files to your presentation.
-	A video will continue playing if embedded on two consecutive slides with
-	the same page label (overlays in LaTeX beamer).
-*	Animations: You can create simple animations by showing slides in rapid
-	succession. The minimal delay between two frames can be defined in the
-	configuration.
+*   The timer can be configured to change its color as to indicate whether you
+    are in time.
+*   Cache: All slides are rendered to a compressed cache.
+    The total cache size and the number of slides in cache can be limited.
+*   Slide transitions: BeamerPresenter probably supports probably all slide
+    transitions    which are defined in the PDF standard.
+*   Multimedia: You can add videos and audio files to your presentation.
+    A video will continue playing if embedded on two consecutive slides with
+    the same page label (overlays in LaTeX beamer).
+*   Animations: You can create simple animations by showing slides in rapid
+    succession. The minimal delay between two frames can be defined in the
+    configuration.
 
 
 ## Build
@@ -106,10 +106,10 @@ using dpkg or apt:
 sudo apt install checkinstall
 echo 'Simple dual screen pdf viewer' > description-pak
 sudo checkinstall -D \
-	--pkglicense=GPL3 \
-	--requires=libpoppler-qt5-1,qtmultimedia5-dev \
-	--pkgsource=github.com/stiglers-eponym/BeamerPresenter \
-	make install
+    --pkglicense=GPL3 \
+    --requires=libpoppler-qt5-1,qtmultimedia5-dev \
+    --pkgsource=github.com/stiglers-eponym/BeamerPresenter \
+    make install
 ```
 
 After the installation you can remove the packages `libpoppler-qt5-dev`, `libpoppler-dev` and `checkinstall`.
@@ -118,28 +118,31 @@ After the installation you can remove the packages `libpoppler-qt5-dev`, `libpop
 ### Building in macOS
 
 First install the dependencies via [Homebrew package manager](https://brew.sh/):
-
+```sh
     brew install qt poppler
+```
 
-Then download the source and build:
-
+Then download the source and build as described for ubuntu.
+For the latest git version use
+```sh
     git clone https://github.com/stiglers-eponym/BeamerPresenter.git
     cd BeamerPresenter
     qmake && make
+```
 
 Installation is currently not supported but opening the application can be done
 via command:
-
+```sh
     open beamerpresenter.app/Contents/MacOS/beamerpresenter
+```
 
 from the directory where it was built.
 
 
 ### Other OS
 For building BeamerPresenter in any other OS you need to have Qt5 and the
-poppler-qt5 library installed. Since only building in GNU/Linux is configured
-in `beamerpresenter.pro`, you also need to configure `INCLUDEPATH` and `LIBS`
-manually.
+poppler-qt5 library installed. In `beamerpresenter.pro` you need to configure
+`INCLUDEPATH` and `LIBS` manually.
 
 Building on Microsoft Windows has been tested for some old version of BeamerPresenter.
 You need to define the directory containing the poppler-qt5 header and library

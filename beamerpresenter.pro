@@ -149,7 +149,6 @@ unix {
 }
 macx {
     ## Please configure this according to your poppler installation.
-    ## Installation on Mac is untested.
     INCLUDEPATH += /usr/local/opt/poppler/include
     LIBS += -L/usr/local/opt/poppler/lib/ -lpoppler-qt5
 }
