@@ -115,6 +115,26 @@ sudo checkinstall -D \
 After the installation you can remove the packages `libpoppler-qt5-dev`, `libpoppler-dev` and `checkinstall`.
 
 
+### Building in macOS
+
+First install the dependencies via [Homebrew package manager](https://brew.sh/):
+
+    brew install qt poppler
+
+Then download the source and build:
+
+    git clone https://github.com/stiglers-eponym/BeamerPresenter.git
+    cd BeamerPresenter
+    qmake && make
+
+Installation is currently not supported but opening the application can be done
+via command:
+
+    open beamerpresenter.app/Contents/MacOS/beamerpresenter
+
+from the directory where it was built.
+
+
 ### Other OS
 For building BeamerPresenter in any other OS you need to have Qt5 and the
 poppler-qt5 library installed. Since only building in GNU/Linux is configured
