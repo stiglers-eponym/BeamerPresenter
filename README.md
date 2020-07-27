@@ -89,7 +89,7 @@ You can install the package `beamerpresenter` or `beamerpresenter-git` from the 
 ### Installation in Ubuntu >= 18.04
 First install the dependences (note that this changes the default Qt version to Qt5):
 ```sh
-sudo apt install qt5-qmake qt5-default libpoppler-qt5-dev qtmultimedia5-dev
+sudo apt install g++ qt5-qmake qt5-default libpoppler-qt5-dev qtmultimedia5-dev
 ```
 Optionally install `libqt5multimedia5-plugins` for multimedia content.
 
@@ -119,7 +119,8 @@ sudo checkinstall -D \
 	make install
 ```
 
-After the installation you can remove the packages `libpoppler-qt5-dev`, `qtmultimedia5-dev`, `libpoppler-dev` and `checkinstall`.
+After the installation you can remove the packages `libpoppler-qt5-dev`,
+`qtmultimedia5-dev`, `libpoppler-dev` and `checkinstall`.
 
 
 ### Other OS
@@ -128,13 +129,11 @@ poppler-qt5 library installed. Since only building in GNU/Linux is configured
 in `beamerpresenter.pro`, you also need to configure `INCLUDEPATH` and `LIBS`
 manually.
 
-Building on Microsoft Windows has been tested for some old version of BeamerPresenter.
-You need to define the directory containing the poppler-qt5 header and library
-manually in `beamerpresenter.pro` (line 153). Also the installation has to be
-done manually. Make sure that beamerpresenter.exe has access to the libraries,
-e.g. by copying all necessary .ddl files to the same directory as
-beamerpresenter.exe. For multimedia content you need to make sure that the
-required codecs are installed.
+On Microsoft Windows you can either use the Windows Subsystem for Linux or
+build directly in Windows. Using the subsystem for linux has the advantage
+that you can use recent poppler versions provided by e.g. ubuntu. But it
+requires manual configuration of the display.
+When building directly in Windows you need poppler and Qt5 for Windows.
 
 
 ## Usage

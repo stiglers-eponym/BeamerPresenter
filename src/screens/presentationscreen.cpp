@@ -40,9 +40,7 @@ PresentationScreen::PresentationScreen(PdfDoc* presentationDoc, PagePart const p
     connect(slide, &PresentationSlide::sendNewPageNumber, this, &PresentationScreen::receiveNewPage);
     connect(slide, &PresentationSlide::timeoutSignal,     this, &PresentationScreen::receiveTimeoutSignal);
     slide->getPathOverlay()->hidePointer();
-#ifdef Q_OS_UNIX
     setWindowIcon(QIcon(ICON_PATH "beamerpresenter.svg"));
-#endif
     show();
 }
 
