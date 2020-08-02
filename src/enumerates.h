@@ -9,8 +9,9 @@
 enum PagePart
 {
     FullPage = 0,
-    LeftHalf = 1,
-    RightHalf = -1,
+    LeftHalf = (INT_MAX >> 2) + 1,
+    RightHalf = (INT_MAX >> 1) + 1,
+    NotFullPage = (LeftHalf | RightHalf),
 };
 
 /// Page shifts are stored as integers in SlideScenes.

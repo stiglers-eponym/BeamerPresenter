@@ -18,17 +18,15 @@ SlideView::SlideView(SlideScene *scene, PixCache *cache, QWidget *parent) :
     connect(this, &SlideView::requestPage, cache, &PixCache::requestPage, Qt::QueuedConnection);
     connect(cache, &PixCache::pageReady, this, &SlideView::pageReady, Qt::QueuedConnection);
     connect(this, &SlideView::resizeCache, cache, &PixCache::updateFrame, Qt::QueuedConnection);
-    connect(this, &SlideView::tabletMoveEvent, scene, &SlideScene::tabletMove);
-    connect(this, &SlideView::tabletPressEvent, scene, &SlideScene::tabletPress);
-    connect(this, &SlideView::tabletReleaseEvent, scene, &SlideScene::tabletRelease);
     QPalette newpalette = palette();
     newpalette.setColor(QPalette::Base, Qt::black);
     newpalette.setColor(QPalette::Background, Qt::black);
     setPalette(newpalette);
 }
 
-void SlideView::pageChanged(const int page, const QSizeF &pageSize)
+void SlideView::pageChanged(const int page, const QSizeF &pageSize, SlideScene *scene)
 {
+    setScene(scene);
     qreal resolution;
     if (pageSize.width() * height() > pageSize.height() * width())
         // page is too wide, determine resolution by x direction
@@ -108,21 +106,21 @@ bool SlideView::event(QEvent *event)
     case QEvent::TabletPress:
     {
         auto tabletevent = static_cast<QTabletEvent*>(event);
-        emit tabletPressEvent(mapToScene(tabletevent->posF()), tabletevent);
+        static_cast<SlideScene*>(scene())->tabletPress(mapToScene(tabletevent->posF()), tabletevent);
         event->setAccepted(true);
         return true;
     }
     case QEvent::TabletRelease:
     {
         auto tabletevent = static_cast<QTabletEvent*>(event);
-        emit tabletReleaseEvent(mapToScene(tabletevent->posF()), tabletevent);
+        static_cast<SlideScene*>(scene())->tabletRelease(mapToScene(tabletevent->posF()), tabletevent);
         event->setAccepted(true);
         return true;
     }
     case QEvent::TabletMove:
     {
         auto tabletevent = static_cast<QTabletEvent*>(event);
-        emit tabletMoveEvent(mapToScene(tabletevent->posF()), tabletevent);
+        static_cast<SlideScene*>(scene())->tabletMove(mapToScene(tabletevent->posF()), tabletevent);
         event->setAccepted(true);
         return true;
     }

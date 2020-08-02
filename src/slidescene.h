@@ -36,6 +36,12 @@ public:
     void setPageShift(const int relative_shift) {shift = relative_shift;}
     const PdfMaster* getPdfMaster() {return master;}
     unsigned int identifier() const;
+    int getPage() const {return page;}
+    int getShift() const {return shift;}
+    PagePart pagePart() const {return page_part;}
+    void tabletMove(const QPointF &pos, const QTabletEvent *event);
+    void tabletPress(const QPointF &pos, const QTabletEvent *event);
+    void tabletRelease(const QPointF &pos, const QTabletEvent *event);
 
 protected:
     /// Handle various types of events
@@ -45,18 +51,15 @@ protected:
     void stopDrawing();
 
 public slots:
-    void tabletMove(const QPointF &pos, const QTabletEvent *event);
-    void tabletPress(const QPointF &pos, const QTabletEvent *event);
-    void tabletRelease(const QPointF &pos, const QTabletEvent *event);
     void receiveAction(const Action action);
-    /// Receive global navigation event.
-    /// The given page does not include shift.
-    void navigationEvent(const int newpage);
+    /// Receive navigation event from PdfMaster.
+    /// The given page already includes the shift.
+    void navigationEvent(const int newpage, SlideScene* newscene = nullptr);
 
 signals:
     /// Send navigation event to views.
     /// Here page is already adapted to shift.
-    void navigationToViews(const int page, const QSizeF &size) const;
+    void navigationToViews(const int page, const QSizeF &size, SlideScene* scene) const;
     void sendNewPath(const int page, QGraphicsItem *item) const;
 };
 

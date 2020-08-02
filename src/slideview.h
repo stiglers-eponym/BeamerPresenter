@@ -39,7 +39,7 @@ protected slots:
 
 public slots:
     /// Inform this that the page number has changed.
-    void pageChanged(const int page, const QSizeF &pageSize);
+    void pageChanged(const int page, const QSizeF &pageSize, SlideScene* scene);
     /// Inform this that page is ready in pixcache.
     void pageReady(const QPixmap pixmap, const int page);
 
@@ -47,9 +47,6 @@ signals:
     void requestPage(const int page, const qreal resolution) const;
     void sendKeyEvent(QKeyEvent *event) const;
     void resizeCache(const QSizeF &size) const;
-    void tabletMoveEvent(const QPointF &pos, const QTabletEvent *event) const;
-    void tabletPressEvent(const QPointF &pos, const QTabletEvent *event) const;
-    void tabletReleaseEvent(const QPointF &pos, const QTabletEvent *event) const;
 };
 
 #endif // SLIDE_H

@@ -77,3 +77,19 @@ void PdfMaster::receiveNewPath(const int page, QGraphicsItem *item)
         paths[page] = new PathContainer(this);
     paths[page]->append(item);
 }
+
+void PdfMaster::distributeNavigationEvents(const int page) const
+{
+    QMap<int, SlideScene*> scenemap;
+    for (const auto scene : scenes)
+    {
+        const int scenepage = overlaysShifted(page, scene->getShift()) | scene->pagePart();
+        if (scenemap.contains(scenepage))
+            emit scene->navigationEvent(scenepage & ~NotFullPage, scenemap[scenepage]);
+        else
+        {
+            scenemap[scenepage] = scene;
+            emit scene->navigationEvent(scenepage & ~NotFullPage);
+        }
+    }
+}

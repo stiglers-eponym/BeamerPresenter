@@ -24,10 +24,6 @@ class Master : public QObject
     /// List of all PDF documents.
     /// Master file is the first entry in this list.
     QList<PdfMaster*> documents;
-    /// Graphics scenes of this application. For each combination of PDF file
-    /// and page shift one scene is created.
-    /// Master scene is the first scene in the list.
-    QList<SlideScene*> scenes;
     /// Map of cache hashs to cache objects.
     QMap<int, PixCache*> caches;
     /// List of all windows of the applications.

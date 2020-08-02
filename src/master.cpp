@@ -10,8 +10,12 @@ Master::Master()
 
 Master::~Master()
 {
-    qDeleteAll(scenes);
     qDeleteAll(caches);
+    for (const auto doc : documents)
+    {
+        qDeleteAll(doc->getScenes());
+        doc->getScenes().clear();
+    }
     qDeleteAll(windows);
     qDeleteAll(documents);
 }
@@ -163,6 +167,7 @@ QPair<QWidget*, GuiWidget*> Master::createWidget(QJsonObject &object, ContainerW
             doc = new PdfMaster(file);
             connect(this, &Master::sendAction, doc, &PdfMaster::receiveAction);
             connect(doc, &PdfMaster::nagivationSignal, this, &Master::navigationSignal);
+            connect(this, &Master::navigationSignal, doc, &PdfMaster::distributeNavigationEvents);
             if (preferences().page_part_threshold > 0.)
             {
                 const QSizeF reference = doc->getPageSize(0);
@@ -176,7 +181,7 @@ QPair<QWidget*, GuiWidget*> Master::createWidget(QJsonObject &object, ContainerW
         }
         else {
             // If PDF files existed before, check whether we need a new SlideScene.
-            for (auto &sceneit : scenes)
+            for (auto &sceneit : doc->getScenes())
             {
                 if (sceneit->identifier() == qHash(QPair<int, const void*>(shift, doc)) + page_part)
                 {
@@ -193,14 +198,13 @@ QPair<QWidget*, GuiWidget*> Master::createWidget(QJsonObject &object, ContainerW
             if (shift != 0)
                 scene->setPageShift(shift);
             if (object.value("master").toBool())
-                scenes.prepend(scene);
+                doc->getScenes().prepend(scene);
             else
-                scenes.append(scene);
+                doc->getScenes().append(scene);
             connect(this, &Master::sendAction, scene, &SlideScene::receiveAction);
-            connect(this, &Master::navigationSignal, scene, &SlideScene::navigationEvent);
         }
         else if (object.value("master").toBool())
-            scenes.swapItemsAt(scenes.indexOf(scene), 0);
+            doc->getScenes().swapItemsAt(doc->getScenes().indexOf(scene), 0);
         // TODO: read other properties from config
 
         // Get or create cache object.

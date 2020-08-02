@@ -20,6 +20,11 @@ private:
     /// Poppler document representing the PDF
     PdfDocument *document {nullptr};
 
+    /// Graphics scenes of this application. For each combination of PDF file
+    /// and page shift one scene is created.
+    /// Master scene is the first scene in the list.
+    QList<SlideScene*> scenes;
+
     /// Map page numbers to containers of paths.
     /// Paths can be drawn per slide label by creating references to the main
     /// path list from other slide numbers.
@@ -40,6 +45,8 @@ public:
     /// Get path to PDF file.
     const QString &getFilename() const
     {return document->getPath();}
+
+    QList<SlideScene*> &getScenes() {return scenes;}
 
     /// Get size of page in points (floating point precision).
     const QSizeF getPageSize(const int page_number) const;
@@ -66,6 +73,8 @@ public slots:
     /// Handle the given action.
     void receiveAction(const Action action);
     void receiveNewPath(const int page, QGraphicsItem *item);
+
+    void distributeNavigationEvents(const int page) const;
 
 signals:
     /// Notify all associated SlidesScenes that paths have changed.

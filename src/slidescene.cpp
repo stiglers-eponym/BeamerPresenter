@@ -15,7 +15,6 @@ SlideScene::~SlideScene()
         removeItem(item);
     delete currentPath;
     delete currentItemCollection;
-    clear();
 }
 
 void SlideScene::stopDrawing()
@@ -24,7 +23,7 @@ void SlideScene::stopDrawing()
     {
         addItem(currentPath);
         currentPath->show();
-        emit sendNewPath(page, currentPath);
+        emit sendNewPath(page | page_part, currentPath);
         invalidate(currentPath->boundingRect());
         update(currentPath->boundingRect());
     }
@@ -78,19 +77,16 @@ void SlideScene::receiveAction(const Action action)
     switch (action)
     {
     case Update:
-        navigationEvent(preferences().page);
+        navigationEvent(page);
         break;
     default:
         break;
     }
 }
 
-void SlideScene::navigationEvent(const int newpage)
+void SlideScene::navigationEvent(const int newpage, SlideScene *newscene)
 {
-    if (shift & ShiftOverlays::AnyOverlay)
-        page = master->overlaysShifted(newpage, shift);
-    else
-        page = newpage + shift;
+    page = newpage;
     QSizeF pagesize = master->getPageSize(page);
     switch (page_part)
     {
@@ -106,15 +102,19 @@ void SlideScene::navigationEvent(const int newpage)
         setSceneRect(pagesize.width(), 0., pagesize.width(), pagesize.height());
         break;
     }
-    emit navigationToViews(page, pagesize);
+    qDebug() << page << page_part << shift << newscene << this;
+    emit navigationToViews(page, pagesize, newscene ? newscene : this);
     for (const auto item : items())
         removeItem(item);
-    const auto paths = master->pathContainer(page);
-    if (paths)
+    if (!newscene || newscene == this)
     {
-        const auto end = paths->cend();
-        for (auto it = paths->cbegin(); it != end; ++it)
-            addItem(*it);
+        const auto paths = master->pathContainer(page | page_part);
+        if (paths)
+        {
+            const auto end = paths->cend();
+            for (auto it = paths->cbegin(); it != end; ++it)
+                addItem(*it);
+        }
     }
     invalidate();
 }
