@@ -41,6 +41,12 @@ public:
     /// Redo latest change. Return true on success and false on failure.
     bool redo(QGraphicsScene *scene = nullptr);
 
+    QList<QGraphicsItem*>::const_iterator cbegin() const
+    {return paths.cbegin();}
+
+    QList<QGraphicsItem*>::const_iterator cend() const
+    {return paths.cend() - inHistory;}
+
     /// Clear history such that only <n> undo steps are possible.
     void clearHistory(int n = 0);
 

@@ -11,7 +11,10 @@ SlideScene::SlideScene(const PdfMaster *master, const PagePart part, QObject *pa
 
 SlideScene::~SlideScene()
 {
+    for (const auto item : items())
+        removeItem(item);
     delete currentPath;
+    delete currentItemCollection;
     clear();
 }
 
@@ -104,6 +107,15 @@ void SlideScene::navigationEvent(const int newpage)
         break;
     }
     emit navigationToViews(page, pagesize);
+    for (const auto item : items())
+        removeItem(item);
+    const auto paths = master->pathContainer(page);
+    if (paths)
+    {
+        const auto end = paths->cend();
+        for (auto it = paths->cbegin(); it != end; ++it)
+            addItem(*it);
+    }
     invalidate();
 }
 
@@ -112,7 +124,7 @@ void SlideScene::tabletMove(const QPointF &pos, const QTabletEvent *event)
     if (event->pressure() > 0 && currentPath && currentItemCollection)
     {
         auto item = new QGraphicsLineItem(QLineF(currentPath->lastPoint(), pos));
-        item->setPen(QPen(QBrush(Qt::red), 10*event->pressure(), Qt::SolidLine, Qt::RoundCap));
+        item->setPen(QPen(QBrush(Qt::red), event->pressure(), Qt::SolidLine, Qt::RoundCap));
         item->show();
         addItem(item);
         currentItemCollection->addToGroup(item);

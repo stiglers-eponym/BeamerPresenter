@@ -47,7 +47,7 @@ public:
     const PdfDocument * getDocument() const
     {return document;}
 
-    PathContainer *pathContainer(const int page) {return paths[page];}
+    const PathContainer *pathContainer(const int page) const {return paths.value(page, nullptr);}
 
     void resolveLink(const int page, const QPointF& position) const;
 
@@ -63,9 +63,6 @@ public:
     {return document->overlaysShifted(start, shift_overlay);}
 
 public slots:
-    /// Paths have changed on SlideView sender. Update paths and send out a
-    /// signal to all SlideScenes.
-    void updatePaths(const SlideView *sender);
     /// Handle the given action.
     void receiveAction(const Action action);
     void receiveNewPath(const int page, QGraphicsItem *item);

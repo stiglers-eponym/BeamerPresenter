@@ -47,11 +47,6 @@ bool PdfMaster::loadDocument()
     return document->loadDocument();
 }
 
-void PdfMaster::updatePaths(const SlideView* sender)
-{
-    // TODO!
-}
-
 void PdfMaster::receiveAction(const Action action)
 {
     switch (action)
