@@ -11,6 +11,8 @@ public:
     enum { Type = UserType + 1 };
     BasicGraphicsPath();
     int type() const override {return Type;}
+    int size() const override {return 0;}
+    const QPointF lastPoint() override {return QPointF();}
 };
 
 #endif // BASICGRAPHICSPATH_H

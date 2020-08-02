@@ -120,7 +120,8 @@ void PathContainer::clearHistory(int n)
         // Take the first step from history (removes it from history).
         DrawHistoryStep *step = history.takeFirst();
         // Delete all past objects in this step. These objects are not visible.
-        step->deleteFuture();
+        // TODO: Does this delete the correct part?
+        step->deletePast();
         // Delete the step. The future objects of the step are untouched, since
         // they are still owned by other history steps or by this.
         delete step;

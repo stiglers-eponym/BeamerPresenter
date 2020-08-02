@@ -26,12 +26,14 @@ public:
     {setMaximumWidth(width);}
     void setHeight(const qreal height) override
     {setMaximumHeight(height);}
+    const QPointF mapToScene(const QPointF& pos) const;
 
 protected:
     /// Draw the slide to background (with correct resolution and from cache).
     virtual void drawBackground(QPainter *painter, const QRectF &rect) override;
 
 protected slots:
+    bool event(QEvent* event) override;
     void resizeEvent(QResizeEvent *event) override;
     void keyPressEvent(QKeyEvent *event) override;
 
@@ -42,9 +44,12 @@ public slots:
     void pageReady(const QPixmap pixmap, const int page);
 
 signals:
-    void requestPage(const int page, const qreal resolution);
-    void sendKeyEvent(QKeyEvent* event);
-    void resizeCache(const QSizeF& size);
+    void requestPage(const int page, const qreal resolution) const;
+    void sendKeyEvent(QKeyEvent *event) const;
+    void resizeCache(const QSizeF &size) const;
+    void tabletMoveEvent(const QPointF &pos, const QTabletEvent *event) const;
+    void tabletPressEvent(const QPointF &pos, const QTabletEvent *event) const;
+    void tabletReleaseEvent(const QPointF &pos, const QTabletEvent *event) const;
 };
 
 #endif // SLIDE_H

@@ -47,6 +47,8 @@ public:
     const PdfDocument * getDocument() const
     {return document;}
 
+    PathContainer *pathContainer(const int page) {return paths[page];}
+
     void resolveLink(const int page, const QPointF& position) const;
 
     int numberOfPages() const
@@ -66,6 +68,7 @@ public slots:
     void updatePaths(const SlideView *sender);
     /// Handle the given action.
     void receiveAction(const Action action);
+    void receiveNewPath(const int page, QGraphicsItem *item);
 
 signals:
     /// Notify all associated SlidesScenes that paths have changed.

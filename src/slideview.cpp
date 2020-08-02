@@ -9,6 +9,7 @@ SlideView::SlideView(SlideScene *scene, PixCache *cache, QWidget *parent) :
     GuiWidget(WidgetType::Slide)
 {
     setAttribute(Qt::WA_AcceptTouchEvents);
+    setRenderHints(QPainter::Antialiasing | QPainter::TextAntialiasing);
     setMinimumSize(4, 3);
     setFocusPolicy(Qt::StrongFocus);
     setFrameShape(QFrame::NoFrame);
@@ -17,6 +18,9 @@ SlideView::SlideView(SlideScene *scene, PixCache *cache, QWidget *parent) :
     connect(this, &SlideView::requestPage, cache, &PixCache::requestPage, Qt::QueuedConnection);
     connect(cache, &PixCache::pageReady, this, &SlideView::pageReady, Qt::QueuedConnection);
     connect(this, &SlideView::resizeCache, cache, &PixCache::updateFrame, Qt::QueuedConnection);
+    connect(this, &SlideView::tabletMoveEvent, scene, &SlideScene::tabletMove);
+    connect(this, &SlideView::tabletPressEvent, scene, &SlideScene::tabletPress);
+    connect(this, &SlideView::tabletReleaseEvent, scene, &SlideScene::tabletRelease);
     QPalette newpalette = palette();
     newpalette.setColor(QPalette::Base, Qt::black);
     newpalette.setColor(QPalette::Background, Qt::black);
@@ -82,4 +86,48 @@ const QSizeF SlideView::preferedSize(const QSizeF &parent_size) const
         boundary.setWidth(boundary.height()*aspect);
     qDebug() << parent_size << boundary << this;
     return boundary;
+}
+
+const QPointF SlideView::mapToScene(const QPointF &pos) const
+{
+    QPointF point = pos;
+    point.rx() -= viewportTransform().m31();
+    point.ry() -= viewportTransform().m32();
+    return point / viewportTransform().m11();
+    // This is equivalent to:
+    //return viewportTransform().inverted().map(pos);
+}
+
+bool SlideView::event(QEvent *event)
+{
+    switch (event->type())
+    {
+    //case QEvent::TabletTrackingChange:
+    //case QEvent::TabletEnterProximity:
+    //case QEvent::TabletLeaveProximity:
+    case QEvent::TabletPress:
+    {
+        auto tabletevent = static_cast<QTabletEvent*>(event);
+        emit tabletPressEvent(mapToScene(tabletevent->posF()), tabletevent);
+        event->setAccepted(true);
+        return true;
+    }
+    case QEvent::TabletRelease:
+    {
+        auto tabletevent = static_cast<QTabletEvent*>(event);
+        emit tabletReleaseEvent(mapToScene(tabletevent->posF()), tabletevent);
+        event->setAccepted(true);
+        return true;
+    }
+    case QEvent::TabletMove:
+    {
+        auto tabletevent = static_cast<QTabletEvent*>(event);
+        emit tabletMoveEvent(mapToScene(tabletevent->posF()), tabletevent);
+        event->setAccepted(true);
+        return true;
+    }
+    default:
+        event->setAccepted(false);
+        return QGraphicsView::event(event);
+    }
 }

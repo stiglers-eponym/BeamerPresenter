@@ -19,7 +19,7 @@ void FullGraphicsPath::paint(QPainter *painter, const QStyleOptionGraphicsItem *
     }
 }
 
-void FullGraphicsPath::addPoint(const QPointF &point, const qreal pressure)
+void FullGraphicsPath::addPoint(const QPointF &point, const float pressure)
 {
     data.append({point, pressure});
     bool change = false;

@@ -75,3 +75,10 @@ void PdfMaster::resolveLink(const int page, const QPointF &position) const
         emit nagivationSignal(link.type);
     }
 }
+
+void PdfMaster::receiveNewPath(const int page, QGraphicsItem *item)
+{
+    if (!paths.contains(page))
+        paths[page] = new PathContainer(this);
+    paths[page]->append(item);
+}

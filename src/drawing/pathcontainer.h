@@ -47,6 +47,12 @@ public:
     /// Move all paths to history.
     void clearPaths(QGraphicsScene *scene = nullptr);
 
+    void append(QGraphicsItem *item)
+    {paths.append(item);}
+
+    QGraphicsItem *last()
+    {return paths.last();}
+
 signals:
 
 };
