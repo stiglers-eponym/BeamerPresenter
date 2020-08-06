@@ -35,6 +35,9 @@ static const QMap<QString, Action> string_to_action_map
     {"next skipping overlays", NextSkippingOverlays},
     {"previous skipping overlays", PreviousSkippingOverlays},
     {"reload", ReloadFiles},
+    {"undo", UndoDrawing},
+    {"redo", RedoDrawing},
+    {"clear", ClearDrawing},
     {"quit", Quit},
 };
 

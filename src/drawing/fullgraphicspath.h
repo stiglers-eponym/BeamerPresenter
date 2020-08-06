@@ -2,6 +2,7 @@
 #define FULLGRAPHICSPATH_H
 
 #include "src/drawing/abstractgraphicspath.h"
+#include <QGraphicsScene>
 #include <QPainter>
 #include <QPen>
 
@@ -19,11 +20,12 @@ class FullGraphicsPath : public AbstractGraphicsPath
     /// pen.width will change with each drawn point.
     QPen pen {QBrush(Qt::red), 10., Qt::SolidLine, Qt::RoundCap};
     /// Bounding rect coordinates
-    qreal top=0., bottom=0., left=0., right=0.;
+    qreal top=1e12, bottom=0., left=1e12, right=0.;
 
 public:
     enum { Type = UserType + 2 };
     FullGraphicsPath();
+    FullGraphicsPath(const FullGraphicsPath *other, int first, int last);
     int type() const override {return Type;}
     int size() const override {return data.size();}
     const QPointF lastPoint() override {return data.isEmpty() ? QPointF() : data.last().point;}
@@ -31,6 +33,7 @@ public:
     /// Add a point to data and update bounding rect.
     void addPoint(const QPointF &point, const float pressure);
     QRectF boundingRect() const override {return QRectF(left, top, right-left, bottom-top);}
+    QList<AbstractGraphicsPath*> splitErase(const QPointF &pos, const qreal size) const override;
 };
 
 #endif // FULLGRAPHICSPATH_H

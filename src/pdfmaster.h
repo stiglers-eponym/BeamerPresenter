@@ -54,7 +54,7 @@ public:
     const PdfDocument * getDocument() const
     {return document;}
 
-    const PathContainer *pathContainer(const int page) const {return paths.value(page, nullptr);}
+    PathContainer *pathContainer(const int page) const {return paths.value(page, nullptr);}
 
     void resolveLink(const int page, const QPointF& position) const;
 

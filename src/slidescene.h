@@ -42,6 +42,7 @@ public:
     void tabletMove(const QPointF &pos, const QTabletEvent *event);
     void tabletPress(const QPointF &pos, const QTabletEvent *event);
     void tabletRelease(const QPointF &pos, const QTabletEvent *event);
+    void erase(const QPointF &pos);
 
 protected:
     /// Handle various types of events

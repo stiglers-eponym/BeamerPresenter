@@ -20,8 +20,13 @@ public:
     void addRemoveItem(int key, QGraphicsItem* value) {deletedItems[key] = value;}
     const QMap<int, QGraphicsItem*>& getCreatedItems() const {return createdItems;}
     const QMap<int, QGraphicsItem*>& getDeletedItems() const {return deletedItems;}
+    int numberRemoved() const {return deletedItems.size();}
+    int numberCreated() const {return createdItems.size();}
     void deletePast();
     void deleteFuture();
+    /// Shift indices of created items which were inserted in eraserMicroStep.
+    /// TODO: explain
+    void shiftCreatedItemIndices();
 };
 
 #endif // DRAWHISTORYSTEP_H

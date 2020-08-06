@@ -50,6 +50,10 @@ enum Action
     PreviousSkippingOverlays,
     FirstPage,
     LastPage,
+    // Drawing
+    UndoDrawing,
+    RedoDrawing,
+    ClearDrawing,
     // Other actions
     ReloadFiles,
     Quit,

@@ -19,6 +19,7 @@ SlideScene::~SlideScene()
 
 void SlideScene::stopDrawing()
 {
+    qDebug() << "Stop drawing" << page << page_part;
     if (currentPath && currentPath->size() > 1)
     {
         addItem(currentPath);
@@ -28,9 +29,12 @@ void SlideScene::stopDrawing()
         update(currentPath->boundingRect());
     }
     currentPath = nullptr;
-    removeItem(currentItemCollection);
-    delete currentItemCollection;
-    currentItemCollection = nullptr;
+    if (currentItemCollection)
+    {
+        removeItem(currentItemCollection);
+        delete currentItemCollection;
+        currentItemCollection = nullptr;
+    }
 }
 
 unsigned int SlideScene::identifier() const
@@ -69,16 +73,13 @@ bool SlideScene::event(QEvent* event)
 
 void SlideScene::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
 {
-    // TODO!
+    // TODO
 }
 
 void SlideScene::receiveAction(const Action action)
 {
     switch (action)
     {
-    case Update:
-        navigationEvent(page);
-        break;
     default:
         break;
     }
@@ -121,34 +122,79 @@ void SlideScene::navigationEvent(const int newpage, SlideScene *newscene)
 
 void SlideScene::tabletMove(const QPointF &pos, const QTabletEvent *event)
 {
-    if (event->pressure() > 0 && currentPath && currentItemCollection)
+    if (event->pressure() <= 0)
+        return;
+    switch (event->pointerType())
     {
-        auto item = new QGraphicsLineItem(QLineF(currentPath->lastPoint(), pos));
-        item->setPen(QPen(QBrush(Qt::red), event->pressure(), Qt::SolidLine, Qt::RoundCap));
-        item->show();
-        addItem(item);
-        currentItemCollection->addToGroup(item);
-        currentItemCollection->show();
-        update(item->boundingRect());
-        invalidate(item->boundingRect());
-        static_cast<FullGraphicsPath*>(currentPath)->addPoint(pos, event->pressure());
+    case QTabletEvent::Pen:
+        if (currentPath && currentItemCollection)
+        {
+            auto item = new QGraphicsLineItem(QLineF(currentPath->lastPoint(), pos));
+            item->setPen(QPen(QBrush(Qt::red), event->pressure(), Qt::SolidLine, Qt::RoundCap));
+            item->show();
+            addItem(item);
+            currentItemCollection->addToGroup(item);
+            currentItemCollection->show();
+            update(item->boundingRect());
+            invalidate(item->boundingRect());
+            static_cast<FullGraphicsPath*>(currentPath)->addPoint(pos, event->pressure());
+        }
+        break;
+    case QTabletEvent::Eraser:
+    {
+        auto container = master->pathContainer(page | page_part);
+        if (container)
+            container->eraserMicroStep(pos);
+        // TODO: update
+        break;
+    }
+    default:
+        break;
     }
 }
 
 void SlideScene::tabletPress(const QPointF &pos, const QTabletEvent *event)
 {
-    qDebug() << pos << event->pressure();
-    currentItemCollection = new QGraphicsItemGroup();
-    addItem(currentItemCollection);
-    currentItemCollection->show();
-    currentPath = new FullGraphicsPath();
-    static_cast<FullGraphicsPath*>(currentPath)->addPoint(pos, event->pressure());
+    switch (event->pointerType())
+    {
+    case QTabletEvent::Pen:
+    {
+        currentItemCollection = new QGraphicsItemGroup();
+        addItem(currentItemCollection);
+        currentItemCollection->show();
+        currentPath = new FullGraphicsPath();
+        static_cast<FullGraphicsPath*>(currentPath)->addPoint(pos, event->pressure());
+        break;
+    }
+    case QTabletEvent::Eraser:
+    {
+        auto container = master->pathContainer(page | page_part);
+        if (container)
+            container->startMicroStep();
+        break;
+    }
+    default:
+        break;
+    }
 }
 
 void SlideScene::tabletRelease(const QPointF &pos, const QTabletEvent *event)
 {
-    qDebug() << pos;
     stopDrawing();
-    invalidate({sceneRect()});
-    update({sceneRect()});
+    switch (event->pointerType())
+    {
+    case QTabletEvent::Pen:
+        invalidate({sceneRect()});
+        update({sceneRect()});
+        break;
+    case QTabletEvent::Eraser:
+    {
+        auto container = master->pathContainer(page | page_part);
+        if (container)
+            container->applyMicroStep();
+        break;
+    }
+    default:
+        break;
+    }
 }

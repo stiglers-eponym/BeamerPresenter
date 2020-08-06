@@ -56,6 +56,48 @@ void PdfMaster::receiveAction(const Action action)
             // TODO: implement update
             emit update();
         break;
+    case UndoDrawing:
+    {
+        PathContainer* const path = paths.value(preferences().page | preferences().page_part);
+        if (path)
+        {
+            qDebug() << "undo:" << path;
+            const int page = preferences().page | preferences().page_part;
+            auto scene_it = scenes.cbegin();
+            while ( scene_it != scenes.cend() && ( (*scene_it)->getPage() | (*scene_it)->pagePart() ) != page)
+                ++scene_it;
+            if (scene_it == scenes.cend())
+                path->undo();
+            else
+                path->undo(*scene_it);
+        }
+        break;
+    }
+    case RedoDrawing:
+    {
+        PathContainer* const path = paths.value(preferences().page | preferences().page_part);
+        if (path)
+        {
+            qDebug() << "redo:" << path;
+            const int page = preferences().page | preferences().page_part;
+            auto scene_it = scenes.cbegin();
+            while ( scene_it != scenes.cend() && ( (*scene_it)->getPage() | (*scene_it)->pagePart() ) != page)
+                ++scene_it;
+            if (scene_it == scenes.cend())
+                path->redo();
+            else
+                path->redo(*scene_it);
+        }
+        break;
+    }
+    case ClearDrawing:
+    {
+        PathContainer* const path = paths.value(preferences().page | preferences().page_part);
+        qDebug() << "clear:" << path;
+        if (path)
+            path->clearPaths();
+        break;
+    }
     default:
         break;
     }

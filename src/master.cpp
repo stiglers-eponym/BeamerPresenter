@@ -302,6 +302,9 @@ void Master::receiveKeyEvent(const QKeyEvent* event)
         case InvalidAction:
         case NoAction:
             break;
+        case Update:
+            emit navigationSignal(preferences().page);
+            break;
         case NextPage:
             if (documents.first()->numberOfPages() > preferences().page + 1)
             {

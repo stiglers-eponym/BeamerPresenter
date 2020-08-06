@@ -3,6 +3,7 @@
 
 #include "src/drawing/abstractgraphicspath.h"
 #include <QPen>
+#include <QGraphicsScene>
 
 /// Fixed width path.
 class BasicGraphicsPath : public AbstractGraphicsPath, QGraphicsPathItem
