@@ -18,13 +18,13 @@ class FullGraphicsPath : public AbstractGraphicsPath
     QVector<PointPressure> data;
     /// Pen for stroking path.
     /// pen.width will change with each drawn point.
-    QPen pen {QBrush(Qt::red), 10., Qt::SolidLine, Qt::RoundCap};
+    QPen pen {QBrush(Qt::red), 1., Qt::SolidLine, Qt::RoundCap};
     /// Bounding rect coordinates
-    qreal top=1e12, bottom=0., left=1e12, right=0.;
+    qreal top, bottom, left, right;
 
 public:
     enum { Type = UserType + 2 };
-    FullGraphicsPath();
+    FullGraphicsPath(const QPointF &pos, const float pressure);
     FullGraphicsPath(const FullGraphicsPath *other, int first, int last);
     int type() const override {return Type;}
     int size() const override {return data.size();}

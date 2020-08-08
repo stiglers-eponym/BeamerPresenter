@@ -162,8 +162,7 @@ void SlideScene::tabletPress(const QPointF &pos, const QTabletEvent *event)
         currentItemCollection = new QGraphicsItemGroup();
         addItem(currentItemCollection);
         currentItemCollection->show();
-        currentPath = new FullGraphicsPath();
-        static_cast<FullGraphicsPath*>(currentPath)->addPoint(pos, event->pressure());
+        currentPath = new FullGraphicsPath(pos, event->pressure());
         break;
     }
     case QTabletEvent::Eraser:

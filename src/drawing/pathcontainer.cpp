@@ -159,7 +159,6 @@ void PathContainer::append(QGraphicsItem *item)
 
 void PathContainer::startMicroStep()
 {
-    qDebug() << "Start micro step";
     truncateHistory();
     history.append(new DrawHistoryStep());
     inHistory = 1;
@@ -169,7 +168,6 @@ void PathContainer::eraserMicroStep(const QPointF &pos, const qreal size)
 {
     // TODO: Works only for a single step!
     // The whole concept should be changed!
-    qDebug() << "Eraser micro step";
     if (inHistory != 1)
         return;
     QList<QGraphicsItem*>::iterator path_it = paths.begin();
@@ -248,7 +246,6 @@ void PathContainer::eraserMicroStep(const QPointF &pos, const qreal size)
 
 void PathContainer::applyMicroStep()
 {
-    qDebug() << "Apply micro step";
     if (inHistory != 1)
         return;
 
@@ -274,7 +271,6 @@ void PathContainer::applyMicroStep()
         paths.removeAt(*--key);
     }
 
-    qDebug() << "create";
     // Add newly created items to path.
     // Get the new items from history.
     const QMap<int, QGraphicsItem*> &newItems = history.last()->getCreatedItems();

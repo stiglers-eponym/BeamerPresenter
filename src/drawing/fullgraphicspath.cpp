@@ -1,8 +1,12 @@
 #include "fullgraphicspath.h"
 
-FullGraphicsPath::FullGraphicsPath()
+FullGraphicsPath::FullGraphicsPath(const QPointF &pos, const float pressure)
 {
-
+    data.append({pos, pressure});
+    top = pos.y() - pen.widthF();
+    bottom = pos.y() + pen.widthF();
+    left = pos.x() - pen.widthF();
+    right = pos.x() + pen.widthF();
 }
 
 FullGraphicsPath::FullGraphicsPath(const FullGraphicsPath *other, int first, int last) :
@@ -14,23 +18,26 @@ FullGraphicsPath::FullGraphicsPath(const FullGraphicsPath *other, int first, int
         last = other->size();
     const int length = last - first;
     data = QVector<PointPressure>(length);
+    top = other->data[first].point.y();
+    bottom = top;
+    left = other->data[first].point.x();
+    right = left;
     for (int i=0; i<length; i++)
     {
         data[i] = other->data[i+first];
-        if ( data[i].point.x() < left + data[i].pressure )
-            left = data[i].point.x() - data[i].pressure;
-        else if ( data[i].point.x() + data[i].pressure > right )
-            right = data[i].point.x() + data[i].pressure;
-        if ( data[i].point.y() < top + data[i].pressure )
-            top = data[i].point.y() - data[i].pressure;
-        else if ( data[i].point.y() + data[i].pressure > bottom )
-            bottom = data[i].point.y() + data[i].pressure;
+        if ( data[i].point.x() < left )
+            left = data[i].point.x();
+        else if ( data[i].point.x() > right )
+            right = data[i].point.x();
+        if ( data[i].point.y() < top )
+            top = data[i].point.y();
+        else if ( data[i].point.y() > bottom )
+            bottom = data[i].point.y();
     }
-    if (other->scene())
-    {
-        other->scene()->addItem(this);
-        stackBefore(other);
-    }
+    left -= pen.widthF();
+    right += pen.widthF();
+    top -= pen.widthF();
+    bottom += pen.widthF();
 }
 
 void FullGraphicsPath::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
@@ -45,30 +52,33 @@ void FullGraphicsPath::paint(QPainter *painter, const QStyleOptionGraphicsItem *
         painter->setPen(pen);
         painter->drawLine((it-1)->point, it->point);
     }
+    // Only for debugging
+    //painter->setPen(QPen(QBrush(Qt::black), 0.5));
+    //painter->drawRect(boundingRect());
 }
 
 void FullGraphicsPath::addPoint(const QPointF &point, const float pressure)
 {
     data.append({point, pressure});
     bool change = false;
-    if ( point.x() < left + pressure )
+    if ( point.x() < left + pen.widthF() )
     {
-        left = point.x() - pressure;
+        left = point.x() - pen.widthF();
         change = true;
     }
-    else if ( point.x() + pressure > right )
+    else if ( point.x() + pen.widthF() > right )
     {
-        right = point.x() + pressure;
+        right = point.x() + pen.widthF();
         change = true;
     }
-    if ( point.y() < top + pressure )
+    if ( point.y() < top + pen.widthF() )
     {
-        top = point.y() - pressure;
+        top = point.y() - pen.widthF();
         change = true;
     }
-    else if ( point.y() + pressure > bottom )
+    else if ( point.y() + pen.widthF() > bottom )
     {
-        bottom = point.y() + pressure;
+        bottom = point.y() + pen.widthF();
         change = true;
     }
     if (change)
