@@ -76,6 +76,10 @@ public slots:
 
     void distributeNavigationEvents(const int page) const;
 
+    /// Notify history of given page that it needs to store only
+    /// preferences().history_length_hidden_slides steps.
+    void limitHistoryInvisible(const int page) const;
+
 signals:
     /// Notify all associated SlidesScenes that paths have changed.
     void pathsUpdated() const;

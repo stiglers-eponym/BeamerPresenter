@@ -2,26 +2,35 @@
 
 FullGraphicsPath::FullGraphicsPath(const QPointF &pos, const float pressure)
 {
-    data.append({pos, pressure});
+    // Initialize bounding rect.
     top = pos.y() - pen.widthF();
     bottom = pos.y() + pen.widthF();
     left = pos.x() - pen.widthF();
     right = pos.x() + pen.widthF();
+    // Add first data point.
+    data.append({pos, pressure});
 }
 
-FullGraphicsPath::FullGraphicsPath(const FullGraphicsPath *other, int first, int last) :
-    pen(other->pen)
+FullGraphicsPath::FullGraphicsPath(const FullGraphicsPath * const other, int first, int last) :
+    AbstractGraphicsPath(other->pen)
 {
+    // Make sure that first and last are valid.
     if (first < 0)
         first = 0;
     if (last > other->size())
         last = other->size();
     const int length = last - first;
+    if (length <= 0)
+        // This should never happen.
+        return;
+    // Initialize data with the correct length.
     data = QVector<PointPressure>(length);
+    // Initialize bounding rect.
     top = other->data[first].point.y();
     bottom = top;
     left = other->data[first].point.x();
     right = left;
+    // Copy data points from other and update bounding rect.
     for (int i=0; i<length; i++)
     {
         data[i] = other->data[i+first];
@@ -34,6 +43,7 @@ FullGraphicsPath::FullGraphicsPath(const FullGraphicsPath *other, int first, int
         else if ( data[i].point.y() > bottom )
             bottom = data[i].point.y();
     }
+    // Add finite stroke width to bounding rect.
     left -= pen.widthF();
     right += pen.widthF();
     top -= pen.widthF();

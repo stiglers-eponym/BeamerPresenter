@@ -16,10 +16,11 @@ private:
     QMap<int, QGraphicsItem*> deletedItems;
 
 public:
-    DrawHistoryStep();
-    void addCreateItem(const int key, QGraphicsItem* value);
-    void addRemoveItem(const int key, QGraphicsItem* value);
-    void purgeItem(const int key, QGraphicsItem* item);
+    DrawHistoryStep() {}
+    void addCreateItem(const int key, QGraphicsItem* value)
+    {createdItems[key] = value;}
+    void addRemoveItem(const int key, QGraphicsItem* value)
+    {deletedItems[key] = value;}
     const QMap<int, QGraphicsItem*>& getCreatedItems() const
     {return createdItems;}
     const QMap<int, QGraphicsItem*>& getDeletedItems() const

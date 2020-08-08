@@ -10,6 +10,7 @@
 #include "src/drawing/abstractgraphicspath.h"
 #include "src/drawing/basicgraphicspath.h"
 #include "src/drawing/fullgraphicspath.h"
+#include "src/preferences.h"
 
 /// Collection of QGraphicsItems including a history of changes to these items.
 /// This stores drawn paths per slide even if the slide is not visible.
@@ -36,7 +37,7 @@ private:
     void truncateHistory();
 
 public:
-    explicit PathContainer(QObject *parent = nullptr);
+    explicit PathContainer(QObject *parent = nullptr) : QObject(parent) {}
     ~PathContainer();
 
     /// Undo latest change. Return true on success and false on failure.
@@ -45,25 +46,43 @@ public:
     /// Redo latest change. Return true on success and false on failure.
     bool redo(QGraphicsScene *scene = nullptr);
 
+    /// Iterator over current paths.
     QList<QGraphicsItem*>::const_iterator cbegin() const
     {return paths.cbegin();}
 
+    /// End of iterator over current paths.
     QList<QGraphicsItem*>::const_iterator cend() const
     {return paths.cend();}
 
     /// Clear history such that only <n> undo steps are possible.
     void clearHistory(int n = 0);
 
-    /// Move all paths to history.
+    /// Clear paths in a new history step.
     void clearPaths();
 
+    /// Add a new QGraphisItem* in a new history step.
     void append(QGraphicsItem *item);
 
-    QGraphicsItem *last()
-    {return paths.last();}
+    /// Last QGraphicsItem* in history.
+    //QGraphicsItem *last()
+    //{return paths.last();}
 
+    /// Start eraser step. An eraser step in history is caused by multiple
+    /// events (eraser move events), which are all managed by PathContainer.
+    /// We call them micro steps. Start erasing by initializing an eraser
+    /// step in history.
     void startMicroStep();
+
+    /// Apply the micro steps forming an eraser step. In the eraser micro steps
+    /// paths and history.last() do not have the usual form. Instead of
+    /// top-level QGraphicsItems, paths also contains QGraphicsItemGroups of
+    /// paths split by erasing. This is all fixed and brought to the usual form
+    /// in applyMicroStep().
     void applyMicroStep();
+
+    /// Single eraser move event. This erasees paths at pos with given eraser
+    /// size. Before this function startMicroStep() has to be called and
+    /// afterwards a call to applyMicroStep() is necessary.
     void eraserMicroStep(const QPointF &pos, const qreal size = 10.);
 
 signals:

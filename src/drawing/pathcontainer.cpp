@@ -1,12 +1,8 @@
 #include "src/drawing/pathcontainer.h"
 
-PathContainer::PathContainer(QObject *parent) : QObject(parent)
-{
-
-}
-
 PathContainer::~PathContainer()
 {
+    truncateHistory();
     clearHistory();
     // This is dangerous: check which paths are owned by QGraphicsScene.
     qDeleteAll(paths);
@@ -49,7 +45,6 @@ bool PathContainer::undo(QGraphicsScene *scene)
         }
     }
 
-    // TODO: update the screen.
     return true;
 }
 
@@ -59,7 +54,6 @@ bool PathContainer::redo(QGraphicsScene *scene)
     if (inHistory < 1)
         return false;
 
-    qDebug() << "redo";
     // First remove items which were deleted in this step.
     // Get the (sorted) indices of items which should be removed.
     const QMap<int, QGraphicsItem*> &oldItems = history[history.length()-inHistory]->getDeletedItems();
@@ -93,7 +87,6 @@ void PathContainer::truncateHistory()
 {
     // Clean up all "redo" options:
     // Delete the last <inHistory> history entries.
-    qDebug() << "Clearing" << inHistory << "history steps";
     while (inHistory > 0)
     {
         // Take the last step from history (removes it from history).
@@ -115,7 +108,7 @@ void PathContainer::clearHistory(int n)
 
     // Delete the first entries in history until
     // history.length() - inHistory <= n .
-    for (int i = history.length() - inHistory; i>n; i--)
+    for (int i = history.length() - inHistory; i > n; i--)
     {
         // Take the first step from history (removes it from history).
         DrawHistoryStep *step = history.takeFirst();
@@ -146,34 +139,44 @@ void PathContainer::clearPaths()
     history.append(step);
     // All paths have been added to history. paths can be cleared.
     paths.clear();
+    if (history.length() > preferences().history_length_visible_slides)
+        clearHistory(preferences().history_length_visible_slides);
 }
 
 void PathContainer::append(QGraphicsItem *item)
 {
+    // Remove all "redo" options.
     truncateHistory();
+    // Create new history step which adds item.
     const auto step = new DrawHistoryStep();
     step->addCreateItem(paths.length(), item);
     history.append(step);
+    // Add item to paths.
     paths.append(item);
+    // Limit history size (if necessary).
+    if (history.length() > preferences().history_length_visible_slides)
+        clearHistory(preferences().history_length_visible_slides);
 }
 
 void PathContainer::startMicroStep()
 {
+    // Remove all "redo" options.
     truncateHistory();
+    // Create new, empty history step.
     history.append(new DrawHistoryStep());
     inHistory = 1;
 }
 
 void PathContainer::eraserMicroStep(const QPointF &pos, const qreal size)
 {
-    // TODO: Works only for a single step!
-    // The whole concept should be changed!
     if (inHistory != 1)
         return;
+    // Iterate over all paths and check whether they intersect with pos.
     QList<QGraphicsItem*>::iterator path_it = paths.begin();
     for (int i=0; path_it != paths.cend(); ++path_it, i++)
     {
-        // TODO: contains is not sufficient, because the eraser has a finite size.
+        // Check if pos lies within the path's bounding rect (plus extra
+        // margins from the eraser size).
         if (*path_it && (*path_it)->boundingRect().marginsAdded(QMargins(size, size, size, size)).contains(pos))
         {
             QGraphicsScene *scene = (*path_it)->scene();
@@ -184,26 +187,43 @@ void PathContainer::eraserMicroStep(const QPointF &pos, const qreal size)
             case BasicGraphicsPath::Type:
             {
                 AbstractGraphicsPath *path = static_cast<AbstractGraphicsPath*>(*path_it);
+                // Apply eraser to path. Get a list of paths obtained by splitting
+                // path using the eraser.
                 QList<AbstractGraphicsPath*> list = path->splitErase(pos, size);
+                // If list is empty, the path was completely erased.
                 if (list.isEmpty())
                 {
+                    // Mark in history step that this path is deleted.
                     history.last()->addRemoveItem(i, path);
+                    // Hide the path, remove it from scene (if possible).
                     if (scene)
                         scene->removeItem(path);
                     else
                         path->hide();
+                    // Remove path from paths by settings paths[i] = nullptr.
                     *path_it = nullptr;
                 }
-                // If nothing should change, the list will only contain a nullptr.
+                // If nothing should change (the path is not affected by erasing),
+                // the list will only contain a nullptr. In this case we do nothing.
+                // In all other cases:
                 else if (list.first())
                 {
+                    // Path has changed or was split into multiple paths by erasing.
+                    // Replace path by a QGraphicsItemGroup containing all new paths
+                    // created from this path.
+
+                    // First mark this path as removed in history.
                     history.last()->addRemoveItem(i, path);
+                    // Create the QGraphicsItemGroup.
                     QGraphicsItemGroup *group = new QGraphicsItemGroup();
+                    // Add all paths in list (which were obtained by erasing in path)
+                    // to group.
                     for (const auto item : list)
                     {
                         group->addToGroup(item);
                         item->show(); // TODO: necessary?
                     }
+                    // Replace path by group in scene (if possible).
                     if (scene)
                     {
                         scene->addItem(group);
@@ -212,18 +232,27 @@ void PathContainer::eraserMicroStep(const QPointF &pos, const qreal size)
                     }
                     else
                         path->hide();
+                    // Replace path by group in paths.
                     *path_it = group;
                 }
                 break;
             }
             case QGraphicsItemGroup::Type:
             {
+                // Here a path has already been split into a QGraphicsItemGroup by erasing.
+                // Apply eraser again to all items of the group.
+                // Within the group, stacking order is irrelevant since all items were
+                // created from the same path by erasing.
                 QGraphicsItemGroup *group = static_cast<QGraphicsItemGroup*>(*path_it);
                 for (auto child : group->childItems())
                 {
+                    // All items in the group should be paths. But we better check again.
                     if (child && (child->type() == FullGraphicsPath::Type || child->type() == BasicGraphicsPath::Type))
                     {
+                        // Apply eraser to child.
                         const auto list = static_cast<AbstractGraphicsPath*>(child)->splitErase(pos, size);
+                        // Again, if list.first() == nullptr, we should do nothing
+                        // because the eraser did not hit the path.
                         if (list.isEmpty() || list.first())
                         {
                             for (auto item : list)
@@ -231,6 +260,7 @@ void PathContainer::eraserMicroStep(const QPointF &pos, const qreal size)
                             group->removeFromGroup(child);
                             if (scene)
                                 scene->removeItem(child);
+                            // This item is not stored in any history and can be deleted.
                             delete child; // TODO: Check if this breaks something.
                         }
                     }
@@ -249,34 +279,56 @@ void PathContainer::applyMicroStep()
     if (inHistory != 1)
         return;
 
+    // 1. Fix the history step.
+    // In eraserMicroStep() only deletions are added to history.last() while
+    // creating new paths is not marked in history. This is done here.
+    // At each index i in oldItems.keys(), paths[i] has either been removed
+    // or replaced by a QGraphicsItemGroup* containing new paths.
+    // Here we add these new paths to history.last().
     const QMap<int, QGraphicsItem*> &oldItems = history.last()->getDeletedItems();
     int shift = 0;
     for (auto it = oldItems.cbegin(); it != oldItems.cend(); ++it, shift--)
     {
+        // item should be either nullptr (if this path has been erased completely)
+        // or a QGraphicsItemGroup* (if this path has been erased partially).
         QGraphicsItem *item = paths.value(it.key());
         if (item && item->type() == QGraphicsItemGroup::Type)
         {
+            // If item is a QGraphicsItemGroup*: Add all its child paths to
+            // history.last().
             QGraphicsItemGroup *group = static_cast<QGraphicsItemGroup*>(item);
             for (auto child : group->childItems())
             {
+                // The index shift "shift" is given by #(new items) - #(delted items)
+                // which lie before it.key() in paths.
                 history.last()->addCreateItem(it.key() + shift++, child);
                 group->removeFromGroup(child);
                 child->stackBefore(group);
             }
+            if (group->scene())
+                group->scene()->removeItem(group);
+            delete group;
         }
     }
+
+    // 2. Remove all deleted items from paths.
+    // The removed items have already been deleted.
     {
-    auto key = oldItems.keyEnd();
-    while (key != oldItems.keyBegin())
-        paths.removeAt(*--key);
+        auto key = oldItems.keyEnd();
+        while (key != oldItems.keyBegin())
+            paths.removeAt(*--key);
     }
 
-    // Add newly created items to path.
-    // Get the new items from history.
+    // 3. Add newly created items to path.
+    // Get the new items from history (as prepared in step 1.)
     const QMap<int, QGraphicsItem*> &newItems = history.last()->getCreatedItems();
     for (auto it = newItems.cbegin(); it != newItems.cend(); ++it)
         paths.insert(it.key(), it.value());
 
     // Move forward in history.
     inHistory = 0;
+
+    // Limit history size (if necessary).
+    if (history.length() > preferences().history_length_visible_slides)
+        clearHistory(preferences().history_length_visible_slides);
 }

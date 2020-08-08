@@ -54,6 +54,9 @@ signals:
     void sendAction(const Action action) const;
     /// Send out nagivation signal (after updating preferences().page).
     void navigationSignal(const int page) const;
+    /// Notify drawing history that for now hidden slides less history steps
+    /// need to be stored.
+    void limitHistoryInvisible(const int page) const;
 };
 
 #endif // MASTER_H

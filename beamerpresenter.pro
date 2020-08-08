@@ -73,7 +73,6 @@ SOURCES += \
         src/rendering/pngpixmap.cpp \
         src/drawing/drawhistorystep.cpp \
         src/drawing/pathcontainer.cpp \
-        src/drawing/abstractgraphicspath.cpp \
         src/drawing/basicgraphicspath.cpp \
         src/drawing/fullgraphicspath.cpp \
         src/slidescene.cpp \

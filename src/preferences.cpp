@@ -16,7 +16,7 @@ void Preferences::loadSettings()
     gui_config_file = settings.value("gui config", "/etc/beamerpresenter/gui.json").toString();
 
     // DRAWING
-    history_length_hidden_slides = settings.value("history length visible", 100).toUInt();
+    history_length_visible_slides = settings.value("history length visible", 100).toUInt();
     history_length_hidden_slides = settings.value("history length hidden", 50).toUInt();
 
     // RENDERING

@@ -135,3 +135,10 @@ void PdfMaster::distributeNavigationEvents(const int page) const
         }
     }
 }
+
+void PdfMaster::limitHistoryInvisible(const int page) const
+{
+    PathContainer *const container = paths.value(page);
+    if (container)
+        container->clearHistory(preferences().history_length_hidden_slides);
+}
