@@ -2,6 +2,7 @@
 #define DRAWHISTORYSTEP_H
 
 #include <QMap>
+#include <QDebug>
 #include <QGraphicsItem>
 
 /// One single step in the history of drawing.
@@ -16,17 +17,19 @@ private:
 
 public:
     DrawHistoryStep();
-    void addCreateItem(int key, QGraphicsItem* value) {createdItems[key] = value;}
-    void addRemoveItem(int key, QGraphicsItem* value) {deletedItems[key] = value;}
-    const QMap<int, QGraphicsItem*>& getCreatedItems() const {return createdItems;}
-    const QMap<int, QGraphicsItem*>& getDeletedItems() const {return deletedItems;}
-    int numberRemoved() const {return deletedItems.size();}
-    int numberCreated() const {return createdItems.size();}
+    void addCreateItem(const int key, QGraphicsItem* value);
+    void addRemoveItem(const int key, QGraphicsItem* value);
+    void purgeItem(const int key, QGraphicsItem* item);
+    const QMap<int, QGraphicsItem*>& getCreatedItems() const
+    {return createdItems;}
+    const QMap<int, QGraphicsItem*>& getDeletedItems() const
+    {return deletedItems;}
+    int numberRemoved() const
+    {return deletedItems.size();}
+    int numberCreated() const
+    {return createdItems.size();}
     void deletePast();
     void deleteFuture();
-    /// Shift indices of created items which were inserted in eraserMicroStep.
-    /// TODO: explain
-    void shiftCreatedItemIndices();
 };
 
 #endif // DRAWHISTORYSTEP_H

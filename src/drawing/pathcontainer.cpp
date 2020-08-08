@@ -165,39 +165,83 @@ void PathContainer::startMicroStep()
     inHistory = 1;
 }
 
-void PathContainer::eraserMicroStep(const QPointF &pos)
+void PathContainer::eraserMicroStep(const QPointF &pos, const qreal size)
 {
+    // TODO: Works only for a single step!
+    // The whole concept should be changed!
     qDebug() << "Eraser micro step";
     if (inHistory != 1)
         return;
-    QList<QGraphicsItem*>::const_iterator path_it = paths.cbegin();
-    int i = 0;
-    int j = 1;
-    for (; path_it != paths.cend(); ++path_it, i++)
+    QList<QGraphicsItem*>::iterator path_it = paths.begin();
+    for (int i=0; path_it != paths.cend(); ++path_it, i++)
     {
         // TODO: contains is not sufficient, because the eraser has a finite size.
-        if ((*path_it)->contains(pos) && ((*path_it)->type() == FullGraphicsPath::Type || (*path_it)->type() == BasicGraphicsPath::Type) )
+        if (*path_it && (*path_it)->boundingRect().marginsAdded(QMargins(size, size, size, size)).contains(pos))
         {
-            AbstractGraphicsPath *path = static_cast<AbstractGraphicsPath*>(*path_it);
-            QList<AbstractGraphicsPath*> list = path->splitErase(pos, 10.);
-            if (list.isEmpty())
-                continue;
-            QGraphicsScene *scene = path->scene();
-            history.last()->addRemoveItem(i, path);
-            for (const auto item : list)
+            QGraphicsScene *scene = (*path_it)->scene();
+            switch ((*path_it)->type())
             {
-                // Here the indices of history.last().createdItems differ from
-                // the "correct" indices. This will be fixed in applyMicroStep().
-                history.last()->addCreateItem(i + j++, item);
-                item->show();
-                if (scene)
+            case AbstractGraphicsPath::Type:
+            case FullGraphicsPath::Type:
+            case BasicGraphicsPath::Type:
+            {
+                AbstractGraphicsPath *path = static_cast<AbstractGraphicsPath*>(*path_it);
+                QList<AbstractGraphicsPath*> list = path->splitErase(pos, size);
+                if (list.isEmpty())
                 {
-                    scene->addItem(item);
-                    item->stackBefore(path);
+                    history.last()->addRemoveItem(i, path);
+                    if (scene)
+                        scene->removeItem(path);
+                    else
+                        path->hide();
+                    *path_it = nullptr;
                 }
+                // If nothing should change, the list will only contain a nullptr.
+                else if (list.first())
+                {
+                    history.last()->addRemoveItem(i, path);
+                    QGraphicsItemGroup *group = new QGraphicsItemGroup();
+                    for (const auto item : list)
+                    {
+                        group->addToGroup(item);
+                        item->show(); // TODO: necessary?
+                    }
+                    if (scene)
+                    {
+                        scene->addItem(group);
+                        group->stackBefore(path);
+                        scene->removeItem(path);
+                    }
+                    else
+                        path->hide();
+                    *path_it = group;
+                }
+                break;
             }
-            if (scene)
-                scene->removeItem(path);
+            case QGraphicsItemGroup::Type:
+            {
+                QGraphicsItemGroup *group = static_cast<QGraphicsItemGroup*>(*path_it);
+                for (auto child : group->childItems())
+                {
+                    if (child && (child->type() == FullGraphicsPath::Type || child->type() == BasicGraphicsPath::Type))
+                    {
+                        const auto list = static_cast<AbstractGraphicsPath*>(child)->splitErase(pos, size);
+                        if (list.isEmpty() || list.first())
+                        {
+                            for (auto item : list)
+                                group->addToGroup(item);
+                            group->removeFromGroup(child);
+                            if (scene)
+                                scene->removeItem(child);
+                            delete child; // TODO: Check if this breaks something.
+                        }
+                    }
+                }
+                break;
+            }
+            default:
+                break;
+            }
         }
     }
 }
@@ -207,23 +251,34 @@ void PathContainer::applyMicroStep()
     qDebug() << "Apply micro step";
     if (inHistory != 1)
         return;
-    qDebug() << "Shift";
-    history.last()->shiftCreatedItemIndices();
 
-    qDebug() << "remove";
-    // First remove items which were deleted in this step.
-    // Get the (sorted) indices of items which should be removed.
     const QMap<int, QGraphicsItem*> &oldItems = history.last()->getDeletedItems();
-    // Iterate over the keys in reverse order, because otherwise the indices of
-    // items which we still want to delete would change.
-    for (auto it = oldItems.constEnd(); it-- != oldItems.constBegin();)
-        paths.removeAt(it.key());
+    int shift = 0;
+    for (auto it = oldItems.cbegin(); it != oldItems.cend(); ++it, shift--)
+    {
+        QGraphicsItem *item = paths.value(it.key());
+        if (item && item->type() == QGraphicsItemGroup::Type)
+        {
+            QGraphicsItemGroup *group = static_cast<QGraphicsItemGroup*>(item);
+            for (auto child : group->childItems())
+            {
+                history.last()->addCreateItem(it.key() + shift++, child);
+                group->removeFromGroup(child);
+                child->stackBefore(group);
+            }
+        }
+    }
+    {
+    auto key = oldItems.keyEnd();
+    while (key != oldItems.keyBegin())
+        paths.removeAt(*--key);
+    }
 
     qDebug() << "create";
-    // Restore newly created items.
+    // Add newly created items to path.
     // Get the new items from history.
-    const QMap<int, QGraphicsItem*> &newItems = history[history.length()-inHistory]->getCreatedItems();
-    for (auto it = newItems.constBegin(); it != newItems.constEnd(); ++it)
+    const QMap<int, QGraphicsItem*> &newItems = history.last()->getCreatedItems();
+    for (auto it = newItems.cbegin(); it != newItems.cend(); ++it)
         paths.insert(it.key(), it.value());
 
     // Move forward in history.

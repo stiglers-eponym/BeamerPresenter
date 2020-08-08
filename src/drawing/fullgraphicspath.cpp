@@ -77,21 +77,28 @@ void FullGraphicsPath::addPoint(const QPointF &point, const float pressure)
 
 QList<AbstractGraphicsPath*> FullGraphicsPath::splitErase(const QPointF &pos, const qreal size) const
 {
+    if (!boundingRect().marginsAdded(QMarginsF(size, size, size, size)).contains(pos))
+        // If returned list contains only a nullptr, this is interpreted as "no
+        // changes".
+        return {nullptr};
+
     QList<AbstractGraphicsPath*> list;
-    if (contains(pos))
+    const qreal sizesq = size*size;
+    int first = 0, last = 0;
+    while (last < data.length())
     {
-        int first = 0, last = 0;
-        while (last < data.length())
+        const QPointF diff = data[last++].point - pos;
+        if (QPointF::dotProduct(diff, diff) < sizesq)
         {
-            if ((data[last++].point - pos).manhattanLength() < size)
-            {
-                if (last > first + 2)
-                    list.append(new FullGraphicsPath(this, first, last-1));
-                first = last;
-            }
+            if (last > first + 2)
+                list.append(new FullGraphicsPath(this, first, last-1));
+            first = last;
         }
-        if (first != 0 && last > first + 2)
-            list.append(new FullGraphicsPath(this, first, last));
     }
+    // If first == 0, then the path has not changed.
+    if (first == 0)
+        return {nullptr};
+    if (last > first + 2)
+        list.append(new FullGraphicsPath(this, first, last));
     return list;
 }

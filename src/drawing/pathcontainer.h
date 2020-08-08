@@ -64,7 +64,7 @@ public:
 
     void startMicroStep();
     void applyMicroStep();
-    void eraserMicroStep(const QPointF &pos);
+    void eraserMicroStep(const QPointF &pos, const qreal size = 10.);
 
 signals:
 
