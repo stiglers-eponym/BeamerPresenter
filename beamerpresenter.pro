@@ -102,7 +102,6 @@ HEADERS += \
 
 contains(DEFINES, INCLUDE_POPPLER) {
     SOURCES += \
-            src/rendering/popplerrenderer.cpp \
             src/rendering/popplerdocument.cpp
     HEADERS += \
             src/rendering/popplerrenderer.h \

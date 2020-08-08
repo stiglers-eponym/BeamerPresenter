@@ -8,6 +8,24 @@
 #include "src/rendering/pdfdocument.h"
 #include "src/enumerates.h"
 
+/*
+static const QMap<Poppler::PageTransition::Type, SlideTransition::Type> mapTransitionTypes
+{
+    {Poppler::PageTransition::Replace, SlideTransition::Replace},
+    {Poppler::PageTransition::Split, SlideTransition::Split},
+    {Poppler::PageTransition::Blinds, SlideTransition::Blinds},
+    {Poppler::PageTransition::Box, SlideTransition::Box},
+    {Poppler::PageTransition::Wipe, SlideTransition::Wipe},
+    {Poppler::PageTransition::Dissolve, SlideTransition::Dissolve},
+    {Poppler::PageTransition::Glitter, SlideTransition::Glitter},
+    {Poppler::PageTransition::Fly, SlideTransition::Fly},
+    {Poppler::PageTransition::Push, SlideTransition::Push},
+    {Poppler::PageTransition::Cover, SlideTransition::Cover},
+    {Poppler::PageTransition::Uncover, SlideTransition::Uncover},
+    {Poppler::PageTransition::Fade, SlideTransition::Fade},
+};
+*/
+
 class PopplerDocument : public PdfDocument
 {
     const Poppler::Document *doc {nullptr};
@@ -38,7 +56,9 @@ public:
     int overlaysShifted(const int start, const int shift_overlay) const override;
 
     /// Link at given position (in point = inch/72)
-    virtual const PdfLink linkAt(const int page, const QPointF &position) const override;
+    const PdfLink linkAt(const int page, const QPointF &position) const override;
+
+    const SlideTransition transition(const int page) const override;
 };
 
 #endif // POPPLERDOCUMENT_H

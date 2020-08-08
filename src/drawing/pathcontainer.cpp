@@ -59,7 +59,8 @@ bool PathContainer::redo(QGraphicsScene *scene)
     const QMap<int, QGraphicsItem*> &oldItems = history[history.length()-inHistory]->getDeletedItems();
     // Iterate over the keys in reverse order, because otherwise the indices of
     // items which we still want to delete would change.
-    for (auto it = oldItems.constEnd(); it-- != oldItems.constBegin();) {
+    for (auto it = oldItems.constEnd(); it-- != oldItems.constBegin();)
+    {
         paths.removeAt(it.key());
         if (it.value()->scene())
             it.value()->scene()->removeItem(it.value());
@@ -68,10 +69,12 @@ bool PathContainer::redo(QGraphicsScene *scene)
     // Restore newly created items.
     // Get the new items from history.
     const QMap<int, QGraphicsItem*> &newItems = history[history.length()-inHistory]->getCreatedItems();
-    for (auto it = newItems.constBegin(); it != newItems.constEnd(); ++it) {
+    for (auto it = newItems.constBegin(); it != newItems.constEnd(); ++it)
+    {
         paths.insert(it.key(), it.value());
         // TODO: check if it is necessary to show items explicitly.
-        if (scene) {
+        if (scene)
+        {
             scene->addItem(it.value());
             if (it.key() + 1 < paths.length())
                 it.value()->stackBefore(paths[it.key() + 1]);

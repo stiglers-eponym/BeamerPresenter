@@ -103,6 +103,12 @@ void SlideScene::navigationEvent(const int newpage, SlideScene *newscene)
         setSceneRect(pagesize.width(), 0., pagesize.width(), pagesize.height());
         break;
     }
+    SlideTransition transition = master->transition(page);
+    if (transition.type)
+    {
+        // TODO!
+        qDebug() << transition.type << transition.duration << transition.properties << transition.angle << transition.scale;
+    }
     qDebug() << page << page_part << shift << newscene << this;
     emit navigationToViews(page, pagesize, newscene ? newscene : this);
     for (const auto item : items())

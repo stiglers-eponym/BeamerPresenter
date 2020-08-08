@@ -17,11 +17,14 @@ public:
     ~PopplerRenderer() override {}
     /// Render page to a QPixmap.
     /// Resolution is given in dpi.
-    const QPixmap renderPixmap(const int page, const qreal resolution) const override;
+    const QPixmap renderPixmap(const int page, const qreal resolution) const override
+    {return doc->getPixmap(page, resolution, page_part);}
     /// Render page to PNG image in a QByteArray.
     /// Resolution is given in dpi.
-    const PngPixmap * renderPng(const int page, const qreal resolution) const override;
-    bool isValid() const override {return doc != nullptr && doc->isValid();}
+    const PngPixmap * renderPng(const int page, const qreal resolution) const override
+    {return doc->getPng(page, resolution, page_part);}
+    bool isValid() const override
+    {return doc && doc->isValid();}
 };
 
 #endif // POPPLERRENDERER_H

@@ -447,6 +447,37 @@ void MuPdfDocument::prepareRendering(fz_context **context, fz_rect *bbox, fz_dis
     mutex->unlock();
 }
 
+const SlideTransition MuPdfDocument::transition(const int page) const
+{
+    fz_transition *doc_trans = new fz_transition();
+    SlideTransition trans;
+    mutex->lock();
+    fz_page *doc_page = fz_load_page(ctx, doc, page);
+    fz_page_presentation(ctx, doc_page, doc_trans, nullptr);
+    if (doc_trans)
+    {
+        trans.properties = (doc_trans->vertical ? SlideTransition::Vertical : 0)
+                        | (doc_trans->outwards ? SlideTransition::Outwards : 0);
+        trans.type = static_cast<SlideTransition::Type>(doc_trans->type);
+        trans.angle = doc_trans->direction;
+        trans.duration = doc_trans->duration;
+        if (trans.type == SlideTransition::Fly)
+        {
+            pdf_page *pdfpage = pdf_page_from_fz_page(ctx, doc_page);
+            pdf_obj *transdict = pdf_dict_get(ctx, pdfpage->obj, PDF_NAME(Trans));
+            if (pdf_dict_get_bool(ctx, transdict, PDF_NAME(B)))
+                trans.type = SlideTransition::FlyRectangle;
+            pdf_obj *ss_obj = pdf_dict_gets(ctx, transdict, "SS");
+            if (ss_obj)
+                trans.scale = pdf_to_real(ctx, ss_obj);
+        }
+    }
+    fz_drop_page(ctx, doc_page);
+    mutex->unlock();
+    delete doc_trans; // TODO: Does this break something?
+    return trans;
+}
+
 const PdfLink MuPdfDocument::linkAt(const int page, const QPointF &position) const
 {
     mutex->lock();

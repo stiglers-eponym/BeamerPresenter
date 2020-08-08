@@ -30,7 +30,7 @@ private:
     /// path list from other slide numbers.
     QMap<int, PathContainer*> paths;
 
-    // TODO: multimedia
+    // TODO: multimedia, slide transitions
 
 
 public:
@@ -58,6 +58,9 @@ public:
 
     void resolveLink(const int page, const QPointF& position) const;
 
+    const SlideTransition transition(const int page) const
+    {return document->transition(page);}
+
     int numberOfPages() const
     {return document->numberOfPages();}
 
@@ -72,8 +75,13 @@ public:
 public slots:
     /// Handle the given action.
     void receiveAction(const Action action);
+    /// Add a new path (or QGraphicsItem) to paths[page].
     void receiveNewPath(const int page, QGraphicsItem *item);
 
+    /// Send navigation events to all SlideScenes reading from this document.
+    /// This is done centrally via PdfMaster because it may be necessary
+    /// to reconnect SlideViews and SlideScenes if multiple scenes would
+    /// show the same page.
     void distributeNavigationEvents(const int page) const;
 
     /// Notify history of given page that it needs to store only

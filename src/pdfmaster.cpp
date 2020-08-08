@@ -122,6 +122,10 @@ void PdfMaster::receiveNewPath(const int page, QGraphicsItem *item)
 
 void PdfMaster::distributeNavigationEvents(const int page) const
 {
+    // Map (shifted) page numbers with page parts to slide scenes.
+    // Like this it can be detected if multiple scenes want to show the same
+    // page. In this case the SlideViews showing the same page will all be
+    // connected to the same scene.
     QMap<int, SlideScene*> scenemap;
     for (const auto scene : scenes)
     {
@@ -138,6 +142,9 @@ void PdfMaster::distributeNavigationEvents(const int page) const
 
 void PdfMaster::limitHistoryInvisible(const int page) const
 {
+    // A nagivation event moves preferences().page away from the given page.
+    // Tell paths[page] that it's history should now be limited by
+    // preferences().history_length_hidden_slides.
     PathContainer *const container = paths.value(page);
     if (container)
         container->clearHistory(preferences().history_length_hidden_slides);

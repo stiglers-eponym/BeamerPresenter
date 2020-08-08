@@ -268,3 +268,24 @@ const PdfLink PopplerDocument::linkAt(const int page, const QPointF &position) c
     }
     return {NoLink, ""};
 }
+
+const SlideTransition PopplerDocument::transition(const int page) const
+{
+    const Poppler::PageTransition *doc_trans = doc->page(page)->transition();
+    SlideTransition trans;
+    if (doc_trans)
+    {
+        //trans.type = mapTransitionTypes[doc_trans->type()];
+        trans.type = static_cast<SlideTransition::Type>(doc_trans->type());
+        trans.duration = doc_trans->durationReal();
+        trans.angle = doc_trans->angle();
+        if (trans.type == SlideTransition::Fly)
+        {
+            if (doc_trans->isRectangular())
+                trans.type = SlideTransition::FlyRectangle;
+            trans.scale = doc_trans->scale();
+        }
+    }
+    delete doc_trans;
+    return trans;
+}
