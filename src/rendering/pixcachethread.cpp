@@ -25,11 +25,9 @@ void PixCacheThread::run()
     if (renderer == nullptr)
         return;
 
-    // Copy the variable page and resolution.
-    // They might be overwritten by another thread while rendering.
-
     // Render the image. This is takes some time.
     // TODO: exception handling.
+    qDebug() << "Rendering in cache thread:" << page << resolution << this;
     const PngPixmap *image = renderer->renderPng(page, resolution);
 
     // Send the image to "master".

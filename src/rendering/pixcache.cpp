@@ -108,6 +108,7 @@ const QPixmap PixCache::pixmap(const int page) const
         return QPixmap();
     }
 
+    qDebug() << "Rendering in main thread";
     const QPixmap pix = renderer->renderPixmap(page, resolution);
 
     if (pix.isNull())
@@ -137,6 +138,7 @@ const QPixmap PixCache::pixmap(const int page)
         return QPixmap();
     }
 
+    qDebug() << "Rendering in main thread";
     const QPixmap pix = renderer->renderPixmap(page, resolution);
 
     if (pix.isNull())
@@ -370,6 +372,7 @@ int PixCache::renderNext()
 
 void PixCache::startRendering()
 {
+    //qDebug() << "Start rendering";
     // Clean up cache and check if there is enough space for more cached pages.
     int allowed_pages = limitCacheSize();
     if (allowed_pages <= 0)
@@ -435,17 +438,17 @@ qreal PixCache::getResolution(const int page) const
 
 void PixCache::updateFrame(const QSizeF &size)
 {
-    qDebug() << "update frame";
+    qDebug() << "update frame" << frame << size;
     if (frame != size)
     {
         frame = size;
-        cache.clear();
+        clear();
     }
 }
 
 void PixCache::requestPage(const int page, const qreal resolution)
 {
-    qDebug() << "requested page" << page << resolution;
+    //qDebug() << "requested page" << page << resolution;
     // Try to return a page from cache.
     {
         const auto it = cache.constFind(page);
@@ -467,6 +470,7 @@ void PixCache::requestPage(const int page, const qreal resolution)
         return;
     }
 
+    qDebug() << "Rendering page in main thread" << this;
     const QPixmap pix = renderer->renderPixmap(page, resolution);
 
     if (pix.isNull())

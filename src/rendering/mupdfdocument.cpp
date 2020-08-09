@@ -356,13 +356,18 @@ void MuPdfDocument::loadPageLabels()
 
         for (int i = 0; i + 1 < len; i += 2)
         {
-            pdf_obj *key = pdf_array_get(ctx, nums, i);
+            const int key = pdf_array_get_int(ctx, nums, i);
+            // Actually the following condition should never become true.
+            // However, I have found a PDF (generated with LaTeX beamer), for
+            // which this is relevant.
+            if (key >= number_of_pages)
+                break;
             pdf_obj *val = pdf_array_get(ctx, nums, i + 1);
 
             if (pdf_is_dict(ctx, val))
             {
                 raw_labels.insert(
-                            pdf_to_int(ctx, key),
+                            key,
                             {
                                 pdf_to_text_string(ctx, pdf_dict_gets(ctx, val, "S")),
                                 pdf_to_text_string(ctx, pdf_dict_gets(ctx, val, "P")),
@@ -449,8 +454,11 @@ void MuPdfDocument::prepareRendering(fz_context **context, fz_rect *bbox, fz_dis
 
 const SlideTransition MuPdfDocument::transition(const int page) const
 {
-    fz_transition *doc_trans = new fz_transition();
     SlideTransition trans;
+    if (page < 0 || page >= number_of_pages)
+        return trans;
+
+    fz_transition *doc_trans = new fz_transition();
     mutex->lock();
     fz_page *doc_page = fz_load_page(ctx, doc, page);
     fz_page_presentation(ctx, doc_page, doc_trans, nullptr);
