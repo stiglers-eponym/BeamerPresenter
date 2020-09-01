@@ -506,6 +506,7 @@ int main(int argc, char *argv[])
 #endif
         {"force-touchpad", "Treat every scroll input as touch pad."},
         {"sidebar-width", "Minimum relative width of sidebar on control screen. Number between 0 and 1.", "float"},
+        {"separate-tablet-tool", "Use different tool for tablet input and other pointing derices.", "bool"},
         {"mute-presentation", "Mute presentation (default: false)", "bool"},
         {"mute-notes", "Mute notes (default: true)", "bool"},
         {"eraser-size", "Radius of eraser.", "pixels"},
@@ -1226,6 +1227,15 @@ int main(int argc, char *argv[])
         // Mute or unmute multimedia content on the control screen.
         value = boolFromConfig(parser, local, settings, "mute-notes", true);
         ctrlScreen->getNotesSlide()->setMuted(value);
+
+        // Use separate tool for tablet input device (default: true).
+        value = boolFromConfig(parser, local, settings, "separate-tablet-tool", true);
+        if (!value) {
+            DrawSlide *drawSlide = ctrlScreen->getDrawSlide();
+            if (drawSlide != nullptr)
+                drawSlide->getPathOverlay()->setStylusTool({InvalidTool, Qt::black, 0., {0.}}, 0);
+            ctrlScreen->getPresentationSlide()->getPathOverlay()->setStylusTool({InvalidTool, Qt::black, 0., {0.}}, 0);
+        }
     }
 
     // Handle settings that are either qreal or bool

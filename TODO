@@ -1,5 +1,6 @@
 BeamerPresenter
 
+* bug when changing between two magnifiers of different magnification: magnifier takes wrong position
 * bug when drawing with touch screen in VM: separate strokes get connected
 * arrow key nagivation in TOC in VM xubuntu 18.04 (not present in lubuntu 20.04)
 

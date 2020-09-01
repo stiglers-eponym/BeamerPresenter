@@ -125,6 +125,7 @@ public:
     PresentationSlide* getPresentationSlide() const {return presentationScreen->slide;}
     PresentationScreen* getPresentationScreen() const {return presentationScreen;}
     MediaSlide* getNotesSlide() const {return ui->notes_widget;}
+    DrawSlide* getDrawSlide() const {return drawSlide;}
 
 protected:
     // Handle events

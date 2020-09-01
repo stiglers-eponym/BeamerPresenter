@@ -1575,6 +1575,7 @@ bool ControlScreen::handleKeyAction(KeyAction const action)
 #ifdef DEBUG_KEY_ACTIONS
         qDebug() << "Full screen event" << action;
 #endif
+        // TODO: Detecting full screen mode doesn't work in wayland
         if (presentationScreen->windowState() == Qt::WindowFullScreen)
             presentationScreen->showNormal();
         else
