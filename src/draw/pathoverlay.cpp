@@ -101,8 +101,11 @@ void PathOverlay::paintEvent(QPaintEvent* event)
         FullDrawTool const* thetool = &tool;
         QPointF const* position = &pointerPosition;
         // Choose stylus as current tool if it has nonzero position.
-        if (!stylusPosition.isNull() && stylusTool.tool != InvalidTool) {
-            thetool = &stylusTool;
+        if (!stylusPosition.isNull()) {
+            if (stylusTool.tool == InvalidTool)
+                thetool = &tool;
+            else
+                thetool = &stylusTool;
             position = &stylusPosition;
         }
         switch (thetool->tool) {
@@ -189,13 +192,15 @@ void PathOverlay::setTool(FullDrawTool const& newtool, qreal const resolution)
         tool.size = defaultToolConfig[tool.tool].size;
     if (!tool.color.isValid())
         tool.color = defaultToolConfig[tool.tool].color;
-    if (resolution > 0)
+    if (resolution > 0.)
         tool.size *= master->resolution/resolution;
     // TODO: fancy cursors
     if (cursor().shape() == Qt::BlankCursor && tool.tool != Pointer)
         setMouseTracking(false);
     if (tool.tool == Torch || tool.tool == Magnifier) {
         pointerPosition = QPointF();
+        if (stylusTool.tool == InvalidTool)
+            stylusPosition = QPointF();
     }
     else if (tool.tool == Pointer) {
         setMouseTracking(true);
@@ -214,36 +219,43 @@ void PathOverlay::setStylusTool(FullDrawTool const& newtool, qreal const resolut
 #ifdef DEBUG_INPUT
     qDebug() << "New stylus tool:" << newtool.tool;
 #endif
+    FullDrawTool *targettool = &stylusTool;
     if (stylusTool.tool == InvalidTool)
-        setTool(newtool, resolution);
-    else {
-        // TODO: This is just copy-pasted from setTool.
-        stylusTool = newtool;
-        if (stylusTool.tool == Magnifier && stylusTool.extras.magnification < 1e-12)
-            stylusTool.extras.magnification = defaultToolConfig[Magnifier].extras.magnification;
-        if (stylusTool.size <= 1e-12)
-            stylusTool.size = defaultToolConfig[stylusTool.tool].size;
-        if (!stylusTool.color.isValid())
-            stylusTool.color = defaultToolConfig[stylusTool.tool].color;
-        if (resolution > 0)
-            stylusTool.size *= master->resolution/resolution;
-        // TODO: fancy cursors
-        if (cursor().shape() == Qt::BlankCursor && stylusTool.tool != Pointer)
-            setMouseTracking(false);
-        if (stylusTool.tool == Torch || stylusTool.tool == Magnifier) {
-            stylusPosition = QPointF();
-        }
-        else if (stylusTool.tool == Pointer) {
-            setMouseTracking(true);
-            if (underMouse()) {
-                stylusPosition = mapFromGlobal(QCursor::pos());
-                emit stylusPositionChanged(stylusPosition, master->shiftx, master->shifty, master->resolution);
-            }
-        }
-        // Update or clear enlarged page
-        updateEnlargedPage();
-        update();
+        targettool = &tool;
+
+    // TODO: This is just copy-pasted from setTool.
+    *targettool = newtool;
+    if (targettool->tool == Magnifier && targettool->extras.magnification < 1e-12)
+        targettool->extras.magnification = defaultToolConfig[Magnifier].extras.magnification;
+    if (targettool->size <= 1e-12)
+        targettool->size = defaultToolConfig[targettool->tool].size;
+    if (!targettool->color.isValid())
+        targettool->color = defaultToolConfig[targettool->tool].color;
+    if (resolution > 0.)
+        targettool->size *= master->resolution/resolution;
+    // TODO: fancy cursors
+    if (cursor().shape() == Qt::BlankCursor && targettool->tool != Pointer)
+        setMouseTracking(false);
+    if (targettool->tool == Torch || targettool->tool == Magnifier) {
+#ifdef DEBUG_INPUT
+        qDebug() << "reste stylus position" << this;
+#endif
+        stylusPosition = QPointF();
+        pointerPosition = QPointF();
     }
+    else if (targettool->tool == Pointer) {
+        setMouseTracking(true);
+        if (underMouse()) {
+#ifdef DEBUG_INPUT
+            qDebug() << "update stylus position" << this;
+#endif
+            stylusPosition = mapFromGlobal(QCursor::pos());
+            emit stylusPositionChanged(stylusPosition, master->shiftx, master->shifty, master->resolution);
+        }
+    }
+    // Update or clear enlarged page
+    updateEnlargedPage();
+    update();
 }
 
 void PathOverlay::updatePathCache()
@@ -410,6 +422,9 @@ bool PathOverlay::event(QEvent *event)
             [[clang::fallthrough]];
             case Torch:
             case Pointer:
+#ifdef DEBUG_INPUT
+                qDebug() << "update stylus position" << this;
+#endif
                 stylusPosition = tabletEvent->posF();
                 update();
                 emit stylusPositionChanged(stylusPosition, master->shiftx, master->shifty, master->resolution);
@@ -430,6 +445,9 @@ bool PathOverlay::event(QEvent *event)
         if (tabletEvent->pressure() == 0) {
             if (tablettool->tool == Pointer) {
                 QRegion region = QRegion(stylusPosition.x()-tablettool->size, stylusPosition.y()-tablettool->size, 2*tablettool->size+2, 2*tablettool->size+2);
+#ifdef DEBUG_INPUT
+                qDebug() << "update stylus position" << this;
+#endif
                 stylusPosition = tabletEvent->posF();
                 region += QRect(stylusPosition.x()-tablettool->size, stylusPosition.y()-tablettool->size, 2*tablettool->size+2, 2*tablettool->size+2);
                 emit stylusPositionChanged(stylusPosition, master->shiftx, master->shifty, master->resolution);
@@ -462,6 +480,9 @@ bool PathOverlay::event(QEvent *event)
             case Magnifier:
             {
                 QRegion region = QRegion(stylusPosition.x()-tablettool->size, stylusPosition.y()-tablettool->size, 2*tablettool->size+2, 2*tablettool->size+2);
+#ifdef DEBUG_INPUT
+                qDebug() << "update stylus position" << this;
+#endif
                 stylusPosition = tabletEvent->posF();
                 region += QRect(stylusPosition.x()-tablettool->size, stylusPosition.y()-tablettool->size, 2*tablettool->size+2, 2*tablettool->size+2);
                 update(region);
@@ -471,6 +492,9 @@ bool PathOverlay::event(QEvent *event)
             case Pointer:
             {
                 QRegion region = QRegion(stylusPosition.x()-tablettool->size, stylusPosition.y()-tablettool->size, 2*tablettool->size+2, 2*tablettool->size+2);
+#ifdef DEBUG_INPUT
+                qDebug() << "update stylus position" << this;
+#endif
                 stylusPosition = tabletEvent->posF();
                 region += QRect(stylusPosition.x()-tablettool->size, stylusPosition.y()-tablettool->size, 2*tablettool->size+2, 2*tablettool->size+2);
                 emit stylusPositionChanged(stylusPosition, master->shiftx, master->shifty, master->resolution);
@@ -501,6 +525,9 @@ bool PathOverlay::event(QEvent *event)
 #endif
         if (tablettool->tool != Pointer) {
             if (!stylusPosition.isNull()) {
+#ifdef DEBUG_INPUT
+                qDebug() << "reset stylus position" << this;
+#endif
                 stylusPosition = QPointF();
                 emit stylusPositionChanged(stylusPosition, 0, 0, 0.);
             }
@@ -556,6 +583,9 @@ bool PathOverlay::event(QEvent *event)
         break;
     case QEvent::TabletLeaveProximity:
         if (!stylusPosition.isNull()) {
+#ifdef DEBUG_INPUT
+            qDebug() << "reset stylus position" << this;
+#endif
             stylusPosition = QPointF();
             emit stylusPositionChanged(stylusPosition, 0, 0, 0.);
             update();
@@ -595,6 +625,9 @@ void PathOverlay::mousePressEvent(QMouseEvent *event)
         case Torch:
         case Pointer:
             if (!stylusPosition.isNull()) {
+#ifdef DEBUG_INPUT
+                qDebug() << "reset stylus position" << this;
+#endif
                 stylusPosition = QPointF();
                 emit stylusPositionChanged(stylusPosition, 0, 0, 0.);
             }
@@ -686,6 +719,9 @@ void PathOverlay::mouseMoveEvent(QMouseEvent* event)
         pointerPosition = event->localPos();
         region += QRect(pointerPosition.x()-tool.size, pointerPosition.y()-tool.size, 2*tool.size+2, 2*tool.size+2);
         emit pointerPositionChanged(pointerPosition, master->shiftx, master->shifty, master->resolution);
+#ifdef DEBUG_INPUT
+        qDebug() << "reset stylus position" << this;
+#endif
         stylusPosition = QPointF();
         emit stylusPositionChanged(stylusPosition, 0, 0, 0.);
         update(region);
@@ -897,9 +933,15 @@ void PathOverlay::setPointerPosition(QPointF const point, qint16 const refshiftx
 void PathOverlay::setStylusPosition(QPointF const point, qint16 const refshiftx, qint16 const refshifty, double const refresolution)
 {
     if (refresolution == 0.) {
+#ifdef DEBUG_INPUT
+        qDebug() << "reset stylus position" << this;
+#endif
         stylusPosition = QPointF();
     }
     else {
+#ifdef DEBUG_INPUT
+        qDebug() << "update stylus position" << this;
+#endif
         stylusPosition = (point - QPointF(refshiftx, refshifty)) * master->resolution/refresolution + QPointF(master->shiftx, master->shifty);
         if (stylusTool.tool == Magnifier && enlargedPage.isNull())
             updateEnlargedPage();
@@ -917,6 +959,9 @@ void PathOverlay::relaxPointer()
 
 void PathOverlay::relaxStylus()
 {
+#ifdef DEBUG_INPUT
+    qDebug() << "reset stylus position" << this;
+#endif
     stylusPosition = QPointF();
     if (stylusTool.tool == Torch || stylusTool.tool == Magnifier || (stylusTool.tool == InvalidTool && (tool.tool == Torch || tool.tool == Magnifier)))
         update();
