@@ -932,6 +932,9 @@ void PathOverlay::setPointerPosition(QPointF const point, qint16 const refshiftx
 
 void PathOverlay::setStylusPosition(QPointF const point, qint16 const refshiftx, qint16 const refshifty, double const refresolution)
 {
+    FullDrawTool const *thetool = &stylusTool;
+    if (thetool->tool == InvalidTool)
+        thetool = &tool;
     if (refresolution == 0.) {
 #ifdef DEBUG_INPUT
         qDebug() << "reset stylus position" << this;
@@ -943,10 +946,10 @@ void PathOverlay::setStylusPosition(QPointF const point, qint16 const refshiftx,
         qDebug() << "update stylus position" << this;
 #endif
         stylusPosition = (point - QPointF(refshiftx, refshifty)) * master->resolution/refresolution + QPointF(master->shiftx, master->shifty);
-        if (stylusTool.tool == Magnifier && enlargedPage.isNull())
+        if (thetool->tool == Magnifier && enlargedPage.isNull())
             updateEnlargedPage();
     }
-    if (stylusTool.tool == Pointer || stylusTool.tool == Torch || stylusTool.tool == Magnifier)
+    if (thetool->tool == Pointer || thetool->tool == Torch || thetool->tool == Magnifier)
         update();
 }
 
@@ -963,7 +966,9 @@ void PathOverlay::relaxStylus()
     qDebug() << "reset stylus position" << this;
 #endif
     stylusPosition = QPointF();
-    if (stylusTool.tool == Torch || stylusTool.tool == Magnifier || (stylusTool.tool == InvalidTool && (tool.tool == Torch || tool.tool == Magnifier)))
+    if (stylusTool.tool == InvalidTool)
+        relaxPointer();
+    else if (stylusTool.tool == Torch || stylusTool.tool == Magnifier)
         update();
 }
 
