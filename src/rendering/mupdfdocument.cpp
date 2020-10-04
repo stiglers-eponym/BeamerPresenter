@@ -428,6 +428,7 @@ void MuPdfDocument::prepareRendering(fz_context **context, fz_rect *bbox, fz_dis
     // sender gets a references to context.
     *context = ctx;
     // Get a page (must be done in the main thread!).
+    // This causes warnings if the page contains multimedia content.
     fz_page *page = fz_load_page(ctx, doc, pagenumber);
     // Calculate the boundary box and rescale it to the given resolution.
     *bbox = fz_bound_page(ctx, page);
@@ -497,12 +498,12 @@ const PdfLink MuPdfDocument::linkAt(const int page, const QPointF &position) con
     {
         if (link->rect.x0 <= position.x() && link->rect.x1 >= position.x() && link->rect.y0 <= position.y() && link->rect.y1 >= position.y())
         {
-            float x, y;
             if (link->uri == nullptr)
                 result = {NoLink, ""};
             else if (link->uri[0] == '#')
             {
                 // Internal navigation link
+                float x, y;
                 fz_location location = fz_resolve_link(ctx, doc, link->uri, &x, &y);
                 result = {location.page, ""};
             }
@@ -515,6 +516,62 @@ const PdfLink MuPdfDocument::linkAt(const int page, const QPointF &position) con
         }
     }
     fz_drop_link(ctx, clink);
+
+    // Only temporarily: handle also annotations (mainly multimedia) here.
+    // TODO: check how this is correctly tidied up!
+    pdf_page *pdf_doc_page = pdf_page_from_fz_page(ctx, doc_page);
+    for (pdf_annot *annot = pdf_doc_page->annots; annot != nullptr; annot = annot->next)
+    {
+        pdf_keep_annot(ctx, annot); // is this necessary?
+        fz_rect bound = pdf_bound_annot(ctx, annot);
+        if (bound.x0 <= position.x() && bound.x1 >= position.x() && bound.y0 <= position.y() && bound.y1 >= position.y())
+        {
+            switch (pdf_annot_type(ctx, annot))
+            {
+            case PDF_ANNOT_MOVIE:
+            {
+                qDebug() << "Movie annotation";
+                pdf_obj *movie_obj = pdf_dict_gets(ctx, annot->obj, "Movie");
+                if (!movie_obj)
+                {
+                    qWarning() << "Error while reading movie annotation";
+                    break;
+                }
+                const QString file = pdf_dict_get_text_string(ctx, movie_obj, PDF_NAME(F));
+                VideoAnnotation videoAnnotation;
+                videoAnnotation.file = QUrl::fromLocalFile(file);
+                pdf_obj *activation_obj = pdf_dict_get(ctx, annot->obj, PDF_NAME(A));
+                if (activation_obj)
+                {
+                    QString mode = pdf_to_name(ctx, pdf_dict_gets(ctx, activation_obj, "Mode") );
+                    if (!mode.isEmpty())
+                    {
+                        if (mode == "Open")
+                            videoAnnotation.mode = VideoAnnotation::Open;
+                        else if (mode == "Palindrome")
+                            videoAnnotation.mode = VideoAnnotation::Palindrome;
+                        else if (mode == "Repeat")
+                            videoAnnotation.mode = VideoAnnotation::Repeat;
+                    }
+                }
+                qDebug() << videoAnnotation.file << videoAnnotation.mode;
+                // TODO: What to do with that? Put all in own function?
+                // TODO: Own function for mouse hoversing over links?
+                break;
+            }
+            case PDF_ANNOT_SOUND:
+                qDebug() << "Sound annotation";
+                break;
+            case PDF_ANNOT_SCREEN:
+                qDebug() << "Screen annotation";
+                break;
+            default:
+            qDebug() << "Annotation type:" << pdf_string_from_annot_type(ctx, pdf_annot_type(ctx, annot));
+            }
+        }
+        pdf_drop_annot(ctx, annot);
+    }
+
     mutex->unlock();
     return result;
 }

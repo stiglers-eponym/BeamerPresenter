@@ -2,6 +2,7 @@
 #define PDFDOCUMENT_H
 
 #include <QDateTime>
+#include <QUrl>
 #include "src/rendering/pngpixmap.h"
 /*
 #ifdef INCLUDE_MUPDF
@@ -68,6 +69,17 @@ struct SlideTransition {
     /// Only relevant for Fly and FlyRectangle, in [0,1].
     /// Starting point for "flying" relative to the usual "fly" path.
     float scale = 1.;
+};
+
+struct VideoAnnotation {
+    QUrl file;
+    enum Mode
+    {
+        Once = 0,
+        Open,
+        Palindrome,
+        Repeat,
+    } mode = Once;
 };
 
 /// Abstract class for handling PDF documents.

@@ -78,6 +78,7 @@ void SlideScene::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
 
 void SlideScene::receiveAction(const Action action)
 {
+    // TODO: necessary?
     switch (action)
     {
     default:
@@ -87,8 +88,7 @@ void SlideScene::receiveAction(const Action action)
 
 void SlideScene::navigationEvent(const int newpage, SlideScene *newscene)
 {
-    page = newpage;
-    QSizeF pagesize = master->getPageSize(page);
+    QSizeF pagesize = master->getPageSize(newpage);
     switch (page_part)
     {
     case FullPage:
@@ -103,13 +103,18 @@ void SlideScene::navigationEvent(const int newpage, SlideScene *newscene)
         setSceneRect(pagesize.width(), 0., pagesize.width(), pagesize.height());
         break;
     }
-    SlideTransition transition = master->transition(page);
-    if (transition.type)
+    if (show_animations && (!newscene || newscene == this))
     {
-        // TODO!
-        qDebug() << transition.type << transition.duration << transition.properties << transition.angle << transition.scale;
+        const SlideTransition transition = master->transition(newpage);
+        if (transition.type)
+        {
+            // TODO!
+            qDebug() << "Transition:" << transition.type << transition.duration << transition.properties << transition.angle << transition.scale;
+            startTransition(newpage, transition);
+            return;
+        }
     }
-    qDebug() << page << page_part << shift << newscene << this;
+    page = newpage;
     emit navigationToViews(page, pagesize, newscene ? newscene : this);
     for (const auto item : items())
         removeItem(item);
@@ -122,6 +127,23 @@ void SlideScene::navigationEvent(const int newpage, SlideScene *newscene)
             for (auto it = paths->cbegin(); it != end; ++it)
                 addItem(*it);
         }
+    }
+    invalidate();
+}
+
+void SlideScene::startTransition(const int newpage, const SlideTransition &transition)
+{
+    // TODO!
+    page = newpage;
+    emit navigationToViews(page, sceneRect().size(), this);
+    for (const auto item : items())
+        removeItem(item);
+    const auto paths = master->pathContainer(page | page_part);
+    if (paths)
+    {
+        const auto end = paths->cend();
+        for (auto it = paths->cbegin(); it != end; ++it)
+            addItem(*it);
     }
     invalidate();
 }
@@ -151,7 +173,6 @@ void SlideScene::tabletMove(const QPointF &pos, const QTabletEvent *event)
         auto container = master->pathContainer(page | page_part);
         if (container)
             container->eraserMicroStep(pos);
-        // TODO: update
         break;
     }
     default:

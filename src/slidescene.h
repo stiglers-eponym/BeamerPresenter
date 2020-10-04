@@ -5,6 +5,7 @@
 #include <QGraphicsSceneMouseEvent>
 #include <QTabletEvent>
 #include "src/enumerates.h"
+#include "src/rendering/pdfdocument.h"
 #include "src/drawing/fullgraphicspath.h"
 #include "src/drawing/basicgraphicspath.h"
 
@@ -28,6 +29,9 @@ class SlideScene : public QGraphicsScene
     int shift = 0;
     int page = 0;
     const PagePart page_part;
+    bool show_animations = true;
+
+    void startTransition(const int newpage, const SlideTransition &transition);
 
 public:
     explicit SlideScene(const PdfMaster *master, const PagePart part = FullPage, QObject *parent = nullptr);
