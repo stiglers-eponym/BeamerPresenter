@@ -13,6 +13,11 @@ PixCacheThread::PixCacheThread(const PdfDocument * const doc, const PagePart pag
     initializeRenderer(doc, page_part);
 }
 
+PixCacheThread::~PixCacheThread()
+{
+    delete renderer;
+}
+
 void PixCacheThread::setNextPage(const int page_number, const qreal res)
 {
     page = page_number;

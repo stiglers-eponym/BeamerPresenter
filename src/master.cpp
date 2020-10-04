@@ -10,7 +10,14 @@ Master::Master()
 
 Master::~Master()
 {
-    qDeleteAll(caches);
+    for (const auto cache : caches)
+    {
+        QThread * const thread = cache->thread();
+        delete cache;
+        thread->quit();
+        thread->deleteLater();
+    }
+    caches.clear();
     for (const auto doc : documents)
     {
         qDeleteAll(doc->getScenes());

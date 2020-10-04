@@ -61,7 +61,14 @@ enum Action
 
 /// Tools for drawing and highlighting.
 enum BasicTool {
+    InvalidTool,
     NoTool,
+    Pen,
+    Eraser,
+    Highlighter,
+    Pointer,
+    Torch,
+    Magnifier,
 };
 
 #endif // ENUMERATES_H

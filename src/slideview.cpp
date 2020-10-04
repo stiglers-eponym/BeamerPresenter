@@ -103,6 +103,7 @@ bool SlideView::event(QEvent *event)
     //case QEvent::TabletTrackingChange:
     //case QEvent::TabletEnterProximity:
     //case QEvent::TabletLeaveProximity:
+    //    break;
     case QEvent::TabletPress:
     {
         auto tabletevent = static_cast<QTabletEvent*>(event);

@@ -20,6 +20,7 @@ private:
 
 public:
     PixCacheThread(const PdfDocument * const doc, const PagePart page_part = FullPage, QObject *parent = nullptr);
+    ~PixCacheThread();
 
     /// Create a renderer based on preferences.
     /// Return true if successful and false if no renderer was created.

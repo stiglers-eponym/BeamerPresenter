@@ -46,13 +46,15 @@ const QPixmap MuPdfRenderer::renderPixmap(const int page, const qreal resolution
     {
         qWarning() << "Fitz failed to render pixmap:" << fz_caught_message(ctx);
         fz_drop_pixmap(ctx, pixmap);
+        fz_drop_display_list(ctx, list);
         fz_close_device(ctx, dev);
         fz_drop_device(ctx, dev);
         fz_drop_context(ctx);
         return QPixmap();
     }
 
-    // Clean up device.
+    // Clean up device and list.
+    fz_drop_display_list(ctx, list);
     fz_close_device(ctx, dev);
     fz_drop_device(ctx, dev);
 
