@@ -269,6 +269,49 @@ const PdfLink PopplerDocument::linkAt(const int page, const QPointF &position) c
     return {NoLink, ""};
 }
 
+const VideoAnnotation PopplerDocument::annotationAt(const int page, const QPointF &position) const
+{
+    const QSizeF pageSize = doc->page(page)->pageSizeF();
+    const QPointF relpos = {position.x()/pageSize.width(), position.y()/pageSize.height()};
+    for (const auto annotation : doc->page(page)->annotations())
+    {
+        if (annotation->boundary().contains(relpos))
+        {
+            switch (annotation->subType())
+            {
+            case Poppler::Annotation::AMovie:
+            {
+                Poppler::MovieObject *movie = static_cast<Poppler::MovieAnnotation*>(annotation)->movie();
+                VideoAnnotation videoAnnotation {
+                            QUrl::fromLocalFile(movie->url()),
+                            VideoAnnotation::Once,
+                            {pageSize.width()*annotation->boundary().x(), pageSize.height()*annotation->boundary().y(), pageSize.width()*annotation->boundary().width(), pageSize.height()*annotation->boundary().height()}
+                };
+                switch (movie->playMode())
+                {
+                case Poppler::MovieObject::PlayOpen:
+                    videoAnnotation.mode = VideoAnnotation::Open;
+                    break;
+                case Poppler::MovieObject::PlayPalindrome:
+                    videoAnnotation.mode = VideoAnnotation::Palindrome;
+                    break;
+                case Poppler::MovieObject::PlayRepeat:
+                    videoAnnotation.mode = VideoAnnotation::Repeat;
+                    break;
+                default:
+                    break;
+                }
+                delete movie;
+                return videoAnnotation;
+            }
+            default:
+                break;
+            }
+        }
+    }
+    return {QUrl(), VideoAnnotation::Invalid, QRectF()};
+}
+
 const SlideTransition PopplerDocument::transition(const int page) const
 {
     const Poppler::PageTransition *doc_trans = doc->page(page)->transition();

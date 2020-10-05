@@ -57,6 +57,7 @@ public:
 
     /// Link at given position (in point = inch/72)
     const PdfLink linkAt(const int page, const QPointF &position) const override;
+    virtual const VideoAnnotation annotationAt(const int page, const QPointF &position) const override;
 
     const SlideTransition transition(const int page) const override;
 };

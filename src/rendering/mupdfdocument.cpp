@@ -516,11 +516,16 @@ const PdfLink MuPdfDocument::linkAt(const int page, const QPointF &position) con
         }
     }
     fz_drop_link(ctx, clink);
+    mutex->unlock();
+    return result;
+}
 
-    // Only temporarily: handle also annotations (mainly multimedia) here.
-    // TODO: check how this is correctly tidied up!
-    pdf_page *pdf_doc_page = pdf_page_from_fz_page(ctx, doc_page);
-    for (pdf_annot *annot = pdf_doc_page->annots; annot != nullptr; annot = annot->next)
+
+const VideoAnnotation MuPdfDocument::annotationAt(const int page, const QPointF &position) const
+{
+    mutex->lock();
+    pdf_page *pdfpage = pdf_load_page(ctx, pdf_document_from_fz_document(ctx, doc), page);
+    for (pdf_annot *annot = pdfpage->annots; annot != nullptr; annot = annot->next)
     {
         pdf_keep_annot(ctx, annot); // is this necessary?
         fz_rect bound = pdf_bound_annot(ctx, annot);
@@ -538,8 +543,11 @@ const PdfLink MuPdfDocument::linkAt(const int page, const QPointF &position) con
                     break;
                 }
                 const QString file = pdf_dict_get_text_string(ctx, movie_obj, PDF_NAME(F));
-                VideoAnnotation videoAnnotation;
-                videoAnnotation.file = QUrl::fromLocalFile(file);
+                VideoAnnotation videoAnnotation {
+                            QUrl::fromLocalFile(file),
+                            VideoAnnotation::Once,
+                            QRectF(bound.x0, bound.y0, bound.x1-bound.x0, bound.y1-bound.y0)
+                        };
                 pdf_obj *activation_obj = pdf_dict_get(ctx, annot->obj, PDF_NAME(A));
                 if (activation_obj)
                 {
@@ -557,7 +565,9 @@ const PdfLink MuPdfDocument::linkAt(const int page, const QPointF &position) con
                 qDebug() << videoAnnotation.file << videoAnnotation.mode;
                 // TODO: What to do with that? Put all in own function?
                 // TODO: Own function for mouse hoversing over links?
-                break;
+                pdf_drop_annot(ctx, annot);
+                mutex->unlock();
+                return videoAnnotation;
             }
             case PDF_ANNOT_SOUND:
                 qDebug() << "Sound annotation";
@@ -571,7 +581,6 @@ const PdfLink MuPdfDocument::linkAt(const int page, const QPointF &position) con
         }
         pdf_drop_annot(ctx, annot);
     }
-
     mutex->unlock();
-    return result;
+    return {QUrl(), VideoAnnotation::Invalid, QRectF()};
 }
