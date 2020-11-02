@@ -183,3 +183,12 @@ screen. The layout is less important for the speaker's screen, but it should
 leave enough space on the screen for a clock, a timer and a preview of the next
 slide.
 In the slides for the speaker screen I can include some additional information.
+
+## Development
+The code is quite unreadable, not really structured and full of ugly bug-fixes.
+To create something more structured, efficient, modular and flexible, I started
+rewriting BeamerPresenter (branch `rewrite`). But the result is not usable yet
+and it is currently unclear when I will have time to continue this project.
+
+For the old code this means: Small issues might still be fixed, but new
+features will only be available in the new, rewritten version.

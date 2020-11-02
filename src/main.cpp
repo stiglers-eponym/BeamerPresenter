@@ -421,15 +421,15 @@ int main(int argc, char *argv[])
     // Set app version. The string APP_VERSION is defined in beamerpresenter.pro.
 #ifdef QT_DEBUG
 #ifdef POPPLER_VERSION
-    app.setApplicationVersion(APP_VERSION " debugging (poppler=" POPPLER_VERSION ", Qt=" QT_VERSION_STR ")");
+    app.setApplicationVersion(APP_VERSION " debugging (built with poppler=" POPPLER_VERSION ", Qt=" QT_VERSION_STR ")");
 #else
-    app.setApplicationVersion(APP_VERSION " debugging (Qt=" QT_VERSION_STR ")");
+    app.setApplicationVersion(APP_VERSION " debugging (built with Qt=" QT_VERSION_STR ")");
 #endif
 #else
 #ifdef POPPLER_VERSION
-    app.setApplicationVersion(APP_VERSION " (poppler=" POPPLER_VERSION ", Qt=" QT_VERSION_STR ")");
+    app.setApplicationVersion(APP_VERSION " (built with poppler=" POPPLER_VERSION ", Qt=" QT_VERSION_STR ")");
 #else
-    app.setApplicationVersion(APP_VERSION " (Qt=" QT_VERSION_STR ")");
+    app.setApplicationVersion(APP_VERSION " (built with Qt=" QT_VERSION_STR ")");
 #endif
 #endif
 
