@@ -117,6 +117,8 @@ public:
     /// Link at given position (in point = inch/72)
     virtual const PdfLink linkAt(const int page, const QPointF &position) const = 0;
     virtual const VideoAnnotation annotationAt(const int page, const QPointF &position) const = 0;
+    /// List all video annotations on given page. Returns nullptr if list is empty.
+    virtual QList<VideoAnnotation>* annotations(const int page) const = 0;
     const QString & getPath() const {return path;}
     virtual const SlideTransition transition(const int page) const = 0;
 };

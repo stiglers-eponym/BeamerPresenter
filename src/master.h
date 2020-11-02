@@ -8,6 +8,7 @@
 #include <QJsonDocument>
 #include <QBoxLayout>
 #include <QKeyEvent>
+#include <QMediaPlaylist>
 #include <QSizePolicy>
 #include "src/enumerates.h"
 #include "src/names.h"
@@ -28,6 +29,10 @@ class Master : public QObject
     QMap<int, PixCache*> caches;
     /// List of all windows of the applications.
     QList<QWidget*> windows;
+    /// Playlist of all media content in the documents.
+    QMediaPlaylist *playlist {nullptr};
+    /// Map file names (urls) to playlist indices.
+    QMap<QUrl, int> playlist_map;
 
 public:
     Master();

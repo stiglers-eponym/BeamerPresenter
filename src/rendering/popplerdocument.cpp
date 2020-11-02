@@ -273,43 +273,69 @@ const VideoAnnotation PopplerDocument::annotationAt(const int page, const QPoint
 {
     const QSizeF pageSize = doc->page(page)->pageSizeF();
     const QPointF relpos = {position.x()/pageSize.width(), position.y()/pageSize.height()};
-    for (const auto annotation : doc->page(page)->annotations())
+    for (const auto annotation : doc->page(page)->annotations({Poppler::Annotation::AMovie}))
     {
         if (annotation->boundary().contains(relpos))
         {
-            switch (annotation->subType())
+            Poppler::MovieObject *movie = static_cast<Poppler::MovieAnnotation*>(annotation)->movie();
+            VideoAnnotation videoAnnotation {
+                        QUrl::fromLocalFile(movie->url()),
+                        VideoAnnotation::Once,
+                        {pageSize.width()*annotation->boundary().x(), pageSize.height()*annotation->boundary().y(), pageSize.width()*annotation->boundary().width(), pageSize.height()*annotation->boundary().height()}
+            };
+            switch (movie->playMode())
             {
-            case Poppler::Annotation::AMovie:
-            {
-                Poppler::MovieObject *movie = static_cast<Poppler::MovieAnnotation*>(annotation)->movie();
-                VideoAnnotation videoAnnotation {
-                            QUrl::fromLocalFile(movie->url()),
-                            VideoAnnotation::Once,
-                            {pageSize.width()*annotation->boundary().x(), pageSize.height()*annotation->boundary().y(), pageSize.width()*annotation->boundary().width(), pageSize.height()*annotation->boundary().height()}
-                };
-                switch (movie->playMode())
-                {
-                case Poppler::MovieObject::PlayOpen:
-                    videoAnnotation.mode = VideoAnnotation::Open;
-                    break;
-                case Poppler::MovieObject::PlayPalindrome:
-                    videoAnnotation.mode = VideoAnnotation::Palindrome;
-                    break;
-                case Poppler::MovieObject::PlayRepeat:
-                    videoAnnotation.mode = VideoAnnotation::Repeat;
-                    break;
-                default:
-                    break;
-                }
-                delete movie;
-                return videoAnnotation;
-            }
+            case Poppler::MovieObject::PlayOpen:
+                videoAnnotation.mode = VideoAnnotation::Open;
+                break;
+            case Poppler::MovieObject::PlayPalindrome:
+                videoAnnotation.mode = VideoAnnotation::Palindrome;
+                break;
+            case Poppler::MovieObject::PlayRepeat:
+                videoAnnotation.mode = VideoAnnotation::Repeat;
+                break;
             default:
                 break;
             }
+            delete movie;
+            return videoAnnotation;
         }
     }
     return {QUrl(), VideoAnnotation::Invalid, QRectF()};
+}
+
+QList<VideoAnnotation> *PopplerDocument::annotations(const int page) const
+{
+    QList<Poppler::Annotation*> annotations = doc->page(page)->annotations({Poppler::Annotation::AMovie});
+    if (annotations.isEmpty())
+        return nullptr;
+    const QSizeF pageSize = doc->page(page)->pageSizeF();
+    QList<VideoAnnotation> *list = nullptr;
+    for (const auto annotation : annotations)
+    {
+        Poppler::MovieObject *movie = static_cast<Poppler::MovieAnnotation*>(annotation)->movie();
+        list->append({
+                    QUrl::fromLocalFile(movie->url()),
+                    VideoAnnotation::Once,
+                    {pageSize.width()*annotation->boundary().x(), pageSize.height()*annotation->boundary().y(), pageSize.width()*annotation->boundary().width(), pageSize.height()*annotation->boundary().height()}
+        });
+        switch (movie->playMode())
+        {
+        case Poppler::MovieObject::PlayOpen:
+            list->last().mode = VideoAnnotation::Open;
+            break;
+        case Poppler::MovieObject::PlayPalindrome:
+            list->last().mode = VideoAnnotation::Palindrome;
+            break;
+        case Poppler::MovieObject::PlayRepeat:
+            list->last().mode = VideoAnnotation::Repeat;
+            break;
+        default:
+            break;
+        }
+        delete movie;
+    }
+    return list;
 }
 
 const SlideTransition PopplerDocument::transition(const int page) const

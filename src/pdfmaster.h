@@ -31,6 +31,7 @@ private:
     QMap<int, PathContainer*> paths;
 
     // TODO: multimedia, slide transitions
+    QMap<int, QList<VideoAnnotation>> videoAnnotations;
 
 
 public:
@@ -46,15 +47,17 @@ public:
     const QString &getFilename() const
     {return document->getPath();}
 
-    QList<SlideScene*> &getScenes() {return scenes;}
+    QList<SlideScene*> &getScenes()
+    {return scenes;}
 
     /// Get size of page in points (floating point precision).
     const QSizeF getPageSize(const int page_number) const;
 
-    const PdfDocument * getDocument() const
+    const PdfDocument *getDocument() const
     {return document;}
 
-    PathContainer *pathContainer(const int page) const {return paths.value(page, nullptr);}
+    PathContainer *pathContainer(const int page) const
+    {return paths.value(page, nullptr);}
 
     void resolveLink(const int page, const QPointF& position) const;
 

@@ -520,7 +520,6 @@ const PdfLink MuPdfDocument::linkAt(const int page, const QPointF &position) con
     return result;
 }
 
-
 const VideoAnnotation MuPdfDocument::annotationAt(const int page, const QPointF &position) const
 {
     mutex->lock();
@@ -563,8 +562,6 @@ const VideoAnnotation MuPdfDocument::annotationAt(const int page, const QPointF 
                     }
                 }
                 qDebug() << videoAnnotation.file << videoAnnotation.mode;
-                // TODO: What to do with that? Put all in own function?
-                // TODO: Own function for mouse hoversing over links?
                 pdf_drop_annot(ctx, annot);
                 mutex->unlock();
                 return videoAnnotation;
@@ -581,6 +578,54 @@ const VideoAnnotation MuPdfDocument::annotationAt(const int page, const QPointF 
         }
         pdf_drop_annot(ctx, annot);
     }
+    fz_drop_page(ctx, (fz_page*) pdfpage);
     mutex->unlock();
     return {QUrl(), VideoAnnotation::Invalid, QRectF()};
+}
+
+QList<VideoAnnotation> *MuPdfDocument::annotations(const int page) const
+{
+    mutex->lock();
+    pdf_page *pdfpage = pdf_load_page(ctx, pdf_document_from_fz_document(ctx, doc), page);
+    QList<VideoAnnotation>* list = nullptr;
+    for (pdf_annot *annot = pdfpage->annots; annot != nullptr; annot = annot->next)
+    {
+        if (pdf_annot_type(ctx, annot) == PDF_ANNOT_MOVIE)
+        {
+            pdf_keep_annot(ctx, annot); // is this necessary?
+            pdf_obj *movie_obj = pdf_dict_gets(ctx, annot->obj, "Movie");
+            if (!movie_obj)
+            {
+                qWarning() << "Error while reading movie annotation";
+                break;
+            }
+            const QString file = pdf_dict_get_text_string(ctx, movie_obj, PDF_NAME(F));
+            fz_rect bound = pdf_bound_annot(ctx, annot);
+            if (list == nullptr)
+                list = new QList<VideoAnnotation>();
+            list->append({
+                        QUrl::fromLocalFile(file),
+                        VideoAnnotation::Once,
+                        QRectF(bound.x0, bound.y0, bound.x1-bound.x0, bound.y1-bound.y0)
+                    });
+            pdf_obj *activation_obj = pdf_dict_get(ctx, annot->obj, PDF_NAME(A));
+            if (activation_obj)
+            {
+                QString mode = pdf_to_name(ctx, pdf_dict_gets(ctx, activation_obj, "Mode") );
+                if (!mode.isEmpty())
+                {
+                    if (mode == "Open")
+                        list->last().mode = VideoAnnotation::Open;
+                    else if (mode == "Palindrome")
+                        list->last().mode = VideoAnnotation::Palindrome;
+                    else if (mode == "Repeat")
+                        list->last().mode = VideoAnnotation::Repeat;
+                }
+            }
+            pdf_drop_annot(ctx, annot);
+        }
+    }
+    fz_drop_page(ctx, (fz_page*) pdfpage);
+    mutex->unlock();
+    return list;
 }

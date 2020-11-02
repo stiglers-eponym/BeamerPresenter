@@ -57,6 +57,7 @@ public:
     /// Link at given position (in point = inch/72)
     virtual const PdfLink linkAt(const int page, const QPointF &position) const override;
     virtual const VideoAnnotation annotationAt(const int page, const QPointF &position) const override;
+    virtual QList<VideoAnnotation>* annotations(const int page) const override;
 
     /// Prepare rendering for other threads by initializing the given pointers.
     /// This gives the threads only access to objects which are thread save.
