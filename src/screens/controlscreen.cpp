@@ -66,11 +66,6 @@ ControlScreen::ControlScreen(QString presentationPath, QString notesPath, PagePa
             }
         }
     }
-    // Check whether pagePart is compatible with notesPath.
-    if (notesPath != "" && pagePart != FullPage && pagePartThreshold <= 0) {
-        qCritical() << "Provided additional notes file, but page-part is not full page. Ignoring option for page-part.";
-        pagePart = FullPage;
-    }
 
     // Create the presentation pdf document.
     presentation = new PdfDoc(presentationPath);
@@ -84,9 +79,12 @@ ControlScreen::ControlScreen(QString presentationPath, QString notesPath, PagePa
     // Save the total number of pages.
     numberOfPages = presentation->getDoc()->numPages();
 
+    // If a notes file is given, pages should not be split in left and right part.
+    if (notesPath != "")
+        pagePart = FullPage;
     // Check aspect ratio of given presentation file and compare it to
     // threshold if pagePart != FullPage
-    if (notesPath == "" && pagePart != FullPage && pagePartThreshold > 0.) {
+    else if (pagePart != FullPage && pagePartThreshold > 0.) {
         QSizeF const size = presentation->getPageSize(0);
         qreal const aspectRatio = size.width() / size.height();
         if (aspectRatio < pagePartThreshold)

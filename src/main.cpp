@@ -793,7 +793,7 @@ int main(int argc, char *argv[])
                 pagePart = LeftHalf;
                 found = true;
             }
-            else if (value != "none" && value != "0")
+            else if (value != "none" && value != "full" && value != "0")
                 qCritical() << "option \"" << value << "\" to page-part not understood.";
         }
         // Check whether the local configuration contains the option "page-part"
