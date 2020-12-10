@@ -178,7 +178,7 @@ unix {
     man5.extra = gzip -9 man/$${TARGET}.conf.5 || true
     man5.files = man/$${TARGET}.conf.5.gz
 
-    configuration.path = /etc/$${TARGET}/
+    configuration.path = /etc/xdg/$${TARGET}/
     configuration.CONFIG = no_build
     configuration.files = config/$${TARGET}.conf config/pid2wid.sh
 

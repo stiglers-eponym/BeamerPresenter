@@ -10,7 +10,7 @@ beamerpresenter.conf \- configuration file for BeamerPresenter
 is a Qt5-based presentation viewer which shows a presentation and notes for the speaker in two different windows.
 It can be configured using a file beamerpresenter.conf in
 .IR <dir>/beamerpresenter.conf " or " <dir>/beamerpresenter/beamerpresenter.conf
-.RI "where " <dir> " is " $HOME/.config " or any directory listed in " $XDG_CONFIG_DIRS .
+.RI "where " <dir> " is " $HOME/.config " or any directory listed in " $XDG_CONFIG_DIRS ", which defaults to /etc/xdg."
 The configuration defines key bindings, colors, buttons and default options for command line arguments.
 .
 .
@@ -32,7 +32,7 @@ Special values include colors which can be specified as color names known to Qt 
 
 An example configuration, which can be used as a template for setting up your own preferences, can be found at
 .UR https://github.com/stiglers-eponym/BeamerPresenter
-or in /etc/beamerpresenter/beamerpresenter.conf (depending on your installation).
+and in /etc/xdg/beamerpresenter/beamerpresenter.conf (depending on your installation).
 .
 .
 .
