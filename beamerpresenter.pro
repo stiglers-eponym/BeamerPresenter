@@ -4,7 +4,7 @@
 #
 #-------------------------------------------------
 
-VERSION = 0.1.2
+VERSION = 0.1.3
 
 # Check Qt version.
 requires(greaterThan(QT_MAJOR_VERSION, 4))
