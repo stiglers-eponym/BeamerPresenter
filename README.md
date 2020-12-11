@@ -95,9 +95,9 @@ Optionally install `libqt5multimedia5-plugins` for multimedia content.
 
 Then download the source and build. To download the latest release use
 ```sh
-wget https://github.com/stiglers-eponym/BeamerPresenter/archive/v0.1.2.tar.gz
-tar -xf v0.1.2.tar.gz
-cd BeamerPresenter-v0.1.2
+wget https://github.com/stiglers-eponym/BeamerPresenter/archive/v0.1.3.tar.gz
+tar -xf v0.1.3.tar.gz
+cd BeamerPresenter-v0.1.3
 qmake && make
 ```
 To build from current git version use
@@ -176,19 +176,17 @@ GNU/Linux: `beamerpresenter.ini`). An example configuration file is provided.
 The configuration can only be edited directly with a text editor.
 
 
-## Typical usage
-I compile my LaTeX beamer presentations once with an aspect ratio optimized for
-the projector (e.g. 16:10) and once with aspect ratio 4:3 for the speaker's
-screen. The layout is less important for the speaker's screen, but it should
-leave enough space on the screen for a clock, a timer and a preview of the next
-slide.
-In the slides for the speaker screen I can include some additional information.
+## Bugs
+If you find bugs or have concrete suggestions for improvements, please
+[open an issue](https://github.com/stiglers-eponym/BeamerPresenter/issues).
+
 
 ## Development
-The code is quite unreadable, not really structured and full of ugly bug-fixes.
-To create something more structured, efficient, modular and flexible, I started
-rewriting BeamerPresenter (branch `rewrite`). But the result is not usable yet
-and it is currently unclear when I will have time to continue this project.
+The code for versions 0.1.x is quite unreadable, not really structured and full
+of ugly bug-fixes. To create something more structured, efficient, modular and
+flexible, I started rewriting BeamerPresenter from scratch (branch `rewrite`).
+But the result is not usable yet and it is currently unclear when I will have
+time to continue this project.
 
 For the old code this means: Small issues might still be fixed, but new
 features will only be available in the new, rewritten version.
