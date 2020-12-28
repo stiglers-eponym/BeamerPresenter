@@ -11,6 +11,7 @@
 #endif
 */
 
+/// Unified type of PDF links for all PDF engines.
 struct PdfLink {
     /// Positive values of type are interpreted as page numbers.
     /// Negative values are interpreted as LinkType.
@@ -18,7 +19,9 @@ struct PdfLink {
     QString target;
 };
 
+/// Unified type of slide transition for all PDF engines.
 struct SlideTransition {
+    /// Slide tansition Types.
     enum Type
     {
         Replace = 0,
@@ -53,24 +56,34 @@ struct SlideTransition {
         Fade,
         FlyRectangle,
     };
+
+    /// Direction controlled by 2 bits for outwards and vertical.
     enum Properties
     {
         Outwards = 1,
         Vertical = 2,
     };
+
+    /// Type of the slide transition.
     qint8 type = Replace;
+
+    /// Direction of the transition.
     /// first bit: inward (0) or outward (1) direction.
     /// second bit: horizontal (0) or vertical (1) direction.
     qint8 properties = 0;
+
     /// Angle in degrees of the direction of the direction.
     qint16 angle = 0;
+
     /// Transition duration in s.
     float duration = 0.;
+
     /// Only relevant for Fly and FlyRectangle, in [0,1].
     /// Starting point for "flying" relative to the usual "fly" path.
     float scale = 1.;
 };
 
+/// Unified type of PDF video annotations for all PDF engines.
 struct VideoAnnotation {
     QUrl file;
     enum Mode
@@ -92,6 +105,7 @@ class PdfDocument
 protected:
     /// Modification time of the PDF file.
     QDateTime lastModified;
+
     /// Path to the PDF file.
     QString path;
 

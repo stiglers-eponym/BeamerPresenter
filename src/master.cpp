@@ -3,14 +3,9 @@
 #include "src/slidescene.h"
 #include "src/gui/containerwidget.h"
 
-Master::Master()
-{
-
-}
-
 Master::~Master()
 {
-    for (const auto cache : caches)
+    for (const auto cache : qAsConst(caches))
     {
         QThread * const thread = cache->thread();
         delete cache;
@@ -18,7 +13,7 @@ Master::~Master()
         thread->deleteLater();
     }
     caches.clear();
-    for (const auto doc : documents)
+    for (const auto doc : qAsConst(documents))
     {
         qDeleteAll(doc->getScenes());
         doc->getScenes().clear();
@@ -118,7 +113,7 @@ QPair<QWidget*, GuiWidget*> Master::createWidget(QJsonObject &object, ContainerW
         widget->setLayout(layout);
         const qreal height = object.value("height").toDouble(1.);
         const qreal width = object.value("width").toDouble(1.);
-        widget->setPreferedSize(QSizeF(width, height));
+        widget->setPreferredSize(QSizeF(width, height));
         return {widget, widget};
     }
     case GuiWidget::StackedWidget:
@@ -257,7 +252,7 @@ QPair<QWidget*, GuiWidget*> Master::createWidget(QJsonObject &object, ContainerW
         // Check layout.
         const qreal height = object.value("height").toDouble(1.);
         const qreal width = object.value("width").toDouble(1.);
-        slide->setPreferedSize(QSizeF(width, height));
+        slide->setPreferredSize(QSizeF(width, height));
         return {slide, slide};
     }
     case GuiWidget::Overview:
@@ -350,11 +345,11 @@ void Master::receiveKeyEvent(const QKeyEvent* event)
             emit navigationSignal(preferences().page);
             break;
         case Quit:
-            for (auto window : windows)
+            for (auto window : qAsConst(windows))
                 window->close();
             break;
         case ReloadFiles:
-            for (auto doc : documents)
+            for (auto doc : qAsConst(documents))
                 doc->loadDocument();
             break;
         default:
@@ -370,12 +365,12 @@ void Master::distributeMemory()
     if (preferences().max_memory < 0)
         return;
     float scale = 0.;
-    for (const auto cache : caches)
+    for (const auto cache : qAsConst(caches))
         scale += cache->getPixels();
     if (scale <= 0)
         return;
     scale = preferences().max_memory / scale;
-    for (const auto cache : caches)
+    for (const auto cache : qAsConst(caches))
         cache->setScaledMemory(scale);
 }
 

@@ -67,15 +67,15 @@ void SlideView::keyPressEvent(QKeyEvent *event)
     emit sendKeyEvent(event);
 }
 
-const QSizeF SlideView::preferedSize(const QSizeF &parent_size) const
+const QSizeF SlideView::preferredSize(const QSizeF &parent_size) const
 {
-    if (prefered_size.isEmpty())
-        return prefered_size;
+    if (preferred_size.isEmpty())
+        return preferred_size;
     QSizeF boundary = parent_size;
-    if (prefered_size.width() > 0.)
-        boundary.rwidth() *= prefered_size.width();
-    if (prefered_size.height() > 0.)
-        boundary.rheight() *= prefered_size.height();
+    if (preferred_size.width() > 0.)
+        boundary.rwidth() *= preferred_size.width();
+    if (preferred_size.height() > 0.)
+        boundary.rheight() *= preferred_size.height();
     const QSizeF reference = scene()->sceneRect().size();
     const qreal aspect = reference.width() / reference.height();
     if (aspect * boundary.height() > boundary.width())

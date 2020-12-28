@@ -14,15 +14,22 @@ class BasicGraphicsPath : public AbstractGraphicsPath
 public:
     /// Custom type of QGraphicsItem.
     enum { Type = UserType + 1 };
+
     /// Construct path at given position with default pen.
     BasicGraphicsPath(const QPointF &pos);
+
     /// Construct subpath of other BasicGraphicsPath, including nodes first to
     /// last-1 of other.
     BasicGraphicsPath(const BasicGraphicsPath *const other, int first, int last);
+
     /// return custom type of QGraphicsItem.
-    int type() const override {return Type;}
+    int type() const override
+    {return Type;}
+
     /// Number of nodes of the path.
-    int size() const override {return data.size();}
+    int size() const override
+    {return data.size();}
+
     /// Position of last node in the path.
     /// Returns QPointF() if path is empty.
     const QPointF lastPoint() override
@@ -31,6 +38,7 @@ public:
     /// Paint this on given painter. Options and widget are currently
     /// discarded.
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget = nullptr) override;
+
     /// Add a point to data and update bounding rect.
     void addPoint(const QPointF &point);
 

@@ -18,12 +18,14 @@ class MuPdfRenderer : public AbstractRenderer
 public:
     /// Constructor: only initializes doc and page_part.
     MuPdfRenderer(const MuPdfDocument *doc, const PagePart part = FullPage) : AbstractRenderer(part), doc(doc) {}
+
     /// Trivial destructor.
     ~MuPdfRenderer() override {}
 
     /// Render page to a QPixmap. Resolution is given in pixels per point
     /// (dpi/72).
     const QPixmap renderPixmap(const int page, const qreal resolution) const override;
+
     /// Render page to PNG image stored in a QByteArray as part of a PngPixmap.
     /// Resolution is given in pixels per point (dpi/72).
     const PngPixmap * renderPng(const int page, const qreal resolution) const override;

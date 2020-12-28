@@ -1,18 +1,12 @@
 #include "src/gui/containerwidget.h"
 
-ContainerWidget::ContainerWidget(ContainerWidget *parent) :
-    QWidget(parent),
-    GuiWidget(WidgetType::ContainerWidget)
-{
-}
-
-const QSizeF ContainerWidget::preferedSize(const QSizeF &parent_size) const
+const QSizeF ContainerWidget::preferredSize(const QSizeF &parent_size) const
 {
     QSizeF boundary = parent_size;
-    if (prefered_size.width() > 0.)
-        boundary.rwidth() *= prefered_size.width();
-    if (prefered_size.height() > 0.)
-        boundary.rheight() *= prefered_size.height();
+    if (preferred_size.width() > 0.)
+        boundary.rwidth() *= preferred_size.width();
+    if (preferred_size.height() > 0.)
+        boundary.rheight() *= preferred_size.height();
     if (layout() == nullptr)
         return boundary;
 
@@ -21,7 +15,7 @@ const QSizeF ContainerWidget::preferedSize(const QSizeF &parent_size) const
     {
         for (const auto child : child_widgets)
         {
-            const QSizeF widget_wants = child->preferedSize(boundary);
+            const QSizeF widget_wants = child->preferredSize(boundary);
             requested_width += widget_wants.width();
             if (requested_height < widget_wants.height())
                 requested_height = widget_wants.height();
@@ -31,7 +25,7 @@ const QSizeF ContainerWidget::preferedSize(const QSizeF &parent_size) const
     {
         for (const auto child : child_widgets)
         {
-            const QSizeF widget_wants = child->preferedSize(boundary);
+            const QSizeF widget_wants = child->preferredSize(boundary);
             requested_height += widget_wants.height();
             if (requested_width < widget_wants.width())
                 requested_width = widget_wants.width();
@@ -56,9 +50,9 @@ void ContainerWidget::resizeEvent(QResizeEvent *event)
     QBoxLayout *boxlayout = static_cast<QBoxLayout*>(layout());
     if (boxlayout->direction() == QBoxLayout::LeftToRight || boxlayout->direction() == QBoxLayout::RightToLeft)
     {
-        for (const auto child : child_widgets)
+        for (const auto child : qAsConst(child_widgets))
         {
-            const QSizeF widget_wants = child->preferedSize(size());
+            const QSizeF widget_wants = child->preferredSize(size());
             if (widget_wants.isValid())
             {
                 if (widget_wants.width() == 0.)
@@ -83,9 +77,9 @@ void ContainerWidget::resizeEvent(QResizeEvent *event)
     }
     else
     {
-        for (const auto child : child_widgets)
+        for (const auto child : qAsConst(child_widgets))
         {
-            const QSizeF widget_wants = child->preferedSize(size());
+            const QSizeF widget_wants = child->preferredSize(size());
             if (widget_wants.isValid())
             {
                 if (widget_wants.height() == 0.)
@@ -108,20 +102,4 @@ void ContainerWidget::resizeEvent(QResizeEvent *event)
             }
         }
     }
-}
-
-void ContainerWidget::setWidth(const qreal width)
-{
-    if (width <= 0.)
-        setMaximumWidth(16777215);
-    else
-        setMaximumWidth(width);
-}
-
-void ContainerWidget::setHeight(const qreal height)
-{
-    if (height <= 0.)
-        setMaximumHeight(16777215);
-    else
-        setMaximumHeight(height);
 }

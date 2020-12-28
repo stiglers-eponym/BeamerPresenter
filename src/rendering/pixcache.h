@@ -132,6 +132,7 @@ public slots:
 signals:
     /// Send out new page.
     void pageReady(const QPixmap pixmap, const int page) const;
+
     /// Get page size from PdfDocument
     void getPageSize(QSizeF *size, const int page) const;
 };

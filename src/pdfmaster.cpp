@@ -58,6 +58,7 @@ void PdfMaster::receiveAction(const Action action)
         break;
     case UndoDrawing:
     {
+        // TODO: this takes the wrong page part if page aspect is below threshold.
         PathContainer* const path = paths.value(preferences().page | preferences().page_part);
         if (path)
         {
@@ -136,11 +137,11 @@ void PdfMaster::distributeNavigationEvents(const int page) const
     {
         const int scenepage = overlaysShifted(page, scene->getShift()) | scene->pagePart();
         if (scenemap.contains(scenepage))
-            emit scene->navigationEvent(scenepage & ~NotFullPage, scenemap[scenepage]);
+            scene->navigationEvent(scenepage & ~NotFullPage, scenemap[scenepage]);
         else
         {
             scenemap[scenepage] = scene;
-            emit scene->navigationEvent(scenepage & ~NotFullPage);
+            scene->navigationEvent(scenepage & ~NotFullPage);
         }
     }
 }

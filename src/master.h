@@ -29,24 +29,36 @@ class Master : public QObject
     /// List of all PDF documents.
     /// Master file is the first entry in this list.
     QList<PdfMaster*> documents;
+
     /// Map of cache hashs to cache objects.
     QMap<int, PixCache*> caches;
+
     /// List of all windows of the applications.
     QList<QWidget*> windows;
+
     /// Playlist of all media content in the documents.
     QMediaPlaylist *playlist {nullptr};
+
     /// Map file names (urls) to playlist indices.
     QMap<QUrl, int> playlist_map;
 
 public:
-    Master();
+    /// Trivial constructor. Doesn't do anything.
+    Master() {}
+
+    /// Destructor: delete cache, scenes, documents, and windows.
+    /// This should delete everything.
     ~Master();
+
     /// Show all windows of the application.
     void showAll() const;
+
     /// Read configuration file and build up GUI. Return true on success.
     bool readGuiConfig(const QString& filename);
+
     /// Create widgets recursively.
     QPair<QWidget*, GuiWidget*> createWidget(QJsonObject& object, ContainerWidget *parent = nullptr);
+
     /// Calculate total cache size (sum up cache sizes from all PixCache objects).
     qint64 getTotalCache() const;
 
@@ -61,8 +73,10 @@ public slots:
 signals:
     /// Send out action.
     void sendAction(const Action action) const;
+
     /// Send out nagivation signal (after updating preferences().page).
     void navigationSignal(const int page) const;
+
     /// Notify drawing history that for now hidden slides less history steps
     /// need to be stored.
     void limitHistoryInvisible(const int page) const;

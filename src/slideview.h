@@ -16,16 +16,28 @@ class SlideView : public QGraphicsView, public GuiWidget
 
     /// Pixmap representing the current slide.
     QPixmap currentPixmap;
-    /// Currently waiting for page (-1 if not waiting for any page):
+
+    /// Currently waiting for page (-1 if not waiting for any page).
     int waitingForPage = -1;
 
 public:
+    /// Constructor: initialize and connect a lot.
     explicit SlideView(SlideScene *scene, PixCache *cache = nullptr, QWidget *parent = nullptr);
-    const QSizeF preferedSize(QSizeF const& parent_size) const override;
+
+    /// Prefered size of slide view: rectangle with correct aspect ratio
+    /// fitting in parten_size.
+    const QSizeF preferredSize(QSizeF const& parent_size) const override;
+
+    /// Set (maximum) widget width.
     void setWidth(const qreal width) override
     {setMaximumWidth(width);}
+
+    /// Set (maximum) widget height.
     void setHeight(const qreal height) override
     {setMaximumHeight(height);}
+
+    /// Convert a position in widget coordinate (pixels) to scene coordinates
+    /// (points).
     const QPointF mapToScene(const QPointF& pos) const;
 
 protected:
@@ -33,21 +45,33 @@ protected:
     virtual void drawBackground(QPainter *painter, const QRectF &rect) override;
 
 protected slots:
+    /// Handle tablet events. The tablet events are mainly handed over to
+    /// the scene.
     bool event(QEvent* event) override;
+
+    /// Resize widget. Resizes cache.
     void resizeEvent(QResizeEvent *event) override;
+
+    /// Handle key events: send them to Master.
     void keyPressEvent(QKeyEvent *event) override;
 
 public slots:
     /// Inform this that the page number has changed.
     /// pageSize is given in points.
     void pageChanged(const int page, const QSizeF &pageSize, SlideScene* scene);
+
     /// Inform this that page is ready in pixcache.
     void pageReady(const QPixmap pixmap, const int page);
 
 signals:
+    /// Inform cache that page is required.
     /// Resolution is given in pixels per point (dpi/72).
     void requestPage(const int page, const qreal resolution) const;
+
+    /// Send key event to Master.
     void sendKeyEvent(QKeyEvent *event) const;
+
+    /// Inform cache that widget has been resized.
     void resizeCache(const QSizeF &size) const;
 };
 

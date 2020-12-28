@@ -22,9 +22,11 @@
 ///    with their index after all new QGraphicsItems were added.
 struct DrawHistoryStep {
     friend class PathContainer;
+
 private:
     /// Newly created items with their index after the history step.
     QMap<int, QGraphicsItem*> createdItems;
+
     /// Deleted items with their indices before the history step.
     QMap<int, QGraphicsItem*> deletedItems;
 };
@@ -57,6 +59,7 @@ private:
 public:
     /// Trivial constructor, initializes QObject.
     explicit PathContainer(QObject *parent = nullptr) : QObject(parent) {}
+
     /// Destructor. Delete history and paths.
     ~PathContainer();
 

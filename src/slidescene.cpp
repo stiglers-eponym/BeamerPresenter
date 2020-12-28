@@ -11,8 +11,9 @@ SlideScene::SlideScene(const PdfMaster *master, const PagePart part, QObject *pa
 
 SlideScene::~SlideScene()
 {
-    for (const auto item : items())
-        removeItem(item);
+    QList<QGraphicsItem*> list = items();
+    while (!list.isEmpty())
+        removeItem(list.takeLast());
     delete currentPath;
     delete currentItemCollection;
 }
@@ -35,11 +36,6 @@ void SlideScene::stopDrawing()
         delete currentItemCollection;
         currentItemCollection = nullptr;
     }
-}
-
-unsigned int SlideScene::identifier() const
-{
-    return qHash(QPair<int, const void*>(shift, master)) + page_part;
 }
 
 bool SlideScene::event(QEvent* event)
@@ -117,8 +113,9 @@ void SlideScene::navigationEvent(const int newpage, SlideScene *newscene)
     }
     page = newpage;
     emit navigationToViews(page, pagesize, newscene ? newscene : this);
-    for (const auto item : items())
-        removeItem(item);
+    QList<QGraphicsItem*> list = items();
+    while (!list.isEmpty())
+        removeItem(list.takeLast());
     if (!newscene || newscene == this)
     {
         const auto paths = master->pathContainer(page | page_part);
@@ -137,8 +134,9 @@ void SlideScene::startTransition(const int newpage, const SlideTransition &trans
     // TODO!
     page = newpage;
     emit navigationToViews(page, sceneRect().size(), this);
-    for (const auto item : items())
-        removeItem(item);
+    QList<QGraphicsItem*> list = items();
+    while (!list.isEmpty())
+        removeItem(list.takeLast());
     const auto paths = master->pathContainer(page | page_part);
     if (paths)
     {
