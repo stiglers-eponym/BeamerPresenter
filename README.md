@@ -125,7 +125,7 @@ After the installation you can remove the packages `libpoppler-qt5-dev`,
 
 ### Building in macOS
 
-First install the dependencies via [Homebrew package manager](https://brew.sh/):
+First install the dependencies via [Homebrew package manager](https://brew.sh):
 ```sh
 brew install qt poppler
 ```
@@ -143,7 +143,6 @@ via command:
 ```sh
 open beamerpresenter.app/Contents/MacOS/beamerpresenter
 ```
-
 from the directory where it was built.
 
 

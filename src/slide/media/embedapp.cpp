@@ -161,7 +161,7 @@ void EmbedApp::getWidFromPid()
 #ifdef Q_OS_WIN
     pid2widProcess->start(pid2wid, QStringList() << QString::number(process->pid()->dwProcessId));
 #else
-    pid2widProcess->start(pid2wid, QStringList() << QString::number(process->pid()));
+    pid2widProcess->start(pid2wid, QStringList() << QString::number(process->processId()));
 #endif
 }
 
@@ -174,8 +174,10 @@ void EmbedApp::receiveWidFromPid(int const exitCode, QProcess::ExitStatus const 
     else {
         char output[64];
         qint64 outputLength = pid2widProcess->readLine(output, sizeof(output));
-        if (outputLength == -1)
-            qCritical() << "Call to external translator from PID to Window ID had unexpected output";
+        if (outputLength == -1) {
+            qWarning() << "Call to external translator from PID to Window ID had unexpected output" << output;
+            pid2widTimer->start(int(1.5*pid2widTimer->interval()));
+        }
         else {
             QString winIdString(output);
 #ifdef DEBUG_MULTIMEDIA

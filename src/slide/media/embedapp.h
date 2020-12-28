@@ -63,7 +63,7 @@ private:
     /// Take control over the window and tell parent (PageWidget), that the widget is ready.
     void create(WId const wid);
     /// Minimum time in ms, after which pid2wid is called for the first time
-    int const minDelayPidWidCaller = 50;
+    int const minDelayPidWidCaller = 100;
     /// Process of pid2wid: a script which tries to get the window id of the external application which should be embedded.
     QProcess* pid2widProcess = nullptr;
     /// Timer for calling pid2wid.
