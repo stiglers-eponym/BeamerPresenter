@@ -105,11 +105,6 @@ bool PopplerDocument::loadDocument()
     return true;
 }
 
-const QPixmap PopplerDocument::getPixmap(const int page, const qreal resolution) const
-{
-    return getPixmap(page, resolution, FullPage);
-}
-
 const QPixmap PopplerDocument::getPixmap(const int page, const qreal resolution, const PagePart page_part) const
 {
     if (resolution <= 0 || page < 0 || page >= doc->numPages())
@@ -130,11 +125,6 @@ const QPixmap PopplerDocument::getPixmap(const int page, const qreal resolution,
     default:
         return QPixmap::fromImage(image);
     }
-}
-
-const PngPixmap * PopplerDocument::getPng(const int page, const qreal resolution) const
-{
-    return getPng(page, resolution, FullPage);
 }
 
 const PngPixmap * PopplerDocument::getPng(const int page, const qreal resolution, const PagePart page_part) const

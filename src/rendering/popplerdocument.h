@@ -40,10 +40,8 @@ public:
     PopplerDocument(const QString &filename);
     ~PopplerDocument() override;
     /// page is given as page index. resolution is given in pixels per point (72*dpi).
-    const QPixmap getPixmap(const int page, const qreal resolution) const override;
     const QPixmap getPixmap(const int page, const qreal resolution, const PagePart page_part) const;
     /// page is given as page index. resolution is given in pixels per point (72*dpi).
-    const PngPixmap* getPng(const int page, const qreal resolution) const override;
     const PngPixmap* getPng(const int page, const qreal resolution, const PagePart page_part) const;
     /// Load or reload the file. Return true if the file was updated and false
     /// otherwise.

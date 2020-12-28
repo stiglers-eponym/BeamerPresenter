@@ -107,11 +107,6 @@ public:
     explicit PdfDocument(const QString &filename) : path(filename) {}
     /// Trivial destructor.
     virtual ~PdfDocument() {}
-    /// Render the given page.
-    /// Page is given as page index. Resolution is given in pixels per point (72*dpi).
-    virtual const QPixmap getPixmap(const int page, const qreal resolution) const = 0;
-    /// Page is given as page index. Resolution is given in pixels per point (72*dpi).
-    virtual const PngPixmap* getPng(const int page, const qreal resolution) const = 0;
     virtual bool loadDocument() = 0;
     /// Size of page in points (72*inch).
     virtual const QSizeF pageSize(const int page) const = 0;

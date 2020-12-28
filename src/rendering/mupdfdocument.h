@@ -32,10 +32,6 @@ public:
     /// Create new document from given filename.
     MuPdfDocument(const QString &filename);
     ~MuPdfDocument() override;
-    /// page is given as page index. resolution is given in pixels per point (72*dpi).
-    const QPixmap getPixmap(const int page, const qreal resolution) const override;
-    /// page is given as page index. resolution is given in pixels per point (72*dpi).
-    const PngPixmap* getPng(const int page, const qreal resolution) const override;
     bool loadDocument() override;
     /// Size of page in points (72*inch).
     const QSizeF pageSize(const int page) const override;
