@@ -1,17 +1,6 @@
 #include "src/rendering/mupdfdocument.h"
 #include "src/enumerates.h"
 
-MuPdfDocument::MuPdfDocument(const QString &filename) :
-    PdfDocument(filename),
-    mutex(new QMutex())
-{
-    for (auto &it : mutex_list)
-        it = new QMutex();
-    // Load the document
-    if (!loadDocument())
-        qFatal("Loading document failed");
-}
-
 
 void lock_mutex(void *user, int lock)
 {
@@ -28,6 +17,27 @@ void unlock_mutex(void *user, int lock)
     (*mutex)[lock]->unlock();
 }
 
+
+MuPdfDocument::MuPdfDocument(const QString &filename) :
+    PdfDocument(filename),
+    mutex(new QMutex())
+{
+    for (auto &it : mutex_list)
+        it = new QMutex();
+    // Load the document
+    if (!loadDocument())
+        qFatal("Loading document failed");
+}
+
+MuPdfDocument::~MuPdfDocument()
+{
+    mutex->lock();
+    fz_drop_document(ctx, doc);
+    fz_drop_context(ctx);
+    qDeleteAll(mutex_list);
+    mutex->unlock();
+    delete mutex;
+}
 
 bool MuPdfDocument::loadDocument()
 {
@@ -115,21 +125,6 @@ bool MuPdfDocument::loadDocument()
     // Load page labels.
     loadPageLabels();
     return number_of_pages > 0;
-}
-
-MuPdfDocument::~MuPdfDocument()
-{
-    mutex->lock();
-    fz_drop_document(ctx, doc);
-    fz_drop_context(ctx);
-    qDeleteAll(mutex_list);
-    mutex->unlock();
-    delete mutex;
-}
-
-bool MuPdfDocument::isValid() const
-{
-    return doc != nullptr && ctx != nullptr && number_of_pages > 0;
 }
 
 const QSizeF MuPdfDocument::pageSize(const int page) const

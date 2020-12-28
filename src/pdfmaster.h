@@ -68,7 +68,7 @@ public:
     /// This function should be restructured!
     void resolveLink(const int page, const QPointF& position) const;
 
-    /// Slide transition at (after?) the given page number.
+    /// Slide transition when reaching the given page number.
     const SlideTransition transition(const int page) const
     {return document->transition(page);}
 

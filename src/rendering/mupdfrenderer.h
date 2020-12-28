@@ -21,10 +21,11 @@ public:
     /// Trivial destructor.
     ~MuPdfRenderer() override {}
 
-    /// Render page to a QPixmap. Resolution is given in dpi.
+    /// Render page to a QPixmap. Resolution is given in pixels per point
+    /// (dpi/72).
     const QPixmap renderPixmap(const int page, const qreal resolution) const override;
     /// Render page to PNG image stored in a QByteArray as part of a PngPixmap.
-    /// Resolution is given in dpi.
+    /// Resolution is given in pixels per point (dpi/72).
     const PngPixmap * renderPng(const int page, const qreal resolution) const override;
 
     /// In the current implementation this is always valid.

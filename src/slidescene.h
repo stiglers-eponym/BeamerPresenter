@@ -36,7 +36,7 @@ class SlideScene : public QGraphicsScene
 public:
     explicit SlideScene(const PdfMaster *master, const PagePart part = FullPage, QObject *parent = nullptr);
     ~SlideScene();
-    /// Set shift in the form (shift | overlay).
+    /// Set shift in the form ((shift & ~AnyOverlay) | overlay).
     void setPageShift(const int relative_shift) {shift = relative_shift;}
     const PdfMaster* getPdfMaster() {return master;}
     unsigned int identifier() const;
@@ -64,6 +64,7 @@ public slots:
 signals:
     /// Send navigation event to views.
     /// Here page is already adapted to shift.
+    /// size is given in points (inch/72).
     void navigationToViews(const int page, const QSizeF &size, SlideScene* scene) const;
     void sendNewPath(const int page, QGraphicsItem *item) const;
 };

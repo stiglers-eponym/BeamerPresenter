@@ -9,24 +9,16 @@ PopplerDocument::PopplerDocument(const QString &filename) :
         qFatal("Loading document failed");
 }
 
-PopplerDocument::~PopplerDocument()
-{
-    delete doc;
-}
-
-int PopplerDocument::numberOfPages() const
-{
-    return doc->numPages();
-}
-
 const QString PopplerDocument::label(const int page) const
 {
-    return doc->page(page)->label();
+    const Poppler::Page * const pageptr = doc->page(page);
+    return pageptr ? pageptr->label() : "";
 }
 
 const QSizeF PopplerDocument::pageSize(const int page) const
 {
-    return doc->page(page)->pageSizeF();
+    const Poppler::Page * const pageptr = doc->page(page);
+    return pageptr ? pageptr->pageSizeF() : QSizeF();
 }
 
 bool PopplerDocument::loadDocument()
@@ -164,11 +156,6 @@ const PngPixmap * PopplerDocument::getPng(const int page, const qreal resolution
         return nullptr;
     }
     return new PngPixmap(bytes, page, resolution);
-}
-
-bool PopplerDocument::isValid() const
-{
-    return doc != nullptr && !doc->isLocked();
 }
 
 int PopplerDocument::overlaysShifted(const int start, const int shift_overlay) const

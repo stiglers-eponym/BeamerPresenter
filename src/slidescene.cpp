@@ -88,6 +88,7 @@ void SlideScene::receiveAction(const Action action)
 
 void SlideScene::navigationEvent(const int newpage, SlideScene *newscene)
 {
+    /// Page size in points.
     QSizeF pagesize = master->getPageSize(newpage);
     switch (page_part)
     {

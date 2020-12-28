@@ -28,36 +28,69 @@ static const QMap<Poppler::PageTransition::Type, SlideTransition::Type> mapTrans
 
 class PopplerDocument : public PdfDocument
 {
+    /// Poppler document representing the PDF.
     const Poppler::Document *doc {nullptr};
 
-    /// Lookup table for page labels.
+    /// Lookup table for page labels: set of page indices, at which the page
+    /// label changes. This is left empty if every page starts with a new
+    /// label.
     std::set<int> overlay_slide_indices;
 
     /// Generate overlay_slide_indices.
     void populateOverlaySlidesSet();
 
 public:
+    /// Constructor: calls loadDocument().
     PopplerDocument(const QString &filename);
-    ~PopplerDocument() override;
-    /// page is given as page index. resolution is given in pixels per point (72*dpi).
+
+    /// Destructor: deletes doc.
+    ~PopplerDocument() override
+    {delete doc;}
+
+    /// Render page to QPixmap. page is given as page index.
+    /// resolution is given in pixels per point (dpi/72).
     const QPixmap getPixmap(const int page, const qreal resolution, const PagePart page_part) const;
-    /// page is given as page index. resolution is given in pixels per point (72*dpi).
+
+    /// Render page to PngPixmap. page is given as page index.
+    /// resolution is given in pixels per point (dpi/72).
     const PngPixmap* getPng(const int page, const qreal resolution, const PagePart page_part) const;
+
     /// Load or reload the file. Return true if the file was updated and false
     /// otherwise.
     bool loadDocument() override;
-    /// Size of page in points (72*inch).
+
+    /// Size of page in points (inch/72). Empty if page is invalid.
     const QSizeF pageSize(const int page) const override;
-    int numberOfPages() const override;
-    bool isValid() const override;
+
+    /// Number of pages (0 if doc is null).
+    int numberOfPages() const override
+    {return doc ? doc->numPages() : 0;}
+
+    /// Check whether a file has been loaded successfully.
+    bool isValid() const override
+    {return doc && !doc->isLocked();}
+
+    /// Page label of given page index. (Empty string if page is invalid.)
     const QString label(const int page) const override;
+
+    /// Starting from page start, get the number (index) of the page shifted
+    /// by shift_overlay.
+    /// If shift is an int and overlay is of type ShiftOverlays:
+    /// shift_overlay = (shift & ~AnyOverlay) | overlay
+    /// overlay = shift & AnyOverlay
+    /// shift = shift >= 0 ? shift & ~AnyOverlay : shift | AnyOverlay
     int overlaysShifted(const int start, const int shift_overlay) const override;
 
-    /// Link at given position (in point = inch/72)
+    /// Link at given position (in point = inch/72).
     const PdfLink linkAt(const int page, const QPointF &position) const override;
+
+    /// Annotation at given position (in point = inch/72)
     virtual const VideoAnnotation annotationAt(const int page, const QPointF &position) const override;
+
+    /// List all video annotations on given page. Returns nullptr if list is empty.
     virtual QList<VideoAnnotation>* annotations(const int page) const override;
 
+    /// Slide transition when reaching the given page.
     const SlideTransition transition(const int page) const override;
 };
 

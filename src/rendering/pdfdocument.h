@@ -90,7 +90,9 @@ class PdfDocument
 {
 
 protected:
+    /// Modification time of the PDF file.
     QDateTime lastModified;
+    /// Path to the PDF file.
     QString path;
 
 public:
@@ -103,23 +105,51 @@ public:
         MuPdfBackend = 1,
 #endif
     };
+
     /// Constructor: only initialize filename.
     explicit PdfDocument(const QString &filename) : path(filename) {}
+
     /// Trivial destructor.
     virtual ~PdfDocument() {}
+
+    /// Load or reload the PDF document if the file has been modified since
+    /// it was loaded. Return true if the document was reloaded.
     virtual bool loadDocument() = 0;
-    /// Size of page in points (72*inch).
+
+    /// Size of page in points (point = inch/72).
     virtual const QSizeF pageSize(const int page) const = 0;
+
+    /// Number of pages in PDF file.
     virtual int numberOfPages() const = 0;
+
+    /// Label of page with given index.
     virtual const QString label(const int page) const = 0;
+
+    /// Starting from page start, get the number (index) of the page shifted
+    /// by shift_overlay.
+    /// If shift is an int and overlay is of type ShiftOverlays:
+    /// shift_overlay = (shift & ~AnyOverlay) | overlay
+    /// overlay = shift & AnyOverlay
+    /// shift = shift >= 0 ? shift & ~AnyOverlay : shift | AnyOverlay
     virtual int overlaysShifted(const int start, const int shift_overlay) const = 0;
+
+    /// Check whether a file has been loaded successfully.
     virtual bool isValid() const = 0;
+
     /// Link at given position (in point = inch/72)
     virtual const PdfLink linkAt(const int page, const QPointF &position) const = 0;
+
+    /// Annotation at given position (in point = inch/72)
     virtual const VideoAnnotation annotationAt(const int page, const QPointF &position) const = 0;
-    /// List all video annotations on given page. Returns nullptr if list is empty.
+
+    /// List all video annotations on given page. Returns nullptr if list is
+    /// empty.
     virtual QList<VideoAnnotation>* annotations(const int page) const = 0;
+
+    /// Path to PDF file.
     const QString & getPath() const {return path;}
+
+    /// Slide transition when reaching the given page.
     virtual const SlideTransition transition(const int page) const = 0;
 };
 

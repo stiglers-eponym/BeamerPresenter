@@ -15,8 +15,11 @@ const QStringList ExternalRenderer::getArguments(const int page, const qreal res
     // In mutools %page argument starts counting from 1, but internally we
     // count pages from 0.
     command.replaceInStrings("%page", QString::number(page + 1));
-    command.replaceInStrings("%resolution", QString::number(resolution));
+    // %resolution should be given in dpi, but resolution is given in pixels
+    // per point (dpi/72).
+    command.replaceInStrings("%resolution", QString::number(72*resolution));
     command.replaceInStrings("%format", format);
+    command.replaceInStrings("%Format", format.toUpper());
 
     // Calculate size of target image using page and resolution.
     // TODO: first check if calculating the size is needed.
@@ -34,7 +37,7 @@ const PngPixmap * ExternalRenderer::renderPng(const int page, const qreal resolu
     if (page_part == FullPage)
     {
         QProcess *process = new QProcess();
-        process->start(renderingCommand, getArguments(page, resolution, "PNG"), QProcess::ReadOnly);
+        process->start(renderingCommand, getArguments(page, resolution, "png"), QProcess::ReadOnly);
         if (!process->waitForFinished(MAX_PROCESS_TIME_MS))
         {
             // TODO: clean up correctly
@@ -59,7 +62,7 @@ const QPixmap ExternalRenderer::renderPixmap(const int page, const qreal resolut
     if (resolution <= 0 || page < 0)
         return QPixmap();
     QProcess *process = new QProcess();
-    process->start(renderingCommand, getArguments(page, resolution, "PNM"), QProcess::ReadOnly);
+    process->start(renderingCommand, getArguments(page, resolution, "pnm"), QProcess::ReadOnly);
     if (!process->waitForFinished(MAX_PROCESS_TIME_MS))
     {
         // TODO: clean up correctly
