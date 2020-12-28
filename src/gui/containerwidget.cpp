@@ -13,7 +13,7 @@ const QSizeF ContainerWidget::preferredSize(const QSizeF &parent_size) const
     qreal requested_width = 0., requested_height = 0.;
     if (layout()->expandingDirections() == Qt::Horizontal)
     {
-        for (const auto child : child_widgets)
+        for (const auto child : qAsConst(child_widgets))
         {
             const QSizeF widget_wants = child->preferredSize(boundary);
             requested_width += widget_wants.width();
@@ -23,7 +23,7 @@ const QSizeF ContainerWidget::preferredSize(const QSizeF &parent_size) const
     }
     else
     {
-        for (const auto child : child_widgets)
+        for (const auto child : qAsConst(child_widgets))
         {
             const QSizeF widget_wants = child->preferredSize(boundary);
             requested_height += widget_wants.height();

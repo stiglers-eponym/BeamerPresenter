@@ -133,7 +133,7 @@ void PdfMaster::distributeNavigationEvents(const int page) const
     // page. In this case the SlideViews showing the same page will all be
     // connected to the same scene.
     QMap<int, SlideScene*> scenemap;
-    for (const auto scene : scenes)
+    for (const auto scene : qAsConst(scenes))
     {
         const int scenepage = overlaysShifted(page, scene->getShift()) | scene->pagePart();
         if (scenemap.contains(scenepage))

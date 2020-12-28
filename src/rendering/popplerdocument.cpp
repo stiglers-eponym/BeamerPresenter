@@ -227,7 +227,7 @@ const PdfLink PopplerDocument::linkAt(const int page, const QPointF &position) c
 {
     const QSizeF pageSize = doc->page(page)->pageSizeF();
     const QPointF relpos = {position.x()/pageSize.width(), position.y()/pageSize.height()};
-    for (const auto link : doc->page(page)->links())
+    for (const auto link : static_cast<const QList<Poppler::Link*>>(doc->page(page)->links()))
     {
         if (link->linkArea().normalized().contains(relpos))
         {
@@ -250,7 +250,7 @@ const VideoAnnotation PopplerDocument::annotationAt(const int page, const QPoint
 {
     const QSizeF pageSize = doc->page(page)->pageSizeF();
     const QPointF relpos = {position.x()/pageSize.width(), position.y()/pageSize.height()};
-    for (const auto annotation : doc->page(page)->annotations({Poppler::Annotation::AMovie}))
+    for (const auto annotation : static_cast<const QList<Poppler::Annotation*>>(doc->page(page)->annotations({Poppler::Annotation::AMovie})))
     {
         if (annotation->boundary().contains(relpos))
         {
@@ -283,7 +283,7 @@ const VideoAnnotation PopplerDocument::annotationAt(const int page, const QPoint
 
 QList<VideoAnnotation> *PopplerDocument::annotations(const int page) const
 {
-    QList<Poppler::Annotation*> annotations = doc->page(page)->annotations({Poppler::Annotation::AMovie});
+    const QList<Poppler::Annotation*> annotations = doc->page(page)->annotations({Poppler::Annotation::AMovie});
     if (annotations.isEmpty())
         return nullptr;
     const QSizeF pageSize = doc->page(page)->pageSizeF();

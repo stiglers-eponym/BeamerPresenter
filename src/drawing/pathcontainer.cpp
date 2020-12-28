@@ -178,7 +178,7 @@ void PathContainer::eraserMicroStep(const QPointF &pos, const qreal size)
         return;
     // Iterate over all paths and check whether they intersect with pos.
     QList<QGraphicsItem*>::iterator path_it = paths.begin();
-    for (int i=0; path_it != paths.cend(); ++path_it, i++)
+    for (int i=0; path_it != paths.end(); ++path_it, i++)
     {
         // Check if pos lies within the path's bounding rect (plus extra
         // margins from the eraser size).
@@ -223,7 +223,7 @@ void PathContainer::eraserMicroStep(const QPointF &pos, const qreal size)
                     QGraphicsItemGroup *group = new QGraphicsItemGroup();
                     // Add all paths in list (which were obtained by erasing in path)
                     // to group.
-                    for (const auto item : list)
+                    for (const auto item : qAsConst(list))
                     {
                         group->addToGroup(item);
                         item->show(); // TODO: necessary?
@@ -249,7 +249,7 @@ void PathContainer::eraserMicroStep(const QPointF &pos, const qreal size)
                 // Within the group, stacking order is irrelevant since all items were
                 // created from the same path by erasing.
                 QGraphicsItemGroup *group = static_cast<QGraphicsItemGroup*>(*path_it);
-                for (auto child : group->childItems())
+                for (const auto child : static_cast<const QList<QGraphicsItem*>>(group->childItems()))
                 {
                     // All items in the group should be paths. But we better check again.
                     if (child && (child->type() == FullGraphicsPath::Type || child->type() == BasicGraphicsPath::Type))
@@ -302,7 +302,7 @@ void PathContainer::applyMicroStep()
             // If item is a QGraphicsItemGroup*: Add all its child paths to
             // history.last().
             QGraphicsItemGroup *group = static_cast<QGraphicsItemGroup*>(item);
-            for (auto child : group->childItems())
+            for (const auto child : static_cast<const QList<QGraphicsItem*>>(group->childItems()))
             {
                 // The index shift "shift" is given by #(new items) - #(delted items)
                 // which lie before it.key() in paths.

@@ -60,7 +60,7 @@ PixCache::~PixCache()
     delete renderCacheTimer;
     delete renderer;
     // TODO: correctly clean up threads!
-    for (auto &thread : threads)
+    for (const auto &thread : qAsConst(threads))
         delete thread;
     clear();
 }

@@ -103,7 +103,7 @@ void Preferences::loadSettings()
                 else
                 {
                     const quint32 seq_int = quint32(seq[0] + seq[1] + seq[2] + seq[3]);
-                    for (const auto &action_str : settings.value(key).toStringList())
+                    for (const auto &action_str : static_cast<const QStringList>(settings.value(key).toStringList()))
                     {
                         const Action action = string_to_action_map.value(action_str.toLower(), Action::InvalidAction);
                         if (action == InvalidAction)
@@ -120,9 +120,10 @@ void Preferences::loadSettings()
 
 void Preferences::loadFromParser(const QCommandLineParser &parser)
 {
-    if (parser.positionalArguments().isEmpty())
+    const QStringList arguments = parser.positionalArguments();
+    if (arguments.isEmpty())
         file_alias["presentation"] = QFileDialog::getOpenFileName(nullptr, "Presentation file", "", "Documents (*.pdf)");
     else
-        file_alias["presentation"] = parser.positionalArguments().first();
+        file_alias["presentation"] = arguments.first();
     // TODO
 }

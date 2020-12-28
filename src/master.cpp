@@ -283,7 +283,7 @@ QPair<QWidget*, GuiWidget*> Master::createWidget(QJsonObject &object, ContainerW
 
 void Master::showAll() const
 {
-    for (auto &widget : windows)
+    for (const auto widget : qAsConst(windows))
     {
         widget->setGeometry(0, 0, 400, 300);
         widget->show();
@@ -345,11 +345,11 @@ void Master::receiveKeyEvent(const QKeyEvent* event)
             emit navigationSignal(preferences().page);
             break;
         case Quit:
-            for (auto window : qAsConst(windows))
+            for (const auto window : qAsConst(windows))
                 window->close();
             break;
         case ReloadFiles:
-            for (auto doc : qAsConst(documents))
+            for (const auto doc : qAsConst(documents))
                 doc->loadDocument();
             break;
         default:
@@ -377,7 +377,7 @@ void Master::distributeMemory()
 qint64 Master::getTotalCache() const
 {
     qint64 cache = 0;
-    for (const auto px : caches)
+    for (const auto px : qAsConst(caches))
         cache += px->getUsedMemory();
     return cache;
 }
