@@ -8,6 +8,9 @@
 
 class PixCache;
 
+/// This whole construction is might change in the future.
+/// Widget for flexible arangement of child widgets as read from
+/// configuration file.
 class ContainerWidget : public QWidget, public GuiWidget
 {
     Q_OBJECT

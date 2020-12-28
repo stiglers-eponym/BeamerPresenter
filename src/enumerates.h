@@ -4,8 +4,10 @@
 #include <QMap>
 #include <QColor>
 
-/// Does a single PDF include both presentation and notes?
-/// In this case PagePart shows which part is currently of interest.
+/// If a single PDF includes both presentation and notes,
+/// PagePart shows which part is currently of interest.
+/// The numbers are chosen such that (page number | page part)
+/// can be used to label pages including the page part by a single int.
 enum PagePart
 {
     FullPage = 0,

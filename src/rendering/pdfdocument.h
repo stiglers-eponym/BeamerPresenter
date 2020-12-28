@@ -85,6 +85,7 @@ struct VideoAnnotation {
 };
 
 /// Abstract class for handling PDF documents.
+/// This class is inherited by classes specific for PDF engines.
 class PdfDocument
 {
 
@@ -93,6 +94,7 @@ protected:
     QString path;
 
 public:
+    /// Backend / PDF engine
     enum PdfBackend {
 #ifdef INCLUDE_POPPLER
         PopplerBackend = 0,
@@ -101,11 +103,14 @@ public:
         MuPdfBackend = 1,
 #endif
     };
+    /// Constructor: only initialize filename.
     explicit PdfDocument(const QString &filename) : path(filename) {}
+    /// Trivial destructor.
     virtual ~PdfDocument() {}
-    /// page is given as page index. resolution is given in pixels per point (72*dpi).
+    /// Render the given page.
+    /// Page is given as page index. Resolution is given in pixels per point (72*dpi).
     virtual const QPixmap getPixmap(const int page, const qreal resolution) const = 0;
-    /// page is given as page index. resolution is given in pixels per point (72*dpi).
+    /// Page is given as page index. Resolution is given in pixels per point (72*dpi).
     virtual const PngPixmap* getPng(const int page, const qreal resolution) const = 0;
     virtual bool loadDocument() = 0;
     /// Size of page in points (72*inch).

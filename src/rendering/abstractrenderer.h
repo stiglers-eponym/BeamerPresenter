@@ -11,8 +11,11 @@
 class AbstractRenderer
 {
 protected:
+    /// Each page part of a document is associated to a single renderer.
     const PagePart page_part;
+
 public:
+    /// Type of the renderer.
     enum Renderer {
 #ifdef INCLUDE_POPPLER
         Poppler = 0,
@@ -23,15 +26,18 @@ public:
         ExternalRenderer = 2,
     };
 
+    /// Constructor: only initializes page_part.
     AbstractRenderer(const PagePart part = FullPage) : page_part(part) {};
-    PagePart pagePart() const {return page_part;}
+    /// Trivial virtual destructor.
     virtual ~AbstractRenderer() {};
-    /// Render page to a QPixmap.
-    /// Resolution is given in dpi.
+    /// get page_part;
+    PagePart pagePart() const {return page_part;}
+    /// Render page to a QPixmap. Resolution is given in dpi.
     virtual const QPixmap renderPixmap(const int page, const qreal resolution) const = 0;
-    /// Render page to PNG image in a QByteArray.
+    /// Render page to PNG image stored in a QByteArray as part of a PngPixmap.
     /// Resolution is given in dpi.
     virtual const PngPixmap * renderPng(const int page, const qreal resolution) const = 0;
+    /// Check if renderer is valid and can in principle render pages.
     virtual bool isValid() const = 0;
 };
 

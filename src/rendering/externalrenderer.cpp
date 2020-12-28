@@ -85,10 +85,9 @@ const QPixmap ExternalRenderer::renderPixmap(const int page, const qreal resolut
 
 bool ExternalRenderer::isValid() const
 {
-    /* Very basic check:
-    * Is a command defined?
-    * Does it take arguments? Do these arguments contain %page?
-    */
+    // Very basic check:
+    // Is a command defined?
+    // Does it take arguments? Do these arguments contain %page?
     qDebug() << renderingCommand << renderingArguments;
     return  !renderingCommand.isEmpty()
             && !renderingArguments.isEmpty()

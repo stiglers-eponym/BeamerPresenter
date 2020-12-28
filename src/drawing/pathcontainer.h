@@ -55,7 +55,9 @@ private:
     void truncateHistory();
 
 public:
+    /// Trivial constructor, initializes QObject.
     explicit PathContainer(QObject *parent = nullptr) : QObject(parent) {}
+    /// Destructor. Delete history and paths.
     ~PathContainer();
 
     /// Undo latest change. Return true on success and false on failure.

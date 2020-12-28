@@ -3,6 +3,7 @@
 
 #include <QSizeF>
 
+/// This whole construction is might change in the future.
 /// Abstract class for distinguishing different widget types.
 /// It is not a widget itself! Without casting to the correct type, all child
 /// objects are useless.
