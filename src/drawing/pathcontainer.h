@@ -6,11 +6,29 @@
 #include <QGraphicsItem>
 #include <QGraphicsScene>
 #include <QList>
-#include "src/drawing/drawhistorystep.h"
 #include "src/drawing/abstractgraphicspath.h"
 #include "src/drawing/basicgraphicspath.h"
 #include "src/drawing/fullgraphicspath.h"
 #include "src/preferences.h"
+
+
+/// One single step in the history of drawing.
+/// Save deleted and added GraphicsItems and their stacking position
+/// (by their index).
+/// A history step consists of
+/// 1. deleting QGraphicsItems. DrawHistoryStep saves these items together
+///    with their index in the stacking order before they were deleted.
+/// 2. creating QGraphicsItems. DrawHistoryStep saves these items together
+///    with their index after all new QGraphicsItems were added.
+struct DrawHistoryStep {
+    friend class PathContainer;
+private:
+    /// Newly created items with their index after the history step.
+    QMap<int, QGraphicsItem*> createdItems;
+    /// Deleted items with their indices before the history step.
+    QMap<int, QGraphicsItem*> deletedItems;
+};
+
 
 /// Collection of QGraphicsItems including a history of changes to these items.
 /// This stores drawn paths per slide even if the slide is not visible.

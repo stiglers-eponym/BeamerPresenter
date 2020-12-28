@@ -91,9 +91,6 @@ void SlideScene::navigationEvent(const int newpage, SlideScene *newscene)
     QSizeF pagesize = master->getPageSize(newpage);
     switch (page_part)
     {
-    case FullPage:
-        setSceneRect(0., 0., pagesize.width(), pagesize.height());
-        break;
     case LeftHalf:
         pagesize.rwidth() /= 2;
         setSceneRect(0., 0., pagesize.width(), pagesize.height());
@@ -101,6 +98,9 @@ void SlideScene::navigationEvent(const int newpage, SlideScene *newscene)
     case RightHalf:
         pagesize.rwidth() /= 2;
         setSceneRect(pagesize.width(), 0., pagesize.width(), pagesize.height());
+        break;
+    default:
+        setSceneRect(0., 0., pagesize.width(), pagesize.height());
         break;
     }
     if (show_animations && (!newscene || newscene == this))

@@ -74,7 +74,6 @@ SOURCES += \
         src/rendering/pixcache.cpp \
         src/rendering/pixcachethread.cpp \
         src/rendering/pngpixmap.cpp \
-        src/drawing/drawhistorystep.cpp \
         src/drawing/pathcontainer.cpp \
         src/drawing/basicgraphicspath.cpp \
         src/drawing/fullgraphicspath.cpp \
@@ -95,7 +94,6 @@ HEADERS += \
         src/rendering/pixcache.h \
         src/rendering/pixcachethread.h \
         src/rendering/pngpixmap.h \
-        src/drawing/drawhistorystep.h \
         src/drawing/pathcontainer.h \
         src/drawing/abstractgraphicspath.h \
         src/drawing/basicgraphicspath.h \
