@@ -25,7 +25,8 @@ private:
     /// Master scene is the first scene in the list.
     QList<SlideScene*> scenes;
 
-    /// Map page numbers to containers of paths.
+    /// Map page (part) numbers to containers of paths.
+    /// page (part) numbers are given as (page | page_part)
     /// Paths can be drawn per slide label by creating references to the main
     /// path list from other slide numbers.
     QMap<int, PathContainer*> paths;
@@ -37,6 +38,7 @@ private:
 public:
     /// Create a new PdfMaster from a given file name.
     explicit PdfMaster(const QString &filename);
+    /// Destructor. Deletes paths and document.
     ~PdfMaster();
 
     /// Load or reload the file. Return true if the file was updated and false
@@ -47,23 +49,30 @@ public:
     const QString &getFilename() const
     {return document->getPath();}
 
+    /// Get the list of SlideScenes connected to this PDF.
     QList<SlideScene*> &getScenes()
     {return scenes;}
 
     /// Get size of page in points (floating point precision).
     const QSizeF getPageSize(const int page_number) const;
 
+    /// Get PdfDocument.
     const PdfDocument *getDocument() const
     {return document;}
 
+    /// Get container of paths on given page.
+    /// page (part) number is given as (page | page_part).
     PathContainer *pathContainer(const int page) const
     {return paths.value(page, nullptr);}
 
+    /// This function should be restructured!
     void resolveLink(const int page, const QPointF& position) const;
 
+    /// Slide transition at (after?) the given page number.
     const SlideTransition transition(const int page) const
     {return document->transition(page);}
 
+    /// Number of pages in the document.
     int numberOfPages() const
     {return document->numberOfPages();}
 
@@ -79,6 +88,7 @@ public slots:
     /// Handle the given action.
     void receiveAction(const Action action);
     /// Add a new path (or QGraphicsItem) to paths[page].
+    /// Page (part) number is given as (page | page_part).
     void receiveNewPath(const int page, QGraphicsItem *item);
 
     /// Send navigation events to all SlideScenes reading from this document.

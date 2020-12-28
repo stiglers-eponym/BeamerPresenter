@@ -123,12 +123,12 @@ const QPixmap PopplerDocument::getPixmap(const int page, const qreal resolution,
     const QImage image = popplerPage->renderToImage(72.*resolution, 72.*resolution);
     switch (page_part)
     {
-    case FullPage:
-        return QPixmap::fromImage(image);
     case LeftHalf:
         return QPixmap::fromImage(image.copy(0, 0, image.width()/2, image.height()));
     case RightHalf:
         return QPixmap::fromImage(image.copy((image.width()+1)/2, 0, image.width()/2, image.height()));
+    default:
+        return QPixmap::fromImage(image);
     }
 }
 
@@ -155,13 +155,13 @@ const PngPixmap * PopplerDocument::getPng(const int page, const qreal resolution
     }
     switch (page_part)
     {
-    case FullPage:
-        break;
     case LeftHalf:
         image = image.copy(0, 0, image.width()/2, image.height());
         break;
     case RightHalf:
         image = image.copy((image.width()+1)/2, 0, image.width()/2, image.height());
+        break;
+    default:
         break;
     }
     QByteArray* const bytes = new QByteArray();
@@ -310,7 +310,7 @@ QList<VideoAnnotation> *PopplerDocument::annotations(const int page) const
     if (annotations.isEmpty())
         return nullptr;
     const QSizeF pageSize = doc->page(page)->pageSizeF();
-    QList<VideoAnnotation> *list = nullptr;
+    QList<VideoAnnotation> *list = new QList<VideoAnnotation>;
     for (const auto annotation : annotations)
     {
         Poppler::MovieObject *movie = static_cast<Poppler::MovieAnnotation*>(annotation)->movie();
@@ -334,6 +334,11 @@ QList<VideoAnnotation> *PopplerDocument::annotations(const int page) const
             break;
         }
         delete movie;
+    }
+    if (list->isEmpty())
+    {
+        delete list;
+        return nullptr;
     }
     return list;
 }

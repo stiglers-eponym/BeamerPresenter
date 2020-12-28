@@ -24,7 +24,7 @@ const QPixmap MuPdfRenderer::renderPixmap(const int page, const qreal resolution
     case RightHalf:
         bbox.x0 = (bbox.x0 + bbox.x1)/2;
         break;
-    case FullPage:
+    default:
         break;
     }
 
@@ -60,7 +60,7 @@ const QPixmap MuPdfRenderer::renderPixmap(const int page, const qreal resolution
 
     // Assume that the pixmap is in RGB colorspace.
     // Write the pixmap in PNM format to a buffer using MuPDF tools.
-    fz_buffer *buffer;
+    fz_buffer *buffer = nullptr;
     fz_try(ctx)
         buffer = fz_new_buffer(ctx, pixmap->stride * pixmap->y + 16);
     fz_catch(ctx)
@@ -89,7 +89,7 @@ const QPixmap MuPdfRenderer::renderPixmap(const int page, const qreal resolution
 
     // Load the pixmap from buffer in Qt.
     QPixmap qpixmap;
-    if (!qpixmap.loadFromData(buffer->data, buffer->len, "PNM"))
+    if (!buffer || !qpixmap.loadFromData(buffer->data, buffer->len, "PNM"))
     {
         qWarning() << "Failed to load PNM image from buffer";
     }
@@ -123,7 +123,7 @@ const PngPixmap * MuPdfRenderer::renderPng(const int page, const qreal resolutio
     case RightHalf:
         bbox.x0 = (bbox.x0 + bbox.x1)/2;
         break;
-    case FullPage:
+    default:
         break;
     }
 
@@ -156,7 +156,7 @@ const PngPixmap * MuPdfRenderer::renderPng(const int page, const qreal resolutio
     fz_drop_device(ctx, dev);
 
     // Save the pixmap to buffer in PNG format.
-    fz_buffer *buffer;
+    fz_buffer *buffer = nullptr;
     fz_try(ctx)
         buffer = fz_new_buffer_from_pixmap_as_png(ctx, pixmap, fz_default_color_params);
     fz_catch(ctx)
@@ -170,7 +170,7 @@ const PngPixmap * MuPdfRenderer::renderPng(const int page, const qreal resolutio
     fz_drop_pixmap(ctx, pixmap);
 
     // Convert the buffer data to QByteArray.
-    const QByteArray * data = new QByteArray(reinterpret_cast<const char*>(buffer->data), buffer->len);
+    const QByteArray * data = buffer ? new QByteArray(reinterpret_cast<const char*>(buffer->data), buffer->len) : nullptr;
     fz_clear_buffer(ctx, buffer);
     fz_drop_buffer(ctx, buffer);
     fz_drop_context(ctx);

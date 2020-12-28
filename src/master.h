@@ -18,6 +18,10 @@ class SlideScene;
 class ContainerWidget;
 class PixCache;
 
+/// Manage the program, distributes events to various objects, construct the
+/// GUI. All changes to preferences must be done though this class (this will
+/// change when a GUI for modifying preferences is implemented).
+/// Only one master object may exist.
 class Master : public QObject
 {
     Q_OBJECT

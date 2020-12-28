@@ -74,12 +74,12 @@ const QPixmap ExternalRenderer::renderPixmap(const int page, const qreal resolut
         qWarning() << "Failed to load data from external renderer";
     switch (page_part)
     {
-    case FullPage:
-        return pixmap;
     case LeftHalf:
         return pixmap.copy(0, 0, pixmap.width()/2, pixmap.height());
     case RightHalf:
         return pixmap.copy((pixmap.width()+1)/2, 0, pixmap.width()/2, pixmap.height());
+    default:
+        return pixmap;
     }
 }
 

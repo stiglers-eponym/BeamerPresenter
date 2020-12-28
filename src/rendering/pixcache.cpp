@@ -196,8 +196,8 @@ void PixCache::pageNumberChanged(const int page)
     // Extend the region as far as possible by searching for gaps.
     // Use that keys in QMap are sorted and can be accessed by iterators.
     QMap<int, const PngPixmap*>::const_iterator
-            left = cache.find(region.first),
-            right = cache.find(region.second);
+            left = cache.constFind(region.first),
+            right = cache.constFind(region.second);
     if (left != cache.cend())
     {
         const auto limit = cache.cbegin() - 1;

@@ -7,7 +7,7 @@
 
 #define MAX_PROCESS_TIME_MS 60000
 
-class ExternalRenderer : public AbstractRenderer, QObject
+class ExternalRenderer : public AbstractRenderer
 {
     QString const renderingCommand;
     QStringList renderingArguments;

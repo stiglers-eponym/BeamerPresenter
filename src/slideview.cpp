@@ -20,7 +20,9 @@ SlideView::SlideView(SlideScene *scene, PixCache *cache, QWidget *parent) :
     connect(this, &SlideView::resizeCache, cache, &PixCache::updateFrame, Qt::QueuedConnection);
     QPalette newpalette = palette();
     newpalette.setColor(QPalette::Base, Qt::black);
+#if QT_VERSION_MAJOR <= 5
     newpalette.setColor(QPalette::Background, Qt::black);
+#endif
     setPalette(newpalette);
 }
 

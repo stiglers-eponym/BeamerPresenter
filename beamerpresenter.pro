@@ -5,6 +5,9 @@ requires(greaterThan(QT_MAJOR_VERSION, 4))
 # TODO: Test on different Qt versions
 
 QT += core gui multimedia multimediawidgets xml widgets
+# Build in multimedia support is not available in Qt 6.0, but should be
+# available in Qt 6.2, expected in 2021-09.
+# TODO: make multimedia support optional and create Qt 6 compatible version.
 
 TARGET = beamerpresenter
 TEMPLATE = app
