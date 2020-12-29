@@ -33,12 +33,10 @@ private:
 
 
 /// Collection of QGraphicsItems including a history of changes to these items.
-/// This stores drawn paths per slide even if the slide is not visible.
+/// This stores drawn paths for one slide even if the slide is not visible.
 /// Access the history using undo and redo functions.
-class PathContainer : public QObject
+class PathContainer
 {
-    Q_OBJECT
-
 private:
     /// List of currently visible paths in the order in which they were created
     /// TODO: don't use this when this is currently active on scene?
@@ -57,8 +55,8 @@ private:
     void truncateHistory();
 
 public:
-    /// Trivial constructor, initializes QObject.
-    explicit PathContainer(QObject *parent = nullptr) : QObject(parent) {}
+    /// Trivial constructor.
+    explicit PathContainer() noexcept {}
 
     /// Destructor. Delete history and paths.
     ~PathContainer();
@@ -70,11 +68,11 @@ public:
     bool redo(QGraphicsScene *scene = nullptr);
 
     /// Iterator over current paths.
-    QList<QGraphicsItem*>::const_iterator cbegin() const
+    QList<QGraphicsItem*>::const_iterator cbegin() const noexcept
     {return paths.cbegin();}
 
     /// End of iterator over current paths.
-    QList<QGraphicsItem*>::const_iterator cend() const
+    QList<QGraphicsItem*>::const_iterator cend() const noexcept
     {return paths.cend();}
 
     /// Clear history such that only <n> undo steps are possible.
@@ -107,9 +105,6 @@ public:
     /// size. Before this function startMicroStep() has to be called and
     /// afterwards a call to applyMicroStep() is necessary.
     void eraserMicroStep(const QPointF &pos, const qreal size = 10.);
-
-signals:
-
 };
 
 #endif // PATHCONTAINER_H

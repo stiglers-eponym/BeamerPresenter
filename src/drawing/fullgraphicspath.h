@@ -36,16 +36,16 @@ public:
     FullGraphicsPath(const FullGraphicsPath *const other, int first, int last);
 
     /// return custom type of QGraphicsItem.
-    int type() const override
+    int type() const noexcept override
     {return Type;}
 
     /// Number of nodes of the path.
-    int size() const override
+    int size() const noexcept override
     {return data.size();}
 
     /// Position of last node in the path.
     /// Returns QPointF() if path is empty.
-    const QPointF lastPoint() override
+    const QPointF lastPoint() const noexcept override
     {return data.isEmpty() ? QPointF() : data.last().point;}
 
     /// Paint this on given painter. Options and widget are currently

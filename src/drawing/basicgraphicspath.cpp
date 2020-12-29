@@ -1,6 +1,6 @@
 #include "basicgraphicspath.h"
 
-BasicGraphicsPath::BasicGraphicsPath(const QPointF &pos)
+BasicGraphicsPath::BasicGraphicsPath(const QPointF &pos) noexcept
 {
     // Initialize bounding rect.
     top = pos.y() - pen.widthF();

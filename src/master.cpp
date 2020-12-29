@@ -170,7 +170,6 @@ QPair<QWidget*, GuiWidget*> Master::createWidget(QJsonObject &object, ContainerW
             connect(this, &Master::sendAction, doc, &PdfMaster::receiveAction);
             connect(doc, &PdfMaster::nagivationSignal, this, &Master::navigationSignal);
             connect(this, &Master::navigationSignal, doc, &PdfMaster::distributeNavigationEvents);
-            connect(this, &Master::limitHistoryInvisible, doc, &PdfMaster::limitHistoryInvisible);
             if (preferences().page_part_threshold > 0.)
             {
                 const QSizeF reference = doc->getPageSize(0);
@@ -311,7 +310,7 @@ void Master::receiveKeyEvent(const QKeyEvent* event)
         case NextPage:
             if (documents.first()->numberOfPages() > preferences().page + 1)
             {
-                emit limitHistoryInvisible(preferences().page | preferences().page_part);
+                limitHistoryInvisible(preferences().page | preferences().page_part);
                 ++writable_preferences().page;
                 emit navigationSignal(preferences().page);
             }
@@ -319,28 +318,28 @@ void Master::receiveKeyEvent(const QKeyEvent* event)
         case PreviousPage:
             if (preferences().page > 0)
             {
-                emit limitHistoryInvisible(preferences().page | preferences().page_part);
+                limitHistoryInvisible(preferences().page | preferences().page_part);
                 --writable_preferences().page;
                 emit navigationSignal(preferences().page);
             }
             break;
         case NextSkippingOverlays:
-            emit limitHistoryInvisible(preferences().page | preferences().page_part);
+            limitHistoryInvisible(preferences().page | preferences().page_part);
             writable_preferences().page = documents.first()->overlaysShifted(preferences().page, 1 | FirstOverlay);
             emit navigationSignal(preferences().page);
             break;
         case PreviousSkippingOverlays:
-            emit limitHistoryInvisible(preferences().page | preferences().page_part);
+            limitHistoryInvisible(preferences().page | preferences().page_part);
             writable_preferences().page = documents.first()->overlaysShifted(preferences().page, -1 & ~FirstOverlay);
             emit navigationSignal(preferences().page);
             break;
         case FirstPage:
-            emit limitHistoryInvisible(preferences().page | preferences().page_part);
+            limitHistoryInvisible(preferences().page | preferences().page_part);
             writable_preferences().page = 0;
             emit navigationSignal(0);
             break;
         case LastPage:
-            emit limitHistoryInvisible(preferences().page | preferences().page_part);
+            limitHistoryInvisible(preferences().page | preferences().page_part);
             writable_preferences().page = documents.first()->numberOfPages() - 1;
             emit navigationSignal(preferences().page);
             break;
@@ -357,6 +356,17 @@ void Master::receiveKeyEvent(const QKeyEvent* event)
         }
         if ((++it).key() != static_cast<unsigned int>(event->key()))
             break;
+    }
+}
+
+void Master::limitHistoryInvisible(const int page) const
+{
+    PathContainer *container;
+    for (const auto doc : qAsConst(documents))
+    {
+        container = doc->pathContainer(page);
+        if (container)
+            container->clearHistory(preferences().history_length_hidden_slides);
     }
 }
 

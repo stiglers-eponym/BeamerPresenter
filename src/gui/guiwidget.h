@@ -34,10 +34,10 @@ public:
     const WidgetType type;
 
     /// Constructor: only initialize type.
-    GuiWidget(const WidgetType type) : type(type) {}
+    GuiWidget(const WidgetType type) noexcept : type(type) {}
 
     /// Set preferred size
-    void setPreferredSize(const QSizeF& size)
+    void setPreferredSize(const QSizeF& size) noexcept
     {preferred_size = size;}
 
     /// Get preferred size based on parent_size.

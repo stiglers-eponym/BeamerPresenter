@@ -122,7 +122,7 @@ void PdfMaster::resolveLink(const int page, const QPointF &position) const
 void PdfMaster::receiveNewPath(const int page, QGraphicsItem *item)
 {
     if (!paths.contains(page))
-        paths[page] = new PathContainer(this);
+        paths[page] = new PathContainer();
     paths[page]->append(item);
 }
 
@@ -144,14 +144,4 @@ void PdfMaster::distributeNavigationEvents(const int page) const
             scene->navigationEvent(scenepage & ~NotFullPage);
         }
     }
-}
-
-void PdfMaster::limitHistoryInvisible(const int page) const
-{
-    // A nagivation event moves preferences().page away from the given page.
-    // Tell paths[page] that it's history should now be limited by
-    // preferences().history_length_hidden_slides.
-    PathContainer *const container = paths.value(page);
-    if (container)
-        container->clearHistory(preferences().history_length_hidden_slides);
 }

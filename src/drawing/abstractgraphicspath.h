@@ -19,20 +19,20 @@ protected:
 
 public:
     /// Trivial constructor.
-    AbstractGraphicsPath() {}
+    AbstractGraphicsPath() noexcept {}
 
     /// Constructor initializing pen.
-    AbstractGraphicsPath(const QPen pen) : pen(pen) {}
+    AbstractGraphicsPath(const QPen pen) noexcept : pen(pen) {}
 
     /// Bounding rectangle of the drawing (including stroke width).
-    QRectF boundingRect() const override
+    QRectF boundingRect() const noexcept override
     {return QRectF(left, top, right-left, bottom-top);}
 
     /// Number of nodes of the path.
-    virtual int size() const = 0;
+    virtual int size() const noexcept = 0;
 
     /// Coordinate of the last node in the path.
-    virtual const QPointF lastPoint() = 0;
+    virtual const QPointF lastPoint() const noexcept = 0;
 
     /// Erase at position pos. Return a list of paths obtained when splitting
     /// this by erasing at pos with given eraser size.

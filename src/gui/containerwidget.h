@@ -41,8 +41,6 @@ protected:
     /// Resize the widget.
     void resizeEvent(QResizeEvent *event) override;
 
-signals:
-
 };
 
 #endif // CONTAINERWIDGET_H

@@ -1,26 +1,21 @@
 VERSION = 0.2.0alpha0
 
 # Check Qt version.
-requires(greaterThan(QT_MAJOR_VERSION, 4))
-# TODO: Test on different Qt versions
+requires(equals(QT_MAJOR_VERSION, 5))
 
 QT += core gui multimedia multimediawidgets xml widgets
 # Build in multimedia support is not available in Qt 6.0, but should be
 # available in Qt 6.2, expected in 2021-09.
-# TODO: make multimedia support optional and create Qt 6 compatible version.
 
 TARGET = beamerpresenter
 TEMPLATE = app
 
 # Include Poppler: requires that poppler-qt5 libraries are installed.
-# This is the default PDF backend.
+# Tested with poppler 20.12.1
 DEFINES += INCLUDE_POPPLER
 
 # Include MuPDF: requires that mupdf libraries are installed.
-# This is HIGHLY EXPERIMENTAL and UNSTABLE. Some features are missing.
-# That could change if MuPDF had a reasonable documentation.
-# It is recommended to use poppler as a backend and mutools as an external
-# renderer if you want to use MuPDF's rendering.
+# Tested only with libmupdf 1.17.0
 DEFINES += INCLUDE_MUPDF
 
 # The following define makes your compiler emit warnings if you use
@@ -127,21 +122,32 @@ unix {
     }
     contains(DEFINES, INCLUDE_MUPDF) {
         INCLUDEPATH += /usr/include/mupdf
-        LIBS += -lmupdf -lmupdf-third
-        LIBS += -lm -lfreetype -lz -lharfbuzz -ljpeg -ljbig2dec -lopenjp2
+        LIBS += -lmupdf -lmupdf-third -lm -lfreetype -lz -lharfbuzz -ljpeg -ljbig2dec -lopenjp2
     }
 }
 macx {
-    ## Please configure this according to your poppler installation.
+    ## Please configure this according to your poppler and/or MuPDF installation.
     ## Installation on Mac is untested.
-    #INCLUDEPATH += ...
-    #LIBS += ...
+    #contains(DEFINES, INCLUDE_POPPLER) {
+    #    INCLUDEPATH += /usr/local/opt/poppler/include
+    #    LIBS += -L/usr/local/opt/poppler/lib/ -lpoppler-qt5
+    #}
+    #contains(DEFINES, INCLUDE_MUPDF) {
+    #    INCLUDEPATH += /usr/local/opt/mupdf/include
+    #    LIBS += -L/usr/local/opt/mupdf/lib/ -lmupdf -lmupdf-third -lm -lfreetype -lz -lharfbuzz -ljpeg -ljbig2dec -lopenjp2
+    #}
 }
 win32 {
-    ## Please configure this according to your poppler installation.
-    ## The configuration will probably have the following form:
-    #INCLUDEPATH += C:\...\poppler-0.??.?-win??
-    #LIBS += -LC:\...\poppler-0.??.?-win?? -lpoppler-qt5
+    ## Please configure this according to your poppler and/or MuPDF installation.
+    #contains(DEFINES, INCLUDE_POPPLER) {
+    #    # The configuration will probably have the following form:
+    #    INCLUDEPATH += C:\...\poppler-0.??.?-win??
+    #    LIBS += -LC:\...\poppler-0.??.?-win?? -lpoppler-qt5
+    #}
+    #contains(DEFINES, INCLUDE_MUPDF) {
+    #    INCLUDEPATH += ...
+    #    LIBS += ...
+    #}
 }
 
 unix {

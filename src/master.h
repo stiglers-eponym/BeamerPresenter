@@ -62,6 +62,12 @@ public:
     /// Calculate total cache size (sum up cache sizes from all PixCache objects).
     qint64 getTotalCache() const;
 
+    /// A nagivation event moves preferences().page away from the given page.
+    /// Tell path containers in all documents that history of given page
+    /// should now be limited by preferences().history_length_hidden_slides.
+    /// page is given as (page_number | page_part).
+    void limitHistoryInvisible(const int page) const;
+
 public slots:
     /// Handle key events collected by any other object.
     /// By default all key events are redirected to this and handled here.
@@ -76,10 +82,6 @@ signals:
 
     /// Send out nagivation signal (after updating preferences().page).
     void navigationSignal(const int page) const;
-
-    /// Notify drawing history that for now hidden slides less history steps
-    /// need to be stored.
-    void limitHistoryInvisible(const int page) const;
 };
 
 #endif // MASTER_H
