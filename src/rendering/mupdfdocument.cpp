@@ -100,19 +100,20 @@ bool MuPdfDocument::loadDocument()
     }
 
     // Open the document.
-    // TODO: Is it assume that this pointer stays valid?
-    // Check again with valgrind / gdb
-    const char *name = path.toLatin1().data();
-    fz_try(ctx)
-        doc = fz_open_document(ctx, name);
-    fz_catch(ctx)
     {
-        qWarning() << "MuPdf cannot open document:" << fz_caught_message(ctx);
-        doc = nullptr;
-        fz_drop_context(ctx);
-        ctx =  nullptr;
-        mutex->unlock();
-        return false;
+        const QByteArray &pathdecoded = path.toLatin1();
+        const char *name = pathdecoded.data();
+        fz_try(ctx)
+            doc = fz_open_document(ctx, name);
+        fz_catch(ctx)
+        {
+            qWarning() << "MuPdf cannot open document:" << fz_caught_message(ctx);
+            doc = nullptr;
+            fz_drop_context(ctx);
+            ctx =  nullptr;
+            mutex->unlock();
+            return false;
+        }
     }
 
     // Save the modification time.
@@ -212,7 +213,7 @@ void MuPdfDocument::loadPageLabels()
     // (which MuPDF should finally include!)
     // https://bugs.ghostscript.com/show_bug.cgi?id=695351
 
-    pdf_document *pdf_doc;
+    pdf_document *pdf_doc = nullptr;
     fz_try(ctx)
         pdf_doc = pdf_document_from_fz_document(ctx, doc);
     fz_catch(ctx)
@@ -310,7 +311,7 @@ void MuPdfDocument::prepareRendering(fz_context **context, fz_rect *bbox, fz_dis
     // If it is not, return without changing the given pointers.
     // The caller should note that the pointers are unchaged and handle this
     // appropriately.
-    if (pagenumber < 0 || pagenumber >= number_of_pages)
+    if (pagenumber < 0 || pagenumber >= number_of_pages || resolution <= 0.)
         return;
 
     // This is almost completely copied from a mupdf example.
@@ -380,11 +381,13 @@ const SlideTransition MuPdfDocument::transition(const int page) const
 
 const PdfLink MuPdfDocument::linkAt(const int page, const QPointF &position) const
 {
+    PdfLink result  {NoLink, ""};
+    if (page < 0 || page >= number_of_pages)
+        return result;
     mutex->lock();
     fz_page *doc_page = fz_load_page(ctx, doc, page);
     // TODO: check how this is correctly tidied up!
     fz_link * const clink = fz_load_links(ctx, doc_page);
-    PdfLink result  {NoLink, ""};
     for (fz_link* link = clink; link != nullptr; link = link->next)
     {
         if (link->rect.x0 <= position.x() && link->rect.x1 >= position.x() && link->rect.y0 <= position.y() && link->rect.y1 >= position.y())
@@ -413,6 +416,8 @@ const PdfLink MuPdfDocument::linkAt(const int page, const QPointF &position) con
 
 const VideoAnnotation MuPdfDocument::annotationAt(const int page, const QPointF &position) const
 {
+    if (page < 0 || page >= number_of_pages)
+        return VideoAnnotation();
     mutex->lock();
     pdf_page *pdfpage = pdf_load_page(ctx, pdf_document_from_fz_document(ctx, doc), page);
     for (pdf_annot *annot = pdfpage->annots; annot != nullptr; annot = annot->next)
@@ -476,9 +481,11 @@ const VideoAnnotation MuPdfDocument::annotationAt(const int page, const QPointF 
 
 QList<VideoAnnotation> *MuPdfDocument::annotations(const int page) const
 {
+    QList<VideoAnnotation>* list = nullptr;
+    if (page < 0 || page >= number_of_pages)
+        return list;
     mutex->lock();
     pdf_page *pdfpage = pdf_load_page(ctx, pdf_document_from_fz_document(ctx, doc), page);
-    QList<VideoAnnotation>* list = nullptr;
     for (pdf_annot *annot = pdfpage->annots; annot != nullptr; annot = annot->next)
     {
         if (pdf_annot_type(ctx, annot) == PDF_ANNOT_MOVIE)

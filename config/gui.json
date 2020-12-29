@@ -24,6 +24,16 @@
                         "file" : "presentation",
                         "page part" : "left",
                         "shift" : 0,
+                        "overlays" : "none",
+                        "transitions" : false,
+                        "multimedia" : false,
+                        "cache hash" : 2
+                    },
+                    {
+                        "type" : "slide",
+                        "file" : "presentation",
+                        "page part" : "left",
+                        "shift" : 0,
                         "overlays" : "last",
                         "transitions" : false,
                         "multimedia" : false,
@@ -35,16 +45,6 @@
                         "page part" : "left",
                         "shift" : 1,
                         "overlays" : "first",
-                        "transitions" : false,
-                        "multimedia" : false,
-                        "cache hash" : 2
-                    },
-                    {
-                        "type" : "slide",
-                        "file" : "presentation",
-                        "page part" : "left",
-                        "shift" : 1,
-                        "overlays" : "last",
                         "transitions" : false,
                         "multimedia" : false,
                         "cache hash" : 2

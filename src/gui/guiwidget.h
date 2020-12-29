@@ -5,8 +5,8 @@
 
 /// This whole construction might change in the future.
 /// Abstract class for distinguishing different widget types.
-/// It is not a widget itself! Without casting to the correct type, all child
-/// objects are useless.
+/// Inheriting classes should also inherit from QWidget.
+/// This is not a QWidget itself!
 class GuiWidget
 {
 protected:

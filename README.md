@@ -45,7 +45,7 @@ modular, clean and flexible way.
 * option to add extra space on slide for drawing
 * option to insert extra slide for drawing
 * option to decouple notes on presentation and speaker screen (-> notes only for speaker)
-* use only Qt 6
+* cache only required slides in previews showing specific overlays
 
 
 ## License

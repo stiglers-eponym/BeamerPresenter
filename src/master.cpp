@@ -96,6 +96,9 @@ QPair<QWidget*, GuiWidget*> Master::createWidget(QJsonObject &object, ContainerW
             qWarning() << "Could not understand layout";
             layout = new QHBoxLayout(widget);
         }
+        layout->setSpacing(1);
+        layout->setContentsMargins(0, 0, 0, 0);
+
         const QJsonArray array = object.value("children").toArray();
         for (auto it = array.cbegin(); it != array.cend(); ++it)
         {

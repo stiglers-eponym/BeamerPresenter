@@ -10,7 +10,7 @@ class PixCache;
 
 /// This whole construction might change in the future.
 /// Widget for flexible arangement of child widgets as read from
-/// configuration file.
+/// json configuration file.
 class ContainerWidget : public QWidget, public GuiWidget
 {
     Q_OBJECT
@@ -24,6 +24,10 @@ public:
 
     /// Calculate preferred size based on child widgets.
     const QSizeF preferredSize(QSizeF const& parent_size) const override;
+
+    // TODO: Probably one should use sizeHint.
+    //QSize sizeHint() const override
+    //{return preferredSize(size()).toSize();}
 
     /// Set (maximum) widget width.
     void setWidth(const qreal width) override
