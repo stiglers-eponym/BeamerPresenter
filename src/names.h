@@ -4,13 +4,18 @@
 #include <QString>
 #include <QMap>
 #include <QBoxLayout>
+#include <QTabWidget>
 #include "src/enumerates.h"
 
 /// Convert strings to GuiWidget
 static const QMap<QString, GuiWidget> string_to_widget_type
 {
-    {"container", ContainerWidgetType},
+    {"horizontal", HBoxWidgetType},
+    {"horizontal boxes", HBoxWidgetType},
+    {"vertical", VBoxWidgetType},
+    {"vertical boxes", VBoxWidgetType},
     {"stacked", StackedWidgetType},
+    {"tabbed", TabedWidgetType},
     {"slide", SlideType},
     {"overview", OverviewType},
     {"toc", TOCType},
@@ -45,6 +50,15 @@ static const QMap<QString, QBoxLayout::Direction> string_to_layout_direction
 {
     {"horizontal", QBoxLayout::LeftToRight},
     {"vertical", QBoxLayout::TopToBottom},
+};
+
+static const QMap<QString, QTabWidget::TabPosition> string_to_tab_widget_orientation
+{
+    {"", QTabWidget::North},
+    {"north", QTabWidget::North},
+    {"south", QTabWidget::South},
+    {"east",  QTabWidget::East},
+    {"west",  QTabWidget::West},
 };
 
 #endif // NAMES_H

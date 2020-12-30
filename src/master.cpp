@@ -59,7 +59,7 @@ bool Master::readGuiConfig(const QString &filename)
         // Start recursive creation of widgets.
         QWidget* const widget = createWidget(obj, nullptr);
         if (widget)
-            windows.append(dynamic_cast<QWidget*>(widget));
+            windows.append(widget);
     }
 
     // Return true (success) if at least one window and one document were created.
@@ -80,20 +80,21 @@ QWidget* Master::createWidget(QJsonObject &object, QWidget *parent)
             return nullptr;
         }
     }
-    switch (string_to_widget_type.value(object.value("type").toString().toLower(), GuiWidget::InvalidType))
+    QWidget *widget = nullptr;
+    const GuiWidget type = string_to_widget_type.value(object.value("type").toString().toLower(), GuiWidget::InvalidType);
+    switch (type)
     {
-    case ContainerWidgetType:
+    case VBoxWidgetType:
+    case HBoxWidgetType:
     {
-        ContainerWidget *widget = new ContainerWidget(parent);
-        // TODO: connect
-        const QString layoutString = object.value("layout").toString().toLower();
-        FlexLayout* layout = new FlexLayout(string_to_layout_direction.value(layoutString, QBoxLayout::LeftToRight));
-        layout->setSpacing(1);
+        widget = new ContainerWidget(parent);
+        widget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+        FlexLayout* layout = new FlexLayout(type == VBoxWidgetType ? QBoxLayout::TopToBottom : QBoxLayout::LeftToRight);
         layout->setContentsMargins(0, 0, 0, 0);
 
         // only for testing:
         QPalette palette = widget->palette();
-        palette.setColor(QPalette::Background, Qt::red);
+        palette.setColor(QPalette::Background, type == VBoxWidgetType ? Qt::red : Qt::yellow);
         widget->setPalette(palette);
 
         const QJsonArray array = object.value("children").toArray();
@@ -107,15 +108,69 @@ QWidget* Master::createWidget(QJsonObject &object, QWidget *parent)
             QJsonObject obj = it->toObject();
             // Create child widgets recursively
             QWidget* const newwidget = createWidget(obj, widget);
-            layout->addWidget(dynamic_cast<QWidget*>(newwidget));
+            if (newwidget)
+                layout->addWidget(newwidget);
         }
         widget->setLayout(layout);
-        return widget;
+        break;
     }
     case StackedWidgetType:
+    {
+        StackedWidget *stackwidget = new StackedWidget(parent);
+
+        // only for testing:
+        QPalette palette = stackwidget->palette();
+        palette.setColor(QPalette::Background, Qt::magenta);
+        stackwidget->setPalette(palette);
+
+        const QJsonArray array = object.value("children").toArray();
+        for (auto it = array.cbegin(); it != array.cend(); ++it)
+        {
+            if (it->type() != QJsonValue::Type::Object)
+            {
+                qCritical() << "Ignoring invalid entry in GUI config.";
+                continue;
+            }
+            QJsonObject obj = it->toObject();
+            // Create child widgets recursively
+            QWidget* const newwidget = createWidget(obj, widget);
+            if (newwidget)
+            {
+                stackwidget->addWidget(newwidget);
+                if (!obj.contains("keys"))
+                    qWarning() << "Widget in stack layout without key shortcuts is inaccessible.";
+            }
+        }
+        widget = stackwidget;
         break;
+    }
     case TabedWidgetType:
+    {
+        QTabWidget *tabwidget = new QTabWidget(parent);
+        tabwidget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+        tabwidget->setTabPosition(string_to_tab_widget_orientation.value(object.value("orientation").toString()));
+
+        // only for testing:
+        QPalette palette = tabwidget->palette();
+        palette.setColor(QPalette::Background, Qt::cyan);
+        tabwidget->setPalette(palette);
+
+        const QJsonArray array = object.value("children").toArray();
+        for (auto it = array.cbegin(); it != array.cend(); ++it)
+        {
+            if (it->type() != QJsonValue::Type::Object)
+            {
+                qCritical() << "Ignoring invalid entry in GUI config.";
+                continue;
+            }
+            QJsonObject obj = it->toObject();
+            // Create child widgets recursively
+            QWidget* const newwidget = createWidget(obj, widget);
+            tabwidget->addTab(newwidget, obj.value("title").toString());
+        }
+        widget = tabwidget;
         break;
+    }
     case SlideType:
     {
         // Calculate the shift for scene.
@@ -244,8 +299,7 @@ QWidget* Master::createWidget(QJsonObject &object, QWidget *parent)
         SlideView *slide = new SlideView(scene, pixcache, parent);
         connect(slide, &SlideView::sendKeyEvent, this, &Master::receiveKeyEvent);
         connect(scene, &SlideScene::navigationToViews, slide, &SlideView::pageChanged);
-        // Check layout.
-        return slide;
+        widget = slide;
     }
     case OverviewType:
         break;
@@ -267,10 +321,19 @@ QWidget* Master::createWidget(QJsonObject &object, QWidget *parent)
         break;
     case GuiWidget::InvalidType:
         qCritical() << "Ignoring entry in GUI config with invalid type:" << object.value("type");
-        return nullptr;
     }
-    qWarning() << "Requested GUI type is not implemented yet:" << object.value("type");
-    return nullptr;
+    if (!widget)
+        qWarning() << "Requested GUI type is not implemented (yet):" << object.value("type");
+    // Add keyboard shortcut.
+    else if (object.contains("keys"))
+    {
+        const QKeySequence seq(object.value("keys").toString());
+        if (seq.isEmpty())
+            qWarning() << "Unknown key sequence in config:" << object.value("keys");
+        else
+            shortcuts[seq[0] + seq[1] + seq[2] + seq[3]] = widget;
+    }
+    return widget;
 }
 
 void Master::showAll() const
@@ -284,6 +347,26 @@ void Master::showAll() const
 
 void Master::receiveKeyEvent(const QKeyEvent* event)
 {
+    // Search shortcuts for the given key sequence.
+    {
+        QWidget* widget = shortcuts.value(event->key() | (event->modifiers() & ~Qt::KeypadModifier));
+        qDebug() << "Key action:" << widget << event << (event->key() | (event->modifiers() & ~Qt::KeypadModifier));
+        if (widget)
+        {
+            widget->show();
+            QStackedWidget *stackwidget = dynamic_cast<QStackedWidget*>(widget->parentWidget());
+            qDebug() << widget << stackwidget << widget->parentWidget();
+            if (stackwidget)
+            {
+                QTabWidget *tabwidget = dynamic_cast<QTabWidget*>(stackwidget->parentWidget());
+                if (tabwidget)
+                    tabwidget->setCurrentWidget(widget);
+                else
+                    stackwidget->setCurrentWidget(widget);
+            }
+        }
+    }
+    // Search preferences for the given key sequence.
     const QMultiMap<quint32, Action> &key_actions = preferences().key_actions;
     auto it = key_actions.constFind(event->key() | (event->modifiers() & ~Qt::KeypadModifier));
     while (it != key_actions.cend())

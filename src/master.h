@@ -2,6 +2,7 @@
 #define MASTER_H
 
 #include <QWidget>
+#include <QTabWidget>
 #include <QDebug>
 #include <QJsonObject>
 #include <QJsonArray>
@@ -12,6 +13,7 @@
 #include "src/enumerates.h"
 #include "src/names.h"
 #include "src/gui/flexlayout.h"
+#include "src/gui/stackedwidget.h"
 #include "src/gui/containerwidget.h"
 
 class PdfMaster;
@@ -41,6 +43,9 @@ class Master : public QObject
 
     /// Map file names (urls) to playlist indices.
     QMap<QUrl, int> playlist_map;
+
+    /// Key sequence shortcuts for focusing widgets.
+    QMap<quint32, QWidget*> shortcuts;
 
 public:
     /// Trivial constructor. Doesn't do anything.

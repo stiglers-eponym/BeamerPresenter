@@ -1,12 +1,11 @@
 [
     {
-        "type" : "container",
-        "layout" : "horizontal",
+        "type" : "horizontal",
         "children" : [
             {
                 "type" : "slide",
                 "file" : "presentation",
-                "page part" : "right",
+                "page part" : "left",
                 "shift" : 0,
                 "transitions" : false,
                 "multimedia" : true,
@@ -14,38 +13,52 @@
                 "threads" : 3
             },
             {
-                "type" : "container",
-                "layout" : "vertical",
+                "type" : "tabbed",
                 "children" : [
                     {
-                        "type" : "slide",
-                        "file" : "presentation",
-                        "page part" : "left",
-                        "shift" : 0,
-                        "overlays" : "none",
-                        "transitions" : false,
-                        "multimedia" : false,
-                        "cache hash" : 2
+                        "type" : "vertical",
+                        "title" : "overview",
+                        "keys" : "o",
+                        "children" : [
+                            {
+                                "type" : "slide",
+                                "file" : "presentation",
+                                "page part" : "left",
+                                "keys" : "1",
+                                "shift" : 0,
+                                "overlays" : "none",
+                                "transitions" : false,
+                                "multimedia" : false,
+                                "cache hash" : 2
+                            },
+                            {
+                                "type" : "slide",
+                                "file" : "presentation",
+                                "keys" : "2",
+                                "page part" : "left",
+                                "shift" : 0,
+                                "overlays" : "last",
+                                "transitions" : false,
+                                "multimedia" : false,
+                                "cache hash" : 2
+                            },
+                            {
+                                "type" : "slide",
+                                "file" : "presentation",
+                                "keys" : "3",
+                                "page part" : "left",
+                                "shift" : 1,
+                                "overlays" : "first",
+                                "transitions" : false,
+                                "multimedia" : false,
+                                "cache hash" : 2
+                            }
+                        ]
                     },
                     {
                         "type" : "slide",
-                        "file" : "presentation",
-                        "page part" : "left",
-                        "shift" : 0,
-                        "overlays" : "last",
-                        "transitions" : false,
-                        "multimedia" : false,
-                        "cache hash" : 2
-                    },
-                    {
-                        "type" : "slide",
-                        "file" : "presentation",
-                        "page part" : "left",
-                        "shift" : 1,
-                        "overlays" : "first",
-                        "transitions" : false,
-                        "multimedia" : false,
-                        "cache hash" : 2
+                        "title" : "dummy",
+                        "keys" : "d"
                     }
                 ]
             }

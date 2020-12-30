@@ -284,11 +284,13 @@ int PixCache::limitCacheSize()
         // If the set of cached pages is simply connected, includes the
         // current page, and lies mostly ahead of the current page,
         // then stop rendering to cache.
-        if ((maxNumber < 0 || cache.size() <= maxNumber)
+        if (((maxNumber < 0 || cache.size() <= maxNumber)
                 && (maxMemory < 0 || usedMemory <= maxMemory)
                 && last > preferences().page
                 && last - first <= cache.size()
                 && 2*last + 3*first > 5*preferences().page)
+                // the case cache.size() < 2 would lead to segfaults.
+                || cache.size() < 2)
             return 0;
 
         // If more than 3/4 of the cached slides lie ahead of current page, clean up last.

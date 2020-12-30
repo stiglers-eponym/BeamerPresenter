@@ -17,9 +17,9 @@ public:
     explicit ContainerWidget(QWidget *parent = nullptr) : QWidget(parent)
     {setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);}
 
-    // TODO: Probably one should use sizeHint.
-    QSize sizeHint() const override
-    {return layout()->sizeHint();}
+    // Return sizeHint based on layout.
+    QSize sizeHint() const noexcept override
+    {return layout() ? layout()->sizeHint() : QSize();}
 
     bool hasHeightForWidth() const noexcept override
     {return true;}

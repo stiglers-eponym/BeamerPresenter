@@ -79,9 +79,10 @@ enum BasicTool {
 
 enum GuiWidget {
     InvalidType = 0, // QWidget
-    ContainerWidgetType, // ContainerWidget (QBoxLayout)
-    StackedWidgetType, // StackedWidget (QStackedLayout)
-    TabedWidgetType, // TabedWidget (QTabedLayout)
+    VBoxWidgetType, // ContainerWidget, QBoxLayout
+    HBoxWidgetType, // ContainerWidget, QBoxLayout
+    StackedWidgetType, // StackedWidget
+    TabedWidgetType, // QTabWidget
     SlideType, // SlideView (QGraphicsView)
     OverviewType,
     TOCType,
