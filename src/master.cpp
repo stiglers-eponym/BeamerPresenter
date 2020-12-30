@@ -1,7 +1,6 @@
 #include "src/master.h"
 #include "src/pdfmaster.h"
 #include "src/slidescene.h"
-#include "src/gui/containerwidget.h"
 
 Master::~Master()
 {
@@ -58,7 +57,7 @@ bool Master::readGuiConfig(const QString &filename)
         }
         QJsonObject obj = it->toObject();
         // Start recursive creation of widgets.
-        GuiWidget* const widget = createWidget(obj, nullptr);
+        QWidget* const widget = createWidget(obj, nullptr);
         if (widget)
             windows.append(dynamic_cast<QWidget*>(widget));
     }
@@ -67,7 +66,7 @@ bool Master::readGuiConfig(const QString &filename)
     return !windows.isEmpty() && !documents.isEmpty();
 }
 
-GuiWidget* Master::createWidget(QJsonObject &object, ContainerWidget *parent)
+QWidget* Master::createWidget(QJsonObject &object, QWidget *parent)
 {
     if (!object.contains("type"))
     {
@@ -83,7 +82,7 @@ GuiWidget* Master::createWidget(QJsonObject &object, ContainerWidget *parent)
     }
     switch (string_to_widget_type.value(object.value("type").toString().toLower(), GuiWidget::InvalidType))
     {
-    case GuiWidget::ContainerWidget:
+    case ContainerWidgetType:
     {
         ContainerWidget *widget = new ContainerWidget(parent);
         // TODO: connect
@@ -107,18 +106,17 @@ GuiWidget* Master::createWidget(QJsonObject &object, ContainerWidget *parent)
             }
             QJsonObject obj = it->toObject();
             // Create child widgets recursively
-            GuiWidget* const newwidget = createWidget(obj, widget);
+            QWidget* const newwidget = createWidget(obj, widget);
             layout->addWidget(dynamic_cast<QWidget*>(newwidget));
-            widget->addGuiWidget(newwidget);
         }
         widget->setLayout(layout);
         return widget;
     }
-    case GuiWidget::StackedWidget:
+    case StackedWidgetType:
         break;
-    case GuiWidget::TabedWidget:
+    case TabedWidgetType:
         break;
-    case GuiWidget::Slide:
+    case SlideType:
     {
         // Calculate the shift for scene.
         int shift = object.value("shift").toInt() & ~ShiftOverlays::AnyOverlay;
@@ -249,23 +247,23 @@ GuiWidget* Master::createWidget(QJsonObject &object, ContainerWidget *parent)
         // Check layout.
         return slide;
     }
-    case GuiWidget::Overview:
+    case OverviewType:
         break;
-    case GuiWidget::TOC:
+    case TOCType:
         break;
-    case GuiWidget::Notes:
+    case NotesType:
         break;
-    case GuiWidget::Button:
+    case ButtonType:
         break;
-    case GuiWidget::ToolSelector:
+    case ToolSelectorType:
         break;
-    case GuiWidget::Settings:
+    case SettingsType:
         break;
-    case GuiWidget::Clock:
+    case ClockType:
         break;
-    case GuiWidget::Timer:
+    case TimerType:
         break;
-    case GuiWidget::SlideNumber:
+    case SlideNumberType:
         break;
     case GuiWidget::InvalidType:
         qCritical() << "Ignoring entry in GUI config with invalid type:" << object.value("type");

@@ -5,24 +5,23 @@
 #include <QMap>
 #include <QBoxLayout>
 #include "src/enumerates.h"
-#include "src/gui/guiwidget.h"
 
-/// Convert strings to GuiWidget::WidgetType
-static const QMap<QString, GuiWidget::WidgetType> string_to_widget_type
+/// Convert strings to GuiWidget
+static const QMap<QString, GuiWidget> string_to_widget_type
 {
-    {"container", GuiWidget::ContainerWidget},
-    {"stacked", GuiWidget::StackedWidget},
-    {"slide", GuiWidget::Slide},
-    {"overview", GuiWidget::Overview},
-    {"toc", GuiWidget::TOC},
-    {"table of contents", GuiWidget::TOC},
-    {"notes", GuiWidget::Notes},
-    {"button", GuiWidget::Button},
-    {"tool selector", GuiWidget::ToolSelector},
-    {"settings", GuiWidget::Settings},
-    {"clock", GuiWidget::Clock},
-    {"timer", GuiWidget::Timer},
-    {"slide number", GuiWidget::SlideNumber},
+    {"container", ContainerWidgetType},
+    {"stacked", StackedWidgetType},
+    {"slide", SlideType},
+    {"overview", OverviewType},
+    {"toc", TOCType},
+    {"table of contents", TOCType},
+    {"notes", NotesType},
+    {"button", ButtonType},
+    {"tool selector", ToolSelectorType},
+    {"settings", SettingsType},
+    {"clock", ClockType},
+    {"timer", TimerType},
+    {"slide number", SlideNumberType},
 };
 
 /// Translate strings appearing in config to Actions

@@ -12,10 +12,10 @@
 #include "src/enumerates.h"
 #include "src/names.h"
 #include "src/gui/flexlayout.h"
+#include "src/gui/containerwidget.h"
 
 class PdfMaster;
 class SlideScene;
-class ContainerWidget;
 class PixCache;
 
 /// Manage the program, distributes events to various objects, construct the
@@ -57,7 +57,7 @@ public:
     bool readGuiConfig(const QString& filename);
 
     /// Create widgets recursively.
-    GuiWidget* createWidget(QJsonObject& object, ContainerWidget *parent = nullptr);
+    QWidget* createWidget(QJsonObject& object, QWidget *parent = nullptr);
 
     /// Calculate total cache size (sum up cache sizes from all PixCache objects).
     qint64 getTotalCache() const;

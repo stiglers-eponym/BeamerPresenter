@@ -77,4 +77,21 @@ enum BasicTool {
     Magnifier,
 };
 
+enum GuiWidget {
+    InvalidType = 0, // QWidget
+    ContainerWidgetType, // ContainerWidget (QBoxLayout)
+    StackedWidgetType, // StackedWidget (QStackedLayout)
+    TabedWidgetType, // TabedWidget (QTabedLayout)
+    SlideType, // SlideView (QGraphicsView)
+    OverviewType,
+    TOCType,
+    NotesType,
+    ButtonType,
+    ToolSelectorType,
+    SettingsType,
+    ClockType,
+    TimerType,
+    SlideNumberType,
+};
+
 #endif // ENUMERATES_H

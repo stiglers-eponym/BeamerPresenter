@@ -1,4 +1,4 @@
-#include "flexlayout.h"
+#include "src/gui/flexlayout.h"
 
 FlexLayout::~FlexLayout()
 {

@@ -4,14 +4,13 @@
 #include <QDebug>
 #include <QGraphicsView>
 #include <QResizeEvent>
-#include "src/gui/guiwidget.h"
 
 class PixCache;
 class SlideScene;
 
 /// Slide shown on the screen: a view of SlideScene.
 /// This also draws the background (PDF page) of the slide.
-class SlideView : public QGraphicsView, public GuiWidget
+class SlideView : public QGraphicsView
 {
     Q_OBJECT
 
@@ -24,14 +23,6 @@ class SlideView : public QGraphicsView, public GuiWidget
 public:
     /// Constructor: initialize and connect a lot.
     explicit SlideView(SlideScene *scene, PixCache *cache = nullptr, QWidget *parent = nullptr);
-
-    /// Set (maximum) widget width.
-    void setWidth(const qreal width) override
-    {setMaximumWidth(width);}
-
-    /// Set (maximum) widget height.
-    void setHeight(const qreal height) noexcept override
-    {setMaximumHeight(height);}
 
     /// Preferred height of the layout depends on its width.
     bool hasHeightForWidth() const noexcept override

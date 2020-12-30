@@ -5,8 +5,7 @@
 #include "src/pdfmaster.h"
 
 SlideView::SlideView(SlideScene *scene, PixCache *cache, QWidget *parent) :
-    QGraphicsView(scene, parent),
-    GuiWidget(WidgetType::Slide)
+    QGraphicsView(scene, parent)
 {
     setAttribute(Qt::WA_AcceptTouchEvents);
     setRenderHints(QPainter::Antialiasing | QPainter::TextAntialiasing);
