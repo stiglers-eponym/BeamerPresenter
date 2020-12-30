@@ -66,6 +66,8 @@ public:
     /// Tell path containers in all documents that history of given page
     /// should now be limited by preferences().history_length_hidden_slides.
     /// page is given as (page_number | page_part).
+    /// TODO: currently this also notifies the layout system of changes if
+    /// PDFs with flexible page sizes are used.
     void limitHistoryInvisible(const int page) const;
 
 public slots:

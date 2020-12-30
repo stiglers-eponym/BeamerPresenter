@@ -92,6 +92,7 @@ bool PopplerDocument::loadDocument()
         doc = newdoc;
         delete olddoc;
     }
+    flexible_page_sizes = -1;
 
     populateOverlaySlidesSet();
     return true;
@@ -341,7 +342,7 @@ const SlideTransition PopplerDocument::transition(const int page) const
     return trans;
 }
 
-bool PopplerDocument::flexibelPageSizes() noexcept
+bool PopplerDocument::flexiblePageSizes() noexcept
 {
     if (flexible_page_sizes >= 0 || doc == nullptr)
         return flexible_page_sizes;

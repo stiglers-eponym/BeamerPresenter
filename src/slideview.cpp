@@ -14,6 +14,8 @@ SlideView::SlideView(SlideScene *scene, PixCache *cache, QWidget *parent) :
     setFocusPolicy(Qt::StrongFocus);
     setFrameShape(QFrame::NoFrame);
     setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+    setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     cache->updateFrame(size());
     connect(this, &SlideView::requestPage, cache, &PixCache::requestPage, Qt::QueuedConnection);
     connect(cache, &PixCache::pageReady, this, &SlideView::pageReady, Qt::QueuedConnection);

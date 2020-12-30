@@ -94,7 +94,7 @@ public:
     const SlideTransition transition(const int page) const override;
 
     /// Return true if not all pages in the PDF have the same size.
-    virtual bool flexibelPageSizes() noexcept override;
+    virtual bool flexiblePageSizes() noexcept override;
 };
 
 #endif // POPPLERDOCUMENT_H

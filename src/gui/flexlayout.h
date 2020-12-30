@@ -13,10 +13,10 @@
  */
 class FlexLayout : public QLayout
 {
-    QBoxLayout::Direction direction;
+    Q_OBJECT
 
-protected:
-    bool event(QEvent *event) override;
+    QBoxLayout::Direction direction;
+    QVector<QLayoutItem*> items;
 
 public:
     /// Trivial constructor.
@@ -53,9 +53,6 @@ public:
     {return items.size() > index && index >= 0 ? items.takeAt(index) : nullptr;}
 
     void setGeometry(const QRect &rect) override;
-
-private:
-    QVector<QLayoutItem*> items;
 };
 
 #endif // FLEXLAYOUT_H

@@ -49,15 +49,18 @@ bool MuPdfDocument::loadDocument()
         return false;
     }
 
-    mutex->lock();
     // Check if the file has changed since last (re)load
-    if (doc != nullptr)
+    if (doc)
     {
         if (fileinfo.lastModified() == lastModified)
             return false;
+        mutex->lock();
         fz_drop_document(ctx, doc);
         fz_drop_context(ctx);
+        flexible_page_sizes = -1;
     }
+    else
+        mutex->lock();
 
     // This code is mainly copied from MuPDF example files, see mupdf.com
 
@@ -381,7 +384,7 @@ const SlideTransition MuPdfDocument::transition(const int page) const
 
 const PdfLink MuPdfDocument::linkAt(const int page, const QPointF &position) const
 {
-    PdfLink result  {NoLink, ""};
+    PdfLink result {NoLink, ""};
     if (page < 0 || page >= number_of_pages)
         return result;
     mutex->lock();
@@ -528,7 +531,7 @@ QList<VideoAnnotation> *MuPdfDocument::annotations(const int page) const
     return list;
 }
 
-bool MuPdfDocument::flexibelPageSizes() noexcept
+bool MuPdfDocument::flexiblePageSizes() noexcept
 {
     if (flexible_page_sizes >= 0 || doc == nullptr)
         return flexible_page_sizes;

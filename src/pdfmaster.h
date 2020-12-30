@@ -60,6 +60,10 @@ public:
     const PdfDocument *getDocument() const
     {return document;}
 
+    /// Return true if document contains pages of different size.
+    bool flexiblePageSizes() const noexcept
+    {return document->flexiblePageSizes();}
+
     /// Get container of paths on given page.
     /// page (part) number is given as (page | page_part).
     PathContainer *pathContainer(const int page) const

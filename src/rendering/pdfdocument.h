@@ -170,7 +170,7 @@ public:
     virtual const SlideTransition transition(const int page) const = 0;
 
     /// Return true if not all pages in the PDF have the same size.
-    virtual bool flexibelPageSizes() noexcept = 0;
+    virtual bool flexiblePageSizes() noexcept = 0;
 };
 
 #endif // PDFDOCUMENT_H

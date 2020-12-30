@@ -359,11 +359,25 @@ void Master::receiveKeyEvent(const QKeyEvent* event)
 void Master::limitHistoryInvisible(const int page) const
 {
     PathContainer *container;
+    bool flexible_page_numbers = false;
     for (const auto doc : qAsConst(documents))
     {
         container = doc->pathContainer(page);
         if (container)
             container->clearHistory(preferences().history_length_hidden_slides);
+        if (doc->flexiblePageSizes())
+            flexible_page_numbers = true;
+    }
+    if (flexible_page_numbers)
+    {
+        QLayout *layout;
+        for (const auto window : qAsConst(windows))
+        {
+            window->updateGeometry();
+            layout = window->layout();
+            if (layout)
+                layout->invalidate();
+        }
     }
 }
 

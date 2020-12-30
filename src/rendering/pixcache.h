@@ -104,6 +104,7 @@ public:
     {setMaxMemory(scale * frame.width() * frame.height());}
 
     /// Udate frame and clear cache if necessary.
+    /// TODO: adjust for flexible page sizes.
     void updateFrame(QSizeF const& size);
 
 public slots:
