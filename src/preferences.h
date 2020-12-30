@@ -81,6 +81,7 @@ public:
     /// Map "presentation", "notes", ... to file names.
     /// This is needed to interpret GUI config.
     QMap<QString, QString> file_alias;
+    int number_of_pages = 0;
 
 
     /*********************************/

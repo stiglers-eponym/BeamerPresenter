@@ -27,6 +27,7 @@ static const QMap<QString, GuiWidget> string_to_widget_type
     {"clock", ClockType},
     {"timer", TimerType},
     {"slide number", SlideNumberType},
+    {"slide label", SlideNumberType},
 };
 
 /// Translate strings appearing in config to Actions

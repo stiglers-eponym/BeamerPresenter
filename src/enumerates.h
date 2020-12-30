@@ -93,6 +93,7 @@ enum GuiWidget {
     ClockType,
     TimerType,
     SlideNumberType,
+    SlideLabelType,
 };
 
 #endif // ENUMERATES_H

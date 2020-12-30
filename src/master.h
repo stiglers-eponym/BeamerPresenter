@@ -1,7 +1,6 @@
 #ifndef MASTER_H
 #define MASTER_H
 
-#include <QWidget>
 #include <QTabWidget>
 #include <QDebug>
 #include <QJsonObject>
@@ -13,8 +12,10 @@
 #include "src/enumerates.h"
 #include "src/names.h"
 #include "src/gui/flexlayout.h"
+#include "src/gui/clockwidget.h"
 #include "src/gui/stackedwidget.h"
 #include "src/gui/containerwidget.h"
+#include "src/gui/slidenumberwidget.h"
 
 class PdfMaster;
 class SlideScene;
@@ -82,6 +83,9 @@ public slots:
 
     /// Read memory size restriction from preferences and distribute memory to pixcaches.
     void distributeMemory();
+
+    /// Distribute navigation events.
+    void navigateToPage(const int page);
 
 signals:
     /// Send out action.

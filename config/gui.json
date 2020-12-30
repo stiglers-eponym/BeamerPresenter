@@ -1,78 +1,84 @@
 [
-    {
-        "type" : "horizontal",
-        "children" : [
-            {
-                "type" : "slide",
-                "file" : "presentation",
-                "page part" : "left",
-                "shift" : 0,
-                "transitions" : false,
-                "multimedia" : true,
-                "cache hash" : 1,
-                "threads" : 3
-            },
-            {
-                "type" : "tabbed",
-                "children" : [
-                    {
-                        "type" : "vertical",
-                        "title" : "overview",
-                        "keys" : "o",
-                        "children" : [
-                            {
-                                "type" : "slide",
-                                "file" : "presentation",
-                                "page part" : "left",
-                                "keys" : "1",
-                                "shift" : 0,
-                                "overlays" : "none",
-                                "transitions" : false,
-                                "multimedia" : false,
-                                "cache hash" : 2
-                            },
-                            {
-                                "type" : "slide",
-                                "file" : "presentation",
-                                "keys" : "2",
-                                "page part" : "left",
-                                "shift" : 0,
-                                "overlays" : "last",
-                                "transitions" : false,
-                                "multimedia" : false,
-                                "cache hash" : 2
-                            },
-                            {
-                                "type" : "slide",
-                                "file" : "presentation",
-                                "keys" : "3",
-                                "page part" : "left",
-                                "shift" : 1,
-                                "overlays" : "first",
-                                "transitions" : false,
-                                "multimedia" : false,
-                                "cache hash" : 2
-                            }
-                        ]
-                    },
-                    {
-                        "type" : "slide",
-                        "title" : "dummy",
-                        "keys" : "d"
-                    }
-                ]
-            }
-        ]
-    },
-    {
+  {
+    "type" : "horizontal",
+    "children" : [
+      {
         "type" : "slide",
         "file" : "presentation",
         "page part" : "left",
         "shift" : 0,
-        "transitions" : true,
+        "transitions" : false,
         "multimedia" : true,
-        "threads" : 5,
-        "master" : true,
-        "cache hash" : 0
-    }
+        "cache hash" : 1,
+        "threads" : 3
+      },
+      {
+        "type" : "tabbed",
+        "children" : [
+          {
+            "type" : "vertical",
+            "title" : "overview",
+            "keys" : "o",
+            "children" : [
+              {
+                "type" : "clock"
+              },
+              {
+                "type" : "slide number"
+              },
+              {
+                "type" : "slide",
+                "file" : "presentation",
+                "page part" : "left",
+                "keys" : "1",
+                "shift" : 0,
+                "overlays" : "none",
+                "transitions" : false,
+                "multimedia" : false,
+                "cache hash" : 2
+              },
+              {
+                "type" : "slide",
+                "file" : "presentation",
+                "keys" : "2",
+                "page part" : "left",
+                "shift" : 0,
+                "overlays" : "last",
+                "transitions" : false,
+                "multimedia" : false,
+                "cache hash" : 2
+              },
+              {
+                "type" : "slide",
+                "file" : "presentation",
+                "keys" : "3",
+                "page part" : "left",
+                "shift" : 1,
+                "overlays" : "first",
+                "transitions" : false,
+                "multimedia" : false,
+                "cache hash" : 2
+              }
+            ]
+          },
+          {
+            "type" : "clock",
+            "title" : "dummy",
+            "keys" : "d"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "type" : "slide",
+    "file" : "presentation",
+    "page part" : "left",
+    "shift" : 0,
+    "transitions" : true,
+    "multimedia" : true,
+    "threads" : 5,
+    "master" : true,
+    "cache hash" : 0
+  }
 ]

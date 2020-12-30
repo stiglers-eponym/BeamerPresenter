@@ -218,6 +218,13 @@ QWidget* Master::createWidget(QJsonObject &object, QWidget *parent)
         if (doc == nullptr)
         {
             doc = new PdfMaster(file);
+            if (writable_preferences().number_of_pages && writable_preferences().number_of_pages != doc->numberOfPages())
+            {
+                qWarning() << "Loaded PDF files with different numbers of pages. You should expect errors.";
+                writable_preferences().number_of_pages = std::max(writable_preferences().number_of_pages, doc->numberOfPages());
+            }
+            else
+                writable_preferences().number_of_pages = doc->numberOfPages();
             connect(this, &Master::sendAction, doc, &PdfMaster::receiveAction);
             connect(doc, &PdfMaster::nagivationSignal, this, &Master::navigationSignal);
             connect(this, &Master::navigationSignal, doc, &PdfMaster::distributeNavigationEvents);
@@ -314,10 +321,16 @@ QWidget* Master::createWidget(QJsonObject &object, QWidget *parent)
     case SettingsType:
         break;
     case ClockType:
+        widget = new ClockWidget(parent);
         break;
     case TimerType:
         break;
     case SlideNumberType:
+        widget = new SlideNumberWidget(parent);
+        connect(static_cast<SlideNumberWidget*>(widget), &SlideNumberWidget::navigationSignal, this, &Master::navigateToPage);
+        connect(this, &Master::navigationSignal, static_cast<SlideNumberWidget*>(widget), &SlideNumberWidget::updateText);
+        break;
+    case SlideLabelType:
         break;
     case GuiWidget::InvalidType:
         qCritical() << "Ignoring entry in GUI config with invalid type:" << object.value("type");
@@ -381,43 +394,25 @@ void Master::receiveKeyEvent(const QKeyEvent* event)
         case NoAction:
             break;
         case Update:
-            emit navigationSignal(preferences().page);
+            navigateToPage(preferences().page);
             break;
         case NextPage:
-            if (documents.first()->numberOfPages() > preferences().page + 1)
-            {
-                limitHistoryInvisible(preferences().page | preferences().page_part);
-                ++writable_preferences().page;
-                emit navigationSignal(preferences().page);
-            }
+            navigateToPage(preferences().page + 1);
             break;
         case PreviousPage:
-            if (preferences().page > 0)
-            {
-                limitHistoryInvisible(preferences().page | preferences().page_part);
-                --writable_preferences().page;
-                emit navigationSignal(preferences().page);
-            }
+            navigateToPage(preferences().page - 1);
             break;
         case NextSkippingOverlays:
-            limitHistoryInvisible(preferences().page | preferences().page_part);
-            writable_preferences().page = documents.first()->overlaysShifted(preferences().page, 1 | FirstOverlay);
-            emit navigationSignal(preferences().page);
+            navigateToPage(documents.first()->overlaysShifted(preferences().page, 1 | FirstOverlay));
             break;
         case PreviousSkippingOverlays:
-            limitHistoryInvisible(preferences().page | preferences().page_part);
-            writable_preferences().page = documents.first()->overlaysShifted(preferences().page, -1 & ~FirstOverlay);
-            emit navigationSignal(preferences().page);
+            navigateToPage(documents.first()->overlaysShifted(preferences().page, -1 & ~FirstOverlay));
             break;
         case FirstPage:
-            limitHistoryInvisible(preferences().page | preferences().page_part);
-            writable_preferences().page = 0;
-            emit navigationSignal(0);
+            navigateToPage(0);
             break;
         case LastPage:
-            limitHistoryInvisible(preferences().page | preferences().page_part);
-            writable_preferences().page = documents.first()->numberOfPages() - 1;
-            emit navigationSignal(preferences().page);
+            navigateToPage(preferences().number_of_pages - 1);
             break;
         case Quit:
             for (const auto window : qAsConst(windows))
@@ -480,4 +475,13 @@ qint64 Master::getTotalCache() const
     for (const auto px : qAsConst(caches))
         cache += px->getUsedMemory();
     return cache;
+}
+
+void Master::navigateToPage(const int page)
+{
+    if (page < 0 || page >= preferences().number_of_pages)
+        return;
+    limitHistoryInvisible(preferences().page | preferences().page_part);
+    writable_preferences().page = page;
+    emit navigationSignal(page);
 }
