@@ -23,9 +23,6 @@ public:
     explicit ContainerWidget(ContainerWidget *parent = nullptr) : QWidget(parent), GuiWidget(WidgetType::ContainerWidget)
     {setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);}
 
-    /// Calculate preferred size based on child widgets.
-    const QSizeF preferredSize(QSizeF const& parent_size) const override;
-
     // TODO: Probably one should use sizeHint.
     QSize sizeHint() const override
     {return layout()->sizeHint();}

@@ -72,27 +72,6 @@ void SlideView::keyPressEvent(QKeyEvent *event)
     emit sendKeyEvent(event);
 }
 
-const QSizeF SlideView::preferredSize(const QSizeF &parent_size) const
-{
-    if (preferred_size.isEmpty())
-        return preferred_size;
-    QSizeF boundary = parent_size;
-    if (preferred_size.width() > 0.)
-        boundary.rwidth() *= preferred_size.width();
-    if (preferred_size.height() > 0.)
-        boundary.rheight() *= preferred_size.height();
-    const QSizeF reference = scene()->sceneRect().size();
-    const qreal aspect = reference.width() / reference.height();
-    if (aspect * boundary.height() > boundary.width())
-        // page is wider than available geometry.
-        boundary.setHeight(boundary.width()/aspect);
-    else
-        // page is higher than available geometry.
-        boundary.setWidth(boundary.height()*aspect);
-    qDebug() << parent_size << boundary << this;
-    return boundary;
-}
-
 int SlideView::heightForWidth(int width) const noexcept
 {
     const QRectF &reference = scene()->sceneRect();

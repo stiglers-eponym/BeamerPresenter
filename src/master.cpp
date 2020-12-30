@@ -112,7 +112,6 @@ GuiWidget* Master::createWidget(QJsonObject &object, ContainerWidget *parent)
             widget->addGuiWidget(newwidget);
         }
         widget->setLayout(layout);
-        widget->setPreferredSize(QSizeF(object.value("width").toDouble(1.), object.value("height").toDouble(1.)));
         return widget;
     }
     case GuiWidget::StackedWidget:
@@ -248,7 +247,6 @@ GuiWidget* Master::createWidget(QJsonObject &object, ContainerWidget *parent)
         connect(slide, &SlideView::sendKeyEvent, this, &Master::receiveKeyEvent);
         connect(scene, &SlideScene::navigationToViews, slide, &SlideView::pageChanged);
         // Check layout.
-        slide->setPreferredSize(QSizeF(object.value("width").toDouble(1.), object.value("height").toDouble(1.)));
         return slide;
     }
     case GuiWidget::Overview:

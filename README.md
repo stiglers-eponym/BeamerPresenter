@@ -42,6 +42,7 @@ modular, clean and flexible way.
 * switch between different modes in GUI
 * animations and automatic slide change
 * save and load drawings
+* cache slides even when size of slides varies
 * option to add extra space on slide for drawing
 * option to insert extra slide for drawing
 * option to decouple notes on presentation and speaker screen (-> notes only for speaker)

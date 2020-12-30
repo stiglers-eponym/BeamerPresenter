@@ -25,10 +25,6 @@ public:
     /// Constructor: initialize and connect a lot.
     explicit SlideView(SlideScene *scene, PixCache *cache = nullptr, QWidget *parent = nullptr);
 
-    /// Prefered size of slide view: rectangle with correct aspect ratio
-    /// fitting in parten_size.
-    const QSizeF preferredSize(QSizeF const& parent_size) const override;
-
     /// Set (maximum) widget width.
     void setWidth(const qreal width) override
     {setMaximumWidth(width);}
