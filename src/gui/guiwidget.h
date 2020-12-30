@@ -17,10 +17,11 @@ protected:
 public:
     /// Type of the widget.
     enum WidgetType {
-        InvalidType, // QWidget
-        ContainerWidget, // ContainerWidget
-        StackedWidget,
-        Slide, // SlideView
+        InvalidType = 0, // QWidget
+        ContainerWidget, // ContainerWidget (QBoxLayout)
+        StackedWidget, // StackedWidget (QStackedLayout)
+        TabedWidget, // TabedWidget (QTabedLayout)
+        Slide, // SlideView (QGraphicsView)
         Overview,
         TOC,
         Notes,
@@ -31,6 +32,16 @@ public:
         Timer,
         SlideNumber,
     };
+    enum SizePolicy {
+        /// preferes to have a fixed aspect ratio
+        FixedAspect,
+        FixedHeight,
+        FixedWidth,
+        FixedSize,
+        /// has a minimum size
+        Expanding,
+    };
+
     const WidgetType type;
 
     /// Constructor: only initialize type.
@@ -49,6 +60,8 @@ public:
 
     /// Set (maximum) widget height.
     virtual void setHeight(const qreal height) = 0;
+
+    virtual int heightForWidth(int width) const noexcept = 0;
 };
 
 #endif // GUIWIDGET_H

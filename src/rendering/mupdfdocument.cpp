@@ -527,3 +527,34 @@ QList<VideoAnnotation> *MuPdfDocument::annotations(const int page) const
     mutex->unlock();
     return list;
 }
+
+bool MuPdfDocument::flexibelPageSizes() noexcept
+{
+    if (flexible_page_sizes >= 0 || doc == nullptr)
+        return flexible_page_sizes;
+    flexible_page_sizes = 0;
+    mutex->lock();
+    // Load page.
+    fz_page *doc_page = fz_load_page(ctx, doc, 0);
+    // Get bounding box.
+    const fz_rect ref_bbox = fz_bound_page(ctx, doc_page);
+    fz_rect bbox;
+    // Clean up page.
+    fz_drop_page(ctx, doc_page);
+    for (int page=1; page<number_of_pages; page++)
+    {
+        // Load page.
+        doc_page = fz_load_page(ctx, doc, page);
+        // Get bounding box.
+        bbox = fz_bound_page(ctx, doc_page);
+        // Clean up page.
+        fz_drop_page(ctx, doc_page);
+        if (bbox.x1 != ref_bbox.x1 || bbox.y1 != ref_bbox.y1)
+        {
+            flexible_page_sizes = 1;
+            break;
+        }
+    }
+    mutex->unlock();
+    return flexible_page_sizes;
+}

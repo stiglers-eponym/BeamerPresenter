@@ -3,13 +3,13 @@
 
 #include <QWidget>
 #include <QDebug>
-#include <QBoxLayout>
+#include "src/gui/flexlayout.h"
 #include "src/gui/guiwidget.h"
 
 class PixCache;
 
 /// This whole construction might change in the future.
-/// Widget for flexible arangement of child widgets as read from
+/// Widget for arangement of child widgets in QBoxLayout as read from
 /// json configuration file.
 class ContainerWidget : public QWidget, public GuiWidget
 {
@@ -20,13 +20,15 @@ class ContainerWidget : public QWidget, public GuiWidget
 
 public:
     /// Constructor: initialize QWidget and GuiWidget.
-    explicit ContainerWidget(ContainerWidget *parent = nullptr) : QWidget(parent), GuiWidget(WidgetType::ContainerWidget) {}
+    explicit ContainerWidget(ContainerWidget *parent = nullptr) : QWidget(parent), GuiWidget(WidgetType::ContainerWidget)
+    {setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);}
 
     /// Calculate preferred size based on child widgets.
     const QSizeF preferredSize(QSizeF const& parent_size) const override;
 
     // TODO: Probably one should use sizeHint.
-    //QSize sizeHint() const override
+    QSize sizeHint() const override
+    {return layout()->sizeHint();}
     //{return preferredSize(size()).toSize();}
 
     /// Set (maximum) widget width.
@@ -41,9 +43,15 @@ public:
     void addGuiWidget(GuiWidget* widget)
     {child_widgets.append(widget);}
 
+    bool hasHeightForWidth() const noexcept override
+    {return true;}
+
+    int heightForWidth(int width) const noexcept override;
+
 protected:
     /// Resize the widget.
-    void resizeEvent(QResizeEvent *event) override;
+    //void resizeEvent(QResizeEvent *event) override
+    //{updateGeometry(); QWidget::resizeEvent(event);}
 
 };
 

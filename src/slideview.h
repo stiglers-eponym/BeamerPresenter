@@ -1,6 +1,7 @@
 #ifndef SLIDE_H
 #define SLIDE_H
 
+#include <QDebug>
 #include <QGraphicsView>
 #include <QResizeEvent>
 #include "src/gui/guiwidget.h"
@@ -33,8 +34,19 @@ public:
     {setMaximumWidth(width);}
 
     /// Set (maximum) widget height.
-    void setHeight(const qreal height) override
+    void setHeight(const qreal height) noexcept override
     {setMaximumHeight(height);}
+
+    /// Preferred height of the layout depends on its width.
+    bool hasHeightForWidth() const noexcept override
+    {return true;}
+
+    /// Preferred height at given width based on scene aspect ratio.
+    int heightForWidth(int width) const noexcept override;
+
+    /// Size hint: scene size in points.
+    QSize sizeHint() const noexcept override
+    {return scene()->sceneRect().toAlignedRect().size();}
 
     /// Convert a position in widget coordinate (pixels) to scene coordinates
     /// (points).

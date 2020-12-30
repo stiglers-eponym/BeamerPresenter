@@ -45,6 +45,9 @@ void SlideView::pageChanged(const int page, const QSizeF &pageSize, SlideScene *
 
 void SlideView::drawBackground(QPainter *painter, const QRectF &rect)
 {
+    // only for testing:
+    painter->fillRect(rect, Qt::green);
+
     painter->drawPixmap(scene()->sceneRect(), currentPixmap, currentPixmap.rect());
 }
 
@@ -86,6 +89,12 @@ const QSizeF SlideView::preferredSize(const QSizeF &parent_size) const
         boundary.setWidth(boundary.height()*aspect);
     qDebug() << parent_size << boundary << this;
     return boundary;
+}
+
+int SlideView::heightForWidth(int width) const noexcept
+{
+    const QRectF &reference = scene()->sceneRect();
+    return reference.width() * reference.height() / width;
 }
 
 const QPointF SlideView::mapToScene(const QPointF &pos) const

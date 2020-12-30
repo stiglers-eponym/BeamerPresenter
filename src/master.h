@@ -6,12 +6,12 @@
 #include <QJsonObject>
 #include <QJsonArray>
 #include <QJsonDocument>
-#include <QBoxLayout>
 #include <QKeyEvent>
 #include <QMediaPlaylist>
 #include <QSizePolicy>
 #include "src/enumerates.h"
 #include "src/names.h"
+#include "src/gui/flexlayout.h"
 
 class PdfMaster;
 class SlideScene;
@@ -57,7 +57,7 @@ public:
     bool readGuiConfig(const QString& filename);
 
     /// Create widgets recursively.
-    QPair<QWidget*, GuiWidget*> createWidget(QJsonObject& object, ContainerWidget *parent = nullptr);
+    GuiWidget* createWidget(QJsonObject& object, ContainerWidget *parent = nullptr);
 
     /// Calculate total cache size (sum up cache sizes from all PixCache objects).
     qint64 getTotalCache() const;

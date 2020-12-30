@@ -92,6 +92,9 @@ public:
 
     /// Slide transition when reaching the given page.
     const SlideTransition transition(const int page) const override;
+
+    /// Return true if not all pages in the PDF have the same size.
+    virtual bool flexibelPageSizes() noexcept override;
 };
 
 /// Lock mutex <lock> in vector <user> of mutexes.

@@ -3,14 +3,8 @@
 const QSizeF ContainerWidget::preferredSize(const QSizeF &parent_size) const
 {
     QSizeF boundary = parent_size;
-    if (preferred_size.width() > 0.)
-        boundary.rwidth() *= preferred_size.width();
-    if (preferred_size.height() > 0.)
-        boundary.rheight() *= preferred_size.height();
-    if (layout() == nullptr)
-        return boundary;
-
     qreal requested_width = 0., requested_height = 0.;
+    // TODO: This doesn't make any sense.
     if (layout()->expandingDirections() == Qt::Horizontal)
     {
         for (const auto child : qAsConst(child_widgets))
@@ -39,6 +33,7 @@ const QSizeF ContainerWidget::preferredSize(const QSizeF &parent_size) const
     return boundary;
 }
 
+/*
 void ContainerWidget::resizeEvent(QResizeEvent *event)
 {
     qDebug() << "Resize event" << event << this << layout();
@@ -102,4 +97,25 @@ void ContainerWidget::resizeEvent(QResizeEvent *event)
             }
         }
     }
+}
+*/
+
+int ContainerWidget::heightForWidth(int width) const noexcept
+{
+    int height = 0;
+    switch (static_cast<QBoxLayout*>(layout())->direction())
+    {
+    case QBoxLayout::LeftToRight:
+    case QBoxLayout::RightToLeft:
+        for (const auto child : qAsConst(child_widgets))
+            height = std::max(height, child->heightForWidth(width/child_widgets.size()));
+        break;
+    case QBoxLayout::TopToBottom:
+    case QBoxLayout::BottomToTop:
+        for (const auto child : qAsConst(child_widgets))
+            height += child->heightForWidth(width/child_widgets.size());
+        break;
+    }
+    qDebug() << width << height;
+    return height;
 }

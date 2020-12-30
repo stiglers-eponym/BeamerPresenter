@@ -340,3 +340,20 @@ const SlideTransition PopplerDocument::transition(const int page) const
     delete doc_trans;
     return trans;
 }
+
+bool PopplerDocument::flexibelPageSizes() noexcept
+{
+    if (flexible_page_sizes >= 0 || doc == nullptr)
+        return flexible_page_sizes;
+    const QSizeF ref_size = doc->page(0)->pageSizeF();
+    for (int page=1; page<doc->numPages(); page++)
+    {
+        if (doc->page(page)->pageSizeF() != ref_size)
+        {
+            flexible_page_sizes = 1;
+            return 1;
+        }
+    }
+    flexible_page_sizes = 0;
+    return 0;
+}

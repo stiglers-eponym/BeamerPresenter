@@ -61,6 +61,7 @@ CONFIG(debug, debug|release) {
 
 SOURCES += \
         src/gui/containerwidget.cpp \
+        src/gui/flexlayout.cpp \
         src/main.cpp \
         src/master.cpp \
         src/pdfmaster.cpp \
@@ -78,6 +79,7 @@ SOURCES += \
 HEADERS += \
         src/enumerates.h \
         src/gui/containerwidget.h \
+        src/gui/flexlayout.h \
         src/gui/guiwidget.h \
         src/master.h \
         src/names.h \

@@ -3,6 +3,7 @@
 
 #include <QString>
 #include <QMap>
+#include <QBoxLayout>
 #include "src/enumerates.h"
 #include "src/gui/guiwidget.h"
 
@@ -39,6 +40,12 @@ static const QMap<QString, Action> string_to_action_map
     {"redo", RedoDrawing},
     {"clear", ClearDrawing},
     {"quit", Quit},
+};
+
+static const QMap<QString, QBoxLayout::Direction> string_to_layout_direction
+{
+    {"horizontal", QBoxLayout::LeftToRight},
+    {"vertical", QBoxLayout::TopToBottom},
 };
 
 #endif // NAMES_H

@@ -109,6 +109,9 @@ protected:
     /// Path to the PDF file.
     QString path;
 
+    /// 0 if all pages have equal size, 1 otherwise, -1 if unknown.
+    qint8 flexible_page_sizes = -1;
+
 public:
     /// Backend / PDF engine
     enum PdfBackend {
@@ -165,6 +168,9 @@ public:
 
     /// Slide transition when reaching the given page.
     virtual const SlideTransition transition(const int page) const = 0;
+
+    /// Return true if not all pages in the PDF have the same size.
+    virtual bool flexibelPageSizes() noexcept = 0;
 };
 
 #endif // PDFDOCUMENT_H

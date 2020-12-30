@@ -51,81 +51,79 @@ bool Master::readGuiConfig(const QString &filename)
     const QJsonArray array = doc.array();
     for (auto it = array.cbegin(); it != array.cend(); ++it)
     {
-        if (it->type() != QJsonValue::Type::Object)
+        if (it->type() != QJsonValue::Object)
         {
             qCritical() << "Ignoring invariant entry in GUI config.";
             continue;
         }
         QJsonObject obj = it->toObject();
         // Start recursive creation of widgets.
-        const auto pair = createWidget(obj, nullptr);
-        if (pair.first)
-            windows.append(pair.first);
+        GuiWidget* const widget = createWidget(obj, nullptr);
+        if (widget)
+            windows.append(dynamic_cast<QWidget*>(widget));
     }
 
     // Return true (success) if at least one window and one document were created.
     return !windows.isEmpty() && !documents.isEmpty();
 }
 
-QPair<QWidget*, GuiWidget*> Master::createWidget(QJsonObject &object, ContainerWidget *parent)
+GuiWidget* Master::createWidget(QJsonObject &object, ContainerWidget *parent)
 {
     if (!object.contains("type"))
     {
         if (object.contains("children"))
             object.insert("type", "container");
+        else if (object.contains("file"))
+            object.insert("type", "slide");
         else
         {
-            qCritical() << "Ignoring entry in GUI config without type.";
-            return {nullptr, nullptr};
+            qCritical() << "Ignoring entry in GUI config without type." << object;
+            return nullptr;
         }
     }
-    switch (string_to_widget_type.value(object.value("type").toString(), GuiWidget::InvalidType))
+    switch (string_to_widget_type.value(object.value("type").toString().toLower(), GuiWidget::InvalidType))
     {
     case GuiWidget::ContainerWidget:
     {
         ContainerWidget *widget = new ContainerWidget(parent);
         // TODO: connect
-        const QString layoutString = object.value("layout").toString();
-        QLayout* layout;
-        if (layoutString.isNull() || layoutString == "horizontal")
-            layout = new QHBoxLayout(widget);
-        else if (layoutString == "vertical")
-            layout = new QVBoxLayout(widget);
-        else
-        {
-            qWarning() << "Could not understand layout";
-            layout = new QHBoxLayout(widget);
-        }
+        const QString layoutString = object.value("layout").toString().toLower();
+        FlexLayout* layout = new FlexLayout(string_to_layout_direction.value(layoutString, QBoxLayout::LeftToRight));
         layout->setSpacing(1);
         layout->setContentsMargins(0, 0, 0, 0);
+
+        // only for testing:
+        QPalette palette = widget->palette();
+        palette.setColor(QPalette::Background, Qt::red);
+        widget->setPalette(palette);
 
         const QJsonArray array = object.value("children").toArray();
         for (auto it = array.cbegin(); it != array.cend(); ++it)
         {
             if (it->type() != QJsonValue::Type::Object)
             {
-                qCritical() << "Ignoring invariant entry in GUI config.";
+                qCritical() << "Ignoring invalid entry in GUI config.";
                 continue;
             }
             QJsonObject obj = it->toObject();
             // Create child widgets recursively
-            const auto pair = createWidget(obj, widget);
-            layout->addWidget(pair.first);
-            widget->addGuiWidget(pair.second);
+            GuiWidget* const newwidget = createWidget(obj, widget);
+            layout->addWidget(dynamic_cast<QWidget*>(newwidget));
+            widget->addGuiWidget(newwidget);
         }
         widget->setLayout(layout);
-        const qreal height = object.value("height").toDouble(1.);
-        const qreal width = object.value("width").toDouble(1.);
-        widget->setPreferredSize(QSizeF(width, height));
-        return {widget, widget};
+        widget->setPreferredSize(QSizeF(object.value("width").toDouble(1.), object.value("height").toDouble(1.)));
+        return widget;
     }
     case GuiWidget::StackedWidget:
+        break;
+    case GuiWidget::TabedWidget:
         break;
     case GuiWidget::Slide:
     {
         // Calculate the shift for scene.
         int shift = object.value("shift").toInt() & ~ShiftOverlays::AnyOverlay;
-        const QString overlays = object.value("overlays").toString();
+        const QString overlays = object.value("overlays").toString().toLower();
         if (overlays == "first")
             shift |= ShiftOverlays::FirstOverlay;
         else if (overlays == "last")
@@ -135,13 +133,11 @@ QPair<QWidget*, GuiWidget*> Master::createWidget(QJsonObject &object, ContainerW
         // Usually "file" will be "presentation" or "notes". These are mapped to
         // filenames by this->files.
         QString file = object.value("file").toString();
-        if (file.isNull())
-            file = "presentation";
-        file = preferences().file_alias.value(file, file);
+        file = preferences().file_alias.value(file.isNull() ? "presentation" : file, file);
         if (!QFile::exists(file))
         {
             qCritical() << "Could not load PDF file: Does not exist." << file;
-            return {nullptr, nullptr};
+            return nullptr;
         }
         const QString page_part_str = object.value("page part").toString().toLower();
         PagePart page_part = FullPage;
@@ -252,10 +248,8 @@ QPair<QWidget*, GuiWidget*> Master::createWidget(QJsonObject &object, ContainerW
         connect(slide, &SlideView::sendKeyEvent, this, &Master::receiveKeyEvent);
         connect(scene, &SlideScene::navigationToViews, slide, &SlideView::pageChanged);
         // Check layout.
-        const qreal height = object.value("height").toDouble(1.);
-        const qreal width = object.value("width").toDouble(1.);
-        slide->setPreferredSize(QSizeF(width, height));
-        return {slide, slide};
+        slide->setPreferredSize(QSizeF(object.value("width").toDouble(1.), object.value("height").toDouble(1.)));
+        return slide;
     }
     case GuiWidget::Overview:
         break;
@@ -277,10 +271,10 @@ QPair<QWidget*, GuiWidget*> Master::createWidget(QJsonObject &object, ContainerW
         break;
     case GuiWidget::InvalidType:
         qCritical() << "Ignoring entry in GUI config with invalid type:" << object.value("type");
-        return {nullptr, nullptr};
+        return nullptr;
     }
     qWarning() << "Requested GUI type is not implemented yet:" << object.value("type");
-    return {nullptr, nullptr};
+    return nullptr;
 }
 
 void Master::showAll() const
