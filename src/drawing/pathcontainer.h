@@ -48,7 +48,8 @@ private:
 
     /// Current position in history, measured from history.last().
     /// inHistory == 1 means "one change before the latest version".
-    /// This may never become negative or >=history.length().
+    /// This may never become >=history.length().
+    /// inHistory == -1 indicates that eraser microsteps are being applied.
     int inHistory = 0;
 
     /// Remove all "redo" options.

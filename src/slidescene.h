@@ -101,9 +101,6 @@ protected:
     /// Handle various types of events.
     virtual bool event(QEvent *event) override;
 
-    /// Handle mouse release event. Currently does nothing.
-    virtual void mouseReleaseEvent(QGraphicsSceneMouseEvent *event) override;
-
     /// Stop drawing and convert just drawn path to regular path.
     void stopDrawing();
 

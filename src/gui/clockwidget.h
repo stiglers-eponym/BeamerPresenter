@@ -4,6 +4,7 @@
 #include <QLabel>
 #include <QTimer>
 #include <QTime>
+#include <QDebug>
 #include <QResizeEvent>
 
 class ClockWidget : public QLabel

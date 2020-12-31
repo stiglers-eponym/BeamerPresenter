@@ -48,7 +48,7 @@ QSize FlexLayout::sizeHint() const
 
 void FlexLayout::setGeometry(const QRect &rect)
 {
-    qDebug() << "FlexLayout setGeometry" << rect;
+    //qDebug() << "FlexLayout setGeometry" << rect;
     QLayout::setGeometry(rect);
     QVector<qreal> aspects(items.size());
     QVector<int> minsizes(items.size());

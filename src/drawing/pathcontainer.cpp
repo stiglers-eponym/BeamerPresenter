@@ -12,7 +12,7 @@ PathContainer::~PathContainer()
 bool PathContainer::undo(QGraphicsScene *scene)
 {
     // Check whether a further entry in history exists.
-    if (history.length() - inHistory < 1)
+    if (inHistory < 0 || history.length() - inHistory < 1)
         return false;
 
     // Mark that we moved back in history.
@@ -106,6 +106,9 @@ void PathContainer::truncateHistory()
 
 void PathContainer::clearHistory(int n)
 {
+    if (inHistory < 0)
+        applyMicroStep();
+
     // Negative values of n don't make any sense and are interpreted as 0.
     if (n < 0)
         n = 0;
@@ -137,7 +140,7 @@ void PathContainer::clearPaths()
     for (int i=0; i<paths.length(); i++, ++it)
     {
         step->deletedItems[i] = *it;
-        if ((*it)->scene())
+        if (*it && (*it)->scene())
             (*it)->scene()->removeItem(*it);
     }
     // Add the scene to history.
@@ -169,13 +172,17 @@ void PathContainer::startMicroStep()
     truncateHistory();
     // Create new, empty history step.
     history.append(new DrawHistoryStep());
-    inHistory = 1;
+    inHistory = -1;
 }
 
 void PathContainer::eraserMicroStep(const QPointF &pos, const qreal size)
 {
-    if (inHistory != 1)
+    if (inHistory != -1)
+    {
+        qCritical() << "Tried microstep, but inHistory == " << inHistory;
         return;
+    }
+
     // Iterate over all paths and check whether they intersect with pos.
     QList<QGraphicsItem*>::iterator path_it = paths.begin();
     for (int i=0; path_it != paths.end(); ++path_it, i++)
@@ -281,8 +288,8 @@ void PathContainer::eraserMicroStep(const QPointF &pos, const qreal size)
 
 void PathContainer::applyMicroStep()
 {
-    if (inHistory != 1)
-        return;
+    if (inHistory != -1)
+        qCritical() << "Should apply micro step, but inHistory ==" << inHistory;
 
     // 1. Fix the history step.
     // In eraserMicroStep() only deletions are added to history.last() while

@@ -9,7 +9,7 @@ ToolSelectorWidget::ToolSelectorWidget(QWidget *parent) : QWidget(parent)
 QSize ToolSelectorWidget::sizeHint() const noexcept
 {
     QGridLayout *gridlayout = static_cast<QGridLayout*>(layout());
-    return {gridlayout->columnCount()*30, gridlayout->rowCount()*15};
+    return {gridlayout->columnCount()*30, gridlayout->rowCount()*10};
 }
 
 void ToolSelectorWidget::addActionButton(const int i, const int j, const QString &string)

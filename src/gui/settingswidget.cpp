@@ -22,7 +22,9 @@ SettingsWidget::SettingsWidget(QWidget *parent) :
     // Shortcuts
     {
         QFormLayout *layout = new QFormLayout();
-        layout->addRow(new QLabel("Change shortcuts by clicking on them\nand typing the new shortcut.\nRemove with delete key.", shortcuts));
+        QLabel *explanation_label = new QLabel("Change shortcuts by clicking on them and typing the new shortcut. Remove with delete key.", shortcuts);
+        explanation_label->setWordWrap(true);
+        layout->addRow(explanation_label);
         KeyInputLabel *input_shortcut;
         QMap<Action, QString> action_to_string;
         for (auto it=string_to_action_map.cbegin(); it!=string_to_action_map.cend(); ++it)
