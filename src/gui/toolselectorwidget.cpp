@@ -39,7 +39,7 @@ void ToolSelectorWidget::addToolButton(const int i, const int j, Tool *tool)
         QPalette newpalette = button->palette();
         newpalette.setColor(QPalette::Button, static_cast<DrawTool*>(tool)->color());
         button->setPalette(newpalette);
-        button->setText("higlight");
+        button->setText("highlight");
         break;
     }
     case Eraser:

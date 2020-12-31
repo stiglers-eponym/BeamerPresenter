@@ -73,4 +73,12 @@ static const QMap<QString, QTabWidget::TabPosition> string_to_tab_widget_orienta
     {"west",  QTabWidget::West},
 };
 
+static const QMap<QString, Qt::PenStyle> string_to_pen_style
+{
+    {"solid", Qt::SolidLine},
+    {"dashed", Qt::DashLine},
+    {"dotted", Qt::DotLine},
+    {"dash-dotted", Qt::DashDotLine},
+};
+
 #endif // NAMES_H

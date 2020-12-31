@@ -159,10 +159,9 @@ void SlideScene::tabletMove(const QPointF &pos, const QTabletEvent *event)
             switch (preferences().current_tablet_tool->tool())
             {
             case Pen:
-            case Highlighter:
                 if (currentPath && currentItemCollection)
                 {
-                    auto item = new QGraphicsLineItem(QLineF(currentPath->lastPoint(), pos));
+                    auto item = new FlexGraphicsLineItem(QLineF(currentPath->lastPoint(), pos), currentPath->getTool().compositionMode());
                     QPen pen = currentPath->getTool().pen();
                     pen.setWidthF(pen.widthF() * event->pressure());
                     item->setPen(pen);
@@ -173,6 +172,20 @@ void SlideScene::tabletMove(const QPointF &pos, const QTabletEvent *event)
                     update(item->boundingRect());
                     invalidate(item->boundingRect());
                     static_cast<FullGraphicsPath*>(currentPath)->addPoint(pos, event->pressure());
+                }
+                break;
+            case Highlighter:
+                if (currentPath && currentItemCollection)
+                {
+                    auto item = new FlexGraphicsLineItem(QLineF(currentPath->lastPoint(), pos), currentPath->getTool().compositionMode());
+                    item->setPen(currentPath->getTool().pen());
+                    item->show();
+                    addItem(item);
+                    currentItemCollection->addToGroup(item);
+                    currentItemCollection->show();
+                    update(item->boundingRect());
+                    invalidate(item->boundingRect());
+                    static_cast<BasicGraphicsPath*>(currentPath)->addPoint(pos);
                 }
                 break;
             case Eraser:
@@ -210,11 +223,17 @@ void SlideScene::tabletPress(const QPointF &pos, const QTabletEvent *event)
             switch (preferences().current_tablet_tool->tool())
             {
             case Pen:
-            case Highlighter:
                 currentItemCollection = new QGraphicsItemGroup();
                 addItem(currentItemCollection);
                 currentItemCollection->show();
                 currentPath = new FullGraphicsPath(*static_cast<DrawTool*>(preferences().current_tablet_tool), pos, event->pressure());
+                break;
+            case Highlighter:
+                currentItemCollection = new QGraphicsItemGroup();
+                addItem(currentItemCollection);
+                currentItemCollection->show();
+                currentPath = new BasicGraphicsPath(*static_cast<DrawTool*>(preferences().current_tablet_tool), pos);
+                break;
             case Eraser:
             {
                 auto container = master->pathContainer(page | page_part);

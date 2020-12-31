@@ -86,6 +86,7 @@ SOURCES += \
 
 HEADERS += \
         src/drawing/drawtool.h \
+        src/drawing/flexgraphicslineitem.h \
         src/drawing/tool.h \
         src/enumerates.h \
         src/gui/actionbutton.h \

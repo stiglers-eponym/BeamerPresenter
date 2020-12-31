@@ -53,7 +53,10 @@
                   "buttons" : [
                       ["first", "previous", "next"],
                       ["last", "update", "quit"],
-                      [{"tool":"pen"}, {"tool":"highlighter"}, {"tool":"eraser"}]
+                      [
+                          {"tool":"pen", "color":"red", "style":"dotted"},
+                          {"tool":"highlighter"},
+                          {"tool":"eraser"}]
                   ]
               }
             ]

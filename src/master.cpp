@@ -335,11 +335,22 @@ QWidget* Master::createWidget(QJsonObject &object, QWidget *parent)
                     switch (string_to_tool.value(obj.value("tool").toString()))
                     {
                     case Pen:
-                        tool = new DrawTool(Pen, QPen(Qt::black, 2., Qt::SolidLine, Qt::RoundCap));
+                    {
+                        const QColor color(obj.value("color").toString("black"));
+                        const float size = obj.value("size").toDouble(2.);
+                        const Qt::PenStyle style = string_to_pen_style.value(obj.value("style").toString(), Qt::SolidLine);
+                        tool = new DrawTool(Pen, QPen(color, size, style, Qt::RoundCap));
                         break;
+                    }
                     case Highlighter:
-                        tool = new DrawTool(Highlighter, QPen(Qt::yellow, 10., Qt::SolidLine, Qt::RoundCap));
+                    {
+                        const QColor color(obj.value("color").toString("yellow"));
+                        const float size = obj.value("size").toDouble(20.);
+                        const Qt::PenStyle style = string_to_pen_style.value(obj.value("style").toString(), Qt::SolidLine);
+                        tool = new DrawTool(Highlighter, QPen(color, size, style, Qt::RoundCap));
+                        static_cast<DrawTool*>(tool)->setCompositionMode(QPainter::CompositionMode_Darken);
                         break;
+                    }
                     case Eraser:
                         tool = new Tool(Eraser);
                         break;
