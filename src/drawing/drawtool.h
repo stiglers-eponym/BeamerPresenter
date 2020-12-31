@@ -5,6 +5,8 @@
 #include <QPainter>
 #include "src/drawing/tool.h"
 
+/// Tool used to draw strokes. Container class for pen, opacity and
+/// composition mode.
 class DrawTool : public Tool
 {
 protected:

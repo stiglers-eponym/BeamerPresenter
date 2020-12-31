@@ -77,18 +77,17 @@ void FlexLayout::setGeometry(const QRect &rect)
         if (rect.width() - width > rect.height() * totalwidth)
         {
             // rect is wider than needed.
-            const int margin = (rect.width() - width - rect.height() * totalwidth) / items.size() - .99;
-            width = margin/2;
+            const int margin = (rect.width() - width - rect.height() * totalwidth) / items.size();
             for (int i=0; i<items.size(); i++)
             {
                 if (aspects[i] > 0.)
                 {
-                    items[i]->setGeometry(QRect(width, 0, aspects[i]*rect.height()+1, rect.height()));
+                    items[i]->setGeometry(QRect(width, 0, aspects[i]*rect.height() + margin, rect.height()));
                     width += aspects[i]*rect.height() + 1 + margin;
                 }
                 else
                 {
-                    items[i]->setGeometry(QRect(width, 0, minsizes[i], rect.height()));
+                    items[i]->setGeometry(QRect(width, 0, minsizes[i] + margin, rect.height()));
                     width += minsizes[i] + margin;
                 }
                 //qDebug() << "set geometry:" << items[i]->geometry() << aspects[i] << items[i] << this;
@@ -99,12 +98,11 @@ void FlexLayout::setGeometry(const QRect &rect)
             // rect is higher than needed.
             width = 0;
             const qreal scale = (rect.width() - width) / (rect.height() * totalwidth);
-            const int shift_y = (1. - scale) * rect.height() / 2;
             for (int i=0; i<items.size(); i++)
             {
                 if (aspects[i] > 0.)
                 {
-                    items[i]->setGeometry(QRect(width, shift_y, scale*aspects[i]*rect.height()+.5, scale*rect.height()));
+                    items[i]->setGeometry(QRect(width, 0, scale*aspects[i]*rect.height()+.5, rect.height()));
                     width += scale*aspects[i]*rect.height() + .5;
                 }
                 else
@@ -138,14 +136,13 @@ void FlexLayout::setGeometry(const QRect &rect)
         }
         if (rect.height() - height > rect.width() * totalheight)
         {
-            const int margin = (rect.height() - height - rect.width() * totalheight) / items.size() - .99;
-            height = margin/2;
+            const int margin = (rect.height() - height - rect.width() * totalheight) / items.size();
             // rect is heigher than needed.
             for (int i=0; i<items.size(); i++)
             {
                 if (aspects[i] > 0.)
                 {
-                    items[i]->setGeometry(QRect(0, height, rect.width(), aspects[i]*rect.width()+1));
+                    items[i]->setGeometry(QRect(0, height, rect.width(), aspects[i]*rect.width() + margin));
                     height += aspects[i]*rect.width() + 1 + margin;
                 }
                 else
@@ -161,12 +158,11 @@ void FlexLayout::setGeometry(const QRect &rect)
             // rect is wider than needed.
             height = 0;
             const qreal scale = (rect.height() - height) / (rect.width() * totalheight);
-            const int shift_x = (1-scale)/2 * rect.width();
             for (int i=0; i<items.size(); i++)
             {
                 if (aspects[i] > 0.)
                 {
-                    items[i]->setGeometry(QRect(shift_x, height, scale*rect.width(), scale*aspects[i]*rect.width()+.5));
+                    items[i]->setGeometry(QRect(0, height, rect.width(), scale*aspects[i]*rect.width()+.5));
                     height += scale*aspects[i]*rect.width() + .5;
                 }
                 else
