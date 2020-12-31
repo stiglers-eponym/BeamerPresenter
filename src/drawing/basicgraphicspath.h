@@ -1,9 +1,10 @@
 #ifndef BASICGRAPHICSPATH_H
 #define BASICGRAPHICSPATH_H
 
-#include "src/drawing/abstractgraphicspath.h"
 #include <QPainter>
 #include <QGraphicsScene>
+#include "src/drawing/abstractgraphicspath.h"
+#include "src/drawing/drawtool.h"
 
 /// Fixed width graphics path.
 class BasicGraphicsPath : public AbstractGraphicsPath
@@ -16,7 +17,7 @@ public:
     enum { Type = UserType + 1 };
 
     /// Construct path at given position with default pen.
-    BasicGraphicsPath(const QPointF &pos) noexcept;
+    BasicGraphicsPath(const DrawTool &tool, const QPointF &pos) noexcept;
 
     /// Construct subpath of other BasicGraphicsPath, including nodes first to
     /// last-1 of other.

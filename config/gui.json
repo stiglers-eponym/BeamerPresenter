@@ -49,21 +49,18 @@
                 "cache hash" : 2
               },
               {
-                "type" : "slide",
-                "file" : "presentation",
-                "keys" : "3",
-                "page part" : "left",
-                "shift" : 1,
-                "overlays" : "first",
-                "transitions" : false,
-                "multimedia" : false,
-                "cache hash" : 2
+                  "type" : "tool selector",
+                  "buttons" : [
+                      ["first", "previous", "next"],
+                      ["last", "update", "quit"],
+                      [{"tool":"pen"}, {"tool":"highlighter"}, {"tool":"eraser"}]
+                  ]
               }
             ]
           },
           {
             "type" : "settings",
-            "title" : "dummy",
+            "title" : "settinge",
             "keys" : "d"
           }
         ]

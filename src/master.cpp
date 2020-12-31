@@ -314,10 +314,55 @@ QWidget* Master::createWidget(QJsonObject &object, QWidget *parent)
         break;
     case NotesType:
         break;
-    case ButtonType:
-        break;
     case ToolSelectorType:
+    {
+        ToolSelectorWidget *toolwidget = new ToolSelectorWidget(parent);
+        const QJsonArray full_array = object.value("buttons").toArray();
+        for (int i=0; i<full_array.size(); i++)
+        {
+            const QJsonArray row = full_array[i].toArray();
+            for (int j=0; j<row.size(); j++)
+            {
+                switch (row[j].type())
+                {
+                case QJsonValue::String:
+                    toolwidget->addActionButton(i, j, row[j].toString());
+                    break;
+                case QJsonValue::Object:
+                {
+                    const QJsonObject obj = row[j].toObject();
+                    Tool *tool = nullptr;
+                    switch (string_to_tool.value(obj.value("tool").toString()))
+                    {
+                    case Pen:
+                        tool = new DrawTool(Pen, QPen(Qt::black, 2., Qt::SolidLine, Qt::RoundCap));
+                        break;
+                    case Highlighter:
+                        tool = new DrawTool(Highlighter, QPen(Qt::yellow, 10., Qt::SolidLine, Qt::RoundCap));
+                        break;
+                    case Eraser:
+                        tool = new Tool(Eraser);
+                        break;
+                    default:
+                        break;
+                    }
+                    if (tool)
+                        toolwidget->addToolButton(i, j, tool);
+                    else
+                        qWarning() << "Failed to create tool button" << obj.value("tool") << obj;
+                    break;
+                }
+                default:
+                    break;
+                }
+            }
+        }
+        connect(toolwidget, &ToolSelectorWidget::sendAction, this, &Master::handleAction);
+        connect(toolwidget, &ToolSelectorWidget::sendTool, this, &Master::setTool);
+        connect(toolwidget, &ToolSelectorWidget::sendTabletTool, this, &Master::setTabletTool);
+        widget = toolwidget;
         break;
+    }
     case SettingsType:
         widget = new SettingsWidget(parent);
         break;
@@ -334,7 +379,7 @@ QWidget* Master::createWidget(QJsonObject &object, QWidget *parent)
     case SlideLabelType:
         break;
     case GuiWidget::InvalidType:
-        qCritical() << "Ignoring entry in GUI config with invalid type:" << object.value("type");
+        qWarning() << "Ignoring entry in GUI config with invalid type:" << object.value("type");
     }
     if (!widget)
         qWarning() << "Requested GUI type is not implemented (yet):" << object.value("type");
@@ -389,45 +434,50 @@ void Master::receiveKeyEvent(const QKeyEvent* event)
         qDebug() << "Global key action:" << it.value();
         qDebug() << "Cache:" << getTotalCache();
 #endif
-        switch (it.value())
-        {
-        case InvalidAction:
-        case NoAction:
-            break;
-        case Update:
-            navigateToPage(preferences().page);
-            break;
-        case NextPage:
-            navigateToPage(preferences().page + 1);
-            break;
-        case PreviousPage:
-            navigateToPage(preferences().page - 1);
-            break;
-        case NextSkippingOverlays:
-            navigateToPage(documents.first()->overlaysShifted(preferences().page, 1 | FirstOverlay));
-            break;
-        case PreviousSkippingOverlays:
-            navigateToPage(documents.first()->overlaysShifted(preferences().page, -1 & ~FirstOverlay));
-            break;
-        case FirstPage:
-            navigateToPage(0);
-            break;
-        case LastPage:
-            navigateToPage(preferences().number_of_pages - 1);
-            break;
-        case Quit:
-            for (const auto window : qAsConst(windows))
-                window->close();
-            break;
-        case ReloadFiles:
-            for (const auto doc : qAsConst(documents))
-                doc->loadDocument();
-            break;
-        default:
-            emit sendAction(it.value());
-        }
+        handleAction(it.value());
         if ((++it).key() != static_cast<unsigned int>(event->key()))
             break;
+    }
+}
+
+void Master::handleAction(const Action action)
+{
+    switch (action)
+    {
+    case InvalidAction:
+    case NoAction:
+        break;
+    case Update:
+        navigateToPage(preferences().page);
+        break;
+    case NextPage:
+        navigateToPage(preferences().page + 1);
+        break;
+    case PreviousPage:
+        navigateToPage(preferences().page - 1);
+        break;
+    case NextSkippingOverlays:
+        navigateToPage(documents.first()->overlaysShifted(preferences().page, 1 | FirstOverlay));
+        break;
+    case PreviousSkippingOverlays:
+        navigateToPage(documents.first()->overlaysShifted(preferences().page, -1 & ~FirstOverlay));
+        break;
+    case FirstPage:
+        navigateToPage(0);
+        break;
+    case LastPage:
+        navigateToPage(preferences().number_of_pages - 1);
+        break;
+    case Quit:
+        for (const auto window : qAsConst(windows))
+            window->close();
+        break;
+    case ReloadFiles:
+        for (const auto doc : qAsConst(documents))
+            doc->loadDocument();
+        break;
+    default:
+        emit sendAction(action);
     }
 }
 
@@ -485,4 +535,16 @@ void Master::navigateToPage(const int page)
     limitHistoryInvisible(preferences().page | preferences().page_part);
     writable_preferences().page = page;
     emit navigationSignal(page);
+}
+
+void Master::setTool(Tool *tool) const noexcept
+{
+    qDebug() << "Set tool" << tool->tool();
+    writable_preferences().current_tool = tool;
+}
+
+void Master::setTabletTool(Tool *tool) const noexcept
+{
+    qDebug() << "Set tablet tool" << tool->tool();
+    writable_preferences().current_tablet_tool = tool;
 }

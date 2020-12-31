@@ -1,18 +1,19 @@
 #include "basicgraphicspath.h"
 
-BasicGraphicsPath::BasicGraphicsPath(const QPointF &pos) noexcept
+BasicGraphicsPath::BasicGraphicsPath(const DrawTool &tool, const QPointF &pos) noexcept :
+    AbstractGraphicsPath(tool)
 {
     // Initialize bounding rect.
-    top = pos.y() - pen.widthF();
-    bottom = pos.y() + pen.widthF();
-    left = pos.x() - pen.widthF();
-    right = pos.x() + pen.widthF();
+    top = pos.y() - tool.width();
+    bottom = pos.y() + tool.width();
+    left = pos.x() - tool.width();
+    right = pos.x() + tool.width();
     // Add first data point.
     data.append(pos);
 }
 
 BasicGraphicsPath::BasicGraphicsPath(const BasicGraphicsPath * const other, int first, int last) :
-    AbstractGraphicsPath(other->pen)
+    AbstractGraphicsPath(other->tool)
 {
     // Make sure that first and last are valid.
     if (first < 0)
@@ -44,22 +45,23 @@ BasicGraphicsPath::BasicGraphicsPath(const BasicGraphicsPath * const other, int 
             bottom = data[i].y();
     }
     // Add finite stroke width to bounding rect.
-    left -= pen.widthF();
-    right += pen.widthF();
-    top -= pen.widthF();
-    bottom += pen.widthF();
+    left -= tool.width();
+    right += tool.width();
+    top -= tool.width();
+    bottom += tool.width();
 }
 
 void BasicGraphicsPath::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
 {
     if (data.isEmpty())
         return;
-    //painter->setOpacity(opacity());
+    painter->setOpacity(tool.opacity());
+    painter->setPen(tool.pen());
+    painter->setCompositionMode(tool.compositionMode());
     auto it = data.cbegin();
     while (++it != data.cend())
-    {
         painter->drawLine(*(it-1), *it);
-    }
+
     // Only for debugging
     //painter->setPen(QPen(QBrush(Qt::black), 0.5));
     //painter->drawRect(boundingRect());
@@ -69,24 +71,24 @@ void BasicGraphicsPath::addPoint(const QPointF &point)
 {
     data.append(point);
     bool change = false;
-    if ( point.x() < left + pen.widthF() )
+    if ( point.x() < left + tool.width() )
     {
-        left = point.x() - pen.widthF();
+        left = point.x() - tool.width();
         change = true;
     }
-    else if ( point.x() + pen.widthF() > right )
+    else if ( point.x() + tool.width() > right )
     {
-        right = point.x() + pen.widthF();
+        right = point.x() + tool.width();
         change = true;
     }
-    if ( point.y() < top + pen.widthF() )
+    if ( point.y() < top + tool.width() )
     {
-        top = point.y() - pen.widthF();
+        top = point.y() - tool.width();
         change = true;
     }
-    else if ( point.y() + pen.widthF() > bottom )
+    else if ( point.y() + tool.width() > bottom )
     {
-        bottom = point.y() + pen.widthF();
+        bottom = point.y() + tool.width();
         change = true;
     }
     if (change)

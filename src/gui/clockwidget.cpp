@@ -5,6 +5,7 @@ ClockWidget::ClockWidget(QWidget *parent) :
     timer(new QTimer(this))
 {
     setAlignment(Qt::AlignCenter);
+    setFocusPolicy(Qt::NoFocus);
     timer->setTimerType(Qt::CoarseTimer);
     setFont({"", 16, 2});
     updateTime();

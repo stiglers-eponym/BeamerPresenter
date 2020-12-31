@@ -5,9 +5,11 @@
 #include "src/names.h"
 #include "src/rendering/abstractrenderer.h"
 #include "src/rendering/pdfdocument.h"
+#include "src/drawing/drawtool.h"
 #include <QSettings>
 #include <QCommandLineParser>
 #include <QFileDialog>
+#include <QPen>
 #include <QDebug>
 
 /// Class storing various preferences.
@@ -93,6 +95,10 @@ public:
 
     /// Current page number in reference presentation view.
     int page = 0;
+    /// Tool used for table input device. Not owned by this!
+    Tool *current_tablet_tool = nullptr;
+    /// Tool used for other input device. Not owned by this!
+    Tool *current_tool = nullptr;
 
 
     Preferences();

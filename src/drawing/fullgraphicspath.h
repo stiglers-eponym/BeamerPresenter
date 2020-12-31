@@ -29,7 +29,7 @@ public:
     enum { Type = UserType + 2 };
 
     /// Construct path with given initial node and default pen.
-    FullGraphicsPath(const QPointF &pos, const float pressure);
+    FullGraphicsPath(const DrawTool &tool, const QPointF &pos, const float pressure);
 
     /// Construct subpath of other FullGraphicsPath, including nodes first to
     /// last-1 of other.
@@ -58,6 +58,12 @@ public:
     /// Erase at position pos. Return a list of paths obtained when splitting
     /// this by erasing at pos with given eraser size.
     QList<AbstractGraphicsPath*> splitErase(const QPointF &pos, const qreal size) const override;
+
+    /// Change width in-place.
+    void changeWidth(const float newwidth) noexcept;
+
+    /// Change tool in-place.
+    void changeTool(const DrawTool &newtool) noexcept;
 };
 
 #endif // FULLGRAPHICSPATH_H

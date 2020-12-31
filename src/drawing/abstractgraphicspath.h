@@ -3,6 +3,8 @@
 
 #include <QGraphicsItem>
 #include <QPen>
+#include "src/preferences.h"
+#include "src/drawing/drawtool.h"
 
 /// Coordinates and pen for drawing a path.
 /// Coordinates are given as positions in the PDF page, measured in points
@@ -12,17 +14,14 @@ class AbstractGraphicsPath : public QGraphicsItem
 protected:
     /// Pen for stroking path.
     /// in FullGraphicsPath pen.width will change with each drawn point.
-    QPen pen {QBrush(Qt::red), 1., Qt::SolidLine, Qt::RoundCap};
+    DrawTool tool;
 
     /// Bounding rect coordinates
     qreal top, bottom, left, right;
 
 public:
-    /// Trivial constructor.
-    AbstractGraphicsPath() noexcept {}
-
-    /// Constructor initializing pen.
-    AbstractGraphicsPath(const QPen pen) noexcept : pen(pen) {}
+    /// Constructor: initializing tool.
+    AbstractGraphicsPath(const DrawTool tool) noexcept : tool(tool) {}
 
     /// Bounding rectangle of the drawing (including stroke width).
     QRectF boundingRect() const noexcept override
@@ -37,6 +36,9 @@ public:
     /// Erase at position pos. Return a list of paths obtained when splitting
     /// this by erasing at pos with given eraser size.
     virtual QList<AbstractGraphicsPath*> splitErase(const QPointF &pos, const qreal size) const = 0;
+
+    const DrawTool &getTool() const noexcept
+    {return tool;}
 };
 
 #endif // ABSTRACTGRAPHICSPATH_H

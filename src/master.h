@@ -17,6 +17,8 @@
 #include "src/gui/containerwidget.h"
 #include "src/gui/slidenumberwidget.h"
 #include "src/gui/settingswidget.h"
+#include "src/gui/toolselectorwidget.h"
+#include "src/drawing/drawtool.h"
 
 class PdfMaster;
 class SlideScene;
@@ -87,6 +89,15 @@ public slots:
 
     /// Distribute navigation events.
     void navigateToPage(const int page);
+
+    /// Handle an action, distribute it if necessary.
+    void handleAction(const Action action);
+
+    /// This does not take ownership of tool.
+    void setTool(Tool *tool) const noexcept;
+
+    /// This does not take ownership of tool.
+    void setTabletTool(Tool *tool) const noexcept;
 
 signals:
     /// Send out action.

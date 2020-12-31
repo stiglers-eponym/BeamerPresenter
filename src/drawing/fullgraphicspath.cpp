@@ -1,18 +1,19 @@
 #include "fullgraphicspath.h"
 
-FullGraphicsPath::FullGraphicsPath(const QPointF &pos, const float pressure)
+FullGraphicsPath::FullGraphicsPath(const DrawTool &tool, const QPointF &pos, const float pressure) :
+    AbstractGraphicsPath(tool)
 {
     // Initialize bounding rect.
-    top = pos.y() - pen.widthF();
-    bottom = pos.y() + pen.widthF();
-    left = pos.x() - pen.widthF();
-    right = pos.x() + pen.widthF();
+    top = pos.y() - tool.width();
+    bottom = pos.y() + tool.width();
+    left = pos.x() - tool.width();
+    right = pos.x() + tool.width();
     // Add first data point.
-    data.append({pos, pressure});
+    data.append({pos, tool.width()*pressure});
 }
 
 FullGraphicsPath::FullGraphicsPath(const FullGraphicsPath * const other, int first, int last) :
-    AbstractGraphicsPath(other->pen)
+    AbstractGraphicsPath(other->tool)
 {
     // Make sure that first and last are valid.
     if (first < 0)
@@ -44,10 +45,10 @@ FullGraphicsPath::FullGraphicsPath(const FullGraphicsPath * const other, int fir
             bottom = data[i].point.y();
     }
     // Add finite stroke width to bounding rect.
-    left -= pen.widthF();
-    right += pen.widthF();
-    top -= pen.widthF();
-    bottom += pen.widthF();
+    left -= tool.width();
+    right += tool.width();
+    top -= tool.width();
+    bottom += tool.width();
 }
 
 void FullGraphicsPath::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
@@ -55,6 +56,7 @@ void FullGraphicsPath::paint(QPainter *painter, const QStyleOptionGraphicsItem *
     if (data.isEmpty())
         return;
     //painter->setOpacity(opacity());
+    QPen pen = tool.pen();
     auto it = data.cbegin();
     while (++it != data.cend())
     {
@@ -69,26 +71,26 @@ void FullGraphicsPath::paint(QPainter *painter, const QStyleOptionGraphicsItem *
 
 void FullGraphicsPath::addPoint(const QPointF &point, const float pressure)
 {
-    data.append({point, pressure});
+    data.append({point, tool.width()*pressure});
     bool change = false;
-    if ( point.x() < left + pen.widthF() )
+    if ( point.x() < left + tool.width() )
     {
-        left = point.x() - pen.widthF();
+        left = point.x() - tool.width();
         change = true;
     }
-    else if ( point.x() + pen.widthF() > right )
+    else if ( point.x() + tool.width() > right )
     {
-        right = point.x() + pen.widthF();
+        right = point.x() + tool.width();
         change = true;
     }
-    if ( point.y() < top + pen.widthF() )
+    if ( point.y() < top + tool.width() )
     {
-        top = point.y() - pen.widthF();
+        top = point.y() - tool.width();
         change = true;
     }
-    else if ( point.y() + pen.widthF() > bottom )
+    else if ( point.y() + tool.width() > bottom )
     {
-        bottom = point.y() + pen.widthF();
+        bottom = point.y() + tool.width();
         change = true;
     }
     if (change)
@@ -121,4 +123,27 @@ QList<AbstractGraphicsPath*> FullGraphicsPath::splitErase(const QPointF &pos, co
     if (last > first + 2)
         list.append(new FullGraphicsPath(this, first, last));
     return list;
+}
+
+void FullGraphicsPath::changeWidth(const float newwidth) noexcept
+{
+    const float scale = newwidth / tool.width();
+    auto it = data.begin();
+    while (++it != data.cend())
+        it->pressure *= scale;
+}
+
+void FullGraphicsPath::changeTool(const DrawTool &newtool) noexcept
+{
+    if (newtool.tool() != tool.tool())
+    {
+        qWarning() << "Cannot change tool to different base tool.";
+        return;
+    }
+    const float newwidth = newtool.width();
+    if (newwidth != tool.width())
+        changeWidth(newwidth);
+    tool.setPen(newtool.pen());
+    tool.setOpacity(newtool.opacity());
+    tool.setCompositionMode(newtool.compositionMode());
 }

@@ -46,6 +46,7 @@ modular, clean and flexible way.
 * option to decouple notes on presentation and speaker screen (-> notes only for speaker)
 * cache only required slides in previews showing specific overlays
 * fine-tuned interface, fonts, ...
+* manual, man pages
 
 
 ## License

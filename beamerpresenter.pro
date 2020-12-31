@@ -60,13 +60,16 @@ CONFIG(debug, debug|release) {
 }
 
 SOURCES += \
+        src/gui/actionbutton.cpp \
         src/gui/clockwidget.cpp \
+        src/gui/drawtoolbutton.cpp \
         src/gui/flexlayout.cpp \
         src/gui/keyinputlabel.cpp \
         src/gui/settingswidget.cpp \
         src/gui/slidenumberwidget.cpp \
         src/gui/stackedwidget.cpp \
         src/gui/tabwidget.cpp \
+        src/gui/toolselectorwidget.cpp \
         src/main.cpp \
         src/master.cpp \
         src/pdfmaster.cpp \
@@ -82,15 +85,20 @@ SOURCES += \
         src/slideview.cpp
 
 HEADERS += \
+        src/drawing/drawtool.h \
+        src/drawing/tool.h \
         src/enumerates.h \
+        src/gui/actionbutton.h \
         src/gui/clockwidget.h \
         src/gui/containerwidget.h \
+        src/gui/drawtoolbutton.h \
         src/gui/flexlayout.h \
         src/gui/keyinputlabel.h \
         src/gui/settingswidget.h \
         src/gui/slidenumberwidget.h \
         src/gui/stackedwidget.h \
         src/gui/tabwidget.h \
+        src/gui/toolselectorwidget.h \
         src/master.h \
         src/names.h \
         src/pdfmaster.h \

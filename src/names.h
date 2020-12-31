@@ -21,7 +21,6 @@ static const QMap<QString, GuiWidget> string_to_widget_type
     {"toc", TOCType},
     {"table of contents", TOCType},
     {"notes", NotesType},
-    {"button", ButtonType},
     {"tool selector", ToolSelectorType},
     {"settings", SettingsType},
     {"clock", ClockType},
@@ -45,6 +44,18 @@ static const QMap<QString, Action> string_to_action_map
     {"redo", RedoDrawing},
     {"clear", ClearDrawing},
     {"quit", Quit},
+};
+
+static const QMap<QString, BasicTool> string_to_tool
+{
+    {"no tool", NoTool},
+    {"none", NoTool},
+    {"pen", Pen},
+    {"eraser", Eraser},
+    {"highlighter", Highlighter},
+    {"pointer", Pointer},
+    {"torch", Torch},
+    {"magnifier", Magnifier},
 };
 
 static const QMap<QString, QBoxLayout::Direction> string_to_layout_direction

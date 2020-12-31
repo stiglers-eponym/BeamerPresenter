@@ -67,7 +67,7 @@ enum Action
 
 /// Tools for drawing and highlighting.
 enum BasicTool {
-    InvalidTool,
+    InvalidTool = 0,
     NoTool,
     Pen,
     Eraser,
@@ -87,7 +87,6 @@ enum GuiWidget {
     OverviewType,
     TOCType,
     NotesType,
-    ButtonType,
     ToolSelectorType,
     SettingsType,
     ClockType,

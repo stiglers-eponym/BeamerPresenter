@@ -3,12 +3,14 @@
 SlideNumberWidget::SlideNumberWidget(QWidget *parent) :
     QWidget(parent)
 {
+    setFocusPolicy(Qt::NoFocus);
     QHBoxLayout *layout = new QHBoxLayout(this);
     layout->setMargin(1);
     edit = new QLineEdit("0", this);
     edit->setAlignment(Qt::AlignCenter);
     layout->addWidget(edit);
     total = new QLabel(" / 0", this);
+    total->setFocusPolicy(Qt::NoFocus);
     layout->addWidget(total);
     connect(edit, &QLineEdit::returnPressed, this, &SlideNumberWidget::readText);
 }
