@@ -14,39 +14,38 @@ modular, clean and flexible way.
 
 #### Already implemented
 * render with Poppler or MuPDF
-* cache pages (with limitation of available memory)
-* slides and notes in same PDF, side by side on same page
+* cache pages (with limitation of available memory; doesn't work if pages have different sizes)
+* read slides and notes from the same PDF, side by side on same page
 * navigation links inside document
 * navigation skipping overlays
-* build flexible GUI from config (needs improvement!)
+* build flexible GUI from config (not really stable)
 * draw and erase using tablet input device with variable pressure (wacom)
 * full per-slide history of drawings (with limitation of number of history steps)
+* clock and page number widget
 
 #### To be implemented
+* immediately update slides to fit window size (currently this is only done when changing the slide or manually updating)
 * slide transitions
 * multimedia
 * select drawing tools
 * switch between per-slide and per-overlay drawings
 * drawing using other input devices than tablet stylus
 * highlighting tools: highlighter, pointer, torch, magnifier
-* better, automatically updating GUI (mainly slide geometry)
 * other widgets:
-    * clock
     * timer (with color indicating progress relative to estimate)
-    * page number (and page label, total number of pages)
+    * page label (and max. label)
     * overview (thumbnail slides, including or excluding overlays)
     * table of contents
     * plain text / markdown notes (editable?)
-    * settings (own window, GUI for config files)
-    * help
-* switch between different modes in GUI
+    * settings (GUI for config files, experimental version already available)
 * animations and automatic slide change
-* save and load drawings
+* save and load drawings to xopp-like xml format
 * cache slides even when size of slides varies
 * option to add extra space on slide for drawing
-* option to insert extra slide for drawing
+* option to insert extra slides or extra space below slide for drawing
 * option to decouple notes on presentation and speaker screen (-> notes only for speaker)
 * cache only required slides in previews showing specific overlays
+* fine-tuned interface, fonts, ...
 
 
 ## License

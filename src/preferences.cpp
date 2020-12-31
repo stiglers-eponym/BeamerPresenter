@@ -14,6 +14,7 @@ void Preferences::loadSettings()
 
     // SETTINGS
     gui_config_file = settings.value("gui config", "/etc/beamerpresenter/gui.json").toString();
+    manual_file = settings.value("manual", "/usr/share/doc/beamerpresenter/manual.md").toString();
 
     // DRAWING
     history_length_visible_slides = settings.value("history length visible", 100).toUInt();

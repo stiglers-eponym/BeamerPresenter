@@ -23,7 +23,7 @@ public:
 
     /// Size hint: based on estimated size.
     QSize sizeHint() const noexcept override
-    {return {150,20};}
+    {return {125,20};}
 
     /// Height depends on width through font size.
     bool hasHeightForWidth() const noexcept override

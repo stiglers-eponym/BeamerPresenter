@@ -319,6 +319,7 @@ QWidget* Master::createWidget(QJsonObject &object, QWidget *parent)
     case ToolSelectorType:
         break;
     case SettingsType:
+        widget = new SettingsWidget(parent);
         break;
     case ClockType:
         widget = new ClockWidget(parent);

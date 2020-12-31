@@ -62,6 +62,8 @@ CONFIG(debug, debug|release) {
 SOURCES += \
         src/gui/clockwidget.cpp \
         src/gui/flexlayout.cpp \
+        src/gui/keyinputlabel.cpp \
+        src/gui/settingswidget.cpp \
         src/gui/slidenumberwidget.cpp \
         src/gui/stackedwidget.cpp \
         src/gui/tabwidget.cpp \
@@ -84,6 +86,8 @@ HEADERS += \
         src/gui/clockwidget.h \
         src/gui/containerwidget.h \
         src/gui/flexlayout.h \
+        src/gui/keyinputlabel.h \
+        src/gui/settingswidget.h \
         src/gui/slidenumberwidget.h \
         src/gui/stackedwidget.h \
         src/gui/tabwidget.h \

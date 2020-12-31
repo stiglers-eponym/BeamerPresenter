@@ -8,7 +8,7 @@ SlideNumberWidget::SlideNumberWidget(QWidget *parent) :
     edit = new QLineEdit("0", this);
     edit->setAlignment(Qt::AlignCenter);
     layout->addWidget(edit);
-    total = new QLabel("/ 0", this);
+    total = new QLabel(" / 0", this);
     layout->addWidget(total);
     connect(edit, &QLineEdit::returnPressed, this, &SlideNumberWidget::readText);
 }
@@ -22,7 +22,7 @@ void SlideNumberWidget::resizeEvent(QResizeEvent *event) noexcept
 
 void SlideNumberWidget::updateText(const int page) noexcept
 {
-    total->setText("/ " + QString::number(preferences().number_of_pages));
+    total->setText(" / " + QString::number(preferences().number_of_pages));
     edit->setText(QString::number(page + 1));
 }
 

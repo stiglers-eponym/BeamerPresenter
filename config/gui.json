@@ -62,7 +62,7 @@
             ]
           },
           {
-            "type" : "clock",
+            "type" : "settings",
             "title" : "dummy",
             "keys" : "d"
           }

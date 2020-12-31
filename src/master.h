@@ -16,6 +16,7 @@
 #include "src/gui/stackedwidget.h"
 #include "src/gui/containerwidget.h"
 #include "src/gui/slidenumberwidget.h"
+#include "src/gui/settingswidget.h"
 
 class PdfMaster;
 class SlideScene;

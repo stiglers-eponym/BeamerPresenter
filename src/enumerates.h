@@ -46,7 +46,7 @@ enum LinkType
 /// Actions triggered by keyboard shortcuts or buttons.
 enum Action
 {
-    InvalidAction,
+    InvalidAction = 0,
     NoAction,
     // Nagivation actions
     Update,
