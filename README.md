@@ -25,6 +25,7 @@ modular, clean and flexible way.
 
 #### To be implemented
 * immediately update slides to fit window size (currently this is only done when changing the slide or manually updating)
+* fix layout, avoid recalculating full layout when clock label changes text
 * slide transitions
 * multimedia
 * select drawing tools

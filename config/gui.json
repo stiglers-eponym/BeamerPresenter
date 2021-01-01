@@ -56,7 +56,9 @@
                       [
                           {"tool":"pen", "color":"red"},
                           {"tool":"highlighter"},
-                          {"tool":"eraser"}]
+                          {"tool":"eraser"},
+                          {"tool":"none"}
+                      ]
                   ]
               }
             ]

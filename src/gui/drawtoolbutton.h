@@ -21,8 +21,7 @@ public:
     {delete tool;}
 
 protected:
-    virtual void tabletEvent(QTabletEvent *event) noexcept override;
-    virtual void mouseReleaseEvent(QMouseEvent *event) noexcept override;
+    virtual bool event(QEvent *event) noexcept override;
 
 signals:
     void sendTool(Tool *tool) const;

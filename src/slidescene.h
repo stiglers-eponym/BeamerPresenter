@@ -95,7 +95,7 @@ public:
 
     /// Handle tablet release event, mainly for drawing.
     /// Called from SlideView.
-    void tabletRelease(const QTabletEvent *event);
+    void tabletRelease(const QPointF &pos, const QTabletEvent *event);
 
     /// Receive navigation event from PdfMaster.
     /// The given page already includes the shift.
@@ -108,7 +108,7 @@ public:
     void stepInputEvent(const QPointF &pos, const float pressure = 1.);
 
     /// Finish handling draw and erase events.
-    void stopInputEvent();
+    bool stopInputEvent(const QPointF &pos);
 
 protected:
     /// Handle various types of events.

@@ -106,7 +106,8 @@ enum InputDevice
     TabletEraser = 1 << 4,
     TabletCursor = 1 << 5,
     TabletOther = 1 << 6,
-    PressureSensitiveDevice = TabletPen,
+    TouchInput = 1 << 7,
+    PressureSensitiveDevice = TouchInput | TabletPen | TabletEraser | TabletCursor | TabletOther, // TODO: This is not really checked.
     AnyDevice = 0xffff,
 };
 

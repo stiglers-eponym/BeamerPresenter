@@ -38,7 +38,6 @@ void SlideScene::stopDrawing()
 
 bool SlideScene::event(QEvent* event)
 {
-    // TODO!
     //qDebug() << event;
     switch (event->type())
     {
@@ -50,6 +49,7 @@ bool SlideScene::event(QEvent* event)
             if (tool && (tool->device() & mouse_to_input_device.value(mouseevent->buttons())))
             {
                 startInputEvent(tool, mouseevent->scenePos());
+                event->accept();
                 return true;
             }
         }
@@ -61,6 +61,7 @@ bool SlideScene::event(QEvent* event)
         if (current_tool && (current_tool->device() & mouse_to_input_device.value(mouseevent->buttons())))
         {
             stepInputEvent(mouseevent->scenePos());
+            event->accept();
             return true;
         }
         return false;
@@ -68,26 +69,62 @@ bool SlideScene::event(QEvent* event)
     case QEvent::GraphicsSceneMouseRelease:
     {
         const auto *mouseevent = static_cast<QGraphicsSceneMouseEvent*>(event);
+        stopInputEvent(mouseevent->scenePos());
+        event->accept();
+        return true;
+    }
+    case QEvent::TouchBegin:
+    {
+        const auto touchevent = static_cast<QTouchEvent*>(event);
+        if (touchevent->touchPoints().size() != 1)
+            return false;
         for (const auto tool : preferences().current_tools)
         {
-            if (tool && (tool->device() & mouse_to_input_device.value(mouseevent->button())))
+            if (tool && (tool->device() & TouchInput))
             {
-                stopInputEvent();
+                const QTouchEvent::TouchPoint &point = touchevent->touchPoints().first();
+                startInputEvent(tool, point.scenePos(), point.pressure());
+                event->accept();
                 return true;
             }
         }
         return false;
     }
-    /*
     case QEvent::TouchUpdate:
-    {
-        const auto touchevent = static_cast<QTouchEvent*>(event);
-        qDebug() << touchevent;
+        if (current_tool && (current_tool->device() & TouchInput))
+        {
+            const auto touchevent = static_cast<QTouchEvent*>(event);
+            if (touchevent->touchPoints().size() == 1)
+            {
+                const QTouchEvent::TouchPoint &point = touchevent->touchPoints().first();
+                stepInputEvent(point.scenePos(), point.pressure());
+            }
+            else if (stopInputEvent(QPointF()))
+                master->pathContainer(page | page_part)->undo(this);
+            event->accept();
+            return true;
+        }
         return false;
-    }
-    */
+    case QEvent::TouchCancel:
+        if (current_tool && (current_tool->device() & TouchInput))
+        {
+            if (stopInputEvent(QPointF()))
+                master->pathContainer(page | page_part)->undo(this);
+            event->accept();
+            return true;
+        }
+        return false;
+    case QEvent::TouchEnd:
+        {
+            const auto touchevent = static_cast<QTouchEvent*>(event);
+            if (touchevent->touchPoints().size() == 1)
+                stopInputEvent(touchevent->touchPoints().first().scenePos());
+            else
+                stopInputEvent(QPointF());
+            event->accept();
+            return true;
+        }
     default:
-        event->setAccepted(false);
         return QGraphicsScene::event(event);
     }
 }
@@ -186,16 +223,9 @@ void SlideScene::tabletMove(const QPointF &pos, const QTabletEvent *event)
         stepInputEvent(pos, event->pressure());
 }
 
-void SlideScene::tabletRelease(const QTabletEvent *event)
+void SlideScene::tabletRelease(const QPointF &pos, const QTabletEvent *event)
 {
-    for (const auto tool : preferences().current_tools)
-    {
-        if (tool && (tool->device() & tablet_device_to_input_device.value(event->pointerType())))
-        {
-            stopInputEvent();
-            return;
-        }
-    }
+    stopInputEvent(pos);
 }
 
 void SlideScene::startInputEvent(const Tool *tool, const QPointF &pos, const float pressure)
@@ -281,28 +311,42 @@ void SlideScene::stepInputEvent(const QPointF &pos, const float pressure)
     }
 }
 
-void SlideScene::stopInputEvent()
+bool SlideScene::stopInputEvent(const QPointF &pos)
 {
-    if (!current_tool)
-        return;
-    //qDebug() << "Stop input event" << current_tool->tool() << current_tool->device() << current_tool;
-    stopDrawing();
-    switch (current_tool->tool())
+    if (current_tool)
     {
-    case Pen:
-    case Highlighter:
-        invalidate({sceneRect()});
-        update({sceneRect()});
-        break;
-    case Eraser:
-    {
-        auto container = master->pathContainer(page | page_part);
-        if (container)
-            container->applyMicroStep();
-        break;
+        //qDebug() << "Stop input event" << current_tool->tool() << current_tool->device() << current_tool;
+        const bool changes = currentPath && currentItemCollection;
+        stopDrawing();
+        switch (current_tool->tool())
+        {
+        case Pen:
+        case Highlighter:
+            if (changes)
+            {
+                invalidate({sceneRect()});
+                update({sceneRect()});
+                current_tool = nullptr;
+                return true;
+            }
+            break;
+        case Eraser:
+        {
+            current_tool = nullptr;
+            auto container = master->pathContainer(page | page_part);
+            if (container)
+                return container->applyMicroStep();
+            break;
+        }
+        case NoTool:
+            master->resolveLink(page, pos);
+            break;
+        default:
+            break;
+        }
+        current_tool = nullptr;
+        return false;
     }
-    default:
-        break;
-    }
-    current_tool = nullptr;
+    master->resolveLink(page, pos);
+    return false;
 }

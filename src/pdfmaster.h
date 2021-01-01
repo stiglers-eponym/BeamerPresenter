@@ -91,6 +91,7 @@ public:
 public slots:
     /// Handle the given action.
     void receiveAction(const Action action);
+
     /// Add a new path (or QGraphicsItem) to paths[page].
     /// Page (part) number is given as (page | page_part).
     void receiveNewPath(const int page, QGraphicsItem *item);

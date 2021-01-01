@@ -332,7 +332,8 @@ QWidget* Master::createWidget(QJsonObject &object, QWidget *parent)
                 {
                     const QJsonObject obj = row[j].toObject();
                     Tool *tool = nullptr;
-                    switch (string_to_tool.value(obj.value("tool").toString()))
+                    const BasicTool base_tool = string_to_tool.value(obj.value("tool").toString());
+                    switch (base_tool)
                     {
                     case Pen:
                     {
@@ -351,10 +352,10 @@ QWidget* Master::createWidget(QJsonObject &object, QWidget *parent)
                         static_cast<DrawTool*>(tool)->setCompositionMode(QPainter::CompositionMode_Darken);
                         break;
                     }
-                    case Eraser:
-                        tool = new Tool(Eraser, AnyDevice);
+                    case InvalidTool:
                         break;
                     default:
+                        tool = new Tool(base_tool, AnyDevice);
                         break;
                     }
                     if (tool)

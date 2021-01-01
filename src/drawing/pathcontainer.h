@@ -100,7 +100,8 @@ public:
     /// top-level QGraphicsItems, paths also contains QGraphicsItemGroups of
     /// paths split by erasing. This is all fixed and brought to the usual form
     /// in applyMicroStep().
-    void applyMicroStep();
+    /// Return true if anything has changed.
+    bool applyMicroStep();
 
     /// Single eraser move event. This erasees paths at pos with given eraser
     /// size. Before this function startMicroStep() has to be called and

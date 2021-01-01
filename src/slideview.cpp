@@ -99,25 +99,25 @@ bool SlideView::event(QEvent *event)
     {
         auto tabletevent = static_cast<QTabletEvent*>(event);
         static_cast<SlideScene*>(scene())->tabletPress(mapToScene(tabletevent->posF()), tabletevent);
-        event->setAccepted(true);
+        event->accept();
         return true;
     }
     case QEvent::TabletRelease:
     {
         auto tabletevent = static_cast<QTabletEvent*>(event);
-        static_cast<SlideScene*>(scene())->tabletRelease(tabletevent);
-        event->setAccepted(true);
+        static_cast<SlideScene*>(scene())->tabletRelease(mapToScene(tabletevent->posF()), tabletevent);
+        event->accept();
         return true;
     }
     case QEvent::TabletMove:
     {
         auto tabletevent = static_cast<QTabletEvent*>(event);
         static_cast<SlideScene*>(scene())->tabletMove(mapToScene(tabletevent->posF()), tabletevent);
-        event->setAccepted(true);
+        event->accept();
         return true;
     }
     default:
-        event->setAccepted(false);
+        event->ignore();
         return QGraphicsView::event(event);
     }
 }

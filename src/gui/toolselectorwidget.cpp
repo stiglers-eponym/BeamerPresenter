@@ -46,6 +46,7 @@ void ToolSelectorWidget::addToolButton(const int i, const int j, Tool *tool)
         button->setText("eraser");
         break;
     default:
+        // TODO
         button->setText(QString::number(tool->tool()));
         break;
     }

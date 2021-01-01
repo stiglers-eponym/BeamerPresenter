@@ -286,10 +286,14 @@ void PathContainer::eraserMicroStep(const QPointF &pos, const qreal size)
     }
 }
 
-void PathContainer::applyMicroStep()
+bool PathContainer::applyMicroStep()
 {
     if (inHistory != -1)
+    {
         qCritical() << "Should apply micro step, but inHistory ==" << inHistory;
+        inHistory = 0;
+        return true;
+    }
 
     // 1. Fix the history step.
     // In eraserMicroStep() only deletions are added to history.last() while
@@ -298,6 +302,13 @@ void PathContainer::applyMicroStep()
     // or replaced by a QGraphicsItemGroup* containing new paths.
     // Here we add these new paths to history.last().
     const QMap<int, QGraphicsItem*> &oldItems = history.last()->deletedItems;
+    if (oldItems.isEmpty())
+    {
+        inHistory = 0;
+        history.pop_back();
+        return false;
+    }
+
     int shift = 0;
     for (auto it = oldItems.cbegin(); it != oldItems.cend(); ++it, shift--)
     {
@@ -343,4 +354,5 @@ void PathContainer::applyMicroStep()
     // Limit history size (if necessary).
     if (history.length() > preferences().history_length_visible_slides)
         clearHistory(preferences().history_length_visible_slides);
+    return true;
 }
