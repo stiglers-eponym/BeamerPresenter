@@ -27,7 +27,6 @@ public:
 signals:
     void sendAction(const Action action);
     void sendTool(Tool *tool) const;
-    void sendTabletTool(Tool *tool) const;
 };
 
 #endif // TOOLSELECTORWIDGET_H

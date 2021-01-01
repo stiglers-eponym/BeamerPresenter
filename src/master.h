@@ -93,11 +93,8 @@ public slots:
     /// Handle an action, distribute it if necessary.
     void handleAction(const Action action);
 
-    /// This does not take ownership of tool.
+    /// This takes ownership of tool.
     void setTool(Tool *tool) const noexcept;
-
-    /// This does not take ownership of tool.
-    void setTabletTool(Tool *tool) const noexcept;
 
 signals:
     /// Send out action.

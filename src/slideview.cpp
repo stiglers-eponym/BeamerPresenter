@@ -105,7 +105,7 @@ bool SlideView::event(QEvent *event)
     case QEvent::TabletRelease:
     {
         auto tabletevent = static_cast<QTabletEvent*>(event);
-        static_cast<SlideScene*>(scene())->tabletRelease(mapToScene(tabletevent->posF()), tabletevent);
+        static_cast<SlideScene*>(scene())->tabletRelease(tabletevent);
         event->setAccepted(true);
         return true;
     }

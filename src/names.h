@@ -4,6 +4,7 @@
 #include <QString>
 #include <QMap>
 #include <QBoxLayout>
+#include <QTabletEvent>
 #include <QTabWidget>
 #include "src/enumerates.h"
 
@@ -79,6 +80,21 @@ static const QMap<QString, Qt::PenStyle> string_to_pen_style
     {"dashed", Qt::DashLine},
     {"dotted", Qt::DotLine},
     {"dash-dotted", Qt::DashDotLine},
+};
+
+static const QMap<QTabletEvent::PointerType, InputDevice> tablet_device_to_input_device
+{
+    {QTabletEvent::Pen, TabletPen},
+    {QTabletEvent::Eraser, TabletEraser},
+    {QTabletEvent::Cursor, TabletCursor},
+    {QTabletEvent::UnknownPointer, TabletOther},
+};
+
+static const QMap<Qt::MouseButtons, InputDevice> mouse_to_input_device
+{
+    {Qt::LeftButton, MouseLeftButton},
+    {Qt::RightButton, MouseRightButton},
+    {Qt::MiddleButton, MouseMiddleButton},
 };
 
 #endif // NAMES_H

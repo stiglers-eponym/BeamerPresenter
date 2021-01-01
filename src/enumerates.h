@@ -66,7 +66,8 @@ enum Action
 };
 
 /// Tools for drawing and highlighting.
-enum BasicTool {
+enum BasicTool
+{
     InvalidTool = 0,
     NoTool,
     Pen,
@@ -77,7 +78,8 @@ enum BasicTool {
     Magnifier,
 };
 
-enum GuiWidget {
+enum GuiWidget
+{
     InvalidType = 0, // QWidget
     VBoxWidgetType, // ContainerWidget, QBoxLayout
     HBoxWidgetType, // ContainerWidget, QBoxLayout
@@ -93,6 +95,19 @@ enum GuiWidget {
     TimerType,
     SlideNumberType,
     SlideLabelType,
+};
+
+enum InputDevice
+{
+    MouseLeftButton = 1 << 0,
+    MouseRightButton = 1 << 1,
+    MouseMiddleButton = 1 << 2,
+    TabletPen = 1 << 3,
+    TabletEraser = 1 << 4,
+    TabletCursor = 1 << 5,
+    TabletOther = 1 << 6,
+    PressureSensitiveDevice = TabletPen,
+    AnyDevice = 0xffff,
 };
 
 #endif // ENUMERATES_H

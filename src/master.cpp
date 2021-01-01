@@ -339,7 +339,7 @@ QWidget* Master::createWidget(QJsonObject &object, QWidget *parent)
                         const QColor color(obj.value("color").toString("black"));
                         const float size = obj.value("size").toDouble(2.);
                         const Qt::PenStyle style = string_to_pen_style.value(obj.value("style").toString(), Qt::SolidLine);
-                        tool = new DrawTool(Pen, QPen(color, size, style, Qt::RoundCap));
+                        tool = new DrawTool(Pen, AnyDevice, QPen(color, size, style, Qt::RoundCap));
                         break;
                     }
                     case Highlighter:
@@ -347,12 +347,12 @@ QWidget* Master::createWidget(QJsonObject &object, QWidget *parent)
                         const QColor color(obj.value("color").toString("yellow"));
                         const float size = obj.value("size").toDouble(20.);
                         const Qt::PenStyle style = string_to_pen_style.value(obj.value("style").toString(), Qt::SolidLine);
-                        tool = new DrawTool(Highlighter, QPen(color, size, style, Qt::RoundCap));
+                        tool = new DrawTool(Highlighter, AnyDevice, QPen(color, size, style, Qt::RoundCap));
                         static_cast<DrawTool*>(tool)->setCompositionMode(QPainter::CompositionMode_Darken);
                         break;
                     }
                     case Eraser:
-                        tool = new Tool(Eraser);
+                        tool = new Tool(Eraser, AnyDevice);
                         break;
                     default:
                         break;
@@ -370,7 +370,6 @@ QWidget* Master::createWidget(QJsonObject &object, QWidget *parent)
         }
         connect(toolwidget, &ToolSelectorWidget::sendAction, this, &Master::handleAction);
         connect(toolwidget, &ToolSelectorWidget::sendTool, this, &Master::setTool);
-        connect(toolwidget, &ToolSelectorWidget::sendTabletTool, this, &Master::setTabletTool);
         widget = toolwidget;
         break;
     }
@@ -436,7 +435,7 @@ void Master::receiveKeyEvent(const QKeyEvent* event)
             }
         }
     }
-    // Search preferences for the given key sequence.
+    // Search actions in preferences for the given key sequence.
     const QMultiMap<quint32, Action> &key_actions = preferences().key_actions;
     auto it = key_actions.constFind(event->key() | (event->modifiers() & ~Qt::KeypadModifier));
     while (it != key_actions.cend())
@@ -550,12 +549,28 @@ void Master::navigateToPage(const int page)
 
 void Master::setTool(Tool *tool) const noexcept
 {
-    qDebug() << "Set tool" << tool->tool();
-    writable_preferences().current_tool = tool;
-}
+    qDebug() << "Set tool" << tool->tool() << tool->device();
+    const int device = tool->device();
+    int newdevice;
+    for (auto tool_it = preferences().current_tools.cbegin(); tool_it != preferences().current_tools.cend();)
+    {
+        if ((*tool_it)->device() & device)
+        {
+            newdevice = (*tool_it)->device() & ~device;
+            if (newdevice)
+                (*tool_it++)->setDevice(newdevice);
+            else
+            {
+                delete *tool_it;
+                tool_it = static_cast<QSet<Tool*>::const_iterator>(writable_preferences().current_tools.erase(tool_it));
+            }
+        }
+        else
+            ++tool_it;
+    }
+    writable_preferences().current_tools.insert(tool);
 
-void Master::setTabletTool(Tool *tool) const noexcept
-{
-    qDebug() << "Set tablet tool" << tool->tool();
-    writable_preferences().current_tablet_tool = tool;
+    // debug
+    //for (const auto tool : preferences().current_tools)
+    //    qDebug() << "tool:" << tool->device() << tool->tool() << tool;
 }

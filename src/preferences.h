@@ -77,6 +77,8 @@ public:
         {Qt::Key_PageUp, Action::PreviousPage},
         {Qt::Key_Space, Action::Update},
     };
+    /// Map key combinations to tools.
+    QMap<quint32, Tool*> key_tools;
 
 
     /****************************/
@@ -95,13 +97,17 @@ public:
 
     /// Current page number in reference presentation view.
     int page = 0;
-    /// Tool used for table input device. Not owned by this!
-    Tool *current_tablet_tool = nullptr;
-    /// Tool used for other input device. Not owned by this!
-    Tool *current_tool = nullptr;
+    /// Tool used for other input device, owned by this.
+    /// The keys are taken from InputDevice.
+    QSet<Tool*> current_tools
+    {
+        new Tool(Eraser, TabletEraser),
+        new Tool(Eraser, MouseRightButton),
+    };
 
 
     Preferences();
+    ~Preferences();
     void loadSettings();
     void loadFromParser(const QCommandLineParser &parser);
 };

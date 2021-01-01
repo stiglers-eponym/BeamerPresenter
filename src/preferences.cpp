@@ -5,6 +5,12 @@ Preferences::Preferences() :
 {
 }
 
+Preferences::~Preferences()
+{
+    qDeleteAll(current_tools);
+    current_tools.clear();
+}
+
 void Preferences::loadSettings()
 {
 #ifdef DEBUG_READ_CONFIGS

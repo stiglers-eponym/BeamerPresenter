@@ -3,8 +3,11 @@
 
 #include <QPushButton>
 #include <QEvent>
+#include <QTabletEvent>
+#include <QMouseEvent>
 #include <QDebug>
 #include "src/drawing/drawtool.h"
+#include "src/names.h"
 
 class DrawToolButton : public QPushButton
 {
@@ -12,17 +15,16 @@ class DrawToolButton : public QPushButton
     Tool *tool;
 
 public:
-    explicit DrawToolButton(Tool *tool, QWidget *parent = nullptr) noexcept :
-        QPushButton(parent), tool(tool) {setFocusPolicy(Qt::NoFocus);}
+    explicit DrawToolButton(Tool *tool, QWidget *parent = nullptr) noexcept;
 
-    ~DrawToolButton()
+    virtual ~DrawToolButton()
     {delete tool;}
 
 protected:
-    virtual bool event(QEvent *event) noexcept override;
+    virtual void tabletEvent(QTabletEvent *event) noexcept override;
+    virtual void mouseReleaseEvent(QMouseEvent *event) noexcept override;
 
 signals:
-    void sendTabletTool(Tool *tool) const;
     void sendTool(Tool *tool) const;
 };
 

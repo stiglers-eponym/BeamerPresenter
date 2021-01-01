@@ -45,133 +45,47 @@ bool SlideScene::event(QEvent* event)
     case QEvent::GraphicsSceneMousePress:
     {
         const auto *mouseevent = static_cast<QGraphicsSceneMouseEvent*>(event);
-        if (mouseevent->buttons() == Qt::LeftButton && preferences().current_tool)
+        for (const auto tool : preferences().current_tools)
         {
-            stopDrawing();
-            switch (preferences().current_tool->tool())
+            if (tool && (tool->device() & mouse_to_input_device.value(mouseevent->buttons())))
             {
-            case Pen:
-            case Highlighter:
-                if (currentItemCollection || currentPath)
-                    return false;
-                currentItemCollection = new QGraphicsItemGroup();
-                addItem(currentItemCollection);
-                currentPath = new BasicGraphicsPath(*static_cast<DrawTool*>(preferences().current_tool), mouseevent->scenePos());
-                addItem(currentPath);
-                currentPath->hide();
-                currentItemCollection->show();
-                return true;
-            case Eraser:
-            {
-                auto container = master->pathContainer(page | page_part);
-                if (container)
-                    container->startMicroStep();
+                startInputEvent(tool, mouseevent->scenePos());
                 return true;
             }
-            default:
-                return false;
-            }
         }
-        else if (mouseevent->buttons() == Qt::RightButton)
-        {
-            auto container = master->pathContainer(page | page_part);
-            if (container)
-                container->startMicroStep();
-            return true;
-        }
-        else
-            return false;
-    }
-    case QEvent::GraphicsSceneMouseRelease:
-    {
-        stopDrawing();
-        const auto *mouseevent = static_cast<QGraphicsSceneMouseEvent*>(event);
-        if (mouseevent->button() == Qt::LeftButton)
-        {
-            switch (preferences().current_tool ? preferences().current_tool->tool() : NoTool)
-            {
-            case Pen:
-            case Highlighter:
-                if (currentPath)
-                {
-                    invalidate({sceneRect()});
-                    update({sceneRect()});
-                    return true;
-                }
-                return false;
-            case Eraser:
-            {
-                auto container = master->pathContainer(page | page_part);
-                if (container)
-                    container->applyMicroStep();
-                return true;
-            }
-            case NoTool:
-            case InvalidTool:
-                master->resolveLink(page, mouseevent->scenePos());
-                return true;
-            default:
-                return false;
-            }
-        }
-        else if (mouseevent->button() == Qt::RightButton)
-        {
-            auto container = master->pathContainer(page | page_part);
-            if (container)
-                container->applyMicroStep();
-            return true;
-        }
-        else
-            return false;
-    }
-    case QEvent::TouchUpdate:
-    {
-        const auto touchevent = static_cast<QTouchEvent*>(event);
         return false;
     }
     case QEvent::GraphicsSceneMouseMove:
     {
         const auto *mouseevent = static_cast<QGraphicsSceneMouseEvent*>(event);
-        if (mouseevent->buttons() == Qt::LeftButton && preferences().current_tool)
+        if (current_tool && (current_tool->device() & mouse_to_input_device.value(mouseevent->buttons())))
         {
-            switch (preferences().current_tool->tool())
-            {
-            case Pen:
-            case Highlighter:
-                if (currentPath && currentItemCollection)
-                {
-                    auto item = new FlexGraphicsLineItem(QLineF(currentPath->lastPoint(), mouseevent->scenePos()), currentPath->getTool().compositionMode());
-                    static_cast<BasicGraphicsPath*>(currentPath)->addPoint(mouseevent->scenePos());
-                    item->setPen(currentPath->getTool().pen());
-                    item->show();
-                    addItem(item);
-                    currentItemCollection->addToGroup(item);
-                    currentItemCollection->show();
-                    update(item->boundingRect());
-                    invalidate(item->boundingRect());
-                }
-                return true;
-            case Eraser:
-            {
-                auto container = master->pathContainer(page | page_part);
-                if (container)
-                    container->eraserMicroStep(mouseevent->scenePos());
-                return true;
-            }
-            default:
-                return false;
-            }
-        }
-        else if (mouseevent->buttons() == Qt::RightButton)
-        {
-            auto container = master->pathContainer(page | page_part);
-            if (container)
-                container->eraserMicroStep(mouseevent->scenePos());
+            stepInputEvent(mouseevent->scenePos());
             return true;
         }
-        else
-            return false;
+        return false;
     }
+    case QEvent::GraphicsSceneMouseRelease:
+    {
+        const auto *mouseevent = static_cast<QGraphicsSceneMouseEvent*>(event);
+        for (const auto tool : preferences().current_tools)
+        {
+            if (tool && (tool->device() & mouse_to_input_device.value(mouseevent->button())))
+            {
+                stopInputEvent();
+                return true;
+            }
+        }
+        return false;
+    }
+    /*
+    case QEvent::TouchUpdate:
+    {
+        const auto touchevent = static_cast<QTouchEvent*>(event);
+        qDebug() << touchevent;
+        return false;
+    }
+    */
     default:
         event->setAccepted(false);
         return QGraphicsScene::event(event);
@@ -254,116 +168,62 @@ void SlideScene::startTransition(const int newpage, const SlideTransition &trans
     invalidate();
 }
 
-void SlideScene::tabletMove(const QPointF &pos, const QTabletEvent *event)
+void SlideScene::tabletPress(const QPointF &pos, const QTabletEvent *event)
 {
-    if (event->pressure() <= 0)
-        return;
-    switch (event->pointerType())
+    for (const auto tool : preferences().current_tools)
     {
-    case QTabletEvent::Pen:
-        if (preferences().current_tablet_tool)
+        if (tool && (tool->device() & tablet_device_to_input_device.value(event->pointerType())))
         {
-            switch (preferences().current_tablet_tool->tool())
-            {
-            case Pen:
-                if (currentPath && currentItemCollection)
-                {
-                    auto item = new FlexGraphicsLineItem(QLineF(currentPath->lastPoint(), pos), currentPath->getTool().compositionMode());
-                    static_cast<FullGraphicsPath*>(currentPath)->addPoint(pos, event->pressure());
-                    QPen pen = currentPath->getTool().pen();
-                    pen.setWidthF(pen.widthF() * event->pressure());
-                    item->setPen(pen);
-                    item->show();
-                    addItem(item);
-                    currentItemCollection->addToGroup(item);
-                    currentItemCollection->show();
-                    update(item->boundingRect());
-                    invalidate(item->boundingRect());
-                }
-                break;
-            case Highlighter:
-                if (currentPath && currentItemCollection)
-                {
-                    auto item = new FlexGraphicsLineItem(QLineF(currentPath->lastPoint(), pos), currentPath->getTool().compositionMode());
-                    static_cast<BasicGraphicsPath*>(currentPath)->addPoint(pos);
-                    item->setPen(currentPath->getTool().pen());
-                    item->show();
-                    addItem(item);
-                    currentItemCollection->addToGroup(item);
-                    currentItemCollection->show();
-                    update(item->boundingRect());
-                    invalidate(item->boundingRect());
-                }
-                break;
-            case Eraser:
-            {
-                auto container = master->pathContainer(page | page_part);
-                if (container)
-                    container->eraserMicroStep(pos);
-                break;
-            }
-            default:
-                break;
-            }
+            startInputEvent(tool, pos, event->pressure());
+            return;
         }
-        break;
-    case QTabletEvent::Eraser:
-    {
-        auto container = master->pathContainer(page | page_part);
-        if (container)
-            container->eraserMicroStep(pos);
-        break;
-    }
-    default:
-        break;
     }
 }
 
-void SlideScene::tabletPress(const QPointF &pos, const QTabletEvent *event)
+void SlideScene::tabletMove(const QPointF &pos, const QTabletEvent *event)
 {
-    stopDrawing();
-    switch (event->pointerType())
+    if (current_tool && event->pressure() > 0 && (current_tool->device() & tablet_device_to_input_device.value(event->pointerType())))
+        stepInputEvent(pos, event->pressure());
+}
+
+void SlideScene::tabletRelease(const QTabletEvent *event)
+{
+    for (const auto tool : preferences().current_tools)
     {
-    case QTabletEvent::Pen:
-    {
-        if (preferences().current_tablet_tool)
+        if (tool && (tool->device() & tablet_device_to_input_device.value(event->pointerType())))
         {
-            switch (preferences().current_tablet_tool->tool())
-            {
-            case Pen:
-                if (currentItemCollection || currentPath)
-                    break;
-                currentItemCollection = new QGraphicsItemGroup();
-                addItem(currentItemCollection);
-                currentItemCollection->show();
-                currentPath = new FullGraphicsPath(*static_cast<DrawTool*>(preferences().current_tablet_tool), pos, event->pressure());
-                addItem(currentPath);
-                currentPath->hide();
-                break;
-            case Highlighter:
-                if (currentItemCollection || currentPath)
-                    break;
-                currentItemCollection = new QGraphicsItemGroup();
-                addItem(currentItemCollection);
-                currentItemCollection->show();
-                currentPath = new BasicGraphicsPath(*static_cast<DrawTool*>(preferences().current_tablet_tool), pos);
-                addItem(currentPath);
-                currentPath->hide();
-                break;
-            case Eraser:
-            {
-                auto container = master->pathContainer(page | page_part);
-                if (container)
-                    container->startMicroStep();
-                break;
-            }
-            default:
-                break;
-            }
+            stopInputEvent();
+            return;
         }
-        break;
     }
-    case QTabletEvent::Eraser:
+}
+
+void SlideScene::startInputEvent(const Tool *tool, const QPointF &pos, const float pressure)
+{
+    if (!tool)
+        return;
+    //qDebug() << "Start input event" << tool->tool() << tool->device() << tool << pressure;
+    stopDrawing();
+    if (current_tool)
+        qWarning() << "Start drawing, but last drawing event was not properly completed.";
+    current_tool = tool;
+    switch (tool->tool())
+    {
+    case Pen:
+    case Highlighter:
+        if (currentItemCollection || currentPath)
+            break;
+        currentItemCollection = new QGraphicsItemGroup();
+        addItem(currentItemCollection);
+        currentItemCollection->show();
+        if (tool->tool() == Pen && (tool->device() & PressureSensitiveDevice))
+            currentPath = new FullGraphicsPath(*static_cast<const DrawTool*>(tool), pos, pressure);
+        else
+            currentPath = new BasicGraphicsPath(*static_cast<const DrawTool*>(tool), pos);
+        addItem(currentPath);
+        currentPath->hide();
+        break;
+    case Eraser:
     {
         auto container = master->pathContainer(page | page_part);
         if (container)
@@ -375,34 +235,66 @@ void SlideScene::tabletPress(const QPointF &pos, const QTabletEvent *event)
     }
 }
 
-void SlideScene::tabletRelease(const QPointF &pos, const QTabletEvent *event)
+void SlideScene::stepInputEvent(const QPointF &pos, const float pressure)
 {
-    stopDrawing();
-    switch (event->pointerType())
+    if (pressure <= 0 || !current_tool)
+        return;
+    //qDebug() << "Step input event" << current_tool->tool() << current_tool->device() << current_tool << pressure;
+    switch (current_tool->tool())
     {
-    case QTabletEvent::Pen:
-        if (preferences().current_tablet_tool)
+    case Pen:
+    case Highlighter:
+        if (currentPath && currentItemCollection && *static_cast<const DrawTool*>(current_tool) == currentPath->getTool())
         {
-            switch (preferences().current_tablet_tool->tool())
+            auto item = new FlexGraphicsLineItem(QLineF(currentPath->lastPoint(), pos), currentPath->getTool().compositionMode());
+            if (currentPath->type() == QGraphicsPathItem::UserType + 2)
             {
-            case Pen:
-            case Highlighter:
-                invalidate({sceneRect()});
-                update({sceneRect()});
-                break;
-            case Eraser:
+                static_cast<FullGraphicsPath*>(currentPath)->addPoint(pos, pressure);
+                QPen pen = currentPath->getTool().pen();
+                pen.setWidthF(pen.widthF() * pressure);
+                item->setPen(pen);
+            }
+            else if (currentPath->type() == QGraphicsPathItem::UserType + 1)
             {
-                auto container = master->pathContainer(page | page_part);
-                if (container)
-                    container->applyMicroStep();
-                break;
+                static_cast<BasicGraphicsPath*>(currentPath)->addPoint(pos);
+                item->setPen(currentPath->getTool().pen());
             }
-            default:
-                break;
-            }
+            else
+                qCritical() << "This should never happen.";
+            item->show();
+            addItem(item);
+            currentItemCollection->addToGroup(item);
+            currentItemCollection->show();
+            update(item->boundingRect());
+            invalidate(item->boundingRect());
         }
         break;
-    case QTabletEvent::Eraser:
+    case Eraser:
+    {
+        auto container = master->pathContainer(page | page_part);
+        if (container)
+            container->eraserMicroStep(pos);
+        break;
+    }
+    default:
+        break;
+    }
+}
+
+void SlideScene::stopInputEvent()
+{
+    if (!current_tool)
+        return;
+    //qDebug() << "Stop input event" << current_tool->tool() << current_tool->device() << current_tool;
+    stopDrawing();
+    switch (current_tool->tool())
+    {
+    case Pen:
+    case Highlighter:
+        invalidate({sceneRect()});
+        update({sceneRect()});
+        break;
+    case Eraser:
     {
         auto container = master->pathContainer(page | page_part);
         if (container)
@@ -412,4 +304,5 @@ void SlideScene::tabletRelease(const QPointF &pos, const QTabletEvent *event)
     default:
         break;
     }
+    current_tool = nullptr;
 }

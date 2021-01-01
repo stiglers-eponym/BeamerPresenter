@@ -1,18 +1,51 @@
 #include "drawtoolbutton.h"
 
-bool DrawToolButton::event(QEvent *event) noexcept
+DrawToolButton::DrawToolButton(Tool *tool, QWidget *parent) noexcept :
+        QPushButton(parent),
+        tool(tool)
 {
-    switch (event->type())
+    setFocusPolicy(Qt::NoFocus);
+}
+
+void DrawToolButton::tabletEvent(QTabletEvent *event) noexcept
+{
+    if (event->type() == QTabletEvent::TabletRelease && tool)
     {
-    case QEvent::TabletPress:
-        qDebug() << "Button: set tablet tool" << tool->tool();
-        emit sendTabletTool(tool);
-        return true;
-    case QEvent::MouseButtonRelease:
-        qDebug() << "Button: set tool" << tool->tool();
-        emit sendTool(tool);
-    default:
-        break;
+        Tool *newtool;
+        switch(tool->tool())
+        {
+        case Pen:
+        case Highlighter:
+            newtool = new DrawTool(*static_cast<const DrawTool*>(tool));
+            break;
+        default:
+            newtool = new Tool(*tool);
+            break;
+        }
+        newtool->setDevice(tablet_device_to_input_device.value(event->pointerType()));
+        emit sendTool(newtool);
     }
-    return QPushButton::event(event);
+    event->ignore();
+}
+
+void DrawToolButton::mouseReleaseEvent(QMouseEvent *event) noexcept
+{
+    if (event->type() == QMouseEvent::MouseButtonRelease && tool)
+    {
+        Tool *newtool;
+        switch(tool->tool())
+        {
+        case Pen:
+        case Highlighter:
+            newtool = new DrawTool(*static_cast<const DrawTool*>(tool));
+            break;
+        default:
+            newtool = new Tool(*tool);
+            break;
+        }
+        newtool->setDevice(mouse_to_input_device.value(event->button()));
+        emit sendTool(newtool);
+        event->accept();
+    }
+    QPushButton::mouseReleaseEvent(event);
 }

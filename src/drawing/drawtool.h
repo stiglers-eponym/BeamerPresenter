@@ -16,12 +16,15 @@ protected:
 
 public:
     DrawTool(const DrawTool& other) :
-        Tool(other._tool), _pen(other._pen), _opacity(other._opacity), composition_mode(other.composition_mode) {}
+        Tool(other._tool, other._device), _pen(other._pen), _opacity(other._opacity), composition_mode(other.composition_mode) {}
 
-    DrawTool(const BasicTool tool, const QPen &pen) noexcept : Tool(tool), _pen(pen) {}
+    DrawTool(const BasicTool tool, const int device, const QPen &pen) noexcept : Tool(tool, device), _pen(pen) {}
 
-    DrawTool(const BasicTool tool, const QColor &color, float width) noexcept :
-        Tool(tool), _pen(QBrush(color), width, Qt::SolidLine, Qt::RoundCap) {}
+    DrawTool(const BasicTool tool, const int device, const QColor &color, float width) noexcept :
+        Tool(tool, device), _pen(QBrush(color), width, Qt::SolidLine, Qt::RoundCap) {}
+
+    virtual bool operator==(const DrawTool &other) const noexcept
+    {return _tool==other._tool && _device==other._device && _pen==other._pen && _opacity==other._opacity && composition_mode==other.composition_mode;}
 
     const QPen &pen() const noexcept
     {return _pen;}

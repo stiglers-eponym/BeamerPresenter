@@ -50,6 +50,5 @@ void ToolSelectorWidget::addToolButton(const int i, const int j, Tool *tool)
         break;
     }
     connect(button, &DrawToolButton::sendTool, this, &ToolSelectorWidget::sendTool);
-    connect(button, &DrawToolButton::sendTabletTool, this, &ToolSelectorWidget::sendTabletTool);
     static_cast<QGridLayout*>(layout())->addWidget(button, i, j);
 }

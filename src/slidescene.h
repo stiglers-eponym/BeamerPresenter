@@ -22,6 +22,10 @@ class SlideScene : public QGraphicsScene
     /// nullptr if currenty no path is drawn.
     AbstractGraphicsPath* currentPath {nullptr};
 
+    /// Currently used draw tool, cached during drawing.
+    /// current_tool is never owned by this.
+    const Tool *current_tool {nullptr};
+
     /// Group of path segments forming the currently drawn path.
     /// This collection of segments is directly made visible and gets deleted
     /// when drawing the path is completed and the path itself is shown
@@ -91,11 +95,20 @@ public:
 
     /// Handle tablet release event, mainly for drawing.
     /// Called from SlideView.
-    void tabletRelease(const QPointF &pos, const QTabletEvent *event);
+    void tabletRelease(const QTabletEvent *event);
 
     /// Receive navigation event from PdfMaster.
     /// The given page already includes the shift.
     void navigationEvent(const int newpage, SlideScene* newscene = nullptr);
+
+    /// Start handling draw and erase events.
+    void startInputEvent(const Tool *tool, const QPointF &pos, const float pressure = 1.);
+
+    /// Handle draw and erase events.
+    void stepInputEvent(const QPointF &pos, const float pressure = 1.);
+
+    /// Finish handling draw and erase events.
+    void stopInputEvent();
 
 protected:
     /// Handle various types of events.
