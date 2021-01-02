@@ -1,6 +1,7 @@
 [
   {
     "type" : "horizontal",
+    "color" : "gray",
     "children" : [
       {
         "type" : "slide",
@@ -14,6 +15,7 @@
       },
       {
         "type" : "tabbed",
+        "color" : "light gray",
         "children" : [
           {
             "type" : "vertical",
@@ -70,6 +72,7 @@
           {
             "type" : "settings",
             "title" : "settinge",
+            "color" : "white",
             "keys" : "d"
           }
         ]
@@ -85,6 +88,7 @@
     "multimedia" : true,
     "threads" : 5,
     "master" : true,
-    "cache hash" : 0
+    "cache hash" : 0,
+    "color" : "black"
   }
 ]

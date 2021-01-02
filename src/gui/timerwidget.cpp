@@ -34,7 +34,7 @@ void TimerWidget::updateTimeout() noexcept
     if (timeout)
         palette.setColor(QPalette::Base, Qt::red);
     else
-        palette.setColor(QPalette::Base, Qt::blue);
+        palette.setColor(QPalette::Base, Qt::white);
     setPalette(palette);
     emit sendTimeout(timeout);
 }

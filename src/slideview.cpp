@@ -19,12 +19,6 @@ SlideView::SlideView(SlideScene *scene, PixCache *cache, QWidget *parent) :
     connect(this, &SlideView::requestPage, cache, &PixCache::requestPage, Qt::QueuedConnection);
     connect(cache, &PixCache::pageReady, this, &SlideView::pageReady, Qt::QueuedConnection);
     connect(this, &SlideView::resizeCache, cache, &PixCache::updateFrame, Qt::QueuedConnection);
-    QPalette newpalette = palette();
-    newpalette.setColor(QPalette::Base, Qt::black);
-#if QT_VERSION_MAJOR <= 5
-    newpalette.setColor(QPalette::Background, Qt::black);
-#endif
-    setPalette(newpalette);
 }
 
 void SlideView::pageChanged(const int page, const QSizeF &pageSize, SlideScene *scene)
@@ -46,9 +40,6 @@ void SlideView::pageChanged(const int page, const QSizeF &pageSize, SlideScene *
 
 void SlideView::drawBackground(QPainter *painter, const QRectF &rect)
 {
-    // only for testing:
-    painter->fillRect(rect, Qt::green);
-
     painter->drawPixmap(scene()->sceneRect(), currentPixmap, currentPixmap.rect());
 }
 
@@ -117,7 +108,6 @@ bool SlideView::event(QEvent *event)
         return true;
     }
     default:
-        event->ignore();
         return QGraphicsView::event(event);
     }
 }

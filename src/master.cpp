@@ -92,11 +92,6 @@ QWidget* Master::createWidget(QJsonObject &object, QWidget *parent)
         FlexLayout* layout = new FlexLayout(type == VBoxWidgetType ? QBoxLayout::TopToBottom : QBoxLayout::LeftToRight);
         layout->setContentsMargins(0, 0, 0, 0);
 
-        // only for testing:
-        QPalette palette = widget->palette();
-        palette.setColor(QPalette::Background, type == VBoxWidgetType ? Qt::red : Qt::yellow);
-        widget->setPalette(palette);
-
         const QJsonArray array = object.value("children").toArray();
         for (auto it = array.cbegin(); it != array.cend(); ++it)
         {
@@ -117,12 +112,6 @@ QWidget* Master::createWidget(QJsonObject &object, QWidget *parent)
     case StackedWidgetType:
     {
         StackedWidget *stackwidget = new StackedWidget(parent);
-
-        // only for testing:
-        QPalette palette = stackwidget->palette();
-        palette.setColor(QPalette::Background, Qt::magenta);
-        stackwidget->setPalette(palette);
-
         const QJsonArray array = object.value("children").toArray();
         for (auto it = array.cbegin(); it != array.cend(); ++it)
         {
@@ -149,11 +138,6 @@ QWidget* Master::createWidget(QJsonObject &object, QWidget *parent)
         QTabWidget *tabwidget = new QTabWidget(parent);
         tabwidget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
         tabwidget->setTabPosition(string_to_tab_widget_orientation.value(object.value("orientation").toString()));
-
-        // only for testing:
-        QPalette palette = tabwidget->palette();
-        palette.setColor(QPalette::Background, Qt::cyan);
-        tabwidget->setPalette(palette);
 
         const QJsonArray array = object.value("children").toArray();
         for (auto it = array.cbegin(); it != array.cend(); ++it)
@@ -393,17 +377,26 @@ QWidget* Master::createWidget(QJsonObject &object, QWidget *parent)
     case GuiWidget::InvalidType:
         qWarning() << "Ignoring entry in GUI config with invalid type:" << object.value("type");
     }
-    if (!widget)
-        qWarning() << "Requested GUI type is not implemented (yet):" << object.value("type");
-    // Add keyboard shortcut.
-    else if (object.contains("keys"))
+    if (widget)
     {
-        const QKeySequence seq(object.value("keys").toString());
-        if (seq.isEmpty())
-            qWarning() << "Unknown key sequence in config:" << object.value("keys");
-        else
-            shortcuts[seq[0] + seq[1] + seq[2] + seq[3]] = widget;
+        // Add keyboard shortcut.
+        if (object.contains("keys"))
+        {
+            const QKeySequence seq(object.value("keys").toString());
+            if (seq.isEmpty())
+                qWarning() << "Unknown key sequence in config:" << object.value("keys");
+            else
+                shortcuts[seq[0] + seq[1] + seq[2] + seq[3]] = widget;
+        }
+        // Read base color from config or take it from parent.
+        QPalette palette = (parent ? parent : widget)->palette();
+        const QColor bg_color = QColor(object.value("color").toString());
+        if (bg_color.isValid())
+            palette.setColor(QPalette::Base, bg_color);
+        widget->setPalette(palette);
     }
+    else
+        qWarning() << "Requested GUI type is not implemented (yet):" << object.value("type");
     return widget;
 }
 

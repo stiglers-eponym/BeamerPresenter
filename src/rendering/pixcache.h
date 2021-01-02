@@ -135,6 +135,7 @@ signals:
     void pageReady(const QPixmap pixmap, const int page) const;
 
     /// Get page size from PdfDocument
+    /// TODO: use this!
     void getPageSize(QSizeF *size, const int page) const;
 };
 
