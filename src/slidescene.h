@@ -12,8 +12,11 @@
 
 class PdfMaster;
 
-/// QGraphicsScene for a presentation slide.
-/// Handles drawing events and links. (But links are not really supported yet).
+/**
+ * @brief SlideScene: QGraphicsScene for a presentation slide.
+ *
+ * Handles drawing events and links. (But links are not really supported yet).
+ */
 class SlideScene : public QGraphicsScene
 {
     Q_OBJECT
@@ -111,7 +114,13 @@ public:
     bool stopInputEvent(const QPointF &pos);
 
 protected:
-    /// Handle various types of events.
+    /**
+     * @brief handle pointing device events.
+     * @param event
+     *
+     * Handle mouse, touch and tablet input events for drawing,
+     * highlighting and pointing.
+     */
     virtual bool event(QEvent *event) override;
 
     /// Stop drawing and convert just drawn path to regular path.

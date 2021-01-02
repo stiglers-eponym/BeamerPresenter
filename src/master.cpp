@@ -30,11 +30,11 @@ bool Master::readGuiConfig(const QString &filename)
         qCritical() << "Could not read GUI config:" << filename;
         return false;
     }
-    QJsonParseError *error = nullptr;
-    QJsonDocument doc = QJsonDocument::fromJson(file.readAll(), error);
-    if (error)
+    QJsonParseError error;
+    QJsonDocument doc = QJsonDocument::fromJson(file.readAll(), &error);
+    if (error.error != QJsonParseError::NoError)
     {
-        qCritical() << "Parsing GUI config failed:" << error->errorString();
+        qCritical() << "Parsing GUI config failed:" << error.errorString();
         return false;
     }
     if (doc.isNull() || doc.isEmpty())
@@ -338,17 +338,17 @@ QWidget* Master::createWidget(QJsonObject &object, QWidget *parent)
                     case Pen:
                     {
                         const QColor color(obj.value("color").toString("black"));
-                        const float size = obj.value("size").toDouble(2.);
+                        const float width = obj.value("width").toDouble(2.);
                         const Qt::PenStyle style = string_to_pen_style.value(obj.value("style").toString(), Qt::SolidLine);
-                        tool = new DrawTool(Pen, AnyDevice, QPen(color, size, style, Qt::RoundCap));
+                        tool = new DrawTool(Pen, AnyDevice, QPen(color, width, style, Qt::RoundCap));
                         break;
                     }
                     case Highlighter:
                     {
                         const QColor color(obj.value("color").toString("yellow"));
-                        const float size = obj.value("size").toDouble(20.);
+                        const float width = obj.value("width").toDouble(20.);
                         const Qt::PenStyle style = string_to_pen_style.value(obj.value("style").toString(), Qt::SolidLine);
-                        tool = new DrawTool(Highlighter, AnyDevice, QPen(color, size, style, Qt::RoundCap), QPainter::CompositionMode_Darken);
+                        tool = new DrawTool(Highlighter, AnyDevice, QPen(color, width, style, Qt::RoundCap), QPainter::CompositionMode_Darken);
                         break;
                     }
                     case InvalidTool:
@@ -418,9 +418,10 @@ void Master::showAll() const
 
 void Master::receiveKeyEvent(const QKeyEvent* event)
 {
-    // Search shortcuts for the given key sequence.
+    const quint32 key_code = event->key() | (event->modifiers() & ~Qt::KeypadModifier);
+    // Search shortcuts for given key sequence.
     {
-        QWidget* widget = shortcuts.value(event->key() | (event->modifiers() & ~Qt::KeypadModifier));
+        QWidget* widget = shortcuts.value(key_code);
         qDebug() << "Key action:" << widget << event << (event->key() | (event->modifiers() & ~Qt::KeypadModifier));
         if (widget)
         {
@@ -437,18 +438,34 @@ void Master::receiveKeyEvent(const QKeyEvent* event)
             }
         }
     }
-    // Search actions in preferences for the given key sequence.
-    const QMultiMap<quint32, Action> &key_actions = preferences().key_actions;
-    auto it = key_actions.constFind(event->key() | (event->modifiers() & ~Qt::KeypadModifier));
-    while (it != key_actions.cend())
+    // Search actions in preferences for given key sequence.
     {
+        auto it = preferences().key_actions.constFind(key_code);
+        while (it != preferences().key_actions.cend())
+        {
 #ifdef DEBUG_KEY_ACTIONS
-        qDebug() << "Global key action:" << it.value();
-        qDebug() << "Cache:" << getTotalCache();
+            qDebug() << "Global key action:" << it.value();
+            qDebug() << "Cache:" << getTotalCache();
 #endif
-        handleAction(it.value());
-        if ((++it).key() != static_cast<unsigned int>(event->key()))
-            break;
+            handleAction(it.value());
+            if ((++it).key() != static_cast<unsigned int>(event->key()))
+                break;
+        }
+    }
+    // Search tools in preferences for given key sequence.
+    for (const auto tool : static_cast<const QList<const Tool*>>(preferences().key_tools.values(key_code)))
+    {
+        if (tool)
+            switch (tool->tool())
+            {
+            case Pen:
+            case Highlighter:
+                setTool(new DrawTool(*static_cast<const DrawTool*>(tool)));
+                break;
+            default:
+                setTool(new Tool(*tool));
+                break;
+            }
     }
 }
 
@@ -551,6 +568,8 @@ void Master::navigateToPage(const int page)
 
 void Master::setTool(Tool *tool) const noexcept
 {
+    if (!tool)
+        return;
     qDebug() << "Set tool" << tool->tool() << tool->device();
     const int device = tool->device();
     int newdevice;

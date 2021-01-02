@@ -3,12 +3,15 @@
 Preferences::Preferences() :
     settings(QSettings::NativeFormat, QSettings::UserScope, "beamerpresenter-new", "beamerpresenter-new")
 {
+    settings.setIniCodec("UTF-8");
 }
 
 Preferences::~Preferences()
 {
     qDeleteAll(current_tools);
     current_tools.clear();
+    qDeleteAll(key_tools);
+    key_tools.clear();
 }
 
 void Preferences::loadSettings()
@@ -18,15 +21,18 @@ void Preferences::loadSettings()
     qDebug() << settings.allKeys();
 #endif
 
-    // SETTINGS
+    // GENERAL SETTINGS
     gui_config_file = settings.value("gui config", "/etc/beamerpresenter/gui.json").toString();
     manual_file = settings.value("manual", "/usr/share/doc/beamerpresenter/manual.md").toString();
 
     // DRAWING
+    settings.beginGroup("drawing");
     history_length_visible_slides = settings.value("history length visible", 100).toUInt();
     history_length_hidden_slides = settings.value("history length hidden", 50).toUInt();
+    settings.endGroup();
 
     // RENDERING
+    settings.beginGroup("rendering");
     { // page_part
         // TODO: implement!
         page_part_threshold = settings.value("page part threshold").toReal();
@@ -81,6 +87,7 @@ void Preferences::loadSettings()
 #endif
         }
     }
+    settings.endGroup();
 
     { // cache
         bool ok;
@@ -100,23 +107,103 @@ void Preferences::loadSettings()
         if (!allKeys.isEmpty())
         {
             key_actions.clear();
+            key_tools.clear();
             for (const auto& key : allKeys)
             {
                 const QKeySequence seq(key);
                 if (seq.isEmpty())
-                {
                     qWarning() << "Unknown key sequence in config:" << key;
-                }
                 else
                 {
-                    const quint32 seq_int = quint32(seq[0] + seq[1] + seq[2] + seq[3]);
-                    for (const auto &action_str : static_cast<const QStringList>(settings.value(key).toStringList()))
+                    const quint32 key_code = quint32(seq[0] + seq[1] + seq[2] + seq[3]);
+
+                    // First try to interpret sequence as json object.
+                    // Here the way how Qt changes the string is not really optimal.
+                    // First check if the value is already a json object.
+                    //QJsonObject object;
+                    QJsonArray array;
+                    if (settings.value(key).canConvert(QMetaType::Type::QJsonArray))
+                        array = settings.value(key).toJsonArray();
+                    else if (settings.value(key).canConvert(QMetaType::Type::QJsonObject))
+                        array.append(settings.value(key).toJsonObject());
+                    else
                     {
-                        const Action action = string_to_action_map.value(action_str.toLower(), Action::InvalidAction);
-                        if (action == InvalidAction)
-                            qWarning() << "Unknown action in config" << action_str << "for key" << key;
-                        else
-                            key_actions.insert(seq_int, action);
+                        // Try to parse a human readable input string as json object.
+                        // In the input quotation marks must be escaped. For
+                        // convenience it is allowed to use single quotation marks
+                        // instead.
+                        QJsonParseError error;
+                        const QJsonDocument doc = QJsonDocument::fromJson(settings.value(key).toStringList().join(",").replace("'", "\"").toUtf8(), &error);
+                        if (error.error == QJsonParseError::NoError)
+                        {
+                            if (doc.isArray())
+                                array = doc.array();
+                            else if (doc.isObject())
+                                array.append(doc.object());
+                        }
+                    }
+                    if (!array.isEmpty())
+                    {
+                        for (const auto &value : qAsConst(array))
+                        {
+                            if (!value.isObject())
+                                continue;
+                            const QJsonObject object = value.toObject();
+                            int device = AnyDevice;
+                            const QJsonValue json_device = object.value("device");
+                            if (json_device.isString())
+                                device = string_to_input_device.value(json_device.toString(), AnyDevice);
+                            else if (json_device.isArray())
+                            {
+                                device = 0;
+                                for (const auto &dev_string : static_cast<const QJsonArray>(json_device.toArray()))
+                                    device |= string_to_input_device.value(dev_string.toString(), 0);
+                                if (device == 0)
+                                    device = AnyDevice;
+                            }
+                            Tool *tool = nullptr;
+                            const BasicTool base_tool = string_to_tool.value(object.value("tool").toString());
+                            switch (base_tool)
+                            {
+                            case Pen:
+                            {
+                                const QColor color(object.value("color").toString("black"));
+                                const float width = object.value("width").toDouble(2.);
+                                const Qt::PenStyle style = string_to_pen_style.value(object.value("style").toString(), Qt::SolidLine);
+                                tool = new DrawTool(Pen, device, QPen(color, width, style, Qt::RoundCap));
+                                break;
+                            }
+                            case Highlighter:
+                            {
+                                const QColor color(object.value("color").toString("yellow"));
+                                const float width = object.value("width").toDouble(20.);
+                                const Qt::PenStyle style = string_to_pen_style.value(object.value("style").toString(), Qt::SolidLine);
+                                tool = new DrawTool(Highlighter, device, QPen(color, width, style, Qt::RoundCap), QPainter::CompositionMode_Darken);
+                                break;
+                            }
+                            case InvalidTool:
+                                break;
+                            default:
+                                tool = new Tool(base_tool, device);
+                                break;
+                            }
+                            if (tool)
+                            {
+                                qDebug() << "Adding tool" << tool << tool->tool() << device;
+                                key_tools.insert(key_code, tool);
+                            }
+                        }
+                    }
+                    else
+                    {
+                        for (const auto &action_str : static_cast<const QStringList>(settings.value(key).toStringList()))
+                        {
+                            const Action action = string_to_action_map.value(action_str.toLower(), Action::InvalidAction);
+                            if (action == InvalidAction)
+                                qWarning() << "Unknown action in config" << action_str << "for key" << key;
+                            else
+                                key_actions.insert(key_code, action);
+                        }
                     }
                 }
             }

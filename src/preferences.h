@@ -11,6 +11,9 @@
 #include <QFileDialog>
 #include <QPen>
 #include <QDebug>
+#include <QJsonArray>
+#include <QJsonObject>
+#include <QJsonDocument>
 
 /// Class storing various preferences.
 /// It should have only one instance, which is available globally through
@@ -80,7 +83,7 @@ public:
         {Qt::Key_Space, Action::Update},
     };
     /// Map key combinations to tools.
-    QMap<quint32, Tool*> key_tools;
+    QMultiMap<quint32, const Tool*> key_tools;
 
 
     /****************************/

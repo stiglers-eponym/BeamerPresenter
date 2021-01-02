@@ -101,4 +101,18 @@ static const QMap<Qt::MouseButtons, InputDevice> mouse_to_input_device
     {Qt::MiddleButton, MouseMiddleButton},
 };
 
+static const QMap<QString, int> string_to_input_device
+{
+    {"touch", TouchInput},
+    {"tablet pen", TabletPen},
+    {"tablet", TabletPen | TabletCursor | TabletOther},
+    {"tablet eraser", TabletEraser},
+    {"tablet all", TabletPen | TabletCursor | TabletOther | TabletEraser},
+    {"all", AnyDevice},
+    {"mouse", MouseLeftButton},
+    {"left button", MouseLeftButton},
+    {"right button", MouseRightButton},
+    {"middle button", MouseMiddleButton},
+};
+
 #endif // NAMES_H

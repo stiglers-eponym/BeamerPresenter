@@ -6,17 +6,28 @@
 #include "src/preferences.h"
 #include "src/drawing/drawtool.h"
 
-/// Coordinates and pen for drawing a path.
-/// Coordinates are given as positions in the PDF page, measured in points
-/// as floating point values. These are the same units as used in SlideScene.
+/**
+ * @class AbstractGraphicsPath
+ * @brief QGraphicsItems representing a path, abstract class.
+ *
+ * Paths consist of a vector of nodes, a bounding rectangle, and a draw tool.
+ * The draw tool and the bounding rectangle coordinates are defined in
+ * AbstractGraphicsPath, the vector of nodes is defined in inheriting classes.
+ *
+ * Coordinates are given as positions in the PDF page, measured in points
+ * as floating point values. These are the same units as used in SlideScene.
+ */
 class AbstractGraphicsPath : public QGraphicsItem
 {
 protected:
-    /// Pen for stroking path.
-    /// in FullGraphicsPath pen.width will change with each drawn point.
+    /**
+     * Pen for stroking path.
+     * In FullGraphicsPath, pen.width is the reference width which gets
+     * rescaled by the pressure of an input device.
+     */
     DrawTool tool;
 
-    /// Bounding rect coordinates
+    /// Bounding rect coordinates.
     qreal top, bottom, left, right;
 
 public:
@@ -33,10 +44,21 @@ public:
     /// Coordinate of the last node in the path.
     virtual const QPointF lastPoint() const noexcept = 0;
 
-    /// Erase at position pos. Return a list of paths obtained when splitting
-    /// this by erasing at pos with given eraser size.
+    /**
+     * @brief Erase at position pos.
+     *
+     * Create list of paths obtained when erasing at position <pos> with round
+     * eraser of radius <size>. This list is empty if this path is completely
+     * erased.
+     *
+     * @return QList<AbstractGraphicsPath*>, new paths after erasing (possibly
+     * empty) or {nullptr} if nothing was erased.
+     */
     virtual QList<AbstractGraphicsPath*> splitErase(const QPointF &pos, const qreal size) const = 0;
 
+    /**
+     * @param tool
+     */
     const DrawTool &getTool() const noexcept
     {return tool;}
 };
