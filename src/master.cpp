@@ -348,8 +348,7 @@ QWidget* Master::createWidget(QJsonObject &object, QWidget *parent)
                         const QColor color(obj.value("color").toString("yellow"));
                         const float size = obj.value("size").toDouble(20.);
                         const Qt::PenStyle style = string_to_pen_style.value(obj.value("style").toString(), Qt::SolidLine);
-                        tool = new DrawTool(Highlighter, AnyDevice, QPen(color, size, style, Qt::RoundCap));
-                        static_cast<DrawTool*>(tool)->setCompositionMode(QPainter::CompositionMode_Darken);
+                        tool = new DrawTool(Highlighter, AnyDevice, QPen(color, size, style, Qt::RoundCap), QPainter::CompositionMode_Darken);
                         break;
                     }
                     case InvalidTool:

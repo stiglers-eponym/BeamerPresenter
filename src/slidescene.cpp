@@ -99,8 +99,13 @@ bool SlideScene::event(QEvent* event)
                 const QTouchEvent::TouchPoint &point = touchevent->touchPoints().first();
                 stepInputEvent(point.scenePos(), point.pressure());
             }
-            else if (stopInputEvent(QPointF()))
-                master->pathContainer(page | page_part)->undo(this);
+            // Touching with a second finger stops the drawing.
+            else
+                stopInputEvent(QPointF());
+            // Alternatively, touching with a second finger could cancel
+            // drawing and revert the already drawn path:
+            //else if (stopInputEvent(QPointF()))
+            //    master->pathContainer(page | page_part)->undo(this);
             event->accept();
             return true;
         }
@@ -246,7 +251,7 @@ void SlideScene::startInputEvent(const Tool *tool, const QPointF &pos, const flo
         currentItemCollection = new QGraphicsItemGroup();
         addItem(currentItemCollection);
         currentItemCollection->show();
-        if (tool->tool() == Pen && (tool->device() & PressureSensitiveDevice))
+        if (tool->tool() == Pen && (tool->device() & preferences().pressure_sensitive_input_devices))
             currentPath = new FullGraphicsPath(*static_cast<const DrawTool*>(tool), pos, pressure);
         else
             currentPath = new BasicGraphicsPath(*static_cast<const DrawTool*>(tool), pos);
@@ -316,7 +321,7 @@ bool SlideScene::stopInputEvent(const QPointF &pos)
     if (current_tool)
     {
         //qDebug() << "Stop input event" << current_tool->tool() << current_tool->device() << current_tool;
-        const bool changes = currentPath && currentItemCollection;
+        const bool changes = currentPath && currentPath->size() > 1;
         stopDrawing();
         switch (current_tool->tool())
         {

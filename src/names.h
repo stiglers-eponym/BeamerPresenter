@@ -55,6 +55,7 @@ static const QMap<QString, BasicTool> string_to_tool
     {"no tool", NoTool},
     {"none", NoTool},
     {"pen", Pen},
+    {"fixed width pen", FixedWidthPen},
     {"eraser", Eraser},
     {"highlighter", Highlighter},
     {"pointer", Pointer},

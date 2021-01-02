@@ -38,6 +38,8 @@ public:
     int history_length_visible_slides;
     /// Maximum number of steps in drawing history of hidden slide.
     int history_length_hidden_slides;
+    /// Which devices should be used for pressure-sensitive input:
+    int pressure_sensitive_input_devices = TabletPen | TabletEraser | TabletCursor | TabletOther;
 
 
     // RENDERING

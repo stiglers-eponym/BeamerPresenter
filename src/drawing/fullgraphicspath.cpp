@@ -55,7 +55,6 @@ void FullGraphicsPath::paint(QPainter *painter, const QStyleOptionGraphicsItem *
 {
     if (data.isEmpty())
         return;
-    //painter->setOpacity(opacity());
     QPen pen = tool.pen();
     auto it = data.cbegin();
     while (++it != data.cend())
@@ -144,6 +143,5 @@ void FullGraphicsPath::changeTool(const DrawTool &newtool) noexcept
     if (newwidth != tool.width())
         changeWidth(newwidth);
     tool.setPen(newtool.pen());
-    tool.setOpacity(newtool.opacity());
     tool.setCompositionMode(newtool.compositionMode());
 }

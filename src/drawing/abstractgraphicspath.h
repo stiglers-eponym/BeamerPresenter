@@ -24,7 +24,7 @@ public:
     AbstractGraphicsPath(const DrawTool tool) noexcept : tool(tool) {}
 
     /// Bounding rectangle of the drawing (including stroke width).
-    QRectF boundingRect() const noexcept override
+    virtual QRectF boundingRect() const noexcept override
     {return QRectF(left, top, right-left, bottom-top);}
 
     /// Number of nodes of the path.

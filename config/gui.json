@@ -58,6 +58,7 @@
                       ["first", "next", "previous", "last"],
                       [
                           {"tool":"pen", "color":"red"},
+                          {"tool":"pen", "color":"#8000ff00"},
                           {"tool":"highlighter"},
                           {"tool":"eraser"},
                           {"tool":"none"}

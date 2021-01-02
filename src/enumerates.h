@@ -75,6 +75,7 @@ enum BasicTool
     InvalidTool = 0,
     NoTool,
     Pen,
+    FixedWidthPen,
     Eraser,
     Highlighter,
     Pointer,
@@ -111,7 +112,6 @@ enum InputDevice
     TabletCursor = 1 << 5,
     TabletOther = 1 << 6,
     TouchInput = 1 << 7,
-    PressureSensitiveDevice = TouchInput | TabletPen | TabletEraser | TabletCursor | TabletOther, // TODO: This is not really checked.
     AnyDevice = 0xffff,
 };
 

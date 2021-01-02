@@ -55,12 +55,10 @@ void BasicGraphicsPath::paint(QPainter *painter, const QStyleOptionGraphicsItem 
 {
     if (data.isEmpty())
         return;
-    painter->setOpacity(tool.opacity());
+    painter->setRenderHint(QPainter::Antialiasing);
     painter->setPen(tool.pen());
     painter->setCompositionMode(tool.compositionMode());
-    auto it = data.cbegin();
-    while (++it != data.cend())
-        painter->drawLine(*(it-1), *it);
+    painter->drawPolyline(data.constData(), data.size());
 
     // Only for debugging
     //painter->setPen(QPen(QBrush(Qt::black), 0.5));
