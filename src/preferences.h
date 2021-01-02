@@ -97,6 +97,14 @@ public:
 
     /// Current page number in reference presentation view.
     int page = 0;
+
+    /// Target time of presentation. Set to zero if timer is not running.
+    QDateTime target_time;
+    /// Passed time. When timer is running, this is set to UINT_LEAST32_MAX.
+    quint32 msecs_passed = 0;
+    /// Total time for presentation.
+    quint32 msecs_total = 0;
+
     /// Tool used for other input device, owned by this.
     /// The keys are taken from InputDevice.
     QSet<Tool*> current_tools

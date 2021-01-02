@@ -69,6 +69,7 @@ SOURCES += \
         src/gui/slidenumberwidget.cpp \
         src/gui/stackedwidget.cpp \
         src/gui/tabwidget.cpp \
+        src/gui/timerwidget.cpp \
         src/gui/toolselectorwidget.cpp \
         src/main.cpp \
         src/master.cpp \
@@ -99,6 +100,7 @@ HEADERS += \
         src/gui/slidenumberwidget.h \
         src/gui/stackedwidget.h \
         src/gui/tabwidget.h \
+        src/gui/timerwidget.h \
         src/gui/toolselectorwidget.h \
         src/master.h \
         src/names.h \

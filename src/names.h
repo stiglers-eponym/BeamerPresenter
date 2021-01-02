@@ -44,6 +44,9 @@ static const QMap<QString, Action> string_to_action_map
     {"undo", UndoDrawing},
     {"redo", RedoDrawing},
     {"clear", ClearDrawing},
+    {"start timer", StartTimer},
+    {"stop timer", StopTimer},
+    {"reset timer", ResetTimePassed},
     {"quit", Quit},
 };
 

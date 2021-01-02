@@ -17,6 +17,7 @@
 #include "src/gui/containerwidget.h"
 #include "src/gui/slidenumberwidget.h"
 #include "src/gui/settingswidget.h"
+#include "src/gui/timerwidget.h"
 #include "src/gui/toolselectorwidget.h"
 #include "src/drawing/drawtool.h"
 

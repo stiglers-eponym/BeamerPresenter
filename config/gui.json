@@ -24,6 +24,9 @@
                 "type" : "clock"
               },
               {
+                "type" : "timer"
+              },
+              {
                 "type" : "slide number"
               },
               {
@@ -51,8 +54,8 @@
               {
                   "type" : "tool selector",
                   "buttons" : [
-                      ["first", "previous", "next"],
-                      ["last", "update", "quit"],
+                      ["start timer", "stop timer", "reset timer"],
+                      ["first", "next", "previous", "last"],
                       [
                           {"tool":"pen", "color":"red"},
                           {"tool":"highlighter"},

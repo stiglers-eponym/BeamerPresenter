@@ -381,6 +381,8 @@ QWidget* Master::createWidget(QJsonObject &object, QWidget *parent)
         widget = new ClockWidget(parent);
         break;
     case TimerType:
+        widget = new TimerWidget(parent);
+        connect(this, &Master::sendAction, static_cast<TimerWidget*>(widget), &TimerWidget::handleAction);
         break;
     case SlideNumberType:
         widget = new SlideNumberWidget(parent);

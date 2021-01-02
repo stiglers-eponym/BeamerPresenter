@@ -60,6 +60,10 @@ enum Action
     UndoDrawing,
     RedoDrawing,
     ClearDrawing,
+    // Timer
+    StartTimer,
+    StopTimer,
+    ResetTimePassed,
     // Other actions
     ReloadFiles,
     Quit,
