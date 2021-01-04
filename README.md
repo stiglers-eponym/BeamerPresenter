@@ -30,6 +30,7 @@ modular, clean and flexible way.
     * not done yet: settings including help page (which doesn't have content yet...)
 
 #### To be implemented
+* avoid fatal error when stopping program while cache threads are running
 * more settings
 * immediately update slides to fit window size (currently this is only done when changing the slide or manually updating)
 * fix layout, avoid recalculating full layout when clock label changes text

@@ -1,6 +1,73 @@
 #include "src/rendering/mupdfdocument.h"
 #include "src/enumerates.h"
 
+std::string roman(int number)
+{
+    int tens = number / 10;
+    std::string roman;
+    while (tens-- > 0)
+        roman.push_back('x');
+    int residual = number % 10;
+    if (residual == 9)
+        roman.append("ix");
+    else if (residual >= 5)
+    {
+        roman.push_back('v');
+        while (residual-- > 5)
+            roman.push_back('i');
+    }
+    else if (residual == 4)
+        roman.append("iv");
+    else
+        while (residual-- > 0)
+            roman.push_back('i');
+    return roman;
+}
+
+std::string decode_pdf_label(int number, const label_item &item)
+{
+    std::string string = item.prefix ? item.prefix : "";
+    if (!item.style)
+        return string;
+    number += item.start_value;
+    switch (*item.style)
+    {
+    case '\0':
+        break;
+    case 'r':
+        string.append(roman(number));
+        break;
+    case 'R':
+    {
+        std::string lower = roman(number);
+        for (auto &it : lower)
+            it += 0x20;
+        string.append(lower);
+        break;
+    }
+    case 'a':
+    {
+        int repetitions = number / 26 + 1;
+        while (repetitions-- > 0)
+            string.push_back(0x61 + (number % 26));
+        break;
+    }
+    case 'A':
+    {
+        int repetitions = number / 26 + 1;
+        while (repetitions-- > 0)
+            string.push_back(0x41 + (number % 26));
+        break;
+    }
+    default:
+        // Decimal is the default.
+        string.append(std::to_string(number));
+        break;
+    }
+    qDebug() << number << QString::fromStdString(string);
+    return string;
+}
+
 
 void lock_mutex(void *user, int lock)
 {
@@ -247,28 +314,41 @@ void MuPdfDocument::loadPageLabels()
     // Read the raw labels from the PDF
     QMap<int, label_item> raw_labels;
     {
-        const int len = pdf_array_len(ctx, nums);
-
-        for (int i = 0; i + 1 < len; i += 2)
+        const int len_minus_one = pdf_array_len(ctx, nums) - 1;
+        pdf_obj *val;
+        // TODO: check if this implementation is reasonable.
+        auto pdf_dict_to_int_default = [&](pdf_obj* obj, const char* key, int def)->int{
+            pdf_obj *value = pdf_dict_gets(ctx, obj, key);
+            return (value && pdf_is_int(ctx, value)) ? pdf_to_int(ctx, value) : def;
+        };
+        auto pdf_dict_to_name = [&](pdf_obj* obj, const char* key)->const char*{
+            pdf_obj *value = pdf_dict_gets(ctx, obj, key);
+            return (value && pdf_is_name(ctx, value)) ? pdf_to_name(ctx, value) : nullptr;
+        };
+        auto pdf_dict_to_string = [&](pdf_obj* obj, const char* key)->const char*{
+            pdf_obj *value = pdf_dict_gets(ctx, obj, key);
+            return (value && pdf_is_string(ctx, value)) ? pdf_to_text_string(ctx, value) : nullptr;
+        };
+        for (int i = 0, key; i < len_minus_one;)
         {
-            const int key = pdf_array_get_int(ctx, nums, i);
+            key = pdf_array_get_int(ctx, nums, i++);
             // Actually the following condition should never become true.
             // However, I have found a PDF (generated with LaTeX beamer), for
             // which this is relevant.
-            if (key >= number_of_pages)
+            if (key >= number_of_pages || key < 0)
                 break;
-            pdf_obj *val = pdf_array_get(ctx, nums, i + 1);
+            val = pdf_array_get(ctx, nums, i++);
 
             if (pdf_is_dict(ctx, val))
             {
                 raw_labels.insert(
-                            key,
-                            {
-                                pdf_to_text_string(ctx, pdf_dict_gets(ctx, val, "S")),
-                                pdf_to_text_string(ctx, pdf_dict_gets(ctx, val, "P")),
-                                pdf_to_int(ctx, pdf_dict_gets(ctx, val, "St"))
-                            }
-                            );
+                        key,
+                        {
+                            pdf_dict_to_name(val, "S"),
+                            pdf_dict_to_string(val, "P"),
+                            pdf_dict_to_int_default(val, "St", 1),
+                        }
+                        );
             }
         }
     }
@@ -283,21 +363,22 @@ void MuPdfDocument::loadPageLabels()
 
     // Currently only decimal style is supported and the style option is
     // ignored.
-    for (auto it = raw_labels.cbegin(); it != raw_labels.cend();)
+    for (auto it = raw_labels.cbegin(); it != raw_labels.cend(); ++it)
     {
-        const QString prefix = QString::fromLatin1(it->prefix);
-        if (std::string(it->style).empty())
+        // Check if style is empty, which indicates that all following pages
+        // will have the same label.
+        if (!it->style || *it->style == '\0')
         {
             // This should be the default case for presentations created with
             // LaTeX beamer.
-            pageLabels[it++.key()] = prefix;
+            pageLabels[it.key()] = it->prefix ? QString::fromLatin1(it->prefix) : "";
         }
         else
         {
             int i = it.key();
-            const int next_num = (++it == raw_labels.cend()) ? number_of_pages : it.key();
+            const int next_num = (it+1 == raw_labels.cend()) ? number_of_pages : (it+1).key();
             for (; i < next_num; i++)
-                pageLabels[i] = prefix + QString::number(i);
+                pageLabels[i] = QString::fromStdString(decode_pdf_label(i - it.key(), *it));
         }
     }
 
