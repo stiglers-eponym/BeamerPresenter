@@ -210,7 +210,7 @@ QWidget* Master::createWidget(QJsonObject &object, QWidget *parent)
             else
                 writable_preferences().number_of_pages = doc->numberOfPages();
             connect(this, &Master::sendAction, doc, &PdfMaster::receiveAction);
-            connect(doc, &PdfMaster::nagivationSignal, this, &Master::navigationSignal);
+            connect(doc, &PdfMaster::navigationSignal, this, &Master::navigationSignal);
             connect(this, &Master::navigationSignal, doc, &PdfMaster::distributeNavigationEvents);
             if (preferences().page_part_threshold > 0.)
             {
@@ -373,6 +373,9 @@ QWidget* Master::createWidget(QJsonObject &object, QWidget *parent)
         connect(this, &Master::navigationSignal, static_cast<SlideNumberWidget*>(widget), &SlideNumberWidget::updateText);
         break;
     case SlideLabelType:
+        widget = new SlideLabelWidget(documents.first()->getDocument(), parent);
+        connect(static_cast<SlideLabelWidget*>(widget), &SlideLabelWidget::navigationSignal, this, &Master::navigateToPage);
+        connect(this, &Master::navigationSignal, static_cast<SlideLabelWidget*>(widget), &SlideLabelWidget::updateText);
         break;
     case GuiWidget::InvalidType:
         qWarning() << "Ignoring entry in GUI config with invalid type:" << object.value("type");

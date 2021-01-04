@@ -66,6 +66,7 @@ SOURCES += \
         src/gui/flexlayout.cpp \
         src/gui/keyinputlabel.cpp \
         src/gui/settingswidget.cpp \
+        src/gui/slidelabelwidget.cpp \
         src/gui/slidenumberwidget.cpp \
         src/gui/stackedwidget.cpp \
         src/gui/tabwidget.cpp \
@@ -97,6 +98,7 @@ HEADERS += \
         src/gui/flexlayout.h \
         src/gui/keyinputlabel.h \
         src/gui/settingswidget.h \
+        src/gui/slidelabelwidget.h \
         src/gui/slidenumberwidget.h \
         src/gui/stackedwidget.h \
         src/gui/tabwidget.h \

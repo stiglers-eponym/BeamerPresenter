@@ -140,7 +140,10 @@ public:
     virtual int numberOfPages() const = 0;
 
     /// Label of page with given index.
-    virtual const QString label(const int page) const = 0;
+    virtual const QString pageLabel(const int page) const = 0;
+
+    /// Label of page with given index.
+    virtual int pageIndex(const QString &page) const = 0;
 
     /// Starting from page start, get the number (index) of the page shifted
     /// by shift_overlay.

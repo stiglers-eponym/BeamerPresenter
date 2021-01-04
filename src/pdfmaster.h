@@ -106,7 +106,7 @@ signals:
     /// Notify all associated SlidesScenes that paths have changed.
     void pathsUpdated() const;
     /// Send a navigation signal (to master).
-    void nagivationSignal(const int page) const;
+    void navigationSignal(const int page) const;
     /// Notify that views need to be updated.
     void update() const;
 };

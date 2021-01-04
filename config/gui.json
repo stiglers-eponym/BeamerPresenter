@@ -29,7 +29,7 @@
                 "type" : "timer"
               },
               {
-                "type" : "slide number"
+                "type" : "slide label"
               },
               {
                 "type" : "slide",

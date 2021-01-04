@@ -16,6 +16,7 @@
 #include "src/gui/stackedwidget.h"
 #include "src/gui/containerwidget.h"
 #include "src/gui/slidenumberwidget.h"
+#include "src/gui/slidelabelwidget.h"
 #include "src/gui/settingswidget.h"
 #include "src/gui/timerwidget.h"
 #include "src/gui/toolselectorwidget.h"
@@ -72,7 +73,7 @@ public:
     /// Calculate total cache size (sum up cache sizes from all PixCache objects).
     qint64 getTotalCache() const;
 
-    /// A nagivation event moves preferences().page away from the given page.
+    /// A navigation event moves preferences().page away from the given page.
     /// Tell path containers in all documents that history of given page
     /// should now be limited by preferences().history_length_hidden_slides.
     /// page is given as (page_number | page_part).
@@ -101,7 +102,7 @@ signals:
     /// Send out action.
     void sendAction(const Action action) const;
 
-    /// Send out nagivation signal (after updating preferences().page).
+    /// Send out navigation signal (after updating preferences().page).
     void navigationSignal(const int page) const;
 };
 

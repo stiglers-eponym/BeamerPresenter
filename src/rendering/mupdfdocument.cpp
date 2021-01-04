@@ -218,7 +218,7 @@ const QSizeF MuPdfDocument::pageSize(const int page) const
     return QSizeF(bbox.x1 - bbox.x0, bbox.y1 - bbox.y0);
 }
 
-const QString MuPdfDocument::label(const int page) const
+const QString MuPdfDocument::pageLabel(const int page) const
 {
     // Check if the page number is valid.
     if (page < 0 || page >= number_of_pages)
@@ -227,6 +227,14 @@ const QString MuPdfDocument::label(const int page) const
     if (pageLabels.isEmpty())
         return QString::number(page);
     return (--pageLabels.upperBound(page)).value();
+}
+
+int MuPdfDocument::pageIndex(const QString &page) const
+{
+    if (pageLabels.isEmpty())
+        return page.toInt() - 1;
+    // This is slow (linear time):
+    return pageLabels.key(page, -1);
 }
 
 int MuPdfDocument::overlaysShifted(const int start, const int shift_overlay) const

@@ -111,7 +111,7 @@ void PdfMaster::resolveLink(const int page, const QPointF &position) const
     if (link.type >= 0 && link.type < document->numberOfPages())
     {
         writable_preferences().page = link.type;
-        emit nagivationSignal(link.type);
+        emit navigationSignal(link.type);
     }
     // Next try to handle multimedia annotation.
     const VideoAnnotation annotation = document->annotationAt(page, position);

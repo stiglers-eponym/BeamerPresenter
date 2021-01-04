@@ -9,10 +9,16 @@ PopplerDocument::PopplerDocument(const QString &filename) :
         qFatal("Loading document failed");
 }
 
-const QString PopplerDocument::label(const int page) const
+const QString PopplerDocument::pageLabel(const int page) const
 {
     const Poppler::Page * const pageptr = doc->page(page);
     return pageptr ? pageptr->label() : "";
+}
+
+int PopplerDocument::pageIndex(const QString &page) const
+{
+    const Poppler::Page * const pageptr = doc->page(page);
+    return pageptr ? pageptr->index() : -1;
 }
 
 const QSizeF PopplerDocument::pageSize(const int page) const
