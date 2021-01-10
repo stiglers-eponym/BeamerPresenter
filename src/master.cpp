@@ -61,6 +61,8 @@ bool Master::readGuiConfig(const QString &filename)
         if (widget)
             windows.append(widget);
     }
+    if (!documents.isEmpty())
+        writable_preferences().document = documents.first()->getDocument();
 
     // Return true (success) if at least one window and one document were created.
     return !windows.isEmpty() && !documents.isEmpty();
@@ -298,6 +300,7 @@ QWidget* Master::createWidget(QJsonObject &object, QWidget *parent)
         break;
     case NotesType:
         widget = new NotesWidget(parent);
+        connect(this, &Master::navigationSignal, static_cast<NotesWidget*>(widget), &NotesWidget::pageChanged);
         static_cast<NotesWidget*>(widget)->zoomIn(object.value("zoom").toInt(10));
         if (object.contains("file"))
             static_cast<NotesWidget*>(widget)->load(object.value("file").toString());
@@ -377,7 +380,7 @@ QWidget* Master::createWidget(QJsonObject &object, QWidget *parent)
         connect(this, &Master::navigationSignal, static_cast<SlideNumberWidget*>(widget), &SlideNumberWidget::updateText);
         break;
     case SlideLabelType:
-        widget = new SlideLabelWidget(documents.first()->getDocument(), parent);
+        widget = new SlideLabelWidget(parent);
         connect(static_cast<SlideLabelWidget*>(widget), &SlideLabelWidget::navigationSignal, this, &Master::navigateToPage);
         connect(this, &Master::navigationSignal, static_cast<SlideLabelWidget*>(widget), &SlideLabelWidget::updateText);
         break;

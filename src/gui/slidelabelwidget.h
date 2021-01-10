@@ -16,9 +16,6 @@ class SlideLabelWidget : public QWidget
 {
     Q_OBJECT
 
-    /// PDF document for resolving page labels.
-    const PdfDocument *document;
-
     /// Show total number of pages here.
     QLabel *total;
 
@@ -27,7 +24,7 @@ class SlideLabelWidget : public QWidget
 
 public:
     /// Constructor: construct and connect everything.
-    explicit SlideLabelWidget(const PdfDocument *document, QWidget *parent = nullptr);
+    explicit SlideLabelWidget(QWidget *parent = nullptr);
 
     /// Trivial destructor: Qt should delete everything automatically.
     ~SlideLabelWidget() {}

@@ -93,6 +93,7 @@ public:
     /// Map "presentation", "notes", ... to file names.
     /// This is needed to interpret GUI config.
     QMap<QString, QString> file_alias;
+    const PdfDocument *document;
     int number_of_pages = 0;
 
 

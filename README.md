@@ -28,7 +28,7 @@ modular, clean and flexible way.
     * page label (and max. label)
     * tool selector
     * timer
-    * not done yet: settings including help page (which doesn't have content yet...)
+    * editable markdown notes per page label
 
 #### To be implemented
 * avoid fatal error when stopping program while cache threads are running
@@ -42,7 +42,6 @@ modular, clean and flexible way.
 * other widgets:
     * overview (thumbnail slides, including or excluding overlays)
     * table of contents
-    * plain text / markdown notes (editable) → QTextEdit
     * settings (GUI for config files, experimental version already available)
     * improve timer (with color indicating progress relative to estimate)
 * animations and automatic slide change

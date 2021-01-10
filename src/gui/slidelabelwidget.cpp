@@ -1,10 +1,8 @@
 #include "slidelabelwidget.h"
 
-SlideLabelWidget::SlideLabelWidget(const PdfDocument *document, QWidget *parent) :
-    QWidget(parent),
-    document(document)
+SlideLabelWidget::SlideLabelWidget(QWidget *parent) :
+    QWidget(parent)
 {
-    qDebug() << "Created page label" << document;
     setFocusPolicy(Qt::NoFocus);
     QHBoxLayout *layout = new QHBoxLayout(this);
     layout->setMargin(1);
@@ -26,22 +24,16 @@ void SlideLabelWidget::resizeEvent(QResizeEvent *event) noexcept
 
 void SlideLabelWidget::updateText(const int page) noexcept
 {
-    if (document)
-    {
-        total->setText(" / " + document->pageLabel(preferences().number_of_pages - 1));
-        edit->setText(document->pageLabel(page));
-    }
+    total->setText(" / " + preferences().document->pageLabel(preferences().number_of_pages - 1));
+    edit->setText(preferences().document->pageLabel(page));
 }
 
 void SlideLabelWidget::readText() noexcept
 {
-    if (document)
-    {
-        const int page = document->pageIndex(edit->text());
-        if (page >= 0 && page < preferences().number_of_pages)
-            emit navigationSignal(page);
-        else
-            edit->setText("?");
-        updateText(page);
-    }
+    const int page = preferences().document->pageIndex(edit->text());
+    if (page >= 0 && page < preferences().number_of_pages)
+        emit navigationSignal(page);
+    else
+        edit->setText("?");
+    updateText(page);
 }
