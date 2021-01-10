@@ -4,14 +4,27 @@
     "color" : "gray",
     "children" : [
       {
-        "type" : "slide",
-        "file" : "presentation",
-        "page part" : "left",
-        "shift" : 0,
-        "transitions" : false,
-        "multimedia" : true,
-        "cache hash" : 1,
-        "threads" : 3
+        "type" : "tabbed",
+        "children" : [
+          {
+            "type" : "slide",
+            "title" : "slide",
+            "file" : "presentation",
+            "page part" : "left",
+            "shift" : 0,
+            "transitions" : false,
+            "multimedia" : true,
+            "cache hash" : 1,
+            "threads" : 3
+          },
+          {
+            "type" : "notes",
+            "title" : "notes",
+            "color" : "white",
+            "file" : "/tmp/test.md",
+            "zoom" : 20
+          }
+        ]
       },
       {
         "type" : "tabbed",

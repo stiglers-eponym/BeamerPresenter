@@ -297,6 +297,10 @@ QWidget* Master::createWidget(QJsonObject &object, QWidget *parent)
     case TOCType:
         break;
     case NotesType:
+        widget = new NotesWidget(parent);
+        static_cast<NotesWidget*>(widget)->zoomIn(object.value("zoom").toInt(10));
+        if (object.contains("file"))
+            static_cast<NotesWidget*>(widget)->load(object.value("file").toString());
         break;
     case ToolSelectorType:
     {

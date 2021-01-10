@@ -65,6 +65,7 @@ SOURCES += \
         src/gui/drawtoolbutton.cpp \
         src/gui/flexlayout.cpp \
         src/gui/keyinputlabel.cpp \
+        src/gui/noteswidget.cpp \
         src/gui/settingswidget.cpp \
         src/gui/slidelabelwidget.cpp \
         src/gui/slidenumberwidget.cpp \
@@ -97,6 +98,7 @@ HEADERS += \
         src/gui/drawtoolbutton.h \
         src/gui/flexlayout.h \
         src/gui/keyinputlabel.h \
+        src/gui/noteswidget.h \
         src/gui/settingswidget.h \
         src/gui/slidelabelwidget.h \
         src/gui/slidenumberwidget.h \

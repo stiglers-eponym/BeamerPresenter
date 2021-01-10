@@ -25,6 +25,7 @@ modular, clean and flexible way.
     * slide
     * clock
     * page number
+    * page label (and max. label)
     * tool selector
     * timer
     * not done yet: settings including help page (which doesn't have content yet...)
@@ -39,7 +40,6 @@ modular, clean and flexible way.
 * switch between per-slide and per-overlay drawings
 * highlighting tools: pointer, torch, magnifier
 * other widgets:
-    * page label (and max. label)
     * overview (thumbnail slides, including or excluding overlays)
     * table of contents
     * plain text / markdown notes (editable) → QTextEdit

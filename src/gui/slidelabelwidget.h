@@ -10,6 +10,8 @@
 
 /// Widget showing current page label (editable) and last page label.
 /// TODO: keyboard shortcuts while in QLineEdit.
+/// Much of this is identical to SlideNumberWidget, but here the page
+/// label is shown instead of the page index.
 class SlideLabelWidget : public QWidget
 {
     Q_OBJECT

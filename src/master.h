@@ -19,6 +19,7 @@
 #include "src/gui/slidelabelwidget.h"
 #include "src/gui/settingswidget.h"
 #include "src/gui/timerwidget.h"
+#include "src/gui/noteswidget.h"
 #include "src/gui/toolselectorwidget.h"
 #include "src/drawing/drawtool.h"
 
