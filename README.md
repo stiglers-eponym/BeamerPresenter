@@ -184,8 +184,12 @@ If you find bugs or have concrete suggestions for improvements, please
 The code for versions 0.1.x is quite unreadable, not really structured and full
 of ugly bug-fixes. To create something more structured, efficient, modular and
 flexible, I started rewriting BeamerPresenter from scratch (branch `rewrite`).
-But the result is not usable yet and it is currently unclear when I will have
-time to continue this project.
+But as of now, the result is only for experimental use. Many features are
+missing or incomplete.
 
 For the old code this means: Small issues might still be fixed, but new
 features will only be available in the new, rewritten version.
+
+Some features available the new version: modular user interface,
+drawing history, pressure-sensitive tablet input, flexible pdf engine (MuPDF or
+poppler), markdown-formatted notes, improved multi-threading.
