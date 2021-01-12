@@ -19,6 +19,16 @@ struct PdfLink {
     QString target;
 };
 
+/// PDF outline (table of contents, TOC) entry for storing a tree in a list.
+struct PdfOutlineEntry {
+    /// Title of the entry.
+    QString title;
+    /// Page index in the PDF (start counting from 0, destination resolved by the PDF engine)
+    int page;
+    /// Index of next outline on the same level in some data structure.
+    int next;
+};
+
 /// Unified type of slide transition for all PDF engines.
 struct SlideTransition {
     /// Slide tansition Types.
@@ -112,6 +122,17 @@ protected:
     /// 0 if all pages have equal size, 1 otherwise, -1 if unknown.
     qint8 flexible_page_sizes = -1;
 
+    /**
+     * @brief outline list
+     *
+     * The outline tree is stored as a list of PdfOutlineEntries. Each entry
+     * has a property "next" which contains the index of the next entry on the
+     * same outline level or -1 if no further entries exist on the same level.
+     * The first child of the entry (if it has any children) follows
+     * immediately after the entry in the list.
+     */
+    QList<PdfOutlineEntry> outline;
+
 public:
     /// Backend / PDF engine
     enum PdfBackend {
@@ -156,13 +177,16 @@ public:
     /// Check whether a file has been loaded successfully.
     virtual bool isValid() const = 0;
 
+    /// Load the PDF outline, fill PdfDocument::outline.
+    virtual void loadOutline() = 0;
+
     /// Link at given position (in point = inch/72)
     virtual const PdfLink linkAt(const int page, const QPointF &position) const = 0;
 
     /// Annotation at given position (in point = inch/72)
     virtual const VideoAnnotation annotationAt(const int page, const QPointF &position) const = 0;
 
-    /// List all video annotations on given page. Returns nullptr if list is
+    /// List all video annotations on given page. Returns NULL if list is
     /// empty.
     virtual QList<VideoAnnotation>* annotations(const int page) const = 0;
 

@@ -195,6 +195,8 @@ bool MuPdfDocument::loadDocument()
 
     // Load page labels.
     loadPageLabels();
+
+    qDebug() << "Loaded PDF document in MuPDF";
     return number_of_pages > 0;
 }
 
@@ -649,4 +651,30 @@ bool MuPdfDocument::flexiblePageSizes() noexcept
     }
     mutex->unlock();
     return flexible_page_sizes;
+}
+
+void MuPdfDocument::loadOutline()
+{
+    // TODO: a huge outline will probably lead to a crash of the program.
+    mutex->lock();
+    outline.clear();
+    fz_outline *root = fz_load_outline(ctx, doc);
+    if (root)
+    {
+        // dangerous anonymous recursion
+        auto fill_outline = [&](fz_outline *entry, auto& function) -> void {
+            const int idx = outline.length();
+            outline.append({entry->title, entry->page, -1});
+            if (entry->down)
+                function(entry->down, function);
+            if (entry->next)
+            {
+                outline[idx].next = outline.length();
+                function(entry->next, function);
+            }
+        };
+        fill_outline(root, fill_outline);
+        fz_drop_outline(ctx, root);
+    }
+    mutex->unlock();
 }

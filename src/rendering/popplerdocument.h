@@ -70,6 +70,9 @@ public:
     bool isValid() const override
     {return doc && !doc->isLocked();}
 
+    /// Load the PDF outline, fill PdfDocument::outline.
+    void loadOutline() override;
+
     /// Page label of given page index. (Empty string if page is invalid.)
     const QString pageLabel(const int page) const override;
 

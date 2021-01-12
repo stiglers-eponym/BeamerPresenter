@@ -79,6 +79,9 @@ public:
     fz_document* getDocument() const
     {return doc;}
 
+    /// Load the PDF outline, fill PdfDocument::outline.
+    void loadOutline() override;
+
     /// Link at given position (in point = inch/72)
     virtual const PdfLink linkAt(const int page, const QPointF &position) const override;
 

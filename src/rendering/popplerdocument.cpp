@@ -7,6 +7,8 @@ PopplerDocument::PopplerDocument(const QString &filename) :
     // Load the document
     if (!loadDocument())
         qFatal("Loading document failed");
+
+    qDebug() << "Loaded PDF document in Poppler";
 }
 
 const QString PopplerDocument::pageLabel(const int page) const
@@ -363,4 +365,23 @@ bool PopplerDocument::flexiblePageSizes() noexcept
     }
     flexible_page_sizes = 0;
     return 0;
+}
+
+void PopplerDocument::loadOutline()
+{
+    // TODO: a huge outline will probably lead to a crash of the program.
+    outline.clear();
+    const QVector<Poppler::OutlineItem> root = doc->outline();
+    // dangerous anonymous recursion
+    auto fill_outline = [&](const Poppler::OutlineItem &entry, auto& function) -> void {
+        const int idx = outline.length();
+        outline.append({entry.name(), entry.destination()->pageNumber(), -1});
+        for (const auto &child : static_cast<const QVector<Poppler::OutlineItem>>(entry.children()))
+            function(child, function);
+        outline[idx].next = outline.length();
+    };
+    for (const auto &child : root)
+        fill_outline(child, fill_outline);
+    if (!outline.isEmpty())
+        outline.last().next = -1;
 }

@@ -28,6 +28,9 @@ PdfMaster::PdfMaster(const QString &filename)
 #endif
     if (document == nullptr || !document->isValid())
         qFatal("Loading document failed");
+
+    // This is mainly for testing:
+    document->loadOutline();
 }
 
 PdfMaster::~PdfMaster()
