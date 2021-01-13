@@ -97,7 +97,7 @@ Then download the source and build. To download the latest release use
 ```sh
 wget https://github.com/stiglers-eponym/BeamerPresenter/archive/v0.1.3.tar.gz
 tar -xf v0.1.3.tar.gz
-cd BeamerPresenter-v0.1.3
+cd BeamerPresenter-0.1.3
 qmake && make
 ```
 To build from current git version use

@@ -104,7 +104,7 @@ void EmbedApp::start()
         }
 #endif
 #ifdef DEBUG_MULTIMEDIA
-        qDebug() << "Started process:" << process->program() << process->pid();
+        qDebug() << "Started process:" << process->program() << process->processId();
 #endif
         // Wait some time before trying to get the window ID
         // The window has to be created first.
@@ -158,11 +158,7 @@ void EmbedApp::getWidFromPid()
         pid2widProcess = new QProcess(this);
         connect(pid2widProcess, static_cast<void (QProcess::*)(int const, QProcess::ExitStatus const)>(&QProcess::finished), this, &EmbedApp::receiveWidFromPid);
     }
-#ifdef Q_OS_WIN
-    pid2widProcess->start(pid2wid, QStringList() << QString::number(process->pid()->dwProcessId));
-#else
     pid2widProcess->start(pid2wid, QStringList() << QString::number(process->processId()));
-#endif
 }
 
 void EmbedApp::receiveWidFromPid(int const exitCode, QProcess::ExitStatus const status)
