@@ -376,12 +376,13 @@ void PopplerDocument::loadOutline()
     // dangerous anonymous recursion
     auto fill_outline = [&](const Poppler::OutlineItem &entry, auto& function) -> void {
         const int idx = outline.length();
-        outline.append({entry.name(), entry.destination()->pageNumber(), -1});
+        outline.append({entry.name(), entry.destination()->pageNumber() - 1, -1});
         for (const auto &child : static_cast<const QVector<Poppler::OutlineItem>>(entry.children()))
             function(child, function);
         outline[idx].next = outline.length();
     };
     for (const auto &child : root)
         fill_outline(child, fill_outline);
-    outline.last().next = -1;
+    //for (int i=0; i<outline.length(); i++)
+    //    qDebug() << i << outline[i].page << outline[i].next << outline[i].title;
 }

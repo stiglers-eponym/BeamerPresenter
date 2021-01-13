@@ -668,15 +668,14 @@ void MuPdfDocument::loadOutline()
             outline.append({entry->title, entry->page, -1});
             if (entry->down)
                 function(entry->down, function);
+            outline[idx].next = outline.length();
             if (entry->next)
-            {
-                outline[idx].next = outline.length();
                 function(entry->next, function);
-            }
         };
         fill_outline(root, fill_outline);
         fz_drop_outline(ctx, root);
     }
     mutex->unlock();
-    outline.last().next = -1;
+    //for (int i=0; i<outline.length(); i++)
+    //    qDebug() << i << outline[i].page << outline[i].next << outline[i].title;
 }

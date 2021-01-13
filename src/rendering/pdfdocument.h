@@ -130,11 +130,11 @@ protected:
      *
      * The outline tree is stored as a list of PdfOutlineEntries. Each entry
      * has a property "next" which contains the index of the next entry on the
-     * same outline level or -1 if no further entries exist on the same level.
-     * The first child of the entry (if it has any children) follows
-     * immediately after the entry in the list.
+     * same outline level or of the next entry on a higher level if no further
+     * entries exist on the same level. The first child of the entry (if it
+     * has any children) follows immediately after the entry in the list.
      *
-     * The first entry is always a dummy entry of page -1 and empty title.
+     * The first entry is always a dummy entry with page -1 and empty title.
      * This list may never be empty or some functions will cause segmentation
      * faults.
      */
@@ -186,6 +186,9 @@ public:
 
     /// Load the PDF outline, fill PdfDocument::outline.
     virtual void loadOutline() = 0;
+
+    /// return outline
+    const QList<PdfOutlineEntry> &getOutline() const noexcept {return outline;}
 
     /// Return outline entry at given page.
     const PdfOutlineEntry &outlineEntryAt(const int page) const;

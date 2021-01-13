@@ -72,6 +72,7 @@ SOURCES += \
         src/gui/stackedwidget.cpp \
         src/gui/tabwidget.cpp \
         src/gui/timerwidget.cpp \
+        src/gui/tocwidget.cpp \
         src/gui/toolselectorwidget.cpp \
         src/main.cpp \
         src/master.cpp \
@@ -106,6 +107,7 @@ HEADERS += \
         src/gui/stackedwidget.h \
         src/gui/tabwidget.h \
         src/gui/timerwidget.h \
+        src/gui/tocwidget.h \
         src/gui/toolselectorwidget.h \
         src/master.h \
         src/names.h \

@@ -297,6 +297,8 @@ QWidget* Master::createWidget(QJsonObject &object, QWidget *parent)
     case OverviewType:
         break;
     case TOCType:
+        widget = new TOCwidget(parent);
+        connect(static_cast<TOCwidget*>(widget), &TOCwidget::sendNavigationSignal, this, &Master::navigateToPage);
         break;
     case NotesType:
         widget = new NotesWidget(parent);
