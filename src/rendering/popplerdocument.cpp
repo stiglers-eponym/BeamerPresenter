@@ -371,6 +371,7 @@ void PopplerDocument::loadOutline()
 {
     // TODO: a huge outline will probably lead to a crash of the program.
     outline.clear();
+    outline.append({"", -1, 1});
     const QVector<Poppler::OutlineItem> root = doc->outline();
     // dangerous anonymous recursion
     auto fill_outline = [&](const Poppler::OutlineItem &entry, auto& function) -> void {
@@ -382,6 +383,5 @@ void PopplerDocument::loadOutline()
     };
     for (const auto &child : root)
         fill_outline(child, fill_outline);
-    if (!outline.isEmpty())
-        outline.last().next = -1;
+    outline.last().next = -1;
 }

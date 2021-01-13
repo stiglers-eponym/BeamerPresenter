@@ -31,6 +31,7 @@ modular, clean and flexible way.
     * editable markdown notes per page label
 
 #### To be implemented
+* improve cache management and layout corrections: sometimes cache is not used correctly.
 * avoid fatal error when stopping program while cache threads are running
 * more settings
 * immediately update slides to fit window size (currently this is only done when changing the slide or manually updating)

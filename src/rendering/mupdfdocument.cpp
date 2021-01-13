@@ -656,8 +656,9 @@ bool MuPdfDocument::flexiblePageSizes() noexcept
 void MuPdfDocument::loadOutline()
 {
     // TODO: a huge outline will probably lead to a crash of the program.
-    mutex->lock();
     outline.clear();
+    outline.append({"", -1, 1});
+    mutex->lock();
     fz_outline *root = fz_load_outline(ctx, doc);
     if (root)
     {
@@ -677,4 +678,5 @@ void MuPdfDocument::loadOutline()
         fz_drop_outline(ctx, root);
     }
     mutex->unlock();
+    outline.last().next = -1;
 }

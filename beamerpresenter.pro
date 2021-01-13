@@ -78,6 +78,7 @@ SOURCES += \
         src/pdfmaster.cpp \
         src/preferences.cpp \
         src/rendering/externalrenderer.cpp \
+        src/rendering/pdfdocument.cpp \
         src/rendering/pixcache.cpp \
         src/rendering/pixcachethread.cpp \
         src/rendering/pngpixmap.cpp \

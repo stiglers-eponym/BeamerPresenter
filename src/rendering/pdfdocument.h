@@ -27,6 +27,9 @@ struct PdfOutlineEntry {
     int page;
     /// Index of next outline on the same level in some data structure.
     int next;
+    /// Partial ordering defined by page number.
+    //bool operator<(const PdfOutlineEntry& other) const {return page < other.page;}
+    //bool operator<(const int other_page) const {return page < other_page;}
 };
 
 /// Unified type of slide transition for all PDF engines.
@@ -123,15 +126,19 @@ protected:
     qint8 flexible_page_sizes = -1;
 
     /**
-     * @brief outline list
+     * @brief list representing the outline tree
      *
      * The outline tree is stored as a list of PdfOutlineEntries. Each entry
      * has a property "next" which contains the index of the next entry on the
      * same outline level or -1 if no further entries exist on the same level.
      * The first child of the entry (if it has any children) follows
      * immediately after the entry in the list.
+     *
+     * The first entry is always a dummy entry of page -1 and empty title.
+     * This list may never be empty or some functions will cause segmentation
+     * faults.
      */
-    QList<PdfOutlineEntry> outline;
+    QList<PdfOutlineEntry> outline = {{"", -1, 1}};
 
 public:
     /// Backend / PDF engine
@@ -179,6 +186,9 @@ public:
 
     /// Load the PDF outline, fill PdfDocument::outline.
     virtual void loadOutline() = 0;
+
+    /// Return outline entry at given page.
+    const PdfOutlineEntry &outlineEntryAt(const int page) const;
 
     /// Link at given position (in point = inch/72)
     virtual const PdfLink linkAt(const int page, const QPointF &position) const = 0;
