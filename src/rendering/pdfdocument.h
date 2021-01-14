@@ -130,9 +130,10 @@ protected:
      *
      * The outline tree is stored as a list of PdfOutlineEntries. Each entry
      * has a property "next" which contains the index of the next entry on the
-     * same outline level or of the next entry on a higher level if no further
-     * entries exist on the same level. The first child of the entry (if it
-     * has any children) follows immediately after the entry in the list.
+     * same outline level or minus the index of the next entry on a higher
+     * level if no further entries exist on the same level. The first child of
+     * the entry (if it has any children) follows immediately after the entry
+     * in the list.
      *
      * The first entry is always a dummy entry with page -1 and empty title.
      * This list may never be empty or some functions will cause segmentation

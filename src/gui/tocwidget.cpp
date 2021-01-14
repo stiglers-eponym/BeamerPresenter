@@ -7,7 +7,6 @@ void TOCwidget::generateTOC(const PdfDocument *document)
     if (!document || !tree_children.isEmpty())
         return;
 
-    qDebug() << "Start generating TOC";
     QVBoxLayout *layout = new QVBoxLayout();
     TOCwidget *child_widget;
     const QList<PdfOutlineEntry> &outline = document->getOutline();
@@ -26,8 +25,7 @@ TOCwidget::TOCwidget(const QList<PdfOutlineEntry> &outline, TOCwidget *parent, c
     tree_parent(parent),
     page(outline[entry].page)
 {
-    qDebug() << "Generating TOC entry" << page << outline[entry].title;
-    if (outline[entry].next == entry + 1)
+    if (std::abs(outline[entry].next) == entry + 1)
     {
         QHBoxLayout *layout = new QHBoxLayout();
         layout->setSpacing(0);
@@ -46,9 +44,7 @@ TOCwidget::TOCwidget(const QList<PdfOutlineEntry> &outline, TOCwidget *parent, c
         connect(button, &QPushButton::clicked, this, [&](){emit sendNavigationSignal(page);});
         layout->addWidget(button);
         TOCwidget *child_widget;
-        int max = outline[entry].next;
-        if (max == -1)
-            max = outline.length();
+        const int max = std::abs(outline[entry].next);
         for (int i=entry+1; i>0 && i<max; i=outline[i].next)
         {
             child_widget = new TOCwidget(outline, this, i);

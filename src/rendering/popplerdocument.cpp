@@ -380,7 +380,10 @@ void PopplerDocument::loadOutline()
         for (const auto &child : static_cast<const QVector<Poppler::OutlineItem>>(entry.children()))
             function(child, function);
         outline[idx].next = outline.length();
+        if (idx + 1 < outline.length())
+            outline.last().next *= -1;
     };
+    outline.last().next = -outline.length();
     for (const auto &child : root)
         fill_outline(child, fill_outline);
     //for (int i=0; i<outline.length(); i++)
