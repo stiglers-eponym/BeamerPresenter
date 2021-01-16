@@ -139,7 +139,7 @@ protected:
      * This list may never be empty or some functions will cause segmentation
      * faults.
      */
-    QList<PdfOutlineEntry> outline = {{"", -1, 1}};
+    QVector<PdfOutlineEntry> outline = {{"", -1, 1}};
 
 public:
     /// Backend / PDF engine
@@ -189,7 +189,7 @@ public:
     virtual void loadOutline() = 0;
 
     /// return outline
-    const QList<PdfOutlineEntry> &getOutline() const noexcept {return outline;}
+    const QVector<PdfOutlineEntry> &getOutline() const noexcept {return outline;}
 
     /// Return outline entry at given page.
     const PdfOutlineEntry &outlineEntryAt(const int page) const;

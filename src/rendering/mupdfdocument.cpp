@@ -64,7 +64,7 @@ std::string decode_pdf_label(int number, const label_item &item)
         string.append(std::to_string(number));
         break;
     }
-    qDebug() << number << QString::fromStdString(string);
+    //qDebug() << number << QString::fromStdString(string);
     return string;
 }
 
@@ -663,7 +663,8 @@ void MuPdfDocument::loadOutline()
     if (root)
     {
         // dangerous anonymous recursion
-        auto fill_outline = [&](fz_outline *entry, auto& function) -> void {
+        auto fill_outline = [&](fz_outline *entry, auto& function) -> void
+        {
             const int idx = outline.length();
             outline.append({entry->title, entry->page, -1});
             if (entry->down)
@@ -680,6 +681,6 @@ void MuPdfDocument::loadOutline()
         fz_drop_outline(ctx, root);
     }
     mutex->unlock();
-    //for (int i=0; i<outline.length(); i++)
-    //    qDebug() << i << outline[i].page << outline[i].next << outline[i].title;
+    for (int i=0; i<outline.length(); i++)
+        qDebug() << i << outline[i].page << outline[i].next << outline[i].title;
 }

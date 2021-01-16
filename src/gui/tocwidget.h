@@ -4,22 +4,22 @@
 #include <QDebug>
 #include <QWidget>
 #include <QBoxLayout>
-#include <QPushButton>
+#include <QLabel>
 #include "src/rendering/pdfdocument.h"
 #include "src/preferences.h"
+#include "src/gui/tocbutton.h"
 
 class TOCwidget : public QWidget
 {
     Q_OBJECT
 
-    TOCwidget *tree_parent = NULL;
-    QList<TOCwidget*> tree_children;
-    const int page;
+    QVector<TOCbutton*> buttons;
 
 public:
-    explicit TOCwidget(QWidget *parent = nullptr) : QWidget(parent), page(-1) {}
+    explicit TOCwidget(QWidget *parent = nullptr) : QWidget(parent) {}
 
-    explicit TOCwidget(const QList<PdfOutlineEntry> &outline, TOCwidget *parent, const int entry);
+    ~TOCwidget()
+    {qDeleteAll(buttons);}
 
     void generateTOC(const PdfDocument *document = nullptr);
 
@@ -28,8 +28,9 @@ public:
     bool hasHeightForWidth() const override
     {return true;}
 
-protected:
+public slots:
     bool event(QEvent *event) override;
+    void expandTo(const int page);
 
 signals:
     void sendNavigationSignal(const int page);

@@ -4,68 +4,85 @@ void TOCwidget::generateTOC(const PdfDocument *document)
 {
     if (!document)
         document = preferences().document;
-    if (!document || !tree_children.isEmpty())
+    if (!document || !buttons.isEmpty())
         return;
 
-    QVBoxLayout *layout = new QVBoxLayout();
-    TOCwidget *child_widget;
-    const QList<PdfOutlineEntry> &outline = document->getOutline();
-    for (int i=1; i>0 && i<outline.length(); i=outline[i].next)
+    QGridLayout *layout = new QGridLayout();
+    QCheckBox *expand_button;
+    const QVector<PdfOutlineEntry> &outline = document->getOutline();
+    auto add_buttons = [&](const int idx, const int depth, auto &function) -> TOCbutton*
     {
-        child_widget = new TOCwidget(outline, this, i);
-        connect(child_widget, &TOCwidget::sendNavigationSignal, this, &TOCwidget::sendNavigationSignal);
-        tree_children.append(child_widget);
-        layout->addWidget(child_widget);
-    };
-    setLayout(layout);
-}
-
-TOCwidget::TOCwidget(const QList<PdfOutlineEntry> &outline, TOCwidget *parent, const int entry) :
-    QWidget(parent),
-    tree_parent(parent),
-    page(outline[entry].page)
-{
-    if (std::abs(outline[entry].next) == entry + 1)
-    {
-        QHBoxLayout *layout = new QHBoxLayout();
-        layout->setSpacing(0);
-        layout->setMargin(0);
-        QPushButton *button = new QPushButton(outline[entry].title, this);
-        connect(button, &QPushButton::clicked, this, [&](){emit sendNavigationSignal(page);});
-        layout->addWidget(button);
-        setLayout(layout);
-    }
-    else
-    {
-        QVBoxLayout *layout = new QVBoxLayout();
-        layout->setSpacing(0);
-        layout->setMargin(0);
-        QPushButton *button = new QPushButton(outline[entry].title, this);
-        connect(button, &QPushButton::clicked, this, [&](){emit sendNavigationSignal(page);});
-        layout->addWidget(button);
-        TOCwidget *child_widget;
-        const int max = std::abs(outline[entry].next);
-        for (int i=entry+1; i>0 && i<max; i=outline[i].next)
+        if (std::abs(outline[idx].next) > idx + 1)
         {
-            child_widget = new TOCwidget(outline, this, i);
-            connect(child_widget, &TOCwidget::sendNavigationSignal, this, &TOCwidget::sendNavigationSignal);
-            tree_children.append(child_widget);
-            layout->addWidget(child_widget);
-        };
-        setLayout(layout);
-    }
+            expand_button = new QCheckBox(this);
+            layout->addWidget(expand_button, idx, 0, 1, depth);
+        }
+        else
+            expand_button = NULL;
+        TOCbutton *button = new TOCbutton(outline[idx].title, outline[idx].page, expand_button, this);
+        buttons.append(button);
+        layout->addWidget(button, idx, depth+1, 1, 12-depth);
+        connect(button, &TOCbutton::sendNavigationEvent, this, &TOCwidget::sendNavigationSignal);
+        if (std::abs(outline[idx].next) - idx > 1 && idx + 1 < outline.length())
+            button->tree_child = function(idx + 1, depth+1, function);
+        if (outline[idx].next > 0 && outline[idx].next < outline.length())
+            button->tree_next = function(outline[idx].next, depth, function);
+        return button;
+    };
+    add_buttons(1, 0, add_buttons);
+    setLayout(layout);
 }
 
 bool TOCwidget::event(QEvent *event)
 {
     switch (event->type())
     {
-    case QEvent::Show:
     case QEvent::FocusIn:
-        if (page == -1 && tree_parent == NULL && tree_children.isEmpty())
+        if (buttons.isEmpty())
             generateTOC();
+        break;
+    case QEvent::Show:
+        if (buttons.isEmpty())
+            generateTOC();
+        expandTo(preferences().page);
+        break;
     default:
         break;
     }
     return QWidget::event(event);
+}
+
+void TOCwidget::expandTo(const int page)
+{
+    qDebug() << "expand to" << page;
+    TOCbutton *child = buttons.first();
+    auto expand_to = [&](TOCbutton *button, auto &function) -> void
+    {
+        button->expand();
+        child = button->tree_child;
+        if (!child || child->page > page)
+            return;
+        while (child && child->tree_next)
+        {
+            if (child->tree_next && child->tree_next->page > page)
+            {
+                function(child, function);
+                return;
+            }
+            child = child->tree_next;
+        }
+        if (child)
+            function(child, function);
+    };
+    while (child && child->tree_next)
+    {
+        if (child->tree_next && child->tree_next->page > page)
+        {
+            expand_to(child, expand_to);
+            return;
+        }
+        child = child->tree_next;
+    }
+    if (child)
+        expand_to(child, expand_to);
 }

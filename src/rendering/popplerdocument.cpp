@@ -374,7 +374,8 @@ void PopplerDocument::loadOutline()
     outline.append({"", -1, 1});
     const QVector<Poppler::OutlineItem> root = doc->outline();
     // dangerous anonymous recursion
-    auto fill_outline = [&](const Poppler::OutlineItem &entry, auto& function) -> void {
+    auto fill_outline = [&](const Poppler::OutlineItem &entry, auto& function) -> void
+    {
         const int idx = outline.length();
         outline.append({entry.name(), entry.destination()->pageNumber() - 1, -1});
         for (const auto &child : static_cast<const QVector<Poppler::OutlineItem>>(entry.children()))

@@ -4,7 +4,7 @@
 #include <QLineEdit>
 #include <QLabel>
 #include <QTimer>
-#include <QHBoxLayout>
+#include <QGridLayout>
 #include "src/preferences.h"
 
 class TimerWidget : public QWidget
