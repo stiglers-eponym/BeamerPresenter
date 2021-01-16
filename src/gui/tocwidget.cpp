@@ -4,7 +4,7 @@ void TOCwidget::generateTOC(const PdfDocument *document)
 {
     if (!document)
         document = preferences().document;
-    if (!document || !buttons.isEmpty())
+    if (!document || first_button)
         return;
 
     QGridLayout *layout = new QGridLayout();
@@ -15,13 +15,12 @@ void TOCwidget::generateTOC(const PdfDocument *document)
         if (std::abs(outline[idx].next) > idx + 1)
         {
             expand_button = new QCheckBox(this);
-            layout->addWidget(expand_button, idx, 0, 1, depth);
+            layout->addWidget(expand_button, idx, depth, 1, depth);
         }
         else
             expand_button = NULL;
         TOCbutton *button = new TOCbutton(outline[idx].title, outline[idx].page, expand_button, this);
-        buttons.append(button);
-        layout->addWidget(button, idx, depth+1, 1, 12-depth);
+        layout->addWidget(button, idx, depth+1, 1, std::min(40 - depth, 20));
         connect(button, &TOCbutton::sendNavigationEvent, this, &TOCwidget::sendNavigationSignal);
         if (std::abs(outline[idx].next) - idx > 1 && idx + 1 < outline.length())
             button->tree_child = function(idx + 1, depth+1, function);
@@ -29,33 +28,14 @@ void TOCwidget::generateTOC(const PdfDocument *document)
             button->tree_next = function(outline[idx].next, depth, function);
         return button;
     };
-    add_buttons(1, 0, add_buttons);
+    first_button = add_buttons(1, 0, add_buttons);
     setLayout(layout);
-}
-
-bool TOCwidget::event(QEvent *event)
-{
-    switch (event->type())
-    {
-    case QEvent::FocusIn:
-        if (buttons.isEmpty())
-            generateTOC();
-        break;
-    case QEvent::Show:
-        if (buttons.isEmpty())
-            generateTOC();
-        expandTo(preferences().page);
-        break;
-    default:
-        break;
-    }
-    return QWidget::event(event);
 }
 
 void TOCwidget::expandTo(const int page)
 {
     qDebug() << "expand to" << page;
-    TOCbutton *child = buttons.first();
+    TOCbutton *child = first_button;
     auto expand_to = [&](TOCbutton *button, auto &function) -> void
     {
         button->expand();

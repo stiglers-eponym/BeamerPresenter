@@ -15,7 +15,7 @@ TEMPLATE = app
 DEFINES += INCLUDE_POPPLER
 
 # Include MuPDF: requires that mupdf libraries are installed.
-# Tested only with libmupdf 1.17.0
+# Tested only with libmupdf 1.18.0
 DEFINES += INCLUDE_MUPDF
 
 # The following define makes your compiler emit warnings if you use
@@ -154,7 +154,9 @@ unix {
     }
     contains(DEFINES, INCLUDE_MUPDF) {
         INCLUDEPATH += /usr/include/mupdf
-        LIBS += -lmupdf -lmupdf-third -lm -lfreetype -lz -lharfbuzz -ljpeg -ljbig2dec -lopenjp2
+        LIBS += -lmupdf -lmupdf-third -lm -lfreetype -lz -lharfbuzz -ljpeg -ljbig2dec -lopenjp2 -lgumbo
+        # In my installation of MuPDF, the gumbo library is needed since MuPDF 1.18.0.
+        # All other libraries were also required in MuPDF 1.17.0.
     }
 }
 macx {
