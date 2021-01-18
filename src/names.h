@@ -18,7 +18,7 @@ static const QMap<QString, GuiWidget> string_to_widget_type
     {"stacked", StackedWidgetType},
     {"tabbed", TabedWidgetType},
     {"slide", SlideType},
-    {"overview", OverviewType},
+    {"thumbnails", OverviewType},
     {"toc", TOCType},
     {"table of contents", TOCType},
     {"notes", NotesType},

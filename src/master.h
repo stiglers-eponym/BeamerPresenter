@@ -21,6 +21,7 @@
 #include "src/gui/timerwidget.h"
 #include "src/gui/noteswidget.h"
 #include "src/gui/tocwidget.h"
+#include "src/gui/thumbnailwidget.h"
 #include "src/gui/toolselectorwidget.h"
 #include "src/drawing/drawtool.h"
 

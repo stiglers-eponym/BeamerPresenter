@@ -152,7 +152,10 @@ QWidget* Master::createWidget(QJsonObject &object, QWidget *parent)
             QJsonObject obj = it->toObject();
             // Create child widgets recursively
             QWidget* const newwidget = createWidget(obj, widget);
-            tabwidget->addTab(newwidget, obj.value("title").toString());
+            if (obj.contains("title"))
+                tabwidget->addTab(newwidget, obj.value("title").toString());
+            else
+                tabwidget->addTab(newwidget, obj.value("type").toString());
         }
         widget = tabwidget;
         break;
@@ -293,8 +296,14 @@ QWidget* Master::createWidget(QJsonObject &object, QWidget *parent)
         connect(slide, &SlideView::sendKeyEvent, this, &Master::receiveKeyEvent);
         connect(scene, &SlideScene::navigationToViews, slide, &SlideView::pageChanged);
         widget = slide;
+        break;
     }
     case OverviewType:
+        widget = new ThumbnailWidget(parent);
+        if (object.contains("columns"))
+            static_cast<ThumbnailWidget*>(widget)->setColumns(object.value("columns").toInt(4));
+        widget->moveToThread(new QThread());
+        connect(static_cast<ThumbnailWidget*>(widget), &ThumbnailWidget::sendNavigationSignal, this, &Master::navigateToPage);
         break;
     case TOCType:
         widget = new TOCwidget(parent);

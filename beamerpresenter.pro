@@ -71,6 +71,8 @@ SOURCES += \
         src/gui/slidenumberwidget.cpp \
         src/gui/stackedwidget.cpp \
         src/gui/tabwidget.cpp \
+        src/gui/thumbnailbutton.cpp \
+        src/gui/thumbnailwidget.cpp \
         src/gui/timerwidget.cpp \
         src/gui/tocbutton.cpp \
         src/gui/tocwidget.cpp \
@@ -107,6 +109,8 @@ HEADERS += \
         src/gui/slidenumberwidget.h \
         src/gui/stackedwidget.h \
         src/gui/tabwidget.h \
+        src/gui/thumbnailbutton.h \
+        src/gui/thumbnailwidget.h \
         src/gui/timerwidget.h \
         src/gui/tocbutton.h \
         src/gui/tocwidget.h \

@@ -29,29 +29,27 @@ modular, clean and flexible way.
     * tool selector
     * timer
     * editable markdown notes per page label
+    * table of contents (still kind of improvised)
+    * thumbnails (still kind of improvised)
 
 #### To be implemented
 * improve cache management and layout corrections: sometimes cache is not used correctly.
 * avoid fatal error when stopping program while cache threads are running
-* more settings
-* immediately update slides to fit window size (currently this is only done when changing the slide or manually updating)
+* cache slides even when size of slides varies
+* cache only required slides in previews showing specific overlays
 * fix layout, avoid recalculating full layout when clock label changes text
+* immediately update slides to fit window size (currently this is only done when changing the slide or manually updating)
+* animations and automatic slide change
 * slide transitions
 * multimedia
+* option to insert extra slides or extra space below slide for drawing
 * switch between per-slide and per-overlay drawings
 * highlighting tools: pointer, torch, magnifier
-* other widgets:
-    * overview (thumbnail slides, including or excluding overlays)
-    * table of contents
-    * settings (GUI for config files, experimental version already available)
-    * improve timer (with color indicating progress relative to estimate)
-* animations and automatic slide change
 * save and load drawings to xopp-like xml format
-* cache slides even when size of slides varies
-* option to add extra space on slide for drawing
-* option to insert extra slides or extra space below slide for drawing
-* option to decouple drawings on presentation and speaker screen? (→ notes only for speaker)
-* cache only required slides in previews showing specific overlays
+* improve widgets:
+    * settings (GUI for config files, experimental version already available)
+    * timer (with color indicating progress relative to estimate like in version 0.1.x)
+    * thumbnails (cursor, option to exclude overlays)
 * fine-tuned interface, fonts, ...
 * manual, man pages
 
