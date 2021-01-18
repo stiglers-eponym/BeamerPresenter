@@ -49,7 +49,9 @@ modular, clean and flexible way.
 * improve widgets:
     * settings (GUI for config files, experimental version already available)
     * timer (with color indicating progress relative to estimate like in version 0.1.x)
-    * thumbnails (cursor, option to exclude overlays)
+    * thumbnails (cursor)
+    * table of contents (kind ov improvised)
+    * all: keyboard shortcuts
 * fine-tuned interface, fonts, ...
 * manual, man pages
 

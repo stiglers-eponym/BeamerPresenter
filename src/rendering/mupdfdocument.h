@@ -67,6 +67,11 @@ public:
     /// shift = shift >= 0 ? shift & ~AnyOverlay : shift | AnyOverlay
     int overlaysShifted(const int start, const int shift_overlay) const override;
 
+    /// List of indices, at which slide labels change. An empty list indicates
+    /// that all consecutive slides have different labels.
+    virtual QList<int> overlayIndices() const noexcept override
+    {return pageLabels.size() == number_of_pages ? QList<int>() : pageLabels.keys();}
+
     /// Total number of pages in document.
     int numberOfPages() const override
     {return number_of_pages;}

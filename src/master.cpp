@@ -304,6 +304,8 @@ QWidget* Master::createWidget(QJsonObject &object, QWidget *parent)
             static_cast<ThumbnailWidget*>(widget)->setColumns(object.value("columns").toInt(4));
         widget->moveToThread(new QThread());
         connect(static_cast<ThumbnailWidget*>(widget), &ThumbnailWidget::sendNavigationSignal, this, &Master::navigateToPage);
+        if (object.value("overlays").toString() == "skip")
+            static_cast<ThumbnailWidget*>(widget)->skipOverlays();
         break;
     case TOCType:
         widget = new TOCwidget(parent);

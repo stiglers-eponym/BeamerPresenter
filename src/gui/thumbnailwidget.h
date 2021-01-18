@@ -30,12 +30,17 @@ class ThumbnailWidget : public QScrollArea
 
     AbstractRenderer *renderer = NULL;
     int columns = 4;
+    int ref_width = 0;
+    bool skip_overlays = false;
 
 public:
     explicit ThumbnailWidget(QWidget *parent = NULL) : QScrollArea(parent) {}
 
-    void setColumns(const int n_columns)
+    void setColumns(const int n_columns) noexcept
     {columns = n_columns;}
+
+    void skipOverlays() noexcept
+    {skip_overlays = true;}
 
     void generate(const PdfDocument *document = NULL);
 
@@ -45,11 +50,11 @@ public:
 public slots:
     /// Show event: generate thumbnails if necessary.
     void showEvent(QShowEvent*) override
-    {if (!renderer) generate();}
+    {generate();}
 
     /// Focus event: generate thumbnails if necessary.
     void focusInEvent(QFocusEvent*) override
-    {if (!renderer) generate();}
+    {generate();}
 
 signals:
     void sendNavigationSignal(int page);

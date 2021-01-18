@@ -23,6 +23,13 @@
             "title" : "TOC",
             "color" : "yellow",
             "keys" : "t"
+          },
+          {
+              "type" : "thumbnails",
+              "title" : "thumbnails",
+              "overlays" : "skip",
+              "columns" : 5,
+              "keys" : "o"
           }
         ]
       },
@@ -33,7 +40,7 @@
           {
             "type" : "vertical",
             "title" : "overview",
-            "keys" : "o",
+            "keys" : "p",
             "children" : [
               {
                 "type" : "clock"

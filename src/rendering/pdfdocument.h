@@ -182,6 +182,10 @@ public:
     /// shift = shift >= 0 ? shift & ~AnyOverlay : shift | AnyOverlay
     virtual int overlaysShifted(const int start, const int shift_overlay) const = 0;
 
+    /// List of indices, at which slide labels change. An empty list indicates
+    /// that all consecutive slides have different labels.
+    virtual QList<int> overlayIndices() const noexcept = 0;
+
     /// Check whether a file has been loaded successfully.
     virtual bool isValid() const = 0;
 

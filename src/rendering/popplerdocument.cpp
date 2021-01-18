@@ -214,11 +214,11 @@ void PopplerDocument::populateOverlaySlidesSet()
     // Check whether it makes sense to create the lookup table.
     bool useful = false;
     QString label = "\n\n\n\n";
-    for (int i=0; i<doc->numPages(); ++i)
+    for (int i=0; i<doc->numPages(); i++)
     {
         if (label != doc->page(i)->label())
         {
-            if (!useful && *overlay_slide_indices.cend() != i-1)
+            if (!useful && !overlay_slide_indices.empty() && *overlay_slide_indices.crbegin() != i-1)
                 useful = true;
             overlay_slide_indices.insert(i);
             label = doc->page(i)->label();
