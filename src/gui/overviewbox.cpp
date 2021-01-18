@@ -28,6 +28,7 @@ OverviewBox::OverviewBox(QWidget *parent) :
     client->setLayout(layout);
     //setShortcutEnabled(false); // TODO: check what this does
     // TODO: handle keyboard shortcuts
+    QScroller::grabGesture(this);
 }
 
 OverviewBox::~OverviewBox()

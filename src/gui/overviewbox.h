@@ -20,6 +20,7 @@
 #define OVERVIEWBOX_H
 
 #include <QtDebug>
+#include <QScroller>
 #include <QScrollArea>
 #include <QGridLayout>
 #include "overviewframe.h"
