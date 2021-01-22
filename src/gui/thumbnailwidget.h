@@ -3,22 +3,19 @@
 
 #include <QScrollArea>
 #include <QScroller>
+#include <QThread>
 #include <QGridLayout>
 #include "src/preferences.h"
 #include "src/gui/thumbnailbutton.h"
+#include "src/gui/thumbnailthread.h"
 #include "src/rendering/pdfdocument.h"
-#ifdef INCLUDE_POPPLER
-#include "src/rendering/popplerrenderer.h"
-#endif
-#ifdef INCLUDE_MUPDF
-#include "src/rendering/mupdfrenderer.h"
-#endif
-#include "src/rendering/externalrenderer.h"
+
 
 /**
  * @brief Widget showing thumbnail slides on grid layout in scroll area.
  *
  * TODO:
+ *  check destructors, there might be memory leaks
  *  don't change slide after touch scroll event
  *  cursor (selected frame marked by red margin)
  *  clear when resizing
@@ -28,13 +25,16 @@ class ThumbnailWidget : public QScrollArea
 {
     Q_OBJECT
 
-    AbstractRenderer *renderer = NULL;
+    ThumbnailThread *render_thread = NULL;
     int columns = 4;
     int ref_width = 0;
     bool skip_overlays = false;
 
 public:
     explicit ThumbnailWidget(QWidget *parent = NULL) : QScrollArea(parent) {}
+
+    ~ThumbnailWidget()
+    {delete render_thread;}
 
     void setColumns(const int n_columns) noexcept
     {columns = n_columns;}
@@ -56,8 +56,13 @@ public slots:
     void focusInEvent(QFocusEvent*) override
     {generate();}
 
+    void receiveThumbnail(ThumbnailButton *button, const QPixmap pixmap)
+    {if (button) button->setPixmap(pixmap);}
+
 signals:
     void sendNavigationSignal(int page);
+    void sendToRenderThread(ThumbnailButton *button, qreal resolution, int page);
+    void startRendering();
 };
 
 #endif // THUMBNAILWIDGET_H

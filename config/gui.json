@@ -28,7 +28,7 @@
               "type" : "thumbnails",
               "title" : "thumbnails",
               "overlays" : "skip",
-              "columns" : 5,
+              "columns" : 4,
               "keys" : "o"
           }
         ]
@@ -86,9 +86,9 @@
                       ["start timer", "stop timer", "reset timer"],
                       ["first", "next", "previous", "last"],
                       [
-                          {"tool":"pen", "color":"red"},
-                          {"tool":"pen", "color":"#8000ff00"},
-                          {"tool":"highlighter"},
+                          {"tool":"pen", "color":"red", "width":5},
+                          {"tool":"pen", "color":"green", "width":5},
+                          {"tool":"highlighter", "width":40},
                           {"tool":"eraser"},
                           {"tool":"none"}
                       ]
@@ -113,7 +113,7 @@
     "shift" : 0,
     "transitions" : true,
     "multimedia" : true,
-    "threads" : 5,
+    "threads" : 3,
     "master" : true,
     "cache hash" : 0,
     "color" : "black"

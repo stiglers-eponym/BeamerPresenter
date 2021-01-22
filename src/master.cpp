@@ -281,8 +281,8 @@ QWidget* Master::createWidget(QJsonObject &object, QWidget *parent)
             // Move the PixCache object to an own thread.
             pixcache->moveToThread(new QThread());
             // Make sure that pixcache is initialized when the thread is started.
-            connect(pixcache->thread(), &QThread::started, pixcache, &PixCache::init);
-            connect(this, &Master::navigationSignal, pixcache, &PixCache::pageNumberChanged);
+            connect(pixcache->thread(), &QThread::started, pixcache, &PixCache::init, Qt::QueuedConnection);
+            connect(this, &Master::navigationSignal, pixcache, &PixCache::pageNumberChanged, Qt::QueuedConnection);
             // Set maximum number of pages in cache from settings.
             pixcache->setMaxNumber(preferences().max_cache_pages);
             // Start the thread.
@@ -302,7 +302,6 @@ QWidget* Master::createWidget(QJsonObject &object, QWidget *parent)
         widget = new ThumbnailWidget(parent);
         if (object.contains("columns"))
             static_cast<ThumbnailWidget*>(widget)->setColumns(object.value("columns").toInt(4));
-        widget->moveToThread(new QThread());
         connect(static_cast<ThumbnailWidget*>(widget), &ThumbnailWidget::sendNavigationSignal, this, &Master::navigateToPage);
         if (object.value("overlays").toString() == "skip")
             static_cast<ThumbnailWidget*>(widget)->skipOverlays();

@@ -8,34 +8,16 @@ void ThumbnailWidget::generate(const PdfDocument *document)
     if (!document || std::abs(ref_width - width()) < ref_width/20)
         return;
 
-    // Create the renderer without any checks.
-    if (!renderer)
+    if (!render_thread)
     {
-        switch (preferences().renderer)
-        {
-#ifdef INCLUDE_POPPLER
-        case AbstractRenderer::Poppler:
-            renderer = new PopplerRenderer(static_cast<const PopplerDocument*>(document), preferences().page_part);
-            break;
-#endif
-#ifdef INCLUDE_MUPDF
-        case AbstractRenderer::MuPDF:
-            renderer = new MuPdfRenderer(static_cast<const MuPdfDocument*>(document), preferences().page_part);
-            break;
-#endif
-        case AbstractRenderer::ExternalRenderer:
-            renderer = new ExternalRenderer(preferences().rendering_command, preferences().rendering_arguments, document, preferences().page_part);
-            break;
-        }
-
-        // Check if the renderer is valid
-        if (renderer == NULL || !renderer->isValid())
-        {
-            renderer = NULL;
-            qCritical() << "Creating renderer failed" << preferences().renderer;
-            return;
-        }
+        render_thread = new ThumbnailThread(document);
+        render_thread->moveToThread(new QThread());
+        connect(this, &ThumbnailWidget::sendToRenderThread, render_thread, &ThumbnailThread::append, Qt::QueuedConnection);
+        connect(this, &ThumbnailWidget::startRendering, render_thread, &ThumbnailThread::renderImages, Qt::QueuedConnection);
+        connect(render_thread, &ThumbnailThread::sendThumbnail, this, &ThumbnailWidget::receiveThumbnail, Qt::QueuedConnection);
+        render_thread->thread()->start();
     }
+
     delete widget();
     setWidget(NULL);
 
@@ -56,7 +38,7 @@ void ThumbnailWidget::generate(const PdfDocument *document)
                 button = new ThumbnailButton(k, this);
                 connect(button, &ThumbnailButton::sendNavigationSignal, this, &ThumbnailWidget::sendNavigationSignal);
                 const QSizeF size = document->pageSize(*it-1);
-                button->setPixmap(renderer->renderPixmap(*it-1, col_width/size.width()));
+                emit sendToRenderThread(button, col_width/size.width(), *it-1);
                 button->setMinimumSize(col_width, col_width*size.height()/size.width());
                 layout->addWidget(button, i/columns, i%columns);
                 i++;
@@ -65,7 +47,7 @@ void ThumbnailWidget::generate(const PdfDocument *document)
             button = new ThumbnailButton(list.last(), this);
             connect(button, &ThumbnailButton::sendNavigationSignal, this, &ThumbnailWidget::sendNavigationSignal);
             const QSizeF size = document->pageSize(last_page);
-            button->setPixmap(renderer->renderPixmap(last_page, col_width/size.width()));
+            emit sendToRenderThread(button, col_width/size.width(), last_page);
             button->setMinimumSize(col_width, col_width*size.height()/size.width());
             layout->addWidget(button, i/columns, i%columns);
             i++;
@@ -78,7 +60,7 @@ void ThumbnailWidget::generate(const PdfDocument *document)
             button = new ThumbnailButton(i, this);
             connect(button, &ThumbnailButton::sendNavigationSignal, this, &ThumbnailWidget::sendNavigationSignal);
             const QSizeF size = document->pageSize(i);
-            button->setPixmap(renderer->renderPixmap(i, col_width/size.width()));
+            emit sendToRenderThread(button, col_width/size.width(), i);
             button->setMinimumSize(col_width, col_width*size.height()/size.width());
             layout->addWidget(button, i/columns, i%columns);
         }
@@ -86,4 +68,6 @@ void ThumbnailWidget::generate(const PdfDocument *document)
     widget->setLayout(layout);
     setWidget(widget);
     QScroller::grabGesture(this);
+
+    emit startRendering();
 }

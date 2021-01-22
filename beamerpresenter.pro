@@ -72,6 +72,7 @@ SOURCES += \
         src/gui/stackedwidget.cpp \
         src/gui/tabwidget.cpp \
         src/gui/thumbnailbutton.cpp \
+        src/gui/thumbnailthread.cpp \
         src/gui/thumbnailwidget.cpp \
         src/gui/timerwidget.cpp \
         src/gui/tocbutton.cpp \
@@ -110,6 +111,7 @@ HEADERS += \
         src/gui/stackedwidget.h \
         src/gui/tabwidget.h \
         src/gui/thumbnailbutton.h \
+        src/gui/thumbnailthread.h \
         src/gui/thumbnailwidget.h \
         src/gui/timerwidget.h \
         src/gui/tocbutton.h \

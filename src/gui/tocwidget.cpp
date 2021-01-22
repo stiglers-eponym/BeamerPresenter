@@ -7,9 +7,13 @@ void TOCwidget::generateTOC(const PdfDocument *document)
     if (!document || first_button)
         return;
 
+    const QVector<PdfOutlineEntry> &outline = document->getOutline();
+    // If the document outline contains no entry: outline.size() == 1
+    if (outline.size() <= 1)
+        return;
+
     QGridLayout *layout = new QGridLayout();
     QCheckBox *expand_button;
-    const QVector<PdfOutlineEntry> &outline = document->getOutline();
     auto add_buttons = [&](const int idx, const int depth, auto &function) -> TOCbutton*
     {
         if (std::abs(outline[idx].next) > idx + 1)

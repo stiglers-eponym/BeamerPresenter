@@ -171,7 +171,9 @@ bool MuPdfDocument::loadDocument()
 
     // Open the document.
     {
-        const QByteArray &pathdecoded = path.toLatin1();
+        // TODO: find out how to check system preferences for encoding
+        //const QByteArray &pathdecoded = path.toLatin1();
+        const QByteArray &pathdecoded = path.toUtf8();
         const char *name = pathdecoded.data();
         fz_try(ctx)
             doc = fz_open_document(ctx, name);
