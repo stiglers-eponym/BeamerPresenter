@@ -120,15 +120,27 @@ public:
     };
 
 
+    /// Load settings from default config file location (defined by Qt).
     Preferences();
+
+    /// Load settings from given file.
+    Preferences(const QString &file);
+
     ~Preferences();
+
+    /// Load settings from QSettings.
     void loadSettings();
+
+    /// Load settings from command line parser.
+    /// Usually called after loadSettings().
     void loadFromParser(const QCommandLineParser &parser);
 };
 
 
 /// Get writable globally shared preferences object.
-Preferences &writable_preferences();
+/// Init globally accessible preferences on first call.
+Preferences &writable_preferences(Preferences *new_preferences = NULL);
+
 /// Get read-only globally shared preferences object.
 /// This is the usual way of accessing preferences.
 const Preferences &preferences();

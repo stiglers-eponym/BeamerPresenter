@@ -61,6 +61,7 @@ bool Master::readGuiConfig(const QString &filename)
         if (widget)
             windows.append(widget);
     }
+
     if (!documents.isEmpty())
         writable_preferences().document = documents.first()->getDocument();
 
@@ -171,14 +172,18 @@ QWidget* Master::createWidget(QJsonObject &object, QWidget *parent)
             shift |= ShiftOverlays::LastOverlay;
 
         // Find PDF file name.
-        // Usually "file" will be "presentation" or "notes". These are mapped to
-        // filenames by this->files.
+        // Usually "file" will be "presentation" or "notes". These keywords
+        // are mapped to filenames by preferences().file_alias.
         QString file = object.value("file").toString();
-        file = preferences().file_alias.value(file.isNull() ? "presentation" : file, file);
+        file = preferences().file_alias.value(file.isEmpty() ? "presentation" : file, file);
         if (!QFile::exists(file))
         {
-            qCritical() << "Could not load PDF file: Does not exist." << file;
-            return nullptr;
+            file = QFileDialog::getOpenFileName(nullptr, "File " + file, "", "Documents (*.pdf)");
+            if (!QFile::exists(file))
+            {
+                qCritical() << "No valid file given";
+                break;
+            }
         }
         const QString page_part_str = object.value("page part").toString().toLower();
         PagePart page_part = FullPage;
@@ -190,7 +195,7 @@ QWidget* Master::createWidget(QJsonObject &object, QWidget *parent)
         // Check whether the PDF has been loaded already, load it if necessary.
         PdfMaster *doc = nullptr;
         SlideScene *scene = nullptr;
-        for (auto docit = documents.cbegin(); docit != documents.cend(); ++docit)
+        for (auto docit = documents.begin(); docit != documents.end(); ++docit)
         {
             if ((*docit)->getFilename() == file)
             {
@@ -200,6 +205,11 @@ QWidget* Master::createWidget(QJsonObject &object, QWidget *parent)
                     const QSizeF reference = doc->getPageSize(0);
                     if (reference.width() < preferences().page_part_threshold * reference.height())
                         page_part = FullPage;
+                }
+                if (object.value("master").toBool() && documents.first() != doc)
+                {
+                    documents.erase(docit);
+                    documents.prepend(doc);
                 }
                 break;
             }
@@ -343,7 +353,7 @@ QWidget* Master::createWidget(QJsonObject &object, QWidget *parent)
                         const QColor color(obj.value("color").toString("black"));
                         const float width = obj.value("width").toDouble(2.);
                         const Qt::PenStyle style = string_to_pen_style.value(obj.value("style").toString(), Qt::SolidLine);
-                        tool = new DrawTool(Pen, AnyDevice, QPen(color, width, style, Qt::RoundCap));
+                        tool = new DrawTool(Pen, AnyDevice, QPen(color, width, style, Qt::RoundCap, Qt::RoundJoin));
                         break;
                     }
                     case Highlighter:
@@ -351,7 +361,7 @@ QWidget* Master::createWidget(QJsonObject &object, QWidget *parent)
                         const QColor color(obj.value("color").toString("yellow"));
                         const float width = obj.value("width").toDouble(20.);
                         const Qt::PenStyle style = string_to_pen_style.value(obj.value("style").toString(), Qt::SolidLine);
-                        tool = new DrawTool(Highlighter, AnyDevice, QPen(color, width, style, Qt::RoundCap), QPainter::CompositionMode_Darken);
+                        tool = new DrawTool(Highlighter, AnyDevice, QPen(color, width, style, Qt::RoundCap, Qt::RoundJoin), QPainter::CompositionMode_Darken);
                         break;
                     }
                     case InvalidTool:

@@ -11,7 +11,7 @@
             "title" : "slide",
             "keys" : "s",
             "file" : "presentation",
-            "page part" : "left",
+            "page part" : "right",
             "shift" : 0,
             "transitions" : false,
             "multimedia" : true,

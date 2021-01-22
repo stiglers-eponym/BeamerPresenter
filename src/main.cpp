@@ -14,14 +14,15 @@
 #include <mupdf/fitz/version.h>
 #endif
 
-/// Provides globally available writable reference to preferences.
-Preferences &writable_preferences()
+/// Provides globally available pointer to writable preferences.
+Preferences &writable_preferences(Preferences *new_preferences)
 {
-    static Preferences preferences;
-    return preferences;
+    static Preferences *preferences{new_preferences};
+    return *preferences;
 }
 
-/// Provides globally available const reference to preferences.
+/// Get read-only globally shared preferences object.
+/// This is the usual way of accessing preferences.
 const Preferences &preferences()
 {
     return writable_preferences();
@@ -53,30 +54,49 @@ int main(int argc, char *argv[])
 
     // Set up command line argument parser.
     QCommandLineParser parser;
-    parser.setApplicationDescription(
-            "\nModular multi screen PDF presenter\n"
-            );
+    parser.setApplicationDescription("\nModular multi screen PDF presenter");
 
     // Define command line options.
     parser.addHelpOption();
     parser.addVersionOption();
 
-    // TODO: more positional arguments
     parser.addPositionalArgument("<slides.pdf>", "Slides for a presentation");
-    //parser.addOptions({});
+    parser.addOption({{"c", "config"}, "settings / configuration file", "file"});
+    parser.addOption({{"g", "gui-config"}, "user interface configuration file", "file"});
+    parser.addOption({{"t", "time"}, "timer total time in minutes", "number"});
+#if defined(INCLUDE_MUPDF) and defined(INCLUDE_POPPLER)
+    parser.addOption({"renderer", "PDF renderer: external, MuPDF or poppler", "name"});
+    parser.addOption({"engine", "PDF engine: MuPDF or poppler", "name"});
+#elif defined(INCLUDE_MUPDF)
+    parser.addOption({"renderer", "PDF renderer: external or MuPDF", "name"});
+#elif defined(INCLUDE_POPPLER)
+    parser.addOption({"renderer", "PDF renderer: external or poppler", "name"});
+#endif
     parser.process(app);
 
-    Preferences& wpreferences = writable_preferences();
-    wpreferences.loadSettings();
-    wpreferences.loadFromParser(parser);
+    {
+        // Initialize preferences
+        Preferences *wpreferences;
+        if (parser.isSet("c"))
+            wpreferences = new Preferences(parser.value("c"));
+        else
+            wpreferences = new Preferences();
+        writable_preferences(wpreferences);
+        wpreferences->loadSettings();
+        wpreferences->loadFromParser(parser);
+    }
 
     Master master;
-    master.readGuiConfig(preferences().gui_config_file);
+    if (!master.readGuiConfig(parser.value("g").isEmpty() ? preferences().gui_config_file : parser.value("g")))
+    {
+        qCritical() << "Parsing the GUI configuration failed. Probably the GUI config is unavailable or invalid or no valid PDF files were found.";
+        delete &preferences();
+        return -1;
+    }
     master.showAll();
     emit master.navigationSignal(0);
     master.distributeMemory();
-
-    int status = app.exec();
-
+    const int status = app.exec();
+    delete &preferences();
     return status;
 }

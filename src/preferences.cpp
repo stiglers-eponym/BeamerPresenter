@@ -6,6 +6,12 @@ Preferences::Preferences() :
     settings.setIniCodec("UTF-8");
 }
 
+Preferences::Preferences(const QString &file) :
+    settings(file, QSettings::NativeFormat)
+{
+    settings.setIniCodec("UTF-8");
+}
+
 Preferences::~Preferences()
 {
     qDeleteAll(current_tools);
@@ -218,6 +224,59 @@ void Preferences::loadFromParser(const QCommandLineParser &parser)
     if (arguments.isEmpty())
         file_alias["presentation"] = QFileDialog::getOpenFileName(nullptr, "Presentation file", "", "Documents (*.pdf)");
     else
+    {
         file_alias["presentation"] = arguments.first();
-    // TODO
+        if (arguments.length() > 1 && !file_alias.contains("notes"))
+            file_alias["notes"] = arguments[1];
+    }
+
+    if (parser.isSet("t"))
+        msecs_total = 60000 * parser.value("t").toDouble();
+    if (parser.isSet("renderer"))
+    {
+        QString const &renderer_str = parser.value("renderer").toLower();
+        if (renderer != AbstractRenderer::ExternalRenderer && (renderer_str == "extern" || renderer_str == "external"))
+        {
+            rendering_command = settings.value("rendering command").toString();
+            rendering_arguments = settings.value("rendering arguments").toStringList();
+            if (rendering_command.isEmpty() || rendering_arguments.isEmpty())
+            {
+                qWarning() << "External renderer requested but no command or no arguments given. Falling back to Poppler.";
+                qInfo() << "Note that both \"rendering command\" and \"rendering arguments\" are required.";
+            }
+            else
+                renderer = AbstractRenderer::ExternalRenderer;
+        }
+#ifdef INCLUDE_MUPDF
+        else if (renderer_str == "mupdf")
+        {
+            renderer = AbstractRenderer::MuPDF;
+            pdf_backend = PdfDocument::MuPdfBackend;
+        }
+#endif
+#ifdef INCLUDE_POPPLER
+        else if (renderer_str == "poppler")
+        {
+            renderer = AbstractRenderer::Poppler;
+            pdf_backend = PdfDocument::PopplerBackend;
+        }
+#endif
+    }
+#if defined(INCLUDE_MUPDF) and defined(INCLUDE_POPPLER)
+    if (parser.isSet("engine"))
+    {
+        if (parser.value("engine").compare("mupdf", Qt::CaseInsensitive) == 0)
+        {
+            pdf_backend = PdfDocument::MuPdfBackend;
+            if (renderer == AbstractRenderer::Poppler)
+                renderer = AbstractRenderer::MuPDF;
+        }
+        else if (parser.value("engine").compare("poppler", Qt::CaseInsensitive) == 0)
+        {
+            pdf_backend = PdfDocument::PopplerBackend;
+            if (renderer == AbstractRenderer::MuPDF)
+                renderer = AbstractRenderer::Poppler;
+        }
+    }
+#endif
 }
