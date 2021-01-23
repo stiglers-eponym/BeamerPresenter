@@ -94,7 +94,7 @@ int main(int argc, char *argv[])
         return -1;
     }
     master.showAll();
-    emit master.navigationSignal(0);
+    master.navigateToPage(0);
     master.distributeMemory();
     const int status = app.exec();
     delete &preferences();

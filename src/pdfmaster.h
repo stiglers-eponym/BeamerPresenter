@@ -57,7 +57,7 @@ public:
     const QSizeF getPageSize(const int page_number) const;
 
     /// Get PdfDocument.
-    const PdfDocument *getDocument() const
+    PdfDocument *getDocument() const
     {return document;}
 
     /// Return true if document contains pages of different size.

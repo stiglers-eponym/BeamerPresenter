@@ -21,9 +21,10 @@ SlideView::SlideView(SlideScene *scene, PixCache *cache, QWidget *parent) :
     connect(this, &SlideView::resizeCache, cache, &PixCache::updateFrame, Qt::QueuedConnection);
 }
 
-void SlideView::pageChanged(const int page, const QSizeF &pageSize, SlideScene *scene)
+void SlideView::pageChanged(const int page, SlideScene *scene)
 {
     setScene(scene);
+    const QSizeF &pageSize = scene->sceneRect().size();
     qreal resolution;
     if (pageSize.width() * height() > pageSize.height() * width())
         // page is too wide, determine resolution by x direction

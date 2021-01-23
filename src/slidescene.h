@@ -100,6 +100,10 @@ public:
     /// Called from SlideView.
     void tabletRelease(const QPointF &pos, const QTabletEvent *event);
 
+    /// Update geometry in preparation of navigation event.
+    /// newpage does not include the shift.
+    void prepareNavigationEvent(const int newpage);
+
     /// Receive navigation event from PdfMaster.
     /// The given page already includes the shift.
     void navigationEvent(const int newpage, SlideScene* newscene = nullptr);
@@ -134,7 +138,7 @@ signals:
     /// Send navigation event to views.
     /// Here page is already adapted to shift.
     /// size is given in points (inch/72).
-    void navigationToViews(const int page, const QSizeF &size, SlideScene* scene) const;
+    void navigationToViews(const int page, SlideScene* scene) const;
 
     /// Send new path to PdfMaster.
     void sendNewPath(const int page, QGraphicsItem *item) const;

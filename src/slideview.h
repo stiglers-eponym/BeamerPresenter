@@ -57,7 +57,7 @@ protected slots:
 public slots:
     /// Inform this that the page number has changed.
     /// pageSize is given in points.
-    void pageChanged(const int page, const QSizeF &pageSize, SlideScene* scene);
+    void pageChanged(const int page, SlideScene* scene);
 
     /// Inform this that page is ready in pixcache.
     void pageReady(const QPixmap pixmap, const int page);

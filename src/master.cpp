@@ -225,8 +225,8 @@ QWidget* Master::createWidget(QJsonObject &object, QWidget *parent)
             else
                 writable_preferences().number_of_pages = doc->numberOfPages();
             connect(this, &Master::sendAction, doc, &PdfMaster::receiveAction);
-            connect(doc, &PdfMaster::navigationSignal, this, &Master::navigationSignal);
-            connect(this, &Master::navigationSignal, doc, &PdfMaster::distributeNavigationEvents);
+            connect(doc, &PdfMaster::navigationSignal, this, &Master::navigateToPage, Qt::QueuedConnection);
+            connect(this, &Master::navigationSignal, doc, &PdfMaster::distributeNavigationEvents, Qt::QueuedConnection);
             if (preferences().page_part_threshold > 0.)
             {
                 const QSizeF reference = doc->getPageSize(0);
@@ -261,6 +261,7 @@ QWidget* Master::createWidget(QJsonObject &object, QWidget *parent)
             else
                 doc->getScenes().append(scene);
             connect(this, &Master::sendAction, scene, &SlideScene::receiveAction);
+            connect(this, &Master::prepareNavigationSignal, scene, &SlideScene::prepareNavigationEvent);
         }
         else if (object.value("master").toBool())
             doc->getScenes().swapItemsAt(doc->getScenes().indexOf(scene), 0);
@@ -322,7 +323,7 @@ QWidget* Master::createWidget(QJsonObject &object, QWidget *parent)
         break;
     case NotesType:
         widget = new NotesWidget(parent);
-        connect(this, &Master::navigationSignal, static_cast<NotesWidget*>(widget), &NotesWidget::pageChanged);
+        connect(this, &Master::navigationSignal, static_cast<NotesWidget*>(widget), &NotesWidget::pageChanged, Qt::QueuedConnection);
         static_cast<NotesWidget*>(widget)->zoomIn(object.value("zoom").toInt(10));
         if (object.contains("file"))
             static_cast<NotesWidget*>(widget)->load(object.value("file").toString());
@@ -399,12 +400,12 @@ QWidget* Master::createWidget(QJsonObject &object, QWidget *parent)
     case SlideNumberType:
         widget = new SlideNumberWidget(parent);
         connect(static_cast<SlideNumberWidget*>(widget), &SlideNumberWidget::navigationSignal, this, &Master::navigateToPage);
-        connect(this, &Master::navigationSignal, static_cast<SlideNumberWidget*>(widget), &SlideNumberWidget::updateText);
+        connect(this, &Master::navigationSignal, static_cast<SlideNumberWidget*>(widget), &SlideNumberWidget::updateText, Qt::QueuedConnection);
         break;
     case SlideLabelType:
         widget = new SlideLabelWidget(parent);
         connect(static_cast<SlideLabelWidget*>(widget), &SlideLabelWidget::navigationSignal, this, &Master::navigateToPage);
-        connect(this, &Master::navigationSignal, static_cast<SlideLabelWidget*>(widget), &SlideLabelWidget::updateText);
+        connect(this, &Master::navigationSignal, static_cast<SlideLabelWidget*>(widget), &SlideLabelWidget::updateText, Qt::QueuedConnection);
         break;
     case GuiWidget::InvalidType:
         qWarning() << "Ignoring entry in GUI config with invalid type:" << object.value("type");
@@ -582,11 +583,14 @@ qint64 Master::getTotalCache() const
     return cache;
 }
 
-void Master::navigateToPage(const int page)
+void Master::navigateToPage(const int page) const
 {
     if (page < 0 || page >= preferences().number_of_pages)
         return;
     limitHistoryInvisible(preferences().page | preferences().page_part);
+    emit prepareNavigationSignal(page);
+    for (auto window : windows)
+        window->updateGeometry();
     writable_preferences().page = page;
     emit navigationSignal(page);
 }

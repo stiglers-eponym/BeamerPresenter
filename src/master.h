@@ -29,10 +29,12 @@ class PdfMaster;
 class SlideScene;
 class PixCache;
 
-/// Manage the program, distributes events to various objects, construct the
-/// GUI. All changes to preferences must be done though this class (this will
-/// change when a GUI for modifying preferences is implemented).
-/// Only one master object may exist.
+/**
+ * Manage the program, distributes events to various objects, construct the
+ * GUI. All changes to preferences must be done though this class (this will
+ * change when a GUI for modifying preferences is implemented).
+ * Only one master object may exist.
+ */
 class Master : public QObject
 {
     Q_OBJECT
@@ -76,12 +78,14 @@ public:
     /// Calculate total cache size (sum up cache sizes from all PixCache objects).
     qint64 getTotalCache() const;
 
-    /// A navigation event moves preferences().page away from the given page.
-    /// Tell path containers in all documents that history of given page
-    /// should now be limited by preferences().history_length_hidden_slides.
-    /// page is given as (page_number | page_part).
-    /// TODO: currently this also notifies the layout system of changes if
-    /// PDFs with flexible page sizes are used.
+    /**
+     * A navigation event moves preferences().page away from the given page.
+     * Tell path containers in all documents that history of given page
+     * should now be limited by preferences().history_length_hidden_slides.
+     * page is given as (page_number | page_part).
+     * TODO: currently this also notifies the layout system of changes if
+     * PDFs with flexible page sizes are used.
+     */
     void limitHistoryInvisible(const int page) const;
 
 public slots:
@@ -92,8 +96,17 @@ public slots:
     /// Read memory size restriction from preferences and distribute memory to pixcaches.
     void distributeMemory();
 
-    /// Distribute navigation events.
-    void navigateToPage(const int page);
+    /**
+     * @brief Distribute navigation events
+     *
+     * 1. check whether page is valid.
+     * 2. truncate drawing history on current page (if necessary)
+     * 3. update scene geometries based on page size
+     * 4. recalculate geometry
+     * 5. update page in preferences
+     * 6. send out navigation signal
+     */
+    void navigateToPage(const int page) const;
 
     /// Handle an action, distribute it if necessary.
     void handleAction(const Action action);
@@ -105,7 +118,12 @@ signals:
     /// Send out action.
     void sendAction(const Action action) const;
 
+    /// Prepare navigation: Scenes update geometry, such that the layout can
+    /// be recalculated.
+    void prepareNavigationSignal(const int page) const;
+
     /// Send out navigation signal (after updating preferences().page).
+    /// This should only be used in queued connection.
     void navigationSignal(const int page) const;
 };
 

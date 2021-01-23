@@ -144,10 +144,11 @@ void SlideScene::receiveAction(const Action action)
     }
 }
 
-void SlideScene::navigationEvent(const int newpage, SlideScene *newscene)
+void SlideScene::prepareNavigationEvent(const int newpage)
 {
+    // Adjust scene size.
     /// Page size in points.
-    QSizeF pagesize = master->getPageSize(newpage);
+    QSizeF pagesize = master->getPageSize(master->overlaysShifted(newpage, shift));
     switch (page_part)
     {
     case LeftHalf:
@@ -162,6 +163,10 @@ void SlideScene::navigationEvent(const int newpage, SlideScene *newscene)
         setSceneRect(0., 0., pagesize.width(), pagesize.height());
         break;
     }
+}
+
+void SlideScene::navigationEvent(const int newpage, SlideScene *newscene)
+{
     if (show_animations && (!newscene || newscene == this))
     {
         const SlideTransition transition = master->transition(newpage);
@@ -174,7 +179,7 @@ void SlideScene::navigationEvent(const int newpage, SlideScene *newscene)
         }
     }
     page = newpage;
-    emit navigationToViews(page, pagesize, newscene ? newscene : this);
+    emit navigationToViews(page, newscene ? newscene : this);
     QList<QGraphicsItem*> list = items();
     while (!list.isEmpty())
         removeItem(list.takeLast());
@@ -195,7 +200,7 @@ void SlideScene::startTransition(const int newpage, const SlideTransition &trans
 {
     // TODO!
     page = newpage;
-    emit navigationToViews(page, sceneRect().size(), this);
+    emit navigationToViews(page, this);
     QList<QGraphicsItem*> list = items();
     while (!list.isEmpty())
         removeItem(list.takeLast());

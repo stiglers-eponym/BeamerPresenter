@@ -7,11 +7,11 @@
 #endif
 #include "src/rendering/externalrenderer.h"
 
-PixCache::PixCache(const PdfDocument *doc, const int thread_number, const PagePart page_part, QObject *parent) :
+PixCache::PixCache(PdfDocument *doc, const int thread_number, const PagePart page_part, QObject *parent) :
     QObject(parent),
     pdfDoc(doc)
 {
-    threads = QVector<PixCacheThread*>(thread_number);
+    threads = QVector<PixCacheThread*>(doc->flexiblePageSizes() ? 0 : thread_number);
 
     // Create the renderer without any checks.
     switch (preferences().renderer)
@@ -33,14 +33,11 @@ PixCache::PixCache(const PdfDocument *doc, const int thread_number, const PagePa
 
     // Check if the renderer is valid
     if (renderer == nullptr || !renderer->isValid())
-    {
         qCritical() << "Creating renderer failed" << preferences().renderer;
-    }
 }
 
 void PixCache::init()
 {
-    qDebug() << "init";
     // Create threads.
     for (int i=0; i<threads.length(); i++)
     {
@@ -52,7 +49,6 @@ void PixCache::init()
     renderCacheTimer->setSingleShot(true);
     renderCacheTimer->setInterval(0);
     connect(renderCacheTimer, &QTimer::timeout, this, &PixCache::startRendering);
-    qDebug() << "done";
 }
 
 PixCache::~PixCache()
@@ -310,6 +306,9 @@ int PixCache::limitCacheSize()
         // TODO: make sure this case is correctly handled when the thread finishes.
         if (remove == nullptr)
             continue;
+#ifdef DEBUG_CACHE
+        qDebug() << "removing page from cache" << usedMemory << remove->getPage();
+#endif
         // Delete removed cache page and update memory size.
         usedMemory -= remove->size();
         delete remove;
@@ -440,9 +439,9 @@ qreal PixCache::getResolution(const int page) const
 
 void PixCache::updateFrame(const QSizeF &size)
 {
-    qDebug() << "update frame" << frame << size;
-    if (frame != size)
+    if (frame != size && threads.length() > 0)
     {
+        qDebug() << "update frame" << frame << size;
         frame = size;
         clear();
     }
@@ -454,6 +453,9 @@ void PixCache::requestPage(const int page, const qreal resolution)
     // Try to return a page from cache.
     {
         const auto it = cache.constFind(page);
+#ifdef DEBUG_CACHE
+        qDebug() << "searched for page" << page << (it == cache.cend()) << (it != cache.cend() && *it != NULL) << (it == cache.cend() ? -1024 : ((*it)->getResolution() - resolution));
+#endif
         if (it != cache.cend() && *it != nullptr && abs((*it)->getResolution() - resolution) < MAX_RESOLUTION_DEVIATION)
         {
             emit pageReady((*it)->pixmap(), page);
@@ -496,6 +498,9 @@ void PixCache::requestPage(const int page, const qreal resolution)
         }
         cache[page] = png;
         usedMemory += png->size();
+#ifdef DEBUG_CACHE
+        qDebug() << "writing page to cache" << page << usedMemory;
+#endif
     }
 
     // Start rendering next page.

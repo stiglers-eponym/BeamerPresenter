@@ -45,6 +45,7 @@ private:
     int maxNumber = -1;
 
     /// Threads used to render pages to cache.
+    /// This will be an empty vector if the PDF has flexible page sizes.
     QVector<PixCacheThread*> threads;
 
     /// Own renderer for rendering in PixCache thread.
@@ -71,7 +72,7 @@ private:
     qreal getResolution(const int page) const;
 
 public:
-    explicit PixCache(const PdfDocument *doc, const int thread_number, const PagePart page_part = FullPage, QObject *parent = nullptr);
+    explicit PixCache(PdfDocument *doc, const int thread_number, const PagePart page_part = FullPage, QObject *parent = nullptr);
     ~PixCache();
 
     /// Clear cache, delete all cached pages.
@@ -104,7 +105,8 @@ public:
     {setMaxMemory(scale * frame.width() * frame.height());}
 
     /// Udate frame and clear cache if necessary.
-    /// TODO: adjust for flexible page sizes.
+    /// Cache will only be cleared if !threads.isEmpty(), because an empty
+    /// thread vector indicates flexible slide size.
     void updateFrame(QSizeF const& size);
 
 public slots:
