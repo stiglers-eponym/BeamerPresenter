@@ -3,13 +3,13 @@
 const QPixmap MuPdfRenderer::renderPixmap(const int page, const qreal resolution) const
 {
     // Let the main thread prepare everything.
-    fz_context *ctx = nullptr;
+    fz_context *ctx = NULL;
     fz_rect bbox;
-    fz_display_list *list = nullptr;
+    fz_display_list *list = NULL;
     doc->prepareRendering(&ctx, &bbox, &list, page, resolution);
 
-    // If page is not valid (too large), the nullptrs will be unchanged.
-    if (ctx == nullptr || list == nullptr)
+    // If page is not valid (too large), the NULLs will be unchanged.
+    if (ctx == NULL || list == NULL)
         return QPixmap();
 
     // Adapt bbox to page part.
@@ -57,7 +57,7 @@ const QPixmap MuPdfRenderer::renderPixmap(const int page, const qreal resolution
 
     // Assume that the pixmap is in RGB colorspace.
     // Write the pixmap in PNM format to a buffer using MuPDF tools.
-    fz_buffer *buffer = nullptr;
+    fz_buffer *buffer = NULL;
     fz_try(ctx)
         buffer = fz_new_buffer(ctx, pixmap->stride * pixmap->y + 16);
     fz_catch(ctx)
@@ -100,17 +100,17 @@ const QPixmap MuPdfRenderer::renderPixmap(const int page, const qreal resolution
 const PngPixmap * MuPdfRenderer::renderPng(const int page, const qreal resolution) const
 {
     if (resolution <= 0 || page < 0)
-        return nullptr;
+        return NULL;
 
     // Let the main thread prepare everything.
-    fz_context *ctx = nullptr;
+    fz_context *ctx = NULL;
     fz_rect bbox;
-    fz_display_list *list = nullptr;
+    fz_display_list *list = NULL;
     doc->prepareRendering(&ctx, &bbox, &list, page, resolution);
 
-    // If page is not valid (too large), the nullptrs will be unchanged.
-    if (ctx == nullptr || list == nullptr)
-        return nullptr;
+    // If page is not valid (too large), the NULLs will be unchanged.
+    if (ctx == NULL || list == NULL)
+        return NULL;
 
     // Adapt bbox to page part.
     switch (page_part)
@@ -147,7 +147,7 @@ const PngPixmap * MuPdfRenderer::renderPng(const int page, const qreal resolutio
         fz_close_device(ctx, dev);
         fz_drop_device(ctx, dev);
         fz_drop_context(ctx);
-        return nullptr;
+        return NULL;
     }
 
     // Clean up device and list.
@@ -156,7 +156,7 @@ const PngPixmap * MuPdfRenderer::renderPng(const int page, const qreal resolutio
     fz_drop_device(ctx, dev);
 
     // Save the pixmap to buffer in PNG format.
-    fz_buffer *buffer = nullptr;
+    fz_buffer *buffer = NULL;
     fz_try(ctx)
         buffer = fz_new_buffer_from_pixmap_as_png(ctx, pixmap, fz_default_color_params);
     fz_catch(ctx)
@@ -165,12 +165,12 @@ const PngPixmap * MuPdfRenderer::renderPng(const int page, const qreal resolutio
         fz_clear_buffer(ctx, buffer);
         fz_drop_buffer(ctx, buffer);
         fz_drop_context(ctx);
-        return nullptr;
+        return NULL;
     }
     fz_drop_pixmap(ctx, pixmap);
 
     // Convert the buffer data to QByteArray.
-    const QByteArray * data = buffer ? new QByteArray(reinterpret_cast<const char*>(buffer->data), buffer->len) : nullptr;
+    const QByteArray * data = buffer ? new QByteArray(reinterpret_cast<const char*>(buffer->data), buffer->len) : NULL;
     fz_clear_buffer(ctx, buffer);
     fz_drop_buffer(ctx, buffer);
     fz_drop_context(ctx);

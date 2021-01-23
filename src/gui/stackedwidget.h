@@ -9,7 +9,7 @@ class StackedWidget : public QStackedWidget
 
 public:
     /// Constructor: set size policy.
-    StackedWidget(QWidget *parent = nullptr) noexcept : QStackedWidget(parent)
+    StackedWidget(QWidget *parent = NULL) noexcept : QStackedWidget(parent)
     {setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);}
 
     // Return sizeHint based on layout.

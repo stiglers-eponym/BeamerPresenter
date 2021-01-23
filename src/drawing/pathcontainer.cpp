@@ -135,7 +135,7 @@ void PathContainer::clearPaths()
     // Create a new history step.
     DrawHistoryStep *step = new DrawHistoryStep();
     // Append all paths to the history step.
-    // If scene != nullptr, additionally remove the items from the scene.
+    // If scene != NULL, additionally remove the items from the scene.
     auto it = paths.cbegin();
     for (int i=0; i<paths.length(); i++, ++it)
     {
@@ -212,11 +212,11 @@ void PathContainer::eraserMicroStep(const QPointF &pos, const qreal size)
                         scene->removeItem(path);
                     else
                         path->hide();
-                    // Remove path from paths by settings paths[i] = nullptr.
-                    *path_it = nullptr;
+                    // Remove path from paths by settings paths[i] = NULL.
+                    *path_it = NULL;
                 }
                 // If nothing should change (the path is not affected by erasing),
-                // the list will only contain a nullptr. In this case we do nothing.
+                // the list will only contain a NULL. In this case we do nothing.
                 // In all other cases:
                 else if (list.first())
                 {
@@ -263,7 +263,7 @@ void PathContainer::eraserMicroStep(const QPointF &pos, const qreal size)
                     {
                         // Apply eraser to child.
                         const auto list = static_cast<AbstractGraphicsPath*>(child)->splitErase(pos, size);
-                        // Again, if list.first() == nullptr, we should do nothing
+                        // Again, if list.first() == NULL, we should do nothing
                         // because the eraser did not hit the path.
                         if (list.isEmpty() || list.first())
                         {
@@ -312,7 +312,7 @@ bool PathContainer::applyMicroStep()
     int shift = 0;
     for (auto it = oldItems.cbegin(); it != oldItems.cend(); ++it, shift--)
     {
-        // item should be either nullptr (if this path has been erased completely)
+        // item should be either NULL (if this path has been erased completely)
         // or a QGraphicsItemGroup* (if this path has been erased partially).
         QGraphicsItem *item = paths.value(it.key());
         if (item && item->type() == QGraphicsItemGroup::Type)

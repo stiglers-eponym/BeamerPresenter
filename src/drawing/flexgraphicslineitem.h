@@ -18,7 +18,7 @@ public:
     FlexGraphicsLineItem(const QLineF& line, QPainter::CompositionMode mode = QPainter::CompositionMode_SourceOver) :
         QGraphicsLineItem(line), mode(mode) {}
 
-    virtual void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget = nullptr) override
+    virtual void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget = NULL) override
     {painter->setCompositionMode(mode); QGraphicsLineItem::paint(painter, option, widget);}
 };
 

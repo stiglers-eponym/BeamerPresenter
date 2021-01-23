@@ -50,7 +50,7 @@ class Master : public QObject
     QList<QWidget*> windows;
 
     /// Playlist of all media content in the documents.
-    QMediaPlaylist *playlist {nullptr};
+    QMediaPlaylist *playlist {NULL};
 
     /// Map file names (urls) to playlist indices.
     QMap<QUrl, int> playlist_map;
@@ -73,7 +73,7 @@ public:
     bool readGuiConfig(const QString& filename);
 
     /// Create widgets recursively.
-    QWidget* createWidget(QJsonObject& object, QWidget *parent = nullptr);
+    QWidget* createWidget(QJsonObject& object, QWidget *parent = NULL);
 
     /// Calculate total cache size (sum up cache sizes from all PixCache objects).
     qint64 getTotalCache() const;

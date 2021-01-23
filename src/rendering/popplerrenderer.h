@@ -28,7 +28,7 @@ public:
     /// Render page to PNG image in a QByteArray.
     /// Resolution is given in pixels per point (dpi/72).
     const PngPixmap * renderPng(const int page, const qreal resolution) const override
-    {return doc ? doc->getPng(page, resolution, page_part) : nullptr;}
+    {return doc ? doc->getPng(page, resolution, page_part) : NULL;}
 
     /// Check whether doc is valid.
     bool isValid() const override

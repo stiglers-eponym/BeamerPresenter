@@ -14,7 +14,7 @@ class PixCacheThread : public QThread
 
 private:
     /// Renderer doing the main work.
-    AbstractRenderer *renderer = nullptr;
+    AbstractRenderer *renderer = NULL;
 
     /// resolution in pixels per point (dpi/72).
     qreal resolution;
@@ -24,7 +24,7 @@ private:
 
 public:
     /// Constructor: initialize thread and renderer.
-    PixCacheThread(const PdfDocument * const doc, const PagePart page_part = FullPage, QObject *parent = nullptr);
+    PixCacheThread(const PdfDocument * const doc, const PagePart page_part = FullPage, QObject *parent = NULL);
 
     /// Destructor: delete renderer.
     ~PixCacheThread();

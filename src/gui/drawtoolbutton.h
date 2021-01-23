@@ -15,7 +15,7 @@ class DrawToolButton : public QPushButton
     Tool *tool;
 
 public:
-    explicit DrawToolButton(Tool *tool, QWidget *parent = nullptr) noexcept;
+    explicit DrawToolButton(Tool *tool, QWidget *parent = NULL) noexcept;
 
     virtual ~DrawToolButton()
     {delete tool;}

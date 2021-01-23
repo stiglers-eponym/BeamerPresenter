@@ -27,12 +27,12 @@ void SlideScene::stopDrawing()
         emit sendNewPath(page | page_part, currentPath);
         update(currentPath->boundingRect());
     }
-    currentPath = nullptr;
+    currentPath = NULL;
     if (currentItemCollection)
     {
         removeItem(currentItemCollection);
         delete currentItemCollection;
-        currentItemCollection = nullptr;
+        currentItemCollection = NULL;
     }
 }
 
@@ -336,13 +336,13 @@ bool SlideScene::stopInputEvent(const QPointF &pos)
             {
                 invalidate({sceneRect()});
                 update({sceneRect()});
-                current_tool = nullptr;
+                current_tool = NULL;
                 return true;
             }
             break;
         case Eraser:
         {
-            current_tool = nullptr;
+            current_tool = NULL;
             auto container = master->pathContainer(page | page_part);
             if (container)
                 return container->applyMicroStep();
@@ -354,7 +354,7 @@ bool SlideScene::stopInputEvent(const QPointF &pos)
         default:
             break;
         }
-        current_tool = nullptr;
+        current_tool = NULL;
         return false;
     }
     master->resolveLink(page, pos);

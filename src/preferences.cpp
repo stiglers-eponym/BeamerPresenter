@@ -167,7 +167,7 @@ void Preferences::loadSettings()
                                 if (device == 0)
                                     device = AnyDevice;
                             }
-                            Tool *tool = nullptr;
+                            Tool *tool = NULL;
                             const BasicTool base_tool = string_to_tool.value(object.value("tool").toString());
                             switch (base_tool)
                             {
@@ -222,7 +222,7 @@ void Preferences::loadFromParser(const QCommandLineParser &parser)
 {
     const QStringList arguments = parser.positionalArguments();
     if (arguments.isEmpty())
-        file_alias["presentation"] = QFileDialog::getOpenFileName(nullptr, "Presentation file", "", "Documents (*.pdf)");
+        file_alias["presentation"] = QFileDialog::getOpenFileName(NULL, "Presentation file", "", "Documents (*.pdf)");
     else
     {
         file_alias["presentation"] = arguments.first();

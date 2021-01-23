@@ -18,7 +18,7 @@ class PdfMaster : public QObject
 
 private:
     /// Poppler document representing the PDF
-    PdfDocument *document {nullptr};
+    PdfDocument *document {NULL};
 
     /// Graphics scenes of this application. For each combination of PDF file
     /// and page shift one scene is created.
@@ -67,7 +67,7 @@ public:
     /// Get container of paths on given page.
     /// page (part) number is given as (page | page_part).
     PathContainer *pathContainer(const int page) const
-    {return paths.value(page, nullptr);}
+    {return paths.value(page, NULL);}
 
     /// This function should be restructured!
     void resolveLink(const int page, const QPointF& position) const;

@@ -38,7 +38,7 @@ class TOCbutton : public QPushButton
 public:
     /// Constructor: Only directly uses the given values to initialize
     /// properties of this. Takes ownership of expand_button.
-    TOCbutton(const QString &title, const int _page, QCheckBox *expand_button, QWidget *parent = nullptr);
+    TOCbutton(const QString &title, const int _page, QCheckBox *expand_button, QWidget *parent = NULL);
 
     /// Destructor: recursively delete the associated subtree.
     ~TOCbutton() {delete expand_button; delete tree_child; delete tree_next;}

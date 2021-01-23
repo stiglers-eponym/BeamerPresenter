@@ -10,7 +10,7 @@ class ActionButton : public QPushButton
     const Action action;
 
 public:
-    explicit ActionButton(const Action action, QWidget *parent = nullptr);
+    explicit ActionButton(const Action action, QWidget *parent = NULL);
 
 protected:
     void onClicked() const noexcept

@@ -24,7 +24,7 @@ class SlideLabelWidget : public QWidget
 
 public:
     /// Constructor: construct and connect everything.
-    explicit SlideLabelWidget(QWidget *parent = nullptr);
+    explicit SlideLabelWidget(QWidget *parent = NULL);
 
     /// Trivial destructor: Qt should delete everything automatically.
     ~SlideLabelWidget() {}

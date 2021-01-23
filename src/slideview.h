@@ -22,7 +22,7 @@ class SlideView : public QGraphicsView
 
 public:
     /// Constructor: initialize and connect a lot.
-    explicit SlideView(SlideScene *scene, PixCache *cache = nullptr, QWidget *parent = nullptr);
+    explicit SlideView(SlideScene *scene, PixCache *cache = NULL, QWidget *parent = NULL);
 
     /// Preferred height of the layout depends on its width.
     bool hasHeightForWidth() const noexcept override

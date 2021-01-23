@@ -20,7 +20,7 @@ class PngPixmap
     const int page;
 
 public:
-    /// Constructor: initialize page and resolution; data=nullptr.
+    /// Constructor: initialize page and resolution; data=NULL.
     PngPixmap(const int page, const float resolution);
 
     /// Constructor: compresses pixmap to PNG. data is null if compression
@@ -46,10 +46,10 @@ public:
     /// Page number.
     int getPage() const {return page;}
 
-    /// Check whether data == nullptr
-    bool isNull() const {return data == nullptr;}
+    /// Check whether data == NULL
+    bool isNull() const {return data == NULL;}
 
-    /// Return data and set data = nullptr
+    /// Return data and set data = NULL
     QByteArray const* takeData();
 };
 

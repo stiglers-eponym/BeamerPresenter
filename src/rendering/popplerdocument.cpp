@@ -39,12 +39,12 @@ bool PopplerDocument::loadDocument()
         return false;
     }
     // Check if the file has changed since last (re)load
-    if (doc != nullptr && fileinfo.lastModified() == lastModified)
+    if (doc != NULL && fileinfo.lastModified() == lastModified)
         return false;
 
     // Load the document.
     Poppler::Document * newdoc = Poppler::Document::load(path);
-    if (newdoc == nullptr)
+    if (newdoc == NULL)
     {
         qCritical() << "Failed to load document.";
         return false;
@@ -57,7 +57,7 @@ bool PopplerDocument::loadDocument()
         // Use a QInputDialog to ask for the password.
         bool ok;
         QString const password = QInputDialog::getText(
-                    nullptr,
+                    NULL,
                     "Document is locked!",
                     "Please enter password (leave empty to cancel).",
                     QLineEdit::Password,
@@ -68,7 +68,7 @@ bool PopplerDocument::loadDocument()
         if (!ok || password.isEmpty())
         {
             delete newdoc;
-            newdoc = nullptr;
+            newdoc = NULL;
             qCritical() << "No password provided for locked document";
             return false;
         }
@@ -76,7 +76,7 @@ bool PopplerDocument::loadDocument()
         if (!newdoc->unlock(QByteArray(), password.toLatin1()))
         {
             delete newdoc;
-            newdoc = nullptr;
+            newdoc = NULL;
             qCritical() << "Unlocking document failed: wrong password or bug.";
             return false;
         }
@@ -92,7 +92,7 @@ bool PopplerDocument::loadDocument()
     newdoc->setRenderHint(Poppler::Document::ThinLineShape);
 
     // Update document and delete old document.
-    if (doc == nullptr)
+    if (doc == NULL)
         doc = newdoc;
     else
     {
@@ -111,7 +111,7 @@ const QPixmap PopplerDocument::getPixmap(const int page, const qreal resolution,
     if (resolution <= 0 || page < 0 || page >= doc->numPages())
         return QPixmap();
     const Poppler::Page * const popplerPage = doc->page(page);
-    if (popplerPage == nullptr)
+    if (popplerPage == NULL)
     {
         qWarning() << "Tried to render invalid page" << page;
         return QPixmap();
@@ -131,18 +131,18 @@ const QPixmap PopplerDocument::getPixmap(const int page, const qreal resolution,
 const PngPixmap * PopplerDocument::getPng(const int page, const qreal resolution, const PagePart page_part) const
 {
     if (resolution <= 0 || page < 0)
-        return nullptr;
+        return NULL;
     const Poppler::Page * const popplerPage = doc->page(page);
-    if (popplerPage == nullptr)
+    if (popplerPage == NULL)
     {
         qWarning() << "Tried to render invalid page" << page;
-        return nullptr;
+        return NULL;
     }
     QImage image = popplerPage->renderToImage(72.*resolution, 72.*resolution);
     if (image.isNull())
     {
         qWarning() << "Rendering page to image failed";
-        return nullptr;
+        return NULL;
     }
     switch (page_part)
     {
@@ -162,7 +162,7 @@ const PngPixmap * PopplerDocument::getPng(const int page, const qreal resolution
     {
         qWarning() << "Saving page as PNG image failed";
         delete bytes;
-        return nullptr;
+        return NULL;
     }
     return new PngPixmap(bytes, page, resolution);
 }
@@ -294,7 +294,7 @@ QList<VideoAnnotation> *PopplerDocument::annotations(const int page) const
 {
     const QList<Poppler::Annotation*> annotations = doc->page(page)->annotations({Poppler::Annotation::AMovie});
     if (annotations.isEmpty())
-        return nullptr;
+        return NULL;
     const QSizeF pageSize = doc->page(page)->pageSizeF();
     QList<VideoAnnotation> *list = new QList<VideoAnnotation>;
     for (const auto annotation : annotations)
@@ -324,7 +324,7 @@ QList<VideoAnnotation> *PopplerDocument::annotations(const int page) const
     if (list->isEmpty())
     {
         delete list;
-        return nullptr;
+        return NULL;
     }
     return list;
 }
@@ -352,7 +352,7 @@ const SlideTransition PopplerDocument::transition(const int page) const
 
 bool PopplerDocument::flexiblePageSizes() noexcept
 {
-    if (flexible_page_sizes >= 0 || doc == nullptr)
+    if (flexible_page_sizes >= 0 || doc == NULL)
         return flexible_page_sizes;
     const QSizeF ref_size = doc->page(0)->pageSizeF();
     for (int page=1; page<doc->numPages(); page++)

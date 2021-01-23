@@ -43,14 +43,14 @@ public:
     int count() const noexcept override
     {return items.size();}
 
-    /// Get item, or nullptr if index is out of range.
+    /// Get item, or NULL if index is out of range.
     QLayoutItem *itemAt(const int index) const override
     {return items.value(index);}
 
-    /// Get and remove item at given index. Return nullptr if index is out
+    /// Get and remove item at given index. Return NULL if index is out
     /// of range.
     QLayoutItem *takeAt(const int index) noexcept override
-    {return items.size() > index && index >= 0 ? items.takeAt(index) : nullptr;}
+    {return items.size() > index && index >= 0 ? items.takeAt(index) : NULL;}
 
     void setGeometry(const QRect &rect) override;
 };

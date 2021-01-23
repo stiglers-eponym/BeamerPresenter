@@ -14,10 +14,10 @@ class MuPdfDocument : public PdfDocument
 {
 
     /// context should be cloned for each separate thread.
-    fz_context *ctx{nullptr};
+    fz_context *ctx{NULL};
 
     /// document is global, don't clone if for threads.
-    fz_document *doc{nullptr};
+    fz_document *doc{NULL};
 
     /// Mutexes needed for parallel rendering in MuPDF.
     QVector<QMutex*> mutex_list{FZ_LOCK_MAX};
@@ -93,7 +93,7 @@ public:
     /// Annotation at given position (in point = inch/72)
     virtual const VideoAnnotation annotationAt(const int page, const QPointF &position) const override;
 
-    /// List all video annotations on given page. Returns nullptr if list is
+    /// List all video annotations on given page. Returns NULL if list is
     /// empty.
     virtual QList<VideoAnnotation>* annotations(const int page) const override;
 

@@ -14,7 +14,7 @@ class ContainerWidget : public QWidget
 
 public:
     /// Constructor: initialize QWidget and GuiWidget.
-    explicit ContainerWidget(QWidget *parent = nullptr) : QWidget(parent)
+    explicit ContainerWidget(QWidget *parent = NULL) : QWidget(parent)
     {setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);}
 
     // Return sizeHint based on layout.

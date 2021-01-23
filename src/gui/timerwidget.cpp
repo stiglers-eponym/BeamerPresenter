@@ -21,11 +21,11 @@ TimerWidget::TimerWidget(QWidget *parent) :
 TimerWidget::~TimerWidget()
 {
     delete timer;
-    timer = nullptr;
+    timer = NULL;
     delete passed;
-    passed = nullptr;
+    passed = NULL;
     delete total;
-    total = nullptr;
+    total = NULL;
 }
 
 void TimerWidget::updateTimeout() noexcept

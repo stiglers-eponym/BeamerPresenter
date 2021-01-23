@@ -32,7 +32,7 @@ PixCache::PixCache(PdfDocument *doc, const int thread_number, const PagePart pag
     }
 
     // Check if the renderer is valid
-    if (renderer == nullptr || !renderer->isValid())
+    if (renderer == NULL || !renderer->isValid())
         qCritical() << "Creating renderer failed" << preferences().renderer;
 }
 
@@ -57,7 +57,12 @@ PixCache::~PixCache()
     delete renderer;
     // TODO: correctly clean up threads!
     for (const auto &thread : qAsConst(threads))
+        thread->quit();
+    for (const auto &thread : qAsConst(threads))
+    {
+        thread->wait(10000);
         delete thread;
+    }
     clear();
 }
 
@@ -89,7 +94,7 @@ const QPixmap PixCache::pixmap(const int page) const
     // Try to return a page from cache.
     {
         const auto it = cache.constFind(page);
-        if (it != cache.cend() && *it != nullptr && abs((*it)->getResolution() - resolution) < MAX_RESOLUTION_DEVIATION)
+        if (it != cache.cend() && *it != NULL && abs((*it)->getResolution() - resolution) < MAX_RESOLUTION_DEVIATION)
             return (*it)->pixmap();
     }
 
@@ -98,7 +103,7 @@ const QPixmap PixCache::pixmap(const int page) const
         return QPixmap();
 
     // Check if the renderer is valid
-    if (renderer == nullptr || !renderer->isValid())
+    if (renderer == NULL || !renderer->isValid())
     {
         qCritical() << "Invalid renderer";
         return QPixmap();
@@ -120,7 +125,7 @@ const QPixmap PixCache::pixmap(const int page)
     // Try to return a page from cache.
     {
         const auto it = cache.constFind(page);
-        if (it != cache.cend() && *it != nullptr && abs((*it)->getResolution() - resolution) < MAX_RESOLUTION_DEVIATION)
+        if (it != cache.cend() && *it != NULL && abs((*it)->getResolution() - resolution) < MAX_RESOLUTION_DEVIATION)
             return (*it)->pixmap();
     }
     // Check if page number is valid.
@@ -128,7 +133,7 @@ const QPixmap PixCache::pixmap(const int page)
         return QPixmap();
 
     // Check if the renderer is valid
-    if (renderer == nullptr || !renderer->isValid())
+    if (renderer == NULL || !renderer->isValid())
     {
         qCritical() << "Invalid renderer";
         return QPixmap();
@@ -142,11 +147,11 @@ const QPixmap PixCache::pixmap(const int page)
 
     // Write pixmap to cache.
     const PngPixmap *png = new PngPixmap(pix, page, resolution);
-    if (png == nullptr)
+    if (png == NULL)
         qWarning() << "Converting pixmap to PNG failed";
     else
     {
-        if (cache.value(page, nullptr) != nullptr)
+        if (cache.value(page, NULL) != NULL)
         {
             usedMemory -= cache[page]->size();
             delete cache[page];
@@ -237,7 +242,7 @@ int PixCache::limitCacheSize()
     }
 
     // Number of really cached slides:
-    // subtract number of currently active threads, for which cache contains a nullptr.
+    // subtract number of currently active threads, for which cache contains a NULL.
     int cached_slides = cache.size();
     for (QVector<PixCacheThread*>::const_iterator it = threads.cbegin(); it != threads.cend(); ++it)
     {
@@ -302,9 +307,9 @@ int PixCache::limitCacheSize()
             remove = it.value();
             first = cache.erase(it).key();
         }
-        // Check if remove is nullptr (which means that a thread is just rendering it).
+        // Check if remove is NULL (which means that a thread is just rendering it).
         // TODO: make sure this case is correctly handled when the thread finishes.
-        if (remove == nullptr)
+        if (remove == NULL)
             continue;
 #ifdef DEBUG_CACHE
         qDebug() << "removing page from cache" << usedMemory << remove->getPage();
@@ -395,19 +400,19 @@ void PixCache::startRendering()
 void PixCache::receiveData(const PngPixmap *data)
 {
     // If a renderer failed, it should already have sent an error message.
-    if (data == nullptr || data->isNull())
+    if (data == NULL || data->isNull())
         return;
 
     // Check if the received image is still compatible with the current resolution.
     if (abs(getResolution(data->getPage()) - data->getResolution()) > MAX_RESOLUTION_DEVIATION)
     {
-        if (cache.value(data->getPage()) == nullptr)
+        if (cache.value(data->getPage()) == NULL)
             cache.remove(data->getPage());
         delete data;
     }
     else
     {
-        if (cache.value(data->getPage(), nullptr) != nullptr)
+        if (cache.value(data->getPage(), NULL) != NULL)
         {
             usedMemory -= cache[data->getPage()]->size();
             delete cache[data->getPage()];
@@ -456,7 +461,7 @@ void PixCache::requestPage(const int page, const qreal resolution)
 #ifdef DEBUG_CACHE
         qDebug() << "searched for page" << page << (it == cache.cend()) << (it != cache.cend() && *it != NULL) << (it == cache.cend() ? -1024 : ((*it)->getResolution() - resolution));
 #endif
-        if (it != cache.cend() && *it != nullptr && abs((*it)->getResolution() - resolution) < MAX_RESOLUTION_DEVIATION)
+        if (it != cache.cend() && *it != NULL && abs((*it)->getResolution() - resolution) < MAX_RESOLUTION_DEVIATION)
         {
             emit pageReady((*it)->pixmap(), page);
             return;
@@ -468,7 +473,7 @@ void PixCache::requestPage(const int page, const qreal resolution)
 
     // Render new page.
     // Check if the renderer is valid
-    if (renderer == nullptr || !renderer->isValid())
+    if (renderer == NULL || !renderer->isValid())
     {
         qCritical() << "Invalid renderer";
         return;
@@ -487,11 +492,11 @@ void PixCache::requestPage(const int page, const qreal resolution)
 
     // Write pixmap to cache.
     const PngPixmap *png = new PngPixmap(pix, page, resolution);
-    if (png == nullptr)
+    if (png == NULL)
         qWarning() << "Converting pixmap to PNG failed";
     else
     {
-        if (cache.value(page, nullptr) != nullptr)
+        if (cache.value(page, NULL) != NULL)
         {
             usedMemory -= cache[page]->size();
             delete cache[page];

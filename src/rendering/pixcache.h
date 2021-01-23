@@ -22,7 +22,7 @@ class PixCache : public QObject
 
 private:
     /// Map page numbers to cached PNG pixmaps.
-    /// Pages which are currently being rendered are marked with a nullptr here.
+    /// Pages which are currently being rendered are marked with a NULL here.
     QMap<int, const PngPixmap*> cache;
 
     /// List of pages which should be rendered next.
@@ -55,7 +55,7 @@ private:
     const PdfDocument *pdfDoc;
 
     /// Single shot, 0 duration timer for rendering pages.
-    QTimer *renderCacheTimer {nullptr};
+    QTimer *renderCacheTimer {NULL};
 
     /// Check cache size and delete pages if necessary.
     /// Return estimated number of pages which still fit in cache.
@@ -72,7 +72,7 @@ private:
     qreal getResolution(const int page) const;
 
 public:
-    explicit PixCache(PdfDocument *doc, const int thread_number, const PagePart page_part = FullPage, QObject *parent = nullptr);
+    explicit PixCache(PdfDocument *doc, const int thread_number, const PagePart page_part = FullPage, QObject *parent = NULL);
     ~PixCache();
 
     /// Clear cache, delete all cached pages.
@@ -135,10 +135,6 @@ public slots:
 signals:
     /// Send out new page.
     void pageReady(const QPixmap pixmap, const int page) const;
-
-    /// Get page size from PdfDocument
-    /// TODO: use this!
-    void getPageSize(QSizeF *size, const int page) const;
 };
 
 #endif // PIXCACHE_H

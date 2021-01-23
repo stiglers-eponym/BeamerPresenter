@@ -13,7 +13,7 @@ class ToolSelectorWidget : public QWidget
     Q_OBJECT
 
 public:
-    explicit ToolSelectorWidget(QWidget *parent = nullptr);
+    explicit ToolSelectorWidget(QWidget *parent = NULL);
 
     QSize sizeHint() const noexcept override;
 

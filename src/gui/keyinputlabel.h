@@ -17,7 +17,7 @@ class KeyInputLabel : public QLabel
     quint32 sequence;
 
 public:
-    explicit KeyInputLabel(const quint32 init, const Action action, QWidget *parent = nullptr);
+    explicit KeyInputLabel(const quint32 init, const Action action, QWidget *parent = NULL);
 
 protected:
     void keyPressEvent(QKeyEvent *event) override;

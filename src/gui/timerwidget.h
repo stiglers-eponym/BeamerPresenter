@@ -18,7 +18,7 @@ class TimerWidget : public QWidget
     void updateTimeout() noexcept;
 
 public:
-    explicit TimerWidget(QWidget *parent = nullptr);
+    explicit TimerWidget(QWidget *parent = NULL);
     ~TimerWidget();
 
     bool hasHeightForWidth() const noexcept override

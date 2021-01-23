@@ -16,7 +16,7 @@ class ClockWidget : public QLabel
 
 public:
     /// Constructor
-    explicit ClockWidget(QWidget *parent = nullptr);
+    explicit ClockWidget(QWidget *parent = NULL);
 
     /// Destructor: delete timer.
     ~ClockWidget()

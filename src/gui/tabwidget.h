@@ -10,7 +10,7 @@ class TabWidget : public QTabWidget
 
 public:
     /// Constructor: set size policy.
-    TabWidget(QWidget *parent = nullptr) noexcept : QTabWidget(parent)
+    TabWidget(QWidget *parent = NULL) noexcept : QTabWidget(parent)
     {setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);}
 
     // Return sizeHint based on layout.

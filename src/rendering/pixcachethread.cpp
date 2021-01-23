@@ -27,7 +27,7 @@ void PixCacheThread::setNextPage(const int page_number, const qreal res)
 void PixCacheThread::run()
 {
     // Check if a renderer is available.
-    if (renderer == nullptr)
+    if (renderer == NULL)
         return;
 
     // Render the image. This is takes some time.
@@ -66,6 +66,6 @@ bool PixCacheThread::initializeRenderer(const PdfDocument * const doc, const Pag
     // Creating renderer failed. Clean up and return false.
     qCritical() << "Creating renderer failed" << preferences().renderer;
     delete renderer;
-    renderer = nullptr;
+    renderer = NULL;
     return false;
 }

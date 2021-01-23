@@ -38,7 +38,7 @@ public:
 
     /// Paint this on given painter. Options and widget are currently
     /// discarded.
-    void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget = nullptr) override;
+    void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget = NULL) override;
 
     /// Add a point to data and update bounding rect.
     void addPoint(const QPointF &point);

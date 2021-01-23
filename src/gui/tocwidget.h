@@ -24,14 +24,14 @@ class TOCwidget : public QWidget
 
 public:
     /// Trivial constructor, does not create the outline tree.
-    explicit TOCwidget(QWidget *parent = nullptr) : QWidget(parent) {}
+    explicit TOCwidget(QWidget *parent = NULL) : QWidget(parent) {}
 
     /// Destructor: TOCbuttons are deleted recursively.
     ~TOCwidget()
     {delete first_button;}
 
     /// Generate the TOC from given document or preferences().document.
-    void generateTOC(const PdfDocument *document = nullptr);
+    void generateTOC(const PdfDocument *document = NULL);
 
     /// Actually this is nonsense, but currently the layout only works with
     /// this option set.

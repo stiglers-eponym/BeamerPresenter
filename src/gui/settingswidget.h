@@ -30,7 +30,7 @@ class SettingsWidget : public QTabWidget
     QScrollArea *rendering;
 
 public:
-    explicit SettingsWidget(QWidget *parent = nullptr);
+    explicit SettingsWidget(QWidget *parent = NULL);
 
     QSize sizeHint() const noexcept override
     {return {100,200};}

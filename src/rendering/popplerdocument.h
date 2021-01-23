@@ -29,7 +29,7 @@ static const QMap<Poppler::PageTransition::Type, SlideTransition::Type> mapTrans
 class PopplerDocument : public PdfDocument
 {
     /// Poppler document representing the PDF.
-    const Poppler::Document *doc {nullptr};
+    const Poppler::Document *doc {NULL};
 
     /// Lookup table for page labels: set of page indices, at which the page
     /// label changes. This is left empty if every page starts with a new
@@ -98,7 +98,7 @@ public:
     /// Annotation at given position (in point = inch/72)
     virtual const VideoAnnotation annotationAt(const int page, const QPointF &position) const override;
 
-    /// List all video annotations on given page. Returns nullptr if list is empty.
+    /// List all video annotations on given page. Returns NULL if list is empty.
     virtual QList<VideoAnnotation>* annotations(const int page) const override;
 
     /// Slide transition when reaching the given page.

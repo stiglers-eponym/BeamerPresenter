@@ -148,10 +148,10 @@ bool MuPdfDocument::loadDocument()
 
     ctx = fz_new_context(NULL, &locks, FZ_STORE_UNLIMITED);
 
-    if (ctx == nullptr)
+    if (ctx == NULL)
     {
         qWarning() << "Failed to create Fitz ctx";
-        doc = nullptr;
+        doc = NULL;
         mutex->unlock();
         return false;
     }
@@ -162,9 +162,9 @@ bool MuPdfDocument::loadDocument()
     fz_catch(ctx)
     {
         qWarning() << "MuPdf cannot register document handlers:" << fz_caught_message(ctx);
-        doc = nullptr;
+        doc = NULL;
         fz_drop_context(ctx);
-        ctx =  nullptr;
+        ctx =  NULL;
         mutex->unlock();
         return false;
     }
@@ -180,9 +180,9 @@ bool MuPdfDocument::loadDocument()
         fz_catch(ctx)
         {
             qWarning() << "MuPdf cannot open document:" << fz_caught_message(ctx);
-            doc = nullptr;
+            doc = NULL;
             fz_drop_context(ctx);
-            ctx =  nullptr;
+            ctx =  NULL;
             mutex->unlock();
             return false;
         }
@@ -295,7 +295,7 @@ void MuPdfDocument::loadPageLabels()
     // (which MuPDF should finally include!)
     // https://bugs.ghostscript.com/show_bug.cgi?id=695351
 
-    pdf_document *pdf_doc = nullptr;
+    pdf_document *pdf_doc = NULL;
     fz_try(ctx)
         pdf_doc = pdf_document_from_fz_document(ctx, doc);
     fz_catch(ctx)
@@ -335,11 +335,11 @@ void MuPdfDocument::loadPageLabels()
         };
         auto pdf_dict_to_name = [&](pdf_obj* obj, const char* key)->const char*{
             pdf_obj *value = pdf_dict_gets(ctx, obj, key);
-            return (value && pdf_is_name(ctx, value)) ? pdf_to_name(ctx, value) : nullptr;
+            return (value && pdf_is_name(ctx, value)) ? pdf_to_name(ctx, value) : NULL;
         };
         auto pdf_dict_to_string = [&](pdf_obj* obj, const char* key)->const char*{
             pdf_obj *value = pdf_dict_gets(ctx, obj, key);
-            return (value && pdf_is_string(ctx, value)) ? pdf_to_text_string(ctx, value) : nullptr;
+            return (value && pdf_is_string(ctx, value)) ? pdf_to_text_string(ctx, value) : NULL;
         };
         for (int i = 0, key; i < len_minus_one;)
         {
@@ -450,7 +450,7 @@ const SlideTransition MuPdfDocument::transition(const int page) const
     fz_transition *doc_trans = new fz_transition();
     mutex->lock();
     fz_page *doc_page = fz_load_page(ctx, doc, page);
-    fz_page_presentation(ctx, doc_page, doc_trans, nullptr);
+    fz_page_presentation(ctx, doc_page, doc_trans, NULL);
     if (doc_trans)
     {
         trans.properties = (doc_trans->vertical ? SlideTransition::Vertical : 0)
@@ -484,11 +484,11 @@ const PdfLink MuPdfDocument::linkAt(const int page, const QPointF &position) con
     fz_page *doc_page = fz_load_page(ctx, doc, page);
     // TODO: check how this is correctly tidied up!
     fz_link * const clink = fz_load_links(ctx, doc_page);
-    for (fz_link* link = clink; link != nullptr; link = link->next)
+    for (fz_link* link = clink; link != NULL; link = link->next)
     {
         if (link->rect.x0 <= position.x() && link->rect.x1 >= position.x() && link->rect.y0 <= position.y() && link->rect.y1 >= position.y())
         {
-            if (link->uri == nullptr)
+            if (link->uri == NULL)
                 result = {NoLink, ""};
             else if (link->uri[0] == '#')
             {
@@ -516,7 +516,7 @@ const VideoAnnotation MuPdfDocument::annotationAt(const int page, const QPointF 
         return VideoAnnotation();
     mutex->lock();
     pdf_page *pdfpage = pdf_load_page(ctx, pdf_document_from_fz_document(ctx, doc), page);
-    for (pdf_annot *annot = pdfpage->annots; annot != nullptr; annot = annot->next)
+    for (pdf_annot *annot = pdfpage->annots; annot != NULL; annot = annot->next)
     {
         pdf_keep_annot(ctx, annot); // is this necessary?
         fz_rect bound = pdf_bound_annot(ctx, annot);
@@ -577,12 +577,12 @@ const VideoAnnotation MuPdfDocument::annotationAt(const int page, const QPointF 
 
 QList<VideoAnnotation> *MuPdfDocument::annotations(const int page) const
 {
-    QList<VideoAnnotation>* list = nullptr;
+    QList<VideoAnnotation>* list = NULL;
     if (page < 0 || page >= number_of_pages)
         return list;
     mutex->lock();
     pdf_page *pdfpage = pdf_load_page(ctx, pdf_document_from_fz_document(ctx, doc), page);
-    for (pdf_annot *annot = pdfpage->annots; annot != nullptr; annot = annot->next)
+    for (pdf_annot *annot = pdfpage->annots; annot != NULL; annot = annot->next)
     {
         if (pdf_annot_type(ctx, annot) == PDF_ANNOT_MOVIE)
         {
@@ -595,7 +595,7 @@ QList<VideoAnnotation> *MuPdfDocument::annotations(const int page) const
             }
             const QString file = pdf_dict_get_text_string(ctx, movie_obj, PDF_NAME(F));
             fz_rect bound = pdf_bound_annot(ctx, annot);
-            if (list == nullptr)
+            if (list == NULL)
                 list = new QList<VideoAnnotation>();
             list->append({
                         QUrl::fromLocalFile(file),
@@ -626,7 +626,7 @@ QList<VideoAnnotation> *MuPdfDocument::annotations(const int page) const
 
 bool MuPdfDocument::flexiblePageSizes() noexcept
 {
-    if (flexible_page_sizes >= 0 || doc == nullptr)
+    if (flexible_page_sizes >= 0 || doc == NULL)
         return flexible_page_sizes;
     flexible_page_sizes = 0;
     mutex->lock();

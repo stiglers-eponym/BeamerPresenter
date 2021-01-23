@@ -22,18 +22,18 @@ class SlideScene : public QGraphicsScene
     Q_OBJECT
 
     /// Path which is currently being drawn.
-    /// nullptr if currenty no path is drawn.
-    AbstractGraphicsPath* currentPath {nullptr};
+    /// NULL if currenty no path is drawn.
+    AbstractGraphicsPath* currentPath {NULL};
 
     /// Currently used draw tool, cached during drawing.
     /// current_tool is never owned by this.
-    const Tool *current_tool {nullptr};
+    const Tool *current_tool {NULL};
 
     /// Group of path segments forming the currently drawn path.
     /// This collection of segments is directly made visible and gets deleted
     /// when drawing the path is completed and the path itself is shown
     /// instead.
-    QGraphicsItemGroup* currentItemCollection {nullptr};
+    QGraphicsItemGroup* currentItemCollection {NULL};
 
     /// PDF document, including drawing paths.
     /// This is const, all data sent to master should be send via signals.
@@ -59,7 +59,7 @@ class SlideScene : public QGraphicsScene
 public:
     /// Constructor: initialize master, page_part, and QGraphisScene.
     /// Connect signals.
-    explicit SlideScene(const PdfMaster *master, const PagePart part = FullPage, QObject *parent = nullptr);
+    explicit SlideScene(const PdfMaster *master, const PagePart part = FullPage, QObject *parent = NULL);
 
     /// Destructor: delete all graphics items.
     ~SlideScene();
@@ -106,7 +106,7 @@ public:
 
     /// Receive navigation event from PdfMaster.
     /// The given page already includes the shift.
-    void navigationEvent(const int newpage, SlideScene* newscene = nullptr);
+    void navigationEvent(const int newpage, SlideScene* newscene = NULL);
 
     /// Start handling draw and erase events.
     void startInputEvent(const Tool *tool, const QPointF &pos, const float pressure = 1.);

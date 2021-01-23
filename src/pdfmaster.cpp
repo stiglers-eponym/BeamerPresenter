@@ -26,7 +26,7 @@ PdfMaster::PdfMaster(const QString &filename)
 #else
     document = new MuPdfDocument(filename);
 #endif
-    if (document == nullptr || !document->isValid())
+    if (document == NULL || !document->isValid())
         qFatal("Loading document failed");
 
     // This is mainly for testing:

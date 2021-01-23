@@ -32,7 +32,7 @@ public:
 
     /// In the current implementation this is always valid.
     bool isValid() const override
-    {return doc != nullptr && doc->isValid();}
+    {return doc != NULL && doc->isValid();}
 };
 
 #endif // MUPDFRENDERER_H

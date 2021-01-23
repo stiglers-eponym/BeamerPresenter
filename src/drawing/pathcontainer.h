@@ -63,10 +63,10 @@ public:
     ~PathContainer();
 
     /// Undo latest change. Return true on success and false on failure.
-    bool undo(QGraphicsScene *scene = nullptr);
+    bool undo(QGraphicsScene *scene = NULL);
 
     /// Redo latest change. Return true on success and false on failure.
-    bool redo(QGraphicsScene *scene = nullptr);
+    bool redo(QGraphicsScene *scene = NULL);
 
     /// Iterator over current paths.
     QList<QGraphicsItem*>::const_iterator cbegin() const noexcept

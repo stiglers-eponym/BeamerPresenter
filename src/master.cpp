@@ -5,11 +5,11 @@
 Master::~Master()
 {
     for (const auto cache : qAsConst(caches))
+        cache->thread()->quit();
+    for (const auto cache : qAsConst(caches))
     {
-        QThread * const thread = cache->thread();
+        cache->thread()->wait(10000);
         delete cache;
-        thread->quit();
-        thread->deleteLater();
     }
     caches.clear();
     for (const auto doc : qAsConst(documents))
@@ -57,7 +57,7 @@ bool Master::readGuiConfig(const QString &filename)
         }
         QJsonObject obj = it->toObject();
         // Start recursive creation of widgets.
-        QWidget* const widget = createWidget(obj, nullptr);
+        QWidget* const widget = createWidget(obj, NULL);
         if (widget)
             windows.append(widget);
     }
@@ -80,10 +80,10 @@ QWidget* Master::createWidget(QJsonObject &object, QWidget *parent)
         else
         {
             qCritical() << "Ignoring entry in GUI config without type." << object;
-            return nullptr;
+            return NULL;
         }
     }
-    QWidget *widget = nullptr;
+    QWidget *widget = NULL;
     const GuiWidget type = string_to_widget_type.value(object.value("type").toString().toLower(), GuiWidget::InvalidType);
     switch (type)
     {
@@ -178,7 +178,7 @@ QWidget* Master::createWidget(QJsonObject &object, QWidget *parent)
         file = preferences().file_alias.value(file.isEmpty() ? "presentation" : file, file);
         if (!QFile::exists(file))
         {
-            file = QFileDialog::getOpenFileName(nullptr, "File " + file, "", "Documents (*.pdf)");
+            file = QFileDialog::getOpenFileName(NULL, "File " + file, "", "Documents (*.pdf)");
             if (!QFile::exists(file))
             {
                 qCritical() << "No valid file given";
@@ -193,8 +193,8 @@ QWidget* Master::createWidget(QJsonObject &object, QWidget *parent)
             page_part = RightHalf;
 
         // Check whether the PDF has been loaded already, load it if necessary.
-        PdfMaster *doc = nullptr;
-        SlideScene *scene = nullptr;
+        PdfMaster *doc = NULL;
+        SlideScene *scene = NULL;
         for (auto docit = documents.begin(); docit != documents.end(); ++docit)
         {
             if ((*docit)->getFilename() == file)
@@ -214,7 +214,7 @@ QWidget* Master::createWidget(QJsonObject &object, QWidget *parent)
                 break;
             }
         }
-        if (doc == nullptr)
+        if (doc == NULL)
         {
             doc = new PdfMaster(file);
             if (writable_preferences().number_of_pages && writable_preferences().number_of_pages != doc->numberOfPages())
@@ -251,7 +251,7 @@ QWidget* Master::createWidget(QJsonObject &object, QWidget *parent)
         }
 
         // Create new slide scene if necessary.
-        if (scene == nullptr)
+        if (scene == NULL)
         {
             scene = new SlideScene(doc, page_part, parent);
             if (shift != 0)
@@ -268,7 +268,7 @@ QWidget* Master::createWidget(QJsonObject &object, QWidget *parent)
         // TODO: read other properties from config
 
         // Get or create cache object.
-        PixCache *pixcache = nullptr;
+        PixCache *pixcache = NULL;
         int cache_hash = object.value("cache hash").toInt(-1);
         if (cache_hash == -1)
         {
@@ -280,10 +280,10 @@ QWidget* Master::createWidget(QJsonObject &object, QWidget *parent)
         else
         {
             // Check if a PixCache object with the given hash already exists.
-            pixcache = caches.value(cache_hash, nullptr);
+            pixcache = caches.value(cache_hash, NULL);
         }
         // If necessary, create a new PixCache object an store it in caches.
-        if (pixcache == nullptr)
+        if (pixcache == NULL)
         {
             // Read number of threads from GUI config.
             const int threads = object.value("threads").toInt(1);
@@ -345,7 +345,7 @@ QWidget* Master::createWidget(QJsonObject &object, QWidget *parent)
                 case QJsonValue::Object:
                 {
                     const QJsonObject obj = row[j].toObject();
-                    Tool *tool = nullptr;
+                    Tool *tool = NULL;
                     const BasicTool base_tool = string_to_tool.value(obj.value("tool").toString());
                     switch (base_tool)
                     {

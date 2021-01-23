@@ -52,7 +52,7 @@ public:
      * erased.
      *
      * @return QList<AbstractGraphicsPath*>, new paths after erasing (possibly
-     * empty) or {nullptr} if nothing was erased.
+     * empty) or {NULL} if nothing was erased.
      */
     virtual QList<AbstractGraphicsPath*> splitErase(const QPointF &pos, const qreal size) const = 0;
 
