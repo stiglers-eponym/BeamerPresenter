@@ -41,14 +41,8 @@ void Preferences::loadSettings()
 
     // RENDERING
     settings.beginGroup("rendering");
-    { // page_part
-        // TODO: implement!
+    { // page_part threshold
         page_part_threshold = settings.value("page part threshold").toReal();
-        const QString page_part_str = settings.value("page part").toString().toLower();
-        if (page_part_str == "left" || page_part_str == "presentation left")
-            page_part = LeftHalf;
-        else if (page_part_str == "right" || page_part_str == "presentation right")
-            page_part = RightHalf;
     }
     { // renderer
         const QString renderer_str = settings.value("renderer").toString().toLower();
@@ -266,36 +260,28 @@ void Preferences::loadFromParser(const QCommandLineParser &parser)
                 renderer = AbstractRenderer::ExternalRenderer;
         }
     }
-
-    // page part
-    if (parser.isSet("p"))
-    {
-        if (parser.value("p").toLower() == "left")
-            page_part = PagePart::LeftHalf;
-        else if (parser.value("p").toLower() == "right")
-            page_part = PagePart::RightHalf;
-        else if (parser.value("p").toLower() == "full")
-            page_part = PagePart::FullPage;
-        page_part_threshold = -1.;
-    }
 }
 
-void Preferences::addKeyAction(quint32 sequence, Action action)
+void Preferences::addKeyAction(const quint32 sequence, const Action action)
 {
-    key_actions.insert(sequence, action);
+    if (!key_actions.contains(sequence) || !key_actions.values(sequence).contains(action))
+        key_actions.insert(sequence, action);
     const QString keycode = QKeySequence(sequence).toString();
     if (!keycode.isEmpty())
     {
         settings.beginGroup("keys");
         QStringList list = settings.value(keycode).toStringList();
-        list.append(string_to_action_map.key(action));
-        if (!list.isEmpty())
+        const QString &string = string_to_action_map.key(action);
+        if (!list.contains(string))
+        {
+            list.append(string);
             settings.setValue(keycode, list);
+        }
         settings.endGroup();
     }
 }
 
-void Preferences::removeKeyAction(quint32 sequence, Action action)
+void Preferences::removeKeyAction(const quint32 sequence, const Action action)
 {
     key_actions.remove(sequence, action);
     settings.beginGroup("keys");

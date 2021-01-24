@@ -48,9 +48,10 @@ public:
 
 
     // RENDERING
-    /// Page part corresponding to the presentation.
-    PagePart page_part {FullPage};
+    /// Threshold of page aspect ratio for splitting pages in notes and
+    /// presentation.
     float page_part_threshold {0.};
+    PagePart default_page_part = FullPage;
 
 #ifdef INCLUDE_MUPDF
     /// PDF engine (should be same as renderer except if renderer is external)
@@ -137,8 +138,8 @@ public:
     /// Usually called after loadSettings().
     void loadFromParser(const QCommandLineParser &parser);
 
-    void addKeyAction(quint32 sequence, Action action);
-    void removeKeyAction(quint32 sequence, Action action);
+    void addKeyAction(const quint32 sequence, const Action action);
+    void removeKeyAction(const quint32 sequence, const Action action);
 
 public slots:
     void setMemory(const QString &string);

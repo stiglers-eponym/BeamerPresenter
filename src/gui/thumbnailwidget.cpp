@@ -26,44 +26,33 @@ void ThumbnailWidget::generate(const PdfDocument *document)
     QWidget *widget = new QWidget(this);
     QGridLayout *layout = new QGridLayout(this);
     ThumbnailButton *button;
-    int i = 0;
+    auto create_button = [&](const int display_page, const int link_page, const int position)
+    {
+        button = new ThumbnailButton(link_page, this);
+        connect(button, &ThumbnailButton::sendNavigationSignal, this, &ThumbnailWidget::sendNavigationSignal);
+        QSizeF size = document->pageSize(display_page);
+        if (preferences().default_page_part)
+            size.rwidth() /= 2;
+        emit sendToRenderThread(button, col_width/size.width(), display_page);
+        button->setMinimumSize(col_width, col_width*size.height()/size.width());
+        layout->addWidget(button, position/columns, position%columns);
+    };
+    int position = 0;
     if (skip_overlays)
     {
         const QList<int> &list = document->overlayIndices();
         if (!list.isEmpty())
         {
-            int k = list.first();
-            for (QList<int>::const_iterator it = list.cbegin()+1; it != list.cend(); k=*it++)
-            {
-                button = new ThumbnailButton(k, this);
-                connect(button, &ThumbnailButton::sendNavigationSignal, this, &ThumbnailWidget::sendNavigationSignal);
-                const QSizeF size = document->pageSize(*it-1);
-                emit sendToRenderThread(button, col_width/size.width(), *it-1);
-                button->setMinimumSize(col_width, col_width*size.height()/size.width());
-                layout->addWidget(button, i/columns, i%columns);
-                i++;
-            }
-            const int last_page = document->numberOfPages() - 1;
-            button = new ThumbnailButton(list.last(), this);
-            connect(button, &ThumbnailButton::sendNavigationSignal, this, &ThumbnailWidget::sendNavigationSignal);
-            const QSizeF size = document->pageSize(last_page);
-            emit sendToRenderThread(button, col_width/size.width(), last_page);
-            button->setMinimumSize(col_width, col_width*size.height()/size.width());
-            layout->addWidget(button, i/columns, i%columns);
-            i++;
+            int link_page = list.first();
+            for (QList<int>::const_iterator it = list.cbegin()+1; it != list.cend(); link_page=*it++)
+                create_button(*it-1, link_page, position++);
+            create_button(document->numberOfPages()-1, list.last(), position++);
         }
     }
-    if (i == 0)
+    if (position == 0)
     {
-        for (; i<document->numberOfPages(); i++)
-        {
-            button = new ThumbnailButton(i, this);
-            connect(button, &ThumbnailButton::sendNavigationSignal, this, &ThumbnailWidget::sendNavigationSignal);
-            const QSizeF size = document->pageSize(i);
-            emit sendToRenderThread(button, col_width/size.width(), i);
-            button->setMinimumSize(col_width, col_width*size.height()/size.width());
-            layout->addWidget(button, i/columns, i%columns);
-        }
+        for (; position<document->numberOfPages(); position++)
+            create_button(position, position, position);
     }
     widget->setLayout(layout);
     setWidget(widget);

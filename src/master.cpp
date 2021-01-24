@@ -212,10 +212,11 @@ QWidget* Master::createWidget(QJsonObject &object, QWidget *parent)
                     if (reference.width() < preferences().page_part_threshold * reference.height())
                         page_part = FullPage;
                 }
-                if (object.value("master").toBool() && documents.first() != doc)
+                if (object.value("master").toBool())
                 {
                     documents.erase(docit);
                     documents.prepend(doc);
+                    writable_preferences().default_page_part = page_part;
                 }
                 break;
             }
@@ -240,7 +241,10 @@ QWidget* Master::createWidget(QJsonObject &object, QWidget *parent)
                     page_part = FullPage;
             }
             if (object.value("master").toBool())
+            {
                 documents.prepend(doc);
+                writable_preferences().default_page_part = page_part;
+            }
             else
                 documents.append(doc);
         }
@@ -551,6 +555,12 @@ void Master::limitHistoryInvisible(const int page) const
         container = doc->pathContainer(page);
         if (container)
             container->clearHistory(preferences().history_length_hidden_slides);
+        container = doc->pathContainer(page | PagePart::LeftHalf);
+        if (container)
+            container->clearHistory(preferences().history_length_hidden_slides);
+        container = doc->pathContainer(page | PagePart::RightHalf);
+        if (container)
+            container->clearHistory(preferences().history_length_hidden_slides);
         if (doc->flexiblePageSizes())
             flexible_page_numbers = true;
     }
@@ -593,7 +603,7 @@ void Master::navigateToPage(const int page) const
 {
     if (page < 0 || page >= preferences().number_of_pages)
         return;
-    limitHistoryInvisible(preferences().page | preferences().page_part);
+    limitHistoryInvisible(preferences().page);
     emit prepareNavigationSignal(page);
     for (auto window : windows)
         window->updateGeometry();

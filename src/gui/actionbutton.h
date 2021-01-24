@@ -4,6 +4,9 @@
 #include <QPushButton>
 #include "src/enumerates.h"
 
+/**
+ * @brief Button which sends Action when clicked.
+ */
 class ActionButton : public QPushButton
 {
     Q_OBJECT

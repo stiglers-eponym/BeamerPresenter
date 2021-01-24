@@ -67,6 +67,14 @@ enum Action
     // Other actions
     ReloadFiles,
     Quit,
+
+    // Combinations with other types
+    UndoDrawingLeft = UndoDrawing | PagePart::LeftHalf,
+    UndoDrawingRight = UndoDrawing | PagePart::RightHalf,
+    RedoDrawingLeft = RedoDrawing | PagePart::LeftHalf,
+    RedoDrawingRight = RedoDrawing | PagePart::RightHalf,
+    ClearDrawingLeft = ClearDrawing | PagePart::LeftHalf,
+    ClearDrawingRight = ClearDrawing | PagePart::RightHalf,
 };
 
 /// Tools for drawing and highlighting.

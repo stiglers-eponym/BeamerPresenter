@@ -60,13 +60,15 @@ void PdfMaster::receiveAction(const Action action)
             emit update();
         break;
     case UndoDrawing:
+    case UndoDrawing | PagePart::LeftHalf:
+    case UndoDrawing | PagePart::RightHalf:
     {
-        // TODO: this takes the wrong page part if page aspect is below threshold.
-        PathContainer* const path = paths.value(preferences().page | preferences().page_part);
+        // TODO: enable undo on different page parts
+        const int page = preferences().page | (action ^ UndoDrawing);
+        PathContainer* const path = paths.value(page);
         if (path)
         {
             qDebug() << "undo:" << path;
-            const int page = preferences().page | preferences().page_part;
             auto scene_it = scenes.cbegin();
             while ( scene_it != scenes.cend() && ( (*scene_it)->getPage() | (*scene_it)->pagePart() ) != page)
                 ++scene_it;
@@ -78,12 +80,14 @@ void PdfMaster::receiveAction(const Action action)
         break;
     }
     case RedoDrawing:
+    case RedoDrawing | PagePart::LeftHalf:
+    case RedoDrawing | PagePart::RightHalf:
     {
-        PathContainer* const path = paths.value(preferences().page | preferences().page_part);
+        const int page = preferences().page | (action ^ RedoDrawing);
+        PathContainer* const path = paths.value(page);
         if (path)
         {
             qDebug() << "redo:" << path;
-            const int page = preferences().page | preferences().page_part;
             auto scene_it = scenes.cbegin();
             while ( scene_it != scenes.cend() && ( (*scene_it)->getPage() | (*scene_it)->pagePart() ) != page)
                 ++scene_it;
@@ -95,8 +99,10 @@ void PdfMaster::receiveAction(const Action action)
         break;
     }
     case ClearDrawing:
+    case ClearDrawing | PagePart::LeftHalf:
+    case ClearDrawing | PagePart::RightHalf:
     {
-        PathContainer* const path = paths.value(preferences().page | preferences().page_part);
+        PathContainer* const path = paths.value(preferences().page | (action ^ ClearDrawing));
         qDebug() << "clear:" << path;
         if (path)
             path->clearPaths();

@@ -26,7 +26,7 @@ SettingsWidget::SettingsWidget(QWidget *parent) :
         explanation_label->setWordWrap(true);
         layout->addRow(explanation_label);
         KeyInputLabel *input_shortcut;
-        QMap<Action, QString> action_to_string;
+        QMap<int, QString> action_to_string;
         for (auto it=string_to_action_map.cbegin(); it!=string_to_action_map.cend(); ++it)
             action_to_string[it.value()] = it.key();
         auto &key_actions = writable_preferences().key_actions;

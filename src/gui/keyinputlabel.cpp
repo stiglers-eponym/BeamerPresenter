@@ -33,3 +33,10 @@ void KeyInputLabel::keyPressEvent(QKeyEvent *event)
         sequence = new_sequence;
     }
 }
+
+void KeyInputLabel::changeAction(const QString &text) noexcept
+{
+    writable_preferences().removeKeyAction(sequence, action);
+    action = string_to_action_map.value(text, action);
+    writable_preferences().addKeyAction(sequence, action);
+}

@@ -13,16 +13,16 @@ ThumbnailThread::ThumbnailThread(const PdfDocument *document) :
         {
 #ifdef INCLUDE_POPPLER
         case AbstractRenderer::Poppler:
-            renderer = new PopplerRenderer(static_cast<const PopplerDocument*>(document), preferences().page_part);
+            renderer = new PopplerRenderer(static_cast<const PopplerDocument*>(document), preferences().default_page_part);
             break;
 #endif
 #ifdef INCLUDE_MUPDF
         case AbstractRenderer::MuPDF:
-            renderer = new MuPdfRenderer(static_cast<const MuPdfDocument*>(document), preferences().page_part);
+            renderer = new MuPdfRenderer(static_cast<const MuPdfDocument*>(document), preferences().default_page_part);
             break;
 #endif
         case AbstractRenderer::ExternalRenderer:
-            renderer = new ExternalRenderer(preferences().rendering_command, preferences().rendering_arguments, document, preferences().page_part);
+            renderer = new ExternalRenderer(preferences().rendering_command, preferences().rendering_arguments, document, preferences().default_page_part);
             break;
         }
 

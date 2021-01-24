@@ -23,8 +23,7 @@ protected:
     void keyPressEvent(QKeyEvent *event) override;
 
 public slots:
-    void changeAction(const QString &text) noexcept
-    {action = string_to_action_map.value(text, action);}
+    void changeAction(const QString &text) noexcept;
 };
 
 #endif // KEYINPUTLABEL_H

@@ -64,7 +64,6 @@ int main(int argc, char *argv[])
     parser.addOption({{"c", "config"}, "settings / configuration file", "file"});
     parser.addOption({{"g", "gui-config"}, "user interface configuration file", "file"});
     parser.addOption({{"t", "time"}, "timer total time in minutes", "number"});
-    parser.addOption({{"p", "page-part"}, "interpret half of pages as presentation, other as notes", "side"});
 #if defined(INCLUDE_MUPDF) and defined(INCLUDE_POPPLER)
     parser.addOption({"renderer", "PDF renderer: MuPDF/poppler/external-MuPDF/external-poppler", "name"});
 #elif defined(INCLUDE_MUPDF)
