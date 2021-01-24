@@ -176,14 +176,20 @@ QWidget* Master::createWidget(QJsonObject &object, QWidget *parent)
         // are mapped to filenames by preferences().file_alias.
         QString file = object.value("file").toString();
         file = preferences().file_alias.value(file.isEmpty() ? "presentation" : file, file);
+        if (file == "//INVALID")
+            break;
         if (!QFile::exists(file))
         {
-            file = QFileDialog::getOpenFileName(NULL, "File " + file, "", "Documents (*.pdf)");
-            if (!QFile::exists(file))
+            const QString newfile = QFileDialog::getOpenFileName(NULL, "File " + file, "", "Documents (*.pdf)");
+            if (!QFile::exists(newfile))
             {
                 qCritical() << "No valid file given";
+                writable_preferences().file_alias.insert(file, "//INVALID");
                 break;
             }
+            if (!file.isEmpty())
+                writable_preferences().file_alias.insert(file, newfile);
+            file = newfile;
         }
         const QString page_part_str = object.value("page part").toString().toLower();
         PagePart page_part = FullPage;

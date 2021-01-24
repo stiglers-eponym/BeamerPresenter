@@ -222,22 +222,38 @@ void Preferences::loadSettings()
 
 void Preferences::loadFromParser(const QCommandLineParser &parser)
 {
+    // presentation file from positional arguments
     const QStringList arguments = parser.positionalArguments();
-    if (arguments.isEmpty())
-        file_alias["presentation"] = QFileDialog::getOpenFileName(NULL, "Presentation file", "", "Documents (*.pdf)");
-    else
+    if (!arguments.isEmpty())
     {
         file_alias["presentation"] = arguments.first();
         if (arguments.length() > 1 && !file_alias.contains("notes"))
             file_alias["notes"] = arguments[1];
     }
 
+    // timer total time
     if (parser.isSet("t"))
         msecs_total = 60000 * parser.value("t").toDouble();
+
+    // renderer and pdf engine
     if (parser.isSet("renderer"))
     {
-        QString const &renderer_str = parser.value("renderer").toLower();
-        if (renderer != AbstractRenderer::ExternalRenderer && (renderer_str == "extern" || renderer_str == "external"))
+        QString const &renderer_str = parser.value("renderer");
+#ifdef INCLUDE_MUPDF
+        if (renderer_str.compare("mupdf", Qt::CaseInsensitive) > 0)
+        {
+            renderer = AbstractRenderer::MuPDF;
+            pdf_engine = PdfDocument::MuPdfEngine;
+        }
+#endif
+#ifdef INCLUDE_POPPLER
+        if (renderer_str.compare("poppler", Qt::CaseInsensitive) > 0)
+        {
+            renderer = AbstractRenderer::Poppler;
+            pdf_engine = PdfDocument::PopplerEngine;
+        }
+#endif
+        if (renderer_str.compare("extern", Qt::CaseInsensitive) > 0)
         {
             rendering_command = settings.value("rendering command").toString();
             rendering_arguments = settings.value("rendering arguments").toStringList();
@@ -249,38 +265,19 @@ void Preferences::loadFromParser(const QCommandLineParser &parser)
             else
                 renderer = AbstractRenderer::ExternalRenderer;
         }
-#ifdef INCLUDE_MUPDF
-        else if (renderer_str == "mupdf")
-        {
-            renderer = AbstractRenderer::MuPDF;
-            pdf_engine = PdfDocument::MuPdfEngine;
-        }
-#endif
-#ifdef INCLUDE_POPPLER
-        else if (renderer_str == "poppler")
-        {
-            renderer = AbstractRenderer::Poppler;
-            pdf_engine = PdfDocument::PopplerEngine;
-        }
-#endif
     }
-#if defined(INCLUDE_MUPDF) and defined(INCLUDE_POPPLER)
-    if (parser.isSet("engine"))
+
+    // page part
+    if (parser.isSet("p"))
     {
-        if (parser.value("engine").compare("mupdf", Qt::CaseInsensitive) == 0)
-        {
-            pdf_engine = PdfDocument::MuPdfEngine;
-            if (renderer == AbstractRenderer::Poppler)
-                renderer = AbstractRenderer::MuPDF;
-        }
-        else if (parser.value("engine").compare("poppler", Qt::CaseInsensitive) == 0)
-        {
-            pdf_engine = PdfDocument::PopplerEngine;
-            if (renderer == AbstractRenderer::MuPDF)
-                renderer = AbstractRenderer::Poppler;
-        }
+        if (parser.value("p").toLower() == "left")
+            page_part = PagePart::LeftHalf;
+        else if (parser.value("p").toLower() == "right")
+            page_part = PagePart::RightHalf;
+        else if (parser.value("p").toLower() == "full")
+            page_part = PagePart::FullPage;
+        page_part_threshold = -1.;
     }
-#endif
 }
 
 void Preferences::addKeyAction(quint32 sequence, Action action)
