@@ -7,7 +7,7 @@
 #include "src/rendering/mupdfdocument.h"
 #include "src/rendering/abstractrenderer.h"
 
-/// Renderer using the MuPDF backend. This renderer requires that the PDF
+/// Renderer using the MuPDF engine. This renderer requires that the PDF
 /// document has been loaded by MuPDF (and not Poppler).
 /// The rendering requires preparation done by const functions in the
 /// MuPdfDocument (which in general lives in a differen thread).

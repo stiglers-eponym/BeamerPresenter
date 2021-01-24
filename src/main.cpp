@@ -96,6 +96,7 @@ int main(int argc, char *argv[])
     master.showAll();
     master.navigateToPage(0);
     master.distributeMemory();
+    QObject::connect(&preferences(), &Preferences::distributeMemory, &master, &Master::distributeMemory);
     const int status = app.exec();
     delete &preferences();
     return status;

@@ -1,12 +1,14 @@
 #include "src/preferences.h"
 
-Preferences::Preferences() :
+Preferences::Preferences(QObject *parent) :
+    QObject(parent),
     settings(QSettings::NativeFormat, QSettings::UserScope, "beamerpresenter-new", "beamerpresenter-new")
 {
     settings.setIniCodec("UTF-8");
 }
 
-Preferences::Preferences(const QString &file) :
+Preferences::Preferences(const QString &file, QObject *parent) :
+    QObject(parent),
     settings(file, QSettings::NativeFormat)
 {
     settings.setIniCodec("UTF-8");
@@ -71,7 +73,7 @@ void Preferences::loadSettings()
             {
 #ifdef INCLUDE_MUPDF
                 renderer = AbstractRenderer::MuPDF;
-                pdf_backend = PdfDocument::MuPdfBackend;
+                pdf_engine = PdfDocument::MuPdfEngine;
 #else
                 qWarning() << "BeamerPresenter was compiled without MuPDF support. Falling back to Poppler.";
 #endif
@@ -80,7 +82,7 @@ void Preferences::loadSettings()
             {
 #ifdef INCLUDE_POPPLER
                 renderer = AbstractRenderer::Poppler;
-                pdf_backend = PdfDocument::PopplerBackend;
+                pdf_engine = PdfDocument::PopplerEngine;
 #else
                 qWarning() << "BeamerPresenter was compiled without poppler support. Falling back to MuPDF.";
 #endif
@@ -251,14 +253,14 @@ void Preferences::loadFromParser(const QCommandLineParser &parser)
         else if (renderer_str == "mupdf")
         {
             renderer = AbstractRenderer::MuPDF;
-            pdf_backend = PdfDocument::MuPdfBackend;
+            pdf_engine = PdfDocument::MuPdfEngine;
         }
 #endif
 #ifdef INCLUDE_POPPLER
         else if (renderer_str == "poppler")
         {
             renderer = AbstractRenderer::Poppler;
-            pdf_backend = PdfDocument::PopplerBackend;
+            pdf_engine = PdfDocument::PopplerEngine;
         }
 #endif
     }
@@ -267,16 +269,106 @@ void Preferences::loadFromParser(const QCommandLineParser &parser)
     {
         if (parser.value("engine").compare("mupdf", Qt::CaseInsensitive) == 0)
         {
-            pdf_backend = PdfDocument::MuPdfBackend;
+            pdf_engine = PdfDocument::MuPdfEngine;
             if (renderer == AbstractRenderer::Poppler)
                 renderer = AbstractRenderer::MuPDF;
         }
         else if (parser.value("engine").compare("poppler", Qt::CaseInsensitive) == 0)
         {
-            pdf_backend = PdfDocument::PopplerBackend;
+            pdf_engine = PdfDocument::PopplerEngine;
             if (renderer == AbstractRenderer::MuPDF)
                 renderer = AbstractRenderer::Poppler;
         }
+    }
+#endif
+}
+
+void Preferences::addKeyAction(quint32 sequence, Action action)
+{
+    key_actions.insert(sequence, action);
+    const QString keycode = QKeySequence(sequence).toString();
+    if (!keycode.isEmpty())
+    {
+        settings.beginGroup("keys");
+        QStringList list = settings.value(keycode).toStringList();
+        list.append(string_to_action_map.key(action));
+        if (!list.isEmpty())
+            settings.setValue(keycode, list);
+        settings.endGroup();
+    }
+}
+
+void Preferences::removeKeyAction(quint32 sequence, Action action)
+{
+    key_actions.remove(sequence, action);
+    settings.beginGroup("keys");
+    const QString keycode = QKeySequence(sequence).toString();
+    if (!keycode.isEmpty() && settings.contains(keycode))
+    {
+        QStringList list = settings.value(keycode).toStringList();
+        list.removeAll(string_to_action_map.key(action));
+        if (list.isEmpty())
+            settings.remove(keycode);
+        else
+            settings.setValue(keycode, list);
+    }
+    settings.endGroup();
+}
+
+void Preferences::setMemory(const QString &string)
+{
+    bool ok;
+    const float new_memory = string.toFloat(&ok);
+    if (ok)
+    {
+        max_memory = 1048596*new_memory;
+        settings.setValue("memory", QString::number(max_memory));
+    }
+    emit distributeMemory();
+}
+
+void Preferences::setCacheSize(const QString &string)
+{
+    bool ok;
+    const int new_size = string.toInt(&ok);
+    if (ok)
+    {
+        max_cache_pages = new_size;
+        settings.setValue("cache pages", QString::number(max_cache_pages));
+    }
+    emit distributeMemory();
+}
+
+void Preferences::setRenderer(const QString &string)
+{
+    const QString &new_renderer = string.toLower();
+#ifdef INCLUDE_MUPDF
+    if (new_renderer == "mupdf")
+    {
+        settings.setValue("engine", "mupdf");
+        settings.setValue("renderer", "mupdf");
+    }
+    else
+#endif
+#ifdef INCLUDE_POPPLER
+    if (new_renderer == "poppler")
+    {
+        settings.setValue("engine", "poppler");
+        settings.setValue("renderer", "poppler");
+    }
+#endif
+#ifdef INCLUDE_MUPDF
+    else if (new_renderer == "mupdf + external")
+    {
+        settings.setValue("engine", "mupdf");
+        settings.setValue("renderer", "external");
+    }
+#endif
+#ifdef INCLUDE_POPPLER
+    else if (new_renderer == "poppler + external")
+    {
+        settings.setValue("engine", "poppler");
+        settings.setValue("renderer", "externaler");
     }
 #endif
 }

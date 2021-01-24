@@ -6,6 +6,7 @@
 #include <QFormLayout>
 #include <QScrollArea>
 #include <QLabel>
+#include <QLineEdit>
 #include <QComboBox>
 #include <QPushButton>
 #include "src/preferences.h"

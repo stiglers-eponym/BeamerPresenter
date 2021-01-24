@@ -19,8 +19,10 @@
 /// It should have only one instance, which is available globally through
 /// the functions writable_preferences() and preferences().
 /// Values get initialized by calling loadSettings().
-class Preferences
+class Preferences : public QObject
 {
+    Q_OBJECT
+
     QSettings settings;
 
 public:
@@ -50,16 +52,16 @@ public:
     PagePart page_part {FullPage};
     float page_part_threshold {0.};
 
-#ifdef INCLUDE_POPPLER
-    /// PDF backend (should be same as renderer except if renderer is external)
-    PdfDocument::PdfBackend pdf_backend {PdfDocument::PopplerBackend};
-    /// Renderer used to convert PDF page to image.
-    AbstractRenderer::Renderer renderer {AbstractRenderer::Poppler};
-#else
-    /// PDF backend (should be same as renderer except if renderer is external)
-    PdfDocument::PdfBackend pdf_backend {PdfDocument::MuPdfBackend};
+#ifdef INCLUDE_MUPDF
+    /// PDF engine (should be same as renderer except if renderer is external)
+    PdfDocument::PdfEngine pdf_engine {PdfDocument::MuPdfEngine};
     /// Renderer used to convert PDF page to image.
     AbstractRenderer::Renderer renderer {AbstractRenderer::MuPDF};
+#else
+    /// PDF engine (should be same as renderer except if renderer is external)
+    PdfDocument::PdfEngine pdf_engine {PdfDocument::PopplerEngine};
+    /// Renderer used to convert PDF page to image.
+    AbstractRenderer::Renderer renderer {AbstractRenderer::Poppler};
 #endif
     /// Rendering command for external renderer.
     QString rendering_command;
@@ -121,10 +123,10 @@ public:
 
 
     /// Load settings from default config file location (defined by Qt).
-    Preferences();
+    Preferences(QObject *parent = NULL);
 
     /// Load settings from given file.
-    Preferences(const QString &file);
+    Preferences(const QString &file, QObject *parent = NULL);
 
     ~Preferences();
 
@@ -134,6 +136,17 @@ public:
     /// Load settings from command line parser.
     /// Usually called after loadSettings().
     void loadFromParser(const QCommandLineParser &parser);
+
+    void addKeyAction(quint32 sequence, Action action);
+    void removeKeyAction(quint32 sequence, Action action);
+
+public slots:
+    void setMemory(const QString &string);
+    void setCacheSize(const QString &string);
+    void setRenderer(const QString &string);
+
+signals:
+    void distributeMemory();
 };
 
 

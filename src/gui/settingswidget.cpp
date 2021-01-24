@@ -35,10 +35,42 @@ SettingsWidget::SettingsWidget(QWidget *parent) :
             input_shortcut = new KeyInputLabel(it.key(), it.value(), shortcuts);
             layout->addRow(action_to_string.value(it.value(), "unknown"), input_shortcut);
         }
-        shortcuts->setLayout(layout);
         QPushButton *add_shortcut_button = new QPushButton("Add new shortcut", shortcuts);
         connect(add_shortcut_button, &QPushButton::clicked, this, &SettingsWidget::appendShortcut);
         layout->addRow(add_shortcut_button);
+        shortcuts->setLayout(layout);
+    }
+
+    // Rendering
+    {
+        QFormLayout *layout = new QFormLayout();
+        QLineEdit *lineedit = new QLineEdit(rendering);
+        lineedit->setText(QString::number(preferences().max_memory/1048596));
+        connect(lineedit, &QLineEdit::textChanged, &writable_preferences(), &Preferences::setMemory);
+        layout->addRow("cache memory (MiB)", lineedit);
+
+        lineedit = new QLineEdit(rendering);
+        lineedit->setText(QString::number(preferences().max_cache_pages));
+        connect(lineedit, &QLineEdit::textChanged, &writable_preferences(), &Preferences::setCacheSize);
+        layout->addRow("max. slides in cache", lineedit);
+
+        QComboBox *select_renderer = new QComboBox(rendering);
+#ifdef INCLUDE_MUPDF
+        select_renderer->addItem("MuPDF", PdfDocument::MuPdfEngine);
+#endif
+#ifdef INCLUDE_POPPLER
+        select_renderer->addItem("poppler", PdfDocument::PopplerEngine);
+#endif
+#ifdef INCLUDE_MUPDF
+        select_renderer->addItem("MuPDF + external", PdfDocument::MuPdfEngine);
+#endif
+#ifdef INCLUDE_POPPLER
+        select_renderer->addItem("poppler + external", PdfDocument::PopplerEngine);
+#endif
+        connect(select_renderer, &QComboBox::currentTextChanged, &writable_preferences(), &Preferences::setRenderer);
+        layout->addRow("Renderer (requires restart)", select_renderer);
+
+        rendering->setLayout(layout);
     }
 
     addTab(help, "help");

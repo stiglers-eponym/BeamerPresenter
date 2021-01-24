@@ -142,13 +142,13 @@ protected:
     QVector<PdfOutlineEntry> outline = {{"", -1, 1}};
 
 public:
-    /// Backend / PDF engine
-    enum PdfBackend {
+    /// PDF engine
+    enum PdfEngine {
 #ifdef INCLUDE_POPPLER
-        PopplerBackend = 0,
+        PopplerEngine = 0,
 #endif
 #ifdef INCLUDE_MUPDF
-        MuPdfBackend = 1,
+        MuPdfEngine = 1,
 #endif
     };
 

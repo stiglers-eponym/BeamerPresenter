@@ -5,7 +5,13 @@ KeyInputLabel::KeyInputLabel(const quint32 init, const Action action, QWidget *p
     action(action),
     sequence(init)
 {
+    setFrameStyle(QFrame::Panel | QFrame::Sunken);
     setText(QKeySequence(init).toString());
+    setBackgroundRole(QPalette::Base);
+    QPalette palette = QPalette();
+    palette.setColor(QPalette::Base, Qt::white);
+    setPalette(palette);
+    setAutoFillBackground(true);
     setFocusPolicy(Qt::ClickFocus);
 }
 
@@ -15,15 +21,15 @@ void KeyInputLabel::keyPressEvent(QKeyEvent *event)
     event->accept();
     if (new_sequence == Qt::Key_Delete)
     {
-        writable_preferences().key_actions.remove(sequence, action);
+        writable_preferences().removeKeyAction(sequence, action);
         setText("");
         sequence = 0;
     }
     else if (action || event->key())
     {
         setText(QKeySequence(new_sequence).toString());
-        writable_preferences().key_actions.remove(sequence, action);
-        writable_preferences().key_actions.insert(new_sequence, action);
+        writable_preferences().removeKeyAction(sequence, action);
+        writable_preferences().addKeyAction(new_sequence, action);
         sequence = new_sequence;
     }
 }

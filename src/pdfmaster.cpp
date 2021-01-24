@@ -11,12 +11,12 @@ PdfMaster::PdfMaster(const QString &filename)
     // Load the document
 #ifdef INCLUDE_POPPLER
 #ifdef INCLUDE_MUPDF
-    switch (preferences().pdf_backend)
+    switch (preferences().pdf_engine)
     {
-    case PdfDocument::PopplerBackend:
+    case PdfDocument::PopplerEngine:
         document = new PopplerDocument(filename);
         break;
-    case PdfDocument::MuPdfBackend:
+    case PdfDocument::MuPdfEngine:
         document = new MuPdfDocument(filename);
         break;
     }
