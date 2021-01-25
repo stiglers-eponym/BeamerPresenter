@@ -69,7 +69,7 @@ int main(int argc, char *argv[])
     parser.addOption({"debug", "debug flags, comma-separated", "flags"});
 #endif
 #if defined(INCLUDE_MUPDF) and defined(INCLUDE_POPPLER)
-    parser.addOption({"renderer", "PDF renderer: MuPDF/poppler/external-MuPDF/external-poppler", "name"});
+    parser.addOption({"renderer", "PDF renderer: MuPDF / poppler / external-MuPDF / external-poppler", "name"});
 #elif defined(INCLUDE_MUPDF)
     parser.addOption({"renderer", "PDF renderer: external or MuPDF", "name"});
 #elif defined(INCLUDE_POPPLER)

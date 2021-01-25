@@ -1,0 +1,99 @@
+.TH BeamerPresenter 1 "2021-01-25" 0.2.0
+.
+.SH NAME
+BeamerPresenter \- modular multi-screen PDF presenter
+.
+.
+.SH SYNOPSIS
+.
+.SY beamerpresenter
+.RI [ options ]
+.I presentation.pdf
+.
+.
+.SH DESCRIPTION
+.
+.B BeamerPresenter
+is a Qt5-based presentation viewer designed for showing extra information on the speaker's screen.
+The modular user interface is completely customizable and may include, among others, previews of upcoming slides, a different presentation file with additional information, markdown notes, a timer, thumbnail slides.
+.
+.
+.SH OPTIONS
+.
+.TP
+.B \-h \-\-help
+Displays help.
+.
+.TP
+.B \-\-help-all
+Displays help including Qt-specific options.
+.
+.TP
+.B \-v \-\-version
+Displays version information.
+.
+.TP
+.BI "\-\-renderer " option
+Define renderer and PDF engine. Depending on you installation, this may be MuPDF, poppler, MuPDF-external or poppler-external. "external" indicates that instead of using the given PDF engine, the rendering should be delegated to an external program. The command for calling this program must be defined in the configuration, see beamerpresenter.conf(5).
+.
+.TP
+.B \-\-log
+Print times of slide changes to standard output. Only has an effect if a page label/number widget is contained in GUI.
+.
+.TP
+.BI "\-\-debug " "flag1,flag2,..."
+Show debugging messages. Only available if compiled with QT_DEBUG defined. Valid flags are (subject to change!) none, rendering, cache, drawing, media, key-input, settings, transitions, page-change, layout, widets, all, verbose. The "verbose" option does not turn on any logging by itself, but shows additional logging for the other flags set.
+.
+.TP
+.BI "\-t \-\-time " number
+Timer preset in minutes (floating point number).
+.
+.TP
+.BI "\-c \-\-config " file
+Path to config (settings) file.
+.
+.TP
+.BI "\-g \-\-gui-config " file
+Path to user interface configuration file (json-formatted).
+.
+.SH DEFAULT KEY BINDINGS
+.
+.TP
+.B PageUp
+.B previous
+Go to previous page.
+.
+.TP
+.B PageDown
+.B next
+Go to next page.
+.
+.TP
+.B space
+.B update
+Refresh view.
+.
+.
+.SH CONFIGURATION
+.
+The configuration consists of an ordinary config file based on Qt's settings format, which is integrated in the system settings. This defines, e.g., the cache size and keyboard shortcuts. Additionally the graphical interface is defined in a json-formatted file gui.json. This is used to arrange and configure windows and widgets (such as sides, clock, timer, overview, ...).
+.
+.
+.
+.SH BUGS
+.
+Bugs can be reported at the
+.UR https://github.com/stiglers-eponym/BeamerPresenter/issues
+issue tracker
+.UE .
+.
+.
+.
+.SH SEE ALSO
+.
+\" .BR beamerpresenter.conf(5)
+
+There are other programs which show notes along a PDF. Some examples are
+.BR pdfpc (1)
+.BR pympress "(1) and"
+.BR dspdfviewer (1)

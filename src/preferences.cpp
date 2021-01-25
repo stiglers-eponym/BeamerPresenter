@@ -2,7 +2,7 @@
 
 Preferences::Preferences(QObject *parent) :
     QObject(parent),
-    settings(QSettings::NativeFormat, QSettings::UserScope, "beamerpresenter-new", "beamerpresenter-new")
+    settings(QSettings::NativeFormat, QSettings::UserScope, "beamerpresenter", "beamerpresenter")
 {
     settings.setIniCodec("UTF-8");
 }
