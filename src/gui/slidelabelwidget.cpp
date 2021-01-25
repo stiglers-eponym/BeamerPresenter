@@ -24,7 +24,7 @@ void SlideLabelWidget::resizeEvent(QResizeEvent *event) noexcept
 
 void SlideLabelWidget::updateText(const int page) noexcept
 {
-    total->setText(" / " + preferences().document->pageLabel(preferences().number_of_pages - 1));
+    total->setText(" / " + preferences().document->pageLabel(preferences().number_of_pages-1));
     edit->setText(preferences().document->pageLabel(page));
 }
 

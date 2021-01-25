@@ -227,7 +227,7 @@ const QString MuPdfDocument::pageLabel(const int page) const
         return "";
 
     if (pageLabels.isEmpty())
-        return QString::number(page);
+        return QString::number(page + 1);
     return (--pageLabels.upperBound(page)).value();
 }
 

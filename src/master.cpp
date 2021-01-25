@@ -187,8 +187,8 @@ QWidget* Master::createWidget(QJsonObject &object, QWidget *parent)
                 writable_preferences().file_alias.insert(file, "//INVALID");
                 break;
             }
-            if (!file.isEmpty())
-                writable_preferences().file_alias.insert(file, newfile);
+            writable_preferences().file_alias.insert(file, newfile);
+            writable_preferences().file_alias.insert(object.value("file").toString(), newfile);
             file = newfile;
         }
         const QString page_part_str = object.value("page part").toString().toLower();

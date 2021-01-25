@@ -240,7 +240,7 @@ void Preferences::loadFromParser(const QCommandLineParser &parser)
 #ifdef QT_DEBUG
     // Debug legel
     if (parser.isSet("debug"))
-        for (const auto &flag : parser.value("debug").split(","))
+        for (const auto &flag : static_cast<const QStringList>(parser.value("debug").split(",")))
             log_level |= string_to_log_level.value("debug " + flag, NoLog);
 #endif
 
@@ -248,21 +248,22 @@ void Preferences::loadFromParser(const QCommandLineParser &parser)
     if (parser.isSet("renderer"))
     {
         QString const &renderer_str = parser.value("renderer");
+        debug_msg(DebugSettings) << "renderer" << renderer_str;
 #ifdef INCLUDE_MUPDF
-        if (renderer_str.compare("mupdf", Qt::CaseInsensitive) > 0)
+        if (renderer_str.count("mupdf", Qt::CaseInsensitive) > 0)
         {
             renderer = AbstractRenderer::MuPDF;
             pdf_engine = PdfDocument::MuPdfEngine;
         }
 #endif
 #ifdef INCLUDE_POPPLER
-        if (renderer_str.compare("poppler", Qt::CaseInsensitive) > 0)
+        if (renderer_str.count("poppler", Qt::CaseInsensitive) > 0)
         {
             renderer = AbstractRenderer::Poppler;
             pdf_engine = PdfDocument::PopplerEngine;
         }
 #endif
-        if (renderer_str.compare("extern", Qt::CaseInsensitive) > 0)
+        if (renderer_str.count("extern", Qt::CaseInsensitive) > 0)
         {
             rendering_command = settings.value("rendering command").toString();
             rendering_arguments = settings.value("rendering arguments").toStringList();
