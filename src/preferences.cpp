@@ -24,20 +24,26 @@ Preferences::~Preferences()
 
 void Preferences::loadSettings()
 {
-#ifdef DEBUG_READ_CONFIGS
-    qDebug() << "Loading settings:" << settings.fileName();
-    qDebug() << settings.allKeys();
-#endif
+    debug_msg(DebugSettings) << "Loading settings:" << settings.fileName();
+    debug_msg(DebugSettings) << settings.allKeys();
 
     // GENERAL SETTINGS
-    gui_config_file = settings.value("gui config", "/etc/beamerpresenter/gui.json").toString();
-    manual_file = settings.value("manual", "/usr/share/doc/beamerpresenter/manual.md").toString();
+    {
+        gui_config_file = settings.value("gui config", "/etc/beamerpresenter/gui.json").toString();
+        manual_file = settings.value("manual", "/usr/share/doc/beamerpresenter/manual.md").toString();
+        const QStringList log_flags = settings.value("log").toStringList();
+        log_level = NoLog;
+        for (const auto &flag : log_flags)
+            log_level |= string_to_log_level.value(flag, NoLog);
+    }
 
     // DRAWING
-    settings.beginGroup("drawing");
-    history_length_visible_slides = settings.value("history length visible", 100).toUInt();
-    history_length_hidden_slides = settings.value("history length hidden", 50).toUInt();
-    settings.endGroup();
+    {
+        settings.beginGroup("drawing");
+        history_length_visible_slides = settings.value("history length visible", 100).toUInt();
+        history_length_hidden_slides = settings.value("history length hidden", 50).toUInt();
+        settings.endGroup();
+    }
 
     // RENDERING
     settings.beginGroup("rendering");
@@ -46,9 +52,7 @@ void Preferences::loadSettings()
     }
     { // renderer
         const QString renderer_str = settings.value("renderer").toString().toLower();
-#ifdef DEBUG_READ_CONFIGS
-        qDebug() << renderer_str;
-#endif
+        debug_msg(DebugSettings) << renderer_str;
         if (!renderer_str.isEmpty())
         {
             if (renderer_str == "extern" || renderer_str == "external")
@@ -191,7 +195,7 @@ void Preferences::loadSettings()
                             }
                             if (tool)
                             {
-                                qDebug() << "Adding tool" << tool << tool->tool() << device;
+                                debug_msg(DebugSettings|DebugDrawing) << "Adding tool" << tool << tool->tool() << device;
                                 key_tools.insert(key_code, tool);
                             }
                         }
@@ -228,6 +232,17 @@ void Preferences::loadFromParser(const QCommandLineParser &parser)
     // timer total time
     if (parser.isSet("t"))
         msecs_total = 60000 * parser.value("t").toDouble();
+
+    // Log slide changes
+    if (parser.isSet("log"))
+        log_level |= LogSlideChanges;
+
+#ifdef QT_DEBUG
+    // Debug legel
+    if (parser.isSet("debug"))
+        for (const auto &flag : parser.value("debug").split(","))
+            log_level |= string_to_log_level.value("debug " + flag, NoLog);
+#endif
 
     // renderer and pdf engine
     if (parser.isSet("renderer"))

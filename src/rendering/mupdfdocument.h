@@ -7,6 +7,7 @@
 #include <QObject>
 #include <QFileInfo>
 #include "src/rendering/pdfdocument.h"
+#include "src/preferences.h"
 
 /// Document representing a PDF loaded by MuPDF.
 /// MuPDF requires careful treatment of separte threads!

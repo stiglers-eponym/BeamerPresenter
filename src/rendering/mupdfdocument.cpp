@@ -64,7 +64,7 @@ std::string decode_pdf_label(int number, const label_item &item)
         string.append(std::to_string(number));
         break;
     }
-    //qDebug() << number << QString::fromStdString(string);
+    debug_verbose(DebugRendering) << number << QString::fromStdString(string);
     return string;
 }
 
@@ -72,7 +72,6 @@ std::string decode_pdf_label(int number, const label_item &item)
 void lock_mutex(void *user, int lock)
 {
     QVector<QMutex*> *mutex = static_cast<QVector<QMutex*>*>(user);
-    //qDebug() << "lock  " << user << lock;
     (*mutex)[lock]->lock();
 }
 
@@ -80,7 +79,6 @@ void lock_mutex(void *user, int lock)
 void unlock_mutex(void *user, int lock)
 {
     QVector<QMutex*> *mutex = static_cast<QVector<QMutex*>*>(user);
-    //qDebug() << "unlock" << user << lock;
     (*mutex)[lock]->unlock();
 }
 
@@ -198,7 +196,7 @@ bool MuPdfDocument::loadDocument()
     // Load page labels.
     loadPageLabels();
 
-    qDebug() << "Loaded PDF document in MuPDF";
+    debug_msg(DebugRendering) << "Loaded PDF document in MuPDF";
     return number_of_pages > 0;
 }
 
@@ -499,7 +497,7 @@ const PdfLink MuPdfDocument::linkAt(const int page, const QPointF &position) con
             }
             else
             {
-                qDebug() << "Unsupported link" << link->uri;
+                debug_msg(DebugRendering) << "Unsupported link" << link->uri;
                 result = {NoLink, ""};
             }
             break;
@@ -526,7 +524,7 @@ const VideoAnnotation MuPdfDocument::annotationAt(const int page, const QPointF 
             {
             case PDF_ANNOT_MOVIE:
             {
-                qDebug() << "Movie annotation";
+                debug_msg(DebugMedia) << "Movie annotation";
                 pdf_obj *movie_obj = pdf_dict_gets(ctx, annot->obj, "Movie");
                 if (!movie_obj)
                 {
@@ -553,19 +551,19 @@ const VideoAnnotation MuPdfDocument::annotationAt(const int page, const QPointF 
                             videoAnnotation.mode = VideoAnnotation::Repeat;
                     }
                 }
-                qDebug() << videoAnnotation.file << videoAnnotation.mode;
+                debug_msg(DebugMedia) << videoAnnotation.file << videoAnnotation.mode;
                 pdf_drop_annot(ctx, annot);
                 mutex->unlock();
                 return videoAnnotation;
             }
             case PDF_ANNOT_SOUND:
-                qDebug() << "Sound annotation";
+                debug_msg(DebugMedia) << "Sound annotation";
                 break;
             case PDF_ANNOT_SCREEN:
-                qDebug() << "Screen annotation";
+                debug_msg(DebugMedia) << "Screen annotation";
                 break;
             default:
-            qDebug() << "Annotation type:" << pdf_string_from_annot_type(ctx, pdf_annot_type(ctx, annot));
+            debug_msg(DebugRendering) << "Annotation type:" << pdf_string_from_annot_type(ctx, pdf_annot_type(ctx, annot));
             }
         }
         pdf_drop_annot(ctx, annot);
@@ -683,6 +681,9 @@ void MuPdfDocument::loadOutline()
         fz_drop_outline(ctx, root);
     }
     mutex->unlock();
-    for (int i=0; i<outline.length(); i++)
-        qDebug() << i << outline[i].page << outline[i].next << outline[i].title;
+#ifdef QT_DEBUG
+    if ((preferences().log_level & (DebugRendering|DebugVerbose)) == (DebugRendering|DebugVerbose))
+        for (int i=0; i<outline.length(); i++)
+            qDebug() << DebugRendering << i << outline[i].page << outline[i].next << outline[i].title;
+#endif
 }

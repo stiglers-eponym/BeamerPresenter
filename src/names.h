@@ -8,6 +8,26 @@
 #include <QTabWidget>
 #include "src/enumerates.h"
 
+/// Convert strings to LogLevel components.
+static const QMap<QString, LogLevel> string_to_log_level
+{
+    {"", NoLog},
+    {"none", NoLog},
+    {"slide changes", LogSlideChanges},
+    {"debug rendering", DebugRendering},
+    {"debug cache", DebugCache},
+    {"debug drawing", DebugDrawing},
+    {"debug media", DebugMedia},
+    {"debug key-input", DebugKeyInput},
+    {"debug settings", DebugSettings},
+    {"debug transitions", DebugTransitions},
+    {"debug page-change", DebugPageChange},
+    {"debug layout", DebugLayout},
+    {"debug widgets", DebugWidgets},
+    {"debug all", DebugAll},
+    {"debug verbose", DebugVerbose},
+};
+
 /// Convert strings to GuiWidget
 static const QMap<QString, GuiWidget> string_to_widget_type
 {

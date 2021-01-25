@@ -68,7 +68,7 @@ void PdfMaster::receiveAction(const Action action)
         PathContainer* const path = paths.value(page);
         if (path)
         {
-            qDebug() << "undo:" << path;
+            debug_msg(DebugDrawing) << "undo:" << path;
             auto scene_it = scenes.cbegin();
             while ( scene_it != scenes.cend() && ( (*scene_it)->getPage() | (*scene_it)->pagePart() ) != page)
                 ++scene_it;
@@ -87,7 +87,7 @@ void PdfMaster::receiveAction(const Action action)
         PathContainer* const path = paths.value(page);
         if (path)
         {
-            qDebug() << "redo:" << path;
+            debug_msg(DebugDrawing) << "redo:" << path;
             auto scene_it = scenes.cbegin();
             while ( scene_it != scenes.cend() && ( (*scene_it)->getPage() | (*scene_it)->pagePart() ) != page)
                 ++scene_it;
@@ -103,7 +103,7 @@ void PdfMaster::receiveAction(const Action action)
     case ClearDrawing | PagePart::RightHalf:
     {
         PathContainer* const path = paths.value(preferences().page | (action ^ ClearDrawing));
-        qDebug() << "clear:" << path;
+        debug_msg(DebugDrawing) << "clear:" << path;
         if (path)
             path->clearPaths();
         break;
@@ -122,7 +122,7 @@ void PdfMaster::resolveLink(const int page, const QPointF &position) const
     // Next try to handle multimedia annotation.
     const VideoAnnotation annotation = document->annotationAt(page, position);
     if (annotation.mode != VideoAnnotation::Invalid)
-        qDebug() << annotation.file << annotation.mode << annotation.rect;
+        debug_msg(DebugMedia) << annotation.file << annotation.mode << annotation.rect;
 }
 
 void PdfMaster::receiveNewPath(const int page, QGraphicsItem *item)

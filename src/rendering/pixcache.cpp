@@ -109,7 +109,7 @@ const QPixmap PixCache::pixmap(const int page) const
         return QPixmap();
     }
 
-    qDebug() << "Rendering in main thread";
+    debug_msg(DebugCache) << "Rendering in main thread";
     const QPixmap pix = renderer->renderPixmap(page, resolution);
 
     if (pix.isNull())
@@ -139,7 +139,7 @@ const QPixmap PixCache::pixmap(const int page)
         return QPixmap();
     }
 
-    qDebug() << "Rendering in main thread";
+    debug_msg(DebugCache) << "Rendering in main thread";
     const QPixmap pix = renderer->renderPixmap(page, resolution);
 
     if (pix.isNull())
@@ -311,9 +311,7 @@ int PixCache::limitCacheSize()
         // TODO: make sure this case is correctly handled when the thread finishes.
         if (remove == NULL)
             continue;
-#ifdef DEBUG_CACHE
-        qDebug() << "removing page from cache" << usedMemory << remove->getPage();
-#endif
+        debug_msg(DebugCache) << "removing page from cache" << usedMemory << remove->getPage();
         // Delete removed cache page and update memory size.
         usedMemory -= remove->size();
         delete remove;
@@ -378,7 +376,7 @@ int PixCache::renderNext()
 
 void PixCache::startRendering()
 {
-    //qDebug() << "Start rendering";
+    debug_verbose(DebugCache) << "Start rendering";
     // Clean up cache and check if there is enough space for more cached pages.
     int allowed_pages = limitCacheSize();
     if (allowed_pages <= 0)
@@ -446,7 +444,7 @@ void PixCache::updateFrame(const QSizeF &size)
 {
     if (frame != size && threads.length() > 0)
     {
-        qDebug() << "update frame" << frame << size;
+        debug_msg(DebugCache) << "update frame" << frame << size;
         frame = size;
         clear();
     }
@@ -454,13 +452,11 @@ void PixCache::updateFrame(const QSizeF &size)
 
 void PixCache::requestPage(const int page, const qreal resolution)
 {
-    //qDebug() << "requested page" << page << resolution;
+    debug_verbose(DebugCache) << "requested page" << page << resolution;
     // Try to return a page from cache.
     {
         const auto it = cache.constFind(page);
-#ifdef DEBUG_CACHE
-        qDebug() << "searched for page" << page << (it == cache.cend()) << (it != cache.cend() && *it != NULL) << (it == cache.cend() ? -1024 : ((*it)->getResolution() - resolution));
-#endif
+        debug_verbose(DebugCache) << "searched for page" << page << (it == cache.cend()) << (it != cache.cend() && *it != NULL) << (it == cache.cend() ? -1024 : ((*it)->getResolution() - resolution));
         if (it != cache.cend() && *it != NULL && abs((*it)->getResolution() - resolution) < MAX_RESOLUTION_DEVIATION)
         {
             emit pageReady((*it)->pixmap(), page);
@@ -479,7 +475,7 @@ void PixCache::requestPage(const int page, const qreal resolution)
         return;
     }
 
-    qDebug() << "Rendering page in main thread" << this;
+    debug_msg(DebugCache) << "Rendering page in main thread" << this;
     const QPixmap pix = renderer->renderPixmap(page, resolution);
 
     if (pix.isNull())
@@ -503,9 +499,7 @@ void PixCache::requestPage(const int page, const qreal resolution)
         }
         cache[page] = png;
         usedMemory += png->size();
-#ifdef DEBUG_CACHE
-        qDebug() << "writing page to cache" << page << usedMemory;
-#endif
+        debug_verbose(DebugCache) << "writing page to cache" << page << usedMemory;
     }
 
     // Start rendering next page.

@@ -1,5 +1,4 @@
 #include "src/rendering/popplerdocument.h"
-#include "src/enumerates.h"
 
 PopplerDocument::PopplerDocument(const QString &filename) :
     PdfDocument(filename)
@@ -8,7 +7,7 @@ PopplerDocument::PopplerDocument(const QString &filename) :
     if (!loadDocument())
         qFatal("Loading document failed");
 
-    qDebug() << "Loaded PDF document in Poppler";
+    debug_msg(DebugRendering) << "Loaded PDF document in Poppler";
 }
 
 const QString PopplerDocument::pageLabel(const int page) const
@@ -247,7 +246,7 @@ const PdfLink PopplerDocument::linkAt(const int page, const QPointF &position) c
                 return {gotolink->destination().pageNumber()-1, ""};
             }
             default:
-                qDebug() << "Unsupported link" << link->linkType();
+                debug_msg(DebugRendering) << "Unsupported link" << link->linkType();
                 return {NoLink, ""};
             }
         }
@@ -387,6 +386,9 @@ void PopplerDocument::loadOutline()
     outline.last().next = -outline.length();
     for (const auto &child : root)
         fill_outline(child, fill_outline);
-    //for (int i=0; i<outline.length(); i++)
-    //    qDebug() << i << outline[i].page << outline[i].next << outline[i].title;
+#ifdef QT_DEBUG
+    if ((preferences().log_level & (DebugRendering|DebugVerbose)) == (DebugRendering|DebugVerbose))
+        for (int i=0; i<outline.length(); i++)
+            qDebug() << DebugRendering << i << outline[i].page << outline[i].next << outline[i].title;
+#endif
 }

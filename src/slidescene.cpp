@@ -20,7 +20,7 @@ SlideScene::~SlideScene()
 
 void SlideScene::stopDrawing()
 {
-    qDebug() << "Stop drawing" << page << page_part;
+    debug_msg(DebugDrawing) << "Stop drawing" << page << page_part;
     if (currentPath && currentPath->size() > 1)
     {
         currentPath->show();
@@ -38,7 +38,7 @@ void SlideScene::stopDrawing()
 
 bool SlideScene::event(QEvent* event)
 {
-    //qDebug() << event;
+    debug_verbose(DebugDrawing) << event;
     switch (event->type())
     {
     case QEvent::GraphicsSceneMousePress:
@@ -173,7 +173,7 @@ void SlideScene::navigationEvent(const int newpage, SlideScene *newscene)
         if (transition.type)
         {
             // TODO!
-            qDebug() << "Transition:" << transition.type << transition.duration << transition.properties << transition.angle << transition.scale;
+            debug_msg(DebugTransitions) << "Transition:" << transition.type << transition.duration << transition.properties << transition.angle << transition.scale;
             startTransition(newpage, transition);
             return;
         }
@@ -242,7 +242,7 @@ void SlideScene::startInputEvent(const Tool *tool, const QPointF &pos, const flo
 {
     if (!tool)
         return;
-    //qDebug() << "Start input event" << tool->tool() << tool->device() << tool << pressure;
+    debug_verbose(DebugDrawing) << "Start input event" << tool->tool() << tool->device() << tool << pressure;
     stopDrawing();
     if (current_tool)
         qWarning() << "Start drawing, but last drawing event was not properly completed.";
@@ -279,7 +279,7 @@ void SlideScene::stepInputEvent(const QPointF &pos, const float pressure)
 {
     if (pressure <= 0 || !current_tool)
         return;
-    //qDebug() << "Step input event" << current_tool->tool() << current_tool->device() << current_tool << pressure;
+    debug_verbose(DebugDrawing) << "Step input event" << current_tool->tool() << current_tool->device() << current_tool << pressure;
     switch (current_tool->tool())
     {
     case Pen:
@@ -325,7 +325,7 @@ bool SlideScene::stopInputEvent(const QPointF &pos)
 {
     if (current_tool)
     {
-        //qDebug() << "Stop input event" << current_tool->tool() << current_tool->device() << current_tool;
+        debug_verbose(DebugDrawing) << "Stop input event" << current_tool->tool() << current_tool->device() << current_tool;
         const bool changes = currentPath && currentPath->size() > 1;
         stopDrawing();
         switch (current_tool->tool())

@@ -458,12 +458,12 @@ void Master::receiveKeyEvent(const QKeyEvent* event)
     // Search shortcuts for given key sequence.
     {
         QWidget* widget = shortcuts.value(key_code);
-        qDebug() << "Key action:" << widget << event << (event->key() | (event->modifiers() & ~Qt::KeypadModifier));
+        debug_msg(DebugKeyInput) << "Key action:" << widget << event << (event->key() | (event->modifiers() & ~Qt::KeypadModifier));
         if (widget)
         {
             widget->show();
             QStackedWidget *stackwidget = dynamic_cast<QStackedWidget*>(widget->parentWidget());
-            qDebug() << widget << stackwidget << widget->parentWidget();
+            debug_msg(DebugKeyInput) << widget << stackwidget << widget->parentWidget();
             if (stackwidget)
             {
                 QTabWidget *tabwidget = dynamic_cast<QTabWidget*>(stackwidget->parentWidget());
@@ -479,10 +479,8 @@ void Master::receiveKeyEvent(const QKeyEvent* event)
         auto it = preferences().key_actions.constFind(key_code);
         while (it != preferences().key_actions.cend())
         {
-#ifdef DEBUG_KEY_ACTIONS
-            qDebug() << "Global key action:" << it.value();
-            qDebug() << "Cache:" << getTotalCache();
-#endif
+            debug_msg(DebugKeyInput) << "Global key action:" << it.value();
+            debug_msg(DebugKeyInput) << "Cache:" << getTotalCache();
             handleAction(it.value());
             if ((++it).key() != static_cast<unsigned int>(event->key()))
                 break;
@@ -615,7 +613,7 @@ void Master::setTool(Tool *tool) const noexcept
 {
     if (!tool)
         return;
-    qDebug() << "Set tool" << tool->tool() << tool->device();
+    debug_msg(DebugDrawing|DebugKeyInput) << "Set tool" << tool->tool() << tool->device();
     const int device = tool->device();
     int newdevice;
     for (auto tool_it = preferences().current_tools.cbegin(); tool_it != preferences().current_tools.cend();)
@@ -636,7 +634,9 @@ void Master::setTool(Tool *tool) const noexcept
     }
     writable_preferences().current_tools.insert(tool);
 
-    // debug
-    //for (const auto tool : preferences().current_tools)
-    //    qDebug() << "tool:" << tool->device() << tool->tool() << tool;
+#ifdef QT_DEBUG
+    if ((preferences().log_level & DebugVerbose) && preferences().log_level & DebugDrawing)
+        for (const auto tool : preferences().current_tools)
+            qDebug() << "tool:" << tool->device() << tool->tool() << tool;
+#endif
 }

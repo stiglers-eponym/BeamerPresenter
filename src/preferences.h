@@ -37,6 +37,8 @@ public:
     /// Path to manual (markdown formatted), required for help tab in settings.
     QString manual_file;
 
+    int log_level = NoLog;
+
 
     // DRAWING
     /// Maximum number of steps in drawing history of currently visible slide.

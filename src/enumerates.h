@@ -3,6 +3,38 @@
 
 #include <QMap>
 #include <QColor>
+#include <QDebug>
+
+/**
+ * Log level: combinable debug or log flags
+ */
+enum LogLevel
+{
+    NoLog = 0,
+    LogSlideChanges = 1 << 0,
+    DebugRendering = 1 << 1,
+    DebugCache = 1 << 2,
+    DebugDrawing = 1 << 3,
+    DebugMedia = 1 << 4,
+    DebugKeyInput = 1 << 5,
+    DebugSettings = 1 << 6,
+    DebugTransitions = 1 << 7,
+    DebugPageChange = 1 << 8,
+    DebugLayout = 1 << 9,
+    DebugWidgets = 1 << 10,
+    DebugAll = 0x7ffe,
+    DebugVerbose = 1 << 15,
+};
+
+#ifdef QT_DEBUG
+// Show debug message if debugging is enabled for this type
+#define debug_msg(msg_type) if (preferences().log_level & (msg_type)) qDebug() << (msg_type)
+// Show debug message if verbose debugging is enabled for this type
+#define debug_verbose(msg_type) if ((preferences().log_level & (msg_type|DebugVerbose)) == (msg_type|DebugVerbose)) qDebug() << (msg_type)
+#else
+#define debug_msg(msg_type) qDebug()
+#define debug_verbose(msg_type) qDebug()
+#endif
 
 /// If a single PDF includes both presentation and notes,
 /// PagePart shows which part is currently of interest.

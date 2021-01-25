@@ -91,7 +91,7 @@ bool ExternalRenderer::isValid() const
     // Very basic check:
     // Is a command defined?
     // Does it take arguments? Do these arguments contain %page?
-    qDebug() << renderingCommand << renderingArguments;
+    debug_msg(DebugRendering) << renderingCommand << renderingArguments;
     return  !renderingCommand.isEmpty()
             && !renderingArguments.isEmpty()
             && renderingArguments.indexOf(QRegExp(".*%page.*")) != -1;

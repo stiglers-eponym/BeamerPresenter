@@ -4,6 +4,7 @@
 #include <QProcess>
 #include "src/rendering/abstractrenderer.h"
 #include "src/rendering/pdfdocument.h"
+#include "src/preferences.h"
 
 #define MAX_PROCESS_TIME_MS 60000
 

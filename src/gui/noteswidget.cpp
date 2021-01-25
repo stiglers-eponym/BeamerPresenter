@@ -16,7 +16,7 @@ void NotesWidget::load(const QString &filename)
         QXmlStreamReader reader(&file);
         while (!reader.atEnd())
         {
-            qDebug() << reader.name();
+            debug_msg(DebugWidgets) << reader.name();
             if (reader.readNext() == QXmlStreamReader::StartElement && reader.name() == "page")
             {
                 const QString label = reader.attributes().value("label").toString();

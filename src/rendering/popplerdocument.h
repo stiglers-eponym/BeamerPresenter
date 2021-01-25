@@ -6,7 +6,7 @@
 #include <QInputDialog>
 #include <set>
 #include "src/rendering/pdfdocument.h"
-#include "src/enumerates.h"
+#include "src/preferences.h"
 
 /*
 static const QMap<Poppler::PageTransition::Type, SlideTransition::Type> mapTransitionTypes
