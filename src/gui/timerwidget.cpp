@@ -48,10 +48,11 @@ void TimerWidget::resizeEvent(QResizeEvent *event) noexcept
 
 void TimerWidget::updateFullText() noexcept
 {
-    if (preferences().msecs_total < 3600000)
-        total->setText(QTime::fromMSecsSinceStartOfDay(preferences().msecs_total + 500).toString("m:ss"));
-    else
-        total->setText(QTime::fromMSecsSinceStartOfDay(preferences().msecs_total + 500).toString("h:mm:ss"));
+    total->setText(
+                QTime::fromMSecsSinceStartOfDay(
+                    preferences().msecs_total + 500
+                ).toString(preferences().msecs_total < 3600000 ? "m:ss" : "h:mm:ss")
+            );
     updateText();
 }
 
@@ -73,17 +74,16 @@ void TimerWidget::updateText() noexcept
             passed->setText(QTime::fromMSecsSinceStartOfDay(msecs_passed + 500).toString("h:mm:ss"));
     }
     else
-    {
-        if (preferences().msecs_passed < 3600000)
-            passed->setText(QTime::fromMSecsSinceStartOfDay(preferences().msecs_passed + 500).toString("m:ss"));
-        else
-            passed->setText(QTime::fromMSecsSinceStartOfDay(preferences().msecs_passed + 500).toString("h:mm:ss"));
-    }
+        passed->setText(
+                QTime::fromMSecsSinceStartOfDay(
+                    preferences().msecs_passed + 500
+                ).toString(preferences().msecs_passed < 3600000 ? "m:ss" : "h:mm:ss")
+            );
 }
 
 void TimerWidget::changePassed()
 {
-    const qint64 new_msecs_passed = QTime::fromString(passed->text(), "m:ss").msecsSinceStartOfDay();
+    const qint64 new_msecs_passed = QTime::fromString(passed->text(), total->text().count(":") == 2 ? "h:mm:ss" : "m:ss").msecsSinceStartOfDay();
     debug_msg(DebugWidgets) << "new msecs passed:" << new_msecs_passed;
     if (preferences().msecs_passed == UINT_LEAST32_MAX)
     {
@@ -101,7 +101,7 @@ void TimerWidget::changePassed()
 
 void TimerWidget::changeTotal()
 {
-    const qint64 msecs_total = QTime::fromString(total->text(), "m:ss").msecsSinceStartOfDay();
+    const qint64 msecs_total = QTime::fromString(total->text(), total->text().count(":") == 2 ? "h:mm:ss" : "m:ss").msecsSinceStartOfDay();
     debug_msg(DebugWidgets) << "msecs total:" << msecs_total;
     if (preferences().msecs_passed == UINT_LEAST32_MAX)
     {

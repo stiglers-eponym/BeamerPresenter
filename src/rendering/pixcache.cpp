@@ -262,6 +262,7 @@ int PixCache::limitCacheSize()
             allowed_slides = (maxMemory - usedMemory) * cached_slides / usedMemory;
         else
             allowed_slides = threads.length();
+        debug_verbose(DebugCache) << "set allowed_slides" << usedMemory << cached_slides << allowed_slides << maxMemory << threads.length();
     }
     if (maxNumber > 0 && allowed_slides + cache.size() > maxNumber)
         allowed_slides = maxNumber - cache.size();
@@ -269,6 +270,8 @@ int PixCache::limitCacheSize()
     // If threads.length() pages can be rendered without problems: return
     if (allowed_slides >= threads.length())
         return allowed_slides;
+
+    debug_msg(DebugCache) << "prepared deleting from cache" << usedMemory << allowed_slides << cached_slides;
 
 
     // Deleting starts from first or last page in cache.
@@ -311,7 +314,7 @@ int PixCache::limitCacheSize()
         // TODO: make sure this case is correctly handled when the thread finishes.
         if (remove == NULL)
             continue;
-        debug_msg(DebugCache) << "removing page from cache" << usedMemory << remove->getPage();
+        debug_msg(DebugCache) << "removing page from cache" << usedMemory << allowed_slides << cached_slides << remove->getPage();
         // Delete removed cache page and update memory size.
         usedMemory -= remove->size();
         delete remove;

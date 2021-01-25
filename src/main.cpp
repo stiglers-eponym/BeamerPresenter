@@ -64,7 +64,7 @@ int main(int argc, char *argv[])
     parser.addOption({{"c", "config"}, "settings / configuration file", "file"});
     parser.addOption({{"g", "gui-config"}, "user interface configuration file", "file"});
     parser.addOption({{"t", "time"}, "timer total time in minutes", "number"});
-    parser.addOption({"log", "log slide changes to standard output"}); // TODO: implement that
+    parser.addOption({"log", "log slide changes to standard output"});
 #ifdef QT_DEBUG
     parser.addOption({"debug", "debug flags, comma-separated", "flags"});
 #endif

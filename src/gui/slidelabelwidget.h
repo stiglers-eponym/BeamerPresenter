@@ -1,6 +1,8 @@
 #ifndef SLIDELABELWIDGET_H
 #define SLIDELABELWIDGET_H
 
+#include <iostream>
+#include <iomanip>
 #include <QWidget>
 #include <QLabel>
 #include <QHBoxLayout>

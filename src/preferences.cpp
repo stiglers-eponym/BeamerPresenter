@@ -233,16 +233,19 @@ void Preferences::loadFromParser(const QCommandLineParser &parser)
     if (parser.isSet("t"))
         msecs_total = 60000 * parser.value("t").toDouble();
 
-    // Log slide changes
-    if (parser.isSet("log"))
-        log_level |= LogSlideChanges;
-
 #ifdef QT_DEBUG
     // Debug legel
     if (parser.isSet("debug"))
+    {
+        log_level = 0;
         for (const auto &flag : static_cast<const QStringList>(parser.value("debug").split(",")))
             log_level |= string_to_log_level.value("debug " + flag, NoLog);
+    }
 #endif
+
+    // Log slide changes
+    if (parser.isSet("log"))
+        log_level |= LogSlideChanges;
 
     // renderer and pdf engine
     if (parser.isSet("renderer"))
