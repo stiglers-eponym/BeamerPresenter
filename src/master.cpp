@@ -136,7 +136,7 @@ QWidget* Master::createWidget(QJsonObject &object, QWidget *parent)
         widget = stackwidget;
         break;
     }
-    case TabedWidgetType:
+    case TabbedWidgetType:
     {
         QTabWidget *tabwidget = new QTabWidget(parent);
         tabwidget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
@@ -316,6 +316,7 @@ QWidget* Master::createWidget(QJsonObject &object, QWidget *parent)
         SlideView *slide = new SlideView(scene, pixcache, parent);
         connect(slide, &SlideView::sendKeyEvent, this, &Master::receiveKeyEvent);
         connect(scene, &SlideScene::navigationToViews, slide, &SlideView::pageChanged);
+        connect(scene, &SlideScene::clearViews, slide, &SlideView::clearBackground);
         widget = slide;
         break;
     }

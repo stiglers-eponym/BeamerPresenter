@@ -129,7 +129,7 @@ enum GuiWidget
     VBoxWidgetType, // ContainerWidget, QBoxLayout
     HBoxWidgetType, // ContainerWidget, QBoxLayout
     StackedWidgetType, // StackedWidget
-    TabedWidgetType, // QTabWidget
+    TabbedWidgetType, // QTabWidget
     SlideType, // SlideView (QGraphicsView)
     OverviewType,
     TOCType,

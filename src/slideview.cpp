@@ -46,6 +46,7 @@ void SlideView::drawBackground(QPainter *painter, const QRectF &rect)
 
 void SlideView::pageReady(const QPixmap pixmap, const int page)
 {
+    debug_msg(DebugPageChange) << "page ready" << page << pixmap.size() << this;
     if (waitingForPage != page)
         return;
     currentPixmap = pixmap;

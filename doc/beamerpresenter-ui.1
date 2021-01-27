@@ -1,0 +1,218 @@
+.TH beamerpresenter-ui 1 "2021-01-27" 0.2.0
+.
+.SH NAME
+beamerpresenter-ui \- user interface of BeamerPresenter
+.
+.
+.SH FILE FORMAT
+.
+The GUI configuration file is JSON-formatted, containing a list of widgets. These widgets function as root widgets forming own windows. Each widget is a JSON dictionary. There are widgets providing their own content and layout widgets which do not provide own contents, but have contain a list of \[dq]children\[dq], which are widgets again.
+.
+Arguments shared by all widgets:
+.TP
+.BI "type" " name"
+widget type defined in section WIDGETS
+.TP
+.BI "keys " "keyboard shortcut"
+Key combination to set focus to this widget.
+.TP
+.BI "title " "text"
+title of the widget, visible only if the widget is shown in a tabbed widget.
+.TP
+.BI "color " "color name / #RRGGBB / #AARRGGBB"
+background color, color name known to Qt.
+.
+.
+.SH WIDGETS
+.
+.TP
+.B clock
+digital clock, takes no options.
+.
+.TP
+.B notes
+markdown formatted editable notes.
+Keyboard actions while notes widget has focus: save notes with Ctrl+S, save under new file name with Ctrl+Shift+S, load from file with Ctrl+O.
+.RS
+.PP
+Arguments:
+.TP
+.BI "file " "path"
+path to xml-file to read notes from.
+.TP
+.BI "zoom " "integer"
+zoom step for the widget (defined by QTextEdit).
+.RE
+.
+.TP
+.B settings
+.
+.TP
+.B slide
+slide of a presentation. This is the main widget shown to the audience and on the speaker's screen.
+.RS
+.PP
+Arguments:
+.TP
+.BI "file " "path"
+pdf file shown in the presentation or alias name. Aliases such as "presentation" or "notes" will be filled with command line arguments or by asking in a file open dialog.
+.TP
+.BI "shift " "integer"
+Shift slide number relative to the main presentation slide. E.g. shift=1 creates a preview of the next slide, which can be shown in the speaker's view.
+.TP
+.BI "page part " "left/right"
+side of the page to be shown if the pages are split into a left and a right side showing presentation and notes on the same page.
+.TP
+.BI "transitions " "true/false"
+enable/disable slide transitions (not implemented yet!)
+.TP
+.BI "multimedia " "true/false"
+enable/disable multimedia (not implemented yet!)
+.TP
+.BI "cache hash " "integer"
+integer to identify slide widgets with the same geometry, which should use the same cached slides. Set the same \[dq]cache hash\[dq] for multiple slides to make them use the same cache.
+.TP
+.BI "threads " "integer"
+number of threads used to pre-render pages in cache. Disable pre-rendering by setting this to zero.
+.TP
+.BI "overlays " "first/last/none"
+show only first/last page of each group of pages with the same page label.
+.RE
+.
+.TP
+.B slide label
+Show label of current slide and allow navigation by editing the slide label.
+.
+.TP
+.B slide number
+Show number of current slide and allow navigation by editing this number.
+.
+.TP
+.B thumbnails
+thumbnail overview of all slides.
+.PP
+.RS
+Arguments:
+.TP
+.BI "overlays " "skip"
+Set this option to \[dq]skip\[dq] to show only one preview slide for each group of pages with the same page label.
+.TP
+.BI "columns " "integer"
+number of columns in which the thumbnail slides are arranged.
+.RE
+.
+.TP
+.B timer
+timer for the presentation.
+.
+.TP
+.B toc
+outline / table of contents, shows document outline tree.
+.
+.TP
+.B tool selector
+Grid layout of push buttons. Contains mandatory argument
+.B buttons
+which must be a list of lists of buttons (2d array of buttons).
+Each button can either be a string representing an action or a JSON dictionary representing a drawing/highlighting tool.
+.RS
+.PP
+Valid action strings:
+.TP
+.B previous
+navigate to previous page
+.TP
+.B next
+navigate to next page
+.TP
+.B first
+navigate to first page
+.TP
+.B last
+navigate to last page
+.TP
+.B update
+update view (technically navigates to current page)
+.TP
+.B next skipping overlay
+navigate to next page which has a different page label than current page
+.TP
+.B previous skipping overlays
+navigate to previous page which has a different page label than current page
+.TP
+.B reload
+reload the presentation file (if it has been modified) (this function might be unstable!)
+.TP
+.B undo
+undo last drawing action on current page
+.TP
+.B undo left
+undo last drawing action on left part of current page, assuming that the page is split into a left and right half which represent presentation and notes, respectively
+.TP
+.B undo right
+undo last drawing action on right part of current page, assuming that the page is split into a left and right half which represent presentation and notes, respectively
+.TP
+.B redo
+redo last drawing action on current page
+.TP
+.B redo left
+redo last drawing action on left part of current page, assuming that the page is split into a left and right half which represent presentation and notes, respectively
+.TP
+.B redo right
+redo last drawing action on right part of current page, assuming that the page is split into a left and right half which represent presentation and notes, respectively
+.TP
+.B clear
+clear all drawings on the current page.
+.TP
+.B clear left
+clear all drawings on the left part of current page, assuming that the page is split into a left and right half which represent presentation and notes, respectively
+.TP
+.B clear right
+clear all drawings on the right part of current page, assuming that the page is split into a left and right half which represent presentation and notes, respectively
+.TP
+.B start timer
+start the timer in timer widget.
+.TP
+.B stop timer
+stop the timer in timer widget.
+.TP
+.B reset timer
+reset the timer (passed time) in timer widget.
+.TP
+.B quit
+close BeamerPresenter.
+.PP
+Options in the dictionary for tools:
+.TP
+.B tool
+draw tool: pen, highlighter, eraser or none
+.TP
+.B color
+color: color name known to Qt, or #RRGGBB, or #AARRGGBB
+.TP
+.B width
+stroke width, in points (inch/72) in PDF.
+.RE
+.
+.SS Layouts
+.
+.TP
+.B horizontal
+horizontally arranged child widgets. The relative size of the widgets is determined by their preferred aspect ratios to ensure maximal usage of the screen by slide widgets.
+.
+.TP
+.B vertical
+vertically arranged child widgets, see horizontal.
+.
+.TP
+.B stacked
+stacked child widgets, shown in the same place. The currently visible widget can only be selected by keyboard shortcuts defined using the \[dq]keys\[dq] argument of the subwidgets.
+.
+.TP
+.B tabbed
+similar to stacked widget, but shows the child widgets as tabs, which can be selected using the cursor.
+.
+.SH SEE ALSO
+.
+.BR beamerpresenter (1)
+.BR beamerpresenter.conf (5),

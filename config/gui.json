@@ -60,7 +60,8 @@
                 "overlays" : "last",
                 "transitions" : false,
                 "multimedia" : false,
-                "cache hash" : 2
+                "cache hash" : 2,
+                "threads" : 0
               },
               {
                 "type" : "slide",
@@ -71,7 +72,8 @@
                 "overlays" : "last",
                 "transitions" : false,
                 "multimedia" : false,
-                "cache hash" : 2
+                "cache hash" : 2,
+                "threads" : 0
               },
               {
                 "type" : "notes",

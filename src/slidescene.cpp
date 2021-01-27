@@ -149,6 +149,14 @@ void SlideScene::prepareNavigationEvent(const int newpage)
     // Adjust scene size.
     /// Page size in points.
     QSizeF pagesize = master->getPageSize(master->overlaysShifted(newpage, shift));
+    debug_verbose(DebugPageChange) << newpage << pagesize << master->getDocument()->flexiblePageSizes();
+    // Don't do anything if page size ist not valid. This avoids cleared slide
+    // scenes which could mess up the layout and invalidate cache.
+    if ((pagesize.isNull() || !pagesize.isValid()) && !master->getDocument()->flexiblePageSizes())
+    {
+        emit clearViews();
+        return;
+    }
     switch (page_part)
     {
     case LeftHalf:

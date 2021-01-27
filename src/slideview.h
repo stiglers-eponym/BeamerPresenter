@@ -62,6 +62,10 @@ public slots:
     /// Inform this that page is ready in pixcache.
     void pageReady(const QPixmap pixmap, const int page);
 
+    /// Set currentPixmap to empty QPixmap.
+    void clearBackground() noexcept
+    {currentPixmap = QPixmap();}
+
 signals:
     /// Inform cache that page is required.
     /// Resolution is given in pixels per point (dpi/72).

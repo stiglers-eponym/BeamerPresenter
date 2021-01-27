@@ -140,6 +140,9 @@ signals:
     /// size is given in points (inch/72).
     void navigationToViews(const int page, SlideScene* scene) const;
 
+    /// Tell views to clear background.
+    void clearViews() const;
+
     /// Send new path to PdfMaster.
     void sendNewPath(const int page, QGraphicsItem *item) const;
 };
