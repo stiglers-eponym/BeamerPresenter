@@ -1,14 +1,15 @@
 VERSION = 0.2.0alpha0
 
-# Check Qt version.
-requires(equals(QT_MAJOR_VERSION, 5))
 
-QT += core gui multimedia multimediawidgets xml widgets
-# Build in multimedia support is not available in Qt 6.0, but should be
-# available in Qt 6.2, expected in 2021-09.
+###########################################################
+###   DEFINE PDF ENGINE, CUSTOM CONFIGURATION
+###########################################################
 
-TARGET = beamerpresenter
-TEMPLATE = app
+# BeamerPresenter supports the PDF engines poppler and MuPDF.
+# You can here select which PDF engine(s) to include in you installation.
+# At least one PDF engine must be included.
+# Library paths and linking arguments for the PDF engines need to be defined
+# below in section "CONFIGURE LIBRARIES AND LINKING - OS DEPENDENT"
 
 # Include Poppler: requires that poppler-qt5 libraries are installed.
 # Tested with poppler 20.12.1
@@ -17,6 +18,33 @@ DEFINES += INCLUDE_POPPLER
 # Include MuPDF: requires that mupdf libraries are installed.
 # Tested only with libmupdf 1.18.0
 DEFINES += INCLUDE_MUPDF
+
+# Define a path where the icon will be placed (don't forget the trailing /).
+unix: ICON_PATH = "/usr/share/icons/hicolor/scalable/apps/"
+#win32: ICON_PATH = "C:\..."
+#macx: ICON_PATH = "/usr/share/icons/hicolor/scalable/apps/"
+
+# Disable debugging message if debugging mode is disabled.
+CONFIG(release, debug|release):DEFINES += QT_NO_DEBUG_OUTPUT
+
+
+###########################################################
+###   CONFIGURE QT + PREPROCESSOR OPTIONS
+###########################################################
+
+# Check Qt version.
+# Build in multimedia support is not available in Qt 6.0, but should be
+# available in Qt 6.2, expected in 2021-09.
+requires(equals(QT_MAJOR_VERSION, 5))
+
+# Check whether a PDF engine was defined.
+requires(contains(DEFINES, INCLUDE_POPPLER) | contains(DEFINES, INCLUDE_MUPDF))
+
+CONFIG += c++20 qt
+QT += core gui multimedia multimediawidgets xml widgets
+
+TARGET = beamerpresenter
+TEMPLATE = app
 
 # The following define makes your compiler emit warnings if you use
 # any feature of Qt which has been marked as deprecated (the exact warnings
@@ -31,21 +59,20 @@ exists(.git) {
     VERSION_STRING = "$${VERSION}"
 }
 
-# Define the application version.
+# Define the application version string.
 DEFINES += APP_VERSION=\\\"$${VERSION_STRING}\\\"
 
-# Define a path where the icon will be placed (don't forget the trailing /).
-ICON_PATH = "/usr/share/icons/hicolor/scalable/apps/"
+# Define the icon path string.
 DEFINES += ICON_PATH=\\\"$${ICON_PATH}\\\"
-
-CONFIG += c++20 qt
 unix {
     # Enable better debugging.
     CONFIG(debug, debug|release):QMAKE_LFLAGS += -rdynamic
 }
 
-# Disable debugging message if debugging mode is disabled.
-CONFIG(release, debug|release):DEFINES += QT_NO_DEBUG_OUTPUT
+
+###########################################################
+###   DEFINE SOURCES
+###########################################################
 
 SOURCES += \
         src/gui/actionbutton.cpp \
@@ -137,8 +164,13 @@ contains(DEFINES, INCLUDE_MUPDF) {
     HEADERS += \
             src/rendering/mupdfrenderer.h \
             src/rendering/mupdfdocument.h
-    DEFINES += FITZ_DEBUG_LOCKING
+    CONFIG(debug, debug|release):DEFINES += FITZ_DEBUG_LOCKING
 }
+
+
+###########################################################
+###   CONFIGURE LIBRARIES AND LINKING - OS DEPENDENT
+###########################################################
 
 unix {
     LIBS += -L/usr/lib/
@@ -153,9 +185,10 @@ unix {
         # All other libraries were also required in MuPDF 1.17.0.
     }
 }
+
 macx {
     ## Please configure this according to your poppler and/or MuPDF installation.
-    ## Installation on Mac is untested.
+    ## Installation on Mac is untested. The predefined configuration here is just a guess.
     #contains(DEFINES, INCLUDE_POPPLER) {
     #    INCLUDEPATH += /usr/local/opt/poppler/include
     #    LIBS += -L/usr/local/opt/poppler/lib/ -lpoppler-qt5
@@ -165,12 +198,13 @@ macx {
     #    LIBS += -L/usr/local/opt/mupdf/lib/ -lmupdf -lmupdf-third -lm -lfreetype -lz -lharfbuzz -ljpeg -ljbig2dec -lopenjp2
     #}
 }
+
 win32 {
     ## Please configure this according to your poppler and/or MuPDF installation.
     #contains(DEFINES, INCLUDE_POPPLER) {
     #    # The configuration will probably have the following form:
-    #    INCLUDEPATH += C:\...\poppler-0.??.?-win??
-    #    LIBS += -LC:\...\poppler-0.??.?-win?? -lpoppler-qt5
+    #    INCLUDEPATH += C:\...\poppler-...-win??
+    #    LIBS += -LC:\...\poppler-...-win?? -lpoppler-qt5
     #}
     #contains(DEFINES, INCLUDE_MUPDF) {
     #    INCLUDEPATH += ...
@@ -178,29 +212,38 @@ win32 {
     #}
 }
 
+
+###########################################################
+###   CONFIGURE INSTALLATION - OS DEPENDENT
+###########################################################
+
 unix {
     # Commands needed for make install
     # Include man pages and default configuration in make install.
 
     man1.path = /usr/share/man/man1/
     man1.CONFIG = no_check_exist no_build
-    man1.extra = gzip -9 man/$${TARGET}.1 || true
-    man1.files = man/$${TARGET}.1.gz
+    man1.extra = gzip -9 doc/beamerpresenter.1 || true; gzip -9 doc/beamerpresenter-ui.1
+    man1.files = doc/beamerpresenter.1.gz doc/beamerpresenter-ui.1.gz
 
     man5.path = /usr/share/man/man5/
     man5.CONFIG = no_check_exist no_build
-    man5.extra = gzip -9 man/$${TARGET}.conf.5 || true
-    man5.files = man/$${TARGET}.conf.5.gz
+    man5.extra = gzip -9 doc/beamerpresenter.conf.5 || true
+    man5.files = man/beamerpresenter.conf.5.gz
 
     configuration.path = /etc/$${TARGET}/
     configuration.CONFIG = no_build
-    configuration.files = config/$${TARGET}.conf
+    configuration.files = config/beamerpresenter.conf config/gui-config.json
 
     icon.path = $${ICON_PATH}
     icon.CONFIG = no_build
     icon.files = src/icons/beamerpresenter.svg
 
+    desktop.path = /usr/share/applications/
+    desktop.CONFIG = no_build
+    desktop.files = src/applications/beamerpresenter.desktop
+
     target.path = /usr/bin/
 
-    INSTALLS += man1 man5 configuration icon target
+    INSTALLS += man1 man5 configuration icon desktop target
 }
