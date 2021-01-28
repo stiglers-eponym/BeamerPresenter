@@ -358,9 +358,10 @@ void Preferences::setRenderer(const QString &string)
         settings.setValue("engine", "poppler");
         settings.setValue("renderer", "poppler");
     }
+    else
 #endif
 #ifdef INCLUDE_MUPDF
-    else if (new_renderer == "mupdf + external")
+    if (new_renderer == "mupdf + external")
     {
         settings.setValue("engine", "mupdf");
         settings.setValue("renderer", "external");

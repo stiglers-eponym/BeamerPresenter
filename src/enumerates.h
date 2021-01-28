@@ -27,6 +27,8 @@ enum LogLevel
 };
 
 #ifdef QT_DEBUG
+// Show warning if debugging is enabled
+#define warn_msg qWarning()
 // Show debug message if debugging is enabled for this type
 #define debug_msg(msg_type) if (preferences().log_level & (msg_type)) qDebug() << (msg_type)
 // Show debug message if verbose debugging is enabled for this type
@@ -34,6 +36,7 @@ enum LogLevel
 #else
 #define debug_msg(msg_type) qDebug()
 #define debug_verbose(msg_type) qDebug()
+#define warn_msg qDebug()
 #endif
 
 /// If a single PDF includes both presentation and notes,

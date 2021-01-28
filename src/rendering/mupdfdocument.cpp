@@ -115,17 +115,15 @@ bool MuPdfDocument::loadDocument()
     }
 
     // Check if the file has changed since last (re)load
+    if (doc && fileinfo.lastModified() == lastModified)
+        return false;
+    mutex->lock();
     if (doc)
     {
-        if (fileinfo.lastModified() == lastModified)
-            return false;
-        mutex->lock();
         fz_drop_document(ctx, doc);
         fz_drop_context(ctx);
         flexible_page_sizes = -1;
     }
-    else
-        mutex->lock();
 
     // This code is mainly copied from MuPDF example files, see mupdf.com
 

@@ -43,6 +43,8 @@ QSize FlexLayout::sizeHint() const
         debug_msg(DebugLayout) << "FlexLayout size hint:" << 16384 << height;
         return QSize(16384, height);
     }
+    default:
+        return QSize();
     }
 }
 
