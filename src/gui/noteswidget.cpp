@@ -30,7 +30,7 @@ void NotesWidget::load(const QString &filename)
             qWarning() << "Parsing xml failed:" << reader.errorString();
 
         if (preferences()->document)
-#if QT_CONFIG(textmarkdownreader)
+#ifdef QT_FEATUER_textmarkdownreader
             setMarkdown(text_per_slide.value(preferences()->document->pageLabel(preferences()->page)));
 #else
             setText(text_per_slide.value(preferences()->document->pageLabel(preferences()->page)));
@@ -40,7 +40,7 @@ void NotesWidget::load(const QString &filename)
 
 void NotesWidget::save(const QString &filename)
 {
-#if QT_CONFIG(textmarkdownwriter)
+#ifdef QT_FEATURE_textmarkdownwriter
     text_per_slide.insert(page_label, toMarkdown());
 #else
     text_per_slide.insert(page_label, toPlainText());
@@ -84,7 +84,7 @@ void NotesWidget::keyPressEvent(QKeyEvent *event)
         saveAs();
         event->accept();
         break;
-#if QT_CONFIG(textmarkdownreader) && QT_CONFIG(textmarkdownwriter)
+#if defined(QT_FEATURE_textmarkdownreader) && defined(QT_FEATURE_textmarkdownwriter)
     case Qt::Key_M | Qt::ControlModifier:
         updateMarkdown();
         break;
@@ -107,7 +107,7 @@ void NotesWidget::keyPressEvent(QKeyEvent *event)
 
 void NotesWidget::pageChanged(const int page)
 {
-#if QT_CONFIG(textmarkdownwriter)
+#ifdef QT_FEATURE_textmarkdownwriter
     text_per_slide.insert(page_label, toMarkdown());
 #else
     text_per_slide.insert(page_label, toPlainText());
@@ -115,7 +115,7 @@ void NotesWidget::pageChanged(const int page)
     if (preferences()->document)
     {
         page_label = preferences()->document->pageLabel(page);
-#if QT_CONFIG(textmarkdownreader)
+#ifdef QT_FEATURE_textmarkdownreader
         setMarkdown(text_per_slide.value(page_label));
 #else
         setPlainText(text_per_slide.value(page_label));

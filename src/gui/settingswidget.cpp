@@ -18,7 +18,7 @@ SettingsWidget::SettingsWidget(QWidget *parent) :
         // TODO: html-formatted help, which can also be read if markdown is
         // not supported.
         if (manual.isReadable())
-#if QT_CONFIG(textmarkdownreader)
+#ifdef QT_FEATURE_textmarkdownreader
             help->setMarkdown(manual.readAll());
 #else
             help->setPlainText(manual.readAll());

@@ -48,7 +48,7 @@ public:
 
     void load(const QString &filename);
     void save(const QString &filename);
-#if QT_CONFIG(textmarkdownreader) && QT_CONFIG(textmarkdownwriter)
+#if defined(QT_FEATURE_textmarkdownreader) && defined(QT_FEATURE_textmarkdownwriter)
     void updateMarkdown() {setMarkdown(toMarkdown());}
 #else
     void updateMarkdown() const noexcept {}
