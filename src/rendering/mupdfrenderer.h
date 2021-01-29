@@ -4,8 +4,16 @@
 #include <QDebug>
 #include <QObject>
 #include <QMetaType>
+#include <string>
 #include "src/rendering/mupdfdocument.h"
 #include "src/rendering/abstractrenderer.h"
+
+#ifndef FZ_VERSION_MAJOR
+#define FZ_VERSION_MAJOR 0
+#endif
+#ifndef FZ_VERSION_MINOR
+#define FZ_VERSION_MINOR 0
+#endif
 
 /// Renderer using the MuPDF engine. This renderer requires that the PDF
 /// document has been loaded by MuPDF (and not Poppler).

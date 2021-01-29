@@ -89,8 +89,7 @@ public:
 
     /// List of indices, at which slide labels change. An empty list indicates
     /// that all consecutive slides have different labels.
-    virtual QList<int> overlayIndices() const noexcept override
-    {return QList<int>(overlay_slide_indices.cbegin(), overlay_slide_indices.cend());}
+    virtual QList<int> overlayIndices() const noexcept override;
 
     /// Link at given position (in point = inch/72).
     const PdfLink linkAt(const int page, const QPointF &position) const override;

@@ -35,7 +35,11 @@ const QPixmap MuPdfRenderer::renderPixmap(const int page, const qreal resolution
     fz_var(pixmap);
     fz_try(ctx)
     {
+#if (FZ_VERSION_MAJOR >= 1) && (FZ_VERSION_MINOR > 12)
         pixmap = fz_new_pixmap_with_bbox(ctx, fz_device_rgb(ctx), fz_round_rect(bbox), NULL, 0);
+#else
+        pixmap = fz_new_pixmap_with_bbox(ctx, fz_device_rgb(ctx), fz_irect_from_rect(bbox), NULL, 0);
+#endif
         fz_clear_pixmap_with_value(ctx, pixmap, 0xff);
     }
     fz_catch(ctx)
@@ -122,8 +126,17 @@ const QPixmap MuPdfRenderer::renderPixmap(const int page, const qreal resolution
     }
 
     // Load the pixmap from buffer in Qt.
+#if (FZ_VERSION_MAJOR >= 1) && (FZ_VERSION_MINOR >= 17)
     if (!buffer || !qpixmap.loadFromData(buffer->data, buffer->len, "PNM"))
         qWarning() << "Failed to load PNM image from buffer";
+#else
+    if (buffer)
+    {
+        unsigned char *buffer_data;
+        const int buffer_size = fz_buffer_storage(ctx, buffer, &buffer_data);
+        qpixmap.loadFromData(buffer_data, buffer_size, "PNM");
+    }
+#endif
     fz_clear_buffer(ctx, buffer);
     fz_drop_buffer(ctx, buffer);
     fz_drop_context(ctx);
@@ -167,7 +180,11 @@ const PngPixmap * MuPdfRenderer::renderPng(const int page, const qreal resolutio
     fz_var(pixmap);
     fz_try(ctx)
     {
+#if (FZ_VERSION_MAJOR >= 1) && (FZ_VERSION_MINOR > 12)
         pixmap = fz_new_pixmap_with_bbox(ctx, fz_device_rgb(ctx), fz_round_rect(bbox), NULL, 0);
+#else
+        pixmap = fz_new_pixmap_with_bbox(ctx, fz_device_rgb(ctx), fz_irect_from_rect(bbox), NULL, 0);
+#endif
         fz_clear_pixmap_with_value(ctx, pixmap, 0xff);
     }
     fz_catch(ctx)
@@ -226,7 +243,19 @@ const PngPixmap * MuPdfRenderer::renderPng(const int page, const qreal resolutio
     }
 
     // Convert the buffer data to QByteArray.
-    const QByteArray * data = buffer ? new QByteArray(reinterpret_cast<const char*>(buffer->data), buffer->len) : NULL;
+#if (FZ_VERSION_MAJOR >= 1) && (FZ_VERSION_MINOR >= 17)
+    const QByteArray *data = buffer ? new QByteArray(reinterpret_cast<const char*>(buffer->data), buffer->len) : NULL;
+#else
+    const QByteArray *data;
+    if (buffer)
+    {
+        unsigned char *buffer_data;
+        const int buffer_size = fz_buffer_storage(ctx, buffer, &buffer_data);
+        data = new QByteArray(reinterpret_cast<const char*>(buffer_data), buffer_size);
+    }
+    else
+        data = NULL;
+#endif
     fz_clear_buffer(ctx, buffer);
     fz_drop_buffer(ctx, buffer);
     fz_drop_context(ctx);

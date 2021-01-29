@@ -1,8 +1,14 @@
 #ifndef MUPDFDOCUMENT_H
 #define MUPDFDOCUMENT_H
 
+
+extern "C"
+{
 #include <mupdf/fitz.h>
 #include <mupdf/pdf.h>
+#include <mupdf/fitz/version.h>
+}
+
 #include <QMutex>
 #include <QObject>
 #include <QFileInfo>

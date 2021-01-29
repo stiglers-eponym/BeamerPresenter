@@ -566,8 +566,13 @@ const PdfLink MuPdfDocument::linkAt(const int page, const QPointF &position) con
                 {
                     // Internal navigation link
                     float x, y;
+#if (FZ_VERSION_MAJOR >= 1)  && (FZ_VERSION_MINOR >= 17)
                     fz_location location = fz_resolve_link(ctx, doc, link->uri, &x, &y);
                     result = {location.page, ""};
+#else
+                    const int page = fz_resolve_link(ctx, doc, link->uri, &x, &y);
+                    result = {page, ""};
+#endif
                 }
                 else
                 {
@@ -682,6 +687,7 @@ QList<VideoAnnotation> *MuPdfDocument::annotations(const int page) const
         mutex->lock();
         return list;
     }
+    fz_var(list);
     fz_try(ctx)
     {
         for (pdf_annot *annot = pdfpage->annots; annot != NULL; annot = annot->next)

@@ -48,7 +48,11 @@ bool Master::readGuiConfig(const QString &filename)
         return false;
     }
     const QJsonArray array = doc.array();
+#if (QT_VERSION >= QT_VERSION_CHECK(5,14,0))
     for (auto it = array.cbegin(); it != array.cend(); ++it)
+#else
+    for (auto it = array.begin(); it != array.end(); ++it)
+#endif
     {
         if (it->type() != QJsonValue::Object)
         {
@@ -96,7 +100,11 @@ QWidget* Master::createWidget(QJsonObject &object, QWidget *parent)
         layout->setContentsMargins(0, 0, 0, 0);
 
         const QJsonArray array = object.value("children").toArray();
+#if (QT_VERSION >= QT_VERSION_CHECK(5,14,0))
         for (auto it = array.cbegin(); it != array.cend(); ++it)
+#else
+        for (auto it = array.begin(); it != array.end(); ++it)
+#endif
         {
             if (it->type() != QJsonValue::Type::Object)
             {
@@ -116,7 +124,11 @@ QWidget* Master::createWidget(QJsonObject &object, QWidget *parent)
     {
         StackedWidget *stackwidget = new StackedWidget(parent);
         const QJsonArray array = object.value("children").toArray();
+#if (QT_VERSION >= QT_VERSION_CHECK(5,14,0))
         for (auto it = array.cbegin(); it != array.cend(); ++it)
+#else
+        for (auto it = array.begin(); it != array.end(); ++it)
+#endif
         {
             if (it->type() != QJsonValue::Type::Object)
             {
@@ -143,7 +155,11 @@ QWidget* Master::createWidget(QJsonObject &object, QWidget *parent)
         tabwidget->setTabPosition(string_to_tab_widget_orientation.value(object.value("orientation").toString()));
 
         const QJsonArray array = object.value("children").toArray();
+#if (QT_VERSION >= QT_VERSION_CHECK(5,14,0))
         for (auto it = array.cbegin(); it != array.cend(); ++it)
+#else
+        for (auto it = array.begin(); it != array.end(); ++it)
+#endif
         {
             if (it->type() != QJsonValue::Type::Object)
             {
@@ -274,7 +290,17 @@ QWidget* Master::createWidget(QJsonObject &object, QWidget *parent)
             connect(this, &Master::prepareNavigationSignal, scene, &SlideScene::prepareNavigationEvent);
         }
         else if (object.value("master").toBool())
+        {
+#if (QT_VERSION >= QT_VERSION_CHECK(5,14,0))
             doc->getScenes().swapItemsAt(doc->getScenes().indexOf(scene), 0);
+#else
+            QList<SlideScene*> &list = doc->getScenes();
+            SlideScene *const tmp_scene = list.first();
+            const int idx = list.indexOf(scene);
+            list[0] = list[idx];
+            list[idx] = tmp_scene;
+#endif
+        }
         // TODO: read other properties from config
 
         // Get or create cache object.

@@ -395,3 +395,15 @@ void PopplerDocument::loadOutline()
             qDebug() << DebugRendering << i << outline[i].page << outline[i].next << outline[i].title;
 #endif
 }
+
+QList<int> PopplerDocument::overlayIndices() const noexcept
+{
+#if (QT_VERSION >= QT_VERSION_CHECK(5, 14, 0))
+    return QList<int>(overlay_slide_indices.cbegin(), overlay_slide_indices.cend());
+#else
+    QList<int> list;
+    for (auto item : overlay_slide_indices)
+        list.append(item);
+    return list;
+#endif
+}

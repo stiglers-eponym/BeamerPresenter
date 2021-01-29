@@ -8,10 +8,17 @@
 #ifdef INCLUDE_POPPLER
 // TODO: make this failsafe (poppler-version.h is not available in early
 // versions of Poppler)
+#if __has_include(<poppler/qt5/poppler-version.h>)
 #include <poppler/qt5/poppler-version.h>
+#else
+#define POPPLER_VERSION "OLD"
+#endif
 #endif
 #ifdef INCLUDE_MUPDF
+extern "C"
+{
 #include <mupdf/fitz/version.h>
+}
 #endif
 
 /// Provides globally available pointer to writable preferences.

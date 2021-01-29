@@ -12,7 +12,8 @@ VERSION = 0.2.0alpha0
 # below in section "CONFIGURE LIBRARIES AND LINKING - OS DEPENDENT"
 
 # Include Poppler: requires that poppler-qt5 libraries are installed.
-# Tested with poppler 20.12.1
+# Tested with poppler 20.12.1, versions below 0.70 are not supported and will
+# most probably never be supported.
 DEFINES += INCLUDE_POPPLER
 
 # Include MuPDF: requires that mupdf libraries are installed.
