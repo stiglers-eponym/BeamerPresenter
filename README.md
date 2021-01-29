@@ -13,6 +13,15 @@ Based on Qt, BeamerPresenter is cross-platform, but mainly tested on
 Arch Linux with X11 or wayland using presentations created by LaTeX beamer.
 In general Qt programs more stable in X11 than in wayland.
 
+## Upcoming changes
+The default branch of this repository will soon be changed to what is currently
+the `rewrite` branch. This branch (`master`) will be renamed to `0.1.x`.
+The new version 0.2.x is incompatible with the configuration files and drawing
+file types of the old version 0.1.x.
+Not all features of 0.1.x will be available in 0.2.x.
+In the beginning, slide transitions and multimedia content will not be
+supported by 0.2.x.
+
 ## Features
 An extended list of features can be found in the manual (`beamerpresenter.1`).
 
@@ -68,8 +77,9 @@ An extended list of features can be found in the manual (`beamerpresenter.1`).
 
 ## Build
 To build and use this project you need to have the Qt5 multimedia module and the
-poppler Qt5 bindings installed.
-If building fails on your system, please open an issue on github.
+poppler Qt5 bindings installed. Building with Qt6 is not possible.
+If building fails on your system, please open an issue on github and mention
+your Qt version (`qmake --version`).
 
 Download, compile and install this project on GNU/Linux systems:
 ```sh
@@ -78,8 +88,9 @@ cd BeamerPresenter
 qmake && make
 make install
 ```
-Showing videos in a presentation additionally requires the installation of some
-GStreamer plugins.
+In GNU/Linux showing videos in a presentation additionally requires the
+installation of some GStreamer plugins.
+In other systems other plugins might be needed.
 
 
 ### Installation in Arch Linux
@@ -176,16 +187,18 @@ The configuration can only be edited directly with a text editor.
 
 
 ## Bugs
-If you find bugs or have concrete suggestions for improvements, please
+If you find bugs or have suggestions for improvements, please
 [open an issue](https://github.com/stiglers-eponym/BeamerPresenter/issues).
+
+When reporting bugs, please include the version string of BeamerPresenter
+(`beamerpresenter --version`) or the Qt version if you have problems building
+BeamerPresenter (`qmake --version`).
 
 
 ## Development
 The code for versions 0.1.x is quite unreadable, not really structured and full
 of ugly bug-fixes. To create something more structured, efficient, modular and
 flexible, I started rewriting BeamerPresenter from scratch (branch `rewrite`).
-But as of now, the result is only for experimental use. Many features are
-missing or incomplete.
 
 For the old code this means: Small issues might still be fixed, but new
 features will only be available in the new, rewritten version.
