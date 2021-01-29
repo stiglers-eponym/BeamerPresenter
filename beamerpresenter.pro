@@ -7,11 +7,8 @@
 VERSION = 0.1.3
 
 # Check Qt version.
-requires(greaterThan(QT_MAJOR_VERSION, 4))
-equals(QT_MAJOR_VERSION, 4) {
-    requires(greaterThan(QT_MINOR_VERSION, 5))
-    smallerThan(QT_MINOR_VERSION, 9):message("Using Qt version < 5.9 is untested!.")
-}
+requires(equals(QT_MAJOR_VERSION, 5))
+!greaterThan(QT_MINOR_VERSION, 8): warning("Using old qt version, errors expected! Please mention your Qt version when reporting a bug.")
 
 QT += core gui multimedia multimediawidgets xml widgets
 

@@ -591,7 +591,9 @@ bool PathOverlay::event(QEvent *event)
             update();
         }
         break;
+#if QT_VERSION_MINOR > 8
     case QEvent::TabletTrackingChange:
+#endif
         break;
     default:
         return QWidget::event(event);

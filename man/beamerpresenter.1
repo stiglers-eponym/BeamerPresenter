@@ -1,4 +1,4 @@
-.TH BeamerPresenter 1 "25 February 2020"
+.TH BeamerPresenter 1 "2021-01-25" 0.1.3
 .
 .SH NAME
 BeamerPresenter \- dual-screen PDF presenter
@@ -37,7 +37,7 @@ shows images of the current and next slide and a timer.
 .
 .TP
 .B \-h \-\-help
-Displays this help.
+Displays help.
 .
 .TP
 .BI "\-a \-\-autoplay " delay
@@ -121,7 +121,7 @@ Command for calling an external PDF renderer which can be used instead of the in
 This should be either "poppler" (for using the internal renderer) or a command for using an external renderer.
 The command should call a renderer, which renders one page of a PDF file to a png image of fixed size and writes the image to the standard output.
 The command should contain the tokens "%file" for the PDF file name, "%page" for the page number, "%width" for the image width in pixels and "%height" for the height in pixels.
-The resulting image will be shown in a window of size %width x %height. Note %width/%height is not necessarily the corrct aspect ratio of the page.
+The resulting image will be shown in a window of size %width x %height. Note %width/%height is not necessarily the correct aspect ratio of the page.
 If the command fails, this will not necessarily be handled correctly or lead to a warning.
 
 An example for a command using
