@@ -44,7 +44,7 @@ bool SlideScene::event(QEvent* event)
     case QEvent::GraphicsSceneMousePress:
     {
         const auto *mouseevent = static_cast<QGraphicsSceneMouseEvent*>(event);
-        for (const auto tool : preferences().current_tools)
+        for (const auto tool : preferences()->current_tools)
         {
             if (tool && (tool->device() & mouse_to_input_device.value(mouseevent->buttons())))
             {
@@ -78,7 +78,7 @@ bool SlideScene::event(QEvent* event)
         const auto touchevent = static_cast<QTouchEvent*>(event);
         if (touchevent->touchPoints().size() != 1)
             return false;
-        for (const auto tool : preferences().current_tools)
+        for (const auto tool : preferences()->current_tools)
         {
             if (tool && (tool->device() & TouchInput))
             {
@@ -225,7 +225,7 @@ void SlideScene::startTransition(const int newpage, const SlideTransition &trans
 
 void SlideScene::tabletPress(const QPointF &pos, const QTabletEvent *event)
 {
-    for (const auto tool : preferences().current_tools)
+    for (const auto tool : preferences()->current_tools)
     {
         if (tool && (tool->device() & tablet_device_to_input_device.value(event->pointerType())))
         {
@@ -264,7 +264,7 @@ void SlideScene::startInputEvent(const Tool *tool, const QPointF &pos, const flo
         currentItemCollection = new QGraphicsItemGroup();
         addItem(currentItemCollection);
         currentItemCollection->show();
-        if (tool->tool() == Pen && (tool->device() & preferences().pressure_sensitive_input_devices))
+        if (tool->tool() == Pen && (tool->device() & preferences()->pressure_sensitive_input_devices))
             currentPath = new FullGraphicsPath(*static_cast<const DrawTool*>(tool), pos, pressure);
         else
             currentPath = new BasicGraphicsPath(*static_cast<const DrawTool*>(tool), pos);

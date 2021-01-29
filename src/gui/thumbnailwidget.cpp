@@ -3,7 +3,7 @@
 void ThumbnailWidget::generate(const PdfDocument *document)
 {
     if (!document)
-        document = preferences().document;
+        document = preferences()->document;
     // Don't recalculate if changes in the widget's width lie below a threshold of 5%.
     if (!document || std::abs(ref_width - width()) < ref_width/20)
         return;
@@ -11,7 +11,7 @@ void ThumbnailWidget::generate(const PdfDocument *document)
     if (!render_thread)
     {
         render_thread = new ThumbnailThread(document);
-        render_thread->moveToThread(new QThread());
+        connect(render_thread, &ThumbnailThread::destroyed, render_thread->thread(), &QThread::deleteLater);
         connect(this, &ThumbnailWidget::sendToRenderThread, render_thread, &ThumbnailThread::append, Qt::QueuedConnection);
         connect(this, &ThumbnailWidget::startRendering, render_thread, &ThumbnailThread::renderImages, Qt::QueuedConnection);
         connect(render_thread, &ThumbnailThread::sendThumbnail, this, &ThumbnailWidget::receiveThumbnail, Qt::QueuedConnection);
@@ -31,7 +31,7 @@ void ThumbnailWidget::generate(const PdfDocument *document)
         button = new ThumbnailButton(link_page, this);
         connect(button, &ThumbnailButton::sendNavigationSignal, this, &ThumbnailWidget::sendNavigationSignal);
         QSizeF size = document->pageSize(display_page);
-        if (preferences().default_page_part)
+        if (preferences()->default_page_part)
             size.rwidth() /= 2;
         emit sendToRenderThread(button, col_width/size.width(), display_page);
         button->setMinimumSize(col_width, col_width*size.height()/size.width());
@@ -59,4 +59,11 @@ void ThumbnailWidget::generate(const PdfDocument *document)
     QScroller::grabGesture(this);
 
     emit startRendering();
+}
+
+ThumbnailWidget::~ThumbnailWidget()
+{
+    render_thread->deleteLater();
+    if (QScroller::scroller(this))
+        QScroller::scroller(this)->deleteLater();
 }

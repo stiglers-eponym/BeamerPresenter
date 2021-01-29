@@ -30,7 +30,7 @@ public:
     ~TOCwidget()
     {delete first_button;}
 
-    /// Generate the TOC from given document or preferences().document.
+    /// Generate the TOC from given document or preferences()->document.
     void generateTOC(const PdfDocument *document = NULL);
 
     /// Actually this is nonsense, but currently the layout only works with
@@ -41,7 +41,7 @@ public:
 public slots:
     /// Show event: generate outline if necessary. Expand to current position.
     void showEvent(QShowEvent*) override
-    {if (first_button) expandTo(preferences().page); else generateTOC();}
+    {if (first_button) expandTo(preferences()->page); else generateTOC();}
 
     /// Focus event: generate outline if necessary.
     void focusInEvent(QFocusEvent*) override

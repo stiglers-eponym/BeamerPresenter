@@ -79,9 +79,9 @@ public:
     qint64 getTotalCache() const;
 
     /**
-     * A navigation event moves preferences().page away from the given page.
+     * A navigation event moves preferences()->page away from the given page.
      * Tell path containers in all documents that history of given page
-     * should now be limited by preferences().history_length_hidden_slides.
+     * should now be limited by preferences()->history_length_hidden_slides.
      * page is given as (page_number | page_part).
      * TODO: currently this also notifies the layout system of changes if
      * PDFs with flexible page sizes are used.
@@ -122,7 +122,7 @@ signals:
     /// be recalculated.
     void prepareNavigationSignal(const int page) const;
 
-    /// Send out navigation signal (after updating preferences().page).
+    /// Send out navigation signal (after updating preferences()->page).
     /// This should only be used in queued connection.
     void navigationSignal(const int page) const;
 };

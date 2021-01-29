@@ -26,19 +26,6 @@ enum LogLevel
     DebugVerbose = 1 << 15,
 };
 
-#ifdef QT_DEBUG
-// Show warning if debugging is enabled
-#define warn_msg qWarning()
-// Show debug message if debugging is enabled for this type
-#define debug_msg(msg_type) if (preferences().log_level & (msg_type)) qDebug() << (msg_type)
-// Show debug message if verbose debugging is enabled for this type
-#define debug_verbose(msg_type) if ((preferences().log_level & (msg_type|DebugVerbose)) == (msg_type|DebugVerbose)) qDebug() << (msg_type)
-#else
-#define debug_msg(msg_type) qDebug()
-#define debug_verbose(msg_type) qDebug()
-#define warn_msg qDebug()
-#endif
-
 /// If a single PDF includes both presentation and notes,
 /// PagePart shows which part is currently of interest.
 /// The numbers are chosen such that (page number | page part)

@@ -90,7 +90,7 @@ MuPdfDocument::MuPdfDocument(const QString &filename) :
     for (auto &it : mutex_list)
         it = new QMutex();
     // Load the document
-    if (!loadDocument())
+    if (!loadDocument() && !doc)
         qFatal("Loading document failed");
 }
 
@@ -121,48 +121,49 @@ bool MuPdfDocument::loadDocument()
     if (doc)
     {
         fz_drop_document(ctx, doc);
-        fz_drop_context(ctx);
         flexible_page_sizes = -1;
     }
-
-    // This code is mainly copied from MuPDF example files, see mupdf.com
-
-    // Initialize the locking structure with function pointers to
-    // the locking functions and to the user data. In this case
-    // the user data is a pointer to the array of mutexes so the
-    // locking functions can find the relevant lock to change when
-    // they are called. This way we avoid global variables.
-
-    fz_locks_context locks;
-    locks.user = &mutex_list;
-    locks.lock = lock_mutex;
-    locks.unlock = unlock_mutex;
-
-    // This is the main threads ctx function, so supply the
-    // locking structure. This ctx will be used to parse all
-    // the pages from the document.
-
-    ctx = fz_new_context(NULL, &locks, FZ_STORE_UNLIMITED);
-
-    if (ctx == NULL)
+    else
     {
-        qWarning() << "Failed to create Fitz ctx";
-        doc = NULL;
-        mutex->unlock();
-        return false;
-    }
+        // This code is mainly copied from MuPDF example files, see mupdf.com
 
-    // Try to register default document handlers.
-    fz_try(ctx)
-        fz_register_document_handlers(ctx);
-    fz_catch(ctx)
-    {
-        qWarning() << "MuPdf cannot register document handlers:" << fz_caught_message(ctx);
-        doc = NULL;
-        fz_drop_context(ctx);
-        ctx =  NULL;
-        mutex->unlock();
-        return false;
+        // Initialize the locking structure with function pointers to
+        // the locking functions and to the user data. In this case
+        // the user data is a pointer to the array of mutexes so the
+        // locking functions can find the relevant lock to change when
+        // they are called. This way we avoid global variables.
+
+        fz_locks_context locks;
+        locks.user = &mutex_list;
+        locks.lock = lock_mutex;
+        locks.unlock = unlock_mutex;
+
+        // This is the main threads ctx function, so supply the
+        // locking structure. This ctx will be used to parse all
+        // the pages from the document.
+
+        ctx = fz_new_context(NULL, &locks, FZ_STORE_UNLIMITED);
+
+        if (ctx == NULL)
+        {
+            qCritical() << "Failed to create Fitz ctx";
+            doc = NULL;
+            mutex->unlock();
+            return false;
+        }
+
+        // Try to register default document handlers.
+        fz_try(ctx)
+            fz_register_document_handlers(ctx);
+        fz_catch(ctx)
+        {
+            qCritical() << "MuPdf cannot register document handlers:" << fz_caught_message(ctx);
+            doc = NULL;
+            fz_drop_context(ctx);
+            ctx =  NULL;
+            mutex->unlock();
+            return false;
+        }
     }
 
     // Open the document.
@@ -175,7 +176,7 @@ bool MuPdfDocument::loadDocument()
             doc = fz_open_document(ctx, name);
         fz_catch(ctx)
         {
-            qWarning() << "MuPdf cannot open document:" << fz_caught_message(ctx);
+            qCritical() << "MuPdf cannot open document:" << fz_caught_message(ctx);
             doc = NULL;
             fz_drop_context(ctx);
             ctx =  NULL;
@@ -205,13 +206,24 @@ const QSizeF MuPdfDocument::pageSize(const int page) const
         return QSizeF();
 
     mutex->lock();
-    // Load page.
-    fz_page *doc_page = fz_load_page(ctx, doc, page);
-    // Get bounding box.
-    const fz_rect bbox = fz_bound_page(ctx, doc_page);
-    // Clean up page.
-    fz_drop_page(ctx, doc_page);
-    mutex->unlock();
+    fz_page *doc_page = NULL;
+    fz_rect bbox;
+    fz_var(doc_page);
+    fz_var(bbox);
+    fz_try(ctx)
+    {
+        // Load page.
+        doc_page = fz_load_page(ctx, doc, page);
+        // Get bounding box.
+        bbox = fz_bound_page(ctx, doc_page);
+    }
+    fz_always(ctx)
+    {
+        fz_drop_page(ctx, doc_page);
+        mutex->unlock();
+    }
+    fz_catch(ctx)
+        return QSizeF();
 
     // Convert bounding box to QSizeF.
     // bbox.x0 and bbox.y0 should be 0, but keep them anyway:
@@ -275,6 +287,9 @@ int MuPdfDocument::overlaysShifted(const int start, const int shift_overlay) con
 
 void MuPdfDocument::loadPageLabels()
 {
+    if (!ctx || !doc)
+        return;
+    // (My comments here are based on an old version of MuPDF)
     // MuPDF doesn't support page labels (!!!)
     // Here is an implementation which lets MuPdfDocument handle page labels.
 
@@ -292,6 +307,7 @@ void MuPdfDocument::loadPageLabels()
     // https://bugs.ghostscript.com/show_bug.cgi?id=695351
 
     pdf_document *pdf_doc = NULL;
+    fz_var(pdf_doc);
     fz_try(ctx)
         pdf_doc = pdf_document_from_fz_document(ctx, doc);
     fz_catch(ctx)
@@ -301,29 +317,21 @@ void MuPdfDocument::loadPageLabels()
         return;
     }
 
-    pdf_obj *root = pdf_dict_gets(ctx, pdf_trailer(ctx, pdf_doc), "Root");
-    pdf_obj *labels = pdf_dict_gets(ctx, root, "PageLabels");
-
-    if (!pdf_is_dict(ctx, labels))
-    {
-        qWarning() << "Failed to load page labels.";
-        mutex->unlock();
-        return;
-    }
-
-    pdf_obj *nums = pdf_dict_gets(ctx, labels, "Nums");
-    if (!pdf_is_array(ctx, nums))
-    {
-        qWarning() << "Failed to interpret page labels.";
-        mutex->unlock();
-        return;
-    }
-
-    // Read the raw labels from the PDF
     QMap<int, label_item> raw_labels;
+    fz_try(ctx)
     {
+        pdf_obj *labels = pdf_dict_gets(ctx, pdf_dict_gets(ctx, pdf_trailer(ctx, pdf_doc), "Root"), "PageLabels");
+        if (!pdf_is_dict(ctx, labels))
+            fz_throw(ctx, 1, "document contains no labels");
+
+        pdf_obj *nums = pdf_dict_gets(ctx, labels, "Nums");
+        if (!pdf_is_array(ctx, nums))
+            fz_throw(ctx, 2, "document contains no valid labels");
+
+        // Read the raw labels from the PDF
         const int len_minus_one = pdf_array_len(ctx, nums) - 1;
         pdf_obj *val;
+
         // TODO: check if this implementation is reasonable.
         auto pdf_dict_to_int_default = [&](pdf_obj* obj, const char* key, int def)->int{
             pdf_obj *value = pdf_dict_gets(ctx, obj, key);
@@ -337,6 +345,7 @@ void MuPdfDocument::loadPageLabels()
             pdf_obj *value = pdf_dict_gets(ctx, obj, key);
             return (value && pdf_is_string(ctx, value)) ? pdf_to_text_string(ctx, value) : NULL;
         };
+
         for (int i = 0, key; i < len_minus_one;)
         {
             key = pdf_array_get_int(ctx, nums, i++);
@@ -360,7 +369,13 @@ void MuPdfDocument::loadPageLabels()
             }
         }
     }
-    mutex->unlock();
+    fz_always(ctx)
+        mutex->unlock();
+    fz_catch(ctx)
+    {
+        qWarning() << "Failed to load page labels:" << fz_caught_message(ctx);
+        return;
+    }
 
     // Check if anything was found.
     if (raw_labels.isEmpty())
@@ -403,7 +418,7 @@ void MuPdfDocument::prepareRendering(fz_context **context, fz_rect *bbox, fz_dis
     // If it is not, return without changing the given pointers.
     // The caller should note that the pointers are unchaged and handle this
     // appropriately.
-    if (pagenumber < 0 || pagenumber >= number_of_pages || resolution <= 0.)
+    if (pagenumber < 0 || pagenumber >= number_of_pages || resolution <= 0. || !ctx || !doc)
         return;
 
     // This is almost completely copied from a mupdf example.
@@ -413,9 +428,21 @@ void MuPdfDocument::prepareRendering(fz_context **context, fz_rect *bbox, fz_dis
     *context = ctx;
     // Get a page (must be done in the main thread!).
     // This causes warnings if the page contains multimedia content.
-    fz_page *page = fz_load_page(ctx, doc, pagenumber);
+    fz_page *page = NULL;
+    fz_var(page);
+    fz_var(*bbox);
+    fz_try(ctx)
+    {
+        page = fz_load_page(ctx, doc, pagenumber);
+        *bbox = fz_bound_page(ctx, page);
+    }
+    fz_catch(ctx)
+    {
+        fz_drop_page(ctx, page);
+        mutex->unlock();
+        return;
+    }
     // Calculate the boundary box and rescale it to the given resolution.
-    *bbox = fz_bound_page(ctx, page);
     // bbox is now given in points. Convert to pixels using resolution, which
     // is given in pixels per point.
     bbox->x0 *= resolution;
@@ -423,38 +450,70 @@ void MuPdfDocument::prepareRendering(fz_context **context, fz_rect *bbox, fz_dis
     bbox->y0 *= resolution;
     bbox->y1 *= resolution;
 
-    // Prepare a display list for a drawing device.
-    // The list (and not the page itself) will then be used to render the page.
-    *list = fz_new_display_list(ctx, *bbox);
-    // Use a fitz device to fill the list with the content of the page.
-    fz_device *dev = fz_new_list_device(ctx, *list);
-    fz_run_page(ctx, page, dev, fz_scale(resolution, resolution), NULL);
-
-    // clean up.
-    fz_close_device(ctx, dev);
-    fz_drop_device(ctx, dev);
-    fz_drop_page(ctx, page);
-    mutex->unlock();
+    fz_device *dev = NULL;
+    fz_var(*list);
+    fz_var(dev);
+    fz_try(ctx)
+    {
+        // Prepare a display list for a drawing device.
+        // The list (and not the page itself) will then be used to render the page.
+        *list = fz_new_display_list(ctx, *bbox);
+        // Use a fitz device to fill the list with the content of the page.
+        dev = fz_new_list_device(ctx, *list);
+        fz_run_page(ctx, page, dev, fz_scale(resolution, resolution), NULL);
+    }
+    fz_always(ctx)
+    {
+        fz_drop_device(ctx, dev);
+        fz_drop_page(ctx, page);
+        mutex->unlock();
+    }
+    fz_catch(ctx)
+    {
+        *list = NULL;
+    }
 }
 
 const SlideTransition MuPdfDocument::transition(const int page) const
 {
     SlideTransition trans;
-    if (page < 0 || page >= number_of_pages)
+    if (page < 0 || page >= number_of_pages || !ctx || !doc)
         return trans;
 
-    fz_transition *doc_trans = new fz_transition();
     mutex->lock();
-    fz_page *doc_page = fz_load_page(ctx, doc, page);
-    fz_page_presentation(ctx, doc_page, doc_trans, NULL);
-    if (doc_trans)
+    fz_page *doc_page = NULL;
+    fz_var(doc_page);
+    fz_try(ctx)
+        doc_page = fz_load_page(ctx, doc, page);
+    fz_catch(ctx)
     {
-        trans.properties = (doc_trans->vertical ? SlideTransition::Vertical : 0)
-                        | (doc_trans->outwards ? SlideTransition::Outwards : 0);
-        trans.type = static_cast<SlideTransition::Type>(doc_trans->type);
-        trans.angle = doc_trans->direction;
-        trans.duration = doc_trans->duration;
-        if (trans.type == SlideTransition::Fly)
+        fz_drop_page(ctx, doc_page);
+        mutex->unlock();
+        return trans;
+    }
+
+    fz_transition doc_trans;
+    fz_var(doc_trans);
+    fz_try(ctx)
+        fz_page_presentation(ctx, doc_page, &doc_trans, NULL);
+    fz_catch(ctx)
+    {
+        fz_drop_page(ctx, doc_page);
+        mutex->unlock();
+        return trans;
+    }
+
+    trans.properties = (doc_trans.vertical ? SlideTransition::Vertical : 0)
+                    | (doc_trans.outwards ? SlideTransition::Outwards : 0);
+    trans.type = static_cast<SlideTransition::Type>(doc_trans.type);
+    trans.angle = doc_trans.direction;
+    trans.duration = doc_trans.duration;
+
+    if (trans.type == SlideTransition::Fly)
+    {
+        fz_var(trans.type);
+        fz_var(trans.scale);
+        fz_try(ctx)
         {
             pdf_page *pdfpage = pdf_page_from_fz_page(ctx, doc_page);
             pdf_obj *transdict = pdf_dict_get(ctx, pdfpage->obj, PDF_NAME(Trans));
@@ -464,65 +523,171 @@ const SlideTransition MuPdfDocument::transition(const int page) const
             if (ss_obj)
                 trans.scale = pdf_to_real(ctx, ss_obj);
         }
+        fz_catch(ctx)
+             warn_msg << "failed to completely load slide transition" << fz_caught_message(ctx);
     }
+
     fz_drop_page(ctx, doc_page);
     mutex->unlock();
-    delete doc_trans; // TODO: Does this break something?
     return trans;
 }
 
 const PdfLink MuPdfDocument::linkAt(const int page, const QPointF &position) const
 {
     PdfLink result {NoLink, ""};
-    if (page < 0 || page >= number_of_pages)
+    if (page < 0 || page >= number_of_pages || !ctx || !doc)
         return result;
+
     mutex->lock();
-    fz_page *doc_page = fz_load_page(ctx, doc, page);
-    // TODO: check how this is correctly tidied up!
-    fz_link * const clink = fz_load_links(ctx, doc_page);
-    for (fz_link* link = clink; link != NULL; link = link->next)
+    fz_page *doc_page = NULL;
+    fz_var(doc_page);
+    fz_try(ctx)
+        doc_page = fz_load_page(ctx, doc, page);
+    fz_catch(ctx)
     {
-        if (link->rect.x0 <= position.x() && link->rect.x1 >= position.x() && link->rect.y0 <= position.y() && link->rect.y1 >= position.y())
+        fz_drop_page(ctx, doc_page);
+        mutex->unlock();
+        return result;
+    }
+
+    // TODO: check how this is correctly tidied up!
+    fz_link *clink = NULL;
+    fz_var(clink);
+    fz_try(ctx)
+    {
+        clink = fz_load_links(ctx, doc_page);
+        for (fz_link* link = clink; link != NULL; link = link->next)
         {
-            if (link->uri == NULL)
-                result = {NoLink, ""};
-            else if (link->uri[0] == '#')
+            if (link->rect.x0 <= position.x() && link->rect.x1 >= position.x() && link->rect.y0 <= position.y() && link->rect.y1 >= position.y())
             {
-                // Internal navigation link
-                float x, y;
-                fz_location location = fz_resolve_link(ctx, doc, link->uri, &x, &y);
-                result = {location.page, ""};
+                if (link->uri == NULL)
+                    result = {NoLink, ""};
+                else if (link->uri[0] == '#')
+                {
+                    // Internal navigation link
+                    float x, y;
+                    fz_location location = fz_resolve_link(ctx, doc, link->uri, &x, &y);
+                    result = {location.page, ""};
+                }
+                else
+                {
+                    debug_msg(DebugRendering) << "Unsupported link" << link->uri;
+                    result = {NoLink, ""};
+                }
+                break;
             }
-            else
-            {
-                debug_msg(DebugRendering) << "Unsupported link" << link->uri;
-                result = {NoLink, ""};
-            }
-            break;
         }
     }
-    fz_drop_link(ctx, clink);
-    mutex->unlock();
+    fz_always(ctx)
+    {
+        fz_drop_link(ctx, clink);
+        fz_drop_page(ctx, doc_page);
+        mutex->unlock();
+    }
+    fz_catch(ctx)
+    {
+        warn_msg << "Error while loading link" << fz_caught_message(ctx);
+    }
     return result;
 }
 
 const VideoAnnotation MuPdfDocument::annotationAt(const int page, const QPointF &position) const
 {
-    if (page < 0 || page >= number_of_pages)
-        return VideoAnnotation();
+    VideoAnnotation result = {QUrl(), VideoAnnotation::Invalid, QRectF()};
+    if (page < 0 || page >= number_of_pages || !ctx || !doc)
+        return result;
+
     mutex->lock();
-    pdf_page *pdfpage = pdf_load_page(ctx, pdf_document_from_fz_document(ctx, doc), page);
-    for (pdf_annot *annot = pdfpage->annots; annot != NULL; annot = annot->next)
+    pdf_page *pdfpage = NULL;
+    fz_var(pdfpage);
+    fz_try(ctx)
     {
-        pdf_keep_annot(ctx, annot); // is this necessary?
-        fz_rect bound = pdf_bound_annot(ctx, annot);
-        if (bound.x0 <= position.x() && bound.x1 >= position.x() && bound.y0 <= position.y() && bound.y1 >= position.y())
+        pdfpage = pdf_load_page(ctx, pdf_document_from_fz_document(ctx, doc), page);
+        for (pdf_annot *annot = pdfpage->annots; annot != NULL; annot = annot->next)
         {
-            switch (pdf_annot_type(ctx, annot))
+            fz_rect bound = pdf_bound_annot(ctx, annot);
+            if (bound.x0 <= position.x() && bound.x1 >= position.x() && bound.y0 <= position.y() && bound.y1 >= position.y())
             {
-            case PDF_ANNOT_MOVIE:
+                switch (pdf_annot_type(ctx, annot))
+                {
+                case PDF_ANNOT_MOVIE:
+                {
+                    debug_msg(DebugMedia) << "Movie annotation";
+                    pdf_obj *movie_obj = pdf_dict_gets(ctx, annot->obj, "Movie");
+                    if (!movie_obj)
+                    {
+                        qWarning() << "Error while reading movie annotation";
+                        break;
+                    }
+                    const QString file = pdf_dict_get_text_string(ctx, movie_obj, PDF_NAME(F));
+                    result.file = QUrl::fromLocalFile(file);
+                    result.rect = QRectF(bound.x0, bound.y0, bound.x1-bound.x0, bound.y1-bound.y0);
+
+                    pdf_obj *activation_obj = pdf_dict_get(ctx, annot->obj, PDF_NAME(A));
+                    if (activation_obj)
+                    {
+                        QString mode = pdf_to_name(ctx, pdf_dict_gets(ctx, activation_obj, "Mode") );
+                        if (!mode.isEmpty())
+                        {
+                            if (mode == "Open")
+                                result.mode = VideoAnnotation::Open;
+                            else if (mode == "Palindrome")
+                                result.mode = VideoAnnotation::Palindrome;
+                            else if (mode == "Repeat")
+                                result.mode = VideoAnnotation::Repeat;
+                        }
+                    }
+                    break;
+                }
+                case PDF_ANNOT_SOUND:
+                    debug_msg(DebugMedia) << "Sound annotation";
+                    break;
+                case PDF_ANNOT_SCREEN:
+                    debug_msg(DebugMedia) << "Screen annotation";
+                    break;
+                default:
+                debug_msg(DebugRendering) << "Annotation type:" << pdf_string_from_annot_type(ctx, pdf_annot_type(ctx, annot));
+                }
+            }
+            if (result.mode != VideoAnnotation::Invalid)
+                break;
+        }
+    }
+    fz_always(ctx)
+    {
+        fz_drop_page(ctx, (fz_page*) pdfpage);
+        mutex->unlock();
+    }
+    fz_catch(ctx)
+    {
+        return VideoAnnotation();
+    }
+    debug_msg(DebugMedia) << result.file << result.mode;
+    return result;
+}
+
+QList<VideoAnnotation> *MuPdfDocument::annotations(const int page) const
+{
+    QList<VideoAnnotation>* list = NULL;
+    if (page < 0 || page >= number_of_pages || !ctx || !doc)
+        return list;
+    mutex->lock();
+    pdf_page *pdfpage = NULL;
+    fz_var(pdfpage);
+    fz_try(ctx)
+        pdfpage = pdf_load_page(ctx, pdf_document_from_fz_document(ctx, doc), page);
+    fz_catch(ctx)
+    {
+        fz_drop_page(ctx, (fz_page*) pdfpage);
+        mutex->lock();
+        return list;
+    }
+    fz_try(ctx)
+    {
+        for (pdf_annot *annot = pdfpage->annots; annot != NULL; annot = annot->next)
+        {
+            if (pdf_annot_type(ctx, annot) == PDF_ANNOT_MOVIE)
             {
-                debug_msg(DebugMedia) << "Movie annotation";
                 pdf_obj *movie_obj = pdf_dict_gets(ctx, annot->obj, "Movie");
                 if (!movie_obj)
                 {
@@ -530,11 +695,14 @@ const VideoAnnotation MuPdfDocument::annotationAt(const int page, const QPointF 
                     break;
                 }
                 const QString file = pdf_dict_get_text_string(ctx, movie_obj, PDF_NAME(F));
-                VideoAnnotation videoAnnotation {
+                fz_rect bound = pdf_bound_annot(ctx, annot);
+                if (list == NULL)
+                    list = new QList<VideoAnnotation>();
+                list->append({
                             QUrl::fromLocalFile(file),
                             VideoAnnotation::Once,
                             QRectF(bound.x0, bound.y0, bound.x1-bound.x0, bound.y1-bound.y0)
-                        };
+                        });
                 pdf_obj *activation_obj = pdf_dict_get(ctx, annot->obj, PDF_NAME(A));
                 if (activation_obj)
                 {
@@ -542,145 +710,119 @@ const VideoAnnotation MuPdfDocument::annotationAt(const int page, const QPointF 
                     if (!mode.isEmpty())
                     {
                         if (mode == "Open")
-                            videoAnnotation.mode = VideoAnnotation::Open;
+                            list->last().mode = VideoAnnotation::Open;
                         else if (mode == "Palindrome")
-                            videoAnnotation.mode = VideoAnnotation::Palindrome;
+                            list->last().mode = VideoAnnotation::Palindrome;
                         else if (mode == "Repeat")
-                            videoAnnotation.mode = VideoAnnotation::Repeat;
+                            list->last().mode = VideoAnnotation::Repeat;
                     }
                 }
-                debug_msg(DebugMedia) << videoAnnotation.file << videoAnnotation.mode;
-                pdf_drop_annot(ctx, annot);
-                mutex->unlock();
-                return videoAnnotation;
-            }
-            case PDF_ANNOT_SOUND:
-                debug_msg(DebugMedia) << "Sound annotation";
-                break;
-            case PDF_ANNOT_SCREEN:
-                debug_msg(DebugMedia) << "Screen annotation";
-                break;
-            default:
-            debug_msg(DebugRendering) << "Annotation type:" << pdf_string_from_annot_type(ctx, pdf_annot_type(ctx, annot));
             }
         }
-        pdf_drop_annot(ctx, annot);
     }
-    fz_drop_page(ctx, (fz_page*) pdfpage);
-    mutex->unlock();
-    return {QUrl(), VideoAnnotation::Invalid, QRectF()};
-}
-
-QList<VideoAnnotation> *MuPdfDocument::annotations(const int page) const
-{
-    QList<VideoAnnotation>* list = NULL;
-    if (page < 0 || page >= number_of_pages)
-        return list;
-    mutex->lock();
-    pdf_page *pdfpage = pdf_load_page(ctx, pdf_document_from_fz_document(ctx, doc), page);
-    for (pdf_annot *annot = pdfpage->annots; annot != NULL; annot = annot->next)
+    fz_always(ctx)
     {
-        if (pdf_annot_type(ctx, annot) == PDF_ANNOT_MOVIE)
-        {
-            pdf_keep_annot(ctx, annot); // is this necessary?
-            pdf_obj *movie_obj = pdf_dict_gets(ctx, annot->obj, "Movie");
-            if (!movie_obj)
-            {
-                qWarning() << "Error while reading movie annotation";
-                break;
-            }
-            const QString file = pdf_dict_get_text_string(ctx, movie_obj, PDF_NAME(F));
-            fz_rect bound = pdf_bound_annot(ctx, annot);
-            if (list == NULL)
-                list = new QList<VideoAnnotation>();
-            list->append({
-                        QUrl::fromLocalFile(file),
-                        VideoAnnotation::Once,
-                        QRectF(bound.x0, bound.y0, bound.x1-bound.x0, bound.y1-bound.y0)
-                    });
-            pdf_obj *activation_obj = pdf_dict_get(ctx, annot->obj, PDF_NAME(A));
-            if (activation_obj)
-            {
-                QString mode = pdf_to_name(ctx, pdf_dict_gets(ctx, activation_obj, "Mode") );
-                if (!mode.isEmpty())
-                {
-                    if (mode == "Open")
-                        list->last().mode = VideoAnnotation::Open;
-                    else if (mode == "Palindrome")
-                        list->last().mode = VideoAnnotation::Palindrome;
-                    else if (mode == "Repeat")
-                        list->last().mode = VideoAnnotation::Repeat;
-                }
-            }
-            pdf_drop_annot(ctx, annot);
-        }
+        fz_drop_page(ctx, (fz_page*) pdfpage);
+        mutex->unlock();
     }
-    fz_drop_page(ctx, (fz_page*) pdfpage);
-    mutex->unlock();
+    fz_catch(ctx)
+    {
+        warn_msg << "Error in searching annotations:" << fz_caught_message(ctx);
+    }
     return list;
 }
 
 bool MuPdfDocument::flexiblePageSizes() noexcept
 {
-    if (flexible_page_sizes >= 0 || doc == NULL)
+    if (flexible_page_sizes >= 0 || !ctx || !doc)
         return flexible_page_sizes;
+
     flexible_page_sizes = 0;
     mutex->lock();
-    // Load page.
-    fz_page *doc_page = fz_load_page(ctx, doc, 0);
-    // Get bounding box.
-    const fz_rect ref_bbox = fz_bound_page(ctx, doc_page);
-    fz_rect bbox;
-    // Clean up page.
-    fz_drop_page(ctx, doc_page);
-    for (int page=1; page<number_of_pages; page++)
+    fz_page *doc_page;
+    fz_var(doc_page);
+    fz_try(ctx)
     {
         // Load page.
-        doc_page = fz_load_page(ctx, doc, page);
+        doc_page = fz_load_page(ctx, doc, 0);
         // Get bounding box.
-        bbox = fz_bound_page(ctx, doc_page);
+        const fz_rect ref_bbox = fz_bound_page(ctx, doc_page);
+        fz_rect bbox;
         // Clean up page.
         fz_drop_page(ctx, doc_page);
-        if (bbox.x1 != ref_bbox.x1 || bbox.y1 != ref_bbox.y1)
+
+        for (int page=1; page<number_of_pages; page++)
         {
-            flexible_page_sizes = 1;
-            break;
+            // Load page.
+            doc_page = fz_load_page(ctx, doc, page);
+            // Get bounding box.
+            bbox = fz_bound_page(ctx, doc_page);
+            // Clean up page.
+            fz_drop_page(ctx, doc_page);
+            if (bbox.x1 != ref_bbox.x1 || bbox.y1 != ref_bbox.y1)
+            {
+                flexible_page_sizes = 1;
+                break;
+            }
         }
+        doc_page = NULL;
     }
-    mutex->unlock();
+    fz_always(ctx)
+    {
+        if (doc_page)
+            fz_drop_page(ctx, doc_page);
+        mutex->unlock();
+    }
+    fz_catch(ctx)
+        qWarning() << "Error while checking page sizes" << fz_caught_message(ctx);
     return flexible_page_sizes;
 }
 
 void MuPdfDocument::loadOutline()
 {
+    if (!ctx || !doc)
+        return;
+
     // TODO: a huge outline will probably lead to a crash of the program.
     outline.clear();
     outline.append({"", -1, 1});
     mutex->lock();
-    fz_outline *root = fz_load_outline(ctx, doc);
-    if (root)
+
+    fz_outline *root;
+    fz_var(root);
+    fz_try(ctx)
     {
-        // dangerous anonymous recursion
-        auto fill_outline = [&](fz_outline *entry, auto& function) -> void
+        root = fz_load_outline(ctx, doc);
+        if (root)
         {
-            const int idx = outline.length();
-            outline.append({entry->title, entry->page, -1});
-            if (entry->down)
-                function(entry->down, function);
-            if (entry->next)
+            // dangerous anonymous recursion
+            auto fill_outline = [&](fz_outline *entry, auto& function) -> void
             {
-                outline[idx].next = outline.length();
-                function(entry->next, function);
-            }
-            else
-                outline[idx].next = -outline.length();
-        };
-        fill_outline(root, fill_outline);
-        fz_drop_outline(ctx, root);
+                const int idx = outline.length();
+                outline.append({entry->title, entry->page, -1});
+                if (entry->down)
+                    function(entry->down, function);
+                if (entry->next)
+                {
+                    outline[idx].next = outline.length();
+                    function(entry->next, function);
+                }
+                else
+                    outline[idx].next = -outline.length();
+            };
+            fill_outline(root, fill_outline);
+        }
     }
-    mutex->unlock();
+    fz_always(ctx)
+    {
+        fz_drop_outline(ctx, root);
+        mutex->unlock();
+    }
+    fz_catch(ctx)
+        qWarning() << "Error while loading outline" << fz_caught_message(ctx);
+
 #ifdef QT_DEBUG
-    if ((preferences().log_level & (DebugRendering|DebugVerbose)) == (DebugRendering|DebugVerbose))
+    if ((preferences()->log_level & (DebugRendering|DebugVerbose)) == (DebugRendering|DebugVerbose))
         for (int i=0; i<outline.length(); i++)
             qDebug() << DebugRendering << i << outline[i].page << outline[i].next << outline[i].title;
 #endif

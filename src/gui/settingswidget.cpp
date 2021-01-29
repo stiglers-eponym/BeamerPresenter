@@ -13,7 +13,7 @@ SettingsWidget::SettingsWidget(QWidget *parent) :
     // Help
     {
         help->setReadOnly(true);
-        QFile manual(preferences().manual_file);
+        QFile manual(preferences()->manual_file);
         manual.open(QFile::ReadOnly | QFile::Text);
         if (manual.isReadable())
             help->setMarkdown(manual.readAll());
@@ -29,7 +29,7 @@ SettingsWidget::SettingsWidget(QWidget *parent) :
         QMap<int, QString> action_to_string;
         for (auto it=string_to_action_map.cbegin(); it!=string_to_action_map.cend(); ++it)
             action_to_string[it.value()] = it.key();
-        auto &key_actions = writable_preferences().key_actions;
+        auto &key_actions = writable_preferences()->key_actions;
         for (auto it=key_actions.cbegin(); it!=key_actions.cend(); ++it)
         {
             input_shortcut = new KeyInputLabel(it.key(), it.value(), shortcuts);
@@ -45,13 +45,13 @@ SettingsWidget::SettingsWidget(QWidget *parent) :
     {
         QFormLayout *layout = new QFormLayout();
         QLineEdit *lineedit = new QLineEdit(rendering);
-        lineedit->setText(QString::number(preferences().max_memory/1048596));
-        connect(lineedit, &QLineEdit::textChanged, &writable_preferences(), &Preferences::setMemory);
+        lineedit->setText(QString::number(preferences()->max_memory/1048596));
+        connect(lineedit, &QLineEdit::textChanged, writable_preferences(), &Preferences::setMemory);
         layout->addRow("cache memory (MiB)", lineedit);
 
         lineedit = new QLineEdit(rendering);
-        lineedit->setText(QString::number(preferences().max_cache_pages));
-        connect(lineedit, &QLineEdit::textChanged, &writable_preferences(), &Preferences::setCacheSize);
+        lineedit->setText(QString::number(preferences()->max_cache_pages));
+        connect(lineedit, &QLineEdit::textChanged, writable_preferences(), &Preferences::setCacheSize);
         layout->addRow("max. slides in cache", lineedit);
 
         QComboBox *select_renderer = new QComboBox(rendering);
@@ -67,7 +67,7 @@ SettingsWidget::SettingsWidget(QWidget *parent) :
 #ifdef INCLUDE_POPPLER
         select_renderer->addItem("poppler + external", PdfDocument::PopplerEngine);
 #endif
-        connect(select_renderer, &QComboBox::currentTextChanged, &writable_preferences(), &Preferences::setRenderer);
+        connect(select_renderer, &QComboBox::currentTextChanged, writable_preferences(), &Preferences::setRenderer);
         layout->addRow("Renderer (requires restart)", select_renderer);
 
         rendering->setLayout(layout);

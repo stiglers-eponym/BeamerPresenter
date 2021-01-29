@@ -31,7 +31,7 @@ const QPixmap MuPdfRenderer::renderPixmap(const int page, const qreal resolution
 
     // Create a new pixmap and fill it with background color (white).
     // TODO: check if this causes problems with different PDF background colors.
-    fz_pixmap *pixmap;
+    fz_pixmap *pixmap = NULL;
     fz_var(pixmap);
     fz_try(ctx)
     {
@@ -47,7 +47,7 @@ const QPixmap MuPdfRenderer::renderPixmap(const int page, const qreal resolution
     }
 
     // Create a device for rendering the given display list to pixmap.
-    fz_device *dev;
+    fz_device *dev = NULL;
     fz_var(dev);
     fz_try(ctx)
         dev = fz_new_draw_device(ctx, fz_identity, pixmap);
@@ -55,7 +55,6 @@ const QPixmap MuPdfRenderer::renderPixmap(const int page, const qreal resolution
     {
         warn_msg << "Fitz failed to create draw device:" << fz_caught_message(ctx);
         fz_drop_pixmap(ctx, pixmap);
-        fz_close_device(ctx, dev);
         fz_drop_device(ctx, dev);
         fz_drop_context(ctx);
         return qpixmap;
@@ -93,7 +92,7 @@ const QPixmap MuPdfRenderer::renderPixmap(const int page, const qreal resolution
         return qpixmap;
     }
 
-    fz_output *out;
+    fz_output *out = NULL;
     fz_var(out);
     fz_try(ctx)
         out = fz_new_output_with_buffer(ctx, buffer);
@@ -164,7 +163,7 @@ const PngPixmap * MuPdfRenderer::renderPng(const int page, const qreal resolutio
 
     // Create a new pixmap and fill it with background color (white).
     // TODO: check if this causes problems with different PDF background colors.
-    fz_pixmap *pixmap;
+    fz_pixmap *pixmap = NULL;
     fz_var(pixmap);
     fz_try(ctx)
     {
@@ -180,7 +179,7 @@ const PngPixmap * MuPdfRenderer::renderPng(const int page, const qreal resolutio
     }
 
     // Create a device for rendering the given display list to pixmap.
-    fz_device *dev;
+    fz_device *dev = NULL;
     fz_var(dev);
     fz_try(ctx)
         dev = fz_new_draw_device(ctx, fz_identity, pixmap);

@@ -147,8 +147,8 @@ void PathContainer::clearPaths()
     history.append(step);
     // All paths have been added to history. paths can be cleared.
     paths.clear();
-    if (history.length() > preferences().history_length_visible_slides)
-        clearHistory(preferences().history_length_visible_slides);
+    if (history.length() > preferences()->history_length_visible_slides)
+        clearHistory(preferences()->history_length_visible_slides);
 }
 
 void PathContainer::append(QGraphicsItem *item)
@@ -162,8 +162,8 @@ void PathContainer::append(QGraphicsItem *item)
     // Add item to paths.
     paths.append(item);
     // Limit history size (if necessary).
-    if (history.length() > preferences().history_length_visible_slides)
-        clearHistory(preferences().history_length_visible_slides);
+    if (history.length() > preferences()->history_length_visible_slides)
+        clearHistory(preferences()->history_length_visible_slides);
 }
 
 void PathContainer::startMicroStep()
@@ -352,7 +352,7 @@ bool PathContainer::applyMicroStep()
     inHistory = 0;
 
     // Limit history size (if necessary).
-    if (history.length() > preferences().history_length_visible_slides)
-        clearHistory(preferences().history_length_visible_slides);
+    if (history.length() > preferences()->history_length_visible_slides)
+        clearHistory(preferences()->history_length_visible_slides);
     return true;
 }

@@ -3,7 +3,7 @@
 void TOCwidget::generateTOC(const PdfDocument *document)
 {
     if (!document)
-        document = preferences().document;
+        document = preferences()->document;
     if (!document || first_button)
         return;
 

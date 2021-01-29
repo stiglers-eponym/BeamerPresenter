@@ -155,10 +155,25 @@ signals:
 
 /// Get writable globally shared preferences object.
 /// Init globally accessible preferences on first call.
-Preferences &writable_preferences(Preferences *new_preferences = NULL);
+Preferences *writable_preferences(Preferences *new_preferences = NULL);
 
 /// Get read-only globally shared preferences object.
 /// This is the usual way of accessing preferences.
-const Preferences &preferences();
+const Preferences *preferences();
+
+
+#ifdef QT_DEBUG
+// Show warning if debugging is enabled
+#define warn_msg qWarning()
+// Show debug message if debugging is enabled for this type
+#define debug_msg(msg_type) if (preferences()->log_level & (msg_type)) qDebug() << (msg_type)
+// Show debug message if verbose debugging is enabled for this type
+#define debug_verbose(msg_type) if ((preferences()->log_level & (msg_type|DebugVerbose)) == (msg_type|DebugVerbose)) qDebug() << (msg_type)
+#else
+#define debug_msg(msg_type) qDebug()
+#define debug_verbose(msg_type) qDebug()
+#define warn_msg qDebug()
+#endif
+
 
 #endif // PREFERENCES_H

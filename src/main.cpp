@@ -15,15 +15,15 @@
 #endif
 
 /// Provides globally available pointer to writable preferences.
-Preferences &writable_preferences(Preferences *new_preferences)
+Preferences *writable_preferences(Preferences *new_preferences)
 {
     static Preferences *preferences{new_preferences};
-    return *preferences;
+    return preferences;
 }
 
 /// Get read-only globally shared preferences object.
 /// This is the usual way of accessing preferences.
-const Preferences &preferences()
+const Preferences *preferences()
 {
     return writable_preferences();
 }
@@ -89,19 +89,20 @@ int main(int argc, char *argv[])
         wpreferences->loadFromParser(parser);
     }
 
-    Master master;
-    if (!master.readGuiConfig(parser.value("g").isEmpty() ? preferences().gui_config_file : parser.value("g")))
+    Master *master = new Master();
+    if (!master->readGuiConfig(parser.value("g").isEmpty() ? preferences()->gui_config_file : parser.value("g")))
     {
         qCritical() << "Parsing the GUI configuration failed. Probably the GUI config is unavailable or invalid or no valid PDF files were found.";
-        delete &preferences();
+        delete preferences();
         parser.showHelp(-1);
         // This quits the program and returns exit code -1.
     }
-    master.showAll();
-    master.navigateToPage(0);
-    master.distributeMemory();
-    QObject::connect(&preferences(), &Preferences::distributeMemory, &master, &Master::distributeMemory);
+    master->showAll();
+    master->navigateToPage(0);
+    master->distributeMemory();
+    QObject::connect(preferences(), &Preferences::distributeMemory, master, &Master::distributeMemory);
     const int status = app.exec();
-    delete &preferences();
+    delete master;
+    delete preferences();
     return status;
 }

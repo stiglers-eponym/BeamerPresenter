@@ -28,8 +28,8 @@ void NotesWidget::load(const QString &filename)
             file_path = filename;
         else
             qWarning() << "Parsing xml failed:" << reader.errorString();
-        if (preferences().document)
-            setMarkdown(text_per_slide.value(preferences().document->pageLabel(preferences().page)));
+        if (preferences()->document)
+            setMarkdown(text_per_slide.value(preferences()->document->pageLabel(preferences()->page)));
     }
 }
 
@@ -97,9 +97,9 @@ void NotesWidget::keyPressEvent(QKeyEvent *event)
 void NotesWidget::pageChanged(const int page)
 {
     text_per_slide.insert(page_label, toMarkdown());
-    if (preferences().document)
+    if (preferences()->document)
     {
-        page_label = preferences().document->pageLabel(page);
+        page_label = preferences()->document->pageLabel(page);
         setMarkdown(text_per_slide.value(page_label));
     }
 }

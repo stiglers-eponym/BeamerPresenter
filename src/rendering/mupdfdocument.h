@@ -45,7 +45,7 @@ public:
 
     /// Load or reload the PDF document if the file has been modified since
     /// it was loaded. Return true if the document was reloaded.
-    bool loadDocument() override;
+    bool loadDocument() override final;
 
     /// Size of page in points (inch/72).
     const QSizeF pageSize(const int page) const override;

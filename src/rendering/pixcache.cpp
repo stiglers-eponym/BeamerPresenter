@@ -14,7 +14,7 @@ PixCache::PixCache(PdfDocument *doc, const int thread_number, const PagePart pag
     threads = QVector<PixCacheThread*>(doc->flexiblePageSizes() ? 0 : thread_number);
 
     // Create the renderer without any checks.
-    switch (preferences().renderer)
+    switch (preferences()->renderer)
     {
 #ifdef INCLUDE_POPPLER
     case AbstractRenderer::Poppler:
@@ -27,13 +27,13 @@ PixCache::PixCache(PdfDocument *doc, const int thread_number, const PagePart pag
         break;
 #endif
     case AbstractRenderer::ExternalRenderer:
-        renderer = new ExternalRenderer(preferences().rendering_command, preferences().rendering_arguments, pdfDoc, page_part);
+        renderer = new ExternalRenderer(preferences()->rendering_command, preferences()->rendering_arguments, pdfDoc, page_part);
         break;
     }
 
     // Check if the renderer is valid
     if (renderer == NULL || !renderer->isValid())
-        qCritical() << "Creating renderer failed" << preferences().renderer;
+        qCritical() << "Creating renderer failed" << preferences()->renderer;
 }
 
 void PixCache::init()
@@ -85,7 +85,8 @@ void PixCache::clear()
     qDeleteAll(cache);
     cache.clear();
     usedMemory = 0;
-    region = {preferences().page, preferences().page};
+    if (preferences())
+        region = {preferences()->page, preferences()->page};
 }
 
 const QPixmap PixCache::pixmap(const int page) const
@@ -237,8 +238,8 @@ int PixCache::limitCacheSize()
     // Check if region is valid.
     if (region.first > region.second)
     {
-        region.first = preferences().page;
-        region.second = preferences().page;
+        region.first = preferences()->page;
+        region.second = preferences()->page;
     }
 
     // Number of really cached slides:
@@ -290,15 +291,15 @@ int PixCache::limitCacheSize()
         // then stop rendering to cache.
         if (((maxNumber < 0 || cache.size() <= maxNumber)
                 && (maxMemory < 0 || usedMemory <= maxMemory)
-                && last > preferences().page
+                && last > preferences()->page
                 && last - first <= cache.size()
-                && 2*last + 3*first > 5*preferences().page)
+                && 2*last + 3*first > 5*preferences()->page)
                 // the case cache.size() < 2 would lead to segfaults.
                 || cache.size() < 2)
             return 0;
 
         // If more than 3/4 of the cached slides lie ahead of current page, clean up last.
-        if (last + 3*first > 4*preferences().page)
+        if (last + 3*first > 4*preferences()->page)
         {
             auto it = cache.end() - 1;
             remove = it.value();
@@ -355,14 +356,14 @@ int PixCache::renderNext()
     // Check if region is valid.
     if (region.first > region.second)
     {
-        region.first = preferences().page;
-        region.second = preferences().page;
+        region.first = preferences()->page;
+        region.second = preferences()->page;
     }
 
     // Select region.first or region.second for rendering.
     while (true)
     {
-        if (region.second + 3*region.first > 4*preferences().page && region.first >= 0)
+        if (region.second + 3*region.first > 4*preferences()->page && region.first >= 0)
         {
             if (!cache.contains(region.first))
                 return region.first--;

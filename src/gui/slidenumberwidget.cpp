@@ -24,16 +24,16 @@ void SlideNumberWidget::resizeEvent(QResizeEvent *event) noexcept
 
 void SlideNumberWidget::updateText(const int page) noexcept
 {
-    if ((preferences().log_level & LogSlideChanges) && edit->text().toInt() != page+1)
+    if ((preferences()->log_level & LogSlideChanges) && edit->text().toInt() != page+1)
     {
-        const quint32 msecs_passed = preferences().msecs_passed == UINT_LEAST32_MAX ? preferences().msecs_total - QDateTime::currentDateTimeUtc().msecsTo(preferences().target_time) : preferences().msecs_passed;
+        const quint32 msecs_passed = preferences()->msecs_passed == UINT_LEAST32_MAX ? preferences()->msecs_total - QDateTime::currentDateTimeUtc().msecsTo(preferences()->target_time) : preferences()->msecs_passed;
         const QString string = QTime::fromMSecsSinceStartOfDay(msecs_passed + 500).toString(msecs_passed < 3600000 ? "m:ss" : "h:mm:ss");
         std::cout << "Changed page"
             << std::setw(9) << string.toStdString()
             << std::setw(3) << edit->text().toStdString()
             << std::setw(3) << page + 1 << std::endl;
     }
-    total->setText(" / " + QString::number(preferences().number_of_pages));
+    total->setText(" / " + QString::number(preferences()->number_of_pages));
     edit->setText(QString::number(page + 1));
 }
 
@@ -41,7 +41,7 @@ void SlideNumberWidget::readText() noexcept
 {
     bool ok;
     const int page = edit->text().toInt(&ok);
-    if (ok && page > 0 && page <= preferences().number_of_pages)
+    if (ok && page > 0 && page <= preferences()->number_of_pages)
         emit navigationSignal(page - 1);
     else
         edit->setText("?");

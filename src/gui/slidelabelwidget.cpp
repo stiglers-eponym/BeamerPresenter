@@ -24,24 +24,24 @@ void SlideLabelWidget::resizeEvent(QResizeEvent *event) noexcept
 
 void SlideLabelWidget::updateText(const int page) noexcept
 {
-    const QString new_label = preferences().document->pageLabel(page);
-    if ((preferences().log_level & LogSlideChanges) && new_label != edit->text())
+    const QString new_label = preferences()->document->pageLabel(page);
+    if ((preferences()->log_level & LogSlideChanges) && new_label != edit->text())
     {
-        const quint32 msecs_passed = preferences().msecs_passed == UINT_LEAST32_MAX ? preferences().msecs_total - QDateTime::currentDateTimeUtc().msecsTo(preferences().target_time) : preferences().msecs_passed;
+        const quint32 msecs_passed = preferences()->msecs_passed == UINT_LEAST32_MAX ? preferences()->msecs_total - QDateTime::currentDateTimeUtc().msecsTo(preferences()->target_time) : preferences()->msecs_passed;
         const QString string = QTime::fromMSecsSinceStartOfDay(msecs_passed + 500).toString(msecs_passed < 3600000 ? "m:ss" : "h:mm:ss");
         std::cout << "Changed page"
             << std::setw(9) << string.toStdString()
             << std::setw(4) << edit->text().toStdString()
             << std::setw(4) << new_label.toStdString() << std::endl;
     }
-    total->setText(" / " + preferences().document->pageLabel(preferences().number_of_pages-1));
+    total->setText(" / " + preferences()->document->pageLabel(preferences()->number_of_pages-1));
     edit->setText(new_label);
 }
 
 void SlideLabelWidget::readText() noexcept
 {
-    const int page = preferences().document->pageIndex(edit->text());
-    if (page >= 0 && page < preferences().number_of_pages)
+    const int page = preferences()->document->pageIndex(edit->text());
+    if (page >= 0 && page < preferences()->number_of_pages)
         emit navigationSignal(page);
     else
         edit->setText("?");

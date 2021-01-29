@@ -21,22 +21,22 @@ void KeyInputLabel::keyPressEvent(QKeyEvent *event)
     event->accept();
     if (new_sequence == Qt::Key_Delete)
     {
-        writable_preferences().removeKeyAction(sequence, action);
+        writable_preferences()->removeKeyAction(sequence, action);
         setText("");
         sequence = 0;
     }
     else if (action || event->key())
     {
         setText(QKeySequence(new_sequence).toString());
-        writable_preferences().removeKeyAction(sequence, action);
-        writable_preferences().addKeyAction(new_sequence, action);
+        writable_preferences()->removeKeyAction(sequence, action);
+        writable_preferences()->addKeyAction(new_sequence, action);
         sequence = new_sequence;
     }
 }
 
 void KeyInputLabel::changeAction(const QString &text) noexcept
 {
-    writable_preferences().removeKeyAction(sequence, action);
+    writable_preferences()->removeKeyAction(sequence, action);
     action = string_to_action_map.value(text, action);
-    writable_preferences().addKeyAction(sequence, action);
+    writable_preferences()->addKeyAction(sequence, action);
 }

@@ -63,7 +63,7 @@ bool Master::readGuiConfig(const QString &filename)
     }
 
     if (!documents.isEmpty())
-        writable_preferences().document = documents.first()->getDocument();
+        writable_preferences()->document = documents.first()->getDocument();
 
     // Return true (success) if at least one window and one document were created.
     return !windows.isEmpty() && !documents.isEmpty();
@@ -173,9 +173,9 @@ QWidget* Master::createWidget(QJsonObject &object, QWidget *parent)
 
         // Find PDF file name.
         // Usually "file" will be "presentation" or "notes". These keywords
-        // are mapped to filenames by preferences().file_alias.
+        // are mapped to filenames by preferences()->file_alias.
         QString file = object.value("file").toString();
-        file = preferences().file_alias.value(file.isEmpty() ? "presentation" : file, file);
+        file = preferences()->file_alias.value(file.isEmpty() ? "presentation" : file, file);
         if (file == "//INVALID")
             break;
         if (!QFile::exists(file))
@@ -184,11 +184,11 @@ QWidget* Master::createWidget(QJsonObject &object, QWidget *parent)
             if (!QFile::exists(newfile))
             {
                 qCritical() << "No valid file given";
-                writable_preferences().file_alias.insert(file, "//INVALID");
+                writable_preferences()->file_alias.insert(file, "//INVALID");
                 break;
             }
-            writable_preferences().file_alias.insert(file, newfile);
-            writable_preferences().file_alias.insert(object.value("file").toString(), newfile);
+            writable_preferences()->file_alias.insert(file, newfile);
+            writable_preferences()->file_alias.insert(object.value("file").toString(), newfile);
             file = newfile;
         }
         const QString page_part_str = object.value("page part").toString().toLower();
@@ -206,17 +206,17 @@ QWidget* Master::createWidget(QJsonObject &object, QWidget *parent)
             if ((*docit)->getFilename() == file)
             {
                 doc = *docit;
-                if (preferences().page_part_threshold > 0.)
+                if (preferences()->page_part_threshold > 0.)
                 {
                     const QSizeF reference = doc->getPageSize(0);
-                    if (reference.width() < preferences().page_part_threshold * reference.height())
+                    if (reference.width() < preferences()->page_part_threshold * reference.height())
                         page_part = FullPage;
                 }
                 if (object.value("master").toBool())
                 {
                     documents.erase(docit);
                     documents.prepend(doc);
-                    writable_preferences().default_page_part = page_part;
+                    writable_preferences()->default_page_part = page_part;
                 }
                 break;
             }
@@ -224,26 +224,26 @@ QWidget* Master::createWidget(QJsonObject &object, QWidget *parent)
         if (doc == NULL)
         {
             doc = new PdfMaster(file);
-            if (writable_preferences().number_of_pages && writable_preferences().number_of_pages != doc->numberOfPages())
+            if (writable_preferences()->number_of_pages && writable_preferences()->number_of_pages != doc->numberOfPages())
             {
                 qWarning() << "Loaded PDF files with different numbers of pages. You should expect errors.";
-                writable_preferences().number_of_pages = std::max(writable_preferences().number_of_pages, doc->numberOfPages());
+                writable_preferences()->number_of_pages = std::max(writable_preferences()->number_of_pages, doc->numberOfPages());
             }
             else
-                writable_preferences().number_of_pages = doc->numberOfPages();
+                writable_preferences()->number_of_pages = doc->numberOfPages();
             connect(this, &Master::sendAction, doc, &PdfMaster::receiveAction);
             connect(doc, &PdfMaster::navigationSignal, this, &Master::navigateToPage, Qt::QueuedConnection);
             connect(this, &Master::navigationSignal, doc, &PdfMaster::distributeNavigationEvents, Qt::QueuedConnection);
-            if (preferences().page_part_threshold > 0.)
+            if (preferences()->page_part_threshold > 0.)
             {
                 const QSizeF reference = doc->getPageSize(0);
-                if (reference.width() < preferences().page_part_threshold * reference.height())
+                if (reference.width() < preferences()->page_part_threshold * reference.height())
                     page_part = FullPage;
             }
             if (object.value("master").toBool())
             {
                 documents.prepend(doc);
-                writable_preferences().default_page_part = page_part;
+                writable_preferences()->default_page_part = page_part;
             }
             else
                 documents.append(doc);
@@ -301,11 +301,12 @@ QWidget* Master::createWidget(QJsonObject &object, QWidget *parent)
             pixcache = new PixCache(scene->getPdfMaster()->getDocument(), threads, page_part);
             // Move the PixCache object to an own thread.
             pixcache->moveToThread(new QThread());
+            connect(pixcache, &PixCache::destroyed, pixcache->thread(), &QThread::deleteLater);
             // Make sure that pixcache is initialized when the thread is started.
             connect(pixcache->thread(), &QThread::started, pixcache, &PixCache::init, Qt::QueuedConnection);
             connect(this, &Master::navigationSignal, pixcache, &PixCache::pageNumberChanged, Qt::QueuedConnection);
             // Set maximum number of pages in cache from settings.
-            pixcache->setMaxNumber(preferences().max_cache_pages);
+            pixcache->setMaxNumber(preferences()->max_cache_pages);
             // Start the thread.
             pixcache->thread()->start();
             // Keep the new pixcache in caches.
@@ -477,8 +478,8 @@ void Master::receiveKeyEvent(const QKeyEvent* event)
     }
     // Search actions in preferences for given key sequence.
     {
-        auto it = preferences().key_actions.constFind(key_code);
-        while (it != preferences().key_actions.cend())
+        auto it = preferences()->key_actions.constFind(key_code);
+        while (it != preferences()->key_actions.cend())
         {
             debug_msg(DebugKeyInput) << "Global key action:" << it.value();
             debug_msg(DebugKeyInput) << "Cache:" << getTotalCache();
@@ -488,7 +489,7 @@ void Master::receiveKeyEvent(const QKeyEvent* event)
         }
     }
     // Search tools in preferences for given key sequence.
-    for (const auto tool : static_cast<const QList<const Tool*>>(preferences().key_tools.values(key_code)))
+    for (const auto tool : static_cast<const QList<const Tool*>>(preferences()->key_tools.values(key_code)))
     {
         if (tool)
             switch (tool->tool())
@@ -512,25 +513,25 @@ void Master::handleAction(const Action action)
     case NoAction:
         break;
     case Update:
-        navigateToPage(preferences().page);
+        navigateToPage(preferences()->page);
         break;
     case NextPage:
-        navigateToPage(preferences().page + 1);
+        navigateToPage(preferences()->page + 1);
         break;
     case PreviousPage:
-        navigateToPage(preferences().page - 1);
+        navigateToPage(preferences()->page - 1);
         break;
     case NextSkippingOverlays:
-        navigateToPage(documents.first()->overlaysShifted(preferences().page, 1 | FirstOverlay));
+        navigateToPage(documents.first()->overlaysShifted(preferences()->page, 1 | FirstOverlay));
         break;
     case PreviousSkippingOverlays:
-        navigateToPage(documents.first()->overlaysShifted(preferences().page, -1 & ~FirstOverlay));
+        navigateToPage(documents.first()->overlaysShifted(preferences()->page, -1 & ~FirstOverlay));
         break;
     case FirstPage:
         navigateToPage(0);
         break;
     case LastPage:
-        navigateToPage(preferences().number_of_pages - 1);
+        navigateToPage(preferences()->number_of_pages - 1);
         break;
     case Quit:
         for (const auto window : qAsConst(windows))
@@ -553,13 +554,13 @@ void Master::limitHistoryInvisible(const int page) const
     {
         container = doc->pathContainer(page);
         if (container)
-            container->clearHistory(preferences().history_length_hidden_slides);
+            container->clearHistory(preferences()->history_length_hidden_slides);
         container = doc->pathContainer(page | PagePart::LeftHalf);
         if (container)
-            container->clearHistory(preferences().history_length_hidden_slides);
+            container->clearHistory(preferences()->history_length_hidden_slides);
         container = doc->pathContainer(page | PagePart::RightHalf);
         if (container)
-            container->clearHistory(preferences().history_length_hidden_slides);
+            container->clearHistory(preferences()->history_length_hidden_slides);
         if (doc->flexiblePageSizes())
             flexible_page_numbers = true;
     }
@@ -578,14 +579,14 @@ void Master::limitHistoryInvisible(const int page) const
 
 void Master::distributeMemory()
 {
-    if (preferences().max_memory < 0)
+    if (preferences()->max_memory < 0)
         return;
     float scale = 0.;
     for (const auto cache : qAsConst(caches))
         scale += cache->getPixels();
     if (scale <= 0)
         return;
-    scale = preferences().max_memory / scale;
+    scale = preferences()->max_memory / scale;
     for (const auto cache : qAsConst(caches))
         cache->setScaledMemory(scale);
 }
@@ -600,13 +601,13 @@ qint64 Master::getTotalCache() const
 
 void Master::navigateToPage(const int page) const
 {
-    if (page < 0 || page >= preferences().number_of_pages)
+    if (page < 0 || page >= preferences()->number_of_pages)
         return;
-    limitHistoryInvisible(preferences().page);
+    limitHistoryInvisible(preferences()->page);
     emit prepareNavigationSignal(page);
     for (auto window : windows)
         window->updateGeometry();
-    writable_preferences().page = page;
+    writable_preferences()->page = page;
     emit navigationSignal(page);
 }
 
@@ -617,7 +618,7 @@ void Master::setTool(Tool *tool) const noexcept
     debug_msg(DebugDrawing|DebugKeyInput) << "Set tool" << tool->tool() << tool->device();
     const int device = tool->device();
     int newdevice;
-    for (auto tool_it = preferences().current_tools.cbegin(); tool_it != preferences().current_tools.cend();)
+    for (auto tool_it = preferences()->current_tools.cbegin(); tool_it != preferences()->current_tools.cend();)
     {
         if ((*tool_it)->device() & device)
         {
@@ -627,17 +628,17 @@ void Master::setTool(Tool *tool) const noexcept
             else
             {
                 delete *tool_it;
-                tool_it = static_cast<QSet<Tool*>::const_iterator>(writable_preferences().current_tools.erase(tool_it));
+                tool_it = static_cast<QSet<Tool*>::const_iterator>(writable_preferences()->current_tools.erase(tool_it));
             }
         }
         else
             ++tool_it;
     }
-    writable_preferences().current_tools.insert(tool);
+    writable_preferences()->current_tools.insert(tool);
 
 #ifdef QT_DEBUG
-    if ((preferences().log_level & DebugVerbose) && preferences().log_level & DebugDrawing)
-        for (const auto tool : preferences().current_tools)
+    if ((preferences()->log_level & DebugVerbose) && preferences()->log_level & DebugDrawing)
+        for (const auto tool : preferences()->current_tools)
             qDebug() << "tool:" << tool->device() << tool->tool() << tool;
 #endif
 }

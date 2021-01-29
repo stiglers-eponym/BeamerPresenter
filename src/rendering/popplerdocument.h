@@ -57,7 +57,7 @@ public:
 
     /// Load or reload the file. Return true if the file was updated and false
     /// otherwise.
-    bool loadDocument() override;
+    bool loadDocument() override final;
 
     /// Size of page in points (inch/72). Empty if page is invalid.
     const QSizeF pageSize(const int page) const override;

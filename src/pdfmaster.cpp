@@ -11,7 +11,7 @@ PdfMaster::PdfMaster(const QString &filename)
     // Load the document
 #ifdef INCLUDE_POPPLER
 #ifdef INCLUDE_MUPDF
-    switch (preferences().pdf_engine)
+    switch (preferences()->pdf_engine)
     {
     case PdfDocument::PopplerEngine:
         document = new PopplerDocument(filename);
@@ -64,7 +64,7 @@ void PdfMaster::receiveAction(const Action action)
     case UndoDrawing | PagePart::RightHalf:
     {
         // TODO: enable undo on different page parts
-        const int page = preferences().page | (action ^ UndoDrawing);
+        const int page = preferences()->page | (action ^ UndoDrawing);
         PathContainer* const path = paths.value(page);
         if (path)
         {
@@ -83,7 +83,7 @@ void PdfMaster::receiveAction(const Action action)
     case RedoDrawing | PagePart::LeftHalf:
     case RedoDrawing | PagePart::RightHalf:
     {
-        const int page = preferences().page | (action ^ RedoDrawing);
+        const int page = preferences()->page | (action ^ RedoDrawing);
         PathContainer* const path = paths.value(page);
         if (path)
         {
@@ -102,7 +102,7 @@ void PdfMaster::receiveAction(const Action action)
     case ClearDrawing | PagePart::LeftHalf:
     case ClearDrawing | PagePart::RightHalf:
     {
-        PathContainer* const path = paths.value(preferences().page | (action ^ ClearDrawing));
+        PathContainer* const path = paths.value(preferences()->page | (action ^ ClearDrawing));
         debug_msg(DebugDrawing) << "clear:" << path;
         if (path)
             path->clearPaths();

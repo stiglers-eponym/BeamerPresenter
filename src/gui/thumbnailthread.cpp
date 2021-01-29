@@ -9,20 +9,20 @@ ThumbnailThread::ThumbnailThread(const PdfDocument *document) :
     // Create the renderer without any checks.
     if (!renderer)
     {
-        switch (preferences().renderer)
+        switch (preferences()->renderer)
         {
 #ifdef INCLUDE_POPPLER
         case AbstractRenderer::Poppler:
-            renderer = new PopplerRenderer(static_cast<const PopplerDocument*>(document), preferences().default_page_part);
+            renderer = new PopplerRenderer(static_cast<const PopplerDocument*>(document), preferences()->default_page_part);
             break;
 #endif
 #ifdef INCLUDE_MUPDF
         case AbstractRenderer::MuPDF:
-            renderer = new MuPdfRenderer(static_cast<const MuPdfDocument*>(document), preferences().default_page_part);
+            renderer = new MuPdfRenderer(static_cast<const MuPdfDocument*>(document), preferences()->default_page_part);
             break;
 #endif
         case AbstractRenderer::ExternalRenderer:
-            renderer = new ExternalRenderer(preferences().rendering_command, preferences().rendering_arguments, document, preferences().default_page_part);
+            renderer = new ExternalRenderer(preferences()->rendering_command, preferences()->rendering_arguments, document, preferences()->default_page_part);
             break;
         }
 
@@ -30,7 +30,7 @@ ThumbnailThread::ThumbnailThread(const PdfDocument *document) :
         if (renderer == NULL || !renderer->isValid())
         {
             renderer = NULL;
-            qCritical() << "Creating renderer failed" << preferences().renderer;
+            qCritical() << "Creating renderer failed" << preferences()->renderer;
             return;
         }
     }

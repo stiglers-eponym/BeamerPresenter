@@ -42,7 +42,7 @@ void PixCacheThread::run()
 bool PixCacheThread::initializeRenderer(const PdfDocument * const doc, const PagePart page_part)
 {
     // Create the renderer without any checks.
-    switch (preferences().renderer)
+    switch (preferences()->renderer)
     {
 #ifdef INCLUDE_POPPLER
     case AbstractRenderer::Poppler:
@@ -55,7 +55,7 @@ bool PixCacheThread::initializeRenderer(const PdfDocument * const doc, const Pag
         break;
 #endif
     case AbstractRenderer::ExternalRenderer:
-        renderer = new ExternalRenderer(preferences().rendering_command, preferences().rendering_arguments, doc, page_part);
+        renderer = new ExternalRenderer(preferences()->rendering_command, preferences()->rendering_arguments, doc, page_part);
         break;
     }
 
@@ -64,7 +64,7 @@ bool PixCacheThread::initializeRenderer(const PdfDocument * const doc, const Pag
         return true;
 
     // Creating renderer failed. Clean up and return false.
-    qCritical() << "Creating renderer failed" << preferences().renderer;
+    qCritical() << "Creating renderer failed" << preferences()->renderer;
     delete renderer;
     renderer = NULL;
     return false;

@@ -33,8 +33,7 @@ class ThumbnailWidget : public QScrollArea
 public:
     explicit ThumbnailWidget(QWidget *parent = NULL) : QScrollArea(parent) {}
 
-    ~ThumbnailWidget()
-    {delete render_thread;}
+    ~ThumbnailWidget();
 
     void setColumns(const int n_columns) noexcept
     {columns = n_columns;}
