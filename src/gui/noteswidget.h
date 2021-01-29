@@ -24,6 +24,8 @@
  * Keyboard shortcuts for the page label are hard-coded:
  * Ctrl+S for saving, Ctrl+Shift+S for saving under a different file
  * name and Ctrl+O for loading a different file.
+ *
+ * TODO: option to parse HTML instead of markdown.
  */
 class NotesWidget : public QTextEdit
 {
@@ -46,7 +48,11 @@ public:
 
     void load(const QString &filename);
     void save(const QString &filename);
+#if QT_CONFIG(textmarkdownreader) && QT_CONFIG(textmarkdownwriter)
     void updateMarkdown() {setMarkdown(toMarkdown());}
+#else
+    void updateMarkdown() const noexcept {}
+#endif
 
 protected:
     void keyPressEvent(QKeyEvent *event) override;
