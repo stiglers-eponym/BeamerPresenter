@@ -11,6 +11,8 @@
  * @abstract
  * Layout class which tries to optimize combinations of vertical and
  * horizontal box layout containing widgets of fixed aspect ratio.
+ *
+ * TODO: The layout is broken when testing in Xubuntu 20.04
  */
 class FlexLayout : public QLayout
 {

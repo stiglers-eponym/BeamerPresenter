@@ -1,2 +1,0 @@
-Poppler has problems with color spaces when BeamerPresenter is compiled with MuPDF support.
-Solution: compile without mupdf, use mutools as external renderer
