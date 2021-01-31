@@ -382,58 +382,11 @@ QWidget* Master::createWidget(QJsonObject &object, QWidget *parent)
                     break;
                 case QJsonValue::Object:
                 {
-                    const QJsonObject obj = row[j].toObject();
-                    Tool *tool = NULL;
-                    const BasicTool base_tool = string_to_tool.value(obj.value("tool").toString());
-                    switch (base_tool)
-                    {
-                    case Pen:
-                    {
-                        const QColor color(obj.value("color").toString("black"));
-                        const float width = obj.value("width").toDouble(2.);
-                        const Qt::PenStyle style = string_to_pen_style.value(obj.value("style").toString(), Qt::SolidLine);
-                        tool = new DrawTool(Pen, AnyDevice, QPen(color, width, style, Qt::RoundCap, Qt::RoundJoin));
-                        break;
-                    }
-                    case Highlighter:
-                    {
-                        const QColor color(obj.value("color").toString("yellow"));
-                        const float width = obj.value("width").toDouble(20.);
-                        const Qt::PenStyle style = string_to_pen_style.value(obj.value("style").toString(), Qt::SolidLine);
-                        tool = new DrawTool(Highlighter, AnyDevice, QPen(color, width, style, Qt::RoundCap, Qt::RoundJoin), QPainter::CompositionMode_Darken);
-                        break;
-                    }
-                    case Pointer:
-                    {
-                        const QColor color(obj.value("color").toString("red"));
-                        const float size = obj.value("size").toDouble(5.);
-                        tool = new PointingTool(Pointer, size, color, AnyDevice);
-                        break;
-                    }
-                    case Torch:
-                    {
-                        const QColor color(obj.value("color").toString("#80000000"));
-                        const float size = obj.value("size").toDouble(80.);
-                        tool = new PointingTool(Torch, size, color, AnyDevice);
-                        break;
-                    }
-                    case Magnifier:
-                    {
-                        const QColor color(obj.value("color").toString("black"));
-                        const float size = obj.value("size").toDouble(120.);
-                        tool = new PointingTool(Magnifier, size, color, AnyDevice);
-                        break;
-                    }
-                    case InvalidTool:
-                        break;
-                    default:
-                        tool = new Tool(base_tool, AnyDevice);
-                        break;
-                    }
+                    Tool *tool = createTool(row[j].toObject());
                     if (tool)
                         toolwidget->addToolButton(i, j, tool);
                     else
-                        qWarning() << "Failed to create tool button" << obj.value("tool") << obj;
+                        qWarning() << "Failed to create tool button" << row[j].toObject().value("tool");
                     break;
                 }
                 default:

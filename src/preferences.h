@@ -165,6 +165,9 @@ Preferences *writable_preferences(Preferences *new_preferences = NULL);
 const Preferences *preferences();
 
 
+Tool *createTool(const QJsonObject &obj);
+
+
 #ifdef QT_DEBUG
 // Show warning if debugging is enabled
 #define warn_msg qWarning()

@@ -1,5 +1,51 @@
 #include "src/preferences.h"
 
+
+Tool *createTool(const QJsonObject &obj)
+{
+    const BasicTool base_tool = string_to_tool.value(obj.value("tool").toString());
+    switch (base_tool)
+    {
+    case Pen:
+    {
+        const QColor color(obj.value("color").toString("black"));
+        const float width = obj.value("width").toDouble(2.);
+        const Qt::PenStyle style = string_to_pen_style.value(obj.value("style").toString(), Qt::SolidLine);
+        return new DrawTool(Pen, AnyDevice, QPen(color, width, style, Qt::RoundCap, Qt::RoundJoin));
+    }
+    case Highlighter:
+    {
+        const QColor color(obj.value("color").toString("yellow"));
+        const float width = obj.value("width").toDouble(20.);
+        const Qt::PenStyle style = string_to_pen_style.value(obj.value("style").toString(), Qt::SolidLine);
+        return new DrawTool(Highlighter, AnyDevice, QPen(color, width, style, Qt::RoundCap, Qt::RoundJoin), QPainter::CompositionMode_Darken);
+    }
+    case Pointer:
+    {
+        const QColor color(obj.value("color").toString("red"));
+        const float size = obj.value("size").toDouble(5.);
+        return new PointingTool(Pointer, size, color, AnyDevice);
+    }
+    case Torch:
+    {
+        const QColor color(obj.value("color").toString("#80000000"));
+        const float size = obj.value("size").toDouble(80.);
+        return new PointingTool(Torch, size, color, AnyDevice);
+    }
+    case Magnifier:
+    {
+        const QColor color(obj.value("color").toString("black"));
+        const float size = obj.value("size").toDouble(120.);
+        return new PointingTool(Magnifier, size, color, AnyDevice);
+    }
+    case InvalidTool:
+        return NULL;
+    default:
+        return new Tool(base_tool, AnyDevice);
+    }
+}
+
+
 Preferences::Preferences(QObject *parent) :
     QObject(parent),
     settings(QSettings::NativeFormat, QSettings::UserScope, "beamerpresenter", "beamerpresenter")
@@ -167,53 +213,7 @@ void Preferences::loadSettings()
                                 if (device == 0)
                                     device = AnyDevice;
                             }
-                            Tool *tool = NULL;
-                            const BasicTool base_tool = string_to_tool.value(object.value("tool").toString());
-                            switch (base_tool)
-                            {
-                            case Pen:
-                            {
-                                const QColor color(object.value("color").toString("black"));
-                                const float width = object.value("width").toDouble(2.);
-                                const Qt::PenStyle style = string_to_pen_style.value(object.value("style").toString(), Qt::SolidLine);
-                                tool = new DrawTool(Pen, device, QPen(color, width, style, Qt::RoundCap));
-                                break;
-                            }
-                            case Highlighter:
-                            {
-                                const QColor color(object.value("color").toString("yellow"));
-                                const float width = object.value("width").toDouble(20.);
-                                const Qt::PenStyle style = string_to_pen_style.value(object.value("style").toString(), Qt::SolidLine);
-                                tool = new DrawTool(Highlighter, device, QPen(color, width, style, Qt::RoundCap), QPainter::CompositionMode_Darken);
-                                break;
-                            }
-                            case Pointer:
-                            {
-                                const QColor color(object.value("color").toString("red"));
-                                const float size = object.value("size").toDouble(5.);
-                                tool = new PointingTool(Pointer, size, color, AnyDevice);
-                                break;
-                            }
-                            case Torch:
-                            {
-                                const QColor color(object.value("color").toString("#80000000"));
-                                const float size = object.value("size").toDouble(80.);
-                                tool = new PointingTool(Torch, size, color, AnyDevice);
-                                break;
-                            }
-                            case Magnifier:
-                            {
-                                const QColor color(object.value("color").toString("black"));
-                                const float size = object.value("size").toDouble(120.);
-                                tool = new PointingTool(Magnifier, size, color, AnyDevice);
-                                break;
-                            }
-                            case InvalidTool:
-                                break;
-                            default:
-                                tool = new Tool(base_tool, device);
-                                break;
-                            }
+                            Tool *tool = createTool(object);
                             if (tool)
                             {
                                 debug_msg(DebugSettings|DebugDrawing) << "Adding tool" << tool << tool->tool() << device;
