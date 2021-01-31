@@ -95,7 +95,7 @@
                       [
                           {"tool":"pointer", "color":"green", "size":8},
                           {"tool":"torch", "color":"#88000f08", "size":100},
-                          {"tool":"magnifier", "color":"red", "size":100}
+                          {"tool":"magnifier", "color":"gray", "size":100, "scale":2}
                       ]
                   ]
               }

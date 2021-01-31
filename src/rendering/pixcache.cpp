@@ -454,7 +454,7 @@ void PixCache::updateFrame(const QSizeF &size)
     }
 }
 
-void PixCache::requestPage(const int page, const qreal resolution)
+void PixCache::requestPage(const int page, const qreal resolution, const bool cache_page)
 {
     debug_verbose(DebugCache) << "requested page" << page << resolution;
     // Try to return a page from cache.
@@ -490,20 +490,23 @@ void PixCache::requestPage(const int page, const qreal resolution)
 
     emit pageReady(pix, page);
 
-    // Write pixmap to cache.
-    const PngPixmap *png = new PngPixmap(pix, page, resolution);
-    if (png == NULL)
-        qWarning() << "Converting pixmap to PNG failed";
-    else
+    if (cache_page)
     {
-        if (cache.value(page, NULL) != NULL)
+        // Write pixmap to cache.
+        const PngPixmap *png = new PngPixmap(pix, page, resolution);
+        if (png == NULL)
+            qWarning() << "Converting pixmap to PNG failed";
+        else
         {
-            usedMemory -= cache[page]->size();
-            delete cache[page];
+            if (cache.value(page, NULL) != NULL)
+            {
+                usedMemory -= cache[page]->size();
+                delete cache[page];
+            }
+            cache[page] = png;
+            usedMemory += png->size();
+            debug_verbose(DebugCache) << "writing page to cache" << page << usedMemory;
         }
-        cache[page] = png;
-        usedMemory += png->size();
-        debug_verbose(DebugCache) << "writing page to cache" << page << usedMemory;
     }
 
     // Start rendering next page.

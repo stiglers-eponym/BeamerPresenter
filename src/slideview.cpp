@@ -36,6 +36,7 @@ void SlideView::pageChanged(const int page, SlideScene *scene)
     resetTransform();
     scale(resolution, resolution);
     waitingForPage = page;
+    enlargedPixmap = QPixmap();
     debug_msg(DebugPageChange) << "Request page" << page << this;
     emit requestPage(page, resolution);
 }
@@ -48,11 +49,18 @@ void SlideView::drawBackground(QPainter *painter, const QRectF &rect)
 void SlideView::pageReady(const QPixmap pixmap, const int page)
 {
     debug_msg(DebugPageChange) << "page ready" << page << pixmap.size() << this;
-    if (waitingForPage != page)
-        return;
-    currentPixmap = pixmap;
-    waitingForPage = -1;
-    updateScene({sceneRect()});
+    if (waitingForPage == page)
+    {
+        currentPixmap = pixmap;
+        waitingForPage = INT_MAX;
+        updateScene({sceneRect()});
+    }
+    else if (waitingForPage == -page-1)
+    {
+        enlargedPixmap = pixmap;
+        waitingForPage = INT_MAX;
+        updateScene({sceneRect()});
+    }
 }
 
 void SlideView::resizeEvent(QResizeEvent *event)
@@ -120,14 +128,44 @@ void SlideView::showMagnifier(QPainter *painter, const PointingTool *tool)
     if (tool->pos().isNull())
         return;
     const QRectF scene_rect(tool->pos().x()-tool->size(), tool->pos().y()-tool->size(), 2*tool->size(), 2*tool->size());
-    const qreal scale = currentPixmap.width() / sceneRect().width();
-    QRectF pixmap_rect(tool->pos().x()-tool->size()/2, tool->pos().y()-tool->size()/2, tool->size(), tool->size());
-    pixmap_rect.setRect(scale*pixmap_rect.x(), scale*pixmap_rect.y(), scale*pixmap_rect.width(), scale*pixmap_rect.height());
     QPainterPath path;
     path.addEllipse(scene_rect);
     painter->setClipPath(path);
     painter->setRenderHints(QPainter::SmoothPixmapTransform);
-    painter->drawPixmap(scene_rect, currentPixmap, pixmap_rect);
+    if (enlargedPixmap.isNull())
+    {
+        if (waitingForPage == INT_MAX)
+        {
+            const int page = static_cast<SlideScene*>(scene())->getPage();
+            const QSizeF &pageSize = scene()->sceneRect().size();
+            debug_msg(DebugDrawing) << "Request enlarged page" << page << this;
+            waitingForPage = -page- 1;
+            emit requestPage(page,
+                                tool->scale() * (
+                                    (pageSize.width() * height() > pageSize.height() * width()) ?
+                                    width() / pageSize.width() :
+                                    height() / pageSize.height()
+                                )
+                            );
+        }
+        const qreal scale = currentPixmap.width() / sceneRect().width();
+        QRectF pixmap_rect(tool->pos().x()-tool->size()/tool->scale(), tool->pos().y()-tool->size()/tool->scale(), tool->size()*2/tool->scale(), tool->size()*2/tool->scale());
+        pixmap_rect.setRect(scale*pixmap_rect.x(), scale*pixmap_rect.y(), scale*pixmap_rect.width(), scale*pixmap_rect.height());
+        painter->drawPixmap(scene_rect, currentPixmap, pixmap_rect);
+    }
+    else
+    {
+        const qreal scale = enlargedPixmap.width() / sceneRect().width();
+        QRectF pixmap_rect(tool->pos().x()-tool->size()/tool->scale(), tool->pos().y()-tool->size()/tool->scale(), tool->size()*2/tool->scale(), tool->size()*2/tool->scale());
+        pixmap_rect.setRect(scale*pixmap_rect.x(), scale*pixmap_rect.y(), scale*pixmap_rect.width(), scale*pixmap_rect.height());
+        painter->drawPixmap(scene_rect, enlargedPixmap, pixmap_rect);
+    }
+    painter->save();
+    //painter->setTransform(QTransform::fromScale(tool->scale(),tool->scale()).translate(-tool->pos().x()*(1-1/tool->scale()), -tool->pos().y()*(1-1/tool->scale())), true);
+    painter->setTransform(QTransform::fromTranslate(tool->pos().x()*(1-tool->scale()), tool->pos().y()*(1-tool->scale())).scale(tool->scale(),tool->scale()), true);
+    for (const auto item : static_cast<const QList<QGraphicsItem*>>(items()))
+        item->paint(painter, NULL, this);
+    painter->restore();
 }
 
 void SlideView::drawForeground(QPainter *painter, const QRectF &rect)
@@ -164,6 +202,8 @@ void SlideView::drawForeground(QPainter *painter, const QRectF &rect)
         }
         case Magnifier:
         {
+            painter->setCompositionMode(QPainter::CompositionMode_SourceOver);
+            painter->setPen(tool->color());
             painter->drawEllipse(tool->pos(), tool->size(), tool->size());
             showMagnifier(painter, tool);
             break;

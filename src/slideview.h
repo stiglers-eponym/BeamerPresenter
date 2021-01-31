@@ -17,9 +17,12 @@ class SlideView : public QGraphicsView
 
     /// Pixmap representing the current slide.
     QPixmap currentPixmap;
+    /// Enlarged pixmap of current slide (for magnifier).
+    QPixmap enlargedPixmap;
 
-    /// Currently waiting for page (-1 if not waiting for any page).
-    int waitingForPage = -1;
+    /// Currently waiting for page: INT_MAX if not waiting for any page,
+    /// (-page-1) if waiting for enlarged page.
+    int waitingForPage = INT_MAX;
 
 public:
     /// Constructor: initialize and connect a lot.
@@ -70,12 +73,13 @@ public slots:
     /// draw Magnifier
     void showMagnifier(QPainter *painter, const PointingTool *tool);
 
+    /// draw pointing tools in foreground.
     void drawForeground(QPainter *painter, const QRectF &rect) override;
 
 signals:
     /// Inform cache that page is required.
     /// Resolution is given in pixels per point (dpi/72).
-    void requestPage(const int page, const qreal resolution) const;
+    void requestPage(const int page, const qreal resolution, const bool cache_page = true) const;
 
     /// Send key event to Master.
     void sendKeyEvent(QKeyEvent *event) const;

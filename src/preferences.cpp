@@ -36,7 +36,10 @@ Tool *createTool(const QJsonObject &obj)
     {
         const QColor color(obj.value("color").toString("black"));
         const float size = obj.value("size").toDouble(120.);
-        return new PointingTool(Magnifier, size, color, AnyDevice);
+        PointingTool *tool = new PointingTool(Magnifier, size, color, AnyDevice);
+        if (obj.contains("scale"))
+            tool->setScale(obj.value("scale").toDouble(2.));
+        return tool;
     }
     case InvalidTool:
         return NULL;

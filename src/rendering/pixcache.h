@@ -115,7 +115,7 @@ public slots:
     void init();
 
     /// Request rendering a page with high priority
-    void requestPage(const int n, const qreal resolution);
+    void requestPage(const int n, const qreal resolution, const bool cache = true);
 
     /// Request rendering a page with low priority
     void requestRenderPage(const int n);
