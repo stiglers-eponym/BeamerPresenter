@@ -9,6 +9,7 @@
 #include "src/drawing/fullgraphicspath.h"
 #include "src/drawing/basicgraphicspath.h"
 #include "src/drawing/flexgraphicslineitem.h"
+#include "src/drawing/pointingtool.h"
 
 class PdfMaster;
 
@@ -27,7 +28,7 @@ class SlideScene : public QGraphicsScene
 
     /// Currently used draw tool, cached during drawing.
     /// current_tool is never owned by this.
-    const Tool *current_tool {NULL};
+    Tool *current_tool {NULL};
 
     /// Group of path segments forming the currently drawn path.
     /// This collection of segments is directly made visible and gets deleted
@@ -109,7 +110,7 @@ public:
     void navigationEvent(const int newpage, SlideScene* newscene = NULL);
 
     /// Start handling draw and erase events.
-    void startInputEvent(const Tool *tool, const QPointF &pos, const float pressure = 1.);
+    void startInputEvent(Tool *tool, const QPointF &pos, const float pressure = 1.);
 
     /// Handle draw and erase events.
     void stepInputEvent(const QPointF &pos, const float pressure = 1.);
@@ -125,7 +126,10 @@ protected:
      * Handle mouse, touch and tablet input events for drawing,
      * highlighting and pointing.
      */
-    virtual bool event(QEvent *event) override;
+    bool event(QEvent *event) override;
+
+    /// Draw pointing tools in foreground
+    void drawForeground(QPainter *painter, const QRectF &rect) override;
 
     /// Stop drawing and convert just drawn path to regular path.
     void stopDrawing();

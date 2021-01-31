@@ -102,15 +102,21 @@ enum Action
 /// Tools for drawing and highlighting.
 enum BasicTool
 {
+    // Invalid
     InvalidTool = 0,
-    NoTool,
-    Pen,
-    FixedWidthPen,
-    Eraser,
-    Highlighter,
-    Pointer,
-    Torch,
-    Magnifier,
+    // Draw tools: first 4 bits
+    Pen = 1 << 0,
+    FixedWidthPen = 2 << 0,
+    Highlighter = 3 << 0,
+    Eraser = 4 << 0,
+    AnyDrawTool = 0x0f << 0,
+    // Highlighting tools: next 4 bits
+    Pointer = 1 << 4,
+    Torch = 2 << 4,
+    Magnifier = 3 << 4,
+    AnyPointingTool = 0x0f << 4,
+    // No tool
+    NoTool = 1 << 8,
 };
 
 enum GuiWidget
@@ -132,16 +138,21 @@ enum GuiWidget
     SlideLabelType,
 };
 
+/**
+ * Obtain Qt::MouseButton by taking InputDevice >> 1.
+ */
 enum InputDevice
 {
-    MouseLeftButton = 1 << 0,
-    MouseRightButton = 1 << 1,
-    MouseMiddleButton = 1 << 2,
-    TabletPen = 1 << 3,
-    TabletEraser = 1 << 4,
-    TabletCursor = 1 << 5,
-    TabletOther = 1 << 6,
-    TouchInput = 1 << 7,
+    MouseNoButton = 1,
+    MouseLeftButton = Qt::LeftButton << 1,
+    MouseRightButton = Qt::RightButton << 1,
+    MouseMiddleButton = Qt::MiddleButton << 1,
+    TabletPen = 1 << 4,
+    TabletEraser = 1 << 5,
+    TabletCursor = 1 << 6,
+    TabletOther = 1 << 7,
+    TabletNoPressure = 1 << 8,
+    TouchInput = 1 << 9,
     AnyDevice = 0xffff,
 };
 

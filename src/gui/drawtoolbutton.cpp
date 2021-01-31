@@ -31,20 +31,21 @@ bool DrawToolButton::event(QEvent *event) noexcept
         case QEvent::TabletRelease:
         case QEvent::MouseButtonRelease:
             Tool *newtool;
-            switch(tool->tool())
-            {
-            case Pen:
-            case Highlighter:
+            if (tool->tool() & AnyDrawTool)
                 newtool = new DrawTool(*static_cast<const DrawTool*>(tool));
-                break;
-            default:
+            else if (tool->tool() & AnyPointingTool)
+                newtool = new PointingTool(*static_cast<const PointingTool*>(tool));
+            else
                 newtool = new Tool(*tool);
-                break;
-            }
+
             if (event->type() == QEvent::TabletRelease)
                 newtool->setDevice(tablet_device_to_input_device.value(static_cast<const QTabletEvent*>(event)->pointerType()));
             else if (event->type() == QEvent::MouseButtonRelease)
-                newtool->setDevice(mouse_to_input_device.value(static_cast<const QMouseEvent*>(event)->button()));
+            {
+                newtool->setDevice(static_cast<const QMouseEvent*>(event)->button() << 1);
+                if (tool->tool() == Pointer)
+                    newtool->setDevice(newtool->device() | MouseNoButton);
+            }
             else
                 newtool->setDevice(TouchInput);
             emit sendTool(newtool);

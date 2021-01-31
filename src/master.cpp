@@ -403,6 +403,20 @@ QWidget* Master::createWidget(QJsonObject &object, QWidget *parent)
                         tool = new DrawTool(Highlighter, AnyDevice, QPen(color, width, style, Qt::RoundCap, Qt::RoundJoin), QPainter::CompositionMode_Darken);
                         break;
                     }
+                    case Pointer:
+                    {
+                        const QColor color(obj.value("color").toString("red"));
+                        const float size = obj.value("size").toDouble(5.);
+                        tool = new PointingTool(Pointer, size, color, AnyDevice);
+                        break;
+                    }
+                    case Torch:
+                    {
+                        const QColor color(obj.value("color").toString("#80000000"));
+                        const float size = obj.value("size").toDouble(80.);
+                        tool = new PointingTool(Torch, size, color, AnyDevice);
+                        break;
+                    }
                     case InvalidTool:
                         break;
                     default:
@@ -515,19 +529,17 @@ void Master::receiveKeyEvent(const QKeyEvent* event)
         }
     }
     // Search tools in preferences for given key sequence.
-    for (const auto tool : static_cast<const QList<const Tool*>>(preferences()->key_tools.values(key_code)))
+    for (const auto tool : static_cast<const QList<Tool*>>(preferences()->key_tools.values(key_code)))
     {
         if (tool)
-            switch (tool->tool())
-            {
-            case Pen:
-            case Highlighter:
+        {
+            if (tool->tool() & AnyDrawTool)
                 setTool(new DrawTool(*static_cast<const DrawTool*>(tool)));
-                break;
-            default:
+            else if (tool->tool() & AnyPointingTool)
+                setTool(new PointingTool(*static_cast<const PointingTool*>(tool)));
+            else
                 setTool(new Tool(*tool));
-                break;
-            }
+        }
     }
 }
 
@@ -639,7 +651,7 @@ void Master::navigateToPage(const int page) const
 
 void Master::setTool(Tool *tool) const noexcept
 {
-    if (!tool)
+    if (!tool || !tool->device())
         return;
     debug_msg(DebugDrawing|DebugKeyInput) << "Set tool" << tool->tool() << tool->device();
     const int device = tool->device();

@@ -25,7 +25,7 @@ void SlideScene::stopDrawing()
     {
         currentPath->show();
         emit sendNewPath(page | page_part, currentPath);
-        update(currentPath->boundingRect());
+        invalidate(currentPath->boundingRect(), QGraphicsScene::ItemLayer);
     }
     currentPath = NULL;
     if (currentItemCollection)
@@ -44,56 +44,92 @@ bool SlideScene::event(QEvent* event)
     case QEvent::GraphicsSceneMousePress:
     {
         const auto *mouseevent = static_cast<QGraphicsSceneMouseEvent*>(event);
-        for (const auto tool : preferences()->current_tools)
+        Tool *const tool = preferences()->currentTool(mouseevent->buttons() << 1);
+        if (!tool)
+            return false;
+        if (tool->tool() & BasicTool::AnyDrawTool)
         {
-            if (tool && (tool->device() & mouse_to_input_device.value(mouseevent->buttons())))
-            {
-                startInputEvent(tool, mouseevent->scenePos());
-                event->accept();
-                return true;
-            }
+            startInputEvent(tool, mouseevent->scenePos());
+            event->accept();
+            return true;
+        }
+        else if (tool->tool() & AnyPointingTool)
+        {
+            static_cast<PointingTool*>(tool)->setPos(mouseevent->scenePos());
+            invalidate(QRect(), QGraphicsScene::ForegroundLayer);
+            event->accept();
+            return true;
         }
         return false;
     }
     case QEvent::GraphicsSceneMouseMove:
     {
         const auto *mouseevent = static_cast<QGraphicsSceneMouseEvent*>(event);
-        if (current_tool && (current_tool->device() & mouse_to_input_device.value(mouseevent->buttons())))
+        const int device = mouseevent->buttons() ? mouseevent->buttons() << 1 : 1;
+        if (current_tool && (current_tool->device() & device))
         {
             stepInputEvent(mouseevent->scenePos());
             event->accept();
             return true;
         }
-        return false;
-    }
-    case QEvent::GraphicsSceneMouseRelease:
-    {
-        const auto *mouseevent = static_cast<QGraphicsSceneMouseEvent*>(event);
-        stopInputEvent(mouseevent->scenePos());
-        event->accept();
-        return true;
-    }
-    case QEvent::TouchBegin:
-    {
-        const auto touchevent = static_cast<QTouchEvent*>(event);
-        if (touchevent->touchPoints().size() != 1)
-            return false;
-        for (const auto tool : preferences()->current_tools)
-        {
-            if (tool && (tool->device() & TouchInput))
+        else {
+            Tool *tool = preferences()->currentTool(device);
+            if (tool && (tool->tool() & AnyPointingTool))
             {
-                const QTouchEvent::TouchPoint &point = touchevent->touchPoints().first();
-                startInputEvent(tool, point.scenePos(), point.pressure());
+                const QPointF oldpos = static_cast<PointingTool*>(tool)->pos();
+                const QPointF &newpos = mouseevent->scenePos();
+                static_cast<PointingTool*>(tool)->setPos(newpos);
+                invalidate(QRectF(oldpos, newpos).normalized().marginsAdded(static_cast<PointingTool*>(tool)->size() * QMarginsF(1,1,1,1)), QGraphicsScene::ForegroundLayer);
                 event->accept();
                 return true;
             }
         }
         return false;
     }
+    case QEvent::GraphicsSceneMouseRelease:
+    {
+        const auto *mouseevent = static_cast<QGraphicsSceneMouseEvent*>(event);
+        if (current_tool)
+            stopInputEvent(mouseevent->scenePos());
+        const int device = mouseevent->button() << 1;
+        Tool *tool = preferences()->currentTool(device);
+        if ((tool->tool() & AnyPointingTool) && !(tool->device() & MouseNoButton))
+        {
+            static_cast<PointingTool*>(tool)->setPos({0,0});
+            invalidate(QRect(), QGraphicsScene::ForegroundLayer);
+        }
+        event->accept();
+        return true;
+    }
+    case QEvent::TouchBegin:
+    {
+        Tool *const tool = preferences()->currentTool(TouchInput);
+        if (!tool)
+            return false;
+        const auto touchevent = static_cast<QTouchEvent*>(event);
+        if ((tool->tool() & AnyDrawTool) && (touchevent->touchPoints().size() == 1))
+        {
+            const QTouchEvent::TouchPoint &point = touchevent->touchPoints().first();
+            startInputEvent(tool, point.scenePos(), point.pressure());
+            event->accept();
+            return true;
+        }
+        if (tool->tool() & AnyPointingTool)
+        {
+            if (touchevent->touchPoints().isEmpty())
+                return true;
+            static_cast<PointingTool*>(tool)->setPos(touchevent->touchPoints().last().scenePos());
+            invalidate(QRect(), QGraphicsScene::ForegroundLayer);
+            event->accept();
+            return true;
+        }
+        return false;
+    }
     case QEvent::TouchUpdate:
+    {
+        const auto touchevent = static_cast<QTouchEvent*>(event);
         if (current_tool && (current_tool->device() & TouchInput))
         {
-            const auto touchevent = static_cast<QTouchEvent*>(event);
             if (touchevent->touchPoints().size() == 1)
             {
                 const QTouchEvent::TouchPoint &point = touchevent->touchPoints().first();
@@ -109,12 +145,31 @@ bool SlideScene::event(QEvent* event)
             event->accept();
             return true;
         }
+        else {
+            Tool *tool = preferences()->currentTool(TouchInput);
+            if (tool && (tool->tool() & AnyPointingTool))
+            {
+                const QPointF oldpos = static_cast<PointingTool*>(tool)->pos();
+                const QPointF &newpos = touchevent->touchPoints().last().scenePos();
+                static_cast<PointingTool*>(tool)->setPos(newpos);
+                invalidate(QRectF(oldpos, newpos).normalized().marginsAdded(static_cast<PointingTool*>(tool)->size() * QMarginsF(1,1,1,1)), QGraphicsScene::ForegroundLayer);
+                event->accept();
+                return true;
+            }
+        }
         return false;
+    }
     case QEvent::TouchCancel:
         if (current_tool && (current_tool->device() & TouchInput))
         {
             if (stopInputEvent(QPointF()))
                 master->pathContainer(page | page_part)->undo(this);
+            Tool *tool = preferences()->currentTool(TouchInput);
+            if (tool && (tool->tool() & AnyPointingTool))
+            {
+                static_cast<PointingTool*>(tool)->setPos({0,0});
+                invalidate(QRect(), QGraphicsScene::ForegroundLayer);
+            }
             event->accept();
             return true;
         }
@@ -122,10 +177,19 @@ bool SlideScene::event(QEvent* event)
     case QEvent::TouchEnd:
         {
             const auto touchevent = static_cast<QTouchEvent*>(event);
-            if (touchevent->touchPoints().size() == 1)
-                stopInputEvent(touchevent->touchPoints().first().scenePos());
-            else
-                stopInputEvent(QPointF());
+            if (current_tool && (current_tool->device() & TouchInput))
+            {
+                if (touchevent->touchPoints().size() == 1)
+                    stopInputEvent(touchevent->touchPoints().first().scenePos());
+                else
+                    stopInputEvent(QPointF());
+            }
+            Tool *tool = preferences()->currentTool(TouchInput);
+            if (tool && (tool->tool() & AnyPointingTool))
+            {
+                static_cast<PointingTool*>(tool)->setPos({0,0});
+                invalidate(QRect(), QGraphicsScene::ForegroundLayer);
+            }
             event->accept();
             return true;
         }
@@ -225,13 +289,20 @@ void SlideScene::startTransition(const int newpage, const SlideTransition &trans
 
 void SlideScene::tabletPress(const QPointF &pos, const QTabletEvent *event)
 {
-    for (const auto tool : preferences()->current_tools)
+    Tool *tool = preferences()->currentTool(
+                event->pressure() > 0 ?
+                tablet_device_to_input_device.value(event->pointerType()) :
+                TabletNoPressure
+            );
+    if (tool && (tool->tool() & AnyDrawTool))
     {
-        if (tool && (tool->device() & tablet_device_to_input_device.value(event->pointerType())))
-        {
-            startInputEvent(tool, pos, event->pressure());
-            return;
-        }
+        startInputEvent(tool, pos, event->pressure());
+        return;
+    }
+    else if (tool && (tool->tool() & AnyPointingTool))
+    {
+        static_cast<PointingTool*>(tool)->setPos(pos);
+        invalidate(QRect(), QGraphicsScene::ForegroundLayer);
     }
 }
 
@@ -239,16 +310,42 @@ void SlideScene::tabletMove(const QPointF &pos, const QTabletEvent *event)
 {
     if (current_tool && event->pressure() > 0 && (current_tool->device() & tablet_device_to_input_device.value(event->pointerType())))
         stepInputEvent(pos, event->pressure());
+    else
+    {
+        Tool *tool = preferences()->currentTool(
+                    event->pressure() > 0 ?
+                    tablet_device_to_input_device.value(event->pointerType()) :
+                    TabletNoPressure
+                );
+        if (tool && (tool->tool() & AnyPointingTool))
+        {
+            const QPointF oldpos = static_cast<PointingTool*>(tool)->pos();
+            static_cast<PointingTool*>(tool)->setPos(pos);
+            invalidate(QRectF(oldpos, pos).normalized().marginsAdded(static_cast<PointingTool*>(tool)->size() * QMarginsF(1,1,1,1)), QGraphicsScene::ForegroundLayer);
+        }
+    }
 }
 
 void SlideScene::tabletRelease(const QPointF &pos, const QTabletEvent *event)
 {
-    stopInputEvent(pos);
+    if (current_tool)
+        stopInputEvent(pos);
+    else
+    {
+        Tool *tool = preferences()->currentTool(
+                    tablet_device_to_input_device.value(event->pointerType())
+                );
+        if (tool && (tool->tool() & AnyPointingTool) && !(tool->device() & TabletNoPressure))
+        {
+            static_cast<PointingTool*>(tool)->setPos({0,0});
+            invalidate(QRect(), QGraphicsScene::ForegroundLayer);
+        }
+    }
 }
 
-void SlideScene::startInputEvent(const Tool *tool, const QPointF &pos, const float pressure)
+void SlideScene::startInputEvent(Tool *tool, const QPointF &pos, const float pressure)
 {
-    if (!tool)
+    if (!tool || !(tool->tool() & AnyDrawTool))
         return;
     debug_verbose(DebugDrawing) << "Start input event" << tool->tool() << tool->device() << tool << pressure;
     stopDrawing();
@@ -313,8 +410,7 @@ void SlideScene::stepInputEvent(const QPointF &pos, const float pressure)
             addItem(item);
             currentItemCollection->addToGroup(item);
             currentItemCollection->show();
-            update(item->boundingRect());
-            invalidate(item->boundingRect());
+            invalidate(item->boundingRect(), QGraphicsScene::ItemLayer);
         }
         break;
     case Eraser:
@@ -342,8 +438,7 @@ bool SlideScene::stopInputEvent(const QPointF &pos)
         case Highlighter:
             if (changes)
             {
-                invalidate({sceneRect()});
-                update({sceneRect()});
+                invalidate({QRect()}, QGraphicsScene::ItemLayer);
                 current_tool = NULL;
                 return true;
             }
@@ -367,4 +462,46 @@ bool SlideScene::stopInputEvent(const QPointF &pos)
     }
     master->resolveLink(page, pos);
     return false;
+}
+
+void SlideScene::drawForeground(QPainter *painter, const QRectF &rect)
+{
+    debug_verbose(DebugDrawing) << "drawing foreground";
+    for (const auto basic_tool : preferences()->current_tools)
+    {
+        if (!(basic_tool->tool() & AnyPointingTool))
+            continue;
+        const PointingTool *tool = static_cast<PointingTool*>(basic_tool);
+        debug_verbose(DebugDrawing) << "drawing tool" << tool->pos() << tool->tool() << tool->size() << tool->color();
+        if (tool->pos().isNull())
+            continue;
+        switch (tool->tool())
+        {
+        case Pointer:
+            painter->setCompositionMode(QPainter::CompositionMode_Darken);
+            painter->setPen(Qt::PenStyle::NoPen);
+            painter->setBrush(QBrush(tool->color(), Qt::SolidPattern));
+            painter->drawEllipse(tool->pos(), tool->size(), tool->size());
+            break;
+        case Torch:
+        {
+            painter->setCompositionMode(QPainter::CompositionMode_SourceOver);
+            painter->setPen(Qt::PenStyle::NoPen);
+            painter->setBrush(QBrush(tool->color(), Qt::SolidPattern));
+            QPainterPath path;
+            path.addRect(sceneRect());
+            path.addEllipse(tool->pos(), tool->size(), tool->size());
+            painter->fillPath(path, tool->color());
+            break;
+        }
+        case Magnifier:
+        {
+            // TODO: not implemented yet!
+            painter->drawEllipse(tool->pos(), tool->size(), tool->size());
+            break;
+        }
+        default:
+            break;
+        }
+    }
 }

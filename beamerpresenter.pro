@@ -76,6 +76,7 @@ unix {
 ###########################################################
 
 SOURCES += \
+        src/drawing/pointingtool.cpp \
         src/gui/actionbutton.cpp \
         src/gui/clockwidget.cpp \
         src/gui/drawtoolbutton.cpp \
@@ -112,6 +113,7 @@ SOURCES += \
 HEADERS += \
         src/drawing/drawtool.h \
         src/drawing/flexgraphicslineitem.h \
+        src/drawing/pointingtool.h \
         src/drawing/tool.h \
         src/enumerates.h \
         src/gui/actionbutton.h \

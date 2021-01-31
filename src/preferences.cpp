@@ -187,6 +187,20 @@ void Preferences::loadSettings()
                                 tool = new DrawTool(Highlighter, device, QPen(color, width, style, Qt::RoundCap), QPainter::CompositionMode_Darken);
                                 break;
                             }
+                            case Pointer:
+                            {
+                                const QColor color(object.value("color").toString("red"));
+                                const float size = object.value("size").toDouble(5.);
+                                tool = new PointingTool(Pointer, size, color, AnyDevice);
+                                break;
+                            }
+                            case Torch:
+                            {
+                                const QColor color(object.value("color").toString("#80000000"));
+                                const float size = object.value("size").toDouble(80.);
+                                tool = new PointingTool(Torch, size, color, AnyDevice);
+                                break;
+                            }
                             case InvalidTool:
                                 break;
                             default:
@@ -374,4 +388,14 @@ void Preferences::setRenderer(const QString &string)
         settings.setValue("renderer", "externaler");
     }
 #endif
+}
+
+Tool *Preferences::currentTool(const int device) const noexcept
+{
+    for (const auto tool : preferences()->current_tools)
+    {
+        if (tool && (tool->device() & device))
+            return tool;
+    }
+    return NULL;
 }

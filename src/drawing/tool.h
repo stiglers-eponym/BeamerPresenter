@@ -18,6 +18,9 @@ public:
     Tool(const BasicTool tool, const int device = AnyDevice) noexcept :
         _tool(tool), _device(device) {}
 
+    Tool(const Tool &other) noexcept :
+        _tool(other._tool), _device(other._device) {}
+
     /// Trivial virtual destructor.
     virtual ~Tool() {}
 

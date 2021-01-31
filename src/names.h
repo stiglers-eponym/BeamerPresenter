@@ -121,13 +121,6 @@ static const QMap<QTabletEvent::PointerType, InputDevice> tablet_device_to_input
     {QTabletEvent::UnknownPointer, TabletOther},
 };
 
-static const QMap<Qt::MouseButtons, InputDevice> mouse_to_input_device
-{
-    {Qt::LeftButton, MouseLeftButton},
-    {Qt::RightButton, MouseRightButton},
-    {Qt::MiddleButton, MouseMiddleButton},
-};
-
 static const QMap<QString, int> string_to_input_device
 {
     {"touch", TouchInput},

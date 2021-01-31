@@ -7,6 +7,7 @@
 SlideView::SlideView(SlideScene *scene, PixCache *cache, QWidget *parent) :
     QGraphicsView(scene, parent)
 {
+    setMouseTracking(true);
     setAttribute(Qt::WA_AcceptTouchEvents);
     setRenderHints(QPainter::Antialiasing | QPainter::TextAntialiasing);
     setMinimumSize(4, 3);

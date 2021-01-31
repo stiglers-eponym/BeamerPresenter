@@ -45,6 +45,22 @@ void ToolSelectorWidget::addToolButton(const int i, const int j, Tool *tool)
     case Eraser:
         button->setText("eraser");
         break;
+    case Pointer:
+    {
+        QPalette newpalette = button->palette();
+        newpalette.setColor(QPalette::Button, static_cast<PointingTool*>(tool)->color());
+        button->setPalette(newpalette);
+        button->setText("pointer");
+        break;
+    }
+    case Torch:
+    {
+        QPalette newpalette = button->palette();
+        newpalette.setColor(QPalette::Button, static_cast<PointingTool*>(tool)->color());
+        button->setPalette(newpalette);
+        button->setText("torch");
+        break;
+    }
     default:
         // TODO
         button->setText(QString::number(tool->tool()));

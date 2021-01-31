@@ -6,6 +6,7 @@
 #include "src/rendering/abstractrenderer.h"
 #include "src/rendering/pdfdocument.h"
 #include "src/drawing/drawtool.h"
+#include "src/drawing/pointingtool.h"
 #include <QSettings>
 #include <QCommandLineParser>
 #include <QFileDialog>
@@ -88,7 +89,7 @@ public:
         {Qt::Key_Space, Action::Update},
     };
     /// Map key combinations to tools.
-    QMultiMap<quint32, const Tool*> key_tools;
+    QMultiMap<quint32, Tool*> key_tools;
 
 
     /****************************/
@@ -139,6 +140,8 @@ public:
     /// Load settings from command line parser.
     /// Usually called after loadSettings().
     void loadFromParser(const QCommandLineParser &parser);
+
+    Tool *currentTool(const int device) const noexcept;
 
     void addKeyAction(const quint32 sequence, const Action action);
     void removeKeyAction(const quint32 sequence, const Action action);

@@ -86,12 +86,14 @@
                   "type" : "tool selector",
                   "buttons" : [
                       ["start timer", "stop timer", "reset timer"],
-                      ["first", "next", "previous", "last"],
                       [
                           {"tool":"pen", "color":"red", "width":5},
-                          {"tool":"pen", "color":"green", "width":5},
                           {"tool":"highlighter", "width":40},
-                          {"tool":"eraser"},
+                          {"tool":"eraser"}
+                      ],
+                      [
+                          {"tool":"pointer", "color":"green", "size":8},
+                          {"tool":"torch", "color":"#88000f08", "size":100},
                           {"tool":"none"}
                       ]
                   ]

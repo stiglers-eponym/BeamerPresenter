@@ -24,6 +24,7 @@
 #include "src/gui/thumbnailwidget.h"
 #include "src/gui/toolselectorwidget.h"
 #include "src/drawing/drawtool.h"
+#include "src/drawing/pointingtool.h"
 
 class PdfMaster;
 class SlideScene;
