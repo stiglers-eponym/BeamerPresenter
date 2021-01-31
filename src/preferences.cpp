@@ -201,6 +201,13 @@ void Preferences::loadSettings()
                                 tool = new PointingTool(Torch, size, color, AnyDevice);
                                 break;
                             }
+                            case Magnifier:
+                            {
+                                const QColor color(object.value("color").toString("black"));
+                                const float size = object.value("size").toDouble(120.);
+                                tool = new PointingTool(Magnifier, size, color, AnyDevice);
+                                break;
+                            }
                             case InvalidTool:
                                 break;
                             default:

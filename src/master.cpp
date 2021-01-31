@@ -417,6 +417,13 @@ QWidget* Master::createWidget(QJsonObject &object, QWidget *parent)
                         tool = new PointingTool(Torch, size, color, AnyDevice);
                         break;
                     }
+                    case Magnifier:
+                    {
+                        const QColor color(obj.value("color").toString("black"));
+                        const float size = obj.value("size").toDouble(120.);
+                        tool = new PointingTool(Magnifier, size, color, AnyDevice);
+                        break;
+                    }
                     case InvalidTool:
                         break;
                     default:
@@ -661,13 +668,18 @@ void Master::setTool(Tool *tool) const noexcept
         if ((*tool_it)->device() & device)
         {
             newdevice = (*tool_it)->device() & ~device;
-            if (newdevice)
+            if (newdevice && (newdevice != MouseNoButton))
                 (*tool_it++)->setDevice(newdevice);
             else
             {
                 delete *tool_it;
                 tool_it = static_cast<QSet<Tool*>::const_iterator>(writable_preferences()->current_tools.erase(tool_it));
             }
+        }
+        else if (((*tool_it)->device() == MouseNoButton) && (tool->device() & InputDevice::MouseLeftButton))
+        {
+            delete *tool_it;
+            tool_it = static_cast<QSet<Tool*>::const_iterator>(writable_preferences()->current_tools.erase(tool_it));
         }
         else
             ++tool_it;

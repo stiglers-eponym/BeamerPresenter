@@ -1,5 +1,5 @@
-#ifndef DRAWTOOLBUTTON_H
-#define DRAWTOOLBUTTON_H
+#ifndef TOOLBUTTON_H
+#define TOOLBUTTON_H
 
 #include <QPushButton>
 #include <QEvent>
@@ -13,15 +13,15 @@
 /**
  * @brief Tool button for drawing and pointing tools.
  */
-class DrawToolButton : public QPushButton
+class ToolButton : public QPushButton
 {
     Q_OBJECT
     Tool *tool;
 
 public:
-    explicit DrawToolButton(Tool *tool, QWidget *parent = NULL) noexcept;
+    explicit ToolButton(Tool *tool, QWidget *parent = NULL) noexcept;
 
-    virtual ~DrawToolButton()
+    virtual ~ToolButton()
     {delete tool;}
 
 protected:
@@ -31,4 +31,4 @@ signals:
     void sendTool(Tool *tool) const;
 };
 
-#endif // DRAWTOOLBUTTON_H
+#endif // TOOLBUTTON_H

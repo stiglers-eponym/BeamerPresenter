@@ -114,3 +114,62 @@ bool SlideView::event(QEvent *event)
         return QGraphicsView::event(event);
     }
 }
+
+void SlideView::showMagnifier(QPainter *painter, const PointingTool *tool)
+{
+    if (tool->pos().isNull())
+        return;
+    const QRectF scene_rect(tool->pos().x()-tool->size(), tool->pos().y()-tool->size(), 2*tool->size(), 2*tool->size());
+    const qreal scale = currentPixmap.width() / sceneRect().width();
+    QRectF pixmap_rect(tool->pos().x()-tool->size()/2, tool->pos().y()-tool->size()/2, tool->size(), tool->size());
+    pixmap_rect.setRect(scale*pixmap_rect.x(), scale*pixmap_rect.y(), scale*pixmap_rect.width(), scale*pixmap_rect.height());
+    QPainterPath path;
+    path.addEllipse(scene_rect);
+    painter->setClipPath(path);
+    painter->setRenderHints(QPainter::SmoothPixmapTransform);
+    painter->drawPixmap(scene_rect, currentPixmap, pixmap_rect);
+}
+
+void SlideView::drawForeground(QPainter *painter, const QRectF &rect)
+{
+    painter->setRenderHint(QPainter::Antialiasing);
+    for (const auto basic_tool : preferences()->current_tools)
+    {
+        if (!(basic_tool->tool() & AnyPointingTool))
+            continue;
+        const PointingTool *tool = static_cast<PointingTool*>(basic_tool);
+        debug_verbose(DebugDrawing) << "drawing tool" << tool->pos() << tool->tool() << tool->size() << tool->color();
+        if (tool->pos().isNull())
+            continue;
+        switch (tool->tool())
+        {
+        case Pointer:
+        {
+            painter->setCompositionMode(QPainter::CompositionMode_Darken);
+            painter->setPen(Qt::PenStyle::NoPen);
+            painter->setBrush(QBrush(tool->color(), Qt::SolidPattern));
+            painter->drawEllipse(tool->pos(), tool->size(), tool->size());
+            break;
+        }
+        case Torch:
+        {
+            painter->setCompositionMode(QPainter::CompositionMode_SourceOver);
+            painter->setPen(Qt::PenStyle::NoPen);
+            painter->setBrush(QBrush(tool->color(), Qt::SolidPattern));
+            QPainterPath path;
+            path.addRect(sceneRect());
+            path.addEllipse(tool->pos(), tool->size(), tool->size());
+            painter->fillPath(path, tool->color());
+            break;
+        }
+        case Magnifier:
+        {
+            painter->drawEllipse(tool->pos(), tool->size(), tool->size());
+            showMagnifier(painter, tool);
+            break;
+        }
+        default:
+            break;
+        }
+    }
+}

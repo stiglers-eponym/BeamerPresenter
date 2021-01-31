@@ -1,6 +1,6 @@
-#include "drawtoolbutton.h"
+#include "toolbutton.h"
 
-DrawToolButton::DrawToolButton(Tool *tool, QWidget *parent) noexcept :
+ToolButton::ToolButton(Tool *tool, QWidget *parent) noexcept :
         QPushButton(parent),
         tool(tool)
 {
@@ -8,7 +8,7 @@ DrawToolButton::DrawToolButton(Tool *tool, QWidget *parent) noexcept :
     setAttribute(Qt::WA_AcceptTouchEvents);
 }
 
-bool DrawToolButton::event(QEvent *event) noexcept
+bool ToolButton::event(QEvent *event) noexcept
 {
     if (tool)
     {

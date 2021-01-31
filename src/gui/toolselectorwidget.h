@@ -6,7 +6,7 @@
 #include <QPushButton>
 #include "src/names.h"
 #include "src/gui/actionbutton.h"
-#include "src/gui/drawtoolbutton.h"
+#include "src/gui/toolbutton.h"
 
 class ToolSelectorWidget : public QWidget
 {

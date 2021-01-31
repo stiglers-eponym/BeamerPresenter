@@ -93,7 +93,7 @@ bool SlideScene::event(QEvent* event)
             stopInputEvent(mouseevent->scenePos());
         const int device = mouseevent->button() << 1;
         Tool *tool = preferences()->currentTool(device);
-        if ((tool->tool() & AnyPointingTool) && !(tool->device() & MouseNoButton))
+        if (tool && (tool->tool() & AnyPointingTool) && !(tool->device() & MouseNoButton))
         {
             static_cast<PointingTool*>(tool)->setPos({0,0});
             invalidate(QRect(), QGraphicsScene::ForegroundLayer);
@@ -462,46 +462,4 @@ bool SlideScene::stopInputEvent(const QPointF &pos)
     }
     master->resolveLink(page, pos);
     return false;
-}
-
-void SlideScene::drawForeground(QPainter *painter, const QRectF &rect)
-{
-    debug_verbose(DebugDrawing) << "drawing foreground";
-    for (const auto basic_tool : preferences()->current_tools)
-    {
-        if (!(basic_tool->tool() & AnyPointingTool))
-            continue;
-        const PointingTool *tool = static_cast<PointingTool*>(basic_tool);
-        debug_verbose(DebugDrawing) << "drawing tool" << tool->pos() << tool->tool() << tool->size() << tool->color();
-        if (tool->pos().isNull())
-            continue;
-        switch (tool->tool())
-        {
-        case Pointer:
-            painter->setCompositionMode(QPainter::CompositionMode_Darken);
-            painter->setPen(Qt::PenStyle::NoPen);
-            painter->setBrush(QBrush(tool->color(), Qt::SolidPattern));
-            painter->drawEllipse(tool->pos(), tool->size(), tool->size());
-            break;
-        case Torch:
-        {
-            painter->setCompositionMode(QPainter::CompositionMode_SourceOver);
-            painter->setPen(Qt::PenStyle::NoPen);
-            painter->setBrush(QBrush(tool->color(), Qt::SolidPattern));
-            QPainterPath path;
-            path.addRect(sceneRect());
-            path.addEllipse(tool->pos(), tool->size(), tool->size());
-            painter->fillPath(path, tool->color());
-            break;
-        }
-        case Magnifier:
-        {
-            // TODO: not implemented yet!
-            painter->drawEllipse(tool->pos(), tool->size(), tool->size());
-            break;
-        }
-        default:
-            break;
-        }
-    }
 }

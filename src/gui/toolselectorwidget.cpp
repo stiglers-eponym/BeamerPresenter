@@ -22,7 +22,7 @@ void ToolSelectorWidget::addActionButton(const int i, const int j, const QString
 
 void ToolSelectorWidget::addToolButton(const int i, const int j, Tool *tool)
 {
-    DrawToolButton *button = new DrawToolButton(tool, this);
+    ToolButton *button = new ToolButton(tool, this);
     switch (tool->tool())
     {
     case Pen:
@@ -53,19 +53,10 @@ void ToolSelectorWidget::addToolButton(const int i, const int j, Tool *tool)
         button->setText("pointer");
         break;
     }
-    case Torch:
-    {
-        QPalette newpalette = button->palette();
-        newpalette.setColor(QPalette::Button, static_cast<PointingTool*>(tool)->color());
-        button->setPalette(newpalette);
-        button->setText("torch");
-        break;
-    }
     default:
-        // TODO
-        button->setText(QString::number(tool->tool()));
+        button->setText(string_to_tool.key(tool->tool()));
         break;
     }
-    connect(button, &DrawToolButton::sendTool, this, &ToolSelectorWidget::sendTool);
+    connect(button, &ToolButton::sendTool, this, &ToolSelectorWidget::sendTool);
     static_cast<QGridLayout*>(layout())->addWidget(button, i, j);
 }

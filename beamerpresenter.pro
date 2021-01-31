@@ -79,7 +79,6 @@ SOURCES += \
         src/drawing/pointingtool.cpp \
         src/gui/actionbutton.cpp \
         src/gui/clockwidget.cpp \
-        src/gui/drawtoolbutton.cpp \
         src/gui/flexlayout.cpp \
         src/gui/keyinputlabel.cpp \
         src/gui/noteswidget.cpp \
@@ -94,6 +93,7 @@ SOURCES += \
         src/gui/timerwidget.cpp \
         src/gui/tocbutton.cpp \
         src/gui/tocwidget.cpp \
+        src/gui/toolbutton.cpp \
         src/gui/toolselectorwidget.cpp \
         src/main.cpp \
         src/master.cpp \
@@ -119,7 +119,6 @@ HEADERS += \
         src/gui/actionbutton.h \
         src/gui/clockwidget.h \
         src/gui/containerwidget.h \
-        src/gui/drawtoolbutton.h \
         src/gui/flexlayout.h \
         src/gui/keyinputlabel.h \
         src/gui/noteswidget.h \
@@ -134,6 +133,7 @@ HEADERS += \
         src/gui/timerwidget.h \
         src/gui/tocbutton.h \
         src/gui/tocwidget.h \
+        src/gui/toolbutton.h \
         src/gui/toolselectorwidget.h \
         src/master.h \
         src/names.h \

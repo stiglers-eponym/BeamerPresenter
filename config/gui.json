@@ -89,12 +89,13 @@
                       [
                           {"tool":"pen", "color":"red", "width":5},
                           {"tool":"highlighter", "width":40},
-                          {"tool":"eraser"}
+                          {"tool":"eraser"},
+                          {"tool":"none"}
                       ],
                       [
                           {"tool":"pointer", "color":"green", "size":8},
                           {"tool":"torch", "color":"#88000f08", "size":100},
-                          {"tool":"none"}
+                          {"tool":"magnifier", "color":"red", "size":100}
                       ]
                   ]
               }

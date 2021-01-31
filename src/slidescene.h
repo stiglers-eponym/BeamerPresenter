@@ -128,9 +128,6 @@ protected:
      */
     bool event(QEvent *event) override;
 
-    /// Draw pointing tools in foreground
-    void drawForeground(QPainter *painter, const QRectF &rect) override;
-
     /// Stop drawing and convert just drawn path to regular path.
     void stopDrawing();
 
@@ -149,6 +146,8 @@ signals:
 
     /// Send new path to PdfMaster.
     void sendNewPath(const int page, QGraphicsItem *item) const;
+
+    void showMagnifier(QPainter *painter, const PointingTool *tool);
 };
 
 #endif // SLIDESCENE_H

@@ -4,6 +4,7 @@
 #include <QDebug>
 #include <QGraphicsView>
 #include <QResizeEvent>
+#include "src/drawing/pointingtool.h"
 
 class PixCache;
 class SlideScene;
@@ -66,6 +67,11 @@ public slots:
     void clearBackground() noexcept
     {currentPixmap = QPixmap();}
 
+    /// draw Magnifier
+    void showMagnifier(QPainter *painter, const PointingTool *tool);
+
+    void drawForeground(QPainter *painter, const QRectF &rect) override;
+
 signals:
     /// Inform cache that page is required.
     /// Resolution is given in pixels per point (dpi/72).
@@ -76,6 +82,8 @@ signals:
 
     /// Inform cache that widget has been resized.
     void resizeCache(const QSizeF &size) const;
+
+    void drawSceneForeground(QPainter *painter, const QRectF &rect);
 };
 
 #endif // SLIDE_H
