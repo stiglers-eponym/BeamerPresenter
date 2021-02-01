@@ -76,7 +76,6 @@ unix {
 ###########################################################
 
 SOURCES += \
-        src/drawing/pointingtool.cpp \
         src/gui/actionbutton.cpp \
         src/gui/clockwidget.cpp \
         src/gui/flexlayout.cpp \

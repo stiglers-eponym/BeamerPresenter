@@ -118,6 +118,10 @@ public:
     /// Finish handling draw and erase events.
     bool stopInputEvent(const QPointF &pos);
 
+    /// Check if currently a draw tool is active, i.e. something is drawn.
+    bool isDrawing() const noexcept
+    {return current_tool;}
+
 protected:
     /**
      * @brief handle pointing device events.
