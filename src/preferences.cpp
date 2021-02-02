@@ -424,3 +424,15 @@ Tool *Preferences::currentTool(const int device) const noexcept
     }
     return NULL;
 }
+
+void Preferences::replaceTool(Tool *oldtool, Tool *newtool)
+{
+    if (oldtool)
+    {
+        emit stopDrawing();
+        current_tools.remove(oldtool);
+        delete oldtool;
+    }
+    if (newtool)
+        current_tools.insert(newtool);
+}

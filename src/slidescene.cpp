@@ -484,6 +484,7 @@ bool SlideScene::stopInputEvent(const QPointF &pos)
         current_tool = NULL;
         return false;
     }
+    // TODO: handle links properly.
     master->resolveLink(page, pos);
     return false;
 }

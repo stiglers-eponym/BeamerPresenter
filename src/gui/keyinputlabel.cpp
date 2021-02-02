@@ -15,6 +15,21 @@ KeyInputLabel::KeyInputLabel(const quint32 init, const Action action, QWidget *p
     setFocusPolicy(Qt::ClickFocus);
 }
 
+KeyInputLabel::KeyInputLabel(const quint32 init, Tool *tool, QWidget *parent) :
+    QLabel(parent),
+    tool(tool),
+    sequence(init)
+{
+    setFrameStyle(QFrame::Panel | QFrame::Sunken);
+    setText(QKeySequence(init).toString());
+    setBackgroundRole(QPalette::Base);
+    QPalette palette = QPalette();
+    palette.setColor(QPalette::Base, Qt::white);
+    setPalette(palette);
+    setAutoFillBackground(true);
+    setFocusPolicy(Qt::ClickFocus);
+}
+
 void KeyInputLabel::keyPressEvent(QKeyEvent *event)
 {
     const int new_sequence = event->key() | (event->modifiers() & ~Qt::KeypadModifier);
@@ -36,7 +51,15 @@ void KeyInputLabel::keyPressEvent(QKeyEvent *event)
 
 void KeyInputLabel::changeAction(const QString &text) noexcept
 {
-    writable_preferences()->removeKeyAction(sequence, action);
-    action = string_to_action_map.value(text, action);
-    writable_preferences()->addKeyAction(sequence, action);
+    if (action != InvalidAction)
+    {
+        writable_preferences()->removeKeyAction(sequence, action);
+        action = string_to_action_map.value(text, action);
+        writable_preferences()->addKeyAction(sequence, action);
+    }
+    if (tool)
+    {
+        Tool *newtool = ToolDialog::selectTool(tool);
+        writable_preferences()->replaceTool(tool, newtool);
+    }
 }

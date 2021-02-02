@@ -93,6 +93,7 @@ SOURCES += \
         src/gui/tocbutton.cpp \
         src/gui/tocwidget.cpp \
         src/gui/toolbutton.cpp \
+        src/gui/tooldialog.cpp \
         src/gui/toolselectorwidget.cpp \
         src/main.cpp \
         src/master.cpp \
@@ -133,6 +134,7 @@ HEADERS += \
         src/gui/tocbutton.h \
         src/gui/tocwidget.h \
         src/gui/toolbutton.h \
+        src/gui/tooldialog.h \
         src/gui/toolselectorwidget.h \
         src/master.h \
         src/names.h \

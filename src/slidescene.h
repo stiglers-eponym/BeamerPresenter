@@ -116,7 +116,7 @@ public:
     void stepInputEvent(const QPointF &pos, const float pressure = 1.);
 
     /// Finish handling draw and erase events.
-    bool stopInputEvent(const QPointF &pos);
+    bool stopInputEvent(const QPointF &pos = {0,0});
 
     /// Check if currently a draw tool is active, i.e. something is drawn.
     bool isDrawing() const noexcept
@@ -132,10 +132,10 @@ protected:
      */
     bool event(QEvent *event) override;
 
+public slots:
     /// Stop drawing and convert just drawn path to regular path.
     void stopDrawing();
 
-public slots:
     /// Receive action. Currently does nothing.
     void receiveAction(const Action action);
 

@@ -9,6 +9,7 @@
 #include "src/drawing/drawtool.h"
 #include "src/drawing/pointingtool.h"
 #include "src/names.h"
+#include "src/gui/tooldialog.h"
 
 /**
  * @brief Tool button for drawing and pointing tools.
@@ -26,6 +27,9 @@ public:
 
 protected:
     virtual bool event(QEvent *event) noexcept override;
+
+public slots:
+    void setTool(Tool *newtool);
 
 signals:
     void sendTool(Tool *tool) const;

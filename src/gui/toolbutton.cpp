@@ -30,34 +30,46 @@ bool ToolButton::event(QEvent *event) noexcept
             [[clang::fallthrough]];
         case QEvent::TabletRelease:
         case QEvent::MouseButtonRelease:
-            Tool *newtool;
-            if (tool->tool() & AnyDrawTool)
-                newtool = new DrawTool(*static_cast<const DrawTool*>(tool));
-            else if (tool->tool() & AnyPointingTool)
-                newtool = new PointingTool(*static_cast<const PointingTool*>(tool));
-            else
-                newtool = new Tool(*tool);
-
-            // If tool doesn't have a device, choose a device based on the input.
-            if (tool->device() == NoDevice)
+            if (static_cast<QInputEvent*>(event)->modifiers() == Qt::CTRL)
             {
-                if (event->type() == QEvent::TabletRelease)
+                Tool *newtool = ToolDialog::selectTool(tool);
+                if (newtool)
                 {
-                    int device = tablet_device_to_input_device.value(static_cast<const QTabletEvent*>(event)->pointerType());
-                    if (tool->tool() == Pointer && (device & (TabletPen | TabletCursor)))
-                        device |= TabletNoPressure;
-                    newtool->setDevice(device);
+                    delete tool;
+                    tool = newtool;
                 }
-                else if (event->type() == QEvent::MouseButtonRelease)
-                {
-                    newtool->setDevice(static_cast<const QMouseEvent*>(event)->button() << 1);
-                    if (tool->tool() == Pointer)
-                        newtool->setDevice(newtool->device() | MouseNoButton);
-                }
-                else
-                    newtool->setDevice(TouchInput);
             }
-            emit sendTool(newtool);
+            else
+            {
+                Tool *newtool;
+                if (tool->tool() & AnyDrawTool)
+                    newtool = new DrawTool(*static_cast<const DrawTool*>(tool));
+                else if (tool->tool() & AnyPointingTool)
+                    newtool = new PointingTool(*static_cast<const PointingTool*>(tool));
+                else
+                    newtool = new Tool(*tool);
+
+                // If tool doesn't have a device, choose a device based on the input.
+                if (tool->device() == NoDevice)
+                {
+                    if (event->type() == QEvent::TabletRelease)
+                    {
+                        int device = tablet_device_to_input_device.value(static_cast<const QTabletEvent*>(event)->pointerType());
+                        if (tool->tool() == Pointer && (device & (TabletPen | TabletCursor)))
+                            device |= TabletNoPressure;
+                        newtool->setDevice(device);
+                    }
+                    else if (event->type() == QEvent::MouseButtonRelease)
+                    {
+                        newtool->setDevice(static_cast<const QMouseEvent*>(event)->button() << 1);
+                        if (tool->tool() == Pointer)
+                            newtool->setDevice(newtool->device() | MouseNoButton);
+                    }
+                    else
+                        newtool->setDevice(TouchInput);
+                }
+                emit sendTool(newtool);
+            }
             setDown(false);
             event->accept();
             return true;
@@ -66,4 +78,10 @@ bool ToolButton::event(QEvent *event) noexcept
         }
     }
     return QPushButton::event(event);
+}
+
+void ToolButton::setTool(Tool *newtool)
+{
+    delete tool;
+    tool = newtool;
 }

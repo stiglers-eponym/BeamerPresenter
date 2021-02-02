@@ -288,6 +288,7 @@ QWidget* Master::createWidget(QJsonObject &object, QWidget *parent)
                 doc->getScenes().append(scene);
             connect(this, &Master::sendAction, scene, &SlideScene::receiveAction);
             connect(this, &Master::prepareNavigationSignal, scene, &SlideScene::prepareNavigationEvent);
+            connect(preferences(), &Preferences::stopDrawing, scene, &SlideScene::stopDrawing);
         }
         else if (object.value("master").toBool())
         {
