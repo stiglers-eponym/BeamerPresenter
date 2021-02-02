@@ -143,6 +143,7 @@ enum GuiWidget
  */
 enum InputDevice
 {
+    NoDevice = 0,
     MouseNoButton = 1,
     MouseLeftButton = Qt::LeftButton << 1,
     MouseRightButton = Qt::RightButton << 1,

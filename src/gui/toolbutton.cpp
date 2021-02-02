@@ -38,16 +38,25 @@ bool ToolButton::event(QEvent *event) noexcept
             else
                 newtool = new Tool(*tool);
 
-            if (event->type() == QEvent::TabletRelease)
-                newtool->setDevice(tablet_device_to_input_device.value(static_cast<const QTabletEvent*>(event)->pointerType()));
-            else if (event->type() == QEvent::MouseButtonRelease)
+            // If tool doesn't have a device, choose a device based on the input.
+            if (tool->device() == NoDevice)
             {
-                newtool->setDevice(static_cast<const QMouseEvent*>(event)->button() << 1);
-                if (tool->tool() == Pointer)
-                    newtool->setDevice(newtool->device() | MouseNoButton);
+                if (event->type() == QEvent::TabletRelease)
+                {
+                    int device = tablet_device_to_input_device.value(static_cast<const QTabletEvent*>(event)->pointerType());
+                    if (tool->tool() == Pointer && (device & (TabletPen | TabletCursor)))
+                        device |= TabletNoPressure;
+                    newtool->setDevice(device);
+                }
+                else if (event->type() == QEvent::MouseButtonRelease)
+                {
+                    newtool->setDevice(static_cast<const QMouseEvent*>(event)->button() << 1);
+                    if (tool->tool() == Pointer)
+                        newtool->setDevice(newtool->device() | MouseNoButton);
+                }
+                else
+                    newtool->setDevice(TouchInput);
             }
-            else
-                newtool->setDevice(TouchInput);
             emit sendTool(newtool);
             setDown(false);
             event->accept();

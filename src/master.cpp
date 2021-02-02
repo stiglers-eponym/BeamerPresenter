@@ -614,14 +614,17 @@ void Master::setTool(Tool *tool) const noexcept
     if (!tool || !tool->device())
         return;
     debug_msg(DebugDrawing|DebugKeyInput) << "Set tool" << tool->tool() << tool->device();
-    const int device = tool->device();
+    int device = tool->device();
+    // Delete mouse no button devices if MouseLeftButton is overwritten.
+    if (tool->device() & MouseLeftButton)
+        device |= MouseNoButton;
     int newdevice;
     for (auto tool_it = preferences()->current_tools.cbegin(); tool_it != preferences()->current_tools.cend();)
     {
         if ((*tool_it)->device() & device)
         {
             newdevice = (*tool_it)->device() & ~device;
-            if (newdevice && (newdevice != MouseNoButton))
+            if (newdevice)
                 (*tool_it++)->setDevice(newdevice);
             else
             {

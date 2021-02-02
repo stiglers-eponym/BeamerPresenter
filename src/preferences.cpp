@@ -4,6 +4,7 @@
 Tool *createTool(const QJsonObject &obj)
 {
     const BasicTool base_tool = string_to_tool.value(obj.value("tool").toString());
+    Tool *tool;
     switch (base_tool)
     {
     case Pen:
@@ -11,41 +12,55 @@ Tool *createTool(const QJsonObject &obj)
         const QColor color(obj.value("color").toString("black"));
         const float width = obj.value("width").toDouble(2.);
         const Qt::PenStyle style = string_to_pen_style.value(obj.value("style").toString(), Qt::SolidLine);
-        return new DrawTool(Pen, AnyDevice, QPen(color, width, style, Qt::RoundCap, Qt::RoundJoin));
+        tool = new DrawTool(Pen, AnyDevice, QPen(color, width, style, Qt::RoundCap, Qt::RoundJoin));
+        break;
     }
     case Highlighter:
     {
         const QColor color(obj.value("color").toString("yellow"));
         const float width = obj.value("width").toDouble(20.);
         const Qt::PenStyle style = string_to_pen_style.value(obj.value("style").toString(), Qt::SolidLine);
-        return new DrawTool(Highlighter, AnyDevice, QPen(color, width, style, Qt::RoundCap, Qt::RoundJoin), QPainter::CompositionMode_Darken);
+        tool = new DrawTool(Highlighter, AnyDevice, QPen(color, width, style, Qt::RoundCap, Qt::RoundJoin), QPainter::CompositionMode_Darken);
+        break;
     }
     case Pointer:
     {
         const QColor color(obj.value("color").toString("red"));
         const float size = obj.value("size").toDouble(5.);
-        return new PointingTool(Pointer, size, color, AnyDevice);
+        tool = new PointingTool(Pointer, size, color, AnyDevice);
+        break;
     }
     case Torch:
     {
         const QColor color(obj.value("color").toString("#80000000"));
         const float size = obj.value("size").toDouble(80.);
-        return new PointingTool(Torch, size, color, AnyDevice);
+        tool = new PointingTool(Torch, size, color, AnyDevice);
+        break;
     }
     case Magnifier:
     {
         const QColor color(obj.value("color").toString("black"));
         const float size = obj.value("size").toDouble(120.);
-        PointingTool *tool = new PointingTool(Magnifier, size, color, AnyDevice);
+        PointingTool *pointing_tool = new PointingTool(Magnifier, size, color, AnyDevice);
         if (obj.contains("scale"))
-            tool->setScale(obj.value("scale").toDouble(2.));
-        return tool;
+            pointing_tool->setScale(obj.value("scale").toDouble(2.));
+        tool = pointing_tool;
+        break;
     }
     case InvalidTool:
         return NULL;
     default:
-        return new Tool(base_tool, AnyDevice);
+        tool = new Tool(base_tool, AnyDevice);
     }
+    int device = 0;
+    const QJsonValue dev_obj = obj.value("device");
+    if (dev_obj.isString())
+        device |= string_to_input_device.value(dev_obj.toString());
+    else if (dev_obj.isArray())
+        for (const auto &dev : static_cast<const QJsonArray>(obj.value("devices").toArray()))
+            device |= string_to_input_device.value(dev.toString());
+    tool->setDevice(device);
+    return tool;
 }
 
 

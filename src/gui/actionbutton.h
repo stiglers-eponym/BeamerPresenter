@@ -6,6 +6,8 @@
 
 /**
  * @brief Button which sends Action when clicked.
+ *
+ * TODO: allow combining multiple actions
  */
 class ActionButton : public QPushButton
 {
