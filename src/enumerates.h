@@ -82,6 +82,9 @@ enum Action
     UndoDrawing,
     RedoDrawing,
     ClearDrawing,
+    ScrollDown,
+    ScrollUp,
+    ScrollNormal,
     // Timer
     StartTimer,
     StopTimer,
@@ -104,19 +107,20 @@ enum BasicTool
 {
     // Invalid
     InvalidTool = 0,
-    // Draw tools: first 4 bits
+    // Draw tools: first 4 bits, class DrawTool
     Pen = 1 << 0,
     FixedWidthPen = 2 << 0,
     Highlighter = 3 << 0,
-    Eraser = 4 << 0,
     AnyDrawTool = 0x0f << 0,
-    // Highlighting tools: next 4 bits
+    // Highlighting tools: next 4 bits, class PointingTool
     Pointer = 1 << 4,
     Torch = 2 << 4,
     Magnifier = 3 << 4,
     AnyPointingTool = 0x0f << 4,
+    // Other tools, class Tool
+    Eraser = 1 << 8,
     // No tool
-    NoTool = 1 << 8,
+    NoTool = 1 << 10,
 };
 
 enum GuiWidget
@@ -155,6 +159,7 @@ enum InputDevice
     TabletNoPressure = 1 << 8,
     TouchInput = 1 << 9,
     AnyDevice = 0xffff,
+    AnyNormalDevice = AnyDevice ^ (TabletEraser | MouseRightButton | MouseMiddleButton),
 };
 
 #endif // ENUMERATES_H

@@ -43,7 +43,7 @@ void SlideView::pageChanged(const int page, SlideScene *scene)
 
 void SlideView::drawBackground(QPainter *painter, const QRectF &rect)
 {
-    painter->drawPixmap(scene()->sceneRect(), currentPixmap, currentPixmap.rect());
+    painter->drawPixmap({{0,0}, scene()->sceneRect().size()}, currentPixmap, currentPixmap.rect());
 }
 
 void SlideView::pageReady(const QPixmap pixmap, const int page)
@@ -146,30 +146,34 @@ void SlideView::showMagnifier(QPainter *painter, const PointingTool *tool)
         path.addEllipse(scene_rect);
         painter->setClipPath(path);
         painter->setRenderHints(QPainter::SmoothPixmapTransform);
-        if (enlargedPixmap.isNull())
+        painter->fillPath(path, QBrush(palette().base()));
+        if (path.intersects(sceneRect()))
         {
-            const qreal scale = currentPixmap.width() / sceneRect().width();
-            QRectF pixmap_rect(pos.x()-tool->size()/tool->scale(), pos.y()-tool->size()/tool->scale(), tool->size()*2/tool->scale(), tool->size()*2/tool->scale());
-            pixmap_rect.setRect(scale*pixmap_rect.x(), scale*pixmap_rect.y(), scale*pixmap_rect.width(), scale*pixmap_rect.height());
-            painter->drawPixmap(scene_rect, currentPixmap, pixmap_rect);
-        }
-        else
-        {
-            const qreal scale = enlargedPixmap.width() / sceneRect().width();
-            QRectF pixmap_rect(pos.x()-tool->size()/tool->scale(), pos.y()-tool->size()/tool->scale(), tool->size()*2/tool->scale(), tool->size()*2/tool->scale());
-            pixmap_rect.setRect(scale*pixmap_rect.x(), scale*pixmap_rect.y(), scale*pixmap_rect.width(), scale*pixmap_rect.height());
-            painter->drawPixmap(scene_rect, enlargedPixmap, pixmap_rect);
-        }
-        // Draw paths. But don't do that while something is being drawn.
-        // That could lead to a segmentation fault.
-        if (!static_cast<SlideScene*>(scene())->isDrawing())
-        {
-            painter->save();
-            //painter->setTransform(QTransform::fromScale(tool->scale(),tool->scale()).translate(-tool->pos().x()*(1-1/tool->scale()), -tool->pos().y()*(1-1/tool->scale())), true);
-            painter->setTransform(QTransform::fromTranslate(pos.x()*(1-tool->scale()), pos.y()*(1-tool->scale())).scale(tool->scale(),tool->scale()), true);
-            for (const auto item : static_cast<const QList<QGraphicsItem*>>(items()))
-                item->paint(painter, NULL, this);
-            painter->restore();
+            if (enlargedPixmap.isNull())
+            {
+                const qreal scale = currentPixmap.width() / sceneRect().width();
+                QRectF pixmap_rect(pos.x()-tool->size()/tool->scale(), pos.y()-tool->size()/tool->scale(), tool->size()*2/tool->scale(), tool->size()*2/tool->scale());
+                pixmap_rect.setRect(scale*pixmap_rect.x(), scale*pixmap_rect.y(), scale*pixmap_rect.width(), scale*pixmap_rect.height());
+                painter->drawPixmap(scene_rect, currentPixmap, pixmap_rect);
+            }
+            else
+            {
+                const qreal scale = enlargedPixmap.width() / sceneRect().width();
+                QRectF pixmap_rect(pos.x()-tool->size()/tool->scale(), pos.y()-tool->size()/tool->scale(), tool->size()*2/tool->scale(), tool->size()*2/tool->scale());
+                pixmap_rect.setRect(scale*pixmap_rect.x(), scale*pixmap_rect.y(), scale*pixmap_rect.width(), scale*pixmap_rect.height());
+                painter->drawPixmap(scene_rect, enlargedPixmap, pixmap_rect);
+            }
+            // Draw paths. But don't do that while something is being drawn.
+            // That could lead to a segmentation fault.
+            if (!static_cast<SlideScene*>(scene())->isDrawing())
+            {
+                painter->save();
+                //painter->setTransform(QTransform::fromScale(tool->scale(),tool->scale()).translate(-tool->pos().x()*(1-1/tool->scale()), -tool->pos().y()*(1-1/tool->scale())), true);
+                painter->setTransform(QTransform::fromTranslate(pos.x()*(1-tool->scale()), pos.y()*(1-tool->scale())).scale(tool->scale(),tool->scale()), true);
+                for (const auto item : static_cast<const QList<QGraphicsItem*>>(items()))
+                    item->paint(painter, NULL, this);
+                painter->restore();
+            }
         }
     }
 }
@@ -206,7 +210,10 @@ void SlideView::drawForeground(QPainter *painter, const QRectF &rect)
             for (const auto &pos : tool->pos())
                 path.addEllipse(pos, tool->size(), tool->size());
             QPainterPath fullpath;
-            fullpath.addRect(sceneRect());
+            QRectF fullrect({-viewportTransform().m31(), -viewportTransform().m32()}, size());
+            fullrect.setSize(fullrect.size()/viewportTransform().m11());
+            fullrect.moveTo(fullrect.topLeft()/viewportTransform().m11());
+            fullpath.addRect(fullrect);
             painter->fillPath(fullpath - path, tool->color());
             break;
         }

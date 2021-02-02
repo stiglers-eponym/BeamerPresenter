@@ -12,7 +12,7 @@ Tool *createTool(const QJsonObject &obj)
         const QColor color(obj.value("color").toString("black"));
         const float width = obj.value("width").toDouble(2.);
         const Qt::PenStyle style = string_to_pen_style.value(obj.value("style").toString(), Qt::SolidLine);
-        tool = new DrawTool(Pen, AnyDevice, QPen(color, width, style, Qt::RoundCap, Qt::RoundJoin));
+        tool = new DrawTool(Pen, AnyNormalDevice, QPen(color, width, style, Qt::RoundCap, Qt::RoundJoin));
         break;
     }
     case Highlighter:
@@ -20,28 +20,28 @@ Tool *createTool(const QJsonObject &obj)
         const QColor color(obj.value("color").toString("yellow"));
         const float width = obj.value("width").toDouble(20.);
         const Qt::PenStyle style = string_to_pen_style.value(obj.value("style").toString(), Qt::SolidLine);
-        tool = new DrawTool(Highlighter, AnyDevice, QPen(color, width, style, Qt::RoundCap, Qt::RoundJoin), QPainter::CompositionMode_Darken);
+        tool = new DrawTool(Highlighter, AnyNormalDevice, QPen(color, width, style, Qt::RoundCap, Qt::RoundJoin), QPainter::CompositionMode_Darken);
         break;
     }
     case Pointer:
     {
         const QColor color(obj.value("color").toString("red"));
         const float size = obj.value("size").toDouble(5.);
-        tool = new PointingTool(Pointer, size, color, AnyDevice);
+        tool = new PointingTool(Pointer, size, color, AnyNormalDevice);
         break;
     }
     case Torch:
     {
         const QColor color(obj.value("color").toString("#80000000"));
         const float size = obj.value("size").toDouble(80.);
-        tool = new PointingTool(Torch, size, color, AnyDevice);
+        tool = new PointingTool(Torch, size, color, AnyNormalDevice);
         break;
     }
     case Magnifier:
     {
         const QColor color(obj.value("color").toString("black"));
         const float size = obj.value("size").toDouble(120.);
-        PointingTool *pointing_tool = new PointingTool(Magnifier, size, color, AnyDevice);
+        PointingTool *pointing_tool = new PointingTool(Magnifier, size, color, AnyNormalDevice);
         if (obj.contains("scale"))
             pointing_tool->setScale(obj.value("scale").toDouble(2.));
         tool = pointing_tool;
@@ -50,7 +50,7 @@ Tool *createTool(const QJsonObject &obj)
     case InvalidTool:
         return NULL;
     default:
-        tool = new Tool(base_tool, AnyDevice);
+        tool = new Tool(base_tool, AnyNormalDevice);
     }
     int device = 0;
     const QJsonValue dev_obj = obj.value("device");
@@ -219,17 +219,17 @@ void Preferences::loadSettings()
                             if (!value.isObject())
                                 continue;
                             const QJsonObject object = value.toObject();
-                            int device = AnyDevice;
+                            int device = AnyNormalDevice;
                             const QJsonValue json_device = object.value("device");
                             if (json_device.isString())
-                                device = string_to_input_device.value(json_device.toString(), AnyDevice);
+                                device = string_to_input_device.value(json_device.toString(), AnyNormalDevice);
                             else if (json_device.isArray())
                             {
                                 device = 0;
                                 for (const auto &dev_string : static_cast<const QJsonArray>(json_device.toArray()))
                                     device |= string_to_input_device.value(dev_string.toString(), 0);
                                 if (device == 0)
-                                    device = AnyDevice;
+                                    device = AnyNormalDevice;
                             }
                             Tool *tool = createTool(object);
                             if (tool)

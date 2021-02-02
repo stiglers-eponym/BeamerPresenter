@@ -618,6 +618,9 @@ void Master::setTool(Tool *tool) const noexcept
     // Delete mouse no button devices if MouseLeftButton is overwritten.
     if (tool->device() & MouseLeftButton)
         device |= MouseNoButton;
+    // Delete tablet no pressure device if any tablet device is overwritten.
+    if (tool->device() & (TabletCursor | TabletPen | TabletEraser))
+        device |= TabletNoPressure;
     int newdevice;
     for (auto tool_it = preferences()->current_tools.cbegin(); tool_it != preferences()->current_tools.cend();)
     {

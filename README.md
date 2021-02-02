@@ -12,6 +12,7 @@ This software uses the Qt framework and the PDF engines MuPDF and/or poppler.
 * render slides to compressed cache for fast response
 * poppler or MuPDF (new in 0.2.x) as PDF engine
 * draw in slides (improved in 0.2.x)
+* highlighting tools (torch, magnifier, pointer)
 * notes for the speaker in Markdown format (new in 0.2.x)
 * optionally to show separate file for speaker
 * optionally use LaTeX-beamer's option to show notes on second screen and split PDF pages into a part for the speaker and a part or the audience
@@ -19,7 +20,6 @@ This software uses the Qt framework and the PDF engines MuPDF and/or poppler.
 * simple navigation using document outline, thumbnail slides, or navigation by page label
 
 ### Currently NOT supported in version 0.2.x
-* highlighting tools (torch, magnifier, pointer) (only 0.1.x)
 * multimedia content on slides (only 0.1.x)
 * slide transitions (only 0.1.x)
 * save/load drawings (only 0.1.x)
@@ -117,6 +117,7 @@ The configuration files of version 0.2.x and 0.1.x are incompatible.
 * navigation skipping overlays
 * build flexible GUI from config (not really stable)
 * draw and erase using tablet input device with variable pressure (wacom)
+* highlighting tools: pointer, torch, magnifier
 * full per-slide history of drawings (with limitation of number of history steps)
 * widgets:
     * slide
@@ -132,7 +133,7 @@ The configuration files of version 0.2.x and 0.1.x are incompatible.
 #### To be implemented
 * improve cache management and layout corrections: sometimes cache is not used correctly.
 * avoid fatal error when stopping program while cache threads are running
-* cache slides even when size of slides varies
+* cache slides even when size of slides varies (partially implemented)
 * cache only required slides in previews showing specific overlays
 * fix layout, avoid recalculating full layout when clock label changes text
 * immediately update slides to fit window size (currently this is only done when changing the slide or manually updating)
@@ -141,7 +142,6 @@ The configuration files of version 0.2.x and 0.1.x are incompatible.
 * multimedia
 * option to insert extra slides or extra space below slide for drawing
 * switch between per-slide and per-overlay drawings
-* highlighting tools: pointer, torch, magnifier
 * save and load drawings to xopp-like xml format
 * improve widgets:
     * settings (GUI for config files, experimental version already available)

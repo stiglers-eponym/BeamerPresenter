@@ -16,7 +16,8 @@
             "transitions" : false,
             "multimedia" : true,
             "cache hash" : 1,
-            "threads" : 3
+            "threads" : 3,
+            "color" : "white"
           },
           {
             "type" : "toc",
@@ -85,17 +86,17 @@
               {
                   "type" : "tool selector",
                   "buttons" : [
-                      ["start timer", "stop timer", "reset timer"],
+                      ["start timer", "stop timer", "scroll down", "scroll up", "scroll normal"],
                       [
-                          {"tool":"pen", "color":"red", "width":5},
-                          {"tool":"highlighter", "width":40},
+                          {"tool":"pen", "color":"red", "width":2},
+                          {"tool":"highlighter", "width":20},
                           {"tool":"eraser"},
                           {"tool":"none"}
                       ],
                       [
-                          {"tool":"pointer", "color":"green", "size":8, "device":"all"},
-                          {"tool":"torch", "color":"#88000f08", "size":120},
-                          {"tool":"magnifier", "color":"gray", "size":150, "scale":1.8}
+                          {"tool":"pointer", "color":"green", "size":4, "device":"all"},
+                          {"tool":"torch", "color":"#88000f08", "size":50},
+                          {"tool":"magnifier", "color":"gray", "size":75, "scale":1.8}
                       ]
                   ]
               }
@@ -121,6 +122,6 @@
     "threads" : 3,
     "master" : true,
     "cache hash" : 0,
-    "color" : "black"
+    "color" : "white"
   }
 ]

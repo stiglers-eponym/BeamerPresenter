@@ -74,6 +74,9 @@ static const QMap<QString, Action> string_to_action_map
     {"start timer", StartTimer},
     {"stop timer", StopTimer},
     {"reset timer", ResetTimePassed},
+    {"scroll up", ScrollUp},
+    {"scroll down", ScrollDown},
+    {"scroll normal", ScrollNormal},
     {"quit", Quit},
 };
 
@@ -128,7 +131,7 @@ static const QMap<QString, int> string_to_input_device
     {"tablet", TabletPen | TabletCursor | TabletOther},
     {"tablet eraser", TabletEraser},
     {"tablet all", TabletPen | TabletCursor | TabletOther | TabletEraser},
-    {"all", AnyDevice},
+    {"all", AnyNormalDevice},
     {"mouse", MouseLeftButton},
     {"left button", MouseLeftButton},
     {"right button", MouseRightButton},
