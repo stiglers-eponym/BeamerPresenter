@@ -132,6 +132,8 @@ static const QMap<QString, int> string_to_input_device
     {"tablet eraser", TabletEraser},
     {"tablet all", TabletPen | TabletCursor | TabletOther | TabletEraser},
     {"all", AnyNormalDevice},
+    {"all+", AnyPointingDevice},
+    {"all++", AnyDevice},
     {"mouse", MouseLeftButton},
     {"left button", MouseLeftButton},
     {"right button", MouseRightButton},

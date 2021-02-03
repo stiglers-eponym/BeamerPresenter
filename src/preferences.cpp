@@ -439,14 +439,25 @@ Tool *Preferences::currentTool(const int device) const noexcept
 
 void Preferences::replaceKeyTool(const int keys, Tool *newtool)
 {
-    if (keys)
-    {
-        emit stopDrawing();
-        qDeleteAll(key_tools.values(keys));
-        key_tools.remove(keys);
-        key_tools.insert(keys, newtool);
-    }
+    if (!keys)
+        return;
+    emit stopDrawing();
+    qDeleteAll(key_tools.values(keys));
+    key_tools.remove(keys);
     if (newtool)
         key_tools.insert(keys, newtool);
+    // TODO: save to settings file!
+}
+
+void Preferences::replaceKeyToolShortcut(const int oldkeys, const int newkeys, Tool *tool)
+{
+    key_tools.remove(oldkeys, tool);
+    if (newkeys)
+        key_tools.insert(newkeys, tool);
+    else
+    {
+        emit stopDrawing();
+        delete tool;
+    }
     // TODO: save to settings file!
 }

@@ -159,7 +159,8 @@ enum InputDevice
     TabletNoPressure = 1 << 8,
     TouchInput = 1 << 9,
     AnyDevice = 0xffff,
-    AnyNormalDevice = AnyDevice ^ (TabletEraser | MouseRightButton | MouseMiddleButton),
+    AnyPointingDevice = AnyDevice ^ (TabletEraser | MouseRightButton | MouseMiddleButton),
+    AnyNormalDevice = AnyPointingDevice ^ (TabletNoPressure | MouseNoButton),
 };
 
 #endif // ENUMERATES_H

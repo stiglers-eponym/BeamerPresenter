@@ -22,6 +22,7 @@ class KeyInputLabel : public QLabel
 public:
     explicit KeyInputLabel(const quint32 init, const Action action, QWidget *parent = NULL);
     explicit KeyInputLabel(const quint32 init, Tool *tool, QWidget *parent = NULL);
+    ~KeyInputLabel();
 
 protected:
     void keyPressEvent(QKeyEvent *event) override;

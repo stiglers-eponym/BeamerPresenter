@@ -11,6 +11,7 @@ ToolDialog::ToolDialog(QWidget *parent) :
     // Basic tool
     for (auto it = string_to_tool.cbegin(); it != string_to_tool.cend(); ++it)
         tool_box->addItem(it.key());
+    connect(tool_box, &QComboBox::currentTextChanged, this, &ToolDialog::adaptToBasicTool);
     tool_box->setCurrentText("invalid");
     layout->addRow("Tool:", tool_box);
 
@@ -34,6 +35,7 @@ ToolDialog::ToolDialog(QWidget *parent) :
     }
 
     // Size
+    size_box->setMaximum(999.99);
     layout->addRow("Size:", size_box);
 
     // Exit
@@ -44,10 +46,33 @@ ToolDialog::ToolDialog(QWidget *parent) :
     setLayout(layout);
 }
 
+void ToolDialog::adaptToBasicTool(const QString &text)
+{
+    switch (string_to_tool.value(text))
+    {
+    case Eraser:
+    case Magnifier:
+        color_button->hide();
+        break;
+    case Pen:
+    case Highlighter:
+    case Torch:
+    case Pointer:
+    case FixedWidthPen:
+        color_button->show();
+        break;
+    case NoTool:
+    case InvalidTool:
+        color_button->hide();
+        break;
+    }
+}
+
 Tool *ToolDialog::selectTool(const Tool *oldtool)
 {
     ToolDialog dialog;
-    dialog.setDefault(oldtool);
+    if (oldtool)
+        dialog.setDefault(oldtool);
     dialog.exec();
     return dialog.createTool();
 }

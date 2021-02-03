@@ -88,9 +88,10 @@ SettingsWidget::SettingsWidget(QWidget *parent) :
 void SettingsWidget::appendShortcut()
 {
     QComboBox *select_menu = new QComboBox(shortcuts);
+    select_menu->addItem("tool...");
     for (auto it=string_to_action_map.cbegin(); it!=string_to_action_map.cend(); ++it)
         select_menu->addItem(it.key());
-    select_menu->addItem("tool...");
+    select_menu->setCurrentText("update");
     KeyInputLabel *input_shortcut = new KeyInputLabel(0, Action::InvalidAction, shortcuts);
     QFormLayout *layout = static_cast<QFormLayout*>(shortcuts->layout());
     connect(select_menu, &QComboBox::currentTextChanged, input_shortcut, &KeyInputLabel::changeAction);

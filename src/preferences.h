@@ -143,6 +143,7 @@ public:
 
     Tool *currentTool(const int device) const noexcept;
     void replaceKeyTool(const int keys, Tool *newtool);
+    void replaceKeyToolShortcut(const int oldkeys, const int newkeys, Tool *tool);
 
     void addKeyAction(const quint32 sequence, const Action action);
     void removeKeyAction(const quint32 sequence, const Action action);

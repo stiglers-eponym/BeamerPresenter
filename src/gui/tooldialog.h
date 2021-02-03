@@ -35,6 +35,9 @@ public:
     /// Create and return a new tool based on current settings.
     Tool *createTool() const;
 
+    /// Adjust selection possibilities according to basic tool.
+    void adaptToBasicTool(const QString &text);
+
     /// Set color button color.
     void setColor();
 
