@@ -125,6 +125,9 @@ bool SlideView::event(QEvent *event)
 
 void SlideView::showMagnifier(QPainter *painter, const PointingTool *tool)
 {
+    painter->setCompositionMode(QPainter::CompositionMode_SourceOver);
+    painter->setRenderHints(QPainter::SmoothPixmapTransform);
+    painter->setPen(tool->color());
     if (enlargedPixmap.isNull() && waitingForPage == INT_MAX)
     {
         const int page = static_cast<SlideScene*>(scene())->getPage();
@@ -145,7 +148,6 @@ void SlideView::showMagnifier(QPainter *painter, const PointingTool *tool)
         QPainterPath path;
         path.addEllipse(scene_rect);
         painter->setClipPath(path);
-        painter->setRenderHints(QPainter::SmoothPixmapTransform);
         painter->fillPath(path, QBrush(palette().base()));
         if (path.intersects(sceneRect()))
         {
@@ -175,6 +177,7 @@ void SlideView::showMagnifier(QPainter *painter, const PointingTool *tool)
                 painter->restore();
             }
         }
+        painter->drawEllipse(pos, tool->size(), tool->size());
     }
 }
 
@@ -219,10 +222,6 @@ void SlideView::drawForeground(QPainter *painter, const QRectF &rect)
         }
         case Magnifier:
         {
-            painter->setCompositionMode(QPainter::CompositionMode_SourceOver);
-            painter->setPen(tool->color());
-            for (const auto &pos : tool->pos())
-                painter->drawEllipse(pos, tool->size(), tool->size());
             showMagnifier(painter, tool);
             break;
         }

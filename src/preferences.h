@@ -142,7 +142,7 @@ public:
     void loadFromParser(const QCommandLineParser &parser);
 
     Tool *currentTool(const int device) const noexcept;
-    void replaceTool(Tool *oldtool, Tool *newtool);
+    void replaceKeyTool(const int keys, Tool *newtool);
 
     void addKeyAction(const quint32 sequence, const Action action);
     void removeKeyAction(const quint32 sequence, const Action action);

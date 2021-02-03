@@ -51,15 +51,24 @@ void KeyInputLabel::keyPressEvent(QKeyEvent *event)
 
 void KeyInputLabel::changeAction(const QString &text) noexcept
 {
-    if (action != InvalidAction)
+    if (text == "tool...")
     {
-        writable_preferences()->removeKeyAction(sequence, action);
-        action = string_to_action_map.value(text, action);
-        writable_preferences()->addKeyAction(sequence, action);
-    }
-    if (tool)
-    {
+        if (action != InvalidAction)
+            writable_preferences()->removeKeyAction(sequence, action);
         Tool *newtool = ToolDialog::selectTool(tool);
-        writable_preferences()->replaceTool(tool, newtool);
+        writable_preferences()->replaceKeyTool(sequence, newtool);
+        tool = newtool;
+        action = InvalidAction;
+    }
+    else
+    {
+        if (action != InvalidAction)
+            writable_preferences()->removeKeyAction(sequence, action);
+        action = string_to_action_map.value(text, action);
+        if (action != InvalidAction)
+            writable_preferences()->addKeyAction(sequence, action);
+        if (tool)
+            writable_preferences()->replaceKeyTool(sequence, NULL);
+        tool = NULL;
     }
 }

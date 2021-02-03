@@ -2,10 +2,11 @@
 
 ToolButton::ToolButton(Tool *tool, QWidget *parent) noexcept :
         QPushButton(parent),
-        tool(tool)
+        tool(NULL)
 {
     setFocusPolicy(Qt::NoFocus);
     setAttribute(Qt::WA_AcceptTouchEvents);
+    setTool(tool);
 }
 
 bool ToolButton::event(QEvent *event) noexcept
@@ -32,12 +33,8 @@ bool ToolButton::event(QEvent *event) noexcept
         case QEvent::MouseButtonRelease:
             if (static_cast<QInputEvent*>(event)->modifiers() == Qt::CTRL)
             {
-                Tool *newtool = ToolDialog::selectTool(tool);
-                if (newtool)
-                {
-                    delete tool;
-                    tool = newtool;
-                }
+                setTool(ToolDialog::selectTool(tool));
+                // TODO: save to GUI config
             }
             else
             {
@@ -82,6 +79,42 @@ bool ToolButton::event(QEvent *event) noexcept
 
 void ToolButton::setTool(Tool *newtool)
 {
+    if (!newtool)
+        return;
+    switch (newtool->tool())
+    {
+    case Pen:
+    {
+        QPalette newpalette = palette();
+        const QColor color = static_cast<DrawTool*>(newtool)->color();
+        newpalette.setColor(color.lightness() > 50 ? QPalette::Button : QPalette::ButtonText, color);
+        setPalette(newpalette);
+        setText("pen");
+        break;
+    }
+    case Highlighter:
+    {
+        QPalette newpalette = palette();
+        newpalette.setColor(QPalette::Button, static_cast<DrawTool*>(newtool)->color());
+        setPalette(newpalette);
+        setText("highlight");
+        break;
+    }
+    case Eraser:
+        setText("eraser");
+        break;
+    case Pointer:
+    {
+        QPalette newpalette = palette();
+        newpalette.setColor(QPalette::Button, static_cast<PointingTool*>(newtool)->color());
+        setPalette(newpalette);
+        setText("pointer");
+        break;
+    }
+    default:
+        setText(string_to_tool.key(newtool->tool()));
+        break;
+    }
     delete tool;
     tool = newtool;
 }

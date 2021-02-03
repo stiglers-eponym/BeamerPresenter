@@ -395,8 +395,8 @@ QWidget* Master::createWidget(QJsonObject &object, QWidget *parent)
                 }
             }
         }
-        connect(toolwidget, &ToolSelectorWidget::sendAction, this, &Master::handleAction);
-        connect(toolwidget, &ToolSelectorWidget::sendTool, this, &Master::setTool);
+        connect(toolwidget, &ToolSelectorWidget::sendAction, this, &Master::handleAction, Qt::QueuedConnection);
+        connect(toolwidget, &ToolSelectorWidget::sendTool, this, &Master::setTool, Qt::QueuedConnection);
         widget = toolwidget;
         break;
     }

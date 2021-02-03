@@ -23,40 +23,6 @@ void ToolSelectorWidget::addActionButton(const int i, const int j, const QString
 void ToolSelectorWidget::addToolButton(const int i, const int j, Tool *tool)
 {
     ToolButton *button = new ToolButton(tool, this);
-    switch (tool->tool())
-    {
-    case Pen:
-    {
-        QPalette newpalette = button->palette();
-        const QColor color = static_cast<DrawTool*>(tool)->color();
-        newpalette.setColor(color.lightness() > 50 ? QPalette::Button : QPalette::ButtonText, color);
-        button->setPalette(newpalette);
-        button->setText("pen");
-        break;
-    }
-    case Highlighter:
-    {
-        QPalette newpalette = button->palette();
-        newpalette.setColor(QPalette::Button, static_cast<DrawTool*>(tool)->color());
-        button->setPalette(newpalette);
-        button->setText("highlight");
-        break;
-    }
-    case Eraser:
-        button->setText("eraser");
-        break;
-    case Pointer:
-    {
-        QPalette newpalette = button->palette();
-        newpalette.setColor(QPalette::Button, static_cast<PointingTool*>(tool)->color());
-        button->setPalette(newpalette);
-        button->setText("pointer");
-        break;
-    }
-    default:
-        button->setText(string_to_tool.key(tool->tool()));
-        break;
-    }
     connect(button, &ToolButton::sendTool, this, &ToolSelectorWidget::sendTool);
     static_cast<QGridLayout*>(layout())->addWidget(button, i, j);
 }

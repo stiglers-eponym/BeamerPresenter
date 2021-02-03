@@ -111,14 +111,14 @@ enum BasicTool
     Pen = 1 << 0,
     FixedWidthPen = 2 << 0,
     Highlighter = 3 << 0,
+    Eraser = 4 << 0,
     AnyDrawTool = 0x0f << 0,
     // Highlighting tools: next 4 bits, class PointingTool
     Pointer = 1 << 4,
     Torch = 2 << 4,
     Magnifier = 3 << 4,
     AnyPointingTool = 0x0f << 4,
-    // Other tools, class Tool
-    Eraser = 1 << 8,
+    // Other tools, class Tool (currently empty)
     // No tool
     NoTool = 1 << 10,
 };

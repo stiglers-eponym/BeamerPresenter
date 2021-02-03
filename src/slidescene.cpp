@@ -47,7 +47,7 @@ bool SlideScene::event(QEvent* event)
         Tool *const tool = preferences()->currentTool(mouseevent->buttons() << 1);
         if (!tool)
             return false;
-        if (tool->tool() & (AnyDrawTool | Eraser))
+        if (tool->tool() & AnyDrawTool)
         {
             startInputEvent(tool, mouseevent->scenePos());
             event->accept();
@@ -115,7 +115,7 @@ bool SlideScene::event(QEvent* event)
         if (!tool)
             return false;
         const auto touchevent = static_cast<QTouchEvent*>(event);
-        if ((tool->tool() & (AnyDrawTool | Eraser)) && (touchevent->touchPoints().size() == 1))
+        if ((tool->tool() & AnyDrawTool) && (touchevent->touchPoints().size() == 1))
         {
             const QTouchEvent::TouchPoint &point = touchevent->touchPoints().first();
             startInputEvent(tool, point.scenePos(), point.pressure());
@@ -310,7 +310,7 @@ void SlideScene::tabletPress(const QPointF &pos, const QTabletEvent *event)
                 tablet_device_to_input_device.value(event->pointerType()) :
                 TabletNoPressure
             );
-    if (tool && (tool->tool() & (AnyDrawTool | Eraser)))
+    if (tool && (tool->tool() & AnyDrawTool))
     {
         startInputEvent(tool, pos, event->pressure());
         return;
@@ -369,7 +369,7 @@ void SlideScene::tabletRelease(const QPointF &pos, const QTabletEvent *event)
 
 void SlideScene::startInputEvent(Tool *tool, const QPointF &pos, const float pressure)
 {
-    if (!tool || !(tool->tool() & (AnyDrawTool | Eraser)))
+    if (!tool || !(tool->tool() & AnyDrawTool))
         return;
     debug_verbose(DebugDrawing) << "Start input event" << tool->tool() << tool->device() << tool << pressure;
     stopDrawing();
@@ -441,7 +441,7 @@ void SlideScene::stepInputEvent(const QPointF &pos, const float pressure)
     {
         auto container = master->pathContainer(page | page_part);
         if (container)
-            container->eraserMicroStep(pos);
+            container->eraserMicroStep(pos, static_cast<DrawTool*>(current_tool)->width());
         break;
     }
     default:

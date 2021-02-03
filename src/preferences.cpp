@@ -23,6 +23,11 @@ Tool *createTool(const QJsonObject &obj)
         tool = new DrawTool(Highlighter, AnyNormalDevice, QPen(color, width, style, Qt::RoundCap, Qt::RoundJoin), QPainter::CompositionMode_Darken);
         break;
     }
+    case Eraser:
+    {
+        tool = new DrawTool(Highlighter, AnyNormalDevice, QPen(Qt::black, obj.value("size").toDouble(10.)));
+        break;
+    }
     case Pointer:
     {
         const QColor color(obj.value("color").toString("red"));
@@ -50,7 +55,14 @@ Tool *createTool(const QJsonObject &obj)
     case InvalidTool:
         return NULL;
     default:
-        tool = new Tool(base_tool, AnyNormalDevice);
+        if (base_tool & AnyDrawTool)
+            // Shouldn't happen, but would lead to segmentation faults if it was not handled.
+            tool = new DrawTool(base_tool, AnyNormalDevice, QPen());
+        else if (base_tool & AnyPointingTool)
+            // Shouldn't happen, but would lead to segmentation faults if it was not handled.
+            tool = new PointingTool(base_tool, 10., Qt::black, AnyNormalDevice);
+        else
+            tool = new Tool(base_tool, AnyNormalDevice);
     }
     int device = 0;
     const QJsonValue dev_obj = obj.value("device");
@@ -425,14 +437,16 @@ Tool *Preferences::currentTool(const int device) const noexcept
     return NULL;
 }
 
-void Preferences::replaceTool(Tool *oldtool, Tool *newtool)
+void Preferences::replaceKeyTool(const int keys, Tool *newtool)
 {
-    if (oldtool)
+    if (keys)
     {
         emit stopDrawing();
-        current_tools.remove(oldtool);
-        delete oldtool;
+        qDeleteAll(key_tools.values(keys));
+        key_tools.remove(keys);
+        key_tools.insert(keys, newtool);
     }
     if (newtool)
-        current_tools.insert(newtool);
+        key_tools.insert(keys, newtool);
+    // TODO: save to settings file!
 }
