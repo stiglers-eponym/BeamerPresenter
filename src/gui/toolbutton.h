@@ -7,8 +7,10 @@
 #include <QMouseEvent>
 #include <QDebug>
 #include "src/drawing/drawtool.h"
+#include "src/drawing/texttool.h"
 #include "src/drawing/pointingtool.h"
 #include "src/names.h"
+#include "src/preferences.h"
 #include "src/gui/tooldialog.h"
 
 /**

@@ -2,6 +2,7 @@
 #define SLIDESCENE_H
 
 #include <QGraphicsScene>
+#include <QGraphicsTextItem>
 #include <QGraphicsSceneMouseEvent>
 #include <QTabletEvent>
 #include "src/enumerates.h"
@@ -121,6 +122,10 @@ public:
     /// Check if currently a draw tool is active, i.e. something is drawn.
     bool isDrawing() const noexcept
     {return current_tool;}
+
+    /// Check if currently text is beeing edited.
+    bool isTextEditing() const noexcept
+    {return focusItem() && focusItem()->type() == QGraphicsTextItem::Type;}
 
 protected:
     /**

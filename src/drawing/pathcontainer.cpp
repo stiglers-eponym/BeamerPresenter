@@ -26,8 +26,8 @@ bool PathContainer::undo(QGraphicsScene *scene)
     for (auto it = removeItems.constEnd(); it-- != removeItems.constBegin();)
     {
         paths.removeAt(it.key());
-        if (it.value()->scene())
-            it.value()->scene()->removeItem(it.value());
+        if ((*it)->scene())
+            (*it)->scene()->removeItem(it.value());
     }
 
     // Restore old items.

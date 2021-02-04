@@ -6,6 +6,7 @@
 #include "src/rendering/abstractrenderer.h"
 #include "src/rendering/pdfdocument.h"
 #include "src/drawing/drawtool.h"
+#include "src/drawing/texttool.h"
 #include "src/drawing/pointingtool.h"
 #include <QSettings>
 #include <QCommandLineParser>

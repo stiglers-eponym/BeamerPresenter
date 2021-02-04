@@ -118,9 +118,10 @@ enum BasicTool
     Torch = 2 << 4,
     Magnifier = 3 << 4,
     AnyPointingTool = 0x0f << 4,
-    // Other tools, class Tool (currently empty)
+    // Other tools, class Tool
+    TextInputTool = 1 << 8,
     // No tool
-    NoTool = 1 << 10,
+    NoTool = 1 << 11,
 };
 
 enum GuiWidget

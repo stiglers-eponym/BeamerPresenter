@@ -46,7 +46,7 @@ bool SlideScene::event(QEvent* event)
         const auto *mouseevent = static_cast<QGraphicsSceneMouseEvent*>(event);
         Tool *const tool = preferences()->currentTool(mouseevent->buttons() << 1);
         if (!tool)
-            return false;
+            break;
         if (tool->tool() & AnyDrawTool)
         {
             startInputEvent(tool, mouseevent->scenePos());
@@ -60,7 +60,7 @@ bool SlideScene::event(QEvent* event)
             event->accept();
             return true;
         }
-        return false;
+        break;
     }
     case QEvent::GraphicsSceneMouseMove:
     {
@@ -92,7 +92,7 @@ bool SlideScene::event(QEvent* event)
                 return true;
             }
         }
-        return false;
+        break;
     }
     case QEvent::GraphicsSceneMouseRelease:
     {
@@ -106,6 +106,22 @@ bool SlideScene::event(QEvent* event)
             static_cast<PointingTool*>(tool)->clearPos();
             invalidate(QRect(), QGraphicsScene::ForegroundLayer);
         }
+        else if (tool && tool->tool() == TextInputTool)
+        {
+            QGraphicsScene::event(event);
+            if (!isTextEditing())
+            {
+                QGraphicsTextItem *item = new QGraphicsTextItem();
+                item->setTextInteractionFlags(Qt::TextEditorInteraction);
+                item->setFont(QFont(static_cast<const TextTool*>(tool)->font()));
+                item->setDefaultTextColor(static_cast<const TextTool*>(tool)->color());
+                addItem(item);
+                item->show();
+                item->setPos(mouseevent->scenePos());
+                emit sendNewPath(page | page_part, item);
+                item->setFocus();
+            }
+        }
         event->accept();
         return true;
     }
@@ -113,7 +129,7 @@ bool SlideScene::event(QEvent* event)
     {
         Tool *const tool = preferences()->currentTool(TouchInput);
         if (!tool)
-            return false;
+            break;
         const auto touchevent = static_cast<QTouchEvent*>(event);
         if ((tool->tool() & AnyDrawTool) && (touchevent->touchPoints().size() == 1))
         {
@@ -122,7 +138,7 @@ bool SlideScene::event(QEvent* event)
             event->accept();
             return true;
         }
-        if (tool->tool() & AnyPointingTool)
+        else if (tool->tool() & AnyPointingTool)
         {
             static_cast<PointingTool*>(tool)->clearPos();
             for (const auto &point : touchevent->touchPoints())
@@ -131,7 +147,7 @@ bool SlideScene::event(QEvent* event)
             event->accept();
             return true;
         }
-        return false;
+        break;
     }
     case QEvent::TouchUpdate:
     {
@@ -165,7 +181,7 @@ bool SlideScene::event(QEvent* event)
                 return true;
             }
         }
-        return false;
+        break;
     }
     case QEvent::TouchCancel:
         if (current_tool && (current_tool->device() & TouchInput))
@@ -181,7 +197,7 @@ bool SlideScene::event(QEvent* event)
             event->accept();
             return true;
         }
-        return false;
+        break;
     case QEvent::TouchEnd:
         {
             const auto touchevent = static_cast<QTouchEvent*>(event);
@@ -198,12 +214,29 @@ bool SlideScene::event(QEvent* event)
                 static_cast<PointingTool*>(tool)->clearPos();
                 invalidate(QRect(), QGraphicsScene::ForegroundLayer);
             }
+            else if (tool && tool->tool() == TextInputTool && touchevent->touchPoints().size() == 1)
+            {
+                QGraphicsScene::event(event);
+                if (!isTextEditing())
+                {
+                    QGraphicsTextItem *item = new QGraphicsTextItem();
+                    item->setTextInteractionFlags(Qt::TextEditorInteraction);
+                    item->setFont(QFont(static_cast<const TextTool*>(tool)->font()));
+                    item->setDefaultTextColor(static_cast<const TextTool*>(tool)->color());
+                    addItem(item);
+                    item->show();
+                    item->setPos(touchevent->touchPoints().first().scenePos());
+                    emit sendNewPath(page | page_part, item);
+                    item->setFocus();
+                }
+            }
             event->accept();
             return true;
         }
     default:
-        return QGraphicsScene::event(event);
+        break;
     }
+    return QGraphicsScene::event(event);
 }
 
 void SlideScene::receiveAction(const Action action)
@@ -320,6 +353,18 @@ void SlideScene::tabletPress(const QPointF &pos, const QTabletEvent *event)
         static_cast<PointingTool*>(tool)->setPos(pos);
         invalidate(QRect(), QGraphicsScene::ForegroundLayer);
     }
+    else if (tool && tool->tool() == TextInputTool && !isTextEditing())
+    {
+        QGraphicsTextItem *item = new QGraphicsTextItem();
+        item->setTextInteractionFlags(Qt::TextEditorInteraction);
+        item->setFont(QFont(static_cast<const TextTool*>(tool)->font()));
+        item->setDefaultTextColor(static_cast<const TextTool*>(tool)->color());
+        addItem(item);
+        item->show();
+        item->setPos(pos);
+        emit sendNewPath(page | page_part, item);
+        item->setFocus();
+    }
 }
 
 void SlideScene::tabletMove(const QPointF &pos, const QTabletEvent *event)
@@ -394,7 +439,7 @@ void SlideScene::startInputEvent(Tool *tool, const QPointF &pos, const float pre
         break;
     case Eraser:
     {
-        auto container = master->pathContainer(page | page_part);
+        PathContainer *container = master->pathContainer(page | page_part);
         if (container)
             container->startMicroStep();
         break;
@@ -439,7 +484,7 @@ void SlideScene::stepInputEvent(const QPointF &pos, const float pressure)
         break;
     case Eraser:
     {
-        auto container = master->pathContainer(page | page_part);
+        PathContainer *container = master->pathContainer(page | page_part);
         if (container)
             container->eraserMicroStep(pos, static_cast<DrawTool*>(current_tool)->width());
         break;
@@ -470,7 +515,7 @@ bool SlideScene::stopInputEvent(const QPointF &pos)
         case Eraser:
         {
             current_tool = NULL;
-            auto container = master->pathContainer(page | page_part);
+            PathContainer *container = master->pathContainer(page | page_part);
             if (container)
                 return container->applyMicroStep();
             break;

@@ -91,6 +91,7 @@ static const QMap<QString, BasicTool> string_to_tool
     {"pointer", Pointer},
     {"torch", Torch},
     {"magnifier", Magnifier},
+    {"text", TextInputTool},
 };
 
 static const QMap<QString, QBoxLayout::Direction> string_to_layout_direction

@@ -11,7 +11,7 @@ ToolDialog::ToolDialog(QWidget *parent) :
     // Basic tool
     for (auto it = string_to_tool.cbegin(); it != string_to_tool.cend(); ++it)
         tool_box->addItem(it.key());
-    connect(tool_box, &QComboBox::currentTextChanged, this, &ToolDialog::adaptToBasicTool);
+    connect(tool_box, &QComboBox::currentTextChanged, this, &ToolDialog::adaptToBasicToolStr);
     tool_box->setCurrentText("invalid");
     layout->addRow("Tool:", tool_box);
 
@@ -40,30 +40,83 @@ ToolDialog::ToolDialog(QWidget *parent) :
 
     // Exit
     QPushButton *exit_button = new QPushButton("return", this);
-    connect(exit_button, &QPushButton::clicked, this, &ToolDialog::close);
+    connect(exit_button, &QPushButton::clicked, this, &ToolDialog::accept);
     layout->addWidget(exit_button);
 
     setLayout(layout);
 }
 
-void ToolDialog::adaptToBasicTool(const QString &text)
+void ToolDialog::adaptToBasicTool(const BasicTool tool)
 {
-    switch (string_to_tool.value(text))
+    switch (tool)
     {
-    case Eraser:
+    case TextInputTool:
+        if (!font_button)
+        {
+            font_button = new QPushButton("font", this);
+            connect(font_button, &QPushButton::clicked, this, &ToolDialog::selectFont);
+            static_cast<QFormLayout*>(layout())->addRow("font:", font_button);
+        }
+        else
+            font_button->show();
+        if (color_button)
+            color_button->show();
+        if (size_box)
+            size_box->hide();
+        if (scale_box)
+            scale_box->hide();
+        break;
     case Magnifier:
-        color_button->hide();
+        if (!scale_box)
+        {
+            scale_box = new QDoubleSpinBox(this);
+            scale_box->setMaximum(5);
+            scale_box->setMinimum(.2);
+            static_cast<QFormLayout*>(layout())->addRow("scale:", scale_box);
+        }
+        else
+            scale_box->show();
+        if (size_box)
+            size_box->show();
+        if (color_button)
+            color_button->hide();
+        if (font_button)
+            font_button->hide();
+        break;
+    case Eraser:
+        if (color_button)
+            color_button->hide();
+        if (scale_box)
+            scale_box->hide();
+        if (font_button)
+            font_button->hide();
+        if (size_box)
+            size_box->show();
         break;
     case Pen:
     case Highlighter:
     case Torch:
     case Pointer:
     case FixedWidthPen:
-        color_button->show();
+        if (color_button)
+            color_button->show();
+        if (scale_box)
+            scale_box->hide();
+        if (font_button)
+            font_button->hide();
+        if (size_box)
+            size_box->show();
         break;
     case NoTool:
     case InvalidTool:
-        color_button->hide();
+        if (color_button)
+            color_button->hide();
+        if (scale_box)
+            scale_box->hide();
+        if (font_button)
+            font_button->hide();
+        if (size_box)
+            size_box->hide();
         break;
     }
 }
@@ -73,8 +126,10 @@ Tool *ToolDialog::selectTool(const Tool *oldtool)
     ToolDialog dialog;
     if (oldtool)
         dialog.setDefault(oldtool);
-    dialog.exec();
-    return dialog.createTool();
+    if (dialog.exec() == QDialog::Accepted)
+        return dialog.createTool();
+    else
+        return NULL;
 }
 
 void ToolDialog::setDefault(const Tool *tool)
@@ -97,15 +152,33 @@ void ToolDialog::setDefault(const Tool *tool)
         const PointingTool *pointing_tool = static_cast<const PointingTool*>(tool);
         size_box->setValue(pointing_tool->size());
         color = pointing_tool->color();
+        if (tool->tool() == Magnifier && scale_box)
+            scale_box->setValue(pointing_tool->scale());
     }
-    color_button->setText(color.name());
-    button_palette.setColor(QPalette::Button, color);
-    color_button->setPalette(button_palette);
+    else if (tool->tool() == TextInputTool)
+    {
+        const TextTool *text_tool = static_cast<const TextTool*>(tool);
+        if (font_button)
+        {
+            font_button->setFont(text_tool->font());
+            font_button->setText(text_tool->font().toString());
+        }
+        color = text_tool->color();
+    }
+    if (color_button)
+    {
+        color_button->setText(color.name());
+        button_palette.setColor(QPalette::Button, color);
+        color_button->setPalette(button_palette);
+    }
 }
 
 Tool *ToolDialog::createTool() const
 {
     const BasicTool basic_tool = string_to_tool.value(tool_box->currentText());
+    debug_verbose(DebugDrawing) << "Dialog selected basic tool" << basic_tool;
+    if (basic_tool == InvalidTool)
+        return NULL;
     int device = 0;
     for (auto it = device_buttons.cbegin(); it != device_buttons.cend(); ++it)
         if ((*it)->isChecked())
@@ -114,7 +187,14 @@ Tool *ToolDialog::createTool() const
     if (basic_tool & AnyDrawTool)
         return new DrawTool(basic_tool, device, QPen(color, size_box->value(), Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin));
     else if (basic_tool & AnyPointingTool)
-        return new PointingTool(basic_tool, size_box->value(), color, device);
+    {
+        PointingTool *tool = new PointingTool(basic_tool, size_box->value(), color, device);
+        if (basic_tool == Magnifier && scale_box)
+            tool->setScale(scale_box->value());
+        return tool;
+    }
+    else if (basic_tool == TextInputTool)
+        return new TextTool(font_button ? font_button->font() : font(), color, device);
     else if (basic_tool != InvalidTool)
         return new Tool(basic_tool, device);
     return NULL;
@@ -127,4 +207,14 @@ void ToolDialog::setColor()
     button_palette.setColor(QPalette::Button, color);
     color_button->setPalette(button_palette);
     color_button->setText(color.name());
+}
+
+void ToolDialog::selectFont()
+{
+    if (!font_button)
+        return;
+    bool ok;
+    QFont newfont = QFontDialog::getFont(&ok, font_button->font(), this, "Font for Text input");
+    font_button->setText(newfont.toString());
+    font_button->setFont(newfont);
 }

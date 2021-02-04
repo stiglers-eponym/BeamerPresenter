@@ -52,6 +52,14 @@ Tool *createTool(const QJsonObject &obj)
         tool = pointing_tool;
         break;
     }
+    case TextInputTool:
+    {
+        QFont font(obj.value("font").toString("black"));
+        font.setPointSizeF(obj.value("font size").toDouble(12.));
+        const QColor color(obj.value("color").toString("black"));
+        tool = new TextTool(font, color, AnyNormalDevice);
+        break;
+    }
     case InvalidTool:
         return NULL;
     default:

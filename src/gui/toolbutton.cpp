@@ -34,6 +34,7 @@ bool ToolButton::event(QEvent *event) noexcept
             if (static_cast<QInputEvent*>(event)->modifiers() == Qt::CTRL)
             {
                 setTool(ToolDialog::selectTool(tool));
+                debug_msg(DebugDrawing) << "Changed tool button:" << tool->tool();
                 // TODO: save to GUI config
             }
             else
@@ -43,6 +44,8 @@ bool ToolButton::event(QEvent *event) noexcept
                     newtool = new DrawTool(*static_cast<const DrawTool*>(tool));
                 else if (tool->tool() & AnyPointingTool)
                     newtool = new PointingTool(*static_cast<const PointingTool*>(tool));
+                else if (tool->tool() == TextInputTool)
+                    newtool = new TextTool(*static_cast<const TextTool*>(tool));
                 else
                     newtool = new Tool(*tool);
 
@@ -109,6 +112,15 @@ void ToolButton::setTool(Tool *newtool)
         newpalette.setColor(QPalette::Button, static_cast<PointingTool*>(newtool)->color());
         setPalette(newpalette);
         setText("pointer");
+        break;
+    }
+    case TextInputTool:
+    {
+        QPalette newpalette = palette();
+        newpalette.setColor(QPalette::ButtonText, static_cast<TextTool*>(newtool)->color());
+        setPalette(newpalette);
+        setFont(static_cast<const TextTool*>(newtool)->font());
+        setText("text");
         break;
     }
     default:

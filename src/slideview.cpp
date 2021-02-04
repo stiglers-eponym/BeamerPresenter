@@ -70,7 +70,15 @@ void SlideView::resizeEvent(QResizeEvent *event)
 
 void SlideView::keyPressEvent(QKeyEvent *event)
 {
-    emit sendKeyEvent(event);
+    if (static_cast<const SlideScene*>(scene())->isTextEditing())
+    {
+        if (event->key() == Qt::Key_Escape)
+            scene()->clearFocus();
+        else
+            QGraphicsView::keyPressEvent(event);
+    }
+    else
+        emit sendKeyEvent(event);
 }
 
 int SlideView::heightForWidth(int width) const noexcept
