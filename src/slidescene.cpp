@@ -122,6 +122,8 @@ bool SlideScene::event(QEvent* event)
                 item->setFocus();
             }
         }
+        else if (!tool && mouseevent->button() == Qt::LeftButton)
+            master->resolveLink(page, mouseevent->scenePos(), mouseevent->buttonDownScenePos(Qt::LeftButton));
         event->accept();
         return true;
     }
@@ -230,6 +232,8 @@ bool SlideScene::event(QEvent* event)
                     item->setFocus();
                 }
             }
+            else if (!tool && touchevent->touchPoints().length() == 1)
+                master->resolveLink(page, touchevent->touchPoints().first().scenePos(), touchevent->touchPoints().first().startScenePos());
             event->accept();
             return true;
         }
@@ -409,6 +413,8 @@ void SlideScene::tabletRelease(const QPointF &pos, const QTabletEvent *event)
             static_cast<PointingTool*>(tool)->clearPos();
             invalidate(QRect(), QGraphicsScene::ForegroundLayer);
         }
+        else if (!tool)
+            master->resolveLink(page, pos);
     }
 }
 
@@ -496,40 +502,36 @@ void SlideScene::stepInputEvent(const QPointF &pos, const float pressure)
 
 bool SlideScene::stopInputEvent(const QPointF &pos)
 {
-    if (current_tool)
-    {
-        debug_verbose(DebugDrawing) << "Stop input event" << current_tool->tool() << current_tool->device() << current_tool;
-        const bool changes = currentPath && currentPath->size() > 1;
-        stopDrawing();
-        switch (current_tool->tool())
-        {
-        case Pen:
-        case Highlighter:
-            if (changes)
-            {
-                invalidate({QRect()}, QGraphicsScene::ItemLayer);
-                current_tool = NULL;
-                return true;
-            }
-            break;
-        case Eraser:
-        {
-            current_tool = NULL;
-            PathContainer *container = master->pathContainer(page | page_part);
-            if (container)
-                return container->applyMicroStep();
-            break;
-        }
-        case NoTool:
-            master->resolveLink(page, pos);
-            break;
-        default:
-            break;
-        }
-        current_tool = NULL;
+    if (!current_tool)
         return false;
+    debug_verbose(DebugDrawing) << "Stop input event" << current_tool->tool() << current_tool->device() << current_tool;
+    const bool changes = currentPath && currentPath->size() > 1;
+    stopDrawing();
+    switch (current_tool->tool())
+    {
+    case Pen:
+    case Highlighter:
+        if (changes)
+        {
+            invalidate({QRect()}, QGraphicsScene::ItemLayer);
+            current_tool = NULL;
+            return true;
+        }
+        break;
+    case Eraser:
+    {
+        current_tool = NULL;
+        PathContainer *container = master->pathContainer(page | page_part);
+        if (container)
+            return container->applyMicroStep();
+        break;
     }
-    // TODO: handle links properly.
-    master->resolveLink(page, pos);
+    case NoTool:
+        master->resolveLink(page, pos);
+        break;
+    default:
+        break;
+    }
+    current_tool = NULL;
     return false;
 }

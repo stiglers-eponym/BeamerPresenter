@@ -2,6 +2,7 @@
 
 ToolSelectorWidget::ToolSelectorWidget(QWidget *parent) : QWidget(parent)
 {
+    setContentsMargins(1,1,1,1);
     QGridLayout *layout = new QGridLayout();
     setLayout(layout);
 }
@@ -9,6 +10,7 @@ ToolSelectorWidget::ToolSelectorWidget(QWidget *parent) : QWidget(parent)
 QSize ToolSelectorWidget::sizeHint() const noexcept
 {
     QGridLayout *gridlayout = static_cast<QGridLayout*>(layout());
+    gridlayout->setMargin(0);
     return {gridlayout->columnCount()*30, gridlayout->rowCount()*10};
 }
 
@@ -16,6 +18,18 @@ void ToolSelectorWidget::addActionButton(const int i, const int j, const QString
 {
     ActionButton *button = new ActionButton(string_to_action_map.value(string, InvalidAction), this);
     button->setText(string);
+    static_cast<QGridLayout*>(layout())->addWidget(button, i, j);
+    connect(button, &ActionButton::sendAction, this, &ToolSelectorWidget::sendAction);
+}
+
+void ToolSelectorWidget::addActionButton(const int i, const int j, const QJsonArray &array)
+{
+    if (array.isEmpty())
+        return;
+    ActionButton *button = new ActionButton(this);
+    for (const auto &entry : array)
+        button->addAction(string_to_action_map.value(entry.toString(), InvalidAction));
+    button->setText(array.first().toString());
     static_cast<QGridLayout*>(layout())->addWidget(button, i, j);
     connect(button, &ActionButton::sendAction, this, &ToolSelectorWidget::sendAction);
 }

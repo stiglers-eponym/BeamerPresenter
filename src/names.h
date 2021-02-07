@@ -135,8 +135,8 @@ static const QMap<QString, int> string_to_input_device
     {"all", AnyNormalDevice},
     {"all+", AnyPointingDevice},
     {"all++", AnyDevice},
-    {"mouse", MouseLeftButton},
     {"left button", MouseLeftButton},
+    {"mouse", MouseLeftButton},
     {"right button", MouseRightButton},
     {"middle button", MouseMiddleButton},
 };

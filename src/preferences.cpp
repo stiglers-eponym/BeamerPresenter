@@ -11,7 +11,10 @@ Tool *createTool(const QJsonObject &obj)
     {
         const QColor color(obj.value("color").toString("black"));
         const float width = obj.value("width").toDouble(2.);
+        if (width <= 0.)
+            return NULL;
         const Qt::PenStyle style = string_to_pen_style.value(obj.value("style").toString(), Qt::SolidLine);
+        debug_msg(DebugSettings) << "creating pen" << color << width;
         tool = new DrawTool(Pen, AnyNormalDevice, QPen(color, width, style, Qt::RoundCap, Qt::RoundJoin));
         break;
     }
@@ -19,12 +22,16 @@ Tool *createTool(const QJsonObject &obj)
     {
         const QColor color(obj.value("color").toString("yellow"));
         const float width = obj.value("width").toDouble(20.);
+        if (width <= 0.)
+            return NULL;
         const Qt::PenStyle style = string_to_pen_style.value(obj.value("style").toString(), Qt::SolidLine);
+        debug_msg(DebugSettings) << "creating highlighter" << color << width;
         tool = new DrawTool(Highlighter, AnyNormalDevice, QPen(color, width, style, Qt::RoundCap, Qt::RoundJoin), QPainter::CompositionMode_Darken);
         break;
     }
     case Eraser:
     {
+        debug_msg(DebugSettings) << "creating eraser";
         tool = new DrawTool(Highlighter, AnyNormalDevice, QPen(Qt::black, obj.value("size").toDouble(10.)));
         break;
     }
@@ -32,6 +39,9 @@ Tool *createTool(const QJsonObject &obj)
     {
         const QColor color(obj.value("color").toString("red"));
         const float size = obj.value("size").toDouble(5.);
+        if (size <= 0.)
+            return NULL;
+        debug_msg(DebugSettings) << "creating pointer" << color << size;
         tool = new PointingTool(Pointer, size, color, AnyNormalDevice);
         break;
     }
@@ -39,6 +49,9 @@ Tool *createTool(const QJsonObject &obj)
     {
         const QColor color(obj.value("color").toString("#80000000"));
         const float size = obj.value("size").toDouble(80.);
+        if (size <= 0.)
+            return NULL;
+        debug_msg(DebugSettings) << "creating torch" << color << size;
         tool = new PointingTool(Torch, size, color, AnyNormalDevice);
         break;
     }
@@ -46,23 +59,28 @@ Tool *createTool(const QJsonObject &obj)
     {
         const QColor color(obj.value("color").toString("black"));
         const float size = obj.value("size").toDouble(120.);
+        const float scale = obj.value("scale").toDouble(2.);
+        debug_msg(DebugSettings) << "creating magnifier" << color << size << scale;
         PointingTool *pointing_tool = new PointingTool(Magnifier, size, color, AnyNormalDevice);
-        if (obj.contains("scale"))
-            pointing_tool->setScale(obj.value("scale").toDouble(2.));
+        pointing_tool->setScale(scale < 0.1 ? 0.1 : scale > 10. ? 5. : scale);
         tool = pointing_tool;
         break;
     }
     case TextInputTool:
     {
         QFont font(obj.value("font").toString("black"));
-        font.setPointSizeF(obj.value("font size").toDouble(12.));
+        if (obj.contains("font size"))
+            font.setPointSizeF(obj.value("font size").toDouble(12.));
         const QColor color(obj.value("color").toString("black"));
+        debug_msg(DebugSettings) << "creating text tool" << color << font;
         tool = new TextTool(font, color, AnyNormalDevice);
         break;
     }
     case InvalidTool:
+        debug_msg(DebugSettings) << "tried to create invalid tool" << obj.value("tool");
         return NULL;
     default:
+        debug_msg(DebugSettings) << "creating default tool" << obj.value("tool");
         if (base_tool & AnyDrawTool)
             // Shouldn't happen, but would lead to segmentation faults if it was not handled.
             tool = new DrawTool(base_tool, AnyNormalDevice, QPen());
@@ -72,15 +90,43 @@ Tool *createTool(const QJsonObject &obj)
         else
             tool = new Tool(base_tool, AnyNormalDevice);
     }
-    int device = 0;
     const QJsonValue dev_obj = obj.value("device");
-    if (dev_obj.isString())
+    int device = 0;
+    if (dev_obj.isDouble())
+        device = dev_obj.toInt();
+    else if (dev_obj.isString())
         device |= string_to_input_device.value(dev_obj.toString());
     else if (dev_obj.isArray())
-        for (const auto &dev : static_cast<const QJsonArray>(obj.value("devices").toArray()))
+        for (const auto &dev : static_cast<const QJsonArray>(obj.value("device").toArray()))
             device |= string_to_input_device.value(dev.toString());
-    tool->setDevice(device);
+    debug_msg(DebugSettings) << "device:" << device;
+    if (device)
+        tool->setDevice(device);
     return tool;
+}
+
+void toolToJson(const Tool *tool, QJsonObject &obj)
+{
+    if (!tool)
+        return;
+    obj.insert("tool", string_to_tool.key(tool->tool()));
+    obj.insert("device", tool->device());
+    if (tool->tool() & AnyDrawTool)
+    {
+        obj.insert("width", static_cast<const DrawTool*>(tool)->width());
+        obj.insert("color", static_cast<const DrawTool*>(tool)->color().name());
+        obj.insert("style", string_to_pen_style.key(static_cast<const DrawTool*>(tool)->pen().style()));
+    }
+    else if (tool->tool() & AnyPointingTool)
+    {
+        obj.insert("size", static_cast<const PointingTool*>(tool)->size());
+        obj.insert("color", static_cast<const PointingTool*>(tool)->color().name());
+    }
+    else if (tool->tool() == TextInputTool)
+    {
+        obj.insert("color", static_cast<const TextTool*>(tool)->color().name());
+        obj.insert("font", static_cast<const TextTool*>(tool)->font().toString());
+    }
 }
 
 
@@ -116,7 +162,6 @@ void Preferences::loadSettings()
         gui_config_file = settings.value("gui config", "/etc/beamerpresenter/gui.json").toString();
         manual_file = settings.value("manual", "/usr/share/doc/beamerpresenter/README.html").toString();
         const QStringList log_flags = settings.value("log").toStringList();
-        log_level = NoLog;
         for (const auto &flag : log_flags)
             log_level |= string_to_log_level.value(flag, NoLog);
     }
@@ -131,9 +176,8 @@ void Preferences::loadSettings()
 
     // RENDERING
     settings.beginGroup("rendering");
-    { // page_part threshold
-        page_part_threshold = settings.value("page part threshold").toReal();
-    }
+    // page_part threshold
+    page_part_threshold = settings.value("page part threshold").toReal();
     { // renderer
         const QString renderer_str = settings.value("renderer").toString().toLower();
         debug_msg(DebugSettings) << renderer_str;
@@ -210,8 +254,8 @@ void Preferences::loadSettings()
                     // First try to interpret sequence as json object.
                     // Here the way how Qt changes the string is not really optimal.
                     // First check if the value is already a json object.
-                    //QJsonObject object;
                     QJsonArray array;
+                    debug_msg(DebugSettings) << key << settings.value(key).typeName();
                     if (settings.value(key).canConvert(QMetaType::Type::QJsonArray))
                         array = settings.value(key).toJsonArray();
                     else if (settings.value(key).canConvert(QMetaType::Type::QJsonObject))
@@ -239,22 +283,10 @@ void Preferences::loadSettings()
                             if (!value.isObject())
                                 continue;
                             const QJsonObject object = value.toObject();
-                            int device = AnyNormalDevice;
-                            const QJsonValue json_device = object.value("device");
-                            if (json_device.isString())
-                                device = string_to_input_device.value(json_device.toString(), AnyNormalDevice);
-                            else if (json_device.isArray())
-                            {
-                                device = 0;
-                                for (const auto &dev_string : static_cast<const QJsonArray>(json_device.toArray()))
-                                    device |= string_to_input_device.value(dev_string.toString(), 0);
-                                if (device == 0)
-                                    device = AnyNormalDevice;
-                            }
                             Tool *tool = createTool(object);
                             if (tool)
                             {
-                                debug_msg(DebugSettings|DebugDrawing) << "Adding tool" << tool << tool->tool() << device;
+                                debug_msg(DebugSettings|DebugDrawing) << "Adding tool" << tool << tool->tool() << tool->device();
                                 key_tools.insert(key_code, tool);
                             }
                         }
@@ -277,6 +309,19 @@ void Preferences::loadSettings()
     }
 }
 
+#ifdef QT_DEBUG
+void Preferences::loadDebugFromParser(const QCommandLineParser &parser)
+{
+    // Debug legel
+    if (parser.isSet("debug"))
+    {
+        log_level = 0;
+        for (const auto &flag : static_cast<const QStringList>(parser.value("debug").split(",")))
+            log_level |= string_to_log_level.value("debug " + flag, NoLog);
+    }
+}
+#endif
+
 void Preferences::loadFromParser(const QCommandLineParser &parser)
 {
     // presentation file from positional arguments
@@ -291,16 +336,6 @@ void Preferences::loadFromParser(const QCommandLineParser &parser)
     // timer total time
     if (parser.isSet("t"))
         msecs_total = 60000 * parser.value("t").toDouble();
-
-#ifdef QT_DEBUG
-    // Debug legel
-    if (parser.isSet("debug"))
-    {
-        log_level = 0;
-        for (const auto &flag : static_cast<const QStringList>(parser.value("debug").split(",")))
-            log_level |= string_to_log_level.value("debug " + flag, NoLog);
-    }
-#endif
 
     // Log slide changes
     if (parser.isSet("log"))
@@ -338,6 +373,10 @@ void Preferences::loadFromParser(const QCommandLineParser &parser)
                 renderer = AbstractRenderer::ExternalRenderer;
         }
     }
+
+#ifdef QT_DEBUG
+    loadDebugFromParser(parser);
+#endif
 }
 
 void Preferences::addKeyAction(const quint32 sequence, const Action action)
@@ -453,19 +492,35 @@ void Preferences::replaceKeyTool(const int keys, Tool *newtool)
     qDeleteAll(key_tools.values(keys));
     key_tools.remove(keys);
     if (newtool)
+    {
         key_tools.insert(keys, newtool);
-    // TODO: save to settings file!
+        settings.beginGroup("keys");
+        const QString keycode = QKeySequence(keys).toString();
+        QJsonObject obj;
+        toolToJson(newtool, obj);
+        settings.setValue(keycode, obj);
+        settings.endGroup();
+    }
 }
 
 void Preferences::replaceKeyToolShortcut(const int oldkeys, const int newkeys, Tool *tool)
 {
     key_tools.remove(oldkeys, tool);
-    if (newkeys)
+    settings.beginGroup("keys");
+    const QString oldcode = QKeySequence(oldkeys).toString();
+    if (!oldcode.isEmpty())
+        settings.remove(oldcode);
+    if (newkeys && tool)
+    {
         key_tools.insert(newkeys, tool);
-    else
+        QJsonObject obj;
+        toolToJson(tool, obj);
+        settings.setValue(QKeySequence(newkeys).toString(), obj);
+    }
+    else if (tool)
     {
         emit stopDrawing();
         delete tool;
     }
-    // TODO: save to settings file!
+    settings.endGroup();
 }

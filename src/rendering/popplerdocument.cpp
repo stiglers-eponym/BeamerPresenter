@@ -239,19 +239,23 @@ const PdfLink PopplerDocument::linkAt(const int page, const QPointF &position) c
     {
         if (link->linkArea().normalized().contains(relpos))
         {
+            QRectF rect = link->linkArea().normalized();
+            rect.moveTop(rect.top()*pageSize.height());
+            rect.moveLeft(rect.left()*pageSize.width());
+            rect.setSize({pageSize.width() * rect.width(), pageSize.height() * rect.height()});
             switch (link->linkType())
             {
             case Poppler::Link::LinkType::Goto: {
                 Poppler::LinkGoto *gotolink = static_cast<Poppler::LinkGoto*>(link);
-                return {gotolink->destination().pageNumber()-1, ""};
+                return {gotolink->destination().pageNumber()-1, "", rect};
             }
             default:
                 debug_msg(DebugRendering) << "Unsupported link" << link->linkType();
-                return {NoLink, ""};
+                return {NoLink, "", rect};
             }
         }
     }
-    return {NoLink, ""};
+    return {NoLink, "", QRectF()};
 }
 
 const VideoAnnotation PopplerDocument::annotationAt(const int page, const QPointF &position) const

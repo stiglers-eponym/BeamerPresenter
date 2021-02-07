@@ -381,6 +381,9 @@ QWidget* Master::createWidget(QJsonObject &object, QWidget *parent)
                 case QJsonValue::String:
                     toolwidget->addActionButton(i, j, row[j].toString());
                     break;
+                case QJsonValue::Array:
+                    toolwidget->addActionButton(i, j, row[j].toArray());
+                    break;
                 case QJsonValue::Object:
                 {
                     Tool *tool = createTool(row[j].toObject());

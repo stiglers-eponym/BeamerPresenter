@@ -113,11 +113,12 @@ void PdfMaster::receiveAction(const Action action)
     }
 }
 
-void PdfMaster::resolveLink(const int page, const QPointF &position) const
+void PdfMaster::resolveLink(const int page, const QPointF &position, const QPointF &startpos) const
 {
     // First try to resolve navigation link.
     const PdfLink link = document->linkAt(page, position);
-    if (link.type >= 0 && link.type < document->numberOfPages())
+    debug_msg(DebugDrawing) << "resolve link" << page << position << startpos << link.area;
+    if ( (startpos.isNull() || link.area.contains(startpos)) && (link.type >= 0 && link.type < document->numberOfPages()) )
         emit navigationSignal(link.type);
     // Next try to handle multimedia annotation.
     const VideoAnnotation annotation = document->annotationAt(page, position);

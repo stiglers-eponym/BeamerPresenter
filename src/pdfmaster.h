@@ -70,7 +70,7 @@ public:
     {return paths.value(page, NULL);}
 
     /// This function should be restructured!
-    void resolveLink(const int page, const QPointF& position) const;
+    void resolveLink(const int page, const QPointF &position, const QPointF &startpos = {}) const;
 
     /// Slide transition when reaching the given page number.
     const SlideTransition transition(const int page) const

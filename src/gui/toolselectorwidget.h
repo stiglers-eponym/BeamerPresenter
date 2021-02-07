@@ -19,6 +19,8 @@ public:
 
     void addActionButton(const int i, const int j, const QString &string);
 
+    void addActionButton(const int i, const int j, const QJsonArray &array);
+
     void addToolButton(const int i, const int j, Tool *tool);
 
     bool hasHeightForWidth() const noexcept override

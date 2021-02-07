@@ -115,21 +115,25 @@ public slots:
     void init();
 
     /// Request rendering a page with high priority
+    /// May only be called in this object's thread.
     void requestPage(const int n, const qreal resolution, const bool cache = true);
 
     /// Request rendering a page with low priority
+    /// May only be called in this object's thread.
     void requestRenderPage(const int n);
 
     /// Start rendering the next page(s).
     void startRendering();
 
     /// Receive a PngPixmap from one of the threads.
+    /// May only be called in this object's thread.
     void receiveData(const PngPixmap *data);
 
     /// Update current page number.
     /// Update boundary of simply connected region of cached pages.
     /// This does not fully recalculate the region, but assumes that the
     /// currently saved region is indeed simply connected.
+    /// May only be called in this object's thread.
     void pageNumberChanged(const int page);
 
 signals:

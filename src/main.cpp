@@ -92,6 +92,9 @@ int main(int argc, char *argv[])
         else
             wpreferences = new Preferences();
         writable_preferences(wpreferences);
+#ifdef QT_DEBUG
+        wpreferences->loadDebugFromParser(parser);
+#endif
         wpreferences->loadSettings();
         wpreferences->loadFromParser(parser);
     }

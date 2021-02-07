@@ -114,8 +114,8 @@ outline / table of contents, shows document outline tree.
 .B tool selector
 Grid layout of push buttons. Contains mandatory argument
 .B buttons
-which must be a list of lists of buttons (2d array of buttons).
-Each button can either be a string representing an action or a JSON dictionary representing a drawing/highlighting tool.
+which must be an array of arrays of buttons (matrix defining the arrangement of the buttons).
+Each button can either be a string representing an action, or a JSON dictionary representing a tool, or an array of multiple strings representing actions.
 .RS
 .PP
 Valid action strings:
@@ -183,18 +183,32 @@ reset the timer (passed time) in timer widget.
 .B quit
 close BeamerPresenter.
 .PP
-Options in the dictionary for tools:
+Options in the dictionary for tools (all lengths are given in points (1/72 inch) in PDF):
 .TP
 .B tool
-draw tool: pen, highlighter, eraser or none
+mandatory: pen, highlighter, eraser, pointer, magnifier, torch, text (experimental!) or none
 .TP
 .B color
-color: color name known to Qt, or #RRGGBB, or #AARRGGBB
+available for most tools: color name known to Qt or #RRGGBB or #AARRGGBB
 .TP
 .B width
-stroke width, in points (inch/72) in PDF.
+only draw tools (pen, highlighter, eraser, fixed width pen): stroke width (positive number).
+.TP
+.B size
+only pointing tools (pointer, torch, highlighter): radius of tool (positive number).
+.TP
+.B scale
+only magnifier: magnification factor (number between 0.1 and 5).
+.TP
+.B font
+only text: anything that Qt can interpret as font name.
+.TP
+.B font size
+only text: font size (positive number).
+.PP
+It is possible to select a different tool for a button while BeamerPresenter is running by clicking the button while pressing the ctrl key. But note that this changes the tool only temporarily and this modification will not be saved.
 .RE
-.
+
 .SS Layouts
 .
 .TP

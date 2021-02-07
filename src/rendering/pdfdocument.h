@@ -17,6 +17,7 @@ struct PdfLink {
     /// Negative values are interpreted as LinkType.
     int type;
     QString target;
+    QRectF area;
 };
 
 /// PDF outline (table of contents, TOC) entry for storing a tree in a list.

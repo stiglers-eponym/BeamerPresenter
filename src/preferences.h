@@ -122,8 +122,8 @@ public:
     /// The keys are taken from InputDevice.
     QSet<Tool*> current_tools
     {
-        new Tool(Eraser, TabletEraser),
-        new Tool(Eraser, MouseRightButton),
+        new DrawTool(Eraser, TabletEraser, QPen(Qt::black, 10.)),
+        new DrawTool(Eraser, MouseRightButton, QPen(Qt::black, 10.)),
     };
 
 
@@ -141,6 +141,10 @@ public:
     /// Load settings from command line parser.
     /// Usually called after loadSettings().
     void loadFromParser(const QCommandLineParser &parser);
+#ifdef QT_DEBUG
+    /// Load debugging info from command line.
+    void loadDebugFromParser(const QCommandLineParser &parser);
+#endif
 
     Tool *currentTool(const int device) const noexcept;
     void replaceKeyTool(const int keys, Tool *newtool);
@@ -170,6 +174,7 @@ const Preferences *preferences();
 
 
 Tool *createTool(const QJsonObject &obj);
+void toolToJson(const Tool *tool, QJsonObject &obj);
 
 
 #ifdef QT_DEBUG

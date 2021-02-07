@@ -4,6 +4,7 @@ ToolButton::ToolButton(Tool *tool, QWidget *parent) noexcept :
         QPushButton(parent),
         tool(NULL)
 {
+    setContentsMargins(0,0,0,0);
     setFocusPolicy(Qt::NoFocus);
     setAttribute(Qt::WA_AcceptTouchEvents);
     setTool(tool);

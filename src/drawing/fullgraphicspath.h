@@ -18,7 +18,6 @@ struct PointPressure
 
 
 /// Variable width path.
-/// TODO: flexible stroke width (relative to pressure) and color
 class FullGraphicsPath : public AbstractGraphicsPath
 {
     /// Vector of nodes (coordinates and pressure).

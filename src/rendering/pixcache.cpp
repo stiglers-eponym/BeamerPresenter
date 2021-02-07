@@ -42,13 +42,13 @@ void PixCache::init()
     for (int i=0; i<threads.length(); i++)
     {
         threads[i] = new PixCacheThread(pdfDoc, renderer->pagePart(), this);
-        connect(threads[i], &PixCacheThread::sendData, this, &PixCache::receiveData);
+        connect(threads[i], &PixCacheThread::sendData, this, &PixCache::receiveData, Qt::QueuedConnection);
     }
 
     renderCacheTimer = new QTimer(this);
     renderCacheTimer->setSingleShot(true);
     renderCacheTimer->setInterval(0);
-    connect(renderCacheTimer, &QTimer::timeout, this, &PixCache::startRendering);
+    connect(renderCacheTimer, &QTimer::timeout, this, &PixCache::startRendering, Qt::QueuedConnection);
 }
 
 PixCache::~PixCache()

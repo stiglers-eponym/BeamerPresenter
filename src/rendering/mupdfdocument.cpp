@@ -534,7 +534,7 @@ const SlideTransition MuPdfDocument::transition(const int page) const
 
 const PdfLink MuPdfDocument::linkAt(const int page, const QPointF &position) const
 {
-    PdfLink result {NoLink, ""};
+    PdfLink result {NoLink, "", QRectF()};
     if (page < 0 || page >= number_of_pages || !ctx || !doc)
         return result;
 
@@ -560,15 +560,16 @@ const PdfLink MuPdfDocument::linkAt(const int page, const QPointF &position) con
         {
             if (link->rect.x0 <= position.x() && link->rect.x1 >= position.x() && link->rect.y0 <= position.y() && link->rect.y1 >= position.y())
             {
+                const QRectF rect = QRectF(link->rect.x0, link->rect.y0, link->rect.x1 - link->rect.x0, link->rect.y1 - link->rect.y0).normalized();
                 if (link->uri == NULL)
-                    result = {NoLink, ""};
+                    result = {NoLink, "", rect};
                 else if (link->uri[0] == '#')
                 {
                     // Internal navigation link
                     float x, y;
 #if (FZ_VERSION_MAJOR >= 1)  && (FZ_VERSION_MINOR >= 17)
                     fz_location location = fz_resolve_link(ctx, doc, link->uri, &x, &y);
-                    result = {location.page, ""};
+                    result = {location.page, "", rect};
 #else
                     const int page = fz_resolve_link(ctx, doc, link->uri, &x, &y);
                     result = {page, ""};
@@ -577,7 +578,7 @@ const PdfLink MuPdfDocument::linkAt(const int page, const QPointF &position) con
                 else
                 {
                     debug_msg(DebugRendering) << "Unsupported link" << link->uri;
-                    result = {NoLink, ""};
+                    result = {NoLink, "", rect};
                 }
                 break;
             }
