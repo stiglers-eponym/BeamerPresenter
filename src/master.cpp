@@ -482,20 +482,16 @@ void Master::receiveKeyEvent(const QKeyEvent* event)
     }
     // Search actions in preferences for given key sequence.
     {
-        auto it = preferences()->key_actions.constFind(key_code);
-        while (it != preferences()->key_actions.cend())
+        for (Action action : static_cast<const QList<Action>>(preferences()->key_actions.values(key_code)))
         {
-            debug_msg(DebugKeyInput) << "Global key action:" << it.value();
-            debug_msg(DebugKeyInput) << "Cache:" << getTotalCache();
-            handleAction(it.value());
-            if ((++it).key() != static_cast<unsigned int>(event->key()))
-                break;
+            debug_msg(DebugKeyInput) << "Global key action:" << action;
+            handleAction(action);
         }
     }
     // Search tools in preferences for given key sequence.
     for (const auto tool : static_cast<const QList<Tool*>>(preferences()->key_tools.values(key_code)))
     {
-        if (tool)
+        if (tool && tool->device())
         {
             if (tool->tool() & AnyDrawTool)
                 setTool(new DrawTool(*static_cast<const DrawTool*>(tool)));
@@ -616,7 +612,10 @@ void Master::navigateToPage(const int page) const
 void Master::setTool(Tool *tool) const noexcept
 {
     if (!tool || !tool->device())
+    {
+        delete tool;
         return;
+    }
     debug_msg(DebugDrawing|DebugKeyInput) << "Set tool" << tool->tool() << tool->device();
     int device = tool->device();
     // Delete mouse no button devices if MouseLeftButton is overwritten.

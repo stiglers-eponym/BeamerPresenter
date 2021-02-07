@@ -92,7 +92,7 @@ public:
 public slots:
     /// Handle key events collected by any other object.
     /// By default all key events are redirected to this and handled here.
-    void receiveKeyEvent(QKeyEvent const* event);
+    void receiveKeyEvent(const QKeyEvent* event);
 
     /// Read memory size restriction from preferences and distribute memory to pixcaches.
     void distributeMemory();

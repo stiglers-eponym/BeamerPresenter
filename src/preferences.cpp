@@ -293,9 +293,11 @@ void Preferences::loadSettings()
                     }
                     else
                     {
+                        Action action;
                         for (const auto &action_str : static_cast<const QStringList>(settings.value(key).toStringList()))
                         {
-                            const Action action = string_to_action_map.value(action_str.toLower(), Action::InvalidAction);
+                            debug_verbose(DebugSettings) << key << action_str;
+                            action = string_to_action_map.value(action_str.toLower(), Action::InvalidAction);
                             if (action == InvalidAction)
                                 qWarning() << "Unknown action in config" << action_str << "for key" << key;
                             else

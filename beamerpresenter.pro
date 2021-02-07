@@ -12,7 +12,7 @@ VERSION = 0.2.0alpha0
 # below in section "CONFIGURE LIBRARIES AND LINKING - OS DEPENDENT"
 
 # Include Poppler: requires that poppler-qt5 libraries are installed.
-# Tested with poppler 20.12.1, versions below 0.70 are not supported and will
+# Tested with poppler 21.02.0, versions below 0.70 are not supported and will
 # most probably never be supported.
 DEFINES += INCLUDE_POPPLER
 
@@ -236,19 +236,23 @@ unix {
     man5.extra = gzip -9 doc/beamerpresenter.conf.5 || true
     man5.files = man/beamerpresenter.conf.5.gz
 
-    configuration.path = /etc/$${TARGET}/
+    configuration.path = /etc/xdg/$${TARGET}/
     configuration.CONFIG = no_build
     configuration.files = config/beamerpresenter.conf config/gui-config.json
 
     icon.path = $${ICON_PATH}
     icon.CONFIG = no_build
-    icon.files = src/icons/beamerpresenter.svg
+    icon.files = share/icons/beamerpresenter.svg
+
+    doc.path = /usr/share/doc/beamerpresenter/
+    doc.CONFIG = no_build
+    doc.files = share/doc/README.html
 
     desktop.path = /usr/share/applications/
     desktop.CONFIG = no_build
-    desktop.files = src/applications/beamerpresenter.desktop
+    desktop.files = share/applications/beamerpresenter.desktop
 
     target.path = /usr/bin/
 
-    INSTALLS += man1 man5 configuration icon desktop target
+    INSTALLS += man1 man5 configuration icon doc desktop target
 }
