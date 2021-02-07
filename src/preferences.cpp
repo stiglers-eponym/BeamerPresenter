@@ -179,14 +179,14 @@ void Preferences::loadSettings()
     // page_part threshold
     page_part_threshold = settings.value("page part threshold").toReal();
     { // renderer
+        rendering_command = settings.value("rendering command").toString();
+        rendering_arguments = settings.value("rendering arguments").toStringList();
         const QString renderer_str = settings.value("renderer").toString().toLower();
         debug_msg(DebugSettings) << renderer_str;
         if (!renderer_str.isEmpty())
         {
             if (renderer_str == "extern" || renderer_str == "external")
             {
-                rendering_command = settings.value("rendering command").toString();
-                rendering_arguments = settings.value("rendering arguments").toStringList();
                 if (rendering_command.isEmpty() || rendering_arguments.isEmpty())
                 {
                     qWarning() << "External renderer requested but no command or no arguments given. Falling back to Poppler.";
@@ -417,27 +417,17 @@ void Preferences::removeKeyAction(const quint32 sequence, const Action action)
     settings.endGroup();
 }
 
-void Preferences::setMemory(const QString &string)
+void Preferences::setMemory(double new_memory)
 {
-    bool ok;
-    const float new_memory = string.toFloat(&ok);
-    if (ok)
-    {
-        max_memory = 1048596*new_memory;
-        settings.setValue("memory", QString::number(max_memory));
-    }
+    max_memory = 1048596*new_memory;
+    settings.setValue("memory", QString::number(max_memory));
     emit distributeMemory();
 }
 
-void Preferences::setCacheSize(const QString &string)
+void Preferences::setCacheSize(const int new_size)
 {
-    bool ok;
-    const int new_size = string.toInt(&ok);
-    if (ok)
-    {
-        max_cache_pages = new_size;
-        settings.setValue("cache pages", QString::number(max_cache_pages));
-    }
+    max_cache_pages = new_size;
+    settings.setValue("cache pages", QString::number(max_cache_pages));
     emit distributeMemory();
 }
 
@@ -448,7 +438,9 @@ void Preferences::setRenderer(const QString &string)
     if (new_renderer == "mupdf")
     {
         settings.setValue("engine", "mupdf");
+        settings.beginGroup("rendering");
         settings.setValue("renderer", "mupdf");
+        settings.endGroup();
     }
     else
 #endif
@@ -456,7 +448,9 @@ void Preferences::setRenderer(const QString &string)
     if (new_renderer == "poppler")
     {
         settings.setValue("engine", "poppler");
+        settings.beginGroup("rendering");
         settings.setValue("renderer", "poppler");
+        settings.endGroup();
     }
     else
 #endif
@@ -464,14 +458,18 @@ void Preferences::setRenderer(const QString &string)
     if (new_renderer == "mupdf + external")
     {
         settings.setValue("engine", "mupdf");
+        settings.beginGroup("rendering");
         settings.setValue("renderer", "external");
+        settings.endGroup();
     }
 #endif
 #ifdef INCLUDE_POPPLER
     else if (new_renderer == "poppler + external")
     {
         settings.setValue("engine", "poppler");
+        settings.beginGroup("rendering");
         settings.setValue("renderer", "externaler");
+        settings.endGroup();
     }
 #endif
 }
@@ -524,5 +522,54 @@ void Preferences::replaceKeyToolShortcut(const int oldkeys, const int newkeys, T
         emit stopDrawing();
         delete tool;
     }
+    settings.endGroup();
+}
+
+void Preferences::setPagePartThreshold(const double threshold)
+{
+    page_part_threshold = threshold;
+    settings.beginGroup("rendering");
+    settings.setValue("page part threshold", page_part_threshold);
+    settings.endGroup();
+}
+
+void Preferences::setHistoryVisibleSlide(const int length)
+{
+    if (length >= 0)
+        history_length_visible_slides = length;
+    settings.beginGroup("drawing");
+    settings.setValue("history length visibl", history_length_visible_slides);
+}
+
+void Preferences::setHistoryHiddenSlide(const int length)
+{
+    if (length >= 0)
+        history_length_hidden_slides = length;
+    settings.beginGroup("drawing");
+    settings.setValue("history length hidden", history_length_hidden_slides);
+}
+
+void Preferences::setLogSlideChanges(const bool log)
+{
+    log_level = log;
+    if (log)
+        settings.remove("log");
+    else
+        settings.setValue("log", true);
+}
+
+void Preferences::setRenderingCommand(const QString &string)
+{
+    rendering_command = string;
+    settings.beginGroup("rendering");
+    settings.setValue("rendering command", rendering_command);
+    settings.endGroup();
+}
+
+void Preferences::setRenderingArguments(const QString &string)
+{
+    rendering_arguments = string.split(",");
+    settings.beginGroup("rendering");
+    settings.setValue("rendering arguments", rendering_command);
     settings.endGroup();
 }

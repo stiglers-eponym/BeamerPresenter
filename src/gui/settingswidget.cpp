@@ -3,7 +3,7 @@
 SettingsWidget::SettingsWidget(QWidget *parent) :
     QTabWidget(parent),
     help(new QTextEdit(this)),
-    general(new QScrollArea(this)),
+    misc(new QScrollArea(this)),
     shortcuts(new QScrollArea(this)),
     rendering(new QScrollArea(this))
 {
@@ -53,15 +53,23 @@ SettingsWidget::SettingsWidget(QWidget *parent) :
     // Rendering
     {
         QFormLayout *layout = new QFormLayout();
-        QLineEdit *lineedit = new QLineEdit(rendering);
-        lineedit->setText(QString::number(preferences()->max_memory/1048596));
-        connect(lineedit, &QLineEdit::textChanged, writable_preferences(), &Preferences::setMemory);
-        layout->addRow("cache memory (MiB)", lineedit);
+        QLabel *explanation_label = new QLabel("Set general settings for rendering. Many settings only work after restarting the program.", rendering);
+        explanation_label->setWordWrap(true);
+        layout->addRow(explanation_label);
 
-        lineedit = new QLineEdit(rendering);
-        lineedit->setText(QString::number(preferences()->max_cache_pages));
-        connect(lineedit, &QLineEdit::textChanged, writable_preferences(), &Preferences::setCacheSize);
-        layout->addRow("max. slides in cache", lineedit);
+        QDoubleSpinBox *memory_box = new QDoubleSpinBox(rendering);
+        memory_box->setMinimum(-1.);
+        memory_box->setMaximum(4096.);
+        memory_box->setValue(preferences()->max_memory/1048596);
+        connect(memory_box, QOverload<double>::of(&QDoubleSpinBox::valueChanged), writable_preferences(), &Preferences::setMemory);
+        layout->addRow("cache memory (MiB)", memory_box);
+
+        QSpinBox *spin_box = new QSpinBox(rendering);
+        spin_box->setMinimum(-1);
+        spin_box->setMaximum(10000);
+        spin_box->setValue(preferences()->max_cache_pages);
+        connect(spin_box, QOverload<int>::of(&QSpinBox::valueChanged), writable_preferences(), &Preferences::setCacheSize);
+        layout->addRow("max. slides in cache", spin_box);
 
         QComboBox *select_renderer = new QComboBox(rendering);
 #ifdef INCLUDE_MUPDF
@@ -79,13 +87,59 @@ SettingsWidget::SettingsWidget(QWidget *parent) :
         connect(select_renderer, &QComboBox::currentTextChanged, writable_preferences(), &Preferences::setRenderer);
         layout->addRow("Renderer (requires restart)", select_renderer);
 
+        QDoubleSpinBox *page_part_box = new QDoubleSpinBox(rendering);
+        page_part_box->setMinimum(1.);
+        page_part_box->setMaximum(20.);
+        page_part_box->setValue(preferences()->page_part_threshold);
+        connect(page_part_box, QOverload<double>::of(&QDoubleSpinBox::valueChanged), writable_preferences(), &Preferences::setPagePartThreshold);
+        layout->addRow("Page part threshold", page_part_box);
+
+        QLineEdit *line_edit = new QLineEdit(rendering);
+        line_edit->setText(preferences()->rendering_command);
+        connect(line_edit, &QLineEdit::textChanged, writable_preferences(), &Preferences::setRenderingCommand);
+        layout->addRow("rendering command", line_edit);
+
+        line_edit = new QLineEdit(rendering);
+        line_edit->setText(preferences()->rendering_arguments.join(","));
+        connect(line_edit, &QLineEdit::textChanged, writable_preferences(), &Preferences::setRenderingArguments);
+        layout->addRow("rendering arguments", line_edit);
+
         rendering->setLayout(layout);
     }
 
+    // MISC
+    {
+        QFormLayout *layout = new QFormLayout();
+        QLabel *explanation_label = new QLabel("Various settings.", misc);
+        explanation_label->setWordWrap(true);
+        layout->addRow(explanation_label);
+
+        QSpinBox *spin_box = new QSpinBox(misc);
+        spin_box->setValue(preferences()->history_length_visible_slides);
+        connect(spin_box, QOverload<int>::of(&QSpinBox::valueChanged), writable_preferences(), &Preferences::setHistoryVisibleSlide);
+        spin_box->setMinimum(0);
+        spin_box->setMaximum(1000);
+        layout->addRow("History length visible slides", spin_box);
+
+        spin_box = new QSpinBox(misc);
+        spin_box->setValue(preferences()->history_length_hidden_slides);
+        connect(spin_box, QOverload<int>::of(&QSpinBox::valueChanged), writable_preferences(), &Preferences::setHistoryHiddenSlide);
+        spin_box->setMinimum(0);
+        spin_box->setMaximum(1000);
+        layout->addRow("History length hidden slides", spin_box);
+
+        QCheckBox *log_box = new QCheckBox("log slide changes", misc);
+        log_box->setChecked(preferences()->log_level & LogSlideChanges);
+        connect(log_box, QOverload<bool>::of(&QCheckBox::clicked), writable_preferences(), &Preferences::setLogSlideChanges);
+        layout->addRow(log_box);
+
+        misc->setLayout(layout);
+    }
+
     addTab(help, "help");
-    addTab(general, "general");
-    addTab(shortcuts, "shortcuts");
+    addTab(misc, "misc");
     addTab(rendering, "rendering");
+    addTab(shortcuts, "shortcuts");
 }
 
 void SettingsWidget::appendShortcut()

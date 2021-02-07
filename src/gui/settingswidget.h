@@ -9,6 +9,8 @@
 #include <QLineEdit>
 #include <QComboBox>
 #include <QPushButton>
+#include <QSpinBox>
+#include <QDoubleSpinBox>
 #include "src/preferences.h"
 #include "src/gui/keyinputlabel.h"
 
@@ -21,8 +23,8 @@ class SettingsWidget : public QTabWidget
     /// Manual
     QTextEdit *help;
 
-    /// General settings: save settings, ...
-    QScrollArea *general;
+    /// General settings
+    QScrollArea *misc;
 
     /// List and modify keyboard shortcuts
     QScrollArea *shortcuts;

@@ -154,9 +154,15 @@ public:
     void removeKeyAction(const quint32 sequence, const Action action);
 
 public slots:
-    void setMemory(const QString &string);
-    void setCacheSize(const QString &string);
+    void setMemory(const double new_memory);
+    void setCacheSize(const int new_size);
     void setRenderer(const QString &string);
+    void setPagePartThreshold(const double threshold);
+    void setHistoryVisibleSlide(const int length);
+    void setHistoryHiddenSlide(const int length);
+    void setLogSlideChanges(const bool log);
+    void setRenderingCommand(const QString &string);
+    void setRenderingArguments(const QString &string);
 
 signals:
     void stopDrawing() const;

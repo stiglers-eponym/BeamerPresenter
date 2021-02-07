@@ -30,76 +30,70 @@
               "overlays" : "skip",
               "columns" : 4,
               "keys" : "o"
-          }
-        ]
-      },
-      {
-        "type" : "tabbed",
-        "color" : "light gray",
-        "children" : [
-          {
-            "type" : "vertical",
-            "title" : "overview",
-            "keys" : "p",
-            "children" : [
-              {
-                "type" : "clock"
-              },
-              {
-                "type" : "timer"
-              },
-              {
-                "type" : "slide label"
-              },
-              {
-                "type" : "slide",
-                "file" : "presentation",
-                "page part" : "left",
-                "keys" : "1",
-                "shift" : 0,
-                "overlays" : "last",
-                "transitions" : false,
-                "multimedia" : false,
-                "threads" : 0
-              },
-              {
-                "type" : "slide",
-                "file" : "presentation",
-                "keys" : "2",
-                "page part" : "left",
-                "shift" : 1,
-                "overlays" : "last",
-                "transitions" : false,
-                "multimedia" : false,
-                "threads" : 0
-              },
-              {
-                  "type" : "tool selector",
-                  "buttons" : [
-                      ["start timer", "stop timer", "scroll up", "scroll normal", "scroll down"],
-                      [
-                          {"tool":"pen", "color":"blue", "width":2},
-                          {"tool":"pen", "color":"green", "width":2},
-                          {"tool":"pen", "color":"red", "width":2},
-                          {"tool":"highlighter", "width":20},
-                          {"tool":"text"}
-                      ],
-                      [
-                          {"tool":"pointer", "color":"#e0ff0000", "size":4},
-                          {"tool":"torch", "color":"#88000208", "size":60},
-                          {"tool":"magnifier", "color":"gray", "size":100, "scale":1.75},
-                          {"tool":"none"},
-                          {"tool":"none"}
-                      ]
-                  ]
-              }
-            ]
           },
           {
             "type" : "settings",
             "title" : "settings",
             "color" : "white",
-            "keys" : "d"
+            "keys" : "c"
+          }
+        ]
+      },
+      {
+        "type" : "vertical",
+        "title" : "overview",
+        "keys" : "p",
+        "children" : [
+          {
+            "type" : "clock"
+          },
+          {
+            "type" : "timer"
+          },
+          {
+            "type" : "slide label"
+          },
+          {
+            "type" : "slide",
+            "file" : "presentation",
+            "page part" : "left",
+            "keys" : "1",
+            "shift" : 0,
+            "overlays" : "last",
+            "transitions" : false,
+            "multimedia" : false,
+            "threads" : 0
+          },
+          {
+            "type" : "slide",
+            "file" : "presentation",
+            "keys" : "2",
+            "page part" : "left",
+            "shift" : 1,
+            "overlays" : "last",
+            "transitions" : false,
+            "multimedia" : false,
+            "threads" : 0
+          },
+          {
+              "type" : "tool selector",
+              "buttons" : [
+                  ["start timer", "stop timer", "scroll up", "scroll normal", "scroll down"],
+                  [
+                      {"tool":"pen", "color":"blue", "width":2},
+                      {"tool":"pen", "color":"green", "width":2},
+                      {"tool":"pen", "color":"red", "width":2},
+                      {"tool":"highlighter", "width":20},
+                      {"tool":"text"}
+                  ],
+                  [
+                      {"tool":"pointer", "color":"#e0ff0000", "size":4},
+                      {"tool":"torch", "color":"#88000208", "size":60},
+                      {"tool":"magnifier", "color":"gray", "size":100, "scale":1.75},
+                      {"tool":"none"},
+                      {"tool":"none"}
+                  ]
+              ]
           }
         ]
       }
