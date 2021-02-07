@@ -15,14 +15,8 @@ SettingsWidget::SettingsWidget(QWidget *parent) :
         help->setReadOnly(true);
         QFile manual(preferences()->manual_file);
         manual.open(QFile::ReadOnly | QFile::Text);
-        // TODO: html-formatted help, which can also be read if markdown is
-        // not supported.
         if (manual.isReadable())
-#ifdef QT_FEATURE_textmarkdownreader
-            help->setMarkdown(manual.readAll());
-#else
-            help->setPlainText(manual.readAll());
-#endif
+            help->setHtml(manual.readAll());
     }
 
     // Shortcuts

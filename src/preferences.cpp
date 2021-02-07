@@ -114,7 +114,7 @@ void Preferences::loadSettings()
     // GENERAL SETTINGS
     {
         gui_config_file = settings.value("gui config", "/etc/beamerpresenter/gui.json").toString();
-        manual_file = settings.value("manual", "/usr/share/doc/beamerpresenter/manual.md").toString();
+        manual_file = settings.value("manual", "/usr/share/doc/beamerpresenter/README.html").toString();
         const QStringList log_flags = settings.value("log").toStringList();
         log_level = NoLog;
         for (const auto &flag : log_flags)

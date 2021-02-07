@@ -36,7 +36,7 @@ public:
     /// Path to GUI configuration file.
     QString gui_config_file;
 
-    /// Path to manual (markdown formatted), required for help tab in settings.
+    /// Path to manual (html formatted), required for help tab in settings.
     QString manual_file;
 
     int log_level = NoLog;

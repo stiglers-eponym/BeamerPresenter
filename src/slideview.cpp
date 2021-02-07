@@ -43,7 +43,9 @@ void SlideView::pageChanged(const int page, SlideScene *scene)
 
 void SlideView::drawBackground(QPainter *painter, const QRectF &rect)
 {
-    painter->drawPixmap({{0,0}, scene()->sceneRect().size()}, currentPixmap, currentPixmap.rect());
+    QRectF bgrect = scene()->sceneRect();
+    bgrect.moveTop(0);
+    painter->drawPixmap(bgrect, currentPixmap, currentPixmap.rect());
 }
 
 void SlideView::pageReady(const QPixmap pixmap, const int page)

@@ -101,6 +101,7 @@ enum Action
     ClearDrawingLeft = ClearDrawing | PagePart::LeftHalf,
     ClearDrawingRight = ClearDrawing | PagePart::RightHalf,
 };
+Q_DECLARE_METATYPE(Action);
 
 /// Tools for drawing and highlighting.
 enum BasicTool

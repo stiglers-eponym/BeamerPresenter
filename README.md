@@ -142,6 +142,7 @@ The configuration files of version 0.2.x and 0.1.x are incompatible.
 * multimedia
 * option to insert extra slides or extra space below slide for drawing
 * switch between per-slide and per-overlay drawings
+* improve text input tool
 * save and load drawings to xopp-like xml format
 * improve widgets:
     * settings (GUI for config files, experimental version already available)
@@ -164,4 +165,4 @@ but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 GNU General Public License for more details.
 
-This is an early development version. It is NOT READY FOR USAGE.
+This is an early development version. It is NOT STABLE.
