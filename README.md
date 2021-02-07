@@ -134,7 +134,6 @@ The configuration files of version 0.2.x and 0.1.x are incompatible.
 
 #### To be implemented
 * improve cache management and layout corrections: sometimes cache is not used correctly.
-* avoid fatal error when stopping program while cache threads are running
 * cache slides even when size of slides varies (partially implemented)
 * cache only required slides in previews showing specific overlays
 * fix layout, avoid recalculating full layout when clock label changes text
@@ -142,7 +141,7 @@ The configuration files of version 0.2.x and 0.1.x are incompatible.
 * animations and automatic slide change
 * slide transitions
 * multimedia
-* option to insert extra slides or extra space below slide for drawing
+* option to insert extra slides or extra space below slide for drawing (partially implemented)
 * switch between per-slide and per-overlay drawings
 * improve text input tool
 * save and load drawings to xopp-like xml format

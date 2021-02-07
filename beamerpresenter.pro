@@ -228,12 +228,12 @@ unix {
 
     man1.path = /usr/share/man/man1/
     man1.CONFIG = no_check_exist no_build
-    man1.extra = gzip -9 doc/beamerpresenter.1 || true; gzip -9 doc/beamerpresenter-ui.1
+    man1.extra = gzip -kf9 doc/beamerpresenter.1; gzip -kf9 doc/beamerpresenter-ui.1
     man1.files = doc/beamerpresenter.1.gz doc/beamerpresenter-ui.1.gz
 
     man5.path = /usr/share/man/man5/
     man5.CONFIG = no_check_exist no_build
-    man5.extra = gzip -9 doc/beamerpresenter.conf.5 || true
+    man5.extra = gzip -kf9 doc/beamerpresenter.conf.5
     man5.files = man/beamerpresenter.conf.5.gz
 
     configuration.path = /etc/xdg/$${TARGET}/
