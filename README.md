@@ -7,6 +7,8 @@ current time, a timer for the presentation, and previews of the next slides.
 
 This software uses the Qt framework and the PDF engines MuPDF and/or poppler.
 
+**Note**: the relatively stable version 0.1.x can be found in [this branch](https://github.com/stiglers-eponym/BeamerPresenter/tree/0.1.x) and in the [releases](https://github.com/stiglers-eponym/BeamerPresenter/releases). This new version 0.2.x is not stable yet.
+
 ## Features
 * modular user interface (new in 0.2.x)
 * render slides to compressed cache for fast response
