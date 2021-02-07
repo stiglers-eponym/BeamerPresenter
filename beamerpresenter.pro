@@ -234,11 +234,11 @@ unix {
     man5.path = /usr/share/man/man5/
     man5.CONFIG = no_check_exist no_build
     man5.extra = gzip -kf9 doc/beamerpresenter.conf.5
-    man5.files = man/beamerpresenter.conf.5.gz
+    man5.files = doc/beamerpresenter.conf.5.gz
 
     configuration.path = /etc/xdg/$${TARGET}/
     configuration.CONFIG = no_build
-    configuration.files = config/beamerpresenter.conf config/gui-config.json
+    configuration.files = config/beamerpresenter.conf config/gui.json
 
     icon.path = $${ICON_PATH}
     icon.CONFIG = no_build
