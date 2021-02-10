@@ -386,7 +386,7 @@ QWidget* Master::createWidget(QJsonObject &object, QWidget *parent)
                     break;
                 case QJsonValue::Object:
                 {
-                    Tool *tool = createTool(row[j].toObject());
+                    Tool *tool = createTool(row[j].toObject(), 0);
                     if (tool)
                         toolwidget->addToolButton(i, j, tool);
                     else
@@ -536,9 +536,19 @@ void Master::handleAction(const Action action)
             window->close();
         break;
     case ReloadFiles:
+    {
+        bool changed = false;
         for (const auto doc : qAsConst(documents))
-            doc->loadDocument();
+            changed |= doc->loadDocument();
+        if (changed)
+        {
+            writable_preferences()->number_of_pages = documents.first()->numberOfPages();
+            for (const auto cache : qAsConst(caches))
+                cache->clear();
+            navigateToPage(preferences()->page);
+        }
         break;
+    }
     default:
         emit sendAction(action);
     }

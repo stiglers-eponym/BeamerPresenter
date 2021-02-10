@@ -179,7 +179,7 @@ Preferences *writable_preferences(Preferences *new_preferences = NULL);
 const Preferences *preferences();
 
 
-Tool *createTool(const QJsonObject &obj);
+Tool *createTool(const QJsonObject &obj, const int default_device = 0);
 void toolToJson(const Tool *tool, QJsonObject &obj);
 
 

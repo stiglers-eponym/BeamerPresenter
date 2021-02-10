@@ -1,7 +1,7 @@
 #include "src/preferences.h"
 
 
-Tool *createTool(const QJsonObject &obj)
+Tool *createTool(const QJsonObject &obj, const int default_device)
 {
     const BasicTool base_tool = string_to_tool.value(obj.value("tool").toString());
     Tool *tool;
@@ -15,7 +15,7 @@ Tool *createTool(const QJsonObject &obj)
             return NULL;
         const Qt::PenStyle style = string_to_pen_style.value(obj.value("style").toString(), Qt::SolidLine);
         debug_msg(DebugSettings) << "creating pen" << color << width;
-        tool = new DrawTool(Pen, AnyNormalDevice, QPen(color, width, style, Qt::RoundCap, Qt::RoundJoin));
+        tool = new DrawTool(Pen, default_device, QPen(color, width, style, Qt::RoundCap, Qt::RoundJoin));
         break;
     }
     case Highlighter:
@@ -26,13 +26,13 @@ Tool *createTool(const QJsonObject &obj)
             return NULL;
         const Qt::PenStyle style = string_to_pen_style.value(obj.value("style").toString(), Qt::SolidLine);
         debug_msg(DebugSettings) << "creating highlighter" << color << width;
-        tool = new DrawTool(Highlighter, AnyNormalDevice, QPen(color, width, style, Qt::RoundCap, Qt::RoundJoin), QPainter::CompositionMode_Darken);
+        tool = new DrawTool(Highlighter, default_device, QPen(color, width, style, Qt::RoundCap, Qt::RoundJoin), QPainter::CompositionMode_Darken);
         break;
     }
     case Eraser:
     {
         debug_msg(DebugSettings) << "creating eraser";
-        tool = new DrawTool(Highlighter, AnyNormalDevice, QPen(Qt::black, obj.value("size").toDouble(10.)));
+        tool = new DrawTool(Highlighter, default_device, QPen(Qt::black, obj.value("size").toDouble(10.)));
         break;
     }
     case Pointer:
@@ -42,7 +42,7 @@ Tool *createTool(const QJsonObject &obj)
         if (size <= 0.)
             return NULL;
         debug_msg(DebugSettings) << "creating pointer" << color << size;
-        tool = new PointingTool(Pointer, size, color, AnyNormalDevice);
+        tool = new PointingTool(Pointer, size, color, default_device);
         break;
     }
     case Torch:
@@ -52,7 +52,7 @@ Tool *createTool(const QJsonObject &obj)
         if (size <= 0.)
             return NULL;
         debug_msg(DebugSettings) << "creating torch" << color << size;
-        tool = new PointingTool(Torch, size, color, AnyNormalDevice);
+        tool = new PointingTool(Torch, size, color, default_device);
         break;
     }
     case Magnifier:
@@ -61,7 +61,7 @@ Tool *createTool(const QJsonObject &obj)
         const float size = obj.value("size").toDouble(120.);
         const float scale = obj.value("scale").toDouble(2.);
         debug_msg(DebugSettings) << "creating magnifier" << color << size << scale;
-        PointingTool *pointing_tool = new PointingTool(Magnifier, size, color, AnyNormalDevice);
+        PointingTool *pointing_tool = new PointingTool(Magnifier, size, color, default_device);
         pointing_tool->setScale(scale < 0.1 ? 0.1 : scale > 10. ? 5. : scale);
         tool = pointing_tool;
         break;
@@ -73,7 +73,7 @@ Tool *createTool(const QJsonObject &obj)
             font.setPointSizeF(obj.value("font size").toDouble(12.));
         const QColor color(obj.value("color").toString("black"));
         debug_msg(DebugSettings) << "creating text tool" << color << font;
-        tool = new TextTool(font, color, AnyNormalDevice);
+        tool = new TextTool(font, color, default_device);
         break;
     }
     case InvalidTool:
@@ -83,12 +83,12 @@ Tool *createTool(const QJsonObject &obj)
         debug_msg(DebugSettings) << "creating default tool" << obj.value("tool");
         if (base_tool & AnyDrawTool)
             // Shouldn't happen, but would lead to segmentation faults if it was not handled.
-            tool = new DrawTool(base_tool, AnyNormalDevice, QPen());
+            tool = new DrawTool(base_tool, default_device, QPen());
         else if (base_tool & AnyPointingTool)
             // Shouldn't happen, but would lead to segmentation faults if it was not handled.
-            tool = new PointingTool(base_tool, 10., Qt::black, AnyNormalDevice);
+            tool = new PointingTool(base_tool, 10., Qt::black, default_device);
         else
-            tool = new Tool(base_tool, AnyNormalDevice);
+            tool = new Tool(base_tool, default_device);
     }
     const QJsonValue dev_obj = obj.value("device");
     int device = 0;
@@ -283,7 +283,7 @@ void Preferences::loadSettings()
                             if (!value.isObject())
                                 continue;
                             const QJsonObject object = value.toObject();
-                            Tool *tool = createTool(object);
+                            Tool *tool = createTool(object, AnyNormalDevice);
                             if (tool)
                             {
                                 debug_msg(DebugSettings|DebugDrawing) << "Adding tool" << tool << tool->tool() << tool->device();
