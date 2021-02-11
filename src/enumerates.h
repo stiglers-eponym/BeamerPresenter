@@ -88,6 +88,7 @@ enum Action
     // Timer
     StartTimer,
     StopTimer,
+    StartStopTimer,
     ResetTimePassed,
     // Other actions
     ReloadFiles,

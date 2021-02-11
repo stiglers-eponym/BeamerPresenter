@@ -206,9 +206,12 @@ void SlideView::drawForeground(QPainter *painter, const QRectF &rect)
         {
         case Pointer:
         {
-            painter->setCompositionMode(QPainter::CompositionMode_Darken);
             painter->setPen(Qt::PenStyle::NoPen);
-            painter->setBrush(QBrush(tool->color(), Qt::SolidPattern));
+            painter->setBrush(tool->brush());
+            painter->setCompositionMode(QPainter::CompositionMode_Darken);
+            for (const auto &pos : tool->pos())
+                painter->drawEllipse(pos, tool->size(), tool->size());
+            painter->setCompositionMode(QPainter::CompositionMode_SourceOver);
             for (const auto &pos : tool->pos())
                 painter->drawEllipse(pos, tool->size(), tool->size());
             break;

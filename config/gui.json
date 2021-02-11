@@ -88,9 +88,9 @@
                   ],
                   [
                       {"tool":"pointer", "color":"#e0ff0000", "size":4},
+                      {"tool":"pointer", "color":"#e000ff00", "size":4},
                       {"tool":"torch", "color":"#88000208", "size":60},
                       {"tool":"magnifier", "color":"gray", "size":100, "scale":1.75},
-                      {"tool":"none"},
                       {"tool":"none"}
                   ]
               ]

@@ -42,7 +42,14 @@ Tool *createTool(const QJsonObject &obj, const int default_device)
         if (size <= 0.)
             return NULL;
         debug_msg(DebugSettings) << "creating pointer" << color << size;
-        tool = new PointingTool(Pointer, size, color, default_device);
+        QRadialGradient grad(.5, .5, .5);
+        grad.setCoordinateMode(QGradient::ObjectMode);
+        grad.setColorAt(.1, color);
+        grad.setColorAt(.9, QColor(color.red(), color.green(), color.blue(), 12));
+        grad.setColorAt(1, QColor(color.red(), color.green(), color.blue(), 0));
+        QBrush brush(grad);
+        brush.setColor(color);
+        tool = new PointingTool(Pointer, size, brush, default_device);
         break;
     }
     case Torch:

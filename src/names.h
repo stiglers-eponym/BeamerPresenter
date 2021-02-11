@@ -73,6 +73,7 @@ static const QMap<QString, Action> string_to_action_map
     {"clear right", ClearDrawingRight},
     {"start timer", StartTimer},
     {"stop timer", StopTimer},
+    {"toggle timer", StartStopTimer},
     {"reset timer", ResetTimePassed},
     {"scroll up", ScrollUp},
     {"scroll down", ScrollDown},

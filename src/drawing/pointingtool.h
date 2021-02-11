@@ -2,6 +2,7 @@
 #define POINTINGTOOL_H
 
 #include <QPointF>
+#include <QBrush>
 #include "src/drawing/tool.h"
 
 /**
@@ -15,16 +16,16 @@ protected:
     /// Radius of drawing tool.
     float _size;
     /// Color of the tool.
-    QColor _color;
+    QBrush _brush;
     /// Scale for magnification, only used by magnifier.
     float _scale = 2.;
 
 public:
-    PointingTool(const BasicTool tool, const float size, const QColor &color, const int device = AnyDevice) noexcept :
-        Tool(tool, device), _size(size), _color(color) {}
+    PointingTool(const BasicTool tool, const float size, const QBrush &brush, const int device = AnyDevice) noexcept :
+        Tool(tool, device), _size(size), _brush(brush) {}
 
     PointingTool(const PointingTool &other) noexcept :
-        Tool(other._tool, other._device), _pos(other._pos), _size(other._size), _color(other._color), _scale(other._scale) {}
+        Tool(other._tool, other._device), _pos(other._pos), _size(other._size), _brush(other._brush), _scale(other._scale) {}
 
     const QList<QPointF> &pos() const noexcept
     {return _pos;}
@@ -42,7 +43,10 @@ public:
     {return _size;}
 
     const QColor &color() const noexcept
-    {return _color;}
+    {return _brush.color();}
+
+    const QBrush &brush() const noexcept
+    {return _brush;}
 
     float scale() const noexcept
     {return _scale;}

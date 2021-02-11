@@ -145,6 +145,12 @@ void TimerWidget::handleAction(const Action action) noexcept
     case StopTimer:
         stopTimer();
         break;
+    case StartStopTimer:
+        if (preferences()->msecs_passed == UINT_LEAST32_MAX)
+            stopTimer();
+        else
+            startTimer();
+        break;
     case ResetTimePassed:
         if (preferences()->msecs_passed == UINT_LEAST32_MAX)
             writable_preferences()->target_time = QDateTime::currentDateTimeUtc().addMSecs(preferences()->msecs_total);
