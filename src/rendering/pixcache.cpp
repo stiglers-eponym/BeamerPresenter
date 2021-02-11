@@ -9,10 +9,16 @@
 
 PixCache::PixCache(PdfDocument *doc, const int thread_number, const PagePart page_part, QObject *parent) :
     QObject(parent),
+    priority({page_part}),
     pdfDoc(doc)
 {
     threads = QVector<PixCacheThread*>(doc->flexiblePageSizes() ? 0 : thread_number);
+}
 
+void PixCache::init()
+{
+    const PagePart page_part = static_cast<PagePart>(priority.isEmpty() ? 0 : priority.first());
+    priority.clear();
     // Create the renderer without any checks.
     switch (preferences()->renderer)
     {
@@ -34,10 +40,7 @@ PixCache::PixCache(PdfDocument *doc, const int thread_number, const PagePart pag
     // Check if the renderer is valid
     if (renderer == NULL || !renderer->isValid())
         qCritical() << "Creating renderer failed" << preferences()->renderer;
-}
 
-void PixCache::init()
-{
     // Create threads.
     for (int i=0; i<threads.length(); i++)
     {
@@ -45,7 +48,7 @@ void PixCache::init()
         connect(threads[i], &PixCacheThread::sendData, this, &PixCache::receiveData, Qt::QueuedConnection);
     }
 
-    renderCacheTimer = new QTimer(this);
+    renderCacheTimer = new QTimer(thread());
     renderCacheTimer->setSingleShot(true);
     renderCacheTimer->setInterval(0);
     connect(renderCacheTimer, &QTimer::timeout, this, &PixCache::startRendering, Qt::QueuedConnection);
@@ -53,7 +56,6 @@ void PixCache::init()
 
 PixCache::~PixCache()
 {
-    delete renderCacheTimer;
     delete renderer;
     // TODO: correctly clean up threads!
     for (const auto &thread : qAsConst(threads))

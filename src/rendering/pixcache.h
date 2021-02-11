@@ -49,7 +49,7 @@ private:
     QVector<PixCacheThread*> threads;
 
     /// Own renderer for rendering in PixCache thread.
-    AbstractRenderer *renderer;
+    AbstractRenderer *renderer {NULL};
 
     /// Pdf document.
     const PdfDocument *pdfDoc;

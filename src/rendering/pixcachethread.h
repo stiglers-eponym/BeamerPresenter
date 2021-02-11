@@ -14,7 +14,7 @@ class PixCacheThread : public QThread
 
 private:
     /// Renderer doing the main work.
-    AbstractRenderer *renderer = NULL;
+    AbstractRenderer *renderer {NULL};
 
     /// resolution in pixels per point (dpi/72).
     qreal resolution;
