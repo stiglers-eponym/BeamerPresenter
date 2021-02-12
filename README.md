@@ -13,15 +13,6 @@ Based on Qt, BeamerPresenter is cross-platform, but mainly tested on
 Arch Linux with X11 or wayland using presentations created by LaTeX beamer.
 In general Qt programs more stable in X11 than in wayland.
 
-## Upcoming changes
-The default branch of this repository will soon be changed to what is currently
-the `rewrite` branch. This branch (`master`) will be renamed to `0.1.x`.
-The new version 0.2.x is incompatible with the configuration files and drawing
-file types of the old version 0.1.x.
-Not all features of 0.1.x will be available in 0.2.x.
-In the beginning, slide transitions and multimedia content will not be
-supported by 0.2.x.
-
 ## Features
 An extended list of features can be found in the manual (`beamerpresenter.1`).
 
@@ -198,11 +189,7 @@ BeamerPresenter (`qmake --version`).
 ## Development
 The code for versions 0.1.x is quite unreadable, not really structured and full
 of ugly bug-fixes. To create something more structured, efficient, modular and
-flexible, I started rewriting BeamerPresenter from scratch (branch `rewrite`).
+flexible, I started rewriting BeamerPresenter from scratch (now branch `main`).
 
 For the old code this means: Small issues might still be fixed, but new
 features will only be available in the new, rewritten version.
-
-Some features available the new version: modular user interface,
-drawing history, pressure-sensitive tablet input, flexible pdf engine (MuPDF or
-poppler), markdown-formatted notes, improved multi-threading.
