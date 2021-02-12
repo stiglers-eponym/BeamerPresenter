@@ -3,6 +3,33 @@
 .SH NAME
 beamerpresenter.conf \- configuration file for BeamerPresenter
 .
+.SH DESCRIPTION
+.
+Configuration file for BeamerPresenter. Values set here can be temporarily overwritten by command-line options. Changes to the configuration can be made in the program or by manually editing the configuration file.
+The configuration is structured into groups. A group is started by a line of the format
+.BI [ name ]
+.RI "where " name " is the name of the group.
+The group ends when another group is started. Entries not belonging to any group are put in the default group
+.IR General .
+.
+.SS [General]
+.
+.SS [drawing]
+.
+.SS [keys]
+.
+.SS [rendering]
+.
+.SH FILES
+.
+.SH
+/etc/xdg/beamerpresenter/beamerpresenter.conf
+System-wide configuration file. This file is read before reading also the per-user configuration file.
+.
+.SH
+~/.config/beamerpresenter/beamerpresenter.conf
+Per-user configuration file. Changes made through the graphical interface will be saved to this file.
+.
 .SH SEE ALSO
 .
 .BR beamerpresenter (1)

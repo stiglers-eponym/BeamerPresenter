@@ -24,15 +24,18 @@ This software uses the Qt framework and the PDF engines MuPDF and/or poppler.
 ### Currently NOT supported in version 0.2.x
 * multimedia content on slides (only 0.1.x)
 * slide transitions (only 0.1.x)
+* animations (only 0.1.x)
 * save/load drawings (only 0.1.x)
 
 
 ## Build and install
-**Notes**: building and installing the [releases](https://github.com/stiglers-eponym/BeamerPresenter/releases) of version 0.1.x is described [here](https://github.com/stiglers-eponym/BeamerPresenter/tree/0.1.x).
+**Notes**: building and installing the [releases](https://github.com/stiglers-eponym/BeamerPresenter/releases) of version 0.1.x is described [here](https://github.com/stiglers-eponym/BeamerPresenter/tree/0.1.x#build).
 
 Building is tested in an up-to-date Arch Linux and (from time to time) in ubuntu 20.04.
-Older versions of ubuntu are not supported, because ubuntu 18.04 uses old versions of poppler and MuPDF and other versions before 20.04 should not be used anymore anyhow.
-Version 0.1.x of BeamerPresenter should support ubuntu 18.04 and you should create an issue on github if it does not.
+Older versions of ubuntu are not supported, because ubuntu 18.04 uses old versions of poppler and MuPDF and other ubuntu versions before 20.04 should not be used anymore.
+Version 0.1.x of BeamerPresenter should support ubuntu 18.04 and you should
+[open an issue](https://github.com/stiglers-eponym/BeamerPresenter/issues)
+on github if it does not.
 
 First install required packages. You need Qt5 including the multimedia module.
 Additionally you need either the Qt5 bindings of poppler or the MuPDF C bindings.
@@ -43,6 +46,7 @@ For Qt5:
 * `qt5-qmake`
 * `qt5-default`
 * `qtmultimedia5-dev`
+* Note: ubuntu's version of Qt5 does not have native markdown support. Therefore, also BeamerPresenter will not be able to interpret markdown in ubuntu.
 
 For poppler:
 
@@ -78,7 +82,7 @@ For MuPDF:
 
 Download the sources:
 ```sh
-git clone --depth 1 git@github.com:stiglers-eponym/BeamerPresenter.git
+git clone --depth 1 https://github.com/stiglers-eponym/BeamerPresenter.git
 ```
 Now you need to select the PDF engine. In the file `beamerpresenter.pro`
 you will find the lines
@@ -90,22 +94,25 @@ Now you can start building.
 ```sh
 qmake && make
 ```
-If this fails, check your Qt version (`qmake --version`).
-If you use 5.8 < qt < 6, you should open an issue on github. In older versions
-you may also open an issue, but it will probably not be fixed.
+If this fails and you have all dependencies installed, you should check your
+Qt version (`qmake --version`). If you use 5.8 < qt < 6, you should
+[open an issue](https://github.com/stiglers-eponym/BeamerPresenter/issues)
+on github.
+In older versions you may also open an issue, but it will probably not be fixed.
 
 ### Install
-At some point it should be possible to install (in most GNU/Linux systems) using
-`make install`. But currently you should better be careful with that!
-
-You may need the following files (in build directory):
+In GNU/Linux you can install BeamerPresenter with
+```sh
+make install
+```
+When installing manually, you may need the following files (in build directory):
 
 * `beamerpesenter`: executable, the program
 * `config/beamerpesenter.conf`: settings file, usually stored in `$HOME/.config/beamerpresenter/beamerpresenter.config`. If located at a different path, specify the path with the command line option `-c <path>`.
 * `config/gui.json`: user interface configuration, mandatory! Usually stored in `$HOME/.config/beamerpresenter/gui.json`. The path to this file needs to be specified in the settings file (see above) or given explicitly with the command line option `-g <path>`.
 * `doc/*`: manuals, not required for running the program.
 * `share/*`: icon and desktop file, not required for running the program.
-* `LICENSE`: you might want to remember that it's AGPL3 (see below for details)
+* `LICENSE` (optional): you might want to remember that it's AGPL3 (see [below](https://github.com/stiglers-eponym/BeamerPresenter#license) for details)
 
 
 ## Development
@@ -119,20 +126,21 @@ The configuration files of version 0.2.x and 0.1.x are incompatible.
 * read slides and notes from the same PDF, side by side on same page
 * navigation links inside document
 * navigation skipping overlays
-* build flexible GUI from config (not really stable)
+* build flexible GUI from config
 * draw and erase using tablet input device with variable pressure (wacom)
 * highlighting tools: pointer, torch, magnifier
 * full per-slide history of drawings (with limitation of number of history steps)
 * widgets:
     * slide
     * clock
-    * page number
+    * page number (and max. number)
     * page label (and max. label)
     * tool selector
     * timer
-    * editable markdown notes per page label
-    * table of contents (still kind of improvised)
-    * thumbnails (still kind of improvised)
+    * editable markdown notes per page label (only available if qt was compiled with native markdown implementation)
+    * table of contents (requires improvement: keyboard navigation)
+    * thumbnails (requires improvement: keyboard navigation)
+    * settings (still kind of improvised)
 
 #### To be implemented
 * improve cache management and layout corrections: sometimes cache is not used correctly.
@@ -148,24 +156,31 @@ The configuration files of version 0.2.x and 0.1.x are incompatible.
 * improve text input tool
 * save and load drawings to xopp-like xml format
 * improve widgets:
-    * settings (GUI for config files, experimental version already available)
+    * settings (more explanations)
     * timer (with color indicating progress relative to estimate like in version 0.1.x)
-    * thumbnails (cursor)
-    * table of contents (kind ov improvised)
+    * thumbnails (cursor, keyboard navigation)
+    * table of contents (cursor, keyboard navigation)
     * all: keyboard shortcuts
 * fine-tuned interface, fonts, ...
 * manual, man pages
 
 
+## Bugs
+If you find bugs or have suggestions for improvements, please
+[open an issue](https://github.com/stiglers-eponym/BeamerPresenter/issues).
+
+When reporting bugs, please include the version string of BeamerPresenter
+(`beamerpresenter --version`) or the Qt version if you have problems building
+BeamerPresenter (`qmake --version`).
+
+
 ## License
 This software may be redistributed and/or modified under the terms of the GNU Affero General Public License (AGPL), version 3, available on the [GNU web site](https://www.gnu.org/licenses/agpl-3.0.html). This license is chosen in order to ensure compatibility with the software libraries used by BeamerPresenter, including Qt, MuPDF, and poppler.
 
-BeamerPresenter can be compiled without including MuPDF, when using only poppler as a PDF engine.
+BeamerPresenter can be compiled without including MuPDF, using only poppler as a PDF engine.
 Those parts of the software which can be used without linking to MuPDF may, alternatively to the AGPL, be redistributed and/or modified under the terms of the GNU General Public License (GPL), version 3 or any later version, available on the [GNU web site](https://www.gnu.org/licenses/gpl-3.0.html).
 
 BeamerPresenter is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 GNU General Public License for more details.
-
-This is an early development version. It is NOT STABLE.

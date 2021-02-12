@@ -4,11 +4,12 @@ TimerWidget::TimerWidget(QWidget *parent) :
      QWidget(parent),
      passed(new QLineEdit(this)),
      total(new QLineEdit(this)),
+     label(new QLabel(" / ", this)),
      timer(new QTimer(this))
 {
     QHBoxLayout *layout = new QHBoxLayout();
     layout->addWidget(passed);
-    layout->addWidget(new QLabel(" / ", this));
+    layout->addWidget(label);
     layout->addWidget(total);
     setLayout(layout);
     connect(timer, &QTimer::timeout, this, &TimerWidget::updateText);
@@ -41,9 +42,11 @@ void TimerWidget::updateTimeout() noexcept
 
 void TimerWidget::resizeEvent(QResizeEvent *event) noexcept
 {
-    const QFont font({"", std::min(event->size().height()/2, event->size().width()/12), 2});
+    QFont font({"", std::min(event->size().height()/2, event->size().width()/12), 2});
     passed->setFont(font);
     total->setFont(font);
+    font.setPointSizeF(0.75*font.pointSizeF());
+    label->setFont(font);
 }
 
 void TimerWidget::updateFullText() noexcept

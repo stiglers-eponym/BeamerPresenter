@@ -12,6 +12,7 @@ class TimerWidget : public QWidget
     Q_OBJECT
     QLineEdit *passed;
     QLineEdit *total;
+    QLabel *label;
     QTimer *timer;
     bool timeout = false;
 
