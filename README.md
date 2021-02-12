@@ -28,6 +28,8 @@ This software uses the Qt framework and the PDF engines MuPDF and/or poppler.
 
 
 ## Build and install
+**Notes**: building and installing the [releases](https://github.com/stiglers-eponym/BeamerPresenter/releases) of version 0.1.x is described [here](https://github.com/stiglers-eponym/BeamerPresenter/tree/0.1.x).
+
 Building is tested in an up-to-date Arch Linux and (from time to time) in ubuntu 20.04.
 Older versions of ubuntu are not supported, because ubuntu 18.04 uses old versions of poppler and MuPDF and other versions before 20.04 should not be used anymore anyhow.
 Version 0.1.x of BeamerPresenter should support ubuntu 18.04 and you should create an issue on github if it does not.
