@@ -45,6 +45,7 @@ const QPixmap MuPdfRenderer::renderPixmap(const int page, const qreal resolution
     fz_catch(ctx)
     {
         warn_msg << "Fitz failed to create or fill pixmap:" << fz_caught_message(ctx);
+        fz_drop_display_list(ctx, list);
         fz_drop_pixmap(ctx, pixmap);
         fz_drop_context(ctx);
         return qpixmap;
@@ -58,6 +59,7 @@ const QPixmap MuPdfRenderer::renderPixmap(const int page, const qreal resolution
     fz_catch(ctx)
     {
         warn_msg << "Fitz failed to create draw device:" << fz_caught_message(ctx);
+        fz_drop_display_list(ctx, list);
         fz_drop_pixmap(ctx, pixmap);
         fz_drop_device(ctx, dev);
         fz_drop_context(ctx);
@@ -190,6 +192,7 @@ const PngPixmap * MuPdfRenderer::renderPng(const int page, const qreal resolutio
     fz_catch(ctx)
     {
         warn_msg << "Fitz failed to create or fill pixmap:" << fz_caught_message(ctx);
+        fz_drop_display_list(ctx, list);
         fz_drop_pixmap(ctx, pixmap);
         fz_drop_context(ctx);
         return NULL;
@@ -203,8 +206,8 @@ const PngPixmap * MuPdfRenderer::renderPng(const int page, const qreal resolutio
     fz_catch(ctx)
     {
         warn_msg << "Fitz failed to create draw device:" << fz_caught_message(ctx);
+        fz_drop_display_list(ctx, list);
         fz_drop_pixmap(ctx, pixmap);
-        fz_close_device(ctx, dev);
         fz_drop_device(ctx, dev);
         fz_drop_context(ctx);
         return NULL;

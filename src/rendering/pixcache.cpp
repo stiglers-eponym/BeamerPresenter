@@ -48,7 +48,8 @@ void PixCache::init()
         connect(threads[i], &PixCacheThread::sendData, this, &PixCache::receiveData, Qt::QueuedConnection);
     }
 
-    renderCacheTimer = new QTimer(thread());
+    renderCacheTimer = new QTimer();
+    connect(thread(), &QThread::finished, renderCacheTimer, &QTimer::deleteLater);
     renderCacheTimer->setSingleShot(true);
     renderCacheTimer->setInterval(0);
     connect(renderCacheTimer, &QTimer::timeout, this, &PixCache::startRendering, Qt::QueuedConnection);
