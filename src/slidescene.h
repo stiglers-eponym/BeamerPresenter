@@ -11,6 +11,7 @@
 #include "src/drawing/basicgraphicspath.h"
 #include "src/drawing/flexgraphicslineitem.h"
 #include "src/drawing/pointingtool.h"
+#include "src/drawing/pathcontainer.h"
 
 class PdfMaster;
 
@@ -154,9 +155,11 @@ signals:
     void clearViews() const;
 
     /// Send new path to PdfMaster.
-    void sendNewPath(const int page, QGraphicsItem *item) const;
+    void sendNewPath(int page, QGraphicsItem *item) const;
 
     void showMagnifier(QPainter *painter, const PointingTool *tool);
+
+    void requestPathContainer(PathContainer **container, int page);
 };
 
 #endif // SLIDESCENE_H

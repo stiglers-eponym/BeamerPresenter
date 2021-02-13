@@ -166,4 +166,11 @@ enum InputDevice
     AnyNormalDevice = AnyPointingDevice ^ (TabletNoPressure | MouseNoButton),
 };
 
+enum OverlayDrawingMode
+{
+    PerPage, // Every page has independent drawings.
+    PerLabel, // All pages with the same label in a simply connected region have the same drawings.
+    Cumulative, // When going to the next page which has the same label, the current drawings are copied.
+};
+
 #endif // ENUMERATES_H

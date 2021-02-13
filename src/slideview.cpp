@@ -72,7 +72,7 @@ void SlideView::resizeEvent(QResizeEvent *event)
 
 void SlideView::keyPressEvent(QKeyEvent *event)
 {
-    if (static_cast<const SlideScene*>(scene())->isTextEditing() && !(event->modifiers() & Qt::CTRL))
+    if (static_cast<const SlideScene*>(scene())->isTextEditing() && (!(event->modifiers() & Qt::CTRL) || event->key() == Qt::Key_Z))
     {
         if (event->key() == Qt::Key_Escape)
             scene()->clearFocus();

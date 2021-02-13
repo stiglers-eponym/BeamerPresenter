@@ -18,7 +18,7 @@ BasicGraphicsPath::BasicGraphicsPath(const BasicGraphicsPath * const other, int 
     // Make sure that first and last are valid.
     if (first < 0)
         first = 0;
-    if (last > other->size())
+    if (last > other->size() || last < 0)
         last = other->size();
     const int length = last - first;
     if (length <= 0)

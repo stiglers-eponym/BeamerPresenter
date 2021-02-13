@@ -7,6 +7,7 @@ SlideScene::SlideScene(const PdfMaster *master, const PagePart part, QObject *pa
     page_part(part)
 {
     connect(this, &SlideScene::sendNewPath, master, &PdfMaster::receiveNewPath);
+    connect(this, &SlideScene::requestPathContainer, master, &PdfMaster::requestPathContainer, Qt::DirectConnection);
 }
 
 SlideScene::~SlideScene()
@@ -189,7 +190,12 @@ bool SlideScene::event(QEvent* event)
         if (current_tool && (current_tool->device() & TouchInput))
         {
             if (stopInputEvent(QPointF()))
-                master->pathContainer(page | page_part)->undo(this);
+            {
+                PathContainer *container;
+                emit requestPathContainer(&container, page | page_part);
+                if (container)
+                    container->undo(this);
+            }
             Tool *tool = preferences()->currentTool(TouchInput);
             if (tool && (tool->tool() & AnyPointingTool))
             {
@@ -310,7 +316,8 @@ void SlideScene::navigationEvent(const int newpage, SlideScene *newscene)
         removeItem(list.takeLast());
     if (!newscene || newscene == this)
     {
-        const auto paths = master->pathContainer(page | page_part);
+        PathContainer *paths;
+        emit requestPathContainer(&paths, page | page_part);
         if (paths)
         {
             const auto end = paths->cend();
@@ -329,7 +336,8 @@ void SlideScene::startTransition(const int newpage, const SlideTransition &trans
     QList<QGraphicsItem*> list = items();
     while (!list.isEmpty())
         removeItem(list.takeLast());
-    const auto paths = master->pathContainer(page | page_part);
+    PathContainer *paths;
+    emit requestPathContainer(&paths, page | page_part);
     if (paths)
     {
         const auto end = paths->cend();
@@ -445,7 +453,8 @@ void SlideScene::startInputEvent(Tool *tool, const QPointF &pos, const float pre
         break;
     case Eraser:
     {
-        PathContainer *container = master->pathContainer(page | page_part);
+        PathContainer *container;
+        emit requestPathContainer(&container, page | page_part);
         if (container)
             container->startMicroStep();
         break;
@@ -490,7 +499,8 @@ void SlideScene::stepInputEvent(const QPointF &pos, const float pressure)
         break;
     case Eraser:
     {
-        PathContainer *container = master->pathContainer(page | page_part);
+        PathContainer *container;
+        emit requestPathContainer(&container, page | page_part);
         if (container)
             container->eraserMicroStep(pos, static_cast<DrawTool*>(current_tool)->width());
         break;
@@ -521,7 +531,8 @@ bool SlideScene::stopInputEvent(const QPointF &pos)
     case Eraser:
     {
         current_tool = NULL;
-        PathContainer *container = master->pathContainer(page | page_part);
+        PathContainer *container;
+        emit requestPathContainer(&container, page | page_part);
         if (container)
             return container->applyMicroStep();
         break;

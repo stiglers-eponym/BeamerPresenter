@@ -50,6 +50,7 @@ private:
     /// inHistory == 1 means "one change before the latest version".
     /// This may never become >=history.length().
     /// inHistory == -1 indicates that eraser microsteps are being applied.
+    /// inHistory == -2 indicates that this entry has been created as a copy and has never been edited.
     int inHistory = 0;
 
     /// Remove all "redo" options.
@@ -61,6 +62,9 @@ public:
 
     /// Destructor. Delete history and paths.
     ~PathContainer();
+
+    /// Create a new PathContainer which is a copy of this but without any history.
+    PathContainer *copy() const noexcept;
 
     /// Undo latest change. Return true on success and false on failure.
     bool undo(QGraphicsScene *scene = NULL);
@@ -107,6 +111,14 @@ public:
     /// size. Before this function startMicroStep() has to be called and
     /// afterwards a call to applyMicroStep() is necessary.
     void eraserMicroStep(const QPointF &pos, const qreal size = 10.);
+
+    /// Check if this contains any information.
+    bool isEmpty() const noexcept
+    {return paths.isEmpty() && history.isEmpty();}
+
+    /// Check if this is an unchanged copy of another PathContainer.
+    bool isPlainCopy() const noexcept
+    {return inHistory == -2 && history.isEmpty();}
 };
 
 #endif // PATHCONTAINER_H

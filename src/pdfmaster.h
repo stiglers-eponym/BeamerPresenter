@@ -3,6 +3,9 @@
 
 #include <QFileInfo>
 #include <QInputDialog>
+#include <zlib.h>
+#include <QXmlStreamReader>
+#include <QXmlStreamWriter>
 #include "src/slidescene.h"
 #include "src/slideview.h"
 #include "src/preferences.h"
@@ -64,13 +67,11 @@ public:
     bool flexiblePageSizes() const noexcept
     {return document->flexiblePageSizes();}
 
-    /// Get container of paths on given page.
-    /// page (part) number is given as (page | page_part).
-    PathContainer *pathContainer(const int page) const
-    {return paths.value(page, NULL);}
-
     /// This function should be restructured!
     void resolveLink(const int page, const QPointF &position, const QPointF &startpos = {}) const;
+
+    /// Clear history of given page.
+    void clearHistory(const int page, const int remaining_entries) const;
 
     /// Slide transition when reaching the given page number.
     const SlideTransition transition(const int page) const
@@ -88,19 +89,27 @@ public:
     int overlaysShifted(const int start, const int shift_overlay) const
     {return document->overlaysShifted(start, shift_overlay);}
 
+    void saveXopp(const QString &filename) const;
+    void loadXopp(const QString &filename);
+    PathContainer *pathContainer(int page);
+
 public slots:
     /// Handle the given action.
     void receiveAction(const Action action);
 
     /// Add a new path (or QGraphicsItem) to paths[page].
     /// Page (part) number is given as (page | page_part).
-    void receiveNewPath(const int page, QGraphicsItem *item);
+    void receiveNewPath(int page, QGraphicsItem *item);
 
     /// Send navigation events to all SlideScenes reading from this document.
     /// This is done centrally via PdfMaster because it may be necessary
     /// to reconnect SlideViews and SlideScenes if multiple scenes would
     /// show the same page.
     void distributeNavigationEvents(const int page) const;
+
+    /// Get container of paths on given page.
+    /// page (part) number is given as (page | page_part).
+    void requestPathContainer(PathContainer **container, int page);
 
 signals:
     /// Notify all associated SlidesScenes that paths have changed.

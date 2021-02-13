@@ -178,6 +178,7 @@ void Preferences::loadSettings()
         settings.beginGroup("drawing");
         history_length_visible_slides = settings.value("history length visible", 100).toUInt();
         history_length_hidden_slides = settings.value("history length hidden", 50).toUInt();
+        overlay_mode = string_to_overlay_mode.value(settings.value("mode").toString(), Cumulative);
         settings.endGroup();
     }
 
@@ -578,5 +579,13 @@ void Preferences::setRenderingArguments(const QString &string)
     rendering_arguments = string.split(",");
     settings.beginGroup("rendering");
     settings.setValue("rendering arguments", rendering_command);
+    settings.endGroup();
+}
+
+void Preferences::setOverlayMode(const QString &string)
+{
+    overlay_mode = string_to_overlay_mode.value(string);
+    settings.beginGroup("drawing");
+    settings.setValue("mode", string);
     settings.endGroup();
 }

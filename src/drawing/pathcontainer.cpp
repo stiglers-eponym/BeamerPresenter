@@ -88,25 +88,34 @@ bool PathContainer::redo(QGraphicsScene *scene)
 
 void PathContainer::truncateHistory()
 {
-    // Clean up all "redo" options:
-    // Delete the last <inHistory> history entries.
-    while (inHistory > 0)
+    if (inHistory == -1)
+        applyMicroStep();
+    else if (inHistory == -2)
+        inHistory = 0;
+    else
     {
-        // Take the last step from history (removes it from history).
-        DrawHistoryStep *step = history.takeLast();
-        // Delete all future objects in this step. These objects are not visible.
-        qDeleteAll(step->createdItems);
-        step->createdItems.clear();
-        // Delete the step. The past objects of the step are untouched, since
-        // they are still owned by other history steps or by this.
-        delete step;
-        --inHistory;
+        // Clean up all "redo" options:
+        // Delete the last <inHistory> history entries.
+        while (inHistory > 0)
+        {
+            // Take the last step from history (removes it from history).
+            DrawHistoryStep *step = history.takeLast();
+            // Delete all future objects in this step. These objects are not visible.
+            qDeleteAll(step->createdItems);
+            step->createdItems.clear();
+            // Delete the step. The past objects of the step are untouched, since
+            // they are still owned by other history steps or by this.
+            delete step;
+            --inHistory;
+        }
     }
 }
 
 void PathContainer::clearHistory(int n)
 {
-    if (inHistory < 0)
+    if (inHistory == -2)
+        return;
+    if (inHistory == -1)
         applyMicroStep();
 
     // Negative values of n don't make any sense and are interpreted as 0.
@@ -355,4 +364,29 @@ bool PathContainer::applyMicroStep()
     if (history.length() > preferences()->history_length_visible_slides)
         clearHistory(preferences()->history_length_visible_slides);
     return true;
+}
+
+PathContainer *PathContainer::copy() const noexcept
+{
+    PathContainer *container = new PathContainer();
+    container->inHistory = -2;
+    for (const auto path : qAsConst(paths))
+    {
+        switch (path->type())
+        {
+        case QGraphicsTextItem::Type:
+            container->paths.append(new QGraphicsTextItem(static_cast<QGraphicsTextItem*>(path)->toPlainText()));
+            break;
+        case FullGraphicsPath::Type:
+            container->paths.append(new FullGraphicsPath(static_cast<FullGraphicsPath*>(path), 0, -1));
+            break;
+        case BasicGraphicsPath::Type:
+            container->paths.append(new BasicGraphicsPath(static_cast<BasicGraphicsPath*>(path), 0, -1));
+            break;
+        case QGraphicsLineItem::Type:
+            container->paths.append(new QGraphicsLineItem(static_cast<QGraphicsLineItem*>(path)->line()));
+            break;
+        }
+    }
+    return container;
 }

@@ -47,8 +47,10 @@ public:
     int history_length_visible_slides;
     /// Maximum number of steps in drawing history of hidden slide.
     int history_length_hidden_slides;
-    /// Which devices should be used for pressure-sensitive input:
+    /// Define which devices should be used for pressure-sensitive input.
     int pressure_sensitive_input_devices = TabletPen | TabletEraser | TabletCursor | TabletOther;
+    /// Define how should drawings be assigned to overlays.
+    OverlayDrawingMode overlay_mode = Cumulative;
 
 
     // RENDERING
@@ -163,6 +165,7 @@ public slots:
     void setLogSlideChanges(const bool log);
     void setRenderingCommand(const QString &string);
     void setRenderingArguments(const QString &string);
+    void setOverlayMode(const QString &string);
 
 signals:
     void stopDrawing() const;

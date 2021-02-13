@@ -554,21 +554,14 @@ void Master::handleAction(const Action action)
     }
 }
 
-void Master::limitHistoryInvisible(const int page) const
+void Master::leavePage(const int page) const
 {
-    PathContainer *container;
     bool flexible_page_numbers = false;
     for (const auto doc : qAsConst(documents))
     {
-        container = doc->pathContainer(page);
-        if (container)
-            container->clearHistory(preferences()->history_length_hidden_slides);
-        container = doc->pathContainer(page | PagePart::LeftHalf);
-        if (container)
-            container->clearHistory(preferences()->history_length_hidden_slides);
-        container = doc->pathContainer(page | PagePart::RightHalf);
-        if (container)
-            container->clearHistory(preferences()->history_length_hidden_slides);
+        doc->clearHistory(page, preferences()->history_length_hidden_slides);
+        doc->clearHistory(page | PagePart::LeftHalf, preferences()->history_length_hidden_slides);
+        doc->clearHistory(page | PagePart::RightHalf, preferences()->history_length_hidden_slides);
         if (doc->flexiblePageSizes())
             flexible_page_numbers = true;
     }
@@ -611,7 +604,7 @@ void Master::navigateToPage(const int page) const
 {
     if (page < 0 || page >= preferences()->number_of_pages)
         return;
-    limitHistoryInvisible(preferences()->page);
+    leavePage(preferences()->page);
     emit prepareNavigationSignal(page);
     for (auto window : windows)
         window->updateGeometry();

@@ -130,6 +130,7 @@ The configuration files of version 0.2.x and 0.1.x are incompatible.
 * draw and erase using tablet input device with variable pressure (wacom)
 * highlighting tools: pointer, torch, magnifier
 * full per-slide history of drawings (with limitation of number of history steps)
+* select per-slide or per-overlay drawings
 * widgets:
     * slide
     * clock
@@ -152,7 +153,6 @@ The configuration files of version 0.2.x and 0.1.x are incompatible.
 * slide transitions
 * multimedia
 * option to insert extra slides or extra space below slide for drawing (partially implemented)
-* switch between per-slide and per-overlay drawings
 * improve text input tool
 * save and load drawings to xopp-like xml format
 * improve widgets:

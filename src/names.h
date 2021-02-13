@@ -142,4 +142,11 @@ static const QMap<QString, int> string_to_input_device
     {"middle button", MouseMiddleButton},
 };
 
+static const QMap<QString, OverlayDrawingMode> string_to_overlay_mode
+{
+    {"per page", PerPage},
+    {"per label", PerLabel},
+    {"cumulative", Cumulative},
+};
+
 #endif // NAMES_H

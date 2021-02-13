@@ -133,6 +133,13 @@ SettingsWidget::SettingsWidget(QWidget *parent) :
         connect(log_box, QOverload<bool>::of(&QCheckBox::clicked), writable_preferences(), &Preferences::setLogSlideChanges);
         layout->addRow(log_box);
 
+        QComboBox *combo_box = new QComboBox(misc);
+        for (auto it=string_to_overlay_mode.cbegin(); it!=string_to_overlay_mode.cend(); ++it)
+            combo_box->addItem(it.key());
+        combo_box->setCurrentText(string_to_overlay_mode.key(preferences()->overlay_mode));
+        connect(combo_box, &QComboBox::currentTextChanged, writable_preferences(), &Preferences::setOverlayMode);
+        layout->addRow("drawing mode", combo_box);
+
         misc->setLayout(layout);
     }
 
