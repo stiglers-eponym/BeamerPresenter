@@ -37,11 +37,14 @@ class NotesWidget : public QTextEdit
     /// Map slide labels to markdown formatted text
     QMap<QString, QString> text_per_slide;
 
-    /// Currently shown page label
+    /// Currently shown page label.
     QString page_label;
 
+    /// Are notes saved per page? Otherwise per page label.
+    bool per_page;
+
 public:
-    NotesWidget(QWidget *parent);
+    NotesWidget(const bool per_page = false, QWidget *parent = NULL);
 
     bool hasHeightForWidth() const noexcept override
     {return true;}

@@ -1,7 +1,8 @@
 #include "noteswidget.h"
 
-NotesWidget::NotesWidget(QWidget *parent) :
-    QTextEdit(parent)
+NotesWidget::NotesWidget(const bool per_page, QWidget *parent) :
+    QTextEdit(parent),
+    per_page(per_page)
 {
     setReadOnly(false);
     setAutoFormatting(QTextEdit::AutoAll);
@@ -17,9 +18,17 @@ void NotesWidget::load(const QString &filename)
         while (!reader.atEnd())
         {
             debug_msg(DebugWidgets) << reader.name();
+            if (reader.readNext() == QXmlStreamReader::StartElement && reader.name() == "speakernotes")
+            {
+                const QString identifier = reader.attributes().value("identifier").toString();
+                if (identifier == "number")
+                    per_page = true;
+                else if (identifier == "label")
+                    per_page = false;
+            }
             if (reader.readNext() == QXmlStreamReader::StartElement && reader.name() == "page")
             {
-                const QString label = reader.attributes().value("label").toString();
+                const QString label = reader.attributes().value(per_page ? "number" : "label").toString();
                 if (!label.isEmpty())
                     text_per_slide.insert(label, reader.readElementText());
             }
@@ -54,10 +63,12 @@ void NotesWidget::save(const QString &filename)
         writer.setAutoFormattingIndent(0);
         writer.writeStartDocument();
         writer.writeStartElement("speakernotes");
+        writer.writeAttribute("identifier", per_page ? "number" : "label");
+        const QString label = per_page ? "number" : "label";
         for (auto it = text_per_slide.cbegin(); it != text_per_slide.cend(); ++it)
         {
             writer.writeStartElement("page");
-            writer.writeAttribute("label", it.key());
+            writer.writeAttribute(label, it.key());
             writer.writeCharacters(it.value());
             writer.writeEndElement();
         }
@@ -112,13 +123,16 @@ void NotesWidget::pageChanged(const int page)
 #else
     text_per_slide.insert(page_label, toPlainText());
 #endif
-    if (preferences()->document)
+    if (per_page)
+        page_label = QString::number(page);
+    else
     {
-        page_label = preferences()->document->pageLabel(page);
-#ifdef QT_FEATURE_textmarkdownreader
-        setMarkdown(text_per_slide.value(page_label));
-#else
-        setPlainText(text_per_slide.value(page_label));
-#endif
+        const PdfDocument *doc = preferences()->document;
+        page_label = doc ? doc->pageLabel(page) : "0";
     }
+#ifdef QT_FEATURE_textmarkdownreader
+    setMarkdown(text_per_slide.value(page_label));
+#else
+    setPlainText(text_per_slide.value(page_label));
+#endif
 }

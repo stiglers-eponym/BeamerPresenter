@@ -33,15 +33,32 @@ digital clock, takes no options.
 .B notes
 markdown formatted editable notes.
 Keyboard actions while notes widget has focus: save notes with Ctrl+S, save under new file name with Ctrl+Shift+S, load from file with Ctrl+O.
+Note that markdown formatting is only available if Qt was compiled with integrated markdown parser.
 .RS
 .PP
 Arguments:
 .TP
-.BI "file " "path"
-path to xml-file to read notes from.
+.B identifier
+\[dq]label\[dq] or \[dq]number\[dq]: notes are associated with a page (number) or a group of pages with the same page label.
 .TP
 .BI "zoom " "integer"
 zoom step for the widget (defined by QTextEdit).
+.TP
+.BI "file " "path"
+path to xml-file to read notes from. The notes file contains a root element <speakernotes> with child elements <page> containing the markdown-formatted notes. Each page element has an attribute "label" or "number" to identify a page or a group of pages. Which of "label" or "number" is used must be specified by the attribute "identifier" or the root element.
+
+Example file:
+.nf
+.eo
+<?xml version="1.0" encoding="UTF-8"?>
+<speakernotes ideitifier="label">
+<page label="1">notes on first page
+</page>
+<page label="2">notes on second page
+</page>
+</speakernotes>
+.ec
+.fi
 .RE
 .
 .TP

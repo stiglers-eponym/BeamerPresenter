@@ -361,7 +361,7 @@ QWidget* Master::createWidget(QJsonObject &object, QWidget *parent)
         connect(static_cast<TOCwidget*>(widget), &TOCwidget::sendNavigationSignal, this, &Master::navigateToPage);
         break;
     case NotesType:
-        widget = new NotesWidget(parent);
+        widget = new NotesWidget(object.value("identifier").toString() == "number", parent);
         connect(this, &Master::navigationSignal, static_cast<NotesWidget*>(widget), &NotesWidget::pageChanged, Qt::QueuedConnection);
         static_cast<NotesWidget*>(widget)->zoomIn(object.value("zoom").toInt(10));
         if (object.contains("file"))
