@@ -136,6 +136,11 @@ void toolToJson(const Tool *tool, QJsonObject &obj)
     }
 }
 
+QString color_to_rgba(const QColor &color)
+{
+    return QLatin1Char('#') + QString::number((color.rgb() << 8) + color.alpha(), 16).rightJustified(8, '0', true);
+}
+
 
 Preferences::Preferences(QObject *parent) :
     QObject(parent),

@@ -85,6 +85,8 @@ enum Action
     ScrollDown,
     ScrollUp,
     ScrollNormal,
+    SaveDrawings,
+    LoadDrawings,
     // Timer
     StartTimer,
     StopTimer,

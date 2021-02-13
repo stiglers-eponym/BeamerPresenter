@@ -72,12 +72,20 @@ void SlideView::resizeEvent(QResizeEvent *event)
 
 void SlideView::keyPressEvent(QKeyEvent *event)
 {
-    if (static_cast<const SlideScene*>(scene())->isTextEditing() && (!(event->modifiers() & Qt::CTRL) || event->key() == Qt::Key_Z))
+    if (static_cast<const SlideScene*>(scene())->isTextEditing())
     {
-        if (event->key() == Qt::Key_Escape)
+        switch (event->key())
+        {
+        case Qt::Key_Escape:
             scene()->clearFocus();
-        else
+            break;
+        case Qt::Key_PageUp:
+        case Qt::Key_PageDown:
+            emit sendKeyEvent(event);
+            break;
+        default:
             QGraphicsView::keyPressEvent(event);
+        }
     }
     else
         emit sendKeyEvent(event);

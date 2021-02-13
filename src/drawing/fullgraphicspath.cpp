@@ -145,3 +145,29 @@ void FullGraphicsPath::changeTool(const DrawTool &newtool) noexcept
     tool.setPen(newtool.pen());
     tool.setCompositionMode(newtool.compositionMode());
 }
+
+const QString FullGraphicsPath::stringCoordinates() const noexcept
+{
+    QString str;
+    for (const auto point : data)
+    {
+        str += QString::number(point.point.x());
+        str += ' ';
+        str += QString::number(point.point.y());
+        str += ' ';
+    }
+    str.chop(1);
+    return str;
+}
+
+const QString FullGraphicsPath::stringWidth() const noexcept
+{
+    QString str;
+    for (const auto point : data)
+    {
+        str += QString::number(point.pressure);
+        str += ' ';
+    }
+    str.chop(1);
+    return str;
+}

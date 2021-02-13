@@ -63,6 +63,12 @@ public:
 
     /// Change tool in-place.
     void changeTool(const DrawTool &newtool) noexcept;
+
+    /// resturn coordinates formatted as string for saving.
+    const QString stringCoordinates() const noexcept override;
+
+    /// resturn width formatted as string for saving.
+    const QString stringWidth() const noexcept override;
 };
 
 #endif // FULLGRAPHICSPATH_H

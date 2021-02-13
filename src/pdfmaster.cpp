@@ -187,7 +187,37 @@ void PdfMaster::saveXopp(const QString &filename) const
     writer.writeAttribute("creator", "beamerpresenter " APP_VERSION);
     writer.writeTextElement("title", "Xournal(++)-compatible document - see https://github.com/xournalpp/xournalpp");
 
-    // TODO: implement
+    const PdfDocument *doc = preferences()->document;
+    PathContainer *container;
+    for (int i=0; i < preferences()->number_of_pages; i++)
+    {
+        const QSizeF size = doc->pageSize(i);
+        writer.writeStartElement("page");
+        writer.writeAttribute("width", QString::number(size.width()));
+        writer.writeAttribute("height", QString::number(size.height()));
+        writer.writeEmptyElement("background");
+        writer.writeAttribute("type", "pdf");
+        writer.writeAttribute("pageno", QString::number(i+1) + "ll");
+        if (i == 0)
+        {
+            writer.writeAttribute("domain", "absolute");
+            writer.writeAttribute("filename", doc->getPath());
+        }
+
+        writer.writeStartElement("layer");
+        for (const auto page_part : {FullPage, LeftHalf, RightHalf})
+        {
+            if (preferences()->overlay_mode == PerLabel)
+                container = paths.value(doc->overlaysShifted(i | page_part, FirstOverlay), NULL);
+            else
+                container = paths.value(i | page_part, NULL);
+            if (container)
+                container->writeXml(writer);
+        }
+        writer.writeEndElement();
+
+        writer.writeEndElement();
+    }
 
     writer.writeEndElement();
     writer.writeEndDocument();

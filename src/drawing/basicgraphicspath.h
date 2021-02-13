@@ -46,6 +46,13 @@ public:
     /// Erase at position pos. Return a list of paths obtained when splitting
     /// this by erasing at pos with given eraser size.
     QList<AbstractGraphicsPath*> splitErase(const QPointF &pos, const qreal size) const override;
+
+    /// resturn coordinates formatted as string for saving.
+    const QString stringCoordinates() const noexcept override;
+
+    /// resturn width formatted as string for saving.
+    const QString stringWidth() const noexcept override
+    {return QString::number(tool.width());}
 };
 
 #endif // BASICGRAPHICSPATH_H

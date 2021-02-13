@@ -5,6 +5,8 @@
 #include <QObject>
 #include <QGraphicsItem>
 #include <QGraphicsScene>
+#include <QXmlStreamWriter>
+#include <QXmlStreamReader>
 #include <QList>
 #include "src/drawing/abstractgraphicspath.h"
 #include "src/drawing/basicgraphicspath.h"
@@ -119,6 +121,8 @@ public:
     /// Check if this is an unchanged copy of another PathContainer.
     bool isPlainCopy() const noexcept
     {return inHistory == -2 && history.isEmpty();}
+
+    void writeXml(QXmlStreamWriter &writer) const;
 };
 
 #endif // PATHCONTAINER_H

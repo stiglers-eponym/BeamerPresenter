@@ -61,6 +61,12 @@ public:
      */
     const DrawTool &getTool() const noexcept
     {return tool;}
+
+    /// resturn coordinates formatted as string for saving.
+    virtual const QString stringCoordinates() const noexcept = 0;
+
+    /// resturn width formatted as string for saving.
+    virtual const QString stringWidth() const noexcept = 0;
 };
 
 #endif // ABSTRACTGRAPHICSPATH_H

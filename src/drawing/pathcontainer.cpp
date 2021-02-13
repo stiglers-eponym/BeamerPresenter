@@ -375,8 +375,16 @@ PathContainer *PathContainer::copy() const noexcept
         switch (path->type())
         {
         case QGraphicsTextItem::Type:
-            container->paths.append(new QGraphicsTextItem(static_cast<QGraphicsTextItem*>(path)->toPlainText()));
+        {
+            QGraphicsTextItem *olditem = static_cast<QGraphicsTextItem*>(path);
+            QGraphicsTextItem *newitem = new QGraphicsTextItem();
+            newitem->setPos(path->pos());
+            newitem->setFont(olditem->font());
+            newitem->setHtml(olditem->toHtml());
+            newitem->setDefaultTextColor(olditem->defaultTextColor());
+            container->paths.append(newitem);
             break;
+        }
         case FullGraphicsPath::Type:
             container->paths.append(new FullGraphicsPath(static_cast<FullGraphicsPath*>(path), 0, -1));
             break;
@@ -389,4 +397,40 @@ PathContainer *PathContainer::copy() const noexcept
         }
     }
     return container;
+}
+
+void PathContainer::writeXml(QXmlStreamWriter &writer) const
+{
+    for (const auto path : qAsConst(paths))
+    {
+        switch (path->type())
+        {
+        case QGraphicsTextItem::Type:
+        {
+            const QGraphicsTextItem *item = static_cast<QGraphicsTextItem*>(path);
+            writer.writeStartElement("text");
+            writer.writeAttribute("font", QFontInfo(item->font()).family());
+            writer.writeAttribute("size", QString::number(item->font().pointSizeF()));
+            writer.writeAttribute("color", color_to_rgba(item->defaultTextColor()).toLower());
+            writer.writeAttribute("x", QString::number(item->x()));
+            writer.writeAttribute("y", QString::number(item->y()));
+            writer.writeCharacters(item->toPlainText());
+            writer.writeEndElement();
+            break;
+        }
+        case FullGraphicsPath::Type:
+        case BasicGraphicsPath::Type:
+        {
+            const AbstractGraphicsPath *item = static_cast<AbstractGraphicsPath*>(path);
+            const DrawTool &tool = item->getTool();
+            writer.writeStartElement("stroke");
+            writer.writeAttribute("tool", xournal_tool_names.value(tool.tool()));
+            writer.writeAttribute("color", color_to_rgba(tool.color()).toLower());
+            writer.writeAttribute("width", item->stringWidth());
+            writer.writeCharacters(item->stringCoordinates());
+            writer.writeEndElement();
+            break;
+        }
+        }
+    }
 }

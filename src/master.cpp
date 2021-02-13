@@ -194,18 +194,22 @@ QWidget* Master::createWidget(QJsonObject &object, QWidget *parent)
         file = preferences()->file_alias.value(file.isEmpty() ? "presentation" : file, file);
         if (file == "//INVALID")
             break;
-        if (!QFile::exists(file))
+        QFileInfo fileinfo(file);
+        if (fileinfo.exists())
+            file = fileinfo.absoluteFilePath();
+        else
         {
-            const QString newfile = QFileDialog::getOpenFileName(NULL, "File " + file, "", "Documents (*.pdf)");
-            if (!QFile::exists(newfile))
+            fileinfo = QFileInfo(QFileDialog::getOpenFileName(NULL, "File " + file, "", "Documents (*.pdf)"));
+            if (!fileinfo.exists())
             {
                 qCritical() << "No valid file given";
                 writable_preferences()->file_alias.insert(file, "//INVALID");
                 break;
             }
-            writable_preferences()->file_alias.insert(file, newfile);
-            writable_preferences()->file_alias.insert(object.value("file").toString(), newfile);
-            file = newfile;
+            const QString oldfile = file;
+            file = fileinfo.absoluteFilePath();
+            writable_preferences()->file_alias.insert(oldfile, file);
+            writable_preferences()->file_alias.insert(object.value("file").toString(), file);
         }
         const QString page_part_str = object.value("page part").toString().toLower();
         PagePart page_part = FullPage;
@@ -535,6 +539,20 @@ void Master::handleAction(const Action action)
         for (const auto window : qAsConst(windows))
             window->close();
         break;
+    case SaveDrawings:
+    {
+        const QString filename = QFileDialog::getSaveFileName(NULL, "Save drawings");
+        if (!filename.isEmpty() && !documents.isEmpty() && documents.first())
+            documents.first()->saveXopp(filename);
+        break;
+    }
+    case LoadDrawings:
+    {
+        const QString filename = QFileDialog::getOpenFileName(NULL, "Save drawings");
+        if (!filename.isEmpty() && !documents.isEmpty() && documents.first())
+            documents.first()->loadXopp(filename);
+        break;
+    }
     case ReloadFiles:
     {
         bool changed = false;

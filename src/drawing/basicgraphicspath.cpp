@@ -120,3 +120,17 @@ QList<AbstractGraphicsPath*> BasicGraphicsPath::splitErase(const QPointF &pos, c
         list.append(new BasicGraphicsPath(this, first, last));
     return list;
 }
+
+const QString BasicGraphicsPath::stringCoordinates() const noexcept
+{
+    QString str;
+    for (const auto point : data)
+    {
+        str += QString::number(point.x());
+        str += ' ';
+        str += QString::number(point.y());
+        str += ' ';
+    }
+    str.chop(1);
+    return str;
+}

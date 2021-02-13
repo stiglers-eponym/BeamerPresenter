@@ -62,6 +62,8 @@ static const QMap<QString, Action> string_to_action_map
     {"next skipping overlays", NextSkippingOverlays},
     {"previous skipping overlays", PreviousSkippingOverlays},
     {"reload", ReloadFiles},
+    {"save", SaveDrawings},
+    {"load", LoadDrawings},
     {"undo", UndoDrawing},
     {"undo left", UndoDrawingLeft},
     {"undo right", UndoDrawingRight},
@@ -93,6 +95,14 @@ static const QMap<QString, BasicTool> string_to_tool
     {"torch", Torch},
     {"magnifier", Magnifier},
     {"text", TextInputTool},
+};
+
+static const QMap<BasicTool, QString> xournal_tool_names
+{
+    {Pen, "pen"},
+    {FixedWidthPen, "pen"},
+    {Highlighter, "highlighter"},
+    {TextInputTool, "text"},
 };
 
 static const QMap<QString, QBoxLayout::Direction> string_to_layout_direction
