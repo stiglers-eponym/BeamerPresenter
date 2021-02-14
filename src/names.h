@@ -144,6 +144,7 @@ static const QMap<QString, int> string_to_input_device
     {"tablet pen", TabletPen},
     {"tablet", TabletPen | TabletCursor | TabletOther},
     {"tablet eraser", TabletEraser},
+    {"tablet hover", TabletNoPressure},
     {"tablet all", TabletPen | TabletCursor | TabletOther | TabletEraser},
     {"all", AnyNormalDevice},
     {"all+", AnyPointingDevice},
@@ -152,6 +153,7 @@ static const QMap<QString, int> string_to_input_device
     {"mouse", MouseLeftButton},
     {"right button", MouseRightButton},
     {"middle button", MouseMiddleButton},
+    {"no button", MouseNoButton},
 };
 
 static const QMap<QString, OverlayDrawingMode> string_to_overlay_mode

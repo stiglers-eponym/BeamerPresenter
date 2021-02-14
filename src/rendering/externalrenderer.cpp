@@ -14,6 +14,7 @@ const QStringList ExternalRenderer::getArguments(const int page, const qreal res
     QStringList command = renderingArguments;
     // In mutools %page argument starts counting from 1, but internally we
     // count pages from 0.
+    command.replaceInStrings("%0page", QString::number(page));
     command.replaceInStrings("%page", QString::number(page + 1));
     // %resolution should be given in dpi, but resolution is given in pixels
     // per point (dpi/72).
@@ -94,5 +95,5 @@ bool ExternalRenderer::isValid() const
     debug_msg(DebugRendering) << renderingCommand << renderingArguments;
     return  !renderingCommand.isEmpty()
             && !renderingArguments.isEmpty()
-            && renderingArguments.indexOf(QRegExp(".*%page.*")) != -1;
+            && renderingArguments.indexOf(QRegExp(".*%0?page.*")) != -1;
 }

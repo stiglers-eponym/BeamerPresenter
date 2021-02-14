@@ -1,4 +1,4 @@
-.TH beamerpresenter-ui 1 "2021-01-27" 0.2.0
+.TH beamerpresenter-ui 1 "2021-02-14" 0.2.0
 .
 .SH NAME
 beamerpresenter-ui \- user interface of BeamerPresenter
@@ -203,7 +203,7 @@ close BeamerPresenter.
 Options in the dictionary for tools (all lengths are given in points (1/72 inch) in PDF):
 .TP
 .B tool
-mandatory: pen, highlighter, eraser, pointer, magnifier, torch, text (experimental!) or none
+mandatory: pen, fixed width pen, highlighter, eraser, pointer, magnifier, torch, text (experimental!) or none
 .TP
 .B color
 available for most tools: color name known to Qt or #RRGGBB or #AARRGGBB
@@ -218,10 +218,10 @@ only pointing tools (pointer, torch, highlighter): radius of tool (positive numb
 only magnifier: magnification factor (number between 0.1 and 5).
 .TP
 .B font
-only text: anything that Qt can interpret as font name.
+only text tool: anything that Qt can interpret as font name.
 .TP
 .B font size
-only text: font size (positive number).
+only text tool: font size (positive number).
 .PP
 It is possible to select a different tool for a button while BeamerPresenter is running by clicking the button while pressing the ctrl key. But note that this changes the tool only temporarily and this modification will not be saved.
 .RE

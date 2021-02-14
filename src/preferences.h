@@ -56,7 +56,7 @@ public:
     // RENDERING
     /// Threshold of page aspect ratio for splitting pages in notes and
     /// presentation.
-    float page_part_threshold {0.};
+    float page_part_threshold {2.5};
     PagePart default_page_part = FullPage;
 
 #ifdef INCLUDE_MUPDF

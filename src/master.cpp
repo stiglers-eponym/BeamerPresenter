@@ -223,7 +223,7 @@ QWidget* Master::createWidget(QJsonObject &object, QWidget *parent)
         SlideScene *scene = NULL;
         for (auto docit = documents.begin(); docit != documents.end(); ++docit)
         {
-            if ((*docit)->getFilename() == file)
+            if ((*docit)->getFilename() == file || (*docit)->drawingsPath() == file)
             {
                 doc = *docit;
                 if (preferences()->page_part_threshold > 0.)
