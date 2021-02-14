@@ -435,46 +435,99 @@ void PathContainer::writeXml(QXmlStreamWriter &writer) const
     }
 }
 
+AbstractGraphicsPath *loadPath(QXmlStreamReader &reader)
+{
+    BasicTool basic_tool = string_to_tool.value(reader.attributes().value("tool").toString());
+    if (!(basic_tool & AnyDrawTool))
+        return NULL;
+    const QString width_str = reader.attributes().value("width").toString();
+    if (basic_tool == Pen && !width_str.contains(' '))
+        basic_tool = FixedWidthPen;
+    QPen pen(
+                rgba_to_color(reader.attributes().value("color").toString()),
+                basic_tool == Pen ? 1. : width_str.toDouble(),
+                Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin
+                );
+    if (pen.widthF() <= 0)
+        pen.setWidthF(1.);
+    DrawTool *tool = new DrawTool(basic_tool, AnyNormalDevice, pen, basic_tool == Highlighter ? QPainter::CompositionMode_Darken : QPainter::CompositionMode_SourceOver);
+    if (basic_tool == Pen)
+        return new FullGraphicsPath(*tool, reader.readElementText(), width_str);
+    else
+        return new BasicGraphicsPath(*tool, reader.readElementText());
+}
+
+QGraphicsTextItem *loadTextItem(QXmlStreamReader &reader)
+{
+    QGraphicsTextItem *item = new QGraphicsTextItem();
+    QPointF pos;
+    pos.setX(reader.attributes().value("x").toDouble());
+    pos.setY(reader.attributes().value("y").toDouble());
+    item->setPos(pos);
+    QFont font(reader.attributes().value("font").toString());
+    font.setPointSizeF(reader.attributes().value("size").toDouble());
+    item->setFont(font);
+    const QString text = reader.readElementText();
+    if (text.isEmpty())
+    {
+        delete item;
+        return NULL;
+    }
+    item->setPlainText(text);
+    item->setDefaultTextColor(rgba_to_color(reader.attributes().value("color").toString()));
+    return item;
+}
+
 void PathContainer::loadDrawings(QXmlStreamReader &reader)
+{
+    QGraphicsItem *item;
+    while (reader.readNextStartElement())
+    {
+        if (reader.name() == "stroke")
+            item = loadPath(reader);
+        else if (reader.name() == "text")
+            item = loadTextItem(reader);
+        else
+            reader.skipCurrentElement();
+        if (item)
+            paths.append(item);
+    }
+}
+
+void PathContainer::loadDrawings(QXmlStreamReader &reader, PathContainer *left, PathContainer *right, const qreal page_half)
 {
     while (reader.readNextStartElement())
     {
         if (reader.name() == "stroke")
         {
-            BasicTool basic_tool = string_to_tool.value(reader.attributes().value("tool").toString());
-            AbstractGraphicsPath *path;
-            const QString width_str = reader.attributes().value("width").toString();
-            if (basic_tool == Pen && !width_str.contains(' '))
-                basic_tool = FixedWidthPen;
-            QPen pen(
-                        rgba_to_color(reader.attributes().value("color").toString()),
-                        basic_tool == Pen ? 1. : width_str.toDouble(),
-                        Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin
-                        );
-            if (pen.widthF() <= 0)
-                pen.setWidthF(1.);
-            DrawTool *tool = new DrawTool(basic_tool, AnyNormalDevice, pen, basic_tool == Highlighter ? QPainter::CompositionMode_Darken : QPainter::CompositionMode_SourceOver);
-            if (basic_tool == Pen)
-                path = new FullGraphicsPath(*tool, reader.readElementText(), width_str);
+            AbstractGraphicsPath *path = loadPath(reader);
+            if (!path)
+                continue;
+            if (path->firstPoint().x() > page_half)
+                right->paths.append(path);
             else
-                path = new BasicGraphicsPath(*tool, reader.readElementText());
-            paths.append(path);
+                left->paths.append(path);
         }
         else if (reader.name() == "text")
         {
-            QGraphicsTextItem *newitem = new QGraphicsTextItem();
-            QPointF pos;
-            pos.setX(reader.attributes().value("x").toDouble());
-            pos.setY(reader.attributes().value("y").toDouble());
-            newitem->setPos(pos);
-            QFont font(reader.attributes().value("font").toString());
-            font.setPointSizeF(reader.attributes().value("size").toDouble());
-            newitem->setFont(font);
-            newitem->setPlainText(reader.readElementText());
-            newitem->setDefaultTextColor(rgba_to_color(reader.attributes().value("color").toString()));
-            paths.append(newitem);
+            QGraphicsTextItem *item = loadTextItem(reader);
+            if (!item)
+                continue;
+            if (item->pos().x() > page_half)
+                right->paths.append(item);
+            else
+                left->paths.append(item);
         }
         else
             reader.skipCurrentElement();
     }
+}
+
+QRectF PathContainer::boundingBox() const noexcept
+{
+    QRectF rect;
+    for (const auto path : qAsConst(paths))
+        rect = rect.united(path->sceneBoundingRect());
+    debug_msg(DebugDrawing) << "boudding rect:" << rect;
+    return rect;
 }

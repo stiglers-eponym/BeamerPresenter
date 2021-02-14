@@ -41,6 +41,9 @@ public:
     /// Number of nodes of the path.
     virtual int size() const noexcept = 0;
 
+    /// Coordinate of the first node in the path.
+    virtual const QPointF firstPoint() const noexcept = 0;
+
     /// Coordinate of the last node in the path.
     virtual const QPointF lastPoint() const noexcept = 0;
 

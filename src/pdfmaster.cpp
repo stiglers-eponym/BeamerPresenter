@@ -191,7 +191,19 @@ void PdfMaster::saveXopp(const QString &filename) const
     PathContainer *container;
     for (int i=0; i < preferences()->number_of_pages; i++)
     {
-        const QSizeF size = doc->pageSize(i);
+        QSizeF size = doc->pageSize(i);
+        QRectF drawing_rect;
+        for (const auto page_part : {FullPage, LeftHalf, RightHalf})
+        {
+            if (preferences()->overlay_mode == PerLabel)
+                container = paths.value(doc->overlaysShifted(i | page_part, FirstOverlay), NULL);
+            else
+                container = paths.value(i | page_part, NULL);
+            if (container)
+                drawing_rect = drawing_rect.united(container->boundingBox());
+        }
+        size.setWidth(std::max(size.width(), drawing_rect.right()));
+        size.setHeight(std::max(size.height(), drawing_rect.bottom()));
         writer.writeStartElement("page");
         writer.writeAttribute("width", QString::number(size.width()));
         writer.writeAttribute("height", QString::number(size.height()));
@@ -263,6 +275,15 @@ void PdfMaster::loadXopp(const QString &filename)
         qWarning() << "Failed to read document." << reader.errorString();
         return;
     }
+    bool nontrivial_page_part = false;
+    for (const auto scene : qAsConst(scenes))
+    {
+        if (scene->pagePart() != FullPage)
+        {
+            nontrivial_page_part = true;
+            break;
+        }
+    }
     while (reader.readNextStartElement())
     {
         if (reader.name() == "page")
@@ -287,14 +308,33 @@ void PdfMaster::loadXopp(const QString &filename)
                 continue;
             if (reader.name() == "layer")
             {
-                // TODO: doesn't support PagePart != FullPage
-                PathContainer *container = paths.value(page);
-                if (!container)
+                if (nontrivial_page_part)
                 {
-                    container = new PathContainer();
-                    paths[page] = container;
+                    const qreal page_half = document->pageSize(page).width()/2;
+                    PathContainer *left = paths.value(page | LeftHalf, NULL),
+                                *right = paths.value(page | RightHalf, NULL);
+                    if (!left)
+                    {
+                        left = new PathContainer();
+                        paths[page | LeftHalf] = left;
+                    }
+                    if (!right)
+                    {
+                        right = new PathContainer();
+                        paths[page | RightHalf] = right;
+                    }
+                    PathContainer::loadDrawings(reader, left, right, page_half);
                 }
-                container->loadDrawings(reader);
+                else
+                {
+                    PathContainer *container = paths.value(page);
+                    if (!container)
+                    {
+                        container = new PathContainer();
+                        paths[page] = container;
+                    }
+                    container->loadDrawings(reader);
+                }
             }
         }
         reader.skipCurrentElement();
@@ -379,6 +419,6 @@ PathContainer *PdfMaster::pathContainer(int page)
                 return container;
             }
         }
-        return NULL;
     }
+    return NULL;
 }

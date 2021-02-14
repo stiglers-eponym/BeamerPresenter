@@ -127,6 +127,11 @@ public:
 
     /// Load drawings for one specific page.
     void loadDrawings(QXmlStreamReader &reader);
+    /// Load drawings for one specific page in left and right page part.
+    static void loadDrawings(QXmlStreamReader &reader, PathContainer *left, PathContainer *right, const qreal page_half);
+
+    /// Bounding box of all drawings.
+    QRectF boundingBox() const noexcept;
 };
 
 #endif // PATHCONTAINER_H

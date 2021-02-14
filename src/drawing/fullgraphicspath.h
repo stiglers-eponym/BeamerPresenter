@@ -50,6 +50,11 @@ public:
     const QPointF lastPoint() const noexcept override
     {return data.isEmpty() ? QPointF() : data.last().point;}
 
+    /// Position of first node in the path.
+    /// Returns QPointF() if path is empty.
+    const QPointF firstPoint() const noexcept override
+    {return data.isEmpty() ? QPointF() : data.first().point;}
+
     /// Paint this on given painter. Options and widget are currently
     /// discarded.
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget = NULL) override;
