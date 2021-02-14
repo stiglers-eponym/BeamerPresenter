@@ -541,16 +541,50 @@ void Master::handleAction(const Action action)
         break;
     case SaveDrawings:
     {
+        if (documents.isEmpty())
+            break;
+        PdfMaster *doc = documents.first();
+        if (!doc)
+            break;
+        QString filename = doc->drawingsPath();
+        if (filename.isEmpty())
+            filename = QFileDialog::getSaveFileName(NULL, "Save drawings (Xournal format, .xoj or .xopp)");
+        doc->saveXopp(filename);
+        break;
+    }
+    case SaveDrawingsAs:
+    {
+        if (documents.isEmpty())
+            break;
         const QString filename = QFileDialog::getSaveFileName(NULL, "Save drawings (Xournal format, .xoj or .xopp)");
-        if (!filename.isEmpty() && !documents.isEmpty() && documents.first())
+        if (!filename.isEmpty() && documents.first())
             documents.first()->saveXopp(filename);
         break;
     }
     case LoadDrawings:
     {
+        if (documents.isEmpty())
+            break;
         const QString filename = QFileDialog::getOpenFileName(NULL, "Load drawings (Xournal format, .xoj or .xopp)");
-        if (!filename.isEmpty() && !documents.isEmpty() && documents.first())
-            documents.first()->loadXopp(filename);
+        if (!filename.isEmpty())
+        {
+            PdfMaster *doc = documents.first();
+            if (!doc)
+                break;
+            doc->clearAllDrawings();
+            doc->loadXopp(filename);
+        }
+        navigateToPage(preferences()->page);
+        break;
+    }
+    case LoadDrawingsNoClear:
+    {
+        if (documents.isEmpty())
+            break;
+        const QString filename = QFileDialog::getOpenFileName(NULL, "Load drawings (Xournal format, .xoj or .xopp)");
+        if (filename.isEmpty() || documents.first() == NULL)
+            break;
+        documents.first()->loadXopp(filename);
         navigateToPage(preferences()->page);
         break;
     }

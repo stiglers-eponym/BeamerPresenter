@@ -28,6 +28,9 @@ private:
     /// Master scene is the first scene in the list.
     QList<SlideScene*> scenes;
 
+    /// Path to file in which drawings are saved.
+    QString drawings_path;
+
     /// Map page (part) numbers to containers of paths.
     /// page (part) numbers are given as (page | page_part)
     /// Paths can be drawn per slide label by creating references to the main
@@ -89,9 +92,24 @@ public:
     int overlaysShifted(const int start, const int shift_overlay) const
     {return document->overlaysShifted(start, shift_overlay);}
 
-    void saveXopp(const QString &filename) const;
+    /// Save drawings to gzip-compressed xml file.
+    /// This does not check whether filename is valid and accessible!
+    void saveXopp(const QString &filename);
+
+    /// Load drawings from gzip-compressed xml file.
+    /// This does not check whether filename is valid and accessible!
     void loadXopp(const QString &filename);
+
+    /// Get path container at given page. If overlay_mode==Cumulative, this may
+    /// create and return a copy of a previous path container.
     PathContainer *pathContainer(int page);
+
+    /// Get file path at which drawings are saved.
+    const QString &drawingsPath() const noexcept
+    {return drawings_path;}
+
+    /// Clear all drawings including history.
+    void clearAllDrawings();
 
 public slots:
     /// Handle the given action.

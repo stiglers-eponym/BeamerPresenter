@@ -488,7 +488,10 @@ void PathContainer::loadDrawings(QXmlStreamReader &reader)
         else if (reader.name() == "text")
             item = loadTextItem(reader);
         else
+        {
             reader.skipCurrentElement();
+            continue;
+        }
         if (item)
             paths.append(item);
     }
@@ -528,6 +531,5 @@ QRectF PathContainer::boundingBox() const noexcept
     QRectF rect;
     for (const auto path : qAsConst(paths))
         rect = rect.united(path->sceneBoundingRect());
-    debug_msg(DebugDrawing) << "boudding rect:" << rect;
     return rect;
 }

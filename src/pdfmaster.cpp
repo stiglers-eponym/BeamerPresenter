@@ -174,8 +174,9 @@ void PdfMaster::distributeNavigationEvents(const int page) const
 }
 
 
-void PdfMaster::saveXopp(const QString &filename) const
+void PdfMaster::saveXopp(const QString &filename)
 {
+    drawings_path = filename;
     QBuffer buffer;
     buffer.open(QBuffer::WriteOnly);
     QXmlStreamWriter writer(&buffer);
@@ -244,11 +245,15 @@ void PdfMaster::saveXopp(const QString &filename) const
     }
     else
     {
-        qWarning() << "Compressing document failed. Saving without compression.";
         QFile file(filename);
-        file.open(QFile::WriteOnly);
-        file.write(buffer.data());
-        file.close();
+        if (file.open(QFile::WriteOnly))
+        {
+            qWarning() << "Compressing document failed. Saving without compression.";
+            file.write(buffer.data());
+            file.close();
+        }
+        else
+            qWarning() << "Saving file failed with file path" << filename;
     }
 }
 
@@ -258,11 +263,16 @@ void PdfMaster::loadXopp(const QString &filename)
     QBuffer buffer;
     buffer.open(QBuffer::ReadWrite);
     gzFile file = gzopen(filename.toUtf8(), "rb");
+    if (!file)
+    {
+        qWarning() << "Loading drawings failed: file" << filename << "could not be opened";
+        return;
+    }
+    drawings_path = filename;
     gzbuffer(file, 32768);
     char chunk[512];
     int status = 0;
-    do
-    {
+    do {
         status = gzread(file, chunk, 512);
         buffer.write(chunk, status);
     } while (status == 512);
@@ -421,4 +431,16 @@ PathContainer *PdfMaster::pathContainer(int page)
         }
     }
     return NULL;
+}
+
+void PdfMaster::clearAllDrawings()
+{
+    for (const auto container : qAsConst(paths))
+    {
+        if (container)
+        {
+            container->clearPaths();
+            container->clearHistory();
+        }
+    }
 }

@@ -176,6 +176,18 @@ redo last drawing action on left/right part of current page, assuming that the p
 .B clear
 clear all drawings on the current page.
 .TP
+.B save
+save drawings to gzip-compressed xml file compatible to Xournal(++). Save to same file as before.
+.TP
+.B save as
+save drawings to gzip-compressed xml file compatible to Xournal(++). Always asks for filename.
+.TP
+.B load
+load drawings from gzip-compressed xml file compatible to Xournal(++).
+.TP
+.B load unsafe
+load drawings from gzip-compressed xml file compatible to Xournal(++) without clearing existing paths.
+.TP
 .BR "clear left" / right
 clear all drawings on the left/right part of current page, assuming that the page is split into a left and right half which represent presentation and notes, respectively
 .TP
