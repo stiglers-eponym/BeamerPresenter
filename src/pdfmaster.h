@@ -6,6 +6,7 @@
 #include <zlib.h>
 #include <QXmlStreamReader>
 #include <QXmlStreamWriter>
+#include <QMimeDatabase>
 #include "src/slidescene.h"
 #include "src/slideview.h"
 #include "src/preferences.h"
@@ -44,8 +45,12 @@ private:
 public:
     /// Create a new PdfMaster from a given file name.
     explicit PdfMaster(const QString &filename);
+
     /// Destructor. Deletes paths and document.
     ~PdfMaster();
+
+    /// Load PDF file.
+    void loadDocument(const QString &filename);
 
     /// Load or reload the file. Return true if the file was updated and false
     /// otherwise.
@@ -98,6 +103,8 @@ public:
 
     /// Load drawings from gzip-compressed xml file.
     /// This does not check whether filename is valid and accessible!
+    /// If no document is loaded, this will call loadDocument(path)
+    /// with the pdf file path from the xopp file.
     void loadXopp(const QString &filename);
 
     /// Get path container at given page. If overlay_mode==Cumulative, this may

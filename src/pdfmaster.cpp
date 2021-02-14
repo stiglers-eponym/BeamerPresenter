@@ -8,6 +8,46 @@
 
 PdfMaster::PdfMaster(const QString &filename)
 {
+    QMimeDatabase db;
+    const QMimeType type = db.mimeTypeForFile(filename, QMimeDatabase::MatchContent);
+    if (type.name() == "application/pdf")
+        loadDocument(filename);
+    else if (type.name() == "application/xml" || type.name() == "application/gzip")
+        loadXopp(filename);
+    else
+    {
+        qCritical() << "File type of document not understood! Trying to load it anyway.";
+        loadDocument(filename);
+        if (!document)
+            loadXopp(filename);
+    }
+    if (!document)
+        qFatal("Failed to open PDF document");
+}
+
+PdfMaster::~PdfMaster()
+{
+    qDeleteAll(paths);
+    paths.clear();
+    delete document;
+}
+
+const QSizeF PdfMaster::getPageSize(const int page_number) const
+{
+    return document->pageSize(page_number);
+}
+
+void PdfMaster::loadDocument(const QString &filename)
+{
+    if (document)
+    {
+        if (filename != document->getPath())
+            qCritical() << "Tried to load a pdf file, but a different file is already loaded!";
+        else if (document->loadDocument())
+            document->loadOutline();
+        return;
+    }
+
     // Load the document
 #ifdef INCLUDE_POPPLER
 #ifdef INCLUDE_MUPDF
@@ -26,28 +66,21 @@ PdfMaster::PdfMaster(const QString &filename)
 #else
     document = new MuPdfDocument(filename);
 #endif
+
     if (document == NULL || !document->isValid())
-        qFatal("Loading document failed");
-
-    // This is mainly for testing:
-    document->loadOutline();
-}
-
-PdfMaster::~PdfMaster()
-{
-    qDeleteAll(paths);
-    paths.clear();
-    delete document;
-}
-
-const QSizeF PdfMaster::getPageSize(const int page_number) const
-{
-    return document->pageSize(page_number);
+        qCritical("Loading pdf document failed");
+    else
+        document->loadOutline();
 }
 
 bool PdfMaster::loadDocument()
 {
-    return document->loadDocument();
+    if (document && document->loadDocument())
+    {
+        document->loadOutline();
+        return true;
+    }
+    return false;
 }
 
 void PdfMaster::receiveAction(const Action action)
@@ -298,7 +331,7 @@ void PdfMaster::loadXopp(const QString &filename)
     {
         if (reader.name() == "page")
         {
-            int page;
+            int page = -1;
             if (!reader.readNextStartElement())
                 continue;
             if (reader.name() == "background")
@@ -310,17 +343,30 @@ void PdfMaster::loadXopp(const QString &filename)
                 if (!ok)
                     continue;
                 const QStringRef filename = reader.attributes().value("filename");
-                if (!filename.isEmpty() && filename != document->getPath())
-                    qWarning() << "reading document for possibly wrong PDF file:" << filename << document->getPath();
+                if (!filename.isEmpty())
+                {
+                    if (!document)
+                    {
+                        loadDocument(filename.toString());
+                        if (document && preferences()->page_part_threshold > 0.01)
+                        {
+                            const QSizeF size = document->pageSize(0);
+                            if (size.width() > preferences()->page_part_threshold*size.height())
+                                nontrivial_page_part = true;
+                        }
+                    }
+                    else if (filename != document->getPath())
+                        qWarning() << "reading document for possibly wrong PDF file:" << filename << document->getPath();
+                }
                 reader.skipCurrentElement();
             }
             if (!reader.readNextStartElement())
                 continue;
-            if (reader.name() == "layer")
+            if (reader.name() == "layer" && page >= 0)
             {
                 if (nontrivial_page_part)
                 {
-                    const qreal page_half = document->pageSize(page).width()/2;
+                    const qreal page_half = document ? document->pageSize(page).width()/2 : 226.772;
                     PathContainer *left = paths.value(page | LeftHalf, NULL),
                                 *right = paths.value(page | RightHalf, NULL);
                     if (!left)
@@ -349,11 +395,11 @@ void PdfMaster::loadXopp(const QString &filename)
         }
         reader.skipCurrentElement();
     }
+    buffer.close();
     if (reader.hasError())
-    {
         qWarning() << "Failed to read document." << reader.errorString();
-        return;
-    }
+    else if (!document)
+        qWarning() << "Failed to determine PDF document from xournal file." << filename;
 }
 
 void PdfMaster::requestPathContainer(PathContainer **container, int page)

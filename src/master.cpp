@@ -199,7 +199,7 @@ QWidget* Master::createWidget(QJsonObject &object, QWidget *parent)
             file = fileinfo.absoluteFilePath();
         else
         {
-            fileinfo = QFileInfo(QFileDialog::getOpenFileName(NULL, "File " + file, "", "Documents (*.pdf)"));
+            fileinfo = QFileInfo(QFileDialog::getOpenFileName(NULL, "File " + file, "", "Documents (*.pdf *.xopp *.xoj *.xml)"));
             if (!fileinfo.exists())
             {
                 qCritical() << "No valid file given";
