@@ -122,7 +122,11 @@ public:
     bool isPlainCopy() const noexcept
     {return inHistory == -2 && history.isEmpty();}
 
+    /// Save drawings in xml format.
     void writeXml(QXmlStreamWriter &writer) const;
+
+    /// Load drawings for one specific page.
+    void loadDrawings(QXmlStreamReader &reader);
 };
 
 #endif // PATHCONTAINER_H

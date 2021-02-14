@@ -19,6 +19,9 @@ public:
     /// Construct path at given position with default pen.
     BasicGraphicsPath(const DrawTool &tool, const QPointF &pos) noexcept;
 
+    /// Construct path from coordinate string.
+    BasicGraphicsPath(const DrawTool &tool, const QString &coordinates) noexcept;
+
     /// Construct subpath of other BasicGraphicsPath, including nodes first to
     /// last-1 of other.
     BasicGraphicsPath(const BasicGraphicsPath *const other, int first, int last);
@@ -52,7 +55,7 @@ public:
 
     /// resturn width formatted as string for saving.
     const QString stringWidth() const noexcept override
-    {return QString::number(tool.width());}
+    {return QString::number(_tool.width());}
 };
 
 #endif // BASICGRAPHICSPATH_H

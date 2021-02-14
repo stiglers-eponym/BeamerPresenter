@@ -225,13 +225,85 @@ void PdfMaster::saveXopp(const QString &filename) const
         qWarning() << "Writing document resulted in error! Resulting document is probably corrupt.";
 
     gzFile file = gzopen(filename.toUtf8(), "wb");
-    gzwrite(file, buffer.data().data(), buffer.data().length());
-    gzflush(file, Z_FINISH);
+    if (file)
+    {
+        gzwrite(file, buffer.data().data(), buffer.data().length());
+        gzclose_w(file);
+    }
+    else
+    {
+        qWarning() << "Compressing document failed. Saving without compression.";
+        QFile file(filename);
+        file.open(QFile::WriteOnly);
+        file.write(buffer.data());
+        file.close();
+    }
 }
 
 void PdfMaster::loadXopp(const QString &filename)
 {
-    // TODO: implement
+    // This is probably not how it should be done.
+    QBuffer buffer;
+    buffer.open(QBuffer::ReadWrite);
+    gzFile file = gzopen(filename.toUtf8(), "rb");
+    gzbuffer(file, 32768);
+    char chunk[512];
+    int status = 0;
+    do
+    {
+        status = gzread(file, chunk, 512);
+        buffer.write(chunk, status);
+    } while (status == 512);
+    gzclose_r(file);
+    buffer.seek(0);
+
+    QXmlStreamReader reader(&buffer);
+    if ((reader.readNext() != QXmlStreamReader::StartDocument || reader.readNext() != QXmlStreamReader::StartElement) || reader.name() != "xournal")
+    {
+        qWarning() << "Failed to read document." << reader.errorString();
+        return;
+    }
+    while (reader.readNextStartElement())
+    {
+        if (reader.name() == "page")
+        {
+            int page;
+            if (!reader.readNextStartElement())
+                continue;
+            if (reader.name() == "background")
+            {
+                QString string = reader.attributes().value("pageno").toString();
+                string.chop(2);
+                bool ok;
+                page = string.toInt(&ok) - 1;
+                if (!ok)
+                    continue;
+                const QStringRef filename = reader.attributes().value("filename");
+                if (!filename.isEmpty() && filename != document->getPath())
+                    qWarning() << "reading document for possibly wrong PDF file:" << filename << document->getPath();
+                reader.skipCurrentElement();
+            }
+            if (!reader.readNextStartElement())
+                continue;
+            if (reader.name() == "layer")
+            {
+                // TODO: doesn't support PagePart != FullPage
+                PathContainer *container = paths.value(page);
+                if (!container)
+                {
+                    container = new PathContainer();
+                    paths[page] = container;
+                }
+                container->loadDrawings(reader);
+            }
+        }
+        reader.skipCurrentElement();
+    }
+    if (reader.hasError())
+    {
+        qWarning() << "Failed to read document." << reader.errorString();
+        return;
+    }
 }
 
 void PdfMaster::requestPathContainer(PathContainer **container, int page)

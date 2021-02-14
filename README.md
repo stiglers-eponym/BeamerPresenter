@@ -20,12 +20,12 @@ This software uses the Qt framework and the PDF engines MuPDF and/or poppler.
 * optionally use LaTeX-beamer's option to show notes on second screen and split PDF pages into a part for the speaker and a part or the audience
 * clock and timer for the presentation (some features of 0.1.x not yet available in 0.2.x)
 * simple navigation using document outline, thumbnail slides, or navigation by page label
+* save/load drawings in Xournal format (compatibility with Xournal improved in 0.2.x)
 
 ### Currently NOT supported in version 0.2.x
 * multimedia content on slides (only 0.1.x)
 * slide transitions (only 0.1.x)
 * animations (only 0.1.x)
-* save/load drawings (only 0.1.x)
 
 
 ## Build and install
@@ -61,6 +61,9 @@ For MuPDF:
 * `libopenjp2-7-dev`
 * `libjbig2dec0-dev`
 * `libgumbo-dev` (for MuPDF 1.18, probably not in 1.17)
+
+Others:
+* `zlib1g-dev`
 
 ### Dependencies in Arch Linux
 For Qt5:
@@ -131,6 +134,7 @@ The configuration files of version 0.2.x and 0.1.x are incompatible.
 * highlighting tools: pointer, torch, magnifier
 * full per-slide history of drawings (with limitation of number of history steps)
 * select per-slide or per-overlay drawings
+* save and load drawings to xopp-like xml format (rather experimental)
 * widgets:
     * slide
     * clock
@@ -154,7 +158,6 @@ The configuration files of version 0.2.x and 0.1.x are incompatible.
 * multimedia
 * option to insert extra slides or extra space below slide for drawing (partially implemented)
 * improve text input tool
-* save and load drawings to xopp-like xml format
 * improve widgets:
     * settings (more explanations)
     * timer (with color indicating progress relative to estimate like in version 0.1.x)

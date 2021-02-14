@@ -30,6 +30,9 @@ public:
     /// Construct path with given initial node and default pen.
     FullGraphicsPath(const DrawTool &tool, const QPointF &pos, const float pressure);
 
+    /// Construct path from string representation of coordinates and width.
+    FullGraphicsPath(const DrawTool &tool, const QString &coordinates, const QString &widths);
+
     /// Construct subpath of other FullGraphicsPath, including nodes first to
     /// last-1 of other.
     FullGraphicsPath(const FullGraphicsPath *const other, int first, int last);

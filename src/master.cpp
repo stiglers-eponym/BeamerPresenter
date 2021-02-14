@@ -541,16 +541,17 @@ void Master::handleAction(const Action action)
         break;
     case SaveDrawings:
     {
-        const QString filename = QFileDialog::getSaveFileName(NULL, "Save drawings");
+        const QString filename = QFileDialog::getSaveFileName(NULL, "Save drawings (Xournal format, .xoj or .xopp)");
         if (!filename.isEmpty() && !documents.isEmpty() && documents.first())
             documents.first()->saveXopp(filename);
         break;
     }
     case LoadDrawings:
     {
-        const QString filename = QFileDialog::getOpenFileName(NULL, "Save drawings");
+        const QString filename = QFileDialog::getOpenFileName(NULL, "Load drawings (Xournal format, .xoj or .xopp)");
         if (!filename.isEmpty() && !documents.isEmpty() && documents.first())
             documents.first()->loadXopp(filename);
+        navigateToPage(preferences()->page);
         break;
     }
     case ReloadFiles:

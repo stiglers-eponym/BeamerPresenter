@@ -25,14 +25,14 @@ protected:
      * In FullGraphicsPath, pen.width is the reference width which gets
      * rescaled by the pressure of an input device.
      */
-    DrawTool tool;
+    DrawTool _tool;
 
     /// Bounding rect coordinates.
     qreal top, bottom, left, right;
 
 public:
     /// Constructor: initializing tool.
-    AbstractGraphicsPath(const DrawTool tool) noexcept : tool(tool) {}
+    AbstractGraphicsPath(const DrawTool tool) noexcept : _tool(tool) {}
 
     /// Bounding rectangle of the drawing (including stroke width).
     virtual QRectF boundingRect() const noexcept override
@@ -60,7 +60,7 @@ public:
      * @param tool
      */
     const DrawTool &getTool() const noexcept
-    {return tool;}
+    {return _tool;}
 
     /// resturn coordinates formatted as string for saving.
     virtual const QString stringCoordinates() const noexcept = 0;

@@ -141,6 +141,17 @@ QString color_to_rgba(const QColor &color)
     return QLatin1Char('#') + QString::number((color.rgb() << 8) + color.alpha(), 16).rightJustified(8, '0', true);
 }
 
+QColor rgba_to_color(const QString &string)
+{
+    switch (string.length())
+    {
+    case 9:
+        return QColor('#' + string.right(2) + string.mid(1,6));
+    default:
+        return QColor(string);
+    }
+}
+
 
 Preferences::Preferences(QObject *parent) :
     QObject(parent),

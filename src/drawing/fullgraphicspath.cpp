@@ -4,16 +4,16 @@ FullGraphicsPath::FullGraphicsPath(const DrawTool &tool, const QPointF &pos, con
     AbstractGraphicsPath(tool)
 {
     // Initialize bounding rect.
-    top = pos.y() - tool.width();
-    bottom = pos.y() + tool.width();
-    left = pos.x() - tool.width();
-    right = pos.x() + tool.width();
+    top = pos.y() - _tool.width();
+    bottom = pos.y() + _tool.width();
+    left = pos.x() - _tool.width();
+    right = pos.x() + _tool.width();
     // Add first data point.
-    data.append({pos, tool.width()*pressure});
+    data.append({pos, _tool.width()*pressure});
 }
 
 FullGraphicsPath::FullGraphicsPath(const FullGraphicsPath * const other, int first, int last) :
-    AbstractGraphicsPath(other->tool)
+    AbstractGraphicsPath(other->_tool)
 {
     // Make sure that first and last are valid.
     if (first < 0)
@@ -45,17 +45,69 @@ FullGraphicsPath::FullGraphicsPath(const FullGraphicsPath * const other, int fir
             bottom = data[i].point.y();
     }
     // Add finite stroke width to bounding rect.
-    left -= tool.width();
-    right += tool.width();
-    top -= tool.width();
-    bottom += tool.width();
+    left -= _tool.width();
+    right += _tool.width();
+    top -= _tool.width();
+    bottom += _tool.width();
+}
+
+FullGraphicsPath::FullGraphicsPath(const DrawTool &tool, const QString &coordinates, const QString &weights) :
+    AbstractGraphicsPath(tool)
+{
+    QStringList coordinate_list = coordinates.split(' ');
+    QStringList weight_list = weights.split(' ');
+    data = QVector<PointPressure>(coordinate_list.length()/2);
+    qreal x, y;
+    float w, max_weight;
+    x = coordinate_list.takeFirst().toDouble();
+    y = coordinate_list.takeFirst().toDouble();
+    w = weight_list.takeFirst().toFloat();
+    max_weight = w;
+    data[0] = {{x,y},w};
+
+    // Initialize data with the correct length.
+    // Initialize bounding rect.
+    top = y;
+    bottom = y;
+    left = x;
+    right = x;
+    // Copy data points from other and update bounding rect.
+    int i=1;
+    while (coordinate_list.length() > 1)
+    {
+        x = coordinate_list.takeFirst().toDouble();
+        y = coordinate_list.takeFirst().toDouble();
+        if (!weight_list.isEmpty())
+        {
+            w = weight_list.takeFirst().toFloat();
+            if (w > max_weight)
+                max_weight = w;
+        }
+        data[i++] = {{x,y},w};
+        if ( x < left )
+            left = x;
+        else if ( x > right )
+            right = x;
+        if ( y < top )
+            top = y;
+        else if ( y > bottom )
+            bottom = y;
+    }
+
+    max_weight *= 1.05;
+    _tool.setWidth(max_weight);
+    // Add finite stroke width to bounding rect.
+    left -= max_weight;
+    right += max_weight;
+    top -= max_weight;
+    bottom += max_weight;
 }
 
 void FullGraphicsPath::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
 {
     if (data.isEmpty())
         return;
-    QPen pen = tool.pen();
+    QPen pen = _tool.pen();
     auto it = data.cbegin();
     while (++it != data.cend())
     {
@@ -70,26 +122,26 @@ void FullGraphicsPath::paint(QPainter *painter, const QStyleOptionGraphicsItem *
 
 void FullGraphicsPath::addPoint(const QPointF &point, const float pressure)
 {
-    data.append({point, tool.width()*pressure});
+    data.append({point, _tool.width()*pressure});
     bool change = false;
-    if ( point.x() < left + tool.width() )
+    if ( point.x() < left + _tool.width() )
     {
-        left = point.x() - tool.width();
+        left = point.x() - _tool.width();
         change = true;
     }
-    else if ( point.x() + tool.width() > right )
+    else if ( point.x() + _tool.width() > right )
     {
-        right = point.x() + tool.width();
+        right = point.x() + _tool.width();
         change = true;
     }
-    if ( point.y() < top + tool.width() )
+    if ( point.y() < top + _tool.width() )
     {
-        top = point.y() - tool.width();
+        top = point.y() - _tool.width();
         change = true;
     }
-    else if ( point.y() + tool.width() > bottom )
+    else if ( point.y() + _tool.width() > bottom )
     {
-        bottom = point.y() + tool.width();
+        bottom = point.y() + _tool.width();
         change = true;
     }
     if (change)
@@ -126,7 +178,7 @@ QList<AbstractGraphicsPath*> FullGraphicsPath::splitErase(const QPointF &pos, co
 
 void FullGraphicsPath::changeWidth(const float newwidth) noexcept
 {
-    const float scale = newwidth / tool.width();
+    const float scale = newwidth / _tool.width();
     auto it = data.begin();
     while (++it != data.cend())
         it->pressure *= scale;
@@ -134,16 +186,16 @@ void FullGraphicsPath::changeWidth(const float newwidth) noexcept
 
 void FullGraphicsPath::changeTool(const DrawTool &newtool) noexcept
 {
-    if (newtool.tool() != tool.tool())
+    if (newtool.tool() != _tool.tool())
     {
         qWarning() << "Cannot change tool to different base tool.";
         return;
     }
     const float newwidth = newtool.width();
-    if (newwidth != tool.width())
+    if (newwidth != _tool.width())
         changeWidth(newwidth);
-    tool.setPen(newtool.pen());
-    tool.setCompositionMode(newtool.compositionMode());
+    _tool.setPen(newtool.pen());
+    _tool.setCompositionMode(newtool.compositionMode());
 }
 
 const QString FullGraphicsPath::stringCoordinates() const noexcept

@@ -434,3 +434,47 @@ void PathContainer::writeXml(QXmlStreamWriter &writer) const
         }
     }
 }
+
+void PathContainer::loadDrawings(QXmlStreamReader &reader)
+{
+    while (reader.readNextStartElement())
+    {
+        if (reader.name() == "stroke")
+        {
+            BasicTool basic_tool = string_to_tool.value(reader.attributes().value("tool").toString());
+            AbstractGraphicsPath *path;
+            const QString width_str = reader.attributes().value("width").toString();
+            if (basic_tool == Pen && !width_str.contains(' '))
+                basic_tool = FixedWidthPen;
+            QPen pen(
+                        rgba_to_color(reader.attributes().value("color").toString()),
+                        basic_tool == Pen ? 1. : width_str.toDouble(),
+                        Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin
+                        );
+            if (pen.widthF() <= 0)
+                pen.setWidthF(1.);
+            DrawTool *tool = new DrawTool(basic_tool, AnyNormalDevice, pen, basic_tool == Highlighter ? QPainter::CompositionMode_Darken : QPainter::CompositionMode_SourceOver);
+            if (basic_tool == Pen)
+                path = new FullGraphicsPath(*tool, reader.readElementText(), width_str);
+            else
+                path = new BasicGraphicsPath(*tool, reader.readElementText());
+            paths.append(path);
+        }
+        else if (reader.name() == "text")
+        {
+            QGraphicsTextItem *newitem = new QGraphicsTextItem();
+            QPointF pos;
+            pos.setX(reader.attributes().value("x").toDouble());
+            pos.setY(reader.attributes().value("y").toDouble());
+            newitem->setPos(pos);
+            QFont font(reader.attributes().value("font").toString());
+            font.setPointSizeF(reader.attributes().value("size").toDouble());
+            newitem->setFont(font);
+            newitem->setPlainText(reader.readElementText());
+            newitem->setDefaultTextColor(rgba_to_color(reader.attributes().value("color").toString()));
+            paths.append(newitem);
+        }
+        else
+            reader.skipCurrentElement();
+    }
+}

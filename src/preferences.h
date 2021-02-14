@@ -185,6 +185,7 @@ const Preferences *preferences();
 Tool *createTool(const QJsonObject &obj, const int default_device = 0);
 void toolToJson(const Tool *tool, QJsonObject &obj);
 QString color_to_rgba(const QColor &color);
+QColor rgba_to_color(const QString &string);
 
 
 #ifdef QT_DEBUG
