@@ -8,6 +8,11 @@
 #include "src/gui/actionbutton.h"
 #include "src/gui/toolbutton.h"
 
+/**
+ * @brief Widget showing grid of buttons
+ *
+ * Emits sendTool and sendAction when buttons are pressed.
+ */
 class ToolSelectorWidget : public QWidget
 {
     Q_OBJECT
@@ -28,6 +33,8 @@ public:
 
 signals:
     void sendAction(const Action action);
+
+    /// ownership of tool is transfered to receiver.
     void sendTool(Tool *tool) const;
 };
 

@@ -3,6 +3,9 @@
 
 #include <QStackedWidget>
 
+/**
+ * @brief StackedWidget : QStackedWidget with adjusted size hint
+ */
 class StackedWidget : public QStackedWidget
 {
     Q_OBJECT

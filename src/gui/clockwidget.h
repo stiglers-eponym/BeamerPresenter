@@ -7,6 +7,9 @@
 #include <QDebug>
 #include <QResizeEvent>
 
+/**
+ * @brief Label showing the time.
+ */
 class ClockWidget : public QLabel
 {
     Q_OBJECT

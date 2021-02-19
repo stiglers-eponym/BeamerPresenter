@@ -37,7 +37,7 @@ public:
 
     /// Size hint: scene size in points.
     QSize sizeHint() const noexcept override
-    {return scene()->sceneRect().toAlignedRect().size();}
+    {return (3*scene()->sceneRect().size()).toSize();}
 
     /// Convert a position in widget coordinate (pixels) to scene coordinates
     /// (points).

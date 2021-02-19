@@ -4,6 +4,9 @@
 #include <QTabBar>
 #include <QTabWidget>
 
+/**
+ * @brief TabWidget : QTabWidget with adjusted size hint
+ */
 class TabWidget : public QTabWidget
 {
     Q_OBJECT

@@ -7,9 +7,18 @@
 #include <QGridLayout>
 #include "src/preferences.h"
 
+/**
+ * @brief Editable timer for presentation and target time.
+ *
+ * 2 QLineEdit's "passed" and "total" show presentation time passed and
+ * estimate or target for total time.
+ *
+ * Emits timeout event.
+ */
 class TimerWidget : public QWidget
 {
     Q_OBJECT
+
     QLineEdit *passed;
     QLineEdit *total;
     QLabel *label;
