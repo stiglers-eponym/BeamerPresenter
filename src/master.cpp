@@ -449,7 +449,7 @@ QWidget* Master::createWidget(QJsonObject &object, QWidget *parent)
         widget->setPalette(palette);
     }
     else
-        qWarning() << "Requested GUI type is not implemented (yet):" << object.value("type");
+        qWarning() << "An error occured or requested GUI type is not implemented (yet):" << object.value("type");
     return widget;
 }
 

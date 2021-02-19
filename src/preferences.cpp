@@ -355,8 +355,13 @@ void Preferences::loadFromParser(const QCommandLineParser &parser)
     if (!arguments.isEmpty())
     {
         file_alias["presentation"] = arguments.first();
-        if (arguments.length() > 1 && !file_alias.contains("notes"))
-            file_alias["notes"] = arguments[1];
+        if (!file_alias.contains("notes"))
+        {
+            if (arguments.length() > 1)
+                file_alias["notes"] = arguments[1];
+            else
+                file_alias["notes"] = arguments.first();
+        }
     }
 
     // timer total time

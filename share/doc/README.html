@@ -1,13 +1,59 @@
-<h1>BeamerPresenter</h1>
+<h1>BeamerPresenter Manual</h1>
 
-BeamerPresenter is highly customizable. But only a part of the configuration can be done using a graphical interface.
+<p>This program allows you to show a presentation to your audience while having all information you need on your screen.
+The presentation must be PDF files.
+It is assumed that the arrangement of windows and screens is done by the window manager (i.e. the user). BeamerPresenter will never try to take control over you screens by itself.</p>
+
+<h2>Configuration</h2>
+<p>BeamerPresenter is highly customizable. But only a part of the configuration can be done using a graphical interface.</p>
+An overview:
 <ul>
-    <li>Keyboard shortcuts: can be done using the graphical interface with some limitations.</li>
+    <li>keyboard shortcuts: can be done using the graphical interface with some limitations.</li>
     <li>general settings: almost all settings can be done using the graphical interface. Some settings require a restart. Documented in <code>man 5 beamerpresenter.config</code>.</li>
     <li>user interface: cannot be configured using the graphical interface. Documented in <code>man 1 beamerpresenter-ui</code>.</li>
 </ul>
 
-TODO: write manual.
+<h2>Interface</h2>
+<p>BeamerPresenter creates one or more windows consisting of one or more widgets. The windows and widgets are defined by a JSON file as documented in <code>man 1 beamerpresenter-ui</code>. You may create a custom file or multiple configuration files for different presentation formats.
+The most important widget is the slide widget. It shows a slide of a presentation. For the audience you usually have a window which consists only of a single slide widget.
+Slide widgets can also be used to show the speaker a preview of the next slides.</p>
+
+<h3>Keyboard shortcuts and buttons</h3>
+<p>Interaction with the user interface is done via keyboard shortcuts, buttons, and tools associated to pointing tools (like the mouse, a touch screen, etc.).
+Shortcuts can be configured in the settings widget. Buttons are defined in the user interface configuration file and behave similar to keyboard shortcuts.
+Both shortcuts and buttons can either cause an action (e.g. going to the next page) or select a tool.</p>
+
+<h3>Tools</h3>
+<p>Tools (pen, highlighter, eraser, pointer, ...) allow the presenter to draw or highlight in the presentation. All drawings and highlighting features are synchronized between slide widgets which show the same slide of a presentation.</p>
+
+<p>Tools are connected to a specific input device (e.g. the left mouse button, a touch screen, or a pen input).
+When selecting a tool by pushing a button, this tool is by default only connected to the tool with which the button was pressed. For example, you can select a tool only for the right mouse button or only for a touch screen. Other devices remain unchanged and keep their tools. Buttons can, however, be configured to change the tool for all devices or a selection of devices.
+Also for keyboard shortcuts which select a tool it is possible to define a device (or selection of devices).</p>
+
+<p>Important actions when using draw tools are the "undo" and "redo" action. Note that and "undo" history is kept <em>per slide</em>, i.e., "undo" will only undo the last drawing or erasing step on the currently visible slide.</p>
+
+<p>For more details on tools and actions (e.g. how to use undo if a presentation combines presentation and notes for the speaker in a single file) see <code>man 1 beamerpresenter-ui</code>.</p>
+
+<h3>Saving and Loading Drawings</h3>
+<p>Drawings can be saved to and loaded from Xournal's .xoj (or .xopp) format. Note that in files created by Xournal(++) only those pages can be opened, which contain a PDF page as background.</p>
+Use the "load" and "save" or "save as" actions.
+
+<p>BeamerPresenter will not warn you if you forget to save notes. Errors while saving or loading files will probably not be handled correctly. If you want to be sure that your notes are saved, use Xournal(++) instead.</p>
+
+<h3>Notes for the Speaker</h3>
+<p>Notes and additional information for the speaker can be provided in three ways.</p>
+
+<p>The first option is to generate two presentation files, of which one contains some extra information. BeamerPresenter can show two slides from two different PDF files. Note that tools (drawings, pointing tools) will not be synchronized between slides which belong to different PDFs. The PDFs should have the same number of pages, but do not need to have the same page size.</p>
+
+<p>The second option results in a similar view in BeamerPresenter, but uses the possibility to put presentation and notes in the same file as done by LaTeX beamer when using the option "show notes on second screen". In this case every page in the PDF should be split into a left and a right half, of which one shows the notes and the other one shows the presentation.
+BeamerPresenter can automatically detect this situation based on the aspect ratio of the PDF pages.
+This option requires a properly configured user interface (<code>man 1 beamerpresenter-ui</code>).</p>
+
+<p>The third option is to provide notes in markdown format. Note that if in you Qt5 version markdown was disabled at compile time (e.g. in ubuntu) markdown formatting will not work and you can only use plain text notes.
+To use markdown notes you need the notes widget (<code>man 1 beamerpresenter-ui</code>).
+It allows you to save and load notes using the keyboard shortcuts CTRL+S and CTRL+O, respectively.
+Note that the widget must have focus when using these shortcuts.
+The notes will be saved in a simple xml document.</p>
 
 <h2>License</h2>
 <p>This software may be redistributed and/or modified under the terms of the GNU Affero General Public License (AGPL), version 3, available on the <a href="https://www.gnu.org/licenses/agpl-3.0.html">GNU web site</a>. This license is chosen in order to ensure compatibility with the software libraries used by BeamerPresenter, including Qt, MuPDF, and poppler.</p>
