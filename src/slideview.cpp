@@ -74,6 +74,8 @@ void SlideView::resizeEvent(QResizeEvent *event)
 
 void SlideView::keyPressEvent(QKeyEvent *event)
 {
+    // Check if currenly keys should be interpreted by a graphics text item
+    // or by master (as a keyboard shortcut).
     if (static_cast<const SlideScene*>(scene())->isTextEditing())
     {
         switch (event->key())
@@ -148,54 +150,62 @@ void SlideView::showMagnifier(QPainter *painter, const PointingTool *tool)
     painter->setCompositionMode(QPainter::CompositionMode_SourceOver);
     painter->setRenderHints(QPainter::SmoothPixmapTransform);
     painter->setPen(tool->color());
+    // Check whether an enlarged page is needed and not "in preparation" yet.
     if (enlargedPixmap.isNull() && waitingForPage == INT_MAX)
     {
         const int page = static_cast<SlideScene*>(scene())->getPage();
         const QSizeF &pageSize = scene()->sceneRect().size();
-        debug_msg(DebugDrawing) << "Request enlarged page" << page << this;
-        waitingForPage = -page- 1;
-        emit requestPage(page,
-                            tool->scale() * (
-                                (pageSize.width() * height() > pageSize.height() * width()) ?
-                                width() / pageSize.width() :
-                                height() / pageSize.height()
-                            )
-                        );
+        if (!pageSize.isNull())
+        {
+            debug_msg(DebugDrawing) << "Request enlarged page" << page << pageSize << this;
+            waitingForPage = -page - 1;
+            emit requestPage(page,
+                                tool->scale() * (
+                                    (pageSize.width() * height() > pageSize.height() * width()) ?
+                                    width() / pageSize.width() :
+                                    height() / pageSize.height()
+                                )
+                            );
+        }
     }
+    // Draw magnifier(s) at all positions of tool.
     for (const auto &pos : tool->pos())
     {
+        // calculate target rect: size of the magnifier
         const QRectF scene_rect(pos.x()-tool->size(), pos.y()-tool->size(), 2*tool->size(), 2*tool->size());
+        // clip painter to target circle in target rect.
         QPainterPath path;
         path.addEllipse(scene_rect);
+        // Only procceed if path would be visible.
+        if (!path.intersects(sceneRect()))
+            continue;
         painter->setClipPath(path);
+        // fill magnifier with background color
         painter->fillPath(path, QBrush(palette().base()));
-        if (path.intersects(sceneRect()))
+        // calculate source rect: area which should be magnified
+        const qreal scale = (enlargedPixmap.isNull() ? currentPixmap.width() : enlargedPixmap.width()) / sceneRect().width();
+        QRectF pixmap_rect(
+                    pos.x()-sceneRect().left()-tool->size()/tool->scale(),
+                    pos.y()-tool->size()/tool->scale(),
+                    tool->size()*2/tool->scale(),
+                    tool->size()*2/tool->scale()
+                    );
+        pixmap_rect.setRect(scale*pixmap_rect.x(), scale*pixmap_rect.y(), scale*pixmap_rect.width(), scale*pixmap_rect.height());
+        // draw source in target
+        if (enlargedPixmap.isNull())
+            painter->drawPixmap(scene_rect, currentPixmap, pixmap_rect);
+        else
+            painter->drawPixmap(scene_rect, enlargedPixmap, pixmap_rect);
+        // Draw paths. But don't do that while something is being drawn.
+        // That could lead to a segmentation fault (for some reason...).
+        if (!static_cast<SlideScene*>(scene())->isDrawing())
         {
-            if (enlargedPixmap.isNull())
-            {
-                const qreal scale = currentPixmap.width() / sceneRect().width();
-                QRectF pixmap_rect(pos.x()-tool->size()/tool->scale(), pos.y()-tool->size()/tool->scale(), tool->size()*2/tool->scale(), tool->size()*2/tool->scale());
-                pixmap_rect.setRect(scale*pixmap_rect.x(), scale*pixmap_rect.y(), scale*pixmap_rect.width(), scale*pixmap_rect.height());
-                painter->drawPixmap(scene_rect, currentPixmap, pixmap_rect);
-            }
-            else
-            {
-                const qreal scale = enlargedPixmap.width() / sceneRect().width();
-                QRectF pixmap_rect(pos.x()-tool->size()/tool->scale(), pos.y()-tool->size()/tool->scale(), tool->size()*2/tool->scale(), tool->size()*2/tool->scale());
-                pixmap_rect.setRect(scale*pixmap_rect.x(), scale*pixmap_rect.y(), scale*pixmap_rect.width(), scale*pixmap_rect.height());
-                painter->drawPixmap(scene_rect, enlargedPixmap, pixmap_rect);
-            }
-            // Draw paths. But don't do that while something is being drawn.
-            // That could lead to a segmentation fault.
-            if (!static_cast<SlideScene*>(scene())->isDrawing())
-            {
-                painter->save();
-                //painter->setTransform(QTransform::fromScale(tool->scale(),tool->scale()).translate(-tool->pos().x()*(1-1/tool->scale()), -tool->pos().y()*(1-1/tool->scale())), true);
-                painter->setTransform(QTransform::fromTranslate(pos.x()*(1-tool->scale()), pos.y()*(1-tool->scale())).scale(tool->scale(),tool->scale()), true);
-                for (const auto item : static_cast<const QList<QGraphicsItem*>>(items()))
-                    item->paint(painter, NULL, this);
-                painter->restore();
-            }
+            painter->save();
+            //painter->setTransform(QTransform::fromScale(tool->scale(),tool->scale()).translate(-tool->pos().x()*(1-1/tool->scale()), -tool->pos().y()*(1-1/tool->scale())), true);
+            painter->setTransform(QTransform::fromTranslate(pos.x()*(1-tool->scale()), pos.y()*(1-tool->scale())).scale(tool->scale(),tool->scale()), true);
+            for (const auto item : static_cast<const QList<QGraphicsItem*>>(items()))
+                item->paint(painter, NULL, this);
+            painter->restore();
         }
         painter->drawEllipse(pos, tool->size(), tool->size());
     }
@@ -206,6 +216,7 @@ void SlideView::drawForeground(QPainter *painter, const QRectF &rect)
     painter->setRenderHint(QPainter::Antialiasing);
     for (const auto basic_tool : preferences()->current_tools)
     {
+        // Only pointing tools need painting in foreground (might change in the future).
         if (!(basic_tool->tool() & AnyPointingTool))
             continue;
         const PointingTool *tool = static_cast<PointingTool*>(basic_tool);
