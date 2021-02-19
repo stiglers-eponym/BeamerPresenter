@@ -33,6 +33,8 @@ void SlideView::pageChanged(const int page, SlideScene *scene)
     else
         // page is too high, determine resolution by y direction
         resolution = height() / pageSize.height();
+    if (resolution < 1e-9 || resolution > 1e9)
+        return;
     resetTransform();
     scale(resolution, resolution);
     waitingForPage = page;
@@ -67,6 +69,8 @@ void SlideView::pageReady(const QPixmap pixmap, const int page)
 
 void SlideView::resizeEvent(QResizeEvent *event)
 {
+    if (event->size().isNull())
+        return;
     emit resizeCache(event->size());
     SlideScene *slidescene = static_cast<SlideScene*>(scene());
     pageChanged(slidescene->getPage(), slidescene);

@@ -1,7 +1,6 @@
 #ifndef MASTER_H
 #define MASTER_H
 
-#include <QTabWidget>
 #include <QDebug>
 #include <QJsonObject>
 #include <QJsonArray>
@@ -13,6 +12,7 @@
 #include "src/names.h"
 #include "src/gui/flexlayout.h"
 #include "src/gui/clockwidget.h"
+#include "src/gui/tabwidget.h"
 #include "src/gui/stackedwidget.h"
 #include "src/gui/containerwidget.h"
 #include "src/gui/slidenumberwidget.h"

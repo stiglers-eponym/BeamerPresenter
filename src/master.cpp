@@ -150,8 +150,7 @@ QWidget* Master::createWidget(QJsonObject &object, QWidget *parent)
     }
     case TabbedWidgetType:
     {
-        QTabWidget *tabwidget = new QTabWidget(parent);
-        tabwidget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+        TabWidget *tabwidget = new TabWidget(parent);
         tabwidget->setTabPosition(string_to_tab_widget_orientation.value(object.value("orientation").toString()));
 
         const QJsonArray array = object.value("children").toArray();

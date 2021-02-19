@@ -38,6 +38,9 @@ public:
     bool hasHeightForWidth() const override
     {return true;}
 
+    QSize sizeHint() const noexcept override
+    {return {100, 200};}
+
 public slots:
     /// Show event: generate outline if necessary. Expand to current position.
     void showEvent(QShowEvent*) override

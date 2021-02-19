@@ -62,10 +62,12 @@ void FlexLayout::setGeometry(const QRect &rect)
     {
         int width = 0;
         qreal totalwidth = 0.;
+        QWidget *widget;
         for (int i=0; i<items.size(); i++)
         {
-            hint = items[i]->widget()->sizeHint();
-            if (items[i]->widget()->hasHeightForWidth())
+            widget = items[i]->widget();
+            hint = widget->sizeHint();
+            if (widget->hasHeightForWidth())
             {
                 aspects[i] = std::min(std::max(hint.width() / qreal(hint.height()), .1), 10.);
                 totalwidth += aspects[i];

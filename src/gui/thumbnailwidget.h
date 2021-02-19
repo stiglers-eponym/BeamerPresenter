@@ -46,6 +46,9 @@ public:
     bool hasHeightForWidth() const noexcept override
     {return true;}
 
+    QSize sizeHint() const noexcept override
+    {return {100, 200};}
+
 public slots:
     /// Show event: generate thumbnails if necessary.
     void showEvent(QShowEvent*) override

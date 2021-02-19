@@ -2,13 +2,16 @@
 
 const QPixmap MuPdfRenderer::renderPixmap(const int page, const qreal resolution) const
 {
+    QPixmap qpixmap;
+    if (resolution < 1e-9 || resolution > 1e9 || page < 0)
+        return qpixmap;
+
     // Let the main thread prepare everything.
     fz_context *ctx = NULL;
     fz_rect bbox;
     fz_display_list *list = NULL;
     doc->prepareRendering(&ctx, &bbox, &list, page, resolution);
 
-    QPixmap qpixmap;
     // If page is not valid (too large), the NULLs will be unchanged.
     if (ctx == NULL || list == NULL)
         return qpixmap;
@@ -147,7 +150,7 @@ const QPixmap MuPdfRenderer::renderPixmap(const int page, const qreal resolution
 
 const PngPixmap * MuPdfRenderer::renderPng(const int page, const qreal resolution) const
 {
-    if (resolution <= 0 || page < 0)
+    if (resolution < 1e-9 || resolution > 1e9 || page < 0)
         return NULL;
 
     // Let the main thread prepare everything.
