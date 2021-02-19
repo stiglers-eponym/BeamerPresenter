@@ -68,6 +68,8 @@ void SlideView::pageReady(const QPixmap pixmap, const int page)
 void SlideView::resizeEvent(QResizeEvent *event)
 {
     emit resizeCache(event->size());
+    SlideScene *slidescene = static_cast<SlideScene*>(scene());
+    pageChanged(slidescene->getPage(), slidescene);
 }
 
 void SlideView::keyPressEvent(QKeyEvent *event)

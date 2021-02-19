@@ -96,6 +96,7 @@ enum Action
     ResetTimePassed,
     // Other actions
     ReloadFiles,
+    FullScreen,
     Quit,
 
     // Combinations with other types

@@ -82,6 +82,8 @@ static const QMap<QString, Action> string_to_action_map
     {"scroll up", ScrollUp},
     {"scroll down", ScrollDown},
     {"scroll normal", ScrollNormal},
+    {"full screen", FullScreen},
+    {"fullscreen", FullScreen},
     {"quit", Quit},
 };
 

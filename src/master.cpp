@@ -535,9 +535,18 @@ void Master::handleAction(const Action action)
     case LastPage:
         navigateToPage(preferences()->number_of_pages - 1);
         break;
-    case Quit:
-        for (const auto window : qAsConst(windows))
-            window->close();
+    case FullScreen:
+        for (const auto win : qAsConst(windows))
+        {
+            if (win->isActiveWindow())
+            {
+                if (win->isFullScreen())
+                    win->showNormal();
+                else
+                    win->showFullScreen();
+                break;
+            }
+        }
         break;
     case SaveDrawings:
     {
@@ -602,6 +611,10 @@ void Master::handleAction(const Action action)
         }
         break;
     }
+    case Quit:
+        for (const auto window : qAsConst(windows))
+            window->close();
+        break;
     default:
         emit sendAction(action);
     }
