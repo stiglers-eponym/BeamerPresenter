@@ -268,6 +268,15 @@ void SlideScene::receiveAction(const Action action)
     case ScrollNormal:
         setSceneRect({{0,0}, sceneRect().size()});
         break;
+    case PauseMedia:
+        pauseMedia();
+        break;
+    case PlayMedia:
+        playMedia();
+        break;
+    case PlayPauseMedia:
+        playPauseMedia();
+        break;
     default:
         break;
     }
@@ -689,4 +698,35 @@ void SlideScene::createSliders() const
                 static_cast<SlideView*>(view)->addMediaSlider(item);
         }
     }
+}
+
+void SlideScene::playMedia() const
+{
+    for (auto &item : videoItems)
+    {
+        if (item.annotation.page == (page &~NotFullPage))
+            item.player->play();
+    }
+}
+
+void SlideScene::pauseMedia() const
+{
+    for (auto &item : videoItems)
+    {
+        if (item.annotation.page == (page &~NotFullPage))
+            item.player->pause();
+    }
+}
+
+void SlideScene::playPauseMedia() const
+{
+    for (auto &item : videoItems)
+    {
+        if (item.annotation.page == (page &~NotFullPage) && item.player->state() == QMediaPlayer::PlayingState)
+        {
+            pauseMedia();
+            return;
+        }
+    }
+    playMedia();
 }

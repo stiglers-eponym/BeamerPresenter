@@ -81,11 +81,14 @@ Shift slide number relative to the main presentation slide. E.g. shift=1 creates
 .BI "page part " "left/right"
 side of the page to be shown if the pages are split into a left and a right side showing presentation and notes on the same page.
 .TP
+.BI "media constrols " "true/false"
+show/hide a slider to navigate inside a video
+.TP
 .BI "transitions " "true/false"
 enable/disable slide transitions (not implemented yet!)
 .TP
-.BI "multimedia " "true/false"
-enable/disable multimedia (not implemented yet!)
+.BI "show tools " "true/false"
+enable/disable pointing tools.
 .TP
 .BI "cache hash " "integer"
 integer to identify slide widgets with the same geometry, which should use the same cached slides. Set the same \[dq]cache hash\[dq] for multiple slides to make them use the same cache.
@@ -196,6 +199,9 @@ start or stop timer in timer widget.
 .TP
 .B reset timer
 reset the timer (passed time) in timer widget.
+.TP
+.BR play / pause / "stop media"
+start, pause or stop playing multimedia content.
 .TP
 .B fullscreen
 toggle full screen view for currently active window.

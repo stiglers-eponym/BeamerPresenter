@@ -15,6 +15,26 @@ class SlideView : public QGraphicsView
 {
     Q_OBJECT
 
+public:
+    /// Flags defining what is shown. Most of these are not implemented yet,
+    /// some may never get implemented.
+    enum ViewFlag
+    {
+        LoadVideos = 1 << 0,
+        AutoplayVideos = 1 << 1,
+        LoadSounds = 1 << 2,
+        AutoplaySounds = 1 << 3,
+        AutoplayAnything = AutoplayVideos | AutoplaySounds,
+        LoadAnyMedia = 0xf,
+        MediaControls = 1 << 4,
+        ShowAnimations = 1 << 5,
+        ShowTransitions = 1 << 6,
+        ShowDrawings = 1 << 7,
+        ShowPointingTools = 1 << 8,
+        ShowAll = 0xffff,
+    };
+
+private:
     /// Pixmap representing the current slide.
     QPixmap currentPixmap;
     /// Enlarged pixmap of current slide (for magnifier).
@@ -26,22 +46,8 @@ class SlideView : public QGraphicsView
     /// (-page-1) if waiting for enlarged page.
     int waitingForPage = INT_MAX;
 
-    enum ViewFlags
-    {
-        LoadVideos = 1 << 0,
-        AutoplayVideos = 1 << 1,
-        LoadSounds = 1 << 2,
-        AutoplaySounds = 1 << 3,
-        LoadAnyMedia = 0xf,
-        MediaControls = 1 << 4,
-        ShowAnimations = 1 << 5,
-        ShowTransitions = 1 << 6,
-        ShowDrawings = 1 << 7,
-        ShowPointingTools = 1 << 8,
-        ShowAll = 0xffff,
-    };
     /// Show slide transitions, multimedia, etc. (all not implemented yet).
-    int flags = ShowAll;
+    int flags = ShowAll ^ MediaControls;
 
 public:
     /// Constructor: initialize and connect a lot.
@@ -63,6 +69,12 @@ public:
     /// Convert a position in widget coordinate (pixels) to scene coordinates
     /// (points).
     const QPointF mapToScene(const QPointF& pos) const;
+
+    void setFlag(const int flag) noexcept
+    {flags |= flag;}
+
+    void unsetFlag(const int flag) noexcept
+    {flags &= ~flag;}
 
 protected:
     /// Draw the slide to background (with correct resolution and from cache).

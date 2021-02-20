@@ -174,6 +174,13 @@ public slots:
     /// Tell views to create sliders.
     void createSliders() const;
 
+    /// Play all media on current slide.
+    void playMedia() const;
+    /// Pause all media on current slide.
+    void pauseMedia() const;
+    /// If anything is playing, pause everything. Otherwise play everything.
+    void playPauseMedia() const;
+
 signals:
     /// Send navigation event to views.
     /// Here page is already adapted to shift.

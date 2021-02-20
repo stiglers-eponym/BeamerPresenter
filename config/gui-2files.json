@@ -12,8 +12,7 @@
             "file" : "notes",
             "page part" : "right",
             "shift" : 0,
-            "transitions" : false,
-            "multimedia" : true,
+            "media controls" : true,
             "threads" : 2,
             "color" : "black"
           },
@@ -55,7 +54,7 @@
             "shift" : 0,
             "overlays" : "last",
             "transitions" : false,
-            "multimedia" : false,
+            "media" : false,
             "threads" : 0
           },
           {
@@ -65,7 +64,7 @@
             "shift" : 1,
             "overlays" : "last",
             "transitions" : false,
-            "multimedia" : false,
+            "media" : false,
             "threads" : 0
           },
           {
@@ -97,8 +96,6 @@
     "file" : "presentation",
     "page part" : "left",
     "shift" : 0,
-    "transitions" : true,
-    "multimedia" : true,
     "threads" : 3,
     "master" : true,
     "color" : "black"

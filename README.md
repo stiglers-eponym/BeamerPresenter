@@ -21,9 +21,9 @@ This software uses the Qt framework and the PDF engines MuPDF and/or poppler.
 * clock and timer for the presentation (some features of 0.1.x not yet available in 0.2.x)
 * simple navigation using document outline, thumbnail slides, or navigation by page label
 * save/load drawings in Xournal format (compatibility with Xournal improved in 0.2.x)
+* show videos on slides (improved integration with other features in 0.2.x)
 
 ### Currently NOT supported in version 0.2.x
-* multimedia content on slides (only 0.1.x)
 * slide transitions (only 0.1.x)
 * animations (only 0.1.x)
 
@@ -135,6 +135,7 @@ The configuration files of version 0.2.x and 0.1.x are incompatible.
 * full per-slide history of drawings (with limitation of number of history steps)
 * select per-slide or per-overlay drawings
 * save and load drawings to xopp-like xml format (rather experimental)
+* videos
 * widgets:
     * slide
     * clock
@@ -152,10 +153,9 @@ The configuration files of version 0.2.x and 0.1.x are incompatible.
 * cache slides even when size of slides varies (partially implemented)
 * cache only required slides in previews showing specific overlays
 * fix layout, avoid recalculating full layout when clock label changes text
-* immediately update slides to fit window size (currently this is only done when changing the slide or manually updating)
 * animations and automatic slide change
 * slide transitions
-* multimedia
+* sounds
 * option to insert extra slides or extra space below slide for drawing (partially implemented)
 * improve text input tool
 * improve widgets:

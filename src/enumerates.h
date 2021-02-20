@@ -94,6 +94,10 @@ enum Action
     StopTimer,
     StartStopTimer,
     ResetTimePassed,
+    // Media
+    PlayMedia,
+    PauseMedia,
+    PlayPauseMedia,
     // Other actions
     ReloadFiles,
     FullScreen,

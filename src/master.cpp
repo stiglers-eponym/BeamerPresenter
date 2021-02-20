@@ -353,6 +353,16 @@ QWidget* Master::createWidget(QJsonObject &object, QWidget *parent)
 
         // Create slide view.
         SlideView *slide = new SlideView(scene, pixcache, parent);
+        if (!object.value("transitions").toBool(true))
+            slide->unsetFlag(SlideView::ShowTransitions);
+        if (!object.value("autoplay").toBool(true))
+            slide->unsetFlag(SlideView::AutoplayAnything);
+        if (!object.value("media").toBool(true))
+            slide->unsetFlag(SlideView::LoadAnyMedia);
+        if (object.value("media controls").toBool(false))
+            slide->setFlag(SlideView::MediaControls);
+        if (!object.value("show tools").toBool(true))
+            slide->unsetFlag(SlideView::ShowPointingTools);
         connect(slide, &SlideView::sendKeyEvent, this, &Master::receiveKeyEvent);
         connect(scene, &SlideScene::navigationToViews, slide, &SlideView::pageChanged);
         connect(scene, &SlideScene::clearViews, slide, &SlideView::clearBackground);
