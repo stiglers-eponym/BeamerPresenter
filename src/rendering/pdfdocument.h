@@ -100,6 +100,7 @@ struct SlideTransition {
 /// Unified type of PDF media annotations for all PDF engines.
 struct MediaAnnotation {
     QUrl file;
+    int page;
     enum Type
     {
         VideoAnnotation,
@@ -117,7 +118,7 @@ struct MediaAnnotation {
     QRectF rect;
 
     bool operator==(const MediaAnnotation &other) const noexcept
-    {return file == other.file && mode == other.mode && rect == other.rect;}
+    {return page == other.page && file == other.file && mode == other.mode && rect == other.rect;}
 };
 
 /// Abstract class for handling PDF documents.

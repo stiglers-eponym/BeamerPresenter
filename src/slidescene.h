@@ -7,6 +7,7 @@
 #include <QGraphicsSceneMouseEvent>
 #include <QTabletEvent>
 #include <QMediaPlayer>
+#include <QMediaPlaylist>
 #include "src/enumerates.h"
 #include "src/rendering/pdfdocument.h"
 #include "src/drawing/fullgraphicspath.h"
@@ -26,6 +27,7 @@ class SlideScene : public QGraphicsScene
 {
     Q_OBJECT
 
+public:
     struct VideoItem
     {
         MediaAnnotation annotation;
@@ -33,6 +35,7 @@ class SlideScene : public QGraphicsScene
         QMediaPlayer *player;
     };
 
+private:
     /// Path which is currently being drawn.
     /// NULL if currenty no path is drawn.
     AbstractGraphicsPath* currentPath {NULL};
@@ -64,21 +67,6 @@ class SlideScene : public QGraphicsScene
 
     /// Page part shown in this scene.
     const PagePart page_part;
-
-    enum SlideFlags
-    {
-        LoadVideos = 1 << 0,
-        AutoplayVideos = 1 << 1,
-        LoadSounds = 1 << 2,
-        AutoplaySounds = 1 << 3,
-        LoadAnyMedia = 0xf,
-        ShowAnimations = 1 << 4,
-        ShowTransitions = 1 << 5,
-        ShowDrawings = 1 << 6,
-        ShowAll = 0xffff,
-    };
-    /// Show slide transitions, multimedia, etc. (all not implemented yet).
-    int flags = ShowAll;
 
     /// Start slide transition. Experimental!
     void startTransition(const int newpage, const SlideTransition &transition);
@@ -179,7 +167,12 @@ public slots:
 
     /// Load media for given page to cache.
     void cacheMedia(int page);
+
+    /// Load media for next page to cache.
     void cacheMediaNextPage();
+
+    /// Tell views to create sliders.
+    void createSliders() const;
 
 signals:
     /// Send navigation event to views.
@@ -193,9 +186,9 @@ signals:
     /// Send new path to PdfMaster.
     void sendNewPath(int page, QGraphicsItem *item) const;
 
-    void showMagnifier(QPainter *painter, const PointingTool *tool);
-
     void requestPathContainer(PathContainer **container, int page);
 };
+
+Q_DECLARE_METATYPE(SlideScene::VideoItem);
 
 #endif // SLIDESCENE_H

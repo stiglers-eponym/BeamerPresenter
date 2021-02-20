@@ -304,7 +304,7 @@ void SlideScene::prepareNavigationEvent(const int newpage)
 
 void SlideScene::navigationEvent(const int newpage, SlideScene *newscene)
 {
-    if ((flags & ShowTransitions) && (!newscene || newscene == this))
+    if (!newscene || newscene == this)
     {
         const SlideTransition transition = master->transition(newpage);
         if (transition.type)
@@ -322,18 +322,14 @@ void SlideScene::navigationEvent(const int newpage, SlideScene *newscene)
         removeItem(list.takeLast());
     if (!newscene || newscene == this)
     {
-        if (flags & LoadAnyMedia)
-            loadMedia(page);
-        if (flags & ShowDrawings)
+        loadMedia(page);
+        PathContainer *paths;
+        emit requestPathContainer(&paths, page | page_part);
+        if (paths)
         {
-            PathContainer *paths;
-            emit requestPathContainer(&paths, page | page_part);
-            if (paths)
-            {
-                const auto end = paths->cend();
-                for (auto it = paths->cbegin(); it != end; ++it)
-                    addItem(*it);
-            }
+            const auto end = paths->cend();
+            for (auto it = paths->cbegin(); it != end; ++it)
+                addItem(*it);
         }
     }
     invalidate();
@@ -356,11 +352,7 @@ void SlideScene::loadMedia(const int page)
             item.item->setPos(item.annotation.rect.topLeft());
             item.item->show();
             addItem(item.item);
-            if (flags & AutoplayVideos)
-            {
-                debug_msg(DebugMedia) << "play video" << item.player->position() << item.player->state();
-                item.player->play();
-            }
+            item.player->play();
             break;
         }
         case MediaAnnotation::AudioAnnotation:
@@ -416,6 +408,7 @@ SlideScene::VideoItem &SlideScene::getVideoItem(const MediaAnnotation &annotatio
     }
     debug_msg(DebugMedia) << "Loading new video" << annotation.file << annotation.rect;
     QMediaPlayer *player = new QMediaPlayer(this);
+    QMediaPlaylist *playlist = new QMediaPlaylist(player);
     QGraphicsVideoItem *item = new QGraphicsVideoItem;
     connect(item, &QGraphicsVideoItem::destroyed, player, &QMediaPlayer::deleteLater);
     // Ugly fix to cache videos: show invisible video pixel
@@ -424,7 +417,24 @@ SlideScene::VideoItem &SlideScene::getVideoItem(const MediaAnnotation &annotatio
     addItem(item);
     item->show();
     player->setVideoOutput(item);
-    player->setMedia(annotation.file);
+    playlist->addMedia(annotation.file);
+    switch (annotation.mode)
+    {
+    case MediaAnnotation::Repeat:
+        playlist->setPlaybackMode(QMediaPlaylist::CurrentItemInLoop);
+        break;
+    case MediaAnnotation::Palindrome:
+        qWarning() << "Palindrome video: not implemented (yet)";
+        playlist->setPlaybackMode(QMediaPlaylist::CurrentItemInLoop);
+        break;
+    case MediaAnnotation::Once:
+    case MediaAnnotation::Open:
+        playlist->setPlaybackMode(QMediaPlaylist::CurrentItemOnce);
+        break;
+    default:
+        break;
+    }
+    player->setPlaylist(playlist);
     videoItems.append({annotation, item, player});
     return videoItems.last();
 }
@@ -653,7 +663,7 @@ void SlideScene::noToolClicked(const QPointF &pos, const QPointF &startpos)
     // Try to handle multimedia annotation.
     for (auto &item : videoItems)
     {
-        if (item.item && item.item->isVisible() && item.item->boundingRect().contains(pos))
+        if (item.annotation.page == (page &~NotFullPage) && item.item->boundingRect().contains(pos))
         {
             if (startpos.isNull() || item.annotation.rect.contains(startpos))
             {
@@ -667,4 +677,16 @@ void SlideScene::noToolClicked(const QPointF &pos, const QPointF &startpos)
         }
     }
     master->resolveLink(page, pos, startpos);
+}
+
+void SlideScene::createSliders() const
+{
+    for (auto &item : videoItems)
+    {
+        if (item.annotation.page == (page &~NotFullPage))
+        {
+            for (const auto view : static_cast<const QList<QGraphicsView*>>(views()))
+                static_cast<SlideView*>(view)->addMediaSlider(item);
+        }
+    }
 }

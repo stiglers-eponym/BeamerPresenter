@@ -1,13 +1,13 @@
 #ifndef SLIDE_H
 #define SLIDE_H
 
-#include <QDebug>
+#include <QSlider>
 #include <QGraphicsView>
 #include <QResizeEvent>
 #include "src/drawing/pointingtool.h"
-
-class PixCache;
-class SlideScene;
+#include "src/rendering/pixcache.h"
+#include "src/preferences.h"
+#include "src/slidescene.h"
 
 /// Slide shown on the screen: a view of SlideScene.
 /// This also draws the background (PDF page) of the slide.
@@ -20,13 +20,34 @@ class SlideView : public QGraphicsView
     /// Enlarged pixmap of current slide (for magnifier).
     QPixmap enlargedPixmap;
 
+    QList<QSlider*> sliders;
+
     /// Currently waiting for page: INT_MAX if not waiting for any page,
     /// (-page-1) if waiting for enlarged page.
     int waitingForPage = INT_MAX;
 
+    enum ViewFlags
+    {
+        LoadVideos = 1 << 0,
+        AutoplayVideos = 1 << 1,
+        LoadSounds = 1 << 2,
+        AutoplaySounds = 1 << 3,
+        LoadAnyMedia = 0xf,
+        MediaControls = 1 << 4,
+        ShowAnimations = 1 << 5,
+        ShowTransitions = 1 << 6,
+        ShowDrawings = 1 << 7,
+        ShowPointingTools = 1 << 8,
+        ShowAll = 0xffff,
+    };
+    /// Show slide transitions, multimedia, etc. (all not implemented yet).
+    int flags = ShowAll;
+
 public:
     /// Constructor: initialize and connect a lot.
     explicit SlideView(SlideScene *scene, PixCache *cache = NULL, QWidget *parent = NULL);
+
+    ~SlideView() noexcept;
 
     /// Preferred height of the layout depends on its width.
     bool hasHeightForWidth() const noexcept override
@@ -75,6 +96,8 @@ public slots:
 
     /// draw pointing tools in foreground.
     void drawForeground(QPainter *painter, const QRectF &rect) override;
+
+    void addMediaSlider(const SlideScene::VideoItem &video);
 
 signals:
     /// Inform cache that page is required.

@@ -200,6 +200,8 @@ void PdfMaster::distributeNavigationEvents(const int page) const
             }
         }
     }
+    for (const auto scene : qAsConst(scenes))
+        scene->createSliders();
 }
 
 

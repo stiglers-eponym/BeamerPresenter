@@ -599,7 +599,7 @@ const PdfLink MuPdfDocument::linkAt(const int page, const QPointF &position) con
 
 const MediaAnnotation MuPdfDocument::annotationAt(const int page, const QPointF &position) const
 {
-    MediaAnnotation result = {QUrl(), MediaAnnotation::InvalidAnnotation, MediaAnnotation::Invalid, QRectF()};
+    MediaAnnotation result = {QUrl(), page, MediaAnnotation::InvalidAnnotation, MediaAnnotation::Invalid, QRectF()};
     if (page < 0 || page >= number_of_pages || !ctx || !doc)
         return result;
 
@@ -716,6 +716,7 @@ QList<MediaAnnotation> *MuPdfDocument::annotations(const int page) const
                     list = new QList<MediaAnnotation>();
                 list->append({
                             QUrl::fromLocalFile(fileinfo.absoluteFilePath()),
+                            page,
                             pdf_annot_type(ctx, annot) == PDF_ANNOT_MOVIE ? MediaAnnotation::VideoAnnotation : MediaAnnotation::AudioAnnotation,
                             MediaAnnotation::Once,
                             QRectF(bound.x0, bound.y0, bound.x1-bound.x0, bound.y1-bound.y0)

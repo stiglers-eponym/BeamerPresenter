@@ -1,7 +1,4 @@
 #include "src/slideview.h"
-#include "src/rendering/pixcache.h"
-#include "src/slidescene.h"
-#include "src/preferences.h"
 #include "src/pdfmaster.h"
 
 SlideView::SlideView(SlideScene *scene, PixCache *cache, QWidget *parent) :
@@ -22,8 +19,16 @@ SlideView::SlideView(SlideScene *scene, PixCache *cache, QWidget *parent) :
     connect(this, &SlideView::resizeCache, cache, &PixCache::updateFrame, Qt::QueuedConnection);
 }
 
+SlideView::~SlideView() noexcept
+{
+    qDeleteAll(sliders);
+    sliders.clear();
+}
+
 void SlideView::pageChanged(const int page, SlideScene *scene)
 {
+    qDeleteAll(sliders);
+    sliders.clear();
     setScene(scene);
     const QSizeF &pageSize = scene->sceneRect().size();
     qreal resolution;
@@ -125,10 +130,14 @@ bool SlideView::event(QEvent *event)
     //    break;
     case QEvent::TabletPress:
     {
-        auto tabletevent = static_cast<QTabletEvent*>(event);
-        static_cast<SlideScene*>(scene())->tabletPress(mapToScene(tabletevent->posF()), tabletevent);
-        event->accept();
-        return true;
+        if (flags & ShowDrawings)
+        {
+            auto tabletevent = static_cast<QTabletEvent*>(event);
+            static_cast<SlideScene*>(scene())->tabletPress(mapToScene(tabletevent->posF()), tabletevent);
+            event->accept();
+            return true;
+        }
+        return false;
     }
     case QEvent::TabletRelease:
     {
@@ -139,10 +148,14 @@ bool SlideView::event(QEvent *event)
     }
     case QEvent::TabletMove:
     {
-        auto tabletevent = static_cast<QTabletEvent*>(event);
-        static_cast<SlideScene*>(scene())->tabletMove(mapToScene(tabletevent->posF()), tabletevent);
-        event->accept();
-        return true;
+        if (flags & ShowDrawings)
+        {
+            auto tabletevent = static_cast<QTabletEvent*>(event);
+            static_cast<SlideScene*>(scene())->tabletMove(mapToScene(tabletevent->posF()), tabletevent);
+            event->accept();
+            return true;
+        }
+        return false;
     }
     default:
         return QGraphicsView::event(event);
@@ -217,6 +230,8 @@ void SlideView::showMagnifier(QPainter *painter, const PointingTool *tool)
 
 void SlideView::drawForeground(QPainter *painter, const QRectF &rect)
 {
+    if (!(flags & ShowPointingTools))
+        return;
     painter->setRenderHint(QPainter::Antialiasing);
     for (const auto basic_tool : preferences()->current_tools)
     {
@@ -267,4 +282,22 @@ void SlideView::drawForeground(QPainter *painter, const QRectF &rect)
             break;
         }
     }
+}
+
+void SlideView::addMediaSlider(const SlideScene::VideoItem &video)
+{
+    if (!(flags & MediaControls))
+        return;
+    QSlider *slider = new QSlider(Qt::Horizontal, this);
+    sliders.append(slider);
+    const QPoint left = mapFromScene(video.annotation.rect.bottomLeft());
+    const QPoint right = mapFromScene(video.annotation.rect.bottomRight());
+    slider->setGeometry(left.x(), right.y(), right.x() - left.x(), 20);
+    slider->setMaximum(video.player->duration());
+    connect(slider, &QSlider::sliderMoved, video.player, &QMediaPlayer::setPosition);
+    connect(video.player, &QMediaPlayer::positionChanged, slider, &QSlider::setValue);
+    QPalette palette;
+    palette.setColor(QPalette::Base, QColor(0,0,0,0));
+    slider->setPalette(palette);
+    slider->show();
 }
