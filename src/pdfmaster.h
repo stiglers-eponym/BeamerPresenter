@@ -39,7 +39,7 @@ private:
     QMap<int, PathContainer*> paths;
 
     // TODO: multimedia, slide transitions
-    QMap<int, QList<VideoAnnotation>> videoAnnotations;
+    QMap<int, QList<MediaAnnotation>> mediaAnnotations;
 
 
 public:

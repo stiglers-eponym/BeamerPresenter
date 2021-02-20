@@ -95,10 +95,10 @@ public:
     const PdfLink linkAt(const int page, const QPointF &position) const override;
 
     /// Annotation at given position (in point = inch/72)
-    virtual const VideoAnnotation annotationAt(const int page, const QPointF &position) const override;
+    virtual const MediaAnnotation annotationAt(const int page, const QPointF &position) const override;
 
     /// List all video annotations on given page. Returns NULL if list is empty.
-    virtual QList<VideoAnnotation>* annotations(const int page) const override;
+    virtual QList<MediaAnnotation>* annotations(const int page) const override;
 
     /// Slide transition when reaching the given page.
     const SlideTransition transition(const int page) const override;

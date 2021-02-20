@@ -316,6 +316,7 @@ void SlideScene::navigationEvent(const int newpage, SlideScene *newscene)
         removeItem(list.takeLast());
     if (!newscene || newscene == this)
     {
+        loadMedia(page);
         PathContainer *paths;
         emit requestPathContainer(&paths, page | page_part);
         if (paths)
@@ -326,6 +327,38 @@ void SlideScene::navigationEvent(const int newpage, SlideScene *newscene)
         }
     }
     invalidate();
+}
+
+void SlideScene::loadMedia(const int page)
+{
+    QList<MediaAnnotation> *list = master->getDocument()->annotations(page);
+    if (!list)
+        return;
+    for (const auto &annotation : qAsConst(*list))
+    {
+        switch (annotation.type)
+        {
+        case MediaAnnotation::VideoAnnotation:
+        {
+            QMediaPlayer *player = new QMediaPlayer(this);
+            QGraphicsVideoItem *item = new QGraphicsVideoItem;
+            connect(item, &QGraphicsVideoItem::destroyed, player, &QMediaPlayer::deleteLater);
+            item->setSize(annotation.rect.size());
+            item->setPos(annotation.rect.topLeft());
+            player->setVideoOutput(item);
+            addItem(item);
+            item->show();
+            player->setMedia(annotation.file);
+            player->play();
+            break;
+        }
+        case MediaAnnotation::AudioAnnotation:
+            qWarning() << "Audio annotation: not implemented yet";
+            break;
+        case MediaAnnotation::InvalidAnnotation:
+            break;
+        }
+    }
 }
 
 void SlideScene::startTransition(const int newpage, const SlideTransition &transition)

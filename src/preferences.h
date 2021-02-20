@@ -196,9 +196,9 @@ QColor rgba_to_color(const QString &string);
 // Show debug message if verbose debugging is enabled for this type
 #define debug_verbose(msg_type) if ((preferences()->log_level & (msg_type|DebugVerbose)) == (msg_type|DebugVerbose)) qDebug() << (msg_type)
 #else
-#define debug_msg(msg_type) qDebug()
-#define debug_verbose(msg_type) qDebug()
-#define warn_msg qDebug()
+#define debug_msg(msg_type) if(false) qDebug()
+#define debug_verbose(msg_type) if(false) qDebug()
+#define warn_msg qWarning()
 #endif
 
 

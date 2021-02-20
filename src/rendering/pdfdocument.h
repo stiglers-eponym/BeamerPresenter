@@ -97,9 +97,15 @@ struct SlideTransition {
     float scale = 1.;
 };
 
-/// Unified type of PDF video annotations for all PDF engines.
-struct VideoAnnotation {
+/// Unified type of PDF media annotations for all PDF engines.
+struct MediaAnnotation {
     QUrl file;
+    enum Type
+    {
+        VideoAnnotation,
+        AudioAnnotation,
+        InvalidAnnotation,
+    } type = InvalidAnnotation;
     enum Mode
     {
         Invalid = -1,
@@ -107,7 +113,7 @@ struct VideoAnnotation {
         Open,
         Palindrome,
         Repeat,
-    } mode;
+    } mode = Invalid;
     QRectF rect;
 };
 
@@ -203,11 +209,11 @@ public:
     virtual const PdfLink linkAt(const int page, const QPointF &position) const = 0;
 
     /// Annotation at given position (in point = inch/72)
-    virtual const VideoAnnotation annotationAt(const int page, const QPointF &position) const = 0;
+    virtual const MediaAnnotation annotationAt(const int page, const QPointF &position) const = 0;
 
     /// List all video annotations on given page. Returns NULL if list is
     /// empty.
-    virtual QList<VideoAnnotation>* annotations(const int page) const = 0;
+    virtual QList<MediaAnnotation>* annotations(const int page) const = 0;
 
     /// Path to PDF file.
     const QString & getPath() const {return path;}

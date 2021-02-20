@@ -258,30 +258,37 @@ const PdfLink PopplerDocument::linkAt(const int page, const QPointF &position) c
     return {NoLink, "", QRectF()};
 }
 
-const VideoAnnotation PopplerDocument::annotationAt(const int page, const QPointF &position) const
+const MediaAnnotation PopplerDocument::annotationAt(const int page, const QPointF &position) const
 {
     const QSizeF pageSize = doc->page(page)->pageSizeF();
     const QPointF relpos = {position.x()/pageSize.width(), position.y()/pageSize.height()};
-    for (const auto annotation : static_cast<const QList<Poppler::Annotation*>>(doc->page(page)->annotations({Poppler::Annotation::AMovie})))
+    for (const auto annotation : static_cast<const QList<Poppler::Annotation*>>(doc->page(page)->annotations({Poppler::Annotation::AMovie, Poppler::Annotation::ASound})))
     {
         if (annotation->boundary().contains(relpos))
         {
             Poppler::MovieObject *movie = static_cast<Poppler::MovieAnnotation*>(annotation)->movie();
-            VideoAnnotation videoAnnotation {
-                        QUrl::fromLocalFile(movie->url()),
-                        VideoAnnotation::Once,
+            QFileInfo fileinfo(movie->url());
+            if (!fileinfo.exists())
+            {
+                delete movie;
+                continue;
+            }
+            MediaAnnotation videoAnnotation {
+                        QUrl::fromLocalFile(fileinfo.absoluteFilePath()),
+                        annotation->subType() == Poppler::Annotation::AMovie ? MediaAnnotation::VideoAnnotation : MediaAnnotation::AudioAnnotation,
+                        MediaAnnotation::Once,
                         {pageSize.width()*annotation->boundary().x(), pageSize.height()*annotation->boundary().y(), pageSize.width()*annotation->boundary().width(), pageSize.height()*annotation->boundary().height()}
             };
             switch (movie->playMode())
             {
             case Poppler::MovieObject::PlayOpen:
-                videoAnnotation.mode = VideoAnnotation::Open;
+                videoAnnotation.mode = MediaAnnotation::Open;
                 break;
             case Poppler::MovieObject::PlayPalindrome:
-                videoAnnotation.mode = VideoAnnotation::Palindrome;
+                videoAnnotation.mode = MediaAnnotation::Palindrome;
                 break;
             case Poppler::MovieObject::PlayRepeat:
-                videoAnnotation.mode = VideoAnnotation::Repeat;
+                videoAnnotation.mode = MediaAnnotation::Repeat;
                 break;
             default:
                 break;
@@ -290,37 +297,42 @@ const VideoAnnotation PopplerDocument::annotationAt(const int page, const QPoint
             return videoAnnotation;
         }
     }
-    return {QUrl(), VideoAnnotation::Invalid, QRectF()};
+    return {QUrl(), MediaAnnotation::InvalidAnnotation, MediaAnnotation::Invalid, QRectF()};
 }
 
-QList<VideoAnnotation> *PopplerDocument::annotations(const int page) const
+QList<MediaAnnotation> *PopplerDocument::annotations(const int page) const
 {
-    const QList<Poppler::Annotation*> annotations = doc->page(page)->annotations({Poppler::Annotation::AMovie});
+    const QList<Poppler::Annotation*> annotations = doc->page(page)->annotations({Poppler::Annotation::AMovie, Poppler::Annotation::ASound});
     if (annotations.isEmpty())
         return NULL;
     const QSizeF pageSize = doc->page(page)->pageSizeF();
-    QList<VideoAnnotation> *list = new QList<VideoAnnotation>;
+    QList<MediaAnnotation> *list = new QList<MediaAnnotation>;
     for (const auto annotation : annotations)
     {
         Poppler::MovieObject *movie = static_cast<Poppler::MovieAnnotation*>(annotation)->movie();
-        list->append({
-                    QUrl::fromLocalFile(movie->url()),
-                    VideoAnnotation::Once,
-                    {pageSize.width()*annotation->boundary().x(), pageSize.height()*annotation->boundary().y(), pageSize.width()*annotation->boundary().width(), pageSize.height()*annotation->boundary().height()}
-        });
-        switch (movie->playMode())
+        QFileInfo fileinfo(movie->url());
+        if (fileinfo.exists())
         {
-        case Poppler::MovieObject::PlayOpen:
-            list->last().mode = VideoAnnotation::Open;
-            break;
-        case Poppler::MovieObject::PlayPalindrome:
-            list->last().mode = VideoAnnotation::Palindrome;
-            break;
-        case Poppler::MovieObject::PlayRepeat:
-            list->last().mode = VideoAnnotation::Repeat;
-            break;
-        default:
-            break;
+            list->append({
+                        QUrl::fromLocalFile(fileinfo.absoluteFilePath()),
+                        annotation->subType() == Poppler::Annotation::AMovie ? MediaAnnotation::VideoAnnotation : MediaAnnotation::AudioAnnotation,
+                        MediaAnnotation::Once,
+                        {pageSize.width()*annotation->boundary().x(), pageSize.height()*annotation->boundary().y(), pageSize.width()*annotation->boundary().width(), pageSize.height()*annotation->boundary().height()}
+            });
+            switch (movie->playMode())
+            {
+            case Poppler::MovieObject::PlayOpen:
+                list->last().mode = MediaAnnotation::Open;
+                break;
+            case Poppler::MovieObject::PlayPalindrome:
+                list->last().mode = MediaAnnotation::Palindrome;
+                break;
+            case Poppler::MovieObject::PlayRepeat:
+                list->last().mode = MediaAnnotation::Repeat;
+                break;
+            default:
+                break;
+            }
         }
         delete movie;
     }

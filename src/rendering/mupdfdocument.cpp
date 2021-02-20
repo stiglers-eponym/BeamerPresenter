@@ -597,9 +597,9 @@ const PdfLink MuPdfDocument::linkAt(const int page, const QPointF &position) con
     return result;
 }
 
-const VideoAnnotation MuPdfDocument::annotationAt(const int page, const QPointF &position) const
+const MediaAnnotation MuPdfDocument::annotationAt(const int page, const QPointF &position) const
 {
-    VideoAnnotation result = {QUrl(), VideoAnnotation::Invalid, QRectF()};
+    MediaAnnotation result = {QUrl(), MediaAnnotation::InvalidAnnotation, MediaAnnotation::Invalid, QRectF()};
     if (page < 0 || page >= number_of_pages || !ctx || !doc)
         return result;
 
@@ -617,16 +617,21 @@ const VideoAnnotation MuPdfDocument::annotationAt(const int page, const QPointF 
                 switch (pdf_annot_type(ctx, annot))
                 {
                 case PDF_ANNOT_MOVIE:
+                case PDF_ANNOT_SOUND:
                 {
                     debug_msg(DebugMedia) << "Movie annotation";
-                    pdf_obj *movie_obj = pdf_dict_gets(ctx, annot->obj, "Movie");
-                    if (!movie_obj)
+                    pdf_obj *media_obj = pdf_dict_gets(ctx, annot->obj, "Movie");
+                    if (!media_obj)
                     {
-                        qWarning() << "Error while reading movie annotation";
+                        qWarning() << "Error while reading media annotation";
                         break;
                     }
-                    const QString file = pdf_dict_get_text_string(ctx, movie_obj, PDF_NAME(F));
-                    result.file = QUrl::fromLocalFile(file);
+                    result.type = pdf_annot_type(ctx, annot) == PDF_ANNOT_MOVIE ? MediaAnnotation::VideoAnnotation : MediaAnnotation::AudioAnnotation;
+                    const QFileInfo fileinfo(pdf_dict_get_text_string(ctx, media_obj, PDF_NAME(F)));
+                    //pdf_drop_obj(ctx, media_obj);
+                    if (!fileinfo.exists())
+                        continue;
+                    result.file = QUrl::fromLocalFile(fileinfo.absoluteFilePath());
                     result.rect = QRectF(bound.x0, bound.y0, bound.x1-bound.x0, bound.y1-bound.y0);
 
                     pdf_obj *activation_obj = pdf_dict_get(ctx, annot->obj, PDF_NAME(A));
@@ -636,18 +641,16 @@ const VideoAnnotation MuPdfDocument::annotationAt(const int page, const QPointF 
                         if (!mode.isEmpty())
                         {
                             if (mode == "Open")
-                                result.mode = VideoAnnotation::Open;
+                                result.mode = MediaAnnotation::Open;
                             else if (mode == "Palindrome")
-                                result.mode = VideoAnnotation::Palindrome;
+                                result.mode = MediaAnnotation::Palindrome;
                             else if (mode == "Repeat")
-                                result.mode = VideoAnnotation::Repeat;
+                                result.mode = MediaAnnotation::Repeat;
                         }
+                        //pdf_drop_obj(ctx, activation_obj);
                     }
                     break;
                 }
-                case PDF_ANNOT_SOUND:
-                    debug_msg(DebugMedia) << "Sound annotation";
-                    break;
                 case PDF_ANNOT_SCREEN:
                     debug_msg(DebugMedia) << "Screen annotation";
                     break;
@@ -655,7 +658,7 @@ const VideoAnnotation MuPdfDocument::annotationAt(const int page, const QPointF 
                 debug_msg(DebugRendering) << "Annotation type:" << pdf_string_from_annot_type(ctx, pdf_annot_type(ctx, annot));
                 }
             }
-            if (result.mode != VideoAnnotation::Invalid)
+            if (result.type != MediaAnnotation::InvalidAnnotation)
                 break;
         }
     }
@@ -666,15 +669,15 @@ const VideoAnnotation MuPdfDocument::annotationAt(const int page, const QPointF 
     }
     fz_catch(ctx)
     {
-        return VideoAnnotation();
+        return result;
     }
     debug_msg(DebugMedia) << result.file << result.mode;
     return result;
 }
 
-QList<VideoAnnotation> *MuPdfDocument::annotations(const int page) const
+QList<MediaAnnotation> *MuPdfDocument::annotations(const int page) const
 {
-    QList<VideoAnnotation>* list = NULL;
+    QList<MediaAnnotation>* list = NULL;
     if (page < 0 || page >= number_of_pages || !ctx || !doc)
         return list;
     mutex->lock();
@@ -693,21 +696,28 @@ QList<VideoAnnotation> *MuPdfDocument::annotations(const int page) const
     {
         for (pdf_annot *annot = pdfpage->annots; annot != NULL; annot = annot->next)
         {
-            if (pdf_annot_type(ctx, annot) == PDF_ANNOT_MOVIE)
+            switch (pdf_annot_type(ctx, annot))
             {
-                pdf_obj *movie_obj = pdf_dict_gets(ctx, annot->obj, "Movie");
-                if (!movie_obj)
+            case PDF_ANNOT_MOVIE:
+            case PDF_ANNOT_SOUND:
+            {
+                pdf_obj *media_obj = pdf_dict_gets(ctx, annot->obj, "Movie");
+                if (!media_obj)
                 {
-                    qWarning() << "Error while reading movie annotation";
+                    qWarning() << "Error while reading media annotation";
                     break;
                 }
-                const QString file = pdf_dict_get_text_string(ctx, movie_obj, PDF_NAME(F));
+                const QFileInfo fileinfo(pdf_dict_get_text_string(ctx, media_obj, PDF_NAME(F)));
+                //pdf_drop_obj(ctx, media_obj);
+                if (!fileinfo.exists())
+                    continue;
                 fz_rect bound = pdf_bound_annot(ctx, annot);
                 if (list == NULL)
-                    list = new QList<VideoAnnotation>();
+                    list = new QList<MediaAnnotation>();
                 list->append({
-                            QUrl::fromLocalFile(file),
-                            VideoAnnotation::Once,
+                            QUrl::fromLocalFile(fileinfo.absoluteFilePath()),
+                            pdf_annot_type(ctx, annot) == PDF_ANNOT_MOVIE ? MediaAnnotation::VideoAnnotation : MediaAnnotation::AudioAnnotation,
+                            MediaAnnotation::Once,
                             QRectF(bound.x0, bound.y0, bound.x1-bound.x0, bound.y1-bound.y0)
                         });
                 pdf_obj *activation_obj = pdf_dict_get(ctx, annot->obj, PDF_NAME(A));
@@ -717,13 +727,18 @@ QList<VideoAnnotation> *MuPdfDocument::annotations(const int page) const
                     if (!mode.isEmpty())
                     {
                         if (mode == "Open")
-                            list->last().mode = VideoAnnotation::Open;
+                            list->last().mode = MediaAnnotation::Open;
                         else if (mode == "Palindrome")
-                            list->last().mode = VideoAnnotation::Palindrome;
+                            list->last().mode = MediaAnnotation::Palindrome;
                         else if (mode == "Repeat")
-                            list->last().mode = VideoAnnotation::Repeat;
+                            list->last().mode = MediaAnnotation::Repeat;
                     }
+                    //pdf_drop_obj(ctx, activation_obj);
                 }
+                break;
+            }
+            default:
+                break;
             }
         }
     }

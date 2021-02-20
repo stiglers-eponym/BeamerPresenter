@@ -3,8 +3,11 @@
 
 #include <QGraphicsScene>
 #include <QGraphicsTextItem>
+#include <QGraphicsVideoItem>
 #include <QGraphicsSceneMouseEvent>
 #include <QTabletEvent>
+#include <QMediaPlayer>
+#include <QMediaPlaylist>
 #include "src/enumerates.h"
 #include "src/rendering/pdfdocument.h"
 #include "src/drawing/fullgraphicspath.h"
@@ -127,6 +130,9 @@ public:
     /// Check if currently text is beeing edited.
     bool isTextEditing() const noexcept
     {return focusItem() && focusItem()->type() == QGraphicsTextItem::Type;}
+
+    /// Load (show) all media annotations on this slide.
+    void loadMedia(const int page);
 
 protected:
     /**
