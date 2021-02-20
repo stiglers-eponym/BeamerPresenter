@@ -187,6 +187,10 @@ void Preferences::loadSettings()
         const QStringList log_flags = settings.value("log").toStringList();
         for (const auto &flag : log_flags)
             log_level |= string_to_log_level.value(flag, NoLog);
+        bool ok;
+        const int frame_time = settings.value("frame time").toInt(&ok);
+        if (ok && frame_time > 0)
+            slide_duration_animation = frame_time;
     }
 
     // DRAWING

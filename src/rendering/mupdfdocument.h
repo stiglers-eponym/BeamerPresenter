@@ -63,6 +63,9 @@ public:
     /// Label of given page. This currently only supports numerical values.
     const QString pageLabel(const int page) const override;
 
+    /// Duration of given page in secons. Default value is -1 is interpreted as infinity.
+    qreal duration(const int page) const noexcept override;
+
     /// Label of page with given index.
     int pageIndex(const QString &page) const override;
 

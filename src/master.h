@@ -59,10 +59,14 @@ class Master : public QObject
     /// Key sequence shortcuts for focusing widgets.
     QMap<quint32, QWidget*> shortcuts;
 
+    /// Timer to tell slides that they should start caching videos for the next slide.
     QTimer *cacheVideoTimer {NULL};
 
+    /// Timer for automatic slide changes.
+    QTimer *slideDurationTimer {NULL};
+
 public:
-    /// Constructor: initializes cacheVideoTimer.
+    /// Constructor: initializes times.
     Master();
 
     /// Destructor: delete cache, scenes, documents, and windows.
@@ -110,6 +114,9 @@ public slots:
      * 6. send out navigation signal
      */
     void navigateToPage(const int page) const;
+
+    void nextSlide() const noexcept
+    {navigateToPage(preferences()->page + 1);}
 
     /// Handle an action, distribute it if necessary.
     void handleAction(const Action action);

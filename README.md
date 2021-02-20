@@ -22,10 +22,10 @@ This software uses the Qt framework and the PDF engines MuPDF and/or poppler.
 * simple navigation using document outline, thumbnail slides, or navigation by page label
 * save/load drawings in Xournal format (compatibility with Xournal improved in 0.2.x)
 * show videos on slides (improved integration with other features in 0.2.x)
+* basic animations by showing slides in rapid succession
 
 ### Currently NOT supported in version 0.2.x
 * slide transitions (only 0.1.x)
-* animations (only 0.1.x)
 
 
 ## Build and install

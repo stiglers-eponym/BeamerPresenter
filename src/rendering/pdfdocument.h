@@ -227,6 +227,9 @@ public:
 
     /// Return true if not all pages in the PDF have the same size.
     virtual bool flexiblePageSizes() noexcept = 0;
+
+    /// Duration of given page in secons. Default value is -1 is interpreted as infinity.
+    virtual qreal duration(const int page) const noexcept = 0;
 };
 
 #endif // PDFDOCUMENT_H

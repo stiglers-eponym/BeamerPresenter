@@ -688,7 +688,7 @@ QList<MediaAnnotation> *MuPdfDocument::annotations(const int page) const
     fz_catch(ctx)
     {
         fz_drop_page(ctx, (fz_page*) pdfpage);
-        mutex->lock();
+        mutex->unlock();
         return list;
     }
     fz_var(list);
@@ -849,4 +849,36 @@ void MuPdfDocument::loadOutline()
         for (int i=0; i<outline.length(); i++)
             qDebug() << DebugRendering << i << outline[i].page << outline[i].next << outline[i].title;
 #endif
+}
+
+qreal MuPdfDocument::duration(const int page) const noexcept
+{
+    if (page < 0 || page >= number_of_pages || !ctx || !doc)
+        return -1.;
+    mutex->lock();
+    pdf_page *pdfpage = NULL;
+    fz_var(pdfpage);
+    fz_try(ctx)
+        pdfpage = pdf_load_page(ctx, pdf_document_from_fz_document(ctx, doc), page);
+    fz_catch(ctx)
+    {
+        fz_drop_page(ctx, (fz_page*) pdfpage);
+        mutex->unlock();
+        return -1.;
+    }
+    qreal duration;
+    fz_var(duration);
+    fz_try(ctx)
+    {
+        pdf_obj *obj = pdf_dict_get(ctx, pdfpage->obj, PDF_NAME(Dur));
+        duration = obj ? pdf_to_real(ctx, obj) : -1.;
+    }
+    fz_always(ctx)
+    {
+        fz_drop_page(ctx, (fz_page*) pdfpage);
+        mutex->unlock();
+    }
+    fz_catch(ctx)
+        duration = -1.;
+    return duration;
 }

@@ -51,6 +51,8 @@ public:
     int pressure_sensitive_input_devices = TabletPen | TabletEraser | TabletCursor | TabletOther;
     /// Define how should drawings be assigned to overlays.
     OverlayDrawingMode overlay_mode = Cumulative;
+    /// Duration of a slide in an animation, in ms.
+    int slide_duration_animation = 50;
 
 
     // RENDERING

@@ -425,3 +425,11 @@ QList<int> PopplerDocument::overlayIndices() const noexcept
     return list;
 #endif
 }
+
+qreal PopplerDocument::duration(const int page) const noexcept
+{
+    if (!doc)
+        return -1.;
+    const Poppler::Page * const pdfpage = doc->page(page);
+    return pdfpage ? pdfpage->duration() : -1.;
+}

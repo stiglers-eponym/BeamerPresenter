@@ -9,7 +9,6 @@
 #include <QMediaPlayer>
 #include <QMediaPlaylist>
 #include "src/enumerates.h"
-#include "src/rendering/pdfdocument.h"
 #include "src/drawing/fullgraphicspath.h"
 #include "src/drawing/basicgraphicspath.h"
 #include "src/drawing/flexgraphicslineitem.h"

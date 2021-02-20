@@ -105,6 +105,9 @@ public:
 
     /// Return true if not all pages in the PDF have the same size.
     virtual bool flexiblePageSizes() noexcept override;
+
+    /// Duration of given page in secons. Default value is -1 is interpreted as infinity.
+    qreal duration(const int page) const noexcept override;
 };
 
 #endif // POPPLERDOCUMENT_H

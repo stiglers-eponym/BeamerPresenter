@@ -2,15 +2,20 @@
 #include "src/pdfmaster.h"
 #include "src/slidescene.h"
 
-Master::Master() : cacheVideoTimer(new QTimer(this))
+Master::Master() :
+    cacheVideoTimer(new QTimer(this)),
+    slideDurationTimer(new QTimer(this))
 {
     cacheVideoTimer->setSingleShot(true);
     cacheVideoTimer->setInterval(200);
+    slideDurationTimer->setSingleShot(true);
+    connect(slideDurationTimer, &QTimer::timeout, this, &Master::nextSlide);
 }
 
 Master::~Master()
 {
     delete cacheVideoTimer;
+    delete slideDurationTimer;
     for (const auto cache : qAsConst(caches))
         cache->thread()->quit();
     for (const auto cache : qAsConst(caches))
@@ -687,13 +692,23 @@ void Master::navigateToPage(const int page) const
 {
     if (page < 0 || page >= preferences()->number_of_pages)
         return;
+    slideDurationTimer->stop();
+    cacheVideoTimer->stop();
     leavePage(preferences()->page);
     emit prepareNavigationSignal(page);
     for (auto window : windows)
         window->updateGeometry();
+    // Get duration of the slide: But only take a nontrivial value if
+    // the new page is (old page + 1).
+    const qreal duration = preferences()->page+1 == page ? documents.first()->getDocument()->duration(page) : -1.;
     writable_preferences()->page = page;
     emit navigationSignal(page);
-    cacheVideoTimer->start();
+    if (duration == 0.)
+        slideDurationTimer->start(preferences()->slide_duration_animation);
+    else if (duration > 0.)
+        slideDurationTimer->start(1000*duration);
+    if (duration < 0. || duration > 0.5)
+        cacheVideoTimer->start();
 }
 
 void Master::setTool(Tool *tool) const noexcept
