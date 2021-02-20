@@ -32,6 +32,7 @@ public:
         MediaAnnotation annotation;
         QGraphicsVideoItem *item;
         QMediaPlayer *player;
+        QSet<int> pages;
     };
 
 private:
@@ -67,10 +68,11 @@ private:
     /// Page part shown in this scene.
     const PagePart page_part;
 
-    /// Start slide transition. Experimental!
+    /// Start slide transition.
     void startTransition(const int newpage, const SlideTransition &transition);
 
-    VideoItem &getVideoItem(const MediaAnnotation &annotation);
+    /// Search video annotation in cache and create + add it to cache if necessary.
+    VideoItem &getVideoItem(const MediaAnnotation &annotatio, const int pagen);
 
 public:
     /// Constructor: initialize master, page_part, and QGraphisScene.
@@ -165,13 +167,16 @@ public slots:
     void loadMedia(const int page);
 
     /// Load media for given page to cache.
-    void cacheMedia(int page);
+    void cacheMedia(const int page);
 
     /// Load media for next page to cache.
     void cacheMediaNextPage();
 
     /// Tell views to create sliders.
     void createSliders() const;
+
+    /// End slide transition.
+    void endTransition();
 
     /// Play all media on current slide.
     void playMedia() const;

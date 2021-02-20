@@ -294,6 +294,7 @@ void SlideView::addMediaSlider(const SlideScene::VideoItem &video)
     const QPoint right = mapFromScene(video.annotation.rect.bottomRight());
     slider->setGeometry(left.x(), right.y(), right.x() - left.x(), 20);
     slider->setMaximum(video.player->duration());
+    slider->setValue(video.player->position());
     connect(slider, &QSlider::sliderMoved, video.player, &QMediaPlayer::setPosition);
     connect(video.player, &QMediaPlayer::positionChanged, slider, &QSlider::setValue);
     QPalette palette;

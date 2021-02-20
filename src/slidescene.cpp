@@ -313,6 +313,7 @@ void SlideScene::prepareNavigationEvent(const int newpage)
 
 void SlideScene::navigationEvent(const int newpage, SlideScene *newscene)
 {
+    pauseMedia();
     if (!newscene || newscene == this)
     {
         const SlideTransition transition = master->transition(newpage);
@@ -356,7 +357,7 @@ void SlideScene::loadMedia(const int page)
         case MediaAnnotation::VideoAnnotation:
         {
             debug_msg(DebugMedia) << "loading video" << annotation.file << annotation.rect;
-            VideoItem &item = getVideoItem(annotation);
+            VideoItem &item = getVideoItem(annotation, page);
             item.item->setSize(item.annotation.rect.size());
             item.item->setPos(item.annotation.rect.topLeft());
             item.item->show();
@@ -383,7 +384,7 @@ void SlideScene::cacheMediaNextPage()
     cacheMedia(newpage);
 }
 
-void SlideScene::cacheMedia(int page)
+void SlideScene::cacheMedia(const int page)
 {
     QList<MediaAnnotation> *list = master->getDocument()->annotations(page);
     if (!list)
@@ -394,7 +395,7 @@ void SlideScene::cacheMedia(int page)
         {
         case MediaAnnotation::VideoAnnotation:
             debug_msg(DebugMedia) << "try to cache video" << annotation.file << annotation.rect;
-            getVideoItem(annotation);
+            getVideoItem(annotation, page);
             break;
         case MediaAnnotation::AudioAnnotation:
             qWarning() << "Sound annotation: not implemented yet";
@@ -405,13 +406,14 @@ void SlideScene::cacheMedia(int page)
     }
 }
 
-SlideScene::VideoItem &SlideScene::getVideoItem(const MediaAnnotation &annotation)
+SlideScene::VideoItem &SlideScene::getVideoItem(const MediaAnnotation &annotation, const int page)
 {
     for (auto &videoitem : videoItems)
     {
         if (videoitem.annotation == annotation && videoitem.item)
         {
             debug_msg(DebugMedia) << "Found video in cache" << annotation.file << annotation.rect;
+            videoitem.pages.insert(page);
             return videoitem;
         }
     }
@@ -444,7 +446,7 @@ SlideScene::VideoItem &SlideScene::getVideoItem(const MediaAnnotation &annotatio
         break;
     }
     player->setPlaylist(playlist);
-    videoItems.append({annotation, item, player});
+    videoItems.append({annotation, item, player, {page}});
     return videoItems.last();
 }
 
@@ -456,6 +458,12 @@ void SlideScene::startTransition(const int newpage, const SlideTransition &trans
     QList<QGraphicsItem*> list = items();
     while (!list.isEmpty())
         removeItem(list.takeLast());
+    invalidate();
+    endTransition();
+}
+
+void SlideScene::endTransition()
+{
     PathContainer *paths;
     emit requestPathContainer(&paths, page | page_part);
     if (paths)
@@ -465,6 +473,7 @@ void SlideScene::startTransition(const int newpage, const SlideTransition &trans
             if (*it)
                 addItem(*it);
     }
+    loadMedia(page);
     invalidate();
 }
 
@@ -672,7 +681,7 @@ void SlideScene::noToolClicked(const QPointF &pos, const QPointF &startpos)
     // Try to handle multimedia annotation.
     for (auto &item : videoItems)
     {
-        if (item.annotation.page == (page &~NotFullPage) && item.item->boundingRect().contains(pos))
+        if (item.pages.contains((page &~NotFullPage)) && item.item->boundingRect().contains(pos))
         {
             if (startpos.isNull() || item.annotation.rect.contains(startpos))
             {
@@ -692,7 +701,7 @@ void SlideScene::createSliders() const
 {
     for (auto &item : videoItems)
     {
-        if (item.annotation.page == (page &~NotFullPage))
+        if (item.pages.contains((page &~NotFullPage)))
         {
             for (const auto view : static_cast<const QList<QGraphicsView*>>(views()))
                 static_cast<SlideView*>(view)->addMediaSlider(item);
@@ -704,7 +713,7 @@ void SlideScene::playMedia() const
 {
     for (auto &item : videoItems)
     {
-        if (item.annotation.page == (page &~NotFullPage))
+        if (item.pages.contains((page &~NotFullPage)))
             item.player->play();
     }
 }
@@ -713,7 +722,7 @@ void SlideScene::pauseMedia() const
 {
     for (auto &item : videoItems)
     {
-        if (item.annotation.page == (page &~NotFullPage))
+        if (item.pages.contains((page &~NotFullPage)))
             item.player->pause();
     }
 }
@@ -722,7 +731,7 @@ void SlideScene::playPauseMedia() const
 {
     for (auto &item : videoItems)
     {
-        if (item.annotation.page == (page &~NotFullPage) && item.player->state() == QMediaPlayer::PlayingState)
+        if (item.pages.contains((page &~NotFullPage)))
         {
             pauseMedia();
             return;

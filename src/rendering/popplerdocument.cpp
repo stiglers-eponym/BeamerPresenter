@@ -275,7 +275,6 @@ const MediaAnnotation PopplerDocument::annotationAt(const int page, const QPoint
             }
             MediaAnnotation videoAnnotation {
                         QUrl::fromLocalFile(fileinfo.absoluteFilePath()),
-                        page,
                         annotation->subType() == Poppler::Annotation::AMovie ? MediaAnnotation::VideoAnnotation : MediaAnnotation::AudioAnnotation,
                         MediaAnnotation::Once,
                         {pageSize.width()*annotation->boundary().x(), pageSize.height()*annotation->boundary().y(), pageSize.width()*annotation->boundary().width(), pageSize.height()*annotation->boundary().height()}
@@ -298,7 +297,7 @@ const MediaAnnotation PopplerDocument::annotationAt(const int page, const QPoint
             return videoAnnotation;
         }
     }
-    return {QUrl(), page, MediaAnnotation::InvalidAnnotation, MediaAnnotation::Invalid, QRectF()};
+    return {QUrl(), MediaAnnotation::InvalidAnnotation, MediaAnnotation::Invalid, QRectF()};
 }
 
 QList<MediaAnnotation> *PopplerDocument::annotations(const int page) const
@@ -316,7 +315,6 @@ QList<MediaAnnotation> *PopplerDocument::annotations(const int page) const
         {
             list->append({
                         QUrl::fromLocalFile(fileinfo.absoluteFilePath()),
-                        page,
                         annotation->subType() == Poppler::Annotation::AMovie ? MediaAnnotation::VideoAnnotation : MediaAnnotation::AudioAnnotation,
                         MediaAnnotation::Once,
                         {pageSize.width()*annotation->boundary().x(), pageSize.height()*annotation->boundary().y(), pageSize.width()*annotation->boundary().width(), pageSize.height()*annotation->boundary().height()}
