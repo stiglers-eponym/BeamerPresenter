@@ -464,12 +464,13 @@ void SlideScene::startTransition(const int newpage, const SlideTransition &trans
     // TODO!
     page = newpage;
     emit navigationToViews(page, this);
+    debug_msg(DebugTransitions) << "transition:" << transition.type << transition.duration << transition.angle << transition.properties;
+    emit beginTransition(transition);
     QList<QGraphicsItem*> list = items();
     while (!list.isEmpty())
         removeItem(list.takeLast());
     invalidate();
     transitionDurationTimer->start(1000*transition.duration);
-    emit beginTransition(transition);
     transitionFrameTimer->start(0);
 }
 
