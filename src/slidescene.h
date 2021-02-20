@@ -8,12 +8,14 @@
 #include <QTabletEvent>
 #include <QMediaPlayer>
 #include <QMediaPlaylist>
+#include <QTimer>
 #include "src/enumerates.h"
 #include "src/drawing/fullgraphicspath.h"
 #include "src/drawing/basicgraphicspath.h"
 #include "src/drawing/flexgraphicslineitem.h"
 #include "src/drawing/pointingtool.h"
 #include "src/drawing/pathcontainer.h"
+#include "src/rendering/pdfdocument.h"
 
 class PdfMaster;
 
@@ -67,6 +69,11 @@ private:
 
     /// Page part shown in this scene.
     const PagePart page_part;
+
+    /// Timer keeping track of total time passed in slide transitions.
+    QTimer *transitionDurationTimer;
+    /// Timer for frames in slide transitions.
+    QTimer *transitionFrameTimer;
 
     /// Start slide transition.
     void startTransition(const int newpage, const SlideTransition &transition);
@@ -143,6 +150,10 @@ public:
     bool isTextEditing() const noexcept
     {return focusItem() && focusItem()->type() == QGraphicsTextItem::Type;}
 
+    /// Remaining transition time in ms.
+    int transitionRemaining() const noexcept
+    {return transitionDurationTimer->remainingTime();}
+
 protected:
     /**
      * @brief handle pointing device events.
@@ -178,6 +189,10 @@ public slots:
     /// End slide transition.
     void endTransition();
 
+    /// Send transition step notification to views.
+    void transitionStep()
+    {invalidate(QRectF(), QGraphicsScene::ForegroundLayer);}
+
     /// Play all media on current slide.
     void playMedia() const;
     /// Pause all media on current slide.
@@ -196,6 +211,9 @@ signals:
 
     /// Send new path to PdfMaster.
     void sendNewPath(int page, QGraphicsItem *item) const;
+
+    void beginTransition(const SlideTransition &transition);
+    void finishTransition();
 
     void requestPathContainer(PathContainer **container, int page);
 };

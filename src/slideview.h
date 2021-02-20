@@ -42,6 +42,10 @@ private:
 
     QList<QSlider*> sliders;
 
+    /// Old slide view for transition;
+    QPixmap *oldSlidePixmap {NULL};
+    SlideTransition transition;
+
     /// Currently waiting for page: INT_MAX if not waiting for any page,
     /// (-page-1) if waiting for enlarged page.
     int waitingForPage = INT_MAX;
@@ -104,12 +108,18 @@ public slots:
     {currentPixmap = QPixmap();}
 
     /// draw Magnifier
-    void showMagnifier(QPainter *painter, const PointingTool *tool);
+    void showMagnifier(QPainter *painter, const PointingTool *tool) noexcept;
+    void showPen(QPainter *painter, const PointingTool *tool) noexcept;
+    void showTorch(QPainter *painter, const PointingTool *tool) noexcept;
 
     /// draw pointing tools in foreground.
     void drawForeground(QPainter *painter, const QRectF &rect) override;
 
     void addMediaSlider(const SlideScene::VideoItem &video);
+
+    void beginTransition(const SlideTransition &transition);
+    void transitionStep(QPainter *painter, qreal progress);
+    void finishTransition();
 
 signals:
     /// Inform cache that page is required.

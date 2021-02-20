@@ -4,14 +4,21 @@
 SlideScene::SlideScene(const PdfMaster *master, const PagePart part, QObject *parent) :
     QGraphicsScene(parent),
     master(master),
-    page_part(part)
+    page_part(part),
+    transitionDurationTimer(new QTimer(this)),
+    transitionFrameTimer(new QTimer(this))
 {
+    transitionDurationTimer->setSingleShot(true);
+    connect(transitionDurationTimer, &QTimer::timeout, this, &SlideScene::endTransition);
+    connect(transitionFrameTimer, &QTimer::timeout, this, &SlideScene::transitionStep);
     connect(this, &SlideScene::sendNewPath, master, &PdfMaster::receiveNewPath);
     connect(this, &SlideScene::requestPathContainer, master, &PdfMaster::requestPathContainer, Qt::DirectConnection);
 }
 
 SlideScene::~SlideScene()
 {
+    delete transitionFrameTimer;
+    delete transitionDurationTimer;
     QList<QGraphicsItem*> list = items();
     while (!list.isEmpty())
         removeItem(list.takeLast());
@@ -314,6 +321,8 @@ void SlideScene::prepareNavigationEvent(const int newpage)
 void SlideScene::navigationEvent(const int newpage, SlideScene *newscene)
 {
     pauseMedia();
+    transitionFrameTimer->stop();
+    emit finishTransition();
     if (!newscene || newscene == this)
     {
         const SlideTransition transition = master->transition(newpage);
@@ -459,11 +468,15 @@ void SlideScene::startTransition(const int newpage, const SlideTransition &trans
     while (!list.isEmpty())
         removeItem(list.takeLast());
     invalidate();
-    endTransition();
+    transitionDurationTimer->start(1000*transition.duration);
+    emit beginTransition(transition);
+    transitionFrameTimer->start(0);
 }
 
 void SlideScene::endTransition()
 {
+    transitionFrameTimer->stop();
+    emit finishTransition();
     PathContainer *paths;
     emit requestPathContainer(&paths, page | page_part);
     if (paths)

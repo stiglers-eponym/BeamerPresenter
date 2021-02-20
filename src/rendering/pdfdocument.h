@@ -38,6 +38,7 @@ struct SlideTransition {
     /// Slide tansition Types.
     enum Type
     {
+        Invalid = -1,
         Replace = 0,
 /*
 #ifdef INCLUDE_MUPDF

@@ -21,6 +21,7 @@ SlideView::SlideView(SlideScene *scene, PixCache *cache, QWidget *parent) :
 
 SlideView::~SlideView() noexcept
 {
+    delete oldSlidePixmap;
     qDeleteAll(sliders);
     sliders.clear();
 }
@@ -162,7 +163,7 @@ bool SlideView::event(QEvent *event)
     }
 }
 
-void SlideView::showMagnifier(QPainter *painter, const PointingTool *tool)
+void SlideView::showMagnifier(QPainter *painter, const PointingTool *tool) noexcept
 {
     painter->setCompositionMode(QPainter::CompositionMode_SourceOver);
     painter->setRenderHints(QPainter::SmoothPixmapTransform);
@@ -230,58 +231,69 @@ void SlideView::showMagnifier(QPainter *painter, const PointingTool *tool)
 
 void SlideView::drawForeground(QPainter *painter, const QRectF &rect)
 {
-    if (!(flags & ShowPointingTools))
-        return;
-    painter->setRenderHint(QPainter::Antialiasing);
-    for (const auto basic_tool : preferences()->current_tools)
+    if (oldSlidePixmap && flags & ShowTransitions)
     {
-        // Only pointing tools need painting in foreground (might change in the future).
-        if (!(basic_tool->tool() & AnyPointingTool))
-            continue;
-        const PointingTool *tool = static_cast<PointingTool*>(basic_tool);
-        if (tool->pos().isEmpty())
-            continue;
-        debug_verbose(DebugDrawing) << "drawing tool" << tool->tool() << tool->size() << tool->color();
-        switch (tool->tool())
+        const qreal progress = 1e-3 * static_cast<SlideScene*>(scene())->transitionRemaining() / transition.duration;
+        if (progress > 0.)
+            transitionStep(painter, progress);
+    }
+    if (flags & ShowPointingTools)
+    {
+        painter->setRenderHint(QPainter::Antialiasing);
+        for (const auto basic_tool : preferences()->current_tools)
         {
-        case Pointer:
-        {
-            painter->setPen(Qt::PenStyle::NoPen);
-            painter->setBrush(tool->brush());
-            painter->setCompositionMode(QPainter::CompositionMode_Darken);
-            for (const auto &pos : tool->pos())
-                painter->drawEllipse(pos, tool->size(), tool->size());
-            painter->setCompositionMode(QPainter::CompositionMode_SourceOver);
-            for (const auto &pos : tool->pos())
-                painter->drawEllipse(pos, tool->size(), tool->size());
-            break;
-        }
-        case Torch:
-        {
-            painter->setCompositionMode(QPainter::CompositionMode_SourceOver);
-            painter->setPen(Qt::PenStyle::NoPen);
-            painter->setBrush(QBrush(tool->color(), Qt::SolidPattern));
-            QPainterPath path;
-            path.setFillRule(Qt::WindingFill);
-            for (const auto &pos : tool->pos())
-                path.addEllipse(pos, tool->size(), tool->size());
-            QPainterPath fullpath;
-            QRectF fullrect({-viewportTransform().m31(), -viewportTransform().m32()}, size());
-            fullrect.setSize(fullrect.size()/viewportTransform().m11());
-            fullrect.moveTo(fullrect.topLeft()/viewportTransform().m11());
-            fullpath.addRect(fullrect);
-            painter->fillPath(fullpath - path, tool->color());
-            break;
-        }
-        case Magnifier:
-        {
-            showMagnifier(painter, tool);
-            break;
-        }
-        default:
-            break;
+            // Only pointing tools need painting in foreground (might change in the future).
+            if (!(basic_tool->tool() & AnyPointingTool))
+                continue;
+            const PointingTool *tool = static_cast<PointingTool*>(basic_tool);
+            if (tool->pos().isEmpty())
+                continue;
+            debug_verbose(DebugDrawing) << "drawing tool" << tool->tool() << tool->size() << tool->color();
+            switch (tool->tool())
+            {
+            case Pointer:
+                showPen(painter, tool);
+                break;
+            case Torch:
+                showTorch(painter, tool);
+                break;
+            case Magnifier:
+                showMagnifier(painter, tool);
+                break;
+            default:
+                break;
+            }
         }
     }
+}
+
+void SlideView::showPen(QPainter *painter, const PointingTool *tool) noexcept
+{
+    painter->setPen(Qt::PenStyle::NoPen);
+    painter->setBrush(tool->brush());
+    painter->setCompositionMode(QPainter::CompositionMode_Darken);
+    for (const auto &pos : tool->pos())
+        painter->drawEllipse(pos, tool->size(), tool->size());
+    painter->setCompositionMode(QPainter::CompositionMode_SourceOver);
+    for (const auto &pos : tool->pos())
+        painter->drawEllipse(pos, tool->size(), tool->size());
+}
+
+void SlideView::showTorch(QPainter *painter, const PointingTool *tool) noexcept
+{
+    painter->setCompositionMode(QPainter::CompositionMode_SourceOver);
+    painter->setPen(Qt::PenStyle::NoPen);
+    painter->setBrush(QBrush(tool->color(), Qt::SolidPattern));
+    QPainterPath path;
+    path.setFillRule(Qt::WindingFill);
+    for (const auto &pos : tool->pos())
+        path.addEllipse(pos, tool->size(), tool->size());
+    QPainterPath fullpath;
+    QRectF fullrect({-viewportTransform().m31(), -viewportTransform().m32()}, size());
+    fullrect.setSize(fullrect.size()/viewportTransform().m11());
+    fullrect.moveTo(fullrect.topLeft()/viewportTransform().m11());
+    fullpath.addRect(fullrect);
+    painter->fillPath(fullpath - path, tool->color());
 }
 
 void SlideView::addMediaSlider(const SlideScene::VideoItem &video)
@@ -301,4 +313,66 @@ void SlideView::addMediaSlider(const SlideScene::VideoItem &video)
     palette.setColor(QPalette::Base, QColor(0,0,0,0));
     slider->setPalette(palette);
     slider->show();
+}
+
+void SlideView::beginTransition(const SlideTransition &trans)
+{
+    transition = trans;
+    delete oldSlidePixmap;
+    oldSlidePixmap = new QPixmap(size());
+    oldSlidePixmap->fill(QColor(0,0,0,0));
+    QPainter painter(oldSlidePixmap);
+    render(&painter);
+}
+
+void SlideView::transitionStep(QPainter *painter, qreal progress)
+{
+    if (!oldSlidePixmap)
+        return;
+    switch(transition.type)
+    {
+    case SlideTransition::Split:
+        break;
+    case SlideTransition::Blinds:
+        break;
+    case SlideTransition::Box:
+        break;
+    case SlideTransition::Wipe:
+        break;
+    case SlideTransition::Dissolve:
+    {
+        painter->setOpacity(progress);
+        QRectF scenerect(mapToScene({0.,0.}), mapToScene({qreal(width()),qreal(height())}));
+        painter->drawPixmap(scenerect, *oldSlidePixmap, oldSlidePixmap->rect());
+        invalidateScene(scenerect, QGraphicsScene::ForegroundLayer);
+        break;
+    }
+    case SlideTransition::Glitter:
+        break;
+    case SlideTransition::Fly:
+        break;
+    case SlideTransition::Push:
+        break;
+    case SlideTransition::Cover:
+        break;
+    case SlideTransition::Uncover:
+        break;
+    case SlideTransition::Fade:
+    {
+        painter->setOpacity(progress);
+        QRectF scenerect(mapToScene({0.,0.}), mapToScene({qreal(width()),qreal(height())}));
+        painter->drawPixmap(scenerect, *oldSlidePixmap, oldSlidePixmap->rect());
+        invalidateScene(scenerect, QGraphicsScene::ForegroundLayer);
+        break;
+    }
+    case SlideTransition::FlyRectangle:
+        break;
+    }
+}
+
+void SlideView::finishTransition()
+{
+    delete oldSlidePixmap;
+    oldSlidePixmap = NULL;
+    transition.type = SlideTransition::Invalid;
 }

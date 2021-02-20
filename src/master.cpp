@@ -360,6 +360,11 @@ QWidget* Master::createWidget(QJsonObject &object, QWidget *parent)
         SlideView *slide = new SlideView(scene, pixcache, parent);
         if (!object.value("transitions").toBool(true))
             slide->unsetFlag(SlideView::ShowTransitions);
+        else
+        {
+            connect(scene, &SlideScene::beginTransition, slide, &SlideView::beginTransition);
+            connect(scene, &SlideScene::finishTransition, slide, &SlideView::finishTransition);
+        }
         if (!object.value("autoplay").toBool(true))
             slide->unsetFlag(SlideView::AutoplayAnything);
         if (!object.value("media").toBool(true))
