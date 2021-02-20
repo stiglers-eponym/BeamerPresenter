@@ -115,6 +115,9 @@ struct MediaAnnotation {
         Repeat,
     } mode = Invalid;
     QRectF rect;
+
+    bool operator==(const MediaAnnotation &other) const noexcept
+    {return file == other.file && mode == other.mode && rect == other.rect;}
 };
 
 /// Abstract class for handling PDF documents.

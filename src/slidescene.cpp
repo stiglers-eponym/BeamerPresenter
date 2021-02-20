@@ -15,6 +15,12 @@ SlideScene::~SlideScene()
     QList<QGraphicsItem*> list = items();
     while (!list.isEmpty())
         removeItem(list.takeLast());
+    for (auto &item : videoItems)
+    {
+        delete item.player;
+        delete item.item;
+    }
+    videoItems.clear();
     delete currentPath;
     delete currentItemCollection;
 }
@@ -124,7 +130,7 @@ bool SlideScene::event(QEvent* event)
             }
         }
         else if (!tool && mouseevent->button() == Qt::LeftButton)
-            master->resolveLink(page, mouseevent->scenePos(), mouseevent->buttonDownScenePos(Qt::LeftButton));
+            noToolClicked(mouseevent->scenePos(), mouseevent->buttonDownScenePos(Qt::LeftButton));
         event->accept();
         return true;
     }
@@ -239,7 +245,7 @@ bool SlideScene::event(QEvent* event)
                 }
             }
             else if (!tool && touchevent->touchPoints().length() == 1)
-                master->resolveLink(page, touchevent->touchPoints().first().scenePos(), touchevent->touchPoints().first().startScenePos());
+                noToolClicked(touchevent->touchPoints().first().scenePos(), touchevent->touchPoints().first().startScenePos());
             event->accept();
             return true;
         }
@@ -298,7 +304,7 @@ void SlideScene::prepareNavigationEvent(const int newpage)
 
 void SlideScene::navigationEvent(const int newpage, SlideScene *newscene)
 {
-    if (show_animations && (!newscene || newscene == this))
+    if ((flags & ShowTransitions) && (!newscene || newscene == this))
     {
         const SlideTransition transition = master->transition(newpage);
         if (transition.type)
@@ -316,14 +322,18 @@ void SlideScene::navigationEvent(const int newpage, SlideScene *newscene)
         removeItem(list.takeLast());
     if (!newscene || newscene == this)
     {
-        loadMedia(page);
-        PathContainer *paths;
-        emit requestPathContainer(&paths, page | page_part);
-        if (paths)
+        if (flags & LoadAnyMedia)
+            loadMedia(page);
+        if (flags & ShowDrawings)
         {
-            const auto end = paths->cend();
-            for (auto it = paths->cbegin(); it != end; ++it)
-                addItem(*it);
+            PathContainer *paths;
+            emit requestPathContainer(&paths, page | page_part);
+            if (paths)
+            {
+                const auto end = paths->cend();
+                for (auto it = paths->cbegin(); it != end; ++it)
+                    addItem(*it);
+            }
         }
     }
     invalidate();
@@ -340,25 +350,83 @@ void SlideScene::loadMedia(const int page)
         {
         case MediaAnnotation::VideoAnnotation:
         {
-            QMediaPlayer *player = new QMediaPlayer(this);
-            QGraphicsVideoItem *item = new QGraphicsVideoItem;
-            connect(item, &QGraphicsVideoItem::destroyed, player, &QMediaPlayer::deleteLater);
-            item->setSize(annotation.rect.size());
-            item->setPos(annotation.rect.topLeft());
-            player->setVideoOutput(item);
-            addItem(item);
-            item->show();
-            player->setMedia(annotation.file);
-            player->play();
+            debug_msg(DebugMedia) << "loading video" << annotation.file << annotation.rect;
+            VideoItem &item = getVideoItem(annotation);
+            item.item->setSize(item.annotation.rect.size());
+            item.item->setPos(item.annotation.rect.topLeft());
+            item.item->show();
+            addItem(item.item);
+            if (flags & AutoplayVideos)
+            {
+                debug_msg(DebugMedia) << "play video" << item.player->position() << item.player->state();
+                item.player->play();
+            }
             break;
         }
         case MediaAnnotation::AudioAnnotation:
-            qWarning() << "Audio annotation: not implemented yet";
+        {
+            qWarning() << "Sound annotation: not implemented yet";
+            break;
+        }
+        case MediaAnnotation::InvalidAnnotation:
+            break;
+        }
+    }
+}
+
+void SlideScene::cacheMediaNextPage()
+{
+    int newpage = page + 1;
+    if (shift & AnyOverlay)
+        newpage = master->getDocument()->overlaysShifted(page, 1 | (shift & AnyOverlay));
+    cacheMedia(newpage);
+}
+
+void SlideScene::cacheMedia(int page)
+{
+    QList<MediaAnnotation> *list = master->getDocument()->annotations(page);
+    if (!list)
+        return;
+    for (const auto &annotation : qAsConst(*list))
+    {
+        switch (annotation.type)
+        {
+        case MediaAnnotation::VideoAnnotation:
+            debug_msg(DebugMedia) << "try to cache video" << annotation.file << annotation.rect;
+            getVideoItem(annotation);
+            break;
+        case MediaAnnotation::AudioAnnotation:
+            qWarning() << "Sound annotation: not implemented yet";
             break;
         case MediaAnnotation::InvalidAnnotation:
             break;
         }
     }
+}
+
+SlideScene::VideoItem &SlideScene::getVideoItem(const MediaAnnotation &annotation)
+{
+    for (auto &videoitem : videoItems)
+    {
+        if (videoitem.annotation == annotation && videoitem.item)
+        {
+            debug_msg(DebugMedia) << "Found video in cache" << annotation.file << annotation.rect;
+            return videoitem;
+        }
+    }
+    debug_msg(DebugMedia) << "Loading new video" << annotation.file << annotation.rect;
+    QMediaPlayer *player = new QMediaPlayer(this);
+    QGraphicsVideoItem *item = new QGraphicsVideoItem;
+    connect(item, &QGraphicsVideoItem::destroyed, player, &QMediaPlayer::deleteLater);
+    // Ugly fix to cache videos: show invisible video pixel
+    item->setSize({1,1});
+    item->setPos(sceneRect().bottomRight());
+    addItem(item);
+    item->show();
+    player->setVideoOutput(item);
+    player->setMedia(annotation.file);
+    videoItems.append({annotation, item, player});
+    return videoItems.last();
 }
 
 void SlideScene::startTransition(const int newpage, const SlideTransition &transition)
@@ -455,7 +523,7 @@ void SlideScene::tabletRelease(const QPointF &pos, const QTabletEvent *event)
             invalidate(QRect(), QGraphicsScene::ForegroundLayer);
         }
         else if (!tool)
-            master->resolveLink(page, pos);
+            noToolClicked(pos);
     }
 }
 
@@ -571,11 +639,32 @@ bool SlideScene::stopInputEvent(const QPointF &pos)
         break;
     }
     case NoTool:
-        master->resolveLink(page, pos);
+        noToolClicked(pos);
         break;
     default:
         break;
     }
     current_tool = NULL;
     return false;
+}
+
+void SlideScene::noToolClicked(const QPointF &pos, const QPointF &startpos)
+{
+    // Try to handle multimedia annotation.
+    for (auto &item : videoItems)
+    {
+        if (item.item && item.item->isVisible() && item.item->boundingRect().contains(pos))
+        {
+            if (startpos.isNull() || item.annotation.rect.contains(startpos))
+            {
+                if (item.player->state() == QMediaPlayer::PlayingState)
+                    item.player->pause();
+                else
+                    item.player->play();
+                return;
+            }
+            break;
+        }
+    }
+    master->resolveLink(page, pos, startpos);
 }

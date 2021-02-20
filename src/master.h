@@ -59,9 +59,11 @@ class Master : public QObject
     /// Key sequence shortcuts for focusing widgets.
     QMap<quint32, QWidget*> shortcuts;
 
+    QTimer *cacheVideoTimer {NULL};
+
 public:
-    /// Trivial constructor. Doesn't do anything.
-    Master() {}
+    /// Constructor: initializes cacheVideoTimer.
+    Master();
 
     /// Destructor: delete cache, scenes, documents, and windows.
     /// This should delete everything.

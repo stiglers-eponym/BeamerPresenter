@@ -2,8 +2,15 @@
 #include "src/pdfmaster.h"
 #include "src/slidescene.h"
 
+Master::Master() : cacheVideoTimer(new QTimer(this))
+{
+    cacheVideoTimer->setSingleShot(true);
+    cacheVideoTimer->setInterval(200);
+}
+
 Master::~Master()
 {
+    delete cacheVideoTimer;
     for (const auto cache : qAsConst(caches))
         cache->thread()->quit();
     for (const auto cache : qAsConst(caches))
@@ -290,6 +297,7 @@ QWidget* Master::createWidget(QJsonObject &object, QWidget *parent)
             else
                 doc->getScenes().append(scene);
             connect(this, &Master::sendAction, scene, &SlideScene::receiveAction);
+            connect(cacheVideoTimer, &QTimer::timeout, scene, &SlideScene::cacheMediaNextPage, Qt::QueuedConnection);
             connect(this, &Master::prepareNavigationSignal, scene, &SlideScene::prepareNavigationEvent);
             connect(preferences(), &Preferences::stopDrawing, scene, &SlideScene::stopDrawing);
         }
@@ -675,6 +683,7 @@ void Master::navigateToPage(const int page) const
         window->updateGeometry();
     writable_preferences()->page = page;
     emit navigationSignal(page);
+    cacheVideoTimer->start();
 }
 
 void Master::setTool(Tool *tool) const noexcept

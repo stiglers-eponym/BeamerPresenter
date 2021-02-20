@@ -147,15 +147,11 @@ void PdfMaster::receiveAction(const Action action)
 
 void PdfMaster::resolveLink(const int page, const QPointF &position, const QPointF &startpos) const
 {
-    // First try to resolve navigation link.
+    // Try to resolve navigation link.
     const PdfLink link = document->linkAt(page, position);
     debug_msg(DebugDrawing) << "resolve link" << page << position << startpos << link.area;
     if ( (startpos.isNull() || link.area.contains(startpos)) && (link.type >= 0 && link.type < document->numberOfPages()) )
         emit navigationSignal(link.type);
-    // Next try to handle multimedia annotation.
-    const MediaAnnotation annotation = document->annotationAt(page, position);
-    if (annotation.mode != MediaAnnotation::Invalid)
-        debug_msg(DebugMedia) << annotation.file << annotation.mode << annotation.rect;
 }
 
 void PdfMaster::receiveNewPath(int page, QGraphicsItem *item)
