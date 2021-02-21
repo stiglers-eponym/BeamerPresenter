@@ -119,6 +119,7 @@ void PixmapGraphicsItem::addPixmap(const QPixmap &pixmap)
         pixmaps[hash] = pixmap;
         newHashs.insert(hash);
     }
+    update();
 }
 
 void PixmapGraphicsItem::clearOld() noexcept

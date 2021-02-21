@@ -118,6 +118,9 @@ public slots:
     /// May only be called in this object's thread.
     void requestPage(const int n, const qreal resolution, const bool cache = true);
 
+    void getPixmap(const int page, QPixmap *target)
+    {*target = pixmap(page);}
+
     /// Request rendering a page with low priority
     /// May only be called in this object's thread.
     void requestRenderPage(const int n);
@@ -135,10 +138,6 @@ public slots:
     /// currently saved region is indeed simply connected.
     /// May only be called in this object's thread.
     void pageNumberChanged(const int page);
-
-    /// Do nothing. This is just used to wait until the execution loop of
-    /// this thread finished previous jobs.
-    void waitForFinish() const {}
 
 signals:
     /// Send out new page.

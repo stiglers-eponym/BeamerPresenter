@@ -96,6 +96,9 @@ public:
     PixmapGraphicsItem *pageBackground() const noexcept
     {return pageItem;}
 
+    PixmapGraphicsItem *transitionItem() const noexcept
+    {return pageTransitionItem;}
+
     /// Set shift in the form ((shift & ~AnyOverlay) | overlay).
     void setPageShift(const int relative_shift)
     {shift = relative_shift;}

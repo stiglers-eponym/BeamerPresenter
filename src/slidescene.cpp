@@ -478,7 +478,17 @@ void SlideScene::startTransition(const int newpage, const SlideTransition &trans
     pageTransitionItem = new PixmapGraphicsItem(sceneRect());
     emit prepareTransition(pageTransitionItem);
     page = newpage;
-    emit navigationToViews(page, this);
+    if (transition.type == SlideTransition::Fly)
+    {
+        for (const auto &view : static_cast<const QList<QGraphicsView*>>(views()))
+        {
+            SlideView *slideview = static_cast<SlideView*>(view);
+            slideview->pageChangedBlocking(page, this);
+            slideview->prepareFlyTransition();
+        }
+    }
+    else
+        emit navigationToViews(page, this);
     debug_msg(DebugTransitions) << "transition:" << transition.type << transition.duration << transition.angle << transition.properties;
     QList<QGraphicsItem*> list = items();
     while (!list.isEmpty())
@@ -624,11 +634,9 @@ void SlideScene::startTransition(const int newpage, const SlideTransition &trans
     }
     case SlideTransition::Fly:
     {
-        pageTransitionItem->trackNew();
-        for (const auto &view : static_cast<const QList<QGraphicsView*>>(views()))
-            static_cast<SlideView*>(view)->prepareFlyTransition(pageTransitionItem);
-        pageTransitionItem->clearOld();
-        QPropertyAnimation *propanim = new QPropertyAnimation();
+        QPropertyAnimation *propanim = new QPropertyAnimation(pageTransitionItem, "x");
+        animation = propanim;
+        connect(animation, &QAbstractAnimation::finished, this, &SlideScene::endTransition);
         propanim->setDuration(1000*transition.duration);
         const bool outwards = transition.properties & SlideTransition::Outwards;
         switch (transition.angle)
@@ -654,9 +662,7 @@ void SlideScene::startTransition(const int newpage, const SlideTransition &trans
             propanim->setEndValue(outwards ? sceneRect().width() : 0.);
             break;
         }
-        propanim->setTargetObject(pageTransitionItem);
         propanim->setEasingCurve(outwards ? QEasingCurve::InSine : QEasingCurve::OutSine);
-        animation = propanim;
         break;
     }
     case SlideTransition::Push:
@@ -787,7 +793,7 @@ void SlideScene::startTransition(const int newpage, const SlideTransition &trans
     }
     if (animation)
     {
-        connect(animation, &QPropertyAnimation::finished, this, &SlideScene::endTransition);
+        connect(animation, &QAbstractAnimation::finished, this, &SlideScene::endTransition);
         addItem(pageTransitionItem);
         animation->start(QAbstractAnimation::KeepWhenStopped);
     }

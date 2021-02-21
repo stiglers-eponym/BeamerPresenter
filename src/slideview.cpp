@@ -17,7 +17,7 @@ SlideView::SlideView(SlideScene *scene, PixCache *cache, QWidget *parent) :
     connect(this, &SlideView::requestPage, cache, &PixCache::requestPage, Qt::QueuedConnection);
     connect(cache, &PixCache::pageReady, this, &SlideView::pageReady, Qt::QueuedConnection);
     connect(this, &SlideView::resizeCache, cache, &PixCache::updateFrame, Qt::QueuedConnection);
-    connect(this, &SlideView::waitForPixcache, cache, &PixCache::waitForFinish, Qt::BlockingQueuedConnection);
+    connect(this, &SlideView::getPixmapBlocking, cache, &PixCache::getPixmap, Qt::BlockingQueuedConnection);
 }
 
 SlideView::~SlideView() noexcept
@@ -46,6 +46,30 @@ void SlideView::pageChanged(const int page, SlideScene *scene)
     waitingForPage = page;
     debug_msg(DebugPageChange) << "Request page" << page << this;
     emit requestPage(page, resolution);
+}
+
+void SlideView::pageChangedBlocking(const int page, SlideScene *scene)
+{
+    qDeleteAll(sliders);
+    sliders.clear();
+    setScene(scene);
+    const QSizeF &pageSize = scene->sceneRect().size();
+    qreal resolution;
+    if (pageSize.width() * height() > pageSize.height() * width())
+        // page is too wide, determine resolution by x direction
+        resolution = width() / pageSize.width();
+    else
+        // page is too high, determine resolution by y direction
+        resolution = height() / pageSize.height();
+    if (resolution < 1e-9 || resolution > 1e9)
+        return;
+    resetTransform();
+    scale(resolution, resolution);
+    QPixmap pixmap;
+    debug_msg(DebugPageChange) << "Request page blocking" << page << this;
+    emit getPixmapBlocking(page, &pixmap);
+    scene->pageBackground()->addPixmap(pixmap);
+    updateScene({sceneRect()});
 }
 
 void SlideView::pageReady(const QPixmap pixmap, const int page)
@@ -304,10 +328,12 @@ void SlideView::prepareTransition(PixmapGraphicsItem *transitionItem)
     transitionItem->addPixmap(pixmap);
 }
 
-void SlideView::prepareFlyTransition(PixmapGraphicsItem *transitionItem)
+void SlideView::prepareFlyTransition()
 {
-    if (waitingForPage != INT_MAX)
-        emit waitForPixcache();
+    PixmapGraphicsItem *transitionItem = static_cast<SlideScene*>(scene())->transitionItem();
+    if (!transitionItem)
+        return;
+
     QImage newimg((sceneRect().size()*transform().m11()).toSize(), QImage::Format_ARGB32);
     QPainter painter(&newimg);
     QRect sourceRect(mapFromScene({0,0}), newimg.size());
@@ -321,17 +347,18 @@ void SlideView::prepareFlyTransition(PixmapGraphicsItem *transitionItem)
         qWarning() << "invalid old image";
         return;
     }
-    debug_msg(DebugTransitions) << oldimg.size() << oldimg.format();
     unsigned char r, g, b, a;
+    const QRgb *oldpixel, *end;
+    QRgb *newpixel;
     for (int i=0; i<newimg.height(); i++)
     {
-        const QRgb *oldline = (const QRgb*)(oldimg.constScanLine(i));
-        QRgb *newline = (QRgb*)(newimg.scanLine(i));
-        const QRgb *const end = oldline + newimg.width();
-        for (; oldline != end; ++oldline, ++newline)
+        oldpixel = (const QRgb*)(oldimg.constScanLine(i));
+        newpixel = (QRgb*)(newimg.scanLine(i));
+        end = oldpixel + newimg.width();
+        for (; oldpixel != end; ++oldpixel, ++newpixel)
         {
-            if (*oldline == *newline)
-                *newline = 0;
+            if (*oldpixel == *newpixel)
+                *newpixel = 0;
             else
             {
                 // Do fancy transparency effects:
@@ -339,19 +366,19 @@ void SlideView::prepareFlyTransition(PixmapGraphicsItem *transitionItem)
                 // r := minimum alpha/255 required for the red channel
                 // g := minimum alpha/255 required for the green channel
                 // b := minimum alpha/255 required for the blue channel
-                r = qRed(*oldline) > qRed(*newline) ? 255 - 255*qRed(*newline)/qRed(*oldline) : 255*(qRed(*newline)-qRed(*oldline))/(256-qRed(*oldline));
-                g = qGreen(*oldline) > qGreen(*newline) ? 255 - 255*qGreen(*newline)/qGreen(*oldline) : 255*(qGreen(*newline)-qGreen(*oldline))/(256-qGreen(*oldline));
-                b = qBlue(*oldline) > qBlue(*newline) ? 255 - 255*qBlue(*newline)/qBlue(*oldline) : 255*(qBlue(*newline)-qBlue(*oldline))/(256-qBlue(*oldline));
+                r = qRed(*oldpixel) > qRed(*newpixel) ? 255 - 255*qRed(*newpixel)/qRed(*oldpixel) : 255*(qRed(*newpixel)-qRed(*oldpixel))/(256-qRed(*oldpixel));
+                g = qGreen(*oldpixel) > qGreen(*newpixel) ? 255 - 255*qGreen(*newpixel)/qGreen(*oldpixel) : 255*(qGreen(*newpixel)-qGreen(*oldpixel))/(256-qGreen(*oldpixel));
+                b = qBlue(*oldpixel) > qBlue(*newpixel) ? 255 - 255*qBlue(*newpixel)/qBlue(*oldpixel) : 255*(qBlue(*newpixel)-qBlue(*oldpixel))/(256-qBlue(*oldpixel));
                 // a := max(r, g, b) = minimum alpha/255 for the pixel
                 a = r > g ? (r > b ? r : b ) : (g > b ? g : b);
                 if (a == 0)
-                    *newline = 0;
+                    *newpixel = 0;
                 else
                 {
-                    r = 255 * (qRed(*newline) - qRed(*oldline)*(255-a))/a;
-                    g = 255 * (qGreen(*newline) - qGreen(*oldline)*(255-a))/a;
-                    b = 255 * (qBlue(*newline) - qBlue(*oldline)*(255-a))/a;
-                    *newline = (a << 24) + (r << 16) + (g << 8) + b;
+                    r = 255 * (qRed(*newpixel) - qRed(*oldpixel)*(255-a))/a;
+                    g = 255 * (qGreen(*newpixel) - qGreen(*oldpixel)*(255-a))/a;
+                    b = 255 * (qBlue(*newpixel) - qBlue(*oldpixel)*(255-a))/a;
+                    *newpixel = (a << 24) + (r << 16) + (g << 8) + b;
                 }
             }
         }
@@ -360,4 +387,3 @@ void SlideView::prepareFlyTransition(PixmapGraphicsItem *transitionItem)
     debug_msg(DebugTransitions) << "Prepared fly transition" << newimg.size();
     transitionItem->addPixmap(QPixmap::fromImage(newimg));
 }
-

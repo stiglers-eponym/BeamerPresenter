@@ -147,7 +147,10 @@ const QPixmap PixCache::pixmap(const int page)
     const QPixmap pix = renderer->renderPixmap(page, resolution);
 
     if (pix.isNull())
+    {
         qCritical() << "Rendering page failed" << page << resolution;
+        return pix;
+    }
 
     // Write pixmap to cache.
     const PngPixmap *png = new PngPixmap(pix, page, resolution);

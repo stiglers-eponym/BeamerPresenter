@@ -373,7 +373,7 @@ QWidget* Master::createWidget(QJsonObject &object, QWidget *parent)
         if (!object.value("show tools").toBool(true))
             slide->unsetFlag(SlideView::ShowPointingTools);
         connect(slide, &SlideView::sendKeyEvent, this, &Master::receiveKeyEvent);
-        connect(scene, &SlideScene::navigationToViews, slide, &SlideView::pageChanged);
+        connect(scene, &SlideScene::navigationToViews, slide, &SlideView::pageChanged, Qt::DirectConnection);
         widget = slide;
         break;
     }

@@ -86,6 +86,7 @@ public slots:
     /// Inform this that the page number has changed.
     /// pageSize is given in points.
     void pageChanged(const int page, SlideScene* scene);
+    void pageChangedBlocking(const int page, SlideScene* scene);
 
     /// Inform this that page is ready in pixcache.
     void pageReady(const QPixmap pixmap, const int page);
@@ -101,7 +102,7 @@ public slots:
     void addMediaSlider(const SlideScene::VideoItem &video);
 
     void prepareTransition(PixmapGraphicsItem *transitionItem);
-    void prepareFlyTransition(PixmapGraphicsItem *transitionItem);
+    void prepareFlyTransition();
 
 signals:
     /// Inform cache that page is required.
@@ -116,7 +117,7 @@ signals:
 
     void drawSceneForeground(QPainter *painter, const QRectF &rect);
 
-    void waitForPixcache() const;
+    void getPixmapBlocking(const int page, QPixmap *pixmap);
 };
 
 #endif // SLIDE_H
