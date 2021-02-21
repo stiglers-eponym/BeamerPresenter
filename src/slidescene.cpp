@@ -3,6 +3,7 @@
 
 SlideScene::SlideScene(const PdfMaster *master, const PagePart part, QObject *parent) :
     QGraphicsScene(parent),
+    pageItem(new PixmapGraphicsItem(sceneRect())),
     master(master),
     page_part(part),
     transitionDurationTimer(new QTimer(this)),
@@ -13,6 +14,9 @@ SlideScene::SlideScene(const PdfMaster *master, const PagePart part, QObject *pa
     connect(transitionFrameTimer, &QTimer::timeout, this, &SlideScene::transitionStep);
     connect(this, &SlideScene::sendNewPath, master, &PdfMaster::receiveNewPath);
     connect(this, &SlideScene::requestPathContainer, master, &PdfMaster::requestPathContainer, Qt::DirectConnection);
+    pageItem->setZValue(-1e2);
+    addItem(pageItem);
+    pageItem->show();
 }
 
 SlideScene::~SlideScene()
@@ -299,7 +303,7 @@ void SlideScene::prepareNavigationEvent(const int newpage)
     // scenes which could mess up the layout and invalidate cache.
     if ((pagesize.isNull() || !pagesize.isValid()) && !master->getDocument()->flexiblePageSizes())
     {
-        emit clearViews();
+        pageItem->clearPixmaps();
         return;
     }
     switch (page_part)
@@ -323,12 +327,13 @@ void SlideScene::navigationEvent(const int newpage, SlideScene *newscene)
     pauseMedia();
     transitionFrameTimer->stop();
     emit finishTransition();
+    pageItem->setRect(sceneRect());
+    pageItem->trackNew();
     if (!newscene || newscene == this)
     {
         const SlideTransition transition = master->transition(newpage);
         if (transition.type)
         {
-            // TODO!
             debug_msg(DebugTransitions) << "Transition:" << transition.type << transition.duration << transition.properties << transition.angle << transition.scale;
             startTransition(newpage, transition);
             return;
@@ -341,6 +346,7 @@ void SlideScene::navigationEvent(const int newpage, SlideScene *newscene)
         removeItem(list.takeLast());
     if (!newscene || newscene == this)
     {
+        addItem(pageItem);
         loadMedia(page);
         PathContainer *paths;
         emit requestPathContainer(&paths, page | page_part);
@@ -385,8 +391,9 @@ void SlideScene::loadMedia(const int page)
     }
 }
 
-void SlideScene::cacheMediaNextPage()
+void SlideScene::postRendering()
 {
+    pageItem->clearOld();
     int newpage = page + 1;
     if (shift & AnyOverlay)
         newpage = master->getDocument()->overlaysShifted(page, 1 | (shift & AnyOverlay));
@@ -469,6 +476,7 @@ void SlideScene::startTransition(const int newpage, const SlideTransition &trans
     QList<QGraphicsItem*> list = items();
     while (!list.isEmpty())
         removeItem(list.takeLast());
+    addItem(pageItem);
     invalidate();
     transitionDurationTimer->start(1000*transition.duration);
     transitionFrameTimer->start(0);

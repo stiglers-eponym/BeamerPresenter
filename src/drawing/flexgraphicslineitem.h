@@ -15,6 +15,7 @@ class FlexGraphicsLineItem : public QGraphicsLineItem
     QPainter::CompositionMode mode;
 
 public:
+    enum {Type = UserType + 3};
     FlexGraphicsLineItem(const QLineF& line, QPainter::CompositionMode mode = QPainter::CompositionMode_SourceOver) :
         QGraphicsLineItem(line), mode(mode) {}
 

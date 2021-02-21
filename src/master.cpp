@@ -302,7 +302,7 @@ QWidget* Master::createWidget(QJsonObject &object, QWidget *parent)
             else
                 doc->getScenes().append(scene);
             connect(this, &Master::sendAction, scene, &SlideScene::receiveAction);
-            connect(cacheVideoTimer, &QTimer::timeout, scene, &SlideScene::cacheMediaNextPage, Qt::QueuedConnection);
+            connect(cacheVideoTimer, &QTimer::timeout, scene, &SlideScene::postRendering, Qt::QueuedConnection);
             connect(this, &Master::prepareNavigationSignal, scene, &SlideScene::prepareNavigationEvent);
             connect(preferences(), &Preferences::stopDrawing, scene, &SlideScene::stopDrawing);
         }
@@ -375,7 +375,6 @@ QWidget* Master::createWidget(QJsonObject &object, QWidget *parent)
             slide->unsetFlag(SlideView::ShowPointingTools);
         connect(slide, &SlideView::sendKeyEvent, this, &Master::receiveKeyEvent);
         connect(scene, &SlideScene::navigationToViews, slide, &SlideView::pageChanged);
-        connect(scene, &SlideScene::clearViews, slide, &SlideView::clearBackground);
         widget = slide;
         break;
     }

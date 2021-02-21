@@ -16,6 +16,7 @@
 #include "src/drawing/pointingtool.h"
 #include "src/drawing/pathcontainer.h"
 #include "src/rendering/pdfdocument.h"
+#include "src/drawing/pixmapgraphicsitem.h"
 
 class PdfMaster;
 
@@ -51,6 +52,9 @@ private:
     /// when drawing the path is completed and the path itself is shown
     /// instead.
     QGraphicsItemGroup* currentItemCollection {NULL};
+
+    /// Graphics item representing the PDF page background.
+    PixmapGraphicsItem *pageItem {NULL};
 
     /// List of (cached or active) video items.
     QList<VideoItem> videoItems;
@@ -88,6 +92,9 @@ public:
 
     /// Destructor: delete all graphics items.
     ~SlideScene();
+
+    PixmapGraphicsItem *pageBackground() const noexcept
+    {return pageItem;}
 
     /// Set shift in the form ((shift & ~AnyOverlay) | overlay).
     void setPageShift(const int relative_shift)
@@ -180,8 +187,8 @@ public slots:
     /// Load media for given page to cache.
     void cacheMedia(const int page);
 
-    /// Load media for next page to cache.
-    void cacheMediaNextPage();
+    /// Tasks done after rendering: load media for next page to cache.
+    void postRendering();
 
     /// Tell views to create sliders.
     void createSliders() const;

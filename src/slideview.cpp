@@ -44,30 +44,16 @@ void SlideView::pageChanged(const int page, SlideScene *scene)
     resetTransform();
     scale(resolution, resolution);
     waitingForPage = page;
-    enlargedPixmap = QPixmap();
     debug_msg(DebugPageChange) << "Request page" << page << this;
     emit requestPage(page, resolution);
 }
 
-void SlideView::drawBackground(QPainter *painter, const QRectF &rect)
-{
-    QRectF bgrect = scene()->sceneRect();
-    bgrect.moveTop(0);
-    painter->drawPixmap(bgrect, currentPixmap, currentPixmap.rect());
-}
-
 void SlideView::pageReady(const QPixmap pixmap, const int page)
 {
-    debug_msg(DebugPageChange) << "page ready" << page << pixmap.size() << this;
     if (waitingForPage == page)
     {
-        currentPixmap = pixmap;
-        waitingForPage = INT_MAX;
-        updateScene({sceneRect()});
-    }
-    else if (waitingForPage == -page-1)
-    {
-        enlargedPixmap = pixmap;
+        debug_msg(DebugPageChange) << "page ready" << page << pixmap.size() << this;
+        static_cast<SlideScene*>(scene())->pageBackground()->addPixmap(pixmap);
         waitingForPage = INT_MAX;
         updateScene({sceneRect()});
     }
@@ -168,15 +154,17 @@ void SlideView::showMagnifier(QPainter *painter, const PointingTool *tool) noexc
     painter->setCompositionMode(QPainter::CompositionMode_SourceOver);
     painter->setRenderHints(QPainter::SmoothPixmapTransform);
     painter->setPen(tool->color());
+    const qreal resolution = tool->scale() / painter->transform().m11();
+    PixmapGraphicsItem *pageItem = static_cast<SlideScene*>(scene())->pageBackground();
     // Check whether an enlarged page is needed and not "in preparation" yet.
-    if (enlargedPixmap.isNull() && waitingForPage == INT_MAX)
+    if (waitingForPage == INT_MAX && !pageItem->hasResolution(resolution))
     {
         const int page = static_cast<SlideScene*>(scene())->getPage();
         const QSizeF &pageSize = scene()->sceneRect().size();
         if (!pageSize.isNull())
         {
             debug_msg(DebugDrawing) << "Request enlarged page" << page << pageSize << this;
-            waitingForPage = -page - 1;
+            waitingForPage = page;
             emit requestPage(page,
                                 tool->scale() * (
                                     (pageSize.width() * height() > pageSize.height() * width()) ?
@@ -186,6 +174,7 @@ void SlideView::showMagnifier(QPainter *painter, const PointingTool *tool) noexc
                             );
         }
     }
+    const QPixmap pixmap = pageItem->getPixmap(resolution);
     // Draw magnifier(s) at all positions of tool.
     for (const auto &pos : tool->pos())
     {
@@ -201,19 +190,15 @@ void SlideView::showMagnifier(QPainter *painter, const PointingTool *tool) noexc
         // fill magnifier with background color
         painter->fillPath(path, QBrush(palette().base()));
         // calculate source rect: area which should be magnified
-        const qreal scale = (enlargedPixmap.isNull() ? currentPixmap.width() : enlargedPixmap.width()) / sceneRect().width();
         QRectF pixmap_rect(
                     pos.x()-sceneRect().left()-tool->size()/tool->scale(),
                     pos.y()-tool->size()/tool->scale(),
                     tool->size()*2/tool->scale(),
                     tool->size()*2/tool->scale()
                     );
-        pixmap_rect.setRect(scale*pixmap_rect.x(), scale*pixmap_rect.y(), scale*pixmap_rect.width(), scale*pixmap_rect.height());
+        pixmap_rect.setRect(resolution*pixmap_rect.x(), resolution*pixmap_rect.y(), resolution*pixmap_rect.width(), resolution*pixmap_rect.height());
         // draw source in target
-        if (enlargedPixmap.isNull())
-            painter->drawPixmap(scene_rect, currentPixmap, pixmap_rect);
-        else
-            painter->drawPixmap(scene_rect, enlargedPixmap, pixmap_rect);
+        painter->drawPixmap(scene_rect, pixmap, pixmap_rect);
         // Draw paths. But don't do that while something is being drawn.
         // That could lead to a segmentation fault (for some reason...).
         if (!static_cast<SlideScene*>(scene())->isDrawing())
@@ -341,6 +326,7 @@ void SlideView::transitionStep(QPainter *painter, qreal progress)
         break;
     case SlideTransition::Wipe:
     {
+        // TODO: use QGraphicScene animation.
         QRectF sourcerect(oldSlidePixmap->rect());
         switch(transition.angle)
         {
@@ -381,6 +367,7 @@ void SlideView::transitionStep(QPainter *painter, qreal progress)
         break;
     case SlideTransition::Uncover:
     {
+        // TODO: use QGraphicScene animation.
         QRectF scenerect(mapToScene({0.,0.}), mapToScene({qreal(width()),qreal(height())}));
         switch(transition.angle)
         {

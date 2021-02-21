@@ -35,19 +35,13 @@ public:
     };
 
 private:
-    /// Pixmap representing the current slide.
-    QPixmap currentPixmap;
-    /// Enlarged pixmap of current slide (for magnifier).
-    QPixmap enlargedPixmap;
-
     QList<QSlider*> sliders;
 
     /// Old slide view for transition;
     QPixmap *oldSlidePixmap {NULL};
     SlideTransition transition;
 
-    /// Currently waiting for page: INT_MAX if not waiting for any page,
-    /// (-page-1) if waiting for enlarged page.
+    /// Currently waiting for page: INT_MAX if not waiting for any page.
     int waitingForPage = INT_MAX;
 
     /// Show slide transitions, multimedia, etc. (all not implemented yet).
@@ -80,10 +74,6 @@ public:
     void unsetFlag(const int flag) noexcept
     {flags &= ~flag;}
 
-protected:
-    /// Draw the slide to background (with correct resolution and from cache).
-    virtual void drawBackground(QPainter *painter, const QRectF &rect) override;
-
 protected slots:
     /// Handle tablet events. The tablet events are mainly handed over to
     /// the scene.
@@ -102,10 +92,6 @@ public slots:
 
     /// Inform this that page is ready in pixcache.
     void pageReady(const QPixmap pixmap, const int page);
-
-    /// Set currentPixmap to empty QPixmap.
-    void clearBackground() noexcept
-    {currentPixmap = QPixmap();}
 
     /// draw Magnifier
     void showMagnifier(QPainter *painter, const PointingTool *tool) noexcept;

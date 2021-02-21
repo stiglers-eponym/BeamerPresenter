@@ -76,6 +76,7 @@ unix {
 ###########################################################
 
 SOURCES += \
+        src/drawing/pixmapgraphicsitem.cpp \
         src/gui/actionbutton.cpp \
         src/gui/clockwidget.cpp \
         src/gui/flexlayout.cpp \
@@ -113,6 +114,7 @@ SOURCES += \
 HEADERS += \
         src/drawing/drawtool.h \
         src/drawing/flexgraphicslineitem.h \
+        src/drawing/pixmapgraphicsitem.h \
         src/drawing/pointingtool.h \
         src/drawing/texttool.h \
         src/drawing/tool.h \
