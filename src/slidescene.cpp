@@ -500,53 +500,83 @@ void SlideScene::startTransition(const int newpage, const SlideTransition &trans
     switch (transition.type)
     {
     case SlideTransition::Split:
-        if (transition.properties & SlideTransition::Outwards)
+    {
+        const bool outwards = transition.properties & SlideTransition::Outwards;
+        pageTransitionItem->setMaskType(outwards ? PixmapGraphicsItem::NegativeClipping : PixmapGraphicsItem::PositiveClipping);
+        QPropertyAnimation *propanim = new QPropertyAnimation(pageTransitionItem, "mask");
+        propanim->setDuration(1000*transition.duration);
+        QRectF rect = sceneRect();
+        if (outwards)
+            propanim->setEndValue(rect);
+        else
+            propanim->setStartValue(rect);
+        if (transition.properties & SlideTransition::Vertical)
         {
-            // TODO
+            rect.moveTop(rect.top() + rect.height()/2);
+            rect.setHeight(0.);
         }
         else
         {
-            QPropertyAnimation *propanim = new QPropertyAnimation(pageTransitionItem, "mask");
-            propanim->setDuration(1000*transition.duration);
-            QRectF rect = sceneRect();
-            propanim->setStartValue(rect);
-            if (transition.properties & SlideTransition::Vertical)
-            {
-                rect.moveTop(rect.top() + rect.height()/2);
-                rect.setHeight(0.);
-            }
-            else
-            {
-                rect.moveLeft(rect.left() + rect.width()/2);
-                rect.setWidth(0.);
-            }
-            propanim->setEndValue(rect);
-            animation = propanim;
+            rect.moveLeft(rect.left() + rect.width()/2);
+            rect.setWidth(0.);
         }
+        if (outwards)
+        {
+            propanim->setStartValue(rect);
+            pageTransitionItem->setMask(rect);
+        }
+        else
+            propanim->setEndValue(rect);
+        animation = propanim;
         break;
+    }
     case SlideTransition::Blinds:
-        // TODO
+    {
+        const bool vertical = transition.properties & SlideTransition::Vertical;
+        pageTransitionItem->setMaskType(vertical ? PixmapGraphicsItem::VerticalBlinds : PixmapGraphicsItem::HorizontalBlinds);
+        QPropertyAnimation *propanim = new QPropertyAnimation(pageTransitionItem, "mask");
+        propanim->setDuration(1000*transition.duration);
+        QRectF rect = sceneRect();
+        if (vertical)
+            rect.setWidth(rect.width()/BLINDS_NUMBER_V);
+        else
+            rect.setHeight(rect.height()/BLINDS_NUMBER_H);
+        propanim->setStartValue(rect);
+        if (vertical)
+            rect.setWidth(0);
+        else
+            rect.setHeight(0);
+        propanim->setEndValue(rect);
+        animation = propanim;
         break;
+    }
     case SlideTransition::Box:
-        if (transition.properties & SlideTransition::Outwards)
+    {
+        const bool outwards = transition.properties & SlideTransition::Outwards;
+        pageTransitionItem->setMaskType(outwards ? PixmapGraphicsItem::NegativeClipping : PixmapGraphicsItem::PositiveClipping);
+        QPropertyAnimation *propanim = new QPropertyAnimation(pageTransitionItem, "mask");
+        propanim->setDuration(1000*transition.duration);
+        QRectF rect = sceneRect();
+        if (outwards)
+            propanim->setEndValue(rect);
+        else
+            propanim->setStartValue(rect);
+        rect.moveTopLeft(rect.center());
+        rect.setSize({0,0});
+        if (outwards)
         {
-            // TODO
+            propanim->setStartValue(rect);
+            pageTransitionItem->setMask(rect);
         }
         else
-        {
-            QPropertyAnimation *propanim = new QPropertyAnimation(pageTransitionItem, "mask");
-            propanim->setDuration(1000*transition.duration);
-            QRectF rect = sceneRect();
-            propanim->setStartValue(rect);
-            rect.moveTopLeft(rect.center());
-            rect.setSize({0,0});
             propanim->setEndValue(rect);
-            animation = propanim;
-        }
+        animation = propanim;
         break;
+    }
     case SlideTransition::Wipe:
     {
         QPropertyAnimation *propanim = new QPropertyAnimation(pageTransitionItem, "mask");
+        pageTransitionItem->setMaskType(PixmapGraphicsItem::PositiveClipping);
         propanim->setDuration(1000*transition.duration);
         QRectF rect = sceneRect();
         pageTransitionItem->setMask(rect);

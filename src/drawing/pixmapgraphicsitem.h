@@ -6,6 +6,9 @@
 #include <QPainter>
 #include <QGraphicsItem>
 
+#define BLINDS_NUMBER_H 6
+#define BLINDS_NUMBER_V 8
+
 /**
  * @brief Pixmaps for QGraphicsScene with multiple resolutions
  *
@@ -22,11 +25,24 @@ class PixmapGraphicsItem : public QObject, public QGraphicsItem
     Q_PROPERTY(qreal y READ y WRITE setY)
     Q_PROPERTY(QRectF mask READ mask WRITE setMask)
 
+public:
+    enum MaskType
+    {
+        NoMask,
+        PositiveClipping,
+        NegativeClipping,
+        HorizontalBlinds,
+        VerticalBlinds,
+    };
+
+private:
     /// map 100*resolution to pixmaps (resolution in dpi)
     QMap<unsigned int, QPixmap> pixmaps;
     QRectF bounding_rect;
+
+    QRectF _mask;
+    MaskType mask_type = NoMask;
     QSet<unsigned int> newHashs;
-    QRectF maskRect;
 
 public:
     enum {Type = UserType + 4};
@@ -50,8 +66,11 @@ public:
     const QPixmap getPixmap(qreal resolution) const noexcept
     {return pixmaps.value(7200*resolution);}
 
-    const QRectF &mask() const noexcept
-    {return maskRect;}
+    const QRectF mask() const noexcept
+    {return _mask;}
+
+    MaskType maskType() const noexcept
+    {return mask_type;}
 
 public slots:
     void addPixmap(const QPixmap& pixmap);
@@ -65,7 +84,9 @@ public slots:
     {newHashs.clear();}
     void clearOld() noexcept;
     void setMask(const QRectF &rect) noexcept
-    {maskRect = rect; update();}
+    {_mask = rect; update();}
+    void setMaskType(MaskType type) noexcept
+    {mask_type = type;}
 };
 
 #endif // PIXMAPGRAPHICSITEM_H

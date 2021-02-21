@@ -9,8 +9,51 @@ void PixmapGraphicsItem::paint(QPainter *painter, const QStyleOptionGraphicsItem
         QMap<unsigned int, QPixmap>::const_iterator it = pixmaps.lowerBound(hash);
         if (it == pixmaps.cend())
             --it;
-        if (!maskRect.isNull())
-            painter->setClipRect(maskRect);
+        if (!_mask.isNull())
+            switch (mask_type)
+            {
+            case NoMask:
+                break;
+            case PositiveClipping:
+                painter->setClipRect(_mask);
+                break;
+            case NegativeClipping:
+            {
+                QPainterPath outerpath, innerpath;
+                outerpath.addRect(bounding_rect);
+                innerpath.addRect(_mask);
+                painter->setClipPath(outerpath - innerpath);
+                break;
+            }
+            case VerticalBlinds:
+            {
+                QPainterPath path;
+                QRectF rect(_mask);
+                path.addRect(rect);
+                int i=0;
+                while (++i < BLINDS_NUMBER_V)
+                {
+                    rect.moveLeft(rect.left() + bounding_rect.width()/BLINDS_NUMBER_V);
+                    path.addRect(rect);
+                }
+                painter->setClipPath(path);
+                break;
+            }
+            case HorizontalBlinds:
+            {
+                QPainterPath path;
+                QRectF rect(_mask);
+                path.addRect(rect);
+                int i=0;
+                while (++i < BLINDS_NUMBER_H)
+                {
+                    rect.moveTop(rect.top() + bounding_rect.height()/BLINDS_NUMBER_H);
+                    path.addRect(rect);
+                }
+                painter->setClipPath(path);
+                break;
+            }
+        }
         const QRectF rect = painter->transform().mapRect(bounding_rect);
         painter->resetTransform();
         if (it.key() == hash)
