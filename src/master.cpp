@@ -364,7 +364,7 @@ QWidget* Master::createWidget(QJsonObject &object, QWidget *parent)
             slide->unsetFlag(SlideView::ShowTransitions);
         else
         {
-            connect(scene, &SlideScene::beginTransition, slide, &SlideView::beginTransition);
+            connect(scene, &SlideScene::beginTransition, slide, &SlideView::beginTransition, Qt::DirectConnection);
             connect(scene, &SlideScene::finishTransition, slide, &SlideView::finishTransition);
         }
         if (!object.value("autoplay").toBool(true))

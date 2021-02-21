@@ -475,69 +475,151 @@ SlideScene::VideoItem &SlideScene::getVideoItem(const MediaAnnotation &annotatio
 
 void SlideScene::startTransition(const int newpage, const SlideTransition &transition)
 {
-    // TODO!
-    page = newpage;
     pageTransitionItem = new PixmapGraphicsItem(sceneRect());
     emit beginTransition(transition, pageTransitionItem);
+    page = newpage;
     emit navigationToViews(page, this);
     debug_msg(DebugTransitions) << "transition:" << transition.type << transition.duration << transition.angle << transition.properties;
     QList<QGraphicsItem*> list = items();
     while (!list.isEmpty())
         removeItem(list.takeLast());
     addItem(pageItem);
-    pageItem->setRect(sceneRect());
-    animation = new QPropertyAnimation();
-    connect(animation, &QPropertyAnimation::finished, this, &SlideScene::endTransition);
-    animation->setDuration(1000*transition.duration);
+    loadMedia(page);
+    {
+    PathContainer *paths;
+    emit requestPathContainer(&paths, page | page_part);
+    if (paths)
+    {
+        const auto end = paths->cend();
+        for (auto it = paths->cbegin(); it != end; ++it)
+            addItem(*it);
+    }
+    }
+    delete animation;
+    animation = NULL;
     switch (transition.type)
     {
     case SlideTransition::Split:
-        animation->setDuration(0);
         break;
     case SlideTransition::Blinds:
-        animation->setDuration(0);
         break;
     case SlideTransition::Box:
-        animation->setDuration(0);
         break;
     case SlideTransition::Wipe:
-        animation->setDuration(0);
         break;
     case SlideTransition::Dissolve:
+    {
         pageTransitionItem->setOpacity(0.);
-        animation->setStartValue(1.);
-        animation->setEndValue(0.);
-        animation->setTargetObject(pageTransitionItem);
-        animation->setPropertyName("opacity");
-        break;
-    case SlideTransition::Glitter:
-        animation->setDuration(0);
-        break;
-    case SlideTransition::Fly:
-        animation->setDuration(0);
-        break;
-    case SlideTransition::Push:
-        animation->setDuration(0);
-        break;
-    case SlideTransition::Cover:
-        animation->setDuration(0);
-        break;
-    case SlideTransition::Uncover:
-        animation->setDuration(0);
-        break;
-    case SlideTransition::Fade:
-        pageTransitionItem->setOpacity(0.);
-        animation->setStartValue(1.);
-        animation->setEndValue(0.);
-        animation->setTargetObject(pageTransitionItem);
-        animation->setPropertyName("opacity");
-        break;
-    case SlideTransition::FlyRectangle:
-        animation->setDuration(0);
+        QPropertyAnimation *propanim = new QPropertyAnimation(pageTransitionItem, "opacity");
+        propanim->setDuration(1000*transition.duration);
+        propanim->setStartValue(1.);
+        propanim->setEndValue(0.);
+        animation = propanim;
         break;
     }
-    addItem(pageTransitionItem);
-    animation->start(QAbstractAnimation::KeepWhenStopped);
+    case SlideTransition::Glitter:
+        break;
+    case SlideTransition::Fly:
+        break;
+    case SlideTransition::Push:
+        break;
+    case SlideTransition::Cover:
+    {
+        QParallelAnimationGroup *groupanim = new QParallelAnimationGroup();
+        QPropertyAnimation *sceneanim = new QPropertyAnimation(this, "sceneRect", groupanim);
+        QPropertyAnimation *bganim = new QPropertyAnimation(pageTransitionItem, "x", groupanim);
+        sceneanim->setDuration(1000*transition.duration);
+        bganim->setDuration(1000*transition.duration);
+        pageTransitionItem->setZValue(-1e3);
+        QRectF movedrect = sceneRect();
+        switch (transition.angle)
+        {
+        case 90:
+            bganim->setPropertyName("y");
+            movedrect.moveBottom(movedrect.top());
+            sceneanim->setStartValue(movedrect);
+            sceneanim->setEndValue(sceneRect());
+            bganim->setStartValue(movedrect.y());
+            bganim->setEndValue(sceneRect().y());
+            break;
+        case 180:
+            movedrect.moveRight(movedrect.left());
+            sceneanim->setStartValue(movedrect);
+            sceneanim->setEndValue(sceneRect());
+            bganim->setStartValue(movedrect.x());
+            bganim->setEndValue(sceneRect().x());
+            break;
+        case 270:
+            bganim->setPropertyName("y");
+            movedrect.moveTop(movedrect.bottom());
+            sceneanim->setStartValue(movedrect);
+            sceneanim->setEndValue(sceneRect());
+            bganim->setStartValue(movedrect.y());
+            bganim->setEndValue(sceneRect().y());
+            break;
+        default:
+            movedrect.moveLeft(movedrect.right());
+            sceneanim->setStartValue(movedrect);
+            sceneanim->setEndValue(sceneRect());
+            bganim->setStartValue(movedrect.x());
+            bganim->setEndValue(sceneRect().x());
+            break;
+        }
+        groupanim->addAnimation(sceneanim);
+        groupanim->addAnimation(bganim);
+        animation = groupanim;
+        break;
+    }
+    case SlideTransition::Uncover:
+    {
+        QPropertyAnimation *propanim = new QPropertyAnimation();
+        propanim->setDuration(1000*transition.duration);
+        switch (transition.angle)
+        {
+        case 90:
+            propanim->setPropertyName("y");
+            propanim->setStartValue(0.);
+            propanim->setEndValue(-sceneRect().height());
+            break;
+        case 180:
+            propanim->setPropertyName("x");
+            propanim->setStartValue(0.);
+            propanim->setEndValue(-sceneRect().width());
+            break;
+        case 270:
+            propanim->setPropertyName("y");
+            propanim->setStartValue(0.);
+            propanim->setEndValue(sceneRect().height());
+            break;
+        default:
+            propanim->setPropertyName("x");
+            propanim->setStartValue(0.);
+            propanim->setEndValue(sceneRect().width());
+            break;
+        }
+        propanim->setTargetObject(pageTransitionItem);
+        animation = propanim;
+        break;
+    }
+    case SlideTransition::Fade:
+    {
+        pageTransitionItem->setOpacity(0.);
+        QPropertyAnimation *propanim = new QPropertyAnimation(pageTransitionItem, "opacity");
+        propanim->setDuration(1000*transition.duration);
+        propanim->setStartValue(1.);
+        propanim->setEndValue(0.);
+        animation = propanim;
+        break;
+    }
+    case SlideTransition::FlyRectangle:
+        break;
+    }
+    if (animation)
+    {
+        connect(animation, &QPropertyAnimation::finished, this, &SlideScene::endTransition);
+        addItem(pageTransitionItem);
+        animation->start(QAbstractAnimation::KeepWhenStopped);
+    }
 }
 
 void SlideScene::endTransition()

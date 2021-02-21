@@ -9,6 +9,7 @@
 #include <QMediaPlayer>
 #include <QMediaPlaylist>
 #include <QPropertyAnimation>
+#include <QParallelAnimationGroup>
 #include <QTimer>
 #include "src/enumerates.h"
 #include "src/drawing/fullgraphicspath.h"
@@ -76,7 +77,7 @@ private:
     /// Page part shown in this scene.
     const PagePart page_part;
 
-    QPropertyAnimation *animation {NULL};
+    QAbstractAnimation *animation {NULL};
 
     /// Start slide transition.
     void startTransition(const int newpage, const SlideTransition &transition);

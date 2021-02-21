@@ -37,5 +37,4 @@ void PixmapGraphicsItem::clearOld() noexcept
         else
             it = pixmaps.erase(it);
     }
-    newHashs.clear();
 }
