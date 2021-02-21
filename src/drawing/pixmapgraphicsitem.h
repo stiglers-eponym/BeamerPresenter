@@ -8,6 +8,8 @@
 
 #define BLINDS_NUMBER_H 6
 #define BLINDS_NUMBER_V 8
+#define GLITTER_ROW 525617 // ca. GLITTER_ROW/7200 glitter pixels per row
+#define GLITTER_NUMBER 137
 
 /**
  * @brief Pixmaps for QGraphicsScene with multiple resolutions
@@ -24,6 +26,7 @@ class PixmapGraphicsItem : public QObject, public QGraphicsItem
     Q_PROPERTY(qreal x READ x WRITE setX)
     Q_PROPERTY(qreal y READ y WRITE setY)
     Q_PROPERTY(QRectF mask READ mask WRITE setMask)
+    Q_PROPERTY(int progress READ progress WRITE setProgress)
 
 public:
     enum MaskType
@@ -33,6 +36,7 @@ public:
         NegativeClipping,
         HorizontalBlinds,
         VerticalBlinds,
+        Glitter,
     };
 
 private:
@@ -41,6 +45,7 @@ private:
     QRectF bounding_rect;
 
     QRectF _mask;
+    unsigned int animation_progress = UINT_MAX;
     MaskType mask_type = NoMask;
     QSet<unsigned int> newHashs;
 
@@ -72,6 +77,9 @@ public:
     MaskType maskType() const noexcept
     {return mask_type;}
 
+    int progress() const noexcept
+    {return animation_progress;}
+
 public slots:
     void addPixmap(const QPixmap& pixmap);
     void setRect(const QRectF &rect) noexcept
@@ -85,8 +93,9 @@ public slots:
     void clearOld() noexcept;
     void setMask(const QRectF &rect) noexcept
     {_mask = rect; update();}
-    void setMaskType(MaskType type) noexcept
-    {mask_type = type;}
+    void setMaskType(const MaskType type) noexcept;
+    void setProgress(const int progress) noexcept
+    {animation_progress = progress; update();}
 };
 
 #endif // PIXMAPGRAPHICSITEM_H

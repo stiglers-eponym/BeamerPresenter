@@ -611,8 +611,16 @@ void SlideScene::startTransition(const int newpage, const SlideTransition &trans
         break;
     }
     case SlideTransition::Glitter:
-        // TODO
+    {
+        pageTransitionItem->setMaskType(PixmapGraphicsItem::Glitter);
+        QPropertyAnimation *propanim = new QPropertyAnimation(pageTransitionItem, "progress");
+        propanim->setDuration(1000*transition.duration);
+        propanim->setStartValue(GLITTER_NUMBER);
+        propanim->setEndValue(0);
+        propanim->setEasingCurve(QEasingCurve::InOutSine);
+        animation = propanim;
         break;
+    }
     case SlideTransition::Fly:
         // TODO
         break;
