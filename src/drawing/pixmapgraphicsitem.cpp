@@ -1,7 +1,7 @@
 #include "src/drawing/pixmapgraphicsitem.h"
 #include "src/preferences.h"
 
-void PixmapGraphicsItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *opeion, QWidget *widget)
+void PixmapGraphicsItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
 {
     if (!pixmaps.isEmpty())
     {

@@ -114,6 +114,7 @@ public:
 
     /// Current page number in reference presentation view.
     int page = 0;
+    int previous_page = 0;
 
     /// Target time of presentation. Set to zero if timer is not running.
     QDateTime target_time;

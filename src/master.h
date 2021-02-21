@@ -124,6 +124,8 @@ public slots:
     /// This takes ownership of tool.
     void setTool(Tool *tool) const noexcept;
 
+    void postNavigation() const noexcept;
+
 signals:
     /// Send out action.
     void sendAction(const Action action) const;

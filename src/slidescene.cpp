@@ -5,13 +5,8 @@ SlideScene::SlideScene(const PdfMaster *master, const PagePart part, QObject *pa
     QGraphicsScene(parent),
     pageItem(new PixmapGraphicsItem(sceneRect())),
     master(master),
-    page_part(part),
-    transitionDurationTimer(new QTimer(this)),
-    transitionFrameTimer(new QTimer(this))
+    page_part(part)
 {
-    transitionDurationTimer->setSingleShot(true);
-    connect(transitionDurationTimer, &QTimer::timeout, this, &SlideScene::endTransition);
-    connect(transitionFrameTimer, &QTimer::timeout, this, &SlideScene::transitionStep);
     connect(this, &SlideScene::sendNewPath, master, &PdfMaster::receiveNewPath);
     connect(this, &SlideScene::requestPathContainer, master, &PdfMaster::requestPathContainer, Qt::DirectConnection);
     pageItem->setZValue(-1e2);
@@ -21,11 +16,12 @@ SlideScene::SlideScene(const PdfMaster *master, const PagePart part, QObject *pa
 
 SlideScene::~SlideScene()
 {
-    delete transitionFrameTimer;
-    delete transitionDurationTimer;
+    delete animation;
     QList<QGraphicsItem*> list = items();
     while (!list.isEmpty())
         removeItem(list.takeLast());
+    delete pageItem;
+    delete pageTransitionItem;
     for (auto &item : videoItems)
     {
         delete item.player;
@@ -325,8 +321,18 @@ void SlideScene::prepareNavigationEvent(const int newpage)
 void SlideScene::navigationEvent(const int newpage, SlideScene *newscene)
 {
     pauseMedia();
-    transitionFrameTimer->stop();
-    emit finishTransition();
+    if (pageTransitionItem)
+    {
+        removeItem(pageTransitionItem);
+        delete pageTransitionItem;
+        pageTransitionItem = NULL;
+    }
+    if (animation)
+    {
+        animation->stop();
+        delete animation;
+        animation = NULL;
+    }
     pageItem->setRect(sceneRect());
     pageItem->trackNew();
     if (!newscene || newscene == this)
@@ -358,6 +364,7 @@ void SlideScene::navigationEvent(const int newpage, SlideScene *newscene)
         }
     }
     invalidate();
+    emit finishTransition();
 }
 
 void SlideScene::loadMedia(const int page)
@@ -470,22 +477,84 @@ void SlideScene::startTransition(const int newpage, const SlideTransition &trans
 {
     // TODO!
     page = newpage;
+    pageTransitionItem = new PixmapGraphicsItem(sceneRect());
+    emit beginTransition(transition, pageTransitionItem);
     emit navigationToViews(page, this);
     debug_msg(DebugTransitions) << "transition:" << transition.type << transition.duration << transition.angle << transition.properties;
-    emit beginTransition(transition);
     QList<QGraphicsItem*> list = items();
     while (!list.isEmpty())
         removeItem(list.takeLast());
     addItem(pageItem);
-    invalidate();
-    transitionDurationTimer->start(1000*transition.duration);
-    transitionFrameTimer->start(0);
+    pageItem->setRect(sceneRect());
+    animation = new QPropertyAnimation();
+    connect(animation, &QPropertyAnimation::finished, this, &SlideScene::endTransition);
+    animation->setDuration(1000*transition.duration);
+    switch (transition.type)
+    {
+    case SlideTransition::Split:
+        animation->setDuration(0);
+        break;
+    case SlideTransition::Blinds:
+        animation->setDuration(0);
+        break;
+    case SlideTransition::Box:
+        animation->setDuration(0);
+        break;
+    case SlideTransition::Wipe:
+        animation->setDuration(0);
+        break;
+    case SlideTransition::Dissolve:
+        pageTransitionItem->setOpacity(0.);
+        animation->setStartValue(1.);
+        animation->setEndValue(0.);
+        animation->setTargetObject(pageTransitionItem);
+        animation->setPropertyName("opacity");
+        break;
+    case SlideTransition::Glitter:
+        animation->setDuration(0);
+        break;
+    case SlideTransition::Fly:
+        animation->setDuration(0);
+        break;
+    case SlideTransition::Push:
+        animation->setDuration(0);
+        break;
+    case SlideTransition::Cover:
+        animation->setDuration(0);
+        break;
+    case SlideTransition::Uncover:
+        animation->setDuration(0);
+        break;
+    case SlideTransition::Fade:
+        pageTransitionItem->setOpacity(0.);
+        animation->setStartValue(1.);
+        animation->setEndValue(0.);
+        animation->setTargetObject(pageTransitionItem);
+        animation->setPropertyName("opacity");
+        break;
+    case SlideTransition::FlyRectangle:
+        animation->setDuration(0);
+        break;
+    }
+    addItem(pageTransitionItem);
+    animation->start(QAbstractAnimation::KeepWhenStopped);
 }
 
 void SlideScene::endTransition()
 {
-    transitionFrameTimer->stop();
     emit finishTransition();
+    if (pageTransitionItem)
+    {
+        removeItem(pageTransitionItem);
+        delete pageTransitionItem;
+        pageTransitionItem = NULL;
+    }
+    if (animation)
+    {
+        animation->stop();
+        delete animation;
+        animation = NULL;
+    }
     PathContainer *paths;
     emit requestPathContainer(&paths, page | page_part);
     if (paths)

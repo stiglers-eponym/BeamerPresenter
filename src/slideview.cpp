@@ -192,7 +192,7 @@ void SlideView::showMagnifier(QPainter *painter, const PointingTool *tool) noexc
         // calculate source rect: area which should be magnified
         QRectF pixmap_rect(
                     pos.x()-sceneRect().left()-tool->size()/tool->scale(),
-                    pos.y()-tool->size()/tool->scale(),
+                    pos.y()-sceneRect().top()-tool->size()/tool->scale(),
                     tool->size()*2/tool->scale(),
                     tool->size()*2/tool->scale()
                     );
@@ -216,12 +216,6 @@ void SlideView::showMagnifier(QPainter *painter, const PointingTool *tool) noexc
 
 void SlideView::drawForeground(QPainter *painter, const QRectF &rect)
 {
-    if (oldSlidePixmap && flags & ShowTransitions)
-    {
-        const qreal progress = 1e-3 * static_cast<SlideScene*>(scene())->transitionRemaining() / transition.duration;
-        if (progress > 0.)
-            transitionStep(painter, progress);
-    }
     if (flags & ShowPointingTools)
     {
         painter->setRenderHint(QPainter::Antialiasing);
@@ -300,109 +294,17 @@ void SlideView::addMediaSlider(const SlideScene::VideoItem &video)
     slider->show();
 }
 
-void SlideView::beginTransition(const SlideTransition &trans)
+void SlideView::beginTransition(const SlideTransition &trans, PixmapGraphicsItem *transitionItem)
 {
     transition = trans;
-    delete oldSlidePixmap;
-    oldSlidePixmap = NULL;
-    QPixmap *newpixmap = new QPixmap(size());
-    newpixmap->fill(QColor(0,0,0,0));
-    QPainter painter(newpixmap);
-    render(&painter);
-    oldSlidePixmap = newpixmap;
-}
-
-void SlideView::transitionStep(QPainter *painter, qreal progress)
-{
-    if (!oldSlidePixmap)
-        return;
-    switch(transition.type)
-    {
-    case SlideTransition::Split:
-        break;
-    case SlideTransition::Blinds:
-        break;
-    case SlideTransition::Box:
-        break;
-    case SlideTransition::Wipe:
-    {
-        // TODO: use QGraphicScene animation.
-        QRectF sourcerect(oldSlidePixmap->rect());
-        switch(transition.angle)
-        {
-        case 90:
-            sourcerect.setBottom(progress*sourcerect.bottom());
-            break;
-        case 180:
-            sourcerect.setRight(progress*sourcerect.right());
-            break;
-        case 270:
-            sourcerect.setTop((1-progress)*sourcerect.bottom());
-            break;
-        default:
-            sourcerect.setLeft((1-progress)*sourcerect.right());
-            break;
-        }
-        QRectF scenerect(mapToScene(sourcerect.topLeft()), mapToScene(sourcerect.bottomRight()));
-        painter->drawPixmap(scenerect, *oldSlidePixmap, sourcerect);
-        break;
-    }
-    case SlideTransition::Dissolve:
-    {
-        QRectF scenerect(mapToScene({0.,0.}), mapToScene({qreal(width()),qreal(height())}));
-        painter->setOpacity(1. - progress);
-        painter->fillRect(scenerect, Qt::black);
-        painter->setOpacity(progress);
-        painter->drawPixmap(scenerect, *oldSlidePixmap, oldSlidePixmap->rect());
-        invalidateScene(scenerect, QGraphicsScene::ForegroundLayer);
-        break;
-    }
-    case SlideTransition::Glitter:
-        break;
-    case SlideTransition::Fly:
-        break;
-    case SlideTransition::Push:
-        break;
-    case SlideTransition::Cover:
-        break;
-    case SlideTransition::Uncover:
-    {
-        // TODO: use QGraphicScene animation.
-        QRectF scenerect(mapToScene({0.,0.}), mapToScene({qreal(width()),qreal(height())}));
-        switch(transition.angle)
-        {
-        case 90:
-            scenerect.moveBottom(progress*scenerect.bottom());
-            break;
-        case 180:
-            scenerect.moveRight(progress*scenerect.right());
-            break;
-        case 270:
-            scenerect.moveTop((1-progress)*scenerect.bottom());
-            break;
-        default:
-            scenerect.moveLeft((1-progress)*scenerect.right());
-            break;
-        }
-        painter->drawPixmap(scenerect, *oldSlidePixmap, oldSlidePixmap->rect());
-        break;
-    }
-    case SlideTransition::Fade:
-    {
-        QRectF scenerect(mapToScene({0.,0.}), mapToScene({qreal(width()),qreal(height())}));
-        painter->setOpacity(progress);
-        painter->drawPixmap(scenerect, *oldSlidePixmap, oldSlidePixmap->rect());
-        invalidateScene(scenerect, QGraphicsScene::ForegroundLayer);
-        break;
-    }
-    case SlideTransition::FlyRectangle:
-        break;
-    }
+    QPixmap pixmap((sceneRect().size()*transform().m11()).toSize());
+    QPainter painter(&pixmap);
+    QRect sourceRect(mapFromScene({0,0}), pixmap.size());
+    render(&painter, pixmap.rect(), sourceRect);
+    transitionItem->addPixmap(pixmap);
 }
 
 void SlideView::finishTransition()
 {
-    delete oldSlidePixmap;
-    oldSlidePixmap = NULL;
     transition.type = SlideTransition::Invalid;
 }

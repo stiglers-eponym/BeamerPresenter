@@ -295,8 +295,10 @@ QWidget* Master::createWidget(QJsonObject &object, QWidget *parent)
         if (scene == NULL)
         {
             scene = new SlideScene(doc, page_part, parent);
-            if (shift != 0)
+            if (shift)
                 scene->setPageShift(shift);
+            if ((shift & ~AnyOverlay) == 0)
+                connect(scene, &SlideScene::finishTransition, this, &Master::postNavigation);
             if (object.value("master").toBool())
                 doc->getScenes().prepend(scene);
             else
@@ -648,6 +650,7 @@ void Master::handleAction(const Action action)
 
 void Master::leavePage(const int page) const
 {
+    writable_preferences()->previous_page = page;
     bool flexible_page_numbers = false;
     for (const auto doc : qAsConst(documents))
     {
@@ -704,9 +707,16 @@ void Master::navigateToPage(const int page) const
         window->updateGeometry();
     // Get duration of the slide: But only take a nontrivial value if
     // the new page is (old page + 1).
-    const qreal duration = preferences()->page+1 == page ? documents.first()->getDocument()->duration(page) : -1.;
     writable_preferences()->page = page;
     emit navigationSignal(page);
+}
+
+void Master::postNavigation() const noexcept
+{
+    if (slideDurationTimer->isActive() || cacheVideoTimer->isActive())
+        return;
+    const int page = preferences()->page;
+    const qreal duration = page == preferences()->previous_page + 1 ? documents.first()->getDocument()->duration(preferences()->page) : -1.;
     if (duration == 0.)
         slideDurationTimer->start(preferences()->slide_duration_animation);
     else if (duration > 0.)

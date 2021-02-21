@@ -103,8 +103,7 @@ public slots:
 
     void addMediaSlider(const SlideScene::VideoItem &video);
 
-    void beginTransition(const SlideTransition &transition);
-    void transitionStep(QPainter *painter, qreal progress);
+    void beginTransition(const SlideTransition &transition, PixmapGraphicsItem *transitionItem);
     void finishTransition();
 
 signals:

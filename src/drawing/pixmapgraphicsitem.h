@@ -1,8 +1,9 @@
 #ifndef PIXMAPGRAPHICSITEM_H
 #define PIXMAPGRAPHICSITEM_H
 
-#include <QPainter>
 #include <QSet>
+#include <QObject>
+#include <QPainter>
 #include <QGraphicsItem>
 
 /**
@@ -13,8 +14,11 @@
  * while showing different pixmaps with the correct resolution for different
  * views of the QGraphicsScene.
  */
-class PixmapGraphicsItem : public QGraphicsItem
+class PixmapGraphicsItem : public QObject, public QGraphicsItem
 {
+    Q_OBJECT
+    Q_PROPERTY(qreal opacity READ opacity WRITE setOpacity)
+
     /// map 1000*resolution to pixmaps (resolution in dpi)
     QMap<unsigned int, QPixmap> pixmaps;
     QRectF bounding_rect;
@@ -24,7 +28,8 @@ public:
     enum {Type = UserType + 4};
 
     /// Trivial constructor.
-    PixmapGraphicsItem(const QRectF &rect, QGraphicsItem *parent = NULL) : QGraphicsItem(parent), bounding_rect(rect) {}
+    explicit PixmapGraphicsItem(const QRectF &rect, QGraphicsItem *parent = NULL) :
+        QObject(NULL), QGraphicsItem(parent), bounding_rect(rect) {}
 
     /// return custom type of QGraphicsItem.
     int type() const noexcept override
@@ -33,7 +38,7 @@ public:
     bool hasResolution(qreal resolution) const noexcept
     {return pixmaps.contains(7200*resolution);}
 
-    void paint(QPainter *painter, const QStyleOptionGraphicsItem *opeion, QWidget *widget = NULL) override;
+    void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget = NULL) override;
 
     QRectF boundingRect() const override
     {return bounding_rect;}
