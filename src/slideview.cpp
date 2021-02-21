@@ -301,7 +301,7 @@ void SlideView::beginTransition(const SlideTransition &trans, PixmapGraphicsItem
     QPainter painter(&pixmap);
     QRect sourceRect(mapFromScene({0,0}), pixmap.size());
     render(&painter, pixmap.rect(), sourceRect);
-    debug_msg(DebugTransitions) << painter.end();
+    painter.end();
     transitionItem->addPixmap(pixmap);
 }
 

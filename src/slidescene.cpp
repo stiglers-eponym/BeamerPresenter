@@ -522,7 +522,33 @@ void SlideScene::startTransition(const int newpage, const SlideTransition &trans
     case SlideTransition::Fly:
         break;
     case SlideTransition::Push:
+    {
+        QPropertyAnimation *propanim = new QPropertyAnimation(this, "sceneRect");
+        propanim->setDuration(1000*transition.duration);
+        pageTransitionItem->setZValue(-1e3);
+        QRectF movedrect = sceneRect();
+        switch (transition.angle)
+        {
+        case 90:
+            movedrect.moveBottom(movedrect.top());
+            break;
+        case 180:
+            movedrect.moveRight(movedrect.left());
+            break;
+        case 270:
+            movedrect.moveTop(movedrect.bottom());
+            break;
+        default:
+            movedrect.moveLeft(movedrect.right());
+            break;
+        }
+        pageTransitionItem->setRect(movedrect);
+        propanim->setStartValue(movedrect);
+        propanim->setEndValue(sceneRect());
+        propanim->setEasingCurve(QEasingCurve::InOutSine);
+        animation = propanim;
         break;
+    }
     case SlideTransition::Cover:
     {
         QParallelAnimationGroup *groupanim = new QParallelAnimationGroup();
@@ -537,36 +563,32 @@ void SlideScene::startTransition(const int newpage, const SlideTransition &trans
         case 90:
             bganim->setPropertyName("y");
             movedrect.moveBottom(movedrect.top());
-            sceneanim->setStartValue(movedrect);
-            sceneanim->setEndValue(sceneRect());
             bganim->setStartValue(movedrect.y());
             bganim->setEndValue(sceneRect().y());
             break;
         case 180:
             movedrect.moveRight(movedrect.left());
-            sceneanim->setStartValue(movedrect);
-            sceneanim->setEndValue(sceneRect());
             bganim->setStartValue(movedrect.x());
             bganim->setEndValue(sceneRect().x());
             break;
         case 270:
             bganim->setPropertyName("y");
             movedrect.moveTop(movedrect.bottom());
-            sceneanim->setStartValue(movedrect);
-            sceneanim->setEndValue(sceneRect());
             bganim->setStartValue(movedrect.y());
             bganim->setEndValue(sceneRect().y());
             break;
         default:
             movedrect.moveLeft(movedrect.right());
-            sceneanim->setStartValue(movedrect);
-            sceneanim->setEndValue(sceneRect());
             bganim->setStartValue(movedrect.x());
             bganim->setEndValue(sceneRect().x());
             break;
         }
+        sceneanim->setStartValue(movedrect);
+        sceneanim->setEndValue(sceneRect());
         groupanim->addAnimation(sceneanim);
         groupanim->addAnimation(bganim);
+        sceneanim->setEasingCurve(QEasingCurve::OutSine);
+        bganim->setEasingCurve(QEasingCurve::OutSine);
         animation = groupanim;
         break;
     }
@@ -598,17 +620,27 @@ void SlideScene::startTransition(const int newpage, const SlideTransition &trans
             break;
         }
         propanim->setTargetObject(pageTransitionItem);
+        propanim->setEasingCurve(QEasingCurve::InSine);
         animation = propanim;
         break;
     }
     case SlideTransition::Fade:
     {
         pageTransitionItem->setOpacity(0.);
-        QPropertyAnimation *propanim = new QPropertyAnimation(pageTransitionItem, "opacity");
-        propanim->setDuration(1000*transition.duration);
-        propanim->setStartValue(1.);
-        propanim->setEndValue(0.);
-        animation = propanim;
+        QParallelAnimationGroup *groupanim = new QParallelAnimationGroup();
+        QPropertyAnimation *oldpageanim = new QPropertyAnimation(pageTransitionItem, "opacity", groupanim);
+        QPropertyAnimation *newpageanim = new QPropertyAnimation(pageItem, "opacity", groupanim);
+        oldpageanim->setDuration(1000*transition.duration);
+        oldpageanim->setStartValue(1.);
+        oldpageanim->setEndValue(0.);
+        newpageanim->setDuration(1000*transition.duration);
+        newpageanim->setStartValue(0.);
+        newpageanim->setEndValue(1.);
+        groupanim->addAnimation(oldpageanim);
+        groupanim->addAnimation(newpageanim);
+        oldpageanim->setEasingCurve(QEasingCurve::OutQuart);
+        newpageanim->setEasingCurve(QEasingCurve::InQuart);
+        animation = groupanim;
         break;
     }
     case SlideTransition::FlyRectangle:
@@ -624,6 +656,7 @@ void SlideScene::startTransition(const int newpage, const SlideTransition &trans
 
 void SlideScene::endTransition()
 {
+    pageItem->setOpacity(1.);
     emit finishTransition();
     if (pageTransitionItem)
     {
