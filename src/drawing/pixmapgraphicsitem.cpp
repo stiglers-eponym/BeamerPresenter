@@ -9,6 +9,8 @@ void PixmapGraphicsItem::paint(QPainter *painter, const QStyleOptionGraphicsItem
         QMap<unsigned int, QPixmap>::const_iterator it = pixmaps.lowerBound(hash);
         if (it == pixmaps.cend())
             --it;
+        if (!maskRect.isNull())
+            painter->setClipRect(maskRect);
         const QRectF rect = painter->transform().mapRect(bounding_rect);
         painter->resetTransform();
         if (it.key() == hash)

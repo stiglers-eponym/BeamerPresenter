@@ -500,13 +500,76 @@ void SlideScene::startTransition(const int newpage, const SlideTransition &trans
     switch (transition.type)
     {
     case SlideTransition::Split:
+        if (transition.properties & SlideTransition::Outwards)
+        {
+            // TODO
+        }
+        else
+        {
+            QPropertyAnimation *propanim = new QPropertyAnimation(pageTransitionItem, "mask");
+            propanim->setDuration(1000*transition.duration);
+            QRectF rect = sceneRect();
+            propanim->setStartValue(rect);
+            if (transition.properties & SlideTransition::Vertical)
+            {
+                rect.moveTop(rect.top() + rect.height()/2);
+                rect.setHeight(0.);
+            }
+            else
+            {
+                rect.moveLeft(rect.left() + rect.width()/2);
+                rect.setWidth(0.);
+            }
+            propanim->setEndValue(rect);
+            animation = propanim;
+        }
         break;
     case SlideTransition::Blinds:
+        // TODO
         break;
     case SlideTransition::Box:
+        if (transition.properties & SlideTransition::Outwards)
+        {
+            // TODO
+        }
+        else
+        {
+            QPropertyAnimation *propanim = new QPropertyAnimation(pageTransitionItem, "mask");
+            propanim->setDuration(1000*transition.duration);
+            QRectF rect = sceneRect();
+            propanim->setStartValue(rect);
+            rect.moveTopLeft(rect.center());
+            rect.setSize({0,0});
+            propanim->setEndValue(rect);
+            animation = propanim;
+        }
         break;
     case SlideTransition::Wipe:
+    {
+        QPropertyAnimation *propanim = new QPropertyAnimation(pageTransitionItem, "mask");
+        propanim->setDuration(1000*transition.duration);
+        QRectF rect = sceneRect();
+        pageTransitionItem->setMask(rect);
+        propanim->setStartValue(rect);
+        switch (transition.angle)
+        {
+        case 90:
+            rect.setBottom(rect.top()+1);
+            break;
+        case 180:
+            rect.setRight(rect.left()+1);
+            break;
+        case 270:
+            rect.setTop(rect.bottom()-1);
+            break;
+        default:
+            rect.setLeft(rect.right()-1);
+            break;
+        }
+        propanim->setEndValue(rect);
+        animation = propanim;
         break;
+    }
     case SlideTransition::Dissolve:
     {
         pageTransitionItem->setOpacity(0.);
@@ -518,8 +581,10 @@ void SlideScene::startTransition(const int newpage, const SlideTransition &trans
         break;
     }
     case SlideTransition::Glitter:
+        // TODO
         break;
     case SlideTransition::Fly:
+        // TODO
         break;
     case SlideTransition::Push:
     {
@@ -644,6 +709,7 @@ void SlideScene::startTransition(const int newpage, const SlideTransition &trans
         break;
     }
     case SlideTransition::FlyRectangle:
+        // TODO
         break;
     }
     if (animation)

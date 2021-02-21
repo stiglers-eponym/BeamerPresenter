@@ -20,11 +20,13 @@ class PixmapGraphicsItem : public QObject, public QGraphicsItem
     Q_PROPERTY(qreal opacity READ opacity WRITE setOpacity)
     Q_PROPERTY(qreal x READ x WRITE setX)
     Q_PROPERTY(qreal y READ y WRITE setY)
+    Q_PROPERTY(QRectF mask READ mask WRITE setMask)
 
-    /// map 1000*resolution to pixmaps (resolution in dpi)
+    /// map 100*resolution to pixmaps (resolution in dpi)
     QMap<unsigned int, QPixmap> pixmaps;
     QRectF bounding_rect;
     QSet<unsigned int> newHashs;
+    QRectF maskRect;
 
 public:
     enum {Type = UserType + 4};
@@ -48,10 +50,13 @@ public:
     const QPixmap getPixmap(qreal resolution) const noexcept
     {return pixmaps.value(7200*resolution);}
 
+    const QRectF &mask() const noexcept
+    {return maskRect;}
+
 public slots:
     void addPixmap(const QPixmap& pixmap);
     void setRect(const QRectF &rect) noexcept
-    {bounding_rect = rect;}
+    {bounding_rect = rect; update();}
     void setSize(const QSizeF &size) noexcept
     {bounding_rect.setSize(size);}
     void clearPixmaps() noexcept
@@ -59,6 +64,8 @@ public slots:
     void trackNew() noexcept
     {newHashs.clear();}
     void clearOld() noexcept;
+    void setMask(const QRectF &rect) noexcept
+    {maskRect = rect; update();}
 };
 
 #endif // PIXMAPGRAPHICSITEM_H
