@@ -68,8 +68,7 @@ public:
     QRectF boundingRect() const override
     {return bounding_rect;}
 
-    const QPixmap getPixmap(qreal resolution) const noexcept
-    {return pixmaps.value(7200*resolution);}
+    const QPixmap getPixmap(qreal resolution) const noexcept;
 
     const QRectF mask() const noexcept
     {return _mask;}
@@ -79,6 +78,9 @@ public:
 
     int progress() const noexcept
     {return animation_progress;}
+
+    int number() const noexcept
+    {return pixmaps.size();}
 
 public slots:
     void addPixmap(const QPixmap& pixmap);

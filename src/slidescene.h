@@ -215,7 +215,7 @@ signals:
     /// Send new path to PdfMaster.
     void sendNewPath(int page, QGraphicsItem *item) const;
 
-    void beginTransition(const SlideTransition &transition, PixmapGraphicsItem *transitionItem);
+    void prepareTransition(PixmapGraphicsItem *transitionItem);
     void finishTransition();
 
     void requestPathContainer(PathContainer **container, int page);

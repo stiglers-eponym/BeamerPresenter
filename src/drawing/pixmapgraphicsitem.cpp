@@ -138,3 +138,13 @@ void PixmapGraphicsItem::setMaskType(const MaskType type) noexcept
     if (mask_type == Glitter)
         reshuffle_array();
 }
+
+const QPixmap PixmapGraphicsItem::getPixmap(qreal resolution) const noexcept
+{
+    if (pixmaps.isEmpty())
+        return QPixmap();
+    QMap<unsigned int, QPixmap>::const_iterator it = pixmaps.lowerBound(7200*resolution);
+    if (it == pixmaps.cend())
+        --it;
+    return *it;
+}

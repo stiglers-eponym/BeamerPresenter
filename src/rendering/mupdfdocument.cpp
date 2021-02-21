@@ -460,7 +460,7 @@ void MuPdfDocument::prepareRendering(fz_context **context, fz_rect *bbox, fz_dis
         *list = fz_new_display_list(ctx, *bbox);
         // Use a fitz device to fill the list with the content of the page.
         dev = fz_new_list_device(ctx, *list);
-        fz_run_page(ctx, page, dev, fz_scale(resolution, resolution), NULL);
+        fz_run_page_contents(ctx, page, dev, fz_scale(resolution, resolution), NULL);
     }
     fz_always(ctx)
     {

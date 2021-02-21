@@ -4,6 +4,7 @@
 #include <QSlider>
 #include <QGraphicsView>
 #include <QResizeEvent>
+#include <cstring>
 #include "src/drawing/pointingtool.h"
 #include "src/rendering/pixcache.h"
 #include "src/preferences.h"
@@ -36,10 +37,6 @@ public:
 
 private:
     QList<QSlider*> sliders;
-
-    /// Old slide view for transition;
-    QPixmap *oldSlidePixmap {NULL};
-    SlideTransition transition;
 
     /// Currently waiting for page: INT_MAX if not waiting for any page.
     int waitingForPage = INT_MAX;
@@ -103,8 +100,8 @@ public slots:
 
     void addMediaSlider(const SlideScene::VideoItem &video);
 
-    void beginTransition(const SlideTransition &transition, PixmapGraphicsItem *transitionItem);
-    void finishTransition();
+    void prepareTransition(PixmapGraphicsItem *transitionItem);
+    void prepareFlyTransition(PixmapGraphicsItem *transitionItem);
 
 signals:
     /// Inform cache that page is required.
@@ -118,6 +115,8 @@ signals:
     void resizeCache(const QSizeF &size) const;
 
     void drawSceneForeground(QPainter *painter, const QRectF &rect);
+
+    void waitForPixcache() const;
 };
 
 #endif // SLIDE_H

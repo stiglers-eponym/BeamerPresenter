@@ -476,13 +476,14 @@ SlideScene::VideoItem &SlideScene::getVideoItem(const MediaAnnotation &annotatio
 void SlideScene::startTransition(const int newpage, const SlideTransition &transition)
 {
     pageTransitionItem = new PixmapGraphicsItem(sceneRect());
-    emit beginTransition(transition, pageTransitionItem);
+    emit prepareTransition(pageTransitionItem);
     page = newpage;
     emit navigationToViews(page, this);
     debug_msg(DebugTransitions) << "transition:" << transition.type << transition.duration << transition.angle << transition.properties;
     QList<QGraphicsItem*> list = items();
     while (!list.isEmpty())
         removeItem(list.takeLast());
+    pageItem->setOpacity(1.);
     addItem(pageItem);
     loadMedia(page);
     {
@@ -622,8 +623,42 @@ void SlideScene::startTransition(const int newpage, const SlideTransition &trans
         break;
     }
     case SlideTransition::Fly:
-        // TODO
+    {
+        pageTransitionItem->trackNew();
+        for (const auto &view : static_cast<const QList<QGraphicsView*>>(views()))
+            static_cast<SlideView*>(view)->prepareFlyTransition(pageTransitionItem);
+        pageTransitionItem->clearOld();
+        QPropertyAnimation *propanim = new QPropertyAnimation();
+        propanim->setDuration(1000*transition.duration);
+        const bool outwards = transition.properties & SlideTransition::Outwards;
+        switch (transition.angle)
+        {
+        case 90:
+            propanim->setPropertyName("y");
+            propanim->setStartValue(outwards ? 0. : -sceneRect().height());
+            propanim->setEndValue(outwards ? -sceneRect().height() : 0.);
+            break;
+        case 180:
+            propanim->setPropertyName("x");
+            propanim->setStartValue(outwards ? 0. : -sceneRect().width());
+            propanim->setEndValue(outwards ? -sceneRect().width() : 0.);
+            break;
+        case 270:
+            propanim->setPropertyName("y");
+            propanim->setStartValue(outwards ? 0. : sceneRect().height());
+            propanim->setEndValue(outwards ? sceneRect().height() : 0.);
+            break;
+        default:
+            propanim->setPropertyName("x");
+            propanim->setStartValue(outwards ? 0. : sceneRect().width());
+            propanim->setEndValue(outwards ? sceneRect().width() : 0.);
+            break;
+        }
+        propanim->setTargetObject(pageTransitionItem);
+        propanim->setEasingCurve(outwards ? QEasingCurve::InSine : QEasingCurve::OutSine);
+        animation = propanim;
         break;
+    }
     case SlideTransition::Push:
     {
         QPropertyAnimation *propanim = new QPropertyAnimation(this, "sceneRect");
@@ -761,7 +796,6 @@ void SlideScene::startTransition(const int newpage, const SlideTransition &trans
 void SlideScene::endTransition()
 {
     pageItem->setOpacity(1.);
-    emit finishTransition();
     if (pageTransitionItem)
     {
         removeItem(pageTransitionItem);
@@ -785,6 +819,7 @@ void SlideScene::endTransition()
     }
     loadMedia(page);
     invalidate();
+    emit finishTransition();
 }
 
 void SlideScene::tabletPress(const QPointF &pos, const QTabletEvent *event)

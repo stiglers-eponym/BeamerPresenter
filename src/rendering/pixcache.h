@@ -136,6 +136,10 @@ public slots:
     /// May only be called in this object's thread.
     void pageNumberChanged(const int page);
 
+    /// Do nothing. This is just used to wait until the execution loop of
+    /// this thread finished previous jobs.
+    void waitForFinish() const {}
+
 signals:
     /// Send out new page.
     void pageReady(const QPixmap pixmap, const int page) const;

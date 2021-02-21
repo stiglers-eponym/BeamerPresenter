@@ -17,11 +17,11 @@ SlideView::SlideView(SlideScene *scene, PixCache *cache, QWidget *parent) :
     connect(this, &SlideView::requestPage, cache, &PixCache::requestPage, Qt::QueuedConnection);
     connect(cache, &PixCache::pageReady, this, &SlideView::pageReady, Qt::QueuedConnection);
     connect(this, &SlideView::resizeCache, cache, &PixCache::updateFrame, Qt::QueuedConnection);
+    connect(this, &SlideView::waitForPixcache, cache, &PixCache::waitForFinish, Qt::BlockingQueuedConnection);
 }
 
 SlideView::~SlideView() noexcept
 {
-    delete oldSlidePixmap;
     qDeleteAll(sliders);
     sliders.clear();
 }
@@ -294,9 +294,8 @@ void SlideView::addMediaSlider(const SlideScene::VideoItem &video)
     slider->show();
 }
 
-void SlideView::beginTransition(const SlideTransition &trans, PixmapGraphicsItem *transitionItem)
+void SlideView::prepareTransition(PixmapGraphicsItem *transitionItem)
 {
-    transition = trans;
     QPixmap pixmap((sceneRect().size()*transform().m11()).toSize());
     QPainter painter(&pixmap);
     QRect sourceRect(mapFromScene({0,0}), pixmap.size());
@@ -305,7 +304,60 @@ void SlideView::beginTransition(const SlideTransition &trans, PixmapGraphicsItem
     transitionItem->addPixmap(pixmap);
 }
 
-void SlideView::finishTransition()
+void SlideView::prepareFlyTransition(PixmapGraphicsItem *transitionItem)
 {
-    transition.type = SlideTransition::Invalid;
+    if (waitingForPage != INT_MAX)
+        emit waitForPixcache();
+    QImage newimg((sceneRect().size()*transform().m11()).toSize(), QImage::Format_ARGB32);
+    QPainter painter(&newimg);
+    QRect sourceRect(mapFromScene({0,0}), newimg.size());
+    render(&painter, newimg.rect(), sourceRect);
+    painter.end();
+
+    const QImage oldimg = transitionItem->getPixmap(transform().m11()).toImage();
+    if (oldimg.size() != newimg.size())
+    {
+        debug_msg(DebugTransitions) << transitionItem->number();
+        qWarning() << "invalid old image";
+        return;
+    }
+    debug_msg(DebugTransitions) << oldimg.size() << oldimg.format();
+    unsigned char r, g, b, a;
+    for (int i=0; i<newimg.height(); i++)
+    {
+        const QRgb *oldline = (const QRgb*)(oldimg.constScanLine(i));
+        QRgb *newline = (QRgb*)(newimg.scanLine(i));
+        const QRgb *const end = oldline + newimg.width();
+        for (; oldline != end; ++oldline, ++newline)
+        {
+            if (*oldline == *newline)
+                *newline = 0;
+            else
+            {
+                // Do fancy transparency effects:
+                // Make the new pixels as transparent as possible while ensuring that the new page is given by adding the transparent new pixels to the old pixels.
+                // r := minimum alpha/255 required for the red channel
+                // g := minimum alpha/255 required for the green channel
+                // b := minimum alpha/255 required for the blue channel
+                r = qRed(*oldline) > qRed(*newline) ? 255 - 255*qRed(*newline)/qRed(*oldline) : 255*(qRed(*newline)-qRed(*oldline))/(256-qRed(*oldline));
+                g = qGreen(*oldline) > qGreen(*newline) ? 255 - 255*qGreen(*newline)/qGreen(*oldline) : 255*(qGreen(*newline)-qGreen(*oldline))/(256-qGreen(*oldline));
+                b = qBlue(*oldline) > qBlue(*newline) ? 255 - 255*qBlue(*newline)/qBlue(*oldline) : 255*(qBlue(*newline)-qBlue(*oldline))/(256-qBlue(*oldline));
+                // a := max(r, g, b) = minimum alpha/255 for the pixel
+                a = r > g ? (r > b ? r : b ) : (g > b ? g : b);
+                if (a == 0)
+                    *newline = 0;
+                else
+                {
+                    r = 255 * (qRed(*newline) - qRed(*oldline)*(255-a))/a;
+                    g = 255 * (qGreen(*newline) - qGreen(*oldline)*(255-a))/a;
+                    b = 255 * (qBlue(*newline) - qBlue(*oldline)*(255-a))/a;
+                    *newline = (a << 24) + (r << 16) + (g << 8) + b;
+                }
+            }
+        }
+    }
+
+    debug_msg(DebugTransitions) << "Prepared fly transition" << newimg.size();
+    transitionItem->addPixmap(QPixmap::fromImage(newimg));
 }
+
