@@ -7,23 +7,23 @@ current time, a timer for the presentation, and previews of the next slides.
 
 This software uses the Qt framework and the PDF engines MuPDF and/or poppler.
 
-**Note**: the relatively stable version 0.1.x can be found in [this branch](https://github.com/stiglers-eponym/BeamerPresenter/tree/0.1.x) and in the [releases](https://github.com/stiglers-eponym/BeamerPresenter/releases). This new version 0.2.x is not stable yet.
+**Note**: the relatively stable version 0.1.3 can be found in [branch 0.1.x](https://github.com/stiglers-eponym/BeamerPresenter/tree/0.1.x) and in the [releases](https://github.com/stiglers-eponym/BeamerPresenter/releases). This new version 0.2.x is not stable yet.
 
 ## Features
 * modular user interface (new in 0.2.x)
-* render slides to compressed cache for fast response
 * poppler or MuPDF (new in 0.2.x) as PDF engine
+* render slides to compressed cache for fast response (parallelization improved in 0.2.x)
 * draw in slides (improved in 0.2.x)
 * highlighting tools (torch, magnifier, pointer)
 * notes for the speaker in Markdown format (new in 0.2.x)
-* optionally to show separate file for speaker
+* optionally to show separate presentation file for speaker
 * optionally use LaTeX-beamer's option to show notes on second screen and split PDF pages into a part for the speaker and a part or the audience
 * clock and timer for the presentation (some features of 0.1.x not yet available in 0.2.x)
-* simple navigation using document outline, thumbnail slides, or navigation by page label
-* save/load drawings in Xournal format (compatibility with Xournal improved in 0.2.x)
-* show videos on slides (sound will be broken depending on the configuration; improved integration with other features in 0.2.x; some small bugs remaining)
-* basic animations by showing slides in rapid succession
+* navigate using document outline, thumbnail slides, page numbers/labels and links
+* save/load drawings in Xournal format (improved in 0.2.x)
+* videos in presentations (sound will be broken depending on the configuration; improved integration with other features in 0.2.x; some small bugs remaining)
 * slide transitions
+* basic animations by showing slides in rapid succession
 
 
 ## Screenshots
@@ -37,7 +37,7 @@ These examples were created with the configuration `config/gui-2files.json`, whi
 Use a magnifier to show details of your plots (size and magnification factor can be adjusted):
 <img src=".readme/magnifier.png" width=100% title="Magnifier (size and magnification factor are adjustable)">
 
-Draw in you presentation using a pen or highlighter and focus on parts of your slide using a torch or a pointer:
+Draw in your presentation using a pen or highlighter and focus on parts of your slide using a torch or a pointer:
 <img src=".readme/drawings+torch+pointer.png" width=100% title="Annotations, torch and pointer for highlighting">
 Of course, this is just for demonstration an you'll usually not use pointer and torch at the same time.
 Annotations can be saved and loaded in a file format borrowed from Xournal (.xoj or xopp).
@@ -47,13 +47,14 @@ Use an overview of all slides (or all slides with separate slide labels, especia
 
 You can embed videos in your slides. Drawing and highlighting also works in the video.
 <img src=".readme/draw-video.png" width=100% title="Drawings (pen and highlighter) and torch in video">
+Note the slider on the speaker's screen.
 Slide transitions may in some cases need to interrupt a video.
 
 
 ## Build and install
 **Note**: building and installing the [releases](https://github.com/stiglers-eponym/BeamerPresenter/releases) of version 0.1.x is described [here](https://github.com/stiglers-eponym/BeamerPresenter/tree/0.1.x#build).
 
-Building is tested in an up-to-date Arch Linux and (from time to time) in ubuntu 20.04.
+Building is tested in an up-to-date Arch Linux and (from time to time) in xubuntu 20.04.
 Older versions of ubuntu are not supported, because ubuntu 18.04 uses old versions of poppler and MuPDF and other ubuntu versions before 20.04 should not be used anymore.
 Version 0.1.x of BeamerPresenter should support ubuntu 18.04 and you should
 [open an issue](https://github.com/stiglers-eponym/BeamerPresenter/issues)
