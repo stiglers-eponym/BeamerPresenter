@@ -21,13 +21,37 @@ This software uses the Qt framework and the PDF engines MuPDF and/or poppler.
 * clock and timer for the presentation (some features of 0.1.x not yet available in 0.2.x)
 * simple navigation using document outline, thumbnail slides, or navigation by page label
 * save/load drawings in Xournal format (compatibility with Xournal improved in 0.2.x)
-* show videos on slides (sound will be broken depending on the configuration. improved integration with other features in 0.2.x)
+* show videos on slides (sound will be broken depending on the configuration; improved integration with other features in 0.2.x; some small bugs remaining)
 * basic animations by showing slides in rapid succession
 * slide transitions
 
 
+## Screenshots
+These screenshots only show one possible way of using BeamerPresenter. The speaker could also see a different presentation (with additional information), or editable notes.
+
+One possible configuration of the graphical interface shows the previews of the last overlays of the current and next slide to the speaker:
+<img src=".readme/fly-transition.png" width=100% title="Picture flying in during slide transition">
+The left half of these pictures shows the window visible only to the speaker and the right half shows the presentation. Both are independent windows.
+These examples were created with the configuration `config/gui-2files.json`, which also works fine if just one presentation file is given.
+
+Use a magnifier to show details of your plots (size and magnification factor can be adjusted):
+<img src=".readme/magnifier.png" width=100% title="Magnifier (size and magnification factor are adjustable)">
+
+Draw in you presentation using a pen or highlighter and focus on parts of your slide using a torch or a pointer:
+<img src=".readme/drawings+torch+pointer.png" width=100% title="Annotations, torch and pointer for highlighting">
+Of course, this is just for demonstration an you'll usually not use pointer and torch at the same time.
+Annotations can be saved and loaded in a file format borrowed from Xournal (.xoj or xopp).
+
+Use an overview of all slides (or all slides with separate slide labels, especially useful for presentations created with LaTeX beamer):
+<img src=".readme/overview+video.png" width=100% title="Overview mode and video in presentation">
+
+You can embed videos in your slides. Drawing and highlighting also works in the video.
+<img src=".readme/draw-video.png" width=100% title="Drawings (pen and highlighter) and torch in video">
+Slide transitions may in some cases need to interrupt a video.
+
+
 ## Build and install
-**Notes**: building and installing the [releases](https://github.com/stiglers-eponym/BeamerPresenter/releases) of version 0.1.x is described [here](https://github.com/stiglers-eponym/BeamerPresenter/tree/0.1.x#build).
+**Note**: building and installing the [releases](https://github.com/stiglers-eponym/BeamerPresenter/releases) of version 0.1.x is described [here](https://github.com/stiglers-eponym/BeamerPresenter/tree/0.1.x#build).
 
 Building is tested in an up-to-date Arch Linux and (from time to time) in ubuntu 20.04.
 Older versions of ubuntu are not supported, because ubuntu 18.04 uses old versions of poppler and MuPDF and other ubuntu versions before 20.04 should not be used anymore.
@@ -148,7 +172,7 @@ The configuration files of version 0.2.x and 0.1.x are incompatible.
     * thumbnails (requires improvement: keyboard navigation)
     * settings (still kind of improvised)
 
-#### To be implemented
+#### To be implemented / fixed
 * improve cache management and layout corrections: sometimes cache is not used correctly.
 * cache slides even when size of slides varies (partially implemented)
 * cache only required slides in previews showing specific overlays
@@ -157,6 +181,8 @@ The configuration files of version 0.2.x and 0.1.x are incompatible.
 * option to insert extra slides or extra space below slide for drawing (partially implemented)
 * improve text input tool
 * select for each slide widgets whether videos or slide transitions should be shown
+* magnifier in combination with overlays in preview and slide transitions may cause problems
+* magnifier in videos has some bugs, possibly connected to overlays in preview
 * improve widgets:
     * settings (more explanations)
     * timer (with color indicating progress relative to estimate like in version 0.1.x)
