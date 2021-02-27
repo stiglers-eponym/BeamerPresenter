@@ -476,15 +476,17 @@ SlideScene::VideoItem &SlideScene::getVideoItem(const MediaAnnotation &annotatio
 void SlideScene::startTransition(const int newpage, const SlideTransition &transition)
 {
     pageTransitionItem = new PixmapGraphicsItem(sceneRect());
-    emit prepareTransition(pageTransitionItem);
+    for (const auto view : static_cast<const QList<QGraphicsView*>>(views()))
+        static_cast<SlideView*>(view)->prepareTransition(pageTransitionItem);
     page = newpage;
-    if (transition.type == SlideTransition::Fly)
+    PixmapGraphicsItem *oldPage = pageTransitionItem;
+    if (transition.type == SlideTransition::Fly || transition.type == SlideTransition::FlyRectangle)
     {
-        for (const auto &view : static_cast<const QList<QGraphicsView*>>(views()))
+        if (!(transition.properties & SlideTransition::Outwards))
         {
-            SlideView *slideview = static_cast<SlideView*>(view);
-            slideview->pageChangedBlocking(page, this);
-            slideview->prepareFlyTransition();
+            pageTransitionItem = new PixmapGraphicsItem(sceneRect());
+            connect(pageTransitionItem, &QObject::destroyed, oldPage, &PixmapGraphicsItem::deleteLater);
+            oldPage->setZValue(1e1);
         }
     }
     else
@@ -633,32 +635,42 @@ void SlideScene::startTransition(const int newpage, const SlideTransition &trans
         break;
     }
     case SlideTransition::Fly:
+    case SlideTransition::FlyRectangle:
     {
+        const bool outwards = transition.properties & SlideTransition::Outwards;
+        for (const auto &view : static_cast<const QList<QGraphicsView*>>(views()))
+        {
+            SlideView *slideview = static_cast<SlideView*>(view);
+            slideview->pageChangedBlocking(page, this);
+            slideview->prepareFlyTransition(outwards, oldPage, pageTransitionItem);
+        }
+        if (!outwards)
+            addItem(oldPage);
+        pageItem->setZValue(-1e4);
+        pageTransitionItem->setZValue(1e5);
+
         QPropertyAnimation *propanim = new QPropertyAnimation(pageTransitionItem, "x");
         animation = propanim;
         connect(animation, &QAbstractAnimation::finished, this, &SlideScene::endTransition);
         propanim->setDuration(1000*transition.duration);
-        const bool outwards = transition.properties & SlideTransition::Outwards;
         switch (transition.angle)
         {
         case 90:
             propanim->setPropertyName("y");
-            propanim->setStartValue(outwards ? 0. : -sceneRect().height());
+            propanim->setStartValue(outwards ? 0. : sceneRect().height());
             propanim->setEndValue(outwards ? -sceneRect().height() : 0.);
             break;
         case 180:
-            propanim->setPropertyName("x");
-            propanim->setStartValue(outwards ? 0. : -sceneRect().width());
+            propanim->setStartValue(outwards ? 0. : sceneRect().width());
             propanim->setEndValue(outwards ? -sceneRect().width() : 0.);
             break;
         case 270:
             propanim->setPropertyName("y");
-            propanim->setStartValue(outwards ? 0. : sceneRect().height());
+            propanim->setStartValue(outwards ? 0. : -sceneRect().height());
             propanim->setEndValue(outwards ? sceneRect().height() : 0.);
             break;
         default:
-            propanim->setPropertyName("x");
-            propanim->setStartValue(outwards ? 0. : sceneRect().width());
+            propanim->setStartValue(outwards ? 0. : -sceneRect().width());
             propanim->setEndValue(outwards ? sceneRect().width() : 0.);
             break;
         }
@@ -787,9 +799,6 @@ void SlideScene::startTransition(const int newpage, const SlideTransition &trans
         animation = groupanim;
         break;
     }
-    case SlideTransition::FlyRectangle:
-        // TODO
-        break;
     }
     if (animation)
     {

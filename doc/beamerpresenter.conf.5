@@ -60,7 +60,7 @@ Defines how drawings are associated to pages. Possible options are:
 Drawings are only connected to one page in the PDF file.
 .TP
 .B per label
-Groups of successive pages which share the same page label have the same drawings. For presentations generated with LaTeX beamer this means that different overlays of the same slide show the same drawings.
+Groups of successive pages which share the same page label have the same drawings. For presentations generated with LaTeX beamer this means that different overlays of the same slide show the same drawings. This mode causes problems when combined with slide transitions.
 .TP
 .B cumulative
 Drawings are connected to pages of the PDF file. But within a group of successive pages with the same page label the drawings of the previous page are copied to the next slide if this next slide does not contain any own drawings. This allows one to successively add drawings in slides, where items appear as overlays with the same page label.

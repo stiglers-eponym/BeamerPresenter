@@ -8,8 +8,9 @@
 
 #define BLINDS_NUMBER_H 6
 #define BLINDS_NUMBER_V 8
-#define GLITTER_ROW 525617 // ca. GLITTER_ROW/7200 glitter pixels per row
+#define GLITTER_ROW 525617 // ca. GLITTER_ROW/HASH_RESOLUTION glitter pixels per row
 #define GLITTER_NUMBER 137
+#define HASH_RESOLUTION 7200 // in dpi
 
 /**
  * @brief Pixmaps for QGraphicsScene with multiple resolutions
@@ -61,14 +62,14 @@ public:
     {return Type;}
 
     bool hasResolution(qreal resolution) const noexcept
-    {return pixmaps.contains(7200*resolution);}
+    {return pixmaps.contains(HASH_RESOLUTION*resolution);}
 
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget = NULL) override;
 
     QRectF boundingRect() const override
     {return bounding_rect;}
 
-    const QPixmap getPixmap(qreal resolution) const noexcept;
+    QPixmap getPixmap(qreal resolution) const noexcept;
 
     const QRectF mask() const noexcept
     {return _mask;}

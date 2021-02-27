@@ -194,11 +194,10 @@ void PdfMaster::distributeNavigationEvents(const int page) const
             if (scenemap.contains(scenepage))
                 scene->navigationEvent(scenepage & ~NotFullPage, scenemap[scenepage]);
             else
-            {
                 scenemap[scenepage] = scene;
-                scene->navigationEvent(scenepage & ~NotFullPage);
-            }
         }
+        for (auto it = scenemap.cbegin(); it != scenemap.cend(); ++it)
+            (*it)->navigationEvent(it.key() & ~NotFullPage);
     }
     for (const auto scene : qAsConst(scenes))
         scene->createSliders();

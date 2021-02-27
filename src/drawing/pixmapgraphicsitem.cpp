@@ -37,77 +37,84 @@ static int shuffled(const unsigned int i)
 
 void PixmapGraphicsItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
 {
-    if (!pixmaps.isEmpty())
+    if (pixmaps.isEmpty())
+        return;
+    const unsigned int hash = HASH_RESOLUTION * painter->transform().m11();
+    QMap<unsigned int, QPixmap>::const_iterator it = pixmaps.lowerBound(hash);
+    if (it == pixmaps.cend())
+        --it;
+#ifdef QT_DEBUG
+    if (it.key() != hash)
     {
-        const unsigned int hash = 7200 * painter->transform().m11();
-        QMap<unsigned int, QPixmap>::const_iterator it = pixmaps.lowerBound(hash);
-        if (it == pixmaps.cend())
-            --it;
-        if (!_mask.isNull())
-            switch (mask_type)
-            {
-            case NoMask:
-            case Glitter:
-                break;
-            case PositiveClipping:
-                painter->setClipRect(_mask);
-                break;
-            case NegativeClipping:
-            {
-                QPainterPath outerpath, innerpath;
-                outerpath.addRect(bounding_rect);
-                innerpath.addRect(_mask);
-                painter->setClipPath(outerpath - innerpath);
-                break;
-            }
-            case VerticalBlinds:
-            {
-                QPainterPath path;
-                QRectF rect(_mask);
-                path.addRect(rect);
-                int i=0;
-                while (++i < BLINDS_NUMBER_V)
-                {
-                    rect.moveLeft(rect.left() + bounding_rect.width()/BLINDS_NUMBER_V);
-                    path.addRect(rect);
-                }
-                painter->setClipPath(path);
-                break;
-            }
-            case HorizontalBlinds:
-            {
-                QPainterPath path;
-                QRectF rect(_mask);
-                path.addRect(rect);
-                int i=0;
-                while (++i < BLINDS_NUMBER_H)
-                {
-                    rect.moveTop(rect.top() + bounding_rect.height()/BLINDS_NUMBER_H);
-                    path.addRect(rect);
-                }
-                painter->setClipPath(path);
-                break;
-            }
-        }
-        const QRectF rect = painter->transform().mapRect(bounding_rect);
-        painter->resetTransform();
-        if (mask_type == Glitter && animation_progress != UINT_MAX)
+        debug_msg(DebugRendering) << "possibly wrong resolution:" << it.key() << HASH_RESOLUTION * painter->transform().m11();
+        if (it != pixmaps.cbegin())
+            debug_msg(DebugRendering) << "possibly better:" << (it-1).key();
+    }
+#endif
+    if (!_mask.isNull())
+        switch (mask_type)
         {
-            const unsigned int glitter_pixel = bounding_rect.width() * hash / GLITTER_ROW;
-            unsigned int const n = rect.width()*rect.height()/glitter_pixel, w = rect.width()/glitter_pixel+1;
-            for (unsigned int j=0; j<animation_progress; j++)
-            {
-                for (unsigned int i=shuffled(j); i<n; i+=GLITTER_NUMBER)
-                    painter->drawPixmap(rect.x()+glitter_pixel*(i%w), rect.y()+glitter_pixel*(i/w), *it, glitter_pixel*(i%w), glitter_pixel*(i/w), glitter_pixel, glitter_pixel);
-            }
+        case NoMask:
+        case Glitter:
+            break;
+        case PositiveClipping:
+            painter->setClipRect(_mask);
+            break;
+        case NegativeClipping:
+        {
+            QPainterPath outerpath, innerpath;
+            outerpath.addRect(bounding_rect);
+            innerpath.addRect(_mask);
+            painter->setClipPath(outerpath - innerpath);
+            break;
         }
+        case VerticalBlinds:
+        {
+            QPainterPath path;
+            QRectF rect(_mask);
+            path.addRect(rect);
+            int i=0;
+            while (++i < BLINDS_NUMBER_V)
+            {
+                rect.moveLeft(rect.left() + bounding_rect.width()/BLINDS_NUMBER_V);
+                path.addRect(rect);
+            }
+            painter->setClipPath(path);
+            break;
+        }
+        case HorizontalBlinds:
+        {
+            QPainterPath path;
+            QRectF rect(_mask);
+            path.addRect(rect);
+            int i=0;
+            while (++i < BLINDS_NUMBER_H)
+            {
+                rect.moveTop(rect.top() + bounding_rect.height()/BLINDS_NUMBER_H);
+                path.addRect(rect);
+            }
+            painter->setClipPath(path);
+            break;
+        }
+    }
+    const QRectF rect = painter->transform().mapRect(bounding_rect);
+    painter->resetTransform();
+    if (mask_type == Glitter && animation_progress != UINT_MAX)
+    {
+        const unsigned int glitter_pixel = bounding_rect.width() * hash / GLITTER_ROW;
+        unsigned int const n = rect.width()*rect.height()/glitter_pixel, w = rect.width()/glitter_pixel+1;
+        for (unsigned int j=0; j<animation_progress; j++)
+        {
+            for (unsigned int i=shuffled(j); i<n; i+=GLITTER_NUMBER)
+                painter->drawPixmap(rect.x()+glitter_pixel*(i%w), rect.y()+glitter_pixel*(i/w), *it, glitter_pixel*(i%w), glitter_pixel*(i/w), glitter_pixel, glitter_pixel);
+        }
+    }
+    else
+    {
+        if (it.key() == hash)
+            painter->drawPixmap(rect.topLeft(), *it, it->rect());
         else
-        {
-            if (it.key() == hash)
-                painter->drawPixmap(rect.topLeft(), *it, it->rect());
-            else
-                painter->drawPixmap(rect, *it, it->rect());
-        }
+            painter->drawPixmap(rect, *it, it->rect());
     }
 }
 
@@ -115,7 +122,7 @@ void PixmapGraphicsItem::addPixmap(const QPixmap &pixmap)
 {
     if (!pixmap.isNull())
     {
-        const int hash = 7200 * pixmap.width() / boundingRect().width();
+        const int hash = HASH_RESOLUTION * pixmap.width() / boundingRect().width();
         pixmaps[hash] = pixmap;
         newHashs.insert(hash);
     }
@@ -140,12 +147,16 @@ void PixmapGraphicsItem::setMaskType(const MaskType type) noexcept
         reshuffle_array();
 }
 
-const QPixmap PixmapGraphicsItem::getPixmap(qreal resolution) const noexcept
+QPixmap PixmapGraphicsItem::getPixmap(qreal resolution) const noexcept
 {
     if (pixmaps.isEmpty())
         return QPixmap();
-    QMap<unsigned int, QPixmap>::const_iterator it = pixmaps.lowerBound(7200*resolution);
+    QMap<unsigned int, QPixmap>::const_iterator it = pixmaps.lowerBound(HASH_RESOLUTION*resolution);
     if (it == pixmaps.cend())
         --it;
+#ifdef QT_DEBUG
+    if (std::abs(it.key() - HASH_RESOLUTION*resolution) > 0.5)
+        debug_msg(DebugRendering) << "possibly wrong resolution:" << it.key() << HASH_RESOLUTION*resolution;
+#endif
     return *it;
 }

@@ -102,7 +102,13 @@ public slots:
     void addMediaSlider(const SlideScene::VideoItem &video);
 
     void prepareTransition(PixmapGraphicsItem *transitionItem);
-    void prepareFlyTransition();
+    /**
+     * @brief prepareFlyTransition
+     * @param outwards: bool, define whether transition is outwards or inwards
+     * @param old: contains pixmaps of the old page.
+     * @param target: write the result here. old == target is allowed.
+     */
+    void prepareFlyTransition(const bool outwards, const PixmapGraphicsItem *old, PixmapGraphicsItem *target);
 
 signals:
     /// Inform cache that page is required.
@@ -117,7 +123,7 @@ signals:
 
     void drawSceneForeground(QPainter *painter, const QRectF &rect);
 
-    void getPixmapBlocking(const int page, QPixmap *pixmap);
+    void getPixmapBlocking(const int page, QPixmap *pixmap, qreal resolution);
 };
 
 #endif // SLIDE_H

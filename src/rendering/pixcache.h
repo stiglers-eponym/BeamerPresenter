@@ -87,11 +87,11 @@ public:
     void setMaxNumber(const int number);
 
     /// Get pixmap showing page n.
-    const QPixmap pixmap(const int page) const;
+    const QPixmap pixmap(const int page, qreal resolution = -1.) const;
 
     /// Get pixmap showing page n.
     /// The non-const function additionally writes a new pixmap to cache.
-    const QPixmap pixmap(const int page);
+    const QPixmap pixmap(const int page, qreal resolution = -1.);
 
     /// Total size of all cached pages in bytes
     qint64 getUsedMemory() const
@@ -118,8 +118,8 @@ public slots:
     /// May only be called in this object's thread.
     void requestPage(const int n, const qreal resolution, const bool cache = true);
 
-    void getPixmap(const int page, QPixmap *target)
-    {*target = pixmap(page);}
+    void getPixmap(const int page, QPixmap *target, qreal resolution = -1.)
+    {*target = pixmap(page, resolution);}
 
     /// Request rendering a page with low priority
     /// May only be called in this object's thread.

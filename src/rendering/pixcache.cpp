@@ -92,9 +92,10 @@ void PixCache::clear()
         region = {preferences()->page, preferences()->page};
 }
 
-const QPixmap PixCache::pixmap(const int page) const
+const QPixmap PixCache::pixmap(const int page, qreal resolution) const
 {
-    qreal const resolution = getResolution(page);
+    if (resolution <= 0.)
+        resolution = getResolution(page);
     // Try to return a page from cache.
     {
         const auto it = cache.constFind(page);
@@ -123,9 +124,10 @@ const QPixmap PixCache::pixmap(const int page) const
     return pix;
 }
 
-const QPixmap PixCache::pixmap(const int page)
+const QPixmap PixCache::pixmap(const int page, qreal resolution)
 {
-    qreal const resolution = getResolution(page);
+    if (resolution <= 0.)
+        resolution = getResolution(page);
     // Try to return a page from cache.
     {
         const auto it = cache.constFind(page);
