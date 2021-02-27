@@ -96,6 +96,9 @@ struct SlideTransition {
     /// Only relevant for Fly and FlyRectangle, in [0,1].
     /// Starting point for "flying" relative to the usual "fly" path.
     float scale = 1.;
+
+    void invert()
+    {properties ^= Outwards; angle = (angle + 180) % 360;}
 };
 
 /// Unified type of PDF media annotations for all PDF engines.

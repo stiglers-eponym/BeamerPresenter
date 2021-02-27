@@ -335,9 +335,16 @@ void SlideScene::navigationEvent(const int newpage, SlideScene *newscene)
     }
     pageItem->setRect(sceneRect());
     pageItem->trackNew();
-    if (!newscene || newscene == this)
+    if ((!newscene || newscene == this) && page != newpage)
     {
-        const SlideTransition transition = master->transition(newpage);
+        SlideTransition transition;
+        if (newpage > page)
+            transition = master->transition(newpage);
+        else
+        {
+            transition = master->transition(page);
+            transition.invert();
+        }
         if (transition.type)
         {
             debug_msg(DebugTransitions) << "Transition:" << transition.type << transition.duration << transition.properties << transition.angle << transition.scale;
