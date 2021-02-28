@@ -28,6 +28,7 @@ public:
     };
 
 private:
+    /// List of slides for video annotations in this view.
     QList<QSlider*> sliders;
 
     /// Currently waiting for page: INT_MAX if not waiting for any page.
@@ -57,10 +58,12 @@ public:
     /// (points).
     const QPointF mapToScene(const QPointF& pos) const;
 
+    /// Modifiable flags.
     quint8 &flags() noexcept
     {return view_flags;}
 
-    quint8 flags() const noexcept
+    /// read-only flags.
+    const quint8 &flags() const noexcept
     {return view_flags;}
 
 protected slots:

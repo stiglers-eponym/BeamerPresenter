@@ -23,10 +23,10 @@ static std::array<unsigned int, GLITTER_NUMBER> &shuffled_array()
 }
 
 /// Shuffle the glitter array.
-static void reshuffle_array()
+static void reshuffle_array(const int seed = 42)
 {
     std::array<unsigned int, GLITTER_NUMBER> &array = shuffled_array();
-    std::shuffle(array.begin(), array.end(), std::default_random_engine(42));
+    std::shuffle(array.begin(), array.end(), std::default_random_engine(seed));
 }
 
 /// Get random value between 0 and GLITTER_NUMBER from shuffled array.
@@ -143,7 +143,7 @@ void PixmapGraphicsItem::setMaskType(const MaskType type) noexcept
 {
     mask_type = type;
     if (mask_type == Glitter)
-        reshuffle_array();
+        reshuffle_array(pixmaps.isEmpty() ? 42 : pixmaps.lastKey());
 }
 
 QPixmap PixmapGraphicsItem::getPixmap(const unsigned int width) const noexcept

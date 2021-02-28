@@ -90,6 +90,8 @@ private:
     /// Page part shown in this scene.
     const PagePart page_part;
 
+    /// Animation for slide transitions. Should be NULL while no
+    /// slide transition is active.
     QAbstractAnimation *animation {NULL};
 
     /// Start slide transition.
@@ -106,10 +108,12 @@ public:
     /// Destructor: delete all graphics items.
     ~SlideScene();
 
+    /// modifiable slide flags.
     quint8 &flags() noexcept
     {return slide_flags;}
 
-    quint8 flags() const noexcept
+    /// read-only slide flags
+    const quint8 &flags() const noexcept
     {return slide_flags;}
 
     /// Get current page item (the pixmap graphics item showing the current page)

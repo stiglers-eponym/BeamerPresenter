@@ -40,13 +40,25 @@ public:
     };
 
 private:
-    /// map pixmap width to pixmaps
+    /// map pixmap width (in pixels) to pixmaps
     QMap<unsigned int, QPixmap> pixmaps;
+
+    /// Bouding rect of this QGraphicsItem.
     QRectF bounding_rect;
 
+    /// Rectangular mask. Depending on mask_type, painting will be clipped to mask,
+    /// to the inverse of mask, or to repeated copies of mask.
     QRectF _mask;
+
+    /// Animation progress, only relevant for glitter transition.
+    /// A value of UINT_MAX means that no glitter animation is currently active.
     unsigned int animation_progress = UINT_MAX;
+
+    /// Mask type defines meaning of mask and depends on the slide transition.
     MaskType mask_type = NoMask;
+
+    /// List of hashs (widths) of pixmaps which were added since the latest
+    /// call to trackChanges().
     QSet<unsigned int> newHashs;
 
 public:
@@ -60,42 +72,67 @@ public:
     int type() const noexcept override
     {return Type;}
 
+    /// Check whether this contains a pixmap with the given width.
     bool hasWidth(const unsigned int width) const noexcept
     {return pixmaps.contains(width);}
 
+    /// Paint this QGraphicsItem to painter.
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget = NULL) override;
 
+    /// Bounding rect in scene coordinates
     QRectF boundingRect() const override
     {return bounding_rect;}
 
+    /// Get pixmap with the given width or next larger width.
     QPixmap getPixmap(const unsigned int width) const noexcept;
 
+    /// Get current mask.
     const QRectF mask() const noexcept
     {return _mask;}
 
+    /// Set mask type (meaning of the mask).
     MaskType maskType() const noexcept
     {return mask_type;}
 
+    /// Return animation progress in glitter animation.
     int progress() const noexcept
     {return animation_progress;}
 
+    /// Return number of pixmaps.
     int number() const noexcept
     {return pixmaps.size();}
 
 public slots:
+    /// Add a pixmap.
     void addPixmap(const QPixmap& pixmap);
+
+    /// Set (overwrite) bounding rect.
     void setRect(const QRectF &rect) noexcept
     {bounding_rect = rect; update();}
+
+    /// Set (overwrite) bounding rect size.
     void setSize(const QSizeF &size) noexcept
     {bounding_rect.setSize(size);}
+
+    /// Clear everything.
     void clearPixmaps() noexcept
     {pixmaps.clear();}
+
+    /// Start tracking changes.
     void trackNew() noexcept
     {newHashs.clear();}
+
+    /// Clear everything that was added or modified before the latest call to trackNew().
     void clearOld() noexcept;
+
+    /// Set rectangular mask.
     void setMask(const QRectF &rect) noexcept
     {_mask = rect; update();}
+
+    /// Set mask type (meaning of mask).
     void setMaskType(const MaskType type) noexcept;
+
+    /// Set animation progress (only in glitter transition).
     void setProgress(const int progress) noexcept
     {animation_progress = progress; update();}
 };

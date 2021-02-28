@@ -4,12 +4,7 @@
 #include <QDateTime>
 #include <QUrl>
 #include "src/rendering/pngpixmap.h"
-/*
-#ifdef INCLUDE_MUPDF
-#include <mupdf/fitz/color.h>
-#include <mupdf/fitz/transition.h>
-#endif
-*/
+
 
 /// Unified type of PDF links for all PDF engines.
 struct PdfLink {
@@ -28,9 +23,6 @@ struct PdfOutlineEntry {
     int page;
     /// Index of next outline on the same level in some data structure.
     int next;
-    /// Partial ordering defined by page number.
-    //bool operator<(const PdfOutlineEntry& other) const {return page < other.page;}
-    //bool operator<(const int other_page) const {return page < other_page;}
 };
 
 /// Unified type of slide transition for all PDF engines.
@@ -39,37 +31,21 @@ struct SlideTransition {
     enum Type
     {
         Invalid = -1,
+        // The numbers used here are the same as in fz_transition::type and
+        // in Poppler::PageTransition::Type.
         Replace = 0,
-/*
-#ifdef INCLUDE_MUPDF
-        // Allow static_cast from fz_transition::type.
-        // It would also work with static cast in poppler, but that seems
-        // quite unsafe (although they probably won't change the order).
-        Split = FZ_TRANSITION_SPLIT,
-        Blinds = FZ_TRANSITION_BLINDS,
-        Box = FZ_TRANSITION_BOX,
-        Wipe = FZ_TRANSITION_WIPE,
-        Dissolve = FZ_TRANSITION_DISSOLVE,
-        Glitter = FZ_TRANSITION_GLITTER,
-        Fly = FZ_TRANSITION_FLY,
-        Push = FZ_TRANSITION_PUSH,
-        Cover = FZ_TRANSITION_COVER,
-        Uncover = FZ_TRANSITION_UNCOVER,
-        Fade = FZ_TRANSITION_FADE,
-#else
-*/
-        Split,
-        Blinds,
-        Box,
-        Wipe,
-        Dissolve,
-        Glitter,
-        Fly,
-        Push,
-        Cover,
-        Uncover,
-        Fade,
-        FlyRectangle,
+        Split = 1,
+        Blinds = 2,
+        Box = 3,
+        Wipe = 4,
+        Dissolve = 5,
+        Glitter = 6,
+        Fly = 7,
+        Push = 8,
+        Cover = 9,
+        Uncover = 10,
+        Fade = 11,
+        FlyRectangle = 12,
     };
 
     /// Direction controlled by 2 bits for outwards and vertical.

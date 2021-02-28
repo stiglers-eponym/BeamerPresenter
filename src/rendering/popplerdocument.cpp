@@ -354,9 +354,10 @@ const SlideTransition PopplerDocument::transition(const int page) const
         return {};
 
     SlideTransition trans;
-    //trans.type = mapTransitionTypes[doc_trans->type()];
     trans.type = static_cast<SlideTransition::Type>(doc_trans->type());
     trans.duration = doc_trans->durationReal();
+    trans.properties = (doc_trans->alignment() == Poppler::PageTransition::Vertical ? SlideTransition::Vertical : 0)
+            | (doc_trans->direction() == Poppler::PageTransition::Outward ? SlideTransition::Outwards : 0);
     trans.angle = doc_trans->angle();
     if (trans.type == SlideTransition::Fly)
     {
