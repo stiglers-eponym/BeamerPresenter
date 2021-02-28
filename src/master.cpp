@@ -360,16 +360,24 @@ QWidget* Master::createWidget(QJsonObject &object, QWidget *parent)
 
         // Create slide view.
         SlideView *slide = new SlideView(scene, pixcache, parent);
-        if (!object.value("transitions").toBool(true))
-            slide->unsetFlag(SlideView::ShowTransitions);
-        if (!object.value("autoplay").toBool(true))
-            slide->unsetFlag(SlideView::AutoplayAnything);
-        if (!object.value("media").toBool(true))
-            slide->unsetFlag(SlideView::LoadAnyMedia);
+        // flags for slide view
         if (object.value("media controls").toBool(false))
-            slide->setFlag(SlideView::MediaControls);
+            slide->flags() |= SlideView::MediaControls;
         if (!object.value("show tools").toBool(true))
-            slide->unsetFlag(SlideView::ShowPointingTools);
+            slide->flags() &= ~SlideView::ShowPointingTools;
+        // flags for slide scene
+        if (!object.value("autoplay").toBool(true))
+            scene->flags() &= ~(SlideScene::AutoplayVideo|SlideScene::AutoplaySounds);
+        if (!object.value("media").toBool(true))
+            scene->flags() &= ~(SlideScene::LoadMedia | SlideScene::CacheVideos | SlideScene::AutoplayVideo | SlideScene::AutoplaySounds);
+        if (!object.value("transitions").toBool(true))
+            scene->flags() &= ~SlideScene::ShowTransitions;
+        if (!object.value("cache videos").toBool(true))
+            scene->flags() &= ~SlideScene::CacheVideos;
+        if (!object.value("draw").toBool(true))
+            scene->flags() &= ~SlideScene::ShowDrawings;
+        if (!object.value("mute").toBool(true))
+            scene->flags() &= ~SlideScene::Mute;
         connect(slide, &SlideView::sendKeyEvent, this, &Master::receiveKeyEvent);
         connect(scene, &SlideScene::navigationToViews, slide, &SlideView::pageChanged, Qt::DirectConnection);
         widget = slide;
@@ -711,7 +719,10 @@ void Master::postNavigation() const noexcept
     if (slideDurationTimer->isActive() || cacheVideoTimer->isActive())
         return;
     const int page = preferences()->page;
-    const qreal duration = page == preferences()->previous_page + 1 ? documents.first()->getDocument()->duration(preferences()->page) : -1.;
+    const qreal duration =
+            preferences()->global_flags & Preferences::ShowAnimations && page == preferences()->previous_page + 1
+            ? documents.first()->getDocument()->duration(preferences()->page)
+            : -1.;
     if (duration == 0.)
         slideDurationTimer->start(preferences()->slide_duration_animation);
     else if (duration > 0.)
@@ -760,7 +771,7 @@ void Master::setTool(Tool *tool) const noexcept
     writable_preferences()->current_tools.insert(tool);
 
 #ifdef QT_DEBUG
-    if ((preferences()->log_level & DebugVerbose) && preferences()->log_level & DebugDrawing)
+    if ((preferences()->debug_level & DebugVerbose) && preferences()->debug_level & DebugDrawing)
         for (const auto tool : preferences()->current_tools)
             qDebug() << "tool:" << tool->device() << tool->tool() << tool;
 #endif

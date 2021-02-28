@@ -12,7 +12,6 @@
             "file" : "presentation",
             "page part" : "right",
             "shift" : 0,
-            "transitions" : false,
             "media" : true,
             "media controls" : true,
             "threads" : 2,
@@ -98,6 +97,7 @@
     "file" : "presentation",
     "page part" : "left",
     "shift" : 0,
+    "mute" : false,
     "threads" : 3,
     "master" : true,
     "color" : "black"

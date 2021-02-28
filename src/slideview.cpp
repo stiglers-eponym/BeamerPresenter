@@ -141,14 +141,10 @@ bool SlideView::event(QEvent *event)
     //    break;
     case QEvent::TabletPress:
     {
-        if (flags & ShowDrawings)
-        {
-            auto tabletevent = static_cast<QTabletEvent*>(event);
-            static_cast<SlideScene*>(scene())->tabletPress(mapToScene(tabletevent->posF()), tabletevent);
-            event->accept();
-            return true;
-        }
-        return false;
+        auto tabletevent = static_cast<QTabletEvent*>(event);
+        static_cast<SlideScene*>(scene())->tabletPress(mapToScene(tabletevent->posF()), tabletevent);
+        event->accept();
+        return true;
     }
     case QEvent::TabletRelease:
     {
@@ -159,14 +155,10 @@ bool SlideView::event(QEvent *event)
     }
     case QEvent::TabletMove:
     {
-        if (flags & ShowDrawings)
-        {
-            auto tabletevent = static_cast<QTabletEvent*>(event);
-            static_cast<SlideScene*>(scene())->tabletMove(mapToScene(tabletevent->posF()), tabletevent);
-            event->accept();
-            return true;
-        }
-        return false;
+        auto tabletevent = static_cast<QTabletEvent*>(event);
+        static_cast<SlideScene*>(scene())->tabletMove(mapToScene(tabletevent->posF()), tabletevent);
+        event->accept();
+        return true;
     }
     default:
         return QGraphicsView::event(event);
@@ -222,7 +214,7 @@ void SlideView::showMagnifier(QPainter *painter, const PointingTool *tool) noexc
 
 void SlideView::drawForeground(QPainter *painter, const QRectF &rect)
 {
-    if (flags & ShowPointingTools)
+    if (view_flags & ShowPointingTools)
     {
         painter->setRenderHint(QPainter::Antialiasing);
         for (const auto basic_tool : preferences()->current_tools)
@@ -283,7 +275,7 @@ void SlideView::showTorch(QPainter *painter, const PointingTool *tool) noexcept
 
 void SlideView::addMediaSlider(const SlideScene::VideoItem &video)
 {
-    if (!(flags & MediaControls))
+    if (!(view_flags & MediaControls))
         return;
     QSlider *slider = new QSlider(Qt::Horizontal, this);
     sliders.append(slider);

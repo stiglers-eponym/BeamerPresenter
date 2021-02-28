@@ -8,12 +8,12 @@
 #include <QTabWidget>
 #include "src/enumerates.h"
 
-/// Convert strings to LogLevel components.
-static const QMap<QString, LogLevel> string_to_log_level
+/// Convert strings to DebugFlag components.
+#ifdef QT_DEBUG
+static const QMap<QString, DebugFlags> string_to_debug_flags
 {
     {"", NoLog},
     {"none", NoLog},
-    {"slide changes", LogSlideChanges},
     {"debug rendering", DebugRendering},
     {"debug cache", DebugCache},
     {"debug drawing", DebugDrawing},
@@ -27,6 +27,7 @@ static const QMap<QString, LogLevel> string_to_log_level
     {"debug all", DebugAll},
     {"debug verbose", DebugVerbose},
 };
+#endif
 
 /// Convert strings to GuiWidget
 static const QMap<QString, GuiWidget> string_to_widget_type

@@ -406,7 +406,7 @@ void PopplerDocument::loadOutline()
     for (const auto &child : root)
         fill_outline(child, fill_outline);
 #ifdef QT_DEBUG
-    if ((preferences()->log_level & (DebugRendering|DebugVerbose)) == (DebugRendering|DebugVerbose))
+    if ((preferences()->debug_level & (DebugRendering|DebugVerbose)) == (DebugRendering|DebugVerbose))
         for (int i=0; i<outline.length(); i++)
             qDebug() << DebugRendering << i << outline[i].page << outline[i].next << outline[i].title;
 #endif

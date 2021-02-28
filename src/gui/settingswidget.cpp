@@ -128,10 +128,15 @@ SettingsWidget::SettingsWidget(QWidget *parent) :
         spin_box->setMaximum(1000);
         layout->addRow("History length hidden slides", spin_box);
 
-        QCheckBox *log_box = new QCheckBox("log slide changes", misc);
-        log_box->setChecked(preferences()->log_level & LogSlideChanges);
-        connect(log_box, QOverload<bool>::of(&QCheckBox::clicked), writable_preferences(), &Preferences::setLogSlideChanges);
-        layout->addRow(log_box);
+        QCheckBox *box = new QCheckBox("log slide changes to standard output", misc);
+        box->setChecked(preferences()->global_flags & Preferences::LogSlideChanges);
+        connect(box, QOverload<bool>::of(&QCheckBox::clicked), writable_preferences(), &Preferences::setLogSlideChanges);
+        layout->addRow(box);
+
+        box = new QCheckBox("automatic slide changes", misc);
+        box->setChecked(preferences()->global_flags & Preferences::ShowAnimations);
+        connect(box, QOverload<bool>::of(&QCheckBox::clicked), writable_preferences(), &Preferences::setShowAnimations);
+        layout->addRow(box);
 
         QComboBox *combo_box = new QComboBox(misc);
         for (auto it=string_to_overlay_mode.cbegin(); it!=string_to_overlay_mode.cend(); ++it)

@@ -28,6 +28,12 @@ class Preferences : public QObject
     QSettings settings;
 
 public:
+    enum GlobalFlags
+    {
+        ShowAnimations = 1 << 0,
+        LogSlideChanges = 1 << 1,
+    };
+
     /************************/
     /* GLOBAL CONFIGURATION */
     /************************/
@@ -39,7 +45,13 @@ public:
     /// Path to manual (html formatted), required for help tab in settings.
     QString manual_file;
 
-    int log_level = NoLog;
+#ifdef QT_DEBUG
+    /// Flags for log and debug level.
+    quint16 debug_level = NoLog;
+#endif
+
+    /// Other flags.
+    quint8 global_flags = GlobalFlags::ShowAnimations;
 
 
     // DRAWING
@@ -169,6 +181,7 @@ public slots:
     void setRenderingCommand(const QString &string);
     void setRenderingArguments(const QString &string);
     void setOverlayMode(const QString &string);
+    void setShowAnimations(const bool show);
 
 signals:
     void stopDrawing() const;
@@ -195,9 +208,9 @@ QColor rgba_to_color(const QString &string);
 // Show warning if debugging is enabled
 #define warn_msg qWarning()
 // Show debug message if debugging is enabled for this type
-#define debug_msg(msg_type) if (preferences()->log_level & (msg_type)) qDebug() << (msg_type)
+#define debug_msg(msg_type) if (preferences()->debug_level & (msg_type)) qDebug() << (msg_type)
 // Show debug message if verbose debugging is enabled for this type
-#define debug_verbose(msg_type) if ((preferences()->log_level & (msg_type|DebugVerbose)) == (msg_type|DebugVerbose)) qDebug() << (msg_type)
+#define debug_verbose(msg_type) if ((preferences()->debug_level & (msg_type|DebugVerbose)) == (msg_type|DebugVerbose)) qDebug() << (msg_type)
 #else
 #define debug_msg(msg_type) if(false) qDebug()
 #define debug_verbose(msg_type) if(false) qDebug()

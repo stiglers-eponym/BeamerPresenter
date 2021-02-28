@@ -336,7 +336,7 @@ void SlideScene::navigationEvent(const int newpage, SlideScene *newscene)
     pageItem->setOpacity(1.);
     pageItem->setRect(sceneRect());
     pageItem->trackNew();
-    if ((!newscene || newscene == this) && page != newpage)
+    if ((!newscene || newscene == this) && page != newpage && (slide_flags & ShowTransitions))
     {
         SlideTransition transition;
         if (newpage > page)
@@ -362,13 +362,16 @@ void SlideScene::navigationEvent(const int newpage, SlideScene *newscene)
     {
         addItem(pageItem);
         loadMedia(page);
-        PathContainer *paths;
-        emit requestPathContainer(&paths, page | page_part);
-        if (paths)
+        if (slide_flags & ShowDrawings)
         {
-            const auto end = paths->cend();
-            for (auto it = paths->cbegin(); it != end; ++it)
-                addItem(*it);
+            PathContainer *paths;
+            emit requestPathContainer(&paths, page | page_part);
+            if (paths)
+            {
+                const auto end = paths->cend();
+                for (auto it = paths->cbegin(); it != end; ++it)
+                    addItem(*it);
+            }
         }
     }
     invalidate();
@@ -377,6 +380,8 @@ void SlideScene::navigationEvent(const int newpage, SlideScene *newscene)
 
 void SlideScene::loadMedia(const int page)
 {
+    if (!(slide_flags & LoadMedia))
+        return;
     QList<MediaAnnotation> *list = master->getDocument()->annotations(page);
     if (!list)
         return;
@@ -392,7 +397,8 @@ void SlideScene::loadMedia(const int page)
             item.item->setPos(item.annotation.rect.topLeft());
             item.item->show();
             addItem(item.item);
-            item.player->play();
+            if (slide_flags & AutoplayVideo)
+                item.player->play();
             break;
         }
         case MediaAnnotation::AudioAnnotation:
@@ -412,7 +418,8 @@ void SlideScene::postRendering()
     int newpage = page + 1;
     if (shift & AnyOverlay)
         newpage = master->getDocument()->overlaysShifted(page, 1 | (shift & AnyOverlay));
-    cacheMedia(newpage);
+    if (slide_flags & CacheVideos)
+        cacheMedia(newpage);
 }
 
 void SlideScene::cacheMedia(const int page)
@@ -450,6 +457,7 @@ SlideScene::VideoItem &SlideScene::getVideoItem(const MediaAnnotation &annotatio
     }
     debug_msg(DebugMedia) << "Loading new video" << annotation.file << annotation.rect;
     QMediaPlayer *player = new QMediaPlayer(this);
+    player->setMuted(slide_flags & Mute);
     QMediaPlaylist *playlist = new QMediaPlaylist(player);
     QGraphicsVideoItem *item = new QGraphicsVideoItem;
     connect(item, &QGraphicsVideoItem::destroyed, player, &QMediaPlayer::deleteLater);
@@ -506,15 +514,16 @@ void SlideScene::startTransition(const int newpage, const SlideTransition &trans
     pageItem->setOpacity(1.);
     addItem(pageItem);
     loadMedia(page);
+    if (slide_flags & ShowDrawings)
     {
-    PathContainer *paths;
-    emit requestPathContainer(&paths, page | page_part);
-    if (paths)
-    {
-        const auto end = paths->cend();
-        for (auto it = paths->cbegin(); it != end; ++it)
-            addItem(*it);
-    }
+        PathContainer *paths;
+        emit requestPathContainer(&paths, page | page_part);
+        if (paths)
+        {
+            const auto end = paths->cend();
+            for (auto it = paths->cbegin(); it != end; ++it)
+                addItem(*it);
+        }
     }
     delete animation;
     animation = NULL;
@@ -924,7 +933,7 @@ void SlideScene::tabletRelease(const QPointF &pos, const QTabletEvent *event)
 
 void SlideScene::startInputEvent(Tool *tool, const QPointF &pos, const float pressure)
 {
-    if (!tool || !(tool->tool() & AnyDrawTool))
+    if (!tool || !(tool->tool() & AnyDrawTool) || !(slide_flags & ShowDrawings))
         return;
     debug_verbose(DebugDrawing) << "Start input event" << tool->tool() << tool->device() << tool << pressure;
     stopDrawing();
@@ -962,7 +971,7 @@ void SlideScene::startInputEvent(Tool *tool, const QPointF &pos, const float pre
 
 void SlideScene::stepInputEvent(const QPointF &pos, const float pressure)
 {
-    if (pressure <= 0 || !current_tool)
+    if (pressure <= 0 || !current_tool || !(slide_flags & ShowDrawings))
         return;
     debug_verbose(DebugDrawing) << "Step input event" << current_tool->tool() << current_tool->device() << current_tool << pressure;
     switch (current_tool->tool())
@@ -1008,7 +1017,7 @@ void SlideScene::stepInputEvent(const QPointF &pos, const float pressure)
 
 bool SlideScene::stopInputEvent(const QPointF &pos)
 {
-    if (!current_tool)
+    if (!current_tool || !(slide_flags & ShowDrawings))
         return false;
     debug_verbose(DebugDrawing) << "Stop input event" << current_tool->tool() << current_tool->device() << current_tool;
     const bool changes = currentPath && currentPath->size() > 1;

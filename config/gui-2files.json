@@ -53,7 +53,6 @@
             "page part" : "left",
             "shift" : 0,
             "overlays" : "last",
-            "transitions" : false,
             "media" : false,
             "threads" : 0
           },
@@ -96,6 +95,7 @@
     "file" : "presentation",
     "page part" : "left",
     "shift" : 0,
+    "mute" : false,
     "threads" : 3,
     "master" : true,
     "color" : "black"

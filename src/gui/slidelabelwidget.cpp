@@ -25,7 +25,7 @@ void SlideLabelWidget::resizeEvent(QResizeEvent *event) noexcept
 void SlideLabelWidget::updateText(const int page) noexcept
 {
     const QString new_label = preferences()->document->pageLabel(page);
-    if ((preferences()->log_level & LogSlideChanges) && new_label != edit->text())
+    if ((preferences()->global_flags & Preferences::LogSlideChanges) && new_label != edit->text())
     {
         const quint32 msecs_passed = preferences()->msecs_passed == UINT_LEAST32_MAX ? preferences()->msecs_total - QDateTime::currentDateTimeUtc().msecsTo(preferences()->target_time) : preferences()->msecs_passed;
         const QString string = QTime::fromMSecsSinceStartOfDay(msecs_passed + 500).toString(msecs_passed < 3600000 ? "m:ss" : "h:mm:ss");

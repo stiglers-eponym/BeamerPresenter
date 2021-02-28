@@ -39,8 +39,21 @@ public:
         QMediaPlayer *player;
         QSet<int> pages;
     };
+    enum SlideFlags
+    {
+        LoadMedia = 1 << 0,
+        CacheVideos = 1 << 1,
+        AutoplayVideo = 1 << 2,
+        AutoplaySounds = 1 << 3,
+        Mute = 1 << 4,
+        ShowTransitions = 1 << 5,
+        ShowDrawings = 1 << 6,
+        Default = 0xff,
+    };
 
 private:
+    quint8 slide_flags = SlideFlags::Default;
+
     /// Path which is currently being drawn.
     /// NULL if currenty no path is drawn.
     AbstractGraphicsPath* currentPath {NULL};
@@ -92,6 +105,12 @@ public:
 
     /// Destructor: delete all graphics items.
     ~SlideScene();
+
+    quint8 &flags() noexcept
+    {return slide_flags;}
+
+    quint8 flags() const noexcept
+    {return slide_flags;}
 
     /// Get current page item (the pixmap graphics item showing the current page)
     PixmapGraphicsItem *pageBackground() const noexcept

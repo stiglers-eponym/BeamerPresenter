@@ -6,25 +6,26 @@
 #include <QDebug>
 
 /**
- * Log level: combinable debug or log flags
+ * Debug flags: combinable debug or log flags
  */
-enum LogLevel
+#ifdef QT_DEBUG
+enum DebugFlags
 {
     NoLog = 0,
-    LogSlideChanges = 1 << 0,
-    DebugRendering = 1 << 3,
-    DebugCache = 1 << 4,
-    DebugDrawing = 1 << 5,
-    DebugMedia = 1 << 6,
-    DebugKeyInput = 1 << 7,
-    DebugSettings = 1 << 8,
-    DebugTransitions = 1 << 9,
-    DebugPageChange = 1 << 10,
-    DebugLayout = 1 << 11,
-    DebugWidgets = 1 << 12,
-    DebugAll = 0x7ffe,
+    DebugRendering = 1 << 0,
+    DebugCache = 1 << 1,
+    DebugDrawing = 1 << 2,
+    DebugMedia = 1 << 3,
+    DebugKeyInput = 1 << 4,
+    DebugSettings = 1 << 5,
+    DebugTransitions = 1 << 6,
+    DebugPageChange = 1 << 7,
+    DebugLayout = 1 << 8,
+    DebugWidgets = 1 << 9,
+    DebugAll = 0x7fff,
     DebugVerbose = 1 << 15,
 };
+#endif
 
 /// If a single PDF includes both presentation and notes,
 /// PagePart shows which part is currently of interest.

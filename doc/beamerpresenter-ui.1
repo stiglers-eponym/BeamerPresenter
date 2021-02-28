@@ -76,22 +76,48 @@ Arguments:
 pdf file shown in the presentation or alias name. Aliases such as "presentation" or "notes" will be filled with command line arguments or by asking in a file open dialog.
 .TP
 .BI "shift " "integer"
-Shift slide number relative to the main presentation slide. E.g. shift=1 creates a preview of the next slide, which can be shown in the speaker's view.
+shift slide number relative to the main presentation slide. E.g. shift=1 creates a preview of the next slide, which can be shown in the speaker's view.
 .TP
 .BI "page part " "left/right"
 side of the page to be shown if the pages are split into a left and a right side showing presentation and notes on the same page.
 .TP
-.BI "media constrols " "true/false"
+.BI "media controls " "= false"
 show/hide a slider to navigate inside a video
 .TP
-.BI "transitions " "true/false"
-enable/disable slide transitions (not implemented yet!)
-.TP
-.BI "show tools " "true/false"
+.BI "show tools " "= true"
 enable/disable pointing tools.
 .TP
+.BI "media " "= true"
+enable/disable multimedia content on this widget.
+.B Caution:
+If multiple widgets show the same slide, the configuration of one of these widgets is used for the other widgets. Switching off multimedia for one widget may also disable multimedia for other widgets.
+.TP
+.BI "mute " "= true"
+mute or unmute the slide connected to this widget.
+When multiple widgets show the same slide, they all share the same multimedia objects. Unmuting one of these widgets is equivalent to unmuting all of them.
+.TP
+.BI "transitions " "= true"
+enable/disable slide transitions.
+.B Caution:
+If multiple widgets show the same slide, the configuration of one of these widgets is used for the other widgets. Switching off transitions for one widget may also disable transitions for other widgets.
+.TP
+.BI "autoplay " "= true"
+automatically play videos on this slide.
+.B Caution:
+If multiple widgets show the same slide, the configuration of one of these widgets is used for the other widgets. Switching off autoplay for one widget may also disable it for other widgets.
+.TP
+.BI "cache videos " "= true"
+cache videos before the slide with the video is reached.
+.B Caution:
+If multiple widgets show the same slide, the configuration of one of these widgets is used for the other widgets.
+.TP
+.BI "draw " "= true"
+enable/disable drawing on the this widget.
+.B Caution:
+If multiple widgets show the same slide, the configuration of one of these widgets is used for the other widgets. Disabling drawing for one widget may disable it also for other ones.
+.TP
 .BI "cache hash " "integer"
-integer to identify slide widgets with the same geometry, which should use the same cached slides. Set the same \[dq]cache hash\[dq] for multiple slides to make them use the same cache.
+integer to identify slide widgets with the same geometry, which should use the same cached slides. Set the same \[dq]cache hash\[dq] for multiple slides to make them use the same cache. Note that this can also cause problems if the geometry of the widgets is not exactly the same.
 .TP
 .BI "threads " "integer"
 number of threads used to pre-render pages in cache. Disable pre-rendering by setting this to zero.

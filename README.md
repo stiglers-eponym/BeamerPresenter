@@ -181,7 +181,7 @@ The configuration files of version 0.2.x and 0.1.x are incompatible.
 * sounds
 * option to insert extra slides or extra space below slide for drawing (partially implemented)
 * improve text input tool
-* select for each slide widgets whether videos or slide transitions should be shown
+* combination of slide transitions and videos sometimes interrupts videos
 * improve widgets:
     * settings (more explanations)
     * timer (with color indicating progress relative to estimate like in version 0.1.x)

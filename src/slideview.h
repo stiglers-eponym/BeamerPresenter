@@ -21,18 +21,10 @@ public:
     /// some may never get implemented.
     enum ViewFlag
     {
-        LoadVideos = 1 << 0,
-        AutoplayVideos = 1 << 1,
-        LoadSounds = 1 << 2,
-        AutoplaySounds = 1 << 3,
-        AutoplayAnything = AutoplayVideos | AutoplaySounds,
-        LoadAnyMedia = 0xf,
-        MediaControls = 1 << 4,
-        ShowAnimations = 1 << 5,
-        ShowTransitions = 1 << 6,
-        ShowDrawings = 1 << 7,
-        ShowPointingTools = 1 << 8,
-        ShowAll = 0xffff,
+        MediaControls = 1 << 0,
+        ShowAnimations = 1 << 1,
+        ShowPointingTools = 1 << 2,
+        ShowAll = 0xff,
     };
 
 private:
@@ -42,7 +34,7 @@ private:
     int waitingForPage = INT_MAX;
 
     /// Show slide transitions, multimedia, etc. (all not implemented yet).
-    int flags = ShowAll ^ MediaControls;
+    quint8 view_flags = ShowAll ^ MediaControls;
 
 public:
     /// Constructor: initialize and connect a lot.
@@ -65,11 +57,11 @@ public:
     /// (points).
     const QPointF mapToScene(const QPointF& pos) const;
 
-    void setFlag(const int flag) noexcept
-    {flags |= flag;}
+    quint8 &flags() noexcept
+    {return view_flags;}
 
-    void unsetFlag(const int flag) noexcept
-    {flags &= ~flag;}
+    quint8 flags() const noexcept
+    {return view_flags;}
 
 protected slots:
     /// Handle tablet events. The tablet events are mainly handed over to

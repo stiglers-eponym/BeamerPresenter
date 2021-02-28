@@ -184,13 +184,20 @@ void Preferences::loadSettings()
     {
         gui_config_file = settings.value("gui config", "/etc/beamerpresenter/gui.json").toString();
         manual_file = settings.value("manual", "/usr/share/doc/beamerpresenter/README.html").toString();
-        const QStringList log_flags = settings.value("log").toStringList();
-        for (const auto &flag : log_flags)
-            log_level |= string_to_log_level.value(flag, NoLog);
+#ifdef QT_DEBUG
+        const QStringList debug_flags = settings.value("debug").toStringList();
+        for (const auto &flag : debug_flags)
+            debug_level |= string_to_debug_flags.value(flag, NoLog);
+#endif
+        if (settings.contains("log") && settings.value("log", false).toBool())
+            global_flags |= LogSlideChanges;
         bool ok;
         const int frame_time = settings.value("frame time").toInt(&ok);
         if (ok && frame_time > 0)
             slide_duration_animation = frame_time;
+        const bool show_animations = settings.value("show animations", true).toBool();
+        if (!show_animations)
+            global_flags &= ~ShowAnimations;
     }
 
     // DRAWING
@@ -345,9 +352,9 @@ void Preferences::loadDebugFromParser(const QCommandLineParser &parser)
     // Debug legel
     if (parser.isSet("debug"))
     {
-        log_level = 0;
+        debug_level = 0;
         for (const auto &flag : static_cast<const QStringList>(parser.value("debug").split(",")))
-            log_level |= string_to_log_level.value("debug " + flag, NoLog);
+            debug_level |= string_to_debug_flags.value("debug " + flag, NoLog);
     }
 }
 #endif
@@ -374,7 +381,7 @@ void Preferences::loadFromParser(const QCommandLineParser &parser)
 
     // Log slide changes
     if (parser.isSet("log"))
-        log_level |= LogSlideChanges;
+        global_flags |= LogSlideChanges;
 
     // renderer and pdf engine
     if (parser.isSet("renderer"))
@@ -584,11 +591,16 @@ void Preferences::setHistoryHiddenSlide(const int length)
 
 void Preferences::setLogSlideChanges(const bool log)
 {
-    log_level = log;
     if (log)
-        settings.remove("log");
-    else
+    {
+        global_flags |= LogSlideChanges;
         settings.setValue("log", true);
+    }
+    else
+    {
+        global_flags &= ~LogSlideChanges;
+        settings.remove("log");
+    }
 }
 
 void Preferences::setRenderingCommand(const QString &string)
@@ -613,4 +625,13 @@ void Preferences::setOverlayMode(const QString &string)
     settings.beginGroup("drawing");
     settings.setValue("mode", string);
     settings.endGroup();
+}
+
+void Preferences::setShowAnimations(const bool show)
+{
+    if (show)
+        global_flags |= ShowAnimations;
+    else
+        global_flags &= ~ShowAnimations;
+    settings.setValue("show animations", show);
 }
