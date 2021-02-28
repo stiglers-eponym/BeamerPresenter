@@ -68,7 +68,7 @@ void SlideView::pageChangedBlocking(const int page, SlideScene *scene)
     QPixmap pixmap;
     debug_msg(DebugPageChange) << "Request page blocking" << page << this;
     emit getPixmapBlocking(page, &pixmap, resolution);
-    scene->pageBackground()->addPixmap(pixmap, resolution);
+    scene->pageBackground()->addPixmap(pixmap);
     updateScene({sceneRect()});
 }
 
@@ -182,7 +182,7 @@ void SlideView::showMagnifier(QPainter *painter, const PointingTool *tool) noexc
     const qreal resolution = tool->scale() / painter->transform().m11();
     PixmapGraphicsItem *pageItem = static_cast<SlideScene*>(scene())->pageBackground();
     // Check whether an enlarged page is needed and not "in preparation" yet.
-    if (waitingForPage == INT_MAX && !pageItem->hasResolution(resolution))
+    if (waitingForPage == INT_MAX && !pageItem->hasWidth(resolution*sceneRect().width() + 0.5))
     {
         const int page = static_cast<SlideScene*>(scene())->getPage();
         const QSizeF &pageSize = scene()->sceneRect().size();
@@ -309,7 +309,7 @@ void SlideView::prepareTransition(PixmapGraphicsItem *transitionItem)
     QRect sourceRect(mapFromScene({0,0}), pixmap.size());
     render(&painter, pixmap.rect(), sourceRect);
     painter.end();
-    transitionItem->addPixmap(pixmap, resolution);
+    transitionItem->addPixmap(pixmap);
 }
 
 void SlideView::prepareFlyTransition(const bool outwards, const PixmapGraphicsItem *old, PixmapGraphicsItem *target)
@@ -317,19 +317,19 @@ void SlideView::prepareFlyTransition(const bool outwards, const PixmapGraphicsIt
     if (!old || !target)
         return;
 
-    const qreal resolution = transform().m11();
+    const unsigned int width = transform().m11() * sceneRect().width() + 0.5;
     QImage newimg, oldimg;
     QPainter painter;
     if (outwards)
     {
-        newimg = old->getPixmap(resolution).toImage();
+        newimg = old->getPixmap(width).toImage();
         newimg.convertTo(QImage::Format_ARGB32);
         oldimg = QImage(newimg.size(), QImage::Format_ARGB32);
         painter.begin(&oldimg);
     }
     else
     {
-        oldimg = old->getPixmap(resolution).toImage();
+        oldimg = old->getPixmap(width).toImage();
         oldimg.convertTo(QImage::Format_ARGB32);
         newimg = QImage(oldimg.size(), QImage::Format_ARGB32);
         painter.begin(&newimg);
@@ -385,5 +385,5 @@ void SlideView::prepareFlyTransition(const bool outwards, const PixmapGraphicsIt
     }
 
     debug_msg(DebugTransitions) << "Prepared fly transition" << newimg.size();
-    target->addPixmap(QPixmap::fromImage(newimg), resolution);
+    target->addPixmap(QPixmap::fromImage(newimg));
 }

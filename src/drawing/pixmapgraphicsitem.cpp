@@ -39,14 +39,14 @@ void PixmapGraphicsItem::paint(QPainter *painter, const QStyleOptionGraphicsItem
 {
     if (pixmaps.isEmpty())
         return;
-    const unsigned int hash = HASH_RESOLUTION * painter->transform().m11();
+    const unsigned int hash = painter->transform().m11() * boundingRect().width() + 0.5;
     QMap<unsigned int, QPixmap>::const_iterator it = pixmaps.lowerBound(hash);
     if (it == pixmaps.cend())
         --it;
 #ifdef QT_DEBUG
     if (it.key() != hash)
     {
-        debug_msg(DebugRendering) << "possibly wrong resolution:" << it.key() << HASH_RESOLUTION * painter->transform().m11();
+        debug_msg(DebugRendering) << "possibly wrong resolution:" << it.key() << painter->transform().m11() * boundingRect().width();
         if (it != pixmaps.cbegin())
             debug_msg(DebugRendering) << "possibly better:" << (it-1).key();
     }
@@ -101,7 +101,7 @@ void PixmapGraphicsItem::paint(QPainter *painter, const QStyleOptionGraphicsItem
     painter->resetTransform();
     if (mask_type == Glitter && animation_progress != UINT_MAX)
     {
-        const unsigned int glitter_pixel = bounding_rect.width() * hash / GLITTER_ROW;
+        const unsigned int glitter_pixel = hash / GLITTER_ROW;
         unsigned int const n = rect.width()*rect.height()/glitter_pixel, w = rect.width()/glitter_pixel+1;
         for (unsigned int j=0; j<animation_progress; j++)
         {
@@ -118,13 +118,12 @@ void PixmapGraphicsItem::paint(QPainter *painter, const QStyleOptionGraphicsItem
     }
 }
 
-void PixmapGraphicsItem::addPixmap(const QPixmap &pixmap, const qreal resolution)
+void PixmapGraphicsItem::addPixmap(const QPixmap &pixmap)
 {
     if (!pixmap.isNull())
     {
-        const int hash = HASH_RESOLUTION * resolution;
-        pixmaps[hash] = pixmap;
-        newHashs.insert(hash);
+        pixmaps[pixmap.width()] = pixmap;
+        newHashs.insert(pixmap.width());
     }
     update();
 }
@@ -147,16 +146,16 @@ void PixmapGraphicsItem::setMaskType(const MaskType type) noexcept
         reshuffle_array();
 }
 
-QPixmap PixmapGraphicsItem::getPixmap(qreal resolution) const noexcept
+QPixmap PixmapGraphicsItem::getPixmap(const unsigned int width) const noexcept
 {
     if (pixmaps.isEmpty())
         return QPixmap();
-    QMap<unsigned int, QPixmap>::const_iterator it = pixmaps.lowerBound(HASH_RESOLUTION*resolution);
+    QMap<unsigned int, QPixmap>::const_iterator it = pixmaps.lowerBound(width);
     if (it == pixmaps.cend())
         --it;
 #ifdef QT_DEBUG
-    if (std::abs(it.key() - HASH_RESOLUTION*resolution) > 0.5)
-        debug_msg(DebugRendering) << "possibly wrong resolution:" << it.key() << HASH_RESOLUTION*resolution;
+    if (it.key() != width)
+        debug_msg(DebugRendering) << "possibly wrong resolution:" << it.key() << width;
 #endif
     return *it;
 }

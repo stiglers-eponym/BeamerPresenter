@@ -8,9 +8,8 @@
 
 #define BLINDS_NUMBER_H 6
 #define BLINDS_NUMBER_V 8
-#define GLITTER_ROW 525617 // ca. GLITTER_ROW/HASH_RESOLUTION glitter pixels per row
+#define GLITTER_ROW 71
 #define GLITTER_NUMBER 137
-#define HASH_RESOLUTION 7200 // in dpi
 
 /**
  * @brief Pixmaps for QGraphicsScene with multiple resolutions
@@ -41,7 +40,7 @@ public:
     };
 
 private:
-    /// map 100*resolution to pixmaps (resolution in dpi)
+    /// map pixmap width to pixmaps
     QMap<unsigned int, QPixmap> pixmaps;
     QRectF bounding_rect;
 
@@ -61,15 +60,15 @@ public:
     int type() const noexcept override
     {return Type;}
 
-    bool hasResolution(qreal resolution) const noexcept
-    {return pixmaps.contains(HASH_RESOLUTION*resolution);}
+    bool hasWidth(const unsigned int width) const noexcept
+    {return pixmaps.contains(width);}
 
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget = NULL) override;
 
     QRectF boundingRect() const override
     {return bounding_rect;}
 
-    QPixmap getPixmap(qreal resolution) const noexcept;
+    QPixmap getPixmap(const unsigned int width) const noexcept;
 
     const QRectF mask() const noexcept
     {return _mask;}
@@ -84,9 +83,7 @@ public:
     {return pixmaps.size();}
 
 public slots:
-    void addPixmap(const QPixmap& pixmap, const qreal resolution);
-    void addPixmap(const QPixmap& pixmap)
-    {addPixmap(pixmap, pixmap.width() / boundingRect().width());}
+    void addPixmap(const QPixmap& pixmap);
     void setRect(const QRectF &rect) noexcept
     {bounding_rect = rect; update();}
     void setSize(const QSizeF &size) noexcept
