@@ -19,12 +19,14 @@ extern "C"
 /// MuPDF requires careful treatment of separte threads!
 class MuPdfDocument : public PdfDocument
 {
+    /// List of all pages.
+    QVector<pdf_page*> pages;
 
     /// context should be cloned for each separate thread.
     fz_context *ctx{NULL};
 
     /// document is global, don't clone if for threads.
-    fz_document *doc{NULL};
+    pdf_document *doc{NULL};
 
     /// Mutexes needed for parallel rendering in MuPDF.
     QVector<QMutex*> mutex_list{FZ_LOCK_MAX};
@@ -91,7 +93,7 @@ public:
     {return ctx;}
 
     /// Fitz document.
-    fz_document* getDocument() const
+    pdf_document* getDocument() const
     {return doc;}
 
     /// Load the PDF outline, fill PdfDocument::outline.

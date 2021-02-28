@@ -30,6 +30,8 @@ class PopplerDocument : public PdfDocument
 {
     /// Poppler document representing the PDF.
     const Poppler::Document *doc {NULL};
+    /// List of all pages.
+    QVector<Poppler::Page*> pages;
 
     /// Lookup table for page labels: set of page indices, at which the page
     /// label changes. This is left empty if every page starts with a new
@@ -43,9 +45,8 @@ public:
     /// Constructor: calls loadDocument().
     PopplerDocument(const QString &filename);
 
-    /// Destructor: deletes doc.
-    ~PopplerDocument() override
-    {delete doc;}
+    /// Destructor: deletes doc and pages.
+    ~PopplerDocument() noexcept override;
 
     /// Render page to QPixmap. page is given as page index.
     /// resolution is given in pixels per point (dpi/72).

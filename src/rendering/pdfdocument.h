@@ -8,9 +8,21 @@
 
 /// Unified type of PDF links for all PDF engines.
 struct PdfLink {
+    /// Types of links in PDF.
+    /// These are all negative, because positive values are interpreted as page
+    /// numbers for internal navigation links.
+    enum LinkType
+    {
+        NoLink = -1,
+        NavigationLink = -2,
+        ExternalLink = -3,
+        MovieLink = -4,
+        SoundLinx = -5,
+    };
+
     /// Positive values of type are interpreted as page numbers.
     /// Negative values are interpreted as LinkType.
-    int type;
+    int type = NoLink;
     QString target;
     QRectF area;
 };

@@ -10,22 +10,28 @@ PopplerDocument::PopplerDocument(const QString &filename) :
     debug_msg(DebugRendering) << "Loaded PDF document in Poppler";
 }
 
+PopplerDocument::~PopplerDocument() noexcept
+{
+    qDeleteAll(pages);
+    delete doc;
+}
+
 const QString PopplerDocument::pageLabel(const int page) const
 {
-    const Poppler::Page * const pageptr = doc->page(page);
-    return pageptr ? pageptr->label() : "";
+    return pages.value(page) ? pages[page]->label() : "";
 }
 
 int PopplerDocument::pageIndex(const QString &page) const
 {
     const Poppler::Page * const pageptr = doc->page(page);
-    return pageptr ? pageptr->index() : -1;
+    const int index = pageptr ? pageptr->index() : -1;
+    delete pageptr;
+    return index;
 }
 
 const QSizeF PopplerDocument::pageSize(const int page) const
 {
-    const Poppler::Page * const pageptr = doc->page(page);
-    return pageptr ? pageptr->pageSizeF() : QSizeF();
+    return pages.value(page) ? pages[page]->pageSizeF() : QSizeF();
 }
 
 bool PopplerDocument::loadDocument()
@@ -90,6 +96,8 @@ bool PopplerDocument::loadDocument()
     newdoc->setRenderHint(Poppler::Document::Antialiasing);
     newdoc->setRenderHint(Poppler::Document::ThinLineShape);
 
+    qDeleteAll(pages);
+
     // Update document and delete old document.
     if (doc == NULL)
         doc = newdoc;
@@ -101,21 +109,26 @@ bool PopplerDocument::loadDocument()
     }
     flexible_page_sizes = -1;
 
+    pages.resize(doc->numPages());
+    int i=0;
+    do {
+        pages[i] = doc->page(i);
+        if (!pages[i])
+            qCritical() << "Loading pages failed!";
+    } while (++i < doc->numPages());
+
     populateOverlaySlidesSet();
     return true;
 }
 
 const QPixmap PopplerDocument::getPixmap(const int page, const qreal resolution, const PagePart page_part) const
 {
-    if (resolution <= 0 || page < 0 || page >= doc->numPages())
-        return QPixmap();
-    const Poppler::Page * const popplerPage = doc->page(page);
-    if (popplerPage == NULL)
+    if (resolution <= 0 || !pages.value(page))
     {
-        qWarning() << "Tried to render invalid page" << page;
+        qWarning() << "Tried to render invalid page or invalid resolution" << page;
         return QPixmap();
     }
-    const QImage image = popplerPage->renderToImage(72.*resolution, 72.*resolution);
+    const QImage image = pages[page]->renderToImage(72.*resolution, 72.*resolution);
     switch (page_part)
     {
     case LeftHalf:
@@ -129,15 +142,12 @@ const QPixmap PopplerDocument::getPixmap(const int page, const qreal resolution,
 
 const PngPixmap * PopplerDocument::getPng(const int page, const qreal resolution, const PagePart page_part) const
 {
-    if (resolution <= 0 || page < 0)
-        return NULL;
-    const Poppler::Page * const popplerPage = doc->page(page);
-    if (popplerPage == NULL)
+    if (resolution <= 0 || !pages.value(page))
     {
-        qWarning() << "Tried to render invalid page" << page;
+        qWarning() << "Tried to render invalid page or invalid resolution" << page;
         return NULL;
     }
-    QImage image = popplerPage->renderToImage(72.*resolution, 72.*resolution);
+    QImage image = pages[page]->renderToImage(72.*resolution, 72.*resolution);
     if (image.isNull())
     {
         qWarning() << "Rendering page to image failed";
@@ -215,12 +225,12 @@ void PopplerDocument::populateOverlaySlidesSet()
     QString label = "\n\n\n\n";
     for (int i=0; i<doc->numPages(); i++)
     {
-        if (label != doc->page(i)->label())
+        if (pages[i] && label != pages[i]->label())
         {
             if (!useful && !overlay_slide_indices.empty() && *overlay_slide_indices.crbegin() != i-1)
                 useful = true;
             overlay_slide_indices.insert(i);
-            label = doc->page(i)->label();
+            label = pages[i]->label();
         }
     }
     if (!useful)
@@ -233,9 +243,11 @@ void PopplerDocument::populateOverlaySlidesSet()
 
 const PdfLink PopplerDocument::linkAt(const int page, const QPointF &position) const
 {
-    const QSizeF pageSize = doc->page(page)->pageSizeF();
+    if (!pages.value(page))
+        return PdfLink();
+    const QSizeF pageSize = pages[page]->pageSizeF();
     const QPointF relpos = {position.x()/pageSize.width(), position.y()/pageSize.height()};
-    for (const auto link : static_cast<const QList<Poppler::Link*>>(doc->page(page)->links()))
+    for (const auto link : static_cast<const QList<Poppler::Link*>>(pages[page]->links()))
     {
         if (link->linkArea().normalized().contains(relpos))
         {
@@ -251,18 +263,20 @@ const PdfLink PopplerDocument::linkAt(const int page, const QPointF &position) c
             }
             default:
                 debug_msg(DebugRendering) << "Unsupported link" << link->linkType();
-                return {NoLink, "", rect};
+                return {PdfLink::NoLink, "", rect};
             }
         }
     }
-    return {NoLink, "", QRectF()};
+    return PdfLink();
 }
 
 const MediaAnnotation PopplerDocument::annotationAt(const int page, const QPointF &position) const
 {
-    const QSizeF pageSize = doc->page(page)->pageSizeF();
+    if (!pages.value(page))
+        return MediaAnnotation();
+    const QSizeF pageSize = pages[page]->pageSizeF();
     const QPointF relpos = {position.x()/pageSize.width(), position.y()/pageSize.height()};
-    for (const auto annotation : static_cast<const QList<Poppler::Annotation*>>(doc->page(page)->annotations({Poppler::Annotation::AMovie, Poppler::Annotation::ASound})))
+    for (const auto annotation : static_cast<const QList<Poppler::Annotation*>>(pages[page]->annotations({Poppler::Annotation::AMovie, Poppler::Annotation::ASound})))
     {
         if (annotation->boundary().contains(relpos))
         {
@@ -297,15 +311,17 @@ const MediaAnnotation PopplerDocument::annotationAt(const int page, const QPoint
             return videoAnnotation;
         }
     }
-    return {QUrl(), MediaAnnotation::InvalidAnnotation, MediaAnnotation::Invalid, QRectF()};
+    return MediaAnnotation();
 }
 
 QList<MediaAnnotation> *PopplerDocument::annotations(const int page) const
 {
-    const QList<Poppler::Annotation*> annotations = doc->page(page)->annotations({Poppler::Annotation::AMovie, Poppler::Annotation::ASound});
+    if (!pages.value(page))
+        return NULL;
+    const QList<Poppler::Annotation*> annotations = pages[page]->annotations({Poppler::Annotation::AMovie, Poppler::Annotation::ASound});
     if (annotations.isEmpty())
         return NULL;
-    const QSizeF pageSize = doc->page(page)->pageSizeF();
+    const QSizeF pageSize = pages[page]->pageSizeF();
     QList<MediaAnnotation> *list = new QList<MediaAnnotation>;
     for (const auto annotation : annotations)
     {
@@ -346,12 +362,11 @@ QList<MediaAnnotation> *PopplerDocument::annotations(const int page) const
 
 const SlideTransition PopplerDocument::transition(const int page) const
 {
-    const Poppler::Page *doc_page = doc->page(page);
-    if (!doc_page)
-        return {};
-    const Poppler::PageTransition *doc_trans = doc_page->transition();
+    if (!pages.value(page))
+        return SlideTransition();
+    const Poppler::PageTransition *doc_trans = pages[page]->transition();
     if (!doc_trans)
-        return {};
+        return SlideTransition();
 
     SlideTransition trans;
     trans.type = static_cast<SlideTransition::Type>(doc_trans->type());
@@ -365,7 +380,6 @@ const SlideTransition PopplerDocument::transition(const int page) const
             trans.type = SlideTransition::FlyRectangle;
         trans.scale = doc_trans->scale();
     }
-    delete doc_trans;
     return trans;
 }
 
@@ -373,10 +387,10 @@ bool PopplerDocument::flexiblePageSizes() noexcept
 {
     if (flexible_page_sizes >= 0 || doc == NULL)
         return flexible_page_sizes;
-    const QSizeF ref_size = doc->page(0)->pageSizeF();
+    const QSizeF ref_size = pages[0]->pageSizeF();
     for (int page=1; page<doc->numPages(); page++)
     {
-        if (doc->page(page)->pageSizeF() != ref_size)
+        if (pages.value(page) && pages[page]->pageSizeF() != ref_size)
         {
             flexible_page_sizes = 1;
             return 1;
@@ -427,8 +441,5 @@ QList<int> PopplerDocument::overlayIndices() const noexcept
 
 qreal PopplerDocument::duration(const int page) const noexcept
 {
-    if (!doc)
-        return -1.;
-    const Poppler::Page * const pdfpage = doc->page(page);
-    return pdfpage ? pdfpage->duration() : -1.;
+    return pages.value(page) ? pages[page]->duration() : -1.;
 }
