@@ -99,9 +99,12 @@ public slots:
     /// draw pointing tools in foreground.
     void drawForeground(QPainter *painter, const QRectF &rect) override;
 
+    /// Add a slider for a video item
     void addMediaSlider(const SlideScene::VideoItem &video);
 
+    /// Prepare a slide transition: render current view to transitionItem.
     void prepareTransition(PixmapGraphicsItem *transitionItem);
+
     /**
      * @brief prepareFlyTransition
      * @param outwards: bool, define whether transition is outwards or inwards
@@ -121,8 +124,11 @@ signals:
     /// Inform cache that widget has been resized.
     void resizeCache(const QSizeF &size) const;
 
+    /// Draw foreground: pointing tools
     void drawSceneForeground(QPainter *painter, const QRectF &rect);
 
+    /// Get pixmap from pixcache. This function renders the pixmap in the
+    /// main thread and directly writes the result to pixmap.
     void getPixmapBlocking(const int page, QPixmap *pixmap, qreal resolution);
 };
 

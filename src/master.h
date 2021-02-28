@@ -115,6 +115,7 @@ public slots:
      */
     void navigateToPage(const int page) const;
 
+    /// Navigate to next slide.
     void nextSlide() const noexcept
     {navigateToPage(preferences()->page + 1);}
 
@@ -124,6 +125,7 @@ public slots:
     /// This takes ownership of tool.
     void setTool(Tool *tool) const noexcept;
 
+    /// finish navigation event: called after page change or after slide transition.
     void postNavigation() const noexcept;
 
 signals:

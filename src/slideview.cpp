@@ -177,6 +177,7 @@ void SlideView::showMagnifier(QPainter *painter, const PointingTool *tool) noexc
 {
     painter->setCompositionMode(QPainter::CompositionMode_SourceOver);
     painter->setRenderHints(QPainter::SmoothPixmapTransform);
+    painter->setRenderHints(QPainter::Antialiasing);
     painter->setPen(tool->color());
     const qreal resolution = tool->scale() / painter->transform().m11();
     PixmapGraphicsItem *pageItem = static_cast<SlideScene*>(scene())->pageBackground();
@@ -198,7 +199,6 @@ void SlideView::showMagnifier(QPainter *painter, const PointingTool *tool) noexc
                             );
         }
     }
-    const QPixmap pixmap = pageItem->getPixmap(resolution);
     // Draw magnifier(s) at all positions of tool.
     for (const auto &pos : tool->pos())
     {
@@ -207,33 +207,17 @@ void SlideView::showMagnifier(QPainter *painter, const PointingTool *tool) noexc
         // clip painter to target circle in target rect.
         QPainterPath path;
         path.addEllipse(scene_rect);
-        // Only procceed if path would be visible.
-        if (!path.intersects(sceneRect()))
-            continue;
         painter->setClipPath(path);
         // fill magnifier with background color
         painter->fillPath(path, QBrush(palette().base()));
-        // calculate source rect: area which should be magnified
-        QRectF pixmap_rect(
-                    pos.x()-sceneRect().left()-tool->size()/tool->scale(),
-                    pos.y()-sceneRect().top()-tool->size()/tool->scale(),
-                    tool->size()*2/tool->scale(),
-                    tool->size()*2/tool->scale()
-                    );
-        pixmap_rect.setRect(resolution*pixmap_rect.x(), resolution*pixmap_rect.y(), resolution*pixmap_rect.width(), resolution*pixmap_rect.height());
-        // draw source in target
-        painter->drawPixmap(scene_rect, pixmap, pixmap_rect);
-        // Draw paths. But don't do that while something is being drawn.
-        // That could lead to a segmentation fault (for some reason...).
-        if (!static_cast<SlideScene*>(scene())->isDrawing())
-        {
-            painter->save();
-            //painter->setTransform(QTransform::fromScale(tool->scale(),tool->scale()).translate(-tool->pos().x()*(1-1/tool->scale()), -tool->pos().y()*(1-1/tool->scale())), true);
-            painter->setTransform(QTransform::fromTranslate(pos.x()*(1-tool->scale()), pos.y()*(1-tool->scale())).scale(tool->scale(),tool->scale()), true);
-            for (const auto item : static_cast<const QList<QGraphicsItem*>>(items()))
-                item->paint(painter, NULL, this);
-            painter->restore();
-        }
+        // set transform for magnifier
+        painter->save();
+        painter->translate(-pos.x()/2, -pos.y()/2);
+        painter->scale(tool->scale()/transform().m11(), tool->scale()/transform().m11());
+        // render scene in magnifier
+        scene()->render(painter);
+        painter->restore();
+        // draw circle around magnifier
         painter->drawEllipse(pos, tool->size(), tool->size());
     }
 }
@@ -320,13 +304,14 @@ void SlideView::addMediaSlider(const SlideScene::VideoItem &video)
 
 void SlideView::prepareTransition(PixmapGraphicsItem *transitionItem)
 {
-    QPixmap pixmap((sceneRect().size()*transform().m11()).toSize());
+    const qreal resolution = transform().m11();
+    QPixmap pixmap((sceneRect().size()*resolution).toSize());
     QPainter painter(&pixmap);
     painter.setRenderHint(QPainter::Antialiasing);
     QRect sourceRect(mapFromScene({0,0}), pixmap.size());
     render(&painter, pixmap.rect(), sourceRect);
     painter.end();
-    transitionItem->addPixmap(pixmap);
+    transitionItem->addPixmap(pixmap, resolution);
 }
 
 void SlideView::prepareFlyTransition(const bool outwards, const PixmapGraphicsItem *old, PixmapGraphicsItem *target)
@@ -334,18 +319,19 @@ void SlideView::prepareFlyTransition(const bool outwards, const PixmapGraphicsIt
     if (!old || !target)
         return;
 
+    const qreal resolution = transform().m11();
     QImage newimg, oldimg;
     QPainter painter;
     if (outwards)
     {
-        newimg = old->getPixmap(transform().m11()).toImage();
+        newimg = old->getPixmap(resolution).toImage();
         newimg.convertTo(QImage::Format_ARGB32);
         oldimg = QImage(newimg.size(), QImage::Format_ARGB32);
         painter.begin(&oldimg);
     }
     else
     {
-        oldimg = old->getPixmap(transform().m11()).toImage();
+        oldimg = old->getPixmap(resolution).toImage();
         oldimg.convertTo(QImage::Format_ARGB32);
         newimg = QImage(oldimg.size(), QImage::Format_ARGB32);
         painter.begin(&newimg);
@@ -401,5 +387,5 @@ void SlideView::prepareFlyTransition(const bool outwards, const PixmapGraphicsIt
     }
 
     debug_msg(DebugTransitions) << "Prepared fly transition" << newimg.size();
-    target->addPixmap(QPixmap::fromImage(newimg));
+    target->addPixmap(QPixmap::fromImage(newimg), resolution);
 }

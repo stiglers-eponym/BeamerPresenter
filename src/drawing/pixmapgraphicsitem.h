@@ -84,7 +84,9 @@ public:
     {return pixmaps.size();}
 
 public slots:
-    void addPixmap(const QPixmap& pixmap);
+    void addPixmap(const QPixmap& pixmap, const qreal resolution);
+    void addPixmap(const QPixmap& pixmap)
+    {addPixmap(pixmap, pixmap.width() / boundingRect().width());}
     void setRect(const QRectF &rect) noexcept
     {bounding_rect = rect; update();}
     void setSize(const QSizeF &size) noexcept

@@ -118,11 +118,11 @@ void PixmapGraphicsItem::paint(QPainter *painter, const QStyleOptionGraphicsItem
     }
 }
 
-void PixmapGraphicsItem::addPixmap(const QPixmap &pixmap)
+void PixmapGraphicsItem::addPixmap(const QPixmap &pixmap, const qreal resolution)
 {
     if (!pixmap.isNull())
     {
-        const int hash = HASH_RESOLUTION * pixmap.width() / boundingRect().width();
+        const int hash = HASH_RESOLUTION * resolution;
         pixmaps[hash] = pixmap;
         newHashs.insert(hash);
     }

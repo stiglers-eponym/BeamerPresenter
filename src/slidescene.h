@@ -93,11 +93,9 @@ public:
     /// Destructor: delete all graphics items.
     ~SlideScene();
 
+    /// Get current page item (the pixmap graphics item showing the current page)
     PixmapGraphicsItem *pageBackground() const noexcept
     {return pageItem;}
-
-    PixmapGraphicsItem *transitionItem() const noexcept
-    {return pageTransitionItem;}
 
     /// Set shift in the form ((shift & ~AnyOverlay) | overlay).
     void setPageShift(const int relative_shift)
@@ -218,9 +216,10 @@ signals:
     /// Send new path to PdfMaster.
     void sendNewPath(int page, QGraphicsItem *item) const;
 
-    void prepareTransition(PixmapGraphicsItem *transitionItem);
+    /// Tell master that transition has ended.
     void finishTransition();
 
+    /// Get path container for given page.
     void requestPathContainer(PathContainer **container, int page);
 };
 
