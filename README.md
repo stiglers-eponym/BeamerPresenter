@@ -115,7 +115,6 @@ you will find the lines
 `DEFINES += INCLUDE_POPPLER` and
 `DEFINES += INCLUDE_MUPDF`.
 Comment out the PDF engine which you don't need with a `#`.
-The version with poppler seems to be more stable, while mupdf is probably faster.
 
 Now you can start building.
 ```sh

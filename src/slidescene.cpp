@@ -136,7 +136,7 @@ bool SlideScene::event(QEvent* event)
                 item->setFocus();
             }
         }
-        else if (!tool && mouseevent->button() == Qt::LeftButton)
+        else if ((!tool || tool->tool() == NoTool) && mouseevent->button() == Qt::LeftButton)
             noToolClicked(mouseevent->scenePos(), mouseevent->buttonDownScenePos(Qt::LeftButton));
         event->accept();
         return true;
@@ -145,7 +145,7 @@ bool SlideScene::event(QEvent* event)
     {
         Tool *const tool = preferences()->currentTool(TouchInput);
         if (!tool)
-            break;
+            return true;
         const auto touchevent = static_cast<QTouchEvent*>(event);
         if ((tool->tool() & AnyDrawTool) && (touchevent->touchPoints().size() == 1))
         {
@@ -251,7 +251,7 @@ bool SlideScene::event(QEvent* event)
                     item->setFocus();
                 }
             }
-            else if (!tool && touchevent->touchPoints().length() == 1)
+            else if ((!tool || tool->tool() == NoTool) && touchevent->touchPoints().length() == 1)
                 noToolClicked(touchevent->touchPoints().first().scenePos(), touchevent->touchPoints().first().startScenePos());
             event->accept();
             return true;

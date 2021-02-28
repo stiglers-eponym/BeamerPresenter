@@ -237,6 +237,7 @@ const PngPixmap * MuPdfRenderer::renderPng(const int page, const qreal resolutio
     fz_buffer *buffer = NULL;
     fz_var(buffer);
     fz_try(ctx)
+        // Here valgrind complains about "Use of uninitialised value of size 8"
         buffer = fz_new_buffer_from_pixmap_as_png(ctx, pixmap, fz_default_color_params);
     fz_always(ctx)
         fz_drop_pixmap(ctx, pixmap);
