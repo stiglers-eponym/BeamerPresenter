@@ -182,8 +182,6 @@ The configuration files of version 0.2.x and 0.1.x are incompatible.
 * option to insert extra slides or extra space below slide for drawing (partially implemented)
 * improve text input tool
 * select for each slide widgets whether videos or slide transitions should be shown
-* magnifier in combination with overlays in preview and slide transitions may cause problems
-* magnifier in videos has some bugs, possibly connected to overlays in preview
 * improve widgets:
     * settings (more explanations)
     * timer (with color indicating progress relative to estimate like in version 0.1.x)

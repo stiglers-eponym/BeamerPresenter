@@ -68,7 +68,7 @@ void SlideView::pageChangedBlocking(const int page, SlideScene *scene)
     QPixmap pixmap;
     debug_msg(DebugPageChange) << "Request page blocking" << page << this;
     emit getPixmapBlocking(page, &pixmap, resolution);
-    scene->pageBackground()->addPixmap(pixmap);
+    scene->pageBackground()->addPixmap(pixmap, resolution);
     updateScene({sceneRect()});
 }
 
@@ -210,13 +210,11 @@ void SlideView::showMagnifier(QPainter *painter, const PointingTool *tool) noexc
         painter->setClipPath(path);
         // fill magnifier with background color
         painter->fillPath(path, QBrush(palette().base()));
-        // set transform for magnifier
-        painter->save();
-        painter->translate(-pos.x()/2, -pos.y()/2);
-        painter->scale(tool->scale()/transform().m11(), tool->scale()/transform().m11());
+        // Calculate target rect for painter.
+        QRectF target_rect({0,0}, tool->scale()*scene_rect.size());
+        target_rect.moveCenter({pos.x(), pos.y()});
         // render scene in magnifier
-        scene()->render(painter);
-        painter->restore();
+        scene()->render(painter, target_rect, scene_rect);
         // draw circle around magnifier
         painter->drawEllipse(pos, tool->size(), tool->size());
     }
