@@ -333,6 +333,7 @@ void SlideScene::navigationEvent(const int newpage, SlideScene *newscene)
         delete animation;
         animation = NULL;
     }
+    pageItem->setOpacity(1.);
     pageItem->setRect(sceneRect());
     pageItem->trackNew();
     if ((!newscene || newscene == this) && page != newpage)
@@ -658,7 +659,6 @@ void SlideScene::startTransition(const int newpage, const SlideTransition &trans
 
         QPropertyAnimation *propanim = new QPropertyAnimation(pageTransitionItem, "x");
         animation = propanim;
-        connect(animation, &QAbstractAnimation::finished, this, &SlideScene::endTransition);
         propanim->setDuration(1000*transition.duration);
         switch (transition.angle)
         {
@@ -1045,6 +1045,7 @@ bool SlideScene::stopInputEvent(const QPointF &pos)
 
 void SlideScene::noToolClicked(const QPointF &pos, const QPointF &startpos)
 {
+    debug_msg(DebugMedia) << "Clicked without tool" << pos << startpos;
     // Try to handle multimedia annotation.
     for (auto &item : videoItems)
     {
@@ -1098,7 +1099,7 @@ void SlideScene::playPauseMedia() const
 {
     for (auto &item : videoItems)
     {
-        if (item.pages.contains((page &~NotFullPage)))
+        if (item.pages.contains((page &~NotFullPage)) && item.player->state() == QMediaPlayer::PlayingState)
         {
             pauseMedia();
             return;
