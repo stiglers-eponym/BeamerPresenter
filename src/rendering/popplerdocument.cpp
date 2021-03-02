@@ -69,20 +69,13 @@ bool PopplerDocument::loadDocument()
                     QString(),
                     &ok
                     );
-        // Check if a password was entered.
-        if (!ok || password.isEmpty())
+        // Check if a password was entered and try to unlock document.
+        // Only user password is required, since we only read the document.
+        if (!ok || password.isEmpty() || newdoc->unlock(QByteArray(), password.toUtf8()))
         {
+            qCritical() << "No or invalid password provided for locked document";
             delete newdoc;
             newdoc = NULL;
-            qCritical() << "No password provided for locked document";
-            return false;
-        }
-        // Try to unlock document.
-        if (!newdoc->unlock(QByteArray(), password.toLatin1()))
-        {
-            delete newdoc;
-            newdoc = NULL;
-            qCritical() << "Unlocking document failed: wrong password or bug.";
             return false;
         }
     }

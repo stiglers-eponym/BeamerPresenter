@@ -186,6 +186,32 @@ bool MuPdfDocument::loadDocument()
             return false;
         }
     }
+    // Try to decrypt document if necessary (untested!)
+    if (pdf_needs_password(ctx, doc))
+    {
+        qWarning() << "Document is locked.";
+        // Use a QInputDialog to ask for the password.
+        bool ok;
+        QString const password = QInputDialog::getText(
+                    NULL,
+                    "Document is locked!",
+                    "Please enter password (leave empty to cancel).",
+                    QLineEdit::Password,
+                    QString(),
+                    &ok
+                    );
+        // Check if a password was entered.
+        if (!ok || password.isEmpty() || !pdf_authenticate_password(ctx, doc, password.toUtf8()))
+        {
+            qCritical() << "No or invalid password provided for locked document";
+            pdf_drop_document(ctx, doc);
+            doc = NULL;
+            fz_drop_context(ctx);
+            ctx =  NULL;
+            mutex->unlock();
+            return false;
+        }
+    }
 
     // Save the modification time.
     lastModified = fileinfo.lastModified();

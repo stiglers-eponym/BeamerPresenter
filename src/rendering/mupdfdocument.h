@@ -12,6 +12,7 @@ extern "C"
 #include <QMutex>
 #include <QObject>
 #include <QFileInfo>
+#include <QInputDialog>
 #include "src/rendering/pdfdocument.h"
 #include "src/preferences.h"
 
