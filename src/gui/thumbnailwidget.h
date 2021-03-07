@@ -31,7 +31,8 @@ class ThumbnailWidget : public QScrollArea
     bool skip_overlays = false;
 
 public:
-    explicit ThumbnailWidget(QWidget *parent = NULL) : QScrollArea(parent) {}
+    explicit ThumbnailWidget(QWidget *parent = NULL) : QScrollArea(parent)
+    {setFocusPolicy(Qt::NoFocus);}
 
     ~ThumbnailWidget();
 
@@ -51,12 +52,7 @@ public:
 
 public slots:
     /// Show event: generate thumbnails if necessary.
-    void showEvent(QShowEvent*) override
-    {generate();}
-
-    /// Focus event: generate thumbnails if necessary.
-    void focusInEvent(QFocusEvent*) override
-    {generate();}
+    void showEvent(QShowEvent*) override;
 
     void receiveThumbnail(ThumbnailButton *button, const QPixmap pixmap)
     {if (button) button->setPixmap(pixmap);}

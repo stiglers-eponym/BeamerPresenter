@@ -1,5 +1,29 @@
 #include "thumbnailwidget.h"
 
+void ThumbnailWidget::showEvent(QShowEvent *event)
+{
+    generate();
+    QLayout *layout = widget() ? widget()->layout() : NULL;
+    if (layout && !event->spontaneous())
+    {
+        int page;
+        if (skip_overlays)
+        {
+            // Get sorted list of page label indices from master document.
+            const QList<int> &list = preferences()->document->overlayIndices();
+            QList<int>::const_iterator it = std::upper_bound(list.cbegin(), list.cend(), preferences()->page);
+            if (it != list.cbegin())
+                --it;
+            page = it - list.cbegin();
+        }
+        else
+            page = preferences()->page;
+        QLayoutItem *item = layout->itemAt(page);
+        if (item && item->widget())
+            item->widget()->setFocus();
+    }
+}
+
 void ThumbnailWidget::generate(const PdfDocument *document)
 {
     if (!document)

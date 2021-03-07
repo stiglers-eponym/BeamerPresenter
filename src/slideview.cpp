@@ -284,8 +284,9 @@ void SlideView::addMediaSlider(const SlideScene::VideoItem &video)
     slider->setGeometry(left.x(), right.y(), right.x() - left.x(), 20);
     slider->setMaximum(video.player->duration());
     slider->setValue(video.player->position());
-    connect(slider, &QSlider::sliderMoved, video.player, &QMediaPlayer::setPosition);
+    connect(video.player, &QMediaPlayer::durationChanged, slider, &QSlider::setMaximum);
     connect(video.player, &QMediaPlayer::positionChanged, slider, &QSlider::setValue);
+    connect(slider, &QSlider::sliderMoved, video.player, &QMediaPlayer::setPosition);
     QPalette palette;
     palette.setColor(QPalette::Base, QColor(0,0,0,0));
     slider->setPalette(palette);

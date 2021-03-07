@@ -186,7 +186,7 @@ bool MuPdfDocument::loadDocument()
             return false;
         }
     }
-    // Try to decrypt document if necessary (untested!)
+    // Try to decrypt document if necessary
     if (pdf_needs_password(ctx, doc))
     {
         qWarning() << "Document is locked.";
