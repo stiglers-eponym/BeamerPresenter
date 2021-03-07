@@ -1,4 +1,9 @@
-#include "toolselectorwidget.h"
+#include "src/gui/toolselectorwidget.h"
+#include "src/gui/actionbutton.h"
+#include "src/gui/toolbutton.h"
+#include "src/names.h"
+#include <QGridLayout>
+#include <QJsonArray>
 
 ToolSelectorWidget::ToolSelectorWidget(QWidget *parent) : QWidget(parent)
 {

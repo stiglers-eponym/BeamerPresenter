@@ -1,10 +1,11 @@
 #ifndef KEYINPUTLABEL_H
 #define KEYINPUTLABEL_H
 
-#include <QKeyEvent>
+#include "src/enumerates.h"
 #include <QLabel>
-#include "src/preferences.h"
-#include "src/gui/tooldialog.h"
+#include <QKeyEvent>
+
+class Tool;
 
 /**
  * @brief KeyInputLabel: QLabel for keyboard shortcut input.

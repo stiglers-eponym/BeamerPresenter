@@ -1,4 +1,10 @@
-#include "timerwidget.h"
+#include "src/gui/timerwidget.h"
+#include "src/preferences.h"
+#include <QHBoxLayout>
+#include <QResizeEvent>
+#include <QLineEdit>
+#include <QLabel>
+#include <QTimer>
 
 TimerWidget::TimerWidget(QWidget *parent) :
      QWidget(parent),

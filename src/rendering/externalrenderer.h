@@ -1,12 +1,11 @@
 #ifndef EXTERNALRENDERER_H
 #define EXTERNALRENDERER_H
 
-#include <QProcess>
 #include "src/rendering/abstractrenderer.h"
-#include "src/rendering/pdfdocument.h"
-#include "src/preferences.h"
 
 #define MAX_PROCESS_TIME_MS 60000
+
+class PdfDocument;
 
 /// Render PDF pages by calling an external program.
 class ExternalRenderer : public AbstractRenderer

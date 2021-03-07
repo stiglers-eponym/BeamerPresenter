@@ -1,4 +1,8 @@
+#include <QDebug>
+#include <string>
 #include "src/rendering/mupdfrenderer.h"
+#include "src/rendering/pngpixmap.h"
+#include "src/preferences.h"
 
 const QPixmap MuPdfRenderer::renderPixmap(const int page, const qreal resolution) const
 {

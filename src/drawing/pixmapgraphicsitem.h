@@ -3,13 +3,14 @@
 
 #include <QSet>
 #include <QObject>
-#include <QPainter>
 #include <QGraphicsItem>
 
 #define BLINDS_NUMBER_H 6
 #define BLINDS_NUMBER_V 8
 #define GLITTER_ROW 71
 #define GLITTER_NUMBER 137
+
+class QPainter;
 
 /**
  * @brief Pixmaps for QGraphicsScene with multiple resolutions

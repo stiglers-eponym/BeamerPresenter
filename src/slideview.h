@@ -5,10 +5,10 @@
 #include <QGraphicsView>
 #include <QResizeEvent>
 #include <cstring>
-#include "src/drawing/pointingtool.h"
-#include "src/rendering/pixcache.h"
-#include "src/preferences.h"
 #include "src/slidescene.h"
+
+class PointingTool;
+class PixCache;
 
 /// Slide shown on the screen: a view of SlideScene.
 /// This also draws the background (PDF page) of the slide.

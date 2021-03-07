@@ -1,4 +1,8 @@
 #include "src/rendering/externalrenderer.h"
+#include "src/rendering/pdfdocument.h"
+#include "src/rendering/pngpixmap.h"
+#include "src/preferences.h"
+#include <QProcess>
 
 ExternalRenderer::ExternalRenderer(const QString& command, const QStringList &arguments, const PdfDocument * const doc, const PagePart part) :
     AbstractRenderer(part),

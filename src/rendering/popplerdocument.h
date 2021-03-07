@@ -1,30 +1,12 @@
 #ifndef POPPLERDOCUMENT_H
 #define POPPLERDOCUMENT_H
 
-#include <poppler/qt5/poppler-qt5.h>
-#include <QFileInfo>
-#include <QInputDialog>
 #include <set>
+#include <poppler/qt5/poppler-qt5.h>
+#include "src/enumerates.h"
 #include "src/rendering/pdfdocument.h"
-#include "src/preferences.h"
 
-/*
-static const QMap<Poppler::PageTransition::Type, SlideTransition::Type> mapTransitionTypes
-{
-    {Poppler::PageTransition::Replace, SlideTransition::Replace},
-    {Poppler::PageTransition::Split, SlideTransition::Split},
-    {Poppler::PageTransition::Blinds, SlideTransition::Blinds},
-    {Poppler::PageTransition::Box, SlideTransition::Box},
-    {Poppler::PageTransition::Wipe, SlideTransition::Wipe},
-    {Poppler::PageTransition::Dissolve, SlideTransition::Dissolve},
-    {Poppler::PageTransition::Glitter, SlideTransition::Glitter},
-    {Poppler::PageTransition::Fly, SlideTransition::Fly},
-    {Poppler::PageTransition::Push, SlideTransition::Push},
-    {Poppler::PageTransition::Cover, SlideTransition::Cover},
-    {Poppler::PageTransition::Uncover, SlideTransition::Uncover},
-    {Poppler::PageTransition::Fade, SlideTransition::Fade},
-};
-*/
+class PngPixmap;
 
 class PopplerDocument : public PdfDocument
 {

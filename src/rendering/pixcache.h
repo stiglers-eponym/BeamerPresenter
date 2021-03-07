@@ -4,14 +4,16 @@
 #include <QObject>
 #include <QMap>
 #include <QList>
-#include <QTimer>
-#include "src/rendering/pngpixmap.h"
-#include "src/rendering/pixcachethread.h"
-#include "src/rendering/pdfdocument.h"
-#include "src/preferences.h"
+#include <QPixmap>
 #include "src/enumerates.h"
 
 #define MAX_RESOLUTION_DEVIATION 1e-5
+
+class QTimer;
+class PngPixmap;
+class PdfDocument;
+class PixCacheThread;
+class AbstractRenderer;
 
 /// Cache of compressed slides as PNG images.
 /// This does the job of rendering slides to images and storing these images

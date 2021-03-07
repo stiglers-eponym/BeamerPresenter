@@ -9,23 +9,9 @@
 #include <QMediaPlaylist>
 #include <QSizePolicy>
 #include "src/enumerates.h"
-#include "src/names.h"
-#include "src/gui/flexlayout.h"
-#include "src/gui/clockwidget.h"
-#include "src/gui/tabwidget.h"
-#include "src/gui/stackedwidget.h"
-#include "src/gui/containerwidget.h"
-#include "src/gui/slidenumberwidget.h"
-#include "src/gui/slidelabelwidget.h"
-#include "src/gui/settingswidget.h"
-#include "src/gui/timerwidget.h"
-#include "src/gui/noteswidget.h"
-#include "src/gui/tocwidget.h"
-#include "src/gui/thumbnailwidget.h"
-#include "src/gui/toolselectorwidget.h"
-#include "src/drawing/drawtool.h"
-#include "src/drawing/pointingtool.h"
+#include "src/preferences.h"
 
+class Tool;
 class PdfMaster;
 class SlideScene;
 class PixCache;

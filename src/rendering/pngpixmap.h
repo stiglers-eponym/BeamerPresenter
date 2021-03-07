@@ -2,9 +2,8 @@
 #define PNGPIXMAP_H
 
 #include <QByteArray>
-#include <QPixmap>
-#include <QBuffer>
-#include <QDebug>
+
+class QPixmap;
 
 /// PNG-compressed QPixmap image.
 class PngPixmap

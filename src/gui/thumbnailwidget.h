@@ -5,11 +5,10 @@
 #include <QScroller>
 #include <QThread>
 #include <QGridLayout>
-#include "src/preferences.h"
 #include "src/gui/thumbnailbutton.h"
-#include "src/gui/thumbnailthread.h"
-#include "src/rendering/pdfdocument.h"
 
+class PdfDocument;
+class ThumbnailThread;
 
 /**
  * @brief Widget showing thumbnail slides on grid layout in scroll area.
@@ -17,9 +16,7 @@
  * TODO:
  *  check destructors, there might be memory leaks
  *  don't change slide after touch scroll event
- *  cursor (selected frame marked by red margin)
  *  clear when resizing
- *  keyboard navigation
  */
 class ThumbnailWidget : public QScrollArea
 {

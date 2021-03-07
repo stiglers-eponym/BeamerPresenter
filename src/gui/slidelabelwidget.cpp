@@ -1,4 +1,11 @@
-#include "slidelabelwidget.h"
+#include <iostream>
+#include <iomanip>
+#include <QLabel>
+#include <QHBoxLayout>
+#include <QLineEdit>
+#include <QResizeEvent>
+#include "src/preferences.h"
+#include "src/gui/slidelabelwidget.h"
 
 SlideLabelWidget::SlideLabelWidget(QWidget *parent) :
     QWidget(parent)

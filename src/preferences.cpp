@@ -1,13 +1,17 @@
+#include <QFileDialog>
 #include "src/preferences.h"
+#include "src/rendering/pdfdocument.h"
+#include "src/drawing/texttool.h"
+#include "src/names.h"
 
 
 Tool *createTool(const QJsonObject &obj, const int default_device)
 {
-    const BasicTool base_tool = string_to_tool.value(obj.value("tool").toString());
+    const Tool::BasicTool base_tool = string_to_tool.value(obj.value("tool").toString());
     Tool *tool;
     switch (base_tool)
     {
-    case Pen:
+    case Tool::Pen:
     {
         const QColor color(obj.value("color").toString("black"));
         const float width = obj.value("width").toDouble(2.);
@@ -15,10 +19,10 @@ Tool *createTool(const QJsonObject &obj, const int default_device)
             return NULL;
         const Qt::PenStyle style = string_to_pen_style.value(obj.value("style").toString(), Qt::SolidLine);
         debug_msg(DebugSettings) << "creating pen" << color << width;
-        tool = new DrawTool(Pen, default_device, QPen(color, width, style, Qt::RoundCap, Qt::RoundJoin));
+        tool = new DrawTool(Tool::Pen, default_device, QPen(color, width, style, Qt::RoundCap, Qt::RoundJoin));
         break;
     }
-    case Highlighter:
+    case Tool::Highlighter:
     {
         const QColor color(obj.value("color").toString("yellow"));
         const float width = obj.value("width").toDouble(20.);
@@ -26,16 +30,16 @@ Tool *createTool(const QJsonObject &obj, const int default_device)
             return NULL;
         const Qt::PenStyle style = string_to_pen_style.value(obj.value("style").toString(), Qt::SolidLine);
         debug_msg(DebugSettings) << "creating highlighter" << color << width;
-        tool = new DrawTool(Highlighter, default_device, QPen(color, width, style, Qt::RoundCap, Qt::RoundJoin), QPainter::CompositionMode_Darken);
+        tool = new DrawTool(Tool::Highlighter, default_device, QPen(color, width, style, Qt::RoundCap, Qt::RoundJoin), QPainter::CompositionMode_Darken);
         break;
     }
-    case Eraser:
+    case Tool::Eraser:
     {
         debug_msg(DebugSettings) << "creating eraser";
-        tool = new DrawTool(Highlighter, default_device, QPen(Qt::black, obj.value("size").toDouble(10.)));
+        tool = new DrawTool(Tool::Eraser, default_device, QPen(Qt::black, obj.value("size").toDouble(10.)));
         break;
     }
-    case Pointer:
+    case Tool::Pointer:
     {
         const QColor color(obj.value("color").toString("red"));
         const float size = obj.value("size").toDouble(5.);
@@ -49,31 +53,31 @@ Tool *createTool(const QJsonObject &obj, const int default_device)
         grad.setColorAt(1, QColor(color.red(), color.green(), color.blue(), 0));
         QBrush brush(grad);
         brush.setColor(color);
-        tool = new PointingTool(Pointer, size, brush, default_device);
+        tool = new PointingTool(Tool::Pointer, size, brush, default_device);
         break;
     }
-    case Torch:
+    case Tool::Torch:
     {
         const QColor color(obj.value("color").toString("#80000000"));
         const float size = obj.value("size").toDouble(80.);
         if (size <= 0.)
             return NULL;
         debug_msg(DebugSettings) << "creating torch" << color << size;
-        tool = new PointingTool(Torch, size, color, default_device);
+        tool = new PointingTool(Tool::Torch, size, color, default_device);
         break;
     }
-    case Magnifier:
+    case Tool::Magnifier:
     {
         const QColor color(obj.value("color").toString("black"));
         const float size = obj.value("size").toDouble(120.);
         const float scale = obj.value("scale").toDouble(2.);
         debug_msg(DebugSettings) << "creating magnifier" << color << size << scale;
-        PointingTool *pointing_tool = new PointingTool(Magnifier, size, color, default_device);
+        PointingTool *pointing_tool = new PointingTool(Tool::Magnifier, size, color, default_device);
         pointing_tool->setScale(scale < 0.1 ? 0.1 : scale > 10. ? 5. : scale);
         tool = pointing_tool;
         break;
     }
-    case TextInputTool:
+    case Tool::TextInputTool:
     {
         QFont font(obj.value("font").toString("black"));
         if (obj.contains("font size"))
@@ -83,15 +87,15 @@ Tool *createTool(const QJsonObject &obj, const int default_device)
         tool = new TextTool(font, color, default_device);
         break;
     }
-    case InvalidTool:
+    case Tool::InvalidTool:
         debug_msg(DebugSettings) << "tried to create invalid tool" << obj.value("tool");
         return NULL;
     default:
         debug_msg(DebugSettings) << "creating default tool" << obj.value("tool");
-        if (base_tool & AnyDrawTool)
+        if (base_tool & Tool::AnyDrawTool)
             // Shouldn't happen, but would lead to segmentation faults if it was not handled.
             tool = new DrawTool(base_tool, default_device, QPen());
-        else if (base_tool & AnyPointingTool)
+        else if (base_tool & Tool::AnyPointingTool)
             // Shouldn't happen, but would lead to segmentation faults if it was not handled.
             tool = new PointingTool(base_tool, 10., Qt::black, default_device);
         else
@@ -118,18 +122,18 @@ void toolToJson(const Tool *tool, QJsonObject &obj)
         return;
     obj.insert("tool", string_to_tool.key(tool->tool()));
     obj.insert("device", tool->device());
-    if (tool->tool() & AnyDrawTool)
+    if (tool->tool() & Tool::AnyDrawTool)
     {
         obj.insert("width", static_cast<const DrawTool*>(tool)->width());
         obj.insert("color", static_cast<const DrawTool*>(tool)->color().name());
         obj.insert("style", string_to_pen_style.key(static_cast<const DrawTool*>(tool)->pen().style()));
     }
-    else if (tool->tool() & AnyPointingTool)
+    else if (tool->tool() & Tool::AnyPointingTool)
     {
         obj.insert("size", static_cast<const PointingTool*>(tool)->size());
         obj.insert("color", static_cast<const PointingTool*>(tool)->color().name());
     }
-    else if (tool->tool() == TextInputTool)
+    else if (tool->tool() == Tool::TextInputTool)
     {
         obj.insert("color", static_cast<const TextTool*>(tool)->color().name());
         obj.insert("font", static_cast<const TextTool*>(tool)->font().toString());
@@ -205,7 +209,7 @@ void Preferences::loadSettings()
         settings.beginGroup("drawing");
         history_length_visible_slides = settings.value("history length visible", 100).toUInt();
         history_length_hidden_slides = settings.value("history length hidden", 50).toUInt();
-        overlay_mode = string_to_overlay_mode.value(settings.value("mode").toString(), Cumulative);
+        overlay_mode = string_to_overlay_mode.value(settings.value("mode").toString(), PdfMaster::Cumulative);
         settings.endGroup();
     }
 
@@ -318,7 +322,7 @@ void Preferences::loadSettings()
                             if (!value.isObject())
                                 continue;
                             const QJsonObject object = value.toObject();
-                            Tool *tool = createTool(object, AnyNormalDevice);
+                            Tool *tool = createTool(object, Tool::AnyNormalDevice);
                             if (tool)
                             {
                                 debug_msg(DebugSettings|DebugDrawing) << "Adding tool" << tool << tool->tool() << tool->device();

@@ -2,8 +2,7 @@
 #define CONTAINERWIDGET_H
 
 #include <QWidget>
-#include <QDebug>
-#include "src/gui/flexlayout.h"
+#include <QLayout>
 
 /// This whole construction might change in the future.
 /// Widget for arangement of child widgets in QBoxLayout as read from

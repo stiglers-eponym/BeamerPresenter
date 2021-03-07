@@ -1,5 +1,4 @@
-#include "actionbutton.h"
-
+#include "src/gui/actionbutton.h"
 
 ActionButton::ActionButton(QWidget *parent) :
     QPushButton(parent)

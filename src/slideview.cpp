@@ -1,5 +1,8 @@
 #include "src/slideview.h"
-#include "src/pdfmaster.h"
+#include "src/preferences.h"
+#include "src/drawing/pixmapgraphicsitem.h"
+#include "src/drawing/pointingtool.h"
+#include "src/rendering/pixcache.h"
 
 SlideView::SlideView(SlideScene *scene, PixCache *cache, QWidget *parent) :
     QGraphicsView(scene, parent)
@@ -220,7 +223,7 @@ void SlideView::drawForeground(QPainter *painter, const QRectF &rect)
         for (const auto basic_tool : preferences()->current_tools)
         {
             // Only pointing tools need painting in foreground (might change in the future).
-            if (!(basic_tool->tool() & AnyPointingTool))
+            if (!(basic_tool->tool() & Tool::AnyPointingTool))
                 continue;
             const PointingTool *tool = static_cast<PointingTool*>(basic_tool);
             if (tool->pos().isEmpty())
@@ -228,13 +231,13 @@ void SlideView::drawForeground(QPainter *painter, const QRectF &rect)
             debug_verbose(DebugDrawing) << "drawing tool" << tool->tool() << tool->size() << tool->color();
             switch (tool->tool())
             {
-            case Pointer:
+            case Tool::Pointer:
                 showPen(painter, tool);
                 break;
-            case Torch:
+            case Tool::Torch:
                 showTorch(painter, tool);
                 break;
-            case Magnifier:
+            case Tool::Magnifier:
                 showMagnifier(painter, tool);
                 break;
             default:

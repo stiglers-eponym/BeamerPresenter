@@ -1,4 +1,9 @@
-#include "noteswidget.h"
+#include "src/gui/noteswidget.h"
+#include "src/preferences.h"
+#include <QXmlStreamReader>
+#include <QXmlStreamWriter>
+#include <QFile>
+#include <QKeyEvent>
 
 NotesWidget::NotesWidget(const bool per_page, QWidget *parent) :
     QTextEdit(parent),

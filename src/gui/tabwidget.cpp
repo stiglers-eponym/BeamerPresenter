@@ -1,4 +1,5 @@
 #include "src/gui/tabwidget.h"
+#include <QTabBar>
 
 QSize TabWidget::sizeHint() const noexcept
 {

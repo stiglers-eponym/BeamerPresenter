@@ -1,36 +1,20 @@
 #ifndef PATHCONTAINER_H
 #define PATHCONTAINER_H
 
-#include <QDebug>
-#include <QObject>
-#include <QGraphicsItem>
-#include <QGraphicsScene>
-#include <QXmlStreamWriter>
-#include <QXmlStreamReader>
 #include <QList>
-#include "src/drawing/abstractgraphicspath.h"
-#include "src/drawing/basicgraphicspath.h"
-#include "src/drawing/fullgraphicspath.h"
-#include "src/preferences.h"
+#include "src/drawing/tool.h"
 
+class QGraphicsScene;
+class QGraphicsItem;
+class QXmlStreamReader;
+class QXmlStreamWriter;
 
-/// One single step in the history of drawing.
-/// Save deleted and added GraphicsItems and their stacking position
-/// (by their index).
-/// A history step consists of
-/// 1. deleting QGraphicsItems. DrawHistoryStep saves these items together
-///    with their index in the stacking order before they were deleted.
-/// 2. creating QGraphicsItems. DrawHistoryStep saves these items together
-///    with their index after all new QGraphicsItems were added.
-struct DrawHistoryStep {
-    friend class PathContainer;
-
-private:
-    /// Newly created items with their index after the history step.
-    QMap<int, QGraphicsItem*> createdItems;
-
-    /// Deleted items with their indices before the history step.
-    QMap<int, QGraphicsItem*> deletedItems;
+static const QMap<Tool::BasicTool, QString> xournal_tool_names
+{
+    {Tool::Pen, "pen"},
+    {Tool::FixedWidthPen, "pen"},
+    {Tool::Highlighter, "highlighter"},
+    {Tool::TextInputTool, "text"},
 };
 
 
@@ -39,6 +23,28 @@ private:
 /// Access the history using undo and redo functions.
 class PathContainer
 {
+public:
+    /**
+     * One single step in the history of drawing.
+     *  Save deleted and added GraphicsItems and their stacking position
+     *  (by their index).
+     *  A history step consists of
+     *  1. deleting QGraphicsItems. DrawHistoryStep saves these items together
+     *     with their index in the stacking order before they were deleted.
+     *  2. creating QGraphicsItems. DrawHistoryStep saves these items together
+     *     with their index after all new QGraphicsItems were added.
+     */
+    struct DrawHistoryStep {
+        friend class PathContainer;
+
+    private:
+        /// Newly created items with their index after the history step.
+        QMap<int, QGraphicsItem*> createdItems;
+
+        /// Deleted items with their indices before the history step.
+        QMap<int, QGraphicsItem*> deletedItems;
+    };
+
 private:
     /// List of currently visible paths in the order in which they were created
     /// TODO: don't use this when this is currently active on scene?

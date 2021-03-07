@@ -7,18 +7,26 @@
 #include <QXmlStreamReader>
 #include <QXmlStreamWriter>
 #include <QMimeDatabase>
-#include "src/slidescene.h"
-#include "src/slideview.h"
-#include "src/preferences.h"
-#include "src/drawing/pathcontainer.h"
-#include "src/rendering/pixcache.h"
+#include "src/enumerates.h"
 #include "src/rendering/pdfdocument.h"
+
+class SlideScene;
+class PathContainer;
+class QGraphicsItem;
 
 /// Full document including PDF and paths / annotations added by user.
 /// This should also manage drawings and multimedia content of the PDF.
 class PdfMaster : public QObject
 {
     Q_OBJECT
+
+public:
+    enum OverlayDrawingMode
+    {
+        PerPage, // Every page has independent drawings.
+        PerLabel, // All pages with the same label in a simply connected region have the same drawings.
+        Cumulative, // When going to the next page which has the same label, the current drawings are copied.
+    };
 
 private:
     /// Poppler document representing the PDF
@@ -37,9 +45,6 @@ private:
     /// Paths can be drawn per slide label by creating references to the main
     /// path list from other slide numbers.
     QMap<int, PathContainer*> paths;
-
-    // TODO: multimedia, slide transitions
-    QMap<int, QList<MediaAnnotation>> mediaAnnotations;
 
 
 public:
@@ -82,7 +87,7 @@ public:
     void clearHistory(const int page, const int remaining_entries) const;
 
     /// Slide transition when reaching the given page number.
-    const SlideTransition transition(const int page) const
+    const PdfDocument::SlideTransition transition(const int page) const
     {return document->transition(page);}
 
     /// Number of pages in the document.
@@ -143,6 +148,13 @@ signals:
     void navigationSignal(const int page) const;
     /// Notify that views need to be updated.
     void update() const;
+};
+
+static const QMap<QString, PdfMaster::OverlayDrawingMode> string_to_overlay_mode
+{
+    {"per page", PdfMaster::PerPage},
+    {"per label", PdfMaster::PerLabel},
+    {"cumulative", PdfMaster::Cumulative},
 };
 
 #endif // PDFMASTER_H

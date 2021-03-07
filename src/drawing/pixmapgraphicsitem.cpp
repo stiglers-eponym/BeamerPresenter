@@ -1,6 +1,6 @@
 #include "src/drawing/pixmapgraphicsitem.h"
 #include "src/preferences.h"
-
+#include <QPainter>
 #include <array>
 #include <random>
 #include <algorithm>

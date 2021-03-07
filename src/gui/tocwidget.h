@@ -1,13 +1,10 @@
 #ifndef TOCWIDGET_H
 #define TOCWIDGET_H
 
-#include <QDebug>
 #include <QWidget>
-#include <QBoxLayout>
-#include <QLabel>
-#include "src/rendering/pdfdocument.h"
-#include "src/preferences.h"
 #include "src/gui/tocbutton.h"
+
+class PdfDocument;
 
 /**
  * @brief TOCwidget class: show document outline.
@@ -43,8 +40,7 @@ public:
 
 public slots:
     /// Show event: generate outline if necessary. Expand to current position.
-    void showEvent(QShowEvent*) override
-    {if (first_button) expandTo(preferences()->page); else generateTOC();}
+    void showEvent(QShowEvent*) override;
 
     /// Focus event: generate outline if necessary.
     void focusInEvent(QFocusEvent*) override

@@ -1,4 +1,5 @@
-#include "fullgraphicspath.h"
+#include "src/drawing/fullgraphicspath.h"
+#include <QPainter>
 
 FullGraphicsPath::FullGraphicsPath(const DrawTool &tool, const QPointF &pos, const float pressure) :
     AbstractGraphicsPath(tool)

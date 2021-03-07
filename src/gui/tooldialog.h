@@ -2,20 +2,13 @@
 #define TOOLDIALOG_H
 
 #include <QDialog>
-#include <QColorDialog>
-#include <QFontDialog>
-#include <QComboBox>
-#include <QPushButton>
-#include <QCheckBox>
-#include <QFormLayout>
-#include <QVBoxLayout>
-#include <QGroupBox>
-#include <QDoubleSpinBox>
-#include "src/names.h"
-#include "src/preferences.h"
-#include "src/drawing/drawtool.h"
-#include "src/drawing/texttool.h"
-#include "src/drawing/pointingtool.h"
+#include <QMap>
+#include "src/drawing/tool.h"
+
+class QPushButton;
+class QComboBox;
+class QDoubleSpinBox;
+class QCheckBox;
 
 /**
  * @brief ToolDialog: select tool using GUI
@@ -41,7 +34,7 @@ public:
     Tool *createTool() const;
 
     /// Adjust selection possibilities according to basic tool.
-    void adaptToBasicTool(const BasicTool tool);
+    void adaptToBasicTool(const Tool::BasicTool tool);
 
     /// Adjust selection possibilities according to basic tool.
     void adaptToBasicToolStr(const QString &text)

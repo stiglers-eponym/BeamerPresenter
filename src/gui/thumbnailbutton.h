@@ -2,7 +2,8 @@
 #define THUMBNAILBUTTON_H
 
 #include <QLabel>
-#include <QMouseEvent>
+
+class QMouseEvent;
 
 /**
  * @brief ThumbnailButton: pushable button showing page preview

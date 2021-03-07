@@ -1,4 +1,7 @@
 #include "src/rendering/pngpixmap.h"
+#include <QDebug>
+#include <QPixmap>
+#include <QBuffer>
 
 PngPixmap::PngPixmap(const int page, const float resolution) :
      data(NULL),

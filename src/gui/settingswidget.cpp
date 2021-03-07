@@ -1,4 +1,17 @@
-#include "settingswidget.h"
+#include <QCheckBox>
+#include <QPushButton>
+#include <QLineEdit>
+#include <QComboBox>
+#include <QSpinBox>
+#include <QDoubleSpinBox>
+#include <QLabel>
+#include <QTextEdit>
+#include <QScrollArea>
+#include <QFormLayout>
+#include "src/gui/settingswidget.h"
+#include "src/names.h"
+#include "src/preferences.h"
+#include "src/gui/keyinputlabel.h"
 
 SettingsWidget::SettingsWidget(QWidget *parent) :
     QTabWidget(parent),

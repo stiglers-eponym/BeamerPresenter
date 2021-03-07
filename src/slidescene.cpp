@@ -1,5 +1,15 @@
 #include "src/slidescene.h"
+#include "src/slideview.h"
 #include "src/pdfmaster.h"
+#include "src/drawing/fullgraphicspath.h"
+#include "src/drawing/basicgraphicspath.h"
+#include "src/drawing/flexgraphicslineitem.h"
+#include "src/drawing/pixmapgraphicsitem.h"
+#include "src/drawing/pointingtool.h"
+#include "src/drawing/texttool.h"
+#include "src/drawing/pathcontainer.h"
+#include "src/preferences.h"
+#include "src/names.h"
 
 SlideScene::SlideScene(const PdfMaster *master, const PagePart part, QObject *parent) :
     QGraphicsScene(parent),
@@ -61,13 +71,13 @@ bool SlideScene::event(QEvent* event)
         Tool *const tool = preferences()->currentTool(mouseevent->buttons() << 1);
         if (!tool)
             break;
-        if (tool->tool() & AnyDrawTool)
+        if (tool->tool() & Tool::AnyDrawTool)
         {
             startInputEvent(tool, mouseevent->scenePos());
             event->accept();
             return true;
         }
-        else if (tool->tool() & AnyPointingTool)
+        else if (tool->tool() & Tool::AnyPointingTool)
         {
             static_cast<PointingTool*>(tool)->setPos(mouseevent->scenePos());
             invalidate(QRect(), QGraphicsScene::ForegroundLayer);
@@ -88,7 +98,7 @@ bool SlideScene::event(QEvent* event)
         }
         else {
             Tool *tool = preferences()->currentTool(device);
-            if (tool && (tool->tool() & AnyPointingTool))
+            if (tool && (tool->tool() & Tool::AnyPointingTool))
             {
                 if (static_cast<PointingTool*>(tool)->pos().size() == 1)
                 {
@@ -115,12 +125,12 @@ bool SlideScene::event(QEvent* event)
             stopInputEvent(mouseevent->scenePos());
         const int device = mouseevent->button() << 1;
         Tool *tool = preferences()->currentTool(device);
-        if (tool && (tool->tool() & AnyPointingTool) && !(tool->device() & MouseNoButton))
+        if (tool && (tool->tool() & Tool::AnyPointingTool) && !(tool->device() & Tool::MouseNoButton))
         {
             static_cast<PointingTool*>(tool)->clearPos();
             invalidate(QRect(), QGraphicsScene::ForegroundLayer);
         }
-        else if (tool && tool->tool() == TextInputTool)
+        else if (tool && tool->tool() == Tool::TextInputTool)
         {
             QGraphicsScene::event(event);
             if (!isTextEditing())
@@ -136,25 +146,25 @@ bool SlideScene::event(QEvent* event)
                 item->setFocus();
             }
         }
-        else if ((!tool || tool->tool() == NoTool) && mouseevent->button() == Qt::LeftButton)
+        else if ((!tool || tool->tool() == Tool::NoTool) && mouseevent->button() == Qt::LeftButton)
             noToolClicked(mouseevent->scenePos(), mouseevent->buttonDownScenePos(Qt::LeftButton));
         event->accept();
         return true;
     }
     case QEvent::TouchBegin:
     {
-        Tool *const tool = preferences()->currentTool(TouchInput);
+        Tool *const tool = preferences()->currentTool(Tool::TouchInput);
         if (!tool)
             return true;
         const auto touchevent = static_cast<QTouchEvent*>(event);
-        if ((tool->tool() & AnyDrawTool) && (touchevent->touchPoints().size() == 1))
+        if ((tool->tool() & Tool::AnyDrawTool) && (touchevent->touchPoints().size() == 1))
         {
             const QTouchEvent::TouchPoint &point = touchevent->touchPoints().first();
             startInputEvent(tool, point.scenePos(), point.pressure());
             event->accept();
             return true;
         }
-        else if (tool->tool() & AnyPointingTool)
+        else if (tool->tool() & Tool::AnyPointingTool)
         {
             static_cast<PointingTool*>(tool)->clearPos();
             for (const auto &point : touchevent->touchPoints())
@@ -168,7 +178,7 @@ bool SlideScene::event(QEvent* event)
     case QEvent::TouchUpdate:
     {
         const auto touchevent = static_cast<QTouchEvent*>(event);
-        if (current_tool && (current_tool->device() & TouchInput))
+        if (current_tool && (current_tool->device() & Tool::TouchInput))
         {
             if (touchevent->touchPoints().size() == 1)
             {
@@ -186,8 +196,8 @@ bool SlideScene::event(QEvent* event)
             return true;
         }
         else {
-            Tool *tool = preferences()->currentTool(TouchInput);
-            if (tool && (tool->tool() & AnyPointingTool))
+            Tool *tool = preferences()->currentTool(Tool::TouchInput);
+            if (tool && (tool->tool() & Tool::AnyPointingTool))
             {
                 static_cast<PointingTool*>(tool)->clearPos();
                 for (const auto &point : touchevent->touchPoints())
@@ -200,7 +210,7 @@ bool SlideScene::event(QEvent* event)
         break;
     }
     case QEvent::TouchCancel:
-        if (current_tool && (current_tool->device() & TouchInput))
+        if (current_tool && (current_tool->device() & Tool::TouchInput))
         {
             if (stopInputEvent(QPointF()))
             {
@@ -209,8 +219,8 @@ bool SlideScene::event(QEvent* event)
                 if (container)
                     container->undo(this);
             }
-            Tool *tool = preferences()->currentTool(TouchInput);
-            if (tool && (tool->tool() & AnyPointingTool))
+            Tool *tool = preferences()->currentTool(Tool::TouchInput);
+            if (tool && (tool->tool() & Tool::AnyPointingTool))
             {
                 static_cast<PointingTool*>(tool)->clearPos();
                 invalidate(QRect(), QGraphicsScene::ForegroundLayer);
@@ -222,20 +232,20 @@ bool SlideScene::event(QEvent* event)
     case QEvent::TouchEnd:
         {
             const auto touchevent = static_cast<QTouchEvent*>(event);
-            if (current_tool && (current_tool->device() & TouchInput))
+            if (current_tool && (current_tool->device() & Tool::TouchInput))
             {
                 if (touchevent->touchPoints().size() == 1)
                     stopInputEvent(touchevent->touchPoints().first().scenePos());
                 else
                     stopInputEvent(QPointF());
             }
-            Tool *tool = preferences()->currentTool(TouchInput);
-            if (tool && (tool->tool() & AnyPointingTool))
+            Tool *tool = preferences()->currentTool(Tool::TouchInput);
+            if (tool && (tool->tool() & Tool::AnyPointingTool))
             {
                 static_cast<PointingTool*>(tool)->clearPos();
                 invalidate(QRect(), QGraphicsScene::ForegroundLayer);
             }
-            else if (tool && tool->tool() == TextInputTool && touchevent->touchPoints().size() == 1)
+            else if (tool && tool->tool() == Tool::TextInputTool && touchevent->touchPoints().size() == 1)
             {
                 QGraphicsScene::event(event);
                 if (!isTextEditing())
@@ -251,7 +261,7 @@ bool SlideScene::event(QEvent* event)
                     item->setFocus();
                 }
             }
-            else if ((!tool || tool->tool() == NoTool) && touchevent->touchPoints().length() == 1)
+            else if ((!tool || tool->tool() == Tool::NoTool) && touchevent->touchPoints().length() == 1)
                 noToolClicked(touchevent->touchPoints().first().scenePos(), touchevent->touchPoints().first().startScenePos());
             event->accept();
             return true;
@@ -338,7 +348,7 @@ void SlideScene::navigationEvent(const int newpage, SlideScene *newscene)
     pageItem->trackNew();
     if ((!newscene || newscene == this) && page != newpage && (slide_flags & ShowTransitions))
     {
-        SlideTransition transition;
+        PdfDocument::SlideTransition transition;
         if (newpage > page)
             transition = master->transition(newpage);
         else
@@ -382,14 +392,14 @@ void SlideScene::loadMedia(const int page)
 {
     if (!(slide_flags & LoadMedia))
         return;
-    QList<MediaAnnotation> *list = master->getDocument()->annotations(page);
+    QList<PdfDocument::MediaAnnotation> *list = master->getDocument()->annotations(page);
     if (!list)
         return;
     for (const auto &annotation : qAsConst(*list))
     {
         switch (annotation.type)
         {
-        case MediaAnnotation::VideoAnnotation:
+        case PdfDocument::MediaAnnotation::VideoAnnotation:
         {
             debug_msg(DebugMedia) << "loading video" << annotation.file << annotation.rect;
             VideoItem &item = getVideoItem(annotation, page);
@@ -401,12 +411,12 @@ void SlideScene::loadMedia(const int page)
                 item.player->play();
             break;
         }
-        case MediaAnnotation::AudioAnnotation:
+        case PdfDocument::MediaAnnotation::AudioAnnotation:
         {
             qWarning() << "Sound annotation: not implemented yet";
             break;
         }
-        case MediaAnnotation::InvalidAnnotation:
+        case PdfDocument::MediaAnnotation::InvalidAnnotation:
             break;
         }
     }
@@ -424,27 +434,27 @@ void SlideScene::postRendering()
 
 void SlideScene::cacheMedia(const int page)
 {
-    QList<MediaAnnotation> *list = master->getDocument()->annotations(page);
+    QList<PdfDocument::MediaAnnotation> *list = master->getDocument()->annotations(page);
     if (!list)
         return;
     for (const auto &annotation : qAsConst(*list))
     {
         switch (annotation.type)
         {
-        case MediaAnnotation::VideoAnnotation:
+        case PdfDocument::MediaAnnotation::VideoAnnotation:
             debug_msg(DebugMedia) << "try to cache video" << annotation.file << annotation.rect;
             getVideoItem(annotation, page);
             break;
-        case MediaAnnotation::AudioAnnotation:
+        case PdfDocument::MediaAnnotation::AudioAnnotation:
             qWarning() << "Sound annotation: not implemented yet";
             break;
-        case MediaAnnotation::InvalidAnnotation:
+        case PdfDocument::MediaAnnotation::InvalidAnnotation:
             break;
         }
     }
 }
 
-SlideScene::VideoItem &SlideScene::getVideoItem(const MediaAnnotation &annotation, const int page)
+SlideScene::VideoItem &SlideScene::getVideoItem(const PdfDocument::MediaAnnotation &annotation, const int page)
 {
     for (auto &videoitem : videoItems)
     {
@@ -470,15 +480,15 @@ SlideScene::VideoItem &SlideScene::getVideoItem(const MediaAnnotation &annotatio
     playlist->addMedia(annotation.file);
     switch (annotation.mode)
     {
-    case MediaAnnotation::Repeat:
+    case PdfDocument::MediaAnnotation::Repeat:
         playlist->setPlaybackMode(QMediaPlaylist::CurrentItemInLoop);
         break;
-    case MediaAnnotation::Palindrome:
+    case PdfDocument::MediaAnnotation::Palindrome:
         qWarning() << "Palindrome video: not implemented (yet)";
         playlist->setPlaybackMode(QMediaPlaylist::CurrentItemInLoop);
         break;
-    case MediaAnnotation::Once:
-    case MediaAnnotation::Open:
+    case PdfDocument::MediaAnnotation::Once:
+    case PdfDocument::MediaAnnotation::Open:
         playlist->setPlaybackMode(QMediaPlaylist::CurrentItemOnce);
         break;
     default:
@@ -489,16 +499,16 @@ SlideScene::VideoItem &SlideScene::getVideoItem(const MediaAnnotation &annotatio
     return videoItems.last();
 }
 
-void SlideScene::startTransition(const int newpage, const SlideTransition &transition)
+void SlideScene::startTransition(const int newpage, const PdfDocument::SlideTransition &transition)
 {
     pageTransitionItem = new PixmapGraphicsItem(sceneRect());
     for (const auto view : static_cast<const QList<QGraphicsView*>>(views()))
         static_cast<SlideView*>(view)->prepareTransition(pageTransitionItem);
     page = newpage;
     PixmapGraphicsItem *oldPage = pageTransitionItem;
-    if (transition.type == SlideTransition::Fly || transition.type == SlideTransition::FlyRectangle)
+    if (transition.type == PdfDocument::SlideTransition::Fly || transition.type == PdfDocument::SlideTransition::FlyRectangle)
     {
-        if (!(transition.properties & SlideTransition::Outwards))
+        if (!(transition.properties & PdfDocument::SlideTransition::Outwards))
         {
             pageTransitionItem = new PixmapGraphicsItem(sceneRect());
             connect(pageTransitionItem, &QObject::destroyed, oldPage, &PixmapGraphicsItem::deleteLater);
@@ -529,9 +539,9 @@ void SlideScene::startTransition(const int newpage, const SlideTransition &trans
     animation = NULL;
     switch (transition.type)
     {
-    case SlideTransition::Split:
+    case PdfDocument::SlideTransition::Split:
     {
-        const bool outwards = transition.properties & SlideTransition::Outwards;
+        const bool outwards = transition.properties & PdfDocument::SlideTransition::Outwards;
         pageTransitionItem->setMaskType(outwards ? PixmapGraphicsItem::NegativeClipping : PixmapGraphicsItem::PositiveClipping);
         QPropertyAnimation *propanim = new QPropertyAnimation(pageTransitionItem, "mask");
         propanim->setDuration(1000*transition.duration);
@@ -540,7 +550,7 @@ void SlideScene::startTransition(const int newpage, const SlideTransition &trans
             propanim->setEndValue(rect);
         else
             propanim->setStartValue(rect);
-        if (transition.properties & SlideTransition::Vertical)
+        if (transition.properties & PdfDocument::SlideTransition::Vertical)
         {
             rect.moveTop(rect.top() + rect.height()/2);
             rect.setHeight(0.);
@@ -560,9 +570,9 @@ void SlideScene::startTransition(const int newpage, const SlideTransition &trans
         animation = propanim;
         break;
     }
-    case SlideTransition::Blinds:
+    case PdfDocument::SlideTransition::Blinds:
     {
-        const bool vertical = transition.properties & SlideTransition::Vertical;
+        const bool vertical = transition.properties & PdfDocument::SlideTransition::Vertical;
         pageTransitionItem->setMaskType(vertical ? PixmapGraphicsItem::VerticalBlinds : PixmapGraphicsItem::HorizontalBlinds);
         QPropertyAnimation *propanim = new QPropertyAnimation(pageTransitionItem, "mask");
         propanim->setDuration(1000*transition.duration);
@@ -580,9 +590,9 @@ void SlideScene::startTransition(const int newpage, const SlideTransition &trans
         animation = propanim;
         break;
     }
-    case SlideTransition::Box:
+    case PdfDocument::SlideTransition::Box:
     {
-        const bool outwards = transition.properties & SlideTransition::Outwards;
+        const bool outwards = transition.properties & PdfDocument::SlideTransition::Outwards;
         pageTransitionItem->setMaskType(outwards ? PixmapGraphicsItem::NegativeClipping : PixmapGraphicsItem::PositiveClipping);
         QPropertyAnimation *propanim = new QPropertyAnimation(pageTransitionItem, "mask");
         propanim->setDuration(1000*transition.duration);
@@ -603,7 +613,7 @@ void SlideScene::startTransition(const int newpage, const SlideTransition &trans
         animation = propanim;
         break;
     }
-    case SlideTransition::Wipe:
+    case PdfDocument::SlideTransition::Wipe:
     {
         QPropertyAnimation *propanim = new QPropertyAnimation(pageTransitionItem, "mask");
         pageTransitionItem->setMaskType(PixmapGraphicsItem::PositiveClipping);
@@ -630,7 +640,7 @@ void SlideScene::startTransition(const int newpage, const SlideTransition &trans
         animation = propanim;
         break;
     }
-    case SlideTransition::Dissolve:
+    case PdfDocument::SlideTransition::Dissolve:
     {
         pageTransitionItem->setOpacity(0.);
         QPropertyAnimation *propanim = new QPropertyAnimation(pageTransitionItem, "opacity");
@@ -640,7 +650,7 @@ void SlideScene::startTransition(const int newpage, const SlideTransition &trans
         animation = propanim;
         break;
     }
-    case SlideTransition::Glitter:
+    case PdfDocument::SlideTransition::Glitter:
     {
         pageTransitionItem->setMaskType(PixmapGraphicsItem::Glitter);
         QPropertyAnimation *propanim = new QPropertyAnimation(pageTransitionItem, "progress");
@@ -651,10 +661,10 @@ void SlideScene::startTransition(const int newpage, const SlideTransition &trans
         animation = propanim;
         break;
     }
-    case SlideTransition::Fly:
-    case SlideTransition::FlyRectangle:
+    case PdfDocument::SlideTransition::Fly:
+    case PdfDocument::SlideTransition::FlyRectangle:
     {
-        const bool outwards = transition.properties & SlideTransition::Outwards;
+        const bool outwards = transition.properties & PdfDocument::SlideTransition::Outwards;
         for (const auto &view : static_cast<const QList<QGraphicsView*>>(views()))
         {
             SlideView *slideview = static_cast<SlideView*>(view);
@@ -693,7 +703,7 @@ void SlideScene::startTransition(const int newpage, const SlideTransition &trans
         propanim->setEasingCurve(outwards ? QEasingCurve::InSine : QEasingCurve::OutSine);
         break;
     }
-    case SlideTransition::Push:
+    case PdfDocument::SlideTransition::Push:
     {
         QPropertyAnimation *propanim = new QPropertyAnimation(this, "sceneRect");
         propanim->setDuration(1000*transition.duration);
@@ -721,7 +731,7 @@ void SlideScene::startTransition(const int newpage, const SlideTransition &trans
         animation = propanim;
         break;
     }
-    case SlideTransition::Cover:
+    case PdfDocument::SlideTransition::Cover:
     {
         QParallelAnimationGroup *groupanim = new QParallelAnimationGroup();
         QPropertyAnimation *sceneanim = new QPropertyAnimation(this, "sceneRect", groupanim);
@@ -764,7 +774,7 @@ void SlideScene::startTransition(const int newpage, const SlideTransition &trans
         animation = groupanim;
         break;
     }
-    case SlideTransition::Uncover:
+    case PdfDocument::SlideTransition::Uncover:
     {
         QPropertyAnimation *propanim = new QPropertyAnimation();
         propanim->setDuration(1000*transition.duration);
@@ -796,7 +806,7 @@ void SlideScene::startTransition(const int newpage, const SlideTransition &trans
         animation = propanim;
         break;
     }
-    case SlideTransition::Fade:
+    case PdfDocument::SlideTransition::Fade:
     {
         pageTransitionItem->setOpacity(0.);
         QParallelAnimationGroup *groupanim = new QParallelAnimationGroup();
@@ -858,19 +868,19 @@ void SlideScene::tabletPress(const QPointF &pos, const QTabletEvent *event)
     Tool *tool = preferences()->currentTool(
                 event->pressure() > 0 ?
                 tablet_device_to_input_device.value(event->pointerType()) :
-                TabletNoPressure
+                Tool::TabletNoPressure
             );
-    if (tool && (tool->tool() & AnyDrawTool))
+    if (tool && (tool->tool() & Tool::AnyDrawTool))
     {
         startInputEvent(tool, pos, event->pressure());
         return;
     }
-    else if (tool && (tool->tool() & AnyPointingTool))
+    else if (tool && (tool->tool() & Tool::AnyPointingTool))
     {
         static_cast<PointingTool*>(tool)->setPos(pos);
         invalidate(QRect(), QGraphicsScene::ForegroundLayer);
     }
-    else if (tool && tool->tool() == TextInputTool && !isTextEditing())
+    else if (tool && tool->tool() == Tool::TextInputTool && !isTextEditing())
     {
         QGraphicsTextItem *item = new QGraphicsTextItem();
         item->setTextInteractionFlags(Qt::TextEditorInteraction);
@@ -893,9 +903,9 @@ void SlideScene::tabletMove(const QPointF &pos, const QTabletEvent *event)
         Tool *tool = preferences()->currentTool(
                     event->pressure() > 0 ?
                     tablet_device_to_input_device.value(event->pointerType()) :
-                    TabletNoPressure
+                    Tool::TabletNoPressure
                 );
-        if (tool && (tool->tool() & AnyPointingTool))
+        if (tool && (tool->tool() & Tool::AnyPointingTool))
         {
             if (static_cast<PointingTool*>(tool)->pos().size() == 1)
             {
@@ -921,7 +931,7 @@ void SlideScene::tabletRelease(const QPointF &pos, const QTabletEvent *event)
         Tool *tool = preferences()->currentTool(
                     tablet_device_to_input_device.value(event->pointerType())
                 );
-        if (tool && (tool->tool() & AnyPointingTool) && !(tool->device() & TabletNoPressure))
+        if (tool && (tool->tool() & Tool::AnyPointingTool) && !(tool->device() & Tool::TabletNoPressure))
         {
             static_cast<PointingTool*>(tool)->clearPos();
             invalidate(QRect(), QGraphicsScene::ForegroundLayer);
@@ -933,7 +943,7 @@ void SlideScene::tabletRelease(const QPointF &pos, const QTabletEvent *event)
 
 void SlideScene::startInputEvent(Tool *tool, const QPointF &pos, const float pressure)
 {
-    if (!tool || !(tool->tool() & AnyDrawTool) || !(slide_flags & ShowDrawings))
+    if (!tool || !(tool->tool() & Tool::AnyDrawTool) || !(slide_flags & ShowDrawings))
         return;
     debug_verbose(DebugDrawing) << "Start input event" << tool->tool() << tool->device() << tool << pressure;
     stopDrawing();
@@ -942,21 +952,21 @@ void SlideScene::startInputEvent(Tool *tool, const QPointF &pos, const float pre
     current_tool = tool;
     switch (tool->tool())
     {
-    case Pen:
-    case Highlighter:
+    case Tool::Pen:
+    case Tool::Highlighter:
         if (currentItemCollection || currentPath)
             break;
         currentItemCollection = new QGraphicsItemGroup();
         addItem(currentItemCollection);
         currentItemCollection->show();
-        if (tool->tool() == Pen && (tool->device() & preferences()->pressure_sensitive_input_devices))
+        if (tool->tool() == Tool::Pen && (tool->device() & preferences()->pressure_sensitive_input_devices))
             currentPath = new FullGraphicsPath(*static_cast<const DrawTool*>(tool), pos, pressure);
         else
             currentPath = new BasicGraphicsPath(*static_cast<const DrawTool*>(tool), pos);
         addItem(currentPath);
         currentPath->hide();
         break;
-    case Eraser:
+    case Tool::Eraser:
     {
         PathContainer *container;
         emit requestPathContainer(&container, page | page_part);
@@ -976,8 +986,8 @@ void SlideScene::stepInputEvent(const QPointF &pos, const float pressure)
     debug_verbose(DebugDrawing) << "Step input event" << current_tool->tool() << current_tool->device() << current_tool << pressure;
     switch (current_tool->tool())
     {
-    case Pen:
-    case Highlighter:
+    case Tool::Pen:
+    case Tool::Highlighter:
         if (currentPath && currentItemCollection && *static_cast<const DrawTool*>(current_tool) == currentPath->getTool())
         {
             auto item = new FlexGraphicsLineItem(QLineF(currentPath->lastPoint(), pos), currentPath->getTool().compositionMode());
@@ -1002,7 +1012,7 @@ void SlideScene::stepInputEvent(const QPointF &pos, const float pressure)
             invalidate(item->boundingRect(), QGraphicsScene::ItemLayer);
         }
         break;
-    case Eraser:
+    case Tool::Eraser:
     {
         PathContainer *container;
         emit requestPathContainer(&container, page | page_part);
@@ -1024,8 +1034,8 @@ bool SlideScene::stopInputEvent(const QPointF &pos)
     stopDrawing();
     switch (current_tool->tool())
     {
-    case Pen:
-    case Highlighter:
+    case Tool::Pen:
+    case Tool::Highlighter:
         if (changes)
         {
             invalidate({QRect()}, QGraphicsScene::ItemLayer);
@@ -1033,7 +1043,7 @@ bool SlideScene::stopInputEvent(const QPointF &pos)
             return true;
         }
         break;
-    case Eraser:
+    case Tool::Eraser:
     {
         current_tool = NULL;
         PathContainer *container;
@@ -1042,7 +1052,7 @@ bool SlideScene::stopInputEvent(const QPointF &pos)
             return container->applyMicroStep();
         break;
     }
-    case NoTool:
+    case Tool::NoTool:
         noToolClicked(pos);
         break;
     default:
@@ -1054,7 +1064,7 @@ bool SlideScene::stopInputEvent(const QPointF &pos)
 
 void SlideScene::noToolClicked(const QPointF &pos, const QPointF &startpos)
 {
-    debug_msg(DebugMedia) << "Clicked without tool" << pos << startpos;
+    debug_verbose(DebugMedia) << "Clicked without tool" << pos << startpos;
     // Try to handle multimedia annotation.
     for (auto &item : videoItems)
     {

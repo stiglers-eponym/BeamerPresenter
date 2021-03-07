@@ -2,17 +2,9 @@
 #define SETTINGSWIDGET_H
 
 #include <QTabWidget>
-#include <QTextEdit>
-#include <QFormLayout>
-#include <QScrollArea>
-#include <QLabel>
-#include <QLineEdit>
-#include <QComboBox>
-#include <QPushButton>
-#include <QSpinBox>
-#include <QDoubleSpinBox>
-#include "src/preferences.h"
-#include "src/gui/keyinputlabel.h"
+
+class QTextEdit;
+class QScrollArea;
 
 /// Must always run in the same thread as writable_preferences().
 /// This construction might change in the future.

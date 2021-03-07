@@ -1,10 +1,9 @@
 #ifndef BASICGRAPHICSPATH_H
 #define BASICGRAPHICSPATH_H
 
-#include <QPainter>
-#include <QGraphicsScene>
 #include "src/drawing/abstractgraphicspath.h"
-#include "src/drawing/drawtool.h"
+
+class QPainter;
 
 /// Fixed width graphics path.
 class BasicGraphicsPath : public AbstractGraphicsPath

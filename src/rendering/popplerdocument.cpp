@@ -1,4 +1,9 @@
 #include "src/rendering/popplerdocument.h"
+#include "src/rendering/pngpixmap.h"
+#include "src/preferences.h"
+#include <QBuffer>
+#include <QFileInfo>
+#include <QInputDialog>
 
 PopplerDocument::PopplerDocument(const QString &filename) :
     PdfDocument(filename)
@@ -234,7 +239,7 @@ void PopplerDocument::populateOverlaySlidesSet()
     }
 }
 
-const PdfLink PopplerDocument::linkAt(const int page, const QPointF &position) const
+const PdfDocument::PdfLink PopplerDocument::linkAt(const int page, const QPointF &position) const
 {
     if (!pages.value(page))
         return PdfLink();
@@ -263,7 +268,7 @@ const PdfLink PopplerDocument::linkAt(const int page, const QPointF &position) c
     return PdfLink();
 }
 
-const MediaAnnotation PopplerDocument::annotationAt(const int page, const QPointF &position) const
+const PdfDocument::MediaAnnotation PopplerDocument::annotationAt(const int page, const QPointF &position) const
 {
     if (!pages.value(page))
         return MediaAnnotation();
@@ -307,7 +312,7 @@ const MediaAnnotation PopplerDocument::annotationAt(const int page, const QPoint
     return MediaAnnotation();
 }
 
-QList<MediaAnnotation> *PopplerDocument::annotations(const int page) const
+QList<PdfDocument::MediaAnnotation> *PopplerDocument::annotations(const int page) const
 {
     if (!pages.value(page))
         return NULL;
@@ -353,7 +358,7 @@ QList<MediaAnnotation> *PopplerDocument::annotations(const int page) const
     return list;
 }
 
-const SlideTransition PopplerDocument::transition(const int page) const
+const PdfDocument::SlideTransition PopplerDocument::transition(const int page) const
 {
     if (!pages.value(page))
         return SlideTransition();

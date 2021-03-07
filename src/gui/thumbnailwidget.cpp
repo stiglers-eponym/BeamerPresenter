@@ -1,4 +1,7 @@
-#include "thumbnailwidget.h"
+#include "src/gui/thumbnailwidget.h"
+#include "src/gui/thumbnailthread.h"
+#include "src/rendering/pdfdocument.h"
+#include "src/preferences.h"
 
 void ThumbnailWidget::showEvent(QShowEvent *event)
 {

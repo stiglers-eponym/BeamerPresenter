@@ -1,10 +1,9 @@
 #ifndef POPPLERRENDERER_H
 #define POPPLERRENDERER_H
 
-#include <QBuffer>
-#include <QDebug>
 #include "src/rendering/abstractrenderer.h"
 #include "src/rendering/popplerdocument.h"
+#include <QPixmap>
 
 class PopplerRenderer : public AbstractRenderer
 {

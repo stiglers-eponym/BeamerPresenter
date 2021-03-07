@@ -1,4 +1,7 @@
-#include "tocwidget.h"
+#include "src/gui/tocwidget.h"
+#include "src/preferences.h"
+#include "src/rendering/pdfdocument.h"
+#include <QGridLayout>
 
 void TOCwidget::generateTOC(const PdfDocument *document)
 {
@@ -7,7 +10,7 @@ void TOCwidget::generateTOC(const PdfDocument *document)
     if (!document || first_button)
         return;
 
-    const QVector<PdfOutlineEntry> &outline = document->getOutline();
+    const QVector<PdfDocument::PdfOutlineEntry> &outline = document->getOutline();
     // If the document outline contains no entry: outline.size() == 1
     if (outline.size() <= 1)
         return;
@@ -69,4 +72,12 @@ void TOCwidget::expandTo(const int page)
     }
     if (child)
         expand_to(child, expand_to);
+}
+
+void TOCwidget::showEvent(QShowEvent *event)
+{
+    if (first_button)
+        expandTo(preferences()->page);
+    else
+        generateTOC();
 }

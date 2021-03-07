@@ -1,4 +1,5 @@
 #include "src/gui/flexlayout.h"
+#include "src/preferences.h"
 
 FlexLayout::~FlexLayout()
 {

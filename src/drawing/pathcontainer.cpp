@@ -1,4 +1,13 @@
 #include "src/drawing/pathcontainer.h"
+#include "src/drawing/basicgraphicspath.h"
+#include "src/drawing/fullgraphicspath.h"
+#include "src/names.h"
+#include "src/preferences.h"
+#include <QGraphicsScene>
+#include <QGraphicsItem>
+#include <QXmlStreamWriter>
+#include <QXmlStreamReader>
+
 
 PathContainer::~PathContainer()
 {
@@ -437,21 +446,21 @@ void PathContainer::writeXml(QXmlStreamWriter &writer) const
 
 AbstractGraphicsPath *loadPath(QXmlStreamReader &reader)
 {
-    BasicTool basic_tool = string_to_tool.value(reader.attributes().value("tool").toString());
-    if (!(basic_tool & AnyDrawTool))
+    Tool::BasicTool basic_tool = string_to_tool.value(reader.attributes().value("tool").toString());
+    if (!(basic_tool & Tool::AnyDrawTool))
         return NULL;
     const QString width_str = reader.attributes().value("width").toString();
-    if (basic_tool == Pen && !width_str.contains(' '))
-        basic_tool = FixedWidthPen;
+    if (basic_tool == Tool::Pen && !width_str.contains(' '))
+        basic_tool = Tool::FixedWidthPen;
     QPen pen(
                 rgba_to_color(reader.attributes().value("color").toString()),
-                basic_tool == Pen ? 1. : width_str.toDouble(),
+                basic_tool == Tool::Pen ? 1. : width_str.toDouble(),
                 Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin
                 );
     if (pen.widthF() <= 0)
         pen.setWidthF(1.);
-    DrawTool *tool = new DrawTool(basic_tool, AnyNormalDevice, pen, basic_tool == Highlighter ? QPainter::CompositionMode_Darken : QPainter::CompositionMode_SourceOver);
-    if (basic_tool == Pen)
+    DrawTool *tool = new DrawTool(basic_tool, Tool::AnyNormalDevice, pen, basic_tool == Tool::Highlighter ? QPainter::CompositionMode_Darken : QPainter::CompositionMode_SourceOver);
+    if (basic_tool == Tool::Pen)
         return new FullGraphicsPath(*tool, reader.readElementText(), width_str);
     else
         return new BasicGraphicsPath(*tool, reader.readElementText());

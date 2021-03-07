@@ -1,4 +1,8 @@
-#include "keyinputlabel.h"
+#include "src/gui/keyinputlabel.h"
+#include "src/preferences.h"
+#include "src/drawing/tool.h"
+#include "src/gui/tooldialog.h"
+#include "src/names.h"
 
 KeyInputLabel::KeyInputLabel(const quint32 init, const Action action, QWidget *parent) :
     QLabel(parent),

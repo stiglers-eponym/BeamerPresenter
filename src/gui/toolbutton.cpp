@@ -1,4 +1,11 @@
-#include "toolbutton.h"
+#include "src/gui/toolbutton.h"
+#include "src/preferences.h"
+#include "src/gui/tooldialog.h"
+#include "src/drawing/drawtool.h"
+#include "src/drawing/texttool.h"
+#include "src/drawing/pointingtool.h"
+#include <QTabletEvent>
+#include <QMouseEvent>
 
 ToolButton::ToolButton(Tool *tool, QWidget *parent) noexcept :
         QPushButton(parent),
@@ -41,33 +48,33 @@ bool ToolButton::event(QEvent *event) noexcept
             else
             {
                 Tool *newtool;
-                if (tool->tool() & AnyDrawTool)
+                if (tool->tool() & Tool::AnyDrawTool)
                     newtool = new DrawTool(*static_cast<const DrawTool*>(tool));
-                else if (tool->tool() & AnyPointingTool)
+                else if (tool->tool() & Tool::AnyPointingTool)
                     newtool = new PointingTool(*static_cast<const PointingTool*>(tool));
-                else if (tool->tool() == TextInputTool)
+                else if (tool->tool() == Tool::TextInputTool)
                     newtool = new TextTool(*static_cast<const TextTool*>(tool));
                 else
                     newtool = new Tool(*tool);
 
                 // If tool doesn't have a device, choose a device based on the input.
-                if (tool->device() == NoDevice)
+                if (tool->device() == Tool::NoDevice)
                 {
                     if (event->type() == QEvent::TabletRelease)
                     {
                         int device = tablet_device_to_input_device.value(static_cast<const QTabletEvent*>(event)->pointerType());
-                        if (tool->tool() == Pointer && (device & (TabletPen | TabletCursor)))
-                            device |= TabletNoPressure;
+                        if (tool->tool() == Tool::Pointer && (device & (Tool::TabletPen | Tool::TabletCursor)))
+                            device |= Tool::TabletNoPressure;
                         newtool->setDevice(device);
                     }
                     else if (event->type() == QEvent::MouseButtonRelease)
                     {
                         newtool->setDevice(static_cast<const QMouseEvent*>(event)->button() << 1);
-                        if (tool->tool() == Pointer)
-                            newtool->setDevice(newtool->device() | MouseNoButton);
+                        if (tool->tool() == Tool::Pointer)
+                            newtool->setDevice(newtool->device() | Tool::MouseNoButton);
                     }
                     else
-                        newtool->setDevice(TouchInput);
+                        newtool->setDevice(Tool::TouchInput);
                 }
                 emit sendTool(newtool);
             }
@@ -87,7 +94,7 @@ void ToolButton::setTool(Tool *newtool)
         return;
     switch (newtool->tool())
     {
-    case Pen:
+    case Tool::Pen:
     {
         QPalette newpalette = palette();
         const QColor color = static_cast<DrawTool*>(newtool)->color();
@@ -96,7 +103,7 @@ void ToolButton::setTool(Tool *newtool)
         setText("pen");
         break;
     }
-    case Highlighter:
+    case Tool::Highlighter:
     {
         QPalette newpalette = palette();
         newpalette.setColor(QPalette::Button, static_cast<DrawTool*>(newtool)->color());
@@ -104,10 +111,10 @@ void ToolButton::setTool(Tool *newtool)
         setText("highlight");
         break;
     }
-    case Eraser:
+    case Tool::Eraser:
         setText("eraser");
         break;
-    case Pointer:
+    case Tool::Pointer:
     {
         QPalette newpalette = palette();
         newpalette.setColor(QPalette::Button, static_cast<PointingTool*>(newtool)->color());
@@ -115,7 +122,7 @@ void ToolButton::setTool(Tool *newtool)
         setText("pointer");
         break;
     }
-    case TextInputTool:
+    case Tool::TextInputTool:
     {
         QPalette newpalette = palette();
         newpalette.setColor(QPalette::ButtonText, static_cast<TextTool*>(newtool)->color());

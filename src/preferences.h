@@ -2,20 +2,59 @@
 #define PREFERENCES_H
 
 #include "src/enumerates.h"
-#include "src/names.h"
-#include "src/rendering/abstractrenderer.h"
-#include "src/rendering/pdfdocument.h"
+#include "src/pdfmaster.h"
 #include "src/drawing/drawtool.h"
-#include "src/drawing/texttool.h"
 #include "src/drawing/pointingtool.h"
+#include "src/rendering/abstractrenderer.h"
 #include <QSettings>
 #include <QCommandLineParser>
-#include <QFileDialog>
 #include <QPen>
 #include <QDebug>
 #include <QJsonArray>
 #include <QJsonObject>
 #include <QJsonDocument>
+
+class Tool;
+class DrawTool;
+
+
+/// Debug flags: combinable debug flags
+#ifdef QT_DEBUG
+enum DebugFlags
+{
+    NoLog = 0,
+    DebugRendering = 1 << 0,
+    DebugCache = 1 << 1,
+    DebugDrawing = 1 << 2,
+    DebugMedia = 1 << 3,
+    DebugKeyInput = 1 << 4,
+    DebugSettings = 1 << 5,
+    DebugTransitions = 1 << 6,
+    DebugPageChange = 1 << 7,
+    DebugLayout = 1 << 8,
+    DebugWidgets = 1 << 9,
+    DebugAll = 0x7fff,
+    DebugVerbose = 1 << 15,
+};
+/// Convert strings to DebugFlag components.
+static const QMap<QString, DebugFlags> string_to_debug_flags
+{
+    {"", NoLog},
+    {"none", NoLog},
+    {"debug rendering", DebugRendering},
+    {"debug cache", DebugCache},
+    {"debug drawing", DebugDrawing},
+    {"debug media", DebugMedia},
+    {"debug key-input", DebugKeyInput},
+    {"debug settings", DebugSettings},
+    {"debug transitions", DebugTransitions},
+    {"debug page-change", DebugPageChange},
+    {"debug layout", DebugLayout},
+    {"debug widgets", DebugWidgets},
+    {"debug all", DebugAll},
+    {"debug verbose", DebugVerbose},
+};
+#endif
 
 /// Class storing various preferences.
 /// It should have only one instance, which is available globally through
@@ -60,9 +99,9 @@ public:
     /// Maximum number of steps in drawing history of hidden slide.
     int history_length_hidden_slides;
     /// Define which devices should be used for pressure-sensitive input.
-    int pressure_sensitive_input_devices = TabletPen | TabletEraser | TabletCursor | TabletOther;
+    int pressure_sensitive_input_devices = Tool::TabletPen | Tool::TabletEraser | Tool::TabletCursor | Tool::TabletOther;
     /// Define how should drawings be assigned to overlays.
-    OverlayDrawingMode overlay_mode = Cumulative;
+    PdfMaster::OverlayDrawingMode overlay_mode = PdfMaster::Cumulative;
     /// Duration of a slide in an animation, in ms.
     int slide_duration_animation = 50;
 
@@ -139,8 +178,8 @@ public:
     /// The keys are taken from InputDevice.
     QSet<Tool*> current_tools
     {
-        new DrawTool(Eraser, TabletEraser, QPen(Qt::black, 10.)),
-        new DrawTool(Eraser, MouseRightButton, QPen(Qt::black, 10.)),
+        new DrawTool(Tool::Eraser, Tool::TabletEraser, QPen(Qt::black, 10.)),
+        new DrawTool(Tool::Eraser, Tool::MouseRightButton, QPen(Qt::black, 10.)),
     };
 
 

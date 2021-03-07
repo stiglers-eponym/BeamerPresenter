@@ -1,10 +1,15 @@
 #include "src/pdfmaster.h"
+#include "src/preferences.h"
+#include "src/slidescene.h"
+#include "src/rendering/pixcache.h"
+#include "src/drawing/pathcontainer.h"
 #ifdef INCLUDE_POPPLER
 #include "src/rendering/popplerdocument.h"
 #endif
 #ifdef INCLUDE_MUPDF
 #include "src/rendering/mupdfdocument.h"
 #endif
+#include <QBuffer>
 
 PdfMaster::PdfMaster(const QString &filename)
 {
@@ -148,7 +153,7 @@ void PdfMaster::receiveAction(const Action action)
 void PdfMaster::resolveLink(const int page, const QPointF &position, const QPointF &startpos) const
 {
     // Try to resolve navigation link.
-    const PdfLink link = document->linkAt(page, position);
+    const PdfDocument::PdfLink link = document->linkAt(page, position);
     debug_msg(DebugDrawing) << "resolve link" << page << position << startpos << link.area;
     if ( (startpos.isNull() || link.area.contains(startpos)) && (link.type >= 0 && link.type < document->numberOfPages()) )
         emit navigationSignal(link.type);

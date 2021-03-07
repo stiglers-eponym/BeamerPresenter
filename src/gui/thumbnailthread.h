@@ -2,16 +2,11 @@
 #define THUMBNAILTHREAD_H
 
 #include <QThread>
-#include "src/preferences.h"
-#include "src/gui/thumbnailbutton.h"
-#ifdef INCLUDE_POPPLER
-#include "src/rendering/popplerrenderer.h"
-#endif
-#ifdef INCLUDE_MUPDF
-#include "src/rendering/mupdfrenderer.h"
-#endif
-#include "src/rendering/externalrenderer.h"
+#include <QPixmap>
 
+class AbstractRenderer;
+class PdfDocument;
+class ThumbnailButton;
 
 /**
  * @brief Worker object for rendering thumbnails in own thread

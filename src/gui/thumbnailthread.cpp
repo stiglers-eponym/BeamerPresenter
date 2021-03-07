@@ -1,4 +1,13 @@
-#include "thumbnailthread.h"
+#include "src/gui/thumbnailthread.h"
+#include "src/gui/thumbnailbutton.h"
+#include "src/preferences.h"
+#ifdef INCLUDE_POPPLER
+#include "src/rendering/popplerrenderer.h"
+#endif
+#ifdef INCLUDE_MUPDF
+#include "src/rendering/mupdfrenderer.h"
+#endif
+#include "src/rendering/externalrenderer.h"
 
 ThumbnailThread::ThumbnailThread(const PdfDocument *document) :
     document(document)

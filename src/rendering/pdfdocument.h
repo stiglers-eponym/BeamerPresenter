@@ -3,119 +3,128 @@
 
 #include <QDateTime>
 #include <QUrl>
-#include "src/rendering/pngpixmap.h"
-
-
-/// Unified type of PDF links for all PDF engines.
-struct PdfLink {
-    /// Types of links in PDF.
-    /// These are all negative, because positive values are interpreted as page
-    /// numbers for internal navigation links.
-    enum LinkType
-    {
-        NoLink = -1,
-        NavigationLink = -2,
-        ExternalLink = -3,
-        MovieLink = -4,
-        SoundLinx = -5,
-    };
-
-    /// Positive values of type are interpreted as page numbers.
-    /// Negative values are interpreted as LinkType.
-    int type = NoLink;
-    QString target;
-    QRectF area;
-};
-
-/// PDF outline (table of contents, TOC) entry for storing a tree in a list.
-struct PdfOutlineEntry {
-    /// Title of the entry.
-    QString title;
-    /// Page index in the PDF (start counting from 0, destination resolved by the PDF engine)
-    int page;
-    /// Index of next outline on the same level in some data structure.
-    int next;
-};
-
-/// Unified type of slide transition for all PDF engines.
-struct SlideTransition {
-    /// Slide tansition Types.
-    enum Type
-    {
-        Invalid = -1,
-        // The numbers used here are the same as in fz_transition::type and
-        // in Poppler::PageTransition::Type.
-        Replace = 0,
-        Split = 1,
-        Blinds = 2,
-        Box = 3,
-        Wipe = 4,
-        Dissolve = 5,
-        Glitter = 6,
-        Fly = 7,
-        Push = 8,
-        Cover = 9,
-        Uncover = 10,
-        Fade = 11,
-        FlyRectangle = 12,
-    };
-
-    /// Direction controlled by 2 bits for outwards and vertical.
-    enum Properties
-    {
-        Outwards = 1,
-        Vertical = 2,
-    };
-
-    /// Type of the slide transition.
-    qint8 type = Replace;
-
-    /// Direction of the transition.
-    /// first bit: inward (0) or outward (1) direction.
-    /// second bit: horizontal (0) or vertical (1) direction.
-    qint8 properties = 0;
-
-    /// Angle in degrees of the direction of the direction.
-    qint16 angle = 0;
-
-    /// Transition duration in s.
-    float duration = 0.;
-
-    /// Only relevant for Fly and FlyRectangle, in [0,1].
-    /// Starting point for "flying" relative to the usual "fly" path.
-    float scale = 1.;
-
-    void invert()
-    {properties ^= Outwards; angle = (angle + 180) % 360;}
-};
-
-/// Unified type of PDF media annotations for all PDF engines.
-struct MediaAnnotation {
-    QUrl file;
-    enum Type
-    {
-        VideoAnnotation,
-        AudioAnnotation,
-        InvalidAnnotation,
-    } type = InvalidAnnotation;
-    enum Mode
-    {
-        Invalid = -1,
-        Once = 0,
-        Open,
-        Palindrome,
-        Repeat,
-    } mode = Invalid;
-    QRectF rect;
-
-    bool operator==(const MediaAnnotation &other) const noexcept
-    {return file == other.file && mode == other.mode && rect == other.rect;}
-};
+#include <QRectF>
 
 /// Abstract class for handling PDF documents.
 /// This class is inherited by classes specific for PDF engines.
 class PdfDocument
 {
+public:
+    /// PDF engine
+    enum PdfEngine {
+#ifdef INCLUDE_POPPLER
+        PopplerEngine = 0,
+#endif
+#ifdef INCLUDE_MUPDF
+        MuPdfEngine = 1,
+#endif
+    };
+
+    /// Unified type of PDF media annotations for all PDF engines.
+    struct MediaAnnotation {
+        QUrl file;
+        enum Type
+        {
+            VideoAnnotation,
+            AudioAnnotation,
+            InvalidAnnotation,
+        } type = InvalidAnnotation;
+        enum Mode
+        {
+            Invalid = -1,
+            Once = 0,
+            Open,
+            Palindrome,
+            Repeat,
+        } mode = Invalid;
+        QRectF rect;
+
+        bool operator==(const MediaAnnotation &other) const noexcept
+        {return file == other.file && mode == other.mode && rect == other.rect;}
+    };
+
+    /// Unified type of PDF links for all PDF engines.
+    struct PdfLink {
+        /// Types of links in PDF.
+        /// These are all negative, because positive values are interpreted as page
+        /// numbers for internal navigation links.
+        enum LinkType
+        {
+            NoLink = -1,
+            NavigationLink = -2,
+            ExternalLink = -3,
+            MovieLink = -4,
+            SoundLinx = -5,
+        };
+
+        /// Positive values of type are interpreted as page numbers.
+        /// Negative values are interpreted as LinkType.
+        int type = NoLink;
+        QString target;
+        QRectF area;
+    };
+
+    /// PDF outline (table of contents, TOC) entry for storing a tree in a list.
+    struct PdfOutlineEntry {
+        /// Title of the entry.
+        QString title;
+        /// Page index in the PDF (start counting from 0, destination resolved by the PDF engine)
+        int page;
+        /// Index of next outline on the same level in some data structure.
+        int next;
+    };
+
+    /// Unified type of slide transition for all PDF engines.
+    struct SlideTransition {
+        /// Slide tansition Types.
+        enum Type
+        {
+            Invalid = -1,
+            // The numbers used here are the same as in fz_transition::type and
+            // in Poppler::PageTransition::Type.
+            Replace = 0,
+            Split = 1,
+            Blinds = 2,
+            Box = 3,
+            Wipe = 4,
+            Dissolve = 5,
+            Glitter = 6,
+            Fly = 7,
+            Push = 8,
+            Cover = 9,
+            Uncover = 10,
+            Fade = 11,
+            FlyRectangle = 12,
+        };
+
+        /// Direction controlled by 2 bits for outwards and vertical.
+        enum Properties
+        {
+            Outwards = 1,
+            Vertical = 2,
+        };
+
+        /// Type of the slide transition.
+        qint8 type = Replace;
+
+        /// Direction of the transition.
+        /// first bit: inward (0) or outward (1) direction.
+        /// second bit: horizontal (0) or vertical (1) direction.
+        qint8 properties = 0;
+
+        /// Angle in degrees of the direction of the direction.
+        qint16 angle = 0;
+
+        /// Transition duration in s.
+        float duration = 0.;
+
+        /// Only relevant for Fly and FlyRectangle, in [0,1].
+        /// Starting point for "flying" relative to the usual "fly" path.
+        float scale = 1.;
+
+        void invert()
+        {properties ^= Outwards; angle = (angle + 180) % 360;}
+    };
 
 protected:
     /// Modification time of the PDF file.
@@ -144,16 +153,6 @@ protected:
     QVector<PdfOutlineEntry> outline = {{"", -1, 1}};
 
 public:
-    /// PDF engine
-    enum PdfEngine {
-#ifdef INCLUDE_POPPLER
-        PopplerEngine = 0,
-#endif
-#ifdef INCLUDE_MUPDF
-        MuPdfEngine = 1,
-#endif
-    };
-
     /// Constructor: only initialize filename.
     explicit PdfDocument(const QString &filename) : path(filename) {}
 

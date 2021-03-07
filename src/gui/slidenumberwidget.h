@@ -1,14 +1,11 @@
 #ifndef SLIDENUMBERWIDGET_H
 #define SLIDENUMBERWIDGET_H
 
-#include <iostream>
-#include <iomanip>
 #include <QWidget>
-#include <QLabel>
-#include <QHBoxLayout>
-#include <QLineEdit>
-#include <QResizeEvent>
-#include "src/preferences.h"
+
+class QLabel;
+class QLineEdit;
+class QResizeEvent;
 
 /// Widget showing current page number (editable) and total number of pages.
 /// TODO: keyboard shortcuts while in QLineEdit.

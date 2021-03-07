@@ -1,11 +1,13 @@
 #ifndef TIMERWIDGET_H
 #define TIMERWIDGET_H
 
-#include <QLineEdit>
-#include <QLabel>
-#include <QTimer>
-#include <QGridLayout>
-#include "src/preferences.h"
+#include <QWidget>
+#include "src/enumerates.h"
+
+class QResizeEvent;
+class QLineEdit;
+class QLabel;
+class QTimer;
 
 /**
  * @brief Editable timer for presentation and target time.

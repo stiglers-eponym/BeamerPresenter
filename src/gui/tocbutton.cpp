@@ -1,4 +1,4 @@
-#include "tocbutton.h"
+#include "src/gui/tocbutton.h"
 
 TOCbutton::TOCbutton(const QString &title, const int _page, QCheckBox *expand_button, QWidget *parent) :
     QPushButton(title, parent),

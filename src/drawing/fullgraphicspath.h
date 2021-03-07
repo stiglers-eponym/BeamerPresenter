@@ -2,24 +2,24 @@
 #define FULLGRAPHICSPATH_H
 
 #include "src/drawing/abstractgraphicspath.h"
-#include <QGraphicsScene>
-#include <QPainter>
-
-
-/// Coordinate (point) and pen pressure representing node of FullGraphicsPath.
-struct PointPressure
-{
-    /// position in points.
-    QPointF point;
-
-    /// stroke width in points.
-    float pressure;
-};
 
 
 /// Variable width path.
 class FullGraphicsPath : public AbstractGraphicsPath
 {
+public:
+    /// Coordinate (point) and pen pressure representing node of FullGraphicsPath.
+    struct PointPressure
+    {
+        /// position in points.
+        QPointF point;
+
+        /// stroke width in points.
+        float pressure;
+    };
+
+
+private:
     /// Vector of nodes (coordinates and pressure).
     QVector<PointPressure> data;
 

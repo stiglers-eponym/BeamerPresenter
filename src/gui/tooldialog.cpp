@@ -1,4 +1,17 @@
-#include "tooldialog.h"
+#include "src/gui/tooldialog.h"
+#include "src/preferences.h"
+#include "src/drawing/drawtool.h"
+#include "src/drawing/texttool.h"
+#include "src/drawing/pointingtool.h"
+#include <QColorDialog>
+#include <QFontDialog>
+#include <QComboBox>
+#include <QPushButton>
+#include <QCheckBox>
+#include <QDoubleSpinBox>
+#include <QFormLayout>
+#include <QVBoxLayout>
+#include <QGroupBox>
 
 ToolDialog::ToolDialog(QWidget *parent) :
     QDialog(parent),
@@ -46,11 +59,11 @@ ToolDialog::ToolDialog(QWidget *parent) :
     setLayout(layout);
 }
 
-void ToolDialog::adaptToBasicTool(const BasicTool tool)
+void ToolDialog::adaptToBasicTool(const Tool::BasicTool tool)
 {
     switch (tool)
     {
-    case TextInputTool:
+    case Tool::TextInputTool:
         if (!font_button)
         {
             font_button = new QPushButton("font", this);
@@ -66,7 +79,7 @@ void ToolDialog::adaptToBasicTool(const BasicTool tool)
         if (scale_box)
             scale_box->hide();
         break;
-    case Magnifier:
+    case Tool::Magnifier:
         if (!scale_box)
         {
             scale_box = new QDoubleSpinBox(this);
@@ -83,7 +96,7 @@ void ToolDialog::adaptToBasicTool(const BasicTool tool)
         if (font_button)
             font_button->hide();
         break;
-    case Eraser:
+    case Tool::Eraser:
         if (color_button)
             color_button->hide();
         if (scale_box)
@@ -93,11 +106,11 @@ void ToolDialog::adaptToBasicTool(const BasicTool tool)
         if (size_box)
             size_box->show();
         break;
-    case Pen:
-    case Highlighter:
-    case Torch:
-    case Pointer:
-    case FixedWidthPen:
+    case Tool::Pen:
+    case Tool::Highlighter:
+    case Tool::Torch:
+    case Tool::Pointer:
+    case Tool::FixedWidthPen:
         if (color_button)
             color_button->show();
         if (scale_box)
@@ -107,8 +120,8 @@ void ToolDialog::adaptToBasicTool(const BasicTool tool)
         if (size_box)
             size_box->show();
         break;
-    case NoTool:
-    case InvalidTool:
+    case Tool::NoTool:
+    case Tool::InvalidTool:
         if (color_button)
             color_button->hide();
         if (scale_box)
@@ -141,21 +154,21 @@ void ToolDialog::setDefault(const Tool *tool)
         (*it)->setChecked(it.key() & tool->device());
     QPalette button_palette = color_button->palette();
     QColor color;
-    if (tool->tool() & AnyDrawTool)
+    if (tool->tool() & Tool::AnyDrawTool)
     {
         const DrawTool *draw_tool = static_cast<const DrawTool*>(tool);
         size_box->setValue(draw_tool->width());
         color = draw_tool->color();
     }
-    else if (tool->tool() & AnyPointingTool)
+    else if (tool->tool() & Tool::AnyPointingTool)
     {
         const PointingTool *pointing_tool = static_cast<const PointingTool*>(tool);
         size_box->setValue(pointing_tool->size());
         color = pointing_tool->color();
-        if (tool->tool() == Magnifier && scale_box)
+        if (tool->tool() == Tool::Magnifier && scale_box)
             scale_box->setValue(pointing_tool->scale());
     }
-    else if (tool->tool() == TextInputTool)
+    else if (tool->tool() == Tool::TextInputTool)
     {
         const TextTool *text_tool = static_cast<const TextTool*>(tool);
         if (font_button)
@@ -175,27 +188,27 @@ void ToolDialog::setDefault(const Tool *tool)
 
 Tool *ToolDialog::createTool() const
 {
-    const BasicTool basic_tool = string_to_tool.value(tool_box->currentText());
+    const Tool::BasicTool basic_tool = string_to_tool.value(tool_box->currentText());
     debug_verbose(DebugDrawing) << "Dialog selected basic tool" << basic_tool;
-    if (basic_tool == InvalidTool)
+    if (basic_tool == Tool::InvalidTool)
         return NULL;
     int device = 0;
     for (auto it = device_buttons.cbegin(); it != device_buttons.cend(); ++it)
         if ((*it)->isChecked())
             device |= it.key();
     const QColor color = color_button->palette().color(QPalette::Button);
-    if (basic_tool & AnyDrawTool)
+    if (basic_tool & Tool::AnyDrawTool)
         return new DrawTool(basic_tool, device, QPen(color, size_box->value(), Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin));
-    else if (basic_tool & AnyPointingTool)
+    else if (basic_tool & Tool::AnyPointingTool)
     {
         PointingTool *tool = new PointingTool(basic_tool, size_box->value(), color, device);
-        if (basic_tool == Magnifier && scale_box)
+        if (basic_tool == Tool::Magnifier && scale_box)
             tool->setScale(scale_box->value());
         return tool;
     }
-    else if (basic_tool == TextInputTool)
+    else if (basic_tool == Tool::TextInputTool)
         return new TextTool(font_button ? font_button->font() : font(), color, device);
-    else if (basic_tool != InvalidTool)
+    else if (basic_tool != Tool::InvalidTool)
         return new Tool(basic_tool, device);
     return NULL;
 }

@@ -1,10 +1,7 @@
 #ifndef FLEXLAYOUT_H
 #define FLEXLAYOUT_H
 
-#include <QDebug>
 #include <QLayout>
-#include <QWidget>
-#include "src/preferences.h"
 
 /**
  * @brief FlexLayout class: Box layout for fixed aspect

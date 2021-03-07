@@ -2,16 +2,9 @@
 #define TOOLBUTTON_H
 
 #include <QPushButton>
-#include <QEvent>
-#include <QTabletEvent>
-#include <QMouseEvent>
-#include <QDebug>
-#include "src/drawing/drawtool.h"
-#include "src/drawing/texttool.h"
-#include "src/drawing/pointingtool.h"
-#include "src/names.h"
-#include "src/preferences.h"
-#include "src/gui/tooldialog.h"
+#include "src/drawing/tool.h"
+
+class QEvent;
 
 /**
  * @brief Tool button for drawing and pointing tools.

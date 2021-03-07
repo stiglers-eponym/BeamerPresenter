@@ -1,11 +1,14 @@
 #include "src/rendering/pixcachethread.h"
 #ifdef INCLUDE_POPPLER
 #include "src/rendering/popplerrenderer.h"
+#include "src/rendering/popplerdocument.h"
 #endif
 #ifdef INCLUDE_MUPDF
 #include "src/rendering/mupdfrenderer.h"
+#include "src/rendering/mupdfdocument.h"
 #endif
 #include "src/rendering/externalrenderer.h"
+#include "src/rendering/pngpixmap.h"
 #include "src/preferences.h"
 
 PixCacheThread::PixCacheThread(const PdfDocument * const doc, const PagePart page_part, QObject *parent) : QThread(parent)

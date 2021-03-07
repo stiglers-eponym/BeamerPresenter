@@ -1,4 +1,6 @@
-#include "basicgraphicspath.h"
+#include "src/drawing/basicgraphicspath.h"
+#include "src/drawing/drawtool.h"
+#include <QPainter>
 
 BasicGraphicsPath::BasicGraphicsPath(const DrawTool &tool, const QPointF &pos) noexcept :
     AbstractGraphicsPath(tool)

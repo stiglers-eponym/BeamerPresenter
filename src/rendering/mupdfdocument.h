@@ -9,12 +9,10 @@ extern "C"
 #include <mupdf/fitz/version.h>
 }
 
-#include <QMutex>
-#include <QObject>
-#include <QFileInfo>
-#include <QInputDialog>
+#include <QMap>
 #include "src/rendering/pdfdocument.h"
-#include "src/preferences.h"
+
+class QMutex;
 
 /// Document representing a PDF loaded by MuPDF.
 /// MuPDF requires careful treatment of separte threads!

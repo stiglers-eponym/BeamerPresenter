@@ -1,7 +1,6 @@
 #ifndef TABWIDGET_H
 #define TABWIDGET_H
 
-#include <QTabBar>
 #include <QTabWidget>
 
 /**

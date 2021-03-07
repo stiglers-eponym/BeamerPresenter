@@ -2,9 +2,9 @@
 #define ABSTRACTRENDERER_H
 
 #include "src/enumerates.h"
-#include "src/rendering/pngpixmap.h"
-#include <QPixmap>
-#include <QByteArray>
+
+class QPixmap;
+class PngPixmap;
 
 /// Abstract rendering class. Instances of implementing classes should be save
 /// to use outside the main thread.

@@ -2,10 +2,11 @@
 #define PIXCACHETHREAD_H
 
 #include <QThread>
-#include "src/rendering/pngpixmap.h"
-#include "src/rendering/abstractrenderer.h"
-#include "src/rendering/pdfdocument.h"
+#include "src/enumerates.h"
 
+class PngPixmap;
+class PdfDocument;
+class AbstractRenderer;
 
 /// Separate thread for rendering page pixmaps to (compressed) cache.
 class PixCacheThread : public QThread

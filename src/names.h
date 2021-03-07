@@ -8,27 +8,6 @@
 #include <QTabWidget>
 #include "src/enumerates.h"
 
-/// Convert strings to DebugFlag components.
-#ifdef QT_DEBUG
-static const QMap<QString, DebugFlags> string_to_debug_flags
-{
-    {"", NoLog},
-    {"none", NoLog},
-    {"debug rendering", DebugRendering},
-    {"debug cache", DebugCache},
-    {"debug drawing", DebugDrawing},
-    {"debug media", DebugMedia},
-    {"debug key-input", DebugKeyInput},
-    {"debug settings", DebugSettings},
-    {"debug transitions", DebugTransitions},
-    {"debug page-change", DebugPageChange},
-    {"debug layout", DebugLayout},
-    {"debug widgets", DebugWidgets},
-    {"debug all", DebugAll},
-    {"debug verbose", DebugVerbose},
-};
-#endif
-
 /// Convert strings to GuiWidget
 static const QMap<QString, GuiWidget> string_to_widget_type
 {
@@ -91,28 +70,6 @@ static const QMap<QString, Action> string_to_action_map
     {"quit", Quit},
 };
 
-static const QMap<QString, BasicTool> string_to_tool
-{
-    {"no tool", NoTool},
-    {"none", NoTool},
-    {"pen", Pen},
-    {"fixed width pen", FixedWidthPen},
-    {"eraser", Eraser},
-    {"highlighter", Highlighter},
-    {"pointer", Pointer},
-    {"torch", Torch},
-    {"magnifier", Magnifier},
-    {"text", TextInputTool},
-};
-
-static const QMap<BasicTool, QString> xournal_tool_names
-{
-    {Pen, "pen"},
-    {FixedWidthPen, "pen"},
-    {Highlighter, "highlighter"},
-    {TextInputTool, "text"},
-};
-
 static const QMap<QString, QBoxLayout::Direction> string_to_layout_direction
 {
     {"horizontal", QBoxLayout::LeftToRight},
@@ -134,39 +91,6 @@ static const QMap<QString, Qt::PenStyle> string_to_pen_style
     {"dashed", Qt::DashLine},
     {"dotted", Qt::DotLine},
     {"dash-dotted", Qt::DashDotLine},
-};
-
-static const QMap<QTabletEvent::PointerType, InputDevice> tablet_device_to_input_device
-{
-    {QTabletEvent::Pen, TabletPen},
-    {QTabletEvent::Eraser, TabletEraser},
-    {QTabletEvent::Cursor, TabletCursor},
-    {QTabletEvent::UnknownPointer, TabletOther},
-};
-
-static const QMap<QString, int> string_to_input_device
-{
-    {"touch", TouchInput},
-    {"tablet pen", TabletPen},
-    {"tablet", TabletPen | TabletCursor | TabletOther},
-    {"tablet eraser", TabletEraser},
-    {"tablet hover", TabletNoPressure},
-    {"tablet all", TabletPen | TabletCursor | TabletOther | TabletEraser},
-    {"all", AnyNormalDevice},
-    {"all+", AnyPointingDevice},
-    {"all++", AnyDevice},
-    {"left button", MouseLeftButton},
-    {"mouse", MouseLeftButton},
-    {"right button", MouseRightButton},
-    {"middle button", MouseMiddleButton},
-    {"no button", MouseNoButton},
-};
-
-static const QMap<QString, OverlayDrawingMode> string_to_overlay_mode
-{
-    {"per page", PerPage},
-    {"per label", PerLabel},
-    {"cumulative", Cumulative},
 };
 
 #endif // NAMES_H

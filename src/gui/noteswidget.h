@@ -1,14 +1,10 @@
 #ifndef NOTESWIDGET_H
 #define NOTESWIDGET_H
 
-#include <QFile>
-#include <QDebug>
 #include <QTextEdit>
 #include <QFileDialog>
-#include <QKeyEvent>
-#include <QXmlStreamReader>
-#include <QXmlStreamWriter>
-#include "src/preferences.h"
+
+class QKeyEvent;
 
 /**
  * @brief NotesWidget: Editable notes in Markdown format
@@ -61,9 +57,15 @@ protected:
     void keyPressEvent(QKeyEvent *event) override;
 
 public slots:
-    void load() {load(QFileDialog::getOpenFileName());}
-    void save() {save(file_path.isEmpty() ? QFileDialog::getSaveFileName() : file_path);}
-    void saveAs() {save(QFileDialog::getSaveFileName());}
+    void load()
+    {load(QFileDialog::getOpenFileName());}
+
+    void save()
+    {save(file_path.isEmpty() ? QFileDialog::getSaveFileName() : file_path);}
+
+    void saveAs()
+    {save(QFileDialog::getSaveFileName());}
+
     void pageChanged(const int page);
 };
 

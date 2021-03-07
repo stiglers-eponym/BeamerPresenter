@@ -1,4 +1,4 @@
-#include "clockwidget.h"
+#include "src/gui/clockwidget.h"
 
 ClockWidget::ClockWidget(QWidget *parent) :
     QLabel(parent),

@@ -1,14 +1,11 @@
 #ifndef SLIDELABELWIDGET_H
 #define SLIDELABELWIDGET_H
 
-#include <iostream>
-#include <iomanip>
 #include <QWidget>
-#include <QLabel>
-#include <QHBoxLayout>
-#include <QLineEdit>
-#include <QResizeEvent>
-#include "src/preferences.h"
+
+class QLabel;
+class QLineEdit;
+class QResizeEvent;
 
 /// Widget showing current page label (editable) and last page label.
 /// TODO: keyboard shortcuts while in QLineEdit.

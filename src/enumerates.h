@@ -5,28 +5,6 @@
 #include <QColor>
 #include <QDebug>
 
-/**
- * Debug flags: combinable debug or log flags
- */
-#ifdef QT_DEBUG
-enum DebugFlags
-{
-    NoLog = 0,
-    DebugRendering = 1 << 0,
-    DebugCache = 1 << 1,
-    DebugDrawing = 1 << 2,
-    DebugMedia = 1 << 3,
-    DebugKeyInput = 1 << 4,
-    DebugSettings = 1 << 5,
-    DebugTransitions = 1 << 6,
-    DebugPageChange = 1 << 7,
-    DebugLayout = 1 << 8,
-    DebugWidgets = 1 << 9,
-    DebugAll = 0x7fff,
-    DebugVerbose = 1 << 15,
-};
-#endif
-
 /// If a single PDF includes both presentation and notes,
 /// PagePart shows which part is currently of interest.
 /// The numbers are chosen such that (page number | page part)
@@ -102,28 +80,6 @@ enum Action
 };
 Q_DECLARE_METATYPE(Action);
 
-/// Tools for drawing and highlighting.
-enum BasicTool
-{
-    // Invalid
-    InvalidTool = 0,
-    // Draw tools: first 4 bits, class DrawTool
-    Pen = 1 << 0,
-    FixedWidthPen = 2 << 0,
-    Highlighter = 3 << 0,
-    Eraser = 4 << 0,
-    AnyDrawTool = 0x0f << 0,
-    // Highlighting tools: next 4 bits, class PointingTool
-    Pointer = 1 << 4,
-    Torch = 2 << 4,
-    Magnifier = 3 << 4,
-    AnyPointingTool = 0x0f << 4,
-    // Other tools, class Tool
-    TextInputTool = 1 << 8,
-    // No tool
-    NoTool = 1 << 11,
-};
-
 enum GuiWidget
 {
     InvalidType = 0, // QWidget
@@ -141,34 +97,6 @@ enum GuiWidget
     TimerType,
     SlideNumberType,
     SlideLabelType,
-};
-
-/**
- * Obtain Qt::MouseButton by taking InputDevice >> 1.
- */
-enum InputDevice
-{
-    NoDevice = 0,
-    MouseNoButton = 1,
-    MouseLeftButton = Qt::LeftButton << 1,
-    MouseRightButton = Qt::RightButton << 1,
-    MouseMiddleButton = Qt::MiddleButton << 1,
-    TabletPen = 1 << 4,
-    TabletEraser = 1 << 5,
-    TabletCursor = 1 << 6,
-    TabletOther = 1 << 7,
-    TabletNoPressure = 1 << 8,
-    TouchInput = 1 << 9,
-    AnyDevice = 0xffff,
-    AnyPointingDevice = AnyDevice ^ (TabletEraser | MouseRightButton | MouseMiddleButton),
-    AnyNormalDevice = AnyPointingDevice ^ (TabletNoPressure | MouseNoButton),
-};
-
-enum OverlayDrawingMode
-{
-    PerPage, // Every page has independent drawings.
-    PerLabel, // All pages with the same label in a simply connected region have the same drawings.
-    Cumulative, // When going to the next page which has the same label, the current drawings are copied.
 };
 
 #endif // ENUMERATES_H

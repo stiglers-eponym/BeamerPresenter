@@ -3,6 +3,7 @@
 
 #include <QPointF>
 #include <QBrush>
+#include <QList>
 #include "src/drawing/tool.h"
 
 /**

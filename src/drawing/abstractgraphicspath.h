@@ -2,8 +2,6 @@
 #define ABSTRACTGRAPHICSPATH_H
 
 #include <QGraphicsItem>
-#include <QPen>
-#include "src/preferences.h"
 #include "src/drawing/drawtool.h"
 
 /**

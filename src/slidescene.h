@@ -10,22 +10,20 @@
 #include <QMediaPlaylist>
 #include <QPropertyAnimation>
 #include <QParallelAnimationGroup>
-#include <QTimer>
 #include "src/enumerates.h"
-#include "src/drawing/fullgraphicspath.h"
-#include "src/drawing/basicgraphicspath.h"
-#include "src/drawing/flexgraphicslineitem.h"
-#include "src/drawing/pointingtool.h"
-#include "src/drawing/pathcontainer.h"
 #include "src/rendering/pdfdocument.h"
-#include "src/drawing/pixmapgraphicsitem.h"
 
 class PdfMaster;
+class AbstractGraphicsPath;
+class Tool;
+class PathContainer;
+class PixmapGraphicsItem;
 
 /**
  * @brief SlideScene: QGraphicsScene for a presentation slide.
  *
- * Handles drawing events and links. (But links are not really supported yet).
+ * Handles drawing events and links. Only instances of SlideView and no
+ * usual QGraphicsViews may show instances of SlideScene.
  */
 class SlideScene : public QGraphicsScene
 {
@@ -34,7 +32,7 @@ class SlideScene : public QGraphicsScene
 public:
     struct VideoItem
     {
-        MediaAnnotation annotation;
+        PdfDocument::MediaAnnotation annotation;
         QGraphicsVideoItem *item;
         QMediaPlayer *player;
         QSet<int> pages;
@@ -95,10 +93,10 @@ private:
     QAbstractAnimation *animation {NULL};
 
     /// Start slide transition.
-    void startTransition(const int newpage, const SlideTransition &transition);
+    void startTransition(const int newpage, const PdfDocument::SlideTransition &transition);
 
     /// Search video annotation in cache and create + add it to cache if necessary.
-    VideoItem &getVideoItem(const MediaAnnotation &annotatio, const int pagen);
+    VideoItem &getVideoItem(const PdfDocument::MediaAnnotation &annotatio, const int pagen);
 
 public:
     /// Constructor: initialize master, page_part, and QGraphisScene.

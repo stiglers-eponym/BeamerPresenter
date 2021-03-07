@@ -1,5 +1,9 @@
+#include <QFileInfo>
+#include <QInputDialog>
+#include <QMutex>
 #include "src/rendering/mupdfdocument.h"
 #include "src/enumerates.h"
+#include "src/preferences.h"
 
 std::string roman(int number)
 {
@@ -480,7 +484,7 @@ void MuPdfDocument::prepareRendering(fz_context **context, fz_rect *bbox, fz_dis
     }
 }
 
-const SlideTransition MuPdfDocument::transition(const int page) const
+const PdfDocument::SlideTransition MuPdfDocument::transition(const int page) const
 {
     SlideTransition trans;
     if (!pages.value(page) || !ctx)
@@ -525,7 +529,7 @@ const SlideTransition MuPdfDocument::transition(const int page) const
     return trans;
 }
 
-const PdfLink MuPdfDocument::linkAt(const int page, const QPointF &position) const
+const PdfDocument::PdfLink MuPdfDocument::linkAt(const int page, const QPointF &position) const
 {
     PdfLink result;
     if (!pages.value(page) || !ctx || !doc)
@@ -573,7 +577,7 @@ const PdfLink MuPdfDocument::linkAt(const int page, const QPointF &position) con
     return result;
 }
 
-const MediaAnnotation MuPdfDocument::annotationAt(const int page, const QPointF &position) const
+const PdfDocument::MediaAnnotation MuPdfDocument::annotationAt(const int page, const QPointF &position) const
 {
     MediaAnnotation result = {QUrl(), MediaAnnotation::InvalidAnnotation, MediaAnnotation::Invalid, QRectF()};
     if (!pages.value(page) || !ctx)
@@ -647,7 +651,7 @@ const MediaAnnotation MuPdfDocument::annotationAt(const int page, const QPointF 
     return result;
 }
 
-QList<MediaAnnotation> *MuPdfDocument::annotations(const int page) const
+QList<PdfDocument::MediaAnnotation> *MuPdfDocument::annotations(const int page) const
 {
     QList<MediaAnnotation>* list = NULL;
     if (!pages.value(page) || !ctx)

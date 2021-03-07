@@ -1,6 +1,24 @@
 #include "src/master.h"
 #include "src/pdfmaster.h"
 #include "src/slidescene.h"
+#include "src/slideview.h"
+#include "src/drawing/drawtool.h"
+#include "src/drawing/pointingtool.h"
+#include "src/gui/flexlayout.h"
+#include "src/gui/clockwidget.h"
+#include "src/gui/tabwidget.h"
+#include "src/gui/stackedwidget.h"
+#include "src/gui/containerwidget.h"
+#include "src/gui/slidenumberwidget.h"
+#include "src/gui/slidelabelwidget.h"
+#include "src/gui/settingswidget.h"
+#include "src/gui/timerwidget.h"
+#include "src/gui/noteswidget.h"
+#include "src/gui/tocwidget.h"
+#include "src/gui/thumbnailwidget.h"
+#include "src/gui/toolselectorwidget.h"
+#include "src/rendering/pixcache.h"
+#include "src/names.h"
 
 Master::Master() :
     cacheVideoTimer(new QTimer(this)),
@@ -528,9 +546,9 @@ void Master::receiveKeyEvent(const QKeyEvent* event)
     {
         if (tool && tool->device())
         {
-            if (tool->tool() & AnyDrawTool)
+            if (tool->tool() & Tool::AnyDrawTool)
                 setTool(new DrawTool(*static_cast<const DrawTool*>(tool)));
-            else if (tool->tool() & AnyPointingTool)
+            else if (tool->tool() & Tool::AnyPointingTool)
                 setTool(new PointingTool(*static_cast<const PointingTool*>(tool)));
             else
                 setTool(new Tool(*tool));
@@ -741,11 +759,11 @@ void Master::setTool(Tool *tool) const noexcept
     debug_msg(DebugDrawing|DebugKeyInput) << "Set tool" << tool->tool() << tool->device();
     int device = tool->device();
     // Delete mouse no button devices if MouseLeftButton is overwritten.
-    if (tool->device() & MouseLeftButton)
-        device |= MouseNoButton;
+    if (tool->device() & Tool::MouseLeftButton)
+        device |= Tool::MouseNoButton;
     // Delete tablet no pressure device if any tablet device is overwritten.
-    if (tool->device() & (TabletCursor | TabletPen | TabletEraser))
-        device |= TabletNoPressure;
+    if (tool->device() & (Tool::TabletCursor | Tool::TabletPen | Tool::TabletEraser))
+        device |= Tool::TabletNoPressure;
     int newdevice;
     for (auto tool_it = preferences()->current_tools.cbegin(); tool_it != preferences()->current_tools.cend();)
     {
@@ -760,7 +778,7 @@ void Master::setTool(Tool *tool) const noexcept
                 tool_it = static_cast<QSet<Tool*>::const_iterator>(writable_preferences()->current_tools.erase(tool_it));
             }
         }
-        else if (((*tool_it)->device() == MouseNoButton) && (tool->device() & InputDevice::MouseLeftButton))
+        else if (((*tool_it)->device() == Tool::MouseNoButton) && (tool->device() & Tool::MouseLeftButton))
         {
             delete *tool_it;
             tool_it = static_cast<QSet<Tool*>::const_iterator>(writable_preferences()->current_tools.erase(tool_it));

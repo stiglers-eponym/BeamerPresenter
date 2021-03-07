@@ -1,10 +1,6 @@
 #ifndef MUPDFRENDERER_H
 #define MUPDFRENDERER_H
 
-#include <QDebug>
-#include <QObject>
-#include <QMetaType>
-#include <string>
 #include "src/rendering/mupdfdocument.h"
 #include "src/rendering/abstractrenderer.h"
 

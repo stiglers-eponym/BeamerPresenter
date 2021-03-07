@@ -2,11 +2,9 @@
 #define TOOLSELECTORWIDGET_H
 
 #include <QWidget>
-#include <QGridLayout>
-#include <QPushButton>
-#include "src/names.h"
-#include "src/gui/actionbutton.h"
-#include "src/gui/toolbutton.h"
+#include "src/enumerates.h"
+
+class Tool;
 
 /**
  * @brief Widget showing grid of buttons

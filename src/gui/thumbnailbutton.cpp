@@ -1,4 +1,5 @@
-#include "thumbnailbutton.h"
+#include <QMouseEvent>
+#include "src/gui/thumbnailbutton.h"
 
 void ThumbnailButton::mouseReleaseEvent(QMouseEvent *event)
 {

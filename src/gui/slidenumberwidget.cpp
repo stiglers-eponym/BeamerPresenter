@@ -1,4 +1,11 @@
-#include "slidenumberwidget.h"
+#include <iostream>
+#include <iomanip>
+#include <QLabel>
+#include <QHBoxLayout>
+#include <QLineEdit>
+#include <QResizeEvent>
+#include "src/preferences.h"
+#include "src/gui/slidenumberwidget.h"
 
 SlideNumberWidget::SlideNumberWidget(QWidget *parent) :
     QWidget(parent)
