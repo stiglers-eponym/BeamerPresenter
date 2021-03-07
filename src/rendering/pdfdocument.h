@@ -4,6 +4,7 @@
 #include <QDateTime>
 #include <QUrl>
 #include <QRectF>
+#include <QVector>
 
 /// Abstract class for handling PDF documents.
 /// This class is inherited by classes specific for PDF engines.

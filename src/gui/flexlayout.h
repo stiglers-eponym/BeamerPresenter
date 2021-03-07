@@ -2,6 +2,7 @@
 #define FLEXLAYOUT_H
 
 #include <QLayout>
+#include <QVector>
 
 /**
  * @brief FlexLayout class: Box layout for fixed aspect

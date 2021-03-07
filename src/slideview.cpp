@@ -319,14 +319,22 @@ void SlideView::prepareFlyTransition(const bool outwards, const PixmapGraphicsIt
     if (outwards)
     {
         newimg = old->getPixmap(width).toImage();
+#if (QT_VERSION >= QT_VERSION_CHECK(5,13,0))
         newimg.convertTo(QImage::Format_ARGB32);
+#else
+        newimg = newimg.convertToFormat(QImage::Format_ARGB32);
+#endif
         oldimg = QImage(newimg.size(), QImage::Format_ARGB32);
         painter.begin(&oldimg);
     }
     else
     {
         oldimg = old->getPixmap(width).toImage();
+#if (QT_VERSION >= QT_VERSION_CHECK(5,13,0))
         oldimg.convertTo(QImage::Format_ARGB32);
+#else
+        oldimg = oldimg.convertToFormat(QImage::Format_ARGB32);
+#endif
         newimg = QImage(oldimg.size(), QImage::Format_ARGB32);
         painter.begin(&newimg);
     }
