@@ -224,7 +224,21 @@ void Preferences::loadSettings()
         debug_msg(DebugSettings) << renderer_str;
         if (!renderer_str.isEmpty())
         {
-            if (renderer_str == "extern" || renderer_str == "external")
+#ifdef INCLUDE_MUPDF
+            if (renderer_str.count("mupdf") > 0)
+            {
+                renderer = AbstractRenderer::MuPDF;
+                pdf_engine = PdfDocument::MuPdfEngine;
+            }
+#endif
+#ifdef INCLUDE_POPPLER
+            if (renderer_str.count("poppler") > 0)
+            {
+                renderer = AbstractRenderer::Poppler;
+                pdf_engine = PdfDocument::PopplerEngine;
+            }
+#endif
+            if (renderer_str.count("extern") > 0)
             {
                 if (rendering_command.isEmpty() || rendering_arguments.isEmpty())
                 {
@@ -234,30 +248,6 @@ void Preferences::loadSettings()
                 else
                     renderer = AbstractRenderer::ExternalRenderer;
             }
-            else if (renderer_str == "mupdf")
-            {
-#ifdef INCLUDE_MUPDF
-                renderer = AbstractRenderer::MuPDF;
-                pdf_engine = PdfDocument::MuPdfEngine;
-#else
-                qWarning() << "BeamerPresenter was compiled without MuPDF support. Falling back to Poppler.";
-#endif
-            }
-            else if (renderer_str == "poppler")
-            {
-#ifdef INCLUDE_POPPLER
-                renderer = AbstractRenderer::Poppler;
-                pdf_engine = PdfDocument::PopplerEngine;
-#else
-                qWarning() << "BeamerPresenter was compiled without poppler support. Falling back to MuPDF.";
-#endif
-            }
-            else
-#ifdef INCLUDE_POPPLER
-                qWarning() << "Cannot not understand renderer" << renderer_str << ". Falling back to Poppler.";
-#else
-                qWarning() << "Cannot not understand renderer" << renderer_str << ". Falling back to MuPDF.";
-#endif
         }
     }
     settings.endGroup();
@@ -481,39 +471,37 @@ void Preferences::setRenderer(const QString &string)
 #ifdef INCLUDE_MUPDF
     if (new_renderer == "mupdf")
     {
-        settings.setValue("engine", "mupdf");
         settings.beginGroup("rendering");
         settings.setValue("renderer", "mupdf");
         settings.endGroup();
+        return;
     }
-    else
 #endif
 #ifdef INCLUDE_POPPLER
     if (new_renderer == "poppler")
     {
-        settings.setValue("engine", "poppler");
         settings.beginGroup("rendering");
         settings.setValue("renderer", "poppler");
         settings.endGroup();
+        return;
     }
-    else
 #endif
 #ifdef INCLUDE_MUPDF
     if (new_renderer == "mupdf + external")
     {
-        settings.setValue("engine", "mupdf");
         settings.beginGroup("rendering");
-        settings.setValue("renderer", "external");
+        settings.setValue("renderer", "mupdf external");
         settings.endGroup();
+        return;
     }
 #endif
 #ifdef INCLUDE_POPPLER
-    else if (new_renderer == "poppler + external")
+    if (new_renderer == "poppler + external")
     {
-        settings.setValue("engine", "poppler");
         settings.beginGroup("rendering");
-        settings.setValue("renderer", "externaler");
+        settings.setValue("renderer", "poppler external");
         settings.endGroup();
+        return;
     }
 #endif
 }

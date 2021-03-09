@@ -180,14 +180,14 @@ contains(DEFINES, INCLUDE_MUPDF) {
 ###########################################################
 
 unix {
-    LIBS += -L/usr/lib/
+    LIBS += -L/usr/lib/ -lz
     contains(DEFINES, INCLUDE_POPPLER) {
         INCLUDEPATH += /usr/include/poppler/qt5
         LIBS += -lpoppler-qt5
     }
     contains(DEFINES, INCLUDE_MUPDF) {
         INCLUDEPATH += /usr/include/mupdf
-        LIBS += -lmupdf -lmupdf-third -lm -lfreetype -lz -lharfbuzz -ljpeg -ljbig2dec -lopenjp2 -lgumbo
+        LIBS += -lmupdf -lmupdf-third -lm -lfreetype -lharfbuzz -ljpeg -ljbig2dec -lopenjp2 -lgumbo
         # In my installation of MuPDF, the gumbo library is needed since MuPDF 1.18.0.
         # All other libraries were also required in MuPDF 1.17.0.
     }
