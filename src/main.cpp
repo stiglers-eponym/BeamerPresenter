@@ -1,5 +1,6 @@
 #include <QApplication>
 #include <QSettings>
+#include <QIcon>
 #include <QCommandLineParser>
 #include <src/enumerates.h>
 #include "src/preferences.h"
@@ -44,6 +45,7 @@ int main(int argc, char *argv[])
     // Set up the application.
     QApplication app(argc, argv);
     app.setApplicationName("BeamerPresenter");
+    app.setWindowIcon(QIcon(ICON_PATH));
 
     // Set app version. The string APP_VERSION is defined in beamerpresenter.pro.
     QString version_string = APP_VERSION " ";

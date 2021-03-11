@@ -15,6 +15,7 @@ class Tool;
 class PdfMaster;
 class SlideScene;
 class PixCache;
+class QMainWindow;
 
 /**
  * Manage the program, distributes events to various objects, construct the
@@ -34,7 +35,7 @@ class Master : public QObject
     QMap<int, PixCache*> caches;
 
     /// List of all windows of the applications.
-    QList<QWidget*> windows;
+    QList<QMainWindow*> windows;
 
     /// Playlist of all media content in the documents.
     QMediaPlaylist *playlist {NULL};

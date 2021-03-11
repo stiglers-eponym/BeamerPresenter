@@ -226,6 +226,7 @@ bool MuPdfDocument::loadDocument()
     qDeleteAll(pages);
     pages.resize(number_of_pages);
     int i=0;
+    fz_var(i);
     do {
         fz_var(pages[i]);
         fz_try(ctx)

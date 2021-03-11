@@ -19,6 +19,7 @@
 #include "src/gui/toolselectorwidget.h"
 #include "src/rendering/pixcache.h"
 #include "src/names.h"
+#include <QMainWindow>
 
 Master::Master() :
     cacheVideoTimer(new QTimer(this)),
@@ -91,9 +92,16 @@ bool Master::readGuiConfig(const QString &filename)
         }
         QJsonObject obj = it->toObject();
         // Start recursive creation of widgets.
-        QWidget* const widget = createWidget(obj, NULL);
+        QWidget *const widget = createWidget(obj, NULL);
         if (widget)
-            windows.append(widget);
+        {
+            // Root widgets should get their own QMainWindow.
+            QMainWindow *const window = new QMainWindow();
+            window->setCentralWidget(widget);
+            window->setWindowTitle("BeamerPresenter");
+            widget->setParent(window);
+            windows.append(window);
+        }
     }
 
     if (!documents.isEmpty())
