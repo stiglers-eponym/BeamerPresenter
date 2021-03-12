@@ -63,8 +63,15 @@ public:
     /// Show all windows of the application.
     void showAll() const;
 
-    /// Read configuration file and build up GUI. Return true on success.
-    bool readGuiConfig(const QString& filename);
+    /**
+     *  Read configuration file and build up GUI. Return values are:
+     *  0 if at least one window was created and at least one document was loaded.
+     *  1 if reading the config file failed.
+     *  2 if parsing the config file failed.
+     *  3 if no windows were created for any other reason.
+     *  4 if no PDF file was loaded.
+     */
+    char readGuiConfig(const QString& filename);
 
     /// Create widgets recursively.
     QWidget* createWidget(QJsonObject& object, QWidget *parent = NULL);

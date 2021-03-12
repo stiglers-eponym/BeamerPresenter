@@ -52,31 +52,22 @@ Master::~Master()
     qDeleteAll(documents);
 }
 
-bool Master::readGuiConfig(const QString &filename)
+char Master::readGuiConfig(const QString &filename)
 {
     // Read file into JSON document
     QFile file(filename);
     if (!file.exists() || !file.open(QIODevice::ReadOnly | QIODevice::Text))
     {
         qCritical() << "Could not read GUI config:" << filename;
-        return false;
+        return 1;
     }
     QJsonParseError error;
     QJsonDocument doc = QJsonDocument::fromJson(file.readAll(), &error);
-    if (error.error != QJsonParseError::NoError)
+    if (error.error != QJsonParseError::NoError || doc.isNull() || doc.isEmpty() || !doc.isArray())
     {
-        qCritical() << "Parsing GUI config failed:" << error.errorString();
-        return false;
-    }
-    if (doc.isNull() || doc.isEmpty())
-    {
-        qCritical() << "GUI config file is empty or parsing failed";
-        return false;
-    }
-    if (!doc.isArray())
-    {
-        qCritical() << "Interpreting GUI file failed: must be a JSON array";
-        return false;
+        qCritical() << "GUI config file is empty or parsing failed:" << error.errorString();
+        qInfo() << "Note that the GUI config file must represent a single JSON array.";
+        return 2;
     }
     const QJsonArray array = doc.array();
 #if (QT_VERSION >= QT_VERSION_CHECK(5,14,0))
@@ -104,11 +95,15 @@ bool Master::readGuiConfig(const QString &filename)
         }
     }
 
-    if (!documents.isEmpty())
-        writable_preferences()->document = documents.first()->getDocument();
+    if (documents.isEmpty())
+        return 4;
+
+    writable_preferences()->document = documents.first()->getDocument();
 
     // Return true (success) if at least one window and one document were created.
-    return !windows.isEmpty() && !documents.isEmpty();
+    if (windows.isEmpty())
+        return 3;
+    return 0;
 }
 
 QWidget* Master::createWidget(QJsonObject &object, QWidget *parent)
@@ -241,6 +236,7 @@ QWidget* Master::createWidget(QJsonObject &object, QWidget *parent)
             {
                 qCritical() << "No valid file given";
                 writable_preferences()->file_alias.insert(file, "//INVALID");
+                writable_preferences()->file_alias.insert(object.value("file").toString(), "//INVALID");
                 break;
             }
             const QString oldfile = file;
@@ -506,7 +502,7 @@ QWidget* Master::createWidget(QJsonObject &object, QWidget *parent)
         widget->setPalette(palette);
     }
     else
-        qWarning() << "An error occured or requested GUI type is not implemented (yet):" << object.value("type");
+        qWarning() << "An error occured while trying to create a widget of type" << object.value("type");
     return widget;
 }
 

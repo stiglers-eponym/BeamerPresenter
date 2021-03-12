@@ -45,7 +45,7 @@ int main(int argc, char *argv[])
     // Set up the application.
     QApplication app(argc, argv);
     app.setApplicationName("BeamerPresenter");
-    app.setWindowIcon(QIcon(ICON_PATH));
+    app.setWindowIcon(QIcon(ICON_FILEPATH));
 
     // Set app version. The string APP_VERSION is defined in beamerpresenter.pro.
     QString version_string = APP_VERSION " ";
@@ -102,12 +102,21 @@ int main(int argc, char *argv[])
     }
 
     Master *master = new Master();
-    if (!master->readGuiConfig(parser.value("g").isEmpty() ? preferences()->gui_config_file : parser.value("g")))
     {
-        qCritical() << "Parsing the GUI configuration failed. Probably the GUI config is unavailable or invalid or no valid PDF files were found.";
-        delete preferences();
-        parser.showHelp(-1);
-        // This quits the program and returns exit code -1.
+    const char status = master->readGuiConfig(parser.value("g").isEmpty() ? preferences()->gui_config_file : parser.value("g"));
+    if (status)
+    {
+        if (status < 4 && master->readGuiConfig(DEFAULT_GUI_CONFIG_PATH) == 0)
+            qWarning() << "Using fallback GUI config file" << DEFAULT_GUI_CONFIG_PATH;
+        else
+        {
+            qCritical() << "Parsing the GUI configuration failed. Probably the GUI config is unavailable or invalid or no valid PDF files were found.";
+            delete master;
+            delete preferences();
+            // Show help and exit
+            parser.showHelp(status);
+        }
+    }
     }
     master->showAll();
     master->navigateToPage(0);

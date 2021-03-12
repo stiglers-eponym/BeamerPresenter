@@ -20,10 +20,18 @@ DEFINES += INCLUDE_POPPLER
 # Tested only with libmupdf 1.18.0
 DEFINES += INCLUDE_MUPDF
 
-# Define a path where the icon will be placed (don't forget the trailing /).
+# App name
+TARGET = beamerpresenter
+# Define a path where the icon will be placed. Don't forget the trailing /.
 unix: ICON_PATH = "/usr/share/icons/hicolor/scalable/apps/"
-#win32: ICON_PATH = "C:\..."
-#macx: ICON_PATH = "/usr/share/icons/hicolor/scalable/apps/"
+macx: ICON_PATH = "/usr/share/icons/hicolor/scalable/apps/"
+win32: ICON_PATH = ""
+# Define the system-wide path for config files. Don't forget the trailing /.
+unix: DEFAULT_CONFIG_PATH = "/etc/xdg/$${TARGET}/"
+macx: DEFAULT_CONFIG_PATH = "/etc/xdg/$${TARGET}/"
+win32: DEFAULT_CONFIG_PATH = ""
+# Define path to fallback GUI configuration file.
+GUI_CONFIG_FILE = "${{DEFAULT_CONFIG_PATH}}gui.json"
 
 # Disable debugging message if debugging mode is disabled.
 CONFIG(release, debug|release):DEFINES += QT_NO_DEBUG_OUTPUT
@@ -44,7 +52,6 @@ requires(contains(DEFINES, INCLUDE_POPPLER) | contains(DEFINES, INCLUDE_MUPDF))
 CONFIG += c++20 qt
 QT += core gui multimedia multimediawidgets xml widgets
 
-TARGET = beamerpresenter
 TEMPLATE = app
 
 # The following define makes your compiler emit warnings if you use
@@ -62,9 +69,11 @@ exists(.git) {
 
 # Define the application version string.
 DEFINES += APP_VERSION=\\\"$${VERSION_STRING}\\\"
-
 # Define the icon path string.
-DEFINES += ICON_PATH=\\\"$${ICON_PATH}\\\"
+DEFINES += ICON_FILEPATH=\\\"$${ICON_PATH}beamerpresenter.svg\\\"
+# Define the default GUI path string.
+DEFINES += DEFAULT_GUI_CONFIG_PATH=\\\"$${GUI_CONFIG_PATH}\\\"
+
 unix {
     # Enable better debugging.
     CONFIG(debug, debug|release):QMAKE_LFLAGS += -rdynamic
@@ -238,7 +247,7 @@ unix {
     man5.extra = gzip -kf9 doc/beamerpresenter.conf.5
     man5.files = doc/beamerpresenter.conf.5.gz
 
-    configuration.path = /etc/xdg/$${TARGET}/
+    configuration.path = $${DEFAULT_CONFIG_PATH}
     configuration.CONFIG = no_build
     configuration.files = config/beamerpresenter.conf config/gui.json
 

@@ -186,7 +186,7 @@ void Preferences::loadSettings()
 
     // GENERAL SETTINGS
     {
-        gui_config_file = settings.value("gui config", "/etc/beamerpresenter/gui.json").toString();
+        gui_config_file = settings.value("gui config", DEFAULT_GUI_CONFIG_PATH).toString();
         manual_file = settings.value("manual", "/usr/share/doc/beamerpresenter/README.html").toString();
 #ifdef QT_DEBUG
         const QStringList debug_flags = settings.value("debug").toStringList();

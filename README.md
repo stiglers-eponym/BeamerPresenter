@@ -110,7 +110,7 @@ Download the sources:
 ```sh
 git clone --depth 1 https://github.com/stiglers-eponym/BeamerPresenter.git
 ```
-Now you need to select the PDF engine. In the file `beamerpresenter.pro`
+Now you need to **select the PDF engine**. In the file `beamerpresenter.pro`
 you will find the lines
 `DEFINES += INCLUDE_POPPLER` and
 `DEFINES += INCLUDE_MUPDF`.
@@ -134,8 +134,8 @@ make install
 When installing manually, you may need the following files (in build directory):
 
 * `beamerpesenter`: executable, the program
-* `config/beamerpesenter.conf`: settings file, usually stored in `$HOME/.config/beamerpresenter/beamerpresenter.config`. If located at a different path, specify the path with the command line option `-c <path>`.
-* `config/gui.json`: user interface configuration, mandatory! Usually stored in `$HOME/.config/beamerpresenter/gui.json`. The path to this file needs to be specified in the settings file (see above) or given explicitly with the command line option `-g <path>`.
+* `config/beamerpesenter.conf`: settings file, usually stored in `/etc/xdg/beamerpresenter/beamerpresenter.conf` or `$HOME/.config/beamerpresenter/beamerpresenter.conf`. If located at a different path, specify the path with the command line option `-c <path>`.
+* `config/gui.json`: user interface configuration, mandatory! Usually stored in `/etc/xdg/beamerpresenter/gui.json` or `$HOME/.config/beamerpresenter/gui.json`. The path to this file needs to be specified in the settings file (see above) or given explicitly with the command line option `-g <path>`.
 * `doc/*`: manuals, not required for running the program.
 * `share/*`: icon and desktop file, not required for running the program.
 * `LICENSE` (optional): you might want to remember that it's AGPL3 (see [below](https://github.com/stiglers-eponym/BeamerPresenter#license) for details)
