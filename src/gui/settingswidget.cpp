@@ -16,9 +16,9 @@
 SettingsWidget::SettingsWidget(QWidget *parent) :
     QTabWidget(parent),
     help(new QTextEdit(this)),
-    misc(new QScrollArea(this)),
-    shortcuts(new QScrollArea(this)),
-    rendering(new QScrollArea(this))
+    misc(new QWidget(this)),
+    shortcuts(new QWidget(this)),
+    rendering(new QWidget(this))
 {
     setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
     setMinimumSize(30, 20);
@@ -35,9 +35,10 @@ SettingsWidget::SettingsWidget(QWidget *parent) :
     // Shortcuts
     {
         QFormLayout *layout = new QFormLayout();
-        QLabel *explanation_label = new QLabel("Change shortcuts by clicking on them and typing the new shortcut. Remove with delete key.", shortcuts);
+        QLabel *explanation_label = new QLabel("Change shortcuts by clicking on them and typing the new shortcut. Remove shortcuts with delete key. Actions are documented in man 1 beamerpresenter-ui (in \"tool selector\").", shortcuts);
         explanation_label->setWordWrap(true);
         layout->addRow(explanation_label);
+
         KeyInputLabel *input_shortcut;
         QMap<int, QString> action_to_string;
         for (auto it=string_to_action_map.cbegin(); it!=string_to_action_map.cend(); ++it)
@@ -60,13 +61,21 @@ SettingsWidget::SettingsWidget(QWidget *parent) :
         QPushButton *add_shortcut_button = new QPushButton("Add new shortcut", shortcuts);
         connect(add_shortcut_button, &QPushButton::clicked, this, &SettingsWidget::appendShortcut);
         layout->addRow(add_shortcut_button);
+
         shortcuts->setLayout(layout);
     }
 
     // Rendering
     {
         QFormLayout *layout = new QFormLayout();
-        QLabel *explanation_label = new QLabel("Set general settings for rendering. Many settings only work after restarting the program.", rendering);
+
+        // Cache management
+        QLabel *explanation_label = new QLabel(
+                    "Set general settings for rendering. Many oft these settings only take effect after restarting the program.\n\n"
+                    "Configure cache. Slides are rendered to compressed cache. These settings defined the allowed cache size. Negative values are interpreted as infinity."
+                    ,
+                    rendering);
+        explanation_label->setTextFormat(Qt::PlainText);
         explanation_label->setWordWrap(true);
         layout->addRow(explanation_label);
 
@@ -84,6 +93,12 @@ SettingsWidget::SettingsWidget(QWidget *parent) :
         connect(spin_box, QOverload<int>::of(&QSpinBox::valueChanged), writable_preferences(), &Preferences::setCacheSize);
         layout->addRow("max. slides in cache", spin_box);
 
+        // Renderer
+        explanation_label = new QLabel("Depending on your installation, different PDF engines may be available. Note that using an external renderer requires a proper configuration of rendering command and rendering arguments as documented in man 5 beamerpresenter.conf.", misc);
+        explanation_label->setTextFormat(Qt::PlainText);
+        explanation_label->setWordWrap(true);
+        layout->addRow(explanation_label);
+
         QComboBox *select_renderer = new QComboBox(rendering);
 #ifdef INCLUDE_MUPDF
         select_renderer->addItem("MuPDF", PdfDocument::MuPdfEngine);
@@ -100,13 +115,6 @@ SettingsWidget::SettingsWidget(QWidget *parent) :
         connect(select_renderer, &QComboBox::currentTextChanged, writable_preferences(), &Preferences::setRenderer);
         layout->addRow("Renderer (requires restart)", select_renderer);
 
-        QDoubleSpinBox *page_part_box = new QDoubleSpinBox(rendering);
-        page_part_box->setMinimum(1.);
-        page_part_box->setMaximum(20.);
-        page_part_box->setValue(preferences()->page_part_threshold);
-        connect(page_part_box, QOverload<double>::of(&QDoubleSpinBox::valueChanged), writable_preferences(), &Preferences::setPagePartThreshold);
-        layout->addRow("Page part threshold", page_part_box);
-
         QLineEdit *line_edit = new QLineEdit(rendering);
         line_edit->setText(preferences()->rendering_command);
         connect(line_edit, &QLineEdit::textChanged, writable_preferences(), &Preferences::setRenderingCommand);
@@ -117,13 +125,29 @@ SettingsWidget::SettingsWidget(QWidget *parent) :
         connect(line_edit, &QLineEdit::textChanged, writable_preferences(), &Preferences::setRenderingArguments);
         layout->addRow("rendering arguments", line_edit);
 
+        // Page part threshold
+        explanation_label = new QLabel("Some programs (like LaTeX beamer) can create PDF pages split into one half for the audience one half for the speaker. This is assumed by BeamerPresenter if the aspect ratio (width/height) of the first slide lies above this threshold:", misc);
+        explanation_label->setTextFormat(Qt::PlainText);
+        explanation_label->setWordWrap(true);
+        layout->addRow(explanation_label);
+
+        QDoubleSpinBox *page_part_box = new QDoubleSpinBox(rendering);
+        page_part_box->setMinimum(1.);
+        page_part_box->setMaximum(20.);
+        page_part_box->setValue(preferences()->page_part_threshold);
+        connect(page_part_box, QOverload<double>::of(&QDoubleSpinBox::valueChanged), writable_preferences(), &Preferences::setPagePartThreshold);
+        layout->addRow("page part threshold", page_part_box);
+
         rendering->setLayout(layout);
     }
 
     // MISC
     {
         QFormLayout *layout = new QFormLayout();
-        QLabel *explanation_label = new QLabel("Various settings.", misc);
+
+        // Drawing history settings
+        QLabel *explanation_label = new QLabel("Number of drawing history steps (undo/redo). Drawing history is kept separately for each slide.", misc);
+        explanation_label->setTextFormat(Qt::PlainText);
         explanation_label->setWordWrap(true);
         layout->addRow(explanation_label);
 
@@ -141,30 +165,61 @@ SettingsWidget::SettingsWidget(QWidget *parent) :
         spin_box->setMaximum(1000);
         layout->addRow("History length hidden slides", spin_box);
 
-        QCheckBox *box = new QCheckBox("log slide changes to standard output", misc);
+        // Enable/disable logging output
+        explanation_label = new QLabel("If opened in a terminal, slide changes can be logged to standard output with a time stamp.", misc);
+        explanation_label->setTextFormat(Qt::PlainText);
+        explanation_label->setWordWrap(true);
+        layout->addRow(explanation_label);
+
+        QCheckBox *box = new QCheckBox("log slide changes", misc);
         box->setChecked(preferences()->global_flags & Preferences::LogSlideChanges);
         connect(box, QOverload<bool>::of(&QCheckBox::clicked), writable_preferences(), &Preferences::setLogSlideChanges);
         layout->addRow(box);
+
+        // Enable/disable automatic slide changes
+        explanation_label = new QLabel("Enable/disable automatic slide switching if durations for slides are defined in the PDF.", misc);
+        explanation_label->setTextFormat(Qt::PlainText);
+        explanation_label->setWordWrap(true);
+        layout->addRow(explanation_label);
 
         box = new QCheckBox("automatic slide changes", misc);
         box->setChecked(preferences()->global_flags & Preferences::ShowAnimations);
         connect(box, QOverload<bool>::of(&QCheckBox::clicked), writable_preferences(), &Preferences::setShowAnimations);
         layout->addRow(box);
 
+        // Drawing mode
+        explanation_label = new QLabel(
+                    "<br>Define how drawings should be handled if multiple successive pages share the same page label (e.g. because they show overlays of the same slide).\n"
+                    "<ul>"
+                    "<li>\"per page\": all pages are treated separately</li>\n"
+                    "<li>\"per slide\": pages with the same label also have the same drawings.</li>\n"
+                    "<li>\"cumulative\": when reaching a page with no drawings (and no drawings history), which has the same label as the previous page, the drawings from the previous page are copied to this page.</li>"
+                    "</ul>",
+                    misc);
+        explanation_label->setTextFormat(Qt::RichText);
+        explanation_label->setWordWrap(true);
+        layout->addRow(explanation_label);
+
         QComboBox *combo_box = new QComboBox(misc);
         for (auto it=string_to_overlay_mode.cbegin(); it!=string_to_overlay_mode.cend(); ++it)
             combo_box->addItem(it.key());
         combo_box->setCurrentText(string_to_overlay_mode.key(preferences()->overlay_mode));
         connect(combo_box, &QComboBox::currentTextChanged, writable_preferences(), &Preferences::setOverlayMode);
-        layout->addRow("drawing mode", combo_box);
+        layout->addRow("drawing mode for overlays", combo_box);
 
         misc->setLayout(layout);
     }
 
     addTab(help, "help");
-    addTab(misc, "misc");
-    addTab(rendering, "rendering");
-    addTab(shortcuts, "shortcuts");
+    QScrollArea *scroll_area = new QScrollArea(this);
+    scroll_area->setWidget(misc);
+    addTab(scroll_area, "misc");
+    scroll_area = new QScrollArea(this);
+    scroll_area->setWidget(rendering);
+    addTab(scroll_area, "rendering");
+    scroll_area = new QScrollArea(this);
+    scroll_area->setWidget(shortcuts);
+    addTab(scroll_area, "shortcuts");
 }
 
 void SettingsWidget::appendShortcut()

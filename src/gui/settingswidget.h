@@ -4,7 +4,6 @@
 #include <QTabWidget>
 
 class QTextEdit;
-class QScrollArea;
 
 /// Must always run in the same thread as writable_preferences().
 /// This construction might change in the future.
@@ -16,13 +15,13 @@ class SettingsWidget : public QTabWidget
     QTextEdit *help;
 
     /// General settings
-    QScrollArea *misc;
+    QWidget *misc;
 
     /// List and modify keyboard shortcuts
-    QScrollArea *shortcuts;
+    QWidget *shortcuts;
 
     /// Settings affecting rendering and cache
-    QScrollArea *rendering;
+    QWidget *rendering;
 
 public:
     explicit SettingsWidget(QWidget *parent = NULL);

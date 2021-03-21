@@ -60,20 +60,20 @@ Version 0.1.x of BeamerPresenter should support ubuntu 18.04 and you should
 [open an issue](https://github.com/stiglers-eponym/BeamerPresenter/issues)
 on github if it does not.
 
-First install required packages. You need Qt5 including the multimedia module.
-Additionally you need either the Qt5 bindings of poppler or the MuPDF C bindings.
+First install required packages. You need Qt 5 including the multimedia module (which is not available in Qt 6.0).
+Additionally you need either the Qt 5 bindings of poppler or the MuPDF C bindings.
 
 ### Dependencies in Ubuntu 20.04
-For Qt5:
+For Qt 5:
 
 * `qt5-qmake`
 * `qt5-default`
 * `qtmultimedia5-dev`
-* Note: ubuntu's version of Qt5 does not have native markdown support. Therefore, also BeamerPresenter will not be able to interpret markdown in ubuntu.
+* Note: ubuntu's Qt 5 package does not have native markdown support. Therefore, also BeamerPresenter will not be able to interpret markdown in ubuntu.
 
 For poppler:
 
-* `libpoppler-qt5-dev`: version 21.01 is tested. Versions below 0.70 are explicitly not supported, compiler errors in newer versions might be fixed if reported in an issue on github.
+* `libpoppler-qt5-dev`: version 21.01 is tested. Versions below 0.70 are explicitly not supported, problems with newer versions might be fixed if reported in an issue on github.
 
 For MuPDF:
 
@@ -89,7 +89,7 @@ Others:
 * `zlib1g-dev`
 
 ### Dependencies in Arch Linux
-For Qt5:
+For Qt 5:
 * `qt5-multimedia` (depends on `qt5-base`, which is also required)
 
 For poppler:
