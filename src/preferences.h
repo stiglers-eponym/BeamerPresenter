@@ -69,7 +69,7 @@ class Preferences : public QObject
 public:
     enum GlobalFlags
     {
-        ShowAnimations = 1 << 0,
+        AutoSlideChanges = 1 << 0,
         LogSlideChanges = 1 << 1,
     };
 
@@ -90,7 +90,7 @@ public:
 #endif
 
     /// Other flags.
-    quint8 global_flags = GlobalFlags::ShowAnimations;
+    quint8 global_flags = GlobalFlags::AutoSlideChanges;
 
 
     // DRAWING
@@ -220,7 +220,7 @@ public slots:
     void setRenderingCommand(const QString &string);
     void setRenderingArguments(const QString &string);
     void setOverlayMode(const QString &string);
-    void setShowAnimations(const bool show);
+    void setAutoSlideChanges(const bool show);
 
 signals:
     void stopDrawing() const;

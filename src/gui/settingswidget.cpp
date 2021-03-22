@@ -183,8 +183,8 @@ SettingsWidget::SettingsWidget(QWidget *parent) :
         layout->addRow(explanation_label);
 
         box = new QCheckBox("automatic slide changes", misc);
-        box->setChecked(preferences()->global_flags & Preferences::ShowAnimations);
-        connect(box, QOverload<bool>::of(&QCheckBox::clicked), writable_preferences(), &Preferences::setShowAnimations);
+        box->setChecked(preferences()->global_flags & Preferences::AutoSlideChanges);
+        connect(box, QOverload<bool>::of(&QCheckBox::clicked), writable_preferences(), &Preferences::setAutoSlideChanges);
         layout->addRow(box);
 
         // Drawing mode

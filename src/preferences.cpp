@@ -199,9 +199,9 @@ void Preferences::loadSettings()
         const int frame_time = settings.value("frame time").toInt(&ok);
         if (ok && frame_time > 0)
             slide_duration_animation = frame_time;
-        const bool show_animations = settings.value("show animations", true).toBool();
+        const bool show_animations = settings.value("automatic slide changes", true).toBool();
         if (!show_animations)
-            global_flags &= ~ShowAnimations;
+            global_flags &= ~AutoSlideChanges;
     }
 
     // DRAWING
@@ -571,6 +571,7 @@ void Preferences::setHistoryVisibleSlide(const int length)
         history_length_visible_slides = length;
     settings.beginGroup("drawing");
     settings.setValue("history length visibl", history_length_visible_slides);
+    settings.endGroup();
 }
 
 void Preferences::setHistoryHiddenSlide(const int length)
@@ -579,6 +580,7 @@ void Preferences::setHistoryHiddenSlide(const int length)
         history_length_hidden_slides = length;
     settings.beginGroup("drawing");
     settings.setValue("history length hidden", history_length_hidden_slides);
+    settings.endGroup();
 }
 
 void Preferences::setLogSlideChanges(const bool log)
@@ -619,11 +621,11 @@ void Preferences::setOverlayMode(const QString &string)
     settings.endGroup();
 }
 
-void Preferences::setShowAnimations(const bool show)
+void Preferences::setAutoSlideChanges(const bool show)
 {
     if (show)
-        global_flags |= ShowAnimations;
+        global_flags |= AutoSlideChanges;
     else
-        global_flags &= ~ShowAnimations;
-    settings.setValue("show animations", show);
+        global_flags &= ~AutoSlideChanges;
+    settings.setValue("automatic slide changes", show);
 }

@@ -31,13 +31,22 @@ class TimerWidget : public QWidget
 {
     Q_OBJECT
 
+public:
+    enum Flags {
+        Timeout = 1 << 0,
+        SetTimeWithoutConfirmation = 1 << 1,
+        SetTimerConfirmationDefault = 2 << 1,
+    };
+
+private:
     QLineEdit *passed;
     QLineEdit *total;
     QLabel *label;
     QTimer *timer;
-    bool timeout = false;
     quint32 page_target_time = UINT32_MAX;
     QMap<qint32, QRgb> colormap = default_timer_colormap;
+
+    char _flags = 0;
 
     void updateTimeout() noexcept;
 
@@ -61,9 +70,13 @@ public:
     /// Map time to color using colormap.
     QColor time_colormap(const qint32 time) const noexcept;
 
+    char &flags() noexcept
+    {return _flags;}
+
 protected:
     /// Resize event: adjust font size.
     void resizeEvent(QResizeEvent *event) noexcept override;
+
     /// Double click event: show option to save current time as end time of current slide.
     void mouseDoubleClickEvent(QMouseEvent*) override;
 

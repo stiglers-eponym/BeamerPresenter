@@ -39,12 +39,12 @@ TimerWidget::~TimerWidget()
 void TimerWidget::updateTimeout() noexcept
 {
     QPalette palette;
-    if (timeout)
+    if (_flags & Timeout)
         palette.setColor(QPalette::Base, Qt::red);
     else
         palette.setColor(QPalette::Base, Qt::white);
     setPalette(palette);
-    emit sendTimeout(timeout);
+    emit sendTimeout(_flags & Timeout);
 }
 
 void TimerWidget::resizeEvent(QResizeEvent *event) noexcept
@@ -74,9 +74,9 @@ void TimerWidget::updateText() noexcept
                         msecs_passed < 3600000 ? "m:ss" : "h:mm:ss"
                 )
             );
-    if (!timeout && msecs_passed >= preferences()->msecs_total)
+    if (!(_flags & Timeout) && msecs_passed >= preferences()->msecs_total)
     {
-        timeout = true;
+        _flags |= Timeout;
         updateTimeout();
     }
     if (page_target_time != UINT32_MAX)
@@ -95,12 +95,18 @@ void TimerWidget::changePassed()
     if (preferences()->msecs_passed == UINT_LEAST32_MAX)
     {
         writable_preferences()->target_time = QDateTime::currentDateTimeUtc().addMSecs(preferences()->msecs_total - new_msecs_passed);
-        timeout = QDateTime::currentDateTimeUtc() >= preferences()->target_time;
+        if (QDateTime::currentDateTimeUtc() >= preferences()->target_time)
+            _flags |= Timeout;
+        else
+            _flags &= ~Timeout;
     }
     else
     {
         writable_preferences()->msecs_passed = new_msecs_passed;
-        timeout = preferences()->msecs_total <= new_msecs_passed;
+        if (preferences()->msecs_total <= new_msecs_passed)
+            _flags |= Timeout;
+        else
+            _flags &= ~Timeout;
     }
     updateTimeout();
     updateFullText();
@@ -113,10 +119,18 @@ void TimerWidget::changeTotal()
     if (preferences()->msecs_passed == UINT_LEAST32_MAX)
     {
         writable_preferences()->target_time = preferences()->target_time.addMSecs(msecs_total - preferences()->msecs_total);
-        timeout = QDateTime::currentDateTimeUtc() >= preferences()->target_time;
+        if (QDateTime::currentDateTimeUtc() >= preferences()->target_time)
+            _flags |= Timeout;
+        else
+            _flags &= ~Timeout;
     }
     else
-        timeout = msecs_total <= preferences()->msecs_passed;
+    {
+        if (msecs_total <= preferences()->msecs_passed)
+            _flags |= Timeout;
+        else
+            _flags &= ~Timeout;
+    }
     updateTimeout();
     writable_preferences()->msecs_total = msecs_total;
     updateFullText();
@@ -163,7 +177,7 @@ void TimerWidget::handleAction(const Action action) noexcept
             writable_preferences()->target_time = QDateTime::currentDateTimeUtc().addMSecs(preferences()->msecs_total);
         else
             writable_preferences()->msecs_passed = 0;
-        timeout = false;
+        _flags &= ~Timeout;
         updateTimeout();
         updateFullText();
         break;
@@ -181,7 +195,16 @@ quint32 TimerWidget::timePassed() const noexcept
 
 void TimerWidget::mouseDoubleClickEvent(QMouseEvent*)
 {
-    if (QMessageBox::question(this, "Timer", "Save current time as target end time for current slide?", QMessageBox::Yes | QMessageBox::No, QMessageBox::No) == QMessageBox::Yes)
+    if (
+            (_flags & SetTimeWithoutConfirmation)
+            || QMessageBox::question(
+                    this,
+                    "Timer",
+                    "Save current time as target end time for current slide?",
+                    QMessageBox::Yes | QMessageBox::No,
+                    _flags & SetTimerConfirmationDefault ? QMessageBox::Yes : QMessageBox::No
+                ) == QMessageBox::Yes
+        )
     {
         page_target_time = timePassed();
         emit setTimeForPage(preferences()->page, page_target_time);

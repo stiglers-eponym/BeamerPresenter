@@ -43,6 +43,8 @@
           },
           {
             "type" : "timer",
+            "require confirmation" : true,
+            "confirmation default" : false,
             "colormap" : {
                 "-360" : "#f000ff",
                 "-240" : "#ff0000",

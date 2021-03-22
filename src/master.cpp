@@ -471,6 +471,7 @@ QWidget* Master::createWidget(QJsonObject &object, QWidget *parent)
     case TimerType:
     {
         TimerWidget *twidget = new TimerWidget(parent);
+        widget = twidget;
         connect(this, &Master::sendAction, twidget, &TimerWidget::handleAction);
         connect(twidget, &TimerWidget::setTimeForPage, this, &Master::setTimeForPage);
         connect(twidget, &TimerWidget::getTimeForPage, this, &Master::getTimeForPage);
@@ -492,7 +493,10 @@ QWidget* Master::createWidget(QJsonObject &object, QWidget *parent)
             if (!colormap.isEmpty())
                 twidget->setColorMap(colormap);
         }
-        widget = twidget;
+        if (!object.value("require confirmation").toBool(true))
+            twidget->flags() |= TimerWidget::SetTimeWithoutConfirmation;
+        if (object.value("confirmation default").toBool(false))
+            twidget->flags() |= TimerWidget::SetTimerConfirmationDefault;
         break;
     }
     case SlideNumberType:
@@ -767,7 +771,7 @@ void Master::postNavigation() const noexcept
         return;
     const int page = preferences()->page;
     const qreal duration =
-            preferences()->global_flags & Preferences::ShowAnimations && page == preferences()->previous_page + 1
+            preferences()->global_flags & Preferences::AutoSlideChanges && page == preferences()->previous_page + 1
             ? documents.first()->getDocument()->duration(preferences()->page)
             : -1.;
     if (duration == 0.)

@@ -156,6 +156,12 @@ Both the total time and the passed time are editable text fields. By double-clic
 .RS
 Arguments:
 .TP
+.BI "require confirmation " "bool"
+Ask for confirmation before setting the time for a slide.
+.TP
+.BI "confirmation default " "bool"
+When asking for confirmation when setting the time for a slide, this will be the default (accept or cancel). The default value is false.
+.TP
 .BI colormap " JSON object"
 Customize the function mapping the current time relative to the target time of the current slide to a color. This JSON object maps times (as integers, in seconds) to colors (e.g. in #rrggbb format). Positive times indicate that the speaker has this amount of time left. Between the times defined in this map, a linear interpolation is used.
 
