@@ -152,6 +152,26 @@ number of columns in which the thumbnail slides are arranged.
 .B timer
 timer for the presentation.
 Both the total time and the passed time are editable text fields. By double-clicking between these two text fields you can store the passed time (left field) as the target time for the currently visible page. These times per page are stored when writing to a xournal file (xopp/xoj), although this does not follow the file format of Xournal(++). The times per page are used to indicate the current progress relative to the planned progress by the background color of the passed time text field.
+.PP
+.RS
+Arguments:
+.TP
+.BI colormap " JSON object"
+Customize the function mapping the current time relative to the target time of the current slide to a color. This JSON object maps times (as integers, in seconds) to colors (e.g. in #rrggbb format). Positive times indicate that the speaker has this amount of time left. Between the times defined in this map, a linear interpolation is used.
+
+Default configuration:
+.nf
+.eo
+"colormap" : {
+    "-300" : "#ff0000",
+    "-90"  : "#ffff00",
+    "0"    : "#00ff00",
+    "90"   : "#00ffff",
+    "300"  : "#ffffff"
+    }
+.ec
+.fi
+.RE
 .
 .TP
 .B toc

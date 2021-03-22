@@ -43,7 +43,16 @@
             "type" : "clock"
           },
           {
-            "type" : "timer"
+            "type" : "timer",
+            "colormap" : {
+                "-360" : "#f000ff",
+                "-240" : "#ff0000",
+                 "-60" : "#ffff00",
+                   "0" : "#00ff00",
+                  "60" : "#00ffff",
+                 "180" : "#80c0ff",
+                 "300" : "#ffffff"
+            }
           },
           {
             "type" : "slide label"

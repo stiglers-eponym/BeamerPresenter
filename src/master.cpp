@@ -475,6 +475,23 @@ QWidget* Master::createWidget(QJsonObject &object, QWidget *parent)
         connect(twidget, &TimerWidget::setTimeForPage, this, &Master::setTimeForPage);
         connect(twidget, &TimerWidget::getTimeForPage, this, &Master::getTimeForPage);
         connect(this, &Master::navigationSignal, twidget, &TimerWidget::updatePage, Qt::QueuedConnection);
+        if (object.contains("colormap"))
+        {
+            const QJsonObject cmap_obj = object.value("colormap").toObject();
+            QMap<qint32, QRgb> colormap;
+            qint32 time;
+            QColor color;
+            bool ok;
+            for (auto it = cmap_obj.constBegin(); it != cmap_obj.constEnd(); ++it)
+            {
+                time = it.key().toInt(&ok);
+                color = QColor(it->toString());
+                if (ok && color.isValid())
+                    colormap[1000*time] = color.rgb();
+            }
+            if (!colormap.isEmpty())
+                twidget->setColorMap(colormap);
+        }
         widget = twidget;
         break;
     }

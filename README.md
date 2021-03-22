@@ -183,7 +183,6 @@ The configuration files of version 0.2.x and 0.1.x are incompatible.
 * improve text input tool
 * combination of slide transitions and videos sometimes interrupts videos
 * improve widgets:
-    * timer (custom colormaps as in version 0.1.x)
     * thumbnails (cursor, keyboard navigation)
     * table of contents (cursor, keyboard navigation)
     * all: keyboard shortcuts

@@ -9,6 +9,16 @@ class QLineEdit;
 class QLabel;
 class QTimer;
 
+/// Map time (in ms) left for a slide to color.
+static const QMap<qint32, QRgb> default_timer_colormap
+{
+    {-300000, qRgb(255,   0,   0)},
+    { -90000, qRgb(255, 255,   0)},
+    {      0, qRgb(  0, 255,   0)},
+    {  90000, qRgb(  0, 255, 255)},
+    { 300000, qRgb(255, 255, 255)},
+};
+
 /**
  * @brief Editable timer for presentation and target time.
  *
@@ -27,6 +37,7 @@ class TimerWidget : public QWidget
     QTimer *timer;
     bool timeout = false;
     quint32 page_target_time = UINT32_MAX;
+    QMap<qint32, QRgb> colormap = default_timer_colormap;
 
     void updateTimeout() noexcept;
 
@@ -42,6 +53,13 @@ public:
 
     /// Get total time passed in ms.
     quint32 timePassed() const noexcept;
+
+    /// Overwrite colormap.
+    void setColorMap(QMap<qint32, QRgb> &map) noexcept
+    {colormap = map;}
+
+    /// Map time to color using colormap.
+    QColor time_colormap(const qint32 time) const noexcept;
 
 protected:
     /// Resize event: adjust font size.
@@ -65,18 +83,6 @@ signals:
     void sendTimeout(const bool timeout);
     void setTimeForPage(const int page, const quint32 time);
     void getTimeForPage(const int page, quint32 &time) const;
-};
-
-QColor time_colormap(const qint32 time) noexcept;
-
-/// Map time (in ms) left for a slide to color.
-static const QMap<qint32, QRgb> colormap
-{
-    {-60000, qRgb(255,   0,   0)},
-    {-30000, qRgb(255, 255,   0)},
-    {     0, qRgb(  0, 255,   0)},
-    { 30000, qRgb(  0, 255, 255)},
-    { 60000, qRgb(255, 255, 255)},
 };
 
 #endif // TIMERWIDGET_H

@@ -7,19 +7,6 @@
 #include <QLabel>
 #include <QTimer>
 
-QColor time_colormap(const qint32 time) noexcept
-{
-    const auto next_it = colormap.lowerBound(time);
-    if (next_it == colormap.cend())
-        return colormap.last();
-    if (next_it == colormap.cbegin())
-        return colormap.first();
-
-    const int diff = next_it.key() - time;
-    const int total = next_it.key() - (next_it-1).key();
-    return QColor(((total-diff)*qRed(*next_it) + diff*qRed(*(next_it-1)))/total, ((total-diff)*qGreen(*next_it) + diff*qGreen(*(next_it-1)))/total, ((total-diff)*qBlue(*next_it) + diff*qBlue(*(next_it-1)))/total);
-}
-
 TimerWidget::TimerWidget(QWidget *parent) :
      QWidget(parent),
      passed(new QLineEdit(this)),
@@ -200,6 +187,19 @@ void TimerWidget::mouseDoubleClickEvent(QMouseEvent*)
         emit setTimeForPage(preferences()->page, page_target_time);
         updateText();
     }
+}
+
+QColor TimerWidget::time_colormap(const qint32 time) const noexcept
+{
+    const auto next_it = colormap.lowerBound(time);
+    if (next_it == colormap.cend())
+        return colormap.last();
+    if (next_it == colormap.cbegin())
+        return colormap.first();
+
+    const int diff = next_it.key() - time;
+    const int total = next_it.key() - (next_it-1).key();
+    return QColor(((total-diff)*qRed(*next_it) + diff*qRed(*(next_it-1)))/total, ((total-diff)*qGreen(*next_it) + diff*qGreen(*(next_it-1)))/total, ((total-diff)*qBlue(*next_it) + diff*qBlue(*(next_it-1)))/total);
 }
 
 void TimerWidget::updatePage(const int page) noexcept
