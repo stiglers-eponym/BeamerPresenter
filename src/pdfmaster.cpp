@@ -223,6 +223,13 @@ void PdfMaster::saveXopp(const QString &filename)
     writer.writeAttribute("creator", "beamerpresenter " APP_VERSION);
     writer.writeTextElement("title", "Xournal(++)-compatible document - see https://github.com/xournalpp/xournalpp");
 
+    // Some attributes specific for beamerpresenter (Xournal(++) will ignore that)
+    writer.writeStartElement("beamerpresenter");
+    if (preferences()->msecs_total)
+        writer.writeAttribute("duration", QTime::fromMSecsSinceStartOfDay(preferences()->msecs_total).toString("h:mm:ss"));
+    emit writeNotes(writer);
+    writer.writeEndElement();
+
     const PdfDocument *doc = preferences()->document;
     PathContainer *container;
     for (int i=0; i < preferences()->number_of_pages; i++)
@@ -406,7 +413,29 @@ void PdfMaster::loadXopp(const QString &filename)
                 }
             }
         }
-        reader.skipCurrentElement();
+        else if (reader.name() == "beamerpresenter")
+        {
+            const QTime time = QTime::fromString(reader.attributes().value("duration").toString(), "h:mm:ss");
+            if (time.isValid())
+            {
+                emit setTotalTime(time);
+                // If may happen that this is called before a timer widget is created.
+                // Then setTotalTime(time) will do nothing and preferences()->msecs_total
+                // must be set directly.
+                writable_preferences()->msecs_total = time.msecsSinceStartOfDay();
+            }
+            while (reader.readNextStartElement())
+            {
+                debug_msg(DebugWidgets) << "reading element:" << reader.name();
+                if (reader.name() == "speakernotes")
+                    emit readNotes(reader);
+                if (!reader.isEndElement())
+                    reader.skipCurrentElement();
+            }
+            debug_msg(DebugWidgets) << "current element:" << reader.name();
+        }
+        if (!reader.isEndElement())
+            reader.skipCurrentElement();
     }
     buffer.close();
     if (reader.hasError())

@@ -289,6 +289,9 @@ QWidget* Master::createWidget(QJsonObject &object, QWidget *parent)
             connect(this, &Master::navigationSignal, doc, &PdfMaster::distributeNavigationEvents, Qt::QueuedConnection);
             connect(this, &Master::setTimeForPage, doc, &PdfMaster::setTimeForPage);
             connect(this, &Master::getTimeForPage, doc, &PdfMaster::getTimeForPage);
+            connect(doc, &PdfMaster::writeNotes, this, &Master::writeNotes, Qt::DirectConnection);
+            connect(doc, &PdfMaster::readNotes, this, &Master::readNotes, Qt::DirectConnection);
+            connect(doc, &PdfMaster::setTotalTime, this, &Master::setTotalTime);
             if (preferences()->page_part_threshold > 0.)
             {
                 const QSizeF reference = doc->getPageSize(0);
@@ -420,12 +423,17 @@ QWidget* Master::createWidget(QJsonObject &object, QWidget *parent)
         connect(static_cast<TOCwidget*>(widget), &TOCwidget::sendNavigationSignal, this, &Master::navigateToPage);
         break;
     case NotesType:
-        widget = new NotesWidget(object.value("identifier").toString() == "number", parent);
-        connect(this, &Master::navigationSignal, static_cast<NotesWidget*>(widget), &NotesWidget::pageChanged, Qt::QueuedConnection);
-        static_cast<NotesWidget*>(widget)->zoomIn(object.value("zoom").toInt(10));
+    {
+        NotesWidget *nwidget = new NotesWidget(object.value("identifier").toString() == "number", parent);
+        widget = nwidget;
+        connect(this, &Master::navigationSignal, nwidget, &NotesWidget::pageChanged, Qt::QueuedConnection);
+        connect(this, &Master::writeNotes, nwidget, &NotesWidget::writeNotes, Qt::DirectConnection);
+        connect(this, &Master::readNotes, nwidget, &NotesWidget::readNotes, Qt::DirectConnection);
+        nwidget->zoomIn(object.value("zoom").toInt(10));
         if (object.contains("file"))
-            static_cast<NotesWidget*>(widget)->load(object.value("file").toString());
+            nwidget->load(object.value("file").toString());
         break;
+    }
     case ToolSelectorType:
     {
         ToolSelectorWidget *toolwidget = new ToolSelectorWidget(parent);
@@ -475,6 +483,7 @@ QWidget* Master::createWidget(QJsonObject &object, QWidget *parent)
         connect(this, &Master::sendAction, twidget, &TimerWidget::handleAction);
         connect(twidget, &TimerWidget::setTimeForPage, this, &Master::setTimeForPage);
         connect(twidget, &TimerWidget::getTimeForPage, this, &Master::getTimeForPage);
+        connect(this, &Master::setTotalTime, twidget, &TimerWidget::setTotalTime);
         connect(this, &Master::navigationSignal, twidget, &TimerWidget::updatePage, Qt::QueuedConnection);
         if (object.contains("colormap"))
         {

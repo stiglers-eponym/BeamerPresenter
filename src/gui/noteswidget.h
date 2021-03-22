@@ -5,6 +5,8 @@
 #include <QFileDialog>
 
 class QKeyEvent;
+class QXmlStreamReader;
+class QXmlStreamWriter;
 
 /**
  * @brief NotesWidget: Editable notes in Markdown format
@@ -67,6 +69,9 @@ public slots:
     {save(QFileDialog::getSaveFileName());}
 
     void pageChanged(const int page);
+
+    void writeNotes(QXmlStreamWriter &writer);
+    void readNotes(QXmlStreamReader &reader);
 };
 
 #endif // NOTESWIDGET_H

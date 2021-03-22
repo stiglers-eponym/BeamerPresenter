@@ -8,6 +8,8 @@
 #include <QKeyEvent>
 #include <QMediaPlaylist>
 #include <QSizePolicy>
+#include<QXmlStreamReader>
+#include<QXmlStreamWriter>
 #include "src/enumerates.h"
 #include "src/preferences.h"
 
@@ -138,6 +140,9 @@ signals:
     void setTimeForPage(const int page, const quint32 time);
     /// Get end time (in ms) for page. time is set to UINT32_MAX if no end time is defined.
     void getTimeForPage(const int page, quint32 &time) const;
+    void writeNotes(QXmlStreamWriter &writer);
+    void readNotes(QXmlStreamReader &reader);
+    void setTotalTime(const QTime time) const;
 };
 
 #endif // MASTER_H

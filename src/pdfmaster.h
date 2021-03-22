@@ -156,6 +156,12 @@ signals:
     void navigationSignal(const int page) const;
     /// Notify that views need to be updated.
     void update() const;
+    /// Write notes from notes widgets to stream writer.
+    void writeNotes(QXmlStreamWriter &writer) const;
+    /// Read notes in notes widgets from stream reader.
+    void readNotes(QXmlStreamReader &reader) const;
+    /// Set total time of presentation (preferences().total_time).
+    void setTotalTime(const QTime time) const;
 };
 
 static const QMap<QString, PdfMaster::OverlayDrawingMode> string_to_overlay_mode

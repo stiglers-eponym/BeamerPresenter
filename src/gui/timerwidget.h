@@ -2,6 +2,7 @@
 #define TIMERWIDGET_H
 
 #include <QWidget>
+#include <QTime>
 #include "src/enumerates.h"
 
 class QResizeEvent;
@@ -91,6 +92,7 @@ public slots:
     void startTimer() noexcept;
     void stopTimer() noexcept;
     void updatePage(const int page) noexcept;
+    void setTotalTime(const QTime time) noexcept;
 
 signals:
     void sendTimeout(const bool timeout);

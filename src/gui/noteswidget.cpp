@@ -22,43 +22,56 @@ void NotesWidget::load(const QString &filename)
         QXmlStreamReader reader(&file);
         while (!reader.atEnd())
         {
-            debug_msg(DebugWidgets) << reader.name();
             if (reader.readNext() == QXmlStreamReader::StartElement && reader.name() == "speakernotes")
             {
-                const QString identifier = reader.attributes().value("identifier").toString();
-                if (identifier == "number")
-                    per_page = true;
-                else if (identifier == "label")
-                    per_page = false;
-            }
-            if (reader.readNext() == QXmlStreamReader::StartElement && reader.name() == "page")
-            {
-                const QString label = reader.attributes().value(per_page ? "number" : "label").toString();
-                if (!label.isEmpty())
-                    text_per_slide.insert(label, reader.readElementText());
+                readNotes(reader);
+                break;
             }
         }
         if (!reader.hasError())
             file_path = filename;
         else
             qWarning() << "Parsing xml failed:" << reader.errorString();
-
-        if (preferences()->document)
-#ifdef QT_FEATUER_textmarkdownreader
-            setMarkdown(text_per_slide.value(preferences()->document->pageLabel(preferences()->page)));
-#else
-            setText(text_per_slide.value(preferences()->document->pageLabel(preferences()->page)));
-#endif
     }
+}
+
+void NotesWidget::readNotes(QXmlStreamReader &reader)
+{
+    /// It is assumed that reader has just reached the beginning of speakernotes
+    debug_msg(DebugWidgets) << "start reading notes for notes widget";
+    if (reader.name() != "speakernotes")
+    {
+        warn_msg << "Tried to read notes, but current element in xml tree is not speakernotes";
+        return;
+    }
+    const QString identifier = reader.attributes().value("identifier").toString();
+    if (identifier == "number")
+        per_page = true;
+    else if (identifier == "label")
+        per_page = false;
+    while (reader.readNextStartElement())
+    {
+        debug_msg(DebugWidgets) << "read notes:" << reader.name();
+        if (reader.name() == "page-notes")
+        {
+            const QString label = reader.attributes().value(per_page ? "number" : "label").toString();
+            if (!label.isEmpty())
+                text_per_slide.insert(label, reader.readElementText());
+        }
+        if (!reader.isEndElement())
+            reader.skipCurrentElement();
+    }
+
+    if (preferences()->document)
+#ifdef QT_FEATURE_textmarkdownreader
+        setMarkdown(text_per_slide.value(preferences()->document->pageLabel(preferences()->page)));
+#else
+        setText(text_per_slide.value(preferences()->document->pageLabel(preferences()->page)));
+#endif
 }
 
 void NotesWidget::save(const QString &filename)
 {
-#ifdef QT_FEATURE_textmarkdownwriter
-    text_per_slide.insert(page_label, toMarkdown());
-#else
-    text_per_slide.insert(page_label, toPlainText());
-#endif
     QFile file(filename);
     file.open(QFile::WriteOnly | QFile::Text);
     if (file.isWritable())
@@ -67,21 +80,34 @@ void NotesWidget::save(const QString &filename)
         writer.setAutoFormatting(true);
         writer.setAutoFormattingIndent(0);
         writer.writeStartDocument();
-        writer.writeStartElement("speakernotes");
-        writer.writeAttribute("identifier", per_page ? "number" : "label");
-        const QString label = per_page ? "number" : "label";
-        for (auto it = text_per_slide.cbegin(); it != text_per_slide.cend(); ++it)
-        {
-            writer.writeStartElement("page");
-            writer.writeAttribute(label, it.key());
-            writer.writeCharacters(it.value());
-            writer.writeEndElement();
-        }
-        writer.writeEndElement();
+        writeNotes(writer);
         writer.writeEndDocument();
         if (!writer.hasError())
             file_path = filename;
     }
+}
+
+void NotesWidget::writeNotes(QXmlStreamWriter &writer)
+{
+#ifdef QT_FEATURE_textmarkdownwriter
+    text_per_slide.insert(page_label, toMarkdown());
+#else
+    text_per_slide.insert(page_label, toPlainText());
+#endif
+    writer.writeStartElement("speakernotes");
+    writer.writeAttribute("identifier", per_page ? "number" : "label");
+    const QString label = per_page ? "number" : "label";
+    for (auto it = text_per_slide.cbegin(); it != text_per_slide.cend(); ++it)
+    {
+        if (!it->isEmpty())
+        {
+            writer.writeStartElement("page-notes");
+            writer.writeAttribute(label, it.key());
+            writer.writeCharacters(it.value());
+            writer.writeEndElement();
+        }
+    }
+    writer.writeEndElement();
 }
 
 void NotesWidget::keyPressEvent(QKeyEvent *event)

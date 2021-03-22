@@ -43,6 +43,7 @@
           },
           {
             "type" : "timer",
+            "color" : "white",
             "require confirmation" : true,
             "confirmation default" : false,
             "colormap" : {
