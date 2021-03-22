@@ -21,7 +21,7 @@ TimerWidget::TimerWidget(QWidget *parent) :
     setLayout(layout);
     connect(timer, &QTimer::timeout, this, &TimerWidget::updateText);
     timer->setTimerType(Qt::CoarseTimer);
-    connect(passed, &QLineEdit::editingFinished, this, &TimerWidget::changePassed);
+    connect(passed, &QLineEdit::returnPressed, this, &TimerWidget::changePassed);
     connect(total, &QLineEdit::editingFinished, this, &TimerWidget::changeTotal);
     updateFullText();
 }
@@ -69,17 +69,24 @@ void TimerWidget::updateFullText() noexcept
 void TimerWidget::updateText() noexcept
 {
     const quint32 msecs_passed = timePassed();
-    passed->setText(
-                QTime::fromMSecsSinceStartOfDay(msecs_passed).toString(
-                        msecs_passed < 3600000 ? "m:ss" : "h:mm:ss"
-                )
-            );
+    if (!passed->hasFocus())
+        passed->setText(
+                    QTime::fromMSecsSinceStartOfDay(msecs_passed).toString(
+                            msecs_passed < 3600000 ? "m:ss" : "h:mm:ss"
+                    )
+                );
     if (!(_flags & Timeout) && msecs_passed >= preferences()->msecs_total)
     {
         _flags |= Timeout;
         updateTimeout();
     }
-    if (page_target_time != UINT32_MAX)
+    if (page_target_time == UINT32_MAX)
+    {
+        QPalette palette;
+        palette.setColor(QPalette::Base, colormap.last());
+        passed->setPalette(palette);
+    }
+    else
     {
         const qint32 diff = page_target_time - msecs_passed;
         QPalette palette;
