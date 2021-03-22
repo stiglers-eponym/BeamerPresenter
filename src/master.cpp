@@ -287,6 +287,8 @@ QWidget* Master::createWidget(QJsonObject &object, QWidget *parent)
             connect(this, &Master::sendAction, doc, &PdfMaster::receiveAction);
             connect(doc, &PdfMaster::navigationSignal, this, &Master::navigateToPage, Qt::QueuedConnection);
             connect(this, &Master::navigationSignal, doc, &PdfMaster::distributeNavigationEvents, Qt::QueuedConnection);
+            connect(this, &Master::setTimeForPage, doc, &PdfMaster::setTimeForPage);
+            connect(this, &Master::getTimeForPage, doc, &PdfMaster::getTimeForPage);
             if (preferences()->page_part_threshold > 0.)
             {
                 const QSizeF reference = doc->getPageSize(0);
@@ -467,9 +469,15 @@ QWidget* Master::createWidget(QJsonObject &object, QWidget *parent)
         widget = new ClockWidget(parent);
         break;
     case TimerType:
-        widget = new TimerWidget(parent);
-        connect(this, &Master::sendAction, static_cast<TimerWidget*>(widget), &TimerWidget::handleAction);
+    {
+        TimerWidget *twidget = new TimerWidget(parent);
+        connect(this, &Master::sendAction, twidget, &TimerWidget::handleAction);
+        connect(twidget, &TimerWidget::setTimeForPage, this, &Master::setTimeForPage);
+        connect(twidget, &TimerWidget::getTimeForPage, this, &Master::getTimeForPage);
+        connect(this, &Master::navigationSignal, twidget, &TimerWidget::updatePage, Qt::QueuedConnection);
+        widget = twidget;
         break;
+    }
     case SlideNumberType:
         widget = new SlideNumberWidget(parent);
         connect(static_cast<SlideNumberWidget*>(widget), &SlideNumberWidget::navigationSignal, this, &Master::navigateToPage);

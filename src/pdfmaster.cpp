@@ -245,12 +245,14 @@ void PdfMaster::saveXopp(const QString &filename)
         writer.writeAttribute("height", QString::number(size.height()));
         writer.writeEmptyElement("background");
         writer.writeAttribute("type", "pdf");
-        writer.writeAttribute("pageno", QString::number(i+1) + "ll");
+        writer.writeAttribute("pageno", QString::number(i+1));
         if (i == 0)
         {
             writer.writeAttribute("domain", "absolute");
             writer.writeAttribute("filename", doc->getPath());
         }
+        if (target_times.contains(i))
+            writer.writeAttribute("endtime", QTime::fromMSecsSinceStartOfDay(target_times[i]).toString("h:mm:ss"));
 
         writer.writeStartElement("layer");
         for (const auto page_part : {FullPage, LeftHalf, RightHalf})
@@ -339,11 +341,20 @@ void PdfMaster::loadXopp(const QString &filename)
             if (reader.name() == "background")
             {
                 QString string = reader.attributes().value("pageno").toString();
-                string.chop(2);
+                // For some reason Xournal++ adds "ll" as a sufix to the page number.
+                if (string.contains(QRegExp("[^0-9]{2,2}$")))
+                    string.chop(2);
                 bool ok;
                 page = string.toInt(&ok) - 1;
                 if (!ok)
                     continue;
+                string = reader.attributes().value("endtime").toString();
+                if (!string.isEmpty())
+                {
+                    const QTime time = QTime::fromString(string, "h:mm:ss");
+                    if (time.isValid())
+                        target_times[page] = time.msecsSinceStartOfDay();
+                }
                 const QStringRef filename = reader.attributes().value("filename");
                 if (!filename.isEmpty())
                 {
@@ -491,4 +502,12 @@ void PdfMaster::clearAllDrawings()
             container->clearHistory();
         }
     }
+}
+
+void PdfMaster::getTimeForPage(const int page, quint32 &time) const noexcept
+{
+    if (target_times.isEmpty() || page > target_times.lastKey())
+        time = UINT32_MAX;
+    else
+        time = *target_times.lowerBound(page);
 }

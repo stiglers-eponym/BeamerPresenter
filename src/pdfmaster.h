@@ -46,6 +46,8 @@ private:
     /// path list from other slide numbers.
     QMap<int, PathContainer*> paths;
 
+    /// Time at which a slide should be finished.
+    QMap<int, quint32> target_times;
 
 public:
     /// Create a new PdfMaster from a given file name.
@@ -140,6 +142,12 @@ public slots:
     /// Get container of paths on given page.
     /// page (part) number is given as (page | page_part).
     void requestPathContainer(PathContainer **container, int page);
+
+    void setTimeForPage(const int page, const quint32 time) noexcept
+    {target_times[page] = time;}
+
+    /// Get time for given page and write it to time.
+    void getTimeForPage(const int page, quint32 &time) const noexcept;
 
 signals:
     /// Notify all associated SlidesScenes that paths have changed.

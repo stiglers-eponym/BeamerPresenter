@@ -1,10 +1,24 @@
 #include "src/gui/timerwidget.h"
 #include "src/preferences.h"
 #include <QHBoxLayout>
+#include <QMessageBox>
 #include <QResizeEvent>
 #include <QLineEdit>
 #include <QLabel>
 #include <QTimer>
+
+QColor time_colormap(const qint32 time) noexcept
+{
+    const auto next_it = colormap.lowerBound(time);
+    if (next_it == colormap.cend())
+        return colormap.last();
+    if (next_it == colormap.cbegin())
+        return colormap.first();
+
+    const int diff = next_it.key() - time;
+    const int total = next_it.key() - (next_it-1).key();
+    return QColor(((total-diff)*qRed(*next_it) + diff*qRed(*(next_it-1)))/total, ((total-diff)*qGreen(*next_it) + diff*qGreen(*(next_it-1)))/total, ((total-diff)*qBlue(*next_it) + diff*qBlue(*(next_it-1)))/total);
+}
 
 TimerWidget::TimerWidget(QWidget *parent) :
      QWidget(parent),
@@ -67,27 +81,24 @@ void TimerWidget::updateFullText() noexcept
 
 void TimerWidget::updateText() noexcept
 {
-    if (preferences()->msecs_passed == UINT_LEAST32_MAX)
-    {
-        const quint32 msecs_passed = preferences()->msecs_total - QDateTime::currentDateTimeUtc().msecsTo(preferences()->target_time);
-        if (msecs_passed < 3600000)
-        {
-            passed->setText(QTime::fromMSecsSinceStartOfDay(msecs_passed + 500).toString("m:ss"));
-            if (!timeout && msecs_passed >= preferences()->msecs_total)
-            {
-                timeout = true;
-                updateTimeout();
-            }
-        }
-        else
-            passed->setText(QTime::fromMSecsSinceStartOfDay(msecs_passed + 500).toString("h:mm:ss"));
-    }
-    else
-        passed->setText(
-                QTime::fromMSecsSinceStartOfDay(
-                    preferences()->msecs_passed + 500
-                ).toString(preferences()->msecs_passed < 3600000 ? "m:ss" : "h:mm:ss")
+    const quint32 msecs_passed = timePassed();
+    passed->setText(
+                QTime::fromMSecsSinceStartOfDay(msecs_passed).toString(
+                        msecs_passed < 3600000 ? "m:ss" : "h:mm:ss"
+                )
             );
+    if (!timeout && msecs_passed >= preferences()->msecs_total)
+    {
+        timeout = true;
+        updateTimeout();
+    }
+    if (page_target_time != UINT32_MAX)
+    {
+        const qint32 diff = page_target_time - msecs_passed;
+        QPalette palette;
+        palette.setColor(QPalette::Base, time_colormap(diff));
+        passed->setPalette(palette);
+    }
 }
 
 void TimerWidget::changePassed()
@@ -172,4 +183,27 @@ void TimerWidget::handleAction(const Action action) noexcept
     default:
         break;
     }
+}
+
+quint32 TimerWidget::timePassed() const noexcept
+{
+    return preferences()->msecs_passed == UINT_LEAST32_MAX
+        ? preferences()->msecs_total - QDateTime::currentDateTimeUtc().msecsTo(preferences()->target_time)
+        : preferences()->msecs_passed;
+}
+
+void TimerWidget::mouseDoubleClickEvent(QMouseEvent*)
+{
+    if (QMessageBox::question(this, "Timer", "Save current time as target end time for current slide?", QMessageBox::Yes | QMessageBox::No, QMessageBox::No) == QMessageBox::Yes)
+    {
+        page_target_time = timePassed();
+        emit setTimeForPage(preferences()->page, page_target_time);
+        updateText();
+    }
+}
+
+void TimerWidget::updatePage(const int page) noexcept
+{
+    emit getTimeForPage(page, page_target_time);
+    updateText();
 }

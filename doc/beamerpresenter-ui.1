@@ -151,6 +151,7 @@ number of columns in which the thumbnail slides are arranged.
 .TP
 .B timer
 timer for the presentation.
+Both the total time and the passed time are editable text fields. By double-clicking between these two text fields you can store the passed time (left field) as the target time for the currently visible page. These times per page are stored when writing to a xournal file (xopp/xoj), although this does not follow the file format of Xournal(++). The times per page are used to indicate the current progress relative to the planned progress by the background color of the passed time text field.
 .
 .TP
 .B toc
@@ -158,7 +159,7 @@ outline / table of contents, shows document outline tree.
 .
 .TP
 .B tool selector
-Grid layout of push buttons. Contains mandatory argument
+grid layout of push buttons. Contains mandatory argument
 .B buttons
 which must be an array of arrays of buttons (matrix defining the arrangement of the buttons).
 Each button can either be a string representing an action, or a JSON dictionary representing a tool, or an array of multiple strings representing actions.

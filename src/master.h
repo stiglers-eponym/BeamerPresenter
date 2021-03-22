@@ -133,6 +133,11 @@ signals:
     /// Send out navigation signal (after updating preferences()->page).
     /// This should only be used in queued connection.
     void navigationSignal(const int page) const;
+
+    /// Set end time (in ms) for page.
+    void setTimeForPage(const int page, const quint32 time);
+    /// Get end time (in ms) for page. time is set to UINT32_MAX if no end time is defined.
+    void getTimeForPage(const int page, quint32 &time) const;
 };
 
 #endif // MASTER_H

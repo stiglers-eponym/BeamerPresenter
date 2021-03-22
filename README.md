@@ -18,7 +18,7 @@ This software uses the Qt framework and the PDF engines MuPDF and/or poppler.
 * notes for the speaker in Markdown format (new in 0.2.x)
 * optionally to show separate presentation file for speaker
 * optionally use LaTeX-beamer's option to show notes on second screen and split PDF pages into a part for the speaker and a part or the audience
-* clock and timer for the presentation (some features of 0.1.x not yet available in 0.2.x)
+* clock and timer for the presentation
 * navigate using document outline, thumbnail slides, page numbers/labels and links
 * save/load drawings in Xournal format (improved in 0.2.x)
 * videos in presentations (sound will be broken depending on the configuration; improved integration with other features in 0.2.x; some small bugs remaining)
@@ -183,8 +183,7 @@ The configuration files of version 0.2.x and 0.1.x are incompatible.
 * improve text input tool
 * combination of slide transitions and videos sometimes interrupts videos
 * improve widgets:
-    * settings (more explanations)
-    * timer (with color indicating progress relative to estimate like in version 0.1.x)
+    * timer (custom colormaps as in version 0.1.x)
     * thumbnails (cursor, keyboard navigation)
     * table of contents (cursor, keyboard navigation)
     * all: keyboard shortcuts
