@@ -138,7 +138,7 @@ void PdfMaster::receiveAction(const Action action)
     {
         PathContainer* const path = pathContainer(preferences()->page | (action ^ ClearDrawing));
         debug_msg(DebugDrawing) << "clear:" << path;
-        if (path && !path->isEmpty())
+        if (path && !path->isCleared())
         {
             path->clearPaths();
             _flags |= UnsavedDrawings;

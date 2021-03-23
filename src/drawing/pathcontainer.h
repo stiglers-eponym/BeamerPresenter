@@ -124,6 +124,10 @@ public:
     bool isEmpty() const noexcept
     {return paths.isEmpty() && history.isEmpty();}
 
+    /// Check if this currently has any paths (history is ignored).
+    bool isCleared() const noexcept
+    {return paths.isEmpty();}
+
     /// Check if this is an unchanged copy of another PathContainer.
     bool isPlainCopy() const noexcept
     {return inHistory == -2 && history.isEmpty();}

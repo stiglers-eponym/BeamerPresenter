@@ -719,6 +719,7 @@ void Master::handleAction(const Action action)
             PdfMaster *doc = documents.first();
             if (doc && doc->flags() & (PdfMaster::UnsavedDrawings | PdfMaster::UnsavedNotes | PdfMaster::UnsavedTimes))
             {
+                debug_msg(DebugWidgets) << "Asking for close confirmation:" << doc->flags();
                 switch (QMessageBox::question(
                             NULL,
                             "Unsaved changes",

@@ -149,15 +149,18 @@ void NotesWidget::keyPressEvent(QKeyEvent *event)
 
 void NotesWidget::pageChanged(const int page)
 {
-    if (!page_label.isEmpty())
-    {
+    // Save current text to old page_label.
 #ifdef QT_FEATURE_textmarkdownwriter
-        text_per_slide.insert(page_label, toMarkdown());
+    QString string = toMarkdown();
 #else
-        text_per_slide.insert(page_label, toPlainText());
+    QString string = toPlainText();
 #endif
+    if (text_per_slide.value(page_label) != string)
+    {
+        text_per_slide.insert(page_label, string);
         emit newUnsavedChanges();
     }
+    // Update page_label.
     if (per_page)
         page_label = QString::number(page);
     else
@@ -165,6 +168,7 @@ void NotesWidget::pageChanged(const int page)
         const PdfDocument *doc = preferences()->document;
         page_label = doc ? doc->pageLabel(page) : "0";
     }
+    // Load text from new page_label.
 #ifdef QT_FEATURE_textmarkdownreader
     setMarkdown(text_per_slide.value(page_label));
 #else

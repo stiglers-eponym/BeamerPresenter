@@ -56,7 +56,7 @@ private:
     /// Time at which a slide should be finished.
     QMap<int, quint32> target_times;
 
-    char _flags = 0;
+    unsigned char _flags = 0;
 
 public:
     /// Create a new PdfMaster from a given file name.
@@ -65,7 +65,7 @@ public:
     /// Destructor. Deletes paths and document.
     ~PdfMaster();
 
-    char &flags() noexcept
+    unsigned char &flags() noexcept
     {return _flags;}
 
     /// Load PDF file.
