@@ -91,6 +91,11 @@ public:
      */
     void leavePage(const int page) const;
 
+    /// Get save file name from QFileDialog
+    static QString getSaveFileName();
+    /// Get open file name from QFileDialog
+    static QString getOpenFileName();
+
 public slots:
     /// Handle key events collected by any other object.
     /// By default all key events are redirected to this and handled here.

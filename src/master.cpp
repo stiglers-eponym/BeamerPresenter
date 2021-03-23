@@ -658,12 +658,7 @@ void Master::handleAction(const Action action)
             break;
         QString filename = doc->drawingsPath();
         if (filename.isEmpty())
-            filename = QFileDialog::getSaveFileName(
-                        NULL,
-                        "Save drawings",
-                        "",
-                        "BeamerPresenter/Xournal++ files (*.bpr *.xopp *.xml);;All files (*)"
-                    );
+            filename = getSaveFileName();
         doc->saveXopp(filename);
         break;
     }
@@ -671,12 +666,7 @@ void Master::handleAction(const Action action)
     {
         if (documents.isEmpty())
             break;
-        const QString filename = QFileDialog::getSaveFileName(
-                    NULL,
-                    "Save drawings",
-                    "",
-                    "BeamerPresenter/Xournal++ files (*.bpr *.xopp *.xml);;All files (*)"
-                );
+        const QString filename = getSaveFileName();
         if (!filename.isEmpty() && documents.first())
             documents.first()->saveXopp(filename);
         break;
@@ -685,12 +675,7 @@ void Master::handleAction(const Action action)
     {
         if (documents.isEmpty())
             break;
-        const QString filename = QFileDialog::getOpenFileName(
-                    NULL,
-                    "Load drawings",
-                    "",
-                    "BeamerPresenter/Xournal++ files (*.bpr *.xoj *.xopp *.xml);;All files (*)"
-                );
+        const QString filename = getOpenFileName();
         if (!filename.isEmpty())
         {
             PdfMaster *doc = documents.first();
@@ -707,12 +692,7 @@ void Master::handleAction(const Action action)
     {
         if (documents.isEmpty())
             break;
-        const QString filename = QFileDialog::getOpenFileName(
-                    NULL,
-                    "Load drawings UNSAFE",
-                    "",
-                    "BeamerPresenter/Xournal++ files (*.bpr *.xoj *.xopp *.xml);;All files (*)"
-                );
+        const QString filename = getOpenFileName();
         if (filename.isEmpty() || documents.first() == NULL)
             break;
         documents.first()->loadXopp(filename);
@@ -753,12 +733,7 @@ void Master::handleAction(const Action action)
                 {
                     QString filename = doc->drawingsPath();
                     if (filename.isEmpty())
-                        filename = QFileDialog::getSaveFileName(
-                                    NULL,
-                                    "Save drawings",
-                                    "",
-                                    "BeamerPresenter/Xournal++ files (*.bpr *.xopp *.xml);;All files (*)"
-                                );
+                        filename = getSaveFileName();
                     doc->saveXopp(filename);
                     break;
                 }
@@ -899,4 +874,24 @@ void Master::setTool(Tool *tool) const noexcept
         for (const auto tool : preferences()->current_tools)
             qDebug() << "tool:" << tool->device() << tool->tool() << tool;
 #endif
+}
+
+QString Master::getOpenFileName()
+{
+    return QFileDialog::getOpenFileName(
+                NULL,
+                "Load drawings",
+                "",
+                "BeamerPresenter/Xournal++ files (*.bpr *.xoj *.xopp *.xml);;All files (*)"
+            );
+}
+
+QString Master::getSaveFileName()
+{
+    return QFileDialog::getSaveFileName(
+                NULL,
+                "Save drawings",
+                "",
+                "BeamerPresenter/Xournal++ files (*.bpr *.xopp *.xml);;All files (*)"
+            );
 }
