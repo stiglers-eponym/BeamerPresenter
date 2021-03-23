@@ -20,6 +20,7 @@
 #include "src/rendering/pixcache.h"
 #include "src/names.h"
 #include <QMainWindow>
+#include <QMessageBox>
 
 Master::Master() :
     cacheVideoTimer(new QTimer(this)),
@@ -231,7 +232,12 @@ QWidget* Master::createWidget(QJsonObject &object, QWidget *parent)
             file = fileinfo.absoluteFilePath();
         else
         {
-            fileinfo = QFileInfo(QFileDialog::getOpenFileName(NULL, "File " + file, "", "Documents (*.pdf *.xopp *.xoj *.xml)"));
+            fileinfo = QFileInfo(QFileDialog::getOpenFileName(
+                                     NULL,
+                                     "Open file \"" + file + "\"",
+                                     "",
+                                     "Documents (*.pdf);;BeamerPresenter/Xournal++ files (*.bpr *.xoj *.xopp *.xml);;All files (*)"
+                                 ));
             if (!fileinfo.exists())
             {
                 qCritical() << "No valid file given";
@@ -330,6 +336,7 @@ QWidget* Master::createWidget(QJsonObject &object, QWidget *parent)
                 doc->getScenes().prepend(scene);
             else
                 doc->getScenes().append(scene);
+            connect(scene, &SlideScene::newUnsavedDrawings, doc, &PdfMaster::newUnsavedDrawings);
             connect(this, &Master::sendAction, scene, &SlideScene::receiveAction);
             connect(cacheVideoTimer, &QTimer::timeout, scene, &SlideScene::postRendering, Qt::QueuedConnection);
             connect(this, &Master::prepareNavigationSignal, scene, &SlideScene::prepareNavigationEvent);
@@ -429,6 +436,7 @@ QWidget* Master::createWidget(QJsonObject &object, QWidget *parent)
         connect(this, &Master::navigationSignal, nwidget, &NotesWidget::pageChanged, Qt::QueuedConnection);
         connect(this, &Master::writeNotes, nwidget, &NotesWidget::writeNotes, Qt::DirectConnection);
         connect(this, &Master::readNotes, nwidget, &NotesWidget::readNotes, Qt::DirectConnection);
+        connect(nwidget, &NotesWidget::newUnsavedChanges, this, [&](void){documents.first()->flags() |= PdfMaster::UnsavedNotes;});
         nwidget->zoomIn(object.value("zoom").toInt(10));
         if (object.contains("file"))
             nwidget->load(object.value("file").toString());
@@ -650,7 +658,12 @@ void Master::handleAction(const Action action)
             break;
         QString filename = doc->drawingsPath();
         if (filename.isEmpty())
-            filename = QFileDialog::getSaveFileName(NULL, "Save drawings (Xournal format, .xoj or .xopp)");
+            filename = QFileDialog::getSaveFileName(
+                        NULL,
+                        "Save drawings",
+                        "",
+                        "BeamerPresenter/Xournal++ files (*.bpr *.xopp *.xml);;All files (*)"
+                    );
         doc->saveXopp(filename);
         break;
     }
@@ -658,7 +671,12 @@ void Master::handleAction(const Action action)
     {
         if (documents.isEmpty())
             break;
-        const QString filename = QFileDialog::getSaveFileName(NULL, "Save drawings (Xournal format, .xoj or .xopp)");
+        const QString filename = QFileDialog::getSaveFileName(
+                    NULL,
+                    "Save drawings",
+                    "",
+                    "BeamerPresenter/Xournal++ files (*.bpr *.xopp *.xml);;All files (*)"
+                );
         if (!filename.isEmpty() && documents.first())
             documents.first()->saveXopp(filename);
         break;
@@ -667,7 +685,12 @@ void Master::handleAction(const Action action)
     {
         if (documents.isEmpty())
             break;
-        const QString filename = QFileDialog::getOpenFileName(NULL, "Load drawings (Xournal format, .xoj or .xopp)");
+        const QString filename = QFileDialog::getOpenFileName(
+                    NULL,
+                    "Load drawings",
+                    "",
+                    "BeamerPresenter/Xournal++ files (*.bpr *.xoj *.xopp *.xml);;All files (*)"
+                );
         if (!filename.isEmpty())
         {
             PdfMaster *doc = documents.first();
@@ -675,6 +698,7 @@ void Master::handleAction(const Action action)
                 break;
             doc->clearAllDrawings();
             doc->loadXopp(filename);
+            doc->flags() &= ~PdfMaster::UnsavedDrawings;
         }
         navigateToPage(preferences()->page);
         break;
@@ -683,7 +707,12 @@ void Master::handleAction(const Action action)
     {
         if (documents.isEmpty())
             break;
-        const QString filename = QFileDialog::getOpenFileName(NULL, "Load drawings (Xournal format, .xoj or .xopp)");
+        const QString filename = QFileDialog::getOpenFileName(
+                    NULL,
+                    "Load drawings UNSAFE",
+                    "",
+                    "BeamerPresenter/Xournal++ files (*.bpr *.xoj *.xopp *.xml);;All files (*)"
+                );
         if (filename.isEmpty() || documents.first() == NULL)
             break;
         documents.first()->loadXopp(filename);
@@ -705,6 +734,39 @@ void Master::handleAction(const Action action)
         break;
     }
     case Quit:
+        if (!documents.isEmpty())
+        {
+            PdfMaster *doc = documents.first();
+            if (doc && doc->flags() & (PdfMaster::UnsavedDrawings | PdfMaster::UnsavedNotes | PdfMaster::UnsavedTimes))
+            {
+                switch (QMessageBox::question(
+                            NULL,
+                            "Unsaved changes",
+                            "The document may contain unsaved changes. Quit anyway?",
+                            QMessageBox::Close | QMessageBox::Save | QMessageBox::Cancel,
+                            QMessageBox::Save
+                        ))
+                {
+                case QMessageBox::Cancel:
+                    return;
+                case QMessageBox::Save:
+                {
+                    QString filename = doc->drawingsPath();
+                    if (filename.isEmpty())
+                        filename = QFileDialog::getSaveFileName(
+                                    NULL,
+                                    "Save drawings",
+                                    "",
+                                    "BeamerPresenter/Xournal++ files (*.bpr *.xopp *.xml);;All files (*)"
+                                );
+                    doc->saveXopp(filename);
+                    break;
+                }
+                default:
+                    break;
+                }
+            }
+        }
         for (const auto window : qAsConst(windows))
             window->close();
         break;

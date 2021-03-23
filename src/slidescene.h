@@ -242,6 +242,9 @@ signals:
 
     /// Get path container for given page.
     void requestPathContainer(PathContainer **container, int page);
+
+    /// Notify master that there are unsaved changes.
+    void newUnsavedDrawings();
 };
 
 Q_DECLARE_METATYPE(SlideScene::VideoItem);

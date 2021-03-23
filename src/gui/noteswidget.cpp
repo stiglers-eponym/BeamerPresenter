@@ -149,11 +149,15 @@ void NotesWidget::keyPressEvent(QKeyEvent *event)
 
 void NotesWidget::pageChanged(const int page)
 {
+    if (!page_label.isEmpty())
+    {
 #ifdef QT_FEATURE_textmarkdownwriter
-    text_per_slide.insert(page_label, toMarkdown());
+        text_per_slide.insert(page_label, toMarkdown());
 #else
-    text_per_slide.insert(page_label, toPlainText());
+        text_per_slide.insert(page_label, toPlainText());
 #endif
+        emit newUnsavedChanges();
+    }
     if (per_page)
         page_label = QString::number(page);
     else

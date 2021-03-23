@@ -72,6 +72,9 @@ public slots:
 
     void writeNotes(QXmlStreamWriter &writer);
     void readNotes(QXmlStreamReader &reader);
+
+signals:
+    void newUnsavedChanges() const;
 };
 
 #endif // NOTESWIDGET_H

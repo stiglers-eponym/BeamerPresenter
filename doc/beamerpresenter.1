@@ -27,7 +27,7 @@ BeamerPresenter \- modular multi-screen PDF presenter
 is a Qt5-based presentation viewer designed for showing extra information on the speaker's screen.
 The modular user interface is completely customizable and may include, among others, previews of upcoming slides, a different presentation file with additional information, markdown notes, a timer, and thumbnail slides.
 .PP
-The interpretation of multiple positional arguments depends on the user interface configuration (beamerpresenter-ui(1)). Readable file types are PDF files and (optionally gzip compressed) xml files in the format defined by Xournal(++), typically abbreviated .xoj or .xopp.
+The interpretation of multiple positional arguments depends on the user interface configuration (beamerpresenter-ui(1)). Readable file types are PDF files and (optionally gzip compressed) xml files in the format defined by Xournal++ (.xopp).
 .
 .
 .SH OPTIONS
@@ -68,6 +68,7 @@ Path to config (settings) file.
 .BI "\-g \-\-gui-config " file
 Path to user interface configuration file (json-formatted).
 .
+.
 .SH DEFAULT KEY BINDINGS
 .
 .TP
@@ -90,6 +91,12 @@ Refresh view.
 .
 The configuration consists of an ordinary config file (beamerpresenter.conf(5)) based on Qt's settings format, which is integrated in the system settings. This defines, e.g., the cache size and keyboard shortcuts. Additionally the graphical interface is defined in a json-formatted file gui.json (beamerpresenter-ui(1)). This is used to arrange and configure windows and widgets (such as sides, clock, timer, overview, ...).
 .
+.
+.SH FILE FORMAT
+.
+BeamerPresenter can save drawings along with notes (from notes widget) and other file-specific settings to a gzipped xml file (.bpr). The pdf file is not included in this file.
+The file type aims for compatibility with Xournal++ in saving and loading drawings. BeamerPresenter can read Xournal(++) files and Xournal++ can open BeamerPresenter files. If this does not work, please open an issue on https://github.com/stiglers-eponym/BeamerPresenter.
+When opening a file, it does not need to be gzipped. However, when saving to a file, it will always be gzipped.
 .
 .
 .SH BUGS

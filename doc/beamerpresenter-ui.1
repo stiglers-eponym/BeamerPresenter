@@ -32,7 +32,7 @@ digital clock, takes no options.
 .TP
 .B notes
 markdown formatted editable notes.
-Notes are included when saving drawings to gzipped xml file (xopp/xoj).
+Notes are included when saving drawings to gzipped xml file (.bpr/.xopp).
 Alternatively, they can be saved separately in an xml file using the keyboard actions while the notes widget has focus:
 save notes with Ctrl+S, save under new file name with Ctrl+Shift+S, load from file with Ctrl+O.
 Note that markdown formatting is only available if Qt was compiled with integrated markdown parser.
@@ -47,17 +47,17 @@ Arguments:
 zoom step for the widget (defined by QTextEdit).
 .TP
 .BI "file " "path"
-path to xml-file to read notes from. The notes file contains a root element <speakernotes> with child elements <page> containing the markdown-formatted notes. Each page element has an attribute "label" or "number" to identify a page or a group of pages. Which of "label" or "number" is used must be specified by the attribute "identifier" or the root element.
+path to xml-file to read notes from. The notes file contains a root element <speakernotes> with child elements <page-notes> containing the markdown-formatted notes. Each page element has an attribute "label" or "number" to identify a page or a group of pages. Which of "label" or "number" is used must be specified by the attribute "identifier" or the root element.
 
 Example file:
 .nf
 .eo
 <?xml version="1.0" encoding="UTF-8"?>
-<speakernotes ideitifier="label">
-<page label="1">notes on first page
-</page>
-<page label="2">notes on second page
-</page>
+<speakernotes identifier="label">
+<page-notes label="1">notes on first page
+</page-notes>
+<page-notes label="2">notes on second page
+</page-notes>
 </speakernotes>
 .ec
 .fi
@@ -153,7 +153,7 @@ number of columns in which the thumbnail slides are arranged.
 .TP
 .B timer
 timer for the presentation.
-Both the total time and the passed time are editable text fields. By double-clicking between these two text fields you can store the passed time (left field) as the target time for the currently visible page. These times per page are stored when writing to a xournal file (xopp/xoj), although this does not follow the file format of Xournal(++). The times per page are used to indicate the current progress relative to the planned progress by the background color of the passed time text field.
+Both the total time and the passed time are editable text fields. By double-clicking between these two text fields you can store the passed time (left field) as the target time for the currently visible page. These times per page are stored when writing to a Xournal++ file (.bpr/.xopp), although this does not follow the file format of Xournal++. The times per page are used to indicate the current progress relative to the planned progress by the background color of the passed time text field.
 .PP
 .RS
 Arguments:
@@ -235,16 +235,16 @@ redo last drawing action on left/right part of current page, assuming that the p
 clear all drawings on the current page.
 .TP
 .B save
-save drawings to gzip-compressed xml file compatible to Xournal(++). Save to same file as before.
+save drawings to gzip-compressed xml file compatible to Xournal++. Save to same file as before.
 .TP
 .B save as
-save drawings to gzip-compressed xml file compatible to Xournal(++). Always asks for filename.
+save drawings to gzip-compressed xml file compatible to Xournal++. Always asks for filename.
 .TP
 .B load
-load drawings from gzip-compressed xml file compatible to Xournal(++).
+load drawings from gzip-compressed xml file compatible to Xournal++.
 .TP
 .B load unsafe
-load drawings from gzip-compressed xml file compatible to Xournal(++) without clearing existing paths.
+load drawings from gzip-compressed xml file compatible to Xournal++ without clearing existing paths.
 .TP
 .BR "clear left" / right
 clear all drawings on the left/right part of current page, assuming that the page is split into a left and right half which represent presentation and notes, respectively

@@ -1048,8 +1048,11 @@ bool SlideScene::stopInputEvent(const QPointF &pos)
         current_tool = NULL;
         PathContainer *container;
         emit requestPathContainer(&container, page | page_part);
-        if (container)
-            return container->applyMicroStep();
+        if (container && container->applyMicroStep())
+        {
+            emit newUnsavedDrawings();
+            return true;
+        }
         break;
     }
     case Tool::NoTool:

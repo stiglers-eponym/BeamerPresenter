@@ -28,6 +28,12 @@ public:
         PerLabel, // All pages with the same label in a simply connected region have the same drawings.
         Cumulative, // When going to the next page which has the same label, the current drawings are copied.
     };
+    enum Flags
+    {
+        UnsavedDrawings = 1 << 0,
+        UnsavedTimes = 1 << 1,
+        UnsavedNotes = 1 << 2,
+    };
 
 private:
     /// Poppler document representing the PDF
@@ -50,12 +56,17 @@ private:
     /// Time at which a slide should be finished.
     QMap<int, quint32> target_times;
 
+    char _flags = 0;
+
 public:
     /// Create a new PdfMaster from a given file name.
     explicit PdfMaster(const QString &filename);
 
     /// Destructor. Deletes paths and document.
     ~PdfMaster();
+
+    char &flags() noexcept
+    {return _flags;}
 
     /// Load PDF file.
     void loadDocument(const QString &filename);
@@ -152,18 +163,22 @@ public slots:
     /// page (part) number is given as (page | page_part).
     void requestPathContainer(PathContainer **container, int page);
 
-    void setTimeForPage(const int page, const quint32 time) noexcept
-    {target_times[page] = time;}
+    void setTimeForPage(const int page, const quint32 time) noexcept;
 
     /// Get time for given page and write it to time.
     void getTimeForPage(const int page, quint32 &time) const noexcept;
 
+    void newUnsavedDrawings() noexcept
+    {_flags |= UnsavedDrawings;}
+
 signals:
     /// Notify all associated SlidesScenes that paths have changed.
+    /// TODO: is this necessary?
     void pathsUpdated() const;
     /// Send a navigation signal (to master).
     void navigationSignal(const int page) const;
     /// Notify that views need to be updated.
+    /// TODO: is this necessary?
     void update() const;
     /// Write notes from notes widgets to stream writer.
     void writeNotes(QXmlStreamWriter &writer) const;

@@ -10,6 +10,7 @@
 #include "src/rendering/mupdfdocument.h"
 #endif
 #include <QBuffer>
+#include <QFileDialog>
 
 PdfMaster::PdfMaster(const QString &filename)
 {
@@ -109,10 +110,8 @@ void PdfMaster::receiveAction(const Action action)
             auto scene_it = scenes.cbegin();
             while ( scene_it != scenes.cend() && ( (*scene_it)->getPage() | (*scene_it)->pagePart() ) != page)
                 ++scene_it;
-            if (scene_it == scenes.cend())
-                path->undo();
-            else
-                path->undo(*scene_it);
+            if (path->undo(scene_it == scenes.cend() ? NULL : *scene_it))
+                _flags |= UnsavedDrawings;
         }
         break;
     }
@@ -128,10 +127,8 @@ void PdfMaster::receiveAction(const Action action)
             auto scene_it = scenes.cbegin();
             while ( scene_it != scenes.cend() && ( (*scene_it)->getPage() | (*scene_it)->pagePart() ) != page)
                 ++scene_it;
-            if (scene_it == scenes.cend())
-                path->redo();
-            else
-                path->redo(*scene_it);
+            if (path->redo(scene_it == scenes.cend() ? NULL : *scene_it))
+                _flags |= UnsavedDrawings;
         }
         break;
     }
@@ -141,8 +138,11 @@ void PdfMaster::receiveAction(const Action action)
     {
         PathContainer* const path = pathContainer(preferences()->page | (action ^ ClearDrawing));
         debug_msg(DebugDrawing) << "clear:" << path;
-        if (path)
+        if (path && !path->isEmpty())
+        {
             path->clearPaths();
+            _flags |= UnsavedDrawings;
+        }
         break;
     }
     default:
@@ -161,6 +161,9 @@ void PdfMaster::resolveLink(const int page, const QPointF &position, const QPoin
 
 void PdfMaster::receiveNewPath(int page, QGraphicsItem *item)
 {
+    if (!item)
+        return;
+    _flags |= UnsavedDrawings;
     if (preferences()->overlay_mode == PerLabel)
         page = document->overlaysShifted((page & ~NotFullPage), FirstOverlay) | (page & NotFullPage);
     if (!paths.contains(page))
@@ -278,7 +281,8 @@ void PdfMaster::saveXopp(const QString &filename)
 
     writer.writeEndElement();
     writer.writeEndDocument();
-    if (writer.hasError())
+    bool saving_failed = writer.hasError();
+    if (saving_failed)
         qWarning() << "Writing document resulted in error! Resulting document is probably corrupt.";
 
     gzFile file = gzopen(filename.toUtf8(), "wb");
@@ -297,8 +301,13 @@ void PdfMaster::saveXopp(const QString &filename)
             file.close();
         }
         else
+        {
+            saving_failed = true;
             qWarning() << "Saving file failed with file path" << filename;
+        }
     }
+    if (!saving_failed)
+        _flags &= ~(UnsavedDrawings|UnsavedTimes|UnsavedNotes);
 }
 
 void PdfMaster::loadXopp(const QString &filename)
@@ -332,7 +341,17 @@ void PdfMaster::loadXopp(const QString &filename)
         if (reader.hasError())
             qWarning() << "Failed to read xopp document." << reader.errorString();
         else if (!document)
+        {
             qWarning() << "Failed to determine PDF document from xournal file." << filename;
+            QFileInfo fileinfo = QFileInfo(QFileDialog::getOpenFileName(
+                                     NULL,
+                                     "PDF file could not be opened, select the correct PDF file.",
+                                     "",
+                                     "Documents (*.pdf);;All files (*)"
+                                 ));
+            if (fileinfo.exists())
+                loadDocument(fileinfo.absoluteFilePath());
+        }
     }
     else
         qWarning() << "Failed to read xopp document." << reader.errorString();
@@ -423,13 +442,19 @@ void PdfMaster::readPageFromStream(QXmlStreamReader &reader, bool &nontrivial_pa
             {
                 if (!document)
                 {
-                    loadDocument(filename.toString());
-                    if (document && preferences()->page_part_threshold > 0.01)
+                    QFileInfo fileinfo(filename.toString());
+                    if (fileinfo.exists())
                     {
-                        const QSizeF size = document->pageSize(0);
-                        if (size.width() > preferences()->page_part_threshold*size.height())
-                            nontrivial_page_part = true;
+                        loadDocument(fileinfo.absoluteFilePath());
+                        if (document && preferences()->page_part_threshold > 0.01)
+                        {
+                            const QSizeF size = document->pageSize(0);
+                            if (size.width() > preferences()->page_part_threshold*size.height())
+                                nontrivial_page_part = true;
+                        }
                     }
+                    else
+                        qWarning() << "Document does not exist:" << filename;
                 }
                 else if (filename != document->getPath())
                     qWarning() << "reading document for possibly wrong PDF file:" << filename << document->getPath();
@@ -600,4 +625,10 @@ void PdfMaster::getTimeForPage(const int page, quint32 &time) const noexcept
         time = UINT32_MAX;
     else
         time = *target_times.lowerBound(page);
+}
+
+void PdfMaster::setTimeForPage(const int page, const quint32 time) noexcept
+{
+    target_times[page] = time;
+    _flags |= UnsavedTimes;
 }

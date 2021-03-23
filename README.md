@@ -20,7 +20,7 @@ This software uses the Qt framework and the PDF engines MuPDF and/or poppler.
 * optionally use LaTeX-beamer's option to show notes on second screen and split PDF pages into a part for the speaker and a part or the audience
 * clock and timer for the presentation
 * navigate using document outline, thumbnail slides, page numbers/labels and links
-* save/load drawings in Xournal format (improved in 0.2.x)
+* save/load drawings in Xournal++ format (improved in 0.2.x)
 * videos in presentations (sound will be broken depending on the configuration; improved integration with other features in 0.2.x; some small bugs remaining)
 * slide transitions
 * basic animations by showing slides in rapid succession
@@ -40,7 +40,7 @@ Use a magnifier to show details of your plots (size and magnification factor can
 Draw in your presentation using a pen or highlighter and focus on parts of your slide using a torch or a pointer:
 <img src=".readme/drawings+torch+pointer.png" width=100% title="Annotations, torch and pointer for highlighting">
 Of course, this is just for demonstration an you'll usually not use pointer and torch at the same time.
-Annotations can be saved and loaded in a file format borrowed from Xournal (.xoj or xopp).
+Annotations, notes and some file-specific settings can be saved and loaded to gzipped xml files in a format which aims at compatibility with Xournal++.
 
 Use an overview of all slides (or all slides with separate slide labels, especially useful for presentations created with LaTeX beamer):
 <img src=".readme/overview+video.png" width=100% title="Overview mode and video in presentation">
@@ -157,7 +157,7 @@ The configuration files of version 0.2.x and 0.1.x are incompatible.
 * highlighting tools: pointer, torch, magnifier
 * full per-slide history of drawings (with limitation of number of history steps)
 * select per-slide or per-overlay drawings
-* save and load drawings to xopp-like xml format (rather experimental)
+* save and load drawings to xopp-like gzipped xml format
 * animations and automatic slide change
 * slide transitions
 * videos
@@ -182,6 +182,7 @@ The configuration files of version 0.2.x and 0.1.x are incompatible.
 * option to insert extra slides or extra space below slide for drawing (partially implemented)
 * improve text input tool
 * combination of slide transitions and videos sometimes interrupts videos
+* make xml file loading more stable
 * improve widgets:
     * thumbnails (cursor, keyboard navigation)
     * table of contents (cursor, keyboard navigation)
