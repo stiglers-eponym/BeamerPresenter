@@ -432,6 +432,8 @@ QWidget* Master::createWidget(QJsonObject &object, QWidget *parent)
         nwidget->zoomIn(object.value("zoom").toInt(10));
         if (object.contains("file"))
             nwidget->load(object.value("file").toString());
+        else if (!documents.isEmpty())
+            documents.first()->reloadXoppProperties();
         break;
     }
     case ToolSelectorType:

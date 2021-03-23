@@ -202,6 +202,8 @@ quint32 TimerWidget::timePassed() const noexcept
 
 void TimerWidget::mouseDoubleClickEvent(QMouseEvent*)
 {
+    if (passed->hasFocus())
+        changePassed();
     if (
             (_flags & SetTimeWithoutConfirmation)
             || QMessageBox::question(

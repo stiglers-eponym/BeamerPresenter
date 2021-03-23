@@ -303,145 +303,206 @@ void PdfMaster::saveXopp(const QString &filename)
 
 void PdfMaster::loadXopp(const QString &filename)
 {
+    QBuffer *buffer = loadZipToBuffer(filename);
+    QXmlStreamReader reader(buffer);
+    while (!reader.atEnd() && (reader.readNext() != QXmlStreamReader::StartElement || reader.name() != "xournal")) {}
+
+    if (!reader.atEnd())
+    {
+        drawings_path = filename;
+        bool nontrivial_page_part = false;
+        for (const auto scene : qAsConst(scenes))
+        {
+            if (scene->pagePart() != FullPage)
+            {
+                nontrivial_page_part = true;
+                break;
+            }
+        }
+        while (reader.readNextStartElement())
+        {
+            debug_msg(DebugDrawing) << "Reading element" << reader.name();
+            if (reader.name() == "page")
+                readPageFromStream(reader, nontrivial_page_part);
+            else if (reader.name() == "beamerpresenter")
+                readPropertiesFromStream(reader);
+            else if (!reader.isEndElement())
+                reader.skipCurrentElement();
+        }
+        if (reader.hasError())
+            qWarning() << "Failed to read xopp document." << reader.errorString();
+        else if (!document)
+            qWarning() << "Failed to determine PDF document from xournal file." << filename;
+    }
+    else
+        qWarning() << "Failed to read xopp document." << reader.errorString();
+    reader.clear();
+    buffer->close();
+    delete buffer;
+}
+
+void PdfMaster::reloadXoppProperties()
+{
+    debug_msg(DebugWidgets) << "reloading Xopp properties" << drawings_path;
+    if (drawings_path.isEmpty())
+        return;
+    QBuffer *buffer = loadZipToBuffer(drawings_path);
+    if (!buffer)
+        return;
+    QXmlStreamReader reader(buffer);
+    while (!reader.atEnd() && (reader.readNext() != QXmlStreamReader::StartElement || reader.name() != "xournal")) {}
+
+    if (!reader.atEnd())
+    {
+        while (reader.readNextStartElement())
+        {
+            if (reader.name() == "beamerpresenter")
+                readPropertiesFromStream(reader);
+            else if (!reader.isEndElement())
+                reader.skipCurrentElement();
+        }
+        if (reader.hasError())
+            qWarning() << "Failed to read xopp document." << reader.errorString();
+    }
+    else
+        qWarning() << "Failed to read xopp document." << reader.errorString();
+    reader.clear();
+    buffer->close();
+    delete buffer;
+}
+
+QBuffer *PdfMaster::loadZipToBuffer(const QString &filename)
+{
     // This is probably not how it should be done.
-    QBuffer buffer;
-    buffer.open(QBuffer::ReadWrite);
+    QBuffer *buffer(new QBuffer());
+    buffer->open(QBuffer::ReadWrite);
     gzFile file = gzopen(filename.toUtf8(), "rb");
     if (!file)
     {
         qWarning() << "Loading drawings failed: file" << filename << "could not be opened";
-        return;
+        return NULL;
     }
-    drawings_path = filename;
     gzbuffer(file, 32768);
     char chunk[512];
     int status = 0;
     do {
         status = gzread(file, chunk, 512);
-        buffer.write(chunk, status);
+        buffer->write(chunk, status);
     } while (status == 512);
     gzclose_r(file);
-    buffer.seek(0);
+    buffer->seek(0);
+    return buffer;
+}
 
-    QXmlStreamReader reader(&buffer);
-    if ((reader.readNext() != QXmlStreamReader::StartDocument || reader.readNext() != QXmlStreamReader::StartElement) || reader.name() != "xournal")
-    {
-        qWarning() << "Failed to read document." << reader.errorString();
-        return;
-    }
-    bool nontrivial_page_part = false;
-    for (const auto scene : qAsConst(scenes))
-    {
-        if (scene->pagePart() != FullPage)
-        {
-            nontrivial_page_part = true;
-            break;
-        }
-    }
+void PdfMaster::readPageFromStream(QXmlStreamReader &reader, bool &nontrivial_page_part)
+{
+    debug_msg(DebugDrawing) << "read page from stream" << reader.name();
+    int page = -1;
     while (reader.readNextStartElement())
     {
-        if (reader.name() == "page")
+        debug_msg(DebugDrawing) << "Searching background" << reader.name();
+        if (reader.name() == "background")
         {
-            int page = -1;
-            if (!reader.readNextStartElement())
-                continue;
-            if (reader.name() == "background")
+            QString string = reader.attributes().value("pageno").toString();
+            // For some reason Xournal++ adds "ll" as a sufix to the page number.
+            if (string.contains(QRegExp("[^0-9]{2,2}$")))
+                string.chop(2);
+            bool ok;
+            page = string.toInt(&ok) - 1;
+            if (!ok)
+                return;
+            string = reader.attributes().value("endtime").toString();
+            if (!string.isEmpty())
             {
-                QString string = reader.attributes().value("pageno").toString();
-                // For some reason Xournal++ adds "ll" as a sufix to the page number.
-                if (string.contains(QRegExp("[^0-9]{2,2}$")))
-                    string.chop(2);
-                bool ok;
-                page = string.toInt(&ok) - 1;
-                if (!ok)
-                    continue;
-                string = reader.attributes().value("endtime").toString();
-                if (!string.isEmpty())
+                const QTime time = QTime::fromString(string, "h:mm:ss");
+                if (time.isValid())
+                    target_times[page] = time.msecsSinceStartOfDay();
+            }
+            const QStringRef filename = reader.attributes().value("filename");
+            if (!filename.isEmpty())
+            {
+                if (!document)
                 {
-                    const QTime time = QTime::fromString(string, "h:mm:ss");
-                    if (time.isValid())
-                        target_times[page] = time.msecsSinceStartOfDay();
-                }
-                const QStringRef filename = reader.attributes().value("filename");
-                if (!filename.isEmpty())
-                {
-                    if (!document)
+                    loadDocument(filename.toString());
+                    if (document && preferences()->page_part_threshold > 0.01)
                     {
-                        loadDocument(filename.toString());
-                        if (document && preferences()->page_part_threshold > 0.01)
-                        {
-                            const QSizeF size = document->pageSize(0);
-                            if (size.width() > preferences()->page_part_threshold*size.height())
-                                nontrivial_page_part = true;
-                        }
+                        const QSizeF size = document->pageSize(0);
+                        if (size.width() > preferences()->page_part_threshold*size.height())
+                            nontrivial_page_part = true;
                     }
-                    else if (filename != document->getPath())
-                        qWarning() << "reading document for possibly wrong PDF file:" << filename << document->getPath();
                 }
+                else if (filename != document->getPath())
+                    qWarning() << "reading document for possibly wrong PDF file:" << filename << document->getPath();
+            }
+            if (!reader.isEndElement())
                 reader.skipCurrentElement();
-            }
-            if (!reader.readNextStartElement())
-                continue;
-            if (reader.name() == "layer" && page >= 0)
-            {
-                if (nontrivial_page_part)
-                {
-                    const qreal page_half = document ? document->pageSize(page).width()/2 : 226.772;
-                    PathContainer *left = paths.value(page | LeftHalf, NULL),
-                                *right = paths.value(page | RightHalf, NULL);
-                    if (!left)
-                    {
-                        left = new PathContainer();
-                        paths[page | LeftHalf] = left;
-                    }
-                    if (!right)
-                    {
-                        right = new PathContainer();
-                        paths[page | RightHalf] = right;
-                    }
-                    PathContainer::loadDrawings(reader, left, right, page_half);
-                }
-                else
-                {
-                    PathContainer *container = paths.value(page);
-                    if (!container)
-                    {
-                        container = new PathContainer();
-                        paths[page] = container;
-                    }
-                    container->loadDrawings(reader);
-                }
-            }
-        }
-        else if (reader.name() == "beamerpresenter")
-        {
-            const QTime time = QTime::fromString(reader.attributes().value("duration").toString(), "h:mm:ss");
-            if (time.isValid())
-            {
-                emit setTotalTime(time);
-                // If may happen that this is called before a timer widget is created.
-                // Then setTotalTime(time) will do nothing and preferences()->msecs_total
-                // must be set directly.
-                writable_preferences()->msecs_total = time.msecsSinceStartOfDay();
-            }
-            while (reader.readNextStartElement())
-            {
-                debug_msg(DebugWidgets) << "reading element:" << reader.name();
-                if (reader.name() == "speakernotes")
-                    emit readNotes(reader);
-                if (!reader.isEndElement())
-                    reader.skipCurrentElement();
-            }
-            debug_msg(DebugWidgets) << "current element:" << reader.name();
+            break;
         }
         if (!reader.isEndElement())
             reader.skipCurrentElement();
     }
-    buffer.close();
-    if (reader.hasError())
-        qWarning() << "Failed to read document." << reader.errorString();
-    else if (!document)
-        qWarning() << "Failed to determine PDF document from xournal file." << filename;
+    if (page < 0)
+        return;
+    while (reader.readNextStartElement())
+    {
+        debug_msg(DebugDrawing) << "Searching layer" << reader.name();
+        if (reader.name() == "layer")
+        {
+            if (nontrivial_page_part)
+            {
+                const qreal page_half = document ? document->pageSize(page).width()/2 : 226.772;
+                PathContainer *left = paths.value(page | LeftHalf, NULL),
+                            *right = paths.value(page | RightHalf, NULL);
+                if (!left)
+                {
+                    left = new PathContainer();
+                    paths[page | LeftHalf] = left;
+                }
+                if (!right)
+                {
+                    right = new PathContainer();
+                    paths[page | RightHalf] = right;
+                }
+                PathContainer::loadDrawings(reader, left, right, page_half);
+            }
+            else
+            {
+                PathContainer *container = paths.value(page);
+                if (!container)
+                {
+                    container = new PathContainer();
+                    paths[page] = container;
+                }
+                container->loadDrawings(reader);
+            }
+            if (!reader.isEndElement())
+                reader.skipCurrentElement();
+            break;
+        }
+        if (!reader.isEndElement())
+            reader.skipCurrentElement();
+    }
+    reader.skipCurrentElement();
+}
+
+void PdfMaster::readPropertiesFromStream(QXmlStreamReader &reader)
+{
+    const QTime time = QTime::fromString(reader.attributes().value("duration").toString(), "h:mm:ss");
+    if (time.isValid())
+    {
+        emit setTotalTime(time);
+        // If may happen that this is called before a timer widget is created.
+        // Then setTotalTime(time) will do nothing and preferences()->msecs_total
+        // must be set directly.
+        writable_preferences()->msecs_total = time.msecsSinceStartOfDay();
+    }
+    while (reader.readNextStartElement())
+    {
+        if (reader.name() == "speakernotes")
+            emit readNotes(reader);
+        if (!reader.isEndElement())
+            reader.skipCurrentElement();
+    }
 }
 
 void PdfMaster::requestPathContainer(PathContainer **container, int page)

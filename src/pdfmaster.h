@@ -13,6 +13,7 @@
 class SlideScene;
 class PathContainer;
 class QGraphicsItem;
+class QBuffer;
 
 /// Full document including PDF and paths / annotations added by user.
 /// This should also manage drawings and multimedia content of the PDF.
@@ -113,6 +114,14 @@ public:
     /// If no document is loaded, this will call loadDocument(path)
     /// with the pdf file path from the xopp file.
     void loadXopp(const QString &filename);
+    /// Reload only the <beamerpresenter> element of Xopp file.
+    void reloadXoppProperties();
+    /// Unzip file to buffer.
+    QBuffer *loadZipToBuffer(const QString &filename);
+    /// Helper function for loadXopp: read a <page> element
+    void readPageFromStream(QXmlStreamReader &reader, bool &nontrivial_page_part);
+    /// Helper function for loadXopp: read the <beamerpresenter> element
+    void readPropertiesFromStream(QXmlStreamReader &reader);
 
     /// Get path container at given page. If overlay_mode==Cumulative, this may
     /// create and return a copy of a previous path container.
