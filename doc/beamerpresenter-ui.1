@@ -34,7 +34,7 @@ digital clock, takes no options.
 markdown formatted editable notes.
 Notes are included when saving drawings to gzipped xml file (.bpr/.xopp).
 Alternatively, they can be saved separately in an xml file using the keyboard actions while the notes widget has focus:
-save notes with Ctrl+S, save under new file name with Ctrl+Shift+S, load from file with Ctrl+O.
+save notes with Ctrl+S, save under new file name with Ctrl+Shift+S, open from file with Ctrl+O.
 Note that markdown formatting is only available if Qt was compiled with integrated markdown parser.
 .RS
 .PP
@@ -153,7 +153,7 @@ number of columns in which the thumbnail slides are arranged.
 .TP
 .B timer
 timer for the presentation.
-Both the total time and the passed time are editable text fields. By double-clicking between these two text fields you can store the passed time (left field) as the target time for the currently visible page. These times per page are stored when writing to a Xournal++ file (.bpr/.xopp), although this does not follow the file format of Xournal++. The times per page are used to indicate the current progress relative to the planned progress by the background color of the passed time text field.
+Both the total time and the passed time are editable text fields. By double-clicking between these two text fields you can store the passed time (left field) as the target time for the currently visible page. These times per page are stored when saving drawings. The times per page are used to indicate the current progress relative to the planned progress by the background color of the passed time text field.
 .PP
 .RS
 Arguments:
@@ -217,7 +217,7 @@ navigate to next page which has a different page label than current page
 navigate to previous page which has a different page label than current page
 .TP
 .B reload
-reload the presentation file (if it has been modified) (this function might be unstable!)
+reload the presentation pdf (if it has been modified).
 .TP
 .B undo
 undo last drawing action on current page
@@ -235,16 +235,16 @@ redo last drawing action on left/right part of current page, assuming that the p
 clear all drawings on the current page.
 .TP
 .B save
-save drawings to gzip-compressed xml file compatible to Xournal++. Save to same file as before.
+save drawings to file. Doesn't ask for file name if a file name is known.
 .TP
 .B save as
-save drawings to gzip-compressed xml file compatible to Xournal++. Always asks for filename.
+save drawings to file. Always asks for the file name.
 .TP
-.B load
-load drawings from gzip-compressed xml file compatible to Xournal++.
+.B open
+load drawings from file.
 .TP
-.B load unsafe
-load drawings from gzip-compressed xml file compatible to Xournal++ without clearing existing paths.
+.B open unsafe
+load drawings from file without clearing existing paths.
 .TP
 .BR "clear left" / right
 clear all drawings on the left/right part of current page, assuming that the page is split into a left and right half which represent presentation and notes, respectively
@@ -262,7 +262,10 @@ start, pause or stop playing multimedia content.
 toggle full screen view for currently active window.
 .TP
 .B quit
-close BeamerPresenter.
+close BeamerPresenter. Ask for confirmation if there are unsaved changes. Note that the detection of unsaved changes is not reliable yet.
+.TP
+.B quit unsafe
+close BeamerPresenter ignoring unsaved changes.
 .PP
 Options in the dictionary for tools (all lengths are given in points (1/72 inch) in PDF):
 .TP

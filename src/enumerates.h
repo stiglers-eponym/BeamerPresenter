@@ -69,6 +69,7 @@ enum Action
     ReloadFiles,
     FullScreen,
     Quit,
+    QuitNoConfirmation,
 
     // Combinations with other types
     UndoDrawingLeft = UndoDrawing | PagePart::LeftHalf,

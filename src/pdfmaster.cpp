@@ -224,9 +224,9 @@ void PdfMaster::saveXopp(const QString &filename)
 
     writer.writeStartElement("xournal");
     writer.writeAttribute("creator", "beamerpresenter " APP_VERSION);
-    writer.writeTextElement("title", "Xournal(++)-compatible document - see https://github.com/xournalpp/xournalpp");
+    writer.writeTextElement("title", "BeamerPresenter document, compatible with Xournal++ - see https://github.com/stiglers-eponym/BeamerPresenter");
 
-    // Some attributes specific for beamerpresenter (Xournal(++) will ignore that)
+    // Some attributes specific for beamerpresenter (Xournal++ will ignore that)
     writer.writeStartElement("beamerpresenter");
     if (preferences()->msecs_total)
         writer.writeAttribute("duration", QTime::fromMSecsSinceStartOfDay(preferences()->msecs_total).toString("h:mm:ss"));

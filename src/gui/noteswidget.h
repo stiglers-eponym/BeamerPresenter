@@ -47,8 +47,8 @@ public:
     bool hasHeightForWidth() const noexcept override
     {return true;}
 
-    void load(const QString &filename);
-    void save(const QString &filename);
+    void loadNotes(const QString &filename);
+    void saveNotes(const QString &filename);
 #if defined(QT_FEATURE_textmarkdownreader) && defined(QT_FEATURE_textmarkdownwriter)
     void updateMarkdown() {setMarkdown(toMarkdown());}
 #else
@@ -59,22 +59,16 @@ protected:
     void keyPressEvent(QKeyEvent *event) override;
 
 public slots:
-    void load()
-    {load(QFileDialog::getOpenFileName());}
-
-    void save()
-    {save(file_path.isEmpty() ? QFileDialog::getSaveFileName() : file_path);}
-
-    void saveAs()
-    {save(QFileDialog::getSaveFileName());}
-
+    void load();
+    void save(QString filename);
     void pageChanged(const int page);
-
     void writeNotes(QXmlStreamWriter &writer);
     void readNotes(QXmlStreamReader &reader);
 
 signals:
     void newUnsavedChanges() const;
+    void saveDrawings(const QString filename);
+    void loadDrawings(const QString filename);
 };
 
 #endif // NOTESWIDGET_H

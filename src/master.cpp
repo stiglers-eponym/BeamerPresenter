@@ -295,6 +295,8 @@ QWidget* Master::createWidget(QJsonObject &object, QWidget *parent)
             connect(this, &Master::navigationSignal, doc, &PdfMaster::distributeNavigationEvents, Qt::QueuedConnection);
             connect(this, &Master::setTimeForPage, doc, &PdfMaster::setTimeForPage);
             connect(this, &Master::getTimeForPage, doc, &PdfMaster::getTimeForPage);
+            connect(this, &Master::saveDrawings, doc, &PdfMaster::saveXopp);
+            connect(this, &Master::loadDrawings, doc, &PdfMaster::loadXopp);
             connect(doc, &PdfMaster::writeNotes, this, &Master::writeNotes, Qt::DirectConnection);
             connect(doc, &PdfMaster::readNotes, this, &Master::readNotes, Qt::DirectConnection);
             connect(doc, &PdfMaster::setTotalTime, this, &Master::setTotalTime);
@@ -436,10 +438,12 @@ QWidget* Master::createWidget(QJsonObject &object, QWidget *parent)
         connect(this, &Master::navigationSignal, nwidget, &NotesWidget::pageChanged, Qt::QueuedConnection);
         connect(this, &Master::writeNotes, nwidget, &NotesWidget::writeNotes, Qt::DirectConnection);
         connect(this, &Master::readNotes, nwidget, &NotesWidget::readNotes, Qt::DirectConnection);
+        connect(nwidget, &NotesWidget::saveDrawings, this, &Master::saveDrawings);
+        connect(nwidget, &NotesWidget::loadDrawings, this, &Master::loadDrawings);
         connect(nwidget, &NotesWidget::newUnsavedChanges, this, [&](void){documents.first()->flags() |= PdfMaster::UnsavedNotes;});
         nwidget->zoomIn(object.value("zoom").toInt(10));
         if (object.contains("file"))
-            nwidget->load(object.value("file").toString());
+            nwidget->loadNotes(object.value("file").toString());
         else if (!documents.isEmpty())
             documents.first()->reloadXoppProperties();
         break;
@@ -743,6 +747,8 @@ void Master::handleAction(const Action action)
                 }
             }
         }
+        [[clang::fallthrough]];
+    case QuitNoConfirmation:
         for (const auto window : qAsConst(windows))
             window->close();
         break;
@@ -893,6 +899,6 @@ QString Master::getSaveFileName()
                 NULL,
                 "Save drawings",
                 "",
-                "BeamerPresenter/Xournal++ files (*.bpr *.xopp *.xml);;All files (*)"
+                "BeamerPresenter/Xournal++ files (*.bpr *.xopp);;All files (*)"
             );
 }

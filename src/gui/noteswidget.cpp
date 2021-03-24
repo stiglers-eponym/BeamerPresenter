@@ -13,18 +13,28 @@ NotesWidget::NotesWidget(const bool per_page, QWidget *parent) :
     setAutoFormatting(QTextEdit::AutoAll);
 }
 
-void NotesWidget::load(const QString &filename)
+void NotesWidget::loadNotes(const QString &filename)
 {
     QFile file(filename);
     file.open(QFile::ReadOnly | QFile::Text);
     if (file.isReadable())
     {
         QXmlStreamReader reader(&file);
+        reader.readNext();
         while (!reader.atEnd())
         {
-            if (reader.readNext() == QXmlStreamReader::StartElement && reader.name() == "speakernotes")
+            if (reader.readNext() == QXmlStreamReader::StartElement)
             {
-                readNotes(reader);
+                if (reader.name() == "speakernotes")
+                    readNotes(reader);
+                else if (reader.name() == "xournal")
+                {
+                    // Trying to read a file which should probably be read by PdfMaster.
+                    reader.clear();
+                    file.close();
+                    emit loadDrawings(filename);
+                    return;
+                }
                 break;
             }
         }
@@ -70,21 +80,62 @@ void NotesWidget::readNotes(QXmlStreamReader &reader)
 #endif
 }
 
-void NotesWidget::save(const QString &filename)
+void NotesWidget::save(QString filename)
+{
+    if (filename.isEmpty())
+    {
+        filename = QFileDialog::getSaveFileName(
+                    NULL,
+                    "Save notes",
+                    "",
+                    "Note files (*.xml);;BeamerPresenter/Xournal++ files (*.bpr *.xopp);;All files (*)"
+                );
+        if (filename.endsWith(".bpr", Qt::CaseInsensitive) || filename.endsWith(".xopp", Qt::CaseInsensitive))
+            emit saveDrawings(filename);
+        else
+            saveNotes(filename);
+    }
+    else
+        saveNotes(file_path);
+}
+
+void NotesWidget::load()
+{
+    const QString filename = QFileDialog::getOpenFileName(
+                NULL,
+                "Open notes",
+                "",
+                "Note files (*.xml);;BeamerPresenter/Xournal++ files (*.bpr *.xopp *.xoj *.xml);;All files (*)"
+            );
+    QMimeDatabase db;
+    const QMimeType type = db.mimeTypeForFile(filename, QMimeDatabase::MatchContent);
+    if (type.name() == "application/gzip")
+        emit loadDrawings(filename);
+    else if (type.name() == "application/xml")
+        loadNotes(filename);
+    else
+        qWarning() << "Could not open file: unknown file type" << type.name();
+}
+
+void NotesWidget::saveNotes(const QString &filename)
 {
     QFile file(filename);
     file.open(QFile::WriteOnly | QFile::Text);
-    if (file.isWritable())
+    if (!file.isWritable())
     {
-        QXmlStreamWriter writer(&file);
-        writer.setAutoFormatting(true);
-        writer.setAutoFormattingIndent(0);
-        writer.writeStartDocument();
-        writeNotes(writer);
-        writer.writeEndDocument();
-        if (!writer.hasError())
-            file_path = filename;
+        qWarning() << "Saving notes failed, file is not writable:" << filename;
+        return;
     }
+    QXmlStreamWriter writer(&file);
+    writer.setAutoFormatting(true);
+    writer.setAutoFormattingIndent(0);
+    writer.writeStartDocument();
+    writeNotes(writer);
+    writer.writeEndDocument();
+    if (writer.hasError())
+        qWarning() << "Saving notes resulted in an error";
+    else
+        file_path = filename;
 }
 
 void NotesWidget::writeNotes(QXmlStreamWriter &writer)
@@ -119,11 +170,11 @@ void NotesWidget::keyPressEvent(QKeyEvent *event)
         event->accept();
         break;
     case Qt::Key_S | Qt::ControlModifier:
-        save();
+        save(file_path);
         event->accept();
         break;
     case Qt::Key_S | Qt::ShiftModifier | Qt::ControlModifier:
-        saveAs();
+        save("");
         event->accept();
         break;
 #if defined(QT_FEATURE_textmarkdownreader) && defined(QT_FEATURE_textmarkdownwriter)

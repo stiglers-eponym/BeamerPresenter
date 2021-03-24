@@ -35,10 +35,11 @@ Also for keyboard shortcuts which select a tool it is possible to define a devic
 <p>For more details on tools and actions (e.g. how to use undo if a presentation combines presentation and notes for the speaker in a single file) see <code>man 1 beamerpresenter-ui</code>.</p>
 
 <h3>Saving and Loading Drawings</h3>
-<p>Drawings can be saved to and loaded from Xournal's .xoj (or .xopp) format. Note that in files created by Xournal(++) only those pages can be opened, which contain a PDF page as background.</p>
-Use the "load" and "save" or "save as" actions.
+<p>Use the "open" (default shortcut: Ctrl+O) and "save" (Ctrl+S) or "save as" (Ctrl+Shift+S) actions to load or save drawings. Note that it is not possible to switch to a different pdf file while BeamerPresenter is running. It is only possible to load drawings for the pdf file which is currently opened.</p>
 
-<p>BeamerPresenter will not warn you if you forget to save notes. Errors while saving or loading files will probably not be handled correctly. If you want to be sure that your notes are saved, use Xournal(++) instead.</p>
+<p>BeamerPresenter uses gzipped xml files (.bpr) aiming for compatibility with Xournal++ (.xopp files). These files do not include the pdf file. BeamerPresenter can read drawings and text annotations from .xoj or .xopp files (Xournal or Xournal++). But BeamerPresenter will always show the pages of the pdf, independent of pages added or removed in Xournal(++). Xournal++ can read files created by BeamerPresenter and convert them to Xournal's .xoj format if necessary.</p>
+
+<p>BeamerPresenter files mainly include drawings and text added by the user, but they can also store the duration of the presentation, the overlay mode of the drawings, and times defined per slide. These times allow the speaker to easily check the time relative to a predefined schedule through the color of the timer widget. Additionally, it is possible to show markdown-formatted notes in BeamerPresenter. These notes are also included when saving or loading a file. Saving only these notes in an uncompressed xml format is also possible.</p>
 
 <h3>Notes for the Speaker</h3>
 <p>Notes and additional information for the speaker can be provided in three ways.</p>

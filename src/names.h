@@ -44,8 +44,8 @@ static const QMap<QString, Action> string_to_action_map
     {"reload", ReloadFiles},
     {"save", SaveDrawings},
     {"save as", SaveDrawingsAs},
-    {"load", LoadDrawings},
-    {"load unsafe", LoadDrawingsNoClear},
+    {"open", LoadDrawings},
+    {"open unsafe", LoadDrawingsNoClear},
     {"undo", UndoDrawing},
     {"undo left", UndoDrawingLeft},
     {"undo right", UndoDrawingRight},
@@ -68,6 +68,7 @@ static const QMap<QString, Action> string_to_action_map
     {"full screen", FullScreen},
     {"fullscreen", FullScreen},
     {"quit", Quit},
+    {"quit unsafe", QuitNoConfirmation},
 };
 
 static const QMap<QString, QBoxLayout::Direction> string_to_layout_direction

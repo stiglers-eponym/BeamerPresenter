@@ -148,6 +148,8 @@ signals:
     void writeNotes(QXmlStreamWriter &writer);
     void readNotes(QXmlStreamReader &reader);
     void setTotalTime(const QTime time) const;
+    void saveDrawings(const QString filename);
+    void loadDrawings(const QString filename);
 };
 
 #endif // MASTER_H
