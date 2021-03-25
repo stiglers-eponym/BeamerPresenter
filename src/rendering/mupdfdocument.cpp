@@ -178,6 +178,7 @@ bool MuPdfDocument::loadDocument()
         //const QByteArray &pathdecoded = path.toLatin1();
         const QByteArray &pathdecoded = path.toUtf8();
         const char *name = pathdecoded.data();
+        fz_var(doc);
         fz_try(ctx)
             doc = pdf_open_document(ctx, name);
         fz_catch(ctx)
@@ -343,6 +344,7 @@ void MuPdfDocument::loadPageLabels()
     // https://bugs.ghostscript.com/show_bug.cgi?id=695351
 
     QMap<int, label_item> raw_labels;
+    fz_var(raw_labels);
     fz_try(ctx)
     {
         pdf_obj *labels = pdf_dict_gets(ctx, pdf_dict_gets(ctx, pdf_trailer(ctx, doc), "Root"), "PageLabels");
@@ -465,6 +467,7 @@ void MuPdfDocument::prepareRendering(fz_context **context, fz_rect *bbox, fz_dis
     fz_device *dev = NULL;
     fz_var(*list);
     fz_var(dev);
+    fz_var(pages[pagenumber]);
     fz_try(ctx)
     {
         // Prepare a display list for a drawing device.
@@ -495,6 +498,8 @@ const PdfDocument::SlideTransition MuPdfDocument::transition(const int page) con
     fz_transition doc_trans;
     float duration;
     fz_var(doc_trans);
+    fz_var(duration);
+    fz_var(pages[page]);
     fz_try(ctx)
         pdf_page_presentation(ctx, pages[page], &doc_trans, &duration);
     fz_catch(ctx)
@@ -537,9 +542,9 @@ const PdfDocument::PdfLink MuPdfDocument::linkAt(const int page, const QPointF &
         return result;
 
     mutex->lock();
-    // TODO: check how this is correctly tidied up!
     fz_link *clink = NULL;
     fz_var(clink);
+    fz_var(result);
     fz_try(ctx)
     {
         clink = pdf_load_links(ctx, pages[page]);
@@ -585,6 +590,7 @@ const PdfDocument::MediaAnnotation MuPdfDocument::annotationAt(const int page, c
         return result;
 
     mutex->lock();
+    fz_var(result);
     fz_try(ctx)
     {
         for (pdf_annot *annot = pages[page]->annots; annot != NULL; annot = annot->next)
@@ -729,7 +735,7 @@ bool MuPdfDocument::flexiblePageSizes() noexcept
     mutex->lock();
     const fz_rect ref_bbox = pdf_bound_page(ctx, pages[0]);
     fz_rect bbox;
-    for (auto page : pages)
+    for (auto page : qAsConst(pages))
     {
         bbox = pdf_bound_page(ctx, page);
         if (bbox.x1 != ref_bbox.x1 || bbox.y1 != ref_bbox.y1)
@@ -754,6 +760,7 @@ void MuPdfDocument::loadOutline()
 
     fz_outline *root;
     fz_var(root);
+    fz_var(outline);
     fz_try(ctx)
     {
         root = pdf_load_outline(ctx, doc);
