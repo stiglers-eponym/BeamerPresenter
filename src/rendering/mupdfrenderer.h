@@ -19,6 +19,9 @@ class MuPdfRenderer : public AbstractRenderer
 {
     const MuPdfDocument *doc;
 
+    /// Helper function for rendering functions.
+    fz_pixmap *renderFzPixmap(const int page, const qreal resolution, fz_context *&ctx) const;
+
 public:
     /// Constructor: only initializes doc and page_part.
     MuPdfRenderer(const MuPdfDocument *doc, const PagePart part = FullPage) : AbstractRenderer(part), doc(doc) {}
