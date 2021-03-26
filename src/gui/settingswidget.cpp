@@ -30,12 +30,19 @@ SettingsWidget::SettingsWidget(QWidget *parent) :
         manual.open(QFile::ReadOnly | QFile::Text);
         if (manual.isReadable())
             help->setHtml(manual.readAll());
+        else
+            help->setPlainText("Manual file not found or not readable:\n" + preferences()->manual_file);
     }
 
     // Shortcuts
     {
         QFormLayout *layout = new QFormLayout();
-        QLabel *explanation_label = new QLabel("Change shortcuts by clicking on them and typing the new shortcut. Remove shortcuts with delete key. Actions are documented in man 1 beamerpresenter-ui (in \"tool selector\").", shortcuts);
+        QLabel *explanation_label = new QLabel(
+                    "Change shortcuts by clicking on them and typing the new shortcut. "
+                    "Remove shortcuts with delete key. "
+                    "Actions are documented in man 1 beamerpresenter-ui (in \"tool selector\").",
+                    shortcuts
+                );
         explanation_label->setWordWrap(true);
         layout->addRow(explanation_label);
 

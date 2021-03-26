@@ -1,13 +1,13 @@
-.TH beamerpresenter-ui 1 "2021-03-23" "0.2.0beta"
+.TH beamerpresenter-ui 1 "2021-03-26" "0.2.0beta"
 .
 .SH NAME
 beamerpresenter-ui \- user interface of BeamerPresenter
 .
 .
-.SH FILE FORMAT
+.SH GENERAL
 .
 The GUI configuration file is JSON-formatted, containing a list of widgets. These widgets function as root widgets forming own windows. Each widget is a JSON dictionary. There are widgets providing their own content and layout widgets which do not provide own contents, but have contain a list of \[dq]children\[dq], which are widgets again.
-.
+.PP
 Arguments shared by all widgets:
 .TP
 .BI "type" " name"
@@ -310,6 +310,13 @@ stacked child widgets, shown in the same place. The currently visible widget can
 .TP
 .B tabbed
 similar to stacked widget, but shows the child widgets as tabs, which can be selected using the cursor.
+.PP
+.RS
+Arguments:
+.TP
+.BI "orientation " "north/east/south/west"
+position of the tab bar.
+.RE
 .
 .SH SEE ALSO
 .

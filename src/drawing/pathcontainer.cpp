@@ -210,7 +210,6 @@ void PathContainer::eraserMicroStep(const QPointF &pos, const qreal size)
         // margins from the eraser size).
         if (
                 *path_it
-                && ((*path_it)->type() == BasicGraphicsPath::Type || (*path_it)->type() == FullGraphicsPath::Type)
                 && (*path_it)->boundingRect().marginsAdded(QMargins(size, size, size, size)).contains(pos)
             )
         {

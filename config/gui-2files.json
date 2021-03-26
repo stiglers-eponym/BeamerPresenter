@@ -5,6 +5,7 @@
     "children" : [
       {
         "type" : "tabbed",
+        "orientation" : "north",
         "children" : [
           {
             "type" : "slide",
