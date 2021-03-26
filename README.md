@@ -2,28 +2,24 @@
 BeamerPresenter is a PDF viewer for presentations, which opens a presentation
 screen and a control screen in two different windows. The control screen
 optionally shows slides from a dedicated notes document instead of the slides
-for the audience. Additional information on the control screen includes the
-current time, a timer for the presentation, and previews of the next slides.
+for the audience. Additional information on the control screen includes a
+clock, a timer for the presentation, and previews of the next slides.
 
 This software uses the Qt framework and the PDF engines MuPDF and/or poppler.
 
 **Note**: the relatively stable version 0.1.3 can be found in [branch 0.1.x](https://github.com/stiglers-eponym/BeamerPresenter/tree/0.1.x) and in the [releases](https://github.com/stiglers-eponym/BeamerPresenter/releases). This new version 0.2.0beta is not stable yet.
 
-## Features
-* modular user interface (new in 0.2.x)
-* poppler or MuPDF (new in 0.2.x) as PDF engine
-* render slides to compressed cache for fast response (parallelization improved in 0.2.x)
-* draw in slides (improved in 0.2.x)
+## Features (selection)
+* modular user interface (new in 0.2.x): adapt for your presentation style and technical equipment (number of monitors, extra information available, input devices, ...)
+* compressed cache for fast slide changes
+* draw in slides, save drawings in a format compatible with Xournal++ (improved in 0.2.x)
 * highlighting tools (torch, magnifier, pointer)
 * notes for the speaker in Markdown format (new in 0.2.x)
-* optionally to show separate presentation file for speaker
-* optionally use LaTeX-beamer's option to show notes on second screen and split PDF pages into a part for the speaker and a part or the audience
-* clock and timer for the presentation
+* (optionally) show separate presentation file for speaker or use LaTeX-beamer's option to show notes on second screen (split PDF pages into a part for the speaker and a part or the audience)
+* time indicates progress relative to a predefined schedule by it's color (improved in 0.2.x)
 * navigate using document outline, thumbnail slides, page numbers/labels and links
-* save/load drawings in Xournal++ format (improved in 0.2.x)
-* videos in presentations (sound will be broken depending on the configuration; improved integration with other features in 0.2.x; some small bugs remaining)
+* videos in presentations (currently without audio)
 * slide transitions
-* basic animations by showing slides in rapid succession
 
 
 ## Screenshots
@@ -34,12 +30,12 @@ One possible configuration of the graphical interface shows the previews of the 
 The left half of these pictures shows the window visible only to the speaker and the right half shows the presentation. Both are independent windows.
 These examples were created with the configuration `config/gui-2files.json`, which also works fine if just one presentation file is given.
 
-Use a magnifier to show details of your plots (size and magnification factor can be adjusted):
+Use a magnifier to show details of your figures (size and magnification factor can be adjusted):
 <img src=".readme/magnifier.png" width=100% title="Magnifier (size and magnification factor are adjustable)">
 
 Draw in your presentation using a pen or highlighter and focus on parts of your slide using a torch or a pointer:
 <img src=".readme/drawings+torch+pointer.png" width=100% title="Annotations, torch and pointer for highlighting">
-Of course, this is just for demonstration an you'll usually not use pointer and torch at the same time.
+Of course, this is just for demonstration an you will usually not use pointer and torch at the same time.
 Annotations, notes and some file-specific settings can be saved and loaded to gzipped xml files in a format which aims at compatibility with Xournal++.
 
 Use an overview of all slides (or all slides with separate slide labels, especially useful for presentations created with LaTeX beamer):
@@ -47,8 +43,11 @@ Use an overview of all slides (or all slides with separate slide labels, especia
 
 You can embed videos in your slides. Drawing and highlighting also works in the video.
 <img src=".readme/draw-video.png" width=100% title="Drawings (pen and highlighter) and torch in video">
-Note the slider on the speaker's screen.
+Note the slider for the video on the speaker's screen.
 Slide transitions may in some cases need to interrupt a video.
+
+The interface is very flexible and can be adjusted to your needs. Also multiple monitors are possible. Example of 4 windows for 4 different monitors (3 for the audience, 1 for the speaker):
+<img src=".readme/multi-monitor.png" width=60% title="Example multi-monitor setup: 3 windows for audience, 1 window for speaker">
 
 
 ## Build and install
@@ -137,58 +136,12 @@ When installing manually, you may need the following files (in build directory):
 * `config/beamerpesenter.conf`: settings file, usually stored in `/etc/xdg/beamerpresenter/beamerpresenter.conf` or `$HOME/.config/beamerpresenter/beamerpresenter.conf`. If located at a different path, specify the path with the command line option `-c <path>`.
 * `config/gui.json`: user interface configuration, mandatory! Usually stored in `/etc/xdg/beamerpresenter/gui.json` or `$HOME/.config/beamerpresenter/gui.json`. The path to this file needs to be specified in the settings file (see above) or given explicitly with the command line option `-g <path>`.
 * `doc/*`: manuals, not required for running the program.
-* `share/*`: icon and desktop file, not required for running the program.
+* `share/*`: icon, desktop file and in-app manual, not required for running the program.
 * `LICENSE` (optional): you might want to remember that it's AGPL3 (see [below](https://github.com/stiglers-eponym/BeamerPresenter#license) for details)
 
-
-## Development
-Version 0.2.x of BeamerPresenter has been developed independent of version 0.1.y
-with the aim of avoiding the chaotic old code.
-The configuration files of version 0.2.x and 0.1.x are incompatible.
-
-#### Already implemented
-* render with Poppler or MuPDF
-* cache pages (with limitation of available memory; doesn't work if pages have different sizes)
-* read slides and notes from the same PDF, side by side on same page
-* navigation links inside document
-* navigation skipping overlays
-* build flexible GUI from config
-* draw and erase using tablet input device with variable pressure (wacom)
-* highlighting tools: pointer, torch, magnifier
-* full per-slide history of drawings (with limitation of number of history steps)
-* select per-slide or per-overlay drawings
-* save and load drawings to xopp-like gzipped xml format
-* animations and automatic slide change
-* slide transitions
-* videos
-* widgets:
-    * slide
-    * clock
-    * page number (and max. number)
-    * page label (and max. label)
-    * tool selector
-    * timer
-    * editable markdown notes per page label (only available if qt was compiled with native markdown implementation)
-    * table of contents (requires improvement: keyboard navigation)
-    * thumbnails (requires improvement: keyboard navigation)
-    * settings (still kind of improvised)
-
-#### To be implemented / fixed
-* improve cache management and layout corrections: sometimes cache is not used correctly.
-* cache slides even when size of slides varies (partially implemented)
-* cache only required slides in previews showing specific overlays
-* fix layout, avoid recalculating full layout when clock label changes text
-* sounds
-* option to insert extra slides or extra space below slide for drawing (partially implemented)
-* improve text input tool
-* combination of slide transitions and videos sometimes interrupts videos
-* make xml file loading more stable
-* improve widgets:
-    * thumbnails (cursor, keyboard navigation)
-    * table of contents (cursor, keyboard navigation)
-    * all: keyboard shortcuts
-* fine-tuned interface, fonts, ...
-* manual, man pages
+### Upgrade from version 0.1.x
+The configuration files of versions 0.1.x and 0.2.x are incompatible.
+When upgrading, you should move your config files from version 0.1.x to some backup to avoid conflicts.
 
 
 ## Bugs
@@ -198,6 +151,55 @@ If you find bugs or have suggestions for improvements, please
 When reporting bugs, please include the version string of BeamerPresenter
 (`beamerpresenter --version`) or the Qt version if you have problems building
 BeamerPresenter (`qmake --version`).
+
+
+## Development
+
+#### Already implemented
+* render with Poppler or MuPDF
+* cache pages (with limitation of available memory; doesn't work if pages have different sizes)
+* read slides and notes from the same PDF, side by side on same page
+* navigation links inside document
+* navigation skipping overlays
+* build flexible GUI from config
+* draw and erase using tablet input device with variable pressure
+* highlighting tools: pointer, torch, magnifier
+* full per-slide history of drawings (with limitation of number of history steps)
+* select per-slide or per-overlay drawings
+* save and load drawings to xopp-like gzipped xml format
+* animations and automatic slide change
+* slide transitions
+* videos
+* add extra space below a slide for drawing
+* widgets:
+    * slide
+    * clock
+    * page number (and max. number)
+    * page label (and max. label)
+    * tool selector
+    * timer
+    * editable markdown notes per page label or per page number (only available if qt was compiled with native markdown implementation)
+    * table of contents (requires improvement: keyboard navigation)
+    * thumbnails
+    * settings
+
+#### To be implemented / fixed
+* improve cache management and layout corrections: sometimes cache is not used correctly.
+* cache slides even when size of slides varies (partially implemented)
+* cache only required slides in previews showing specific overlays
+* fix layout, avoid recalculating full layout when clock label changes text
+* sounds
+* tool to select and modify drawings
+* option to insert extra (blank or copied) slides for drawing
+* improve text input tool
+* combination of slide transitions and videos sometimes interrupts videos
+* make xml file loading more stable
+* improve widgets:
+    * thumbnails (cursor, keyboard navigation)
+    * table of contents (cursor, keyboard navigation)
+    * all: keyboard shortcuts
+* fine-tuned interface, fonts, ...
+* manual, man pages
 
 
 ## License
