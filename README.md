@@ -47,7 +47,9 @@ Note the slider for the video on the speaker's screen.
 Slide transitions may in some cases need to interrupt a video.
 
 The interface is very flexible and can be adjusted to your needs. Also multiple monitors are possible. Example of 4 windows for 4 different monitors (3 for the audience, 1 for the speaker):
-<img src=".readme/multi-monitor.png" width=60% title="Example multi-monitor setup: 3 windows for audience, 1 window for speaker">
+<p align="center">
+  <img src=".readme/multi-monitor.png" width=75% title="Example multi-monitor setup: 3 windows for audience, 1 window for speaker">
+</p>
 
 
 ## Build and install
@@ -55,7 +57,7 @@ The interface is very flexible and can be adjusted to your needs. Also multiple 
 
 Building is tested in an up-to-date Arch Linux and (from time to time) in xubuntu 20.04.
 Older versions of ubuntu are not supported, because ubuntu 18.04 uses old versions of poppler and MuPDF and other ubuntu versions before 20.04 should not be used anymore.
-Version 0.1.x of BeamerPresenter should support ubuntu 18.04 and you should
+Version 0.1.x of BeamerPresenter should run in ubuntu 18.04 and you should
 [open an issue](https://github.com/stiglers-eponym/BeamerPresenter/issues)
 on github if it does not.
 
@@ -70,11 +72,11 @@ For Qt 5:
 * `qtmultimedia5-dev`
 * Note: ubuntu's Qt 5 package does not have native markdown support. Therefore, also BeamerPresenter will not be able to interpret markdown in ubuntu.
 
-For poppler:
+For poppler (optional, see [below](https://github.com/stiglers-eponym/BeamerPresenter#build)):
 
-* `libpoppler-qt5-dev`: version 21.01 is tested. Versions below 0.70 are explicitly not supported, problems with newer versions might be fixed if reported in an issue on github.
+* `libpoppler-qt5-dev`: version 0.86.1 is tested. Versions below 0.70 are explicitly not supported, problems with newer versions might be fixed if reported in an issue on github.
 
-For MuPDF:
+For MuPDF (optional, see [below](https://github.com/stiglers-eponym/BeamerPresenter#build)):
 
 * `libmupdf-dev`: MuPDF versions starting from 1.17 should work, version 1.12 or older is explicitly not supported.
 * `libfreetype-dev`
@@ -82,7 +84,7 @@ For MuPDF:
 * `libjpeg-dev`
 * `libopenjp2-7-dev`
 * `libjbig2dec0-dev`
-* `libgumbo-dev` (for MuPDF 1.18, probably not in 1.17)
+* `libgumbo-dev` (for MuPDF 1.18, probably not for version 1.17)
 
 Others:
 * `zlib1g-dev`
@@ -91,10 +93,10 @@ Others:
 For Qt 5:
 * `qt5-multimedia` (depends on `qt5-base`, which is also required)
 
-For poppler:
+For poppler (optional, see [below](https://github.com/stiglers-eponym/BeamerPresenter#build)):
 * `poppler-qt5`
 
-For MuPDF:
+For MuPDF (optional, see [below](https://github.com/stiglers-eponym/BeamerPresenter#build)):
 * `libmupdf`
 * `libfreetype.so` (provided by `freetype2` in test environment)
 * `libharfbuzz.so` (provided by `harfbuzz` in test environment)
