@@ -282,14 +282,10 @@ QWidget* Master::createWidget(QJsonObject &object, QWidget *parent)
         }
         if (doc == NULL)
         {
-            doc = new PdfMaster(file);
-            if (writable_preferences()->number_of_pages && writable_preferences()->number_of_pages != doc->numberOfPages())
-            {
-                qWarning() << "Loaded PDF files with different numbers of pages. You should expect errors.";
-                writable_preferences()->number_of_pages = std::max(writable_preferences()->number_of_pages, doc->numberOfPages());
-            }
-            else
-                writable_preferences()->number_of_pages = doc->numberOfPages();
+            // First create an empty PdfMaster. Don't do anything with it,
+            // it's not initialized yet. Only connect it to signals, some of
+            // which may already be required in initialization.
+            doc = new PdfMaster();
             connect(this, &Master::sendAction, doc, &PdfMaster::receiveAction);
             connect(doc, &PdfMaster::navigationSignal, this, &Master::navigateToPage, Qt::QueuedConnection);
             connect(this, &Master::navigationSignal, doc, &PdfMaster::distributeNavigationEvents, Qt::QueuedConnection);
@@ -300,6 +296,21 @@ QWidget* Master::createWidget(QJsonObject &object, QWidget *parent)
             connect(doc, &PdfMaster::writeNotes, this, &Master::writeNotes, Qt::DirectConnection);
             connect(doc, &PdfMaster::readNotes, this, &Master::readNotes, Qt::DirectConnection);
             connect(doc, &PdfMaster::setTotalTime, this, &Master::setTotalTime);
+            // Initialize doc with file.
+            doc->initialize(file);
+            if (doc->getDocument() == NULL)
+            {
+                qCritical() << "Failed to load PDF document. This will result in errors!";
+                delete doc;
+                return NULL;
+            }
+            if (writable_preferences()->number_of_pages && writable_preferences()->number_of_pages != doc->numberOfPages())
+            {
+                qWarning() << "Loaded PDF files with different numbers of pages. You should expect errors.";
+                writable_preferences()->number_of_pages = std::max(writable_preferences()->number_of_pages, doc->numberOfPages());
+            }
+            else
+                writable_preferences()->number_of_pages = doc->numberOfPages();
             if (preferences()->page_part_threshold > 0.)
             {
                 const QSizeF reference = doc->getPageSize(0);

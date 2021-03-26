@@ -58,11 +58,8 @@ void TimerWidget::resizeEvent(QResizeEvent *event) noexcept
 
 void TimerWidget::updateFullText() noexcept
 {
-    total->setText(
-                QTime::fromMSecsSinceStartOfDay(
-                    preferences()->msecs_total + 500
-                ).toString(preferences()->msecs_total < 3600000 ? "m:ss" : "h:mm:ss")
-            );
+    const QTime time = QTime::fromMSecsSinceStartOfDay(preferences()->msecs_total);
+    total->setText(time.toString(time.hour() ? "h:mm:ss" : "m:ss"));
     updateText();
 }
 
@@ -113,7 +110,12 @@ void TimerWidget::changePassed()
 
 void TimerWidget::changeTotal()
 {
-    setTotalTime(QTime::fromString(total->text(), total->text().count(":") == 2 ? "h:mm:ss" : "m:ss"));
+    setTotalTime(
+                QTime::fromString(
+                    total->text(),
+                    total->text().count(":") == 2 ? "h:mm:ss" : "m:ss"
+                )
+            );
 }
 
 void TimerWidget::setTotalTime(const QTime time) noexcept
@@ -217,7 +219,7 @@ void TimerWidget::mouseDoubleClickEvent(QMouseEvent*)
     {
         page_target_time = timePassed();
         emit setTimeForPage(preferences()->page, page_target_time);
-        updateText();
+        updateFullText();
     }
 }
 

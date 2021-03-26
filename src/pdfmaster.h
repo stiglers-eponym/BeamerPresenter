@@ -59,11 +59,21 @@ private:
     unsigned char _flags = 0;
 
 public:
+    /// Create empty, uninitialized PdfMaster.
+    /// Call this function, then connect this to events, then
+    /// call PdfMaster::initialize(filename).
+    explicit PdfMaster() {}
+
     /// Create a new PdfMaster from a given file name.
-    explicit PdfMaster(const QString &filename);
+    explicit PdfMaster(const QString &filename)
+    {initialize(filename);}
 
     /// Destructor. Deletes paths and document.
     ~PdfMaster();
+
+    /// Must be called after constructor before doing anything with this.
+    /// Returns true if it was initialized successfully.
+    void initialize(const QString &filename);
 
     unsigned char &flags() noexcept
     {return _flags;}

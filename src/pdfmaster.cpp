@@ -12,7 +12,7 @@
 #include <QBuffer>
 #include <QFileDialog>
 
-PdfMaster::PdfMaster(const QString &filename)
+void PdfMaster::initialize(const QString &filename)
 {
     QMimeDatabase db;
     const QMimeType type = db.mimeTypeForFile(filename, QMimeDatabase::MatchContent);
@@ -27,8 +27,6 @@ PdfMaster::PdfMaster(const QString &filename)
         if (!document)
             loadXopp(filename);
     }
-    if (!document)
-        qFatal("Failed to open PDF document");
 }
 
 PdfMaster::~PdfMaster()
