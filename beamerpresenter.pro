@@ -125,6 +125,7 @@ HEADERS += \
         src/drawing/flexgraphicslineitem.h \
         src/drawing/pixmapgraphicsitem.h \
         src/drawing/pointingtool.h \
+        src/drawing/textgraphicsitem.h \
         src/drawing/texttool.h \
         src/drawing/tool.h \
         src/enumerates.h \
