@@ -135,7 +135,7 @@ bool SlideScene::event(QEvent* event)
             QGraphicsScene::event(event);
             if (!isTextEditing())
             {
-                QGraphicsTextItem *item = new QGraphicsTextItem();
+                TextGraphicsItem *item = new TextGraphicsItem();
                 item->setTextInteractionFlags(Qt::TextEditorInteraction);
                 item->setFont(QFont(static_cast<const TextTool*>(tool)->font()));
                 item->setDefaultTextColor(static_cast<const TextTool*>(tool)->color());
@@ -144,6 +144,7 @@ bool SlideScene::event(QEvent* event)
                 item->setPos(mouseevent->scenePos());
                 emit sendNewPath(page | page_part, item);
                 item->setFocus();
+                item->setAcceptedMouseButtons(Qt::LeftButton);
             }
         }
         else if ((!tool || tool->tool() == Tool::NoTool) && mouseevent->button() == Qt::LeftButton)
@@ -250,7 +251,7 @@ bool SlideScene::event(QEvent* event)
                 QGraphicsScene::event(event);
                 if (!isTextEditing())
                 {
-                    QGraphicsTextItem *item = new QGraphicsTextItem();
+                    TextGraphicsItem *item = new TextGraphicsItem();
                     item->setTextInteractionFlags(Qt::TextEditorInteraction);
                     item->setFont(QFont(static_cast<const TextTool*>(tool)->font()));
                     item->setDefaultTextColor(static_cast<const TextTool*>(tool)->color());
@@ -259,6 +260,7 @@ bool SlideScene::event(QEvent* event)
                     item->setPos(touchevent->touchPoints().first().scenePos());
                     emit sendNewPath(page | page_part, item);
                     item->setFocus();
+                    item->setAcceptedMouseButtons(Qt::LeftButton);
                 }
             }
             else if ((!tool || tool->tool() == Tool::NoTool) && touchevent->touchPoints().length() == 1)
@@ -882,7 +884,7 @@ void SlideScene::tabletPress(const QPointF &pos, const QTabletEvent *event)
     }
     else if (tool && tool->tool() == Tool::TextInputTool && !isTextEditing())
     {
-        QGraphicsTextItem *item = new QGraphicsTextItem();
+        TextGraphicsItem *item = new TextGraphicsItem();
         item->setTextInteractionFlags(Qt::TextEditorInteraction);
         item->setFont(QFont(static_cast<const TextTool*>(tool)->font()));
         item->setDefaultTextColor(static_cast<const TextTool*>(tool)->color());
@@ -891,6 +893,7 @@ void SlideScene::tabletPress(const QPointF &pos, const QTabletEvent *event)
         item->setPos(pos);
         emit sendNewPath(page | page_part, item);
         item->setFocus();
+        item->setAcceptedMouseButtons(Qt::LeftButton);
     }
 }
 

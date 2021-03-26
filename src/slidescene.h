@@ -2,7 +2,6 @@
 #define SLIDESCENE_H
 
 #include <QGraphicsScene>
-#include <QGraphicsTextItem>
 #include <QGraphicsVideoItem>
 #include <QGraphicsSceneMouseEvent>
 #include <QTabletEvent>
@@ -12,6 +11,7 @@
 #include <QParallelAnimationGroup>
 #include "src/enumerates.h"
 #include "src/rendering/pdfdocument.h"
+#include "src/drawing/textgraphicsitem.h"
 
 class PdfMaster;
 class AbstractGraphicsPath;
@@ -177,7 +177,7 @@ public:
 
     /// Check if currently text is beeing edited.
     bool isTextEditing() const noexcept
-    {return focusItem() && focusItem()->type() == QGraphicsTextItem::Type;}
+    {return focusItem() && focusItem()->type() == TextGraphicsItem::Type;}
 
 protected:
     /**

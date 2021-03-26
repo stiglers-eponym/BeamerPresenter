@@ -1,4 +1,5 @@
 #include "src/drawing/pathcontainer.h"
+#include "src/drawing/textgraphicsitem.h"
 #include "src/drawing/basicgraphicspath.h"
 #include "src/drawing/fullgraphicspath.h"
 #include "src/names.h"
@@ -207,7 +208,11 @@ void PathContainer::eraserMicroStep(const QPointF &pos, const qreal size)
     {
         // Check if pos lies within the path's bounding rect (plus extra
         // margins from the eraser size).
-        if (*path_it && (*path_it)->boundingRect().marginsAdded(QMargins(size, size, size, size)).contains(pos))
+        if (
+                *path_it
+                && ((*path_it)->type() == BasicGraphicsPath::Type || (*path_it)->type() == FullGraphicsPath::Type)
+                && (*path_it)->boundingRect().marginsAdded(QMargins(size, size, size, size)).contains(pos)
+            )
         {
             QGraphicsScene *scene = (*path_it)->scene();
             switch ((*path_it)->type())
@@ -383,10 +388,10 @@ PathContainer *PathContainer::copy() const noexcept
     {
         switch (path->type())
         {
-        case QGraphicsTextItem::Type:
+        case TextGraphicsItem::Type:
         {
-            QGraphicsTextItem *olditem = static_cast<QGraphicsTextItem*>(path);
-            QGraphicsTextItem *newitem = new QGraphicsTextItem();
+            TextGraphicsItem *olditem = static_cast<TextGraphicsItem*>(path);
+            TextGraphicsItem *newitem = new TextGraphicsItem();
             newitem->setPos(path->pos());
             newitem->setFont(olditem->font());
             newitem->setHtml(olditem->toHtml());
@@ -414,9 +419,9 @@ void PathContainer::writeXml(QXmlStreamWriter &writer) const
     {
         switch (path->type())
         {
-        case QGraphicsTextItem::Type:
+        case TextGraphicsItem::Type:
         {
-            const QGraphicsTextItem *item = static_cast<QGraphicsTextItem*>(path);
+            const TextGraphicsItem *item = static_cast<TextGraphicsItem*>(path);
             writer.writeStartElement("text");
             writer.writeAttribute("font", QFontInfo(item->font()).family());
             writer.writeAttribute("size", QString::number(item->font().pointSizeF()));
@@ -466,9 +471,9 @@ AbstractGraphicsPath *loadPath(QXmlStreamReader &reader)
         return new BasicGraphicsPath(*tool, reader.readElementText());
 }
 
-QGraphicsTextItem *loadTextItem(QXmlStreamReader &reader)
+TextGraphicsItem *loadTextItem(QXmlStreamReader &reader)
 {
-    QGraphicsTextItem *item = new QGraphicsTextItem();
+    TextGraphicsItem *item = new TextGraphicsItem();
     QPointF pos;
     pos.setX(reader.attributes().value("x").toDouble());
     pos.setY(reader.attributes().value("y").toDouble());
@@ -522,7 +527,7 @@ void PathContainer::loadDrawings(QXmlStreamReader &reader, PathContainer *left, 
         }
         else if (reader.name() == "text")
         {
-            QGraphicsTextItem *item = loadTextItem(reader);
+            TextGraphicsItem *item = loadTextItem(reader);
             if (!item)
                 continue;
             if (item->pos().x() > page_half)
