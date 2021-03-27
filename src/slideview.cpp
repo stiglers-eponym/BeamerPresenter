@@ -370,14 +370,26 @@ void SlideView::prepareFlyTransition(const bool outwards, const PixmapGraphicsIt
                 // r := minimum alpha required for the red channel
                 // g := minimum alpha required for the green channel
                 // b := minimum alpha required for the blue channel
-                r = qRed(*oldpixel) > qRed(*newpixel) ? 255 - 255*qRed(*newpixel)/qRed(*oldpixel) : 255*(qRed(*newpixel)-qRed(*oldpixel))/(256-qRed(*oldpixel));
-                g = qGreen(*oldpixel) > qGreen(*newpixel) ? 255 - 255*qGreen(*newpixel)/qGreen(*oldpixel) : 255*(qGreen(*newpixel)-qGreen(*oldpixel))/(256-qGreen(*oldpixel));
-                b = qBlue(*oldpixel) > qBlue(*newpixel) ? 255 - 255*qBlue(*newpixel)/qBlue(*oldpixel) : 255*(qBlue(*newpixel)-qBlue(*oldpixel))/(256-qBlue(*oldpixel));
+                r = (0xff0000 & *oldpixel) == (0xff0000 & *newpixel)
+                        ? qRed(*newpixel)
+                        : ((0xff0000 & *oldpixel) > (0xff0000 & *newpixel)
+                           ? 255 - 255*qRed(*newpixel)/qRed(*oldpixel)
+                           : 255*(qRed(*newpixel)-qRed(*oldpixel))/(255-qRed(*oldpixel)));
+                g = (0x00ff00 & *oldpixel) == (0x00ff00 & *newpixel)
+                        ? qGreen(*newpixel)
+                        : ((0x00ff00 & *oldpixel) > (0x00ff00 & *newpixel)
+                           ? 255 - 255*qGreen(*newpixel)/qGreen(*oldpixel)
+                           : 255*(qGreen(*newpixel)-qGreen(*oldpixel))/(255-qGreen(*oldpixel)));
+                b = (0x0000ff & *oldpixel) == (0x0000ff & *newpixel)
+                        ? qBlue(*newpixel)
+                        : ((0x0000ff & *oldpixel) > (0x0000ff & *newpixel)
+                           ? 255 - 255*qBlue(*newpixel)/qBlue(*oldpixel)
+                           : 255*(qBlue(*newpixel)-qBlue(*oldpixel))/(255-qBlue(*oldpixel)));
                 // a := max(r, g, b) = minimum alpha/255 for the pixel
                 a = r > g ? (r > b ? r : b ) : (g > b ? g : b);
                 if (a == 0)
                     *newpixel = 0;
-                else
+                else if (a != 255)
                 {
                     r = (255*qRed(*newpixel) - qRed(*oldpixel)*(255-a))/a;
                     g = (255*qGreen(*newpixel) - qGreen(*oldpixel)*(255-a))/a;
