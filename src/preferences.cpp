@@ -163,6 +163,13 @@ Preferences::Preferences(QObject *parent) :
 {
     settings.setFallbacksEnabled(false);
     settings.setIniCodec("UTF-8");
+    // If settings is empty, copy system scope config to user space file.
+    if (settings.allKeys().isEmpty())
+    {
+        QSettings globalsettings(QSettings::NativeFormat, QSettings::SystemScope, "beamerpresenter", "beamerpresenter");
+        for (const auto &key : static_cast<const QList<QString>>(globalsettings.allKeys()))
+            settings.setValue(key, globalsettings.value(key));
+    }
 }
 
 Preferences::Preferences(const QString &file, QObject *parent) :
