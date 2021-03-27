@@ -33,7 +33,7 @@ class TimerWidget : public QWidget
     Q_OBJECT
 
 public:
-    enum Flags
+    enum
     {
         Timeout = 1 << 0,
         SetTimeWithoutConfirmation = 1 << 1,

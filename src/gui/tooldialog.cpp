@@ -131,6 +131,8 @@ void ToolDialog::adaptToBasicTool(const Tool::BasicTool tool)
         if (size_box)
             size_box->hide();
         break;
+    default:
+        break;
     }
 }
 

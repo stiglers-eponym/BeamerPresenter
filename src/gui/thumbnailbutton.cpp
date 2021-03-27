@@ -1,6 +1,15 @@
 #include <QMouseEvent>
 #include "src/gui/thumbnailbutton.h"
 
+ThumbnailButton::ThumbnailButton(const int page, QWidget *parent) :
+    QLabel(parent),
+    page(page)
+{
+    setFocusPolicy(Qt::FocusPolicy::StrongFocus);
+    setToolTip("page " + QString::number(page+1));
+}
+
+
 void ThumbnailButton::mouseReleaseEvent(QMouseEvent *event)
 {
     if (event->button() == Qt::LeftButton)

@@ -23,6 +23,11 @@ TimerWidget::TimerWidget(QWidget *parent) :
     timer->setTimerType(Qt::CoarseTimer);
     connect(passed, &QLineEdit::returnPressed, this, &TimerWidget::changePassed);
     connect(total, &QLineEdit::editingFinished, this, &TimerWidget::changeTotal);
+    passed->setAlignment(Qt::AlignCenter);
+    total->setAlignment(Qt::AlignCenter);
+    passed->setToolTip("time since beginning of the presentation");
+    total->setToolTip("total duration of the presentation");
+    setToolTip("double-click here to set time for this slide for your orientation while presenting");
     updateFullText();
 }
 

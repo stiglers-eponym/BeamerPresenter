@@ -15,8 +15,7 @@ class ThumbnailButton : public QLabel
     const int page;
 
 public:
-    ThumbnailButton(const int page, QWidget *parent = NULL) : QLabel(parent), page(page)
-    {setFocusPolicy(Qt::FocusPolicy::StrongFocus);}
+    ThumbnailButton(const int page, QWidget *parent = NULL);
 
 protected:
     void mouseReleaseEvent(QMouseEvent *event) override;

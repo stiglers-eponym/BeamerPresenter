@@ -67,7 +67,7 @@ class Preferences : public QObject
     QSettings settings;
 
 public:
-    enum GlobalFlags
+    enum
     {
         AutoSlideChanges = 1 << 0,
         LogSlideChanges = 1 << 1,
@@ -90,7 +90,7 @@ public:
 #endif
 
     /// Other flags.
-    quint8 global_flags = GlobalFlags::AutoSlideChanges;
+    quint8 global_flags = AutoSlideChanges;
 
 
     // DRAWING

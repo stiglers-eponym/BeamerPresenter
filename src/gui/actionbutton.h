@@ -15,8 +15,7 @@ class ActionButton : public QPushButton
 public:
     explicit ActionButton(QWidget *parent = NULL);
 
-    explicit ActionButton(const Action action, QWidget *parent = NULL) :
-        ActionButton(parent) {addAction(action);}
+    explicit ActionButton(const Action action, QWidget *parent = NULL);
 
     void addAction(const Action action)
     {if (action != InvalidAction) actions.insert(action);}

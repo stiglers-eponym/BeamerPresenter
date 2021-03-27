@@ -95,6 +95,7 @@ void ToolButton::setTool(Tool *newtool)
     switch (newtool->tool())
     {
     case Tool::Pen:
+    case Tool::FixedWidthPen:
     {
         QPalette newpalette = palette();
         const QColor color = static_cast<DrawTool*>(newtool)->color();
@@ -137,4 +138,5 @@ void ToolButton::setTool(Tool *newtool)
     }
     delete tool;
     tool = newtool;
+    setToolTip(tool_to_description.value(tool->tool()));
 }

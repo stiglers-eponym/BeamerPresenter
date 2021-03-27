@@ -54,7 +54,9 @@ SettingsWidget::SettingsWidget(QWidget *parent) :
         for (auto it=key_actions.cbegin(); it!=key_actions.cend(); ++it)
         {
             input_shortcut = new KeyInputLabel(it.key(), *it, shortcuts);
-            layout->addRow(action_to_string.value(*it, "unknown"), input_shortcut);
+            QLabel *label = new QLabel(action_to_string.value(*it, "unknown"), shortcuts);
+            label->setToolTip(action_to_description.value(*it));
+            layout->addRow(label, input_shortcut);
         }
         QMap<int, QString> tool_to_string;
         for (auto it=string_to_tool.cbegin(); it!=string_to_tool.cend(); ++it)
@@ -62,8 +64,10 @@ SettingsWidget::SettingsWidget(QWidget *parent) :
         const auto &key_tools = preferences()->key_tools;
         for (auto it=key_tools.cbegin(); it!=key_tools.cend(); ++it)
         {
-            input_shortcut = new KeyInputLabel(it.key(), it.value(), shortcuts);
-            layout->addRow(tool_to_string.value((*it)->tool(), "unknown"), input_shortcut);
+            input_shortcut = new KeyInputLabel(it.key(), *it, shortcuts);
+            QLabel *label = new QLabel(tool_to_string.value((*it)->tool(), "unknown"), shortcuts);
+            label->setToolTip(tool_to_description.value((*it)->tool()));
+            layout->addRow(label, input_shortcut);
         }
         QPushButton *add_shortcut_button = new QPushButton("Add new shortcut", shortcuts);
         connect(add_shortcut_button, &QPushButton::clicked, this, &SettingsWidget::appendShortcut);

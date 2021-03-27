@@ -97,6 +97,18 @@ static const QMap<QString, Tool::BasicTool> string_to_tool
     {"text", Tool::TextInputTool},
 };
 
+static const QMap<Tool::BasicTool, QString> tool_to_description
+{
+    {Tool::Pen, "pen with variable width if the input device supports variable pressure"},
+    {Tool::FixedWidthPen, "pen with fixed width (independent of input device pressure)"},
+    {Tool::Eraser, "eraser: deletes sdrawings"},
+    {Tool::Highlighter, "highlighter: fixed width drawing which only darkens colors (full color on white background, invisible on black background)"},
+    {Tool::Pointer, "pointer"},
+    {Tool::Torch, "torch: darken the slide leaving only a disk unchanged to focus attention on this area"},
+    {Tool::Magnifier, "enlargen part of the slide"},
+    {Tool::TextInputTool, "add or edit text on slide"},
+};
+
 static const QMap<QTabletEvent::PointerType, Tool::InputDevice> tablet_device_to_input_device
 {
     {QTabletEvent::Pen, Tool::TabletPen},

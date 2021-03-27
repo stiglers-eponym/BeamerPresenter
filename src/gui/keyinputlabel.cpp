@@ -17,6 +17,7 @@ KeyInputLabel::KeyInputLabel(const quint32 init, const Action action, QWidget *p
     setPalette(palette);
     setAutoFillBackground(true);
     setFocusPolicy(Qt::ClickFocus);
+    setToolTip("Click here and press keyboard shortcut for this action or press delete to remove the shortcut.");
 }
 
 KeyInputLabel::KeyInputLabel(const quint32 init, Tool *tool, QWidget *parent) :
@@ -32,6 +33,7 @@ KeyInputLabel::KeyInputLabel(const quint32 init, Tool *tool, QWidget *parent) :
     setPalette(palette);
     setAutoFillBackground(true);
     setFocusPolicy(Qt::ClickFocus);
+    setToolTip("Click here and press keyboard shortcut for this tool or press delete to remove the shortcut.");
 }
 
 KeyInputLabel::~KeyInputLabel()

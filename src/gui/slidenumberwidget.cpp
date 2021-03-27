@@ -20,6 +20,8 @@ SlideNumberWidget::SlideNumberWidget(QWidget *parent) :
     total->setFocusPolicy(Qt::NoFocus);
     layout->addWidget(total);
     connect(edit, &QLineEdit::returnPressed, this, &SlideNumberWidget::readText);
+    total->setToolTip("number of pages");
+    edit->setToolTip("current page number");
 }
 
 void SlideNumberWidget::resizeEvent(QResizeEvent *event) noexcept
