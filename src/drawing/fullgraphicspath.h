@@ -3,19 +3,30 @@
 
 #include "src/drawing/abstractgraphicspath.h"
 
-
-/// Variable width path.
+/**
+ * @class FullGraphicsPath
+ * @brief Variable width graphics path
+ * @inherits AbstractGraphicsPath
+ *
+ * QGraphicsItem representing a path with flexible width.
+ * Each node of the graph contains not only coordinates, but also the width
+ * for the connection to the next node.
+ * See AbstractGraphicsPath for details.
+ */
 class FullGraphicsPath : public AbstractGraphicsPath
 {
 public:
-    /// Coordinate (point) and pen pressure representing node of FullGraphicsPath.
+    /// Coordinates and pen pressure representing node of FullGraphicsPath.
     struct PointPressure
     {
-        /// position in points.
-        QPointF point;
-
-        /// stroke width in points.
+        /// x coordinate in points
+        qreal x;
+        /// y coordinate in points
+        qreal y;
+        /// stroke width in points
         float pressure;
+        /// QPointF representation of coordinates
+        QPointF point() const {return {x,y};}
     };
 
 
@@ -48,12 +59,12 @@ public:
     /// Position of last node in the path.
     /// Returns QPointF() if path is empty.
     const QPointF lastPoint() const noexcept override
-    {return data.isEmpty() ? QPointF() : data.last().point;}
+    {return data.isEmpty() ? QPointF() : data.last().point();}
 
     /// Position of first node in the path.
     /// Returns QPointF() if path is empty.
     const QPointF firstPoint() const noexcept override
-    {return data.isEmpty() ? QPointF() : data.first().point;}
+    {return data.isEmpty() ? QPointF() : data.first().point();}
 
     /// Paint this on given painter. Options and widget are currently
     /// discarded.

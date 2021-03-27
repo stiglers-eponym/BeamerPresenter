@@ -101,7 +101,7 @@ MuPdfDocument::MuPdfDocument(const QString &filename) :
 MuPdfDocument::~MuPdfDocument()
 {
     mutex->lock();
-    for (auto page : pages)
+    for (auto page : qAsConst(pages))
         fz_drop_page(ctx, (fz_page*)page);
     pdf_drop_document(ctx, doc);
     fz_drop_context(ctx);
@@ -152,7 +152,7 @@ bool MuPdfDocument::loadDocument()
 
         if (ctx == NULL)
         {
-            qCritical() << "Failed to create Fitz ctx";
+            qCritical() << "Failed to create Fitz context";
             doc = NULL;
             mutex->unlock();
             return false;
@@ -163,7 +163,7 @@ bool MuPdfDocument::loadDocument()
             fz_register_document_handlers(ctx);
         fz_catch(ctx)
         {
-            qCritical() << "MuPdf cannot register document handlers:" << fz_caught_message(ctx);
+            qCritical() << "MuPdf failed to register document handlers:" << fz_caught_message(ctx);
             doc = NULL;
             fz_drop_context(ctx);
             ctx =  NULL;
@@ -484,6 +484,7 @@ void MuPdfDocument::prepareRendering(fz_context **context, fz_rect *bbox, fz_dis
     }
     fz_catch(ctx)
     {
+        fz_drop_display_list(ctx, *list);
         *list = NULL;
     }
 }

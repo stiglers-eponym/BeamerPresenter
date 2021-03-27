@@ -5,7 +5,8 @@
 #include <QPainter>
 
 /**
- * @brief FlexGraphicsLineItem class
+ * @class FlexGraphicsLineItem
+ * @brief QGraphicsLineItem with adaptable CompositionMode.
  * @abstract Identical to QGraphicsLineItem, with the only difference that
  * it has a property composition_mode and adjusts QPainter::CompositionMode
  * before painting.

@@ -7,26 +7,32 @@
 #include "src/drawing/tool.h"
 
 /**
+ * @class PointingTool
  * @brief Tool for highlighting or pointing on a slide.
+ *
+ * Pointing tools include pointer, torch and magnifier. They all need the
+ * properties size, position and brush (which is in most cases just a color).
  */
 class PointingTool : public Tool
 {
 protected:
-    /// Pointing position in scene (i.e. page) coordinates.
+    /// Pointing positions in scene (i.e. page) coordinates.
+    /// Multiple positions are possible since some input devices can have
+    /// multiple points (e.g. multi-touch devices).
     QList<QPointF> _pos;
-    /// Radius of drawing tool.
+    /// Radius of drawing tool (in points)
     float _size;
-    /// Color of the tool.
-    QBrush _brush;
-    /// Scale for magnification, only used by magnifier.
+    /// Scale for magnification, only used by magnifier
     float _scale = 2.;
+    /// Color of the tool or more advanced brush (for pointer)
+    QBrush _brush;
 
 public:
     PointingTool(const BasicTool tool, const float size, const QBrush &brush, const int device = AnyDevice) noexcept :
         Tool(tool, device), _size(size), _brush(brush) {}
 
     PointingTool(const PointingTool &other) noexcept :
-        Tool(other._tool, other._device), _pos(other._pos), _size(other._size), _brush(other._brush), _scale(other._scale) {}
+        Tool(other._tool, other._device), _pos(other._pos), _size(other._size), _scale(other._scale), _brush(other._brush) {}
 
     const QList<QPointF> &pos() const noexcept
     {return _pos;}

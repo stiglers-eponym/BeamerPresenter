@@ -381,7 +381,7 @@ bool PathContainer::applyMicroStep()
 
 PathContainer *PathContainer::copy() const noexcept
 {
-    PathContainer *container = new PathContainer();
+    PathContainer *container = new PathContainer(parent());
     container->inHistory = -2;
     for (const auto path : qAsConst(paths))
     {
@@ -545,4 +545,23 @@ QRectF PathContainer::boundingBox() const noexcept
     for (const auto path : qAsConst(paths))
         rect = rect.united(path->sceneBoundingRect());
     return rect;
+}
+
+void PathContainer::deleteEmptyItem(QGraphicsItem *item)
+{
+    // Remove item from list of currently visible paths.
+    paths.removeOne(item);
+    // Remove item from it's scene (if it has one).
+    if (item->scene())
+        item->scene()->removeItem(item);
+    // Remove item from history.
+    for (auto it = history.begin(); it != history.end(); ++it)
+    {
+        if ((*it)->deletedItems.isEmpty() && (*it)->createdItems.size() == 1 && (*it)->createdItems.first() == item)
+        {
+            history.erase(it);
+            delete item;
+            return;
+        }
+    }
 }

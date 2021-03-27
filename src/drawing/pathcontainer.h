@@ -18,11 +18,17 @@ static const QMap<Tool::BasicTool, QString> xournal_tool_names
 };
 
 
-/// Collection of QGraphicsItems including a history of changes to these items.
-/// This stores drawn paths for one slide even if the slide is not visible.
-/// Access the history using undo and redo functions.
-class PathContainer
+/**
+ * @class PathContainer
+ * @brief collection of QGraphicsItems including a history of changes to these items
+ *
+ * This stores drawn paths for one slide even if the slide is not visible.
+ * Access the history using undo and redo functions.
+ */
+class PathContainer : public QObject
 {
+    Q_OBJECT
+
 public:
     /**
      * One single step in the history of drawing.
@@ -66,7 +72,7 @@ private:
 
 public:
     /// Trivial constructor.
-    explicit PathContainer() noexcept {}
+    explicit PathContainer(QObject *parent = NULL) noexcept : QObject(parent) {}
 
     /// Destructor. Delete history and paths.
     ~PathContainer();
@@ -96,10 +102,6 @@ public:
 
     /// Add a new QGraphisItem* in a new history step.
     void append(QGraphicsItem *item);
-
-    /// Last QGraphicsItem* in history.
-    //QGraphicsItem *last()
-    //{return paths.last();}
 
     /// Start eraser step. An eraser step in history is caused by multiple
     /// events (eraser move events), which are all managed by PathContainer.
@@ -142,6 +144,11 @@ public:
 
     /// Bounding box of all drawings.
     QRectF boundingBox() const noexcept;
+
+public slots:
+    /// Items (currently only text items) may detect that they are empty.
+    /// They can then inform this function, which removes and deletes them.
+    void deleteEmptyItem(QGraphicsItem *item);
 };
 
 #endif // PATHCONTAINER_H

@@ -165,7 +165,7 @@ void PdfMaster::receiveNewPath(int page, QGraphicsItem *item)
     if (preferences()->overlay_mode == PerLabel)
         page = document->overlaysShifted((page & ~NotFullPage), FirstOverlay) | (page & NotFullPage);
     if (!paths.contains(page))
-        paths[page] = new PathContainer();
+        paths[page] = new PathContainer(this);
     paths[page]->append(item);
 }
 
@@ -479,12 +479,12 @@ void PdfMaster::readPageFromStream(QXmlStreamReader &reader, bool &nontrivial_pa
                             *right = paths.value(page | RightHalf, NULL);
                 if (!left)
                 {
-                    left = new PathContainer();
+                    left = new PathContainer(this);
                     paths[page | LeftHalf] = left;
                 }
                 if (!right)
                 {
-                    right = new PathContainer();
+                    right = new PathContainer(this);
                     paths[page | RightHalf] = right;
                 }
                 PathContainer::loadDrawings(reader, left, right, page_half);
@@ -494,7 +494,7 @@ void PdfMaster::readPageFromStream(QXmlStreamReader &reader, bool &nontrivial_pa
                 PathContainer *container = paths.value(page);
                 if (!container)
                 {
-                    container = new PathContainer();
+                    container = new PathContainer(this);
                     paths[page] = container;
                 }
                 container->loadDrawings(reader);

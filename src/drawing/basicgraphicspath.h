@@ -5,7 +5,14 @@
 
 class QPainter;
 
-/// Fixed width graphics path.
+/**
+ * @class BasicGraphicsPath
+ * @brief Fixed width graphics path
+ * @inherits AbstractGraphicsPath
+ *
+ * QGraphicsItem representing a path with fixed width. See
+ * AbstractGraphicsPath for details.
+ */
 class BasicGraphicsPath : public AbstractGraphicsPath
 {
     /// Vector of nodes (coordinates).

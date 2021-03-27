@@ -5,7 +5,8 @@
 #include "src/drawing/tool.h"
 
 /**
- * @brief Tool for writing text.
+ * @class TextTool
+ * @brief Tool for adding or editing text.
  *
  * TODO:
  *   better input handling, the whole construction is rather improvised

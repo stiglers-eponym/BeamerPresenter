@@ -31,6 +31,7 @@ public:
     const QPen &pen() const noexcept
     {return _pen;}
 
+    /// Stroke width (pen/highlighter) or size (eraser) in points.
     float width() const noexcept
     {return _pen.widthF();}
 
@@ -40,14 +41,16 @@ public:
     QPainter::CompositionMode compositionMode() const noexcept
     {return composition_mode;}
 
+    void setCompositionMode(const QPainter::CompositionMode mode) noexcept
+    {composition_mode = mode;}
+
+    /// Overwrite pen.
     void setPen(const QPen &pen) noexcept
     {_pen = pen;}
 
+    /// Set width (or size for eraser) in points.
     void setWidth(const float width) noexcept
     {_pen.setWidthF(width);}
-
-    void setCompositionMode(const QPainter::CompositionMode mode) noexcept
-    {composition_mode = mode;}
 };
 
 #endif // DRAWTOOL_H

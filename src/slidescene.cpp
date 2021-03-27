@@ -143,8 +143,11 @@ bool SlideScene::event(QEvent* event)
                 item->show();
                 item->setPos(mouseevent->scenePos());
                 emit sendNewPath(page | page_part, item);
+                PathContainer *container;
+                emit requestPathContainer(&container, page | page_part);
+                if (container)
+                    connect(item, &TextGraphicsItem::deleteMe, container, &PathContainer::deleteEmptyItem);
                 item->setFocus();
-                item->setAcceptedMouseButtons(Qt::LeftButton);
             }
         }
         else if ((!tool || tool->tool() == Tool::NoTool) && mouseevent->button() == Qt::LeftButton)
@@ -259,8 +262,11 @@ bool SlideScene::event(QEvent* event)
                     item->show();
                     item->setPos(touchevent->touchPoints().first().scenePos());
                     emit sendNewPath(page | page_part, item);
+                    PathContainer *container;
+                    emit requestPathContainer(&container, page | page_part);
+                    if (container)
+                        connect(item, &TextGraphicsItem::deleteMe, container, &PathContainer::deleteEmptyItem);
                     item->setFocus();
-                    item->setAcceptedMouseButtons(Qt::LeftButton);
                 }
             }
             else if ((!tool || tool->tool() == Tool::NoTool) && touchevent->touchPoints().length() == 1)
@@ -893,8 +899,11 @@ void SlideScene::tabletPress(const QPointF &pos, const QTabletEvent *event)
         item->show();
         item->setPos(pos);
         emit sendNewPath(page | page_part, item);
+        PathContainer *container;
+        emit requestPathContainer(&container, page | page_part);
+        if (container)
+            connect(item, &TextGraphicsItem::deleteMe, container, &PathContainer::deleteEmptyItem);
         item->setFocus();
-        item->setAcceptedMouseButtons(Qt::LeftButton);
     }
 }
 

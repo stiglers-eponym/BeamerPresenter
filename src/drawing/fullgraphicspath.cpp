@@ -1,5 +1,7 @@
 #include "src/drawing/fullgraphicspath.h"
+#include "src/preferences.h"
 #include <QPainter>
+#include <QStyleOptionGraphicsItem>
 
 FullGraphicsPath::FullGraphicsPath(const DrawTool &tool, const QPointF &pos, const float pressure) :
     AbstractGraphicsPath(tool)
@@ -10,7 +12,7 @@ FullGraphicsPath::FullGraphicsPath(const DrawTool &tool, const QPointF &pos, con
     left = pos.x() - _tool.width();
     right = pos.x() + _tool.width();
     // Add first data point.
-    data.append({pos, _tool.width()*pressure});
+    data.append({pos.x(), pos.y(), _tool.width()*pressure});
 }
 
 FullGraphicsPath::FullGraphicsPath(const FullGraphicsPath * const other, int first, int last) :
@@ -28,22 +30,22 @@ FullGraphicsPath::FullGraphicsPath(const FullGraphicsPath * const other, int fir
     // Initialize data with the correct length.
     data = QVector<PointPressure>(length);
     // Initialize bounding rect.
-    top = other->data[first].point.y();
+    top = other->data[first].y;
     bottom = top;
-    left = other->data[first].point.x();
+    left = other->data[first].x;
     right = left;
     // Copy data points from other and update bounding rect.
     for (int i=0; i<length; i++)
     {
         data[i] = other->data[i+first];
-        if ( data[i].point.x() < left )
-            left = data[i].point.x();
-        else if ( data[i].point.x() > right )
-            right = data[i].point.x();
-        if ( data[i].point.y() < top )
-            top = data[i].point.y();
-        else if ( data[i].point.y() > bottom )
-            bottom = data[i].point.y();
+        if ( data[i].x < left )
+            left = data[i].x;
+        else if ( data[i].x > right )
+            right = data[i].x;
+        if ( data[i].y < top )
+            top = data[i].y;
+        else if ( data[i].y > bottom )
+            bottom = data[i].y;
     }
     // Add finite stroke width to bounding rect.
     left -= _tool.width();
@@ -64,7 +66,7 @@ FullGraphicsPath::FullGraphicsPath(const DrawTool &tool, const QString &coordina
     y = coordinate_list.takeFirst().toDouble();
     w = weight_list.takeFirst().toFloat();
     max_weight = w;
-    data[0] = {{x,y},w};
+    data[0] = {x, y, w};
 
     // Initialize data with the correct length.
     // Initialize bounding rect.
@@ -84,7 +86,7 @@ FullGraphicsPath::FullGraphicsPath(const DrawTool &tool, const QString &coordina
             if (w > max_weight)
                 max_weight = w;
         }
-        data[i++] = {{x,y},w};
+        data[i++] = {x, y, w};
         if ( x < left )
             left = x;
         else if ( x > right )
@@ -110,20 +112,28 @@ void FullGraphicsPath::paint(QPainter *painter, const QStyleOptionGraphicsItem *
         return;
     QPen pen = _tool.pen();
     auto it = data.cbegin();
+    const bool select_exposed = !option->exposedRect.isEmpty() && (2*option->exposedRect.width() < right - left || 2*option->exposedRect.height() < bottom - top);
     while (++it != data.cend())
     {
+        if (select_exposed && !(option->exposedRect.contains(it->x, it->y) || option->exposedRect.contains((it-1)->x, (it-1)->y)))
+            continue;
         pen.setWidthF(it->pressure);
         painter->setPen(pen);
-        painter->drawLine((it-1)->point, it->point);
+        painter->drawLine((it-1)->point(), it->point());
     }
-    // Only for debugging
-    //painter->setPen(QPen(QBrush(Qt::black), 0.5));
-    //painter->drawRect(boundingRect());
+#ifdef QT_DEBUG
+    // Show bounding box of stroke in verbose debugging mode.
+    if ((preferences()->debug_level & (DebugDrawing|DebugVerbose)) == (DebugDrawing|DebugVerbose))
+    {
+        painter->setPen(QPen(QBrush(Qt::black), 0.5));
+        painter->drawRect(boundingRect());
+    }
+#endif
 }
 
 void FullGraphicsPath::addPoint(const QPointF &point, const float pressure)
 {
-    data.append({point, _tool.width()*pressure});
+    data.append({point.x(), point.y(), _tool.width()*pressure});
     bool change = false;
     if ( point.x() < left + _tool.width() )
     {
@@ -161,7 +171,7 @@ QList<AbstractGraphicsPath*> FullGraphicsPath::splitErase(const QPointF &pos, co
     int first = 0, last = 0;
     while (last < data.length())
     {
-        const QPointF diff = data[last++].point - pos;
+        const QPointF diff = data[last++].point() - pos;
         if (QPointF::dotProduct(diff, diff) < sizesq)
         {
             if (last > first + 2)
@@ -204,9 +214,9 @@ const QString FullGraphicsPath::stringCoordinates() const noexcept
     QString str;
     for (const auto point : data)
     {
-        str += QString::number(point.point.x());
+        str += QString::number(point.x);
         str += ' ';
-        str += QString::number(point.point.y());
+        str += QString::number(point.y);
         str += ' ';
     }
     str.chop(1);

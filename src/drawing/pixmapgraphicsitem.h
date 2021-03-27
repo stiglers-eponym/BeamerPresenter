@@ -13,9 +13,10 @@
 class QPainter;
 
 /**
- * @brief Pixmaps for QGraphicsScene with multiple resolutions
+ * @class PixmapGraphicsItem
+ * @brief pixmaps with different resolutions of same picture as QGraphicsItem
  *
- * Multiple pixmaps for the same vector graphic at different resolutions.
+ * Store multiple pixmaps for the same vector graphic at different resolutions.
  * This makes it possible to use the page background as a QGraphicsItem
  * while showing different pixmaps with the correct resolution for different
  * views of the QGraphicsScene.
@@ -23,6 +24,7 @@ class QPainter;
 class PixmapGraphicsItem : public QObject, public QGraphicsItem
 {
     Q_OBJECT
+    // This class is used in animations. Define properties for these animations.
     Q_PROPERTY(qreal opacity READ opacity WRITE setOpacity)
     Q_PROPERTY(qreal x READ x WRITE setX)
     Q_PROPERTY(qreal y READ y WRITE setY)
@@ -30,6 +32,8 @@ class PixmapGraphicsItem : public QObject, public QGraphicsItem
     Q_PROPERTY(int progress READ progress WRITE setProgress)
 
 public:
+    /// Different masks are used in animations. MaskType defines how
+    /// this is drawn and how _mask is interpreted.
     enum MaskType
     {
         NoMask,

@@ -41,7 +41,7 @@ public:
 
     /// Render page to PNG image stored in a QByteArray as part of a PngPixmap.
     /// Resolution is given in pixels per point (dpi/72).
-    virtual const PngPixmap * renderPng(const int page, const qreal resolution) const = 0;
+    virtual const PngPixmap *renderPng(const int page, const qreal resolution) const = 0;
 
     /// Check if renderer is valid and can in principle render pages.
     virtual bool isValid() const = 0;

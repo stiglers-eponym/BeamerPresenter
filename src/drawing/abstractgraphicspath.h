@@ -6,7 +6,7 @@
 
 /**
  * @class AbstractGraphicsPath
- * @brief QGraphicsItems representing a path, abstract class.
+ * @brief QGraphicsItem representing a path, abstract class
  *
  * Paths consist of a vector of nodes, a bounding rectangle, and a draw tool.
  * The draw tool and the bounding rectangle coordinates are defined in

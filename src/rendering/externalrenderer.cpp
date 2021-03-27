@@ -50,7 +50,7 @@ const PngPixmap * ExternalRenderer::renderPng(const int page, const qreal resolu
             delete process;
             return NULL;
         }
-        const QByteArray * data = new QByteArray(process->readAllStandardOutput());
+        const QByteArray *data = new QByteArray(process->readAllStandardOutput());
         // TODO: handle error messages and exit code sent by process.
         process->deleteLater();
         return new PngPixmap(data, page, resolution);

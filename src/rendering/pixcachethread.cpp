@@ -30,16 +30,16 @@ void PixCacheThread::setNextPage(const int page_number, const qreal res)
 void PixCacheThread::run()
 {
     // Check if a renderer is available.
-    if (renderer == NULL)
+    if (renderer == NULL || resolution <= 0. || page < 0)
         return;
 
     // Render the image. This is takes some time.
-    // TODO: exception handling.
     debug_msg(DebugCache) << "Rendering in cache thread:" << page << resolution << this;
     const PngPixmap *image = renderer->renderPng(page, resolution);
 
-    // Send the image to "master".
-    emit sendData(image);
+    // Send the image to pixcache master.
+    if (image)
+        emit sendData(image);
 }
 
 bool PixCacheThread::initializeRenderer(const PdfDocument * const doc, const PagePart page_part)
