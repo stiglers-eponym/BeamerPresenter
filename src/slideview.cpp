@@ -362,40 +362,50 @@ void SlideView::prepareFlyTransition(const bool outwards, const PixmapGraphicsIt
                 *newpixel = 0;
             else
             {
-                // Do fancy transparency effects:
-                // Make the new pixels as transparent as possible while ensuring that the new page is given by adding the transparent new pixels to the old pixels.
-                // The requirement for r,g,b is (1-alpha)/255)*old + alpha*diff = new.
-                // The result (alpha,diff) is used to overwrite newimg.
-                // Determine minimum alpha from different channels:
-                // r := minimum alpha required for the red channel
-                // g := minimum alpha required for the green channel
-                // b := minimum alpha required for the blue channel
-                r = (0xff0000 & *oldpixel) == (0xff0000 & *newpixel)
-                        ? qRed(*newpixel)
-                        : ((0xff0000 & *oldpixel) > (0xff0000 & *newpixel)
-                           ? 255 - 255*qRed(*newpixel)/qRed(*oldpixel)
-                           : 255*(qRed(*newpixel)-qRed(*oldpixel))/(255-qRed(*oldpixel)));
+                /*
+                 * Do fancy transparency effects:
+                 * Make the new pixels as transparent as possible while ensuring that
+                 * the new page is given by adding the transparent new pixels to the
+                 * old pixels.
+                 * The requirement for r,g,b is (1-alpha)*old + alpha*diff = 255*new.
+                 * Here old is e.g. the red component of *oldpixel, new is the red
+                 * component of *newpixel before it is overwritten, and diff is what
+                 * we write to the red component of *newpixel in this loop.
+                 *
+                 * First determine maximum alpha from different channels:
+                 * r := minimum alpha required for the red channel
+                 * g := minimum alpha required for the green channel
+                 * b := minimum alpha required for the blue channel
+                 */
+                r = (0xff0000 & *oldpixel) == (0xff0000 & *newpixel) // Check whether the red components of the two pixels differ.
+                        ? 0 // Both pixels have the same red component. New pixel could be completely transparent.
+                        : ((0xff0000 & *oldpixel) > (0xff0000 & *newpixel) // Check which pixel has higher red component.
+                           ? 255 - 255*qRed(*newpixel)/qRed(*oldpixel) // oldpixel has more red. This amount of alpha is needed if newpixel is semitransparent black.
+                           : 255*(qRed(*newpixel)-qRed(*oldpixel))/(255-qRed(*oldpixel))); // newpixel has more red. This amount of alpha is needed if newpixel is semitransparent white.
                 g = (0x00ff00 & *oldpixel) == (0x00ff00 & *newpixel)
-                        ? qGreen(*newpixel)
+                        ? 0
                         : ((0x00ff00 & *oldpixel) > (0x00ff00 & *newpixel)
                            ? 255 - 255*qGreen(*newpixel)/qGreen(*oldpixel)
                            : 255*(qGreen(*newpixel)-qGreen(*oldpixel))/(255-qGreen(*oldpixel)));
                 b = (0x0000ff & *oldpixel) == (0x0000ff & *newpixel)
-                        ? qBlue(*newpixel)
+                        ? 0
                         : ((0x0000ff & *oldpixel) > (0x0000ff & *newpixel)
                            ? 255 - 255*qBlue(*newpixel)/qBlue(*oldpixel)
                            : 255*(qBlue(*newpixel)-qBlue(*oldpixel))/(255-qBlue(*oldpixel)));
-                // a := max(r, g, b) = minimum alpha/255 for the pixel
+                // a := max(r, g, b) = minimum alpha for the pixel
                 a = r > g ? (r > b ? r : b ) : (g > b ? g : b);
                 if (a == 0)
+                    // *newpixel can be fully transparent.
                     *newpixel = 0;
                 else if (a != 255)
                 {
+                    // Calculate r,g,b components of new pixel based on the alpha value a.
                     r = (255*qRed(*newpixel) - qRed(*oldpixel)*(255-a))/a;
                     g = (255*qGreen(*newpixel) - qGreen(*oldpixel)*(255-a))/a;
                     b = (255*qBlue(*newpixel) - qBlue(*oldpixel)*(255-a))/a;
-                    *newpixel = (a << 24) + (r << 16) + (g << 8) + b;
+                    *newpixel = qRgba(r, g, b, a);
                 }
+                // The case a==255 can be ignored, because in that case *newpixel should remain unchanged.
             }
         }
     }
