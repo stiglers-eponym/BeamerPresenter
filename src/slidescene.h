@@ -20,7 +20,8 @@ class PathContainer;
 class PixmapGraphicsItem;
 
 /**
- * @brief SlideScene: QGraphicsScene for a presentation slide.
+ * @class SideScene
+ * @brief QGraphicsScene for a presentation slide.
  *
  * Handles drawing events and links. Only instances of SlideView and no
  * usual QGraphicsViews may show instances of SlideScene.
@@ -30,13 +31,21 @@ class SlideScene : public QGraphicsScene
     Q_OBJECT
 
 public:
+    /// Container of objects required to handle a video.
     struct VideoItem
     {
+        /// basic information about video from PDF
         PdfDocument::MediaAnnotation annotation;
+        /// QGraphicsItem representing the video
         QGraphicsVideoItem *item;
+        /// Media player controling the video
         QMediaPlayer *player;
+        /// Set of pages on which this video item appears. This is updated
+        /// when videos for a new page are loaded and an old video is found
+        /// to be visible also on the new page.
         QSet<int> pages;
     };
+    /// Settings for slide scenes, which apply to all views connected to the scene.
     enum SlideFlags
     {
         LoadMedia = 1 << 0,
@@ -50,6 +59,7 @@ public:
     };
 
 private:
+    /// settings for this slide scene.
     quint8 slide_flags = SlideFlags::Default;
 
     /// Path which is currently being drawn.
@@ -68,6 +78,8 @@ private:
 
     /// Graphics item representing the PDF page background.
     PixmapGraphicsItem *pageItem {NULL};
+    /// Graphics item required during a page transition, usually
+    /// represents the old page.
     PixmapGraphicsItem *pageTransitionItem {NULL};
 
     /// List of (cached or active) video items.

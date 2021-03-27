@@ -140,23 +140,6 @@ void toolToJson(const Tool *tool, QJsonObject &obj)
     }
 }
 
-QString color_to_rgba(const QColor &color)
-{
-    return QLatin1Char('#') + QString::number((color.rgb() << 8) + color.alpha(), 16).rightJustified(8, '0', true);
-}
-
-QColor rgba_to_color(const QString &string)
-{
-    switch (string.length())
-    {
-    case 9:
-        return QColor('#' + string.right(2) + string.mid(1,6));
-    default:
-        return QColor(string);
-    }
-}
-
-
 Preferences::Preferences(QObject *parent) :
     QObject(parent),
     settings(QSettings::NativeFormat, QSettings::UserScope, "beamerpresenter", "beamerpresenter")
@@ -191,19 +174,23 @@ void Preferences::loadSettings()
 {
     debug_msg(DebugSettings) << "Loading settings:" << settings.fileName();
     debug_msg(DebugSettings) << settings.allKeys();
+    bool ok;
 
     // GENERAL SETTINGS
     {
         gui_config_file = settings.value("gui config", DEFAULT_GUI_CONFIG_PATH).toString();
         manual_file = settings.value("manual", "/usr/share/doc/beamerpresenter/README.html").toString();
 #ifdef QT_DEBUG
-        const QStringList debug_flags = settings.value("debug").toStringList();
-        for (const auto &flag : debug_flags)
-            debug_level |= string_to_debug_flags.value(flag, NoLog);
+        // Only check settings for debug information if was not set on the command line.
+        if (debug_level == 0)
+        {
+            const QStringList debug_flags = settings.value("debug").toStringList();
+            for (const auto &flag : debug_flags)
+                debug_level |= string_to_debug_flags.value(flag, NoLog);
+        }
 #endif
         if (settings.contains("log") && settings.value("log", false).toBool())
             global_flags |= LogSlideChanges;
-        bool ok;
         const int frame_time = settings.value("frame time").toInt(&ok);
         if (ok && frame_time > 0)
             slide_duration_animation = frame_time;
@@ -215,8 +202,12 @@ void Preferences::loadSettings()
     // DRAWING
     {
         settings.beginGroup("drawing");
-        history_length_visible_slides = settings.value("history length visible", 100).toUInt();
-        history_length_hidden_slides = settings.value("history length hidden", 50).toUInt();
+        int value = settings.value("history length visible").toUInt(&ok);
+        if (ok)
+            history_length_visible_slides = value;
+        value = settings.value("history length hidden").toUInt(&ok);
+        if (ok)
+            history_length_hidden_slides = value;
         overlay_mode = string_to_overlay_mode.value(settings.value("mode").toString(), PdfMaster::Cumulative);
         settings.endGroup();
     }
@@ -224,7 +215,11 @@ void Preferences::loadSettings()
     // RENDERING
     settings.beginGroup("rendering");
     // page_part threshold
-    page_part_threshold = settings.value("page part threshold").toReal();
+    {
+        float threshold = settings.value("page part threshold").toReal(&ok);
+        if (ok)
+            page_part_threshold = threshold;
+    }
     { // renderer
         rendering_command = settings.value("rendering command").toString();
         rendering_arguments = settings.value("rendering arguments").toStringList();
@@ -261,13 +256,12 @@ void Preferences::loadSettings()
     settings.endGroup();
 
     { // cache
-        bool ok;
-        max_memory = settings.value("memory").toFloat(&ok);
-        if (!ok)
-            max_memory = -1.;
-        max_cache_pages = settings.value("cache pages").toInt(&ok);
-        if (!ok)
-            max_cache_pages = -1;
+        const qreal memory = settings.value("memory").toFloat(&ok);
+        if (ok)
+            max_memory = memory;
+        const int npages = settings.value("cache pages").toInt(&ok);
+        if (ok)
+            max_cache_pages = npages;
     }
 
     // INTERACTION
@@ -351,7 +345,7 @@ void Preferences::loadSettings()
 #ifdef QT_DEBUG
 void Preferences::loadDebugFromParser(const QCommandLineParser &parser)
 {
-    // Debug legel
+    // set debug flags
     if (parser.isSet("debug"))
     {
         debug_level = 0;
@@ -419,7 +413,9 @@ void Preferences::loadFromParser(const QCommandLineParser &parser)
     }
 
 #ifdef QT_DEBUG
-    loadDebugFromParser(parser);
+    /// (Re)load debug info from command line.
+    if (settings.contains("debug"))
+        loadDebugFromParser(parser);
 #endif
 }
 
@@ -517,10 +513,8 @@ void Preferences::setRenderer(const QString &string)
 Tool *Preferences::currentTool(const int device) const noexcept
 {
     for (const auto tool : preferences()->current_tools)
-    {
         if (tool && (tool->device() & device))
             return tool;
-    }
     return NULL;
 }
 

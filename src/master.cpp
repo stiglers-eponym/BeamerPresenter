@@ -265,7 +265,7 @@ QWidget* Master::createWidget(QJsonObject &object, QWidget *parent)
             if ((*docit)->getFilename() == file || (*docit)->drawingsPath() == file)
             {
                 doc = *docit;
-                if (preferences()->page_part_threshold > 0.)
+                if (page_part != FullPage && preferences()->page_part_threshold > 0.)
                 {
                     const QSizeF reference = doc->getPageSize(0);
                     if (reference.width() < preferences()->page_part_threshold * reference.height())

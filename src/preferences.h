@@ -17,7 +17,6 @@
 class Tool;
 class DrawTool;
 
-
 /// Debug flags: combinable debug flags
 #ifdef QT_DEBUG
 enum DebugFlags
@@ -36,6 +35,7 @@ enum DebugFlags
     DebugAll = 0x7fff,
     DebugVerbose = 1 << 15,
 };
+
 /// Convert strings to DebugFlag components.
 static const QMap<QString, DebugFlags> string_to_debug_flags
 {
@@ -64,12 +64,17 @@ class Preferences : public QObject
 {
     Q_OBJECT
 
+    /// Interface for configuration file. Only local configuration file is used.
+    /// The system-wide configuration file is copied to a user space file, if
+    /// that one does not exist.
     QSettings settings;
 
 public:
     enum
     {
+        /// Automatically change slides if the pdf defines a duration for the slide.
         AutoSlideChanges = 1 << 0,
+        /// Log slide changes to standard output.
         LogSlideChanges = 1 << 1,
     };
 
@@ -110,6 +115,7 @@ public:
     /// Threshold of page aspect ratio for splitting pages in notes and
     /// presentation.
     float page_part_threshold {2.5};
+    /// PagePart which represents the presentation.
     PagePart default_page_part = FullPage;
 
 #ifdef INCLUDE_MUPDF
@@ -165,6 +171,7 @@ public:
 
     /// Current page number in reference presentation view.
     int page = 0;
+    /// Previous page, required during slide changes.
     int previous_page = 0;
 
     /// Target time of presentation. Set to zero if timer is not running.
@@ -178,10 +185,13 @@ public:
     /// The keys are taken from InputDevice.
     QSet<Tool*> current_tools
     {
-        new DrawTool(Tool::Eraser, Tool::TabletEraser, QPen(Qt::black, 10.)),
-        new DrawTool(Tool::Eraser, Tool::MouseRightButton, QPen(Qt::black, 10.)),
+        new DrawTool(Tool::Eraser, Tool::TabletEraser|Tool::MouseRightButton, QPen(Qt::black, 10.)),
     };
 
+
+    /*******************/
+    /*    FUNCTIONS    */
+    /*******************/
 
     /// Load settings from default config file location (defined by Qt).
     Preferences(QObject *parent = NULL);
@@ -195,35 +205,62 @@ public:
     void loadSettings();
 
     /// Load settings from command line parser.
-    /// Usually called after loadSettings().
+    /// Usually called after loadSettings(), since it should overwrite
+    /// settings from the configuration file.
     void loadFromParser(const QCommandLineParser &parser);
 #ifdef QT_DEBUG
-    /// Load debugging info from command line.
+    /// Set debug flags depending on command line option.
     void loadDebugFromParser(const QCommandLineParser &parser);
 #endif
 
+    /// Get the current tool for a given input device or NULL if there is no
+    /// tool for this device. The tool remains owned by preferences().
     Tool *currentTool(const int device) const noexcept;
+    /// Associate the given key code to newtool. If this overwrites one or
+    /// multiple existing tool(s) connected to the same key code, the old tool
+    /// will be deleted.
     void replaceKeyTool(const int keys, Tool *newtool);
+    /// Change key sequence associated with tool from oldkeys to newkeys.
     void replaceKeyToolShortcut(const int oldkeys, const int newkeys, Tool *tool);
 
+    /// Connect an action to a key code. This does not remove existing
+    /// actions connected to the same key code.
     void addKeyAction(const quint32 sequence, const Action action);
+    /// Remove an action from a key sequence.
     void removeKeyAction(const quint32 sequence, const Action action);
 
 public slots:
+    /// Set maximum memory for cache. This function uses double instead of
+    /// qreal because it is connected to a QDoubleSpinBox.
     void setMemory(const double new_memory);
+    /// Set maximal number of slides in cache.
     void setCacheSize(const int new_size);
+    /// Set renderer. Allowed values are "poppler", "mupdf",
+    /// "poppler + external" and "mupdf + external".
     void setRenderer(const QString &string);
+    /// Set page part threshold. This function uses double instead of qreal
+    /// because it is connected to a QDoubleSpinBox.
     void setPagePartThreshold(const double threshold);
+    /// Set number of drawing history steps for visible slides.
     void setHistoryVisibleSlide(const int length);
+    /// Set number of drawing history steps for hidden slides.
     void setHistoryHiddenSlide(const int length);
+    /// Enable/disable logging of slide changes.
     void setLogSlideChanges(const bool log);
+    /// Set rendering command. It is not checked whether this command is valid.
     void setRenderingCommand(const QString &string);
+    /// Set rendering arguments. It is not checked whether these are valid.
     void setRenderingArguments(const QString &string);
+    /// Set overlay mode. Allowed values are defined in string_to_overlay_mode:
+    /// "per page", "per label" and "cumulative"
     void setOverlayMode(const QString &string);
+    /// Enable or disable automatic slide changes.
     void setAutoSlideChanges(const bool show);
 
 signals:
+    /// Interrupt drawing to avoid problems when changing or deleting tools.
     void stopDrawing() const;
+    /// Tell master to redistribute cache memory.
     void distributeMemory() const;
 };
 
@@ -237,11 +274,14 @@ Preferences *writable_preferences(Preferences *new_preferences = NULL);
 const Preferences *preferences();
 
 
+/// Create tool from JSON formatted input.
 Tool *createTool(const QJsonObject &obj, const int default_device = 0);
-void toolToJson(const Tool *tool, QJsonObject &obj);
-QString color_to_rgba(const QColor &color);
-QColor rgba_to_color(const QString &string);
 
+/// Write tool properties to JSON object.
+void toolToJson(const Tool *tool, QJsonObject &obj);
+
+
+// Define macros for debugging.
 
 #ifdef QT_DEBUG
 // Show warning if debugging is enabled

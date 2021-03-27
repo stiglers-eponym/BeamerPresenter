@@ -151,4 +151,12 @@ public slots:
     void deleteEmptyItem(QGraphicsItem *item);
 };
 
+/// Convert color to string with format #RRGGBBAA
+/// (required for Xournal++ format).
+QString color_to_rgba(const QColor &color);
+
+/// Convert color string of format #RRGGBBAA to QColor
+/// (required for Xournal++ format).
+QColor rgba_to_color(const QString &string);
+
 #endif // PATHCONTAINER_H
