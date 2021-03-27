@@ -112,11 +112,8 @@ void FullGraphicsPath::paint(QPainter *painter, const QStyleOptionGraphicsItem *
         return;
     QPen pen = _tool.pen();
     auto it = data.cbegin();
-    const bool select_exposed = !option->exposedRect.isEmpty() && (2*option->exposedRect.width() < right - left || 2*option->exposedRect.height() < bottom - top);
     while (++it != data.cend())
     {
-        if (select_exposed && !(option->exposedRect.contains(it->x, it->y) || option->exposedRect.contains((it-1)->x, (it-1)->y)))
-            continue;
         pen.setWidthF(it->pressure);
         painter->setPen(pen);
         painter->drawLine((it-1)->point(), it->point());
