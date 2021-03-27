@@ -332,6 +332,7 @@ void SlideScene::prepareNavigationEvent(const int newpage)
 
 void SlideScene::navigationEvent(const int newpage, SlideScene *newscene)
 {
+    debug_msg(DebugPageChange) << "scene" << this << "navigates to" << newpage << "as" << newscene;
     pauseMedia();
     if (pageTransitionItem)
     {
@@ -508,7 +509,7 @@ void SlideScene::startTransition(const int newpage, const PdfDocument::SlideTran
         static_cast<SlideView*>(view)->prepareTransition(pageTransitionItem);
     page = newpage;
     PixmapGraphicsItem *oldPage = pageTransitionItem;
-    if (transition.type == PdfDocument::SlideTransition::Fly || transition.type == PdfDocument::SlideTransition::FlyRectangle)
+    if ((transition.type == PdfDocument::SlideTransition::Fly || transition.type == PdfDocument::SlideTransition::FlyRectangle) && !views().isEmpty())
     {
         if (!(transition.properties & PdfDocument::SlideTransition::Outwards))
         {

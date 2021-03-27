@@ -161,6 +161,7 @@ Preferences::Preferences(QObject *parent) :
     QObject(parent),
     settings(QSettings::NativeFormat, QSettings::UserScope, "beamerpresenter", "beamerpresenter")
 {
+    settings.setFallbacksEnabled(false);
     settings.setIniCodec("UTF-8");
 }
 

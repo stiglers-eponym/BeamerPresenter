@@ -343,10 +343,11 @@ QWidget* Master::createWidget(QJsonObject &object, QWidget *parent)
             scene = new SlideScene(doc, page_part, parent);
             if (shift)
                 scene->setPageShift(shift);
-            if ((shift & ~AnyOverlay) == 0)
+            if (shift == 0 || object.value("master").toBool(false))
+            {
                 connect(scene, &SlideScene::finishTransition, this, &Master::postNavigation);
-            if (object.value("master").toBool())
                 doc->getScenes().prepend(scene);
+            }
             else
                 doc->getScenes().append(scene);
             connect(scene, &SlideScene::newUnsavedDrawings, doc, &PdfMaster::newUnsavedDrawings);

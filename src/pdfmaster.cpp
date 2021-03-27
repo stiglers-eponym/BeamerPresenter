@@ -194,6 +194,7 @@ void PdfMaster::distributeNavigationEvents(const int page) const
     }
     else
     {
+        // Redistribute views to scenes.
         for (const auto scene : qAsConst(scenes))
         {
             const int scenepage = overlaysShifted(page, scene->getShift()) | scene->pagePart();
@@ -202,6 +203,7 @@ void PdfMaster::distributeNavigationEvents(const int page) const
             else
                 scenemap[scenepage] = scene;
         }
+        // Navigation events to active scenes.
         for (auto it = scenemap.cbegin(); it != scenemap.cend(); ++it)
             (*it)->navigationEvent(it.key() & ~NotFullPage);
     }
@@ -229,7 +231,7 @@ void PdfMaster::saveXopp(const QString &filename)
     if (preferences()->msecs_total)
         writer.writeAttribute("duration", QTime::fromMSecsSinceStartOfDay(preferences()->msecs_total).toString("h:mm:ss"));
     emit writeNotes(writer);
-    writer.writeEndElement();
+    writer.writeEndElement(); // "beamerpresenter" element
 
     const PdfDocument *doc = preferences()->document;
     PathContainer *container;
@@ -272,12 +274,11 @@ void PdfMaster::saveXopp(const QString &filename)
             if (container)
                 container->writeXml(writer);
         }
-        writer.writeEndElement();
-
-        writer.writeEndElement();
+        writer.writeEndElement(); // "layer" element
+        writer.writeEndElement(); // "page" element
     }
 
-    writer.writeEndElement();
+    writer.writeEndElement(); // "xournal" element
     writer.writeEndDocument();
     bool saving_failed = writer.hasError();
     if (saving_failed)

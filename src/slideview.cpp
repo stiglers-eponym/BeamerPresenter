@@ -47,7 +47,7 @@ void SlideView::pageChanged(const int page, SlideScene *scene)
     resetTransform();
     scale(resolution, resolution);
     waitingForPage = page;
-    debug_msg(DebugPageChange) << "Request page" << page << this;
+    debug_msg(DebugPageChange) << "Request page" << page << "by" << this << "from" << scene;
     emit requestPage(page, resolution);
 }
 
