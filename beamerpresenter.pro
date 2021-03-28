@@ -1,4 +1,4 @@
-VERSION = 0.2.0alpha0
+VERSION = 0.2.0beta
 
 
 ###########################################################
@@ -7,17 +7,20 @@ VERSION = 0.2.0alpha0
 
 # BeamerPresenter supports the PDF engines poppler and MuPDF.
 # You can here select which PDF engine(s) to include in you installation.
-# At least one PDF engine must be included.
-# Library paths and linking arguments for the PDF engines need to be defined
+# At least one PDF engine must be included. When both are enabled at compile
+# time, the poppler engine may fail to open some documents. This is avoided
+# by disabling MuPDF at compile time.
+
+# Library paths and linking arguments for the PDF engines are defined
 # below in section "CONFIGURE LIBRARIES AND LINKING - OS DEPENDENT"
 
 # Include Poppler: requires that poppler-qt5 libraries are installed.
-# Tested with poppler 21.02.0, versions below 0.70 are not supported and will
-# most probably never be supported.
+# Tested with poppler 21.03.0 and 0.86.1, versions below 0.70 are not
+# supported and will most probably never be supported.
 DEFINES += INCLUDE_POPPLER
 
 # Include MuPDF: requires that mupdf libraries are installed.
-# Tested only with libmupdf 1.18.0
+# Tested with libmupdf 1.18.0 and 1.16.1
 DEFINES += INCLUDE_MUPDF
 
 # App name
