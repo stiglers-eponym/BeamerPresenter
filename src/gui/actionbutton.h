@@ -5,11 +5,15 @@
 #include "src/enumerates.h"
 
 /**
- * @brief Button which sends Action when clicked.
+ * @brief Button which sends Action(s) when clicked.
+ *
+ * When clicked, this emits sendAction for all actions added to this
+ * in no specific order.
  */
 class ActionButton : public QPushButton
 {
     Q_OBJECT
+    /// Set of one or more actions connected to this button.
     QSet<Action> actions;
 
 public:

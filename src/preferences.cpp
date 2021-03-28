@@ -46,14 +46,8 @@ Tool *createTool(const QJsonObject &obj, const int default_device)
         if (size <= 0.)
             return NULL;
         debug_msg(DebugSettings) << "creating pointer" << color << size;
-        QRadialGradient grad(.5, .5, .5);
-        grad.setCoordinateMode(QGradient::ObjectMode);
-        grad.setColorAt(.1, color);
-        grad.setColorAt(.9, QColor(color.red(), color.green(), color.blue(), 12));
-        grad.setColorAt(1, QColor(color.red(), color.green(), color.blue(), 0));
-        QBrush brush(grad);
-        brush.setColor(color);
-        tool = new PointingTool(Tool::Pointer, size, brush, default_device);
+        tool = new PointingTool(Tool::Pointer, size, color, default_device);
+        static_cast<PointingTool*>(tool)->initPointerBrush();
         break;
     }
     case Tool::Torch:
@@ -272,7 +266,6 @@ void Preferences::loadSettings()
         if (!allKeys.isEmpty())
         {
             key_actions.clear();
-            key_tools.clear();
             for (const auto& key : allKeys)
             {
                 const QKeySequence seq(key);
@@ -518,23 +511,28 @@ Tool *Preferences::currentTool(const int device) const noexcept
     return NULL;
 }
 
-void Preferences::replaceKeyTool(const int keys, Tool *newtool)
+void Preferences::removeKeyTool(const Tool *tool, const bool remove_from_settings)
 {
-    if (!keys)
-        return;
-    emit stopDrawing();
-    qDeleteAll(key_tools.values(keys));
-    key_tools.remove(keys);
-    if (newtool)
-    {
-        key_tools.insert(keys, newtool);
+    if (remove_from_settings)
         settings.beginGroup("keys");
-        const QString keycode = QKeySequence(keys).toString();
-        QJsonObject obj;
-        toolToJson(newtool, obj);
-        settings.setValue(keycode, obj);
-        settings.endGroup();
+    for (auto it = key_tools.begin(); it != key_tools.end();)
+    {
+        if (*it == tool)
+        {
+            emit stopDrawing();
+            if (remove_from_settings)
+            {
+                const QString keycode = QKeySequence(it.key()).toString();
+                if (!keycode.isEmpty())
+                    settings.remove(keycode);
+            }
+            it = key_tools.erase(it);
+        }
+        else
+            ++it;
     }
+    if (remove_from_settings)
+        settings.endGroup();
 }
 
 void Preferences::replaceKeyToolShortcut(const int oldkeys, const int newkeys, Tool *tool)
@@ -550,11 +548,6 @@ void Preferences::replaceKeyToolShortcut(const int oldkeys, const int newkeys, T
         QJsonObject obj;
         toolToJson(tool, obj);
         settings.setValue(QKeySequence(newkeys).toString(), obj);
-    }
-    else if (tool)
-    {
-        emit stopDrawing();
-        delete tool;
     }
     settings.endGroup();
 }

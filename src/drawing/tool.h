@@ -4,7 +4,13 @@
 #include "src/enumerates.h"
 #include <QTabletEvent>
 
-/// Container class for tools: draw tools and pointing tools.
+/**
+ * @class Tool
+ * @brief Basis class for tools on slides
+ *
+ * This container class is inherited by DrawTool, PointingTool and TextTool.
+ * It contains a type (BasicTool) and device (InputDevice).
+ */
 class Tool
 {
 public:
@@ -30,9 +36,8 @@ public:
         NoTool = 1 << 11,
     };
 
-    /**
-     * Obtain Qt::MouseButton by taking InputDevice >> 1.
-     */
+    /// Combinable flags defining input devices.
+    /// Obtain Qt::MouseButton by taking InputDevice >> 1.
     enum InputDevice
     {
         NoDevice = 0,
@@ -49,6 +54,7 @@ public:
         AnyDevice = 0xffff,
         AnyPointingDevice = AnyDevice ^ (TabletEraser | MouseRightButton | MouseMiddleButton),
         AnyNormalDevice = AnyPointingDevice ^ (TabletNoPressure | MouseNoButton),
+        PressureSensitiveDevices = TabletPen | TabletEraser | TabletCursor | TabletOther,
     };
 
 protected:
@@ -72,17 +78,17 @@ public:
     virtual bool operator==(const Tool &other) const noexcept
     {return _tool == other._tool && _device == other._device;}
 
-    BasicTool tool() const  noexcept
+    BasicTool tool() const noexcept
     {return _tool;}
 
-    int device() const  noexcept
+    int device() const noexcept
     {return _device;}
 
-    void setDevice(const int device)  noexcept
+    void setDevice(const int device) noexcept
     {_device = device;}
 };
 
-
+/// convert string (from configuration files or saved file) to tool
 static const QMap<QString, Tool::BasicTool> string_to_tool
 {
     {"no tool", Tool::NoTool},
@@ -97,6 +103,7 @@ static const QMap<QString, Tool::BasicTool> string_to_tool
     {"text", Tool::TextInputTool},
 };
 
+/// tool tip description of tools
 static const QMap<Tool::BasicTool, QString> tool_to_description
 {
     {Tool::Pen, "pen with variable width if the input device supports variable pressure"},
@@ -109,6 +116,7 @@ static const QMap<Tool::BasicTool, QString> tool_to_description
     {Tool::TextInputTool, "add or edit text on slide"},
 };
 
+/// convert QTabletEvent::PointerType to InputDevice
 static const QMap<QTabletEvent::PointerType, Tool::InputDevice> tablet_device_to_input_device
 {
     {QTabletEvent::Pen, Tool::TabletPen},
@@ -117,6 +125,7 @@ static const QMap<QTabletEvent::PointerType, Tool::InputDevice> tablet_device_to
     {QTabletEvent::UnknownPointer, Tool::TabletOther},
 };
 
+/// convert string (from configuration file) to InputDevice
 static const QMap<QString, int> string_to_input_device
 {
     {"touch", Tool::TouchInput},

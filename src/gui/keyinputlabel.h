@@ -16,12 +16,17 @@ class Tool;
 class KeyInputLabel : public QLabel
 {
     Q_OBJECT
+    /// Key combinations entered here will be connected to this Action if it is valid.
     Action action = InvalidAction;
+    /// Key combinations entered here will be connected to this Tool if it is not NULL.
     Tool *tool = NULL;
-    quint32 sequence;
+    /// key sequence
+    quint32 keys;
 
 public:
+    /// Create a new KeyInputLabel for an action.
     explicit KeyInputLabel(const quint32 init, const Action action, QWidget *parent = NULL);
+    /// Create a new KeyInputLabel for a tool.
     explicit KeyInputLabel(const quint32 init, Tool *tool, QWidget *parent = NULL);
     ~KeyInputLabel();
 
@@ -30,6 +35,9 @@ protected:
 
 public slots:
     void changeAction(const QString &text) noexcept;
+
+signals:
+    void sendName(const QString &string);
 };
 
 #endif // KEYINPUTLABEL_H

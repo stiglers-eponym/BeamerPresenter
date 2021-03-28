@@ -103,8 +103,6 @@ public:
     int history_length_visible_slides;
     /// Maximum number of steps in drawing history of hidden slide.
     int history_length_hidden_slides;
-    /// Define which devices should be used for pressure-sensitive input.
-    int pressure_sensitive_input_devices = Tool::TabletPen | Tool::TabletEraser | Tool::TabletCursor | Tool::TabletOther;
     /// Define how should drawings be assigned to overlays.
     PdfMaster::OverlayDrawingMode overlay_mode = PdfMaster::Cumulative;
     /// Duration of a slide in an animation, in ms.
@@ -150,7 +148,12 @@ public:
         {Qt::Key_PageUp, Action::PreviousPage},
         {Qt::Key_Space, Action::Update},
     };
-    /// Map key combinations to tools.
+    /// Map key combinations to tools. These tools are not owned by this.
+    /// Only when the program ends and preferences() is the last object to
+    /// be deleted, the remaining key_tools will be deleted in the destructor
+    /// of preferences().
+    /// Objects owning a tool which is listed here should always call
+    /// writable_preferences().removeKeyTool before deleting this tool.
     QMultiMap<quint32, Tool*> key_tools;
 
 
@@ -216,11 +219,12 @@ public:
     /// Get the current tool for a given input device or NULL if there is no
     /// tool for this device. The tool remains owned by preferences().
     Tool *currentTool(const int device) const noexcept;
-    /// Associate the given key code to newtool. If this overwrites one or
-    /// multiple existing tool(s) connected to the same key code, the old tool
-    /// will be deleted.
-    void replaceKeyTool(const int keys, Tool *newtool);
+    /// Remove (but don't delete) all occurences of tool in key_tools.
+    /// This should be called by an object owning tool before it deletes tool.
+    void removeKeyTool(const Tool *tool, const bool remove_from_settings);
     /// Change key sequence associated with tool from oldkeys to newkeys.
+    /// oldkeys or newkeys may be left empty to add a new tool or remove
+    /// an existing tool.
     void replaceKeyToolShortcut(const int oldkeys, const int newkeys, Tool *tool);
 
     /// Connect an action to a key code. This does not remove existing

@@ -10,7 +10,6 @@
  *
  * TODO:
  *   better input handling, the whole construction is rather improvised
- *   ignore empty text boxes
  *   history for text editing
  */
 class TextTool : public Tool

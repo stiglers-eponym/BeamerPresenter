@@ -39,6 +39,7 @@ protected:
     {setFont({"", std::min(event->size().height()*2/3, event->size().width()/6), 2});}
 
 private slots:
+    /// Update label to show current time.
     void updateTime()
     {setText(QTime::currentTime().toString(Qt::TextDate));}
 };

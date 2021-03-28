@@ -7,7 +7,7 @@
 KeyInputLabel::KeyInputLabel(const quint32 init, const Action action, QWidget *parent) :
     QLabel(parent),
     action(action),
-    sequence(init)
+    keys(init)
 {
     setFrameStyle(QFrame::Panel | QFrame::Sunken);
     setText(QKeySequence(init).toString());
@@ -23,7 +23,7 @@ KeyInputLabel::KeyInputLabel(const quint32 init, const Action action, QWidget *p
 KeyInputLabel::KeyInputLabel(const quint32 init, Tool *tool, QWidget *parent) :
     QLabel(parent),
     tool(tool),
-    sequence(init)
+    keys(init)
 {
     setFrameStyle(QFrame::Panel | QFrame::Sunken);
     setText(QKeySequence(init).toString());
@@ -38,35 +38,36 @@ KeyInputLabel::KeyInputLabel(const quint32 init, Tool *tool, QWidget *parent) :
 
 KeyInputLabel::~KeyInputLabel()
 {
-    if (tool && !sequence)
+    if (tool)
+    {
+        writable_preferences()->removeKeyTool(tool, false);
         delete tool;
+    }
 }
 
 void KeyInputLabel::keyPressEvent(QKeyEvent *event)
 {
-    const int new_sequence = event->key() | (event->modifiers() & ~Qt::KeypadModifier);
+    const int new_keys = event->key() | (event->modifiers() & ~Qt::KeypadModifier);
     event->accept();
-    if (new_sequence == Qt::Key_Delete)
+    if (new_keys == Qt::Key_Delete)
     {
         if (action != InvalidAction)
-            writable_preferences()->removeKeyAction(sequence, action);
+            writable_preferences()->removeKeyAction(keys, action);
         if (tool)
-            writable_preferences()->replaceKeyTool(sequence, tool);
+            writable_preferences()->replaceKeyToolShortcut(keys, 0, tool);
         setText("");
-        sequence = 0;
+        keys = 0;
         return;
     }
-    setText(QKeySequence(new_sequence).toString());
+    setText(QKeySequence(new_keys).toString());
     if (action != InvalidAction)
     {
-        writable_preferences()->removeKeyAction(sequence, action);
-        writable_preferences()->addKeyAction(new_sequence, action);
+        writable_preferences()->removeKeyAction(keys, action);
+        writable_preferences()->addKeyAction(new_keys, action);
     }
     if (tool)
-    {
-        writable_preferences()->replaceKeyToolShortcut(sequence, new_sequence, tool);
-    }
-    sequence = new_sequence;
+        writable_preferences()->replaceKeyToolShortcut(keys, new_keys, tool);
+    keys = new_keys;
 }
 
 void KeyInputLabel::changeAction(const QString &text) noexcept
@@ -74,26 +75,41 @@ void KeyInputLabel::changeAction(const QString &text) noexcept
     if (text == "tool...")
     {
         if (action != InvalidAction)
-            writable_preferences()->removeKeyAction(sequence, action);
+            writable_preferences()->removeKeyAction(keys, action);
         Tool *newtool = ToolDialog::selectTool(tool);
         if (newtool)
         {
-            writable_preferences()->replaceKeyTool(sequence, newtool);
+            writable_preferences()->removeKeyTool(tool, true);
+            delete tool;
             tool = newtool;
             action = InvalidAction;
+            writable_preferences()->replaceKeyToolShortcut(0, keys, tool);
+            emit sendName(string_to_tool.key(tool->tool()));
         }
     }
     else
     {
-        const Action newaction = string_to_action_map.value(text, action);
+        const Action newaction = string_to_action_map.value(text, InvalidAction);
         if (newaction == InvalidAction)
+        {
+            // Invalid input detected. Reset input field.
+            if (action != InvalidAction)
+                emit sendName(string_to_action_map.key(action));
+            else if (tool)
+                emit sendName(string_to_tool.key(tool->tool()));
+            else
+                emit sendName("");
             return;
+        }
         if (action != InvalidAction)
-            writable_preferences()->removeKeyAction(sequence, action);
+            writable_preferences()->removeKeyAction(keys, action);
         action = newaction;
-        writable_preferences()->addKeyAction(sequence, action);
+        writable_preferences()->addKeyAction(keys, action);
         if (tool)
-            writable_preferences()->replaceKeyTool(sequence, NULL);
-        tool = NULL;
+        {
+            writable_preferences()->removeKeyTool(tool, true);
+            delete tool;
+            tool = NULL;
+        }
     }
 }

@@ -86,6 +86,7 @@ unix {
 
 SOURCES += \
         src/drawing/pixmapgraphicsitem.cpp \
+        src/drawing/pointingtool.cpp \
         src/gui/actionbutton.cpp \
         src/gui/clockwidget.cpp \
         src/gui/flexlayout.cpp \

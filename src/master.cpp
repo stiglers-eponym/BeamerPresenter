@@ -129,7 +129,6 @@ QWidget* Master::createWidget(QJsonObject &object, QWidget *parent)
     case HBoxWidgetType:
     {
         widget = new ContainerWidget(parent);
-        widget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
         FlexLayout* layout = new FlexLayout(type == VBoxWidgetType ? QBoxLayout::TopToBottom : QBoxLayout::LeftToRight);
         layout->setContentsMargins(0, 0, 0, 0);
 

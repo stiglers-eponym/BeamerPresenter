@@ -200,12 +200,19 @@ Tool *ToolDialog::createTool() const
             device |= it.key();
     const QColor color = color_button->palette().color(QPalette::Button);
     if (basic_tool & Tool::AnyDrawTool)
-        return new DrawTool(basic_tool, device, QPen(color, size_box->value(), Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin));
+        return new DrawTool(
+                    basic_tool,
+                    device,
+                    QPen(color, size_box->value(), Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin),
+                    basic_tool == Tool::Highlighter ? QPainter::CompositionMode_Darken : QPainter::CompositionMode_SourceOver
+                );
     else if (basic_tool & Tool::AnyPointingTool)
     {
         PointingTool *tool = new PointingTool(basic_tool, size_box->value(), color, device);
         if (basic_tool == Tool::Magnifier && scale_box)
             tool->setScale(scale_box->value());
+        if (basic_tool == Tool::Pointer)
+            tool->initPointerBrush();
         return tool;
     }
     else if (basic_tool == Tool::TextInputTool)

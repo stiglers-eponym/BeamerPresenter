@@ -25,8 +25,11 @@ public:
     {return Type;}
 
 protected:
+    /// emit deleteMe if text is empty after this looses focus
     void focusOutEvent(QFocusEvent *event) override
     {if (toPlainText().isEmpty()) emit deleteMe(this); else QGraphicsTextItem::focusOutEvent(event);}
+
+    /// disable context menu event by disabling this function
     void contextMenuEvent(QGraphicsSceneContextMenuEvent*) override {}
 
 signals:

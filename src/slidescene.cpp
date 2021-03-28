@@ -972,7 +972,7 @@ void SlideScene::startInputEvent(Tool *tool, const QPointF &pos, const float pre
         currentItemCollection = new QGraphicsItemGroup();
         addItem(currentItemCollection);
         currentItemCollection->show();
-        if (tool->tool() == Tool::Pen && (tool->device() & preferences()->pressure_sensitive_input_devices))
+        if (tool->tool() == Tool::Pen && (tool->device() & Tool::PressureSensitiveDevices))
             currentPath = new FullGraphicsPath(*static_cast<const DrawTool*>(tool), pos, pressure);
         else
             currentPath = new BasicGraphicsPath(*static_cast<const DrawTool*>(tool), pos);

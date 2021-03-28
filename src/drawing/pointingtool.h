@@ -34,6 +34,10 @@ public:
     PointingTool(const PointingTool &other) noexcept :
         Tool(other._tool, other._device), _pos(other._pos), _size(other._size), _scale(other._scale), _brush(other._brush) {}
 
+    /// Initialize brush to a fancy pointer. Color and size are taken
+    /// from the existing settings.
+    void initPointerBrush() noexcept;
+
     const QList<QPointF> &pos() const noexcept
     {return _pos;}
 
