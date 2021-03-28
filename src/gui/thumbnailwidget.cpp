@@ -38,7 +38,7 @@ void ThumbnailWidget::generate(const PdfDocument *document)
     if (!render_thread)
     {
         render_thread = new ThumbnailThread(document);
-        connect(render_thread, &ThumbnailThread::destroyed, render_thread->thread(), &QThread::deleteLater);
+        render_thread->moveToThread(new QThread(render_thread));
         connect(this, &ThumbnailWidget::sendToRenderThread, render_thread, &ThumbnailThread::append, Qt::QueuedConnection);
         connect(this, &ThumbnailWidget::startRendering, render_thread, &ThumbnailThread::renderImages, Qt::QueuedConnection);
         connect(render_thread, &ThumbnailThread::sendThumbnail, this, &ThumbnailWidget::receiveThumbnail, Qt::QueuedConnection);
@@ -90,7 +90,7 @@ void ThumbnailWidget::generate(const PdfDocument *document)
 
 ThumbnailWidget::~ThumbnailWidget()
 {
-    render_thread->deleteLater();
-    if (QScroller::scroller(this))
-        QScroller::scroller(this)->deleteLater();
+    render_thread->thread()->quit();
+    render_thread->thread()->wait(10000);
+    delete render_thread;
 }

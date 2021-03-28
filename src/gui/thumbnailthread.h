@@ -3,8 +3,8 @@
 
 #include <QThread>
 #include <QPixmap>
+#include "src/rendering/abstractrenderer.h"
 
-class AbstractRenderer;
 class PdfDocument;
 class ThumbnailButton;
 
@@ -32,7 +32,7 @@ class ThumbnailThread : public QObject
 public:
     ThumbnailThread(const PdfDocument *document = NULL);
     ~ThumbnailThread()
-    {thread()->deleteLater();}
+    {delete renderer;}
 
 public slots:
     void append(ThumbnailButton *button, qreal resolution, int page)
