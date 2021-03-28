@@ -243,7 +243,11 @@ void SettingsWidget::appendShortcut()
     select_menu->setEditable(true);
     KeyInputLabel *input_shortcut = new KeyInputLabel(0, Action::InvalidAction, shortcuts);
     QFormLayout *layout = static_cast<QFormLayout*>(shortcuts->layout());
+#if (QT_VERSION >= QT_VERSION_CHECK(5,14,0))
     connect(select_menu, &QComboBox::textActivated, input_shortcut, &KeyInputLabel::changeAction);
+#else
+    connect(select_menu, &QComboBox::currentTextChanged, input_shortcut, &KeyInputLabel::changeAction);
+#endif
     connect(input_shortcut, &KeyInputLabel::sendName, select_menu, &QComboBox::setEditText);
     layout->addRow(select_menu, input_shortcut);
 }
