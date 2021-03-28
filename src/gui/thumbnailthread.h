@@ -1,7 +1,6 @@
 #ifndef THUMBNAILTHREAD_H
 #define THUMBNAILTHREAD_H
 
-#include <QThread>
 #include <QPixmap>
 #include "src/rendering/abstractrenderer.h"
 
@@ -23,10 +22,19 @@ class ThumbnailThread : public QObject
 {
     Q_OBJECT
 
-    struct queue_entry {ThumbnailButton *button; qreal resolution; int page;};
+    /// container of page, button and resolution as queued for rendering
+    struct queue_entry
+    {
+        ThumbnailButton *button;
+        qreal resolution;
+        int page;
+    };
 
+    /// renderer, owned by this, created in constructor.
     AbstractRenderer *renderer = NULL;
+    /// document, not owned by this.
     const PdfDocument *document;
+    /// queue of pages/thumbnails which should be rendered
     QList<queue_entry> queue;
 
 public:
@@ -35,12 +43,16 @@ public:
     {delete renderer;}
 
 public slots:
+    /// Add entries to rendering queue.
     void append(ThumbnailButton *button, qreal resolution, int page)
     {queue.append({button, resolution, page});}
 
+    /// Do the work: render thumbnails for the queued pages.
     void renderImages();
 
 signals:
+    /// Send thumbnail back to ThumbnailWidget, which sets the pixmap
+    /// from the main thread.
     void sendThumbnail(ThumbnailButton *button, const QPixmap pixmap);
 };
 

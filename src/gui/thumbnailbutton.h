@@ -20,7 +20,9 @@ public:
 protected:
     void mouseReleaseEvent(QMouseEvent *event) override;
     void keyPressEvent(QKeyEvent *event) override;
+    /// add red margin when this gets focus
     void focusInEvent(QFocusEvent*) override;
+    /// remove red margin when this looses focus
     void focusOutEvent(QFocusEvent*) override;
 
 signals:

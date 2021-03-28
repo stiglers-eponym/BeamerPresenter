@@ -145,10 +145,16 @@ signals:
     void setTimeForPage(const int page, const quint32 time);
     /// Get end time (in ms) for page. time is set to UINT32_MAX if no end time is defined.
     void getTimeForPage(const int page, quint32 &time) const;
+    /// Tell NotesWidget to write notes to writer.
     void writeNotes(QXmlStreamWriter &writer);
+    /// Tell NotesWidget to read notes from reader.
     void readNotes(QXmlStreamReader &reader);
+    /// Notify TimerWidget of changes in total time.
     void setTotalTime(const QTime time) const;
+    /// Tell PdfMaster to save drawings.
     void saveDrawings(const QString filename);
+    /// Tell PdfMaster to load drawings. This does not clear old drawings
+    /// before loading new ones.
     void loadDrawings(const QString filename);
 };
 

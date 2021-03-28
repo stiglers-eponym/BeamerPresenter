@@ -11,6 +11,7 @@ class QLabel;
 class QTimer;
 
 /// Map time (in ms) left for a slide to color.
+/// This is the default colormap for timer.
 static const QMap<qint32, QRgb> default_timer_colormap
 {
     {-300000, qRgb(255,   0,   0)},
@@ -41,14 +42,22 @@ public:
     };
 
 private:
+    /// timer widget showing time since beginning of the presentation
     QLineEdit *passed;
+    /// widget showing total time of presentation (as planned)
     QLineEdit *total;
+    /// label "/" shown between passed and total
     QLabel *label;
+    /// timer which causes updates of passed every second
     QTimer *timer;
-    quint32 page_target_time = UINT32_MAX;
+    /// map relative times (in ms) to colors to indicate progress
+    /// relative to a plan
     QMap<qint32, QRgb> colormap = default_timer_colormap;
+    /// target time of current page (planned). This is used to adjust
+    /// the color of passed.
+    quint32 page_target_time = UINT32_MAX;
 
-    char _flags = 0;
+    unsigned char _flags = 0;
 
     void updateTimeout() noexcept;
 
@@ -66,13 +75,13 @@ public:
     quint32 timePassed() const noexcept;
 
     /// Overwrite colormap.
-    void setColorMap(QMap<qint32, QRgb> &map) noexcept
-    {colormap = map;}
+    void setColorMap(QMap<qint32, QRgb> &cmap) noexcept
+    {colormap = cmap;}
 
     /// Map time to color using colormap.
-    QColor time_colormap(const qint32 time) const noexcept;
+    QColor time2color(const qint32 time) const noexcept;
 
-    char &flags() noexcept
+    unsigned char &flags() noexcept
     {return _flags;}
 
 protected:
@@ -83,21 +92,33 @@ protected:
     void mouseDoubleClickEvent(QMouseEvent*) override;
 
 private slots:
+    /// "passed" time was edited. Read it and update accordingly.
     void changePassed();
+    /// total time was edited. Read it and update accordingly.
     void changeTotal();
 
 public slots:
+    /// Update passed time text and color. Check for timeout.
     void updateText() noexcept;
+    /// Update total time widget from preferences(), then call updateText().
     void updateFullText() noexcept;
+    /// Handle action: only timer start/pause/toggle/reset actions are handled.
     void handleAction(const Action action) noexcept;
+    /// (re)start the timer.
     void startTimer() noexcept;
+    /// pause the timer.
     void stopTimer() noexcept;
+    /// update per-page time: adjust to given page.
     void updatePage(const int page) noexcept;
+    /// Set total time: show in widget and write to preferences().
     void setTotalTime(const QTime time) noexcept;
 
 signals:
+    /// Notify about timeout.
     void sendTimeout(const bool timeout);
+    /// Set timer for page (sent to PdfMaster).
     void setTimeForPage(const int page, const quint32 time);
+    /// Ask to adjust time as per-page time for given page (sent to PdfMaster).
     void getTimeForPage(const int page, quint32 &time) const;
 };
 

@@ -18,6 +18,17 @@ class QMutex;
 /// MuPDF requires careful treatment of separte threads!
 class MuPdfDocument : public PdfDocument
 {
+public:
+    /// Item in PDF PageLabel list. This is only used internally in
+    /// MuPdfDocument::loadPageLabels().
+    struct label_item
+    {
+        const char* style;
+        const char* prefix;
+        int start_value;
+    };
+
+private:
     /// List of all pages.
     QVector<pdf_page*> pages;
 
@@ -126,14 +137,5 @@ void lock_mutex(void *user, int lock);
 /// Lock mutex <lock> in vector <user> of mutexes.
 /// First argument must be of type QVector<QMutex*>*.
 void unlock_mutex(void *user, int lock);
-
-/// Item in PDF PageLabel list. This is only used internally in
-/// MuPdfDocument::loadPageLabels().
-struct label_item
-{
-    const char* style;
-    const char* prefix;
-    int start_value;
-};
 
 #endif // MUPDFDOCUMENT_H

@@ -20,10 +20,14 @@ public:
 
     QSize sizeHint() const noexcept override;
 
+    /// Create and add a action button in row i, column j with action defined by string.
     void addActionButton(const int i, const int j, const QString &string);
 
+    /// Create and add a action button in row i, column j with action defined by array.
     void addActionButton(const int i, const int j, const QJsonArray &array);
 
+    /// Create and add a tool button in row i, column j.
+    /// The button takes ownership of tool.
     void addToolButton(const int i, const int j, Tool *tool);
 
     bool hasHeightForWidth() const noexcept override
@@ -32,7 +36,8 @@ public:
 signals:
     void sendAction(const Action action);
 
-    /// ownership of tool is transfered to receiver.
+    /// Send a new tool (copy of the tool of a button).
+    /// Ownership of tool is transfered to receiver.
     void sendTool(Tool *tool) const;
 };
 

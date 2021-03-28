@@ -79,19 +79,22 @@ protected slots:
 
 public slots:
     /// Inform this that the page number has changed.
-    /// pageSize is given in points.
     void pageChanged(const int page, SlideScene* scene);
+    /// Change page, but render page in this thread.
+    /// Only required for fly transition.
     void pageChangedBlocking(const int page, SlideScene* scene);
 
     /// Inform this that page is ready in pixcache.
     void pageReady(const QPixmap pixmap, const int page);
 
-    /// draw Magnifier
+    /// Draw magnifier to painter. tool should have BasicTool Magnifier, but this is not checked.
     void showMagnifier(QPainter *painter, const PointingTool *tool) noexcept;
-    void showPen(QPainter *painter, const PointingTool *tool) noexcept;
+    /// Draw pointer to painter. tool should have BasicTool Pointer, but this is not checked.
+    void showPointer(QPainter *painter, const PointingTool *tool) noexcept;
+    /// Draw torch to painter. tool should have BasicTool Torch, but this is not checked.
     void showTorch(QPainter *painter, const PointingTool *tool) noexcept;
 
-    /// draw pointing tools in foreground.
+    /// Draw pointing tools in foreground.
     void drawForeground(QPainter *painter, const QRectF &rect) override;
 
     /// Add a slider for a video item
@@ -101,7 +104,7 @@ public slots:
     void prepareTransition(PixmapGraphicsItem *transitionItem);
 
     /**
-     * @brief prepareFlyTransition
+     * @brief prepare fly transition by writing difference of current slide and old pixmap to target.
      * @param outwards: bool, define whether transition is outwards or inwards
      * @param old: contains pixmaps of the old page.
      * @param target: write the result here. old == target is allowed.

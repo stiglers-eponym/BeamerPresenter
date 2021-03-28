@@ -34,8 +34,8 @@ public slots:
     void setTool(Tool *newtool);
 
 signals:
-    /// ownership of tool is transfered to receiver.
-    void sendTool(Tool *tool) const;
+    /// Send a copy of tool. Ownership of toolcopy is handed to receiver.
+    void sendTool(Tool *toolcopy) const;
 };
 
 #endif // TOOLBUTTON_H

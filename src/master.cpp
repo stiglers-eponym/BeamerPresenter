@@ -21,6 +21,7 @@
 #include "src/names.h"
 #include <QMainWindow>
 #include <QMessageBox>
+#include <QThread>
 
 Master::Master() :
     cacheVideoTimer(new QTimer(this)),
@@ -431,13 +432,16 @@ QWidget* Master::createWidget(QJsonObject &object, QWidget *parent)
         break;
     }
     case OverviewType:
-        widget = new ThumbnailWidget(parent);
+    {
+        ThumbnailWidget *twidget = new ThumbnailWidget(parent);
+        widget = twidget;
         if (object.contains("columns"))
-            static_cast<ThumbnailWidget*>(widget)->setColumns(object.value("columns").toInt(4));
-        connect(static_cast<ThumbnailWidget*>(widget), &ThumbnailWidget::sendNavigationSignal, this, &Master::navigateToPage);
+            twidget->setColumns(object.value("columns").toInt(4));
+        connect(twidget, &ThumbnailWidget::sendNavigationSignal, this, &Master::navigateToPage);
         if (object.value("overlays").toString() == "skip")
-            static_cast<ThumbnailWidget*>(widget)->skipOverlays();
+            twidget->flags() |= ThumbnailWidget::SkipOverlays;
         break;
+    }
     case TOCType:
         widget = new TOCwidget(parent);
         connect(static_cast<TOCwidget*>(widget), &TOCwidget::sendNavigationSignal, this, &Master::navigateToPage);

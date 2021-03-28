@@ -87,9 +87,12 @@ int main(int argc, char *argv[])
     parser.process(app);
 
     {
-        // Initialize preferences
+        // Initialize preferences.
         Preferences *wpreferences;
         if (parser.isSet("c"))
+            // parser.value("c") should be the name of a configuration file.
+            // If that does not exist or cannot be read, the program can start
+            // anyway, if a valid gui config file is defined in parser.value("g").
             wpreferences = new Preferences(parser.value("c"));
         else
             wpreferences = new Preferences();
@@ -103,26 +106,37 @@ int main(int argc, char *argv[])
 
     Master *master = new Master();
     {
-    const char status = master->readGuiConfig(parser.value("g").isEmpty() ? preferences()->gui_config_file : parser.value("g"));
-    if (status)
-    {
-        if (status < 4 && master->readGuiConfig(DEFAULT_GUI_CONFIG_PATH) == 0)
-            qWarning() << "Using fallback GUI config file" << DEFAULT_GUI_CONFIG_PATH;
-        else
+        // Create the user interface.
+        const char status = master->readGuiConfig(parser.value("g").isEmpty() ? preferences()->gui_config_file : parser.value("g"));
+        if (status)
         {
-            qCritical() << "Parsing the GUI configuration failed. Probably the GUI config is unavailable or invalid or no valid PDF files were found.";
-            delete master;
-            delete preferences();
-            // Show help and exit
-            parser.showHelp(status);
+            // Creating GUI failed. Check status and try to load default GUI config.
+            // status == 4 indicates that only loading PDF files failed. In this case
+            // the GUI config should not be reloaded.
+            if (status < 4 && master->readGuiConfig(DEFAULT_GUI_CONFIG_PATH) == 0)
+                qWarning() << "Using fallback GUI config file" << DEFAULT_GUI_CONFIG_PATH;
+            else
+            {
+                qCritical() << "Parsing the GUI configuration failed. Probably the GUI config is unavailable or invalid or no valid PDF files were found.";
+                delete master;
+                delete preferences();
+                // Show help and exit.
+                parser.showHelp(status);
+            }
         }
     }
-    }
+    // Show all windows.
     master->showAll();
+    // Navigate to first page.
     master->navigateToPage(0);
+    // Distribute cache memory.
     master->distributeMemory();
     QObject::connect(preferences(), &Preferences::distributeMemory, master, &Master::distributeMemory);
+    // Run the program.
     const int status = app.exec();
+    // Clean up. preferences() must be deleted after everything else.
+    // deleting master may take some time since this requires the interruption
+    // and deletion of multiple threads.
     delete master;
     delete preferences();
     return status;

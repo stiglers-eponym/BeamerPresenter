@@ -92,7 +92,7 @@ void TimerWidget::updateText() noexcept
     {
         const qint32 diff = page_target_time - msecs_passed;
         QPalette palette;
-        palette.setColor(QPalette::Base, time_colormap(diff));
+        palette.setColor(QPalette::Base, time2color(diff));
         passed->setPalette(palette);
     }
 }
@@ -228,7 +228,7 @@ void TimerWidget::mouseDoubleClickEvent(QMouseEvent*)
     }
 }
 
-QColor TimerWidget::time_colormap(const qint32 time) const noexcept
+QColor TimerWidget::time2color(const qint32 time) const noexcept
 {
     const auto next_it = colormap.lowerBound(time);
     if (next_it == colormap.cend())

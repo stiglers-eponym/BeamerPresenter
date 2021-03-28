@@ -28,7 +28,7 @@ std::string roman(int number)
     return roman;
 }
 
-std::string decode_pdf_label(int number, const label_item &item)
+std::string decode_pdf_label(int number, const MuPdfDocument::label_item &item)
 {
     std::string string = item.prefix ? item.prefix : "";
     if (!item.style)

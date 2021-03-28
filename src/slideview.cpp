@@ -232,7 +232,7 @@ void SlideView::drawForeground(QPainter *painter, const QRectF &rect)
             switch (tool->tool())
             {
             case Tool::Pointer:
-                showPen(painter, tool);
+                showPointer(painter, tool);
                 break;
             case Tool::Torch:
                 showTorch(painter, tool);
@@ -247,7 +247,7 @@ void SlideView::drawForeground(QPainter *painter, const QRectF &rect)
     }
 }
 
-void SlideView::showPen(QPainter *painter, const PointingTool *tool) noexcept
+void SlideView::showPointer(QPainter *painter, const PointingTool *tool) noexcept
 {
     painter->setPen(Qt::PenStyle::NoPen);
     painter->setBrush(tool->brush());

@@ -17,11 +17,17 @@ class ToolDialog : public QDialog
 {
     Q_OBJECT
 
+    /// select basic tool
     QComboBox *tool_box;
+    /// select color (opens QColorDialog)
     QPushButton *color_button = NULL;
+    /// select size (or width) of tool
     QDoubleSpinBox *size_box;
+    /// select scale (only for magnifier)
     QDoubleSpinBox *scale_box = NULL;
+    /// select font (only for TextTool, opens QFontDialog)
     QPushButton *font_button = NULL;
+    /// list of checkboxes for input devices
     QMap<int, QCheckBox*> device_buttons;
 
 public:
@@ -40,7 +46,9 @@ public:
     void adaptToBasicToolStr(const QString &text)
     {adaptToBasicTool(string_to_tool.value(text));}
 
-    /// Select a tool. Return NULL if basic_tool is invalid.
+    /// Open a new dialog to select a tool.
+    /// Default settings are taken from oldtool (if it exists).
+    /// Return NULL if basic_tool is invalid.
     static Tool *selectTool(const Tool *oldtool = NULL);
 
 public slots:

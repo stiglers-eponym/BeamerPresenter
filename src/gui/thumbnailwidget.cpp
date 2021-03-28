@@ -2,15 +2,20 @@
 #include "src/gui/thumbnailthread.h"
 #include "src/rendering/pdfdocument.h"
 #include "src/preferences.h"
+#include <QThread>
+#include <QScroller>
+#include <QGridLayout>
 
 void ThumbnailWidget::showEvent(QShowEvent *event)
 {
+    // generate the thumbnails if necessary
     generate();
+    // select the currently visible page
     QLayout *layout = widget() ? widget()->layout() : NULL;
     if (layout && !event->spontaneous())
     {
         int page;
-        if (skip_overlays)
+        if (_flags & SkipOverlays)
         {
             // Get sorted list of page label indices from master document.
             const QList<int> &list = preferences()->document->overlayIndices();
@@ -65,20 +70,20 @@ void ThumbnailWidget::generate(const PdfDocument *document)
         layout->addWidget(button, position/columns, position%columns);
     };
     int position = 0;
-    if (skip_overlays)
+    if (_flags & SkipOverlays)
     {
         const QList<int> &list = document->overlayIndices();
         if (!list.isEmpty())
         {
             int link_page = list.first();
-            for (QList<int>::const_iterator it = list.cbegin()+1; it != list.cend(); link_page=*it++)
+            for (auto it = list.cbegin()+1; it != list.cend(); link_page=*it++)
                 create_button(*it-1, link_page, position++);
             create_button(document->numberOfPages()-1, list.last(), position++);
         }
     }
     if (position == 0)
     {
-        for (; position<document->numberOfPages(); position++)
+        for (; position < document->numberOfPages(); position++)
             create_button(position, position, position);
     }
     widget->setLayout(layout);

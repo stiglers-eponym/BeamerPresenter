@@ -89,6 +89,10 @@ private:
     /// This is const, all data sent to master should be send via signals.
     const PdfMaster* master;
 
+    /// Animation for slide transitions. Should be NULL while no
+    /// slide transition is active.
+    QAbstractAnimation *animation {NULL};
+
     /// Shift of currently shown page relative to the current presentation
     /// slide. Overlay specifications are stored in the nonzero bits of
     /// FirstOverlay and LastOverlay.
@@ -99,10 +103,6 @@ private:
 
     /// Page part shown in this scene.
     const PagePart page_part;
-
-    /// Animation for slide transitions. Should be NULL while no
-    /// slide transition is active.
-    QAbstractAnimation *animation {NULL};
 
     /// Start slide transition.
     void startTransition(const int newpage, const PdfDocument::SlideTransition &transition);
