@@ -90,7 +90,10 @@ void ThumbnailWidget::generate(const PdfDocument *document)
 
 ThumbnailWidget::~ThumbnailWidget()
 {
-    render_thread->thread()->quit();
-    render_thread->thread()->wait(10000);
-    delete render_thread;
+    if (render_thread)
+    {
+        render_thread->thread()->quit();
+        render_thread->thread()->wait(10000);
+        delete render_thread;
+    }
 }
