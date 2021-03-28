@@ -1,7 +1,7 @@
 #include "src/gui/clockwidget.h"
 
 ClockWidget::ClockWidget(QWidget *parent) :
-    QLabel(parent),
+    QLineEdit(parent),
     timer(new QTimer(this))
 {
     setAlignment(Qt::AlignCenter);

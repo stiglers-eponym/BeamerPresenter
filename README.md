@@ -186,10 +186,11 @@ BeamerPresenter (`qmake --version`).
     * settings
 
 #### To be implemented / fixed
+* strange probabilistic crash at startup
 * improve cache management and layout corrections: sometimes cache is not used correctly.
 * cache slides even when size of slides varies (partially implemented)
 * cache only required slides in previews showing specific overlays
-* fix layout, avoid recalculating full layout when clock label changes text
+* make layout more reliable
 * sounds
 * tool to select and modify drawings
 * option to insert extra (blank or copied) slides for drawing

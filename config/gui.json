@@ -41,7 +41,8 @@
         "title" : "overview",
         "children" : [
           {
-            "type" : "clock"
+            "type" : "clock",
+            "color" : "#f0f0f0"
           },
           {
             "type" : "timer",

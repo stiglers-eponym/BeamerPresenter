@@ -1,7 +1,7 @@
 #ifndef CLOCKWIDGET_H
 #define CLOCKWIDGET_H
 
-#include <QLabel>
+#include <QLineEdit>
 #include <QTimer>
 #include <QTime>
 #include <QDebug>
@@ -9,8 +9,13 @@
 
 /**
  * @brief Label showing the time.
+ *
+ * This is implemented as a QLineEdit because that one does not
+ * request to update the layout when it's text is changed. There
+ * is no need to recalculate the full layout every second because
+ * the clock changes it's text.
  */
-class ClockWidget : public QLabel
+class ClockWidget : public QLineEdit
 {
     Q_OBJECT
 
