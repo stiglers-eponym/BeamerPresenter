@@ -64,6 +64,9 @@ Version 0.1.x of BeamerPresenter should run in ubuntu 18.04 and you should
 [open an issue](https://github.com/stiglers-eponym/BeamerPresenter/issues)
 on github if it does not.
 
+In ArchLinux you can install `beamerpresenter-git` from the AUR for this version or `beamerpresenter` for [version 0.1.3](https://github.com/stiglers-eponym/BeamerPresenter/tree/0.1.x).
+By default MuPDF is selected as PDF engine in  `beamerpresenter-git`, the configuration for poppler is commented out in the PKGBUILD file.
+
 First install the dependencies. You need Qt 5 including the multimedia module (which is not available in Qt 6.0).
 Additionally you need either the Qt 5 bindings of poppler or the MuPDF C bindings.
 
@@ -72,13 +75,14 @@ For Qt 5:
 * `qt5-qmake`
 * `qt5-default`
 * `qtmultimedia5-dev`
+* `libqt5multimedia5-plugins` (optional, for showing videos)
 * Note: ubuntu's Qt 5 package does not have native markdown support. Therefore, also BeamerPresenter will not be able to interpret markdown in ubuntu.
 
 For poppler (optional, see [below](https://github.com/stiglers-eponym/BeamerPresenter#build)):
 * `libpoppler-qt5-dev`: version 0.86.1 is tested. Versions below 0.70 are explicitly not supported, problems with newer versions might be fixed if reported in an issue on github.
 
 For MuPDF (optional, see [below](https://github.com/stiglers-eponym/BeamerPresenter#build)):
-* `libmupdf-dev`: MuPDF versions starting from 1.17 should work, version 1.12 or older is explicitly not supported.
+* `libmupdf-dev` (only for building): MuPDF versions starting from 1.17 should work, version 1.12 or older is explicitly not supported.
 * `libfreetype-dev`
 * `libharfbuzz-dev`
 * `libjpeg-dev`
@@ -97,13 +101,14 @@ For poppler (optional, see [below](https://github.com/stiglers-eponym/BeamerPres
 * `poppler-qt5`
 
 For MuPDF (optional, see [below](https://github.com/stiglers-eponym/BeamerPresenter#build)):
-* `libmupdf`
-* `libfreetype.so` (provided by `freetype2` in test environment)
-* `libharfbuzz.so` (provided by `harfbuzz` in test environment)
-* `libjpeg` (provided by `libjpeg-turbo` in test environment)
+* `libmupdf` (only for building)
 * `jbig2dec`
 * `openjpeg2`
 * `gumbo-parser`
+
+Optional, for showing videos:
+* `gst-libav`
+* `gst-plugins-good`
 
 ### Build
 Download the sources:
