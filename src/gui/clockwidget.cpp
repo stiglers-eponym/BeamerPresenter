@@ -6,6 +6,7 @@ ClockWidget::ClockWidget(QWidget *parent) :
 {
     setAlignment(Qt::AlignCenter);
     setFocusPolicy(Qt::NoFocus);
+    setCursor(QCursor());
     timer->setTimerType(Qt::CoarseTimer);
     setFont({"", 16, 2});
     updateTime();
@@ -13,4 +14,5 @@ ClockWidget::ClockWidget(QWidget *parent) :
     timer->start(1000);
     setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);
     setMinimumSize(20, 10);
+    setToolTip("double-click on clock to start or pause timer");
 }

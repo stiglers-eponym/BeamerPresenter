@@ -504,6 +504,10 @@ QWidget* Master::createWidget(QJsonObject &object, QWidget *parent)
         break;
     case ClockType:
         widget = new ClockWidget(parent);
+        // This signal could also be connected directly to Master::sendAction,
+        // but maybe the clock should be able to send different actions. Since
+        // the clock rarely sends actions, this little overhead is unproblematic.
+        connect(static_cast<ClockWidget*>(widget), &ClockWidget::sendAction, this, &Master::handleAction);
         break;
     case TimerType:
     {

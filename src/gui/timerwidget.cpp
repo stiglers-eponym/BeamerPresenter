@@ -29,6 +29,7 @@ TimerWidget::TimerWidget(QWidget *parent) :
     total->setToolTip("total duration of the presentation");
     setToolTip("double-click here to set time for this slide for your orientation while presenting");
     updateFullText();
+    stopTimer();
 }
 
 TimerWidget::~TimerWidget()
@@ -84,14 +85,14 @@ void TimerWidget::updateText() noexcept
     }
     if (page_target_time == UINT32_MAX)
     {
-        QPalette palette;
+        QPalette palette(passed->palette());
         palette.setColor(QPalette::Base, colormap.last());
         passed->setPalette(palette);
     }
     else
     {
         const qint32 diff = page_target_time - msecs_passed;
-        QPalette palette;
+        QPalette palette(passed->palette());
         palette.setColor(QPalette::Base, time2color(diff));
         passed->setPalette(palette);
     }
@@ -152,6 +153,9 @@ void TimerWidget::setTotalTime(const QTime time) noexcept
 
 void TimerWidget::startTimer() noexcept
 {
+    QPalette palette(passed->palette());
+    palette.setColor(QPalette::Text, Qt::black);
+    passed->setPalette(palette);
     if (preferences()->msecs_passed != UINT_LEAST32_MAX)
     {
         writable_preferences()->target_time = QDateTime::currentDateTimeUtc().addMSecs(preferences()->msecs_total - preferences()->msecs_passed);
@@ -163,6 +167,9 @@ void TimerWidget::startTimer() noexcept
 void TimerWidget::stopTimer() noexcept
 {
     timer->stop();
+    QPalette palette(passed->palette());
+    palette.setColor(QPalette::Text, Qt::gray);
+    passed->setPalette(palette);
     if (preferences()->msecs_passed == UINT_LEAST32_MAX)
     {
         writable_preferences()->msecs_passed = preferences()->msecs_total - QDateTime::currentDateTimeUtc().msecsTo(preferences()->target_time);
