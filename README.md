@@ -53,7 +53,10 @@ The interface is very flexible and can be adjusted to your needs. Also multiple 
 
 
 ## Build and install
-**Note**: building and installing the [releases](https://github.com/stiglers-eponym/BeamerPresenter/releases) of version 0.1.x is described [here](https://github.com/stiglers-eponym/BeamerPresenter/tree/0.1.x#build).
+**Note**: building and installing the
+[releases](https://github.com/stiglers-eponym/BeamerPresenter/releases)
+of version 0.1.x is described
+[here](https://github.com/stiglers-eponym/BeamerPresenter/tree/0.1.x#build).
 
 Building is tested in an up-to-date Arch Linux and (from time to time) in xubuntu 20.04.
 Older versions of ubuntu are not supported, because ubuntu 18.04 uses old versions of poppler and MuPDF and other ubuntu versions before 20.04 should not be used anymore.
@@ -61,23 +64,20 @@ Version 0.1.x of BeamerPresenter should run in ubuntu 18.04 and you should
 [open an issue](https://github.com/stiglers-eponym/BeamerPresenter/issues)
 on github if it does not.
 
-First install required packages. You need Qt 5 including the multimedia module (which is not available in Qt 6.0).
+First install the dependencies. You need Qt 5 including the multimedia module (which is not available in Qt 6.0).
 Additionally you need either the Qt 5 bindings of poppler or the MuPDF C bindings.
 
 ### Dependencies in Ubuntu 20.04
 For Qt 5:
-
 * `qt5-qmake`
 * `qt5-default`
 * `qtmultimedia5-dev`
 * Note: ubuntu's Qt 5 package does not have native markdown support. Therefore, also BeamerPresenter will not be able to interpret markdown in ubuntu.
 
 For poppler (optional, see [below](https://github.com/stiglers-eponym/BeamerPresenter#build)):
-
 * `libpoppler-qt5-dev`: version 0.86.1 is tested. Versions below 0.70 are explicitly not supported, problems with newer versions might be fixed if reported in an issue on github.
 
 For MuPDF (optional, see [below](https://github.com/stiglers-eponym/BeamerPresenter#build)):
-
 * `libmupdf-dev`: MuPDF versions starting from 1.17 should work, version 1.12 or older is explicitly not supported.
 * `libfreetype-dev`
 * `libharfbuzz-dev`
@@ -106,20 +106,19 @@ For MuPDF (optional, see [below](https://github.com/stiglers-eponym/BeamerPresen
 * `gumbo-parser`
 
 ### Build
-
 Download the sources:
 ```sh
 git clone --depth 1 https://github.com/stiglers-eponym/BeamerPresenter.git
 ```
-Now you need to **select the PDF engine**. In the file `beamerpresenter.pro`
-you will find the lines
-`DEFINES += INCLUDE_POPPLER` and
-`DEFINES += INCLUDE_MUPDF`.
-Comment out the PDF engine which you don't need with a `#`.
+On systems other than GNU+Linux you now need to configure libraries in
+`beamerpresenter.pro`. Pull requests or issues with build instructions for
+other systems are welcome!
 
-Now you can start building.
+When building you need to **define the PDF engine**.
+Build with one of the following commands:
 ```sh
-qmake && make
+qmake RENDERER=mupdf && make
+qmake RENDERER=poppler && make
 ```
 If this fails and you have all dependencies installed, you should check your
 Qt version (`qmake --version`). If you use 5.8 < qt < 6, you should
@@ -128,12 +127,11 @@ on github.
 In older versions you may also open an issue, but it will probably not be fixed.
 
 ### Install
-In GNU/Linux you can install BeamerPresenter with
+In GNU+Linux you can install BeamerPresenter with
 ```sh
 make install
 ```
 When installing manually, you may need the following files (in build directory):
-
 * `beamerpesenter`: executable, the program
 * `config/beamerpesenter.conf`: settings file, usually stored in `/etc/xdg/beamerpresenter/beamerpresenter.conf` or `$HOME/.config/beamerpresenter/beamerpresenter.conf`. If located at a different path, specify the path with the command line option `-c <path>`.
 * `config/gui.json`: user interface configuration, mandatory! Usually stored in `/etc/xdg/beamerpresenter/gui.json` or `$HOME/.config/beamerpresenter/gui.json`. The path to this file needs to be specified in the settings file (see above) or given explicitly with the command line option `-g <path>`.

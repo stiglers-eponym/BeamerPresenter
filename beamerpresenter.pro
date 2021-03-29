@@ -1,27 +1,46 @@
 VERSION = 0.2.0beta
 
-
 ###########################################################
 ###   DEFINE PDF ENGINE, CUSTOM CONFIGURATION
 ###########################################################
 
 # BeamerPresenter supports the PDF engines poppler and MuPDF.
-# You can here select which PDF engine(s) to include in you installation.
-# At least one PDF engine must be included. When both are enabled at compile
-# time, the poppler engine may fail to open some documents. This is avoided
-# by disabling MuPDF at compile time.
+# The PDF engine should be selected on the command line by compiling with
+# one of these commands:
+#
+#    qmake RENDERER=poppler && make
+# or
+#    qmake RENDERER=mupdf && make
+#
+# The option RENDERER=both is also possible, but not recommended since in this
+# case the poppler engine may fail to open some documents. You may add your
+# favorite settings to make (like -j4).
 
+### General remarks
 # Library paths and linking arguments for the PDF engines are defined
-# below in section "CONFIGURE LIBRARIES AND LINKING - OS DEPENDENT"
+# below in section "CONFIGURE LIBRARIES AND LINKING - OS DEPENDENT".
+# For systems other than GNU+Linux these need to be specified manually.
+# If you find a configuration for your system, you are welcome to share it!
+# Just open a pull request or issue on github.
 
-# Include Poppler: requires that poppler-qt5 libraries are installed.
+### Dependencies
+# Poppler requires poppler-qt5 libraries.
 # Tested with poppler 21.03.0 and 0.86.1, versions below 0.70 are not
 # supported and will most probably never be supported.
-DEFINES += INCLUDE_POPPLER
 
-# Include MuPDF: requires that mupdf libraries are installed.
+# MuPDF requires mupdf libraries (libmupdf).
 # Tested with libmupdf 1.18.0 and 1.16.1
-DEFINES += INCLUDE_MUPDF
+
+equals(RENDERER, "poppler") {
+    DEFINES += INCLUDE_POPPLER
+} else:equals(RENDERER, "mupdf") {
+    DEFINES += INCLUDE_MUPDF
+} else:equals(RENDERER, "both") {
+    DEFINES += INCLUDE_MUPDF
+    DEFINES += INCLUDE_POPPLER
+} else {
+    error("You must specify which PDF engine to use as explained in beamerpresenter.pro")
+}
 
 # App name
 TARGET = beamerpresenter
@@ -37,7 +56,7 @@ win32: DEFAULT_CONFIG_PATH = ""
 GUI_CONFIG_FILE = "${{DEFAULT_CONFIG_PATH}}gui.json"
 
 # Disable debugging message if debugging mode is disabled.
-CONFIG(release, debug|release):DEFINES += QT_NO_DEBUG_OUTPUT
+CONFIG(release, debug|release): DEFINES += QT_NO_DEBUG_OUTPUT
 
 
 ###########################################################
@@ -52,15 +71,16 @@ requires(equals(QT_MAJOR_VERSION, 5))
 # Check whether a PDF engine was defined.
 requires(contains(DEFINES, INCLUDE_POPPLER) | contains(DEFINES, INCLUDE_MUPDF))
 
+# Use modern C++
 CONFIG += c++20 qt
+
+# Include some libraries
 QT += core gui multimedia multimediawidgets xml widgets
 
+# Use a Qt template. Probably does something reasonable.
 TEMPLATE = app
 
-# The following define makes your compiler emit warnings if you use
-# any feature of Qt which has been marked as deprecated (the exact warnings
-# depend on your compiler). Please consult the documentation of the
-# deprecated API in order to know how to port your code away from it.
+# Warn when deprecated features of Qt are used.
 DEFINES += QT_DEPRECATED_WARNINGS
 
 # Set git version for more precise version info if possible.
