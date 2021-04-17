@@ -879,17 +879,19 @@ void SlideScene::tabletPress(const QPointF &pos, const QTabletEvent *event)
                 tablet_device_to_input_device.value(event->pointerType()) :
                 Tool::TabletNoPressure
             );
-    if (tool && (tool->tool() & Tool::AnyDrawTool))
+    if (!tool)
+        return;
+    if (tool->tool() & Tool::AnyDrawTool)
     {
         startInputEvent(tool, pos, event->pressure());
         return;
     }
-    else if (tool && (tool->tool() & Tool::AnyPointingTool))
+    else if (tool->tool() & Tool::AnyPointingTool)
     {
         static_cast<PointingTool*>(tool)->setPos(pos);
         invalidate(QRect(), QGraphicsScene::ForegroundLayer);
     }
-    else if (tool && tool->tool() == Tool::TextInputTool && !isTextEditing())
+    else if ((tool->tool() == Tool::TextInputTool) && !isTextEditing())
     {
         TextGraphicsItem *item = new TextGraphicsItem();
         item->setTextInteractionFlags(Qt::TextEditorInteraction);

@@ -108,7 +108,7 @@ static const QMap<Tool::BasicTool, QString> tool_to_description
 {
     {Tool::Pen, "pen with variable width if the input device supports variable pressure"},
     {Tool::FixedWidthPen, "pen with fixed width (independent of input device pressure)"},
-    {Tool::Eraser, "eraser: deletes sdrawings"},
+    {Tool::Eraser, "eraser: deletes drawings"},
     {Tool::Highlighter, "highlighter: fixed width drawing which only darkens colors (full color on white background, invisible on black background)"},
     {Tool::Pointer, "pointer"},
     {Tool::Torch, "torch: darken the slide leaving only a disk unchanged to focus attention on this area"},

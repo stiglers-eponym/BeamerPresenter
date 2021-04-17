@@ -86,9 +86,9 @@
                   ["start timer", "stop timer", "undo", "redo", "clear"],
                   [
                       {"tool":"pen", "color":"blue", "width":2},
-                      {"tool":"pen", "color":"green", "width":2},
                       {"tool":"pen", "color":"red", "width":2},
                       {"tool":"highlighter", "width":20},
+                      {"tool":"eraser", "size":10},
                       {"tool":"text"}
                   ],
                   [

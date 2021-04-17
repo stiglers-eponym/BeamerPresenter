@@ -102,16 +102,21 @@ void ToolButton::setTool(Tool *newtool)
         else if (newtool->tool() & Tool::AnyPointingTool)
             color = static_cast<PointingTool*>(newtool)->color();
         else if (newtool->tool() == Tool::TextInputTool)
+        {
             color = static_cast<TextTool*>(newtool)->color();
+            if (!color.isValid())
+                color = Qt::black;
+        }
         QIcon icon;
+        const QString filename = preferences()->icon_path + tool_icon_names[newtool->tool()];
         if (color.isValid())
         {
-            const QImage image = fancyIcon(preferences()->icon_path + tool_icon_names[newtool->tool()], iconSize(), color);
+            const QImage image = fancyIcon(filename, iconSize(), color);
             if (!image.isNull())
                 icon = QIcon(QPixmap::fromImage(image));
         }
         if (icon.isNull())
-            icon = QIcon(tool_icon_names[newtool->tool()]);
+            icon = QIcon(filename);
         if (icon.isNull())
             setText(string_to_tool.key(newtool->tool()));
         else

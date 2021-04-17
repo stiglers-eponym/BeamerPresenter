@@ -38,6 +38,7 @@ signals:
     void sendTool(Tool *toolcopy) const;
 };
 
+/// Take an svg file, replace #ff0000 by given color, render it to given size and return the QImage.
 const QImage fancyIcon(const QString &filename, const QSize &size, const QColor &color);
 
 /// icon files.
