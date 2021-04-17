@@ -1,7 +1,7 @@
 #ifndef ACTIONBUTTON_H
 #define ACTIONBUTTON_H
 
-#include <QPushButton>
+#include <QToolButton>
 #include "src/enumerates.h"
 
 /**
@@ -10,7 +10,7 @@
  * When clicked, this emits sendAction for all actions added to this
  * in no specific order.
  */
-class ActionButton : public QPushButton
+class ActionButton : public QToolButton
 {
     Q_OBJECT
     /// Set of one or more actions connected to this button.

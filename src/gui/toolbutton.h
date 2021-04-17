@@ -1,7 +1,7 @@
 #ifndef TOOLBUTTON_H
 #define TOOLBUTTON_H
 
-#include <QPushButton>
+#include <QToolButton>
 #include "src/drawing/tool.h"
 
 class QEvent;
@@ -9,7 +9,7 @@ class QEvent;
 /**
  * @brief Tool button for drawing and pointing tools.
  */
-class ToolButton : public QPushButton
+class ToolButton : public QToolButton
 {
     Q_OBJECT
 

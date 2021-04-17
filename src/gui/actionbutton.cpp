@@ -3,10 +3,11 @@
 #include "src/preferences.h"
 
 ActionButton::ActionButton(QWidget *parent) :
-    QPushButton(parent)
+    QToolButton(parent)
 {
     setFocusPolicy(Qt::NoFocus);
-    connect(this, &QPushButton::clicked, this, &ActionButton::onClicked);
+    setIconSize({64,64});
+    connect(this, &QToolButton::clicked, this, &ActionButton::onClicked);
 }
 
 ActionButton::ActionButton(const Action action, QWidget *parent) :

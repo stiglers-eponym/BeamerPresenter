@@ -10,12 +10,13 @@
 #include <QImageReader>
 
 ToolButton::ToolButton(Tool *tool, QWidget *parent) noexcept :
-        QPushButton(parent),
+        QToolButton(parent),
         tool(NULL)
 {
     setContentsMargins(0,0,0,0);
     setFocusPolicy(Qt::NoFocus);
     setAttribute(Qt::WA_AcceptTouchEvents);
+    setIconSize({64,64});
     setTool(tool);
 }
 
@@ -87,7 +88,7 @@ bool ToolButton::event(QEvent *event) noexcept
             break;
         }
     }
-    return QPushButton::event(event);
+    return QToolButton::event(event);
 }
 
 void ToolButton::setTool(Tool *newtool)
