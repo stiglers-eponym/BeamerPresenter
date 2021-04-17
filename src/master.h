@@ -73,7 +73,7 @@ public:
      *  3 if no windows were created for any other reason.
      *  4 if no PDF file was loaded.
      */
-    char readGuiConfig(const QString& filename);
+    unsigned char readGuiConfig(const QString& filename);
 
     /// Create widgets recursively.
     QWidget* createWidget(QJsonObject& object, QWidget *parent = NULL);

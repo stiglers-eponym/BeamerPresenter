@@ -54,7 +54,7 @@ Master::~Master()
     qDeleteAll(documents);
 }
 
-char Master::readGuiConfig(const QString &filename)
+unsigned char Master::readGuiConfig(const QString &filename)
 {
     // Read file into JSON document
     QFile file(filename);
@@ -86,15 +86,18 @@ char Master::readGuiConfig(const QString &filename)
         QJsonObject obj = it->toObject();
         // Start recursive creation of widgets.
         QWidget *const widget = createWidget(obj, NULL);
-        if (widget)
-        {
-            // Root widgets should get their own QMainWindow.
-            QMainWindow *const window = new QMainWindow();
-            window->setCentralWidget(widget);
-            window->setWindowTitle("BeamerPresenter");
-            widget->setParent(window);
-            windows.append(window);
-        }
+        if (!widget)
+            continue;
+        // Root widgets should get their own QMainWindow.
+        QMainWindow *const window = new QMainWindow();
+        windows.append(window);
+        window->setCentralWidget(widget); // window takes ownership of widget
+        window->setWindowTitle("BeamerPresenter");
+        // Check whether this window should alawys be shown on top. This is the
+        // default if the window only contains a tool selector.
+        if (obj.value("always show").toBool(obj.value("type") == "tool selector"))
+            // This window should always be on top.
+            window->setWindowFlags(Qt::Tool|Qt::WindowStaysOnTopHint);
     }
 
     if (documents.isEmpty())

@@ -21,7 +21,11 @@ title of the widget, visible only if the widget is shown in a tabbed widget.
 .TP
 .BI "color " "color name / #RRGGBB / #AARRGGBB"
 background color, color name known to Qt.
-.
+.PP
+Arguments for all top level widgets (widgets that are shown as windows):
+.TP
+.BI "always show" bool
+This window should always be shown on top of other windows if the window manager supports that. Default value is false except if the widget is of type "tool selector".
 .
 .SH WIDGETS
 .

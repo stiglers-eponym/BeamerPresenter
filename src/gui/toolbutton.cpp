@@ -6,6 +6,8 @@
 #include "src/drawing/pointingtool.h"
 #include <QTabletEvent>
 #include <QMouseEvent>
+#include <QBuffer>
+#include <QImageReader>
 
 ToolButton::ToolButton(Tool *tool, QWidget *parent) noexcept :
         QPushButton(parent),
@@ -92,51 +94,48 @@ void ToolButton::setTool(Tool *newtool)
 {
     if (!newtool)
         return;
-    switch (newtool->tool())
+    if (tool_icon_names.contains(newtool->tool()))
     {
-    case Tool::Pen:
-    case Tool::FixedWidthPen:
-    {
-        QPalette newpalette = palette();
-        const QColor color = static_cast<DrawTool*>(newtool)->color();
-        newpalette.setColor(color.lightness() > 50 ? QPalette::Button : QPalette::ButtonText, color);
-        setPalette(newpalette);
-        setText("pen");
-        break;
+        QColor color;
+        if (newtool->tool() & Tool::AnyDrawTool)
+            color = static_cast<DrawTool*>(newtool)->color();
+        else if (newtool->tool() & Tool::AnyPointingTool)
+            color = static_cast<PointingTool*>(newtool)->color();
+        else if (newtool->tool() == Tool::TextInputTool)
+            color = static_cast<TextTool*>(newtool)->color();
+        QIcon icon;
+        if (color.isValid())
+        {
+            const QImage image = fancyIcon(preferences()->icon_path + tool_icon_names[newtool->tool()], iconSize(), color);
+            if (!image.isNull())
+                icon = QIcon(QPixmap::fromImage(image));
+        }
+        if (icon.isNull())
+            icon = QIcon(tool_icon_names[newtool->tool()]);
+        if (icon.isNull())
+            setText(string_to_tool.key(newtool->tool()));
+        else
+            setIcon(icon);
     }
-    case Tool::Highlighter:
-    {
-        QPalette newpalette = palette();
-        newpalette.setColor(QPalette::Button, static_cast<DrawTool*>(newtool)->color());
-        setPalette(newpalette);
-        setText("highlight");
-        break;
-    }
-    case Tool::Eraser:
-        setText("eraser");
-        break;
-    case Tool::Pointer:
-    {
-        QPalette newpalette = palette();
-        newpalette.setColor(QPalette::Button, static_cast<PointingTool*>(newtool)->color());
-        setPalette(newpalette);
-        setText("pointer");
-        break;
-    }
-    case Tool::TextInputTool:
-    {
-        QPalette newpalette = palette();
-        newpalette.setColor(QPalette::ButtonText, static_cast<TextTool*>(newtool)->color());
-        setPalette(newpalette);
-        setFont(static_cast<const TextTool*>(newtool)->font());
-        setText("text");
-        break;
-    }
-    default:
+    else
         setText(string_to_tool.key(newtool->tool()));
-        break;
-    }
     delete tool;
     tool = newtool;
     setToolTip(tool_to_description.value(tool->tool()));
+}
+
+const QImage fancyIcon(const QString &filename, const QSize &size, const QColor &color)
+{
+    QFile file(filename);
+    if (!file.open(QFile::ReadOnly))
+        return QImage();
+    QByteArray data = file.readAll();
+    if (data.isEmpty())
+        return QImage();
+    data.replace("#ff0000", color.name(QColor::HexRgb).toUtf8());
+    QBuffer buffer(&data);
+    buffer.open(QBuffer::ReadOnly);
+    QImageReader reader(&buffer);
+    reader.setScaledSize(size);
+    return reader.read();
 }

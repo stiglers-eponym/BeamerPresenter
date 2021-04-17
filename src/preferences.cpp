@@ -174,6 +174,7 @@ void Preferences::loadSettings()
     {
         gui_config_file = settings.value("gui config", DEFAULT_GUI_CONFIG_PATH).toString();
         manual_file = settings.value("manual", "/usr/share/doc/beamerpresenter/README.html").toString();
+        icon_path = settings.value("icon path", DEFAULT_ICON_PATH).toString();
 #ifdef QT_DEBUG
         // Only check settings for debug information if was not set on the command line.
         if (debug_level == 0)

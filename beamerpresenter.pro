@@ -44,9 +44,13 @@ equals(RENDERER, "poppler") {
 
 # App name
 TARGET = beamerpresenter
-# Define a path where the icon will be placed. Don't forget the trailing /.
-unix: ICON_PATH = "/usr/share/icons/hicolor/scalable/apps/"
-macx: ICON_PATH = "/usr/share/icons/hicolor/scalable/apps/"
+# Define a path where the app icon will be placed. Don't forget the trailing /.
+unix: APP_ICON_PATH = "/usr/share/icons/hicolor/scalable/apps/"
+macx: APP_ICON_PATH = "/usr/share/icons/hicolor/scalable/apps/"
+win32: APP_ICON_PATH = ""
+# Define a path where other icons will be placed. Don't forget the trailing /.
+unix: ICON_PATH = "/usr/share/beamerpresenter/icons/"
+macx: ICON_PATH = "/usr/share/beamerpresenter/icons/"
 win32: ICON_PATH = ""
 # Define the system-wide path for config files. Don't forget the trailing /.
 unix: DEFAULT_CONFIG_PATH = "/etc/xdg/$${TARGET}/"
@@ -93,7 +97,8 @@ exists(.git) {
 # Define the application version string.
 DEFINES += APP_VERSION=\\\"$${VERSION_STRING}\\\"
 # Define the icon path string.
-DEFINES += ICON_FILEPATH=\\\"$${ICON_PATH}beamerpresenter.svg\\\"
+DEFINES += DEFAULT_ICON_PATH=\\\"$${ICON_PATH}\\\"
+DEFINES += ICON_FILEPATH=\\\"$${APP_ICON_PATH}beamerpresenter.svg\\\"
 # Define the default GUI path string.
 DEFINES += DEFAULT_GUI_CONFIG_PATH=\\\"$${GUI_CONFIG_PATH}\\\"
 
@@ -276,9 +281,13 @@ unix {
     configuration.CONFIG = no_build
     configuration.files = config/beamerpresenter.conf config/gui.json
 
+    appicon.path = $${APP_ICON_PATH}
+    appicon.CONFIG = no_build
+    appicon.files = share/icons/beamerpresenter.svg
+
     icon.path = $${ICON_PATH}
     icon.CONFIG = no_build
-    icon.files = share/icons/beamerpresenter.svg
+    icon.files = share/icons/tools
 
     doc.path = /usr/share/doc/beamerpresenter/
     doc.CONFIG = no_build

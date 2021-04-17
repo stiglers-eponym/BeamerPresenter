@@ -89,6 +89,9 @@ public:
     /// Path to manual (html formatted), required for help tab in settings.
     QString manual_file;
 
+    /// Directory for icons
+    QString icon_path;
+
 #ifdef QT_DEBUG
     /// Flags for log and debug level.
     quint16 debug_level = NoLog;
