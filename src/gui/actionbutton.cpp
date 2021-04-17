@@ -1,5 +1,6 @@
 #include "src/gui/actionbutton.h"
 #include "src/names.h"
+#include "src/preferences.h"
 
 ActionButton::ActionButton(QWidget *parent) :
     QPushButton(parent)
@@ -13,4 +14,13 @@ ActionButton::ActionButton(const Action action, QWidget *parent) :
 {
     addAction(action);
     setToolTip(action_to_description.value(action));
+}
+
+void ActionButton::addAction(const Action action)
+{
+    if (action == InvalidAction)
+        return;
+    if (icon().isNull() && action_to_theme_icon.contains(action))
+        setIcon(QIcon::fromTheme(action_to_theme_icon[action]));
+    actions.insert(action);
 }

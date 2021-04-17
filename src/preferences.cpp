@@ -172,49 +172,52 @@ void Preferences::loadSettings()
 
     // GENERAL SETTINGS
     {
+        // Paths to required files / directories
         gui_config_file = settings.value("gui config", DEFAULT_GUI_CONFIG_PATH).toString();
         manual_file = settings.value("manual", "/usr/share/doc/beamerpresenter/README.html").toString();
         icon_path = settings.value("icon path", DEFAULT_ICON_PATH).toString();
-#ifdef QT_DEBUG
-        // Only check settings for debug information if was not set on the command line.
-        if (debug_level == 0)
-        {
-            const QStringList debug_flags = settings.value("debug").toStringList();
-            for (const auto &flag : debug_flags)
-                debug_level |= string_to_debug_flags.value(flag, NoLog);
-        }
-#endif
-        if (settings.contains("log") && settings.value("log", false).toBool())
-            global_flags |= LogSlideChanges;
-        const int frame_time = settings.value("frame time").toInt(&ok);
-        if (ok && frame_time > 0)
-            slide_duration_animation = frame_time;
-        const bool show_animations = settings.value("automatic slide changes", true).toBool();
-        if (!show_animations)
-            global_flags &= ~AutoSlideChanges;
+        const QString icontheme = settings.value("icon theme").toString();
+        if (!icontheme.isEmpty())
+            QIcon::setThemeName(icontheme);
+        const QStringList iconthemepaths = settings.value("icon theme paths").toStringList();
+        if (!iconthemepaths.isEmpty())
+            QIcon::setThemeSearchPaths(iconthemepaths);
     }
+#ifdef QT_DEBUG
+    // Only check settings for debug information if was not set on the command line.
+    if (debug_level == 0)
+    {
+        const QStringList debug_flags = settings.value("debug").toStringList();
+        for (const auto &flag : debug_flags)
+            debug_level |= string_to_debug_flags.value(flag, NoLog);
+    }
+#endif
+    if (settings.contains("log") && settings.value("log", false).toBool())
+        global_flags |= LogSlideChanges;
+    const int frame_time = settings.value("frame time").toInt(&ok);
+    if (ok && frame_time > 0)
+        slide_duration_animation = frame_time;
+    const bool show_animations = settings.value("automatic slide changes", true).toBool();
+    if (!show_animations)
+        global_flags &= ~AutoSlideChanges;
 
     // DRAWING
-    {
-        settings.beginGroup("drawing");
-        int value = settings.value("history length visible").toUInt(&ok);
-        if (ok)
-            history_length_visible_slides = value;
-        value = settings.value("history length hidden").toUInt(&ok);
-        if (ok)
-            history_length_hidden_slides = value;
-        overlay_mode = string_to_overlay_mode.value(settings.value("mode").toString(), PdfMaster::Cumulative);
-        settings.endGroup();
-    }
+    settings.beginGroup("drawing");
+    int value = settings.value("history length visible").toUInt(&ok);
+    if (ok)
+        history_length_visible_slides = value;
+    value = settings.value("history length hidden").toUInt(&ok);
+    if (ok)
+        history_length_hidden_slides = value;
+    overlay_mode = string_to_overlay_mode.value(settings.value("mode").toString(), PdfMaster::Cumulative);
+    settings.endGroup();
 
     // RENDERING
     settings.beginGroup("rendering");
     // page_part threshold
-    {
-        float threshold = settings.value("page part threshold").toReal(&ok);
-        if (ok)
-            page_part_threshold = threshold;
-    }
+    float threshold = settings.value("page part threshold").toReal(&ok);
+    if (ok)
+        page_part_threshold = threshold;
     { // renderer
         rendering_command = settings.value("rendering command").toString();
         rendering_arguments = settings.value("rendering arguments").toStringList();
@@ -250,90 +253,87 @@ void Preferences::loadSettings()
     }
     settings.endGroup();
 
-    { // cache
-        const qreal memory = settings.value("memory").toFloat(&ok);
-        if (ok)
-            max_memory = memory;
-        const int npages = settings.value("cache pages").toInt(&ok);
-        if (ok)
-            max_cache_pages = npages;
-    }
+    // cache
+    const qreal memory = settings.value("memory").toFloat(&ok);
+    if (ok)
+        max_memory = memory;
+    const int npages = settings.value("cache pages").toInt(&ok);
+    if (ok)
+        max_cache_pages = npages;
 
     // INTERACTION
+    // Keyboard shortcuts
+    settings.beginGroup("keys");
+    const QStringList allKeys = settings.allKeys();
+    if (!allKeys.isEmpty())
     {
-        // Keyboard shortcuts
-        settings.beginGroup("keys");
-        const QStringList allKeys = settings.allKeys();
-        if (!allKeys.isEmpty())
+        key_actions.clear();
+        for (const auto& key : allKeys)
         {
-            key_actions.clear();
-            for (const auto& key : allKeys)
+            const QKeySequence seq(key);
+            if (seq.isEmpty())
+                qWarning() << "Unknown key sequence in config:" << key;
+            else
             {
-                const QKeySequence seq(key);
-                if (seq.isEmpty())
-                    qWarning() << "Unknown key sequence in config:" << key;
+                const quint32 key_code = quint32(seq[0] + seq[1] + seq[2] + seq[3]);
+
+                // First try to interpret sequence as json object.
+                // Here the way how Qt changes the string is not really optimal.
+                // First check if the value is already a json object.
+                QJsonArray array;
+                debug_msg(DebugSettings) << key << settings.value(key).typeName();
+                if (settings.value(key).canConvert(QMetaType::Type::QJsonArray))
+                    array = settings.value(key).toJsonArray();
+                else if (settings.value(key).canConvert(QMetaType::Type::QJsonObject))
+                    array.append(settings.value(key).toJsonObject());
                 else
                 {
-                    const quint32 key_code = quint32(seq[0] + seq[1] + seq[2] + seq[3]);
-
-                    // First try to interpret sequence as json object.
-                    // Here the way how Qt changes the string is not really optimal.
-                    // First check if the value is already a json object.
-                    QJsonArray array;
-                    debug_msg(DebugSettings) << key << settings.value(key).typeName();
-                    if (settings.value(key).canConvert(QMetaType::Type::QJsonArray))
-                        array = settings.value(key).toJsonArray();
-                    else if (settings.value(key).canConvert(QMetaType::Type::QJsonObject))
-                        array.append(settings.value(key).toJsonObject());
-                    else
+                    // Try to parse a human readable input string as json object.
+                    // In the input quotation marks must be escaped. For
+                    // convenience it is allowed to use single quotation marks
+                    // instead.
+                    QJsonParseError error;
+                    const QJsonDocument doc = QJsonDocument::fromJson(settings.value(key).toStringList().join(",").replace("'", "\"").toUtf8(), &error);
+                    if (error.error == QJsonParseError::NoError)
                     {
-                        // Try to parse a human readable input string as json object.
-                        // In the input quotation marks must be escaped. For
-                        // convenience it is allowed to use single quotation marks
-                        // instead.
-                        QJsonParseError error;
-                        const QJsonDocument doc = QJsonDocument::fromJson(settings.value(key).toStringList().join(",").replace("'", "\"").toUtf8(), &error);
-                        if (error.error == QJsonParseError::NoError)
+                        if (doc.isArray())
+                            array = doc.array();
+                        else if (doc.isObject())
+                            array.append(doc.object());
+                    }
+                }
+                if (!array.isEmpty())
+                {
+                    for (const auto &value : qAsConst(array))
+                    {
+                        if (!value.isObject())
+                            continue;
+                        const QJsonObject object = value.toObject();
+                        Tool *tool = createTool(object, Tool::AnyNormalDevice);
+                        if (tool)
                         {
-                            if (doc.isArray())
-                                array = doc.array();
-                            else if (doc.isObject())
-                                array.append(doc.object());
+                            debug_msg(DebugSettings|DebugDrawing) << "Adding tool" << tool << tool->tool() << tool->device();
+                            key_tools.insert(key_code, tool);
                         }
                     }
-                    if (!array.isEmpty())
+                }
+                else
+                {
+                    Action action;
+                    for (const auto &action_str : static_cast<const QStringList>(settings.value(key).toStringList()))
                     {
-                        for (const auto &value : qAsConst(array))
-                        {
-                            if (!value.isObject())
-                                continue;
-                            const QJsonObject object = value.toObject();
-                            Tool *tool = createTool(object, Tool::AnyNormalDevice);
-                            if (tool)
-                            {
-                                debug_msg(DebugSettings|DebugDrawing) << "Adding tool" << tool << tool->tool() << tool->device();
-                                key_tools.insert(key_code, tool);
-                            }
-                        }
-                    }
-                    else
-                    {
-                        Action action;
-                        for (const auto &action_str : static_cast<const QStringList>(settings.value(key).toStringList()))
-                        {
-                            debug_verbose(DebugSettings) << key << action_str;
-                            action = string_to_action_map.value(action_str.toLower(), Action::InvalidAction);
-                            if (action == InvalidAction)
-                                qWarning() << "Unknown action in config" << action_str << "for key" << key;
-                            else
-                                key_actions.insert(key_code, action);
-                        }
+                        debug_verbose(DebugSettings) << key << action_str;
+                        action = string_to_action_map.value(action_str.toLower(), Action::InvalidAction);
+                        if (action == InvalidAction)
+                            qWarning() << "Unknown action in config" << action_str << "for key" << key;
+                        else
+                            key_actions.insert(key_code, action);
                     }
                 }
             }
         }
-        settings.endGroup();
     }
+    settings.endGroup();
 }
 
 #ifdef QT_DEBUG

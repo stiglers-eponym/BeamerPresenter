@@ -22,7 +22,8 @@ QSize ToolSelectorWidget::sizeHint() const noexcept
 void ToolSelectorWidget::addActionButton(const int i, const int j, const QString &string)
 {
     ActionButton *button = new ActionButton(string_to_action_map.value(string, InvalidAction), this);
-    button->setText(string);
+    if (button->icon().isNull())
+        button->setText(string);
     static_cast<QGridLayout*>(layout())->addWidget(button, i, j);
     connect(button, &ActionButton::sendAction, this, &ToolSelectorWidget::sendAction);
 }
@@ -34,7 +35,8 @@ void ToolSelectorWidget::addActionButton(const int i, const int j, const QJsonAr
     ActionButton *button = new ActionButton(this);
     for (const auto &entry : array)
         button->addAction(string_to_action_map.value(entry.toString(), InvalidAction));
-    button->setText(array.first().toString());
+    if (button->icon().isNull())
+        button->setText(array.first().toString());
     static_cast<QGridLayout*>(layout())->addWidget(button, i, j);
     connect(button, &ActionButton::sendAction, this, &ToolSelectorWidget::sendAction);
 }

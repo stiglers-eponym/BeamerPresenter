@@ -65,6 +65,8 @@ enum Action
     PlayMedia,
     PauseMedia,
     PlayPauseMedia,
+    Mute, // TODO: not used yet
+    Unmute, // TODO: not used yet
     // Other actions
     ReloadFiles,
     FullScreen,
