@@ -267,37 +267,45 @@ unix {
     # Commands needed for make install
     # Include man pages and default configuration in make install.
 
+    # gzip man pages (1) and place them in /usr/share/man/man1
     man1.path = /usr/share/man/man1/
     man1.CONFIG = no_check_exist no_build
     man1.extra = gzip -kf9 doc/beamerpresenter.1; gzip -kf9 doc/beamerpresenter-ui.1
     man1.files = doc/beamerpresenter.1.gz doc/beamerpresenter-ui.1.gz
 
+    # gzip man pages (5) and place them in /usr/share/man/man5
     man5.path = /usr/share/man/man5/
     man5.CONFIG = no_check_exist no_build
     man5.extra = gzip -kf9 doc/beamerpresenter.conf.5
     man5.files = doc/beamerpresenter.conf.5.gz
 
+    # copy config/beamerpresenter.conf and config/gui.json to DEFAULT_CONFIG_PATH
     configuration.path = $${DEFAULT_CONFIG_PATH}
     configuration.CONFIG = no_build
     configuration.files = config/beamerpresenter.conf config/gui.json
 
+    # copy app icon share/icons/beamerpresenter.svg to APP_ICON_PATH
     appicon.path = $${APP_ICON_PATH}
     appicon.CONFIG = no_build
     appicon.files = share/icons/beamerpresenter.svg
 
+    # copy share/icons/tools (internally required icons) to $$ICON_PATH/tools
     icon.path = $${ICON_PATH}
     icon.CONFIG = no_build
     icon.files = share/icons/tools
 
+    # copy share/doc/README.html (in-app manual) to /usr/share/doc/beamerpresenter/
     doc.path = /usr/share/doc/beamerpresenter/
     doc.CONFIG = no_build
     doc.files = share/doc/README.html
 
+    # copy desktop file share/applications/beamerpresenter.desktop to /usr/share/applications/
     desktop.path = /usr/share/applications/
     desktop.CONFIG = no_build
     desktop.files = share/applications/beamerpresenter.desktop
 
+    # executable should be placed in /usr/bin/
     target.path = /usr/bin/
 
-    INSTALLS += man1 man5 configuration icon doc desktop target
+    INSTALLS += man1 man5 configuration appicon icon doc desktop target
 }

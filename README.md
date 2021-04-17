@@ -136,13 +136,6 @@ In GNU+Linux you can install BeamerPresenter with
 ```sh
 make install
 ```
-When installing manually, you may need the following files (in build directory):
-* `beamerpesenter`: executable, the program
-* `config/beamerpesenter.conf`: settings file, usually stored in `/etc/xdg/beamerpresenter/beamerpresenter.conf` or `$HOME/.config/beamerpresenter/beamerpresenter.conf`. If located at a different path, specify the path with the command line option `-c <path>`.
-* `config/gui.json`: user interface configuration, mandatory! Usually stored in `/etc/xdg/beamerpresenter/gui.json` or `$HOME/.config/beamerpresenter/gui.json`. The path to this file needs to be specified in the settings file (see above) or given explicitly with the command line option `-g <path>`.
-* `doc/*`: manuals, not required for running the program.
-* `share/*`: icon, desktop file and in-app manual, not required for running the program.
-* `LICENSE` (optional): you might want to remember that it's AGPL3 (see [below](https://github.com/stiglers-eponym/BeamerPresenter#license) for details)
 
 ### Upgrade from version 0.1.x
 The configuration files of versions 0.1.x and 0.2.x are incompatible.
