@@ -7,7 +7,11 @@ clock, a timer for the presentation, and previews of the next slides.
 
 This software uses the Qt framework and the PDF engines MuPDF and/or poppler.
 
-**Note**: the relatively stable version 0.1.3 can be found in [branch 0.1.x](https://github.com/stiglers-eponym/BeamerPresenter/tree/0.1.x) and in the [releases](https://github.com/stiglers-eponym/BeamerPresenter/releases). This new version 0.2.0beta is not stable yet.
+## Which version?
+Versions [0.1](https://github.com/stiglers-eponym/BeamerPresenter/tree/0.1.x) and 0.2 are different programs with incompatible configurations.
+[Version 0.1.3](https://github.com/stiglers-eponym/BeamerPresenter/releases) is relatively stable and can be [built in macOS](https://github.com/stiglers-eponym/BeamerPresenter/tree/0.1.x#building-in-macos) without manually adapting beamerpresenter.pro.
+Version 0.2.0 has many new features and is much more flexible.
+If you want to draw in the presentation using a tablet or drawing pad, or if you want to adapt the interface or use more than two monitors, you should try the current git version (0.2.0).
 
 ## Features (selection)
 * modular user interface (new in 0.2.x): adapt for your presentation style and technical equipment (number of monitors, extra information available, input devices, ...)
@@ -53,9 +57,7 @@ The interface is very flexible and can be adjusted to your needs. Also multiple 
 
 
 ## Build and install
-**Note**: building and installing the
-[releases](https://github.com/stiglers-eponym/BeamerPresenter/releases)
-of version 0.1.x is described
+**Note**: building and installing version 0.1.3 is described
 [here](https://github.com/stiglers-eponym/BeamerPresenter/tree/0.1.x#build).
 
 Building is tested in an up-to-date Arch Linux and (from time to time) in xubuntu 20.04.
@@ -64,7 +66,7 @@ Version 0.1.x of BeamerPresenter should run in ubuntu 18.04 and you should
 [open an issue](https://github.com/stiglers-eponym/BeamerPresenter/issues)
 on github if it does not.
 
-In ArchLinux you can install `beamerpresenter-git` from the AUR for this version or `beamerpresenter` for [version 0.1.3](https://github.com/stiglers-eponym/BeamerPresenter/tree/0.1.x).
+In Arch Linux you can install `beamerpresenter-git` from the AUR.
 By default MuPDF is selected as PDF engine in  `beamerpresenter-git`, the configuration for poppler is commented out in the PKGBUILD file.
 
 First install the dependencies. You need Qt 5 including the multimedia module (which is not available in Qt 6.0).
@@ -139,7 +141,7 @@ make install
 
 ### Upgrade from version 0.1.x
 The configuration files of versions 0.1.x and 0.2.x are incompatible.
-When upgrading, you should move your config files from version 0.1.x to some backup to avoid conflicts.
+When upgrading, you should move your configuration files of version 0.1.x to some backup to avoid conflicts.
 
 
 ## Bugs
@@ -187,18 +189,16 @@ BeamerPresenter (`qmake --version`).
 * cache slides even when size of slides varies (partially implemented)
 * cache only required slides in previews showing specific overlays
 * make layout more reliable
-* sounds
-* tool to select and modify drawings
+* sounds, mute/unmute actions
+* tools to select and modify drawings
 * option to insert extra (blank or copied) slides for drawing
-* improve text input tool
+* improve text input tool, fix bugs arising when using text input tool with "special" devices
 * combination of slide transitions and videos sometimes interrupts videos
-* make xml file loading more stable
 * improve widgets:
     * thumbnails (cursor, keyboard navigation)
     * table of contents (cursor, keyboard navigation)
     * all: keyboard shortcuts
 * fine-tuned interface, fonts, ...
-* manual, man pages
 
 
 ## License

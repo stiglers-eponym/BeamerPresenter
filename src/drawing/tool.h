@@ -15,25 +15,36 @@ class Tool
 {
 public:
     /// Tools for drawing and highlighting.
+    /// The first 5 bits are used to encode a tool number.
+    /// The following 3 bits are used as flags for classes of tools.
     enum BasicTool
     {
-        // Invalid
+        // Invalid tool
         InvalidTool = 0,
-        // Draw tools: first 4 bits, class DrawTool
-        Pen = 1 << 0,
-        FixedWidthPen = 2 << 0,
-        Highlighter = 3 << 0,
-        Eraser = 4 << 0,
-        AnyDrawTool = 0x0f << 0,
-        // Highlighting tools: next 4 bits, class PointingTool
-        Pointer = 1 << 4,
-        Torch = 2 << 4,
-        Magnifier = 3 << 4,
-        AnyPointingTool = 0x0f << 4,
-        // Other tools, class Tool
-        TextInputTool = 1 << 8,
+        // General tools, class Tool
+        TextInputTool = 1,
         // No tool
-        NoTool = 1 << 11,
+        NoTool = 0x1f,
+
+        // Classes of tools, defined by single bits
+        AnyDrawTool = 1 << 5,
+        AnyPointingTool = 1 << 6,
+        AnySelectionTool = 1 << 7,
+
+        // Draw tools: first 3 bits, class DrawTool
+        Pen = 0           | AnyDrawTool,
+        FixedWidthPen = 1 | AnyDrawTool,
+        Highlighter = 2   | AnyDrawTool,
+        Eraser = 3        | AnyDrawTool,
+
+        // Highlighting tools: next 2 bits, class PointingTool
+        Pointer = 0   | AnyPointingTool,
+        Torch = 1     | AnyPointingTool,
+        Magnifier = 2 | AnyPointingTool,
+
+        // selection tools, class Tool
+        RectSelectionTool = 0 | AnySelectionTool,
+        FlexSelectionTool = 1 | AnySelectionTool,
     };
 
     /// Combinable flags defining input devices.
