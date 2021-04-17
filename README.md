@@ -72,14 +72,22 @@ poppler Qt5 bindings installed. Building with Qt6 is not possible.
 If building fails on your system, please open an issue on github and mention
 your Qt version (`qmake --version`).
 
-Download, compile and install this project on GNU/Linux systems:
+Download, verify, unpack and build version 0.1.3 in GNU+Linux:
 ```sh
-git clone https://github.com/stiglers-eponym/BeamerPresenter.git
-cd BeamerPresenter
+wget https://github.com/stiglers-eponym/BeamerPresenter/archive/v0.1.3.tar.gz
+sha256sum -c - <<< "4acf279613637487201cbe6fcdf37592fd1a7891a58f7918f561c86f01489b4d v0.1.3.tar.gz"
+tar -xf v0.1.3.tar.gz
+cd BeamerPresenter-0.1.3
 qmake && make
-make install
 ```
-In GNU/Linux showing videos in a presentation additionally requires the
+You can now install the program and remove the build directory.
+`make install` usually requires root privileges (`sudo`).
+```sh
+make install
+cd ..
+rm -r BeamerPresenter-0.1.3
+```
+In GNU+Linux showing videos in a presentation additionally requires the
 installation of some GStreamer plugins.
 In other systems other plugins might be needed.
 
@@ -95,16 +103,10 @@ sudo apt install g++ qt5-qmake qt5-default libpoppler-qt5-dev qtmultimedia5-dev
 ```
 Optionally install `libqt5multimedia5-plugins` for multimedia content.
 
-Then download the source and build. To download the latest release use
+Download and build version 0.1.3 as explained above.
+To build from the current git version of branch 0.1.x use
 ```sh
-wget https://github.com/stiglers-eponym/BeamerPresenter/archive/v0.1.3.tar.gz
-tar -xf v0.1.3.tar.gz
-cd BeamerPresenter-0.1.3
-qmake && make
-```
-To build from current git version use
-```sh
-git clone https://github.com/stiglers-eponym/BeamerPresenter.git
+git clone -b 0.1.x --depth 1 https://github.com/stiglers-eponym/BeamerPresenter.git
 cd BeamerPresenter
 qmake && make
 ```
@@ -135,7 +137,7 @@ brew install qt poppler
 Then download the source and build as described for ubuntu.
 For the latest git version use
 ```sh
-git clone https://github.com/stiglers-eponym/BeamerPresenter.git
+git clone -b 0.1.x --depth 1 https://github.com/stiglers-eponym/BeamerPresenter.git
 cd BeamerPresenter
 qmake && make
 ```
@@ -153,12 +155,6 @@ For building BeamerPresenter in any other OS you need to have Qt5 and the
 poppler-qt5 library installed. In `beamerpresenter.pro` you need to configure
 `INCLUDEPATH` and `LIBS` manually.
 
-On Microsoft Windows you can either use the Windows Subsystem for Linux or
-build directly in Windows. Using the subsystem for linux has the advantage
-that you can use recent poppler versions provided by e.g. ubuntu. But it
-requires manual configuration of the display.
-When building directly in Windows you need poppler and Qt5 for Windows.
-
 
 ## Usage
 ```sh
@@ -173,7 +169,7 @@ in which you can pick you presentation and notes file.
 
 ## Settings
 Settings can be placed in a file `beamerpresenter.conf` (on platforms other than
-GNU/Linux: `beamerpresenter.ini`). An example configuration file is provided.
+GNU+Linux: `beamerpresenter.ini`). An example configuration file is provided.
 The configuration can only be edited directly with a text editor.
 
 
@@ -184,12 +180,3 @@ If you find bugs or have suggestions for improvements, please
 When reporting bugs, please include the version string of BeamerPresenter
 (`beamerpresenter --version`) or the Qt version if you have problems building
 BeamerPresenter (`qmake --version`).
-
-
-## Development
-The code for versions 0.1.x is quite unreadable, not really structured and full
-of ugly bug-fixes. To create something more structured, efficient, modular and
-flexible, I started rewriting BeamerPresenter from scratch (now branch `main`).
-
-For the old code this means: Small issues might still be fixed, but new
-features will only be available in the new, rewritten version.
