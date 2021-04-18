@@ -47,6 +47,9 @@ public:
     void setPos(const QPointF &pos) noexcept
     {_pos = {pos};}
 
+    void setPos(const QList<QPointF> &pos) noexcept
+    {_pos = pos;}
+
     void addPos(const QPointF &pos) noexcept
     {_pos.append(pos);}
 

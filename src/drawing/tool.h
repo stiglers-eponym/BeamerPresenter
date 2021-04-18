@@ -60,12 +60,22 @@ public:
         TabletEraser = 1 << 5,
         TabletCursor = 1 << 6,
         TabletOther = 1 << 7,
-        TabletNoPressure = 1 << 8,
+        TabletHover = 1 << 8,
         TouchInput = 1 << 9,
-        AnyDevice = 0xffff,
+        AnyDevice = 0x0fff,
         AnyPointingDevice = AnyDevice ^ (TabletEraser | MouseRightButton | MouseMiddleButton),
-        AnyNormalDevice = AnyPointingDevice ^ (TabletNoPressure | MouseNoButton),
+        AnyNormalDevice = AnyPointingDevice ^ (TabletHover | MouseNoButton),
         PressureSensitiveDevices = TabletPen | TabletEraser | TabletCursor | TabletOther,
+    };
+
+    enum DeviceEventType
+    {
+        NoEvent = 1 << 12,
+        StartEvent = 2 << 12,
+        UpdateEvent = 3 << 12,
+        StopEvent = 4 << 12,
+        CancelEvent = 5 << 12,
+        AnyEvent = 0xf000,
     };
 
 protected:
@@ -143,7 +153,7 @@ static const QMap<QString, int> string_to_input_device
     {"tablet pen", Tool::TabletPen},
     {"tablet", Tool::TabletPen | Tool::TabletCursor | Tool::TabletOther},
     {"tablet eraser", Tool::TabletEraser},
-    {"tablet hover", Tool::TabletNoPressure},
+    {"tablet hover", Tool::TabletHover},
     {"tablet all", Tool::TabletPen | Tool::TabletCursor | Tool::TabletOther | Tool::TabletEraser},
     {"all", Tool::AnyNormalDevice},
     {"all+", Tool::AnyPointingDevice},

@@ -67,7 +67,7 @@ bool ToolButton::event(QEvent *event) noexcept
                     {
                         int device = tablet_device_to_input_device.value(static_cast<const QTabletEvent*>(event)->pointerType());
                         if (tool->tool() == Tool::Pointer && (device & (Tool::TabletPen | Tool::TabletCursor)))
-                            device |= Tool::TabletNoPressure;
+                            device |= Tool::TabletHover;
                         newtool->setDevice(device);
                     }
                     else if (event->type() == QEvent::MouseButtonRelease)

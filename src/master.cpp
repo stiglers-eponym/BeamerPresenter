@@ -877,7 +877,7 @@ void Master::setTool(Tool *tool) const noexcept
         device |= Tool::MouseNoButton;
     // Delete tablet no pressure device if any tablet device is overwritten.
     if (tool->device() & (Tool::TabletCursor | Tool::TabletPen | Tool::TabletEraser))
-        device |= Tool::TabletNoPressure;
+        device |= Tool::TabletHover;
     int newdevice;
     for (auto tool_it = preferences()->current_tools.cbegin(); tool_it != preferences()->current_tools.cend();)
     {
