@@ -16,6 +16,7 @@
 class PdfMaster;
 class AbstractGraphicsPath;
 class Tool;
+class DrawTool;
 class PathContainer;
 class PixmapGraphicsItem;
 
@@ -65,10 +66,6 @@ private:
     /// Path which is currently being drawn.
     /// NULL if currenty no path is drawn.
     AbstractGraphicsPath* currentPath {NULL};
-
-    /// Currently used draw tool, cached during drawing.
-    /// current_tool is never owned by this.
-    Tool *current_tool {NULL};
 
     /// Group of path segments forming the currently drawn path.
     /// This collection of segments is directly made visible and gets deleted
@@ -175,17 +172,13 @@ public:
     void navigationEvent(const int newpage, SlideScene* newscene = NULL);
 
     /// Start handling draw and erase events.
-    void startInputEvent(Tool *tool, const QPointF &pos, const float pressure = 1.);
+    void startInputEvent(const DrawTool *tool, const QPointF &pos, const float pressure = 1.);
 
     /// Handle draw and erase events.
-    void stepInputEvent(const QPointF &pos, const float pressure = 1.);
+    void stepInputEvent(const DrawTool *tool, const QPointF &pos, const float pressure = 1.);
 
     /// Finish handling draw and erase events.
-    bool stopInputEvent(const QPointF &pos = {0,0});
-
-    /// Check if currently a draw tool is active, i.e. something is drawn.
-    bool isDrawing() const noexcept
-    {return current_tool;}
+    bool stopInputEvent(const DrawTool *tool, const QPointF &pos = {0,0});
 
     /// Check if currently text is beeing edited.
     bool isTextEditing() const noexcept
@@ -203,6 +196,8 @@ protected:
 
     /// Clicked on slide without draw tool (follow link, play video, ...)
     void noToolClicked(const QPointF &pos, const QPointF &startpos = QPointF());
+
+    void handleEvents(const int device, const QList<QPointF> &pos, const QPointF &start_pos, const float pressure);
 
 public slots:
     /// Stop drawing and convert just drawn path to regular path.

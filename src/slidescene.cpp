@@ -66,7 +66,7 @@ bool SlideScene::event(QEvent* event)
     debug_verbose(DebugDrawing) << event;
     int device = 0;
     QList<QPointF> pos;
-    QList<QPointF> start_pos;
+    QPointF start_pos;
     switch (event->type())
     {
     case QEvent::GraphicsSceneMousePress:
@@ -88,7 +88,7 @@ bool SlideScene::event(QEvent* event)
         const auto *mouseevent = static_cast<QGraphicsSceneMouseEvent*>(event);
         device = (mouseevent->button() << 1) | Tool::StopEvent;
         pos.append(mouseevent->scenePos());
-        start_pos.append(mouseevent->buttonDownScenePos(mouseevent->button()));
+        start_pos = mouseevent->buttonDownScenePos(mouseevent->button());
         break;
     }
     case QEvent::TouchBegin:
@@ -111,10 +111,11 @@ bool SlideScene::event(QEvent* event)
     {
         device = Tool::TouchInput | Tool::StopEvent;
         const auto touchevent = static_cast<QTouchEvent*>(event);
-        for (const auto &point : touchevent->touchPoints())
+        if (touchevent->touchPoints().size() > 0)
         {
-            pos.append(point.scenePos());
-            start_pos.append(point.startScenePos());
+            for (const auto &point : touchevent->touchPoints())
+                pos.append(point.scenePos());
+            start_pos = touchevent->touchPoints().constFirst().startScenePos();
         }
         break;
     }
@@ -124,93 +125,98 @@ bool SlideScene::event(QEvent* event)
     default:
         return QGraphicsScene::event(event);
     }
+    event->accept();
+    handleEvents(device, pos, start_pos, 1.);
+    return true;
+}
 
+void SlideScene::handleEvents(const int device, const QList<QPointF> &pos, const QPointF &start_pos, const float pressure)
+{
     Tool *tool = preferences()->currentTool(device & Tool::AnyDevice);
-    if (tool)
+    if (!tool)
     {
-        debug_verbose(DebugDrawing) << "Handling event" << tool->tool() << tool->device() << device;
-        if (tool->tool() & Tool::AnyDrawTool)
+        if ((device & Tool::AnyEvent) == Tool::StopEvent && pos.size() == 1)
+            noToolClicked(pos.constFirst(), start_pos);
+        return;
+    }
+
+    debug_verbose(DebugDrawing) << "Handling event" << tool->tool() << tool->device() << device;
+    if (tool->tool() & Tool::AnyDrawTool)
+    {
+        switch (device & Tool::AnyEvent)
         {
-            switch (device & Tool::AnyEvent)
+        case Tool::UpdateEvent:
+            stepInputEvent(static_cast<const DrawTool*>(tool), pos.constFirst(), pressure);
+            break;
+        case Tool::StartEvent:
+            startInputEvent(static_cast<const DrawTool*>(tool), pos.constFirst(), pressure);
+            break;
+        case Tool::StopEvent:
+            stopInputEvent(static_cast<const DrawTool*>(tool), pos.isEmpty() ? QPointF() : pos.constFirst());
+            break;
+        case Tool::CancelEvent:
+            if (stopInputEvent(static_cast<const DrawTool*>(tool), QPointF()))
             {
-            case Tool::UpdateEvent:
-                stepInputEvent(pos.constFirst());
+                PathContainer *container;
+                emit requestPathContainer(&container, page | page_part);
+                if (container)
+                    container->undo(this);
                 break;
-            case Tool::StartEvent:
-                startInputEvent(tool, pos.constFirst());
-                break;
-            case Tool::StopEvent:
-                stopInputEvent(pos.isEmpty() ? QPointF() : pos.constFirst());
-                break;
-            case Tool::CancelEvent:
-                if (stopInputEvent(QPointF()))
-                {
-                    PathContainer *container;
-                    emit requestPathContainer(&container, page | page_part);
-                    if (container)
-                        container->undo(this);
-                    break;
-                }
             }
         }
-        else if (tool->tool() & Tool::AnyPointingTool)
+    }
+    else if (tool->tool() & Tool::AnyPointingTool)
+    {
+        PointingTool *ptool = static_cast<PointingTool*>(tool);
+        QRectF point_rect = QRectF({0,0}, ptool->size()*QSize(2,2));
+        for (auto point : ptool->pos())
         {
-            PointingTool *ptool = static_cast<PointingTool*>(tool);
-            QRectF point_rect = QRectF({0,0}, ptool->size()*QSize(2,2));
-            for (auto point : ptool->pos())
+            point_rect.moveCenter(point);
+            invalidate(point_rect, QGraphicsScene::ForegroundLayer);
+        }
+        if ((device & Tool::AnyEvent) == Tool::StopEvent)
+            ptool->clearPos();
+        else
+        {
+            ptool->setPos(pos);
+            for (auto point : qAsConst(pos))
             {
                 point_rect.moveCenter(point);
                 invalidate(point_rect, QGraphicsScene::ForegroundLayer);
             }
-            if ((device & Tool::AnyEvent) == Tool::StopEvent)
-                ptool->clearPos();
-            else
+        }
+    }
+    else if (tool->tool() & Tool::AnySelectionTool)
+    {
+        // TODO
+    }
+    else if (tool->tool() == Tool::TextInputTool && (device & Tool::AnyEvent) == Tool::StopEvent && pos.size() == 1)
+    {
+        debug_msg(DebugDrawing) << "Trying to start writing text" << (device & Tool::AnyDevice) << focusItem();
+        for (auto item : static_cast<const QList<QGraphicsItem*>>(items(pos.constFirst())))
+        {
+            if (item->type() == TextGraphicsItem::Type)
             {
-                ptool->setPos(pos);
-                for (auto point : qAsConst(pos))
-                {
-                    point_rect.moveCenter(point);
-                    invalidate(point_rect, QGraphicsScene::ForegroundLayer);
-                }
+                setFocusItem(item);
+                return;
             }
         }
-        else if (tool->tool() & Tool::AnySelectionTool)
-        {
-            // TODO
-        }
-        else if (tool->tool() == Tool::TextInputTool && (device & Tool::AnyEvent) == Tool::StopEvent && pos.size() == 1)
-        {
-            debug_msg(DebugDrawing) << "Trying to start writing text" << (device & Tool::AnyDevice) << focusItem();
-            for (auto item : static_cast<const QList<QGraphicsItem*>>(items(pos.constFirst())))
-            {
-                if (item->type() == TextGraphicsItem::Type)
-                {
-                    setFocusItem(item);
-                    event->accept();
-                    return true;
-                }
-            }
-            TextGraphicsItem *item = new TextGraphicsItem();
-            item->setTextInteractionFlags(Qt::TextEditorInteraction);
-            item->setFont(QFont(static_cast<const TextTool*>(tool)->font()));
-            item->setDefaultTextColor(static_cast<const TextTool*>(tool)->color());
-            addItem(item);
-            item->show();
-            item->setPos(pos.constFirst());
-            emit sendNewPath(page | page_part, item);
-            PathContainer *container;
-            emit requestPathContainer(&container, page | page_part);
-            if (container)
-                connect(item, &TextGraphicsItem::deleteMe, container, &PathContainer::deleteEmptyItem);
-            setFocusItem(item);
-        }
-        else if ((device & Tool::AnyEvent) == Tool::StopEvent && pos.size() == 1)
-            noToolClicked(pos.constFirst(), start_pos.isEmpty() ? QPointF() : start_pos.constFirst());
+        TextGraphicsItem *item = new TextGraphicsItem();
+        item->setTextInteractionFlags(Qt::TextEditorInteraction);
+        item->setFont(QFont(static_cast<const TextTool*>(tool)->font()));
+        item->setDefaultTextColor(static_cast<const TextTool*>(tool)->color());
+        addItem(item);
+        item->show();
+        item->setPos(pos.constFirst());
+        emit sendNewPath(page | page_part, item);
+        PathContainer *container;
+        emit requestPathContainer(&container, page | page_part);
+        if (container)
+            connect(item, &TextGraphicsItem::deleteMe, container, &PathContainer::deleteEmptyItem);
+        setFocusItem(item);
     }
     else if ((device & Tool::AnyEvent) == Tool::StopEvent && pos.size() == 1)
-        noToolClicked(pos.constFirst(), start_pos.isEmpty() ? QPointF() : start_pos.constFirst());
-    event->accept();
-    return true;
+        noToolClicked(pos.constFirst(), start_pos);
 }
 
 
@@ -808,97 +814,40 @@ void SlideScene::endTransition()
 
 void SlideScene::tabletPress(const QPointF &pos, const QTabletEvent *event)
 {
-    Tool *tool = preferences()->currentTool(
-                event->pressure() > 0 ?
-                tablet_device_to_input_device.value(event->pointerType()) :
-                Tool::TabletHover
+    handleEvents(
+                (event->pressure() > 0 ? tablet_device_to_input_device.value(event->pointerType()) : Tool::TabletHover) | Tool::StartEvent,
+                {pos},
+                QPointF(),
+                event->pressure()
             );
-    if (!tool)
-        return;
-    if (tool->tool() & Tool::AnyDrawTool)
-    {
-        startInputEvent(tool, pos, event->pressure());
-        return;
-    }
-    else if (tool->tool() & Tool::AnyPointingTool)
-    {
-        static_cast<PointingTool*>(tool)->setPos(pos);
-        invalidate(QRect(), QGraphicsScene::ForegroundLayer);
-    }
-    else if ((tool->tool() == Tool::TextInputTool) && !isTextEditing())
-    {
-        TextGraphicsItem *item = new TextGraphicsItem();
-        item->setTextInteractionFlags(Qt::TextEditorInteraction);
-        item->setFont(QFont(static_cast<const TextTool*>(tool)->font()));
-        item->setDefaultTextColor(static_cast<const TextTool*>(tool)->color());
-        addItem(item);
-        item->show();
-        item->setPos(pos);
-        emit sendNewPath(page | page_part, item);
-        PathContainer *container;
-        emit requestPathContainer(&container, page | page_part);
-        if (container)
-            connect(item, &TextGraphicsItem::deleteMe, container, &PathContainer::deleteEmptyItem);
-        item->setFocus();
-    }
 }
 
 void SlideScene::tabletMove(const QPointF &pos, const QTabletEvent *event)
 {
-    if (current_tool && event->pressure() > 0 && (current_tool->device() & tablet_device_to_input_device.value(event->pointerType())))
-        stepInputEvent(pos, event->pressure());
-    else
-    {
-        Tool *tool = preferences()->currentTool(
-                    event->pressure() > 0 ?
-                    tablet_device_to_input_device.value(event->pointerType()) :
-                    Tool::TabletHover
-                );
-        if (tool && (tool->tool() & Tool::AnyPointingTool))
-        {
-            if (static_cast<PointingTool*>(tool)->pos().size() == 1)
-            {
-                const QPointF oldpos = static_cast<PointingTool*>(tool)->pos().last();
-                static_cast<PointingTool*>(tool)->setPos(pos);
-                invalidate(QRectF(oldpos, pos).normalized().marginsAdded(static_cast<PointingTool*>(tool)->size() * QMarginsF(1,1,1,1)), QGraphicsScene::ForegroundLayer);
-            }
-            else
-            {
-                static_cast<PointingTool*>(tool)->setPos(pos);
-                invalidate(QRectF(), QGraphicsScene::ForegroundLayer);
-            }
-        }
-    }
+    handleEvents(
+                (event->pressure() > 0 ? tablet_device_to_input_device.value(event->pointerType()) : Tool::TabletHover) | Tool::UpdateEvent,
+                {pos},
+                QPointF(),
+                event->pressure()
+            );
 }
 
 void SlideScene::tabletRelease(const QPointF &pos, const QTabletEvent *event)
 {
-    if (current_tool)
-        stopInputEvent(pos);
-    else
-    {
-        Tool *tool = preferences()->currentTool(
-                    tablet_device_to_input_device.value(event->pointerType())
-                );
-        if (tool && (tool->tool() & Tool::AnyPointingTool) && !(tool->device() & Tool::TabletHover))
-        {
-            static_cast<PointingTool*>(tool)->clearPos();
-            invalidate(QRect(), QGraphicsScene::ForegroundLayer);
-        }
-        else if (!tool)
-            noToolClicked(pos);
-    }
+    handleEvents(
+                tablet_device_to_input_device.value(event->pointerType()) | Tool::StopEvent,
+                {pos},
+                QPointF(),
+                event->pressure()
+            );
 }
 
-void SlideScene::startInputEvent(Tool *tool, const QPointF &pos, const float pressure)
+void SlideScene::startInputEvent(const DrawTool *tool, const QPointF &pos, const float pressure)
 {
     if (!tool || !(tool->tool() & Tool::AnyDrawTool) || !(slide_flags & ShowDrawings))
         return;
     debug_verbose(DebugDrawing) << "Start input event" << tool->tool() << tool->device() << tool << pressure;
     stopDrawing();
-    if (current_tool)
-        qWarning() << "Start drawing, but last drawing event was not properly completed.";
-    current_tool = tool;
     switch (tool->tool())
     {
     case Tool::Pen:
@@ -910,9 +859,9 @@ void SlideScene::startInputEvent(Tool *tool, const QPointF &pos, const float pre
         addItem(currentItemCollection);
         currentItemCollection->show();
         if (tool->tool() == Tool::Pen && (tool->device() & Tool::PressureSensitiveDevices))
-            currentPath = new FullGraphicsPath(*static_cast<const DrawTool*>(tool), pos, pressure);
+            currentPath = new FullGraphicsPath(*tool, pos, pressure);
         else
-            currentPath = new BasicGraphicsPath(*static_cast<const DrawTool*>(tool), pos);
+            currentPath = new BasicGraphicsPath(*tool, pos);
         addItem(currentPath);
         currentPath->hide();
         break;
@@ -929,17 +878,17 @@ void SlideScene::startInputEvent(Tool *tool, const QPointF &pos, const float pre
     }
 }
 
-void SlideScene::stepInputEvent(const QPointF &pos, const float pressure)
+void SlideScene::stepInputEvent(const DrawTool *tool, const QPointF &pos, const float pressure)
 {
-    if (pressure <= 0 || !current_tool || !(slide_flags & ShowDrawings))
+    if (pressure <= 0 || !tool || !(slide_flags & ShowDrawings))
         return;
-    debug_verbose(DebugDrawing) << "Step input event" << current_tool->tool() << current_tool->device() << current_tool << pressure;
-    switch (current_tool->tool())
+    debug_verbose(DebugDrawing) << "Step input event" << tool->tool() << tool->device() << tool << pressure;
+    switch (tool->tool())
     {
     case Tool::Pen:
     case Tool::FixedWidthPen:
     case Tool::Highlighter:
-        if (currentPath && currentItemCollection && *static_cast<const DrawTool*>(current_tool) == currentPath->getTool())
+        if (currentPath && currentItemCollection && *tool == currentPath->getTool())
         {
             auto item = new FlexGraphicsLineItem(QLineF(currentPath->lastPoint(), pos), currentPath->getTool().compositionMode());
             if (currentPath->type() == QGraphicsPathItem::UserType + 2)
@@ -968,7 +917,7 @@ void SlideScene::stepInputEvent(const QPointF &pos, const float pressure)
         PathContainer *container;
         emit requestPathContainer(&container, page | page_part);
         if (container)
-            container->eraserMicroStep(pos, static_cast<DrawTool*>(current_tool)->width());
+            container->eraserMicroStep(pos, tool->width());
         break;
     }
     default:
@@ -976,14 +925,14 @@ void SlideScene::stepInputEvent(const QPointF &pos, const float pressure)
     }
 }
 
-bool SlideScene::stopInputEvent(const QPointF &pos)
+bool SlideScene::stopInputEvent(const DrawTool *tool, const QPointF &pos)
 {
-    if (!current_tool || !(slide_flags & ShowDrawings))
+    if (!tool || !(slide_flags & ShowDrawings))
         return false;
-    debug_verbose(DebugDrawing) << "Stop input event" << current_tool->tool() << current_tool->device() << current_tool;
+    debug_verbose(DebugDrawing) << "Stop input event" << tool->tool() << tool->device() << tool;
     const bool changes = currentPath && currentPath->size() > 1;
     stopDrawing();
-    switch (current_tool->tool())
+    switch (tool->tool())
     {
     case Tool::Pen:
     case Tool::FixedWidthPen:
@@ -991,13 +940,11 @@ bool SlideScene::stopInputEvent(const QPointF &pos)
         if (changes)
         {
             invalidate({QRect()}, QGraphicsScene::ItemLayer);
-            current_tool = NULL;
             return true;
         }
         break;
     case Tool::Eraser:
     {
-        current_tool = NULL;
         PathContainer *container;
         emit requestPathContainer(&container, page | page_part);
         if (container && container->applyMicroStep())
@@ -1013,7 +960,6 @@ bool SlideScene::stopInputEvent(const QPointF &pos)
     default:
         break;
     }
-    current_tool = NULL;
     return false;
 }
 
