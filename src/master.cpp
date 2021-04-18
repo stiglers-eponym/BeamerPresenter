@@ -104,6 +104,7 @@ unsigned char Master::readGuiConfig(const QString &filename)
         return 4;
 
     writable_preferences()->document = documents.first()->getDocument();
+    documents.first()->getScenes().first()->views().first()->setFocus();
 
     // Return true (success) if at least one window and one document were created.
     if (windows.isEmpty())
@@ -743,7 +744,10 @@ void Master::handleAction(const Action action)
         if (!documents.isEmpty())
         {
             PdfMaster *doc = documents.first();
-            if (doc && doc->flags() & (PdfMaster::UnsavedDrawings | PdfMaster::UnsavedNotes | PdfMaster::UnsavedTimes))
+            if (doc && (
+                    (doc->flags() & (PdfMaster::UnsavedNotes | PdfMaster::UnsavedTimes))
+                    || ((doc->flags() & PdfMaster::UnsavedDrawings) && doc->hasDrawings())
+                        ))
             {
                 debug_msg(DebugWidgets) << "Asking for close confirmation:" << doc->flags();
                 switch (QMessageBox::question(

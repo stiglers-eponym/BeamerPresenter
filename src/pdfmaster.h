@@ -155,6 +155,8 @@ public:
     /// Clear all drawings including history.
     void clearAllDrawings();
 
+    bool hasDrawings() const noexcept;
+
 public slots:
     /// Handle the given action.
     void receiveAction(const Action action);

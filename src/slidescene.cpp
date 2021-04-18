@@ -968,6 +968,7 @@ void SlideScene::startInputEvent(Tool *tool, const QPointF &pos, const float pre
     switch (tool->tool())
     {
     case Tool::Pen:
+    case Tool::FixedWidthPen:
     case Tool::Highlighter:
         if (currentItemCollection || currentPath)
             break;
@@ -1002,6 +1003,7 @@ void SlideScene::stepInputEvent(const QPointF &pos, const float pressure)
     switch (current_tool->tool())
     {
     case Tool::Pen:
+    case Tool::FixedWidthPen:
     case Tool::Highlighter:
         if (currentPath && currentItemCollection && *static_cast<const DrawTool*>(current_tool) == currentPath->getTool())
         {
@@ -1050,6 +1052,7 @@ bool SlideScene::stopInputEvent(const QPointF &pos)
     switch (current_tool->tool())
     {
     case Tool::Pen:
+    case Tool::FixedWidthPen:
     case Tool::Highlighter:
         if (changes)
         {

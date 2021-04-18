@@ -631,3 +631,11 @@ void PdfMaster::setTimeForPage(const int page, const quint32 time) noexcept
     target_times[page] = time;
     _flags |= UnsavedTimes;
 }
+
+bool PdfMaster::hasDrawings() const noexcept
+{
+    for (auto path : qAsConst(paths))
+        if (!path->isCleared())
+            return true;
+    return false;
+}
