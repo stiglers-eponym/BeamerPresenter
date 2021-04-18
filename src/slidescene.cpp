@@ -122,6 +122,22 @@ bool SlideScene::event(QEvent* event)
     case QEvent::TouchCancel:
         device = Tool::TouchInput | Tool::CancelEvent;
         break;
+    case QEvent::Leave:
+        for (auto tool : qAsConst(preferences()->current_tools))
+        {
+            if (tool && tool->tool() == Tool::Pointer)
+            {
+                PointingTool *ptool = static_cast<PointingTool*>(tool);
+                if (ptool->pos().isEmpty())
+                    continue;
+                QRectF rect({0,0}, ptool->size()*QSizeF(2,2));
+                rect.moveCenter(ptool->pos().constFirst());
+                ptool->clearPos();
+                invalidate(rect);
+                break;
+            }
+        }
+        [[clang::fallthrough]];
     default:
         return QGraphicsScene::event(event);
     }
@@ -168,21 +184,32 @@ void SlideScene::handleEvents(const int device, const QList<QPointF> &pos, const
     else if (tool->tool() & Tool::AnyPointingTool)
     {
         PointingTool *ptool = static_cast<PointingTool*>(tool);
-        QRectF point_rect = QRectF({0,0}, ptool->size()*QSize(2,2));
-        for (auto point : ptool->pos())
+        if (ptool->tool() == Tool::Torch)
         {
-            point_rect.moveCenter(point);
-            invalidate(point_rect, QGraphicsScene::ForegroundLayer);
+            if ((device & Tool::AnyEvent) == Tool::StopEvent)
+                ptool->clearPos();
+            else
+                ptool->setPos(pos);
+            invalidate();
         }
-        if ((device & Tool::AnyEvent) == Tool::StopEvent)
-            ptool->clearPos();
         else
         {
-            ptool->setPos(pos);
-            for (auto point : qAsConst(pos))
+            QRectF point_rect = QRectF({0,0}, ptool->size()*QSize(2,2));
+            for (auto point : ptool->pos())
             {
                 point_rect.moveCenter(point);
                 invalidate(point_rect, QGraphicsScene::ForegroundLayer);
+            }
+            if ((device & Tool::AnyEvent) == Tool::StopEvent && !(tool->device() & (Tool::TabletHover | Tool::MouseNoButton)))
+                ptool->clearPos();
+            else
+            {
+                ptool->setPos(pos);
+                for (auto point : qAsConst(pos))
+                {
+                    point_rect.moveCenter(point);
+                    invalidate(point_rect, QGraphicsScene::ForegroundLayer);
+                }
             }
         }
     }

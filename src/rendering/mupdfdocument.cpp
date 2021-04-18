@@ -568,6 +568,7 @@ const PdfDocument::PdfLink MuPdfDocument::linkAt(const int page, const QPointF &
                     debug_msg(DebugRendering) << "Unsupported link" << link->uri;
                     result = {PdfLink::NoLink, "", rect};
                 }
+                debug_verbose(DebugRendering) << "Link to" << link->uri;
                 break;
             }
         }
