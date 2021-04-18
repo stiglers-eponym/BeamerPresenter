@@ -184,6 +184,7 @@ void SlideScene::handleEvents(const int device, const QList<QPointF> &pos, const
     else if (tool->tool() & Tool::AnyPointingTool)
     {
         PointingTool *ptool = static_cast<PointingTool*>(tool);
+        ptool->scene() = this;
         if (ptool->tool() == Tool::Torch)
         {
             if ((device & Tool::AnyEvent) == Tool::StopEvent)

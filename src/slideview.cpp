@@ -226,7 +226,7 @@ void SlideView::drawForeground(QPainter *painter, const QRectF &rect)
             if (!(basic_tool->tool() & Tool::AnyPointingTool))
                 continue;
             const PointingTool *tool = static_cast<PointingTool*>(basic_tool);
-            if (tool->pos().isEmpty())
+            if (tool->pos().isEmpty() || tool->scene() != scene())
                 continue;
             debug_verbose(DebugDrawing) << "drawing tool" << tool->tool() << tool->size() << tool->color();
             switch (tool->tool())
@@ -303,8 +303,12 @@ void SlideView::prepareTransition(PixmapGraphicsItem *transitionItem)
     QPainter painter(&pixmap);
     painter.setRenderHint(QPainter::Antialiasing);
     QRect sourceRect(mapFromScene({0,0}), pixmap.size());
+    // temporarily disable foreground painting while painting slide.
+    const int show_foreground = view_flags & ShowPointingTools;
+    view_flags ^= show_foreground;
     render(&painter, pixmap.rect(), sourceRect);
     painter.end();
+    view_flags ^= show_foreground;
     transitionItem->addPixmap(pixmap);
 }
 
@@ -345,8 +349,12 @@ void SlideView::prepareFlyTransition(const bool outwards, const PixmapGraphicsIt
     }
     painter.setRenderHint(QPainter::Antialiasing);
     QRect sourceRect(mapFromScene({0,0}), newimg.size());
+    // temporarily disable foreground painting while painting slide.
+    const int show_foreground = view_flags & ShowPointingTools;
+    view_flags ^= show_foreground;
     render(&painter, newimg.rect(), sourceRect);
     painter.end();
+    view_flags ^= show_foreground;
 
     unsigned char r, g, b, a;
     const QRgb *oldpixel, *end;

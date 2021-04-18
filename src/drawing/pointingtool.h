@@ -26,6 +26,9 @@ protected:
     float _scale = 2.;
     /// Color of the tool or more advanced brush (for pointer)
     QBrush _brush;
+    /// Pointer to scene at which this tool is currently active. _scene is used
+    /// by slide views to determine whether this tool should be drawn.
+    const void *_scene {NULL};
 
 public:
     PointingTool(const BasicTool tool, const float size, const QBrush &brush, const int device = AnyDevice) noexcept :
@@ -40,6 +43,12 @@ public:
 
     const QList<QPointF> &pos() const noexcept
     {return _pos;}
+
+    const void* &scene() noexcept
+    {return _scene;}
+
+    const void *const &scene() const noexcept
+    {return _scene;}
 
     void clearPos() noexcept
     {_pos.clear();}
