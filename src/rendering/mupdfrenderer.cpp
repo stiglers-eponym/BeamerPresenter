@@ -55,12 +55,12 @@ fz_pixmap *MuPdfRenderer::renderFzPixmap(const int page, const qreal resolution,
     }
     fz_always(ctx)
     {
-        fz_drop_display_list(ctx, list);
         if (dev)
         {
             fz_close_device(ctx, dev);
             fz_drop_device(ctx, dev);
         }
+        fz_drop_display_list(ctx, list);
     }
     fz_catch(ctx)
     {

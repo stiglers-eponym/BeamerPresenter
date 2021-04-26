@@ -475,7 +475,9 @@ void MuPdfDocument::prepareRendering(fz_context **context, fz_rect *bbox, fz_dis
         *list = fz_new_display_list(ctx, *bbox);
         // Use a fitz device to fill the list with the content of the page.
         dev = fz_new_list_device(ctx, *list);
-        pdf_run_page_contents(ctx, pages[pagenumber], dev, fz_scale(resolution, resolution), NULL);
+        // One could use the "pdf_run_page_contents" function here instead to hide annotations.
+        // But there exist PDFs in which images are not rendered by that function.
+        pdf_run_page(ctx, pages[pagenumber], dev, fz_scale(resolution, resolution), NULL);
     }
     fz_always(ctx)
     {
