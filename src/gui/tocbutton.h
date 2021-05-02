@@ -35,6 +35,9 @@ class TOCbutton : public QPushButton
     /// First child element in tree structure.
     TOCbutton *tree_child = NULL;
 
+    /// Toggle show / hide children.
+    void toggleVisibility();
+
 public:
     /// Constructor: Only directly uses the given values to initialize
     /// properties of this. Takes ownership of expand_button.
@@ -55,6 +58,12 @@ public:
     /// Hide this and all child nodes (required for recursive implementation
     /// of collapse());
     void collapse_hide();
+
+    TOCbutton *next() const
+    {return tree_next;}
+
+    TOCbutton *child() const
+    {return tree_child;}
 
 signals:
     void sendNavigationEvent(const int page);

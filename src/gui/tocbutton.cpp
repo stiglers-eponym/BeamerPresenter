@@ -13,12 +13,19 @@ TOCbutton::TOCbutton(const QString &title, const int _page, QCheckBox *expand_bu
         // effectively disabling the QPushButton lying under it.
         // Workaround: limit expand_button's size.
         expand_button->setMaximumWidth(24);
-        connect(expand_button, &QCheckBox::pressed, this, &TOCbutton::expand);
-        connect(expand_button, &QCheckBox::released, this, &TOCbutton::collapse);
+        connect(expand_button, &QCheckBox::toggled, this, &TOCbutton::toggleVisibility);
         expand_button->setToolTip("uncheck to hide child layers");
     }
     connect(this, &QPushButton::clicked, this, [&]{emit sendNavigationEvent(page);});
     setToolTip("page " + QString::number(_page));
+}
+
+void TOCbutton::toggleVisibility()
+{
+    if (expand_button->isChecked())
+        expand();
+    else
+        collapse();
 }
 
 void TOCbutton::expand()
@@ -38,6 +45,7 @@ void TOCbutton::expand()
             child->expand_button->show();
         child = child->tree_next;
     }
+    parentWidget()->updateGeometry();
 }
 
 void TOCbutton::expand_full()
@@ -66,6 +74,7 @@ void TOCbutton::collapse()
     }
     if (tree_child)
         tree_child->collapse_hide();
+    parentWidget()->updateGeometry();
 }
 
 void TOCbutton::collapse_hide()

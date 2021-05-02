@@ -2,6 +2,7 @@
 #include "src/preferences.h"
 #include "src/rendering/pdfdocument.h"
 #include <QGridLayout>
+#include <QScroller>
 
 void TOCwidget::generateTOC(const PdfDocument *document)
 {
@@ -15,8 +16,13 @@ void TOCwidget::generateTOC(const PdfDocument *document)
     if (outline.size() <= 1)
         return;
 
+    QWidget *base_widget = new QWidget(this);
+    base_widget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+
     QGridLayout *layout = new QGridLayout();
+    layout->setSizeConstraint(QGridLayout::SetNoConstraint);
     QCheckBox *expand_button;
+    int num_items = 0;
     auto add_buttons = [&](const int idx, const int depth, auto &function) -> TOCbutton*
     {
         if (std::abs(outline[idx].next) > idx + 1)
@@ -26,6 +32,7 @@ void TOCwidget::generateTOC(const PdfDocument *document)
         }
         else
             expand_button = NULL;
+        ++num_items;
         TOCbutton *button = new TOCbutton(outline[idx].title, outline[idx].page, expand_button, this);
         layout->addWidget(button, idx, depth+1, 1, std::min(40 - depth, 20));
         connect(button, &TOCbutton::sendNavigationEvent, this, &TOCwidget::sendNavigationSignal);
@@ -36,7 +43,19 @@ void TOCwidget::generateTOC(const PdfDocument *document)
         return button;
     };
     first_button = add_buttons(1, 0, add_buttons);
-    setLayout(layout);
+    if (num_items > 20)
+    {
+        TOCbutton *button = first_button;
+        while (button)
+        {
+            button->collapse();
+            button = button->next();
+        }
+    }
+    base_widget->setLayout(layout);
+    setWidget(base_widget);
+    setWidgetResizable(true);
+    QScroller::grabGesture(this);
 }
 
 void TOCwidget::expandTo(const int page)

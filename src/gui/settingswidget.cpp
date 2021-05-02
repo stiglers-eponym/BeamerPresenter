@@ -8,6 +8,7 @@
 #include <QTextEdit>
 #include <QScrollArea>
 #include <QFormLayout>
+#include <QScroller>
 #include "src/gui/settingswidget.h"
 #include "src/names.h"
 #include "src/preferences.h"
@@ -29,15 +30,19 @@ SettingsWidget::SettingsWidget(QWidget *parent) :
     initRendering();
 
     addTab(manual, "help");
+    QScroller::grabGesture(manual);
     QScrollArea *scroll_area = new QScrollArea(this);
     scroll_area->setWidget(misc);
     addTab(scroll_area, "misc");
+    QScroller::grabGesture(scroll_area);
     scroll_area = new QScrollArea(this);
     scroll_area->setWidget(rendering);
     addTab(scroll_area, "rendering");
+    QScroller::grabGesture(scroll_area);
     scroll_area = new QScrollArea(this);
     scroll_area->setWidget(shortcuts);
     addTab(scroll_area, "shortcuts");
+    QScroller::grabGesture(scroll_area);
 }
 
 void SettingsWidget::initManual()

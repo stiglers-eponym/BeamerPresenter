@@ -1,7 +1,7 @@
 #ifndef TOCWIDGET_H
 #define TOCWIDGET_H
 
-#include <QWidget>
+#include <QScrollArea>
 #include "src/gui/tocbutton.h"
 
 class PdfDocument;
@@ -12,7 +12,7 @@ class PdfDocument;
  * The document outline is saved as a tree structure of TOCbuttons.
  * The tree root is first_button.
  */
-class TOCwidget : public QWidget
+class TOCwidget : public QScrollArea
 {
     Q_OBJECT
 
@@ -21,7 +21,7 @@ class TOCwidget : public QWidget
 
 public:
     /// Trivial constructor, does not create the outline tree.
-    explicit TOCwidget(QWidget *parent = NULL) : QWidget(parent) {}
+    explicit TOCwidget(QWidget *parent = NULL) : QScrollArea(parent) {}
 
     /// Destructor: TOCbuttons are deleted recursively.
     ~TOCwidget()
