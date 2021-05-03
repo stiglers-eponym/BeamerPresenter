@@ -113,9 +113,17 @@ Optional, for showing videos:
 * `gst-plugins-good`
 
 ### Build
-Download the sources:
+Download the sources either version 0.2.0
+```sh
+wget https://github.com/stiglers-eponym/BeamerPresenter/archive/v0.2.0.tar.gz
+sha256sum -c - <<< "524a3509cafebf5ced7fad3bfb1c4b35267913baebd142885a74e029d37812e9 v0.2.0.tar.gz"
+tar -xf v0.2.0.tar.gz
+cd BeamerPresenter-0.2.0
+```
+or the latest git version
 ```sh
 git clone --depth 1 https://github.com/stiglers-eponym/BeamerPresenter.git
+cd BeamerPresenter
 ```
 On systems other than GNU+Linux you now need to configure libraries in
 `beamerpresenter.pro`. Pull requests or issues with build instructions for
