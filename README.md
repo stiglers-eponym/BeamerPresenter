@@ -152,6 +152,20 @@ When reporting bugs, please include the version string of BeamerPresenter
 (`beamerpresenter --version`) or the Qt version if you have problems building
 BeamerPresenter (`qmake --version`).
 
+## Known problems
+* Video lags when drawing on it.
+    * Sometimes this can be reduced by first making sure that the presentation window has focus and then pausing and playing the video.
+    * In general I think the quality of the videos is quite good, even when using the magnifier.
+* Tool buttons can be changed in the user interface, but these changes are not saved. Buttons are part of the user interface, which can only be changed (permanently) by editing the JSON-formatted configuration file.
+* Slide labels are broken for encrypted PDFs when using MuPDF.
+* Sound in videos is basically untested and currently has low priority. Feel free to open an issue if this is relevant for you.
+* When compiling with both MuPDF and poppler (`qmake RENDERER=both`), trying to open a PDF with renderer=poppler can result in a segmentation fault for some PDFs. The reason might be a linkage problem with some color-space functions. It is recommended to compile with only one PDF engine.
+* The detection of unsaved changes is quite unreliable. When closing BeamerPresenter you may sometimes see a warning of possibly unsaved changes although there are no unsaved changes. This warning is currently not shown when closing the window through the window manager. The warning can be avoided by using the action "quit unsafe" instead of "quit".
+* Sometimes the slides are not automatically rendered to the correct size when resizing the window. Changing or updating the page should solve this problem.
+* Some slide transitions need to stop videos. Fly slide transitions during videos can cause strange effects.
+* Some slide transitions can show artifacts on preview slide widgets which only show the first or last overlay of a slide.
+* Some slide transitions may have bad performance (low frame rate).
+
 
 ## Development
 

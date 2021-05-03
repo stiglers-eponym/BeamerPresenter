@@ -105,7 +105,7 @@ private:
     void startTransition(const int newpage, const PdfDocument::SlideTransition &transition);
 
     /// Search video annotation in cache and create + add it to cache if necessary.
-    VideoItem &getVideoItem(const PdfDocument::MediaAnnotation &annotatio, const int pagen);
+    VideoItem &getVideoItem(const PdfDocument::MediaAnnotation &annotation, const int page);
 
 public:
     /// Constructor: initialize master, page_part, and QGraphisScene.
@@ -122,6 +122,10 @@ public:
     /// read-only slide flags
     const quint8 &flags() const noexcept
     {return slide_flags;}
+
+    /// video items on all slides (cached or active).
+    QList<VideoItem> &videos() noexcept
+    {return videoItems;}
 
     /// Get current page item (the pixmap graphics item showing the current page)
     PixmapGraphicsItem *pageBackground() const noexcept

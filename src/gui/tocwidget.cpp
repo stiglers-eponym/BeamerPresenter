@@ -43,6 +43,7 @@ void TOCwidget::generateTOC(const PdfDocument *document)
         return button;
     };
     first_button = add_buttons(1, 0, add_buttons);
+    // Collaps items by default if there are more than 20 items in total.
     if (num_items > 20)
     {
         TOCbutton *button = first_button;

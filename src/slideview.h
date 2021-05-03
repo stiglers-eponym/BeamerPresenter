@@ -80,6 +80,7 @@ protected slots:
 public slots:
     /// Inform this that the page number has changed.
     void pageChanged(const int page, SlideScene* scene);
+
     /// Change page, but render page in this thread.
     /// Only required for fly transition.
     void pageChangedBlocking(const int page, SlideScene* scene);

@@ -92,7 +92,12 @@ void SlideView::resizeEvent(QResizeEvent *event)
         return;
     emit resizeCache(event->size());
     SlideScene *slidescene = static_cast<SlideScene*>(scene());
-    pageChanged(slidescene->getPage(), slidescene);
+    const int page = slidescene->getPage();
+    pageChanged(page, slidescene);
+    if (!slidescene->videos().isEmpty())
+        for (auto video : slidescene->videos())
+            if (video.pages.contains(page))
+                addMediaSlider(video);
 }
 
 void SlideView::keyPressEvent(QKeyEvent *event)
