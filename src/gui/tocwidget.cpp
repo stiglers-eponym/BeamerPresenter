@@ -25,19 +25,20 @@ void TOCwidget::generateTOC(const PdfDocument *document)
     int num_items = 0;
     auto add_buttons = [&](const int idx, const int depth, auto &function) -> TOCbutton*
     {
+        if (idx > outline.length() || num_items++ > outline.length())
+            return NULL;
         if (std::abs(outline[idx].next) > idx + 1)
         {
             expand_button = new QCheckBox(this);
-            layout->addWidget(expand_button, idx, depth, 1, depth);
+            layout->addWidget(expand_button, idx, depth, 1, 1);
         }
         else
             expand_button = NULL;
-        ++num_items;
         TOCbutton *button = new TOCbutton(outline[idx].title, outline[idx].page, expand_button, this);
-        layout->addWidget(button, idx, depth+1, 1, std::min(40 - depth, 20));
+        layout->addWidget(button, idx, depth+1, 1, std::max(30 - depth, 15));
         connect(button, &TOCbutton::sendNavigationEvent, this, &TOCwidget::sendNavigationSignal);
         if (std::abs(outline[idx].next) - idx > 1 && idx + 1 < outline.length())
-            button->tree_child = function(idx + 1, depth+1, function);
+            button->tree_child = function(idx + 1, depth + 1, function);
         if (outline[idx].next > 0 && outline[idx].next < outline.length())
             button->tree_next = function(outline[idx].next, depth, function);
         return button;

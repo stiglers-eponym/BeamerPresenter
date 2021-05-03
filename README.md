@@ -175,8 +175,10 @@ BeamerPresenter (`qmake --version`).
 * Some slide transitions need to stop videos. Fly slide transitions during videos can cause strange effects.
 * Some slide transitions can show artifacts on preview slide widgets which only show the first or last overlay of a slide.
 * Some slide transitions may have bad performance (low frame rate).
-* only poppler version: absolute paths to videos are not understood
-* only poppler version: problems with overview widget (bad layout, large overviews not shown)
+* *(fixed in current git version)* only poppler: absolute paths to videos are not understood
+* *(fixed in current git version)* overview widget has bad layout and freezes in poppler version for outlines with subsections
+* Under heavy load while rendering and showing many slides (e.g. scanning through 700 slides in 30 seconds) BeamerPresenter can crash, either with segmentation fault or by just freezing.
+* Poppler version spontaneously crashes when loading large PDFs (>1000 pages).
 
 
 ## Development

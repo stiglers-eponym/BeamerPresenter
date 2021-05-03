@@ -282,8 +282,13 @@ const PdfDocument::MediaAnnotation PopplerDocument::annotationAt(const int page,
             QFileInfo fileinfo(movie->url());
             if (!fileinfo.exists())
             {
-                delete movie;
-                continue;
+                QUrl url(movie->url());
+                fileinfo = url.toLocalFile();
+                if (!fileinfo.exists())
+                {
+                    delete movie;
+                    continue;
+                }
             }
             MediaAnnotation videoAnnotation {
                         QUrl::fromLocalFile(fileinfo.absoluteFilePath()),
@@ -404,20 +409,29 @@ void PopplerDocument::loadOutline()
     outline.clear();
     outline.append({"", -1, 1});
     const QVector<Poppler::OutlineItem> root = doc->outline();
+    if (root.isEmpty())
+        return;
     // dangerous anonymous recursion
-    auto fill_outline = [&](const Poppler::OutlineItem &entry, auto& function) -> void
+    auto fill_outline = [&](const Poppler::OutlineItem &entry, const char sign, auto& function) -> void
     {
         const int idx = outline.length();
         outline.append({entry.name(), entry.destination()->pageNumber() - 1, -1});
-        for (const auto &child : static_cast<const QVector<Poppler::OutlineItem>>(entry.children()))
-            function(child, function);
-        outline[idx].next = outline.length();
-        if (idx + 1 < outline.length())
-            outline.last().next *= -1;
+        const auto &children = entry.children();
+        if (!children.isEmpty())
+        {
+            const auto end = children.cend() - 1;
+            auto it = children.cbegin();
+            while (it != end)
+                function(*it++, 1, function);
+            function(*it, -1, function);
+        }
+        outline[idx].next = sign*outline.length();
     };
-    outline.last().next = -outline.length();
-    for (const auto &child : root)
-        fill_outline(child, fill_outline);
+    const auto end = root.cend() - 1;
+    auto it = root.cbegin();
+    while (it != end)
+        fill_outline(*it++, 1, fill_outline);
+    fill_outline(*it, -1, fill_outline);
 #ifdef QT_DEBUG
     if ((preferences()->debug_level & (DebugRendering|DebugVerbose)) == (DebugRendering|DebugVerbose))
         for (int i=0; i<outline.length(); i++)
