@@ -1,4 +1,4 @@
-VERSION = 0.2.0beta
+VERSION = 0.2.0
 
 ###########################################################
 ###   DEFINE PDF ENGINE, CUSTOM CONFIGURATION
