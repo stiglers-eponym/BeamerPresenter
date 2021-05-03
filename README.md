@@ -10,17 +10,17 @@ This software uses the Qt framework and the PDF engines MuPDF and/or poppler.
 ## Which version?
 Versions [0.1](https://github.com/stiglers-eponym/BeamerPresenter/tree/0.1.x) and 0.2 are different programs with incompatible configurations.
 [Version 0.1.3](https://github.com/stiglers-eponym/BeamerPresenter/releases) is relatively stable and can be [built in macOS](https://github.com/stiglers-eponym/BeamerPresenter/tree/0.1.x#building-in-macos) without manually adapting beamerpresenter.pro.
-Version 0.2.0 has many new features and is much more flexible.
-If you want to draw in the presentation using a tablet or drawing pad, or if you want to adapt the interface or use more than two monitors, you should try the current git version (0.2.0).
+Version 0.2 has many new features and is much more flexible.
+If you want to draw in the presentation using a tablet or drawing pad, or if you want to adapt the interface or use more than two monitors, you should version 0.2.
 
 ## Features (selection)
-* modular user interface (new in 0.2.x): adapt for your presentation style and technical equipment (number of monitors, extra information available, input devices, ...)
+* modular user interface (new in 0.2): adapt for your presentation style and technical equipment (number of monitors, extra information available, input devices, ...)
 * compressed cache for fast slide changes
-* draw in slides, save drawings in a format compatible with Xournal++ (improved in 0.2.x)
+* draw in slides, save drawings in a format compatible with Xournal++ (improved in 0.2)
 * highlighting tools (torch, magnifier, pointer)
-* notes for the speaker in Markdown format (new in 0.2.x)
+* notes for the speaker in Markdown format (new in 0.2)
 * (optionally) show separate presentation file for speaker or use LaTeX-beamer's option to show notes on second screen (split PDF pages into a part for the speaker and a part or the audience)
-* time indicates progress relative to a predefined schedule by it's color (improved in 0.2.x)
+* time indicates progress relative to a predefined schedule by it's color (improved in 0.2)
 * navigate using document outline, thumbnail slides, page numbers/labels and links
 * videos in presentations (currently without audio)
 * slide transitions
@@ -139,9 +139,9 @@ In GNU+Linux you can install BeamerPresenter with
 make install
 ```
 
-### Upgrade from version 0.1.x
-The configuration files of versions 0.1.x and 0.2.x are incompatible.
-When upgrading, you should move your configuration files of version 0.1.x to some backup to avoid conflicts.
+### Upgrade from version 0.1
+The configuration files of versions 0.1 and 0.2 are incompatible.
+When upgrading, you should move your configuration files of version 0.1 to some backup to avoid conflicts.
 
 
 ## Bugs
@@ -156,9 +156,11 @@ BeamerPresenter (`qmake --version`).
 * Video lags when drawing on it.
     * Sometimes this can be reduced by first making sure that the presentation window has focus and then pausing and playing the video.
     * In general I think the quality of the videos is quite good, even when using the magnifier.
-* Tool buttons can be changed in the user interface, but these changes are not saved. Buttons are part of the user interface, which can only be changed (permanently) by editing the JSON-formatted configuration file.
-* Slide labels are broken for encrypted PDFs when using MuPDF.
+* Videos show a short black frame between repetitions. This also appears when navigating to a page containing a video from a different slide than the slide before the video. Palindrome videos are not implemented.
 * Sound in videos is basically untested and currently has low priority. Feel free to open an issue if this is relevant for you.
+* Tool buttons can be changed in the user interface, but these changes are not saved. Buttons are part of the user interface, which can only be changed (permanently) by editing the JSON-formatted configuration file.
+* The "undo" action does not handle text annotations correctly. It only removes (or creates) text fields. But when editing a text field the default keyboard shortcuts (CTRL+Z and CTRL+SHIFT+Z) can be used to undo/redo changes in the text. Deleting a text field (by deleting its entire text) cannot be undone.
+* Slide labels are broken for encrypted PDFs when using MuPDF.
 * When compiling with both MuPDF and poppler (`qmake RENDERER=both`), trying to open a PDF with renderer=poppler can result in a segmentation fault for some PDFs. The reason might be a linkage problem with some color-space functions. It is recommended to compile with only one PDF engine.
 * The detection of unsaved changes is quite unreliable. When closing BeamerPresenter you may sometimes see a warning of possibly unsaved changes although there are no unsaved changes. This warning is currently not shown when closing the window through the window manager. The warning can be avoided by using the action "quit unsafe" instead of "quit".
 * Sometimes the slides are not automatically rendered to the correct size when resizing the window. Changing or updating the page should solve this problem.
@@ -206,12 +208,7 @@ BeamerPresenter (`qmake --version`).
 * sounds, mute/unmute actions
 * tools to select and modify drawings
 * option to insert extra (blank or copied) slides for drawing
-* improve text input tool, fix bugs arising when using text input tool with "special" devices
-* combination of slide transitions and videos sometimes interrupts videos
-* improve widgets:
-    * thumbnails (cursor, keyboard navigation)
-    * table of contents (cursor, keyboard navigation)
-    * all: keyboard shortcuts
+* improve keyboard shortcuts in other widgets than slide widget
 * fine-tuned interface, fonts, ...
 
 
