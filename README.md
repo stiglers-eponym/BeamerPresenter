@@ -66,7 +66,7 @@ Version 0.1.x of BeamerPresenter should run in ubuntu 18.04 and you should
 [open an issue](https://github.com/stiglers-eponym/BeamerPresenter/issues)
 on github if it does not.
 
-In Arch Linux you can install `beamerpresenter-git` from the AUR.
+In Arch Linux you can install `beamerpresenter` or `beamerpresenter-git` from the AUR.
 By default MuPDF is selected as PDF engine in  `beamerpresenter-git`, the configuration for poppler is commented out in the PKGBUILD file.
 
 First install the dependencies. You need Qt 5 including the multimedia module (which is not available in Qt 6.0).
@@ -175,6 +175,8 @@ BeamerPresenter (`qmake --version`).
 * Some slide transitions need to stop videos. Fly slide transitions during videos can cause strange effects.
 * Some slide transitions can show artifacts on preview slide widgets which only show the first or last overlay of a slide.
 * Some slide transitions may have bad performance (low frame rate).
+* only poppler version: absolute paths to videos are not understood
+* only poppler version: problems with overview widget (bad layout, large overviews not shown)
 
 
 ## Development
