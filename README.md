@@ -14,10 +14,10 @@ Version 0.2 has many new features and is much more flexible.
 If you want to draw in the presentation using a tablet or drawing pad, or if you want to adapt the interface or use more than two monitors, you should version 0.2.
 
 ## Features (selection)
-* modular user interface (new in 0.2): adapt for your presentation style and technical equipment (number of monitors, extra information available, input devices, ...)
+* modular user interface (new in 0.2): adapt for your presentation style and technical equipment (number of monitors, extra information for the speaker, input devices, ...)
 * compressed cache for fast slide changes
 * draw in slides, save drawings in a format compatible with Xournal++ (improved in 0.2)
-* highlighting tools (torch, magnifier, pointer)
+* highlighting tools (pointer, torch, magnifier)
 * notes for the speaker in Markdown format (new in 0.2)
 * (optionally) show separate presentation file for speaker or use LaTeX-beamer's option to show notes on second screen (split PDF pages into a part for the speaker and a part or the audience)
 * time indicates progress relative to a predefined schedule by it's color (improved in 0.2)
@@ -161,24 +161,21 @@ When reporting bugs, please include the version string of BeamerPresenter
 BeamerPresenter (`qmake --version`).
 
 ## Known problems
-* Video lags when drawing on it.
-    * Sometimes this can be reduced by first making sure that the presentation window has focus and then pausing and playing the video.
-    * In general I think the quality of the videos is quite good, even when using the magnifier.
-* Videos show a short black frame between repetitions. This also appears when navigating to a page containing a video from a different slide than the slide before the video. Palindrome videos are not implemented.
+* Video lags when drawing on it. Sometimes this can be reduced by first making sure that the presentation window has focus and then pausing and playing the video.
+* Videos show a short black frame between repetitions. This also appears when navigating to a page containing a video from a different slide than the slide before the video.
 * Sound in videos is basically untested and currently has low priority. Feel free to open an issue if this is relevant for you.
 * Tool buttons can be changed in the user interface, but these changes are not saved. Buttons are part of the user interface, which can only be changed (permanently) by editing the JSON-formatted configuration file.
-* The "undo" action does not handle text annotations correctly. It only removes (or creates) text fields. But when editing a text field the default keyboard shortcuts (CTRL+Z and CTRL+SHIFT+Z) can be used to undo/redo changes in the text. Deleting a text field (by deleting its entire text) cannot be undone.
+* The undo/redo actions do not handle text annotations correctly. They only remove or create text fields. But when editing a text field the default keyboard shortcuts (CTRL+Z and CTRL+SHIFT+Z) can be used to undo/redo changes in the text. Deleting a text field by deleting its entire text cannot be undone.
 * Slide labels are broken for encrypted PDFs when using MuPDF.
-* When compiling with both MuPDF and poppler (`qmake RENDERER=both`), trying to open a PDF with renderer=poppler can result in a segmentation fault for some PDFs. The reason might be a linkage problem with some color-space functions. It is recommended to compile with only one PDF engine.
+* When compiling with both MuPDF and poppler (`qmake RENDERER=both`), trying to open a PDF with renderer=poppler can result in a segmentation fault for some PDFs (when loading the document or when reaching a certain page). The reason might be a linkage problem with some color-space functions. It is recommended to compile with only one PDF engine.
 * The detection of unsaved changes is quite unreliable. When closing BeamerPresenter you may sometimes see a warning of possibly unsaved changes although there are no unsaved changes. This warning is currently not shown when closing the window through the window manager. The warning can be avoided by using the action "quit unsafe" instead of "quit".
 * Sometimes the slides are not automatically rendered to the correct size when resizing the window. Changing or updating the page should solve this problem.
 * Some slide transitions need to stop videos. Fly slide transitions during videos can cause strange effects.
 * Some slide transitions can show artifacts on preview slide widgets which only show the first or last overlay of a slide.
 * Some slide transitions may have bad performance (low frame rate).
 * *(fixed in current git version)* only poppler: absolute paths to videos are not understood
-* *(fixed in current git version)* overview widget has bad layout and freezes in poppler version for outlines with subsections
-* Under heavy load while rendering and showing many slides (e.g. scanning through 700 slides in 30 seconds) BeamerPresenter can crash, either with segmentation fault or by just freezing.
-* Poppler version spontaneously crashes when loading large PDFs (>1000 pages).
+* *(fixed in current git version)* only poppler: program freeze when showing outline widget
+* *(fixed in current git version)* bad layout of outline widget
 
 
 ## Development

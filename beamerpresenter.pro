@@ -299,6 +299,11 @@ unix {
     doc.CONFIG = no_build
     doc.files = share/doc/README.html
 
+    # copy example configuration files to /usr/share/doc/beamerpresenter/examples/
+    examples.path = /usr/share/doc/beamerpresenter/examples/
+    examples.CONFIG = no_build
+    examples.files = config/*.json
+
     # copy desktop file share/applications/beamerpresenter.desktop to /usr/share/applications/
     desktop.path = /usr/share/applications/
     desktop.CONFIG = no_build
@@ -307,5 +312,5 @@ unix {
     # executable should be placed in /usr/bin/
     target.path = /usr/bin/
 
-    INSTALLS += man1 man5 configuration appicon icon doc desktop target
+    INSTALLS += man1 man5 configuration appicon icon doc desktop examples target
 }

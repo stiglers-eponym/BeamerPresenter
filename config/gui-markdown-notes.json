@@ -1,0 +1,104 @@
+[
+  {
+    "type" : "horizontal",
+    "color" : "#b0b0b0",
+    "children" : [
+      {
+        "type" : "tabbed",
+        "orientation" : "north",
+        "children" : [
+          {
+            "type" : "vertical",
+            "children" : [
+              {
+                "type" : "slide",
+                "title" : "Slide",
+                "file" : "presentation",
+                "page part" : "right",
+                "shift" : 0,
+                "media" : true,
+                "media controls" : true,
+                "threads" : 1,
+                "color" : "black"
+              },
+              {
+                "type" : "tool selector",
+                "buttons" : [
+                  ["previous", "update", "next", "start timer", "stop timer", "undo", "redo", "clear", {"tool":"none"}],
+                  [
+                    {"tool":"pen", "color":"blue", "width":2},
+                    {"tool":"pen", "color":"red", "width":2},
+                    {"tool":"highlighter", "width":20},
+                    {"tool":"eraser", "size":10},
+                    {"tool":"text"},
+                    {"tool":"pointer", "color":"#e0ff0000", "size":4},
+                    {"tool":"pointer", "color":"#e000ff00", "size":4},
+                    {"tool":"torch", "color":"#80080808", "size":60},
+                    {"tool":"magnifier", "color":"gray", "size":100, "scale":1.75}
+                  ]
+                ]
+              }
+            ]
+          },
+          {
+            "type" : "toc",
+            "title" : "Outline",
+            "color" : "yellow"
+          },
+          {
+              "type" : "thumbnails",
+              "title" : "Thumbnails",
+              "overlays" : "skip",
+              "columns" : 4
+          },
+          {
+            "type" : "settings",
+            "title" : "Settings",
+            "color" : "white"
+          }
+        ]
+      },
+      {
+        "type" : "vertical",
+        "title" : "overview",
+        "children" : [
+          {
+            "type" : "clock",
+            "color" : "#f0f0f0"
+          },
+          {
+            "type" : "timer",
+            "color" : "white",
+            "require confirmation" : true,
+            "confirmation default" : false,
+            "colormap" : {
+                "-360" : "#f000ff",
+                "-240" : "#ff0000",
+                 "-60" : "#ffff00",
+                   "0" : "#00ff00",
+                  "60" : "#00ffff",
+                 "180" : "#80c0ff",
+                 "300" : "#ffffff"
+            }
+          },
+          {
+            "type" : "slide label"
+          },
+          {
+            "type" : "notes"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "type" : "slide",
+    "file" : "presentation",
+    "page part" : "left",
+    "shift" : 0,
+    "mute" : false,
+    "threads" : 2,
+    "master" : true,
+    "color" : "black"
+  }
+]

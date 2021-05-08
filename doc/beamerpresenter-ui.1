@@ -6,7 +6,9 @@ beamerpresenter-ui \- user interface of BeamerPresenter
 .
 .SH GENERAL
 .
-The GUI configuration file is JSON-formatted, containing a list of widgets. These widgets function as root widgets forming own windows. Each widget is a JSON dictionary. There are widgets providing their own content and layout widgets which do not provide own contents, but have contain a list of \[dq]children\[dq], which are widgets again.
+The GUI configuration file is JSON-formatted, containing a list of widgets. These widgets function as root widgets forming own windows. Each widget is a JSON dictionary. There are widgets providing their own content and layout widgets which do not provide own contents, but contain a list of child widgets.
+.PP
+Example configuration files can be found in /usr/share/doc/beamerpresenter/examples/.
 .PP
 Arguments shared by all widgets:
 .TP
