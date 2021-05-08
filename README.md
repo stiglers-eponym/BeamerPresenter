@@ -9,7 +9,7 @@ This software uses the Qt framework and the PDF engines MuPDF and/or poppler.
 
 ## Which version?
 Versions [0.1](https://github.com/stiglers-eponym/BeamerPresenter/tree/0.1.x) and 0.2 are different programs with incompatible configurations.
-[Version 0.1.3](https://github.com/stiglers-eponym/BeamerPresenter/releases) is relatively stable and can be [built in macOS](https://github.com/stiglers-eponym/BeamerPresenter/tree/0.1.x#building-in-macos) without manually adapting beamerpresenter.pro.
+[Version 0.1.3](https://github.com/stiglers-eponym/BeamerPresenter/releases) is relatively stable, works in ubuntu 18.04 and can be [built in macOS](https://github.com/stiglers-eponym/BeamerPresenter/tree/0.1.x#building-in-macos) without manually adapting beamerpresenter.pro.
 Version 0.2 has many new features and is much more flexible.
 If you want to draw in the presentation using a tablet or drawing pad, or if you want to adapt the interface or use more than two monitors, you should version 0.2.
 
@@ -20,7 +20,7 @@ If you want to draw in the presentation using a tablet or drawing pad, or if you
 * highlighting tools (pointer, torch, magnifier)
 * notes for the speaker in Markdown format (new in 0.2)
 * (optionally) show separate presentation file for speaker or use LaTeX-beamer's option to show notes on second screen (split PDF pages into a part for the speaker and a part or the audience)
-* time indicates progress relative to a predefined schedule by it's color (improved in 0.2)
+* timer indicates progress relative to a predefined schedule by it's color (improved in 0.2)
 * navigate using document outline, thumbnail slides, page numbers/labels and links
 * videos in presentations (currently without audio)
 * slide transitions
@@ -60,14 +60,11 @@ The interface is very flexible and can be adjusted to your needs. Also multiple 
 **Note**: building and installing version 0.1.3 is described
 [here](https://github.com/stiglers-eponym/BeamerPresenter/tree/0.1.x#build).
 
-Building is tested in an up-to-date Arch Linux and (from time to time) in xubuntu 20.04.
-Older versions of ubuntu are not supported, because ubuntu 18.04 uses old versions of poppler and MuPDF and other ubuntu versions before 20.04 should not be used anymore.
-Version 0.1.x of BeamerPresenter should run in ubuntu 18.04 and you should
-[open an issue](https://github.com/stiglers-eponym/BeamerPresenter/issues)
-on github if it does not.
+Building is tested in Arch Linux and in xubuntu 20.04.
+Older versions of ubuntu are only compatible with version 0.1 of BeamerPresenter.
 
 In Arch Linux you can install `beamerpresenter` or `beamerpresenter-git` from the AUR.
-By default MuPDF is selected as PDF engine in  `beamerpresenter-git`, the configuration for poppler is commented out in the PKGBUILD file.
+Note that in these packages by default MuPDF is selected as PDF engine.
 
 First install the dependencies. You need Qt 5 including the multimedia module (which is not available in Qt 6.0).
 Additionally you need either the Qt 5 bindings of poppler or the MuPDF C bindings.
@@ -113,17 +110,17 @@ Optional, for showing videos:
 * `gst-plugins-good`
 
 ### Build
-Download the sources either version 0.2.0
+Download the sources: either the latest git version
+```sh
+git clone --depth 1 https://github.com/stiglers-eponym/BeamerPresenter.git
+cd BeamerPresenter
+```
+or version 0.2.0
 ```sh
 wget https://github.com/stiglers-eponym/BeamerPresenter/archive/v0.2.0.tar.gz
 sha256sum -c - <<< "524a3509cafebf5ced7fad3bfb1c4b35267913baebd142885a74e029d37812e9 v0.2.0.tar.gz"
 tar -xf v0.2.0.tar.gz
 cd BeamerPresenter-0.2.0
-```
-or the latest git version
-```sh
-git clone --depth 1 https://github.com/stiglers-eponym/BeamerPresenter.git
-cd BeamerPresenter
 ```
 On systems other than GNU+Linux you now need to configure libraries in
 `beamerpresenter.pro`. Pull requests or issues with build instructions for
@@ -180,45 +177,17 @@ BeamerPresenter (`qmake --version`).
 
 ## Development
 
-#### Already implemented
-* render with Poppler or MuPDF
-* cache pages (with limitation of available memory; doesn't work if pages have different sizes)
-* read slides and notes from the same PDF, side by side on same page
-* navigation links inside document
-* navigation skipping overlays
-* build flexible GUI from config
-* draw and erase using tablet input device with variable pressure
-* highlighting tools: pointer, torch, magnifier
-* full per-slide history of drawings (with limitation of number of history steps)
-* select per-slide or per-overlay drawings
-* save and load drawings to xopp-like gzipped xml format
-* animations and automatic slide change
-* slide transitions
-* videos
-* add extra space below a slide for drawing
-* widgets:
-    * slide
-    * clock
-    * page number (and max. number)
-    * page label (and max. label)
-    * tool selector
-    * timer
-    * editable markdown notes per page label or per page number (only available if qt was compiled with native markdown implementation)
-    * table of contents (requires improvement: keyboard navigation)
-    * thumbnails
-    * settings
-
-#### To be implemented / fixed
-* strange probabilistic crash at startup
+#### Ideas for further development
+* fix strange probabilistic crash at startup
 * improve cache management and layout corrections: sometimes cache is not used correctly.
 * cache slides even when size of slides varies (partially implemented)
 * cache only required slides in previews showing specific overlays
 * make layout more reliable
 * sounds, mute/unmute actions
 * tools to select and modify drawings
-* option to insert extra (blank or copied) slides for drawing
+* option to insert extra slides for drawing
 * improve keyboard shortcuts in other widgets than slide widget
-* fine-tuned interface, fonts, ...
+* more icons for actions
 
 
 ## License
