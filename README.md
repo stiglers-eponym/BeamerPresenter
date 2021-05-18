@@ -30,30 +30,30 @@ If you want to draw in the presentation using a tablet or drawing pad, or if you
 These screenshots only show one possible way of using BeamerPresenter. The speaker could also see a different presentation (with additional information), or editable notes.
 
 One possible configuration of the graphical interface shows the previews of the last overlays of the current and next slide to the speaker:
-<img src=".readme/fly-transition.png" width=100% title="Picture flying in during slide transition">
+<img srcset=".readme/fly-transition-480px.webp 480w, .readme/fly-transition-960px.webp 960w" sizes="(max-width: 720px) 480px, 960px" src=".readme/fly-transition-orig.webp" width=100% title="Picture flying in during slide transition">
 The left half of these pictures shows the window visible only to the speaker and the right half shows the presentation. Both are independent windows.
 These examples were created with the configuration `config/gui-2files.json`, which also works fine if just one presentation file is given.
 
 Use a magnifier to show details of your figures (size and magnification factor can be adjusted):
-<img src=".readme/magnifier.png" width=100% title="Magnifier (size and magnification factor are adjustable)">
+<img srcset=".readme/magnifier-480px.webp 480w, .readme/magnifier-960px.webp 960w" sizes="(max-width: 720px) 480px, 960px" src=".readme/magnifier-orig.webp" width=100% title="Magnifier (size and magnification factor are adjustable)">
 
 Draw in your presentation using a pen or highlighter and focus on parts of your slide using a torch or a pointer:
-<img src=".readme/drawings+torch+pointer.png" width=100% title="Annotations, torch and pointer for highlighting">
+<img srcset=".readme/drawings+torch+pointer-480px.webp 480w, .readme/drawings+torch+pointer-960px.webp 960w" sizes="(max-width: 720px) 480px, 960px" src=".readme/drawings+torch+pointer-orig.webp" width=100% title="Annotations, torch and pointer for highlighting">
 Of course, this is just for demonstration an you will usually not use pointer and torch at the same time.
 Annotations, notes and some file-specific settings can be saved and loaded to gzipped xml files in a format which aims at compatibility with Xournal++.
 
 Use an overview of all slides (or all slides with separate slide labels, especially useful for presentations created with LaTeX beamer):
-<img src=".readme/overview+video.png" width=100% title="Overview mode and video in presentation">
+<img srcset=".readme/overview+video-480px.webp 480w, .readme/overview+video-960px.webp 960w" sizes="(max-width: 720px) 480px, 960px" src=".readme/overview+video-orig.webp" width=100% title="Overview mode and video in presentation">
 
 You can embed videos in your slides. Drawing and highlighting also works in the video.
-<img src=".readme/draw-video.png" width=100% title="Drawings (pen and highlighter) and torch in video">
+<img srcset=".readme/draw-video-480px.webp 480w, .readme/draw-video-960px.webp 960w" sizes="(max-width: 720px) 480px, 960px" src=".readme/draw-video-orig.webp" width=100% title="Drawings (pen and highlighter) and torch in video">
 Note the slider for the video on the speaker's screen.
 Slide transitions may in some cases need to interrupt a video.
 
 The interface is very flexible and can be adjusted to your needs. Also multiple monitors are possible. Example of 4 windows for 4 different monitors (3 for the audience, 1 for the speaker):
-<p align="center">
-  <img src=".readme/multi-monitor.png" width=75% title="Example multi-monitor setup: 3 windows for audience, 1 window for speaker">
-</p>
+<div align="center">
+  <img srcset=".readme/multi-monitor-409px.webp 409w, .readme/multi-monitor-817px.webp 817w" sizes="(max-width: 720px) 409px, 817px" src=".readme/multi-monitor-orig.webp" width=75% title="Example multi-monitor setup: 3 windows for audience, 1 window for speaker">
+</div>
 
 
 ## Build and install
@@ -157,7 +157,9 @@ When reporting bugs, please include the version string of BeamerPresenter
 (`beamerpresenter --version`) or the Qt version if you have problems building
 BeamerPresenter (`qmake --version`).
 
-## Known problems
+## Development
+
+### Known problems
 * Video lags when drawing on it. Sometimes this can be reduced by first making sure that the presentation window has focus and then pausing and playing the video.
 * Videos show a short black frame between repetitions. This also appears when navigating to a page containing a video from a different slide than the slide before the video.
 * Sound in videos is basically untested and currently has low priority. Feel free to open an issue if this is relevant for you.
@@ -175,9 +177,7 @@ BeamerPresenter (`qmake --version`).
 * *(fixed in current git version)* bad layout of outline widget
 
 
-## Development
-
-#### Ideas for further development
+### Ideas for further development
 * fix strange probabilistic crash at startup
 * improve cache management and layout corrections: sometimes cache is not used correctly.
 * cache slides even when size of slides varies (partially implemented)
