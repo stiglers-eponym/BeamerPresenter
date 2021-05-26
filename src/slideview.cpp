@@ -9,7 +9,7 @@ SlideView::SlideView(SlideScene *scene, PixCache *cache, QWidget *parent) :
 {
     setMouseTracking(true);
     setAttribute(Qt::WA_AcceptTouchEvents);
-    setRenderHints(QPainter::Antialiasing | QPainter::TextAntialiasing);
+    setRenderHints(QPainter::Antialiasing | QPainter::TextAntialiasing | QPainter::RenderHint::SmoothPixmapTransform);
     setMinimumSize(4, 3);
     setFocusPolicy(Qt::StrongFocus);
     setFrameShape(QFrame::NoFrame);
