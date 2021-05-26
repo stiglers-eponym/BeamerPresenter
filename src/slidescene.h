@@ -2,11 +2,18 @@
 #define SLIDESCENE_H
 
 #include <QGraphicsScene>
-#include <QGraphicsVideoItem>
 #include <QGraphicsSceneMouseEvent>
 #include <QTabletEvent>
+#ifdef USE_QT_GSTREAMER
+#include <QGst/Ui/GraphicsVideoSurface>
+#include <QGst/Ui/GraphicsVideoWidget>
+#include <QGst/Pipeline>
+#include <QGst/ElementFactory>
+#else
+#include <QGraphicsVideoItem>
 #include <QMediaPlayer>
 #include <QMediaPlaylist>
+#endif
 #include <QPropertyAnimation>
 #include <QParallelAnimationGroup>
 #include "src/enumerates.h"
@@ -37,10 +44,22 @@ public:
     {
         /// basic information about video from PDF
         PdfDocument::MediaAnnotation annotation;
+#ifdef USE_QT_GSTREAMER
+        /// Video widget
+        QGst::Ui::GraphicsVideoWidget *item;
+
+        /// Video surface
+        QGst::Ui::GraphicsVideoSurface *surface;
+
+        /// Video surface
+        QGst::PipelinePtr pipeline;
+#else
         /// QGraphicsItem representing the video
         QGraphicsVideoItem *item;
         /// Media player controling the video
         QMediaPlayer *player;
+#endif
+
         /// Set of pages on which this video item appears. This is updated
         /// when videos for a new page are loaded and an old video is found
         /// to be visible also on the new page.

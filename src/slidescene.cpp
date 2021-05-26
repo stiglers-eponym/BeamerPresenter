@@ -34,7 +34,11 @@ SlideScene::~SlideScene()
     delete pageTransitionItem;
     for (auto &item : videoItems)
     {
+#ifdef USE_QT_GSTREAMER
+        delete item.surface;
+#else
         delete item.player;
+#endif
         delete item.item;
     }
     videoItems.clear();
@@ -380,12 +384,20 @@ void SlideScene::loadMedia(const int page)
         {
             debug_msg(DebugMedia) << "loading video" << annotation.file << annotation.rect;
             VideoItem &item = getVideoItem(annotation, page);
+#ifdef USE_QT_GSTREAMER
+            item.item->setGeometry(item.annotation.rect);
+#else
             item.item->setSize(item.annotation.rect.size());
+#endif
             item.item->setPos(item.annotation.rect.topLeft());
             item.item->show();
             addItem(item.item);
             if (slide_flags & AutoplayVideo)
+#ifdef USE_QT_GSTREAMER
+                item.pipeline->setState(QGst::StatePlaying);
+#else
                 item.player->play();
+#endif
             break;
         }
         case PdfDocument::MediaAnnotation::AudioAnnotation:
@@ -443,6 +455,18 @@ SlideScene::VideoItem &SlideScene::getVideoItem(const PdfDocument::MediaAnnotati
         }
     }
     debug_msg(DebugMedia) << "Loading new video" << annotation.file << annotation.rect;
+#ifdef USE_QT_GSTREAMER
+    QGst::Ui::GraphicsVideoSurface *surface = new QGst::Ui::GraphicsVideoSurface(views().first());
+    QGst::Ui::GraphicsVideoWidget *item = new QGst::Ui::GraphicsVideoWidget();
+    item->setSurface(surface);
+    QGst::PipelinePtr pipeline = QGst::ElementFactory::make("playbin").dynamicCast<QGst::Pipeline>();
+    pipeline->setProperty("video-sink", surface->videoSink());
+    pipeline->setProperty("uri", annotation.file.toEncoded());
+    pipeline->setState(QGst::StatePaused);
+    videoItems.append({annotation, item, surface, pipeline, {page}});
+    /* There is certainly a way to reach gapless loops and multiple outputs.
+     * But I don't have time for that. */
+#else
     QMediaPlayer *player = new QMediaPlayer(this);
     player->setMuted(slide_flags & Mute);
     QMediaPlaylist *playlist = new QMediaPlaylist(player);
@@ -473,6 +497,7 @@ SlideScene::VideoItem &SlideScene::getVideoItem(const PdfDocument::MediaAnnotati
     }
     player->setPlaylist(playlist);
     videoItems.append({annotation, item, player, {page}});
+#endif
     return videoItems.last();
 }
 
@@ -1001,10 +1026,17 @@ void SlideScene::noToolClicked(const QPointF &pos, const QPointF &startpos)
         {
             if (startpos.isNull() || item.annotation.rect.contains(startpos))
             {
+#ifdef USE_QT_GSTREAMER
+                if (item.pipeline->currentState() == QGst::StatePlaying)
+                    item.pipeline->setState(QGst::StatePaused);
+                else
+                    item.pipeline->setState(QGst::StatePlaying);
+#else
                 if (item.player->state() == QMediaPlayer::PlayingState)
                     item.player->pause();
                 else
                     item.player->play();
+#endif
                 return;
             }
             break;
@@ -1030,7 +1062,11 @@ void SlideScene::playMedia() const
     for (auto &item : videoItems)
     {
         if (item.pages.contains((page &~NotFullPage)))
+#ifdef USE_QT_GSTREAMER
+            item.pipeline->setState(QGst::StatePlaying);
+#else
             item.player->play();
+#endif
     }
 }
 
@@ -1039,7 +1075,11 @@ void SlideScene::pauseMedia() const
     for (auto &item : videoItems)
     {
         if (item.pages.contains((page &~NotFullPage)))
+#ifdef USE_QT_GSTREAMER
+            item.pipeline->setState(QGst::StatePaused);
+#else
             item.player->pause();
+#endif
     }
 }
 
@@ -1047,7 +1087,14 @@ void SlideScene::playPauseMedia() const
 {
     for (auto &item : videoItems)
     {
-        if (item.pages.contains((page &~NotFullPage)) && item.player->state() == QMediaPlayer::PlayingState)
+        if (
+                item.pages.contains((page &~NotFullPage))
+#ifdef USE_QT_GSTREAMER
+                && item.pipeline->currentState() == QGst::StatePlaying
+#else
+                && item.player->state() == QMediaPlayer::PlayingState
+#endif
+                )
         {
             pauseMedia();
             return;

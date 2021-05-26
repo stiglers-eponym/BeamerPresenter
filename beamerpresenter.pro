@@ -62,6 +62,11 @@ GUI_CONFIG_FILE = "${{DEFAULT_CONFIG_PATH}}gui.json"
 # Disable debugging message if debugging mode is disabled.
 CONFIG(release, debug|release): DEFINES += QT_NO_DEBUG_OUTPUT
 
+# Directly using GStreamer is not implemented, but was just an experiment!
+# More precisely: you might see one video in one view playing exactly once.
+# And you should expect all kinds of errors.
+#DEFINES += USE_QT_GSTREAMER
+
 
 ###########################################################
 ###   CONFIGURE QT + PREPROCESSOR OPTIONS
@@ -221,14 +226,18 @@ contains(DEFINES, INCLUDE_MUPDF) {
 unix {
     LIBS += -L/usr/lib/ -lz
     contains(DEFINES, INCLUDE_POPPLER) {
-        INCLUDEPATH += /usr/include/poppler/qt5
+        INCLUDEPATH += /usr/include/poppler/qt5/
         LIBS += -lpoppler-qt5
     }
     contains(DEFINES, INCLUDE_MUPDF) {
-        INCLUDEPATH += /usr/include/mupdf
+        INCLUDEPATH += /usr/include/mupdf/
         LIBS += -lmupdf -lmupdf-third -lm -lfreetype -lharfbuzz -ljpeg -ljbig2dec -lopenjp2 -lgumbo
         # In my installation of MuPDF, the gumbo library is needed since MuPDF 1.18.0.
         # All other libraries were also required in MuPDF 1.17.0.
+    }
+    contains(DEFINES, USE_QT_GSTREAMER) {
+        INCLUDEPATH += /usr/include/Qt5GStreamer/
+        LIBS += -lQt5GLib-2.0 -lQt5GStreamer-1.0 -lQt5GStreamerUi-1.0
     }
 }
 

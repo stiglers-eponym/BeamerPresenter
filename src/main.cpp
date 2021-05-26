@@ -5,6 +5,9 @@
 #include <src/enumerates.h>
 #include "src/preferences.h"
 #include "src/master.h"
+#ifdef USE_QT_GSTREAMER
+#include <QGst/init.h>
+#endif
 
 #ifdef INCLUDE_POPPLER
 // TODO: make this failsafe (poppler-version.h is not available in early
@@ -104,6 +107,9 @@ int main(int argc, char *argv[])
         wpreferences->loadFromParser(parser);
     }
 
+#ifdef USE_QT_GSTREAMER
+    QGst::init();
+#endif
     Master *master = new Master();
     {
         // Create the user interface.

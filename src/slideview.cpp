@@ -290,11 +290,15 @@ void SlideView::addMediaSlider(const SlideScene::VideoItem &video)
     const QPoint left = mapFromScene(video.annotation.rect.bottomLeft());
     const QPoint right = mapFromScene(video.annotation.rect.bottomRight());
     slider->setGeometry(left.x(), right.y(), right.x() - left.x(), 20);
+#ifdef USE_QT_GSTREAMER
+    // TODO
+#else
     slider->setMaximum(video.player->duration());
     slider->setValue(video.player->position());
     connect(video.player, &QMediaPlayer::durationChanged, slider, &QSlider::setMaximum);
     connect(video.player, &QMediaPlayer::positionChanged, slider, &QSlider::setValue);
     connect(slider, &QSlider::sliderMoved, video.player, &QMediaPlayer::setPosition);
+#endif
     QPalette palette;
     palette.setColor(QPalette::Base, QColor(0,0,0,0));
     slider->setPalette(palette);
