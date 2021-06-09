@@ -728,6 +728,7 @@ void Master::handleAction(const Action action)
     }
     case ReloadFiles:
     {
+        // TODO: problems with slide labels, navigation, and videos after reloading files
         bool changed = false;
         for (const auto doc : qAsConst(documents))
             changed |= doc->loadDocument();

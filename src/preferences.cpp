@@ -548,7 +548,12 @@ void Preferences::replaceKeyToolShortcut(const int oldkeys, const int newkeys, T
         key_tools.insert(newkeys, tool);
         QJsonObject obj;
         toolToJson(tool, obj);
-        settings.setValue(QKeySequence(newkeys).toString(), obj);
+        /* Convert JSON object to string for config file. This makes
+         * it human-readable and circumvents a bug in old Qt versions. */
+        settings.setValue(
+                    QKeySequence(newkeys).toString(),
+                    QString::fromUtf8(QJsonDocument(obj).toJson(QJsonDocument::Compact))
+                );
     }
     settings.endGroup();
 }

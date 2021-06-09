@@ -333,7 +333,7 @@ void SlideScene::navigationEvent(const int newpage, SlideScene *newscene)
             transition = master->transition(page);
             transition.invert();
         }
-        if (transition.type)
+        if (transition.type > 0)
         {
             debug_msg(DebugTransitions) << "Transition:" << transition.type << transition.duration << transition.properties << transition.angle << transition.scale;
             startTransition(newpage, transition);
@@ -1047,7 +1047,10 @@ void SlideScene::playPauseMedia() const
 {
     for (auto &item : videoItems)
     {
-        if (item.pages.contains((page &~NotFullPage)) && item.player->state() == QMediaPlayer::PlayingState)
+        if (
+                item.pages.contains((page &~NotFullPage))
+                && item.player->state() == QMediaPlayer::PlayingState
+            )
         {
             pauseMedia();
             return;

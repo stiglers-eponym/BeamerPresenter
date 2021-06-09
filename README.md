@@ -172,6 +172,7 @@ BeamerPresenter (`qmake --version`).
 * Some slide transitions need to stop videos. Fly slide transitions during videos can cause strange effects.
 * Some slide transitions can show artifacts on preview slide widgets which only show the first or last overlay of a slide.
 * Some slide transitions may have bad performance (low frame rate).
+* if preview shows specific overlays, slide changes adding or removing synchronization of preview and an another frame may lead to short flickering
 * *(fixed in current git version)* only poppler: absolute paths to videos are not understood
 * *(fixed in current git version)* only poppler: program freeze when showing outline widget
 * *(fixed in current git version)* bad layout of outline widget
