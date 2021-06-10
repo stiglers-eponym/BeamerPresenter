@@ -18,7 +18,7 @@ SlideScene::SlideScene(const PdfMaster *master, const PagePart part, QObject *pa
     page_part(part)
 {
     connect(this, &SlideScene::sendNewPath, master, &PdfMaster::receiveNewPath);
-    connect(this, &SlideScene::requestPathContainer, master, &PdfMaster::requestPathContainer, Qt::DirectConnection);
+    connect(this, &SlideScene::requestNewPathContainer, master, &PdfMaster::requestNewPathContainer, Qt::DirectConnection);
     pageItem->setZValue(-1e2);
     addItem(pageItem);
     pageItem->show();
@@ -59,7 +59,6 @@ void SlideScene::stopDrawing()
         currentItemCollection = NULL;
     }
 }
-
 
 bool SlideScene::event(QEvent* event)
 {
@@ -173,8 +172,7 @@ void SlideScene::handleEvents(const int device, const QList<QPointF> &pos, const
         case Tool::CancelEvent:
             if (stopInputEvent(static_cast<const DrawTool*>(tool), QPointF()))
             {
-                PathContainer *container;
-                emit requestPathContainer(&container, page | page_part);
+                PathContainer *container = master->pathContainer(page | page_part);
                 if (container)
                     container->undo(this);
                 break;
@@ -237,8 +235,7 @@ void SlideScene::handleEvents(const int device, const QList<QPointF> &pos, const
         item->show();
         item->setPos(pos.constFirst());
         emit sendNewPath(page | page_part, item);
-        PathContainer *container;
-        emit requestPathContainer(&container, page | page_part);
+        PathContainer *container = master->pathContainer(page | page_part);
         if (container)
             connect(item, &TextGraphicsItem::deleteMe, container, &PathContainer::deleteEmptyItem);
         setFocusItem(item);
@@ -246,7 +243,6 @@ void SlideScene::handleEvents(const int device, const QList<QPointF> &pos, const
     else if ((device & Tool::AnyEvent) == Tool::StopEvent && pos.size() == 1)
         noToolClicked(pos.constFirst(), start_pos);
 }
-
 
 void SlideScene::receiveAction(const Action action)
 {
@@ -352,7 +348,7 @@ void SlideScene::navigationEvent(const int newpage, SlideScene *newscene)
         if (slide_flags & ShowDrawings)
         {
             PathContainer *paths;
-            emit requestPathContainer(&paths, page | page_part);
+            emit requestNewPathContainer(&paths, page | page_part);
             if (paths)
             {
                 const auto end = paths->cend();
@@ -504,7 +500,7 @@ void SlideScene::startTransition(const int newpage, const PdfDocument::SlideTran
     if (slide_flags & ShowDrawings)
     {
         PathContainer *paths;
-        emit requestPathContainer(&paths, page | page_part);
+        emit requestNewPathContainer(&paths, page | page_part);
         if (paths)
         {
             const auto end = paths->cend();
@@ -826,15 +822,6 @@ void SlideScene::endTransition()
         delete animation;
         animation = NULL;
     }
-    PathContainer *paths;
-    emit requestPathContainer(&paths, page | page_part);
-    if (paths)
-    {
-        const auto end = paths->cend();
-        for (auto it = paths->cbegin(); it != end; ++it)
-            if (*it)
-                addItem(*it);
-    }
     loadMedia(page);
     invalidate();
     emit finishTransition();
@@ -895,8 +882,7 @@ void SlideScene::startInputEvent(const DrawTool *tool, const QPointF &pos, const
         break;
     case Tool::Eraser:
     {
-        PathContainer *container;
-        emit requestPathContainer(&container, page | page_part);
+        PathContainer *container = master->pathContainer(page | page_part);
         if (container)
             container->startMicroStep();
         break;
@@ -942,8 +928,7 @@ void SlideScene::stepInputEvent(const DrawTool *tool, const QPointF &pos, const 
         break;
     case Tool::Eraser:
     {
-        PathContainer *container;
-        emit requestPathContainer(&container, page | page_part);
+        PathContainer *container = master->pathContainer(page | page_part);
         if (container)
             container->eraserMicroStep(pos, tool->width());
         break;
@@ -973,8 +958,7 @@ bool SlideScene::stopInputEvent(const DrawTool *tool, const QPointF &pos)
         break;
     case Tool::Eraser:
     {
-        PathContainer *container;
-        emit requestPathContainer(&container, page | page_part);
+        PathContainer *container = master->pathContainer(page | page_part);
         if (container && container->applyMicroStep())
         {
             emit newUnsavedDrawings();

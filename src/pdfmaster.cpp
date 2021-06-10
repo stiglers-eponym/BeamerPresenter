@@ -101,7 +101,7 @@ void PdfMaster::receiveAction(const Action action)
     case UndoDrawing | PagePart::RightHalf:
     {
         const int page = preferences()->page | (action ^ UndoDrawing);
-        PathContainer* const path = pathContainer(page);
+        PathContainer* const path = paths.value(page, NULL);
         if (path)
         {
             debug_msg(DebugDrawing) << "undo:" << path;
@@ -118,7 +118,7 @@ void PdfMaster::receiveAction(const Action action)
     case RedoDrawing | PagePart::RightHalf:
     {
         const int page = preferences()->page | (action ^ RedoDrawing);
-        PathContainer* const path = pathContainer(page);
+        PathContainer* const path = paths.value(page, NULL);
         if (path)
         {
             debug_msg(DebugDrawing) << "redo:" << path;
@@ -134,10 +134,10 @@ void PdfMaster::receiveAction(const Action action)
     case ClearDrawing | PagePart::LeftHalf:
     case ClearDrawing | PagePart::RightHalf:
     {
-        PathContainer* const path = pathContainer(preferences()->page | (action ^ ClearDrawing));
-        debug_msg(DebugDrawing) << "clear:" << path;
+        PathContainer* const path = paths.value(preferences()->page | (action ^ ClearDrawing), NULL);
         if (path && !path->isCleared())
         {
+            debug_msg(DebugDrawing) << "clear:" << path;
             path->clearPaths();
             _flags |= UnsavedDrawings;
         }
@@ -529,11 +529,6 @@ void PdfMaster::readPropertiesFromStream(QXmlStreamReader &reader)
     }
 }
 
-void PdfMaster::requestPathContainer(PathContainer **container, int page)
-{
-    *container = pathContainer(page);
-}
-
 void PdfMaster::clearHistory(const int page, const int remaining_entries) const
 {
     PathContainer *container = paths.value(page, NULL);
@@ -541,7 +536,7 @@ void PdfMaster::clearHistory(const int page, const int remaining_entries) const
         container->clearHistory(remaining_entries);
 }
 
-PathContainer *PdfMaster::pathContainer(int page)
+PathContainer *PdfMaster::pathContainerCreate(int page)
 {
     switch (preferences()->overlay_mode)
     {

@@ -251,8 +251,8 @@ signals:
     /// Tell master that transition has ended.
     void finishTransition();
 
-    /// Get path container for given page.
-    void requestPathContainer(PathContainer **container, int page);
+    /// Get path container for given page, create one if necessary.
+    void requestNewPathContainer(PathContainer **container, int page);
 
     /// Notify master that there are unsaved changes.
     void newUnsavedDrawings();

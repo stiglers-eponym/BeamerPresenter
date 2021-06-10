@@ -147,7 +147,12 @@ public:
     /// Get path container at given page. If overlay_mode==Cumulative, this may
     /// create and return a copy of a previous path container.
     /// page (part) number is given as (page | page_part).
-    PathContainer *pathContainer(int page);
+    PathContainer *pathContainerCreate(int page);
+
+    /// Get path container at given page.
+    /// page (part) number is given as (page | page_part).
+    PathContainer *pathContainer(int page) const
+    {return paths.value(page, NULL);}
 
     /// Get file path at which drawings are saved.
     const QString &drawingsPath() const noexcept
@@ -175,7 +180,8 @@ public slots:
     /// Get path container at given page. If overlay_mode==Cumulative, this may
     /// create and return a copy of a previous path container.
     /// page (part) number is given as (page | page_part).
-    void requestPathContainer(PathContainer **container, int page);
+    void requestNewPathContainer(PathContainer **container, int page)
+    {*container = pathContainerCreate(page);}
 
     void setTimeForPage(const int page, const quint32 time) noexcept;
 

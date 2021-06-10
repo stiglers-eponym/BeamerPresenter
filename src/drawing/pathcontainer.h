@@ -132,7 +132,7 @@ public:
 
     /// Check if this is an unchanged copy of another PathContainer.
     bool isPlainCopy() const noexcept
-    {return inHistory == -2 && history.isEmpty();}
+    {return inHistory == -2;}
 
     /// Save drawings in xml format.
     void writeXml(QXmlStreamWriter &writer) const;
