@@ -40,7 +40,7 @@ Also for keyboard shortcuts which select a tool it is possible to define a devic
 
 <p>BeamerPresenter uses gzipped xml files (.bpr) aiming for compatibility with Xournal++ (.xopp files). These files do not include the pdf file. BeamerPresenter can read drawings and text annotations from .xoj or .xopp files (Xournal or Xournal++). But BeamerPresenter will always show the pages of the pdf, independent of pages added or removed in Xournal(++). Xournal++ can read files created by BeamerPresenter and convert them to Xournal's .xoj format if necessary.</p>
 
-<p>BeamerPresenter files mainly include drawings and text added by the user, but they can also store the duration of the presentation, the overlay mode of the drawings, and times defined per slide. These times allow the speaker to easily check the time relative to a predefined schedule through the color of the timer widget. Additionally, it is possible to show markdown-formatted notes in BeamerPresenter. These notes are also included when saving or loading a file. Saving only these notes in an uncompressed xml format is also possible.</p>
+<p>BeamerPresenter files mainly include drawings and text added by the user, but they can also store the duration of the presentation, the overlay mode of the drawings, and times defined per slide. These times allow the speaker to easily check the time relative to a predefined schedule through the color of the timer widget. Additionally, it is possible to show rich text notes in BeamerPresenter. These notes are also included when saving or loading a file. Saving only these notes in an uncompressed xml format is also possible.</p>
 
 <h3>Notes for the Speaker</h3>
 <p>Notes and additional information for the speaker can be provided in three ways.</p>
@@ -51,8 +51,8 @@ Also for keyboard shortcuts which select a tool it is possible to define a devic
 BeamerPresenter can automatically detect this situation based on the aspect ratio of the PDF pages.
 This option requires a properly configured user interface (<code>man 1 beamerpresenter-ui</code>).</p>
 
-<p>The third option is to provide notes in markdown format. Note that if in you Qt5 version markdown was disabled at compile time (e.g. in ubuntu) markdown formatting will not work and you can only use plain text notes.
-To use markdown notes you need the notes widget (<code>man 1 beamerpresenter-ui</code>).
+<p>The third option is to provide notes in a simple rich text editor.
+To use rich text notes you need the notes widget (<code>man 1 beamerpresenter-ui</code>).
 It allows you to save and load notes using the keyboard shortcuts CTRL+S and CTRL+O, respectively.
 Note that the widget must have focus when using these shortcuts.
 The notes will be saved in a simple xml document.</p>

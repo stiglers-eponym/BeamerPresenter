@@ -18,7 +18,7 @@ If you want to draw in the presentation using a tablet or drawing pad, or if you
 * compressed cache for fast slide changes
 * draw in slides, save drawings in a format compatible with Xournal++ (improved in 0.2)
 * highlighting tools (pointer, torch, magnifier)
-* notes for the speaker in Markdown format (new in 0.2)
+* notes for the speaker (new in 0.2)
 * (optionally) show separate presentation file for speaker or use LaTeX-beamer's option to show notes on second screen (split PDF pages into a part for the speaker and a part or the audience)
 * timer indicates progress relative to a predefined schedule by it's color (improved in 0.2)
 * navigate using document outline, thumbnail slides, page numbers/labels and links

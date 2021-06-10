@@ -73,11 +73,11 @@ void NotesWidget::readNotes(QXmlStreamReader &reader)
     }
 
     if (preferences()->document)
-#ifdef QT_FEATURE_textmarkdownreader
-        setMarkdown(text_per_slide.value(preferences()->document->pageLabel(preferences()->page)));
-#else
-        setText(text_per_slide.value(preferences()->document->pageLabel(preferences()->page)));
-#endif
+    {
+        const QString label = preferences()->document->pageLabel(preferences()->page);
+        if (!label.isEmpty())
+            setHtml(text_per_slide.value(label));
+    }
 }
 
 void NotesWidget::save(QString filename)
@@ -140,11 +140,7 @@ void NotesWidget::saveNotes(const QString &filename)
 
 void NotesWidget::writeNotes(QXmlStreamWriter &writer)
 {
-#ifdef QT_FEATURE_textmarkdownwriter
-    text_per_slide.insert(page_label, toMarkdown());
-#else
-    text_per_slide.insert(page_label, toPlainText());
-#endif
+    text_per_slide.insert(page_label, toHtml());
     writer.writeStartElement("speakernotes");
     writer.writeAttribute("identifier", per_page ? "number" : "label");
     const QString label = per_page ? "number" : "label";
@@ -177,11 +173,6 @@ void NotesWidget::keyPressEvent(QKeyEvent *event)
         save("");
         event->accept();
         break;
-#if defined(QT_FEATURE_textmarkdownreader) && defined(QT_FEATURE_textmarkdownwriter)
-    case Qt::Key_M | Qt::ControlModifier:
-        updateMarkdown();
-        break;
-#endif
     case Qt::Key_Plus | Qt::ControlModifier:
     case Qt::Key_Plus | Qt::ShiftModifier | Qt::ControlModifier:
         zoomIn();
@@ -201,11 +192,7 @@ void NotesWidget::keyPressEvent(QKeyEvent *event)
 void NotesWidget::pageChanged(const int page)
 {
     // Save current text to old page_label.
-#ifdef QT_FEATURE_textmarkdownwriter
-    QString string = toMarkdown();
-#else
-    QString string = toPlainText();
-#endif
+    const QString string = toHtml();
     if (text_per_slide.value(page_label) != string)
     {
         text_per_slide.insert(page_label, string);
@@ -220,9 +207,5 @@ void NotesWidget::pageChanged(const int page)
         page_label = doc ? doc->pageLabel(page) : "0";
     }
     // Load text from new page_label.
-#ifdef QT_FEATURE_textmarkdownreader
-    setMarkdown(text_per_slide.value(page_label));
-#else
-    setPlainText(text_per_slide.value(page_label));
-#endif
+    setHtml(text_per_slide.value(page_label));
 }

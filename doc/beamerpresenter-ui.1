@@ -1,4 +1,4 @@
-.TH beamerpresenter-ui 1 "2021-05-08" "0.2.0"
+.TH beamerpresenter-ui 1 "2021-06-10" "0.2.0"
 .
 .SH NAME
 beamerpresenter-ui \- user interface of BeamerPresenter
@@ -37,11 +37,11 @@ digital clock, takes no options.
 .
 .TP
 .B notes
-markdown formatted editable notes.
+rich text editable notes.
 Notes are included when saving drawings to gzipped xml file (.bpr/.xopp).
 Alternatively, they can be saved separately in an xml file using the keyboard actions while the notes widget has focus:
 save notes with Ctrl+S, save under new file name with Ctrl+Shift+S, open from file with Ctrl+O.
-Note that markdown formatting is only available if Qt was compiled with integrated markdown parser.
+Currently the notes are saved as HTML string, which is escaped when saving in xml format. This format might change in the future!
 .RS
 .PP
 Arguments:
@@ -53,7 +53,7 @@ Arguments:
 zoom step for the widget (defined by QTextEdit).
 .TP
 .BI "file " "path"
-path to xml-file to read notes from. The notes file contains a root element <speakernotes> with child elements <page-notes> containing the markdown-formatted notes. Each page element has an attribute "label" or "number" to identify a page or a group of pages. Which of "label" or "number" is used must be specified by the attribute "identifier" or the root element.
+path to xml-file to read notes from. The notes file contains a root element <speakernotes> with child elements <page-notes> containing the rich text notes. Each page element has an attribute "label" or "number" to identify a page or a group of pages. Which of "label" or "number" is used must be specified by the attribute "identifier" or the root element.
 
 Example file:
 .nf

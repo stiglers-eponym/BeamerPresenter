@@ -9,21 +9,19 @@ class QXmlStreamReader;
 class QXmlStreamWriter;
 
 /**
- * @brief NotesWidget: Editable notes in Markdown format
+ * @brief NotesWidget: Editable notes
  *
- * Widgte in flexible GUI of BeamerPresenter which represents markdown
- * formated text which can be loaded, saved, and edited.
+ * Widgte in flexible GUI of BeamerPresenter which represents rich text
+ * which can be edited, loaded, and saved (as HTML).
  *
  * File structure of the saved xml files: xml tree with root element
  * "speakernotes" containing elements "page". Each "page" element has
  * an attribute "label" representing the page label (a string) and
- * contains text in markdown format.
+ * contains HTML text.
  *
  * Keyboard shortcuts for the page label are hard-coded:
  * Ctrl+S for saving, Ctrl+Shift+S for saving under a different file
  * name and Ctrl+O for loading a different file.
- *
- * TODO: option to parse HTML instead of markdown.
  */
 class NotesWidget : public QTextEdit
 {
@@ -32,7 +30,7 @@ class NotesWidget : public QTextEdit
     /// File where everything is loaded / saved.
     QString file_path;
 
-    /// Map slide labels to markdown formatted text
+    /// Map slide labels to HTML text
     QMap<QString, QString> text_per_slide;
 
     /// Currently shown page label.
@@ -49,11 +47,6 @@ public:
 
     void loadNotes(const QString &filename);
     void saveNotes(const QString &filename);
-#if defined(QT_FEATURE_textmarkdownreader) && defined(QT_FEATURE_textmarkdownwriter)
-    void updateMarkdown() {setMarkdown(toMarkdown());}
-#else
-    void updateMarkdown() const noexcept {}
-#endif
 
 protected:
     void keyPressEvent(QKeyEvent *event) override;
