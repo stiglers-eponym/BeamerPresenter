@@ -33,26 +33,41 @@ signals:
 
 /// Map Actions to icon names.
 static const QMap<Action, QString> action_to_theme_icon {
+    /* Nagivation actions */
+    {Update, "view-refresh"},
+    {NextPage, "go-next"},
+    {PreviousPage, "go-previous"},
+    {PreviousSkippingOverlays, "go-up"},
+    {NextSkippingOverlays, "go-down"},
+    {FirstPage, "go-first"},
+    {LastPage, "go-last"},
+    /* Drawing */
+    {UndoDrawing, "edit-undo"},
+    {RedoDrawing, "edit-redo"},
+    {ClearDrawing, "edit-delete"},
+    //{ScrollUp, "go-top"},
+    //{ScrollDown, "go-bottom"},
+    //{ScrollNormal, "go-home"},
+    {SaveDrawings, "document-save"},
+    {SaveDrawingsAs, "document-save-as"},
+    {LoadDrawings, "document-open"},
+    //{LoadDrawingsNoClear, "document-open"},
+    /* Timer */
+    //{StartTimer, ""},
+    //{StopTimer, ""},
+    //{StartStopTimer, ""},
+    //{ResetTimePassed, ""},
+    /* Media */
     {PlayMedia, "media-playback-start"},
     {PauseMedia, "media-playback-stop"},
     {PlayPauseMedia, "media-playback-pause"},
-    {NextPage, "go-next"},
-    {PreviousPage, "go-previous"},
-    {FirstPage, "go-first"},
-    {LastPage, "go-last"},
-    {PreviousSkippingOverlays, "go-up"},
-    {NextSkippingOverlays, "go-down"},
-    {Quit, "application-exit"},
-    {FullScreen, "view-fullscreen"},
-    {Update, "view-refresh"},
-    {ClearDrawing, "edit-delete"},
-    {SaveDrawings, "document-save"},
-    {LoadDrawings, "document-open"},
-    {UndoDrawing, "edit-undo"},
-    {RedoDrawing, "edit-redo"},
     {Mute, "audio-volume-muted"},
     {Unmute, "audio-volume-high"},
-    // TODO: more and better icons
+    /* Other actions */
+    //{ReloadFiles, "view-refresh"},
+    {Quit, "application-exit"},
+    {QuitNoConfirmation, "application-exit"},
+    {FullScreen, "view-fullscreen"},
 };
 
 

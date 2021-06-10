@@ -53,7 +53,7 @@ public:
         CacheVideos = 1 << 1,
         AutoplayVideo = 1 << 2,
         AutoplaySounds = 1 << 3,
-        Mute = 1 << 4,
+        MuteSlide = 1 << 4,
         ShowTransitions = 1 << 5,
         ShowDrawings = 1 << 6,
         Default = 0xff,

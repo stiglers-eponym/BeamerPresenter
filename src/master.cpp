@@ -429,7 +429,7 @@ QWidget* Master::createWidget(QJsonObject &object, QWidget *parent)
         if (!object.value("draw").toBool(true))
             scene->flags() &= ~SlideScene::ShowDrawings;
         if (!object.value("mute").toBool(true))
-            scene->flags() &= ~SlideScene::Mute;
+            scene->flags() &= ~SlideScene::MuteSlide;
         connect(slide, &SlideView::sendKeyEvent, this, &Master::receiveKeyEvent);
         connect(scene, &SlideScene::navigationToViews, slide, &SlideView::pageChanged, Qt::DirectConnection);
         widget = slide;
@@ -778,6 +778,14 @@ void Master::handleAction(const Action action)
     case QuitNoConfirmation:
         for (const auto window : qAsConst(windows))
             window->close();
+        break;
+    case Mute:
+        writable_preferences()->global_flags |= Preferences::MuteApplication;
+        emit sendAction(action);
+        break;
+    case Unmute:
+        writable_preferences()->global_flags &= ~Preferences::MuteApplication;
+        emit sendAction(action);
         break;
     default:
         emit sendAction(action);

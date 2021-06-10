@@ -64,6 +64,8 @@ static const QMap<QString, Action> string_to_action_map
     {"scroll normal", ScrollNormal},
     {"play media", PlayMedia},
     {"stop media", PauseMedia},
+    {"mute", Mute},
+    {"unmute", Unmute},
     {"pause media", PlayPauseMedia},
     {"full screen", FullScreen},
     {"fullscreen", FullScreen},

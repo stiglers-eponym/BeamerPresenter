@@ -140,7 +140,8 @@ void NotesWidget::saveNotes(const QString &filename)
 
 void NotesWidget::writeNotes(QXmlStreamWriter &writer)
 {
-    text_per_slide.insert(page_label, toHtml());
+    if (!toPlainText().isEmpty())
+        text_per_slide.insert(page_label, toHtml());
     writer.writeStartElement("speakernotes");
     writer.writeAttribute("identifier", per_page ? "number" : "label");
     const QString label = per_page ? "number" : "label";
@@ -191,12 +192,24 @@ void NotesWidget::keyPressEvent(QKeyEvent *event)
 
 void NotesWidget::pageChanged(const int page)
 {
-    // Save current text to old page_label.
-    const QString string = toHtml();
-    if (text_per_slide.value(page_label) != string)
+    if (toPlainText().isEmpty())
     {
-        text_per_slide.insert(page_label, string);
-        emit newUnsavedChanges();
+        const auto it = text_per_slide.find(page_label);
+        if (it != text_per_slide.end())
+        {
+            emit newUnsavedChanges();
+            text_per_slide.erase(it);
+        }
+    }
+    else
+    {
+        // Save current text to old page_label.
+        const QString string = toHtml();
+        if (text_per_slide.value(page_label) != string)
+        {
+            text_per_slide.insert(page_label, string);
+            emit newUnsavedChanges();
+        }
     }
     // Update page_label.
     if (per_page)

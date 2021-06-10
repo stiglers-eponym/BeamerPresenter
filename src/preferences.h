@@ -76,6 +76,8 @@ public:
         AutoSlideChanges = 1 << 0,
         /// Log slide changes to standard output.
         LogSlideChanges = 1 << 1,
+        /// Mute all multimedia content by default.
+        MuteApplication = 1 << 2,
     };
 
     /************************/

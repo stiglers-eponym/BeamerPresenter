@@ -266,6 +266,15 @@ void SlideScene::receiveAction(const Action action)
     case PlayPauseMedia:
         playPauseMedia();
         break;
+    case Mute:
+    case Unmute:
+        if (!(slide_flags & MuteSlide))
+        {
+            for (const auto &video : qAsConst(videoItems))
+                if (video.player)
+                    video.player->setMuted(action == Mute);
+        }
+        break;
     default:
         break;
     }
@@ -440,7 +449,7 @@ SlideScene::VideoItem &SlideScene::getVideoItem(const PdfDocument::MediaAnnotati
     }
     debug_msg(DebugMedia) << "Loading new video" << annotation.file << annotation.rect;
     QMediaPlayer *player = new QMediaPlayer(this);
-    player->setMuted(slide_flags & Mute);
+    player->setMuted(slide_flags & MuteSlide || preferences()->global_flags & Preferences::MuteApplication);
     QMediaPlaylist *playlist = new QMediaPlaylist(player);
     QGraphicsVideoItem *item = new QGraphicsVideoItem;
     connect(item, &QGraphicsVideoItem::destroyed, player, &QMediaPlayer::deleteLater);
