@@ -146,6 +146,7 @@ public:
 
     /// Get path container at given page. If overlay_mode==Cumulative, this may
     /// create and return a copy of a previous path container.
+    /// page (part) number is given as (page | page_part).
     PathContainer *pathContainer(int page);
 
     /// Get file path at which drawings are saved.
@@ -171,7 +172,8 @@ public slots:
     /// show the same page.
     void distributeNavigationEvents(const int page) const;
 
-    /// Get container of paths on given page.
+    /// Get path container at given page. If overlay_mode==Cumulative, this may
+    /// create and return a copy of a previous path container.
     /// page (part) number is given as (page | page_part).
     void requestPathContainer(PathContainer **container, int page);
 

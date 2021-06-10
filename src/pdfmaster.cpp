@@ -531,40 +531,7 @@ void PdfMaster::readPropertiesFromStream(QXmlStreamReader &reader)
 
 void PdfMaster::requestPathContainer(PathContainer **container, int page)
 {
-    switch (preferences()->overlay_mode)
-    {
-    case PerPage:
-        *container = paths.value(page, NULL);
-        break;
-    case PerLabel:
-        page = document->overlaysShifted((page & ~NotFullPage), FirstOverlay) | (page & NotFullPage);
-        *container = paths.value(page, NULL);
-        debug_msg(DebugDrawing) << "container per label:" << *container << page;
-        break;
-    case Cumulative:
-        *container = paths.value(page, NULL);
-        if (*container == NULL || (*container)->isPlainCopy())
-        {
-            const int page_part = page & NotFullPage;
-            int basic_page = page ^ page_part;
-            const int start_overlay = document->overlaysShifted(basic_page, FirstOverlay);
-            PathContainer *copy_container;
-            while (basic_page-- > start_overlay)
-            {
-                copy_container = paths.value(basic_page | page_part, NULL);
-                if (copy_container)
-                {
-                    delete *container;
-                    *container = copy_container->copy();
-                    debug_msg(DebugDrawing) << "container copied from page" << basic_page;
-                    paths[page] = *container;
-                    break;
-                }
-            }
-            debug_msg(DebugDrawing) << "cumulative overlays: nothing found" << basic_page << page;
-        }
-        break;
-    }
+    *container = pathContainer(page);
 }
 
 void PdfMaster::clearHistory(const int page, const int remaining_entries) const
@@ -585,7 +552,7 @@ PathContainer *PdfMaster::pathContainer(int page)
         return paths.value(page, NULL);
     case Cumulative:
         PathContainer *container = paths.value(page);
-        if (container && !container->isPlainCopy())
+        if (container && !container->isEmpty() && !container->isPlainCopy())
             return container;
         const int page_part = page & NotFullPage;
         int basic_page = page ^ page_part;
