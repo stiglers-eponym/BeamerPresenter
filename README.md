@@ -18,7 +18,7 @@ If you want to draw in the presentation using a tablet or drawing pad, or if you
 * compressed cache for fast slide changes
 * draw in slides, save drawings in a format compatible with Xournal++ (improved in 0.2)
 * highlighting tools (pointer, torch, magnifier)
-* notes for the speaker (new in 0.2)
+* rich text notes for the speaker (new in 0.2)
 * (optionally) show separate presentation file for speaker or use LaTeX-beamer's option to show notes on second screen (split PDF pages into a part for the speaker and a part or the audience)
 * timer indicates progress relative to a predefined schedule by it's color (improved in 0.2)
 * navigate using document outline, thumbnail slides, page numbers/labels and links
@@ -40,7 +40,7 @@ Use a magnifier to show details of your figures (size and magnification factor c
 Draw in your presentation using a pen or highlighter and focus on parts of your slide using a torch or a pointer:
 <img srcset=".readme/drawings+torch+pointer-480px.webp 480w, .readme/drawings+torch+pointer-960px.webp 960w" sizes="(max-width: 720px) 480px, 960px" src=".readme/drawings+torch+pointer-960px.webp" width=100% title="Annotations, torch and pointer for highlighting">
 Of course, this is just for demonstration an you will usually not use pointer and torch at the same time.
-Annotations, notes and some file-specific settings can be saved and loaded to gzipped xml files in a format which aims at compatibility with Xournal++.
+Annotations, notes and some file-specific settings can be saved and loaded to gzipped xml files in a format which aims at partial compatibility with Xournal++.
 
 Use an overview of all slides (or all slides with separate slide labels, especially useful for presentations created with LaTeX beamer):
 <img srcset=".readme/overview+video-480px.webp 480w, .readme/overview+video-960px.webp 960w" sizes="(max-width: 720px) 480px, 960px" src=".readme/overview+video-960px.webp" width=100% title="Overview mode and video in presentation">
@@ -75,7 +75,6 @@ For Qt 5:
 * `qt5-default`
 * `qtmultimedia5-dev`
 * `libqt5multimedia5-plugins` (optional, for showing videos)
-* Note: ubuntu's Qt 5 package does not have native markdown support. Therefore, also BeamerPresenter will not be able to interpret markdown in ubuntu.
 
 For poppler (optional, see [below](https://github.com/stiglers-eponym/BeamerPresenter#build)):
 * `libpoppler-qt5-dev`: version 0.86.1 is tested. Versions below 0.70 are explicitly not supported, problems with newer versions might be fixed if reported in an issue on github.
