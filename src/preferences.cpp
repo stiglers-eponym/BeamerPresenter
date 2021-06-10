@@ -36,7 +36,9 @@ Tool *createTool(const QJsonObject &obj, const int default_device)
     case Tool::Eraser:
     {
         debug_msg(DebugSettings) << "creating eraser";
-        tool = new DrawTool(Tool::Eraser, default_device, QPen(Qt::black, obj.value("size").toDouble(10.)));
+        const QColor color(obj.value("color").toString("#c0000000"));
+        const float linewidth = obj.value("linewidth").toDouble(0.);
+        tool = new PointingTool(Tool::Eraser, obj.value("size").toDouble(10.), QBrush(color), default_device, linewidth);
         break;
     }
     case Tool::Pointer:
@@ -62,13 +64,11 @@ Tool *createTool(const QJsonObject &obj, const int default_device)
     }
     case Tool::Magnifier:
     {
-        const QColor color(obj.value("color").toString("black"));
+        const QColor color(obj.value("color").toString("#80c0c0c0"));
         const float size = obj.value("size").toDouble(120.);
         const float scale = obj.value("scale").toDouble(2.);
         debug_msg(DebugSettings) << "creating magnifier" << color << size << scale;
-        PointingTool *pointing_tool = new PointingTool(Tool::Magnifier, size, color, default_device);
-        pointing_tool->setScale(scale < 0.1 ? 0.1 : scale > 10. ? 5. : scale);
-        tool = pointing_tool;
+        tool = new PointingTool(Tool::Magnifier, size, color, default_device, scale < 0.1 ? 0.1 : scale > 10. ? 5. : scale);
         break;
     }
     case Tool::TextInputTool:

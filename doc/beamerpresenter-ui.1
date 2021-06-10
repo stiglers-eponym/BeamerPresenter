@@ -288,13 +288,16 @@ mandatory: pen, fixed width pen, highlighter, eraser, pointer, magnifier, torch,
 available for most tools: color name known to Qt or #RRGGBB or #AARRGGBB
 .TP
 .B width
-only draw tools (pen, highlighter, eraser, fixed width pen): stroke width (positive number).
+only draw tools (pen, highlighter, fixed width pen): stroke width (positive number).
 .TP
 .B size
-only pointing tools (pointer, torch, highlighter): radius of tool (positive number).
+only pointing tools (eraser, pointer, torch, highlighter): radius of tool (positive number).
 .TP
-.B scale
+.B scale " = 2"
 only magnifier: magnification factor (number between 0.1 and 5).
+.TP
+.BR linewidth " = 0"
+only eraser: draw a circle of given width around the eraser (number).
 .TP
 .B font
 only text tool: anything that Qt can interpret as font name.

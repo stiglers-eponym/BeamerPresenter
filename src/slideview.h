@@ -94,6 +94,8 @@ public slots:
     void showPointer(QPainter *painter, const PointingTool *tool) noexcept;
     /// Draw torch to painter. tool should have BasicTool Torch, but this is not checked.
     void showTorch(QPainter *painter, const PointingTool *tool) noexcept;
+    /// Draw circle representing eraser.
+    void showEraser(QPainter *painter, const PointingTool *tool) noexcept;
 
     /// Draw pointing tools in foreground.
     void drawForeground(QPainter *painter, const QRectF &rect) override;

@@ -182,7 +182,7 @@ public:
     void stepInputEvent(const DrawTool *tool, const QPointF &pos, const float pressure = 1.);
 
     /// Finish handling draw and erase events.
-    bool stopInputEvent(const DrawTool *tool, const QPointF &pos = {0,0});
+    bool stopInputEvent(const DrawTool *tool);
 
     /// Check if currently text is beeing edited.
     bool isTextEditing() const noexcept

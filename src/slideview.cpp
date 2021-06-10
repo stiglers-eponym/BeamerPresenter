@@ -216,7 +216,7 @@ void SlideView::showMagnifier(QPainter *painter, const PointingTool *tool) noexc
         // render scene in magnifier
         scene()->render(painter, target_rect, scene_rect);
         // draw circle around magnifier
-        painter->drawEllipse(pos, tool->size(), tool->size());
+        painter->drawEllipse(pos, tool->size()-0.5, tool->size()-0.5);
     }
 }
 
@@ -245,11 +245,23 @@ void SlideView::drawForeground(QPainter *painter, const QRectF &rect)
             case Tool::Magnifier:
                 showMagnifier(painter, tool);
                 break;
+            case Tool::Eraser:
+                showEraser(painter, tool);
+                break;
             default:
                 break;
             }
         }
     }
+}
+
+void SlideView::showEraser(QPainter *painter, const PointingTool *tool) noexcept
+{
+    painter->setPen(QPen(tool->brush(), tool->scale()));
+    painter->setCompositionMode(QPainter::CompositionMode_SourceOver);
+    const float radius = tool->size() - tool->scale();
+    for (const auto &pos : tool->pos())
+        painter->drawEllipse(pos, radius, radius);
 }
 
 void SlideView::showPointer(QPainter *painter, const PointingTool *tool) noexcept

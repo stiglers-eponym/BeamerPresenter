@@ -20,22 +20,22 @@ protected:
     /// Multiple positions are possible since some input devices can have
     /// multiple points (e.g. multi-touch devices).
     QList<QPointF> _pos;
-    /// Radius of drawing tool (in points)
-    float _size;
-    /// Scale for magnification, only used by magnifier
-    float _scale = 2.;
     /// Color of the tool or more advanced brush (for pointer)
     QBrush _brush;
     /// Pointer to scene at which this tool is currently active. _scene is used
     /// by slide views to determine whether this tool should be drawn.
     const void *_scene {NULL};
+    /// Radius of drawing tool (in points)
+    float _size;
+    /// Scale for magnification, only used by magnifier, or line width for eraser.
+    float _scale = 2.;
 
 public:
-    PointingTool(const BasicTool tool, const float size, const QBrush &brush, const int device = AnyDevice) noexcept :
-        Tool(tool, device), _size(size), _brush(brush) {}
+    PointingTool(const BasicTool tool, const float size, const QBrush &brush, const int device = AnyDevice, const float scale = 2.) noexcept :
+        Tool(tool, device), _brush(brush), _size(size), _scale(scale) {}
 
     PointingTool(const PointingTool &other) noexcept :
-        Tool(other._tool, other._device), _pos(other._pos), _size(other._size), _scale(other._scale), _brush(other._brush) {}
+        Tool(other._tool, other._device), _pos(other._pos), _brush(other._brush), _size(other._size), _scale(other._scale) {}
 
     /// Initialize brush to a fancy pointer. Color and size are taken
     /// from the existing settings.

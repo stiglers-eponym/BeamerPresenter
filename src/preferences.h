@@ -193,7 +193,7 @@ public:
     /// The keys are taken from InputDevice.
     QSet<Tool*> current_tools
     {
-        new DrawTool(Tool::Eraser, Tool::TabletEraser|Tool::MouseRightButton, QPen(Qt::black, 10.)),
+        new PointingTool(Tool::Eraser, 10., Qt::black, Tool::TabletEraser|Tool::MouseRightButton, 0.),
     };
 
 

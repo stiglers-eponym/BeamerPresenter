@@ -167,10 +167,10 @@ void SlideScene::handleEvents(const int device, const QList<QPointF> &pos, const
             startInputEvent(static_cast<const DrawTool*>(tool), pos.constFirst(), pressure);
             break;
         case Tool::StopEvent:
-            stopInputEvent(static_cast<const DrawTool*>(tool), pos.isEmpty() ? QPointF() : pos.constFirst());
+            stopInputEvent(static_cast<const DrawTool*>(tool));
             break;
         case Tool::CancelEvent:
-            if (stopInputEvent(static_cast<const DrawTool*>(tool), QPointF()))
+            if (stopInputEvent(static_cast<const DrawTool*>(tool)))
             {
                 PathContainer *container = master->pathContainer(page | page_part);
                 if (container)
@@ -183,15 +183,47 @@ void SlideScene::handleEvents(const int device, const QList<QPointF> &pos, const
     {
         PointingTool *ptool = static_cast<PointingTool*>(tool);
         ptool->scene() = this;
-        if (ptool->tool() == Tool::Torch)
+        switch (ptool->tool())
         {
+        case Tool::Torch:
             if ((device & Tool::AnyEvent) == Tool::StopEvent)
                 ptool->clearPos();
             else
                 ptool->setPos(pos);
             invalidate();
+            break;
+        case Tool::Eraser:
+        {
+            PathContainer *container = master->pathContainer(page | page_part);
+            if (container)
+            {
+                switch (device & Tool::AnyEvent)
+                {
+                case Tool::UpdateEvent:
+                    for (const QPointF &point : pos)
+                        container->eraserMicroStep(point, ptool->size());
+                    break;
+                case Tool::StartEvent:
+                    container->startMicroStep();
+                    break;
+                case Tool::StopEvent:
+                    if (container->applyMicroStep())
+                        emit newUnsavedDrawings();
+                    break;
+                case Tool::CancelEvent:
+                    if (container->applyMicroStep())
+                    {
+                        container->undo(this);
+                        emit newUnsavedDrawings();
+                    }
+                    break;
+                }
+            }
+            if (ptool->scale() <= 0.)
+                break;
+            [[clang::fallthrough]];
         }
-        else
+        default:
         {
             QRectF point_rect = QRectF({0,0}, ptool->size()*QSize(2,2));
             for (auto point : ptool->pos())
@@ -210,6 +242,8 @@ void SlideScene::handleEvents(const int device, const QList<QPointF> &pos, const
                     invalidate(point_rect, QGraphicsScene::ForegroundLayer);
                 }
             }
+            break;
+        }
         }
     }
     else if (tool->tool() & Tool::AnySelectionTool)
@@ -872,33 +906,17 @@ void SlideScene::startInputEvent(const DrawTool *tool, const QPointF &pos, const
         return;
     debug_verbose(DebugDrawing) << "Start input event" << tool->tool() << tool->device() << tool << pressure;
     stopDrawing();
-    switch (tool->tool())
-    {
-    case Tool::Pen:
-    case Tool::FixedWidthPen:
-    case Tool::Highlighter:
-        if (currentItemCollection || currentPath)
-            break;
-        currentItemCollection = new QGraphicsItemGroup();
-        addItem(currentItemCollection);
-        currentItemCollection->show();
-        if (tool->tool() == Tool::Pen && (tool->device() & Tool::PressureSensitiveDevices))
-            currentPath = new FullGraphicsPath(*tool, pos, pressure);
-        else
-            currentPath = new BasicGraphicsPath(*tool, pos);
-        addItem(currentPath);
-        currentPath->hide();
-        break;
-    case Tool::Eraser:
-    {
-        PathContainer *container = master->pathContainer(page | page_part);
-        if (container)
-            container->startMicroStep();
-        break;
-    }
-    default:
-        break;
-    }
+    if (currentItemCollection || currentPath)
+        return;
+    currentItemCollection = new QGraphicsItemGroup();
+    addItem(currentItemCollection);
+    currentItemCollection->show();
+    if (tool->tool() == Tool::Pen && (tool->device() & Tool::PressureSensitiveDevices))
+        currentPath = new FullGraphicsPath(*tool, pos, pressure);
+    else
+        currentPath = new BasicGraphicsPath(*tool, pos);
+    addItem(currentPath);
+    currentPath->hide();
 }
 
 void SlideScene::stepInputEvent(const DrawTool *tool, const QPointF &pos, const float pressure)
@@ -906,80 +924,42 @@ void SlideScene::stepInputEvent(const DrawTool *tool, const QPointF &pos, const 
     if (pressure <= 0 || !tool || !(slide_flags & ShowDrawings))
         return;
     debug_verbose(DebugDrawing) << "Step input event" << tool->tool() << tool->device() << tool << pressure;
-    switch (tool->tool())
+    if (currentPath && currentItemCollection && *tool == currentPath->getTool())
     {
-    case Tool::Pen:
-    case Tool::FixedWidthPen:
-    case Tool::Highlighter:
-        if (currentPath && currentItemCollection && *tool == currentPath->getTool())
+        auto item = new FlexGraphicsLineItem(QLineF(currentPath->lastPoint(), pos), currentPath->getTool().compositionMode());
+        if (currentPath->type() == QGraphicsPathItem::UserType + 2)
         {
-            auto item = new FlexGraphicsLineItem(QLineF(currentPath->lastPoint(), pos), currentPath->getTool().compositionMode());
-            if (currentPath->type() == QGraphicsPathItem::UserType + 2)
-            {
-                static_cast<FullGraphicsPath*>(currentPath)->addPoint(pos, pressure);
-                QPen pen = currentPath->getTool().pen();
-                pen.setWidthF(pen.widthF() * pressure);
-                item->setPen(pen);
-            }
-            else if (currentPath->type() == QGraphicsPathItem::UserType + 1)
-            {
-                static_cast<BasicGraphicsPath*>(currentPath)->addPoint(pos);
-                item->setPen(currentPath->getTool().pen());
-            }
-            else
-                qCritical() << "This should never happen.";
-            item->show();
-            addItem(item);
-            currentItemCollection->addToGroup(item);
-            currentItemCollection->show();
-            invalidate(item->boundingRect(), QGraphicsScene::ItemLayer);
+            static_cast<FullGraphicsPath*>(currentPath)->addPoint(pos, pressure);
+            QPen pen = currentPath->getTool().pen();
+            pen.setWidthF(pen.widthF() * pressure);
+            item->setPen(pen);
         }
-        break;
-    case Tool::Eraser:
-    {
-        PathContainer *container = master->pathContainer(page | page_part);
-        if (container)
-            container->eraserMicroStep(pos, tool->width());
-        break;
-    }
-    default:
-        break;
+        else if (currentPath->type() == QGraphicsPathItem::UserType + 1)
+        {
+            static_cast<BasicGraphicsPath*>(currentPath)->addPoint(pos);
+            item->setPen(currentPath->getTool().pen());
+        }
+        else
+            qCritical() << "This should never happen.";
+        item->show();
+        addItem(item);
+        currentItemCollection->addToGroup(item);
+        currentItemCollection->show();
+        invalidate(item->boundingRect(), QGraphicsScene::ItemLayer);
     }
 }
 
-bool SlideScene::stopInputEvent(const DrawTool *tool, const QPointF &pos)
+bool SlideScene::stopInputEvent(const DrawTool *tool)
 {
     if (!tool || !(slide_flags & ShowDrawings))
         return false;
     debug_verbose(DebugDrawing) << "Stop input event" << tool->tool() << tool->device() << tool;
     const bool changes = currentPath && currentPath->size() > 1;
     stopDrawing();
-    switch (tool->tool())
+    if (changes)
     {
-    case Tool::Pen:
-    case Tool::FixedWidthPen:
-    case Tool::Highlighter:
-        if (changes)
-        {
-            invalidate({QRect()}, QGraphicsScene::ItemLayer);
-            return true;
-        }
-        break;
-    case Tool::Eraser:
-    {
-        PathContainer *container = master->pathContainer(page | page_part);
-        if (container && container->applyMicroStep())
-        {
-            emit newUnsavedDrawings();
-            return true;
-        }
-        break;
-    }
-    case Tool::NoTool:
-        noToolClicked(pos);
-        break;
-    default:
-        break;
+        invalidate({QRect()}, QGraphicsScene::ItemLayer);
+        return true;
     }
     return false;
 }

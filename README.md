@@ -22,7 +22,7 @@ If you want to draw in the presentation using a tablet or drawing pad, or if you
 * (optionally) show separate presentation file for speaker or use LaTeX-beamer's option to show notes on second screen (split PDF pages into a part for the speaker and a part or the audience)
 * timer indicates progress relative to a predefined schedule by it's color (improved in 0.2)
 * navigate using document outline, thumbnail slides, page numbers/labels and links
-* videos in presentations (currently without audio)
+* videos in presentations (currently sound is untested)
 * slide transitions
 
 
@@ -183,7 +183,7 @@ BeamerPresenter (`qmake --version`).
 * cache slides even when size of slides varies (partially implemented)
 * cache only required slides in previews showing specific overlays
 * make layout more reliable
-* sounds, mute/unmute actions
+* multimedia: include audio files, test sound in videos
 * tools to select and modify drawings
 * option to insert extra slides for drawing
 * improve keyboard shortcuts in other widgets than slide widget

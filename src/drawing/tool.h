@@ -35,12 +35,12 @@ public:
         Pen = 0           | AnyDrawTool,
         FixedWidthPen = 1 | AnyDrawTool,
         Highlighter = 2   | AnyDrawTool,
-        Eraser = 3        | AnyDrawTool,
 
         // Highlighting tools: next 2 bits, class PointingTool
         Pointer = 0   | AnyPointingTool,
         Torch = 1     | AnyPointingTool,
         Magnifier = 2 | AnyPointingTool,
+        Eraser = 3    | AnyPointingTool,
 
         // selection tools, class Tool
         RectSelectionTool = 0 | AnySelectionTool,
