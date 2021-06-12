@@ -213,6 +213,8 @@ Tool *ToolDialog::createTool() const
             tool->setScale(scale_box->value());
         if (basic_tool == Tool::Pointer)
             tool->initPointerBrush();
+        if (basic_tool == Tool::Eraser)
+            tool->setScale(0.5);
         return tool;
     }
     else if (basic_tool == Tool::TextInputTool)

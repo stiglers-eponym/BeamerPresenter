@@ -36,8 +36,8 @@ Tool *createTool(const QJsonObject &obj, const int default_device)
     case Tool::Eraser:
     {
         debug_msg(DebugSettings) << "creating eraser";
-        const QColor color(obj.value("color").toString("#c0000000"));
-        const float linewidth = obj.value("linewidth").toDouble(0.);
+        const QColor color(obj.value("color").toString("#c0808080"));
+        const float linewidth = obj.value("linewidth").toDouble(0.5);
         tool = new PointingTool(Tool::Eraser, obj.value("size").toDouble(10.), QBrush(color), default_device, linewidth);
         break;
     }

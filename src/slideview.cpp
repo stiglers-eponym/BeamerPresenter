@@ -95,7 +95,7 @@ void SlideView::resizeEvent(QResizeEvent *event)
     const int page = slidescene->getPage();
     pageChanged(page, slidescene);
     if (!slidescene->videos().isEmpty())
-        for (auto video : slidescene->videos())
+        for (const auto &video : slidescene->videos())
             if (video.pages.contains(page))
                 addMediaSlider(video);
 }
@@ -228,7 +228,7 @@ void SlideView::drawForeground(QPainter *painter, const QRectF &rect)
         for (const auto basic_tool : preferences()->current_tools)
         {
             // Only pointing tools need painting in foreground (might change in the future).
-            if (!(basic_tool->tool() & Tool::AnyPointingTool))
+            if (!basic_tool || !(basic_tool->tool() & Tool::AnyPointingTool))
                 continue;
             const PointingTool *tool = static_cast<PointingTool*>(basic_tool);
             if (tool->pos().isEmpty() || tool->scene() != scene())
@@ -246,7 +246,8 @@ void SlideView::drawForeground(QPainter *painter, const QRectF &rect)
                 showMagnifier(painter, tool);
                 break;
             case Tool::Eraser:
-                showEraser(painter, tool);
+                if (hasFocus())
+                    showEraser(painter, tool);
                 break;
             default:
                 break;
