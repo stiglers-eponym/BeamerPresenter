@@ -20,6 +20,7 @@ SlideScene::SlideScene(const PdfMaster *master, const PagePart part, QObject *pa
     connect(this, &SlideScene::sendNewPath, master, &PdfMaster::receiveNewPath);
     connect(this, &SlideScene::requestNewPathContainer, master, &PdfMaster::requestNewPathContainer, Qt::DirectConnection);
     pageItem->setZValue(-1e2);
+    pageItem->setCursor(Qt::ArrowCursor);
     addItem(pageItem);
     pageItem->show();
 }
@@ -68,28 +69,6 @@ bool SlideScene::event(QEvent* event)
     QPointF start_pos;
     switch (event->type())
     {
-    case QEvent::GraphicsSceneMousePress:
-    {
-        const auto *mouseevent = static_cast<QGraphicsSceneMouseEvent*>(event);
-        device = (mouseevent->buttons() << 1) | Tool::StartEvent;
-        pos.append(mouseevent->scenePos());
-        break;
-    }
-    case QEvent::GraphicsSceneMouseMove:
-    {
-        const auto *mouseevent = static_cast<QGraphicsSceneMouseEvent*>(event);
-        device = (mouseevent->buttons() ? mouseevent->buttons() << 1 : 1) | Tool::UpdateEvent;
-        pos.append(mouseevent->scenePos());
-        break;
-    }
-    case QEvent::GraphicsSceneMouseRelease:
-    {
-        const auto *mouseevent = static_cast<QGraphicsSceneMouseEvent*>(event);
-        device = (mouseevent->button() << 1) | Tool::StopEvent;
-        pos.append(mouseevent->scenePos());
-        start_pos = mouseevent->buttonDownScenePos(mouseevent->button());
-        break;
-    }
     case QEvent::TouchBegin:
     {
         device = Tool::TouchInput | Tool::StartEvent;
@@ -145,14 +124,47 @@ bool SlideScene::event(QEvent* event)
     return true;
 }
 
-void SlideScene::handleEvents(const int device, const QList<QPointF> &pos, const QPointF &start_pos, const float pressure)
+void SlideScene::mousePressEvent(QGraphicsSceneMouseEvent *event)
+{
+    if (!handleEvents(
+                (event->buttons() << 1) | Tool::StartEvent,
+                {event->scenePos()},
+                QPointF(),
+                1.
+                ))
+        QGraphicsScene::mousePressEvent(event);
+}
+
+void SlideScene::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
+{
+    if (!handleEvents(
+                (event->buttons() ? event->buttons() << 1 : 1) | Tool::UpdateEvent,
+                {event->scenePos()},
+                QPointF(),
+                1.
+                ))
+        QGraphicsScene::mouseMoveEvent(event);
+}
+
+void SlideScene::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
+{
+    if (!handleEvents(
+                (event->button() << 1) | Tool::StopEvent,
+                {event->scenePos()},
+                event->buttonDownScenePos(event->button()),
+                1.
+                ))
+        QGraphicsScene::mouseReleaseEvent(event);
+}
+
+bool SlideScene::handleEvents(const int device, const QList<QPointF> &pos, const QPointF &start_pos, const float pressure)
 {
     Tool *tool = preferences()->currentTool(device & Tool::AnyDevice);
-    if (!tool)
+    if (!tool || tool->tool() == Tool::NoTool)
     {
         if ((device & Tool::AnyEvent) == Tool::StopEvent && pos.size() == 1)
             noToolClicked(pos.constFirst(), start_pos);
-        return;
+        return false;
     }
 
     debug_verbose(DebugDrawing) << "Handling event" << tool->tool() << tool->device() << device;
@@ -258,7 +270,7 @@ void SlideScene::handleEvents(const int device, const QList<QPointF> &pos, const
             if (item->type() == TextGraphicsItem::Type)
             {
                 setFocusItem(item);
-                return;
+                return false;
             }
         }
         TextGraphicsItem *item = new TextGraphicsItem();
@@ -276,6 +288,7 @@ void SlideScene::handleEvents(const int device, const QList<QPointF> &pos, const
     }
     else if ((device & Tool::AnyEvent) == Tool::StopEvent && pos.size() == 1)
         noToolClicked(pos.constFirst(), start_pos);
+    return true;
 }
 
 void SlideScene::receiveAction(const Action action)
@@ -400,6 +413,8 @@ void SlideScene::navigationEvent(const int newpage, SlideScene *newscene)
             }
         }
     }
+    if (slide_flags & FollowLinks)
+        loadLinks(page);
     invalidate();
     emit finishTransition();
 }
@@ -487,6 +502,7 @@ SlideScene::VideoItem &SlideScene::getVideoItem(const PdfDocument::MediaAnnotati
     QMediaPlaylist *playlist = new QMediaPlaylist(player);
     QGraphicsVideoItem *item = new QGraphicsVideoItem;
     connect(item, &QGraphicsVideoItem::destroyed, player, &QMediaPlayer::deleteLater);
+    item->setCursor(Qt::PointingHandCursor);
     // Ugly fix to cache videos: show invisible video pixel
     item->setSize({1,1});
     item->setPos(sceneRect().bottomRight());
@@ -866,8 +882,30 @@ void SlideScene::endTransition()
         animation = NULL;
     }
     loadMedia(page);
+    if (slide_flags & FollowLinks)
+        loadLinks(page);
     invalidate();
     emit finishTransition();
+}
+
+void SlideScene::loadLinks(const int page)
+{
+    // TODO: This is inefficient if page_part != FullPage
+    for (const PdfDocument::PdfLink &link : master->getDocument()->linksOnPage(page))
+    {
+        // TODO: This doesn't work!
+        QGraphicsRectItem *rect = addRect(link.area, Qt::NoPen, Qt::NoBrush);
+        rect->setData(link.type, link.target);
+        rect->setCursor(Qt::PointingHandCursor);
+        rect->setFlags(QGraphicsItem::ItemHasNoContents);
+        if (link.target == PdfDocument::PdfLink::NavigationLink)
+            rect->setToolTip(link.target);
+        else if (link.type > 0)
+            rect->setToolTip("page " + QString::number(link.type+1));
+        rect->setZValue(100);
+        //rect->setVisible(false); // TODO: check this
+        debug_msg(DebugMedia) << "loaded link:" << link.area << rect;
+    }
 }
 
 void SlideScene::tabletPress(const QPointF &pos, const QTabletEvent *event)
@@ -967,23 +1005,28 @@ bool SlideScene::stopInputEvent(const DrawTool *tool)
 void SlideScene::noToolClicked(const QPointF &pos, const QPointF &startpos)
 {
     debug_verbose(DebugMedia) << "Clicked without tool" << pos << startpos;
-    // Try to handle multimedia annotation.
-    for (auto &item : videoItems)
+    if (slide_flags & LoadMedia)
     {
-        if (item.pages.contains((page &~NotFullPage)) && item.item->boundingRect().contains(pos))
+        // Try to handle multimedia annotation.
+        for (auto &item : videoItems)
         {
-            if (startpos.isNull() || item.annotation.rect.contains(startpos))
+            if (item.pages.contains((page &~NotFullPage)) && item.item->boundingRect().contains(pos))
             {
-                if (item.player->state() == QMediaPlayer::PlayingState)
-                    item.player->pause();
-                else
-                    item.player->play();
-                return;
+                if (startpos.isNull() || item.annotation.rect.contains(startpos))
+                {
+                    if (item.player->state() == QMediaPlayer::PlayingState)
+                        item.player->pause();
+                    else
+                        item.player->play();
+                    return;
+                }
+                break;
             }
-            break;
         }
     }
-    master->resolveLink(page, pos, startpos);
+    if (slide_flags & FollowLinks)
+        // TODO: use rects representing links instead
+        master->resolveLink(page, pos, startpos);
 }
 
 void SlideScene::createSliders() const

@@ -103,8 +103,8 @@ void BasicGraphicsPath::paint(QPainter *painter, const QStyleOptionGraphicsItem 
     painter->drawPolyline(data.constData(), data.size());
 
     // Only for debugging
-    //painter->setPen(QPen(QBrush(Qt::black), 0.5));
-    //painter->drawRect(boundingRect());
+    painter->setPen(QPen(QBrush(Qt::black), 0.5));
+    painter->drawRect(boundingRect());
 }
 
 void BasicGraphicsPath::addPoint(const QPointF &point)
@@ -135,19 +135,31 @@ void BasicGraphicsPath::addPoint(const QPointF &point)
         prepareGeometryChange();
 }
 
-QList<AbstractGraphicsPath*> BasicGraphicsPath::splitErase(const QPointF &pos, const qreal size) const
+void BasicGraphicsPath::normalize()
 {
-    if (!boundingRect().marginsAdded(QMarginsF(size, size, size, size)).contains(pos))
+    if (!pos().isNull())
+    {
+        left += pos().x();
+        top += pos().y();
+        for (QPointF &point : data)
+            point += pos();
+        setPos(0., 0.);
+    }
+}
+
+QList<AbstractGraphicsPath*> BasicGraphicsPath::splitErase(const QPointF &eraserpos, const qreal size)
+{
+    if (!boundingRect().marginsAdded(QMarginsF(size, size, size, size)).contains(eraserpos - pos()))
         // If returned list contains only a NULL, this is interpreted as "no
         // changes".
         return {NULL};
-
+    normalize();
     QList<AbstractGraphicsPath*> list;
     const qreal sizesq = size*size;
     int first = 0, last = 0;
     while (last < data.length())
     {
-        const QPointF diff = data[last++] - pos;
+        const QPointF diff = data[last++] - eraserpos;
         if (QPointF::dotProduct(diff, diff) < sizesq)
         {
             if (last > first + 2)

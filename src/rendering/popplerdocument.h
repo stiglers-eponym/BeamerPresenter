@@ -77,6 +77,9 @@ public:
     /// Link at given position (in point = inch/72).
     const PdfLink linkAt(const int page, const QPointF &position) const override;
 
+    /// Return all links on given page.
+    virtual const QList<PdfLink> linksOnPage(const int page) const override;
+
     /// Annotation at given position (in point = inch/72)
     virtual const MediaAnnotation annotationAt(const int page, const QPointF &position) const override;
 

@@ -268,6 +268,27 @@ const PdfDocument::PdfLink PopplerDocument::linkAt(const int page, const QPointF
     return PdfLink();
 }
 
+const QList<PdfDocument::PdfLink> PopplerDocument::linksOnPage(const int page) const
+{
+    QList<PdfLink> result;
+    if (!pages.value(page))
+        return result;
+    const QSizeF pageSize = pages[page]->pageSizeF();
+    for (const auto link : static_cast<const QList<Poppler::Link*>>(pages[page]->links()))
+    {
+        if (link->linkType() == Poppler::Link::Goto)
+        {
+            QRectF rect = link->linkArea().normalized();
+            rect.moveTop(rect.top()*pageSize.height());
+            rect.moveLeft(rect.left()*pageSize.width());
+            rect.setSize({pageSize.width() * rect.width(), pageSize.height() * rect.height()});
+            Poppler::LinkGoto *gotolink = static_cast<Poppler::LinkGoto*>(link);
+            result.append({gotolink->destination().pageNumber()-1, "", rect});
+        }
+    }
+    return result;
+}
+
 const PdfDocument::MediaAnnotation PopplerDocument::annotationAt(const int page, const QPointF &position) const
 {
     if (!pages.value(page))

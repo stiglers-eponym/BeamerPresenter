@@ -56,6 +56,7 @@ public:
         MuteSlide = 1 << 4,
         ShowTransitions = 1 << 5,
         ShowDrawings = 1 << 6,
+        FollowLinks = 1 << 7,
         Default = 0xff,
     };
 
@@ -197,11 +198,21 @@ protected:
      * highlighting and pointing.
      */
     bool event(QEvent *event) override;
+    void mousePressEvent(QGraphicsSceneMouseEvent *event) override;
+    void mouseMoveEvent(QGraphicsSceneMouseEvent *event) override;
+    void mouseReleaseEvent(QGraphicsSceneMouseEvent *event) override;
+    // TODO: handle double click event
+    //void mouseDoubleClickEvent(QGraphicsSceneMouseEvent *event) override;
 
     /// Clicked on slide without draw tool (follow link, play video, ...)
     void noToolClicked(const QPointF &pos, const QPointF &startpos = QPointF());
 
-    void handleEvents(const int device, const QList<QPointF> &pos, const QPointF &start_pos, const float pressure);
+    /// Handle input event from a pointing device. Return true if a tool was used.
+    bool handleEvents(const int device, const QList<QPointF> &pos, const QPointF &start_pos, const float pressure);
+
+    /// Load links on given page, create invisible QGraphicsRectItems that
+    /// change the cursor at a link position.
+    void loadLinks(const int page);
 
 public slots:
     /// Stop drawing and convert just drawn path to regular path.

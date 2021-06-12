@@ -210,7 +210,7 @@ void PathContainer::eraserMicroStep(const QPointF &pos, const qreal size)
         // margins from the eraser size).
         if (
                 *path_it
-                && (*path_it)->boundingRect().marginsAdded(QMargins(size, size, size, size)).contains(pos)
+                && (*path_it)->boundingRect().marginsAdded(QMargins(size, size, size, size)).contains(pos - (*path_it)->pos())
             )
         {
             QGraphicsScene *scene = (*path_it)->scene();
@@ -434,7 +434,8 @@ void PathContainer::writeXml(QXmlStreamWriter &writer) const
         case FullGraphicsPath::Type:
         case BasicGraphicsPath::Type:
         {
-            const AbstractGraphicsPath *item = static_cast<AbstractGraphicsPath*>(path);
+            AbstractGraphicsPath *item = static_cast<AbstractGraphicsPath*>(path);
+            item->normalize();
             const DrawTool &tool = item->getTool();
             writer.writeStartElement("stroke");
             writer.writeAttribute("tool", xournal_tool_names.value(tool.tool()));

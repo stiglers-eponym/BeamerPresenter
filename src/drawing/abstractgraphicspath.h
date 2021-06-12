@@ -30,7 +30,8 @@ protected:
 
 public:
     /// Constructor: initializing tool.
-    AbstractGraphicsPath(const DrawTool tool) noexcept : _tool(tool) {}
+    AbstractGraphicsPath(const DrawTool tool) noexcept : _tool(tool)
+    {setFlags(QGraphicsItem::ItemIsMovable | QGraphicsItem::ItemIsSelectable);}
 
     /// Bounding rectangle of the drawing (including stroke width).
     virtual QRectF boundingRect() const noexcept override
@@ -38,6 +39,9 @@ public:
 
     /// Number of nodes of the path.
     virtual int size() const noexcept = 0;
+
+    /// Set pos to (0,0) and use absolute coordinates in data.
+    virtual void normalize() = 0;
 
     /// Coordinate of the first node in the path.
     virtual const QPointF firstPoint() const noexcept = 0;
@@ -55,7 +59,7 @@ public:
      * @return QList<AbstractGraphicsPath*>, new paths after erasing (possibly
      * empty) or {NULL} if nothing was erased.
      */
-    virtual QList<AbstractGraphicsPath*> splitErase(const QPointF &pos, const qreal size) const = 0;
+    virtual QList<AbstractGraphicsPath*> splitErase(const QPointF &pos, const qreal size) = 0;
 
     /**
      * @param tool

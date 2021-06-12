@@ -587,6 +587,43 @@ const PdfDocument::PdfLink MuPdfDocument::linkAt(const int page, const QPointF &
     return result;
 }
 
+const QList<PdfDocument::PdfLink> MuPdfDocument::linksOnPage(const int page) const
+{
+    QList<PdfLink> result;
+    if (!pages.value(page) || !ctx || !doc)
+        return result;
+
+    mutex->lock();
+    fz_link *clink = NULL;
+    fz_var(clink);
+    fz_var(result);
+    fz_try(ctx)
+    {
+        clink = pdf_load_links(ctx, pages[page]);
+        for (fz_link* link = clink; link != NULL; link = link->next)
+        {
+            if (link->uri && link->uri[0] == '#')
+            {
+                /* Internal navigation link */
+                const QRectF rect = QRectF(link->rect.x0, link->rect.y0, link->rect.x1 - link->rect.x0, link->rect.y1 - link->rect.y0).normalized();
+                float x, y;
+                const int location = pdf_resolve_link(ctx, doc, link->uri, &x, &y);
+                result.append({location, "", rect});
+            }
+        }
+    }
+    fz_always(ctx)
+    {
+        fz_drop_link(ctx, clink);
+        mutex->unlock();
+    }
+    fz_catch(ctx)
+    {
+        warn_msg << "Error while loading links" << fz_caught_message(ctx);
+    }
+    return result;
+}
+
 const PdfDocument::MediaAnnotation MuPdfDocument::annotationAt(const int page, const QPointF &position) const
 {
     MediaAnnotation result = {QUrl(), MediaAnnotation::InvalidAnnotation, MediaAnnotation::Invalid, QRectF()};

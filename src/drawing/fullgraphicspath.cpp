@@ -130,6 +130,7 @@ void FullGraphicsPath::paint(QPainter *painter, const QStyleOptionGraphicsItem *
 
 void FullGraphicsPath::addPoint(const QPointF &point, const float pressure)
 {
+    normalize();
     data.append({point.x(), point.y(), _tool.width()*pressure});
     bool change = false;
     if ( point.x() < left + _tool.width() )
@@ -156,19 +157,36 @@ void FullGraphicsPath::addPoint(const QPointF &point, const float pressure)
         prepareGeometryChange();
 }
 
-QList<AbstractGraphicsPath*> FullGraphicsPath::splitErase(const QPointF &pos, const qreal size) const
+void FullGraphicsPath::normalize()
 {
-    if (!boundingRect().marginsAdded(QMarginsF(size, size, size, size)).contains(pos))
-        // If returned list contains only a NULL, this is interpreted as "no
-        // changes".
-        return {NULL};
+    if (!pos().isNull())
+    {
+        prepareGeometryChange();
+        left += pos().x();
+        top += pos().y();
+        for (PointPressure &pp : data)
+        {
+            pp.x += pos().x();
+            pp.y += pos().y();
+        }
+        setPos(0., 0.);
+    }
+}
 
+QList<AbstractGraphicsPath*> FullGraphicsPath::splitErase(const QPointF &eraserpos, const qreal size)
+{
+    //if (!boundingRect().marginsAdded(QMarginsF(size, size, size, size)).contains(eraserpos - pos()))
+    //    // If returned list contains only a NULL, this is interpreted as "no
+    //    // changes".
+    //    return {NULL};
+
+    normalize();
     QList<AbstractGraphicsPath*> list;
     const qreal sizesq = size*size;
     int first = 0, last = 0;
     while (last < data.length())
     {
-        const QPointF diff = data[last++].point() - pos;
+        const QPointF diff = data[last++].point() - eraserpos;
         if (QPointF::dotProduct(diff, diff) < sizesq)
         {
             if (last > first + 2)
@@ -186,6 +204,7 @@ QList<AbstractGraphicsPath*> FullGraphicsPath::splitErase(const QPointF &pos, co
 
 void FullGraphicsPath::changeWidth(const float newwidth) noexcept
 {
+    // TODO: adjust bounding rect?
     const float scale = newwidth / _tool.width();
     auto it = data.begin();
     while (++it != data.cend())

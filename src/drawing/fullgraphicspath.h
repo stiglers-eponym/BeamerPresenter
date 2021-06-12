@@ -56,6 +56,9 @@ public:
     int size() const noexcept override
     {return data.size();}
 
+    /// Set pos to (0,0) and use absolute coordinates in data.
+    void normalize() override;
+
     /// Position of last node in the path.
     /// Returns QPointF() if path is empty.
     const QPointF lastPoint() const noexcept override
@@ -73,9 +76,9 @@ public:
     /// Add a point to data and update bounding rect.
     void addPoint(const QPointF &point, const float pressure);
 
-    /// Erase at position pos. Return a list of paths obtained when splitting
-    /// this by erasing at pos with given eraser size.
-    QList<AbstractGraphicsPath*> splitErase(const QPointF &pos, const qreal size) const override;
+    /// Erase at position eraserpos. Return a list of paths obtained when splitting
+    /// this by erasing at eraserpos with given eraser size.
+    QList<AbstractGraphicsPath*> splitErase(const QPointF &eraserpos, const qreal size) override;
 
     /// Change width in-place.
     void changeWidth(const float newwidth) noexcept;
