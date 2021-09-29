@@ -19,6 +19,8 @@ public:
     /// The following 3 bits are used as flags for classes of tools.
     enum BasicTool
     {
+        AnyToolCategory = 0b11100000,
+
         // Invalid tool
         InvalidTool = 0,
         // General tools, class Tool
@@ -43,8 +45,9 @@ public:
         Eraser = 3    | AnyPointingTool,
 
         // selection tools, class Tool
-        RectSelectionTool = 0 | AnySelectionTool,
-        FlexSelectionTool = 1 | AnySelectionTool,
+        PickTool = 0          | AnySelectionTool,
+        RectSelectionTool = 1 | AnySelectionTool,
+        FlexSelectionTool = 2 | AnySelectionTool,
     };
 
     /// Combinable flags defining input devices.

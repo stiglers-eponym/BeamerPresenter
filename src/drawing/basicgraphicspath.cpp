@@ -1,5 +1,6 @@
 #include "src/drawing/basicgraphicspath.h"
 #include "src/drawing/drawtool.h"
+#include "src/preferences.h"
 #include <QPainter>
 
 BasicGraphicsPath::BasicGraphicsPath(const DrawTool &tool, const QPointF &pos) noexcept :
@@ -102,9 +103,16 @@ void BasicGraphicsPath::paint(QPainter *painter, const QStyleOptionGraphicsItem 
     painter->setCompositionMode(_tool.compositionMode());
     painter->drawPolyline(data.constData(), data.size());
 
-    // Only for debugging
-    painter->setPen(QPen(QBrush(Qt::black), 0.5));
-    painter->drawRect(boundingRect());
+#ifdef QT_DEBUG
+    // Show bounding box of stroke in verbose debugging mode.
+    if ((preferences()->debug_level & (DebugDrawing|DebugVerbose)) == (DebugDrawing|DebugVerbose))
+    {
+        if (pos().isNull())
+            painter->setPen(QPen(QBrush(Qt::black), 0.5));
+        else
+            painter->setPen(QPen(QBrush(Qt::red), 0.5));
+    }
+#endif
 }
 
 void BasicGraphicsPath::addPoint(const QPointF &point)

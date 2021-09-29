@@ -122,7 +122,10 @@ void FullGraphicsPath::paint(QPainter *painter, const QStyleOptionGraphicsItem *
     // Show bounding box of stroke in verbose debugging mode.
     if ((preferences()->debug_level & (DebugDrawing|DebugVerbose)) == (DebugDrawing|DebugVerbose))
     {
-        painter->setPen(QPen(QBrush(Qt::black), 0.5));
+        if (pos().isNull())
+            painter->setPen(QPen(QBrush(Qt::black), 0.5));
+        else
+            painter->setPen(QPen(QBrush(Qt::red), 0.5));
         painter->drawRect(boundingRect());
     }
 #endif
@@ -161,7 +164,6 @@ void FullGraphicsPath::normalize()
 {
     if (!pos().isNull())
     {
-        prepareGeometryChange();
         left += pos().x();
         top += pos().y();
         for (PointPressure &pp : data)
@@ -175,10 +177,10 @@ void FullGraphicsPath::normalize()
 
 QList<AbstractGraphicsPath*> FullGraphicsPath::splitErase(const QPointF &eraserpos, const qreal size)
 {
-    //if (!boundingRect().marginsAdded(QMarginsF(size, size, size, size)).contains(eraserpos - pos()))
-    //    // If returned list contains only a NULL, this is interpreted as "no
-    //    // changes".
-    //    return {NULL};
+    if (!boundingRect().marginsAdded(QMarginsF(size, size, size, size)).contains(eraserpos - pos()))
+        // If returned list contains only a NULL, this is interpreted as "no
+        // changes".
+        return {NULL};
 
     normalize();
     QList<AbstractGraphicsPath*> list;

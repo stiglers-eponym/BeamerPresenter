@@ -168,7 +168,10 @@ bool SlideScene::handleEvents(const int device, const QList<QPointF> &pos, const
     }
 
     debug_verbose(DebugDrawing) << "Handling event" << tool->tool() << tool->device() << device;
-    if (tool->tool() & Tool::AnyDrawTool)
+
+    switch (tool->tool() & Tool::AnyToolCategory)
+    {
+    case Tool::AnyDrawTool:
     {
         switch (device & Tool::AnyEvent)
         {
@@ -190,8 +193,9 @@ bool SlideScene::handleEvents(const int device, const QList<QPointF> &pos, const
                 break;
             }
         }
+        break;
     }
-    else if (tool->tool() & Tool::AnyPointingTool)
+    case Tool::AnyPointingTool:
     {
         PointingTool *ptool = static_cast<PointingTool*>(tool);
         ptool->scene() = this;
@@ -217,6 +221,8 @@ bool SlideScene::handleEvents(const int device, const QList<QPointF> &pos, const
                     break;
                 case Tool::StartEvent:
                     container->startMicroStep();
+                    for (const QPointF &point : pos)
+                        container->eraserMicroStep(point, ptool->size());
                     break;
                 case Tool::StopEvent:
                     if (container->applyMicroStep())
@@ -257,37 +263,43 @@ bool SlideScene::handleEvents(const int device, const QList<QPointF> &pos, const
             break;
         }
         }
+        break;
     }
-    else if (tool->tool() & Tool::AnySelectionTool)
+    case Tool::AnySelectionTool:
     {
         // TODO
+        break;
     }
-    else if (tool->tool() == Tool::TextInputTool && (device & Tool::AnyEvent) == Tool::StopEvent && pos.size() == 1)
+    case 0:
     {
-        debug_msg(DebugDrawing) << "Trying to start writing text" << (device & Tool::AnyDevice) << focusItem();
-        for (auto item : static_cast<const QList<QGraphicsItem*>>(items(pos.constFirst())))
+        if (tool->tool() == Tool::TextInputTool && (device & Tool::AnyEvent) == Tool::StopEvent && pos.size() == 1)
         {
-            if (item->type() == TextGraphicsItem::Type)
+            debug_msg(DebugDrawing) << "Trying to start writing text" << (device & Tool::AnyDevice) << focusItem();
+            for (auto item : static_cast<const QList<QGraphicsItem*>>(items(pos.constFirst())))
             {
-                setFocusItem(item);
-                return false;
+                if (item->type() == TextGraphicsItem::Type)
+                {
+                    setFocusItem(item);
+                    return false;
+                }
             }
+            TextGraphicsItem *item = new TextGraphicsItem();
+            item->setTextInteractionFlags(Qt::TextEditorInteraction);
+            item->setFont(QFont(static_cast<const TextTool*>(tool)->font()));
+            item->setDefaultTextColor(static_cast<const TextTool*>(tool)->color());
+            addItem(item);
+            item->show();
+            item->setPos(pos.constFirst());
+            emit sendNewPath(page | page_part, item);
+            PathContainer *container = master->pathContainer(page | page_part);
+            if (container)
+                connect(item, &TextGraphicsItem::deleteMe, container, &PathContainer::deleteEmptyItem);
+            setFocusItem(item);
         }
-        TextGraphicsItem *item = new TextGraphicsItem();
-        item->setTextInteractionFlags(Qt::TextEditorInteraction);
-        item->setFont(QFont(static_cast<const TextTool*>(tool)->font()));
-        item->setDefaultTextColor(static_cast<const TextTool*>(tool)->color());
-        addItem(item);
-        item->show();
-        item->setPos(pos.constFirst());
-        emit sendNewPath(page | page_part, item);
-        PathContainer *container = master->pathContainer(page | page_part);
-        if (container)
-            connect(item, &TextGraphicsItem::deleteMe, container, &PathContainer::deleteEmptyItem);
-        setFocusItem(item);
+        else if ((device & Tool::AnyEvent) == Tool::StopEvent && pos.size() == 1)
+            noToolClicked(pos.constFirst(), start_pos);
     }
-    else if ((device & Tool::AnyEvent) == Tool::StopEvent && pos.size() == 1)
-        noToolClicked(pos.constFirst(), start_pos);
+    }
     return true;
 }
 

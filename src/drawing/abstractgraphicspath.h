@@ -31,7 +31,7 @@ protected:
 public:
     /// Constructor: initializing tool.
     AbstractGraphicsPath(const DrawTool tool) noexcept : _tool(tool)
-    {setFlags(QGraphicsItem::ItemIsMovable | QGraphicsItem::ItemIsSelectable);}
+    {setFlags(QGraphicsItem::ItemIsSelectable);}
 
     /// Bounding rectangle of the drawing (including stroke width).
     virtual QRectF boundingRect() const noexcept override
