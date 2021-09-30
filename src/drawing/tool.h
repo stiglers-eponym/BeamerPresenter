@@ -138,12 +138,14 @@ static const QMap<Tool::BasicTool, QString> tool_to_description
 };
 
 /// convert QTabletEvent::PointerType to InputDevice
-static const QMap<QTabletEvent::PointerType, Tool::InputDevice> tablet_device_to_input_device
+static const QMap<QPointingDevice::PointerType, Tool::InputDevice> tablet_device_to_input_device
 {
-    {QTabletEvent::Pen, Tool::TabletPen},
-    {QTabletEvent::Eraser, Tool::TabletEraser},
-    {QTabletEvent::Cursor, Tool::TabletCursor},
-    {QTabletEvent::UnknownPointer, Tool::TabletOther},
+    {QPointingDevice::PointerType::Pen, Tool::TabletPen},
+    {QPointingDevice::PointerType::Eraser, Tool::TabletEraser},
+    {QPointingDevice::PointerType::Cursor, Tool::TabletCursor},
+    {QPointingDevice::PointerType::Unknown, Tool::TabletOther},
+    {QPointingDevice::PointerType::Generic, Tool::MouseNoButton},
+    {QPointingDevice::PointerType::Finger, Tool::TouchInput},
 };
 
 /// convert string (from configuration file) to InputDevice

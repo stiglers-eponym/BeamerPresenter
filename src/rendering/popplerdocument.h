@@ -2,7 +2,7 @@
 #define POPPLERDOCUMENT_H
 
 #include <set>
-#include <poppler/qt5/poppler-qt5.h>
+#include <poppler/qt6/poppler-qt6.h>
 #include "src/enumerates.h"
 #include "src/rendering/pdfdocument.h"
 
@@ -11,9 +11,7 @@ class PngPixmap;
 class PopplerDocument : public PdfDocument
 {
     /// Poppler document representing the PDF.
-    const Poppler::Document *doc {NULL};
-    /// List of all pages.
-    QVector<Poppler::Page*> pages;
+    std::unique_ptr<Poppler::Document> doc = NULL;
 
     /// Lookup table for page labels: set of page indices, at which the page
     /// label changes. This is left empty if every page starts with a new
@@ -27,8 +25,8 @@ public:
     /// Constructor: calls loadDocument().
     PopplerDocument(const QString &filename);
 
-    /// Destructor: deletes doc and pages.
-    ~PopplerDocument() noexcept override;
+    /// Destructor: trivial
+    ~PopplerDocument() noexcept override {}
 
     /// Render page to QPixmap. page is given as page index.
     /// resolution is given in pixels per point (dpi/72).

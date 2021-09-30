@@ -5,6 +5,7 @@
 #include <src/enumerates.h>
 #include "src/preferences.h"
 #include "src/master.h"
+#include "src/rendering/pngpixmap.h"
 
 #ifdef INCLUDE_POPPLER
 // TODO: make this failsafe (poppler-version.h is not available in early
@@ -41,6 +42,8 @@ int main(int argc, char *argv[])
     // Set format for debugging output, warnings etc.
     // To overwrite this you can set the environment variable QT_MESSAGE_PATTERN.
     qSetMessagePattern("%{time process} %{if-debug}D%{endif}%{if-info}INFO%{endif}%{if-warning}WARNING%{endif}%{if-critical}CRITICAL%{endif}%{if-fatal}FATAL%{endif}%{if-category} %{category}%{endif} %{file}:%{line} - %{message}%{if-fatal} from %{backtrace [depth=3]}%{endif}");
+    qRegisterMetaType<const PngPixmap*>("const PngPixmap*");
+    qRegisterMetaType<Tool*>("Tool*");
 
     // Set up the application.
     QApplication app(argc, argv);

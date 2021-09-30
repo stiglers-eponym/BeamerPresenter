@@ -1,3 +1,4 @@
+#include <QAudioOutput>
 #include "src/slidescene.h"
 #include "src/slideview.h"
 #include "src/pdfmaster.h"
@@ -38,6 +39,7 @@ SlideScene::~SlideScene()
         delete item.item;
     }
     videoItems.clear();
+    delete audio_out;
     delete currentPath;
     delete currentItemCollection;
 }
@@ -94,27 +96,27 @@ bool SlideScene::event(QEvent* event)
     {
         device = Tool::TouchInput | Tool::StartEvent;
         const auto touchevent = static_cast<QTouchEvent*>(event);
-        for (const auto &point : touchevent->touchPoints())
-            pos.append(point.scenePos());
+        for (const auto &point : touchevent->points())
+            pos.append(point.scenePosition());
         break;
     }
     case QEvent::TouchUpdate:
     {
         device = Tool::TouchInput | Tool::UpdateEvent;
         const auto touchevent = static_cast<QTouchEvent*>(event);
-        for (const auto &point : touchevent->touchPoints())
-            pos.append(point.scenePos());
+        for (const auto &point : touchevent->points())
+            pos.append(point.scenePosition());
         break;
     }
     case QEvent::TouchEnd:
     {
         device = Tool::TouchInput | Tool::StopEvent;
         const auto touchevent = static_cast<QTouchEvent*>(event);
-        if (touchevent->touchPoints().size() > 0)
+        if (touchevent->points().size() > 0)
         {
-            for (const auto &point : touchevent->touchPoints())
-                pos.append(point.scenePos());
-            start_pos = touchevent->touchPoints().constFirst().startScenePos();
+            for (const auto &point : touchevent->points())
+                pos.append(point.scenePosition());
+            start_pos = touchevent->points().constFirst().scenePressPosition();
         }
         break;
     }
@@ -301,13 +303,12 @@ void SlideScene::receiveAction(const Action action)
         playPauseMedia();
         break;
     case Mute:
+        if (audio_out)
+            audio_out->setMuted(true);
+        break;
     case Unmute:
-        if (!(slide_flags & MuteSlide))
-        {
-            for (const auto &video : qAsConst(videoItems))
-                if (video.player)
-                    video.player->setMuted(action == Mute);
-        }
+        if (audio_out && !(slide_flags & MuteSlide))
+            audio_out->setMuted(false);
         break;
     default:
         break;
@@ -483,34 +484,33 @@ SlideScene::VideoItem &SlideScene::getVideoItem(const PdfDocument::MediaAnnotati
     }
     debug_msg(DebugMedia) << "Loading new video" << annotation.file << annotation.rect;
     QMediaPlayer *player = new QMediaPlayer(this);
-    player->setMuted(slide_flags & MuteSlide || preferences()->global_flags & Preferences::MuteApplication);
-    QMediaPlaylist *playlist = new QMediaPlaylist(player);
+    if (!audio_out)
+    {
+        audio_out = new QAudioOutput(this);
+        if (slide_flags & MuteSlide || preferences()->global_flags & Preferences::MuteApplication)
+            audio_out->setMuted(true);
+    }
+    player->setAudioOutput(audio_out);
     QGraphicsVideoItem *item = new QGraphicsVideoItem;
     connect(item, &QGraphicsVideoItem::destroyed, player, &QMediaPlayer::deleteLater);
-    // Ugly fix to cache videos: show invisible video pixel
-    item->setSize({1,1});
-    item->setPos(sceneRect().bottomRight());
-    addItem(item);
-    item->show();
     player->setVideoOutput(item);
-    playlist->addMedia(annotation.file);
+    player->setSource(annotation.file);
+    // TODO: implement loop video.
     switch (annotation.mode)
     {
-    case PdfDocument::MediaAnnotation::Repeat:
-        playlist->setPlaybackMode(QMediaPlaylist::CurrentItemInLoop);
+    case PdfDocument::MediaAnnotation::Once:
+    case PdfDocument::MediaAnnotation::Open:
+        // TODO
         break;
     case PdfDocument::MediaAnnotation::Palindrome:
         qWarning() << "Palindrome video: not implemented (yet)";
-        playlist->setPlaybackMode(QMediaPlaylist::CurrentItemInLoop);
-        break;
-    case PdfDocument::MediaAnnotation::Once:
-    case PdfDocument::MediaAnnotation::Open:
-        playlist->setPlaybackMode(QMediaPlaylist::CurrentItemOnce);
-        break;
+        // TODO
+        [[clang::fallthrough]];
+    case PdfDocument::MediaAnnotation::Repeat:
     default:
+        // TODO
         break;
     }
-    player->setPlaylist(playlist);
     videoItems.append({annotation, item, player, {page}});
     return videoItems.last();
 }
@@ -974,7 +974,7 @@ void SlideScene::noToolClicked(const QPointF &pos, const QPointF &startpos)
         {
             if (startpos.isNull() || item.annotation.rect.contains(startpos))
             {
-                if (item.player->state() == QMediaPlayer::PlayingState)
+                if (item.player->playbackState() == QMediaPlayer::PlayingState)
                     item.player->pause();
                 else
                     item.player->play();
@@ -1022,7 +1022,7 @@ void SlideScene::playPauseMedia() const
     {
         if (
                 item.pages.contains((page &~NotFullPage))
-                && item.player->state() == QMediaPlayer::PlayingState
+                && item.player->playbackState() == QMediaPlayer::PlayingState
             )
         {
             pauseMedia();

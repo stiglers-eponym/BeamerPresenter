@@ -567,7 +567,7 @@ QWidget* Master::createWidget(QJsonObject &object, QWidget *parent)
             if (seq.isEmpty())
                 qWarning() << "Unknown key sequence in config:" << object.value("keys");
             else
-                shortcuts[seq[0] + seq[1] + seq[2] + seq[3]] = widget;
+                shortcuts[seq] = widget;
         }
         // Read base color from config or take it from parent.
         QPalette palette = (parent ? parent : widget)->palette();
@@ -592,7 +592,7 @@ void Master::showAll() const
 
 void Master::receiveKeyEvent(const QKeyEvent* event)
 {
-    const quint32 key_code = event->key() | (event->modifiers() & ~Qt::KeypadModifier);
+    const QKeySequence key_code(event->keyCombination());
     // Search shortcuts for given key sequence.
     {
         QWidget* widget = shortcuts.value(key_code);

@@ -6,7 +6,6 @@
 #include <QGraphicsSceneMouseEvent>
 #include <QTabletEvent>
 #include <QMediaPlayer>
-#include <QMediaPlaylist>
 #include <QPropertyAnimation>
 #include <QParallelAnimationGroup>
 #include "src/enumerates.h"
@@ -81,6 +80,9 @@ private:
 
     /// List of (cached or active) video items.
     QList<VideoItem> videoItems;
+
+    /// Audio output for media player.
+    QAudioOutput *audio_out {NULL};
 
     /// PDF document, including drawing paths.
     /// This is const, all data sent to master should be send via signals.

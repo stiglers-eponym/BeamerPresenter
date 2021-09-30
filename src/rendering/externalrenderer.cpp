@@ -3,6 +3,7 @@
 #include "src/rendering/pngpixmap.h"
 #include "src/preferences.h"
 #include <QProcess>
+#include <QRegularExpression>
 
 ExternalRenderer::ExternalRenderer(const QString& command, const QStringList &arguments, const PdfDocument * const doc, const PagePart part) :
     AbstractRenderer(part),
@@ -99,5 +100,5 @@ bool ExternalRenderer::isValid() const
     debug_msg(DebugRendering) << renderingCommand << renderingArguments;
     return  !renderingCommand.isEmpty()
             && !renderingArguments.isEmpty()
-            && renderingArguments.indexOf(QRegExp(".*%0?page.*")) != -1;
+            && renderingArguments.indexOf(QRegularExpression(".*%0?page.*")) != -1;
 }

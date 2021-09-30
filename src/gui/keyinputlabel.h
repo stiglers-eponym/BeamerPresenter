@@ -21,13 +21,13 @@ class KeyInputLabel : public QLabel
     /// Key combinations entered here will be connected to this Tool if it is not NULL.
     Tool *tool = NULL;
     /// key sequence
-    quint32 keys;
+    QKeySequence keys;
 
 public:
     /// Create a new KeyInputLabel for an action.
-    explicit KeyInputLabel(const quint32 init, const Action action, QWidget *parent = NULL);
+    explicit KeyInputLabel(const QKeySequence init, const Action action, QWidget *parent = NULL);
     /// Create a new KeyInputLabel for a tool.
-    explicit KeyInputLabel(const quint32 init, Tool *tool, QWidget *parent = NULL);
+    explicit KeyInputLabel(const QKeySequence init, Tool *tool, QWidget *parent = NULL);
     ~KeyInputLabel();
 
 protected:

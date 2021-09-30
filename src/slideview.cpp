@@ -150,21 +150,21 @@ bool SlideView::event(QEvent *event)
     case QEvent::TabletPress:
     {
         auto tabletevent = static_cast<QTabletEvent*>(event);
-        static_cast<SlideScene*>(scene())->tabletPress(mapToScene(tabletevent->posF()), tabletevent);
+        static_cast<SlideScene*>(scene())->tabletPress(mapToScene(tabletevent->position()), tabletevent);
         event->accept();
         return true;
     }
     case QEvent::TabletRelease:
     {
         auto tabletevent = static_cast<QTabletEvent*>(event);
-        static_cast<SlideScene*>(scene())->tabletRelease(mapToScene(tabletevent->posF()), tabletevent);
+        static_cast<SlideScene*>(scene())->tabletRelease(mapToScene(tabletevent->position()), tabletevent);
         event->accept();
         return true;
     }
     case QEvent::TabletMove:
     {
         auto tabletevent = static_cast<QTabletEvent*>(event);
-        static_cast<SlideScene*>(scene())->tabletMove(mapToScene(tabletevent->posF()), tabletevent);
+        static_cast<SlideScene*>(scene())->tabletMove(mapToScene(tabletevent->position()), tabletevent);
         event->accept();
         return true;
     }
@@ -307,7 +307,8 @@ void SlideView::addMediaSlider(const SlideScene::VideoItem &video)
     slider->setValue(video.player->position());
     connect(video.player, &QMediaPlayer::durationChanged, slider, &QSlider::setMaximum);
     connect(video.player, &QMediaPlayer::positionChanged, slider, &QSlider::setValue);
-    connect(slider, &QSlider::sliderMoved, video.player, &QMediaPlayer::setPosition);
+    // TODO: Sliders currently don't work. When activated, the slider makes the program hang up.
+    //connect(slider, &QSlider::sliderMoved, video.player, &QMediaPlayer::setPosition, Qt::QueuedConnection);
     QPalette palette;
     palette.setColor(QPalette::Base, QColor(0,0,0,0));
     slider->setPalette(palette);

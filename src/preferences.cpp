@@ -139,7 +139,7 @@ Preferences::Preferences(QObject *parent) :
     settings(QSettings::NativeFormat, QSettings::UserScope, "beamerpresenter", "beamerpresenter")
 {
     settings.setFallbacksEnabled(false);
-    settings.setIniCodec("UTF-8");
+    settings.setDefaultFormat(QSettings::IniFormat);
     // If settings is empty, copy system scope config to user space file.
     if (settings.allKeys().isEmpty() && settings.isWritable())
     {
@@ -153,7 +153,7 @@ Preferences::Preferences(const QString &file, QObject *parent) :
     QObject(parent),
     settings(file, QSettings::NativeFormat)
 {
-    settings.setIniCodec("UTF-8");
+    settings.setDefaultFormat(QSettings::IniFormat);
 }
 
 Preferences::~Preferences()
@@ -275,16 +275,14 @@ void Preferences::loadSettings()
                 qWarning() << "Unknown key sequence in config:" << key;
             else
             {
-                const quint32 key_code = quint32(seq[0] + seq[1] + seq[2] + seq[3]);
-
                 // First try to interpret sequence as json object.
                 // Here the way how Qt changes the string is not really optimal.
                 // First check if the value is already a json object.
                 QJsonArray array;
                 debug_msg(DebugSettings) << key << settings.value(key).typeName();
-                if (settings.value(key).canConvert(QMetaType::Type::QJsonArray))
+                if (settings.value(key).canConvert<QJsonArray>())
                     array = settings.value(key).toJsonArray();
-                else if (settings.value(key).canConvert(QMetaType::Type::QJsonObject))
+                else if (settings.value(key).canConvert<QJsonObject>())
                     array.append(settings.value(key).toJsonObject());
                 else
                 {
@@ -313,7 +311,7 @@ void Preferences::loadSettings()
                         if (tool)
                         {
                             debug_msg(DebugSettings|DebugDrawing) << "Adding tool" << tool << tool->tool() << tool->device();
-                            key_tools.insert(key_code, tool);
+                            key_tools.insert(seq, tool);
                         }
                     }
                 }
@@ -327,7 +325,7 @@ void Preferences::loadSettings()
                         if (action == InvalidAction)
                             qWarning() << "Unknown action in config" << action_str << "for key" << key;
                         else
-                            key_actions.insert(key_code, action);
+                            key_actions.insert(seq, action);
                     }
                 }
             }
@@ -413,11 +411,11 @@ void Preferences::loadFromParser(const QCommandLineParser &parser)
 #endif
 }
 
-void Preferences::addKeyAction(const quint32 sequence, const Action action)
+void Preferences::addKeyAction(const QKeySequence sequence, const Action action)
 {
     if (!key_actions.contains(sequence) || !key_actions.values(sequence).contains(action))
         key_actions.insert(sequence, action);
-    const QString keycode = QKeySequence(sequence).toString();
+    const QString keycode = sequence.toString();
     if (!keycode.isEmpty())
     {
         settings.beginGroup("keys");
@@ -432,11 +430,11 @@ void Preferences::addKeyAction(const quint32 sequence, const Action action)
     }
 }
 
-void Preferences::removeKeyAction(const quint32 sequence, const Action action)
+void Preferences::removeKeyAction(const QKeySequence sequence, const Action action)
 {
     key_actions.remove(sequence, action);
     settings.beginGroup("keys");
-    const QString keycode = QKeySequence(sequence).toString();
+    const QString keycode = sequence.toString();
     if (!keycode.isEmpty() && settings.contains(keycode))
     {
         QStringList list = settings.value(keycode).toStringList();
@@ -536,14 +534,14 @@ void Preferences::removeKeyTool(const Tool *tool, const bool remove_from_setting
         settings.endGroup();
 }
 
-void Preferences::replaceKeyToolShortcut(const int oldkeys, const int newkeys, Tool *tool)
+void Preferences::replaceKeyToolShortcut(const QKeySequence oldkeys, const QKeySequence newkeys, Tool *tool)
 {
     key_tools.remove(oldkeys, tool);
     settings.beginGroup("keys");
     const QString oldcode = QKeySequence(oldkeys).toString();
     if (!oldcode.isEmpty())
         settings.remove(oldcode);
-    if (newkeys && tool)
+    if (!newkeys.isEmpty() && tool)
     {
         key_tools.insert(newkeys, tool);
         QJsonObject obj;
@@ -571,7 +569,7 @@ void Preferences::setHistoryVisibleSlide(const int length)
     if (length >= 0)
         history_length_visible_slides = length;
     settings.beginGroup("drawing");
-    settings.setValue("history length visibl", history_length_visible_slides);
+    settings.setValue("history length visible", history_length_visible_slides);
     settings.endGroup();
 }
 

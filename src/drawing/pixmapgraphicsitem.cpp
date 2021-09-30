@@ -48,7 +48,7 @@ void PixmapGraphicsItem::paint(QPainter *painter, const QStyleOptionGraphicsItem
     {
         debug_msg(DebugRendering) << "possibly wrong resolution:" << it.key() << painter->transform().m11() * boundingRect().width();
         if (it != pixmaps.cbegin())
-            debug_msg(DebugRendering) << "possibly better:" << (it-1).key();
+            debug_msg(DebugRendering) << "possibly better:" << std::prev(it).key();
     }
 #endif
     if (!_mask.isNull())

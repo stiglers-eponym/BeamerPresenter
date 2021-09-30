@@ -66,7 +66,8 @@ Older versions of ubuntu are only compatible with version 0.1 of BeamerPresenter
 In Arch Linux you can install `beamerpresenter` or `beamerpresenter-git` from the AUR.
 Note that in these packages by default MuPDF is selected as PDF engine.
 
-First install the dependencies. You need Qt 5 including the multimedia module (which is not available in Qt 6.0).
+First install the dependencies. You need Qt 5 including the multimedia module.
+Qt 6.2 is currently tested in an own branch (only MuPDF as of now) and still has some issues, especially with multimedia content.
 Additionally you need either the Qt 5 bindings of poppler or the MuPDF C bindings.
 
 ### Dependencies in Ubuntu 20.04
@@ -92,8 +93,9 @@ Others:
 * `zlib1g-dev`
 
 ### Dependencies in Arch Linux
-For Qt 5:
+For Qt 5: (for Qt 6 testing: replace qt5 by qt6 and choose version >= 6.2)
 * `qt5-multimedia` (depends on `qt5-base`, which is also required)
+* optional: `qt5-svg` for showing icons
 
 For poppler (optional, see [below](https://github.com/stiglers-eponym/BeamerPresenter#build)):
 * `poppler-qt5`
