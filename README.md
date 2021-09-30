@@ -66,7 +66,7 @@ Older versions of ubuntu are only compatible with version 0.1 of BeamerPresenter
 In Arch Linux you can install `beamerpresenter` or `beamerpresenter-git` from the AUR.
 Note that in these packages by default MuPDF is selected as PDF engine.
 
-First install the dependencies. You need Qt 5 including the multimedia module (which is not available in Qt 6.0).
+First install the dependencies. You need Qt 5 including the multimedia module. Qt 6.2 is tested in a separate branch.
 Additionally you need either the Qt 5 bindings of poppler or the MuPDF C bindings.
 
 ### Dependencies in Ubuntu 20.04
@@ -172,9 +172,6 @@ BeamerPresenter (`qmake --version`).
 * Some slide transitions can show artifacts on preview slide widgets which only show the first or last overlay of a slide.
 * Some slide transitions may have bad performance (low frame rate).
 * if preview shows specific overlays, slide changes adding or removing synchronization of preview and an another frame may lead to short flickering
-* *(fixed in current git version)* only poppler: absolute paths to videos are not understood
-* *(fixed in current git version)* only poppler: program freeze when showing outline widget
-* *(fixed in current git version)* bad layout of outline widget
 
 
 ### Ideas for further development

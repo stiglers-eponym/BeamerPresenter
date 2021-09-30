@@ -4,6 +4,7 @@
 #include "src/slideview.h"
 #include "src/drawing/drawtool.h"
 #include "src/drawing/pointingtool.h"
+#include "src/drawing/texttool.h"
 #include "src/gui/flexlayout.h"
 #include "src/gui/clockwidget.h"
 #include "src/gui/tabwidget.h"
@@ -629,6 +630,8 @@ void Master::receiveKeyEvent(const QKeyEvent* event)
                 setTool(new DrawTool(*static_cast<const DrawTool*>(tool)));
             else if (tool->tool() & Tool::AnyPointingTool)
                 setTool(new PointingTool(*static_cast<const PointingTool*>(tool)));
+            else if (tool->tool() == Tool::TextInputTool)
+                setTool(new TextTool(*static_cast<const TextTool*>(tool)));
             else
                 setTool(new Tool(*tool));
         }
