@@ -161,6 +161,7 @@ BeamerPresenter (`qmake --version`).
 ## Development
 
 ### Known problems
+* Sliders don't work in Qt 6: Sliders are shown, but cannot be used to change the playback position.
 * Video lags when drawing on it. Sometimes this can be reduced by first making sure that the presentation window has focus and then pausing and playing the video.
 * Videos show a short black frame between repetitions. This also appears when navigating to a page containing a video from a different slide than the slide before the video.
 * Sound in videos is basically untested and currently has low priority. Feel free to open an issue if this is relevant for you.

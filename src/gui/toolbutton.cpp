@@ -33,7 +33,7 @@ bool ToolButton::event(QEvent *event) noexcept
         case QEvent::TouchEnd:
         {
             const QTouchEvent *touchevent = static_cast<const QTouchEvent*>(event);
-            if (touchevent->touchPoints().size() != 1 || !rect().contains(touchevent->touchPoints().first().pos().toPoint()))
+            if (touchevent->points().size() != 1 || !rect().contains(touchevent->points().first().position().toPoint()))
             {
                 setDown(false);
                 return false;

@@ -277,41 +277,41 @@ void Preferences::loadSettings()
             {
                 // First try to interpret sequence as json object.
                 // Here the way how Qt changes the string is not really optimal.
-                // First check if the value is already a json object.
+                // In the input quotation marks must be escaped. For
+                // convenience it is allowed to use single quotation marks
+                // instead.
+                QJsonParseError error;
+                const QJsonDocument doc = QJsonDocument::fromJson(settings.value(key).toStringList().join(",").replace("'", "\"").toUtf8(), &error);
                 QJsonArray array;
-                debug_msg(DebugSettings) << key << settings.value(key).typeName();
-                if (settings.value(key).canConvert<QJsonArray>())
-                    array = settings.value(key).toJsonArray();
-                else if (settings.value(key).canConvert<QJsonObject>())
-                    array.append(settings.value(key).toJsonObject());
-                else
+                if (error.error == QJsonParseError::NoError)
                 {
-                    // Try to parse a human readable input string as json object.
-                    // In the input quotation marks must be escaped. For
-                    // convenience it is allowed to use single quotation marks
-                    // instead.
-                    QJsonParseError error;
-                    const QJsonDocument doc = QJsonDocument::fromJson(settings.value(key).toStringList().join(",").replace("'", "\"").toUtf8(), &error);
-                    if (error.error == QJsonParseError::NoError)
-                    {
-                        if (doc.isArray())
-                            array = doc.array();
-                        else if (doc.isObject())
-                            array.append(doc.object());
-                    }
+                    if (doc.isArray())
+                        array = doc.array();
+                    else if (doc.isObject())
+                        array.append(doc.object());
                 }
                 if (!array.isEmpty())
                 {
                     for (const auto &value : qAsConst(array))
                     {
-                        if (!value.isObject())
-                            continue;
-                        const QJsonObject object = value.toObject();
-                        Tool *tool = createTool(object, Tool::AnyNormalDevice);
-                        if (tool)
+                        if (value.isString())
                         {
-                            debug_msg(DebugSettings|DebugDrawing) << "Adding tool" << tool << tool->tool() << tool->device();
-                            key_tools.insert(seq, tool);
+                            debug_verbose(DebugSettings) << key << value;
+                            const Action action = string_to_action_map.value(value.toString().toLower(), Action::InvalidAction);
+                            if (action == InvalidAction)
+                                qWarning() << "Unknown action in config" << value << "for key" << key;
+                            else
+                                key_actions.insert(seq, action);
+                        }
+                        else if (value.isObject())
+                        {
+                            const QJsonObject object = value.toObject();
+                            Tool *tool = createTool(object, Tool::AnyNormalDevice);
+                            if (tool)
+                            {
+                                debug_msg(DebugSettings|DebugDrawing) << "Adding tool" << tool << tool->tool() << tool->device();
+                                key_tools.insert(seq, tool);
+                            }
                         }
                     }
                 }
