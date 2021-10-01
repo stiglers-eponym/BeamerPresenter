@@ -426,7 +426,7 @@ void MuPdfDocument::loadPageLabels()
         else
         {
             int i = it.key();
-            const int next_num = (it+1 == raw_labels.cend()) ? number_of_pages : (it+1).key();
+            const int next_num = (std::next(it) == raw_labels.cend()) ? number_of_pages : std::next(it).key();
             for (; i < next_num; i++)
                 pageLabels[i] = QString::fromStdString(decode_pdf_label(i - it.key(), *it));
         }

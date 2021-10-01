@@ -571,10 +571,12 @@ QWidget* Master::createWidget(QJsonObject &object, QWidget *parent)
                 shortcuts[seq] = widget;
         }
         // Read base color from config or take it from parent.
-        QPalette palette = (parent ? parent : widget)->palette();
+        QPalette palette = widget->palette();
         const QColor bg_color = QColor(object.value("color").toString());
         if (bg_color.isValid())
-            palette.setColor(QPalette::Base, bg_color);
+            palette.setColor(QPalette::All, QPalette::Base, bg_color);
+        else
+            palette.setColor(QPalette::All, QPalette::Base, QColor(0,0,0,0));
         widget->setPalette(palette);
     }
     else
