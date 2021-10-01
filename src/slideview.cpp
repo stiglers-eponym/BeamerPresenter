@@ -3,6 +3,7 @@
 #include "src/drawing/pixmapgraphicsitem.h"
 #include "src/drawing/pointingtool.h"
 #include "src/rendering/pixcache.h"
+#include "src/gui/mediaslider.h"
 
 SlideView::SlideView(SlideScene *scene, PixCache *cache, QWidget *parent) :
     QGraphicsView(scene, parent)
@@ -298,17 +299,16 @@ void SlideView::addMediaSlider(const SlideScene::VideoItem &video)
 {
     if (!(view_flags & MediaControls))
         return;
-    QSlider *slider = new QSlider(Qt::Horizontal, this);
+    MediaSlider *slider = new MediaSlider(this);
     sliders.append(slider);
     const QPoint left = mapFromScene(video.annotation.rect.bottomLeft());
     const QPoint right = mapFromScene(video.annotation.rect.bottomRight());
     slider->setGeometry(left.x(), right.y(), right.x() - left.x(), 20);
     slider->setMaximum(video.player->duration());
     slider->setValue(video.player->position());
-    connect(video.player, &QMediaPlayer::durationChanged, slider, &QSlider::setMaximum);
-    connect(video.player, &QMediaPlayer::positionChanged, slider, &QSlider::setValue);
-    // TODO: Sliders currently don't work. When activated, the slider makes the program hang up.
-    //connect(slider, &QSlider::sliderMoved, video.player, &QMediaPlayer::setPosition, Qt::QueuedConnection);
+    connect(video.player, &MediaPlayer::durationChanged, slider, &MediaSlider::setMaximumInt64);
+    connect(video.player, &MediaPlayer::positionChanged, slider, &MediaSlider::setValueInt64);
+    connect(slider, &MediaSlider::sliderMoved, video.player, &MediaPlayer::setPositionSoft);
     QPalette palette;
     palette.setColor(QPalette::Base, QColor(0,0,0,0));
     slider->setPalette(palette);

@@ -5,11 +5,11 @@
 #include <QGraphicsVideoItem>
 #include <QGraphicsSceneMouseEvent>
 #include <QTabletEvent>
-#include <QMediaPlayer>
 #include <QPropertyAnimation>
 #include <QParallelAnimationGroup>
 #include "src/enumerates.h"
 #include "src/rendering/pdfdocument.h"
+#include "src/rendering/mediaplayer.h"
 #include "src/drawing/textgraphicsitem.h"
 
 class PdfMaster;
@@ -39,7 +39,7 @@ public:
         /// QGraphicsItem representing the video
         QGraphicsVideoItem *item;
         /// Media player controling the video
-        QMediaPlayer *player;
+        MediaPlayer *player;
         /// Set of pages on which this video item appears. This is updated
         /// when videos for a new page are loaded and an old video is found
         /// to be visible also on the new page.

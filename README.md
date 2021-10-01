@@ -150,8 +150,6 @@ BeamerPresenter (`qmake --version`).
 ## Development
 
 ### Known problems
-* Sliders don't work in Qt 6: Sliders are shown, but cannot be used to change the playback position.
-* in Qt 6: Videos don't play in loops
 * Video lags when drawing on it. Sometimes this can be reduced by first making sure that the presentation window has focus and then pausing and playing the video.
 * Sound in videos is basically untested and currently has low priority. Feel free to open an issue if this is relevant for you.
 * Tool buttons can be changed in the user interface, but these changes are not saved. Buttons are part of the user interface, which can only be changed (permanently) by editing the JSON-formatted configuration file.

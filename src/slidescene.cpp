@@ -483,7 +483,7 @@ SlideScene::VideoItem &SlideScene::getVideoItem(const PdfDocument::MediaAnnotati
         }
     }
     debug_msg(DebugMedia) << "Loading new video" << annotation.file << annotation.rect;
-    QMediaPlayer *player = new QMediaPlayer(this);
+    MediaPlayer *player = new MediaPlayer(this);
     if (!audio_out)
     {
         audio_out = new QAudioOutput(this);
@@ -492,10 +492,9 @@ SlideScene::VideoItem &SlideScene::getVideoItem(const PdfDocument::MediaAnnotati
     }
     player->setAudioOutput(audio_out);
     QGraphicsVideoItem *item = new QGraphicsVideoItem;
-    connect(item, &QGraphicsVideoItem::destroyed, player, &QMediaPlayer::deleteLater);
+    connect(item, &QGraphicsVideoItem::destroyed, player, &MediaPlayer::deleteLater);
     player->setVideoOutput(item);
     player->setSource(annotation.file);
-    // TODO: implement loop video.
     switch (annotation.mode)
     {
     case PdfDocument::MediaAnnotation::Once:
@@ -508,7 +507,7 @@ SlideScene::VideoItem &SlideScene::getVideoItem(const PdfDocument::MediaAnnotati
         [[clang::fallthrough]];
     case PdfDocument::MediaAnnotation::Repeat:
     default:
-        // TODO
+        connect(player, &MediaPlayer::mediaStatusChanged, player, &MediaPlayer::repeatIfFinished);
         break;
     }
     videoItems.append({annotation, item, player, {page}});

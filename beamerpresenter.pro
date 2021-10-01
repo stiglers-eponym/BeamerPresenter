@@ -138,6 +138,7 @@ SOURCES += \
         src/pdfmaster.cpp \
         src/preferences.cpp \
         src/rendering/externalrenderer.cpp \
+        src/rendering/mediaplayer.cpp \
         src/rendering/pdfdocument.cpp \
         src/rendering/pixcache.cpp \
         src/rendering/pixcachethread.cpp \
@@ -162,6 +163,7 @@ HEADERS += \
         src/gui/containerwidget.h \
         src/gui/flexlayout.h \
         src/gui/keyinputlabel.h \
+        src/gui/mediaslider.h \
         src/gui/noteswidget.h \
         src/gui/settingswidget.h \
         src/gui/slidelabelwidget.h \
@@ -182,6 +184,7 @@ HEADERS += \
         src/pdfmaster.h \
         src/preferences.h \
         src/rendering/abstractrenderer.h \
+        src/rendering/mediaplayer.h \
         src/rendering/pdfdocument.h \
         src/rendering/externalrenderer.h \
         src/rendering/pixcache.h \
