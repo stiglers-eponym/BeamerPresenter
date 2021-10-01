@@ -27,8 +27,11 @@ SlideLabelWidget::SlideLabelWidget(QWidget *parent) :
 void SlideLabelWidget::resizeEvent(QResizeEvent *event) noexcept
 {
     const int basesize = std::min(event->size().height()*2/3, event->size().width()/10);
-    total->setFont({"", basesize, 2});
-    edit->setFont({"", basesize+1, 2});
+    QFont thefont = edit->font();
+    thefont.setPointSize(basesize);
+    total->setFont(thefont);
+    thefont.setPointSize(basesize+1);
+    edit->setFont(thefont);
 }
 
 void SlideLabelWidget::updateText(const int page) noexcept

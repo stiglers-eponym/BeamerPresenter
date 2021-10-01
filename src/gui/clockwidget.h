@@ -41,8 +41,7 @@ public:
 
 protected:
     /// Resize event: adjust font size.
-    void resizeEvent(QResizeEvent *event) noexcept override
-    {setFont({"", std::min(event->size().height()*2/3, event->size().width()/6), 2});}
+    void resizeEvent(QResizeEvent *event) noexcept override;
 
     // Disable mouse interaction.
     /// Disable mouse press events.

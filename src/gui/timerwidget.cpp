@@ -55,11 +55,12 @@ void TimerWidget::updateTimeout() noexcept
 
 void TimerWidget::resizeEvent(QResizeEvent *event) noexcept
 {
-    QFont font({"", std::min(event->size().height()/2, event->size().width()/12), 2});
-    passed->setFont(font);
-    total->setFont(font);
-    font.setPointSizeF(0.75*font.pointSizeF());
-    label->setFont(font);
+    QFont thefont = passed->font();
+    thefont.setPointSizeF(std::min(event->size().height()/2, event->size().width()/12));
+    passed->setFont(thefont);
+    total->setFont(thefont);
+    thefont.setPointSizeF(0.75*thefont.pointSizeF());
+    label->setFont(thefont);
 }
 
 void TimerWidget::updateFullText() noexcept
