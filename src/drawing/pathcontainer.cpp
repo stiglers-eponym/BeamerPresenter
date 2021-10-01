@@ -33,9 +33,9 @@ bool PathContainer::undo(QGraphicsScene *scene)
     const QMap<int, QGraphicsItem*> &removeItems = history[history.length()-inHistory]->createdItems;
     // Iterate over the keys in reverse order, because otherwise the indices of
     // items which we still want to delete would change.
-    for (auto it = removeItems.constEnd(); it != removeItems.constBegin(); --it)
+    for (auto it = removeItems.constEnd(); it != removeItems.constBegin();)
     {
-        paths.removeAt(it.key());
+        paths.removeAt((--it).key());
         if ((*it)->scene())
             (*it)->scene()->removeItem(it.value());
     }
@@ -69,9 +69,9 @@ bool PathContainer::redo(QGraphicsScene *scene)
     const QMap<int, QGraphicsItem*> &oldItems = history[history.length()-inHistory]->deletedItems;
     // Iterate over the keys in reverse order, because otherwise the indices of
     // items which we still want to delete would change.
-    for (auto it = oldItems.constEnd(); it != oldItems.constBegin(); --it)
+    for (auto it = oldItems.constEnd(); it != oldItems.constBegin();)
     {
-        paths.removeAt(it.key());
+        paths.removeAt((--it).key());
         if (it.value()->scene())
             it.value()->scene()->removeItem(it.value());
     }

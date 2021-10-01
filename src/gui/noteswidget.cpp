@@ -161,29 +161,29 @@ void NotesWidget::writeNotes(QXmlStreamWriter &writer)
 
 void NotesWidget::keyPressEvent(QKeyEvent *event)
 {
-    switch(event->keyCombination())
+    switch(event->keyCombination().toCombined())
     {
-    case QKeyCombination(Qt::ControlModifier, Qt::Key_O):
+    case (Qt::ControlModifier | Qt::Key_O).toCombined():
         load();
         event->accept();
         break;
-    case QKeyCombination(Qt::ControlModifier, Qt::Key_S):
+    case (Qt::ControlModifier | Qt::Key_S).toCombined():
         save(file_path);
         event->accept();
         break;
-    case QKeyCombination(Qt::ControlModifier | Qt::ShiftModifier, Qt::Key_S):
+    case (Qt::ControlModifier | Qt::ShiftModifier | Qt::Key_S).toCombined():
         save("");
         event->accept();
         break;
-    case QKeyCombination(Qt::ControlModifier, Qt::Key_Plus):
-    case QKeyCombination(Qt::ShiftModifier | Qt::ControlModifier, Qt::Key_Plus):
+    case (Qt::ControlModifier | Qt::Key_Plus).toCombined():
+    case (Qt::ShiftModifier | Qt::ControlModifier | Qt::Key_Plus).toCombined():
         zoomIn();
         break;
-    case QKeyCombination(Qt::ControlModifier, Qt::Key_Minus):
+    case (Qt::ControlModifier | Qt::Key_Minus).toCombined():
         zoomOut();
         break;
-    case QKeyCombination(Qt::Key_PageUp):
-    case QKeyCombination(Qt::Key_PageDown):
+    case Qt::Key_PageUp:
+    case Qt::Key_PageDown:
         event->ignore();
         break;
     default:

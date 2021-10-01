@@ -499,7 +499,6 @@ SlideScene::VideoItem &SlideScene::getVideoItem(const PdfDocument::MediaAnnotati
     {
     case PdfDocument::MediaAnnotation::Once:
     case PdfDocument::MediaAnnotation::Open:
-        // TODO
         break;
     case PdfDocument::MediaAnnotation::Palindrome:
         qWarning() << "Palindrome video: not implemented (yet)";
