@@ -1,4 +1,4 @@
-.TH beamerpresenter.conf 5 "2021-05-08" "0.2.0"
+.TH beamerpresenter.conf 5 "2021-10-02" "0.2.0"
 .
 .SH NAME
 beamerpresenter.conf \- configuration file for BeamerPresenter
@@ -161,25 +161,25 @@ string representing an action. The available actions are listed in
 comma-separated list of actions.
 .
 .TP
-.I json dictionary
-json-formatted dictionary using single quotation marks instead of double quotation marks (alternatively, double quotation marks can be escaped using backslash).
+.I JSON dictionary
+JSON-formatted dictionary using single quotation marks instead of double quotation marks (alternatively, double quotation marks can be escaped using backslash).
 Entries in the dictionary are:
 .RS
 .TP
 .B tool
-mandatory: pen, fixed width pen, highlighter, eraser, pointer, magnifier, torch, text (experimental!) or none
+mandatory: pen, fixed width pen, highlighter, eraser, pointer, magnifier, torch, text or none
 .TP
 .B device
-optional, use the tool for the given devices leaving other devices unchanged. Either a single device or a list (json array) of device names is allowed. Available device names are: left button (equivalent: mouse), right button, middle button, no button (only mouse cursor moves), touch, tablet pen, tablet (may include table input which is not recognized as pen), tablet eraser, tablet hover (tablet event with zero pressure), tablet all (any tablet input device), all (devices which are commonly used like left mouse button), all+ (devices except right mouse button, middle mouse button, tablet eraser), all++ (really all devices).
+optional, use the tool for the given devices leaving other devices unchanged. Either a single device or a list (JSON array) of device names is allowed. Available device names are: left button (equivalent: mouse), right button, middle button, no button (only mouse cursor moves), touch, tablet pen, tablet (may include table input which is not recognized as pen), tablet eraser, tablet hover (tablet event with zero pressure), tablet all (any tablet input device), all (devices which are commonly used like left mouse button), all+ (devices except right mouse button, middle mouse button, tablet eraser), all++ (really all devices).
 .TP
 .B color
 available for most tools: color name known to Qt or #RRGGBB or #AARRGGBB
 .TP
 .B width
-only draw tools (pen, highlighter, eraser, fixed width pen): stroke width (positive number).
+only draw tools (pen, highlighter, fixed width pen): stroke width (positive number).
 .TP
 .B size
-only pointing tools (pointer, torch, highlighter): radius of tool (positive number).
+only pointing tools (pointer, torch, eraser): radius of tool (positive number).
 .TP
 .B scale
 only magnifier: magnification factor (number between 0.1 and 5).
@@ -189,13 +189,16 @@ only text tool: anything that Qt can interpret as font name.
 .TP
 .B font size
 only text tool: font size (positive number).
+.TP
+.B linewidth
+only eraser: number, width of circle indicating the size of the eraser.
 .PP
 Example: {'tool':'pen', 'color':'green', 'width':2, 'device':['tablet pen', 'touch']}
 .RE
 .
 .TP
-.I json array
-array of json dictionaries as described before. The dictionaries should contain complementing values for
+.I JSON array
+array of JSON dictionaries as described before. The dictionaries should contain complementing values for
 .BR device .
 .
 .SH FILES
