@@ -191,7 +191,7 @@ public:
 
     /// Tool used for other input device, owned by this.
     /// The keys are taken from InputDevice.
-    QSet<Tool*> current_tools
+    QList<Tool*> current_tools
     {
         new PointingTool(Tool::Eraser, 10., QColor(128,128,128,192), Tool::TabletEraser|Tool::MouseRightButton, 0.5),
     };
@@ -237,6 +237,8 @@ public:
     void addKeyAction(const QKeySequence sequence, const Action action);
     /// Remove an action from a key sequence.
     void removeKeyAction(const QKeySequence sequence, const Action action);
+
+    static void parseActionsTools(const QVariant &input, QList<Action> &actions, QList<Tool *> &tools, const int default_device = 0);
 
 public slots:
     /// Set maximum memory for cache. This function uses double instead of

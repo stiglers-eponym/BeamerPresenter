@@ -903,18 +903,18 @@ void Master::setTool(Tool *tool) const noexcept
             else
             {
                 delete *tool_it;
-                tool_it = static_cast<QSet<Tool*>::const_iterator>(writable_preferences()->current_tools.erase(tool_it));
+                tool_it = static_cast<QList<Tool*>::const_iterator>(writable_preferences()->current_tools.erase(tool_it));
             }
         }
         else if (((*tool_it)->device() == Tool::MouseNoButton) && (tool->device() & Tool::MouseLeftButton))
         {
             delete *tool_it;
-            tool_it = static_cast<QSet<Tool*>::const_iterator>(writable_preferences()->current_tools.erase(tool_it));
+            tool_it = static_cast<QList<Tool*>::const_iterator>(writable_preferences()->current_tools.erase(tool_it));
         }
         else
             ++tool_it;
     }
-    writable_preferences()->current_tools.insert(tool);
+    writable_preferences()->current_tools.append(tool);
 
 #ifdef QT_DEBUG
     if ((preferences()->debug_level & DebugVerbose) && preferences()->debug_level & DebugDrawing)

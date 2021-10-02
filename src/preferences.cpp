@@ -262,11 +262,25 @@ void Preferences::loadSettings()
         max_cache_pages = npages;
 
     // INTERACTION
-    // Keyboard shortcuts
-    settings.beginGroup("keys");
-    const QStringList allKeys = settings.allKeys();
+    // Default tools associated to devices
+    settings.beginGroup("tools");
+    QStringList allKeys = settings.allKeys();
+    QList<Action> actions;
     if (!allKeys.isEmpty())
     {
+        qDeleteAll(current_tools);
+        current_tools.clear();
+        for (const auto& dev : allKeys)
+            parseActionsTools(settings.value(dev), actions, current_tools, string_to_input_device.value(dev, Tool::AnyNormalDevice));
+        actions.clear();
+    }
+    settings.endGroup();
+    // Keyboard shortcuts
+    settings.beginGroup("keys");
+    allKeys = settings.allKeys();
+    if (!allKeys.isEmpty())
+    {
+        QList<Tool*> tools;
         key_actions.clear();
         for (const auto& key : allKeys)
         {
@@ -275,63 +289,70 @@ void Preferences::loadSettings()
                 qWarning() << "Unknown key sequence in config:" << key;
             else
             {
-                // First try to interpret sequence as json object.
-                // Here the way how Qt changes the string is not really optimal.
-                // In the input quotation marks must be escaped. For
-                // convenience it is allowed to use single quotation marks
-                // instead.
-                QJsonParseError error;
-                const QJsonDocument doc = QJsonDocument::fromJson(settings.value(key).toStringList().join(",").replace("'", "\"").toUtf8(), &error);
-                QJsonArray array;
-                if (error.error == QJsonParseError::NoError)
-                {
-                    if (doc.isArray())
-                        array = doc.array();
-                    else if (doc.isObject())
-                        array.append(doc.object());
-                }
-                if (!array.isEmpty())
-                {
-                    for (const auto &value : qAsConst(array))
-                    {
-                        if (value.isString())
-                        {
-                            debug_verbose(DebugSettings) << key << value;
-                            const Action action = string_to_action_map.value(value.toString().toLower(), Action::InvalidAction);
-                            if (action == InvalidAction)
-                                qWarning() << "Unknown action in config" << value << "for key" << key;
-                            else
-                                key_actions.insert(seq, action);
-                        }
-                        else if (value.isObject())
-                        {
-                            const QJsonObject object = value.toObject();
-                            Tool *tool = createTool(object, Tool::AnyNormalDevice);
-                            if (tool)
-                            {
-                                debug_msg(DebugSettings|DebugDrawing) << "Adding tool" << tool << tool->tool() << tool->device();
-                                key_tools.insert(seq, tool);
-                            }
-                        }
-                    }
-                }
-                else
-                {
-                    Action action;
-                    for (const auto &action_str : static_cast<const QStringList>(settings.value(key).toStringList()))
-                    {
-                        debug_verbose(DebugSettings) << key << action_str;
-                        action = string_to_action_map.value(action_str.toLower(), Action::InvalidAction);
-                        if (action == InvalidAction)
-                            qWarning() << "Unknown action in config" << action_str << "for key" << key;
-                        else
-                            key_actions.insert(seq, action);
-                    }
-                }
+                parseActionsTools(settings.value(key), actions, tools);
+                for (const auto tool : tools)
+                    key_tools.insert(seq, tool);
+                for (const auto action : actions)
+                    key_actions.insert(seq, action);
+                actions.clear();
+                tools.clear();
             }
         }
     }
     settings.endGroup();
+}
+
+void Preferences::parseActionsTools(const QVariant &input, QList<Action> &actions, QList<Tool*> &tools, const int default_device)
+{
+    // First try to interpret sequence as json object.
+    // Here the way how Qt changes the string is not really optimal.
+    // In the input quotation marks must be escaped. For
+    // convenience it is allowed to use single quotation marks
+    // instead.
+    QJsonParseError error;
+    const QJsonDocument doc = QJsonDocument::fromJson(input.toStringList().join(",").replace("'", "\"").toUtf8(), &error);
+    QJsonArray array;
+    if (error.error == QJsonParseError::NoError)
+    {
+        if (doc.isArray())
+            array = doc.array();
+        else if (doc.isObject())
+            array.append(doc.object());
+    }
+    if (array.isEmpty())
+    {
+        Action action;
+        for (const auto &action_str : static_cast<const QStringList>(input.toStringList()))
+        {
+            action = string_to_action_map.value(action_str.toLower(), Action::InvalidAction);
+            if (action == InvalidAction)
+                qWarning() << "Unknown action in config" << action_str << "as part of input" << input;
+            else
+                actions.append(action);
+        }
+        return;
+    }
+    for (const auto &value : qAsConst(array))
+    {
+        if (value.isString())
+        {
+            const Action action = string_to_action_map.value(value.toString().toLower(), Action::InvalidAction);
+            if (action == InvalidAction)
+                qWarning() << "Unknown action in config:" << value << "as part of input" << input;
+            else
+                actions.append(action);
+        }
+        else if (value.isObject())
+        {
+            const QJsonObject object = value.toObject();
+            Tool *tool = createTool(object, default_device);
+            if (tool)
+            {
+                debug_msg(DebugSettings|DebugDrawing) << "Adding tool" << tool << tool->tool() << tool->device();
+                tools.append(tool);
+            }
+        }
+    }
 }
 
 #ifdef QT_DEBUG
