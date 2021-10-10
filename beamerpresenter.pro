@@ -29,7 +29,7 @@ VERSION = 0.2.0
 # supported and will most probably never be supported.
 
 # MuPDF requires mupdf libraries (libmupdf).
-# Tested with libmupdf 1.18.0 and 1.16.1
+# Tested with libmupdf 1.19.0
 
 equals(RENDERER, "poppler") {
     DEFINES += INCLUDE_POPPLER
@@ -229,8 +229,6 @@ unix {
     contains(DEFINES, INCLUDE_MUPDF) {
         INCLUDEPATH += /usr/include/mupdf
         LIBS += -lmupdf -lmupdf-third -lm -lfreetype -lharfbuzz -ljpeg -ljbig2dec -lopenjp2 -lgumbo
-        # In my installation of MuPDF, the gumbo library is needed since MuPDF 1.18.0.
-        # All other libraries were also required in MuPDF 1.17.0.
     }
 }
 

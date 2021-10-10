@@ -597,7 +597,7 @@ const PdfDocument::MediaAnnotation MuPdfDocument::annotationAt(const int page, c
     fz_var(result);
     fz_try(ctx)
     {
-        for (pdf_annot *annot = pages[page]->annots; annot != NULL; annot = annot->next)
+        for (pdf_annot *annot = pdf_first_annot(ctx, pages[page]); annot != NULL; annot = pdf_next_annot(ctx, annot))
         {
             fz_rect bound = pdf_bound_annot(ctx, annot);
             if (bound.x0 <= position.x() && bound.x1 >= position.x() && bound.y0 <= position.y() && bound.y1 >= position.y())
@@ -608,7 +608,7 @@ const PdfDocument::MediaAnnotation MuPdfDocument::annotationAt(const int page, c
                 case PDF_ANNOT_SOUND:
                 {
                     debug_msg(DebugMedia) << "Movie annotation";
-                    pdf_obj *media_obj = pdf_dict_gets(ctx, annot->obj, "Movie");
+                    pdf_obj *media_obj = pdf_dict_gets(ctx, pdf_annot_obj(ctx, annot), "Movie");
                     if (!media_obj)
                     {
                         qWarning() << "Error while reading media annotation";
@@ -622,7 +622,7 @@ const PdfDocument::MediaAnnotation MuPdfDocument::annotationAt(const int page, c
                     result.file = QUrl::fromLocalFile(fileinfo.absoluteFilePath());
                     result.rect = QRectF(bound.x0, bound.y0, bound.x1-bound.x0, bound.y1-bound.y0);
 
-                    pdf_obj *activation_obj = pdf_dict_get(ctx, annot->obj, PDF_NAME(A));
+                    pdf_obj *activation_obj = pdf_dict_get(ctx, pdf_annot_obj(ctx, annot), PDF_NAME(A));
                     if (activation_obj)
                     {
                         QString mode = pdf_to_name(ctx, pdf_dict_gets(ctx, activation_obj, "Mode") );
@@ -671,14 +671,14 @@ QList<PdfDocument::MediaAnnotation> *MuPdfDocument::annotations(const int page) 
     fz_var(list);
     fz_try(ctx)
     {
-        for (pdf_annot *annot = pages[page]->annots; annot != NULL; annot = annot->next)
+        for (pdf_annot *annot = pdf_first_annot(ctx, pages[page]); annot != NULL; annot = pdf_next_annot(ctx, annot))
         {
             switch (pdf_annot_type(ctx, annot))
             {
             case PDF_ANNOT_MOVIE:
             case PDF_ANNOT_SOUND:
             {
-                pdf_obj *media_obj = pdf_dict_gets(ctx, annot->obj, "Movie");
+                pdf_obj *media_obj = pdf_dict_gets(ctx, pdf_annot_obj(ctx, annot), "Movie");
                 if (!media_obj)
                 {
                     qWarning() << "Error while reading media annotation";
@@ -697,7 +697,7 @@ QList<PdfDocument::MediaAnnotation> *MuPdfDocument::annotations(const int page) 
                             MediaAnnotation::Once,
                             QRectF(bound.x0, bound.y0, bound.x1-bound.x0, bound.y1-bound.y0)
                         });
-                pdf_obj *activation_obj = pdf_dict_get(ctx, annot->obj, PDF_NAME(A));
+                pdf_obj *activation_obj = pdf_dict_get(ctx, pdf_annot_obj(ctx, annot), PDF_NAME(A));
                 if (activation_obj)
                 {
                     QString mode = pdf_to_name(ctx, pdf_dict_gets(ctx, activation_obj, "Mode") );
