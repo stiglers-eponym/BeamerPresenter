@@ -9,7 +9,7 @@ This software uses the Qt framework and the PDF engines MuPDF and/or poppler.
 
 ## Which version?
 Versions [0.1](https://github.com/stiglers-eponym/BeamerPresenter/tree/0.1.x) and 0.2 are different programs with incompatible configurations.
-[Version 0.1.3](https://github.com/stiglers-eponym/BeamerPresenter/releases) is relatively stable, works in ubuntu 18.04 and can be [built in macOS](https://github.com/stiglers-eponym/BeamerPresenter/tree/0.1.x#building-in-macos) without manually adapting beamerpresenter.pro.
+[Version 0.1.3](https://github.com/stiglers-eponym/BeamerPresenter/releases) is relatively stable, works in ubuntu 18.04 and can be [built in macOS](https://github.com/stiglers-eponym/BeamerPresenter/tree/0.1.x#building-in-macos) without manually adapting `beamerpresenter.pro`.
 Version 0.2 has many new features and is much more flexible.
 If you want to draw in the presentation using a tablet or drawing pad, or if you want to adapt the interface or use more than two monitors, you should version 0.2.
 
@@ -66,8 +66,11 @@ Older versions of ubuntu are only compatible with version 0.1 of BeamerPresenter
 In Arch Linux you can install `beamerpresenter` or `beamerpresenter-git` from the AUR.
 Note that in these packages by default MuPDF is selected as PDF engine.
 
-First install the dependencies. You need Qt 5 including the multimedia module. Qt 6.2 is tested in a separate branch.
-Additionally you need either the Qt 5 bindings of poppler or the MuPDF C bindings.
+First install the dependencies.
+You need Qt 5/6 including the multimedia module.
+In Qt 5 version 5.9 or newer is required.
+For installation in Qt 6 you need Qt version >=6.2 and should download the [separate branch qt6](https://github.com/stiglers-eponym/BeamerPresenter/tree/qt6) of this repo.
+Additionally you need either the Qt 5/6 bindings of poppler or the MuPDF C bindings.
 
 ### Dependencies in Ubuntu 20.04
 For Qt 5:
@@ -80,13 +83,13 @@ For poppler (optional, see [below](https://github.com/stiglers-eponym/BeamerPres
 * `libpoppler-qt5-dev`: version 0.86.1 is tested. Versions below 0.70 are explicitly not supported, problems with newer versions might be fixed if reported in an issue on github.
 
 For MuPDF (optional, see [below](https://github.com/stiglers-eponym/BeamerPresenter#build)):
-* `libmupdf-dev` (only for building): MuPDF versions starting from 1.17 should work, version 1.12 or older is explicitly not supported.
+* `libmupdf-dev` (only for building): Tested versions: 1.19, 1.18, and 1.17.
 * `libfreetype-dev`
 * `libharfbuzz-dev`
 * `libjpeg-dev`
 * `libopenjp2-7-dev`
 * `libjbig2dec0-dev`
-* `libgumbo-dev` (for MuPDF 1.18, probably not for version 1.17)
+* `libgumbo-dev` (for MuPDF >=1.18, probably not for version 1.17)
 
 Others:
 * `zlib1g-dev`
@@ -99,7 +102,7 @@ For poppler (optional, see [below](https://github.com/stiglers-eponym/BeamerPres
 * `poppler-qt5`
 
 For MuPDF (optional, see [below](https://github.com/stiglers-eponym/BeamerPresenter#build)):
-* `libmupdf` (only for building)
+* `libmupdf` (only for building, version 1.19, 1.18, or 1.17)
 * `jbig2dec`
 * `openjpeg2`
 * `gumbo-parser`
@@ -132,7 +135,7 @@ qmake RENDERER=mupdf && make
 qmake RENDERER=poppler && make
 ```
 If this fails and you have all dependencies installed, you should check your
-Qt version (`qmake --version`). If you use 5.8 < qt < 6, you should
+Qt version (`qmake --version`). If you use 5.8 < Qt < 6, you should
 [open an issue](https://github.com/stiglers-eponym/BeamerPresenter/issues)
 on github.
 In older versions you may also open an issue, but it will probably not be fixed.
