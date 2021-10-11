@@ -7,8 +7,6 @@
 #include "src/master.h"
 
 #ifdef INCLUDE_POPPLER
-// TODO: make this failsafe (poppler-version.h is not available in early
-// versions of Poppler)
 #if __has_include(<poppler/qt5/poppler-version.h>)
 #include <poppler/qt5/poppler-version.h>
 #else

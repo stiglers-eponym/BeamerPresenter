@@ -25,11 +25,11 @@ VERSION = 0.2.0
 
 ### Dependencies
 # Poppler requires poppler-qt5 libraries.
-# Tested with poppler 21.03.0 and 0.86.1, versions below 0.70 are not
+# Tested with poppler 21.10.0, 21.03.0, and 0.86.1, versions below 0.70 are not
 # supported and will most probably never be supported.
 
 # MuPDF requires mupdf libraries (libmupdf).
-# Tested with libmupdf 1.18.0 and 1.16.1
+# Tested with libmupdf 1.19.0, 1.18.0, and 1.16.1
 
 equals(RENDERER, "poppler") {
     DEFINES += INCLUDE_POPPLER
