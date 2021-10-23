@@ -69,7 +69,8 @@ CONFIG(release, debug|release): DEFINES += QT_NO_DEBUG_OUTPUT
 
 # Check Qt version.
 requires(greaterThan(QT_MAJOR_VERSION, 4))
-requires(greaterThan(QT_MAJOR_VERSION, 5) | greaterThan(QT_MINOR_VERSION, 8))
+equals(QT_MAJOR_VERSION, 5): requires(greaterThan(QT_MINOR_VERSION, 8))
+equals(QT_MAJOR_VERSION, 6): requires(greaterThan(QT_MINOR_VERSION, 1)))
 
 # Check whether a PDF engine was defined.
 requires(contains(DEFINES, INCLUDE_POPPLER) | contains(DEFINES, INCLUDE_MUPDF))

@@ -7,20 +7,14 @@ clock, a timer for the presentation, and previews of the next slides.
 
 This software uses the Qt framework and the PDF engines MuPDF and/or poppler.
 
-## Which version?
-Versions [0.1](https://github.com/stiglers-eponym/BeamerPresenter/tree/0.1.x) and 0.2 are different programs with incompatible configurations.
-[Version 0.1.3](https://github.com/stiglers-eponym/BeamerPresenter/releases) is relatively stable, works in ubuntu 18.04 and can be [built in macOS](https://github.com/stiglers-eponym/BeamerPresenter/tree/0.1.x#building-in-macos) without manually adapting `beamerpresenter.pro`.
-Version 0.2 has many new features and is much more flexible.
-If you want to draw in the presentation using a tablet or drawing pad, or if you want to adapt the interface or use more than two monitors, you should version 0.2.
-
 ## Features (selection)
-* modular user interface (new in 0.2): adapt for your presentation style and technical equipment (number of monitors, extra information for the speaker, input devices, ...)
+* modular user interface: adapt for your presentation style and technical equipment (number of monitors, extra information for the speaker, input devices, ...)
 * compressed cache for fast slide changes
-* draw in slides, save drawings in a format compatible with Xournal++ (improved in 0.2)
+* draw in slides, save drawings in a format compatible with Xournal++
 * highlighting tools (pointer, torch, magnifier)
-* rich text notes for the speaker (new in 0.2)
+* rich text notes for the speaker
 * (optionally) show separate presentation file for speaker or use LaTeX-beamer's option to show notes on second screen (split PDF pages into a part for the speaker and a part or the audience)
-* timer indicates progress relative to a predefined schedule by it's color (improved in 0.2)
+* timer indicates progress relative to a predefined schedule by it's color
 * navigate using document outline, thumbnail slides, page numbers/labels and links
 * videos in presentations (currently sound is untested)
 * slide transitions
@@ -57,19 +51,17 @@ The interface is very flexible and can be adjusted to your needs. Also multiple 
 
 
 ## Build and install
-**Note**: building and installing version 0.1.3 is described
+Building is tested in Arch Linux and in xubuntu 20.04.
+Older versions of ubuntu are only compatible with version 0.1 of BeamerPresenter which is described
 [here](https://github.com/stiglers-eponym/BeamerPresenter/tree/0.1.x#build).
 
-Building is tested in Arch Linux and in xubuntu 20.04.
-Older versions of ubuntu are only compatible with version 0.1 of BeamerPresenter.
-
-In Arch Linux you can install `beamerpresenter` or `beamerpresenter-git` from the AUR.
+In Arch Linux you can install the Qt 5 version as package `beamerpresenter` or `beamerpresenter-git` from the AUR.
+(Globally replace qt5 by qt6 in PKGBUILD of the git version to build it with Qt 6.)
 Note that in these packages by default MuPDF is selected as PDF engine.
 
 First install the dependencies.
 You need Qt 5/6 including the multimedia module.
-In Qt 5 version 5.9 or newer is required.
-For installation in Qt 6 you need Qt version >=6.2 and should download the [separate branch qt6](https://github.com/stiglers-eponym/BeamerPresenter/tree/qt6) of this repo.
+In Qt 5 version 5.9 or newer is required and for installation in Qt 6 you need version 6.2 (or later).
 Additionally you need either the Qt 5/6 bindings of poppler or the MuPDF C bindings.
 
 ### Dependencies in Ubuntu 20.04
@@ -95,8 +87,11 @@ Others:
 * `zlib1g-dev`
 
 ### Dependencies in Arch Linux
+Replace qt5 by qt6 in all package names if you want to use Qt 6.
+
 For Qt 5:
 * `qt5-multimedia` (depends on `qt5-base`, which is also required)
+* optional: `qt5-svg` for showing icons
 
 For poppler (optional, see [below](https://github.com/stiglers-eponym/BeamerPresenter#build)):
 * `poppler-qt5`
@@ -114,10 +109,10 @@ Optional, for showing videos:
 ### Build
 Download the sources: either the latest git version
 ```sh
-git clone --depth 1 https://github.com/stiglers-eponym/BeamerPresenter.git
+git clone --depth 1 --single-branch https://github.com/stiglers-eponym/BeamerPresenter.git
 cd BeamerPresenter
 ```
-or version 0.2.0
+or version 0.2.0 (only Qt 5)
 ```sh
 wget https://github.com/stiglers-eponym/BeamerPresenter/archive/v0.2.0.tar.gz
 sha256sum -c - <<< "524a3509cafebf5ced7fad3bfb1c4b35267913baebd142885a74e029d37812e9 v0.2.0.tar.gz"
@@ -129,13 +124,13 @@ On systems other than GNU+Linux you now need to configure libraries in
 other systems are welcome!
 
 When building you need to **define the PDF engine**.
-Build with one of the following commands:
+Build with one of the following commands: (for Qt 6: replace `qmake` by `qmake6`)
 ```sh
 qmake RENDERER=mupdf && make
 qmake RENDERER=poppler && make
 ```
 If this fails and you have all dependencies installed, you should check your
-Qt version (`qmake --version`). If you use 5.8 < Qt < 6, you should
+Qt version (`qmake --version`) and
 [open an issue](https://github.com/stiglers-eponym/BeamerPresenter/issues)
 on github.
 In older versions you may also open an issue, but it will probably not be fixed.
@@ -145,10 +140,6 @@ In GNU+Linux you can install BeamerPresenter with
 ```sh
 make install
 ```
-
-### Upgrade from version 0.1
-The configuration files of versions 0.1 and 0.2 are incompatible.
-When upgrading, you should move your configuration files of version 0.1 to some backup to avoid conflicts.
 
 
 ## Bugs
@@ -162,29 +153,27 @@ BeamerPresenter (`qmake --version`).
 ## Development
 
 ### Known problems
-* Video lags when drawing on it. Sometimes this can be reduced by first making sure that the presentation window has focus and then pausing and playing the video.
-* Videos show a short black frame between repetitions. This also appears when navigating to a page containing a video from a different slide than the slide before the video.
-* Sound in videos is basically untested and currently has low priority. Feel free to open an issue if this is relevant for you.
+* Video sometimes lags when drawing on it. Sometimes this can be reduced by first making sure that the presentation window has focus and then pausing and playing the video.
+* Sound links in PDFs are unsupported in the MuPDF version. They should work with Poppler.
+* Embedded sounds are unsupported, only links to external files can be played.
 * Tool buttons can be changed in the user interface, but these changes are not saved. Buttons are part of the user interface, which can only be changed (permanently) by editing the JSON-formatted configuration file.
 * The undo/redo actions do not handle text annotations correctly. They only remove or create text fields. But when editing a text field the default keyboard shortcuts (CTRL+Z and CTRL+SHIFT+Z) can be used to undo/redo changes in the text. Deleting a text field by deleting its entire text cannot be undone.
-* Slide labels are broken for encrypted PDFs when using MuPDF.
+* Fixed in MuPDF 1.19: Slide labels are broken for encrypted PDFs when using MuPDF.
 * When compiling with both MuPDF and poppler (`qmake RENDERER=both`), trying to open a PDF with renderer=poppler can result in a segmentation fault for some PDFs (when loading the document or when reaching a certain page). The reason might be a linkage problem with some color-space functions. It is recommended to compile with only one PDF engine.
 * The detection of unsaved changes is quite unreliable. When closing BeamerPresenter you may sometimes see a warning of possibly unsaved changes although there are no unsaved changes. This warning is currently not shown when closing the window through the window manager. The warning can be avoided by using the action "quit unsafe" instead of "quit".
 * Sometimes the slides are not automatically rendered to the correct size when resizing the window. Changing or updating the page should solve this problem.
 * Some slide transitions need to stop videos. Fly slide transitions during videos can cause strange effects.
-* Some slide transitions can show artifacts on preview slide widgets which only show the first or last overlay of a slide.
-* Some slide transitions may have bad performance (low frame rate).
-* if preview shows specific overlays, slide changes adding or removing synchronization of preview and an another frame may lead to short flickering
+* If preview shows specific overlays, slide changes adding or removing synchronization of preview and an another frame may lead to short flickering. Slide transitions during such slide changes can contain some ugly artifacts.
+* version 0.1.x: If a video annotation in the PDF links to a file which is just a sound file, BeamerPresenter crashes with segmentation fault when trying to load it.
+* possibly fixed: rare and undeterministic crash at startup with an error message concerning timers.
 
 
 ### Ideas for further development
-* fix strange probabilistic crash at startup
+* tools to select and modify drawings
 * improve cache management and layout corrections: sometimes cache is not used correctly.
 * cache slides even when size of slides varies (partially implemented)
 * cache only required slides in previews showing specific overlays
 * make layout more reliable
-* multimedia: include audio files, test sound in videos
-* tools to select and modify drawings
 * option to insert extra slides for drawing
 * improve keyboard shortcuts in other widgets than slide widget
 * more icons for actions
