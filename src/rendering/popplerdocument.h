@@ -2,8 +2,12 @@
 #define POPPLERDOCUMENT_H
 
 #include <set>
-#include <poppler/qt5/poppler-qt5.h>
 #include "src/enumerates.h"
+#if (QT_VERSION_MAJOR == 6)
+#include <poppler/qt6/poppler-qt6.h>
+#elif (QT_VERSION_MAJOR == 5)
+#include <poppler/qt5/poppler-qt5.h>
+#endif
 #include "src/rendering/pdfdocument.h"
 
 class PngPixmap;

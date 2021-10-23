@@ -154,21 +154,33 @@ bool SlideView::event(QEvent *event)
     case QEvent::TabletPress:
     {
         auto tabletevent = static_cast<QTabletEvent*>(event);
+#if (QT_VERSION_MAJOR >= 6)
+        static_cast<SlideScene*>(scene())->tabletPress(mapToScene(tabletevent->position()), tabletevent);
+#else
         static_cast<SlideScene*>(scene())->tabletPress(mapToScene(tabletevent->posF()), tabletevent);
+#endif
         event->accept();
         return true;
     }
     case QEvent::TabletRelease:
     {
         auto tabletevent = static_cast<QTabletEvent*>(event);
+#if (QT_VERSION_MAJOR >= 6)
+        static_cast<SlideScene*>(scene())->tabletRelease(mapToScene(tabletevent->position()), tabletevent);
+#else
         static_cast<SlideScene*>(scene())->tabletRelease(mapToScene(tabletevent->posF()), tabletevent);
+#endif
         event->accept();
         return true;
     }
     case QEvent::TabletMove:
     {
         auto tabletevent = static_cast<QTabletEvent*>(event);
+#if (QT_VERSION_MAJOR >= 6)
+        static_cast<SlideScene*>(scene())->tabletMove(mapToScene(tabletevent->position()), tabletevent);
+#else
         static_cast<SlideScene*>(scene())->tabletMove(mapToScene(tabletevent->posF()), tabletevent);
+#endif
         event->accept();
         return true;
     }

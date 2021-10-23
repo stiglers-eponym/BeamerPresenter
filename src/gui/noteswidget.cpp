@@ -161,25 +161,50 @@ void NotesWidget::writeNotes(QXmlStreamWriter &writer)
 
 void NotesWidget::keyPressEvent(QKeyEvent *event)
 {
+#if (QT_VERSION_MAJOR >= 6)
+    switch(event->keyCombination().toCombined())
+#else
     switch(event->key() | event->modifiers())
+#endif
     {
+#if (QT_VERSION_MAJOR >= 6)
+    case (Qt::ControlModifier | Qt::Key_O).toCombined():
+#else
     case Qt::ControlModifier | Qt::Key_O:
+#endif
         load();
         event->accept();
         break;
+#if (QT_VERSION_MAJOR >= 6)
+    case (Qt::ControlModifier | Qt::Key_S).toCombined():
+#else
     case Qt::ControlModifier | Qt::Key_S:
+#endif
         save(file_path);
         event->accept();
         break;
+#if (QT_VERSION_MAJOR >= 6)
+    case (Qt::ControlModifier | Qt::ShiftModifier | Qt::Key_S).toCombined():
+#else
     case Qt::ControlModifier | Qt::ShiftModifier | Qt::Key_S:
+#endif
         save("");
         event->accept();
         break;
+#if (QT_VERSION_MAJOR >= 6)
+    case (Qt::ControlModifier | Qt::Key_Plus).toCombined():
+    case (Qt::ShiftModifier | Qt::ControlModifier | Qt::Key_Plus).toCombined():
+#else
     case Qt::ControlModifier | Qt::Key_Plus:
     case Qt::ShiftModifier | Qt::ControlModifier | Qt::Key_Plus:
+#endif
         zoomIn();
         break;
+#if (QT_VERSION_MAJOR >= 6)
+    case (Qt::ControlModifier | Qt::Key_Minus).toCombined():
+#else
     case Qt::ControlModifier | Qt::Key_Minus:
+#endif
         zoomOut();
         break;
     case Qt::Key_PageUp:

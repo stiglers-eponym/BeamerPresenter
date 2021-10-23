@@ -47,7 +47,11 @@ KeyInputLabel::~KeyInputLabel()
 
 void KeyInputLabel::keyPressEvent(QKeyEvent *event)
 {
+#if (QT_VERSION_MAJOR >= 6)
+    const QKeySequence new_keys(event->keyCombination());
+#else
     const QKeySequence new_keys(event->key() | (event->modifiers() & ~Qt::KeypadModifier));
+#endif
     event->accept();
     if (new_keys == Qt::Key_Delete)
     {

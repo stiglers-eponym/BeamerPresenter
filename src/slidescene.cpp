@@ -37,6 +37,9 @@ SlideScene::~SlideScene()
     {
         delete media.item;
         delete media.player;
+#if (QT_VERSION_MAJOR >= 6)
+        delete media.audio_out;
+#endif
     }
     mediaItems.clear();
     delete currentPath;
@@ -95,28 +98,47 @@ bool SlideScene::event(QEvent* event)
     {
         device = int(Tool::TouchInput) | Tool::StartEvent;
         const auto touchevent = static_cast<QTouchEvent*>(event);
+#if (QT_VERSION_MAJOR >= 6)
+        for (const auto &point : touchevent->points())
+            pos.append(point.scenePosition());
+#else
         for (const auto &point : touchevent->touchPoints())
             pos.append(point.scenePos());
+#endif
         break;
     }
     case QEvent::TouchUpdate:
     {
         device = int(Tool::TouchInput) | Tool::UpdateEvent;
         const auto touchevent = static_cast<QTouchEvent*>(event);
+#if (QT_VERSION_MAJOR >= 6)
+        for (const auto &point : touchevent->points())
+            pos.append(point.scenePosition());
+#else
         for (const auto &point : touchevent->touchPoints())
             pos.append(point.scenePos());
+#endif
         break;
     }
     case QEvent::TouchEnd:
     {
         device = int(Tool::TouchInput) | Tool::StopEvent;
         const auto touchevent = static_cast<QTouchEvent*>(event);
+#if (QT_VERSION_MAJOR >= 6)
+        if (touchevent->points().size() > 0)
+        {
+            for (const auto &point : touchevent->points())
+                pos.append(point.scenePosition());
+            start_pos = touchevent->points().constFirst().scenePressPosition();
+        }
+#else
         if (touchevent->touchPoints().size() > 0)
         {
             for (const auto &point : touchevent->touchPoints())
                 pos.append(point.scenePos());
             start_pos = touchevent->touchPoints().constFirst().startScenePos();
         }
+#endif
         break;
     }
     case QEvent::TouchCancel:
@@ -303,13 +325,23 @@ void SlideScene::receiveAction(const Action action)
         break;
     case Mute:
         for (const auto &m : mediaItems)
+#if (QT_VERSION_MAJOR >= 6)
+            if (m.audio_out)
+                m.audio_out->setMuted(true);
+#else
             if (m.player)
                 m.player->setMuted(true);
+#endif
         break;
     case Unmute:
         for (const auto &m : mediaItems)
+#if (QT_VERSION_MAJOR >= 6)
+            if (m.audio_out)
+                m.audio_out->setMuted(false);
+#else
             if (m.player)
                 m.player->setMuted(false);
+#endif
         break;
     default:
         break;
@@ -457,9 +489,13 @@ void SlideScene::postRendering()
             }
             debug_msg(DebugMedia) << "Deleting media item:" << media.annotation.file << media.pages.size();
             delete media.player;
-            delete media.item;
             media.player = NULL;
+            delete media.item;
             media.item = NULL;
+#if (QT_VERSION_MAJOR >= 6)
+            delete media.audio_out;
+            media.audio_out = NULL;
+#endif
         }
     }
 }
@@ -489,6 +525,18 @@ SlideScene::MediaItem &SlideScene::getMediaItem(const PdfDocument::MediaAnnotati
     }
     debug_msg(DebugMedia) << "Loading new media" << annotation.file << annotation.rect;
     MediaPlayer *player = new MediaPlayer(this);
+#if (QT_VERSION_MAJOR >= 6)
+    QAudioOutput *audio_out = NULL;
+    if (annotation.type & PdfDocument::MediaAnnotation::HasAudio)
+    {
+        audio_out = new QAudioOutput(this);
+        if (slide_flags & MuteSlide || preferences()->global_flags & Preferences::MuteApplication || annotation.volume <= 0.)
+            audio_out->setMuted(true);
+        else
+            audio_out->setVolume(annotation.volume);
+    }
+    player->setAudioOutput(audio_out);
+#else
     if (annotation.type & PdfDocument::MediaAnnotation::HasAudio)
     {
         if (slide_flags & MuteSlide || preferences()->global_flags & Preferences::MuteApplication || annotation.volume <= 0.)
@@ -496,19 +544,26 @@ SlideScene::MediaItem &SlideScene::getMediaItem(const PdfDocument::MediaAnnotati
         else
             player->setVolume(100*annotation.volume);
     }
+#endif
     QGraphicsVideoItem *item = NULL;
     if (annotation.type & PdfDocument::MediaAnnotation::HasVideo)
     {
         item = new QGraphicsVideoItem;
         player->setVideoOutput(item);
+#if (QT_VERSION_MAJOR < 6)
         // Ugly fix to cache videos: show invisible video pixel
         item->setSize({1,1});
         item->setPos(sceneRect().bottomRight());
         addItem(item);
         item->show();
+#endif
     }
     if ((annotation.type & PdfDocument::MediaAnnotation::Embedded) == 0)
+#if (QT_VERSION_MAJOR >= 6)
+        player->setSource(annotation.file);
+#else
         player->setMedia(annotation.file);
+#endif
     else
     {
         warn_msg << "Embedded media are currently not supported.";
@@ -531,7 +586,11 @@ SlideScene::MediaItem &SlideScene::getMediaItem(const PdfDocument::MediaAnnotati
         connect(player, &MediaPlayer::mediaStatusChanged, player, &MediaPlayer::repeatIfFinished);
         break;
     }
+#if (QT_VERSION_MAJOR >= 6)
+    mediaItems.append({annotation, item, player, audio_out, {page}});
+#else
     mediaItems.append({annotation, item, player, {page}});
+#endif
     return mediaItems.last();
 }
 
@@ -999,7 +1058,11 @@ void SlideScene::noToolClicked(const QPointF &pos, const QPointF &startpos)
         {
             if (startpos.isNull() || item.annotation.rect.contains(startpos))
             {
+#if (QT_VERSION_MAJOR >= 6)
+                if (item.player->playbackState() == QMediaPlayer::PlayingState)
+#else
                 if (item.player->state() == QMediaPlayer::PlayingState)
+#endif
                     item.player->pause();
                 else
                     item.player->play();
@@ -1064,7 +1127,11 @@ void SlideScene::playPauseMedia() const
                 item.pages.find(page &~NotFullPage) != item.pages.end()
 #endif
                 && item.player
+#if (QT_VERSION_MAJOR >= 6)
+                && item.player->playbackState() == QMediaPlayer::PlayingState
+#else
                 && item.player->state() == QMediaPlayer::PlayingState
+#endif
             )
         {
             pauseMedia();

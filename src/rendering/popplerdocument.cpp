@@ -239,7 +239,11 @@ const PdfDocument::PdfLink PopplerDocument::linkAt(const int page, const QPointF
             switch ((*it)->linkType())
             {
             case Poppler::Link::LinkType::Goto: {
+#if (QT_VERSION_MAJOR >= 6)
+                const Poppler::LinkGoto *gotolink = static_cast<Poppler::LinkGoto*>(it->get());
+#else
                 const Poppler::LinkGoto *gotolink = static_cast<Poppler::LinkGoto*>(*it);
+#endif
                 return {gotolink->destination().pageNumber() - 1, "", rect};
             }
             default:
@@ -271,7 +275,11 @@ QList<PdfDocument::MediaAnnotation> *PopplerDocument::annotations(const int page
         {
         case Poppler::Annotation::AMovie:
         {
+#if (QT_VERSION_MAJOR >= 6)
+            const Poppler::MovieObject *movie = static_cast<Poppler::MovieAnnotation*>(it->get())->movie();
+#else
             const Poppler::MovieObject *movie = static_cast<Poppler::MovieAnnotation*>(*it)->movie();
+#endif
             QFileInfo fileinfo(movie->url());
             if (fileinfo.exists())
             {
@@ -300,7 +308,11 @@ QList<PdfDocument::MediaAnnotation> *PopplerDocument::annotations(const int page
         }
         case Poppler::Annotation::ASound:
         {
+#if (QT_VERSION_MAJOR >= 6)
+            const Poppler::SoundObject *sound = static_cast<Poppler::SoundAnnotation*>(it->get())->sound();
+#else
             const Poppler::SoundObject *sound = static_cast<Poppler::SoundAnnotation*>(*it)->sound();
+#endif
             QRectF area = (*it)->boundary();
             area = {pageSize.width()*area.x(), pageSize.height()*area.y(), pageSize.width()*area.width(), pageSize.height()*area.height()};
             switch (sound->soundType())
@@ -339,7 +351,11 @@ QList<PdfDocument::MediaAnnotation> *PopplerDocument::annotations(const int page
         debug_verbose(DebugMedia) << "Link of type" << (*it)->linkType() << (*it)->linkArea() << page;
         if ((*it)->linkType() == Poppler::Link::Sound)
         {
+#if (QT_VERSION_MAJOR >= 6)
+            const Poppler::LinkSound *link = static_cast<Poppler::LinkSound*>(it->get());
+#else
             const Poppler::LinkSound *link = static_cast<Poppler::LinkSound*>(*it);
+#endif
             QRectF area = link->linkArea();
             area = {pageSize.width()*area.x(), pageSize.height()*area.y(), pageSize.width()*area.width(), pageSize.height()*area.height()};
             switch (link->sound()->soundType())

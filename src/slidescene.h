@@ -43,6 +43,10 @@ public:
         QGraphicsVideoItem *item;
         /// Media player controling the video
         MediaPlayer *player;
+#if (QT_VERSION_MAJOR >= 6)
+        /// Audio output for media player.
+        QAudioOutput *audio_out;
+#endif
         /// Set of pages on which this video item appears. This is updated
         /// when videos for a new page are loaded and an old video is found
         /// to be visible also on the new page.

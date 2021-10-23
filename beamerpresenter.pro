@@ -24,9 +24,9 @@ VERSION = 0.2.0
 # Just open a pull request or issue on github.
 
 ### Dependencies
-# Poppler requires poppler-qt5 libraries.
-# Tested with poppler 21.10.0, 21.03.0, and 0.86.1, versions below 0.70 are not
-# supported and will most probably never be supported.
+# Poppler requires poppler-qt5 or poppler-qt6 libraries, depending on the Qt version.
+# Tested with poppler 21.10.0, 21.03.0, and 0.86.1, versions below 0.70 are
+# explicitly not supported.
 
 # MuPDF requires mupdf libraries (libmupdf).
 # Tested with libmupdf 1.19.0, 1.18.0, and 1.17.0
@@ -68,8 +68,8 @@ CONFIG(release, debug|release): DEFINES += QT_NO_DEBUG_OUTPUT
 ###########################################################
 
 # Check Qt version.
-requires(equals(QT_MAJOR_VERSION, 5))
-requires(greaterThan(QT_MINOR_VERSION, 8))
+requires(greaterThan(QT_MAJOR_VERSION, 4))
+requires(greaterThan(QT_MAJOR_VERSION, 5) | greaterThan(QT_MINOR_VERSION, 8))
 
 # Check whether a PDF engine was defined.
 requires(contains(DEFINES, INCLUDE_POPPLER) | contains(DEFINES, INCLUDE_MUPDF))
@@ -223,8 +223,8 @@ contains(DEFINES, INCLUDE_MUPDF) {
 unix {
     LIBS += -L/usr/lib/ -lz
     contains(DEFINES, INCLUDE_POPPLER) {
-        INCLUDEPATH += /usr/include/poppler/qt5
-        LIBS += -lpoppler-qt5
+        INCLUDEPATH += /usr/include/poppler/qt$$QT_MAJOR_VERSION
+        LIBS += -lpoppler-qt$$QT_MAJOR_VERSION
     }
     contains(DEFINES, INCLUDE_MUPDF) {
         INCLUDEPATH += /usr/include/mupdf
@@ -237,7 +237,7 @@ macx {
     ## Installation on Mac is untested. The predefined configuration here is just a guess.
     #contains(DEFINES, INCLUDE_POPPLER) {
     #    INCLUDEPATH += /usr/local/opt/poppler/include
-    #    LIBS += -L/usr/local/opt/poppler/lib/ -lpoppler-qt5
+    #    LIBS += -L/usr/local/opt/poppler/lib/ -lpoppler-qt$$QT_MAJOR_VERSION
     #}
     #contains(DEFINES, INCLUDE_MUPDF) {
     #    INCLUDEPATH += /usr/local/opt/mupdf/include
@@ -250,7 +250,7 @@ win32 {
     #contains(DEFINES, INCLUDE_POPPLER) {
     #    # The configuration will probably have the following form:
     #    INCLUDEPATH += C:\...\poppler-...-win??
-    #    LIBS += -LC:\...\poppler-...-win?? -lpoppler-qt5
+    #    LIBS += -LC:\...\poppler-...-win?? -lpoppler-qt$$QT_MAJOR_VERSION
     #}
     #contains(DEFINES, INCLUDE_MUPDF) {
     #    INCLUDEPATH += ...

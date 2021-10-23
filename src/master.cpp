@@ -595,7 +595,11 @@ void Master::showAll() const
 
 void Master::receiveKeyEvent(const QKeyEvent* event)
 {
+#if (QT_VERSION_MAJOR >= 6)
+    const QKeySequence key_code(event->keyCombination());
+#else
     const quint32 key_code = event->key() | (event->modifiers() & ~Qt::KeypadModifier);
+#endif
     // Search shortcuts for given key sequence.
     {
         QWidget* widget = shortcuts.value(key_code);
