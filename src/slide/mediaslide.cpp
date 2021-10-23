@@ -678,7 +678,7 @@ void MediaSlide::setMultimediaSliders(QList<QSlider*> sliderList)
     }
     // TODO: better multimedia controls
     QList<QSlider*>::const_iterator slider = sliderList.cbegin();
-    for (int i=0; i<videoWidgets.size(); i++) {
+    for (int i=0; i<videoWidgets.size() && slider != sliderList.cend(); i++) {
         if (!videoSliders.contains(i)) {
             (*slider)->setRange(0, int(videoWidgets[i]->getDuration()));
             connect(*slider, &QAbstractSlider::sliderMoved, videoWidgets[i]->getPlayer(), &QMediaPlayer::setPosition);
@@ -688,7 +688,7 @@ void MediaSlide::setMultimediaSliders(QList<QSlider*> sliderList)
             slider++;
         }
     }
-    for (QMap<int,QMediaPlayer*>::const_iterator it=soundLinkPlayers.cbegin(); it!=soundLinkPlayers.cend(); it++, slider++) {
+    for (QMap<int,QMediaPlayer*>::const_iterator it=soundLinkPlayers.cbegin(); it!=soundLinkPlayers.cend() && slider != sliderList.cend(); it++) {
         if (!soundLinkSliders.contains(it.key())) {
             (*slider)->setRange(0, int((*it)->duration()));
             connect(*slider, &QAbstractSlider::sliderMoved, *it, &QMediaPlayer::setPosition);
@@ -698,7 +698,7 @@ void MediaSlide::setMultimediaSliders(QList<QSlider*> sliderList)
             slider++;
         }
     }
-    for (int i=0; i<soundPlayers.size(); i++) {
+    for (int i=0; i<soundPlayers.size() && slider != sliderList.cend(); i++) {
         if (!soundSliders.contains(i)) {
             (*slider)->setRange(0, int(soundPlayers[i]->duration()));
             connect(*slider, &QAbstractSlider::sliderMoved, soundPlayers[i], &QMediaPlayer::setPosition);
