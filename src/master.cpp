@@ -893,7 +893,7 @@ void Master::setTool(Tool *tool) const noexcept
     if (tool->device() & (Tool::TabletCursor | Tool::TabletPen | Tool::TabletEraser))
         device |= Tool::TabletHover;
     int newdevice;
-    for (auto tool_it = preferences()->current_tools.cbegin(); tool_it != preferences()->current_tools.cend();)
+    for (auto tool_it = writable_preferences()->current_tools.begin(); tool_it != writable_preferences()->current_tools.end();)
     {
         if ((*tool_it)->device() & device)
         {
@@ -903,13 +903,13 @@ void Master::setTool(Tool *tool) const noexcept
             else
             {
                 delete *tool_it;
-                tool_it = static_cast<QList<Tool*>::const_iterator>(writable_preferences()->current_tools.erase(tool_it));
+                tool_it = writable_preferences()->current_tools.erase(tool_it);
             }
         }
         else if (((*tool_it)->device() == Tool::MouseNoButton) && (tool->device() & Tool::MouseLeftButton))
         {
             delete *tool_it;
-            tool_it = static_cast<QList<Tool*>::const_iterator>(writable_preferences()->current_tools.erase(tool_it));
+            tool_it = writable_preferences()->current_tools.erase(tool_it);
         }
         else
             ++tool_it;

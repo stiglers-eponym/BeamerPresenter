@@ -96,7 +96,11 @@ void SlideView::resizeEvent(QResizeEvent *event)
     const int page = slidescene->getPage();
     pageChanged(page, slidescene);
     for (const auto &media : slidescene->getMedia())
+#if __cplusplus >= 202002L
         if (media.pages.contains(page))
+#else
+        if (media.pages.find(page) != media.pages.end())
+#endif
             addMediaSlider(media);
 }
 
@@ -261,7 +265,11 @@ void SlideView::drawForeground(QPainter *painter, const QRectF &rect)
         const int page = static_cast<SlideScene*>(scene())->getPage();
         for (auto &m : media)
         {
+#if __cplusplus >= 202002L
             if (m.pages.contains(page))
+#else
+            if (m.pages.find(page) != m.pages.end())
+#endif
                 painter->setPen(QPen(Qt::red, 1));
             else if (m.player)
                 painter->setPen(QPen(Qt::green, 0.75));
