@@ -15,28 +15,23 @@ PopplerDocument::PopplerDocument(const QString &filename) :
     debug_msg(DebugRendering) << "Loaded PDF document in Poppler";
 }
 
-PopplerDocument::~PopplerDocument() noexcept
-{
-    qDeleteAll(pages);
-    delete doc;
-}
-
 const QString PopplerDocument::pageLabel(const int page) const
 {
-    return pages.value(page) ? pages[page]->label() : "";
+    const std::unique_ptr<Poppler::Page> docpage = doc->page(page);
+    return docpage ? docpage->label() : "";
 }
 
 int PopplerDocument::pageIndex(const QString &page) const
 {
-    const Poppler::Page * const pageptr = doc->page(page);
+    const std::unique_ptr<Poppler::Page> pageptr = doc->page(page);
     const int index = pageptr ? pageptr->index() : -1;
-    delete pageptr;
     return index;
 }
 
 const QSizeF PopplerDocument::pageSize(const int page) const
 {
-    return pages.value(page) ? pages[page]->pageSizeF() : QSizeF();
+    const std::unique_ptr<Poppler::Page> docpage = doc->page(page);
+    return docpage ? docpage->pageSizeF() : QSizeF();
 }
 
 bool PopplerDocument::loadDocument()
@@ -53,7 +48,7 @@ bool PopplerDocument::loadDocument()
         return false;
 
     // Load the document.
-    Poppler::Document * newdoc = Poppler::Document::load(path);
+    std::unique_ptr<Poppler::Document> newdoc = Poppler::Document::load(path);
     if (newdoc == NULL)
     {
         qCritical() << "Failed to load document.";
@@ -79,7 +74,6 @@ bool PopplerDocument::loadDocument()
         if (!ok || password.isEmpty() || newdoc->unlock(QByteArray(), password.toUtf8()))
         {
             qCritical() << "No or invalid password provided for locked document";
-            delete newdoc;
             newdoc = NULL;
             return false;
         }
@@ -94,26 +88,10 @@ bool PopplerDocument::loadDocument()
     newdoc->setRenderHint(Poppler::Document::Antialiasing);
     newdoc->setRenderHint(Poppler::Document::ThinLineShape);
 
-    qDeleteAll(pages);
-
     // Update document and delete old document.
-    if (doc == NULL)
-        doc = newdoc;
-    else
-    {
-        const Poppler::Document * const olddoc = doc;
-        doc = newdoc;
-        delete olddoc;
-    }
+    if (newdoc != NULL)
+        doc.swap(newdoc);
     flexible_page_sizes = -1;
-
-    pages.resize(doc->numPages());
-    int i=0;
-    do {
-        pages[i] = doc->page(i);
-        if (!pages[i])
-            qCritical() << "Loading pages failed!";
-    } while (++i < doc->numPages());
 
     populateOverlaySlidesSet();
     return true;
@@ -121,12 +99,13 @@ bool PopplerDocument::loadDocument()
 
 const QPixmap PopplerDocument::getPixmap(const int page, const qreal resolution, const PagePart page_part) const
 {
-    if (resolution <= 0 || !pages.value(page))
+    const std::unique_ptr<Poppler::Page> docpage = doc->page(page);
+    if (resolution <= 0 || !docpage)
     {
         qWarning() << "Tried to render invalid page or invalid resolution" << page;
         return QPixmap();
     }
-    const QImage image = pages[page]->renderToImage(72.*resolution, 72.*resolution);
+    const QImage image = docpage->renderToImage(72.*resolution, 72.*resolution);
     switch (page_part)
     {
     case LeftHalf:
@@ -140,12 +119,13 @@ const QPixmap PopplerDocument::getPixmap(const int page, const qreal resolution,
 
 const PngPixmap * PopplerDocument::getPng(const int page, const qreal resolution, const PagePart page_part) const
 {
-    if (resolution <= 0 || !pages.value(page))
+    const std::unique_ptr<Poppler::Page> docpage = doc->page(page);
+    if (resolution <= 0 || !docpage)
     {
         qWarning() << "Tried to render invalid page or invalid resolution" << page;
         return NULL;
     }
-    QImage image = pages[page]->renderToImage(72.*resolution, 72.*resolution);
+    QImage image = docpage->renderToImage(72.*resolution, 72.*resolution);
     if (image.isNull())
     {
         qWarning() << "Rendering page to image failed";
@@ -223,12 +203,13 @@ void PopplerDocument::populateOverlaySlidesSet()
     QString label = "\n\n\n\n";
     for (int i=0; i<doc->numPages(); i++)
     {
-        if (pages[i] && label != pages[i]->label())
+        const std::unique_ptr<Poppler::Page> page = doc->page(i);
+        if (page && label != page->label())
         {
             if (!useful && !overlay_slide_indices.empty() && *overlay_slide_indices.crbegin() != i-1)
                 useful = true;
             overlay_slide_indices.insert(i);
-            label = pages[i]->label();
+            label = page->label();
         }
     }
     if (!useful)
@@ -241,26 +222,28 @@ void PopplerDocument::populateOverlaySlidesSet()
 
 const PdfDocument::PdfLink PopplerDocument::linkAt(const int page, const QPointF &position) const
 {
-    if (!pages.value(page))
+    const std::unique_ptr<Poppler::Page> docpage = doc->page(page);
+    if (!docpage)
         return PdfLink();
-    const QSizeF pageSize = pages[page]->pageSizeF();
+    const QSizeF pageSize = docpage->pageSizeF();
     const QPointF relpos = {position.x()/pageSize.width(), position.y()/pageSize.height()};
-    for (const auto link : static_cast<const QList<Poppler::Link*>>(pages[page]->links()))
+    const auto links = docpage->links();
+    for (auto it = links.cbegin(); it != links.cend(); ++it)
     {
-        if (link->linkArea().normalized().contains(relpos))
+        if ((*it)->linkArea().normalized().contains(relpos))
         {
-            QRectF rect = link->linkArea().normalized();
+            QRectF rect = (*it)->linkArea().normalized();
             rect.moveTop(rect.top()*pageSize.height());
             rect.moveLeft(rect.left()*pageSize.width());
             rect.setSize({pageSize.width() * rect.width(), pageSize.height() * rect.height()});
-            switch (link->linkType())
+            switch ((*it)->linkType())
             {
             case Poppler::Link::LinkType::Goto: {
-                Poppler::LinkGoto *gotolink = static_cast<Poppler::LinkGoto*>(link);
-                return {gotolink->destination().pageNumber()-1, "", rect};
+                const Poppler::LinkGoto *gotolink = static_cast<Poppler::LinkGoto*>(it->get());
+                return {gotolink->destination().pageNumber() - 1, "", rect};
             }
             default:
-                debug_msg(DebugRendering) << "Unsupported link" << link->linkType();
+                debug_msg(DebugRendering) << "Unsupported link" << (*it)->linkType();
                 return {PdfLink::NoLink, "", rect};
             }
         }
@@ -268,92 +251,123 @@ const PdfDocument::PdfLink PopplerDocument::linkAt(const int page, const QPointF
     return PdfLink();
 }
 
-const PdfDocument::MediaAnnotation PopplerDocument::annotationAt(const int page, const QPointF &position) const
-{
-    if (!pages.value(page))
-        return MediaAnnotation();
-    const QSizeF pageSize = pages[page]->pageSizeF();
-    const QPointF relpos = {position.x()/pageSize.width(), position.y()/pageSize.height()};
-    for (const auto annotation : static_cast<const QList<Poppler::Annotation*>>(pages[page]->annotations({Poppler::Annotation::AMovie, Poppler::Annotation::ASound})))
-    {
-        if (annotation->boundary().contains(relpos))
-        {
-            Poppler::MovieObject *movie = static_cast<Poppler::MovieAnnotation*>(annotation)->movie();
-            QFileInfo fileinfo(movie->url());
-            if (!fileinfo.exists())
-            {
-                QUrl url(movie->url());
-                fileinfo = url.toLocalFile();
-                if (!fileinfo.exists())
-                {
-                    delete movie;
-                    continue;
-                }
-            }
-            MediaAnnotation videoAnnotation {
-                        QUrl::fromLocalFile(fileinfo.absoluteFilePath()),
-                        annotation->subType() == Poppler::Annotation::AMovie ? MediaAnnotation::VideoAnnotation : MediaAnnotation::AudioAnnotation,
-                        MediaAnnotation::Once,
-                        {pageSize.width()*annotation->boundary().x(), pageSize.height()*annotation->boundary().y(), pageSize.width()*annotation->boundary().width(), pageSize.height()*annotation->boundary().height()}
-            };
-            switch (movie->playMode())
-            {
-            case Poppler::MovieObject::PlayOpen:
-                videoAnnotation.mode = MediaAnnotation::Open;
-                break;
-            case Poppler::MovieObject::PlayPalindrome:
-                videoAnnotation.mode = MediaAnnotation::Palindrome;
-                break;
-            case Poppler::MovieObject::PlayRepeat:
-                videoAnnotation.mode = MediaAnnotation::Repeat;
-                break;
-            default:
-                break;
-            }
-            delete movie;
-            return videoAnnotation;
-        }
-    }
-    return MediaAnnotation();
-}
-
 QList<PdfDocument::MediaAnnotation> *PopplerDocument::annotations(const int page) const
 {
-    if (!pages.value(page))
+    const std::unique_ptr<Poppler::Page> docpage = doc->page(page);
+    if (!docpage)
         return NULL;
-    const QList<Poppler::Annotation*> annotations = pages[page]->annotations({Poppler::Annotation::AMovie, Poppler::Annotation::ASound});
-    if (annotations.isEmpty())
+    debug_verbose(DebugMedia) << "Found" << docpage->annotations().size() << "annotations on page" << page;
+    const auto annotations = docpage->annotations({Poppler::Annotation::AMovie, Poppler::Annotation::ASound, Poppler::Annotation::ARichMedia});
+    const auto links = docpage->links();
+    debug_verbose(DebugMedia) << "Found" << links.size() << "links on page" << page;
+    if (annotations.empty() && links.empty())
         return NULL;
-    const QSizeF pageSize = pages[page]->pageSizeF();
+    const QSizeF pageSize = docpage->pageSizeF();
     QList<MediaAnnotation> *list = new QList<MediaAnnotation>;
-    for (const auto annotation : annotations)
+    for (auto it = annotations.cbegin(); it != annotations.cend(); ++it)
     {
-        Poppler::MovieObject *movie = static_cast<Poppler::MovieAnnotation*>(annotation)->movie();
-        QFileInfo fileinfo(movie->url());
-        if (fileinfo.exists())
+        // TODO: try to find better way of handling URLs
+        switch ((*it)->subType())
         {
-            list->append({
-                        QUrl::fromLocalFile(fileinfo.absoluteFilePath()),
-                        annotation->subType() == Poppler::Annotation::AMovie ? MediaAnnotation::VideoAnnotation : MediaAnnotation::AudioAnnotation,
-                        MediaAnnotation::Once,
-                        {pageSize.width()*annotation->boundary().x(), pageSize.height()*annotation->boundary().y(), pageSize.width()*annotation->boundary().width(), pageSize.height()*annotation->boundary().height()}
-            });
-            switch (movie->playMode())
+        case Poppler::Annotation::AMovie:
+        {
+            const Poppler::MovieObject *movie = static_cast<Poppler::MovieAnnotation*>(it->get())->movie();
+            QFileInfo fileinfo(movie->url());
+            if (fileinfo.exists())
             {
-            case Poppler::MovieObject::PlayOpen:
-                list->last().mode = MediaAnnotation::Open;
+                list->append(MediaAnnotation(
+                            QUrl::fromLocalFile(fileinfo.absoluteFilePath()),
+                            true,
+                            QRectF(pageSize.width()*(*it)->boundary().x(), pageSize.height()*(*it)->boundary().y(), pageSize.width()*(*it)->boundary().width(), pageSize.height()*(*it)->boundary().height())
+                ));
+                debug_verbose(DebugMedia) << "Found video annotation:" << fileinfo.filePath() << "on page" << page;
+                switch (movie->playMode())
+                {
+                case Poppler::MovieObject::PlayOpen:
+                    list->last().mode = MediaAnnotation::Open;
+                    break;
+                case Poppler::MovieObject::PlayPalindrome:
+                    list->last().mode = MediaAnnotation::Palindrome;
+                    break;
+                case Poppler::MovieObject::PlayRepeat:
+                    list->last().mode = MediaAnnotation::Repeat;
+                    break;
+                default:
+                    break;
+                }
+            }
+            break;
+        }
+        case Poppler::Annotation::ASound:
+        {
+            const Poppler::SoundObject *sound = static_cast<Poppler::SoundAnnotation*>(it->get())->sound();
+            QRectF area = (*it)->boundary();
+            area = {pageSize.width()*area.x(), pageSize.height()*area.y(), pageSize.width()*area.width(), pageSize.height()*area.height()};
+            switch (sound->soundType())
+            {
+            case Poppler::SoundObject::Embedded:
+                debug_verbose(DebugMedia) << "Found sound annotation: embedded on page" << page;
+                if (!sound->data().isEmpty())
+                {
+                    EmbeddedMedia media(sound->data(), sound->samplingRate(), area);
+                    media.channels = sound->channels();
+                    media.bit_per_sample = sound->bitsPerSample();
+                    media.encoding = convert_sound_encoding.value(sound->soundEncoding(), PdfDocument::EmbeddedMedia::SoundEncodingRaw);
+                    list->append(media);
+                }
                 break;
-            case Poppler::MovieObject::PlayPalindrome:
-                list->last().mode = MediaAnnotation::Palindrome;
-                break;
-            case Poppler::MovieObject::PlayRepeat:
-                list->last().mode = MediaAnnotation::Repeat;
-                break;
-            default:
+            case Poppler::SoundObject::External:
+            {
+                QFileInfo fileinfo(sound->url());
+                debug_verbose(DebugMedia) << "Found sound annotation:" << fileinfo.filePath() << "on page" << page;
+                if (fileinfo.exists())
+                    list->append(MediaAnnotation(QUrl::fromLocalFile(fileinfo.absoluteFilePath()), false, area));
                 break;
             }
+            }
+            break;
         }
-        delete movie;
+        case Poppler::Annotation::ARichMedia:
+            warn_msg << "Unsupported media type: rich media";
+            break;
+        default:
+            break;
+        }
+    }
+    for (auto it = links.cbegin(); it != links.cend(); ++it)
+    {
+        debug_verbose(DebugMedia) << "Link of type" << (*it)->linkType() << (*it)->linkArea() << page;
+        if ((*it)->linkType() == Poppler::Link::Sound)
+        {
+            const Poppler::LinkSound *link = static_cast<Poppler::LinkSound*>(it->get());
+            QRectF area = link->linkArea();
+            area = {pageSize.width()*area.x(), pageSize.height()*area.y(), pageSize.width()*area.width(), pageSize.height()*area.height()};
+            switch (link->sound()->soundType())
+            {
+            case Poppler::SoundObject::Embedded:
+                debug_verbose(DebugMedia) << "Found sound link: embedded on page" << page;
+                if (!link->sound()->data().isEmpty())
+                {
+                    EmbeddedMedia media(link->sound()->data(), link->sound()->samplingRate(), area);
+                    media.channels = link->sound()->channels();
+                    media.bit_per_sample = link->sound()->bitsPerSample();
+                    media.encoding = convert_sound_encoding.value(link->sound()->soundEncoding(), PdfDocument::EmbeddedMedia::SoundEncodingRaw);
+                    media.volume = link->volume();
+                    media.mode = link->repeat() ? PdfDocument::MediaAnnotation::Once : PdfDocument::MediaAnnotation::Repeat;
+                    list->append(media);
+                }
+                break;
+            case Poppler::SoundObject::External:
+            {
+                QFileInfo fileinfo(link->sound()->url());
+                debug_verbose(DebugMedia) << "Found sound link:" << fileinfo.filePath() << "on page" << page;
+                if (fileinfo.exists())
+                    list->append(MediaAnnotation(QUrl::fromLocalFile(fileinfo.absoluteFilePath()), false, area));
+                break;
+            }
+            }
+            link->sound()->data();
+        }
     }
     if (list->isEmpty())
     {
@@ -365,9 +379,10 @@ QList<PdfDocument::MediaAnnotation> *PopplerDocument::annotations(const int page
 
 const PdfDocument::SlideTransition PopplerDocument::transition(const int page) const
 {
-    if (!pages.value(page))
+    const std::unique_ptr<Poppler::Page> docpage = doc->page(page);
+    if (!docpage)
         return SlideTransition();
-    const Poppler::PageTransition *doc_trans = pages[page]->transition();
+    const Poppler::PageTransition *doc_trans = docpage->transition();
     if (!doc_trans)
         return SlideTransition();
 
@@ -390,10 +405,11 @@ bool PopplerDocument::flexiblePageSizes() noexcept
 {
     if (flexible_page_sizes >= 0 || doc == NULL)
         return flexible_page_sizes;
-    const QSizeF ref_size = pages[0]->pageSizeF();
+    const QSizeF ref_size = doc->page(0)->pageSizeF();
     for (int page=1; page<doc->numPages(); page++)
     {
-        if (pages.value(page) && pages[page]->pageSizeF() != ref_size)
+        const std::unique_ptr<Poppler::Page> docpage = doc->page(page);
+        if (docpage && docpage->pageSizeF() != ref_size)
         {
             flexible_page_sizes = 1;
             return 1;
@@ -453,5 +469,6 @@ QList<int> PopplerDocument::overlayIndices() const noexcept
 
 qreal PopplerDocument::duration(const int page) const noexcept
 {
-    return pages.value(page) ? pages[page]->duration() : -1.;
+    const std::unique_ptr<Poppler::Page> docpage = doc->page(page);
+    return docpage ? docpage->duration() : -1.;
 }

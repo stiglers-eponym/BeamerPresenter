@@ -12,7 +12,6 @@ SlideNumberWidget::SlideNumberWidget(QWidget *parent) :
 {
     setFocusPolicy(Qt::NoFocus);
     QHBoxLayout *layout = new QHBoxLayout(this);
-    layout->setMargin(1);
     edit = new QLineEdit("0", this);
     edit->setAlignment(Qt::AlignCenter);
     layout->addWidget(edit);

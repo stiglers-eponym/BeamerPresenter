@@ -6,10 +6,9 @@
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QKeyEvent>
-#include <QMediaPlaylist>
 #include <QSizePolicy>
-#include<QXmlStreamReader>
-#include<QXmlStreamWriter>
+#include <QXmlStreamReader>
+#include <QXmlStreamWriter>
 #include "src/enumerates.h"
 #include "src/preferences.h"
 
@@ -39,14 +38,8 @@ class Master : public QObject
     /// List of all windows of the applications.
     QList<QMainWindow*> windows;
 
-    /// Playlist of all media content in the documents.
-    QMediaPlaylist *playlist {NULL};
-
-    /// Map file names (urls) to playlist indices.
-    QMap<QUrl, int> playlist_map;
-
     /// Key sequence shortcuts for focusing widgets.
-    QMap<quint32, QWidget*> shortcuts;
+    QMap<QKeySequence, QWidget*> shortcuts;
 
     /// Timer to tell slides that they should start caching videos for the next slide.
     QTimer *cacheVideoTimer {NULL};

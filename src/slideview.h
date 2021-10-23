@@ -1,7 +1,6 @@
 #ifndef SLIDE_H
 #define SLIDE_H
 
-#include <QSlider>
 #include <QGraphicsView>
 #include <QResizeEvent>
 #include <cstring>
@@ -9,6 +8,7 @@
 
 class PointingTool;
 class PixCache;
+class MediaSlider;
 
 /// Slide shown on the screen: a view of SlideScene.
 /// This also draws the background (PDF page) of the slide.
@@ -29,7 +29,7 @@ public:
 
 private:
     /// List of slides for video annotations in this view.
-    QList<QSlider*> sliders;
+    QList<MediaSlider*> sliders;
 
     /// Currently waiting for page: INT_MAX if not waiting for any page.
     int waitingForPage = INT_MAX;
@@ -101,7 +101,7 @@ public slots:
     void drawForeground(QPainter *painter, const QRectF &rect) override;
 
     /// Add a slider for a video item
-    void addMediaSlider(const SlideScene::VideoItem &video);
+    void addMediaSlider(const SlideScene::MediaItem &media);
 
     /// Prepare a slide transition: render current view to transitionItem.
     void prepareTransition(PixmapGraphicsItem *transitionItem);

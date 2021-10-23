@@ -313,7 +313,7 @@ void PdfMaster::loadXopp(const QString &filename)
 {
     QBuffer *buffer = loadZipToBuffer(filename);
     QXmlStreamReader reader(buffer);
-    while (!reader.atEnd() && (reader.readNext() != QXmlStreamReader::StartElement || reader.name() != "xournal")) {}
+    while (!reader.atEnd() && (reader.readNext() != QXmlStreamReader::StartElement || reader.name().toUtf8() != "xournal")) {}
 
     if (!reader.atEnd())
     {
@@ -330,9 +330,9 @@ void PdfMaster::loadXopp(const QString &filename)
         while (reader.readNextStartElement())
         {
             debug_msg(DebugDrawing) << "Reading element" << reader.name();
-            if (reader.name() == "page")
+            if (reader.name().toUtf8() == "page")
                 readPageFromStream(reader, nontrivial_page_part);
-            else if (reader.name() == "beamerpresenter")
+            else if (reader.name().toUtf8() == "beamerpresenter")
                 readPropertiesFromStream(reader);
             else if (!reader.isEndElement())
                 reader.skipCurrentElement();
@@ -368,13 +368,13 @@ void PdfMaster::reloadXoppProperties()
     if (!buffer)
         return;
     QXmlStreamReader reader(buffer);
-    while (!reader.atEnd() && (reader.readNext() != QXmlStreamReader::StartElement || reader.name() != "xournal")) {}
+    while (!reader.atEnd() && (reader.readNext() != QXmlStreamReader::StartElement || reader.name().toUtf8() != "xournal")) {}
 
     if (!reader.atEnd())
     {
         while (reader.readNextStartElement())
         {
-            if (reader.name() == "beamerpresenter")
+            if (reader.name().toUtf8() == "beamerpresenter")
                 readPropertiesFromStream(reader);
             else if (!reader.isEndElement())
                 reader.skipCurrentElement();
@@ -419,11 +419,11 @@ void PdfMaster::readPageFromStream(QXmlStreamReader &reader, bool &nontrivial_pa
     while (reader.readNextStartElement())
     {
         debug_msg(DebugDrawing) << "Searching background" << reader.name();
-        if (reader.name() == "background")
+        if (reader.name().toUtf8() == "background")
         {
             QString string = reader.attributes().value("pageno").toString();
             // For some reason Xournal++ adds "ll" as a sufix to the page number.
-            if (string.contains(QRegExp("[^0-9]{2,2}$")))
+            if (string.contains(QRegularExpression("[^0-9]{2,2}$")))
                 string.chop(2);
             bool ok;
             page = string.toInt(&ok) - 1;
@@ -436,7 +436,7 @@ void PdfMaster::readPageFromStream(QXmlStreamReader &reader, bool &nontrivial_pa
                 if (time.isValid())
                     target_times[page] = time.msecsSinceStartOfDay();
             }
-            const QStringRef filename = reader.attributes().value("filename");
+            const QStringView filename = reader.attributes().value("filename");
             if (!filename.isEmpty())
             {
                 if (!document)
@@ -470,7 +470,7 @@ void PdfMaster::readPageFromStream(QXmlStreamReader &reader, bool &nontrivial_pa
     while (reader.readNextStartElement())
     {
         debug_msg(DebugDrawing) << "Searching layer" << reader.name();
-        if (reader.name() == "layer")
+        if (reader.name().toUtf8() == "layer")
         {
             if (nontrivial_page_part)
             {
@@ -522,7 +522,7 @@ void PdfMaster::readPropertiesFromStream(QXmlStreamReader &reader)
     }
     while (reader.readNextStartElement())
     {
-        if (reader.name() == "speakernotes")
+        if (reader.name().toUtf8() == "speakernotes")
             emit readNotes(reader);
         if (!reader.isEndElement())
             reader.skipCurrentElement();

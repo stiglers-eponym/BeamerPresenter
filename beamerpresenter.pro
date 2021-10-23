@@ -24,12 +24,12 @@ VERSION = 0.2.0
 # Just open a pull request or issue on github.
 
 ### Dependencies
-# Poppler requires poppler-qt5 libraries.
+# Poppler requires poppler-qt6 libraries.
 # Tested with poppler 21.10.0, 21.03.0, and 0.86.1, versions below 0.70 are not
 # supported and will most probably never be supported.
 
 # MuPDF requires mupdf libraries (libmupdf).
-# Tested with libmupdf 1.19.0, 1.18.0, and 1.16.1
+# Tested with libmupdf 1.19.0, 1.18.0, and 1.17.0
 
 equals(RENDERER, "poppler") {
     DEFINES += INCLUDE_POPPLER
@@ -68,15 +68,14 @@ CONFIG(release, debug|release): DEFINES += QT_NO_DEBUG_OUTPUT
 ###########################################################
 
 # Check Qt version.
-# Build in multimedia support is not available in Qt 6.0, but should be
-# available in Qt 6.2, expected in 2021-09.
 requires(equals(QT_MAJOR_VERSION, 5))
+requires(greaterThan(QT_MINOR_VERSION, 8))
 
 # Check whether a PDF engine was defined.
 requires(contains(DEFINES, INCLUDE_POPPLER) | contains(DEFINES, INCLUDE_MUPDF))
 
 # Use modern C++
-CONFIG += c++20 qt
+CONFIG += c++latest qt
 
 # Include some libraries
 QT += core gui multimedia multimediawidgets xml widgets
@@ -139,6 +138,7 @@ SOURCES += \
         src/pdfmaster.cpp \
         src/preferences.cpp \
         src/rendering/externalrenderer.cpp \
+        src/rendering/mediaplayer.cpp \
         src/rendering/pdfdocument.cpp \
         src/rendering/pixcache.cpp \
         src/rendering/pixcachethread.cpp \
@@ -163,6 +163,7 @@ HEADERS += \
         src/gui/containerwidget.h \
         src/gui/flexlayout.h \
         src/gui/keyinputlabel.h \
+        src/gui/mediaslider.h \
         src/gui/noteswidget.h \
         src/gui/settingswidget.h \
         src/gui/slidelabelwidget.h \
@@ -183,6 +184,7 @@ HEADERS += \
         src/pdfmaster.h \
         src/preferences.h \
         src/rendering/abstractrenderer.h \
+        src/rendering/mediaplayer.h \
         src/rendering/pdfdocument.h \
         src/rendering/externalrenderer.h \
         src/rendering/pixcache.h \
@@ -221,14 +223,12 @@ contains(DEFINES, INCLUDE_MUPDF) {
 unix {
     LIBS += -L/usr/lib/ -lz
     contains(DEFINES, INCLUDE_POPPLER) {
-        INCLUDEPATH += /usr/include/poppler/qt5
-        LIBS += -lpoppler-qt5
+        INCLUDEPATH += /usr/include/poppler/qt6
+        LIBS += -lpoppler-qt6
     }
     contains(DEFINES, INCLUDE_MUPDF) {
         INCLUDEPATH += /usr/include/mupdf
         LIBS += -lmupdf -lmupdf-third -lm -lfreetype -lharfbuzz -ljpeg -ljbig2dec -lopenjp2 -lgumbo
-        # In my installation of MuPDF, the gumbo library is needed since MuPDF 1.18.0.
-        # All other libraries were also required in MuPDF 1.17.0.
     }
 }
 
@@ -237,7 +237,7 @@ macx {
     ## Installation on Mac is untested. The predefined configuration here is just a guess.
     #contains(DEFINES, INCLUDE_POPPLER) {
     #    INCLUDEPATH += /usr/local/opt/poppler/include
-    #    LIBS += -L/usr/local/opt/poppler/lib/ -lpoppler-qt5
+    #    LIBS += -L/usr/local/opt/poppler/lib/ -lpoppler-qt6
     #}
     #contains(DEFINES, INCLUDE_MUPDF) {
     #    INCLUDEPATH += /usr/local/opt/mupdf/include
@@ -250,7 +250,7 @@ win32 {
     #contains(DEFINES, INCLUDE_POPPLER) {
     #    # The configuration will probably have the following form:
     #    INCLUDEPATH += C:\...\poppler-...-win??
-    #    LIBS += -LC:\...\poppler-...-win?? -lpoppler-qt5
+    #    LIBS += -LC:\...\poppler-...-win?? -lpoppler-qt6
     #}
     #contains(DEFINES, INCLUDE_MUPDF) {
     #    INCLUDEPATH += ...

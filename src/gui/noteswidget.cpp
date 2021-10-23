@@ -25,9 +25,10 @@ void NotesWidget::loadNotes(const QString &filename)
         {
             if (reader.readNext() == QXmlStreamReader::StartElement)
             {
-                if (reader.name() == "speakernotes")
+                /// TODO: QStringView::toUtf8() is probably inefficient for string comparison
+                if (reader.name().toUtf8() == "speakernotes")
                     readNotes(reader);
-                else if (reader.name() == "xournal")
+                else if (reader.name().toUtf8() == "xournal")
                 {
                     // Trying to read a file which should probably be read by PdfMaster.
                     reader.clear();
@@ -49,7 +50,7 @@ void NotesWidget::readNotes(QXmlStreamReader &reader)
 {
     /// It is assumed that reader has just reached the beginning of speakernotes
     debug_msg(DebugWidgets) << "start reading notes for notes widget";
-    if (reader.name() != "speakernotes")
+    if (reader.name().toUtf8() != "speakernotes")
     {
         warn_msg << "Tried to read notes, but current element in xml tree is not speakernotes";
         return;
@@ -62,7 +63,7 @@ void NotesWidget::readNotes(QXmlStreamReader &reader)
     while (reader.readNextStartElement())
     {
         debug_msg(DebugWidgets) << "read notes:" << reader.name();
-        if (reader.name() == "page-notes")
+        if (reader.name().toUtf8() == "page-notes")
         {
             const QString label = reader.attributes().value(per_page ? "number" : "label").toString();
             if (!label.isEmpty())
@@ -162,23 +163,23 @@ void NotesWidget::keyPressEvent(QKeyEvent *event)
 {
     switch(event->key() | event->modifiers())
     {
-    case Qt::Key_O | Qt::ControlModifier:
+    case Qt::ControlModifier | Qt::Key_O:
         load();
         event->accept();
         break;
-    case Qt::Key_S | Qt::ControlModifier:
+    case Qt::ControlModifier | Qt::Key_S:
         save(file_path);
         event->accept();
         break;
-    case Qt::Key_S | Qt::ShiftModifier | Qt::ControlModifier:
+    case Qt::ControlModifier | Qt::ShiftModifier | Qt::Key_S:
         save("");
         event->accept();
         break;
-    case Qt::Key_Plus | Qt::ControlModifier:
-    case Qt::Key_Plus | Qt::ShiftModifier | Qt::ControlModifier:
+    case Qt::ControlModifier | Qt::Key_Plus:
+    case Qt::ShiftModifier | Qt::ControlModifier | Qt::Key_Plus:
         zoomIn();
         break;
-    case Qt::Key_Minus | Qt::ControlModifier:
+    case Qt::ControlModifier | Qt::Key_Minus:
         zoomOut();
         break;
     case Qt::Key_PageUp:
@@ -194,7 +195,7 @@ void NotesWidget::pageChanged(const int page)
 {
     if (toPlainText().isEmpty())
     {
-        const auto it = text_per_slide.find(page_label);
+        const QMap<QString, QString>::iterator it = text_per_slide.find(page_label);
         if (it != text_per_slide.end())
         {
             emit newUnsavedChanges();

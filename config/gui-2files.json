@@ -1,7 +1,6 @@
 [
   {
     "type" : "horizontal",
-    "color" : "#b0b0b0",
     "children" : [
       {
         "type" : "tabbed",

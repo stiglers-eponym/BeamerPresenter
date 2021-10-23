@@ -15,7 +15,6 @@ ToolSelectorWidget::ToolSelectorWidget(QWidget *parent) : QWidget(parent)
 QSize ToolSelectorWidget::sizeHint() const noexcept
 {
     QGridLayout *gridlayout = static_cast<QGridLayout*>(layout());
-    gridlayout->setMargin(0);
     return {gridlayout->columnCount()*30, gridlayout->rowCount()*10};
 }
 

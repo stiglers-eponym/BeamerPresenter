@@ -147,7 +147,7 @@ public:
 
     // INTERACTION
     /// Map key combinations to actions for global keyboard shortcuts.
-    QMultiMap<quint32, Action> key_actions
+    QMultiMap<QKeySequence, Action> key_actions
     {
         {Qt::Key_PageDown, Action::NextPage},
         {Qt::Key_PageUp, Action::PreviousPage},
@@ -159,7 +159,7 @@ public:
     /// of preferences().
     /// Objects owning a tool which is listed here should always call
     /// writable_preferences().removeKeyTool before deleting this tool.
-    QMultiMap<quint32, Tool*> key_tools;
+    QMultiMap<QKeySequence, Tool*> key_tools;
 
 
     /****************************/
@@ -191,7 +191,7 @@ public:
 
     /// Tool used for other input device, owned by this.
     /// The keys are taken from InputDevice.
-    QSet<Tool*> current_tools
+    QList<Tool*> current_tools
     {
         new PointingTool(Tool::Eraser, 10., QColor(128,128,128,192), Tool::TabletEraser|Tool::MouseRightButton, 0.5),
     };
@@ -230,13 +230,15 @@ public:
     /// Change key sequence associated with tool from oldkeys to newkeys.
     /// oldkeys or newkeys may be left empty to add a new tool or remove
     /// an existing tool.
-    void replaceKeyToolShortcut(const int oldkeys, const int newkeys, Tool *tool);
+    void replaceKeyToolShortcut(const QKeySequence oldkeys, const QKeySequence newkeys, Tool *tool);
 
     /// Connect an action to a key code. This does not remove existing
     /// actions connected to the same key code.
-    void addKeyAction(const quint32 sequence, const Action action);
+    void addKeyAction(const QKeySequence sequence, const Action action);
     /// Remove an action from a key sequence.
-    void removeKeyAction(const quint32 sequence, const Action action);
+    void removeKeyAction(const QKeySequence sequence, const Action action);
+
+    static void parseActionsTools(const QVariant &input, QList<Action> &actions, QList<Tool *> &tools, const int default_device = 0);
 
 public slots:
     /// Set maximum memory for cache. This function uses double instead of

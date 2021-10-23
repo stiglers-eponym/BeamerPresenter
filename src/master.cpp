@@ -568,13 +568,15 @@ QWidget* Master::createWidget(QJsonObject &object, QWidget *parent)
             if (seq.isEmpty())
                 qWarning() << "Unknown key sequence in config:" << object.value("keys");
             else
-                shortcuts[seq[0] + seq[1] + seq[2] + seq[3]] = widget;
+                shortcuts[seq] = widget;
         }
         // Read base color from config or take it from parent.
-        QPalette palette = (parent ? parent : widget)->palette();
+        QPalette palette = widget->palette();
         const QColor bg_color = QColor(object.value("color").toString());
         if (bg_color.isValid())
-            palette.setColor(QPalette::Base, bg_color);
+            palette.setColor(QPalette::All, QPalette::Base, bg_color);
+        else
+            palette.setColor(QPalette::All, QPalette::Base, QColor(0,0,0,0));
         widget->setPalette(palette);
     }
     else
@@ -891,7 +893,7 @@ void Master::setTool(Tool *tool) const noexcept
     if (tool->device() & (Tool::TabletCursor | Tool::TabletPen | Tool::TabletEraser))
         device |= Tool::TabletHover;
     int newdevice;
-    for (auto tool_it = preferences()->current_tools.cbegin(); tool_it != preferences()->current_tools.cend();)
+    for (auto tool_it = writable_preferences()->current_tools.begin(); tool_it != writable_preferences()->current_tools.end();)
     {
         if ((*tool_it)->device() & device)
         {
@@ -901,18 +903,18 @@ void Master::setTool(Tool *tool) const noexcept
             else
             {
                 delete *tool_it;
-                tool_it = static_cast<QSet<Tool*>::const_iterator>(writable_preferences()->current_tools.erase(tool_it));
+                tool_it = writable_preferences()->current_tools.erase(tool_it);
             }
         }
         else if (((*tool_it)->device() == Tool::MouseNoButton) && (tool->device() & Tool::MouseLeftButton))
         {
             delete *tool_it;
-            tool_it = static_cast<QSet<Tool*>::const_iterator>(writable_preferences()->current_tools.erase(tool_it));
+            tool_it = writable_preferences()->current_tools.erase(tool_it);
         }
         else
             ++tool_it;
     }
-    writable_preferences()->current_tools.insert(tool);
+    writable_preferences()->current_tools.append(tool);
 
 #ifdef QT_DEBUG
     if ((preferences()->debug_level & DebugVerbose) && preferences()->debug_level & DebugDrawing)

@@ -587,104 +587,21 @@ const PdfDocument::PdfLink MuPdfDocument::linkAt(const int page, const QPointF &
     return result;
 }
 
-const PdfDocument::MediaAnnotation MuPdfDocument::annotationAt(const int page, const QPointF &position) const
-{
-    MediaAnnotation result = {QUrl(), MediaAnnotation::InvalidAnnotation, MediaAnnotation::Invalid, QRectF()};
-    if (!pages.value(page) || !ctx)
-        return result;
-
-    mutex->lock();
-    fz_var(result);
-    fz_try(ctx)
-    {
-        for (pdf_annot *annot = pdf_first_annot(ctx, pages[page]); annot != NULL; annot = pdf_next_annot(ctx, annot))
-        {
-            fz_rect bound = pdf_bound_annot(ctx, annot);
-            if (bound.x0 <= position.x() && bound.x1 >= position.x() && bound.y0 <= position.y() && bound.y1 >= position.y())
-            {
-                switch (pdf_annot_type(ctx, annot))
-                {
-                case PDF_ANNOT_MOVIE:
-                case PDF_ANNOT_SOUND:
-                {
-                    debug_msg(DebugMedia) << "Movie annotation";
-#if (FZ_VERSION_MAJOR >= 1) && (FZ_VERSION_MINOR >= 19)
-                    pdf_obj *media_obj = pdf_dict_gets(ctx, pdf_annot_obj(ctx, annot), "Movie");
-#else
-                    pdf_obj *media_obj = pdf_dict_gets(ctx, annot->obj, "Movie");
-#endif
-                    if (!media_obj)
-                    {
-                        qWarning() << "Error while reading media annotation";
-                        break;
-                    }
-                    result.type = pdf_annot_type(ctx, annot) == PDF_ANNOT_MOVIE ? MediaAnnotation::VideoAnnotation : MediaAnnotation::AudioAnnotation;
-                    const QFileInfo fileinfo(pdf_dict_get_text_string(ctx, media_obj, PDF_NAME(F)));
-                    //pdf_drop_obj(ctx, media_obj);
-                    if (!fileinfo.exists())
-                        continue;
-                    result.file = QUrl::fromLocalFile(fileinfo.absoluteFilePath());
-                    result.rect = QRectF(bound.x0, bound.y0, bound.x1-bound.x0, bound.y1-bound.y0);
-
-#if (FZ_VERSION_MAJOR >= 1) && (FZ_VERSION_MINOR >= 19)
-                    pdf_obj *activation_obj = pdf_dict_get(ctx, pdf_annot_obj(ctx, annot), PDF_NAME(A));
-#else
-                    pdf_obj *activation_obj = pdf_dict_get(ctx, annot->obj, PDF_NAME(A));
-#endif
-                    if (activation_obj)
-                    {
-                        QString mode = pdf_to_name(ctx, pdf_dict_gets(ctx, activation_obj, "Mode") );
-                        if (!mode.isEmpty())
-                        {
-                            if (mode == "Open")
-                                result.mode = MediaAnnotation::Open;
-                            else if (mode == "Palindrome")
-                                result.mode = MediaAnnotation::Palindrome;
-                            else if (mode == "Repeat")
-                                result.mode = MediaAnnotation::Repeat;
-                        }
-                        //pdf_drop_obj(ctx, activation_obj);
-                    }
-                    break;
-                }
-                case PDF_ANNOT_SCREEN:
-                    debug_msg(DebugMedia) << "Screen annotation";
-                    break;
-                default:
-                debug_msg(DebugRendering) << "Annotation type:" << pdf_string_from_annot_type(ctx, pdf_annot_type(ctx, annot));
-                }
-            }
-            if (result.type != MediaAnnotation::InvalidAnnotation)
-                break;
-        }
-    }
-    fz_always(ctx)
-    {
-        mutex->unlock();
-    }
-    fz_catch(ctx)
-    {
-        return result;
-    }
-    debug_msg(DebugMedia) << result.file << result.mode;
-    return result;
-}
-
 QList<PdfDocument::MediaAnnotation> *MuPdfDocument::annotations(const int page) const
 {
-    QList<MediaAnnotation>* list = NULL;
     if (!pages.value(page) || !ctx)
-        return list;
+        return NULL;
+    QList<MediaAnnotation>* list = NULL;
     mutex->lock();
     fz_var(list);
     fz_try(ctx)
     {
         for (pdf_annot *annot = pdf_first_annot(ctx, pages[page]); annot != NULL; annot = pdf_next_annot(ctx, annot))
         {
+            debug_verbose(DebugMedia) << "PDF annotation:" << pdf_annot_type(ctx, annot) << page;
             switch (pdf_annot_type(ctx, annot))
             {
             case PDF_ANNOT_MOVIE:
-            case PDF_ANNOT_SOUND:
             {
 #if (FZ_VERSION_MAJOR >= 1) && (FZ_VERSION_MINOR >= 19)
                 pdf_obj *media_obj = pdf_dict_gets(ctx, pdf_annot_obj(ctx, annot), "Movie");
@@ -693,7 +610,7 @@ QList<PdfDocument::MediaAnnotation> *MuPdfDocument::annotations(const int page) 
 #endif
                 if (!media_obj)
                 {
-                    qWarning() << "Error while reading media annotation";
+                    qWarning() << "Error while reading movie annotation";
                     break;
                 }
                 const QFileInfo fileinfo(pdf_dict_get_text_string(ctx, media_obj, PDF_NAME(F)));
@@ -703,12 +620,11 @@ QList<PdfDocument::MediaAnnotation> *MuPdfDocument::annotations(const int page) 
                 fz_rect bound = pdf_bound_annot(ctx, annot);
                 if (list == NULL)
                     list = new QList<MediaAnnotation>();
-                list->append({
+                list->append(MediaAnnotation(
                             QUrl::fromLocalFile(fileinfo.absoluteFilePath()),
-                            pdf_annot_type(ctx, annot) == PDF_ANNOT_MOVIE ? MediaAnnotation::VideoAnnotation : MediaAnnotation::AudioAnnotation,
-                            MediaAnnotation::Once,
+                            true,
                             QRectF(bound.x0, bound.y0, bound.x1-bound.x0, bound.y1-bound.y0)
-                        });
+                        ));
 #if (FZ_VERSION_MAJOR >= 1) && (FZ_VERSION_MINOR >= 19)
                 pdf_obj *activation_obj = pdf_dict_get(ctx, pdf_annot_obj(ctx, annot), PDF_NAME(A));
 #else
@@ -730,6 +646,40 @@ QList<PdfDocument::MediaAnnotation> *MuPdfDocument::annotations(const int page) 
                 }
                 break;
             }
+            case PDF_ANNOT_SOUND:
+            {
+                // TODO: embedded sounds
+#if (FZ_VERSION_MAJOR >= 1) && (FZ_VERSION_MINOR >= 19)
+                pdf_obj *media_obj = pdf_dict_gets(ctx, pdf_annot_obj(ctx, annot), "Sound");
+#else
+                pdf_obj *media_obj = pdf_dict_gets(ctx, annot->obj, "Sound");
+#endif
+                if (!media_obj)
+                {
+                    warn_msg << "Error while reading sound annotation";
+                    break;
+                }
+                const QFileInfo fileinfo(pdf_dict_get_text_string(ctx, media_obj, PDF_NAME(F)));
+                //pdf_drop_obj(ctx, media_obj);
+                if (!fileinfo.exists())
+                {
+                    warn_msg << "Failed to load sound object: file not found or unsupported embedded sound";
+                    continue;
+                }
+                fz_rect bound = pdf_bound_annot(ctx, annot);
+                if (list == NULL)
+                    list = new QList<MediaAnnotation>();
+                list->append(MediaAnnotation(
+                            QUrl::fromLocalFile(fileinfo.absoluteFilePath()),
+                            false,
+                            QRectF(bound.x0, bound.y0, bound.x1-bound.x0, bound.y1-bound.y0)
+                        ));
+                break;
+            }
+            case PDF_ANNOT_RICH_MEDIA:
+                // TODO: check what that does
+                warn_msg << "Unsupported media type: rich media";
+                break;
             default:
                 break;
             }
@@ -741,8 +691,34 @@ QList<PdfDocument::MediaAnnotation> *MuPdfDocument::annotations(const int page) 
     }
     fz_catch(ctx)
     {
-        warn_msg << "Error in searching annotations:" << fz_caught_message(ctx);
+        warn_msg << "Error while searching annotations:" << fz_caught_message(ctx);
     }
+
+    // TODO: Sounds included as links or actions are not supported in MuPDF.
+    /*
+    fz_link *clink = NULL;
+    mutex->lock();
+    fz_var(clink);
+    fz_try(ctx)
+    {
+        clink = pdf_load_links(ctx, pages[page]);
+        for (fz_link* link = clink; link != NULL; link = link->next)
+        {
+            QRectF rect(link->rect.x0, link->rect.y0, link->rect.x1-link->rect.x0, link->rect.y1-link->rect.y0);
+            debug_verbose(DebugMedia) << link->uri << rect << page;
+        }
+    }
+    fz_always(ctx)
+    {
+        fz_drop_link(ctx, clink);
+        mutex->unlock();
+    }
+    fz_catch(ctx)
+    {
+        warn_msg << "Error while loading links" << fz_caught_message(ctx);
+    }
+    */
+
     return list;
 }
 

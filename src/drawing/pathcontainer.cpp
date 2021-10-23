@@ -496,9 +496,9 @@ void PathContainer::loadDrawings(QXmlStreamReader &reader)
     QGraphicsItem *item;
     while (reader.readNextStartElement())
     {
-        if (reader.name() == "stroke")
+        if (reader.name().toUtf8() == "stroke")
             item = loadPath(reader);
-        else if (reader.name() == "text")
+        else if (reader.name().toUtf8() == "text")
             item = loadTextItem(reader);
         else
         {
@@ -514,7 +514,7 @@ void PathContainer::loadDrawings(QXmlStreamReader &reader, PathContainer *left, 
 {
     while (reader.readNextStartElement())
     {
-        if (reader.name() == "stroke")
+        if (reader.name().toUtf8() == "stroke")
         {
             AbstractGraphicsPath *path = loadPath(reader);
             if (!path)
@@ -524,7 +524,7 @@ void PathContainer::loadDrawings(QXmlStreamReader &reader, PathContainer *left, 
             else
                 left->paths.append(path);
         }
-        else if (reader.name() == "text")
+        else if (reader.name().toUtf8() == "text")
         {
             TextGraphicsItem *item = loadTextItem(reader);
             if (!item)

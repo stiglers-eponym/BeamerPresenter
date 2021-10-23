@@ -245,8 +245,8 @@ QColor TimerWidget::time2color(const qint32 time) const noexcept
         return colormap.first();
 
     const int diff = next_it.key() - time;
-    const int total = next_it.key() - (next_it-1).key();
-    return QColor(((total-diff)*qRed(*next_it) + diff*qRed(*(next_it-1)))/total, ((total-diff)*qGreen(*next_it) + diff*qGreen(*(next_it-1)))/total, ((total-diff)*qBlue(*next_it) + diff*qBlue(*(next_it-1)))/total);
+    const int total = next_it.key() - std::prev(next_it).key();
+    return QColor(((total-diff)*qRed(*next_it) + diff*qRed(*std::prev(next_it)))/total, ((total-diff)*qGreen(*next_it) + diff*qGreen(*std::prev(next_it)))/total, ((total-diff)*qBlue(*next_it) + diff*qBlue(*std::prev(next_it)))/total);
 }
 
 void TimerWidget::updatePage(const int page) noexcept

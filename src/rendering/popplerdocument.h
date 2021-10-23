@@ -2,7 +2,7 @@
 #define POPPLERDOCUMENT_H
 
 #include <set>
-#include <poppler/qt5/poppler-qt5.h>
+#include <poppler/qt6/poppler-qt6.h>
 #include "src/enumerates.h"
 #include "src/rendering/pdfdocument.h"
 
@@ -11,9 +11,7 @@ class PngPixmap;
 class PopplerDocument : public PdfDocument
 {
     /// Poppler document representing the PDF.
-    const Poppler::Document *doc {NULL};
-    /// List of all pages.
-    QVector<Poppler::Page*> pages;
+    std::unique_ptr<Poppler::Document> doc = NULL;
 
     /// Lookup table for page labels: set of page indices, at which the page
     /// label changes. This is left empty if every page starts with a new
@@ -27,8 +25,8 @@ public:
     /// Constructor: calls loadDocument().
     PopplerDocument(const QString &filename);
 
-    /// Destructor: deletes doc and pages.
-    ~PopplerDocument() noexcept override;
+    /// Destructor: trivial
+    ~PopplerDocument() noexcept override {}
 
     /// Render page to QPixmap. page is given as page index.
     /// resolution is given in pixels per point (dpi/72).
@@ -77,9 +75,6 @@ public:
     /// Link at given position (in point = inch/72).
     const PdfLink linkAt(const int page, const QPointF &position) const override;
 
-    /// Annotation at given position (in point = inch/72)
-    virtual const MediaAnnotation annotationAt(const int page, const QPointF &position) const override;
-
     /// List all video annotations on given page. Returns NULL if list is empty.
     virtual QList<MediaAnnotation>* annotations(const int page) const override;
 
@@ -91,6 +86,13 @@ public:
 
     /// Duration of given page in secons. Default value is -1 is interpreted as infinity.
     qreal duration(const int page) const noexcept override;
+};
+
+static const QMap<Poppler::SoundObject::SoundEncoding, PdfDocument::EmbeddedMedia::Encoding> convert_sound_encoding = {
+    {Poppler::SoundObject::Raw, PdfDocument::EmbeddedMedia::SoundEncodingRaw},
+    {Poppler::SoundObject::ALaw, PdfDocument::EmbeddedMedia::SoundEncodingALaw},
+    {Poppler::SoundObject::muLaw, PdfDocument::EmbeddedMedia::SoundEncodingMuLaw},
+    {Poppler::SoundObject::Signed, PdfDocument::EmbeddedMedia::SoundEncodingSigned},
 };
 
 #endif // POPPLERDOCUMENT_H

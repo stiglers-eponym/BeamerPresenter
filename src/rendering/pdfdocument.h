@@ -26,22 +26,62 @@ public:
         QUrl file;
         enum Type
         {
-            VideoAnnotation,
-            AudioAnnotation,
-            InvalidAnnotation,
-        } type = InvalidAnnotation;
+            InvalidAnnotation = 0,
+            HasAudio = 1 << 0,
+            HasVideo = 1 << 1,
+            Embedded = 1 << 2,
+            VideoEmbedded = 7,
+            AudioEmbedded = 5,
+            VideoExternal = 3,
+            AudioExternal = 1,
+        };
+        int type = InvalidAnnotation;
         enum Mode
         {
-            Invalid = -1,
+            InvalidMode = -1,
             Once = 0,
             Open,
             Palindrome,
             Repeat,
-        } mode = Invalid;
+        } mode = Once;
+        float volume = 1.;
         QRectF rect;
+        MediaAnnotation() : file(), type(InvalidAnnotation), mode(InvalidMode), rect() {}
+        MediaAnnotation(const QUrl &url, const bool hasvideo, const QRectF &rect) : file(url), type(hasvideo ? 3 : 1), mode(Once), rect(rect) {}
+        MediaAnnotation(const int type, const QRectF &rect) : file(QUrl()), type(type), mode(Once), rect(rect) {}
+        virtual ~MediaAnnotation() {}
 
-        bool operator==(const MediaAnnotation &other) const noexcept
-        {return file == other.file && mode == other.mode && rect == other.rect;}
+        virtual bool operator==(const MediaAnnotation &other) const noexcept
+        {return     type == other.type
+                    && file == other.file
+                    && mode == other.mode
+                    && rect == other.rect;}
+    };
+
+    /// Embedded media file.
+    /// Quite useless because currently these objects cannot be played.
+    struct EmbeddedMedia : MediaAnnotation {
+        QByteArray data;
+        int sampling_rate;
+        int channels = 1;
+        int bit_per_sample = 8;
+        enum Encoding {
+            SoundEncodingRaw,
+            SoundEncodingSigned,
+            SoundEncodingMuLaw,
+            SoundEncodingALaw,
+        } encoding = SoundEncodingRaw;
+        enum Compression {
+            Uncompressed,
+        } compression = Uncompressed;
+        EmbeddedMedia(const QByteArray &data, int sampling_rate, const QRectF &rect) : MediaAnnotation(5, rect), data(data), sampling_rate(sampling_rate) {}
+        virtual ~EmbeddedMedia() {}
+        virtual bool operator==(const MediaAnnotation &other) const noexcept override
+        {return     type == other.type
+                    && file == other.file
+                    && data.data() == static_cast<const EmbeddedMedia&>(other).data.data()
+                    && mode == other.mode
+                    && rect == other.rect;}
     };
 
     /// Unified type of PDF links for all PDF engines.
@@ -202,9 +242,6 @@ public:
 
     /// Link at given position (in point = inch/72)
     virtual const PdfLink linkAt(const int page, const QPointF &position) const = 0;
-
-    /// Annotation at given position (in point = inch/72)
-    virtual const MediaAnnotation annotationAt(const int page, const QPointF &position) const = 0;
 
     /// List all video annotations on given page. Returns NULL if list is
     /// empty.

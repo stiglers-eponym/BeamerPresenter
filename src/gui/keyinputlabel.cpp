@@ -4,7 +4,7 @@
 #include "src/gui/tooldialog.h"
 #include "src/names.h"
 
-KeyInputLabel::KeyInputLabel(const quint32 init, const Action action, QWidget *parent) :
+KeyInputLabel::KeyInputLabel(const QKeySequence init, const Action action, QWidget *parent) :
     QLabel(parent),
     action(action),
     keys(init)
@@ -20,7 +20,7 @@ KeyInputLabel::KeyInputLabel(const quint32 init, const Action action, QWidget *p
     setToolTip("Click here and press keyboard shortcut for this action or press delete to remove the shortcut.");
 }
 
-KeyInputLabel::KeyInputLabel(const quint32 init, Tool *tool, QWidget *parent) :
+KeyInputLabel::KeyInputLabel(const QKeySequence init, Tool *tool, QWidget *parent) :
     QLabel(parent),
     tool(tool),
     keys(init)
@@ -47,7 +47,7 @@ KeyInputLabel::~KeyInputLabel()
 
 void KeyInputLabel::keyPressEvent(QKeyEvent *event)
 {
-    const int new_keys = event->key() | (event->modifiers() & ~Qt::KeypadModifier);
+    const QKeySequence new_keys(event->key() | (event->modifiers() & ~Qt::KeypadModifier));
     event->accept();
     if (new_keys == Qt::Key_Delete)
     {
@@ -59,7 +59,7 @@ void KeyInputLabel::keyPressEvent(QKeyEvent *event)
         keys = 0;
         return;
     }
-    setText(QKeySequence(new_keys).toString());
+    setText(new_keys.toString());
     if (action != InvalidAction)
     {
         writable_preferences()->removeKeyAction(keys, action);

@@ -201,6 +201,21 @@ Example: {'tool':'pen', 'color':'green', 'width':2, 'device':['tablet pen', 'tou
 array of JSON dictionaries as described before. The dictionaries should contain complementing values for
 .BR device .
 .
+.SS [tools]
+Define tools which are initially associated with a devices. The syntax is as follows:
+.PP
+.RS
+.IR "device " = " tool"
+.RE
+.PP
+.RI "Here " device " is a device name as listed above and " tool " is a JSON object representing a tool as described above. If " tool " defines a device (or list of devices), this overwrites " device ". It is therefore also possible to use any unique string or number for " device " and specify the device(s) in the " tool " JSON object."
+.PP
+An example configuration:
+.RS
+right button = {'tool':'eraser', 'size':10, 'linewidth':0.5}
+table eraser = {'tool':'eraser', 'size':15, 'linewidth':0}
+.RE
+.
 .SH FILES
 .
 .SH

@@ -3,6 +3,7 @@
 #include "src/drawing/pixmapgraphicsitem.h"
 #include "src/drawing/pointingtool.h"
 #include "src/rendering/pixcache.h"
+#include "src/gui/mediaslider.h"
 
 SlideView::SlideView(SlideScene *scene, PixCache *cache, QWidget *parent) :
     QGraphicsView(scene, parent)
@@ -94,10 +95,13 @@ void SlideView::resizeEvent(QResizeEvent *event)
     SlideScene *slidescene = static_cast<SlideScene*>(scene());
     const int page = slidescene->getPage();
     pageChanged(page, slidescene);
-    if (!slidescene->videos().isEmpty())
-        for (const auto &video : slidescene->videos())
-            if (video.pages.contains(page))
-                addMediaSlider(video);
+    for (const auto &media : slidescene->getMedia())
+#if __cplusplus >= 202002L
+        if (media.pages.contains(page))
+#else
+        if (media.pages.find(page) != media.pages.end())
+#endif
+            addMediaSlider(media);
 }
 
 void SlideView::keyPressEvent(QKeyEvent *event)
@@ -254,6 +258,27 @@ void SlideView::drawForeground(QPainter *painter, const QRectF &rect)
             }
         }
     }
+#ifdef QT_DEBUG
+    if (preferences()->debug_level & (DebugMedia|DebugVerbose))
+    {
+        const auto media = static_cast<SlideScene*>(scene())->getMedia();
+        const int page = static_cast<SlideScene*>(scene())->getPage();
+        for (auto &m : media)
+        {
+#if __cplusplus >= 202002L
+            if (m.pages.contains(page))
+#else
+            if (m.pages.find(page) != m.pages.end())
+#endif
+                painter->setPen(QPen(Qt::red, 1));
+            else if (m.player)
+                painter->setPen(QPen(Qt::green, 0.75));
+            else
+                painter->setPen(QPen(Qt::blue, 0.75));
+            painter->drawRect(m.annotation.rect);
+        }
+    }
+#endif
 }
 
 void SlideView::showEraser(QPainter *painter, const PointingTool *tool) noexcept
@@ -294,20 +319,20 @@ void SlideView::showTorch(QPainter *painter, const PointingTool *tool) noexcept
     painter->fillPath(fullpath - path, tool->color());
 }
 
-void SlideView::addMediaSlider(const SlideScene::VideoItem &video)
+void SlideView::addMediaSlider(const SlideScene::MediaItem &media)
 {
     if (!(view_flags & MediaControls))
         return;
-    QSlider *slider = new QSlider(Qt::Horizontal, this);
+    MediaSlider *slider = new MediaSlider(this);
     sliders.append(slider);
-    const QPoint left = mapFromScene(video.annotation.rect.bottomLeft());
-    const QPoint right = mapFromScene(video.annotation.rect.bottomRight());
+    const QPoint left = mapFromScene(media.annotation.rect.bottomLeft());
+    const QPoint right = mapFromScene(media.annotation.rect.bottomRight());
     slider->setGeometry(left.x(), right.y(), right.x() - left.x(), 20);
-    slider->setMaximum(video.player->duration());
-    slider->setValue(video.player->position());
-    connect(video.player, &QMediaPlayer::durationChanged, slider, &QSlider::setMaximum);
-    connect(video.player, &QMediaPlayer::positionChanged, slider, &QSlider::setValue);
-    connect(slider, &QSlider::sliderMoved, video.player, &QMediaPlayer::setPosition);
+    slider->setMaximum(media.player->duration());
+    slider->setValue(media.player->position());
+    connect(media.player, &MediaPlayer::durationChanged, slider, &MediaSlider::setMaximumInt64);
+    connect(media.player, &MediaPlayer::positionChanged, slider, &MediaSlider::setValueInt64);
+    connect(slider, &MediaSlider::sliderMoved, media.player, &MediaPlayer::setPositionSoft);
     QPalette palette;
     palette.setColor(QPalette::Base, QColor(0,0,0,0));
     slider->setPalette(palette);

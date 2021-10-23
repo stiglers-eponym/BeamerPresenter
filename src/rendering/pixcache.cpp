@@ -218,7 +218,7 @@ void PixCache::pageNumberChanged(const int page)
             right = cache.constFind(region.second);
     if (left != cache.cend())
     {
-        const auto limit = cache.cbegin() - 1;
+        const auto limit = std::prev(cache.cbegin());
         while (left != limit && left.key() == region.first)
         {
             --left;
@@ -317,13 +317,13 @@ int PixCache::limitCacheSize()
         // If more than 3/4 of the cached slides lie ahead of current page, clean up last.
         if (last + 3*first > 4*preferences()->page)
         {
-            auto it = cache.end() - 1;
+            const QMap<int, const PngPixmap*>::iterator it = std::prev(cache.end());
             remove = it.value();
-            last = (cache.erase(it) - 1).key();
+            last = std::prev(cache.erase(it)).key();
         }
         else
         {
-            auto it = cache.begin();
+            const QMap<int, const PngPixmap*>::iterator it = cache.begin();
             remove = it.value();
             first = cache.erase(it).key();
         }
