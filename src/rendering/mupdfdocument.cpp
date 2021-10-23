@@ -589,7 +589,7 @@ const PdfDocument::PdfLink MuPdfDocument::linkAt(const int page, const QPointF &
 
 const PdfDocument::MediaAnnotation MuPdfDocument::annotationAt(const int page, const QPointF &position) const
 {
-    MediaAnnotation result = {QUrl(), MediaAnnotation::InvalidAnnotation, MediaAnnotation::Invalid, QRectF()};
+    MediaAnnotation result;
     if (!pages.value(page) || !ctx)
         return result;
 
@@ -618,7 +618,7 @@ const PdfDocument::MediaAnnotation MuPdfDocument::annotationAt(const int page, c
                         qWarning() << "Error while reading media annotation";
                         break;
                     }
-                    result.type = pdf_annot_type(ctx, annot) == PDF_ANNOT_MOVIE ? MediaAnnotation::VideoAnnotation : MediaAnnotation::AudioAnnotation;
+                    result.type = pdf_annot_type(ctx, annot) == PDF_ANNOT_MOVIE ? MediaAnnotation::VideoExternal : MediaAnnotation::AudioExternal;
                     const QFileInfo fileinfo(pdf_dict_get_text_string(ctx, media_obj, PDF_NAME(F)));
                     //pdf_drop_obj(ctx, media_obj);
                     if (!fileinfo.exists())
@@ -681,6 +681,8 @@ QList<PdfDocument::MediaAnnotation> *MuPdfDocument::annotations(const int page) 
     {
         for (pdf_annot *annot = pdf_first_annot(ctx, pages[page]); annot != NULL; annot = pdf_next_annot(ctx, annot))
         {
+            debug_verbose(DebugMedia) << "PDF annotation:" << pdf_annot_type(ctx, annot) << page;
+            // TODO: embedded sounds; links
             switch (pdf_annot_type(ctx, annot))
             {
             case PDF_ANNOT_MOVIE:
@@ -703,12 +705,11 @@ QList<PdfDocument::MediaAnnotation> *MuPdfDocument::annotations(const int page) 
                 fz_rect bound = pdf_bound_annot(ctx, annot);
                 if (list == NULL)
                     list = new QList<MediaAnnotation>();
-                list->append({
+                list->append(MediaAnnotation(
                             QUrl::fromLocalFile(fileinfo.absoluteFilePath()),
-                            pdf_annot_type(ctx, annot) == PDF_ANNOT_MOVIE ? MediaAnnotation::VideoAnnotation : MediaAnnotation::AudioAnnotation,
-                            MediaAnnotation::Once,
+                            pdf_annot_type(ctx, annot) == PDF_ANNOT_MOVIE,
                             QRectF(bound.x0, bound.y0, bound.x1-bound.x0, bound.y1-bound.y0)
-                        });
+                        ));
 #if (FZ_VERSION_MAJOR >= 1) && (FZ_VERSION_MINOR >= 19)
                 pdf_obj *activation_obj = pdf_dict_get(ctx, pdf_annot_obj(ctx, annot), PDF_NAME(A));
 #else
@@ -730,6 +731,10 @@ QList<PdfDocument::MediaAnnotation> *MuPdfDocument::annotations(const int page) 
                 }
                 break;
             }
+            case PDF_ANNOT_RICH_MEDIA:
+                // TODO: check what that does
+                warn_msg << "Unsupported media type: rich media";
+                break;
             default:
                 break;
             }

@@ -1,4 +1,4 @@
-#include <QAudioOutput>
+#include <QBuffer>
 #include "src/slidescene.h"
 #include "src/slideview.h"
 #include "src/pdfmaster.h"
@@ -33,13 +33,13 @@ SlideScene::~SlideScene()
         removeItem(list.takeLast());
     delete pageItem;
     delete pageTransitionItem;
-    for (auto &item : videoItems)
+    for (const auto &media : mediaItems)
     {
-        delete item.player;
-        delete item.item;
+        delete media.item;
+        delete media.player;
+        delete media.audio_out;
     }
-    videoItems.clear();
-    delete audio_out;
+    mediaItems.clear();
     delete currentPath;
     delete currentItemCollection;
 }
@@ -51,7 +51,7 @@ void SlideScene::stopDrawing()
     {
         currentPath->show();
         emit sendNewPath(page | page_part, currentPath);
-        invalidate(currentPath->boundingRect(), QGraphicsScene::ItemLayer);
+        invalidate(currentPath->sceneBoundingRect(), QGraphicsScene::ItemLayer);
     }
     currentPath = NULL;
     if (currentItemCollection)
@@ -303,12 +303,14 @@ void SlideScene::receiveAction(const Action action)
         playPauseMedia();
         break;
     case Mute:
-        if (audio_out)
-            audio_out->setMuted(true);
+        for (const auto &m : mediaItems)
+            if (m.audio_out)
+                m.audio_out->setMuted(true);
         break;
     case Unmute:
-        if (audio_out && !(slide_flags & MuteSlide))
-            audio_out->setMuted(false);
+        for (const auto &m : mediaItems)
+            if (m.audio_out)
+                m.audio_out->setMuted(false);
         break;
     default:
         break;
@@ -414,27 +416,17 @@ void SlideScene::loadMedia(const int page)
         return;
     for (const auto &annotation : qAsConst(*list))
     {
-        switch (annotation.type)
-        {
-        case PdfDocument::MediaAnnotation::VideoAnnotation:
+        if (annotation.type != PdfDocument::MediaAnnotation::InvalidAnnotation)
         {
             debug_msg(DebugMedia) << "loading video" << annotation.file << annotation.rect;
-            VideoItem &item = getVideoItem(annotation, page);
+            MediaItem &item = getMediaItem(annotation, page);
             item.item->setSize(item.annotation.rect.size());
             item.item->setPos(item.annotation.rect.topLeft());
             item.item->show();
             addItem(item.item);
+            // TODO: control autoplay audio
             if (slide_flags & AutoplayVideo)
                 item.player->play();
-            break;
-        }
-        case PdfDocument::MediaAnnotation::AudioAnnotation:
-        {
-            qWarning() << "Sound annotation: not implemented yet";
-            break;
-        }
-        case PdfDocument::MediaAnnotation::InvalidAnnotation:
-            break;
         }
     }
 }
@@ -456,45 +448,47 @@ void SlideScene::cacheMedia(const int page)
         return;
     for (const auto &annotation : qAsConst(*list))
     {
-        switch (annotation.type)
-        {
-        case PdfDocument::MediaAnnotation::VideoAnnotation:
-            debug_msg(DebugMedia) << "try to cache video" << annotation.file << annotation.rect;
-            getVideoItem(annotation, page);
-            break;
-        case PdfDocument::MediaAnnotation::AudioAnnotation:
-            qWarning() << "Sound annotation: not implemented yet";
-            break;
-        case PdfDocument::MediaAnnotation::InvalidAnnotation:
-            break;
-        }
+        if (annotation.type != PdfDocument::MediaAnnotation::InvalidAnnotation)
+            getMediaItem(annotation, page);
     }
 }
 
-SlideScene::VideoItem &SlideScene::getVideoItem(const PdfDocument::MediaAnnotation &annotation, const int page)
+SlideScene::MediaItem &SlideScene::getMediaItem(const PdfDocument::MediaAnnotation &annotation, const int page)
 {
-    for (auto &videoitem : videoItems)
+    for (auto &mediaitem : mediaItems)
     {
-        if (videoitem.annotation == annotation && videoitem.item)
+        if (mediaitem.annotation == annotation && mediaitem.item)
         {
             debug_msg(DebugMedia) << "Found video in cache" << annotation.file << annotation.rect;
-            videoitem.pages.insert(page);
-            return videoitem;
+            mediaitem.pages.insert(page);
+            return mediaitem;
         }
     }
     debug_msg(DebugMedia) << "Loading new video" << annotation.file << annotation.rect;
     MediaPlayer *player = new MediaPlayer(this);
-    if (!audio_out)
+    QAudioOutput *audio_out = NULL;
+    if (annotation.type & PdfDocument::MediaAnnotation::HasAudio)
     {
         audio_out = new QAudioOutput(this);
         if (slide_flags & MuteSlide || preferences()->global_flags & Preferences::MuteApplication)
             audio_out->setMuted(true);
     }
     player->setAudioOutput(audio_out);
-    QGraphicsVideoItem *item = new QGraphicsVideoItem;
-    connect(item, &QGraphicsVideoItem::destroyed, player, &MediaPlayer::deleteLater);
-    player->setVideoOutput(item);
-    player->setSource(annotation.file);
+    QGraphicsVideoItem *item = NULL;
+    if (annotation.type & PdfDocument::MediaAnnotation::HasVideo)
+    {
+        item = new QGraphicsVideoItem;
+        player->setVideoOutput(item);
+    }
+    if ((annotation.type & PdfDocument::MediaAnnotation::Embedded) == 0)
+        player->setSource(annotation.file);
+    else
+    {
+        QBuffer *buffer = new QBuffer(player);
+        buffer->setData(static_cast<const PdfDocument::EmbeddedMedia&>(annotation).data);
+        buffer->open(QBuffer::ReadOnly);
+        player->setSourceDevice(buffer);
+    }
     switch (annotation.mode)
     {
     case PdfDocument::MediaAnnotation::Once:
@@ -509,8 +503,8 @@ SlideScene::VideoItem &SlideScene::getVideoItem(const PdfDocument::MediaAnnotati
         connect(player, &MediaPlayer::mediaStatusChanged, player, &MediaPlayer::repeatIfFinished);
         break;
     }
-    videoItems.append({annotation, item, player, {page}});
-    return videoItems.last();
+    mediaItems.append({annotation, item, player, audio_out, {page}});
+    return mediaItems.last();
 }
 
 void SlideScene::startTransition(const int newpage, const PdfDocument::SlideTransition &transition)
@@ -943,7 +937,7 @@ void SlideScene::stepInputEvent(const DrawTool *tool, const QPointF &pos, const 
         addItem(item);
         currentItemCollection->addToGroup(item);
         currentItemCollection->show();
-        invalidate(item->boundingRect(), QGraphicsScene::ItemLayer);
+        invalidate(item->sceneBoundingRect(), QGraphicsScene::ItemLayer);
     }
 }
 
@@ -966,9 +960,9 @@ void SlideScene::noToolClicked(const QPointF &pos, const QPointF &startpos)
 {
     debug_verbose(DebugMedia) << "Clicked without tool" << pos << startpos;
     // Try to handle multimedia annotation.
-    for (auto &item : videoItems)
+    for (auto &item : mediaItems)
     {
-        if (item.pages.contains((page &~NotFullPage)) && item.item->boundingRect().contains(pos))
+        if (item.pages.contains((page &~NotFullPage)) && item.item->sceneBoundingRect().contains(pos))
         {
             if (startpos.isNull() || item.annotation.rect.contains(startpos))
             {
@@ -986,7 +980,7 @@ void SlideScene::noToolClicked(const QPointF &pos, const QPointF &startpos)
 
 void SlideScene::createSliders() const
 {
-    for (auto &item : videoItems)
+    for (auto &item : mediaItems)
     {
         if (item.pages.contains((page &~NotFullPage)))
         {
@@ -998,7 +992,7 @@ void SlideScene::createSliders() const
 
 void SlideScene::playMedia() const
 {
-    for (auto &item : videoItems)
+    for (auto &item : mediaItems)
     {
         if (item.pages.contains((page &~NotFullPage)))
             item.player->play();
@@ -1007,7 +1001,7 @@ void SlideScene::playMedia() const
 
 void SlideScene::pauseMedia() const
 {
-    for (auto &item : videoItems)
+    for (auto &item : mediaItems)
     {
         if (item.pages.contains((page &~NotFullPage)))
             item.player->pause();
@@ -1016,7 +1010,7 @@ void SlideScene::pauseMedia() const
 
 void SlideScene::playPauseMedia() const
 {
-    for (auto &item : videoItems)
+    for (auto &item : mediaItems)
     {
         if (
                 item.pages.contains((page &~NotFullPage))

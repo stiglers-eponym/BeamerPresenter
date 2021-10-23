@@ -101,7 +101,7 @@ public slots:
     void drawForeground(QPainter *painter, const QRectF &rect) override;
 
     /// Add a slider for a video item
-    void addMediaSlider(const SlideScene::VideoItem &video);
+    void addMediaSlider(const SlideScene::MediaItem &media);
 
     /// Prepare a slide transition: render current view to transitionItem.
     void prepareTransition(PixmapGraphicsItem *transitionItem);

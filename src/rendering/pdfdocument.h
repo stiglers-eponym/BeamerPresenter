@@ -26,22 +26,45 @@ public:
         QUrl file;
         enum Type
         {
-            VideoAnnotation,
-            AudioAnnotation,
-            InvalidAnnotation,
-        } type = InvalidAnnotation;
+            InvalidAnnotation = 0,
+            HasAudio = 1 << 0,
+            HasVideo = 1 << 1,
+            Embedded = 1 << 2,
+            VideoEmbedded = 7,
+            AudioEmbedded = 5,
+            VideoExternal = 3,
+            AudioExternal = 1,
+        };
+        int type = InvalidAnnotation;
         enum Mode
         {
-            Invalid = -1,
+            InvalidMode = -1,
             Once = 0,
             Open,
             Palindrome,
             Repeat,
-        } mode = Invalid;
+        } mode = Once;
         QRectF rect;
+        MediaAnnotation() : file(), type(InvalidAnnotation), mode(InvalidMode), rect() {}
+        MediaAnnotation(const QUrl &url, const bool hasvideo, const QRectF &rect) : file(url), type(hasvideo ? 3 : 1), mode(Once), rect(rect) {}
+        MediaAnnotation(const int type, const QRectF &rect) : file(QUrl()), type(type), mode(Once), rect(rect) {}
 
-        bool operator==(const MediaAnnotation &other) const noexcept
-        {return file == other.file && mode == other.mode && rect == other.rect;}
+        virtual bool operator==(const MediaAnnotation &other) const noexcept
+        {return     type == other.type
+                    && file == other.file
+                    && mode == other.mode
+                    && rect == other.rect;}
+    };
+
+    struct EmbeddedMedia : MediaAnnotation {
+        QByteArray data;
+        EmbeddedMedia(const QByteArray &data, const bool hasvideo, const QRectF &rect) : MediaAnnotation(hasvideo ? 7 : 5, rect), data(data) {}
+        virtual bool operator==(const MediaAnnotation &other) const noexcept override
+        {return     type == other.type
+                    && file == other.file
+                    && data.data() == static_cast<const EmbeddedMedia&>(other).data.data()
+                    && mode == other.mode
+                    && rect == other.rect;}
     };
 
     /// Unified type of PDF links for all PDF engines.

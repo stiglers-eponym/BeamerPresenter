@@ -95,10 +95,9 @@ void SlideView::resizeEvent(QResizeEvent *event)
     SlideScene *slidescene = static_cast<SlideScene*>(scene());
     const int page = slidescene->getPage();
     pageChanged(page, slidescene);
-    if (!slidescene->videos().isEmpty())
-        for (const auto &video : slidescene->videos())
-            if (video.pages.contains(page))
-                addMediaSlider(video);
+    for (const auto &media : slidescene->media())
+        if (media.pages.contains(page))
+            addMediaSlider(media);
 }
 
 void SlideView::keyPressEvent(QKeyEvent *event)
@@ -255,6 +254,21 @@ void SlideView::drawForeground(QPainter *painter, const QRectF &rect)
             }
         }
     }
+#ifdef QT_DEBUG
+    if (preferences()->debug_level & (DebugMedia|DebugVerbose))
+    {
+        const auto media = static_cast<SlideScene*>(scene())->media();
+        const int page = static_cast<SlideScene*>(scene())->getPage();
+        painter->setPen(QPen(Qt::green, 0.75));
+        for (auto &m : media)
+            if (!m.pages.contains(page))
+                painter->drawRect(m.item->sceneBoundingRect());
+        painter->setPen(QPen(Qt::red, 1));
+        for (auto &m : media)
+            if (m.pages.contains(page))
+                painter->drawRect(m.item->sceneBoundingRect());
+    }
+#endif
 }
 
 void SlideView::showEraser(QPainter *painter, const PointingTool *tool) noexcept
@@ -295,20 +309,20 @@ void SlideView::showTorch(QPainter *painter, const PointingTool *tool) noexcept
     painter->fillPath(fullpath - path, tool->color());
 }
 
-void SlideView::addMediaSlider(const SlideScene::VideoItem &video)
+void SlideView::addMediaSlider(const SlideScene::MediaItem &media)
 {
     if (!(view_flags & MediaControls))
         return;
     MediaSlider *slider = new MediaSlider(this);
     sliders.append(slider);
-    const QPoint left = mapFromScene(video.annotation.rect.bottomLeft());
-    const QPoint right = mapFromScene(video.annotation.rect.bottomRight());
+    const QPoint left = mapFromScene(media.annotation.rect.bottomLeft());
+    const QPoint right = mapFromScene(media.annotation.rect.bottomRight());
     slider->setGeometry(left.x(), right.y(), right.x() - left.x(), 20);
-    slider->setMaximum(video.player->duration());
-    slider->setValue(video.player->position());
-    connect(video.player, &MediaPlayer::durationChanged, slider, &MediaSlider::setMaximumInt64);
-    connect(video.player, &MediaPlayer::positionChanged, slider, &MediaSlider::setValueInt64);
-    connect(slider, &MediaSlider::sliderMoved, video.player, &MediaPlayer::setPositionSoft);
+    slider->setMaximum(media.player->duration());
+    slider->setValue(media.player->position());
+    connect(media.player, &MediaPlayer::durationChanged, slider, &MediaSlider::setMaximumInt64);
+    connect(media.player, &MediaPlayer::positionChanged, slider, &MediaSlider::setValueInt64);
+    connect(slider, &MediaSlider::sliderMoved, media.player, &MediaPlayer::setPositionSoft);
     QPalette palette;
     palette.setColor(QPalette::Base, QColor(0,0,0,0));
     slider->setPalette(palette);

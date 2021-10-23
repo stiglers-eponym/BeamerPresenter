@@ -1,6 +1,7 @@
 #ifndef SLIDESCENE_H
 #define SLIDESCENE_H
 
+#include <QAudioOutput>
 #include <QGraphicsScene>
 #include <QGraphicsVideoItem>
 #include <QGraphicsSceneMouseEvent>
@@ -31,8 +32,9 @@ class SlideScene : public QGraphicsScene
     Q_OBJECT
 
 public:
-    /// Container of objects required to handle a video.
-    struct VideoItem
+    /// Container of objects required to handle a video and/or audio.
+    // TODO: use less media players, audio outputs and so on?
+    struct MediaItem
     {
         /// basic information about video from PDF
         PdfDocument::MediaAnnotation annotation;
@@ -40,6 +42,8 @@ public:
         QGraphicsVideoItem *item;
         /// Media player controling the video
         MediaPlayer *player;
+        /// Audio output for media player.
+        QAudioOutput *audio_out;
         /// Set of pages on which this video item appears. This is updated
         /// when videos for a new page are loaded and an old video is found
         /// to be visible also on the new page.
@@ -79,10 +83,7 @@ private:
     PixmapGraphicsItem *pageTransitionItem {NULL};
 
     /// List of (cached or active) video items.
-    QList<VideoItem> videoItems;
-
-    /// Audio output for media player.
-    QAudioOutput *audio_out {NULL};
+    QList<MediaItem> mediaItems;
 
     /// PDF document, including drawing paths.
     /// This is const, all data sent to master should be send via signals.
@@ -107,7 +108,7 @@ private:
     void startTransition(const int newpage, const PdfDocument::SlideTransition &transition);
 
     /// Search video annotation in cache and create + add it to cache if necessary.
-    VideoItem &getVideoItem(const PdfDocument::MediaAnnotation &annotation, const int page);
+    MediaItem &getMediaItem(const PdfDocument::MediaAnnotation &annotation, const int page);
 
 public:
     /// Constructor: initialize master, page_part, and QGraphisScene.
@@ -126,8 +127,8 @@ public:
     {return slide_flags;}
 
     /// video items on all slides (cached or active).
-    QList<VideoItem> &videos() noexcept
-    {return videoItems;}
+    QList<MediaItem> &media() noexcept
+    {return mediaItems;}
 
     /// Get current page item (the pixmap graphics item showing the current page)
     PixmapGraphicsItem *pageBackground() const noexcept
@@ -260,6 +261,6 @@ signals:
     void newUnsavedDrawings();
 };
 
-Q_DECLARE_METATYPE(SlideScene::VideoItem);
+Q_DECLARE_METATYPE(SlideScene::MediaItem);
 
 #endif // SLIDESCENE_H

@@ -274,8 +274,7 @@ const PdfDocument::MediaAnnotation PopplerDocument::annotationAt(const int page,
             }
             MediaAnnotation videoAnnotation {
                         QUrl::fromLocalFile(fileinfo.absoluteFilePath()),
-                        (*it)->subType() == Poppler::Annotation::AMovie ? MediaAnnotation::VideoAnnotation : MediaAnnotation::AudioAnnotation,
-                        MediaAnnotation::Once,
+                        (*it)->subType() == Poppler::Annotation::AMovie,
                         {pageSize.width()*(*it)->boundary().x(), pageSize.height()*(*it)->boundary().y(), pageSize.width()*(*it)->boundary().width(), pageSize.height()*(*it)->boundary().height()}
             };
             switch (movie->playMode())
@@ -303,37 +302,100 @@ QList<PdfDocument::MediaAnnotation> *PopplerDocument::annotations(const int page
     const std::unique_ptr<Poppler::Page> docpage = doc->page(page);
     if (!docpage)
         return NULL;
-    const auto annotations = docpage->annotations({Poppler::Annotation::AMovie, Poppler::Annotation::ASound});
+    const auto annotations = docpage->annotations({Poppler::Annotation::AMovie, Poppler::Annotation::ASound, Poppler::Annotation::ARichMedia});
     if (annotations.empty())
         return NULL;
     const QSizeF pageSize = docpage->pageSizeF();
     QList<MediaAnnotation> *list = new QList<MediaAnnotation>;
     for (auto it = annotations.cbegin(); it != annotations.cend(); ++it)
     {
-        const Poppler::MovieObject *movie = static_cast<Poppler::MovieAnnotation*>(it->get())->movie();
-        QFileInfo fileinfo(movie->url());
-        if (fileinfo.exists())
+        // TODO: try to find better way of handling URLs
+        switch ((*it)->subType())
         {
-            list->append({
-                        QUrl::fromLocalFile(fileinfo.absoluteFilePath()),
-                        (*it)->subType() == Poppler::Annotation::AMovie ? MediaAnnotation::VideoAnnotation : MediaAnnotation::AudioAnnotation,
-                        MediaAnnotation::Once,
-                        {pageSize.width()*(*it)->boundary().x(), pageSize.height()*(*it)->boundary().y(), pageSize.width()*(*it)->boundary().width(), pageSize.height()*(*it)->boundary().height()}
-            });
-            switch (movie->playMode())
+        case Poppler::Annotation::AMovie:
+        {
+            const Poppler::MovieObject *movie = static_cast<Poppler::MovieAnnotation*>(it->get())->movie();
+            QFileInfo fileinfo(movie->url());
+            if (fileinfo.exists())
             {
-            case Poppler::MovieObject::PlayOpen:
-                list->last().mode = MediaAnnotation::Open;
+                list->append(MediaAnnotation(
+                            QUrl::fromLocalFile(fileinfo.absoluteFilePath()),
+                            true,
+                            QRectF(pageSize.width()*(*it)->boundary().x(), pageSize.height()*(*it)->boundary().y(), pageSize.width()*(*it)->boundary().width(), pageSize.height()*(*it)->boundary().height())
+                ));
+                debug_verbose(DebugMedia) << "Found video annotation:" << fileinfo.filePath() << "on page" << page;
+                switch (movie->playMode())
+                {
+                case Poppler::MovieObject::PlayOpen:
+                    list->last().mode = MediaAnnotation::Open;
+                    break;
+                case Poppler::MovieObject::PlayPalindrome:
+                    list->last().mode = MediaAnnotation::Palindrome;
+                    break;
+                case Poppler::MovieObject::PlayRepeat:
+                    list->last().mode = MediaAnnotation::Repeat;
+                    break;
+                default:
+                    break;
+                }
+            }
+            break;
+        }
+        case Poppler::Annotation::ASound:
+        {
+            const Poppler::SoundObject *sound = static_cast<Poppler::SoundAnnotation*>(it->get())->sound();
+            QRectF area = (*it)->boundary();
+            area = {pageSize.width()*area.x(), pageSize.height()*area.y(), pageSize.width()*area.width(), pageSize.height()*area.height()};
+            switch (sound->soundType())
+            {
+            case Poppler::SoundObject::Embedded:
+                debug_verbose(DebugMedia) << "Found sound annotation: embedded on page" << page;
+                if (!sound->data().isEmpty())
+                    list->append(EmbeddedMedia(sound->data(), false, area));
                 break;
-            case Poppler::MovieObject::PlayPalindrome:
-                list->last().mode = MediaAnnotation::Palindrome;
-                break;
-            case Poppler::MovieObject::PlayRepeat:
-                list->last().mode = MediaAnnotation::Repeat;
-                break;
-            default:
+            case Poppler::SoundObject::External:
+            {
+                QFileInfo fileinfo(sound->url());
+                debug_verbose(DebugMedia) << "Found sound annotation:" << fileinfo.filePath() << "on page" << page;
+                if (fileinfo.exists())
+                    list->append(MediaAnnotation(QUrl::fromLocalFile(fileinfo.absoluteFilePath()), false, area));
                 break;
             }
+            }
+            break;
+        }
+        case Poppler::Annotation::ARichMedia:
+            warn_msg << "Unsupported media type: rich media";
+            break;
+        default:
+            break;
+        }
+    }
+    const auto links = docpage->links();
+    for (auto it = links.cbegin(); it != links.cend(); ++it)
+    {
+        if ((*it)->linkType() == Poppler::Link::Sound)
+        {
+            const Poppler::LinkSound *link = static_cast<Poppler::LinkSound*>(it->get());
+            QRectF area = link->linkArea();
+            area = {pageSize.width()*area.x(), pageSize.height()*area.y(), pageSize.width()*area.width(), pageSize.height()*area.height()};
+            switch (link->sound()->soundType())
+            {
+            case Poppler::SoundObject::Embedded:
+                debug_verbose(DebugMedia) << "Found sound link: embedded on page" << page;
+                if (!link->sound()->data().isEmpty())
+                    list->append(EmbeddedMedia(link->sound()->data(), false, area));
+                break;
+            case Poppler::SoundObject::External:
+            {
+                QFileInfo fileinfo(link->sound()->url());
+                debug_verbose(DebugMedia) << "Found sound link:" << fileinfo.filePath() << "on page" << page;
+                if (fileinfo.exists())
+                    list->append(MediaAnnotation(QUrl::fromLocalFile(fileinfo.absoluteFilePath()), false, area));
+                break;
+            }
+            }
+            link->sound()->data();
         }
     }
     if (list->isEmpty())
