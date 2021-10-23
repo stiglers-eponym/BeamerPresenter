@@ -1,6 +1,7 @@
 #ifndef SLIDESCENE_H
 #define SLIDESCENE_H
 
+#include <set>
 #include <QAudioOutput>
 #include <QGraphicsScene>
 #include <QGraphicsVideoItem>
@@ -33,7 +34,7 @@ class SlideScene : public QGraphicsScene
 
 public:
     /// Container of objects required to handle a video and/or audio.
-    // TODO: use less media players, audio outputs and so on?
+    // TODO: This implementation with different media players uses much memory.
     struct MediaItem
     {
         /// basic information about video from PDF
@@ -47,7 +48,7 @@ public:
         /// Set of pages on which this video item appears. This is updated
         /// when videos for a new page are loaded and an old video is found
         /// to be visible also on the new page.
-        QSet<int> pages;
+        std::set<int> pages;
     };
     /// Settings for slide scenes, which apply to all views connected to the scene.
     enum SlideFlags
@@ -127,7 +128,7 @@ public:
     {return slide_flags;}
 
     /// video items on all slides (cached or active).
-    QList<MediaItem> &media() noexcept
+    QList<MediaItem> &getMedia() noexcept
     {return mediaItems;}
 
     /// Get current page item (the pixmap graphics item showing the current page)

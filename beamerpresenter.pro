@@ -75,7 +75,7 @@ requires(greaterThan(QT_MINOR_VERSION, 1))
 requires(contains(DEFINES, INCLUDE_POPPLER) | contains(DEFINES, INCLUDE_MUPDF))
 
 # Use modern C++
-CONFIG += c++20 qt
+CONFIG += c++latest qt
 
 # Include some libraries
 QT += core gui multimedia multimediawidgets xml widgets

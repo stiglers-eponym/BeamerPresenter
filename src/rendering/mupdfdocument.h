@@ -112,9 +112,6 @@ public:
     /// Link at given position (in point = inch/72)
     virtual const PdfLink linkAt(const int page, const QPointF &position) const override;
 
-    /// Annotation at given position (in point = inch/72)
-    virtual const MediaAnnotation annotationAt(const int page, const QPointF &position) const override;
-
     /// List all video annotations on given page. Returns NULL if list is
     /// empty.
     virtual QList<MediaAnnotation>* annotations(const int page) const override;

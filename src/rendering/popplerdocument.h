@@ -75,9 +75,6 @@ public:
     /// Link at given position (in point = inch/72).
     const PdfLink linkAt(const int page, const QPointF &position) const override;
 
-    /// Annotation at given position (in point = inch/72)
-    virtual const MediaAnnotation annotationAt(const int page, const QPointF &position) const override;
-
     /// List all video annotations on given page. Returns NULL if list is empty.
     virtual QList<MediaAnnotation>* annotations(const int page) const override;
 
@@ -89,6 +86,13 @@ public:
 
     /// Duration of given page in secons. Default value is -1 is interpreted as infinity.
     qreal duration(const int page) const noexcept override;
+};
+
+static const QMap<Poppler::SoundObject::SoundEncoding, PdfDocument::EmbeddedMedia::Encoding> convert_sound_encoding = {
+    {Poppler::SoundObject::Raw, PdfDocument::EmbeddedMedia::SoundEncodingRaw},
+    {Poppler::SoundObject::ALaw, PdfDocument::EmbeddedMedia::SoundEncodingALaw},
+    {Poppler::SoundObject::muLaw, PdfDocument::EmbeddedMedia::SoundEncodingMuLaw},
+    {Poppler::SoundObject::Signed, PdfDocument::EmbeddedMedia::SoundEncodingSigned},
 };
 
 #endif // POPPLERDOCUMENT_H

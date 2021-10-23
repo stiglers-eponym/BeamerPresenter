@@ -44,6 +44,7 @@ public:
             Palindrome,
             Repeat,
         } mode = Once;
+        float volume = 1.;
         QRectF rect;
         MediaAnnotation() : file(), type(InvalidAnnotation), mode(InvalidMode), rect() {}
         MediaAnnotation(const QUrl &url, const bool hasvideo, const QRectF &rect) : file(url), type(hasvideo ? 3 : 1), mode(Once), rect(rect) {}
@@ -56,9 +57,23 @@ public:
                     && rect == other.rect;}
     };
 
+    /// Embedded media file.
+    /// Quite useless because currently these objects cannot be played.
     struct EmbeddedMedia : MediaAnnotation {
         QByteArray data;
-        EmbeddedMedia(const QByteArray &data, const bool hasvideo, const QRectF &rect) : MediaAnnotation(hasvideo ? 7 : 5, rect), data(data) {}
+        int sampling_rate;
+        int channels = 1;
+        int bit_per_sample = 8;
+        enum Encoding {
+            SoundEncodingRaw,
+            SoundEncodingSigned,
+            SoundEncodingMuLaw,
+            SoundEncodingALaw,
+        } encoding = SoundEncodingRaw;
+        enum Compression {
+            Uncompressed,
+        } compression = Uncompressed;
+        EmbeddedMedia(const QByteArray &data, int sampling_rate, const QRectF &rect) : MediaAnnotation(5, rect), data(data), sampling_rate(sampling_rate) {}
         virtual bool operator==(const MediaAnnotation &other) const noexcept override
         {return     type == other.type
                     && file == other.file
@@ -225,9 +240,6 @@ public:
 
     /// Link at given position (in point = inch/72)
     virtual const PdfLink linkAt(const int page, const QPointF &position) const = 0;
-
-    /// Annotation at given position (in point = inch/72)
-    virtual const MediaAnnotation annotationAt(const int page, const QPointF &position) const = 0;
 
     /// List all video annotations on given page. Returns NULL if list is
     /// empty.

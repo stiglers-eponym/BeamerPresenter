@@ -150,28 +150,27 @@ BeamerPresenter (`qmake --version`).
 ## Development
 
 ### Known problems
-* Video lags when drawing on it. Sometimes this can be reduced by first making sure that the presentation window has focus and then pausing and playing the video.
-* Sound in videos is basically untested and currently has low priority. Feel free to open an issue if this is relevant for you.
+* Video sometimes lags when drawing on it. Sometimes this can be reduced by first making sure that the presentation window has focus and then pausing and playing the video.
+* Sound links in PDFs are unsupported in the MuPDF version. They should work with Poppler.
+* Embedded sounds are unsupported, only links to external files can be played.
 * Tool buttons can be changed in the user interface, but these changes are not saved. Buttons are part of the user interface, which can only be changed (permanently) by editing the JSON-formatted configuration file.
 * The undo/redo actions do not handle text annotations correctly. They only remove or create text fields. But when editing a text field the default keyboard shortcuts (CTRL+Z and CTRL+SHIFT+Z) can be used to undo/redo changes in the text. Deleting a text field by deleting its entire text cannot be undone.
-* Slide labels are broken for encrypted PDFs when using MuPDF.
+* Fixed in MuPDF 1.19: Slide labels are broken for encrypted PDFs when using MuPDF.
 * When compiling with both MuPDF and poppler (`qmake RENDERER=both`), trying to open a PDF with renderer=poppler can result in a segmentation fault for some PDFs (when loading the document or when reaching a certain page). The reason might be a linkage problem with some color-space functions. It is recommended to compile with only one PDF engine.
 * The detection of unsaved changes is quite unreliable. When closing BeamerPresenter you may sometimes see a warning of possibly unsaved changes although there are no unsaved changes. This warning is currently not shown when closing the window through the window manager. The warning can be avoided by using the action "quit unsafe" instead of "quit".
 * Sometimes the slides are not automatically rendered to the correct size when resizing the window. Changing or updating the page should solve this problem.
 * Some slide transitions need to stop videos. Fly slide transitions during videos can cause strange effects.
-* Some slide transitions can show artifacts on preview slide widgets which only show the first or last overlay of a slide.
-* Some slide transitions may have bad performance (low frame rate).
-* if preview shows specific overlays, slide changes adding or removing synchronization of preview and an another frame may lead to short flickering
+* If preview shows specific overlays, slide changes adding or removing synchronization of preview and an another frame may lead to short flickering. Slide transitions during such slide changes can contain some ugly artifacts.
+* version 0.1.x: If a video annotation in the PDF links to a file which is just a sound file, BeamerPresenter crashes with segmentation fault when trying to load it.
+* possibly fixed: rare and undeterministic crash at startup with an error message concerning timers.
 
 
 ### Ideas for further development
-* fix strange probabilistic crash at startup
+* tools to select and modify drawings
 * improve cache management and layout corrections: sometimes cache is not used correctly.
 * cache slides even when size of slides varies (partially implemented)
 * cache only required slides in previews showing specific overlays
 * make layout more reliable
-* multimedia: include audio files, test sound in videos
-* tools to select and modify drawings
 * option to insert extra slides for drawing
 * improve keyboard shortcuts in other widgets than slide widget
 * more icons for actions

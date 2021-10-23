@@ -95,7 +95,7 @@ void SlideView::resizeEvent(QResizeEvent *event)
     SlideScene *slidescene = static_cast<SlideScene*>(scene());
     const int page = slidescene->getPage();
     pageChanged(page, slidescene);
-    for (const auto &media : slidescene->media())
+    for (const auto &media : slidescene->getMedia())
         if (media.pages.contains(page))
             addMediaSlider(media);
 }
@@ -257,16 +257,18 @@ void SlideView::drawForeground(QPainter *painter, const QRectF &rect)
 #ifdef QT_DEBUG
     if (preferences()->debug_level & (DebugMedia|DebugVerbose))
     {
-        const auto media = static_cast<SlideScene*>(scene())->media();
+        const auto media = static_cast<SlideScene*>(scene())->getMedia();
         const int page = static_cast<SlideScene*>(scene())->getPage();
-        painter->setPen(QPen(Qt::green, 0.75));
         for (auto &m : media)
-            if (!m.pages.contains(page))
-                painter->drawRect(m.item->sceneBoundingRect());
-        painter->setPen(QPen(Qt::red, 1));
-        for (auto &m : media)
+        {
             if (m.pages.contains(page))
-                painter->drawRect(m.item->sceneBoundingRect());
+                painter->setPen(QPen(Qt::red, 1));
+            else if (m.player)
+                painter->setPen(QPen(Qt::green, 0.75));
+            else
+                painter->setPen(QPen(Qt::blue, 0.75));
+            painter->drawRect(m.annotation.rect);
+        }
     }
 #endif
 }
