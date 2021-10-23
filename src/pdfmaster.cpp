@@ -97,8 +97,8 @@ void PdfMaster::receiveAction(const Action action)
             emit update();
         break;
     case UndoDrawing:
-    case UndoDrawing | PagePart::LeftHalf:
-    case UndoDrawing | PagePart::RightHalf:
+    case UndoDrawing | int(PagePart::LeftHalf):
+    case UndoDrawing | int(PagePart::RightHalf):
     {
         const int page = preferences()->page | (action ^ UndoDrawing);
         PathContainer* const path = paths.value(page, NULL);
@@ -114,8 +114,8 @@ void PdfMaster::receiveAction(const Action action)
         break;
     }
     case RedoDrawing:
-    case RedoDrawing | PagePart::LeftHalf:
-    case RedoDrawing | PagePart::RightHalf:
+    case RedoDrawing | int(PagePart::LeftHalf):
+    case RedoDrawing | int(PagePart::RightHalf):
     {
         const int page = preferences()->page | (action ^ RedoDrawing);
         PathContainer* const path = paths.value(page, NULL);
@@ -131,8 +131,8 @@ void PdfMaster::receiveAction(const Action action)
         break;
     }
     case ClearDrawing:
-    case ClearDrawing | PagePart::LeftHalf:
-    case ClearDrawing | PagePart::RightHalf:
+    case ClearDrawing | int(PagePart::LeftHalf):
+    case ClearDrawing | int(PagePart::RightHalf):
     {
         PathContainer* const path = paths.value(preferences()->page | (action ^ ClearDrawing), NULL);
         if (path && !path->isCleared())

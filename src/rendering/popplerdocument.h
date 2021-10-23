@@ -2,7 +2,7 @@
 #define POPPLERDOCUMENT_H
 
 #include <set>
-#include <poppler/qt6/poppler-qt6.h>
+#include <poppler/qt5/poppler-qt5.h>
 #include "src/enumerates.h"
 #include "src/rendering/pdfdocument.h"
 

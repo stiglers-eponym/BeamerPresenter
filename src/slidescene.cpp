@@ -494,7 +494,7 @@ SlideScene::MediaItem &SlideScene::getMediaItem(const PdfDocument::MediaAnnotati
         if (slide_flags & MuteSlide || preferences()->global_flags & Preferences::MuteApplication || annotation.volume <= 0.)
             player->setMuted(true);
         else
-            player->setVolume(annotation.volume);
+            player->setVolume(100*annotation.volume);
     }
     QGraphicsVideoItem *item = NULL;
     if (annotation.type & PdfDocument::MediaAnnotation::HasVideo)

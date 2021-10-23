@@ -17,20 +17,20 @@ PopplerDocument::PopplerDocument(const QString &filename) :
 
 const QString PopplerDocument::pageLabel(const int page) const
 {
-    const std::unique_ptr<Poppler::Page> docpage = doc->page(page);
+    const std::unique_ptr<Poppler::Page> docpage(doc->page(page));
     return docpage ? docpage->label() : "";
 }
 
 int PopplerDocument::pageIndex(const QString &page) const
 {
-    const std::unique_ptr<Poppler::Page> pageptr = doc->page(page);
+    const std::unique_ptr<Poppler::Page> pageptr(doc->page(page));
     const int index = pageptr ? pageptr->index() : -1;
     return index;
 }
 
 const QSizeF PopplerDocument::pageSize(const int page) const
 {
-    const std::unique_ptr<Poppler::Page> docpage = doc->page(page);
+    const std::unique_ptr<Poppler::Page> docpage(doc->page(page));
     return docpage ? docpage->pageSizeF() : QSizeF();
 }
 
@@ -48,7 +48,7 @@ bool PopplerDocument::loadDocument()
         return false;
 
     // Load the document.
-    std::unique_ptr<Poppler::Document> newdoc = Poppler::Document::load(path);
+    std::unique_ptr<Poppler::Document> newdoc(Poppler::Document::load(path));
     if (newdoc == NULL)
     {
         qCritical() << "Failed to load document.";
@@ -99,7 +99,7 @@ bool PopplerDocument::loadDocument()
 
 const QPixmap PopplerDocument::getPixmap(const int page, const qreal resolution, const PagePart page_part) const
 {
-    const std::unique_ptr<Poppler::Page> docpage = doc->page(page);
+    const std::unique_ptr<Poppler::Page> docpage(doc->page(page));
     if (resolution <= 0 || !docpage)
     {
         qWarning() << "Tried to render invalid page or invalid resolution" << page;
@@ -119,7 +119,7 @@ const QPixmap PopplerDocument::getPixmap(const int page, const qreal resolution,
 
 const PngPixmap * PopplerDocument::getPng(const int page, const qreal resolution, const PagePart page_part) const
 {
-    const std::unique_ptr<Poppler::Page> docpage = doc->page(page);
+    const std::unique_ptr<Poppler::Page> docpage(doc->page(page));
     if (resolution <= 0 || !docpage)
     {
         qWarning() << "Tried to render invalid page or invalid resolution" << page;
@@ -203,7 +203,7 @@ void PopplerDocument::populateOverlaySlidesSet()
     QString label = "\n\n\n\n";
     for (int i=0; i<doc->numPages(); i++)
     {
-        const std::unique_ptr<Poppler::Page> page = doc->page(i);
+        const std::unique_ptr<Poppler::Page> page(doc->page(i));
         if (page && label != page->label())
         {
             if (!useful && !overlay_slide_indices.empty() && *overlay_slide_indices.crbegin() != i-1)
@@ -222,7 +222,7 @@ void PopplerDocument::populateOverlaySlidesSet()
 
 const PdfDocument::PdfLink PopplerDocument::linkAt(const int page, const QPointF &position) const
 {
-    const std::unique_ptr<Poppler::Page> docpage = doc->page(page);
+    const std::unique_ptr<Poppler::Page> docpage(doc->page(page));
     if (!docpage)
         return PdfLink();
     const QSizeF pageSize = docpage->pageSizeF();
@@ -239,7 +239,7 @@ const PdfDocument::PdfLink PopplerDocument::linkAt(const int page, const QPointF
             switch ((*it)->linkType())
             {
             case Poppler::Link::LinkType::Goto: {
-                const Poppler::LinkGoto *gotolink = static_cast<Poppler::LinkGoto*>(it->get());
+                const Poppler::LinkGoto *gotolink = static_cast<Poppler::LinkGoto*>(*it);
                 return {gotolink->destination().pageNumber() - 1, "", rect};
             }
             default:
@@ -253,7 +253,7 @@ const PdfDocument::PdfLink PopplerDocument::linkAt(const int page, const QPointF
 
 QList<PdfDocument::MediaAnnotation> *PopplerDocument::annotations(const int page) const
 {
-    const std::unique_ptr<Poppler::Page> docpage = doc->page(page);
+    const std::unique_ptr<Poppler::Page> docpage(doc->page(page));
     if (!docpage)
         return NULL;
     debug_verbose(DebugMedia) << "Found" << docpage->annotations().size() << "annotations on page" << page;
@@ -271,7 +271,7 @@ QList<PdfDocument::MediaAnnotation> *PopplerDocument::annotations(const int page
         {
         case Poppler::Annotation::AMovie:
         {
-            const Poppler::MovieObject *movie = static_cast<Poppler::MovieAnnotation*>(it->get())->movie();
+            const Poppler::MovieObject *movie = static_cast<Poppler::MovieAnnotation*>(*it)->movie();
             QFileInfo fileinfo(movie->url());
             if (fileinfo.exists())
             {
@@ -300,7 +300,7 @@ QList<PdfDocument::MediaAnnotation> *PopplerDocument::annotations(const int page
         }
         case Poppler::Annotation::ASound:
         {
-            const Poppler::SoundObject *sound = static_cast<Poppler::SoundAnnotation*>(it->get())->sound();
+            const Poppler::SoundObject *sound = static_cast<Poppler::SoundAnnotation*>(*it)->sound();
             QRectF area = (*it)->boundary();
             area = {pageSize.width()*area.x(), pageSize.height()*area.y(), pageSize.width()*area.width(), pageSize.height()*area.height()};
             switch (sound->soundType())
@@ -339,7 +339,7 @@ QList<PdfDocument::MediaAnnotation> *PopplerDocument::annotations(const int page
         debug_verbose(DebugMedia) << "Link of type" << (*it)->linkType() << (*it)->linkArea() << page;
         if ((*it)->linkType() == Poppler::Link::Sound)
         {
-            const Poppler::LinkSound *link = static_cast<Poppler::LinkSound*>(it->get());
+            const Poppler::LinkSound *link = static_cast<Poppler::LinkSound*>(*it);
             QRectF area = link->linkArea();
             area = {pageSize.width()*area.x(), pageSize.height()*area.y(), pageSize.width()*area.width(), pageSize.height()*area.height()};
             switch (link->sound()->soundType())
@@ -379,7 +379,7 @@ QList<PdfDocument::MediaAnnotation> *PopplerDocument::annotations(const int page
 
 const PdfDocument::SlideTransition PopplerDocument::transition(const int page) const
 {
-    const std::unique_ptr<Poppler::Page> docpage = doc->page(page);
+    const std::unique_ptr<Poppler::Page> docpage(doc->page(page));
     if (!docpage)
         return SlideTransition();
     const Poppler::PageTransition *doc_trans = docpage->transition();
@@ -408,7 +408,7 @@ bool PopplerDocument::flexiblePageSizes() noexcept
     const QSizeF ref_size = doc->page(0)->pageSizeF();
     for (int page=1; page<doc->numPages(); page++)
     {
-        const std::unique_ptr<Poppler::Page> docpage = doc->page(page);
+        const std::unique_ptr<Poppler::Page> docpage(doc->page(page));
         if (docpage && docpage->pageSizeF() != ref_size)
         {
             flexible_page_sizes = 1;
@@ -469,6 +469,6 @@ QList<int> PopplerDocument::overlayIndices() const noexcept
 
 qreal PopplerDocument::duration(const int page) const noexcept
 {
-    const std::unique_ptr<Poppler::Page> docpage = doc->page(page);
+    const std::unique_ptr<Poppler::Page> docpage(doc->page(page));
     return docpage ? docpage->duration() : -1.;
 }

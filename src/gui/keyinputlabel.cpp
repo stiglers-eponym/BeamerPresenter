@@ -9,7 +9,7 @@ KeyInputLabel::KeyInputLabel(const QKeySequence init, const Action action, QWidg
     action(action),
     keys(init)
 {
-    setFrameStyle(QFrame::Panel | QFrame::Sunken);
+    setFrameStyle(int(QFrame::Panel) | QFrame::Sunken);
     setText(QKeySequence(init).toString());
     setBackgroundRole(QPalette::Base);
     QPalette palette = QPalette();
@@ -25,7 +25,7 @@ KeyInputLabel::KeyInputLabel(const QKeySequence init, Tool *tool, QWidget *paren
     tool(tool),
     keys(init)
 {
-    setFrameStyle(QFrame::Panel | QFrame::Sunken);
+    setFrameStyle(int(QFrame::Panel) | QFrame::Sunken);
     setText(QKeySequence(init).toString());
     setBackgroundRole(QPalette::Base);
     QPalette palette = QPalette();
