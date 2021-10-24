@@ -676,10 +676,12 @@ QList<PdfDocument::MediaAnnotation> *MuPdfDocument::annotations(const int page) 
                         ));
                 break;
             }
+#if (FZ_VERSION_MAJOR >= 1) && (FZ_VERSION_MINOR >= 18)
             case PDF_ANNOT_RICH_MEDIA:
                 // TODO: check what that does
                 warn_msg << "Unsupported media type: rich media";
                 break;
+#endif
             default:
                 break;
             }

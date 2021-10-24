@@ -29,7 +29,7 @@ VERSION = 0.2.0
 # explicitly not supported.
 
 # MuPDF requires mupdf libraries (libmupdf).
-# Tested with libmupdf 1.19.0, 1.18.0, and 1.17.0
+# Tested with libmupdf 1.19.0, 1.18.0, 1.17.0, and 1.16.1.
 
 equals(RENDERER, "poppler") {
     DEFINES += INCLUDE_POPPLER

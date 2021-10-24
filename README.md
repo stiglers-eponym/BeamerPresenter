@@ -75,13 +75,13 @@ For poppler (optional, see [below](https://github.com/stiglers-eponym/BeamerPres
 * `libpoppler-qt5-dev`: version 0.86.1 is tested. Versions below 0.70 are explicitly not supported, problems with newer versions might be fixed if reported in an issue on github.
 
 For MuPDF (optional, see [below](https://github.com/stiglers-eponym/BeamerPresenter#build)):
-* `libmupdf-dev` (only for building): Tested versions: 1.19, 1.18, and 1.17.
+* `libmupdf-dev` (only for building): Tested versions: 1.16.1 - 1.19.0.
 * `libfreetype-dev`
 * `libharfbuzz-dev`
 * `libjpeg-dev`
 * `libopenjp2-7-dev`
 * `libjbig2dec0-dev`
-* `libgumbo-dev` (for MuPDF >=1.18, probably not for version 1.17)
+* `libgumbo-dev` (for MuPDF >=1.18, probably not for version <=1.17)
 
 Others:
 * `zlib1g-dev`
@@ -97,7 +97,7 @@ For poppler (optional, see [below](https://github.com/stiglers-eponym/BeamerPres
 * `poppler-qt5`
 
 For MuPDF (optional, see [below](https://github.com/stiglers-eponym/BeamerPresenter#build)):
-* `libmupdf` (only for building, version 1.19, 1.18, or 1.17)
+* `libmupdf` (only for building, tested versions: 1.16.1 - 1.19.0)
 * `jbig2dec`
 * `openjpeg2`
 * `gumbo-parser`
