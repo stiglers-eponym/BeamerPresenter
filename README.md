@@ -61,7 +61,7 @@ Note that in these packages by default MuPDF is selected as PDF engine.
 
 First install the dependencies.
 You need Qt 5/6 including the multimedia module.
-In Qt 5 version 5.9 or newer is required and for installation in Qt 6 you need version 6.2 (or later).
+In Qt 5 versions since 5.12 are tested, but other versions starting from 5.9 should also be supported. For installation in Qt 6 you need version 6.2 (or later).
 Additionally you need either the Qt 5/6 bindings of poppler or the MuPDF C bindings.
 
 ### Dependencies in Ubuntu 20.04
@@ -164,7 +164,6 @@ BeamerPresenter (`qmake --version`).
 * Sometimes the slides are not automatically rendered to the correct size when resizing the window. Changing or updating the page should solve this problem.
 * Some slide transitions need to stop videos. Fly slide transitions during videos can cause strange effects.
 * If preview shows specific overlays, slide changes adding or removing synchronization of preview and an another frame may lead to short flickering. Slide transitions during such slide changes can contain some ugly artifacts.
-* version 0.1.x: If a video annotation in the PDF links to a file which is just a sound file, BeamerPresenter crashes with segmentation fault when trying to load it.
 * possibly fixed: rare and undeterministic crash at startup with an error message concerning timers.
 
 

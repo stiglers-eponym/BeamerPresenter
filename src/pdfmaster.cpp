@@ -9,6 +9,7 @@
 #ifdef INCLUDE_MUPDF
 #include "src/rendering/mupdfdocument.h"
 #endif
+#include <QRegularExpression>
 #include <QBuffer>
 #include <QFileDialog>
 

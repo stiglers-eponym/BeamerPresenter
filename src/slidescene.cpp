@@ -1,4 +1,4 @@
-#include <QBuffer>
+//#include <QBuffer>
 #include "src/slidescene.h"
 #include "src/slideview.h"
 #include "src/pdfmaster.h"
@@ -11,6 +11,9 @@
 #include "src/drawing/pathcontainer.h"
 #include "src/preferences.h"
 #include "src/names.h"
+#if (QT_VERSION_MAJOR < 6)
+#include <QMediaPlaylist>
+#endif
 
 SlideScene::SlideScene(const PdfMaster *master, const PagePart part, QObject *parent) :
     QGraphicsScene(parent),
@@ -562,7 +565,11 @@ SlideScene::MediaItem &SlideScene::getMediaItem(const PdfDocument::MediaAnnotati
 #if (QT_VERSION_MAJOR >= 6)
         player->setSource(annotation.file);
 #else
-        player->setMedia(annotation.file);
+    {
+        QMediaPlaylist *playlist = new QMediaPlaylist(player);
+        playlist->addMedia(annotation.file);
+        player->setPlaylist(playlist);
+    }
 #endif
     else
     {
@@ -583,7 +590,12 @@ SlideScene::MediaItem &SlideScene::getMediaItem(const PdfDocument::MediaAnnotati
         [[clang::fallthrough]];
     case PdfDocument::MediaAnnotation::Repeat:
     default:
+#if (QT_VERSION_MAJOR >= 6)
         connect(player, &MediaPlayer::mediaStatusChanged, player, &MediaPlayer::repeatIfFinished);
+#else
+        if (player->playlist())
+            player->playlist()->setPlaybackMode(QMediaPlaylist::CurrentItemInLoop);
+#endif
         break;
     }
 #if (QT_VERSION_MAJOR >= 6)

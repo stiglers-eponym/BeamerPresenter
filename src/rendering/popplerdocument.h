@@ -7,6 +7,7 @@
 #include <poppler/qt6/poppler-qt6.h>
 #elif (QT_VERSION_MAJOR == 5)
 #include <poppler/qt5/poppler-qt5.h>
+#include <memory>
 #endif
 #include "src/rendering/pdfdocument.h"
 
