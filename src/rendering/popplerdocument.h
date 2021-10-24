@@ -18,13 +18,12 @@ class PopplerDocument : public PdfDocument
     /// Poppler document representing the PDF.
     std::unique_ptr<Poppler::Document> doc = NULL;
 
-    /// Lookup table for page labels: set of page indices, at which the page
-    /// label changes. This is left empty if every page starts with a new
-    /// label.
-    std::set<int> overlay_slide_indices;
+    /// Map page numbers to labels: Only the first page number with a new label
+    /// is listed here.
+    QMap<int, QString> pageLabels;
 
-    /// Generate overlay_slide_indices.
-    void populateOverlaySlidesSet();
+    /// populate pageLabels.
+    void loadPageLabels();
 
 public:
     /// Constructor: calls loadDocument().
@@ -75,7 +74,8 @@ public:
 
     /// List of indices, at which slide labels change. An empty list indicates
     /// that all consecutive slides have different labels.
-    virtual QList<int> overlayIndices() const noexcept override;
+    virtual QList<int> overlayIndices() const noexcept override
+    {return pageLabels.size() == doc->numPages() ? QList<int>() : pageLabels.keys();}
 
     /// Link at given position (in point = inch/72).
     const PdfLink linkAt(const int page, const QPointF &position) const override;

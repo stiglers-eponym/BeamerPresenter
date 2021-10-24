@@ -404,15 +404,13 @@ void MuPdfDocument::loadPageLabels()
         return;
     }
 
+    pageLabels.clear();
+
     // Check if anything was found.
     if (raw_labels.isEmpty())
-    {
-        pageLabels.clear();
         return;
-    }
 
-    // Currently only decimal style is supported and the style option is
-    // ignored.
+    // Convert raw labels to something useful.
     for (auto it = raw_labels.cbegin(); it != raw_labels.cend(); ++it)
     {
         // Check if style is empty, which indicates that all following pages
@@ -425,6 +423,7 @@ void MuPdfDocument::loadPageLabels()
         }
         else
         {
+            // Generate range of page labels.
             int i = it.key();
             const int next_num = (std::next(it) == raw_labels.cend()) ? number_of_pages : std::next(it).key();
             for (; i < next_num; i++)

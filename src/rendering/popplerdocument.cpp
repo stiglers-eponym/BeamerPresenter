@@ -23,9 +23,17 @@ const QString PopplerDocument::pageLabel(const int page) const
 
 int PopplerDocument::pageIndex(const QString &page) const
 {
-    const std::unique_ptr<Poppler::Page> pageptr(doc->page(page));
-    const int index = pageptr ? pageptr->index() : -1;
-    return index;
+    // Fastest way: if pageLabels is empty, that means that we may simply
+    // convert the string to an integer.
+    if (pageLabels.isEmpty())
+        return page.toInt() - 1;
+    // Next try Poppler's bulit-in function. This sometimes fails,
+    // maybe because of an encoding problem?
+    const std::unique_ptr<Poppler::Page> docpage(doc->page(page));
+    if (docpage)
+        return docpage->index();
+    // If previous attempts fail, do something slow (linear time):
+    return pageLabels.key(page, -1);
 }
 
 const QSizeF PopplerDocument::pageSize(const int page) const
@@ -93,7 +101,7 @@ bool PopplerDocument::loadDocument()
         doc.swap(newdoc);
     flexible_page_sizes = -1;
 
-    populateOverlaySlidesSet();
+    loadPageLabels();
     return true;
 }
 
@@ -160,64 +168,58 @@ int PopplerDocument::overlaysShifted(const int start, const int shift_overlay) c
     int shift = shift_overlay >= 0 ? shift_overlay & ~ShiftOverlays::AnyOverlay : shift_overlay | ShiftOverlays::AnyOverlay;
     // Check whether the document has non-trivial page labels and shift has
     // non-trivial overlay flags.
-    if (overlay_slide_indices.empty() || shift == shift_overlay)
+    if (pageLabels.empty() || shift == shift_overlay)
         return start + shift;
     // Find the beginning of next slide.
-    std::set<int>::const_iterator it = overlay_slide_indices.upper_bound(start);
+    QMap<int, QString>::const_iterator it = pageLabels.upperBound(start);
     // Shift the iterator according to shift.
-    while (shift > 0 && it != overlay_slide_indices.cend())
+    while (shift > 0 && it != pageLabels.cend())
     {
         --shift;
         ++it;
     }
-    while (shift < 0 && it != overlay_slide_indices.cbegin())
+    while (shift < 0 && it != pageLabels.cbegin())
     {
         ++shift;
         --it;
     }
     // Check if the iterator has reached the beginning or end of the set.
-    if (it == overlay_slide_indices.cbegin())
+    if (it == pageLabels.cbegin())
         return 0;
-    if (it == overlay_slide_indices.cend())
+    if (it == pageLabels.cend())
     {
         if (shift_overlay & FirstOverlay)
-            return *--it;
+            return (--it).key();
         return doc->numPages() - 1;
     }
     // Return first or last overlay depending on overlay flags.
     if (shift_overlay & FirstOverlay)
-        return *--it;
-    return *it - 1;
+        return (--it).key();
+    return it.key() - 1;
 }
 
-void PopplerDocument::populateOverlaySlidesSet()
+void PopplerDocument::loadPageLabels()
 {
     // Poppler functions for converting between labels and numbers seem to be
     // optimized for normal documents and are probably inefficient for handling
     // page numbers in presentations with overlays.
     // Use a lookup table.
+    // This function for filling the lookup table is probably also inefficient.
 
-    overlay_slide_indices.clear();
+    pageLabels.clear();
     // Check whether it makes sense to create the lookup table.
-    bool useful = false;
     QString label = "\n\n\n\n";
     for (int i=0; i<doc->numPages(); i++)
     {
         const std::unique_ptr<Poppler::Page> page(doc->page(i));
         if (page && label != page->label())
         {
-            if (!useful && !overlay_slide_indices.empty() && *overlay_slide_indices.crbegin() != i-1)
-                useful = true;
-            overlay_slide_indices.insert(i);
             label = page->label();
+            pageLabels.insert(i, label);
         }
     }
-    if (!useful)
-    {
-        // All slides have their own labels.
-        // It does not make any sence to store this list (which ist 0,1,2,...).
-        overlay_slide_indices.clear();
-    }
+    if (pageLabels.firstKey() != 0)
+        pageLabels[0] = "";
 }
 
 const PdfDocument::PdfLink PopplerDocument::linkAt(const int page, const QPointF &position) const
@@ -468,18 +470,6 @@ void PopplerDocument::loadOutline()
     if ((preferences()->debug_level & (DebugRendering|DebugVerbose)) == (DebugRendering|DebugVerbose))
         for (int i=0; i<outline.length(); i++)
             qDebug() << DebugRendering << i << outline[i].page << outline[i].next << outline[i].title;
-#endif
-}
-
-QList<int> PopplerDocument::overlayIndices() const noexcept
-{
-#if (QT_VERSION >= QT_VERSION_CHECK(5, 14, 0))
-    return QList<int>(overlay_slide_indices.cbegin(), overlay_slide_indices.cend());
-#else
-    QList<int> list;
-    for (auto item : overlay_slide_indices)
-        list.append(item);
-    return list;
 #endif
 }
 
