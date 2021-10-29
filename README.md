@@ -1,3 +1,6 @@
+# This branch is deprecated!
+**It is now possible to build with Qt 6 from branch `main`. Branch `qt6` will no longer be updated.**
+
 # BeamerPresenter
 BeamerPresenter is a PDF viewer for presentations, which opens a presentation
 screen and a control screen in two different windows. The control screen
