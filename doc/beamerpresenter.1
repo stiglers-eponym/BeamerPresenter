@@ -1,4 +1,4 @@
-.TH BeamerPresenter 1 "2021-05-08" "0.2.0"
+.TH BeamerPresenter 1 "2021-10-31" "0.2.0"
 .SH NAME
 BeamerPresenter \- modular multi-screen PDF presenter
 .
@@ -24,7 +24,7 @@ BeamerPresenter \- modular multi-screen PDF presenter
 .SH DESCRIPTION
 .
 .B BeamerPresenter
-is a Qt5-based presentation viewer designed for showing extra information on the speaker's screen.
+is a Qt-based presentation viewer designed for showing extra information on the speaker's screen.
 The modular user interface is completely customizable and may include, among others, previews of upcoming slides, a different presentation file with additional information, text notes, a timer, and thumbnail slides.
 .PP
 The interpretation of multiple positional arguments depends on the user interface configuration (beamerpresenter-ui(1)). Readable file types are PDF files and (optionally gzip compressed) xml files in the format defined by Xournal++ (.xopp).
@@ -54,7 +54,7 @@ Print times of slide changes to standard output. Only has an effect if a page la
 .
 .TP
 .BI "\-\-debug " "flag1,flag2,..."
-Show debugging messages. Only available if compiled with QT_DEBUG defined. Valid flags are (subject to change!) none, rendering, cache, drawing, media, key-input, settings, transitions, page-change, layout, widets, all, verbose. The "verbose" option does not turn on any logging by itself, but shows additional logging for the other flags set.
+Show debugging messages. Only available if buit with the option CONFIG+=debug. Valid flags are: rendering, cache, drawing, media, key-input, other-input, settings, transitions, page-change, layout, widets, all, verbose. The "verbose" option does not turn on any logging by itself, but shows additional logging for the other flags set.
 .
 .TP
 .BI "\-t \-\-time " number

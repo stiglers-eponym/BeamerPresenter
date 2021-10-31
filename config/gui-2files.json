@@ -40,7 +40,8 @@
         "children" : [
           {
             "type" : "clock",
-            "color" : "#f0f0f0"
+            "color" : "#f0f0f0",
+            "touch input" : true
           },
           {
             "type" : "timer",

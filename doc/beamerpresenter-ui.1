@@ -1,4 +1,4 @@
-.TH beamerpresenter-ui 1 "2021-06-10" "0.2.0"
+.TH beamerpresenter-ui 1 "2021-10-24" "0.2.0"
 .
 .SH NAME
 beamerpresenter-ui \- user interface of BeamerPresenter
@@ -33,7 +33,15 @@ This window should always be shown on top of other windows if the window manager
 .
 .TP
 .B clock
-digital clock, takes no options.
+digital clock.
+This widget lets you start the timer with a double click on the clock or by tapping on the clock on a touch screen.
+.RS
+.PP
+Arguments:
+.TP
+.BI "touch input" true/false
+Start/stop the timer by touching the clock.
+.RE
 .
 .TP
 .B notes

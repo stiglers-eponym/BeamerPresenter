@@ -25,7 +25,7 @@ class ClockWidget : public QLineEdit
 
 public:
     /// Constructor
-    explicit ClockWidget(QWidget *parent = NULL);
+    explicit ClockWidget(QWidget *parent = NULL, bool accept_touch_input = true);
 
     /// Destructor: delete timer.
     ~ClockWidget()
@@ -42,6 +42,9 @@ public:
 protected:
     /// Resize event: adjust font size.
     void resizeEvent(QResizeEvent *event) noexcept override;
+
+    /// Event handler touch events.
+    bool event(QEvent *event) override;
 
     /// Mouse double click starts/stops timer.
     void mouseDoubleClickEvent(QMouseEvent *event) noexcept override
