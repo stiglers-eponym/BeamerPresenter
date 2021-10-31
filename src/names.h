@@ -73,6 +73,14 @@ static const QMap<QString, Action> string_to_action_map
     {"quit unsafe", QuitNoConfirmation},
 };
 
+static const QMap<QString, Gesture> string_to_gesture
+{
+    {"swipe up", SwipeUp},
+    {"swipe down", SwipeDown},
+    {"swipe left", SwipeLeft},
+    {"swipe right", SwipeRight},
+};
+
 static const QMap<Action, QString> action_to_description
 {
     {PreviousPage, "go to previous page"},

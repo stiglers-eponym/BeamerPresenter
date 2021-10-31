@@ -432,6 +432,7 @@ QWidget* Master::createWidget(QJsonObject &object, QWidget *parent)
         if (!object.value("mute").toBool(true))
             scene->flags() &= ~SlideScene::MuteSlide;
         connect(slide, &SlideView::sendKeyEvent, this, &Master::receiveKeyEvent);
+        connect(slide, &SlideView::sendAction, this, &Master::handleAction);
         connect(scene, &SlideScene::navigationToViews, slide, &SlideView::pageChanged, Qt::DirectConnection);
         widget = slide;
         break;

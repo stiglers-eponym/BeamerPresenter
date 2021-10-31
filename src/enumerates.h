@@ -83,6 +83,15 @@ enum Action
 };
 Q_DECLARE_METATYPE(Action);
 
+enum Gesture
+{
+    InvalidGesture,
+    SwipeLeft,
+    SwipeUp,
+    SwipeDown,
+    SwipeRight,
+};
+
 enum GuiWidget
 {
     InvalidType = 0, // QWidget

@@ -122,6 +122,9 @@ signals:
     /// Send key event to Master.
     void sendKeyEvent(QKeyEvent *event) const;
 
+    /// Send an action (from a gesture) to master.
+    void sendAction(Action action) const;
+
     /// Inform cache that widget has been resized.
     void resizeCache(const QSizeF &size) const;
 

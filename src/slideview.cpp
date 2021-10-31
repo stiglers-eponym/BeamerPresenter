@@ -4,11 +4,14 @@
 #include "src/drawing/pointingtool.h"
 #include "src/rendering/pixcache.h"
 #include "src/gui/mediaslider.h"
+#include <QGestureEvent>
 
 SlideView::SlideView(SlideScene *scene, PixCache *cache, QWidget *parent) :
     QGraphicsView(scene, parent)
 {
     setMouseTracking(true);
+    grabGesture(Qt::SwipeGesture);
+    grabGesture(Qt::PanGesture);
     setAttribute(Qt::WA_AcceptTouchEvents);
     setRenderHints(QPainter::Antialiasing | QPainter::TextAntialiasing | QPainter::RenderHint::SmoothPixmapTransform);
     setMinimumSize(4, 3);
@@ -147,6 +150,34 @@ bool SlideView::event(QEvent *event)
 {
     switch (event->type())
     {
+    case QEvent::Gesture:
+    {
+        QSwipeGesture *gesture = static_cast<QSwipeGesture*>(static_cast<QGestureEvent*>(event)->gesture(Qt::SwipeGesture));
+        if (gesture && gesture->state() == Qt::GestureFinished)
+        {
+            Gesture ges = InvalidGesture;
+            if (gesture->swipeAngle() < 20 || gesture->swipeAngle() > 340)
+                ges = SwipeRight;
+            else if (gesture->swipeAngle() > 250 && gesture->swipeAngle() < 290)
+                ges = SwipeDown;
+            else if (gesture->swipeAngle() > 170 && gesture->swipeAngle() < 200)
+                ges = SwipeLeft;
+            else if (gesture->swipeAngle() > 70 && gesture->swipeAngle() < 110)
+                ges = SwipeUp;
+            QList<Action> actions = preferences()->gesture_actions.values(ges);
+            for (auto action : actions)
+                emit sendAction(action);
+            event->accept();
+            return !actions.isEmpty();
+        }
+        return QGraphicsView::event(event);
+    }
+    case QEvent::NativeGesture:
+    {
+        QNativeGestureEvent *gevent = static_cast<QNativeGestureEvent*>(event);
+        qDebug() << gevent << gevent->gestureType();
+        return QGraphicsView::event(event);
+    }
     //case QEvent::TabletTrackingChange:
     //case QEvent::TabletEnterProximity:
     //case QEvent::TabletLeaveProximity:

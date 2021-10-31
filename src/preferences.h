@@ -161,6 +161,14 @@ public:
     /// writable_preferences().removeKeyTool before deleting this tool.
     QMultiMap<QKeySequence, Tool*> key_tools;
 
+    /// Map gestures to actions
+    QMultiMap<Gesture, Action> gesture_actions
+    {
+        {SwipeLeft, Action::NextPage},
+        {SwipeRight, Action::PreviousPage},
+        {SwipeUp, Action::NextPage},
+        {SwipeDown, Action::PreviousPage},
+    };
 
     /****************************/
     /* DEFINED PER PRESENTATION */
