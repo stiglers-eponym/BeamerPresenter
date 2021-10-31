@@ -21,6 +21,10 @@ SlideLabelWidget::SlideLabelWidget(QWidget *parent) :
     connect(edit, &QLineEdit::returnPressed, this, &SlideLabelWidget::readText);
     total->setToolTip("last page label");
     edit->setToolTip("current page label");
+
+    // If logging is activated: print header
+    if ((preferences()->global_flags & Preferences::LogSlideChanges))
+        std::cout << "Slide label changes:   time old new" << std::endl;
 }
 
 void SlideLabelWidget::resizeEvent(QResizeEvent *event) noexcept
@@ -40,7 +44,7 @@ void SlideLabelWidget::updateText(const int page) noexcept
     {
         const quint32 msecs_passed = preferences()->msecs_passed == UINT_LEAST32_MAX ? preferences()->msecs_total - QDateTime::currentDateTimeUtc().msecsTo(preferences()->target_time) : preferences()->msecs_passed;
         const QString string = QTime::fromMSecsSinceStartOfDay(msecs_passed + 500).toString(msecs_passed < 3600000 ? "m:ss" : "h:mm:ss");
-        std::cout << "Changed page"
+        std::cout << "Changed page label"
             << std::setw(9) << string.toStdString()
             << std::setw(4) << edit->text().toStdString()
             << std::setw(4) << new_label.toStdString() << std::endl;

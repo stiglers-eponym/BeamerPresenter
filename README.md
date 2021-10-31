@@ -129,6 +129,7 @@ Build with one of the following commands: (for Qt 6: replace `qmake` by `qmake6`
 qmake RENDERER=mupdf && make
 qmake RENDERER=poppler && make
 ```
+To build with debug information you can add `CONFIG+=debug` as an arguments to qmake.
 If this fails and you have all dependencies installed, you should check your
 Qt version (`qmake --version`) and
 [open an issue](https://github.com/stiglers-eponym/BeamerPresenter/issues)
@@ -149,6 +150,12 @@ If you find bugs or have suggestions for improvements, please
 When reporting bugs, please include the version string of BeamerPresenter
 (`beamerpresenter --version`) or the Qt version if you have problems building
 BeamerPresenter (`qmake --version`).
+
+It can also be very helpful to have some debug information when you report program crashs. To build BeamerPresenter with debug information use (for MuPDF):
+```sh
+qmake CONFIG+=debug RENDERER=mupdf && make
+```
+
 
 ## Development
 

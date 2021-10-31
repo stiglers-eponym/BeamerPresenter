@@ -4,6 +4,7 @@ ClockWidget::ClockWidget(QWidget *parent) :
     QLineEdit(parent),
     timer(new QTimer(this))
 {
+    setReadOnly(true);
     setAlignment(Qt::AlignCenter);
     setFocusPolicy(Qt::NoFocus);
     setCursor(QCursor());

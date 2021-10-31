@@ -225,11 +225,13 @@ void Preferences::loadSettings()
         debug_msg(DebugSettings) << renderer_str;
         if (!renderer_str.isEmpty())
         {
+            bool understood_renderer = false;
 #ifdef INCLUDE_MUPDF
             if (renderer_str.count("mupdf") > 0)
             {
                 renderer = AbstractRenderer::MuPDF;
                 pdf_engine = PdfDocument::MuPdfEngine;
+                understood_renderer = true;
             }
 #endif
 #ifdef INCLUDE_POPPLER
@@ -237,6 +239,7 @@ void Preferences::loadSettings()
             {
                 renderer = AbstractRenderer::Poppler;
                 pdf_engine = PdfDocument::PopplerEngine;
+                understood_renderer = true;
             }
 #endif
             if (renderer_str.count("extern") > 0)
@@ -245,10 +248,13 @@ void Preferences::loadSettings()
                 {
                     qWarning() << "External renderer requested but no command or no arguments given. Falling back to Poppler.";
                     qInfo() << "Note that both \"rendering command\" and \"rendering arguments\" are required.";
+                    understood_renderer = true;
                 }
                 else
                     renderer = AbstractRenderer::ExternalRenderer;
             }
+            if (!understood_renderer)
+                qWarning() << "Invalid renderer argument in settings:" << renderer_str;
         }
     }
     settings.endGroup();
@@ -396,12 +402,14 @@ void Preferences::loadFromParser(const QCommandLineParser &parser)
     if (parser.isSet("renderer"))
     {
         QString const &renderer_str = parser.value("renderer");
+        bool understood_renderer = false;
         debug_msg(DebugSettings) << "renderer" << renderer_str;
 #ifdef INCLUDE_MUPDF
         if (renderer_str.count("mupdf", Qt::CaseInsensitive) > 0)
         {
             renderer = AbstractRenderer::MuPDF;
             pdf_engine = PdfDocument::MuPdfEngine;
+            understood_renderer = true;
         }
 #endif
 #ifdef INCLUDE_POPPLER
@@ -409,6 +417,7 @@ void Preferences::loadFromParser(const QCommandLineParser &parser)
         {
             renderer = AbstractRenderer::Poppler;
             pdf_engine = PdfDocument::PopplerEngine;
+            understood_renderer = true;
         }
 #endif
         if (renderer_str.count("extern", Qt::CaseInsensitive) > 0)
@@ -419,10 +428,13 @@ void Preferences::loadFromParser(const QCommandLineParser &parser)
             {
                 qWarning() << "External renderer requested but no command or no arguments given. Falling back to Poppler.";
                 qInfo() << "Note that both \"rendering command\" and \"rendering arguments\" are required.";
+                understood_renderer = true;
             }
             else
                 renderer = AbstractRenderer::ExternalRenderer;
         }
+        if (!understood_renderer)
+            qWarning() << "Invalid renderer argument on command line:" << renderer_str;
     }
 
 #ifdef QT_DEBUG

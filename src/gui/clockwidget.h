@@ -43,16 +43,9 @@ protected:
     /// Resize event: adjust font size.
     void resizeEvent(QResizeEvent *event) noexcept override;
 
-    // Disable mouse interaction.
-    /// Disable mouse press events.
-    void mousePressEvent(QMouseEvent*) noexcept override {}
-    /// Disable mouse double click events.
-    void mouseDoubleClickEvent(QMouseEvent*) noexcept override
-    {emit sendAction(StartStopTimer);}
-    /// Disable mouse move events.
-    void mouseMoveEvent(QMouseEvent*) noexcept override {}
-    /// Disable mouse Release events.
-    void mouseReleaseEvent(QMouseEvent*) noexcept override {}
+    /// Mouse double click starts/stops timer.
+    void mouseDoubleClickEvent(QMouseEvent *event) noexcept override
+    {emit sendAction(StartStopTimer); event->accept();}
 
 private slots:
     /// Update label to show current time.

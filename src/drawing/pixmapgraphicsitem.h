@@ -24,6 +24,7 @@ class QPainter;
 class PixmapGraphicsItem : public QObject, public QGraphicsItem
 {
     Q_OBJECT
+    Q_INTERFACES(QGraphicsItem)
     // This class is used in animations. Define properties for these animations.
     Q_PROPERTY(qreal opacity READ opacity WRITE setOpacity)
     Q_PROPERTY(qreal x READ x WRITE setX)

@@ -21,6 +21,10 @@ SlideNumberWidget::SlideNumberWidget(QWidget *parent) :
     connect(edit, &QLineEdit::returnPressed, this, &SlideNumberWidget::readText);
     total->setToolTip("number of pages");
     edit->setToolTip("current page number");
+
+    // If logging is activated: print header
+    if ((preferences()->global_flags & Preferences::LogSlideChanges))
+        std::cout << "Page changes:    time old new" << std::endl;
 }
 
 void SlideNumberWidget::resizeEvent(QResizeEvent *event) noexcept
@@ -41,8 +45,8 @@ void SlideNumberWidget::updateText(const int page) noexcept
         const QString string = QTime::fromMSecsSinceStartOfDay(msecs_passed + 500).toString(msecs_passed < 3600000 ? "m:ss" : "h:mm:ss");
         std::cout << "Changed page"
             << std::setw(9) << string.toStdString()
-            << std::setw(3) << edit->text().toStdString()
-            << std::setw(3) << page + 1 << std::endl;
+            << std::setw(4) << edit->text().toStdString()
+            << std::setw(4) << page + 1 << std::endl;
     }
     total->setText(" / " + QString::number(preferences()->number_of_pages));
     edit->setText(QString::number(page + 1));
