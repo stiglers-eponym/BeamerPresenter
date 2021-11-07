@@ -78,9 +78,8 @@ public:
     int type() const noexcept override
     {return Type;}
 
-    /// Check whether this contains a pixmap with the given width.
-    bool hasWidth(const unsigned int width) const noexcept
-    {return pixmaps.contains(width);}
+    /// Check whether this contains a pixmap with the given width or with width+1.
+    bool hasWidth(const unsigned int width) const noexcept;
 
     /// Paint this QGraphicsItem to painter.
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget = NULL) override;
@@ -107,6 +106,12 @@ public:
     /// Return number of pixmaps.
     int number() const noexcept
     {return pixmaps.size();}
+
+#ifdef QT_DEBUG
+    /// List all available widths. Only required for debugging.
+    QList<unsigned int> widths() const
+    {return pixmaps.keys();}
+#endif
 
 public slots:
     /// Add a pixmap.

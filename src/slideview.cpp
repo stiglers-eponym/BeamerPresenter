@@ -238,25 +238,14 @@ void SlideView::showMagnifier(QPainter *painter, const PointingTool *tool) noexc
     painter->setRenderHints(QPainter::SmoothPixmapTransform);
     painter->setRenderHints(QPainter::Antialiasing);
     painter->setPen(tool->color());
-    const qreal resolution = tool->scale() / painter->transform().m11();
+    const qreal resolution = tool->scale() * painter->transform().m11();
     PixmapGraphicsItem *pageItem = static_cast<SlideScene*>(scene())->pageBackground();
     // Check whether an enlarged page is needed and not "in preparation" yet.
-    if (waitingForPage == INT_MAX && !pageItem->hasWidth(resolution*sceneRect().width() + 0.5))
+    if (waitingForPage == INT_MAX && !pageItem->hasWidth(resolution*sceneRect().width() + 0.499))
     {
-        const int page = static_cast<SlideScene*>(scene())->getPage();
-        const QSizeF &pageSize = scene()->sceneRect().size();
-        if (!pageSize.isNull())
-        {
-            debug_msg(DebugDrawing) << "Request enlarged page" << page << pageSize << this;
-            waitingForPage = page;
-            emit requestPage(page,
-                                tool->scale() * (
-                                    (pageSize.width() * height() > pageSize.height() * width()) ?
-                                    width() / pageSize.width() :
-                                    height() / pageSize.height()
-                                )
-                            );
-        }
+        debug_msg(DebugRendering) << "Enlarged page: searched for" << resolution*sceneRect().width() + 1 << ", available" << pageItem->widths();
+        waitingForPage = static_cast<SlideScene*>(scene())->getPage();
+        emit requestPage(waitingForPage, resolution);
     }
     // Draw magnifier(s) at all positions of tool.
     for (const auto &pos : tool->pos())
@@ -415,7 +404,7 @@ void SlideView::prepareFlyTransition(const bool outwards, const PixmapGraphicsIt
     if (!old || !target)
         return;
 
-    const unsigned int width = transform().m11() * sceneRect().width() + 0.5;
+    const unsigned int width = transform().m11() * sceneRect().width() + 0.499;
     QImage newimg, oldimg;
     QPainter painter;
     if (outwards)

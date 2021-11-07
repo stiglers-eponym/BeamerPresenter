@@ -39,12 +39,12 @@ void PixmapGraphicsItem::paint(QPainter *painter, const QStyleOptionGraphicsItem
 {
     if (pixmaps.isEmpty())
         return;
-    const unsigned int hash = painter->transform().m11() * boundingRect().width() + 0.5;
+    const unsigned int hash = painter->transform().m11() * boundingRect().width() + 0.499;
     QMap<unsigned int, QPixmap>::const_iterator it = pixmaps.lowerBound(hash);
     if (it == pixmaps.cend())
         --it;
 #ifdef QT_DEBUG
-    if (it.key() != hash)
+    if (it.key() != hash && it.key() != hash + 1)
     {
         debug_msg(DebugRendering) << "possibly wrong resolution:" << it.key() << painter->transform().m11() * boundingRect().width();
         if (it != pixmaps.cbegin())
@@ -111,7 +111,7 @@ void PixmapGraphicsItem::paint(QPainter *painter, const QStyleOptionGraphicsItem
     }
     else
     {
-        if (it.key() == hash)
+        if (it.key() == hash || it.key() == hash + 1)
             painter->drawPixmap(rect.topLeft(), *it, it->rect());
         else
             painter->drawPixmap(rect, *it, it->rect());
@@ -158,4 +158,10 @@ QPixmap PixmapGraphicsItem::getPixmap(const unsigned int width) const noexcept
         debug_msg(DebugRendering) << "possibly wrong resolution:" << it.key() << width;
 #endif
     return *it;
+}
+
+bool PixmapGraphicsItem::hasWidth(const unsigned int width) const noexcept
+{
+    const QMap<unsigned int, QPixmap>::const_iterator it = pixmaps.lowerBound(width);
+    return it != pixmaps.cend() && (it.key() == width || it.key() == width+1);
 }
