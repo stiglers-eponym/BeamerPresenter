@@ -151,7 +151,7 @@ When reporting bugs, please include the version string of BeamerPresenter
 (`beamerpresenter --version`) or the Qt version if you have problems building
 BeamerPresenter (`qmake --version`).
 
-It can also be very helpful to have some debug information when you report program crashs. To build BeamerPresenter with debug information use (for MuPDF):
+It can also be very helpful to have some debug information when you report program crashs. To build BeamerPresenter with debug information, use (for MuPDF):
 ```sh
 qmake CONFIG+=debug RENDERER=mupdf && make
 ```
@@ -160,17 +160,25 @@ qmake CONFIG+=debug RENDERER=mupdf && make
 ## Development
 
 ### Known problems
-* Video sometimes lags when drawing on it. Sometimes this can be reduced by first making sure that the presentation window has focus and then pausing and playing the video.
+#### Multimedia
+* Video performance is bad in the following situations:
+    * when you draw or erase on a slide while a video is played (drawing one long stroke is much worse than many short strokes)
+    * when you use the magnifier or torch while a video is played when there are also drawings on the same slide. The magnifier generally has rather limited performance when used on a slide that contains drawings.
+    * when using multiple magnifiers (yes, that's possible, but you shouldn't do it)
 * Sound links in PDFs are unsupported in the MuPDF version. They should work with Poppler.
 * Embedded sounds are unsupported, only links to external files can be played.
+#### User interface
 * Tool buttons can be changed in the user interface, but these changes are not saved. Buttons are part of the user interface, which can only be changed (permanently) by editing the JSON-formatted configuration file.
+#### Drawing/annotating
 * The undo/redo actions do not handle text annotations correctly. They only remove or create text fields. But when editing a text field the default keyboard shortcuts (CTRL+Z and CTRL+SHIFT+Z) can be used to undo/redo changes in the text. Deleting a text field by deleting its entire text cannot be undone.
-* Fixed in MuPDF 1.19: Slide labels are broken for encrypted PDFs when using MuPDF.
-* When compiling with both MuPDF and poppler (`qmake RENDERER=both`), trying to open a PDF with renderer=poppler can result in a segmentation fault for some PDFs (when loading the document or when reaching a certain page). The reason might be a linkage problem with some color-space functions. It is recommended to compile with only one PDF engine.
 * The detection of unsaved changes is quite unreliable. When closing BeamerPresenter you may sometimes see a warning of possibly unsaved changes although there are no unsaved changes. This warning is currently not shown when closing the window through the window manager. The warning can be avoided by using the action "quit unsafe" instead of "quit".
+#### Slide transitions
 * Sometimes the slides are not automatically rendered to the correct size when resizing the window. Changing or updating the page should solve this problem.
 * Some slide transitions need to stop videos. Fly slide transitions during videos can cause strange effects.
-* If preview shows specific overlays, slide changes adding or removing synchronization of preview and an another frame may lead to short flickering. Slide transitions during such slide changes can contain some ugly artifacts.
+* If a preview shows specific overlays, slide changes adding or removing synchronization of this preview with an another widget may lead to short flickering. Slide transitions during such slide changes can contain some ugly artifacts.
+#### Backend
+* When compiling with both MuPDF and poppler (`qmake RENDERER=both`), trying to open a PDF with renderer=poppler can result in a segmentation fault for some PDFs (when loading the document or when reaching a certain page). The reason might be a linkage problem with some color-space functions. It is recommended to compile with only one PDF engine.
+* Fixed in MuPDF 1.19: Slide labels are broken for encrypted PDFs when using MuPDF.
 * possibly fixed: rare and undeterministic crash at startup with an error message concerning timers.
 
 
