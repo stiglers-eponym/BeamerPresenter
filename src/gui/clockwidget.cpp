@@ -41,6 +41,7 @@ bool ClockWidget::event(QEvent *event)
     {
         event->accept();
         QTouchEvent *tevent = static_cast<QTouchEvent*>(event);
+#if (QT_VERSION_MAJOR >= 6)
         if (tevent->pointCount() != 1)
             return false;
         debug_msg(DebugOtherInput) << "Touch event on clock widget:" << tevent;
@@ -48,6 +49,15 @@ bool ClockWidget::event(QEvent *event)
         // Short touch with a single point should start/stop the timer.
         if (point.position() == point.pressPosition() && point.lastTimestamp() - point.pressTimestamp() < 100)
             emit sendAction(Action::StartStopTimer);
+#else
+        if (tevent->touchPoints().length() != 1)
+            return false;
+        debug_msg(DebugOtherInput) << "Touch event on clock widget:" << tevent;
+        const QTouchEvent::TouchPoint &point = tevent->touchPoints().first();
+        // Touch event with a single point should start/stop the timer.
+        if (point.pos() == point.startPos())
+            emit sendAction(Action::StartStopTimer);
+#endif
         return true;
     }
     default:
