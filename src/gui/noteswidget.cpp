@@ -49,10 +49,10 @@ void NotesWidget::loadNotes(const QString &filename)
 void NotesWidget::readNotes(QXmlStreamReader &reader)
 {
     /// It is assumed that reader has just reached the beginning of speakernotes
-    debug_msg(DebugWidgets) << "start reading notes for notes widget";
+    debug_msg(DebugWidgets, "start reading notes for notes widget");
     if (reader.name().toUtf8() != "speakernotes")
     {
-        warn_msg << "Tried to read notes, but current element in xml tree is not speakernotes";
+        warn_msg("Tried to read notes, but current element in xml tree is not speakernotes");
         return;
     }
     const QString identifier = reader.attributes().value("identifier").toString();
@@ -62,7 +62,7 @@ void NotesWidget::readNotes(QXmlStreamReader &reader)
         per_page = false;
     while (reader.readNextStartElement())
     {
-        debug_msg(DebugWidgets) << "read notes:" << reader.name();
+        debug_msg(DebugWidgets, "read notes:" << reader.name());
         if (reader.name().toUtf8() == "page-notes")
         {
             const QString label = reader.attributes().value(per_page ? "number" : "label").toString();

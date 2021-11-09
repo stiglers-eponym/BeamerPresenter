@@ -51,7 +51,7 @@ SlideScene::~SlideScene()
 
 void SlideScene::stopDrawing()
 {
-    debug_msg(DebugDrawing) << "Stop drawing" << page << page_part;
+    debug_msg(DebugDrawing, "Stop drawing" << page << page_part);
     if (currentPath && currentPath->size() > 1)
     {
         currentPath->show();
@@ -69,7 +69,7 @@ void SlideScene::stopDrawing()
 
 bool SlideScene::event(QEvent* event)
 {
-    debug_verbose(DebugDrawing) << event;
+    debug_verbose(DebugDrawing, event);
     int device = 0;
     QList<QPointF> pos;
     QPointF start_pos;
@@ -181,7 +181,7 @@ void SlideScene::handleEvents(const int device, const QList<QPointF> &pos, const
         return;
     }
 
-    debug_verbose(DebugDrawing) << "Handling event" << tool->tool() << tool->device() << device;
+    debug_verbose(DebugDrawing, "Handling event" << tool->tool() << tool->device() << device);
     if (tool->tool() & Tool::AnyDrawTool)
     {
         switch (device & Tool::AnyEvent)
@@ -278,7 +278,7 @@ void SlideScene::handleEvents(const int device, const QList<QPointF> &pos, const
     }
     else if (tool->tool() == Tool::TextInputTool && (device & Tool::AnyEvent) == Tool::StopEvent && pos.size() == 1)
     {
-        debug_msg(DebugDrawing) << "Trying to start writing text" << (device & Tool::AnyDevice) << focusItem();
+        debug_msg(DebugDrawing, "Trying to start writing text" << (device & Tool::AnyDevice) << focusItem());
         for (auto item : static_cast<const QList<QGraphicsItem*>>(items(pos.constFirst())))
         {
             if (item->type() == TextGraphicsItem::Type)
@@ -356,7 +356,7 @@ void SlideScene::prepareNavigationEvent(const int newpage)
     // Adjust scene size.
     /// Page size in points.
     QSizeF pagesize = master->getPageSize(master->overlaysShifted(newpage, shift));
-    debug_verbose(DebugPageChange) << newpage << pagesize << master->getDocument()->flexiblePageSizes();
+    debug_verbose(DebugPageChange, newpage << pagesize << master->getDocument()->flexiblePageSizes());
     // Don't do anything if page size ist not valid. This avoids cleared slide
     // scenes which could mess up the layout and invalidate cache.
     if ((pagesize.isNull() || !pagesize.isValid()) && !master->getDocument()->flexiblePageSizes())
@@ -382,7 +382,7 @@ void SlideScene::prepareNavigationEvent(const int newpage)
 
 void SlideScene::navigationEvent(const int newpage, SlideScene *newscene)
 {
-    debug_msg(DebugPageChange) << "scene" << this << "navigates to" << newpage << "as" << newscene;
+    debug_msg(DebugPageChange, "scene" << this << "navigates to" << newpage << "as" << newscene);
     pauseMedia();
     if (pageTransitionItem)
     {
@@ -411,7 +411,7 @@ void SlideScene::navigationEvent(const int newpage, SlideScene *newscene)
         }
         if (transition.type > 0)
         {
-            debug_msg(DebugTransitions) << "Transition:" << transition.type << transition.duration << transition.properties << transition.angle << transition.scale;
+            debug_msg(DebugTransitions, "Transition:" << transition.type << transition.duration << transition.properties << transition.angle << transition.scale);
             startTransition(newpage, transition);
             return;
         }
@@ -452,7 +452,7 @@ void SlideScene::loadMedia(const int page)
     {
         if (annotation.type != PdfDocument::MediaAnnotation::InvalidAnnotation)
         {
-            debug_msg(DebugMedia) << "loading media" << annotation.file << annotation.rect;
+            debug_msg(DebugMedia, "loading media" << annotation.file << annotation.rect);
             MediaItem &item = getMediaItem(annotation, page);
             if (item.item)
             {
@@ -479,7 +479,7 @@ void SlideScene::postRendering()
     // Clean up media
     if (mediaItems.size() > 2)
     {
-        debug_verbose(DebugMedia) << "Start cleaning up media" << mediaItems.size();
+        debug_verbose(DebugMedia, "Start cleaning up media" << mediaItems.size());
         for (auto &media : mediaItems)
         {
             if (media.player == NULL)
@@ -490,7 +490,7 @@ void SlideScene::postRendering()
                 if ((it != media.pages.end() && *it <= newpage) || (it != media.pages.begin() && *(std::prev(it)) >= page-1))
                     continue;
             }
-            debug_msg(DebugMedia) << "Deleting media item:" << media.annotation.file << media.pages.size();
+            debug_msg(DebugMedia, "Deleting media item:" << media.annotation.file << media.pages.size());
             delete media.player;
             media.player = NULL;
             delete media.item;
@@ -521,12 +521,12 @@ SlideScene::MediaItem &SlideScene::getMediaItem(const PdfDocument::MediaAnnotati
     {
         if (mediaitem.annotation == annotation && mediaitem.player)
         {
-            debug_msg(DebugMedia) << "Found media in cache" << annotation.file << annotation.rect;
+            debug_msg(DebugMedia, "Found media in cache" << annotation.file << annotation.rect);
             mediaitem.pages.insert(page);
             return mediaitem;
         }
     }
-    debug_msg(DebugMedia) << "Loading new media" << annotation.file << annotation.rect;
+    debug_msg(DebugMedia, "Loading new media" << annotation.file << annotation.rect);
     MediaPlayer *player = new MediaPlayer(this);
 #if (QT_VERSION_MAJOR >= 6)
     QAudioOutput *audio_out = NULL;
@@ -573,7 +573,7 @@ SlideScene::MediaItem &SlideScene::getMediaItem(const PdfDocument::MediaAnnotati
 #endif
     else
     {
-        warn_msg << "Embedded media are currently not supported.";
+        warn_msg("Embedded media are currently not supported.");
         //QBuffer *buffer = new QBuffer(player);
         //buffer->setData(static_cast<const PdfDocument::EmbeddedMedia&>(annotation).data);
         //buffer->open(QBuffer::ReadOnly);
@@ -585,7 +585,7 @@ SlideScene::MediaItem &SlideScene::getMediaItem(const PdfDocument::MediaAnnotati
     case PdfDocument::MediaAnnotation::Open:
         break;
     case PdfDocument::MediaAnnotation::Palindrome:
-        warn_msg << "Palindrome video: not implemented (yet)";
+        warn_msg("Palindrome video: not implemented (yet)");
         // TODO
         [[clang::fallthrough]];
     case PdfDocument::MediaAnnotation::Repeat:
@@ -624,7 +624,7 @@ void SlideScene::startTransition(const int newpage, const PdfDocument::SlideTran
     }
     else
         emit navigationToViews(page, this);
-    debug_msg(DebugTransitions) << "transition:" << transition.type << transition.duration << transition.angle << transition.properties;
+    debug_msg(DebugTransitions, "transition:" << transition.type << transition.duration << transition.angle << transition.properties);
     QList<QGraphicsItem*> list = items();
     while (!list.isEmpty())
         removeItem(list.takeLast());
@@ -995,7 +995,7 @@ void SlideScene::startInputEvent(const DrawTool *tool, const QPointF &pos, const
 {
     if (!tool || !(tool->tool() & Tool::AnyDrawTool) || !(slide_flags & ShowDrawings))
         return;
-    debug_verbose(DebugDrawing) << "Start input event" << tool->tool() << tool->device() << tool << pressure;
+    debug_verbose(DebugDrawing, "Start input event" << tool->tool() << tool->device() << tool << pressure);
     stopDrawing();
     if (currentItemCollection || currentPath)
         return;
@@ -1014,7 +1014,7 @@ void SlideScene::stepInputEvent(const DrawTool *tool, const QPointF &pos, const 
 {
     if (pressure <= 0 || !tool || !(slide_flags & ShowDrawings))
         return;
-    debug_verbose(DebugDrawing) << "Step input event" << tool->tool() << tool->device() << tool << pressure;
+    debug_verbose(DebugDrawing, "Step input event" << tool->tool() << tool->device() << tool << pressure);
     if (currentPath && currentItemCollection && *tool == currentPath->getTool())
     {
         auto item = new FlexGraphicsLineItem(QLineF(currentPath->lastPoint(), pos), currentPath->getTool().compositionMode());
@@ -1044,7 +1044,7 @@ bool SlideScene::stopInputEvent(const DrawTool *tool)
 {
     if (!tool || !(slide_flags & ShowDrawings))
         return false;
-    debug_verbose(DebugDrawing) << "Stop input event" << tool->tool() << tool->device() << tool;
+    debug_verbose(DebugDrawing, "Stop input event" << tool->tool() << tool->device() << tool);
     const bool changes = currentPath && currentPath->size() > 1;
     stopDrawing();
     if (changes)
@@ -1057,7 +1057,7 @@ bool SlideScene::stopInputEvent(const DrawTool *tool)
 
 void SlideScene::noToolClicked(const QPointF &pos, const QPointF &startpos)
 {
-    debug_verbose(DebugMedia) << "Clicked without tool" << pos << startpos;
+    debug_verbose(DebugMedia, "Clicked without tool" << pos << startpos);
     // Try to handle multimedia annotation.
     for (auto &item : mediaItems)
     {

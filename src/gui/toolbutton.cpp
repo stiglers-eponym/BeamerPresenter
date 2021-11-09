@@ -49,7 +49,7 @@ bool ToolButton::event(QEvent *event) noexcept
             if (static_cast<QInputEvent*>(event)->modifiers() == Qt::CTRL)
             {
                 setTool(ToolDialog::selectTool(tool));
-                debug_msg(DebugDrawing) << "Changed tool button:" << tool->tool();
+                debug_msg(DebugDrawing, "Changed tool button:" << tool->tool());
                 // TODO: save to GUI config
             }
             else

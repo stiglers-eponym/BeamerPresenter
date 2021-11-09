@@ -306,15 +306,15 @@ void toolToJson(const Tool *tool, QJsonObject &obj);
 
 #ifdef QT_DEBUG
 // Show warning if debugging is enabled
-#define warn_msg qWarning()
+#define warn_msg(msg) qWarning() << msg
 // Show debug message if debugging is enabled for this type
-#define debug_msg(msg_type) if (preferences()->debug_level & (msg_type)) qDebug() << (msg_type)
+#define debug_msg(msg_type, msg) if (preferences()->debug_level & (msg_type)) qDebug() << (msg_type)
 // Show debug message if verbose debugging is enabled for this type
-#define debug_verbose(msg_type) if ((preferences()->debug_level & (msg_type|DebugVerbose)) == (msg_type|DebugVerbose)) qDebug() << (msg_type)
+#define debug_verbose(msg_type, msg) if ((preferences()->debug_level & (msg_type|DebugVerbose)) == (msg_type|DebugVerbose)) qDebug() << (msg_type) << msg
 #else
-#define debug_msg(msg_type) if(false) qDebug()
-#define debug_verbose(msg_type) if(false) qDebug()
-#define warn_msg qWarning()
+#define debug_msg(msg_type, msg)
+#define debug_verbose(msg_type, msg)
+#define warn_msg(msg) qWarning() << msg
 #endif
 
 

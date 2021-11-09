@@ -46,9 +46,9 @@ void PixmapGraphicsItem::paint(QPainter *painter, const QStyleOptionGraphicsItem
 #ifdef QT_DEBUG
     if (it.key() != hash && it.key() != hash + 1)
     {
-        debug_msg(DebugRendering) << "possibly wrong resolution:" << it.key() << painter->transform().m11() * boundingRect().width();
+        debug_msg(DebugRendering, "possibly wrong resolution:" << it.key() << painter->transform().m11() * boundingRect().width());
         if (it != pixmaps.cbegin())
-            debug_msg(DebugRendering) << "possibly better:" << std::prev(it).key();
+            debug_msg(DebugRendering, "possibly better:" << std::prev(it).key());
     }
 #endif
     if (!_mask.isNull())
@@ -155,7 +155,7 @@ QPixmap PixmapGraphicsItem::getPixmap(const unsigned int width) const noexcept
         --it;
 #ifdef QT_DEBUG
     if (it.key() != width)
-        debug_msg(DebugRendering) << "possibly wrong resolution:" << it.key() << width;
+        debug_msg(DebugRendering, "possibly wrong resolution:" << it.key() << width);
 #endif
     return *it;
 }

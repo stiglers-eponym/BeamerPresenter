@@ -16,7 +16,7 @@ void MediaPlayer::repeatIfFinished(MediaPlayer::MediaStatus status) noexcept
 
 void MediaPlayer::checkPosition()
 {
-    debug_msg(DebugMedia) << "check position" << seekpos << position();
+    debug_msg(DebugMedia, "check position" << seekpos << position());
     if (seekpos >= 0)
     {
         setPosition(seekpos);

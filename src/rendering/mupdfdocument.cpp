@@ -68,7 +68,7 @@ std::string decode_pdf_label(int number, const MuPdfDocument::label_item &item)
         string.append(std::to_string(number));
         break;
     }
-    debug_verbose(DebugRendering) << number << QString::fromStdString(string);
+    debug_verbose(DebugRendering, number << QString::fromStdString(string));
     return string;
 }
 
@@ -241,7 +241,7 @@ bool MuPdfDocument::loadDocument()
     // Load page labels.
     loadPageLabels();
 
-    debug_msg(DebugRendering) << "Loaded PDF document in MuPDF";
+    debug_msg(DebugRendering, "Loaded PDF document in MuPDF");
     return number_of_pages > 0;
 }
 
@@ -530,7 +530,7 @@ const PdfDocument::SlideTransition MuPdfDocument::transition(const int page) con
                 trans.scale = pdf_to_real(ctx, ss_obj);
         }
         fz_catch(ctx)
-             warn_msg << "failed to completely load slide transition" << fz_caught_message(ctx);
+             warn_msg("failed to completely load slide transition" << fz_caught_message(ctx));
     }
 
     mutex->unlock();
@@ -566,10 +566,10 @@ const PdfDocument::PdfLink MuPdfDocument::linkAt(const int page, const QPointF &
                 }
                 else
                 {
-                    debug_msg(DebugRendering) << "Unsupported link" << link->uri;
+                    debug_msg(DebugRendering, "Unsupported link" << link->uri);
                     result = {PdfLink::NoLink, "", rect};
                 }
-                debug_verbose(DebugRendering) << "Link to" << link->uri;
+                debug_verbose(DebugRendering, "Link to" << link->uri);
                 break;
             }
         }
@@ -581,7 +581,7 @@ const PdfDocument::PdfLink MuPdfDocument::linkAt(const int page, const QPointF &
     }
     fz_catch(ctx)
     {
-        warn_msg << "Error while loading link" << fz_caught_message(ctx);
+        warn_msg("Error while loading link" << fz_caught_message(ctx));
     }
     return result;
 }
@@ -597,7 +597,7 @@ QList<PdfDocument::MediaAnnotation> *MuPdfDocument::annotations(const int page) 
     {
         for (pdf_annot *annot = pdf_first_annot(ctx, pages[page]); annot != NULL; annot = pdf_next_annot(ctx, annot))
         {
-            debug_verbose(DebugMedia) << "PDF annotation:" << pdf_annot_type(ctx, annot) << page;
+            debug_verbose(DebugMedia, "PDF annotation:" << pdf_annot_type(ctx, annot) << page);
             switch (pdf_annot_type(ctx, annot))
             {
             case PDF_ANNOT_MOVIE:
@@ -655,14 +655,14 @@ QList<PdfDocument::MediaAnnotation> *MuPdfDocument::annotations(const int page) 
 #endif
                 if (!media_obj)
                 {
-                    warn_msg << "Error while reading sound annotation";
+                    warn_msg("Error while reading sound annotation");
                     break;
                 }
                 const QFileInfo fileinfo(pdf_dict_get_text_string(ctx, media_obj, PDF_NAME(F)));
                 //pdf_drop_obj(ctx, media_obj);
                 if (!fileinfo.exists())
                 {
-                    warn_msg << "Failed to load sound object: file not found or unsupported embedded sound";
+                    warn_msg("Failed to load sound object: file not found or unsupported embedded sound");
                     continue;
                 }
                 fz_rect bound = pdf_bound_annot(ctx, annot);
@@ -678,7 +678,7 @@ QList<PdfDocument::MediaAnnotation> *MuPdfDocument::annotations(const int page) 
 #if (FZ_VERSION_MAJOR >= 1) && (FZ_VERSION_MINOR >= 18)
             case PDF_ANNOT_RICH_MEDIA:
                 // TODO: check what that does
-                warn_msg << "Unsupported media type: rich media";
+                warn_msg("Unsupported media type: rich media");
                 break;
 #endif
             default:
@@ -692,7 +692,7 @@ QList<PdfDocument::MediaAnnotation> *MuPdfDocument::annotations(const int page) 
     }
     fz_catch(ctx)
     {
-        warn_msg << "Error while searching annotations:" << fz_caught_message(ctx);
+        warn_msg("Error while searching annotations:" << fz_caught_message(ctx));
     }
 
     // TODO: Sounds included as links or actions are not supported in MuPDF.
@@ -706,7 +706,7 @@ QList<PdfDocument::MediaAnnotation> *MuPdfDocument::annotations(const int page) 
         for (fz_link* link = clink; link != NULL; link = link->next)
         {
             QRectF rect(link->rect.x0, link->rect.y0, link->rect.x1-link->rect.x0, link->rect.y1-link->rect.y0);
-            debug_verbose(DebugMedia) << link->uri << rect << page;
+            debug_verbose(DebugMedia, link->uri << rect << page);
         }
     }
     fz_always(ctx)
@@ -716,7 +716,7 @@ QList<PdfDocument::MediaAnnotation> *MuPdfDocument::annotations(const int page) 
     }
     fz_catch(ctx)
     {
-        warn_msg << "Error while loading links" << fz_caught_message(ctx);
+        warn_msg("Error while loading links" << fz_caught_message(ctx));
     }
     */
 

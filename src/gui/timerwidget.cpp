@@ -102,7 +102,7 @@ void TimerWidget::updateText() noexcept
 void TimerWidget::changePassed()
 {
     const quint32 new_msecs_passed = QTime::fromString(passed->text(), total->text().count(":") == 2 ? "h:mm:ss" : "m:ss").msecsSinceStartOfDay();
-    debug_msg(DebugWidgets) << "new msecs passed:" << new_msecs_passed;
+    debug_msg(DebugWidgets, "new msecs passed:" << new_msecs_passed);
     if (preferences()->msecs_passed == UINT_LEAST32_MAX)
         writable_preferences()->target_time = QDateTime::currentDateTimeUtc().addMSecs(preferences()->msecs_total - new_msecs_passed);
     else
@@ -127,7 +127,7 @@ void TimerWidget::changeTotal()
 
 void TimerWidget::setTotalTime(const QTime time) noexcept
 {
-    debug_msg(DebugWidgets) << time << time.isValid();
+    debug_msg(DebugWidgets, time << time.isValid());
     if (time.isValid())
     {
         const quint32 msecs_total = time.msecsSinceStartOfDay();

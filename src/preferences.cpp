@@ -18,7 +18,7 @@ Tool *createTool(const QJsonObject &obj, const int default_device)
         if (width <= 0.)
             return NULL;
         const Qt::PenStyle style = string_to_pen_style.value(obj.value("style").toString(), Qt::SolidLine);
-        debug_msg(DebugSettings) << "creating pen" << color << width;
+        debug_msg(DebugSettings, "creating pen" << color << width);
         tool = new DrawTool(Tool::Pen, default_device, QPen(color, width, style, Qt::RoundCap, Qt::RoundJoin));
         break;
     }
@@ -29,13 +29,13 @@ Tool *createTool(const QJsonObject &obj, const int default_device)
         if (width <= 0.)
             return NULL;
         const Qt::PenStyle style = string_to_pen_style.value(obj.value("style").toString(), Qt::SolidLine);
-        debug_msg(DebugSettings) << "creating highlighter" << color << width;
+        debug_msg(DebugSettings, "creating highlighter" << color << width);
         tool = new DrawTool(Tool::Highlighter, default_device, QPen(color, width, style, Qt::RoundCap, Qt::RoundJoin), QPainter::CompositionMode_Darken);
         break;
     }
     case Tool::Eraser:
     {
-        debug_msg(DebugSettings) << "creating eraser";
+        debug_msg(DebugSettings, "creating eraser");
         const QColor color(obj.value("color").toString("#c0808080"));
         const float linewidth = obj.value("linewidth").toDouble(0.5);
         tool = new PointingTool(Tool::Eraser, obj.value("size").toDouble(10.), QBrush(color), default_device, linewidth);
@@ -47,7 +47,7 @@ Tool *createTool(const QJsonObject &obj, const int default_device)
         const float size = obj.value("size").toDouble(5.);
         if (size <= 0.)
             return NULL;
-        debug_msg(DebugSettings) << "creating pointer" << color << size;
+        debug_msg(DebugSettings, "creating pointer" << color << size);
         tool = new PointingTool(Tool::Pointer, size, color, default_device);
         static_cast<PointingTool*>(tool)->initPointerBrush();
         break;
@@ -58,7 +58,7 @@ Tool *createTool(const QJsonObject &obj, const int default_device)
         const float size = obj.value("size").toDouble(80.);
         if (size <= 0.)
             return NULL;
-        debug_msg(DebugSettings) << "creating torch" << color << size;
+        debug_msg(DebugSettings, "creating torch" << color << size);
         tool = new PointingTool(Tool::Torch, size, color, default_device);
         break;
     }
@@ -67,7 +67,7 @@ Tool *createTool(const QJsonObject &obj, const int default_device)
         const QColor color(obj.value("color").toString("#80c0c0c0"));
         const float size = obj.value("size").toDouble(120.);
         const float scale = obj.value("scale").toDouble(2.);
-        debug_msg(DebugSettings) << "creating magnifier" << color << size << scale;
+        debug_msg(DebugSettings, "creating magnifier" << color << size << scale);
         tool = new PointingTool(Tool::Magnifier, size, color, default_device, scale < 0.1 ? 0.1 : scale > 10. ? 5. : scale);
         break;
     }
@@ -77,15 +77,15 @@ Tool *createTool(const QJsonObject &obj, const int default_device)
         if (obj.contains("font size"))
             font.setPointSizeF(obj.value("font size").toDouble(12.));
         const QColor color(obj.value("color").toString("black"));
-        debug_msg(DebugSettings) << "creating text tool" << color << font;
+        debug_msg(DebugSettings, "creating text tool" << color << font);
         tool = new TextTool(font, color, default_device);
         break;
     }
     case Tool::InvalidTool:
-        debug_msg(DebugSettings) << "tried to create invalid tool" << obj.value("tool");
+        debug_msg(DebugSettings, "tried to create invalid tool" << obj.value("tool"));
         return NULL;
     default:
-        debug_msg(DebugSettings) << "creating default tool" << obj.value("tool");
+        debug_msg(DebugSettings, "creating default tool" << obj.value("tool"));
         if (base_tool & Tool::AnyDrawTool)
             // Shouldn't happen, but would lead to segmentation faults if it was not handled.
             tool = new DrawTool(base_tool, default_device, QPen());
@@ -104,7 +104,7 @@ Tool *createTool(const QJsonObject &obj, const int default_device)
     else if (dev_obj.isArray())
         for (const auto &dev : static_cast<const QJsonArray>(obj.value("device").toArray()))
             device |= string_to_input_device.value(dev.toString());
-    debug_msg(DebugSettings) << "device:" << device;
+    debug_msg(DebugSettings, "device:" << device);
     if (device)
         tool->setDevice(device);
     return tool;
@@ -166,8 +166,8 @@ Preferences::~Preferences()
 
 void Preferences::loadSettings()
 {
-    debug_msg(DebugSettings) << "Loading settings:" << settings.fileName();
-    debug_msg(DebugSettings) << settings.allKeys();
+    debug_msg(DebugSettings, "Loading settings:" << settings.fileName());
+    debug_msg(DebugSettings, settings.allKeys());
     bool ok;
 
     // GENERAL SETTINGS
@@ -222,7 +222,7 @@ void Preferences::loadSettings()
         rendering_command = settings.value("rendering command").toString();
         rendering_arguments = settings.value("rendering arguments").toStringList();
         const QString renderer_str = settings.value("renderer").toString().toLower();
-        debug_msg(DebugSettings) << renderer_str;
+        debug_msg(DebugSettings, renderer_str);
         if (!renderer_str.isEmpty())
         {
             bool understood_renderer = false;
@@ -354,7 +354,7 @@ void Preferences::parseActionsTools(const QVariant &input, QList<Action> &action
             Tool *tool = createTool(object, default_device);
             if (tool)
             {
-                debug_msg(DebugSettings|DebugDrawing) << "Adding tool" << tool << tool->tool() << tool->device();
+                debug_msg(DebugSettings|DebugDrawing, "Adding tool" << tool << tool->tool() << tool->device());
                 tools.append(tool);
             }
         }
@@ -403,7 +403,7 @@ void Preferences::loadFromParser(const QCommandLineParser &parser)
     {
         QString const &renderer_str = parser.value("renderer");
         bool understood_renderer = false;
-        debug_msg(DebugSettings) << "renderer" << renderer_str;
+        debug_msg(DebugSettings, "renderer" << renderer_str);
 #ifdef INCLUDE_MUPDF
         if (renderer_str.count("mupdf", Qt::CaseInsensitive) > 0)
         {

@@ -26,7 +26,7 @@ QSize FlexLayout::sizeHint() const
             else
                 width += hint.width();
         }
-        debug_msg(DebugLayout) << "FlexLayout size hint:" << width << 16384;
+        debug_msg(DebugLayout, "FlexLayout size hint:" << width << 16384);
         return QSize(width, 16384);
     }
     case QBoxLayout::TopToBottom:
@@ -41,7 +41,7 @@ QSize FlexLayout::sizeHint() const
             else
                 height += hint.height();
         }
-        debug_msg(DebugLayout) << "FlexLayout size hint:" << 16384 << height;
+        debug_msg(DebugLayout, "FlexLayout size hint:" << 16384 << height);
         return QSize(16384, height);
     }
     default:
@@ -51,7 +51,7 @@ QSize FlexLayout::sizeHint() const
 
 void FlexLayout::setGeometry(const QRect &rect)
 {
-    debug_msg(DebugLayout) << "FlexLayout setGeometry" << rect;
+    debug_msg(DebugLayout, "FlexLayout setGeometry" << rect);
     QLayout::setGeometry(rect);
     QVector<qreal> aspects(items.size());
     QVector<int> minsizes(items.size());
@@ -95,7 +95,7 @@ void FlexLayout::setGeometry(const QRect &rect)
                     items[i]->setGeometry(QRect(width, 0, minsizes[i] + margin, rect.height()));
                     width += minsizes[i] + margin;
                 }
-                debug_msg(DebugLayout) << "set geometry:" << items[i]->geometry() << aspects[i] << items[i] << this;
+                debug_msg(DebugLayout, "set geometry:" << items[i]->geometry() << aspects[i] << items[i] << this);
             }
         }
         else
@@ -115,7 +115,7 @@ void FlexLayout::setGeometry(const QRect &rect)
                     items[i]->setGeometry(QRect(width, 0, minsizes[i], rect.height()));
                     width += minsizes[i];
                 }
-                debug_msg(DebugLayout) << "set geometry:" << items[i]->geometry() << aspects[i] << items[i] << this;
+                debug_msg(DebugLayout, "set geometry:" << items[i]->geometry() << aspects[i] << items[i] << this);
             }
         }
         break;
@@ -155,7 +155,7 @@ void FlexLayout::setGeometry(const QRect &rect)
                     items[i]->setGeometry(QRect(0, height, rect.width(), minsizes[i]));
                     height += minsizes[i] + margin;
                 }
-                debug_msg(DebugLayout) << "set geometry:" << items[i]->geometry() << aspects[i] << items[i] << this;
+                debug_msg(DebugLayout, "set geometry:" << items[i]->geometry() << aspects[i] << items[i] << this);
             }
         }
         else
@@ -175,7 +175,7 @@ void FlexLayout::setGeometry(const QRect &rect)
                     items[i]->setGeometry(QRect(0, height, rect.width(), minsizes[i]));
                     height += minsizes[i];
                 }
-                debug_msg(DebugLayout) << "set geometry:" << items[i]->geometry() << aspects[i] << items[i] << this;
+                debug_msg(DebugLayout, "set geometry:" << items[i]->geometry() << aspects[i] << items[i] << this);
             }
         }
         break;

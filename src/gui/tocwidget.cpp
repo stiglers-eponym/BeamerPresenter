@@ -62,7 +62,7 @@ void TOCwidget::generateTOC(const PdfDocument *document)
 
 void TOCwidget::expandTo(const int page)
 {
-    debug_msg(DebugWidgets) << "expand to" << page;
+    debug_msg(DebugWidgets, "expand to" << page);
     TOCbutton *child = first_button;
     auto expand_to = [&](TOCbutton *button, auto &function) -> void
     {

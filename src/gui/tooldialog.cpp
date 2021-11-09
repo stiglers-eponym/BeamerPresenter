@@ -191,7 +191,7 @@ void ToolDialog::setDefault(const Tool *tool)
 Tool *ToolDialog::createTool() const
 {
     const Tool::BasicTool basic_tool = string_to_tool.value(tool_box->currentText());
-    debug_verbose(DebugDrawing) << "Dialog selected basic tool" << basic_tool;
+    debug_verbose(DebugDrawing, "Dialog selected basic tool" << basic_tool);
     if (basic_tool == Tool::InvalidTool)
         return NULL;
     int device = 0;

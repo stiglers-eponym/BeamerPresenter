@@ -105,7 +105,7 @@ void PdfMaster::receiveAction(const Action action)
         PathContainer* const path = paths.value(page, NULL);
         if (path)
         {
-            debug_msg(DebugDrawing) << "undo:" << path;
+            debug_msg(DebugDrawing, "undo:" << path);
             auto scene_it = scenes.cbegin();
             while ( scene_it != scenes.cend() && ( (*scene_it)->getPage() | (*scene_it)->pagePart() ) != page)
                 ++scene_it;
@@ -122,7 +122,7 @@ void PdfMaster::receiveAction(const Action action)
         PathContainer* const path = paths.value(page, NULL);
         if (path)
         {
-            debug_msg(DebugDrawing) << "redo:" << path;
+            debug_msg(DebugDrawing, "redo:" << path);
             auto scene_it = scenes.cbegin();
             while ( scene_it != scenes.cend() && ( (*scene_it)->getPage() | (*scene_it)->pagePart() ) != page)
                 ++scene_it;
@@ -138,7 +138,7 @@ void PdfMaster::receiveAction(const Action action)
         PathContainer* const path = paths.value(preferences()->page | (action ^ ClearDrawing), NULL);
         if (path && !path->isCleared())
         {
-            debug_msg(DebugDrawing) << "clear:" << path;
+            debug_msg(DebugDrawing, "clear:" << path);
             path->clearPaths();
             _flags |= UnsavedDrawings;
         }
@@ -153,7 +153,7 @@ void PdfMaster::resolveLink(const int page, const QPointF &position, const QPoin
 {
     // Try to resolve navigation link.
     const PdfDocument::PdfLink link = document->linkAt(page, position);
-    debug_msg(DebugDrawing) << "resolve link" << page << position << startpos << link.area;
+    debug_msg(DebugDrawing, "resolve link" << page << position << startpos << link.area);
     if ( (startpos.isNull() || link.area.contains(startpos)) && (link.type >= 0 && link.type < document->numberOfPages()) )
         emit navigationSignal(link.type);
 }
@@ -330,7 +330,7 @@ void PdfMaster::loadXopp(const QString &filename)
         }
         while (reader.readNextStartElement())
         {
-            debug_msg(DebugDrawing) << "Reading element" << reader.name();
+            debug_msg(DebugDrawing, "Reading element" << reader.name());
             if (reader.name().toUtf8() == "page")
                 readPageFromStream(reader, nontrivial_page_part);
             else if (reader.name().toUtf8() == "beamerpresenter")
@@ -362,7 +362,7 @@ void PdfMaster::loadXopp(const QString &filename)
 
 void PdfMaster::reloadXoppProperties()
 {
-    debug_msg(DebugWidgets) << "reloading Xopp properties" << drawings_path;
+    debug_msg(DebugWidgets, "reloading Xopp properties" << drawings_path);
     if (drawings_path.isEmpty())
         return;
     QBuffer *buffer = loadZipToBuffer(drawings_path);
@@ -415,11 +415,11 @@ QBuffer *PdfMaster::loadZipToBuffer(const QString &filename)
 
 void PdfMaster::readPageFromStream(QXmlStreamReader &reader, bool &nontrivial_page_part)
 {
-    debug_msg(DebugDrawing) << "read page from stream" << reader.name();
+    debug_msg(DebugDrawing, "read page from stream" << reader.name());
     int page = -1;
     while (reader.readNextStartElement())
     {
-        debug_msg(DebugDrawing) << "Searching background" << reader.name();
+        debug_msg(DebugDrawing, "Searching background" << reader.name());
         if (reader.name().toUtf8() == "background")
         {
             QString string = reader.attributes().value("pageno").toString();
@@ -470,7 +470,7 @@ void PdfMaster::readPageFromStream(QXmlStreamReader &reader, bool &nontrivial_pa
         return;
     while (reader.readNextStartElement())
     {
-        debug_msg(DebugDrawing) << "Searching layer" << reader.name();
+        debug_msg(DebugDrawing, "Searching layer" << reader.name());
         if (reader.name().toUtf8() == "layer")
         {
             if (nontrivial_page_part)

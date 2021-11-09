@@ -50,7 +50,7 @@ void SlideView::pageChanged(const int page, SlideScene *scene)
     resetTransform();
     scale(resolution, resolution);
     waitingForPage = page;
-    debug_msg(DebugPageChange) << "Request page" << page << "by" << this << "from" << scene;
+    debug_msg(DebugPageChange, "Request page" << page << "by" << this << "from" << scene);
     emit requestPage(page, resolution);
 }
 
@@ -72,7 +72,7 @@ void SlideView::pageChangedBlocking(const int page, SlideScene *scene)
     resetTransform();
     scale(resolution, resolution);
     QPixmap pixmap;
-    debug_msg(DebugPageChange) << "Request page blocking" << page << this;
+    debug_msg(DebugPageChange, "Request page blocking" << page << this);
     emit getPixmapBlocking(page, &pixmap, resolution);
     scene->pageBackground()->addPixmap(pixmap);
     updateScene({sceneRect()});
@@ -82,7 +82,7 @@ void SlideView::pageReady(const QPixmap pixmap, const int page)
 {
     if (waitingForPage == page)
     {
-        debug_msg(DebugPageChange) << "page ready" << page << pixmap.size() << this;
+        debug_msg(DebugPageChange, "page ready" << page << pixmap.size() << this);
         static_cast<SlideScene*>(scene())->pageBackground()->addPixmap(pixmap);
         waitingForPage = INT_MAX;
         updateScene({sceneRect()});
@@ -152,7 +152,7 @@ bool SlideView::event(QEvent *event)
     case QEvent::Gesture:
     {
         QGestureEvent *gesture_event = static_cast<QGestureEvent*>(event);
-        debug_verbose(DebugOtherInput) << gesture_event;
+        debug_verbose(DebugOtherInput, gesture_event);
         QSwipeGesture *swipe = static_cast<QSwipeGesture*>(gesture_event->gesture(Qt::SwipeGesture));
         if (swipe && swipe->state() == Qt::GestureFinished)
         {
@@ -168,10 +168,10 @@ bool SlideView::event(QEvent *event)
                 gesture = SwipeUp;
             else
             {
-                debug_msg(DebugOtherInput) << "Swipe gesture ignored, angle:" << swipe->swipeAngle();
+                debug_msg(DebugOtherInput, "Swipe gesture ignored, angle:" << swipe->swipeAngle());
                 return false;
             }
-            debug_msg(DebugOtherInput) << "Swipe gesture, angle:" << swipe->swipeAngle() << "interpret as:" << gesture;
+            debug_msg(DebugOtherInput, "Swipe gesture, angle:" << swipe->swipeAngle() << "interpret as:" << gesture);
             QList<Action> actions = preferences()->gesture_actions.values(gesture);
             for (auto action : actions)
                 emit sendAction(action);
@@ -179,14 +179,14 @@ bool SlideView::event(QEvent *event)
         }
         QPanGesture *pan = static_cast<QPanGesture*>(gesture_event->gesture(Qt::PanGesture));
         if (pan)
-            debug_msg(DebugOtherInput) << "Pan gesture:" << pan << pan->offset() << pan->acceleration();
+            debug_msg(DebugOtherInput, "Pan gesture:" << pan << pan->offset() << pan->acceleration());
         return QGraphicsView::event(event);
     }
     /* Native gesture does not work like this.
     case QEvent::NativeGesture:
     {
         QNativeGestureEvent *gevent = static_cast<QNativeGestureEvent*>(event);
-        debug_msg(DebugOtherInput) << "Native gesture" << gevent;
+        debug_msg(DebugOtherInput, "Native gesture" << gevent);
         return QGraphicsView::event(event);
     }
     */
@@ -243,7 +243,7 @@ void SlideView::showMagnifier(QPainter *painter, const PointingTool *tool) noexc
     // Check whether an enlarged page is needed and not "in preparation" yet.
     if (waitingForPage == INT_MAX && !pageItem->hasWidth(resolution*sceneRect().width() + 0.499))
     {
-        debug_msg(DebugRendering) << "Enlarged page: searched for" << resolution*sceneRect().width() + 1 << ", available" << pageItem->widths();
+        debug_msg(DebugRendering, "Enlarged page: searched for" << resolution*sceneRect().width() + 1 << ", available" << pageItem->widths());
         waitingForPage = static_cast<SlideScene*>(scene())->getPage();
         emit requestPage(waitingForPage, resolution);
     }
@@ -281,7 +281,7 @@ void SlideView::drawForeground(QPainter *painter, const QRectF &rect)
             const PointingTool *tool = static_cast<PointingTool*>(basic_tool);
             if (tool->pos().isEmpty() || tool->scene() != scene())
                 continue;
-            debug_verbose(DebugDrawing) << "drawing tool" << tool->tool() << tool->size() << tool->color();
+            debug_verbose(DebugDrawing, "drawing tool" << tool->tool() << tool->size() << tool->color());
             switch (tool->tool())
             {
             case Tool::Pointer:
@@ -505,6 +505,6 @@ void SlideView::prepareFlyTransition(const bool outwards, const PixmapGraphicsIt
         }
     }
 
-    debug_msg(DebugTransitions) << "Prepared fly transition" << newimg.size();
+    debug_msg(DebugTransitions, "Prepared fly transition" << newimg.size());
     target->addPixmap(QPixmap::fromImage(newimg));
 }

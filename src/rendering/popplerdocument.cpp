@@ -12,7 +12,7 @@ PopplerDocument::PopplerDocument(const QString &filename) :
     if (!loadDocument())
         qFatal("Loading document failed");
 
-    debug_msg(DebugRendering) << "Loaded PDF document in Poppler";
+    debug_msg(DebugRendering, "Loaded PDF document in Poppler");
 }
 
 const QString PopplerDocument::pageLabel(const int page) const
@@ -249,7 +249,7 @@ const PdfDocument::PdfLink PopplerDocument::linkAt(const int page, const QPointF
                 return {gotolink->destination().pageNumber() - 1, "", rect};
             }
             default:
-                debug_msg(DebugRendering) << "Unsupported link" << (*it)->linkType();
+                debug_msg(DebugRendering, "Unsupported link" << (*it)->linkType());
                 return {PdfLink::NoLink, "", rect};
             }
         }
@@ -262,10 +262,10 @@ QList<PdfDocument::MediaAnnotation> *PopplerDocument::annotations(const int page
     const std::unique_ptr<Poppler::Page> docpage(doc->page(page));
     if (!docpage)
         return NULL;
-    debug_verbose(DebugMedia) << "Found" << docpage->annotations().size() << "annotations on page" << page;
+    debug_verbose(DebugMedia, "Found" << docpage->annotations().size() << "annotations on page" << page);
     const auto annotations = docpage->annotations({Poppler::Annotation::AMovie, Poppler::Annotation::ASound, Poppler::Annotation::ARichMedia});
     const auto links = docpage->links();
-    debug_verbose(DebugMedia) << "Found" << links.size() << "links on page" << page;
+    debug_verbose(DebugMedia, "Found" << links.size() << "links on page" << page);
     if (annotations.empty() && links.empty())
         return NULL;
     const QSizeF pageSize = docpage->pageSizeF();
@@ -290,7 +290,7 @@ QList<PdfDocument::MediaAnnotation> *PopplerDocument::annotations(const int page
                             true,
                             QRectF(pageSize.width()*(*it)->boundary().x(), pageSize.height()*(*it)->boundary().y(), pageSize.width()*(*it)->boundary().width(), pageSize.height()*(*it)->boundary().height())
                 ));
-                debug_verbose(DebugMedia) << "Found video annotation:" << fileinfo.filePath() << "on page" << page;
+                debug_verbose(DebugMedia, "Found video annotation:" << fileinfo.filePath() << "on page" << page);
                 switch (movie->playMode())
                 {
                 case Poppler::MovieObject::PlayOpen:
@@ -320,7 +320,7 @@ QList<PdfDocument::MediaAnnotation> *PopplerDocument::annotations(const int page
             switch (sound->soundType())
             {
             case Poppler::SoundObject::Embedded:
-                debug_verbose(DebugMedia) << "Found sound annotation: embedded on page" << page;
+                debug_verbose(DebugMedia, "Found sound annotation: embedded on page" << page);
                 if (!sound->data().isEmpty())
                 {
                     EmbeddedMedia media(sound->data(), sound->samplingRate(), area);
@@ -333,7 +333,7 @@ QList<PdfDocument::MediaAnnotation> *PopplerDocument::annotations(const int page
             case Poppler::SoundObject::External:
             {
                 QFileInfo fileinfo(sound->url());
-                debug_verbose(DebugMedia) << "Found sound annotation:" << fileinfo.filePath() << "on page" << page;
+                debug_verbose(DebugMedia, "Found sound annotation:" << fileinfo.filePath() << "on page" << page);
                 if (fileinfo.exists())
                     list->append(MediaAnnotation(QUrl::fromLocalFile(fileinfo.absoluteFilePath()), false, area));
                 break;
@@ -342,7 +342,7 @@ QList<PdfDocument::MediaAnnotation> *PopplerDocument::annotations(const int page
             break;
         }
         case Poppler::Annotation::ARichMedia:
-            warn_msg << "Unsupported media type: rich media";
+            warn_msg("Unsupported media type: rich media");
             break;
         default:
             break;
@@ -350,7 +350,7 @@ QList<PdfDocument::MediaAnnotation> *PopplerDocument::annotations(const int page
     }
     for (auto it = links.cbegin(); it != links.cend(); ++it)
     {
-        debug_verbose(DebugMedia) << "Link of type" << (*it)->linkType() << (*it)->linkArea() << page;
+        debug_verbose(DebugMedia, "Link of type" << (*it)->linkType() << (*it)->linkArea() << page);
         if ((*it)->linkType() == Poppler::Link::Sound)
         {
 #if (QT_VERSION_MAJOR >= 6)
@@ -363,7 +363,7 @@ QList<PdfDocument::MediaAnnotation> *PopplerDocument::annotations(const int page
             switch (link->sound()->soundType())
             {
             case Poppler::SoundObject::Embedded:
-                debug_verbose(DebugMedia) << "Found sound link: embedded on page" << page;
+                debug_verbose(DebugMedia, "Found sound link: embedded on page" << page);
                 if (!link->sound()->data().isEmpty())
                 {
                     EmbeddedMedia media(link->sound()->data(), link->sound()->samplingRate(), area);
@@ -378,7 +378,7 @@ QList<PdfDocument::MediaAnnotation> *PopplerDocument::annotations(const int page
             case Poppler::SoundObject::External:
             {
                 QFileInfo fileinfo(link->sound()->url());
-                debug_verbose(DebugMedia) << "Found sound link:" << fileinfo.filePath() << "on page" << page;
+                debug_verbose(DebugMedia, "Found sound link:" << fileinfo.filePath() << "on page" << page);
                 if (fileinfo.exists())
                     list->append(MediaAnnotation(QUrl::fromLocalFile(fileinfo.absoluteFilePath()), false, area));
                 break;

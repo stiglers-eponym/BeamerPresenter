@@ -606,12 +606,12 @@ void Master::receiveKeyEvent(const QKeyEvent* event)
     // Search shortcuts for given key sequence.
     {
         QWidget* widget = shortcuts.value(key_code);
-        debug_msg(DebugKeyInput) << "Key action:" << widget << event << (event->key() | (event->modifiers() & ~Qt::KeypadModifier));
+        debug_msg(DebugKeyInput, "Key action:" << widget << event << (event->key() | (event->modifiers() & ~Qt::KeypadModifier)));
         if (widget)
         {
             widget->show();
             QStackedWidget *stackwidget = dynamic_cast<QStackedWidget*>(widget->parentWidget());
-            debug_msg(DebugKeyInput) << widget << stackwidget << widget->parentWidget();
+            debug_msg(DebugKeyInput, widget << stackwidget << widget->parentWidget());
             if (stackwidget)
             {
                 QTabWidget *tabwidget = dynamic_cast<QTabWidget*>(stackwidget->parentWidget());
@@ -626,7 +626,7 @@ void Master::receiveKeyEvent(const QKeyEvent* event)
     {
         for (Action action : static_cast<const QList<Action>>(preferences()->key_actions.values(key_code)))
         {
-            debug_msg(DebugKeyInput) << "Global key action:" << action;
+            debug_msg(DebugKeyInput, "Global key action:" << action);
             handleAction(action);
         }
     }
@@ -762,7 +762,7 @@ void Master::handleAction(const Action action)
                     || ((doc->flags() & PdfMaster::UnsavedDrawings) && doc->hasDrawings())
                         ))
             {
-                debug_msg(DebugWidgets) << "Asking for close confirmation:" << doc->flags();
+                debug_msg(DebugWidgets, "Asking for close confirmation:" << doc->flags());
                 switch (QMessageBox::question(
                             NULL,
                             "Unsaved changes",
@@ -891,7 +891,7 @@ void Master::setTool(Tool *tool) const noexcept
         delete tool;
         return;
     }
-    debug_msg(DebugDrawing|DebugKeyInput) << "Set tool" << tool->tool() << tool->device();
+    debug_msg(DebugDrawing|DebugKeyInput, "Set tool" << tool->tool() << tool->device());
     int device = tool->device();
     // Delete mouse no button devices if MouseLeftButton is overwritten.
     if (tool->device() & Tool::MouseLeftButton)
