@@ -5,6 +5,7 @@ TOCbutton::TOCbutton(const QString &title, const int _page, QCheckBox *expand_bu
     expand_button(expand_button),
     page(_page)
 {
+    setMinimumSize(32, 12);
     if (expand_button)
     {
         expand_button->setParent(this);

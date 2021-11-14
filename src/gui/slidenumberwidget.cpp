@@ -10,6 +10,7 @@
 SlideNumberWidget::SlideNumberWidget(QWidget *parent) :
     QWidget(parent)
 {
+    setMinimumSize(24, 10);
     setFocusPolicy(Qt::NoFocus);
     QHBoxLayout *layout = new QHBoxLayout(this);
     edit = new QLineEdit("0", this);

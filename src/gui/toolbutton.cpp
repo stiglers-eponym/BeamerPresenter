@@ -13,6 +13,7 @@ ToolButton::ToolButton(Tool *tool, QWidget *parent) noexcept :
         QToolButton(parent),
         tool(NULL)
 {
+    setMinimumSize(8, 8);
     setContentsMargins(0,0,0,0);
     setFocusPolicy(Qt::NoFocus);
     setAttribute(Qt::WA_AcceptTouchEvents);

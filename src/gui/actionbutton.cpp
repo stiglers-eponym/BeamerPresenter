@@ -5,6 +5,7 @@
 ActionButton::ActionButton(QWidget *parent) :
     QToolButton(parent)
 {
+    setMinimumSize(8, 8);
     setFocusPolicy(Qt::NoFocus);
     setIconSize({64,64});
     connect(this, &QToolButton::clicked, this, &ActionButton::onClicked);

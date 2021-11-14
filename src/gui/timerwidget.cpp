@@ -14,6 +14,7 @@ TimerWidget::TimerWidget(QWidget *parent) :
      label(new QLabel(" / ", this)),
      timer(new QTimer(this))
 {
+    setMinimumSize(24, 10);
     QHBoxLayout *layout = new QHBoxLayout();
     layout->addWidget(passed);
     layout->addWidget(label);
