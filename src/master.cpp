@@ -48,11 +48,14 @@ Master::~Master()
     caches.clear();
     for (const auto doc : qAsConst(documents))
     {
-        qDeleteAll(doc->getScenes());
-        doc->getScenes().clear();
+        QList<SlideScene*> &scenes = doc->getScenes();
+        while (!scenes.isEmpty())
+            delete scenes.takeLast();
     }
-    qDeleteAll(windows);
-    qDeleteAll(documents);
+    while (!windows.isEmpty())
+        delete windows.takeLast();
+    while (!documents.isEmpty())
+        delete documents.takeLast();
 }
 
 unsigned char Master::readGuiConfig(const QString &filename)

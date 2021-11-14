@@ -15,8 +15,8 @@ PathContainer::~PathContainer()
     truncateHistory();
     clearHistory();
     // This is dangerous: check which paths are owned by QGraphicsScene.
-    qDeleteAll(paths);
-    paths.clear();
+    while (!paths.isEmpty())
+        delete paths.takeLast();
 }
 
 bool PathContainer::undo(QGraphicsScene *scene)

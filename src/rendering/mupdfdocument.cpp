@@ -105,7 +105,8 @@ MuPdfDocument::~MuPdfDocument()
         fz_drop_page(ctx, (fz_page*)page);
     pdf_drop_document(ctx, doc);
     fz_drop_context(ctx);
-    qDeleteAll(mutex_list);
+    while (!mutex_list.isEmpty())
+        delete mutex_list.takeLast();
     mutex->unlock();
     delete mutex;
 }

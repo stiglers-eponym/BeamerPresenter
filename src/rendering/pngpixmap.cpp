@@ -21,7 +21,7 @@ PngPixmap::PngPixmap(const QPixmap pixmap, const int page, const float resolutio
     page(page)
 {
     // Check if the given pixmap is nontrivial
-    if (pixmap.isNull())
+    if (pixmap.isNull() || pixmap.size().isEmpty())
         return;
 
     // Save the pixmap as PNG image.
@@ -30,7 +30,7 @@ PngPixmap::PngPixmap(const QPixmap pixmap, const int page, const float resolutio
     QBuffer buffer(bytes);
     buffer.open(QIODevice::WriteOnly);
     // Save the pixmap as png to the buffer.
-    if (!pixmap.save(&buffer, "PNG"))
+    if (!buffer.isWritable() || !pixmap.save(&buffer, "PNG"))
     {
         qWarning() << "Compressing image to PNG failed";
         delete bytes;
@@ -44,7 +44,7 @@ PngPixmap::PngPixmap(const QPixmap pixmap, const int page, const float resolutio
 const QPixmap PngPixmap::pixmap() const
 {
     QPixmap pixmap;
-    if (data == NULL || !pixmap.loadFromData(*data, "PNG"))
+    if (data == NULL || data->isEmpty() || !pixmap.loadFromData(*data, "PNG"))
         qWarning() << "Loading image from PNG failed";
     return pixmap;
 }

@@ -158,8 +158,8 @@ Preferences::Preferences(const QString &file, QObject *parent) :
 
 Preferences::~Preferences()
 {
-    qDeleteAll(current_tools);
-    current_tools.clear();
+    while (!current_tools.isEmpty())
+        delete current_tools.takeLast();
     qDeleteAll(key_tools);
     key_tools.clear();
 }

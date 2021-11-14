@@ -28,14 +28,14 @@ SlideView::SlideView(SlideScene *scene, PixCache *cache, QWidget *parent) :
 
 SlideView::~SlideView() noexcept
 {
-    qDeleteAll(sliders);
-    sliders.clear();
+    while (!sliders.isEmpty())
+        delete sliders.takeLast();
 }
 
 void SlideView::pageChanged(const int page, SlideScene *scene)
 {
-    qDeleteAll(sliders);
-    sliders.clear();
+    while (!sliders.isEmpty())
+        sliders.takeLast()->deleteLater();
     setScene(scene);
     const QSizeF &pageSize = scene->sceneRect().size();
     qreal resolution;
@@ -56,8 +56,8 @@ void SlideView::pageChanged(const int page, SlideScene *scene)
 
 void SlideView::pageChangedBlocking(const int page, SlideScene *scene)
 {
-    qDeleteAll(sliders);
-    sliders.clear();
+    while (!sliders.isEmpty())
+        sliders.takeLast()->deleteLater();
     setScene(scene);
     const QSizeF &pageSize = scene->sceneRect().size();
     qreal resolution;
@@ -429,7 +429,7 @@ void SlideView::prepareFlyTransition(const bool outwards, const PixmapGraphicsIt
         newimg = QImage(oldimg.size(), QImage::Format_ARGB32);
         painter.begin(&newimg);
     }
-    if (oldimg.isNull())
+    if (oldimg.isNull() || newimg.isNull() || oldimg.size() != newimg.size() || oldimg.format() != QImage::Format_ARGB32 || newimg.format() != QImage::Format_ARGB32)
     {
         qWarning() << "Failed to prepare fly transition";
         return;
