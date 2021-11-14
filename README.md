@@ -178,8 +178,9 @@ qmake CONFIG+=debug RENDERER=mupdf && make
 * If a preview shows specific overlays, slide changes adding or removing synchronization of this preview with an another widget may lead to short flickering. Slide transitions during such slide changes can contain some ugly artifacts.
 #### Backend
 * When compiling with both MuPDF and poppler (`qmake RENDERER=both`), trying to open a PDF with renderer=poppler can result in a segmentation fault for some PDFs (when loading the document or when reaching a certain page). The reason might be a linkage problem with some color-space functions. It is recommended to compile with only one PDF engine.
+* The program might crash randomly when resizing windows while quickly changing slides including slides contain videos. This is currently considered a rarely occurring and not easily reproducible issue.
+* Some effects (animations, slide transitions) might not work as expected if (at least) one window showing the slide is currently hidden and not updated by the window manager.
 * Fixed in MuPDF 1.19: Slide labels are broken for encrypted PDFs when using MuPDF.
-* possibly fixed: rare and undeterministic crash at startup with an error message concerning timers.
 
 
 ### Ideas for further development

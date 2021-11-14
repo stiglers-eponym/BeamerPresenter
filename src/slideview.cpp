@@ -416,6 +416,7 @@ void SlideView::prepareFlyTransition(const bool outwards, const PixmapGraphicsIt
         newimg = newimg.convertToFormat(QImage::Format_ARGB32);
 #endif
         oldimg = QImage(newimg.size(), QImage::Format_ARGB32);
+        oldimg.fill(0);
         painter.begin(&oldimg);
     }
     else
@@ -427,6 +428,7 @@ void SlideView::prepareFlyTransition(const bool outwards, const PixmapGraphicsIt
         oldimg = oldimg.convertToFormat(QImage::Format_ARGB32);
 #endif
         newimg = QImage(oldimg.size(), QImage::Format_ARGB32);
+        newimg.fill(0);
         painter.begin(&newimg);
     }
     if (oldimg.isNull() || newimg.isNull() || oldimg.size() != newimg.size() || oldimg.format() != QImage::Format_ARGB32 || newimg.format() != QImage::Format_ARGB32)
