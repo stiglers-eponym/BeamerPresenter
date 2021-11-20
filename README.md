@@ -115,6 +115,7 @@ cd BeamerPresenter
 or version 0.2.1
 ```sh
 wget https://github.com/stiglers-eponym/BeamerPresenter/archive/v0.2.1.tar.gz
+sha256sum -c - <<< "bb66dee2439f2e848bc5a6902443e88af7d3f21cc3d08eb2dc106c8d3438b68c v0.2.1.tar.gz"
 tar -xf v0.2.1.tar.gz
 cd BeamerPresenter-0.2.1
 ```
