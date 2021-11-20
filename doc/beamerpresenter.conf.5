@@ -1,4 +1,4 @@
-.TH beamerpresenter.conf 5 "2021-10-31" "0.2.0"
+.TH beamerpresenter.conf 5 "2021-11-20" "0.2.0"
 .
 .SH NAME
 beamerpresenter.conf \- configuration file for BeamerPresenter
@@ -52,6 +52,10 @@ Note that it is not guaranteed that this limit is always strictly obeyed, since 
 .TP
 .BR "frame time " "= 50"
 Frame time (integer, in ms) when showing slides in rapid succession as an animation.
+.
+.TP
+.BR gestures " = true"
+Enable or disable gesture navigation (if available). In wayland and Xorg 3 fingers swiping on a touch screen trigger a gesture event. Currently not configurable in the GUI.
 .
 .TP
 .BR "log " "= false"

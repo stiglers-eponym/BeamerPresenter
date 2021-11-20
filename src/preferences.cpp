@@ -197,9 +197,10 @@ void Preferences::loadSettings()
     const int frame_time = settings.value("frame time").toInt(&ok);
     if (ok && frame_time > 0)
         slide_duration_animation = frame_time;
-    const bool show_animations = settings.value("automatic slide changes", true).toBool();
-    if (!show_animations)
+    if (!settings.value("automatic slide changes", true).toBool())
         global_flags &= ~AutoSlideChanges;
+    if (!settings.value("gestures", true).toBool())
+        gesture_actions.clear();
 
     // DRAWING
     settings.beginGroup("drawing");
