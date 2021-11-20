@@ -112,19 +112,18 @@ Download the sources: either the latest git version
 git clone --depth 1 --single-branch https://github.com/stiglers-eponym/BeamerPresenter.git
 cd BeamerPresenter
 ```
-or version 0.2.0 (only Qt 5)
+or version 0.2.1
 ```sh
-wget https://github.com/stiglers-eponym/BeamerPresenter/archive/v0.2.0.tar.gz
-sha256sum -c - <<< "524a3509cafebf5ced7fad3bfb1c4b35267913baebd142885a74e029d37812e9 v0.2.0.tar.gz"
-tar -xf v0.2.0.tar.gz
-cd BeamerPresenter-0.2.0
+wget https://github.com/stiglers-eponym/BeamerPresenter/archive/v0.2.1.tar.gz
+tar -xf v0.2.1.tar.gz
+cd BeamerPresenter-0.2.1
 ```
 On systems other than GNU+Linux you now need to configure libraries in
 `beamerpresenter.pro`. Pull requests or issues with build instructions for
 other systems are welcome!
 
 When building you need to **define the PDF engine**.
-Build with one of the following commands: (for Qt 6: replace `qmake` by `qmake6`)
+Build with one of the following commands: (for Qt 6 you might need to replace `qmake` by `qmake6`)
 ```sh
 qmake RENDERER=mupdf && make
 qmake RENDERER=poppler && make
