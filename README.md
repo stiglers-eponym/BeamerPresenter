@@ -23,20 +23,32 @@ This software uses the Qt framework and the PDF engines MuPDF and/or poppler.
 ## Screenshots
 These screenshots only show one possible way of using BeamerPresenter. The speaker could also see a different presentation (with additional information) or editable notes.
 
+<table border="0px" >
+<tr>
+<td width=50%>
 One possible configuration of the graphical interface shows the previews of the last overlays of the current and next slide to the speaker:
-<img srcset=".readme/titleslide-640px.webp 640w, .readme/titleslide-960px.webp 960w" sizes="(max-width: 640px) 640px, 960px" src=".readme/fly-transition-960px.webp" width=100% title="Two windows for speaker and audiance showing a title slide.">
+<img srcset=".readme/titleslide-640px.webp 640w, .readme/titleslide-960px.webp 960w" sizes="(max-width: 640px) 640px, 960px" src=".readme/titleslide-960px.webp" width=100% title="Two windows for speaker and audiance showing a title slide.">
 The small window in this image is the presentation window that is usually shown on a projector.
-
+</td>
+<td>
 A timer shows your current progress. When you have a tight schedule you can plan times for some slides and the color of the timer will indicate your progress relative to these planned times.
 <img srcset=".readme/timer-640px.webp 640w, .readme/timer-960px.webp 960w" sizes="(max-width: 640px) 640px, 960px" src=".readme/timer-960px.webp" width=100% title="Annotations on a slide explain the timer which is shown on the speaker's screen.">
 The annotations on this slide (red text and arrow) were also made directly in BeamerPresenter.
 Annotations can be saved in a format that is compatible with Xournal++.
-
+</td>
+</tr>
+<tr>
+<td>
 Different highlighting tool, including magnifier, torch and pointer, can be used to draw attention to parts of your slide.
 <img srcset=".readme/magnifier-640px.webp 640w, .readme/magnifier-960px.webp 960w" sizes="(max-width: 640px) 640px, 960px" src=".readme/magnifier-960px.webp" width=100% title="Parts of a slide are magnified to show details of a figure.">
-
+</td>
+<td>
 PDF documents can include videos, sounds, slide transitions and some primitive animations. These features are partially supported by BeamerPresenter.
 <img srcset=".readme/video-640px.webp 640w, .readme/video-960px.webp 960w" sizes="(max-width: 640px) 640px, 960px" src=".readme/video-960px.webp" width=100% title="Slide showing a video. The speaker window additionally shows a slider to control the video.">
+</td>
+</tr>
+</table>
+
 
 
 ## Build and install
