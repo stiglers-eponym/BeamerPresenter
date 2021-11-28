@@ -297,7 +297,7 @@ void SlideScene::handleEvents(const int device, const QList<QPointF> &pos, const
         emit sendNewPath(page | page_part, item);
         PathContainer *container = master->pathContainer(page | page_part);
         if (container)
-            connect(item, &TextGraphicsItem::deleteMe, container, &PathContainer::deleteEmptyItem);
+            connect(item, &TextGraphicsItem::removeMe, container, &PathContainer::removeItem);
         setFocusItem(item);
     }
     else if ((device & Tool::AnyEvent) == Tool::StopEvent && pos.size() == 1)

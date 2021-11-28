@@ -146,9 +146,9 @@ public:
     QRectF boundingBox() const noexcept;
 
 public slots:
-    /// Items (currently only text items) may detect that they are empty.
-    /// They can then inform this function, which removes and deletes them.
-    void deleteEmptyItem(QGraphicsItem *item);
+    /// Items (currently only text items) may detect that they should be removed.
+    /// They can then inform this function, which removes them and adds this as a new history step.
+    void removeItem(QGraphicsItem *item);
 };
 
 /// Convert color to string with format #RRGGBBAA

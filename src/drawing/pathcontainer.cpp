@@ -175,7 +175,7 @@ void PathContainer::append(QGraphicsItem *item)
     // Remove all "redo" options.
     truncateHistory();
     // Create new history step which adds item.
-    const auto step = new DrawHistoryStep();
+    DrawHistoryStep *const step = new DrawHistoryStep();
     step->createdItems[paths.length()] = item;
     history.append(step);
     // Add item to paths.
@@ -547,23 +547,22 @@ QRectF PathContainer::boundingBox() const noexcept
     return rect;
 }
 
-void PathContainer::deleteEmptyItem(QGraphicsItem *item)
+void PathContainer::removeItem(QGraphicsItem *item)
 {
+    // Remove all "redo" options.
+    truncateHistory();
     // Remove item from list of currently visible paths.
-    paths.removeOne(item);
+    const int index = paths.indexOf(item);
+    paths.removeAt(index);
+    DrawHistoryStep *const step = new DrawHistoryStep();
+    step->deletedItems[index] = item;
+    history.append(step);
     // Remove item from it's scene (if it has one).
     if (item->scene())
         item->scene()->removeItem(item);
-    // Remove item from history.
-    for (auto it = history.begin(); it != history.end(); ++it)
-    {
-        if ((*it)->deletedItems.isEmpty() && (*it)->createdItems.size() == 1 && (*it)->createdItems.first() == item)
-        {
-            history.erase(it);
-            delete item;
-            return;
-        }
-    }
+    // Limit history size (if necessary).
+    if (history.length() > preferences()->history_length_visible_slides)
+        clearHistory(preferences()->history_length_visible_slides);
 }
 
 

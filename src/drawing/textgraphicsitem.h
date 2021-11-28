@@ -2,6 +2,7 @@
 #define TEXTGRAPHICSITEM_H
 
 #include <QGraphicsTextItem>
+#include <QTextDocument>
 
 /**
  * @class TextGraphicsItem
@@ -25,15 +26,15 @@ public:
     {return Type;}
 
 protected:
-    /// emit deleteMe if text is empty after this looses focus
+    /// emit removeMe if text is empty after this looses focus
     void focusOutEvent(QFocusEvent *event) override
-    {if (toPlainText().isEmpty()) emit deleteMe(this); else QGraphicsTextItem::focusOutEvent(event);}
+    {if (toPlainText().isEmpty()) {document()->undo(); emit removeMe(this);} else QGraphicsTextItem::focusOutEvent(event);}
 
     /// disable context menu event by disabling this function
     void contextMenuEvent(QGraphicsSceneContextMenuEvent*) override {}
 
 signals:
-    void deleteMe(QGraphicsItem *me);
+    void removeMe(QGraphicsItem *me);
 };
 
 #endif // TEXTGRAPHICSITEM_H
