@@ -272,14 +272,14 @@ unix {
     # gzip man pages (1) and place them in /usr/share/man/man1
     man1.path = /usr/share/man/man1/
     man1.CONFIG = no_check_exist no_build
-    man1.extra = gzip -kf9 doc/beamerpresenter.1; gzip -kf9 doc/beamerpresenter-ui.1
-    man1.files = doc/beamerpresenter.1.gz doc/beamerpresenter-ui.1.gz
+    man1.extra = gzip -kf9 man/beamerpresenter.1; gzip -kf9 man/beamerpresenter-ui.1
+    man1.files = man/beamerpresenter.1.gz man/beamerpresenter-ui.1.gz
 
     # gzip man pages (5) and place them in /usr/share/man/man5
     man5.path = /usr/share/man/man5/
     man5.CONFIG = no_check_exist no_build
-    man5.extra = gzip -kf9 doc/beamerpresenter.conf.5
-    man5.files = doc/beamerpresenter.conf.5.gz
+    man5.extra = gzip -kf9 man/beamerpresenter.conf.5
+    man5.files = man/beamerpresenter.conf.5.gz
 
     # copy config/beamerpresenter.conf and config/gui.json to DEFAULT_CONFIG_PATH
     configuration.path = $${DEFAULT_CONFIG_PATH}
