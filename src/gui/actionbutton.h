@@ -4,6 +4,8 @@
 #include <QToolButton>
 #include "src/enumerates.h"
 
+class ToolSelectorWidget;
+
 /**
  * @brief Button which sends Action(s) when clicked.
  *
@@ -17,15 +19,18 @@ class ActionButton : public QToolButton
     QSet<Action> actions;
 
 public:
-    explicit ActionButton(QWidget *parent = NULL);
+    explicit ActionButton(ToolSelectorWidget *parent = NULL);
 
-    explicit ActionButton(const Action action, QWidget *parent = NULL);
+    explicit ActionButton(const Action action, ToolSelectorWidget *parent = NULL);
 
     void addAction(const Action action);
 
-protected:
+protected slots:
     void onClicked() const noexcept
     {for (const auto action : actions) emit sendAction(action);}
+
+public slots:
+    void setStatus(const Action action, const int status);
 
 signals:
     void sendAction(const Action action) const;
@@ -45,18 +50,10 @@ static const QMap<Action, QString> action_to_theme_icon {
     {UndoDrawing, "edit-undo"},
     {RedoDrawing, "edit-redo"},
     {ClearDrawing, "edit-delete"},
-    //{ScrollUp, "go-top"},
-    //{ScrollDown, "go-bottom"},
-    //{ScrollNormal, "go-home"},
     {SaveDrawings, "document-save"},
     {SaveDrawingsAs, "document-save-as"},
     {LoadDrawings, "document-open"},
     //{LoadDrawingsNoClear, "document-open"},
-    /* Timer */
-    //{StartTimer, ""},
-    //{StopTimer, ""},
-    //{StartStopTimer, ""},
-    //{ResetTimePassed, ""},
     /* Media */
     {PlayMedia, "media-playback-start"},
     {PauseMedia, "media-playback-stop"},
@@ -64,10 +61,20 @@ static const QMap<Action, QString> action_to_theme_icon {
     {Mute, "audio-volume-muted"},
     {Unmute, "audio-volume-high"},
     /* Other actions */
-    //{ReloadFiles, "view-refresh"},
     {Quit, "application-exit"},
     {QuitNoConfirmation, "application-exit"},
     {FullScreen, "view-fullscreen"},
+};
+
+static const QMap<Action, QStringList> action_to_custom_icons {
+    {StartStopTimer, {"actions/timer-paused.svg", "actions/timer-running.svg"}},
+    {StopTimer, {"actions/timer-stop.svg"}},
+    {StartTimer, {"actions/timer-start.svg"}},
+    {ResetTimePassed, {"actions/timer-reset.svg"}},
+    {ReloadFiles, {"actions/reload.svg"}},
+    {ScrollUp, {"actions/scroll-up.svg"}},
+    {ScrollDown, {"actions/scroll-down.svg"}},
+    {ScrollNormal, {"actions/scroll-reset.svg"}},
 };
 
 

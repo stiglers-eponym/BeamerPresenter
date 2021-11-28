@@ -125,6 +125,8 @@ public slots:
 signals:
     /// Send out action.
     void sendAction(const Action action) const;
+    /// Set status for an action (e.g. timer paused or running).
+    void sendActionStatus(const Action action, const int status) const;
 
     /// Prepare navigation: Scenes update geometry, such that the layout can
     /// be recalculated.

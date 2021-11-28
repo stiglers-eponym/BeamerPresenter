@@ -24,7 +24,6 @@ void ToolSelectorWidget::addActionButton(const int i, const int j, const QString
     if (button->icon().isNull())
         button->setText(string);
     static_cast<QGridLayout*>(layout())->addWidget(button, i, j);
-    connect(button, &ActionButton::sendAction, this, &ToolSelectorWidget::sendAction);
 }
 
 void ToolSelectorWidget::addActionButton(const int i, const int j, const QJsonArray &array)
@@ -37,7 +36,6 @@ void ToolSelectorWidget::addActionButton(const int i, const int j, const QJsonAr
     if (button->icon().isNull())
         button->setText(array.first().toString());
     static_cast<QGridLayout*>(layout())->addWidget(button, i, j);
-    connect(button, &ActionButton::sendAction, this, &ToolSelectorWidget::sendAction);
 }
 
 void ToolSelectorWidget::addToolButton(const int i, const int j, Tool *tool)

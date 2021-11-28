@@ -164,6 +164,7 @@ void TimerWidget::startTimer() noexcept
         writable_preferences()->msecs_passed = UINT_LEAST32_MAX;
     }
     timer->start(1000);
+    emit updateStatus(StartStopTimer, 1);
 }
 
 void TimerWidget::stopTimer() noexcept
@@ -177,6 +178,7 @@ void TimerWidget::stopTimer() noexcept
         writable_preferences()->msecs_passed = preferences()->msecs_total - QDateTime::currentDateTimeUtc().msecsTo(preferences()->target_time);
         updateFullText();
     }
+    emit updateStatus(StartStopTimer, 0);
 }
 
 void TimerWidget::handleAction(const Action action) noexcept

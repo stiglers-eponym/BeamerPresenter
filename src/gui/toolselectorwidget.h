@@ -35,6 +35,7 @@ public:
 
 signals:
     void sendAction(const Action action);
+    void sendStatus(const Action action, const int status);
 
     /// Send a new tool (copy of the tool of a button).
     /// Ownership of tool is transfered to receiver.

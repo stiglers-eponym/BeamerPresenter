@@ -116,6 +116,8 @@ public slots:
 signals:
     /// Notify about timeout.
     void sendTimeout(const bool timeout);
+    /// Update timer status.
+    void updateStatus(const Action action, const int status);
     /// Set timer for page (sent to PdfMaster).
     void setTimeForPage(const int page, const quint32 time);
     /// Ask to adjust time as per-page time for given page (sent to PdfMaster).

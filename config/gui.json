@@ -85,7 +85,7 @@
           {
             "type" : "tool selector",
             "buttons" : [
-              ["start timer", "stop timer", "undo", "redo", "clear"],
+              ["toggle timer", "undo", "redo", "clear", "pause media"],
               [
                 {"tool":"pen", "color":"blue", "width":2},
                 {"tool":"pen", "color":"red", "width":2},

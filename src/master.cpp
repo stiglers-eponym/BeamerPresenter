@@ -475,6 +475,7 @@ QWidget* Master::createWidget(QJsonObject &object, QWidget *parent)
     case ToolSelectorType:
     {
         ToolSelectorWidget *toolwidget = new ToolSelectorWidget(parent);
+        connect(this, &Master::sendActionStatus, toolwidget, &ToolSelectorWidget::sendStatus);
         const QJsonArray full_array = object.value("buttons").toArray();
         for (int i=0; i<full_array.size(); i++)
         {
@@ -523,6 +524,7 @@ QWidget* Master::createWidget(QJsonObject &object, QWidget *parent)
     case TimerType:
     {
         TimerWidget *twidget = new TimerWidget(parent);
+        connect(twidget, &TimerWidget::updateStatus, this, &Master::sendActionStatus);
         widget = twidget;
         connect(this, &Master::sendAction, twidget, &TimerWidget::handleAction);
         connect(twidget, &TimerWidget::setTimeForPage, this, &Master::setTimeForPage);
