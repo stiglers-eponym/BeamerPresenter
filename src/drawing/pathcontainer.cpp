@@ -406,12 +406,13 @@ PathContainer *PathContainer::copy() const noexcept
         case TextGraphicsItem::Type:
         {
             TextGraphicsItem *olditem = static_cast<TextGraphicsItem*>(path);
-            TextGraphicsItem *newitem = new TextGraphicsItem();
-            newitem->setPos(path->pos());
-            newitem->setFont(olditem->font());
-            newitem->setHtml(olditem->toHtml());
-            newitem->setDefaultTextColor(olditem->defaultTextColor());
-            container->paths.append(newitem);
+            if (!olditem->isEmpty())
+            {
+                TextGraphicsItem *newitem = olditem->clone();
+                container->paths.append(newitem);
+                connect(newitem, &TextGraphicsItem::removeMe, container, &PathContainer::removeItem);
+                connect(newitem, &TextGraphicsItem::addMe, container, &PathContainer::addTextItem);
+            }
             break;
         }
         case FullGraphicsPath::Type:
@@ -593,6 +594,8 @@ void PathContainer::addTextItem(QGraphicsItem *item)
 {
     if (!paths.contains(item))
         append(item);
+    else if (inHistory == -2)
+        inHistory = 0;
 }
 
 QString color_to_rgba(const QColor &color)

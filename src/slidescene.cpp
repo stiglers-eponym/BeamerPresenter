@@ -288,7 +288,6 @@ void SlideScene::handleEvents(const int device, const QList<QPointF> &pos, const
             }
         }
         TextGraphicsItem *item = new TextGraphicsItem();
-        item->setTextInteractionFlags(Qt::TextEditorInteraction);
         item->setFont(QFont(static_cast<const TextTool*>(tool)->font()));
         item->setDefaultTextColor(static_cast<const TextTool*>(tool)->color());
         addItem(item);

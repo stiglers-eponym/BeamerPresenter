@@ -20,10 +20,16 @@ class TextGraphicsItem : public QGraphicsTextItem
 public:
     enum {Type = UserType + 3};
 
-    TextGraphicsItem(QGraphicsItem *parent = NULL) : QGraphicsTextItem(parent) {}
+    TextGraphicsItem(QGraphicsItem *parent = NULL) : QGraphicsTextItem(parent)
+    {setTextInteractionFlags(Qt::TextEditorInteraction);}
+
+    TextGraphicsItem *clone() const;
 
     int type() const noexcept override
     {return Type;}
+
+    bool isEmpty() const
+    {return document()->isEmpty();}
 
 protected:
     /// emit removeMe if text is empty after this looses focus

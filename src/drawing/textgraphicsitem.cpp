@@ -15,3 +15,13 @@ void TextGraphicsItem::focusOutEvent(QFocusEvent *event)
         QGraphicsTextItem::focusOutEvent(event);
     }
 }
+
+TextGraphicsItem *TextGraphicsItem::clone() const
+{
+    TextGraphicsItem *newitem = new TextGraphicsItem();
+    newitem->setPos(pos());
+    newitem->setFont(font());
+    newitem->setDefaultTextColor(defaultTextColor());
+    newitem->setDocument(document()->clone());
+    return newitem;
+}
