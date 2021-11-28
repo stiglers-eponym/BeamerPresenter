@@ -27,14 +27,14 @@ public:
 
 protected:
     /// emit removeMe if text is empty after this looses focus
-    void focusOutEvent(QFocusEvent *event) override
-    {if (toPlainText().isEmpty()) {document()->undo(); emit removeMe(this);} else QGraphicsTextItem::focusOutEvent(event);}
+    void focusOutEvent(QFocusEvent *event) override;
 
     /// disable context menu event by disabling this function
     void contextMenuEvent(QGraphicsSceneContextMenuEvent*) override {}
 
 signals:
     void removeMe(QGraphicsItem *me);
+    void deleteMe(QGraphicsItem *me);
 };
 
 #endif // TEXTGRAPHICSITEM_H

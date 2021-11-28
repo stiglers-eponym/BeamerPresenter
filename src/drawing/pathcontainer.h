@@ -149,6 +149,8 @@ public slots:
     /// Items (currently only text items) may detect that they should be removed.
     /// They can then inform this function, which removes them and adds this as a new history step.
     void removeItem(QGraphicsItem *item);
+    /// Delete an item and purge it from history.
+    void deleteItem(QGraphicsItem *item);
 };
 
 /// Convert color to string with format #RRGGBBAA

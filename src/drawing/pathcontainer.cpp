@@ -565,6 +565,41 @@ void PathContainer::removeItem(QGraphicsItem *item)
         clearHistory(preferences()->history_length_visible_slides);
 }
 
+void PathContainer::deleteItem(QGraphicsItem *item)
+{
+    // Remove item from currently visible paths and from scene.
+    paths.removeAll(item);
+    if (item->scene())
+        item->scene()->removeItem(item);
+    // Search for the history entry where item was created.
+    // Search history in reverse order.
+    for (int i=history.length()-1; i>=0; --i)
+    {
+        DrawHistoryStep *step = history[i];
+        // Search created items of this history step.
+        for (auto histit=step->createdItems.begin(); histit!=step->createdItems.end(); ++histit)
+        {
+            if (histit.value() == item)
+            {
+                // Delete item from this history step.
+                step->createdItems.erase(histit);
+                // Delete history step if it is empty.
+                if (step->createdItems.isEmpty() && step->deletedItems.isEmpty())
+                {
+                    history.removeAt(i);
+                    if (inHistory + i > history.length())
+                        --inHistory;
+                }
+                // Delete the item.
+                delete item;
+                return;
+            }
+        }
+    }
+    qWarning() << "Graphics item not found in history, deleting it anyway.";
+    delete item;
+}
+
 
 QString color_to_rgba(const QColor &color)
 {

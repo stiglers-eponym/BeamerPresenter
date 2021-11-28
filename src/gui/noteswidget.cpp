@@ -141,7 +141,7 @@ void NotesWidget::saveNotes(const QString &filename)
 
 void NotesWidget::writeNotes(QXmlStreamWriter &writer)
 {
-    if (!toPlainText().isEmpty())
+    if (!document()->isEmpty())
         text_per_slide.insert(page_label, toHtml());
     writer.writeStartElement("speakernotes");
     writer.writeAttribute("identifier", per_page ? "number" : "label");
@@ -218,7 +218,7 @@ void NotesWidget::keyPressEvent(QKeyEvent *event)
 
 void NotesWidget::pageChanged(const int page)
 {
-    if (toPlainText().isEmpty())
+    if (document()->isEmpty())
     {
         const QMap<QString, QString>::iterator it = text_per_slide.find(page_label);
         if (it != text_per_slide.end())
