@@ -290,10 +290,10 @@ unix {
     appicon.CONFIG = no_build
     appicon.files = share/icons/beamerpresenter.svg
 
-    # copy share/icons/tools (internally required icons) to $$ICON_PATH/tools
+    # copy share/icons/tools and share/icons/actions (internally required icons) to $$ICON_PATH
     icon.path = $${ICON_PATH}
     icon.CONFIG = no_build
-    icon.files = share/icons/tools
+    icon.files = share/icons/tools share/icons/actions
 
     # copy share/doc/README.html (in-app manual) to /usr/share/doc/beamerpresenter/
     doc.path = /usr/share/doc/beamerpresenter/
