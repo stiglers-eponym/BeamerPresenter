@@ -8,6 +8,7 @@ class QGraphicsScene;
 class QGraphicsItem;
 class QXmlStreamReader;
 class QXmlStreamWriter;
+class TextGraphicsItem;
 
 static const QMap<Tool::BasicTool, QString> xournal_tool_names
 {
@@ -149,8 +150,8 @@ public slots:
     /// Items (currently only text items) may detect that they should be removed.
     /// They can then inform this function, which removes them and adds this as a new history step.
     void removeItem(QGraphicsItem *item);
-    /// Delete an item and purge it from history.
-    void deleteItem(QGraphicsItem *item);
+    /// Notify of a change in a text item, add the item to history if necessary.
+    void addTextItem(QGraphicsItem *item);
 };
 
 /// Convert color to string with format #RRGGBBAA

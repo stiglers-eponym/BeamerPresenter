@@ -160,14 +160,15 @@ void PdfMaster::resolveLink(const int page, const QPointF &position, const QPoin
 
 void PdfMaster::receiveNewPath(int page, QGraphicsItem *item)
 {
-    if (!item)
-        return;
-    _flags |= UnsavedDrawings;
     if (preferences()->overlay_mode == PerLabel)
         page = document->overlaysShifted((page & ~NotFullPage), FirstOverlay) | (page & NotFullPage);
     if (!paths.contains(page))
         paths[page] = new PathContainer(this);
-    paths[page]->append(item);
+    if (item)
+    {
+        _flags |= UnsavedDrawings;
+        paths[page]->append(item);
+    }
 }
 
 void PdfMaster::distributeNavigationEvents(const int page) const

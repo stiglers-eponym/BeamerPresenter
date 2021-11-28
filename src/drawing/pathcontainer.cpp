@@ -28,30 +28,35 @@ bool PathContainer::undo(QGraphicsScene *scene)
     // Mark that we moved back in history.
     inHistory++;
 
+    const DrawHistoryStep *step = history[history.length() - inHistory];
+
     // First remove newly created items.
     // Get the (sorted) indices of items which should be removed.
-    const QMap<int, QGraphicsItem*> &removeItems = history[history.length()-inHistory]->createdItems;
+    const QMap<int, QGraphicsItem*> &removeItems = step->createdItems;
     // Iterate over the keys in reverse order, because otherwise the indices of
     // items which we still want to delete would change.
     for (auto it = removeItems.constEnd(); it != removeItems.constBegin();)
     {
         paths.removeAt((--it).key());
         if ((*it)->scene())
-            (*it)->scene()->removeItem(it.value());
+        {
+            (*it)->clearFocus();
+            (*it)->scene()->removeItem(*it);
+        }
     }
 
     // Restore old items.
     // Get the old items from history.
-    const QMap<int, QGraphicsItem*> &oldItems = history[history.length()-inHistory]->deletedItems;
+    const QMap<int, QGraphicsItem*> &oldItems = step->deletedItems;
     for (auto it = oldItems.constBegin(); it != oldItems.constEnd(); ++it)
     {
-        paths.insert(it.key(), it.value());
+        paths.insert(it.key(), *it);
         // TODO: check if it is necessary to show items explicitly.
         if (scene)
         {
-            scene->addItem(it.value());
+            scene->addItem(*it);
             if (it.key() + 1 < paths.length())
-                it.value()->stackBefore(paths[it.key() + 1]);
+                (*it)->stackBefore(paths[it.key() + 1]);
         }
     }
 
@@ -64,21 +69,28 @@ bool PathContainer::redo(QGraphicsScene *scene)
     if (inHistory < 1)
         return false;
 
+    const DrawHistoryStep *step = history[history.length() - inHistory];
+    // Move forward in history.
+    inHistory--;
+
     // First remove items which were deleted in this step.
     // Get the (sorted) indices of items which should be removed.
-    const QMap<int, QGraphicsItem*> &oldItems = history[history.length()-inHistory]->deletedItems;
+    const QMap<int, QGraphicsItem*> &oldItems = step->deletedItems;
     // Iterate over the keys in reverse order, because otherwise the indices of
     // items which we still want to delete would change.
     for (auto it = oldItems.constEnd(); it != oldItems.constBegin();)
     {
         paths.removeAt((--it).key());
-        if (it.value()->scene())
-            it.value()->scene()->removeItem(it.value());
+        if ((*it)->scene())
+        {
+            (*it)->clearFocus();
+            (*it)->scene()->removeItem(*it);
+        }
     }
 
     // Restore newly created items.
     // Get the new items from history.
-    const QMap<int, QGraphicsItem*> &newItems = history[history.length()-inHistory]->createdItems;
+    const QMap<int, QGraphicsItem*> &newItems = step->createdItems;
     for (auto it = newItems.constBegin(); it != newItems.constEnd(); ++it)
     {
         paths.insert(it.key(), it.value());
@@ -91,8 +103,6 @@ bool PathContainer::redo(QGraphicsScene *scene)
         }
     }
 
-    // Move forward in history.
-    inHistory--;
     return true;
 }
 
@@ -160,7 +170,10 @@ void PathContainer::clearPaths()
     {
         step->deletedItems[i] = *it;
         if (*it && (*it)->scene())
+        {
+            (*it)->clearFocus();
             (*it)->scene()->removeItem(*it);
+        }
     }
     // Add the scene to history.
     history.append(step);
@@ -293,7 +306,10 @@ void PathContainer::eraserMicroStep(const QPointF &pos, const qreal size)
                                 group->addToGroup(item);
                             group->removeFromGroup(child);
                             if (scene)
+                            {
+                                child->clearFocus();
                                 scene->removeItem(child);
+                            }
                             // This item is not stored in any history and can be deleted.
                             delete child; // TODO: Check if this breaks something.
                         }
@@ -549,57 +565,35 @@ QRectF PathContainer::boundingBox() const noexcept
 
 void PathContainer::removeItem(QGraphicsItem *item)
 {
+    const int index = paths.indexOf(item);
+    if (index < 0)
+    {
+        delete item;
+        return;
+    }
     // Remove all "redo" options.
     truncateHistory();
     // Remove item from list of currently visible paths.
-    const int index = paths.indexOf(item);
     paths.removeAt(index);
     DrawHistoryStep *const step = new DrawHistoryStep();
     step->deletedItems[index] = item;
     history.append(step);
     // Remove item from it's scene (if it has one).
     if (item->scene())
+    {
+        item->clearFocus();
         item->scene()->removeItem(item);
+    }
     // Limit history size (if necessary).
     if (history.length() > preferences()->history_length_visible_slides)
         clearHistory(preferences()->history_length_visible_slides);
 }
 
-void PathContainer::deleteItem(QGraphicsItem *item)
+void PathContainer::addTextItem(QGraphicsItem *item)
 {
-    // Remove item from currently visible paths and from scene.
-    paths.removeAll(item);
-    if (item->scene())
-        item->scene()->removeItem(item);
-    // Search for the history entry where item was created.
-    // Search history in reverse order.
-    for (int i=history.length()-1; i>=0; --i)
-    {
-        DrawHistoryStep *step = history[i];
-        // Search created items of this history step.
-        for (auto histit=step->createdItems.begin(); histit!=step->createdItems.end(); ++histit)
-        {
-            if (histit.value() == item)
-            {
-                // Delete item from this history step.
-                step->createdItems.erase(histit);
-                // Delete history step if it is empty.
-                if (step->createdItems.isEmpty() && step->deletedItems.isEmpty())
-                {
-                    history.removeAt(i);
-                    if (inHistory + i > history.length())
-                        --inHistory;
-                }
-                // Delete the item.
-                delete item;
-                return;
-            }
-        }
-    }
-    qWarning() << "Graphics item not found in history, deleting it anyway.";
-    delete item;
+    if (!paths.contains(item))
+        append(item);
 }
-
 
 QString color_to_rgba(const QColor &color)
 {

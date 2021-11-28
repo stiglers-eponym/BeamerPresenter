@@ -294,12 +294,12 @@ void SlideScene::handleEvents(const int device, const QList<QPointF> &pos, const
         addItem(item);
         item->show();
         item->setPos(pos.constFirst());
-        emit sendNewPath(page | page_part, item);
+        emit sendNewPath(page | page_part, NULL);
         PathContainer *container = master->pathContainer(page | page_part);
         if (container)
         {
             connect(item, &TextGraphicsItem::removeMe, container, &PathContainer::removeItem);
-            connect(item, &TextGraphicsItem::deleteMe, container, &PathContainer::deleteItem);
+            connect(item, &TextGraphicsItem::addMe, container, &PathContainer::addTextItem);
         }
         setFocusItem(item);
     }

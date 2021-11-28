@@ -33,8 +33,8 @@ protected:
     void contextMenuEvent(QGraphicsSceneContextMenuEvent*) override {}
 
 signals:
+    void addMe(QGraphicsItem *me);
     void removeMe(QGraphicsItem *me);
-    void deleteMe(QGraphicsItem *me);
 };
 
 #endif // TEXTGRAPHICSITEM_H

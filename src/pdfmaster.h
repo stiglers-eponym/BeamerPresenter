@@ -169,6 +169,7 @@ public slots:
 
     /// Add a new path (or QGraphicsItem) to paths[page].
     /// Page (part) number is given as (page | page_part).
+    /// If item is NULL: create the container if it does not exist yet.
     void receiveNewPath(int page, QGraphicsItem *item);
 
     /// Send navigation events to all SlideScenes reading from this document.
