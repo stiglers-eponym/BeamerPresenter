@@ -26,6 +26,7 @@
                   "undo",
                   "redo",
                   "clear",
+                  {"tool":"eraser", "size":15},
                   {"tool":"pen", "color":"blue", "width":2.5},
                   {"tool":"pen", "color":"green", "width":2.5},
                   {"tool":"pen", "color":"red", "width":2.5},
