@@ -21,33 +21,22 @@ This software uses the Qt framework and the PDF engines MuPDF and/or poppler.
 
 
 ## Screenshots
-These screenshots only show one possible way of using BeamerPresenter. The speaker could also see a different presentation (with additional information), or editable notes.
+These screenshots only show one possible way of using BeamerPresenter. The speaker could also see a different presentation (with additional information) or editable notes.
 
 One possible configuration of the graphical interface shows the previews of the last overlays of the current and next slide to the speaker:
-<img srcset=".readme/fly-transition-480px.webp 480w, .readme/fly-transition-960px.webp 960w" sizes="(max-width: 720px) 480px, 960px" src=".readme/fly-transition-960px.webp" width=100% title="Picture flying in during slide transition">
-The left half of these pictures shows the window visible only to the speaker and the right half shows the presentation. Both are independent windows.
-These examples were created with the configuration `config/gui-2files.json`, which also works fine if just one presentation file is given.
+<img srcset=".readme/titleslide-640px.webp 640w, .readme/titleslide-960px.webp 960w" sizes="(max-width: 640px) 640px, 960px" src=".readme/fly-transition-960px.webp" width=100% title="Two windows for speaker and audiance showing a title slide.">
+The small window in this image is the presentation window that is usually shown on a projector.
 
-Use a magnifier to show details of your figures (size and magnification factor can be adjusted):
-<img srcset=".readme/magnifier-480px.webp 480w, .readme/magnifier-960px.webp 960w" sizes="(max-width: 720px) 480px, 960px" src=".readme/magnifier-960px.webp" width=100% title="Magnifier (size and magnification factor are adjustable)">
+A timer shows your current progress. When you have a tight schedule you can plan times for some slides and the color of the timer will indicate your progress relative to these planned times.
+<img srcset=".readme/timer-640px.webp 640w, .readme/timer-960px.webp 960w" sizes="(max-width: 640px) 640px, 960px" src=".readme/timer-960px.webp" width=100% title="Annotations on a slide explain the timer which is shown on the speaker's screen.">
+The annotations on this slide (red text and arrow) were also made directly in BeamerPresenter.
+Annotations can be saved in a format that is compatible with Xournal++.
 
-Draw in your presentation using a pen or highlighter and focus on parts of your slide using a torch or a pointer:
-<img srcset=".readme/drawings+torch+pointer-480px.webp 480w, .readme/drawings+torch+pointer-960px.webp 960w" sizes="(max-width: 720px) 480px, 960px" src=".readme/drawings+torch+pointer-960px.webp" width=100% title="Annotations, torch and pointer for highlighting">
-Of course, this is just for demonstration an you will usually not use pointer and torch at the same time.
-Annotations, notes and some file-specific settings can be saved and loaded to gzipped xml files in a format which aims at partial compatibility with Xournal++.
+Different highlighting tool, including magnifier, torch and pointer, can be used to draw attention to parts of your slide.
+<img srcset=".readme/magnifier-640px.webp 640w, .readme/magnifier-960px.webp 960w" sizes="(max-width: 640px) 640px, 960px" src=".readme/magnifier-960px.webp" width=100% title="Parts of a slide are magnified to show details of a figure.">
 
-Use an overview of all slides (or all slides with separate slide labels, especially useful for presentations created with LaTeX beamer):
-<img srcset=".readme/overview+video-480px.webp 480w, .readme/overview+video-960px.webp 960w" sizes="(max-width: 720px) 480px, 960px" src=".readme/overview+video-960px.webp" width=100% title="Overview mode and video in presentation">
-
-You can embed videos in your slides. Drawing and highlighting also works in the video.
-<img srcset=".readme/draw-video-480px.webp 480w, .readme/draw-video-960px.webp 960w" sizes="(max-width: 720px) 480px, 960px" src=".readme/draw-video-960px.webp" width=100% title="Drawings (pen and highlighter) and torch in video">
-Note the slider for the video on the speaker's screen.
-Slide transitions may in some cases need to interrupt a video.
-
-The interface is very flexible and can be adjusted to your needs. Also multiple monitors are possible. Example of 4 windows for 4 different monitors (3 for the audience, 1 for the speaker):
-<div align="center">
-  <img srcset=".readme/multi-monitor-409px.webp 409w, .readme/multi-monitor-817px.webp 817w" sizes="(max-width: 720px) 409px, 817px" src=".readme/multi-monitor-817px.webp" width=75% title="Example multi-monitor setup: 3 windows for audience, 1 window for speaker">
-</div>
+PDF documents can include videos, sounds, slide transitions and some primitive animations. These features are partially supported by BeamerPresenter.
+<img srcset=".readme/video-640px.webp 640w, .readme/video-960px.webp 960w" sizes="(max-width: 640px) 640px, 960px" src=".readme/video-960px.webp" width=100% title="Slide showing a video. The speaker window additionally shows a slider to control the video.">
 
 
 ## Build and install
