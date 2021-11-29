@@ -53,18 +53,23 @@ public:
 
 private:
     /// List of currently visible paths in the order in which they were created
-    /// TODO: don't use this when this is currently active on scene?
+    /// @todo don't use this when this is currently active on scene?
     QList<QGraphicsItem*> paths;
 
     /// List of changes forming the history of this, in the order in which they
     /// were created.
     QList<DrawHistoryStep*> history;
 
-    /// Current position in history, measured from history.last().
-    /// inHistory == 1 means "one change before the latest version".
-    /// This may never become >=history.length().
-    /// inHistory == -1 indicates that eraser microsteps are being applied.
-    /// inHistory == -2 indicates that this entry has been created as a copy and has never been edited.
+    /**
+     * Current position in history, measured from history.last().
+     *
+     * inHistory == 1 means "one change before the latest version".
+     * This may never become >=history.length().
+     *
+     * Special values are:
+     * * inHistory == -1 indicates that eraser microsteps are being applied.
+     * * inHistory == -2 indicates that this entry has been created as a copy and has never been edited.
+     */
     int inHistory = 0;
 
     /// Remove all "redo" options.
@@ -77,24 +82,30 @@ public:
     /// Destructor. Delete history and paths.
     ~PathContainer();
 
-    /// Create a new PathContainer which is a copy of this but without any history.
+    /// Create a new PathContainer which is a copy of this but does not have any history.
     PathContainer *copy() const noexcept;
 
-    /// Undo latest change. Return true on success and false on failure.
+    /// Undo latest change.
+    /// @return true on success and false on failure.
+    /// @see redo()
     bool undo(QGraphicsScene *scene = NULL);
 
-    /// Redo latest change. Return true on success and false on failure.
+    /// Redo latest change.
+    /// @return true on success and false on failure.
+    /// @see undo()
     bool redo(QGraphicsScene *scene = NULL);
 
     /// Iterator over current paths.
+    /// @see cend()
     QList<QGraphicsItem*>::const_iterator cbegin() const noexcept
     {return paths.cbegin();}
 
     /// End of iterator over current paths.
+    /// @see cbegin()
     QList<QGraphicsItem*>::const_iterator cend() const noexcept
     {return paths.cend();}
 
-    /// Clear history such that only *n* undo steps are possible.
+    /// Clear history such that only n undo steps are possible.
     void clearHistory(int n = 0);
 
     /// Clear paths in a new history step.
@@ -103,26 +114,39 @@ public:
     /// Add a new QGraphisItem* in a new history step.
     void append(QGraphicsItem *item);
 
-    /// Start eraser step. An eraser step in history is caused by multiple
-    /// events (eraser move events), which are all managed by PathContainer.
-    /// We call them micro steps. Start erasing by initializing an eraser
-    /// step in history.
+    /**
+     * Start eraser step. An eraser step in history is caused by multiple
+     * events (eraser move events), which are all managed by PathContainer.
+     * We call them micro steps. Start erasing by initializing an eraser
+     * step in history.
+     * @see eraserMicroStep()
+     * @see applyMicroStep()
+     */
     void startMicroStep();
 
-    /// Apply the micro steps forming an eraser step. In the eraser micro steps
-    /// paths and history.last() do not have the usual form. Instead of
-    /// top-level QGraphicsItems, paths also contains QGraphicsItemGroups of
-    /// paths split by erasing. This is all fixed and brought to the usual form
-    /// in applyMicroStep().
-    /// Return true if anything has changed.
+    /**
+     * Apply the micro steps forming an eraser step. In the eraser micro steps
+     * paths and history.last() do not have the usual form. Instead of
+     * top-level QGraphicsItems, paths also contains QGraphicsItemGroups of
+     * paths split by erasing. This is all fixed and brought to the usual form
+     * in applyMicroStep().
+     * @return true if anything has changed, false otherwise.
+     * @see startMicroStep()
+     * @see eraserMicroStep()
+     */
     bool applyMicroStep();
 
-    /// Single eraser move event. This erasees paths at pos with given eraser
-    /// size. Before this function startMicroStep() has to be called and
-    /// afterwards a call to applyMicroStep() is necessary.
+    /**
+     * Single eraser move event. This erasees paths at pos with given eraser
+     * size. Before this function startMicroStep() has to be called and
+     * afterwards a call to applyMicroStep() is necessary.
+     * @see startMicroStep()
+     * @see applyMicroStep()
+     */
     void eraserMicroStep(const QPointF &pos, const qreal size = 10.);
 
     /// Check if this contains any information.
+    /// @return true if this contains any elements or history steps.
     bool isEmpty() const noexcept
     {return paths.isEmpty() && history.isEmpty();}
 
@@ -131,24 +155,32 @@ public:
     {return paths.isEmpty();}
 
     /// Check if this is an unchanged copy of another PathContainer.
+    /// @return true if inHistory == -2
     bool isPlainCopy() const noexcept
     {return inHistory == -2;}
 
     /// Save drawings in xml format.
+    /// @see loadDrawings(QXmlStreamReader &reader)
     void writeXml(QXmlStreamWriter &writer) const;
 
     /// Load drawings for one specific page.
+    /// @see writeXml(QXmlStreamWriter &writer)
     void loadDrawings(QXmlStreamReader &reader);
+
     /// Load drawings for one specific page in left and right page part.
+    /// @see loadDrawings(QXmlStreamReader &reader)
+    /// @see writeXml(QXmlStreamWriter &writer)
     static void loadDrawings(QXmlStreamReader &reader, PathContainer *left, PathContainer *right, const qreal page_half);
 
-    /// Bounding box of all drawings.
+    /// @return bounding box of all drawings
     QRectF boundingBox() const noexcept;
 
 public slots:
+    /// Create history step that removes the given item.
     /// Items (currently only text items) may detect that they should be removed.
     /// They can then inform this function, which removes them and adds this as a new history step.
     void removeItem(QGraphicsItem *item);
+
     /// Notify of a change in a text item, add the item to history if necessary.
     void addTextItem(QGraphicsItem *item);
 };

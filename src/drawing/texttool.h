@@ -8,9 +8,7 @@
  * @brief Tool for adding or editing text.
  *
  * @todo better history
- *
  * @todo more flexible text handling (rich text)
- *
  * @todo change font and move text after it was created.
  */
 class TextTool : public Tool
@@ -22,22 +20,26 @@ class TextTool : public Tool
 
 public:
     /// Copy constructor.
+    /// @param other tool to be copied
     TextTool(const TextTool& other) :
         Tool(TextInputTool, other._device), _font(other._font), _color(other._color) {}
 
-    /// Constructor with complete initialization.
+    /// Constructor with full initialization.
+    /// @param font font
+    /// @param color text color
+    /// @param device input device(s) defined by combination of flags
     TextTool(const QFont &font = QFont(), const QColor &color = Qt::black, const int device = 0) noexcept :
         Tool(TextInputTool, device), _font(font), _color(color) {}
 
-    /// get function for _font
+    /// @return _font
     QFont &font() noexcept
     {return _font;}
 
-    /// constant get function for _font
+    /// @return _font
     const QFont &font() const noexcept
     {return _font;}
 
-    /// constant get function for _color
+    /// @return _color
     const QColor &color() const noexcept
     {return _color;}
 

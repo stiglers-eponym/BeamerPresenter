@@ -24,10 +24,10 @@ public:
     TextGraphicsItem(QGraphicsItem *parent = NULL) : QGraphicsTextItem(parent)
     {setTextInteractionFlags(Qt::TextEditorInteraction);}
 
-    /// Copy/clone this item.
+    /// @return copy this item
     TextGraphicsItem *clone() const;
 
-    /// QGraphicsItem type.
+    /// @return custom QGraphicsItem type.
     int type() const noexcept override
     {return Type;}
 
@@ -36,18 +36,25 @@ public:
     {return document()->isEmpty();}
 
 protected:
-    /// emit removeMe if text is empty after this looses focus
+    /// Called when this looses focus.
+    /// Notify PathContainer of new or removed text items.
+    /// @see removeMe()
+    /// @see addMe()
     void focusOutEvent(QFocusEvent *event) override;
 
     /// disable context menu event by disabling this function
     void contextMenuEvent(QGraphicsSceneContextMenuEvent*) override {}
 
 signals:
-    /// Add this to history management.
+    /// Tell PathContainer to add this to history.
     /// Emitted when focus is removed and this is not empty.
+    /// @see focusOutEvent()
     void addMe(QGraphicsItem *me);
-    /// Add history step that removes this.
-    /// Emitted when all text is deleted.
+
+    /// Tell PathContainer to remove this.
+    /// Add history step in PathContainer that removes this.
+    /// Emitted when all text is deleted and this looses focus.
+    /// @see focusOutEvent()
     void removeMe(QGraphicsItem *me);
 };
 

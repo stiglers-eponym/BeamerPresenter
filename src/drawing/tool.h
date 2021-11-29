@@ -18,11 +18,12 @@ public:
     /// The following 3 bits are used as flags for classes of tools.
     enum BasicTool
     {
-        // Invalid tool
-        InvalidTool = 0,
         // General tools, class Tool
+        /// Invalid tool
+        InvalidTool = 0,
+        /// Text input tool
         TextInputTool = 1,
-        // No tool
+        /// No tool
         NoTool = 0x1f,
 
         // Classes of tools, defined by single bits

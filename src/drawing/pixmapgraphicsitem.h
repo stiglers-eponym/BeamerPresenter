@@ -82,14 +82,17 @@ public:
     explicit PixmapGraphicsItem(const QRectF &rect, QGraphicsItem *parent = NULL) :
         QObject(NULL), QGraphicsItem(parent), bounding_rect(rect) {}
 
-    /// return custom type of QGraphicsItem.
+    /// @return custom QGraphicsItem type
     int type() const noexcept override
     {return Type;}
 
     /// Check whether this contains a pixmap with the given width or with width+1.
     bool hasWidth(const unsigned int width) const noexcept;
 
-    /// Paint this QGraphicsItem to painter.
+    /// Paint this on given painter.
+    /// @param painter paint to this painter.
+    /// @param option currently ignored.
+    /// @param widget currently ignored.
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget = NULL) override;
 
     /// Bounding rect in scene coordinates
@@ -99,25 +102,28 @@ public:
     /// Get pixmap with the given width or next larger width.
     QPixmap getPixmap(const unsigned int width) const noexcept;
 
-    /// get function for _mask
+    /// @return _mask
+    /// @see setMask()
     const QRectF mask() const noexcept
     {return _mask;}
 
-    /// get function for mask_type
+    /// @return mask_type
+    /// @see setMaskType()
     MaskType maskType() const noexcept
     {return mask_type;}
 
-    /// get function for animation_progress.
-    /// @return animation progress in glitter animation.
+    /// @return animation_progress (used in glitter animation).
+    /// @see setProgress()
     int progress() const noexcept
     {return animation_progress;}
 
-    /// Return number of pixmaps.
+    /// @return number of pixmaps.
     int number() const noexcept
     {return pixmaps.size();}
 
 #ifdef QT_DEBUG
-    /// List all available widths. Only required for debugging.
+    /// Only for debugging.
+    /// @return list all available widths
     QList<unsigned int> widths() const
     {return pixmaps.keys();}
 #endif
@@ -139,20 +145,25 @@ public slots:
     {pixmaps.clear();}
 
     /// Start tracking changes.
+    /// @see clearOld()
     void trackNew() noexcept
     {newHashs.clear();}
 
     /// Clear everything that was added or modified before the latest call to trackNew().
+    /// @see trackNew()
     void clearOld() noexcept;
 
     /// Set rectangular mask.
+    /// @see mask()
     void setMask(const QRectF &rect) noexcept
     {_mask = rect; update();}
 
     /// Set mask type (meaning of mask).
+    /// @see maskType()
     void setMaskType(const MaskType type) noexcept;
 
     /// Set animation progress (only in glitter transition).
+    /// @see progress()
     void setProgress(const int progress) noexcept
     {animation_progress = progress; update();}
 };

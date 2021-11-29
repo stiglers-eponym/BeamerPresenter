@@ -17,7 +17,7 @@ class FlexGraphicsLineItem : public QGraphicsLineItem
     QPainter::CompositionMode mode;
 
 public:
-    /// QGraphicsItem::Type
+    /// @return custom QGraphicsItem type
     enum {Type = UserType + 3};
 
     /// Constructor.

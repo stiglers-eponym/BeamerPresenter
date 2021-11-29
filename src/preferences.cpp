@@ -439,7 +439,7 @@ void Preferences::loadFromParser(const QCommandLineParser &parser)
     }
 
 #ifdef QT_DEBUG
-    /// (Re)load debug info from command line.
+    // (Re)load debug info from command line.
     if (settings.contains("debug"))
         loadDebugFromParser(parser);
 #endif

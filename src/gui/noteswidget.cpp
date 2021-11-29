@@ -25,7 +25,7 @@ void NotesWidget::loadNotes(const QString &filename)
         {
             if (reader.readNext() == QXmlStreamReader::StartElement)
             {
-                /// TODO: QStringView::toUtf8() is probably inefficient for string comparison
+                // TODO: QStringView::toUtf8() is probably inefficient for string comparison
                 if (reader.name().toUtf8() == "speakernotes")
                     readNotes(reader);
                 else if (reader.name().toUtf8() == "xournal")

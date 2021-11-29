@@ -163,6 +163,18 @@ QList<AbstractGraphicsPath*> BasicGraphicsPath::splitErase(const QPointF &pos, c
     return list;
 }
 
+void BasicGraphicsPath::changeTool(const DrawTool &newtool) noexcept
+{
+    if (newtool.tool() != _tool.tool())
+    {
+        qWarning() << "Cannot change tool to different base tool.";
+        return;
+    }
+    _tool.setPen(newtool.pen());
+    _tool.setWidth(newtool.width());
+    _tool.setCompositionMode(newtool.compositionMode());
+}
+
 const QString BasicGraphicsPath::stringCoordinates() const noexcept
 {
     QString str;

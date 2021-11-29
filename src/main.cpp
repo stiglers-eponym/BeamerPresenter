@@ -22,14 +22,15 @@ extern "C"
 #endif
 
 /// Provides globally available pointer to writable preferences.
+/// @return globally shared preferences, writable
 Preferences *writable_preferences(Preferences *new_preferences)
 {
     static Preferences *preferences{new_preferences};
     return preferences;
 }
 
-/// Get read-only globally shared preferences object.
-/// This is the usual way of accessing preferences.
+/// Provides globally available pointer to preferences.
+/// @return globally shared preferences, read only
 const Preferences *preferences()
 {
     return writable_preferences();

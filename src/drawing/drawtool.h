@@ -5,8 +5,11 @@
 #include <QPainter>
 #include "src/drawing/tool.h"
 
-/// Tool used to draw strokes. Container class for pen, opacity and
-/// composition mode.
+/**
+ * @brief Tool used to draw strokes.
+ *
+ * Container class for pen, opacity and composition mode.
+ */
 class DrawTool : public Tool
 {
 protected:
@@ -21,10 +24,15 @@ protected:
 
 public:
     /// Copy constructor.
+    /// @param other tool to be copied
     DrawTool(const DrawTool& other) :
         Tool(other._tool, other._device), _pen(other._pen), composition_mode(other.composition_mode) {}
 
     /// Constructor with full initialization.
+    /// @param tool basic tool. Must be a tool for drawing.
+    /// @param device input device(s) defined by combination of flags
+    /// @param pen pen used for stroking path
+    /// @param mode composition mode for stroking path
     DrawTool(const BasicTool tool, const int device, const QPen &pen, const QPainter::CompositionMode mode = QPainter::CompositionMode_SourceOver) noexcept :
         Tool(tool, device), _pen(pen), composition_mode(mode) {}
 
@@ -32,19 +40,19 @@ public:
     virtual bool operator==(const DrawTool &other) const noexcept
     {return _tool==other._tool && _device==other._device && _pen==other._pen && composition_mode==other.composition_mode;}
 
-    /// get function for _pen
+    /// @return _pen
     const QPen &pen() const noexcept
     {return _pen;}
 
-    /// Stroke width (pen/highlighter) in points.
+    /// @return stroke width in points
     float width() const noexcept
     {return _pen.widthF();}
 
-    /// Pen color.
+    /// @return pen color
     const QColor color() const noexcept
     {return _pen.color();}
 
-    /// get function for composition_mode
+    /// @return composition_mode
     QPainter::CompositionMode compositionMode() const noexcept
     {return composition_mode;}
 
@@ -56,7 +64,7 @@ public:
     void setPen(const QPen &pen) noexcept
     {_pen = pen;}
 
-    /// Set width in points.
+    /// Set stroke width in points.
     void setWidth(const float width) noexcept
     {_pen.setWidthF(width);}
 };

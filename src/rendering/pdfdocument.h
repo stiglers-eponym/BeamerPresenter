@@ -6,8 +6,14 @@
 #include <QRectF>
 #include <QVector>
 
-/// Abstract class for handling PDF documents.
-/// This class is inherited by classes specific for PDF engines.
+/**
+ * @brief Abstract class for handling PDF documents.
+ *
+ * This class is implemented for different PDF engines.
+ * These PDF engines are Poppler and MuPDF.
+ * @see MuPdfDocument
+ * @see PopplerDocument
+ */
 class PdfDocument
 {
 public:
@@ -30,13 +36,21 @@ public:
         /// Media type. Embedded types are currently not supported.
         enum Type
         {
+            /// not initialized or invalid
             InvalidAnnotation = 0,
+            /// flag for media annnotation that has audio
             HasAudio = 1 << 0,
+            /// flag for media annnotation that has video
             HasVideo = 1 << 1,
+            /// flag for embedded media annnotation. Not embedded means external file.
             Embedded = 1 << 2,
+            /// embedded video (doesn't exist, but why not included it here)
             VideoEmbedded = 7,
+            /// embedded audio (currently not supported)
             AudioEmbedded = 5,
+            /// external video (with audio)
             VideoExternal = 3,
+            /// external audio-only file
             AudioExternal = 1,
         };
         /// Media type.
@@ -45,10 +59,15 @@ public:
         /// Play modes of media.
         enum Mode
         {
+            /// Invlid mode
             InvalidMode = -1,
+            /// Play media only once
             Once = 0,
+            /// Play video and show controll bar. Currently ignored.
             Open,
+            /// Play continuously forward and backward. Currently not implemented.
             Palindrome,
+            /// Play repeatedly (infinite loop).
             Repeat,
         }
         /// Play mode
@@ -87,11 +106,15 @@ public:
         /// Bit per sample
         int bit_per_sample = 8;
 
-        /// Audio encoding modes
+        /// Audio encoding modes as defined by PDF standard
         enum Encoding {
+            /// Raw unsigned integers between 0 and 2^8-1
             SoundEncodingRaw,
+            /// Twos-complement values
             SoundEncodingSigned,
+            /// mu-law encoded samples
             SoundEncodingMuLaw,
+            /// A-law-encoded samples
             SoundEncodingALaw,
         }
         /// Audio encoding
@@ -99,6 +122,7 @@ public:
 
         /// Stream compression modes
         enum Compression {
+            /// no compression
             Uncompressed,
         }
         /// Stream compression
@@ -122,13 +146,19 @@ public:
         /// Types of links in PDF.
         /// These are all negative, because positive values are interpreted as page
         /// numbers for internal navigation links.
+        /// \todo implement other than internal links
         enum LinkType
         {
+            /// Link of unknown type.
             NoLink = -1,
+            /// currently ignored: navigation link with undefined page.
             NavigationLink = -2,
+            /// external link (e.g. to a website or local file)
             ExternalLink = -3,
+            /// Link to movie annotation
             MovieLink = -4,
-            SoundLinx = -5,
+            /// Link to sound annotation
+            SoundLink = -5,
         };
 
         /// Positive values of type are interpreted as page numbers.
@@ -150,32 +180,49 @@ public:
 
     /// Unified type of slide transition for all PDF engines.
     struct SlideTransition {
-        /// Slide tansition Types.
+        /// Slide tansition types as define by the PDF standard.
+        /// The numbers used here are the same as in fz_transition::type and
+        /// in Poppler::PageTransition::Type.
         enum Type
         {
+            /// Invalid slide transition.
             Invalid = -1,
-            // The numbers used here are the same as in fz_transition::type and
-            // in Poppler::PageTransition::Type.
+            /// No transition.
             Replace = 0,
+            /// 2 lines sweep accross the screen and reveal the next page.
             Split = 1,
+            /// Multiple lines seep accross the screen and reveal the next page.
             Blinds = 2,
+            /// A box seeps inward or outward and reveals the next page.
             Box = 3,
+            /// Single line seeping accross the screen to reveal the next page.
             Wipe = 4,
+            /// Current page becomes transparent to reveal next page.
             Dissolve = 5,
+            /// The screen is divided in small squares which change to the next page in pseudo-random order.
             Glitter = 6,
+            /// Changes fly in or out.
             Fly = 7,
+            /// Current page is pushed away by next page.
             Push = 8,
+            /// Next page flies in and covers current page.
             Cover = 9,
+            /// Current page flies out to uncover next page.
             Uncover = 10,
+            /// Current slide dissolves, background color becomes visible, and next slide appears.
             Fade = 11,
+            /// Fly animation in which a rectangle including all changes flies in.
+            /// Currently not implemented and treated like Fly.
             FlyRectangle = 12,
         };
 
         /// Direction controlled by 2 bits for outwards and vertical.
         enum Properties
         {
-            Outwards = 1,
-            Vertical = 2,
+            /// direction flag in to out.
+            Outwards = 1 << 0,
+            /// orientation flag vertical.
+            Vertical = 1 << 1,
         };
 
         /// Type of the slide transition.
@@ -197,7 +244,7 @@ public:
         float scale = 1.;
 
         /// Create time-reverse of slide transition (in place)
-        void invert()
+        void invert() noexcept
         {properties ^= Outwards; angle = (angle + 180) % 360;}
     };
 

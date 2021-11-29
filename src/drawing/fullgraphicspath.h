@@ -9,7 +9,8 @@
  * QGraphicsItem representing a path with flexible width.
  * Each node of the graph contains not only coordinates, but also the width
  * for the connection to the next node.
- * See AbstractGraphicsPath for details.
+ *
+ * @see AbstractGraphicsPath
  */
 class FullGraphicsPath : public AbstractGraphicsPath
 {
@@ -36,55 +37,64 @@ public:
     /// Custom type of QGraphicsItem.
     enum { Type = UserType + 2 };
 
-    /// Construct path with given initial node and default pen.
+    /// Construct path starting at given position.
+    /// @param tool draw tool for stroking path
+    /// @param pos first node (coordinate) in this path
+    /// @param pressure pen pressure at first node
     FullGraphicsPath(const DrawTool &tool, const QPointF &pos, const float pressure);
 
-    /// Construct path from string representation of coordinates and width.
+    /// Construct path from coordinate string and widths.
+    /// @param tool draw tool for stroking path
+    /// @param coordinates string representing nodes as space separated numbers
+    ///        in the form x1 y1 x2 y2 x3 y3 ...
+    /// @param widths string representing stroke widths in points as space
+    ///        separated list in the form w1 w2 w3 ...
     FullGraphicsPath(const DrawTool &tool, const QString &coordinates, const QString &widths);
 
     /// Construct subpath of other FullGraphicsPath, including nodes first to
     /// last-1 of other.
+    /// @param other other graphics path from which a subpath should be created
+    /// @param first index of first node contained in the subpath.
+    /// @param last index of first node after the subpath.
     FullGraphicsPath(const FullGraphicsPath *const other, int first, int last);
 
-    /// return custom type of QGraphicsItem.
+    /// @return custom type of QGraphicsItem.
     int type() const noexcept override
     {return Type;}
 
-    /// Number of nodes of the path.
     int size() const noexcept override
     {return data.size();}
 
-    /// Position of last node in the path.
-    /// Returns QPointF() if path is empty.
     const QPointF lastPoint() const noexcept override
     {return data.isEmpty() ? QPointF() : data.last().point();}
 
-    /// Position of first node in the path.
-    /// Returns QPointF() if path is empty.
     const QPointF firstPoint() const noexcept override
     {return data.isEmpty() ? QPointF() : data.first().point();}
 
     /// Paint this on given painter. Options and widget are currently
     /// discarded.
+    /// @param painter paint to this painter.
+    /// @param option currently ignored.
+    /// @param widget currently ignored.
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget = NULL) override;
 
     /// Add a point to data and update bounding rect.
+    /// @param point new node
+    /// @param pressure pen pressure at next node
     void addPoint(const QPointF &point, const float pressure);
 
-    /// Erase at position pos. Return a list of paths obtained when splitting
-    /// this by erasing at pos with given eraser size.
     QList<AbstractGraphicsPath*> splitErase(const QPointF &pos, const qreal size) const override;
 
     /// Change width in-place.
+    /// @param newwidth new tool width
     void changeWidth(const float newwidth) noexcept;
 
-    /// Change tool in-place.
-    void changeTool(const DrawTool &newtool) noexcept;
+    void changeTool(const DrawTool &newtool) noexcept override;
 
-    /// resturn coordinates formatted as string for saving.
     const QString stringCoordinates() const noexcept override;
 
-    /// resturn width formatted as string for saving.
+    /// Write stroke widths to string for saving.
+    /// @return space separated list of widths of the lines
     const QString stringWidth() const noexcept override;
 };
 
