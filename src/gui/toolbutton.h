@@ -8,6 +8,10 @@ class QEvent;
 
 /**
  * @brief Tool button for drawing and pointing tools.
+ *
+ * @see ActionButton
+ * @see ToolSelectorWidget
+ * @see ToolDialog
  */
 class ToolButton : public QToolButton
 {

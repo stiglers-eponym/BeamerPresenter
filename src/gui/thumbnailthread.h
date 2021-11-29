@@ -17,6 +17,9 @@ class ThumbnailButton;
  *
  * The images are not directly shown in the buttons from this thread,
  * because that should happen in the main thread.
+ *
+ * @see ThumbnailWidget
+ * @see ThumbnailButton
  */
 class ThumbnailThread : public QObject
 {

@@ -4,9 +4,11 @@
 #include <QSlider>
 
 /**
- * @brief MediaSlider class, extension of QSlider
+ * @brief extension of QSlider
  *
  * horizontal slider which accepts qint64 values for maximum and value.
+ *
+ * @see MediaPlayer
  */
 class MediaSlider : public QSlider
 {

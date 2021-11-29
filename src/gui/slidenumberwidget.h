@@ -7,8 +7,15 @@ class QLabel;
 class QLineEdit;
 class QResizeEvent;
 
-/// Widget showing current page number (editable) and total number of pages.
-/// TODO: keyboard shortcuts while in QLineEdit.
+/**
+ * @brief Widget showing current page number (editable) and total number of pages.
+ *
+ * Much of this is identical to SlideLabelWidget, but here the page
+ * index is shown instead of the page label.
+ *
+ * @see SlideLabelWidget
+ * @todo keyboard shortcuts while in QLineEdit.
+ */
 class SlideNumberWidget : public QWidget
 {
     Q_OBJECT

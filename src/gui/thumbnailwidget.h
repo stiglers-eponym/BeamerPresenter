@@ -10,6 +10,9 @@ class ThumbnailThread;
 /**
  * @brief Widget showing thumbnail slides on grid layout in scroll area.
  *
+ * @see ThumbnailButton
+ * @see ThumbnailThread
+ *
  * @todo don't change slide after touch scroll event
  * @todo clear when resizing?
  */

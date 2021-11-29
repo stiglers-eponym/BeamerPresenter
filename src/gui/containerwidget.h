@@ -8,6 +8,10 @@
  * @brief  Widget for arangement of child widgets in QBoxLayout.
  *
  * Flexible container for widget arangement as read from json configuration file.
+ *
+ * @see TabWidget
+ * @see StackedWidget
+ * @see FlexLayout
  */
 class ContainerWidget : public QWidget
 {

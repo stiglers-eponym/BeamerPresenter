@@ -164,12 +164,12 @@ public:
     void writeXml(QXmlStreamWriter &writer) const;
 
     /// Load drawings for one specific page.
-    /// @see writeXml(QXmlStreamWriter &writer)
+    /// @see writeXml(QXmlStreamWriter &writer) const
     void loadDrawings(QXmlStreamReader &reader);
 
     /// Load drawings for one specific page in left and right page part.
     /// @see loadDrawings(QXmlStreamReader &reader)
-    /// @see writeXml(QXmlStreamWriter &writer)
+    /// @see writeXml(QXmlStreamWriter &writer) const
     static void loadDrawings(QXmlStreamReader &reader, PathContainer *left, PathContainer *right, const qreal page_half);
 
     /// @return bounding box of all drawings

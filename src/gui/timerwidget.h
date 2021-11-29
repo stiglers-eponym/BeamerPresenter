@@ -28,6 +28,8 @@ static const QMap<qint32, QRgb> default_timer_colormap
  * estimate or target for total time.
  *
  * Emits timeout event.
+ *
+ * @see ClockWidget
  */
 class TimerWidget : public QWidget
 {
@@ -36,8 +38,13 @@ class TimerWidget : public QWidget
 public:
     enum
     {
+        /// passed time is larger than total time
         Timeout = 1 << 0,
+        /// Double click on the widget will set time for current slide without
+        /// asking for confirmation.
         SetTimeWithoutConfirmation = 1 << 1,
+        /// When asking for confirmation of setting time for current slide,
+        /// the default selection is *yes*.
         SetTimerConfirmationDefault = 2 << 1,
     };
 

@@ -15,6 +15,8 @@
  * request to update the layout when it's text is changed. There
  * is no need to recalculate the full layout every second because
  * the clock changes it's text.
+ *
+ * @see TimerWidget
  */
 class ClockWidget : public QLineEdit
 {

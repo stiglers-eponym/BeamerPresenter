@@ -11,6 +11,9 @@ class ToolSelectorWidget;
  *
  * When clicked, this emits sendAction for all actions added to this
  * in no specific order.
+ *
+ * @see ToolButton
+ * @see ToolSelectorWidget
  */
 class ActionButton : public QToolButton
 {

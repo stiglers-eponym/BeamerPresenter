@@ -127,8 +127,8 @@ other systems are welcome!
 When building you need to **define the PDF engine**.
 Build with one of the following commands: (for Qt 6 you might need to replace `qmake` by `qmake6`)
 ```sh
-qmake RENDERER=mupdf && make
-qmake RENDERER=poppler && make
+qmake -config release RENDERER=mupdf && make
+qmake -config release RENDERER=poppler && make
 ```
 To build with debug information you can add `CONFIG+=debug` as an arguments to qmake.
 If this fails and you have all dependencies installed, you should check your

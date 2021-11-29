@@ -7,10 +7,12 @@
 class PdfDocument;
 
 /**
- * @brief TOCwidget class: show document outline.
+ * @brief Widget showing document outline.
  *
  * The document outline is saved as a tree structure of TOCbuttons.
  * The tree root is first_button.
+ *
+ * @see TOCbutton
  */
 class TOCwidget : public QScrollArea
 {

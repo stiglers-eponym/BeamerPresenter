@@ -10,6 +10,9 @@ class Tool;
  * @brief Widget showing grid of buttons
  *
  * Emits sendTool and sendAction when buttons are pressed.
+ *
+ * @see ActionButton
+ * @see ToolButton
  */
 class ToolSelectorWidget : public QWidget
 {

@@ -17,6 +17,9 @@
  * This avoids many repeated calls to QMediaPlayer::setPosition.
  * The video position will only be changed if setPositionSoft is not called
  * for at least 50ms.
+ *
+ * @see MediaSlider
+ * @see PdfDocument::MediaAnnotation
  */
 class MediaPlayer : public QMediaPlayer
 {

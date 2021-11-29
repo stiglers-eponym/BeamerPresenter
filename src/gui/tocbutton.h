@@ -16,6 +16,8 @@
  * Additionally to the main button this owns expand_button, which controls
  * whether the subtree starting at this node should be shown (expanded) or
  * hidden (collapsed).
+ *
+ * @see TOCwidget
  */
 class TOCbutton : public QPushButton
 {

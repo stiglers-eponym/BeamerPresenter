@@ -5,6 +5,8 @@
 
 /**
  * @brief QTabWidget with adjusted size hint
+ * @see StackedWidget
+ * @see ContainerWidget
  */
 class TabWidget : public QTabWidget
 {

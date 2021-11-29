@@ -6,7 +6,10 @@
 class QMouseEvent;
 
 /**
- * @brief ThumbnailButton: pushable button showing page preview
+ * @brief Pushable button showing page preview
+ *
+ * @see ThumbnailWidget
+ * @see ThumbnailThread
  */
 class ThumbnailButton : public QLabel
 {

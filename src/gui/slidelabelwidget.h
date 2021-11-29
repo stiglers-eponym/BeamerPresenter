@@ -7,10 +7,15 @@ class QLabel;
 class QLineEdit;
 class QResizeEvent;
 
-/// Widget showing current page label (editable) and last page label.
-/// TODO: keyboard shortcuts while in QLineEdit.
-/// Much of this is identical to SlideNumberWidget, but here the page
-/// label is shown instead of the page index.
+/**
+ * @brief Widget showing current page label (editable) and last page label.
+ *
+ * Much of this is identical to SlideNumberWidget, but here the page
+ * label is shown instead of the page index.
+ *
+ * @see SlideNumberWidget
+ * @todo keyboard shortcuts while in QLineEdit.
+ */
 class SlideLabelWidget : public QWidget
 {
     Q_OBJECT
