@@ -15,9 +15,12 @@ class PdfDocument;
 class PixCacheThread;
 class AbstractRenderer;
 
-/// Cache of compressed slides as PNG images.
-/// This does the job of rendering slides to images and storing these images
-/// in compressed cache.
+/**
+ * @brief Cache of compressed slides as PNG images.
+ *
+ * This does the job of rendering slides to images and storing these images
+ * in compressed cache.
+ */
 class PixCache : public QObject
 {
     Q_OBJECT
@@ -34,7 +37,7 @@ private:
     QPair<int,int> region = {INT_MAX, -1};
 
     /// Size in which the slides should be rendered.
-    /// TODO: make sure this is updated.
+    /// @todo make sure this is updated.
     QSizeF frame;
 
     /// Amount of memory which should be used by this.
@@ -74,7 +77,11 @@ private:
     qreal getResolution(const int page) const;
 
 public:
+    /// Constructor: only very basic initialization.
+    /// Full initialization is done afterwards by init().
     explicit PixCache(PdfDocument *doc, const int thread_number, const PagePart page_part = FullPage, QObject *parent = NULL);
+
+    /// Destructor: Stop and clean up threads, delete renderer, clear content.
     ~PixCache();
 
     /// Clear cache, delete all cached pages.
@@ -88,10 +95,10 @@ public:
     /// Clean up memory if necessary.
     void setMaxNumber(const int number);
 
-    /// Get pixmap showing page n.
+    /// Get pixmap showing page *page*.
     const QPixmap pixmap(const int page, qreal resolution = -1.) const;
 
-    /// Get pixmap showing page n.
+    /// Get pixmap showing page *page*.
     /// The non-const function additionally writes a new pixmap to cache.
     const QPixmap pixmap(const int page, qreal resolution = -1.);
 
@@ -103,6 +110,7 @@ public:
     float getPixels() const
     {return frame.width() * frame.height();}
 
+    /// Set memory based on scale factor (bytes per pixel).
     void setScaledMemory(const float scale)
     {setMaxMemory(scale * frame.width() * frame.height());}
 
@@ -120,6 +128,8 @@ public slots:
     /// May only be called in this object's thread.
     void requestPage(const int n, const qreal resolution, const bool cache = true);
 
+    /// Write pixmap representing *page* to *target*.
+    /// Additionally write pixmap to cache if it needs to be created.
     void getPixmap(const int page, QPixmap *target, qreal resolution = -1.)
     {*target = pixmap(page, resolution);}
 

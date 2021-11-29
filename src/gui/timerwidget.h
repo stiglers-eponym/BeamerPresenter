@@ -57,17 +57,25 @@ private:
     /// the color of passed.
     quint32 page_target_time = UINT32_MAX;
 
+    /// flags for timeout and for setting per page time (confirmation required or not)
     unsigned char _flags = 0;
 
+    /// Handle timeout: change color, notify master.
+    /// This function does not check or change the timout flag, but should
+    /// be called after the timeout flag has changed.
     void updateTimeout() noexcept;
 
 public:
+    /// Constructor: create layout etc.
     explicit TimerWidget(QWidget *parent = NULL);
+    /// Destructor: delete timer etc.
     ~TimerWidget();
 
+    /// Optimal height depends on width as required by FlexLayout.
     bool hasHeightForWidth() const noexcept override
     {return true;}
 
+    /// Size hint required by layout.
     QSize sizeHint() const noexcept override
     {return {150, 20};}
 
@@ -81,6 +89,7 @@ public:
     /// Map time to color using colormap.
     QColor time2color(const qint32 time) const noexcept;
 
+    /// get function for _flags
     unsigned char &flags() noexcept
     {return _flags;}
 

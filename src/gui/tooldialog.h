@@ -31,6 +31,7 @@ class ToolDialog : public QDialog
     QMap<int, QCheckBox*> device_buttons;
 
 public:
+    /// Constructor: initialize general tool selector.
     ToolDialog(QWidget *parent = NULL);
 
     /// Adjust current settings to values of tool.

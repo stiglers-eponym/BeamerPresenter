@@ -28,10 +28,13 @@ class MediaPlayer : public QMediaPlayer
     QTimer *timer;
 
 public:
+    /// Constructor. Initialize timer for checkPosition.
     explicit MediaPlayer(QObject *parent = nullptr);
+    /// Destructor. Delete timer.
     ~MediaPlayer() noexcept {delete timer;}
 
 private slots:
+    /// Check if new seek position has been set and change position if necessary.
     void checkPosition();
 
 public slots:

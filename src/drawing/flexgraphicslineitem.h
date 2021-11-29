@@ -5,21 +5,26 @@
 #include <QPainter>
 
 /**
- * @class FlexGraphicsLineItem
  * @brief QGraphicsLineItem with adaptable CompositionMode.
- * @abstract Identical to QGraphicsLineItem, with the only difference that
+ *
+ * Identical to QGraphicsLineItem, with the only difference that
  * it has a property composition_mode and adjusts QPainter::CompositionMode
  * before painting.
  */
 class FlexGraphicsLineItem : public QGraphicsLineItem
 {
+    /// Composition mode used for this line.
     QPainter::CompositionMode mode;
 
 public:
+    /// QGraphicsItem::Type
     enum {Type = UserType + 3};
+
+    /// Constructor.
     FlexGraphicsLineItem(const QLineF& line, QPainter::CompositionMode mode = QPainter::CompositionMode_SourceOver) :
         QGraphicsLineItem(line), mode(mode) {}
 
+    /// Paint line to painter.
     virtual void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget = NULL) override
     {painter->setCompositionMode(mode); QGraphicsLineItem::paint(painter, option, widget);}
 };

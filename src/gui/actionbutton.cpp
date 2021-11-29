@@ -47,3 +47,9 @@ void ActionButton::addAction(const Action action)
             setIcon(QIcon::fromTheme(name));
     }
 }
+
+void ActionButton::onClicked() const noexcept
+{
+    for (const auto action : actions)
+        emit sendAction(action);
+}

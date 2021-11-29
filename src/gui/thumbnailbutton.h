@@ -12,13 +12,17 @@ class ThumbnailButton : public QLabel
 {
     Q_OBJECT
 
+    /// index of the page represented by this thumbnail
     const int page;
 
 public:
+    /// Boring constructor.
     ThumbnailButton(const int page, QWidget *parent = NULL);
 
 protected:
+    /// Mouse released: send navigation signal.
     void mouseReleaseEvent(QMouseEvent *event) override;
+    /// Keyboard events for keyboard navigation
     void keyPressEvent(QKeyEvent *event) override;
     /// add red margin when this gets focus
     void focusInEvent(QFocusEvent*) override;
@@ -26,6 +30,7 @@ protected:
     void focusOutEvent(QFocusEvent*) override;
 
 signals:
+    /// Send out navigation event for this page.
     void sendNavigationSignal(int page);
 };
 

@@ -14,16 +14,20 @@ public:
     /// PDF engine
     enum PdfEngine {
 #ifdef INCLUDE_POPPLER
+        /// Poppler PDF engine
         PopplerEngine = 0,
 #endif
 #ifdef INCLUDE_MUPDF
+        /// MuPDF PDF engine
         MuPdfEngine = 1,
 #endif
     };
 
     /// Unified type of PDF media annotations for all PDF engines.
     struct MediaAnnotation {
+        /// URL for (external) media file.
         QUrl file;
+        /// Media type. Embedded types are currently not supported.
         enum Type
         {
             InvalidAnnotation = 0,
@@ -35,7 +39,10 @@ public:
             VideoExternal = 3,
             AudioExternal = 1,
         };
+        /// Media type.
         int type = InvalidAnnotation;
+
+        /// Play modes of media.
         enum Mode
         {
             InvalidMode = -1,
@@ -43,14 +50,23 @@ public:
             Open,
             Palindrome,
             Repeat,
-        } mode = Once;
-        float volume = 1.;
-        QRectF rect;
-        MediaAnnotation() : file(), type(InvalidAnnotation), mode(InvalidMode), rect() {}
-        MediaAnnotation(const QUrl &url, const bool hasvideo, const QRectF &rect) : file(url), type(hasvideo ? 3 : 1), mode(Once), rect(rect) {}
-        MediaAnnotation(const int type, const QRectF &rect) : file(QUrl()), type(type), mode(Once), rect(rect) {}
-        virtual ~MediaAnnotation() {}
+        }
+        /// Play mode
+        mode = Once;
 
+        /// Audio volume of media.
+        float volume = 1.;
+        /// Position of media on slide.
+        QRectF rect;
+        /// Trivial constructor.
+        MediaAnnotation() : file(), type(InvalidAnnotation), mode(InvalidMode), rect() {}
+        /// Constructor for full initialization.
+        MediaAnnotation(const QUrl &url, const bool hasvideo, const QRectF &rect) : file(url), type(hasvideo ? 3 : 1), mode(Once), rect(rect) {}
+        /// Constructor without file.
+        MediaAnnotation(const int type, const QRectF &rect) : file(QUrl()), type(type), mode(Once), rect(rect) {}
+        /// Trivial destructor.
+        virtual ~MediaAnnotation() {}
+        /// Comparison by media type, file, mode, and rect.
         virtual bool operator==(const MediaAnnotation &other) const noexcept
         {return     type == other.type
                     && file == other.file
@@ -60,22 +76,39 @@ public:
 
     /// Embedded media file.
     /// Quite useless because currently these objects cannot be played.
+    /// @todo implement embedded media files.
     struct EmbeddedMedia : MediaAnnotation {
+        /// Data stream.
         QByteArray data;
+        /// Audio sampling rate
         int sampling_rate;
+        /// Audio channels
         int channels = 1;
+        /// Bit per sample
         int bit_per_sample = 8;
+
+        /// Audio encoding modes
         enum Encoding {
             SoundEncodingRaw,
             SoundEncodingSigned,
             SoundEncodingMuLaw,
             SoundEncodingALaw,
-        } encoding = SoundEncodingRaw;
+        }
+        /// Audio encoding
+        encoding = SoundEncodingRaw;
+
+        /// Stream compression modes
         enum Compression {
             Uncompressed,
-        } compression = Uncompressed;
+        }
+        /// Stream compression
+        compression = Uncompressed;
+
+        /// Constructor
         EmbeddedMedia(const QByteArray &data, int sampling_rate, const QRectF &rect) : MediaAnnotation(5, rect), data(data), sampling_rate(sampling_rate) {}
+        /// Trivial destructor
         virtual ~EmbeddedMedia() {}
+        /// Comparison by all properties, including data.
         virtual bool operator==(const MediaAnnotation &other) const noexcept override
         {return     type == other.type
                     && file == other.file
@@ -101,7 +134,7 @@ public:
         /// Positive values of type are interpreted as page numbers.
         /// Negative values are interpreted as LinkType.
         int type = NoLink;
-        QString target;
+        /// Link area on slide
         QRectF area;
     };
 
@@ -163,6 +196,7 @@ public:
         /// Starting point for "flying" relative to the usual "fly" path.
         float scale = 1.;
 
+        /// Create time-reverse of slide transition (in place)
         void invert()
         {properties ^= Outwards; angle = (angle + 180) % 360;}
     };
@@ -234,7 +268,7 @@ public:
     /// Load the PDF outline, fill PdfDocument::outline.
     virtual void loadOutline() = 0;
 
-    /// return outline
+    /// get function for outline
     const QVector<PdfOutlineEntry> &getOutline() const noexcept {return outline;}
 
     /// Return outline entry at given page.

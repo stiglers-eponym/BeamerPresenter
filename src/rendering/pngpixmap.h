@@ -5,7 +5,9 @@
 
 class QPixmap;
 
-/// PNG-compressed QPixmap image.
+/**
+ * @brief PNG-compressed QPixmap image.
+ */
 class PngPixmap
 {
     /// PNG-compressed image.

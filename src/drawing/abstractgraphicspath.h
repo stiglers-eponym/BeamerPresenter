@@ -25,8 +25,15 @@ protected:
      */
     DrawTool _tool;
 
-    /// Bounding rect coordinates.
-    qreal top, bottom, left, right;
+    qreal
+        /// Bounding rect coordinate: top
+        top,
+        /// Bounding rect coordinate: bottom
+        bottom,
+        /// Bounding rect coordinate: left
+        left,
+        /// Bounding rect coordinate: right
+        right;
 
 public:
     /// Constructor: initializing tool.
@@ -48,8 +55,8 @@ public:
     /**
      * @brief Erase at position pos.
      *
-     * Create list of paths obtained when erasing at position <pos> with round
-     * eraser of radius <size>. This list is empty if this path is completely
+     * Create list of paths obtained when erasing at position *pos* with round
+     * eraser of radius *size*. This list is empty if this path is completely
      * erased.
      *
      * @return QList<AbstractGraphicsPath*>, new paths after erasing (possibly
@@ -57,9 +64,7 @@ public:
      */
     virtual QList<AbstractGraphicsPath*> splitErase(const QPointF &pos, const qreal size) const = 0;
 
-    /**
-     * @param tool
-     */
+    /// get function for tool
     const DrawTool &getTool() const noexcept
     {return _tool;}
 

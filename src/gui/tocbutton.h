@@ -59,13 +59,19 @@ public:
     /// of collapse());
     void collapse_hide();
 
+    /// get function for tree_next:
+    /// return next outline element on same level or NULL if there is no
+    /// next element.
     TOCbutton *next() const
     {return tree_next;}
 
+    /// get function for tree_child:
+    /// return first child element or NULL if there is no child element.
     TOCbutton *child() const
     {return tree_child;}
 
 signals:
+    /// Send out navigation event.
     void sendNavigationEvent(const int page);
 };
 

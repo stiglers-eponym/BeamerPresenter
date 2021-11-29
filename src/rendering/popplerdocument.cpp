@@ -246,11 +246,11 @@ const PdfDocument::PdfLink PopplerDocument::linkAt(const int page, const QPointF
 #else
                 const Poppler::LinkGoto *gotolink = static_cast<Poppler::LinkGoto*>(*it);
 #endif
-                return {gotolink->destination().pageNumber() - 1, "", rect};
+                return {gotolink->destination().pageNumber() - 1, rect};
             }
             default:
                 debug_msg(DebugRendering, "Unsupported link" << (*it)->linkType());
-                return {PdfLink::NoLink, "", rect};
+                return {PdfLink::NoLink, rect};
             }
         }
     }

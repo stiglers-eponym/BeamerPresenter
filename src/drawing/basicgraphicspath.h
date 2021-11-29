@@ -6,9 +6,7 @@
 class QPainter;
 
 /**
- * @class BasicGraphicsPath
  * @brief Fixed width graphics path
- * @inherits AbstractGraphicsPath
  *
  * QGraphicsItem representing a path with fixed width. See
  * AbstractGraphicsPath for details.

@@ -35,6 +35,7 @@ public:
     bool hasHeightForWidth() const override
     {return true;}
 
+    /// Size hint required by layout.
     QSize sizeHint() const noexcept override
     {return {100, 200};}
 

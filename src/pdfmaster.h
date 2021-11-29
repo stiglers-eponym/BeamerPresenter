@@ -15,19 +15,27 @@ class PathContainer;
 class QGraphicsItem;
 class QBuffer;
 
-/// Full document including PDF and paths / annotations added by user.
-/// This should also manage drawings and multimedia content of the PDF.
+/**
+ * Full document including PDF and paths / annotations added by user.
+ * This should also manage drawings and multimedia content of the PDF.
+ */
 class PdfMaster : public QObject
 {
     Q_OBJECT
 
 public:
+    /// Mode for handling drawings in overlays.
+    /// Overlays are PDF pages sharing the same label.
     enum OverlayDrawingMode
     {
-        PerPage, // Every page has independent drawings.
-        PerLabel, // All pages with the same label in a simply connected region have the same drawings.
-        Cumulative, // When going to the next page which has the same label, the current drawings are copied.
+        /// Every page has independent drawings.
+        PerPage,
+        /// All pages with the same label in a simply connected region have the same drawings.
+        PerLabel,
+        /// When going to the next page which has the same label, the current drawings are copied.
+        Cumulative,
     };
+    /// Flags for different kinds of unsaved changes.
     enum Flags
     {
         UnsavedDrawings = 1 << 0,
@@ -56,6 +64,7 @@ private:
     /// Time at which a slide should be finished.
     QMap<int, quint32> target_times;
 
+    /// Flags for unsaved changes.
     unsigned char _flags = 0;
 
 public:
@@ -75,6 +84,7 @@ public:
     /// Returns true if it was initialized successfully.
     void initialize(const QString &filename);
 
+    /// get function for _flags
     unsigned char &flags() noexcept
     {return _flags;}
 
@@ -135,13 +145,13 @@ public:
     /// If no document is loaded, this will call loadDocument(path)
     /// with the pdf file path from the xopp file.
     void loadXopp(const QString &filename);
-    /// Reload only the <beamerpresenter> element of Xopp file.
+    /// Reload only the \<beamerpresenter\> element of Xopp file.
     void reloadXoppProperties();
     /// Unzip file to buffer.
     QBuffer *loadZipToBuffer(const QString &filename);
-    /// Helper function for loadXopp: read a <page> element
+    /// Helper function for loadXopp: read a \<page\> element
     void readPageFromStream(QXmlStreamReader &reader, bool &nontrivial_page_part);
-    /// Helper function for loadXopp: read the <beamerpresenter> element
+    /// Helper function for loadXopp: read the \<beamerpresenter\> element
     void readPropertiesFromStream(QXmlStreamReader &reader);
 
     /// Get path container at given page. If overlay_mode==Cumulative, this may
@@ -161,6 +171,7 @@ public:
     /// Clear all drawings including history.
     void clearAllDrawings();
 
+    /// Check if page currently contains any drawings (ignoring history).
     bool hasDrawings() const noexcept;
 
 public slots:
@@ -184,22 +195,24 @@ public slots:
     void requestNewPathContainer(PathContainer **container, int page)
     {*container = pathContainerCreate(page);}
 
+    /// Set time for page and write it to target_times.
     void setTimeForPage(const int page, const quint32 time) noexcept;
 
     /// Get time for given page and write it to time.
     void getTimeForPage(const int page, quint32 &time) const noexcept;
 
+    /// Set UnsavedDrawings flag.
     void newUnsavedDrawings() noexcept
     {_flags |= UnsavedDrawings;}
 
 signals:
     /// Notify all associated SlidesScenes that paths have changed.
-    /// TODO: is this necessary?
+    /// @todo is this necessary?
     void pathsUpdated() const;
     /// Send a navigation signal (to master).
     void navigationSignal(const int page) const;
     /// Notify that views need to be updated.
-    /// TODO: is this necessary?
+    /// @todo is this necessary?
     void update() const;
     /// Write notes from notes widgets to stream writer.
     void writeNotes(QXmlStreamWriter &writer) const;
@@ -209,6 +222,7 @@ signals:
     void setTotalTime(const QTime time) const;
 };
 
+/// Map human readable string to overlay mode.
 static const QMap<QString, PdfMaster::OverlayDrawingMode> string_to_overlay_mode
 {
     {"per page", PdfMaster::PerPage},

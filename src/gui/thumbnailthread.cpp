@@ -16,32 +16,29 @@ ThumbnailThread::ThumbnailThread(const PdfDocument *document) :
         return;
 
     // Create the renderer without any checks.
-    if (!renderer)
+    switch (preferences()->renderer)
     {
-        switch (preferences()->renderer)
-        {
 #ifdef INCLUDE_POPPLER
-        case AbstractRenderer::Poppler:
-            renderer = new PopplerRenderer(static_cast<const PopplerDocument*>(document), preferences()->default_page_part);
-            break;
+    case AbstractRenderer::Poppler:
+        renderer = new PopplerRenderer(static_cast<const PopplerDocument*>(document), preferences()->default_page_part);
+        break;
 #endif
 #ifdef INCLUDE_MUPDF
-        case AbstractRenderer::MuPDF:
-            renderer = new MuPdfRenderer(static_cast<const MuPdfDocument*>(document), preferences()->default_page_part);
-            break;
+    case AbstractRenderer::MuPDF:
+        renderer = new MuPdfRenderer(static_cast<const MuPdfDocument*>(document), preferences()->default_page_part);
+        break;
 #endif
-        case AbstractRenderer::ExternalRenderer:
-            renderer = new ExternalRenderer(preferences()->rendering_command, preferences()->rendering_arguments, document, preferences()->default_page_part);
-            break;
-        }
+    case AbstractRenderer::ExternalRenderer:
+        renderer = new ExternalRenderer(preferences()->rendering_command, preferences()->rendering_arguments, document, preferences()->default_page_part);
+        break;
+    }
 
-        // Check if the renderer is valid
-        if (renderer == NULL || !renderer->isValid())
-        {
-            renderer = NULL;
-            qCritical() << "Creating renderer failed" << preferences()->renderer;
-            return;
-        }
+    // Check if the renderer is valid
+    if (renderer == NULL || !renderer->isValid())
+    {
+        renderer = NULL;
+        qCritical() << "Creating renderer failed" << preferences()->renderer;
+        return;
     }
 }
 

@@ -6,8 +6,7 @@
 class QTextEdit;
 
 /**
- * @class SettingsWidget
- * @brief Graphical intereface to preferences()
+ * @brief Graphical interface to writable_preferences()
  *
  * This must always run in the same thread as preferences(). It contains
  * 4 tabs: a manual, general settings, shortcuts and rendering settings.
@@ -38,13 +37,16 @@ public:
     /// Construct all 4 tabs.
     explicit SettingsWidget(QWidget *parent = NULL);
 
+    /// Size hint for layout.
     QSize sizeHint() const noexcept override
     {return {100,200};}
 
+    /// required by layout.
     bool hasHeightForWidth() const noexcept override
     {return true;}
 
 private slots:
+    /// Create a new keyboard shortcut.
     void appendShortcut();
 
 signals:

@@ -22,7 +22,6 @@ class PathContainer;
 class PixmapGraphicsItem;
 
 /**
- * @class SideScene
  * @brief QGraphicsScene for a presentation slide.
  *
  * Handles drawing events and links. Only instances of SlideView and no
@@ -34,7 +33,7 @@ class SlideScene : public QGraphicsScene
 
 public:
     /// Container of objects required to handle a video and/or audio.
-    // TODO: This implementation with different media players uses much memory.
+    /// @todo This implementation with different media players uses much memory.
     struct MediaItem
     {
         /// basic information about video from PDF
@@ -197,16 +196,17 @@ public:
 protected:
     /**
      * @brief handle pointing device events.
-     * @param event
      *
      * Handle mouse, touch and tablet input events for drawing,
      * highlighting and pointing.
+     * Different types of pointing device events are unified and passed on to handleEvents.
      */
     bool event(QEvent *event) override;
 
     /// Clicked on slide without draw tool (follow link, play video, ...)
     void noToolClicked(const QPointF &pos, const QPointF &startpos = QPointF());
 
+    /// Handle events from different pointing devices.
     void handleEvents(const int device, const QList<QPointF> &pos, const QPointF &start_pos, const float pressure);
 
 public slots:

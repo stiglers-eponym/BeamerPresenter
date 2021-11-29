@@ -20,8 +20,7 @@ static const QMap<Tool::BasicTool, QString> xournal_tool_names
 
 
 /**
- * @class PathContainer
- * @brief collection of QGraphicsItems including a history of changes to these items
+ * @brief Collection of QGraphicsItems including a history of changes to these items
  *
  * This stores drawn paths for one slide even if the slide is not visible.
  * Access the history using undo and redo functions.
@@ -95,7 +94,7 @@ public:
     QList<QGraphicsItem*>::const_iterator cend() const noexcept
     {return paths.cend();}
 
-    /// Clear history such that only <n> undo steps are possible.
+    /// Clear history such that only *n* undo steps are possible.
     void clearHistory(int n = 0);
 
     /// Clear paths in a new history step.

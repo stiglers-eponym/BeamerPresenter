@@ -16,8 +16,10 @@ class ToolSelectorWidget : public QWidget
     Q_OBJECT
 
 public:
+    /// Constructor: initialize layout.
     explicit ToolSelectorWidget(QWidget *parent = NULL);
 
+    /// Size hint for layout.
     QSize sizeHint() const noexcept override;
 
     /// Create and add a action button in row i, column j with action defined by string.
@@ -30,11 +32,15 @@ public:
     /// The button takes ownership of tool.
     void addToolButton(const int i, const int j, Tool *tool);
 
+    /// Optimal height depends on width.
     bool hasHeightForWidth() const noexcept override
     {return true;}
 
 signals:
+    /// Send out action to master.
     void sendAction(const Action action);
+
+    /// Send action status to action buttons.
     void sendStatus(const Action action, const int status);
 
     /// Send a new tool (copy of the tool of a button).

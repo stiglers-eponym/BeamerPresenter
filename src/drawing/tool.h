@@ -5,8 +5,7 @@
 #include <QTabletEvent>
 
 /**
- * @class Tool
- * @brief Basis class for tools on slides
+ * @brief Basis class for all tools on slides.
  *
  * This container class is inherited by DrawTool, PointingTool and TextTool.
  * It contains a type (BasicTool) and device (InputDevice).
@@ -68,6 +67,7 @@ public:
         PressureSensitiveDevices = TabletPen | TabletEraser | TabletCursor | TabletOther,
     };
 
+    /// Distinguish start, stop, update and cancel events.
     enum DeviceEventType
     {
         NoEvent = 1 << 12,
@@ -90,21 +90,26 @@ public:
     Tool(const BasicTool tool, const int device = AnyDevice) noexcept :
         _tool(tool), _device(device) {}
 
+    /// Copy constructor.
     Tool(const Tool &other) noexcept :
         _tool(other._tool), _device(other._device) {}
 
     /// Trivial virtual destructor.
     virtual ~Tool() {}
 
+    /// Comparison by basic tool and device.
     virtual bool operator==(const Tool &other) const noexcept
     {return _tool == other._tool && _device == other._device;}
 
+    /// get function for _tool
     BasicTool tool() const noexcept
     {return _tool;}
 
+    /// get function for _device
     int device() const noexcept
     {return _device;}
 
+    /// set _device.
     void setDevice(const int device) noexcept
     {_device = device;}
 };

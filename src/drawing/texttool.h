@@ -5,38 +5,48 @@
 #include "src/drawing/tool.h"
 
 /**
- * @class TextTool
  * @brief Tool for adding or editing text.
  *
- * TODO:
- *   better input handling, the whole construction is rather improvised
- *   history for text editing
+ * @todo better history
+ *
+ * @todo more flexible text handling (rich text)
+ *
+ * @todo change font and move text after it was created.
  */
 class TextTool : public Tool
 {
+    /// font for text
     QFont _font;
+    /// text color
     QColor _color;
 
 public:
+    /// Copy constructor.
     TextTool(const TextTool& other) :
         Tool(TextInputTool, other._device), _font(other._font), _color(other._color) {}
 
+    /// Constructor with complete initialization.
     TextTool(const QFont &font = QFont(), const QColor &color = Qt::black, const int device = 0) noexcept :
         Tool(TextInputTool, device), _font(font), _color(color) {}
 
+    /// get function for _font
     QFont &font() noexcept
     {return _font;}
 
+    /// constant get function for _font
     const QFont &font() const noexcept
     {return _font;}
 
+    /// constant get function for _color
     const QColor &color() const noexcept
     {return _color;}
 
+    /// set function for _color
     void setColor(const QColor &color) noexcept
     {_color = color;}
 
-    void setColor(const QFont &font) noexcept
+    /// set function for _font
+    void setFont(const QFont &font) noexcept
     {_font = font;}
 };
 

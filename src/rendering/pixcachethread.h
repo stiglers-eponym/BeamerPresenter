@@ -8,7 +8,9 @@ class PngPixmap;
 class PdfDocument;
 class AbstractRenderer;
 
-/// Separate thread for rendering page pixmaps to (compressed) cache.
+/**
+ * @brief Separate thread for rendering page pixmaps to (compressed) cache.
+ */
 class PixCacheThread : public QThread
 {
     Q_OBJECT

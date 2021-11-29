@@ -56,6 +56,7 @@ private slots:
     {setText(QTime::currentTime().toString(Qt::TextDate));}
 
 signals:
+    /// Send action (toggle timer) to master.
     void sendAction(const Action);
 };
 

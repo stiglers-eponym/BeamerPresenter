@@ -5,6 +5,9 @@
 #include "src/rendering/popplerdocument.h"
 #include <QPixmap>
 
+/**
+ * @brief Implement AbstractRenderer using Poppler.
+ */
 class PopplerRenderer : public AbstractRenderer
 {
     /// Poppler PDF document.

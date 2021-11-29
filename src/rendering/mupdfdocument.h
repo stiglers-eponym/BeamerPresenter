@@ -14,8 +14,12 @@ extern "C"
 
 class QMutex;
 
-/// Document representing a PDF loaded by MuPDF.
-/// MuPDF requires careful treatment of separte threads!
+/**
+ * @brief MuPDF implementation of PdfDocument
+ *
+ * Document representing a PDF loaded by MuPDF.
+ * MuPDF requires careful treatment of separte threads!
+ */
 class MuPdfDocument : public PdfDocument
 {
 public:
@@ -23,8 +27,11 @@ public:
     /// MuPdfDocument::loadPageLabels().
     struct label_item
     {
+        /// Page label style
         const char* style;
+        /// Page label prefix
         const char* prefix;
+        /// Page label start number
         int start_value;
     };
 

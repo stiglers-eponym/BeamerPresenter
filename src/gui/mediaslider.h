@@ -13,13 +13,17 @@ class MediaSlider : public QSlider
     Q_OBJECT
 
 public:
+    /// Trivial constructor.
     explicit MediaSlider(QWidget *parent = NULL) : QSlider(Qt::Horizontal, parent) {}
+    /// Trivial destructor.
     ~MediaSlider() noexcept {}
 
 public slots:
+    /// Set maximum (time in ms).
     void setMaximumInt64(qint64 maximum)
     {setMaximum(int(maximum));}
 
+    /// Set position (time in ms).
     void setValueInt64(qint64 value)
     {setValue(int(value));}
 };

@@ -13,6 +13,11 @@
 
 class PngPixmap;
 
+/**
+ * @brief Implement PdfDocument using Qt bindings of poppler.
+ *
+ * @todo detailed documentation
+ */
 class PopplerDocument : public PdfDocument
 {
     /// Poppler document representing the PDF.
@@ -93,6 +98,7 @@ public:
     qreal duration(const int page) const noexcept override;
 };
 
+/// Convert Poppler's sound encoding enumerate to PdfDocument's sound encoding.
 static const QMap<Poppler::SoundObject::SoundEncoding, PdfDocument::EmbeddedMedia::Encoding> convert_sound_encoding = {
     {Poppler::SoundObject::Raw, PdfDocument::EmbeddedMedia::SoundEncodingRaw},
     {Poppler::SoundObject::ALaw, PdfDocument::EmbeddedMedia::SoundEncodingALaw},

@@ -179,7 +179,9 @@ public:
     /// Map "presentation", "notes", ... to file names.
     /// This is needed to interpret GUI config.
     QMap<QString, QString> file_alias;
+    /// Main document
     const PdfDocument *document = NULL;
+    /// Number of pages in main document
     int number_of_pages = 0;
 
 
@@ -217,6 +219,7 @@ public:
     /// Load settings from given file.
     Preferences(const QString &file, QObject *parent = NULL);
 
+    /// Destructor. Deletes current_tools and key_tools.
     ~Preferences();
 
     /// Load settings from QSettings.
@@ -248,7 +251,11 @@ public:
     /// Remove an action from a key sequence.
     void removeKeyAction(const QKeySequence sequence, const Action action);
 
-    static void parseActionsTools(const QVariant &input, QList<Action> &actions, QList<Tool *> &tools, const int default_device = 0);
+    /// Interpret input as definition of tools and actions.
+    /// Append these tools and actions to the given lists.
+    /// This function is used for reading tools/actions for
+    /// key shortcuts.
+    static void parseActionsTools(const QVariant &input, QList<Action> &actions, QList<Tool*> &tools, const int default_device = 0);
 
 public slots:
     /// Set maximum memory for cache. This function uses double instead of

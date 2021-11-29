@@ -341,7 +341,6 @@ void MuPdfDocument::loadPageLabels()
 
     mutex->lock();
     // This code is based on a patch by Stefan Radermacher and Albert Bloomfield
-    // (which MuPDF should finally include!)
     // https://bugs.ghostscript.com/show_bug.cgi?id=695351
 
     QMap<int, label_item> raw_labels;
@@ -557,18 +556,18 @@ const PdfDocument::PdfLink MuPdfDocument::linkAt(const int page, const QPointF &
             {
                 const QRectF rect = QRectF(link->rect.x0, link->rect.y0, link->rect.x1 - link->rect.x0, link->rect.y1 - link->rect.y0).normalized();
                 if (link->uri == NULL)
-                    result = {PdfLink::NoLink, "", rect};
+                    result = {PdfLink::NoLink, rect};
                 else if (link->uri[0] == '#')
                 {
                     // Internal navigation link
                     float x, y;
                     const int location = pdf_resolve_link(ctx, doc, link->uri, &x, &y);
-                    result = {location, "", rect};
+                    result = {location, rect};
                 }
                 else
                 {
                     debug_msg(DebugRendering, "Unsupported link" << link->uri);
-                    result = {PdfLink::NoLink, "", rect};
+                    result = {PdfLink::NoLink, rect};
                 }
                 debug_verbose(DebugRendering, "Link to" << link->uri);
                 break;

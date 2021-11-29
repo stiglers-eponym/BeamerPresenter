@@ -13,7 +13,6 @@
 class QPainter;
 
 /**
- * @class PixmapGraphicsItem
  * @brief pixmaps with different resolutions of same picture as QGraphicsItem
  *
  * Store multiple pixmaps for the same vector graphic at different resolutions.
@@ -24,12 +23,20 @@ class QPainter;
 class PixmapGraphicsItem : public QObject, public QGraphicsItem
 {
     Q_OBJECT
+    // Not sure what this is good for...
     Q_INTERFACES(QGraphicsItem)
+
     // This class is used in animations. Define properties for these animations.
+    // TODO: bundle these animation properties in a union?
+    /// Opacity of this QGraphicsItem.
     Q_PROPERTY(qreal opacity READ opacity WRITE setOpacity)
+    /// Position/shift in x direction.
     Q_PROPERTY(qreal x READ x WRITE setX)
+    /// Position/shift in y direction.
     Q_PROPERTY(qreal y READ y WRITE setY)
+    /// mask for rendering this
     Q_PROPERTY(QRectF mask READ mask WRITE setMask)
+    /// progress of glitter animation.
     Q_PROPERTY(int progress READ progress WRITE setProgress)
 
 public:
@@ -68,6 +75,7 @@ private:
     QSet<unsigned int> newHashs;
 
 public:
+    /// Type of this custom QGraphicsItem.
     enum {Type = UserType + 4};
 
     /// Trivial constructor.
@@ -91,15 +99,16 @@ public:
     /// Get pixmap with the given width or next larger width.
     QPixmap getPixmap(const unsigned int width) const noexcept;
 
-    /// Get current mask.
+    /// get function for _mask
     const QRectF mask() const noexcept
     {return _mask;}
 
-    /// Set mask type (meaning of the mask).
+    /// get function for mask_type
     MaskType maskType() const noexcept
     {return mask_type;}
 
-    /// Return animation progress in glitter animation.
+    /// get function for animation_progress.
+    /// @return animation progress in glitter animation.
     int progress() const noexcept
     {return animation_progress;}
 

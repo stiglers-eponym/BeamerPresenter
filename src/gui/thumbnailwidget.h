@@ -10,9 +10,8 @@ class ThumbnailThread;
 /**
  * @brief Widget showing thumbnail slides on grid layout in scroll area.
  *
- * TODO:
- *  don't change slide after touch scroll event
- *  clear when resizing?
+ * @todo don't change slide after touch scroll event
+ * @todo clear when resizing?
  */
 class ThumbnailWidget : public QScrollArea
 {
@@ -39,15 +38,18 @@ private:
     unsigned char _flags;
 
 public:
+    /// Nearly trivial constructor.
     explicit ThumbnailWidget(QWidget *parent = NULL) : QScrollArea(parent)
     {setFocusPolicy(Qt::NoFocus);}
 
+    /// Destructor, stop and delete render thread.
     ~ThumbnailWidget();
 
     /// Set number of columns.
     void setColumns(const unsigned char n_columns) noexcept
     {columns = n_columns;}
 
+    /// get function for _flags
     unsigned char &flags() noexcept
     {return _flags;}
 
@@ -58,9 +60,11 @@ public:
     /// background.
     void generate(const PdfDocument *document = NULL);
 
+    /// Preferred height depends on width.
     bool hasHeightForWidth() const noexcept override
     {return true;}
 
+    /// Size hint for layout.
     QSize sizeHint() const noexcept override
     {return {100, 200};}
 
@@ -73,6 +77,7 @@ public slots:
     {if (button) button->setPixmap(pixmap);}
 
 signals:
+    /// Navigate to page.
     void sendNavigationSignal(int page);
     /// Tell render_thread to render page with resolution and associate it
     /// with button.

@@ -11,12 +11,17 @@
 #define FZ_VERSION_MINOR 0
 #endif
 
-/// Renderer using the MuPDF engine. This renderer requires that the PDF
-/// document has been loaded by MuPDF (and not Poppler).
-/// The rendering requires preparation done by const functions in the
-/// MuPdfDocument (which in general lives in a differen thread).
+/**
+ * @brief MuPDF implementation of AbstractRenderer.
+ *
+ * Renderer using the MuPDF engine. This renderer requires that the PDF
+ * document has been loaded by MuPDF (and not Poppler).
+ * The rendering requires preparation done by const functions in the
+ * MuPdfDocument (which in general lives in a differen thread).
+ */
 class MuPdfRenderer : public AbstractRenderer
 {
+    /// Document used for rendering. doc is not owned by this.
     const MuPdfDocument *doc;
 
     /// Helper function for rendering functions.

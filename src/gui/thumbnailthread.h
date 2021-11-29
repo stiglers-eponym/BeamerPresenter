@@ -25,8 +25,11 @@ class ThumbnailThread : public QObject
     /// container of page, button and resolution as queued for rendering
     struct queue_entry
     {
+        /// Button which should receive the thumbnail
         ThumbnailButton *button;
+        /// thumbnail resolution
         qreal resolution;
+        /// page index
         int page;
     };
 
@@ -38,7 +41,10 @@ class ThumbnailThread : public QObject
     QList<queue_entry> queue;
 
 public:
+    /// Constructor: create renderer if document is not NULL.
     ThumbnailThread(const PdfDocument *document = NULL);
+
+    /// Destructor: delete renderer.
     ~ThumbnailThread()
     {delete renderer;}
 

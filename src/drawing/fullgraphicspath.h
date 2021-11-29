@@ -4,9 +4,7 @@
 #include "src/drawing/abstractgraphicspath.h"
 
 /**
- * @class FullGraphicsPath
  * @brief Variable width graphics path
- * @inherits AbstractGraphicsPath
  *
  * QGraphicsItem representing a path with flexible width.
  * Each node of the graph contains not only coordinates, but also the width

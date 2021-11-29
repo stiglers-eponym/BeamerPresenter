@@ -5,7 +5,6 @@
 #include <QTextDocument>
 
 /**
- * @class TextGraphicsItem
  * @brief QGraphicsTextItem with disabled context menu
  *
  * There seems to be some bug related to the context menu of the
@@ -18,16 +17,21 @@ class TextGraphicsItem : public QGraphicsTextItem
     Q_OBJECT
 
 public:
-    enum {Type = UserType + 3};
+    /// QGraphicsItem type for this subclass
+    enum {Type = UserType + 5};
 
+    /// almost trivial constructor
     TextGraphicsItem(QGraphicsItem *parent = NULL) : QGraphicsTextItem(parent)
     {setTextInteractionFlags(Qt::TextEditorInteraction);}
 
+    /// Copy/clone this item.
     TextGraphicsItem *clone() const;
 
+    /// QGraphicsItem type.
     int type() const noexcept override
     {return Type;}
 
+    /// Check if text is empty.
     bool isEmpty() const
     {return document()->isEmpty();}
 
@@ -39,7 +43,11 @@ protected:
     void contextMenuEvent(QGraphicsSceneContextMenuEvent*) override {}
 
 signals:
+    /// Add this to history management.
+    /// Emitted when focus is removed and this is not empty.
     void addMe(QGraphicsItem *me);
+    /// Add history step that removes this.
+    /// Emitted when all text is deleted.
     void removeMe(QGraphicsItem *me);
 };
 

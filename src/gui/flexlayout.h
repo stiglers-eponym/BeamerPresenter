@@ -5,8 +5,8 @@
 #include <QVector>
 
 /**
- * @brief FlexLayout class: Box layout for fixed aspect
- * @abstract
+ * @brief Box layout for fixed aspect.
+ *
  * Layout class which tries to optimize combinations of vertical and
  * horizontal box layout containing widgets of fixed aspect ratio.
  */
@@ -14,8 +14,10 @@ class FlexLayout : public QLayout
 {
     Q_OBJECT
 
+    /// Box layout direction (horizontal or vertical)
     QBoxLayout::Direction direction;
-    QVector<QLayoutItem*> items;
+    /// Items managed by this layout (see QLayout documentation)
+    QList<QLayoutItem*> items;
 
 public:
     /// Trivial constructor.
@@ -51,6 +53,7 @@ public:
     QLayoutItem *takeAt(const int index) noexcept override
     {return items.size() > index && index >= 0 ? items.takeAt(index) : NULL;}
 
+    /// Update layout with new geometry.
     void setGeometry(const QRect &rect) override;
 };
 

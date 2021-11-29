@@ -4,7 +4,7 @@
 #include <QTabWidget>
 
 /**
- * @brief TabWidget : QTabWidget with adjusted size hint
+ * @brief QTabWidget with adjusted size hint
  */
 class TabWidget : public QTabWidget
 {
@@ -15,9 +15,10 @@ public:
     TabWidget(QWidget *parent = NULL) noexcept : QTabWidget(parent)
     {setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);}
 
-    // Return sizeHint based on layout.
+    /// Return sizeHint based on layout.
     QSize sizeHint() const noexcept override;
 
+    /// height depends on width (required by FlexLayout).
     bool hasHeightForWidth() const noexcept override
     {return true;}
 };
