@@ -1,0 +1,18 @@
+/*! \mainpage BeamerPresenter code documentation
+ *
+ * \section intro_sec Introduction
+ *
+ * This might help understand the code. If something is not understandable or
+ * if you have suggestions for improvement you are welcome to open an issue on
+ * GitHub.
+ *
+ * \section link_sec Links
+ *
+ * * [BeamerPresenter on GitHub](https://github.io/stiglers-eponym/BeamerPresenter)
+ * * [Qt 6 documentation](https://doc.qt.io/qt-6) for class QSomeClassName: https://doc.qt.io/qt-6/qsomeclassname.html
+ * * [Qt 5 documentation](https://doc.qt.io/qt-5) for class QSomeClassName: https://doc.qt.io/qt-5/qsomeclassname.html
+ * * [poppler qt6 documentation](https://poppler.freedesktop.org/api/qt6)
+ * * [poppler qt5 documentation](https://poppler.freedesktop.org/api/qt5)
+ * * [MuPDF source](https://github.com/ArtifexSoftware/mupdf)
+ *  
+ */

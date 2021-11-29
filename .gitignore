@@ -11,6 +11,10 @@
 *.o
 a.out
 
+# documentation (doxygen)
+doc/html/*
+doc/latex/*
+
 # vim
 .*.swp
 .*.swo

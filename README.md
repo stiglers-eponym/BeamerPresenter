@@ -186,6 +186,7 @@ qmake CONFIG+=debug RENDERER=mupdf && make
 
 
 ### Ideas for further development
+* improve code documentation (can be generated with `doxygen doxyfile`)
 * tools to select and modify drawings
 * improve cache management and layout corrections: sometimes cache is not used correctly.
 * cache slides even when size of slides varies (partially implemented)
