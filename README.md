@@ -10,7 +10,7 @@ This software uses the Qt framework and the PDF engines MuPDF and/or poppler.
 ## Features (selection)
 * modular user interface: adapt for your presentation style and technical equipment (number of monitors, extra information for the speaker, input devices, ...)
 * compressed cache for fast slide changes
-* draw in slides, save drawings in a format compatible with Xournal++
+* draw in slides, save drawings in a format compatible with [Xournal++](https://xournalpp.github.io)
 * highlighting tools (pointer, torch, magnifier)
 * rich text notes for the speaker
 * (optionally) show separate presentation file for speaker or use LaTeX-beamer's option to show notes on second screen (split PDF pages into a part for the speaker and a part or the audience)
@@ -34,7 +34,7 @@ The small window in this image is the presentation window that is usually shown 
 A timer shows your current progress. When you have a tight schedule you can plan times for some slides and the color of the timer will indicate your progress relative to these planned times.
 <img srcset=".readme/timer-640px.webp 640w, .readme/timer-960px.webp 960w" sizes="(max-width: 640px) 640px, 960px" src=".readme/timer-960px.webp" width=100% title="Annotations on a slide explain the timer which is shown on the speaker's screen.">
 The annotations on this slide (red text and arrow) were also made directly in BeamerPresenter.
-Annotations can be saved in a format that is compatible with Xournal++.
+Annotations can be saved in a format that is compatible with [Xournal++](https://xournalpp.github.io).
 </td>
 </tr>
 <tr>
@@ -63,7 +63,7 @@ Note that in these packages by default MuPDF is selected as PDF engine.
 First install the dependencies.
 You need Qt 5/6 including the multimedia module.
 In Qt 5 versions since 5.12 are tested, but other versions starting from 5.9 should also be supported. For installation in Qt 6 you need version 6.2 (or later).
-Additionally you need either the Qt 5/6 bindings of poppler or the MuPDF C bindings.
+Additionally you need zlib and either the Qt 5/6 bindings of poppler or the MuPDF C bindings.
 
 ### Dependencies in Ubuntu 20.04
 For Qt 5:
@@ -188,13 +188,15 @@ qmake CONFIG+=debug RENDERER=mupdf && make
 ### Ideas for further development
 * improve code documentation (can be generated with `doxygen doxyfile`)
 * tools to select and modify drawings
-* improve cache management and layout corrections: sometimes cache is not used correctly.
+* improve cache management and layout corrections.
 * cache slides even when size of slides varies (partially implemented)
 * cache only required slides in previews showing specific overlays
 * make layout more reliable
-* option to insert extra slides for drawing
 * improve keyboard shortcuts in other widgets than slide widget
 * more icons for actions
+* option to insert extra slides for drawing
+* improve compatibility with Xournal++
+* interface for communication with an external control device
 
 
 ## License
