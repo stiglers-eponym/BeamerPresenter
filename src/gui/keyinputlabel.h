@@ -1,9 +1,9 @@
 #ifndef KEYINPUTLABEL_H
 #define KEYINPUTLABEL_H
 
-#include "src/enumerates.h"
 #include <QLabel>
 #include <QKeyEvent>
+#include "src/enumerates.h"
 
 class Tool;
 

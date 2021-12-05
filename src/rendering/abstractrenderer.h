@@ -2,7 +2,6 @@
 #define ABSTRACTRENDERER_H
 
 #include "src/enumerates.h"
-#include "src/config.h"
 
 class QPixmap;
 class PngPixmap;

@@ -3,6 +3,7 @@
 
 #include <QGraphicsTextItem>
 #include <QTextDocument>
+#include "src/config.h"
 
 /**
  * @brief QGraphicsTextItem with disabled context menu

@@ -2,6 +2,7 @@
 #define TABWIDGET_H
 
 #include <QTabWidget>
+#include "src/config.h"
 
 /**
  * @brief QTabWidget with adjusted size hint

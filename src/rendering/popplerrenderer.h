@@ -1,9 +1,9 @@
 #ifndef POPPLERRENDERER_H
 #define POPPLERRENDERER_H
 
+#include <QPixmap>
 #include "src/rendering/abstractrenderer.h"
 #include "src/rendering/popplerdocument.h"
-#include <QPixmap>
 
 /**
  * @brief Implement AbstractRenderer using Poppler.

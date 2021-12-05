@@ -4,6 +4,7 @@
 #include <QMap>
 #include <QColor>
 #include <QDebug>
+#include "src/config.h"
 
 /**
  * @file

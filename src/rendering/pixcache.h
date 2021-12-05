@@ -6,7 +6,6 @@
 #include <QList>
 #include <QPixmap>
 #include "src/enumerates.h"
-#include "src/config.h"
 
 #define MAX_RESOLUTION_DEVIATION 1e-5
 

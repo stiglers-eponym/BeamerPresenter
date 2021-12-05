@@ -2,6 +2,7 @@
 #define STACKEDWIDGET_H
 
 #include <QStackedWidget>
+#include "src/config.h"
 
 /**
  * @brief QStackedWidget with adjusted size hint

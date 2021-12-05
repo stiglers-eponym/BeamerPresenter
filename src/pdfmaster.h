@@ -9,7 +9,6 @@
 #include <QMimeDatabase>
 #include "src/enumerates.h"
 #include "src/rendering/pdfdocument.h"
-#include "src/config.h"
 
 class SlideScene;
 class PathContainer;

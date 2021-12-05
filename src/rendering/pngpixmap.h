@@ -2,6 +2,7 @@
 #define PNGPIXMAP_H
 
 #include <QByteArray>
+#include "src/config.h"
 
 class QPixmap;
 

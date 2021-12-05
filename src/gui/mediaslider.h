@@ -2,6 +2,7 @@
 #define MEDIASLIDER_H
 
 #include <QSlider>
+#include "src/config.h"
 
 /**
  * @brief extension of QSlider

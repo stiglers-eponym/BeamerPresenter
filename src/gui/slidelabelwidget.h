@@ -2,6 +2,7 @@
 #define SLIDELABELWIDGET_H
 
 #include <QWidget>
+#include "src/config.h"
 
 class QLabel;
 class QLineEdit;

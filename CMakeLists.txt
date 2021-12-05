@@ -9,6 +9,7 @@ project(beamerpresenter
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_AUTOMOC ON)
+set(CMAKE_CONFIGURATION_TYPES Release Debug MinSizeRel RelWithDebInfo)
 set(QT_VERSION_MAJOR 6)
 set(QT "Qt${QT_VERSION_MAJOR}")
 
@@ -22,6 +23,15 @@ find_package(${QT} COMPONENTS Xml REQUIRED)
 option(USE_MUPDF "Include MuPDF" ON)
 option(USE_POPPLER "Include Poppler" OFF)
 option(CREATE_SHARED_LIBRARIES "Put the PDF engine in a shared library" OFF)
+
+if ((NOT USE_MUPDF) AND (NOT USE_POPPLER))
+    message(FATAL_ERROR "No PDF engine provided")
+elseif (USE_MUPDF AND USE_POPPLER)
+    message(WARNING "Two PDF engine provided, Poppler will not work for some documents")
+endif()
+
+set(LFLAGS "${LFLAGS} $<$<CONFIG:Debug>:-rdynamic>>")
+
 
 include(GNUInstallDirs)
 
@@ -42,7 +52,14 @@ GNUInstallDirs_get_absolute_install_dir(ABS_DOC_PATH DOC_PATH DOCDIR)
 set(ABS_DOC_PATH "${ABS_DOC_PATH}/README.html")
 
 add_subdirectory(config)
-add_subdirectory(src)
 add_subdirectory(share)
-
 add_subdirectory(man)
+add_subdirectory(src)
+
+target_compile_definitions(beamerpresenter PUBLIC
+        $<$<CONFIG:Debug,RelWithDebInfo>:QT_DEBUG>
+        $<$<CONFIG:Release,MinSizeRel>:QT_NO_DEBUG_OUTPUT>
+        $<$<CONFIG:Release,MinSizeRel>:QT_NO_DEBUG>
+        $<$<CONFIG:Debug,RelWithDebInfo>:QT_DEPRECATED_WARNINGS>
+        $<$<CONFIG:Debug,RelWithDebInfo>:FITZ_DEBUG_LOCKING>
+    )

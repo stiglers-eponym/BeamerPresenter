@@ -3,6 +3,7 @@
 
 #include <QGraphicsLineItem>
 #include <QPainter>
+#include "src/config.h"
 
 /**
  * @brief QGraphicsLineItem with adaptable CompositionMode.

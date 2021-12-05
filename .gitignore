@@ -5,6 +5,7 @@
 *.autosave
 *.pro.user
 *.pro.user.*
+CMakeLists.txt.user
 
 # c, c++
 *.so

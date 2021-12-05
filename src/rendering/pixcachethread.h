@@ -3,7 +3,6 @@
 
 #include <QThread>
 #include "src/enumerates.h"
-#include "src/config.h"
 
 class PngPixmap;
 class PdfDocument;

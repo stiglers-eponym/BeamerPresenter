@@ -3,6 +3,7 @@
 
 #include <QLayout>
 #include <QVector>
+#include "src/config.h"
 
 /**
  * @brief Box layout for fixed aspect.

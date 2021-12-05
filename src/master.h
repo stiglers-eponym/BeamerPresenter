@@ -9,7 +9,6 @@
 #include <QSizePolicy>
 #include <QXmlStreamReader>
 #include <QXmlStreamWriter>
-#include "src/enumerates.h"
 #include "src/preferences.h"
 
 class Tool;

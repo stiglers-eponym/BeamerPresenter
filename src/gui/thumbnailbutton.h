@@ -2,6 +2,7 @@
 #define THUMBNAILBUTTON_H
 
 #include <QLabel>
+#include "src/config.h"
 
 class QMouseEvent;
 

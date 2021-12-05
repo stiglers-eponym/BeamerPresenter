@@ -13,7 +13,6 @@
 #include "src/drawing/drawtool.h"
 #include "src/drawing/pointingtool.h"
 #include "src/rendering/abstractrenderer.h"
-#include "src/config.h"
 
 class Tool;
 class DrawTool;

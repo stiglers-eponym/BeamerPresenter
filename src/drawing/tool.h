@@ -1,8 +1,8 @@
 #ifndef TOOL_H
 #define TOOL_H
 
-#include "src/enumerates.h"
 #include <QTabletEvent>
+#include "src/enumerates.h"
 
 /**
  * @brief Basis class for all tools on slides.

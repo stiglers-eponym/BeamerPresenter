@@ -3,6 +3,7 @@
 
 #include <QWidget>
 #include <QLayout>
+#include "src/config.h"
 
 /**
  * @brief  Widget for arangement of child widgets in QBoxLayout.

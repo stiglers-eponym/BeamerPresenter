@@ -4,6 +4,7 @@
 #include <QSet>
 #include <QObject>
 #include <QGraphicsItem>
+#include "src/config.h"
 
 #define BLINDS_NUMBER_H 6
 #define BLINDS_NUMBER_V 8

@@ -3,6 +3,7 @@
 
 #include <QPushButton>
 #include <QCheckBox>
+#include "src/config.h"
 
 /**
  * @brief Node in tree of outline entry buttons

@@ -3,6 +3,7 @@
 
 #include <QTextEdit>
 #include <QFileDialog>
+#include "src/config.h"
 
 class QKeyEvent;
 class QXmlStreamReader;
