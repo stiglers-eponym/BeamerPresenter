@@ -1,4 +1,4 @@
-#define APP_VERSION "@beamerpresenter_VERSION@"
+#define APP_VERSION "@APP_VERSION@"
 #cmakedefine USE_MUPDF
 #cmakedefine USE_POPPLER
 #define DEFAULT_GUI_CONFIG_PATH "@ABS_GUI_CONFIG_PATH@"

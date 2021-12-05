@@ -1,3 +1,4 @@
+# DEPRECATED: Please use cmake instead of qmake
 VERSION = 0.2.1
 
 ###########################################################
@@ -32,12 +33,12 @@ VERSION = 0.2.1
 # Tested with libmupdf 1.19.0, 1.18.0, 1.17.0, and 1.16.1.
 
 equals(RENDERER, "poppler") {
-    DEFINES += INCLUDE_POPPLER
+    DEFINES += USE_POPPLER
 } else:equals(RENDERER, "mupdf") {
-    DEFINES += INCLUDE_MUPDF
+    DEFINES += USE_MUPDF
 } else:equals(RENDERER, "both") {
-    DEFINES += INCLUDE_MUPDF
-    DEFINES += INCLUDE_POPPLER
+    DEFINES += USE_MUPDF
+    DEFINES += USE_POPPLER
 } else {
     error("You must specify which PDF engine to use as explained in beamerpresenter.pro")
 }
@@ -73,7 +74,7 @@ equals(QT_MAJOR_VERSION, 5): requires(greaterThan(QT_MINOR_VERSION, 8))
 equals(QT_MAJOR_VERSION, 6): requires(greaterThan(QT_MINOR_VERSION, 1)))
 
 # Check whether a PDF engine was defined.
-requires(contains(DEFINES, INCLUDE_POPPLER) | contains(DEFINES, INCLUDE_MUPDF))
+requires(contains(DEFINES, USE_POPPLER) | contains(DEFINES, USE_MUPDF))
 
 # Use modern C++
 CONFIG += c++latest qt
@@ -111,6 +112,12 @@ unix {
 ###########################################################
 ###   DEFINE SOURCES
 ###########################################################
+
+# Create empty src/config.h which is usually created by cmake.
+# This works only when building directly in the source directory.
+touch_config.target = src/config.h
+touch_config.commands = touch $$touch_config.target
+QMAKE_EXTRA_TARGETS += touch_config
 
 SOURCES += \
         src/drawing/pixmapgraphicsitem.cpp \
@@ -152,6 +159,7 @@ SOURCES += \
         src/slideview.cpp
 
 HEADERS += \
+        src/config.h \
         src/drawing/drawtool.h \
         src/drawing/flexgraphicslineitem.h \
         src/drawing/pixmapgraphicsitem.h \
@@ -199,7 +207,7 @@ HEADERS += \
         src/slidescene.h \
         src/slideview.h
 
-contains(DEFINES, INCLUDE_POPPLER) {
+contains(DEFINES, USE_POPPLER) {
     SOURCES += \
             src/rendering/popplerdocument.cpp
     HEADERS += \
@@ -207,7 +215,7 @@ contains(DEFINES, INCLUDE_POPPLER) {
             src/rendering/popplerdocument.h \
 }
 
-contains(DEFINES, INCLUDE_MUPDF) {
+contains(DEFINES, USE_MUPDF) {
     SOURCES += \
             src/rendering/mupdfrenderer.cpp \
             src/rendering/mupdfdocument.cpp
@@ -224,11 +232,11 @@ contains(DEFINES, INCLUDE_MUPDF) {
 
 unix {
     LIBS += -L/usr/lib/ -lz
-    contains(DEFINES, INCLUDE_POPPLER) {
+    contains(DEFINES, USE_POPPLER) {
         INCLUDEPATH += /usr/include/poppler/qt$$QT_MAJOR_VERSION
         LIBS += -lpoppler-qt$$QT_MAJOR_VERSION
     }
-    contains(DEFINES, INCLUDE_MUPDF) {
+    contains(DEFINES, USE_MUPDF) {
         INCLUDEPATH += /usr/include/mupdf
         LIBS += -lmupdf -lmupdf-third -lm -lfreetype -lharfbuzz -ljpeg -ljbig2dec -lopenjp2 -lgumbo
     }
@@ -237,11 +245,11 @@ unix {
 macx {
     ## Please configure this according to your poppler and/or MuPDF installation.
     ## Installation on Mac is untested. The predefined configuration here is just a guess.
-    #contains(DEFINES, INCLUDE_POPPLER) {
+    #contains(DEFINES, USE_POPPLER) {
     #    INCLUDEPATH += /usr/local/opt/poppler/include
     #    LIBS += -L/usr/local/opt/poppler/lib/ -lpoppler-qt$$QT_MAJOR_VERSION
     #}
-    #contains(DEFINES, INCLUDE_MUPDF) {
+    #contains(DEFINES, USE_MUPDF) {
     #    INCLUDEPATH += /usr/local/opt/mupdf/include
     #    LIBS += -L/usr/local/opt/mupdf/lib/ -lmupdf -lmupdf-third -lm -lfreetype -lz -lharfbuzz -ljpeg -ljbig2dec -lopenjp2
     #}
@@ -249,12 +257,12 @@ macx {
 
 win32 {
     ## Please configure this according to your poppler and/or MuPDF installation.
-    #contains(DEFINES, INCLUDE_POPPLER) {
+    #contains(DEFINES, USE_POPPLER) {
     #    # The configuration will probably have the following form:
     #    INCLUDEPATH += C:\...\poppler-...-win??
     #    LIBS += -LC:\...\poppler-...-win?? -lpoppler-qt$$QT_MAJOR_VERSION
     #}
-    #contains(DEFINES, INCLUDE_MUPDF) {
+    #contains(DEFINES, USE_MUPDF) {
     #    INCLUDEPATH += ...
     #    LIBS += ...
     #}

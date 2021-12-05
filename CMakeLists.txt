@@ -30,6 +30,24 @@ elseif (USE_MUPDF AND USE_POPPLER)
     message(WARNING "Two PDF engine provided, Poppler will not work for some documents")
 endif()
 
+set(APP_VERSION "${beamerpresenter_VERSION}")
+if (EXISTS "${PROJECT_SOURCE_DIR}/.git")
+    execute_process(
+        COMMAND git -C ${PROJECT_SOURCE_DIR} rev-list --count HEAD
+        COMMAND head -c-1
+        TIMEOUT 1
+        OUTPUT_VARIABLE APP_GIT_COMMITS)
+    execute_process(
+        COMMAND git -C ${PROJECT_SOURCE_DIR} rev-parse --short HEAD
+        COMMAND head -c-1
+        TIMEOUT 1
+        OUTPUT_VARIABLE APP_GIT_HASH)
+    message(NOTICE "Set version: ${APP_VERSION} ${APP_GIT_COMMITS} ${APP_GIT_HASH}")
+    if (APP_GIT_COMMITS AND APP_GIT_HASH)
+        set(APP_VERSION "${beamerpresenter_VERSION}-${APP_GIT_COMMITS}.${APP_GIT_HASH}")
+    endif()
+endif()
+
 set(LFLAGS "${LFLAGS} $<$<CONFIG:Debug>:-rdynamic>>")
 
 
