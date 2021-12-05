@@ -169,14 +169,14 @@ The most important options here are:
 * `-DCMAKE_INSTALL_PREFIX`: path for package installation.
 * `-DCMAKE_INSTALL_SYSCONFDIR`: path for installation of package configuration.
 
-Some arguments for choosing between MuPDF and Poppler:
+Some arguments for choosing MuPDF or Poppler:
 * MuPDF produces a much larger package size. BeamerPresenter with MuPDF can be twice as large as the full poppler installation.
 * MuPDF may have better performance.
 * My impression is that in most cases MuPDF produces slightly better-looking slides than Poppler. But that may depend on the program used to create the PDF, the fonts, the resolution ...
 * Enabling both is possible but not recommended, because it leads to program crashes when using Poppler for some documents.
 * Some special case of audio files linked from a PDF is currently only handled correctly when using Poppler.
 
-After configuring with cmake you can build the project (hint: add ` -j 4` for compiling 4 CPU cores)
+After configuring with cmake you can build the project (hint: add ` -j 4` for compiling with 4 CPU cores)
 ```sh
 cmake --build build-dir
 ```
