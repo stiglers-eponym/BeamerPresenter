@@ -1,9 +1,9 @@
 #include "src/rendering/pixcachethread.h"
-#ifdef INCLUDE_POPPLER
+#ifdef USE_POPPLER
 #include "src/rendering/popplerrenderer.h"
 #include "src/rendering/popplerdocument.h"
 #endif
-#ifdef INCLUDE_MUPDF
+#ifdef USE_MUPDF
 #include "src/rendering/mupdfrenderer.h"
 #include "src/rendering/mupdfdocument.h"
 #endif
@@ -47,12 +47,12 @@ bool PixCacheThread::initializeRenderer(const PdfDocument * const doc, const Pag
     // Create the renderer without any checks.
     switch (preferences()->renderer)
     {
-#ifdef INCLUDE_POPPLER
+#ifdef USE_POPPLER
     case AbstractRenderer::Poppler:
         renderer = new PopplerRenderer(static_cast<const PopplerDocument*>(doc), page_part);
         break;
 #endif
-#ifdef INCLUDE_MUPDF
+#ifdef USE_MUPDF
     case AbstractRenderer::MuPDF:
         renderer = new MuPdfRenderer(static_cast<const MuPdfDocument*>(doc), page_part);
         break;

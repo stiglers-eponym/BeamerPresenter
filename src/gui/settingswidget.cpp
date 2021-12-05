@@ -133,16 +133,16 @@ void SettingsWidget::initRendering()
     layout->addRow(explanation_label);
 
     QComboBox *select_renderer = new QComboBox(rendering);
-#ifdef INCLUDE_MUPDF
+#ifdef USE_MUPDF
     select_renderer->addItem("MuPDF", PdfDocument::MuPdfEngine);
 #endif
-#ifdef INCLUDE_POPPLER
+#ifdef USE_POPPLER
     select_renderer->addItem("poppler", PdfDocument::PopplerEngine);
 #endif
-#ifdef INCLUDE_MUPDF
+#ifdef USE_MUPDF
     select_renderer->addItem("MuPDF + external", PdfDocument::MuPdfEngine);
 #endif
-#ifdef INCLUDE_POPPLER
+#ifdef USE_POPPLER
     select_renderer->addItem("poppler + external", PdfDocument::PopplerEngine);
 #endif
     connect(select_renderer, &QComboBox::currentTextChanged, writable_preferences(), &Preferences::setRenderer);

@@ -1,10 +1,10 @@
 #include "src/gui/thumbnailthread.h"
 #include "src/gui/thumbnailbutton.h"
 #include "src/preferences.h"
-#ifdef INCLUDE_POPPLER
+#ifdef USE_POPPLER
 #include "src/rendering/popplerrenderer.h"
 #endif
-#ifdef INCLUDE_MUPDF
+#ifdef USE_MUPDF
 #include "src/rendering/mupdfrenderer.h"
 #endif
 #include "src/rendering/externalrenderer.h"
@@ -18,12 +18,12 @@ ThumbnailThread::ThumbnailThread(const PdfDocument *document) :
     // Create the renderer without any checks.
     switch (preferences()->renderer)
     {
-#ifdef INCLUDE_POPPLER
+#ifdef USE_POPPLER
     case AbstractRenderer::Poppler:
         renderer = new PopplerRenderer(static_cast<const PopplerDocument*>(document), preferences()->default_page_part);
         break;
 #endif
-#ifdef INCLUDE_MUPDF
+#ifdef USE_MUPDF
     case AbstractRenderer::MuPDF:
         renderer = new MuPdfRenderer(static_cast<const MuPdfDocument*>(document), preferences()->default_page_part);
         break;

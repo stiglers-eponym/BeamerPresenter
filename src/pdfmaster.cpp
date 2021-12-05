@@ -3,10 +3,10 @@
 #include "src/slidescene.h"
 #include "src/rendering/pixcache.h"
 #include "src/drawing/pathcontainer.h"
-#ifdef INCLUDE_POPPLER
+#ifdef USE_POPPLER
 #include "src/rendering/popplerdocument.h"
 #endif
-#ifdef INCLUDE_MUPDF
+#ifdef USE_MUPDF
 #include "src/rendering/mupdfdocument.h"
 #endif
 #include <QRegularExpression>
@@ -54,8 +54,8 @@ void PdfMaster::loadDocument(const QString &filename)
     }
 
     // Load the document
-#ifdef INCLUDE_POPPLER
-#ifdef INCLUDE_MUPDF
+#ifdef USE_POPPLER
+#ifdef USE_MUPDF
     switch (preferences()->pdf_engine)
     {
     case PdfDocument::PopplerEngine:

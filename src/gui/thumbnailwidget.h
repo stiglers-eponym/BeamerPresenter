@@ -3,6 +3,7 @@
 
 #include <QScrollArea>
 #include "src/gui/thumbnailbutton.h"
+#include "src/config.h"
 
 class PdfDocument;
 class ThumbnailThread;

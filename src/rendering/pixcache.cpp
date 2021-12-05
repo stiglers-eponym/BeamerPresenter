@@ -1,9 +1,9 @@
 #include "src/rendering/pixcache.h"
-#ifdef INCLUDE_POPPLER
+#ifdef USE_POPPLER
 #include "src/rendering/popplerdocument.h"
 #include "src/rendering/popplerrenderer.h"
 #endif
-#ifdef INCLUDE_MUPDF
+#ifdef USE_MUPDF
 #include "src/rendering/mupdfdocument.h"
 #include "src/rendering/mupdfrenderer.h"
 #endif
@@ -30,12 +30,12 @@ void PixCache::init()
     // Create the renderer without any checks.
     switch (preferences()->renderer)
     {
-#ifdef INCLUDE_POPPLER
+#ifdef USE_POPPLER
     case AbstractRenderer::Poppler:
         renderer = new PopplerRenderer(static_cast<const PopplerDocument*>(pdfDoc), page_part);
         break;
 #endif
-#ifdef INCLUDE_MUPDF
+#ifdef USE_MUPDF
     case AbstractRenderer::MuPDF:
         renderer = new MuPdfRenderer(static_cast<const MuPdfDocument*>(pdfDoc), page_part);
         break;

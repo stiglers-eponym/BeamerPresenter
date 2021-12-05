@@ -1,0 +1,3 @@
+#define APP_VERSION "@beamerpresenter_VERSION@"
+#cmakedefine USE_MUPDF
+#cmakedefine USE_POPPLER

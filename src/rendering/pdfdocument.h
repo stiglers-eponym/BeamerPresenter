@@ -5,6 +5,7 @@
 #include <QUrl>
 #include <QRectF>
 #include <QVector>
+#include "src/config.h"
 
 /**
  * @brief Abstract class for handling PDF documents.
@@ -19,11 +20,11 @@ class PdfDocument
 public:
     /// PDF engine
     enum PdfEngine {
-#ifdef INCLUDE_POPPLER
+#ifdef USE_POPPLER
         /// Poppler PDF engine
         PopplerEngine = 0,
 #endif
-#ifdef INCLUDE_MUPDF
+#ifdef USE_MUPDF
         /// MuPDF PDF engine
         MuPdfEngine = 1,
 #endif

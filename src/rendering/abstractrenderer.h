@@ -2,6 +2,7 @@
 #define ABSTRACTRENDERER_H
 
 #include "src/enumerates.h"
+#include "src/config.h"
 
 class QPixmap;
 class PngPixmap;
@@ -17,10 +18,10 @@ protected:
 public:
     /// Type of the renderer.
     enum Renderer {
-#ifdef INCLUDE_POPPLER
+#ifdef USE_POPPLER
         Poppler = 0,
 #endif
-#ifdef INCLUDE_MUPDF
+#ifdef USE_MUPDF
         MuPDF = 1,
 #endif
         ExternalRenderer = 2,

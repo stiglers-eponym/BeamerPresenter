@@ -1,11 +1,6 @@
 #ifndef PREFERENCES_H
 #define PREFERENCES_H
 
-#include "src/enumerates.h"
-#include "src/pdfmaster.h"
-#include "src/drawing/drawtool.h"
-#include "src/drawing/pointingtool.h"
-#include "src/rendering/abstractrenderer.h"
 #include <QSettings>
 #include <QCommandLineParser>
 #include <QPen>
@@ -13,6 +8,12 @@
 #include <QJsonArray>
 #include <QJsonObject>
 #include <QJsonDocument>
+#include "src/enumerates.h"
+#include "src/pdfmaster.h"
+#include "src/drawing/drawtool.h"
+#include "src/drawing/pointingtool.h"
+#include "src/rendering/abstractrenderer.h"
+#include "src/config.h"
 
 class Tool;
 class DrawTool;
@@ -123,7 +124,7 @@ public:
     /// PagePart which represents the presentation.
     PagePart default_page_part = FullPage;
 
-#ifdef INCLUDE_MUPDF
+#ifdef USE_MUPDF
     /// PDF engine (should be same as renderer except if renderer is external)
     PdfDocument::PdfEngine pdf_engine {PdfDocument::MuPdfEngine};
     /// Renderer used to convert PDF page to image.

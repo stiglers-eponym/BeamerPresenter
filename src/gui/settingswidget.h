@@ -2,6 +2,7 @@
 #define SETTINGSWIDGET_H
 
 #include <QTabWidget>
+#include "src/config.h"
 
 class QTextEdit;
 

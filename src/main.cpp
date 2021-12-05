@@ -6,15 +6,16 @@
 #include "src/preferences.h"
 #include "src/master.h"
 #include "src/rendering/pngpixmap.h"
+#include "src/config.h"
 
-#ifdef INCLUDE_POPPLER
+#ifdef USE_POPPLER
 #if __has_include(<poppler/qt5/poppler-version.h>)
 #include <poppler/qt5/poppler-version.h>
 #else
 #define POPPLER_VERSION "OLD"
 #endif
 #endif
-#ifdef INCLUDE_MUPDF
+#ifdef USE_MUPDF
 extern "C"
 {
 #include <mupdf/fitz/version.h>
@@ -51,10 +52,10 @@ int main(int argc, char *argv[])
 
     // Set app version. The string APP_VERSION is defined in beamerpresenter.pro.
     QString version_string = APP_VERSION " ";
-#ifdef INCLUDE_POPPLER
+#ifdef USE_POPPLER
     version_string += " poppler=" POPPLER_VERSION;
 #endif
-#ifdef INCLUDE_MUPDF
+#ifdef USE_MUPDF
     version_string += " mupdf=" FZ_VERSION;
 #endif
     version_string += " Qt=" QT_VERSION_STR;
@@ -79,11 +80,11 @@ int main(int argc, char *argv[])
 #ifdef QT_DEBUG
     parser.addOption({"debug", "debug flags, comma-separated", "flags"});
 #endif
-#if defined(INCLUDE_MUPDF) and defined(INCLUDE_POPPLER)
+#if defined(USE_MUPDF) and defined(USE_POPPLER)
     parser.addOption({"renderer", "PDF renderer: MuPDF / poppler / external-MuPDF / external-poppler", "name"});
-#elif defined(INCLUDE_MUPDF)
+#elif defined(USE_MUPDF)
     parser.addOption({"renderer", "PDF renderer: external or MuPDF", "name"});
-#elif defined(INCLUDE_POPPLER)
+#elif defined(USE_POPPLER)
     parser.addOption({"renderer", "PDF renderer: external or poppler", "name"});
 #endif
     parser.process(app);

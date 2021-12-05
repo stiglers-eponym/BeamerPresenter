@@ -227,7 +227,7 @@ void Preferences::loadSettings()
         if (!renderer_str.isEmpty())
         {
             bool understood_renderer = false;
-#ifdef INCLUDE_MUPDF
+#ifdef USE_MUPDF
             if (renderer_str.count("mupdf") > 0)
             {
                 renderer = AbstractRenderer::MuPDF;
@@ -235,7 +235,7 @@ void Preferences::loadSettings()
                 understood_renderer = true;
             }
 #endif
-#ifdef INCLUDE_POPPLER
+#ifdef USE_POPPLER
             if (renderer_str.count("poppler") > 0)
             {
                 renderer = AbstractRenderer::Poppler;
@@ -405,7 +405,7 @@ void Preferences::loadFromParser(const QCommandLineParser &parser)
         QString const &renderer_str = parser.value("renderer");
         bool understood_renderer = false;
         debug_msg(DebugSettings, "renderer" << renderer_str);
-#ifdef INCLUDE_MUPDF
+#ifdef USE_MUPDF
         if (renderer_str.count("mupdf", Qt::CaseInsensitive) > 0)
         {
             renderer = AbstractRenderer::MuPDF;
@@ -413,7 +413,7 @@ void Preferences::loadFromParser(const QCommandLineParser &parser)
             understood_renderer = true;
         }
 #endif
-#ifdef INCLUDE_POPPLER
+#ifdef USE_POPPLER
         if (renderer_str.count("poppler", Qt::CaseInsensitive) > 0)
         {
             renderer = AbstractRenderer::Poppler;
@@ -498,7 +498,7 @@ void Preferences::setCacheSize(const int new_size)
 void Preferences::setRenderer(const QString &string)
 {
     const QString &new_renderer = string.toLower();
-#ifdef INCLUDE_MUPDF
+#ifdef USE_MUPDF
     if (new_renderer == "mupdf")
     {
         settings.beginGroup("rendering");
@@ -507,7 +507,7 @@ void Preferences::setRenderer(const QString &string)
         return;
     }
 #endif
-#ifdef INCLUDE_POPPLER
+#ifdef USE_POPPLER
     if (new_renderer == "poppler")
     {
         settings.beginGroup("rendering");
@@ -516,7 +516,7 @@ void Preferences::setRenderer(const QString &string)
         return;
     }
 #endif
-#ifdef INCLUDE_MUPDF
+#ifdef USE_MUPDF
     if (new_renderer == "mupdf + external")
     {
         settings.beginGroup("rendering");
@@ -525,7 +525,7 @@ void Preferences::setRenderer(const QString &string)
         return;
     }
 #endif
-#ifdef INCLUDE_POPPLER
+#ifdef USE_POPPLER
     if (new_renderer == "poppler + external")
     {
         settings.beginGroup("rendering");
