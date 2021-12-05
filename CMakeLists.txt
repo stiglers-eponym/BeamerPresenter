@@ -9,7 +9,11 @@ project(beamerpresenter
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_AUTOMOC ON)
-set(CMAKE_CONFIGURATION_TYPES Release Debug MinSizeRel RelWithDebInfo)
+if (VERSION VERSION_LESS 3.22)
+    set(CMAKE_CONFIGURATION_TYPES Release Debug)
+else()
+    set(CMAKE_CONFIGURATION_TYPES Release Debug MinSizeRel RelWithDebInfo)
+endif()
 set(QT_VERSION_MAJOR 6 CACHE STRING "Qt major version")
 set(QT "Qt${QT_VERSION_MAJOR}")
 
@@ -53,19 +57,19 @@ set(LFLAGS "${LFLAGS} $<$<CONFIG:Debug>:-rdynamic>>")
 
 include(GNUInstallDirs)
 
-set(DEFAULT_ICON_PATH "${CMAKE_INSTALL_DATAROOTDIR}/beamerpresenter/icons")
+set(DEFAULT_ICON_PATH "${CMAKE_INSTALL_DATAROOTDIR}/beamerpresenter/icons" CACHE STRING)
 GNUInstallDirs_get_absolute_install_dir(ABS_ICON_PATH DEFAULT_ICON_PATH DATAROOTDIR)
 set(ABS_ICON_PATH "${ABS_ICON_PATH}/")
 
-set(APPICON_PATH "${CMAKE_INSTALL_DATAROOTDIR}/icons/hicolor/scalable/apps")
+set(APPICON_PATH "${CMAKE_INSTALL_DATAROOTDIR}/icons/hicolor/scalable/apps" CACHE STRING)
 GNUInstallDirs_get_absolute_install_dir(ABS_APPICON_PATH APPICON_PATH DATAROOTDIR)
 set(ABS_APPICON_PATH "${ABS_APPICON_PATH}/beamerpresenter.svg")
 
-set(GUI_CONFIG_PATH "${CMAKE_INSTALL_SYSCONFDIR}/xdg/beamerpresenter")
+set(GUI_CONFIG_PATH "${CMAKE_INSTALL_SYSCONFDIR}/xdg/beamerpresenter" CACHE STRING)
 GNUInstallDirs_get_absolute_install_dir(ABS_GUI_CONFIG_PATH GUI_CONFIG_PATH SYSCONFDIR)
 set(ABS_GUI_CONFIG_PATH "${ABS_GUI_CONFIG_PATH}/gui.json")
 
-set(DOC_PATH "${CMAKE_INSTALL_DOCDIR}")
+set(DOC_PATH "${CMAKE_INSTALL_DOCDIR}" CACHE STRING)
 GNUInstallDirs_get_absolute_install_dir(ABS_DOC_PATH DOC_PATH DOCDIR)
 set(ABS_DOC_PATH "${ABS_DOC_PATH}/README.html")
 
@@ -74,10 +78,20 @@ add_subdirectory(share)
 add_subdirectory(man)
 add_subdirectory(src)
 
-target_compile_definitions(beamerpresenter PUBLIC
-        $<$<CONFIG:Debug,RelWithDebInfo>:QT_DEBUG>
-        $<$<CONFIG:Release,MinSizeRel>:QT_NO_DEBUG_OUTPUT>
-        $<$<CONFIG:Release,MinSizeRel>:QT_NO_DEBUG>
-        $<$<CONFIG:Debug,RelWithDebInfo>:QT_DEPRECATED_WARNINGS>
-        $<$<CONFIG:Debug,RelWithDebInfo>:FITZ_DEBUG_LOCKING>
-    )
+if (VERSION VERSION_LESS 3.22)
+    target_compile_definitions(beamerpresenter PUBLIC
+            $<$<CONFIG:Debug>:QT_DEBUG>
+            $<$<CONFIG:Release>:QT_NO_DEBUG_OUTPUT>
+            $<$<CONFIG:Release>:QT_NO_DEBUG>
+            $<$<CONFIG:Debug>:QT_DEPRECATED_WARNINGS>
+            $<$<CONFIG:Debug>:FITZ_DEBUG_LOCKING>
+        )
+else()
+    target_compile_definitions(beamerpresenter PUBLIC
+            $<$<CONFIG:Debug,RelWithDebInfo>:QT_DEBUG>
+            $<$<CONFIG:Release,MinSizeRel>:QT_NO_DEBUG_OUTPUT>
+            $<$<CONFIG:Release,MinSizeRel>:QT_NO_DEBUG>
+            $<$<CONFIG:Debug,RelWithDebInfo>:QT_DEPRECATED_WARNINGS>
+            $<$<CONFIG:Debug,RelWithDebInfo>:FITZ_DEBUG_LOCKING>
+        )
+endif()
