@@ -1,7 +1,7 @@
 [General]
 cache%20pages=-1
-gui%20config=/etc/xdg/beamerpresenter/gui.json
-manual=/usr/share/doc/beamerpresenter/README.html
+gui%20config="@ABS_GUI_CONFIG_PATH@"
+manual="@ABS_DOC_PATH@"
 memory=1.0486e+08
 frame%20time=50
 gestures=true

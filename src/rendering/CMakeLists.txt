@@ -7,9 +7,9 @@ if (CREATE_SHARED_LIBRARIES)
                 mupdfrenderer.cpp
             )
         target_link_libraries(beamerpresenter-pdf-mupdf PUBLIC
-                Qt6::Core
-                Qt6::Gui
-                Qt6::Widgets
+                ${QT}::Core
+                ${QT}::Gui
+                ${QT}::Widgets
                 mupdf
                 mupdf-third
                 m
@@ -27,6 +27,7 @@ if (CREATE_SHARED_LIBRARIES)
         list(APPEND EXTRA_LIBS
                 beamerpresenter-pdf-mupdf
             )
+        install(TARGETS beamerpresenter-pdf-mupdf LIBRARY)
     endif()
     if (USE_POPPLER)
         add_library(beamerpresenter-pdf-poppler SHARED
@@ -35,10 +36,10 @@ if (CREATE_SHARED_LIBRARIES)
                 popplerdocument.cpp
             )
         target_link_libraries(beamerpresenter-pdf-poppler PUBLIC
-                Qt6::Core
-                Qt6::Gui
-                Qt6::Widgets
-                poppler-qt6
+                ${QT}::Core
+                ${QT}::Gui
+                ${QT}::Widgets
+                poppler-qt${QT_VERSION_MAJOR}
             )
         target_include_directories(beamerpresenter-pdf-poppler PUBLIC
                 "${PROJECT_BINARY_DIR}"
@@ -47,6 +48,7 @@ if (CREATE_SHARED_LIBRARIES)
         list(APPEND EXTRA_LIBS
                 beamerpresenter-pdf-poppler
             )
+        install(TARGETS beamerpresenter-pdf-poppler LIBRARY)
     endif()
 else()
     if (USE_MUPDF)
@@ -71,9 +73,10 @@ else()
             "${CMAKE_CURRENT_SOURCE_DIR}/popplerdocument.cpp"
             )
         list(APPEND EXTRA_LIBS
-                poppler-qt6
+                poppler-qt${QT_VERSION_MAJOR}
             )
     endif()
 endif()
+
 set(EXTRA_LIBS ${EXTRA_LIBS} PARENT_SCOPE)
 set(EXTRA_INCLUDE ${EXTRA_INCLUDE} PARENT_SCOPE)
