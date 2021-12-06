@@ -2,10 +2,10 @@ on:
   push:
     branches: [main]
   pull_request:
-name: CI
+name: "Flatpak"
 jobs:
   flatpak:
-    name: "Flatpak Builder"
+    name: "Flatpak Builder with Qt 5.15 Poppler"
     runs-on: ubuntu-latest
     container:
       image: bilelmoussaoui/flatpak-github-actions:kde-5.15-21.08

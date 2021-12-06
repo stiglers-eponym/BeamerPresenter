@@ -52,11 +52,24 @@ PDF documents can include videos, sounds, slide transitions and some primitive a
 
 
 ## Installation
+You can install the automatically built flatpak package .
+The flatpak package is currently only available for Qt 5.15 and Poppler as PDF engine.
+The flatpak package is new, there might be some bugs.
+
+To install the flatpak package you first need the runtime `org.kde.Platform/x86_64/5.15-21.08` (if you need a different architecture or Qt version you can build it your self or open an issue).
+```sh
+flatpak install org.kde.Platform/x86_64/5.15-21.08
+```
+Then you can download and unzip the output of the workflow: [![Flatpak](https://github.com/stiglers-eponym/BeamerPresenter/actions/workflows/flatpak-builder.yml/badge.svg)](https://github.com/stiglers-eponym/BeamerPresenter/actions/workflows/flatpak-builder.yml).
+When clicking on the latest run you should find a link named `beamerpresenter-x86_64`. This lets you download `beamerpresenter-x86_64.zip`, which you should unzip to obtain `beamerpresenter.flatpak`.
+The file `beamerpresenter.flatpak` can be installed using flatpak:
+```sh
+flatpak install beamerpresenter.flatpak
+```
+
 In Arch Linux you can install the package `beamerpresenter` or `beamerpresenter-git` from the AUR (that means you can skip the instructions for manual installation).
 Note that in these packages by default MuPDF is selected as PDF engine.
 In the PKGBUILD file of `beamerpresenter-git` you can easily adjust the Qt version and the PDF engine.
-
-A flatpak package will be availabe soon (only for the poppler version).
 
 ## Manual installation
 Building is tested in Arch Linux and in xubuntu 20.04.
