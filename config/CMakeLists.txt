@@ -1,3 +1,8 @@
+if (USE_MUPDF)
+    set(DEFAULT_RENDERER mupdf)
+else()
+    set(DEFAULT_RENDERER poppler)
+endif()
 configure_file(beamerpresenter.conf.in beamerpresenter.conf)
 install(FILES
     "${CMAKE_CURRENT_BINARY_DIR}/beamerpresenter.conf"

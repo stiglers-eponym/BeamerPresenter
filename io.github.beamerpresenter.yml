@@ -1,0 +1,59 @@
+app-id: io.github.beamerpresenter
+branch: master
+runtime: org.kde.Platform
+runtime-version: 5.15-21.08
+sdk: org.kde.Sdk
+command: beamerpresenter
+build-options:
+  strip: true
+  no-debuginfo: true
+finish-args:
+  - "--socket=x11"
+  - "--socket=wayland"
+  - "--socket=pulseaudio"
+  - "--device=dri"
+  - "--filesystem=xdg-documents"
+  - "--filesystem=xdg-download"
+  - "--filesystem=xdg-public-share"
+  - "--filesystem=xdg-desktop"
+  - "--filesystem=xdg-config/beamerpresenter"
+  - "--own-name=io.github.beamerpresenter"
+modules:
+  - name: poppler
+    buildsystem: cmake-ninja
+    config-opts:
+    - "-DCMAKE_INSTALL_PREFIX=/app"
+    - "-DCMAKE_INSTALL_LIBDIR=/app/lib"
+    - "-DCMAKE_INSTALL_INCLUDEDIR=/app/include"
+    - "-DENABLE_LIBOPENJPEG=none"
+    - "-DENABLE_BOOST=OFF"
+    - "-DENABLE_UTILS=OFF"
+    - "-DENABLE_LIBCURL=OFF"
+    - "-DENABLE_QT5=ON"
+    - "-DENABLE_QT6=OFF"
+    - "-DENABLE_GLIB=OFF"
+    - "-DENABLE_GOBJECT_INTROSPECTION=OFF"
+    - "-DENABLE_GTK_DOC=OFF"
+    - "-DENABLE_CPP=OFF"
+    cleanup:
+    - "/bin"
+    sources:
+    - type: archive
+      url: https://poppler.freedesktop.org/poppler-21.12.0.tar.xz
+      sha256: acb840c2c1ec07d07e53c57c4b3a1ff3e3ee2d888d44e1e9f2f01aaf16814de7
+  - name: beamerpresenter
+    buildsystem: cmake
+    config-opts:
+    - "-DQT_VERSION_MAJOR=5"
+    - "-DUSE_POPPLER=ON"
+    - "-DUSE_MUPDF=OFF"
+    - "-DCMAKE_BUILD_TYPE=Release"
+    - "-DCMAKE_INSTALL_PREFIX=/app"
+    - "-DCMAKE_INSTALL_SYSCONFDIR=/app/etc"
+    - "-DCMAKE_INSTALL_DATAROOTDIR=/app/usr/share"
+    - "-DCMAKE_INSTALL_LIBDIR=/app/usr/lib"
+    - "-DCMAKE_INSTALL_INCLUDEDIR=/app/usr/include"
+    sources:
+    - type: git
+      url: https://github.com/stiglers-eponym/BeamerPresenter.git
+      branch: main

@@ -31,6 +31,6 @@ Space=update
 
 [rendering]
 page%20part%20threshold=2.5
-renderer=mupdf
+renderer=@DEFAULT_RENDERER@
 rendering%20command=/usr/bin/mutool
 rendering%20arguments=draw,-F%format,-w%width,-h%height,-o-,%file,%page
