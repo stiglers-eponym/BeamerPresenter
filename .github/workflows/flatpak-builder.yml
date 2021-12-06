@@ -1,0 +1,19 @@
+on:
+  push:
+    branches: [main]
+  pull_request:
+name: CI
+jobs:
+  flatpak:
+    name: "Flatpak Builder"
+    runs-on: ubuntu-latest
+    container:
+      image: bilelmoussaoui/flatpak-github-actions:kde-5.15-21.08
+      options: --privileged
+    steps:
+    - uses: actions/checkout@v2
+    - uses: bilelmoussaoui/flatpak-github-actions/flatpak-builder@v4
+      with:
+        bundle: beamerpresenter.flatpak
+        manifest-path: io.github.beamerpresenter.yml
+        arch: x86_64
