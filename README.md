@@ -34,7 +34,7 @@ The small window in this image is the presentation window that is usually shown 
 A timer shows your current progress. When you have a tight schedule you can plan times for some slides and the color of the timer will indicate your progress relative to these planned times.
 <img srcset=".readme/timer-640px.webp 640w, .readme/timer-960px.webp 960w" sizes="(max-width: 640px) 640px, 960px" src=".readme/timer-960px.webp" width=100% title="Annotations on a slide explain the timer which is shown on the speaker's screen.">
 The annotations on this slide (red text and arrow) were also made directly in BeamerPresenter.
-Annotations can be saved in a format that is compatible with [Xournal++](https://xournalpp.github.io).
+Annotations can be saved in a format that is compatible with <a href="https://xournalpp.github.io">Xournal++</a>.
 </td>
 </tr>
 <tr>
@@ -86,7 +86,7 @@ Additionally you need either the Qt 5/6 bindings of poppler or the MuPDF C bindi
 
 ### Dependencies in Ubuntu 20.04
 * `cmake` (only for building and only in the mainline version)
-* `zlib1g-dev` (after the installation you can remove `zlib1g-dev` and keep only `zlib1g1`)
+* `zlib1g-dev` (after the installation you can remove `zlib1g-dev` and keep only `zlib1g`)
 * `qtmultimedia5-dev` (after the installation you can remove `qtmultimedia5-dev` and keep only `libqt5multimedia5` and `libqt5multimediawidgets5`)
 * `libqt5multimedia5-plugins` (optional, for showing videos)
 

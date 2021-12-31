@@ -1,0 +1,13 @@
+BeamerPresenter shows a PDF presentation to speaker and audience in a
+multi-screen setup with various control options and extra information
+for the speaker.
+
+Features:
+- draw, highlight and point on the presentation with tools selected per input device
+- supports pressure sensitive stylus input and different draw styles (e.g. Wacom tablet)
+- save drawings in format compatible with Xournal++
+- videos and sounds included in a PDF file
+- slide transitions and basic animations
+- fast slide changes and browsing due to compressed cache of slides (cache size can be configured)
+- modular, configurable user interface for maximal flexibility
+- does not try to take the role of your window manager

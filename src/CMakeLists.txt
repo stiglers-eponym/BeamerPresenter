@@ -45,12 +45,12 @@ add_executable(beamerpresenter
     )
 
 target_link_libraries(beamerpresenter PRIVATE
-        ${QT}::Core
-        ${QT}::Gui
-        ${QT}::Widgets
-        ${QT}::Multimedia
-        ${QT}::MultimediaWidgets
-        ${QT}::Xml
+        Qt${QT_VERSION_MAJOR}::Core
+        Qt${QT_VERSION_MAJOR}::Gui
+        Qt${QT_VERSION_MAJOR}::Widgets
+        Qt${QT_VERSION_MAJOR}::Multimedia
+        Qt${QT_VERSION_MAJOR}::MultimediaWidgets
+        Qt${QT_VERSION_MAJOR}::Xml
         z
         ${EXTRA_LIBS}
     )

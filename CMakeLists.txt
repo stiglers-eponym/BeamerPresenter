@@ -8,15 +8,17 @@ project(beamerpresenter
 
 # Define available build/config types
 set(QT_VERSION_MAJOR 6 CACHE STRING "Qt major version")
-set(QT "Qt${QT_VERSION_MAJOR}")
+# Minor Qt version is required for defining dependencies when packaging
+set(QT_VERSION_MINOR 2 CACHE STRING "Qt minor version")
 
 # Check if the required Qt libraries are available
-find_package(${QT} COMPONENTS Core REQUIRED)
-find_package(${QT} COMPONENTS Gui REQUIRED)
-find_package(${QT} COMPONENTS Widgets REQUIRED)
-find_package(${QT} COMPONENTS Multimedia REQUIRED)
-find_package(${QT} COMPONENTS MultimediaWidgets REQUIRED)
-find_package(${QT} COMPONENTS Xml REQUIRED)
+set(QT_FEATURE_intelcet ON)  # without the project fails to build...
+find_package(Qt${QT_VERSION_MAJOR} COMPONENTS Core REQUIRED)
+find_package(Qt${QT_VERSION_MAJOR} COMPONENTS Gui REQUIRED)
+find_package(Qt${QT_VERSION_MAJOR} COMPONENTS Widgets REQUIRED)
+find_package(Qt${QT_VERSION_MAJOR} COMPONENTS Multimedia REQUIRED)
+find_package(Qt${QT_VERSION_MAJOR} COMPONENTS MultimediaWidgets REQUIRED)
+find_package(Qt${QT_VERSION_MAJOR} COMPONENTS Xml REQUIRED)
 
 # Options concerning the PDF engine
 option(USE_MUPDF "Include MuPDF" ON)
@@ -26,7 +28,7 @@ option(CREATE_SHARED_LIBRARIES "Put the PDF engine in a shared library" OFF)
 if ((NOT USE_MUPDF) AND (NOT USE_POPPLER))
     message(FATAL_ERROR "No PDF engine provided")
 elseif (USE_MUPDF AND USE_POPPLER)
-    message(WARNING "Two PDF engine provided, Poppler will not work for some documents")
+    message(WARNING "Two PDF engine provided, Poppler will (probably) not work for some documents")
 endif()
 
 
@@ -105,3 +107,50 @@ target_compile_definitions(beamerpresenter PUBLIC
 add_subdirectory(config)
 add_subdirectory(share)
 add_subdirectory(man)
+
+
+# Packaging
+#set(CPACK_GENERATOR "DEB;" CACHE STRING "Package types (DEB requires Qt5)")
+set(PACKAGE_ARCH "${CMAKE_SYSTEM_PROCESSOR}")
+set(CPACK_PACKAGE_CONTACT "stiglers-eponym")
+set(CPACK_PACKAGE_VERSION "${APP_VERSION}-qt${QT_VERSION_MAJOR}.${QT_VERSION_MINOR}")
+if (USE_MUPDF AND USE_POPPLER)
+    set(CPACK_PACKAGE_FILE_NAME "beamerpresenter-full-${APP_VERSION}-qt${QT_VERSION_MAJOR}.${QT_VERSION_MINOR}-${PACKAGE_ARCH}")
+elseif (USE_MUPDF)
+    set(CPACK_PACKAGE_FILE_NAME "beamerpresenter-mupdf-${APP_VERSION}-qt${QT_VERSION_MAJOR}.${QT_VERSION_MINOR}-${PACKAGE_ARCH}")
+elseif(USE_POPPLER)
+    set(CPACK_PACKAGE_FILE_NAME "beamerpresenter-poppler-${APP_VERSION}-qt${QT_VERSION_MAJOR}.${QT_VERSION_MINOR}-${PACKAGE_ARCH}")
+endif()
+set(CPACK_PACKAGE_DESCRIPTION_FILE "${PROJECT_SOURCE_DIR}/package_description")
+set(CPACK_RESOURCE_FILE_LICENSE "${PROJECT_SOURCE_DIR}/LICENSE")
+set(CPACK_STRIP_FILES ON)
+
+if (CPACK_GENERATOR MATCHES "DEB")
+    # configure debian package
+    if (NOT ("${QT_VERSION_MAJOR}" STREQUAL "5"))
+        message(ERROR, "Building debian package is only possible with Qt 5")
+    endif()
+    MATH(EXPR QT_VERSION_MINOR_PLUS "${QT_VERSION_MINOR} + 1")
+    set(QT_VERSION_UPPER "(<< ${QT_VERSION_MAJOR}.${QT_VERSION_MINOR_PLUS}.0)")
+    set(QT_VERSION_LOWER "(>= ${QT_VERSION_MAJOR}.${QT_VERSION_MINOR}.0)")
+    set(CPACK_DEBIAN_PACKAGE_DEPENDS "zlib1g (>= 1:1.2.11)")
+    foreach (package "libqt${QT_VERSION_MAJOR}multimedia5" "libqt${QT_VERSION_MAJOR}multimediawidgets5")
+        set(CPACK_DEBIAN_PACKAGE_DEPENDS "${CPACK_DEBIAN_PACKAGE_DEPENDS}, ${package} ${QT_VERSION_LOWER}, ${package} ${QT_VERSION_UPPER}")
+    endforeach()
+    if (USE_MUPDF)
+        set(CPACK_DEBIAN_PACKAGE_DEPENDS "${CPACK_DEBIAN_PACKAGE_DEPENDS}, libfreetype6, libharfbuzz0b, libjpeg8, libopenjp2-7, libjbig2dec0, libgumbo1")
+    endif()
+    if (USE_POPPLER)
+        set(CPACK_DEBIAN_PACKAGE_DEPENDS "${CPACK_DEBIAN_PACKAGE_DEPENDS}, libpoppler-qt${QT_VERSION_MAJOR}-1 (>= 0.86.1)")
+    endif()
+    if ("${PACKAGE_ARCH}" STREQUAL "x86_64")
+        set(CPACK_DEBIAN_PACKAGE_ARCHITECTURE "amd64")
+    else()
+        set(CPACK_DEBIAN_PACKAGE_ARCHITECTURE "${PACKAGE_ARCH}")
+    endif()
+    set(CPACK_DEBIAN_PACKAGE_SECTION "science")
+    set(CPACK_DEBIAN_PACKAGE_SUGGESTS "libqt5multimedia5-plugins")
+    install(FILES "${PROJECT_SOURCE_DIR}/LICENSE" DESTINATION "${CMAKE_INSTALL_DOCDIR}" RENAME "copyright")
+endif()
+
+include(CPack)
