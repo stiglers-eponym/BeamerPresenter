@@ -170,7 +170,8 @@ cmake \
     -DCMAKE_BUILD_TYPE=Release \
     -DUSE_POPPLER=ON \
     -DUSE_MUPDF=OFF \
-    -DQT_VERSION_MAJOR=6 \
+    -DQT_VERSION_MAJOR=6 \ # must be set manually!
+    -DQT_VERSION_MINOR=2 \ # only relevant for packaging
     -DCREATE_SHARED_LIBRARIES=OFF \
     -DCMAKE_INSTALL_PREFIX=/usr \
     -DCMAKE_INSTALL_SYSCONFDIR=/etc
@@ -237,6 +238,7 @@ BeamerPresenter (`qmake --version`).
 
 
 ### Ideas for further development
+* show important warnings as dialog, not just on the command line
 * improve code documentation (can be generated with `doxygen doxyfile`)
 * tools to select and modify drawings
 * improve cache management and layout corrections.

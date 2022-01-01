@@ -24,6 +24,7 @@ find_package(Qt${QT_VERSION_MAJOR} COMPONENTS Xml REQUIRED)
 option(USE_MUPDF "Include MuPDF" ON)
 option(USE_POPPLER "Include Poppler" OFF)
 option(CREATE_SHARED_LIBRARIES "Put the PDF engine in a shared library" OFF)
+option(USE_TRANSLATIONS "Enable translations" ON)
 
 if ((NOT USE_MUPDF) AND (NOT USE_POPPLER))
     message(FATAL_ERROR "No PDF engine provided")

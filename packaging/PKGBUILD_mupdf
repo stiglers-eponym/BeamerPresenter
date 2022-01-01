@@ -8,7 +8,7 @@ _qt_version_minor="$(pacman -Q "qt${_qt_version_major}-base" | sed -E 's/^qt[56]
 _qt_min_version="${_qt_version_major}.${_qt_version_minor}.0"
 _qt_max_version="${_qt_version_major}.$(( ${_qt_version_minor} + 1 )).0"
 
-pkgname='beamerpresenter-mupdf'
+pkgname="beamerpresenter-mupdf-qt${_qt_version_major}"
 pkgver='0.2.2_alpha'
 pkgrel=1
 pkgdesc="Modular multi-screen pdf presenter (using MuPDF)"
@@ -33,6 +33,7 @@ build() {
         -DUSE_POPPLER=OFF \
         -DUSE_MUPDF=ON \
         -DQT_VERSION_MAJOR="${_qt_version_major}" \
+        -DQT_VERSION_MINOR="${_qt_version_minor}" \
         -DCREATE_SHARED_LIBRARIES=OFF \
         -DCMAKE_INSTALL_PREFIX='/usr' \
         -DCMAKE_INSTALL_SYSCONFDIR='/etc'
