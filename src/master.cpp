@@ -1,3 +1,4 @@
+#include <QThread>
 #include "src/master.h"
 #include "src/pdfmaster.h"
 #include "src/slidescene.h"
@@ -20,9 +21,6 @@
 #include "src/gui/toolselectorwidget.h"
 #include "src/rendering/pixcache.h"
 #include "src/names.h"
-#include <QMainWindow>
-#include <QMessageBox>
-#include <QThread>
 
 Master::Master() :
     cacheVideoTimer(new QTimer(this)),
@@ -32,6 +30,7 @@ Master::Master() :
     cacheVideoTimer->setInterval(200);
     slideDurationTimer->setSingleShot(true);
     connect(slideDurationTimer, &QTimer::timeout, this, &Master::nextSlide);
+    connect(preferences(), &Preferences::sendErrorMessage, this, &Master::showErrorMessage);
 }
 
 Master::~Master()
@@ -308,13 +307,17 @@ QWidget* Master::createWidget(QJsonObject &object, QWidget *parent)
             doc->initialize(file);
             if (doc->getDocument() == NULL)
             {
-                qCritical() << "Failed to load PDF document. This will result in errors!";
                 delete doc;
+                qCritical() << "Failed to load PDF document. This will result in errors!";
+                writable_preferences()->file_alias.insert(file, "//INVALID");
+                writable_preferences()->file_alias.insert(object.value("file").toString(), "//INVALID");
                 return NULL;
             }
             if (writable_preferences()->number_of_pages && writable_preferences()->number_of_pages != doc->numberOfPages())
             {
-                qWarning() << "Loaded PDF files with different numbers of pages. You should expect errors.";
+                showErrorMessage(
+                            QObject::tr("Error while loading PDF files"),
+                            QObject::tr("Loaded PDF files with different numbers of pages. You should expect errors."));
                 writable_preferences()->number_of_pages = std::max(writable_preferences()->number_of_pages, doc->numberOfPages());
             }
             else
@@ -565,7 +568,9 @@ QWidget* Master::createWidget(QJsonObject &object, QWidget *parent)
         connect(this, &Master::navigationSignal, static_cast<SlideLabelWidget*>(widget), &SlideLabelWidget::updateText, Qt::QueuedConnection);
         break;
     case GuiWidget::InvalidType:
-        qWarning() << "Ignoring entry in GUI config with invalid type:" << object.value("type");
+        showErrorMessage(
+                    tr("Error while reading GUI config"),
+                    tr("Ignoring entry in GUI config with invalid type ") + object.value("type").toString());
     }
     if (widget)
     {
@@ -588,7 +593,7 @@ QWidget* Master::createWidget(QJsonObject &object, QWidget *parent)
         widget->setPalette(palette);
     }
     else
-        qWarning() << "An error occured while trying to create a widget of type" << object.value("type");
+        qCritical() << "An error occured while trying to create a widget of type" << object.value("type");
     return widget;
 }
 

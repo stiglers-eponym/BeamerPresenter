@@ -228,6 +228,8 @@ void ToolDialog::setColor()
 {
     QPalette button_palette = color_button->palette();
     const QColor color = QColorDialog::getColor(button_palette.button().color(), this, tr("Tool color"), QColorDialog::ShowAlphaChannel);
+    if (!color.isValid())
+        return;
     button_palette.setColor(QPalette::Button, color);
     color_button->setPalette(button_palette);
     color_button->setText(color.name());

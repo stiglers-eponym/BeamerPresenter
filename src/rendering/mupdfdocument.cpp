@@ -1,6 +1,7 @@
 #include <QFileInfo>
 #include <QInputDialog>
 #include <QMutex>
+#include <QMessageBox>
 #include "src/rendering/mupdfdocument.h"
 #include "src/enumerates.h"
 #include "src/preferences.h"
@@ -117,7 +118,9 @@ bool MuPdfDocument::loadDocument()
     QFileInfo const fileinfo(path);
     if (!fileinfo.exists() || !fileinfo.isFile())
     {
-        qCritical() << "Given filename is not a file.";
+        preferences()->showErrorMessage(
+                    QObject::tr("Error while loading files"),
+                    QObject::tr("Given filename is not a file: ") + fileinfo.baseName());
         return false;
     }
 
@@ -184,7 +187,9 @@ bool MuPdfDocument::loadDocument()
             doc = pdf_open_document(ctx, name);
         fz_catch(ctx)
         {
-            qCritical() << "MuPdf cannot open document:" << fz_caught_message(ctx);
+            preferences()->showErrorMessage(
+                        QObject::tr("Error while loading files"),
+                        QObject::tr("MuPdf cannot open document: ") + fz_caught_message(ctx));
             doc = NULL;
             fz_drop_context(ctx);
             ctx =  NULL;
@@ -200,8 +205,8 @@ bool MuPdfDocument::loadDocument()
         bool ok;
         QString const password = QInputDialog::getText(
                     NULL,
-                    "Document is locked!",
-                    "Please enter password (leave empty to cancel).",
+                    QObject::tr("Document is locked!"),
+                    QObject::tr("Please enter password (leave empty to cancel)."),
                     QLineEdit::Password,
                     QString(),
                     &ok
@@ -209,7 +214,9 @@ bool MuPdfDocument::loadDocument()
         // Check if a password was entered.
         if (!ok || password.isEmpty() || !pdf_authenticate_password(ctx, doc, password.toUtf8()))
         {
-            qCritical() << "No or invalid password provided for locked document";
+            preferences()->showErrorMessage(
+                        QObject::tr("Error while loading files"),
+                        QObject::tr("No or invalid password provided for locked document"));
             pdf_drop_document(ctx, doc);
             doc = NULL;
             fz_drop_context(ctx);

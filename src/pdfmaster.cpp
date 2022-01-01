@@ -47,7 +47,9 @@ void PdfMaster::loadDocument(const QString &filename)
     if (document)
     {
         if (filename != document->getPath())
-            qCritical() << "Tried to load a pdf file, but a different file is already loaded!";
+            preferences()->showErrorMessage(
+                        tr("Error while loading file"),
+                        tr("Tried to load a pdf file, but a different file is already loaded!"));
         else if (document->loadDocument())
             document->loadOutline();
         return;
@@ -73,7 +75,9 @@ void PdfMaster::loadDocument(const QString &filename)
 #endif
 
     if (document == NULL || !document->isValid())
-        qCritical("Loading pdf document failed");
+        preferences()->showErrorMessage(
+                    tr("Error while loading file"),
+                    tr("Loading PDF document failed!"));
     else
         document->loadOutline();
 }
@@ -284,7 +288,9 @@ void PdfMaster::saveXopp(const QString &filename)
     writer.writeEndDocument();
     bool saving_failed = writer.hasError();
     if (saving_failed)
-        qWarning() << "Writing document resulted in error! Resulting document is probably corrupt.";
+        preferences()->showErrorMessage(
+                    tr("Error while saving file"),
+                    tr("Writing document resulted in error! Resulting document is probably corrupt."));
 
     gzFile file = gzopen(filename.toUtf8(), "wb");
     if (file)
@@ -304,7 +310,9 @@ void PdfMaster::saveXopp(const QString &filename)
         else
         {
             saving_failed = true;
-            qWarning() << "Saving file failed with file path" << filename;
+            preferences()->showErrorMessage(
+                        tr("Error while saving file"),
+                        tr("Saving document failed for file path: ") + filename);
         }
     }
     if (!saving_failed)
@@ -340,7 +348,9 @@ void PdfMaster::loadXopp(const QString &filename)
                 reader.skipCurrentElement();
         }
         if (reader.hasError())
-            qWarning() << "Failed to read xopp document." << reader.errorString();
+            preferences()->showErrorMessage(
+                        tr("Error while loading file"),
+                        tr("Failed to read xopp document: ") + reader.errorString());
         else if (!document)
         {
             qWarning() << "Failed to determine PDF document from xournal file." << filename;
@@ -355,7 +365,9 @@ void PdfMaster::loadXopp(const QString &filename)
         }
     }
     else
-        qWarning() << "Failed to read xopp document." << reader.errorString();
+        preferences()->showErrorMessage(
+                    tr("Error while loading file"),
+                    tr("Failed to read xopp document: ") + reader.errorString());
     reader.clear();
     buffer->close();
     delete buffer;
@@ -382,10 +394,14 @@ void PdfMaster::reloadXoppProperties()
                 reader.skipCurrentElement();
         }
         if (reader.hasError())
-            qWarning() << "Failed to read xopp document." << reader.errorString();
+            preferences()->showErrorMessage(
+                        tr("Error while loading file"),
+                        tr("Failed to read xopp document: ") + reader.errorString());
     }
     else
-        qWarning() << "Failed to read xopp document." << reader.errorString();
+        preferences()->showErrorMessage(
+                    tr("Error while loading file"),
+                    tr("Failed to read xopp document: ") + reader.errorString());
     reader.clear();
     buffer->close();
     delete buffer;
@@ -400,6 +416,9 @@ QBuffer *PdfMaster::loadZipToBuffer(const QString &filename)
     if (!file)
     {
         qWarning() << "Loading drawings failed: file" << filename << "could not be opened";
+        preferences()->showErrorMessage(
+                    tr("Error while loading file"),
+                    tr("Loading drawings failed: file") + filename + tr("could not be opened"));
         return NULL;
     }
     gzbuffer(file, 32768);

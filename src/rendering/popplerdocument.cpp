@@ -48,7 +48,9 @@ bool PopplerDocument::loadDocument()
     QFileInfo const fileinfo(path);
     if (!fileinfo.exists() || !fileinfo.isFile())
     {
-        qCritical() << "Given filename is not a file.";
+        preferences()->showErrorMessage(
+                    QObject::tr("Error while loading files"),
+                    QObject::tr("Given filename is not a file: ") + fileinfo.baseName());
         return false;
     }
     // Check if the file has changed since last (re)load
@@ -71,8 +73,8 @@ bool PopplerDocument::loadDocument()
         bool ok;
         QString const password = QInputDialog::getText(
                     NULL,
-                    "Document is locked!",
-                    "Please enter password (leave empty to cancel).",
+                    QObject::tr("Document is locked!"),
+                    QObject::tr("Please enter password (leave empty to cancel)."),
                     QLineEdit::Password,
                     QString(),
                     &ok
@@ -81,7 +83,9 @@ bool PopplerDocument::loadDocument()
         // Only user password is required, since we only read the document.
         if (!ok || password.isEmpty() || newdoc->unlock(QByteArray(), password.toUtf8()))
         {
-            qCritical() << "No or invalid password provided for locked document";
+            preferences()->showErrorMessage(
+                        QObject::tr("Error while loading files"),
+                        QObject::tr("No or invalid password provided for locked document"));
             newdoc = NULL;
             return false;
         }

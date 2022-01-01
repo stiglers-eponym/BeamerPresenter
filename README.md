@@ -238,7 +238,6 @@ BeamerPresenter (`qmake --version`).
 
 
 ### Ideas for further development
-* show important warnings as dialog, not just on the command line
 * improve code documentation (can be generated with `doxygen doxyfile`)
 * tools to select and modify drawings
 * improve cache management and layout corrections.

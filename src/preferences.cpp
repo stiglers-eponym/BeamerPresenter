@@ -662,3 +662,9 @@ void Preferences::setAutoSlideChanges(const bool show)
         global_flags &= ~AutoSlideChanges;
     settings.setValue("automatic slide changes", show);
 }
+
+void Preferences::showErrorMessage(const QString &title, const QString &text) const
+{
+    qCritical() << text;
+    emit sendErrorMessage(title, text);
+}

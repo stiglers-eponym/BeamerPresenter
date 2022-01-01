@@ -257,6 +257,9 @@ public:
     /// key shortcuts.
     static void parseActionsTools(const QVariant &input, QList<Action> &actions, QList<Tool*> &tools, const int default_device = 0);
 
+    /// Show error message in dialog in front of main window.
+    void showErrorMessage(const QString &title, const QString &text) const;
+
 public slots:
     /// Set maximum memory for cache. This function uses double instead of
     /// qreal because it is connected to a QDoubleSpinBox.
@@ -286,6 +289,8 @@ public slots:
     void setAutoSlideChanges(const bool show);
 
 signals:
+    /// Send error message to master (main window), which will show a message box.
+    void sendErrorMessage(const QString &title, const QString &text) const;
     /// Interrupt drawing to avoid problems when changing or deleting tools.
     void stopDrawing() const;
     /// Tell master to redistribute cache memory.

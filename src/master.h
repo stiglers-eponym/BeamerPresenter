@@ -9,6 +9,8 @@
 #include <QSizePolicy>
 #include <QXmlStreamReader>
 #include <QXmlStreamWriter>
+#include <QMainWindow>
+#include <QMessageBox>
 #include "src/preferences.h"
 
 class Tool;
@@ -122,6 +124,10 @@ public slots:
 
     /// finish navigation event: called after page change or after slide transition.
     void postNavigation() const noexcept;
+
+    /// Show an error message as QMessageBox::critical
+    void showErrorMessage(const QString &title, const QString &text) const
+    {QMessageBox::critical(windows.isEmpty() ? NULL : windows.first(), title, text);}
 
 signals:
     /// Send out action.
