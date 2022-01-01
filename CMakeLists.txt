@@ -150,8 +150,8 @@ if (CPACK_GENERATOR MATCHES "DEB")
     # * libopenjp2-7-dev
     # * libjbig2dec0-dev
     # * libgumbo-dev (for MuPDF >=1.18, probably not required for version <=1.17)
-    if (NOT ("${QT_VERSION_MAJOR}" STREQUAL "5"))
-        message(ERROR, "Building debian package is only possible with Qt 5")
+    if (NOT ("${QT_VERSION_MAJOR}" EQUAL "5"))
+        message(WARNING, "Building debian package is only possible with Qt 5, dependencies will be wrong and unavailable")
     endif()
     set(CPACK_DEBIAN_PACKAGE_DEPENDS "zlib1g (>= 1:1.2.11)")
     foreach (package "libqt${QT_VERSION_MAJOR}multimedia5" "libqt${QT_VERSION_MAJOR}multimediawidgets5")
