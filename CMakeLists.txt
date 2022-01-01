@@ -124,18 +124,35 @@ elseif(USE_POPPLER)
     set(CPACK_PACKAGE_NAME "${PROJECT_NAME}-poppler")
     set(CPACK_PACKAGE_FILE_NAME "beamerpresenter-poppler-${APP_VERSION}-qt${QT_VERSION_MAJOR}.${QT_VERSION_MINOR}-${PACKAGE_ARCH}")
 endif()
-set(CPACK_PACKAGE_DESCRIPTION_FILE "${PROJECT_SOURCE_DIR}/package_description")
+set(CPACK_PACKAGE_DESCRIPTION_FILE "${PROJECT_SOURCE_DIR}/packaging/package_description")
 set(CPACK_RESOURCE_FILE_LICENSE "${PROJECT_SOURCE_DIR}/LICENSE")
 set(CPACK_STRIP_FILES ON)
 
+MATH(EXPR QT_VERSION_MINOR_PLUS "${QT_VERSION_MINOR} + 1")
+set(QT_VERSION_LOWER "(>= ${QT_VERSION_MAJOR}.${QT_VERSION_MINOR}.0)")
+set(QT_VERSION_UPPER "(< ${QT_VERSION_MAJOR}.${QT_VERSION_MINOR_PLUS}.0)")
+
 if (CPACK_GENERATOR MATCHES "DEB")
-    # configure debian package
+    # configure debian package (tested in Ubuntu 20.04)
+    #
+    # Required packages for building:
+    # * cmake
+    # * git (only when building mainline version)
+    # * zlib1g-dev
+    # * qtmultimedia5-dev
+    # For poppler:
+    # * libpoppler-qt5-dev
+    # For MuPDF:
+    # * libmupdf-dev
+    # * libfreetype-dev
+    # * libharfbuzz-dev
+    # * libjpeg-dev
+    # * libopenjp2-7-dev
+    # * libjbig2dec0-dev
+    # * libgumbo-dev (for MuPDF >=1.18, probably not required for version <=1.17)
     if (NOT ("${QT_VERSION_MAJOR}" STREQUAL "5"))
         message(ERROR, "Building debian package is only possible with Qt 5")
     endif()
-    MATH(EXPR QT_VERSION_MINOR_PLUS "${QT_VERSION_MINOR} + 1")
-    set(QT_VERSION_UPPER "(<< ${QT_VERSION_MAJOR}.${QT_VERSION_MINOR_PLUS}.0)")
-    set(QT_VERSION_LOWER "(>= ${QT_VERSION_MAJOR}.${QT_VERSION_MINOR}.0)")
     set(CPACK_DEBIAN_PACKAGE_DEPENDS "zlib1g (>= 1:1.2.11)")
     foreach (package "libqt${QT_VERSION_MAJOR}multimedia5" "libqt${QT_VERSION_MAJOR}multimediawidgets5")
         set(CPACK_DEBIAN_PACKAGE_DEPENDS "${CPACK_DEBIAN_PACKAGE_DEPENDS}, ${package} ${QT_VERSION_LOWER}, ${package} ${QT_VERSION_UPPER}")
@@ -152,8 +169,36 @@ if (CPACK_GENERATOR MATCHES "DEB")
         set(CPACK_DEBIAN_PACKAGE_ARCHITECTURE "${PACKAGE_ARCH}")
     endif()
     set(CPACK_DEBIAN_PACKAGE_SECTION "science")
-    set(CPACK_DEBIAN_PACKAGE_SUGGESTS "libqt5multimedia5-plugins")
+    if (USE_MUPDF AND USE_POPPLER)
+        set(CPACK_DEBIAN_PACKAGE_CONFLICTS "${PROJECT_NAME}-mupdf, ${PROJECT_NAME}-poppler")
+    elseif (USE_MUPDF)
+        set(CPACK_DEBIAN_PACKAGE_CONFLICTS "${PROJECT_NAME}-full, ${PROJECT_NAME}-poppler")
+    elseif (USE_POPPLER)
+        set(CPACK_DEBIAN_PACKAGE_CONFLICTS "${PROJECT_NAME}-full, ${PROJECT_NAME}-mupdf")
+    endif()
+    set(CPACK_DEBIAN_PACKAGE_RECOMMENDS "libqt5multimedia5-plugins")
     install(FILES "${PROJECT_SOURCE_DIR}/LICENSE" DESTINATION "${CMAKE_INSTALL_DOCDIR}" RENAME "copyright")
+endif()
+
+if (CPACK_GENERATOR MATCHES "RPM")
+    # configure RPM package (UNTESTED!)
+    set(CPACK_RPM_PACKAGE_ARCHITECTURE "${PACKAGE_ARCH}")
+    set(CPACK_RPM_PACKAGE_LICENSE "AGPLv3+")
+    set(CPACK_RPM_PACKAGE_REQUIRES "zlib, qt${QT_VERSION_MAJOR}-qtmultimedia ${QT_VERSION_LOWER}, qt${QT_VERSION_MAJOR}-qtmultimedia ${QT_VERSION_UPPER}")
+    if (USE_MUPDF)
+        set(CPACK_RPM_PACKAGE_REQUIRES "${CPACK_RPM_PACKAGE_REQUIRES}, freetype, harfbuzz, libjpeg-turbo, openjpeg2, jbig2dec0-libs, gumbo-parser")
+        # for building mupdf: mupdf-devel
+    endif()
+    if (USE_POPPLER)
+        set(CPACK_RPM_PACKAGE_REQUIRES "${CPACK_RPM_PACKAGE_REQUIRES}, poppler-qt${QT_VERSION_MAJOR}")
+    endif()
+    if (USE_MUPDF AND USE_POPPLER)
+        set(CPACK_RPM_PACKAGE_CONFLICTS "${PROJECT_NAME}-mupdf, ${PROJECT_NAME}-poppler")
+    elseif (USE_MUPDF)
+        set(CPACK_RPM_PACKAGE_CONFLICTS "${PROJECT_NAME}-full, ${PROJECT_NAME}-poppler")
+    elseif (USE_POPPLER)
+        set(CPACK_RPM_PACKAGE_CONFLICTS "${PROJECT_NAME}-full, ${PROJECT_NAME}-mupdf")
+    endif()
 endif()
 
 include(CPack)

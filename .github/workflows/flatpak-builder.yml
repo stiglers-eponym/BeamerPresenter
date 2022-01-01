@@ -15,5 +15,5 @@ jobs:
     - uses: bilelmoussaoui/flatpak-github-actions/flatpak-builder@v4
       with:
         bundle: beamerpresenter.flatpak
-        manifest-path: io.github.beamerpresenter.yml
+        manifest-path: packaging/io.github.beamerpresenter.yml
         arch: x86_64
