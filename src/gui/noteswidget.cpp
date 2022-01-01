@@ -87,9 +87,9 @@ void NotesWidget::save(QString filename)
     {
         filename = QFileDialog::getSaveFileName(
                     NULL,
-                    "Save notes",
+                    tr("Save notes"),
                     "",
-                    "Note files (*.xml);;BeamerPresenter/Xournal++ files (*.bpr *.xopp);;All files (*)"
+                    tr("Note files (*.xml);;BeamerPresenter/Xournal++ files (*.bpr *.xopp);;All files (*)")
                 );
         if (filename.endsWith(".bpr", Qt::CaseInsensitive) || filename.endsWith(".xopp", Qt::CaseInsensitive))
             emit saveDrawings(filename);
@@ -104,9 +104,9 @@ void NotesWidget::load()
 {
     const QString filename = QFileDialog::getOpenFileName(
                 NULL,
-                "Open notes",
+                tr("Open notes"),
                 "",
-                "Note files (*.xml);;BeamerPresenter/Xournal++ files (*.bpr *.xopp *.xoj *.xml);;All files (*)"
+                tr("Note files (*.xml);;BeamerPresenter/Xournal++ files (*.bpr *.xopp *.xoj *.xml);;All files (*)")
             );
     QMimeDatabase db;
     const QMimeType type = db.mimeTypeForFile(filename, QMimeDatabase::MatchContent);

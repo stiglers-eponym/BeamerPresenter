@@ -26,9 +26,9 @@ TimerWidget::TimerWidget(QWidget *parent) :
     connect(total, &QLineEdit::editingFinished, this, &TimerWidget::changeTotal);
     passed->setAlignment(Qt::AlignCenter);
     total->setAlignment(Qt::AlignCenter);
-    passed->setToolTip("time since beginning of the presentation");
-    total->setToolTip("total duration of the presentation");
-    setToolTip("double-click here to set time for this slide for your orientation while presenting");
+    passed->setToolTip(tr("time since beginning of the presentation"));
+    total->setToolTip(tr("total duration of the presentation"));
+    setToolTip(tr("double-click here to set time for this slide for your orientation while presenting"));
     updateFullText();
     stopTimer();
 }
@@ -226,8 +226,8 @@ void TimerWidget::mouseDoubleClickEvent(QMouseEvent*)
             (_flags & SetTimeWithoutConfirmation)
             || QMessageBox::question(
                     this,
-                    "Timer",
-                    "Save current time as target end time for current slide?",
+                    tr("Timer"),
+                    tr("Save current time as target end time for current slide?"),
                     QMessageBox::Yes | QMessageBox::No,
                     _flags & SetTimerConfirmationDefault ? QMessageBox::Yes : QMessageBox::No
                 ) == QMessageBox::Yes

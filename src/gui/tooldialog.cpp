@@ -26,16 +26,16 @@ ToolDialog::ToolDialog(QWidget *parent) :
         tool_box->addItem(it.key());
     connect(tool_box, &QComboBox::currentTextChanged, this, &ToolDialog::adaptToBasicToolStr);
     tool_box->setCurrentText("invalid");
-    layout->addRow("Tool:", tool_box);
+    layout->addRow(tr("Tool:"), tool_box);
 
     // Color
-    color_button->setText("color");
+    color_button->setText(tr("color"));
     connect(color_button, &QPushButton::clicked, this, &ToolDialog::setColor);
-    layout->addRow("Color:", color_button);
+    layout->addRow(tr("Color:"), color_button);
 
     // Input devices
     {
-        QGroupBox *device_group = new QGroupBox("Input devices", this);
+        QGroupBox *device_group = new QGroupBox(tr("Input devices"), this);
         QVBoxLayout *device_layout = new QVBoxLayout();
         for (auto it = string_to_input_device.cbegin(); it != string_to_input_device.cend(); ++it)
         {
@@ -49,10 +49,10 @@ ToolDialog::ToolDialog(QWidget *parent) :
 
     // Size
     size_box->setMaximum(999.99);
-    layout->addRow("Size:", size_box);
+    layout->addRow(tr("Size:"), size_box);
 
     // Exit
-    QPushButton *exit_button = new QPushButton("return", this);
+    QPushButton *exit_button = new QPushButton(tr("return"), this);
     connect(exit_button, &QPushButton::clicked, this, &ToolDialog::accept);
     layout->addWidget(exit_button);
 
@@ -66,9 +66,9 @@ void ToolDialog::adaptToBasicTool(const Tool::BasicTool tool)
     case Tool::TextInputTool:
         if (!font_button)
         {
-            font_button = new QPushButton("font", this);
+            font_button = new QPushButton(tr("font"), this);
             connect(font_button, &QPushButton::clicked, this, &ToolDialog::selectFont);
-            static_cast<QFormLayout*>(layout())->addRow("font:", font_button);
+            static_cast<QFormLayout*>(layout())->addRow(tr("font:"), font_button);
         }
         else
             font_button->show();
@@ -85,7 +85,7 @@ void ToolDialog::adaptToBasicTool(const Tool::BasicTool tool)
             scale_box = new QDoubleSpinBox(this);
             scale_box->setMaximum(5);
             scale_box->setMinimum(.2);
-            static_cast<QFormLayout*>(layout())->addRow("scale:", scale_box);
+            static_cast<QFormLayout*>(layout())->addRow(tr("scale:"), scale_box);
         }
         else
             scale_box->show();
@@ -227,7 +227,7 @@ Tool *ToolDialog::createTool() const
 void ToolDialog::setColor()
 {
     QPalette button_palette = color_button->palette();
-    const QColor color = QColorDialog::getColor(button_palette.button().color(), this, "Tool color", QColorDialog::ShowAlphaChannel);
+    const QColor color = QColorDialog::getColor(button_palette.button().color(), this, tr("Tool color"), QColorDialog::ShowAlphaChannel);
     button_palette.setColor(QPalette::Button, color);
     color_button->setPalette(button_palette);
     color_button->setText(color.name());
@@ -238,7 +238,7 @@ void ToolDialog::selectFont()
     if (!font_button)
         return;
     bool ok;
-    QFont newfont = QFontDialog::getFont(&ok, font_button->font(), this, "Font for Text input");
+    QFont newfont = QFontDialog::getFont(&ok, font_button->font(), this, tr("Font for Text input"));
     font_button->setText(newfont.toString());
     font_button->setFont(newfont);
 }

@@ -6,7 +6,7 @@ ThumbnailButton::ThumbnailButton(const int page, QWidget *parent) :
     page(page)
 {
     setFocusPolicy(Qt::FocusPolicy::StrongFocus);
-    setToolTip("page " + QString::number(page+1));
+    setToolTip(tr("page ") + QString::number(page+1));
 }
 
 

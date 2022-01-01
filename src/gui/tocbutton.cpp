@@ -15,10 +15,10 @@ TOCbutton::TOCbutton(const QString &title, const int _page, QCheckBox *expand_bu
         // Workaround: limit expand_button's size.
         expand_button->setMaximumWidth(24);
         connect(expand_button, &QCheckBox::toggled, this, &TOCbutton::toggleVisibility);
-        expand_button->setToolTip("uncheck to hide child layers");
+        expand_button->setToolTip(tr("uncheck to hide child layers"));
     }
     connect(this, &QPushButton::clicked, this, [&]{emit sendNavigationEvent(page);});
-    setToolTip("page " + QString::number(_page));
+    setToolTip(tr("page ") + QString::number(_page));
 }
 
 void TOCbutton::toggleVisibility()
@@ -34,7 +34,7 @@ void TOCbutton::expand()
     show();
     if (expand_button)
     {
-        expand_button->setToolTip("uncheck to hide child layers");
+        expand_button->setToolTip(tr("uncheck to hide child layers"));
         expand_button->show();
         expand_button->setChecked(true);
     }
@@ -54,7 +54,7 @@ void TOCbutton::expand_full()
     show();
     if (expand_button)
     {
-        expand_button->setToolTip("uncheck to hide child layers");
+        expand_button->setToolTip(tr("uncheck to hide child layers"));
         expand_button->show();
         expand_button->setChecked(true);
     }
@@ -70,7 +70,7 @@ void TOCbutton::collapse()
 {
     if (expand_button)
     {
-        expand_button->setToolTip("check to show child layers");
+        expand_button->setToolTip(tr("check to show child layers"));
         expand_button->setChecked(false);
     }
     if (tree_child)
@@ -84,7 +84,7 @@ void TOCbutton::collapse_hide()
     if (expand_button)
     {
         expand_button->hide();
-        expand_button->setToolTip("check to show child layers");
+        expand_button->setToolTip(tr("check to show child layers"));
         expand_button->setChecked(false);
     }
     if (tree_child)

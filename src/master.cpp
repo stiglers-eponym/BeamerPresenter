@@ -242,9 +242,9 @@ QWidget* Master::createWidget(QJsonObject &object, QWidget *parent)
         {
             fileinfo = QFileInfo(QFileDialog::getOpenFileName(
                                      NULL,
-                                     "Open file \"" + file + "\"",
+                                     tr("Open file") + " \"" + file + "\"",
                                      "",
-                                     "Documents (*.pdf);;BeamerPresenter/Xournal++ files (*.bpr *.xoj *.xopp *.xml);;All files (*)"
+                                     tr("Documents (*.pdf);;BeamerPresenter/Xournal++ files (*.bpr *.xoj *.xopp *.xml);;All files (*)")
                                  ));
             if (!fileinfo.exists())
             {
@@ -770,8 +770,8 @@ void Master::handleAction(const Action action)
                 debug_msg(DebugWidgets, "Asking for close confirmation:" << doc->flags());
                 switch (QMessageBox::question(
                             NULL,
-                            "Unsaved changes",
-                            "The document may contain unsaved changes. Quit anyway?",
+                            tr("Unsaved changes"),
+                            tr("The document may contain unsaved changes. Quit anyway?"),
                             QMessageBox::Close | QMessageBox::Save | QMessageBox::Cancel,
                             QMessageBox::Save
                         ))
@@ -939,9 +939,9 @@ QString Master::getOpenFileName()
 {
     return QFileDialog::getOpenFileName(
                 NULL,
-                "Load drawings",
+                tr("Load drawings"),
                 "",
-                "BeamerPresenter/Xournal++ files (*.bpr *.xoj *.xopp *.xml);;All files (*)"
+                tr("BeamerPresenter/Xournal++ files (*.bpr *.xoj *.xopp *.xml);;All files (*)")
             );
 }
 
@@ -949,8 +949,8 @@ QString Master::getSaveFileName()
 {
     return QFileDialog::getSaveFileName(
                 NULL,
-                "Save drawings",
+                tr("Save drawings"),
                 "",
-                "BeamerPresenter/Xournal++ files (*.bpr *.xopp);;All files (*)"
+                tr("BeamerPresenter/Xournal++ files (*.bpr *.xopp);;All files (*)")
             );
 }

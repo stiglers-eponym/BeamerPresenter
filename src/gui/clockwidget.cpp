@@ -20,7 +20,7 @@ ClockWidget::ClockWidget(QWidget *parent, bool accept_touch_input) :
     timer->start(1000);
     setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);
     setMinimumSize(20, 10);
-    setToolTip("double-click on clock to start or pause timer");
+    setToolTip(tr("double-click on clock to start or pause timer"));
 }
 
 void ClockWidget::resizeEvent(QResizeEvent *event) noexcept

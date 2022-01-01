@@ -8,6 +8,10 @@
 #include "src/rendering/pngpixmap.h"
 #include "src/config.h"
 
+#ifdef USE_TRANSLATIONS
+#include <QTranslator>
+#endif
+
 #ifdef USE_POPPLER
 #if __has_include(<poppler/qt5/poppler-version.h>)
 #include <poppler/qt5/poppler-version.h>
@@ -49,6 +53,8 @@ int main(int argc, char *argv[])
     QApplication app(argc, argv);
     app.setApplicationName("BeamerPresenter");
     app.setWindowIcon(QIcon(ICON_FILEPATH));
+
+    QTranslator translator;
 
     // Set app version. The string APP_VERSION is defined in beamerpresenter.pro.
     QString version_string = APP_VERSION " ";

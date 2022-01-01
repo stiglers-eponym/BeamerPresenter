@@ -18,7 +18,7 @@ ActionButton::ActionButton(const Action action, ToolSelectorWidget *parent) :
     ActionButton(parent)
 {
     addAction(action);
-    setToolTip(action_to_description.value(action));
+    setToolTip(tr(action_to_description.value(action)));
     if (action_to_custom_icons.contains(action) && action_to_custom_icons[action].length() > 1)
         connect(parent, &ToolSelectorWidget::sendStatus, this, &ActionButton::setStatus);
 }

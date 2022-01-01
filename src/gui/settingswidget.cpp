@@ -60,9 +60,9 @@ void SettingsWidget::initShortcuts()
 {
     QFormLayout *layout = new QFormLayout();
     QLabel *explanation_label = new QLabel(
-                "Change shortcuts by clicking on them and typing the new shortcut. "
-                "Remove shortcuts with delete key. "
-                "Actions are documented in man 1 beamerpresenter-ui (in \"tool selector\").",
+                tr("Change shortcuts by clicking on them and typing the new shortcut. "
+                   "Remove shortcuts with delete key. "
+                   "Actions are documented in man 1 beamerpresenter-ui (in \"tool selector\")."),
                 shortcuts
             );
     explanation_label->setWordWrap(true);
@@ -77,7 +77,7 @@ void SettingsWidget::initShortcuts()
     {
         input_shortcut = new KeyInputLabel(it.key(), *it, shortcuts);
         QLabel *label = new QLabel(action_to_string.value(*it, "unknown"), shortcuts);
-        label->setToolTip(action_to_description.value(*it));
+        label->setToolTip(tr(action_to_description.value(*it)));
         layout->addRow(label, input_shortcut);
     }
     QMap<int, QString> tool_to_string;
@@ -88,7 +88,7 @@ void SettingsWidget::initShortcuts()
     {
         input_shortcut = new KeyInputLabel(it.key(), *it, shortcuts);
         QLabel *label = new QLabel(tool_to_string.value((*it)->tool(), "unknown"), shortcuts);
-        label->setToolTip(tool_to_description.value((*it)->tool()));
+        label->setToolTip(tr(tool_to_description.value((*it)->tool())));
         layout->addRow(label, input_shortcut);
     }
     QPushButton *add_shortcut_button = new QPushButton("Add new shortcut", shortcuts);
@@ -104,9 +104,11 @@ void SettingsWidget::initRendering()
 
     // Cache management
     QLabel *explanation_label = new QLabel(
-                "Set general settings for rendering. Many oft these settings only take effect after restarting the program.\n\n"
-                "Configure cache. Slides are rendered to compressed cache. These settings defined the allowed cache size. Negative values are interpreted as infinity."
-                ,
+                tr("Set general settings for rendering. Many oft these settings "
+                   "only take effect after restarting the program.\n\n"
+                   "Configure cache. Slides are rendered to compressed cache. "
+                   "These settings defined the allowed cache size. Negative "
+                   "values are interpreted as infinity."),
                 rendering);
     explanation_label->setTextFormat(Qt::PlainText);
     explanation_label->setWordWrap(true);
@@ -117,17 +119,22 @@ void SettingsWidget::initRendering()
     memory_box->setMaximum(4096.);
     memory_box->setValue(preferences()->max_memory/1048596);
     connect(memory_box, QOverload<double>::of(&QDoubleSpinBox::valueChanged), writable_preferences(), &Preferences::setMemory);
-    layout->addRow("cache memory (MiB)", memory_box);
+    layout->addRow(tr("cache memory (MiB)"), memory_box);
 
     QSpinBox *spin_box = new QSpinBox(rendering);
     spin_box->setMinimum(-1);
     spin_box->setMaximum(10000);
     spin_box->setValue(preferences()->max_cache_pages);
     connect(spin_box, QOverload<int>::of(&QSpinBox::valueChanged), writable_preferences(), &Preferences::setCacheSize);
-    layout->addRow("max. slides in cache", spin_box);
+    layout->addRow(tr("max. slides in cache"), spin_box);
 
     // Renderer
-    explanation_label = new QLabel("Depending on your installation, different PDF engines may be available. Note that using an external renderer requires a proper configuration of rendering command and rendering arguments as documented in man 5 beamerpresenter.conf.", misc);
+    explanation_label = new QLabel(
+                tr("Depending on your installation, different PDF engines may "
+                   "be available. Note that using an external renderer requires "
+                   "a proper configuration of rendering command and rendering "
+                   "arguments as documented in man 5 beamerpresenter.conf."),
+                misc);
     explanation_label->setTextFormat(Qt::PlainText);
     explanation_label->setWordWrap(true);
     layout->addRow(explanation_label);
@@ -146,20 +153,25 @@ void SettingsWidget::initRendering()
     select_renderer->addItem("poppler + external", PdfDocument::PopplerEngine);
 #endif
     connect(select_renderer, &QComboBox::currentTextChanged, writable_preferences(), &Preferences::setRenderer);
-    layout->addRow("Renderer (requires restart)", select_renderer);
+    layout->addRow(tr("Renderer (requires restart)"), select_renderer);
 
     QLineEdit *line_edit = new QLineEdit(rendering);
     line_edit->setText(preferences()->rendering_command);
     connect(line_edit, &QLineEdit::textChanged, writable_preferences(), &Preferences::setRenderingCommand);
-    layout->addRow("rendering command", line_edit);
+    layout->addRow(tr("rendering command"), line_edit);
 
     line_edit = new QLineEdit(rendering);
     line_edit->setText(preferences()->rendering_arguments.join(","));
     connect(line_edit, &QLineEdit::textChanged, writable_preferences(), &Preferences::setRenderingArguments);
-    layout->addRow("rendering arguments", line_edit);
+    layout->addRow(tr("rendering arguments"), line_edit);
 
     // Page part threshold
-    explanation_label = new QLabel("Some programs (like LaTeX beamer) can create PDF pages split into one half for the audience one half for the speaker. This is assumed by BeamerPresenter if the aspect ratio (width/height) of the first slide lies above this threshold:", misc);
+    explanation_label = new QLabel(
+                tr("Some programs (like LaTeX beamer) can create PDF pages split "
+                   "into one half for the audience one half for the speaker. "
+                   "This is assumed by BeamerPresenter if the aspect ratio "
+                   "(width/height) of the first slide lies above this threshold:"),
+                misc);
     explanation_label->setTextFormat(Qt::PlainText);
     explanation_label->setWordWrap(true);
     layout->addRow(explanation_label);
@@ -169,7 +181,7 @@ void SettingsWidget::initRendering()
     page_part_box->setMaximum(20.);
     page_part_box->setValue(preferences()->page_part_threshold);
     connect(page_part_box, QOverload<double>::of(&QDoubleSpinBox::valueChanged), writable_preferences(), &Preferences::setPagePartThreshold);
-    layout->addRow("page part threshold", page_part_box);
+    layout->addRow(tr("page part threshold"), page_part_box);
 
     rendering->setLayout(layout);
 }
@@ -179,7 +191,10 @@ void SettingsWidget::initMisc()
     QFormLayout *layout = new QFormLayout();
 
     // Drawing history settings
-    QLabel *explanation_label = new QLabel("Number of drawing history steps (undo/redo). Drawing history is kept separately for each slide.", misc);
+    QLabel *explanation_label = new QLabel(
+                tr("Number of drawing history steps (undo/redo). Drawing "
+                   "history is kept separately for each slide."),
+                misc);
     explanation_label->setTextFormat(Qt::PlainText);
     explanation_label->setWordWrap(true);
     layout->addRow(explanation_label);
@@ -189,17 +204,20 @@ void SettingsWidget::initMisc()
     connect(spin_box, QOverload<int>::of(&QSpinBox::valueChanged), writable_preferences(), &Preferences::setHistoryVisibleSlide);
     spin_box->setMinimum(0);
     spin_box->setMaximum(1000);
-    layout->addRow("History length visible slides", spin_box);
+    layout->addRow(tr("History length visible slides"), spin_box);
 
     spin_box = new QSpinBox(misc);
     spin_box->setValue(preferences()->history_length_hidden_slides);
     connect(spin_box, QOverload<int>::of(&QSpinBox::valueChanged), writable_preferences(), &Preferences::setHistoryHiddenSlide);
     spin_box->setMinimum(0);
     spin_box->setMaximum(1000);
-    layout->addRow("History length hidden slides", spin_box);
+    layout->addRow(tr("History length hidden slides"), spin_box);
 
     // Enable/disable logging output
-    explanation_label = new QLabel("If opened in a terminal, slide changes can be logged to standard output with a time stamp.", misc);
+    explanation_label = new QLabel(
+                tr("If opened in a terminal, slide changes can be logged to "
+                   "standard output with a time stamp."),
+                misc);
     explanation_label->setTextFormat(Qt::PlainText);
     explanation_label->setWordWrap(true);
     layout->addRow(explanation_label);
@@ -210,23 +228,31 @@ void SettingsWidget::initMisc()
     layout->addRow(box);
 
     // Enable/disable automatic slide changes
-    explanation_label = new QLabel("Enable/disable automatic slide switching if durations for slides are defined in the PDF.", misc);
+    explanation_label = new QLabel(
+                tr("Enable/disable automatic slide switching if durations for "
+                   "slides are defined in the PDF."),
+                misc);
     explanation_label->setTextFormat(Qt::PlainText);
     explanation_label->setWordWrap(true);
     layout->addRow(explanation_label);
 
-    box = new QCheckBox("automatic slide changes", misc);
+    box = new QCheckBox(tr("automatic slide changes"), misc);
     box->setChecked(preferences()->global_flags & Preferences::AutoSlideChanges);
     connect(box, QOverload<bool>::of(&QCheckBox::clicked), writable_preferences(), &Preferences::setAutoSlideChanges);
     layout->addRow(box);
 
     // Drawing mode
     explanation_label = new QLabel(
-                "<br>Define how drawings should be handled if multiple successive pages share the same page label (e.g. because they show overlays of the same slide).\n"
-                "<ul>"
-                "<li>\"per page\": all pages are treated separately</li>\n"
-                "<li>\"per slide\": pages with the same label also have the same drawings.</li>\n"
-                "<li>\"cumulative\": when reaching a page with no drawings (and no drawings history), which has the same label as the previous page, the drawings from the previous page are copied to this page.</li>"
+                "<br>"
+                + tr("Define how drawings should be handled if multiple "
+                     "successive pages share the same page label (e.g. "
+                     "because they show overlays of the same slide).")
+                + "\n<ul>"
+                "<li>\"per page\": " + tr("all pages are treated separately.") + "</li>\n"
+                "<li>\"per slide\": " + tr("pages with the same label also have the same drawings.") + "</li>\n"
+                "<li>\"cumulative\": " + tr("when reaching a page with no drawings (and no drawings history), "
+                                            "which has the same label as the previous page, the drawings from "
+                                            "the previous page are copied to this page.") + "</li>"
                 "</ul>",
                 misc);
     explanation_label->setTextFormat(Qt::RichText);
@@ -238,7 +264,7 @@ void SettingsWidget::initMisc()
         combo_box->addItem(it.key());
     combo_box->setCurrentText(string_to_overlay_mode.key(preferences()->overlay_mode));
     connect(combo_box, &QComboBox::currentTextChanged, writable_preferences(), &Preferences::setOverlayMode);
-    layout->addRow("drawing mode for overlays", combo_box);
+    layout->addRow(tr("drawing mode for overlays"), combo_box);
 
     misc->setLayout(layout);
 }

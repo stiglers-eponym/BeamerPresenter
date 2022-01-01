@@ -132,7 +132,7 @@ void ToolButton::setTool(Tool *newtool)
         setText(string_to_tool.key(newtool->tool()));
     delete tool;
     tool = newtool;
-    setToolTip(tool_to_description.value(tool->tool()));
+    setToolTip(tr(tool_to_description.value(tool->tool())));
 }
 
 const QImage fancyIcon(const QString &filename, const QSize &size, const QColor &color)

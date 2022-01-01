@@ -20,8 +20,8 @@ SlideLabelWidget::SlideLabelWidget(QWidget *parent) :
     total->setFocusPolicy(Qt::NoFocus);
     layout->addWidget(total);
     connect(edit, &QLineEdit::returnPressed, this, &SlideLabelWidget::readText);
-    total->setToolTip("last page label");
-    edit->setToolTip("current page label");
+    total->setToolTip(tr("last page label"));
+    edit->setToolTip(tr("current page label"));
 
     // If logging is activated: print header
     if ((preferences()->global_flags & Preferences::LogSlideChanges))

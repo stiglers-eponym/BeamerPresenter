@@ -346,9 +346,9 @@ void PdfMaster::loadXopp(const QString &filename)
             qWarning() << "Failed to determine PDF document from xournal file." << filename;
             QFileInfo fileinfo = QFileInfo(QFileDialog::getOpenFileName(
                                      NULL,
-                                     "PDF file could not be opened, select the correct PDF file.",
+                                     tr("PDF file could not be opened, select the correct PDF file."),
                                      "",
-                                     "Documents (*.pdf);;All files (*)"
+                                     tr("Documents (*.pdf);;All files (*)")
                                  ));
             if (fileinfo.exists())
                 loadDocument(fileinfo.absoluteFilePath());

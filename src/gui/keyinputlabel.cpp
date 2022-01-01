@@ -17,7 +17,7 @@ KeyInputLabel::KeyInputLabel(const QKeySequence init, const Action action, QWidg
     setPalette(palette);
     setAutoFillBackground(true);
     setFocusPolicy(Qt::ClickFocus);
-    setToolTip("Click here and press keyboard shortcut for this action or press delete to remove the shortcut.");
+    setToolTip(tr("Click here and press keyboard shortcut for this action or press delete to remove the shortcut."));
 }
 
 KeyInputLabel::KeyInputLabel(const QKeySequence init, Tool *tool, QWidget *parent) :
@@ -33,7 +33,7 @@ KeyInputLabel::KeyInputLabel(const QKeySequence init, Tool *tool, QWidget *paren
     setPalette(palette);
     setAutoFillBackground(true);
     setFocusPolicy(Qt::ClickFocus);
-    setToolTip("Click here and press keyboard shortcut for this tool or press delete to remove the shortcut.");
+    setToolTip(tr("Click here and press keyboard shortcut for this tool or press delete to remove the shortcut."));
 }
 
 KeyInputLabel::~KeyInputLabel()

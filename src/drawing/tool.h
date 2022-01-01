@@ -131,7 +131,7 @@ static const QMap<QString, Tool::BasicTool> string_to_tool
 };
 
 /// tool tip description of tools
-static const QMap<Tool::BasicTool, QString> tool_to_description
+static const QMap<Tool::BasicTool, const char*> tool_to_description
 {
     {Tool::Pen, "pen with variable width if the input device supports variable pressure"},
     {Tool::FixedWidthPen, "pen with fixed width (independent of input device pressure)"},

@@ -83,7 +83,7 @@ static const QMap<QString, Gesture> string_to_gesture
     {"swipe right", SwipeRight},
 };
 
-static const QMap<Action, QString> action_to_description
+static const QMap<Action, const char*> action_to_description
 {
     {PreviousPage, "go to previous page"},
     {NextPage, "go to next page"},
