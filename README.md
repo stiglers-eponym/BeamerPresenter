@@ -89,6 +89,7 @@ Additionally you need either the Qt 5/6 bindings of poppler or the MuPDF C bindi
 * `zlib1g-dev` (after the installation you can remove `zlib1g-dev` and keep only `zlib1g`)
 * `qtmultimedia5-dev` (after the installation you can remove `qtmultimedia5-dev` and keep only `libqt5multimedia5` and `libqt5multimediawidgets5`)
 * `libqt5multimedia5-plugins` (optional, for showing videos)
+* `qttools5-dev` (only for building and only when creating translations. You can disable translations with `-DUSE_TRANSLATIONS=OFF` in the [cmake command](#build-with-cmake-mainline))
 
 For poppler (optional, see [below](#build-with-qmake-releases)):
 * `libpoppler-qt5-dev`: version 0.86.1 is tested. Versions below 0.70 are explicitly not supported, problems with newer versions might be fixed if reported in an issue on github. (after the installation you can remove `libpoppler-qt5-dev` and keep only `libpoppler-qt5-1`
@@ -106,6 +107,7 @@ For MuPDF (optional, see [below](#build-with-qmake-releases)):
 Replace qt5 by qt6 in all package names if you want to use Qt 6.
 * `cmake` (only for building and only in the mainline version)
 * `qt5-multimedia` (depends on `qt5-base`, which is also required)
+* `qt5-tools` (only for building and only when creating translations. You can disable translations with `-DUSE_TRANSLATIONS=OFF` in the [cmake command](#build-with-cmake-mainline))
 * optional: `qt5-svg` for showing icons
 
 For poppler (optional, see [below](#build-with-qmake-releases)):

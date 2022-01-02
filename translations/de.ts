@@ -165,21 +165,9 @@
         <source> could not be opened</source>
         <translation> konnte nicht geöffnet werden</translation>
     </message>
-    <message>
-        <source>Loading drawings failed: file</source>
-        <translation type="vanished">Laden der Anmerkungen fehlgeschlagen: Datei</translation>
-    </message>
-    <message>
-        <source>could not be opened</source>
-        <translation type="vanished">konnte nicht geöffnet werden</translation>
-    </message>
 </context>
 <context>
     <name>QObject</name>
-    <message>
-        <source>Error while loading PDF files</source>
-        <translation type="vanished">Fehler beim Laden der PDF-Datei</translation>
-    </message>
     <message>
         <location filename="../src/master.cpp" line="319"/>
         <source>Error while loading PDF file</source>
@@ -235,6 +223,11 @@
         <location filename="../src/gui/settingswidget.cpp" line="63"/>
         <source>Change shortcuts by clicking on them and typing the new shortcut. Remove shortcuts with delete key. Actions are documented in man 1 beamerpresenter-ui (in &quot;tool selector&quot;).</source>
         <translation>Ändere Tastenkombinationen durch Anklicken und Eingeben der neuen Tastenkombination. Entferne Tastenkombinationen mit Entfernen-Taste. Aktionen sind dokumentiert in man 1 beamerpresenter-ui (in &quot;tool-selector&quot;, nur auf Englisch verfügbar).</translation>
+    </message>
+    <message>
+        <location filename="../src/gui/settingswidget.cpp" line="94"/>
+        <source>Add new shortcut</source>
+        <translation>Neue Tastenkombination</translation>
     </message>
     <message>
         <location filename="../src/gui/settingswidget.cpp" line="107"/>

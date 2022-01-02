@@ -91,7 +91,7 @@ void SettingsWidget::initShortcuts()
         label->setToolTip(tr(tool_to_description.value((*it)->tool())));
         layout->addRow(label, input_shortcut);
     }
-    QPushButton *add_shortcut_button = new QPushButton("Add new shortcut", shortcuts);
+    QPushButton *add_shortcut_button = new QPushButton(tr("Add new shortcut"), shortcuts);
     connect(add_shortcut_button, &QPushButton::clicked, this, &SettingsWidget::appendShortcut);
     layout->addRow(add_shortcut_button);
 
