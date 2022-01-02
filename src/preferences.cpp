@@ -174,7 +174,7 @@ void Preferences::loadSettings()
     {
         // Paths to required files / directories
         gui_config_file = settings.value("gui config", DEFAULT_GUI_CONFIG_PATH).toString();
-        manual_file = settings.value("manual", "/usr/share/doc/beamerpresenter/README.html").toString();
+        manual_file = settings.value("manual", DOC_PATH "README.html").toString();
         icon_path = settings.value("icon path", DEFAULT_ICON_PATH).toString();
         const QString icontheme = settings.value("icon theme").toString();
         if (!icontheme.isEmpty())
@@ -667,4 +667,18 @@ void Preferences::showErrorMessage(const QString &title, const QString &text) co
 {
     qCritical() << text;
     emit sendErrorMessage(title, text);
+}
+
+bool Preferences::setGuiConfigFile(const QString &file)
+{
+    if (file == gui_config_file)
+        return false;
+    if (QFileInfo(file).isFile())
+    {
+        settings.setValue("gui config", file);
+        gui_config_file = file;
+        return true;
+    }
+    showErrorMessage(tr("Invalid file"), tr("GUI config file not set because it is not a valid file: ") + file);
+    return false;
 }

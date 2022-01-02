@@ -1,4 +1,4 @@
-.TH beamerpresenter.conf 5 "2021-11-20" "0.2.1"
+.TH beamerpresenter.conf 5 "2022-01-02" "0.2.1"
 .
 .SH NAME
 beamerpresenter.conf \- configuration file for BeamerPresenter
@@ -22,7 +22,7 @@ PDF engine, \[dq]mupdf\[dq] or \[dq]poppler\[dq]. This is ignored if only one PD
 .TP
 .BR "gui config " "= /etc/xdg/beamerpresenter/gui.json"
 Path to user interface configuration file. The structure of this file is documented in
-.BR beamerpresenter-ui (1).
+.BR beamerpresenter-ui (5).
 .
 .TP
 .BR "manual " "= /usr/share/doc/beamerpresenter/README.html"
@@ -100,7 +100,7 @@ Drawings are connected to pages of the PDF file. But within a group of successiv
 .TP
 .BR "page part threshold " "= 2.5"
 Threshold for the aspect ratio of PDF pages above which it is assumed that a PDF file contains slides and notes for the speaker side-by-side on the same PDF page. For slides generated with LaTeX beamer and the option \[dq]show notes on second screen\[dq] this allows one to show notes for the speak on one screen and presentation slides on a second screen. Note that this only has an effect if the configuration of the user interface
-.RB ( beamerpresenter-ui (1))
+.RB ( beamerpresenter-ui (5))
 defines, which parts of the page should be shown on which screen.
 .
 .TP
@@ -159,7 +159,7 @@ the following formats are allowed:
 .TP
 .I action
 string representing an action. The available actions are listed in
-.BR beamerpresenter-ui (1).
+.BR beamerpresenter-ui (5).
 .
 .TP
 .I action1, action2, ...
@@ -234,4 +234,4 @@ Per-user configuration file. Changes made through the graphical interface will b
 .SH SEE ALSO
 .
 .BR beamerpresenter (1),
-.BR beamerpresenter-ui (1)
+.BR beamerpresenter-ui (5)

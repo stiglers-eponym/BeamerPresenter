@@ -171,6 +171,7 @@ cmake \
     -DCMAKE_BUILD_TYPE=Release \
     -DUSE_POPPLER=ON \
     -DUSE_MUPDF=OFF \
+    -DGIT_VERSION=ON \
     -DUSE_TRANSLATIONS=ON \
     -DQT_VERSION_MAJOR=6 \ # must be set manually!
     -DQT_VERSION_MINOR=2 \ # only relevant for packaging
@@ -186,6 +187,7 @@ The most important options here are:
 * `-DQT_VERSION_MAJOR`: Qt version, must be set manually! Valid values are `5` and `6`.
 * `-DCMAKE_INSTALL_PREFIX`: path for package installation.
 * `-DCMAKE_INSTALL_SYSCONFDIR`: path for installation of package configuration.
+* `-DGIT_VERSION`: Include git commit count in the app version number.
 
 Some arguments for choosing MuPDF or Poppler:
 * MuPDF produces a much larger package size. BeamerPresenter with MuPDF can be twice as large as the full poppler installation.
@@ -202,6 +204,29 @@ Then install the package. For packaging the environment variable `$DESTDIR` may 
 ```sh
 cmake --install build-dir
 ```
+
+
+## Configuration
+There are two different aspects of the configuration:
+
+### Program settings
+Settings for the program are configured in the configuration file
+`beamerpresenter.conf` as documented in `man 5 beamerpresenter.conf`. Most of
+these settings can also be changed in the settings widget in the graphical
+interface, but some of these settings require a restart of the program.
+
+Some program settings can be temporarily overwritten using command line
+arguments (documented in `beamerpresenter --help' or `man 1 beamerpresenter`).
+
+### User interface
+The user interface is configured in a separate JSON file (GUI config, `gui.json`) as
+documented in `man 5 beamerpresenter-ui`. This file can not be edited in the
+graphical interface.
+
+The GUI config defines which widgets are shown, including the number of windows,
+tool buttons, notes for the speaker, combination of different PDF files, and
+various other settings. A GUI config file can be selected temporarily with the
+command line option `-g <file>`.
 
 
 ## Bugs
@@ -241,17 +266,15 @@ BeamerPresenter (`qmake --version`).
 
 
 ### Ideas for further development
-* improve code documentation (can be generated with `doxygen doxyfile`)
+* handle links external URLs
 * tools to select and modify drawings
 * improve cache management and layout corrections.
 * cache slides even when size of slides varies (partially implemented)
 * cache only required slides in previews showing specific overlays
 * make layout more reliable
 * improve keyboard shortcuts in other widgets than slide widget
-* more icons for actions
 * option to insert extra slides for drawing
 * improve compatibility with Xournal++
-* interface for communication with an external control device
 
 
 ## License

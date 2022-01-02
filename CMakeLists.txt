@@ -60,7 +60,7 @@ set(DOC_PATH
     CACHE STRING
     "Directory for storing the documentation and example configurations")
 GNUInstallDirs_get_absolute_install_dir(ABS_DOC_PATH DOC_PATH DOCDIR)
-set(ABS_DOC_PATH "${ABS_DOC_PATH}/README.html")
+set(ABS_DOC_PATH "${ABS_DOC_PATH}/")
 
 set(TRANSLATION_PATH
     "${CMAKE_INSTALL_DATAROOTDIR}/beamerpresenter/translations"
@@ -72,7 +72,8 @@ set(ABS_TRANSLATION_PATH "${ABS_TRANSLATION_PATH}/")
 
 # Set app version string
 set(APP_VERSION "${beamerpresenter_VERSION}")
-if (EXISTS "${PROJECT_SOURCE_DIR}/.git")
+option(GIT_VERSION "include git commit count in version" ON)
+if (GIT_VERSION AND EXISTS "${PROJECT_SOURCE_DIR}/.git")
     execute_process(
         COMMAND git -C ${PROJECT_SOURCE_DIR} rev-list --count HEAD
         COMMAND head -c-1

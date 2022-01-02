@@ -50,6 +50,8 @@ private slots:
     /// Create a new keyboard shortcut.
     void appendShortcut();
 
+    /// Select GUI config file from QFileDialog
+    void setGuiConfigFile();
 signals:
 
 };

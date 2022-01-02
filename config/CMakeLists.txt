@@ -12,4 +12,4 @@ install(FILES
     gui.json
     gui-2files.json
     gui-interactive.json
-    DESTINATION "${CMAKE_INSTALL_DOCDIR}/examples")
+    DESTINATION "${DOC_PATH}/examples")

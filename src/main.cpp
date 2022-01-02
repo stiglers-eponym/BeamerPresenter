@@ -120,17 +120,23 @@ int main(int argc, char *argv[])
     Master *master = new Master();
     {
         // Create the user interface.
-        const char status = master->readGuiConfig(parser.value("g").isEmpty() ? preferences()->gui_config_file : parser.value("g"));
+        const QString gui_config_file = parser.value("g").isEmpty() ? preferences()->gui_config_file : parser.value("g");
+        const char status = master->readGuiConfig(gui_config_file);
         if (status)
         {
             // Creating GUI failed. Check status and try to load default GUI config.
             // status == 4 indicates that only loading PDF files failed. In this case
             // the GUI config should not be reloaded.
             if (status < 4 && master->readGuiConfig(DEFAULT_GUI_CONFIG_PATH) == 0)
-                qWarning() << "Using fallback GUI config file" << DEFAULT_GUI_CONFIG_PATH;
+                preferences()->showErrorMessage(
+                            Master::tr("Error while loading GUI config"),
+                            Master::tr("Loading GUI config file failed for filename \"")
+                            + gui_config_file
+                            + Master::tr("\". Using fallback GUI config file ")
+                            + DEFAULT_GUI_CONFIG_PATH);
             else
             {
-                qCritical() << "Parsing the GUI configuration failed. Probably the GUI config is unavailable or invalid or no valid PDF files were found.";
+                qCritical() << "Parsing the GUI configuration failed. Probably the GUI config is unavailable or invalid, or no valid PDF files were found.";
                 delete master;
                 delete preferences();
                 // Show help and exit.

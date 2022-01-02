@@ -9,6 +9,7 @@
 #include <QScrollArea>
 #include <QFormLayout>
 #include <QScroller>
+#include <QFileDialog>
 #include "src/gui/settingswidget.h"
 #include "src/names.h"
 #include "src/preferences.h"
@@ -29,19 +30,19 @@ SettingsWidget::SettingsWidget(QWidget *parent) :
     initShortcuts();
     initRendering();
 
-    addTab(manual, "help");
+    addTab(manual, tr("help"));
     QScroller::grabGesture(manual);
     QScrollArea *scroll_area = new QScrollArea(this);
     scroll_area->setWidget(misc);
-    addTab(scroll_area, "misc");
+    addTab(scroll_area, tr("misc"));
     QScroller::grabGesture(scroll_area);
     scroll_area = new QScrollArea(this);
     scroll_area->setWidget(rendering);
-    addTab(scroll_area, "rendering");
+    addTab(scroll_area, tr("rendering"));
     QScroller::grabGesture(scroll_area);
     scroll_area = new QScrollArea(this);
     scroll_area->setWidget(shortcuts);
-    addTab(scroll_area, "shortcuts");
+    addTab(scroll_area, tr("shortcuts"));
     QScroller::grabGesture(scroll_area);
 }
 
@@ -62,7 +63,7 @@ void SettingsWidget::initShortcuts()
     QLabel *explanation_label = new QLabel(
                 tr("Change shortcuts by clicking on them and typing the new shortcut. "
                    "Remove shortcuts with delete key. "
-                   "Actions are documented in man 1 beamerpresenter-ui (in \"tool selector\")."),
+                   "Actions are documented in man 5 beamerpresenter-ui (in \"tool selector\")."),
                 shortcuts
             );
     explanation_label->setWordWrap(true);
@@ -170,7 +171,8 @@ void SettingsWidget::initRendering()
                 tr("Some programs (like LaTeX beamer) can create PDF pages split "
                    "into one half for the audience one half for the speaker. "
                    "This is assumed by BeamerPresenter if the aspect ratio "
-                   "(width/height) of the first slide lies above this threshold:"),
+                   "(width/height) of the first slide lies above this threshold. "
+                   "This setting only takes effect after restarting BeamerPresenter."),
                 misc);
     explanation_label->setTextFormat(Qt::PlainText);
     explanation_label->setWordWrap(true);
@@ -190,8 +192,25 @@ void SettingsWidget::initMisc()
 {
     QFormLayout *layout = new QFormLayout();
 
-    // Drawing history settings
+    // GUI config file
     QLabel *explanation_label = new QLabel(
+                tr("Configuration file for the graphical user interface (GUI). "
+                   "This file defines which widgets are shown in the modular GUI. "
+                   "The file is JSON formatted and documented in man 5 beamerpresenter-ui. "
+                   "Examples can be found in " DOC_PATH "examples. This setting "
+                   "only takes effect after restarting BeamerPresenter. Note that "
+                   "with an invalid GUI configuration file BeamerPresenter cannot start. "
+                   "The current GUI configuration file is ") + preferences()->gui_config_file + ".",
+                misc);
+    explanation_label->setTextFormat(Qt::PlainText);
+    explanation_label->setWordWrap(true);
+    layout->addRow(explanation_label);
+    QPushButton *select_file_button = new QPushButton(tr("select GUI configuration file"), misc);
+    connect(select_file_button, &QPushButton::clicked, this, &SettingsWidget::setGuiConfigFile);
+    layout->addRow(select_file_button);
+
+    // Drawing history settings
+    explanation_label = new QLabel(
                 tr("Number of drawing history steps (undo/redo). Drawing "
                    "history is kept separately for each slide."),
                 misc);
@@ -286,4 +305,15 @@ void SettingsWidget::appendShortcut()
 #endif
     connect(input_shortcut, &KeyInputLabel::sendName, select_menu, &QComboBox::setEditText);
     layout->addRow(select_menu, input_shortcut);
+}
+
+void SettingsWidget::setGuiConfigFile()
+{
+    const QString newfile = QFileDialog::getOpenFileName(this,
+                                 tr("Select new GUI configuration file"),
+                                 preferences()->gui_config_file,
+                                 tr("JSON files (*.json);;all files (*)")
+                                 );
+    if (!newfile.isNull() && writable_preferences()->setGuiConfigFile(newfile))
+        setTabText(1, tr("misc (restart required)"));
 }

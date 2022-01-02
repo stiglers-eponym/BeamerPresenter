@@ -260,6 +260,9 @@ public:
     /// Show error message in dialog in front of main window.
     void showErrorMessage(const QString &title, const QString &text) const;
 
+    /// Set new GUI configuration file.
+    bool setGuiConfigFile(const QString &file);
+
 public slots:
     /// Set maximum memory for cache. This function uses double instead of
     /// qreal because it is connected to a QDoubleSpinBox.

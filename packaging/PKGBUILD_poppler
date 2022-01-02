@@ -9,7 +9,7 @@ _qt_min_version="${_qt_version_major}.${_qt_version_minor}.0"
 _qt_max_version="${_qt_version_major}.$(( ${_qt_version_minor} + 1 )).0"
 
 pkgname="beamerpresenter-poppler-qt${_qt_version_major}"
-pkgver='0.2.2_alpha'
+pkgver='0.2.2_beta'
 pkgrel=1
 pkgdesc="Modular multi-screen pdf presenter (using Poppler)"
 arch=('x86_64')
@@ -30,7 +30,8 @@ build() {
         -B "${pkgname}-${pkgver}/build" \
         -S "${srcdir}/BeamerPresenter" \
         -G Ninja \
-        -DCMAKE_BUILD_TYPE='None' \
+        -DCMAKE_BUILD_TYPE='Release' \
+        -DGIT_VERSION=OFF \
         -DUSE_POPPLER=ON \
         -DUSE_MUPDF=OFF \
         -DUSE_TRANSLATIONS=ON \

@@ -1,4 +1,4 @@
-set(MAN_FILES beamerpresenter.1 beamerpresenter-ui.1 beamerpresenter.conf.5)
+set(MAN_FILES beamerpresenter.1 beamerpresenter-ui.5 beamerpresenter.conf.5)
 
 set(MAN1_TARGETS)
 set(MAN5_TARGETS)

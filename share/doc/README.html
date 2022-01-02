@@ -10,11 +10,11 @@ An overview:
 <ul>
     <li>keyboard shortcuts: can be done using the graphical interface with some limitations.</li>
     <li>general settings: almost all settings can be done using the graphical interface. Some settings require a restart. Documented in <code>man 5 beamerpresenter.config</code>.</li>
-    <li>user interface: cannot be configured using the graphical interface. Documented in <code>man 1 beamerpresenter-ui</code>.</li>
+    <li>user interface: cannot be configured using the graphical interface. Documented in <code>man 5 beamerpresenter-ui</code>.</li>
 </ul>
 
 <h2>Interface</h2>
-<p>BeamerPresenter creates one or more windows consisting of one or more widgets. The windows and widgets are defined by a JSON file as documented in <code>man 1 beamerpresenter-ui</code>. You may create a custom file or multiple configuration files for different presentation formats.
+<p>BeamerPresenter creates one or more windows consisting of one or more widgets. The windows and widgets are defined by a JSON file as documented in <code>man 5 beamerpresenter-ui</code>. You may create a custom file or multiple configuration files for different presentation formats.
 Examples can be found in /usr/share/doc/beamerpresenter/examples/.
 The most important widget is the slide widget. It shows a slide of a presentation. For the audience you usually have a window which consists only of a single slide widget.
 Slide widgets can also be used to show the speaker a preview of the next slides.</p>
@@ -33,7 +33,7 @@ Also for keyboard shortcuts which select a tool it is possible to define a devic
 
 <p>Important actions when using draw tools are the "undo" and "redo" action. Note that and "undo" history is kept <em>per slide</em>, i.e., "undo" will only undo the last drawing or erasing step on the currently visible slide.</p>
 
-<p>For more details on tools and actions (e.g. how to use undo if a presentation combines presentation and notes for the speaker in a single file) see <code>man 1 beamerpresenter-ui</code>.</p>
+<p>For more details on tools and actions (e.g. how to use undo if a presentation combines presentation and notes for the speaker in a single file) see <code>man 5 beamerpresenter-ui</code>.</p>
 
 <h3>Saving and Loading Drawings</h3>
 <p>Use the "open" (default shortcut: Ctrl+O) and "save" (Ctrl+S) or "save as" (Ctrl+Shift+S) actions to load or save drawings. Note that it is not possible to switch to a different pdf file while BeamerPresenter is running. It is only possible to load drawings for the pdf file which is currently opened.</p>
@@ -49,10 +49,10 @@ Also for keyboard shortcuts which select a tool it is possible to define a devic
 
 <p>The second option results in a similar view in BeamerPresenter, but uses the possibility to put presentation and notes in the same file as done by LaTeX beamer when using the option "show notes on second screen". In this case every page in the PDF should be split into a left and a right half, of which one shows the notes and the other one shows the presentation.
 BeamerPresenter can automatically detect this situation based on the aspect ratio of the PDF pages.
-This option requires a properly configured user interface (<code>man 1 beamerpresenter-ui</code>).</p>
+This option requires a properly configured user interface (<code>man 5 beamerpresenter-ui</code>).</p>
 
 <p>The third option is to provide notes in a simple rich text editor.
-To use rich text notes you need the notes widget (<code>man 1 beamerpresenter-ui</code>).
+To use rich text notes you need the notes widget (<code>man 5 beamerpresenter-ui</code>).
 It allows you to save and load notes using the keyboard shortcuts CTRL+S and CTRL+O, respectively.
 Note that the widget must have focus when using these shortcuts.
 The notes will be saved in a simple xml document.</p>
