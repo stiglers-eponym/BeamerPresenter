@@ -7,6 +7,9 @@
 *.pro.user.*
 CMakeLists.txt.user
 
+# Qt linguist tools
+*.qm
+
 # c, c++
 *.so
 *.o

@@ -170,6 +170,7 @@ cmake \
     -DCMAKE_BUILD_TYPE=Release \
     -DUSE_POPPLER=ON \
     -DUSE_MUPDF=OFF \
+    -DUSE_TRANSLATIONS=ON \
     -DQT_VERSION_MAJOR=6 \ # must be set manually!
     -DQT_VERSION_MINOR=2 \ # only relevant for packaging
     -DCREATE_SHARED_LIBRARIES=OFF \
@@ -180,6 +181,7 @@ The most important options here are:
 * `-DCMAKE_BUILD_TYPE`: Enable debugging by setting this to `Debug` instead of `Release`.
 * `-DUSE_POPPLER`: enable PDF engine Poppler. The Poppler library and its Qt 5/6 wrapper must be available. Valid values are `ON` and `OFF`.
 * `-DUSE_MUPDF`: enable PDF engine MuPDF. The MuPDF static library and headers as well as the other dependencies listed above must be available. Valid values are `ON` and `OFF`.
+* `-DUSE_TRANSLATIONS`: Include translations (currently only in German) when compiling and installing.
 * `-DQT_VERSION_MAJOR`: Qt version, must be set manually! Valid values are `5` and `6`.
 * `-DCMAKE_INSTALL_PREFIX`: path for package installation.
 * `-DCMAKE_INSTALL_SYSCONFDIR`: path for installation of package configuration.

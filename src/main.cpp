@@ -54,7 +54,11 @@ int main(int argc, char *argv[])
     app.setApplicationName("BeamerPresenter");
     app.setWindowIcon(QIcon(ICON_FILEPATH));
 
+#ifdef USE_TRANSLATIONS
     QTranslator translator;
+    if (translator.load(QLocale(), "", "", TRANSLATION_PATH))
+        app.installTranslator(&translator);
+#endif
 
     // Set app version. The string APP_VERSION is defined in beamerpresenter.pro.
     QString version_string = APP_VERSION " ";

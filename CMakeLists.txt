@@ -24,7 +24,6 @@ find_package(Qt${QT_VERSION_MAJOR} COMPONENTS Xml REQUIRED)
 option(USE_MUPDF "Include MuPDF" ON)
 option(USE_POPPLER "Include Poppler" OFF)
 option(CREATE_SHARED_LIBRARIES "Put the PDF engine in a shared library" OFF)
-option(USE_TRANSLATIONS "Enable translations" ON)
 
 if ((NOT USE_MUPDF) AND (NOT USE_POPPLER))
     message(FATAL_ERROR "No PDF engine provided")
@@ -63,6 +62,13 @@ set(DOC_PATH
     "Directory for storing the documentation and example configurations")
 GNUInstallDirs_get_absolute_install_dir(ABS_DOC_PATH DOC_PATH DOCDIR)
 set(ABS_DOC_PATH "${ABS_DOC_PATH}/README.html")
+
+set(TRANSLATION_PATH
+    "${CMAKE_INSTALL_DATAROOTDIR}/beamerpresenter/translations"
+    CACHE STRING
+    "Directory for storing internationalization/translation files")
+GNUInstallDirs_get_absolute_install_dir(ABS_TRANSLATION_PATH TRANSLATION_PATH DATAROOTDIR)
+set(ABS_TRANSLATION_PATH "${ABS_TRANSLATION_PATH}/")
 
 
 # Set app version string
@@ -103,6 +109,19 @@ target_compile_definitions(beamerpresenter PUBLIC
         $<$<CONFIG:Debug>:QT_DEPRECATED_WARNINGS>
         $<$<CONFIG:Debug>:FITZ_DEBUG_LOCKING>
     )
+
+# Translations
+option(USE_TRANSLATIONS "Enable translations" ON)
+if (USE_TRANSLATIONS)
+    find_package(Qt${QT_VERSION_MAJOR} COMPONENTS LinguistTools REQUIRED)
+    if (${QT_VERSION_MAJOR} GREATER_EQUAL 6)
+        qt_add_lrelease(beamerpresenter TS_FILES translations/de.ts QM_FILES_OUTPUT_VARIABLE qm_files)
+    else()
+        qt_add_translation(qm_files translations/de.ts)
+        add_custom_target(translations ALL DEPENDS ${qm_files})
+    endif()
+    install(FILES ${qm_files} DESTINATION "${TRANSLATION_PATH}")
+endif()
 
 # Add other subdirectories.
 add_subdirectory(config)

@@ -119,7 +119,7 @@ bool MuPdfDocument::loadDocument()
     if (!fileinfo.exists() || !fileinfo.isFile())
     {
         preferences()->showErrorMessage(
-                    QObject::tr("Error while loading files"),
+                    QObject::tr("Error while loading file"),
                     QObject::tr("Given filename is not a file: ") + fileinfo.baseName());
         return false;
     }
@@ -188,7 +188,7 @@ bool MuPdfDocument::loadDocument()
         fz_catch(ctx)
         {
             preferences()->showErrorMessage(
-                        QObject::tr("Error while loading files"),
+                        QObject::tr("Error while loading file"),
                         QObject::tr("MuPdf cannot open document: ") + fz_caught_message(ctx));
             doc = NULL;
             fz_drop_context(ctx);
@@ -215,7 +215,7 @@ bool MuPdfDocument::loadDocument()
         if (!ok || password.isEmpty() || !pdf_authenticate_password(ctx, doc, password.toUtf8()))
         {
             preferences()->showErrorMessage(
-                        QObject::tr("Error while loading files"),
+                        QObject::tr("Error while loading file"),
                         QObject::tr("No or invalid password provided for locked document"));
             pdf_drop_document(ctx, doc);
             doc = NULL;

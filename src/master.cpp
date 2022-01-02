@@ -316,7 +316,7 @@ QWidget* Master::createWidget(QJsonObject &object, QWidget *parent)
             if (writable_preferences()->number_of_pages && writable_preferences()->number_of_pages != doc->numberOfPages())
             {
                 showErrorMessage(
-                            QObject::tr("Error while loading PDF files"),
+                            QObject::tr("Error while loading PDF file"),
                             QObject::tr("Loaded PDF files with different numbers of pages. You should expect errors."));
                 writable_preferences()->number_of_pages = std::max(writable_preferences()->number_of_pages, doc->numberOfPages());
             }

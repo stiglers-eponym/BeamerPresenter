@@ -418,7 +418,7 @@ QBuffer *PdfMaster::loadZipToBuffer(const QString &filename)
         qWarning() << "Loading drawings failed: file" << filename << "could not be opened";
         preferences()->showErrorMessage(
                     tr("Error while loading file"),
-                    tr("Loading drawings failed: file") + filename + tr("could not be opened"));
+                    tr("Loading drawings failed: file ") + filename + tr(" could not be opened"));
         return NULL;
     }
     gzbuffer(file, 32768);

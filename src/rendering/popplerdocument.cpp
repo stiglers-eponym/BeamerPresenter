@@ -49,7 +49,7 @@ bool PopplerDocument::loadDocument()
     if (!fileinfo.exists() || !fileinfo.isFile())
     {
         preferences()->showErrorMessage(
-                    QObject::tr("Error while loading files"),
+                    QObject::tr("Error while loading file"),
                     QObject::tr("Given filename is not a file: ") + fileinfo.baseName());
         return false;
     }
@@ -84,7 +84,7 @@ bool PopplerDocument::loadDocument()
         if (!ok || password.isEmpty() || newdoc->unlock(QByteArray(), password.toUtf8()))
         {
             preferences()->showErrorMessage(
-                        QObject::tr("Error while loading files"),
+                        QObject::tr("Error while loading file"),
                         QObject::tr("No or invalid password provided for locked document"));
             newdoc = NULL;
             return false;
