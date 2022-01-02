@@ -28,7 +28,7 @@ build() {
     mkdir -p "${pkgname}-${pkgver}/build"
     cmake \
         -B "${pkgname}-${pkgver}/build" \
-        -S "${srcdir}/BeamerPresenter" \
+        -S "${srcdir}/BeamerPresenter-${pkgver}" \
         -G Ninja \
         -DCMAKE_BUILD_TYPE='Release' \
         -DGIT_VERSION=OFF \

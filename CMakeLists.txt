@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.16)
 
 project(beamerpresenter
-    VERSION 0.2.2_beta
+    VERSION 0.2.2
     DESCRIPTION "Multi-screen PDF presentation viewer"
     HOMEPAGE_URL "https://github.com/stiglers-eponym/BeamerPresenter"
     LANGUAGES CXX)
@@ -71,7 +71,7 @@ set(ABS_TRANSLATION_PATH "${ABS_TRANSLATION_PATH}/")
 
 
 # Set app version string
-set(APP_VERSION "${beamerpresenter_VERSION}")
+set(APP_VERSION "${beamerpresenter_VERSION}_beta")
 option(GIT_VERSION "include git commit count in version" ON)
 if (GIT_VERSION AND EXISTS "${PROJECT_SOURCE_DIR}/.git")
     execute_process(
@@ -84,9 +84,9 @@ if (GIT_VERSION AND EXISTS "${PROJECT_SOURCE_DIR}/.git")
         COMMAND head -c-1
         TIMEOUT 1
         OUTPUT_VARIABLE APP_GIT_HASH)
-    message(NOTICE "Set version: ${APP_VERSION} ${APP_GIT_COMMITS} ${APP_GIT_HASH}")
+    message(NOTICE "Set version: ${APP_VERSION}-${APP_GIT_COMMITS}.${APP_GIT_HASH}")
     if (APP_GIT_COMMITS AND APP_GIT_HASH)
-        set(APP_VERSION "${beamerpresenter_VERSION}-${APP_GIT_COMMITS}.${APP_GIT_HASH}")
+        set(APP_VERSION "${APP_VERSION}-${APP_GIT_COMMITS}.${APP_GIT_HASH}")
     endif()
 endif()
 
