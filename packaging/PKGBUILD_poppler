@@ -15,13 +15,13 @@ pkgdesc="Modular multi-screen pdf presenter (using Poppler)"
 arch=('x86_64')
 url="https://github.com/stiglers-eponym/BeamerPresenter"
 license=('GPL3')
-makedepends=('cmake' 'ninja' 'git' "qt${_qt_version_major}-tools")
+makedepends=('cmake' 'ninja' "qt${_qt_version_major}-tools")
 depends=("qt${_qt_version_major}-multimedia>=${_qt_min_version}" "qt${_qt_version_major}-multimedia<${_qt_max_version}" "poppler-qt${_qt_version_major}")
 optdepends=('gst-libav: show videos' 'gst-plugins-good: show videos' 'hicolor-icon-theme: icons for action buttons' "qt${_qt_version_major}-svg: icons for tool buttons")
 provides=("beamerpresenter=${pkgver}")
 conflicts=('beamerpresenter')
 backup=('etc/xdg/beamerpresenter/beamerpresenter.conf' 'etc/xdg/beamerpresenter/gui.json')
-source=('git://github.com/stiglers-eponym/BeamerPresenter.git')
+source=("${pkgname}-${pkgver}.tar.gz::${url}/archive/v${pkgver}.tar.gz")
 sha256sums=('SKIP')
 
 build() {

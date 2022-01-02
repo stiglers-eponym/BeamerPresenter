@@ -73,7 +73,7 @@ flatpak install beamerpresenter.flatpak
 ```
 
 ## Manual installation
-Building is tested in Arch Linux and in xubuntu 20.04.
+Building is tested in Arch Linux, Manjaro and in xubuntu 20.04.
 Older versions of ubuntu are only compatible with [version 0.1](https://github.com/stiglers-eponym/BeamerPresenter/tree/0.1.x) of BeamerPresenter.
 
 The build process has changed recently. Building the releases up to 0.2.1 is very different from building the current git version. The releases use qmake, the mainline version uses cmake.
