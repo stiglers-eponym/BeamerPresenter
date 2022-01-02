@@ -22,7 +22,7 @@ provides=("beamerpresenter=${pkgver}")
 conflicts=('beamerpresenter')
 backup=('etc/xdg/beamerpresenter/beamerpresenter.conf' 'etc/xdg/beamerpresenter/gui.json')
 source=("${pkgname}-${pkgver}.tar.gz::${url}/archive/v${pkgver}.tar.gz")
-sha256sums=('SKIP')
+sha256sums=('15e4b07cb22256ea199eab40abf0fd6c780248992278f195c0bc0cb17e2508ce')
 
 build() {
     mkdir -p "${pkgname}-${pkgver}/build"
