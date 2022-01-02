@@ -16,7 +16,7 @@ This software uses the Qt framework and the PDF engines MuPDF and/or poppler.
 * (optionally) show separate presentation file for speaker or use LaTeX-beamer's option to show notes on second screen (split PDF pages into a part for the speaker and a part or the audience)
 * timer indicates progress relative to a predefined schedule by it's color
 * navigate using document outline, thumbnail slides, page numbers/labels and links
-* videos in presentations (currently sound is untested)
+* videos in presentations
 * slide transitions
 
 
@@ -52,11 +52,11 @@ PDF documents can include videos, sounds, slide transitions and some primitive a
 
 
 ## Installation
-In Arch Linux you can install one of the AUR packages [beamerpresenter](https://aur.archlinux.org/packages/beamerpresenter) and [beamerpresenter-git](https://aur.archlinux.org/packages/beamerpresenter-git).
+In Arch Linux and Manjaro you can install one of the AUR packages [beamerpresenter](https://aur.archlinux.org/packages/beamerpresenter) and [beamerpresenter-git](https://aur.archlinux.org/packages/beamerpresenter-git).
 Note that in these packages by default MuPDF is selected as PDF engine.
 In the PKGBUILD file of beamerpresenter-git you can easily adjust the Qt version and the PDF engine.
 
-You can try to install the automatically built flatpak package .
+You can try to install the automatically built flatpak package.
 The flatpak package is currently only available for Qt 5.15 and Poppler as PDF engine.
 The flatpak package is new, there might be some bugs.
 
@@ -74,8 +74,7 @@ flatpak install beamerpresenter.flatpak
 
 ## Manual installation
 Building is tested in Arch Linux and in xubuntu 20.04.
-Older versions of ubuntu are only compatible with version 0.1 of BeamerPresenter which is described
-[here](https://github.com/stiglers-eponym/BeamerPresenter/tree/0.1.x#build).
+Older versions of ubuntu are only compatible with [version 0.1](https://github.com/stiglers-eponym/BeamerPresenter/tree/0.1.x) of BeamerPresenter.
 
 The build process has changed recently. Building the releases up to 0.2.1 is very different from building the current git version. The releases use qmake, the mainline version uses cmake.
 
@@ -103,7 +102,7 @@ For MuPDF (optional, see [below](#build-with-qmake-releases)):
 * `libjbig2dec0-dev` (after the installation you can remove `libjbig2dec0-dev` and keep only `libjbig2dec0`)
 * `libgumbo-dev` (for MuPDF >=1.18, probably not for version <=1.17; after the installation you can remove `libgumbo-dev` and keep only `libgumbo1`)
 
-### Dependencies in Arch Linux
+### Dependencies in Arch Linux and Manjaro
 Replace qt5 by qt6 in all package names if you want to use Qt 6.
 * `cmake` (only for building and only in the mainline version)
 * `qt5-multimedia` (depends on `qt5-base`, which is also required)

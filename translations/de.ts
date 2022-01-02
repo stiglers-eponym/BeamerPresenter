@@ -271,7 +271,7 @@ Konfiguriere Zwischenspeicher (Cache). Folien werden in gerendert und in einen k
     <message>
         <location filename="../src/gui/settingswidget.cpp" line="170"/>
         <source>Some programs (like LaTeX beamer) can create PDF pages split into one half for the audience one half for the speaker. This is assumed by BeamerPresenter if the aspect ratio (width/height) of the first slide lies above this threshold:</source>
-        <translation>Manche Programme (z.B. LaTeX beamer) können PDF-Präsentationen erzeugen, bei denen jede Seite aus zwei Hälften besteht: eine für das Publikum und eine für den/die Sprecher:in. Von diesem Fall wird ausgegangen, wenn das Seitenverhältnis der Folien (Breite/Höhe) der ersten Seite über den hier definierten Wert liegt:</translation>
+        <translation>Manche Programme (z.B. LaTeX beamer) können PDF-Präsentationen erzeugen, bei denen jede Seite aus zwei Hälften besteht: eine für das Publikum und eine für den/die Vortragende:n. Von diesem Fall wird ausgegangen, wenn das Seitenverhältnis der Folien (Breite/Höhe) der ersten Seite über den hier definierten Wert liegt:</translation>
     </message>
     <message>
         <location filename="../src/gui/settingswidget.cpp" line="184"/>

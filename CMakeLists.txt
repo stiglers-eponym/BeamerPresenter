@@ -12,7 +12,6 @@ set(QT_VERSION_MAJOR 6 CACHE STRING "Qt major version")
 set(QT_VERSION_MINOR 2 CACHE STRING "Qt minor version")
 
 # Check if the required Qt libraries are available
-set(QT_FEATURE_intelcet ON)  # without the project fails to build...
 find_package(Qt${QT_VERSION_MAJOR} COMPONENTS Core REQUIRED)
 find_package(Qt${QT_VERSION_MAJOR} COMPONENTS Gui REQUIRED)
 find_package(Qt${QT_VERSION_MAJOR} COMPONENTS Widgets REQUIRED)

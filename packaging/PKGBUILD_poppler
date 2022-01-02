@@ -25,6 +25,7 @@ source=('git://github.com/stiglers-eponym/BeamerPresenter.git')
 sha256sums=('SKIP')
 
 build() {
+    mkdir -p "${pkgname}-${pkgver}/build"
     cmake \
         -B "${pkgname}-${pkgver}/build" \
         -S "${srcdir}/BeamerPresenter" \
