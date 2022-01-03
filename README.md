@@ -54,46 +54,42 @@ PDF documents can include videos, sounds, slide transitions and some primitive a
 ## Installation
 In Arch Linux and Manjaro you can install one of the AUR packages [beamerpresenter](https://aur.archlinux.org/packages/beamerpresenter) and [beamerpresenter-git](https://aur.archlinux.org/packages/beamerpresenter-git).
 Note that in these packages by default MuPDF is selected as PDF engine.
-In the PKGBUILD file of beamerpresenter-git you can easily adjust the Qt version and the PDF engine.
 
-You can try to install the automatically built flatpak package.
-The flatpak package is currently only available for Qt 5.15 and Poppler as PDF engine.
-The flatpak package is new, there might be some bugs.
-
-To install the flatpak package you first need the runtime `org.kde.Platform/x86_64/5.15-21.08` (if you need a different architecture or Qt version you can build it your self or open an issue).
+The [releases](https://github.com/stiglers-eponym/BeamerPresenter/releases) come with packages for Arch/Manjaro, Ubuntu 20.04, Ubuntu 21.10 and flatpak.
+The simplest way to install BeamerPresenter (besides the AUR) is to directly install these packages.
+For example, the commands for installing BeamerPresenter with poppler as PDF engine and Qt 5 after downloading the corresponding file are:
 ```sh
-flatpak install org.kde.Platform/x86_64/5.15-21.08
-```
-Then you can download and unzip the output of the workflow: [![Flatpak](https://github.com/stiglers-eponym/BeamerPresenter/actions/workflows/flatpak-builder.yml/badge.svg)](https://github.com/stiglers-eponym/BeamerPresenter/actions/workflows/flatpak-builder.yml).
-When clicking on the latest run you should find a link named `beamerpresenter-x86_64`. This lets you download `beamerpresenter-x86_64.zip`, which you should unzip to obtain `beamerpresenter.flatpak`.
-Unfortunately downloading action artifacts seems restricted to users who are logged in to GitHub.
-The file `beamerpresenter.flatpak` can be installed using flatpak:
-```sh
+# Ubuntu 20.04:
+sudo apt install ./beamerpresenter-poppler-0.2.2-beta2-qt5.12-x86_64.deb
+# Ubuntu 21.10:
+sudo apt install ./beamerpresenter-poppler-0.2.2-beta2-qt5.15-x86_64.deb
+# Arch/Manjaro
+sudo pacman -U beamerpresenter-poppler-qt5-0.2.2_beta2-1-x86_64.pkg.tar.zst
+# Flatpak
+flatpak install org.kde.Platform/x86_64/5.15-21.08 # can be skipped if already installed
 flatpak install beamerpresenter.flatpak
 ```
 
+
 ## Manual installation
-Building is tested in Arch Linux, Manjaro and in xubuntu 20.04.
+Building is tested in Arch Linux, Manjaro, xubuntu 20.04, and xubuntu 21.10.
 Older versions of ubuntu are only compatible with [version 0.1](https://github.com/stiglers-eponym/BeamerPresenter/tree/0.1.x) of BeamerPresenter.
 
-The build process has changed recently. Building the releases up to 0.2.1 is very different from building the current git version. The releases use qmake, the mainline version uses cmake.
-
-First install the dependencies.
-You need cmake, zlib and Qt 5/6 including the multimedia module.
-In Qt 5 versions since 5.12 are tested, but other versions starting from 5.9 should also be supported. For installation in Qt 6 you need version 6.2 (or later).
-Additionally you need either the Qt 5/6 bindings of poppler or the MuPDF C bindings.
+In order to build BeamerPresenter you need to have cmake, zlib and Qt 5/6 including the multimedia module and the linguist tools.
+In Qt 5 versions since 5.12 are tested, but other versions starting from 5.9 should also be supported. For installation in Qt 6 you need at least version 6.2.
+Additionally you need either the Qt 5/6 bindings of poppler or the MuPDF static library (which also requires some libraries).
 
 ### Dependencies in Ubuntu 20.04
 * `cmake` (only for building and only in the mainline version)
 * `zlib1g-dev` (after the installation you can remove `zlib1g-dev` and keep only `zlib1g`)
 * `qtmultimedia5-dev` (after the installation you can remove `qtmultimedia5-dev` and keep only `libqt5multimedia5` and `libqt5multimediawidgets5`)
 * `libqt5multimedia5-plugins` (optional, for showing videos)
-* `qttools5-dev` (only for building and only when creating translations. You can disable translations with `-DUSE_TRANSLATIONS=OFF` in the [cmake command](#build-with-cmake-mainline))
+* `qttools5-dev` (only for building and only when creating translations. You can disable translations with `-DUSE_TRANSLATIONS=OFF` in the [cmake command](#build))
 
-For poppler (optional, see [below](#build-with-qmake-releases)):
-* `libpoppler-qt5-dev`: version 0.86.1 is tested. Versions below 0.70 are explicitly not supported, problems with newer versions might be fixed if reported in an issue on github. (after the installation you can remove `libpoppler-qt5-dev` and keep only `libpoppler-qt5-1`
+For poppler (optional, see [below](#build)):
+* `libpoppler-qt5-dev`: version 0.86.1 is tested, versions below 0.70 are explicitly not supported. (after the installation you can remove `libpoppler-qt5-dev` and keep only `libpoppler-qt5-1`
 
-For MuPDF (optional, see [below](#build-with-qmake-releases)):
+For MuPDF (optional, see [below](#build)):
 * `libmupdf-dev` (only for building): Tested versions: 1.16.1 - 1.19.0.
 * `libfreetype-dev` (after the installation you can remove `libfreetype-dev` and keep only `libfreetype6`)
 * `libharfbuzz-dev` (after the installation you can remove `libharfbuzz-dev` and keep only `libharfbuzz0b`)
@@ -106,13 +102,13 @@ For MuPDF (optional, see [below](#build-with-qmake-releases)):
 Replace qt5 by qt6 in all package names if you want to use Qt 6.
 * `cmake` (only for building and only in the mainline version)
 * `qt5-multimedia` (depends on `qt5-base`, which is also required)
-* `qt5-tools` (only for building and only when creating translations. You can disable translations with `-DUSE_TRANSLATIONS=OFF` in the [cmake command](#build-with-cmake-mainline))
+* `qt5-tools` (only for building and only when creating translations. You can disable translations with `-DUSE_TRANSLATIONS=OFF` in the [cmake command](#build))
 * optional: `qt5-svg` for showing icons
 
-For poppler (optional, see [below](#build-with-qmake-releases)):
+For poppler (optional, see [below](#build)):
 * `poppler-qt5`
 
-For MuPDF (optional, see [below](#build-with-qmake-releases)):
+For MuPDF (optional, see [below](#build)):
 * `libmupdf` (only for building, tested versions: 1.16.1 - 1.19.0)
 * `jbig2dec`
 * `openjpeg2`
@@ -122,55 +118,33 @@ Optional, for showing videos:
 * `gst-libav`
 * `gst-plugins-good`
 
-### Build with qmake (releases)
-This is the build process for release 0.2.1 (or older).
-For the mainline version follow the instructins [below](#build-with-cmake-mainline).
-
+### Build
 Download the sources:
 ```sh
-wget https://github.com/stiglers-eponym/BeamerPresenter/archive/v0.2.1.tar.gz
-sha256sum -c - <<< "3876bea71907aa64766cff6f7da6fd3bb50a89325e8dba64618a594e1749ed42 v0.2.1.tar.gz"
-tar -xf v0.2.1.tar.gz
-cd BeamerPresenter-0.2.1
+wget https://github.com/stiglers-eponym/BeamerPresenter/archive/v0.2.2_beta.tar.gz
+sha256sum -c - <<< "15e4b07cb22256ea199eab40abf0fd6c780248992278f195c0bc0cb17e2508ce v0.2.2_beta.tar.gz"
+tar -xf v0.2.2_beta.tar.gz
+cd BeamerPresenter-0.2.2_beta
 ```
-On systems other than GNU+Linux you now need to configure libraries in `beamerpresenter.pro`.
-But note that if you want to put some effort in configuring a build for a different OS, you should consider directly using the current mainline version that uses cmake instead of qmake.
-
-When building you need to **define the PDF engine**.
-Build with one of the following commands: (for Qt 6 you might need to replace `qmake` by `qmake6`)
-```sh
-qmake -config release RENDERER=mupdf && make
-qmake -config release RENDERER=poppler && make
-```
-To build with debug information you can add `CONFIG+=debug` as an arguments to qmake.
-If this fails and you have all dependencies installed, you should check your
-Qt version (`qmake --version`) and
-[open an issue](https://github.com/stiglers-eponym/BeamerPresenter/issues)
-on github.
-In older versions you may also open an issue, but it will probably not be fixed.
-
-In GNU+Linux you can now install BeamerPresenter with
-```sh
-make install
-```
-For packaging the environment variable `$INSTALL_ROOT` may be helpful.
-
-### Build with cmake (mainline)
-Clone the git repository
+Alternatively, you can clone the git repository
 ```sh
 git clone --depth 1 --single-branch https://github.com/stiglers-eponym/BeamerPresenter.git
+cd BeamerPresenter
 ```
-On systems other than GNU+Linux you now need to configure libraries etc. in `CMakeLists.txt`.
+
+Now you may need to configure libraries etc. in `CMakeLists.txt`. For Ubuntu and Arch the settings are tested, in other GNU+Linux systems you can try if it works, and other systems will require a manual configuration.
 Pull requests or issues with build instructions for other systems are welcome!
 
-The command line for configuring cmake can look like this:
+The command line for configuring the build process look like this:
 ```sh
 cmake \
     -B "build-dir" \ # build directory
-    -S "BeamerPresenter" \ # source directory
+    -S . \ # source directory
     -DCMAKE_BUILD_TYPE=Release \
     -DUSE_POPPLER=ON \
     -DUSE_MUPDF=OFF \
+    -DUSE_MUJS=OFF \ # set ON when libmupdf-third is not available
+    -DUSE_GUMBO=ON \ # set ON when using MuPDF >= 1.18
     -DGIT_VERSION=ON \
     -DUSE_TRANSLATIONS=ON \
     -DQT_VERSION_MAJOR=6 \ # must be set manually!
@@ -181,8 +155,10 @@ cmake \
 ```
 The most important options here are:
 * `-DCMAKE_BUILD_TYPE`: Enable debugging by setting this to `Debug` instead of `Release`.
-* `-DUSE_POPPLER`: enable PDF engine Poppler. The Poppler library and its Qt 5/6 wrapper must be available. Valid values are `ON` and `OFF`.
-* `-DUSE_MUPDF`: enable PDF engine MuPDF. The MuPDF static library and headers as well as the other dependencies listed above must be available. Valid values are `ON` and `OFF`.
+* `-DUSE_POPPLER`: enable PDF engine Poppler. The Poppler library and its Qt 5/6 wrapper must be available.
+* `-DUSE_MUPDF`: enable PDF engine MuPDF. The MuPDF static library and headers as well as the other dependencies listed above must be available.
+* `-DUSE_MUJS`: set this to "ON" in Ubuntu 21.10 (only relevant when using MuPDF)
+* `-DUSE_GUMBO`: can be set to "OFF" when using MuPDF < 1.18 (only relevant when using MuPDF)
 * `-DUSE_TRANSLATIONS`: Include translations (currently only in German) when compiling and installing.
 * `-DQT_VERSION_MAJOR`: Qt version, must be set manually! Valid values are `5` and `6`.
 * `-DCMAKE_INSTALL_PREFIX`: path for package installation.

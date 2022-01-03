@@ -34,6 +34,8 @@ build() {
         -DGIT_VERSION=OFF \
         -DUSE_POPPLER=ON \
         -DUSE_MUPDF=OFF \
+        -DUSE_MUJS=OFF \
+        -DUSE_GUMBO=ON \
         -DUSE_TRANSLATIONS=ON \
         -DQT_VERSION_MAJOR="${_qt_version_major}" \
         -DQT_VERSION_MINOR="${_qt_version_minor}" \

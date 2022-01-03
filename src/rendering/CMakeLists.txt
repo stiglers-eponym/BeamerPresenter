@@ -1,3 +1,22 @@
+if (USE_MUPDF)
+    # Configure MuPDF libraries
+    set(MUPDF_LIBS
+                    mupdf
+                    m
+                    freetype
+                    harfbuzz
+                    jpeg
+                    jbig2dec
+                    openjp2)
+    if (USE_MUJS)
+        list(APPEND MUPDF_LIBS mujs)
+    else()
+        list(APPEND MUPDF_LIBS mupdf-third)
+    endif()
+    if (USE_GUMBO)
+        list(APPEND MUPDF_LIBS gumbo)
+    endif()
+endif()
 if (CREATE_SHARED_LIBRARIES)
     if (USE_MUPDF)
         add_library(beamerpresenter-pdf-mupdf SHARED
@@ -10,15 +29,7 @@ if (CREATE_SHARED_LIBRARIES)
                 ${QT}::Core
                 ${QT}::Gui
                 ${QT}::Widgets
-                mupdf
-                mupdf-third
-                m
-                freetype
-                harfbuzz
-                jpeg
-                jbig2dec
-                openjp2
-                gumbo
+                ${MUPDF_LIBS}
             )
         target_include_directories(beamerpresenter-pdf-mupdf PUBLIC
                 "${PROJECT_BINARY_DIR}"
@@ -56,17 +67,7 @@ else()
                 "${CMAKE_CURRENT_SOURCE_DIR}/mupdfdocument.cpp"
                 "${CMAKE_CURRENT_SOURCE_DIR}/mupdfrenderer.cpp"
             )
-        list(APPEND EXTRA_LIBS
-                mupdf
-                mupdf-third
-                m
-                freetype
-                harfbuzz
-                jpeg
-                jbig2dec
-                openjp2
-                gumbo
-            )
+        list(APPEND EXTRA_LIBS ${MUPDF_LIBS})
     endif()
     if (USE_POPPLER)
         list(APPEND EXTRA_INCLUDE

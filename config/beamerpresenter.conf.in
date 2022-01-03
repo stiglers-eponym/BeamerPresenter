@@ -1,7 +1,7 @@
 [General]
 cache%20pages=-1
 gui%20config="@ABS_GUI_CONFIG_PATH@"
-manual="@ABS_DOC_PATH@"
+manual="@ABS_DOC_PATH@README.html"
 memory=1.0486e+08
 frame%20time=50
 gestures=true
