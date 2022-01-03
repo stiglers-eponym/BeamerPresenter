@@ -17,3 +17,4 @@ jobs:
         bundle: beamerpresenter.flatpak
         manifest-path: packaging/io.github.beamerpresenter.yml
         arch: x86_64
+        cache-key: flatpak-builder-${{ github.sha }}

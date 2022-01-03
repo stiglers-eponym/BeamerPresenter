@@ -10,9 +10,9 @@ The version with poppler as PDF engine and Qt 6 can be build using:
 _qt_version_major=6 makepkg -p PKGBUILD_poppler
 ```
 The packages for Qt 5 and with MuPDF can be built analogously.
-You can install the newly created package using (for version 0.2.2\_beta):
+You can install the newly created package using (for version 0.2.2\_beta2):
 ```sh
-sudo pacman -U beamerpresenter-poppler-qt6-0.2.2_beta-1-x86_64.pkg.tar.zst
+sudo pacman -U beamerpresenter-poppler-qt6-0.2.2_beta2-1-x86_64.pkg.tar.zst
 ```
 
 
@@ -52,17 +52,18 @@ cmake \
     -DCMAKE_INSTALL_SYSCONFDIR='/etc'
 ```
 Here the build directory was set to `build_dir`, but that could also be any other directory.
-The MuPDF version can be built by setting `-DUSE_POPPLER=OFF` and `-DUSE_MUPDF=ON` in the above command. In ubuntu 21.10 you need to set `-DUSE_MUJS=ON`.
+The MuPDF version can be built by setting `-DUSE_POPPLER=OFF` and `-DUSE_MUPDF=ON` in the above command.
+In ubuntu 21.10 you need to set `-DUSE_MUJS=ON` and `-DQT_VERSION_MINOR=15`.
 
 Now build and create the package:
 ```sh
-cmake --build build_dir # this is the slow part, maybe add -j4 to speed it up
+cmake --build build_dir
 cpack --config build_dir/CPackConfig.cmake
 ```
 
 Now you can install the package:
 ```sh
-sudo apt install ./beamerpresenter-poppler-0.2.2-beta-qt5.12-x86_64.deb
+sudo apt install ./beamerpresenter-poppler-0.2.2-beta2-qt5.12-x86_64.deb
 ```
 
 

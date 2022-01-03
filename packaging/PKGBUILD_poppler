@@ -9,7 +9,7 @@ _qt_min_version="${_qt_version_major}.${_qt_version_minor}.0"
 _qt_max_version="${_qt_version_major}.$(( ${_qt_version_minor} + 1 )).0"
 
 pkgname="beamerpresenter-poppler-qt${_qt_version_major}"
-pkgver='0.2.2_beta'
+pkgver='0.2.2_beta2'
 pkgrel=1
 pkgdesc="Modular multi-screen pdf presenter (using Poppler)"
 arch=('x86_64')
@@ -22,7 +22,7 @@ provides=("beamerpresenter=${pkgver}")
 conflicts=('beamerpresenter')
 backup=('etc/xdg/beamerpresenter/beamerpresenter.conf' 'etc/xdg/beamerpresenter/gui.json')
 source=("${pkgname}-${pkgver}.tar.gz::${url}/archive/v${pkgver}.tar.gz")
-sha256sums=('15e4b07cb22256ea199eab40abf0fd6c780248992278f195c0bc0cb17e2508ce')
+sha256sums=('SKIP')
 
 build() {
     mkdir -p "${pkgname}-${pkgver}/build"

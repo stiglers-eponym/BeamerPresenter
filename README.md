@@ -79,7 +79,7 @@ In order to build BeamerPresenter you need to have cmake, zlib and Qt 5/6 includ
 In Qt 5 versions since 5.12 are tested, but other versions starting from 5.9 should also be supported. For installation in Qt 6 you need at least version 6.2.
 Additionally you need either the Qt 5/6 bindings of poppler or the MuPDF static library (which also requires some libraries).
 
-### Dependencies in Ubuntu 20.04
+### Dependencies in Ubuntu
 * `cmake` (only for building and only in the mainline version)
 * `zlib1g-dev` (after the installation you can remove `zlib1g-dev` and keep only `zlib1g`)
 * `qtmultimedia5-dev` (after the installation you can remove `qtmultimedia5-dev` and keep only `libqt5multimedia5` and `libqt5multimediawidgets5`)
@@ -96,7 +96,7 @@ For MuPDF (optional, see [below](#build)):
 * `libjpeg-dev` (after the installation you can remove `libjpeg-dev` and keep only `libjpeg8`)
 * `libopenjp2-7-dev` (after the installation you can remove `libopenjp2-7-dev` and keep only `libopenjp2-7`)
 * `libjbig2dec0-dev` (after the installation you can remove `libjbig2dec0-dev` and keep only `libjbig2dec0`)
-* `libgumbo-dev` (for MuPDF >=1.18, probably not for version <=1.17; after the installation you can remove `libgumbo-dev` and keep only `libgumbo1`)
+* Only in Ubuntu 21.10: `libmujs-dev` (after the installation you can remove `libmujs-dev` and keep only `libmujs1`)
 
 ### Dependencies in Arch Linux and Manjaro
 Replace qt5 by qt6 in all package names if you want to use Qt 6.
@@ -132,7 +132,7 @@ git clone --depth 1 --single-branch https://github.com/stiglers-eponym/BeamerPre
 cd BeamerPresenter
 ```
 
-Now you may need to configure libraries etc. in `CMakeLists.txt`. For Ubuntu and Arch the settings are tested, in other GNU+Linux systems you can try if it works, and other systems will require a manual configuration.
+Now may you need to configure libraries and file paths in `CMakeLists.txt`. For Ubuntu and Arch the settings are tested, in other GNU+Linux systems you can try if it works, and other systems will probably require a manual configuration.
 Pull requests or issues with build instructions for other systems are welcome!
 
 The command line for configuring the build process look like this:
@@ -166,11 +166,11 @@ The most important options here are:
 * `-DGIT_VERSION`: Include git commit count in the app version number.
 
 Some arguments for choosing MuPDF or Poppler:
-* MuPDF produces a much larger package size. BeamerPresenter with MuPDF can be twice as large as the full poppler installation.
+* MuPDF produces a much larger package size (26MB instead of 0.4-1.8MB).
 * MuPDF may have better performance.
-* My impression is that in most cases MuPDF produces slightly better-looking slides than Poppler. But that may depend on the program used to create the PDF, the fonts, the resolution ...
-* Enabling both is possible but not recommended, because it leads to program crashes when using Poppler for some documents.
-* Some special case of audio files linked from a PDF is currently only handled correctly when using Poppler.
+* My impression is that in most cases MuPDF produces slightly better-looking slides than Poppler. But this may depend on presentation, the fonts, the resolution ...
+* Enabling both PDF engines is possible but not recommended, because it can lead to program crashes when using Poppler for some documents.
+* One case of audio files linked from a PDF is currently only handled correctly when using Poppler.
 
 After configuring with cmake you can build the project (hint: add ` -j 4` for compiling with 4 CPU cores)
 ```sh
