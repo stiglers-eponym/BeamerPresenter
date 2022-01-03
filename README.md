@@ -83,8 +83,9 @@ Additionally you need either the Qt 5/6 bindings of poppler or the MuPDF static 
 * `cmake` (only for building and only in the mainline version)
 * `zlib1g-dev` (after the installation you can remove `zlib1g-dev` and keep only `zlib1g`)
 * `qtmultimedia5-dev` (after the installation you can remove `qtmultimedia5-dev` and keep only `libqt5multimedia5` and `libqt5multimediawidgets5`)
-* `libqt5multimedia5-plugins` (optional, for showing videos)
 * `qttools5-dev` (only for building and only when creating translations. You can disable translations with `-DUSE_TRANSLATIONS=OFF` in the [cmake command](#build))
+* optional: `libqt5multimedia5-plugins` (for showing videos)
+* optional, recommended: `libqt5svg5` (for showing tool icons)
 
 For poppler (optional, see [below](#build)):
 * `libpoppler-qt5-dev`: version 0.86.1 is tested, versions below 0.70 are explicitly not supported. (after the installation you can remove `libpoppler-qt5-dev` and keep only `libpoppler-qt5-1`
@@ -121,10 +122,10 @@ Optional, for showing videos:
 ### Build
 Download the sources:
 ```sh
-wget https://github.com/stiglers-eponym/BeamerPresenter/archive/v0.2.2_beta.tar.gz
-sha256sum -c - <<< "15e4b07cb22256ea199eab40abf0fd6c780248992278f195c0bc0cb17e2508ce v0.2.2_beta.tar.gz"
-tar -xf v0.2.2_beta.tar.gz
-cd BeamerPresenter-0.2.2_beta
+wget https://github.com/stiglers-eponym/BeamerPresenter/archive/v0.2.2_beta2.tar.gz
+sha256sum -c - <<< "???????????????????????????????????????????????????????????????? v0.2.2_beta2.tar.gz"
+tar -xf v0.2.2_beta2.tar.gz
+cd BeamerPresenter-0.2.2_beta2
 ```
 Alternatively, you can clone the git repository
 ```sh
@@ -166,7 +167,7 @@ The most important options here are:
 * `-DGIT_VERSION`: Include git commit count in the app version number.
 
 Some arguments for choosing MuPDF or Poppler:
-* MuPDF produces a much larger package size (26MB instead of 0.4-1.8MB).
+* MuPDF produces a much larger package size (37MB instead of 1.3MB in Arch).
 * MuPDF may have better performance.
 * My impression is that in most cases MuPDF produces slightly better-looking slides than Poppler. But this may depend on presentation, the fonts, the resolution ...
 * Enabling both PDF engines is possible but not recommended, because it can lead to program crashes when using Poppler for some documents.
