@@ -12,14 +12,17 @@ Tool *createTool(const QJsonObject &obj, const int default_device)
     switch (base_tool)
     {
     case Tool::Pen:
+    case Tool::FixedWidthPen:
     {
         const QColor color(obj.value("color").toString("black"));
         const float width = obj.value("width").toDouble(2.);
         if (width <= 0.)
             return NULL;
         const Qt::PenStyle style = string_to_pen_style.value(obj.value("style").toString(), Qt::SolidLine);
-        debug_msg(DebugSettings, "creating pen" << color << width);
-        tool = new DrawTool(Tool::Pen, default_device, QPen(color, width, style, Qt::RoundCap, Qt::RoundJoin));
+        const QColor brushcolor(obj.value("fill").toString());
+        const QBrush brush = (brushcolor.isValid()) ? QBrush(brushcolor) : QBrush();
+        debug_msg(DebugSettings, "creating pen" << color << width << brush);
+        tool = new DrawTool(base_tool, default_device, QPen(color, width, style, Qt::RoundCap, Qt::RoundJoin), brush);
         break;
     }
     case Tool::Highlighter:
@@ -29,8 +32,10 @@ Tool *createTool(const QJsonObject &obj, const int default_device)
         if (width <= 0.)
             return NULL;
         const Qt::PenStyle style = string_to_pen_style.value(obj.value("style").toString(), Qt::SolidLine);
-        debug_msg(DebugSettings, "creating highlighter" << color << width);
-        tool = new DrawTool(Tool::Highlighter, default_device, QPen(color, width, style, Qt::RoundCap, Qt::RoundJoin), QPainter::CompositionMode_Darken);
+        const QColor brushcolor(obj.value("fill").toString());
+        const QBrush brush = (brushcolor.isValid()) ? QBrush(brushcolor) : QBrush();
+        debug_msg(DebugSettings, "creating highlighter" << color << width << brush);
+        tool = new DrawTool(Tool::Highlighter, default_device, QPen(color, width, style, Qt::RoundCap, Qt::RoundJoin), brush, QPainter::CompositionMode_Darken);
         break;
     }
     case Tool::Eraser:

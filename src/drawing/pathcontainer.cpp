@@ -457,6 +457,22 @@ void PathContainer::writeXml(QXmlStreamWriter &writer) const
             writer.writeAttribute("tool", xournal_tool_names.value(tool.tool()));
             writer.writeAttribute("color", color_to_rgba(tool.color()).toLower());
             writer.writeAttribute("width", item->stringWidth());
+            const QBrush &brush = item->getTool().brush();
+            if (brush.style() != Qt::NoBrush)
+            {
+                if (brush.color().toRgb() == item->getTool().pen().color().toRgb())
+                {
+                    // Write color in format that is compatible with Xournal++
+                    // avoid division by zero by tiny offset
+                    float alpha = brush.color().alphaF() / (item->getTool().pen().color().alphaF() + 1e-6);
+                    writer.writeAttribute("fill", alpha >= 1 ? "255" : QString::number((int)alpha*255+0.5));
+                }
+                else
+                {
+                    // Write color to "brushcolor" attribute, which will be ignored by Xournal++
+                    writer.writeAttribute("brushcolor", color_to_rgba(brush.color()).toLower());
+                }
+            }
             writer.writeCharacters(item->stringCoordinates());
             writer.writeEndElement();
             break;
@@ -480,7 +496,27 @@ AbstractGraphicsPath *loadPath(QXmlStreamReader &reader)
                 );
     if (pen.widthF() <= 0)
         pen.setWidthF(1.);
-    DrawTool *tool = new DrawTool(basic_tool, Tool::AnyNormalDevice, pen, basic_tool == Tool::Highlighter ? QPainter::CompositionMode_Darken : QPainter::CompositionMode_SourceOver);
+    // "fill" is the Xournal++ way of storing filling colors. However, it only
+    // allows one to add transparency to the stroke color.
+    int fill_xopp = reader.attributes().value("fill").toInt();
+    // "brushcolor" is a BeamerPresenter extension of the Xournal++ file format
+    QColor fill_color = rgba_to_color(reader.attributes().value("brushcolor").toString());
+    QBrush brush;
+    if (fill_color.isValid())
+    {
+        brush.setColor(fill_color);
+        brush.setStyle(Qt::SolidPattern);
+    }
+    else if (fill_xopp > 0 && fill_xopp < 256)
+    {
+        QColor fill_color = pen.color();
+        fill_color.setAlphaF(fill_xopp*fill_color.alphaF()/255);
+        brush.setColor(fill_color);
+        brush.setStyle(Qt::SolidPattern);
+    }
+    else
+        brush.setStyle(Qt::NoBrush);
+    DrawTool *tool = new DrawTool(basic_tool, Tool::AnyNormalDevice, pen, brush, basic_tool == Tool::Highlighter ? QPainter::CompositionMode_Darken : QPainter::CompositionMode_SourceOver);
     if (basic_tool == Tool::Pen)
         return new FullGraphicsPath(*tool, reader.readElementText(), width_str);
     else

@@ -100,7 +100,14 @@ void BasicGraphicsPath::paint(QPainter *painter, const QStyleOptionGraphicsItem 
     painter->setRenderHint(QPainter::Antialiasing);
     painter->setPen(_tool.pen());
     painter->setCompositionMode(_tool.compositionMode());
-    painter->drawPolyline(data.constData(), data.size());
+
+    if (_tool.brush().style() == Qt::NoBrush)
+        painter->drawPolyline(data.constData(), data.size());
+    else
+    {
+        painter->setBrush(_tool.brush());
+        painter->drawPolygon(data.constData(), data.size());
+    }
 
     // Only for debugging
     //painter->setPen(QPen(QBrush(Qt::black), 0.5));

@@ -108,6 +108,7 @@ FullGraphicsPath::FullGraphicsPath(const DrawTool &tool, const QString &coordina
 
 void FullGraphicsPath::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
 {
+    // TODO: FullGraphicsPath does not support filling.
     if (data.isEmpty())
         return;
     QPen pen = _tool.pen();

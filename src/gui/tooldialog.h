@@ -3,12 +3,70 @@
 
 #include <QDialog>
 #include <QMap>
+#include <QDoubleSpinBox>
+#include <QPushButton>
 #include "src/drawing/tool.h"
 
-class QPushButton;
 class QComboBox;
-class QDoubleSpinBox;
 class QCheckBox;
+class TextTool;
+class DrawTool;
+class PointingTool;
+
+/**
+ * @brief DrawToolDetails: details for draw tools in a ToolDialog.
+ */
+class DrawToolDetails : public QWidget
+{
+    Q_OBJECT
+
+    QDoubleSpinBox *width_box;
+    QPushButton *brush_color_button;
+    QCheckBox *fill_checkbox;
+
+public:
+    DrawToolDetails(QWidget *parent = NULL, const DrawTool *oldtool = NULL);
+    ~DrawToolDetails() {}
+    QBrush brush() const;
+    qreal width() const {return width_box->value();}
+public slots:
+    void setBrushColor();
+};
+
+/**
+ * @brief PointingToolDetails: details for pointing tools in a ToolDialog.
+ */
+class PointingToolDetails : public QWidget
+{
+    Q_OBJECT
+
+    QDoubleSpinBox *radius_box;
+    QDoubleSpinBox *scale_box = NULL;
+    static const QMap<Tool::BasicTool, qreal> default_sizes;
+
+public:
+    PointingToolDetails(Tool::BasicTool basic_tool, QWidget *parent = NULL, const PointingTool *oldtool = NULL);
+    ~PointingToolDetails() {}
+    float scale() const {return scale_box ? scale_box->value() : -1.;}
+    qreal radius() const {return radius_box->value();}
+};
+
+/**
+ * @brief TextToolDetails: details for text tool in a ToolDialog.
+ */
+class TextToolDetails : public QWidget
+{
+    Q_OBJECT
+
+    QPushButton *font_button;
+
+public:
+    TextToolDetails(QWidget *parent = NULL, const TextTool *oldtool = NULL);
+    ~TextToolDetails() {}
+    QFont font() const {return font_button->font();}
+public slots:
+    void selectFont();
+};
 
 /**
  * @brief ToolDialog: select tool using GUI
@@ -17,18 +75,17 @@ class ToolDialog : public QDialog
 {
     Q_OBJECT
 
+    /// Widget containing all tool-specific details
+    QWidget *tool_specific = NULL;
     /// select basic tool
     QComboBox *tool_box;
     /// select color (opens QColorDialog)
     QPushButton *color_button = NULL;
-    /// select size (or width) of tool
-    QDoubleSpinBox *size_box;
-    /// select scale (only for magnifier)
-    QDoubleSpinBox *scale_box = NULL;
-    /// select font (only for TextTool, opens QFontDialog)
-    QPushButton *font_button = NULL;
     /// list of checkboxes for input devices
     QMap<int, QCheckBox*> device_buttons;
+
+    /// Adjust selection possibilities according to basic tool.
+    void adaptToBasicTool(const Tool::BasicTool tool);
 
 public:
     /// Constructor: initialize general tool selector.
@@ -39,9 +96,6 @@ public:
 
     /// Create and return a new tool based on current settings.
     Tool *createTool() const;
-
-    /// Adjust selection possibilities according to basic tool.
-    void adaptToBasicTool(const Tool::BasicTool tool);
 
     /// Adjust selection possibilities according to basic tool.
     void adaptToBasicToolStr(const QString &text)
@@ -55,9 +109,6 @@ public:
 public slots:
     /// Set color button color from a color dialog.
     void setColor();
-
-    /// Select font from a font dialog>
-    void selectFont();
 };
 
 #endif // TOOLDIALOG_H
