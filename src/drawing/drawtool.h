@@ -12,6 +12,15 @@
  */
 class DrawTool : public Tool
 {
+public:
+    enum Shape {
+        Freehand,
+        Rect,
+        Ellipse,
+        Arrow,
+        Line,
+    };
+
 protected:
     /// Pen for stroking the path. In case of FullGraphicsPath,
     /// PointPressure::pressure is set to _pen.widthF()*event.pressure()
@@ -25,11 +34,14 @@ protected:
     /// This mainly distinguishes between pen and highlighter.
     QPainter::CompositionMode composition_mode = QPainter::CompositionMode_SourceOver;
 
+    /// Predefined shape used to draw this path
+    Shape _shape;
+
 public:
     /// Copy constructor.
     /// @param other tool to be copied
     DrawTool(const DrawTool& other) :
-        Tool(other._tool, other._device), _pen(other._pen), _brush(other._brush), composition_mode(other.composition_mode) {}
+        Tool(other._tool, other._device), _pen(other._pen), _brush(other._brush), composition_mode(other.composition_mode), _shape(other._shape) {}
 
     /// Constructor with full initialization.
     /// @param tool basic tool. Must be a tool for drawing.
@@ -42,7 +54,7 @@ public:
 
     /// Comparison by tool, device, pen, brush, and composition mode.
     virtual bool operator==(const DrawTool &other) const noexcept
-    {return _tool==other._tool && _device==other._device && _pen==other._pen && _brush==other._brush && composition_mode==other.composition_mode;}
+    {return _tool==other._tool && _device==other._device && _pen==other._pen && _brush==other._brush && composition_mode==other.composition_mode && _shape==other._shape;}
 
     /// @return _pen
     const QPen &pen() const noexcept
@@ -63,6 +75,10 @@ public:
     /// @return _brush
     QBrush &brush() noexcept
     {return _brush;}
+
+    /// @return _shape
+    Shape shape() const noexcept
+    {return _shape;}
 
     /// @return composition_mode
     QPainter::CompositionMode compositionMode() const noexcept

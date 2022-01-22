@@ -1004,10 +1004,16 @@ void SlideScene::startInputEvent(const DrawTool *tool, const QPointF &pos, const
     currentItemCollection = new QGraphicsItemGroup();
     addItem(currentItemCollection);
     currentItemCollection->show();
-    if (tool->tool() == Tool::Pen && (tool->device() & Tool::PressureSensitiveDevices))
-        currentPath = new FullGraphicsPath(*tool, pos, pressure);
+    if (tool->shape() == DrawTool::Freehand) {
+        if (tool->tool() == Tool::Pen && (tool->device() & Tool::PressureSensitiveDevices))
+            currentPath = new FullGraphicsPath(*tool, pos, pressure);
+        else
+            currentPath = new BasicGraphicsPath(*tool, pos);
+    }
     else
-        currentPath = new BasicGraphicsPath(*tool, pos);
+    {
+        // TODO
+    }
     addItem(currentPath);
     currentPath->hide();
 }

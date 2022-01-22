@@ -20,17 +20,27 @@ class DrawToolDetails : public QWidget
 {
     Q_OBJECT
 
+    /// Default stroke widths for the tools
     static const QMap<Tool::BasicTool, qreal> default_widths;
+    /// Double input box for stroke width (in pt)
     QDoubleSpinBox *width_box;
+    /// Button for color selection (filling color of the tool). The color is stored as the color of the button.
     QPushButton *brush_color_button;
+    /// enable/disable filling of paths.
     QCheckBox *fill_checkbox;
 
 public:
+    /// Constructor: create layout, use default values from old tool.
     DrawToolDetails(Tool::BasicTool basic_tool, QWidget *parent = NULL, const DrawTool *oldtool = NULL);
+    /// Trivial destructor.
     ~DrawToolDetails() {}
+    /// @return brush for filling path.
     QBrush brush() const;
+    /// @return width for stroking path
     qreal width() const {return width_box->value();}
+
 public slots:
+    /// Choose color using a color dialog
     void setBrushColor();
 };
 
@@ -41,14 +51,22 @@ class PointingToolDetails : public QWidget
 {
     Q_OBJECT
 
+    /// Default sizes for the tools
     static const QMap<Tool::BasicTool, qreal> default_sizes;
+    /// Double input box for tool radius (in pt)
     QDoubleSpinBox *radius_box;
+    /// Double input box for scale property of pointing tool.
+    /// This property is only used for magnifier and eraser.
     QDoubleSpinBox *scale_box = NULL;
 
 public:
+    /// Constructor: create layout, use default values from old tool.
     PointingToolDetails(Tool::BasicTool basic_tool, QWidget *parent = NULL, const PointingTool *oldtool = NULL);
+    /// Trivial destructor.
     ~PointingToolDetails() {}
+    /// @return scale property of pointing tool
     float scale() const {return scale_box ? scale_box->value() : -1.;}
+    /// @return radius (size) of the pointing tool
     qreal radius() const {return radius_box->value();}
 };
 
@@ -59,13 +77,19 @@ class TextToolDetails : public QWidget
 {
     Q_OBJECT
 
+    /// Button to select a font using a QFontDialog
     QPushButton *font_button;
 
 public:
+    /// Constructor: create layout, use default values from old tool.
     TextToolDetails(QWidget *parent = NULL, const TextTool *oldtool = NULL);
+    /// Trivial destructor.
     ~TextToolDetails() {}
+    /// @return font of the text input tool
     QFont font() const {return font_button->font();}
+
 public slots:
+    /// Select font using QFontDialog
     void selectFont();
 };
 
