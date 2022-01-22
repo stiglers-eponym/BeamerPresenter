@@ -45,6 +45,7 @@ DrawToolDetails::DrawToolDetails(Tool::BasicTool basic_tool, QWidget *parent, co
         shape_box->setCurrentText(string_to_shape.key(oldtool->shape()));
     else
         shape_box->setCurrentText("freehand");
+    connect(shape_box, &QComboBox::currentTextChanged, this, &DrawToolDetails::changeShape);
     setLayout(layout);
 }
 
@@ -68,6 +69,15 @@ QBrush DrawToolDetails::brush() const
     if (!fill_checkbox->isChecked())
         brush.setStyle(Qt::NoBrush);
     return brush;
+}
+
+void DrawToolDetails::changeShape(const QString &newshape)
+{
+    const bool disable = newshape == "arrow" || newshape == "line";
+    brush_color_button->setDisabled(disable);
+    if (disable)
+        fill_checkbox->setChecked(false);
+    fill_checkbox->setDisabled(disable);
 }
 
 const QMap<Tool::BasicTool, qreal> DrawToolDetails::default_widths = {

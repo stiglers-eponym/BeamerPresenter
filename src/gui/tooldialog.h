@@ -48,6 +48,8 @@ public:
 public slots:
     /// Choose color using a color dialog
     void setBrushColor();
+    /// Shape changed by shape_box. Disable/enable brush.
+    void changeShape(const QString &newshape);
 };
 
 /**

@@ -101,7 +101,8 @@ void ToolButton::setTool(Tool *newtool)
     if (!newtool)
         return;
     QColor color;
-    QString iconname = string_to_tool.key(newtool->tool()).replace(' ', '-');
+    QString iconname = string_to_tool.key(newtool->tool());
+    iconname.replace(' ', '-');
     if (newtool->tool() & Tool::AnyDrawTool)
     {
         const DrawTool *drawtool = static_cast<const DrawTool*>(newtool);
