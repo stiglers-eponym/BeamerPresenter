@@ -1,8 +1,8 @@
+#include <QImageReader>
 #include "src/gui/actionbutton.h"
 #include "src/names.h"
 #include "src/preferences.h"
 #include "src/gui/toolselectorwidget.h"
-#include <QImageReader>
 
 ActionButton::ActionButton(ToolSelectorWidget *parent) :
     QToolButton(parent)
@@ -27,7 +27,7 @@ void ActionButton::setStatus(const Action action, const int status)
 {
     if (status >= 0 && actions.contains(action) && action_to_custom_icons.contains(action) && status < action_to_custom_icons[action].length())
     {
-        QImageReader reader(preferences()->icon_path + action_to_custom_icons[action].value(status));
+        QImageReader reader(preferences()->icon_path + "/actions/" + action_to_custom_icons[action].value(status));
         reader.setScaledSize(iconSize());
         setIcon(QPixmap::fromImage(reader.read()));
     }

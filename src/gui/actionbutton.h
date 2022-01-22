@@ -80,14 +80,14 @@ static const QMap<Action, QString> action_to_theme_icon {
  * based on the status of the corresponding action.
  */
 static const QMap<Action, QStringList> action_to_custom_icons {
-    {StartStopTimer, {"actions/timer-paused.svg", "actions/timer-running.svg"}},
-    {StopTimer, {"actions/timer-stop.svg"}},
-    {StartTimer, {"actions/timer-start.svg"}},
-    {ResetTimePassed, {"actions/timer-reset.svg"}},
-    {ReloadFiles, {"actions/reload.svg"}},
-    {ScrollUp, {"actions/scroll-up.svg"}},
-    {ScrollDown, {"actions/scroll-down.svg"}},
-    {ScrollNormal, {"actions/scroll-reset.svg"}},
+    {StartStopTimer, {"timer-paused.svg", "timer-running.svg"}},
+    {StopTimer, {"timer-stop.svg"}},
+    {StartTimer, {"timer-start.svg"}},
+    {ResetTimePassed, {"timer-reset.svg"}},
+    {ReloadFiles, {"reload.svg"}},
+    {ScrollUp, {"scroll-up.svg"}},
+    {ScrollDown, {"scroll-down.svg"}},
+    {ScrollNormal, {"scroll-reset.svg"}},
 };
 
 

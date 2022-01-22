@@ -45,18 +45,4 @@ signals:
 /// Take an svg file, replace #ff0000 by given color, render it to given size and return the QImage.
 const QImage fancyIcon(const QString &filename, const QSize &size, const QColor &color);
 
-/// icon files.
-static const QMap<Tool::BasicTool, QString> tool_icon_names
-{
-    {Tool::Eraser, "tools/eraser.svg"},
-    {Tool::Pen, "tools/pen.svg"},
-    {Tool::FixedWidthPen, "tools/fixed-width-pen.svg"},
-    {Tool::Highlighter, "tools/highlighter.svg"},
-    {Tool::TextInputTool, "tools/text.svg"},
-    {Tool::Magnifier, "tools/magnifier.svg"},
-    {Tool::Torch, "tools/torch.svg"},
-    {Tool::Pointer, "tools/pointer.svg"},
-    {Tool::NoTool, "tools/notool.svg"},
-};
-
 #endif // TOOLBUTTON_H

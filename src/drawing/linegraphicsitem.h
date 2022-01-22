@@ -43,6 +43,8 @@ public:
     /// Convert to a BasicGraphicsPath for simpler erasing.
     BasicGraphicsPath *toPath() const
     {
+        if (line().p1() == line().p2())
+            return NULL;
         const int segments = line().length() / 10 + 2;
         const qreal x = line().p1().x(),
                     y = line().p1().y(),

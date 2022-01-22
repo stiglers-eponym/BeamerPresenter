@@ -38,6 +38,8 @@ void RectGraphicsItem::setSecondPoint(const QPointF &pos)
 BasicGraphicsPath *RectGraphicsItem::toPath() const
 {
     const QRectF &therect = rect();
+    if (therect.isEmpty())
+        return NULL;
     const int nx = therect.width() / 10 + 2,
               ny = therect.height() / 10 + 2;
     const qreal xscale = therect.width() / nx,

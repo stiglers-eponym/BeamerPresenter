@@ -39,6 +39,8 @@ void EllipseGraphicsItem::setSecondPoint(const QPointF &pos)
 BasicGraphicsPath *EllipseGraphicsItem::toPath() const
 {
     const QRectF &therect = rect();
+    if (therect.isEmpty())
+        return NULL;
     const int segments = (therect.width() + therect.height()) / 3 + 10;
     const qreal rx = therect.width() / 2,
                 ry = therect.height() / 2,

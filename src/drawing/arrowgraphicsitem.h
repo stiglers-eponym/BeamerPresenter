@@ -73,6 +73,8 @@ public:
     BasicGraphicsPath *toPath() const
     {
         const QPointF end = path().currentPosition();
+        if (end.isNull() || end == origin)
+            return NULL;
         const qreal length = QLineF(origin, end).length();
         const int main_segments = length / 10 + 2,
                 aux_segments = length / 40 + 2;

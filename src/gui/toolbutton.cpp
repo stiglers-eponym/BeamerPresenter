@@ -1,13 +1,13 @@
+#include <QTabletEvent>
+#include <QMouseEvent>
+#include <QBuffer>
+#include <QImageReader>
 #include "src/gui/toolbutton.h"
 #include "src/preferences.h"
 #include "src/gui/tooldialog.h"
 #include "src/drawing/drawtool.h"
 #include "src/drawing/texttool.h"
 #include "src/drawing/pointingtool.h"
-#include <QTabletEvent>
-#include <QMouseEvent>
-#include <QBuffer>
-#include <QImageReader>
 
 ToolButton::ToolButton(Tool *tool, QWidget *parent) noexcept :
         QToolButton(parent),
@@ -100,36 +100,44 @@ void ToolButton::setTool(Tool *newtool)
 {
     if (!newtool)
         return;
-    if (tool_icon_names.contains(newtool->tool()))
+    QColor color;
+    QString iconname = string_to_tool.key(newtool->tool()).replace(' ', '-');
+    if (newtool->tool() & Tool::AnyDrawTool)
     {
-        QColor color;
-        if (newtool->tool() & Tool::AnyDrawTool)
-            color = static_cast<DrawTool*>(newtool)->color();
-        else if (newtool->tool() & Tool::AnyPointingTool)
-            color = static_cast<PointingTool*>(newtool)->color();
-        else if (newtool->tool() == Tool::TextInputTool)
+        const DrawTool *drawtool = static_cast<const DrawTool*>(newtool);
+        if (drawtool->shape() != DrawTool::Freehand)
         {
-            color = static_cast<TextTool*>(newtool)->color();
-            if (!color.isValid())
-                color = Qt::black;
+            if (drawtool->tool() == Tool::FixedWidthPen)
+                iconname = "pen";
+            iconname += "-";
+            iconname += string_to_shape.key(drawtool->shape());
         }
-        QIcon icon;
-        const QString filename = preferences()->icon_path + tool_icon_names[newtool->tool()];
-        if (color.isValid())
-        {
-            const QImage image = fancyIcon(filename, iconSize(), color);
-            if (!image.isNull())
-                icon = QIcon(QPixmap::fromImage(image));
-        }
-        if (icon.isNull())
-            icon = QIcon(filename);
-        if (icon.isNull())
-            setText(string_to_tool.key(newtool->tool()));
-        else
-            setIcon(icon);
+        if (drawtool->brush().style() != Qt::NoBrush && drawtool->shape() != DrawTool::Arrow && drawtool->shape() != DrawTool::Line)
+            iconname += "-filled";
+        color = drawtool->color();
     }
-    else
+    else if (newtool->tool() & Tool::AnyPointingTool)
+        color = static_cast<PointingTool*>(newtool)->color();
+    else if (newtool->tool() == Tool::TextInputTool)
+    {
+        color = static_cast<TextTool*>(newtool)->color();
+        if (!color.isValid())
+            color = Qt::black;
+    }
+    const QString filename = preferences()->icon_path + "/tools/" + iconname + ".svg";
+    QIcon icon;
+    if (color.isValid())
+    {
+        const QImage image = fancyIcon(filename, iconSize(), color);
+        if (!image.isNull())
+            icon = QIcon(QPixmap::fromImage(image));
+    }
+    if (icon.isNull())
+        icon = QIcon(filename);
+    if (icon.isNull())
         setText(string_to_tool.key(newtool->tool()));
+    else
+        setIcon(icon);
     delete tool;
     tool = newtool;
     setToolTip(tr(tool_to_description.value(tool->tool())));

@@ -71,9 +71,12 @@ void SlideScene::stopDrawing()
             BasicGraphicsPath *path = static_cast<RectGraphicsItem*>(currentlyDrawnItem)->toPath();
             removeItem(currentlyDrawnItem);
             delete currentlyDrawnItem;
-            addItem(path);
-            path->show();
-            emit sendNewPath(page | page_part, path);
+            if (path)
+            {
+                addItem(path);
+                path->show();
+                emit sendNewPath(page | page_part, path);
+            }
             break;
         }
         case EllipseGraphicsItem::Type:
@@ -81,9 +84,12 @@ void SlideScene::stopDrawing()
             BasicGraphicsPath *path = static_cast<EllipseGraphicsItem*>(currentlyDrawnItem)->toPath();
             removeItem(currentlyDrawnItem);
             delete currentlyDrawnItem;
-            addItem(path);
-            path->show();
-            emit sendNewPath(page | page_part, path);
+            if (path)
+            {
+                addItem(path);
+                path->show();
+                emit sendNewPath(page | page_part, path);
+            }
             break;
         }
         case LineGraphicsItem::Type:
@@ -91,9 +97,12 @@ void SlideScene::stopDrawing()
             BasicGraphicsPath *path = static_cast<LineGraphicsItem*>(currentlyDrawnItem)->toPath();
             removeItem(currentlyDrawnItem);
             delete currentlyDrawnItem;
-            addItem(path);
-            path->show();
-            emit sendNewPath(page | page_part, path);
+            if (path)
+            {
+                addItem(path);
+                path->show();
+                emit sendNewPath(page | page_part, path);
+            }
             break;
         }
         case ArrowGraphicsItem::Type:
@@ -101,9 +110,12 @@ void SlideScene::stopDrawing()
             BasicGraphicsPath *path = static_cast<ArrowGraphicsItem*>(currentlyDrawnItem)->toPath();
             removeItem(currentlyDrawnItem);
             delete currentlyDrawnItem;
-            addItem(path);
-            path->show();
-            emit sendNewPath(page | page_part, path);
+            if (path)
+            {
+                addItem(path);
+                path->show();
+                emit sendNewPath(page | page_part, path);
+            }
             break;
         }
         default:
