@@ -119,6 +119,14 @@ void FullGraphicsPath::paint(QPainter *painter, const QStyleOptionGraphicsItem *
 {
     if (coordinates.isEmpty())
         return;
+    if (coordinates.length() == 1)
+    {
+        QPen pen = _tool.pen();
+        pen.setWidthF(pressures.first());
+        painter->setPen(pen);
+        painter->drawPoint(coordinates.first());
+        return;
+    }
     if (_tool.brush().style() != Qt::NoBrush)
     {
         painter->setPen(Qt::NoPen);

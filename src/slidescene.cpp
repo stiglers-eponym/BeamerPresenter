@@ -6,6 +6,7 @@
 #include "src/drawing/basicgraphicspath.h"
 #include "src/drawing/flexgraphicslineitem.h"
 #include "src/drawing/pixmapgraphicsitem.h"
+#include "src/drawing/rectgraphicsitem.h"
 #include "src/drawing/pointingtool.h"
 #include "src/drawing/texttool.h"
 #include "src/drawing/pathcontainer.h"
@@ -45,20 +46,20 @@ SlideScene::~SlideScene()
 #endif
     }
     mediaItems.clear();
-    delete currentPath;
+    delete currentlyDrawnItem;
     delete currentItemCollection;
 }
 
 void SlideScene::stopDrawing()
 {
     debug_msg(DebugDrawing, "Stop drawing" << page << page_part);
-    if (currentPath && currentPath->size() > 1)
+    if (currentlyDrawnItem)
     {
-        currentPath->show();
-        emit sendNewPath(page | page_part, currentPath);
-        invalidate(currentPath->sceneBoundingRect(), QGraphicsScene::ItemLayer);
+        currentlyDrawnItem->show();
+        emit sendNewPath(page | page_part, currentlyDrawnItem);
+        invalidate(currentlyDrawnItem->sceneBoundingRect(), QGraphicsScene::ItemLayer);
     }
-    currentPath = NULL;
+    currentlyDrawnItem = NULL;
     if (currentItemCollection)
     {
         removeItem(currentItemCollection);
@@ -999,23 +1000,39 @@ void SlideScene::startInputEvent(const DrawTool *tool, const QPointF &pos, const
         return;
     debug_verbose(DebugDrawing, "Start input event" << tool->tool() << tool->device() << tool << pressure);
     stopDrawing();
-    if (currentItemCollection || currentPath)
+    if (currentItemCollection || currentlyDrawnItem)
         return;
     currentItemCollection = new QGraphicsItemGroup();
     addItem(currentItemCollection);
     currentItemCollection->show();
-    if (tool->shape() == DrawTool::Freehand) {
+    switch (tool->shape()) {
+    case DrawTool::Freehand:
         if (tool->tool() == Tool::Pen && (tool->device() & Tool::PressureSensitiveDevices))
-            currentPath = new FullGraphicsPath(*tool, pos, pressure);
+            currentlyDrawnItem = new FullGraphicsPath(*tool, pos, pressure);
         else
-            currentPath = new BasicGraphicsPath(*tool, pos);
-    }
-    else
+            currentlyDrawnItem = new BasicGraphicsPath(*tool, pos);
+        currentlyDrawnItem->hide();
+        break;
+    case DrawTool::Rect:
     {
-        // TODO
+        RectGraphicsItem *rect_item = new RectGraphicsItem(pos);
+        rect_item->setPen(tool->pen());
+        rect_item->setBrush(tool->brush());
+        rect_item->show();
+        currentlyDrawnItem = rect_item;
+        break;
     }
-    addItem(currentPath);
-    currentPath->hide();
+    case DrawTool::Ellipse:
+        // TODO
+        break;
+    case DrawTool::Line:
+        // TODO
+        break;
+    case DrawTool::Arrow:
+        // TODO
+        break;
+    }
+    addItem(currentlyDrawnItem);
 }
 
 void SlideScene::stepInputEvent(const DrawTool *tool, const QPointF &pos, const float pressure)
@@ -1023,28 +1040,55 @@ void SlideScene::stepInputEvent(const DrawTool *tool, const QPointF &pos, const 
     if (pressure <= 0 || !tool || !(slide_flags & ShowDrawings))
         return;
     debug_verbose(DebugDrawing, "Step input event" << tool->tool() << tool->device() << tool << pressure);
-    if (currentPath && currentItemCollection && *tool == currentPath->getTool())
+    if (!currentlyDrawnItem)
+        return;
+    switch (currentlyDrawnItem->type())
     {
-        auto item = new FlexGraphicsLineItem(QLineF(currentPath->lastPoint(), pos), currentPath->getTool().compositionMode());
-        if (currentPath->type() == QGraphicsPathItem::UserType + 2)
+        case BasicGraphicsPath::Type:
         {
-            static_cast<FullGraphicsPath*>(currentPath)->addPoint(pos, pressure);
-            QPen pen = currentPath->getTool().pen();
+            if (!currentItemCollection)
+                break;
+            BasicGraphicsPath *current_path = static_cast<BasicGraphicsPath*>(currentlyDrawnItem);
+            if (current_path->getTool() != *tool)
+                break;
+            FlexGraphicsLineItem *item = new FlexGraphicsLineItem(QLineF(current_path->lastPoint(), pos), tool->compositionMode());
+            current_path->addPoint(pos);
+            item->setPen(tool->pen());
+            item->show();
+            addItem(item);
+            currentItemCollection->addToGroup(item);
+            currentItemCollection->show();
+            invalidate(item->sceneBoundingRect(), QGraphicsScene::ItemLayer);
+            break;
+        }
+        case FullGraphicsPath::Type:
+        {
+            if (!currentItemCollection)
+                break;
+            FullGraphicsPath *current_path = static_cast<FullGraphicsPath*>(currentlyDrawnItem);
+            if (current_path->getTool() != *tool)
+                break;
+            FlexGraphicsLineItem *item = new FlexGraphicsLineItem(QLineF(current_path->lastPoint(), pos), tool->compositionMode());
+            current_path->addPoint(pos, pressure);
+            QPen pen = tool->pen();
             pen.setWidthF(pen.widthF() * pressure);
             item->setPen(pen);
+            item->show();
+            addItem(item);
+            currentItemCollection->addToGroup(item);
+            currentItemCollection->show();
+            invalidate(item->sceneBoundingRect(), QGraphicsScene::ItemLayer);
+            break;
         }
-        else if (currentPath->type() == QGraphicsPathItem::UserType + 1)
-        {
-            static_cast<BasicGraphicsPath*>(currentPath)->addPoint(pos);
-            item->setPen(currentPath->getTool().pen());
-        }
-        else
-            qCritical() << "This should never happen.";
-        item->show();
-        addItem(item);
-        currentItemCollection->addToGroup(item);
-        currentItemCollection->show();
-        invalidate(item->sceneBoundingRect(), QGraphicsScene::ItemLayer);
+        case RectGraphicsItem::Type:
+            static_cast<RectGraphicsItem*>(currentlyDrawnItem)->setSecondPoint(pos);
+            break;
+        case QGraphicsEllipseItem::Type:
+            // TODO
+            break;
+        case QGraphicsLineItem::Type:
+            // TODO
+            break;
     }
 }
 
@@ -1053,7 +1097,7 @@ bool SlideScene::stopInputEvent(const DrawTool *tool)
     if (!tool || !(slide_flags & ShowDrawings))
         return false;
     debug_verbose(DebugDrawing, "Stop input event" << tool->tool() << tool->device() << tool);
-    const bool changes = currentPath && currentPath->size() > 1;
+    const bool changes = currentlyDrawnItem != NULL;
     stopDrawing();
     if (changes)
     {

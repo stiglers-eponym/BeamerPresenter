@@ -5,12 +5,12 @@
 #include <QMap>
 #include <QDoubleSpinBox>
 #include <QPushButton>
+#include <QComboBox>
 #include "src/drawing/tool.h"
+#include "src/drawing/drawtool.h"
 
-class QComboBox;
 class QCheckBox;
 class TextTool;
-class DrawTool;
 class PointingTool;
 
 /**
@@ -28,16 +28,22 @@ class DrawToolDetails : public QWidget
     QPushButton *brush_color_button;
     /// enable/disable filling of paths.
     QCheckBox *fill_checkbox;
+    /// Select shape
+    QComboBox *shape_box;
 
 public:
     /// Constructor: create layout, use default values from old tool.
     DrawToolDetails(Tool::BasicTool basic_tool, QWidget *parent = NULL, const DrawTool *oldtool = NULL);
     /// Trivial destructor.
     ~DrawToolDetails() {}
-    /// @return brush for filling path.
+    /// @return brush for filling path
     QBrush brush() const;
     /// @return width for stroking path
-    qreal width() const {return width_box->value();}
+    qreal width() const
+    {return width_box->value();}
+    /// @return shape for draw tool
+    DrawTool::Shape shape() const
+    {return string_to_shape.value(shape_box->currentText(), DrawTool::Freehand);}
 
 public slots:
     /// Choose color using a color dialog

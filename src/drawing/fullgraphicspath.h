@@ -15,9 +15,11 @@
 class FullGraphicsPath : public AbstractGraphicsPath
 {
 private:
-    /// Vector of coordinates
+    /// Vector of coordinates.
+    /// coordinates and pressures must always have the same length.
     QVector<QPointF> coordinates;
-    /// Vector of pressures (for each stroke segment)
+    /// Vector of pressures (for each stroke segment).
+    /// coordinates and pressures must always have the same length.
     QVector<float> pressures;
 
 public:

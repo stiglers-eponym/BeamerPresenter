@@ -49,12 +49,16 @@ public:
     /// @param pen pen used for stroking path
     /// @param brush brush used for filling path
     /// @param mode composition mode for stroking and filling path
-    DrawTool(const BasicTool tool, const int device, const QPen &pen, const QBrush &brush = QBrush(), const QPainter::CompositionMode mode = QPainter::CompositionMode_SourceOver) noexcept :
-        Tool(tool, device), _pen(pen), _brush(brush), composition_mode(mode) {}
+    DrawTool(const BasicTool tool, const int device, const QPen &pen, const QBrush &brush = QBrush(), const QPainter::CompositionMode mode = QPainter::CompositionMode_SourceOver, const Shape shape = Freehand) noexcept :
+        Tool(tool, device), _pen(pen), _brush(brush), composition_mode(mode), _shape(shape) {}
 
     /// Comparison by tool, device, pen, brush, and composition mode.
     virtual bool operator==(const DrawTool &other) const noexcept
     {return _tool==other._tool && _device==other._device && _pen==other._pen && _brush==other._brush && composition_mode==other.composition_mode && _shape==other._shape;}
+
+    /// Comparison by tool, device, pen, brush, and composition mode.
+    virtual bool operator!=(const DrawTool &other) const noexcept
+    {return _tool!=other._tool || _device!=other._device || _pen!=other._pen || _brush!=other._brush || composition_mode!=other.composition_mode || _shape!=other._shape;}
 
     /// @return _pen
     const QPen &pen() const noexcept
@@ -95,6 +99,14 @@ public:
     /// Set stroke width in points.
     void setWidth(const float width) noexcept
     {_pen.setWidthF(width);}
+};
+
+static const QMap<QString, DrawTool::Shape> string_to_shape {
+    {"freehand", DrawTool::Freehand},
+    {"rectangle", DrawTool::Rect},
+    {"ellipse", DrawTool::Ellipse},
+    {"line", DrawTool::Line},
+    {"arrow", DrawTool::Arrow},
 };
 
 #endif // DRAWTOOL_H

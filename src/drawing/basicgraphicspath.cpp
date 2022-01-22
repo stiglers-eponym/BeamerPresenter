@@ -104,6 +104,11 @@ void BasicGraphicsPath::paint(QPainter *painter, const QStyleOptionGraphicsItem 
     painter->setRenderHint(QPainter::Antialiasing);
     painter->setPen(_tool.pen());
     painter->setCompositionMode(_tool.compositionMode());
+    if (data.length() == 1)
+    {
+        painter->drawPoint(data.first());
+        return;
+    }
 
     if (_tool.brush().style() == Qt::NoBrush)
         painter->drawPolyline(data.constData(), data.size());

@@ -70,7 +70,7 @@ private:
 
     /// Path which is currently being drawn.
     /// NULL if currenty no path is drawn.
-    AbstractGraphicsPath* currentPath {NULL};
+    QGraphicsItem* currentlyDrawnItem {NULL};
 
     /// Group of path segments forming the currently drawn path.
     /// This collection of segments is directly made visible and gets deleted

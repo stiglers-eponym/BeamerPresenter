@@ -5,8 +5,6 @@
 #include "src/drawing/pointingtool.h"
 #include <QColorDialog>
 #include <QFontDialog>
-#include <QComboBox>
-#include <QPushButton>
 #include <QCheckBox>
 #include <QFormLayout>
 #include <QVBoxLayout>
@@ -16,7 +14,8 @@ DrawToolDetails::DrawToolDetails(Tool::BasicTool basic_tool, QWidget *parent, co
     QWidget(parent),
     width_box(new QDoubleSpinBox(this)),
     brush_color_button(new QPushButton(this)),
-    fill_checkbox(new QCheckBox(this))
+    fill_checkbox(new QCheckBox(this)),
+    shape_box(new QComboBox(this))
 {
     QFormLayout *layout = new QFormLayout(this);
     layout->addRow(tr("stroke width (in pt)"), width_box);
@@ -39,6 +38,13 @@ DrawToolDetails::DrawToolDetails(Tool::BasicTool basic_tool, QWidget *parent, co
     layout->addRow(tr("fill color"), brush_color_button);
     layout->addRow(tr("fill"), fill_checkbox);
     connect(brush_color_button, &QPushButton::clicked, this, &DrawToolDetails::setBrushColor);
+    for (auto it=string_to_shape.cbegin(); it!=string_to_shape.cend(); ++it)
+        shape_box->addItem(it.key(), it.value());
+    layout->addRow(tr("shape"), shape_box);
+    if (oldtool)
+        shape_box->setCurrentText(string_to_shape.key(oldtool->shape()));
+    else
+        shape_box->setCurrentText("freehand");
     setLayout(layout);
 }
 
@@ -290,7 +296,8 @@ Tool *ToolDialog::createTool() const
                     device,
                     QPen(color, details->width(), Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin),
                     details->brush(),
-                    basic_tool == Tool::Highlighter ? QPainter::CompositionMode_Darken : QPainter::CompositionMode_SourceOver
+                    basic_tool == Tool::Highlighter ? QPainter::CompositionMode_Darken : QPainter::CompositionMode_SourceOver,
+                    details->shape()
                 );
     }
     case Tool::Torch:
