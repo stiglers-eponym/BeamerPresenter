@@ -15,7 +15,7 @@
 class FlexGraphicsLineItem : public QGraphicsLineItem
 {
     /// Composition mode used for this line.
-    QPainter::CompositionMode mode;
+    const QPainter::CompositionMode mode;
 
 public:
     /// @return custom QGraphicsItem type

@@ -10,6 +10,39 @@
     </message>
 </context>
 <context>
+    <name>DrawToolDetails</name>
+    <message>
+        <location filename="../src/gui/tooldialog.cpp" line="21"/>
+        <source>stroke width (in pt)</source>
+        <translation>Linienbreite (in pt)</translation>
+    </message>
+    <message>
+        <location filename="../src/gui/tooldialog.cpp" line="37"/>
+        <source>color</source>
+        <translation>Farbe</translation>
+    </message>
+    <message>
+        <location filename="../src/gui/tooldialog.cpp" line="38"/>
+        <source>fill color</source>
+        <translation>Farbe zum Füllen</translation>
+    </message>
+    <message>
+        <location filename="../src/gui/tooldialog.cpp" line="39"/>
+        <source>fill</source>
+        <translation>füllen</translation>
+    </message>
+    <message>
+        <location filename="../src/gui/tooldialog.cpp" line="43"/>
+        <source>shape</source>
+        <translation>Form</translation>
+    </message>
+    <message>
+        <location filename="../src/gui/tooldialog.cpp" line="54"/>
+        <source>Fill color</source>
+        <translation>Farbe zum Füllen</translation>
+    </message>
+</context>
+<context>
     <name>KeyInputLabel</name>
     <message>
         <location filename="../src/gui/keyinputlabel.cpp" line="20"/>
@@ -182,14 +215,32 @@
     </message>
 </context>
 <context>
+    <name>PointingToolDetails</name>
+    <message>
+        <location filename="../src/gui/tooldialog.cpp" line="91"/>
+        <source>radius (in pt)</source>
+        <translation>Radius (in pt)</translation>
+    </message>
+    <message>
+        <location filename="../src/gui/tooldialog.cpp" line="101"/>
+        <source>Magnification scale</source>
+        <translation>Vergrößerungsfaktor</translation>
+    </message>
+    <message>
+        <location filename="../src/gui/tooldialog.cpp" line="110"/>
+        <source>Eraser border width</source>
+        <translation>Linienbreite Radiergummie</translation>
+    </message>
+</context>
+<context>
     <name>Preferences</name>
     <message>
-        <location filename="../src/preferences.cpp" line="682"/>
+        <location filename="../src/preferences.cpp" line="693"/>
         <source>Invalid file</source>
         <translation>Keine valide Datei ausgewählt</translation>
     </message>
     <message>
-        <location filename="../src/preferences.cpp" line="682"/>
+        <location filename="../src/preferences.cpp" line="693"/>
         <source>GUI config file not set because it is not a valid file: </source>
         <translation>Konfiguration der Benutzeroberfläche konnte nicht geändert werden, da keine valide Datei ausgewählt wurde: </translation>
     </message>
@@ -295,10 +346,6 @@ Konfiguriere Zwischenspeicher (Cache). Folien werden in gerendert und in einen k
         <location filename="../src/gui/settingswidget.cpp" line="167"/>
         <source>rendering arguments</source>
         <translation>Argumente für den externen Renderer</translation>
-    </message>
-    <message>
-        <source>Some programs (like LaTeX beamer) can create PDF pages split into one half for the audience one half for the speaker. This is assumed by BeamerPresenter if the aspect ratio (width/height) of the first slide lies above this threshold:</source>
-        <translation type="vanished">Manche Programme (z.B. LaTeX beamer) können PDF-Präsentationen erzeugen, bei denen jede Seite aus zwei Hälften besteht: eine für das Publikum und eine für den/die Vortragende:n. Von diesem Fall wird ausgegangen, wenn das Seitenverhältnis der Folien (Breite/Höhe) der ersten Seite über den hier definierten Wert liegt:</translation>
     </message>
     <message>
         <location filename="../src/gui/settingswidget.cpp" line="33"/>
@@ -459,6 +506,19 @@ Konfiguriere Zwischenspeicher (Cache). Folien werden in gerendert und in einen k
     </message>
 </context>
 <context>
+    <name>TextToolDetails</name>
+    <message>
+        <location filename="../src/gui/tooldialog.cpp" line="121"/>
+        <source>font</source>
+        <translation>Schriftart</translation>
+    </message>
+    <message>
+        <location filename="../src/gui/tooldialog.cpp" line="134"/>
+        <source>Font for Text input</source>
+        <translation>Schriftart für Texteingabe</translation>
+    </message>
+</context>
+<context>
     <name>ThumbnailButton</name>
     <message>
         <location filename="../src/gui/thumbnailbutton.cpp" line="9"/>
@@ -497,59 +557,34 @@ Konfiguriere Zwischenspeicher (Cache). Folien werden in gerendert und in einen k
 <context>
     <name>ToolDialog</name>
     <message>
-        <location filename="../src/gui/tooldialog.cpp" line="29"/>
+        <location filename="../src/gui/tooldialog.cpp" line="152"/>
         <source>Tool:</source>
         <translation>Werkzeug:</translation>
     </message>
     <message>
-        <location filename="../src/gui/tooldialog.cpp" line="32"/>
+        <location filename="../src/gui/tooldialog.cpp" line="155"/>
         <source>color</source>
         <translation>Farbe</translation>
     </message>
     <message>
-        <location filename="../src/gui/tooldialog.cpp" line="34"/>
+        <location filename="../src/gui/tooldialog.cpp" line="157"/>
         <source>Color:</source>
         <translation>Farbe:</translation>
     </message>
     <message>
-        <location filename="../src/gui/tooldialog.cpp" line="38"/>
+        <location filename="../src/gui/tooldialog.cpp" line="161"/>
         <source>Input devices</source>
         <translation>Eingabegerät</translation>
     </message>
     <message>
-        <location filename="../src/gui/tooldialog.cpp" line="52"/>
-        <source>Size:</source>
-        <translation>Größe:</translation>
-    </message>
-    <message>
-        <location filename="../src/gui/tooldialog.cpp" line="55"/>
+        <location filename="../src/gui/tooldialog.cpp" line="174"/>
         <source>return</source>
         <translation>übernehmen</translation>
     </message>
     <message>
-        <location filename="../src/gui/tooldialog.cpp" line="69"/>
-        <source>font</source>
-        <translation>Schriftart</translation>
-    </message>
-    <message>
-        <location filename="../src/gui/tooldialog.cpp" line="71"/>
-        <source>font:</source>
-        <translation>Schriftart:</translation>
-    </message>
-    <message>
-        <location filename="../src/gui/tooldialog.cpp" line="88"/>
-        <source>scale:</source>
-        <translation>Skala:</translation>
-    </message>
-    <message>
-        <location filename="../src/gui/tooldialog.cpp" line="230"/>
+        <location filename="../src/gui/tooldialog.cpp" line="332"/>
         <source>Tool color</source>
         <translation>Farbe des Werkzeugs</translation>
-    </message>
-    <message>
-        <location filename="../src/gui/tooldialog.cpp" line="243"/>
-        <source>Font for Text input</source>
-        <translation>Schriftart für Texteingabe</translation>
     </message>
 </context>
 </TS>

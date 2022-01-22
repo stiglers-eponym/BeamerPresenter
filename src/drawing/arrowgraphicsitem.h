@@ -5,6 +5,14 @@
 #include <QGraphicsPathItem>
 #include "src/drawing/basicgraphicspath.h"
 
+/**
+ * Given the start and end point of an arrow, calculate the two other points
+ * needed for an arrow.
+ * @param start start point of the arrow
+ * @param end end point of the arrow
+ * @param p1 will be overwritten by first extra point for the arrow
+ * @param p2 will be overwritten by second extra point for the arrow
+ */
 void calcArrowPoints(const QPointF &start, const QPointF &end, QPointF &p1, QPointF &p2)
 {
     const qreal length = QLineF(start, end).length();
@@ -14,12 +22,18 @@ void calcArrowPoints(const QPointF &start, const QPointF &end, QPointF &p1, QPoi
     p2 = {scale2*start.x() + (1-scale2)*end.x() + scale1*(end.y() - start.y()), scale2*start.y() + (1-scale2)*end.y() - scale1*(end.x() - start.x())};
 }
 
+/**
+ * @brief ArrowGraphicsItem: Path shaped like an arrow
+ *
+ * Given a fixed start point and a flexible (movable) end point, this class
+ * draws the arrow and can export the path as BasicGraphicsPath.
+ */
 class ArrowGraphicsItem : public QGraphicsPathItem
 {
     /// DrawTool for this path.
-    DrawTool tool;
+    const DrawTool tool;
     /// Origin of the arrow
-    QPointF origin;
+    const QPointF origin;
 
 public:
     /// QGraphicsItem type for this subclass

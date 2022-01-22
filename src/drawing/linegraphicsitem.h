@@ -4,10 +4,13 @@
 #include <QGraphicsLineItem>
 #include "src/drawing/basicgraphicspath.h"
 
+/**
+ * @brief LineGraphicsItem: QGraphicsLineItem with a tool that can be converted to BasicGraphicsPath
+ */
 class LineGraphicsItem : public QGraphicsLineItem
 {
     /// DrawTool for this path.
-    DrawTool tool;
+    const DrawTool tool;
 
 public:
     /// QGraphicsItem type for this subclass

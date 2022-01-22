@@ -4,6 +4,12 @@
 #include <QGraphicsEllipseItem>
 #include "src/drawing/basicgraphicspath.h"
 
+/**
+ * @brief EllipseGraphicsItem: QGraphicsEllipseItem for flexible drawing of an ellipse
+ *
+ * This extends QGraphicsEllipseItem by checking that the rect is always valid.
+ * It also contains a DrawTool and can be converted to a BasicGraphicsPath.
+ */
 class EllipseGraphicsItem : public QGraphicsEllipseItem
 {
     enum {
@@ -13,7 +19,7 @@ class EllipseGraphicsItem : public QGraphicsEllipseItem
         BottomRight = 0x3,
     };
     /// DrawTool for this path.
-    DrawTool tool;
+    const DrawTool tool;
     /// Defines which corner of the rectangle is kept fixed.
     quint8 origin = TopLeft;
 

@@ -19,7 +19,7 @@ class RectGraphicsItem : public QGraphicsRectItem
         BottomRight = 0x3,
     };
     /// DrawTool for this path.
-    DrawTool tool;
+    const DrawTool tool;
     /// Defines which corner of the rectangle is kept fixed.
     quint8 origin = TopLeft;
 
