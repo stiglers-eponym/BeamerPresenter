@@ -6,6 +6,7 @@ add_executable(beamerpresenter
         drawing/pointingtool.cpp
         drawing/textgraphicsitem.cpp
         drawing/rectgraphicsitem.cpp
+        drawing/ellipsegraphicsitem.cpp
         gui/actionbutton.cpp
         gui/clockwidget.cpp
         gui/flexlayout.cpp

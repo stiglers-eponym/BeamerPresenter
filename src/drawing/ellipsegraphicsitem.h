@@ -1,16 +1,10 @@
-#ifndef RECTGRAPHICSITEM_H
-#define RECTGRAPHICSITEM_H
+#ifndef ELLIPSEGRAPHICSITEM_H
+#define ELLIPSEGRAPHICSITEM_H
 
-#include <QGraphicsRectItem>
+#include <QGraphicsEllipseItem>
 #include "src/drawing/basicgraphicspath.h"
 
-/**
- * @brief RectGraphicsItem: QGraphicsRectItem adjusted for interactive drawing
- *
- * This class makes sure that the rect of the underlying QGraphicsRectItem is
- * always valid while moving one of the corners.
- */
-class RectGraphicsItem : public QGraphicsRectItem
+class EllipseGraphicsItem : public QGraphicsEllipseItem
 {
     enum {
         TopLeft = 0x0,
@@ -25,14 +19,14 @@ class RectGraphicsItem : public QGraphicsRectItem
 
 public:
     /// QGraphicsItem type for this subclass
-    enum {Type = UserType + 6};
+    enum {Type = UserType + 7};
 
     /// Constructor for initializing QGraphicsRectItem
     /// @param pos origin of the rectangle. This coordinate is always fixed.
-    RectGraphicsItem(const DrawTool &tool, const QPointF &pos, QGraphicsItem *parent = NULL);
+    EllipseGraphicsItem(const DrawTool &tool, const QPointF &pos, QGraphicsItem *parent = NULL);
 
     /// Trivial destructor.
-    ~RectGraphicsItem() {}
+    ~EllipseGraphicsItem() {}
 
     /// @return custom QGraphicsItem type.
     int type() const noexcept override
@@ -46,4 +40,4 @@ public:
     BasicGraphicsPath *toPath() const;
 };
 
-#endif // RECTGRAPHICSITEM_H
+#endif // ELLIPSEGRAPHICSITEM_H

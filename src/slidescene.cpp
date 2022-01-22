@@ -7,6 +7,7 @@
 #include "src/drawing/flexgraphicslineitem.h"
 #include "src/drawing/pixmapgraphicsitem.h"
 #include "src/drawing/rectgraphicsitem.h"
+#include "src/drawing/ellipsegraphicsitem.h"
 #include "src/drawing/pointingtool.h"
 #include "src/drawing/texttool.h"
 #include "src/drawing/pathcontainer.h"
@@ -66,6 +67,16 @@ void SlideScene::stopDrawing()
         case RectGraphicsItem::Type:
         {
             BasicGraphicsPath *path = static_cast<RectGraphicsItem*>(currentlyDrawnItem)->toPath();
+            removeItem(currentlyDrawnItem);
+            delete currentlyDrawnItem;
+            addItem(path);
+            path->show();
+            emit sendNewPath(page | page_part, path);
+            break;
+        }
+        case EllipseGraphicsItem::Type:
+        {
+            BasicGraphicsPath *path = static_cast<EllipseGraphicsItem*>(currentlyDrawnItem)->toPath();
             removeItem(currentlyDrawnItem);
             delete currentlyDrawnItem;
             addItem(path);
@@ -1034,15 +1045,17 @@ void SlideScene::startInputEvent(const DrawTool *tool, const QPointF &pos, const
     case DrawTool::Rect:
     {
         RectGraphicsItem *rect_item = new RectGraphicsItem(*tool, pos);
-        rect_item->setPen(tool->pen());
-        rect_item->setBrush(tool->brush());
         rect_item->show();
         currentlyDrawnItem = rect_item;
         break;
     }
     case DrawTool::Ellipse:
-        // TODO
+    {
+        EllipseGraphicsItem *rect_item = new EllipseGraphicsItem(*tool, pos);
+        rect_item->show();
+        currentlyDrawnItem = rect_item;
         break;
+    }
     case DrawTool::Line:
         // TODO
         break;
@@ -1101,8 +1114,8 @@ void SlideScene::stepInputEvent(const DrawTool *tool, const QPointF &pos, const 
         case RectGraphicsItem::Type:
             static_cast<RectGraphicsItem*>(currentlyDrawnItem)->setSecondPoint(pos);
             break;
-        case QGraphicsEllipseItem::Type:
-            // TODO
+        case EllipseGraphicsItem::Type:
+            static_cast<EllipseGraphicsItem*>(currentlyDrawnItem)->setSecondPoint(pos);
             break;
         case QGraphicsLineItem::Type:
             // TODO
