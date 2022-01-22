@@ -44,6 +44,13 @@ public:
 
     /// Convert to a BasicGraphicsPath for simpler erasing.
     BasicGraphicsPath *toPath() const;
+
+    /// Paint line to painter.
+    virtual void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget = NULL) override
+    {
+        painter->setCompositionMode(tool.compositionMode());
+        QGraphicsRectItem::paint(painter, option, widget);
+    }
 };
 
 #endif // RECTGRAPHICSITEM_H

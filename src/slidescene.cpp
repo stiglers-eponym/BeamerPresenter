@@ -8,6 +8,8 @@
 #include "src/drawing/pixmapgraphicsitem.h"
 #include "src/drawing/rectgraphicsitem.h"
 #include "src/drawing/ellipsegraphicsitem.h"
+#include "src/drawing/linegraphicsitem.h"
+#include "src/drawing/arrowgraphicsitem.h"
 #include "src/drawing/pointingtool.h"
 #include "src/drawing/texttool.h"
 #include "src/drawing/pathcontainer.h"
@@ -77,6 +79,26 @@ void SlideScene::stopDrawing()
         case EllipseGraphicsItem::Type:
         {
             BasicGraphicsPath *path = static_cast<EllipseGraphicsItem*>(currentlyDrawnItem)->toPath();
+            removeItem(currentlyDrawnItem);
+            delete currentlyDrawnItem;
+            addItem(path);
+            path->show();
+            emit sendNewPath(page | page_part, path);
+            break;
+        }
+        case LineGraphicsItem::Type:
+        {
+            BasicGraphicsPath *path = static_cast<LineGraphicsItem*>(currentlyDrawnItem)->toPath();
+            removeItem(currentlyDrawnItem);
+            delete currentlyDrawnItem;
+            addItem(path);
+            path->show();
+            emit sendNewPath(page | page_part, path);
+            break;
+        }
+        case ArrowGraphicsItem::Type:
+        {
+            BasicGraphicsPath *path = static_cast<ArrowGraphicsItem*>(currentlyDrawnItem)->toPath();
             removeItem(currentlyDrawnItem);
             delete currentlyDrawnItem;
             addItem(path);
@@ -1057,11 +1079,19 @@ void SlideScene::startInputEvent(const DrawTool *tool, const QPointF &pos, const
         break;
     }
     case DrawTool::Line:
-        // TODO
+    {
+        LineGraphicsItem *line_item = new LineGraphicsItem(*tool, pos);
+        line_item->show();
+        currentlyDrawnItem = line_item;
         break;
+    }
     case DrawTool::Arrow:
-        // TODO
+    {
+        ArrowGraphicsItem *arrow_item = new ArrowGraphicsItem(*tool, pos);
+        arrow_item->show();
+        currentlyDrawnItem = arrow_item;
         break;
+    }
     }
     addItem(currentlyDrawnItem);
 }
@@ -1117,8 +1147,11 @@ void SlideScene::stepInputEvent(const DrawTool *tool, const QPointF &pos, const 
         case EllipseGraphicsItem::Type:
             static_cast<EllipseGraphicsItem*>(currentlyDrawnItem)->setSecondPoint(pos);
             break;
-        case QGraphicsLineItem::Type:
-            // TODO
+        case LineGraphicsItem::Type:
+            static_cast<LineGraphicsItem*>(currentlyDrawnItem)->setSecondPoint(pos);
+            break;
+        case ArrowGraphicsItem::Type:
+            static_cast<ArrowGraphicsItem*>(currentlyDrawnItem)->setSecondPoint(pos);
             break;
     }
 }

@@ -38,14 +38,14 @@ void RectGraphicsItem::setSecondPoint(const QPointF &pos)
 BasicGraphicsPath *RectGraphicsItem::toPath() const
 {
     const QRectF &therect = rect();
-    int nx = therect.width() / 10 + 2,
-        ny = therect.height() / 10 + 2;
-    qreal xscale = therect.width() / nx,
-          yscale = therect.height() / ny,
-          left = therect.left(),
-          right = therect.right(),
-          top = therect.top(),
-          bottom = therect.bottom();
+    const int nx = therect.width() / 10 + 2,
+              ny = therect.height() / 10 + 2;
+    const qreal xscale = therect.width() / nx,
+                yscale = therect.height() / ny,
+                left = therect.left(),
+                right = therect.right(),
+                top = therect.top(),
+                bottom = therect.bottom();
     QVector<QPointF> coordinates(2*(nx+ny)+1);
     for (int i=0; i<nx; ++i)
         coordinates[i] = {left + xscale*i, top};

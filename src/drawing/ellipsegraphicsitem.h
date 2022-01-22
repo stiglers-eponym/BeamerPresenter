@@ -21,7 +21,7 @@ public:
     /// QGraphicsItem type for this subclass
     enum {Type = UserType + 7};
 
-    /// Constructor for initializing QGraphicsRectItem
+    /// Constructor for initializing QGraphicsEllipseItem
     /// @param pos origin of the rectangle. This coordinate is always fixed.
     EllipseGraphicsItem(const DrawTool &tool, const QPointF &pos, QGraphicsItem *parent = NULL);
 
@@ -38,6 +38,13 @@ public:
 
     /// Convert to a BasicGraphicsPath for simpler erasing.
     BasicGraphicsPath *toPath() const;
+
+    /// Paint line to painter.
+    virtual void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget = NULL) override
+    {
+        painter->setCompositionMode(tool.compositionMode());
+        QGraphicsEllipseItem::paint(painter, option, widget);
+    }
 };
 
 #endif // ELLIPSEGRAPHICSITEM_H

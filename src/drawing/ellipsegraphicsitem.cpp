@@ -39,12 +39,12 @@ void EllipseGraphicsItem::setSecondPoint(const QPointF &pos)
 BasicGraphicsPath *EllipseGraphicsItem::toPath() const
 {
     const QRectF &therect = rect();
-    int segments = (therect.width() + therect.height()) / 3 + 10;
-    qreal rx = therect.width() / 2,
-          ry = therect.height() / 2,
-          phasestep = 2*M_PI / segments,
-          cx = therect.center().x(),
-          cy = therect.center().y();
+    const int segments = (therect.width() + therect.height()) / 3 + 10;
+    const qreal rx = therect.width() / 2,
+                ry = therect.height() / 2,
+                phasestep = 2*M_PI / segments,
+                cx = therect.center().x(),
+                cy = therect.center().y();
     QVector<QPointF> coordinates(segments+1);
     for (int i=0; i<segments; ++i)
         coordinates[i] = {cx + rx*std::sin(phasestep*i), cy + ry*std::cos(phasestep*i)};
