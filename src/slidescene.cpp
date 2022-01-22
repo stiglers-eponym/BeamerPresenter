@@ -55,11 +55,29 @@ void SlideScene::stopDrawing()
     debug_msg(DebugDrawing, "Stop drawing" << page << page_part);
     if (currentlyDrawnItem)
     {
-        currentlyDrawnItem->show();
-        emit sendNewPath(page | page_part, currentlyDrawnItem);
-        invalidate(currentlyDrawnItem->sceneBoundingRect(), QGraphicsScene::ItemLayer);
+        switch (currentlyDrawnItem->type())
+        {
+        case BasicGraphicsPath::Type:
+        case FullGraphicsPath::Type:
+            currentlyDrawnItem->show();
+            emit sendNewPath(page | page_part, currentlyDrawnItem);
+            invalidate(currentlyDrawnItem->sceneBoundingRect(), QGraphicsScene::ItemLayer);
+            break;
+        case RectGraphicsItem::Type:
+        {
+            BasicGraphicsPath *path = static_cast<RectGraphicsItem*>(currentlyDrawnItem)->toPath();
+            removeItem(currentlyDrawnItem);
+            delete currentlyDrawnItem;
+            addItem(path);
+            path->show();
+            emit sendNewPath(page | page_part, path);
+            break;
+        }
+        default:
+            break;
+        }
+        currentlyDrawnItem = NULL;
     }
-    currentlyDrawnItem = NULL;
     if (currentItemCollection)
     {
         removeItem(currentItemCollection);
@@ -1015,7 +1033,7 @@ void SlideScene::startInputEvent(const DrawTool *tool, const QPointF &pos, const
         break;
     case DrawTool::Rect:
     {
-        RectGraphicsItem *rect_item = new RectGraphicsItem(pos);
+        RectGraphicsItem *rect_item = new RectGraphicsItem(*tool, pos);
         rect_item->setPen(tool->pen());
         rect_item->setBrush(tool->brush());
         rect_item->show();

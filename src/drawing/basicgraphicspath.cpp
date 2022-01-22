@@ -1,6 +1,7 @@
 #include <QPainter>
 #include "src/drawing/basicgraphicspath.h"
 #include "src/drawing/drawtool.h"
+#include "src/drawing/rectgraphicsitem.h"
 
 #ifdef QT_DEBUG
 #include "src/preferences.h"
@@ -16,6 +17,16 @@ BasicGraphicsPath::BasicGraphicsPath(const DrawTool &tool, const QPointF &pos) n
     right = pos.x() + _tool.width();
     // Add first data point.
     data.append(pos);
+}
+
+BasicGraphicsPath::BasicGraphicsPath(const DrawTool &tool, const QVector<QPointF> &coordinates, const QRectF &bounding_rect) noexcept :
+    AbstractGraphicsPath(tool),
+    data(coordinates)
+{
+    top = bounding_rect.top();
+    bottom = bounding_rect.bottom();
+    left = bounding_rect.left();
+    right = bounding_rect.right();
 }
 
 BasicGraphicsPath::BasicGraphicsPath(const BasicGraphicsPath * const other, int first, int last) :

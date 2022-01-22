@@ -4,6 +4,7 @@
 #include "src/drawing/abstractgraphicspath.h"
 
 class QPainter;
+class RectGraphicsItem;
 
 /**
  * @brief Fixed width graphics path.
@@ -24,6 +25,12 @@ public:
     /// @param tool draw tool for stroking path
     /// @param pos first node (coordinate) in this path
     BasicGraphicsPath(const DrawTool &tool, const QPointF &pos) noexcept;
+
+    /// Construct path from coordinate vector and given bounding rect.
+    /// @param tool draw tool for stroking path
+    /// @param coordinates vector
+    /// @param bounding_rect bounding rectangle
+    BasicGraphicsPath(const DrawTool &tool, const QVector<QPointF> &coordinates, const QRectF &bounding_rect) noexcept;
 
     /// Construct path from coordinate string.
     /// @param tool draw tool for stroking path

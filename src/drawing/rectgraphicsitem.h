@@ -2,6 +2,9 @@
 #define RECTGRAPHICSITEM_H
 
 #include <QGraphicsRectItem>
+#include "src/drawing/basicgraphicspath.h"
+
+class BasicGraphicsPath;
 
 /**
  * @brief RectGraphicsItem: QGraphicsRectItem adjusted for interactive drawing
@@ -17,6 +20,7 @@ class RectGraphicsItem : public QGraphicsRectItem
         BottomLeft = 0x2,
         BottomRight = 0x3,
     };
+    DrawTool tool;
     /// Defines which corner of the rectangle is kept fixed.
     quint8 origin = TopLeft;
 
@@ -26,7 +30,7 @@ public:
 
     /// Constructor for initializing QGraphicsRectItem
     /// @param pos origin of the rectangle. This coordinate is always fixed.
-    RectGraphicsItem(const QPointF &pos, QGraphicsItem *parent = NULL) : QGraphicsRectItem(pos.x(), pos.y(), 0, 0, parent) {}
+    RectGraphicsItem(const DrawTool &tool, const QPointF &pos, QGraphicsItem *parent = NULL);
 
     /// Trivial destructor.
     ~RectGraphicsItem() {}
@@ -37,30 +41,10 @@ public:
 
     /// Change the flexible coordinate of the rectangle.
     /// Make sure that the underlying rect is always valid.
-    void setSecondPoint(const QPointF &pos)
-    {
-        QRectF newrect = rect();
-        switch (origin)
-        {
-        case TopLeft:
-            newrect.setBottomRight(pos);
-            break;
-        case TopRight:
-            newrect.setBottomLeft(pos);
-            break;
-        case BottomLeft:
-            newrect.setTopRight(pos);
-            break;
-        case BottomRight:
-            newrect.setTopLeft(pos);
-            break;
-        }
-        if (newrect.width() < 0)
-            origin ^= 0x1;
-        if (newrect.height() < 0)
-            origin ^= 0x2;
-        setRect(newrect.normalized());
-    }
+    void setSecondPoint(const QPointF &pos);
+
+    /// Convert to a BasicGraphicsPath for simpler erasing.
+    BasicGraphicsPath *toPath() const;
 };
 
 #endif // RECTGRAPHICSITEM_H
