@@ -178,7 +178,7 @@ mandatory: pen, fixed width pen, highlighter, eraser, pointer, magnifier, torch,
 optional, use the tool for the given devices leaving other devices unchanged. Either a single device or a list (JSON array) of device names is allowed. Available device names are: left button (equivalent: mouse), right button, middle button, no button (only mouse cursor moves), touch, tablet pen, tablet (may include table input which is not recognized as pen), tablet eraser, tablet hover (tablet event with zero pressure), tablet all (any tablet input device), all (devices which are commonly used like left mouse button), all+ (devices except right mouse button, middle mouse button, tablet eraser), all++ (really all devices).
 .TP
 .B color
-available for most tools: color name known to Qt or #RRGGBB or #AARRGGBB
+color name known to Qt or #RRGGBB or #AARRGGBB
 .TP
 .B width
 only draw tools (pen, highlighter, fixed width pen): stroke width (positive number).
@@ -186,8 +186,14 @@ only draw tools (pen, highlighter, fixed width pen): stroke width (positive numb
 .B size
 only pointing tools (pointer, torch, eraser): radius of tool (positive number).
 .TP
-.B scale
+.B fill
+only draw tools (pen, highlighter, fixed width pen): color to fill the path. Leave empty if paths should not be filled.
+.TP
+.BR scale " = 2"
 only magnifier: magnification factor (number between 0.1 and 5).
+.TP
+.BR linewidth " = 0"
+only eraser: draw a circle of given line width around the eraser (number). The circle is only drawn on the currently active widget.
 .TP
 .B font
 only text tool: anything that Qt can interpret as font name.

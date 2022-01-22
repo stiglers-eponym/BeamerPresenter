@@ -12,7 +12,7 @@
 #include <QVBoxLayout>
 #include <QGroupBox>
 
-DrawToolDetails::DrawToolDetails(QWidget *parent, const DrawTool *oldtool) :
+DrawToolDetails::DrawToolDetails(Tool::BasicTool basic_tool, QWidget *parent, const DrawTool *oldtool) :
     QWidget(parent),
     width_box(new QDoubleSpinBox(this)),
     brush_color_button(new QPushButton(this)),
@@ -20,9 +20,16 @@ DrawToolDetails::DrawToolDetails(QWidget *parent, const DrawTool *oldtool) :
 {
     QFormLayout *layout = new QFormLayout(this);
     layout->addRow(tr("stroke width (in pt)"), width_box);
+    if (oldtool && oldtool->tool() == basic_tool)
+        width_box->setValue(oldtool->width());
+    else
+        width_box->setValue(default_widths.value(basic_tool, 0.));
     if (oldtool) {
         QPalette palette = brush_color_button->palette();
-        palette.setBrush(QPalette::Button, oldtool->brush());
+        if (oldtool->brush().style() == Qt::NoBrush)
+            palette.setColor(QPalette::Button, oldtool->color());
+        else
+            palette.setBrush(QPalette::Button, oldtool->brush());
         brush_color_button->setPalette(palette);
         brush_color_button->setText(palette.color(QPalette::Button).name());
         fill_checkbox->setCheckState(oldtool->brush().style() == Qt::NoBrush ? Qt::Unchecked : Qt::Checked);
@@ -42,10 +49,8 @@ void DrawToolDetails::setBrushColor()
     if (!color.isValid())
         return;
     QBrush brush(color);
-    if (fill_checkbox->isChecked())
-        brush.setStyle(Qt::SolidPattern);
-    else
-        brush.setStyle(Qt::NoBrush);
+    fill_checkbox->setCheckState(Qt::Checked);
+    brush.setStyle(Qt::SolidPattern);
     button_palette.setColor(QPalette::Button, color);
     brush_color_button->setPalette(button_palette);
     brush_color_button->setText(color.name());
@@ -58,6 +63,12 @@ QBrush DrawToolDetails::brush() const
         brush.setStyle(Qt::NoBrush);
     return brush;
 }
+
+const QMap<Tool::BasicTool, qreal> DrawToolDetails::default_widths = {
+        {Tool::Pen, 2.},
+        {Tool::FixedWidthPen, 2.},
+        {Tool::Highlighter, 10.},
+    };
 
 const QMap<Tool::BasicTool, qreal> PointingToolDetails::default_sizes = {
         {Tool::Pointer, 8.},
@@ -79,6 +90,8 @@ PointingToolDetails::PointingToolDetails(Tool::BasicTool basic_tool, QWidget *pa
     if (basic_tool == Tool::Magnifier)
     {
         scale_box = new QDoubleSpinBox(this);
+        scale_box->setMinimum(0.1);
+        scale_box->setMaximum(5.);
         layout->addRow(tr("Magnification scale"), scale_box);
         if (oldtool && oldtool->tool() == Tool::Magnifier)
         scale_box->setValue((oldtool && oldtool->tool() == Tool::Magnifier) ? oldtool->scale() : 2.);
@@ -86,6 +99,8 @@ PointingToolDetails::PointingToolDetails(Tool::BasicTool basic_tool, QWidget *pa
     else if (basic_tool == Tool::Eraser)
     {
         scale_box = new QDoubleSpinBox(this);
+        scale_box->setMinimum(0.);
+        scale_box->setMaximum(25.);
         layout->addRow(tr("Eraser border width"), scale_box);
         scale_box->setValue((oldtool && oldtool->tool() == Tool::Eraser) ? oldtool->scale() : 0.5);
     }
@@ -152,7 +167,7 @@ ToolDialog::ToolDialog(QWidget *parent) :
     // Exit
     QPushButton *exit_button = new QPushButton(tr("return"), this);
     connect(exit_button, &QPushButton::clicked, this, &ToolDialog::accept);
-    layout->addWidget(exit_button);
+    layout->insertRow(4, exit_button);
 
     setLayout(layout);
 }
@@ -169,7 +184,7 @@ void ToolDialog::adaptToBasicTool(const Tool::BasicTool basic_tool)
     case Tool::Pen:
     case Tool::Highlighter:
     case Tool::FixedWidthPen:
-        tool_specific = new DrawToolDetails(this);
+        tool_specific = new DrawToolDetails(basic_tool, this);
         break;
     case Tool::Torch:
     case Tool::Pointer:
@@ -181,7 +196,7 @@ void ToolDialog::adaptToBasicTool(const Tool::BasicTool basic_tool)
         break;
     }
     if (tool_specific)
-        layout()->addWidget(tool_specific);
+        static_cast<QFormLayout*>(layout())->insertRow(3, tool_specific);
 }
 
 Tool *ToolDialog::selectTool(const Tool *oldtool)
@@ -221,7 +236,7 @@ void ToolDialog::setDefault(const Tool *tool)
     case Tool::FixedWidthPen:
     {
         const DrawTool *draw_tool = static_cast<const DrawTool*>(tool);
-        tool_specific = new DrawToolDetails(this, draw_tool);
+        tool_specific = new DrawToolDetails(tool->tool(), this, draw_tool);
         color = draw_tool->color();
         break;
     }
@@ -239,7 +254,7 @@ void ToolDialog::setDefault(const Tool *tool)
         break;
     }
     if (tool_specific)
-        layout()->addWidget(tool_specific);
+        static_cast<QFormLayout*>(layout())->insertRow(3, tool_specific);
 
     color_button->setText(color.name());
     button_palette.setColor(QPalette::Button, color);

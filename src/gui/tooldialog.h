@@ -20,12 +20,13 @@ class DrawToolDetails : public QWidget
 {
     Q_OBJECT
 
+    static const QMap<Tool::BasicTool, qreal> default_widths;
     QDoubleSpinBox *width_box;
     QPushButton *brush_color_button;
     QCheckBox *fill_checkbox;
 
 public:
-    DrawToolDetails(QWidget *parent = NULL, const DrawTool *oldtool = NULL);
+    DrawToolDetails(Tool::BasicTool basic_tool, QWidget *parent = NULL, const DrawTool *oldtool = NULL);
     ~DrawToolDetails() {}
     QBrush brush() const;
     qreal width() const {return width_box->value();}
@@ -40,9 +41,9 @@ class PointingToolDetails : public QWidget
 {
     Q_OBJECT
 
+    static const QMap<Tool::BasicTool, qreal> default_sizes;
     QDoubleSpinBox *radius_box;
     QDoubleSpinBox *scale_box = NULL;
-    static const QMap<Tool::BasicTool, qreal> default_sizes;
 
 public:
     PointingToolDetails(Tool::BasicTool basic_tool, QWidget *parent = NULL, const PointingTool *oldtool = NULL);

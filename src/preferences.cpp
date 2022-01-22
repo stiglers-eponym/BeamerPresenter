@@ -123,9 +123,12 @@ void toolToJson(const Tool *tool, QJsonObject &obj)
     obj.insert("device", tool->device());
     if (tool->tool() & Tool::AnyDrawTool)
     {
-        obj.insert("width", static_cast<const DrawTool*>(tool)->width());
-        obj.insert("color", static_cast<const DrawTool*>(tool)->color().name());
-        obj.insert("style", string_to_pen_style.key(static_cast<const DrawTool*>(tool)->pen().style()));
+        const DrawTool *drawtool = static_cast<const DrawTool*>(tool);
+        obj.insert("width", drawtool->width());
+        obj.insert("color", drawtool->color().name());
+        if (drawtool->brush().style() != Qt::NoBrush)
+            obj.insert("fill", drawtool->brush().color().name());
+        obj.insert("style", string_to_pen_style.key(drawtool->pen().style()));
     }
     else if (tool->tool() & Tool::AnyPointingTool)
     {

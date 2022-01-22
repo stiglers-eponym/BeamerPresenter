@@ -18,6 +18,12 @@ flatpak install beamerpresenter.flatpak
 ```
 The build process for these packages is explained [here](https://github.com/stiglers-eponym/BeamerPresenter/tree/main/packaging).
 
+There exists also a package for Nix (thanks to the maintainter of that one!) which can be installed with
+```sh
+nix-env -iA nixos.beamerpresenter    # on NixOS
+nix-env -iA nixpkgs.beamerpresenter  # on non-NixOS
+```
+
 
 ## Manual installation
 Building is tested in Arch Linux, Manjaro, xubuntu 20.04, and xubuntu 21.10.

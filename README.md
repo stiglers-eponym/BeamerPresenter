@@ -71,6 +71,12 @@ flatpak install org.kde.Platform/x86_64/5.15-21.08 # can be skipped if already i
 flatpak install beamerpresenter.flatpak
 ```
 
+There exists also a package for Nix (thanks to the maintainter of that one!) which can be installed with
+```sh
+nix-env -iA nixos.beamerpresenter    # on NixOS
+nix-env -iA nixpkgs.beamerpresenter  # on non-NixOS
+```
+
 
 ## Configuration
 There are two different aspects of the configuration:

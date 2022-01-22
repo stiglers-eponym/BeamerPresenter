@@ -14,24 +14,11 @@
  */
 class FullGraphicsPath : public AbstractGraphicsPath
 {
-public:
-    /// Coordinates and pen pressure representing node of FullGraphicsPath.
-    struct PointPressure
-    {
-        /// x coordinate in points
-        qreal x;
-        /// y coordinate in points
-        qreal y;
-        /// stroke width in points
-        float pressure;
-        /// QPointF representation of coordinates
-        QPointF point() const {return {x,y};}
-    };
-
-
 private:
-    /// Vector of nodes (coordinates and pressure).
-    QVector<PointPressure> data;
+    /// Vector of coordinates
+    QVector<QPointF> coordinates;
+    /// Vector of pressures (for each stroke segment)
+    QVector<float> pressures;
 
 public:
     /// Custom type of QGraphicsItem.
@@ -63,13 +50,13 @@ public:
     {return Type;}
 
     int size() const noexcept override
-    {return data.size();}
+    {return coordinates.size();}
 
     const QPointF lastPoint() const noexcept override
-    {return data.isEmpty() ? QPointF() : data.last().point();}
+    {return coordinates.isEmpty() ? QPointF() : coordinates.last();}
 
     const QPointF firstPoint() const noexcept override
-    {return data.isEmpty() ? QPointF() : data.first().point();}
+    {return coordinates.isEmpty() ? QPointF() : coordinates.first();}
 
     /// Paint this on given painter. Options and widget are currently
     /// discarded.

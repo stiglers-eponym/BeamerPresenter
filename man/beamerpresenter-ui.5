@@ -293,7 +293,7 @@ Options in the dictionary for tools (all lengths are given in points (1/72 inch)
 mandatory: pen, fixed width pen, highlighter, eraser, pointer, magnifier, torch, text (experimental!) or none
 .TP
 .B color
-available for most tools: color name known to Qt or #RRGGBB or #AARRGGBB
+color name known to Qt or #RRGGBB or #AARRGGBB
 .TP
 .B width
 only draw tools (pen, highlighter, fixed width pen): stroke width (positive number).
@@ -301,7 +301,10 @@ only draw tools (pen, highlighter, fixed width pen): stroke width (positive numb
 .B size
 only pointing tools (eraser, pointer, torch, highlighter): radius of tool (positive number).
 .TP
-.B scale " = 2"
+.B fill
+only draw tools (pen, highlighter, fixed width pen): color to fill the path. Leave empty if paths should not be filled.
+.TP
+.BR scale " = 2"
 only magnifier: magnification factor (number between 0.1 and 5).
 .TP
 .BR linewidth " = 0"

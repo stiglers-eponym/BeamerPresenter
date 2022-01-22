@@ -1,7 +1,10 @@
-#include "src/drawing/fullgraphicspath.h"
-#include "src/preferences.h"
 #include <QPainter>
 #include <QStyleOptionGraphicsItem>
+#include "src/drawing/fullgraphicspath.h"
+
+#ifdef QT_DEBUG
+#include "src/preferences.h"
+#endif
 
 FullGraphicsPath::FullGraphicsPath(const DrawTool &tool, const QPointF &pos, const float pressure) :
     AbstractGraphicsPath(tool)
@@ -12,7 +15,8 @@ FullGraphicsPath::FullGraphicsPath(const DrawTool &tool, const QPointF &pos, con
     left = pos.x() - _tool.width();
     right = pos.x() + _tool.width();
     // Add first data point.
-    data.append({pos.x(), pos.y(), _tool.width()*pressure});
+    coordinates.append({pos.x(), pos.y()});
+    pressures.append(_tool.width()*pressure);
 }
 
 FullGraphicsPath::FullGraphicsPath(const FullGraphicsPath * const other, int first, int last) :
@@ -28,24 +32,25 @@ FullGraphicsPath::FullGraphicsPath(const FullGraphicsPath * const other, int fir
         // This should never happen.
         return;
     // Initialize data with the correct length.
-    data = QVector<PointPressure>(length);
+    coordinates = QVector<QPointF>(length);
+    pressures = QVector<float>(length);
     // Initialize bounding rect.
-    top = other->data[first].y;
+    top = other->coordinates[first].y();
     bottom = top;
-    left = other->data[first].x;
+    left = other->coordinates[first].x();
     right = left;
     // Copy data points from other and update bounding rect.
     for (int i=0; i<length; i++)
     {
-        data[i] = other->data[i+first];
-        if ( data[i].x < left )
-            left = data[i].x;
-        else if ( data[i].x > right )
-            right = data[i].x;
-        if ( data[i].y < top )
-            top = data[i].y;
-        else if ( data[i].y > bottom )
-            bottom = data[i].y;
+        coordinates[i] = other->coordinates[i+first];
+        if ( coordinates[i].x() < left )
+            left = coordinates[i].x();
+        else if ( coordinates[i].x() > right )
+            right = coordinates[i].x();
+        if ( coordinates[i].y() < top )
+            top = coordinates[i].y();
+        else if ( coordinates[i].y() > bottom )
+            bottom = coordinates[i].y();
     }
     // Add finite stroke width to bounding rect.
     left -= _tool.width();
@@ -54,21 +59,24 @@ FullGraphicsPath::FullGraphicsPath(const FullGraphicsPath * const other, int fir
     bottom += _tool.width();
 }
 
-FullGraphicsPath::FullGraphicsPath(const DrawTool &tool, const QString &coordinates, const QString &weights) :
+FullGraphicsPath::FullGraphicsPath(const DrawTool &tool, const QString &coordinate_input, const QString &weights) :
     AbstractGraphicsPath(tool)
 {
-    QStringList coordinate_list = coordinates.split(' ');
+    QStringList coordinate_list = coordinate_input.split(' ');
     QStringList weight_list = weights.split(' ');
-    data = QVector<PointPressure>(coordinate_list.length()/2);
+
+    // Initialize vectors with the correct length.
+    coordinates = QVector<QPointF>(coordinate_list.length()/2);
+    pressures = QVector<float>(coordinate_list.length()/2);
     qreal x, y;
     float w, max_weight;
     x = coordinate_list.takeFirst().toDouble();
     y = coordinate_list.takeFirst().toDouble();
     w = weight_list.takeFirst().toFloat();
     max_weight = w;
-    data[0] = {x, y, w};
+    coordinates[0] = {x, y};
+    pressures[0] = w;
 
-    // Initialize data with the correct length.
     // Initialize bounding rect.
     top = y;
     bottom = y;
@@ -86,7 +94,8 @@ FullGraphicsPath::FullGraphicsPath(const DrawTool &tool, const QString &coordina
             if (w > max_weight)
                 max_weight = w;
         }
-        data[i++] = {x, y, w};
+        coordinates[i] = {x, y};
+        pressures[i++] = w;
         if ( x < left )
             left = x;
         else if ( x > right )
@@ -108,16 +117,22 @@ FullGraphicsPath::FullGraphicsPath(const DrawTool &tool, const QString &coordina
 
 void FullGraphicsPath::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
 {
-    // TODO: FullGraphicsPath does not support filling.
-    if (data.isEmpty())
+    if (coordinates.isEmpty())
         return;
-    QPen pen = _tool.pen();
-    auto it = data.cbegin();
-    while (++it != data.cend())
+    if (_tool.brush().style() != Qt::NoBrush)
     {
-        pen.setWidthF(it->pressure);
+        painter->setPen(Qt::NoPen);
+        painter->setBrush(_tool.brush());
+        painter->drawPolygon(coordinates.constData(), coordinates.size());
+    }
+    QPen pen = _tool.pen();
+    auto cit = coordinates.cbegin();
+    auto pit = pressures.cbegin();
+    while (++cit != coordinates.cend())
+    {
+        pen.setWidthF(*++pit);
         painter->setPen(pen);
-        painter->drawLine((it-1)->point(), it->point());
+        painter->drawLine(*(cit-1), *cit);
     }
 #ifdef QT_DEBUG
     // Show bounding box of stroke in verbose debugging mode.
@@ -131,7 +146,8 @@ void FullGraphicsPath::paint(QPainter *painter, const QStyleOptionGraphicsItem *
 
 void FullGraphicsPath::addPoint(const QPointF &point, const float pressure)
 {
-    data.append({point.x(), point.y(), _tool.width()*pressure});
+    coordinates.append({point.x(), point.y()});
+    pressures.append(_tool.width()*pressure);
     bool change = false;
     if ( point.x() < left + _tool.width() )
     {
@@ -167,9 +183,9 @@ QList<AbstractGraphicsPath*> FullGraphicsPath::splitErase(const QPointF &pos, co
     QList<AbstractGraphicsPath*> list;
     const qreal sizesq = size*size;
     int first = 0, last = 0;
-    while (last < data.length())
+    while (last < coordinates.length())
     {
-        const QPointF diff = data[last++].point() - pos;
+        const QPointF diff = coordinates[last++] - pos;
         if (QPointF::dotProduct(diff, diff) < sizesq)
         {
             if (last > first + 2)
@@ -188,9 +204,9 @@ QList<AbstractGraphicsPath*> FullGraphicsPath::splitErase(const QPointF &pos, co
 void FullGraphicsPath::changeWidth(const float newwidth) noexcept
 {
     const float scale = newwidth / _tool.width();
-    auto it = data.begin();
-    while (++it != data.cend())
-        it->pressure *= scale;
+    auto it = pressures.begin();
+    while (++it != pressures.cend())
+        *it *= scale;
 }
 
 void FullGraphicsPath::changeTool(const DrawTool &newtool) noexcept
@@ -210,11 +226,11 @@ void FullGraphicsPath::changeTool(const DrawTool &newtool) noexcept
 const QString FullGraphicsPath::stringCoordinates() const noexcept
 {
     QString str;
-    for (const auto point : data)
+    for (const auto point : coordinates)
     {
-        str += QString::number(point.x);
+        str += QString::number(point.x());
         str += ' ';
-        str += QString::number(point.y);
+        str += QString::number(point.y());
         str += ' ';
     }
     str.chop(1);
@@ -224,9 +240,9 @@ const QString FullGraphicsPath::stringCoordinates() const noexcept
 const QString FullGraphicsPath::stringWidth() const noexcept
 {
     QString str;
-    for (const auto point : data)
+    for (const auto pr : pressures)
     {
-        str += QString::number(point.pressure);
+        str += QString::number(pr);
         str += ' ';
     }
     str.chop(1);

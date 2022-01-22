@@ -96,6 +96,7 @@ The configuration consists of an ordinary config file (beamerpresenter.conf(5)) 
 .
 BeamerPresenter can save drawings along with notes (from notes widget) and other file-specific settings to a gzipped xml file (.bpr). The pdf file is not included in this file.
 The file type aims for compatibility with Xournal++ in saving and loading drawings. BeamerPresenter can read Xournal(++) files and Xournal++ can open BeamerPresenter files. If this does not work, please open an issue on https://github.com/stiglers-eponym/BeamerPresenter.
+The compatibility is limited for filled paths since Xournal++ (to my knowledge) does not support paths filled with an arbitary color (independent of the color of the path).
 When opening a file, it does not need to be gzipped. However, when saving to a file, it will always be gzipped.
 .
 .

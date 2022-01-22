@@ -1,6 +1,10 @@
+#include <QPainter>
 #include "src/drawing/basicgraphicspath.h"
 #include "src/drawing/drawtool.h"
-#include <QPainter>
+
+#ifdef QT_DEBUG
+#include "src/preferences.h"
+#endif
 
 BasicGraphicsPath::BasicGraphicsPath(const DrawTool &tool, const QPointF &pos) noexcept :
     AbstractGraphicsPath(tool)
@@ -109,9 +113,14 @@ void BasicGraphicsPath::paint(QPainter *painter, const QStyleOptionGraphicsItem 
         painter->drawPolygon(data.constData(), data.size());
     }
 
-    // Only for debugging
-    //painter->setPen(QPen(QBrush(Qt::black), 0.5));
-    //painter->drawRect(boundingRect());
+#ifdef QT_DEBUG
+    // Show bounding box of stroke in verbose debugging mode.
+    if ((preferences()->debug_level & (DebugDrawing|DebugVerbose)) == (DebugDrawing|DebugVerbose))
+    {
+        painter->setPen(QPen(QBrush(Qt::black), 0.5));
+        painter->drawRect(boundingRect());
+    }
+#endif
 }
 
 void BasicGraphicsPath::addPoint(const QPointF &point)

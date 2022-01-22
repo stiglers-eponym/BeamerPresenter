@@ -457,20 +457,22 @@ void PathContainer::writeXml(QXmlStreamWriter &writer) const
             writer.writeAttribute("tool", xournal_tool_names.value(tool.tool()));
             writer.writeAttribute("color", color_to_rgba(tool.color()).toLower());
             writer.writeAttribute("width", item->stringWidth());
-            const QBrush &brush = item->getTool().brush();
-            if (brush.style() != Qt::NoBrush)
+            if (item->getTool().brush().style() != Qt::NoBrush)
             {
-                if (brush.color().toRgb() == item->getTool().pen().color().toRgb())
+                // Compare brush and stroke color.
+                const QColor &fill = item->getTool().brush().color(), &stroke = item->getTool().pen().color();
+                if (fill.red() == stroke.red() && fill.green() == stroke.green() && fill.blue() == stroke.blue())
                 {
-                    // Write color in format that is compatible with Xournal++
+                    // Write color in format that is compatible with Xournal++:
+                    // Save only alpha relative to stroke color (as 8 bit int).
                     // avoid division by zero by tiny offset
-                    float alpha = brush.color().alphaF() / (item->getTool().pen().color().alphaF() + 1e-6);
-                    writer.writeAttribute("fill", alpha >= 1 ? "255" : QString::number((int)alpha*255+0.5));
+                    float alpha = fill.alphaF() / (item->getTool().pen().color().alphaF() + 1e-6);
+                    writer.writeAttribute("fill", alpha >= 1 ? "255" : QString::number((int)(alpha*255+0.5)));
                 }
                 else
                 {
                     // Write color to "brushcolor" attribute, which will be ignored by Xournal++
-                    writer.writeAttribute("brushcolor", color_to_rgba(brush.color()).toLower());
+                    writer.writeAttribute("brushcolor", color_to_rgba(fill).toLower());
                 }
             }
             writer.writeCharacters(item->stringCoordinates());
