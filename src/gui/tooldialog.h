@@ -6,6 +6,7 @@
 #include <QDoubleSpinBox>
 #include <QPushButton>
 #include <QComboBox>
+#include "src/names.h"
 #include "src/drawing/tool.h"
 #include "src/drawing/drawtool.h"
 
@@ -30,6 +31,10 @@ class DrawToolDetails : public QWidget
     QCheckBox *fill_checkbox;
     /// Select shape
     QComboBox *shape_box;
+    /// Select pen style
+    QComboBox *pen_style_box;
+    /// Select brush style
+    QComboBox *brush_style_box;
 
 public:
     /// Constructor: create layout, use default values from old tool.
@@ -41,6 +46,9 @@ public:
     /// @return width for stroking path
     qreal width() const
     {return width_box->value();}
+    /// @return pen style for stroking path
+    Qt::PenStyle penStyle() const
+    {return string_to_pen_style.value(pen_style_box->currentText(), Qt::SolidLine);}
     /// @return shape for draw tool
     DrawTool::Shape shape() const
     {return string_to_shape.value(shape_box->currentText(), DrawTool::Freehand);}
@@ -50,6 +58,8 @@ public slots:
     void setBrushColor();
     /// Shape changed by shape_box. Disable/enable brush.
     void changeShape(const QString &newshape);
+    /// Set brush style, apply it to brush color button.
+    void setBrushStyle(const QString &newstyle);
 };
 
 /**

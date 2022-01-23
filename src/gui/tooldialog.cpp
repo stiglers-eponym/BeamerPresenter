@@ -1,43 +1,27 @@
-#include "src/gui/tooldialog.h"
-#include "src/preferences.h"
-#include "src/drawing/drawtool.h"
-#include "src/drawing/texttool.h"
-#include "src/drawing/pointingtool.h"
 #include <QColorDialog>
 #include <QFontDialog>
 #include <QCheckBox>
 #include <QFormLayout>
 #include <QVBoxLayout>
 #include <QGroupBox>
+#include "src/gui/tooldialog.h"
+#include "src/preferences.h"
+#include "src/drawing/drawtool.h"
+#include "src/drawing/texttool.h"
+#include "src/drawing/pointingtool.h"
 
 DrawToolDetails::DrawToolDetails(Tool::BasicTool basic_tool, QWidget *parent, const DrawTool *oldtool) :
     QWidget(parent),
     width_box(new QDoubleSpinBox(this)),
     brush_color_button(new QPushButton(this)),
     fill_checkbox(new QCheckBox(this)),
-    shape_box(new QComboBox(this))
+    shape_box(new QComboBox(this)),
+    pen_style_box(new QComboBox(this)),
+    brush_style_box(new QComboBox(this))
 {
     QFormLayout *layout = new QFormLayout(this);
-    layout->addRow(tr("stroke width (in pt)"), width_box);
-    if (oldtool && oldtool->tool() == basic_tool)
-        width_box->setValue(oldtool->width());
-    else
-        width_box->setValue(default_widths.value(basic_tool, 0.));
-    if (oldtool) {
-        QPalette palette = brush_color_button->palette();
-        if (oldtool->brush().style() == Qt::NoBrush)
-            palette.setColor(QPalette::Button, oldtool->color());
-        else
-            palette.setBrush(QPalette::Button, oldtool->brush());
-        brush_color_button->setPalette(palette);
-        brush_color_button->setText(palette.color(QPalette::Button).name());
-        fill_checkbox->setCheckState(oldtool->brush().style() == Qt::NoBrush ? Qt::Unchecked : Qt::Checked);
-    }
-    else
-        brush_color_button->setText(tr("color"));
-    layout->addRow(tr("fill color"), brush_color_button);
-    layout->addRow(tr("fill"), fill_checkbox);
-    connect(brush_color_button, &QPushButton::clicked, this, &DrawToolDetails::setBrushColor);
+
+    // Shape selection
     for (auto it=string_to_shape.cbegin(); it!=string_to_shape.cend(); ++it)
         shape_box->addItem(it.key(), it.value());
     layout->addRow(tr("shape"), shape_box);
@@ -46,6 +30,53 @@ DrawToolDetails::DrawToolDetails(Tool::BasicTool basic_tool, QWidget *parent, co
     else
         shape_box->setCurrentText("freehand");
     connect(shape_box, &QComboBox::currentTextChanged, this, &DrawToolDetails::changeShape);
+
+    // Width selection
+    layout->addRow(tr("stroke width (in pt)"), width_box);
+    if (oldtool && oldtool->tool() == basic_tool)
+        width_box->setValue(oldtool->width());
+    else
+        width_box->setValue(default_widths.value(basic_tool, 0.));
+
+    // Pen style selection
+    for (auto it=string_to_pen_style.cbegin(); it!=string_to_pen_style.cend(); ++it)
+        pen_style_box->addItem(it.key(), (int)*it);
+    layout->addRow(tr("pen style"), pen_style_box);
+    if (oldtool)
+        pen_style_box->setCurrentText(string_to_pen_style.key(oldtool->pen().style()));
+    else
+        pen_style_box->setCurrentText("SolidLine");
+
+    // Fill checkbox
+    layout->addRow(tr("fill"), fill_checkbox);
+    fill_checkbox->setCheckState(oldtool && oldtool->brush().style() != Qt::NoBrush ? Qt::Checked : Qt::Unchecked);
+
+    // Brush color selection
+    if (oldtool) {
+        QPalette palette = brush_color_button->palette();
+        if (oldtool->brush().style() == Qt::NoBrush)
+            palette.setColor(QPalette::Button, oldtool->color());
+        else
+            palette.setBrush(QPalette::Button, oldtool->brush());
+        brush_color_button->setPalette(palette);
+        brush_color_button->setText(palette.color(QPalette::Button).name());
+    }
+    else
+        brush_color_button->setText(tr("select color"));
+    layout->addRow(tr("fill color"), brush_color_button);
+    connect(brush_color_button, &QPushButton::clicked, this, &DrawToolDetails::setBrushColor);
+
+    // Brush style selection
+    for (auto it=string_to_brush_style.cbegin(); it!=string_to_brush_style.cend(); ++it)
+        brush_style_box->addItem(it.key(), (int)*it);
+    layout->addRow(tr("brush style"), brush_style_box);
+    if (oldtool)
+        brush_style_box->setCurrentText(string_to_brush_style.key(oldtool->brush().style()));
+    else
+        brush_style_box->setCurrentText("SolidPattern");
+    connect(brush_style_box, &QComboBox::currentTextChanged, this, &DrawToolDetails::setBrushStyle);
+
+    changeShape(shape_box->currentText());
     setLayout(layout);
 }
 
@@ -55,12 +86,14 @@ void DrawToolDetails::setBrushColor()
     const QColor color = QColorDialog::getColor(button_palette.button().color(), this, tr("Fill color"), QColorDialog::ShowAlphaChannel);
     if (!color.isValid())
         return;
-    QBrush brush(color);
+    QBrush brush = button_palette.brush(QPalette::Button);
+    brush.setColor(color);
     fill_checkbox->setCheckState(Qt::Checked);
-    brush.setStyle(Qt::SolidPattern);
-    button_palette.setColor(QPalette::Button, color);
+    button_palette.setBrush(QPalette::Button, brush);
     brush_color_button->setPalette(button_palette);
     brush_color_button->setText(color.name());
+    if (brush_style_box->currentText() == "NoBrush")
+        brush_style_box->setCurrentText("SolidPattern");
 }
 
 QBrush DrawToolDetails::brush() const
@@ -75,9 +108,20 @@ void DrawToolDetails::changeShape(const QString &newshape)
 {
     const bool disable = newshape == "arrow" || newshape == "line";
     brush_color_button->setDisabled(disable);
+    brush_style_box->setDisabled(disable);
     if (disable)
         fill_checkbox->setChecked(false);
     fill_checkbox->setDisabled(disable);
+}
+
+void DrawToolDetails::setBrushStyle(const QString &newstyle)
+{
+    QPalette button_palette = brush_color_button->palette();
+    QBrush brush = button_palette.brush(QPalette::Button);
+    brush.setStyle(string_to_brush_style.value(newstyle, Qt::SolidPattern));
+    button_palette.setBrush(QPalette::Button, brush);
+    brush_color_button->setPalette(button_palette);
+    fill_checkbox->setCheckState(brush.style() == Qt::NoBrush ? Qt::Unchecked : Qt::Checked);
 }
 
 const QMap<Tool::BasicTool, qreal> DrawToolDetails::default_widths = {
@@ -304,7 +348,7 @@ Tool *ToolDialog::createTool() const
         return new DrawTool(
                     basic_tool,
                     device,
-                    QPen(color, details->width(), Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin),
+                    QPen(color, details->width(), details->penStyle(), Qt::RoundCap, Qt::RoundJoin),
                     details->brush(),
                     basic_tool == Tool::Highlighter ? QPainter::CompositionMode_Darken : QPainter::CompositionMode_SourceOver,
                     details->shape()

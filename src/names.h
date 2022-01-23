@@ -137,10 +137,31 @@ static const QMap<QString, QTabWidget::TabPosition> string_to_tab_widget_orienta
 
 static const QMap<QString, Qt::PenStyle> string_to_pen_style
 {
-    {"solid", Qt::SolidLine},
-    {"dashed", Qt::DashLine},
-    {"dotted", Qt::DotLine},
-    {"dash-dotted", Qt::DashDotLine},
+    {"NoPen", Qt::NoPen},
+    {"SolidLine", Qt::SolidLine},
+    {"DashLine", Qt::DashLine},
+    {"DotLine", Qt::DotLine},
+    {"DashDotLine", Qt::DashDotLine},
+    {"DashDotDotLine", Qt::DashDotDotLine},
+};
+
+static const QMap<QString, Qt::BrushStyle> string_to_brush_style
+{
+    {"NoBrush", Qt::NoBrush},
+    {"SolidPattern", Qt::SolidPattern},
+    {"Dense1Pattern", Qt::Dense1Pattern},
+    {"Dense2Pattern", Qt::Dense2Pattern},
+    {"Dense3Pattern", Qt::Dense3Pattern},
+    {"Dense4Pattern", Qt::Dense4Pattern},
+    {"Dense5Pattern", Qt::Dense5Pattern},
+    {"Dense6Pattern", Qt::Dense6Pattern},
+    {"Dense7Pattern", Qt::Dense7Pattern},
+    {"HorPattern", Qt::HorPattern},
+    {"VerPattern", Qt::VerPattern},
+    {"CrossPattern", Qt::CrossPattern},
+    {"BDiagPattern", Qt::BDiagPattern},
+    {"FDiagPattern", Qt::FDiagPattern},
+    {"DiagCrossPattern", Qt::DiagCrossPattern},
 };
 
 #endif // NAMES_H

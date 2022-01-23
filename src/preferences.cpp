@@ -18,12 +18,18 @@ Tool *createTool(const QJsonObject &obj, const int default_device)
         const float width = obj.value("width").toDouble(2.);
         if (width <= 0.)
             return NULL;
-        const Qt::PenStyle style = string_to_pen_style.value(obj.value("style").toString(), Qt::SolidLine);
-        const QColor brushcolor(obj.value("fill").toString());
+        const Qt::PenStyle pen_style = string_to_pen_style.value(obj.value("style").toString(), Qt::SolidLine);
+        const QColor brush_color(obj.value("fill").toString());
+        const Qt::BrushStyle brush_style = string_to_brush_style.value(obj.value("brush").toString(), brush_color.isValid() ? Qt::SolidPattern : Qt::NoBrush);
         const DrawTool::Shape shape = string_to_shape.value(obj.value("shape").toString(), DrawTool::Freehand);
-        const QBrush brush = (brushcolor.isValid()) ? QBrush(brushcolor) : QBrush();
-        debug_msg(DebugSettings, "creating pen" << color << width << brush);
-        tool = new DrawTool(base_tool, default_device, QPen(color, width, style, Qt::RoundCap, Qt::RoundJoin), brush, QPainter::CompositionMode_SourceOver, shape);
+        debug_msg(DebugSettings, "creating pen" << color << width);
+        tool = new DrawTool(
+                    base_tool,
+                    default_device,
+                    QPen(color, width, pen_style, Qt::RoundCap, Qt::RoundJoin),
+                    QBrush(brush_color, brush_style),
+                    QPainter::CompositionMode_SourceOver,
+                    shape);
         break;
     }
     case Tool::Highlighter:
@@ -34,10 +40,16 @@ Tool *createTool(const QJsonObject &obj, const int default_device)
             return NULL;
         const Qt::PenStyle style = string_to_pen_style.value(obj.value("style").toString(), Qt::SolidLine);
         const DrawTool::Shape shape = string_to_shape.value(obj.value("shape").toString(), DrawTool::Freehand);
-        const QColor brushcolor(obj.value("fill").toString());
-        const QBrush brush = (brushcolor.isValid()) ? QBrush(brushcolor) : QBrush();
-        debug_msg(DebugSettings, "creating highlighter" << color << width << brush);
-        tool = new DrawTool(Tool::Highlighter, default_device, QPen(color, width, style, Qt::RoundCap, Qt::RoundJoin), brush, QPainter::CompositionMode_Darken, shape);
+        const QColor brush_color(obj.value("fill").toString());
+        const Qt::BrushStyle brush_style = string_to_brush_style.value(obj.value("brush").toString(), brush_color.isValid() ? Qt::SolidPattern : Qt::NoBrush);
+        debug_msg(DebugSettings, "creating highlighter" << color << width);
+        tool = new DrawTool(
+                    Tool::Highlighter,
+                    default_device,
+                    QPen(color, width, style, Qt::RoundCap, Qt::RoundJoin),
+                    QBrush(brush_color, brush_style),
+                    QPainter::CompositionMode_Darken,
+                    shape);
         break;
     }
     case Tool::Eraser:
@@ -129,7 +141,11 @@ void toolToJson(const Tool *tool, QJsonObject &obj)
         obj.insert("width", drawtool->width());
         obj.insert("color", drawtool->color().name());
         if (drawtool->brush().style() != Qt::NoBrush)
+        {
             obj.insert("fill", drawtool->brush().color().name());
+            if (drawtool->brush().style() != Qt::SolidPattern)
+                obj.insert("brush", string_to_brush_style.key(drawtool->brush().style()));
+        }
         obj.insert("style", string_to_pen_style.key(drawtool->pen().style()));
         obj.insert("shape", string_to_shape.key(drawtool->shape(), "freehand"));
     }

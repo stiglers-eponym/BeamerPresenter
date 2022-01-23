@@ -115,6 +115,7 @@ public:
     {_device = device;}
 };
 
+
 /// convert string (from configuration files or saved file) to tool
 static const QMap<QString, Tool::BasicTool> string_to_tool
 {

@@ -189,8 +189,14 @@ only pointing tools (pointer, torch, eraser): radius of tool (positive number).
 .B fill
 only draw tools (pen, highlighter, fixed width pen): color to fill the path. Leave empty if paths should not be filled.
 .TP
-.B shape
-only draw tools (pen, highlighter, fixed width pen): Draw this shape instead of a freehand path. Allowed values are "freehand", "rectangle", "ellipse", "line", and "arrow".
+.BR style " = SolidLine"
+only draw tools: Pen style for stroking the path, see https://doc.qt.io/qt-6/qt.html#PenStyle-enum for valid names.
+.TP
+.BR brush " = SolidPattern"
+only draw tools: Filling style of the path, see https://doc.qt.io/qt-6/qt.html#BrushStyle-enum for valid names. Gradients are not allowed.
+.TP
+.BR shape " = freehand"
+only draw tools: Draw this shape instead of a freehand path. Allowed values are "freehand", "rectangle", "ellipse", "line", and "arrow".
 .TP
 .BR scale " = 2"
 only magnifier: magnification factor (number between 0.1 and 5).

@@ -41,7 +41,6 @@ set(DEFAULT_ICON_PATH
     CACHE STRING
     "Directory for storing icons used by the programm")
 GNUInstallDirs_get_absolute_install_dir(ABS_ICON_PATH DEFAULT_ICON_PATH DATAROOTDIR)
-set(ABS_ICON_PATH "${ABS_ICON_PATH}/")
 
 set(APPICON_PATH
     "${CMAKE_INSTALL_DATAROOTDIR}/icons/hicolor/scalable/apps"
