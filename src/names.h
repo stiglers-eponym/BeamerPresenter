@@ -137,12 +137,12 @@ static const QMap<QString, QTabWidget::TabPosition> string_to_tab_widget_orienta
 
 static const QMap<QString, Qt::PenStyle> string_to_pen_style
 {
-    {"NoPen", Qt::NoPen},
-    {"SolidLine", Qt::SolidLine},
-    {"DashLine", Qt::DashLine},
-    {"DotLine", Qt::DotLine},
-    {"DashDotLine", Qt::DashDotLine},
-    {"DashDotDotLine", Qt::DashDotDotLine},
+    {"nopen", Qt::NoPen},
+    {"solid", Qt::SolidLine},
+    {"dash", Qt::DashLine},
+    {"dot", Qt::DotLine},
+    {"dashdot", Qt::DashDotLine},
+    {"dashdotdot", Qt::DashDotDotLine},
 };
 
 static const QMap<QString, Qt::BrushStyle> string_to_brush_style

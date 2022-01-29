@@ -33,7 +33,6 @@ FullGraphicsPath::FullGraphicsPath(const FullGraphicsPath * const other, int fir
         return;
     // Initialize data with the correct length.
     coordinates = QVector<QPointF>(length);
-    pressures = QVector<float>(length);
     // Initialize bounding rect.
     top = other->coordinates[first].y();
     bottom = top;
@@ -52,6 +51,7 @@ FullGraphicsPath::FullGraphicsPath(const FullGraphicsPath * const other, int fir
         else if ( coordinates[i].y() > bottom )
             bottom = coordinates[i].y();
     }
+    pressures = QVector<float>(other->pressures.cbegin()+first, other->pressures.cbegin()+last);
     // Add finite stroke width to bounding rect.
     left -= _tool.width();
     right += _tool.width();
@@ -136,11 +136,28 @@ void FullGraphicsPath::paint(QPainter *painter, const QStyleOptionGraphicsItem *
     QPen pen = _tool.pen();
     auto cit = coordinates.cbegin();
     auto pit = pressures.cbegin();
-    while (++cit != coordinates.cend())
+    if (pen.style() == Qt::SolidLine)
     {
-        pen.setWidthF(*++pit);
-        painter->setPen(pen);
-        painter->drawLine(*(cit-1), *cit);
+        while (++cit != coordinates.cend())
+        {
+            pen.setWidthF(*++pit);
+            painter->setPen(pen);
+            painter->drawLine(*(cit-1), *cit);
+        }
+    }
+    else if (pen.style() != Qt::NoPen)
+    {
+        qreal len = 0;
+        QLineF line;
+        while (++cit != coordinates.cend())
+        {
+            pen.setWidthF(*++pit);
+            pen.setDashOffset(len);
+            painter->setPen(pen);
+            line = QLineF(*(cit-1), *cit);
+            painter->drawLine(line);
+            len += line.length();
+        }
     }
 #ifdef QT_DEBUG
     // Show bounding box of stroke in verbose debugging mode.

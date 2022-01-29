@@ -45,7 +45,7 @@ DrawToolDetails::DrawToolDetails(Tool::BasicTool basic_tool, QWidget *parent, co
     if (oldtool)
         pen_style_box->setCurrentText(string_to_pen_style.key(oldtool->pen().style()));
     else
-        pen_style_box->setCurrentText("SolidLine");
+        pen_style_box->setCurrentText("solid");
 
     // Fill checkbox
     layout->addRow(tr("fill"), fill_checkbox);

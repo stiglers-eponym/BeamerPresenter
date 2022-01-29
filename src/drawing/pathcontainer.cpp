@@ -457,16 +457,18 @@ void PathContainer::writeXml(QXmlStreamWriter &writer) const
             writer.writeAttribute("tool", xournal_tool_names.value(tool.tool()));
             writer.writeAttribute("color", color_to_rgba(tool.color()).toLower());
             writer.writeAttribute("width", item->stringWidth());
-            if (item->getTool().brush().style() != Qt::NoBrush)
+            if (tool.pen().style() != Qt::SolidLine)
+                writer.writeAttribute("style", string_to_pen_style.key(tool.pen().style()));
+            if (tool.brush().style() != Qt::NoBrush)
             {
                 // Compare brush and stroke color.
-                const QColor &fill = item->getTool().brush().color(), &stroke = item->getTool().pen().color();
+                const QColor &fill = tool.brush().color(), &stroke = tool.pen().color();
                 if (fill.red() == stroke.red() && fill.green() == stroke.green() && fill.blue() == stroke.blue())
                 {
                     // Write color in format that is compatible with Xournal++:
                     // Save only alpha relative to stroke color (as 8 bit int).
                     // avoid division by zero by tiny offset
-                    float alpha = fill.alphaF() / (item->getTool().pen().color().alphaF() + 1e-6);
+                    float alpha = fill.alphaF() / (tool.pen().color().alphaF() + 1e-6);
                     writer.writeAttribute("fill", alpha >= 1 ? "255" : QString::number((int)(alpha*255+0.5)));
                 }
                 else
@@ -474,6 +476,8 @@ void PathContainer::writeXml(QXmlStreamWriter &writer) const
                     // Write color to "brushcolor" attribute, which will be ignored by Xournal++
                     writer.writeAttribute("brushcolor", color_to_rgba(fill).toLower());
                 }
+                if (tool.brush().style() != Qt::SolidPattern)
+                    writer.writeAttribute("brushstyle", string_to_brush_style.key(tool.brush().style()));
             }
             writer.writeCharacters(item->stringCoordinates());
             writer.writeEndElement();
