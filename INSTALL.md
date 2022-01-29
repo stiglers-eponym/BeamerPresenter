@@ -1,6 +1,15 @@
 # Installing BeamerPresenter
+There exist different flavors of BeamerPresenter:
+You can choose the PDF engine (Poppler or MuPDF) and the major Qt version (5 or 6), see [below](#choosing_mupdf_or_poppler).
+
 In Arch Linux and Manjaro you can install one of the AUR packages [beamerpresenter](https://aur.archlinux.org/packages/beamerpresenter) and [beamerpresenter-git](https://aur.archlinux.org/packages/beamerpresenter-git).
 Note that in these packages by default MuPDF is selected as PDF engine.
+
+There exists also a package for Nix (thanks to the maintainer of that one!) which can be installed with
+```sh
+nix-env -iA nixos.beamerpresenter    # on NixOS
+nix-env -iA nixpkgs.beamerpresenter  # on non-NixOS
+```
 
 The [releases](https://github.com/stiglers-eponym/BeamerPresenter/releases) come with packages for Arch/Manjaro, Ubuntu 20.04, Ubuntu 21.10 and flatpak.
 The simplest way to install BeamerPresenter (besides the AUR) is to directly install these packages.
@@ -18,14 +27,19 @@ flatpak install beamerpresenter.flatpak
 ```
 The build process for these packages is explained [here](https://github.com/stiglers-eponym/BeamerPresenter/tree/main/packaging).
 
-There exists also a package for Nix (thanks to the maintainter of that one!) which can be installed with
-```sh
-nix-env -iA nixos.beamerpresenter    # on NixOS
-nix-env -iA nixpkgs.beamerpresenter  # on non-NixOS
-```
+
+## Choosing MuPDF or Poppler
+When installing BeamerPresenter you need to choose either MuPDF or Poppler as PDF engine. Here is my personal opinion that might help you with the decision.
+
+* MuPDF produces a much larger package size (37MB instead of 1.3MB in Arch Linux).
+* MuPDF may have better performance.
+* My impression is that in most cases MuPDF produces slightly better-looking slides than Poppler. But this may depend on the presentation, the fonts, the resolution, ...
+* Enabling both PDF engines is not recommended, because it can lead to program crashes when using Poppler for some documents.
+* One special case of audio files linked from a PDF is currently only handled correctly when using Poppler.
+* Integrating MuPDF in BeamerPresenter requires much more code than Poppler, which might also lead to more bugs. But MuPDF is also tested more than Poppler.
 
 
-## Manual installation
+## General requirements
 Building is tested in Arch Linux, Manjaro, xubuntu 20.04, and xubuntu 21.10.
 Older versions of ubuntu are only compatible with [version 0.1](https://github.com/stiglers-eponym/BeamerPresenter/tree/0.1.x) of BeamerPresenter.
 
@@ -73,7 +87,9 @@ Optional, for showing videos:
 * `gst-libav`
 * `gst-plugins-good`
 
-### Build
+
+## Manual installation
+### Download
 Download the sources:
 ```sh
 wget https://github.com/stiglers-eponym/BeamerPresenter/archive/v0.2.2_beta2.tar.gz
@@ -87,6 +103,7 @@ git clone --depth 1 --single-branch https://github.com/stiglers-eponym/BeamerPre
 cd BeamerPresenter
 ```
 
+### Configure
 Now may you need to configure libraries and file paths in `CMakeLists.txt`. For Ubuntu and Arch the settings are tested, in other GNU+Linux systems you can try if it works, and other systems will probably require a manual configuration.
 Pull requests or issues with build instructions for other systems are welcome!
 
@@ -120,13 +137,7 @@ The most important options here are:
 * `-DCMAKE_INSTALL_SYSCONFDIR`: path for installation of package configuration.
 * `-DGIT_VERSION`: Include git commit count in the app version number.
 
-Some arguments for choosing MuPDF or Poppler:
-* MuPDF produces a much larger package size (37MB instead of 1.3MB in Arch).
-* MuPDF may have better performance.
-* My impression is that in most cases MuPDF produces slightly better-looking slides than Poppler. But this may depend on presentation, the fonts, the resolution ...
-* Enabling both PDF engines is possible but not recommended, because it can lead to program crashes when using Poppler for some documents.
-* One case of audio files linked from a PDF is currently only handled correctly when using Poppler.
-
+### Build and install
 After configuring with cmake you can build the project (hint: add ` -j 4` for compiling with 4 CPU cores)
 ```sh
 cmake --build build-dir

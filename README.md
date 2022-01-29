@@ -5,7 +5,7 @@ optionally shows slides from a dedicated notes document instead of the slides
 for the audience. Additional information on the control screen includes a
 clock, a timer for the presentation, and previews of the next slides.
 
-This software uses the Qt framework and the PDF engines MuPDF and/or poppler.
+This software uses the Qt framework and the PDF engines MuPDF or poppler.
 
 ## Features (selection)
 * modular user interface: adapt for your presentation style and technical equipment (number of monitors, extra information for the speaker, input devices, ...)
@@ -51,10 +51,18 @@ PDF documents can include videos, sounds, slide transitions and some primitive a
 
 
 ## Installation
-Manual installation is explained [here](https://github.com/stiglers-eponym/BeamerPresenter/blob/main/INSTALL.md) and packaging is explained [here](https://github.com/stiglers-eponym/BeamerPresenter/tree/main/packaging).
+There exist different flavors of BeamerPresenter:
+You can choose the PDF engine (Poppler or MuPDF) and the major Qt version (5 or 6).
+Some arguments for this choice and the manual installation are explained [here](https://github.com/stiglers-eponym/BeamerPresenter/blob/main/INSTALL.md).
 
 In Arch Linux and Manjaro you can install one of the AUR packages [beamerpresenter](https://aur.archlinux.org/packages/beamerpresenter) and [beamerpresenter-git](https://aur.archlinux.org/packages/beamerpresenter-git).
 Note that in these packages by default MuPDF is selected as PDF engine.
+
+There exists also a package for Nix (thanks to the maintainer of that one!) which can be installed with
+```sh
+nix-env -iA nixos.beamerpresenter    # on NixOS
+nix-env -iA nixpkgs.beamerpresenter  # on non-NixOS
+```
 
 The [releases](https://github.com/stiglers-eponym/BeamerPresenter/releases) come with packages for Arch/Manjaro, Ubuntu 20.04, Ubuntu 21.10 and flatpak.
 The simplest way to install BeamerPresenter (besides the AUR) is to directly install these packages.
@@ -70,12 +78,7 @@ sudo pacman -U beamerpresenter-poppler-qt5-0.2.2_beta2-1-x86_64.pkg.tar.zst
 flatpak install org.kde.Platform/x86_64/5.15-21.08 # can be skipped if already installed
 flatpak install beamerpresenter.flatpak
 ```
-
-There exists also a package for Nix (thanks to the maintainter of that one!) which can be installed with
-```sh
-nix-env -iA nixos.beamerpresenter    # on NixOS
-nix-env -iA nixpkgs.beamerpresenter  # on non-NixOS
-```
+The build process for these packages is explained [here](https://github.com/stiglers-eponym/BeamerPresenter/tree/main/packaging).
 
 
 ## Configuration
