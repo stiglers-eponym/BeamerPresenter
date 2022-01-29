@@ -33,6 +33,12 @@ FullGraphicsPath::FullGraphicsPath(const FullGraphicsPath * const other, int fir
         return;
     // Initialize data with the correct length.
     coordinates = QVector<QPointF>(length);
+#if (QT_VERSION >= QT_VERSION_CHECK(5,14,0))
+    pressures = QVector<float>(other->pressures.cbegin()+first, other->pressures.cbegin()+last);
+#else
+    // In Qt < 5.14 this vector is only created here and filled later:
+    pressures = QVector<float>(length);
+#endif
     // Initialize bounding rect.
     top = other->coordinates[first].y();
     bottom = top;
@@ -50,8 +56,12 @@ FullGraphicsPath::FullGraphicsPath(const FullGraphicsPath * const other, int fir
             top = coordinates[i].y();
         else if ( coordinates[i].y() > bottom )
             bottom = coordinates[i].y();
+#if (QT_VERSION < QT_VERSION_CHECK(5,14,0))
+        // In Qt >= 5.14 this vector has already been filled (directly copied).
+        pressures[i] = other->pressures[i+first];
+#endif
     }
-    pressures = QVector<float>(other->pressures.cbegin()+first, other->pressures.cbegin()+last);
+
     // Add finite stroke width to bounding rect.
     left -= _tool.width();
     right += _tool.width();
