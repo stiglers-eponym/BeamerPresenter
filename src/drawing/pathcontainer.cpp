@@ -498,7 +498,9 @@ AbstractGraphicsPath *loadPath(QXmlStreamReader &reader)
     QPen pen(
                 rgba_to_color(reader.attributes().value("color").toString()),
                 basic_tool == Tool::Pen ? 1. : width_str.toDouble(),
-                Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin
+                string_to_pen_style.value(reader.attributes().value("style").toString(), Qt::SolidLine),
+                Qt::RoundCap,
+                Qt::RoundJoin
                 );
     if (pen.widthF() <= 0)
         pen.setWidthF(1.);
@@ -506,23 +508,22 @@ AbstractGraphicsPath *loadPath(QXmlStreamReader &reader)
     // allows one to add transparency to the stroke color.
     int fill_xopp = reader.attributes().value("fill").toInt();
     // "brushcolor" is a BeamerPresenter extension of the Xournal++ file format
+    Qt::BrushStyle brush_style = string_to_brush_style.value(reader.attributes().value("brushstyle").toString(), Qt::SolidPattern);
     QColor fill_color = rgba_to_color(reader.attributes().value("brushcolor").toString());
-    QBrush brush;
-    if (fill_color.isValid())
+    if (!fill_color.isValid())
     {
-        brush.setColor(fill_color);
-        brush.setStyle(Qt::SolidPattern);
+        fill_color = pen.color();
+        if (fill_xopp > 0 && fill_xopp < 256)
+            fill_color.setAlphaF(fill_xopp*fill_color.alphaF()/255);
+        else
+            brush_style = Qt::NoBrush;
     }
-    else if (fill_xopp > 0 && fill_xopp < 256)
-    {
-        QColor fill_color = pen.color();
-        fill_color.setAlphaF(fill_xopp*fill_color.alphaF()/255);
-        brush.setColor(fill_color);
-        brush.setStyle(Qt::SolidPattern);
-    }
-    else
-        brush.setStyle(Qt::NoBrush);
-    DrawTool *tool = new DrawTool(basic_tool, Tool::AnyNormalDevice, pen, brush, basic_tool == Tool::Highlighter ? QPainter::CompositionMode_Darken : QPainter::CompositionMode_SourceOver);
+    DrawTool *tool = new DrawTool(
+                basic_tool,
+                Tool::AnyNormalDevice,
+                pen,
+                QBrush(fill_color, brush_style),
+                basic_tool == Tool::Highlighter ? QPainter::CompositionMode_Darken : QPainter::CompositionMode_SourceOver);
     if (basic_tool == Tool::Pen)
         return new FullGraphicsPath(*tool, reader.readElementText(), width_str);
     else
