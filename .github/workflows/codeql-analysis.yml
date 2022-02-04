@@ -70,7 +70,7 @@ jobs:
       run: sudo apt-get install -y --no-install-recommends cmake zlib1g-dev qtmultimedia5-dev qttools5-dev libpoppler-qt5-dev libmupdf-dev libfreetype-dev libharfbuzz-dev libjpeg-dev libopenjp2-7-dev libjbig2dec0-dev
 
     - run: |
-       cmake -B build_dir -DUSE_MUPDF=ON -DUSE_POPPLER=ON -DQT_VERSION_MAJOR=5 -DQT_VERSION_MINOR=12 -DCMAKE_BUILD_TYPE='Release'
+       cmake -B build_dir -DUSE_MUPDF=ON -DUSE_POPPLER=ON -DUSE_MUJS=OFF -DUSE_GUMBO=OFF -DUSE_TRANSLATIONS=ON -DQT_VERSION_MAJOR=5 -DQT_VERSION_MINOR=12 -DCMAKE_BUILD_TYPE='Release'
        cmake --build build_dir
 
     - name: Perform CodeQL Analysis
