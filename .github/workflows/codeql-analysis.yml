@@ -53,10 +53,11 @@ jobs:
         # Prefix the list here with "+" to use these queries and those in the config file.
         # queries: ./path/to/local/query, your-org/your-repo/queries@main
 
+    # Autobuild fails:
     # Autobuild attempts to build any compiled languages  (C/C++, C#, or Java).
     # If this step fails, then you should remove it and run the build manually (see below)
-    - name: Autobuild
-      uses: github/codeql-action/autobuild@v1
+    #- name: Autobuild
+    #  uses: github/codeql-action/autobuild@v1
 
     # ℹ️ Command-line programs to run using the OS shell.
     # 📚 https://git.io/JvXDl
@@ -65,9 +66,12 @@ jobs:
     #    and modify them (or add more) to build your code if your project
     #    uses a compiled language
 
-    #- run: |
-    #   make bootstrap
-    #   make release
+    - name: Install Dependencies
+      run: sudo apt-get install -y --no-install-recommends cmake zlib1g-dev qtmultimedia5-dev qttools5-dev libpoppler-qt5-dev libmupdf-dev libfreetype-dev libharfbuzz-dev libjpeg-dev libopenjp2-7-dev libjbig2dec0-dev
+
+    - run: |
+       cmake -B build_dir -DUSE_MUPDF=ON -DUSE_POPPLER=ON -DQT_VERSION_MAJOR=5 -DQT_VERSION_MINOR=12 -DCMAKE_BUILD_TYPE='Release'
+       cmake --build build_dir
 
     - name: Perform CodeQL Analysis
       uses: github/codeql-action/analyze@v1
