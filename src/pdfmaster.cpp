@@ -153,28 +153,6 @@ void PdfMaster::receiveAction(const Action action)
     }
 }
 
-void PdfMaster::resolveLink(const int page, const QPointF &position, const QPointF &startpos) const
-{
-    // Try to resolve navigation link.
-    // TODO: restructure link handling!
-    const PdfDocument::PdfLink *link = document->linkAt(page, position);
-    debug_msg(DebugDrawing, "resolve link" << page << position << startpos << link.area);
-    if (link && (startpos.isNull() || link->area.contains(startpos)))
-    {
-        switch (link->type)
-        {
-        case PdfDocument::PdfLink::PageLink:
-            emit navigationSignal(static_cast<const PdfDocument::GotoLink*>(link)->page);
-            break;
-        case PdfDocument::PdfLink::ActionLink:
-            // TODO: send action
-            break;
-        // TODO: handle other link types
-        }
-        delete link;
-    }
-}
-
 void PdfMaster::receiveNewPath(int page, QGraphicsItem *item)
 {
     if (preferences()->overlay_mode == PerLabel)

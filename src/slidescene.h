@@ -213,7 +213,7 @@ public slots:
     /// Stop drawing and convert just drawn path to regular path.
     void stopDrawing();
 
-    /// Receive action. Currently does nothing.
+    /// Receive and handle action.
     void receiveAction(const Action action);
 
     /// Load and show all media annotations on this slide.
@@ -245,8 +245,13 @@ public slots:
 signals:
     /// Send navigation event to views.
     /// Here page is already adapted to shift.
-    /// size is given in points (inch/72).
     void navigationToViews(const int page, SlideScene* scene) const;
+
+    /// Send a navigation signal (to master).
+    void navigationSignal(const int page) const;
+
+    /// Send action (to master).
+    void sendAction(const Action action) const;
 
     /// Tell views to clear background.
     void clearViews() const;

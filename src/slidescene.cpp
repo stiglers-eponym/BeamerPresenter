@@ -1,4 +1,10 @@
-//#include <QBuffer>
+#include <QDesktopServices>
+#if (QT_VERSION_MAJOR < 6)
+#include <QMediaPlaylist>
+#endif
+
+#include "src/names.h"
+#include "src/preferences.h"
 #include "src/slidescene.h"
 #include "src/slideview.h"
 #include "src/pdfmaster.h"
@@ -13,11 +19,6 @@
 #include "src/drawing/pointingtool.h"
 #include "src/drawing/texttool.h"
 #include "src/drawing/pathcontainer.h"
-#include "src/preferences.h"
-#include "src/names.h"
-#if (QT_VERSION_MAJOR < 6)
-#include <QMediaPlaylist>
-#endif
 
 SlideScene::SlideScene(const PdfMaster *master, const PagePart part, QObject *parent) :
     QGraphicsScene(parent),
@@ -1211,7 +1212,33 @@ void SlideScene::noToolClicked(const QPointF &pos, const QPointF &startpos)
             break;
         }
     }
-    master->resolveLink(page, pos, startpos);
+    const PdfDocument::PdfLink *link = master->getDocument()->linkAt(page, pos);
+    if (link && (startpos.isNull() || link->area.contains(startpos)))
+    {
+        switch (link->type)
+        {
+        case PdfDocument::PdfLink::PageLink:
+            emit navigationSignal(static_cast<const PdfDocument::GotoLink*>(link)->page);
+            break;
+        case PdfDocument::PdfLink::ActionLink:
+            emit sendAction(static_cast<const PdfDocument::ActionLink*>(link)->action);
+            break;
+        case PdfDocument::PdfLink::RemoteUrl:
+        case PdfDocument::PdfLink::LocalUrl:
+        case PdfDocument::PdfLink::ExternalPDF:
+            QDesktopServices::openUrl(static_cast<const PdfDocument::ExternalLink*>(link)->url);
+            break;
+        case PdfDocument::PdfLink::SoundLink:
+            // TODO
+            break;
+        case PdfDocument::PdfLink::MovieLink:
+            // TODO
+            break;
+        case PdfDocument::PdfLink::NoLink:
+            break;
+        }
+    }
+    delete link;
 }
 
 void SlideScene::createSliders() const

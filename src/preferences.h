@@ -80,6 +80,8 @@ public:
         LogSlideChanges = 1 << 1,
         /// Mute all multimedia content by default.
         MuteApplication = 1 << 2,
+        /// Allow opening external links.
+        OpenExternalLinks = 1 << 3,
     };
 
     /************************/
@@ -290,6 +292,8 @@ public slots:
     void setOverlayMode(const QString &string);
     /// Enable or disable automatic slide changes.
     void setAutoSlideChanges(const bool show);
+    /// Enable or disable external links.
+    void setExternalLinks(const bool enable);
 
 signals:
     /// Send error message to master (main window), which will show a message box.

@@ -157,8 +157,12 @@ public:
             PageLink,
             /// Link contains an action.
             ActionLink,
-            /// external link (e.g. to a website or local file)
-            ExternalLink,
+            /// Link to target in external PDF.
+            ExternalPDF,
+            /// Link to a remote destination.
+            RemoteUrl,
+            /// Link to a local file.
+            LocalUrl,
             /// Link to movie annotation
             MovieLink,
             /// Link to sound annotation

@@ -221,11 +221,19 @@ void Preferences::loadSettings()
 #endif
     if (settings.contains("log") && settings.value("log", false).toBool())
         global_flags |= LogSlideChanges;
+    else
+        global_flags &= ~LogSlideChanges;
+    if (settings.value("automatic slide changes", true).toBool())
+        global_flags |= AutoSlideChanges;
+    else
+        global_flags &= ~AutoSlideChanges;
+    if (settings.value("external links", false).toBool())
+        global_flags |= OpenExternalLinks;
+    else
+        global_flags &= ~OpenExternalLinks;
     const int frame_time = settings.value("frame time").toInt(&ok);
     if (ok && frame_time > 0)
         slide_duration_animation = frame_time;
-    if (!settings.value("automatic slide changes", true).toBool())
-        global_flags &= ~AutoSlideChanges;
     if (!settings.value("gestures", true).toBool())
         gesture_actions.clear();
 
@@ -688,6 +696,15 @@ void Preferences::setAutoSlideChanges(const bool show)
     else
         global_flags &= ~AutoSlideChanges;
     settings.setValue("automatic slide changes", show);
+}
+
+void Preferences::setExternalLinks(const bool enable)
+{
+    if (enable)
+        global_flags |= OpenExternalLinks;
+    else
+        global_flags &= ~OpenExternalLinks;
+    settings.setValue("external links", enable);
 }
 
 void Preferences::showErrorMessage(const QString &title, const QString &text) const

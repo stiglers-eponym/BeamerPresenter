@@ -294,7 +294,6 @@ QWidget* Master::createWidget(QJsonObject &object, QWidget *parent)
             // which may already be required in initialization.
             doc = new PdfMaster();
             connect(this, &Master::sendAction, doc, &PdfMaster::receiveAction);
-            connect(doc, &PdfMaster::navigationSignal, this, &Master::navigateToPage, Qt::QueuedConnection);
             connect(this, &Master::navigationSignal, doc, &PdfMaster::distributeNavigationEvents, Qt::QueuedConnection);
             connect(this, &Master::setTimeForPage, doc, &PdfMaster::setTimeForPage);
             connect(this, &Master::getTimeForPage, doc, &PdfMaster::getTimeForPage);
@@ -362,6 +361,8 @@ QWidget* Master::createWidget(QJsonObject &object, QWidget *parent)
             else
                 doc->getScenes().append(scene);
             connect(scene, &SlideScene::newUnsavedDrawings, doc, &PdfMaster::newUnsavedDrawings);
+            connect(scene, &SlideScene::navigationSignal, this, &Master::navigateToPage, Qt::QueuedConnection);
+            connect(scene, &SlideScene::sendAction, this, &Master::handleAction, Qt::QueuedConnection);
             connect(this, &Master::sendAction, scene, &SlideScene::receiveAction);
             connect(cacheVideoTimer, &QTimer::timeout, scene, &SlideScene::postRendering, Qt::QueuedConnection);
             connect(this, &Master::prepareNavigationSignal, scene, &SlideScene::prepareNavigationEvent);

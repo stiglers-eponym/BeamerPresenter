@@ -114,9 +114,6 @@ public:
     bool flexiblePageSizes() const noexcept
     {return document->flexiblePageSizes();}
 
-    /// This function should be restructured!
-    void resolveLink(const int page, const QPointF &position, const QPointF &startpos = {}) const;
-
     /// Clear history of given page.
     void clearHistory(const int page, const int remaining_entries) const;
 
@@ -209,8 +206,6 @@ signals:
     /// Notify all associated SlidesScenes that paths have changed.
     /// @todo is this necessary?
     void pathsUpdated() const;
-    /// Send a navigation signal (to master).
-    void navigationSignal(const int page) const;
     /// Notify that views need to be updated.
     /// @todo is this necessary?
     void update() const;

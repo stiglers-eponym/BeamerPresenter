@@ -135,7 +135,7 @@ void SettingsWidget::initRendering()
                    "be available. Note that using an external renderer requires "
                    "a proper configuration of rendering command and rendering "
                    "arguments as documented in man 5 beamerpresenter.conf."),
-                misc);
+                rendering);
     explanation_label->setTextFormat(Qt::PlainText);
     explanation_label->setWordWrap(true);
     layout->addRow(explanation_label);
@@ -173,7 +173,7 @@ void SettingsWidget::initRendering()
                    "This is assumed by BeamerPresenter if the aspect ratio "
                    "(width/height) of the first slide lies above this threshold. "
                    "This setting only takes effect after restarting BeamerPresenter."),
-                misc);
+                rendering);
     explanation_label->setTextFormat(Qt::PlainText);
     explanation_label->setWordWrap(true);
     layout->addRow(explanation_label);
@@ -258,6 +258,12 @@ void SettingsWidget::initMisc()
     box = new QCheckBox(tr("automatic slide changes"), misc);
     box->setChecked(preferences()->global_flags & Preferences::AutoSlideChanges);
     connect(box, QOverload<bool>::of(&QCheckBox::clicked), writable_preferences(), &Preferences::setAutoSlideChanges);
+    layout->addRow(box);
+
+    // Enable/disable external links
+    box = new QCheckBox(tr("open external links"), misc);
+    box->setChecked(preferences()->global_flags & Preferences::OpenExternalLinks);
+    connect(box, QOverload<bool>::of(&QCheckBox::clicked), writable_preferences(), &Preferences::setExternalLinks);
     layout->addRow(box);
 
     // Drawing mode

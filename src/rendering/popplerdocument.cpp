@@ -251,7 +251,10 @@ const PdfDocument::PdfLink *PopplerDocument::linkAt(const int page, const QPoint
 #else
                 const Poppler::LinkGoto *gotolink = static_cast<Poppler::LinkGoto*>(*it);
 #endif
-                return new GotoLink({PdfLink::PageLink, rect, gotolink->destination().pageNumber() - 1});
+                if (gotolink->isExternal())
+                    return new ExternalLink({PdfLink::ExternalPDF, rect, gotolink->fileName()});
+                else
+                    return new GotoLink({PdfLink::PageLink, rect, gotolink->destination().pageNumber() - 1});
             }
             case Poppler::Link::Action:
             {
@@ -311,7 +314,10 @@ const PdfDocument::PdfLink *PopplerDocument::linkAt(const int page, const QPoint
 #else
                 const Poppler::LinkBrowse *browselink = static_cast<Poppler::LinkBrowse*>(*it);
 #endif
-                return new ExternalLink({PdfLink::ExternalLink, rect, QUrl(browselink->url())});
+                QUrl url(browselink->url());
+                if (url.isValid())
+                    return new ExternalLink({url.isLocalFile() ? PdfLink::LocalUrl : PdfLink::RemoteUrl, rect, url});
+                break;
             }
             case Poppler::Link::Movie:
             {
