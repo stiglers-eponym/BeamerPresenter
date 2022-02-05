@@ -13,6 +13,7 @@
             "page part" : "right",
             "shift" : 0,
             "media controls" : true,
+            "mute" : true,
             "threads" : 1,
             "color" : "black"
           },
@@ -109,9 +110,9 @@
     "file" : "presentation",
     "page part" : "left",
     "shift" : 0,
-    "mute" : false,
     "threads" : 2,
     "master" : true,
+    "mute" : false,
     "color" : "black"
   }
 ]

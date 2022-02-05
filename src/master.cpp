@@ -436,7 +436,8 @@ QWidget* Master::createWidget(QJsonObject &object, QWidget *parent)
             scene->flags() &= ~SlideScene::CacheVideos;
         if (!object.value("draw").toBool(true))
             scene->flags() &= ~SlideScene::ShowDrawings;
-        if (!object.value("mute").toBool(true))
+        // Mute slides by default, except if they are marked as master.
+        if (!object.value("mute").toBool(!object.value("master").toBool(false)))
             scene->flags() &= ~SlideScene::MuteSlide;
         connect(slide, &SlideView::sendKeyEvent, this, &Master::receiveKeyEvent);
         connect(slide, &SlideView::sendAction, this, &Master::handleAction);
@@ -803,10 +804,12 @@ void Master::handleAction(const Action action)
             window->close();
         break;
     case Mute:
+        debug_msg(DebugMedia, "muting application");
         writable_preferences()->global_flags |= Preferences::MuteApplication;
         emit sendAction(action);
         break;
     case Unmute:
+        debug_msg(DebugMedia, "unmuting application");
         writable_preferences()->global_flags &= ~Preferences::MuteApplication;
         emit sendAction(action);
         break;

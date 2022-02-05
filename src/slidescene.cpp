@@ -600,19 +600,21 @@ SlideScene::MediaItem &SlideScene::getMediaItem(const PdfDocument::MediaAnnotati
     if (annotation.type & PdfDocument::MediaAnnotation::HasAudio)
     {
         audio_out = new QAudioOutput(this);
-        if (slide_flags & MuteSlide || preferences()->global_flags & Preferences::MuteApplication || annotation.volume <= 0.)
+        if ((slide_flags & MuteSlide) || (preferences()->global_flags & Preferences::MuteApplication) || annotation.volume <= 0.)
             audio_out->setMuted(true);
         else
             audio_out->setVolume(annotation.volume);
+        debug_msg(DebugMedia, "muted:" << audio_out->isMuted() << "volume:" << audio_out->volume());
     }
     player->setAudioOutput(audio_out);
 #else
     if (annotation.type & PdfDocument::MediaAnnotation::HasAudio)
     {
-        if (slide_flags & MuteSlide || preferences()->global_flags & Preferences::MuteApplication || annotation.volume <= 0.)
+        if ((slide_flags & MuteSlide) || (preferences()->global_flags & Preferences::MuteApplication) || annotation.volume <= 0.)
             player->setMuted(true);
         else
             player->setVolume(100*annotation.volume);
+        debug_msg(DebugMedia, "muted:" << player->isMuted() << "volume:" << player->volume());
     }
 #endif
     QGraphicsVideoItem *item = NULL;

@@ -17,6 +17,7 @@
                 "page part" : "right",
                 "shift" : 0,
                 "media controls" : true,
+                "mute" : true,
                 "threads" : 1,
                 "color" : "white"
               },
@@ -116,6 +117,7 @@
     "shift" : 0,
     "threads" : 2,
     "master" : true,
+    "mute" : false,
     "color" : "white"
   }
 ]
