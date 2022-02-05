@@ -559,25 +559,30 @@ const PdfDocument::PdfLink *MuPdfDocument::linkAt(const int page, const QPointF 
         clink = pdf_load_links(ctx, pages[page]);
         for (fz_link* link = clink; link != NULL; link = link->next)
         {
-            if (link->rect.x0 <= position.x() && link->rect.x1 >= position.x() && link->rect.y0 <= position.y() && link->rect.y1 >= position.y())
+            if (link->uri && link->rect.x0 <= position.x() && link->rect.x1 >= position.x() && link->rect.y0 <= position.y() && link->rect.y1 >= position.y())
             {
                 const QRectF rect = QRectF(link->rect.x0, link->rect.y0, link->rect.x1 - link->rect.x0, link->rect.y1 - link->rect.y0).normalized();
-                if (link->uri == NULL)
-                    break;
-                else if (link->uri[0] == '#')
+                debug_verbose(DebugRendering, "Link to" << link->uri);
+                // Currently MuPDF only provides a simple way to access navigation
+                // links and links to URLs. Action links are not handled in MuPDF.
+                if (link->uri[0] == '#')
                 {
                     // Internal navigation link
                     float x, y;
                     const int location = pdf_resolve_link(ctx, doc, link->uri, &x, &y);
                     result = new GotoLink({PdfLink::PageLink, rect, location});
+                    break;
                 }
                 else
                 {
-                    debug_msg(DebugRendering, "Unsupported link" << link->uri);
-                    result = new PdfLink({PdfLink::NoLink, rect});
+                    // External link
+                    const QUrl url(link->uri);
+                    if (url.isValid())
+                    {
+                        result = new ExternalLink({url.isLocalFile() ? PdfLink::LocalUrl : PdfLink::RemoteUrl, rect, url});
+                        break;
+                    }
                 }
-                debug_verbose(DebugRendering, "Link to" << link->uri);
-                break;
             }
         }
     }

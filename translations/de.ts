@@ -12,32 +12,46 @@
 <context>
     <name>DrawToolDetails</name>
     <message>
-        <location filename="../src/gui/tooldialog.cpp" line="21"/>
+        <location filename="../src/gui/tooldialog.cpp" line="35"/>
         <source>stroke width (in pt)</source>
         <translation>Linienbreite (in pt)</translation>
     </message>
     <message>
-        <location filename="../src/gui/tooldialog.cpp" line="37"/>
         <source>color</source>
-        <translation>Farbe</translation>
+        <translation type="vanished">Farbe</translation>
     </message>
     <message>
-        <location filename="../src/gui/tooldialog.cpp" line="38"/>
+        <location filename="../src/gui/tooldialog.cpp" line="66"/>
         <source>fill color</source>
         <translation>Farbe zum Füllen</translation>
     </message>
     <message>
-        <location filename="../src/gui/tooldialog.cpp" line="39"/>
+        <location filename="../src/gui/tooldialog.cpp" line="51"/>
         <source>fill</source>
         <translation>füllen</translation>
     </message>
     <message>
-        <location filename="../src/gui/tooldialog.cpp" line="43"/>
+        <location filename="../src/gui/tooldialog.cpp" line="27"/>
         <source>shape</source>
         <translation>Form</translation>
     </message>
     <message>
-        <location filename="../src/gui/tooldialog.cpp" line="54"/>
+        <location filename="../src/gui/tooldialog.cpp" line="44"/>
+        <source>pen style</source>
+        <translation>Stiftstil</translation>
+    </message>
+    <message>
+        <location filename="../src/gui/tooldialog.cpp" line="65"/>
+        <source>select color</source>
+        <translation>wähle Farbe</translation>
+    </message>
+    <message>
+        <location filename="../src/gui/tooldialog.cpp" line="72"/>
+        <source>brush style</source>
+        <translation>Füllung</translation>
+    </message>
+    <message>
+        <location filename="../src/gui/tooldialog.cpp" line="86"/>
         <source>Fill color</source>
         <translation>Farbe zum Füllen</translation>
     </message>
@@ -68,42 +82,42 @@
         <translation>Dokumente (*.pdf);;BeamerPresenter/Xournal++-Dateien (*.bpr *.xoj *.xopp *.xml);;Alle Dateien (*)</translation>
     </message>
     <message>
-        <location filename="../src/master.cpp" line="572"/>
+        <location filename="../src/master.cpp" line="574"/>
         <source>Error while reading GUI config</source>
         <translation>Fehler beim Lesen der Konfiguration für die Benutzeroberfläche</translation>
     </message>
     <message>
-        <location filename="../src/master.cpp" line="573"/>
+        <location filename="../src/master.cpp" line="575"/>
         <source>Ignoring entry in GUI config with invalid type </source>
         <translation>Ignoriere Eintrag in der Konfiguration der Benutzeroberfläche mit ungültigem Typ </translation>
     </message>
     <message>
-        <location filename="../src/master.cpp" line="778"/>
+        <location filename="../src/master.cpp" line="780"/>
         <source>Unsaved changes</source>
         <translation>Nicht gespeicherte Anmerkungen</translation>
     </message>
     <message>
-        <location filename="../src/master.cpp" line="779"/>
+        <location filename="../src/master.cpp" line="781"/>
         <source>The document may contain unsaved changes. Quit anyway?</source>
         <translation>Das Dokument enthält eventuell nicht gespeicherte Anmerkungen. Trotzdem schließen?</translation>
     </message>
     <message>
-        <location filename="../src/master.cpp" line="947"/>
+        <location filename="../src/master.cpp" line="951"/>
         <source>Load drawings</source>
         <translation>Lade Anmerkungen</translation>
     </message>
     <message>
-        <location filename="../src/master.cpp" line="949"/>
+        <location filename="../src/master.cpp" line="953"/>
         <source>BeamerPresenter/Xournal++ files (*.bpr *.xoj *.xopp *.xml);;All files (*)</source>
         <translation>BeamerPresenter/Xournal++-Dateien (*.bpr *.xoj *.xopp *.xml);;Alle Dateien (*)</translation>
     </message>
     <message>
-        <location filename="../src/master.cpp" line="957"/>
+        <location filename="../src/master.cpp" line="961"/>
         <source>Save drawings</source>
         <translation>Speichere Anmerkungen</translation>
     </message>
     <message>
-        <location filename="../src/master.cpp" line="959"/>
+        <location filename="../src/master.cpp" line="963"/>
         <source>BeamerPresenter/Xournal++ files (*.bpr *.xopp);;All files (*)</source>
         <translation>BeamerPresenter/Xournal++-Dateien (*.bpr *.xopp);;Alle Dateien (*)</translation>
     </message>
@@ -151,11 +165,11 @@
     <message>
         <location filename="../src/pdfmaster.cpp" line="51"/>
         <location filename="../src/pdfmaster.cpp" line="79"/>
-        <location filename="../src/pdfmaster.cpp" line="352"/>
-        <location filename="../src/pdfmaster.cpp" line="369"/>
-        <location filename="../src/pdfmaster.cpp" line="398"/>
-        <location filename="../src/pdfmaster.cpp" line="403"/>
-        <location filename="../src/pdfmaster.cpp" line="420"/>
+        <location filename="../src/pdfmaster.cpp" line="343"/>
+        <location filename="../src/pdfmaster.cpp" line="360"/>
+        <location filename="../src/pdfmaster.cpp" line="389"/>
+        <location filename="../src/pdfmaster.cpp" line="394"/>
+        <location filename="../src/pdfmaster.cpp" line="411"/>
         <source>Error while loading file</source>
         <translation>Fehler beim Laden der Datei</translation>
     </message>
@@ -170,46 +184,46 @@
         <translation>Laden des PDF-Dokuments fehlgeschlagen!</translation>
     </message>
     <message>
-        <location filename="../src/pdfmaster.cpp" line="292"/>
-        <location filename="../src/pdfmaster.cpp" line="314"/>
+        <location filename="../src/pdfmaster.cpp" line="283"/>
+        <location filename="../src/pdfmaster.cpp" line="305"/>
         <source>Error while saving file</source>
         <translation>Fehler beim Speichern der Datei</translation>
     </message>
     <message>
-        <location filename="../src/pdfmaster.cpp" line="293"/>
+        <location filename="../src/pdfmaster.cpp" line="284"/>
         <source>Writing document resulted in error! Resulting document is probably corrupt.</source>
         <translation>Schreiben des Dokuments hat einen Fehler erzeigt! Das resultierende Dokument ist vermutlich kaputt.</translation>
     </message>
     <message>
-        <location filename="../src/pdfmaster.cpp" line="315"/>
+        <location filename="../src/pdfmaster.cpp" line="306"/>
         <source>Saving document failed for file path: </source>
         <translation>Speichern des Dokuments ist fehlgeschlagen für den Dateipfad: </translation>
     </message>
     <message>
-        <location filename="../src/pdfmaster.cpp" line="353"/>
-        <location filename="../src/pdfmaster.cpp" line="370"/>
-        <location filename="../src/pdfmaster.cpp" line="399"/>
-        <location filename="../src/pdfmaster.cpp" line="404"/>
+        <location filename="../src/pdfmaster.cpp" line="344"/>
+        <location filename="../src/pdfmaster.cpp" line="361"/>
+        <location filename="../src/pdfmaster.cpp" line="390"/>
+        <location filename="../src/pdfmaster.cpp" line="395"/>
         <source>Failed to read xopp document: </source>
         <translation>Fehler beim Lesen des xopp-Dokuments: </translation>
     </message>
     <message>
-        <location filename="../src/pdfmaster.cpp" line="359"/>
+        <location filename="../src/pdfmaster.cpp" line="350"/>
         <source>PDF file could not be opened, select the correct PDF file.</source>
         <translation>PDF-Datei konnte nicht geöffnet werden, wähle die richtige PDF-Datei aus.</translation>
     </message>
     <message>
-        <location filename="../src/pdfmaster.cpp" line="361"/>
+        <location filename="../src/pdfmaster.cpp" line="352"/>
         <source>Documents (*.pdf);;All files (*)</source>
         <translation>Dokumente (*.pdf);;Alle Dateien (*)</translation>
     </message>
     <message>
-        <location filename="../src/pdfmaster.cpp" line="421"/>
+        <location filename="../src/pdfmaster.cpp" line="412"/>
         <source>Loading drawings failed: file </source>
         <translation>Laden der Anmerkungen fehlgeschlagen: Datei </translation>
     </message>
     <message>
-        <location filename="../src/pdfmaster.cpp" line="421"/>
+        <location filename="../src/pdfmaster.cpp" line="412"/>
         <source> could not be opened</source>
         <translation> konnte nicht geöffnet werden</translation>
     </message>
@@ -217,17 +231,17 @@
 <context>
     <name>PointingToolDetails</name>
     <message>
-        <location filename="../src/gui/tooldialog.cpp" line="91"/>
+        <location filename="../src/gui/tooldialog.cpp" line="145"/>
         <source>radius (in pt)</source>
         <translation>Radius (in pt)</translation>
     </message>
     <message>
-        <location filename="../src/gui/tooldialog.cpp" line="101"/>
+        <location filename="../src/gui/tooldialog.cpp" line="155"/>
         <source>Magnification scale</source>
         <translation>Vergrößerungsfaktor</translation>
     </message>
     <message>
-        <location filename="../src/gui/tooldialog.cpp" line="110"/>
+        <location filename="../src/gui/tooldialog.cpp" line="164"/>
         <source>Eraser border width</source>
         <translation>Linienbreite Radiergummie</translation>
     </message>
@@ -235,12 +249,12 @@
 <context>
     <name>Preferences</name>
     <message>
-        <location filename="../src/preferences.cpp" line="693"/>
+        <location filename="../src/preferences.cpp" line="726"/>
         <source>Invalid file</source>
         <translation>Keine valide Datei ausgewählt</translation>
     </message>
     <message>
-        <location filename="../src/preferences.cpp" line="693"/>
+        <location filename="../src/preferences.cpp" line="726"/>
         <source>GUI config file not set because it is not a valid file: </source>
         <translation>Konfiguration der Benutzeroberfläche konnte nicht geändert werden, da keine valide Datei ausgewählt wurde: </translation>
     </message>
@@ -248,12 +262,12 @@
 <context>
     <name>QObject</name>
     <message>
-        <location filename="../src/master.cpp" line="319"/>
+        <location filename="../src/master.cpp" line="318"/>
         <source>Error while loading PDF file</source>
         <translation>Fehler beim Laden der PDF-Datei</translation>
     </message>
     <message>
-        <location filename="../src/master.cpp" line="320"/>
+        <location filename="../src/master.cpp" line="319"/>
         <source>Loaded PDF files with different numbers of pages. You should expect errors.</source>
         <translation>PDF-Dateien mit unterschiedlicher Anzahl von Seiten geladen. Es ist mit Fehlern zu rechnen.</translation>
     </message>
@@ -418,42 +432,47 @@ Konfiguriere Zwischenspeicher (Cache). Folien werden in gerendert und in einen k
         <translation>automatische Änderung der Seitenzahl</translation>
     </message>
     <message>
-        <location filename="../src/gui/settingswidget.cpp" line="266"/>
+        <location filename="../src/gui/settingswidget.cpp" line="264"/>
+        <source>open external links</source>
+        <translation>externe Links öffnen</translation>
+    </message>
+    <message>
+        <location filename="../src/gui/settingswidget.cpp" line="272"/>
         <source>Define how drawings should be handled if multiple successive pages share the same page label (e.g. because they show overlays of the same slide).</source>
         <translation>Definiere wie Anmerkungen gehandhabt werden, wenn mehrere Seiten im PDF-Dokument das gleiche Label (gleiche angezeigte Seitenzahl) haben (z.B. weil sie zur gleichen Folie gehören, sog. Overlays).</translation>
     </message>
     <message>
-        <location filename="../src/gui/settingswidget.cpp" line="270"/>
+        <location filename="../src/gui/settingswidget.cpp" line="276"/>
         <source>all pages are treated separately.</source>
         <translation>Alle Seiten werden separat behandelt.</translation>
     </message>
     <message>
-        <location filename="../src/gui/settingswidget.cpp" line="271"/>
+        <location filename="../src/gui/settingswidget.cpp" line="277"/>
         <source>pages with the same label also have the same drawings.</source>
         <translation>Seiten mit dem gleichen Label haben auch die gleichen Anmerkungen.</translation>
     </message>
     <message>
-        <location filename="../src/gui/settingswidget.cpp" line="272"/>
+        <location filename="../src/gui/settingswidget.cpp" line="278"/>
         <source>when reaching a page with no drawings (and no drawings history), which has the same label as the previous page, the drawings from the previous page are copied to this page.</source>
         <translation>Wenn eine Seite ohne Anmerkungen und ohne Historie von Anmerkungen, die das selbe Label wie die vorherige Seite hat, aufgerufen wird, werden die Anmerkungen der vorherigen Seite übernommen und dafür kopiert.</translation>
     </message>
     <message>
-        <location filename="../src/gui/settingswidget.cpp" line="286"/>
+        <location filename="../src/gui/settingswidget.cpp" line="292"/>
         <source>drawing mode for overlays</source>
         <translation>Modus für Anmerkungen in Overlays</translation>
     </message>
     <message>
-        <location filename="../src/gui/settingswidget.cpp" line="313"/>
+        <location filename="../src/gui/settingswidget.cpp" line="319"/>
         <source>Select new GUI configuration file</source>
         <translation>Neue Konfigurationsdatei für die Benutzeroberfläche</translation>
     </message>
     <message>
-        <location filename="../src/gui/settingswidget.cpp" line="315"/>
+        <location filename="../src/gui/settingswidget.cpp" line="321"/>
         <source>JSON files (*.json);;all files (*)</source>
         <translation>JSON-Dateien (*.json);;Alle Dateien (*)</translation>
     </message>
     <message>
-        <location filename="../src/gui/settingswidget.cpp" line="318"/>
+        <location filename="../src/gui/settingswidget.cpp" line="324"/>
         <source>misc (restart required)</source>
         <translation>Allgemein (Neustart ausstehend)</translation>
     </message>
@@ -508,12 +527,12 @@ Konfiguriere Zwischenspeicher (Cache). Folien werden in gerendert und in einen k
 <context>
     <name>TextToolDetails</name>
     <message>
-        <location filename="../src/gui/tooldialog.cpp" line="121"/>
+        <location filename="../src/gui/tooldialog.cpp" line="175"/>
         <source>font</source>
         <translation>Schriftart</translation>
     </message>
     <message>
-        <location filename="../src/gui/tooldialog.cpp" line="134"/>
+        <location filename="../src/gui/tooldialog.cpp" line="188"/>
         <source>Font for Text input</source>
         <translation>Schriftart für Texteingabe</translation>
     </message>
@@ -557,32 +576,32 @@ Konfiguriere Zwischenspeicher (Cache). Folien werden in gerendert und in einen k
 <context>
     <name>ToolDialog</name>
     <message>
-        <location filename="../src/gui/tooldialog.cpp" line="152"/>
+        <location filename="../src/gui/tooldialog.cpp" line="206"/>
         <source>Tool:</source>
         <translation>Werkzeug:</translation>
     </message>
     <message>
-        <location filename="../src/gui/tooldialog.cpp" line="155"/>
+        <location filename="../src/gui/tooldialog.cpp" line="209"/>
         <source>color</source>
         <translation>Farbe</translation>
     </message>
     <message>
-        <location filename="../src/gui/tooldialog.cpp" line="157"/>
+        <location filename="../src/gui/tooldialog.cpp" line="211"/>
         <source>Color:</source>
         <translation>Farbe:</translation>
     </message>
     <message>
-        <location filename="../src/gui/tooldialog.cpp" line="161"/>
+        <location filename="../src/gui/tooldialog.cpp" line="215"/>
         <source>Input devices</source>
         <translation>Eingabegerät</translation>
     </message>
     <message>
-        <location filename="../src/gui/tooldialog.cpp" line="174"/>
+        <location filename="../src/gui/tooldialog.cpp" line="228"/>
         <source>return</source>
         <translation>übernehmen</translation>
     </message>
     <message>
-        <location filename="../src/gui/tooldialog.cpp" line="332"/>
+        <location filename="../src/gui/tooldialog.cpp" line="386"/>
         <source>Tool color</source>
         <translation>Farbe des Werkzeugs</translation>
     </message>

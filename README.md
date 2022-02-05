@@ -120,28 +120,24 @@ BeamerPresenter (`qmake --version`).
 * Video performance is bad in the following situations:
     * when you draw or erase on a slide while a video is played (drawing one long stroke is much worse than many short strokes)
     * when you use the magnifier or torch while a video is played when there are also drawings on the same slide. The magnifier generally has rather limited performance when used on a slide that contains drawings.
-    * when using multiple magnifiers (yes, that's possible, but you shouldn't do it)
-* Sound links in PDFs are unsupported in the MuPDF version. They should work with Poppler.
+    * when using multiple magnifiers (yes, that's possible, but you shouldn't do that)
 * Embedded sounds are unsupported, only links to external files can be played.
 #### User interface
 * Tool buttons can be changed in the user interface, but these changes are not saved. Buttons are part of the user interface, which can only be changed (permanently) by editing the JSON-formatted configuration file.
 #### Drawing/annotating
-* fixed in current git version: undo after clearing a text field may lead to a crash of the program.
-* The undo/redo actions do not handle text annotations correctly. They only remove or create text fields. But when editing a text field the default keyboard shortcuts (CTRL+Z and CTRL+SHIFT+Z) can be used to undo/redo changes in the text. Deleting a text field by deleting its entire text cannot be undone.
-* The detection of unsaved changes is quite unreliable. When closing BeamerPresenter you may sometimes see a warning of possibly unsaved changes although there are no unsaved changes. This warning is currently not shown when closing the window through the window manager. The warning can be avoided by using the action "quit unsafe" instead of "quit".
+* The detection of unsaved changes is quite unreliable. The warning when closing beamerpresenter with unsaved changes can be avoided by using the action "quit unsafe" instead of "quit".
 #### Slide transitions
 * Sometimes the slides are not automatically rendered to the correct size when resizing the window. Changing or updating the page should solve this problem.
-* Some slide transitions need to stop videos. Fly slide transitions during videos can cause strange effects.
-* If a preview shows specific overlays, slide changes adding or removing synchronization of this preview with an another widget may lead to short flickering. Slide transitions during such slide changes can contain some ugly artifacts.
+* Some slide transitions need to stop videos. Fly slide transitions during videos look strange.
+* If a preview shows specific overlays, slide changes adding or removing synchronization of this preview with another widget may lead to short flickering. Slide transitions during such slide changes can contain some ugly artifacts.
 #### Backend
-* When compiling with both MuPDF and poppler (`qmake RENDERER=both`), trying to open a PDF with renderer=poppler can result in a segmentation fault for some PDFs (when loading the document or when reaching a certain page). The reason might be a linkage problem with some color-space functions. It is recommended to compile with only one PDF engine.
-* The program might crash randomly when resizing windows while quickly changing slides including slides that contain videos or fly transitions. This is currently considered a rarely occurring and not easily reproducible issue.
+* When compiling with both MuPDF and poppler, trying to open a PDF with renderer=poppler can result in a segmentation fault for some PDFs (when loading the document or when reaching a certain page). The reason might be a linkage problem with some colorspace functions. It is recommended to compile with only one PDF engine.
+* In MuPDF only a smaller subset of PDF link types is supported (only internal navigation links and external links) as compared to the Poppler version.
 * Some effects (animations, slide transitions) might not work as expected if (at least) one window showing the slide is currently hidden and not updated by the window manager.
 * Fixed in MuPDF 1.19: Slide labels are broken for encrypted PDFs when using MuPDF.
 
 
 ### Ideas for further development
-* handle links external URLs
 * tools to select and modify drawings
 * improve cache management and layout corrections.
 * cache slides even when size of slides varies (partially implemented)
@@ -149,7 +145,6 @@ BeamerPresenter (`qmake --version`).
 * make layout more reliable
 * improve keyboard shortcuts in other widgets than slide widget
 * option to insert extra slides for drawing
-* improve compatibility with Xournal++
 
 
 ## License

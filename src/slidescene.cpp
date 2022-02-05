@@ -1231,11 +1231,21 @@ void SlideScene::noToolClicked(const QPointF &pos, const QPointF &startpos)
             QDesktopServices::openUrl(static_cast<const PdfDocument::ExternalLink*>(link)->url);
             break;
         case PdfDocument::PdfLink::SoundLink:
-            // TODO
-            break;
         case PdfDocument::PdfLink::MovieLink:
-            // TODO
+        {
+            // This is untested!
+            MediaItem &item = getMediaItem(static_cast<const PdfDocument::MediaLink*>(link)->annotation, page);
+            if (item.item)
+            {
+                item.item->setSize(item.annotation.rect.size());
+                item.item->setPos(item.annotation.rect.topLeft());
+                item.item->show();
+                addItem(item.item);
+            }
+            if (item.player)
+                item.player->play();
             break;
+        }
         case PdfDocument::PdfLink::NoLink:
             break;
         }
