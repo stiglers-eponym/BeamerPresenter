@@ -1,16 +1,4 @@
-# For most projects, this workflow file will not need changing; you simply need
-# to commit it to your repository.
-#
-# You may wish to alter this file to override the set of languages analyzed,
-# or to provide custom queries or build logic.
-#
-# ******** NOTE ********
-# We have attempted to detect the languages in your repository. Please check
-# the `language` matrix defined below to confirm you have the correct set of
-# supported CodeQL languages.
-#
-name: "CodeQL"
-
+name: "CodeQL+package"
 on:
   # First try this out and run it only manually.
   workflow_dispatch
@@ -53,25 +41,28 @@ jobs:
         # Prefix the list here with "+" to use these queries and those in the config file.
         # queries: ./path/to/local/query, your-org/your-repo/queries@main
 
-    # Autobuild fails:
-    # Autobuild attempts to build any compiled languages  (C/C++, C#, or Java).
-    # If this step fails, then you should remove it and run the build manually (see below)
-    #- name: Autobuild
-    #  uses: github/codeql-action/autobuild@v1
-
-    # ℹ️ Command-line programs to run using the OS shell.
-    # 📚 https://git.io/JvXDl
-
-    # ✏️ If the Autobuild fails above, remove it and uncomment the following three lines
-    #    and modify them (or add more) to build your code if your project
-    #    uses a compiled language
-
     - name: Install Dependencies
       run: sudo apt-get install -y --no-install-recommends cmake zlib1g-dev qtmultimedia5-dev qttools5-dev libpoppler-qt5-dev libmupdf-dev libfreetype-dev libharfbuzz-dev libjpeg-dev libopenjp2-7-dev libjbig2dec0-dev
 
-    - run: |
+    - name: Build
+      run: |
        cmake -B build_dir -DUSE_MUPDF=ON -DUSE_POPPLER=ON -DUSE_MUJS=OFF -DUSE_GUMBO=OFF -DUSE_TRANSLATIONS=ON -DQT_VERSION_MAJOR=5 -DQT_VERSION_MINOR=12 -DCMAKE_BUILD_TYPE='Release'
        cmake --build build_dir
 
     - name: Perform CodeQL Analysis
       uses: github/codeql-action/analyze@v1
+
+    - name: Archive performance analysis report
+      uses: actions/upload-artifact@v2
+      with:
+        name: codeql-report.sarif
+        path: /home/runner/work/BeamerPresenter/results/cpp.sarif
+
+    - name: Package
+      run: cpack --config build_dir/CPackConfig.cmake
+
+    - name: Archive debian package
+      uses: actions/upload-artifact@v2
+      with:
+        name: beamerpresenter-full-x86_64.deb
+        path: output/test/code-coverage.html
