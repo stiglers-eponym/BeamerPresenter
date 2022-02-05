@@ -226,11 +226,11 @@ void PopplerDocument::loadPageLabels()
         pageLabels[0] = "";
 }
 
-const PdfDocument::PdfLink PopplerDocument::linkAt(const int page, const QPointF &position) const
+const PdfDocument::PdfLink *PopplerDocument::linkAt(const int page, const QPointF &position) const
 {
     const std::unique_ptr<Poppler::Page> docpage(doc->page(page));
     if (!docpage)
-        return PdfLink();
+        return NULL;
     const QSizeF pageSize = docpage->pageSizeF();
     const QPointF relpos = {position.x()/pageSize.width(), position.y()/pageSize.height()};
     const auto links = docpage->links();
@@ -244,21 +244,144 @@ const PdfDocument::PdfLink PopplerDocument::linkAt(const int page, const QPointF
             rect.setSize({pageSize.width() * rect.width(), pageSize.height() * rect.height()});
             switch ((*it)->linkType())
             {
-            case Poppler::Link::LinkType::Goto: {
+            case Poppler::Link::Goto:
+            {
 #if (QT_VERSION_MAJOR >= 6)
                 const Poppler::LinkGoto *gotolink = static_cast<Poppler::LinkGoto*>(it->get());
 #else
                 const Poppler::LinkGoto *gotolink = static_cast<Poppler::LinkGoto*>(*it);
 #endif
-                return {gotolink->destination().pageNumber() - 1, rect};
+                return new GotoLink({PdfLink::PageLink, rect, gotolink->destination().pageNumber() - 1});
             }
+            case Poppler::Link::Action:
+            {
+#if (QT_VERSION_MAJOR >= 6)
+                const Poppler::LinkAction *actionlink = static_cast<Poppler::LinkAction*>(it->get());
+#else
+                const Poppler::LinkAction *actionlink = static_cast<Poppler::LinkAction*>(*it);
+#endif
+                Action action = NoAction;
+                switch (actionlink->actionType())
+                {
+                case Poppler::LinkAction::PageFirst:
+                    action = FirstPage;
+                    break;
+                case Poppler::LinkAction::PageLast:
+                    action = LastPage;
+                    break;
+                case Poppler::LinkAction::PagePrev:
+                    action = PreviousPage;
+                    break;
+                case Poppler::LinkAction::PageNext:
+                    action = NextPage;
+                    break;
+                case Poppler::LinkAction::HistoryBack:
+                    // TODO: This will not work with notes and presentation combined in same PDF.
+                    action = UndoDrawing;
+                    break;
+                case Poppler::LinkAction::HistoryForward:
+                    // TODO: This will not work with notes and presentation combined in same PDF.
+                    action = RedoDrawing;
+                    break;
+                case Poppler::LinkAction::EndPresentation:
+                case Poppler::LinkAction::Presentation:
+                    action = FullScreen;
+                    break;
+                default:
+                    continue;
+                /* For completeness: here are the other possible actions.
+                // GoToPage does not make much sense when the destination is unknown.
+                case Poppler::LinkAction::GoToPage:
+                // Find is currently not implemented.
+                case Poppler::LinkAction::Find:
+                // Print will never be not implemented.
+                case Poppler::LinkAction::Print:
+                // Quit and close are intentionally not handled to avoid unintended closing of the program.
+                case Poppler::LinkAction::Quit:
+                case Poppler::LinkAction::Close:
+                    continue;
+                */
+                }
+                return new ActionLink({PdfLink::ActionLink, rect, action});
+            }
+            case Poppler::Link::Browse:
+            {
+#if (QT_VERSION_MAJOR >= 6)
+                const Poppler::LinkBrowse *browselink = static_cast<Poppler::LinkBrowse*>(it->get());
+#else
+                const Poppler::LinkBrowse *browselink = static_cast<Poppler::LinkBrowse*>(*it);
+#endif
+                return new ExternalLink({PdfLink::ExternalLink, rect, QUrl(browselink->url())});
+            }
+            case Poppler::Link::Movie:
+            {
+#if (QT_VERSION_MAJOR >= 6)
+                const Poppler::LinkMovie *movielink = static_cast<Poppler::LinkMovie*>(it->get());
+#else
+                const Poppler::LinkMovie *movielink = static_cast<Poppler::LinkMovie*>(*it);
+#endif
+                // TODO: currently this action is not connected to one specific movie annotation.
+                switch (movielink->operation())
+                {
+                case Poppler::LinkMovie::Pause:
+                case Poppler::LinkMovie::Stop:
+                    return new ActionLink({PdfLink::ActionLink, rect, PauseMedia});
+                case Poppler::LinkMovie::Play:
+                case Poppler::LinkMovie::Resume:
+                    return new ActionLink({PdfLink::ActionLink, rect, PlayMedia});
+                }
+                break;
+            }
+            case Poppler::Link::Sound:
+            {
+#if (QT_VERSION_MAJOR >= 6)
+                const Poppler::LinkSound *soundlink = static_cast<Poppler::LinkSound*>(it->get());
+#else
+                const Poppler::LinkSound *soundlink = static_cast<Poppler::LinkSound*>(*it);
+#endif
+                const Poppler::SoundObject *sound = soundlink->sound();
+                switch (sound->soundType())
+                {
+                case Poppler::SoundObject::Embedded:
+                    debug_verbose(DebugMedia, "Found sound annotation: embedded on page" << page);
+                    if (!sound->data().isEmpty())
+                    {
+                        EmbeddedMedia media(sound->data(), sound->samplingRate(), rect);
+                        media.channels = sound->channels();
+                        media.bit_per_sample = sound->bitsPerSample();
+                        media.encoding = convert_sound_encoding.value(sound->soundEncoding(), PdfDocument::EmbeddedMedia::SoundEncodingRaw);
+                        return new MediaLink({PdfLink::SoundLink, rect, media});
+                    }
+                    break;
+                case Poppler::SoundObject::External:
+                {
+                    QFileInfo fileinfo(sound->url());
+                    debug_verbose(DebugMedia, "Found sound annotation:" << fileinfo.filePath() << "on page" << page);
+                    if (fileinfo.exists())
+                        return new MediaLink({
+                                         PdfLink::SoundLink,
+                                         rect,
+                                         MediaAnnotation(QUrl::fromLocalFile(fileinfo.absoluteFilePath()), false, rect)
+                                     });
+                    break;
+                }
+                }
+                break;
+            }
+            /* For completeness: These are the unhandled link types.
+            case Poppler::Link::OCGState:
+            case Poppler::Link::Execute:
+            case Poppler::Link::Hide:
+            case Poppler::Link::JavaScript:
+            case Poppler::Link::Rendition:
+            case Poppler::Link::None:
+            */
             default:
-                debug_msg(DebugRendering, "Unsupported link" << (*it)->linkType());
-                return {PdfLink::NoLink, rect};
+                debug_msg(DebugRendering, "Ignoring unsupported link" << (*it)->linkType());
             }
         }
     }
-    return PdfLink();
+    return NULL;
 }
 
 QList<PdfDocument::MediaAnnotation> *PopplerDocument::annotations(const int page) const

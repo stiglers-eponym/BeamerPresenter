@@ -117,7 +117,7 @@ public:
     void loadOutline() override;
 
     /// Link at given position (in point = inch/72)
-    virtual const PdfLink linkAt(const int page, const QPointF &position) const override;
+    virtual const PdfLink *linkAt(const int page, const QPointF &position) const override;
 
     /// List all video annotations on given page. Returns NULL if list is
     /// empty.

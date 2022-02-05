@@ -544,13 +544,13 @@ const PdfDocument::SlideTransition MuPdfDocument::transition(const int page) con
     return trans;
 }
 
-const PdfDocument::PdfLink MuPdfDocument::linkAt(const int page, const QPointF &position) const
+const PdfDocument::PdfLink *MuPdfDocument::linkAt(const int page, const QPointF &position) const
 {
-    PdfLink result;
     if (!pages.value(page) || !ctx || !doc)
-        return result;
+        return NULL;
 
     mutex->lock();
+    PdfLink *result = NULL;
     fz_link *clink = NULL;
     fz_var(clink);
     fz_var(result);
@@ -563,18 +563,18 @@ const PdfDocument::PdfLink MuPdfDocument::linkAt(const int page, const QPointF &
             {
                 const QRectF rect = QRectF(link->rect.x0, link->rect.y0, link->rect.x1 - link->rect.x0, link->rect.y1 - link->rect.y0).normalized();
                 if (link->uri == NULL)
-                    result = {PdfLink::NoLink, rect};
+                    break;
                 else if (link->uri[0] == '#')
                 {
                     // Internal navigation link
                     float x, y;
                     const int location = pdf_resolve_link(ctx, doc, link->uri, &x, &y);
-                    result = {location, rect};
+                    result = new GotoLink({PdfLink::PageLink, rect, location});
                 }
                 else
                 {
                     debug_msg(DebugRendering, "Unsupported link" << link->uri);
-                    result = {PdfLink::NoLink, rect};
+                    result = new PdfLink({PdfLink::NoLink, rect});
                 }
                 debug_verbose(DebugRendering, "Link to" << link->uri);
                 break;

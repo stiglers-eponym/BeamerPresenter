@@ -6,6 +6,7 @@
 #include <QRectF>
 #include <QVector>
 #include "src/config.h"
+#include "src/enumerates.h"
 
 /**
  * @brief Abstract class for handling PDF documents.
@@ -151,22 +152,35 @@ public:
         enum LinkType
         {
             /// Link of unknown type.
-            NoLink = -1,
-            /// currently ignored: navigation link with undefined page.
-            NavigationLink = -2,
+            NoLink = 0,
+            /// Link inside the PDF document.
+            PageLink,
+            /// Link contains an action.
+            ActionLink,
             /// external link (e.g. to a website or local file)
-            ExternalLink = -3,
+            ExternalLink,
             /// Link to movie annotation
-            MovieLink = -4,
+            MovieLink,
             /// Link to sound annotation
-            SoundLink = -5,
+            SoundLink,
         };
 
-        /// Positive values of type are interpreted as page numbers.
-        /// Negative values are interpreted as LinkType.
-        int type = NoLink;
+        /// Type of this link object
+        LinkType type = NoLink;
         /// Link area on slide
         QRectF area;
+    };
+    struct ExternalLink : PdfLink {
+        QUrl url;
+    };
+    struct GotoLink : PdfLink {
+        int page;
+    };
+    struct ActionLink : PdfLink {
+        Action action;
+    };
+    struct MediaLink : PdfLink {
+        MediaAnnotation annotation;
     };
 
     /// PDF outline (table of contents, TOC) entry for storing a tree in a list.
@@ -323,7 +337,7 @@ public:
     const PdfOutlineEntry &outlineEntryAt(const int page) const;
 
     /// Link at given position (in point = inch/72)
-    virtual const PdfLink linkAt(const int page, const QPointF &position) const = 0;
+    virtual const PdfLink *linkAt(const int page, const QPointF &position) const = 0;
 
     /// List all video annotations on given page. Returns NULL if list is
     /// empty.

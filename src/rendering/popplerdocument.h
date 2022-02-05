@@ -83,7 +83,7 @@ public:
     {return pageLabels.size() == doc->numPages() ? QList<int>() : pageLabels.keys();}
 
     /// Link at given position (in point = inch/72).
-    const PdfLink linkAt(const int page, const QPointF &position) const override;
+    const PdfLink *linkAt(const int page, const QPointF &position) const override;
 
     /// List all video annotations on given page. Returns NULL if list is empty.
     virtual QList<MediaAnnotation>* annotations(const int page) const override;
