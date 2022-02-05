@@ -430,7 +430,7 @@ void Preferences::loadFromParser(const QCommandLineParser &parser)
     if (parser.isSet("t"))
         msecs_total = 60000 * parser.value("t").toDouble();
 
-    // Log slide changes
+    // log slide changes
     if (parser.isSet("log"))
         global_flags |= LogSlideChanges;
 
@@ -472,6 +472,10 @@ void Preferences::loadFromParser(const QCommandLineParser &parser)
         if (!understood_renderer)
             qWarning() << "Invalid renderer argument on command line:" << renderer_str;
     }
+
+    // disable cache
+    if (parser.isSet("nocache"))
+        max_cache_pages = 0;
 
 #ifdef QT_DEBUG
     // (Re)load debug info from command line.

@@ -79,7 +79,7 @@ private:
 public:
     /// Constructor: only very basic initialization.
     /// Full initialization is done afterwards by init().
-    explicit PixCache(PdfDocument *doc, const int thread_number, const PagePart page_part = FullPage, QObject *parent = NULL);
+    explicit PixCache(PdfDocument *doc, const int thread_number, const PagePart page_part = FullPage, QObject *parent = NULL) noexcept;
 
     /// Destructor: Stop and clean up threads, delete renderer, clear content.
     ~PixCache();

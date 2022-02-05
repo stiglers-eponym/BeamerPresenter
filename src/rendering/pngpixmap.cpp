@@ -3,13 +3,13 @@
 #include <QPixmap>
 #include <QBuffer>
 
-PngPixmap::PngPixmap(const int page, const float resolution) :
+PngPixmap::PngPixmap(const int page, const float resolution) noexcept :
      data(NULL),
      resolution(resolution),
      page(page)
 {};
 
-PngPixmap::PngPixmap(const QByteArray *data, const int page, const float resolution) :
+PngPixmap::PngPixmap(const QByteArray *data, const int page, const float resolution) noexcept :
      data(data),
      resolution(resolution),
      page(page)
@@ -21,24 +21,27 @@ PngPixmap::PngPixmap(const QPixmap pixmap, const int page, const float resolutio
     page(page)
 {
     // Check if the given pixmap is nontrivial
-    if (pixmap.isNull() || pixmap.size().isEmpty())
+    if (pixmap.isNull() || pixmap.size().isEmpty() || pixmap.isDetached())
         return;
 
     // Save the pixmap as PNG image.
     // First create a writable QByteArray and a QBuffer to write to it.
     QByteArray* bytes = new QByteArray();
     QBuffer buffer(bytes);
-    buffer.open(QIODevice::WriteOnly);
     // Save the pixmap as png to the buffer.
-    if (!buffer.isWritable() || !pixmap.save(&buffer, "PNG"))
+    const bool success = buffer.open(QIODevice::WriteOnly) && pixmap.save(&buffer, "PNG");
+    buffer.close();
+    if (success)
     {
-        qWarning() << "Compressing image to PNG failed";
-        delete bytes;
-        return;
+        // Keep the result in data.
+        data = bytes;
     }
-
-    // Keep the result in data.
-    data = bytes;
+    else
+    {
+        // saving failed, delete result.
+        delete bytes;
+        qWarning() << "Compressing image to PNG failed";
+    }
 }
 
 const QPixmap PngPixmap::pixmap() const

@@ -468,16 +468,11 @@ void SlideScene::navigationEvent(const int newpage, SlideScene *newscene)
     pageItem->trackNew();
     if ((!newscene || newscene == this) && page != newpage && (slide_flags & ShowTransitions))
     {
-        PdfDocument::SlideTransition transition;
-        if (newpage > page)
-            transition = master->transition(newpage);
-        else
-        {
-            transition = master->transition(page);
-            transition.invert();
-        }
+        PdfDocument::SlideTransition transition = master->transition(newpage > page ? newpage : page);
         if (transition.type > 0)
         {
+            if (newpage < page)
+                transition.invert();
             debug_msg(DebugTransitions, "Transition:" << transition.type << transition.duration << transition.properties << transition.angle << transition.scale);
             startTransition(newpage, transition);
             return;
@@ -881,6 +876,11 @@ void SlideScene::startTransition(const int newpage, const PdfDocument::SlideTran
     }
     case PdfDocument::SlideTransition::Push:
     {
+        /* TODO: For push transitions the new page is not ready when
+         * the animation starts. Instead of the new page, first the old
+         * page is shown where the new page is expected. However, this
+         * is usually only noted when the window geometry does not match
+         * the slide geometry. */
         QPropertyAnimation *propanim = new QPropertyAnimation(this, "sceneRect");
         propanim->setDuration(1000*transition.duration);
         pageTransitionItem->setZValue(-1e3);

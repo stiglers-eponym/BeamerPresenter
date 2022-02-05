@@ -15,7 +15,7 @@
 #include <QThread>
 
 
-PixCache::PixCache(PdfDocument *doc, const int thread_number, const PagePart page_part, QObject *parent) :
+PixCache::PixCache(PdfDocument *doc, const int thread_number, const PagePart page_part, QObject *parent) noexcept :
     QObject(parent),
     priority({page_part}),
     pdfDoc(doc)
@@ -96,8 +96,7 @@ void PixCache::clear()
     qDeleteAll(cache);
     cache.clear();
     usedMemory = 0;
-    if (preferences())
-        region = {preferences()->page, preferences()->page};
+    region = {preferences()->page, preferences()->page};
 }
 
 const QPixmap PixCache::pixmap(const int page, qreal resolution) const

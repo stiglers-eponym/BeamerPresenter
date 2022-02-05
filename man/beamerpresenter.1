@@ -10,6 +10,7 @@ BeamerPresenter \- modular multi-screen PDF presenter
 .RB [ \-g
 .IR ui-file ]
 .RB [ \-\-log ]
+.RB [ \-\-nocache ]
 .RB [ \-t
 .IR time ]
 .RB [ \-\-renderer
@@ -51,6 +52,10 @@ Define renderer and PDF engine. Depending on you installation, this may be MuPDF
 .TP
 .B \-\-log
 Print times of slide changes to standard output. Only has an effect if a page label/number widget is contained in GUI.
+.
+.TP
+.B \-\-nocache
+Disable caching slides. This option may be helpful when using a presentation with slides of different geometry.
 .
 .TP
 .BI "\-\-debug " "flag1,flag2,..."

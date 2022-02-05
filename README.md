@@ -109,8 +109,7 @@ If you find bugs or have suggestions for improvements, please
 [open an issue](https://github.com/stiglers-eponym/BeamerPresenter/issues).
 
 When reporting bugs, please include the version string of BeamerPresenter
-(`beamerpresenter --version`) or the Qt version if you have problems building
-BeamerPresenter (`qmake --version`).
+(`beamerpresenter --version`).
 
 
 ## Development

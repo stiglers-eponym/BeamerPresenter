@@ -96,7 +96,7 @@ void PixmapGraphicsItem::paint(QPainter *painter, const QStyleOptionGraphicsItem
             painter->setClipPath(path);
             break;
         }
-    }
+        }
     const QRectF rect = painter->transform().mapRect(bounding_rect);
     painter->resetTransform();
     if (mask_type == Glitter && animation_progress != UINT_MAX)

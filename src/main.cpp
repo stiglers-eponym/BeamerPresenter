@@ -46,6 +46,7 @@ int main(int argc, char *argv[])
     // Set format for debugging output, warnings etc.
     // To overwrite this you can set the environment variable QT_MESSAGE_PATTERN.
     qSetMessagePattern("%{time process} %{if-debug}D%{endif}%{if-info}INFO%{endif}%{if-warning}WARNING%{endif}%{if-critical}CRITICAL%{endif}%{if-fatal}FATAL%{endif}%{if-category} %{category}%{endif} %{file}:%{line} - %{message}%{if-fatal} from %{backtrace [depth=3]}%{endif}");
+    // Register meta types (required for connections).
     qRegisterMetaType<const PngPixmap*>("const PngPixmap*");
     qRegisterMetaType<Tool*>("Tool*");
 
@@ -60,19 +61,20 @@ int main(int argc, char *argv[])
         app.installTranslator(&translator);
 #endif
 
-    // Set app version. The string APP_VERSION is defined in beamerpresenter.pro.
-    QString version_string = APP_VERSION " ";
+    // Set app version. The string APP_VERSION is defined in src/config.h.
+    app.setApplicationVersion(
+                APP_VERSION
 #ifdef USE_POPPLER
-    version_string += " poppler=" POPPLER_VERSION;
+                " poppler=" POPPLER_VERSION
 #endif
 #ifdef USE_MUPDF
-    version_string += " mupdf=" FZ_VERSION;
+                " mupdf=" FZ_VERSION
 #endif
-    version_string += " Qt=" QT_VERSION_STR;
+                " Qt=" QT_VERSION_STR
 #ifdef QT_DEBUG
-    version_string += " debugging";
+                " debugging"
 #endif
-    app.setApplicationVersion(version_string);
+            );
 
     // Set up command line argument parser.
     QCommandLineParser parser;
@@ -87,15 +89,16 @@ int main(int argc, char *argv[])
     parser.addOption({{"g", "gui-config"}, "user interface configuration file", "file"});
     parser.addOption({{"t", "time"}, "timer total time in minutes", "number"});
     parser.addOption({"log", "log slide changes to standard output"});
-#ifdef QT_DEBUG
-    parser.addOption({"debug", "debug flags, comma-separated", "flags"});
-#endif
+    parser.addOption({"nocache", "disable cache"});
 #if defined(USE_MUPDF) and defined(USE_POPPLER)
     parser.addOption({"renderer", "PDF renderer: MuPDF / poppler / external-MuPDF / external-poppler", "name"});
 #elif defined(USE_MUPDF)
     parser.addOption({"renderer", "PDF renderer: external or MuPDF", "name"});
 #elif defined(USE_POPPLER)
     parser.addOption({"renderer", "PDF renderer: external or poppler", "name"});
+#endif
+#ifdef QT_DEBUG
+    parser.addOption({"debug", "debug flags, comma-separated", "flags"});
 #endif
     parser.process(app);
 

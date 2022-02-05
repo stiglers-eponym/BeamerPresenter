@@ -305,9 +305,10 @@ void SlideView::drawForeground(QPainter *painter, const QRectF &rect)
 #ifdef QT_DEBUG
     if (preferences()->debug_level & (DebugMedia|DebugVerbose))
     {
-        const auto media = static_cast<SlideScene*>(scene())->getMedia();
+        painter->setBrush(Qt::NoBrush);
         const int page = static_cast<SlideScene*>(scene())->getPage();
-        for (auto &m : media)
+        const QList<SlideScene::MediaItem> &media = static_cast<SlideScene*>(scene())->getMedia();
+        for (const SlideScene::MediaItem &m : media)
         {
 #if __cplusplus >= 202002L
             if (m.pages.contains(page))
