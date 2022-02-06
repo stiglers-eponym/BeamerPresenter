@@ -95,11 +95,7 @@ public:
     /// Clean up memory if necessary.
     void setMaxNumber(const int number);
 
-    /// Get pixmap showing page *page*.
-    const QPixmap pixmap(const int page, qreal resolution = -1.) const;
-
-    /// Get pixmap showing page *page*.
-    /// The non-const function additionally writes a new pixmap to cache.
+    /// Get pixmap showing page and write it to cache.
     const QPixmap pixmap(const int page, qreal resolution = -1.);
 
     /// Total size of all cached pages in bytes

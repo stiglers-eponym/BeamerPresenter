@@ -53,7 +53,6 @@ public:
 
 private:
     /// List of currently visible paths in the order in which they were created
-    /// @todo don't use this when this is currently active on scene?
     QList<QGraphicsItem*> paths;
 
     /// List of changes forming the history of this, in the order in which they

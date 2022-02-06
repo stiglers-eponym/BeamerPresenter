@@ -16,9 +16,12 @@ class QMutex;
 
 /**
  * @brief MuPDF implementation of PdfDocument
+ * @implements PdfDocument
  *
  * Document representing a PDF loaded by MuPDF.
  * MuPDF requires careful treatment of separte threads!
+ *
+ * @see PopplerDocument
  */
 class MuPdfDocument : public PdfDocument
 {

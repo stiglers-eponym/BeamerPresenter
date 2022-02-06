@@ -203,12 +203,6 @@ public slots:
     {_flags |= UnsavedDrawings;}
 
 signals:
-    /// Notify all associated SlidesScenes that paths have changed.
-    /// @todo is this necessary?
-    void pathsUpdated() const;
-    /// Notify that views need to be updated.
-    /// @todo is this necessary?
-    void update() const;
     /// Write notes from notes widgets to stream writer.
     void writeNotes(QXmlStreamWriter &writer) const;
     /// Read notes in notes widgets from stream reader.

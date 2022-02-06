@@ -99,38 +99,6 @@ void PixCache::clear()
     region = {preferences()->page, preferences()->page};
 }
 
-const QPixmap PixCache::pixmap(const int page, qreal resolution) const
-{
-    if (resolution <= 0.)
-        resolution = getResolution(page);
-    // Try to return a page from cache.
-    {
-        const auto it = cache.constFind(page);
-        if (it != cache.cend() && *it != NULL && abs((*it)->getResolution() - resolution) < MAX_RESOLUTION_DEVIATION)
-            return (*it)->pixmap();
-    }
-
-    // Check if page number is valid.
-    if (page < 0 || page >= pdfDoc->numberOfPages())
-        return QPixmap();
-
-    // Check if the renderer is valid
-    if (renderer == NULL || !renderer->isValid())
-    {
-        qCritical() << "Invalid renderer";
-        return QPixmap();
-    }
-
-    debug_msg(DebugCache, "Rendering in main thread");
-    const QPixmap pix = renderer->renderPixmap(page, resolution);
-
-    if (pix.isNull())
-        qCritical() << "Rendering page failed" << page << resolution;
-
-    // The page is not written to cache!
-    return pix;
-}
-
 const QPixmap PixCache::pixmap(const int page, qreal resolution)
 {
     if (resolution <= 0.)

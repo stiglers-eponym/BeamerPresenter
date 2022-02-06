@@ -90,8 +90,8 @@ enum Action
     PlayMedia, ///< play all media objects on current page
     PauseMedia, ///< pause all media objects on current page
     PlayPauseMedia, ///< pause all media objects on current page if a media object is running; otherwise play all media objects on current page
-    Mute, ///< mute all media objects @todo check if this works
-    Unmute, ///< unmute all media objects @todo check if this works
+    Mute, ///< mute all media objects
+    Unmute, ///< unmute all media objects
     // Other actions
     ReloadFiles, ///< reload PDF file(s) if it has changed
     FullScreen, ///< toggle full screen mode

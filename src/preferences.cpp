@@ -590,13 +590,25 @@ QUrl Preferences::resolvePath(const QString &identifier) const noexcept
     // Next check if identifier is a path relative to the current directory.
     if (QDir().exists(identifier))
         return QUrl::fromLocalFile(QDir().absoluteFilePath(identifier));
-    // Next use QUrl heuristics to find a url, first trying to find local files.
-    QUrl url = QUrl::fromUserInput(identifier, basedir.absolutePath(), QUrl::AssumeLocalFile);
-    if (url.isLocalFile() && QDir(url.toLocalFile()).exists())
-        return url;
-    url = QUrl::fromUserInput(identifier);
+    // Next use QUrl heuristics to find a url, interpreting local files relative to the presentation directory.
+    const QUrl url = QUrl::fromUserInput(identifier, basedir.absolutePath());
+    if (url.isLocalFile())
+    {
+        const QString path = url.toLocalFile();
+        if (QDir::isAbsolutePath(path))
+        {
+            if (QDir(path).exists())
+                return url;
+            return QUrl();
+        }
+        if (basedir.exists(path))
+            return QUrl::fromLocalFile(basedir.absoluteFilePath(path));
+        if (QDir().exists(path))
+            return QUrl::fromLocalFile(QDir().absoluteFilePath(path));
+        return QUrl();
+    }
     // Remote URLs are only returned if external links are enabled.
-    if ((global_flags & OpenExternalLinks) || url.isLocalFile())
+    if ((global_flags & OpenExternalLinks))
         return url;
     return QUrl();
 }

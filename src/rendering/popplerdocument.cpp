@@ -5,6 +5,31 @@
 #include <QFileInfo>
 #include <QInputDialog>
 
+PdfDocument::EmbeddedMedia embeddedSound(const Poppler::SoundObject *sound, const QRectF &rect)
+{
+    if (sound->soundType() != Poppler::SoundObject::Embedded)
+        return PdfDocument::EmbeddedMedia(QByteArray(), 0, rect);
+    PdfDocument::EmbeddedMedia media(sound->data(), sound->samplingRate(), rect);
+    media.channels = sound->channels();
+    media.bit_per_sample = sound->bitsPerSample();
+    switch (sound->soundEncoding())
+    {
+    case Poppler::SoundObject::Raw:
+        media.encoding = PdfDocument::EmbeddedMedia::SoundEncodingRaw;
+        break;
+    case Poppler::SoundObject::ALaw:
+        media.encoding = PdfDocument::EmbeddedMedia::SoundEncodingALaw;
+        break;
+    case Poppler::SoundObject::muLaw:
+        media.encoding = PdfDocument::EmbeddedMedia::SoundEncodingMuLaw;
+        break;
+    case Poppler::SoundObject::Signed:
+        media.encoding = PdfDocument::EmbeddedMedia::SoundEncodingSigned;
+        break;
+    }
+    return media;
+}
+
 PopplerDocument::PopplerDocument(const QString &filename) :
     PdfDocument(filename)
 {
@@ -352,10 +377,9 @@ const PdfDocument::PdfLink *PopplerDocument::linkAt(const int page, const QPoint
                     debug_verbose(DebugMedia, "Found sound annotation: embedded on page" << page);
                     if (!sound->data().isEmpty())
                     {
-                        EmbeddedMedia media(sound->data(), sound->samplingRate(), rect);
-                        media.channels = sound->channels();
-                        media.bit_per_sample = sound->bitsPerSample();
-                        media.encoding = convert_sound_encoding.value(sound->soundEncoding(), PdfDocument::EmbeddedMedia::SoundEncodingRaw);
+                        EmbeddedMedia media = embeddedSound(sound, rect);
+                        media.volume = soundlink->volume();
+                        media.mode = soundlink->repeat() ? PdfDocument::MediaAnnotation::Once : PdfDocument::MediaAnnotation::Repeat;
                         return new MediaLink({PdfLink::SoundLink, rect, media});
                     }
                     break;
@@ -455,13 +479,7 @@ QList<PdfDocument::MediaAnnotation> *PopplerDocument::annotations(const int page
             case Poppler::SoundObject::Embedded:
                 debug_verbose(DebugMedia, "Found sound annotation: embedded on page" << page);
                 if (!sound->data().isEmpty())
-                {
-                    EmbeddedMedia media(sound->data(), sound->samplingRate(), area);
-                    media.channels = sound->channels();
-                    media.bit_per_sample = sound->bitsPerSample();
-                    media.encoding = convert_sound_encoding.value(sound->soundEncoding(), PdfDocument::EmbeddedMedia::SoundEncodingRaw);
-                    list->append(media);
-                }
+                    list->append(embeddedSound(sound, area));
                 break;
             case Poppler::SoundObject::External:
             {
@@ -499,10 +517,7 @@ QList<PdfDocument::MediaAnnotation> *PopplerDocument::annotations(const int page
                 debug_verbose(DebugMedia, "Found sound link: embedded on page" << page);
                 if (!link->sound()->data().isEmpty())
                 {
-                    EmbeddedMedia media(link->sound()->data(), link->sound()->samplingRate(), area);
-                    media.channels = link->sound()->channels();
-                    media.bit_per_sample = link->sound()->bitsPerSample();
-                    media.encoding = convert_sound_encoding.value(link->sound()->soundEncoding(), PdfDocument::EmbeddedMedia::SoundEncodingRaw);
+                    EmbeddedMedia media = embeddedSound(link->sound(), area);
                     media.volume = link->volume();
                     media.mode = link->repeat() ? PdfDocument::MediaAnnotation::Once : PdfDocument::MediaAnnotation::Repeat;
                     list->append(media);

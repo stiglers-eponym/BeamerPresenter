@@ -394,7 +394,7 @@ void SlideScene::receiveAction(const Action action)
         playPauseMedia();
         break;
     case Mute:
-        for (const auto &m : mediaItems)
+        for (const auto &m : qAsConst(mediaItems))
 #if (QT_VERSION_MAJOR >= 6)
             if (m.audio_out)
                 m.audio_out->setMuted(true);
@@ -404,7 +404,7 @@ void SlideScene::receiveAction(const Action action)
 #endif
         break;
     case Unmute:
-        for (const auto &m : mediaItems)
+        for (const auto &m : qAsConst(mediaItems))
 #if (QT_VERSION_MAJOR >= 6)
             if (m.audio_out)
                 m.audio_out->setMuted(false);

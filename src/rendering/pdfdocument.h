@@ -151,7 +151,6 @@ public:
         /// Types of links in PDF.
         /// These are all negative, because positive values are interpreted as page
         /// numbers for internal navigation links.
-        /// \todo implement other than internal links
         enum LinkType
         {
             /// Link of unknown type.

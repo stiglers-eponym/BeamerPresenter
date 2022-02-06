@@ -96,11 +96,6 @@ void PdfMaster::receiveAction(const Action action)
 {
     switch (action)
     {
-    case ReloadFiles:
-        if (loadDocument())
-            // TODO: implement update
-            emit update();
-        break;
     case UndoDrawing:
     case UndoDrawingLeft:
     case UndoDrawingRight:

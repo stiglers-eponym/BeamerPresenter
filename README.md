@@ -125,7 +125,7 @@ When reporting bugs, please include the version string of BeamerPresenter
 #### User interface
 * Tool buttons can be changed in the user interface, but these changes are not saved. Buttons are part of the user interface, which can only be changed (permanently) by editing the JSON-formatted configuration file.
 #### Drawing/annotating
-* The detection of unsaved changes is quite unreliable. The warning when closing beamerpresenter with unsaved changes can be avoided by using the action "quit unsafe" instead of "quit".
+* The detection of unsaved changes is not reliable. The warning when closing beamerpresenter with unsaved changes can be avoided by using the action "quit unsafe" instead of "quit".
 #### Slide transitions
 * Sometimes the slides are not automatically rendered to the correct size when resizing the window. Changing or updating the page should solve this problem.
 * Some slide transitions need to stop videos. Fly slide transitions during videos look strange.
