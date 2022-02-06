@@ -1,6 +1,10 @@
-#include <QFileDialog>
+#include <QDir>
+#include <QPen>
+#include <QJsonDocument>
+#include <QJsonArray>
 #include "src/preferences.h"
 #include "src/rendering/pdfdocument.h"
+#include "src/drawing/drawtool.h"
 #include "src/drawing/texttool.h"
 #include "src/names.h"
 

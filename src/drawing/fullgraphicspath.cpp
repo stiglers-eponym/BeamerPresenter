@@ -1,5 +1,4 @@
 #include <QPainter>
-#include <QStyleOptionGraphicsItem>
 #include "src/drawing/fullgraphicspath.h"
 
 #ifdef QT_DEBUG

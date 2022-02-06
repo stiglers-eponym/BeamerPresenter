@@ -3,18 +3,13 @@
 
 #include <QSettings>
 #include <QCommandLineParser>
-#include <QPen>
 #include <QDebug>
-#include <QJsonArray>
 #include <QJsonObject>
-#include <QJsonDocument>
 #include "src/enumerates.h"
 #include "src/pdfmaster.h"
-#include "src/drawing/drawtool.h"
 #include "src/drawing/pointingtool.h"
 #include "src/rendering/abstractrenderer.h"
 
-class Tool;
 class DrawTool;
 
 /// Debug flags: combinable debug flags
