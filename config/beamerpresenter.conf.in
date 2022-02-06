@@ -1,38 +1,56 @@
 [General]
-cache%20pages=-1
-gui%20config="@ABS_GUI_CONFIG_PATH@"
+# maximum number of pages in cache (negative numbers treated as infinity)
+cache pages=-1
+# path to GUI configuration file
+gui config="@ABS_GUI_CONFIG_PATH@"
+# path to HTML manual
 manual="@ABS_DOC_PATH@README.html"
+# maximum memory size (in bytes, default is 100MiB)
 memory=1.0486e+08
+# enable/disable gestures
 gestures=true
-frame%20time=50
-automatic%20slide%20changes=true
-external%20links=false
+# minimum time per frame in animations
+frame time=50
+# enable automatic slide changes as defined in the PDF
+automatic slide changes=true
+# follow external links (open using external programs like a browser)
+external links=false
 
 [drawing]
-history%20length%20hidden=20
-history%20length%20visible=50
+# number of history steps on the currently shown slide
+history length visible=50
+# number of history steps on other slides
+history length hidden=20
+# mode for drawings when multiple pages share the same page label.
+# allowed values: "per page", "per label", "cumulative".
+# see man 5 beamerpresenter.conf for details.
 mode=cumulative
 
 [keys]
-Ctrl%2BO=open
-Ctrl%2BS=save
-Ctrl%2BShift%2BS=save as
-Ctrl%2BY=redo left, redo right, redo
-Ctrl%2BZ=undo left, undo right, undo
-Ctrl%2BQ=quit
+Ctrl+O=open
+Ctrl+S=save
+Ctrl+Shift+S=save as
+Ctrl+Y=redo left, redo right, redo
+Ctrl+Z=undo left, undo right, undo
+Ctrl+Q=quit
 F11=fullscreen
 PgDown=next
 PgUp=previous
-Shift%2BPgDown=next skipping overlays
-Shift%2BPgUp=previous skipping overlays
-Shift%2BC=clear, clear left, clear right
+Shift+PgDown=next skipping overlays
+Shift+PgUp=previous skipping overlays
+Shift+C=clear, clear left, clear right
 End=last
 Home=first
 P=toggle timer
 Space=update
 
 [rendering]
-page%20part%20threshold=2.5
+# Assume that slides show a presentation and notes for the speaker side-by-side
+# if the ratio width/height of the slide is larger than this threshold.
+page part threshold=2.5
+# default renderer
 renderer=@DEFAULT_RENDERER@
-rendering%20command=/usr/bin/mutool
-rendering%20arguments=draw,-F%format,-w%width,-h%height,-o-,%file,%page
+# command for external renderer
+rendering command=/usr/bin/mutool
+# arguments for external renderer
+rendering arguments=draw,-F%format,-w%width,-h%height,-o-,%file,%page

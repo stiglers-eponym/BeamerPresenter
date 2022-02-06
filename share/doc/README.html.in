@@ -1,21 +1,23 @@
 <h1>BeamerPresenter Manual</h1>
 
 <p>This program allows you to show a presentation to your audience while having all information you need on your screen.
-The presentation must be PDF files.
+The presentation must be a PDF file.
 It is assumed that the arrangement of windows and screens is done by the window manager (i.e. the user). BeamerPresenter will never try to take control over you screens by itself.</p>
 
 <h2>Configuration</h2>
 <p>BeamerPresenter is highly customizable. But only a part of the configuration can be done using a graphical interface.</p>
+<p>
 An overview:
 <ul>
-    <li>keyboard shortcuts: can be done using the graphical interface with some limitations.</li>
-    <li>general settings: almost all settings can be done using the graphical interface. Some settings require a restart. Documented in <code>man 5 beamerpresenter.config</code>.</li>
+    <li>keyboard shortcuts: can be defined using the graphical interface (though manually editing the configuration file offers a bit more flexibility).</li>
+    <li>general settings: almost all settings can be changed using the graphical interface. Some settings require a restart. Documented in <code>man 5 beamerpresenter.conf</code>.</li>
     <li>user interface: cannot be configured using the graphical interface. Documented in <code>man 5 beamerpresenter-ui</code>.</li>
 </ul>
+</p>
 
 <h2>Interface</h2>
-<p>BeamerPresenter creates one or more windows consisting of one or more widgets. The windows and widgets are defined by a JSON file as documented in <code>man 5 beamerpresenter-ui</code>. You may create a custom file or multiple configuration files for different presentation formats.
-Examples can be found in /usr/share/doc/beamerpresenter/examples/.
+<p>BeamerPresenter creates windows consisting of widgets. The windows and widgets are defined by a JSON file as documented in <code>man 5 beamerpresenter-ui</code>. You can create a custom file or use multiple configuration files for different presentation formats.
+Examples can be found in @ABS_DOC_PATH@/examples.
 The most important widget is the slide widget. It shows a slide of a presentation. For the audience you usually have a window which consists only of a single slide widget.
 Slide widgets can also be used to show the speaker a preview of the next slides.</p>
 
@@ -58,9 +60,7 @@ Note that the widget must have focus when using these shortcuts.
 The notes will be saved in a simple xml document.</p>
 
 <h2>License</h2>
-<p>This software may be redistributed and/or modified under the terms of the GNU Affero General Public License (AGPL), version 3, available on the <a href="https://www.gnu.org/licenses/agpl-3.0.html">GNU web site</a>. This license is chosen in order to ensure compatibility with the software libraries used by BeamerPresenter, including Qt, MuPDF, and poppler.</p>
-<p>BeamerPresenter can be compiled without including MuPDF, using only poppler as a PDF engine.
-Those parts of the software which can be used without linking to MuPDF may, alternatively to the AGPL, be redistributed and/or modified under the terms of the GNU General Public License (GPL), version 3 or any later version, available on the <a href="https://www.gnu.org/licenses/gpl-3.0.html">GNU web site</a>.</p>
+@HTML_LICENSE_STRING@
 <p>BeamerPresenter is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the

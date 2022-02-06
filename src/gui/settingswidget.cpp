@@ -197,10 +197,11 @@ void SettingsWidget::initMisc()
                 tr("Configuration file for the graphical user interface (GUI). "
                    "This file defines which widgets are shown in the modular GUI. "
                    "The file is JSON formatted and documented in man 5 beamerpresenter-ui. "
-                   "Examples can be found in " DOC_PATH "examples. This setting "
-                   "only takes effect after restarting BeamerPresenter. Note that "
-                   "with an invalid GUI configuration file BeamerPresenter cannot start. "
-                   "The current GUI configuration file is ") + preferences()->gui_config_file + ".",
+                   "Examples can be found in ")
+                + DOC_PATH "/examples. "
+                + tr("This setting only takes effect after restarting BeamerPresenter. Note "
+                   "that with an invalid GUI configuration file BeamerPresenter cannot start. "
+                   "Currently the default GUI configuration file is ") + preferences()->gui_config_file + ".",
                 misc);
     explanation_label->setTextFormat(Qt::PlainText);
     explanation_label->setWordWrap(true);
@@ -241,7 +242,7 @@ void SettingsWidget::initMisc()
     explanation_label->setWordWrap(true);
     layout->addRow(explanation_label);
 
-    QCheckBox *box = new QCheckBox("log slide changes", misc);
+    QCheckBox *box = new QCheckBox(tr("log slide changes"), misc);
     box->setChecked(preferences()->global_flags & Preferences::LogSlideChanges);
     connect(box, QOverload<bool>::of(&QCheckBox::clicked), writable_preferences(), &Preferences::setLogSlideChanges);
     layout->addRow(box);

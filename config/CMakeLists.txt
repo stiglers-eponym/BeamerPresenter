@@ -3,7 +3,7 @@ if (USE_MUPDF)
 else()
     set(DEFAULT_RENDERER poppler)
 endif()
-configure_file(beamerpresenter.conf.in beamerpresenter.conf)
+configure_file(beamerpresenter.conf.in beamerpresenter.conf @ONLY)
 install(FILES
     "${CMAKE_CURRENT_BINARY_DIR}/beamerpresenter.conf"
     "${CMAKE_CURRENT_SOURCE_DIR}/gui.json"

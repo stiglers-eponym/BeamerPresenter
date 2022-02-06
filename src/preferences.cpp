@@ -201,7 +201,7 @@ void Preferences::loadSettings()
     {
         // Paths to required files / directories
         gui_config_file = settings.value("gui config", DEFAULT_GUI_CONFIG_PATH).toString();
-        manual_file = settings.value("manual", DOC_PATH "README.html").toString();
+        manual_file = settings.value("manual", DOC_PATH "/README.html").toString();
         icon_path = settings.value("icon path", DEFAULT_ICON_PATH).toString();
         const QString icontheme = settings.value("icon theme").toString();
         if (!icontheme.isEmpty())

@@ -122,17 +122,17 @@
         <translation>BeamerPresenter/Xournal++-Dateien (*.bpr *.xopp);;Alle Dateien (*)</translation>
     </message>
     <message>
-        <location filename="../src/main.cpp" line="132"/>
+        <location filename="../src/main.cpp" line="135"/>
         <source>Error while loading GUI config</source>
         <translation>Fehler beim Laden der Konfiguration der Benutzeroberfläche</translation>
     </message>
     <message>
-        <location filename="../src/main.cpp" line="133"/>
+        <location filename="../src/main.cpp" line="136"/>
         <source>Loading GUI config file failed for filename &quot;</source>
         <translation>Laden der Konfiguration der Benutzeroberfläche ist fehlgeschlagen für den Dateinamen &quot;</translation>
     </message>
     <message>
-        <location filename="../src/main.cpp" line="135"/>
+        <location filename="../src/main.cpp" line="138"/>
         <source>&quot;. Using fallback GUI config file </source>
         <translation>&quot;. Benutze stattdessen die Standardkonfiguration in </translation>
     </message>
@@ -249,12 +249,12 @@
 <context>
     <name>Preferences</name>
     <message>
-        <location filename="../src/preferences.cpp" line="726"/>
+        <location filename="../src/preferences.cpp" line="730"/>
         <source>Invalid file</source>
         <translation>Keine valide Datei ausgewählt</translation>
     </message>
     <message>
-        <location filename="../src/preferences.cpp" line="726"/>
+        <location filename="../src/preferences.cpp" line="730"/>
         <source>GUI config file not set because it is not a valid file: </source>
         <translation>Konfiguration der Benutzeroberfläche konnte nicht geändert werden, da keine valide Datei ausgewählt wurde: </translation>
     </message>
@@ -397,82 +397,92 @@ Konfiguriere Zwischenspeicher (Cache). Folien werden in gerendert und in einen k
         <translation>Konfigurationsdatei für die graphische Benutzeroberfläche (GUI). Diese Datei definiert, welche Widgets in der modularen Oberfläche angezeigt werden. Die Datei ist JSON-formatiert und in man 5 beamerpresenter-ui dokumentiert. Beispiele gibt es in </translation>
     </message>
     <message>
-        <location filename="../src/gui/settingswidget.cpp" line="208"/>
+        <location filename="../src/gui/settingswidget.cpp" line="202"/>
+        <source>This setting only takes effect after restarting BeamerPresenter. Note that with an invalid GUI configuration file BeamerPresenter cannot start. Currently the default GUI configuration file is </source>
+        <translation>Diese Einstellung wird erst nach einem Neustart wirksam. Mit einer fehlerhaften GUI-Konfiguration kann BeamerPresenter nicht starten. Der aktuelle Wert dieser Einstellung ist </translation>
+    </message>
+    <message>
+        <location filename="../src/gui/settingswidget.cpp" line="209"/>
         <source>select GUI configuration file</source>
         <translation>Wähle Konfigurationsdatei aus</translation>
     </message>
     <message>
-        <location filename="../src/gui/settingswidget.cpp" line="214"/>
+        <location filename="../src/gui/settingswidget.cpp" line="215"/>
         <source>Number of drawing history steps (undo/redo). Drawing history is kept separately for each slide.</source>
         <translation>Anzahl von möglichen Schrittten zum Rückgängig machen. Die Historie der Anmerkungen wird für jede Seite separat gespeichert.</translation>
     </message>
     <message>
-        <location filename="../src/gui/settingswidget.cpp" line="226"/>
+        <location filename="../src/gui/settingswidget.cpp" line="227"/>
         <source>History length visible slides</source>
         <translation>Länge der Historie für sichtbare Folien</translation>
     </message>
     <message>
-        <location filename="../src/gui/settingswidget.cpp" line="233"/>
+        <location filename="../src/gui/settingswidget.cpp" line="234"/>
         <source>History length hidden slides</source>
         <translation>Länge der Historie für nicht sichtbare Folien</translation>
     </message>
     <message>
-        <location filename="../src/gui/settingswidget.cpp" line="237"/>
+        <location filename="../src/gui/settingswidget.cpp" line="238"/>
         <source>If opened in a terminal, slide changes can be logged to standard output with a time stamp.</source>
-        <translation>Wenn das Programm im Terminal geöffnet wurde, werden mit dieser Option Änderungen der Seitenzahl und die Zeit der Änderung im Terminal angezeigt.</translation>
+        <translation>Wenn das Programm im Terminal geöffnet wurde, wird mit dieser Option das Blättern durch die Folie mit dem jeweiligen Zeitpunkt im Terminal aufgezeichnet.</translation>
     </message>
     <message>
-        <location filename="../src/gui/settingswidget.cpp" line="251"/>
+        <location filename="../src/gui/settingswidget.cpp" line="245"/>
+        <source>log slide changes</source>
+        <translation>Blättern durch Folien aufzeichnen</translation>
+    </message>
+    <message>
+        <location filename="../src/gui/settingswidget.cpp" line="252"/>
         <source>Enable/disable automatic slide switching if durations for slides are defined in the PDF.</source>
         <translation>Aktiviere/deaktiviere automatische Änderung der Folie wenn im PDF eine Dauer für die Folie angegeben ist.</translation>
     </message>
     <message>
-        <location filename="../src/gui/settingswidget.cpp" line="258"/>
+        <location filename="../src/gui/settingswidget.cpp" line="259"/>
         <source>automatic slide changes</source>
         <translation>automatische Änderung der Seitenzahl</translation>
     </message>
     <message>
-        <location filename="../src/gui/settingswidget.cpp" line="264"/>
+        <location filename="../src/gui/settingswidget.cpp" line="265"/>
         <source>open external links</source>
         <translation>externe Links öffnen</translation>
     </message>
     <message>
-        <location filename="../src/gui/settingswidget.cpp" line="272"/>
+        <location filename="../src/gui/settingswidget.cpp" line="273"/>
         <source>Define how drawings should be handled if multiple successive pages share the same page label (e.g. because they show overlays of the same slide).</source>
         <translation>Definiere wie Anmerkungen gehandhabt werden, wenn mehrere Seiten im PDF-Dokument das gleiche Label (gleiche angezeigte Seitenzahl) haben (z.B. weil sie zur gleichen Folie gehören, sog. Overlays).</translation>
     </message>
     <message>
-        <location filename="../src/gui/settingswidget.cpp" line="276"/>
+        <location filename="../src/gui/settingswidget.cpp" line="277"/>
         <source>all pages are treated separately.</source>
         <translation>Alle Seiten werden separat behandelt.</translation>
     </message>
     <message>
-        <location filename="../src/gui/settingswidget.cpp" line="277"/>
+        <location filename="../src/gui/settingswidget.cpp" line="278"/>
         <source>pages with the same label also have the same drawings.</source>
         <translation>Seiten mit dem gleichen Label haben auch die gleichen Anmerkungen.</translation>
     </message>
     <message>
-        <location filename="../src/gui/settingswidget.cpp" line="278"/>
+        <location filename="../src/gui/settingswidget.cpp" line="279"/>
         <source>when reaching a page with no drawings (and no drawings history), which has the same label as the previous page, the drawings from the previous page are copied to this page.</source>
         <translation>Wenn eine Seite ohne Anmerkungen und ohne Historie von Anmerkungen, die das selbe Label wie die vorherige Seite hat, aufgerufen wird, werden die Anmerkungen der vorherigen Seite übernommen und dafür kopiert.</translation>
     </message>
     <message>
-        <location filename="../src/gui/settingswidget.cpp" line="292"/>
+        <location filename="../src/gui/settingswidget.cpp" line="293"/>
         <source>drawing mode for overlays</source>
         <translation>Modus für Anmerkungen in Overlays</translation>
     </message>
     <message>
-        <location filename="../src/gui/settingswidget.cpp" line="319"/>
+        <location filename="../src/gui/settingswidget.cpp" line="320"/>
         <source>Select new GUI configuration file</source>
         <translation>Neue Konfigurationsdatei für die Benutzeroberfläche</translation>
     </message>
     <message>
-        <location filename="../src/gui/settingswidget.cpp" line="321"/>
+        <location filename="../src/gui/settingswidget.cpp" line="322"/>
         <source>JSON files (*.json);;all files (*)</source>
         <translation>JSON-Dateien (*.json);;Alle Dateien (*)</translation>
     </message>
     <message>
-        <location filename="../src/gui/settingswidget.cpp" line="324"/>
+        <location filename="../src/gui/settingswidget.cpp" line="325"/>
         <source>misc (restart required)</source>
         <translation>Allgemein (Neustart ausstehend)</translation>
     </message>

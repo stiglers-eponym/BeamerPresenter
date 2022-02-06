@@ -61,7 +61,6 @@ set(DOC_PATH
     CACHE STRING
     "Directory for storing the documentation and example configurations")
 GNUInstallDirs_get_absolute_install_dir(ABS_DOC_PATH DOC_PATH DOCDIR)
-set(ABS_DOC_PATH "${ABS_DOC_PATH}/")
 
 set(TRANSLATION_PATH
     "${CMAKE_INSTALL_DATAROOTDIR}/beamerpresenter/translations"
