@@ -121,6 +121,7 @@ When reporting bugs, please include the version string of BeamerPresenter
     * when you use the magnifier or torch while a video is played when there are also drawings on the same slide. The magnifier generally has rather limited performance when used on a slide that contains drawings.
     * when using multiple magnifiers (yes, that's possible, but you shouldn't do that)
 * Embedded sounds are unsupported, only links to external files can be played.
+* Sounds included as sound link (not sound annotation) are unsupported when using MuPDF.
 #### User interface
 * Tool buttons can be changed in the user interface, but these changes are not saved. Buttons are part of the user interface, which can only be changed (permanently) by editing the JSON-formatted configuration file.
 #### Drawing/annotating
@@ -129,7 +130,7 @@ When reporting bugs, please include the version string of BeamerPresenter
 * Sometimes the slides are not automatically rendered to the correct size when resizing the window. Changing or updating the page should solve this problem.
 * Some slide transitions need to stop videos. Fly slide transitions during videos look strange.
 * If a preview shows specific overlays, slide changes adding or removing synchronization of this preview with another widget may lead to short flickering. Slide transitions during such slide changes can contain some ugly artifacts.
-#### Backend
+#### PDF backend
 * When compiling with both MuPDF and poppler, trying to open a PDF with renderer=poppler can result in a segmentation fault for some PDFs (when loading the document or when reaching a certain page). The reason might be a linkage problem with some colorspace functions. It is recommended to compile with only one PDF engine.
 * In MuPDF only a smaller subset of PDF link types is supported (only internal navigation links and external links) as compared to the Poppler version.
 * Some effects (animations, slide transitions) might not work as expected if (at least) one window showing the slide is currently hidden and not updated by the window manager.

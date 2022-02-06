@@ -583,14 +583,19 @@ QUrl Preferences::resolvePath(const QString &identifier) const noexcept
         basedir = QDir(document->getPath());
         basedir.cdUp();
     }
+    // First check if identifier is a local file given as absoltue path or
+    // as path relative to the presentation directory.
     if (basedir.exists(identifier))
         return QUrl::fromLocalFile(basedir.absoluteFilePath(identifier));
+    // Next check if identifier is a path relative to the current directory.
     if (QDir().exists(identifier))
         return QUrl::fromLocalFile(QDir().absoluteFilePath(identifier));
+    // Next use QUrl heuristics to find a url, first trying to find local files.
     QUrl url = QUrl::fromUserInput(identifier, basedir.absolutePath(), QUrl::AssumeLocalFile);
     if (url.isLocalFile() && QDir(url.toLocalFile()).exists())
         return url;
     url = QUrl::fromUserInput(identifier);
+    // Remote URLs are only returned if external links are enabled.
     if ((global_flags & OpenExternalLinks) || url.isLocalFile())
         return url;
     return QUrl();

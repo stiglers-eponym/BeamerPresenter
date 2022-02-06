@@ -8,12 +8,6 @@ MediaPlayer::MediaPlayer(QObject *parent) :
     connect(timer, &QTimer::timeout, this, &MediaPlayer::checkPosition);
 }
 
-void MediaPlayer::repeatIfFinished(MediaPlayer::MediaStatus status) noexcept
-{
-    if (status == QMediaPlayer::EndOfMedia)
-        play();
-}
-
 void MediaPlayer::checkPosition()
 {
     debug_msg(DebugMedia, "check position" << seekpos << position());

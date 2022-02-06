@@ -17,7 +17,9 @@ class MediaSlider : public QSlider
 
 public:
     /// Trivial constructor.
-    explicit MediaSlider(QWidget *parent = NULL) : QSlider(Qt::Horizontal, parent) {}
+    explicit MediaSlider(QWidget *parent = NULL) :
+        QSlider(Qt::Horizontal, parent)
+        {setFocusPolicy(Qt::NoFocus);}
     /// Trivial destructor.
     ~MediaSlider() noexcept {}
 
