@@ -575,6 +575,27 @@ void Preferences::setRenderer(const QString &string)
 #endif
 }
 
+QUrl Preferences::resolvePath(const QString &identifier) const noexcept
+{
+    QDir basedir;
+    if (document)
+    {
+        basedir = QDir(document->getPath());
+        basedir.cdUp();
+    }
+    if (basedir.exists(identifier))
+        return QUrl::fromLocalFile(basedir.absoluteFilePath(identifier));
+    if (QDir().exists(identifier))
+        return QUrl::fromLocalFile(QDir().absoluteFilePath(identifier));
+    QUrl url = QUrl::fromUserInput(identifier, basedir.absolutePath(), QUrl::AssumeLocalFile);
+    if (url.isLocalFile() && QDir(url.toLocalFile()).exists())
+        return url;
+    url = QUrl::fromUserInput(identifier);
+    if ((global_flags & OpenExternalLinks) || url.isLocalFile())
+        return url;
+    return QUrl();
+}
+
 Tool *Preferences::currentTool(const int device) const noexcept
 {
     for (const auto tool : preferences()->current_tools)

@@ -115,7 +115,7 @@ MuPdfDocument::~MuPdfDocument()
 bool MuPdfDocument::loadDocument()
 {
     // Check if the file exists.
-    QFileInfo const fileinfo(path);
+    const QFileInfo fileinfo(path);
     if (!fileinfo.exists() || !fileinfo.isFile())
     {
         preferences()->showErrorMessage(
@@ -576,7 +576,7 @@ const PdfDocument::PdfLink *MuPdfDocument::linkAt(const int page, const QPointF 
                 else
                 {
                     // External link
-                    const QUrl url(link->uri);
+                    const QUrl url = preferences()->resolvePath(link->uri);
                     if (url.isValid())
                     {
                         result = new ExternalLink({url.isLocalFile() ? PdfLink::LocalUrl : PdfLink::RemoteUrl, rect, url});
@@ -624,15 +624,15 @@ QList<PdfDocument::MediaAnnotation> *MuPdfDocument::annotations(const int page) 
                     qWarning() << "Error while reading movie annotation";
                     break;
                 }
-                const QFileInfo fileinfo(pdf_dict_get_text_string(ctx, media_obj, PDF_NAME(F)));
+                const QUrl url = preferences()->resolvePath(pdf_dict_get_text_string(ctx, media_obj, PDF_NAME(F)));
                 //pdf_drop_obj(ctx, media_obj);
-                if (!fileinfo.exists())
+                if (!url.isValid())
                     continue;
                 fz_rect bound = pdf_bound_annot(ctx, annot);
                 if (list == NULL)
                     list = new QList<MediaAnnotation>();
                 list->append(MediaAnnotation(
-                            QUrl::fromLocalFile(fileinfo.absoluteFilePath()),
+                            url,
                             true,
                             QRectF(bound.x0, bound.y0, bound.x1-bound.x0, bound.y1-bound.y0)
                         ));
@@ -670,9 +670,9 @@ QList<PdfDocument::MediaAnnotation> *MuPdfDocument::annotations(const int page) 
                     warn_msg("Error while reading sound annotation");
                     break;
                 }
-                const QFileInfo fileinfo(pdf_dict_get_text_string(ctx, media_obj, PDF_NAME(F)));
+                const QUrl url = preferences()->resolvePath(pdf_dict_get_text_string(ctx, media_obj, PDF_NAME(F)));
                 //pdf_drop_obj(ctx, media_obj);
-                if (!fileinfo.exists())
+                if (!url.isValid())
                 {
                     warn_msg("Failed to load sound object: file not found or unsupported embedded sound");
                     continue;
@@ -681,7 +681,7 @@ QList<PdfDocument::MediaAnnotation> *MuPdfDocument::annotations(const int page) 
                 if (list == NULL)
                     list = new QList<MediaAnnotation>();
                 list->append(MediaAnnotation(
-                            QUrl::fromLocalFile(fileinfo.absoluteFilePath()),
+                            url,
                             false,
                             QRectF(bound.x0, bound.y0, bound.x1-bound.x0, bound.y1-bound.y0)
                         ));

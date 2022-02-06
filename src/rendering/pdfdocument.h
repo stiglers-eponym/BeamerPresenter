@@ -47,16 +47,16 @@ public:
             /// flag for embedded media annnotation. Not embedded means external file.
             Embedded = 1 << 2,
             /// embedded video (doesn't exist, but why not included it here)
-            VideoEmbedded = 7,
+            VideoEmbedded = HasVideo | HasAudio | Embedded,
             /// embedded audio (currently not supported)
-            AudioEmbedded = 5,
+            AudioEmbedded = HasAudio | Embedded,
             /// external video (with audio)
-            VideoExternal = 3,
+            VideoExternal = HasVideo | HasAudio,
             /// external audio-only file
-            AudioExternal = 1,
+            AudioExternal = HasAudio,
         };
         /// Media type.
-        int type = InvalidAnnotation;
+        Type type = InvalidAnnotation;
 
         /// Play modes of media.
         enum Mode
@@ -82,9 +82,11 @@ public:
         /// Trivial constructor.
         MediaAnnotation() : file(), type(InvalidAnnotation), mode(InvalidMode), rect() {}
         /// Constructor for full initialization.
-        MediaAnnotation(const QUrl &url, const bool hasvideo, const QRectF &rect) : file(url), type(hasvideo ? 3 : 1), mode(Once), rect(rect) {}
+        MediaAnnotation(const QUrl &url, const bool hasvideo, const QRectF &rect) :
+            file(url), type(hasvideo ? VideoExternal : AudioExternal), mode(Once), rect(rect) {}
         /// Constructor without file.
-        MediaAnnotation(const int type, const QRectF &rect) : file(QUrl()), type(type), mode(Once), rect(rect) {}
+        MediaAnnotation(const Type type, const QRectF &rect) :
+            file(QUrl()), type(type), mode(Once), rect(rect) {}
         /// Trivial destructor.
         virtual ~MediaAnnotation() {}
         /// Comparison by media type, file, mode, and rect.
@@ -131,7 +133,8 @@ public:
         compression = Uncompressed;
 
         /// Constructor
-        EmbeddedMedia(const QByteArray &data, int sampling_rate, const QRectF &rect) : MediaAnnotation(5, rect), data(data), sampling_rate(sampling_rate) {}
+        EmbeddedMedia(const QByteArray &data, int sampling_rate, const QRectF &rect) :
+            MediaAnnotation(AudioEmbedded, rect), data(data), sampling_rate(sampling_rate) {}
         /// Trivial destructor
         virtual ~EmbeddedMedia() {}
         /// Comparison by all properties, including data.

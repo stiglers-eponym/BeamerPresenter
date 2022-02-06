@@ -45,7 +45,7 @@ const QSizeF PopplerDocument::pageSize(const int page) const
 bool PopplerDocument::loadDocument()
 {
     // Check if the file exists.
-    QFileInfo const fileinfo(path);
+    const QFileInfo fileinfo(path);
     if (!fileinfo.exists() || !fileinfo.isFile())
     {
         preferences()->showErrorMessage(
@@ -314,7 +314,7 @@ const PdfDocument::PdfLink *PopplerDocument::linkAt(const int page, const QPoint
 #else
                 const Poppler::LinkBrowse *browselink = static_cast<Poppler::LinkBrowse*>(*it);
 #endif
-                QUrl url(browselink->url());
+                const QUrl url = preferences()->resolvePath(browselink->url());
                 if (url.isValid())
                     return new ExternalLink({url.isLocalFile() ? PdfLink::LocalUrl : PdfLink::RemoteUrl, rect, url});
                 break;
@@ -361,13 +361,13 @@ const PdfDocument::PdfLink *PopplerDocument::linkAt(const int page, const QPoint
                     break;
                 case Poppler::SoundObject::External:
                 {
-                    QFileInfo fileinfo(sound->url());
-                    debug_verbose(DebugMedia, "Found sound annotation:" << fileinfo.filePath() << "on page" << page);
-                    if (fileinfo.exists())
+                    const QUrl url = preferences()->resolvePath(sound->url());
+                    debug_verbose(DebugMedia, "Found sound annotation:" << url << "on page" << page);
+                    if (url.isValid())
                         return new MediaLink({
                                          PdfLink::SoundLink,
                                          rect,
-                                         MediaAnnotation(QUrl::fromLocalFile(fileinfo.absoluteFilePath()), false, rect)
+                                         MediaAnnotation(url, false, rect)
                                      });
                     break;
                 }
@@ -415,15 +415,15 @@ QList<PdfDocument::MediaAnnotation> *PopplerDocument::annotations(const int page
 #else
             const Poppler::MovieObject *movie = static_cast<Poppler::MovieAnnotation*>(*it)->movie();
 #endif
-            QFileInfo fileinfo(movie->url());
-            if (fileinfo.exists())
+            const QUrl url = preferences()->resolvePath(movie->url());
+            if (url.isValid())
             {
                 list->append(MediaAnnotation(
-                            QUrl::fromLocalFile(fileinfo.absoluteFilePath()),
+                            url,
                             true,
                             QRectF(pageSize.width()*(*it)->boundary().x(), pageSize.height()*(*it)->boundary().y(), pageSize.width()*(*it)->boundary().width(), pageSize.height()*(*it)->boundary().height())
                 ));
-                debug_verbose(DebugMedia, "Found video annotation:" << fileinfo.filePath() << "on page" << page);
+                debug_verbose(DebugMedia, "Found video annotation:" << url << "on page" << page);
                 switch (movie->playMode())
                 {
                 case Poppler::MovieObject::PlayOpen:
@@ -465,10 +465,10 @@ QList<PdfDocument::MediaAnnotation> *PopplerDocument::annotations(const int page
                 break;
             case Poppler::SoundObject::External:
             {
-                QFileInfo fileinfo(sound->url());
-                debug_verbose(DebugMedia, "Found sound annotation:" << fileinfo.filePath() << "on page" << page);
-                if (fileinfo.exists())
-                    list->append(MediaAnnotation(QUrl::fromLocalFile(fileinfo.absoluteFilePath()), false, area));
+                const QUrl url = preferences()->resolvePath(sound->url());
+                debug_verbose(DebugMedia, "Found sound annotation:" << url << "on page" << page);
+                if (url.isValid())
+                    list->append(MediaAnnotation(url, false, area));
                 break;
             }
             }
@@ -510,10 +510,10 @@ QList<PdfDocument::MediaAnnotation> *PopplerDocument::annotations(const int page
                 break;
             case Poppler::SoundObject::External:
             {
-                QFileInfo fileinfo(link->sound()->url());
-                debug_verbose(DebugMedia, "Found sound link:" << fileinfo.filePath() << "on page" << page);
-                if (fileinfo.exists())
-                    list->append(MediaAnnotation(QUrl::fromLocalFile(fileinfo.absoluteFilePath()), false, area));
+                const QUrl url = preferences()->resolvePath(link->sound()->url());
+                debug_verbose(DebugMedia, "Found sound link:" << url << "on page" << page);
+                if (url.isValid())
+                    list->append(MediaAnnotation(url, false, area));
                 break;
             }
             }

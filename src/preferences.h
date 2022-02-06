@@ -236,6 +236,10 @@ public:
     void loadDebugFromParser(const QCommandLineParser &parser);
 #endif
 
+    /// Convert given file identifier to URL. If a relative path is provided,
+    /// first check relative to the directory of the presentation PDF.
+    QUrl resolvePath(const QString &identifier) const noexcept;
+
     /// Get the current tool for a given input device or NULL if there is no
     /// tool for this device. The tool remains owned by preferences().
     Tool *currentTool(const int device) const noexcept;

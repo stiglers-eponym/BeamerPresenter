@@ -13,7 +13,7 @@ gestures=true
 frame time=50
 # enable automatic slide changes as defined in the PDF
 automatic slide changes=true
-# follow external links (open using external programs like a browser)
+# follow external links and load remote media
 external links=false
 
 [drawing]
