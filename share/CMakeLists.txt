@@ -6,7 +6,7 @@ endif()
 
 configure_file(doc/README.html.in doc/README.html @ONLY)
 install(FILES
-    doc/README.html
+    "${PROJECT_BINARY_DIR}/share/doc/README.html"
     DESTINATION "${DOC_PATH}"
     OPTIONAL)
 install(FILES
