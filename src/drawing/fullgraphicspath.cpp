@@ -68,10 +68,10 @@ FullGraphicsPath::FullGraphicsPath(const FullGraphicsPath * const other, int fir
     bottom += _tool.width();
 }
 
-FullGraphicsPath::FullGraphicsPath(const DrawTool &tool, const QString &coordinate_input, const QString &weights) :
+FullGraphicsPath::FullGraphicsPath(const DrawTool &tool, const QString &coordinate_string, const QString &weights) :
     AbstractGraphicsPath(tool)
 {
-    QStringList coordinate_list = coordinate_input.split(' ');
+    QStringList coordinate_list = coordinate_string.split(' ');
     QStringList weight_list = weights.split(' ');
 
     // Initialize vectors with the correct length.

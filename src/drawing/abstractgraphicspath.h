@@ -14,6 +14,9 @@
  * Coordinates are given as positions in the PDF page, measured in points
  * as floating point values. These are the same units as used in SlideScene.
  *
+ * Different implementations of AbstractGraphicsPath can be distinguished by
+ * their QGraphicsItem::type().
+ *
  * @see BasicGraphicsPath
  * @see FullGraphicsPath
  */
@@ -28,15 +31,27 @@ protected:
      */
     DrawTool _tool;
 
+    /// Vector of nodes (coordinates).
+    QVector<QPointF> coordinates;
+
     ///@{
     /// Bounding rect coordinates
     qreal top, bottom, left, right;
     ///@}
 
+friend class BasicGraphicsPath;
+friend class StrokeRecognizer;
+
 public:
-    /// Constructor: initializing tool.
+    /// Constructor: initialize tool.
     /// @param tool tool for stroking this path
     AbstractGraphicsPath(const DrawTool tool) noexcept : _tool(tool) {}
+
+    /// Constructor: initialize tool and coordinates.
+    /// @param tool tool for stroking this path
+    /// @param coordinates vector of coordinates
+    AbstractGraphicsPath(const DrawTool tool, const QVector<QPointF> &coordinates) noexcept :
+        _tool(tool), coordinates(coordinates) {}
 
     /// Bounding rectangle of the drawing (including stroke width).
     /// @return bounding rect
@@ -44,15 +59,18 @@ public:
     {return QRectF(left, top, right-left, bottom-top);}
 
     /// @return number of nodes of the path
-    virtual int size() const noexcept = 0;
+    int size() const noexcept
+    {return coordinates.size();}
 
     /// Coordinate of the first node in the path.
     /// @return first point coordinate
-    virtual const QPointF firstPoint() const noexcept = 0;
+    const QPointF firstPoint() const noexcept
+    {return coordinates.isEmpty() ? QPointF() : coordinates.first();}
 
     /// Coordinate of the last node in the path.
     /// @return last point coordinate
-    virtual const QPointF lastPoint() const noexcept = 0;
+    const QPointF lastPoint() const noexcept
+    {return coordinates.isEmpty() ? QPointF() : coordinates.last();}
 
     /**
      * @brief Erase at position pos.

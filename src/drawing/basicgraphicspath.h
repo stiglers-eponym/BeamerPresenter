@@ -14,9 +14,6 @@ class RectGraphicsItem;
  */
 class BasicGraphicsPath : public AbstractGraphicsPath
 {
-    /// Vector of nodes (coordinates).
-    QVector<QPointF> data;
-
 public:
     /// Custom type of QGraphicsItem.
     enum { Type = UserType + 1 };
@@ -36,27 +33,18 @@ public:
     /// @param tool draw tool for stroking path
     /// @param coordinates string representing nodes as space separated numbers
     ///        in the form x1 y1 x2 y2 x3 y3 ...
-    BasicGraphicsPath(const DrawTool &tool, const QString &coordinates) noexcept;
+    BasicGraphicsPath(const DrawTool &tool, const QString &coordinate_string) noexcept;
 
     /// Construct subpath of other BasicGraphicsPath, including nodes first to
     /// last-1 of other.
     /// @param other other graphics path from which a subpath should be created
     /// @param first index of first node contained in the subpath.
     /// @param last index of first node after the subpath.
-    BasicGraphicsPath(const BasicGraphicsPath *const other, int first, int last);
+    BasicGraphicsPath(const AbstractGraphicsPath *const other, int first, int last);
 
     /// @return custom type of QGraphicsItem.
     int type() const noexcept override
     {return Type;}
-
-    int size() const noexcept override
-    {return data.size();}
-
-    const QPointF lastPoint() const noexcept override
-    {return data.isEmpty() ? QPointF() : data.last();}
-
-    const QPointF firstPoint() const noexcept override
-    {return data.isEmpty() ? QPointF() : data.first();}
 
     /// Paint this on given painter.
     /// @param painter paint to this painter.
@@ -64,7 +52,7 @@ public:
     /// @param widget currently ignored.
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget = NULL) override;
 
-    /// Add a point to data and update bounding rect.
+    /// Add a point to coordinates and update bounding rect.
     /// @param point new node
     void addPoint(const QPointF &point);
 

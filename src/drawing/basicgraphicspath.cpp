@@ -16,12 +16,11 @@ BasicGraphicsPath::BasicGraphicsPath(const DrawTool &tool, const QPointF &pos) n
     left = pos.x() - _tool.width();
     right = pos.x() + _tool.width();
     // Add first data point.
-    data.append(pos);
+    coordinates.append(pos);
 }
 
 BasicGraphicsPath::BasicGraphicsPath(const DrawTool &tool, const QVector<QPointF> &coordinates, const QRectF &bounding_rect) noexcept :
-    AbstractGraphicsPath(tool),
-    data(coordinates)
+    AbstractGraphicsPath(tool, coordinates)
 {
     top = bounding_rect.top();
     bottom = bounding_rect.bottom();
@@ -29,7 +28,7 @@ BasicGraphicsPath::BasicGraphicsPath(const DrawTool &tool, const QVector<QPointF
     right = bounding_rect.right();
 }
 
-BasicGraphicsPath::BasicGraphicsPath(const BasicGraphicsPath * const other, int first, int last) :
+BasicGraphicsPath::BasicGraphicsPath(const AbstractGraphicsPath * const other, int first, int last) :
     AbstractGraphicsPath(other->_tool)
 {
     // Make sure that first and last are valid.
@@ -42,25 +41,25 @@ BasicGraphicsPath::BasicGraphicsPath(const BasicGraphicsPath * const other, int 
         // This should never happen.
         return;
 
-    // Initialize data with the correct length.
-    data = QVector<QPointF>(length);
+    // Initialize coordinates with the correct length.
+    coordinates = QVector<QPointF>(length);
     // Initialize bounding rect.
-    top = other->data[first].y();
+    top = other->coordinates[first].y();
     bottom = top;
-    left = other->data[first].x();
+    left = other->coordinates[first].x();
     right = left;
-    // Copy data points from other and update bounding rect.
+    // Copy coordinates from other and update bounding rect.
     for (int i=0; i<length; i++)
     {
-        data[i] = other->data[i+first];
-        if ( data[i].x() < left )
-            left = data[i].x();
-        else if ( data[i].x() > right )
-            right = data[i].x();
-        if ( data[i].y() < top )
-            top = data[i].y();
-        else if ( data[i].y() > bottom )
-            bottom = data[i].y();
+        coordinates[i] = other->coordinates[i+first];
+        if ( coordinates[i].x() < left )
+            left = coordinates[i].x();
+        else if ( coordinates[i].x() > right )
+            right = coordinates[i].x();
+        if ( coordinates[i].y() < top )
+            top = coordinates[i].y();
+        else if ( coordinates[i].y() > bottom )
+            bottom = coordinates[i].y();
     }
     // Add finite stroke width to bounding rect.
     left -= _tool.width();
@@ -69,29 +68,29 @@ BasicGraphicsPath::BasicGraphicsPath(const BasicGraphicsPath * const other, int 
     bottom += _tool.width();
 }
 
-BasicGraphicsPath::BasicGraphicsPath(const DrawTool &tool, const QString &coordinates) noexcept :
+BasicGraphicsPath::BasicGraphicsPath(const DrawTool &tool, const QString &coordinate_string) noexcept :
     AbstractGraphicsPath(tool)
 {
-    QStringList coordinate_list = coordinates.split(' ');
-    data = QVector<QPointF>(coordinate_list.length()/2);
+    QStringList coordinate_list = coordinate_string.split(' ');
+    coordinates = QVector<QPointF>(coordinate_list.length()/2);
     qreal x, y;
     x = coordinate_list.takeFirst().toDouble();
     y = coordinate_list.takeFirst().toDouble();
-    data[0] = {x,y};
+    coordinates[0] = {x,y};
 
-    // Initialize data with the correct length.
+    // Initialize coordinates with the correct length.
     // Initialize bounding rect.
     top = y;
     bottom = y;
     left = x;
     right = x;
-    // Copy data points from other and update bounding rect.
+    // Copy coordinates from other and update bounding rect.
     int i=1;
     while (coordinate_list.length() > 1)
     {
         x = coordinate_list.takeFirst().toDouble();
         y = coordinate_list.takeFirst().toDouble();
-        data[i++] = {x,y};
+        coordinates[i++] = {x,y};
         if ( x < left )
             left = x;
         else if ( x > right )
@@ -110,23 +109,23 @@ BasicGraphicsPath::BasicGraphicsPath(const DrawTool &tool, const QString &coordi
 
 void BasicGraphicsPath::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
 {
-    if (data.isEmpty())
+    if (coordinates.isEmpty())
         return;
     painter->setRenderHint(QPainter::Antialiasing);
     painter->setPen(_tool.pen());
     painter->setCompositionMode(_tool.compositionMode());
-    if (data.length() == 1)
+    if (coordinates.length() == 1)
     {
-        painter->drawPoint(data.first());
+        painter->drawPoint(coordinates.first());
         return;
     }
 
     if (_tool.brush().style() == Qt::NoBrush)
-        painter->drawPolyline(data.constData(), data.size());
+        painter->drawPolyline(coordinates.constData(), coordinates.size());
     else
     {
         painter->setBrush(_tool.brush());
-        painter->drawPolygon(data.constData(), data.size());
+        painter->drawPolygon(coordinates.constData(), coordinates.size());
     }
 
 #ifdef QT_DEBUG
@@ -141,7 +140,7 @@ void BasicGraphicsPath::paint(QPainter *painter, const QStyleOptionGraphicsItem 
 
 void BasicGraphicsPath::addPoint(const QPointF &point)
 {
-    data.append(point);
+    coordinates.append(point);
     bool change = false;
     if ( point.x() < left + _tool.width() )
     {
@@ -177,9 +176,9 @@ QList<AbstractGraphicsPath*> BasicGraphicsPath::splitErase(const QPointF &pos, c
     QList<AbstractGraphicsPath*> list;
     const qreal sizesq = size*size;
     int first = 0, last = 0;
-    while (last < data.length())
+    while (last < coordinates.length())
     {
-        const QPointF diff = data[last++] - pos;
+        const QPointF diff = coordinates[last++] - pos;
         if (QPointF::dotProduct(diff, diff) < sizesq)
         {
             if (last > first + 2)
@@ -210,7 +209,7 @@ void BasicGraphicsPath::changeTool(const DrawTool &newtool) noexcept
 const QString BasicGraphicsPath::stringCoordinates() const noexcept
 {
     QString str;
-    for (const auto point : data)
+    for (const auto point : coordinates)
     {
         str += QString::number(point.x());
         str += ' ';

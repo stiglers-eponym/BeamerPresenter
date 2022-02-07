@@ -15,9 +15,6 @@
 class FullGraphicsPath : public AbstractGraphicsPath
 {
 private:
-    /// Vector of coordinates.
-    /// coordinates and pressures must always have the same length.
-    QVector<QPointF> coordinates;
     /// Vector of pressures (for each stroke segment).
     /// coordinates and pressures must always have the same length.
     QVector<float> pressures;
@@ -38,7 +35,7 @@ public:
     ///        in the form x1 y1 x2 y2 x3 y3 ...
     /// @param widths string representing stroke widths in points as space
     ///        separated list in the form w1 w2 w3 ...
-    FullGraphicsPath(const DrawTool &tool, const QString &coordinates, const QString &widths);
+    FullGraphicsPath(const DrawTool &tool, const QString &coordinate_string, const QString &widths);
 
     /// Construct subpath of other FullGraphicsPath, including nodes first to
     /// last-1 of other.
@@ -50,15 +47,6 @@ public:
     /// @return custom type of QGraphicsItem.
     int type() const noexcept override
     {return Type;}
-
-    int size() const noexcept override
-    {return coordinates.size();}
-
-    const QPointF lastPoint() const noexcept override
-    {return coordinates.isEmpty() ? QPointF() : coordinates.last();}
-
-    const QPointF firstPoint() const noexcept override
-    {return coordinates.isEmpty() ? QPointF() : coordinates.first();}
 
     /// Paint this on given painter. Options and widget are currently
     /// discarded.
