@@ -51,13 +51,13 @@ bool PathContainer::undo(QGraphicsScene *scene)
     for (auto it = oldItems.constBegin(); it != oldItems.constEnd(); ++it)
     {
         paths.insert(it.key(), *it);
-        // TODO: check if it is necessary to show items explicitly.
         if (scene)
         {
             scene->addItem(*it);
             if (it.key() + 1 < paths.length())
                 (*it)->stackBefore(paths[it.key() + 1]);
         }
+        (*it)->show();
     }
 
     return true;
@@ -607,38 +607,56 @@ QRectF PathContainer::boundingBox() const noexcept
     return rect;
 }
 
-void PathContainer::removeItem(QGraphicsItem *item)
+void PathContainer::replaceItem(QGraphicsItem *olditem, QGraphicsItem *newitem)
 {
-    const int index = paths.indexOf(item);
+    const int index = olditem ? paths.indexOf(olditem) : -1;
     if (index < 0)
     {
-        delete item;
+        delete olditem;
+        if (newitem)
+        {
+            if (!paths.contains(newitem))
+                append(newitem);
+            else if (inHistory == -2)
+                inHistory = 0;
+        }
         return;
     }
-    // Remove all "redo" options.
-    truncateHistory();
-    // Remove item from list of currently visible paths.
-    paths.removeAt(index);
-    DrawHistoryStep *const step = new DrawHistoryStep();
-    step->deletedItems[index] = item;
-    history.append(step);
-    // Remove item from it's scene (if it has one).
-    if (item->scene())
+    if (newitem)
     {
-        item->clearFocus();
-        item->scene()->removeItem(item);
+        // Remove all "redo" options.
+        truncateHistory();
+        paths[index] = newitem;
+        DrawHistoryStep *const step = new DrawHistoryStep();
+        step->deletedItems[index] = olditem;
+        step->createdItems[index] = newitem;
+        history.append(step);
+        // Remove item from it's scene (if it has one).
+        if (olditem->scene())
+        {
+            olditem->clearFocus();
+            olditem->scene()->removeItem(olditem);
+        }
+    }
+    else
+    {
+        // Remove all "redo" options.
+        truncateHistory();
+        // Remove item from list of currently visible paths.
+        paths.removeAt(index);
+        DrawHistoryStep *const step = new DrawHistoryStep();
+        step->deletedItems[index] = olditem;
+        history.append(step);
+        // Remove item from it's scene (if it has one).
+        if (olditem->scene())
+        {
+            olditem->clearFocus();
+            olditem->scene()->removeItem(olditem);
+        }
     }
     // Limit history size (if necessary).
     if (history.length() > preferences()->history_length_visible_slides)
         clearHistory(preferences()->history_length_visible_slides);
-}
-
-void PathContainer::addTextItem(QGraphicsItem *item)
-{
-    if (!paths.contains(item))
-        append(item);
-    else if (inHistory == -2)
-        inHistory = 0;
 }
 
 QString color_to_rgba(const QColor &color)

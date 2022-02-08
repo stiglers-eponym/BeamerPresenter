@@ -175,13 +175,20 @@ public:
     QRectF boundingBox() const noexcept;
 
 public slots:
-    /// Create history step that removes the given item.
+    /// Create history step that replaces the old item by the new one.
+    /// If the new item is NULL, the old item is deleted.
+    /// If the old item is NULL, the new one is just inserted.
     /// Items (currently only text items) may detect that they should be removed.
     /// They can then inform this function, which removes them and adds this as a new history step.
-    void removeItem(QGraphicsItem *item);
+    void replaceItem(QGraphicsItem *olditem, QGraphicsItem *newitem);
+
+    // Remove the item in a new history step.
+    void removeItem(QGraphicsItem *item)
+    {replaceItem(item, NULL);}
 
     /// Notify of a change in a text item, add the item to history if necessary.
-    void addTextItem(QGraphicsItem *item);
+    void addTextItem(QGraphicsItem *item)
+    {replaceItem(NULL, item);}
 };
 
 /// Convert color to string with format #RRGGBBAA

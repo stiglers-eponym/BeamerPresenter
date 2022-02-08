@@ -148,16 +148,16 @@ void PdfMaster::receiveAction(const Action action)
     }
 }
 
-void PdfMaster::receiveNewPath(int page, QGraphicsItem *item)
+void PdfMaster::replacePath(int page, QGraphicsItem *olditem, QGraphicsItem *newitem)
 {
     if (preferences()->overlay_mode == PerLabel)
         page = document->overlaysShifted((page & ~NotFullPage), FirstOverlay) | (page & NotFullPage);
     if (!paths.contains(page))
         paths[page] = new PathContainer(this);
-    if (item)
+    if (olditem || newitem)
     {
+        paths[page]->replaceItem(olditem, newitem);
         _flags |= UnsavedDrawings;
-        paths[page]->append(item);
     }
 }
 

@@ -8,6 +8,9 @@ add_executable(beamerpresenter
         drawing/rectgraphicsitem.cpp
         drawing/ellipsegraphicsitem.cpp
         drawing/strokerecognizer.cpp
+        drawing/pathcontainer.cpp
+        drawing/basicgraphicspath.cpp
+        drawing/fullgraphicspath.cpp
         gui/actionbutton.cpp
         gui/clockwidget.cpp
         gui/flexlayout.cpp
@@ -39,9 +42,6 @@ add_executable(beamerpresenter
         rendering/pixcache.cpp
         rendering/pixcachethread.cpp
         rendering/pngpixmap.cpp
-        drawing/pathcontainer.cpp
-        drawing/basicgraphicspath.cpp
-        drawing/fullgraphicspath.cpp
         slidescene.cpp
         slideview.cpp
         ${EXTRA_INCLUDE}

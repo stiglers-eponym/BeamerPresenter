@@ -178,7 +178,15 @@ public slots:
     /// Add a new path (or QGraphicsItem) to paths[page].
     /// Page (part) number is given as (page | page_part).
     /// If item is NULL: create the container if it does not exist yet.
-    void receiveNewPath(int page, QGraphicsItem *item);
+    void receiveNewPath(int page, QGraphicsItem *item)
+    {replacePath(page, NULL, item);}
+
+    /// Replace an existing path (or QGraphicsItem) in paths[page] by the gievn new one.
+    /// Old or new item can be NULL, then only a new item will be created or an
+    /// existing one will be removed, respectively.
+    /// Page (part) number is given as (page | page_part).
+    /// If both items are NULL, only the container is created (if it doesn't exist yet).
+    void replacePath(int page, QGraphicsItem *olditem, QGraphicsItem *newitem);
 
     /// Send navigation events to all SlideScenes reading from this document.
     /// This is done centrally via PdfMaster because it may be necessary

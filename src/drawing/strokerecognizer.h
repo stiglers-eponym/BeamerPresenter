@@ -23,7 +23,7 @@ public:
     StrokeRecognizer(const AbstractGraphicsPath *stroke) : stroke(stroke) {calc();}
     ~StrokeRecognizer() {}
     void calc() noexcept;
-    //BasicGraphicsPath *recognize() const;
+    BasicGraphicsPath *recognize() const;
     BasicGraphicsPath *recognizeLine() const;
     //BasicGraphicsPath *recognizeRect() const;
     //BasicGraphicsPath *recognizeEllipse() const;

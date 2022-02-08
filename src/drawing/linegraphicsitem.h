@@ -46,13 +46,10 @@ public:
         if (line().p1() == line().p2())
             return NULL;
         const int segments = line().length() / 10 + 2;
-        const qreal x = line().p1().x(),
-                    y = line().p1().y(),
-                    dx = line().dx()/segments,
-                    dy = line().dy()/segments;
+        const QPointF p1 = line().p1(), delta = {line().dx()/segments, line().dy()/segments};
         QVector<QPointF> coordinates(segments+1);
         for (int i=0; i<=segments; ++i)
-            coordinates[i] = {x+i*dx, y+i*dy};
+            coordinates[i] = p1 + i*delta;
         BasicGraphicsPath *path = new BasicGraphicsPath(tool, coordinates, boundingRect());
         return path;
     }

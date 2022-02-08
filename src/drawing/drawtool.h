@@ -19,6 +19,7 @@ public:
         Ellipse,
         Arrow,
         Line,
+        Recognize,
     };
 
 protected:
@@ -107,6 +108,7 @@ static const QMap<QString, DrawTool::Shape> string_to_shape {
     {"ellipse", DrawTool::Ellipse},
     {"line", DrawTool::Line},
     {"arrow", DrawTool::Arrow},
+    {"recognize", DrawTool::Recognize},
 };
 
 #endif // DRAWTOOL_H

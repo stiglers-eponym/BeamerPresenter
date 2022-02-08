@@ -259,6 +259,9 @@ signals:
     /// Send new path to PdfMaster.
     void sendNewPath(int page, QGraphicsItem *item) const;
 
+    /// Replace old path by new path in a single drawing history step.
+    void replacePath(int page, QGraphicsItem *olditem, QGraphicsItem *newitem) const;
+
     /// Tell master that transition has ended.
     void finishTransition();
 

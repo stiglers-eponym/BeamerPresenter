@@ -19,6 +19,7 @@
 #include "src/drawing/pointingtool.h"
 #include "src/drawing/texttool.h"
 #include "src/drawing/pathcontainer.h"
+#include "src/drawing/strokerecognizer.h"
 
 SlideScene::SlideScene(const PdfMaster *master, const PagePart part, QObject *parent) :
     QGraphicsScene(parent),
@@ -26,7 +27,8 @@ SlideScene::SlideScene(const PdfMaster *master, const PagePart part, QObject *pa
     master(master),
     page_part(part)
 {
-    connect(this, &SlideScene::sendNewPath, master, &PdfMaster::receiveNewPath);
+    connect(this, &SlideScene::sendNewPath, master, &PdfMaster::receiveNewPath, Qt::DirectConnection);
+    connect(this, &SlideScene::replacePath, master, &PdfMaster::replacePath, Qt::DirectConnection);
     connect(this, &SlideScene::requestNewPathContainer, master, &PdfMaster::requestNewPathContainer, Qt::DirectConnection);
     pageItem->setZValue(-1e2);
     addItem(pageItem);
@@ -63,8 +65,19 @@ void SlideScene::stopDrawing()
         {
         case BasicGraphicsPath::Type:
         case FullGraphicsPath::Type:
-            currentlyDrawnItem->show();
             emit sendNewPath(page | page_part, currentlyDrawnItem);
+            if (static_cast<const AbstractGraphicsPath*>(currentlyDrawnItem)->getTool().shape() == DrawTool::Recognize)
+            {
+                StrokeRecognizer recognizer(static_cast<const AbstractGraphicsPath*>(currentlyDrawnItem));
+                BasicGraphicsPath *newpath = recognizer.recognize();
+                if (newpath)
+                {
+                    addItem(newpath);
+                    emit replacePath(page | page_part, currentlyDrawnItem, newpath);
+                    currentlyDrawnItem = newpath;
+                }
+            }
+            currentlyDrawnItem->show();
             invalidate(currentlyDrawnItem->sceneBoundingRect(), QGraphicsScene::ItemLayer);
             break;
         case RectGraphicsItem::Type:
@@ -1073,6 +1086,7 @@ void SlideScene::startInputEvent(const DrawTool *tool, const QPointF &pos, const
     currentItemCollection->show();
     switch (tool->shape()) {
     case DrawTool::Freehand:
+    case DrawTool::Recognize:
         if (tool->tool() == Tool::Pen && (tool->device() & Tool::PressureSensitiveDevices))
             currentlyDrawnItem = new FullGraphicsPath(*tool, pos, pressure);
         else
