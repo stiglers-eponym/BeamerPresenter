@@ -1,3 +1,4 @@
+#include <cmath>
 #include "src/drawing/strokerecognizer.h"
 #include "src/drawing/fullgraphicspath.h"
 #include "src/preferences.h"
