@@ -25,6 +25,10 @@ history length hidden=20
 # allowed values: "per page", "per label", "cumulative".
 # see man 5 beamerpresenter.conf for details.
 mode=cumulative
+# max. slope for angle snapping when detecting shapes
+snap angle=0.05
+# sensiticity for detecting lines in strokes (larger values categorize more strokes as lines)
+line sensitivity=0.005
 
 [keys]
 Ctrl+O=open

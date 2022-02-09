@@ -99,6 +99,14 @@ Groups of successive pages which share the same page label have the same drawing
 Drawings are connected to pages of the PDF file. But within a group of successive pages with the same page label the drawings of the previous page are copied to the next slide if this next slide does not contain any own drawings. This allows one to successively add drawings in slides, where items appear as overlays with the same page label.
 .RE
 .
+.TP
+.BR "snap angle " "= 0.05"
+Maximal slope for angle snapping to horizontal/vertical direction when detecting lines.
+.
+.TP
+.BR "line sensitivity " "= 0.005"
+Parameter defining sensitivity of shape detection for lines. Larger values will categorize more strokes as lines.
+.
 .SS [rendering]
 .
 .TP

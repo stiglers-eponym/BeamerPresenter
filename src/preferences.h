@@ -112,6 +112,13 @@ public:
     /// Duration of a slide in an animation, in ms.
     int slide_duration_animation = 50;
 
+    // STROKE RECOGNITION
+    /// Parameter for sensitivity of line detectoin.
+    /// Larger numbers mean the more strokes are recognized as lines.
+    qreal line_sensitivity = 0.005;
+    /// Slope (angle in radiants with small angle approximation) for snapping
+    /// to horizontal or vertical direction for recognized shapes.
+    qreal snap_angle = 0.05;
 
     // RENDERING
     /// Threshold of page aspect ratio for splitting pages in notes and

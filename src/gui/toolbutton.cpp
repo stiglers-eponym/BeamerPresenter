@@ -108,7 +108,7 @@ void ToolButton::setTool(Tool *newtool)
         const DrawTool *drawtool = static_cast<const DrawTool*>(newtool);
         if (drawtool->shape() != DrawTool::Freehand)
         {
-            if (drawtool->tool() == Tool::FixedWidthPen)
+            if (drawtool->tool() == Tool::FixedWidthPen && drawtool->shape() != DrawTool::Recognize)
                 iconname = "pen";
             iconname += "-";
             iconname += string_to_shape.key(drawtool->shape());

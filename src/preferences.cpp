@@ -250,6 +250,12 @@ void Preferences::loadSettings()
     if (ok)
         history_length_hidden_slides = value;
     overlay_mode = string_to_overlay_mode.value(settings.value("mode").toString(), PdfMaster::Cumulative);
+    qreal num = settings.value("line sensitifity").toDouble(&ok);
+    if (ok && 0 < num && num < 0.1)
+        line_sensitivity = num;
+    num = settings.value("snap angle").toDouble(&ok);
+    if (ok && 0 < num && num < 0.5)
+        snap_angle = num;
     settings.endGroup();
 
     // RENDERING

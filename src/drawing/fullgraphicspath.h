@@ -19,6 +19,8 @@ private:
     /// coordinates and pressures must always have the same length.
     QVector<float> pressures;
 
+friend class StrokeRecognizer;
+
 public:
     /// Custom type of QGraphicsItem.
     enum { Type = UserType + 2 };
