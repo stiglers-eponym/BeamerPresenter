@@ -163,6 +163,11 @@ BasicGraphicsPath *StrokeRecognizer::recognizeEllipse() const
     debug_msg(DebugDrawing, "try to recognized ellipse" << mx << my << rx << ry);
     ax = 1./(rx*rx);
     ay = 1./(ry*ry);
+    // Check stroke is approximately elliptic
+    loss = ellipseLossFunc(mx, my, ax, ay) / (s + 10);
+    if (loss > 4*preferences()->ellipse_sensitivity)
+        return NULL;
+    // Optimize fit parameters
     for (int i=0; i<8; ++i)
     {
         grad_ax = ellipseLossGradient_ax(mx, my, ax, ay);
@@ -181,6 +186,7 @@ BasicGraphicsPath *StrokeRecognizer::recognizeEllipse() const
         ay -= ay*anorm*grad_ay;
         debug_verbose(DebugDrawing, mx << my << ax << ay << 1./std::sqrt(std::abs(ax)) << 1./std::sqrt(std::abs(ay)) << ellipseLossFunc(mx, my, ax, ay) / s);
     }
+    // Check if the stroke points lie on an ellipse
     loss = ellipseLossFunc(mx, my, ax, ay) / (s + 10);
     debug_msg(DebugDrawing, "    found:" << mx << my << 1./std::sqrt(ax) << 1./std::sqrt(ay) << loss);
     if (loss > preferences()->ellipse_sensitivity)
@@ -189,6 +195,28 @@ BasicGraphicsPath *StrokeRecognizer::recognizeEllipse() const
     ry = 1./std::sqrt(ay);
     if (std::abs(rx - ry) < preferences()->ellipse_to_circle_snapping*(rx+ry))
         rx = ry = (rx+ry)/2;
+    // Check if a full ellipse was drawn (and not only a segment)
+    if (distance(stroke->lastPoint() - stroke->firstPoint()) > 0.05*(rx+ry))
+    {
+        const qreal first_angle = std::atan2(stroke->firstPoint().y()-my, stroke->firstPoint().x()-mx);
+        // Angle of last point relative to angle of first point
+        qreal rel_last_angle = std::atan2(stroke->lastPoint().y()-my, stroke->lastPoint().x()-mx) - first_angle;
+        if (rel_last_angle > M_PI)
+            rel_last_angle -= 2*M_PI;
+        else if (rel_last_angle < -M_PI)
+            rel_last_angle += 2*M_PI;
+        if (std::abs(rel_last_angle) > 0.1)
+        {
+            // diff_angle indicates the direction, in which the ellipse was drawn
+            qreal diff_angle = std::atan2(stroke->coordinates[stroke->size()/8+2].y()-my, stroke->coordinates[stroke->size()/8+2].x()-mx) - first_angle;
+            if (diff_angle > M_PI)
+                diff_angle -= 2*M_PI;
+            else if (diff_angle < -M_PI)
+                diff_angle += 2*M_PI;
+            if (rel_last_angle*diff_angle < 0)
+                return NULL;
+        }
+    }
     const int segments = (rx + ry) * 0.67 + 10;
     const qreal
             phasestep = 2*M_PI / segments,

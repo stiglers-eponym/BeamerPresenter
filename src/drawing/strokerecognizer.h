@@ -20,20 +20,33 @@ class StrokeRecognizer
     const AbstractGraphicsPath *stroke;
 
     double  s = 0., ///< sum of weights (pressures)
-            sx = 0., ///< weighted sum of of x coordinates
-            sy = 0., ///< weighted sum of of y coordinates
-            sxx = 0., ///< weighted sum of of x*x
-            sxy = 0., ///< weighted sum of of x*y
-            syy = 0., ///< weighted sum of of y*y
-            sxxx = 0.,
-            sxxy = 0.,
-            sxyy = 0.,
-            syyy = 0.,
-            sxxxx = 0.,
-            sxxyy = 0.,
-            syyyy = 0.;
+            sx = 0., ///< weighted sum of x coordinates
+            sy = 0., ///< weighted sum of y coordinates
+            sxx = 0., ///< weighted sum of x*x
+            sxy = 0., ///< weighted sum of x*y
+            syy = 0., ///< weighted sum of y*y
+            sxxx = 0., ///< weighted sum of x*x*x
+            sxxy = 0., ///< weighted sum of x*x*y
+            sxyy = 0., ///< weighted sum of x*y*y
+            syyy = 0., ///< weighted sum of y*y*y
+            sxxxx = 0., ///< weighted sum of x*x*x*x
+            sxxyy = 0., ///< weighted sum of x*x*y*y
+            syyyy = 0.; ///< weighted sum of y*y*y*y
 
-    /// ax = 1/(rx*rx), ay = 1/(ry*ry)
+    /**
+     * Loss function for ellipse fit.
+     * @param mx x coordinate of center
+     * @param my y coordinate of center
+     * @param ax = 1/(rx*rx) = inverse radius in x-direction squared
+     * @param ay = 1/(ry*ry) = inverse radius in y-direction squared
+     *
+     * The parameters ax = 1/(rx*rx) and ay = 1/(ry*ry) are used instead of rx
+     * and ry to make this function a polynomial.
+     *
+     * This returns
+     * \[ \sum_k w_k \left[ \frac{(x_k-m_x)^2}{rx^2} + \frac{(y_k-m_y)^2}{ry^2} - 1 \right]^2 \]
+     * where (x_k, y_k) is a coordinate with weight w_k.
+     */
     qreal ellipseLossFunc(const qreal mx, const qreal my, const qreal ax, const qreal ay) const noexcept
     {
         const qreal bc = mx*mx*ax + my*my*ay - 1;
@@ -49,6 +62,10 @@ class StrokeRecognizer
                 - 4*my*ay*(sxxy*ax + syyy*ay)
                 - 4*bc*(mx*sx*ax + my*sy*ay);
     }
+    /**
+     * First derivative of ellipseLossFunc by mx.
+     * @see ellipseLossFunc
+     */
     qreal ellipseLossGradient_mx(const qreal mx, const qreal my, const qreal ax, const qreal ay) const noexcept
     {
         const qreal bc = mx*mx*ax + my*my*ay - 1;
@@ -61,6 +78,10 @@ class StrokeRecognizer
                 - 4*bc*sx*ax
                 - 8*mx*ax*(mx*sx*ax + my*sy*ay);
     }
+    /**
+     * First derivative of ellipseLossFunc by my.
+     * @see ellipseLossFunc
+     */
     qreal ellipseLossGradient_my(const qreal mx, const qreal my, const qreal ax, const qreal ay) const noexcept
     {
         const qreal bc = mx*mx*ax + my*my*ay - 1;
@@ -73,6 +94,10 @@ class StrokeRecognizer
                 - 4*bc*sy*ay
                 - 8*my*ay*(mx*sx*ax + my*sy*ay);
     }
+    /**
+     * First derivative of ellipseLossFunc by ax.
+     * @see ellipseLossFunc
+     */
     qreal ellipseLossGradient_ax(const qreal mx, const qreal my, const qreal ax, const qreal ay) const noexcept
     {
         const qreal bc = mx*mx*ax + my*my*ay - 1;
@@ -88,6 +113,10 @@ class StrokeRecognizer
                 - 4*mx*mx*(mx*sx*ax + my*sy*ay)
                 - 4*bc*mx*sx;
     }
+    /**
+     * First derivative of ellipseLossFunc by ay.
+     * @see ellipseLossFunc
+     */
     qreal ellipseLossGradient_ay(const qreal mx, const qreal my, const qreal ax, const qreal ay) const noexcept
     {
         const qreal bc = mx*mx*ax + my*my*ay - 1;
