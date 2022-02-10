@@ -256,6 +256,12 @@ void Preferences::loadSettings()
     num = settings.value("snap angle").toDouble(&ok);
     if (ok && 0 < num && num < 0.5)
         snap_angle = num;
+    num = settings.value("ellipse sensitivity").toDouble(&ok);
+    if (ok && 0 < num && num < 0.5)
+        ellipse_sensitivity = num;
+    num = settings.value("circle threshold").toDouble(&ok);
+    if (ok && 0 < num && num < 0.5)
+        ellipse_to_circle_snapping = num;
     settings.endGroup();
 
     // RENDERING

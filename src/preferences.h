@@ -114,8 +114,13 @@ public:
 
     // STROKE RECOGNITION
     /// Parameter for sensitivity of line detectoin.
-    /// Larger numbers mean the more strokes are recognized as lines.
+    /// Larger numbers mean that more strokes are recognized as lines.
     qreal line_sensitivity = 0.005;
+    /// Sensitivity for detecting ellipsis.
+    qreal ellipse_sensitivity = 0.05;
+    /// Ellipses with relative deviation of the radii smaller than this number
+    /// will be considered as circles.
+    qreal ellipse_to_circle_snapping = 0.025;
     /// Slope (angle in radiants with small angle approximation) for snapping
     /// to horizontal or vertical direction for recognized shapes.
     qreal snap_angle = 0.05;

@@ -107,6 +107,14 @@ Maximal slope for angle snapping to horizontal/vertical direction when detecting
 .BR "line sensitivity " "= 0.005"
 Parameter defining sensitivity of shape detection for lines. Larger values will categorize more strokes as lines.
 .
+.TP
+.BR "ellipse sensitivity " "= 0.05"
+Parameter defining sensitivity of shape detection for ellipses. Larger values will categorize more strokes as ellipses.
+.
+.TP
+.BR "circle threshold " "= 0.025"
+Ellipses with a relative deviation of the two radii smaller than this number will be considered as circles.
+.
 .SS [rendering]
 .
 .TP
