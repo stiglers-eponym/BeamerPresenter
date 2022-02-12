@@ -21,8 +21,12 @@ protected:
     /// Set property for given tool.
     virtual void setToolProperty(Tool* tool) const = 0;
 
-    /// Update currently selected tool based on device.
+    /// Update currently selected tool property based on device.
     virtual void updateTool() = 0;
+
+public slots:
+    /// Update currently selected tool property based on tool.
+    virtual void toolChanged(Tool *tool) = 0;
 
 protected slots:
     /// Choose tool and call setToolProperty.

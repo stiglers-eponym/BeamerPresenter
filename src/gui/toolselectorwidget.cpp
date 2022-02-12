@@ -37,7 +37,11 @@ void ToolSelectorWidget::addButtons(const QJsonArray &full_array)
                 if (action == InvalidAction)
                 {
                     if (row[j].toString() == "shape")
-                        grid_layout->addWidget(new ShapeSelectionButton(this), i, j);
+                    {
+                        ShapeSelectionButton *button = new ShapeSelectionButton(this);
+                        connect(this, &ToolSelectorWidget::sendTool, button, &ShapeSelectionButton::toolChanged);
+                        grid_layout->addWidget(button, i, j);
+                    }
                 }
                 else
                 {
@@ -79,10 +83,16 @@ void ToolSelectorWidget::addButtons(const QJsonArray &full_array)
                     if (obj.value("select").toString() == "color")
                     {
                         const QJsonArray array = obj.value("list").toArray();
-                        grid_layout->addWidget(new ColorSelectionButton(array, this), i, j);
+                        ColorSelectionButton *button = new ColorSelectionButton(array, this);
+                        connect(this, &ToolSelectorWidget::sendTool, button, &ColorSelectionButton::toolChanged);
+                        grid_layout->addWidget(button, i, j);
                     }
                     else if(obj.value("select") == "shape")
-                        grid_layout->addWidget(new ShapeSelectionButton(this), i, j);
+                    {
+                        ShapeSelectionButton *button = new ShapeSelectionButton(this);
+                        connect(this, &ToolSelectorWidget::sendTool, button, &ShapeSelectionButton::toolChanged);
+                        grid_layout->addWidget(button, i, j);
+                    }
                 }
                 else
                     qWarning() << "Failed to create button" << row[j].toObject();

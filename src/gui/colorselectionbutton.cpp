@@ -49,3 +49,15 @@ void ColorSelectionButton::updateTool()
             setCurrentIndex(count()-1);
     }
 }
+
+void ColorSelectionButton::toolChanged(Tool *tool)
+{
+    if (tool)
+    {
+        const int idx = findData(tool->color());
+        if (idx >= 0)
+            setCurrentIndex(idx);
+        else
+            setCurrentIndex(count()-1);
+    }
+}

@@ -49,3 +49,9 @@ void ShapeSelectionButton::updateTool()
     if (tool && tool->tool() & Tool::AnyDrawTool)
         setCurrentIndex(int(static_cast<const DrawTool*>(tool)->shape()));
 }
+
+void ShapeSelectionButton::toolChanged(Tool *tool)
+{
+    if (tool && tool->tool() & Tool::AnyDrawTool)
+        setCurrentIndex(int(static_cast<const DrawTool*>(tool)->shape()));
+}

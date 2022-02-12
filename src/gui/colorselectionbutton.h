@@ -23,6 +23,10 @@ protected:
 
     /// Update currently selected color based on the tool for device.
     void updateTool() override;
+
+public slots:
+    /// Update currently selected color based on tool.
+    void toolChanged(Tool *tool) override;
 };
 
 #endif // COLORSELECTIONBUTTON_H
