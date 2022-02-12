@@ -25,15 +25,10 @@ public:
     /// Size hint for layout.
     QSize sizeHint() const noexcept override;
 
-    /// Create and add a action button in row i, column j with action defined by string.
-    void addActionButton(const int i, const int j, const QString &string);
-
-    /// Create and add a action button in row i, column j with action defined by array.
-    void addActionButton(const int i, const int j, const QJsonArray &array);
-
-    /// Create and add a tool button in row i, column j.
-    /// The button takes ownership of tool.
-    void addToolButton(const int i, const int j, Tool *tool);
+    /// Create and add all buttons from a JSON array.
+    /// This JSON array must be an array of arrays (a matrix) of entries
+    /// which define a single button.
+    void addButtons(const QJsonArray &full_array);
 
     /// Optimal height depends on width.
     bool hasHeightForWidth() const noexcept override

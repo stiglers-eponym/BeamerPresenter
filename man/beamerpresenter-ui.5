@@ -204,8 +204,8 @@ outline / table of contents, shows document outline tree.
 .B tool selector
 grid layout of push buttons. Contains mandatory argument
 .B buttons
-which must be an array of arrays of buttons (matrix defining the arrangement of the buttons).
-Each button can either be a string representing an action, or a JSON dictionary representing a tool, or an array of multiple strings representing actions.
+which must be an array of arrays of buttons. The array of arrays constitutes a matrix defining the arrangement of the buttons.
+Each button can either be a string representing an action, or a string defining a tool property, or a JSON dictionary representing a tool, or an array of multiple strings representing actions.
 .RS
 .PP
 Valid action strings:
@@ -287,6 +287,13 @@ close BeamerPresenter. Ask for confirmation if there are unsaved changes. Note t
 .TP
 .B quit unsafe
 close BeamerPresenter ignoring unsaved changes.
+.
+.PP
+Valid tool properties are:
+.TP
+.B shape
+drop-down menu of shapes.
+.
 .PP
 Options in the dictionary for tools (all lengths are given in points (1/72 inch) in PDF):
 .TP

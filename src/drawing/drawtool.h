@@ -85,6 +85,9 @@ public:
     Shape shape() const noexcept
     {return _shape;}
 
+    void setShape(Shape shape) noexcept
+    {_shape = shape;}
+
     /// @return composition_mode
     QPainter::CompositionMode compositionMode() const noexcept
     {return composition_mode;}

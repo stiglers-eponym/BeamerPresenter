@@ -119,14 +119,22 @@ void SettingsWidget::initRendering()
     memory_box->setMinimum(-1.);
     memory_box->setMaximum(4096.);
     memory_box->setValue(preferences()->max_memory/1048596);
+#if (QT_VERSION_MAJOR >= 6)
+    connect(memory_box, &QDoubleSpinBox::valueChanged, writable_preferences(), &Preferences::setMemory);
+#else
     connect(memory_box, QOverload<double>::of(&QDoubleSpinBox::valueChanged), writable_preferences(), &Preferences::setMemory);
+#endif
     layout->addRow(tr("cache memory (MiB)"), memory_box);
 
     QSpinBox *spin_box = new QSpinBox(rendering);
     spin_box->setMinimum(-1);
     spin_box->setMaximum(10000);
     spin_box->setValue(preferences()->max_cache_pages);
+#if (QT_VERSION_MAJOR >= 6)
+    connect(spin_box, &QSpinBox::valueChanged, writable_preferences(), &Preferences::setCacheSize);
+#else
     connect(spin_box, QOverload<int>::of(&QSpinBox::valueChanged), writable_preferences(), &Preferences::setCacheSize);
+#endif
     layout->addRow(tr("max. slides in cache"), spin_box);
 
     // Renderer
@@ -182,7 +190,11 @@ void SettingsWidget::initRendering()
     page_part_box->setMinimum(1.);
     page_part_box->setMaximum(20.);
     page_part_box->setValue(preferences()->page_part_threshold);
+#if (QT_VERSION_MAJOR >= 6)
+    connect(page_part_box, &QDoubleSpinBox::valueChanged, writable_preferences(), &Preferences::setPagePartThreshold);
+#else
     connect(page_part_box, QOverload<double>::of(&QDoubleSpinBox::valueChanged), writable_preferences(), &Preferences::setPagePartThreshold);
+#endif
     layout->addRow(tr("page part threshold"), page_part_box);
 
     rendering->setLayout(layout);
@@ -221,14 +233,22 @@ void SettingsWidget::initMisc()
 
     QSpinBox *spin_box = new QSpinBox(misc);
     spin_box->setValue(preferences()->history_length_visible_slides);
+#if (QT_VERSION_MAJOR >= 6)
+    connect(spin_box, &QSpinBox::valueChanged, writable_preferences(), &Preferences::setHistoryVisibleSlide);
+#else
     connect(spin_box, QOverload<int>::of(&QSpinBox::valueChanged), writable_preferences(), &Preferences::setHistoryVisibleSlide);
+#endif
     spin_box->setMinimum(0);
     spin_box->setMaximum(1000);
     layout->addRow(tr("History length visible slides"), spin_box);
 
     spin_box = new QSpinBox(misc);
     spin_box->setValue(preferences()->history_length_hidden_slides);
+#if (QT_VERSION_MAJOR >= 6)
+    connect(spin_box, &QSpinBox::valueChanged, writable_preferences(), &Preferences::setHistoryHiddenSlide);
+#else
     connect(spin_box, QOverload<int>::of(&QSpinBox::valueChanged), writable_preferences(), &Preferences::setHistoryHiddenSlide);
+#endif
     spin_box->setMinimum(0);
     spin_box->setMaximum(1000);
     layout->addRow(tr("History length hidden slides"), spin_box);
@@ -244,7 +264,11 @@ void SettingsWidget::initMisc()
 
     QCheckBox *box = new QCheckBox(tr("log slide changes"), misc);
     box->setChecked(preferences()->global_flags & Preferences::LogSlideChanges);
+#if (QT_VERSION_MAJOR >= 6)
+    connect(box, &QCheckBox::clicked, writable_preferences(), &Preferences::setLogSlideChanges);
+#else
     connect(box, QOverload<bool>::of(&QCheckBox::clicked), writable_preferences(), &Preferences::setLogSlideChanges);
+#endif
     layout->addRow(box);
 
     // Enable/disable automatic slide changes
@@ -258,13 +282,21 @@ void SettingsWidget::initMisc()
 
     box = new QCheckBox(tr("automatic slide changes"), misc);
     box->setChecked(preferences()->global_flags & Preferences::AutoSlideChanges);
+#if (QT_VERSION_MAJOR >= 6)
+    connect(box, &QCheckBox::clicked, writable_preferences(), &Preferences::setAutoSlideChanges);
+#else
     connect(box, QOverload<bool>::of(&QCheckBox::clicked), writable_preferences(), &Preferences::setAutoSlideChanges);
+#endif
     layout->addRow(box);
 
     // Enable/disable external links
     box = new QCheckBox(tr("open external links"), misc);
     box->setChecked(preferences()->global_flags & Preferences::OpenExternalLinks);
+#if (QT_VERSION_MAJOR >= 6)
+    connect(box, &QCheckBox::clicked, writable_preferences(), &Preferences::setExternalLinks);
+#else
     connect(box, QOverload<bool>::of(&QCheckBox::clicked), writable_preferences(), &Preferences::setExternalLinks);
+#endif
     layout->addRow(box);
 
     // Drawing mode

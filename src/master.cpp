@@ -481,34 +481,7 @@ QWidget* Master::createWidget(QJsonObject &object, QWidget *parent)
     {
         ToolSelectorWidget *toolwidget = new ToolSelectorWidget(parent);
         connect(this, &Master::sendActionStatus, toolwidget, &ToolSelectorWidget::sendStatus);
-        const QJsonArray full_array = object.value("buttons").toArray();
-        for (int i=0; i<full_array.size(); i++)
-        {
-            const QJsonArray row = full_array[i].toArray();
-            for (int j=0; j<row.size(); j++)
-            {
-                switch (row[j].type())
-                {
-                case QJsonValue::String:
-                    toolwidget->addActionButton(i, j, row[j].toString());
-                    break;
-                case QJsonValue::Array:
-                    toolwidget->addActionButton(i, j, row[j].toArray());
-                    break;
-                case QJsonValue::Object:
-                {
-                    Tool *tool = createTool(row[j].toObject(), 0);
-                    if (tool)
-                        toolwidget->addToolButton(i, j, tool);
-                    else
-                        qWarning() << "Failed to create tool button" << row[j].toObject().value("tool");
-                    break;
-                }
-                default:
-                    break;
-                }
-            }
-        }
+        toolwidget->addButtons(object.value("buttons").toArray());
         connect(toolwidget, &ToolSelectorWidget::sendAction, this, &Master::handleAction, Qt::QueuedConnection);
         connect(toolwidget, &ToolSelectorWidget::sendTool, this, &Master::setTool, Qt::QueuedConnection);
         widget = toolwidget;

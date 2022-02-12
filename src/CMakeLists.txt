@@ -30,6 +30,8 @@ add_executable(beamerpresenter
         gui/toolbutton.cpp
         gui/tooldialog.cpp
         gui/toolselectorwidget.cpp
+        gui/toolpropertybutton.cpp
+        gui/shapeselectionbutton.cpp
         gui/mediaslider.h
         gui/containerwidget.h
         main.cpp
