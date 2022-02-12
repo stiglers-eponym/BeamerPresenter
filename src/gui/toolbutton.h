@@ -19,7 +19,7 @@ class ToolButton : public QToolButton
 
     /// Tool which remains owned by this class.
     /// Only copies of this tool are send out using sendTool.
-    Tool *tool;
+    Tool *tool = NULL;
 
 public:
     /// Constructor: takes ownership of tool.

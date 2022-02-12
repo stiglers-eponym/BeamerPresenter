@@ -203,6 +203,7 @@ bool SlideView::event(QEvent *event)
         static_cast<SlideScene*>(scene())->tabletPress(mapToScene(tabletevent->posF()), tabletevent);
 #endif
         event->accept();
+        setFocus();
         return true;
     }
     case QEvent::TabletRelease:
@@ -225,6 +226,7 @@ bool SlideView::event(QEvent *event)
         static_cast<SlideScene*>(scene())->tabletMove(mapToScene(tabletevent->posF()), tabletevent);
 #endif
         event->accept();
+        setFocus();
         return true;
     }
     default:

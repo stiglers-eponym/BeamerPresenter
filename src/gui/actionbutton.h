@@ -20,6 +20,10 @@ class ActionButton : public QToolButton
     Q_OBJECT
     /// Set of one or more actions connected to this button.
     QSet<Action> actions;
+    Action display_action;
+    int display_status = -1;
+
+    void updateIcon();
 
 public:
     /// Constructor: connect to parent.
@@ -30,6 +34,9 @@ public:
 
     /// Add new action to actions, set icon if necessary.
     void addAction(const Action action);
+
+protected:
+    bool event(QEvent *event) override;
 
 protected slots:
     /// Send out action(s).

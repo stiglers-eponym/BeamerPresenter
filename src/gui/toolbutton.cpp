@@ -13,11 +13,12 @@ ToolButton::ToolButton(Tool *tool, QWidget *parent) noexcept :
         QToolButton(parent),
         tool(NULL)
 {
-    setMinimumSize(8, 8);
+    setMinimumSize(12, 12);
+    setIconSize({32,32});
     setContentsMargins(0,0,0,0);
     setFocusPolicy(Qt::NoFocus);
     setAttribute(Qt::WA_AcceptTouchEvents);
-    setIconSize({64,64});
+    setToolButtonStyle(Qt::ToolButtonIconOnly);
     setTool(tool);
 }
 
@@ -89,6 +90,9 @@ bool ToolButton::event(QEvent *event) noexcept
             setDown(false);
             event->accept();
             return true;
+        case QEvent::Resize:
+            setTool(tool);
+            break;
         default:
             break;
         }
@@ -126,10 +130,18 @@ void ToolButton::setTool(Tool *newtool)
             color = Qt::black;
     }
     const QString filename = preferences()->icon_path + "/tools/" + iconname + ".svg";
+    QSize newsize = size();
+    newsize.rwidth()--;
+    newsize.rheight()--;
+    setIconSize(newsize);
     QIcon icon;
     if (color.isValid())
     {
-        const QImage image = fancyIcon(filename, iconSize(), color);
+        if (newsize.height() > newsize.width())
+            newsize.rwidth() = newsize.height();
+        else
+            newsize.rheight() = newsize.width();
+        const QImage image = fancyIcon(filename, newsize, color);
         if (!image.isNull())
             icon = QIcon(QPixmap::fromImage(image));
     }
@@ -139,9 +151,12 @@ void ToolButton::setTool(Tool *newtool)
         setText(string_to_tool.key(newtool->tool()));
     else
         setIcon(icon);
-    delete tool;
-    tool = newtool;
-    setToolTip(tr(tool_to_description.value(tool->tool())));
+    if (tool != newtool)
+    {
+        delete tool;
+        tool = newtool;
+        setToolTip(tr(tool_to_description.value(tool->tool())));
+    }
 }
 
 const QImage fancyIcon(const QString &filename, const QSize &size, const QColor &color)

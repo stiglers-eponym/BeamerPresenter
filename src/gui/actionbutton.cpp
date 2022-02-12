@@ -7,9 +7,11 @@
 ActionButton::ActionButton(ToolSelectorWidget *parent) :
     QToolButton(parent)
 {
-    setMinimumSize(8, 8);
+    setMinimumSize(12, 12);
+    setIconSize({32,32});
+    setContentsMargins(0,0,0,0);
     setFocusPolicy(Qt::NoFocus);
-    setIconSize({64,64});
+    setToolButtonStyle(Qt::ToolButtonIconOnly);
     connect(this, &QToolButton::clicked, this, &ActionButton::onClicked);
     connect(this, &ActionButton::sendAction, parent, &ToolSelectorWidget::sendAction);
 }
@@ -18,6 +20,7 @@ ActionButton::ActionButton(const Action action, ToolSelectorWidget *parent) :
     ActionButton(parent)
 {
     addAction(action);
+    display_action = action;
     setToolTip(tr(action_to_description.value(action)));
     if (action_to_custom_icons.contains(action) && action_to_custom_icons[action].length() > 1)
         connect(parent, &ToolSelectorWidget::sendStatus, this, &ActionButton::setStatus);
@@ -27,8 +30,28 @@ void ActionButton::setStatus(const Action action, const int status)
 {
     if (status >= 0 && actions.contains(action) && action_to_custom_icons.contains(action) && status < action_to_custom_icons[action].length())
     {
-        QImageReader reader(preferences()->icon_path + "/actions/" + action_to_custom_icons[action].value(status));
-        reader.setScaledSize(iconSize());
+        display_action = action;
+        display_status = status;
+        updateIcon();
+    }
+}
+
+void ActionButton::updateIcon()
+{
+    QSize newsize = size();
+    newsize.rwidth()--;
+    newsize.rheight()--;
+    setIconSize(newsize);
+
+    // Only weird custom icons require update
+    if (display_status >= 0)
+    {
+        if (newsize.height() > newsize.width())
+            newsize.rwidth() = newsize.height();
+        else
+            newsize.rheight() = newsize.width();
+        QImageReader reader(preferences()->icon_path + "/actions/" + action_to_custom_icons[display_action].value(display_status));
+        reader.setScaledSize(newsize);
         setIcon(QPixmap::fromImage(reader.read()));
     }
 }
@@ -52,4 +75,11 @@ void ActionButton::onClicked() const noexcept
 {
     for (const auto action : actions)
         emit sendAction(action);
+}
+
+bool ActionButton::event(QEvent *event)
+{
+    if (event->type() == QEvent::Resize)
+        updateIcon();
+    return QToolButton::event(event);
 }

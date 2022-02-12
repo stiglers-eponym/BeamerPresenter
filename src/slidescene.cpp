@@ -309,6 +309,8 @@ void SlideScene::handleEvents(const int device, const QList<QPointF> &pos, const
                     break;
                 case Tool::StartEvent:
                     container->startMicroStep();
+                    for (const QPointF &point : pos)
+                        container->eraserMicroStep(point, ptool->size());
                     break;
                 case Tool::StopEvent:
                     if (container->applyMicroStep())
