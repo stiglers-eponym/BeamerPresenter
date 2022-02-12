@@ -5,10 +5,6 @@
    viewBox="0 0 44.737934 44.653865"
    version="1.1"
    id="svg8"
-   inkscape:version="1.1.2 (0a00cf5339, 2022-02-04)"
-   sodipodi:docname="recognize.svg"
-   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
-   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns="http://www.w3.org/2000/svg"
    xmlns:svg="http://www.w3.org/2000/svg"
    xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
@@ -16,35 +12,6 @@
    xmlns:dc="http://purl.org/dc/elements/1.1/">
   <defs
      id="defs2" />
-  <sodipodi:namedview
-     id="base"
-     pagecolor="#ffffff"
-     bordercolor="#666666"
-     borderopacity="1.0"
-     inkscape:pageopacity="0.0"
-     inkscape:pageshadow="2"
-     inkscape:zoom="4.4952937"
-     inkscape:cx="73.298882"
-     inkscape:cy="78.637799"
-     inkscape:document-units="mm"
-     inkscape:current-layer="layer1"
-     inkscape:document-rotation="0"
-     showgrid="true"
-     inkscape:snap-global="true"
-     showguides="false"
-     inkscape:window-width="1920"
-     inkscape:window-height="1032"
-     inkscape:window-x="0"
-     inkscape:window-y="0"
-     inkscape:window-maximized="1"
-     inkscape:pagecheckerboard="0"
-     inkscape:snap-bbox="true">
-    <inkscape:grid
-       type="xygrid"
-       id="grid833"
-       originx="-30.369293"
-       originy="-13.852398" />
-  </sodipodi:namedview>
   <metadata
      id="metadata5">
     <rdf:RDF>
@@ -57,20 +24,15 @@
     </rdf:RDF>
   </metadata>
   <g
-     inkscape:label="Layer 1"
-     inkscape:groupmode="layer"
      id="layer1"
      transform="translate(-30.369294,-13.852401)">
-    <text
-       xml:space="preserve"
-       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:134.852px;line-height:1.25;font-family:'Libertinus Serif';-inkscape-font-specification:'Libertinus Serif, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;letter-spacing:0px;stroke-width:0.264583"
-       x="28.19359"
-       y="111.54484"
-       id="text3795"><tspan
-         sodipodi:role="line"
-         id="tspan3793"
-         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:134.852px;font-family:'Libertinus Serif';-inkscape-font-specification:'Libertinus Serif, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;stroke-width:0.264583"
-         x="28.19359"
-         y="111.54484">*</tspan></text>
+    <g
+       aria-label="*"
+       id="text3795"
+       style="font-size:134.852px;line-height:1.25;font-family:'Libertinus Serif';-inkscape-font-specification:'Libertinus Serif, Normal';letter-spacing:0px;stroke-width:0.264583">
+      <path
+         d="m 50.848727,37.780791 c -4.450116,4.989524 -11.327568,6.06834 -11.327568,11.866977 0,2.02278 1.618224,3.775856 3.910708,3.775856 5.124376,0 6.06834,-7.956269 9.43964,-14.024609 3.3713,5.259228 4.315264,14.024609 9.574492,14.024609 1.887929,0 3.910709,-1.483372 3.910709,-3.910708 0,-5.394081 -6.607749,-6.742601 -11.192717,-11.732125 2.427336,-0.404556 4.854672,-0.539408 7.41686,-0.539408 4.584969,0 9.304789,-0.943964 9.304789,-4.989524 0,-1.34852 -0.943964,-4.04556 -4.584968,-4.04556 -4.450117,0 -6.607749,4.315264 -12.810941,7.012304 0.269704,-4.04556 2.562188,-9.43964 2.562188,-13.080644 0,-3.236448 -2.02278,-4.719821 -4.450116,-4.719821 -2.427336,0 -4.04556,2.427337 -4.04556,5.259229 0,3.506152 2.562188,7.147156 3.101596,12.406384 -5.933488,-2.427336 -8.360824,-6.877452 -12.945792,-6.877452 -3.236449,0 -4.450117,2.157632 -4.450117,4.04556 0,4.04556 4.315265,4.989524 10.923013,4.989524 2.02278,0 3.910708,0.134852 5.663784,0.539408 z"
+         id="path945" />
+    </g>
   </g>
 </svg>
