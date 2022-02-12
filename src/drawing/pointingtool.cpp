@@ -14,3 +14,10 @@ void PointingTool::initPointerBrush() noexcept
     _brush = QBrush(grad);
     _brush.setColor(color);
 }
+
+void PointingTool::setColor(const QColor &color) noexcept
+{
+    _brush.setColor(color);
+    if (_tool == Pointer)
+        initPointerBrush();
+}

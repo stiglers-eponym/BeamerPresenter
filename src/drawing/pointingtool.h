@@ -81,8 +81,11 @@ public:
     {return _size;}
 
     /// @return brush color
-    const QColor &color() const noexcept
+    QColor color() const noexcept override
     {return _brush.color();}
+
+    /// Set brush color.
+    void setColor(const QColor &color) noexcept override;
 
     /// @return _brush
     const QBrush &brush() const noexcept

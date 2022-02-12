@@ -2,7 +2,8 @@
 #include "src/gui/toolpropertybutton.h"
 #include "src/preferences.h"
 
-ToolPropertyButton::ToolPropertyButton(QWidget *parent) : QComboBox(parent)
+ToolPropertyButton::ToolPropertyButton(QWidget *parent) :
+    QComboBox(parent)
 {
     setMinimumSize(12, 12);
     setIconSize({32,32});

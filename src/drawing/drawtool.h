@@ -70,8 +70,12 @@ public:
     {return _pen.widthF();}
 
     /// @return pen color
-    const QColor color() const noexcept
+    QColor color() const noexcept override
     {return _pen.color();}
+
+    /// Set stroke color.
+    void setColor(const QColor &color) noexcept override
+    {_pen.setColor(color);}
 
     /// @return _brush
     const QBrush &brush() const noexcept

@@ -113,6 +113,13 @@ public:
     /// set _device.
     void setDevice(const int device) noexcept
     {_device = device;}
+
+    /// get color. Useless for this class, but very helpfull for child classes.
+    virtual QColor color() const noexcept
+    {return Qt::black;};
+
+    /// set color. Useless for this class, but very helpfull for child classes.
+    virtual void setColor(const QColor &color) noexcept {};
 };
 
 

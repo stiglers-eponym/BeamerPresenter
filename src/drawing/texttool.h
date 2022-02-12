@@ -40,11 +40,11 @@ public:
     {return _font;}
 
     /// @return _color
-    const QColor &color() const noexcept
+    QColor color() const noexcept override
     {return _color;}
 
     /// set function for _color
-    void setColor(const QColor &color) noexcept
+    void setColor(const QColor &color) noexcept override
     {_color = color;}
 
     /// set function for _font

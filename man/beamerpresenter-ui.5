@@ -1,4 +1,4 @@
-.TH beamerpresenter-ui 5 "2022-01-22" "0.2.2_beta"
+.TH beamerpresenter-ui 5 "2022-02-12" "0.2.2_beta"
 .
 .SH NAME
 beamerpresenter-ui \- user interface of BeamerPresenter
@@ -205,7 +205,7 @@ outline / table of contents, shows document outline tree.
 grid layout of push buttons. Contains mandatory argument
 .B buttons
 which must be an array of arrays of buttons. The array of arrays constitutes a matrix defining the arrangement of the buttons.
-Each button can either be a string representing an action, or a string defining a tool property, or a JSON dictionary representing a tool, or an array of multiple strings representing actions.
+Each button can either be a string representing an action, or a string defining a tool property, or a JSON dictionary defining a tool property and a selection of values for this property, or a JSON dictionary representing a tool, or an array of multiple strings representing actions.
 .RS
 .PP
 Valid action strings:
@@ -293,6 +293,9 @@ Valid tool properties are:
 .TP
 .B shape
 drop-down menu of shapes.
+.TP
+.B color
+drop-down menu of colors. This must be provided as a JSON object in the form {"selector":"color", "list":["red", "green", "blue"]} were the list of colors should be adapted.
 .
 .PP
 Options in the dictionary for tools (all lengths are given in points (1/72 inch) in PDF):

@@ -156,11 +156,11 @@ void toolToJson(const Tool *tool, QJsonObject &obj)
     else if (tool->tool() & Tool::AnyPointingTool)
     {
         obj.insert("size", static_cast<const PointingTool*>(tool)->size());
-        obj.insert("color", static_cast<const PointingTool*>(tool)->color().name());
+        obj.insert("color", tool->color().name());
     }
     else if (tool->tool() == Tool::TextInputTool)
     {
-        obj.insert("color", static_cast<const TextTool*>(tool)->color().name());
+        obj.insert("color", tool->color().name());
         obj.insert("font", static_cast<const TextTool*>(tool)->font().toString());
     }
 }

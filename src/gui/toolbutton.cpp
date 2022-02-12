@@ -121,14 +121,10 @@ void ToolButton::setTool(Tool *newtool)
             iconname += "-filled";
         color = drawtool->color();
     }
-    else if (newtool->tool() & Tool::AnyPointingTool)
-        color = static_cast<PointingTool*>(newtool)->color();
-    else if (newtool->tool() == Tool::TextInputTool)
-    {
-        color = static_cast<TextTool*>(newtool)->color();
-        if (!color.isValid())
-            color = Qt::black;
-    }
+    else
+        color = newtool->color();
+    if (!color.isValid())
+        color = Qt::black;
     const QString filename = preferences()->icon_path + "/tools/" + iconname + ".svg";
     QSize newsize = size();
     newsize.rwidth()--;

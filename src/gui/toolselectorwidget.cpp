@@ -1,6 +1,7 @@
 #include "src/gui/toolselectorwidget.h"
 #include "src/gui/actionbutton.h"
 #include "src/gui/shapeselectionbutton.h"
+#include "src/gui/colorselectionbutton.h"
 #include "src/gui/toolbutton.h"
 #include "src/preferences.h"
 #include "src/names.h"
@@ -62,15 +63,29 @@ void ToolSelectorWidget::addButtons(const QJsonArray &full_array)
             }
             case QJsonValue::Object:
             {
-                Tool *tool = createTool(row[j].toObject(), 0);
-                if (tool)
+                const QJsonObject obj = row[j].toObject();
+                if (obj.contains("tool"))
                 {
-                    ToolButton *button = new ToolButton(tool, this);
-                    connect(button, &ToolButton::sendTool, this, &ToolSelectorWidget::sendTool);
-                    grid_layout->addWidget(button, i, j);
+                    Tool *tool = createTool(obj, 0);
+                    if (tool)
+                    {
+                        ToolButton *button = new ToolButton(tool, this);
+                        connect(button, &ToolButton::sendTool, this, &ToolSelectorWidget::sendTool);
+                        grid_layout->addWidget(button, i, j);
+                    }
+                }
+                else if (obj.contains("select"))
+                {
+                    if (obj.value("select").toString() == "color")
+                    {
+                        const QJsonArray array = obj.value("list").toArray();
+                        grid_layout->addWidget(new ColorSelectionButton(array, this), i, j);
+                    }
+                    else if(obj.value("select") == "shape")
+                        grid_layout->addWidget(new ShapeSelectionButton(this), i, j);
                 }
                 else
-                    qWarning() << "Failed to create tool button" << row[j].toObject().value("tool");
+                    qWarning() << "Failed to create button" << row[j].toObject();
                 break;
             }
             default:

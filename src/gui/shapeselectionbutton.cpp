@@ -2,7 +2,8 @@
 #include "src/drawing/drawtool.h"
 #include "src/preferences.h"
 
-ShapeSelectionButton::ShapeSelectionButton(QWidget *parent) : ToolPropertyButton(parent)
+ShapeSelectionButton::ShapeSelectionButton(QWidget *parent) :
+    ToolPropertyButton(parent)
 {
     QIcon icon(preferences()->icon_path + "/tools/freehand.svg");
     if (icon.isNull())
