@@ -155,9 +155,9 @@ void TimerWidget::setTotalTime(const QTime time) noexcept
 
 void TimerWidget::startTimer() noexcept
 {
-    QPalette palette(passed->palette());
-    palette.setColor(QPalette::Text, Qt::black);
-    passed->setPalette(palette);
+    QPalette timer_palette(passed->palette());
+    timer_palette.setColor(QPalette::Text, palette().color(QPalette::Text));
+    passed->setPalette(timer_palette);
     if (preferences()->msecs_passed != UINT_LEAST32_MAX)
     {
         writable_preferences()->target_time = QDateTime::currentDateTimeUtc().addMSecs(preferences()->msecs_total - preferences()->msecs_passed);

@@ -92,7 +92,7 @@
                 "redo",
                 "clear",
                 "pause media",
-                {"tool":"none"}
+                "style"
               ],
               [
                 {"tool":"pen", "color":"blue", "width":2},
@@ -103,12 +103,12 @@
                 "shape"
               ],
               [
+                {"tool":"none"},
                 {"tool":"pointer", "color":"#e0ff0000", "size":4},
-                {"tool":"pointer", "color":"#e000ff00", "size":4},
                 {"tool":"torch", "color":"#80080808", "size":60},
                 {"tool":"magnifier", "color":"gray", "size":100, "scale":1.75},
                 {"tool":"text"},
-                {"select":"color", "list":["red","green","blue"]}
+                {"select":"color", "list":["red","yellow","green","blue","magenta","black"]}
               ]
             ]
           }
