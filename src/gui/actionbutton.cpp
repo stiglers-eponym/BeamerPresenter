@@ -39,17 +39,15 @@ void ActionButton::setStatus(const Action action, const int status)
 void ActionButton::updateIcon()
 {
     QSize newsize = size();
-    newsize.rwidth()--;
-    newsize.rheight()--;
     setIconSize(newsize);
 
     // Only weird custom icons require update
     if (display_status >= 0)
     {
         if (newsize.height() > newsize.width())
-            newsize.rwidth() = newsize.height();
-        else
             newsize.rheight() = newsize.width();
+        else
+            newsize.rwidth() = newsize.height();
         QImageReader reader(preferences()->icon_path + "/actions/" + action_to_custom_icons[display_action].value(display_status));
         reader.setScaledSize(newsize);
         setIcon(QPixmap::fromImage(reader.read()));

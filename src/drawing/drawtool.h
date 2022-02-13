@@ -62,6 +62,10 @@ public:
     {return _tool!=other._tool || _device!=other._device || _pen!=other._pen || _brush!=other._brush || composition_mode!=other.composition_mode || _shape!=other._shape;}
 
     /// @return _pen
+    QPen &rpen() noexcept
+    {return _pen;}
+
+    /// @return _pen
     const QPen &pen() const noexcept
     {return _pen;}
 

@@ -127,16 +127,14 @@ void ToolButton::setTool(Tool *newtool)
         color = Qt::black;
     const QString filename = preferences()->icon_path + "/tools/" + iconname + ".svg";
     QSize newsize = size();
-    newsize.rwidth()--;
-    newsize.rheight()--;
     setIconSize(newsize);
     QIcon icon;
     if (color.isValid())
     {
         if (newsize.height() > newsize.width())
-            newsize.rwidth() = newsize.height();
-        else
             newsize.rheight() = newsize.width();
+        else
+            newsize.rwidth() = newsize.height();
         const QImage image = fancyIcon(filename, newsize, color);
         if (!image.isNull())
             icon = QIcon(QPixmap::fromImage(image));

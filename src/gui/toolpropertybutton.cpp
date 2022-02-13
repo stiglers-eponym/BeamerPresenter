@@ -5,8 +5,8 @@
 ToolPropertyButton::ToolPropertyButton(QWidget *parent) :
     QComboBox(parent)
 {
-    setMinimumSize(12, 12);
-    setIconSize({32,32});
+    setMinimumSize(20, 12);
+    setIconSize({16,16});
     setContentsMargins(0,0,0,0);
     setFocusPolicy(Qt::NoFocus);
     setAttribute(Qt::WA_AcceptTouchEvents);
@@ -35,6 +35,17 @@ bool ToolPropertyButton::event(QEvent *event)
     case QEvent::TouchEnd:
         device = Tool::TouchInput;
         break;
+    case QEvent::Resize:
+    {
+        QSize newsize = size();
+        newsize.rwidth() -= 10;
+        if (newsize.height() > newsize.width())
+            newsize.rheight() = newsize.width();
+        else
+            newsize.rwidth() = newsize.height();
+        setIconSize(newsize);
+        break;
+    }
     default:
         break;
     }

@@ -1,6 +1,7 @@
 #include "src/gui/toolselectorwidget.h"
 #include "src/gui/actionbutton.h"
 #include "src/gui/shapeselectionbutton.h"
+#include "src/gui/strokestylebutton.h"
 #include "src/gui/colorselectionbutton.h"
 #include "src/gui/toolbutton.h"
 #include "src/preferences.h"
@@ -42,6 +43,12 @@ void ToolSelectorWidget::addButtons(const QJsonArray &full_array)
                         connect(this, &ToolSelectorWidget::sendTool, button, &ShapeSelectionButton::toolChanged);
                         grid_layout->addWidget(button, i, j);
                     }
+                    else if (row[j].toString() == "style")
+                    {
+                        StrokeStyleButton *button = new StrokeStyleButton(this);
+                        connect(this, &ToolSelectorWidget::sendTool, button, &StrokeStyleButton::toolChanged);
+                        grid_layout->addWidget(button, i, j);
+                    }
                 }
                 else
                 {
@@ -80,7 +87,7 @@ void ToolSelectorWidget::addButtons(const QJsonArray &full_array)
                 }
                 else if (obj.contains("select"))
                 {
-                    if (obj.value("select").toString() == "color")
+                    if (obj.value("select") == "color")
                     {
                         const QJsonArray array = obj.value("list").toArray();
                         ColorSelectionButton *button = new ColorSelectionButton(array, this);
@@ -91,6 +98,12 @@ void ToolSelectorWidget::addButtons(const QJsonArray &full_array)
                     {
                         ShapeSelectionButton *button = new ShapeSelectionButton(this);
                         connect(this, &ToolSelectorWidget::sendTool, button, &ShapeSelectionButton::toolChanged);
+                        grid_layout->addWidget(button, i, j);
+                    }
+                    else if(obj.value("select") == "style")
+                    {
+                        StrokeStyleButton *button = new StrokeStyleButton(this);
+                        connect(this, &ToolSelectorWidget::sendTool, button, &StrokeStyleButton::toolChanged);
                         grid_layout->addWidget(button, i, j);
                     }
                 }
