@@ -173,11 +173,8 @@ public:
     /// Trivial destructor.
     ~StrokeRecognizer() {}
 
-    // Compute statistical moments of points in stroke up to second moment.
-    //void calc1() noexcept;
-
     /// Compute third and fourth statistical moments of points in stroke up.
-    void calc2() noexcept;
+    void calc_higher_moments() noexcept;
 
     /// Recognize line segments in this stoke.
     void findLines() noexcept;

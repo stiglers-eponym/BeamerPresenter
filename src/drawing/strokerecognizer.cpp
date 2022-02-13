@@ -7,40 +7,7 @@ qreal distance(const QPointF &p) noexcept
    return std::sqrt(p.x()*p.x() + p.y()*p.y());
 }
 
-/*
-void StrokeRecognizer::calc1() noexcept
-{
-    if (stroke->type() == FullGraphicsPath::Type)
-    {
-        const FullGraphicsPath *path = static_cast<const FullGraphicsPath*>(stroke);
-        QVector<float>::const_iterator pit = path->pressures.cbegin();
-        QVector<QPointF>::const_iterator cit = path->coordinates.cbegin();
-        for (; cit!=path->coordinates.cend() && pit!=path->pressures.cend(); ++pit, ++cit)
-        {
-            s += *pit;
-            sx += *pit * cit->x();
-            sy += *pit * cit->y();
-            sxx += *pit * cit->x() * cit->x();
-            sxy += *pit * cit->x() * cit->y();
-            syy += *pit * cit->y() * cit->y();
-        }
-    }
-    else
-    {
-        for (const QPointF &p : stroke->coordinates)
-        {
-            s += 1;
-            sx += p.x();
-            sy += p.y();
-            sxx += p.x() * p.x();
-            sxy += p.x() * p.y();
-            syy += p.y() * p.y();
-        }
-    }
-}
-*/
-
-void StrokeRecognizer::calc2() noexcept
+void StrokeRecognizer::calc_higher_moments() noexcept
 {
     if (stroke->type() == FullGraphicsPath::Type)
     {
@@ -82,7 +49,7 @@ BasicGraphicsPath *StrokeRecognizer::recognize()
     path = recognizeLine();
     if (path)
         return path;
-    calc2();
+    calc_higher_moments();
     path = recognizeEllipse();
     return path;
 }
@@ -223,7 +190,63 @@ void StrokeRecognizer::findLines() noexcept
 
 BasicGraphicsPath *StrokeRecognizer::recognizeRect()
 {
-    return NULL;
+    if (line_segments.size() != 4)
+        return NULL;
+    qreal angle = (line_segments[0].angle + line_segments[1].angle + line_segments[2].angle + line_segments[3].angle - M_PI)/4;
+    // The following angle correction is constructed by trial and error:
+    if (line_segments[0].angle > line_segments[1].angle)
+        angle += M_PI/2;
+    if (std::abs(line_segments[0].angle - angle) > 0.3
+            || std::abs(line_segments[2].angle - angle) > 0.3
+            || (std::abs(line_segments[1].angle - M_PI/2 - angle) > 0.3 && std::abs(line_segments[1].angle + M_PI/2 - angle) > 0.3)
+            || (std::abs(line_segments[3].angle - M_PI/2 - angle) > 0.3 && std::abs(line_segments[3].angle + M_PI/2 - angle) > 0.3))
+        return NULL;
+    const qreal
+            ax = std::cos(angle),
+            ay = std::sin(angle);
+    qreal alpha = (line_segments[1].bx - line_segments[0].bx)*ax + (line_segments[1].by - line_segments[0].by)*ay;
+    const QPointF p1(line_segments[0].bx + alpha*ax, line_segments[0].by + alpha*ay);
+    alpha = (line_segments[3].bx - line_segments[0].bx)*ax + (line_segments[3].by - line_segments[0].by)*ay;
+    const QPointF p4(line_segments[0].bx + alpha*ax, line_segments[0].by + alpha*ay);
+    alpha = (line_segments[1].bx - line_segments[2].bx)*ax + (line_segments[1].by - line_segments[2].by)*ay;
+    const QPointF p2(line_segments[2].bx + alpha*ax, line_segments[2].by + alpha*ay);
+    alpha = (line_segments[3].bx - line_segments[2].bx)*ax + (line_segments[3].by - line_segments[2].by)*ay;
+    const QPointF p3(line_segments[2].bx + alpha*ax, line_segments[2].by + alpha*ay);
+    const qreal
+            dist1 = distance(p2-p1),
+            dist2 = distance(p3-p2),
+            margin = stroke->_tool.width();
+    const int
+            n1 = dist1 / 10 + 2,
+            n2 = dist2 / 10 + 2;
+    QVector<QPointF> coordinates(2*(n1+n2)+1);
+    const QPointF
+            d12 = (p2 - p1)/n1,
+            d23 = (p3 - p2)/n2,
+            d34 = (p4 - p3)/n1,
+            d41 = (p1 - p4)/n2;
+    for (int i=0; i<n1; ++i)
+        coordinates[i] = p1 + i*d12;
+    for (int i=0; i<n2; ++i)
+        coordinates[n1+i] = p2 + i*d23;
+    for (int i=0; i<n1; ++i)
+        coordinates[n1+n2+i] = p3 + i*d34;
+    for (int i=0; i<n2; ++i)
+        coordinates[2*n1+n2+i] = p4 + i*d41;
+    coordinates[2*(n1+n2)] = p1;
+    const qreal left = std::min(std::min(std::min(p1.x(), p2.x()), p3.x()), p4.x()),
+                right = std::max(std::max(std::max(p1.x(), p2.x()), p3.x()), p4.x()),
+                top = std::min(std::min(std::min(p1.y(), p2.y()), p3.y()), p4.y()),
+                bottom = std::max(std::max(std::max(p1.y(), p2.y()), p3.y()), p4.y());
+
+    const QRectF boundingRect(left-margin, top-margin, right-left+2*margin, bottom-top+2*margin);
+    if (stroke->type() == FullGraphicsPath::Type)
+    {
+        DrawTool tool(stroke->_tool);
+        tool.setWidth(moments.s/stroke->size());
+        return new BasicGraphicsPath(tool, coordinates, boundingRect);
+    }
+    return new BasicGraphicsPath(stroke->_tool, coordinates, boundingRect);
 }
 
 
