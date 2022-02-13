@@ -262,6 +262,12 @@ void Preferences::loadSettings()
     num = settings.value("circle threshold").toDouble(&ok);
     if (ok && 0 < num && num < 0.5)
         ellipse_to_circle_snapping = num;
+    num = settings.value("rectangle angle tolerance").toDouble(&ok);
+    if (ok && 0 < num && num < 3)
+        rect_angle_tolerance = num;
+    num = settings.value("rectangle closing tolerance").toDouble(&ok);
+    if (ok && 0 < num && num < 2)
+        rect_closing_tolerance = num;
     settings.endGroup();
 
     // RENDERING

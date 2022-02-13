@@ -16,11 +16,11 @@
 class StrokeRecognizer
 {
     struct Line {
-        qreal bx;
-        qreal by;
-        qreal angle;
-        qreal weight;
-        qreal loss;
+        qreal bx;     ///< x coordinate of a point on the line
+        qreal by;     ///< y coordinate of a point on the line
+        qreal angle;  ///< between -pi and pi
+        qreal weight; ///< variance, positive number
+        qreal loss;   ///< value of loss function, positive number
     };
     struct Moments {
         qreal s = 0.;
@@ -44,8 +44,9 @@ class StrokeRecognizer
                     d = 2*(sx*sy - s*sxy),
                     ay = n - std::sqrt(n*n + d*d),
                     loss = (d*d*(s*syy-sy*sy) + ay*ay*(s*sxx-sx*sx) + 2*d*ay*(sx*sy-s*sxy)) / ((d*d+ay*ay) * (s*sxx - sx*sx + s*syy - sy*sy)),
-                    weight = calc_weight ? var() : 0.;
-            return {sx/s, sy/s, std::atan2(ay, d), weight, loss};
+                    weight = calc_weight ? var() : 0.,
+                    angle = std::atan2(ay, d);
+            return {sx/s, sy/s, angle > M_PI ? angle - M_PI : angle < -M_PI ? angle + M_PI : angle, weight, loss};
         }
     };
 
@@ -178,6 +179,9 @@ public:
 
     /// Recognize line segments in this stoke.
     void findLines() noexcept;
+
+    qreal var() const noexcept
+    {return (moments.sxx - moments.sx*moments.sx/moments.s + moments.syy - moments.sy*moments.sy/moments.s)/moments.s;}
 
     /// Try to recognize a known shape in stroke.
     /// Return NULL if no shape was detected.

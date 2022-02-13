@@ -112,6 +112,14 @@ Parameter defining sensitivity of shape detection for lines. Larger values will 
 Parameter defining sensitivity of shape detection for ellipses. Larger values will categorize more strokes as ellipses.
 .
 .TP
+.BR "rectangle angle tolerance " "= 0.3"
+affects stroke recognizer for rectangle: This defines the tolerance in angles of different sides of a rectangle (angle in radiants).
+.
+.TP
+.BR "rectangle closing tolerance " "=0.1"
+affects stroke recognizer for rectangle: This defines the allowed distance between first and last point when drawing a rectangle relative to variance of point coordinates.
+.
+.TP
 .BR "circle threshold " "= 0.025"
 Ellipses with a relative deviation of the two radii smaller than this number will be considered as circles.
 .

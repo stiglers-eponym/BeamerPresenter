@@ -124,6 +124,10 @@ public:
     /// Slope (angle in radiants with small angle approximation) for snapping
     /// to horizontal or vertical direction for recognized shapes.
     qreal snap_angle = 0.05;
+    /// Tolerance in angles of different sides of a rectangle (radiants).
+    qreal rect_angle_tolerance = 0.3;
+    /// Allowed distance between first and last point in rectangle relative to variance of point coordinates.
+    qreal rect_closing_tolerance = 0.1;
 
     // RENDERING
     /// Threshold of page aspect ratio for splitting pages in notes and

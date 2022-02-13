@@ -7,6 +7,11 @@ qreal distance(const QPointF &p) noexcept
    return std::sqrt(p.x()*p.x() + p.y()*p.y());
 }
 
+qreal distance_squared(const QPointF &p) noexcept
+{
+   return p.x()*p.x() + p.y()*p.y();
+}
+
 void StrokeRecognizer::calc_higher_moments() noexcept
 {
     if (stroke->type() == FullGraphicsPath::Type)
@@ -192,15 +197,29 @@ BasicGraphicsPath *StrokeRecognizer::recognizeRect()
 {
     if (line_segments.size() != 4)
         return NULL;
-    qreal angle = (line_segments[0].angle + line_segments[1].angle + line_segments[2].angle + line_segments[3].angle - M_PI)/4;
-    // The following angle correction is constructed by trial and error:
-    if (line_segments[0].angle > line_segments[1].angle)
-        angle += M_PI/2;
-    if (std::abs(line_segments[0].angle - angle) > 0.3
-            || std::abs(line_segments[2].angle - angle) > 0.3
-            || (std::abs(line_segments[1].angle - M_PI/2 - angle) > 0.3 && std::abs(line_segments[1].angle + M_PI/2 - angle) > 0.3)
-            || (std::abs(line_segments[3].angle - M_PI/2 - angle) > 0.3 && std::abs(line_segments[3].angle + M_PI/2 - angle) > 0.3))
+    if (distance_squared(stroke->lastPoint() - stroke->firstPoint()) > preferences()->rect_closing_tolerance*var())
         return NULL;
+    const qreal total_weight = line_segments[0].weight + line_segments[1].weight + line_segments[2].weight + line_segments[3].weight;
+    qreal angle = line_segments[0].angle*line_segments[0].weight + line_segments[2].angle*line_segments[2].weight;
+    if (std::abs(line_segments[0].angle - line_segments[1].angle - M_PI/2) < M_PI/2)
+        angle += (line_segments[1].angle+M_PI/2)*line_segments[1].weight;
+    else
+        angle += (line_segments[1].angle-M_PI/2)*line_segments[1].weight;
+    if (std::abs(line_segments[0].angle - line_segments[3].angle - M_PI/2) < M_PI/2)
+        angle += (line_segments[3].angle+M_PI/2)*line_segments[3].weight;
+    else
+        angle += (line_segments[3].angle-M_PI/2)*line_segments[3].weight;
+    angle /= total_weight;
+    const qreal angle_tolerance = total_weight * preferences()->rect_angle_tolerance;
+    if (std::abs(line_segments[0].angle - angle)*line_segments[0].weight > angle_tolerance
+            || std::abs(line_segments[2].angle - angle)*line_segments[2].weight > angle_tolerance
+            || (std::abs(line_segments[1].angle - M_PI/2 - angle)*line_segments[1].weight > angle_tolerance && std::abs(line_segments[1].angle + M_PI/2 - angle)*line_segments[1].weight > angle_tolerance)
+            || (std::abs(line_segments[3].angle - M_PI/2 - angle)*line_segments[3].weight > angle_tolerance && std::abs(line_segments[3].angle + M_PI/2 - angle)*line_segments[3].weight > angle_tolerance))
+        return NULL;
+    if (std::abs(angle) < preferences()->snap_angle || M_PI - std::abs(angle) < preferences()->snap_angle)
+        angle = 0;
+    else if (std::abs(angle - M_PI/2) < preferences()->snap_angle || std::abs(angle + M_PI/2) < preferences()->snap_angle)
+        angle = M_PI/2;
     const qreal
             ax = std::cos(angle),
             ay = std::sin(angle);
