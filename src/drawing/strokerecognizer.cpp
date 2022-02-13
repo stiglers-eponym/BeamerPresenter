@@ -2,11 +2,13 @@
 #include "src/drawing/fullgraphicspath.h"
 #include "src/preferences.h"
 
+/// Compute length of vector p.
 qreal distance(const QPointF &p) noexcept
 {
    return std::sqrt(p.x()*p.x() + p.y()*p.y());
 }
 
+/// Compute square of length of vector p.
 qreal distance_squared(const QPointF &p) noexcept
 {
    return p.x()*p.x() + p.y()*p.y();
@@ -164,7 +166,7 @@ void StrokeRecognizer::findLines() noexcept
     moments += newmoments;
 
     // 2. Filter and combine line segments.
-    const qreal total_var = moments.var();
+    const qreal total_var = moments.std();
     oldmoments = {0,0,0,0,0,0};
     for (int i=0; i<segment_lines.size(); ++i)
     {
@@ -193,12 +195,15 @@ void StrokeRecognizer::findLines() noexcept
 #endif
 }
 
-BasicGraphicsPath *StrokeRecognizer::recognizeRect()
+BasicGraphicsPath *StrokeRecognizer::recognizeRect() const
 {
+    // Assert that stroke contains exactly 4 line segments.
     if (line_segments.size() != 4)
         return NULL;
-    if (distance_squared(stroke->lastPoint() - stroke->firstPoint()) > preferences()->rect_closing_tolerance*var())
+    // Check if the stroke is approximately closed.
+    if (distance_squared(stroke->lastPoint() - stroke->firstPoint()) > preferences()->rect_closing_tolerance*moments.var())
         return NULL;
+    // Compute angle of the rectangle from the 4 segments.
     const qreal total_weight = line_segments[0].weight + line_segments[1].weight + line_segments[2].weight + line_segments[3].weight;
     qreal angle = line_segments[0].angle*line_segments[0].weight + line_segments[2].angle*line_segments[2].weight;
     if (std::abs(line_segments[0].angle - line_segments[1].angle - M_PI/2) < M_PI/2)
@@ -210,16 +215,19 @@ BasicGraphicsPath *StrokeRecognizer::recognizeRect()
     else
         angle += (line_segments[3].angle-M_PI/2)*line_segments[3].weight;
     angle /= total_weight;
+    // Check if the angles agree form a rectangle (within some tolerance).
     const qreal angle_tolerance = total_weight * preferences()->rect_angle_tolerance;
     if (std::abs(line_segments[0].angle - angle)*line_segments[0].weight > angle_tolerance
             || std::abs(line_segments[2].angle - angle)*line_segments[2].weight > angle_tolerance
             || (std::abs(line_segments[1].angle - M_PI/2 - angle)*line_segments[1].weight > angle_tolerance && std::abs(line_segments[1].angle + M_PI/2 - angle)*line_segments[1].weight > angle_tolerance)
             || (std::abs(line_segments[3].angle - M_PI/2 - angle)*line_segments[3].weight > angle_tolerance && std::abs(line_segments[3].angle + M_PI/2 - angle)*line_segments[3].weight > angle_tolerance))
         return NULL;
+    // Snap angle to horizontal/vertical orientation.
     if (std::abs(angle) < preferences()->snap_angle || M_PI - std::abs(angle) < preferences()->snap_angle)
         angle = 0;
     else if (std::abs(angle - M_PI/2) < preferences()->snap_angle || std::abs(angle + M_PI/2) < preferences()->snap_angle)
         angle = M_PI/2;
+    // Compute the positions of the corners of the rectangle.
     const qreal
             ax = std::cos(angle),
             ay = std::sin(angle);
@@ -231,6 +239,7 @@ BasicGraphicsPath *StrokeRecognizer::recognizeRect()
     const QPointF p2(line_segments[2].bx + alpha*ax, line_segments[2].by + alpha*ay);
     alpha = (line_segments[3].bx - line_segments[2].bx)*ax + (line_segments[3].by - line_segments[2].by)*ay;
     const QPointF p3(line_segments[2].bx + alpha*ax, line_segments[2].by + alpha*ay);
+    // Construct the coordinates of points between the corners.
     const qreal
             dist1 = distance(p2-p1),
             dist2 = distance(p3-p2),
@@ -253,12 +262,13 @@ BasicGraphicsPath *StrokeRecognizer::recognizeRect()
     for (int i=0; i<n2; ++i)
         coordinates[2*n1+n2+i] = p4 + i*d41;
     coordinates[2*(n1+n2)] = p1;
+    // Compute the bounding rect.
     const qreal left = std::min(std::min(std::min(p1.x(), p2.x()), p3.x()), p4.x()),
                 right = std::max(std::max(std::max(p1.x(), p2.x()), p3.x()), p4.x()),
                 top = std::min(std::min(std::min(p1.y(), p2.y()), p3.y()), p4.y()),
                 bottom = std::max(std::max(std::max(p1.y(), p2.y()), p3.y()), p4.y());
-
     const QRectF boundingRect(left-margin, top-margin, right-left+2*margin, bottom-top+2*margin);
+    // Compute the stroke width (only for FullGraphicsPath).
     if (stroke->type() == FullGraphicsPath::Type)
     {
         DrawTool tool(stroke->_tool);

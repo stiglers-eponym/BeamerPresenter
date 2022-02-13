@@ -9,12 +9,10 @@
  *
  * Objects of this class should only briefly be created for a given path and
  * must be deleted before deleting the path.
- *
- * @todo continue implementing this class
- * @todo implement simpler way of accessing stroke recognizer
  */
 class StrokeRecognizer
 {
+    /// Line fitted to a set of points
     struct Line {
         qreal bx;     ///< x coordinate of a point on the line
         qreal by;     ///< y coordinate of a point on the line
@@ -22,21 +20,32 @@ class StrokeRecognizer
         qreal weight; ///< variance, positive number
         qreal loss;   ///< value of loss function, positive number
     };
+
+    /// Collection of statistical moments (0th, 1st and 2nd) of a set of points,
+    /// together with functions for fitting a line.
     struct Moments {
-        qreal s = 0.;
-        qreal sx = 0.;
-        qreal sy = 0.;
-        qreal sxx = 0.;
-        qreal sxy = 0.;
-        qreal syy = 0.;
+        qreal s = 0.;   ///< total weight
+        qreal sx = 0.;  ///< weighted sum of x coordinates
+        qreal sy = 0.;  ///< weighted sum of y coordinates
+        qreal sxx = 0.; ///< weighted sum of x*x
+        qreal sxy = 0.; ///< weighted sum of x*y
+        qreal syy = 0.; ///< weighted sum of y*y
+        /// Add moments (all moments are linear)
         Moments operator+(const Moments& other) const noexcept
         {return {s+other.s, sx+other.sx, sy+other.sy, sxx+other.sxx, sxy+other.sxy, syy+other.syy};}
+        /// Add moments (all moments are linear)
         void operator+=(const Moments& other) noexcept
         {s+=other.s; sx+=other.sx; sy+=other.sy; sxx+=other.sxx; sxy+=other.sxy; syy+=other.syy;}
+        /// Reset all moments and weights to 0.
         void reset() noexcept
         {s=sx=sy=sxx=sxy=syy=0;}
+        /// Compute variance (normalized to weights)
         qreal var() const noexcept
+        {return (sxx - sx*sx/s + syy - sy*sy/s)/s;}
+        /// Compute standard deviation (square root of variance, normalized to weights).
+        qreal std() const noexcept
         {return std::sqrt(s*sxx - sx*sx + s*syy - sy*sy)/s;}
+        /// Fit a line to the given moments.
         Line line(const bool calc_weight = true) const noexcept
         {
             const qreal
@@ -44,7 +53,7 @@ class StrokeRecognizer
                     d = 2*(sx*sy - s*sxy),
                     ay = n - std::sqrt(n*n + d*d),
                     loss = (d*d*(s*syy-sy*sy) + ay*ay*(s*sxx-sx*sx) + 2*d*ay*(sx*sy-s*sxy)) / ((d*d+ay*ay) * (s*sxx - sx*sx + s*syy - sy*sy)),
-                    weight = calc_weight ? var() : 0.,
+                    weight = calc_weight ? std() : 0.,
                     angle = std::atan2(ay, d);
             return {sx/s, sy/s, angle > M_PI ? angle - M_PI : angle < -M_PI ? angle + M_PI : angle, weight, loss};
         }
@@ -58,6 +67,7 @@ class StrokeRecognizer
     /// Lines recognized in this stroke.
     QList<Line> line_segments;
 
+    /// 0th, 1st and 2nd moments
     Moments moments;
     qreal   sxxx = 0., ///< weighted sum of x*x*x
             sxxy = 0., ///< weighted sum of x*x*y
@@ -180,9 +190,6 @@ public:
     /// Recognize line segments in this stoke.
     void findLines() noexcept;
 
-    qreal var() const noexcept
-    {return (moments.sxx - moments.sx*moments.sx/moments.s + moments.syy - moments.sy*moments.sy/moments.s)/moments.s;}
-
     /// Try to recognize a known shape in stroke.
     /// Return NULL if no shape was detected.
     BasicGraphicsPath *recognize();
@@ -193,12 +200,10 @@ public:
 
     /// Check if stroke is a rectangle.
     /// Return a BasicGraphicsPath* representing this line if successful, NULL otherwise.
-    /// @todo not implemented yet
-    BasicGraphicsPath *recognizeRect();
+    BasicGraphicsPath *recognizeRect() const;
 
     /// Check if stroke is an ellipse.
     /// Return a BasicGraphicsPath* representing this line if successful, NULL otherwise.
-    /// @todo not implemented yet
     BasicGraphicsPath *recognizeEllipse() const;
 };
 
