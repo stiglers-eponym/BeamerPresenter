@@ -25,6 +25,9 @@ option(USE_POPPLER "Include Poppler" OFF)
 option(CREATE_SHARED_LIBRARIES "Put the PDF engine in a shared library" OFF)
 option(USE_MUJS "Link to mujs instead of mupdf-third (only relevant when using MuPDF)" OFF)
 option(USE_GUMBO "Link to gumbo-parser, should be on when using MuPDF >= 1.18" ON)
+# Paths or library names for MuPDF can be provided explicitly.
+set(MUPDF_LIB_PATH "mupdf" CACHE STRING "file name or full path to mupdf library")
+set(MUPDF_THIRD_LIB_PATH "mupdf-third" CACHE STRING "file name or full path to mupdf-third library")
 
 if ((NOT USE_MUPDF) AND (NOT USE_POPPLER))
     message(FATAL_ERROR "No PDF engine provided")

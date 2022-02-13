@@ -1,7 +1,7 @@
 if (USE_MUPDF)
     # Configure MuPDF libraries
     set(MUPDF_LIBS
-                    mupdf
+                    "${MUPDF_LIB_PATH}"
                     m
                     freetype
                     harfbuzz
@@ -11,7 +11,7 @@ if (USE_MUPDF)
     if (USE_MUJS)
         list(APPEND MUPDF_LIBS mujs)
     else()
-        list(APPEND MUPDF_LIBS mupdf-third)
+        list(APPEND MUPDF_LIBS "${MUPDF_THIRD_LIB_PATH}")
     endif()
     if (USE_GUMBO)
         list(APPEND MUPDF_LIBS gumbo)

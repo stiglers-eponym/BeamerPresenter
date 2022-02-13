@@ -31,12 +31,14 @@ The build process for these packages is explained [here](https://github.com/stig
 ## Choosing MuPDF or Poppler
 When installing BeamerPresenter you need to choose either MuPDF or Poppler as PDF engine. Here is my personal opinion that might help you with the decision.
 
-* MuPDF produces a much larger package size (37MB instead of 1.3MB in Arch Linux).
+* MuPDF produces a much larger package size: 37MB instead of 1.3MB in Arch Linux.
+    * MuPDF is statically linked and contains about 30MB of fonts that end up in the executable
+    * When using MuPDF the size of the executable can be reduced from 37MB to 7MB by compiling MuPDF without extra fonts.
 * MuPDF may have better performance.
 * My impression is that in most cases MuPDF produces slightly better-looking slides than Poppler. But this may depend on the presentation, the fonts, the resolution, ...
 * Enabling both PDF engines is not recommended, because it can lead to program crashes when using Poppler for some documents.
-* One special case of audio files linked from a PDF is currently only handled correctly when using Poppler.
-* Integrating MuPDF in BeamerPresenter requires much more code than Poppler, which might also lead to more bugs. But MuPDF is also tested more than Poppler.
+* Some features are only supported by Poppler and not by MuPDF. These features include most link types like action links and sound links. For example, the command `\sound{title}{filename}` in LaTeX beamer's multimedia package will only work with Poppler (workaround: use `\movie` instead of `\sound`).
+* Integrating MuPDF in BeamerPresenter requires much more code than integrating Poppler, which might also lead to more bugs.
 
 
 ## General requirements
