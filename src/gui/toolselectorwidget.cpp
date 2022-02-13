@@ -19,7 +19,7 @@ ToolSelectorWidget::ToolSelectorWidget(QWidget *parent) : QWidget(parent)
 QSize ToolSelectorWidget::sizeHint() const noexcept
 {
     QGridLayout *gridlayout = static_cast<QGridLayout*>(layout());
-    return {gridlayout->columnCount()*30, gridlayout->rowCount()*10};
+    return {gridlayout->columnCount()*22, gridlayout->rowCount()*20};
 }
 
 void ToolSelectorWidget::addButtons(const QJsonArray &full_array)
@@ -116,4 +116,17 @@ void ToolSelectorWidget::addButtons(const QJsonArray &full_array)
             }
         }
     }
+}
+
+bool ToolSelectorWidget::event(QEvent *event)
+{
+    if (event->type() == QEvent::Resize)
+    {
+        QGridLayout *grid_layout = static_cast<QGridLayout*>(layout());
+        const int minheight = height() / grid_layout->rowCount() - 1;
+        if (minheight > 12)
+            for (int i=0; i<grid_layout->rowCount();)
+                grid_layout->setRowMinimumHeight(i++, minheight);
+    }
+    return QWidget::event(event);
 }

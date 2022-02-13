@@ -34,6 +34,10 @@ public:
     bool hasHeightForWidth() const noexcept override
     {return true;}
 
+protected:
+    /// Override event: set equal row height when resizing.
+    bool event(QEvent *event) override;
+
 signals:
     /// Send out action to master.
     void sendAction(const Action action);
