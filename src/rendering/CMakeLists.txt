@@ -1,13 +1,14 @@
 if (USE_MUPDF)
     # Configure MuPDF libraries
-    set(MUPDF_LIBS
-                    "${MUPDF_LIB_PATH}"
-                    m
+    set(MUPDF_LIBS "${MUPDF_LIB_PATH}" m)
+    if (MUPDF_USE_SYSTEM_LIBS)
+        list(APPEND MUPDF_LIBS
                     freetype
                     harfbuzz
                     jpeg
                     jbig2dec
                     openjp2)
+    endif()
     if (USE_MUJS)
         list(APPEND MUPDF_LIBS mujs)
     else()
@@ -16,67 +17,19 @@ if (USE_MUPDF)
     if (USE_GUMBO)
         list(APPEND MUPDF_LIBS gumbo)
     endif()
+    list(APPEND EXTRA_INCLUDE
+            "${CMAKE_CURRENT_SOURCE_DIR}/mupdfdocument.cpp"
+            "${CMAKE_CURRENT_SOURCE_DIR}/mupdfrenderer.cpp"
+        )
+    list(APPEND EXTRA_LIBS ${MUPDF_LIBS})
 endif()
-if (CREATE_SHARED_LIBRARIES)
-    if (USE_MUPDF)
-        add_library(beamerpresenter-pdf-mupdf SHARED
-                #pngpixmap.cpp
-                pdfdocument.cpp
-                mupdfdocument.cpp
-                mupdfrenderer.cpp
-            )
-        target_link_libraries(beamerpresenter-pdf-mupdf PUBLIC
-                ${QT}::Core
-                ${QT}::Gui
-                ${QT}::Widgets
-                ${MUPDF_LIBS}
-            )
-        target_include_directories(beamerpresenter-pdf-mupdf PUBLIC
-                "${PROJECT_BINARY_DIR}"
-                "${PROJECT_SOURCE_DIR}"
-            )
-        list(APPEND EXTRA_LIBS
-                beamerpresenter-pdf-mupdf
-            )
-        install(TARGETS beamerpresenter-pdf-mupdf LIBRARY)
-    endif()
-    if (USE_POPPLER)
-        add_library(beamerpresenter-pdf-poppler SHARED
-                #pngpixmap.cpp
-                pdfdocument.cpp
-                popplerdocument.cpp
-            )
-        target_link_libraries(beamerpresenter-pdf-poppler PUBLIC
-                ${QT}::Core
-                ${QT}::Gui
-                ${QT}::Widgets
-                poppler-qt${QT_VERSION_MAJOR}
-            )
-        target_include_directories(beamerpresenter-pdf-poppler PUBLIC
-                "${PROJECT_BINARY_DIR}"
-                "${PROJECT_SOURCE_DIR}"
-            )
-        list(APPEND EXTRA_LIBS
-                beamerpresenter-pdf-poppler
-            )
-        install(TARGETS beamerpresenter-pdf-poppler LIBRARY)
-    endif()
-else()
-    if (USE_MUPDF)
-        list(APPEND EXTRA_INCLUDE
-                "${CMAKE_CURRENT_SOURCE_DIR}/mupdfdocument.cpp"
-                "${CMAKE_CURRENT_SOURCE_DIR}/mupdfrenderer.cpp"
-            )
-        list(APPEND EXTRA_LIBS ${MUPDF_LIBS})
-    endif()
-    if (USE_POPPLER)
-        list(APPEND EXTRA_INCLUDE
-            "${CMAKE_CURRENT_SOURCE_DIR}/popplerdocument.cpp"
-            )
-        list(APPEND EXTRA_LIBS
-                poppler-qt${QT_VERSION_MAJOR}
-            )
-    endif()
+if (USE_POPPLER)
+    list(APPEND EXTRA_INCLUDE
+        "${CMAKE_CURRENT_SOURCE_DIR}/popplerdocument.cpp"
+        )
+    list(APPEND EXTRA_LIBS
+            poppler-qt${QT_VERSION_MAJOR}
+        )
 endif()
 
 set(EXTRA_LIBS ${EXTRA_LIBS} PARENT_SCOPE)

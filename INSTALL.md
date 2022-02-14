@@ -123,8 +123,8 @@ cmake \
     -DGIT_VERSION=ON \
     -DUSE_TRANSLATIONS=ON \
     -DQT_VERSION_MAJOR=6 \ # must be set manually!
-    -DQT_VERSION_MINOR=2 \ # only relevant for packaging
-    -DCREATE_SHARED_LIBRARIES=OFF \
+    -DQT_VERSION_MINOR=2 \ # only relevant for package dependencies
+    -DMUPDF_USE_SYSTEM_LIBS=ON \
     -DCMAKE_INSTALL_PREFIX=/usr \
     -DCMAKE_INSTALL_SYSCONFDIR=/etc
 ```

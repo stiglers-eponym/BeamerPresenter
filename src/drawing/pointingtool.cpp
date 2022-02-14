@@ -3,7 +3,11 @@
 void PointingTool::initPointerBrush() noexcept
 {
     QRadialGradient grad(.5, .5, .5);
+#if (QT_VERSION >= QT_VERSION_CHECK(5,12,0))
     grad.setCoordinateMode(QGradient::ObjectMode);
+#else
+    grad.setCoordinateMode(QGradient::ObjectBoundingMode);
+#endif
     const QColor color = _brush.color();
     grad.setColorAt(.1, color);
     QColor semitransparent = color;
