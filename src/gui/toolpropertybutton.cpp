@@ -19,7 +19,7 @@ ToolPropertyButton::ToolPropertyButton(QWidget *parent) :
 
 bool ToolPropertyButton::event(QEvent *event)
 {
-    const Tool::InputDevice olddevice = device;
+    const int olddevice = device;
     switch (event->type())
     {
     case QEvent::MouseButtonDblClick:
@@ -56,7 +56,7 @@ bool ToolPropertyButton::event(QEvent *event)
 
 void ToolPropertyButton::changed(const int index) const
 {
-    Tool *tool = preferences()->currentTool(int(device));
+    Tool *tool = preferences()->currentTool(device);
     if (tool)
         setToolProperty(tool);
 }

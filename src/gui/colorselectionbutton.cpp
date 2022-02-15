@@ -39,7 +39,7 @@ void ColorSelectionButton::setToolProperty(Tool *tool) const
 
 void ColorSelectionButton::updateTool()
 {
-    const Tool *tool = preferences()->currentTool(int(device));
+    const Tool *tool = preferences()->currentTool(device);
     if (tool)
     {
         const int idx = findData(tool->color());

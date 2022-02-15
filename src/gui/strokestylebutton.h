@@ -23,7 +23,7 @@ protected:
 
     /// Update currently selected style based on the tool for device.
     void updateTool() override
-    {toolChanged(preferences()->currentTool(int(device)));}
+    {toolChanged(preferences()->currentTool(device));}
 
 public slots:
     /// Update currently selected tool property based on tool.

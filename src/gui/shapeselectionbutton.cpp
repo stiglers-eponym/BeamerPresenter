@@ -45,7 +45,7 @@ void ShapeSelectionButton::setToolProperty(Tool *tool) const
 
 void ShapeSelectionButton::updateTool()
 {
-    const Tool *tool = preferences()->currentTool(int(device));
+    const Tool *tool = preferences()->currentTool(device);
     if (tool && tool->tool() & Tool::AnyDrawTool)
         setCurrentIndex(int(static_cast<const DrawTool*>(tool)->shape()));
 }

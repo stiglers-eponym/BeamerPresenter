@@ -443,7 +443,11 @@ void PdfMaster::readPageFromStream(QXmlStreamReader &reader, bool &nontrivial_pa
                 if (time.isValid())
                     target_times[page] = time.msecsSinceStartOfDay();
             }
+#if (QT_VERSION_MAJOR >= 6)
+            const QStringView filename = reader.attributes().value("filename");
+#else
             const QStringRef filename = reader.attributes().value("filename");
+#endif
             if (!filename.isEmpty())
             {
                 if (!document)

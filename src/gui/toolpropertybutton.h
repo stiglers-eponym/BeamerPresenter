@@ -13,7 +13,7 @@ class ToolPropertyButton : public QComboBox
 protected:
     /// Device changed by this button.
     /// This is the last device used to press this button.
-    Tool::InputDevice device;
+    int device;
 
     /// Set device to the device producing this action, then continue with QComboBox::action.
     bool event(QEvent *event) override;
