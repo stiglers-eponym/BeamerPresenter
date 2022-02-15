@@ -706,32 +706,6 @@ QList<PdfDocument::MediaAnnotation> *MuPdfDocument::annotations(const int page) 
     {
         warn_msg("Error while searching annotations:" << fz_caught_message(ctx));
     }
-
-    // TODO: Sounds included as links or actions are not supported in MuPDF.
-    /*
-    fz_link *clink = NULL;
-    mutex->lock();
-    fz_var(clink);
-    fz_try(ctx)
-    {
-        clink = pdf_load_links(ctx, pages[page]);
-        for (fz_link* link = clink; link != NULL; link = link->next)
-        {
-            QRectF rect(link->rect.x0, link->rect.y0, link->rect.x1-link->rect.x0, link->rect.y1-link->rect.y0);
-            debug_verbose(DebugMedia, link->uri << rect << page);
-        }
-    }
-    fz_always(ctx)
-    {
-        fz_drop_link(ctx, clink);
-        mutex->unlock();
-    }
-    fz_catch(ctx)
-    {
-        warn_msg("Error while loading links" << fz_caught_message(ctx));
-    }
-    */
-
     return list;
 }
 

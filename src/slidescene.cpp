@@ -522,10 +522,10 @@ void SlideScene::loadMedia(const int page)
 {
     if (!(slide_flags & LoadMedia))
         return;
-    QList<PdfDocument::MediaAnnotation> *list = master->getDocument()->annotations(page);
+    const QList<PdfDocument::MediaAnnotation> *list = master->getDocument()->annotations(page);
     if (!list)
         return;
-    for (const auto &annotation : qAsConst(*list))
+    for (const auto &annotation : *list)
     {
         if (annotation.type != PdfDocument::MediaAnnotation::InvalidAnnotation)
         {
@@ -543,6 +543,7 @@ void SlideScene::loadMedia(const int page)
                 item.player->play();
         }
     }
+    delete list;
 }
 
 void SlideScene::postRendering()
@@ -582,14 +583,13 @@ void SlideScene::postRendering()
 
 void SlideScene::cacheMedia(const int page)
 {
-    QList<PdfDocument::MediaAnnotation> *list = master->getDocument()->annotations(page);
+    const QList<PdfDocument::MediaAnnotation> *list = master->getDocument()->annotations(page);
     if (!list)
         return;
-    for (const auto &annotation : qAsConst(*list))
-    {
+    for (const auto &annotation : *list)
         if (annotation.type != PdfDocument::MediaAnnotation::InvalidAnnotation)
             getMediaItem(annotation, page);
-    }
+    delete list;
 }
 
 SlideScene::MediaItem &SlideScene::getMediaItem(const PdfDocument::MediaAnnotation &annotation, const int page)
