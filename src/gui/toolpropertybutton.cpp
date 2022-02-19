@@ -24,8 +24,10 @@ bool ToolPropertyButton::event(QEvent *event)
     {
     case QEvent::MouseButtonDblClick:
     case QEvent::MouseButtonPress:
+        device = static_cast<QMouseEvent*>(event)->buttons() << 1;
+        break;
     case QEvent::MouseButtonRelease:
-        device = Tool::InputDevice(static_cast<QMouseEvent*>(event)->buttons() << 1);
+        device = static_cast<QMouseEvent*>(event)->button() << 1;
         break;
     case QEvent::TabletPress:
     case QEvent::TabletRelease:
