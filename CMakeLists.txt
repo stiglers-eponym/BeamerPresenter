@@ -19,13 +19,17 @@ find_package(Qt${QT_VERSION_MAJOR} COMPONENTS Multimedia REQUIRED)
 find_package(Qt${QT_VERSION_MAJOR} COMPONENTS MultimediaWidgets REQUIRED)
 find_package(Qt${QT_VERSION_MAJOR} COMPONENTS Xml REQUIRED)
 
+# Options concerning the installation
+option(GENERATE_MANPAGES "Generate man pages and include them in installation" ON)
+
 # Options concerning the PDF engine
 option(USE_MUPDF "Include MuPDF" ON)
 option(USE_POPPLER "Include Poppler" OFF)
 option(USE_MUJS "Link to mujs instead of mupdf-third (only relevant when using MuPDF)" OFF)
 option(USE_GUMBO "Link to gumbo-parser, should be on when using MuPDF >= 1.18" ON)
 option(MUPDF_USE_SYSTEM_LIBS "MuPDF uses system libraries that need to be included. This is the default for most Linux packages of MuPDF." ON)
-# Paths or library names for MuPDF can be provided explicitly.
+
+# Paths or library names for MuPDF can be provided explicitly
 set(MUPDF_LIB_PATH "mupdf" CACHE STRING "file name or full path to mupdf library")
 set(MUPDF_THIRD_LIB_PATH "mupdf-third" CACHE STRING "file name or full path to mupdf-third library")
 
@@ -130,7 +134,9 @@ endif()
 # Add other subdirectories.
 add_subdirectory(config)
 add_subdirectory(share)
-add_subdirectory(man)
+if (GENERATE_MANPAGES)
+    add_subdirectory(man)
+endif()
 
 
 # Packaging
