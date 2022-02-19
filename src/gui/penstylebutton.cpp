@@ -1,7 +1,7 @@
-#include "src/gui/strokestylebutton.h"
+#include "src/gui/penstylebutton.h"
 #include "src/drawing/drawtool.h"
 
-StrokeStyleButton::StrokeStyleButton(QWidget *parent) :
+PenStyleButton::PenStyleButton(QWidget *parent) :
     ToolPropertyButton(parent)
 {
     addItem("—", QVariant::fromValue(Qt::PenStyle::SolidLine));
@@ -11,13 +11,13 @@ StrokeStyleButton::StrokeStyleButton(QWidget *parent) :
     addItem("- · ·", QVariant::fromValue(Qt::PenStyle::DashDotDotLine));
 }
 
-void StrokeStyleButton::setToolProperty(Tool *tool) const
+void PenStyleButton::setToolProperty(Tool *tool) const
 {
     if (tool && tool->tool() & Tool::AnyDrawTool)
         static_cast<DrawTool*>(tool)->rpen().setStyle(currentData(Qt::UserRole).value<Qt::PenStyle>());
 }
 
-void StrokeStyleButton::toolChanged(Tool *tool)
+void PenStyleButton::toolChanged(Tool *tool)
 {
     if (tool && tool->tool() & Tool::AnyDrawTool)
     {
@@ -26,4 +26,4 @@ void StrokeStyleButton::toolChanged(Tool *tool)
             setCurrentIndex(index);
     }
 }
-#include "strokestylebutton.h"
+#include "penstylebutton.h"

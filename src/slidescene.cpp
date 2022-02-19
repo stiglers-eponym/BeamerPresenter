@@ -19,7 +19,7 @@
 #include "src/drawing/pointingtool.h"
 #include "src/drawing/texttool.h"
 #include "src/drawing/pathcontainer.h"
-#include "src/drawing/strokerecognizer.h"
+#include "src/drawing/shaperecognizer.h"
 
 SlideScene::SlideScene(const PdfMaster *master, const PagePart part, QObject *parent) :
     QGraphicsScene(parent),
@@ -68,7 +68,7 @@ void SlideScene::stopDrawing()
             emit sendNewPath(page | page_part, currentlyDrawnItem);
             if (static_cast<const AbstractGraphicsPath*>(currentlyDrawnItem)->getTool().shape() == DrawTool::Recognize)
             {
-                StrokeRecognizer recognizer(static_cast<const AbstractGraphicsPath*>(currentlyDrawnItem));
+                ShapeRecognizer recognizer(static_cast<const AbstractGraphicsPath*>(currentlyDrawnItem));
                 BasicGraphicsPath *newpath = recognizer.recognize();
                 if (newpath)
                 {

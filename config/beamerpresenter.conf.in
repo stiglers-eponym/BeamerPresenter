@@ -27,18 +27,18 @@ history length hidden=20
 mode=cumulative
 # max. slope for angle snapping when detecting shapes
 snap angle=0.05
-# sensiticity for detecting lines in strokes (larger values categorize more
-# strokes as lines)
+# sensiticity for detecting lines in paths (larger values categorize more
+# paths as lines)
 line sensitivity=0.005
-# sensitivity for detecting ellipses in strokes
+# sensitivity for detecting ellipses in paths
 circle threshold=0.025
 # ellipses with relative deviation of the two radii smaller than this number
 # will be recognized as circles
 ellipse sensitivity=0.05
-# stroke recognizer for rectangle: tolerance in angles of different sides of
+# shape recognizer for rectangle: tolerance in angles of different sides of
 # a rectangle (radiants)
 rectangle angle tolerance=0.3
-# stroke recognizer for rectangle: allowed distance between first and last
+# shape recognizer for rectangle: allowed distance between first and last
 # point in rectangle relative to variance of point coordinates.
 rectangle closing tolerance=0.1
 

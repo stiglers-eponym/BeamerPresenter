@@ -112,7 +112,7 @@ public:
     /// Duration of a slide in an animation, in ms.
     int slide_duration_animation = 50;
 
-    // STROKE RECOGNITION
+    // SHAPE RECOGNITION
     /// Parameter for sensitivity of line detectoin.
     /// Larger numbers mean that more strokes are recognized as lines.
     qreal line_sensitivity = 0.005;

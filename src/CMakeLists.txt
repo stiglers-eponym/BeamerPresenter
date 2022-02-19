@@ -7,7 +7,7 @@ add_executable(beamerpresenter
         drawing/textgraphicsitem.cpp
         drawing/rectgraphicsitem.cpp
         drawing/ellipsegraphicsitem.cpp
-        drawing/strokerecognizer.cpp
+        drawing/shaperecognizer.cpp
         drawing/pathcontainer.cpp
         drawing/basicgraphicspath.cpp
         drawing/fullgraphicspath.cpp
@@ -32,7 +32,7 @@ add_executable(beamerpresenter
         gui/toolselectorwidget.cpp
         gui/toolpropertybutton.cpp
         gui/shapeselectionbutton.cpp
-        gui/strokestylebutton.cpp
+        gui/penstylebutton.cpp
         gui/colorselectionbutton.cpp
         gui/mediaslider.h
         gui/containerwidget.h

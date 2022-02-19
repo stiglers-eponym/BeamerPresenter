@@ -40,7 +40,7 @@ protected:
     ///@}
 
 friend class BasicGraphicsPath;
-friend class StrokeRecognizer;
+friend class ShapeRecognizer;
 
 public:
     /// Constructor: initialize tool.

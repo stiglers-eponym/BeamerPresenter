@@ -1,4 +1,4 @@
-#include "src/drawing/strokerecognizer.h"
+#include "src/drawing/shaperecognizer.h"
 #include "src/drawing/fullgraphicspath.h"
 #include "src/preferences.h"
 
@@ -14,11 +14,11 @@ qreal distance_squared(const QPointF &p) noexcept
    return p.x()*p.x() + p.y()*p.y();
 }
 
-void StrokeRecognizer::calc_higher_moments() noexcept
+void ShapeRecognizer::calc_higher_moments() noexcept
 {
-    if (stroke->type() == FullGraphicsPath::Type)
+    if (path->type() == FullGraphicsPath::Type)
     {
-        const FullGraphicsPath *path = static_cast<const FullGraphicsPath*>(stroke);
+        const FullGraphicsPath *path = static_cast<const FullGraphicsPath*>(path);
         QVector<float>::const_iterator pit = path->pressures.cbegin();
         QVector<QPointF>::const_iterator cit = path->coordinates.cbegin();
         for (; cit!=path->coordinates.cend() && pit!=path->pressures.cend(); ++pit, ++cit)
@@ -34,7 +34,7 @@ void StrokeRecognizer::calc_higher_moments() noexcept
     }
     else
     {
-        for (const QPointF &p : stroke->coordinates)
+        for (const QPointF &p : path->coordinates)
         {
             sxxx += p.x() * p.x() * p.x();
             sxxy += p.x() * p.x() * p.y();
@@ -47,7 +47,7 @@ void StrokeRecognizer::calc_higher_moments() noexcept
     }
 }
 
-BasicGraphicsPath *StrokeRecognizer::recognize()
+BasicGraphicsPath *ShapeRecognizer::recognize()
 {
     findLines();
     BasicGraphicsPath *path = recognizeRect();
@@ -61,12 +61,12 @@ BasicGraphicsPath *StrokeRecognizer::recognize()
     return path;
 }
 
-BasicGraphicsPath *StrokeRecognizer::recognizeLine() const
+BasicGraphicsPath *ShapeRecognizer::recognizeLine() const
 {
-    if (stroke->size() < 3 || moments.s == 0.)
+    if (path->size() < 3 || moments.s == 0.)
         return NULL;
     const Line line = moments.line();
-    const qreal margin = stroke->_tool.width();
+    const qreal margin = path->_tool.width();
     debug_msg(DebugDrawing, "recognize line:" << line.bx << line.by << line.angle << line.loss);
     if (line.loss > preferences()->line_sensitivity)
         return NULL;
@@ -80,26 +80,26 @@ BasicGraphicsPath *StrokeRecognizer::recognizeLine() const
     {
         if (std::abs(ax) < preferences()->snap_angle*std::abs(ay))
         {
-            p1 = {line.bx, stroke->top + margin};
-            p2 = {line.bx, stroke->bottom - margin};
+            p1 = {line.bx, path->top + margin};
+            p2 = {line.bx, path->bottom - margin};
         }
         else
         {
-            p1 = {line.bx + ax/ay*(stroke->top + margin - line.by), stroke->top + margin};
-            p2 = {line.bx + ax/ay*(stroke->bottom - margin - line.by), stroke->bottom - margin};
+            p1 = {line.bx + ax/ay*(path->top + margin - line.by), path->top + margin};
+            p2 = {line.bx + ax/ay*(path->bottom - margin - line.by), path->bottom - margin};
         }
     }
     else
     {
         if (std::abs(ay) < preferences()->snap_angle*std::abs(ax))
         {
-            p1 = {stroke->left + margin, line.by};
-            p2 = {stroke->right - margin, line.by};
+            p1 = {path->left + margin, line.by};
+            p2 = {path->right - margin, line.by};
         }
         else
         {
-            p1 = {stroke->left + margin, line.by + ay/ax*(stroke->left + margin - line.bx)};
-            p2 = {stroke->right - margin, line.by + ay/ax*(stroke->right - margin - line.bx)};
+            p1 = {path->left + margin, line.by + ay/ax*(path->left + margin - line.bx)};
+            p2 = {path->right - margin, line.by + ay/ax*(path->right - margin - line.bx)};
         }
     }
     const int segments = distance(p1-p2)/10 + 2;
@@ -109,21 +109,21 @@ BasicGraphicsPath *StrokeRecognizer::recognizeLine() const
         coordinates[i] = p1 + i*delta;
     const QRectF boundingRect(std::min(p1.x(), p2.x()) - margin, std::min(p1.y(), p2.y()) - margin, std::abs(p2.x()-p1.x()) + 2*margin, std::abs(p2.y()-p1.y()) + 2*margin);
     debug_msg(DebugDrawing, "recognized line" << p1 << p2);
-    if (stroke->type() == FullGraphicsPath::Type)
+    if (path->type() == FullGraphicsPath::Type)
     {
-        DrawTool tool(stroke->_tool);
-        tool.setWidth(moments.s/stroke->size());
+        DrawTool tool(path->_tool);
+        tool.setWidth(moments.s/path->size());
         return new BasicGraphicsPath(tool, coordinates, boundingRect);
     }
-    return new BasicGraphicsPath(stroke->_tool, coordinates, boundingRect);
+    return new BasicGraphicsPath(path->_tool, coordinates, boundingRect);
 }
 
 
-void StrokeRecognizer::findLines() noexcept
+void ShapeRecognizer::findLines() noexcept
 {
     // 1. Collect line segments.
     qreal oldloss=-1;
-    const int step = stroke->size() > 99 ? stroke->size() / 50 : 1;
+    const int step = path->size() > 99 ? path->size() / 50 : 1;
     const QPointF *p;
     QList<Line> segment_lines;
     QList<Moments> segment_moments;
@@ -131,11 +131,11 @@ void StrokeRecognizer::findLines() noexcept
     Line line;
     float weight = 1.;
     debug_msg(DebugDrawing, "Start searching lines");
-    for (int i=0, start=0; i<stroke->size(); ++i)
+    for (int i=0, start=0; i<path->size(); ++i)
     {
-        if (stroke->type() == FullGraphicsPath::Type)
-            weight = static_cast<const FullGraphicsPath*>(stroke)->pressures[i];
-        p = &stroke->coordinates[i];
+        if (path->type() == FullGraphicsPath::Type)
+            weight = static_cast<const FullGraphicsPath*>(path)->pressures[i];
+        p = &path->coordinates[i];
         newmoments.s   += weight;
         newmoments.sx  += weight * p->x();
         newmoments.sy  += weight * p->y();
@@ -195,13 +195,13 @@ void StrokeRecognizer::findLines() noexcept
 #endif
 }
 
-BasicGraphicsPath *StrokeRecognizer::recognizeRect() const
+BasicGraphicsPath *ShapeRecognizer::recognizeRect() const
 {
-    // Assert that stroke contains exactly 4 line segments.
+    // Assert that path contains exactly 4 line segments.
     if (line_segments.size() != 4)
         return NULL;
-    // Check if the stroke is approximately closed.
-    if (distance_squared(stroke->lastPoint() - stroke->firstPoint()) > preferences()->rect_closing_tolerance*moments.var())
+    // Check if the path is approximately closed.
+    if (distance_squared(path->lastPoint() - path->firstPoint()) > preferences()->rect_closing_tolerance*moments.var())
         return NULL;
     // Compute angle of the rectangle from the 4 segments.
     const qreal total_weight = line_segments[0].weight + line_segments[1].weight + line_segments[2].weight + line_segments[3].weight;
@@ -243,7 +243,7 @@ BasicGraphicsPath *StrokeRecognizer::recognizeRect() const
     const qreal
             dist1 = distance(p2-p1),
             dist2 = distance(p3-p2),
-            margin = stroke->_tool.width();
+            margin = path->_tool.width();
     const int
             n1 = dist1 / 10 + 2,
             n2 = dist2 / 10 + 2;
@@ -268,29 +268,29 @@ BasicGraphicsPath *StrokeRecognizer::recognizeRect() const
                 top = std::min(std::min(std::min(p1.y(), p2.y()), p3.y()), p4.y()),
                 bottom = std::max(std::max(std::max(p1.y(), p2.y()), p3.y()), p4.y());
     const QRectF boundingRect(left-margin, top-margin, right-left+2*margin, bottom-top+2*margin);
-    // Compute the stroke width (only for FullGraphicsPath).
-    if (stroke->type() == FullGraphicsPath::Type)
+    // Compute the path width (only for FullGraphicsPath).
+    if (path->type() == FullGraphicsPath::Type)
     {
-        DrawTool tool(stroke->_tool);
-        tool.setWidth(moments.s/stroke->size());
+        DrawTool tool(path->_tool);
+        tool.setWidth(moments.s/path->size());
         return new BasicGraphicsPath(tool, coordinates, boundingRect);
     }
-    return new BasicGraphicsPath(stroke->_tool, coordinates, boundingRect);
+    return new BasicGraphicsPath(path->_tool, coordinates, boundingRect);
 }
 
 
-BasicGraphicsPath *StrokeRecognizer::recognizeEllipse() const
+BasicGraphicsPath *ShapeRecognizer::recognizeEllipse() const
 {
     qreal ax, ay, rx, ry, mx, my, loss, grad_ax, grad_ay, grad_mx, grad_my, anorm, mnorm;
-    const QPointF center = stroke->boundingRect().center();
+    const QPointF center = path->boundingRect().center();
     mx = center.x();
     my = center.y();
-    rx = (stroke->right - stroke->left)/2;
-    ry = (stroke->bottom - stroke->top)/2;
+    rx = (path->right - path->left)/2;
+    ry = (path->bottom - path->top)/2;
     debug_msg(DebugDrawing, "try to recognized ellipse" << mx << my << rx << ry);
     ax = 1./(rx*rx);
     ay = 1./(ry*ry);
-    // Check stroke is approximately elliptic
+    // Check path is approximately elliptic
     loss = ellipseLossFunc(mx, my, ax, ay) / (moments.s + 10);
     if (loss > 4*preferences()->ellipse_sensitivity)
         return NULL;
@@ -313,7 +313,7 @@ BasicGraphicsPath *StrokeRecognizer::recognizeEllipse() const
         ay -= ay*anorm*grad_ay;
         debug_verbose(DebugDrawing, mx << my << ax << ay << 1./std::sqrt(std::abs(ax)) << 1./std::sqrt(std::abs(ay)) << ellipseLossFunc(mx, my, ax, ay) / moments.s);
     }
-    // Check if the stroke points lie on an ellipse
+    // Check if the path points lie on an ellipse
     loss = ellipseLossFunc(mx, my, ax, ay) / (moments.s + 10);
     debug_msg(DebugDrawing, "    found:" << mx << my << 1./std::sqrt(ax) << 1./std::sqrt(ay) << loss);
     if (loss > preferences()->ellipse_sensitivity)
@@ -323,11 +323,11 @@ BasicGraphicsPath *StrokeRecognizer::recognizeEllipse() const
     if (std::abs(rx - ry) < preferences()->ellipse_to_circle_snapping*(rx+ry))
         rx = ry = (rx+ry)/2;
     // Check if a full ellipse was drawn (and not only a segment)
-    if (distance(stroke->lastPoint() - stroke->firstPoint()) > 0.05*(rx+ry))
+    if (distance(path->lastPoint() - path->firstPoint()) > 0.05*(rx+ry))
     {
-        const qreal first_angle = std::atan2(stroke->firstPoint().y()-my, stroke->firstPoint().x()-mx);
+        const qreal first_angle = std::atan2(path->firstPoint().y()-my, path->firstPoint().x()-mx);
         // Angle of last point relative to angle of first point
-        qreal rel_last_angle = std::atan2(stroke->lastPoint().y()-my, stroke->lastPoint().x()-mx) - first_angle;
+        qreal rel_last_angle = std::atan2(path->lastPoint().y()-my, path->lastPoint().x()-mx) - first_angle;
         if (rel_last_angle > M_PI)
             rel_last_angle -= 2*M_PI;
         else if (rel_last_angle < -M_PI)
@@ -335,7 +335,7 @@ BasicGraphicsPath *StrokeRecognizer::recognizeEllipse() const
         if (std::abs(rel_last_angle) > 0.1)
         {
             // diff_angle indicates the direction, in which the ellipse was drawn
-            qreal diff_angle = std::atan2(stroke->coordinates[stroke->size()/8+2].y()-my, stroke->coordinates[stroke->size()/8+2].x()-mx) - first_angle;
+            qreal diff_angle = std::atan2(path->coordinates[path->size()/8+2].y()-my, path->coordinates[path->size()/8+2].x()-mx) - first_angle;
             if (diff_angle > M_PI)
                 diff_angle -= 2*M_PI;
             else if (diff_angle < -M_PI)
@@ -347,18 +347,18 @@ BasicGraphicsPath *StrokeRecognizer::recognizeEllipse() const
     const int segments = (rx + ry) * 0.67 + 10;
     const qreal
             phasestep = 2*M_PI / segments,
-            margin = stroke->_tool.width();
+            margin = path->_tool.width();
     QVector<QPointF> coordinates(segments+1);
     for (int i=0; i<segments; ++i)
         coordinates[i] = {mx + rx*std::sin(phasestep*i), my + ry*std::cos(phasestep*i)};
     coordinates[segments] = {mx, my + ry};
     const QRectF boundingRect(mx-rx-margin, my-ry-margin, 2*(rx+margin), 2*(ry+margin));
     debug_msg(DebugDrawing, "recognized ellipse" << mx << my << rx << ry << loss);
-    if (stroke->type() == FullGraphicsPath::Type)
+    if (path->type() == FullGraphicsPath::Type)
     {
-        DrawTool tool(stroke->_tool);
-        tool.setWidth(moments.s/stroke->size());
+        DrawTool tool(path->_tool);
+        tool.setWidth(moments.s/path->size());
         return new BasicGraphicsPath(tool, coordinates, boundingRect);
     }
-    return new BasicGraphicsPath(stroke->_tool, coordinates, boundingRect);
+    return new BasicGraphicsPath(path->_tool, coordinates, boundingRect);
 }

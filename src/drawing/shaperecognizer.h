@@ -1,16 +1,16 @@
-#ifndef STROKERECOGNIZER_H
-#define STROKERECOGNIZER_H
+#ifndef SHAPERECOGNIZER_H
+#define SHAPERECOGNIZER_H
 
 #include <cmath>
 #include "src/drawing/basicgraphicspath.h"
 
 /**
- * @brief StrokeRecognizer: use only temporarily to analyze a path
+ * @brief ShapeRecognizer: use only temporarily to analyze a path
  *
  * Objects of this class should only briefly be created for a given path and
  * must be deleted before deleting the path.
  */
-class StrokeRecognizer
+class ShapeRecognizer
 {
     /// Line fitted to a set of points
     struct Line {
@@ -59,12 +59,12 @@ class StrokeRecognizer
         }
     };
 
-    /// Stroke which should be recognized. The stroke recognizer does not
-    /// own this stroke. It must not be deleted while the StrokeRecognizer
+    /// Path which should be recognized. The shape recognizer does not
+    /// own this path. It must not be deleted while the ShapeRecognizer
     /// is in use.
-    const AbstractGraphicsPath *stroke;
+    const AbstractGraphicsPath *path;
 
-    /// Lines recognized in this stroke.
+    /// Lines recognized in this path.
     QList<Line> line_segments;
 
     /// 0th, 1st and 2nd moments
@@ -179,32 +179,32 @@ class StrokeRecognizer
 
 public:
     /// Trivial constructor.
-    StrokeRecognizer(const AbstractGraphicsPath *stroke) : stroke(stroke) {}
+    ShapeRecognizer(const AbstractGraphicsPath *path) : path(path) {}
 
     /// Trivial destructor.
-    ~StrokeRecognizer() {}
+    ~ShapeRecognizer() {}
 
-    /// Compute third and fourth statistical moments of points in stroke up.
+    /// Compute third and fourth statistical moments of points in path up.
     void calc_higher_moments() noexcept;
 
     /// Recognize line segments in this stoke.
     void findLines() noexcept;
 
-    /// Try to recognize a known shape in stroke.
+    /// Try to recognize a known shape in path.
     /// Return NULL if no shape was detected.
     BasicGraphicsPath *recognize();
 
-    /// Check if stroke is a line.
+    /// Check if path is a line.
     /// Return a BasicGraphicsPath* representing this line if successful, NULL otherwise.
     BasicGraphicsPath *recognizeLine() const;
 
-    /// Check if stroke is a rectangle.
+    /// Check if path is a rectangle.
     /// Return a BasicGraphicsPath* representing this line if successful, NULL otherwise.
     BasicGraphicsPath *recognizeRect() const;
 
-    /// Check if stroke is an ellipse.
+    /// Check if path is an ellipse.
     /// Return a BasicGraphicsPath* representing this line if successful, NULL otherwise.
     BasicGraphicsPath *recognizeEllipse() const;
 };
 
-#endif // STROKERECOGNIZER_H
+#endif // SHAPERECOGNIZER_H

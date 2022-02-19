@@ -1,21 +1,21 @@
-#ifndef STROKESTYLEBUTTON_H
-#define STROKESTYLEBUTTON_H
+#ifndef PENSTYLEBUTTON_H
+#define PENSTYLEBUTTON_H
 
 #include "src/gui/toolpropertybutton.h"
 #include "src/preferences.h"
 
 /**
- * @brief Drop down menu for changing the stroke style of a draw tool.
+ * @brief Drop down menu for changing the pen style of a draw tool.
  */
-class StrokeStyleButton : public ToolPropertyButton
+class PenStyleButton : public ToolPropertyButton
 {
     Q_OBJECT
 public:
     /// Constructor: add all items to the drop down menu.
-    StrokeStyleButton(QWidget *parent = NULL);
+    PenStyleButton(QWidget *parent = NULL);
 
     /// Trivial destructor.
-    ~StrokeStyleButton() {}
+    ~PenStyleButton() {}
 
 protected:
     /// Set style of tool to selected value.
@@ -30,4 +30,4 @@ public slots:
     void toolChanged(Tool *tool) override;
 };
 
-#endif // STROKESTYLEBUTTON_H
+#endif // PENSTYLEBUTTON_H

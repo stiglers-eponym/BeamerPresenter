@@ -1,7 +1,7 @@
 #include "src/gui/toolselectorwidget.h"
 #include "src/gui/actionbutton.h"
 #include "src/gui/shapeselectionbutton.h"
-#include "src/gui/strokestylebutton.h"
+#include "src/gui/penstylebutton.h"
 #include "src/gui/colorselectionbutton.h"
 #include "src/gui/toolbutton.h"
 #include "src/preferences.h"
@@ -45,8 +45,8 @@ void ToolSelectorWidget::addButtons(const QJsonArray &full_array)
                     }
                     else if (row[j].toString() == "style")
                     {
-                        StrokeStyleButton *button = new StrokeStyleButton(this);
-                        connect(this, &ToolSelectorWidget::sendTool, button, &StrokeStyleButton::toolChanged);
+                        PenStyleButton *button = new PenStyleButton(this);
+                        connect(this, &ToolSelectorWidget::sendTool, button, &PenStyleButton::toolChanged);
                         grid_layout->addWidget(button, i, j);
                     }
                 }
@@ -102,8 +102,8 @@ void ToolSelectorWidget::addButtons(const QJsonArray &full_array)
                     }
                     else if(obj.value("select") == "style")
                     {
-                        StrokeStyleButton *button = new StrokeStyleButton(this);
-                        connect(this, &ToolSelectorWidget::sendTool, button, &StrokeStyleButton::toolChanged);
+                        PenStyleButton *button = new PenStyleButton(this);
+                        connect(this, &ToolSelectorWidget::sendTool, button, &PenStyleButton::toolChanged);
                         grid_layout->addWidget(button, i, j);
                     }
                 }

@@ -19,7 +19,7 @@ private:
     /// coordinates and pressures must always have the same length.
     QVector<float> pressures;
 
-friend class StrokeRecognizer;
+friend class ShapeRecognizer;
 
 public:
     /// Custom type of QGraphicsItem.
