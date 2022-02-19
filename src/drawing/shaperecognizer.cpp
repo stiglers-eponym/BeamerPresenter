@@ -18,10 +18,10 @@ void ShapeRecognizer::calc_higher_moments() noexcept
 {
     if (path->type() == FullGraphicsPath::Type)
     {
-        const FullGraphicsPath *path = static_cast<const FullGraphicsPath*>(path);
-        QVector<float>::const_iterator pit = path->pressures.cbegin();
-        QVector<QPointF>::const_iterator cit = path->coordinates.cbegin();
-        for (; cit!=path->coordinates.cend() && pit!=path->pressures.cend(); ++pit, ++cit)
+        const FullGraphicsPath *fullpath = static_cast<const FullGraphicsPath*>(path);
+        QVector<float>::const_iterator pit = fullpath->pressures.cbegin();
+        QVector<QPointF>::const_iterator cit = fullpath->coordinates.cbegin();
+        for (; cit!=fullpath->coordinates.cend() && pit!=fullpath->pressures.cend(); ++pit, ++cit)
         {
             sxxx += *pit * cit->x() * cit->x() * cit->x();
             sxxy += *pit * cit->x() * cit->x() * cit->y();
@@ -50,15 +50,15 @@ void ShapeRecognizer::calc_higher_moments() noexcept
 BasicGraphicsPath *ShapeRecognizer::recognize()
 {
     findLines();
-    BasicGraphicsPath *path = recognizeRect();
-    if (path)
-        return path;
-    path = recognizeLine();
-    if (path)
-        return path;
+    BasicGraphicsPath *generated_path = recognizeRect();
+    if (generated_path)
+        return generated_path;
+    generated_path = recognizeLine();
+    if (generated_path)
+        return generated_path;
     calc_higher_moments();
-    path = recognizeEllipse();
-    return path;
+    generated_path = recognizeEllipse();
+    return generated_path;
 }
 
 BasicGraphicsPath *ShapeRecognizer::recognizeLine() const
