@@ -29,10 +29,6 @@ option(USE_MUJS "Link to mujs instead of mupdf-third (only relevant when using M
 option(USE_GUMBO "Link to gumbo-parser, should be on when using MuPDF >= 1.18" ON)
 option(MUPDF_USE_SYSTEM_LIBS "MuPDF uses system libraries that need to be included. This is the default for most Linux packages of MuPDF." ON)
 
-# Paths or library names for MuPDF can be provided explicitly
-set(MUPDF_LIB_PATH "mupdf" CACHE STRING "file name or full path to mupdf library")
-set(MUPDF_THIRD_LIB_PATH "mupdf-third" CACHE STRING "file name or full path to mupdf-third library")
-
 if ((NOT USE_MUPDF) AND (NOT USE_POPPLER))
     message(FATAL_ERROR "No PDF engine provided")
 elseif (USE_MUPDF AND USE_POPPLER)

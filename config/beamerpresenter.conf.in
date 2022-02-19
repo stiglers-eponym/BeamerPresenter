@@ -4,7 +4,7 @@ cache pages=-1
 # path to GUI configuration file
 gui config="@ABS_GUI_CONFIG_PATH@"
 # path to HTML manual
-manual="@ABS_DOC_PATH@README.html"
+manual="@ABS_DOC_PATH@/README.html"
 # maximum memory size (in bytes, default is 100MiB)
 memory=1.0486e+08
 # enable/disable gestures

@@ -34,7 +34,7 @@ When installing BeamerPresenter you need to choose either MuPDF or Poppler as PD
 * MuPDF produces a much larger package size: 37MB instead of 1.3MB in Arch Linux in default configuration
     * MuPDF is statically linked
     * MuPDF contains about 30MB of fonts that end up in the executable by default
-    * Most built-in fonts can be excluded from MuPDF, shrinking the executable from 37MB to 6.5MB.
+    * Most built-in fonts can be excluded from MuPDF, shrinking the executable from 37MB to 6.5MB (or even smaller: compile MuPDF with `XCFLAGS+=' -DTOFU -DTOFU_CJK -DTOFU_SIL -DFZ_ENABLE_JS=0'`).
 * MuPDF may have better performance.
 * My impression is that in most cases MuPDF produces slightly better-looking slides than Poppler. But this may depend on the presentation, the fonts, the resolution, ...
 * Enabling both PDF engines is not recommended, because it can lead to program crashes when using Poppler for some documents.
@@ -113,32 +113,38 @@ Pull requests or issues with build instructions for other systems are welcome!
 The command line for configuring the build process look like this:
 ```sh
 cmake \
-    -B "build-dir" \ # build directory
-    -S . \ # source directory
+    -B "build-dir"
+    -S .
     -DCMAKE_BUILD_TYPE=Release \
     -DUSE_POPPLER=ON \
     -DUSE_MUPDF=OFF \
-    -DUSE_MUJS=OFF \ # set ON when libmupdf-third is not available
-    -DUSE_GUMBO=ON \ # set ON when using MuPDF >= 1.18
+    -DUSE_MUJS=OFF \
+    -DUSE_GUMBO=ON \
+    -DMUPDF_USE_SYSTEM_LIBS=ON \
     -DGIT_VERSION=ON \
     -DUSE_TRANSLATIONS=ON \
-    -DQT_VERSION_MAJOR=6 \ # must be set manually!
-    -DQT_VERSION_MINOR=2 \ # only relevant for package dependencies
+    -DQT_VERSION_MAJOR=6 \
+    -DQT_VERSION_MINOR=2 \
     -DMUPDF_USE_SYSTEM_LIBS=ON \
     -DCMAKE_INSTALL_PREFIX=/usr \
     -DCMAKE_INSTALL_SYSCONFDIR=/etc
 ```
-The most important options here are:
-* `-DCMAKE_BUILD_TYPE`: Enable debugging by setting this to `Debug` instead of `Release`.
-* `-DUSE_POPPLER`: enable PDF engine Poppler. The Poppler library and its Qt 5/6 wrapper must be available.
-* `-DUSE_MUPDF`: enable PDF engine MuPDF. The MuPDF static library and headers as well as the other dependencies listed above must be available.
-* `-DUSE_MUJS`: set this to "ON" in Ubuntu 21.10 (only relevant when using MuPDF)
-* `-DUSE_GUMBO`: can be set to "OFF" when using MuPDF < 1.18 (only relevant when using MuPDF)
-* `-DUSE_TRANSLATIONS`: Include translations (currently only in German) when compiling and installing.
-* `-DQT_VERSION_MAJOR`: Qt version, must be set manually! Valid values are `5` and `6`.
-* `-DCMAKE_INSTALL_PREFIX`: path for package installation.
-* `-DCMAKE_INSTALL_SYSCONFDIR`: path for installation of package configuration.
-* `-DGIT_VERSION`: Include git commit count in the app version number.
+The options `-B` and `-S` set the build and source directory, respectively. The other options define (with recommended values indicated):
+
+| Option | Value | Explanation |
+|--------|-------|-------------|
+| `CMAKE_BUILD_TYPE` | Release | Release or Debug |
+| `USE_POPPLER` | ON | Include Poppler PDF engine (Poppler library and Qt 5/6 wrapper must be available) |
+| `USE_MUPDF` | OFF | Include MuPDF PDF engine (MuPDF static library and headers must be available) |
+| `MUPDF_USE_SYSTEM_LIBS` | ON | MuPDF uses shared system libraries (default in common Linux distributions, disable if you compiled MuPDF from source with standard settings) |
+| `USE_MUJS` | OFF | set ON when libmupdf-third is not available (for ubuntu 21.10) |
+| `USE_GUMBO` | ON | set ON when using MuPDF >= 1.18 with shared system libraries |
+| `GIT_VERSION` | ON | Include git commit count in version string |
+| `USE_TRANSLATIONS` | ON | inlcude translations (currently only German), disable if it causes errors |
+| `QT_VERSION_MAJOR` | 6 | Qt major version, must be set manually! Valid values are "5" and "6". |
+| `QT_VERSION_MINOR` | 2 | only relevant for packaging (dependency version checking) |
+| `CMAKE_INSTALL_PREFIX` | "/usr" | Install prefix. If not specified this will be /usr/local in Linux |
+| `CMAKE_INSTALL_SYSCONFDIR` | "/etc" | System config directory. |
 
 ### Build and install
 After configuring with cmake you can build the project (hint: add ` -j 4` for compiling with 4 CPU cores)
@@ -149,3 +155,70 @@ Then install the package. For packaging the environment variable `$DESTDIR` may 
 ```sh
 cmake --install build-dir
 ```
+
+## Windows
+It is possible to compile BeamerPresenter with MuPDF on Windows, but it requires a manual configuration.
+
+### Summary
+* Qt is available for MinGW and for MS Visual Studio.
+* MuPDF provides a project file that can be compiled with MS Visual Studio. But a program compiled with MS Visual Studio includes proprietary components. For this reason, no binary files for Windows are.
+* Poppler is available in cygwin. It is possible to build BeamerPresenter with cygwin, mingw and poppler. It is probably also possible to build Poppler in Windwos, but I gave up at some point.
+* You can use the Windows subsystem for Linux. On Windows 11 this is probably the simplest way of installing BeamerPresenter on Windows.
+
+### Building
+* [download the MuPDF source code](https://www.mupdf.com/releases/index.html>)
+* The MuPDF source code includes a file `platform/win32/mupdf.vcxproj` which can be built with MS Visual Studio
+* Alternatively, one can try to build MuPDF with MinGW, but I gave up on that.
+* The library paths for MuPDF and zlib need to be configured manually in cmake:
+
+Configure the project with CMake:
+```sh
+cmake \
+    -B "build-dir" \
+    -S . \
+    -DCMAKE_BUILD_TYPE=Release \
+    -DUSE_POPPLER=OFF \
+    -DUSE_MUPDF=ON \
+    -DGIT_VERSION=OFF \
+    -DGENERATE_MANPAGES=OFF \
+    -DGUI_CONFIG_PATH="config" \
+    -DUSE_TRANSLATIONS=ON \
+    -DQT_VERSION_MAJOR=6 \
+    -DMUPDF_USE_SYSTEM_LIBS=OFF \
+    -DMUPDF_INCLUDE_DIR="path/to/mupdf/include" \
+    -DMUPDF_LIB_PATH="path/to/libmupdf.lib" \
+    -DMUPDF_THIRDS_LIB_PATH="path/to/libthirdparty.lib" \
+    -DZLIB_INCLUDE_DIR="path/to/zlib/include" \
+    -DZLIB_LIBRARY="path/to/zlib.lib" \
+```
+The new options (compared to the table above) are:
+
+| Option | Value | Explanation (bold means you must provide a value) |
+|--------|-------|---------------------------------------------------|
+| `GENERATE_MANPAGES` | OFF | disable to exclude man pages from installation |
+| `GUI_CONFIG_PATH` | "config" | default path for configuration files relative to program data directory |
+| `MUPDF_USE_SYSTEM_LIBS` | OFF | Disable when using MuPDF on Windows (except if you know what you are doing) |
+| `MUPDF_INCLUDE_DIR` | "" | **path to MuPDF include directory** |
+| `MUPDF_LIB_PATH` | "" | **path to libmupdf.lib** |
+| `MUPDF_THIRDS_LIB_PATH` | "" | **path to libthirdparty.lib** |
+| `ZLIB_INCLUDE_DIR` | "" | **path to zlib include directory** |
+| `ZLIB_LIBRARY` | "" | **path to zlib.lib** |
+
+Now build the project:
+```sh
+cmake --build build-dir
+```
+If this was successful, you can find the executable in "build-dir/src/beamerpresenter.exe".
+But note that this executable depends on shared libraries (Qt and (maybe) zlib).
+
+### Installing
+not yet tested
+
+### Configuration
+The configuration in Windows does not work like on \*NIX systems. The configuration is stored in the Windows registry (in something like `HKEY_CURRENT_USER/software/beamerpresenter`).
+Once BeamerPresenter is running, you can set most of the settings in the settings widget in BeamerPresenter. But when just trying to run the executable, this will probably result in an error because the GUI configuration file path is invalid. You should therefore run BeamerPresenter on the command line:
+```sh
+path\to\beamerpresenter.exe -g "path\to\gui.json" "path\to\document.pdf"
+```
+If no path to a pdf document is provided, a file dialog should appear.
+Then you should use the settings widget to change the GUI configuration path and any other option you'd like to change (e.g. the memory size).

@@ -1,6 +1,13 @@
 configure_file(config.h.in config.h)
 add_subdirectory(rendering)
 
+if (DEFINED MUPDF_INCLUDE_DIR)
+    include_directories("${MUPDF_INCLUDE_DIR}")
+endif()
+if (DEFINED ZLIB_INCLUDE_DIR)
+    include_directories("${ZLIB_INCLUDE_DIR}")
+endif()
+
 add_executable(beamerpresenter
         drawing/pixmapgraphicsitem.h drawing/pixmapgraphicsitem.cpp
         drawing/pointingtool.h drawing/pointingtool.cpp
@@ -51,8 +58,8 @@ add_executable(beamerpresenter
         ${EXTRA_INCLUDE}
     )
 
-if (WIN32)
-    list(APPEND EXTRA_LIBS "zlib.lib")
+if (DEFINED "${ZLIB_LIBRARY}")
+    list(APPEND EXTRA_LIBS "${ZLIB_LIBRARY}")
 else()
     list(APPEND EXTRA_LIBS "z")
 endif()
