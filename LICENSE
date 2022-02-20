@@ -37,7 +37,7 @@
     itself under the terms of the GPL or (at your option) the AGPL, in either
     case version 3 or (at your option) any later version of the license.
 
-    Compiled version of BeamerPresenter that include MuPDF in any way (usually
+    Compiled versions of BeamerPresenter that include MuPDF in any way (usually
     by linking to libmupdf) may only be conveyed in agreement with the terms
     of the AGPL.  Compiled versions of BeamerPresenter that do not include
     MuPDF in any way may additionally be redistributed and/or modified under

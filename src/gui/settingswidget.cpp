@@ -49,6 +49,7 @@ SettingsWidget::SettingsWidget(QWidget *parent) :
 void SettingsWidget::initManual()
 {
     manual->setReadOnly(true);
+    manual->setTextInteractionFlags(Qt::TextSelectableByMouse | Qt::LinksAccessibleByMouse | Qt::LinksAccessibleByKeyboard);
     QFile file(preferences()->manual_file);
     file.open(QFile::ReadOnly | QFile::Text);
     if (file.isReadable())
