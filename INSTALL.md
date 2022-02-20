@@ -161,15 +161,18 @@ It is possible to compile BeamerPresenter with MuPDF on Windows, but it requires
 
 ### Summary
 * Qt is available for MinGW and for MS Visual Studio.
-* MuPDF provides a project file that can be compiled with MS Visual Studio. But a program compiled with MS Visual Studio includes proprietary components. For this reason, no binary files for Windows are.
+* MuPDF provides a project file that can be compiled with MS Visual Studio.
 * Poppler is available in cygwin. It is possible to build BeamerPresenter with cygwin, mingw and poppler. It is probably also possible to build Poppler in Windwos, but I gave up at some point.
-* You can use the Windows subsystem for Linux. On Windows 11 this is probably the simplest way of installing BeamerPresenter on Windows.
+* Another option is the Windows subsystem for Linux. On Windows 11 this is probably the simplest way of installing BeamerPresenter on a Windows machine.
 
 ### Building
+* [download](https://www.qt.io/download-qt-installer) and install Qt
+    * required components are the basic installation and the multimedia module (QtMultimedia)
+    * compatible Qt versions are >=5.9 for Qt 5 and >=6.2 for Qt 6
 * [download the MuPDF source code](https://www.mupdf.com/releases/index.html)
-* The MuPDF source code includes a file `platform/win32/mupdf.vcxproj` which can be built with MS Visual Studio
-* Alternatively, one can try to build MuPDF with MinGW, but I gave up on that.
-* The library paths for MuPDF and zlib need to be configured manually in cmake:
+* the MuPDF source code includes a file `platform/win32/mupdf.vcxproj` which can be built with MS Visual Studio
+* alternatively, one can try to build MuPDF with MinGW, but I gave up on that.
+* the library paths for MuPDF and zlib need to be configured manually in cmake:
 
 Configure the project with CMake:
 ```sh

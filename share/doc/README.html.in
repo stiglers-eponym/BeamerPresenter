@@ -21,7 +21,7 @@ Examples can be found in @ABS_DOC_PATH@/examples.
 The most important widget is the slide widget. It shows a slide of a presentation. For the audience you usually have a window which consists only of a single slide widget.
 Slide widgets can also be used to show the speaker a preview of the next slides.</p>
 
-<h3>Keyboard shortcuts and buttons</h3>
+<h3>Keyboard Shortcuts and Buttons</h3>
 <p>Interaction with the user interface is done via keyboard shortcuts, buttons, and tools associated to pointing tools (like the mouse, a touch screen, etc.).
 Shortcuts can be configured in the settings widget. Buttons are defined in the user interface configuration file and behave similar to keyboard shortcuts.
 Both shortcuts and buttons can either cause an action (e.g. going to the next page) or select a tool.</p>

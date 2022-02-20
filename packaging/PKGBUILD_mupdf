@@ -14,7 +14,7 @@ pkgrel=1
 pkgdesc="Modular multi-screen pdf presenter (using MuPDF)"
 arch=('x86_64')
 url="https://github.com/stiglers-eponym/BeamerPresenter"
-license=('AGPL3')
+license=('AGPL3' 'GPL3')
 makedepends=('cmake' 'ninja' 'libmupdf' "qt${_qt_version_major}-tools")
 depends=("qt${_qt_version_major}-multimedia>=${_qt_min_version}" "qt${_qt_version_major}-multimedia<${_qt_max_version}" 'jbig2dec>=0.19' 'openjpeg2>=2.4.0' 'gumbo-parser>=0.10.0')
 optdepends=('gst-libav: show videos' 'gst-plugins-good: show videos' 'hicolor-icon-theme: icons for action buttons' "qt${_qt_version_major}-svg: icons for tool buttons")
