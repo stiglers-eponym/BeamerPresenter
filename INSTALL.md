@@ -143,8 +143,8 @@ The options `-B` and `-S` set the build and source directory, respectively. The 
 | `USE_TRANSLATIONS` | ON | inlcude translations (currently only German), disable if it causes errors |
 | `QT_VERSION_MAJOR` | 6 | Qt major version, must be set manually! Valid values are "5" and "6". |
 | `QT_VERSION_MINOR` | 2 | only relevant for packaging (dependency version checking) |
-| `CMAKE_INSTALL_PREFIX` | "/usr" | Install prefix. If not specified this will be /usr/local in Linux |
-| `CMAKE_INSTALL_SYSCONFDIR` | "/etc" | System config directory. |
+| `CMAKE_INSTALL_PREFIX` | /usr | Install prefix. If not specified this will be /usr/local in Linux |
+| `CMAKE_INSTALL_SYSCONFDIR` | /etc | System config directory. |
 
 ### Build and install
 After configuring with cmake you can build the project (hint: add ` -j 4` for compiling with 4 CPU cores)
@@ -211,7 +211,7 @@ Now build the project:
 ```sh
 cmake --build build-dir
 ```
-If this was successful, you can find the executable in "build-dir/src/beamerpresenter.exe".
+If this was successful, you can find the executable in "build-dir\src\beamerpresenter.exe".
 But note that this executable depends on shared libraries (Qt and (maybe) zlib).
 
 ### Installing
@@ -225,3 +225,6 @@ path\to\beamerpresenter.exe -g "path\to\gui.json" "path\to\document.pdf"
 ```
 If no path to a pdf document is provided, a file dialog should appear.
 Then you should use the settings widget to change the GUI configuration path and any other option you'd like to change (e.g. the memory size).
+
+Probably the icons will then still not be available. To enable the icons you need to manually set "icon path" in the registry for BeamerPresenter to something like "C:\path\to\BeamerPresenter\share\icons".
+Also the icon theme can be adjusted in the registry. You can try to set a registry entry for "icon theme" to the theme name and hope that Qt finds the theme. Alternatively, you can provide the full path to the icon theme by setting "icon theme path" in the registry.
