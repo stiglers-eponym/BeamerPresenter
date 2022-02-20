@@ -53,6 +53,8 @@ void FlexLayout::setGeometry(const QRect &rect)
 {
     debug_msg(DebugLayout, "FlexLayout setGeometry" << rect);
     QLayout::setGeometry(rect);
+    if (rect.width() <= 0 || rect.height() <= 0 || items.empty())
+        return;
     QVector<qreal> aspects(items.size());
     QVector<int> minsizes(items.size());
     QSize hint;
@@ -70,7 +72,10 @@ void FlexLayout::setGeometry(const QRect &rect)
             hint = widget->sizeHint();
             if (widget->hasHeightForWidth())
             {
-                aspects[i] = std::min(std::max(hint.width() / qreal(hint.height()), .1), 10.);
+                if (hint.height() <= 0)
+                    aspects[i] = 1.;
+                else
+                    aspects[i] = std::min(std::max(hint.width() / qreal(hint.height()), .1), 10.);
                 totalwidth += aspects[i];
             }
             else
@@ -102,7 +107,7 @@ void FlexLayout::setGeometry(const QRect &rect)
         {
             // rect is higher than needed.
             width = 0;
-            const qreal scale = (rect.width() - width) / (rect.height() * totalwidth);
+            const qreal scale = std::max((rect.width() - width) / (rect.height() * totalwidth), 0.);
             for (int i=0; i<items.size(); i++)
             {
                 if (aspects[i] > 0.)
@@ -130,7 +135,10 @@ void FlexLayout::setGeometry(const QRect &rect)
             hint = items[i]->widget()->sizeHint();
             if (items[i]->widget()->hasHeightForWidth())
             {
-                aspects[i] = std::min(std::max(hint.height() / qreal(hint.width()), .1), 10.);
+                if (hint.width() <= 0)
+                    aspects[i] = 1.;
+                else
+                    aspects[i] = std::min(std::max(hint.height() / qreal(hint.width()), .1), 10.);
                 totalheight += aspects[i];
             }
             else
@@ -161,8 +169,8 @@ void FlexLayout::setGeometry(const QRect &rect)
         else
         {
             // rect is wider than needed.
+            const qreal scale = std::max((rect.height() - height) / (rect.width() * totalheight), 0.);
             height = 0;
-            const qreal scale = (rect.height() - height) / (rect.width() * totalheight);
             for (int i=0; i<items.size(); i++)
             {
                 if (aspects[i] > 0.)
@@ -175,7 +183,7 @@ void FlexLayout::setGeometry(const QRect &rect)
                     items[i]->setGeometry(QRect(0, height, rect.width(), minsizes[i]));
                     height += minsizes[i];
                 }
-                debug_msg(DebugLayout, "set geometry:" << items[i]->geometry() << aspects[i] << items[i] << this);
+                debug_msg(DebugLayout, "set geometry:" << items[i]->geometry() << aspects[i] << items[i] << scale << this);
             }
         }
         break;
