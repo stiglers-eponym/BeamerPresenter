@@ -21,6 +21,7 @@ find_package(Qt${QT_VERSION_MAJOR} COMPONENTS Xml REQUIRED)
 
 # Options concerning the installation
 option(GENERATE_MANPAGES "Generate man pages and include them in installation" ON)
+option(INSTALL_LICENSE "Include license file in installation" ON)
 
 # Options concerning the PDF engine
 option(USE_MUPDF "Include MuPDF" ON)
@@ -127,6 +128,11 @@ if (USE_TRANSLATIONS)
     install(FILES ${qm_files} DESTINATION "${TRANSLATION_PATH}")
 endif()
 
+# License
+if (INSTALL_LICENSE)
+    install(FILES LICENSE LICENSE_GPL LICENSE_AGPL DESTINATION "${CMAKE_INSTALL_DATAROOTDIR}/licenses/beamerpresenter/")
+endif()
+
 # Add other subdirectories.
 add_subdirectory(config)
 add_subdirectory(share)
@@ -211,6 +217,7 @@ if (CPACK_GENERATOR MATCHES "DEB")
     set(CPACK_DEBIAN_PACKAGE_RECOMMENDS "libqt5svg5")
     set(CPACK_DEBIAN_PACKAGE_SUGGESTS "libqt5multimedia5-plugins")
     install(FILES "${PROJECT_SOURCE_DIR}/LICENSE" DESTINATION "${CMAKE_INSTALL_DOCDIR}" RENAME "copyright")
+    install(FILES "${PROJECT_SOURCE_DIR}/LICENSE_AGPL" "${PROJECT_SOURCE_DIR}/LICENSE_GPL" DESTINATION "${CMAKE_INSTALL_DOCDIR}")
 endif()
 
 if (CPACK_GENERATOR MATCHES "RPM")

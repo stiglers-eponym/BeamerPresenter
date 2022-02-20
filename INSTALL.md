@@ -46,19 +46,19 @@ When installing BeamerPresenter you need to choose either MuPDF or Poppler as PD
 Building is tested in Arch Linux, Manjaro, xubuntu 20.04, and xubuntu 21.10.
 Older versions of ubuntu are only compatible with [version 0.1](https://github.com/stiglers-eponym/BeamerPresenter/tree/0.1.x) of BeamerPresenter.
 
-In order to build BeamerPresenter you need to have cmake, zlib and Qt 5/6 including the multimedia module and the linguist tools.
+In order to build BeamerPresenter you need to have CMake, zlib and Qt 5/6 including the multimedia module and the linguist tools.
 In Qt 5 versions since 5.12 are tested, but other versions starting from 5.9 should also be supported. For installation in Qt 6 you need at least version 6.2.
-Additionally you need either the Qt 5/6 bindings of poppler or the MuPDF static library (which also requires some libraries).
+Additionally you need either the Qt 5/6 bindings of Poppler or the MuPDF static library (which also requires some libraries).
 
 ### Dependencies in Ubuntu
 * `cmake` (only for building and only in the mainline version)
 * `zlib1g-dev` (after the installation you can remove `zlib1g-dev` and keep only `zlib1g`)
 * `qtmultimedia5-dev` (after the installation you can remove `qtmultimedia5-dev` and keep only `libqt5multimedia5` and `libqt5multimediawidgets5`)
-* `qttools5-dev` (only for building and only when creating translations. You can disable translations with `-DUSE_TRANSLATIONS=OFF` in the [cmake command](#configure))
+* `qttools5-dev` (only for building and only when creating translations. You can disable translations with `-DUSE_TRANSLATIONS=OFF` in the [CMake command](#configure))
 * optional: `libqt5multimedia5-plugins` (for showing videos)
 * optional, recommended: `libqt5svg5` (for showing tool icons)
 
-For poppler (optional):
+For Poppler (optional):
 * `libpoppler-qt5-dev`: version 0.86.1 is tested, versions below 0.70 are explicitly not supported. (after the installation you can remove `libpoppler-qt5-dev` and keep only `libpoppler-qt5-1`
 
 For MuPDF (optional):
@@ -74,10 +74,10 @@ For MuPDF (optional):
 Replace qt5 by qt6 in all package names if you want to use Qt 6.
 * `cmake` (only for building and only in the mainline version)
 * `qt5-multimedia` (depends on `qt5-base`, which is also required)
-* `qt5-tools` (only for building and only when creating translations. You can disable translations with `-DUSE_TRANSLATIONS=OFF` in the [cmake command](#configure))
+* `qt5-tools` (only for building and only when creating translations. You can disable translations with `-DUSE_TRANSLATIONS=OFF` in the [CMake command](#configure))
 * optional: `qt5-svg` for showing icons
 
-For poppler (optional):
+For Poppler (optional):
 * `poppler-qt5`
 
 For MuPDF (optional):
@@ -123,6 +123,7 @@ cmake \
     -DMUPDF_USE_SYSTEM_LIBS=ON \
     -DGIT_VERSION=ON \
     -DUSE_TRANSLATIONS=ON \
+    -DINSTALL_LICENSE=ON \
     -DQT_VERSION_MAJOR=6 \
     -DQT_VERSION_MINOR=2 \
     -DMUPDF_USE_SYSTEM_LIBS=ON \
@@ -140,14 +141,15 @@ The options `-B` and `-S` set the build and source directory, respectively. The 
 | `USE_MUJS` | OFF | set ON when libmupdf-third is not available (for ubuntu 21.10) |
 | `USE_GUMBO` | ON | set ON when using MuPDF >= 1.18 with shared system libraries |
 | `GIT_VERSION` | ON | Include git commit count in version string |
-| `USE_TRANSLATIONS` | ON | inlcude translations (currently only German), disable if it causes errors |
+| `USE_TRANSLATIONS` | ON | include translations (currently only German), disable if it causes errors |
+| `INSTALL_LICENSE` | ON | Copy the license to /usr/share/licenses/beamerpresenter/LICENSE |
 | `QT_VERSION_MAJOR` | 6 | Qt major version, must be set manually! Valid values are "5" and "6". |
 | `QT_VERSION_MINOR` | 2 | only relevant for packaging (dependency version checking) |
 | `CMAKE_INSTALL_PREFIX` | /usr | Install prefix. If not specified this will be /usr/local in Linux |
 | `CMAKE_INSTALL_SYSCONFDIR` | /etc | System config directory. |
 
 ### Build and install
-After configuring with cmake you can build the project (hint: add ` -j 4` for compiling with 4 CPU cores)
+After configuring with CMake you can build the project (hint: add ` -j 4` for compiling with 4 CPU cores)
 ```sh
 cmake --build build-dir
 ```
@@ -162,7 +164,7 @@ It is possible to compile BeamerPresenter with MuPDF on Windows, but it requires
 ### Summary
 * Qt is available for MinGW and for MS Visual Studio.
 * MuPDF provides a project file that can be compiled with MS Visual Studio.
-* Poppler is available in cygwin. It is possible to build BeamerPresenter with cygwin, mingw and poppler. It is probably also possible to build Poppler in Windwos, but I gave up at some point.
+* Poppler is available in cygwin. It is possible to build BeamerPresenter with cygwin, MinGW and Poppler. It is probably also possible to build Poppler in Windows, but I gave up at some point.
 * Another option is the Windows subsystem for Linux. On Windows 11 this is probably the simplest way of installing BeamerPresenter on a Windows machine.
 
 ### Building
@@ -172,7 +174,7 @@ It is possible to compile BeamerPresenter with MuPDF on Windows, but it requires
 * [download the MuPDF source code](https://www.mupdf.com/releases/index.html)
 * the MuPDF source code includes a file `platform/win32/mupdf.vcxproj` which can be built with MS Visual Studio
 * alternatively, one can try to build MuPDF with MinGW, but I gave up on that.
-* the library paths for MuPDF and zlib need to be configured manually in cmake:
+* the library paths for MuPDF and zlib need to be configured manually in CMake:
 
 Configure the project with CMake:
 ```sh

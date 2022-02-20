@@ -32,7 +32,7 @@ tar -xvf v0.2.2_beta2.tar.gz
 cd BeamerPresenter-0.2.2_beta2
 ```
 
-Now configure the package using cmake. This requires the configuration of the Qt version (major and minor version), and the PDF engine (Poppler or MuPDF). The Qt minor version is only needed for version checking of dependencies.
+Now configure the package using CMake. This requires the configuration of the Qt version (major and minor version), and the PDF engine (Poppler or MuPDF). The Qt minor version is only needed for version checking of dependencies.
 For building BeamerPresenter with poppler in Ubuntu 20.04 with Qt 5.12 use:
 ```sh
 mkdir -p build_dir
@@ -47,13 +47,15 @@ cmake \
     -DUSE_TRANSLATIONS=ON \
     -DQT_VERSION_MAJOR=5 \
     -DQT_VERSION_MINOR=12 \
+    -DINSTALL_LICENSE=OFF \
     -DCPACK_GENERATOR='DEB;' \
     -DCMAKE_INSTALL_PREFIX='/usr' \
     -DCMAKE_INSTALL_SYSCONFDIR='/etc'
 ```
 Here the build directory was set to `build_dir`, but that could also be any other directory.
+We disable `INSTALL_LICENSE` because cpack uses a separate function for installing the license following the conventions of debian packages.
 The MuPDF version can be built by setting `-DUSE_POPPLER=OFF` and `-DUSE_MUPDF=ON` in the above command.
-In ubuntu 21.10 you need to set `-DUSE_MUJS=ON` and `-DQT_VERSION_MINOR=15`.
+In ubuntu 21.10 you need to set `-DQT_VERSION_MINOR=15` and (only relevant when building with MuPDF) `-DUSE_MUJS=ON`.
 
 Now build and create the package:
 ```sh
