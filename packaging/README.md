@@ -10,9 +10,9 @@ The version with poppler as PDF engine and Qt 6 can be build using:
 _qt_version_major=6 makepkg -p PKGBUILD_poppler
 ```
 The packages for Qt 5 and with MuPDF can be built analogously.
-You can install the newly created package using (for version 0.2.2\_beta2):
+You can install the newly created package using (for version 0.2.2):
 ```sh
-sudo pacman -U beamerpresenter-poppler-qt6-0.2.2_beta2-1-x86_64.pkg.tar.zst
+sudo pacman -U beamerpresenter-poppler-qt6-0.2.2-1-x86_64.pkg.tar.zst
 ```
 The "mupdf-small" packages are compiled with a custom build of MuPDF with disabled javascript that excludes some fonts (MuPDF compiled with `XCFLAGS+=' -DTOFU -DTOFU_CJK -DTOFU_SIL -DFZ_ENABLE_JS=0'`).
 
@@ -24,12 +24,12 @@ sudo apt install --no-install-recommends cmake zlib1g-dev qtmultimedia5-dev qtto
 ```
 In Ubuntu 21.10 you additionally need `libmujs-dev`.
 
-For version 0.2.2-beta2 the source can be downloaded [here](https://github.com/stiglers-eponym/BeamerPresenter/archive/refs/tags/v0.2.2_beta2.tar.gz).
+For version 0.2.2 the source can be downloaded [here](https://github.com/stiglers-eponym/BeamerPresenter/archive/refs/tags/v0.2.2.tar.gz).
 Check and unpack the download:
 ```sh
-sha256sum -c - <<< "cf8904563e9b1a9a1ed0cecb65e27ae1ba99e173d9b69cf1e53275294abb9811 v0.2.2_beta2.tar.gz"
-tar -xvf v0.2.2_beta2.tar.gz
-cd BeamerPresenter-0.2.2_beta2
+sha256sum -c - <<< "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx v0.2.2.tar.gz"
+tar -xvf v0.2.2.tar.gz
+cd BeamerPresenter-0.2.2
 ```
 
 Now configure the package using CMake. This requires the configuration of the Qt version (major and minor version), and the PDF engine (Poppler or MuPDF). The Qt minor version is only needed for version checking of dependencies.
@@ -65,7 +65,7 @@ cpack --config build_dir/CPackConfig.cmake
 
 Now you can install the package:
 ```sh
-sudo apt install ./beamerpresenter-poppler-0.2.2-beta2-qt5.12-x86_64.deb
+sudo apt install ./beamerpresenter-poppler-0.2.2-qt5.12-x86_64.deb
 ```
 
 

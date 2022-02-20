@@ -46,7 +46,7 @@ jobs:
 
     - name: Build
       run: |
-       cmake -B build_dir -DUSE_MUPDF=ON -DUSE_POPPLER=ON -DUSE_MUJS=OFF -DUSE_GUMBO=OFF -DUSE_TRANSLATIONS=ON -DQT_VERSION_MAJOR=5 -DQT_VERSION_MINOR=12 -DGIT_VERSION=OFF -DCMAKE_BUILD_TYPE='Release'
+       cmake -B build_dir -DUSE_MUPDF=ON -DUSE_POPPLER=ON -DUSE_MUJS=OFF -DUSE_GUMBO=OFF -DUSE_TRANSLATIONS=ON -DQT_VERSION_MAJOR=5 -DQT_VERSION_MINOR=12 -DGIT_VERSION=OFF -DCMAKE_BUILD_TYPE='Release' -DCPACK_GENERATOR='DEB;' -DCMAKE_INSTALL_PREFIX='/usr' -DCMAKE_INSTALL_SYSCONFDIR='/etc' -DINSTALL_LICENSE=OFF
        cmake --build build_dir
 
     - name: Perform CodeQL Analysis
@@ -65,4 +65,4 @@ jobs:
       uses: actions/upload-artifact@v2
       with:
         name: beamerpresenter-full-x86_64.deb
-        path: /home/runner/work/BeamerPresenter/BeamerPresenter/beamerpresenter-full-0.2.2-beta-qt5.12-x86_64.deb
+        path: /home/runner/work/BeamerPresenter/BeamerPresenter/beamerpresenter-full-0.2.2-qt5.12-x86_64.deb

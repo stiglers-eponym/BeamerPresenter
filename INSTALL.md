@@ -16,11 +16,11 @@ The simplest way to install BeamerPresenter (besides the AUR) is to directly ins
 For example, the commands for installing BeamerPresenter with poppler as PDF engine and Qt 5 after downloading the corresponding file are:
 ```sh
 # Ubuntu 20.04:
-sudo apt install ./beamerpresenter-poppler-0.2.2-beta2-qt5.12-x86_64.deb
+sudo apt install ./beamerpresenter-poppler-0.2.2-qt5.12-x86_64.deb
 # Ubuntu 21.10:
-sudo apt install ./beamerpresenter-poppler-0.2.2-beta2-qt5.15-x86_64.deb
+sudo apt install ./beamerpresenter-poppler-0.2.2-qt5.15-x86_64.deb
 # Arch/Manjaro
-sudo pacman -U beamerpresenter-poppler-qt5-0.2.2_beta2-1-x86_64.pkg.tar.zst
+sudo pacman -U beamerpresenter-poppler-qt5-0.2.2-1-x86_64.pkg.tar.zst
 # Flatpak
 flatpak install org.kde.Platform/x86_64/5.15-21.08 # can be skipped if already installed
 flatpak install beamerpresenter.flatpak
@@ -95,10 +95,10 @@ Optional, for showing videos:
 ### Download
 Download the sources:
 ```sh
-wget https://github.com/stiglers-eponym/BeamerPresenter/archive/v0.2.2_beta2.tar.gz
-sha256sum -c - <<< "cf8904563e9b1a9a1ed0cecb65e27ae1ba99e173d9b69cf1e53275294abb9811 v0.2.2_beta2.tar.gz"
-tar -xf v0.2.2_beta2.tar.gz
-cd BeamerPresenter-0.2.2_beta2
+wget https://github.com/stiglers-eponym/BeamerPresenter/archive/v0.2.2.tar.gz
+sha256sum -c - <<< "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx v0.2.2.tar.gz"
+tar -xf v0.2.2.tar.gz
+cd BeamerPresenter-0.2.2
 ```
 Alternatively, you can clone the git repository
 ```sh

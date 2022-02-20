@@ -75,7 +75,7 @@ set(ABS_TRANSLATION_PATH "${ABS_TRANSLATION_PATH}/")
 
 
 # Set app version string
-set(APP_VERSION "${beamerpresenter_VERSION}-beta")
+set(APP_VERSION "${beamerpresenter_VERSION}")
 option(GIT_VERSION "include git commit count in version" ON)
 if (GIT_VERSION AND EXISTS "${PROJECT_SOURCE_DIR}/.git")
     execute_process(
