@@ -96,7 +96,7 @@ Optional, for showing videos:
 Download the sources:
 ```sh
 wget https://github.com/stiglers-eponym/BeamerPresenter/archive/v0.2.2.tar.gz
-sha256sum -c - <<< "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx v0.2.2.tar.gz"
+sha256sum -c - <<< "6a85e9fc6ab7b6e973c85f3146f370d8d48e6c995c4f4e2c712a8e73f8490707 v0.2.2.tar.gz"
 tar -xf v0.2.2.tar.gz
 cd BeamerPresenter-0.2.2
 ```
