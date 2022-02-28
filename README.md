@@ -55,15 +55,6 @@ There exist different flavors of BeamerPresenter:
 You can choose the PDF engine (Poppler or MuPDF) and the major Qt version (5 or 6).
 Some arguments for this choice and the manual installation are explained [here](https://github.com/stiglers-eponym/BeamerPresenter/blob/main/INSTALL.md).
 
-In Arch Linux and Manjaro you can install one of the AUR packages [beamerpresenter](https://aur.archlinux.org/packages/beamerpresenter) and [beamerpresenter-git](https://aur.archlinux.org/packages/beamerpresenter-git).
-Note that in these packages by default MuPDF is selected as PDF engine.
-
-There exists also a package for Nix (thanks to the maintainer of that one!) which can be installed with
-```sh
-nix-env -iA nixos.beamerpresenter    # on NixOS
-nix-env -iA nixpkgs.beamerpresenter  # on non-NixOS
-```
-
 The [releases](https://github.com/stiglers-eponym/BeamerPresenter/releases) come with packages for Arch/Manjaro, Ubuntu 20.04, Ubuntu 21.10 and flatpak.
 The simplest way to install BeamerPresenter (besides the AUR) is to directly install these packages.
 For example, the commands for installing BeamerPresenter with poppler as PDF engine and Qt 5 after downloading the corresponding file are:
@@ -72,13 +63,26 @@ For example, the commands for installing BeamerPresenter with poppler as PDF eng
 sudo apt install ./beamerpresenter-poppler-0.2.2-qt5.12-x86_64.deb
 # Ubuntu 21.10:
 sudo apt install ./beamerpresenter-poppler-0.2.2-qt5.15-x86_64.deb
-# Arch/Manjaro
+# Arch/Manjaro:
 sudo pacman -U beamerpresenter-poppler-qt5-0.2.2-1-x86_64.pkg.tar.zst
-# Flatpak
+# Flatpak:
 flatpak install org.kde.Platform/x86_64/5.15-21.08 # can be skipped if already installed
 flatpak install beamerpresenter.flatpak
 ```
 The build process for these packages is explained [here](https://github.com/stiglers-eponym/BeamerPresenter/tree/main/packaging).
+
+In Arch Linux and Manjaro you can also install one of the AUR packages [beamerpresenter](https://aur.archlinux.org/packages/beamerpresenter) and [beamerpresenter-git](https://aur.archlinux.org/packages/beamerpresenter-git).
+Note that in these packages by default MuPDF is selected as PDF engine.
+
+There exists a package for [Nix](https://nixos.org) (thanks to the maintainer!), which can also be an option for people using macOS. This package can be installed with
+```sh
+nix-env -iA nixos.beamerpresenter    # on NixOS
+nix-env -iA nixpkgs.beamerpresenter  # on non-NixOS
+```
+
+The libraries required to build BeamerPresenter are also available on other platforms and it seems possible to compile also on macOS (with homebrew) and in Windows.
+However, I can't test on macOS and building in Windows has only reached a [proof-of-principle state](https://github.com/stiglers-eponym/BeamerPresenter/blob/main/INSTALL.md#windows) (using WSL is an alternative).
+Issues or pull requests concerning building on any platform are welcome!
 
 
 ## Configuration
@@ -91,7 +95,7 @@ these settings can also be changed in the settings widget in the graphical
 interface, but some of these settings require a restart of the program.
 
 Some program settings can be temporarily overwritten using command line
-arguments (documented in `beamerpresenter --help' or `man 1 beamerpresenter`).
+arguments (documented in `beamerpresenter --help` or `man 1 beamerpresenter`).
 
 ### User interface
 The user interface is configured in a separate JSON file (GUI config, `gui.json`) as
@@ -115,34 +119,23 @@ When reporting bugs, please include the version string of BeamerPresenter
 ## Development
 
 ### Known problems
-#### Multimedia
-* Video performance is bad in the following situations:
-    * when you draw or erase on a slide while a video is played (drawing one long stroke is much worse than many short strokes)
-    * when you use the magnifier or torch while a video is played when there are also drawings on the same slide. The magnifier generally has rather limited performance when used on a slide that contains drawings.
-    * when using multiple magnifiers (yes, that's possible, but you shouldn't do that)
-* Embedded sounds are unsupported, only links to external files can be played.
-* Sounds included as sound link (not sound annotation) are unsupported when using MuPDF.
-#### User interface
-* Tool buttons can be changed in the user interface, but these changes are not saved. Buttons are part of the user interface, which can only be changed (permanently) by editing the JSON-formatted configuration file.
-#### Drawing/annotating
-* The detection of unsaved changes is not reliable. The warning when closing beamerpresenter with unsaved changes can be avoided by using the action "quit unsafe" instead of "quit".
-#### Slide transitions
-* Sometimes the slides are not automatically rendered to the correct size when resizing the window. Changing or updating the page should solve this problem.
-* Some slide transitions need to stop videos. Fly slide transitions during videos look strange.
+* Multimedia
+    * Video performance can be bad while drawing or using the magnifier.
+    * Sounds included as sound link (not sound annotation) are unsupported when using MuPDF (this affects LaTeX beamer's `\sound` command; workaround: use `\movie` instead).
+    * Some slide transitions need to stop videos. Fly slide transitions during videos look strange.
+* Changing tool buttons via the user interface is non-permanent. Permanent changes in the user interface require manual changes in the JSON-formatted configuration file.
+* The detection of unsaved changes is not reliable. The warning of unsaved changes can be avoided by using the action "quit unsafe" instead of "quit".
+* Sometimes slides are not automatically rendered to the correct size when resizing the window. Changing or updating the page should solve this.
+* The cache of slides does not handle PDF files with varying page sizes correctly.
 * If a preview shows specific overlays, slide changes adding or removing synchronization of this preview with another widget may lead to short flickering. Slide transitions during such slide changes can contain some ugly artifacts.
-#### PDF backend
-* When compiling with both MuPDF and poppler, trying to open a PDF with renderer=poppler can result in a segmentation fault for some PDFs (when loading the document or when reaching a certain page). The reason might be a linkage problem with some colorspace functions. It is recommended to compile with only one PDF engine.
+* When compiling with both MuPDF and Poppler opening some PDF files with renderer=poppler can result in a segmentation fault (when loading the document or when rendering a certain page), apparently due to a linkage problem. It is recommended to compile with only one PDF engine.
 * In MuPDF only a smaller subset of PDF link types is supported (only internal navigation links and external links) as compared to the Poppler version.
-* Some effects (animations, slide transitions) might not work as expected if (at least) one window showing the slide is currently hidden and not updated by the window manager.
-* Fixed in MuPDF 1.19: Slide labels are broken for encrypted PDFs when using MuPDF.
+* Slide transitions and animations might not work as expected if (at least) one window showing the slide is currently hidden and not updated by the window manager.
 
 
 ### Ideas for further development
 * tools to select and modify drawings
-* improve cache management and layout corrections.
-* cache slides even when size of slides varies (partially implemented)
 * cache only required slides in previews showing specific overlays
-* make layout more reliable
 * improve keyboard shortcuts in other widgets than slide widget
 * option to insert extra slides for drawing
 

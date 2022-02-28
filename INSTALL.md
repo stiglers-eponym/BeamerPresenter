@@ -2,15 +2,6 @@
 There exist different flavors of BeamerPresenter:
 You can choose the PDF engine (Poppler or MuPDF) and the major Qt version (5 or 6), see [below](#choosing-mupdf-or-poppler).
 
-In Arch Linux and Manjaro you can install one of the AUR packages [beamerpresenter](https://aur.archlinux.org/packages/beamerpresenter) and [beamerpresenter-git](https://aur.archlinux.org/packages/beamerpresenter-git).
-Note that in these packages by default MuPDF is selected as PDF engine.
-
-There exists also a package for Nix (thanks to the maintainer of that one!) which can be installed with
-```sh
-nix-env -iA nixos.beamerpresenter    # on NixOS
-nix-env -iA nixpkgs.beamerpresenter  # on non-NixOS
-```
-
 The [releases](https://github.com/stiglers-eponym/BeamerPresenter/releases) come with packages for Arch/Manjaro, Ubuntu 20.04, Ubuntu 21.10 and flatpak.
 The simplest way to install BeamerPresenter (besides the AUR) is to directly install these packages.
 For example, the commands for installing BeamerPresenter with poppler as PDF engine and Qt 5 after downloading the corresponding file are:
@@ -26,6 +17,15 @@ flatpak install org.kde.Platform/x86_64/5.15-21.08 # can be skipped if already i
 flatpak install beamerpresenter.flatpak
 ```
 The build process for these packages is explained [here](https://github.com/stiglers-eponym/BeamerPresenter/tree/main/packaging).
+
+In Arch Linux and Manjaro you can install one of the AUR packages [beamerpresenter](https://aur.archlinux.org/packages/beamerpresenter) and [beamerpresenter-git](https://aur.archlinux.org/packages/beamerpresenter-git).
+Note that in these packages by default MuPDF is selected as PDF engine.
+
+There exists a package for [Nix](https://nixos.org) (thanks to the maintainer!), which can also be an option for people using macOS. This package can be installed with
+```sh
+nix-env -iA nixos.beamerpresenter    # on NixOS
+nix-env -iA nixpkgs.beamerpresenter  # on non-NixOS
+```
 
 
 ## Choosing MuPDF or Poppler
@@ -46,9 +46,9 @@ When installing BeamerPresenter you need to choose either MuPDF or Poppler as PD
 Building is tested in Arch Linux, Manjaro, Xubuntu 20.04, and Xubuntu 21.10.
 Older versions of Ubuntu are only compatible with [version 0.1](https://github.com/stiglers-eponym/BeamerPresenter/tree/0.1.x) of BeamerPresenter.
 
-In order to build BeamerPresenter you need to have CMake, zlib and Qt 5/6 including the multimedia module and the linguist tools.
+In order to build BeamerPresenter you need to have CMake, zlib and Qt 5/6 including the multimedia module and the linguist tools (only for translations).
 In Qt 5 versions since 5.12 are tested, but other versions starting from 5.9 should also be supported. For installation in Qt 6 you need at least version 6.2.
-Additionally you need either the Qt 5/6 bindings of Poppler or the MuPDF static library (which also requires some libraries).
+Additionally you need either the Qt 5/6 bindings of Poppler or the MuPDF libraries (which may also require some libraries).
 
 ### Dependencies in Ubuntu
 * `cmake` (only for building)
