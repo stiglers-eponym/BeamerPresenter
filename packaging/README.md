@@ -22,7 +22,8 @@ Install the build dependencies:
 ```sh
 sudo apt install --no-install-recommends cmake zlib1g-dev qtmultimedia5-dev qttools5-dev libpoppler-qt5-dev libmupdf-dev libfreetype-dev libharfbuzz-dev libjpeg-dev libopenjp2-7-dev libjbig2dec0-dev
 ```
-In Ubuntu 21.10 you additionally need `libmujs-dev`.
+Only in Ubuntu 21.10 you additionally need `libmujs-dev`.
+In Ubuntu 22.04 you additionally need `libgumbo-dev`.
 
 For version 0.2.2 the source can be downloaded [here](https://github.com/stiglers-eponym/BeamerPresenter/archive/refs/tags/v0.2.2.tar.gz).
 Check and unpack the download:
@@ -52,10 +53,13 @@ cmake \
     -DCMAKE_INSTALL_PREFIX='/usr' \
     -DCMAKE_INSTALL_SYSCONFDIR='/etc'
 ```
-Here the build directory was set to `build_dir`, but that could also be any other directory.
+* to use MuPDF instead of Poppler: set `-DUSE_POPPLER=OFF` and `-DUSE_MUPDF=ON`
+* in Ubuntu 21.10: set `-DQT_VERSION_MINOR=15` and `-DUSE_MUJS=ON` (only relevant when using MuPDF)
+* in Ubuntu 22.04 with Qt 5 (untested): set `-DQT_VERSION_MINOR=15` and `-DUSE_GUMBO=ON` (only relevant when using MuPDF)
+* in Ubuntu 22.04 with Qt 6 (untested): set `-DQT_VERSION_MAJOR=6`, `-DQT_VERSION_MINOR=2` and `-DUSE_GUMBO=ON` (only relevant when using MuPDF)
+
+Here the build directory was set to `build_dir`, which you can replace by any other empty directory.
 We disable `INSTALL_LICENSE` because cpack uses a separate function for installing the license following the conventions of debian packages.
-The MuPDF version can be built by setting `-DUSE_POPPLER=OFF` and `-DUSE_MUPDF=ON` in the above command.
-In ubuntu 21.10 you need to set `-DQT_VERSION_MINOR=15` and (only relevant when building with MuPDF) `-DUSE_MUJS=ON`.
 
 Now build and create the package:
 ```sh

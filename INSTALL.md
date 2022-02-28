@@ -43,32 +43,33 @@ When installing BeamerPresenter you need to choose either MuPDF or Poppler as PD
 
 
 ## General requirements
-Building is tested in Arch Linux, Manjaro, xubuntu 20.04, and xubuntu 21.10.
-Older versions of ubuntu are only compatible with [version 0.1](https://github.com/stiglers-eponym/BeamerPresenter/tree/0.1.x) of BeamerPresenter.
+Building is tested in Arch Linux, Manjaro, Xubuntu 20.04, and Xubuntu 21.10.
+Older versions of Ubuntu are only compatible with [version 0.1](https://github.com/stiglers-eponym/BeamerPresenter/tree/0.1.x) of BeamerPresenter.
 
 In order to build BeamerPresenter you need to have CMake, zlib and Qt 5/6 including the multimedia module and the linguist tools.
 In Qt 5 versions since 5.12 are tested, but other versions starting from 5.9 should also be supported. For installation in Qt 6 you need at least version 6.2.
 Additionally you need either the Qt 5/6 bindings of Poppler or the MuPDF static library (which also requires some libraries).
 
 ### Dependencies in Ubuntu
-* `cmake` (only for building and only in the mainline version)
+* `cmake` (only for building)
 * `zlib1g-dev` (after the installation you can remove `zlib1g-dev` and keep only `zlib1g`)
 * `qtmultimedia5-dev` (after the installation you can remove `qtmultimedia5-dev` and keep only `libqt5multimedia5` and `libqt5multimediawidgets5`)
 * `qttools5-dev` (only for building and only when creating translations. You can disable translations with `-DUSE_TRANSLATIONS=OFF` in the [CMake command](#configure))
 * optional: `libqt5multimedia5-plugins` (for showing videos)
 * optional, recommended: `libqt5svg5` (for showing tool icons)
 
-For Poppler (optional):
+When compiling with Poppler:
 * `libpoppler-qt5-dev`: version 0.86.1 is tested, versions below 0.70 are explicitly not supported. (after the installation you can remove `libpoppler-qt5-dev` and keep only `libpoppler-qt5-1`
 
-For MuPDF (optional):
-* `libmupdf-dev` (only for building): Tested versions: 1.16.1 - 1.19.0.
+When compiling with MuPDF:
+* `libmupdf-dev` (only for building)
 * `libfreetype-dev` (after the installation you can remove `libfreetype-dev` and keep only `libfreetype6`)
 * `libharfbuzz-dev` (after the installation you can remove `libharfbuzz-dev` and keep only `libharfbuzz0b`)
 * `libjpeg-dev` (after the installation you can remove `libjpeg-dev` and keep only `libjpeg8`)
 * `libopenjp2-7-dev` (after the installation you can remove `libopenjp2-7-dev` and keep only `libopenjp2-7`)
 * `libjbig2dec0-dev` (after the installation you can remove `libjbig2dec0-dev` and keep only `libjbig2dec0`)
-* Only in Ubuntu 21.10: `libmujs-dev` (after the installation you can remove `libmujs-dev` and keep only `libmujs1`)
+* only Ubuntu 21.10: `libmujs-dev` (after the installation you can remove `libmujs-dev` and keep only `libmujs1`)
+* only Ubuntu >= 22.04: `libgumbo-dev` (after the installation you can remove `libgumbo-dev` and keep only `libgumbo1`)
 
 ### Dependencies in Arch Linux and Manjaro
 Replace qt5 by qt6 in all package names if you want to use Qt 6.
@@ -77,11 +78,11 @@ Replace qt5 by qt6 in all package names if you want to use Qt 6.
 * `qt5-tools` (only for building and only when creating translations. You can disable translations with `-DUSE_TRANSLATIONS=OFF` in the [CMake command](#configure))
 * optional: `qt5-svg` for showing icons
 
-For Poppler (optional):
+When compiling with Poppler:
 * `poppler-qt5`
 
-For MuPDF (optional):
-* `libmupdf` (only for building, tested versions: 1.16.1 - 1.19.0)
+When compiling with MuPDF:
+* `libmupdf` (only for building, tested versions: 1.16.1 – 1.19.0)
 * `jbig2dec`
 * `openjpeg2`
 * `gumbo-parser`
@@ -138,7 +139,7 @@ The options `-B` and `-S` set the build and source directory, respectively. The 
 | `USE_POPPLER` | ON | Include Poppler PDF engine (Poppler library and Qt 5/6 wrapper must be available) |
 | `USE_MUPDF` | OFF | Include MuPDF PDF engine (MuPDF static library and headers must be available) |
 | `MUPDF_USE_SYSTEM_LIBS` | ON | MuPDF uses shared system libraries (default in common Linux distributions, disable if you compiled MuPDF from source with standard settings) |
-| `USE_MUJS` | OFF | set ON when libmupdf-third is not available (for ubuntu 21.10) |
+| `USE_MUJS` | OFF | set ON when libmupdf-third is not available (for Ubuntu 21.10) |
 | `USE_GUMBO` | ON | set ON when using MuPDF >= 1.18 with shared system libraries |
 | `GIT_VERSION` | ON | Include git commit count in version string |
 | `USE_TRANSLATIONS` | ON | include translations (currently only German), disable if it causes errors |
