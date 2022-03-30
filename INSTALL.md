@@ -43,7 +43,7 @@ When installing BeamerPresenter you need to choose either MuPDF or Poppler as PD
 
 
 ## General requirements
-Building is tested in Arch Linux, Manjaro, Xubuntu 20.04, Xubuntu 21.10, and Lubuntu 22.04.
+Building is tested in Arch Linux, Manjaro, Xubuntu 20.04, Xubuntu 21.10, and partially Lubuntu 22.04.
 Older versions of Ubuntu are only compatible with [version 0.1](https://github.com/stiglers-eponym/BeamerPresenter/tree/0.1.x) of BeamerPresenter.
 
 In order to build BeamerPresenter you need to have CMake, zlib and Qt 5/6 including the multimedia module and the linguist tools (only for translations).
@@ -55,12 +55,12 @@ Additionally you need either the Qt 5/6 bindings of Poppler or the MuPDF librari
     * cmake requires a compiler (e.g. `g++`) and a build system (e.g. unix makefiles or ninja)
 * `zlib1g-dev` (after the installation you can remove `zlib1g-dev` and keep only `zlib1g`)
 * `qtmultimedia5-dev` (after the installation you can remove `qtmultimedia5-dev` and keep only `libqt5multimedia5` and `libqt5multimediawidgets5`)
-    * alternatively, when using Qt 6 in ubuntu ≥22.04: `qt6-multimedia-dev` and keep libqt6multimediawidgets6 after the installation
+    * or when using Qt 6 in Ubuntu ≥22.04: `qt6-multimedia-dev` and keep `libqt6multimediawidgets6` after the installation
 * `qttools5-dev` (only for building and only when creating translations. You can disable translations with `-DUSE_TRANSLATIONS=OFF` in the [CMake command](#configure))
-    * alternatively, when using Qt 6 in ubuntu ≥22.04: qt6-l10n-tools
-* optional: `libqt5multimedia5-plugins` (for showing videos)
-* optional, recommended: `libqt5svg5` (for showing tool icons)
-    * alternatively, when using Qt 6 in ubuntu ≥22.04: libqt6svg6
+    * or when using Qt 6 in Ubuntu ≥22.04: `qt6-tools-dev`, `qt6-tools-dev-tools`, and `qt6-l10n-tools`
+* optional: `libqt5multimedia5-plugins` (for showing videos, only when using Qt 5)
+* optional, recommended: `libqt5svg5` (for showing icons)
+    * or when using Qt 6 in Ubuntu ≥22.04: `libqt6svg6`
 
 When compiling with Poppler:
 * `libpoppler-qt5-dev`: version 0.86.1 is tested, versions below 0.70 are explicitly not supported. (after the installation you can remove `libpoppler-qt5-dev` and keep only `libpoppler-qt5-1`

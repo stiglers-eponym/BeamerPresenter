@@ -29,7 +29,7 @@ sudo apt install --no-install-recommends libmujs-dev
 # Ubuntu 22.04 (only relevant for MuPDF):
 sudo apt install --no-install-recommends libmujs-dev libgumbo-dev
 # When using Qt 6 (only Ubuntu 22.04):
-sudo apt install --no-install-recommends qt6-multimedia-dev libqt6opengl6-dev libgl1-mesa-dev qt6-l10n-tools
+sudo apt install --no-install-recommends qt6-multimedia-dev libqt6opengl6-dev libgl1-mesa-dev qt6-tools-dev qt6-tools-dev-tools qt6-l10n-tools
 ```
 
 For version 0.2.2 the source can be downloaded [here](https://github.com/stiglers-eponym/BeamerPresenter/archive/refs/tags/v0.2.2.tar.gz).
