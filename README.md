@@ -81,7 +81,7 @@ nix-env -iA nixpkgs.beamerpresenter  # on non-NixOS
 ```
 
 The libraries required to build BeamerPresenter are also available on other platforms and it seems possible to compile also on macOS (with homebrew) and in Windows.
-However, I can't test on macOS and building in Windows has only reached a [proof-of-principle state](https://github.com/stiglers-eponym/BeamerPresenter/blob/main/INSTALL.md#windows) (using WSL is an alternative).
+However, I can't test on macOS and building in Windows has only reached a [proof-of-concept state](https://github.com/stiglers-eponym/BeamerPresenter/blob/main/INSTALL.md#windows) (using WSL is an alternative).
 Issues or pull requests concerning building on any platform are welcome!
 
 

@@ -5,13 +5,18 @@ if (USE_MUPDF)
     else()
         list(APPEND EXTRA_LIBS mupdf)
     endif()
-    if (DEFINED MUPDF_THIRD_LIB_PATH)
-        list(APPEND EXTRA_LIBS "${MUPDF_THIRD_LIB_PATH}")
-    elseif (USE_MUJS)
-        # In Ubuntu there is no libmupdf-third, but instead the program must be linked to MuJS.
+    if (USE_MUPDF_THIRD)
+        # In Ubuntu 21.10 there is no mupdf-third.
+        # In all systems with a mupdf-third library it's probably a good idea to link to it.
+        if (DEFINED MUPDF_THIRD_LIB_PATH)
+            list(APPEND EXTRA_LIBS "${MUPDF_THIRD_LIB_PATH}")
+        else()
+            list(APPEND EXTRA_LIBS mupdf-third)
+        endif()
+    endif()
+    if (USE_MUJS)
+        # In Ubuntu >= 21.10 the program must be linked to MuJS.
         list(APPEND EXTRA_LIBS mujs)
-    else()
-        list(APPEND EXTRA_LIBS mupdf-third)
     endif()
     # If system libraries are used (default in most popular Linux distributions),
     # these must be added here.

@@ -26,7 +26,8 @@ option(INSTALL_LICENSE "Include license file in installation" ON)
 # Options concerning the PDF engine
 option(USE_MUPDF "Include MuPDF" ON)
 option(USE_POPPLER "Include Poppler" OFF)
-option(USE_MUJS "Link to mujs instead of mupdf-third (only relevant when using MuPDF)" OFF)
+option(USE_MUPDF_THIRD "Link to mupdf-third (only relevant when using MuPDF)" ON)
+option(USE_MUJS "Link to mujs (only relevant when using MuPDF)" OFF)
 option(USE_GUMBO "Link to gumbo-parser, should be on when using MuPDF >= 1.18" ON)
 option(MUPDF_USE_SYSTEM_LIBS "MuPDF uses system libraries that need to be included. This is the default for most Linux packages of MuPDF." ON)
 
@@ -163,13 +164,16 @@ set(CPACK_STRIP_FILES ON)
 MATH(EXPR QT_VERSION_MINOR_PLUS "${QT_VERSION_MINOR} + 1")
 
 if (CPACK_GENERATOR MATCHES "DEB")
-    # configure debian package (tested in Ubuntu 20.04)
+    # configure debian package (tested in Ubuntu 20.04, Ubuntu 21.10, and partially Ubuntu 22.04)
     #
     # Required packages for building:
     # * cmake
     # * git (only when building mainline version)
     # * zlib1g-dev
-    # * qtmultimedia5-dev
+    # * qtmultimedia5-dev (qt6-multimedia-dev for Qt 6)
+    # * qttools5-dev (or qt6-l10n-tools for Qt 6)
+    # * libqt6opengl6-dev (for Qt 6)
+    # * libgl1-mesa-dev (for Qt 6)
     # For poppler:
     # * libpoppler-qt5-dev
     # For MuPDF:
@@ -180,15 +184,12 @@ if (CPACK_GENERATOR MATCHES "DEB")
     # * libopenjp2-7-dev
     # * libjbig2dec0-dev
     # * libgumbo-dev (for MuPDF >=1.18, probably not required for version <=1.17)
-    if (NOT ("${QT_VERSION_MAJOR}" EQUAL "5"))
-        message(WARNING, "Building debian package is only possible with Qt 5, dependencies will be wrong and unavailable")
-    endif()
+    # * libmujs-dev (in Ubuntu >=21.10)
     set(CPACK_DEBIAN_PACKAGE_DEPENDS "zlib1g (>= 1:1.2.11)")
+    set(QT_MEDIA_PACKAGE "libqt${QT_VERSION_MAJOR}multimediawidgets${QT_VERSION_MAJOR}")
     set(QT_VERSION_LOWER "(>= ${QT_VERSION_MAJOR}.${QT_VERSION_MINOR}.0)")
     set(QT_VERSION_UPPER "(<< ${QT_VERSION_MAJOR}.${QT_VERSION_MINOR_PLUS}.0)")
-    foreach (package "libqt${QT_VERSION_MAJOR}multimedia5" "libqt${QT_VERSION_MAJOR}multimediawidgets5")
-        set(CPACK_DEBIAN_PACKAGE_DEPENDS "${CPACK_DEBIAN_PACKAGE_DEPENDS}, ${package} ${QT_VERSION_LOWER}, ${package} ${QT_VERSION_UPPER}")
-    endforeach()
+    set(CPACK_DEBIAN_PACKAGE_DEPENDS "${CPACK_DEBIAN_PACKAGE_DEPENDS}, ${QT_MEDIA_PACKAGE} ${QT_VERSION_LOWER}, ${QT_MEDIA_PACKAGE} ${QT_VERSION_UPPER}")
     if (USE_MUPDF)
         set(CPACK_DEBIAN_PACKAGE_DEPENDS "${CPACK_DEBIAN_PACKAGE_DEPENDS}, libfreetype6, libharfbuzz0b, libjpeg8, libopenjp2-7, libjbig2dec0")
         if (USE_GUMBO)
@@ -214,8 +215,10 @@ if (CPACK_GENERATOR MATCHES "DEB")
     elseif (USE_POPPLER)
         set(CPACK_DEBIAN_PACKAGE_CONFLICTS "${PROJECT_NAME}-full, ${PROJECT_NAME}-mupdf")
     endif()
-    set(CPACK_DEBIAN_PACKAGE_RECOMMENDS "libqt5svg5")
-    set(CPACK_DEBIAN_PACKAGE_SUGGESTS "libqt5multimedia5-plugins")
+    set(CPACK_DEBIAN_PACKAGE_RECOMMENDS "libqt${QT_VERSION_MAJOR}svg${QT_VERSION_MAJOR}")
+    if ("${QT_VERSION_MAJOR}" EQUAL "5")
+        set(CPACK_DEBIAN_PACKAGE_SUGGESTS "libqt5multimedia5-plugins")
+    endif()
     install(FILES "${PROJECT_SOURCE_DIR}/LICENSE" DESTINATION "${CMAKE_INSTALL_DOCDIR}" RENAME "copyright")
     install(FILES "${PROJECT_SOURCE_DIR}/LICENSE_AGPL" "${PROJECT_SOURCE_DIR}/LICENSE_GPL" DESTINATION "${CMAKE_INSTALL_DOCDIR}")
 endif()

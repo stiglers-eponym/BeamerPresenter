@@ -18,12 +18,19 @@ The "mupdf-small" packages are compiled with a custom build of MuPDF with disabl
 
 
 ## Ubuntu
-Install the build dependencies:
+Install the build dependencies. Make sure you select all of the lines below which match your setup:
 ```sh
-sudo apt install --no-install-recommends cmake zlib1g-dev qtmultimedia5-dev qttools5-dev libpoppler-qt5-dev libmupdf-dev libfreetype-dev libharfbuzz-dev libjpeg-dev libopenjp2-7-dev libjbig2dec0-dev
+# All systems:
+sudo apt install --no-install-recommends cmake zlib1g-dev libmupdf-dev libfreetype-dev libharfbuzz-dev libjpeg-dev libopenjp2-7-dev libjbig2dec0-dev
+# When using Qt 5:
+sudo apt install --no-install-recommends qtmultimedia5-dev qttools5-dev libpoppler-qt5-dev
+# Ubuntu 21.10 (only relevant for MuPDF):
+sudo apt install --no-install-recommends libmujs-dev
+# Ubuntu 22.04 (only relevant for MuPDF):
+sudo apt install --no-install-recommends libmujs-dev libgumbo-dev
+# When using Qt 6 (only Ubuntu 22.04):
+sudo apt install --no-install-recommends qt6-multimedia-dev libqt6opengl6-dev libgl1-mesa-dev qt6-l10n-tools
 ```
-Only in Ubuntu 21.10 you additionally need `libmujs-dev`.
-In Ubuntu 22.04 you additionally need `libgumbo-dev`.
 
 For version 0.2.2 the source can be downloaded [here](https://github.com/stiglers-eponym/BeamerPresenter/archive/refs/tags/v0.2.2.tar.gz).
 Check and unpack the download:
@@ -32,6 +39,7 @@ sha256sum -c - <<< "6a85e9fc6ab7b6e973c85f3146f370d8d48e6c995c4f4e2c712a8e73f849
 tar -xvf v0.2.2.tar.gz
 cd BeamerPresenter-0.2.2
 ```
+Note: The cmake files of BeamerPresenter-0.2.2 are not compatible with Ubuntu 22.04.
 
 Now configure the package using CMake. This requires the configuration of the Qt version (major and minor version), and the PDF engine (Poppler or MuPDF). The Qt minor version is only needed for version checking of dependencies.
 For building BeamerPresenter with poppler in Ubuntu 20.04 with Qt 5.12 use:
@@ -43,6 +51,7 @@ cmake \
     -DGIT_VERSION=OFF \
     -DUSE_POPPLER=ON \
     -DUSE_MUPDF=OFF \
+    -DUSE_MUPDF_THIRD=ON \
     -DUSE_MUJS=OFF \
     -DUSE_GUMBO=OFF \
     -DUSE_TRANSLATIONS=ON \
@@ -54,9 +63,10 @@ cmake \
     -DCMAKE_INSTALL_SYSCONFDIR='/etc'
 ```
 * to use MuPDF instead of Poppler: set `-DUSE_POPPLER=OFF` and `-DUSE_MUPDF=ON`
-* in Ubuntu 21.10: set `-DQT_VERSION_MINOR=15` and `-DUSE_MUJS=ON` (only relevant when using MuPDF)
-* in Ubuntu 22.04 with Qt 5 (untested): set `-DQT_VERSION_MINOR=15` and `-DUSE_GUMBO=ON` (only relevant when using MuPDF)
-* in Ubuntu 22.04 with Qt 6 (untested): set `-DQT_VERSION_MAJOR=6`, `-DQT_VERSION_MINOR=2` and `-DUSE_GUMBO=ON` (only relevant when using MuPDF)
+* in Ubuntu 21.10: set `-DQT_VERSION_MINOR=15`, `-DUSE_MUJS=ON`, and `-DUSE_MUPDF_THIRD=OFF`
+* in Ubuntu 22.04: set `-DUSE_MUJS=ON` and `-DUSE_GUMBO=ON`
+    * when using Qt 5: set `-DQT_VERSION_MINOR=15`
+    * when using Qt 6: set `-DQT_VERSION_MAJOR=6` and `-DQT_VERSION_MINOR=2`
 
 Here the build directory was set to `build_dir`, which you can replace by any other empty directory.
 We disable `INSTALL_LICENSE` because cpack uses a separate function for installing the license following the conventions of debian packages.
