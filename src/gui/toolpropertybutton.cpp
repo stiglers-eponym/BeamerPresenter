@@ -24,11 +24,19 @@ bool ToolPropertyButton::event(QEvent *event)
     {
     case QEvent::MouseButtonDblClick:
     case QEvent::MouseButtonPress:
-        device = static_cast<QMouseEvent*>(event)->buttons() << 1;
+    {
+        const QMouseEvent *mouse_event = static_cast<QMouseEvent*>(event);
+        if (mouse_event->source() != Qt::MouseEventSynthesizedByQt)
+            device = mouse_event->buttons() << 1;
         break;
+    }
     case QEvent::MouseButtonRelease:
-        device = static_cast<QMouseEvent*>(event)->button() << 1;
+    {
+        const QMouseEvent *mouse_event = static_cast<QMouseEvent*>(event);
+        if (mouse_event->source() != Qt::MouseEventSynthesizedByQt)
+            device = mouse_event->button() << 1;
         break;
+    }
     case QEvent::TabletPress:
     case QEvent::TabletRelease:
         device = tablet_device_to_input_device.value(static_cast<QTabletEvent*>(event)->pointerType());

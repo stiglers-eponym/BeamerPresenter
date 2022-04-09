@@ -65,7 +65,14 @@ void ActionButton::addAction(const Action action)
         if (name.isEmpty())
             setStatus(action, 0);
         else
-            setIcon(QIcon::fromTheme(name));
+        {
+            QIcon icon = QIcon::fromTheme(name);
+            if (icon.isNull())
+                // Sometimes name + "-symbolic" is a reasonable fallback icon.
+                icon = QIcon::fromTheme(name + "-symbolic");
+            if (!icon.isNull())
+                setIcon(icon);
+        }
     }
 }
 

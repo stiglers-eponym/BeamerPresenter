@@ -35,6 +35,7 @@ build() {
         -DUSE_POPPLER=OFF \
         -DUSE_MUPDF=ON \
         -DUSE_MUJS=OFF \
+        -DUSE_MUPDF_THIRD=ON \
         -DUSE_GUMBO=ON \
         -DUSE_TRANSLATIONS=ON \
         -DINSTALL_LICENSE=OFF \

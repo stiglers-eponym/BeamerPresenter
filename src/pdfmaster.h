@@ -212,11 +212,11 @@ public slots:
 
 signals:
     /// Write notes from notes widgets to stream writer.
-    void writeNotes(QXmlStreamWriter &writer) const;
+    void writeNotes(QXmlStreamWriter &writer);
     /// Read notes in notes widgets from stream reader.
-    void readNotes(QXmlStreamReader &reader) const;
+    void readNotes(QXmlStreamReader &reader);
     /// Set total time of presentation (preferences().total_time).
-    void setTotalTime(const QTime time) const;
+    void setTotalTime(const QTime time);
 };
 
 /// Map human readable string to overlay mode.
