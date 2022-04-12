@@ -562,7 +562,11 @@ QWidget* Master::createWidget(QJsonObject &object, QWidget *parent)
         QPalette palette = widget->palette();
         const QColor bg_color = QColor(object.value("color").toString());
         if (bg_color.isValid())
+        {
             palette.setColor(QPalette::All, QPalette::Base, bg_color);
+            if (type == SlideType)
+                static_cast<SlideView*>(widget)->setBackgroundBrush(bg_color);
+        }
         else
             palette.setColor(QPalette::All, QPalette::Base, QColor(0,0,0,0));
         widget->setPalette(palette);

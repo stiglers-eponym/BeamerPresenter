@@ -123,10 +123,17 @@ bool ToolSelectorWidget::event(QEvent *event)
     if (event->type() == QEvent::Resize)
     {
         QGridLayout *grid_layout = static_cast<QGridLayout*>(layout());
-        const int minheight = height() / grid_layout->rowCount() - 1;
-        if (minheight > 12)
-            for (int i=0; i<grid_layout->rowCount();)
-                grid_layout->setRowMinimumHeight(i++, minheight);
+        int minsize = height() / grid_layout->rowCount() - 1, i=0;
+        if (minsize > 10)
+            while (i<grid_layout->rowCount())
+                grid_layout->setRowMinimumHeight(i++, minsize);
+        const int minwidth = width() / grid_layout->columnCount() - 10;
+        if (minsize > 10)
+        {
+            i = 0;
+            while (i<grid_layout->columnCount())
+                grid_layout->setColumnMinimumWidth(i++, minwidth);
+        }
     }
     return QWidget::event(event);
 }
