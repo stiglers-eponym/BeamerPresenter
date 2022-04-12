@@ -37,19 +37,6 @@ void ColorSelectionButton::setToolProperty(Tool *tool) const
     tool->setColor(color);
 }
 
-void ColorSelectionButton::updateTool()
-{
-    const Tool *tool = preferences()->currentTool(device);
-    if (tool)
-    {
-        const int idx = findData(tool->color());
-        if (idx >= 0)
-            setCurrentIndex(idx);
-        else
-            setCurrentIndex(count()-1);
-    }
-}
-
 void ColorSelectionButton::toolChanged(Tool *tool)
 {
     if (tool)

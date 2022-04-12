@@ -21,9 +21,6 @@ protected:
     /// Set color of tool to selected value.
     void setToolProperty(Tool* tool) const override;
 
-    /// Update currently selected color based on the tool for device.
-    void updateTool() override;
-
 public slots:
     /// Update currently selected color based on tool.
     void toolChanged(Tool *tool) override;

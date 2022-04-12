@@ -4,6 +4,7 @@
 #include "src/gui/penstylebutton.h"
 #include "src/gui/colorselectionbutton.h"
 #include "src/gui/toolbutton.h"
+#include "src/gui/widthselectionbutton.h"
 #include "src/preferences.h"
 #include "src/names.h"
 #include <QGridLayout>
@@ -92,6 +93,13 @@ void ToolSelectorWidget::addButtons(const QJsonArray &full_array)
                         const QJsonArray array = obj.value("list").toArray();
                         ColorSelectionButton *button = new ColorSelectionButton(array, this);
                         connect(this, &ToolSelectorWidget::sendTool, button, &ColorSelectionButton::toolChanged);
+                        grid_layout->addWidget(button, i, j);
+                    }
+                    if (obj.value("select") == "width")
+                    {
+                        const QJsonArray array = obj.value("list").toArray();
+                        WidthSelectionButton *button = new WidthSelectionButton(array, this);
+                        connect(this, &ToolSelectorWidget::sendTool, button, &WidthSelectionButton::toolChanged);
                         grid_layout->addWidget(button, i, j);
                     }
                     else if(obj.value("select") == "shape")

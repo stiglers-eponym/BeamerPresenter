@@ -3,6 +3,7 @@
 
 #include <QComboBox>
 #include "src/drawing/tool.h"
+#include "src/preferences.h"
 
 /**
  * @brief Drop down menu for changing a property of a tool.
@@ -22,7 +23,8 @@ protected:
     virtual void setToolProperty(Tool* tool) const = 0;
 
     /// Update currently selected tool property based on device.
-    virtual void updateTool() = 0;
+    virtual void updateTool()
+    {toolChanged(preferences()->currentTool(device));}
 
 public slots:
     /// Update currently selected tool property based on tool.

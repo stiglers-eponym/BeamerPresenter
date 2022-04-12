@@ -30,10 +30,10 @@
                   {"tool":"pen", "color":"black", "width":2.5},
                   {"tool":"highlighter", "width":20},
                   {"tool":"text"},
-                  {"tool":"pointer", "color":"#e0ff0000", "size":4.5},
-                  {"tool":"pointer", "color":"#e000ff00", "size":4.5},
                   {"tool":"torch", "color":"#80080808", "size":67},
-                  {"tool":"magnifier", "color":"gray", "size":100, "scale":1.5}
+                  {"tool":"magnifier", "color":"gray", "size":100, "scale":1.5},
+                  "shape",
+                  "style"
                 ],
                 [
                   {"tool":"none"},
@@ -43,9 +43,9 @@
                   "clear",
                   "scroll up",
                   "scroll down",
-                  "shape",
-                  "style",
-                  {"select":"color", "list":["red","yellow","green","blue","magenta","black"]}
+                  {"tool":"pointer", "color":"#e0ff0000", "size":4.5},
+                  {"select":"color", "list":["red","yellow","green","blue","magenta","black"]},
+                  {"select":"width", "list":[0.5,1,2.5,4,8]}
                 ]]
               }
             ]

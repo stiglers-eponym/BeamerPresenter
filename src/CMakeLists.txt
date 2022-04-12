@@ -39,6 +39,7 @@ add_executable(beamerpresenter
         gui/toolselectorwidget.h gui/toolselectorwidget.cpp
         gui/toolpropertybutton.h gui/toolpropertybutton.cpp
         gui/shapeselectionbutton.h gui/shapeselectionbutton.cpp
+        gui/widthselectionbutton.h gui/widthselectionbutton.cpp
         gui/penstylebutton.h gui/penstylebutton.cpp
         gui/colorselectionbutton.h gui/colorselectionbutton.cpp
         gui/mediaslider.h

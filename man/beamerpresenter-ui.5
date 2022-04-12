@@ -298,7 +298,10 @@ drop-down menu of shapes.
 drop-down menu of pen styles.
 .TP
 .B color
-drop-down menu of colors. This must be provided as a JSON object in the form {"select":"color", "list":["red", "green", "blue"]} were the list of colors should be adapted.
+drop-down menu of colors. This must be provided as a JSON object in the form {"select":"color", "list":["red", "green", "blue"]} were the list of colors can be adapted.
+.TP
+.B width
+drop-down menu of draw tool widths. This must be provided as a JSON object in the form {"select":"width", "list":[0.5,1,2,4]} were the list of widths (measured in point=1/72 inch in the PDF) can be adapted.
 .
 .PP
 Options in the dictionary for tools (all lengths are given in points (1/72 inch) in PDF):
