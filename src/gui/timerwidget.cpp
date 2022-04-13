@@ -67,7 +67,7 @@ void TimerWidget::resizeEvent(QResizeEvent *event) noexcept
 void TimerWidget::updateFullText() noexcept
 {
     const QTime time = QTime::fromMSecsSinceStartOfDay(preferences()->msecs_total);
-    total->setText(time.toString(time.hour() ? "h:mm:ss" : "m:ss"));
+    total->setText(time.toString(time.hour() > 0 ? "h:mm:ss" : "m:ss"));
     updateText();
 }
 
@@ -102,7 +102,7 @@ void TimerWidget::updateText() noexcept
 
 void TimerWidget::changePassed()
 {
-    const quint32 new_msecs_passed = QTime::fromString(passed->text(), total->text().count(":") == 2 ? "h:mm:ss" : "m:ss").msecsSinceStartOfDay();
+    const quint32 new_msecs_passed = QTime::fromString(passed->text(), passed->text().count(":") == 2 ? "h:mm:ss" : "m:ss").msecsSinceStartOfDay();
     debug_msg(DebugWidgets, "new msecs passed:" << new_msecs_passed);
     if (preferences()->msecs_passed == UINT_LEAST32_MAX)
         writable_preferences()->target_time = QDateTime::currentDateTimeUtc().addMSecs(preferences()->msecs_total - new_msecs_passed);
@@ -163,7 +163,7 @@ void TimerWidget::startTimer() noexcept
         writable_preferences()->target_time = QDateTime::currentDateTimeUtc().addMSecs(preferences()->msecs_total - preferences()->msecs_passed);
         writable_preferences()->msecs_passed = UINT_LEAST32_MAX;
     }
-    timer->start(1000);
+    timer->start(999);
     emit updateStatus(StartStopTimer, 1);
 }
 
