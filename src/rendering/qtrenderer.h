@@ -1,27 +1,27 @@
-#ifndef POPPLERRENDERER_H
-#define POPPLERRENDERER_H
+#ifndef QTRENDERER_H
+#define QTRENDERER_H
 
 #include <QPixmap>
 #include "src/rendering/abstractrenderer.h"
-#include "src/rendering/popplerdocument.h"
+#include "src/rendering/qtdocument.h"
 
 /**
- * @brief Implement AbstractRenderer using Poppler.
+ * @brief Implement AbstractRenderer using Qt PDF.
  */
-class PopplerRenderer : public AbstractRenderer
+class QtRenderer : public AbstractRenderer
 {
     /// Poppler PDF document.
-    const PopplerDocument *doc;
+    const QtDocument *doc;
 
 public:
     /// Constructor: Only initializes doc and page_part.
     /// This does not perform any checks on the given document.
     /// Also rendering hints are not set here and have to be set before.
-    PopplerRenderer(const PopplerDocument *document, const PagePart part = FullPage) :
+    QtRenderer(const QtDocument *document, const PagePart part = FullPage) :
         AbstractRenderer(part), doc(document) {};
 
     /// Trivial destructor.
-    ~PopplerRenderer() override {}
+    ~QtRenderer() override {}
 
     /// Render page to a QPixmap.
     /// Resolution is given in pixels per point (dpi/72).
@@ -38,4 +38,4 @@ public:
     {return doc && doc->isValid();}
 };
 
-#endif // POPPLERRENDERER_H
+#endif // QTRENDERER_H

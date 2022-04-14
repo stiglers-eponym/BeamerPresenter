@@ -154,17 +154,26 @@ void SettingsWidget::initRendering()
     select_renderer->addItem("MuPDF", PdfDocument::MuPdfEngine);
 #endif
 #ifdef USE_POPPLER
-    select_renderer->addItem("poppler", PdfDocument::PopplerEngine);
+    select_renderer->addItem("Poppler", PdfDocument::PopplerEngine);
 #endif
+#ifdef USE_QTPDF
+    select_renderer->addItem("QtPDF", PdfDocument::QtPDFEngine);
+#endif
+#ifdef USE_EXTERNAL_RENDERER
 #ifdef USE_MUPDF
     select_renderer->addItem("MuPDF + external", PdfDocument::MuPdfEngine);
 #endif
 #ifdef USE_POPPLER
-    select_renderer->addItem("poppler + external", PdfDocument::PopplerEngine);
+    select_renderer->addItem("Poppler + external", PdfDocument::PopplerEngine);
 #endif
+#ifdef USE_QTPDF
+    select_renderer->addItem("QtPDF + external", PdfDocument::QtPDFEngine);
+#endif
+#endif // USE_EXTERNAL_RENDERER
     connect(select_renderer, &QComboBox::currentTextChanged, writable_preferences(), &Preferences::setRenderer);
     layout->addRow(tr("Renderer (requires restart)"), select_renderer);
 
+#ifdef USE_EXTERNAL_RENDERER
     QLineEdit *line_edit = new QLineEdit(rendering);
     line_edit->setText(preferences()->rendering_command);
     connect(line_edit, &QLineEdit::textChanged, writable_preferences(), &Preferences::setRenderingCommand);
@@ -174,6 +183,7 @@ void SettingsWidget::initRendering()
     line_edit->setText(preferences()->rendering_arguments.join(","));
     connect(line_edit, &QLineEdit::textChanged, writable_preferences(), &Preferences::setRenderingArguments);
     layout->addRow(tr("rendering arguments"), line_edit);
+#endif // USE_EXTERNAL_RENDERER
 
     // Page part threshold
     explanation_label = new QLabel(

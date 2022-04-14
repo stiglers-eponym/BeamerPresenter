@@ -19,22 +19,34 @@ find_package(Qt${QT_VERSION_MAJOR} COMPONENTS Multimedia REQUIRED)
 find_package(Qt${QT_VERSION_MAJOR} COMPONENTS MultimediaWidgets REQUIRED)
 find_package(Qt${QT_VERSION_MAJOR} COMPONENTS Xml REQUIRED)
 
+
 # Options concerning the installation
 option(GENERATE_MANPAGES "Generate man pages and include them in installation" ON)
 option(INSTALL_LICENSE "Include license file in installation" ON)
 
 # Options concerning the PDF engine
+option(USE_QTPDF "Include QtPDF (requires Qt >= 6.3 or Qt >= 5.10)" OFF)
 option(USE_MUPDF "Include MuPDF" ON)
 option(USE_POPPLER "Include Poppler" OFF)
+option(USE_EXTERNAL_RENDERER "Include option to use external renderer" OFF)
 option(USE_MUPDF_THIRD "Link to mupdf-third (only relevant when using MuPDF)" ON)
 option(USE_MUJS "Link to mujs (only relevant when using MuPDF)" OFF)
 option(USE_GUMBO "Link to gumbo-parser, should be on when using MuPDF >= 1.18" ON)
 option(MUPDF_USE_SYSTEM_LIBS "MuPDF uses system libraries that need to be included. This is the default for most Linux packages of MuPDF." ON)
 
+# Warnings and errors based on the selection of PDF engines
 if ((NOT USE_MUPDF) AND (NOT USE_POPPLER))
-    message(FATAL_ERROR "No PDF engine provided")
+    if (USE_QTPDF)
+        message(WARNING "Only Qt PDF included as PDF engine, features will be very limited")
+    else()
+        message(FATAL_ERROR "No PDF engine provided")
+    endif()
 elseif (USE_MUPDF AND USE_POPPLER)
-    message(WARNING "Two PDF engine provided, Poppler will (probably) not work for some documents")
+    message(WARNING "MuPDF and Poppler included, Poppler will (probably) not work for some documents")
+endif()
+
+if (USE_QTPDF)
+    find_package(Qt${QT_VERSION_MAJOR} COMPONENTS PdfWidgets REQUIRED)
 endif()
 
 

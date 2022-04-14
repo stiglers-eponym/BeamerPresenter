@@ -277,13 +277,23 @@ void Preferences::loadSettings()
     if (ok)
         page_part_threshold = threshold;
     { // renderer
+#ifdef USE_EXTERNAL_RENDERER
         rendering_command = settings.value("rendering command").toString();
         rendering_arguments = settings.value("rendering arguments").toStringList();
+#endif
         const QString renderer_str = settings.value("renderer").toString().toLower();
         debug_msg(DebugSettings, renderer_str);
         if (!renderer_str.isEmpty())
         {
             bool understood_renderer = false;
+#ifdef USE_QTPDF
+            if (renderer_str.count("qtpdf") > 0)
+            {
+                renderer = AbstractRenderer::QtPDF;
+                pdf_engine = PdfDocument::QtPDFEngine;
+                understood_renderer = true;
+            }
+#endif
 #ifdef USE_MUPDF
             if (renderer_str.count("mupdf") > 0)
             {
@@ -300,6 +310,7 @@ void Preferences::loadSettings()
                 understood_renderer = true;
             }
 #endif
+#ifdef USE_EXTERNAL_RENDERER
             if (renderer_str.count("extern") > 0)
             {
                 if (rendering_command.isEmpty() || rendering_arguments.isEmpty())
@@ -311,6 +322,7 @@ void Preferences::loadSettings()
                 else
                     renderer = AbstractRenderer::ExternalRenderer;
             }
+#endif
             if (!understood_renderer)
                 qWarning() << "Invalid renderer argument in settings:" << renderer_str;
         }
@@ -462,6 +474,14 @@ void Preferences::loadFromParser(const QCommandLineParser &parser)
         QString const &renderer_str = parser.value("renderer");
         bool understood_renderer = false;
         debug_msg(DebugSettings, "renderer" << renderer_str);
+#ifdef USE_QTPDF
+        if (renderer_str.count("qtpdf", Qt::CaseInsensitive) > 0)
+        {
+            renderer = AbstractRenderer::QtPDF;
+            pdf_engine = PdfDocument::QtPDFEngine;
+            understood_renderer = true;
+        }
+#endif
 #ifdef USE_MUPDF
         if (renderer_str.count("mupdf", Qt::CaseInsensitive) > 0)
         {
@@ -478,6 +498,7 @@ void Preferences::loadFromParser(const QCommandLineParser &parser)
             understood_renderer = true;
         }
 #endif
+#ifdef USE_EXTERNAL_RENDERER
         if (renderer_str.count("extern", Qt::CaseInsensitive) > 0)
         {
             rendering_command = settings.value("rendering command").toString();
@@ -491,6 +512,7 @@ void Preferences::loadFromParser(const QCommandLineParser &parser)
             else
                 renderer = AbstractRenderer::ExternalRenderer;
         }
+#endif
         if (!understood_renderer)
             qWarning() << "Invalid renderer argument on command line:" << renderer_str;
     }
@@ -559,6 +581,15 @@ void Preferences::setCacheSize(const int new_size)
 void Preferences::setRenderer(const QString &string)
 {
     const QString &new_renderer = string.toLower();
+#ifdef USE_QTPDF
+    if (new_renderer == "qtpdf")
+    {
+        settings.beginGroup("rendering");
+        settings.setValue("renderer", "qtpdf");
+        settings.endGroup();
+        return;
+    }
+#endif
 #ifdef USE_MUPDF
     if (new_renderer == "mupdf")
     {
@@ -573,6 +604,16 @@ void Preferences::setRenderer(const QString &string)
     {
         settings.beginGroup("rendering");
         settings.setValue("renderer", "poppler");
+        settings.endGroup();
+        return;
+    }
+#endif
+#ifdef USE_EXTERNAL_RENDERER
+#ifdef USE_QTPDF
+    if (new_renderer == "qtpdf + external")
+    {
+        settings.beginGroup("rendering");
+        settings.setValue("renderer", "qtpdf external");
         settings.endGroup();
         return;
     }
@@ -595,6 +636,7 @@ void Preferences::setRenderer(const QString &string)
         return;
     }
 #endif
+#endif // USE_EXTERNAL_RENDERER
 }
 
 QUrl Preferences::resolvePath(const QString &identifier) const noexcept
@@ -729,6 +771,7 @@ void Preferences::setLogSlideChanges(const bool log)
     }
 }
 
+#ifdef USE_EXTERNAL_RENDERER
 void Preferences::setRenderingCommand(const QString &string)
 {
     rendering_command = string;
@@ -744,6 +787,7 @@ void Preferences::setRenderingArguments(const QString &string)
     settings.setValue("rendering arguments", rendering_command);
     settings.endGroup();
 }
+#endif
 
 void Preferences::setOverlayMode(const QString &string)
 {

@@ -29,6 +29,10 @@ public:
         /// MuPDF PDF engine
         MuPdfEngine = 1,
 #endif
+#ifdef USE_QTPDF
+        /// Internal Qt PDF engine (QtPDF)
+        QtPDFEngine = 2,
+#endif
     };
 
     /// Unified type of PDF media annotations for all PDF engines.
@@ -313,10 +317,13 @@ public:
     virtual int numberOfPages() const = 0;
 
     /// Label of page with given index.
-    virtual const QString pageLabel(const int page) const = 0;
+    /// The default implementation returns a string representing the page number.
+    virtual const QString pageLabel(const int page) const
+    {return QString::number(page+1);}
 
     /// Label of page with given index.
-    virtual int pageIndex(const QString &page) const = 0;
+    virtual int pageIndex(const QString &page) const
+    {return page.toInt() - 1;}
 
     /// Starting from page start, get the number (index) of the page shifted
     /// by shift_overlay.
@@ -324,42 +331,51 @@ public:
     /// shift_overlay = (shift & ~AnyOverlay) | overlay
     /// overlay = shift & AnyOverlay
     /// shift = shift >= 0 ? shift & ~AnyOverlay : shift | AnyOverlay
-    virtual int overlaysShifted(const int start, const int shift_overlay) const = 0;
+    virtual int overlaysShifted(const int start, const int shift_overlay) const
+    {return start + (shift_overlay >= 0 ? shift_overlay & ~AnyOverlay : shift_overlay | AnyOverlay);}
 
     /// List of indices, at which slide labels change. An empty list indicates
     /// that all consecutive slides have different labels.
-    virtual QList<int> overlayIndices() const noexcept = 0;
+    /// The default implementation always returns an empty list.
+    virtual QList<int> overlayIndices() const noexcept
+    {return QList<int>();}
 
     /// Check whether a file has been loaded successfully.
     virtual bool isValid() const = 0;
 
     /// Load the PDF outline, fill PdfDocument::outline.
-    virtual void loadOutline() = 0;
+    virtual void loadOutline() {};
 
     /// get function for outline
-    const QVector<PdfOutlineEntry> &getOutline() const noexcept {return outline;}
+    const QVector<PdfOutlineEntry> &getOutline() const noexcept
+    {return outline;}
 
     /// Return outline entry at given page.
     const PdfOutlineEntry &outlineEntryAt(const int page) const;
 
     /// Link at given position (in point = inch/72)
-    virtual const PdfLink *linkAt(const int page, const QPointF &position) const = 0;
+    virtual const PdfLink *linkAt(const int page, const QPointF &position) const
+    {return NULL;}
 
     /// List all video annotations on given page. Returns NULL if list is
     /// empty.
-    virtual QList<MediaAnnotation>* annotations(const int page) const = 0;
+    virtual QList<MediaAnnotation>* annotations(const int page) const
+    {return NULL;}
 
     /// Path to PDF file.
-    const QString & getPath() const {return path;}
+    const QString &getPath() const
+    {return path;}
 
     /// Slide transition when reaching the given page.
-    virtual const SlideTransition transition(const int page) const = 0;
+    virtual const SlideTransition transition(const int page) const
+    {return SlideTransition();}
 
     /// Return true if not all pages in the PDF have the same size.
     virtual bool flexiblePageSizes() noexcept = 0;
 
     /// Duration of given page in secons. Default value is -1 is interpreted as infinity.
-    virtual qreal duration(const int page) const noexcept = 0;
+    virtual qreal duration(const int page) const noexcept
+    {return -1.;}
 };
 
 #endif // PDFDOCUMENT_H

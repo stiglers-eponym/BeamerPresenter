@@ -3,6 +3,9 @@
 #include "src/slidescene.h"
 #include "src/rendering/pixcache.h"
 #include "src/drawing/pathcontainer.h"
+#ifdef USE_QTPDF
+#include "src/rendering/qtdocument.h"
+#endif
 #ifdef USE_POPPLER
 #include "src/rendering/popplerdocument.h"
 #endif
@@ -56,23 +59,24 @@ void PdfMaster::loadDocument(const QString &filename)
     }
 
     // Load the document
-#ifdef USE_POPPLER
-#ifdef USE_MUPDF
     switch (preferences()->pdf_engine)
     {
+#ifdef USE_POPPLER
     case PdfDocument::PopplerEngine:
         document = new PopplerDocument(filename);
         break;
+#endif
+#ifdef USE_MUPDF
     case PdfDocument::MuPdfEngine:
         document = new MuPdfDocument(filename);
         break;
+#endif
+#ifdef USE_QTPDF
+    case PdfDocument::QtPDFEngine:
+        document = new QtDocument(filename);
+        break;
+#endif
     }
-#else
-    document = new PopplerDocument(filename);
-#endif
-#else
-    document = new MuPdfDocument(filename);
-#endif
 
     if (document == NULL || !document->isValid())
         preferences()->showErrorMessage(

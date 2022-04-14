@@ -44,7 +44,7 @@ public:
     };
 
 private:
-    /// Poppler document representing the PDF
+    /// Document representing the PDF
     PdfDocument *document {NULL};
 
     /// Graphics scenes of this application. For each combination of PDF file

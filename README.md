@@ -52,10 +52,10 @@ PDF documents can include videos, sounds, slide transitions and some primitive a
 
 ## Installation
 There exist different flavors of BeamerPresenter:
-You can choose the PDF engine (Poppler or MuPDF) and the major Qt version (5 or 6).
-Some arguments for this choice and the manual installation are explained [here](https://github.com/stiglers-eponym/BeamerPresenter/blob/main/INSTALL.md).
+You can choose the PDF engine (Poppler, MuPDF, or QtPDF) and the major Qt version (5 or 6).
+Some arguments for this choice, more customization options, and the manual installation are explained [here](https://github.com/stiglers-eponym/BeamerPresenter/blob/main/INSTALL.md).
 
-The [releases](https://github.com/stiglers-eponym/BeamerPresenter/releases) come with packages for Arch/Manjaro, Ubuntu 20.04, Ubuntu 21.10 and flatpak.
+The [releases](https://github.com/stiglers-eponym/BeamerPresenter/releases) come with packages for Arch/Manjaro, Ubuntu 20.04, Ubuntu 21.10, and flatpak.
 The simplest way to install BeamerPresenter (besides the AUR) is to directly install these packages.
 For example, the commands for installing BeamerPresenter with poppler as PDF engine and Qt 5 after downloading the corresponding file are:
 ```sh

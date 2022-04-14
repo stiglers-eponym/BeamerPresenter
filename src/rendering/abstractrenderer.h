@@ -17,13 +17,18 @@ protected:
 public:
     /// Type of the renderer.
     enum Renderer {
+#ifdef USE_QTPDF
+        QtPDF = 0,
+#endif
 #ifdef USE_POPPLER
-        Poppler = 0,
+        Poppler = 1,
 #endif
 #ifdef USE_MUPDF
-        MuPDF = 1,
+        MuPDF = 2,
 #endif
-        ExternalRenderer = 2,
+#ifdef USE_EXTERNAL_RENDERER
+        ExternalRenderer = 3,
+#endif
     };
 
     /// Constructor: only initializes page_part.

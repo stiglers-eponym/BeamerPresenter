@@ -90,13 +90,29 @@ int main(int argc, char *argv[])
     parser.addOption({{"t", "time"}, "timer total time in minutes", "number"});
     parser.addOption({"log", "log slide changes to standard output"});
     parser.addOption({"nocache", "disable cache"});
-#if defined(USE_MUPDF) and defined(USE_POPPLER)
-    parser.addOption({"renderer", "PDF renderer: MuPDF / poppler / external-MuPDF / external-poppler", "name"});
-#elif defined(USE_MUPDF)
-    parser.addOption({"renderer", "PDF renderer: external or MuPDF", "name"});
-#elif defined(USE_POPPLER)
-    parser.addOption({"renderer", "PDF renderer: external or poppler", "name"});
+    parser.addOption({"renderer", "available PDF renderers:"
+#ifdef USE_MUPDF
+                      " MuPDF"
 #endif
+#ifdef USE_POPPLER
+                      " Poppler"
+#endif
+#ifdef USE_QTPDF
+                      " QtPDF"
+#endif
+#ifdef USE_EXTERNAL_RENDERER
+#ifdef USE_MUPDF
+                      " external-MuPDF"
+#endif
+#ifdef USE_POPPLER
+                      " external-Poppler"
+#endif
+#ifdef USE_QTPDF
+                      " external-QtPDF"
+#endif
+#endif // USE_EXTERNAL_RENDERER
+                      ,
+                      "name"});
 #ifdef QT_DEBUG
     parser.addOption({"debug", "debug flags, comma-separated", "flags"});
 #endif

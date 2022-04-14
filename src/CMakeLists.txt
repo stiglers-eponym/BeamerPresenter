@@ -45,7 +45,6 @@ add_executable(beamerpresenter
         gui/mediaslider.h
         gui/containerwidget.h
         rendering/abstractrenderer.h
-        rendering/externalrenderer.h rendering/externalrenderer.cpp
         rendering/mediaplayer.h rendering/mediaplayer.cpp
         rendering/pdfdocument.h rendering/pdfdocument.cpp
         rendering/pixcache.h rendering/pixcache.cpp
@@ -65,14 +64,17 @@ if (DEFINED "${ZLIB_LIBRARY}")
 else()
     list(APPEND EXTRA_LIBS "z")
 endif()
+if (USE_QTPDF)
+    list(APPEND EXTRA_LIBS "Qt${QT_VERSION_MAJOR}::PdfWidgets")
+endif()
 
 target_link_libraries(beamerpresenter PRIVATE
-        Qt${QT_VERSION_MAJOR}::Core
-        Qt${QT_VERSION_MAJOR}::Gui
-        Qt${QT_VERSION_MAJOR}::Widgets
-        Qt${QT_VERSION_MAJOR}::Multimedia
-        Qt${QT_VERSION_MAJOR}::MultimediaWidgets
-        Qt${QT_VERSION_MAJOR}::Xml
+        "Qt${QT_VERSION_MAJOR}::Core"
+        "Qt${QT_VERSION_MAJOR}::Gui"
+        "Qt${QT_VERSION_MAJOR}::Widgets"
+        "Qt${QT_VERSION_MAJOR}::Multimedia"
+        "Qt${QT_VERSION_MAJOR}::MultimediaWidgets"
+        "Qt${QT_VERSION_MAJOR}::Xml"
         ${EXTRA_LIBS}
     )
 

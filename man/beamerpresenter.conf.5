@@ -17,7 +17,7 @@ The group ends when another group is started. Entries not belonging to any group
 .
 .TP
 .BR "engine " "= mupdf"
-PDF engine, \[dq]mupdf\[dq] or \[dq]poppler\[dq]. This is ignored if only one PDF engine was enabled at compile time.
+PDF engine, \[dq]mupdf\[dq], \[dq]poppler\[dq], or \[dq]qtpdf\[dq]. This is only relevant when more than one PDF engine was enabled at compile time.
 .
 .TP
 .BR "gui config " "= /etc/xdg/beamerpresenter/gui.json"
@@ -133,9 +133,9 @@ defines, which parts of the page should be shown on which screen.
 .
 .TP
 .BR "renderer " "= mupdf"
-mode for rendering pdf pages. Allowed values \[dq]mupdf\[dq] (if enabled at compile time), \[dq]poppler\[dq] (if enable at compile time) and \[dq]external\[dq] (requires configuration of
-.BR "rendering command" " and " "rendering arguments" ).
-Note that renderer and pdf engine must agree, i.e., it is not possible to use the poppler engine and mupdf for rendering.
+mode for rendering pdf pages. Allowed values are the engines which are defined at compile time. Possible values are \[dq]mupdf\[dq], \[dq]poppler\[dq], \[dq]qtpdf\[dq], and \[dq]external\[dq]. An external renderer requires the configuration of
+.BR "rendering command" " and " "rendering arguments" .
+Note that renderer and PDF engine must agree, i.e., it is not possible to use the Poppler engine and MuPDF for rendering.
 .
 .TP
 .BR "rendering command"

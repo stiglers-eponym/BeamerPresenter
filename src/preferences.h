@@ -5,6 +5,7 @@
 #include <QCommandLineParser>
 #include <QDebug>
 #include <QJsonObject>
+#include "src/config.h"
 #include "src/enumerates.h"
 #include "src/pdfmaster.h"
 #include "src/drawing/pointingtool.h"
@@ -141,16 +142,23 @@ public:
     PdfDocument::PdfEngine pdf_engine {PdfDocument::MuPdfEngine};
     /// Renderer used to convert PDF page to image.
     AbstractRenderer::Renderer renderer {AbstractRenderer::MuPDF};
-#else
+#elif defined(USE_POPPLER)
     /// PDF engine (should be same as renderer except if renderer is external)
     PdfDocument::PdfEngine pdf_engine {PdfDocument::PopplerEngine};
     /// Renderer used to convert PDF page to image.
     AbstractRenderer::Renderer renderer {AbstractRenderer::Poppler};
+#elif defined(USE_QTPDF)
+    /// PDF engine (should be same as renderer except if renderer is external)
+    PdfDocument::PdfEngine pdf_engine {PdfDocument::QtPDFEngine};
+    /// Renderer used to convert PDF page to image.
+    AbstractRenderer::Renderer renderer {AbstractRenderer::QtPDF};
 #endif
+#ifdef USE_EXTERNAL_RENDERER
     /// Rendering command for external renderer.
     QString rendering_command;
     /// Arguments to rendering_command.
     QStringList rendering_arguments;
+#endif
 
     /// Maximally allowed memory size in bytes.
     /// Negative numbers are interpreted as infinity.
@@ -300,10 +308,12 @@ public slots:
     void setHistoryHiddenSlide(const int length);
     /// Enable/disable logging of slide changes.
     void setLogSlideChanges(const bool log);
+#ifdef USE_EXTERNAL_RENDERER
     /// Set rendering command. It is not checked whether this command is valid.
     void setRenderingCommand(const QString &string);
     /// Set rendering arguments. It is not checked whether these are valid.
     void setRenderingArguments(const QString &string);
+#endif
     /// Set overlay mode. Allowed values are defined in string_to_overlay_mode:
     /// "per page", "per label" and "cumulative"
     void setOverlayMode(const QString &string);

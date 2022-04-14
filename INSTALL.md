@@ -28,18 +28,20 @@ nix-env -iA nixpkgs.beamerpresenter  # on non-NixOS
 ```
 
 
-## Choosing MuPDF or Poppler
-When installing BeamerPresenter you need to choose either MuPDF or Poppler as PDF engine. Here is my personal opinion that might help you with the decision.
+## Choosing the PDF engine
+When installing BeamerPresenter you need to choose a PDF engine from MuPDF, Poppler, and Qt PDF.
+Enabling multiple PDF engines at compile time is also possible with some limitations (see below).
 
-* MuPDF produces a much larger package size: 37MB instead of 1.3MB in Arch Linux in default configuration
+* Qt PDF only supports a small subset of the features available with Poppler and MuPDF. Missing features include links, page labels, document outline, slide transitions, videos, and sounds.
+* Compiling with Qt PDF can be simpler because you do not need any external libraries besides Qt. Qt PDF is only available in Qt >= 5.10 (for Qt 5) or Qt >= 6.3 (for Qt 6).
+* MuPDF produces a much larger package size compared to Poppler: 37MB instead of 1.3MB in Arch Linux in default configuration
     * MuPDF is statically linked
     * MuPDF contains about 30MB of fonts that end up in the executable by default
     * Most built-in fonts can be excluded from MuPDF, shrinking the executable from 37MB to 6.5MB (or even smaller: compile MuPDF with `XCFLAGS+=' -DTOFU -DTOFU_CJK -DTOFU_SIL -DFZ_ENABLE_JS=0'`).
-* MuPDF may have better performance.
-* My impression is that in most cases MuPDF produces slightly better-looking slides than Poppler. But this may depend on the presentation, the fonts, the resolution, ...
-* Enabling both PDF engines is not recommended, because it can lead to program crashes when using Poppler for some documents.
-* Some features are only supported by Poppler and not by MuPDF. These features include most link types like action links and sound links. For example, the command `\sound{title}{filename}` in LaTeX beamer's multimedia package will only work with Poppler (workaround: use `\movie` instead of `\sound`).
-* Integrating MuPDF in BeamerPresenter requires much more code than integrating Poppler, which might also lead to more bugs.
+* My impression is that in most cases MuPDF produces better-looking slides than Poppler. But this may depend on the presentation, the fonts, the resolution, ...
+* Enabling both Poppler and MuPDF at compile time is not recommended, because it can lead to program crashes when using Poppler for some documents.
+* Some features are only supported by Poppler and not by MuPDF. These features include most link types like action links and sound links. For example, the command `\sound{title}{filename}` in LaTeX beamer's multimedia package will only work with Poppler (workaround for MuPDF: use `\movie` instead of `\sound`).
+* Integrating MuPDF in BeamerPresenter requires much more code than integrating Poppler or Qt PDF, which might also lead to more bugs.
 
 
 ## General requirements
@@ -123,6 +125,8 @@ cmake \
     -DCMAKE_BUILD_TYPE=Release \
     -DUSE_POPPLER=ON \
     -DUSE_MUPDF=OFF \
+    -DUSE_QTPDF=OFF \
+    -DUSE_EXTERNAL_RENDERER=OFF \
     -DUSE_MUJS=OFF \
     -DUSE_MUPDF_THIRD=ON \
     -DUSE_GUMBO=ON \
@@ -142,6 +146,8 @@ The options `-B` and `-S` set the build and source directory, respectively. The 
 | `CMAKE_BUILD_TYPE` | Release | Release or Debug |
 | `USE_POPPLER` | ON | Include Poppler PDF engine (Poppler library and Qt 5/6 wrapper must be available) |
 | `USE_MUPDF` | OFF | Include MuPDF PDF engine (MuPDF static library and headers must be available) |
+| `USE_QTPDF` | OFF | Include Qt PDF engine. |
+| `USE_EXTERNAL_RENDERER` | OFF | Include option to use an external program for rendering PDF pages to images. |
 | `MUPDF_USE_SYSTEM_LIBS` | ON | MuPDF uses shared system libraries (default in common Linux distributions, disable if you compiled MuPDF from source with standard settings) |
 | `USE_MUJS` | OFF | link to MuJS, set ON in Ubuntu ≥21.10 |
 | `USE_MUPDF_THIRD` | ON | set OFF when libmupdf-third is not available (for Ubuntu 21.10) |
@@ -166,6 +172,7 @@ cmake --install build-dir
 
 ## Windows
 It is possible to compile BeamerPresenter with MuPDF on Windows, but it requires a manual configuration.
+Compiling only with Qt PDF (without Poppler and MuPDF) is probably simpler, but results in a very limited set of features.
 
 ### Summary
 * Qt is available for MinGW and for MS Visual Studio.
@@ -190,6 +197,8 @@ cmake \
     -DCMAKE_BUILD_TYPE=Release \
     -DUSE_POPPLER=OFF \
     -DUSE_MUPDF=ON \
+    -DUSE_QTPDF=OFF \
+    -DUSE_EXTERNAL_RENDERER=OFF \
     -DGIT_VERSION=OFF \
     -DGENERATE_MANPAGES=OFF \
     -DGUI_CONFIG_PATH="config" \

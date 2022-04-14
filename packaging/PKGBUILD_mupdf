@@ -34,6 +34,8 @@ build() {
         -DGIT_VERSION=OFF \
         -DUSE_POPPLER=OFF \
         -DUSE_MUPDF=ON \
+        -DUSE_QTPDF=OFF \
+        -DUSE_EXTERNAL_RENDERER=OFF \
         -DUSE_MUJS=OFF \
         -DUSE_MUPDF_THIRD=ON \
         -DUSE_GUMBO=ON \

@@ -149,7 +149,7 @@ public slots:
 
 signals:
     /// Send out new page.
-    void pageReady(const QPixmap pixmap, const int page) const;
+    void pageReady(const QPixmap pixmap, const int page);
 };
 
 #endif // PIXCACHE_H

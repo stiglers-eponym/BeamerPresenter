@@ -36,7 +36,6 @@ PopplerDocument::PopplerDocument(const QString &filename) :
     // Load the document
     if (!loadDocument())
         qFatal("Loading document failed");
-
     debug_msg(DebugRendering, "Loaded PDF document in Poppler");
 }
 

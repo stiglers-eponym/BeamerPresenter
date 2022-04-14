@@ -47,7 +47,7 @@ public:
 
 signals:
     /// Send out the data.
-    void sendData(const PngPixmap *data) const;
+    void sendData(const PngPixmap *data);
 };
 
 #endif // PIXCACHETHREAD_H

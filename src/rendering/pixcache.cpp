@@ -1,3 +1,7 @@
+#include <QTimer>
+#include <QThread>
+
+#include "src/config.h"
 #include "src/rendering/pixcache.h"
 #ifdef USE_POPPLER
 #include "src/rendering/popplerdocument.h"
@@ -7,12 +11,16 @@
 #include "src/rendering/mupdfdocument.h"
 #include "src/rendering/mupdfrenderer.h"
 #endif
+#ifdef USE_QTPDF
+#include "src/rendering/qtdocument.h"
+#include "src/rendering/qtrenderer.h"
+#endif
+#ifdef USE_EXTERNAL_RENDERER
 #include "src/rendering/externalrenderer.h"
+#endif
 #include "src/rendering/pngpixmap.h"
 #include "src/rendering/pixcachethread.h"
 #include "src/preferences.h"
-#include <QTimer>
-#include <QThread>
 
 
 PixCache::PixCache(PdfDocument *doc, const int thread_number, const PagePart page_part, QObject *parent) noexcept :
@@ -30,6 +38,11 @@ void PixCache::init()
     // Create the renderer without any checks.
     switch (preferences()->renderer)
     {
+#ifdef USE_QTPDF
+    case AbstractRenderer::QtPDF:
+        renderer = new QtRenderer(static_cast<const QtDocument*>(pdfDoc), page_part);
+        break;
+#endif
 #ifdef USE_POPPLER
     case AbstractRenderer::Poppler:
         renderer = new PopplerRenderer(static_cast<const PopplerDocument*>(pdfDoc), page_part);
@@ -40,9 +53,11 @@ void PixCache::init()
         renderer = new MuPdfRenderer(static_cast<const MuPdfDocument*>(pdfDoc), page_part);
         break;
 #endif
+#ifdef USE_EXTERNAL_RENDERER
     case AbstractRenderer::ExternalRenderer:
         renderer = new ExternalRenderer(preferences()->rendering_command, preferences()->rendering_arguments, pdfDoc, page_part);
         break;
+#endif
     }
 
     // Check if the renderer is valid

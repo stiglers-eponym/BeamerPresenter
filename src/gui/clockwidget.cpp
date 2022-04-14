@@ -17,7 +17,7 @@ ClockWidget::ClockWidget(QWidget *parent, bool accept_touch_input) :
     setFont(thefont);
     updateTime();
     connect(timer, &QTimer::timeout, this, &ClockWidget::updateTime);
-    timer->start(1000);
+    timer->start(999);
     setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);
     setMinimumSize(20, 10);
     setToolTip(tr("double-click on clock to start or pause timer"));
