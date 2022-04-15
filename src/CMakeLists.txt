@@ -17,8 +17,8 @@ add_executable(beamerpresenter
         drawing/textgraphicsitem.h drawing/textgraphicsitem.cpp
         drawing/rectgraphicsitem.h drawing/rectgraphicsitem.cpp
         drawing/ellipsegraphicsitem.h drawing/ellipsegraphicsitem.cpp
-        drawing/arrowgraphicsitem.h
-        drawing/linegraphicsitem.h
+        drawing/arrowgraphicsitem.h drawing/arrowgraphicsitem.cpp
+        drawing/linegraphicsitem.h drawing/linegraphicsitem.cpp
         drawing/flexgraphicslineitem.h
         drawing/shaperecognizer.h drawing/shaperecognizer.cpp
         drawing/pathcontainer.h drawing/pathcontainer.cpp

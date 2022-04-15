@@ -21,9 +21,7 @@ public:
     LineGraphicsItem(const DrawTool &tool, const QPointF &pos, QGraphicsItem *parent = NULL) :
         QGraphicsLineItem(QLineF(pos, pos), parent),
         tool(tool)
-    {
-        setPen(tool.pen());
-    }
+    {setPen(tool.pen());}
 
     /// Trivial destructor.
     ~LineGraphicsItem() {}
@@ -33,38 +31,13 @@ public:
     {return Type;}
 
     /// Change the flexible coordinate of the line.
-    void setSecondPoint(const QPointF &pos)
-    {
-        QLineF newline = line();
-        newline.setP2(pos);
-        setLine(newline);
-    }
+    void setSecondPoint(const QPointF &pos);
 
     /// Convert to a BasicGraphicsPath for simpler erasing.
-    BasicGraphicsPath *toPath() const
-    {
-        if (line().p1() == line().p2())
-            return NULL;
-        const int segments = line().length() / 10 + 2;
-        const QPointF
-                p1 = line().p1() - line().center(),
-                delta = {line().dx()/segments, line().dy()/segments};
-        QVector<QPointF> coordinates(segments+1);
-        for (int i=0; i<=segments; ++i)
-            coordinates[i] = p1 + i*delta;
-        QRectF newrect = boundingRect();
-        newrect.translate(-line().center());
-        BasicGraphicsPath *path = new BasicGraphicsPath(tool, coordinates, newrect);
-        path->setPos(mapToScene(line().center()));
-        return path;
-    }
+    BasicGraphicsPath *toPath() const;
 
     /// Paint line to painter.
-    virtual void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget = NULL) override
-    {
-        painter->setCompositionMode(tool.compositionMode());
-        QGraphicsLineItem::paint(painter, option, widget);
-    }
+    virtual void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget = NULL) override;
 };
 
 #endif // LINEGRAPHICSITEM_H
