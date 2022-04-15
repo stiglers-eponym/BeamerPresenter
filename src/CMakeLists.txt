@@ -65,7 +65,8 @@ else()
     list(APPEND EXTRA_LIBS "z")
 endif()
 if (USE_QTPDF)
-    list(APPEND EXTRA_LIBS "Qt${QT_VERSION_MAJOR}::PdfWidgets")
+    # TODO: This is probably not required in 5.14 > Qt >= 5.10
+    list(APPEND EXTRA_LIBS "Qt${QT_VERSION_MAJOR}::Pdf")
 endif()
 
 target_link_libraries(beamerpresenter PRIVATE

@@ -1,7 +1,12 @@
 #ifndef QTDOCUMENT_H
 #define QTDOCUMENT_H
 
-#include <QtPdf/QPdfDocument>
+#include <QObject>
+#if (QT_VERSION >= QT_VERSION_CHECK(5,14,0))
+#include <QtPdf>
+#else
+#include <QtPdfDocument>
+#endif
 #include "src/enumerates.h"
 #include "src/preferences.h"
 #include "src/rendering/pdfdocument.h"

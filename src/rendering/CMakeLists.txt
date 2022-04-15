@@ -45,7 +45,7 @@ if (USE_POPPLER)
         "${CMAKE_CURRENT_SOURCE_DIR}/popplerdocument.cpp"
         "${CMAKE_CURRENT_SOURCE_DIR}/popplerrenderer.h"
         )
-    list(APPEND EXTRA_LIBS poppler-qt${QT_VERSION_MAJOR})
+    list(APPEND EXTRA_LIBS "poppler-qt${QT_VERSION_MAJOR}")
 endif()
 
 if (USE_QTPDF)

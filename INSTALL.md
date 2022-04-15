@@ -32,8 +32,8 @@ nix-env -iA nixpkgs.beamerpresenter  # on non-NixOS
 When installing BeamerPresenter you need to choose a PDF engine from MuPDF, Poppler, and Qt PDF.
 Enabling multiple PDF engines at compile time is also possible with some limitations (see below).
 
-* Qt PDF only supports a small subset of the features available with Poppler and MuPDF. Missing features include links, page labels, document outline, slide transitions, videos, and sounds.
-* Compiling with Qt PDF can be simpler because you do not need any external libraries besides Qt. Qt PDF is only available in Qt >= 5.10 (for Qt 5) or Qt >= 6.3 (for Qt 6).
+* Qt PDF only provides a small subset of the features available with Poppler and MuPDF. Missing features include links, page labels, document outline, slide transitions, animations, videos, and sounds.
+* Compiling with Qt PDF can be simpler if Qt PDF is available on you system, because you do not need any external libraries besides Qt. Qt PDF is only available in Qt >= 5.10 (for Qt 5) or Qt >= 6.3 (for Qt 6), but the way how it is included here is probably only compatible with Qt >= 5.14 or Qt >= 6.3. Even Qt pacakges with compatible versions do not necessarily include Qt PDF.
 * MuPDF produces a much larger package size compared to Poppler: 37MB instead of 1.3MB in Arch Linux in default configuration
     * MuPDF is statically linked
     * MuPDF contains about 30MB of fonts that end up in the executable by default
