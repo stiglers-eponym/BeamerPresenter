@@ -61,6 +61,7 @@ void SlideScene::stopDrawing()
     debug_msg(DebugDrawing, "Stop drawing" << page << page_part);
     if (currentlyDrawnItem)
     {
+        BasicGraphicsPath *newpath = NULL;
         switch (currentlyDrawnItem->type())
         {
         case BasicGraphicsPath::Type:
@@ -69,7 +70,7 @@ void SlideScene::stopDrawing()
             if (static_cast<const AbstractGraphicsPath*>(currentlyDrawnItem)->getTool().shape() == DrawTool::Recognize)
             {
                 ShapeRecognizer recognizer(static_cast<const AbstractGraphicsPath*>(currentlyDrawnItem));
-                BasicGraphicsPath *newpath = recognizer.recognize();
+                newpath = recognizer.recognize();
                 if (newpath)
                 {
                     addItem(newpath);
@@ -77,63 +78,37 @@ void SlideScene::stopDrawing()
                     currentlyDrawnItem = newpath;
                 }
             }
+            if (newpath == NULL)
+                static_cast<AbstractGraphicsPath*>(currentlyDrawnItem)->toCenterCoordinates();
             currentlyDrawnItem->show();
             invalidate(currentlyDrawnItem->sceneBoundingRect(), QGraphicsScene::ItemLayer);
+            currentlyDrawnItem = NULL;
             break;
         case RectGraphicsItem::Type:
-        {
-            BasicGraphicsPath *path = static_cast<RectGraphicsItem*>(currentlyDrawnItem)->toPath();
-            removeItem(currentlyDrawnItem);
-            delete currentlyDrawnItem;
-            if (path)
-            {
-                addItem(path);
-                path->show();
-                emit sendNewPath(page | page_part, path);
-            }
+            newpath = static_cast<RectGraphicsItem*>(currentlyDrawnItem)->toPath();
             break;
-        }
         case EllipseGraphicsItem::Type:
-        {
-            BasicGraphicsPath *path = static_cast<EllipseGraphicsItem*>(currentlyDrawnItem)->toPath();
-            removeItem(currentlyDrawnItem);
-            delete currentlyDrawnItem;
-            if (path)
-            {
-                addItem(path);
-                path->show();
-                emit sendNewPath(page | page_part, path);
-            }
+            newpath = static_cast<EllipseGraphicsItem*>(currentlyDrawnItem)->toPath();
             break;
-        }
         case LineGraphicsItem::Type:
-        {
-            BasicGraphicsPath *path = static_cast<LineGraphicsItem*>(currentlyDrawnItem)->toPath();
-            removeItem(currentlyDrawnItem);
-            delete currentlyDrawnItem;
-            if (path)
-            {
-                addItem(path);
-                path->show();
-                emit sendNewPath(page | page_part, path);
-            }
+            newpath = static_cast<LineGraphicsItem*>(currentlyDrawnItem)->toPath();
             break;
-        }
         case ArrowGraphicsItem::Type:
-        {
-            BasicGraphicsPath *path = static_cast<ArrowGraphicsItem*>(currentlyDrawnItem)->toPath();
-            removeItem(currentlyDrawnItem);
-            delete currentlyDrawnItem;
-            if (path)
-            {
-                addItem(path);
-                path->show();
-                emit sendNewPath(page | page_part, path);
-            }
+            newpath = static_cast<ArrowGraphicsItem*>(currentlyDrawnItem)->toPath();
             break;
-        }
         default:
             break;
+        }
+        if (currentlyDrawnItem != NULL)
+        {
+            removeItem(currentlyDrawnItem);
+            delete currentlyDrawnItem;
+            if (newpath)
+            {
+                addItem(newpath);
+                newpath->show();
+                emit sendNewPath(page | page_part, newpath);
+            }
         }
         currentlyDrawnItem = NULL;
     }

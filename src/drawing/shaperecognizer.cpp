@@ -102,22 +102,34 @@ BasicGraphicsPath *ShapeRecognizer::recognizeLine() const
             p2 = {path->right - margin, line.by + ay/ax*(path->right - margin - line.bx)};
         }
     }
+    // Create path.
+    const QPointF
+            reference = (p1 + p2)/2,
+            rbegin = (p1 - p2)/2;
     const int segments = distance(p1-p2)/10 + 2;
     const QPointF delta = (p2-p1)/segments;
     QVector<QPointF> coordinates(segments+1);
     for (int i=0; i<=segments; ++i)
-        coordinates[i] = p1 + i*delta;
-    const QRectF boundingRect(std::min(p1.x(), p2.x()) - margin, std::min(p1.y(), p2.y()) - margin, std::abs(p2.x()-p1.x()) + 2*margin, std::abs(p2.y()-p1.y()) + 2*margin);
+        coordinates[i] = rbegin + i*delta;
+    const QRectF boundingRect(
+                std::min(p1.x(), p2.x()) - margin - reference.x(),
+                std::min(p1.y(), p2.y()) - margin - reference.y(),
+                std::abs(p2.x()-p1.x()) + 2*margin,
+                std::abs(p2.y()-p1.y()) + 2*margin
+                );
     debug_msg(DebugDrawing, "recognized line" << p1 << p2);
+    BasicGraphicsPath *pathitem;
     if (path->type() == FullGraphicsPath::Type)
     {
         DrawTool tool(path->_tool);
         tool.setWidth(moments.s/path->size());
-        return new BasicGraphicsPath(tool, coordinates, boundingRect);
+        pathitem = new BasicGraphicsPath(tool, coordinates, boundingRect);
     }
-    return new BasicGraphicsPath(path->_tool, coordinates, boundingRect);
+    else
+        pathitem = new BasicGraphicsPath(path->_tool, coordinates, boundingRect);
+    pathitem->setPos(reference);
+    return pathitem;
 }
-
 
 void ShapeRecognizer::findLines() noexcept
 {
@@ -232,18 +244,23 @@ BasicGraphicsPath *ShapeRecognizer::recognizeRect() const
             ax = std::cos(angle),
             ay = std::sin(angle);
     qreal alpha = (line_segments[1].bx - line_segments[0].bx)*ax + (line_segments[1].by - line_segments[0].by)*ay;
-    const QPointF p1(line_segments[0].bx + alpha*ax, line_segments[0].by + alpha*ay);
+    QPointF p1(line_segments[0].bx + alpha*ax, line_segments[0].by + alpha*ay);
     alpha = (line_segments[3].bx - line_segments[0].bx)*ax + (line_segments[3].by - line_segments[0].by)*ay;
-    const QPointF p4(line_segments[0].bx + alpha*ax, line_segments[0].by + alpha*ay);
+    QPointF p4(line_segments[0].bx + alpha*ax, line_segments[0].by + alpha*ay);
     alpha = (line_segments[1].bx - line_segments[2].bx)*ax + (line_segments[1].by - line_segments[2].by)*ay;
-    const QPointF p2(line_segments[2].bx + alpha*ax, line_segments[2].by + alpha*ay);
+    QPointF p2(line_segments[2].bx + alpha*ax, line_segments[2].by + alpha*ay);
     alpha = (line_segments[3].bx - line_segments[2].bx)*ax + (line_segments[3].by - line_segments[2].by)*ay;
-    const QPointF p3(line_segments[2].bx + alpha*ax, line_segments[2].by + alpha*ay);
+    QPointF p3(line_segments[2].bx + alpha*ax, line_segments[2].by + alpha*ay);
+    const QPointF reference = (p1 + p2 + p3 + p4)/4;
+    p1 -= reference;
+    p2 -= reference;
+    p3 -= reference;
+    p4 -= reference;
+
     // Construct the coordinates of points between the corners.
     const qreal
             dist1 = distance(p2-p1),
-            dist2 = distance(p3-p2),
-            margin = path->_tool.width();
+            dist2 = distance(p3-p2);
     const int
             n1 = dist1 / 10 + 2,
             n2 = dist2 / 10 + 2;
@@ -262,22 +279,28 @@ BasicGraphicsPath *ShapeRecognizer::recognizeRect() const
     for (int i=0; i<n2; ++i)
         coordinates[2*n1+n2+i] = p4 + i*d41;
     coordinates[2*(n1+n2)] = p1;
+
     // Compute the bounding rect.
     const qreal left = std::min(std::min(std::min(p1.x(), p2.x()), p3.x()), p4.x()),
                 right = std::max(std::max(std::max(p1.x(), p2.x()), p3.x()), p4.x()),
                 top = std::min(std::min(std::min(p1.y(), p2.y()), p3.y()), p4.y()),
-                bottom = std::max(std::max(std::max(p1.y(), p2.y()), p3.y()), p4.y());
+                bottom = std::max(std::max(std::max(p1.y(), p2.y()), p3.y()), p4.y()),
+                margin = path->_tool.width();
     const QRectF boundingRect(left-margin, top-margin, right-left+2*margin, bottom-top+2*margin);
+
     // Compute the path width (only for FullGraphicsPath).
+    BasicGraphicsPath *pathitem;
     if (path->type() == FullGraphicsPath::Type)
     {
         DrawTool tool(path->_tool);
         tool.setWidth(moments.s/path->size());
-        return new BasicGraphicsPath(tool, coordinates, boundingRect);
+        pathitem = new BasicGraphicsPath(tool, coordinates, boundingRect);
     }
-    return new BasicGraphicsPath(path->_tool, coordinates, boundingRect);
+    else
+        pathitem = new BasicGraphicsPath(path->_tool, coordinates, boundingRect);
+    pathitem->setPos(reference);
+    return pathitem;
 }
-
 
 BasicGraphicsPath *ShapeRecognizer::recognizeEllipse() const
 {
@@ -344,21 +367,27 @@ BasicGraphicsPath *ShapeRecognizer::recognizeEllipse() const
                 return NULL;
         }
     }
+
+    // Construct a path.
     const int segments = (rx + ry) * 0.67 + 10;
     const qreal
             phasestep = 2*M_PI / segments,
             margin = path->_tool.width();
     QVector<QPointF> coordinates(segments+1);
     for (int i=0; i<segments; ++i)
-        coordinates[i] = {mx + rx*std::sin(phasestep*i), my + ry*std::cos(phasestep*i)};
-    coordinates[segments] = {mx, my + ry};
-    const QRectF boundingRect(mx-rx-margin, my-ry-margin, 2*(rx+margin), 2*(ry+margin));
+        coordinates[i] = {rx*std::sin(phasestep*i), ry*std::cos(phasestep*i)};
+    coordinates[segments] = {0, ry};
+    const QRectF boundingRect(-rx-margin, -ry-margin, 2*(rx+margin), 2*(ry+margin));
     debug_msg(DebugDrawing, "recognized ellipse" << mx << my << rx << ry << loss);
+    BasicGraphicsPath *pathitem;
     if (path->type() == FullGraphicsPath::Type)
     {
         DrawTool tool(path->_tool);
         tool.setWidth(moments.s/path->size());
-        return new BasicGraphicsPath(tool, coordinates, boundingRect);
+        pathitem = new BasicGraphicsPath(tool, coordinates, boundingRect);
     }
-    return new BasicGraphicsPath(path->_tool, coordinates, boundingRect);
+    else
+        pathitem = new BasicGraphicsPath(path->_tool, coordinates, boundingRect);
+    pathitem->setPos(mx, my);
+    return pathitem;
 }

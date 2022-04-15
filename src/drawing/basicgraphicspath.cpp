@@ -135,6 +135,10 @@ void BasicGraphicsPath::paint(QPainter *painter, const QStyleOptionGraphicsItem 
     {
         painter->setPen(QPen(QBrush(Qt::black), 0.5));
         painter->drawRect(boundingRect());
+        painter->drawLine(left, top, 0, 0);
+        painter->drawLine(left, bottom, 0, 0);
+        painter->drawLine(right, top, 0, 0);
+        painter->drawLine(right, bottom, 0, 0);
     }
 #endif
 }
