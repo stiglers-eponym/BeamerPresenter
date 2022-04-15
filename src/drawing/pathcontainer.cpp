@@ -384,7 +384,15 @@ bool PathContainer::applyMicroStep()
     // Get the new items from history (as prepared in step 1.)
     const QMap<int, QGraphicsItem*> &newItems = history.last()->createdItems;
     for (auto it = newItems.cbegin(); it != newItems.cend(); ++it)
+    {
         paths.insert(it.key(), it.value());
+        switch ((*it)->type())
+        {
+        case BasicGraphicsPath::Type:
+        case FullGraphicsPath::Type:
+            static_cast<AbstractGraphicsPath*>(*it)->toCenterCoordinates();
+        }
+    }
 
     // Move forward in history.
     inHistory = 0;
