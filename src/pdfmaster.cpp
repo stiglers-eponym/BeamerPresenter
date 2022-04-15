@@ -165,6 +165,17 @@ void PdfMaster::replacePath(int page, QGraphicsItem *olditem, QGraphicsItem *new
     }
 }
 
+void PdfMaster::addTransformsCommon(int page, const QList<QGraphicsItem*> &items, const QTransform &transform)
+{
+    if (preferences()->overlay_mode == PerLabel)
+        page = document->overlaysShifted((page & ~NotFullPage), FirstOverlay) | (page & NotFullPage);
+    if (!paths.contains(page) || items.isEmpty())
+        // this should never happen
+        return;
+    paths[page]->transformItemsCommon(items, transform);
+    _flags |= UnsavedDrawings;
+}
+
 void PdfMaster::distributeNavigationEvents(const int page) const
 {
     // Map (shifted) page numbers with page parts to slide scenes.

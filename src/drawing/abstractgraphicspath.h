@@ -83,6 +83,9 @@ public:
     /// Transform item coordinates and cache shape.
     void finalize();
 
+    /// Copy this.
+    virtual AbstractGraphicsPath *copy() const = 0;
+
     /**
      * @brief Erase at position pos.
      *

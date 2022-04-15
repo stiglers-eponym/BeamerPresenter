@@ -42,6 +42,9 @@ public:
     /// @param last index of first node after the subpath.
     BasicGraphicsPath(const AbstractGraphicsPath *const other, int first, int last);
 
+    /// Copy this.
+    AbstractGraphicsPath *copy() const override;
+
     /// @return custom type of QGraphicsItem.
     int type() const noexcept override
     {return Type;}

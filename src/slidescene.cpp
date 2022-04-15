@@ -30,6 +30,7 @@ SlideScene::SlideScene(const PdfMaster *master, const PagePart part, QObject *pa
 {
     connect(this, &SlideScene::sendNewPath, master, &PdfMaster::receiveNewPath, Qt::DirectConnection);
     connect(this, &SlideScene::replacePath, master, &PdfMaster::replacePath, Qt::DirectConnection);
+    connect(this, &SlideScene::sendTransformsCommon, master, &PdfMaster::addTransformsCommon, Qt::DirectConnection);
     connect(this, &SlideScene::requestNewPathContainer, master, &PdfMaster::requestNewPathContainer, Qt::DirectConnection);
     connect(this, &SlideScene::selectionChanged, this, &SlideScene::updateSelectionRect, Qt::DirectConnection);
     selection_bounding_rect.setPen(preferences()->selection_rect_pen);
@@ -336,6 +337,7 @@ void SlideScene::handleEvents(const int device, const QList<QPointF> &pos, const
     {
         const QPointF &single_pos = pos.constFirst();
         SelectionTool *selection_tool = static_cast<SelectionTool*>(tool);
+        QList<QGraphicsItem*> selection = selectedItems();
         switch (device & Tool::DeviceEventType::AnyEvent)
         {
         case Tool::DeviceEventType::StartEvent:
@@ -344,7 +346,7 @@ void SlideScene::handleEvents(const int device, const QList<QPointF> &pos, const
             case Tool::BasicSelectionTool:
                 // Check if the user clicked on some special point on the
                 // bounding rect of the selection.
-                for (auto item : selectedItems())
+                for (auto item : selection)
                     if (!item->contains(item->mapFromScene(single_pos)))
                         item->setSelected(false);
                 if (selectedItems().isEmpty())
@@ -362,15 +364,22 @@ void SlideScene::handleEvents(const int device, const QList<QPointF> &pos, const
         case Tool::DeviceEventType::UpdateEvent:
         {
             const QPointF diff = selection_tool->movePosition(single_pos);
-            for (auto &item : selectedItems())
+            for (auto &item : selection)
                 item->setPos(item->pos() + diff);
             selection_bounding_rect.setPos(selection_bounding_rect.pos() + diff);
             break;
         }
         case Tool::DeviceEventType::StopEvent:
-            for (auto item : selectedItems())
-                if (!item->contains(item->mapFromScene(single_pos)))
-                    item->setSelected(false);
+            if (!selection.isEmpty())
+            {
+                // TODO: This becomes more complicated for scaling and rotating.
+                emit sendTransformsCommon(page, selection, selection_tool->transform());
+                for (auto item : selection)
+                {
+                    if (!item->contains(item->mapFromScene(single_pos)))
+                        item->setSelected(false);
+                }
+            }
             break;
         }
     }
@@ -1356,6 +1365,7 @@ void SlideScene::playPauseMedia() const
 
 void SlideScene::updateSelectionRect() noexcept
 {
+    // TODO: only call manually for higher efficiency?
     QList<QGraphicsItem*> items = selectedItems();
     if (items.isEmpty())
     {

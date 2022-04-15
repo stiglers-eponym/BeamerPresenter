@@ -266,6 +266,9 @@ signals:
     /// Send new path to PdfMaster.
     void sendNewPath(int page, QGraphicsItem *item) const;
 
+    /// Send transformations for QGraphicsItems to PdfMaster.
+    void sendTransformsCommon(int page, const QList<QGraphicsItem*> &item, const QTransform &transform) const;
+
     /// Replace old path by new path in a single drawing history step.
     void replacePath(int page, QGraphicsItem *olditem, QGraphicsItem *newitem) const;
 

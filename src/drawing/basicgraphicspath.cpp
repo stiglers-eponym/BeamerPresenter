@@ -221,3 +221,11 @@ void BasicGraphicsPath::changeTool(const DrawTool &newtool) noexcept
     _tool.setWidth(newtool.width());
     _tool.setCompositionMode(newtool.compositionMode());
 }
+
+AbstractGraphicsPath *BasicGraphicsPath::copy() const
+{
+    BasicGraphicsPath *newpath = new BasicGraphicsPath(_tool, coordinates, boundingRect());
+    newpath->setPos(scenePos());
+    newpath->shape_cache = shape_cache;
+    return newpath;
+}

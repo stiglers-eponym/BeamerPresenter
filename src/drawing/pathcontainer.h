@@ -2,10 +2,10 @@
 #define PATHCONTAINER_H
 
 #include <QList>
+#include <QGraphicsItem>
 #include "src/drawing/tool.h"
 
 class QGraphicsScene;
-class QGraphicsItem;
 class QXmlStreamReader;
 class QXmlStreamWriter;
 class TextGraphicsItem;
@@ -39,11 +39,17 @@ public:
      *     with their index in the stacking order before they were deleted.
      *  2. creating QGraphicsItems. DrawHistoryStep saves these items together
      *     with their index after all new QGraphicsItems were added.
+     *  3. transforming items. DrawHistoryStep saves the transformations
+     *     together with their index after all new QGraphicsItems were added.
      */
     struct DrawHistoryStep {
         friend class PathContainer;
 
     private:
+        /// Items with the transformation applied in this history step
+        /// and with their indices after the history step.
+        QMap<int, QTransform> transformedItems;
+
         /// Newly created items with their index after the history step.
         QMap<int, QGraphicsItem*> createdItems;
 
@@ -189,6 +195,12 @@ public slots:
     /// Notify of a change in a text item, add the item to history if necessary.
     void addTextItem(QGraphicsItem *item)
     {replaceItem(NULL, item);}
+
+    /// Apply transform to items.
+    void transformItemsCommon(const QList<QGraphicsItem*> &items, const QTransform &transform);
+
+    // Apply transforms to items (TODO)
+    //void transformItemsIndividual(const QMap<QGraphicsItem*, QTransform> &items);
 };
 
 /// Convert color to string with format #RRGGBBAA

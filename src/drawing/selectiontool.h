@@ -9,7 +9,7 @@
 class SelectionTool : public Tool
 {
 public:
-    enum Operation {
+    enum Type {
         NoOperation,
         Move,
         Rotate,
@@ -20,17 +20,21 @@ public:
     };
 
 protected:
-    Operation operation;
+    Type type = NoOperation;
 
-    union {
+    union TransformProperties {
         /** Position at which a selection items was grabbed, only active when
-         * operation == Move.
+         * type == Move.
          * This position (in scene coordinates) is used when moving objects.
          * reference_position is the input device position in scene coordinates
          * that was used for the previous step of moving a selection. */
-        QPointF reference_position;
-        qreal reference_angle;
-    } properties {QPointF()};
+        QPointF position;
+        qreal angle;
+    };
+
+    TransformProperties
+        start_properties {QPointF()},
+        live_properties {QPointF()};
 
 public:
     /// trivial constructor, only initializes Tool
@@ -39,18 +43,21 @@ public:
 
     /// copy constructor
     SelectionTool(const SelectionTool &other) noexcept :
-        Tool(other), properties(other.properties) {}
+        Tool(other), start_properties(other.start_properties), live_properties(other.live_properties) {}
 
     /// trivial destructor
     ~SelectionTool() {}
 
-    /// Set reference position.
-    void setPos(const QPointF &pos)
-    {properties.reference_position = pos;}
+    /// Set reference position and set type to Move.
+    void setPos(const QPointF &pos) noexcept;
 
     /// return reference position.
-    const QPointF &pos()
-    {return properties.reference_position;}
+    const QPointF &livePos() const noexcept
+    {return live_properties.position;}
+
+    /// return reference position.
+    const QPointF &startPos() const noexcept
+    {return start_properties.position;}
 
     /** Set new reference position and return difference between new and old
      * position.
@@ -59,12 +66,10 @@ public:
      * the input device and the objects should be moved by the step returned
      * by this function.
      */
-    QPointF movePosition(const QPointF &new_position)
-    {
-        const QPointF diff = new_position - properties.reference_position;
-        properties.reference_position = new_position;
-        return diff;
-    }
+    QPointF movePosition(const QPointF &new_position) noexcept;
+
+    /// Transformation from start_properties to live_properties.
+    QTransform transform() const;
 };
 
 #endif // SELECTIONTOOL_H

@@ -276,3 +276,18 @@ const QString FullGraphicsPath::stringWidth() const noexcept
     str.chop(1);
     return str;
 }
+
+
+AbstractGraphicsPath *FullGraphicsPath::copy() const
+{
+    FullGraphicsPath *newpath = new FullGraphicsPath(_tool, coordinates.first(), pressures.first());
+    newpath->coordinates = coordinates;
+    newpath->pressures = pressures;
+    newpath->left = left;
+    newpath->right = right;
+    newpath->top = top;
+    newpath->bottom = bottom;
+    newpath->setPos(scenePos());
+    newpath->shape_cache = shape_cache;
+    return newpath;
+}

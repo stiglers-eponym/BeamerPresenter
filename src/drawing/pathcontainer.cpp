@@ -30,7 +30,11 @@ bool PathContainer::undo(QGraphicsScene *scene)
 
     const DrawHistoryStep *step = history[history.length() - inHistory];
 
-    // First remove newly created items.
+    // 1. undo transformations.
+    for (auto it = step->transformedItems.constBegin(); it != step->transformedItems.constEnd(); ++it)
+        paths[it.key()]->setTransform(it->inverted(), true);
+
+    // 2. remove newly created items.
     // Get the (sorted) indices of items which should be removed.
     const QMap<int, QGraphicsItem*> &removeItems = step->createdItems;
     // Iterate over the keys in reverse order, because otherwise the indices of
@@ -45,7 +49,7 @@ bool PathContainer::undo(QGraphicsScene *scene)
         }
     }
 
-    // Restore old items.
+    // 3. Restore old items.
     // Get the old items from history.
     const QMap<int, QGraphicsItem*> &oldItems = step->deletedItems;
     for (auto it = oldItems.constBegin(); it != oldItems.constEnd(); ++it)
@@ -73,7 +77,7 @@ bool PathContainer::redo(QGraphicsScene *scene)
     // Move forward in history.
     inHistory--;
 
-    // First remove items which were deleted in this step.
+    // 1. First remove items which were deleted in this step.
     // Get the (sorted) indices of items which should be removed.
     const QMap<int, QGraphicsItem*> &oldItems = step->deletedItems;
     // Iterate over the keys in reverse order, because otherwise the indices of
@@ -88,7 +92,7 @@ bool PathContainer::redo(QGraphicsScene *scene)
         }
     }
 
-    // Restore newly created items.
+    // 2. Restore newly created items.
     // Get the new items from history.
     const QMap<int, QGraphicsItem*> &newItems = step->createdItems;
     for (auto it = newItems.constBegin(); it != newItems.constEnd(); ++it)
@@ -102,6 +106,10 @@ bool PathContainer::redo(QGraphicsScene *scene)
                 it.value()->stackBefore(paths[it.key() + 1]);
         }
     }
+
+    // 3. Redo transformations.
+    for (auto it = step->transformedItems.constBegin(); it != step->transformedItems.constEnd(); ++it)
+        paths[it.key()]->setTransform(*it, true);
 
     return true;
 }
@@ -424,13 +432,8 @@ PathContainer *PathContainer::copy() const noexcept
             break;
         }
         case FullGraphicsPath::Type:
-            container->paths.append(new FullGraphicsPath(static_cast<FullGraphicsPath*>(path), 0, -1));
-            break;
         case BasicGraphicsPath::Type:
-            container->paths.append(new BasicGraphicsPath(static_cast<BasicGraphicsPath*>(path), 0, -1));
-            break;
-        case QGraphicsLineItem::Type:
-            container->paths.append(new QGraphicsLineItem(static_cast<QGraphicsLineItem*>(path)->line()));
+            container->paths.append(static_cast<AbstractGraphicsPath*>(path)->copy());
             break;
         }
     }
@@ -681,4 +684,28 @@ QColor rgba_to_color(const QString &string)
     default:
         return QColor(string);
     }
+}
+
+void PathContainer::transformItemsCommon(const QList<QGraphicsItem*> &items, const QTransform &transform)
+{
+    if (items.isEmpty())
+        return;
+    // Remove all "redo" options.
+    truncateHistory();
+    // Create new history step.
+    DrawHistoryStep *const step = new DrawHistoryStep();
+    int idx;
+    for (const auto &item : items)
+    {
+        idx = paths.indexOf(item);
+        if (idx < 0 || item == NULL)
+            // this should never happen
+            continue;
+        step->transformedItems[idx] = transform;
+    }
+    history.append(step);
+
+    // Limit history size (if necessary).
+    if (history.length() > preferences()->history_length_visible_slides)
+        clearHistory(preferences()->history_length_visible_slides);
 }
