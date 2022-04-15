@@ -169,13 +169,6 @@ void FullGraphicsPath::paint(QPainter *painter, const QStyleOptionGraphicsItem *
             len += line.length();
         }
     }
-    if (isSelected())
-    {
-        painter->setCompositionMode(QPainter::CompositionMode_SourceOver);
-        painter->setPen(preferences()->selection_rect_pen);
-        painter->setBrush(preferences()->selection_rect_brush);
-        painter->drawRect(boundingRect());
-    }
 #ifdef QT_DEBUG
     // Show bounding box of stroke in verbose debugging mode.
     if ((preferences()->debug_level & (DebugDrawing|DebugVerbose)) == (DebugDrawing|DebugVerbose))

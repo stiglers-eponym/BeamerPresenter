@@ -106,6 +106,9 @@ private:
     /// Page part shown in this scene.
     const PagePart page_part;
 
+    /// Bounding rect of all currently selected items.
+    QGraphicsRectItem selection_bounding_rect;
+
     /// Start slide transition.
     void startTransition(const int newpage, const PdfDocument::SlideTransition &transition);
 
@@ -208,6 +211,10 @@ protected:
 
     /// Handle events from different pointing devices.
     void handleEvents(const int device, const QList<QPointF> &pos, const QPointF &start_pos, const float pressure);
+
+protected slots:
+    /// Update selection_bounding_rect.
+    void updateSelectionRect() noexcept;
 
 public slots:
     /// Stop drawing and convert just drawn path to regular path.

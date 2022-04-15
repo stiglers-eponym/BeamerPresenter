@@ -31,6 +31,10 @@ SlideScene::SlideScene(const PdfMaster *master, const PagePart part, QObject *pa
     connect(this, &SlideScene::sendNewPath, master, &PdfMaster::receiveNewPath, Qt::DirectConnection);
     connect(this, &SlideScene::replacePath, master, &PdfMaster::replacePath, Qt::DirectConnection);
     connect(this, &SlideScene::requestNewPathContainer, master, &PdfMaster::requestNewPathContainer, Qt::DirectConnection);
+    connect(this, &SlideScene::selectionChanged, this, &SlideScene::updateSelectionRect, Qt::DirectConnection);
+    selection_bounding_rect.setPen(preferences()->selection_rect_pen);
+    selection_bounding_rect.setBrush(preferences()->selection_rect_brush);
+    selection_bounding_rect.setZValue(1e2);
     pageItem->setZValue(-1e2);
     addItem(pageItem);
     pageItem->show();
@@ -330,18 +334,16 @@ void SlideScene::handleEvents(const int device, const QList<QPointF> &pos, const
     }
     else if (tool->tool() & Tool::AnySelectionTool)
     {
-        // Very basic implementation, just to check that it works:
         const QPointF &single_pos = pos.constFirst();
-        switch (tool->tool())
+        SelectionTool *selection_tool = static_cast<SelectionTool*>(tool);
+        switch (device & Tool::DeviceEventType::AnyEvent)
         {
-        case Tool::BasicSelectionTool:
-        {
-            SelectionTool *selection_tool = static_cast<SelectionTool*>(tool);
-            switch (device & Tool::DeviceEventType::AnyEvent)
+        case Tool::DeviceEventType::StartEvent:
+            switch (tool->tool())
             {
-            case Tool::DeviceEventType::StartEvent:
-            {
-                selection_tool->setPos(single_pos);
+            case Tool::BasicSelectionTool:
+                // Check if the user clicked on some special point on the
+                // bounding rect of the selection.
                 for (auto item : selectedItems())
                     if (!item->contains(item->mapFromScene(single_pos)))
                         item->setSelected(false);
@@ -351,24 +353,24 @@ void SlideScene::handleEvents(const int device, const QList<QPointF> &pos, const
                     if (item)
                         item->setSelected(true);
                 }
+                selection_tool->setPos(single_pos);
                 break;
-            }
-            case Tool::DeviceEventType::UpdateEvent:
-            {
-                const QPointF diff = selection_tool->movePosition(single_pos);
-                for (auto &item : selectedItems())
-                    item->setPos(item->pos() + diff);
-                break;
-            }
-            case Tool::DeviceEventType::StopEvent:
-                for (auto item : selectedItems())
-                    if (!item->contains(item->mapFromScene(single_pos)))
-                        item->setSelected(false);
+            default:
                 break;
             }
             break;
+        case Tool::DeviceEventType::UpdateEvent:
+        {
+            const QPointF diff = selection_tool->movePosition(single_pos);
+            for (auto &item : selectedItems())
+                item->setPos(item->pos() + diff);
+            selection_bounding_rect.setPos(selection_bounding_rect.pos() + diff);
+            break;
         }
-        default:
+        case Tool::DeviceEventType::StopEvent:
+            for (auto item : selectedItems())
+                if (!item->contains(item->mapFromScene(single_pos)))
+                    item->setSelected(false);
             break;
         }
     }
@@ -1350,4 +1352,19 @@ void SlideScene::playPauseMedia() const
         }
     }
     playMedia();
+}
+
+void SlideScene::updateSelectionRect() noexcept
+{
+    QList<QGraphicsItem*> items = selectedItems();
+    if (items.isEmpty())
+    {
+        selection_bounding_rect.hide();
+        return;
+    }
+    QRectF newrect = items.first()->sceneBoundingRect();
+    for (const auto &item : items)
+        newrect = newrect.united(item->sceneBoundingRect());
+    selection_bounding_rect.setRect(newrect);
+    selection_bounding_rect.show();
 }

@@ -24,6 +24,7 @@ public:
         MediaControls = 1 << 0,
         ShowAnimations = 1 << 1,
         ShowPointingTools = 1 << 2,
+        ShowSelection = 1 << 3,
         ShowAll = 0xff,
     };
 
