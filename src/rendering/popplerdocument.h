@@ -16,6 +16,7 @@ class PngPixmap;
 /**
  * @brief Implement PdfDocument using Qt bindings of poppler
  * @implements PdfDocument
+ * @see QtDocument
  * @see MuPdfDocument
  */
 class PopplerDocument : public PdfDocument

@@ -7,6 +7,8 @@
 
 /**
  * @brief Implement AbstractRenderer using Qt PDF.
+ * @implements AbstractRenderer
+ * @see PopplerRenderer
  */
 class QtRenderer : public AbstractRenderer
 {

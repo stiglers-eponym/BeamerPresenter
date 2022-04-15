@@ -7,6 +7,8 @@
 
 /**
  * @brief Implement AbstractRenderer using Poppler.
+ * @implements AbstractRenderer
+ * @see QtRenderer
  */
 class PopplerRenderer : public AbstractRenderer
 {

@@ -11,27 +11,29 @@
 /**
  * @brief Abstract class for handling PDF documents.
  *
- * This class is implemented for different PDF engines.
- * These PDF engines are Poppler and MuPDF.
+ * This class is implemented for different PDF engines:
+ * MuPDF, Poppler, and Qt PDF.
+ *
  * @see MuPdfDocument
  * @see PopplerDocument
+ * @see QtDocument
  */
 class PdfDocument
 {
 public:
     /// PDF engine
     enum PdfEngine {
+#ifdef USE_QTPDF
+        /// Internal Qt PDF engine (Qt PDF)
+        QtPDFEngine = 0,
+#endif
 #ifdef USE_POPPLER
         /// Poppler PDF engine
-        PopplerEngine = 0,
+        PopplerEngine = 1,
 #endif
 #ifdef USE_MUPDF
         /// MuPDF PDF engine
-        MuPdfEngine = 1,
-#endif
-#ifdef USE_QTPDF
-        /// Internal Qt PDF engine (QtPDF)
-        QtPDFEngine = 2,
+        MuPdfEngine = 2,
 #endif
     };
 

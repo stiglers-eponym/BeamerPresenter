@@ -38,7 +38,8 @@ public:
     virtual ~AbstractRenderer() {};
 
     /// get page_part;
-    PagePart pagePart() const {return page_part;}
+    PagePart pagePart() const
+    {return page_part;}
 
     /// Render page to a QPixmap. Resolution is given in pixels per point
     /// (dpi/72).

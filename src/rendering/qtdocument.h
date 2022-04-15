@@ -15,8 +15,12 @@ class PngPixmap;
 
 /**
  * @brief Implement PdfDocument using Qt PDF
+ *
+ * Minimal implementation of PdfDocument using only Qt libraries.
+ * This only implements a minimal set of features.
+ *
  * @implements PdfDocument
- * @see MuPdfDocument
+ * @see PopplerDocument
  */
 class QtDocument : public PdfDocument
 {
