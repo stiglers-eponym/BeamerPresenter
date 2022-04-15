@@ -43,8 +43,9 @@ public:
         Eraser = 3    | AnyPointingTool,
 
         // selection tools, class Tool
-        RectSelectionTool = 0 | AnySelectionTool,
-        FlexSelectionTool = 1 | AnySelectionTool,
+        BasicSelectionTool = 0 | AnySelectionTool,
+        RectSelectionTool = 1 | AnySelectionTool,
+        FlexSelectionTool = 2 | AnySelectionTool,
     };
 
     /// Combinable flags defining input devices.
@@ -136,6 +137,7 @@ static const QMap<QString, Tool::BasicTool> string_to_tool
     {"torch", Tool::Torch},
     {"magnifier", Tool::Magnifier},
     {"text", Tool::TextInputTool},
+    {"select", Tool::BasicSelectionTool},
 };
 
 /// tool tip description of tools
@@ -149,6 +151,7 @@ static const QMap<Tool::BasicTool, const char*> tool_to_description
     {Tool::Torch, "torch: darken the slide leaving only a disk unchanged to focus attention on this area"},
     {Tool::Magnifier, "enlargen part of the slide"},
     {Tool::TextInputTool, "add or edit text on slide"},
+    {Tool::BasicSelectionTool, "Select objects by clicking on them"},
 };
 
 /// convert QTabletEvent::PointerType to InputDevice

@@ -329,7 +329,43 @@ void SlideScene::handleEvents(const int device, const QList<QPointF> &pos, const
     }
     else if (tool->tool() & Tool::AnySelectionTool)
     {
-        // TODO
+        // Very basic implementation, just to check that it works:
+        switch (tool->tool())
+        {
+        case Tool::BasicSelectionTool:
+        {
+            debug_verbose(DebugDrawing, "Basic selection tool event");
+            switch (device & Tool::DeviceEventType::AnyEvent)
+            {
+            case Tool::DeviceEventType::StartEvent:
+            {
+                QGraphicsItem *item = NULL;
+                for (const auto &point : pos)
+                {
+                    item = itemAt(point, QTransform());
+                    if (item)
+                    {
+                        debug_verbose(DebugDrawing, "Found item!" << item);
+                        item->setSelected(true);
+                    }
+                }
+                break;
+            }
+            case Tool::DeviceEventType::UpdateEvent:
+                debug_verbose(DebugDrawing, "Moving items" << selectedItems().count());
+                for (auto &item : selectedItems())
+                    item->setPos(pos.first());
+                break;
+            case Tool::DeviceEventType::StopEvent:
+                debug_verbose(DebugDrawing, "Clear selection" << selectedItems().count());
+                clearSelection();
+                break;
+            }
+            break;
+        }
+        default:
+            break;
+        }
     }
     else if (tool->tool() == Tool::TextInputTool && (device & Tool::AnyEvent) == Tool::StopEvent && pos.size() == 1)
     {

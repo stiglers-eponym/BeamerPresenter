@@ -45,13 +45,15 @@ friend class ShapeRecognizer;
 public:
     /// Constructor: initialize tool.
     /// @param tool tool for stroking this path
-    AbstractGraphicsPath(const DrawTool tool) noexcept : _tool(tool) {}
+    AbstractGraphicsPath(const DrawTool tool) noexcept : _tool(tool)
+    {setFlags(QGraphicsItem::ItemIsSelectable);}
 
     /// Constructor: initialize tool and coordinates.
     /// @param tool tool for stroking this path
     /// @param coordinates vector of coordinates
     AbstractGraphicsPath(const DrawTool tool, const QVector<QPointF> &coordinates) noexcept :
-        _tool(tool), coordinates(coordinates) {}
+        _tool(tool), coordinates(coordinates)
+    {setFlags(QGraphicsItem::ItemIsSelectable);}
 
     /// Bounding rectangle of the drawing (including stroke width).
     /// @return bounding rect
