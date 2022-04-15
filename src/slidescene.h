@@ -20,6 +20,7 @@ class AbstractGraphicsPath;
 class Tool;
 class DrawTool;
 class PathContainer;
+class SelectionTool;
 class PixmapGraphicsItem;
 
 /**
@@ -212,6 +213,13 @@ protected:
 
     /// Handle events from different pointing devices.
     void handleEvents(const int device, const QList<QPointF> &pos, const QPointF &start_pos, const float pressure);
+
+    /// Handle selection start events (only called from handleEvents().
+    void handleSelectionStartEvents(SelectionTool *tool, const QPointF &pos);
+    /// Handle selection update events (only called from handleEvents().
+    void handleSelectionUpdateEvents(SelectionTool *tool, const QPointF &pos, const QPointF &start_pos);
+    /// Handle selection stop events (only called from handleEvents().
+    void handleSelectionStopEvents(SelectionTool *tool, const QPointF &pos, const QPointF &start_pos);
 
 protected slots:
     /// Update selection_bounding_rect.

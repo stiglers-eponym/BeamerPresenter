@@ -335,131 +335,16 @@ void SlideScene::handleEvents(const int device, const QList<QPointF> &pos, const
     {
         const QPointF &single_pos = pos.constFirst();
         SelectionTool *selection_tool = static_cast<SelectionTool*>(tool);
-        QList<QGraphicsItem*> selection = selectedItems();
         switch (device & Tool::DeviceEventType::AnyEvent)
         {
         case Tool::DeviceEventType::StartEvent:
-        {
-            // Check if anything is selected.
-            SelectionTool::Type operation = SelectionTool::Select;
-            if (selection_bounding_rect.isVisible())
-            {
-                // 1. Check if the user clicked on some special point on the
-                // bounding rect of the selection.
-                const QPolygonF selection_rect = selection_bounding_rect.sceneRect();
-                if ((single_pos - selection_rect[0]).manhattanLength() < 4)
-                    operation = SelectionTool::ScaleTopLeft;
-                else if ((single_pos - selection_rect[1]).manhattanLength() < 4)
-                    operation = SelectionTool::ScaleTopRight;
-                else if ((single_pos - selection_rect[2]).manhattanLength() < 4)
-                    operation = SelectionTool::ScaleBottomLeft;
-                else if ((single_pos - selection_rect[3]).manhattanLength() < 4)
-                    operation = SelectionTool::ScaleBottomRight;
-                else if ((single_pos - selection_bounding_rect.sceneRotationHandle()).manhattanLength() < 4)
-                    operation = SelectionTool::Rotate;
-                // 2. Check if the user clicked on a selected object.
-                for (auto item : selection)
-                    if (item->contains(item->mapFromScene(single_pos)))
-                    {
-                        operation = SelectionTool::Move;
-                        break;
-                    }
-            }
-            switch (operation)
-            {
-            case SelectionTool::Move:
-                selection_tool->setPos(single_pos);
-                break;
-            case SelectionTool::Rotate:
-                debug_msg(DebugDrawing, "Should start rotating now");
-                // TODO: implement rotation
-                break;
-            case SelectionTool::ScaleTopLeft:
-            case SelectionTool::ScaleTopRight:
-            case SelectionTool::ScaleBottomLeft:
-            case SelectionTool::ScaleBottomRight:
-                debug_msg(DebugDrawing, "Should start scaling now");
-                // TODO: implement scaling
-                break;
-            case SelectionTool::Select:
-                clearSelection();
-                switch (tool->tool())
-                {
-                case Tool::BasicSelectionTool:
-                {
-                    QGraphicsItem *item = itemAt(single_pos, QTransform());
-                    if (item)
-                        item->setSelected(true);
-                    selection_tool->setPos(single_pos);
-                    break;
-                }
-                case Tool::RectSelectionTool:
-                    // TODO
-                    break;
-                case Tool::FreehandSelectionTool:
-                    // TODO
-                    break;
-                default:
-                    break;
-                }
-            default:
-                break;
-            }
+            handleSelectionStartEvents(selection_tool, single_pos);
             break;
-        }
         case Tool::DeviceEventType::UpdateEvent:
-        {
-            switch (selection_tool->type())
-            {
-            case SelectionTool::Move:
-            {
-                const QPointF diff = selection_tool->movePosition(single_pos);
-                for (auto &item : selection)
-                    item->setPos(item->pos() + diff);
-                selection_bounding_rect.setPos(selection_bounding_rect.pos() + diff);
-                break;
-            }
-            case SelectionTool::Rotate:
-                // TODO: implement rotation
-                break;
-            case SelectionTool::ScaleTopLeft:
-            case SelectionTool::ScaleTopRight:
-            case SelectionTool::ScaleBottomLeft:
-            case SelectionTool::ScaleBottomRight:
-                // TODO: implement scaling
-                break;
-            default:
-                break;
-            }
+            handleSelectionUpdateEvents(selection_tool, single_pos, start_pos);
             break;
-        }
         case Tool::DeviceEventType::StopEvent:
-            if (!selection.isEmpty())
-            {
-                switch (selection_tool->type())
-                {
-                case SelectionTool::Move:
-                    // TODO: This becomes more complicated for scaling and rotating.
-                    emit sendTransformsCommon(page, selection, selection_tool->transform());
-                    for (auto item : selection)
-                    {
-                        if (!item->contains(item->mapFromScene(single_pos)))
-                            item->setSelected(false);
-                    }
-                    break;
-                case SelectionTool::Rotate:
-                    // TODO: implement rotation
-                    break;
-                case SelectionTool::ScaleTopLeft:
-                case SelectionTool::ScaleTopRight:
-                case SelectionTool::ScaleBottomLeft:
-                case SelectionTool::ScaleBottomRight:
-                    // TODO: implement scaling
-                    break;
-                default:
-                    break;
-                }
-            }
+            handleSelectionStopEvents(selection_tool, single_pos, start_pos);
             break;
         }
     }
@@ -491,6 +376,131 @@ void SlideScene::handleEvents(const int device, const QList<QPointF> &pos, const
     }
     else if ((device & Tool::AnyEvent) == Tool::StopEvent && pos.size() == 1)
         noToolClicked(pos.constFirst(), start_pos);
+}
+
+void SlideScene::handleSelectionStartEvents(SelectionTool *tool, const QPointF &pos)
+{
+    QList<QGraphicsItem*> selection = selectedItems();
+    // Check if anything is selected.
+    SelectionTool::Type operation = SelectionTool::Select;
+    if (selection_bounding_rect.isVisible())
+    {
+        // 1. Check if the user clicked on some special point on the
+        // bounding rect of the selection.
+        const QPolygonF selection_rect = selection_bounding_rect.sceneRect();
+        if ((pos - selection_rect[0]).manhattanLength() < 4)
+            operation = SelectionTool::ScaleTopLeft;
+        else if ((pos - selection_rect[1]).manhattanLength() < 4)
+            operation = SelectionTool::ScaleTopRight;
+        else if ((pos - selection_rect[2]).manhattanLength() < 4)
+            operation = SelectionTool::ScaleBottomLeft;
+        else if ((pos - selection_rect[3]).manhattanLength() < 4)
+            operation = SelectionTool::ScaleBottomRight;
+        else if ((pos - selection_bounding_rect.sceneRotationHandle()).manhattanLength() < 4)
+            operation = SelectionTool::Rotate;
+        // 2. Check if the user clicked on a selected object.
+        for (auto item : selection)
+            if (item->contains(item->mapFromScene(pos)))
+            {
+                operation = SelectionTool::Move;
+                break;
+            }
+    }
+    switch (operation)
+    {
+    case SelectionTool::Move:
+        tool->setPos(pos);
+        break;
+    case SelectionTool::Rotate:
+        debug_msg(DebugDrawing, "Should start rotating now");
+        // TODO: implement rotation
+        break;
+    case SelectionTool::ScaleTopLeft:
+    case SelectionTool::ScaleTopRight:
+    case SelectionTool::ScaleBottomLeft:
+    case SelectionTool::ScaleBottomRight:
+        debug_msg(DebugDrawing, "Should start scaling now");
+        // TODO: implement scaling
+        break;
+    case SelectionTool::Select:
+        clearSelection();
+        switch (tool->tool())
+        {
+        case Tool::BasicSelectionTool:
+        {
+            QGraphicsItem *item = itemAt(pos, QTransform());
+            if (item)
+                item->setSelected(true);
+            tool->setPos(pos);
+            break;
+        }
+        case Tool::RectSelectionTool:
+            // TODO
+            break;
+        case Tool::FreehandSelectionTool:
+            // TODO
+            break;
+        default:
+            break;
+        }
+    default:
+        break;
+    }
+}
+
+void SlideScene::handleSelectionUpdateEvents(SelectionTool *tool, const QPointF &pos, const QPointF &start_pos)
+{
+    switch (tool->type())
+    {
+    case SelectionTool::Move:
+    {
+        const QPointF diff = tool->movePosition(pos);
+        for (auto &item : selectedItems())
+            item->setPos(item->pos() + diff);
+        selection_bounding_rect.setPos(selection_bounding_rect.pos() + diff);
+        break;
+    }
+    case SelectionTool::Rotate:
+        // TODO: implement rotation
+        break;
+    case SelectionTool::ScaleTopLeft:
+    case SelectionTool::ScaleTopRight:
+    case SelectionTool::ScaleBottomLeft:
+    case SelectionTool::ScaleBottomRight:
+        // TODO: implement scaling
+        break;
+    default:
+        break;
+    }
+}
+
+void SlideScene::handleSelectionStopEvents(SelectionTool *tool, const QPointF &pos, const QPointF &start_pos)
+{
+    if (selection_bounding_rect.isVisible())
+    {
+        switch (tool->type())
+        {
+        case SelectionTool::Move:
+            emit sendTransformsCommon(page, selectedItems(), tool->transform());
+            for (auto item : selectedItems())
+            {
+                if (!item->contains(item->mapFromScene(pos)))
+                    item->setSelected(false);
+            }
+            break;
+        case SelectionTool::Rotate:
+            // TODO: implement rotation
+            break;
+        case SelectionTool::ScaleTopLeft:
+        case SelectionTool::ScaleTopRight:
+        case SelectionTool::ScaleBottomLeft:
+        case SelectionTool::ScaleBottomRight:
+            // TODO: implement scaling
+            break;
+        default:
+            break;
+        }
+    }
 }
 
 void SlideScene::receiveAction(const Action action)
