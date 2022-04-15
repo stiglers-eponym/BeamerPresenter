@@ -54,6 +54,6 @@ BasicGraphicsPath *EllipseGraphicsItem::toPath() const
         coordinates[i] = {rx*std::sin(phasestep*i), ry*std::cos(phasestep*i)};
     coordinates[segments] = {0, ry};
     BasicGraphicsPath *path = new BasicGraphicsPath(tool, coordinates, QRectF(-rx_plus_pen, -ry_plus_pen, 2*rx_plus_pen, 2*ry_plus_pen));
-    path->setPos(cx, cy);
+    path->setPos(mapToScene(cx, cy));
     return path;
 }

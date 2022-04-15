@@ -72,37 +72,40 @@ public:
     /// Convert to a BasicGraphicsPath for simpler erasing.
     BasicGraphicsPath *toPath() const
     {
-        const QPointF end = path().currentPosition();
-        if (end.isNull() || end == origin)
+        const QPointF reference = boundingRect().center(),
+                rbegin = origin - reference,
+                rend = path().currentPosition() - reference;
+        if (path().currentPosition().isNull() || rbegin == rend)
             return NULL;
-        const qreal length = QLineF(origin, end).length();
+        const qreal length = QLineF(rbegin, rend).length();
         const int main_segments = length / 10 + 2,
                 aux_segments = length / 40 + 2;
         QPointF p1, p2;
-        calcArrowPoints(origin, end, p1, p2);
-        qreal x = origin.x(),
-              y = origin.y(),
-              dx = (end.x() - origin.x())/main_segments,
-              dy = (end.y() - origin.y())/main_segments;
+        calcArrowPoints(rbegin, rend, p1, p2);
+        qreal x = rbegin.x(),
+              y = rbegin.y(),
+              dx = (rend.x() - rbegin.x())/main_segments,
+              dy = (rend.y() - rbegin.y())/main_segments;
         QVector<QPointF> coordinates(main_segments+2*aux_segments+2);
         for (int i=0; i<=main_segments; ++i)
             coordinates[i] = {x+i*dx, y+i*dy};
-        coordinates[main_segments] = end;
+        coordinates[main_segments] = rend;
         x = p1.x();
         y = p1.y();
-        dx = (end.x() - p1.x())/aux_segments;
-        dy = (end.y() - p1.y())/aux_segments;
+        dx = (rend.x() - p1.x())/aux_segments;
+        dy = (rend.y() - p1.y())/aux_segments;
         int index_shift = main_segments + 1;
         for (int i=0; i<aux_segments; ++i)
             coordinates[index_shift + i] = {x+i*dx, y+i*dy};
-        x = end.x();
-        y = end.y();
-        dx = (p2.x() - end.x())/aux_segments;
-        dy = (p2.y() - end.y())/aux_segments;
+        x = rend.x();
+        y = rend.y();
+        dx = (p2.x() - rend.x())/aux_segments;
+        dy = (p2.y() - rend.y())/aux_segments;
         index_shift += aux_segments;
         for (int i=0; i<=aux_segments; ++i)
             coordinates[index_shift + i] = {x+i*dx, y+i*dy};
-        BasicGraphicsPath *path = new BasicGraphicsPath(tool, coordinates, boundingRect());
+        BasicGraphicsPath *path = new BasicGraphicsPath(tool, coordinates, boundingRect().translated(-reference));
+        path->setPos(mapToScene(reference));
         return path;
     }
 

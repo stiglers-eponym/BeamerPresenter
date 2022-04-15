@@ -10,10 +10,16 @@ endif()
 
 add_executable(beamerpresenter
         drawing/pixmapgraphicsitem.h drawing/pixmapgraphicsitem.cpp
+        drawing/tool.h
+        drawing/drawtool.h
+        drawing/texttool.h
         drawing/pointingtool.h drawing/pointingtool.cpp
         drawing/textgraphicsitem.h drawing/textgraphicsitem.cpp
         drawing/rectgraphicsitem.h drawing/rectgraphicsitem.cpp
         drawing/ellipsegraphicsitem.h drawing/ellipsegraphicsitem.cpp
+        drawing/arrowgraphicsitem.h
+        drawing/linegraphicsitem.h
+        drawing/flexgraphicslineitem.h
         drawing/shaperecognizer.h drawing/shaperecognizer.cpp
         drawing/pathcontainer.h drawing/pathcontainer.cpp
         drawing/abstractgraphicspath.h drawing/abstractgraphicspath.cpp

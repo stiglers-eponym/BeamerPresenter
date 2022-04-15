@@ -61,8 +61,8 @@ BasicGraphicsPath *RectGraphicsItem::toPath() const
         coordinates[2*nx+ny+i] = {rleft, -rtop - yscale*i};
     coordinates[2*(nx+ny)] = {rleft, rtop};
     QRectF newrect = boundingRect();
-    newrect.moveTo(rleft, rtop);
+    newrect.translate(-newrect.center());
     BasicGraphicsPath *path = new BasicGraphicsPath(tool, coordinates, newrect);
-    path->setPos((left+right)/2, (top+bottom)/2);
+    path->setPos(mapToScene((left+right)/2, (top+bottom)/2));
     return path;
 }

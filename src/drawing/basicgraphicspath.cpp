@@ -206,17 +206,3 @@ void BasicGraphicsPath::changeTool(const DrawTool &newtool) noexcept
     _tool.setWidth(newtool.width());
     _tool.setCompositionMode(newtool.compositionMode());
 }
-
-const QString BasicGraphicsPath::stringCoordinates() const noexcept
-{
-    QString str;
-    for (const auto point : coordinates)
-    {
-        str += QString::number(point.x());
-        str += ' ';
-        str += QString::number(point.y());
-        str += ' ';
-    }
-    str.chop(1);
-    return str;
-}

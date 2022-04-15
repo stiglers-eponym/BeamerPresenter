@@ -258,20 +258,6 @@ void FullGraphicsPath::changeTool(const DrawTool &newtool) noexcept
     _tool.setCompositionMode(newtool.compositionMode());
 }
 
-const QString FullGraphicsPath::stringCoordinates() const noexcept
-{
-    QString str;
-    for (const auto point : coordinates)
-    {
-        str += QString::number(point.x());
-        str += ' ';
-        str += QString::number(point.y());
-        str += ' ';
-    }
-    str.chop(1);
-    return str;
-}
-
 const QString FullGraphicsPath::stringWidth() const noexcept
 {
     QString str;

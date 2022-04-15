@@ -60,8 +60,6 @@ public:
 
     void changeTool(const DrawTool &newtool) noexcept override;
 
-    const QString stringCoordinates() const noexcept override;
-
     /// Write stroke width to string for saving.
     /// @return string representing width of tool
     const QString stringWidth() const noexcept override

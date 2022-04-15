@@ -97,7 +97,7 @@ public:
 
     /// Write nodes coordinates to string for saving.
     /// @return list of coordinates formatted as string
-    virtual const QString stringCoordinates() const noexcept = 0;
+    virtual const QString stringCoordinates() const noexcept;
 
     /// Write stroke width(s) to string for saving.
     /// @return single width or list of widths formatted as string

@@ -13,3 +13,18 @@ void AbstractGraphicsPath::toCenterCoordinates()
         point += shift;
     setPos(pos() - shift);
 }
+
+const QString AbstractGraphicsPath::stringCoordinates() const noexcept
+{
+    QString str;
+    const qreal x = scenePos().x(), y = scenePos().y();
+    for (const auto &point : coordinates)
+    {
+        str += QString::number(point.x() + x);
+        str += ' ';
+        str += QString::number(point.y() + y);
+        str += ' ';
+    }
+    str.chop(1);
+    return str;
+}
