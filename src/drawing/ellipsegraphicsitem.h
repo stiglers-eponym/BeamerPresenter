@@ -13,10 +13,12 @@
 class EllipseGraphicsItem : public QGraphicsEllipseItem
 {
     enum {
+        OriginRight = 0x1,
+        OriginBottom = 0x2,
         TopLeft = 0x0,
-        TopRight = 0x1,
-        BottomLeft = 0x2,
-        BottomRight = 0x3,
+        TopRight = OriginRight,
+        BottomLeft = OriginBottom,
+        BottomRight = OriginRight | OriginBottom,
     };
     /// DrawTool for this path.
     const DrawTool tool;

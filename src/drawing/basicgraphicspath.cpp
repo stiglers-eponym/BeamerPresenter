@@ -31,6 +31,7 @@ BasicGraphicsPath::BasicGraphicsPath(const DrawTool &tool, const QVector<QPointF
 BasicGraphicsPath::BasicGraphicsPath(const AbstractGraphicsPath * const other, int first, int last) :
     AbstractGraphicsPath(other->_tool)
 {
+    setPos(other->scenePos());
     // Make sure that first and last are valid.
     if (first < 0)
         first = 0;

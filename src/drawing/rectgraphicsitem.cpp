@@ -29,9 +29,9 @@ void RectGraphicsItem::setSecondPoint(const QPointF &pos)
         break;
     }
     if (newrect.width() < 0)
-        origin ^= 0x1;
+        origin ^= OriginRight;
     if (newrect.height() < 0)
-        origin ^= 0x2;
+        origin ^= OriginBottom;
     setRect(newrect.normalized());
 }
 
@@ -47,17 +47,22 @@ BasicGraphicsPath *RectGraphicsItem::toPath() const
                 left = therect.left(),
                 right = therect.right(),
                 top = therect.top(),
-                bottom = therect.bottom();
+                bottom = therect.bottom(),
+                rleft = (left - right)/2,
+                rtop = (top - bottom)/2;
     QVector<QPointF> coordinates(2*(nx+ny)+1);
     for (int i=0; i<nx; ++i)
-        coordinates[i] = {left + xscale*i, top};
+        coordinates[i] = {rleft + xscale*i, rtop};
     for (int i=0; i<ny; ++i)
-        coordinates[nx+i] = {right, top + yscale*i};
+        coordinates[nx+i] = {-rleft, rtop + yscale*i};
     for (int i=0; i<nx; ++i)
-        coordinates[nx+ny+i] = {right - xscale*i, bottom};
+        coordinates[nx+ny+i] = {-rleft - xscale*i, -rtop};
     for (int i=0; i<ny; ++i)
-        coordinates[2*nx+ny+i] = {left, bottom - yscale*i};
-    coordinates[2*(nx+ny)] = {left, top};
-    BasicGraphicsPath *path = new BasicGraphicsPath(tool, coordinates, boundingRect());
+        coordinates[2*nx+ny+i] = {rleft, -rtop - yscale*i};
+    coordinates[2*(nx+ny)] = {rleft, rtop};
+    QRectF newrect = boundingRect();
+    newrect.moveTo(rleft, rtop);
+    BasicGraphicsPath *path = new BasicGraphicsPath(tool, coordinates, newrect);
+    path->setPos((left+right)/2, (top+bottom)/2);
     return path;
 }

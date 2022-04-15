@@ -72,6 +72,9 @@ public:
     const QPointF lastPoint() const noexcept
     {return coordinates.isEmpty() ? QPointF() : coordinates.last();}
 
+    /// Transform item coordinates such that (0,0) is the center of the item.
+    void toCenterCoordinates();
+
     /**
      * @brief Erase at position pos.
      *
@@ -79,7 +82,7 @@ public:
      * eraser of radius *size*. This list is empty if this path is completely
      * erased.
      *
-     * @param pos position of eraser
+     * @param pos position of eraser (item coordinates)
      * @param size radius of eraser
      * @return list of paths after erasing (possibly empty) or {NULL} if nothing was erased.
      */

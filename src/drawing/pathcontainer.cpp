@@ -207,7 +207,7 @@ void PathContainer::startMicroStep()
     inHistory = -1;
 }
 
-void PathContainer::eraserMicroStep(const QPointF &pos, const qreal size)
+void PathContainer::eraserMicroStep(const QPointF &scene_pos, const qreal size)
 {
     if (inHistory != -1)
     {
@@ -215,15 +215,15 @@ void PathContainer::eraserMicroStep(const QPointF &pos, const qreal size)
         return;
     }
 
-    // Iterate over all paths and check whether they intersect with pos.
+    // Iterate over all paths and check whether they intersect with scene_pos.
     QList<QGraphicsItem*>::iterator path_it = paths.begin();
     for (int i=0; path_it != paths.end(); ++path_it, i++)
     {
-        // Check if pos lies within the path's bounding rect (plus extra
+        // Check if scene_pos lies within the path's bounding rect (plus extra
         // margins from the eraser size).
         if (
                 *path_it
-                && (*path_it)->boundingRect().marginsAdded(QMargins(size, size, size, size)).contains(pos)
+                && (*path_it)->sceneBoundingRect().marginsAdded(QMargins(size, size, size, size)).contains(scene_pos)
             )
         {
             QGraphicsScene *scene = (*path_it)->scene();
@@ -236,7 +236,7 @@ void PathContainer::eraserMicroStep(const QPointF &pos, const qreal size)
                 AbstractGraphicsPath *path = static_cast<AbstractGraphicsPath*>(*path_it);
                 // Apply eraser to path. Get a list of paths obtained by splitting
                 // path using the eraser.
-                QList<AbstractGraphicsPath*> list = path->splitErase(pos, size);
+                QList<AbstractGraphicsPath*> list = path->splitErase(path->mapFromScene(scene_pos), size);
                 // If list is empty, the path was completely erased.
                 if (list.isEmpty())
                 {
@@ -297,7 +297,7 @@ void PathContainer::eraserMicroStep(const QPointF &pos, const qreal size)
                     if (child && (child->type() == FullGraphicsPath::Type || child->type() == BasicGraphicsPath::Type))
                     {
                         // Apply eraser to child.
-                        const auto list = static_cast<AbstractGraphicsPath*>(child)->splitErase(pos, size);
+                        const auto list = static_cast<AbstractGraphicsPath*>(child)->splitErase(child->mapFromScene(scene_pos), size);
                         // Again, if list.first() == NULL, we should do nothing
                         // because the eraser did not hit the path.
                         if (list.isEmpty() || list.first())

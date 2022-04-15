@@ -30,9 +30,9 @@ void EllipseGraphicsItem::setSecondPoint(const QPointF &pos)
         break;
     }
     if (newrect.width() < 0)
-        origin ^= 0x1;
+        origin ^= OriginRight;
     if (newrect.height() < 0)
-        origin ^= 0x2;
+        origin ^= OriginBottom;
     setRect(newrect.normalized());
 }
 
@@ -44,13 +44,16 @@ BasicGraphicsPath *EllipseGraphicsItem::toPath() const
     const int segments = (therect.width() + therect.height()) / 3 + 10;
     const qreal rx = therect.width() / 2,
                 ry = therect.height() / 2,
+                rx_plus_pen = rx + pen().widthF()/2,
+                ry_plus_pen = ry + pen().widthF()/2,
                 phasestep = 2*M_PI / segments,
                 cx = therect.center().x(),
                 cy = therect.center().y();
     QVector<QPointF> coordinates(segments+1);
     for (int i=0; i<segments; ++i)
-        coordinates[i] = {cx + rx*std::sin(phasestep*i), cy + ry*std::cos(phasestep*i)};
-    coordinates[segments] = {cx, cy + ry};
-    BasicGraphicsPath *path = new BasicGraphicsPath(tool, coordinates, boundingRect());
+        coordinates[i] = {rx*std::sin(phasestep*i), ry*std::cos(phasestep*i)};
+    coordinates[segments] = {0, ry};
+    BasicGraphicsPath *path = new BasicGraphicsPath(tool, coordinates, QRectF(-rx_plus_pen, -ry_plus_pen, 2*rx_plus_pen, 2*ry_plus_pen));
+    path->setPos(cx, cy);
     return path;
 }

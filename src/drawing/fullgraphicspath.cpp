@@ -21,6 +21,7 @@ FullGraphicsPath::FullGraphicsPath(const DrawTool &tool, const QPointF &pos, con
 FullGraphicsPath::FullGraphicsPath(const FullGraphicsPath * const other, int first, int last) :
     AbstractGraphicsPath(other->_tool)
 {
+    setPos(other->scenePos());
     // Make sure that first and last are valid.
     if (first < 0)
         first = 0;

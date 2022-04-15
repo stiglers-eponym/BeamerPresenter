@@ -136,13 +136,13 @@ public:
     bool applyMicroStep();
 
     /**
-     * Single eraser move event. This erasees paths at pos with given eraser
-     * size. Before this function startMicroStep() has to be called and
+     * Single eraser move event. This erasees paths at scene_pos with given
+     * eraser size. Before this function startMicroStep() has to be called and
      * afterwards a call to applyMicroStep() is necessary.
      * @see startMicroStep()
      * @see applyMicroStep()
      */
-    void eraserMicroStep(const QPointF &pos, const qreal size = 10.);
+    void eraserMicroStep(const QPointF &scene_pos, const qreal size = 10.);
 
     /// Check if this contains any information.
     /// @return true if this contains any elements or history steps.

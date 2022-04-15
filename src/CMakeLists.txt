@@ -16,6 +16,7 @@ add_executable(beamerpresenter
         drawing/ellipsegraphicsitem.h drawing/ellipsegraphicsitem.cpp
         drawing/shaperecognizer.h drawing/shaperecognizer.cpp
         drawing/pathcontainer.h drawing/pathcontainer.cpp
+        drawing/abstractgraphicspath.h drawing/abstractgraphicspath.cpp
         drawing/basicgraphicspath.h drawing/basicgraphicspath.cpp
         drawing/fullgraphicspath.h drawing/fullgraphicspath.cpp
         gui/actionbutton.h gui/actionbutton.cpp
