@@ -31,6 +31,9 @@ protected:
      */
     DrawTool _tool;
 
+    /// Cached shape
+    QPainterPath shape_cache;
+
     /// Vector of nodes (coordinates).
     QVector<QPointF> coordinates;
 
@@ -77,6 +80,9 @@ public:
     /// Transform item coordinates such that (0,0) is the center of the item.
     void toCenterCoordinates();
 
+    /// Transform item coordinates and cache shape.
+    void finalize();
+
     /**
      * @brief Erase at position pos.
      *
@@ -104,6 +110,9 @@ public:
     /// Write stroke width(s) to string for saving.
     /// @return single width or list of widths formatted as string
     virtual const QString stringWidth() const noexcept = 0;
+
+    /// Shape: for simplicity taken to be the same for full and basic path.
+    virtual QPainterPath shape() const override;
 };
 
 #endif // ABSTRACTGRAPHICSPATH_H

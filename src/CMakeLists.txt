@@ -13,6 +13,7 @@ add_executable(beamerpresenter
         drawing/tool.h
         drawing/drawtool.h
         drawing/texttool.h
+        drawing/selectiontool.h
         drawing/pointingtool.h drawing/pointingtool.cpp
         drawing/textgraphicsitem.h drawing/textgraphicsitem.cpp
         drawing/rectgraphicsitem.h drawing/rectgraphicsitem.cpp

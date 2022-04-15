@@ -8,6 +8,7 @@
 #include "src/drawing/drawtool.h"
 #include "src/drawing/texttool.h"
 #include "src/drawing/pointingtool.h"
+#include "src/drawing/selectiontool.h"
 
 ToolButton::ToolButton(Tool *tool, QWidget *parent) noexcept :
         QToolButton(parent),
@@ -61,6 +62,8 @@ bool ToolButton::event(QEvent *event) noexcept
                     newtool = new DrawTool(*static_cast<const DrawTool*>(tool));
                 else if (tool->tool() & Tool::AnyPointingTool)
                     newtool = new PointingTool(*static_cast<const PointingTool*>(tool));
+                else if (tool->tool() & Tool::AnySelectionTool)
+                    newtool = new SelectionTool(*static_cast<const SelectionTool*>(tool));
                 else if (tool->tool() == Tool::TextInputTool)
                     newtool = new TextTool(*static_cast<const TextTool*>(tool));
                 else

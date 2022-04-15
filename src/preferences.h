@@ -4,6 +4,7 @@
 #include <QSettings>
 #include <QCommandLineParser>
 #include <QDebug>
+#include <QPen>
 #include <QJsonObject>
 #include "src/config.h"
 #include "src/enumerates.h"
@@ -129,6 +130,11 @@ public:
     qreal rect_angle_tolerance = 0.3;
     /// Allowed distance between first and last point in rectangle relative to variance of point coordinates.
     qreal rect_closing_tolerance = 0.1;
+
+    // SELECTION
+    qreal path_min_selectable_width = 3.;
+    QPen selection_rect_pen {QPen(QColor(128,128,144,128), 0.5, Qt::DotLine)};
+    QBrush selection_rect_brush {QBrush(QColor(128,128,144,32))};
 
     // RENDERING
     /// Threshold of page aspect ratio for splitting pages in notes and

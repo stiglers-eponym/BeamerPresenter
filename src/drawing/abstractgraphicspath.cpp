@@ -1,4 +1,5 @@
 #include "src/drawing/abstractgraphicspath.h"
+#include "src/preferences.h"
 
 void AbstractGraphicsPath::toCenterCoordinates()
 {
@@ -27,4 +28,22 @@ const QString AbstractGraphicsPath::stringCoordinates() const noexcept
     }
     str.chop(1);
     return str;
+}
+
+QPainterPath AbstractGraphicsPath::shape() const
+{
+    if (!shape_cache.isEmpty())
+        return shape_cache;
+    QPainterPath path;
+    path.addPolygon(QPolygonF(coordinates));
+    QPen pen(_tool.pen());
+    if (pen.widthF() < preferences()->path_min_selectable_width)
+        pen.setWidthF(preferences()->path_min_selectable_width);
+    return QPainterPathStroker(pen).createStroke(path);
+}
+
+void AbstractGraphicsPath::finalize()
+{
+    toCenterCoordinates();
+    shape_cache = shape();
 }

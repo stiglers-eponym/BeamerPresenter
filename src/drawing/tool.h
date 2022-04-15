@@ -45,7 +45,7 @@ public:
         // selection tools, class Tool
         BasicSelectionTool = 0 | AnySelectionTool,
         RectSelectionTool = 1 | AnySelectionTool,
-        FlexSelectionTool = 2 | AnySelectionTool,
+        FreehandSelectionTool = 2 | AnySelectionTool,
     };
 
     /// Combinable flags defining input devices.
@@ -137,7 +137,9 @@ static const QMap<QString, Tool::BasicTool> string_to_tool
     {"torch", Tool::Torch},
     {"magnifier", Tool::Magnifier},
     {"text", Tool::TextInputTool},
-    {"select", Tool::BasicSelectionTool},
+    {"click select", Tool::BasicSelectionTool},
+    {"rect select", Tool::RectSelectionTool},
+    {"freehand select", Tool::FreehandSelectionTool},
 };
 
 /// tool tip description of tools

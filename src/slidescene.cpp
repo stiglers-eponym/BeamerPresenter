@@ -18,6 +18,7 @@
 #include "src/drawing/arrowgraphicsitem.h"
 #include "src/drawing/pointingtool.h"
 #include "src/drawing/texttool.h"
+#include "src/drawing/selectiontool.h"
 #include "src/drawing/pathcontainer.h"
 #include "src/drawing/shaperecognizer.h"
 
@@ -330,35 +331,39 @@ void SlideScene::handleEvents(const int device, const QList<QPointF> &pos, const
     else if (tool->tool() & Tool::AnySelectionTool)
     {
         // Very basic implementation, just to check that it works:
+        const QPointF &single_pos = pos.constFirst();
         switch (tool->tool())
         {
         case Tool::BasicSelectionTool:
         {
-            debug_verbose(DebugDrawing, "Basic selection tool event");
+            SelectionTool *selection_tool = static_cast<SelectionTool*>(tool);
             switch (device & Tool::DeviceEventType::AnyEvent)
             {
             case Tool::DeviceEventType::StartEvent:
             {
-                QGraphicsItem *item = NULL;
-                for (const auto &point : pos)
+                selection_tool->setPos(single_pos);
+                for (auto item : selectedItems())
+                    if (!item->contains(item->mapFromScene(single_pos)))
+                        item->setSelected(false);
+                if (selectedItems().isEmpty())
                 {
-                    item = itemAt(point, QTransform());
+                    QGraphicsItem *item = itemAt(single_pos, QTransform());
                     if (item)
-                    {
-                        debug_verbose(DebugDrawing, "Found item!" << item);
                         item->setSelected(true);
-                    }
                 }
                 break;
             }
             case Tool::DeviceEventType::UpdateEvent:
-                debug_verbose(DebugDrawing, "Moving items" << selectedItems().count());
+            {
+                const QPointF diff = selection_tool->movePosition(single_pos);
                 for (auto &item : selectedItems())
-                    item->setPos(pos.first());
+                    item->setPos(item->pos() + diff);
                 break;
+            }
             case Tool::DeviceEventType::StopEvent:
-                debug_verbose(DebugDrawing, "Clear selection" << selectedItems().count());
-                clearSelection();
+                for (auto item : selectedItems())
+                    if (!item->contains(item->mapFromScene(single_pos)))
+                        item->setSelected(false);
                 break;
             }
             break;

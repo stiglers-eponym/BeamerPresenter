@@ -23,7 +23,10 @@ public:
 
     /// almost trivial constructor
     TextGraphicsItem(QGraphicsItem *parent = NULL) : QGraphicsTextItem(parent)
-    {setTextInteractionFlags(Qt::TextEditorInteraction);}
+    {
+        setFlags(QGraphicsItem::ItemIsSelectable);
+        setTextInteractionFlags(Qt::TextEditorInteraction);
+    }
 
     /// @return copy this item
     TextGraphicsItem *clone() const;

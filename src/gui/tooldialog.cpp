@@ -9,6 +9,7 @@
 #include "src/drawing/drawtool.h"
 #include "src/drawing/texttool.h"
 #include "src/drawing/pointingtool.h"
+#include "src/drawing/selectiontool.h"
 
 DrawToolDetails::DrawToolDetails(Tool::BasicTool basic_tool, QWidget *parent, const DrawTool *oldtool) :
     QWidget(parent),
@@ -375,6 +376,10 @@ Tool *ToolDialog::createTool() const
         tool->initPointerBrush();
         return tool;
     }
+    case Tool::BasicSelectionTool:
+    case Tool::RectSelectionTool:
+    case Tool::FreehandSelectionTool:
+        return new SelectionTool(basic_tool, device);
     default:
         return new Tool(basic_tool, device);
     }

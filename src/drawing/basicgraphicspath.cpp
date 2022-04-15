@@ -1,3 +1,4 @@
+#include <cmath>
 #include <QPainter>
 #include "src/drawing/basicgraphicspath.h"
 #include "src/drawing/drawtool.h"
@@ -128,11 +129,18 @@ void BasicGraphicsPath::paint(QPainter *painter, const QStyleOptionGraphicsItem 
         painter->setBrush(_tool.brush());
         painter->drawPolygon(coordinates.constData(), coordinates.size());
     }
-
+    if (isSelected())
+    {
+        painter->setCompositionMode(QPainter::CompositionMode_SourceOver);
+        painter->setPen(preferences()->selection_rect_pen);
+        painter->setBrush(preferences()->selection_rect_brush);
+        painter->drawRect(boundingRect());
+    }
 #ifdef QT_DEBUG
     // Show bounding box of stroke in verbose debugging mode.
     if ((preferences()->debug_level & (DebugDrawing|DebugVerbose)) == (DebugDrawing|DebugVerbose))
     {
+        painter->setCompositionMode(QPainter::CompositionMode_SourceOver);
         painter->setPen(QPen(QBrush(Qt::black), 0.5));
         painter->drawRect(boundingRect());
         painter->drawLine(left, top, 0, 0);
@@ -145,6 +153,7 @@ void BasicGraphicsPath::paint(QPainter *painter, const QStyleOptionGraphicsItem 
 
 void BasicGraphicsPath::addPoint(const QPointF &point)
 {
+    shape_cache.clear();
     coordinates.append(point);
     bool change = false;
     if ( point.x() < left + _tool.width() )
@@ -206,6 +215,8 @@ void BasicGraphicsPath::changeTool(const DrawTool &newtool) noexcept
         qWarning() << "Cannot change tool to different base tool.";
         return;
     }
+    if (std::abs(newtool.pen().widthF() - _tool.tool()) > 0.2)
+        shape_cache.clear();
     _tool.setPen(newtool.pen());
     _tool.setWidth(newtool.width());
     _tool.setCompositionMode(newtool.compositionMode());

@@ -169,10 +169,18 @@ void FullGraphicsPath::paint(QPainter *painter, const QStyleOptionGraphicsItem *
             len += line.length();
         }
     }
+    if (isSelected())
+    {
+        painter->setCompositionMode(QPainter::CompositionMode_SourceOver);
+        painter->setPen(preferences()->selection_rect_pen);
+        painter->setBrush(preferences()->selection_rect_brush);
+        painter->drawRect(boundingRect());
+    }
 #ifdef QT_DEBUG
     // Show bounding box of stroke in verbose debugging mode.
     if ((preferences()->debug_level & (DebugDrawing|DebugVerbose)) == (DebugDrawing|DebugVerbose))
     {
+        painter->setCompositionMode(QPainter::CompositionMode_SourceOver);
         painter->setPen(QPen(QBrush(Qt::black), 0.5));
         painter->drawRect(boundingRect());
         painter->drawLine(left, top, 0, 0);
@@ -185,6 +193,7 @@ void FullGraphicsPath::paint(QPainter *painter, const QStyleOptionGraphicsItem *
 
 void FullGraphicsPath::addPoint(const QPointF &point, const float pressure)
 {
+    shape_cache.clear();
     coordinates.append({point.x(), point.y()});
     pressures.append(_tool.width()*pressure);
     bool change = false;
@@ -242,6 +251,7 @@ QList<AbstractGraphicsPath*> FullGraphicsPath::splitErase(const QPointF &pos, co
 
 void FullGraphicsPath::changeWidth(const float newwidth) noexcept
 {
+    shape_cache.clear();
     const float scale = newwidth / _tool.width();
     auto it = pressures.begin();
     while (++it != pressures.cend())

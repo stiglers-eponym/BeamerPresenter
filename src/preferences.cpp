@@ -6,6 +6,7 @@
 #include "src/rendering/pdfdocument.h"
 #include "src/drawing/drawtool.h"
 #include "src/drawing/texttool.h"
+#include "src/drawing/selectiontool.h"
 #include "src/names.h"
 
 
@@ -104,6 +105,11 @@ Tool *createTool(const QJsonObject &obj, const int default_device)
         tool = new TextTool(font, color, default_device);
         break;
     }
+    case Tool::BasicSelectionTool:
+    case Tool::RectSelectionTool:
+    case Tool::FreehandSelectionTool:
+        tool = new SelectionTool(base_tool, default_device);
+        break;
     case Tool::InvalidTool:
         debug_msg(DebugSettings, "tried to create invalid tool" << obj.value("tool"));
         return NULL;
