@@ -10,21 +10,22 @@ class SelectionTool : public Tool
 {
 public:
     enum Type {
-        NoOperation,
+        NoOperation = 0,
+        Select,
         Move,
         Rotate,
-        ResizeVertically,
-        ResizeHorizontally,
-        ResizeFlexible,
-        ResizeFixed,
+        ScaleTopLeft,
+        ScaleTopRight,
+        ScaleBottomLeft,
+        ScaleBottomRight,
     };
 
 protected:
-    Type type = NoOperation;
+    Type _type = NoOperation;
 
     union TransformProperties {
         /** Position at which a selection items was grabbed, only active when
-         * type == Move.
+         * _type == Move.
          * This position (in scene coordinates) is used when moving objects.
          * reference_position is the input device position in scene coordinates
          * that was used for the previous step of moving a selection. */
@@ -48,8 +49,11 @@ public:
     /// trivial destructor
     ~SelectionTool() {}
 
-    /// Set reference position and set type to Move.
+    /// Set reference position and set _type to Move.
     void setPos(const QPointF &pos) noexcept;
+
+    Type type() const noexcept
+    {return _type;}
 
     /// return reference position.
     const QPointF &livePos() const noexcept

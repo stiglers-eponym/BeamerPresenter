@@ -13,6 +13,7 @@
 #include "src/rendering/pdfdocument.h"
 #include "src/rendering/mediaplayer.h"
 #include "src/drawing/textgraphicsitem.h"
+#include "src/drawing/selectionrectitem.h"
 
 class PdfMaster;
 class AbstractGraphicsPath;
@@ -107,7 +108,7 @@ private:
     const PagePart page_part;
 
     /// Bounding rect of all currently selected items.
-    QGraphicsRectItem selection_bounding_rect;
+    SelectionRectItem selection_bounding_rect;
 
     /// Start slide transition.
     void startTransition(const int newpage, const PdfDocument::SlideTransition &transition);

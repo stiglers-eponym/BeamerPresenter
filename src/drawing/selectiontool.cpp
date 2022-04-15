@@ -2,7 +2,7 @@
 
 void SelectionTool::setPos(const QPointF &pos) noexcept
 {
-    type = Move;
+    _type = Move;
     start_properties.position = pos;
     live_properties.position = pos;
 }
@@ -17,7 +17,7 @@ QPointF SelectionTool::movePosition(const QPointF &new_position) noexcept
 QTransform SelectionTool::transform() const
 {
     QTransform transform;
-    switch (type)
+    switch (_type)
     {
     case Move:
         transform.translate(live_properties.position.x() - start_properties.position.x(), live_properties.position.y() - start_properties.position.y());
@@ -25,10 +25,10 @@ QTransform SelectionTool::transform() const
     case Rotate:
         // TODO
         break;
-    case ResizeFlexible:
-    case ResizeFixed:
-    case ResizeHorizontally:
-    case ResizeVertically:
+    case ScaleTopLeft:
+    case ScaleTopRight:
+    case ScaleBottomLeft:
+    case ScaleBottomRight:
         // TODO
         break;
     default:

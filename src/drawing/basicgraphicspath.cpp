@@ -129,13 +129,6 @@ void BasicGraphicsPath::paint(QPainter *painter, const QStyleOptionGraphicsItem 
         painter->setBrush(_tool.brush());
         painter->drawPolygon(coordinates.constData(), coordinates.size());
     }
-    if (isSelected())
-    {
-        painter->setCompositionMode(QPainter::CompositionMode_SourceOver);
-        painter->setPen(preferences()->selection_rect_pen);
-        painter->setBrush(preferences()->selection_rect_brush);
-        painter->drawRect(boundingRect());
-    }
 #ifdef QT_DEBUG
     // Show bounding box of stroke in verbose debugging mode.
     if ((preferences()->debug_level & (DebugDrawing|DebugVerbose)) == (DebugDrawing|DebugVerbose))
