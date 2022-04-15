@@ -77,6 +77,9 @@ When compiling with MuPDF:
 * only Ubuntu ≥21.10: `libmujs-dev` (after the installation you can remove `libmujs-dev` and keep only `libmujs1`)
 * only Ubuntu ≥22.04: `libgumbo-dev` (after the installation you can remove `libgumbo-dev` and keep only `libgumbo1`)
 
+When compiling with Qt PDF (only Qt 5 and Ubuntu >= 21.04):
+* `qtpdf5-dev` (after the installation you can remove `qtpdf5-dev` and keep only `libqt5pdf5`)
+
 ### Dependencies in Arch Linux and Manjaro
 Replace qt5 with qt6 in all package names if you want to use Qt 6.
 * `cmake` (only for building and only in the mainline version)
@@ -189,7 +192,7 @@ Compiling only with Qt PDF (without Poppler and MuPDF) is probably simpler, but 
 * alternatively, one can try to build MuPDF with MinGW, but I gave up on that.
 * the library paths for MuPDF and zlib need to be configured manually in CMake:
 
-Configure the project with CMake:
+Configure the project with CMake (here an example using MuPDF):
 ```sh
 cmake \
     -B "build-dir" \
