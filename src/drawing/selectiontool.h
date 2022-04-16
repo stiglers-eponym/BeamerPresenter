@@ -14,22 +14,27 @@ public:
         Select,
         Move,
         Rotate,
-        Scale,
+        Resize,
     };
 
 protected:
+    /// Type of transformation.
     Type _type = NoOperation;
 
-    /** Position at which a selection items was grabbed, only active when
-     * _type == Move.
-     * This position (in scene coordinates) is used when moving objects.
-     * reference_position is the input device position in scene coordinates
-     * that was used for the previous step of moving a selection. */
+    /// Properties needed to describe the transformation.
     union {
+        /// 2 Points as used by most tools
         struct {
             QPointF start_pos;
             QPointF live_pos;
         } general;
+        /// 2 Points as used for scaling
+        struct {
+            QPointF start_handle;
+            QPointF live_handle;
+            QPointF reference;
+        } scale;
+        /// Properties needed for rotation
         struct {
             QPointF rotation_center;
             qreal start_angle;
@@ -55,10 +60,25 @@ public:
     /// Set start position and set _type to Selection.
     void startRectSelection(const QPointF &pos) noexcept;
 
+    /// type of operation.
     Type type() const noexcept
     {return _type;}
 
+    /// set _type.
+    void setType(const Type type) noexcept
+    {_type = type;}
+
+    /// Set live position of rotation, return rotation angle.
     qreal setLiveRotation(const QPointF &pos) noexcept;
+
+    /// Set live resize handle position, return incremental scale.
+    QPointF setLiveScale(const QPointF &pos) noexcept;
+
+    /// Return fixed point (reference) of resize transformation.
+    const QPointF &resizeReference() const noexcept
+    {return properties.scale.reference;}
+
+    QPointF scale() const noexcept;
 
     /// return reference position.
     const QPointF &livePos() const noexcept
@@ -68,11 +88,17 @@ public:
     const QPointF &startPos() const noexcept
     {return properties.general.start_pos;}
 
+    /// Initialize rotation with reference point and rotation center.
     void startRotation(const QPointF &reference, const QPointF &center) noexcept;
 
+    /// Initialize rotation with reference point and rotation center.
+    void startScaling(const QPointF &handle, const QPointF &fixed) noexcept;
+
+    /// angle of rotation (in degrees).
     qreal rotationAngle() const noexcept
     {return properties.rotate.live_angle - properties.rotate.start_angle;}
 
+    /// return rotation center.
     const QPointF &rotationCenter() const noexcept
     {return properties.rotate.rotation_center;}
 

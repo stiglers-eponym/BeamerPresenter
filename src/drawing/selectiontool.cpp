@@ -50,7 +50,7 @@ QTransform SelectionTool::transform() const
     case Rotate:
         transform.rotate(rotationAngle());
         break;
-    case Scale:
+    case Resize:
         // TODO
         break;
     default:
@@ -64,4 +64,38 @@ qreal SelectionTool::setLiveRotation(const QPointF &pos) noexcept
     const QPointF vec = pos - properties.rotate.rotation_center;
     properties.rotate.live_angle = 180/M_PI*std::atan2(vec.y(), vec.x());
     return properties.rotate.live_angle - properties.rotate.start_angle;
+}
+
+void SelectionTool::startScaling(const QPointF &movable, const QPointF &fixed) noexcept
+{
+    _type = Resize;
+    properties.scale.start_handle = movable;
+    properties.scale.live_handle = movable;
+    properties.scale.reference = fixed;
+}
+
+QPointF SelectionTool::scale() const noexcept
+{
+    return QPointF(
+                    properties.scale.reference.x() == properties.scale.start_handle.x()
+                    ? 1
+                    : (properties.scale.live_handle.x() - properties.scale.reference.x())/(properties.scale.start_handle.x() - properties.scale.reference.x()),
+                    properties.scale.reference.y() == properties.scale.start_handle.y()
+                    ? 1
+                    : (properties.scale.live_handle.y() - properties.scale.reference.y())/(properties.scale.start_handle.y() - properties.scale.reference.y())
+                );
+}
+
+QPointF SelectionTool::setLiveScale(const QPointF &pos) noexcept
+{
+    const QPointF increment(
+                    properties.scale.reference.x() == properties.scale.start_handle.x()
+                    ? 1
+                    : (pos.x() - properties.scale.reference.x())/(properties.scale.live_handle.x() - properties.scale.reference.x()),
+                    properties.scale.reference.y() == properties.scale.start_handle.y()
+                    ? 1
+                    : (pos.y() - properties.scale.reference.y())/(properties.scale.live_handle.y() - properties.scale.reference.y())
+                );
+    properties.scale.live_handle = pos;
+    return increment;
 }

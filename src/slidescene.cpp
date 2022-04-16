@@ -383,51 +383,44 @@ void SlideScene::handleSelectionStartEvents(SelectionTool *tool, const QPointF &
 {
     QList<QGraphicsItem*> selection = selectedItems();
     // Check if anything is selected.
-    SelectionTool::Type operation = SelectionTool::Select;
+    tool->setType(SelectionTool::NoOperation);
     if (selection_bounding_rect.isVisible())
     {
         // 1. Check if the user clicked on some special point on the
         // bounding rect of the selection.
         const QPolygonF selection_rect = selection_bounding_rect.sceneRect();
         if ((pos - selection_rect[0]).manhattanLength() < 4)
-            operation = SelectionTool::Scale;
+            tool->startScaling(pos, selection_rect[2]);
         else if ((pos - selection_rect[1]).manhattanLength() < 4)
-            operation = SelectionTool::Scale;
+            tool->startScaling(pos, selection_rect[3]);
         else if ((pos - selection_rect[2]).manhattanLength() < 4)
-            operation = SelectionTool::Scale;
+            tool->startScaling(pos, selection_rect[0]);
         else if ((pos - selection_rect[3]).manhattanLength() < 4)
-            operation = SelectionTool::Scale;
+            tool->startScaling(pos, selection_rect[1]);
         else if ((pos - selection_bounding_rect.sceneRotationHandle()).manhattanLength() < 4)
-            operation = SelectionTool::Rotate;
-        // 2. Check if the user clicked on a selected object.
-        for (auto item : selection)
-            if (item->contains(item->mapFromScene(pos)))
-            {
-                operation = SelectionTool::Move;
-                break;
-            }
-    }
-    switch (operation)
-    {
-    case SelectionTool::Move:
-        tool->startMove(pos);
-        break;
-    case SelectionTool::Rotate:
-        debug_msg(DebugDrawing, "Should start rotating now");
-        tool->startRotation(pos, selection_bounding_rect.sceneCenter());
-        for (const auto item : selection)
         {
-            item->setTransformOriginPoint(item->mapFromScene(tool->rotationCenter()));
-            item->setRotation(0);
+            tool->startRotation(pos, selection_bounding_rect.sceneCenter());
+            for (const auto item : selection)
+            {
+                item->setTransformOriginPoint(item->mapFromScene(tool->rotationCenter()));
+                item->setRotation(0);
+            }
+            selection_bounding_rect.setTransformOriginPoint(0,0);
+            selection_bounding_rect.setRotation(0);
+            return;
         }
-        selection_bounding_rect.setTransformOriginPoint(0,0);
-        selection_bounding_rect.setRotation(0);
-        break;
-    case SelectionTool::Scale:
-        debug_msg(DebugDrawing, "Should start scaling now");
-        // TODO: implement scaling
-        break;
-    case SelectionTool::Select:
+        else {
+            // 2. Check if the user clicked on a selected object.
+            for (auto item : selection)
+                if (item->contains(item->mapFromScene(pos)))
+                {
+                    tool->startMove(pos);
+                    break;
+                }
+        }
+    }
+    if (tool->type() == SelectionTool::NoOperation)
+    {
         clearSelection();
         switch (tool->tool())
         {
@@ -448,8 +441,6 @@ void SlideScene::handleSelectionStartEvents(SelectionTool *tool, const QPointF &
         default:
             break;
         }
-    default:
-        break;
     }
 }
 
@@ -473,9 +464,29 @@ void SlideScene::handleSelectionUpdateEvents(SelectionTool *tool, const QPointF 
         selection_bounding_rect.setRotation(angle);
         break;
     }
-    case SelectionTool::Scale:
-        // TODO: implement scaling
+    case SelectionTool::Resize:
+    {
+        QTransform transform;
+        const QPointF &scene_reference = tool->resizeReference();
+        const QPointF scale = tool->setLiveScale(pos);
+        QPointF reference;
+        for (const auto item : selectedItems())
+        {
+            transform.reset();
+            reference = item->mapFromScene(scene_reference);
+            transform.translate(reference.x(), reference.y());
+            transform.scale(scale.x(), scale.y());
+            transform.translate(-reference.x(), -reference.y());
+            item->setTransform(transform, true);
+        }
+        transform.reset();
+        reference = selection_bounding_rect.mapFromScene(scene_reference);
+        transform.translate(reference.x(), reference.y());
+        transform.scale(scale.x(), scale.y());
+        transform.translate(-reference.x(), -reference.y());
+        selection_bounding_rect.setTransform(transform, true);
         break;
+    }
     case SelectionTool::Select:
         // TODO: implement visualization for area selection tools
         break;
@@ -516,9 +527,25 @@ void SlideScene::handleSelectionStopEvents(SelectionTool *tool, const QPointF &p
         selection_bounding_rect.setTransform(transform, true);
         break;
     }
-    case SelectionTool::Scale:
-        // TODO: implement scaling
+    case SelectionTool::Resize:
+    {
+        QTransform transform;
+        const QPointF &scene_reference = tool->resizeReference();
+        const QPointF scale = tool->scale();
+        QPointF reference;
+        QHash<QGraphicsItem*,QTransform> map;
+        for (const auto item : selectedItems())
+        {
+            transform.reset();
+            reference = item->mapFromScene(scene_reference);
+            transform.translate(reference.x(), reference.y());
+            transform.scale(scale.x(), scale.y());
+            transform.translate(-reference.x(), -reference.y());
+            map[item] = transform;
+        }
+        emit sendTransformsMap(page, map);
         break;
+    }
     case SelectionTool::Select:
         switch (tool->tool())
         {
