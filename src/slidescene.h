@@ -221,10 +221,6 @@ protected:
     /// Handle selection stop events (only called from handleEvents().
     void handleSelectionStopEvents(SelectionTool *tool, const QPointF &pos, const QPointF &start_pos);
 
-protected slots:
-    /// Update selection_bounding_rect.
-    void updateSelectionRect() noexcept;
-
 public slots:
     /// Stop drawing and convert just drawn path to regular path.
     void stopDrawing();
@@ -257,6 +253,9 @@ public slots:
     void pauseMedia() const;
     /// If anything is playing, pause everything. Otherwise play everything.
     void playPauseMedia() const;
+
+    /// Update selection_bounding_rect.
+    void updateSelectionRect() noexcept;
 
 signals:
     /// Send navigation event to views.

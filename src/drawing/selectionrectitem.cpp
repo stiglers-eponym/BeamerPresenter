@@ -14,6 +14,7 @@ void SelectionRectItem::paint(QPainter *painter, const QStyleOptionGraphicsItem 
 {
     if (_rect.isEmpty())
         return;
+    // TODO: better control handles
     painter->setRenderHint(QPainter::Antialiasing);
     painter->setPen(preferences()->selection_rect_pen);
     painter->setBrush(preferences()->selection_rect_brush);

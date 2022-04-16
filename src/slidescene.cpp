@@ -499,25 +499,27 @@ void SlideScene::handleSelectionStopEvents(SelectionTool *tool, const QPointF &p
         break;
     case SelectionTool::Rotate:
     {
-        const QTransform rotation = tool->transform();
+        const qreal angle = tool->rotationAngle();
         QHash<QGraphicsItem*,QTransform> map;
         QPointF point;
         QTransform transform;
         for (const auto item : selectedItems())
         {
-            transform.reset();
             point = item->scenePos();
             item->setRotation(0);
             point -= item->scenePos();
-            transform *= rotation;
-            point = rotation.inverted().map(item->mapFromScene(point) - item->mapFromScene(0,0));
+            point = item->mapFromScene(point) - item->mapFromScene(0,0);
+            transform.reset();
             transform.translate(point.x(), point.y());
+            transform.rotate(angle);
             item->setTransform(transform, true);
             map[item] = transform;
         }
         emit sendTransformsMap(page, map);
         selection_bounding_rect.setRotation(0);
-        selection_bounding_rect.setTransform(rotation, true);
+        transform.reset();
+        transform.rotate(angle);
+        selection_bounding_rect.setTransform(transform, true);
         break;
     }
     case SelectionTool::ScaleTopLeft:

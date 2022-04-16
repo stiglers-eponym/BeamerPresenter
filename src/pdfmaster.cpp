@@ -112,8 +112,13 @@ void PdfMaster::receiveAction(const Action action)
             auto scene_it = scenes.cbegin();
             while ( scene_it != scenes.cend() && ( (*scene_it)->getPage() | (*scene_it)->pagePart() ) != page)
                 ++scene_it;
-            if (path->undo(scene_it == scenes.cend() ? NULL : *scene_it))
+            SlideScene * const scene = scene_it == scenes.cend() ? NULL : *scene_it;
+            if (path->undo(scene))
+            {
                 _flags |= UnsavedDrawings;
+                if (scene)
+                    scene->updateSelectionRect();
+            }
         }
         break;
     }
@@ -129,8 +134,13 @@ void PdfMaster::receiveAction(const Action action)
             auto scene_it = scenes.cbegin();
             while ( scene_it != scenes.cend() && ( (*scene_it)->getPage() | (*scene_it)->pagePart() ) != page)
                 ++scene_it;
-            if (path->redo(scene_it == scenes.cend() ? NULL : *scene_it))
+            SlideScene * const scene = scene_it == scenes.cend() ? NULL : *scene_it;
+            if (path->redo(scene))
+            {
                 _flags |= UnsavedDrawings;
+                if (scene)
+                    scene->updateSelectionRect();
+            }
         }
         break;
     }
