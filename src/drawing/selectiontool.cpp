@@ -41,17 +41,13 @@ QPointF SelectionTool::movePosition(const QPointF &new_position) noexcept
 
 void SelectionTool::setLiveMoving(const QPointF &pos) noexcept
 {
-    QTransform transform;
     properties.general.live_pos = pos;
     QPointF distance = pos - properties.general.start_pos;
+    QTransform move;
+    move.translate(distance.x(), distance.y());
     QPointF diff;
     for (auto it=initial_transforms.cbegin(); it!=initial_transforms.cend(); ++it)
-    {
-        transform = *it;
-        diff = distance;
-        transform.translate(diff.x(), diff.y());
-        it.key()->setTransform(transform);
-    }
+        it.key()->setTransform(*it * move);
 }
 
 void SelectionTool::setLiveRotation(const QPointF &pos) noexcept
@@ -62,14 +58,27 @@ void SelectionTool::setLiveRotation(const QPointF &pos) noexcept
     QTransform rotation;
     rotation.rotate(angle);
     QTransform transform;
-    QPointF point;
+    QPointF new_origin;
+    qreal dx, dy;
     for (auto it=initial_transforms.cbegin(); it!=initial_transforms.cend(); ++it)
     {
+        // This is constructed by trial and error. It just works.
+        // The explanation in the comments might be wrong.
         transform = *it;
-        // Here the transformation is reset to avoid the accumulation of numerical errors.
-        //it.key()->setTransform(transform);
-        //point = transform.map(it.key()->scenePos() - properties.rotate.rotation_center);
+        // Don't mess up translation in original transform:
+        // reset translation, then do the rotation, then restore translation.
+        dx = transform.dx();
+        dy = transform.dy();
+        transform *= QTransform().translate(-dx, -dy);
         transform *= rotation;
+        transform *= QTransform().translate(dx, dy);
+        // Apply rotation around origin of the item.
+        it.key()->setTransform(transform);
+        // Construct new origin of this item:
+        // First construct it in scene coordinates, then map to item coordinates.
+        new_origin = it.key()->mapFromScene(properties.rotate.rotation_center + (it.key()->scenePos() - properties.rotate.rotation_center) * rotation);
+        // Translate to new origin.
+        transform = QTransform().translate(new_origin.x(), new_origin.y()) * transform;
         it.key()->setTransform(transform);
     }
 }

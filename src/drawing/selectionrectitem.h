@@ -39,6 +39,8 @@ public:
     QPointF sceneRotationHandle() const noexcept
     {return mapToScene(_rect.left()+_rect.width()/2, _rect.top()-10);}
 
+    QPolygonF scaleHandles() const noexcept;
+
     virtual QRectF boundingRect() const noexcept override
     {return _rect.marginsAdded(QMarginsF(4,14,4,4));}
 };

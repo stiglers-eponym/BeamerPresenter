@@ -390,24 +390,26 @@ void SlideScene::handleSelectionStartEvents(SelectionTool *tool, const QPointF &
         tool->initTransformations(selection);
         // 1. Check if the user clicked on some special point on the
         // bounding rect of the selection.
-        const QPolygonF selection_rect = selection_bounding_rect.sceneRect();
-        if (    (pos - selection_rect[0]).manhattanLength() < 4
-             || (pos - selection_rect[1]).manhattanLength() < 4
-             || (pos - selection_rect[2]).manhattanLength() < 4
-             || (pos - selection_rect[3]).manhattanLength() < 4)
-            tool->startScaling(pos, selection_bounding_rect.sceneCenter());
-        else if ((pos - selection_bounding_rect.sceneRotationHandle()).manhattanLength() < 4)
+        const QPolygonF selection_rect = selection_bounding_rect.scaleHandles();
+        for (const auto &point : selection_rect)
+            if ((pos - point).manhattanLength() < 4)
+            {
+                tool->startScaling(point, selection_bounding_rect.sceneCenter());
+                return;
+            }
+        if ((pos - selection_bounding_rect.sceneRotationHandle()).manhattanLength() < 4)
+        {
             tool->startRotation(pos, selection_bounding_rect.sceneCenter());
-        else {
-            // 2. Check if the user clicked on a selected object.
-            selection.pop_back();
-            for (auto item : selection)
-                if (item->contains(item->mapFromScene(pos)))
-                {
-                    tool->startMove(pos);
-                    return;
-                }
+            return;
         }
+        // 2. Check if the user clicked on a selected object.
+        selection.pop_back();
+        for (auto item : selection)
+            if (item->contains(item->mapFromScene(pos)))
+            {
+                tool->startMove(pos);
+                return;
+            }
         selection.clear();
     }
     if (tool->type() == SelectionTool::NoOperation)
@@ -469,17 +471,20 @@ void SlideScene::handleSelectionStopEvents(SelectionTool *tool, const QPointF &p
     case SelectionTool::Resize:
     {
         const QHash<QGraphicsItem*, QTransform> &originalTransforms = tool->originalTransforms();
+        if (originalTransforms.count() <= 1)
+            return;
         QHash<QGraphicsItem*, QTransform> map;
         QTransform transform;
         for (auto it=originalTransforms.cbegin(); it!=originalTransforms.cend(); ++it)
         {
+            if (it.key() == &selection_bounding_rect)
+                continue;
             transform = it.key()->transform();
             transform *= it->inverted();
             map[it.key()] = transform;
         }
-        map.remove(&selection_bounding_rect);
-        if (!map.isEmpty())
-            emit sendTransformsMap(page, map);
+        emit sendTransformsMap(page, map);
+        updateSelectionRect();
         break;
     }
     case SelectionTool::Select:

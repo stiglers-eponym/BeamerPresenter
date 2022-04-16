@@ -21,14 +21,33 @@ void SelectionRectItem::paint(QPainter *painter, const QStyleOptionGraphicsItem 
     painter->drawRect(_rect);
     QRectF tmprect(-3.5,-3.5,7,7);
     painter->setPen(QPen(Qt::gray, 1));
-    tmprect.translate(_rect.bottomLeft());
+    tmprect.translate(_rect.topLeft());
     painter->drawRect(tmprect);
-    tmprect.translate(_rect.width(), 0);
+    tmprect.translate(0, _rect.height()/2);
     painter->drawRect(tmprect);
-    tmprect.translate(0, -_rect.height());
+    tmprect.translate(0, _rect.height()/2);
     painter->drawRect(tmprect);
-    tmprect.translate(-_rect.width(), 0);
+    tmprect.translate(_rect.width()/2, 0);
     painter->drawRect(tmprect);
-    tmprect.translate(_rect.width()/2, -10);
+    tmprect.translate(_rect.width()/2, 0);
+    painter->drawRect(tmprect);
+    tmprect.translate(0, -_rect.height()/2);
+    painter->drawRect(tmprect);
+    tmprect.translate(0, -_rect.height()/2);
+    painter->drawRect(tmprect);
+    tmprect.translate(-_rect.width()/2, 0);
+    painter->drawRect(tmprect);
+    tmprect.translate(0, -10);
     painter->drawEllipse(tmprect);
+}
+
+QPolygonF SelectionRectItem::scaleHandles() const noexcept
+{
+    QPolygonF polygon(mapToScene(_rect));
+    const QPointF center = _rect.center();
+    polygon.append(mapToScene({center.x(), _rect.top()}));
+    polygon.append(mapToScene({center.x(), _rect.bottom()}));
+    polygon.append(mapToScene({_rect.left(), center.y()}));
+    polygon.append(mapToScene({_rect.right(), center.y()}));
+    return polygon;
 }
