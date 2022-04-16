@@ -188,10 +188,6 @@ public slots:
     /// If both items are NULL, only the container is created (if it doesn't exist yet).
     void replacePath(int page, QGraphicsItem *olditem, QGraphicsItem *newitem);
 
-    /// Transform a list of QGraphicsItems.
-    /// Page (part) number is given as (page | page_part).
-    void addTransformsCommon(int page, const QList<QGraphicsItem*> &items, const QTransform &transform);
-
     /// Transforms for QGraphicsItems.
     /// Page (part) number is given as (page | page_part).
     void addTransformsMap(int page, const QHash<QGraphicsItem*, QTransform> &map);

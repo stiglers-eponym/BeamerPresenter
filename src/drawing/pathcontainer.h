@@ -196,9 +196,6 @@ public slots:
     void addTextItem(QGraphicsItem *item)
     {replaceItem(NULL, item);}
 
-    /// Apply transform to items.
-    void transformItemsCommon(const QList<QGraphicsItem*> &items, const QTransform &transform);
-
     // Apply transforms to items.
     void transformItemsMap(const QHash<QGraphicsItem*, QTransform> &map);
 };

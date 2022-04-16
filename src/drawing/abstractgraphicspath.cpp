@@ -1,20 +1,6 @@
 #include "src/drawing/abstractgraphicspath.h"
 #include "src/preferences.h"
 
-void AbstractGraphicsPath::toCenterCoordinates()
-{
-    const qreal xshift = -(left+right)/2,
-                yshift = -(top+bottom)/2;
-    left += xshift;
-    right += xshift;
-    top += yshift;
-    bottom += yshift;
-    const QPointF shift(xshift, yshift);
-    for (auto &point : coordinates)
-        point += shift;
-    setPos(pos() - shift);
-}
-
 const QString AbstractGraphicsPath::stringCoordinates() const noexcept
 {
     QString str;
@@ -44,6 +30,16 @@ QPainterPath AbstractGraphicsPath::shape() const
 
 void AbstractGraphicsPath::finalize()
 {
-    toCenterCoordinates();
+    // TODO: change width
+    const QPointF new_scene_pos = mapToScene((left+right)/2, (top+bottom)/2);
+    for (auto &point : coordinates)
+        point = mapToScene(point) - new_scene_pos;
+    resetTransform();
+    setPos(new_scene_pos);
     shape_cache = shape();
+    const QRectF rect = shape_cache.boundingRect();
+    left = rect.left();
+    right = rect.right();
+    top = rect.top();
+    bottom = rect.bottom();
 }

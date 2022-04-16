@@ -77,9 +77,6 @@ public:
     const QPointF lastPoint() const noexcept
     {return coordinates.isEmpty() ? QPointF() : coordinates.last();}
 
-    /// Transform item coordinates such that (0,0) is the center of the item.
-    void toCenterCoordinates();
-
     /// Transform item coordinates and cache shape.
     void finalize();
 
@@ -89,15 +86,15 @@ public:
     /**
      * @brief Erase at position pos.
      *
-     * Create list of paths obtained when erasing at position *pos* with round
-     * eraser of radius *size*. This list is empty if this path is completely
-     * erased.
+     * Create list of paths obtained when erasing at position *scene_pos* with
+     * round eraser of radius *size*. This list is empty if this path is
+     * completely erased.
      *
-     * @param pos position of eraser (item coordinates)
+     * @param scene_pos position of eraser (scene coordinates)
      * @param size radius of eraser
      * @return list of paths after erasing (possibly empty) or {NULL} if nothing was erased.
      */
-    virtual QList<AbstractGraphicsPath*> splitErase(const QPointF &pos, const qreal size) const = 0;
+    virtual QList<AbstractGraphicsPath*> splitErase(const QPointF &scene_pos, const qreal size) const = 0;
 
     /// @return _tool
     const DrawTool &getTool() const noexcept

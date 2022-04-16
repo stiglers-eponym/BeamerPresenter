@@ -127,7 +127,7 @@ BasicGraphicsPath *ShapeRecognizer::recognizeLine() const
     }
     else
         pathitem = new BasicGraphicsPath(path->_tool, coordinates, boundingRect);
-    pathitem->setPos(reference);
+    pathitem->setPos(reference + path->pos());
     return pathitem;
 }
 
@@ -298,7 +298,7 @@ BasicGraphicsPath *ShapeRecognizer::recognizeRect() const
     }
     else
         pathitem = new BasicGraphicsPath(path->_tool, coordinates, boundingRect);
-    pathitem->setPos(reference);
+    pathitem->setPos(reference + path->scenePos());
     return pathitem;
 }
 
@@ -388,6 +388,6 @@ BasicGraphicsPath *ShapeRecognizer::recognizeEllipse() const
     }
     else
         pathitem = new BasicGraphicsPath(path->_tool, coordinates, boundingRect);
-    pathitem->setPos(mx, my);
+    pathitem->setPos(QPointF(mx, my) + path->pos());
     return pathitem;
 }

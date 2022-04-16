@@ -59,7 +59,7 @@ public:
     /// @param point new node
     void addPoint(const QPointF &point);
 
-    QList<AbstractGraphicsPath*> splitErase(const QPointF &pos, const qreal size) const override;
+    QList<AbstractGraphicsPath*> splitErase(const QPointF &scene_pos, const qreal size) const override;
 
     void changeTool(const DrawTool &newtool) noexcept override;
 

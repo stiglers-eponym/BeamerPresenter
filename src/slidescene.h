@@ -274,9 +274,6 @@ signals:
     /// Send new path to PdfMaster.
     void sendNewPath(int page, QGraphicsItem *item) const;
 
-    /// Send transformation for QGraphicsItems to PdfMaster.
-    void sendTransformsCommon(int page, const QList<QGraphicsItem*> &item, const QTransform &transform) const;
-
     /// Send transformations for QGraphicsItems to PdfMaster.
     void sendTransformsMap(int page, const QHash<QGraphicsItem*, QTransform> &map) const;
 

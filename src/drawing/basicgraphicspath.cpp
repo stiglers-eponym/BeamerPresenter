@@ -32,7 +32,8 @@ BasicGraphicsPath::BasicGraphicsPath(const DrawTool &tool, const QVector<QPointF
 BasicGraphicsPath::BasicGraphicsPath(const AbstractGraphicsPath * const other, int first, int last) :
     AbstractGraphicsPath(other->_tool)
 {
-    setPos(other->scenePos());
+    setPos(other->pos());
+    setTransform(other->transform());
     // Make sure that first and last are valid.
     if (first < 0)
         first = 0;
@@ -173,9 +174,9 @@ void BasicGraphicsPath::addPoint(const QPointF &point)
         prepareGeometryChange();
 }
 
-QList<AbstractGraphicsPath*> BasicGraphicsPath::splitErase(const QPointF &pos, const qreal size) const
+QList<AbstractGraphicsPath*> BasicGraphicsPath::splitErase(const QPointF &scene_pos, const qreal size) const
 {
-    if (!boundingRect().marginsAdded(QMarginsF(size, size, size, size)).contains(pos))
+    if (!sceneBoundingRect().marginsAdded(QMarginsF(size, size, size, size)).contains(scene_pos))
         // If returned list contains only a NULL, this is interpreted as "no
         // changes".
         return {NULL};
@@ -185,7 +186,7 @@ QList<AbstractGraphicsPath*> BasicGraphicsPath::splitErase(const QPointF &pos, c
     int first = 0, last = 0;
     while (last < coordinates.length())
     {
-        const QPointF diff = coordinates[last++] - pos;
+        const QPointF diff = mapToScene(coordinates[last++]) - scene_pos;
         if (QPointF::dotProduct(diff, diff) < sizesq)
         {
             if (last > first + 2)

@@ -15,6 +15,7 @@ PathContainer::~PathContainer()
     truncateHistory();
     clearHistory();
     // This is dangerous: check which paths are owned by QGraphicsScene.
+    // TODO: This has at least once led to a segmentation fault when closing the program.
     while (!paths.isEmpty())
         delete paths.takeLast();
 }
@@ -244,7 +245,7 @@ void PathContainer::eraserMicroStep(const QPointF &scene_pos, const qreal size)
                 AbstractGraphicsPath *path = static_cast<AbstractGraphicsPath*>(*path_it);
                 // Apply eraser to path. Get a list of paths obtained by splitting
                 // path using the eraser.
-                QList<AbstractGraphicsPath*> list = path->splitErase(path->mapFromScene(scene_pos), size);
+                QList<AbstractGraphicsPath*> list = path->splitErase(scene_pos, size);
                 // If list is empty, the path was completely erased.
                 if (list.isEmpty())
                 {
@@ -305,7 +306,7 @@ void PathContainer::eraserMicroStep(const QPointF &scene_pos, const qreal size)
                     if (child && (child->type() == FullGraphicsPath::Type || child->type() == BasicGraphicsPath::Type))
                     {
                         // Apply eraser to child.
-                        const auto list = static_cast<AbstractGraphicsPath*>(child)->splitErase(child->mapFromScene(scene_pos), size);
+                        const auto list = static_cast<AbstractGraphicsPath*>(child)->splitErase(scene_pos, size);
                         // Again, if list.first() == NULL, we should do nothing
                         // because the eraser did not hit the path.
                         if (list.isEmpty() || list.first())
@@ -398,7 +399,8 @@ bool PathContainer::applyMicroStep()
         {
         case BasicGraphicsPath::Type:
         case FullGraphicsPath::Type:
-            static_cast<AbstractGraphicsPath*>(*it)->toCenterCoordinates();
+            break;
+            //static_cast<AbstractGraphicsPath*>(*it)->finalize();
         }
     }
 
@@ -686,36 +688,10 @@ QColor rgba_to_color(const QString &string)
     }
 }
 
-void PathContainer::transformItemsCommon(const QList<QGraphicsItem*> &items, const QTransform &transform)
-{
-    if (items.isEmpty())
-        return;
-    // Remove all "redo" options.
-    truncateHistory();
-    // Create new history step.
-    DrawHistoryStep *const step = new DrawHistoryStep();
-    int idx;
-    for (const auto &item : items)
-    {
-        idx = paths.indexOf(item);
-        if (idx < 0 || item == NULL)
-            // this should never happen
-            continue;
-        step->transformedItems[idx] = transform;
-    }
-    history.append(step);
-
-    // Limit history size (if necessary).
-    if (history.length() > preferences()->history_length_visible_slides)
-        clearHistory(preferences()->history_length_visible_slides);
-}
-
 void PathContainer::transformItemsMap(const QHash<QGraphicsItem*, QTransform> &map)
 {
     if (map.isEmpty())
         return;
-    // Remove all "redo" options.
-    truncateHistory();
     // Create new history step.
     DrawHistoryStep *const step = new DrawHistoryStep();
     int idx;

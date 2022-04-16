@@ -13,14 +13,12 @@ void SelectionTool::startMove(const QPointF &pos) noexcept
 {
     _type = Move;
     properties.general.start_pos = pos;
-    properties.general.live_pos = pos;
 }
 
 void SelectionTool::startRectSelection(const QPointF &pos) noexcept
 {
     _type = Select;
     properties.general.start_pos = pos;
-    properties.general.live_pos = pos;
 }
 
 void SelectionTool::startRotation(const QPointF &reference, const QPointF &center) noexcept
@@ -28,20 +26,11 @@ void SelectionTool::startRotation(const QPointF &reference, const QPointF &cente
     _type = Rotate;
     const QPointF vec = reference - center;
     properties.rotate.start_angle = 180/M_PI*std::atan2(vec.y(), vec.x());
-    properties.rotate.live_angle = properties.rotate.start_angle;
     properties.rotate.rotation_center = center;
-}
-
-QPointF SelectionTool::movePosition(const QPointF &new_position) noexcept
-{
-    const QPointF diff = new_position - properties.general.live_pos;
-    properties.general.live_pos = new_position;
-    return diff;
 }
 
 void SelectionTool::setLiveMoving(const QPointF &pos) noexcept
 {
-    properties.general.live_pos = pos;
     QPointF distance = pos - properties.general.start_pos;
     QTransform move;
     move.translate(distance.x(), distance.y());
@@ -53,8 +42,7 @@ void SelectionTool::setLiveMoving(const QPointF &pos) noexcept
 void SelectionTool::setLiveRotation(const QPointF &pos) noexcept
 {
     const QPointF vec = pos - properties.rotate.rotation_center;
-    properties.rotate.live_angle = 180/M_PI*std::atan2(vec.y(), vec.x());
-    const qreal angle = properties.rotate.live_angle - properties.rotate.start_angle;
+    const qreal angle = 180/M_PI*std::atan2(vec.y(), vec.x()) - properties.rotate.start_angle;
     QTransform rotation;
     rotation.rotate(angle);
     QTransform transform;
@@ -85,28 +73,35 @@ void SelectionTool::setLiveRotation(const QPointF &pos) noexcept
 
 void SelectionTool::setLiveScaling(const QPointF &pos) noexcept
 {
-    properties.scale.live_handle = pos;
-    const qreal
-            scalex = properties.scale.reference.x() == properties.scale.start_handle.x()
+    QTransform scale;
+    scale.scale(
+                properties.scale.reference.x() == properties.scale.start_handle.x()
                     ? 1
                     : (pos.x() - properties.scale.reference.x())/(properties.scale.start_handle.x() - properties.scale.reference.x()),
-            scaley = properties.scale.reference.y() == properties.scale.start_handle.y()
+                properties.scale.reference.y() == properties.scale.start_handle.y()
                     ? 1
-                    : (pos.y() - properties.scale.reference.y())/(properties.scale.start_handle.y() - properties.scale.reference.y());
-    QTransform scale;
-    scale.scale(scalex, scaley);
+                    : (pos.y() - properties.scale.reference.y())/(properties.scale.start_handle.y() - properties.scale.reference.y())
+                );
     QTransform transform;
-    QPointF point;
+    QPointF new_origin;
+    qreal dx, dy;
     for (auto it=initial_transforms.cbegin(); it!=initial_transforms.cend(); ++it)
     {
         transform = *it;
-        // Here the transformation is reset to avoid the accumulation of numerical errors.
-        //it.key()->setTransform(transform);
-        //point = it.key()->mapFromScene(properties.scale.reference);
-        //transform.translate(point.x(), point.y());
-        //transform.scale(scalex, scaley);
-        //transform.translate(-point.x(), -point.y());
+        // Don't mess up translation in original transform:
+        // reset translation, then do the rotation, then restore translation.
+        dx = transform.dx();
+        dy = transform.dy();
+        transform *= QTransform().translate(-dx, -dy);
         transform *= scale;
+        transform *= QTransform().translate(dx, dy);
+        // Apply scaling relative to origin of the item.
+        it.key()->setTransform(transform);
+        // Construct new origin of this item:
+        // First construct it in scene coordinates, then map to item coordinates.
+        new_origin = it.key()->mapFromScene(properties.scale.reference + (it.key()->scenePos() - properties.scale.reference) * scale);
+        // Translate to new origin.
+        transform = QTransform().translate(new_origin.x(), new_origin.y()) * transform;
         it.key()->setTransform(transform);
     }
 }
@@ -115,7 +110,6 @@ void SelectionTool::startScaling(const QPointF &movable, const QPointF &fixed) n
 {
     _type = Resize;
     properties.scale.start_handle = movable;
-    properties.scale.live_handle = movable;
     properties.scale.reference = fixed;
 }
 

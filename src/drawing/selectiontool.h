@@ -27,21 +27,18 @@ protected:
         /// 2 Points as used by most tools
         struct {
             QPointF start_pos;
-            QPointF live_pos;
         } general;
         /// 2 Points as used for scaling
         struct {
             QPointF start_handle;
-            QPointF live_handle;
             QPointF reference;
         } scale;
         /// Properties needed for rotation
         struct {
             QPointF rotation_center;
             qreal start_angle;
-            qreal live_angle;
         } rotate;
-    } properties {QPointF(), QPointF()};
+    } properties {QPointF()};
 
     QHash<QGraphicsItem*, QTransform> initial_transforms;
 
@@ -76,10 +73,6 @@ public:
     const QHash<QGraphicsItem*, QTransform> &originalTransforms() const noexcept
     {return initial_transforms;}
 
-    /// set _type.
-    void setType(const Type type) noexcept
-    {_type = type;}
-
     /// Set live position of rotation.
     void setLiveRotation(const QPointF &pos) noexcept;
 
@@ -88,14 +81,6 @@ public:
 
     /// Set live position for moving.
     void setLiveMoving(const QPointF &pos) noexcept;
-
-    /// Return fixed point (reference) of resize transformation.
-    const QPointF &resizeReference() const noexcept
-    {return properties.scale.reference;}
-
-    /// return reference position.
-    const QPointF &livePos() const noexcept
-    {return properties.general.live_pos;}
 
     /// return reference position.
     const QPointF &startPos() const noexcept
@@ -106,23 +91,6 @@ public:
 
     /// Initialize rotation with reference point and rotation center.
     void startScaling(const QPointF &handle, const QPointF &fixed) noexcept;
-
-    /// angle of rotation (in degrees).
-    qreal rotationAngle() const noexcept
-    {return properties.rotate.live_angle - properties.rotate.start_angle;}
-
-    /// return rotation center.
-    const QPointF &rotationCenter() const noexcept
-    {return properties.rotate.rotation_center;}
-
-    /** Set new reference position and return difference between new and old
-     * position.
-     * When an input device is used to move some objects, in each step of
-     * moving objects this function should called with the new position of
-     * the input device and the objects should be moved by the step returned
-     * by this function.
-     */
-    QPointF movePosition(const QPointF &new_position) noexcept;
 };
 
 #endif // SELECTIONTOOL_H

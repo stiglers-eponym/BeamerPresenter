@@ -30,7 +30,6 @@ SlideScene::SlideScene(const PdfMaster *master, const PagePart part, QObject *pa
 {
     connect(this, &SlideScene::sendNewPath, master, &PdfMaster::receiveNewPath, Qt::DirectConnection);
     connect(this, &SlideScene::replacePath, master, &PdfMaster::replacePath, Qt::DirectConnection);
-    connect(this, &SlideScene::sendTransformsCommon, master, &PdfMaster::addTransformsCommon, Qt::DirectConnection);
     connect(this, &SlideScene::sendTransformsMap, master, &PdfMaster::addTransformsMap, Qt::DirectConnection);
     connect(this, &SlideScene::requestNewPathContainer, master, &PdfMaster::requestNewPathContainer, Qt::DirectConnection);
     connect(this, &SlideScene::selectionChanged, this, &SlideScene::updateSelectionRect, Qt::DirectConnection);
@@ -71,10 +70,13 @@ void SlideScene::stopDrawing()
         {
         case BasicGraphicsPath::Type:
         case FullGraphicsPath::Type:
+        {
             emit sendNewPath(page | page_part, currentlyDrawnItem);
-            if (static_cast<const AbstractGraphicsPath*>(currentlyDrawnItem)->getTool().shape() == DrawTool::Recognize)
+            AbstractGraphicsPath *path = static_cast<AbstractGraphicsPath*>(currentlyDrawnItem);
+            path->finalize();
+            if (path->getTool().shape() == DrawTool::Recognize)
             {
-                ShapeRecognizer recognizer(static_cast<const AbstractGraphicsPath*>(currentlyDrawnItem));
+                ShapeRecognizer recognizer(path);
                 newpath = recognizer.recognize();
                 if (newpath)
                 {
@@ -83,12 +85,11 @@ void SlideScene::stopDrawing()
                     currentlyDrawnItem = newpath;
                 }
             }
-            if (newpath == NULL)
-                static_cast<AbstractGraphicsPath*>(currentlyDrawnItem)->finalize();
             currentlyDrawnItem->show();
             invalidate(currentlyDrawnItem->sceneBoundingRect(), QGraphicsScene::ItemLayer);
             currentlyDrawnItem = NULL;
             break;
+        }
         case RectGraphicsItem::Type:
             newpath = static_cast<RectGraphicsItem*>(currentlyDrawnItem)->toPath();
             break;
