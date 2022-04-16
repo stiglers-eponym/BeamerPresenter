@@ -39,31 +39,67 @@ QPointF SelectionTool::movePosition(const QPointF &new_position) noexcept
     return diff;
 }
 
-QTransform SelectionTool::transform() const
+void SelectionTool::setLiveMoving(const QPointF &pos) noexcept
 {
     QTransform transform;
-    switch (_type)
+    properties.general.live_pos = pos;
+    QPointF distance = pos - properties.general.start_pos;
+    QPointF diff;
+    for (auto it=initial_transforms.cbegin(); it!=initial_transforms.cend(); ++it)
     {
-    case Move:
-        transform.translate(properties.general.live_pos.x() - properties.general.start_pos.x(), properties.general.live_pos.y() - properties.general.start_pos.y());
-        break;
-    case Rotate:
-        transform.rotate(rotationAngle());
-        break;
-    case Resize:
-        // TODO
-        break;
-    default:
-        break;
+        transform = *it;
+        diff = distance;
+        transform.translate(diff.x(), diff.y());
+        it.key()->setTransform(transform);
     }
-    return transform;
 }
 
-qreal SelectionTool::setLiveRotation(const QPointF &pos) noexcept
+void SelectionTool::setLiveRotation(const QPointF &pos) noexcept
 {
     const QPointF vec = pos - properties.rotate.rotation_center;
     properties.rotate.live_angle = 180/M_PI*std::atan2(vec.y(), vec.x());
-    return properties.rotate.live_angle - properties.rotate.start_angle;
+    const qreal angle = properties.rotate.live_angle - properties.rotate.start_angle;
+    QTransform rotation;
+    rotation.rotate(angle);
+    QTransform transform;
+    QPointF point;
+    for (auto it=initial_transforms.cbegin(); it!=initial_transforms.cend(); ++it)
+    {
+        transform = *it;
+        // Here the transformation is reset to avoid the accumulation of numerical errors.
+        //it.key()->setTransform(transform);
+        //point = transform.map(it.key()->scenePos() - properties.rotate.rotation_center);
+        transform *= rotation;
+        it.key()->setTransform(transform);
+    }
+}
+
+void SelectionTool::setLiveScaling(const QPointF &pos) noexcept
+{
+    properties.scale.live_handle = pos;
+    const qreal
+            scalex = properties.scale.reference.x() == properties.scale.start_handle.x()
+                    ? 1
+                    : (pos.x() - properties.scale.reference.x())/(properties.scale.start_handle.x() - properties.scale.reference.x()),
+            scaley = properties.scale.reference.y() == properties.scale.start_handle.y()
+                    ? 1
+                    : (pos.y() - properties.scale.reference.y())/(properties.scale.start_handle.y() - properties.scale.reference.y());
+    QTransform scale;
+    scale.scale(scalex, scaley);
+    QTransform transform;
+    QPointF point;
+    for (auto it=initial_transforms.cbegin(); it!=initial_transforms.cend(); ++it)
+    {
+        transform = *it;
+        // Here the transformation is reset to avoid the accumulation of numerical errors.
+        //it.key()->setTransform(transform);
+        //point = it.key()->mapFromScene(properties.scale.reference);
+        //transform.translate(point.x(), point.y());
+        //transform.scale(scalex, scaley);
+        //transform.translate(-point.x(), -point.y());
+        transform *= scale;
+        it.key()->setTransform(transform);
+    }
 }
 
 void SelectionTool::startScaling(const QPointF &movable, const QPointF &fixed) noexcept
@@ -74,28 +110,15 @@ void SelectionTool::startScaling(const QPointF &movable, const QPointF &fixed) n
     properties.scale.reference = fixed;
 }
 
-QPointF SelectionTool::scale() const noexcept
+void SelectionTool::reset() noexcept
 {
-    return QPointF(
-                    properties.scale.reference.x() == properties.scale.start_handle.x()
-                    ? 1
-                    : (properties.scale.live_handle.x() - properties.scale.reference.x())/(properties.scale.start_handle.x() - properties.scale.reference.x()),
-                    properties.scale.reference.y() == properties.scale.start_handle.y()
-                    ? 1
-                    : (properties.scale.live_handle.y() - properties.scale.reference.y())/(properties.scale.start_handle.y() - properties.scale.reference.y())
-                );
+    _type = NoOperation;
+    initial_transforms.clear();
 }
 
-QPointF SelectionTool::setLiveScale(const QPointF &pos) noexcept
+void SelectionTool::initTransformations(const QList<QGraphicsItem*> &items) noexcept
 {
-    const QPointF increment(
-                    properties.scale.reference.x() == properties.scale.start_handle.x()
-                    ? 1
-                    : (pos.x() - properties.scale.reference.x())/(properties.scale.live_handle.x() - properties.scale.reference.x()),
-                    properties.scale.reference.y() == properties.scale.start_handle.y()
-                    ? 1
-                    : (pos.y() - properties.scale.reference.y())/(properties.scale.live_handle.y() - properties.scale.reference.y())
-                );
-    properties.scale.live_handle = pos;
-    return increment;
+    initial_transforms.clear();
+    for (const auto item : items)
+        initial_transforms[item] = item->transform();
 }

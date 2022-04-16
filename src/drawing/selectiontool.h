@@ -1,6 +1,7 @@
 #ifndef SELECTIONTOOL_H
 #define SELECTIONTOOL_H
 
+#include <QGraphicsItem>
 #include "src/drawing/tool.h"
 
 /**
@@ -42,6 +43,8 @@ protected:
         } rotate;
     } properties {QPointF(), QPointF()};
 
+    QHash<QGraphicsItem*, QTransform> initial_transforms;
+
 public:
     /// trivial constructor, only initializes Tool
     SelectionTool(BasicTool base_tool, const int default_device) noexcept :
@@ -64,21 +67,31 @@ public:
     Type type() const noexcept
     {return _type;}
 
+    /// reset type and items.
+    void reset() noexcept;
+
+    /// initialize initial_transformations.
+    void initTransformations(const QList<QGraphicsItem*> &items) noexcept;
+
+    const QHash<QGraphicsItem*, QTransform> &originalTransforms() const noexcept
+    {return initial_transforms;}
+
     /// set _type.
     void setType(const Type type) noexcept
     {_type = type;}
 
-    /// Set live position of rotation, return rotation angle.
-    qreal setLiveRotation(const QPointF &pos) noexcept;
+    /// Set live position of rotation.
+    void setLiveRotation(const QPointF &pos) noexcept;
 
-    /// Set live resize handle position, return incremental scale.
-    QPointF setLiveScale(const QPointF &pos) noexcept;
+    /// Set live position for resizing.
+    void setLiveScaling(const QPointF &pos) noexcept;
+
+    /// Set live position for moving.
+    void setLiveMoving(const QPointF &pos) noexcept;
 
     /// Return fixed point (reference) of resize transformation.
     const QPointF &resizeReference() const noexcept
     {return properties.scale.reference;}
-
-    QPointF scale() const noexcept;
 
     /// return reference position.
     const QPointF &livePos() const noexcept
@@ -110,9 +123,6 @@ public:
      * by this function.
      */
     QPointF movePosition(const QPointF &new_position) noexcept;
-
-    /// Transformation from start_properties to live_properties.
-    QTransform transform() const;
 };
 
 #endif // SELECTIONTOOL_H
