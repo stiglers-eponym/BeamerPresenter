@@ -31,6 +31,7 @@ SlideScene::SlideScene(const PdfMaster *master, const PagePart part, QObject *pa
     connect(this, &SlideScene::sendNewPath, master, &PdfMaster::receiveNewPath, Qt::DirectConnection);
     connect(this, &SlideScene::replacePath, master, &PdfMaster::replacePath, Qt::DirectConnection);
     connect(this, &SlideScene::sendTransformsCommon, master, &PdfMaster::addTransformsCommon, Qt::DirectConnection);
+    connect(this, &SlideScene::sendTransformsMap, master, &PdfMaster::addTransformsMap, Qt::DirectConnection);
     connect(this, &SlideScene::requestNewPathContainer, master, &PdfMaster::requestNewPathContainer, Qt::DirectConnection);
     connect(this, &SlideScene::selectionChanged, this, &SlideScene::updateSelectionRect, Qt::DirectConnection);
     pageItem->setZValue(-1e2);
@@ -83,7 +84,7 @@ void SlideScene::stopDrawing()
                 }
             }
             if (newpath == NULL)
-                static_cast<AbstractGraphicsPath*>(currentlyDrawnItem)->toCenterCoordinates();
+                static_cast<AbstractGraphicsPath*>(currentlyDrawnItem)->finalize();
             currentlyDrawnItem->show();
             invalidate(currentlyDrawnItem->sceneBoundingRect(), QGraphicsScene::ItemLayer);
             currentlyDrawnItem = NULL;
@@ -409,11 +410,11 @@ void SlideScene::handleSelectionStartEvents(SelectionTool *tool, const QPointF &
     switch (operation)
     {
     case SelectionTool::Move:
-        tool->setPos(pos);
+        tool->startMove(pos);
         break;
     case SelectionTool::Rotate:
         debug_msg(DebugDrawing, "Should start rotating now");
-        // TODO: implement rotation
+        tool->startRotation(pos, selection_bounding_rect.sceneCenter());
         break;
     case SelectionTool::ScaleTopLeft:
     case SelectionTool::ScaleTopRight:
@@ -431,14 +432,14 @@ void SlideScene::handleSelectionStartEvents(SelectionTool *tool, const QPointF &
             QGraphicsItem *item = itemAt(pos, QTransform());
             if (item)
                 item->setSelected(true);
-            tool->setPos(pos);
+            tool->startMove(pos);
             break;
         }
         case Tool::RectSelectionTool:
-            // TODO
+            tool->startRectSelection(pos);
             break;
         case Tool::FreehandSelectionTool:
-            // TODO
+            // TODO: implement freehand selection tool
             break;
         default:
             break;
@@ -461,13 +462,27 @@ void SlideScene::handleSelectionUpdateEvents(SelectionTool *tool, const QPointF 
         break;
     }
     case SelectionTool::Rotate:
-        // TODO: implement rotation
+    {
+        const qreal angle = tool->setLiveRotation(pos);
+        QTransform transform;
+        transform.rotate(angle);
+        const QPointF &center = tool->rotationCenter();
+        for (const auto item : selectedItems())
+        {
+            item->setPos(transform.map(item->scenePos() - center) + center);
+            item->setTransform(transform, true);
+        }
+        selection_bounding_rect.setTransform(transform, true);
         break;
+    }
     case SelectionTool::ScaleTopLeft:
     case SelectionTool::ScaleTopRight:
     case SelectionTool::ScaleBottomLeft:
     case SelectionTool::ScaleBottomRight:
         // TODO: implement scaling
+        break;
+    case SelectionTool::Select:
+        // TODO: implement visualization for area selection tools
         break;
     default:
         break;
@@ -476,30 +491,52 @@ void SlideScene::handleSelectionUpdateEvents(SelectionTool *tool, const QPointF 
 
 void SlideScene::handleSelectionStopEvents(SelectionTool *tool, const QPointF &pos, const QPointF &start_pos)
 {
-    if (selection_bounding_rect.isVisible())
+    switch (tool->type())
     {
-        switch (tool->type())
+    case SelectionTool::Move:
+        emit sendTransformsCommon(page, selectedItems(), tool->transform());
+        break;
+    case SelectionTool::Rotate:
+    {
+        const QTransform rotation = tool->transform();
+        const QTransform inv_rotation = rotation.inverted();
+        QHash<QGraphicsItem*,QTransform> map;
+        const QPointF &center = tool->rotationCenter();
+        for (const auto item : selectedItems())
         {
-        case SelectionTool::Move:
-            emit sendTransformsCommon(page, selectedItems(), tool->transform());
-            for (auto item : selectedItems())
-            {
-                if (!item->contains(item->mapFromScene(pos)))
-                    item->setSelected(false);
-            }
+            QTransform transform(rotation);
+            const QPointF diff = item->scenePos() - (inv_rotation.map(item->scenePos() - center) + center);
+            transform.translate(diff.x(), diff.y());
+            map[item] = transform;
+        }
+        emit sendTransformsMap(page, map);
+        break;
+    }
+    case SelectionTool::ScaleTopLeft:
+    case SelectionTool::ScaleTopRight:
+    case SelectionTool::ScaleBottomLeft:
+    case SelectionTool::ScaleBottomRight:
+        // TODO: implement scaling
+        break;
+    case SelectionTool::Select:
+        switch (tool->tool())
+        {
+        case Tool::RectSelectionTool:
+        {
+            QPainterPath path;
+            path.addRect(QRectF(tool->startPos(), pos).normalized());
+            setSelectionArea(path, Qt::ReplaceSelection, Qt::ContainsItemShape);
             break;
-        case SelectionTool::Rotate:
-            // TODO: implement rotation
-            break;
-        case SelectionTool::ScaleTopLeft:
-        case SelectionTool::ScaleTopRight:
-        case SelectionTool::ScaleBottomLeft:
-        case SelectionTool::ScaleBottomRight:
-            // TODO: implement scaling
+        }
+        case Tool::FreehandSelectionTool:
+            // TODO: implement this
             break;
         default:
             break;
         }
+        break;
+    default:
+        break;
     }
 }
 
@@ -1464,9 +1501,10 @@ void SlideScene::updateSelectionRect() noexcept
         selection_bounding_rect.hide();
         return;
     }
-    QRectF newrect = items.first()->sceneBoundingRect();
+    // TODO: This is probably quite slow
+    QRectF newrect = items.first()->mapToScene(items.first()->shape()).controlPointRect();
     for (const auto &item : items)
-        newrect = newrect.united(item->sceneBoundingRect());
+        newrect = newrect.united(item->mapToScene(item->shape()).controlPointRect());
     selection_bounding_rect.setRect(newrect);
     selection_bounding_rect.show();
 }

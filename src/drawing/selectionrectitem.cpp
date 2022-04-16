@@ -2,6 +2,14 @@
 #include "src/drawing/selectionrectitem.h"
 #include "src/preferences.h"
 
+void SelectionRectItem::setRect(const QRectF &rect) noexcept
+{
+    resetTransform();
+    setPos(rect.center());
+    _rect = rect;
+    _rect.translate(-pos());
+}
+
 void SelectionRectItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
 {
     if (_rect.isEmpty())

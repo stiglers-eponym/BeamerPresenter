@@ -24,12 +24,18 @@ public:
     /// @param widget currently ignored.
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget = NULL) override;
 
-    void setRect(const QRectF &rect)
-    {setPos(0,0); _rect = rect;}
+    /// reset transform and set rect (in scene coordinates)
+    void setRect(const QRectF &rect) noexcept;
 
+    /// return (possibly rotated) rectangle in scene coordinates
     QPolygonF sceneRect() const noexcept
     {return mapToScene(_rect);}
 
+    /// return rectangle center in scene coordinates
+    QPointF sceneCenter() const noexcept
+    {return mapToScene(_rect.center());}
+
+    /// return center or rotation handle in scene coordinates
     QPointF sceneRotationHandle() const noexcept
     {return mapToScene(_rect.left()+_rect.width()/2, _rect.top()-10);}
 

@@ -23,19 +23,14 @@ public:
 protected:
     Type _type = NoOperation;
 
-    union TransformProperties {
-        /** Position at which a selection items was grabbed, only active when
-         * _type == Move.
-         * This position (in scene coordinates) is used when moving objects.
-         * reference_position is the input device position in scene coordinates
-         * that was used for the previous step of moving a selection. */
-        QPointF position;
-        qreal angle;
-    };
-
-    TransformProperties
-        start_properties {QPointF()},
-        live_properties {QPointF()};
+    /** Position at which a selection items was grabbed, only active when
+     * _type == Move.
+     * This position (in scene coordinates) is used when moving objects.
+     * reference_position is the input device position in scene coordinates
+     * that was used for the previous step of moving a selection. */
+    QPointF start_pos,
+            rotation_center,
+            live_pos;
 
 public:
     /// trivial constructor, only initializes Tool
@@ -44,24 +39,36 @@ public:
 
     /// copy constructor
     SelectionTool(const SelectionTool &other) noexcept :
-        Tool(other), start_properties(other.start_properties), live_properties(other.live_properties) {}
+        Tool(other), start_pos(other.start_pos), live_pos(other.live_pos) {}
 
     /// trivial destructor
     ~SelectionTool() {}
 
     /// Set reference position and set _type to Move.
-    void setPos(const QPointF &pos) noexcept;
+    void startMove(const QPointF &pos) noexcept;
+
+    /// Set start position and set _type to Selection.
+    void startRectSelection(const QPointF &pos) noexcept;
 
     Type type() const noexcept
     {return _type;}
 
+    qreal setLiveRotation(const QPointF &pos) noexcept;
+
     /// return reference position.
     const QPointF &livePos() const noexcept
-    {return live_properties.position;}
+    {return live_pos;}
 
     /// return reference position.
     const QPointF &startPos() const noexcept
-    {return start_properties.position;}
+    {return start_pos;}
+
+    void startRotation(const QPointF &reference, const QPointF &center) noexcept;
+
+    qreal rotationAngle() const noexcept;
+
+    const QPointF &rotationCenter() const noexcept
+    {return rotation_center;}
 
     /** Set new reference position and return difference between new and old
      * position.

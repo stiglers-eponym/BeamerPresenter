@@ -176,6 +176,17 @@ void PdfMaster::addTransformsCommon(int page, const QList<QGraphicsItem*> &items
     _flags |= UnsavedDrawings;
 }
 
+void PdfMaster::addTransformsMap(int page, const QHash<QGraphicsItem*, QTransform> &map)
+{
+    if (preferences()->overlay_mode == PerLabel)
+        page = document->overlaysShifted((page & ~NotFullPage), FirstOverlay) | (page & NotFullPage);
+    if (!paths.contains(page) || map.isEmpty())
+        // this should never happen
+        return;
+    paths[page]->transformItemsMap(map);
+    _flags |= UnsavedDrawings;
+}
+
 void PdfMaster::distributeNavigationEvents(const int page) const
 {
     // Map (shifted) page numbers with page parts to slide scenes.
@@ -217,7 +228,6 @@ void PdfMaster::distributeNavigationEvents(const int page) const
     for (const auto scene : qAsConst(scenes))
         scene->createSliders();
 }
-
 
 void PdfMaster::saveXopp(const QString &filename)
 {

@@ -192,6 +192,10 @@ public slots:
     /// Page (part) number is given as (page | page_part).
     void addTransformsCommon(int page, const QList<QGraphicsItem*> &items, const QTransform &transform);
 
+    /// Transforms for QGraphicsItems.
+    /// Page (part) number is given as (page | page_part).
+    void addTransformsMap(int page, const QHash<QGraphicsItem*, QTransform> &map);
+
     /// Send navigation events to all SlideScenes reading from this document.
     /// This is done centrally via PdfMaster because it may be necessary
     /// to reconnect SlideViews and SlideScenes if multiple scenes would

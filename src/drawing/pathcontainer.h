@@ -199,8 +199,8 @@ public slots:
     /// Apply transform to items.
     void transformItemsCommon(const QList<QGraphicsItem*> &items, const QTransform &transform);
 
-    // Apply transforms to items (TODO)
-    //void transformItemsIndividual(const QMap<QGraphicsItem*, QTransform> &items);
+    // Apply transforms to items.
+    void transformItemsMap(const QHash<QGraphicsItem*, QTransform> &map);
 };
 
 /// Convert color to string with format #RRGGBBAA

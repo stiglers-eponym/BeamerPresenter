@@ -709,3 +709,27 @@ void PathContainer::transformItemsCommon(const QList<QGraphicsItem*> &items, con
     if (history.length() > preferences()->history_length_visible_slides)
         clearHistory(preferences()->history_length_visible_slides);
 }
+
+void PathContainer::transformItemsMap(const QHash<QGraphicsItem*, QTransform> &map)
+{
+    if (map.isEmpty())
+        return;
+    // Remove all "redo" options.
+    truncateHistory();
+    // Create new history step.
+    DrawHistoryStep *const step = new DrawHistoryStep();
+    int idx;
+    for (auto it=map.constBegin(); it!=map.constEnd(); ++it)
+    {
+        idx = paths.indexOf(it.key());
+        if (idx < 0 || it.key() == NULL)
+            // this should never happen
+            continue;
+        step->transformedItems[idx] = *it;
+    }
+    history.append(step);
+
+    // Limit history size (if necessary).
+    if (history.length() > preferences()->history_length_visible_slides)
+        clearHistory(preferences()->history_length_visible_slides);
+}
