@@ -390,13 +390,13 @@ void SlideScene::handleSelectionStartEvents(SelectionTool *tool, const QPointF &
         // bounding rect of the selection.
         const QPolygonF selection_rect = selection_bounding_rect.sceneRect();
         if ((pos - selection_rect[0]).manhattanLength() < 4)
-            operation = SelectionTool::ScaleTopLeft;
+            operation = SelectionTool::Scale;
         else if ((pos - selection_rect[1]).manhattanLength() < 4)
-            operation = SelectionTool::ScaleTopRight;
+            operation = SelectionTool::Scale;
         else if ((pos - selection_rect[2]).manhattanLength() < 4)
-            operation = SelectionTool::ScaleBottomLeft;
+            operation = SelectionTool::Scale;
         else if ((pos - selection_rect[3]).manhattanLength() < 4)
-            operation = SelectionTool::ScaleBottomRight;
+            operation = SelectionTool::Scale;
         else if ((pos - selection_bounding_rect.sceneRotationHandle()).manhattanLength() < 4)
             operation = SelectionTool::Rotate;
         // 2. Check if the user clicked on a selected object.
@@ -423,10 +423,7 @@ void SlideScene::handleSelectionStartEvents(SelectionTool *tool, const QPointF &
         selection_bounding_rect.setTransformOriginPoint(0,0);
         selection_bounding_rect.setRotation(0);
         break;
-    case SelectionTool::ScaleTopLeft:
-    case SelectionTool::ScaleTopRight:
-    case SelectionTool::ScaleBottomLeft:
-    case SelectionTool::ScaleBottomRight:
+    case SelectionTool::Scale:
         debug_msg(DebugDrawing, "Should start scaling now");
         // TODO: implement scaling
         break;
@@ -476,10 +473,7 @@ void SlideScene::handleSelectionUpdateEvents(SelectionTool *tool, const QPointF 
         selection_bounding_rect.setRotation(angle);
         break;
     }
-    case SelectionTool::ScaleTopLeft:
-    case SelectionTool::ScaleTopRight:
-    case SelectionTool::ScaleBottomLeft:
-    case SelectionTool::ScaleBottomRight:
+    case SelectionTool::Scale:
         // TODO: implement scaling
         break;
     case SelectionTool::Select:
@@ -522,10 +516,7 @@ void SlideScene::handleSelectionStopEvents(SelectionTool *tool, const QPointF &p
         selection_bounding_rect.setTransform(transform, true);
         break;
     }
-    case SelectionTool::ScaleTopLeft:
-    case SelectionTool::ScaleTopRight:
-    case SelectionTool::ScaleBottomLeft:
-    case SelectionTool::ScaleBottomRight:
+    case SelectionTool::Scale:
         // TODO: implement scaling
         break;
     case SelectionTool::Select:

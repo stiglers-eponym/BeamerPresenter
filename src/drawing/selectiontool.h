@@ -14,10 +14,7 @@ public:
         Select,
         Move,
         Rotate,
-        ScaleTopLeft,
-        ScaleTopRight,
-        ScaleBottomLeft,
-        ScaleBottomRight,
+        Scale,
     };
 
 protected:
@@ -28,9 +25,17 @@ protected:
      * This position (in scene coordinates) is used when moving objects.
      * reference_position is the input device position in scene coordinates
      * that was used for the previous step of moving a selection. */
-    QPointF start_pos,
-            rotation_center,
-            live_pos;
+    union {
+        struct {
+            QPointF start_pos;
+            QPointF live_pos;
+        } general;
+        struct {
+            QPointF rotation_center;
+            qreal start_angle;
+            qreal live_angle;
+        } rotate;
+    } properties {QPointF(), QPointF()};
 
 public:
     /// trivial constructor, only initializes Tool
@@ -39,7 +44,7 @@ public:
 
     /// copy constructor
     SelectionTool(const SelectionTool &other) noexcept :
-        Tool(other), start_pos(other.start_pos), live_pos(other.live_pos) {}
+        Tool(other), properties(other.properties) {}
 
     /// trivial destructor
     ~SelectionTool() {}
@@ -57,18 +62,19 @@ public:
 
     /// return reference position.
     const QPointF &livePos() const noexcept
-    {return live_pos;}
+    {return properties.general.live_pos;}
 
     /// return reference position.
     const QPointF &startPos() const noexcept
-    {return start_pos;}
+    {return properties.general.start_pos;}
 
     void startRotation(const QPointF &reference, const QPointF &center) noexcept;
 
-    qreal rotationAngle() const noexcept;
+    qreal rotationAngle() const noexcept
+    {return properties.rotate.live_angle - properties.rotate.start_angle;}
 
     const QPointF &rotationCenter() const noexcept
-    {return rotation_center;}
+    {return properties.rotate.rotation_center;}
 
     /** Set new reference position and return difference between new and old
      * position.

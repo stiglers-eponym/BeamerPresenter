@@ -12,29 +12,30 @@ qreal dist(const QPointF &p) noexcept
 void SelectionTool::startMove(const QPointF &pos) noexcept
 {
     _type = Move;
-    start_pos = pos;
-    live_pos = pos;
+    properties.general.start_pos = pos;
+    properties.general.live_pos = pos;
 }
 
 void SelectionTool::startRectSelection(const QPointF &pos) noexcept
 {
     _type = Select;
-    start_pos = pos;
-    live_pos = pos;
+    properties.general.start_pos = pos;
+    properties.general.live_pos = pos;
 }
 
 void SelectionTool::startRotation(const QPointF &reference, const QPointF &center) noexcept
 {
     _type = Rotate;
-    start_pos = reference;
-    live_pos = reference;
-    rotation_center = center;
+    const QPointF vec = reference - center;
+    properties.rotate.start_angle = 180/M_PI*std::atan2(vec.y(), vec.x());
+    properties.rotate.live_angle = properties.rotate.start_angle;
+    properties.rotate.rotation_center = center;
 }
 
 QPointF SelectionTool::movePosition(const QPointF &new_position) noexcept
 {
-    const QPointF diff = new_position - live_pos;
-    live_pos = new_position;
+    const QPointF diff = new_position - properties.general.live_pos;
+    properties.general.live_pos = new_position;
     return diff;
 }
 
@@ -44,15 +45,12 @@ QTransform SelectionTool::transform() const
     switch (_type)
     {
     case Move:
-        transform.translate(live_pos.x() - start_pos.x(), live_pos.y() - start_pos.y());
+        transform.translate(properties.general.live_pos.x() - properties.general.start_pos.x(), properties.general.live_pos.y() - properties.general.start_pos.y());
         break;
     case Rotate:
         transform.rotate(rotationAngle());
         break;
-    case ScaleTopLeft:
-    case ScaleTopRight:
-    case ScaleBottomLeft:
-    case ScaleBottomRight:
+    case Scale:
         // TODO
         break;
     default:
@@ -61,28 +59,9 @@ QTransform SelectionTool::transform() const
     return transform;
 }
 
-qreal SelectionTool::rotationAngle() const noexcept
-{
-    QPointF
-            vec1 = start_pos - rotation_center,
-            vec2 = live_pos - rotation_center;
-    const qreal
-            len1 = QPointF::dotProduct(vec1, vec1),
-            prod = QPointF::dotProduct(vec1, vec2);
-    const char
-            sign1 = vec1.x() * vec2.y() - vec1.y() * vec2.x() < 0 ? -1 : 1,
-            sign2 = prod > 0 ? 1 : -1;
-    if (prod == 0.)
-        return sign1*90;
-    else
-    {
-        vec2 *= len1 / prod;
-        return sign1*180/M_PI*std::atan2(dist(vec2-vec1), sign2*dist(vec1));
-    }
-}
-
 qreal SelectionTool::setLiveRotation(const QPointF &pos) noexcept
 {
-    live_pos = pos;
-    return rotationAngle();
+    const QPointF vec = pos - properties.rotate.rotation_center;
+    properties.rotate.live_angle = 180/M_PI*std::atan2(vec.y(), vec.x());
+    return properties.rotate.live_angle - properties.rotate.start_angle;
 }
