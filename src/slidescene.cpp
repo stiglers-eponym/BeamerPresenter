@@ -415,6 +415,13 @@ void SlideScene::handleSelectionStartEvents(SelectionTool *tool, const QPointF &
     case SelectionTool::Rotate:
         debug_msg(DebugDrawing, "Should start rotating now");
         tool->startRotation(pos, selection_bounding_rect.sceneCenter());
+        for (const auto item : selection)
+        {
+            item->setTransformOriginPoint(item->mapFromScene(tool->rotationCenter()));
+            item->setRotation(0);
+        }
+        selection_bounding_rect.setTransformOriginPoint(0,0);
+        selection_bounding_rect.setRotation(0);
         break;
     case SelectionTool::ScaleTopLeft:
     case SelectionTool::ScaleTopRight:
@@ -464,15 +471,9 @@ void SlideScene::handleSelectionUpdateEvents(SelectionTool *tool, const QPointF 
     case SelectionTool::Rotate:
     {
         const qreal angle = tool->setLiveRotation(pos);
-        QTransform transform;
-        transform.rotate(angle);
-        const QPointF &center = tool->rotationCenter();
         for (const auto item : selectedItems())
-        {
-            item->setPos(transform.map(item->scenePos() - center) + center);
-            item->setTransform(transform, true);
-        }
-        selection_bounding_rect.setTransform(transform, true);
+            item->setRotation(angle);
+        selection_bounding_rect.setRotation(angle);
         break;
     }
     case SelectionTool::ScaleTopLeft:
@@ -499,17 +500,24 @@ void SlideScene::handleSelectionStopEvents(SelectionTool *tool, const QPointF &p
     case SelectionTool::Rotate:
     {
         const QTransform rotation = tool->transform();
-        const QTransform inv_rotation = rotation.inverted();
         QHash<QGraphicsItem*,QTransform> map;
-        const QPointF &center = tool->rotationCenter();
+        QPointF point;
+        QTransform transform;
         for (const auto item : selectedItems())
         {
-            QTransform transform(rotation);
-            const QPointF diff = item->scenePos() - (inv_rotation.map(item->scenePos() - center) + center);
-            transform.translate(diff.x(), diff.y());
+            transform.reset();
+            point = item->scenePos();
+            item->setRotation(0);
+            point -= item->scenePos();
+            transform *= rotation;
+            point = rotation.inverted().map(item->mapFromScene(point) - item->mapFromScene(0,0));
+            transform.translate(point.x(), point.y());
+            item->setTransform(transform, true);
             map[item] = transform;
         }
         emit sendTransformsMap(page, map);
+        selection_bounding_rect.setRotation(0);
+        selection_bounding_rect.setTransform(rotation, true);
         break;
     }
     case SelectionTool::ScaleTopLeft:

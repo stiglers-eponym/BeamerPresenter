@@ -69,31 +69,20 @@ qreal SelectionTool::rotationAngle() const noexcept
     const qreal
             len1 = QPointF::dotProduct(vec1, vec1),
             prod = QPointF::dotProduct(vec1, vec2);
-    const char sign = vec1.x() * vec2.y() - vec1.y() * vec2.x() < 0 ? -1 : 1;
+    const char
+            sign1 = vec1.x() * vec2.y() - vec1.y() * vec2.x() < 0 ? -1 : 1,
+            sign2 = prod > 0 ? 1 : -1;
     if (prod == 0.)
-        return sign*90;
+        return sign1*90;
     else
     {
         vec2 *= len1 / prod;
-        return sign*180/M_PI*std::atan2(dist(vec2-vec1), dist(vec1));
+        return sign1*180/M_PI*std::atan2(dist(vec2-vec1), sign2*dist(vec1));
     }
 }
 
 qreal SelectionTool::setLiveRotation(const QPointF &pos) noexcept
 {
-    QPointF
-            vec1 = live_pos - rotation_center,
-            vec2 = pos - rotation_center;
     live_pos = pos;
-    const qreal
-            len1 = QPointF::dotProduct(vec1, vec1),
-            prod = QPointF::dotProduct(vec1, vec2);
-    const char sign = vec1.x() * vec2.y() - vec1.y() * vec2.x() < 0 ? -1 : 1;
-    if (prod == 0.)
-        return sign*90;
-    else
-    {
-        vec2 *= len1 / prod;
-        return sign*180/M_PI*std::atan2(dist(vec2-vec1), dist(vec1));
-    }
+    return rotationAngle();
 }
