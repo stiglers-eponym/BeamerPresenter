@@ -79,6 +79,8 @@ public:
         MuteApplication = 1 << 2,
         /// Allow opening external links.
         OpenExternalLinks = 1 << 3,
+        /// Finalize drawing paths
+        FinalizeDrawnPaths = 1 << 4,
     };
 
     /************************/

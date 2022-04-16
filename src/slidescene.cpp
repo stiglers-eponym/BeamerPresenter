@@ -71,9 +71,10 @@ void SlideScene::stopDrawing()
         case BasicGraphicsPath::Type:
         case FullGraphicsPath::Type:
         {
-            emit sendNewPath(page | page_part, currentlyDrawnItem);
             AbstractGraphicsPath *path = static_cast<AbstractGraphicsPath*>(currentlyDrawnItem);
-            path->finalize();
+            if (preferences()->global_flags & Preferences::FinalizeDrawnPaths)
+                path->finalize();
+            emit sendNewPath(page | page_part, currentlyDrawnItem);
             if (path->getTool().shape() == DrawTool::Recognize)
             {
                 ShapeRecognizer recognizer(path);
@@ -1269,7 +1270,7 @@ void SlideScene::stepInputEvent(const DrawTool *tool, const QPointF &pos, const 
             if (current_path->getTool() != *tool)
                 break;
             FlexGraphicsLineItem *item = new FlexGraphicsLineItem(QLineF(current_path->lastPoint(), pos), tool->compositionMode());
-            current_path->addPoint(pos);
+            current_path->addPoint(current_path->mapFromScene(pos));
             item->setPen(tool->pen());
             item->show();
             addItem(item);
@@ -1286,7 +1287,7 @@ void SlideScene::stepInputEvent(const DrawTool *tool, const QPointF &pos, const 
             if (current_path->getTool() != *tool)
                 break;
             FlexGraphicsLineItem *item = new FlexGraphicsLineItem(QLineF(current_path->lastPoint(), pos), tool->compositionMode());
-            current_path->addPoint(pos, pressure);
+            current_path->addPoint(current_path->mapFromScene(pos), pressure);
             QPen pen = tool->pen();
             pen.setWidthF(pen.widthF() * pressure);
             item->setPen(pen);

@@ -12,21 +12,15 @@ BasicGraphicsPath::BasicGraphicsPath(const DrawTool &tool, const QPointF &pos) n
     AbstractGraphicsPath(tool)
 {
     // Initialize bounding rect.
-    top = pos.y() - _tool.width();
-    bottom = pos.y() + _tool.width();
-    left = pos.x() - _tool.width();
-    right = pos.x() + _tool.width();
+    bounding_rect = QRectF(pos.x(), pos.y(), _tool.width(), _tool.width());
     // Add first data point.
     coordinates.append(pos);
 }
 
-BasicGraphicsPath::BasicGraphicsPath(const DrawTool &tool, const QVector<QPointF> &coordinates, const QRectF &bounding_rect) noexcept :
+BasicGraphicsPath::BasicGraphicsPath(const DrawTool &tool, const QVector<QPointF> &coordinates, const QRectF &boundingRect) noexcept :
     AbstractGraphicsPath(tool, coordinates)
 {
-    top = bounding_rect.top();
-    bottom = bounding_rect.bottom();
-    left = bounding_rect.left();
-    right = bounding_rect.right();
+    bounding_rect = boundingRect;
 }
 
 BasicGraphicsPath::BasicGraphicsPath(const AbstractGraphicsPath * const other, int first, int last) :
@@ -44,70 +38,30 @@ BasicGraphicsPath::BasicGraphicsPath(const AbstractGraphicsPath * const other, i
         // This should never happen.
         return;
 
-    // Initialize coordinates with the correct length.
+    // Copy coordinates from other.
+#if (QT_VERSION >= QT_VERSION_CHECK(5,14,0))
+    coordinates = QVector<QPointF>(other->coordinates.cbegin()+first, other->coordinates.cbegin()+last);
+#else
     coordinates = QVector<QPointF>(length);
-    // Initialize bounding rect.
-    top = other->coordinates[first].y();
-    bottom = top;
-    left = other->coordinates[first].x();
-    right = left;
-    // Copy coordinates from other and update bounding rect.
     for (int i=0; i<length; i++)
-    {
         coordinates[i] = other->coordinates[i+first];
-        if ( coordinates[i].x() < left )
-            left = coordinates[i].x();
-        else if ( coordinates[i].x() > right )
-            right = coordinates[i].x();
-        if ( coordinates[i].y() < top )
-            top = coordinates[i].y();
-        else if ( coordinates[i].y() > bottom )
-            bottom = coordinates[i].y();
-    }
-    // Add finite stroke width to bounding rect.
-    left -= _tool.width();
-    right += _tool.width();
-    top -= _tool.width();
-    bottom += _tool.width();
+#endif
+    // Cache shape and update bounding rect.
+    shape_cache = shape();
+    bounding_rect = shape_cache.boundingRect();
 }
 
 BasicGraphicsPath::BasicGraphicsPath(const DrawTool &tool, const QString &coordinate_string) noexcept :
     AbstractGraphicsPath(tool)
 {
     QStringList coordinate_list = coordinate_string.split(' ');
-    coordinates = QVector<QPointF>(coordinate_list.length()/2);
-    qreal x, y;
-    x = coordinate_list.takeFirst().toDouble();
-    y = coordinate_list.takeFirst().toDouble();
-    coordinates[0] = {x,y};
-
     // Initialize coordinates with the correct length.
-    // Initialize bounding rect.
-    top = y;
-    bottom = y;
-    left = x;
-    right = x;
-    // Copy coordinates from other and update bounding rect.
-    int i=1;
+    coordinates = QVector<QPointF>(coordinate_list.length()/2);
+    // Read coordinates.
+    int i=0;
     while (coordinate_list.length() > 1)
-    {
-        x = coordinate_list.takeFirst().toDouble();
-        y = coordinate_list.takeFirst().toDouble();
-        coordinates[i++] = {x,y};
-        if ( x < left )
-            left = x;
-        else if ( x > right )
-            right = x;
-        if ( y < top )
-            top = y;
-        else if ( y > bottom )
-            bottom = y;
-    }
-    // Add finite stroke width to bounding rect.
-    left -= _tool.width();
-    right += _tool.width();
-    top -= _tool.width();
-    bottom += _tool.width();
+        coordinates[i++] = {coordinate_list.takeFirst().toDouble(), coordinate_list.takeFirst().toDouble()};
+    finalize();
 }
 
 void BasicGraphicsPath::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
@@ -136,11 +90,11 @@ void BasicGraphicsPath::paint(QPainter *painter, const QStyleOptionGraphicsItem 
     {
         painter->setCompositionMode(QPainter::CompositionMode_SourceOver);
         painter->setPen(QPen(QBrush(Qt::black), 0.5));
-        painter->drawRect(boundingRect());
-        painter->drawLine(left, top, 0, 0);
-        painter->drawLine(left, bottom, 0, 0);
-        painter->drawLine(right, top, 0, 0);
-        painter->drawLine(right, bottom, 0, 0);
+        painter->drawRect(bounding_rect);
+        painter->drawLine(bounding_rect.topLeft(), {0,0});
+        painter->drawLine(bounding_rect.topRight(), {0,0});
+        painter->drawLine(bounding_rect.bottomLeft(), {0,0});
+        painter->drawLine(bounding_rect.bottomRight(), {0,0});
     }
 #endif
 }
@@ -150,24 +104,24 @@ void BasicGraphicsPath::addPoint(const QPointF &point)
     shape_cache.clear();
     coordinates.append(point);
     bool change = false;
-    if ( point.x() < left + _tool.width() )
+    if ( point.x() < bounding_rect.left() + _tool.width()*0.55 )
     {
-        left = point.x() - _tool.width();
+        bounding_rect.setLeft(point.x() - _tool.width()*0.55);
         change = true;
     }
-    else if ( point.x() + _tool.width() > right )
+    else if ( point.x() + _tool.width()*0.55 > bounding_rect.right() )
     {
-        right = point.x() + _tool.width();
+        bounding_rect.setRight(point.x() + _tool.width()*0.55);
         change = true;
     }
-    if ( point.y() < top + _tool.width() )
+    if ( point.y() < bounding_rect.top() + _tool.width()*0.55 )
     {
-        top = point.y() - _tool.width();
+        bounding_rect.setTop(point.y() - _tool.width()*0.55);
         change = true;
     }
-    else if ( point.y() + _tool.width() > bottom )
+    else if ( point.y() + _tool.width()*0.55 > bounding_rect.bottom() )
     {
-        bottom = point.y() + _tool.width();
+        bounding_rect.setBottom(point.y() + _tool.width()*0.55);
         change = true;
     }
     if (change)
@@ -218,7 +172,7 @@ void BasicGraphicsPath::changeTool(const DrawTool &newtool) noexcept
 
 AbstractGraphicsPath *BasicGraphicsPath::copy() const
 {
-    BasicGraphicsPath *newpath = new BasicGraphicsPath(_tool, coordinates, boundingRect());
+    BasicGraphicsPath *newpath = new BasicGraphicsPath(_tool, coordinates, bounding_rect);
     newpath->setPos(scenePos());
     newpath->shape_cache = shape_cache;
     return newpath;

@@ -5,11 +5,13 @@ const QString AbstractGraphicsPath::stringCoordinates() const noexcept
 {
     QString str;
     const qreal x = scenePos().x(), y = scenePos().y();
+    QPointF scene_point;
     for (const auto &point : coordinates)
     {
-        str += QString::number(point.x() + x);
+        scene_point = mapToScene(point);
+        str += QString::number(scene_point.x() + x);
         str += ' ';
-        str += QString::number(point.y() + y);
+        str += QString::number(scene_point.y() + y);
         str += ' ';
     }
     str.chop(1);
@@ -30,16 +32,12 @@ QPainterPath AbstractGraphicsPath::shape() const
 
 void AbstractGraphicsPath::finalize()
 {
-    // TODO: change width
-    const QPointF new_scene_pos = mapToScene((left+right)/2, (top+bottom)/2);
+    // TODO: change width for scaled paths
+    const QPointF new_scene_pos = mapToScene(bounding_rect.center());
     for (auto &point : coordinates)
         point = mapToScene(point) - new_scene_pos;
     resetTransform();
     setPos(new_scene_pos);
     shape_cache = shape();
-    const QRectF rect = shape_cache.boundingRect();
-    left = rect.left();
-    right = rect.right();
-    top = rect.top();
-    bottom = rect.bottom();
+    bounding_rect = shape_cache.boundingRect();
 }

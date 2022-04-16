@@ -37,10 +37,8 @@ protected:
     /// Vector of nodes (coordinates).
     QVector<QPointF> coordinates;
 
-    ///@{
-    /// Bounding rect coordinates
-    qreal top, bottom, left, right;
-    ///@}
+    /// Bounding rect
+    QRectF bounding_rect;
 
 friend class BasicGraphicsPath;
 friend class ShapeRecognizer;
@@ -61,7 +59,7 @@ public:
     /// Bounding rectangle of the drawing (including stroke width).
     /// @return bounding rect
     virtual QRectF boundingRect() const noexcept override
-    {return QRectF(left, top, right-left, bottom-top);}
+    {return bounding_rect;}
 
     /// @return number of nodes of the path
     int size() const noexcept
@@ -79,6 +77,10 @@ public:
 
     /// Transform item coordinates and cache shape.
     void finalize();
+
+    /// Cache shape (only recalculate if no shape is cached).
+    void cacheShape() noexcept
+    {shape_cache = shape();}
 
     /// Copy this.
     virtual AbstractGraphicsPath *copy() const = 0;

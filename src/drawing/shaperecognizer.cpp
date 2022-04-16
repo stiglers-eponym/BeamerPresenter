@@ -80,26 +80,26 @@ BasicGraphicsPath *ShapeRecognizer::recognizeLine() const
     {
         if (std::abs(ax) < preferences()->snap_angle*std::abs(ay))
         {
-            p1 = {line.bx, path->top + margin};
-            p2 = {line.bx, path->bottom - margin};
+            p1 = {line.bx, path->bounding_rect.top() + margin};
+            p2 = {line.bx, path->bounding_rect.bottom() - margin};
         }
         else
         {
-            p1 = {line.bx + ax/ay*(path->top + margin - line.by), path->top + margin};
-            p2 = {line.bx + ax/ay*(path->bottom - margin - line.by), path->bottom - margin};
+            p1 = {line.bx + ax/ay*(path->bounding_rect.top() + margin - line.by), path->bounding_rect.top() + margin};
+            p2 = {line.bx + ax/ay*(path->bounding_rect.bottom() - margin - line.by), path->bounding_rect.bottom() - margin};
         }
     }
     else
     {
         if (std::abs(ay) < preferences()->snap_angle*std::abs(ax))
         {
-            p1 = {path->left + margin, line.by};
-            p2 = {path->right - margin, line.by};
+            p1 = {path->bounding_rect.left() + margin, line.by};
+            p2 = {path->bounding_rect.right() - margin, line.by};
         }
         else
         {
-            p1 = {path->left + margin, line.by + ay/ax*(path->left + margin - line.bx)};
-            p2 = {path->right - margin, line.by + ay/ax*(path->right - margin - line.bx)};
+            p1 = {path->bounding_rect.left() + margin, line.by + ay/ax*(path->bounding_rect.left() + margin - line.bx)};
+            p2 = {path->bounding_rect.right() - margin, line.by + ay/ax*(path->bounding_rect.right() - margin - line.bx)};
         }
     }
     // Create path.
@@ -308,8 +308,8 @@ BasicGraphicsPath *ShapeRecognizer::recognizeEllipse() const
     const QPointF center = path->boundingRect().center();
     mx = center.x();
     my = center.y();
-    rx = (path->right - path->left)/2;
-    ry = (path->bottom - path->top)/2;
+    rx = (path->bounding_rect.right() - path->bounding_rect.left())/2;
+    ry = (path->bounding_rect.bottom() - path->bounding_rect.top())/2;
     debug_msg(DebugDrawing, "try to recognized ellipse" << mx << my << rx << ry);
     ax = 1./(rx*rx);
     ay = 1./(ry*ry);

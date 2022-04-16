@@ -399,8 +399,9 @@ bool PathContainer::applyMicroStep()
         {
         case BasicGraphicsPath::Type:
         case FullGraphicsPath::Type:
+            if (preferences()->global_flags & Preferences::FinalizeDrawnPaths)
+                static_cast<AbstractGraphicsPath*>(*it)->finalize();
             break;
-            //static_cast<AbstractGraphicsPath*>(*it)->finalize();
         }
     }
 
