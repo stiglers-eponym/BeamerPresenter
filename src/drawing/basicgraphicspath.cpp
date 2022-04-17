@@ -60,6 +60,7 @@ BasicGraphicsPath::BasicGraphicsPath(const AbstractGraphicsPath * const other, i
 BasicGraphicsPath::BasicGraphicsPath(const DrawTool &tool, const QString &coordinate_string) noexcept :
     AbstractGraphicsPath(tool)
 {
+    debug_msg(DebugDrawing, coordinate_string);
     QStringList coordinate_list = coordinate_string.split(' ');
     // Initialize coordinates with the correct length.
     coordinates = QVector<QPointF>(coordinate_list.length()/2);

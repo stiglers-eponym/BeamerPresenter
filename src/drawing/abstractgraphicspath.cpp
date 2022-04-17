@@ -17,6 +17,19 @@ const QString AbstractGraphicsPath::stringCoordinates() const noexcept
     return str;
 }
 
+const QString AbstractGraphicsPath::svgCoordinates() const noexcept
+{
+    QString str = "M";
+    for (const auto &point : coordinates)
+    {
+        str += ' ';
+        str += QString::number(point.x());
+        str += ',';
+        str += QString::number(point.y());
+    }
+    return str;
+}
+
 QPainterPath AbstractGraphicsPath::shape() const
 {
     if (!shape_cache.isEmpty())

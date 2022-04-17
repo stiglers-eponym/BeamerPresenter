@@ -107,9 +107,13 @@ public:
     /// Change tool in-place.
     virtual void changeTool(const DrawTool &newtool) noexcept = 0;
 
-    /// Write nodes coordinates to string for saving.
+    /// Write nodes coordinates to string for saving using scene coordinates.
     /// @return list of coordinates formatted as string
     virtual const QString stringCoordinates() const noexcept;
+
+    /// Write nodes coordinates to string for writing to SVG using item coordinates.
+    /// @return list of coordinates formatted as string
+    virtual const QString svgCoordinates() const noexcept;
 
     /// Write stroke width(s) to string for saving.
     /// @return single width or list of widths formatted as string

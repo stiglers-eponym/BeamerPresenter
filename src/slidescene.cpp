@@ -1,4 +1,6 @@
 #include <QDataStream>
+#include <QRegularExpression>
+#include <QXmlStreamWriter>
 #include <QGuiApplication>
 #include <QMimeData>
 #include <QClipboard>
@@ -588,6 +590,10 @@ void SlideScene::receiveAction(const Action action)
             copyToClipboard();
             pasteFromClipboard();
         }
+        break;
+    case SelectionToForeground:
+        if (slide_flags & ShowDrawings && hasFocus())
+            selectionToForeground();
         break;
     default:
         break;
@@ -1527,11 +1533,83 @@ void SlideScene::removeSelection() const
 void SlideScene::copyToClipboard() const
 {
     const QList<QGraphicsItem*> selection = selectedItems();
+    if (selection.isEmpty())
+        return;
+    // Write to native data type
     QByteArray data;
     QDataStream stream(&data, QIODevice::WriteOnly);
     stream << selection;
     QMimeData *mimedata = new QMimeData();
     mimedata->setData("application/beamerpresenter", data);
+    data.clear();
+    // Write svg data
+    QXmlStreamWriter writer(&data);
+    writer.setAutoFormatting(true);
+    writer.setAutoFormattingIndent(0);
+    writer.writeStartDocument();
+    writer.writeComment(" Created with BeamerPresenter ");
+    writer.writeStartElement("svg");
+    writer.writeAttribute("version", "1.1");
+    const QRectF rect = selection_bounding_rect.sceneBoundingRect();
+    writer.writeAttribute("width", QString::number(rect.width()));
+    writer.writeAttribute("height", QString::number(rect.height()));
+    for (auto &item : selection)
+    {
+        const QTransform transform = item->transform();
+        QString matrix = QString("matrix(%1,%2,%3,%4,%5,%6)")
+                .arg(transform.m11())
+                .arg(transform.m12())
+                .arg(transform.m21())
+                .arg(transform.m22())
+                .arg(transform.dx())
+                .arg(transform.dy());
+        switch (item->type())
+        {
+        case BasicGraphicsPath::Type:
+        case FullGraphicsPath::Type:
+        {
+            // TODO: flexible width of FullGraphicsPath is ignored.
+            const AbstractGraphicsPath *path = static_cast<const AbstractGraphicsPath*>(item);
+            writer.writeStartElement("g");
+            writer.writeAttribute("x", QString::number(item->x()));
+            writer.writeAttribute("y", QString::number(item->y()));
+            writer.writeAttribute("transform", matrix);
+            writer.writeStartElement("path");
+            const DrawTool &tool = path->getTool();
+            QString style = "fill:";
+            style += tool.brush().style() == Qt::NoBrush ? "none" : tool.brush().color().name();
+            style += ";stroke:";
+            style += tool.color().name();
+            style += ";stroke-width:";
+            style += QString::number(tool.width());
+            style += ";stroke-linecap:round;stroke-linejoin:round;";
+            writer.writeAttribute("style", style);
+            writer.writeAttribute("d", path->svgCoordinates());
+            writer.writeEndElement();// "path" element
+            writer.writeEndElement(); // "g" element
+            break;
+        }
+        case TextGraphicsItem::Type:
+        {
+            const TextGraphicsItem *textItem = static_cast<const TextGraphicsItem*>(item);
+            writer.writeStartElement("text");
+            const QPointF origin = item->sceneBoundingRect().bottomLeft();
+            // TODO: coordinates are shifted.
+            writer.writeAttribute("x", QString::number(origin.x()));
+            writer.writeAttribute("y", QString::number(origin.y()));
+            writer.writeAttribute("transform", matrix);
+            writer.writeAttribute("style", "font-size:" + QString::number(textItem->font().pointSizeF()) + "pt");
+            // TODO: currently only plain text is supported.
+            writer.writeCharacters(textItem->toPlainText());
+            writer.writeEndElement();
+            break;
+        }
+        }
+    }
+    writer.writeEndElement(); // "svg" element
+    writer.writeEndDocument();
+    mimedata->setData("image/svg+xml", data);
+    // Add data to clipboard
     QClipboard *clipboard = QGuiApplication::clipboard();
     clipboard->setMimeData(mimedata);
 }
@@ -1539,23 +1617,95 @@ void SlideScene::copyToClipboard() const
 void SlideScene::pasteFromClipboard()
 {
     const QMimeData *mimedata = QGuiApplication::clipboard()->mimeData();
+    QList<QGraphicsItem*> items;
     if (mimedata->hasFormat("application/beamerpresenter"))
     {
         const QByteArray data = mimedata->data("application/beamerpresenter");
         QDataStream stream(data);
-        QList<QGraphicsItem*> items;
         stream >> items;
         items.removeAll(nullptr);
-        if (items.isEmpty())
-            return;
-        clearSelection();
-        for (const auto item : items)
-        {
-            if (item->scene() != this)
-                addItem(item);
-            item->show();
-            item->setSelected(true);
-        }
-        emit sendAddPaths(page | page_part, items);
     }
+    else if (mimedata->hasFormat("image/svg+xml"))
+    {
+        QXmlStreamReader reader(mimedata->data("image/svg+xml"));
+        while (!reader.atEnd() && (reader.readNext() != QXmlStreamReader::StartElement || reader.name().toUtf8() != "svg")) {}
+        while (reader.readNextStartElement())
+        {
+            debug_msg(DebugDrawing, reader.name());
+            if (reader.name().toUtf8() == "g")
+            {
+                const QPointF pos(reader.attributes().value("x", "0.").toDouble(), reader.attributes().value("y", "0.").toDouble());
+                QTransform transform;
+                QString transform_string = reader.attributes().value("transform").toString();
+                if (transform_string.length() >= 19 && transform_string.startsWith("matrix(") && transform_string.endsWith(")"))
+                {
+                    // TODO: this is inefficient
+                    transform_string.remove("matrix(");
+                    transform_string.remove(")");
+                    const QStringList list = transform_string.trimmed().replace(" ", ",").split(",");
+                    if (list.length() == 6)
+                        transform.setMatrix(list[0].toDouble(), list[1].toDouble(), 0., list[2].toDouble(), list[3].toDouble(), 0., list[4].toDouble(), list[5].toDouble(), 1.);
+                }
+                while (reader.readNextStartElement() && reader.name().toUtf8() != "path" && !reader.isEndElement())
+                    reader.skipCurrentElement();
+                debug_msg(DebugDrawing, reader.name());
+                if (reader.name().toUtf8() != "path")
+                    continue;
+
+                QString coordinates = reader.attributes().value("d").toString();
+                coordinates.replace(",", " ");
+                // TODO: currently all coordinates are interpreted as absolute coordinates.
+                coordinates.remove("m");
+                coordinates.remove("l");
+                coordinates.remove("z");
+                coordinates.remove("L");
+                coordinates.remove("M");
+                QRegularExpression re;
+                re.setPattern(R"(\s\s+)");
+                coordinates.replace(re, " ");
+                coordinates = coordinates.trimmed();
+                QString style = reader.attributes().value("style").toString();
+                QColor color = Qt::black;
+                qreal width = 1.;
+                re.setPattern("stroke:(#[0-9a-fA-F]+)");
+                if (style.contains("stroke:"))
+                    color = QColor(re.match(style).captured(1));
+                re.setPattern("stroke-width:([0-9.]+)");
+                if (style.contains("stroke-width:"))
+                    width = re.match(style).captured(1).toDouble();
+                DrawTool tool(Tool::BasicSelectionTool, 0, QPen(color, width));
+                BasicGraphicsPath *path = new BasicGraphicsPath(tool, coordinates);
+                path->setPos(pos);
+                path->setPos(sceneRect().center());
+                path->setTransform(transform);
+                items.append(path);
+                if (!reader.isEndElement())
+                    reader.skipCurrentElement();
+            }
+            else if (reader.name().toUtf8() == "text")
+            {
+                // TODO
+            }
+            if (!reader.isEndElement())
+                reader.skipCurrentElement();
+        }
+        reader.clear();
+    }
+    if (items.isEmpty())
+        return;
+    clearSelection();
+    for (const auto item : items)
+    {
+        if (item->scene() != this)
+            addItem(item);
+        item->show();
+        item->setSelected(true);
+    }
+    emit sendAddPaths(page | page_part, items);
+}
+
+void SlideScene::selectionToForeground() const
+{
+    const QList<QGraphicsItem*> selection = selectedItems();
+    // TODO
 }

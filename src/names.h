@@ -65,6 +65,7 @@ static const QMap<QString, Action> string_to_action_map
     {"copy", CopyClipboard},
     {"cut", CutClipboard},
     {"paste", PasteClipboard},
+    {"to foreground", SelectionToForeground},
     {"delete", RemoveSelectedItems},
     {"duplicate", DuplicateSelectedItems},
     // Timer

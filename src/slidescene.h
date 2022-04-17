@@ -207,6 +207,9 @@ public:
     /// Paste from clipboard.
     void pasteFromClipboard();
 
+    /// Bring selected items to foreground.
+    void selectionToForeground() const;
+
 protected:
     /**
      * @brief handle pointing device events.

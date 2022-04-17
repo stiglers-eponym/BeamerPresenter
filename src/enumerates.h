@@ -85,6 +85,7 @@ enum Action
     CopyClipboard, ///< copy selection to clipboard
     CutClipboard, ///< cut selection to clipboard
     PasteClipboard, ///< paste from clipboard
+    SelectionToForeground, ///< bring selected items to foreground
     RemoveSelectedItems, ///< remove all selected items
     DuplicateSelectedItems, ///< duplicate all selected items (also copies to clipboard)
     // Timer
