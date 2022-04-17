@@ -727,6 +727,8 @@ void PathContainer::transformItemsMap(const QHash<QGraphicsItem*, QTransform> &m
 {
     if (map.isEmpty())
         return;
+    // Remove all "redo" options.
+    truncateHistory();
     // Create new history step.
     DrawHistoryStep *const step = new DrawHistoryStep();
     int idx;
@@ -766,13 +768,14 @@ QColor rgba_to_color(const QString &string)
 QDataStream &operator<<(QDataStream &stream, const QGraphicsItem *item)
 {
     stream << item->type();
+    stream << item->pos();
+    stream << item->transform();
     switch (item->type())
     {
     case BasicGraphicsPath::Type:
     {
         debug_msg(DebugDrawing, "write BasicGraphicsPath to stream");
         const BasicGraphicsPath *path = static_cast<const BasicGraphicsPath*>(item);
-        stream << path->transform();
         stream << path->_tool.tool();
         stream << path->_tool.pen();
         stream << path->_tool.brush();
@@ -784,7 +787,6 @@ QDataStream &operator<<(QDataStream &stream, const QGraphicsItem *item)
     {
         debug_msg(DebugDrawing, "write FullGraphicsPath to stream");
         const FullGraphicsPath *path = static_cast<const FullGraphicsPath*>(item);
-        stream << path->transform();
         stream << path->_tool.tool();
         stream << path->_tool.pen();
         stream << path->_tool.brush();
@@ -796,7 +798,10 @@ QDataStream &operator<<(QDataStream &stream, const QGraphicsItem *item)
     case TextGraphicsItem::Type:
     {
         debug_msg(DebugDrawing, "write TextGraphicsItem to stream");
-        // TODO
+        const TextGraphicsItem *text = static_cast<const TextGraphicsItem*>(item);
+        stream << text->font();
+        stream << text->defaultTextColor();
+        stream << text->document()->toHtml();
         break;
     }
     }
@@ -807,13 +812,15 @@ QDataStream &operator>>(QDataStream &stream, QGraphicsItem *&item)
 {
     int type;
     stream >> type;
+    QPointF pos;
+    stream >> pos;
+    QTransform transform;
+    stream >> transform;
     switch (type)
     {
     case BasicGraphicsPath::Type:
     {
         debug_msg(DebugDrawing, "read BasicGraphicsPath from stream");
-        QTransform transform;
-        stream >> transform;
         Tool::BasicTool base_tool;
         stream >> base_tool;
         QPen pen;
@@ -826,14 +833,11 @@ QDataStream &operator>>(QDataStream &stream, QGraphicsItem *&item)
         QVector<QPointF> coordinates;
         stream >> coordinates;
         item = new BasicGraphicsPath(tool, coordinates);
-        item->setTransform(transform);
         break;
     }
     case FullGraphicsPath::Type:
     {
         debug_msg(DebugDrawing, "read FullGraphicsPath from stream");
-        QTransform transform;
-        stream >> transform;
         Tool::BasicTool base_tool;
         stream >> base_tool;
         QPen pen;
@@ -848,17 +852,32 @@ QDataStream &operator>>(QDataStream &stream, QGraphicsItem *&item)
         QVector<float> pressures;
         stream >> pressures;
         item = new FullGraphicsPath(tool, coordinates, pressures);
-        item->setTransform(transform);
         break;
     }
     case TextGraphicsItem::Type:
+    {
         debug_msg(DebugDrawing, "read TextGraphicsItem from stream");
-        // TODO
-        item = nullptr;
+        TextGraphicsItem *text = new TextGraphicsItem();
+        QFont font;
+        stream >> font;
+        text->setFont(font);
+        QColor color;
+        stream >> color;
+        text->setDefaultTextColor(color);
+        QString html;
+        stream >> html;
+        text->document()->setHtml(html);
+        item = text;
         break;
+    }
     default:
         item = nullptr;
         break;
+    }
+    if (item)
+    {
+        item->setPos(pos);
+        item->setTransform(transform);
     }
     return stream;
 }

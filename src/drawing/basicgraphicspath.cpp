@@ -187,7 +187,8 @@ void BasicGraphicsPath::changeTool(const DrawTool &newtool) noexcept
 AbstractGraphicsPath *BasicGraphicsPath::copy() const
 {
     BasicGraphicsPath *newpath = new BasicGraphicsPath(_tool, coordinates, bounding_rect);
-    newpath->setPos(scenePos());
+    newpath->setPos(pos());
+    newpath->setTransform(transform());
     newpath->shape_cache = shape_cache;
     return newpath;
 }

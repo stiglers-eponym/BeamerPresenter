@@ -20,6 +20,7 @@ TextGraphicsItem *TextGraphicsItem::clone() const
 {
     TextGraphicsItem *newitem = new TextGraphicsItem();
     newitem->setPos(pos());
+    newitem->setTransform(transform());
     newitem->setFont(font());
     newitem->setDefaultTextColor(defaultTextColor());
     newitem->setDocument(document()->clone());

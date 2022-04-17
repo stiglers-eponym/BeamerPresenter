@@ -255,7 +255,8 @@ AbstractGraphicsPath *FullGraphicsPath::copy() const
     newpath->coordinates = coordinates;
     newpath->pressures = pressures;
     newpath->bounding_rect = bounding_rect;
-    newpath->setPos(scenePos());
+    newpath->setPos(pos());
+    newpath->setTransform(transform());
     newpath->shape_cache = shape_cache;
     return newpath;
 }

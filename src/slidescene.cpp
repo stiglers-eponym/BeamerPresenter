@@ -627,6 +627,7 @@ void SlideScene::navigationEvent(const int newpage, SlideScene *newscene)
 {
     debug_msg(DebugPageChange, "scene" << this << "navigates to" << newpage << "as" << newscene);
     pauseMedia();
+    clearSelection();
     if (pageTransitionItem)
     {
         removeItem(pageTransitionItem);
@@ -662,7 +663,6 @@ void SlideScene::navigationEvent(const int newpage, SlideScene *newscene)
     if (!newscene || newscene == this)
     {
         addItem(pageItem);
-        addItem(&selection_bounding_rect);
         loadMedia(page);
         if (slide_flags & ShowDrawings)
         {
@@ -1513,6 +1513,8 @@ void SlideScene::updateSelectionRect() noexcept
     for (const auto &item : items)
         newrect = newrect.united(item->mapToScene(item->shape()).controlPointRect());
     selection_bounding_rect.setRect(newrect);
+    if (selection_bounding_rect.scene() != this)
+        addItem(&selection_bounding_rect);
     selection_bounding_rect.show();
 }
 
