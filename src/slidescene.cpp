@@ -1528,7 +1528,7 @@ void SlideScene::copyToClipboard() const
 {
     const QList<QGraphicsItem*> selection = selectedItems();
     QByteArray data;
-    QDataStream stream(&data, QDataStream::WriteOnly);
+    QDataStream stream(&data, QIODevice::WriteOnly);
     stream << selection;
     QMimeData *mimedata = new QMimeData();
     mimedata->setData("application/beamerpresenter", data);

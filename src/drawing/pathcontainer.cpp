@@ -776,10 +776,10 @@ QDataStream &operator<<(QDataStream &stream, const QGraphicsItem *item)
     {
         debug_msg(DebugDrawing, "write BasicGraphicsPath to stream");
         const BasicGraphicsPath *path = static_cast<const BasicGraphicsPath*>(item);
-        stream << path->_tool.tool();
+        stream << quint16(path->_tool.tool());
         stream << path->_tool.pen();
         stream << path->_tool.brush();
-        stream << path->_tool.compositionMode();
+        stream << quint16(path->_tool.compositionMode());
         stream << path->coordinates;
         break;
     }
@@ -787,10 +787,10 @@ QDataStream &operator<<(QDataStream &stream, const QGraphicsItem *item)
     {
         debug_msg(DebugDrawing, "write FullGraphicsPath to stream");
         const FullGraphicsPath *path = static_cast<const FullGraphicsPath*>(item);
-        stream << path->_tool.tool();
+        stream << quint16(path->_tool.tool());
         stream << path->_tool.pen();
         stream << path->_tool.brush();
-        stream << path->_tool.compositionMode();
+        stream << quint16(path->_tool.compositionMode());
         stream << path->coordinates;
         stream << path->pressures;
         break;
@@ -821,15 +821,15 @@ QDataStream &operator>>(QDataStream &stream, QGraphicsItem *&item)
     case BasicGraphicsPath::Type:
     {
         debug_msg(DebugDrawing, "read BasicGraphicsPath from stream");
-        Tool::BasicTool base_tool;
+        quint16 base_tool;
         stream >> base_tool;
         QPen pen;
         stream >> pen;
         QBrush brush;
         stream >> brush;
-        QPainter::CompositionMode composition_mode;
+        quint16 composition_mode;
         stream >> composition_mode;
-        DrawTool tool(base_tool, 0, pen, brush, composition_mode);
+        DrawTool tool(Tool::BasicTool(base_tool), 0, pen, brush, QPainter::CompositionMode(composition_mode));
         QVector<QPointF> coordinates;
         stream >> coordinates;
         item = new BasicGraphicsPath(tool, coordinates);
@@ -838,15 +838,15 @@ QDataStream &operator>>(QDataStream &stream, QGraphicsItem *&item)
     case FullGraphicsPath::Type:
     {
         debug_msg(DebugDrawing, "read FullGraphicsPath from stream");
-        Tool::BasicTool base_tool;
+        quint16 base_tool;
         stream >> base_tool;
         QPen pen;
         stream >> pen;
         QBrush brush;
         stream >> brush;
-        QPainter::CompositionMode composition_mode;
+        quint16 composition_mode;
         stream >> composition_mode;
-        DrawTool tool(base_tool, 0, pen, brush, composition_mode);
+        DrawTool tool(Tool::BasicTool(base_tool), 0, pen, brush, QPainter::CompositionMode(composition_mode));
         QVector<QPointF> coordinates;
         stream >> coordinates;
         QVector<float> pressures;
