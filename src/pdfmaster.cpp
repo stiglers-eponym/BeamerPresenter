@@ -175,6 +175,32 @@ void PdfMaster::replacePath(int page, QGraphicsItem *olditem, QGraphicsItem *new
     }
 }
 
+void PdfMaster::addItems(int page, const QList<QGraphicsItem*> &items)
+{
+    if (preferences()->overlay_mode == PerLabel)
+        page = document->overlaysShifted((page & ~NotFullPage), FirstOverlay) | (page & NotFullPage);
+    if (!paths.contains(page))
+        paths[page] = new PathContainer(this);
+    if (!items.isEmpty())
+    {
+        paths[page]->addItems(items);
+        _flags |= UnsavedDrawings;
+    }
+}
+
+void PdfMaster::removeItems(int page, const QList<QGraphicsItem*> &items)
+{
+    if (preferences()->overlay_mode == PerLabel)
+        page = document->overlaysShifted((page & ~NotFullPage), FirstOverlay) | (page & NotFullPage);
+    if (!paths.contains(page))
+        paths[page] = new PathContainer(this);
+    if (!items.isEmpty())
+    {
+        paths[page]->removeItems(items);
+        _flags |= UnsavedDrawings;
+    }
+}
+
 void PdfMaster::addTransformsMap(int page, const QHash<QGraphicsItem*, QTransform> &map)
 {
     if (preferences()->overlay_mode == PerLabel)

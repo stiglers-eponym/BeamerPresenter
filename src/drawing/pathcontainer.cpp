@@ -199,9 +199,10 @@ void PathContainer::append(QGraphicsItem *item)
     // Create new history step which adds item.
     DrawHistoryStep *const step = new DrawHistoryStep();
     step->createdItems[paths.length()] = item;
-    history.append(step);
     // Add item to paths.
     paths.append(item);
+    // Add step to history.
+    history.append(step);
     // Limit history size (if necessary).
     if (history.length() > preferences()->history_length_visible_slides)
         clearHistory(preferences()->history_length_visible_slides);
@@ -673,20 +674,53 @@ void PathContainer::replaceItem(QGraphicsItem *olditem, QGraphicsItem *newitem)
         clearHistory(preferences()->history_length_visible_slides);
 }
 
-QString color_to_rgba(const QColor &color)
+void PathContainer::addItems(const QList<QGraphicsItem*> &items)
 {
-    return QLatin1Char('#') + QString::number((color.rgb() << 8) + color.alpha(), 16).rightJustified(8, '0', true);
+    // Remove all "redo" options.
+    truncateHistory();
+    DrawHistoryStep *const step = new DrawHistoryStep();
+    for (const auto item : items)
+    {
+        if (paths.contains(item))
+            // this should never happen
+            continue;
+        step->createdItems[paths.length()] = item;
+        paths.append(item);
+    }
+    history.append(step);
+    // Limit history size (if necessary).
+    if (history.length() > preferences()->history_length_visible_slides)
+        clearHistory(preferences()->history_length_visible_slides);
 }
 
-QColor rgba_to_color(const QString &string)
+void PathContainer::removeItems(const QList<QGraphicsItem*> &items)
 {
-    switch (string.length())
+    // Remove all "redo" options.
+    truncateHistory();
+    DrawHistoryStep *const step = new DrawHistoryStep();
+    int index;
+    for (const auto item : items)
     {
-    case 9:
-        return QColor('#' + string.right(2) + string.mid(1,6));
-    default:
-        return QColor(string);
+        index = paths.indexOf(item);
+        if (index < 0)
+            // this should never happen
+            continue;
+        step->deletedItems[index] = item;
     }
+    for (auto it=step->deletedItems.cend(); it!=step->deletedItems.cbegin();)
+    {
+        paths.removeAt((--it).key());
+        // Remove item from it's scene (if it has one).
+        if ((*it)->scene())
+        {
+            (*it)->clearFocus();
+            (*it)->scene()->removeItem(*it);
+        }
+    }
+    history.append(step);
+    // Limit history size (if necessary).
+    if (history.length() > preferences()->history_length_visible_slides)
+        clearHistory(preferences()->history_length_visible_slides);
 }
 
 void PathContainer::transformItemsMap(const QHash<QGraphicsItem*, QTransform> &map)
@@ -709,4 +743,59 @@ void PathContainer::transformItemsMap(const QHash<QGraphicsItem*, QTransform> &m
     // Limit history size (if necessary).
     if (history.length() > preferences()->history_length_visible_slides)
         clearHistory(preferences()->history_length_visible_slides);
+}
+
+
+QString color_to_rgba(const QColor &color)
+{
+    return QLatin1Char('#') + QString::number((color.rgb() << 8) + color.alpha(), 16).rightJustified(8, '0', true);
+}
+
+QColor rgba_to_color(const QString &string)
+{
+    switch (string.length())
+    {
+    case 9:
+        return QColor('#' + string.right(2) + string.mid(1,6));
+    default:
+        return QColor(string);
+    }
+}
+
+
+QDataStream &operator<<(QDataStream &stream, const QGraphicsItem &item)
+{
+    stream << item.type();
+    switch (item.type())
+    {
+    case BasicGraphicsPath::Type:
+        debug_msg(DebugDrawing, "write BasicGraphicsPath to stream");
+        break;
+    case FullGraphicsPath::Type:
+        debug_msg(DebugDrawing, "write FullGraphicsPath to stream");
+        break;
+    case TextGraphicsItem::Type:
+        debug_msg(DebugDrawing, "write TextGraphicsItem to stream");
+        break;
+    }
+    return stream;
+}
+
+QDataStream &operator>>(QDataStream &stream, QGraphicsItem &item)
+{
+    int type;
+    stream >> type;
+    switch (type)
+    {
+    case BasicGraphicsPath::Type:
+        debug_msg(DebugDrawing, "read BasicGraphicsPath from stream");
+        break;
+    case FullGraphicsPath::Type:
+        debug_msg(DebugDrawing, "read FullGraphicsPath from stream");
+        break;
+    case TextGraphicsItem::Type:
+        debug_msg(DebugDrawing, "read TextGraphicsItem from stream");
+        break;
+    }
+    return stream;
 }

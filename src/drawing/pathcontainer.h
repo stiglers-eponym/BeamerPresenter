@@ -3,6 +3,7 @@
 
 #include <QList>
 #include <QGraphicsItem>
+#include <QDataStream>
 #include "src/drawing/tool.h"
 
 class QGraphicsScene;
@@ -180,7 +181,6 @@ public:
     /// @return bounding box of all drawings
     QRectF boundingBox() const noexcept;
 
-public slots:
     /// Create history step that replaces the old item by the new one.
     /// If the new item is NULL, the old item is deleted.
     /// If the old item is NULL, the new one is just inserted.
@@ -188,6 +188,15 @@ public slots:
     /// They can then inform this function, which removes them and adds this as a new history step.
     void replaceItem(QGraphicsItem *olditem, QGraphicsItem *newitem);
 
+    /// Add new paths.
+    void addItems(const QList<QGraphicsItem*> &items);
+    /// Remove paths.
+    void removeItems(const QList<QGraphicsItem*> &items);
+
+    // Apply transforms to items.
+    void transformItemsMap(const QHash<QGraphicsItem*, QTransform> &map);
+
+public slots:
     // Remove the item in a new history step.
     void removeItem(QGraphicsItem *item)
     {replaceItem(item, NULL);}
@@ -195,9 +204,6 @@ public slots:
     /// Notify of a change in a text item, add the item to history if necessary.
     void addTextItem(QGraphicsItem *item)
     {replaceItem(NULL, item);}
-
-    // Apply transforms to items.
-    void transformItemsMap(const QHash<QGraphicsItem*, QTransform> &map);
 };
 
 /// Convert color to string with format #RRGGBBAA
@@ -207,5 +213,8 @@ QString color_to_rgba(const QColor &color);
 /// Convert color string of format #RRGGBBAA to QColor
 /// (required for Xournal++ format).
 QColor rgba_to_color(const QString &string);
+
+QDataStream &operator<<(QDataStream &stream, const QGraphicsItem &item);
+QDataStream &operator>>(QDataStream &stream, QGraphicsItem &item);
 
 #endif // PATHCONTAINER_H

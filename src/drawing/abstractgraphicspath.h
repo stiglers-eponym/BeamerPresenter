@@ -42,6 +42,8 @@ protected:
 
 friend class BasicGraphicsPath;
 friend class ShapeRecognizer;
+friend QDataStream &operator<<(QDataStream &stream, const QGraphicsItem &item);
+friend QDataStream &operator>>(QDataStream &stream, QGraphicsItem &item);
 
 public:
     /// Constructor: initialize tool.

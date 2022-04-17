@@ -183,6 +183,12 @@ public:
         {Qt::Key_PageDown, Action::NextPage},
         {Qt::Key_PageUp, Action::PreviousPage},
         {Qt::Key_Space, Action::Update},
+        {Qt::CTRL | Qt::Key_C, Action::CopyClipboard},
+        {Qt::CTRL | Qt::Key_X, Action::CutClipboard},
+        {Qt::CTRL | Qt::Key_V, Action::PasteClipboard},
+        {Qt::CTRL | Qt::Key_Z, Action::UndoDrawing},
+        {Qt::CTRL | Qt::Key_Y, Action::RedoDrawing},
+        {Qt::Key_Delete, Action::RemoveSelectedItems},
     };
     /// Map key combinations to tools. These tools are not owned by this.
     /// Only when the program ends and preferences() is the last object to

@@ -81,6 +81,12 @@ enum Action
     SaveDrawingsAs, ///< save drawings to file, always ask for file name
     LoadDrawings, ///< load drawings from file, always ask for file name
     LoadDrawingsNoClear, ///< load drawings from file without clearing existing drawings (better don't use that!)
+    // Modify drawn items
+    CopyClipboard, ///< copy selection to clipboard
+    CutClipboard, ///< cut selection to clipboard
+    PasteClipboard, ///< paste from clipboard
+    RemoveSelectedItems, ///< remove all selected items
+    DuplicateSelectedItems, ///< duplicate all selected items (also copies to clipboard)
     // Timer
     StartTimer, ///< start timer
     StopTimer, ///< stop (pause) timer

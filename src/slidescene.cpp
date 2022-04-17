@@ -32,6 +32,8 @@ SlideScene::SlideScene(const PdfMaster *master, const PagePart part, QObject *pa
     connect(this, &SlideScene::replacePath, master, &PdfMaster::replacePath, Qt::DirectConnection);
     connect(this, &SlideScene::sendTransformsMap, master, &PdfMaster::addTransformsMap, Qt::DirectConnection);
     connect(this, &SlideScene::requestNewPathContainer, master, &PdfMaster::requestNewPathContainer, Qt::DirectConnection);
+    connect(this, &SlideScene::sendRemovePaths, master, &PdfMaster::removeItems, Qt::DirectConnection);
+    connect(this, &SlideScene::sendAddPaths, master, &PdfMaster::addItems, Qt::DirectConnection);
     connect(this, &SlideScene::selectionChanged, this, &SlideScene::updateSelectionRect, Qt::DirectConnection);
     pageItem->setZValue(-1e2);
     addItem(&selection_bounding_rect);
@@ -516,6 +518,7 @@ void SlideScene::handleSelectionStopEvents(SelectionTool *tool, const QPointF &p
 
 void SlideScene::receiveAction(const Action action)
 {
+    debug_msg(DebugKeyInput, "SlideScene received action" << action);
     switch (action)
     {
     case ScrollDown:
@@ -555,6 +558,23 @@ void SlideScene::receiveAction(const Action action)
             if (m.player)
                 m.player->setMuted(false);
 #endif
+        break;
+    case CopyClipboard:
+        copyToClipboard();
+        break;
+    case CutClipboard:
+        copyToClipboard();
+        removeSelection();
+        break;
+    case RemoveSelectedItems:
+        removeSelection();
+        break;
+    case PasteClipboard:
+        pasteFromClipboard();
+        break;
+    case DuplicateSelectedItems:
+        copyToClipboard();
+        pasteFromClipboard();
         break;
     default:
         break;
@@ -1481,4 +1501,22 @@ void SlideScene::updateSelectionRect() noexcept
         newrect = newrect.united(item->mapToScene(item->shape()).controlPointRect());
     selection_bounding_rect.setRect(newrect);
     selection_bounding_rect.show();
+}
+
+void SlideScene::removeSelection() const
+{
+    QList<QGraphicsItem*> selection = selectedItems();
+    emit sendRemovePaths(page | page_part, selection);
+}
+
+void SlideScene::copyToClipboard() const
+{
+    // TODO
+}
+
+void SlideScene::pasteFromClipboard() const
+{
+    // TODO
+    // TODO: add history step
+    // TODO: select pasted items
 }

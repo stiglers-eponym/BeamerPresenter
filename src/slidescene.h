@@ -198,6 +198,15 @@ public:
     bool isTextEditing() const noexcept
     {return focusItem() && focusItem()->type() == TextGraphicsItem::Type;}
 
+    /// Copy selection to clipboard.
+    void copyToClipboard() const;
+
+    /// Remove selection.
+    void removeSelection() const;
+
+    /// Paste from clipboard.
+    void pasteFromClipboard() const;
+
 protected:
     /**
      * @brief handle pointing device events.
@@ -279,6 +288,12 @@ signals:
 
     /// Replace old path by new path in a single drawing history step.
     void replacePath(int page, QGraphicsItem *olditem, QGraphicsItem *newitem) const;
+
+    /// Add new paths in single history step.
+    void sendAddPaths(int page, const QList<QGraphicsItem*> &paths) const;
+
+    /// Remove paths in single history step.
+    void sendRemovePaths(int page, const QList<QGraphicsItem*> &paths) const;
 
     /// Tell master that transition has ended.
     void finishTransition();
