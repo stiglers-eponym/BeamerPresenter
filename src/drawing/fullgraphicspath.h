@@ -20,6 +20,8 @@ private:
     QVector<float> pressures;
 
 friend class ShapeRecognizer;
+friend QDataStream &operator<<(QDataStream &stream, const QGraphicsItem *item);
+friend QDataStream &operator>>(QDataStream &stream, QGraphicsItem *&item);
 
 public:
     /// Custom type of QGraphicsItem.
@@ -45,6 +47,9 @@ public:
     /// @param first index of first node contained in the subpath.
     /// @param last index of first node after the subpath.
     FullGraphicsPath(const FullGraphicsPath *const other, int first, int last);
+
+    /// Construct path from given coordinates and pressures.
+    FullGraphicsPath(const DrawTool &tool, const QVector<QPointF> &coordinates, const QVector<float> &pressures);
 
     /// Copy this.
     AbstractGraphicsPath *copy() const override;

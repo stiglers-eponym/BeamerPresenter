@@ -15,6 +15,14 @@ FullGraphicsPath::FullGraphicsPath(const DrawTool &tool, const QPointF &pos, con
     pressures.append(_tool.width()*pressure);
 }
 
+FullGraphicsPath::FullGraphicsPath(const DrawTool &tool, const QVector<QPointF> &coordinates, const QVector<float> &pressures) :
+    AbstractGraphicsPath(tool, coordinates),
+    pressures(pressures)
+{
+    shape_cache = shape();
+    bounding_rect = shape_cache.boundingRect();
+}
+
 FullGraphicsPath::FullGraphicsPath(const FullGraphicsPath * const other, int first, int last) :
     AbstractGraphicsPath(other->_tool)
 {

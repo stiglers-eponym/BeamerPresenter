@@ -27,7 +27,7 @@ public:
     /// @param tool draw tool for stroking path
     /// @param coordinates vector
     /// @param bounding_rect bounding rectangle
-    BasicGraphicsPath(const DrawTool &tool, const QVector<QPointF> &coordinates, const QRectF &bounding_rect) noexcept;
+    BasicGraphicsPath(const DrawTool &tool, const QVector<QPointF> &coordinates, const QRectF &bounding_rect = QRectF()) noexcept;
 
     /// Construct path from coordinate string.
     /// @param tool draw tool for stroking path

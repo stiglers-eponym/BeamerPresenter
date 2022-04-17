@@ -1,3 +1,7 @@
+#include <QDataStream>
+#include <QGuiApplication>
+#include <QMimeData>
+#include <QClipboard>
 #include <QDesktopServices>
 #if (QT_VERSION_MAJOR < 6)
 #include <QMediaPlaylist>
@@ -560,21 +564,30 @@ void SlideScene::receiveAction(const Action action)
 #endif
         break;
     case CopyClipboard:
-        copyToClipboard();
+        if (slide_flags & ShowDrawings && hasFocus())
+            copyToClipboard();
         break;
     case CutClipboard:
-        copyToClipboard();
-        removeSelection();
+        if (slide_flags & ShowDrawings && hasFocus())
+        {
+            copyToClipboard();
+            removeSelection();
+        }
         break;
     case RemoveSelectedItems:
-        removeSelection();
+        if (slide_flags & ShowDrawings && hasFocus())
+            removeSelection();
         break;
     case PasteClipboard:
-        pasteFromClipboard();
+        if (slide_flags & ShowDrawings && hasFocus())
+            pasteFromClipboard();
         break;
     case DuplicateSelectedItems:
-        copyToClipboard();
-        pasteFromClipboard();
+        if (slide_flags & ShowDrawings && hasFocus())
+        {
+            copyToClipboard();
+            pasteFromClipboard();
+        }
         break;
     default:
         break;
@@ -1505,18 +1518,42 @@ void SlideScene::updateSelectionRect() noexcept
 
 void SlideScene::removeSelection() const
 {
-    QList<QGraphicsItem*> selection = selectedItems();
+    const QList<QGraphicsItem*> selection = selectedItems();
     emit sendRemovePaths(page | page_part, selection);
 }
 
 void SlideScene::copyToClipboard() const
 {
-    // TODO
+    const QList<QGraphicsItem*> selection = selectedItems();
+    QByteArray data;
+    QDataStream stream(&data, QDataStream::WriteOnly);
+    stream << selection;
+    QMimeData *mimedata = new QMimeData();
+    mimedata->setData("application/beamerpresenter", data);
+    QClipboard *clipboard = QGuiApplication::clipboard();
+    clipboard->setMimeData(mimedata);
 }
 
-void SlideScene::pasteFromClipboard() const
+void SlideScene::pasteFromClipboard()
 {
-    // TODO
-    // TODO: add history step
-    // TODO: select pasted items
+    const QMimeData *mimedata = QGuiApplication::clipboard()->mimeData();
+    if (mimedata->hasFormat("application/beamerpresenter"))
+    {
+        const QByteArray data = mimedata->data("application/beamerpresenter");
+        QDataStream stream(data);
+        QList<QGraphicsItem*> items;
+        stream >> items;
+        items.removeAll(nullptr);
+        if (items.isEmpty())
+            return;
+        clearSelection();
+        for (const auto item : items)
+        {
+            if (item->scene() != this)
+                addItem(item);
+            item->show();
+            item->setSelected(true);
+        }
+        emit sendAddPaths(page | page_part, items);
+    }
 }

@@ -20,7 +20,13 @@ BasicGraphicsPath::BasicGraphicsPath(const DrawTool &tool, const QPointF &pos) n
 BasicGraphicsPath::BasicGraphicsPath(const DrawTool &tool, const QVector<QPointF> &coordinates, const QRectF &boundingRect) noexcept :
     AbstractGraphicsPath(tool, coordinates)
 {
-    bounding_rect = boundingRect;
+    if (bounding_rect.isEmpty())
+    {
+        shape_cache = shape();
+        bounding_rect = shape_cache.boundingRect();
+    }
+    else
+        bounding_rect = boundingRect;
 }
 
 BasicGraphicsPath::BasicGraphicsPath(const AbstractGraphicsPath * const other, int first, int last) :

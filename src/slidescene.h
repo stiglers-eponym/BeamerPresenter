@@ -205,7 +205,7 @@ public:
     void removeSelection() const;
 
     /// Paste from clipboard.
-    void pasteFromClipboard() const;
+    void pasteFromClipboard();
 
 protected:
     /**

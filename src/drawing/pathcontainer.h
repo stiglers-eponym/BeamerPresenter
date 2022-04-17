@@ -214,7 +214,7 @@ QString color_to_rgba(const QColor &color);
 /// (required for Xournal++ format).
 QColor rgba_to_color(const QString &string);
 
-QDataStream &operator<<(QDataStream &stream, const QGraphicsItem &item);
-QDataStream &operator>>(QDataStream &stream, QGraphicsItem &item);
+QDataStream &operator<<(QDataStream &stream, const QGraphicsItem *item);
+QDataStream &operator>>(QDataStream &stream, QGraphicsItem *&item);
 
 #endif // PATHCONTAINER_H

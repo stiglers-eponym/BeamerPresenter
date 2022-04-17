@@ -763,38 +763,101 @@ QColor rgba_to_color(const QString &string)
 }
 
 
-QDataStream &operator<<(QDataStream &stream, const QGraphicsItem &item)
+QDataStream &operator<<(QDataStream &stream, const QGraphicsItem *item)
 {
-    stream << item.type();
-    switch (item.type())
+    stream << item->type();
+    switch (item->type())
     {
     case BasicGraphicsPath::Type:
+    {
         debug_msg(DebugDrawing, "write BasicGraphicsPath to stream");
+        const BasicGraphicsPath *path = static_cast<const BasicGraphicsPath*>(item);
+        stream << path->transform();
+        stream << path->_tool.tool();
+        stream << path->_tool.pen();
+        stream << path->_tool.brush();
+        stream << path->_tool.compositionMode();
+        stream << path->coordinates;
         break;
+    }
     case FullGraphicsPath::Type:
+    {
         debug_msg(DebugDrawing, "write FullGraphicsPath to stream");
+        const FullGraphicsPath *path = static_cast<const FullGraphicsPath*>(item);
+        stream << path->transform();
+        stream << path->_tool.tool();
+        stream << path->_tool.pen();
+        stream << path->_tool.brush();
+        stream << path->_tool.compositionMode();
+        stream << path->coordinates;
+        stream << path->pressures;
         break;
+    }
     case TextGraphicsItem::Type:
+    {
         debug_msg(DebugDrawing, "write TextGraphicsItem to stream");
+        // TODO
         break;
+    }
     }
     return stream;
 }
 
-QDataStream &operator>>(QDataStream &stream, QGraphicsItem &item)
+QDataStream &operator>>(QDataStream &stream, QGraphicsItem *&item)
 {
     int type;
     stream >> type;
     switch (type)
     {
     case BasicGraphicsPath::Type:
+    {
         debug_msg(DebugDrawing, "read BasicGraphicsPath from stream");
+        QTransform transform;
+        stream >> transform;
+        Tool::BasicTool base_tool;
+        stream >> base_tool;
+        QPen pen;
+        stream >> pen;
+        QBrush brush;
+        stream >> brush;
+        QPainter::CompositionMode composition_mode;
+        stream >> composition_mode;
+        DrawTool tool(base_tool, 0, pen, brush, composition_mode);
+        QVector<QPointF> coordinates;
+        stream >> coordinates;
+        item = new BasicGraphicsPath(tool, coordinates);
+        item->setTransform(transform);
         break;
+    }
     case FullGraphicsPath::Type:
+    {
         debug_msg(DebugDrawing, "read FullGraphicsPath from stream");
+        QTransform transform;
+        stream >> transform;
+        Tool::BasicTool base_tool;
+        stream >> base_tool;
+        QPen pen;
+        stream >> pen;
+        QBrush brush;
+        stream >> brush;
+        QPainter::CompositionMode composition_mode;
+        stream >> composition_mode;
+        DrawTool tool(base_tool, 0, pen, brush, composition_mode);
+        QVector<QPointF> coordinates;
+        stream >> coordinates;
+        QVector<float> pressures;
+        stream >> pressures;
+        item = new FullGraphicsPath(tool, coordinates, pressures);
+        item->setTransform(transform);
         break;
+    }
     case TextGraphicsItem::Type:
         debug_msg(DebugDrawing, "read TextGraphicsItem from stream");
+        // TODO
+        item = nullptr;
+        break;
+    default:
+        item = nullptr;
         break;
     }
     return stream;
