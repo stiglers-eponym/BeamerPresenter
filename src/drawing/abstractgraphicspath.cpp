@@ -4,14 +4,13 @@
 const QString AbstractGraphicsPath::stringCoordinates() const noexcept
 {
     QString str;
-    const qreal x = scenePos().x(), y = scenePos().y();
     QPointF scene_point;
     for (const auto &point : coordinates)
     {
         scene_point = mapToScene(point);
-        str += QString::number(scene_point.x() + x);
+        str += QString::number(scene_point.x());
         str += ' ';
-        str += QString::number(scene_point.y() + y);
+        str += QString::number(scene_point.y());
         str += ' ';
     }
     str.chop(1);
