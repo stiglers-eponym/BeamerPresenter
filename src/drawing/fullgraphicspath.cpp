@@ -138,7 +138,11 @@ void FullGraphicsPath::paint(QPainter *painter, const QStyleOptionGraphicsItem *
 
 void FullGraphicsPath::addPoint(const QPointF &point, const float pressure)
 {
-    shape_cache.clear();
+#if (QT_VERSION >= QT_VERSION_CHECK(5,13,0))
+        shape_cache.clear();
+#else
+        shape_cache = QPainterPath();
+#endif
     coordinates.append(point);
     pressures.append(_tool.width()*pressure);
     bool change = false;
@@ -196,10 +200,14 @@ QList<AbstractGraphicsPath*> FullGraphicsPath::splitErase(const QPointF &scene_p
 
 void FullGraphicsPath::changeWidth(const float newwidth) noexcept
 {
-    shape_cache.clear();
+#if (QT_VERSION >= QT_VERSION_CHECK(5,13,0))
+        shape_cache.clear();
+#else
+        shape_cache = QPainterPath();
+#endif
     const float scale = newwidth / _tool.width();
     auto it = pressures.begin();
-    while (++it != pressures.cend())
+    while (++it != pressures.end())
         *it *= scale;
     // cache shape
     shape_cache = shape();

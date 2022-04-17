@@ -329,6 +329,8 @@ public slots:
     void setAutoSlideChanges(const bool show);
     /// Enable or disable external links.
     void setExternalLinks(const bool enable);
+    /// Enable or disable finalizing drawn paths.
+    void setFinalizePaths(const bool finalize);
 
 signals:
     /// Send error message to master (main window), which will show a message box.

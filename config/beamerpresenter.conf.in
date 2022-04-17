@@ -41,6 +41,9 @@ rectangle angle tolerance=0.3
 # shape recognizer for rectangle: allowed distance between first and last
 # point in rectangle relative to variance of point coordinates.
 rectangle closing tolerance=0.1
+# transform only path coordinates (not stroke width) when scaling a drawn
+# path by enabling path finalizing.
+finalize drawn paths=false
 
 [keys]
 Ctrl+O=open

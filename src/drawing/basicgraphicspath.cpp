@@ -101,7 +101,11 @@ void BasicGraphicsPath::paint(QPainter *painter, const QStyleOptionGraphicsItem 
 
 void BasicGraphicsPath::addPoint(const QPointF &point)
 {
-    shape_cache.clear();
+#if (QT_VERSION >= QT_VERSION_CHECK(5,13,0))
+        shape_cache.clear();
+#else
+        shape_cache = QPainterPath();
+#endif
     coordinates.append(point);
     bool change = false;
     if ( point.x() < bounding_rect.left() + _tool.width()*0.55 )
@@ -164,7 +168,11 @@ void BasicGraphicsPath::changeTool(const DrawTool &newtool) noexcept
         return;
     }
     if (std::abs(newtool.pen().widthF() - _tool.tool()) > 0.2)
+#if (QT_VERSION >= QT_VERSION_CHECK(5,13,0))
         shape_cache.clear();
+#else
+        shape_cache = QPainterPath();
+#endif
     _tool.setPen(newtool.pen());
     _tool.setWidth(newtool.width());
     _tool.setCompositionMode(newtool.compositionMode());

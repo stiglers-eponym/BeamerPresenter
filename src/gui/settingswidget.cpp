@@ -310,6 +310,16 @@ void SettingsWidget::initMisc()
 #endif
     layout->addRow(box);
 
+    // Enable/disable path finalization
+    box = new QCheckBox(tr("finalize drawn paths"), misc);
+    box->setChecked(preferences()->global_flags & Preferences::FinalizeDrawnPaths);
+#if (QT_VERSION_MAJOR >= 6)
+    connect(box, &QCheckBox::clicked, writable_preferences(), &Preferences::setFinalizePaths);
+#else
+    connect(box, QOverload<bool>::of(&QCheckBox::clicked), writable_preferences(), &Preferences::setFinalizePaths);
+#endif
+    layout->addRow(box);
+
     // Drawing mode
     explanation_label = new QLabel(
                 "<br>"

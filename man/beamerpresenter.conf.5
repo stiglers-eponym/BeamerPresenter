@@ -100,6 +100,10 @@ Drawings are connected to pages of the PDF file. But within a group of successiv
 .RE
 .
 .TP
+.BR "finalize drawn paths " "= false"
+If this is true, scaling a drawn path will only affect its coordinates, not the stroke itself. If this is false, lines will get thinner or thicker when rescaling the path.
+.
+.TP
 .BR "snap angle " "= 0.05"
 Maximal slope for angle snapping to horizontal/vertical direction when detecting lines.
 .
@@ -200,7 +204,7 @@ Entries in the dictionary are:
 .RS
 .TP
 .B tool
-mandatory: pen, fixed width pen, highlighter, eraser, pointer, magnifier, torch, text or none
+mandatory: pen, fixed width pen, highlighter, eraser, pointer, magnifier, torch, text, click select, rectangle select, or none
 .TP
 .B device
 optional, use the tool for the given devices leaving other devices unchanged. Either a single device or a list (JSON array) of device names is allowed. Available device names are: left button (equivalent: mouse), right button, middle button, no button (only mouse cursor moves), touch, tablet pen, tablet (may include table input which is not recognized as pen), tablet eraser, tablet hover (tablet event with zero pressure), tablet all (any tablet input device), all (devices which are commonly used like left mouse button), all+ (devices except right mouse button, middle mouse button, tablet eraser), all++ (really all devices).

@@ -477,6 +477,7 @@ void SlideScene::handleSelectionStopEvents(SelectionTool *tool, const QPointF &p
             return;
         QHash<QGraphicsItem*, QTransform> map;
         QTransform transform;
+        const bool finalize = preferences()->global_flags & Preferences::FinalizeDrawnPaths;
         for (auto it=originalTransforms.cbegin(); it!=originalTransforms.cend(); ++it)
         {
             if (it.key() == &selection_bounding_rect)
@@ -484,6 +485,8 @@ void SlideScene::handleSelectionStopEvents(SelectionTool *tool, const QPointF &p
             transform = it.key()->transform();
             transform *= it->inverted();
             map[it.key()] = transform;
+            if (finalize && (it.key()->type() == BasicGraphicsPath::Type || it.key()->type() == FullGraphicsPath::Type))
+                static_cast<AbstractGraphicsPath*>(it.key())->finalize();
         }
         emit sendTransformsMap(page, map);
         updateSelectionRect();

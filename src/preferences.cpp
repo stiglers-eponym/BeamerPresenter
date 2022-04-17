@@ -274,6 +274,10 @@ void Preferences::loadSettings()
     num = settings.value("rectangle closing tolerance").toDouble(&ok);
     if (ok && 0 < num && num < 2)
         rect_closing_tolerance = num;
+    if (settings.value("finalize drawn paths", false).toBool())
+        global_flags |= FinalizeDrawnPaths;
+    else
+        global_flags &= ~FinalizeDrawnPaths;
     settings.endGroup();
 
     // RENDERING
@@ -810,6 +814,15 @@ void Preferences::setAutoSlideChanges(const bool show)
     else
         global_flags &= ~AutoSlideChanges;
     settings.setValue("automatic slide changes", show);
+}
+
+void Preferences::setFinalizePaths(const bool finalize)
+{
+    if (finalize)
+        global_flags |= FinalizeDrawnPaths;
+    else
+        global_flags &= ~FinalizeDrawnPaths;
+    settings.setValue("finalize drawn paths", finalize);
 }
 
 void Preferences::setExternalLinks(const bool enable)

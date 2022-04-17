@@ -33,6 +33,11 @@ QPainterPath AbstractGraphicsPath::shape() const
 void AbstractGraphicsPath::finalize()
 {
     // TODO: change width for scaled paths
+#if (QT_VERSION >= QT_VERSION_CHECK(5,13,0))
+    shape_cache.clear();
+#else
+    shape_cache = QPainterPath();
+#endif
     const QPointF new_scene_pos = mapToScene(bounding_rect.center());
     for (auto &point : coordinates)
         point = mapToScene(point) - new_scene_pos;

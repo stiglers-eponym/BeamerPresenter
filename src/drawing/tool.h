@@ -138,7 +138,6 @@ static const QMap<QString, Tool::BasicTool> string_to_tool
     {"magnifier", Tool::Magnifier},
     {"text", Tool::TextInputTool},
     {"click select", Tool::BasicSelectionTool},
-    {"rect select", Tool::RectSelectionTool},
     {"rectangle select", Tool::RectSelectionTool},
     {"freehand select", Tool::FreehandSelectionTool},
 };
