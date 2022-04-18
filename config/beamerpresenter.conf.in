@@ -46,6 +46,10 @@ rectangle closing tolerance=0.1
 finalize drawn paths=false
 
 [keys]
+Ctrl+C=copy
+Ctrl+V=paste
+Ctrl+X=cut
+Delete=delete
 Ctrl+O=open
 Ctrl+S=save
 Ctrl+Shift+S=save as

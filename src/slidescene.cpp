@@ -595,6 +595,16 @@ void SlideScene::receiveAction(const Action action)
         if (slide_flags & ShowDrawings && hasFocus())
             selectionToForeground();
         break;
+    case SelectAll:
+        if (slide_flags & ShowDrawings && hasFocus())
+            for (const auto item : items())
+                if (item->flags() & QGraphicsItem::ItemIsSelectable)
+                    item->setSelected(true);
+        break;
+    case ClearSelection:
+        if (slide_flags & ShowDrawings && hasFocus())
+            clearSelection();
+        break;
     default:
         break;
     }

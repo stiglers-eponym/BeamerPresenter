@@ -88,6 +88,8 @@ enum Action
     SelectionToForeground, ///< bring selected items to foreground
     RemoveSelectedItems, ///< remove all selected items
     DuplicateSelectedItems, ///< duplicate all selected items (also copies to clipboard)
+    SelectAll, ///< select all items on currently focussed slide
+    ClearSelection, ///< clear selection on currently focussed slide
     // Timer
     StartTimer, ///< start timer
     StopTimer, ///< stop (pause) timer

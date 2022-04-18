@@ -189,6 +189,9 @@ public:
         {Qt::CTRL | Qt::Key_Z, Action::UndoDrawing},
         {Qt::CTRL | Qt::Key_Y, Action::RedoDrawing},
         {Qt::Key_Delete, Action::RemoveSelectedItems},
+        {Qt::CTRL | Qt::Key_S, Action::SaveDrawings},
+        {Qt::CTRL | Qt::SHIFT | Qt::Key_S, Action::SaveDrawingsAs},
+        {Qt::CTRL | Qt::Key_O, Action::LoadDrawings},
     };
     /// Map key combinations to tools. These tools are not owned by this.
     /// Only when the program ends and preferences() is the last object to

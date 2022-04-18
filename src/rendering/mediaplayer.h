@@ -43,7 +43,7 @@ private slots:
 public slots:
     /// Start playing when end of file is reached. Connect this to
     /// QMediaPlayer::mediaStatusChanged to play a video repeatedly.
-    void repeatIfFinished(MediaStatus status) noexcept
+    void repeatIfFinished(QMediaPlayer::MediaStatus status) noexcept
     {if (status == QMediaPlayer::EndOfMedia) play();}
 
     /// Soft version of setPosition: can be called repeatedly without

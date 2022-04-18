@@ -1,4 +1,4 @@
-.TH beamerpresenter-ui 5 "2022-02-20" "0.2.2"
+.TH beamerpresenter-ui 5 "2022-04-18" "0.2.2"
 .
 .SH NAME
 beamerpresenter-ui \- user interface of BeamerPresenter
@@ -249,6 +249,12 @@ redo last drawing action on left/right part of current page, assuming that the p
 .B clear
 clear all drawings on the current page.
 .TP
+.BR "clear left" / right
+clear all drawings on the left/right part of current page, assuming that the page is split into a left and right half which represent presentation and notes, respectively
+.TP
+.BR "scroll up" / normal / down
+scroll the slide view up / to normal position / down. This allows the presenter to add extra space for drawings.
+.TP
 .B save
 save drawings to file. Doesn't ask for file name if a file name is known.
 .TP
@@ -261,11 +267,29 @@ load drawings from file.
 .B open unsafe
 load drawings from file without clearing existing paths.
 .TP
-.BR "clear left" / right
-clear all drawings on the left/right part of current page, assuming that the page is split into a left and right half which represent presentation and notes, respectively
+.B copy
+copy selected items on currently focussed slide to clipboard.
 .TP
-.BR "scroll up" / normal / down
-scroll the slide view up / to normal position / down. This allows the presenter to add extra space for drawings.
+.B paste
+paste clipboard on currently focussed slide.
+.TP
+.B cut
+copy selected items on currently focussed slide to clipboard and remove them.
+.TP
+.B to foregroud
+move selected items on currently focussed slide to foreground (not implemented yet).
+.TP
+.B delete
+delete selecte items on currently focussed slide.
+.TP
+.B duplicate
+duplicate selection on curretly focussed slide.
+.TP
+.B select all
+select all items on currently focussed slide.
+.TP
+.B clear selection
+clear selection on currently focussed slide.
 .TP
 .BR start / stop / "toggle timer"
 start or stop timer in timer widget.
