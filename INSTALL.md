@@ -45,7 +45,7 @@ Enabling multiple PDF engines at compile time is also possible with some limitat
 
 
 ## General requirements
-Building is tested in Arch Linux, Manjaro, Xubuntu 20.04, Xubuntu 21.10, and partially Lubuntu 22.04.
+Building is tested in Arch Linux, Manjaro, Xubuntu 20.04, Xubuntu 21.10, and Kubuntu 22.04.
 Older versions of Ubuntu are only compatible with [version 0.1](https://github.com/stiglers-eponym/BeamerPresenter/tree/0.1.x) of BeamerPresenter.
 
 In order to build BeamerPresenter you need to have CMake, zlib and Qt 5/6 including the multimedia module and the linguist tools (only for translations).
@@ -60,7 +60,7 @@ Additionally you need either the Qt 5/6 bindings of Poppler or the MuPDF librari
     * or when using Qt 6 in Ubuntu ≥22.04: `qt6-multimedia-dev` and keep `libqt6multimediawidgets6` after the installation
 * `qttools5-dev` (only for building and only when creating translations. You can disable translations with `-DUSE_TRANSLATIONS=OFF` in the [CMake command](#configure))
     * or when using Qt 6 in Ubuntu ≥22.04: `qt6-tools-dev`, `qt6-tools-dev-tools`, and `qt6-l10n-tools`
-* optional: `libqt5multimedia5-plugins` (for showing videos, only when using Qt 5)
+* optional: `gstreamer1.0-libav` and `libqt5multimedia5-plugins` (for showing videos)
 * optional, recommended: `libqt5svg5` (for showing icons)
     * or when using Qt 6 in Ubuntu ≥22.04: `libqt6svg6`
 
@@ -210,7 +210,7 @@ cmake \
     -DMUPDF_USE_SYSTEM_LIBS=OFF \
     -DMUPDF_INCLUDE_DIR="path/to/mupdf/include" \
     -DMUPDF_LIB_PATH="path/to/libmupdf.lib" \
-    -DMUPDF_THIRDS_LIB_PATH="path/to/libthirdparty.lib" \
+    -DMUPDF_THIRD_LIB_PATH="path/to/libthirdparty.lib" \
     -DZLIB_INCLUDE_DIR="path/to/zlib/include" \
     -DZLIB_LIBRARY="path/to/zlib.lib"
 ```
@@ -223,7 +223,7 @@ The new options (compared to the table above) are:
 | `MUPDF_USE_SYSTEM_LIBS` | OFF | Disable when using MuPDF on Windows (except if you know what you are doing) |
 | `MUPDF_INCLUDE_DIR` | "" | **path to MuPDF include directory** |
 | `MUPDF_LIB_PATH` | "" | **path to libmupdf.lib** |
-| `MUPDF_THIRDS_LIB_PATH` | "" | **path to libthirdparty.lib** |
+| `MUPDF_THIRD_LIB_PATH` | "" | **path to libthirdparty.lib** |
 | `ZLIB_INCLUDE_DIR` | "" | **path to zlib include directory** |
 | `ZLIB_LIBRARY` | "" | **path to zlib.lib** |
 

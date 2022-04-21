@@ -1,7 +1,6 @@
 [
   {
     "type" : "horizontal",
-    "color" : "#b0b0b0",
     "children" : [
       {
         "type" : "tabbed",
@@ -21,8 +20,7 @@
           },
           {
             "type" : "toc",
-            "title" : "Outline",
-            "color" : "white"
+            "title" : "Outline"
           },
           {
             "type" : "thumbnails",
@@ -32,8 +30,7 @@
           },
           {
             "type" : "settings",
-            "title" : "Settings",
-            "color" : "white"
+            "title" : "Settings"
           }
         ]
       },
@@ -42,12 +39,10 @@
         "title" : "overview",
         "children" : [
           {
-            "type" : "clock",
-            "color" : "#f0f0f0"
+            "type" : "clock"
           },
           {
             "type" : "timer",
-            "color" : "white",
             "require confirmation" : true,
             "confirmation default" : false,
             "colormap" : {

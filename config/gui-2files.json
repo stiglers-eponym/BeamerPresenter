@@ -19,8 +19,7 @@
           },
           {
             "type" : "toc",
-            "title" : "Outline",
-            "color" : "white"
+            "title" : "Outline"
           },
           {
             "type" : "thumbnails",
@@ -30,8 +29,7 @@
           },
           {
             "type" : "settings",
-            "title" : "Settings",
-            "color" : "white"
+            "title" : "Settings"
           }
         ]
       },
@@ -41,12 +39,10 @@
         "children" : [
           {
             "type" : "clock",
-            "color" : "#f0f0f0",
             "touch input" : true
           },
           {
             "type" : "timer",
-            "color" : "white",
             "require confirmation" : true,
             "confirmation default" : false,
             "colormap" : {
