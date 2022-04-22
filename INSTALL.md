@@ -7,9 +7,11 @@ The simplest way to install BeamerPresenter (besides the AUR) is to directly ins
 For example, the commands for installing BeamerPresenter with poppler as PDF engine and Qt 5 after downloading the corresponding file are:
 ```sh
 # Ubuntu 20.04:
-sudo apt install ./beamerpresenter-poppler-0.2.2-qt5.12-x86_64.deb
+sudo apt install ./beamerpresenter-poppler-0.2.2-qt5-focal-x86_64.deb
 # Ubuntu 21.10:
-sudo apt install ./beamerpresenter-poppler-0.2.2-qt5.15-x86_64.deb
+sudo apt install ./beamerpresenter-poppler-0.2.2-qt5-impish-x86_64.deb
+# Ubuntu 22.04:
+sudo apt install ./beamerpresenter-poppler-0.2.2-qt5-jammy-x86_64.deb
 # Arch/Manjaro
 sudo pacman -U beamerpresenter-poppler-qt5-0.2.2-1-x86_64.pkg.tar.zst
 # Flatpak
