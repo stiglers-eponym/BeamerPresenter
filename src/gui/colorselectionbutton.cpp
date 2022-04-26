@@ -34,7 +34,10 @@ void ColorSelectionButton::setToolProperty(Tool *tool) const
     QColor color = currentData(Qt::UserRole).value<QColor>();
     if (!color.isValid())
         color = QColorDialog::getColor(Qt::black, parentWidget(), tr("Tool color"), QColorDialog::ShowAlphaChannel);
-    tool->setColor(color);
+    if (tool->tool() & Tool::AnySelectionTool)
+        emit colorChanged(color);
+    else
+        tool->setColor(color);
 }
 
 void ColorSelectionButton::toolChanged(Tool *tool)

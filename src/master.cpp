@@ -365,6 +365,9 @@ QWidget* Master::createWidget(QJsonObject &object, QWidget *parent)
             connect(scene, &SlideScene::navigationSignal, this, &Master::navigateToPage, Qt::QueuedConnection);
             connect(scene, &SlideScene::sendAction, this, &Master::handleAction, Qt::QueuedConnection);
             connect(this, &Master::sendAction, scene, &SlideScene::receiveAction);
+            connect(this, &Master::sendNewTool, scene, &SlideScene::toolChanged);
+            connect(this, &Master::sendColor, scene, &SlideScene::colorChanged);
+            connect(this, &Master::sendWidth, scene, &SlideScene::widthChanged);
             connect(cacheVideoTimer, &QTimer::timeout, scene, &SlideScene::postRendering, Qt::QueuedConnection);
             connect(this, &Master::prepareNavigationSignal, scene, &SlideScene::prepareNavigationEvent);
             connect(preferences(), &Preferences::stopDrawing, scene, &SlideScene::stopDrawing);
@@ -485,6 +488,8 @@ QWidget* Master::createWidget(QJsonObject &object, QWidget *parent)
         toolwidget->addButtons(object.value("buttons").toArray());
         connect(toolwidget, &ToolSelectorWidget::sendAction, this, &Master::handleAction, Qt::QueuedConnection);
         connect(toolwidget, &ToolSelectorWidget::sendTool, this, &Master::setTool, Qt::QueuedConnection);
+        connect(toolwidget, &ToolSelectorWidget::sendColor, this, &Master::sendColor);
+        connect(toolwidget, &ToolSelectorWidget::sendWidth, this, &Master::sendWidth);
         widget = toolwidget;
         break;
     }
@@ -916,6 +921,7 @@ void Master::setTool(Tool *tool) const noexcept
             ++tool_it;
     }
     writable_preferences()->current_tools.append(tool);
+    emit sendNewTool(tool);
 
 #ifdef QT_DEBUG
     if ((preferences()->debug_level & DebugVerbose) && preferences()->debug_level & DebugDrawing)

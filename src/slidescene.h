@@ -269,6 +269,13 @@ public slots:
     /// Update selection_bounding_rect.
     void updateSelectionRect() noexcept;
 
+    /// Update tool, change selected items if necessary.
+    void toolChanged(const Tool *tool) noexcept;
+    /// Update draw tool color, change selected items if necessary.
+    void colorChanged(const QColor &color) noexcept;
+    /// Update draw tool width, change selected items if necessary.
+    void widthChanged(const qreal width) noexcept;
+
 signals:
     /// Send navigation event to views.
     /// Here page is already adapted to shift.

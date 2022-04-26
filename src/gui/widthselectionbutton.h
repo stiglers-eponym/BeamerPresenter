@@ -20,6 +20,9 @@ protected:
 public slots:
     /// Update currently selected width based on tool.
     void toolChanged(Tool *tool) override;
+
+signals:
+    void widthChanged(const qreal width) const;
 };
 
 #endif // WIDTHSELECTIONBUTTON_H

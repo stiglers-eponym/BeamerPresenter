@@ -31,11 +31,27 @@ bool PathContainer::undo(QGraphicsScene *scene)
 
     const DrawHistoryStep *step = history[history.length() - inHistory];
 
-    // 1. undo transformations.
+    // 1. Undo transformations.
     for (auto it = step->transformedItems.constBegin(); it != step->transformedItems.constEnd(); ++it)
         it.key()->setTransform(it->inverted(), true);
 
-    // 2. undo color changes.
+    // 4. Undo width changes.
+    for (auto it = step->widthChanges.constBegin(); it != step->widthChanges.constEnd(); ++it)
+        switch (it.key()->type())
+        {
+        case FullGraphicsPath::Type:
+        case BasicGraphicsPath::Type:
+        {
+            auto path = static_cast<AbstractGraphicsPath*>(it.key());
+            DrawTool tool = path->getTool();
+            tool.setWidth(tool.width() / *it);
+            path->changeTool(tool);
+            path->update();
+            break;
+        }
+        }
+
+    // 3. Undo color changes.
     for (auto it = step->colorChanges.constBegin(); it != step->colorChanges.constEnd(); ++it)
         switch (it.key()->type())
         {
@@ -46,17 +62,19 @@ bool PathContainer::undo(QGraphicsScene *scene)
             DrawTool tool = path->getTool();
             tool.setColor(tool.color().rgba() ^ *it);
             path->changeTool(tool);
+            path->update();
             break;
         }
         case TextGraphicsItem::Type:
         {
             auto text = static_cast<TextGraphicsItem*>(it.key());
             text->setDefaultTextColor(text->defaultTextColor().rgba() ^ *it);
+            text->update();
             break;
         }
         }
 
-    // 3. remove newly created items.
+    // 4. Remove newly created items.
     // Get the (sorted) indices of items which should be removed.
     const QMap<int, QGraphicsItem*> &removeItems = step->createdItems;
     // Iterate over the keys in reverse order, because otherwise the indices of
@@ -71,7 +89,7 @@ bool PathContainer::undo(QGraphicsScene *scene)
         }
     }
 
-    // 4. Restore old items.
+    // 5. Restore old items.
     // Get the old items from history.
     const QMap<int, QGraphicsItem*> &oldItems = step->deletedItems;
     for (auto it = oldItems.constBegin(); it != oldItems.constEnd(); ++it)
@@ -129,7 +147,7 @@ bool PathContainer::redo(QGraphicsScene *scene)
         }
     }
 
-    // 3. undo color changes.
+    // 3. Redo color changes.
     for (auto it = step->colorChanges.constBegin(); it != step->colorChanges.constEnd(); ++it)
         switch (it.key()->type())
         {
@@ -140,17 +158,35 @@ bool PathContainer::redo(QGraphicsScene *scene)
             DrawTool tool = path->getTool();
             tool.setColor(tool.color().rgba() ^ *it);
             path->changeTool(tool);
+            path->update();
             break;
         }
         case TextGraphicsItem::Type:
         {
             auto text = static_cast<TextGraphicsItem*>(it.key());
             text->setDefaultTextColor(text->defaultTextColor().rgba() ^ *it);
+            text->update();
             break;
         }
         }
 
-    // 4. Redo transformations.
+    // 4. Redo width changes.
+    for (auto it = step->widthChanges.constBegin(); it != step->widthChanges.constEnd(); ++it)
+        switch (it.key()->type())
+        {
+        case FullGraphicsPath::Type:
+        case BasicGraphicsPath::Type:
+        {
+            auto path = static_cast<AbstractGraphicsPath*>(it.key());
+            DrawTool tool = path->getTool();
+            tool.setWidth(tool.width() * *it);
+            path->changeTool(tool);
+            path->update();
+            break;
+        }
+        }
+
+    // 5. Redo transformations.
     for (auto it = step->transformedItems.constBegin(); it != step->transformedItems.constEnd(); ++it)
         it.key()->setTransform(*it, true);
 
@@ -779,7 +815,10 @@ void PathContainer::removeItems(const QList<QGraphicsItem*> &items)
 void PathContainer::addHistoryStep(DrawHistoryStep *step)
 {
     if (step->colorChanges.isEmpty() && step->transformedItems.isEmpty() && step->createdItems.isEmpty() && step->deletedItems.isEmpty())
+    {
+        delete step;
         return;
+    }
     // Remove all "redo" options.
     truncateHistory();
     // Check that transformed items are actually there. (should not be necessary)

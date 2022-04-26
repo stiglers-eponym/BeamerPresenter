@@ -35,8 +35,9 @@ public:
      *     with their index after all new QGraphicsItems were added.
      *  3. transforming items. DrawHistoryStep saves the transformations
      *     together with their index after all new QGraphicsItems were added.
-     *  4. changing colors of items. DrawHistoryStep saves a bit-wise
-     *     difference of the QRgb representation of colors.
+     *  4. changing widths and colors of items. DrawHistoryStep saves a bit-wise
+     *     difference of the QRgb representation of colors. Widths are saved as
+     *     relative changes.
      */
     struct DrawHistoryStep {
         /// Items with the transformation applied in this history step.
@@ -45,6 +46,9 @@ public:
         /// Color changes for paths / text. Color changes are saved as
         /// new == old ^ change; old == new ^ change;
         QHash<QGraphicsItem*, QRgb> colorChanges;
+
+        /// Width changes of paths (relative)
+        QHash<QGraphicsItem*, qreal> widthChanges;
 
         /// Newly created items with their index after the history step.
         QMap<int, QGraphicsItem*> createdItems;

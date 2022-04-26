@@ -21,10 +21,14 @@ WidthSelectionButton::WidthSelectionButton(const QJsonArray &array, QWidget *par
 
 void WidthSelectionButton::setToolProperty(Tool *tool) const
 {
-    if (!(tool && tool->tool() & Tool::AnyDrawTool))
+    if (!(tool && (tool->tool() & Tool::AnyDrawTool || tool->tool() & Tool::AnySelectionTool)))
         return;
     const qreal width = currentData(Qt::UserRole).value<qreal>();
-    if (width > 0.)
+    if (width <= 0.)
+        return;
+    if (tool->tool() & Tool::AnySelectionTool)
+        emit widthChanged(width);
+    else
         static_cast<DrawTool*>(tool)->setWidth(width);
 }
 

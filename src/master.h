@@ -130,6 +130,12 @@ public slots:
     {QMessageBox::critical(windows.isEmpty() ? NULL : windows.first(), title, text);}
 
 signals:
+    /// Send out new tool.
+    void sendNewTool(const Tool *tool) const;
+    /// Send out new stroke color.
+    void sendColor(const QColor &color) const;
+    /// Send out new stroke width.
+    void sendWidth(const qreal width) const;
     /// Send out action.
     void sendAction(const Action action) const;
     /// Set status for an action (e.g. timer paused or running).

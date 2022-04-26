@@ -19,11 +19,14 @@ public:
 
 protected:
     /// Set color of tool to selected value.
-    void setToolProperty(Tool* tool) const override;
+    void setToolProperty(Tool *tool) const override;
 
 public slots:
     /// Update currently selected color based on tool.
     void toolChanged(Tool *tool) override;
+
+signals:
+    void colorChanged(const QColor &color) const;
 };
 
 #endif // COLORSELECTIONBUTTON_H

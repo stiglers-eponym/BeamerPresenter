@@ -497,7 +497,7 @@ void SlideScene::handleSelectionStopEvents(SelectionTool *tool, const QPointF &p
             if (finalize && (it.key()->type() == BasicGraphicsPath::Type || it.key()->type() == FullGraphicsPath::Type))
                 static_cast<AbstractGraphicsPath*>(it.key())->finalize();
         }
-        emit sendHistoryStep(page, step);
+        emit sendHistoryStep(page | page_part, step);
         updateSelectionRect();
         break;
     }
@@ -1719,5 +1719,105 @@ void SlideScene::pasteFromClipboard()
 void SlideScene::selectionToForeground() const
 {
     const QList<QGraphicsItem*> selection = selectedItems();
-    // TODO
+    // TODO: implement this
+}
+
+void SlideScene::toolChanged(const Tool *tool) noexcept
+{
+    if (tool->tool() & Tool::AnyDrawTool)
+    {
+        const DrawTool *draw_tool = static_cast<const DrawTool*>(tool);
+        PathContainer::DrawHistoryStep *step = new PathContainer::DrawHistoryStep;
+        for (auto item : selectedItems())
+        {
+            switch (item->type())
+            {
+            case BasicGraphicsPath::Type:
+            case FullGraphicsPath::Type:
+            {
+                auto path = static_cast<AbstractGraphicsPath*>(item);
+                if (path->getTool().tool() == draw_tool->tool())
+                {
+                    const QRgb color_diff = path->getTool().color().rgba() ^ draw_tool->color().rgba();
+                    if (color_diff)
+                        step->colorChanges[path] = color_diff;
+                    if (draw_tool->width() != path->getTool().width())
+                        step->widthChanges[path] = draw_tool->width() / path->getTool().width();
+                    path->changeTool(*draw_tool);
+                    path->update();
+                }
+                break;
+            }
+            }
+        }
+        if (!step->colorChanges.isEmpty() || !step->widthChanges.isEmpty())
+            emit sendHistoryStep(page | page_part, step);
+        else
+            delete step;
+    }
+}
+
+void SlideScene::colorChanged(const QColor &color) noexcept
+{
+    PathContainer::DrawHistoryStep *step = new PathContainer::DrawHistoryStep;
+    for (auto item : selectedItems())
+    {
+        switch (item->type())
+        {
+        case BasicGraphicsPath::Type:
+        case FullGraphicsPath::Type:
+        {
+            auto path = static_cast<AbstractGraphicsPath*>(item);
+            if (path->getTool().color() != color)
+            {
+                step->colorChanges[item] = path->getTool().color().rgba() ^ color.rgba();
+                DrawTool tool = path->getTool();
+                tool.setColor(color);
+                path->changeTool(tool);
+                path->update();
+            }
+            break;
+        }
+        case TextGraphicsItem::Type:
+        {
+            auto text = static_cast<TextGraphicsItem*>(item);
+            step->colorChanges[item] = text->defaultTextColor().rgba() ^ color.rgba();
+            text->setDefaultTextColor(color);
+            break;
+        }
+        }
+    }
+    if (!step->colorChanges.isEmpty())
+        emit sendHistoryStep(page | page_part, step);
+    else
+        delete step;
+}
+
+void SlideScene::widthChanged(const qreal width) noexcept
+{
+    PathContainer::DrawHistoryStep *step = new PathContainer::DrawHistoryStep;
+    for (auto item : selectedItems())
+    {
+        switch (item->type())
+        {
+        case BasicGraphicsPath::Type:
+        case FullGraphicsPath::Type:
+        {
+            auto path = static_cast<AbstractGraphicsPath*>(item);
+            if (path->getTool().width() != width)
+            {
+                step->colorChanges[item] = width / path->getTool().width();
+                DrawTool tool = path->getTool();
+                tool.setWidth(width);
+                path->changeTool(tool);
+                path->update();
+            }
+            break;
+        }
+        }
+    }
+    if (!step->widthChanges.isEmpty())
+        emit sendHistoryStep(page | page_part, step);
+    else
+        delete step;
 }

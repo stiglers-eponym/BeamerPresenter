@@ -42,6 +42,12 @@ signals:
     /// Send out action to master.
     void sendAction(const Action action);
 
+    /// Send out new color to master.
+    void sendColor(const QColor &action);
+
+    /// Send out new color to master.
+    void sendWidth(const qreal width);
+
     /// Send action status to action buttons.
     void sendStatus(const Action action, const int status);
 
