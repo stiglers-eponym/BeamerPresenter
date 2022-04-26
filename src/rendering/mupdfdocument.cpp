@@ -130,6 +130,8 @@ bool MuPdfDocument::loadDocument()
     mutex->lock();
     if (doc)
     {
+        for (auto page : qAsConst(pages))
+            fz_drop_page(ctx, (fz_page*)page);
         pdf_drop_document(ctx, doc);
         flexible_page_sizes = -1;
     }
@@ -232,7 +234,6 @@ bool MuPdfDocument::loadDocument()
     // Save number of pages.
     number_of_pages = pdf_count_pages(ctx, doc);
 
-    qDeleteAll(pages);
     pages.resize(number_of_pages);
     int i=0;
     fz_var(i);

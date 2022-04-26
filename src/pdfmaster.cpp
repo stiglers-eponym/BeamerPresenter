@@ -201,14 +201,14 @@ void PdfMaster::removeItems(int page, const QList<QGraphicsItem*> &items)
     }
 }
 
-void PdfMaster::addTransformsMap(int page, const QHash<QGraphicsItem*, QTransform> &map)
+void PdfMaster::addHistoryStep(int page, PathContainer::DrawHistoryStep *step)
 {
     if (preferences()->overlay_mode == PerLabel)
         page = document->overlaysShifted((page & ~NotFullPage), FirstOverlay) | (page & NotFullPage);
-    if (!paths.contains(page) || map.isEmpty())
+    if (!paths.contains(page))
         // this should never happen
         return;
-    paths[page]->transformItemsMap(map);
+    paths[page]->addHistoryStep(step);
     _flags |= UnsavedDrawings;
 }
 

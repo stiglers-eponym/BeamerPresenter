@@ -36,7 +36,7 @@ SlideScene::SlideScene(const PdfMaster *master, const PagePart part, QObject *pa
 {
     connect(this, &SlideScene::sendNewPath, master, &PdfMaster::receiveNewPath, Qt::DirectConnection);
     connect(this, &SlideScene::replacePath, master, &PdfMaster::replacePath, Qt::DirectConnection);
-    connect(this, &SlideScene::sendTransformsMap, master, &PdfMaster::addTransformsMap, Qt::DirectConnection);
+    connect(this, &SlideScene::sendHistoryStep, master, &PdfMaster::addHistoryStep, Qt::DirectConnection);
     connect(this, &SlideScene::requestNewPathContainer, master, &PdfMaster::requestNewPathContainer, Qt::DirectConnection);
     connect(this, &SlideScene::sendRemovePaths, master, &PdfMaster::removeItems, Qt::DirectConnection);
     connect(this, &SlideScene::sendAddPaths, master, &PdfMaster::addItems, Qt::DirectConnection);
@@ -252,6 +252,7 @@ void SlideScene::handleEvents(const int device, const QList<QPointF> &pos, const
     debug_verbose(DebugDrawing, "Handling event" << tool->tool() << tool->device() << device);
     if (tool->tool() & Tool::AnyDrawTool)
     {
+        // TODO: multi-touch for draw tools
         switch (device & Tool::AnyEvent)
         {
         case Tool::UpdateEvent:
@@ -483,20 +484,20 @@ void SlideScene::handleSelectionStopEvents(SelectionTool *tool, const QPointF &p
         const QHash<QGraphicsItem*, QTransform> &originalTransforms = tool->originalTransforms();
         if (originalTransforms.count() <= 1)
             return;
-        QHash<QGraphicsItem*, QTransform> map;
-        QTransform transform;
+        PathContainer::DrawHistoryStep *step = new PathContainer::DrawHistoryStep;
         const bool finalize = preferences()->global_flags & Preferences::FinalizeDrawnPaths;
+        QTransform transform;
         for (auto it=originalTransforms.cbegin(); it!=originalTransforms.cend(); ++it)
         {
             if (it.key() == &selection_bounding_rect)
                 continue;
             transform = it.key()->transform();
             transform *= it->inverted();
-            map[it.key()] = transform;
+            step->transformedItems[it.key()] = transform;
             if (finalize && (it.key()->type() == BasicGraphicsPath::Type || it.key()->type() == FullGraphicsPath::Type))
                 static_cast<AbstractGraphicsPath*>(it.key())->finalize();
         }
-        emit sendTransformsMap(page, map);
+        emit sendHistoryStep(page, step);
         updateSelectionRect();
         break;
     }
@@ -1261,6 +1262,7 @@ void SlideScene::startInputEvent(const DrawTool *tool, const QPointF &pos, const
     stopDrawing();
     if (currentItemCollection || currentlyDrawnItem)
         return;
+    clearSelection();
     currentItemCollection = new QGraphicsItemGroup();
     addItem(currentItemCollection);
     currentItemCollection->show();

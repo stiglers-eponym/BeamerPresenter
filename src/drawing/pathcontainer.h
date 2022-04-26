@@ -10,14 +10,7 @@ class QGraphicsScene;
 class QXmlStreamReader;
 class QXmlStreamWriter;
 class TextGraphicsItem;
-
-static const QMap<Tool::BasicTool, QString> xournal_tool_names
-{
-    {Tool::Pen, "pen"},
-    {Tool::FixedWidthPen, "pen"},
-    {Tool::Highlighter, "highlighter"},
-    {Tool::TextInputTool, "text"},
-};
+class DrawTool;
 
 
 /**
@@ -42,14 +35,16 @@ public:
      *     with their index after all new QGraphicsItems were added.
      *  3. transforming items. DrawHistoryStep saves the transformations
      *     together with their index after all new QGraphicsItems were added.
+     *  4. changing colors of items. DrawHistoryStep saves a bit-wise
+     *     difference of the QRgb representation of colors.
      */
     struct DrawHistoryStep {
-        friend class PathContainer;
+        /// Items with the transformation applied in this history step.
+        QHash<QGraphicsItem*, QTransform> transformedItems;
 
-    private:
-        /// Items with the transformation applied in this history step
-        /// and with their indices after the history step.
-        QMap<int, QTransform> transformedItems;
+        /// Color changes for paths / text. Color changes are saved as
+        /// new == old ^ change; old == new ^ change;
+        QHash<QGraphicsItem*, QRgb> colorChanges;
 
         /// Newly created items with their index after the history step.
         QMap<int, QGraphicsItem*> createdItems;
@@ -193,8 +188,8 @@ public:
     /// Remove paths.
     void removeItems(const QList<QGraphicsItem*> &items);
 
-    // Apply transforms to items.
-    void transformItemsMap(const QHash<QGraphicsItem*, QTransform> &map);
+    /// Append DrawHistoryStep.
+    void addHistoryStep(PathContainer::DrawHistoryStep *step);
 
 public slots:
     // Remove the item in a new history step.
@@ -205,6 +200,8 @@ public slots:
     void addTextItem(QGraphicsItem *item)
     {replaceItem(NULL, item);}
 };
+
+Q_DECLARE_METATYPE(PathContainer::DrawHistoryStep);
 
 /// Convert color to string with format #RRGGBBAA
 /// (required for Xournal++ format).

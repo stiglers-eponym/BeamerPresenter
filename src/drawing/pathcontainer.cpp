@@ -33,9 +33,30 @@ bool PathContainer::undo(QGraphicsScene *scene)
 
     // 1. undo transformations.
     for (auto it = step->transformedItems.constBegin(); it != step->transformedItems.constEnd(); ++it)
-        paths[it.key()]->setTransform(it->inverted(), true);
+        it.key()->setTransform(it->inverted(), true);
 
-    // 2. remove newly created items.
+    // 2. undo color changes.
+    for (auto it = step->colorChanges.constBegin(); it != step->colorChanges.constEnd(); ++it)
+        switch (it.key()->type())
+        {
+        case FullGraphicsPath::Type:
+        case BasicGraphicsPath::Type:
+        {
+            auto path = static_cast<AbstractGraphicsPath*>(it.key());
+            DrawTool tool = path->getTool();
+            tool.setColor(tool.color().rgba() ^ *it);
+            path->changeTool(tool);
+            break;
+        }
+        case TextGraphicsItem::Type:
+        {
+            auto text = static_cast<TextGraphicsItem*>(it.key());
+            text->setDefaultTextColor(text->defaultTextColor().rgba() ^ *it);
+            break;
+        }
+        }
+
+    // 3. remove newly created items.
     // Get the (sorted) indices of items which should be removed.
     const QMap<int, QGraphicsItem*> &removeItems = step->createdItems;
     // Iterate over the keys in reverse order, because otherwise the indices of
@@ -50,7 +71,7 @@ bool PathContainer::undo(QGraphicsScene *scene)
         }
     }
 
-    // 3. Restore old items.
+    // 4. Restore old items.
     // Get the old items from history.
     const QMap<int, QGraphicsItem*> &oldItems = step->deletedItems;
     for (auto it = oldItems.constBegin(); it != oldItems.constEnd(); ++it)
@@ -108,9 +129,30 @@ bool PathContainer::redo(QGraphicsScene *scene)
         }
     }
 
-    // 3. Redo transformations.
+    // 3. undo color changes.
+    for (auto it = step->colorChanges.constBegin(); it != step->colorChanges.constEnd(); ++it)
+        switch (it.key()->type())
+        {
+        case FullGraphicsPath::Type:
+        case BasicGraphicsPath::Type:
+        {
+            auto path = static_cast<AbstractGraphicsPath*>(it.key());
+            DrawTool tool = path->getTool();
+            tool.setColor(tool.color().rgba() ^ *it);
+            path->changeTool(tool);
+            break;
+        }
+        case TextGraphicsItem::Type:
+        {
+            auto text = static_cast<TextGraphicsItem*>(it.key());
+            text->setDefaultTextColor(text->defaultTextColor().rgba() ^ *it);
+            break;
+        }
+        }
+
+    // 4. Redo transformations.
     for (auto it = step->transformedItems.constBegin(); it != step->transformedItems.constEnd(); ++it)
-        paths[it.key()]->setTransform(*it, true);
+        it.key()->setTransform(*it, true);
 
     return true;
 }
@@ -469,7 +511,18 @@ void PathContainer::writeXml(QXmlStreamWriter &writer) const
             const AbstractGraphicsPath *item = static_cast<AbstractGraphicsPath*>(path);
             const DrawTool &tool = item->getTool();
             writer.writeStartElement("stroke");
-            writer.writeAttribute("tool", xournal_tool_names.value(tool.tool()));
+            switch (tool.tool())
+            {
+            case Tool::Pen:
+            case Tool::FixedWidthPen:
+                writer.writeAttribute("tool", "pen");
+                break;
+            case Tool::Highlighter:
+                writer.writeAttribute("tool", "highlighter");
+                break;
+            default:
+                break;
+            }
             writer.writeAttribute("color", color_to_rgba(tool.color()).toLower());
             writer.writeAttribute("width", item->stringWidth());
             if (tool.pen().style() != Qt::SolidLine)
@@ -723,22 +776,29 @@ void PathContainer::removeItems(const QList<QGraphicsItem*> &items)
         clearHistory(preferences()->history_length_visible_slides);
 }
 
-void PathContainer::transformItemsMap(const QHash<QGraphicsItem*, QTransform> &map)
+void PathContainer::addHistoryStep(DrawHistoryStep *step)
 {
-    if (map.isEmpty())
+    if (step->colorChanges.isEmpty() && step->transformedItems.isEmpty() && step->createdItems.isEmpty() && step->deletedItems.isEmpty())
         return;
     // Remove all "redo" options.
     truncateHistory();
-    // Create new history step.
-    DrawHistoryStep *const step = new DrawHistoryStep();
-    int idx;
-    for (auto it=map.constBegin(); it!=map.constEnd(); ++it)
+    // Check that transformed items are actually there. (should not be necessary)
+    for (auto it=step->transformedItems.constBegin(); it!=step->transformedItems.constEnd();)
     {
-        idx = paths.indexOf(it.key());
-        if (idx < 0 || it.key() == NULL)
+        if (it.key() == nullptr || !paths.contains(it.key()))
             // this should never happen
-            continue;
-        step->transformedItems[idx] = *it;
+            it = step->transformedItems.erase(it);
+        else
+            ++it;
+    }
+    // Check that items with color changes are actually there.(should not be necessary)
+    for (auto it=step->colorChanges.constBegin(); it!=step->colorChanges.constEnd();)
+    {
+        if (it.key() == nullptr || !paths.contains(it.key()))
+            // this should never happen
+            it = step->colorChanges.erase(it);
+        else
+            ++it;
     }
     history.append(step);
 

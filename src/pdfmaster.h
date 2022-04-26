@@ -9,9 +9,9 @@
 #include <QMimeDatabase>
 #include "src/enumerates.h"
 #include "src/rendering/pdfdocument.h"
+#include "src/drawing/pathcontainer.h"
 
 class SlideScene;
-class PathContainer;
 class QGraphicsItem;
 class QBuffer;
 
@@ -188,9 +188,9 @@ public slots:
     /// If both items are NULL, only the container is created (if it doesn't exist yet).
     void replacePath(int page, QGraphicsItem *olditem, QGraphicsItem *newitem);
 
-    /// Transforms for QGraphicsItems.
+    /// Add history step with transformations and color changes.
     /// Page (part) number is given as (page | page_part).
-    void addTransformsMap(int page, const QHash<QGraphicsItem*, QTransform> &map);
+    void addHistoryStep(int page, PathContainer::DrawHistoryStep *step);
 
     /// Add new paths.
     void addItems(int page, const QList<QGraphicsItem*> &items);

@@ -287,7 +287,7 @@ signals:
     void sendNewPath(int page, QGraphicsItem *item) const;
 
     /// Send transformations for QGraphicsItems to PdfMaster.
-    void sendTransformsMap(int page, const QHash<QGraphicsItem*, QTransform> &map) const;
+    void sendHistoryStep(int page, PathContainer::DrawHistoryStep *step) const;
 
     /// Replace old path by new path in a single drawing history step.
     void replacePath(int page, QGraphicsItem *olditem, QGraphicsItem *newitem) const;
