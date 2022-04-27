@@ -3,10 +3,7 @@
 #include "src/drawing/basicgraphicspath.h"
 #include "src/drawing/drawtool.h"
 #include "src/drawing/rectgraphicsitem.h"
-
-#ifdef QT_DEBUG
 #include "src/preferences.h"
-#endif
 
 BasicGraphicsPath::BasicGraphicsPath(const DrawTool &tool, const QPointF &pos) noexcept :
     AbstractGraphicsPath(tool)

@@ -1,9 +1,6 @@
 #include <QPainter>
 #include "src/drawing/fullgraphicspath.h"
-
-#ifdef QT_DEBUG
 #include "src/preferences.h"
-#endif
 
 FullGraphicsPath::FullGraphicsPath(const DrawTool &tool, const QPointF &pos, const float pressure) :
     AbstractGraphicsPath(tool)
