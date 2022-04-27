@@ -49,6 +49,8 @@ finalize drawn paths=false
 Ctrl+C=copy
 Ctrl+V=paste
 Ctrl+X=cut
+Ctrl+A=select all
+Escape=clear selection
 Delete=delete
 Ctrl+O=open
 Ctrl+S=save
@@ -61,11 +63,10 @@ PgDown=next
 PgUp=previous
 Shift+PgDown=next skipping overlays
 Shift+PgUp=previous skipping overlays
-Shift+C=clear, clear left, clear right
 End=last
 Home=first
-P=toggle timer
 Space=update
+P=toggle timer
 
 [rendering]
 # Assume that slides show a presentation and notes for the speaker side-by-side
@@ -73,7 +74,3 @@ Space=update
 page part threshold=2.5
 # default renderer
 renderer=@DEFAULT_RENDERER@
-# command for external renderer
-rendering command=/usr/bin/mutool
-# arguments for external renderer
-rendering arguments=draw,-F%format,-w%width,-h%height,-o-,%file,%page
