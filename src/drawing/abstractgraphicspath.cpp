@@ -13,7 +13,16 @@ const QString AbstractGraphicsPath::stringCoordinates() const noexcept
         str += QString::number(scene_point.y());
         str += ' ';
     }
-    str.chop(1);
+    /* Xournalpp cannot handle strokes consisting of a single point.
+     * To ensure compatibility, a single point is simply repeated. */
+    if (coordinates.length() == 1)
+    {
+        str += QString::number(scene_point.x());
+        str += ' ';
+        str += QString::number(scene_point.y());
+    }
+    else
+        str.chop(1);
     return str;
 }
 
