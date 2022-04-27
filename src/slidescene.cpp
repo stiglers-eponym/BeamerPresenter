@@ -1736,16 +1736,13 @@ void SlideScene::toolChanged(const Tool *tool) noexcept
             case FullGraphicsPath::Type:
             {
                 auto path = static_cast<AbstractGraphicsPath*>(item);
-                if (path->getTool().tool() == draw_tool->tool())
-                {
-                    const QRgb color_diff = path->getTool().color().rgba() ^ draw_tool->color().rgba();
-                    if (color_diff)
-                        step->colorChanges[path] = color_diff;
-                    if (draw_tool->width() != path->getTool().width())
-                        step->widthChanges[path] = draw_tool->width() / path->getTool().width();
-                    path->changeTool(*draw_tool);
-                    path->update();
-                }
+                const QRgb color_diff = path->getTool().color().rgba() ^ draw_tool->color().rgba();
+                if (color_diff)
+                    step->colorChanges[path] = color_diff;
+                if (draw_tool->width() != path->getTool().width())
+                    step->widthChanges[path] = draw_tool->width() / path->getTool().width();
+                path->changeTool(*draw_tool);
+                path->update();
                 break;
             }
             }

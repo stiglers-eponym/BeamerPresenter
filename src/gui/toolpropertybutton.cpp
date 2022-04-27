@@ -67,6 +67,5 @@ bool ToolPropertyButton::event(QEvent *event)
 void ToolPropertyButton::changed(const int index) const
 {
     Tool *tool = preferences()->currentTool(device);
-    if (tool)
-        setToolProperty(tool);
+    setToolProperty(tool);
 }

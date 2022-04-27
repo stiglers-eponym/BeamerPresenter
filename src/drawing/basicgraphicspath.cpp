@@ -169,9 +169,9 @@ QList<AbstractGraphicsPath*> BasicGraphicsPath::splitErase(const QPointF &scene_
 
 void BasicGraphicsPath::changeTool(const DrawTool &newtool) noexcept
 {
-    if (newtool.tool() != _tool.tool())
+    if (!(newtool.tool() & Tool::AnyDrawTool))
     {
-        qWarning() << "Cannot change tool to different base tool.";
+        qWarning() << "Cannot change draw tool to non-drawing base tool.";
         return;
     }
     if (std::abs(newtool.pen().widthF() - _tool.tool()) > 0.2)

@@ -223,9 +223,9 @@ void FullGraphicsPath::changeWidth(const float newwidth) noexcept
 
 void FullGraphicsPath::changeTool(const DrawTool &newtool) noexcept
 {
-    if (newtool.tool() != _tool.tool())
+    if (!(newtool.tool() & Tool::AnyDrawTool))
     {
-        qWarning() << "Cannot change tool to different base tool.";
+        qWarning() << "Cannot change draw tool to non-drawing base tool.";
         return;
     }
     const float newwidth = newtool.width();

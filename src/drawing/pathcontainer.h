@@ -38,6 +38,8 @@ public:
      *  4. changing widths and colors of items. DrawHistoryStep saves a bit-wise
      *     difference of the QRgb representation of colors. Widths are saved as
      *     relative changes.
+     *
+     *  TODO: use map of tools instead of separate color and width list?
      */
     struct DrawHistoryStep {
         /// Items with the transformation applied in this history step.

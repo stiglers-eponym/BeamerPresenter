@@ -29,15 +29,12 @@ ColorSelectionButton::ColorSelectionButton(const QJsonArray &array, QWidget *par
 
 void ColorSelectionButton::setToolProperty(Tool *tool) const
 {
-    if (!tool)
-        return;
     QColor color = currentData(Qt::UserRole).value<QColor>();
     if (!color.isValid())
         color = QColorDialog::getColor(Qt::black, parentWidget(), tr("Tool color"), QColorDialog::ShowAlphaChannel);
-    if (tool->tool() & Tool::AnySelectionTool)
-        emit colorChanged(color);
-    else
+    if (tool && !(tool->tool() & Tool::AnySelectionTool))
         tool->setColor(color);
+    emit colorChanged(color);
 }
 
 void ColorSelectionButton::toolChanged(Tool *tool)
