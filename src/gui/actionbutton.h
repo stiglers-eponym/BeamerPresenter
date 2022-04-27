@@ -64,11 +64,20 @@ static const QMap<Action, QString> action_to_theme_icon {
     /* Drawing */
     {UndoDrawing, "edit-undo"},
     {RedoDrawing, "edit-redo"},
-    {ClearDrawing, "edit-delete"},
+    {ClearDrawing, "edit-clear"},
     {SaveDrawings, "document-save"},
     {SaveDrawingsAs, "document-save-as"},
     {LoadDrawings, "document-open"},
     //{LoadDrawingsNoClear, "document-open"},
+    /* Modify drawn items */
+    {CopyClipboard, "edit-copy"},
+    {CutClipboard, "edit-cut"},
+    {PasteClipboard, "edit-paste"},
+    //{SelectionToForeground, "?"},
+    //{DuplicateSelectedItems, "?"},
+    {RemoveSelectedItems, "edit-delete"},
+    {SelectAll, "edit-select-all"},
+    //{ClearSelection, "?"},
     /* Media */
     {PlayMedia, "media-playback-start"},
     {PauseMedia, "media-playback-stop"},
