@@ -159,6 +159,7 @@ The options `-B` and `-S` set the build and source directory, respectively. The 
 | `USE_GUMBO` | ON | set ON when using MuPDF >= 1.18 with shared system libraries |
 | `GIT_VERSION` | ON | Include git commit count in version string |
 | `USE_TRANSLATIONS` | ON | include translations (currently only German), disable if it causes errors |
+| `SUPPRESS_MUPDF_WARNINGS` | OFF | Suppress warnings of MuPDF while loading a document (only Unix-like systems) |
 | `INSTALL_LICENSE` | ON | Copy the license to /usr/share/licenses/beamerpresenter/LICENSE |
 | `QT_VERSION_MAJOR` | 6 | Qt major version, must be set manually! Valid values are "5" and "6". |
 | `QT_VERSION_MINOR` | 2 | only relevant for packaging (dependency version checking) |

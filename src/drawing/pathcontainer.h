@@ -70,6 +70,7 @@ public:
         /// Deleted items with their indices before the history step.
         QMap<int, QGraphicsItem*> deletedItems;
 
+        /// Check whether this step includes any changes.
         bool isEmpty() const {
             return transformedItems.isEmpty()
                     && drawToolChanges.isEmpty()

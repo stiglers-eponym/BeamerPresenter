@@ -206,8 +206,11 @@ void PdfMaster::addHistoryStep(int page, PathContainer::DrawHistoryStep *step)
     if (preferences()->overlay_mode == PerLabel)
         page = document->overlaysShifted((page & ~NotFullPage), FirstOverlay) | (page & NotFullPage);
     if (!paths.contains(page))
+    {
         // this should never happen
-        return;
+        warn_msg("Trying to add new history step to page without history");
+        paths[page] = new PathContainer(this);
+    }
     paths[page]->addHistoryStep(step);
     _flags |= UnsavedDrawings;
 }

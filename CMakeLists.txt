@@ -34,6 +34,7 @@ option(USE_MUPDF_THIRD "Link to mupdf-third (only relevant when using MuPDF)" ON
 option(USE_MUJS "Link to mujs (only relevant when using MuPDF)" OFF)
 option(USE_GUMBO "Link to gumbo-parser, should be on when using MuPDF >= 1.18" ON)
 option(MUPDF_USE_SYSTEM_LIBS "MuPDF uses system libraries that need to be included. This is the default for most Linux packages of MuPDF." ON)
+option(SUPPRESS_MUPDF_WARNINGS "Suppress warnings from MuPDF while loading the document pages" OFF)
 
 # Warnings and errors based on the selection of PDF engines
 if ((NOT USE_MUPDF) AND (NOT USE_POPPLER))

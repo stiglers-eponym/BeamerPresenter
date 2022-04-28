@@ -1,3 +1,7 @@
+#include "src/config.h"
+#ifdef SUPPRESS_MUPDF_WARNINGS
+#include <fcntl.h>
+#endif
 #include <QFileInfo>
 #include <QInputDialog>
 #include <QMutex>
@@ -237,6 +241,14 @@ bool MuPdfDocument::loadDocument()
     pages.resize(number_of_pages);
     int i=0;
     fz_var(i);
+
+#ifdef SUPPRESS_MUPDF_WARNINGS
+    fflush(stderr);
+    const int fd = dup(2);
+    const int nullfd = open("/dev/null", O_WRONLY);
+    dup2(nullfd, 2);
+    close(nullfd);
+#endif
     do {
         fz_var(pages[i]);
         fz_try(ctx)
@@ -244,6 +256,11 @@ bool MuPdfDocument::loadDocument()
         fz_catch(ctx)
             pages[i] = NULL;
     } while (++i < number_of_pages);
+#ifdef SUPPRESS_MUPDF_WARNINGS
+    fflush(stderr);
+    dup2(fd, 2);
+    close(fd);
+#endif
 
     mutex->unlock();
 
@@ -384,7 +401,7 @@ void MuPdfDocument::loadPageLabels()
         for (int i = 0, key; i < len_minus_one;)
         {
             key = pdf_array_get_int(ctx, nums, i++);
-            // Actually the following condition should never become true.
+            // The following condition should never become true.
             // However, I have found a PDF (generated with LaTeX beamer), for
             // which this is relevant.
             if (key >= number_of_pages || key < 0)

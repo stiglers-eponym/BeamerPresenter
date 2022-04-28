@@ -39,8 +39,11 @@ bool PathContainer::undo(QGraphicsScene *scene)
     for (auto it = step->drawToolChanges.constBegin(); it != step->drawToolChanges.constEnd(); ++it)
     {
         if (it.key()->type() != FullGraphicsPath::Type && it.key()->type() != BasicGraphicsPath::Type)
+        {
             // this should never happen
+            warn_msg("History of draw tool changes includes item of invalid type" << it.key()->type());
             continue;
+        }
         auto path = static_cast<AbstractGraphicsPath*>(it.key());
         DrawTool tool = path->getTool();
         tool.setPen(it->old_pen);
@@ -53,8 +56,11 @@ bool PathContainer::undo(QGraphicsScene *scene)
     for (auto it = step->textPropertiesChanges.constBegin(); it != step->textPropertiesChanges.constEnd(); ++it)
     {
         if (it.key()->type() != TextGraphicsItem::Type)
+        {
             // this should never happen
+            warn_msg("History of text propery changes includes item of invalid type" << it.key()->type());
             continue;
+        }
         auto text = static_cast<TextGraphicsItem*>(it.key());
         text->setFont(it->old_font);
         text->setDefaultTextColor(text->defaultTextColor().rgba() ^ it->color_diff);
@@ -138,8 +144,11 @@ bool PathContainer::redo(QGraphicsScene *scene)
     for (auto it = step->drawToolChanges.constBegin(); it != step->drawToolChanges.constEnd(); ++it)
     {
         if (it.key()->type() != FullGraphicsPath::Type && it.key()->type() != BasicGraphicsPath::Type)
+        {
             // this should never happen
+            warn_msg("History of draw tool changes includes item of invalid type" << it.key()->type());
             continue;
+        }
         auto path = static_cast<AbstractGraphicsPath*>(it.key());
         DrawTool tool = path->getTool();
         tool.setPen(it->new_pen);
@@ -152,8 +161,11 @@ bool PathContainer::redo(QGraphicsScene *scene)
     for (auto it = step->textPropertiesChanges.constBegin(); it != step->textPropertiesChanges.constEnd(); ++it)
     {
         if (it.key()->type() != TextGraphicsItem::Type)
+        {
             // this should never happen
+            warn_msg("History of text propery changes includes item of invalid type" << it.key()->type());
             continue;
+        }
         auto text = static_cast<TextGraphicsItem*>(it.key());
         text->setFont(it->new_font);
         text->setDefaultTextColor(text->defaultTextColor().rgba() ^ it->color_diff);
@@ -745,8 +757,11 @@ void PathContainer::addItems(const QList<QGraphicsItem*> &items)
     for (const auto item : items)
     {
         if (paths.contains(item))
+        {
             // this should never happen
+            warn_msg("Item already exists in history");
             continue;
+        }
         step->createdItems.insert(paths.length(), item);
         paths.append(item);
     }
@@ -766,8 +781,11 @@ void PathContainer::removeItems(const QList<QGraphicsItem*> &items)
     {
         index = paths.indexOf(item);
         if (index < 0)
+        {
             // this should never happen
+            warn_msg("Item does not exist in history");
             continue;
+        }
         step->deletedItems.insert(index, item);
     }
     for (auto it=step->deletedItems.cend(); it!=step->deletedItems.cbegin();)
@@ -794,8 +812,11 @@ void PathContainer::addHistoryStep(DrawHistoryStep *step)
     for (auto it=step->transformedItems.constBegin(); it!=step->transformedItems.constEnd();)
     {
         if (it.key() == nullptr || !paths.contains(it.key()))
+        {
             // this should never happen
+            warn_msg("Invalid entry in transformed items in history step");
             it = step->transformedItems.erase(it);
+        }
         else
             ++it;
     }
@@ -803,8 +824,11 @@ void PathContainer::addHistoryStep(DrawHistoryStep *step)
     for (auto it=step->drawToolChanges.constBegin(); it!=step->drawToolChanges.constEnd();)
     {
         if (it.key() == nullptr || !paths.contains(it.key()) || (it.key()->type() != BasicGraphicsPath::Type && it.key()->type() != FullGraphicsPath::Type))
+        {
             // this should never happen
+            warn_msg("Invalid entry in draw tool changes in history step");
             it = step->drawToolChanges.erase(it);
+        }
         else
             ++it;
     }
@@ -812,8 +836,11 @@ void PathContainer::addHistoryStep(DrawHistoryStep *step)
     for (auto it=step->textPropertiesChanges.constBegin(); it!=step->textPropertiesChanges.constEnd();)
     {
         if (it.key() == nullptr || !paths.contains(it.key()) || it.key()->type() != TextGraphicsItem::Type)
+        {
             // this should never happen
+            warn_msg("Invalid entry in text property changes in history step");
             it = step->textPropertiesChanges.erase(it);
+        }
         else
             ++it;
     }

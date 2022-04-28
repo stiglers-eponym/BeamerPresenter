@@ -321,7 +321,7 @@ const PdfDocument::PdfLink *PopplerDocument::linkAt(const int page, const QPoint
                 case Poppler::LinkAction::GoToPage:
                 // Find is currently not implemented.
                 case Poppler::LinkAction::Find:
-                // Print will never be not implemented.
+                // Print will probably never be implemented.
                 case Poppler::LinkAction::Print:
                 // Quit and close are intentionally not handled to avoid unintended closing of the program.
                 case Poppler::LinkAction::Quit:

@@ -38,8 +38,11 @@ BasicGraphicsPath::BasicGraphicsPath(const AbstractGraphicsPath * const other, i
         last = other->size();
     const int length = last - first;
     if (length <= 0)
+    {
         // This should never happen.
+        warn_msg("Tried to construct a path with non-positive length");
         return;
+    }
 
     // Copy coordinates from other.
 #if (QT_VERSION >= QT_VERSION_CHECK(5,14,0))
