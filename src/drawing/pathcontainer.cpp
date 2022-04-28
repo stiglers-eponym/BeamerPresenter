@@ -35,44 +35,31 @@ bool PathContainer::undo(QGraphicsScene *scene)
     for (auto it = step->transformedItems.constBegin(); it != step->transformedItems.constEnd(); ++it)
         it.key()->setTransform(it->inverted(), true);
 
-    // 4. Undo width changes.
-    for (auto it = step->widthChanges.constBegin(); it != step->widthChanges.constEnd(); ++it)
-        switch (it.key()->type())
-        {
-        case FullGraphicsPath::Type:
-        case BasicGraphicsPath::Type:
-        {
-            auto path = static_cast<AbstractGraphicsPath*>(it.key());
-            DrawTool tool = path->getTool();
-            tool.setWidth(tool.width() / *it);
-            path->changeTool(tool);
-            path->update();
-            break;
-        }
-        }
+    // 2. Undo draw tool changes.
+    for (auto it = step->drawToolChanges.constBegin(); it != step->drawToolChanges.constEnd(); ++it)
+    {
+        if (it.key()->type() != FullGraphicsPath::Type && it.key()->type() != BasicGraphicsPath::Type)
+            // this should never happen
+            continue;
+        auto path = static_cast<AbstractGraphicsPath*>(it.key());
+        DrawTool tool = path->getTool();
+        tool.setPen(it->old_pen);
+        tool.brush() = it->old_brush;
+        path->changeTool(tool);
+        path->update();
+    }
 
-    // 3. Undo color changes.
-    for (auto it = step->colorChanges.constBegin(); it != step->colorChanges.constEnd(); ++it)
-        switch (it.key()->type())
-        {
-        case FullGraphicsPath::Type:
-        case BasicGraphicsPath::Type:
-        {
-            auto path = static_cast<AbstractGraphicsPath*>(it.key());
-            DrawTool tool = path->getTool();
-            tool.setColor(tool.color().rgba() ^ *it);
-            path->changeTool(tool);
-            path->update();
-            break;
-        }
-        case TextGraphicsItem::Type:
-        {
-            auto text = static_cast<TextGraphicsItem*>(it.key());
-            text->setDefaultTextColor(text->defaultTextColor().rgba() ^ *it);
-            text->update();
-            break;
-        }
-        }
+    // 3. Undo text tool changes.
+    for (auto it = step->textPropertiesChanges.constBegin(); it != step->textPropertiesChanges.constEnd(); ++it)
+    {
+        if (it.key()->type() != TextGraphicsItem::Type)
+            // this should never happen
+            continue;
+        auto text = static_cast<TextGraphicsItem*>(it.key());
+        text->setFont(it->old_font);
+        text->setDefaultTextColor(text->defaultTextColor().rgba() ^ it->color_diff);
+        text->update();
+    }
 
     // 4. Remove newly created items.
     // Get the (sorted) indices of items which should be removed.
@@ -147,44 +134,31 @@ bool PathContainer::redo(QGraphicsScene *scene)
         }
     }
 
-    // 3. Redo color changes.
-    for (auto it = step->colorChanges.constBegin(); it != step->colorChanges.constEnd(); ++it)
-        switch (it.key()->type())
-        {
-        case FullGraphicsPath::Type:
-        case BasicGraphicsPath::Type:
-        {
-            auto path = static_cast<AbstractGraphicsPath*>(it.key());
-            DrawTool tool = path->getTool();
-            tool.setColor(tool.color().rgba() ^ *it);
-            path->changeTool(tool);
-            path->update();
-            break;
-        }
-        case TextGraphicsItem::Type:
-        {
-            auto text = static_cast<TextGraphicsItem*>(it.key());
-            text->setDefaultTextColor(text->defaultTextColor().rgba() ^ *it);
-            text->update();
-            break;
-        }
-        }
+    // 3. Redo draw tool changes.
+    for (auto it = step->drawToolChanges.constBegin(); it != step->drawToolChanges.constEnd(); ++it)
+    {
+        if (it.key()->type() != FullGraphicsPath::Type && it.key()->type() != BasicGraphicsPath::Type)
+            // this should never happen
+            continue;
+        auto path = static_cast<AbstractGraphicsPath*>(it.key());
+        DrawTool tool = path->getTool();
+        tool.setPen(it->new_pen);
+        tool.brush() = it->new_brush;
+        path->changeTool(tool);
+        path->update();
+    }
 
-    // 4. Redo width changes.
-    for (auto it = step->widthChanges.constBegin(); it != step->widthChanges.constEnd(); ++it)
-        switch (it.key()->type())
-        {
-        case FullGraphicsPath::Type:
-        case BasicGraphicsPath::Type:
-        {
-            auto path = static_cast<AbstractGraphicsPath*>(it.key());
-            DrawTool tool = path->getTool();
-            tool.setWidth(tool.width() * *it);
-            path->changeTool(tool);
-            path->update();
-            break;
-        }
-        }
+    // 4. Redo text tool changes.
+    for (auto it = step->textPropertiesChanges.constBegin(); it != step->textPropertiesChanges.constEnd(); ++it)
+    {
+        if (it.key()->type() != TextGraphicsItem::Type)
+            // this should never happen
+            continue;
+        auto text = static_cast<TextGraphicsItem*>(it.key());
+        text->setFont(it->new_font);
+        text->setDefaultTextColor(text->defaultTextColor().rgba() ^ it->color_diff);
+        text->update();
+    }
 
     // 5. Redo transformations.
     for (auto it = step->transformedItems.constBegin(); it != step->transformedItems.constEnd(); ++it)
@@ -255,7 +229,7 @@ void PathContainer::clearPaths()
     auto it = paths.cbegin();
     for (int i=0; i<paths.length(); i++, ++it)
     {
-        step->deletedItems[i] = *it;
+        step->deletedItems.insert(i, *it);
         if (*it && (*it)->scene())
         {
             (*it)->clearFocus();
@@ -276,7 +250,7 @@ void PathContainer::append(QGraphicsItem *item)
     truncateHistory();
     // Create new history step which adds item.
     DrawHistoryStep *const step = new DrawHistoryStep();
-    step->createdItems[paths.length()] = item;
+    step->createdItems.insert(paths.length(), item);
     // Add item to paths.
     paths.append(item);
     // Add step to history.
@@ -329,7 +303,7 @@ void PathContainer::eraserMicroStep(const QPointF &scene_pos, const qreal size)
                 if (list.isEmpty())
                 {
                     // Mark in history step that this path is deleted.
-                    history.last()->deletedItems[i] = path;
+                    history.last()->deletedItems.insert(i, path);
                     // Hide the path, remove it from scene (if possible).
                     if (scene)
                         scene->removeItem(path);
@@ -348,7 +322,7 @@ void PathContainer::eraserMicroStep(const QPointF &scene_pos, const qreal size)
                     // created from this path.
 
                     // First mark this path as removed in history.
-                    history.last()->deletedItems[i] = path;
+                    history.last()->deletedItems.insert(i, path);
                     // Create the QGraphicsItemGroup.
                     QGraphicsItemGroup *group = new QGraphicsItemGroup();
                     // Add all paths in list (which were obtained by erasing in path)
@@ -450,7 +424,7 @@ bool PathContainer::applyMicroStep()
             {
                 // The index shift "shift" is given by #(new items) - #(delted items)
                 // which lie before it.key() in paths.
-                history.last()->createdItems[it.key() + shift++] = child;
+                history.last()->createdItems.insert(it.key() + shift++, child);
                 group->removeFromGroup(child);
                 child->stackBefore(group);
             }
@@ -730,10 +704,10 @@ void PathContainer::replaceItem(QGraphicsItem *olditem, QGraphicsItem *newitem)
     {
         // Remove all "redo" options.
         truncateHistory();
-        paths[index] = newitem;
+        paths.insert(index, newitem);
         DrawHistoryStep *const step = new DrawHistoryStep();
-        step->deletedItems[index] = olditem;
-        step->createdItems[index] = newitem;
+        step->deletedItems.insert(index, olditem);
+        step->createdItems.insert(index, newitem);
         history.append(step);
         // Remove item from it's scene (if it has one).
         if (olditem->scene())
@@ -749,7 +723,7 @@ void PathContainer::replaceItem(QGraphicsItem *olditem, QGraphicsItem *newitem)
         // Remove item from list of currently visible paths.
         paths.removeAt(index);
         DrawHistoryStep *const step = new DrawHistoryStep();
-        step->deletedItems[index] = olditem;
+        step->deletedItems.insert(index, olditem);
         history.append(step);
         // Remove item from it's scene (if it has one).
         if (olditem->scene())
@@ -773,7 +747,7 @@ void PathContainer::addItems(const QList<QGraphicsItem*> &items)
         if (paths.contains(item))
             // this should never happen
             continue;
-        step->createdItems[paths.length()] = item;
+        step->createdItems.insert(paths.length(), item);
         paths.append(item);
     }
     history.append(step);
@@ -794,7 +768,7 @@ void PathContainer::removeItems(const QList<QGraphicsItem*> &items)
         if (index < 0)
             // this should never happen
             continue;
-        step->deletedItems[index] = item;
+        step->deletedItems.insert(index, item);
     }
     for (auto it=step->deletedItems.cend(); it!=step->deletedItems.cbegin();)
     {
@@ -814,11 +788,6 @@ void PathContainer::removeItems(const QList<QGraphicsItem*> &items)
 
 void PathContainer::addHistoryStep(DrawHistoryStep *step)
 {
-    if (step->colorChanges.isEmpty() && step->transformedItems.isEmpty() && step->createdItems.isEmpty() && step->deletedItems.isEmpty())
-    {
-        delete step;
-        return;
-    }
     // Remove all "redo" options.
     truncateHistory();
     // Check that transformed items are actually there. (should not be necessary)
@@ -830,12 +799,21 @@ void PathContainer::addHistoryStep(DrawHistoryStep *step)
         else
             ++it;
     }
-    // Check that items with color changes are actually there.(should not be necessary)
-    for (auto it=step->colorChanges.constBegin(); it!=step->colorChanges.constEnd();)
+    // Check that items with draw tool changes are actually there and valid. (should not be necessary)
+    for (auto it=step->drawToolChanges.constBegin(); it!=step->drawToolChanges.constEnd();)
     {
-        if (it.key() == nullptr || !paths.contains(it.key()))
+        if (it.key() == nullptr || !paths.contains(it.key()) || (it.key()->type() != BasicGraphicsPath::Type && it.key()->type() != FullGraphicsPath::Type))
             // this should never happen
-            it = step->colorChanges.erase(it);
+            it = step->drawToolChanges.erase(it);
+        else
+            ++it;
+    }
+    // Check that items with text property changes are actually there and valid. (should not be necessary)
+    for (auto it=step->textPropertiesChanges.constBegin(); it!=step->textPropertiesChanges.constEnd();)
+    {
+        if (it.key() == nullptr || !paths.contains(it.key()) || it.key()->type() != TextGraphicsItem::Type)
+            // this should never happen
+            it = step->textPropertiesChanges.erase(it);
         else
             ++it;
     }

@@ -4,13 +4,15 @@
 #include <QList>
 #include <QGraphicsItem>
 #include <QDataStream>
-#include "src/drawing/tool.h"
+#include <QPen>
+#include <QFont>
+#include <QBrush>
+#include "src/drawing/drawtool.h"
 
 class QGraphicsScene;
 class QXmlStreamReader;
 class QXmlStreamWriter;
 class TextGraphicsItem;
-class DrawTool;
 
 
 /**
@@ -24,6 +26,20 @@ class PathContainer : public QObject
     Q_OBJECT
 
 public:
+    struct DrawToolDifference {
+        QPen old_pen;
+        QPen new_pen;
+        QBrush old_brush;
+        QBrush new_brush;
+        DrawToolDifference(const DrawTool &old_tool, const DrawTool &new_tool) :
+            old_pen(old_tool.pen()), new_pen(new_tool.pen()), old_brush(old_pen.brush()), new_brush(new_tool.brush()) {}
+    };
+    struct TextPropertiesDifference {
+        QFont old_font;
+        QFont new_font;
+        QRgb color_diff;
+    };
+
     /**
      * One single step in the history of drawing.
      *  Save deleted and added GraphicsItems and their stacking position
@@ -33,30 +49,34 @@ public:
      *     with their index in the stacking order before they were deleted.
      *  2. creating QGraphicsItems. DrawHistoryStep saves these items together
      *     with their index after all new QGraphicsItems were added.
-     *  3. transforming items. DrawHistoryStep saves the transformations
+     *  3. changing tools of items. For paths and text fields the tool or
+     *     properties are changed.
+     *  4. transforming items. DrawHistoryStep saves the transformations
      *     together with their index after all new QGraphicsItems were added.
-     *  4. changing widths and colors of items. DrawHistoryStep saves a bit-wise
-     *     difference of the QRgb representation of colors. Widths are saved as
-     *     relative changes.
-     *
-     *  TODO: use map of tools instead of separate color and width list?
      */
     struct DrawHistoryStep {
         /// Items with the transformation applied in this history step.
         QHash<QGraphicsItem*, QTransform> transformedItems;
 
-        /// Color changes for paths / text. Color changes are saved as
-        /// new == old ^ change; old == new ^ change;
-        QHash<QGraphicsItem*, QRgb> colorChanges;
+        /// Changes of draw tool.
+        QHash<QGraphicsItem*, DrawToolDifference> drawToolChanges;
 
-        /// Width changes of paths (relative)
-        QHash<QGraphicsItem*, qreal> widthChanges;
+        /// Changes of text properties.
+        QHash<QGraphicsItem*, TextPropertiesDifference> textPropertiesChanges;
 
         /// Newly created items with their index after the history step.
         QMap<int, QGraphicsItem*> createdItems;
 
         /// Deleted items with their indices before the history step.
         QMap<int, QGraphicsItem*> deletedItems;
+
+        bool isEmpty() const {
+            return transformedItems.isEmpty()
+                    && drawToolChanges.isEmpty()
+                    && textPropertiesChanges.isEmpty()
+                    && createdItems.isEmpty()
+                    && deletedItems.isEmpty();
+        }
     };
 
 private:

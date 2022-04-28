@@ -493,7 +493,7 @@ void SlideScene::handleSelectionStopEvents(SelectionTool *tool, const QPointF &p
                 continue;
             transform = it.key()->transform();
             transform *= it->inverted();
-            step->transformedItems[it.key()] = transform;
+            step->transformedItems.insert(it.key(), transform);
             if (finalize && (it.key()->type() == BasicGraphicsPath::Type || it.key()->type() == FullGraphicsPath::Type))
                 static_cast<AbstractGraphicsPath*>(it.key())->finalize();
         }
@@ -1736,21 +1736,18 @@ void SlideScene::toolChanged(const Tool *tool) noexcept
             case FullGraphicsPath::Type:
             {
                 auto path = static_cast<AbstractGraphicsPath*>(item);
-                const QRgb color_diff = path->getTool().color().rgba() ^ draw_tool->color().rgba();
-                if (color_diff)
-                    step->colorChanges[path] = color_diff;
-                if (draw_tool->width() != path->getTool().width())
-                    step->widthChanges[path] = draw_tool->width() / path->getTool().width();
+                if (path->getTool() != *draw_tool)
+                    step->drawToolChanges.insert(path, PathContainer::DrawToolDifference(path->getTool(), *draw_tool));
                 path->changeTool(*draw_tool);
                 path->update();
                 break;
             }
             }
         }
-        if (!step->colorChanges.isEmpty() || !step->widthChanges.isEmpty())
-            emit sendHistoryStep(page | page_part, step);
-        else
+        if (step->isEmpty())
             delete step;
+        else
+            emit sendHistoryStep(page | page_part, step);
     }
 }
 
@@ -1767,9 +1764,9 @@ void SlideScene::colorChanged(const QColor &color) noexcept
             auto path = static_cast<AbstractGraphicsPath*>(item);
             if (path->getTool().color() != color)
             {
-                step->colorChanges[item] = path->getTool().color().rgba() ^ color.rgba();
                 DrawTool tool = path->getTool();
                 tool.setColor(color);
+                step->drawToolChanges.insert(path, PathContainer::DrawToolDifference(path->getTool(), tool));
                 path->changeTool(tool);
                 path->update();
             }
@@ -1778,16 +1775,16 @@ void SlideScene::colorChanged(const QColor &color) noexcept
         case TextGraphicsItem::Type:
         {
             auto text = static_cast<TextGraphicsItem*>(item);
-            step->colorChanges[item] = text->defaultTextColor().rgba() ^ color.rgba();
+            step->textPropertiesChanges.insert(item, {text->font(), text->font(), text->defaultTextColor().rgba() ^ color.rgba()});
             text->setDefaultTextColor(color);
             break;
         }
         }
     }
-    if (!step->colorChanges.isEmpty())
-        emit sendHistoryStep(page | page_part, step);
-    else
+    if (step->isEmpty())
         delete step;
+    else
+        emit sendHistoryStep(page | page_part, step);
 }
 
 void SlideScene::widthChanged(const qreal width) noexcept
@@ -1803,9 +1800,9 @@ void SlideScene::widthChanged(const qreal width) noexcept
             auto path = static_cast<AbstractGraphicsPath*>(item);
             if (path->getTool().width() != width)
             {
-                step->colorChanges[item] = width / path->getTool().width();
                 DrawTool tool = path->getTool();
                 tool.setWidth(width);
+                step->drawToolChanges.insert(path, PathContainer::DrawToolDifference(path->getTool(), tool));
                 path->changeTool(tool);
                 path->update();
             }
@@ -1813,8 +1810,8 @@ void SlideScene::widthChanged(const qreal width) noexcept
         }
         }
     }
-    if (!step->widthChanges.isEmpty())
-        emit sendHistoryStep(page | page_part, step);
-    else
+    if (step->isEmpty())
         delete step;
+    else
+        emit sendHistoryStep(page | page_part, step);
 }
