@@ -1227,7 +1227,7 @@ void SlideScene::endTransition()
 void SlideScene::tabletPress(const QPointF &pos, const QTabletEvent *event)
 {
     handleEvents(
-                int(event->pressure() > 0 ? tablet_device_to_input_device.value(event->pointerType()) : Tool::TabletHover) | Tool::StartEvent,
+                tablet_event_to_input_device(event) | Tool::StartEvent,
                 {pos},
                 QPointF(),
                 event->pressure()
@@ -1237,7 +1237,7 @@ void SlideScene::tabletPress(const QPointF &pos, const QTabletEvent *event)
 void SlideScene::tabletMove(const QPointF &pos, const QTabletEvent *event)
 {
     handleEvents(
-                int(event->pressure() > 0 ? tablet_device_to_input_device.value(event->pointerType()) : Tool::TabletHover) | Tool::UpdateEvent,
+                tablet_event_to_input_device(event) | Tool::UpdateEvent,
                 {pos},
                 QPointF(),
                 event->pressure()
@@ -1247,7 +1247,7 @@ void SlideScene::tabletMove(const QPointF &pos, const QTabletEvent *event)
 void SlideScene::tabletRelease(const QPointF &pos, const QTabletEvent *event)
 {
     handleEvents(
-                int(tablet_device_to_input_device.value(event->pointerType())) | Tool::StopEvent,
+                tablet_event_to_input_device(event) | Tool::StopEvent,
                 {pos},
                 QPointF(),
                 event->pressure()

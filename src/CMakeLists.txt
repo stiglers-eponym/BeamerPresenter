@@ -10,7 +10,7 @@ endif()
 
 add_executable(beamerpresenter
         drawing/pixmapgraphicsitem.h drawing/pixmapgraphicsitem.cpp
-        drawing/tool.h
+        drawing/tool.h drawing/tool.cpp
         drawing/drawtool.h
         drawing/texttool.h
         drawing/selectiontool.h drawing/selectiontool.cpp

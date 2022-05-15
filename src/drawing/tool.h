@@ -63,10 +63,11 @@ public:
         TabletOther = 1 << 7,
         TabletHover = 1 << 8,
         TouchInput = 1 << 9,
+        TabletMod = 1 << 10,
         AnyDevice = 0x0fff,
         AnyPointingDevice = AnyDevice ^ (TabletEraser | MouseRightButton | MouseMiddleButton),
-        AnyNormalDevice = AnyPointingDevice ^ (TabletHover | MouseNoButton),
-        PressureSensitiveDevices = TabletPen | TabletEraser | TabletCursor | TabletOther,
+        AnyNormalDevice = AnyPointingDevice ^ (TabletHover | MouseNoButton | TabletMod),
+        PressureSensitiveDevices = TabletPen | TabletEraser | TabletCursor | TabletOther | TabletMod,
     };
 
     /// Distinguish start, stop, update and cancel events.
@@ -156,36 +157,22 @@ static const QMap<Tool::BasicTool, const char*> tool_to_description
     {Tool::BasicSelectionTool, "Select objects by clicking on them"},
 };
 
-/// convert QTabletEvent::PointerType to InputDevice
-#if (QT_VERSION_MAJOR >= 6)
-static const QMap<QPointingDevice::PointerType, Tool::InputDevice> tablet_device_to_input_device
-{
-    {QPointingDevice::PointerType::Pen, Tool::TabletPen},
-    {QPointingDevice::PointerType::Eraser, Tool::TabletEraser},
-    {QPointingDevice::PointerType::Cursor, Tool::TabletCursor},
-    {QPointingDevice::PointerType::Unknown, Tool::TabletOther},
-    {QPointingDevice::PointerType::Generic, Tool::MouseNoButton},
-    {QPointingDevice::PointerType::Finger, Tool::TouchInput},
-};
-#else
-static const QMap<QTabletEvent::PointerType, Tool::InputDevice> tablet_device_to_input_device
-{
-    {QTabletEvent::Pen, Tool::TabletPen},
-    {QTabletEvent::Eraser, Tool::TabletEraser},
-    {QTabletEvent::Cursor, Tool::TabletCursor},
-    {QTabletEvent::UnknownPointer, Tool::TabletOther},
-};
-#endif
+/**
+ * @brief Get input device from tablet event
+ * @param event
+ * @return device
+ */
+int tablet_event_to_input_device(const QTabletEvent* event);
 
 /// convert string (from configuration file) to InputDevice
 static const QMap<QString, int> string_to_input_device
 {
     {"touch", Tool::TouchInput},
     {"tablet pen", Tool::TabletPen},
-    {"tablet", Tool::TabletPen | Tool::TabletCursor | Tool::TabletOther},
+    {"tablet", Tool::TabletPen | Tool::TabletCursor | Tool::TabletOther | Tool::TabletMod},
     {"tablet eraser", Tool::TabletEraser},
     {"tablet hover", Tool::TabletHover},
-    {"tablet all", Tool::TabletPen | Tool::TabletCursor | Tool::TabletOther | Tool::TabletEraser},
+    {"tablet all", Tool::TabletPen | Tool::TabletCursor | Tool::TabletOther | Tool::TabletEraser | Tool::TabletMod},
     {"all", Tool::AnyNormalDevice},
     {"all+", Tool::AnyPointingDevice},
     {"all++", Tool::AnyDevice},

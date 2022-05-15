@@ -39,7 +39,7 @@ bool ToolPropertyButton::event(QEvent *event)
     }
     case QEvent::TabletPress:
     case QEvent::TabletRelease:
-        device = tablet_device_to_input_device.value(static_cast<QTabletEvent*>(event)->pointerType());
+        device = tablet_event_to_input_device(static_cast<const QTabletEvent*>(event));
         break;
     case QEvent::TouchBegin:
     case QEvent::TouchEnd:
