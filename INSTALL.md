@@ -19,6 +19,11 @@ flatpak install org.kde.Platform/x86_64/5.15-21.08 # can be skipped if already i
 flatpak install beamerpresenter.flatpak
 ```
 The build process for these packages is explained [here](https://github.com/stiglers-eponym/BeamerPresenter/tree/main/packaging).
+Verify the signature of the checksums in `SHA256SUMS`:
+```sh
+gpg --keyserver https://keyserver.ubuntu.com --recv-keys DD11316A0D8E585F
+gpg --verify SHA256SUMS.sig SHA256SUMS
+```
 
 In Arch Linux and Manjaro you can install one of the AUR packages [beamerpresenter](https://aur.archlinux.org/packages/beamerpresenter) and [beamerpresenter-git](https://aur.archlinux.org/packages/beamerpresenter-git).
 Note that in these packages by default MuPDF is selected as PDF engine.
