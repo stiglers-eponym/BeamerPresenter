@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2022 Valentin Bruch <software@vbruch.eu>
+#
+# SPDX-License-Identifier: GPL-3.0-or-later OR AGPL-3.0-or-later
+
 if (USE_MUPDF)
   set(HTML_LICENSE_STRING "<p>This software may be redistributed and/or modified under the terms of the GNU Affero General Public License (AGPL), version 3, available on the <a href=\"https://www.gnu.org/licenses/agpl-3.0.html\">GNU website</a>, or (at your choice) any newer version of the same license. You can find more details about the license in the LICENSE file, which you should have obtained with this software, and which is also available <a href=\"https://github.com/stiglers-eponym/BeamerPresenter/blob/main/LICENSE\">on github</a>.</p>")
 else()

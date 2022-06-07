@@ -1,0 +1,48 @@
+Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
+Upstream-Name: BeamerPresenter
+Upstream-Contact: Valentin Bruch <software@vbruch.eu>
+Source: https://github.com/stiglers-eponym/BeamerPresenter
+
+Files: .readme/*
+Copyright: 2022 Valentin Bruch <software@vbruch.eu>
+License: CC0-1.0
+
+Files: .github/*
+Copyright: 2022 Valentin Bruch <software@vbruch.eu>
+License: CC0-1.0
+
+Files: share/*
+Copyright: 2022 Valentin Bruch <software@vbruch.eu>
+License: CC-BY-4.0
+
+Files: man/*
+Copyright: 2022 Valentin Bruch <software@vbruch.eu>
+License: CC-BY-4.0
+
+Files: doc/*
+Copyright: 2022 Valentin Bruch <software@vbruch.eu>
+License: CC0-1.0
+
+Files: doxyfile
+Copyright: 2022 Valentin Bruch <software@vbruch.eu>
+License: CC0-1.0
+
+Files: .gitignore
+Copyright: 2022 Valentin Bruch <software@vbruch.eu>
+License: CC0-1.0
+
+Files: translations/*
+Copyright: 2022 Valentin Bruch <software@vbruch.eu>
+License: CC0-1.0
+
+Files: packaging/*
+Copyright: 2022 Valentin Bruch <software@vbruch.eu>
+License: CC0-1.0
+
+Files: config/*
+Copyright: 2022 Valentin Bruch <software@vbruch.eu>
+License: CC0-1.0
+
+Files: *.md
+Copyright: 2022 Valentin Bruch <software@vbruch.eu>
+License: CC0-1.0

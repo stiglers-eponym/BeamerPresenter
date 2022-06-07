@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2022 Valentin Bruch <software@vbruch.eu>
+//
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 #ifndef MUPDFRENDERER_H
 #define MUPDFRENDERER_H
 

@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2022 Valentin Bruch <software@vbruch.eu>
+//
+// SPDX-License-Identifier: GPL-3.0-or-later OR AGPL-3.0-or-later
+
 #include "src/gui/tocbutton.h"
 
 TOCbutton::TOCbutton(const QString &title, const int _page, QCheckBox *expand_button, QWidget *parent) :

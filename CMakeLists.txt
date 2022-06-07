@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2022 Valentin Bruch <software@vbruch.eu>
+#
+# SPDX-License-Identifier: GPL-3.0-or-later OR AGPL-3.0-or-later
+
 cmake_minimum_required(VERSION 3.16)
 
 project(beamerpresenter
@@ -146,7 +150,7 @@ endif()
 
 # License
 if (INSTALL_LICENSE)
-    install(FILES LICENSE LICENSE_GPL LICENSE_AGPL DESTINATION "${CMAKE_INSTALL_DATAROOTDIR}/licenses/beamerpresenter/")
+    install(FILES LICENSE LICENSES/GPL-3.0-or-later.txt LICENSES/AGPL-3.0-or-later.txt DESTINATION "${CMAKE_INSTALL_DATAROOTDIR}/licenses/beamerpresenter/")
 endif()
 
 # Add other subdirectories.
@@ -241,7 +245,7 @@ if (CPACK_GENERATOR MATCHES "DEB")
         set(CPACK_DEBIAN_PACKAGE_SUGGESTS "libqt5multimedia5-plugins")
     endif()
     install(FILES "${PROJECT_SOURCE_DIR}/LICENSE" DESTINATION "${CMAKE_INSTALL_DOCDIR}" RENAME "copyright")
-    install(FILES "${PROJECT_SOURCE_DIR}/LICENSE_AGPL" "${PROJECT_SOURCE_DIR}/LICENSE_GPL" DESTINATION "${CMAKE_INSTALL_DOCDIR}")
+    install(FILES "${PROJECT_SOURCE_DIR}/LICENSES/AGPL-3.0-or-later.txt" "${PROJECT_SOURCE_DIR}/LICENSES/GPL-3.0-or-later.txt" DESTINATION "${CMAKE_INSTALL_DOCDIR}")
 endif()
 
 if (CPACK_GENERATOR MATCHES "RPM")

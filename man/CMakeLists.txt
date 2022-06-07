@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2022 Valentin Bruch <software@vbruch.eu>
+#
+# SPDX-License-Identifier: GPL-3.0-or-later OR AGPL-3.0-or-later
+
 set(MAN_FILES beamerpresenter.1 beamerpresenter-ui.5 beamerpresenter.conf.5)
 
 set(MAN1_TARGETS)

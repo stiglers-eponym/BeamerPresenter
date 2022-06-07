@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2022 Valentin Bruch <software@vbruch.eu>
+//
+// SPDX-License-Identifier: GPL-3.0-or-later OR AGPL-3.0-or-later
+
 #include <QColorDialog>
 #include "src/gui/colorselectionbutton.h"
 #include "src/gui/toolbutton.h"
