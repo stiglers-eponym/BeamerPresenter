@@ -32,9 +32,9 @@ jobs:
 
     - name: Download and unpack MuPDF
       run: |
-        wget https://mupdf.com/downloads/archive/mupdf-$MUPDF_VERSION-source.tar.xz
+        wget -q https://mupdf.com/downloads/archive/mupdf-$MUPDF_VERSION-source.tar.xz
         sha256sum -c - <<< "b5eac663fe74f33c430eda342f655cf41fa73d71610f0884768a856a82e3803e mupdf-$MUPDF_VERSION-source.tar.xz"
-        tar -xvf mupdf-$MUPDF_VERSION-source.tar.xz
+        tar -xf mupdf-$MUPDF_VERSION-source.tar.xz
 
     - name: Install Dependencies
       run: >
@@ -57,7 +57,7 @@ jobs:
 
     - name: Build MuPDF
       run : |
-        cd mupdf-$MUPDF_VERSION-source
+        cd "mupdf-$MUPDF_VERSION-source"
         rm -rf thirdparty/{freeglut,freetype,harfbuzz,jbig2dec,libjpeg,openjpeg,zlib}
         CFLAGS+=' -fPIC -ffat-lto-objects'
         CXXFLAGS+=' -fPIC'
@@ -76,8 +76,8 @@ jobs:
         -DUSE_EXTERNAL_RENDERER=OFF
         -DUSE_MUJS=ON
         -DUSE_GUMBO=ON
-        -DMUPDF_LIB_PATH="$(pwd)/mupdf-$MUPDF_VERSION-source/build/release/libmupdf.a
-        -DMUPDF_THIRD_LIB_PATH="$(pwd)/mupdf-$MUPDF_VERSION-source/build/release/libmupdf-third.a
+        -DMUPDF_LIB_PATH="$(pwd)/mupdf-$MUPDF_VERSION-source/build/release/libmupdf.a"
+        -DMUPDF_THIRD_LIB_PATH="$(pwd)/mupdf-$MUPDF_VERSION-source/build/release/libmupdf-third.a"
         -DMUPDF_INCLUDE_DIR="$(pwd)/mupdf-$MUPDF_VERSION-source/include"
         -DUSE_TRANSLATIONS=ON
         -DQT_VERSION_MAJOR=6
