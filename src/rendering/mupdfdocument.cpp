@@ -775,7 +775,11 @@ void MuPdfDocument::loadOutline()
             auto fill_outline = [&](fz_outline *entry, auto& function) -> void
             {
                 const int idx = outline.length();
+#if (FZ_VERSION_MAJOR >= 1) && (FZ_VERSION_MINOR >= 20)
+                outline.append({entry->title, entry->page.page, -1});
+#else
                 outline.append({entry->title, entry->page, -1});
+#endif
                 if (entry->down)
                     function(entry->down, function);
                 if (entry->next)

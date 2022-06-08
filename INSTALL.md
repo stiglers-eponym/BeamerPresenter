@@ -98,7 +98,7 @@ When compiling with Poppler:
 * `poppler-qt5`
 
 When compiling with MuPDF:
-* `libmupdf` (only for building, tested versions: 1.16.1 – 1.19.0)
+* `libmupdf` (only for building, tested versions: 1.16.1 – 1.20.0)
 * `jbig2dec`
 * `openjpeg2`
 * `gumbo-parser`
