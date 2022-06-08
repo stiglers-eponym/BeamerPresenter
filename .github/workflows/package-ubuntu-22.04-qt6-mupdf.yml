@@ -1,4 +1,5 @@
 name: "CodeQL + package Ubuntu 22.04 Qt6 MuPDF"
+
 on:
   # First try this out and run it only manually.
   workflow_dispatch
@@ -8,6 +9,9 @@ on:
   #pull_request:
   #  # The branches below must be a subset of the branches above
   #  branches: [ main ]
+
+env:
+  VERSION: 0.2.2
 
 jobs:
   analyze:
@@ -97,5 +101,5 @@ jobs:
     - name: Archive debian package
       uses: actions/upload-artifact@v2
       with:
-        name: beamerpresenter-mupdf-x86_64.deb
-        path: /home/runner/work/BeamerPresenter/BeamerPresenter/beamerpresenter-mupdf-0.2.2-qt6-x86_64.deb
+        name: beamerpresenter-mupdf-$VERSION-qt6-x86_64.deb
+        path: /home/runner/work/BeamerPresenter/BeamerPresenter/beamerpresenter-mupdf-$VERSION-qt6-x86_64.deb

@@ -1,4 +1,5 @@
 name: "CodeQL + package Ubuntu 20.04 Qt5 full"
+
 on:
   # First try this out and run it only manually.
   workflow_dispatch
@@ -8,6 +9,9 @@ on:
   #pull_request:
   #  # The branches below must be a subset of the branches above
   #  branches: [ main ]
+
+env:
+  VERSION: 0.2.2
 
 jobs:
   analyze:
@@ -91,5 +95,5 @@ jobs:
     - name: Archive debian package
       uses: actions/upload-artifact@v2
       with:
-        name: beamerpresenter-full-x86_64.deb
-        path: /home/runner/work/BeamerPresenter/BeamerPresenter/beamerpresenter-full-0.2.2-qt5-x86_64.deb
+        name: beamerpresenter-full-$VERSION-qt5-x86_64.deb
+        path: /home/runner/work/BeamerPresenter/BeamerPresenter/beamerpresenter-full-$VERSION-qt5-x86_64.deb
