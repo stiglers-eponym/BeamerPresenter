@@ -74,7 +74,7 @@ jobs:
         -DUSE_POPPLER=OFF
         -DUSE_QTPDF=OFF
         -DUSE_EXTERNAL_RENDERER=OFF
-        -DUSE_MUJS=ON
+        -DUSE_MUJS=OFF
         -DUSE_GUMBO=ON
         -DMUPDF_LIB_PATH="$(pwd)/mupdf-$MUPDF_VERSION-source/build/release/libmupdf.a"
         -DMUPDF_THIRD_LIB_PATH="$(pwd)/mupdf-$MUPDF_VERSION-source/build/release/libmupdf-third.a"
