@@ -1,4 +1,4 @@
-name: "CodeQL+package"
+name: "CodeQL + package Ubuntu 22.04 Qt6 MuPDF"
 on:
   # First try this out and run it only manually.
   workflow_dispatch
@@ -8,13 +8,11 @@ on:
   #pull_request:
   #  # The branches below must be a subset of the branches above
   #  branches: [ main ]
-  #schedule:
-  #  - cron: '23 22 * * 1'
 
 jobs:
   analyze:
     name: Analyze
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     permissions:
       actions: read
       contents: read
@@ -42,12 +40,45 @@ jobs:
         # queries: ./path/to/local/query, your-org/your-repo/queries@main
 
     - name: Install Dependencies
-      run: sudo apt-get install -y --no-install-recommends cmake zlib1g-dev qtmultimedia5-dev qttools5-dev libpoppler-qt5-dev libmupdf-dev libfreetype-dev libharfbuzz-dev libjpeg-dev libopenjp2-7-dev libjbig2dec0-dev
+      run: >
+        sudo apt-get install -y --no-install-recommends
+        cmake
+        zlib1g-dev
+        libmupdf-dev
+        libfreetype-dev
+        libharfbuzz-dev
+        libjpeg-dev
+        libopenjp2-7-dev
+        libjbig2dec0-dev
+        qt6-multimedia-dev
+        libqt6opengl6-dev
+        libgl1-mesa-dev
+        qt6-tools-dev
+        qt6-tools-dev-tools
+        qt6-l10n-tools
+
+    - name: Configure
+      run: >
+       cmake
+       -B build_dir
+       -DUSE_MUPDF=ON
+       -DUSE_POPPLER=OFF
+       -DUSE_QTPDF=OFF
+       -DUSE_EXTERNAL_RENDERER=OFF
+       -DUSE_MUJS=ON
+       -DUSE_GUMBO=ON
+       -DUSE_TRANSLATIONS=ON
+       -DQT_VERSION_MAJOR=6
+       -DQT_VERSION_MINOR=2
+       -DGIT_VERSION=OFF
+       -DCMAKE_BUILD_TYPE='Release'
+       -DCPACK_GENERATOR='DEB;'
+       -DCMAKE_INSTALL_PREFIX='/usr'
+       -DCMAKE_INSTALL_SYSCONFDIR='/etc'
+       -DINSTALL_LICENSE=OFF
 
     - name: Build
-      run: |
-       cmake -B build_dir -DUSE_MUPDF=ON -DUSE_POPPLER=ON -DUSE_MUJS=OFF -DUSE_GUMBO=OFF -DUSE_TRANSLATIONS=ON -DQT_VERSION_MAJOR=5 -DQT_VERSION_MINOR=12 -DGIT_VERSION=OFF -DCMAKE_BUILD_TYPE='Release' -DCPACK_GENERATOR='DEB;' -DCMAKE_INSTALL_PREFIX='/usr' -DCMAKE_INSTALL_SYSCONFDIR='/etc' -DINSTALL_LICENSE=OFF
-       cmake --build build_dir
+      run: cmake --build build_dir
 
     - name: Perform CodeQL Analysis
       uses: github/codeql-action/analyze@v1
@@ -64,5 +95,5 @@ jobs:
     - name: Archive debian package
       uses: actions/upload-artifact@v2
       with:
-        name: beamerpresenter-full-x86_64.deb
-        path: /home/runner/work/BeamerPresenter/BeamerPresenter/beamerpresenter-full-0.2.2-qt5.12-x86_64.deb
+        name: beamerpresenter-mupdf-x86_64.deb
+        path: /home/runner/work/BeamerPresenter/BeamerPresenter/beamerpresenter-mupdf-0.2.2-qt6-x86_64.deb
