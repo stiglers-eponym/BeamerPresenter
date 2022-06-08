@@ -45,6 +45,8 @@ jobs:
         cmake
         zlib1g-dev
         libmupdf-dev
+        libmujs-dev
+        libgumbo-dev
         libfreetype-dev
         libharfbuzz-dev
         libjpeg-dev
