@@ -1,4 +1,4 @@
-name: "Package for Ubuntu 22.04"
+name: "Package for Ubuntu 20.04"
 
 on:
   push:
@@ -12,7 +12,7 @@ env:
 jobs:
   package:
     name: Package
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-20.04
 
     steps:
     - name: Checkout repository
@@ -24,7 +24,6 @@ jobs:
         cmake
         zlib1g-dev
         libmupdf-dev
-        libmujs-dev
         libgumbo-dev
         libfreetype-dev
         freeglut3-dev
@@ -32,12 +31,6 @@ jobs:
         libjpeg-dev
         libopenjp2-7-dev
         libjbig2dec0-dev
-        qt6-multimedia-dev
-        libqt6opengl6-dev
-        libgl1-mesa-dev
-        qt6-tools-dev
-        qt6-tools-dev-tools
-        qt6-l10n-tools
         qtmultimedia5-dev
         qttools5-dev
         libpoppler-qt5-dev
@@ -51,11 +44,11 @@ jobs:
        -DUSE_POPPLER=ON
        -DUSE_QTPDF=OFF
        -DUSE_EXTERNAL_RENDERER=OFF
-       -DUSE_MUJS=ON
-       -DUSE_GUMBO=ON
+       -DUSE_MUJS=OFF
+       -DUSE_GUMBO=OFF
        -DUSE_TRANSLATIONS=ON
        -DQT_VERSION_MAJOR=5
-       -DQT_VERSION_MINOR=15
+       -DQT_VERSION_MINOR=12
        -DGIT_VERSION=OFF
        -DCMAKE_BUILD_TYPE='Release'
        -DCPACK_GENERATOR='DEB;'
@@ -69,13 +62,13 @@ jobs:
     - name: Package with Qt5 + Poppler
       run: |
         cpack --config build_qt5_poppler/CPackConfig.cmake
-        mv beamerpresenter-poppler-qt5-x86_64.deb beamerpresenter-poppler-qt5-jammy-x86_64.deb
+        mv beamerpresenter-poppler-qt5-x86_64.deb beamerpresenter-poppler-qt5-focal-x86_64.deb
 
     - name: Archive package with Qt5 + Poppler
       uses: actions/upload-artifact@v2
       with:
-        name: beamerpresenter-poppler-qt5-jammy-x86_64.deb
-        path: /home/runner/work/BeamerPresenter/BeamerPresenter/beamerpresenter-poppler-qt5-jammy-x86_64.deb
+        name: beamerpresenter-poppler-qt5-focal-x86_64.deb
+        path: /home/runner/work/BeamerPresenter/BeamerPresenter/beamerpresenter-poppler-qt5-focal-x86_64.deb
 
 
     - name: Configure with Qt5 + MuPDF
@@ -86,11 +79,11 @@ jobs:
        -DUSE_POPPLER=OFF
        -DUSE_QTPDF=OFF
        -DUSE_EXTERNAL_RENDERER=OFF
-       -DUSE_MUJS=ON
-       -DUSE_GUMBO=ON
+       -DUSE_MUJS=OFF
+       -DUSE_GUMBO=OFF
        -DUSE_TRANSLATIONS=ON
        -DQT_VERSION_MAJOR=5
-       -DQT_VERSION_MINOR=15
+       -DQT_VERSION_MINOR=12
        -DGIT_VERSION=OFF
        -DCMAKE_BUILD_TYPE='Release'
        -DCPACK_GENERATOR='DEB;'
@@ -104,48 +97,13 @@ jobs:
     - name: Package with Qt5 + MuPDF
       run: |
         cpack --config build_qt5_mupdf/CPackConfig.cmake
-        mv beamerpresenter-mupdf-qt5-x86_64.deb beamerpresenter-mupdf-qt5-jammy-x86_64.deb
+        mv beamerpresenter-mupdf-qt5-x86_64.deb beamerpresenter-mupdf-qt5-focal-x86_64.deb
 
     - name: Archive package with Qt5 + MuPDF
       uses: actions/upload-artifact@v2
       with:
-        name: beamerpresenter-mupdf-qt5-jammy-x86_64.deb
-        path: /home/runner/work/BeamerPresenter/BeamerPresenter/beamerpresenter-mupdf-qt5-jammy-x86_64.deb
-
-
-    - name: Configure with Qt6 + MuPDF
-      run: >
-       cmake
-       -B build_qt6_mupdf
-       -DUSE_MUPDF=ON
-       -DUSE_POPPLER=OFF
-       -DUSE_QTPDF=OFF
-       -DUSE_EXTERNAL_RENDERER=OFF
-       -DUSE_MUJS=ON
-       -DUSE_GUMBO=ON
-       -DUSE_TRANSLATIONS=ON
-       -DQT_VERSION_MAJOR=6
-       -DQT_VERSION_MINOR=2
-       -DGIT_VERSION=OFF
-       -DCMAKE_BUILD_TYPE='Release'
-       -DCPACK_GENERATOR='DEB;'
-       -DCMAKE_INSTALL_PREFIX='/usr'
-       -DCMAKE_INSTALL_SYSCONFDIR='/etc'
-       -DINSTALL_LICENSE=OFF
-
-    - name: Build with Qt6 + MuPDF
-      run: cmake --build build_qt6_mupdf
-
-    - name: Package with Qt6 + MuPDF
-      run: |
-        cpack --config build_qt6_mupdf/CPackConfig.cmake
-        mv beamerpresenter-mupdf-qt6-x86_64.deb beamerpresenter-mupdf-qt6-jammy-x86_64.deb
-
-    - name: Archive package with Qt6 + MuPDF
-      uses: actions/upload-artifact@v2
-      with:
-        name: beamerpresenter-mupdf-qt6-jammy-x86_64.deb
-        path: /home/runner/work/BeamerPresenter/BeamerPresenter/beamerpresenter-mupdf-qt6-jammy-x86_64.deb
+        name: beamerpresenter-mupdf-qt5-focal-x86_64.deb
+        path: /home/runner/work/BeamerPresenter/BeamerPresenter/beamerpresenter-mupdf-qt5-focal-x86_64.deb
 
 
     - name: Download and unpack MuPDF
@@ -181,7 +139,7 @@ jobs:
         -DMUPDF_INCLUDE_DIR="$(pwd)/mupdf-${{ env.MUPDF_VERSION }}-source/include"
         -DUSE_TRANSLATIONS=ON
         -DQT_VERSION_MAJOR=5
-        -DQT_VERSION_MINOR=15
+        -DQT_VERSION_MINOR=12
         -DMARK_AS_SMALL=ON
         -DGIT_VERSION=OFF
         -DCMAKE_BUILD_TYPE='Release'
@@ -196,52 +154,13 @@ jobs:
     - name: Package with Qt5 + small MuPDF
       run: |
         cpack --config build_qt5_mupdf_small/CPackConfig.cmake
-        mv beamerpresenter-mupdf-small-qt5-x86_64.deb beamerpresenter-mupdf-small-qt5-jammy-x86_64.deb
+        mv beamerpresenter-mupdf-small-qt5-x86_64.deb beamerpresenter-mupdf-small-qt5-focal-x86_64.deb
 
     - name: Archive package with Qt5 + small MuPDF
       uses: actions/upload-artifact@v2
       with:
-        name: beamerpresenter-mupdf-small-qt5-jammy-x86_64.deb
-        path: /home/runner/work/BeamerPresenter/BeamerPresenter/beamerpresenter-mupdf-small-qt5-jammy-x86_64.deb
-
-
-    - name: Configure with Qt6 + small MuPDF
-      run: >
-        cmake
-        -B build_qt6_mupdf_small
-        -DUSE_MUPDF=ON
-        -DUSE_POPPLER=OFF
-        -DUSE_QTPDF=OFF
-        -DUSE_EXTERNAL_RENDERER=OFF
-        -DUSE_MUJS=OFF
-        -DUSE_GUMBO=ON
-        -DMUPDF_LIB_PATH="$(pwd)/mupdf-${{ env.MUPDF_VERSION }}-source/build/release/libmupdf.a"
-        -DMUPDF_THIRD_LIB_PATH="$(pwd)/mupdf-${{ env.MUPDF_VERSION }}-source/build/release/libmupdf-third.a"
-        -DMUPDF_INCLUDE_DIR="$(pwd)/mupdf-${{ env.MUPDF_VERSION }}-source/include"
-        -DUSE_TRANSLATIONS=ON
-        -DQT_VERSION_MAJOR=6
-        -DQT_VERSION_MINOR=2
-        -DMARK_AS_SMALL=ON
-        -DGIT_VERSION=OFF
-        -DCMAKE_BUILD_TYPE='Release'
-        -DCPACK_GENERATOR='DEB;'
-        -DCMAKE_INSTALL_PREFIX='/usr'
-        -DCMAKE_INSTALL_SYSCONFDIR='/etc'
-        -DINSTALL_LICENSE=OFF
-
-    - name: Build with Qt6 + small MuPDF
-      run: cmake --build build_qt6_mupdf_small
-
-    - name: Package with Qt6 + small MuPDF
-      run: |
-        cpack --config build_qt6_mupdf_small/CPackConfig.cmake
-        mv beamerpresenter-mupdf-small-qt6-x86_64.deb beamerpresenter-mupdf-small-qt6-jammy-x86_64.deb
-
-    - name: Archive package with Qt6 + small MuPDF
-      uses: actions/upload-artifact@v2
-      with:
-        name: beamerpresenter-mupdf-small-qt6-jammy-x86_64.deb
-        path: /home/runner/work/BeamerPresenter/BeamerPresenter/beamerpresenter-mupdf-small-qt6-jammy-x86_64.deb
+        name: beamerpresenter-mupdf-small-qt5-focal-x86_64.deb
+        path: /home/runner/work/BeamerPresenter/BeamerPresenter/beamerpresenter-mupdf-small-qt5-focal-x86_64.deb
 
 
     - name: Release
@@ -249,10 +168,8 @@ jobs:
       if: startsWith(github.ref, 'refs/tags/')
       with:
         files: |
-          beamerpresenter-mupdf-small-qt5-jammy-x86_64.deb
-          beamerpresenter-mupdf-small-qt6-jammy-x86_64.deb
-          beamerpresenter-mupdf-qt5-jammy-x86_64.deb
-          beamerpresenter-mupdf-qt6-jammy-x86_64.deb
-          beamerpresenter-poppler-qt5-jammy-x86_64.deb
+          beamerpresenter-mupdf-small-qt5-focal-x86_64.deb
+          beamerpresenter-mupdf-qt5-focal-x86_64.deb
+          beamerpresenter-poppler-qt5-focal-x86_64.deb
         draft: true
         token: ${{ secrets.GITHUB_TOKEN }}
