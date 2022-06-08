@@ -1,0 +1,243 @@
+name: "package for Ubuntu 22.04"
+
+on:
+  # First try this out and run it only manually.
+  workflow_dispatch
+  # This is the default config:
+  #push:
+  #  branches: [ main ]
+  #pull_request:
+  #  # The branches below must be a subset of the branches above
+  #  branches: [ main ]
+
+env:
+  VERSION: 0.2.2
+  MUPDF_VERSION: 1.19.1
+
+jobs:
+  package:
+    name: Package
+    runs-on: ubuntu-22.04
+    permissions:
+      actions: read
+      contents: read
+      security-events: write
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v2
+
+    - name: Install Dependencies
+      run: >
+        sudo apt-get install -y --no-install-recommends
+        cmake
+        zlib1g-dev
+        libmupdf-dev
+        libmujs-dev
+        libgumbo-dev
+        libfreetype-dev
+        freeglut3-dev
+        libharfbuzz-dev
+        libjpeg-dev
+        libopenjp2-7-dev
+        libjbig2dec0-dev
+        qt6-multimedia-dev
+        libqt6opengl6-dev
+        libgl1-mesa-dev
+        qt6-tools-dev
+        qt6-tools-dev-tools
+        qt6-l10n-tools
+        qtmultimedia5-dev
+        qttools5-dev
+        libpoppler-qt5-dev
+
+
+    - name: Configure with Qt5 + Poppler
+      run: >
+       cmake
+       -B build_qt5_poppler
+       -DUSE_MUPDF=OFF
+       -DUSE_POPPLER=ON
+       -DUSE_QTPDF=OFF
+       -DUSE_EXTERNAL_RENDERER=OFF
+       -DUSE_MUJS=ON
+       -DUSE_GUMBO=ON
+       -DUSE_TRANSLATIONS=ON
+       -DQT_VERSION_MAJOR=5
+       -DQT_VERSION_MINOR=15
+       -DGIT_VERSION=OFF
+       -DCMAKE_BUILD_TYPE='Release'
+       -DCPACK_GENERATOR='DEB;'
+       -DCMAKE_INSTALL_PREFIX='/usr'
+       -DCMAKE_INSTALL_SYSCONFDIR='/etc'
+       -DINSTALL_LICENSE=OFF
+
+    - name: Build with Qt5 + Poppler
+      run: cmake --build build_qt5_poppler
+
+    - name: Package with Qt5 + Poppler
+      run: cpack --config build_qt5_poppler/CPackConfig.cmake
+
+    - name: Archive package with Qt5 + Poppler
+      uses: actions/upload-artifact@v2
+      with:
+        name: beamerpresenter-poppler-${{ env.VERSION }}-qt5-x86_64.deb
+        path: /home/runner/work/BeamerPresenter/BeamerPresenter/beamerpresenter-poppler-${{ env.VERSION }}-qt5-x86_64.deb
+
+
+    - name: Configure with Qt5 + MuPDF
+      run: >
+       cmake
+       -B build_qt5_mupdf
+       -DUSE_MUPDF=ON
+       -DUSE_POPPLER=OFF
+       -DUSE_QTPDF=OFF
+       -DUSE_EXTERNAL_RENDERER=OFF
+       -DUSE_MUJS=ON
+       -DUSE_GUMBO=ON
+       -DUSE_TRANSLATIONS=ON
+       -DQT_VERSION_MAJOR=5
+       -DQT_VERSION_MINOR=15
+       -DGIT_VERSION=OFF
+       -DCMAKE_BUILD_TYPE='Release'
+       -DCPACK_GENERATOR='DEB;'
+       -DCMAKE_INSTALL_PREFIX='/usr'
+       -DCMAKE_INSTALL_SYSCONFDIR='/etc'
+       -DINSTALL_LICENSE=OFF
+
+    - name: Build with Qt5 + MuPDF
+      run: cmake --build build_qt5_mupdf
+
+    - name: Package with Qt5 + MuPDF
+      run: cpack --config build_qt5_mupdf/CPackConfig.cmake
+
+    - name: Archive package with Qt5 + MuPDF
+      uses: actions/upload-artifact@v2
+      with:
+        name: beamerpresenter-mupdf-${{ env.VERSION }}-qt5-x86_64.deb
+        path: /home/runner/work/BeamerPresenter/BeamerPresenter/beamerpresenter-mupdf-${{ env.VERSION }}-qt5-x86_64.deb
+
+
+    - name: Configure with Qt6 + MuPDF
+      run: >
+       cmake
+       -B build_qt6_mupdf
+       -DUSE_MUPDF=ON
+       -DUSE_POPPLER=OFF
+       -DUSE_QTPDF=OFF
+       -DUSE_EXTERNAL_RENDERER=OFF
+       -DUSE_MUJS=ON
+       -DUSE_GUMBO=ON
+       -DUSE_TRANSLATIONS=ON
+       -DQT_VERSION_MAJOR=6
+       -DQT_VERSION_MINOR=2
+       -DGIT_VERSION=OFF
+       -DCMAKE_BUILD_TYPE='Release'
+       -DCPACK_GENERATOR='DEB;'
+       -DCMAKE_INSTALL_PREFIX='/usr'
+       -DCMAKE_INSTALL_SYSCONFDIR='/etc'
+       -DINSTALL_LICENSE=OFF
+
+    - name: Build with Qt6 + MuPDF
+      run: cmake --build build_qt6_mupdf
+
+    - name: Package with Qt6 + MuPDF
+      run: cpack --config build_qt6_mupdf/CPackConfig.cmake
+
+    - name: Archive package with Qt6 + MuPDF
+      uses: actions/upload-artifact@v2
+      with:
+        name: beamerpresenter-mupdf-${{ env.VERSION }}-qt6-x86_64.deb
+        path: /home/runner/work/BeamerPresenter/BeamerPresenter/beamerpresenter-mupdf-${{ env.VERSION }}-qt6-x86_64.deb
+
+
+    - name: Download and unpack MuPDF
+      run: |
+        wget -q https://mupdf.com/downloads/archive/mupdf-${{ env.MUPDF_VERSION }}-source.tar.xz
+        sha256sum -c - <<< "b5eac663fe74f33c430eda342f655cf41fa73d71610f0884768a856a82e3803e mupdf-${{ env.MUPDF_VERSION }}-source.tar.xz"
+        tar -xf "mupdf-${{ env.MUPDF_VERSION }}-source.tar.xz"
+
+    - name: Build MuPDF
+      run : |
+        cd "mupdf-${{ env.MUPDF_VERSION }}-source"
+        rm -rf thirdparty/{freeglut,freetype,harfbuzz,jbig2dec,libjpeg,openjpeg,zlib}
+        CFLAGS+=' -fPIC -ffat-lto-objects'
+        CXXFLAGS+=' -fPIC'
+        USE_SYSTEM_LIBS='yes'
+        XCFLAGS+=' -DTOFU -DTOFU_CJK -DTOFU_SIL -DFZ_ENABLE_JS=0'
+        export CFLAGS CXXFLAGS USE_SYSTEM_LIBS XCFLAGS
+        make build=release libs
+
+
+    - name: Configure with Qt5 + small MuPDF
+      run: >
+        cmake
+        -B build_qt5_mupdf_small
+        -DUSE_MUPDF=ON
+        -DUSE_POPPLER=OFF
+        -DUSE_QTPDF=OFF
+        -DUSE_EXTERNAL_RENDERER=OFF
+        -DUSE_MUJS=OFF
+        -DUSE_GUMBO=ON
+        -DMUPDF_LIB_PATH="$(pwd)/mupdf-${{ env.MUPDF_VERSION }}-source/build/release/libmupdf.a"
+        -DMUPDF_THIRD_LIB_PATH="$(pwd)/mupdf-${{ env.MUPDF_VERSION }}-source/build/release/libmupdf-third.a"
+        -DMUPDF_INCLUDE_DIR="$(pwd)/mupdf-${{ env.MUPDF_VERSION }}-source/include"
+        -DUSE_TRANSLATIONS=ON
+        -DQT_VERSION_MAJOR=5
+        -DQT_VERSION_MINOR=15
+        -DMARK_AS_SMALL=ON
+        -DGIT_VERSION=OFF
+        -DCMAKE_BUILD_TYPE='Release'
+        -DCPACK_GENERATOR='DEB;'
+        -DCMAKE_INSTALL_PREFIX='/usr'
+        -DCMAKE_INSTALL_SYSCONFDIR='/etc'
+        -DINSTALL_LICENSE=OFF
+
+    - name: Build with Qt5 + small MuPDF
+      run: cmake --build build_qt5_mupdf_small
+
+    - name: Package with Qt5 + small MuPDF
+      run: cpack --config build_qt5_mupdf_small/CPackConfig.cmake
+
+    - name: Archive package with Qt5 + small MuPDF
+      uses: actions/upload-artifact@v2
+      with:
+        name: beamerpresenter-mupdf-small-${{ env.VERSION }}-qt5-x86_64.deb
+        path: /home/runner/work/BeamerPresenter/BeamerPresenter/beamerpresenter-mupdf-small-${{ env.VERSION }}-qt5-x86_64.deb
+
+
+    - name: Configure with Qt6 + small MuPDF
+      run: >
+        cmake
+        -B build_qt6_mupdf_small
+        -DUSE_MUPDF=ON
+        -DUSE_POPPLER=OFF
+        -DUSE_QTPDF=OFF
+        -DUSE_EXTERNAL_RENDERER=OFF
+        -DUSE_MUJS=OFF
+        -DUSE_GUMBO=ON
+        -DMUPDF_LIB_PATH="$(pwd)/mupdf-${{ env.MUPDF_VERSION }}-source/build/release/libmupdf.a"
+        -DMUPDF_THIRD_LIB_PATH="$(pwd)/mupdf-${{ env.MUPDF_VERSION }}-source/build/release/libmupdf-third.a"
+        -DMUPDF_INCLUDE_DIR="$(pwd)/mupdf-${{ env.MUPDF_VERSION }}-source/include"
+        -DUSE_TRANSLATIONS=ON
+        -DQT_VERSION_MAJOR=6
+        -DQT_VERSION_MINOR=2
+        -DMARK_AS_SMALL=ON
+        -DGIT_VERSION=OFF
+        -DCMAKE_BUILD_TYPE='Release'
+        -DCPACK_GENERATOR='DEB;'
+        -DCMAKE_INSTALL_PREFIX='/usr'
+        -DCMAKE_INSTALL_SYSCONFDIR='/etc'
+        -DINSTALL_LICENSE=OFF
+
+    - name: Build with Qt6 + small MuPDF
+      run: cmake --build build_qt6_mupdf_small
+
+    - name: Package with Qt6 + small MuPDF
+      run: cpack --config build_qt6_mupdf_small/CPackConfig.cmake
+
+    - name: Archive package with Qt6 + small MuPDF
+      uses: actions/upload-artifact@v2
+      with:
+        name: beamerpresenter-mupdf-small-${{ env.VERSION }}-qt6-x86_64.deb
+        path: /home/runner/work/BeamerPresenter/BeamerPresenter/beamerpresenter-mupdf-small-${{ env.VERSION }}-qt6-x86_64.deb

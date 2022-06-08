@@ -95,5 +95,5 @@ jobs:
     - name: Archive debian package
       uses: actions/upload-artifact@v2
       with:
-        name: beamerpresenter-full-$VERSION-qt5-x86_64.deb
-        path: /home/runner/work/BeamerPresenter/BeamerPresenter/beamerpresenter-full-$VERSION-qt5-x86_64.deb
+        name: beamerpresenter-full-${{ env.VERSION }}-qt5-x86_64.deb
+        path: /home/runner/work/BeamerPresenter/BeamerPresenter/beamerpresenter-full-${{ env.VERSION }}-qt5-x86_64.deb

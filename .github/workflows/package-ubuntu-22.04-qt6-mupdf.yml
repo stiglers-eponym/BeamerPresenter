@@ -101,5 +101,5 @@ jobs:
     - name: Archive debian package
       uses: actions/upload-artifact@v2
       with:
-        name: beamerpresenter-mupdf-$VERSION-qt6-x86_64.deb
-        path: /home/runner/work/BeamerPresenter/BeamerPresenter/beamerpresenter-mupdf-$VERSION-qt6-x86_64.deb
+        name: beamerpresenter-mupdf-${{ env.VERSION }}-qt6-x86_64.deb
+        path: /home/runner/work/BeamerPresenter/BeamerPresenter/beamerpresenter-mupdf-${{ env.VERSION }}-qt6-x86_64.deb
