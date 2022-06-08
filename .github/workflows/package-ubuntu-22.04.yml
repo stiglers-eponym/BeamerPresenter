@@ -1,18 +1,13 @@
-name: "package for Ubuntu 22.04"
+name: "Package for Ubuntu 22.04"
 
 on:
-  # First try this out and run it only manually.
-  workflow_dispatch
-  # This is the default config:
-  #push:
-  #  branches: [ main ]
-  #pull_request:
-  #  # The branches below must be a subset of the branches above
-  #  branches: [ main ]
+  push:
+    tags:
+      - "*"
 
 env:
-  VERSION: 0.2.2
   MUPDF_VERSION: 1.19.1
+  MUPDF_SHA256SUM: b5eac663fe74f33c430eda342f655cf41fa73d71610f0884768a856a82e3803e
 
 jobs:
   package:
@@ -76,13 +71,15 @@ jobs:
       run: cmake --build build_qt5_poppler
 
     - name: Package with Qt5 + Poppler
-      run: cpack --config build_qt5_poppler/CPackConfig.cmake
+      run: |
+        cpack --config build_qt5_poppler/CPackConfig.cmake
+        mv beamerpresenter-poppler-qt5-x86_64.deb beamerpresenter-poppler-qt5-jammy-x86_64.deb
 
     - name: Archive package with Qt5 + Poppler
       uses: actions/upload-artifact@v2
       with:
-        name: beamerpresenter-poppler-${{ env.VERSION }}-qt5-x86_64.deb
-        path: /home/runner/work/BeamerPresenter/BeamerPresenter/beamerpresenter-poppler-${{ env.VERSION }}-qt5-x86_64.deb
+        name: beamerpresenter-poppler-qt5-jammy-x86_64.deb
+        path: /home/runner/work/BeamerPresenter/BeamerPresenter/beamerpresenter-poppler-qt5-jammy-x86_64.deb
 
 
     - name: Configure with Qt5 + MuPDF
@@ -109,13 +106,15 @@ jobs:
       run: cmake --build build_qt5_mupdf
 
     - name: Package with Qt5 + MuPDF
-      run: cpack --config build_qt5_mupdf/CPackConfig.cmake
+      run: |
+        cpack --config build_qt5_mupdf/CPackConfig.cmake
+        mv beamerpresenter-mupdf-qt5-x86_64.deb beamerpresenter-mupdf-qt5-jammy-x86_64.deb
 
     - name: Archive package with Qt5 + MuPDF
       uses: actions/upload-artifact@v2
       with:
-        name: beamerpresenter-mupdf-${{ env.VERSION }}-qt5-x86_64.deb
-        path: /home/runner/work/BeamerPresenter/BeamerPresenter/beamerpresenter-mupdf-${{ env.VERSION }}-qt5-x86_64.deb
+        name: beamerpresenter-mupdf-qt5-jammy-x86_64.deb
+        path: /home/runner/work/BeamerPresenter/BeamerPresenter/beamerpresenter-mupdf-qt5-jammy-x86_64.deb
 
 
     - name: Configure with Qt6 + MuPDF
@@ -142,19 +141,21 @@ jobs:
       run: cmake --build build_qt6_mupdf
 
     - name: Package with Qt6 + MuPDF
-      run: cpack --config build_qt6_mupdf/CPackConfig.cmake
+      run: |
+        cpack --config build_qt6_mupdf/CPackConfig.cmake
+        mv beamerpresenter-mupdf-qt6-x86_64.deb beamerpresenter-mupdf-qt6-jammy-x86_64.deb
 
     - name: Archive package with Qt6 + MuPDF
       uses: actions/upload-artifact@v2
       with:
-        name: beamerpresenter-mupdf-${{ env.VERSION }}-qt6-x86_64.deb
-        path: /home/runner/work/BeamerPresenter/BeamerPresenter/beamerpresenter-mupdf-${{ env.VERSION }}-qt6-x86_64.deb
+        name: beamerpresenter-mupdf-qt6-jammy-x86_64.deb
+        path: /home/runner/work/BeamerPresenter/BeamerPresenter/beamerpresenter-mupdf-qt6-jammy-x86_64.deb
 
 
     - name: Download and unpack MuPDF
       run: |
         wget -q https://mupdf.com/downloads/archive/mupdf-${{ env.MUPDF_VERSION }}-source.tar.xz
-        sha256sum -c - <<< "b5eac663fe74f33c430eda342f655cf41fa73d71610f0884768a856a82e3803e mupdf-${{ env.MUPDF_VERSION }}-source.tar.xz"
+        sha256sum -c - <<< "${{ env.MUPDF_SHA256SUM }} mupdf-${{ env.MUPDF_VERSION }}-source.tar.xz"
         tar -xf "mupdf-${{ env.MUPDF_VERSION }}-source.tar.xz"
 
     - name: Build MuPDF
@@ -197,13 +198,15 @@ jobs:
       run: cmake --build build_qt5_mupdf_small
 
     - name: Package with Qt5 + small MuPDF
-      run: cpack --config build_qt5_mupdf_small/CPackConfig.cmake
+      run: |
+        cpack --config build_qt5_mupdf_small/CPackConfig.cmake
+        mv beamerpresenter-mupdf-small-qt5-x86_64.deb beamerpresenter-mupdf-small-qt5-jammy-x86_64.deb
 
     - name: Archive package with Qt5 + small MuPDF
       uses: actions/upload-artifact@v2
       with:
-        name: beamerpresenter-mupdf-small-${{ env.VERSION }}-qt5-x86_64.deb
-        path: /home/runner/work/BeamerPresenter/BeamerPresenter/beamerpresenter-mupdf-small-${{ env.VERSION }}-qt5-x86_64.deb
+        name: beamerpresenter-mupdf-small-qt5-jammy-x86_64.deb
+        path: /home/runner/work/BeamerPresenter/BeamerPresenter/beamerpresenter-mupdf-small-qt5-jammy-x86_64.deb
 
 
     - name: Configure with Qt6 + small MuPDF
@@ -234,10 +237,26 @@ jobs:
       run: cmake --build build_qt6_mupdf_small
 
     - name: Package with Qt6 + small MuPDF
-      run: cpack --config build_qt6_mupdf_small/CPackConfig.cmake
+      run: |
+        cpack --config build_qt6_mupdf_small/CPackConfig.cmake
+        mv beamerpresenter-mupdf-small-qt6-x86_64.deb beamerpresenter-mupdf-small-qt6-jammy-x86_64.deb
 
     - name: Archive package with Qt6 + small MuPDF
       uses: actions/upload-artifact@v2
       with:
-        name: beamerpresenter-mupdf-small-${{ env.VERSION }}-qt6-x86_64.deb
-        path: /home/runner/work/BeamerPresenter/BeamerPresenter/beamerpresenter-mupdf-small-${{ env.VERSION }}-qt6-x86_64.deb
+        name: beamerpresenter-mupdf-small-qt6-jammy-x86_64.deb
+        path: /home/runner/work/BeamerPresenter/BeamerPresenter/beamerpresenter-mupdf-small-qt6-jammy-x86_64.deb
+
+
+    - name: Release
+      uses: softprops/action-gh-release@v1
+      if: startsWith(github.ref, 'refs/tags/')
+      with:
+        files: |
+          beamerpresenter-mupdf-small-qt5-jammy-x86_64.deb
+          beamerpresenter-mupdf-small-qt6-jammy-x86_64.deb
+          beamerpresenter-mupdf-qt5-jammy-x86_64.deb
+          beamerpresenter-mupdf-qt6-jammy-x86_64.deb
+          beamerpresenter-poppler-qt5-jammy-x86_64.deb
+        draft: true
+        token: ${{ secrets.GITHUB_TOKEN }}

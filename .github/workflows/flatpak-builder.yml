@@ -1,5 +1,10 @@
-on: workflow_dispatch
+on:
+  push:
+    tags:
+      - "*"
+
 name: "Flatpak"
+
 jobs:
   flatpak:
     name: "Flatpak Builder with Qt 5.15 Poppler"
@@ -8,10 +13,22 @@ jobs:
       image: bilelmoussaoui/flatpak-github-actions:kde-5.15-21.08
       options: --privileged
     steps:
-    - uses: actions/checkout@v2
-    - uses: bilelmoussaoui/flatpak-github-actions/flatpak-builder@v4
+    - name: Checkout
+      uses: actions/checkout@v2
+
+    - name: Build flatpak
+      uses: bilelmoussaoui/flatpak-github-actions/flatpak-builder@v4
       with:
         bundle: beamerpresenter.flatpak
         manifest-path: packaging/io.github.beamerpresenter.yml
         arch: x86_64
         cache-key: flatpak-builder-${{ github.sha }}
+
+    - name: Release
+      uses: softprops/action-gh-release@v1
+      if: startsWith(github.ref, 'refs/tags/')
+      with:
+        files: |
+          beamerpresenter.flatpak
+        draft: true
+        token: ${{ secrets.GITHUB_TOKEN }}

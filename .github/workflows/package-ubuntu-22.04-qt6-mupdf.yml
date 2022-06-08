@@ -10,9 +10,6 @@ on:
   #  # The branches below must be a subset of the branches above
   #  branches: [ main ]
 
-env:
-  VERSION: 0.2.2
-
 jobs:
   analyze:
     name: Analyze
@@ -101,5 +98,5 @@ jobs:
     - name: Archive debian package
       uses: actions/upload-artifact@v2
       with:
-        name: beamerpresenter-mupdf-${{ env.VERSION }}-qt6-x86_64.deb
-        path: /home/runner/work/BeamerPresenter/BeamerPresenter/beamerpresenter-mupdf-${{ env.VERSION }}-qt6-x86_64.deb
+        name: beamerpresenter-mupdf-qt6-x86_64.deb
+        path: /home/runner/work/BeamerPresenter/BeamerPresenter/beamerpresenter-mupdf-qt6-x86_64.deb
