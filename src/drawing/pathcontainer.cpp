@@ -135,7 +135,6 @@ bool PathContainer::redo(QGraphicsScene *scene)
     for (auto it = newItems.constBegin(); it != newItems.constEnd(); ++it)
     {
         paths.insert(it.key(), it.value());
-        // TODO: check if it is necessary to show items explicitly.
         if (scene)
         {
             scene->addItem(it.value());
@@ -221,14 +220,14 @@ void PathContainer::clearHistory(int n)
 
     // Delete the first entries in history until
     // history.length() - inHistory <= n .
+    DrawHistoryStep *step;
     for (int i = history.length() - inHistory; i > n; i--)
     {
         // Take the first step from history (removes it from history).
-        DrawHistoryStep *step = history.takeFirst();
+        step = history.takeFirst();
         // Delete all past objects in this step. These objects are not visible.
         // TODO: Does this delete the correct part?
         qDeleteAll(step->deletedItems);
-        step->deletedItems.clear();
         // Delete the step. The future objects of the step are untouched, since
         // they are still owned by other history steps or by this.
         delete step;
@@ -262,6 +261,8 @@ void PathContainer::clearPaths()
 
 void PathContainer::append(QGraphicsItem *item)
 {
+    if (!item)
+        return;
     // Remove all "redo" options.
     truncateHistory();
     // Create new history step which adds item.
@@ -703,9 +704,10 @@ QRectF PathContainer::boundingBox() const noexcept
 
 void PathContainer::replaceItem(QGraphicsItem *olditem, QGraphicsItem *newitem)
 {
-    const int index = olditem ? paths.indexOf(olditem) : -1;
+    const int index = olditem ? (paths.last() == olditem ? paths.length()-1 : paths.indexOf(olditem)) : -1;
     if (index < 0)
     {
+        /* This could be dangerous: maybe olditem is still contained in some history step? */
         delete olditem;
         if (newitem)
         {
@@ -720,7 +722,7 @@ void PathContainer::replaceItem(QGraphicsItem *olditem, QGraphicsItem *newitem)
     {
         // Remove all "redo" options.
         truncateHistory();
-        paths.insert(index, newitem);
+        paths[index] = newitem;
         DrawHistoryStep *const step = new DrawHistoryStep();
         step->deletedItems.insert(index, olditem);
         step->createdItems.insert(index, newitem);
@@ -760,6 +762,8 @@ void PathContainer::addItems(const QList<QGraphicsItem*> &items)
     DrawHistoryStep *const step = new DrawHistoryStep();
     for (const auto item : items)
     {
+        if (!item)
+            continue;
         if (paths.contains(item))
         {
             // this should never happen
@@ -783,6 +787,8 @@ void PathContainer::removeItems(const QList<QGraphicsItem*> &items)
     int index;
     for (const auto item : items)
     {
+        if (!item)
+            continue;
         index = paths.indexOf(item);
         if (index < 0)
         {
