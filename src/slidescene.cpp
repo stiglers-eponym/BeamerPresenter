@@ -118,7 +118,7 @@ void SlideScene::stopDrawing()
         default:
             break;
         }
-        if (currentlyDrawnItem != NULL)
+        if (currentlyDrawnItem)
         {
             removeItem(currentlyDrawnItem);
             delete currentlyDrawnItem;
@@ -418,6 +418,14 @@ void SlideScene::handleSelectionStartEvents(SelectionTool *tool, const QPointF &
             return;
         }
         // 2. Check if the user clicked on a selected object.
+        /* Option 1: Every click in the bounding rect activates dragging. */
+        if (selection_bounding_rect.contains(selection_bounding_rect.mapFromScene(pos)))
+        {
+            tool->startMove(pos);
+            return;
+        }
+        // */
+        /* Option 2: Selection is only dragged when clicking directly on an object.
         selection.pop_back();
         for (auto item : selection)
             if (item->contains(item->mapFromScene(pos)))
@@ -425,6 +433,7 @@ void SlideScene::handleSelectionStartEvents(SelectionTool *tool, const QPointF &
                 tool->startMove(pos);
                 return;
             }
+        // */
         selection.clear();
     }
     if (tool->type() == SelectionTool::NoOperation)
