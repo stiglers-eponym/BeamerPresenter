@@ -6,6 +6,7 @@
 #include "src/preferences.h"
 #include "src/drawing/pixmapgraphicsitem.h"
 #include "src/drawing/pointingtool.h"
+#include "src/drawing/selectiontool.h"
 #include "src/rendering/pixcache.h"
 #include "src/gui/mediaslider.h"
 #include <QGestureEvent>
@@ -282,29 +283,44 @@ void SlideView::drawForeground(QPainter *painter, const QRectF &rect)
         for (const auto basic_tool : preferences()->current_tools)
         {
             // Only pointing tools need painting in foreground (might change in the future).
-            if (!basic_tool || !(basic_tool->tool() & Tool::AnyPointingTool))
+            if (!basic_tool)
                 continue;
-            const PointingTool *tool = static_cast<PointingTool*>(basic_tool);
-            if (tool->pos().isEmpty() || tool->scene() != scene())
-                continue;
-            debug_verbose(DebugDrawing, "drawing tool" << tool->tool() << tool->size() << tool->color());
-            switch (tool->tool())
+            if (basic_tool->tool() & Tool::AnyPointingTool)
             {
-            case Tool::Pointer:
-                showPointer(painter, tool);
-                break;
-            case Tool::Torch:
-                showTorch(painter, tool);
-                break;
-            case Tool::Magnifier:
-                showMagnifier(painter, tool);
-                break;
-            case Tool::Eraser:
-                if (hasFocus())
-                    showEraser(painter, tool);
-                break;
-            default:
-                break;
+                const PointingTool *tool = static_cast<PointingTool*>(basic_tool);
+                if (tool->pos().isEmpty() || tool->scene() != scene())
+                    continue;
+                debug_verbose(DebugDrawing, "drawing tool" << tool->tool() << tool->size() << tool->color());
+                switch (tool->tool())
+                {
+                case Tool::Pointer:
+                    showPointer(painter, tool);
+                    break;
+                case Tool::Torch:
+                    showTorch(painter, tool);
+                    break;
+                case Tool::Magnifier:
+                    showMagnifier(painter, tool);
+                    break;
+                case Tool::Eraser:
+                    if (hasFocus())
+                        showEraser(painter, tool);
+                    break;
+                default:
+                    break;
+                }
+            }
+            else if (basic_tool->tool() & Tool::AnySelectionTool)
+            {
+                const SelectionTool *tool = static_cast<SelectionTool*>(basic_tool);
+                if (!tool->visible() || tool->scene() != scene())
+                    continue;
+                const QPolygonF polygon = tool->polygon();
+                if (polygon.length() < 3)
+                    continue;
+                painter->setPen(QPen(QColor(128,128,160,96), 1, Qt::DashLine));
+                painter->setBrush(QColor(128,128,160,32));
+                painter->drawPolygon(polygon);
             }
         }
     }

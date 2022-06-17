@@ -16,7 +16,8 @@ class SelectionTool : public Tool
 public:
     enum Type {
         NoOperation = 0,
-        Select,
+        SelectRect,
+        SelectPolygon,
         Move,
         Rotate,
         Resize,
@@ -28,10 +29,13 @@ protected:
 
     /// Properties needed to describe the transformation.
     union {
-        /// 2 Points as used by most tools
         struct {
+            /// start point as used by most tools, and always while selecting objects
             QPointF start_pos;
+            QPointF current_pos;
         } general;
+        /// Polygon representing selection boundary
+        QPolygonF *polygon {nullptr};
         /// 2 Points as used for scaling
         struct {
             QPointF start_handle;
@@ -43,6 +47,13 @@ protected:
             qreal start_angle;
         } rotate;
     } properties {QPointF()};
+
+    /// Pointer to scene at which this tool is currently active. _scene is used
+    /// by slide views to determine whether this tool should be drawn.
+    const void *_scene {nullptr};
+
+    /// Overwrite _type, delete polygon if necessary.
+    void changeType(const Type newtype);
 
     QHash<QGraphicsItem*, QTransform> initial_transforms;
 
@@ -56,17 +67,31 @@ public:
         Tool(other), properties(other.properties) {}
 
     /// trivial destructor
-    ~SelectionTool() {}
+    ~SelectionTool()
+    {if (_type == SelectPolygon) delete properties.polygon;}
+
+    bool visible() const noexcept
+    {return _type == SelectRect || _type == SelectPolygon;}
 
     /// Set reference position and set _type to Move.
     void startMove(const QPointF &pos) noexcept;
 
-    /// Set start position and set _type to Selection.
-    void startRectSelection(const QPointF &pos) noexcept;
+    /// Set start position and set _type to SelectRect.
+    void startRectSelection(const QPointF &pos, const void *scene) noexcept;
+
+    /// Set _type to SelectPolygon and initialize polygon.
+    void startFreehandSelection(const QPointF &pos, const void *scene) noexcept;
 
     /// type of operation.
     Type type() const noexcept
     {return _type;}
+
+    /// scene on which this should be drawn.
+    const void *scene() const noexcept
+    {return _scene;}
+
+    /// polygon representing selection boundary.
+    const QPolygonF polygon() const noexcept;
 
     /// reset type and items.
     void reset() noexcept;
@@ -77,14 +102,14 @@ public:
     const QHash<QGraphicsItem*, QTransform> &originalTransforms() const noexcept
     {return initial_transforms;}
 
-    /// Set live position of rotation.
+    /// set live update based on _type.
+    void liveUpdate(const QPointF &pos) noexcept;
+
+    /// set live position of rotation.
     void setLiveRotation(const QPointF &pos) noexcept;
 
-    /// Set live position for resizing.
+    /// set live position for resizing.
     void setLiveScaling(const QPointF &pos) noexcept;
-
-    /// Set live position for moving.
-    void setLiveMoving(const QPointF &pos) noexcept;
 
     /// return reference position.
     const QPointF &startPos() const noexcept

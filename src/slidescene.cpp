@@ -330,7 +330,7 @@ void SlideScene::handleEvents(const int device, const QList<QPointF> &pos, const
             for (auto point : ptool->pos())
             {
                 point_rect.moveCenter(point);
-                invalidate(point_rect, QGraphicsScene::ForegroundLayer);
+                invalidate(point_rect, ForegroundLayer);
             }
             if ((device & Tool::AnyEvent) == Tool::StopEvent && !(tool->device() & (Tool::TabletHover | Tool::MouseNoButton)))
                 ptool->clearPos();
@@ -357,10 +357,13 @@ void SlideScene::handleEvents(const int device, const QList<QPointF> &pos, const
             handleSelectionStartEvents(selection_tool, single_pos);
             break;
         case Tool::DeviceEventType::UpdateEvent:
-            handleSelectionUpdateEvents(selection_tool, single_pos, start_pos);
+            selection_tool->liveUpdate(single_pos);
+            // TODO: select area for higher efficiency
+            invalidate(QRectF(), QGraphicsScene::ForegroundLayer);
             break;
         case Tool::DeviceEventType::StopEvent:
             handleSelectionStopEvents(selection_tool, single_pos, start_pos);
+            invalidate(QRectF(), QGraphicsScene::ForegroundLayer);
             break;
         }
     }
@@ -454,35 +457,14 @@ void SlideScene::handleSelectionStartEvents(SelectionTool *tool, const QPointF &
             break;
         }
         case Tool::RectSelectionTool:
-            tool->startRectSelection(pos);
+            tool->startRectSelection(pos, this);
             break;
         case Tool::FreehandSelectionTool:
-            // TODO: implement freehand selection tool
+            tool->startFreehandSelection(pos, this);
             break;
         default:
             break;
         }
-    }
-}
-
-void SlideScene::handleSelectionUpdateEvents(SelectionTool *tool, const QPointF &pos, const QPointF &start_pos)
-{
-    switch (tool->type())
-    {
-    case SelectionTool::Move:
-        tool->setLiveMoving(pos);
-        break;
-    case SelectionTool::Rotate:
-        tool->setLiveRotation(pos);
-        break;
-    case SelectionTool::Resize:
-        tool->setLiveScaling(pos);
-        break;
-    case SelectionTool::Select:
-        // TODO: implement visualization for area selection tools
-        break;
-    default:
-        break;
     }
 }
 
@@ -514,26 +496,19 @@ void SlideScene::handleSelectionStopEvents(SelectionTool *tool, const QPointF &p
         updateSelectionRect();
         break;
     }
-    case SelectionTool::Select:
-        switch (tool->tool())
-        {
-        case Tool::RectSelectionTool:
-        {
-            QPainterPath path;
-            path.addRect(QRectF(tool->startPos(), pos).normalized());
-            setSelectionArea(path, Qt::ReplaceSelection, Qt::ContainsItemShape);
-            break;
-        }
-        case Tool::FreehandSelectionTool:
-            // TODO: implement this
-            break;
-        default:
-            break;
-        }
+    case SelectionTool::SelectRect:
+    case SelectionTool::SelectPolygon:
+    {
+        tool->liveUpdate(pos);
+        QPainterPath path;
+        path.addPolygon(tool->polygon());
+        setSelectionArea(path, Qt::ReplaceSelection, Qt::ContainsItemShape);
         break;
+    }
     default:
         break;
     }
+    tool->reset();
 }
 
 void SlideScene::receiveAction(const Action action)
@@ -1273,6 +1248,7 @@ void SlideScene::startInputEvent(const DrawTool *tool, const QPointF &pos, const
         return;
     debug_verbose(DebugDrawing, "Start input event" << tool->tool() << tool->device() << tool << pressure);
     stopDrawing();
+    clearSelection();
     if (currentItemCollection || currentlyDrawnItem)
         return;
     clearSelection();

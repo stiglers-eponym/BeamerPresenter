@@ -13,34 +13,75 @@ qreal dist(const QPointF &p) noexcept
    return std::sqrt(p.x()*p.x() + p.y()*p.y());
 }
 
+void SelectionTool::changeType(const Type newtype)
+{
+    if (_type == SelectPolygon)
+        delete properties.polygon;
+    _type = newtype;
+    if (_type == SelectPolygon)
+        properties.polygon = nullptr;
+}
+
 void SelectionTool::startMove(const QPointF &pos) noexcept
 {
-    _type = Move;
+    changeType(Move);
     properties.general.start_pos = pos;
 }
 
-void SelectionTool::startRectSelection(const QPointF &pos) noexcept
+void SelectionTool::startRectSelection(const QPointF &pos, const void *scene) noexcept
 {
-    _type = Select;
+    _scene = scene;
+    changeType(SelectRect);
     properties.general.start_pos = pos;
+    properties.general.current_pos = pos;
+}
+
+void SelectionTool::startFreehandSelection(const QPointF &pos, const void *scene) noexcept
+{
+    _scene = scene;
+    changeType(SelectPolygon);
+    properties.polygon = new QPolygonF();
+    *properties.polygon << pos;
 }
 
 void SelectionTool::startRotation(const QPointF &reference, const QPointF &center) noexcept
 {
-    _type = Rotate;
+    changeType(Rotate);
     const QPointF vec = reference - center;
     properties.rotate.start_angle = 180/M_PI*std::atan2(vec.y(), vec.x());
     properties.rotate.rotation_center = center;
 }
 
-void SelectionTool::setLiveMoving(const QPointF &pos) noexcept
+void SelectionTool::liveUpdate(const QPointF &pos) noexcept
 {
-    QPointF distance = pos - properties.general.start_pos;
-    QTransform move;
-    move.translate(distance.x(), distance.y());
-    QPointF diff;
-    for (auto it=initial_transforms.cbegin(); it!=initial_transforms.cend(); ++it)
-        it.key()->setTransform(*it * move);
+    switch (_type)
+    {
+    case SelectRect:
+        properties.general.current_pos = pos;
+        break;
+    case SelectPolygon:
+        if (!properties.polygon)
+            properties.polygon = new QPolygonF();
+        *properties.polygon << pos;
+        break;
+    case Move:
+    {
+        const QPointF distance = pos - properties.general.start_pos;
+        QTransform move;
+        move.translate(distance.x(), distance.y());
+        for (auto it=initial_transforms.cbegin(); it!=initial_transforms.cend(); ++it)
+            it.key()->setTransform(*it * move);
+        break;
+    }
+    case Rotate:
+        setLiveRotation(pos);
+        break;
+    case Resize:
+        setLiveScaling(pos);
+        break;
+    default:
+        break;
+    }
 }
 
 void SelectionTool::setLiveRotation(const QPointF &pos) noexcept
@@ -112,14 +153,14 @@ void SelectionTool::setLiveScaling(const QPointF &pos) noexcept
 
 void SelectionTool::startScaling(const QPointF &movable, const QPointF &fixed) noexcept
 {
-    _type = Resize;
+    changeType(Resize);
     properties.scale.start_handle = movable;
     properties.scale.reference = fixed;
 }
 
 void SelectionTool::reset() noexcept
 {
-    _type = NoOperation;
+    changeType(NoOperation);
     initial_transforms.clear();
 }
 
@@ -128,4 +169,13 @@ void SelectionTool::initTransformations(const QList<QGraphicsItem*> &items) noex
     initial_transforms.clear();
     for (const auto item : items)
         initial_transforms[item] = item->transform();
+}
+
+const QPolygonF SelectionTool::polygon() const noexcept
+{
+    if (_type == SelectRect)
+        return QPolygonF(QRectF(properties.general.start_pos, properties.general.current_pos).normalized());
+    if (_type == SelectPolygon && properties.polygon)
+        return *properties.polygon;
+    return QPolygonF();
 }
