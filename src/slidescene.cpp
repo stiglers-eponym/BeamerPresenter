@@ -502,6 +502,7 @@ void SlideScene::handleSelectionStopEvents(SelectionTool *tool, const QPointF &p
         tool->liveUpdate(pos);
         QPainterPath path;
         path.addPolygon(tool->polygon());
+        /* TODO: Modifier Qt::ContainsItemShape does not work as expected. */
         setSelectionArea(path, Qt::ReplaceSelection, Qt::ContainsItemShape);
         break;
     }

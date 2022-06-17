@@ -86,7 +86,7 @@
                 "redo",
                 "clear",
                 "pause media",
-                "style"
+                {"tool":"rectangle select"}
               ],
               [
                 {"tool":"pen", "color":"blue", "width":2},
