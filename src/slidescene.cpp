@@ -1713,11 +1713,17 @@ void SlideScene::selectionToForeground() const
 
 void SlideScene::toolChanged(const Tool *tool) noexcept
 {
+    if (tool->tool() & (Tool::AnySelectionTool | Tool::AnyPointingTool))
+        return;
+    PathContainer::DrawHistoryStep *step = nullptr;
     if (tool->tool() & Tool::AnyDrawTool)
     {
+        const QList<QGraphicsItem*> selection = selectedItems();
+        if (selection.isEmpty())
+            return;
+        step = new PathContainer::DrawHistoryStep;
         const DrawTool *draw_tool = static_cast<const DrawTool*>(tool);
-        PathContainer::DrawHistoryStep *step = new PathContainer::DrawHistoryStep;
-        for (auto item : selectedItems())
+        for (auto item : selection)
         {
             if (item->type() == BasicGraphicsPath::Type || item->type() == FullGraphicsPath::Type)
             {
@@ -1728,16 +1734,17 @@ void SlideScene::toolChanged(const Tool *tool) noexcept
                 path->update();
             }
         }
-        if (step->isEmpty())
-            delete step;
-        else
-            emit sendHistoryStep(page | page_part, step);
     }
     else if (tool->tool() == Tool::TextInputTool)
     {
+        QList<QGraphicsItem*> selection = selectedItems();
+        if (focusItem() && focusItem()->type() == TextGraphicsItem::Type)
+            selection.append(focusItem());
+        if (selection.isEmpty())
+            return;
+        step = new PathContainer::DrawHistoryStep;
         const TextTool *text_tool = static_cast<const TextTool*>(tool);
-        PathContainer::DrawHistoryStep *step = new PathContainer::DrawHistoryStep;
-        for (auto item : selectedItems())
+        for (auto item : selection)
         {
             if (item->type() == TextGraphicsItem::Type)
             {
@@ -1748,11 +1755,13 @@ void SlideScene::toolChanged(const Tool *tool) noexcept
                 text->setDefaultTextColor(text_tool->color());
             }
         }
-        if (step->isEmpty())
-            delete step;
-        else
-            emit sendHistoryStep(page | page_part, step);
     }
+    if (!step)
+        return;
+    else if (step->isEmpty())
+        delete step;
+    else
+        emit sendHistoryStep(page | page_part, step);
 }
 
 void SlideScene::colorChanged(const QColor &color) noexcept
