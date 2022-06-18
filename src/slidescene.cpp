@@ -369,6 +369,7 @@ void SlideScene::handleEvents(const int device, const QList<QPointF> &pos, const
     }
     else if (tool->tool() == Tool::TextInputTool && (device & Tool::AnyEvent) == Tool::StopEvent && pos.size() == 1)
     {
+        clearSelection();
         debug_msg(DebugDrawing, "Trying to start writing text" << (device & Tool::AnyDevice) << focusItem());
         for (auto item : static_cast<const QList<QGraphicsItem*>>(items(pos.constFirst())))
         {
@@ -592,8 +593,7 @@ void SlideScene::receiveAction(const Action action)
                     item->setSelected(true);
         break;
     case ClearSelection:
-        if (slide_flags & ShowDrawings && hasFocus())
-            clearSelection();
+        clearSelection();
         break;
     default:
         break;
@@ -1249,7 +1249,6 @@ void SlideScene::startInputEvent(const DrawTool *tool, const QPointF &pos, const
         return;
     debug_verbose(DebugDrawing, "Start input event" << tool->tool() << tool->device() << tool << pressure);
     stopDrawing();
-    clearSelection();
     if (currentItemCollection || currentlyDrawnItem)
         return;
     clearSelection();
@@ -1720,18 +1719,33 @@ void SlideScene::toolChanged(const Tool *tool) noexcept
         PathContainer::DrawHistoryStep *step = new PathContainer::DrawHistoryStep;
         for (auto item : selectedItems())
         {
-            switch (item->type())
-            {
-            case BasicGraphicsPath::Type:
-            case FullGraphicsPath::Type:
+            if (item->type() == BasicGraphicsPath::Type || item->type() == FullGraphicsPath::Type)
             {
                 auto path = static_cast<AbstractGraphicsPath*>(item);
                 if (path->getTool() != *draw_tool)
                     step->drawToolChanges.insert(path, PathContainer::DrawToolDifference(path->getTool(), *draw_tool));
                 path->changeTool(*draw_tool);
                 path->update();
-                break;
             }
+        }
+        if (step->isEmpty())
+            delete step;
+        else
+            emit sendHistoryStep(page | page_part, step);
+    }
+    else if (tool->tool() == Tool::TextInputTool)
+    {
+        const TextTool *text_tool = static_cast<const TextTool*>(tool);
+        PathContainer::DrawHistoryStep *step = new PathContainer::DrawHistoryStep;
+        for (auto item : selectedItems())
+        {
+            if (item->type() == TextGraphicsItem::Type)
+            {
+                auto text = static_cast<TextGraphicsItem*>(item);
+                if (text->font() != text_tool->font() || text->defaultTextColor() != text_tool->color())
+                    step->textPropertiesChanges.insert(text, {text->font(), text_tool->font(), text_tool->color().rgba() ^ text->defaultTextColor().rgba()});
+                text->setFont(text_tool->font());
+                text->setDefaultTextColor(text_tool->color());
             }
         }
         if (step->isEmpty())

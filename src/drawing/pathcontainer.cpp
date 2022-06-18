@@ -19,7 +19,6 @@ PathContainer::~PathContainer()
     truncateHistory();
     clearHistory();
     // This is dangerous: check which paths are owned by QGraphicsScene.
-    // TODO: This has at least once led to a segmentation fault when closing the program.
     while (!paths.isEmpty())
         delete paths.takeLast();
 }
