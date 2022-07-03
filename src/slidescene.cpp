@@ -498,13 +498,26 @@ void SlideScene::handleSelectionStopEvents(SelectionTool *tool, const QPointF &p
         break;
     }
     case SelectionTool::SelectRect:
+    {
+        tool->liveUpdate(pos);
+        QPainterPath path;
+        path.addPolygon(tool->polygon());
+        setSelectionArea(path, Qt::ReplaceSelection, Qt::ContainsItemBoundingRect);
+        break;
+    }
     case SelectionTool::SelectPolygon:
     {
         tool->liveUpdate(pos);
         QPainterPath path;
         path.addPolygon(tool->polygon());
-        /* TODO: Modifier Qt::ContainsItemShape does not work as expected. */
-        setSelectionArea(path, Qt::ReplaceSelection, Qt::ContainsItemShape);
+        /* It should be possible to select all items inside path with the following commented line of code.
+         * However, because QTBUG-74935 is not fixed (since 3 years!), we need a workaround. */
+        //setSelectionArea(path, Qt::ReplaceSelection, Qt::ContainsItemShape);
+        clearSelection();
+        for (QGraphicsItem *item : items(path.boundingRect(), Qt::ContainsItemBoundingRect)) {
+            if (path.contains(item->mapToScene(item->shape())))
+                item->setSelected(true);
+        }
         break;
     }
     default:
