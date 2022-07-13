@@ -95,6 +95,11 @@ void NotesWidget::save(QString filename)
                     "",
                     tr("Note files (*.xml);;BeamerPresenter/Xournal++ files (*.bpr *.xopp);;All files (*)")
                 );
+        if (filename.isNull())
+        {
+            warn_msg("Saving notes cancelled: empty filename");
+            return;
+        }
         if (filename.endsWith(".bpr", Qt::CaseInsensitive) || filename.endsWith(".xopp", Qt::CaseInsensitive))
             emit saveDrawings(filename);
         else
@@ -112,6 +117,11 @@ void NotesWidget::load()
                 "",
                 tr("Note files (*.xml);;BeamerPresenter/Xournal++ files (*.bpr *.xopp *.xoj *.xml);;All files (*)")
             );
+    if (filename.isNull())
+    {
+        warn_msg("Loading notes cancelled: empty filename");
+        return;
+    }
     QMimeDatabase db;
     const QMimeType type = db.mimeTypeForFile(filename, QMimeDatabase::MatchContent);
     if (type.name() == "application/gzip")
@@ -125,10 +135,9 @@ void NotesWidget::load()
 void NotesWidget::saveNotes(const QString &filename)
 {
     QFile file(filename);
-    file.open(QFile::WriteOnly | QFile::Text);
-    if (!file.isWritable())
+    if (!file.open(QFile::WriteOnly | QFile::Text) || !file.isWritable())
     {
-        qWarning() << "Saving notes failed, file is not writable:" << filename;
+        qWarning() << "Saving notes failed, failed to open file for writing:" << filename;
         return;
     }
     QXmlStreamWriter writer(&file);

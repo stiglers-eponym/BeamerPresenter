@@ -397,14 +397,26 @@ void PdfMaster::loadXopp(const QString &filename)
         else if (!document)
         {
             qWarning() << "Failed to determine PDF document from xournal file." << filename;
-            QFileInfo fileinfo = QFileInfo(QFileDialog::getOpenFileName(
+            const QString filename = QFileDialog::getOpenFileName(
                                      NULL,
                                      tr("PDF file could not be opened, select the correct PDF file."),
                                      "",
                                      tr("Documents (*.pdf);;All files (*)")
-                                 ));
-            if (fileinfo.exists())
-                loadDocument(fileinfo.absoluteFilePath());
+                                 );
+            if (filename.isNull())
+                preferences()->showErrorMessage(
+                        tr("Error while loading file"),
+                        tr("No PDF file found"));
+            else
+            {
+                const QFileInfo fileinfo(filename);
+                if (fileinfo.exists())
+                    loadDocument(fileinfo.absoluteFilePath());
+                else
+                    preferences()->showErrorMessage(
+                            tr("Error while loading file"),
+                            tr("File does not exist: ") + fileinfo.absoluteFilePath());
+            }
         }
     }
     else
@@ -480,6 +492,7 @@ void PdfMaster::readPageFromStream(QXmlStreamReader &reader, bool &nontrivial_pa
 {
     debug_msg(DebugDrawing, "read page from stream" << reader.name());
     int page = -1;
+    static const QRegularExpression regexpr_2nondigits("[^0-9]{2,2}$");
     while (reader.readNextStartElement())
     {
         debug_msg(DebugDrawing, "Searching background" << reader.name());
@@ -487,7 +500,7 @@ void PdfMaster::readPageFromStream(QXmlStreamReader &reader, bool &nontrivial_pa
         {
             QString string = reader.attributes().value("pageno").toString();
             // For some reason Xournal++ adds "ll" as a sufix to the page number.
-            if (string.contains(QRegularExpression("[^0-9]{2,2}$")))
+            if (string.contains(regexpr_2nondigits))
                 string.chop(2);
             bool ok;
             page = string.toInt(&ok) - 1;
@@ -509,7 +522,7 @@ void PdfMaster::readPageFromStream(QXmlStreamReader &reader, bool &nontrivial_pa
             {
                 if (!document)
                 {
-                    QFileInfo fileinfo(filename.toString());
+                    const QFileInfo fileinfo(filename.toString());
                     if (fileinfo.exists())
                     {
                         loadDocument(fileinfo.absoluteFilePath());
