@@ -4,7 +4,12 @@
 #ifndef ACTIONBUTTON_H
 #define ACTIONBUTTON_H
 
+#include <map>
+#include <cstring>
+#include <QSet>
+#include <QMap>
 #include <QToolButton>
+#include "src/config.h"
 #include "src/enumerates.h"
 
 class ToolSelectorWidget;
@@ -55,59 +60,14 @@ signals:
 };
 
 /// Map actions to icon names.
-static const QMap<Action, QString> action_to_theme_icon {
-    /* Nagivation actions */
-    {Update, "view-refresh"},
-    {NextPage, "go-next"},
-    {PreviousPage, "go-previous"},
-    {PreviousSkippingOverlays, "go-up"},
-    {NextSkippingOverlays, "go-down"},
-    {FirstPage, "go-first"},
-    {LastPage, "go-last"},
-    /* Drawing */
-    {UndoDrawing, "edit-undo"},
-    {RedoDrawing, "edit-redo"},
-    {ClearDrawing, "edit-clear"},
-    {SaveDrawings, "document-save"},
-    {SaveDrawingsAs, "document-save-as"},
-    {LoadDrawings, "document-open"},
-    //{LoadDrawingsNoClear, "document-open"},
-    /* Modify drawn items */
-    {CopyClipboard, "edit-copy"},
-    {CutClipboard, "edit-cut"},
-    {PasteClipboard, "edit-paste"},
-    //{SelectionToForeground, "?"},
-    //{DuplicateSelectedItems, "?"},
-    {RemoveSelectedItems, "edit-delete"},
-    {SelectAll, "edit-select-all"},
-    //{ClearSelection, "?"},
-    /* Media */
-    {PlayMedia, "media-playback-start"},
-    {PauseMedia, "media-playback-stop"},
-    {PlayPauseMedia, "media-playback-pause"},
-    {Mute, "audio-volume-muted"},
-    {Unmute, "audio-volume-high"},
-    /* Other actions */
-    {Quit, "application-exit"},
-    {QuitNoConfirmation, "application-exit"},
-    {FullScreen, "view-fullscreen"},
-};
+const QString action_to_theme_icon(const Action action) noexcept;
 
 /**
  * Map actions to lists of custom icon file names.
  * If the list of file names contains multiple elements, the icon is changed
  * based on the status of the corresponding action.
  */
-static const QMap<Action, QStringList> action_to_custom_icons {
-    {StartStopTimer, {"timer-paused.svg", "timer-running.svg"}},
-    {StopTimer, {"timer-stop.svg"}},
-    {StartTimer, {"timer-start.svg"}},
-    {ResetTimePassed, {"timer-reset.svg"}},
-    {ReloadFiles, {"reload.svg"}},
-    {ScrollUp, {"scroll-up.svg"}},
-    {ScrollDown, {"scroll-down.svg"}},
-    {ScrollNormal, {"scroll-reset.svg"}},
-};
+const QStringList action_to_custom_icons(const Action action) noexcept;
 
 
 #endif // ACTIONBUTTON_H

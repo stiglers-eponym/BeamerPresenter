@@ -2,7 +2,8 @@
 // SPDX-License-Identifier: GPL-3.0-or-later OR AGPL-3.0-or-later
 
 #include <QtConfig>
-#include <QEvent>
+#include <QMouseEvent>
+#include <QTabletEvent>
 #include "src/gui/toolpropertybutton.h"
 #include "src/drawing/tool.h"
 #include "src/preferences.h"

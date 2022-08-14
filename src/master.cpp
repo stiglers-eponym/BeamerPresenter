@@ -1,8 +1,17 @@
 // SPDX-FileCopyrightText: 2022 Valentin Bruch <software@vbruch.eu>
 // SPDX-License-Identifier: GPL-3.0-or-later OR AGPL-3.0-or-later
 
+#include <QTimer>
 #include <QThread>
+#include <QJsonArray>
+#include <QJsonDocument>
+#include <QKeyEvent>
+#include <QMainWindow>
+#include <QMessageBox>
 #include <QtConfig>
+#include <QFileInfo>
+#include <QFileDialog>
+#include <QSizeF>
 #include "src/log.h"
 #include "src/enumerates.h"
 #include "src/master.h"
@@ -896,6 +905,15 @@ void Master::postNavigation() const noexcept
     if (duration < 0. || duration > 0.5)
         cacheVideoTimer->start();
 }
+
+void Master::showErrorMessage(const QString &title, const QString &text) const
+{
+    QMessageBox::critical(
+                windows.isEmpty() ? NULL : windows.first(),
+                title,
+                text);
+}
+
 
 void Master::setTool(Tool *tool) const noexcept
 {

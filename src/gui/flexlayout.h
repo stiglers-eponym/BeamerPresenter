@@ -4,9 +4,12 @@
 #ifndef FLEXLAYOUT_H
 #define FLEXLAYOUT_H
 
-#include <QLayout>
-#include <QVector>
+#include <QBoxLayout>
+#include <QSize>
 #include "src/config.h"
+
+class QWidget;
+class QLayoutItem;
 
 /**
  * @brief Box layout for fixed aspect.

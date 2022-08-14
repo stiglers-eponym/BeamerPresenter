@@ -2,8 +2,11 @@
 // SPDX-License-Identifier: GPL-3.0-or-later OR AGPL-3.0-or-later
 
 #include <cmath>
+#include <QtConfig>
+#include <QStringList>
 #include <QWidget>
 #include <QPainter>
+#include <QStyleOptionGraphicsItem>
 #include "src/log.h"
 #include "src/drawing/basicgraphicspath.h"
 #include "src/drawing/drawtool.h"

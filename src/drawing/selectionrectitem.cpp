@@ -2,6 +2,9 @@
 // SPDX-License-Identifier: GPL-3.0-or-later OR AGPL-3.0-or-later
 
 #include <QPainter>
+#include <QWidget>
+#include <QStyleOptionGraphicsItem>
+#include <QPen>
 #include "src/drawing/selectionrectitem.h"
 #include "src/preferences.h"
 

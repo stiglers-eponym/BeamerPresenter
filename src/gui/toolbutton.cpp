@@ -4,6 +4,7 @@
 #include <QTabletEvent>
 #include <QMouseEvent>
 #include <QBuffer>
+#include <QFile>
 #include <QImageReader>
 #include "src/gui/toolbutton.h"
 #include "src/preferences.h"
@@ -161,7 +162,7 @@ void ToolButton::setTool(Tool *newtool)
     {
         delete tool;
         tool = newtool;
-        setToolTip(tr(tool_to_description.value(tool->tool())));
+        setToolTip(tool_to_description(tool->tool()));
     }
 }
 

@@ -1,13 +1,14 @@
 // SPDX-FileCopyrightText: 2022 Valentin Bruch <software@vbruch.eu>
 // SPDX-License-Identifier: GPL-3.0-or-later OR AGPL-3.0-or-later
 
+#include <QThread>
+#include <QShowEvent>
+#include <QScroller>
+#include <QGridLayout>
 #include "src/gui/thumbnailwidget.h"
 #include "src/gui/thumbnailthread.h"
 #include "src/rendering/pdfdocument.h"
 #include "src/preferences.h"
-#include <QThread>
-#include <QScroller>
-#include <QGridLayout>
 
 void ThumbnailWidget::showEvent(QShowEvent *event)
 {

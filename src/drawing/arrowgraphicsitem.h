@@ -6,11 +6,12 @@
 
 #include <QPointF>
 #include <QGraphicsPathItem>
+#include "src/config.h"
 #include "src/drawing/drawtool.h"
-#include "src/drawing/basicgraphicspath.h"
 
 class QWidget;
 class QPainter;
+class BasicGraphicsPath;
 class QStyleOptionGraphicsItem;
 
 /**

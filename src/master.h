@@ -4,20 +4,24 @@
 #ifndef MASTER_H
 #define MASTER_H
 
-#include <QDebug>
+#include <QObject>
+#include <QTime>
+#include <QString>
+#include <QColor>
+#include <QList>
+#include <QMap>
+#include <QKeySequence>
 #include <QJsonObject>
-#include <QJsonArray>
-#include <QJsonDocument>
-#include <QKeyEvent>
-#include <QSizePolicy>
 #include <QXmlStreamReader>
 #include <QXmlStreamWriter>
-#include <QMainWindow>
-#include <QMessageBox>
 #include "src/config.h"
+#include "src/enumerates.h"
 #include "src/preferences.h"
 
 class Tool;
+class QTimer;
+class QWidget;
+class QKeyEvent;
 class PdfMaster;
 class SlideScene;
 class PixCache;
@@ -130,8 +134,7 @@ public slots:
     void postNavigation() const noexcept;
 
     /// Show an error message as QMessageBox::critical
-    void showErrorMessage(const QString &title, const QString &text) const
-    {QMessageBox::critical(windows.isEmpty() ? NULL : windows.first(), title, text);}
+    void showErrorMessage(const QString &title, const QString &text) const;
 
 signals:
     /// Send out new tool.

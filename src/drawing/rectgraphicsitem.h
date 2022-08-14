@@ -4,8 +4,15 @@
 #ifndef RECTGRAPHICSITEM_H
 #define RECTGRAPHICSITEM_H
 
+#include <QPointF>
 #include <QGraphicsRectItem>
-#include "src/drawing/basicgraphicspath.h"
+#include "src/config.h"
+#include "src/drawing/drawtool.h"
+
+class QWidget;
+class QPainter;
+class QStyleOptionGraphicsItem;
+class BasicGraphicsPath;
 
 /**
  * @brief RectGraphicsItem: QGraphicsRectItem adjusted for interactive drawing

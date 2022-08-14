@@ -1,11 +1,17 @@
 // SPDX-FileCopyrightText: 2022 Valentin Bruch <software@vbruch.eu>
 // SPDX-License-Identifier: GPL-3.0-or-later OR AGPL-3.0-or-later
 
+#include <QFileInfo>
+#include <QRegularExpression>
+#include <QBuffer>
+#include <QMimeDatabase>
+#include <QMimeType>
+#include <QFileDialog>
+#include "src/config.h"
 #include "src/log.h"
 #include "src/pdfmaster.h"
 #include "src/preferences.h"
 #include "src/slidescene.h"
-#include "src/rendering/pixcache.h"
 #include "src/drawing/pathcontainer.h"
 #ifdef USE_QTPDF
 #include "src/rendering/qtdocument.h"
@@ -16,9 +22,6 @@
 #ifdef USE_MUPDF
 #include "src/rendering/mupdfdocument.h"
 #endif
-#include <QRegularExpression>
-#include <QBuffer>
-#include <QFileDialog>
 
 void PdfMaster::initialize(const QString &filename)
 {

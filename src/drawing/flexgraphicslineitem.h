@@ -6,6 +6,9 @@
 
 #include <QGraphicsLineItem>
 #include <QPainter>
+#include <QLineF>
+#include <QStyleOptionGraphicsItem>
+#include <QWidget>
 #include "src/config.h"
 
 class QWidget;

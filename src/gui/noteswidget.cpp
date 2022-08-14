@@ -5,6 +5,8 @@
 #include <QXmlStreamWriter>
 #include <QFile>
 #include <QKeyEvent>
+#include <QMimeType>
+#include <QMimeDatabase>
 #include "src/log.h"
 #include "src/gui/noteswidget.h"
 #include "src/preferences.h"

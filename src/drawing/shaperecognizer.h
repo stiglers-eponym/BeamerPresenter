@@ -5,7 +5,12 @@
 #define SHAPERECOGNIZER_H
 
 #include <cmath>
-#include "src/drawing/basicgraphicspath.h"
+#include <QtGlobal>
+#include <QList>
+#include "src/config.h"
+
+class BasicGraphicsPath;
+class AbstractGraphicsPath;
 
 /**
  * @brief ShapeRecognizer: use only temporarily to analyze a path

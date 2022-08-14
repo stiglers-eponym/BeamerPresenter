@@ -4,8 +4,12 @@
 #include <cmath>
 #include <QWidget>
 #include <QPainter>
-#include "src/log.h"
+#include <QRectF>
+#include <QVector>
+#include <QStyleOptionGraphicsItem>
 #include "src/drawing/ellipsegraphicsitem.h"
+#include "src/drawing/basicgraphicspath.h"
+#include "src/log.h"
 
 EllipseGraphicsItem::EllipseGraphicsItem(const DrawTool &tool, const QPointF &pos, QGraphicsItem *parent) :
     QGraphicsEllipseItem(pos.x(), pos.y(), 0, 0, parent),

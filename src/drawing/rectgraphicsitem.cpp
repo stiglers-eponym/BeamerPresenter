@@ -1,8 +1,11 @@
 // SPDX-FileCopyrightText: 2022 Valentin Bruch <software@vbruch.eu>
 // SPDX-License-Identifier: GPL-3.0-or-later OR AGPL-3.0-or-later
 
-#include "src/log.h"
+#include <QRectF>
+#include <QVector>
 #include "src/drawing/rectgraphicsitem.h"
+#include "src/drawing/basicgraphicspath.h"
+#include "src/log.h"
 
 RectGraphicsItem::RectGraphicsItem(const DrawTool &tool, const QPointF &pos, QGraphicsItem *parent) :
     QGraphicsRectItem(pos.x(), pos.y(), 0, 0, parent),

@@ -8,6 +8,8 @@
 #include <QCommandLineParser>
 #include <QDebug>
 #include <QPen>
+#include <QMultiMap>
+#include <QKeySequence>
 #include <QJsonObject>
 #include "src/config.h"
 #include "src/enumerates.h"

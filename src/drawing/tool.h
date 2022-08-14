@@ -5,8 +5,11 @@
 #define TOOL_H
 
 #include <QColor>
-#include <QTabletEvent>
+#include <QMap>
+#include <QString>
 #include "src/config.h"
+
+class QTabletEvent;
 
 /**
  * @brief Basis class for all tools on slides.
@@ -148,18 +151,7 @@ static const QMap<QString, Tool::BasicTool> string_to_tool
 };
 
 /// tool tip description of tools
-static const QMap<Tool::BasicTool, const char*> tool_to_description
-{
-    {Tool::Pen, "pen with variable width if the input device supports variable pressure"},
-    {Tool::FixedWidthPen, "pen with fixed width (independent of input device pressure)"},
-    {Tool::Eraser, "eraser: deletes drawings"},
-    {Tool::Highlighter, "highlighter: fixed width drawing which only darkens colors (full color on white background, invisible on black background)"},
-    {Tool::Pointer, "pointer"},
-    {Tool::Torch, "torch: darken the slide leaving only a disk unchanged to focus attention on this area"},
-    {Tool::Magnifier, "enlargen part of the slide"},
-    {Tool::TextInputTool, "add or edit text on slide"},
-    {Tool::BasicSelectionTool, "Select objects by clicking on them"},
-};
+const QString tool_to_description(const Tool::BasicTool tool) noexcept;
 
 /**
  * @brief Get input device from tablet event

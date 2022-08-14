@@ -8,6 +8,7 @@
 #include <QPointF>
 #include <QRectF>
 #include <QVector>
+#include "src/config.h"
 #include "src/drawing/drawtool.h"
 #include "src/drawing/abstractgraphicspath.h"
 

@@ -4,7 +4,12 @@
 #include <cmath>
 #include <QWidget>
 #include <QPainter>
+#include <QVector>
+#include <QLineF>
+#include <QPainterPath>
+#include <QStyleOptionGraphicsItem>
 #include "src/drawing/arrowgraphicsitem.h"
+#include "src/drawing/basicgraphicspath.h"
 
 /**
  * Given the start and end point of an arrow, calculate the two other points

@@ -5,12 +5,17 @@
 #define FULLGRAPHICSPATH_H
 
 #include <QString>
+#include <QDataStream>
 #include <QPointF>
 #include <QVector>
+#include <QList>
+#include "src/config.h"
+#include "src/drawing/drawtool.h"
 #include "src/drawing/abstractgraphicspath.h"
 
 class QWidget;
 class QPainter;
+class QStyleOptionGraphicsItem;
 
 /**
  * @brief Variable width graphics path

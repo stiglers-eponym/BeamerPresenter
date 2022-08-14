@@ -12,6 +12,7 @@
 #include <QGraphicsItem>
 #include <QDataStream>
 #include <QPainterPath>
+#include "src/config.h"
 #include "src/drawing/drawtool.h"
 
 /**

@@ -5,11 +5,11 @@
 #include <QSettings>
 #include <QIcon>
 #include <QCommandLineParser>
-#include "src/enumerates.h"
+#include "src/config.h"
+#include "src/log.h"
 #include "src/preferences.h"
 #include "src/master.h"
 #include "src/rendering/pngpixmap.h"
-#include "src/config.h"
 
 #ifdef USE_TRANSLATIONS
 #include <QTranslator>

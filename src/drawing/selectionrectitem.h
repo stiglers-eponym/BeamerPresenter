@@ -5,6 +5,14 @@
 #define SELECTIONRECTITEM_H
 
 #include <QGraphicsItem>
+#include <QRectF>
+#include <QPolygonF>
+#include <QMarginsF>
+#include "src/config.h"
+
+class QWidget;
+class QPainter;
+class QStyleOptionGraphicsItem;
 
 class SelectionRectItem : public QGraphicsItem
 {

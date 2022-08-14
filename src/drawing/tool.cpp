@@ -44,3 +44,31 @@ int tablet_event_to_input_device(const QTabletEvent* event)
         return Tool::TabletOther;
     }
 }
+
+
+const QString tool_to_description(const Tool::BasicTool tool) noexcept
+{
+    switch (tool)
+    {
+    case Tool::Pen:
+        return QObject::tr("pen with variable width if the input device supports variable pressure");
+    case Tool::FixedWidthPen:
+        return QObject::tr("pen with fixed width (independent of input device pressure)");
+    case Tool::Eraser:
+        return QObject::tr("eraser: deletes drawings");
+    case Tool::Highlighter:
+        return QObject::tr("highlighter: fixed width drawing which only darkens colors (full color on white background, invisible on black background)");
+    case Tool::Pointer:
+        return QObject::tr("pointer");
+    case Tool::Torch:
+        return QObject::tr("torch: darken the slide leaving only a disk unchanged to focus attention on this area");
+    case Tool::Magnifier:
+        return QObject::tr("enlargen part of the slide");
+    case Tool::TextInputTool:
+        return QObject::tr("add or edit text on slide");
+    case Tool::BasicSelectionTool:
+        return QObject::tr("Select objects by clicking on them");
+    default:
+        return QString();
+    };
+}

@@ -5,8 +5,10 @@
 #define POINTINGTOOL_H
 
 #include <QPointF>
+#include <QColor>
 #include <QBrush>
 #include <QList>
+#include "src/config.h"
 #include "src/drawing/tool.h"
 
 /**

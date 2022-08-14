@@ -4,8 +4,15 @@
 #ifndef SELECTIONTOOL_H
 #define SELECTIONTOOL_H
 
-#include <QGraphicsItem>
+#include <QPointF>
+#include <QHash>
+#include <QList>
+#include <QTransform>
+#include <QPolygonF>
+#include "src/config.h"
 #include "src/drawing/tool.h"
+
+class QGraphicsItem;
 
 /**
  * @brief Tool for selection of QGraphicsItems

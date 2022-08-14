@@ -5,6 +5,8 @@
 #include <random>
 #include <algorithm>
 #include <QPainter>
+#include <QWidget>
+#include <QStyleOptionGraphicsItem>
 #include "src/drawing/pixmapgraphicsitem.h"
 #include "src/log.h"
 

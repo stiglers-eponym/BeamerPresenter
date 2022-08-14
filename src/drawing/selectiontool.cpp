@@ -2,9 +2,8 @@
 // SPDX-License-Identifier: GPL-3.0-or-later OR AGPL-3.0-or-later
 
 #include <cmath>
+#include <QGraphicsItem>
 #include "src/drawing/selectiontool.h"
-#include "src/log.h"
-#include "src/preferences.h"
 
 /// Compute length of vector p.
 /// TODO: same function is defined in shape recognizer. Combine somewhere.

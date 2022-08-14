@@ -3,8 +3,11 @@
 
 #include <QGraphicsScene>
 #include <QGraphicsItem>
+#include <QGraphicsItemGroup>
 #include <QXmlStreamWriter>
 #include <QXmlStreamReader>
+#include <QTextDocument>
+#include <QMargins>
 #include "src/drawing/pathcontainer.h"
 #include "src/drawing/textgraphicsitem.h"
 #include "src/drawing/basicgraphicspath.h"

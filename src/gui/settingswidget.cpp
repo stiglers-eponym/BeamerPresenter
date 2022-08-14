@@ -93,7 +93,7 @@ void SettingsWidget::initShortcuts()
     {
         input_shortcut = new KeyInputLabel(it.key(), *it, shortcuts);
         QLabel *label = new QLabel(tool_to_string.value((*it)->tool(), "unknown"), shortcuts);
-        label->setToolTip(tr(tool_to_description.value((*it)->tool())));
+        label->setToolTip(tool_to_description((*it)->tool()));
         layout->addRow(label, input_shortcut);
     }
     QPushButton *add_shortcut_button = new QPushButton(tr("Add new shortcut"), shortcuts);

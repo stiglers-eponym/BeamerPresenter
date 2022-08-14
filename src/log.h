@@ -2,11 +2,13 @@
 #define LOG_H
 
 #include "src/config.h"
-#include "src/preferences.h"
+#include <QMessageLogger>
 
 // Define macros for debugging.
 
 #ifdef QT_DEBUG
+#include <QDebug>
+#include "src/preferences.h"
 // Show warning if debugging is enabled
 #define warn_msg(msg) qWarning() << msg
 // Show debug message if debugging is enabled for this type

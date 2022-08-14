@@ -4,7 +4,9 @@
 #ifndef TEXTTOOL_H
 #define TEXTTOOL_H
 
+#include <QColor>
 #include <QFont>
+#include "src/config.h"
 #include "src/drawing/tool.h"
 
 /**

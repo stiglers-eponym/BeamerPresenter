@@ -3,7 +3,7 @@
 
 #include <QGridLayout>
 #include <QJsonArray>
-#include "src/log.h"
+#include <QResizeEvent>
 #include "src/gui/toolselectorwidget.h"
 #include "src/gui/actionbutton.h"
 #include "src/gui/shapeselectionbutton.h"

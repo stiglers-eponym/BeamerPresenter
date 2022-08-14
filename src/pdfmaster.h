@@ -4,20 +4,25 @@
 #ifndef PDFMASTER_H
 #define PDFMASTER_H
 
-#include <QFileInfo>
-#include <QInputDialog>
 #include <zlib.h>
+#include <QObject>
+#include <QList>
+#include <QMap>
+#include <QString>
 #include <QXmlStreamReader>
 #include <QXmlStreamWriter>
-#include <QMimeDatabase>
 #include "src/config.h"
 #include "src/enumerates.h"
 #include "src/rendering/pdfdocument.h"
-#include "src/drawing/pathcontainer.h"
 
 class SlideScene;
+class PathContainer;
 class QGraphicsItem;
 class QBuffer;
+
+namespace drawHistory {
+    struct Step;
+}
 
 /**
  * Full document including PDF and paths / annotations added by user.

@@ -6,6 +6,10 @@
 
 #include <QtCore>
 #include <QSet>
+#include <QMap>
+#include <QPixmap>
+#include <QSizeF>
+#include <QRectF>
 #include <QObject>
 #include <QGraphicsItem>
 #include "src/config.h"
@@ -16,6 +20,8 @@
 #define GLITTER_NUMBER 137
 
 class QPainter;
+class QWidget;
+class QStyleOptionGraphicsItem;
 
 /**
  * @brief pixmaps with different resolutions of same picture as QGraphicsItem

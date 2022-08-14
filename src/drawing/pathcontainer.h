@@ -4,14 +4,22 @@
 #ifndef PATHCONTAINER_H
 #define PATHCONTAINER_H
 
+#include <QPointF>
+#include <QTransform>
+#include <QString>
 #include <QList>
-#include <QGraphicsItem>
+#include <QHash>
+#include <QMap>
+#include <QObject>
 #include <QDataStream>
 #include <QPen>
+#include <QColor>
 #include <QFont>
 #include <QBrush>
+#include "src/config.h"
 #include "src/drawing/drawtool.h"
 
+class QGraphicsItem;
 class QGraphicsScene;
 class QXmlStreamReader;
 class QXmlStreamWriter;
