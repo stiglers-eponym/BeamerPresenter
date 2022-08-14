@@ -14,6 +14,7 @@
 #include <QXmlStreamWriter>
 #include <QMainWindow>
 #include <QMessageBox>
+#include "src/config.h"
 #include "src/preferences.h"
 
 class Tool;

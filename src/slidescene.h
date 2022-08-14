@@ -5,40 +5,37 @@
 #define SLIDESCENE_H
 
 #include <set>
-#include <QAudioOutput>
+#include <QList>
+#include <QPointF>
+#include <QRectF>
 #include <QGraphicsScene>
-#include <QGraphicsVideoItem>
-#include <QGraphicsSceneMouseEvent>
-#include <QTabletEvent>
-#include <QPropertyAnimation>
-#include <QParallelAnimationGroup>
+#include "src/config.h"
 #include "src/enumerates.h"
 #include "src/rendering/pdfdocument.h"
-#include "src/rendering/mediaplayer.h"
-#include "src/drawing/pathcontainer.h"
 #include "src/drawing/textgraphicsitem.h"
 #include "src/drawing/selectionrectitem.h"
 
+class QAbstractAnimation;
+class QTabletEvent;
+class QGraphicsItem;
+class QGraphicsVideoItem;
 class PdfMaster;
-class AbstractGraphicsPath;
+class MediaPlayer;
+#if (QT_VERSION_MAJOR >= 6)
+class QAudioOutput;
+#endif
 class Tool;
 class DrawTool;
 class SelectionTool;
+class PathContainer;
 class PixmapGraphicsItem;
 
-/**
- * @brief QGraphicsScene for a presentation slide.
- *
- * Handles drawing events and links. Only instances of SlideView and no
- * usual QGraphicsViews may show instances of SlideScene.
- */
-class SlideScene : public QGraphicsScene
-{
-    Q_OBJECT
+namespace drawHistory {
+    struct Step;
+}
 
-public:
-    /// Container of objects required to handle a video and/or audio.
-    /// @todo This implementation with different media players uses much memory.
+namespace slide
+{
     struct MediaItem
     {
         /// basic information about video from PDF
@@ -56,6 +53,23 @@ public:
         /// to be visible also on the new page.
         std::set<int> pages;
     };
+}
+Q_DECLARE_METATYPE(slide::MediaItem);
+
+
+/**
+ * @brief QGraphicsScene for a presentation slide.
+ *
+ * Handles drawing events and links. Only instances of SlideView and no
+ * usual QGraphicsViews may show instances of SlideScene.
+ */
+class SlideScene : public QGraphicsScene
+{
+    Q_OBJECT
+
+public:
+    /// Container of objects required to handle a video and/or audio.
+    /// @todo This implementation with different media players uses much memory.
     /// Settings for slide scenes, which apply to all views connected to the scene.
     enum SlideFlags
     {
@@ -90,7 +104,7 @@ private:
     PixmapGraphicsItem *pageTransitionItem {NULL};
 
     /// List of (cached or active) video items.
-    QList<MediaItem> mediaItems;
+    QList<slide::MediaItem> mediaItems;
 
     /// PDF document, including drawing paths.
     /// This is const, all data sent to master should be send via signals.
@@ -118,7 +132,7 @@ private:
     void startTransition(const int newpage, const PdfDocument::SlideTransition &transition);
 
     /// Search video annotation in cache and create + add it to cache if necessary.
-    MediaItem &getMediaItem(const PdfDocument::MediaAnnotation &annotation, const int page);
+    slide::MediaItem &getMediaItem(const PdfDocument::MediaAnnotation &annotation, const int page);
 
 public:
     /// Constructor: initialize master, page_part, and QGraphisScene.
@@ -137,7 +151,7 @@ public:
     {return slide_flags;}
 
     /// video items on all slides (cached or active).
-    QList<MediaItem> &getMedia() noexcept
+    QList<slide::MediaItem> &getMedia() noexcept
     {return mediaItems;}
 
     /// Get current page item (the pixmap graphics item showing the current page)
@@ -297,7 +311,7 @@ signals:
     void sendNewPath(int page, QGraphicsItem *item) const;
 
     /// Send transformations for QGraphicsItems to PdfMaster.
-    void sendHistoryStep(int page, PathContainer::DrawHistoryStep *step) const;
+    void sendHistoryStep(int page, drawHistory::Step *step) const;
 
     /// Replace old path by new path in a single drawing history step.
     void replacePath(int page, QGraphicsItem *olditem, QGraphicsItem *newitem) const;
@@ -317,7 +331,5 @@ signals:
     /// Notify master that there are unsaved changes.
     void newUnsavedDrawings();
 };
-
-Q_DECLARE_METATYPE(SlideScene::MediaItem);
 
 #endif // SLIDESCENE_H

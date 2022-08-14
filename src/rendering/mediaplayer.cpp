@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later OR AGPL-3.0-or-later
 
 #include "src/rendering/mediaplayer.h"
-#include "src/preferences.h"
+#include "src/log.h"
 
 MediaPlayer::MediaPlayer(QObject *parent) :
     QMediaPlayer(parent),

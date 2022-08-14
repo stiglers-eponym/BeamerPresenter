@@ -1,4 +1,5 @@
 #include <map>
+#include <cstring>
 #include <stdexcept>
 #include <QString>
 #include "src/names.h"

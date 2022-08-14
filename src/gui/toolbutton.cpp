@@ -7,6 +7,7 @@
 #include <QImageReader>
 #include "src/gui/toolbutton.h"
 #include "src/preferences.h"
+#include "src/log.h"
 #include "src/gui/tooldialog.h"
 #include "src/drawing/drawtool.h"
 #include "src/drawing/texttool.h"

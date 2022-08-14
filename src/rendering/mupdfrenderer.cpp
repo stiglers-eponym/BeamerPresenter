@@ -1,11 +1,10 @@
 // SPDX-FileCopyrightText: 2022 Valentin Bruch <software@vbruch.eu>
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-#include <QDebug>
 #include <string>
 #include "src/rendering/mupdfrenderer.h"
 #include "src/rendering/pngpixmap.h"
-#include "src/preferences.h"
+#include "src/log.h"
 
 fz_pixmap *MuPdfRenderer::renderFzPixmap(const int page, const qreal resolution, fz_context *&ctx) const
 {

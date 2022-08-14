@@ -17,18 +17,8 @@ class QXmlStreamReader;
 class QXmlStreamWriter;
 class TextGraphicsItem;
 
-
-/**
- * @brief Collection of QGraphicsItems including a history of changes to these items
- *
- * This stores drawn paths for one slide even if the slide is not visible.
- * Access the history using undo and redo functions.
- */
-class PathContainer : public QObject
+namespace drawHistory
 {
-    Q_OBJECT
-
-public:
     struct DrawToolDifference {
         QPen old_pen;
         QPen new_pen;
@@ -48,16 +38,16 @@ public:
      *  Save deleted and added GraphicsItems and their stacking position
      *  (by their index).
      *  A history step consists of
-     *  1. deleting QGraphicsItems. DrawHistoryStep saves these items together
+     *  1. deleting QGraphicsItems. drawHistory::Step saves these items together
      *     with their index in the stacking order before they were deleted.
-     *  2. creating QGraphicsItems. DrawHistoryStep saves these items together
+     *  2. creating QGraphicsItems. drawHistory::Step saves these items together
      *     with their index after all new QGraphicsItems were added.
      *  3. changing tools of items. For paths and text fields the tool or
      *     properties are changed.
-     *  4. transforming items. DrawHistoryStep saves the transformations
+     *  4. transforming items. drawHistory::Step saves the transformations
      *     together with their index after all new QGraphicsItems were added.
      */
-    struct DrawHistoryStep {
+    struct Step {
         /// Items with the transformation applied in this history step.
         QHash<QGraphicsItem*, QTransform> transformedItems;
 
@@ -82,6 +72,21 @@ public:
                     && deletedItems.isEmpty();
         }
     };
+}
+Q_DECLARE_METATYPE(drawHistory::Step);
+
+
+/**
+ * @brief Collection of QGraphicsItems including a history of changes to these items
+ *
+ * This stores drawn paths for one slide even if the slide is not visible.
+ * Access the history using undo and redo functions.
+ */
+class PathContainer : public QObject
+{
+    Q_OBJECT
+
+public:
 
 private:
     /// List of currently visible paths in the order in which they were created
@@ -89,7 +94,7 @@ private:
 
     /// List of changes forming the history of this, in the order in which they
     /// were created.
-    QList<DrawHistoryStep*> history;
+    QList<drawHistory::Step*> history;
 
     /**
      * Current position in history, measured from history.last().
@@ -218,8 +223,8 @@ public:
     /// Remove paths.
     void removeItems(const QList<QGraphicsItem*> &items);
 
-    /// Append DrawHistoryStep.
-    void addHistoryStep(PathContainer::DrawHistoryStep *step);
+    /// Append drawHistory::Step.
+    void addHistoryStep(drawHistory::Step *step);
 
 public slots:
     // Remove the item in a new history step.
@@ -231,7 +236,6 @@ public slots:
     {replaceItem(NULL, item);}
 };
 
-Q_DECLARE_METATYPE(PathContainer::DrawHistoryStep);
 
 /// Convert color to string with format #RRGGBBAA
 /// (required for Xournal++ format).

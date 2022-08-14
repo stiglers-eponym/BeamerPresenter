@@ -1,17 +1,19 @@
 // SPDX-FileCopyrightText: 2022 Valentin Bruch <software@vbruch.eu>
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-#include "src/config.h"
-#ifdef SUPPRESS_MUPDF_WARNINGS
-#include <fcntl.h>
-#endif
 #include <QFileInfo>
 #include <QInputDialog>
 #include <QMutex>
 #include <QMessageBox>
+
+#include "src/config.h"
+#ifdef SUPPRESS_MUPDF_WARNINGS
+#include <fcntl.h>
+#endif
 #include "src/rendering/mupdfdocument.h"
 #include "src/enumerates.h"
 #include "src/preferences.h"
+#include "src/log.h"
 
 std::string roman(int number)
 {

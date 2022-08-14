@@ -1,12 +1,12 @@
 // SPDX-FileCopyrightText: 2022 Valentin Bruch <software@vbruch.eu>
 // SPDX-License-Identifier: GPL-3.0-or-later OR AGPL-3.0-or-later
 
+#include <QProcess>
+#include <QRegularExpression>
 #include "src/rendering/externalrenderer.h"
 #include "src/rendering/pdfdocument.h"
 #include "src/rendering/pngpixmap.h"
-#include "src/preferences.h"
-#include <QProcess>
-#include <QRegularExpression>
+#include "src/log.h"
 
 ExternalRenderer::ExternalRenderer(const QString& command, const QStringList &arguments, const PdfDocument * const doc, const PagePart part) :
     AbstractRenderer(part),

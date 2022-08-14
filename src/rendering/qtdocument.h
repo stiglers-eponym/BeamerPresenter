@@ -10,8 +10,8 @@
 #else
 #include <QtPdfDocument>
 #endif
+#include "src/config.h"
 #include "src/enumerates.h"
-#include "src/preferences.h"
 #include "src/rendering/pdfdocument.h"
 
 class PngPixmap;

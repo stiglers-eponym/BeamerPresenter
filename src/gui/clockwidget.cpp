@@ -1,9 +1,9 @@
 // SPDX-FileCopyrightText: 2022 Valentin Bruch <software@vbruch.eu>
 // SPDX-License-Identifier: GPL-3.0-or-later OR AGPL-3.0-or-later
 
-#include "src/gui/clockwidget.h"
-#include "src/preferences.h"
 #include <QTouchEvent>
+#include "src/log.h"
+#include "src/gui/clockwidget.h"
 
 ClockWidget::ClockWidget(QWidget *parent, bool accept_touch_input) :
     QLineEdit(parent),

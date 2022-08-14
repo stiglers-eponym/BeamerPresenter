@@ -7,7 +7,6 @@
 #include <QLineEdit>
 #include <QTimer>
 #include <QTime>
-#include <QDebug>
 #include <QResizeEvent>
 #include "src/enumerates.h"
 

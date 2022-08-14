@@ -1,6 +1,9 @@
 // SPDX-FileCopyrightText: 2022 Valentin Bruch <software@vbruch.eu>
 // SPDX-License-Identifier: GPL-3.0-or-later OR AGPL-3.0-or-later
 
+#include <QGridLayout>
+#include <QJsonArray>
+#include "src/log.h"
 #include "src/gui/toolselectorwidget.h"
 #include "src/gui/actionbutton.h"
 #include "src/gui/shapeselectionbutton.h"
@@ -8,10 +11,7 @@
 #include "src/gui/colorselectionbutton.h"
 #include "src/gui/toolbutton.h"
 #include "src/gui/widthselectionbutton.h"
-#include "src/preferences.h"
 #include "src/names.h"
-#include <QGridLayout>
-#include <QJsonArray>
 
 ToolSelectorWidget::ToolSelectorWidget(QWidget *parent) : QWidget(parent)
 {

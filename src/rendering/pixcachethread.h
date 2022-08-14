@@ -6,6 +6,7 @@
 
 #include <QObject>
 #include <QThread>
+#include "src/config.h"
 #include "src/enumerates.h"
 
 class PngPixmap;

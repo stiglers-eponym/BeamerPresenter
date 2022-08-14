@@ -1,11 +1,12 @@
 // SPDX-FileCopyrightText: 2022 Valentin Bruch <software@vbruch.eu>
 // SPDX-License-Identifier: GPL-3.0-or-later OR AGPL-3.0-or-later
 
+#include <QGridLayout>
+#include <QScroller>
 #include "src/gui/tocwidget.h"
 #include "src/preferences.h"
 #include "src/rendering/pdfdocument.h"
-#include <QGridLayout>
-#include <QScroller>
+#include "src/log.h"
 
 void TOCwidget::generateTOC(const PdfDocument *document)
 {

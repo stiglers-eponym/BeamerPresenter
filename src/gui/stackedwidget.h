@@ -5,6 +5,8 @@
 #define STACKEDWIDGET_H
 
 #include <QStackedWidget>
+#include <QSize>
+#include <QSizePolicy>
 #include "src/config.h"
 
 /**

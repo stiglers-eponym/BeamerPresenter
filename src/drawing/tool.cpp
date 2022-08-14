@@ -1,8 +1,13 @@
 // SPDX-FileCopyrightText: 2022 Valentin Bruch <software@vbruch.eu>
 // SPDX-License-Identifier: GPL-3.0-or-later OR AGPL-3.0-or-later
 
+#include <QtConfig>
+#include <QTabletEvent>
+#if (QT_VERSION_MAJOR >= 6)
+#include <QPointingDevice>
+#endif
+#include "src/log.h"
 #include "src/drawing/tool.h"
-#include "src/preferences.h"
 
 int tablet_event_to_input_device(const QTabletEvent* event)
 {

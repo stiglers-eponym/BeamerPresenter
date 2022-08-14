@@ -5,8 +5,12 @@
 #define TOOLPROPERTYBUTTON_H
 
 #include <QComboBox>
-#include "src/drawing/tool.h"
+#include <QObject>
+#include "src/config.h"
 #include "src/preferences.h"
+
+class Tool;
+class QEvent;
 
 /**
  * @brief Drop down menu for changing a property of a tool.

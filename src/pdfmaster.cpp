@@ -1,6 +1,7 @@
 // SPDX-FileCopyrightText: 2022 Valentin Bruch <software@vbruch.eu>
 // SPDX-License-Identifier: GPL-3.0-or-later OR AGPL-3.0-or-later
 
+#include "src/log.h"
 #include "src/pdfmaster.h"
 #include "src/preferences.h"
 #include "src/slidescene.h"
@@ -204,7 +205,7 @@ void PdfMaster::removeItems(int page, const QList<QGraphicsItem*> &items)
     }
 }
 
-void PdfMaster::addHistoryStep(int page, PathContainer::DrawHistoryStep *step)
+void PdfMaster::addHistoryStep(int page, drawHistory::Step *step)
 {
     if (preferences()->overlay_mode == PerLabel)
         page = document->overlaysShifted((page & ~NotFullPage), FirstOverlay) | (page & NotFullPage);

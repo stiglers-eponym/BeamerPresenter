@@ -4,6 +4,7 @@
 #ifndef PIXMAPGRAPHICSITEM_H
 #define PIXMAPGRAPHICSITEM_H
 
+#include <QtCore>
 #include <QSet>
 #include <QObject>
 #include <QGraphicsItem>

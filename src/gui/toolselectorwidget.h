@@ -5,9 +5,13 @@
 #define TOOLSELECTORWIDGET_H
 
 #include <QWidget>
+#include <QColor>
+#include <QJsonArray>
+#include "src/config.h"
 #include "src/enumerates.h"
 
 class Tool;
+class QEvent;
 
 /**
  * @brief Widget showing grid of buttons

@@ -5,6 +5,7 @@
 #include <QThread>
 
 #include "src/config.h"
+#include "src/log.h"
 #include "src/rendering/pixcache.h"
 #ifdef USE_POPPLER
 #include "src/rendering/popplerdocument.h"

@@ -1,14 +1,15 @@
 // SPDX-FileCopyrightText: 2022 Valentin Bruch <software@vbruch.eu>
 // SPDX-License-Identifier: GPL-3.0-or-later OR AGPL-3.0-or-later
 
-#include "src/gui/timerwidget.h"
-#include "src/preferences.h"
 #include <QHBoxLayout>
 #include <QMessageBox>
 #include <QResizeEvent>
 #include <QLineEdit>
 #include <QLabel>
 #include <QTimer>
+#include "src/gui/timerwidget.h"
+#include "src/preferences.h"
+#include "src/log.h"
 
 TimerWidget::TimerWidget(QWidget *parent) :
      QWidget(parent),

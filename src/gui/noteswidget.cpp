@@ -1,12 +1,13 @@
 // SPDX-FileCopyrightText: 2022 Valentin Bruch <software@vbruch.eu>
 // SPDX-License-Identifier: GPL-3.0-or-later OR AGPL-3.0-or-later
 
-#include "src/gui/noteswidget.h"
-#include "src/preferences.h"
 #include <QXmlStreamReader>
 #include <QXmlStreamWriter>
 #include <QFile>
 #include <QKeyEvent>
+#include "src/log.h"
+#include "src/gui/noteswidget.h"
+#include "src/preferences.h"
 
 NotesWidget::NotesWidget(const bool per_page, QWidget *parent) :
     QTextEdit(parent),

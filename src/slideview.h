@@ -4,14 +4,22 @@
 #ifndef SLIDE_H
 #define SLIDE_H
 
-#include <QGraphicsView>
-#include <QResizeEvent>
 #include <cstring>
-#include "src/slidescene.h"
+#include <QGraphicsView>
+#include "src/config.h"
+#include "src/enumerates.h"
 
+class QResizeEvent;
 class PointingTool;
 class PixCache;
+class QWidget;
 class MediaSlider;
+class SlideScene;
+class PixmapGraphicsItem;
+
+namespace slide {
+    struct MediaItem;
+}
 
 /// Slide shown on the screen: a view of SlideScene.
 /// This also draws the background (PDF page) of the slide.
@@ -105,7 +113,7 @@ public slots:
     void drawForeground(QPainter *painter, const QRectF &rect) override;
 
     /// Add a slider for a video item
-    void addMediaSlider(const SlideScene::MediaItem &media);
+    void addMediaSlider(const slide::MediaItem &media);
 
     /// Prepare a slide transition: render current view to transitionItem.
     void prepareTransition(PixmapGraphicsItem *transitionItem);

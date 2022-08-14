@@ -5,7 +5,10 @@
 #define COLORSELECTIONBUTTON_H
 
 #include <QJsonArray>
+#include <QColor>
 #include "src/gui/toolpropertybutton.h"
+
+class Tool;
 
 /**
  * @brief Drop down menu for changing the color of a tool.

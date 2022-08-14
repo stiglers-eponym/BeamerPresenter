@@ -4,6 +4,7 @@
 #include <QFileInfo>
 #include <QInputDialog>
 #include <QBuffer>
+#include "src/log.h"
 #include "src/rendering/qtdocument.h"
 #include "src/rendering/pngpixmap.h"
 

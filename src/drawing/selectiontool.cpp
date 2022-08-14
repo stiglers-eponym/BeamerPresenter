@@ -3,6 +3,7 @@
 
 #include <cmath>
 #include "src/drawing/selectiontool.h"
+#include "src/log.h"
 #include "src/preferences.h"
 
 /// Compute length of vector p.

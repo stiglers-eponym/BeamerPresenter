@@ -1,16 +1,17 @@
 // SPDX-FileCopyrightText: 2022 Valentin Bruch <software@vbruch.eu>
 // SPDX-License-Identifier: GPL-3.0-or-later OR AGPL-3.0-or-later
 
+#include <QGraphicsScene>
+#include <QGraphicsItem>
+#include <QXmlStreamWriter>
+#include <QXmlStreamReader>
 #include "src/drawing/pathcontainer.h"
 #include "src/drawing/textgraphicsitem.h"
 #include "src/drawing/basicgraphicspath.h"
 #include "src/drawing/fullgraphicspath.h"
 #include "src/names.h"
+#include "src/log.h"
 #include "src/preferences.h"
-#include <QGraphicsScene>
-#include <QGraphicsItem>
-#include <QXmlStreamWriter>
-#include <QXmlStreamReader>
 
 
 PathContainer::~PathContainer()
@@ -31,7 +32,7 @@ bool PathContainer::undo(QGraphicsScene *scene)
     // Mark that we moved back in history.
     inHistory++;
 
-    const DrawHistoryStep *step = history[history.length() - inHistory];
+    const drawHistory::Step *step = history[history.length() - inHistory];
 
     // 1. Undo transformations.
     for (auto it = step->transformedItems.constBegin(); it != step->transformedItems.constEnd(); ++it)
@@ -108,7 +109,7 @@ bool PathContainer::redo(QGraphicsScene *scene)
     if (inHistory < 1)
         return false;
 
-    const DrawHistoryStep *step = history[history.length() - inHistory];
+    const drawHistory::Step *step = history[history.length() - inHistory];
     // Move forward in history.
     inHistory--;
 
@@ -193,7 +194,7 @@ void PathContainer::truncateHistory()
         while (inHistory > 0)
         {
             // Take the last step from history (removes it from history).
-            DrawHistoryStep *step = history.takeLast();
+            drawHistory::Step *step = history.takeLast();
             // Delete all future objects in this step. These objects are not visible.
             qDeleteAll(step->createdItems);
             step->createdItems.clear();
@@ -218,7 +219,7 @@ void PathContainer::clearHistory(int n)
 
     // Delete the first entries in history until
     // history.length() - inHistory <= n .
-    DrawHistoryStep *step;
+    drawHistory::Step *step;
     for (int i = history.length() - inHistory; i > n; i--)
     {
         // Take the first step from history (removes it from history).
@@ -236,7 +237,7 @@ void PathContainer::clearPaths()
 {
     truncateHistory();
     // Create a new history step.
-    DrawHistoryStep *step = new DrawHistoryStep();
+    drawHistory::Step *step = new drawHistory::Step();
     // Append all paths to the history step.
     // If scene != NULL, additionally remove the items from the scene.
     auto it = paths.cbegin();
@@ -264,7 +265,7 @@ void PathContainer::append(QGraphicsItem *item)
     // Remove all "redo" options.
     truncateHistory();
     // Create new history step which adds item.
-    DrawHistoryStep *const step = new DrawHistoryStep();
+    drawHistory::Step *const step = new drawHistory::Step();
     step->createdItems.insert(paths.length(), item);
     // Add item to paths.
     paths.append(item);
@@ -280,7 +281,7 @@ void PathContainer::startMicroStep()
     // Remove all "redo" options.
     truncateHistory();
     // Create new, empty history step.
-    history.append(new DrawHistoryStep());
+    history.append(new drawHistory::Step());
     inHistory = -1;
 }
 
@@ -721,7 +722,7 @@ void PathContainer::replaceItem(QGraphicsItem *olditem, QGraphicsItem *newitem)
         // Remove all "redo" options.
         truncateHistory();
         paths[index] = newitem;
-        DrawHistoryStep *const step = new DrawHistoryStep();
+        drawHistory::Step *const step = new drawHistory::Step();
         step->deletedItems.insert(index, olditem);
         step->createdItems.insert(index, newitem);
         history.append(step);
@@ -738,7 +739,7 @@ void PathContainer::replaceItem(QGraphicsItem *olditem, QGraphicsItem *newitem)
         truncateHistory();
         // Remove item from list of currently visible paths.
         paths.removeAt(index);
-        DrawHistoryStep *const step = new DrawHistoryStep();
+        drawHistory::Step *const step = new drawHistory::Step();
         step->deletedItems.insert(index, olditem);
         history.append(step);
         // Remove item from it's scene (if it has one).
@@ -757,7 +758,7 @@ void PathContainer::addItems(const QList<QGraphicsItem*> &items)
 {
     // Remove all "redo" options.
     truncateHistory();
-    DrawHistoryStep *const step = new DrawHistoryStep();
+    drawHistory::Step *const step = new drawHistory::Step();
     for (const auto item : items)
     {
         if (!item)
@@ -781,7 +782,7 @@ void PathContainer::removeItems(const QList<QGraphicsItem*> &items)
 {
     // Remove all "redo" options.
     truncateHistory();
-    DrawHistoryStep *const step = new DrawHistoryStep();
+    drawHistory::Step *const step = new drawHistory::Step();
     int index;
     for (const auto item : items)
     {
@@ -812,7 +813,7 @@ void PathContainer::removeItems(const QList<QGraphicsItem*> &items)
         clearHistory(preferences()->history_length_visible_slides);
 }
 
-void PathContainer::addHistoryStep(DrawHistoryStep *step)
+void PathContainer::addHistoryStep(drawHistory::Step *step)
 {
     // Remove all "redo" options.
     truncateHistory();

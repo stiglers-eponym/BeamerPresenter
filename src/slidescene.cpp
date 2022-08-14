@@ -1,18 +1,28 @@
 // SPDX-FileCopyrightText: 2022 Valentin Bruch <software@vbruch.eu>
 // SPDX-License-Identifier: GPL-3.0-or-later OR AGPL-3.0-or-later
 
+#include <QTransform>
+#include <QString>
+#include <QByteArray>
 #include <QDataStream>
+#include <QGraphicsVideoItem>
 #include <QRegularExpression>
 #include <QXmlStreamWriter>
 #include <QGuiApplication>
 #include <QMimeData>
 #include <QClipboard>
 #include <QDesktopServices>
-#if (QT_VERSION_MAJOR < 6)
+#include <QPropertyAnimation>
+#include <QParallelAnimationGroup>
+#include <QTabletEvent>
+#include <QGraphicsSceneMouseEvent>
+#if (QT_VERSION_MAJOR >= 6)
+#include <QAudioOutput>
+#else
 #include <QMediaPlaylist>
 #endif
 
-#include "src/names.h"
+#include "src/log.h"
 #include "src/preferences.h"
 #include "src/slidescene.h"
 #include "src/slideview.h"
@@ -30,6 +40,7 @@
 #include "src/drawing/selectiontool.h"
 #include "src/drawing/pathcontainer.h"
 #include "src/drawing/shaperecognizer.h"
+#include "src/rendering/mediaplayer.h"
 
 SlideScene::SlideScene(const PdfMaster *master, const PagePart part, QObject *parent) :
     QGraphicsScene(parent),
@@ -479,7 +490,7 @@ void SlideScene::handleSelectionStopEvents(SelectionTool *tool, const QPointF &p
         const QHash<QGraphicsItem*, QTransform> &originalTransforms = tool->originalTransforms();
         if (originalTransforms.count() <= 1)
             return;
-        PathContainer::DrawHistoryStep *step = new PathContainer::DrawHistoryStep;
+        drawHistory::Step *step = new drawHistory::Step;
         const bool finalize = preferences()->global_flags & Preferences::FinalizeDrawnPaths;
         QTransform transform;
         for (auto it=originalTransforms.cbegin(); it!=originalTransforms.cend(); ++it)
@@ -710,7 +721,7 @@ void SlideScene::loadMedia(const int page)
         if (annotation.type != PdfDocument::MediaAnnotation::InvalidAnnotation)
         {
             debug_msg(DebugMedia, "loading media" << annotation.file << annotation.rect);
-            MediaItem &item = getMediaItem(annotation, page);
+            slide::MediaItem &item = getMediaItem(annotation, page);
             if (item.item)
             {
                 item.item->setSize(item.annotation.rect.size());
@@ -772,7 +783,7 @@ void SlideScene::cacheMedia(const int page)
     delete list;
 }
 
-SlideScene::MediaItem &SlideScene::getMediaItem(const PdfDocument::MediaAnnotation &annotation, const int page)
+slide::MediaItem &SlideScene::getMediaItem(const PdfDocument::MediaAnnotation &annotation, const int page)
 {
     for (auto &mediaitem : mediaItems)
     {
@@ -1431,7 +1442,7 @@ void SlideScene::noToolClicked(const QPointF &pos, const QPointF &startpos)
         case PdfDocument::PdfLink::MovieLink:
         {
             // This is untested!
-            MediaItem &item = getMediaItem(static_cast<const PdfDocument::MediaLink*>(link)->annotation, page);
+            slide::MediaItem &item = getMediaItem(static_cast<const PdfDocument::MediaLink*>(link)->annotation, page);
             if (item.item)
             {
                 item.item->setSize(item.annotation.rect.size());
@@ -1727,13 +1738,13 @@ void SlideScene::toolChanged(const Tool *tool) noexcept
 {
     if (tool->tool() & (Tool::AnySelectionTool | Tool::AnyPointingTool))
         return;
-    PathContainer::DrawHistoryStep *step = nullptr;
+    drawHistory::Step *step = nullptr;
     if (tool->tool() & Tool::AnyDrawTool)
     {
         const QList<QGraphicsItem*> selection = selectedItems();
         if (selection.isEmpty())
             return;
-        step = new PathContainer::DrawHistoryStep;
+        step = new drawHistory::Step;
         const DrawTool *draw_tool = static_cast<const DrawTool*>(tool);
         for (auto item : selection)
         {
@@ -1741,7 +1752,7 @@ void SlideScene::toolChanged(const Tool *tool) noexcept
             {
                 auto path = static_cast<AbstractGraphicsPath*>(item);
                 if (path->getTool() != *draw_tool)
-                    step->drawToolChanges.insert(path, PathContainer::DrawToolDifference(path->getTool(), *draw_tool));
+                    step->drawToolChanges.insert(path, drawHistory::DrawToolDifference(path->getTool(), *draw_tool));
                 path->changeTool(*draw_tool);
                 path->update();
             }
@@ -1754,7 +1765,7 @@ void SlideScene::toolChanged(const Tool *tool) noexcept
             selection.append(focusItem());
         if (selection.isEmpty())
             return;
-        step = new PathContainer::DrawHistoryStep;
+        step = new drawHistory::Step;
         const TextTool *text_tool = static_cast<const TextTool*>(tool);
         for (auto item : selection)
         {
@@ -1778,7 +1789,7 @@ void SlideScene::toolChanged(const Tool *tool) noexcept
 
 void SlideScene::colorChanged(const QColor &color) noexcept
 {
-    PathContainer::DrawHistoryStep *step = new PathContainer::DrawHistoryStep;
+    drawHistory::Step *step = new drawHistory::Step;
     for (auto item : selectedItems())
     {
         switch (item->type())
@@ -1791,7 +1802,7 @@ void SlideScene::colorChanged(const QColor &color) noexcept
             {
                 DrawTool tool = path->getTool();
                 tool.setColor(color);
-                step->drawToolChanges.insert(path, PathContainer::DrawToolDifference(path->getTool(), tool));
+                step->drawToolChanges.insert(path, drawHistory::DrawToolDifference(path->getTool(), tool));
                 path->changeTool(tool);
                 path->update();
             }
@@ -1814,7 +1825,7 @@ void SlideScene::colorChanged(const QColor &color) noexcept
 
 void SlideScene::widthChanged(const qreal width) noexcept
 {
-    PathContainer::DrawHistoryStep *step = new PathContainer::DrawHistoryStep;
+    drawHistory::Step *step = new drawHistory::Step;
     for (auto item : selectedItems())
     {
         switch (item->type())
@@ -1827,7 +1838,7 @@ void SlideScene::widthChanged(const qreal width) noexcept
             {
                 DrawTool tool = path->getTool();
                 tool.setWidth(width);
-                step->drawToolChanges.insert(path, PathContainer::DrawToolDifference(path->getTool(), tool));
+                step->drawToolChanges.insert(path, drawHistory::DrawToolDifference(path->getTool(), tool));
                 path->changeTool(tool);
                 path->update();
             }

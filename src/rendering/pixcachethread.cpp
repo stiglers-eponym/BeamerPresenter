@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later OR AGPL-3.0-or-later
 
 #include "src/config.h"
+#include "src/log.h"
 #include "src/rendering/pixcachethread.h"
 #ifdef USE_QTPDF
 #include "src/rendering/qtrenderer.h"

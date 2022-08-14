@@ -10,6 +10,7 @@
 #include <QXmlStreamReader>
 #include <QXmlStreamWriter>
 #include <QMimeDatabase>
+#include "src/config.h"
 #include "src/enumerates.h"
 #include "src/rendering/pdfdocument.h"
 #include "src/drawing/pathcontainer.h"
@@ -193,7 +194,7 @@ public slots:
 
     /// Add history step with transformations and color changes.
     /// Page (part) number is given as (page | page_part).
-    void addHistoryStep(int page, PathContainer::DrawHistoryStep *step);
+    void addHistoryStep(int page, drawHistory::Step *step);
 
     /// Add new paths.
     void addItems(int page, const QList<QGraphicsItem*> &items);

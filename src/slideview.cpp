@@ -1,14 +1,21 @@
 // SPDX-FileCopyrightText: 2022 Valentin Bruch <software@vbruch.eu>
 // SPDX-License-Identifier: GPL-3.0-or-later OR AGPL-3.0-or-later
 
+#include <QWidget>
+#include <QPainter>
+#include <QResizeEvent>
+#include <QGestureEvent>
+
+#include "src/log.h"
 #include "src/slideview.h"
+#include "src/slidescene.h"
 #include "src/preferences.h"
 #include "src/drawing/pixmapgraphicsitem.h"
 #include "src/drawing/pointingtool.h"
 #include "src/drawing/selectiontool.h"
 #include "src/rendering/pixcache.h"
+#include "src/rendering/mediaplayer.h"
 #include "src/gui/mediaslider.h"
-#include <QGestureEvent>
 
 SlideView::SlideView(SlideScene *scene, PixCache *cache, QWidget *parent) :
     QGraphicsView(scene, parent)
@@ -328,8 +335,8 @@ void SlideView::drawForeground(QPainter *painter, const QRectF &rect)
     {
         painter->setBrush(Qt::NoBrush);
         const int page = static_cast<SlideScene*>(scene())->getPage();
-        const QList<SlideScene::MediaItem> &media = static_cast<SlideScene*>(scene())->getMedia();
-        for (const SlideScene::MediaItem &m : media)
+        const QList<slide::MediaItem> &media = static_cast<SlideScene*>(scene())->getMedia();
+        for (const slide::MediaItem &m : media)
         {
 #if __cplusplus >= 202002L
             if (m.pages.contains(page))
@@ -385,7 +392,7 @@ void SlideView::showTorch(QPainter *painter, const PointingTool *tool) noexcept
     painter->fillPath(fullpath - path, tool->color());
 }
 
-void SlideView::addMediaSlider(const SlideScene::MediaItem &media)
+void SlideView::addMediaSlider(const slide::MediaItem &media)
 {
     if (!(view_flags & MediaControls))
         return;

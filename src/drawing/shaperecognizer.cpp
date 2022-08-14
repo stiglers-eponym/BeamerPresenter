@@ -3,6 +3,7 @@
 
 #include "src/drawing/shaperecognizer.h"
 #include "src/drawing/fullgraphicspath.h"
+#include "src/log.h"
 #include "src/preferences.h"
 
 /// Compute length of vector p.

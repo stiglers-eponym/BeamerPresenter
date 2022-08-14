@@ -4,6 +4,7 @@
 #include <cmath>
 #include <QWidget>
 #include <QPainter>
+#include "src/log.h"
 #include "src/drawing/basicgraphicspath.h"
 #include "src/drawing/drawtool.h"
 #include "src/preferences.h"

@@ -1,12 +1,12 @@
 // SPDX-FileCopyrightText: 2022 Valentin Bruch <software@vbruch.eu>
 // SPDX-License-Identifier: GPL-3.0-or-later OR AGPL-3.0-or-later
 
-#include "src/drawing/pixmapgraphicsitem.h"
-#include "src/preferences.h"
-#include <QPainter>
 #include <array>
 #include <random>
 #include <algorithm>
+#include <QPainter>
+#include "src/drawing/pixmapgraphicsitem.h"
+#include "src/log.h"
 
 
 /// Generate a random array for glitter transitions.

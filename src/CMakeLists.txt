@@ -70,6 +70,7 @@ add_executable(beamerpresenter
         preferences.h preferences.cpp
         enumerates.h
         names.h names.cpp
+        log.h
         main.cpp
         ${EXTRA_INCLUDE}
     )
