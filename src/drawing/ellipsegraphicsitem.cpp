@@ -1,9 +1,10 @@
 // SPDX-FileCopyrightText: 2022 Valentin Bruch <software@vbruch.eu>
-//
 // SPDX-License-Identifier: GPL-3.0-or-later OR AGPL-3.0-or-later
 
 #include <cmath>
-#include "ellipsegraphicsitem.h"
+#include <QWidget>
+#include <QPainter>
+#include "src/drawing/ellipsegraphicsitem.h"
 
 EllipseGraphicsItem::EllipseGraphicsItem(const DrawTool &tool, const QPointF &pos, QGraphicsItem *parent) :
     QGraphicsEllipseItem(pos.x(), pos.y(), 0, 0, parent),

@@ -1,13 +1,11 @@
 // SPDX-FileCopyrightText: 2022 Valentin Bruch <software@vbruch.eu>
-//
 // SPDX-License-Identifier: GPL-3.0-or-later OR AGPL-3.0-or-later
 
 #ifndef ENUMERATES_H
 #define ENUMERATES_H
 
-#include <QMap>
-#include <QColor>
-#include <QDebug>
+#include <climits>
+#include <QMetaType>
 #include "src/config.h"
 
 /**
@@ -154,5 +152,26 @@ enum GuiWidget
     SlideNumberType, ///< SlideNumberWidget
     SlideLabelType, ///< SlideLabelWidget
 };
+
+#ifdef QT_DEBUG
+/// Debug flags: combinable debug flags
+enum DebugFlags
+{
+    NoLog = 0,
+    DebugRendering = 1 << 0,
+    DebugCache = 1 << 1,
+    DebugDrawing = 1 << 2,
+    DebugMedia = 1 << 3,
+    DebugKeyInput = 1 << 4,
+    DebugOtherInput = 1 << 5,
+    DebugSettings = 1 << 6,
+    DebugTransitions = 1 << 7,
+    DebugPageChange = 1 << 8,
+    DebugLayout = 1 << 9,
+    DebugWidgets = 1 << 10,
+    DebugAll = 0x7fff,
+    DebugVerbose = 1 << 15,
+};
+#endif // QT_DEBUG
 
 #endif // ENUMERATES_H

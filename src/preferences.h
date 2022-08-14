@@ -1,5 +1,4 @@
 // SPDX-FileCopyrightText: 2022 Valentin Bruch <software@vbruch.eu>
-//
 // SPDX-License-Identifier: GPL-3.0-or-later OR AGPL-3.0-or-later
 
 #ifndef PREFERENCES_H
@@ -18,46 +17,6 @@
 
 class DrawTool;
 
-/// Debug flags: combinable debug flags
-#ifdef QT_DEBUG
-enum DebugFlags
-{
-    NoLog = 0,
-    DebugRendering = 1 << 0,
-    DebugCache = 1 << 1,
-    DebugDrawing = 1 << 2,
-    DebugMedia = 1 << 3,
-    DebugKeyInput = 1 << 4,
-    DebugOtherInput = 1 << 5,
-    DebugSettings = 1 << 6,
-    DebugTransitions = 1 << 7,
-    DebugPageChange = 1 << 8,
-    DebugLayout = 1 << 9,
-    DebugWidgets = 1 << 10,
-    DebugAll = 0x7fff,
-    DebugVerbose = 1 << 15,
-};
-
-/// Convert strings to DebugFlag components.
-static const QMap<QString, DebugFlags> string_to_debug_flags
-{
-    {"", NoLog},
-    {"none", NoLog},
-    {"debug rendering", DebugRendering},
-    {"debug cache", DebugCache},
-    {"debug drawing", DebugDrawing},
-    {"debug media", DebugMedia},
-    {"debug key-input", DebugKeyInput},
-    {"debug other-input", DebugOtherInput},
-    {"debug settings", DebugSettings},
-    {"debug transitions", DebugTransitions},
-    {"debug page-change", DebugPageChange},
-    {"debug layout", DebugLayout},
-    {"debug widgets", DebugWidgets},
-    {"debug all", DebugAll},
-    {"debug verbose", DebugVerbose},
-};
-#endif
 
 /// Class storing various preferences.
 /// It should have only one instance, which is available globally through

@@ -69,7 +69,7 @@ add_executable(beamerpresenter
         master.h master.cpp
         preferences.h preferences.cpp
         enumerates.h
-        names.h
+        names.h names.cpp
         main.cpp
         ${EXTRA_INCLUDE}
     )

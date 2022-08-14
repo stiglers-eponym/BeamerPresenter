@@ -253,6 +253,16 @@ Example: {'tool':'pen', 'color':'green', 'width':2, 'device':['tablet pen', 'tou
 array of JSON dictionaries as described before. The dictionaries should contain complementing values for
 .BR device .
 .
+.SS [gestures]
+Connect gestures to actions using the same syntax as for keyboard shortcuts in [keys]:
+.PP
+.RS
+.IR "gesture " = " handler"
+.RE
+.PP
+Valid gestures are: swipe left, swipe right, swipe up, swipe down.
+Currently gesture settings cannot be changed in the graphical interface.
+.
 .SS [tools]
 Define tools which are initially associated with a devices. The syntax is as follows:
 .PP

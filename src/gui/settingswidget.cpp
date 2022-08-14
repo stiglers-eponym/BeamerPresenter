@@ -1,5 +1,4 @@
 // SPDX-FileCopyrightText: 2022 Valentin Bruch <software@vbruch.eu>
-//
 // SPDX-License-Identifier: GPL-3.0-or-later OR AGPL-3.0-or-later
 
 #include <QCheckBox>
@@ -83,7 +82,7 @@ void SettingsWidget::initShortcuts()
     {
         input_shortcut = new KeyInputLabel(it.key(), *it, shortcuts);
         QLabel *label = new QLabel(action_to_string.value(*it, "unknown"), shortcuts);
-        label->setToolTip(tr(action_to_description.value(*it)));
+        label->setToolTip(action_to_description(*it));
         layout->addRow(label, input_shortcut);
     }
     QMap<int, QString> tool_to_string;

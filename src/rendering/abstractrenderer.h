@@ -1,10 +1,10 @@
 // SPDX-FileCopyrightText: 2022 Valentin Bruch <software@vbruch.eu>
-//
 // SPDX-License-Identifier: GPL-3.0-or-later OR AGPL-3.0-or-later
 
 #ifndef ABSTRACTRENDERER_H
 #define ABSTRACTRENDERER_H
 
+#include "src/config.h"
 #include "src/enumerates.h"
 
 class QPixmap;

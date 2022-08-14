@@ -1,5 +1,4 @@
 // SPDX-FileCopyrightText: 2022 Valentin Bruch <software@vbruch.eu>
-//
 // SPDX-License-Identifier: GPL-3.0-or-later OR AGPL-3.0-or-later
 
 #ifndef TEXTTOOL_H
@@ -11,9 +10,7 @@
 /**
  * @brief Tool for adding or editing text.
  *
- * @todo better history
  * @todo more flexible text handling (rich text)
- * @todo change font and move text after it was created.
  */
 class TextTool : public Tool
 {

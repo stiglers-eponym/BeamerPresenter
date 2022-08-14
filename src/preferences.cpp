@@ -1,5 +1,4 @@
 // SPDX-FileCopyrightText: 2022 Valentin Bruch <software@vbruch.eu>
-//
 // SPDX-License-Identifier: GPL-3.0-or-later OR AGPL-3.0-or-later
 
 #include <QDir>
@@ -230,7 +229,7 @@ void Preferences::loadSettings()
     {
         const QStringList debug_flags = settings.value("debug").toStringList();
         for (const auto &flag : debug_flags)
-            debug_level |= string_to_debug_flags.value(flag, NoLog);
+            debug_level |= string_to_debug_flags(flag);
     }
 #endif
     if (settings.contains("log") && settings.value("log", false).toBool())
@@ -390,6 +389,34 @@ void Preferences::loadSettings()
         }
     }
     settings.endGroup();
+    // Gestures
+    settings.beginGroup("gestures");
+    allKeys = settings.allKeys();
+    if (!allKeys.isEmpty())
+    {
+        QList<Tool*> tools;
+        gesture_actions.clear();
+        Gesture gesture;
+        for (const auto& key : allKeys)
+        {
+            gesture = string_to_gesture(key);
+            if (gesture != Gesture::InvalidGesture)
+                qWarning() << "Unknown gesture in config:" << key;
+            else
+            {
+                parseActionsTools(settings.value(key), actions, tools);
+                for (const auto action : actions)
+                    gesture_actions.insert(gesture, action);
+                actions.clear();
+                if (!tools.isEmpty())
+                {
+                    qWarning() << "Gestures cannot be used to select tools";
+                    tools.clear();
+                }
+            }
+        }
+    }
+    settings.endGroup();
 }
 
 void Preferences::parseActionsTools(const QVariant &input, QList<Action> &actions, QList<Tool*> &tools, const int default_device)
@@ -453,7 +480,7 @@ void Preferences::loadDebugFromParser(const QCommandLineParser &parser)
     {
         debug_level = 0;
         for (const auto &flag : static_cast<const QStringList>(parser.value("debug").split(",")))
-            debug_level |= string_to_debug_flags.value("debug " + flag, NoLog);
+            debug_level |= string_to_debug_flags("debug " + flag);
     }
 }
 #endif

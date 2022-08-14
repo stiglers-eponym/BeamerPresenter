@@ -1,5 +1,4 @@
 // SPDX-FileCopyrightText: 2022 Valentin Bruch <software@vbruch.eu>
-//
 // SPDX-License-Identifier: GPL-3.0-or-later OR AGPL-3.0-or-later
 
 #include <QThread>
@@ -135,7 +134,7 @@ QWidget* Master::createWidget(QJsonObject &object, QWidget *parent)
         }
     }
     QWidget *widget = NULL;
-    const GuiWidget type = string_to_widget_type.value(object.value("type").toString().toLower(), GuiWidget::InvalidType);
+    const GuiWidget type = string_to_widget_type(object.value("type").toString());
     switch (type)
     {
     case VBoxWidgetType:
@@ -197,7 +196,15 @@ QWidget* Master::createWidget(QJsonObject &object, QWidget *parent)
     case TabbedWidgetType:
     {
         TabWidget *tabwidget = new TabWidget(parent);
-        tabwidget->setTabPosition(string_to_tab_widget_orientation.value(object.value("orientation").toString()));
+        const QString orientation = object.value("orientation").toString().toLower();
+        if (orientation == "south")
+            tabwidget->setTabPosition(QTabWidget::South);
+        else if (orientation == "west")
+            tabwidget->setTabPosition(QTabWidget::West);
+        else if (orientation == "east")
+            tabwidget->setTabPosition(QTabWidget::East);
+        else
+            tabwidget->setTabPosition(QTabWidget::North);
 
         const QJsonArray array = object.value("children").toArray();
 #if (QT_VERSION >= QT_VERSION_CHECK(5,14,0))

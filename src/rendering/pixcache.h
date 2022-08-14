@@ -1,5 +1,4 @@
 // SPDX-FileCopyrightText: 2022 Valentin Bruch <software@vbruch.eu>
-//
 // SPDX-License-Identifier: GPL-3.0-or-later OR AGPL-3.0-or-later
 
 #ifndef PIXCACHE_H
@@ -9,6 +8,7 @@
 #include <QMap>
 #include <QList>
 #include <QPixmap>
+#include "src/config.h"
 #include "src/enumerates.h"
 
 #define MAX_RESOLUTION_DEVIATION 1e-5

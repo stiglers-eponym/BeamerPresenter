@@ -1,10 +1,10 @@
 // SPDX-FileCopyrightText: 2022 Valentin Bruch <software@vbruch.eu>
-//
 // SPDX-License-Identifier: GPL-3.0-or-later OR AGPL-3.0-or-later
 
 #include <QDebug>
 #include <QPixmap>
 #include <QBuffer>
+#include <QByteArray>
 #include "src/rendering/pngpixmap.h"
 
 PngPixmap::PngPixmap(const int page, const float resolution) noexcept :

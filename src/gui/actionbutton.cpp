@@ -1,5 +1,4 @@
 // SPDX-FileCopyrightText: 2022 Valentin Bruch <software@vbruch.eu>
-//
 // SPDX-License-Identifier: GPL-3.0-or-later OR AGPL-3.0-or-later
 
 #include <QImageReader>
@@ -25,7 +24,7 @@ ActionButton::ActionButton(const Action action, ToolSelectorWidget *parent) :
 {
     addAction(action);
     display_action = action;
-    setToolTip(tr(action_to_description.value(action)));
+    setToolTip(action_to_description(action));
     if (action_to_custom_icons.contains(action) && action_to_custom_icons[action].length() > 1)
         connect(parent, &ToolSelectorWidget::sendStatus, this, &ActionButton::setStatus);
 }

@@ -1,5 +1,4 @@
 // SPDX-FileCopyrightText: 2022 Valentin Bruch <software@vbruch.eu>
-//
 // SPDX-License-Identifier: GPL-3.0-or-later OR AGPL-3.0-or-later
 
 #ifndef SLIDESCENE_H
@@ -16,6 +15,7 @@
 #include "src/enumerates.h"
 #include "src/rendering/pdfdocument.h"
 #include "src/rendering/mediaplayer.h"
+#include "src/drawing/pathcontainer.h"
 #include "src/drawing/textgraphicsitem.h"
 #include "src/drawing/selectionrectitem.h"
 
@@ -23,7 +23,6 @@ class PdfMaster;
 class AbstractGraphicsPath;
 class Tool;
 class DrawTool;
-class PathContainer;
 class SelectionTool;
 class PixmapGraphicsItem;
 

@@ -1,14 +1,19 @@
 // SPDX-FileCopyrightText: 2022 Valentin Bruch <software@vbruch.eu>
-//
 // SPDX-License-Identifier: GPL-3.0-or-later OR AGPL-3.0-or-later
 
 #ifndef BASICGRAPHICSPATH_H
 #define BASICGRAPHICSPATH_H
 
+#include <QString>
+#include <QPointF>
+#include <QRectF>
+#include <QVector>
+#include "src/drawing/drawtool.h"
 #include "src/drawing/abstractgraphicspath.h"
 
 class QPainter;
-class RectGraphicsItem;
+class QWidget;
+class QStyleOptionGraphicsItem;
 
 /**
  * @brief Fixed width graphics path.

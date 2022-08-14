@@ -1,10 +1,11 @@
 // SPDX-FileCopyrightText: 2022 Valentin Bruch <software@vbruch.eu>
-//
 // SPDX-License-Identifier: GPL-3.0-or-later OR AGPL-3.0-or-later
 
 #ifndef EXTERNALRENDERER_H
 #define EXTERNALRENDERER_H
 
+#include <QStringList>
+#include "src/config.h"
 #include "src/rendering/abstractrenderer.h"
 
 #define MAX_PROCESS_TIME_MS 60000
