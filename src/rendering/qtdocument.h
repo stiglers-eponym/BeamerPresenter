@@ -5,6 +5,8 @@
 #define QTDOCUMENT_H
 
 #include <QObject>
+#include <QPixmap>
+#include <QSizeF>
 #if (QT_VERSION >= QT_VERSION_CHECK(5,14,0))
 #include <QtPdf>
 #else

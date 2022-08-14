@@ -4,6 +4,11 @@
 #ifndef TOOLBUTTON_H
 #define TOOLBUTTON_H
 
+#include <QObject>
+#include <QString>
+#include <QSize>
+#include <QColor>
+#include <QImage>
 #include <QToolButton>
 #include "src/drawing/tool.h"
 

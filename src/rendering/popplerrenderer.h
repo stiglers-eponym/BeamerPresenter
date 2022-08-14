@@ -5,6 +5,7 @@
 #define POPPLERRENDERER_H
 
 #include <QPixmap>
+#include "src/config.h"
 #include "src/rendering/abstractrenderer.h"
 #include "src/rendering/popplerdocument.h"
 

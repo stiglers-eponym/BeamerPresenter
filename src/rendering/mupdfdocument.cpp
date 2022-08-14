@@ -1,10 +1,15 @@
 // SPDX-FileCopyrightText: 2022 Valentin Bruch <software@vbruch.eu>
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
+#include <string>
+#include <QObject>
+#include <QRectF>
 #include <QFileInfo>
 #include <QInputDialog>
 #include <QMutex>
-#include <QMessageBox>
+#include <QLineEdit>
+#include <QByteArray>
+#include <QUrl>
 
 #include "src/config.h"
 #ifdef SUPPRESS_MUPDF_WARNINGS

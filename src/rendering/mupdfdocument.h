@@ -12,7 +12,13 @@ extern "C"
 #include <mupdf/fitz/version.h>
 }
 
+#include <QString>
+#include <QSizeF>
+#include <QPointF>
+#include <QList>
 #include <QMap>
+#include <QVector>
+#include "src/config.h"
 #include "src/rendering/pdfdocument.h"
 
 class QMutex;

@@ -2,9 +2,15 @@
 // SPDX-License-Identifier: GPL-3.0-or-later OR AGPL-3.0-or-later
 
 #include <QtConfig>
+#include <QVector>
 #include <QBuffer>
+#include <QLineEdit>
+#include <QByteArray>
 #include <QFileInfo>
 #include <QInputDialog>
+#include <QImage>
+#include <QRectF>
+#include <QUrl>
 #include "src/log.h"
 #include "src/preferences.h"
 #include "src/rendering/popplerdocument.h"

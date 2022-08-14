@@ -4,8 +4,13 @@
 #ifndef MUPDFRENDERER_H
 #define MUPDFRENDERER_H
 
+#include <QPixmap>
+#include "src/config.h"
+#include "src/enumerates.h"
 #include "src/rendering/mupdfdocument.h"
 #include "src/rendering/abstractrenderer.h"
+
+class PngPixmap;
 
 #ifndef FZ_VERSION_MAJOR
 #define FZ_VERSION_MAJOR 0

@@ -1,9 +1,13 @@
 // SPDX-FileCopyrightText: 2022 Valentin Bruch <software@vbruch.eu>
 // SPDX-License-Identifier: GPL-3.0-or-later OR AGPL-3.0-or-later
 
+#include <QObject>
+#include <QVector>
 #include <QFileInfo>
 #include <QInputDialog>
 #include <QBuffer>
+#include <QImage>
+#include <QByteArray>
 #include "src/log.h"
 #include "src/rendering/qtdocument.h"
 #include "src/rendering/pngpixmap.h"

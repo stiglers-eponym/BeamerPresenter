@@ -1,7 +1,13 @@
 // SPDX-FileCopyrightText: 2022 Valentin Bruch <software@vbruch.eu>
 // SPDX-License-Identifier: GPL-3.0-or-later OR AGPL-3.0-or-later
 
+#include <QtConfig>
 #include <QTouchEvent>
+#include <QMouseEvent>
+#include <QResizeEvent>
+#if (QT_VERSION_MAJOR >= 6)
+#include <QEventPoint>
+#endif
 #include "src/log.h"
 #include "src/gui/clockwidget.h"
 
@@ -31,6 +37,12 @@ void ClockWidget::resizeEvent(QResizeEvent *event) noexcept
     QFont thefont = font();
     thefont.setPointSizeF(std::min(event->size().height()*2/3, event->size().width()/6));
     setFont(thefont);
+}
+
+void ClockWidget::mouseDoubleClickEvent(QMouseEvent *event) noexcept
+{
+    emit sendAction(StartStopTimer);
+    event->accept();
 }
 
 bool ClockWidget::event(QEvent *event)

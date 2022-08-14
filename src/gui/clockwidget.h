@@ -7,8 +7,13 @@
 #include <QLineEdit>
 #include <QTimer>
 #include <QTime>
-#include <QResizeEvent>
+#include <QSize>
+#include "src/config.h"
 #include "src/enumerates.h"
+
+class QEvent;
+class QResizeEvent;
+class QMouseEvent;
 
 /**
  * @brief Label showing the time.
@@ -51,8 +56,7 @@ protected:
     bool event(QEvent *event) override;
 
     /// Mouse double click starts/stops timer.
-    void mouseDoubleClickEvent(QMouseEvent *event) noexcept override
-    {emit sendAction(StartStopTimer); event->accept();}
+    void mouseDoubleClickEvent(QMouseEvent *event) noexcept override;
 
 private slots:
     /// Update label to show current time.
