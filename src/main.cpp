@@ -10,6 +10,7 @@
 #include "src/master.h"
 #include "src/rendering/pngpixmap.h"
 #include "src/drawing/tool.h"
+#include "src/log.h"
 
 #ifdef USE_TRANSLATIONS
 #include <QTranslator>

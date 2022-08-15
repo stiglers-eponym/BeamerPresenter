@@ -3,6 +3,7 @@
 
 #include "src/gui/thumbnailthread.h"
 #include "src/gui/thumbnailbutton.h"
+#include "src/log.h"
 #include "src/preferences.h"
 #ifdef USE_QTPDF
 #include "src/rendering/qtrenderer.h"

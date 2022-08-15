@@ -4,8 +4,8 @@
 #include <QDebug>
 #include <QPixmap>
 #include <QBuffer>
-#include <QByteArray>
 #include "src/rendering/pngpixmap.h"
+#include "src/log.h"
 
 PngPixmap::PngPixmap(const int page, const float resolution) noexcept :
      data(NULL),
