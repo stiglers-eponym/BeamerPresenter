@@ -33,17 +33,6 @@ class PdfMaster : public QObject
     Q_OBJECT
 
 public:
-    /// Mode for handling drawings in overlays.
-    /// Overlays are PDF pages sharing the same label.
-    enum OverlayDrawingMode
-    {
-        /// Every page has independent drawings.
-        PerPage,
-        /// All pages with the same label in a simply connected region have the same drawings.
-        PerLabel,
-        /// When going to the next page which has the same label, the current drawings are copied.
-        Cumulative,
-    };
     /// Flags for different kinds of unsaved changes.
     enum Flags
     {
@@ -235,14 +224,6 @@ signals:
     void readNotes(QXmlStreamReader &reader) const;
     /// Set total time of presentation (preferences().total_time).
     void setTotalTime(const QTime time) const;
-};
-
-/// Map human readable string to overlay mode.
-static const QMap<QString, PdfMaster::OverlayDrawingMode> string_to_overlay_mode
-{
-    {"per page", PdfMaster::PerPage},
-    {"per label", PdfMaster::PerLabel},
-    {"cumulative", PdfMaster::Cumulative},
 };
 
 #endif // PDFMASTER_H

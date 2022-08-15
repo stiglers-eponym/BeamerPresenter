@@ -59,22 +59,22 @@ bool PixCacheThread::initializeRenderer(const PdfDocument * const doc, const Pag
     switch (preferences()->renderer)
     {
 #ifdef USE_QTPDF
-    case AbstractRenderer::QtPDF:
+    case renderer::QtPDF:
         renderer = new QtRenderer(static_cast<const QtDocument*>(doc), page_part);
         break;
 #endif
 #ifdef USE_POPPLER
-    case AbstractRenderer::Poppler:
+    case renderer::Poppler:
         renderer = new PopplerRenderer(static_cast<const PopplerDocument*>(doc), page_part);
         break;
 #endif
 #ifdef USE_MUPDF
-    case AbstractRenderer::MuPDF:
+    case renderer::MuPDF:
         renderer = new MuPdfRenderer(static_cast<const MuPdfDocument*>(doc), page_part);
         break;
 #endif
 #ifdef USE_EXTERNAL_RENDERER
-    case AbstractRenderer::ExternalRenderer:
+    case renderer::ExternalRenderer:
         renderer = new ExternalRenderer(preferences()->rendering_command, preferences()->rendering_arguments, doc, page_part);
         break;
 #endif

@@ -11,6 +11,7 @@
 #include "src/drawing/drawtool.h"
 #include "src/drawing/texttool.h"
 #include "src/drawing/selectiontool.h"
+#include "src/drawing/pointingtool.h"
 #include "src/names.h"
 
 
@@ -181,6 +182,7 @@ Preferences::Preferences(QObject *parent) :
 {
     settings.setFallbacksEnabled(false);
     settings.setDefaultFormat(QSettings::IniFormat);
+    current_tools.append(new PointingTool(Tool::Eraser, 10., QColor(128,128,128,192), Tool::TabletEraser|Tool::MouseRightButton, 0.5));
     // If settings is empty, copy system scope config to user space file.
     if (settings.allKeys().isEmpty() && settings.isWritable())
     {
@@ -195,6 +197,7 @@ Preferences::Preferences(const QString &file, QObject *parent) :
     settings(file, QSettings::NativeFormat)
 {
     settings.setDefaultFormat(QSettings::IniFormat);
+    current_tools.append(new PointingTool(Tool::Eraser, 10., QColor(128,128,128,192), Tool::TabletEraser|Tool::MouseRightButton, 0.5));
 }
 
 Preferences::~Preferences()
@@ -259,7 +262,7 @@ void Preferences::loadSettings()
     value = settings.value("history length hidden").toUInt(&ok);
     if (ok)
         history_length_hidden_slides = value;
-    overlay_mode = string_to_overlay_mode.value(settings.value("mode").toString(), PdfMaster::Cumulative);
+    overlay_mode = string_to_overlay_mode.value(settings.value("mode").toString(), Cumulative);
     qreal num = settings.value("line sensitifity").toDouble(&ok);
     if (ok && 0 < num && num < 0.1)
         line_sensitivity = num;
@@ -303,24 +306,24 @@ void Preferences::loadSettings()
 #ifdef USE_QTPDF
             if (renderer_str.count("qtpdf") > 0)
             {
-                renderer = AbstractRenderer::QtPDF;
-                pdf_engine = PdfDocument::QtPDFEngine;
+                renderer = renderer::QtPDF;
+                pdf_engine = QtPDFEngine;
                 understood_renderer = true;
             }
 #endif
 #ifdef USE_MUPDF
             if (renderer_str.count("mupdf") > 0)
             {
-                renderer = AbstractRenderer::MuPDF;
-                pdf_engine = PdfDocument::MuPdfEngine;
+                renderer = renderer::MuPDF;
+                pdf_engine = MuPdfEngine;
                 understood_renderer = true;
             }
 #endif
 #ifdef USE_POPPLER
             if (renderer_str.count("poppler") > 0)
             {
-                renderer = AbstractRenderer::Poppler;
-                pdf_engine = PdfDocument::PopplerEngine;
+                renderer = renderer::Poppler;
+                pdf_engine = PopplerEngine;
                 understood_renderer = true;
             }
 #endif
@@ -334,7 +337,7 @@ void Preferences::loadSettings()
                     understood_renderer = true;
                 }
                 else
-                    renderer = AbstractRenderer::ExternalRenderer;
+                    renderer = renderer::ExternalRenderer;
             }
 #endif
             if (!understood_renderer)
@@ -519,24 +522,24 @@ void Preferences::loadFromParser(const QCommandLineParser &parser)
 #ifdef USE_QTPDF
         if (renderer_str.count("qtpdf", Qt::CaseInsensitive) > 0)
         {
-            renderer = AbstractRenderer::QtPDF;
-            pdf_engine = PdfDocument::QtPDFEngine;
+            renderer = renderer::QtPDF;
+            pdf_engine = QtPDFEngine;
             understood_renderer = true;
         }
 #endif
 #ifdef USE_MUPDF
         if (renderer_str.count("mupdf", Qt::CaseInsensitive) > 0)
         {
-            renderer = AbstractRenderer::MuPDF;
-            pdf_engine = PdfDocument::MuPdfEngine;
+            renderer = renderer::MuPDF;
+            pdf_engine = MuPdfEngine;
             understood_renderer = true;
         }
 #endif
 #ifdef USE_POPPLER
         if (renderer_str.count("poppler", Qt::CaseInsensitive) > 0)
         {
-            renderer = AbstractRenderer::Poppler;
-            pdf_engine = PdfDocument::PopplerEngine;
+            renderer = renderer::Poppler;
+            pdf_engine = PopplerEngine;
             understood_renderer = true;
         }
 #endif
@@ -552,7 +555,7 @@ void Preferences::loadFromParser(const QCommandLineParser &parser)
                 understood_renderer = true;
             }
             else
-                renderer = AbstractRenderer::ExternalRenderer;
+                renderer = renderer::ExternalRenderer;
         }
 #endif
         if (!understood_renderer)

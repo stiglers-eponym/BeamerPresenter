@@ -107,6 +107,15 @@ static const QMap<QString, Qt::BrushStyle> string_to_brush_style
     {"DiagCrossPattern", Qt::DiagCrossPattern},
 };
 
+/// Map human readable string to overlay mode.
+/// @see PdfMaster
+static const QMap<QString, OverlayDrawingMode> string_to_overlay_mode
+{
+    {"per page", PerPage},
+    {"per label", PerLabel},
+    {"cumulative", Cumulative},
+};
+
 #ifdef QT_DEBUG
 DebugFlags string_to_debug_flags(const QString &string) noexcept;
 #endif // QT_DEBUG

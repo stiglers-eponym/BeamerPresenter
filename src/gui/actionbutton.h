@@ -4,15 +4,15 @@
 #ifndef ACTIONBUTTON_H
 #define ACTIONBUTTON_H
 
-#include <map>
-#include <cstring>
+#include <QObject>
 #include <QSet>
-#include <QMap>
 #include <QToolButton>
+#include <QStringList>
 #include "src/config.h"
 #include "src/enumerates.h"
 
 class ToolSelectorWidget;
+class QEvent;
 
 /**
  * @brief Button which sends Action(s) when clicked.

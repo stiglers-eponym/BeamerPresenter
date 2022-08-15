@@ -4,8 +4,10 @@
 #ifndef NOTESWIDGET_H
 #define NOTESWIDGET_H
 
+#include <QtConfig>
+#include <QString>
+#include <QMap>
 #include <QTextEdit>
-#include <QFileDialog>
 #include "src/config.h"
 
 class QKeyEvent;
@@ -128,5 +130,11 @@ signals:
     /// @param filename file path for loading drawings, should never be empty.
     void loadDrawings(const QString filename);
 };
+
+#if (QT_VERSION_MAJOR >= 6)
+#define combine_keys(keys) (keys).toCombined()
+#else
+#define combine_keys(keys) (keys)
+#endif
 
 #endif // NOTESWIDGET_H

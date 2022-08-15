@@ -5,10 +5,13 @@
 #define KEYINPUTLABEL_H
 
 #include <QLabel>
-#include <QKeyEvent>
+#include <QString>
+#include <QKeySequence>
+#include "src/config.h"
 #include "src/enumerates.h"
 
 class Tool;
+class QKeyEvent;
 
 /**
  * @brief QLabel for keyboard shortcut input.

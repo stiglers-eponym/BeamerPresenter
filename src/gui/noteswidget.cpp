@@ -1,6 +1,7 @@
 // SPDX-FileCopyrightText: 2022 Valentin Bruch <software@vbruch.eu>
 // SPDX-License-Identifier: GPL-3.0-or-later OR AGPL-3.0-or-later
 
+#include <QFileDialog>
 #include <QXmlStreamReader>
 #include <QXmlStreamWriter>
 #include <QFile>
@@ -9,6 +10,7 @@
 #include <QMimeDatabase>
 #include "src/log.h"
 #include "src/gui/noteswidget.h"
+#include "src/rendering/pdfdocument.h"
 #include "src/preferences.h"
 
 NotesWidget::NotesWidget(const bool per_page, QWidget *parent) :
@@ -182,44 +184,23 @@ void NotesWidget::keyPressEvent(QKeyEvent *event)
     switch(event->key() | event->modifiers())
 #endif
     {
-#if (QT_VERSION_MAJOR >= 6)
-    case (Qt::ControlModifier | Qt::Key_O).toCombined():
-#else
-    case Qt::ControlModifier | Qt::Key_O:
-#endif
+    case combine_keys(Qt::ControlModifier | Qt::Key_O):
         load();
         event->accept();
         break;
-#if (QT_VERSION_MAJOR >= 6)
-    case (Qt::ControlModifier | Qt::Key_S).toCombined():
-#else
-    case Qt::ControlModifier | Qt::Key_S:
-#endif
+    case combine_keys(Qt::ControlModifier | Qt::Key_S):
         save(file_path);
         event->accept();
         break;
-#if (QT_VERSION_MAJOR >= 6)
-    case (Qt::ControlModifier | Qt::ShiftModifier | Qt::Key_S).toCombined():
-#else
-    case Qt::ControlModifier | Qt::ShiftModifier | Qt::Key_S:
-#endif
+    case combine_keys(Qt::ControlModifier | Qt::ShiftModifier | Qt::Key_S):
         save("");
         event->accept();
         break;
-#if (QT_VERSION_MAJOR >= 6)
-    case (Qt::ControlModifier | Qt::Key_Plus).toCombined():
-    case (Qt::ShiftModifier | Qt::ControlModifier | Qt::Key_Plus).toCombined():
-#else
-    case Qt::ControlModifier | Qt::Key_Plus:
-    case Qt::ShiftModifier | Qt::ControlModifier | Qt::Key_Plus:
-#endif
+    case combine_keys(Qt::ControlModifier | Qt::Key_Plus):
+    case combine_keys(Qt::ShiftModifier | Qt::ControlModifier | Qt::Key_Plus):
         zoomIn();
         break;
-#if (QT_VERSION_MAJOR >= 6)
-    case (Qt::ControlModifier | Qt::Key_Minus).toCombined():
-#else
-    case Qt::ControlModifier | Qt::Key_Minus:
-#endif
+    case combine_keys(Qt::ControlModifier | Qt::Key_Minus):
         zoomOut();
         break;
     case Qt::Key_PageUp:

@@ -24,22 +24,6 @@
 class PdfDocument
 {
 public:
-    /// PDF engine
-    enum PdfEngine {
-#ifdef USE_QTPDF
-        /// Internal Qt PDF engine (Qt PDF)
-        QtPDFEngine = 0,
-#endif
-#ifdef USE_POPPLER
-        /// Poppler PDF engine
-        PopplerEngine = 1,
-#endif
-#ifdef USE_MUPDF
-        /// MuPDF PDF engine
-        MuPdfEngine = 2,
-#endif
-    };
-
     /// Unified type of PDF media annotations for all PDF engines.
     struct MediaAnnotation {
         /// URL for (external) media file.

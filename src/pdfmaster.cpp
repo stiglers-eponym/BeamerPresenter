@@ -1,6 +1,7 @@
 // SPDX-FileCopyrightText: 2022 Valentin Bruch <software@vbruch.eu>
 // SPDX-License-Identifier: GPL-3.0-or-later OR AGPL-3.0-or-later
 
+#include <algorithm>
 #include <QFileInfo>
 #include <QRegularExpression>
 #include <QBuffer>
@@ -69,17 +70,17 @@ void PdfMaster::loadDocument(const QString &filename)
     switch (preferences()->pdf_engine)
     {
 #ifdef USE_POPPLER
-    case PdfDocument::PopplerEngine:
+    case PopplerEngine:
         document = new PopplerDocument(filename);
         break;
 #endif
 #ifdef USE_MUPDF
-    case PdfDocument::MuPdfEngine:
+    case MuPdfEngine:
         document = new MuPdfDocument(filename);
         break;
 #endif
 #ifdef USE_QTPDF
-    case PdfDocument::QtPDFEngine:
+    case QtPDFEngine:
         document = new QtDocument(filename);
         break;
 #endif

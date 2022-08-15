@@ -6,10 +6,10 @@
 #include <QIcon>
 #include <QCommandLineParser>
 #include "src/config.h"
-#include "src/log.h"
 #include "src/preferences.h"
 #include "src/master.h"
 #include "src/rendering/pngpixmap.h"
+#include "src/drawing/tool.h"
 
 #ifdef USE_TRANSLATIONS
 #include <QTranslator>

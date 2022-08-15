@@ -4,6 +4,7 @@
 #include <array>
 #include <random>
 #include <algorithm>
+#include <iterator>
 #include <QPainter>
 #include <QWidget>
 #include <QStyleOptionGraphicsItem>

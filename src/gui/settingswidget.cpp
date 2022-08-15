@@ -8,15 +8,20 @@
 #include <QSpinBox>
 #include <QDoubleSpinBox>
 #include <QLabel>
+#include <QFile>
+#include <QMap>
 #include <QTextEdit>
 #include <QScrollArea>
 #include <QFormLayout>
 #include <QScroller>
 #include <QFileDialog>
+#include <QSizePolicy>
 #include "src/gui/settingswidget.h"
 #include "src/names.h"
 #include "src/preferences.h"
 #include "src/gui/keyinputlabel.h"
+#include "src/rendering/pdfdocument.h"
+#include "src/drawing/tool.h"
 
 SettingsWidget::SettingsWidget(QWidget *parent) :
     QTabWidget(parent),
@@ -154,23 +159,23 @@ void SettingsWidget::initRendering()
 
     QComboBox *select_renderer = new QComboBox(rendering);
 #ifdef USE_MUPDF
-    select_renderer->addItem("MuPDF", PdfDocument::MuPdfEngine);
+    select_renderer->addItem("MuPDF", MuPdfEngine);
 #endif
 #ifdef USE_POPPLER
-    select_renderer->addItem("Poppler", PdfDocument::PopplerEngine);
+    select_renderer->addItem("Poppler", PopplerEngine);
 #endif
 #ifdef USE_QTPDF
-    select_renderer->addItem("QtPDF", PdfDocument::QtPDFEngine);
+    select_renderer->addItem("QtPDF", QtPDFEngine);
 #endif
 #ifdef USE_EXTERNAL_RENDERER
 #ifdef USE_MUPDF
-    select_renderer->addItem("MuPDF + external", PdfDocument::MuPdfEngine);
+    select_renderer->addItem("MuPDF + external", MuPdfEngine);
 #endif
 #ifdef USE_POPPLER
-    select_renderer->addItem("Poppler + external", PdfDocument::PopplerEngine);
+    select_renderer->addItem("Poppler + external", PopplerEngine);
 #endif
 #ifdef USE_QTPDF
-    select_renderer->addItem("QtPDF + external", PdfDocument::QtPDFEngine);
+    select_renderer->addItem("QtPDF + external", QtPDFEngine);
 #endif
 #endif // USE_EXTERNAL_RENDERER
     connect(select_renderer, &QComboBox::currentTextChanged, writable_preferences(), &Preferences::setRenderer);

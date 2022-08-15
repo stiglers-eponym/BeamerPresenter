@@ -4,20 +4,22 @@
 #ifndef PREFERENCES_H
 #define PREFERENCES_H
 
+#include <QObject>
 #include <QSettings>
+#include <QStringList>
 #include <QCommandLineParser>
-#include <QDebug>
 #include <QPen>
+#include <QBrush>
 #include <QMultiMap>
 #include <QKeySequence>
 #include <QJsonObject>
+#include <QDateTime>
 #include "src/config.h"
 #include "src/enumerates.h"
-#include "src/pdfmaster.h"
-#include "src/drawing/pointingtool.h"
-#include "src/rendering/abstractrenderer.h"
 
 class DrawTool;
+class Tool;
+class PdfDocument;
 
 
 /// Class storing various preferences.
@@ -77,7 +79,7 @@ public:
     /// Maximum number of steps in drawing history of hidden slide.
     int history_length_hidden_slides;
     /// Define how should drawings be assigned to overlays.
-    PdfMaster::OverlayDrawingMode overlay_mode = PdfMaster::Cumulative;
+    OverlayDrawingMode overlay_mode = Cumulative;
     /// Duration of a slide in an animation, in ms.
     int slide_duration_animation = 50;
 
@@ -112,19 +114,19 @@ public:
 
 #ifdef USE_MUPDF
     /// PDF engine (should be same as renderer except if renderer is external)
-    PdfDocument::PdfEngine pdf_engine {PdfDocument::MuPdfEngine};
+    PdfEngine pdf_engine {MuPdfEngine};
     /// Renderer used to convert PDF page to image.
-    AbstractRenderer::Renderer renderer {AbstractRenderer::MuPDF};
+    renderer::Renderer renderer {renderer::MuPDF};
 #elif defined(USE_POPPLER)
     /// PDF engine (should be same as renderer except if renderer is external)
-    PdfDocument::PdfEngine pdf_engine {PdfDocument::PopplerEngine};
+    PdfEngine pdf_engine {PopplerEngine};
     /// Renderer used to convert PDF page to image.
-    AbstractRenderer::Renderer renderer {AbstractRenderer::Poppler};
+    renderer::Renderer renderer {renderer::Poppler};
 #elif defined(USE_QTPDF)
     /// PDF engine (should be same as renderer except if renderer is external)
-    PdfDocument::PdfEngine pdf_engine {PdfDocument::QtPDFEngine};
+    PdfEngine pdf_engine {QtPDFEngine};
     /// Renderer used to convert PDF page to image.
-    AbstractRenderer::Renderer renderer {AbstractRenderer::QtPDF};
+    renderer::Renderer renderer {renderer::QtPDF};
 #endif
 #ifdef USE_EXTERNAL_RENDERER
     /// Rendering command for external renderer.
@@ -206,10 +208,7 @@ public:
 
     /// Tool used for other input device, owned by this.
     /// The keys are taken from InputDevice.
-    QList<Tool*> current_tools
-    {
-        new PointingTool(Tool::Eraser, 10., QColor(128,128,128,192), Tool::TabletEraser|Tool::MouseRightButton, 0.5),
-    };
+    QList<Tool*> current_tools;
 
 
     /*******************/

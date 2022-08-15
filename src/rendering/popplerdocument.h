@@ -4,7 +4,6 @@
 #ifndef POPPLERDOCUMENT_H
 #define POPPLERDOCUMENT_H
 
-#include <set>
 #include <memory>
 #include <QString>
 #include <QSizeF>

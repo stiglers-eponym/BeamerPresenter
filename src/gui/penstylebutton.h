@@ -7,6 +7,8 @@
 #include "src/gui/toolpropertybutton.h"
 #include "src/preferences.h"
 
+class Tool;
+
 /**
  * @brief Drop down menu for changing the pen style of a draw tool.
  */

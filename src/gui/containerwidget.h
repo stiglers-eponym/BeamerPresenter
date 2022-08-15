@@ -5,6 +5,8 @@
 #define CONTAINERWIDGET_H
 
 #include <QWidget>
+#include <QSize>
+#include <QSizePolicy>
 #include <QLayout>
 #include "src/config.h"
 

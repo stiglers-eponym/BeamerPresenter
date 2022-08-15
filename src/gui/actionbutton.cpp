@@ -1,8 +1,12 @@
 // SPDX-FileCopyrightText: 2022 Valentin Bruch <software@vbruch.eu>
 // SPDX-License-Identifier: GPL-3.0-or-later OR AGPL-3.0-or-later
 
+#include <map>
+#include <cstring>
 #include <QSize>
-#include <QStringList>
+#include <QIcon>
+#include <QPixmap>
+#include <QEvent>
 #include <QImageReader>
 #include "src/gui/actionbutton.h"
 #include "src/names.h"

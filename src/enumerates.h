@@ -36,6 +36,55 @@ enum PagePart
     NotFullPage = (LeftHalf | RightHalf),
 };
 
+/// PDF engine
+enum PdfEngine {
+#ifdef USE_QTPDF
+    /// Internal Qt PDF engine (Qt PDF)
+    QtPDFEngine = 0,
+#endif
+#ifdef USE_POPPLER
+    /// Poppler PDF engine
+    PopplerEngine = 1,
+#endif
+#ifdef USE_MUPDF
+    /// MuPDF PDF engine
+    MuPdfEngine = 2,
+#endif
+};
+
+/// @todo restructure namespaces
+namespace renderer
+{
+    /// Type of PDF renderer.
+    enum Renderer {
+    #ifdef USE_QTPDF
+        QtPDF = 0,
+    #endif
+    #ifdef USE_POPPLER
+        Poppler = 1,
+    #endif
+    #ifdef USE_MUPDF
+        MuPDF = 2,
+    #endif
+    #ifdef USE_EXTERNAL_RENDERER
+        ExternalRenderer = 3,
+    #endif
+    };
+}
+
+/// Mode for handling drawings in overlays.
+/// Overlays are PDF pages sharing the same label.
+enum OverlayDrawingMode
+{
+    /// Every page has independent drawings.
+    PerPage,
+    /// All pages with the same label in a simply connected region have the same drawings.
+    PerLabel,
+    /// When going to the next page which has the same label, the current drawings are copied.
+    Cumulative,
+};
+
+
 /**
  * @brief Use single bits of an integer to mark skipping of overlays.
  *

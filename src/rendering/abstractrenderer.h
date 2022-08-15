@@ -19,22 +19,6 @@ protected:
     const PagePart page_part;
 
 public:
-    /// Type of the renderer.
-    enum Renderer {
-#ifdef USE_QTPDF
-        QtPDF = 0,
-#endif
-#ifdef USE_POPPLER
-        Poppler = 1,
-#endif
-#ifdef USE_MUPDF
-        MuPDF = 2,
-#endif
-#ifdef USE_EXTERNAL_RENDERER
-        ExternalRenderer = 3,
-#endif
-    };
-
     /// Constructor: only initializes page_part.
     AbstractRenderer(const PagePart part = FullPage) : page_part(part) {};
 

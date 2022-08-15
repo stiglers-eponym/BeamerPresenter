@@ -4,8 +4,11 @@
 #ifndef FLEXLAYOUT_H
 #define FLEXLAYOUT_H
 
+#include <QObject>
 #include <QBoxLayout>
+#include <QList>
 #include <QSize>
+#include <QRect>
 #include "src/config.h"
 
 class QWidget;
@@ -28,10 +31,12 @@ class FlexLayout : public QLayout
 
 public:
     /// Trivial constructor.
-    FlexLayout(QBoxLayout::Direction direction) noexcept : QLayout(), direction(direction) {};
+    FlexLayout(QBoxLayout::Direction direction) noexcept :
+        QLayout(), direction(direction) {};
 
     /// Trivial constructor.
-    FlexLayout(QBoxLayout::Direction direction, QWidget *parent) noexcept : QLayout(parent), direction(direction) {};
+    FlexLayout(QBoxLayout::Direction direction, QWidget *parent) noexcept :
+        QLayout(parent), direction(direction) {};
 
     /// Destructor: delete all items
     ~FlexLayout();
