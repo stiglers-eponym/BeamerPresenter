@@ -10,6 +10,8 @@
 
 #define MAX_PROCESS_TIME_MS 60000
 
+class QPixmap;
+class PngPixmap;
 class PdfDocument;
 
 /// Render PDF pages by calling an external program.

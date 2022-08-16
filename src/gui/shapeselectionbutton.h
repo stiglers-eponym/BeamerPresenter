@@ -6,6 +6,8 @@
 
 #include "src/gui/toolpropertybutton.h"
 
+class Tool;
+
 /**
  * @brief Drop down menu for changing the shape property of a draw tool.
  */

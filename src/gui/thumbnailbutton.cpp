@@ -2,6 +2,9 @@
 // SPDX-License-Identifier: GPL-3.0-or-later OR AGPL-3.0-or-later
 
 #include <QMouseEvent>
+#include <QKeyEvent>
+#include <QPalette>
+#include <QString>
 #include "src/gui/thumbnailbutton.h"
 
 ThumbnailButton::ThumbnailButton(const int page, QWidget *parent) :

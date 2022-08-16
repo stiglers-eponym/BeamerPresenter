@@ -9,7 +9,7 @@
 #include <QTime>
 #include <QSize>
 #include "src/config.h"
-#include "src/enumerates.h"
+#include "src/enumerates_qt.h"
 
 class QEvent;
 class QResizeEvent;

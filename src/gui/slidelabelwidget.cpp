@@ -4,7 +4,11 @@
 #include <algorithm>
 #include <iostream>
 #include <iomanip>
+#include <QString>
 #include <QLabel>
+#include <QFont>
+#include <QTime>
+#include <QDateTime>
 #include <QHBoxLayout>
 #include <QLineEdit>
 #include <QResizeEvent>

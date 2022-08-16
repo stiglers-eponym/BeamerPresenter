@@ -6,10 +6,8 @@
 
 #include <memory>
 #include <QString>
-#include <QSizeF>
 #include <QMap>
 #include <QList>
-#include <QPixmap>
 #include <QtConfig>
 #if (QT_VERSION_MAJOR == 6)
 #include <poppler/qt6/poppler-qt6.h>
@@ -20,6 +18,8 @@
 #include "src/enumerates.h"
 #include "src/rendering/pdfdocument.h"
 
+class QSizeF;
+class QPixmap;
 class PngPixmap;
 
 /**
@@ -46,6 +46,9 @@ public:
 
     /// Destructor: trivial
     ~PopplerDocument() noexcept override {}
+
+    PdfEngine type() const noexcept override
+    {return PopplerEngine;}
 
     /// Render page to QPixmap. page is given as page index.
     /// resolution is given in pixels per point (dpi/72).

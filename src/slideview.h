@@ -7,7 +7,7 @@
 #include <cstring>
 #include <QGraphicsView>
 #include "src/config.h"
-#include "src/enumerates.h"
+#include "src/enumerates_qt.h"
 
 class QResizeEvent;
 class PointingTool;

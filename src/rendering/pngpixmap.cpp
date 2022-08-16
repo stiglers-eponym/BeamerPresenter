@@ -1,9 +1,9 @@
 // SPDX-FileCopyrightText: 2022 Valentin Bruch <software@vbruch.eu>
 // SPDX-License-Identifier: GPL-3.0-or-later OR AGPL-3.0-or-later
 
-#include <QDebug>
 #include <QPixmap>
 #include <QBuffer>
+#include <QByteArray>
 #include "src/rendering/pngpixmap.h"
 #include "src/log.h"
 
@@ -46,6 +46,17 @@ PngPixmap::PngPixmap(const QPixmap pixmap, const int page, const float resolutio
         delete bytes;
         qWarning() << "Compressing image to PNG failed";
     }
+}
+
+
+PngPixmap::~PngPixmap() noexcept
+{
+    delete data;
+}
+
+int PngPixmap::size() const noexcept
+{
+    return data->size();
 }
 
 const QPixmap PngPixmap::pixmap() const

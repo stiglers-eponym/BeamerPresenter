@@ -7,10 +7,13 @@
 #include <QPixmap>
 #include "src/config.h"
 #include "src/enumerates.h"
-#include "src/rendering/mupdfdocument.h"
 #include "src/rendering/abstractrenderer.h"
 
+struct fz_pixmap;
+struct fz_context;
 class PngPixmap;
+class PdfDocument;
+class MuPdfDocument;
 
 #ifndef FZ_VERSION_MAJOR
 #define FZ_VERSION_MAJOR 0
@@ -37,7 +40,7 @@ class MuPdfRenderer : public AbstractRenderer
 
 public:
     /// Constructor: only initializes doc and page_part.
-    MuPdfRenderer(const MuPdfDocument *doc, const PagePart part = FullPage) : AbstractRenderer(part), doc(doc) {}
+    MuPdfRenderer(const PdfDocument *document, const PagePart part = FullPage);
 
     /// Trivial destructor.
     ~MuPdfRenderer() override {}
@@ -51,8 +54,7 @@ public:
     const PngPixmap * renderPng(const int page, const qreal resolution) const override;
 
     /// In the current implementation this is always valid.
-    bool isValid() const override
-    {return doc != NULL && doc->isValid();}
+    bool isValid() const override;
 };
 
 #endif // MUPDFRENDERER_H

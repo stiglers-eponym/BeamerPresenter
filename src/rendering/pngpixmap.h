@@ -4,10 +4,11 @@
 #ifndef PNGPIXMAP_H
 #define PNGPIXMAP_H
 
-#include <QByteArray>
+#include <QtGlobal>
 #include "src/config.h"
 
 class QPixmap;
+class QByteArray;
 
 /**
  * @brief PNG-compressed QPixmap image.
@@ -36,14 +37,14 @@ public:
     PngPixmap(const QByteArray *data, const int page = 0, const float resolution = -1.) noexcept;
 
     /// Destructor: deletes data.
-    ~PngPixmap() noexcept {delete data;}
+    ~PngPixmap() noexcept;
 
     /// Decompress the image and return the QPixmap.
     /// The caller takes ownership of the returned QPixmap.
     const QPixmap pixmap() const;
 
     /// Size of data in bytes.
-    int size() const noexcept {return data->size();}
+    int size() const noexcept;
 
     /// Resolution of the image in pixels per point (dpi/72).
     qreal getResolution() const noexcept {return resolution;}

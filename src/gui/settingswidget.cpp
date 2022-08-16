@@ -20,7 +20,6 @@
 #include "src/names.h"
 #include "src/preferences.h"
 #include "src/gui/keyinputlabel.h"
-#include "src/rendering/pdfdocument.h"
 #include "src/drawing/tool.h"
 
 SettingsWidget::SettingsWidget(QWidget *parent) :

@@ -12,7 +12,7 @@
 #include <QXmlStreamReader>
 #include <QXmlStreamWriter>
 #include "src/config.h"
-#include "src/enumerates.h"
+#include "src/enumerates_qt.h"
 #include "src/rendering/pdfdocument.h"
 
 class SlideScene;

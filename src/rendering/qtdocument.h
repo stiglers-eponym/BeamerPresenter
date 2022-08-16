@@ -42,6 +42,9 @@ public:
     ~QtDocument() noexcept override
     {delete doc;}
 
+    PdfEngine type() const noexcept override
+    {return QtPDFEngine;}
+
     /// Render page to QPixmap. page is given as page index.
     /// resolution is given in pixels per point (dpi/72).
     const QPixmap getPixmap(const int page, const qreal resolution, const PagePart page_part) const;

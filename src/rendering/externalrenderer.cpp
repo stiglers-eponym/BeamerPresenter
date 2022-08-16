@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later OR AGPL-3.0-or-later
 
 #include <QProcess>
+#include <QPixmap>
 #include <QRegularExpression>
 #include "src/rendering/externalrenderer.h"
 #include "src/rendering/pdfdocument.h"

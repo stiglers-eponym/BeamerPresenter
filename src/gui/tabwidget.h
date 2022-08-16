@@ -5,6 +5,8 @@
 #define TABWIDGET_H
 
 #include <QTabWidget>
+#include <QSizePolicy>
+#include <QSize>
 #include "src/config.h"
 
 /**

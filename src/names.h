@@ -6,8 +6,6 @@
 
 #include <QString>
 #include <QMap>
-#include <QBoxLayout>
-#include <QTabWidget>
 #include "src/config.h"
 #include "src/enumerates.h"
 

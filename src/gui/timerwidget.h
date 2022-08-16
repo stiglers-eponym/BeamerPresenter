@@ -6,7 +6,9 @@
 
 #include <QWidget>
 #include <QTime>
-#include "src/enumerates.h"
+#include <QColor>
+#include <QMap>
+#include "src/enumerates_qt.h"
 
 class QResizeEvent;
 class QLineEdit;

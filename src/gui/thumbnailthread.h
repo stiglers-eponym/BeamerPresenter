@@ -6,10 +6,11 @@
 
 #include <QObject>
 #include <QPixmap>
-#include "src/rendering/abstractrenderer.h"
+#include <QList>
 
 class PdfDocument;
 class ThumbnailButton;
+class AbstractRenderer;
 
 /**
  * @brief Worker object for rendering thumbnails in own thread
@@ -52,8 +53,7 @@ public:
     ThumbnailThread(const PdfDocument *document = NULL);
 
     /// Destructor: delete renderer.
-    ~ThumbnailThread()
-    {delete renderer;}
+    ~ThumbnailThread();
 
 public slots:
     /// Add entries to rendering queue.

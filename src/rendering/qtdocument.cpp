@@ -9,6 +9,7 @@
 #include <QImage>
 #include <QByteArray>
 #include "src/log.h"
+#include "src/preferences.h"
 #include "src/rendering/qtdocument.h"
 #include "src/rendering/pngpixmap.h"
 

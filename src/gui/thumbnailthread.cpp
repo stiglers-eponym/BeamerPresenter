@@ -29,17 +29,17 @@ ThumbnailThread::ThumbnailThread(const PdfDocument *document) :
     {
 #ifdef USE_QTPDF
     case renderer::QtPDF:
-        renderer = new QtRenderer(static_cast<const QtDocument*>(document), preferences()->default_page_part);
+        renderer = new QtRenderer(document, preferences()->default_page_part);
         break;
 #endif
 #ifdef USE_POPPLER
     case renderer::Poppler:
-        renderer = new PopplerRenderer(static_cast<const PopplerDocument*>(document), preferences()->default_page_part);
+        renderer = new PopplerRenderer(document, preferences()->default_page_part);
         break;
 #endif
 #ifdef USE_MUPDF
     case renderer::MuPDF:
-        renderer = new MuPdfRenderer(static_cast<const MuPdfDocument*>(document), preferences()->default_page_part);
+        renderer = new MuPdfRenderer(document, preferences()->default_page_part);
         break;
 #endif
 #ifdef USE_EXTERNAL_RENDERER
@@ -56,6 +56,11 @@ ThumbnailThread::ThumbnailThread(const PdfDocument *document) :
         qCritical() << "Creating renderer failed" << preferences()->renderer;
         return;
     }
+}
+
+ThumbnailThread::~ThumbnailThread()
+{
+    delete renderer;
 }
 
 void ThumbnailThread::renderImages()

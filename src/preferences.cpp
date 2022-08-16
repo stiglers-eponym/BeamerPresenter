@@ -5,6 +5,8 @@
 #include <QPen>
 #include <QJsonDocument>
 #include <QJsonArray>
+#include <QJsonValue>
+#include <QIcon>
 #include "src/log.h"
 #include "src/preferences.h"
 #include "src/rendering/pdfdocument.h"

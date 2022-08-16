@@ -5,6 +5,7 @@
 #define SLIDENUMBERWIDGET_H
 
 #include <QWidget>
+#include <QSize>
 #include "src/config.h"
 
 class QLabel;

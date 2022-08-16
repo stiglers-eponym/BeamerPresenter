@@ -1,16 +1,23 @@
 // SPDX-FileCopyrightText: 2022 Valentin Bruch <software@vbruch.eu>
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-#include <string>
+extern "C"
+{
+#include <mupdf/fitz.h>
+#include <mupdf/pdf.h>
+#include <mupdf/fitz/version.h>
+}
+
 #include <QByteArray>
 #include "src/rendering/mupdfrenderer.h"
+#include "src/rendering/mupdfdocument.h"
 #include "src/rendering/pngpixmap.h"
 #include "src/log.h"
 
 fz_pixmap *MuPdfRenderer::renderFzPixmap(const int page, const qreal resolution, fz_context *&ctx) const
 {
     if (resolution < 1e-9 || resolution > 1e9 || page < 0)
-        return NULL;
+        return nullptr;
 
     // Let the main thread prepare everything.
     fz_rect bbox;
@@ -18,8 +25,8 @@ fz_pixmap *MuPdfRenderer::renderFzPixmap(const int page, const qreal resolution,
     doc->prepareRendering(&ctx, &bbox, &list, page, resolution);
 
     // If page is not valid (too large), the NULLs will be unchanged.
-    if (ctx == NULL || list == NULL)
-        return NULL;
+    if (ctx == nullptr || list == nullptr)
+        return nullptr;
 
     // Adapt bbox to page part.
     switch (page_part)
@@ -38,7 +45,7 @@ fz_pixmap *MuPdfRenderer::renderFzPixmap(const int page, const qreal resolution,
     ctx = fz_clone_context(ctx);
 
     // Create pixmap and render page to it.
-    fz_device *dev = NULL;
+    fz_device *dev = nullptr;
     fz_pixmap *pixmap;
     fz_var(pixmap);
     fz_var(dev);
@@ -74,6 +81,11 @@ fz_pixmap *MuPdfRenderer::renderFzPixmap(const int page, const qreal resolution,
     }
     return pixmap;
 }
+
+MuPdfRenderer::MuPdfRenderer(const PdfDocument *document, const PagePart part) :
+    AbstractRenderer(part),
+    doc(document && (document->type() == MuPdfEngine) ? static_cast<const MuPdfDocument*>(document) : nullptr)
+{}
 
 const QPixmap MuPdfRenderer::renderPixmap(const int page, const qreal resolution) const
 {
@@ -124,6 +136,11 @@ const QPixmap MuPdfRenderer::renderPixmap(const int page, const qreal resolution
     fz_drop_buffer(ctx, buffer);
     fz_drop_context(ctx);
     return qpixmap;
+}
+
+bool MuPdfRenderer::isValid() const
+{
+    return doc && doc->isValid();
 }
 
 const PngPixmap * MuPdfRenderer::renderPng(const int page, const qreal resolution) const

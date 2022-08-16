@@ -8,6 +8,8 @@
 #include "src/config.h"
 
 class QMouseEvent;
+class QKeyEvent;
+class QFocusEvent;
 
 /**
  * @brief Pushable button showing page preview

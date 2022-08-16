@@ -7,12 +7,16 @@
 #include <QPixmap>
 #include "src/config.h"
 #include "src/rendering/abstractrenderer.h"
-#include "src/rendering/qtdocument.h"
+
+class PngPixmap;
+class PdfDocument;
+class QtDocument;
 
 /**
  * @brief Implement AbstractRenderer using Qt PDF.
  * @implements AbstractRenderer
  * @see PopplerRenderer
+ * @see MuPdfRenderer
  */
 class QtRenderer : public AbstractRenderer
 {
@@ -23,25 +27,21 @@ public:
     /// Constructor: Only initializes doc and page_part.
     /// This does not perform any checks on the given document.
     /// Also rendering hints are not set here and have to be set before.
-    QtRenderer(const QtDocument *document, const PagePart part = FullPage) :
-        AbstractRenderer(part), doc(document) {};
+    QtRenderer(const PdfDocument *document, const PagePart part = FullPage);
 
     /// Trivial destructor.
     ~QtRenderer() override {}
 
     /// Render page to a QPixmap.
     /// Resolution is given in pixels per point (dpi/72).
-    const QPixmap renderPixmap(const int page, const qreal resolution) const override
-    {return doc ? doc->getPixmap(page, resolution, page_part) : QPixmap();}
+    const QPixmap renderPixmap(const int page, const qreal resolution) const override;
 
     /// Render page to PNG image in a QByteArray.
     /// Resolution is given in pixels per point (dpi/72).
-    const PngPixmap * renderPng(const int page, const qreal resolution) const override
-    {return doc ? doc->getPng(page, resolution, page_part) : NULL;}
+    const PngPixmap * renderPng(const int page, const qreal resolution) const override;
 
     /// Check whether doc is valid.
-    bool isValid() const override
-    {return doc && doc->isValid();}
+    bool isValid() const override;
 };
 
 #endif // QTRENDERER_H

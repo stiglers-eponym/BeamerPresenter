@@ -305,6 +305,9 @@ public:
     /// Number of pages in PDF file.
     virtual int numberOfPages() const = 0;
 
+    /// Pdf engine.
+    virtual PdfEngine type() const noexcept = 0;
+
     /// Label of page with given index.
     /// The default implementation returns a string representing the page number.
     virtual const QString pageLabel(const int page) const

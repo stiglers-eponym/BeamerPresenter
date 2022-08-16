@@ -5,6 +5,9 @@
 #include <iostream>
 #include <iomanip>
 #include <QLabel>
+#include <QFont>
+#include <QTime>
+#include <QDateTime>
 #include <QHBoxLayout>
 #include <QLineEdit>
 #include <QResizeEvent>

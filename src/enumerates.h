@@ -5,7 +5,6 @@
 #define ENUMERATES_H
 
 #include <climits>
-#include <QMetaType>
 #include "src/config.h"
 
 /**
@@ -166,7 +165,6 @@ enum Action
     ClearDrawingLeft = ClearDrawing | PagePart::LeftHalf, ///< clear all drawings on current page (only LeftPage)
     ClearDrawingRight = ClearDrawing | PagePart::RightHalf, ///< clear all drawings on current page (only RightPage)
 };
-Q_DECLARE_METATYPE(Action);
 
 /**
  * @brief Gestures to which actions can be assigned.

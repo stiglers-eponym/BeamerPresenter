@@ -9,13 +9,14 @@
 #include <QStringList>
 #include <QCommandLineParser>
 #include <QPen>
+#include <QColor>
 #include <QBrush>
 #include <QMultiMap>
 #include <QKeySequence>
 #include <QJsonObject>
 #include <QDateTime>
 #include "src/config.h"
-#include "src/enumerates.h"
+#include "src/enumerates_qt.h"
 
 class DrawTool;
 class Tool;

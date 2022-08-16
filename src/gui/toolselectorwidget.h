@@ -8,7 +8,7 @@
 #include <QColor>
 #include <QJsonArray>
 #include "src/config.h"
-#include "src/enumerates.h"
+#include "src/enumerates_qt.h"
 
 class Tool;
 class QEvent;
