@@ -13,6 +13,12 @@
 #include <QUrl>
 
 #include "src/config.h"
+extern "C"
+{
+#include <mupdf/pdf.h>
+#include <mupdf/fitz/version.h>
+}
+
 #ifdef SUPPRESS_MUPDF_WARNINGS
 #include <fcntl.h>
 #include <unistd.h>
@@ -21,6 +27,13 @@
 #include "src/enumerates.h"
 #include "src/preferences.h"
 #include "src/log.h"
+
+#ifndef FZ_VERSION_MAJOR
+#define FZ_VERSION_MAJOR 0
+#endif
+#ifndef FZ_VERSION_MINOR
+#define FZ_VERSION_MINOR 0
+#endif
 
 std::string roman(int number)
 {
@@ -106,7 +119,8 @@ void unlock_mutex(void *user, int lock)
 
 MuPdfDocument::MuPdfDocument(const QString &filename) :
     PdfDocument(filename),
-    mutex(new QMutex())
+    mutex(new QMutex()),
+    mutex_list(QVector<QMutex*>(FZ_LOCK_MAX))
 {
     for (auto &it : mutex_list)
         it = new QMutex();

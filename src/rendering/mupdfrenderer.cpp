@@ -3,7 +3,6 @@
 
 extern "C"
 {
-#include <mupdf/fitz.h>
 #include <mupdf/pdf.h>
 #include <mupdf/fitz/version.h>
 }
@@ -13,6 +12,13 @@ extern "C"
 #include "src/rendering/mupdfdocument.h"
 #include "src/rendering/pngpixmap.h"
 #include "src/log.h"
+
+#ifndef FZ_VERSION_MAJOR
+#define FZ_VERSION_MAJOR 0
+#endif
+#ifndef FZ_VERSION_MINOR
+#define FZ_VERSION_MINOR 0
+#endif
 
 fz_pixmap *MuPdfRenderer::renderFzPixmap(const int page, const qreal resolution, fz_context *&ctx) const
 {

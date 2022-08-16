@@ -4,14 +4,6 @@
 #ifndef MUPDFDOCUMENT_H
 #define MUPDFDOCUMENT_H
 
-
-extern "C"
-{
-#include <mupdf/fitz.h>
-#include <mupdf/pdf.h>
-#include <mupdf/fitz/version.h>
-}
-
 #include <QString>
 #include <QSizeF>
 #include <QPointF>
@@ -19,6 +11,11 @@ extern "C"
 #include <QMap>
 #include <QVector>
 #include "src/config.h"
+extern "C"
+{
+#include <mupdf/fitz.h>
+#include <mupdf/pdf/document.h>
+}
 #include "src/rendering/pdfdocument.h"
 
 class QMutex;
@@ -58,7 +55,7 @@ private:
     pdf_document *doc{NULL};
 
     /// Mutexes needed for parallel rendering in MuPDF.
-    QVector<QMutex*> mutex_list{FZ_LOCK_MAX};
+    QVector<QMutex*> mutex_list;
 
     /// Single mutex for this.
     QMutex* mutex;

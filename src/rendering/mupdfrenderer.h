@@ -6,21 +6,16 @@
 
 #include <QPixmap>
 #include "src/config.h"
+extern "C"
+{
+#include <mupdf/fitz.h>
+}
 #include "src/enumerates.h"
 #include "src/rendering/abstractrenderer.h"
 
-struct fz_pixmap;
-struct fz_context;
 class PngPixmap;
 class PdfDocument;
 class MuPdfDocument;
-
-#ifndef FZ_VERSION_MAJOR
-#define FZ_VERSION_MAJOR 0
-#endif
-#ifndef FZ_VERSION_MINOR
-#define FZ_VERSION_MINOR 0
-#endif
 
 /**
  * @brief MuPDF implementation of AbstractRenderer.
