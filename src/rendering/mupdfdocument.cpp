@@ -13,12 +13,6 @@
 #include <QUrl>
 
 #include "src/config.h"
-extern "C"
-{
-#include <mupdf/pdf.h>
-#include <mupdf/fitz/version.h>
-}
-
 #ifdef SUPPRESS_MUPDF_WARNINGS
 #include <fcntl.h>
 #include <unistd.h>

@@ -14,7 +14,7 @@
 extern "C"
 {
 #include <mupdf/fitz.h>
-#include <mupdf/pdf/document.h>
+#include <mupdf/pdf.h>
 }
 #include "src/rendering/pdfdocument.h"
 

@@ -1,12 +1,6 @@
 // SPDX-FileCopyrightText: 2022 Valentin Bruch <software@vbruch.eu>
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-extern "C"
-{
-#include <mupdf/pdf.h>
-#include <mupdf/fitz/version.h>
-}
-
 #include <QByteArray>
 #include "src/rendering/mupdfrenderer.h"
 #include "src/rendering/mupdfdocument.h"
