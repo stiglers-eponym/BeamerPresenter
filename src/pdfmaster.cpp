@@ -2,18 +2,23 @@
 // SPDX-License-Identifier: GPL-3.0-or-later OR AGPL-3.0-or-later
 
 #include <algorithm>
+#include <zlib.h>
 #include <QFileInfo>
 #include <QRegularExpression>
 #include <QBuffer>
 #include <QMimeDatabase>
 #include <QMimeType>
 #include <QFileDialog>
+#include <QXmlStreamReader>
+#include <QXmlStreamWriter>
+
 #include "src/config.h"
 #include "src/log.h"
 #include "src/pdfmaster.h"
 #include "src/preferences.h"
 #include "src/slidescene.h"
 #include "src/drawing/pathcontainer.h"
+#include "src/rendering/pdfdocument.h"
 #ifdef USE_QTPDF
 #include "src/rendering/qtdocument.h"
 #endif
@@ -102,6 +107,31 @@ bool PdfMaster::loadDocument()
         return true;
     }
     return false;
+}
+
+const QString &PdfMaster::getFilename() const
+{
+    return document->getPath();
+}
+
+bool PdfMaster::flexiblePageSizes() const noexcept
+{
+    return document->flexiblePageSizes();
+}
+
+const SlideTransition PdfMaster::transition(const int page) const
+{
+    return document->transition(page);
+}
+
+int PdfMaster::numberOfPages() const
+{
+    return document->numberOfPages();
+}
+
+int PdfMaster::overlaysShifted(const int start, const int shift_overlay) const
+{
+    return document->overlaysShifted(start, shift_overlay);
 }
 
 void PdfMaster::receiveAction(const Action action)

@@ -7,6 +7,9 @@
 #include <QIcon>
 #include <QImage>
 #include <QSize>
+#include <QJsonArray>
+#include <QJsonValue>
+#include <QColor>
 #include "src/gui/colorselectionbutton.h"
 #include "src/gui/toolbutton.h"
 #include "src/drawing/tool.h"

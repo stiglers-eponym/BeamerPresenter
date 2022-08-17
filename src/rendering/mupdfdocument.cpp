@@ -4,6 +4,8 @@
 #include <string>
 #include <iterator>
 #include <QObject>
+#include <QPointF>
+#include <QSizeF>
 #include <QRectF>
 #include <QFileInfo>
 #include <QInputDialog>

@@ -1,18 +1,24 @@
 // SPDX-FileCopyrightText: 2022 Valentin Bruch <software@vbruch.eu>
 // SPDX-License-Identifier: GPL-3.0-or-later OR AGPL-3.0-or-later
 
+#include <QtConfig>
 #include <algorithm>
 #include <QTimer>
+#include <QString>
 #include <QThread>
+#include <QJsonObject>
+#include <QJsonValue>
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QKeyEvent>
 #include <QMainWindow>
 #include <QMessageBox>
-#include <QtConfig>
 #include <QFileInfo>
 #include <QFileDialog>
 #include <QSizeF>
+#include <QXmlStreamReader>
+#include <QXmlStreamWriter>
+
 #include "src/log.h"
 #include "src/enumerates.h"
 #include "src/master.h"
@@ -38,6 +44,7 @@
 #include "src/gui/toolselectorwidget.h"
 #include "src/rendering/pixcache.h"
 #include "src/names.h"
+#include "src/preferences.h"
 
 Master::Master() :
     cacheVideoTimer(new QTimer(this)),
@@ -666,6 +673,11 @@ void Master::receiveKeyEvent(const QKeyEvent* event)
                 setTool(new Tool(*tool));
         }
     }
+}
+
+void Master::nextSlide() const noexcept
+{
+    navigateToPage(preferences()->page + 1);
 }
 
 void Master::handleAction(const Action action)

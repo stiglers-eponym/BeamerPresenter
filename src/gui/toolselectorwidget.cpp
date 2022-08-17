@@ -1,7 +1,10 @@
 // SPDX-FileCopyrightText: 2022 Valentin Bruch <software@vbruch.eu>
 // SPDX-License-Identifier: GPL-3.0-or-later OR AGPL-3.0-or-later
 
+#include <QColor>
 #include <QGridLayout>
+#include <QJsonValue>
+#include <QJsonObject>
 #include <QJsonArray>
 #include <QResizeEvent>
 #include "src/gui/toolselectorwidget.h"

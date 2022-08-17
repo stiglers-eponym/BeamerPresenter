@@ -3,6 +3,8 @@
 
 #include <algorithm>
 #include <QtConfig>
+#include <QTimer>
+#include <QTime>
 #include <QFont>
 #include <QTouchEvent>
 #include <QMouseEvent>
@@ -32,6 +34,11 @@ ClockWidget::ClockWidget(QWidget *parent, bool accept_touch_input) :
     setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);
     setMinimumSize(20, 10);
     setToolTip(tr("double-click on clock to start or pause timer"));
+}
+
+ClockWidget::~ClockWidget()
+{
+    delete timer;
 }
 
 void ClockWidget::resizeEvent(QResizeEvent *event) noexcept
@@ -80,4 +87,9 @@ bool ClockWidget::event(QEvent *event)
     default:
         return QLineEdit::event(event);
     }
+}
+
+void ClockWidget::updateTime()
+{
+    setText(QTime::currentTime().toString(Qt::TextDate));
 }

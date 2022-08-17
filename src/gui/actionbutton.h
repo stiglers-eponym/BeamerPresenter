@@ -13,6 +13,7 @@
 
 class ToolSelectorWidget;
 class QEvent;
+class QString;
 
 /**
  * @brief Button which sends Action(s) when clicked.

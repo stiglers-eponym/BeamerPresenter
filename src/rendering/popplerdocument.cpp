@@ -3,7 +3,9 @@
 
 #include <QtConfig>
 #include <QObject>
+#include <QPointF>
 #include <QSizeF>
+#include <QRectF>
 #include <QVector>
 #include <QBuffer>
 #include <QLineEdit>
@@ -12,7 +14,6 @@
 #include <QInputDialog>
 #include <QImage>
 #include <QPixmap>
-#include <QRectF>
 #include <QUrl>
 #include "src/log.h"
 #include "src/preferences.h"

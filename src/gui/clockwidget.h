@@ -5,12 +5,11 @@
 #define CLOCKWIDGET_H
 
 #include <QLineEdit>
-#include <QTimer>
-#include <QTime>
-#include <QSize>
 #include "src/config.h"
 #include "src/enumerates_qt.h"
 
+class QSize;
+class QTimer;
 class QEvent;
 class QResizeEvent;
 class QMouseEvent;
@@ -37,8 +36,7 @@ public:
     explicit ClockWidget(QWidget *parent = NULL, bool accept_touch_input = true);
 
     /// Destructor: delete timer.
-    ~ClockWidget()
-    {delete timer;}
+    ~ClockWidget();
 
     /// Size hint: based on estimated size.
     QSize sizeHint() const noexcept override
@@ -60,8 +58,7 @@ protected:
 
 private slots:
     /// Update label to show current time.
-    void updateTime()
-    {setText(QTime::currentTime().toString(Qt::TextDate));}
+    void updateTime();
 
 signals:
     /// Send action (toggle timer) to master.

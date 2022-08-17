@@ -5,27 +5,26 @@
 #define MASTER_H
 
 #include <QObject>
-#include <QTime>
-#include <QString>
-#include <QColor>
 #include <QList>
 #include <QMap>
 #include <QKeySequence>
-#include <QJsonObject>
-#include <QXmlStreamReader>
-#include <QXmlStreamWriter>
 #include "src/config.h"
-#include "src/enumerates.h"
-#include "src/preferences.h"
+#include "src/enumerates_qt.h"
 
 class Tool;
+class QColor;
+class QTime;
 class QTimer;
+class QString;
+class QJsonObject;
 class QWidget;
 class QKeyEvent;
 class PdfMaster;
 class SlideScene;
 class PixCache;
 class QMainWindow;
+class QXmlStreamReader;
+class QXmlStreamWriter;
 
 /**
  * @brief Central management of the program.
@@ -121,8 +120,7 @@ public slots:
     void navigateToPage(const int page) const;
 
     /// Navigate to next slide.
-    void nextSlide() const noexcept
-    {navigateToPage(preferences()->page + 1);}
+    void nextSlide() const noexcept;
 
     /// Handle an action, distribute it if necessary.
     void handleAction(const Action action);

@@ -2,11 +2,12 @@
 // SPDX-License-Identifier: GPL-3.0-or-later OR AGPL-3.0-or-later
 
 #include <QDir>
-#include <QPen>
+#include <QJsonObject>
 #include <QJsonDocument>
 #include <QJsonArray>
 #include <QJsonValue>
 #include <QIcon>
+#include <QCommandLineParser>
 #include "src/log.h"
 #include "src/preferences.h"
 #include "src/rendering/pdfdocument.h"

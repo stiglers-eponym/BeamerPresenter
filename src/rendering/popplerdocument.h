@@ -6,7 +6,6 @@
 
 #include <memory>
 #include <QString>
-#include <QPointF>
 #include <QMap>
 #include <QList>
 #include <QtConfig>
@@ -19,6 +18,7 @@
 #include "src/enumerates.h"
 #include "src/rendering/pdfdocument.h"
 
+class QPointF;
 class QSizeF;
 class QPixmap;
 class PngPixmap;

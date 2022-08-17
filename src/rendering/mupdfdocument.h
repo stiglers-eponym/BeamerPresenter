@@ -5,8 +5,6 @@
 #define MUPDFDOCUMENT_H
 
 #include <QString>
-#include <QSizeF>
-#include <QPointF>
 #include <QList>
 #include <QMap>
 #include <QVector>
@@ -21,6 +19,8 @@ extern "C"
 #include "src/rendering/pdfdocument.h"
 
 class QMutex;
+class QSizeF;
+class QPointF;
 
 /**
  * @brief MuPDF implementation of PdfDocument
