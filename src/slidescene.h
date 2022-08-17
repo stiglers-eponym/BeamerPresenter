@@ -39,7 +39,7 @@ namespace slide
     struct MediaItem
     {
         /// basic information about video from PDF
-        PdfDocument::MediaAnnotation annotation;
+        MediaAnnotation annotation;
         /// QGraphicsItem representing the video
         QGraphicsVideoItem *item;
         /// Media player controling the video
@@ -129,10 +129,10 @@ private:
     SelectionRectItem selection_bounding_rect;
 
     /// Start slide transition.
-    void startTransition(const int newpage, const PdfDocument::SlideTransition &transition);
+    void startTransition(const int newpage, const SlideTransition &transition);
 
     /// Search video annotation in cache and create + add it to cache if necessary.
-    slide::MediaItem &getMediaItem(const PdfDocument::MediaAnnotation &annotation, const int page);
+    slide::MediaItem &getMediaItem(const MediaAnnotation &annotation, const int page);
 
 public:
     /// Constructor: initialize master, page_part, and QGraphisScene.

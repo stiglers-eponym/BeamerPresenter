@@ -4,6 +4,7 @@
 #ifndef ABSTRACTRENDERER_H
 #define ABSTRACTRENDERER_H
 
+#include <QtGlobal>
 #include "src/config.h"
 #include "src/enumerates.h"
 

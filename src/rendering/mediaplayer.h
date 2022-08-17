@@ -4,9 +4,10 @@
 #ifndef MEDIAPLAYER_H
 #define MEDIAPLAYER_H
 
-#include <QTimer>
 #include <QMediaPlayer>
 #include "src/config.h"
+
+class QTimer;
 
 /**
  * @brief MediaPlayer class, extension of QMediaPlayer
@@ -22,7 +23,7 @@
  * for at least 50ms.
  *
  * @see MediaSlider
- * @see PdfDocument::MediaAnnotation
+ * @see MediaAnnotation
  */
 class MediaPlayer : public QMediaPlayer
 {
@@ -37,7 +38,7 @@ public:
     /// Constructor. Initialize timer for checkPosition.
     explicit MediaPlayer(QObject *parent = nullptr);
     /// Destructor. Delete timer.
-    ~MediaPlayer() noexcept {delete timer;}
+    ~MediaPlayer() noexcept;
 
 private slots:
     /// Check if new seek position has been set and change position if necessary.
@@ -51,8 +52,7 @@ public slots:
 
     /// Soft version of setPosition: can be called repeatedly without
     /// blocking the programm.
-    void setPositionSoft(int position) noexcept
-    {seekpos = qint64(position); timer->start(50);}
+    void setPositionSoft(int position) noexcept;
 };
 
 #endif // MEDIAPLAYER_H

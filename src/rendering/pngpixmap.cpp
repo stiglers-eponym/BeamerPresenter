@@ -8,7 +8,7 @@
 #include "src/log.h"
 
 PngPixmap::PngPixmap(const int page, const float resolution) noexcept :
-     data(NULL),
+     data(nullptr),
      resolution(resolution),
      page(page)
 {};
@@ -20,7 +20,7 @@ PngPixmap::PngPixmap(const QByteArray *data, const int page, const float resolut
 {};
 
 PngPixmap::PngPixmap(const QPixmap pixmap, const int page, const float resolution) :
-    data(NULL),
+    data(nullptr),
     resolution(resolution),
     page(page)
 {
@@ -62,7 +62,7 @@ int PngPixmap::size() const noexcept
 const QPixmap PngPixmap::pixmap() const
 {
     QPixmap pixmap;
-    if (data == NULL || data->isEmpty() || !pixmap.loadFromData(*data, "PNG"))
+    if (data == nullptr || data->isEmpty() || !pixmap.loadFromData(*data, "PNG"))
         qWarning() << "Loading image from PNG failed";
     return pixmap;
 }
@@ -70,6 +70,6 @@ const QPixmap PngPixmap::pixmap() const
 const QByteArray * PngPixmap::takeData()
 {
     const QByteArray * const pointer = data;
-    data = NULL;
+    data = nullptr;
     return pointer;
 }

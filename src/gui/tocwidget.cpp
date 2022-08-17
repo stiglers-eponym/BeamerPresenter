@@ -17,7 +17,7 @@ void TOCwidget::generateTOC(const PdfDocument *document)
     if (!document || first_button)
         return;
 
-    const QVector<PdfDocument::PdfOutlineEntry> &outline = document->getOutline();
+    const QVector<PdfOutlineEntry> &outline = document->getOutline();
     // If the document outline contains no entry: outline.size() == 1
     if (outline.size() <= 1)
         return;

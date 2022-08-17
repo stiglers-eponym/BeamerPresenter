@@ -5,14 +5,17 @@
 #define PIXCACHE_H
 
 #include <QObject>
+#include <QSizeF>
 #include <QMap>
 #include <QList>
-#include <QPixmap>
+#include <QVector>
+#include <QPair>
 #include "src/config.h"
 #include "src/enumerates.h"
 
 #define MAX_RESOLUTION_DEVIATION 1e-5
 
+class QPixmap;
 class QTimer;
 class PngPixmap;
 class PdfDocument;
@@ -130,8 +133,7 @@ public slots:
 
     /// Write pixmap representing *page* to *target*.
     /// Additionally write pixmap to cache if it needs to be created.
-    void getPixmap(const int page, QPixmap *target, qreal resolution = -1.)
-    {*target = pixmap(page, resolution);}
+    void getPixmap(const int page, QPixmap *target, qreal resolution = -1.);
 
     /// Request rendering a page with low priority
     /// May only be called in this object's thread.

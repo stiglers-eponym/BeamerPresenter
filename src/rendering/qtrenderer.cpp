@@ -1,8 +1,9 @@
 // SPDX-FileCopyrightText: 2022 Valentin Bruch <software@vbruch.eu>
 // SPDX-License-Identifier: GPL-3.0-or-later OR AGPL-3.0-or-later
 
-#include "src/rendering/qtrenderer.h"
+#include <QPixmap>
 #include "src/rendering/qtdocument.h"
+#include "src/rendering/qtrenderer.h"
 
 QtRenderer::QtRenderer(const PdfDocument *document, const PagePart part) :
     AbstractRenderer(part),

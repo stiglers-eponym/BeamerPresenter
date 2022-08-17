@@ -4,12 +4,253 @@
 #ifndef PDFDOCUMENT_H
 #define PDFDOCUMENT_H
 
+#include <QString>
 #include <QDateTime>
 #include <QUrl>
 #include <QRectF>
+#include <QByteArray>
 #include <QVector>
 #include "src/config.h"
 #include "src/enumerates.h"
+
+
+/// Unified type of PDF media annotations for all PDF engines.
+struct MediaAnnotation {
+    /// URL for (external) media file.
+    QUrl file;
+    /// Media type. Embedded types are currently not supported.
+    enum Type
+    {
+        /// not initialized or invalid
+        InvalidAnnotation = 0,
+        /// flag for media annnotation that has audio
+        HasAudio = 1 << 0,
+        /// flag for media annnotation that has video
+        HasVideo = 1 << 1,
+        /// flag for embedded media annnotation. Not embedded means external file.
+        Embedded = 1 << 2,
+        /// embedded video (doesn't exist, but why not included it here)
+        VideoEmbedded = HasVideo | HasAudio | Embedded,
+        /// embedded audio (currently not supported)
+        AudioEmbedded = HasAudio | Embedded,
+        /// external video (with audio)
+        VideoExternal = HasVideo | HasAudio,
+        /// external audio-only file
+        AudioExternal = HasAudio,
+    };
+    /// Media type.
+    Type type = InvalidAnnotation;
+
+    /// Play modes of media.
+    enum Mode
+    {
+        /// Invlid mode
+        InvalidMode = -1,
+        /// Play media only once
+        Once = 0,
+        /// Play video and show controll bar. Currently ignored.
+        Open,
+        /// Play continuously forward and backward. Currently not implemented.
+        Palindrome,
+        /// Play repeatedly (infinite loop).
+        Repeat,
+    };
+    /// Play mode
+    Mode mode = Once;
+
+    /// Audio volume of media.
+    float volume = 1.;
+    /// Position of media on slide.
+    QRectF rect;
+    /// Trivial constructor.
+    MediaAnnotation() : file(), type(InvalidAnnotation), mode(InvalidMode), rect() {}
+    /// Constructor for full initialization.
+    MediaAnnotation(const QUrl &url, const bool hasvideo, const QRectF &rect) :
+        file(url), type(hasvideo ? VideoExternal : AudioExternal), mode(Once), rect(rect) {}
+    /// Constructor without file.
+    MediaAnnotation(const Type type, const QRectF &rect) :
+        file(QUrl()), type(type), mode(Once), rect(rect) {}
+    /// Trivial destructor.
+    virtual ~MediaAnnotation() {}
+    /// Comparison by media type, file, mode, and rect.
+    virtual bool operator==(const MediaAnnotation &other) const noexcept
+    {return     type == other.type
+                && file == other.file
+                && mode == other.mode
+                && rect == other.rect;}
+};
+
+/// Embedded media file.
+/// Quite useless because currently these objects cannot be played.
+/// @todo implement embedded media files.
+struct EmbeddedMedia : MediaAnnotation {
+    /// Data stream.
+    QByteArray data;
+    /// Audio sampling rate
+    int sampling_rate;
+    /// Audio channels
+    int channels = 1;
+    /// Bit per sample
+    int bit_per_sample = 8;
+
+    /// Audio encoding modes as defined by PDF standard
+    enum Encoding {
+        /// Raw unsigned integers between 0 and 2^8-1
+        SoundEncodingRaw,
+        /// Twos-complement values
+        SoundEncodingSigned,
+        /// mu-law encoded samples
+        SoundEncodingMuLaw,
+        /// A-law-encoded samples
+        SoundEncodingALaw,
+    }
+    /// Audio encoding
+    encoding = SoundEncodingRaw;
+
+    /// Stream compression modes
+    enum Compression {
+        /// no compression
+        Uncompressed,
+    }
+    /// Stream compression
+    compression = Uncompressed;
+
+    /// Constructor
+    EmbeddedMedia(const QByteArray &data, int sampling_rate, const QRectF &rect) :
+        MediaAnnotation(AudioEmbedded, rect), data(data), sampling_rate(sampling_rate) {}
+    /// Trivial destructor
+    virtual ~EmbeddedMedia() {}
+    /// Comparison by all properties, including data.
+    virtual bool operator==(const MediaAnnotation &other) const noexcept override
+    {return     type == other.type
+                && file == other.file
+                && data.data() == static_cast<const EmbeddedMedia&>(other).data.data()
+                && mode == other.mode
+                && rect == other.rect;}
+};
+
+/// Unified type of PDF links for all PDF engines.
+struct PdfLink {
+    /// Types of links in PDF.
+    /// These are all negative, because positive values are interpreted as page
+    /// numbers for internal navigation links.
+    enum LinkType
+    {
+        /// Link of unknown type.
+        NoLink = 0,
+        /// Link inside the PDF document.
+        PageLink,
+        /// Link contains an action.
+        ActionLink,
+        /// Link to target in external PDF.
+        ExternalPDF,
+        /// Link to a remote destination.
+        RemoteUrl,
+        /// Link to a local file.
+        LocalUrl,
+        /// Link to movie annotation
+        MovieLink,
+        /// Link to sound annotation
+        SoundLink,
+    };
+
+    /// Type of this link object
+    LinkType type = NoLink;
+    /// Link area on slide
+    QRectF area;
+};
+struct ExternalLink : PdfLink {
+    QUrl url;
+};
+struct GotoLink : PdfLink {
+    int page;
+};
+struct ActionLink : PdfLink {
+    Action action;
+};
+struct MediaLink : PdfLink {
+    MediaAnnotation annotation;
+};
+
+/// PDF outline (table of contents, TOC) entry for storing a tree in a list.
+struct PdfOutlineEntry {
+    /// Title of the entry.
+    QString title;
+    /// Page index in the PDF (start counting from 0, destination resolved by the PDF engine)
+    int page;
+    /// Index of next outline on the same level in some data structure.
+    int next;
+};
+
+/// Unified type of slide transition for all PDF engines.
+struct SlideTransition {
+    /// Slide tansition types as define by the PDF standard.
+    /// The numbers used here are the same as in fz_transition::type and
+    /// in Poppler::PageTransition::Type.
+    enum Type
+    {
+        /// Invalid slide transition.
+        Invalid = -1,
+        /// No transition.
+        Replace = 0,
+        /// 2 lines sweep accross the screen and reveal the next page.
+        Split = 1,
+        /// Multiple lines seep accross the screen and reveal the next page.
+        Blinds = 2,
+        /// A box seeps inward or outward and reveals the next page.
+        Box = 3,
+        /// Single line seeping accross the screen to reveal the next page.
+        Wipe = 4,
+        /// Current page becomes transparent to reveal next page.
+        Dissolve = 5,
+        /// The screen is divided in small squares which change to the next page in pseudo-random order.
+        Glitter = 6,
+        /// Changes fly in or out.
+        Fly = 7,
+        /// Current page is pushed away by next page.
+        Push = 8,
+        /// Next page flies in and covers current page.
+        Cover = 9,
+        /// Current page flies out to uncover next page.
+        Uncover = 10,
+        /// Current slide dissolves, background color becomes visible, and next slide appears.
+        Fade = 11,
+        /// Fly animation in which a rectangle including all changes flies in.
+        /// Currently not implemented and treated like Fly.
+        FlyRectangle = 12,
+    };
+
+    /// Direction controlled by 2 bits for outwards and vertical.
+    enum Properties
+    {
+        /// direction flag in to out.
+        Outwards = 1 << 0,
+        /// orientation flag vertical.
+        Vertical = 1 << 1,
+    };
+
+    /// Type of the slide transition.
+    qint8 type = Replace;
+
+    /// Direction of the transition.
+    /// first bit: inward (0) or outward (1) direction.
+    /// second bit: horizontal (0) or vertical (1) direction.
+    qint8 properties = 0;
+
+    /// Angle in degrees of the direction of the direction.
+    qint16 angle = 0;
+
+    /// Transition duration in s.
+    float duration = 0.;
+
+    /// Only relevant for Fly and FlyRectangle, in [0,1].
+    /// Starting point for "flying" relative to the usual "fly" path.
+    float scale = 1.;
+
+    /// Create time-reverse of slide transition (in place)
+    void invert() noexcept
+    {properties ^= Outwards; angle = (angle + 180) % 360;}
+};
 
 /**
  * @brief Abstract class for handling PDF documents.
@@ -23,245 +264,6 @@
  */
 class PdfDocument
 {
-public:
-    /// Unified type of PDF media annotations for all PDF engines.
-    struct MediaAnnotation {
-        /// URL for (external) media file.
-        QUrl file;
-        /// Media type. Embedded types are currently not supported.
-        enum Type
-        {
-            /// not initialized or invalid
-            InvalidAnnotation = 0,
-            /// flag for media annnotation that has audio
-            HasAudio = 1 << 0,
-            /// flag for media annnotation that has video
-            HasVideo = 1 << 1,
-            /// flag for embedded media annnotation. Not embedded means external file.
-            Embedded = 1 << 2,
-            /// embedded video (doesn't exist, but why not included it here)
-            VideoEmbedded = HasVideo | HasAudio | Embedded,
-            /// embedded audio (currently not supported)
-            AudioEmbedded = HasAudio | Embedded,
-            /// external video (with audio)
-            VideoExternal = HasVideo | HasAudio,
-            /// external audio-only file
-            AudioExternal = HasAudio,
-        };
-        /// Media type.
-        Type type = InvalidAnnotation;
-
-        /// Play modes of media.
-        enum Mode
-        {
-            /// Invlid mode
-            InvalidMode = -1,
-            /// Play media only once
-            Once = 0,
-            /// Play video and show controll bar. Currently ignored.
-            Open,
-            /// Play continuously forward and backward. Currently not implemented.
-            Palindrome,
-            /// Play repeatedly (infinite loop).
-            Repeat,
-        }
-        /// Play mode
-        mode = Once;
-
-        /// Audio volume of media.
-        float volume = 1.;
-        /// Position of media on slide.
-        QRectF rect;
-        /// Trivial constructor.
-        MediaAnnotation() : file(), type(InvalidAnnotation), mode(InvalidMode), rect() {}
-        /// Constructor for full initialization.
-        MediaAnnotation(const QUrl &url, const bool hasvideo, const QRectF &rect) :
-            file(url), type(hasvideo ? VideoExternal : AudioExternal), mode(Once), rect(rect) {}
-        /// Constructor without file.
-        MediaAnnotation(const Type type, const QRectF &rect) :
-            file(QUrl()), type(type), mode(Once), rect(rect) {}
-        /// Trivial destructor.
-        virtual ~MediaAnnotation() {}
-        /// Comparison by media type, file, mode, and rect.
-        virtual bool operator==(const MediaAnnotation &other) const noexcept
-        {return     type == other.type
-                    && file == other.file
-                    && mode == other.mode
-                    && rect == other.rect;}
-    };
-
-    /// Embedded media file.
-    /// Quite useless because currently these objects cannot be played.
-    /// @todo implement embedded media files.
-    struct EmbeddedMedia : MediaAnnotation {
-        /// Data stream.
-        QByteArray data;
-        /// Audio sampling rate
-        int sampling_rate;
-        /// Audio channels
-        int channels = 1;
-        /// Bit per sample
-        int bit_per_sample = 8;
-
-        /// Audio encoding modes as defined by PDF standard
-        enum Encoding {
-            /// Raw unsigned integers between 0 and 2^8-1
-            SoundEncodingRaw,
-            /// Twos-complement values
-            SoundEncodingSigned,
-            /// mu-law encoded samples
-            SoundEncodingMuLaw,
-            /// A-law-encoded samples
-            SoundEncodingALaw,
-        }
-        /// Audio encoding
-        encoding = SoundEncodingRaw;
-
-        /// Stream compression modes
-        enum Compression {
-            /// no compression
-            Uncompressed,
-        }
-        /// Stream compression
-        compression = Uncompressed;
-
-        /// Constructor
-        EmbeddedMedia(const QByteArray &data, int sampling_rate, const QRectF &rect) :
-            MediaAnnotation(AudioEmbedded, rect), data(data), sampling_rate(sampling_rate) {}
-        /// Trivial destructor
-        virtual ~EmbeddedMedia() {}
-        /// Comparison by all properties, including data.
-        virtual bool operator==(const MediaAnnotation &other) const noexcept override
-        {return     type == other.type
-                    && file == other.file
-                    && data.data() == static_cast<const EmbeddedMedia&>(other).data.data()
-                    && mode == other.mode
-                    && rect == other.rect;}
-    };
-
-    /// Unified type of PDF links for all PDF engines.
-    struct PdfLink {
-        /// Types of links in PDF.
-        /// These are all negative, because positive values are interpreted as page
-        /// numbers for internal navigation links.
-        enum LinkType
-        {
-            /// Link of unknown type.
-            NoLink = 0,
-            /// Link inside the PDF document.
-            PageLink,
-            /// Link contains an action.
-            ActionLink,
-            /// Link to target in external PDF.
-            ExternalPDF,
-            /// Link to a remote destination.
-            RemoteUrl,
-            /// Link to a local file.
-            LocalUrl,
-            /// Link to movie annotation
-            MovieLink,
-            /// Link to sound annotation
-            SoundLink,
-        };
-
-        /// Type of this link object
-        LinkType type = NoLink;
-        /// Link area on slide
-        QRectF area;
-    };
-    struct ExternalLink : PdfLink {
-        QUrl url;
-    };
-    struct GotoLink : PdfLink {
-        int page;
-    };
-    struct ActionLink : PdfLink {
-        Action action;
-    };
-    struct MediaLink : PdfLink {
-        MediaAnnotation annotation;
-    };
-
-    /// PDF outline (table of contents, TOC) entry for storing a tree in a list.
-    struct PdfOutlineEntry {
-        /// Title of the entry.
-        QString title;
-        /// Page index in the PDF (start counting from 0, destination resolved by the PDF engine)
-        int page;
-        /// Index of next outline on the same level in some data structure.
-        int next;
-    };
-
-    /// Unified type of slide transition for all PDF engines.
-    struct SlideTransition {
-        /// Slide tansition types as define by the PDF standard.
-        /// The numbers used here are the same as in fz_transition::type and
-        /// in Poppler::PageTransition::Type.
-        enum Type
-        {
-            /// Invalid slide transition.
-            Invalid = -1,
-            /// No transition.
-            Replace = 0,
-            /// 2 lines sweep accross the screen and reveal the next page.
-            Split = 1,
-            /// Multiple lines seep accross the screen and reveal the next page.
-            Blinds = 2,
-            /// A box seeps inward or outward and reveals the next page.
-            Box = 3,
-            /// Single line seeping accross the screen to reveal the next page.
-            Wipe = 4,
-            /// Current page becomes transparent to reveal next page.
-            Dissolve = 5,
-            /// The screen is divided in small squares which change to the next page in pseudo-random order.
-            Glitter = 6,
-            /// Changes fly in or out.
-            Fly = 7,
-            /// Current page is pushed away by next page.
-            Push = 8,
-            /// Next page flies in and covers current page.
-            Cover = 9,
-            /// Current page flies out to uncover next page.
-            Uncover = 10,
-            /// Current slide dissolves, background color becomes visible, and next slide appears.
-            Fade = 11,
-            /// Fly animation in which a rectangle including all changes flies in.
-            /// Currently not implemented and treated like Fly.
-            FlyRectangle = 12,
-        };
-
-        /// Direction controlled by 2 bits for outwards and vertical.
-        enum Properties
-        {
-            /// direction flag in to out.
-            Outwards = 1 << 0,
-            /// orientation flag vertical.
-            Vertical = 1 << 1,
-        };
-
-        /// Type of the slide transition.
-        qint8 type = Replace;
-
-        /// Direction of the transition.
-        /// first bit: inward (0) or outward (1) direction.
-        /// second bit: horizontal (0) or vertical (1) direction.
-        qint8 properties = 0;
-
-        /// Angle in degrees of the direction of the direction.
-        qint16 angle = 0;
-
-        /// Transition duration in s.
-        float duration = 0.;
-
-        /// Only relevant for Fly and FlyRectangle, in [0,1].
-        /// Starting point for "flying" relative to the usual "fly" path.
-        float scale = 1.;
-
-        /// Create time-reverse of slide transition (in place)
-        void invert() noexcept
-        {properties ^= Outwards; angle = (angle + 180) % 360;}
-    };
-
 protected:
     /// Modification time of the PDF file.
     QDateTime lastModified;

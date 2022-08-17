@@ -7,6 +7,7 @@
 #include "src/rendering/externalrenderer.h"
 #include "src/rendering/pdfdocument.h"
 #include "src/rendering/pngpixmap.h"
+#include "src/enumerates.h"
 #include "src/log.h"
 
 ExternalRenderer::ExternalRenderer(const QString& command, const QStringList &arguments, const PdfDocument * const doc, const PagePart part) :
@@ -102,7 +103,8 @@ bool ExternalRenderer::isValid() const
     // Is a command defined?
     // Does it take arguments? Do these arguments contain %page?
     debug_msg(DebugRendering, renderingCommand << renderingArguments);
+    static const QRegularExpression regex(".*%0?page.*");
     return  !renderingCommand.isEmpty()
             && !renderingArguments.isEmpty()
-            && renderingArguments.indexOf(QRegularExpression(".*%0?page.*")) != -1;
+            && renderingArguments.indexOf(regex) != -1;
 }

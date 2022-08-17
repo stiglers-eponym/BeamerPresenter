@@ -535,7 +535,7 @@ void MuPdfDocument::prepareRendering(fz_context **context, fz_rect *bbox, fz_dis
     }
 }
 
-const PdfDocument::SlideTransition MuPdfDocument::transition(const int page) const
+const SlideTransition MuPdfDocument::transition(const int page) const
 {
     SlideTransition trans;
     if (!pages.value(page) || !ctx)
@@ -582,7 +582,7 @@ const PdfDocument::SlideTransition MuPdfDocument::transition(const int page) con
     return trans;
 }
 
-const PdfDocument::PdfLink *MuPdfDocument::linkAt(const int page, const QPointF &position) const
+const PdfLink *MuPdfDocument::linkAt(const int page, const QPointF &position) const
 {
     if (!pages.value(page) || !ctx || !doc)
         return NULL;
@@ -636,7 +636,7 @@ const PdfDocument::PdfLink *MuPdfDocument::linkAt(const int page, const QPointF 
     return result;
 }
 
-QList<PdfDocument::MediaAnnotation> *MuPdfDocument::annotations(const int page) const
+QList<MediaAnnotation> *MuPdfDocument::annotations(const int page) const
 {
     if (!pages.value(page) || !ctx)
         return NULL;

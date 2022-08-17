@@ -4,10 +4,11 @@
 #ifndef QTRENDERER_H
 #define QTRENDERER_H
 
-#include <QPixmap>
+#include <QtGlobal>
 #include "src/config.h"
 #include "src/rendering/abstractrenderer.h"
 
+class QPixmap;
 class PngPixmap;
 class PdfDocument;
 class QtDocument;

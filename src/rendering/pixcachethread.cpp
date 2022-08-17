@@ -2,23 +2,23 @@
 // SPDX-License-Identifier: GPL-3.0-or-later OR AGPL-3.0-or-later
 
 #include "src/config.h"
-#include "src/log.h"
-#include "src/rendering/pixcachethread.h"
+#ifdef USE_MUPDF
+#include "src/rendering/mupdfdocument.h"
+#include "src/rendering/mupdfrenderer.h"
+#endif
 #ifdef USE_QTPDF
-#include "src/rendering/qtrenderer.h"
 #include "src/rendering/qtdocument.h"
+#include "src/rendering/qtrenderer.h"
 #endif
 #ifdef USE_POPPLER
-#include "src/rendering/popplerrenderer.h"
 #include "src/rendering/popplerdocument.h"
-#endif
-#ifdef USE_MUPDF
-#include "src/rendering/mupdfrenderer.h"
-#include "src/rendering/mupdfdocument.h"
+#include "src/rendering/popplerrenderer.h"
 #endif
 #ifdef USE_EXTERNAL_RENDERER
 #include "src/rendering/externalrenderer.h"
 #endif
+#include "src/log.h"
+#include "src/rendering/pixcachethread.h"
 #include "src/rendering/pngpixmap.h"
 #include "src/preferences.h"
 

@@ -116,7 +116,7 @@ public:
     void clearHistory(const int page, const int remaining_entries) const;
 
     /// Slide transition when reaching the given page number.
-    const PdfDocument::SlideTransition transition(const int page) const
+    const SlideTransition transition(const int page) const
     {return document->transition(page);}
 
     /// Number of pages in the document.

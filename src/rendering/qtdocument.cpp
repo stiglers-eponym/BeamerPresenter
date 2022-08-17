@@ -5,9 +5,14 @@
 #include <QVector>
 #include <QFileInfo>
 #include <QInputDialog>
+#include <QLineEdit>
 #include <QBuffer>
 #include <QImage>
+#include <QPixmap>
+#include <QSizeF>
 #include <QByteArray>
+#include <QPdfDocument>
+
 #include "src/log.h"
 #include "src/preferences.h"
 #include "src/rendering/qtdocument.h"
@@ -22,6 +27,11 @@ QtDocument::QtDocument(const QString &filename) :
     if (!loadDocument())
         qFatal("Loading document failed");
     debug_msg(DebugRendering, "Loaded PDF document in Qt");
+}
+
+QtDocument::~QtDocument() noexcept
+{
+    delete doc;
 }
 
 bool QtDocument::loadDocument()
@@ -126,13 +136,13 @@ const PngPixmap * QtDocument::getPng(const int page, const qreal resolution, con
     if (resolution <= 0 || page < 0 || page >= doc->pageCount())
     {
         qWarning() << "Tried to render invalid page or invalid resolution" << page;
-        return NULL;
+        return nullptr;
     }
     QImage image = doc->render(page, (resolution*doc->pageSize(page)).toSize(), render_options);
     if (image.isNull())
     {
         qWarning() << "Rendering page to image failed";
-        return NULL;
+        return nullptr;
     }
     switch (page_part)
     {
@@ -152,9 +162,24 @@ const PngPixmap * QtDocument::getPng(const int page, const qreal resolution, con
     {
         qWarning() << "Saving page as PNG image failed";
         delete bytes;
-        return NULL;
+        return nullptr;
     }
     return new PngPixmap(bytes, page, resolution);
+}
+
+const QSizeF QtDocument::pageSize(const int page) const
+{
+    return doc->pageSize(page);
+}
+
+int QtDocument::numberOfPages() const
+{
+    return doc->pageCount();
+}
+
+bool QtDocument::isValid() const
+{
+    return doc->status() == QPdfDocument::Status::Ready;
 }
 
 bool QtDocument::flexiblePageSizes() noexcept

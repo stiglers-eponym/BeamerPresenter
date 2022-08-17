@@ -6,6 +6,7 @@
 
 #include <memory>
 #include <QString>
+#include <QPointF>
 #include <QMap>
 #include <QList>
 #include <QtConfig>

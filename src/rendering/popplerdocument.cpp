@@ -2,6 +2,8 @@
 // SPDX-License-Identifier: GPL-3.0-or-later OR AGPL-3.0-or-later
 
 #include <QtConfig>
+#include <QObject>
+#include <QSizeF>
 #include <QVector>
 #include <QBuffer>
 #include <QLineEdit>
@@ -9,6 +11,7 @@
 #include <QFileInfo>
 #include <QInputDialog>
 #include <QImage>
+#include <QPixmap>
 #include <QRectF>
 #include <QUrl>
 #include "src/log.h"
@@ -16,26 +19,26 @@
 #include "src/rendering/popplerdocument.h"
 #include "src/rendering/pngpixmap.h"
 
-PdfDocument::EmbeddedMedia embeddedSound(const Poppler::SoundObject *sound, const QRectF &rect)
+EmbeddedMedia embeddedSound(const Poppler::SoundObject *sound, const QRectF &rect)
 {
     if (sound->soundType() != Poppler::SoundObject::Embedded)
-        return PdfDocument::EmbeddedMedia(QByteArray(), 0, rect);
-    PdfDocument::EmbeddedMedia media(sound->data(), sound->samplingRate(), rect);
+        return EmbeddedMedia(QByteArray(), 0, rect);
+    EmbeddedMedia media(sound->data(), sound->samplingRate(), rect);
     media.channels = sound->channels();
     media.bit_per_sample = sound->bitsPerSample();
     switch (sound->soundEncoding())
     {
     case Poppler::SoundObject::Raw:
-        media.encoding = PdfDocument::EmbeddedMedia::SoundEncodingRaw;
+        media.encoding = EmbeddedMedia::SoundEncodingRaw;
         break;
     case Poppler::SoundObject::ALaw:
-        media.encoding = PdfDocument::EmbeddedMedia::SoundEncodingALaw;
+        media.encoding = EmbeddedMedia::SoundEncodingALaw;
         break;
     case Poppler::SoundObject::muLaw:
-        media.encoding = PdfDocument::EmbeddedMedia::SoundEncodingMuLaw;
+        media.encoding = EmbeddedMedia::SoundEncodingMuLaw;
         break;
     case Poppler::SoundObject::Signed:
-        media.encoding = PdfDocument::EmbeddedMedia::SoundEncodingSigned;
+        media.encoding = EmbeddedMedia::SoundEncodingSigned;
         break;
     }
     return media;
@@ -261,7 +264,7 @@ void PopplerDocument::loadPageLabels()
         pageLabels[0] = "";
 }
 
-const PdfDocument::PdfLink *PopplerDocument::linkAt(const int page, const QPointF &position) const
+const PdfLink *PopplerDocument::linkAt(const int page, const QPointF &position) const
 {
     const std::unique_ptr<Poppler::Page> docpage(doc->page(page));
     if (!docpage)
@@ -389,7 +392,7 @@ const PdfDocument::PdfLink *PopplerDocument::linkAt(const int page, const QPoint
                     {
                         EmbeddedMedia media = embeddedSound(sound, rect);
                         media.volume = soundlink->volume();
-                        media.mode = soundlink->repeat() ? PdfDocument::MediaAnnotation::Once : PdfDocument::MediaAnnotation::Repeat;
+                        media.mode = soundlink->repeat() ? MediaAnnotation::Once : MediaAnnotation::Repeat;
                         return new MediaLink({PdfLink::SoundLink, rect, media});
                     }
                     break;
@@ -424,7 +427,7 @@ const PdfDocument::PdfLink *PopplerDocument::linkAt(const int page, const QPoint
     return NULL;
 }
 
-QList<PdfDocument::MediaAnnotation> *PopplerDocument::annotations(const int page) const
+QList<MediaAnnotation> *PopplerDocument::annotations(const int page) const
 {
     const std::unique_ptr<Poppler::Page> docpage(doc->page(page));
     if (!docpage)
@@ -529,7 +532,7 @@ QList<PdfDocument::MediaAnnotation> *PopplerDocument::annotations(const int page
                 {
                     EmbeddedMedia media = embeddedSound(link->sound(), area);
                     media.volume = link->volume();
-                    media.mode = link->repeat() ? PdfDocument::MediaAnnotation::Once : PdfDocument::MediaAnnotation::Repeat;
+                    media.mode = link->repeat() ? MediaAnnotation::Once : MediaAnnotation::Repeat;
                     list->append(media);
                 }
                 break;
@@ -553,7 +556,7 @@ QList<PdfDocument::MediaAnnotation> *PopplerDocument::annotations(const int page
     return list;
 }
 
-const PdfDocument::SlideTransition PopplerDocument::transition(const int page) const
+const SlideTransition PopplerDocument::transition(const int page) const
 {
     const std::unique_ptr<Poppler::Page> docpage(doc->page(page));
     if (!docpage)

@@ -4,11 +4,12 @@
 #ifndef POPPLERRENDERER_H
 #define POPPLERRENDERER_H
 
-#include <QPixmap>
+#include <QtGlobal>
 #include "src/config.h"
 #include "src/enumerates.h"
 #include "src/rendering/abstractrenderer.h"
 
+class QPixmap;
 class PngPixmap;
 class PdfDocument;
 class PopplerDocument;

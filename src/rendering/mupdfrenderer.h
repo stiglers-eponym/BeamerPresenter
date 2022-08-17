@@ -4,8 +4,9 @@
 #ifndef MUPDFRENDERER_H
 #define MUPDFRENDERER_H
 
-#include <QPixmap>
+#include <QtGlobal>
 #include "src/config.h"
+// old versions of MuPDF don't have 'extern "C"' in the header files.
 extern "C"
 {
 #include <mupdf/fitz.h>
@@ -13,6 +14,7 @@ extern "C"
 #include "src/enumerates.h"
 #include "src/rendering/abstractrenderer.h"
 
+class QPixmap;
 class PngPixmap;
 class PdfDocument;
 class MuPdfDocument;

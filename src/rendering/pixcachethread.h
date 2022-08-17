@@ -4,7 +4,6 @@
 #ifndef PIXCACHETHREAD_H
 #define PIXCACHETHREAD_H
 
-#include <QObject>
 #include <QThread>
 #include "src/config.h"
 #include "src/enumerates.h"
@@ -22,7 +21,7 @@ class PixCacheThread : public QThread
 
 private:
     /// Renderer doing the main work.
-    AbstractRenderer *renderer {NULL};
+    AbstractRenderer *renderer {nullptr};
 
     /// resolution in pixels per point (dpi/72).
     qreal resolution;
@@ -32,7 +31,7 @@ private:
 
 public:
     /// Constructor: initialize thread and renderer.
-    PixCacheThread(const PdfDocument * const doc, const PagePart page_part = FullPage, QObject *parent = NULL);
+    PixCacheThread(const PdfDocument * const doc, const PagePart page_part = FullPage, QObject *parent = nullptr);
 
     /// Destructor: delete renderer.
     ~PixCacheThread();

@@ -3,6 +3,7 @@
 
 #include <QTimer>
 #include <QThread>
+#include <QPixmap>
 
 #include "src/config.h"
 #include "src/log.h"
@@ -513,4 +514,9 @@ void PixCache::requestPage(const int page, const qreal resolution, const bool ca
 
     // Start rendering next page.
     renderCacheTimer->start();
+}
+
+void PixCache::getPixmap(const int page, QPixmap *target, qreal resolution)
+{
+    *target = pixmap(page, resolution);
 }

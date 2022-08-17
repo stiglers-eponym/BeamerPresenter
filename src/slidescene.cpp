@@ -675,7 +675,7 @@ void SlideScene::navigationEvent(const int newpage, SlideScene *newscene)
     pageItem->trackNew();
     if ((!newscene || newscene == this) && page != newpage && (slide_flags & ShowTransitions))
     {
-        PdfDocument::SlideTransition transition = master->transition(newpage > page ? newpage : page);
+        SlideTransition transition = master->transition(newpage > page ? newpage : page);
         if (transition.type > 0)
         {
             if (newpage < page)
@@ -714,12 +714,12 @@ void SlideScene::loadMedia(const int page)
 {
     if (!(slide_flags & LoadMedia))
         return;
-    const QList<PdfDocument::MediaAnnotation> *list = master->getDocument()->annotations(page);
+    const QList<MediaAnnotation> *list = master->getDocument()->annotations(page);
     if (!list)
         return;
     for (const auto &annotation : *list)
     {
-        if (annotation.type != PdfDocument::MediaAnnotation::InvalidAnnotation)
+        if (annotation.type != MediaAnnotation::InvalidAnnotation)
         {
             debug_msg(DebugMedia, "loading media" << annotation.file << annotation.rect);
             slide::MediaItem &item = getMediaItem(annotation, page);
@@ -775,16 +775,16 @@ void SlideScene::postRendering()
 
 void SlideScene::cacheMedia(const int page)
 {
-    const QList<PdfDocument::MediaAnnotation> *list = master->getDocument()->annotations(page);
+    const QList<MediaAnnotation> *list = master->getDocument()->annotations(page);
     if (!list)
         return;
     for (const auto &annotation : *list)
-        if (annotation.type != PdfDocument::MediaAnnotation::InvalidAnnotation)
+        if (annotation.type != MediaAnnotation::InvalidAnnotation)
             getMediaItem(annotation, page);
     delete list;
 }
 
-slide::MediaItem &SlideScene::getMediaItem(const PdfDocument::MediaAnnotation &annotation, const int page)
+slide::MediaItem &SlideScene::getMediaItem(const MediaAnnotation &annotation, const int page)
 {
     for (auto &mediaitem : mediaItems)
     {
@@ -799,7 +799,7 @@ slide::MediaItem &SlideScene::getMediaItem(const PdfDocument::MediaAnnotation &a
     MediaPlayer *player = new MediaPlayer(this);
 #if (QT_VERSION_MAJOR >= 6)
     QAudioOutput *audio_out = NULL;
-    if (annotation.type & PdfDocument::MediaAnnotation::HasAudio)
+    if (annotation.type & MediaAnnotation::HasAudio)
     {
         audio_out = new QAudioOutput(this);
         if ((slide_flags & MuteSlide) || (preferences()->global_flags & Preferences::MuteApplication) || annotation.volume <= 0.)
@@ -810,7 +810,7 @@ slide::MediaItem &SlideScene::getMediaItem(const PdfDocument::MediaAnnotation &a
     }
     player->setAudioOutput(audio_out);
 #else
-    if (annotation.type & PdfDocument::MediaAnnotation::HasAudio)
+    if (annotation.type & MediaAnnotation::HasAudio)
     {
         if ((slide_flags & MuteSlide) || (preferences()->global_flags & Preferences::MuteApplication) || annotation.volume <= 0.)
             player->setMuted(true);
@@ -820,7 +820,7 @@ slide::MediaItem &SlideScene::getMediaItem(const PdfDocument::MediaAnnotation &a
     }
 #endif
     QGraphicsVideoItem *item = NULL;
-    if (annotation.type & PdfDocument::MediaAnnotation::HasVideo)
+    if (annotation.type & MediaAnnotation::HasVideo)
     {
         item = new QGraphicsVideoItem;
         player->setVideoOutput(item);
@@ -832,7 +832,7 @@ slide::MediaItem &SlideScene::getMediaItem(const PdfDocument::MediaAnnotation &a
         item->show();
 #endif
     }
-    if ((annotation.type & PdfDocument::MediaAnnotation::Embedded) == 0)
+    if ((annotation.type & MediaAnnotation::Embedded) == 0)
 #if (QT_VERSION_MAJOR >= 6)
         player->setSource(annotation.file);
 #else
@@ -846,20 +846,20 @@ slide::MediaItem &SlideScene::getMediaItem(const PdfDocument::MediaAnnotation &a
     {
         warn_msg("Embedded media are currently not supported.");
         //QBuffer *buffer = new QBuffer(player);
-        //buffer->setData(static_cast<const PdfDocument::EmbeddedMedia&>(annotation).data);
+        //buffer->setData(static_cast<const EmbeddedMedia&>(annotation).data);
         //buffer->open(QBuffer::ReadOnly);
         //player->setSourceDevice(buffer);
     }
     switch (annotation.mode)
     {
-    case PdfDocument::MediaAnnotation::Once:
-    case PdfDocument::MediaAnnotation::Open:
+    case MediaAnnotation::Once:
+    case MediaAnnotation::Open:
         break;
-    case PdfDocument::MediaAnnotation::Palindrome:
+    case MediaAnnotation::Palindrome:
         warn_msg("Palindrome video: not implemented (yet)");
         // TODO
         [[clang::fallthrough]];
-    case PdfDocument::MediaAnnotation::Repeat:
+    case MediaAnnotation::Repeat:
     default:
 #if (QT_VERSION_MAJOR >= 6)
         connect(player, &MediaPlayer::mediaStatusChanged, player, &MediaPlayer::repeatIfFinished);
@@ -877,16 +877,16 @@ slide::MediaItem &SlideScene::getMediaItem(const PdfDocument::MediaAnnotation &a
     return mediaItems.last();
 }
 
-void SlideScene::startTransition(const int newpage, const PdfDocument::SlideTransition &transition)
+void SlideScene::startTransition(const int newpage, const SlideTransition &transition)
 {
     pageTransitionItem = new PixmapGraphicsItem(sceneRect());
     for (const auto view : static_cast<const QList<QGraphicsView*>>(views()))
         static_cast<SlideView*>(view)->prepareTransition(pageTransitionItem);
     page = newpage;
     PixmapGraphicsItem *oldPage = pageTransitionItem;
-    if ((transition.type == PdfDocument::SlideTransition::Fly || transition.type == PdfDocument::SlideTransition::FlyRectangle) && !views().isEmpty())
+    if ((transition.type == SlideTransition::Fly || transition.type == SlideTransition::FlyRectangle) && !views().isEmpty())
     {
-        if (!(transition.properties & PdfDocument::SlideTransition::Outwards))
+        if (!(transition.properties & SlideTransition::Outwards))
         {
             pageTransitionItem = new PixmapGraphicsItem(sceneRect());
             connect(pageTransitionItem, &QObject::destroyed, oldPage, &PixmapGraphicsItem::deleteLater);
@@ -917,9 +917,9 @@ void SlideScene::startTransition(const int newpage, const PdfDocument::SlideTran
     animation = NULL;
     switch (transition.type)
     {
-    case PdfDocument::SlideTransition::Split:
+    case SlideTransition::Split:
     {
-        const bool outwards = transition.properties & PdfDocument::SlideTransition::Outwards;
+        const bool outwards = transition.properties & SlideTransition::Outwards;
         pageTransitionItem->setMaskType(outwards ? PixmapGraphicsItem::NegativeClipping : PixmapGraphicsItem::PositiveClipping);
         QPropertyAnimation *propanim = new QPropertyAnimation(pageTransitionItem, "mask");
         propanim->setDuration(1000*transition.duration);
@@ -928,7 +928,7 @@ void SlideScene::startTransition(const int newpage, const PdfDocument::SlideTran
             propanim->setEndValue(rect);
         else
             propanim->setStartValue(rect);
-        if (transition.properties & PdfDocument::SlideTransition::Vertical)
+        if (transition.properties & SlideTransition::Vertical)
         {
             rect.moveTop(rect.top() + rect.height()/2);
             rect.setHeight(0.);
@@ -948,9 +948,9 @@ void SlideScene::startTransition(const int newpage, const PdfDocument::SlideTran
         animation = propanim;
         break;
     }
-    case PdfDocument::SlideTransition::Blinds:
+    case SlideTransition::Blinds:
     {
-        const bool vertical = transition.properties & PdfDocument::SlideTransition::Vertical;
+        const bool vertical = transition.properties & SlideTransition::Vertical;
         pageTransitionItem->setMaskType(vertical ? PixmapGraphicsItem::VerticalBlinds : PixmapGraphicsItem::HorizontalBlinds);
         QPropertyAnimation *propanim = new QPropertyAnimation(pageTransitionItem, "mask");
         propanim->setDuration(1000*transition.duration);
@@ -968,9 +968,9 @@ void SlideScene::startTransition(const int newpage, const PdfDocument::SlideTran
         animation = propanim;
         break;
     }
-    case PdfDocument::SlideTransition::Box:
+    case SlideTransition::Box:
     {
-        const bool outwards = transition.properties & PdfDocument::SlideTransition::Outwards;
+        const bool outwards = transition.properties & SlideTransition::Outwards;
         pageTransitionItem->setMaskType(outwards ? PixmapGraphicsItem::NegativeClipping : PixmapGraphicsItem::PositiveClipping);
         QPropertyAnimation *propanim = new QPropertyAnimation(pageTransitionItem, "mask");
         propanim->setDuration(1000*transition.duration);
@@ -991,7 +991,7 @@ void SlideScene::startTransition(const int newpage, const PdfDocument::SlideTran
         animation = propanim;
         break;
     }
-    case PdfDocument::SlideTransition::Wipe:
+    case SlideTransition::Wipe:
     {
         QPropertyAnimation *propanim = new QPropertyAnimation(pageTransitionItem, "mask");
         pageTransitionItem->setMaskType(PixmapGraphicsItem::PositiveClipping);
@@ -1018,7 +1018,7 @@ void SlideScene::startTransition(const int newpage, const PdfDocument::SlideTran
         animation = propanim;
         break;
     }
-    case PdfDocument::SlideTransition::Dissolve:
+    case SlideTransition::Dissolve:
     {
         pageTransitionItem->setOpacity(0.);
         QPropertyAnimation *propanim = new QPropertyAnimation(pageTransitionItem, "opacity");
@@ -1028,7 +1028,7 @@ void SlideScene::startTransition(const int newpage, const PdfDocument::SlideTran
         animation = propanim;
         break;
     }
-    case PdfDocument::SlideTransition::Glitter:
+    case SlideTransition::Glitter:
     {
         pageTransitionItem->setMaskType(PixmapGraphicsItem::Glitter);
         QPropertyAnimation *propanim = new QPropertyAnimation(pageTransitionItem, "progress");
@@ -1039,10 +1039,10 @@ void SlideScene::startTransition(const int newpage, const PdfDocument::SlideTran
         animation = propanim;
         break;
     }
-    case PdfDocument::SlideTransition::Fly:
-    case PdfDocument::SlideTransition::FlyRectangle:
+    case SlideTransition::Fly:
+    case SlideTransition::FlyRectangle:
     {
-        const bool outwards = transition.properties & PdfDocument::SlideTransition::Outwards;
+        const bool outwards = transition.properties & SlideTransition::Outwards;
         for (const auto &view : static_cast<const QList<QGraphicsView*>>(views()))
         {
             SlideView *slideview = static_cast<SlideView*>(view);
@@ -1081,7 +1081,7 @@ void SlideScene::startTransition(const int newpage, const PdfDocument::SlideTran
         propanim->setEasingCurve(outwards ? QEasingCurve::InSine : QEasingCurve::OutSine);
         break;
     }
-    case PdfDocument::SlideTransition::Push:
+    case SlideTransition::Push:
     {
         /* TODO: For push transitions the new page is not ready when
          * the animation starts. Instead of the new page, first the old
@@ -1114,7 +1114,7 @@ void SlideScene::startTransition(const int newpage, const PdfDocument::SlideTran
         animation = propanim;
         break;
     }
-    case PdfDocument::SlideTransition::Cover:
+    case SlideTransition::Cover:
     {
         QParallelAnimationGroup *groupanim = new QParallelAnimationGroup();
         QPropertyAnimation *sceneanim = new QPropertyAnimation(this, "sceneRect", groupanim);
@@ -1157,7 +1157,7 @@ void SlideScene::startTransition(const int newpage, const PdfDocument::SlideTran
         animation = groupanim;
         break;
     }
-    case PdfDocument::SlideTransition::Uncover:
+    case SlideTransition::Uncover:
     {
         QPropertyAnimation *propanim = new QPropertyAnimation();
         propanim->setDuration(1000*transition.duration);
@@ -1189,7 +1189,7 @@ void SlideScene::startTransition(const int newpage, const PdfDocument::SlideTran
         animation = propanim;
         break;
     }
-    case PdfDocument::SlideTransition::Fade:
+    case SlideTransition::Fade:
     {
         pageTransitionItem->setOpacity(0.);
         QParallelAnimationGroup *groupanim = new QParallelAnimationGroup();
@@ -1423,27 +1423,27 @@ void SlideScene::noToolClicked(const QPointF &pos, const QPointF &startpos)
             break;
         }
     }
-    const PdfDocument::PdfLink *link = master->getDocument()->linkAt(page, pos);
+    const PdfLink *link = master->getDocument()->linkAt(page, pos);
     if (link && (startpos.isNull() || link->area.contains(startpos)))
     {
         switch (link->type)
         {
-        case PdfDocument::PdfLink::PageLink:
-            emit navigationSignal(static_cast<const PdfDocument::GotoLink*>(link)->page);
+        case PdfLink::PageLink:
+            emit navigationSignal(static_cast<const GotoLink*>(link)->page);
             break;
-        case PdfDocument::PdfLink::ActionLink:
-            emit sendAction(static_cast<const PdfDocument::ActionLink*>(link)->action);
+        case PdfLink::ActionLink:
+            emit sendAction(static_cast<const ActionLink*>(link)->action);
             break;
-        case PdfDocument::PdfLink::RemoteUrl:
-        case PdfDocument::PdfLink::LocalUrl:
-        case PdfDocument::PdfLink::ExternalPDF:
-            QDesktopServices::openUrl(static_cast<const PdfDocument::ExternalLink*>(link)->url);
+        case PdfLink::RemoteUrl:
+        case PdfLink::LocalUrl:
+        case PdfLink::ExternalPDF:
+            QDesktopServices::openUrl(static_cast<const ExternalLink*>(link)->url);
             break;
-        case PdfDocument::PdfLink::SoundLink:
-        case PdfDocument::PdfLink::MovieLink:
+        case PdfLink::SoundLink:
+        case PdfLink::MovieLink:
         {
             // This is untested!
-            slide::MediaItem &item = getMediaItem(static_cast<const PdfDocument::MediaLink*>(link)->annotation, page);
+            slide::MediaItem &item = getMediaItem(static_cast<const MediaLink*>(link)->annotation, page);
             if (item.item)
             {
                 item.item->setSize(item.annotation.rect.size());
@@ -1455,7 +1455,7 @@ void SlideScene::noToolClicked(const QPointF &pos, const QPointF &startpos)
                 item.player->play();
             break;
         }
-        case PdfDocument::PdfLink::NoLink:
+        case PdfLink::NoLink:
             break;
         }
     }

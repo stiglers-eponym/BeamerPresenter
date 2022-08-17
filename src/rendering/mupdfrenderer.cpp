@@ -2,8 +2,9 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 #include <QByteArray>
-#include "src/rendering/mupdfrenderer.h"
+#include <QPixmap>
 #include "src/rendering/mupdfdocument.h"
+#include "src/rendering/mupdfrenderer.h"
 #include "src/rendering/pngpixmap.h"
 #include "src/log.h"
 

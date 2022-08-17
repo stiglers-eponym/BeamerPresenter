@@ -11,11 +11,13 @@
 #include <QMap>
 #include <QVector>
 #include "src/config.h"
+// old versions of MuPDF don't have 'extern "C"' in the header files.
 extern "C"
 {
 #include <mupdf/fitz.h>
 #include <mupdf/pdf.h>
 }
+#include "src/enumerates.h"
 #include "src/rendering/pdfdocument.h"
 
 class QMutex;
