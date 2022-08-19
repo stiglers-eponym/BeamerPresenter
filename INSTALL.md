@@ -21,7 +21,7 @@ flatpak install beamerpresenter.flatpak
 The build process for these packages is explained [here](https://github.com/stiglers-eponym/BeamerPresenter/tree/main/packaging).
 Verify the signature of the checksums in `SHA256SUMS`:
 ```sh
-gpg --keyserver https://keyserver.ubuntu.com --recv-keys DD11316A0D8E585F
+gpg --keyserver hkps://keyserver.ubuntu.com --recv-keys DD11316A0D8E585F
 gpg --verify SHA256SUMS.sig SHA256SUMS
 ```
 
