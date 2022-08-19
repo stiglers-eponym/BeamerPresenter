@@ -826,6 +826,54 @@ void MuPdfDocument::loadOutline()
 #endif
 }
 
+QPair<int,QRectF> MuPdfDocument::search(const QString &needle, int start_page, bool forward) const
+{
+    QPair<int,QRectF> result = {-1, QRectF()};
+    if (needle.isEmpty() || !doc)
+        return result;
+    if (start_page < 0)
+        start_page = 0;
+    else if (start_page >= number_of_pages)
+        start_page = number_of_pages - 1;
+    const QByteArray byte_needle = needle.toUtf8();
+    const char* raw_needle = byte_needle.data();
+    int hit;
+    int hit_mark;
+    fz_quad rect;
+    fz_var(hit);
+    fz_var(hit_mark);
+    fz_var(rect);
+    if (forward)
+        for (int page = start_page; page < number_of_pages; ++page)
+        {
+            fz_try(ctx)
+                hit = fz_search_page(ctx, (fz_page*const)(pages[page]), raw_needle, &hit_mark, &rect, 1);
+            fz_catch(ctx)
+                hit = 0;
+            if (hit)
+            {
+                result.first = page;
+                result.second = QRectF(QPointF(rect.ll.x, rect.ll.y), QPoint(rect.ur.x, rect.ur.y));
+                break;
+            }
+        }
+    else
+        for (int page = start_page; page >= 0; --page)
+        {
+            fz_try(ctx)
+                hit = fz_search_page(ctx, (fz_page*const)(pages[page]), raw_needle, &hit_mark, &rect, 1);
+            fz_catch(ctx)
+                hit = 0;
+            if (hit)
+            {
+                result.first = page;
+                result.second = QRectF(QPointF(rect.ll.x, rect.ll.y), QPoint(rect.ur.x, rect.ur.y));
+                break;
+            }
+        }
+    return result;
+}
+
 qreal MuPdfDocument::duration(const int page) const noexcept
 {
     if (!pages.value(page) || !ctx)

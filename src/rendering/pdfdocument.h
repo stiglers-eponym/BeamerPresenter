@@ -340,6 +340,10 @@ public:
     /// Load the PDF outline, fill PdfDocument::outline.
     virtual void loadOutline() {};
 
+    /// Search which pages contain text.
+    virtual QPair<int,QRectF> search(const QString &needle, int start_page = 0, bool forward = true) const
+    {return {-1,QRectF()};}
+
     /// get function for outline
     const QVector<PdfOutlineEntry> &getOutline() const noexcept
     {return outline;}

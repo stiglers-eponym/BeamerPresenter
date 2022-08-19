@@ -635,6 +635,32 @@ void PopplerDocument::loadOutline()
 #endif
 }
 
+QPair<int,QRectF> PopplerDocument::search(const QString &needle, int start_page, bool forward) const
+{
+    if (needle.isEmpty() || !doc)
+        return {-1, QRectF()};
+    if (start_page < 0)
+        start_page = 0;
+    else if (start_page >= doc->numPages())
+        start_page = doc->numPages() - 1;
+    QList<QRectF> results;
+    if (forward)
+        for (int page = start_page; page < doc->numPages(); ++page)
+        {
+            results = doc->page(page)->search(needle);
+            if (!results.isEmpty())
+                return {page,results.first()};
+        }
+    else
+        for (int page = start_page; page >= 0; --page)
+        {
+            results = doc->page(page)->search(needle);
+            if (!results.isEmpty())
+                return {page,results.first()};
+        }
+    return {-1, QRectF()};
+}
+
 qreal PopplerDocument::duration(const int page) const noexcept
 {
     const std::unique_ptr<Poppler::Page> docpage(doc->page(page));

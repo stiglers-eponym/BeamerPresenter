@@ -130,6 +130,9 @@ public:
     /// Load the PDF outline, fill PdfDocument::outline.
     void loadOutline() override;
 
+    /// Search which pages contain text.
+    QPair<int,QRectF> search(const QString &needle, int start_page, bool forward) const override;
+
     /// Link at given position (in point = inch/72)
     virtual const PdfLink *linkAt(const int page, const QPointF &position) const override;
 
