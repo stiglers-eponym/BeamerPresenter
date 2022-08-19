@@ -52,10 +52,10 @@ class Master : public QObject
     QMap<QKeySequence, QWidget*> shortcuts;
 
     /// Timer to tell slides that they should start caching videos for the next slide.
-    QTimer *cacheVideoTimer {NULL};
+    QTimer *cacheVideoTimer {nullptr};
 
     /// Timer for automatic slide changes.
-    QTimer *slideDurationTimer {NULL};
+    QTimer *slideDurationTimer {nullptr};
 
 public:
     /// Constructor: initializes times.

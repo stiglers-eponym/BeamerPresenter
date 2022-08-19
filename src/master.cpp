@@ -43,6 +43,7 @@
 #include "src/gui/tocwidget.h"
 #include "src/gui/thumbnailwidget.h"
 #include "src/gui/toolselectorwidget.h"
+#include "src/gui/searchwidget.h"
 #include "src/rendering/pixcache.h"
 #include "src/names.h"
 #include "src/preferences.h"
@@ -528,6 +529,12 @@ QWidget* Master::createWidget(QJsonObject &object, QWidget *parent)
     case SettingsType:
         widget = new SettingsWidget(parent);
         break;
+    case SearchType:
+    {
+        widget = new SearchWidget(parent);
+        connect(static_cast<SearchWidget*>(widget), &SearchWidget::foundPage, this, &Master::navigateToPage);
+        break;
+    }
     case ClockType:
     {
         widget = new ClockWidget(parent, object.value("touch input").toBool(true));

@@ -24,6 +24,7 @@ GuiWidget string_to_widget_type(const QString &string) noexcept
         {"notes", NotesType},
         {"tool selector", ToolSelectorType},
         {"settings", SettingsType},
+        {"search", SearchType},
         {"clock", ClockType},
         {"analog clock", AnalogClockType},
         {"timer", TimerType},

@@ -31,6 +31,7 @@ add_executable(beamerpresenter
         drawing/basicgraphicspath.h drawing/basicgraphicspath.cpp
         drawing/fullgraphicspath.h drawing/fullgraphicspath.cpp
         gui/actionbutton.h gui/actionbutton.cpp
+        gui/searchwidget.h gui/searchwidget.cpp
         gui/clockwidget.h gui/clockwidget.cpp
         gui/analogclockwidget.h gui/analogclockwidget.cpp
         gui/flexlayout.h gui/flexlayout.cpp

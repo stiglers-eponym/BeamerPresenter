@@ -16,7 +16,7 @@
 #include <QEventPoint>
 #endif
 #include "src/log.h"
-#include "analogclockwidget.h"
+#include "src/gui/analogclockwidget.h"
 
 AnalogClockWidget::AnalogClockWidget(QWidget *parent)
     : QWidget{parent}, timer(new QTimer(this))
