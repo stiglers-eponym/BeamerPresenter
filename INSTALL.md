@@ -4,7 +4,7 @@ You can choose the PDF engine (Poppler or MuPDF) and the major Qt version (5 or 
 
 The [releases](https://github.com/stiglers-eponym/BeamerPresenter/releases) come with packages for Arch/Manjaro, Ubuntu 20.04, Ubuntu 21.10 and flatpak.
 The simplest way to install BeamerPresenter (besides the AUR) is to directly install these packages.
-For example, the commands for installing BeamerPresenter with poppler as PDF engine and Qt 5 after downloading the corresponding file are:
+For example, the commands for installing BeamerPresenter with Poppler as PDF engine and Qt 5 after downloading the corresponding file are:
 ```sh
 # Ubuntu 20.04:
 sudo apt install ./beamerpresenter-poppler-0.2.2-qt5-focal-x86_64.deb
@@ -40,7 +40,7 @@ When installing BeamerPresenter you need to choose a PDF engine from MuPDF, Popp
 Enabling multiple PDF engines at compile time is also possible with some limitations (see below).
 
 * Qt PDF only provides a small subset of the features available with Poppler and MuPDF. Missing features include links, page labels, document outline, slide transitions, animations, videos, and sounds.
-* Compiling with Qt PDF can be simpler if Qt PDF is available on you system, because you do not need any external libraries besides Qt. Qt PDF is only available in Qt >= 5.10 (for Qt 5) or Qt >= 6.3 (for Qt 6), but the way how it is included here is probably only compatible with Qt >= 5.14 or Qt >= 6.3. Even Qt pacakges with compatible versions do not necessarily include Qt PDF.
+* Compiling with Qt PDF can be simpler if Qt PDF is available on you system, because you do not need any external libraries besides Qt. Qt PDF is only available in Qt >= 5.10 (for Qt 5) or Qt >= 6.3 (for Qt 6), but the way how it is included here is probably only compatible with Qt >= 5.14 or Qt >= 6.3. Even Qt packages with compatible versions do not necessarily include Qt PDF.
 * MuPDF produces a much larger package size compared to Poppler: 37MB instead of 1.3MB in Arch Linux in default configuration
     * MuPDF is statically linked
     * MuPDF contains about 30MB of fonts that end up in the executable by default
@@ -61,7 +61,7 @@ Additionally you need either the Qt 5/6 bindings of Poppler or the MuPDF librari
 
 ### Dependencies in Ubuntu
 * `cmake` (only for building)
-    * cmake requires a compiler (e.g. `g++`) and a build system (e.g. unix makefiles or ninja)
+    * cmake requires a compiler (e.g. `g++`) and a build system (e.g. Unix makefiles or ninja)
 * `zlib1g-dev` (after the installation you can remove `zlib1g-dev` and keep only `zlib1g`)
 * `qtmultimedia5-dev` (after the installation you can remove `qtmultimedia5-dev` and keep only `libqt5multimedia5` and `libqt5multimediawidgets5`)
     * or when using Qt 6 in Ubuntu ≥22.04: `qt6-multimedia-dev` and keep `libqt6multimediawidgets6` after the installation

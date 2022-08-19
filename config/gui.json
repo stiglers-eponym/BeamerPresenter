@@ -43,6 +43,7 @@
             "touch input" : true,
             "small ticks" : false,
             "seconds" : false,
+            "aspect" : 1.5,
             "interval" : 3000
           },
           {

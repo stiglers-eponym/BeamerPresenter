@@ -140,6 +140,8 @@ void AnalogClockWidget::readConfig(const QJsonObject &config) noexcept
         setAttribute(Qt::WA_AcceptTouchEvents);
     if (config.contains("seconds"))
         show_seconds = config.value("seconds").toBool(false);
+    if (config.contains("aspect"))
+        aspect_ratio = std::max(std::min(config.value("aspect").toDouble(1.), 10.), 0.1);
     if (config.contains("small ticks"))
         small_ticks = config.value("small ticks").toBool(false);
     if (config.contains("interval"))

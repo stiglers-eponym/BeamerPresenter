@@ -38,6 +38,8 @@ class AnalogClockWidget : public QWidget
     QColor second_color = Qt::red;
     /// Color of ticks
     QColor tick_color = Qt::black;
+    /// Preferred aspect ratio of the widget
+    qreal aspect_ratio;
 
 public:
     /// Constructor: create timer, connect to update event
@@ -48,7 +50,7 @@ public:
 
     /// Size hint: based on estimated size.
     QSize sizeHint() const noexcept override
-    {return {60,60};}
+    {return aspect_ratio > 1. ? QSize(aspect_ratio*48, 48) : QSize(48, 48/aspect_ratio);}
 
     /// Height depends on width through font size.
     bool hasHeightForWidth() const noexcept override
