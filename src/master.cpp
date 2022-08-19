@@ -31,6 +31,7 @@
 #include "src/drawing/selectiontool.h"
 #include "src/gui/flexlayout.h"
 #include "src/gui/clockwidget.h"
+#include "src/gui/analogclockwidget.h"
 #include "src/gui/tabwidget.h"
 #include "src/gui/stackedwidget.h"
 #include "src/gui/containerwidget.h"
@@ -534,6 +535,17 @@ QWidget* Master::createWidget(QJsonObject &object, QWidget *parent)
         // but maybe the clock should be able to send different actions. Since
         // the clock rarely sends actions, this little overhead is unproblematic.
         connect(static_cast<ClockWidget*>(widget), &ClockWidget::sendAction, this, &Master::handleAction);
+        break;
+    }
+    case AnalogClockType:
+    {
+        AnalogClockWidget *clock_widget = new AnalogClockWidget(parent);
+        // This signal could also be connected directly to Master::sendAction,
+        // but maybe the clock should be able to send different actions. Since
+        // the clock rarely sends actions, this little overhead is unproblematic.
+        clock_widget->readConfig(object);
+        connect(clock_widget, &AnalogClockWidget::sendAction, this, &Master::handleAction);
+        widget = clock_widget;
         break;
     }
     case TimerType:

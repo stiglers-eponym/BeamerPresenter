@@ -39,7 +39,11 @@
         "title" : "overview",
         "children" : [
           {
-            "type" : "clock"
+            "type" : "analog clock",
+            "touch input" : true,
+            "small ticks" : false,
+            "seconds" : false,
+            "interval" : 3000
           },
           {
             "type" : "timer",

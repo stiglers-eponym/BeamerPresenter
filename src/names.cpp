@@ -25,6 +25,7 @@ GuiWidget string_to_widget_type(const QString &string) noexcept
         {"tool selector", ToolSelectorType},
         {"settings", SettingsType},
         {"clock", ClockType},
+        {"analog clock", AnalogClockType},
         {"timer", TimerType},
         {"slide number", SlideNumberType},
         {"slide label", SlideLabelType},

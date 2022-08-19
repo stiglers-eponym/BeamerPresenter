@@ -195,6 +195,7 @@ enum GuiWidget
     ToolSelectorType, ///< ToolSelectorWidget
     SettingsType, ///< SettingsWidget
     ClockType, ///< ClockWidget
+    AnalogClockType, ///< AnalogClockWidget
     TimerType, ///< TimerWidget
     SlideNumberType, ///< SlideNumberWidget
     SlideLabelType, ///< SlideLabelWidget
