@@ -838,16 +838,24 @@ QPair<int,QRectF> MuPdfDocument::search(const QString &needle, int start_page, b
     const QByteArray byte_needle = needle.toUtf8();
     const char* raw_needle = byte_needle.data();
     int hit;
+#if (FZ_VERSION_MAJOR >= 1) && (FZ_VERSION_MINOR >= 20)
     int hit_mark;
+#endif
     fz_quad rect;
     fz_var(hit);
+#if (FZ_VERSION_MAJOR >= 1) && (FZ_VERSION_MINOR >= 20)
     fz_var(hit_mark);
+#endif
     fz_var(rect);
     if (forward)
         for (int page = start_page; page < number_of_pages; ++page)
         {
             fz_try(ctx)
+#if (FZ_VERSION_MAJOR >= 1) && (FZ_VERSION_MINOR >= 20)
                 hit = fz_search_page(ctx, (fz_page*const)(pages[page]), raw_needle, &hit_mark, &rect, 1);
+#else
+                hit = fz_search_page(ctx, (fz_page*const)(pages[page]), raw_needle, &rect, 1);
+#endif
             fz_catch(ctx)
                 hit = 0;
             if (hit)
@@ -861,7 +869,11 @@ QPair<int,QRectF> MuPdfDocument::search(const QString &needle, int start_page, b
         for (int page = start_page; page >= 0; --page)
         {
             fz_try(ctx)
+#if (FZ_VERSION_MAJOR >= 1) && (FZ_VERSION_MINOR >= 20)
                 hit = fz_search_page(ctx, (fz_page*const)(pages[page]), raw_needle, &hit_mark, &rect, 1);
+#else
+                hit = fz_search_page(ctx, (fz_page*const)(pages[page]), raw_needle, &rect, 1);
+#endif
             fz_catch(ctx)
                 hit = 0;
             if (hit)
