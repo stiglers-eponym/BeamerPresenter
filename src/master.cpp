@@ -491,6 +491,7 @@ QWidget* Master::createWidget(QJsonObject &object, QWidget *parent)
         connect(twidget, &ThumbnailWidget::sendNavigationSignal, this, &Master::navigateToPage);
         if (object.value("overlays").toString() == "skip")
             twidget->flags() |= ThumbnailWidget::SkipOverlays;
+        connect(this, &Master::sendAction, twidget, &ThumbnailWidget::handleAction);
         break;
     }
     case TOCType:
@@ -801,6 +802,7 @@ void Master::handleAction(const Action action)
             writable_preferences()->number_of_pages = documents.first()->numberOfPages();
             for (const auto cache : qAsConst(caches))
                 cache->clear();
+            emit sendAction(PdfFilesChanged);
             navigateToPage(preferences()->page);
         }
         break;

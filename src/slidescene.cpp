@@ -619,6 +619,17 @@ void SlideScene::receiveAction(const Action action)
     case ClearSelection:
         clearSelection();
         break;
+    case PdfFilesChanged:
+        for (const auto &media : mediaItems)
+        {
+            delete media.item;
+            delete media.player;
+#if (QT_VERSION_MAJOR >= 6)
+            delete media.audio_out;
+#endif
+        }
+        mediaItems.clear();
+        break;
     default:
         break;
     }

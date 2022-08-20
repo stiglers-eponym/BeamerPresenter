@@ -38,6 +38,22 @@ void ThumbnailWidget::showEvent(QShowEvent *event)
     }
 }
 
+void ThumbnailWidget::handleAction(const Action action)
+{
+    if (action == PdfFilesChanged)
+    {
+        delete widget();
+        setWidget(nullptr);
+        if (render_thread)
+        {
+            render_thread->thread()->quit();
+            render_thread->thread()->wait(2000);
+            delete render_thread;
+            render_thread = nullptr;
+        }
+    }
+}
+
 void ThumbnailWidget::generate(const PdfDocument *document)
 {
     if (!document)
@@ -45,6 +61,9 @@ void ThumbnailWidget::generate(const PdfDocument *document)
     // Don't recalculate if changes in the widget's width lie below a threshold of 5%.
     if (!document || std::abs(ref_width - width()) < ref_width/20)
         return;
+
+    delete widget();
+    setWidget(nullptr);
 
     if (!render_thread)
     {
@@ -55,9 +74,6 @@ void ThumbnailWidget::generate(const PdfDocument *document)
         connect(render_thread, &ThumbnailThread::sendThumbnail, this, &ThumbnailWidget::receiveThumbnail, Qt::QueuedConnection);
         render_thread->thread()->start();
     }
-
-    delete widget();
-    setWidget(NULL);
 
     const int col_width = (width()-2)/columns - 12;
     ref_width = width();

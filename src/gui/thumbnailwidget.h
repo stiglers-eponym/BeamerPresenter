@@ -5,6 +5,7 @@
 #define THUMBNAILWIDGET_H
 
 #include <QScrollArea>
+#include "src/enumerates.h"
 #include "src/gui/thumbnailbutton.h"
 
 class PdfDocument;
@@ -34,7 +35,7 @@ private:
     /// QObject for rendering. which is moved to an own thread.
     /// Communication to render_thread is almost exclusively done via the
     /// signal/slot mechanism since it lives in another thread.
-    ThumbnailThread *render_thread = NULL;
+    ThumbnailThread *render_thread = nullptr;
 
     /// width of widget when thumbnails were rendered, in pixels.
     int ref_width = 0;
@@ -45,7 +46,7 @@ private:
 
 public:
     /// Nearly trivial constructor.
-    explicit ThumbnailWidget(QWidget *parent = NULL) : QScrollArea(parent)
+    explicit ThumbnailWidget(QWidget *parent = nullptr) : QScrollArea(parent)
     {setFocusPolicy(Qt::NoFocus);}
 
     /// Destructor, stop and delete render thread.
@@ -81,6 +82,9 @@ public slots:
     /// Receive thumbnail from render_thread and show it on button.
     void receiveThumbnail(ThumbnailButton *button, const QPixmap pixmap)
     {if (button) button->setPixmap(pixmap);}
+
+    /// Handle actions: clear if files are reloaded.
+    void handleAction(const Action action);
 
 signals:
     /// Navigate to page.
