@@ -21,42 +21,40 @@ This software uses the Qt framework and the PDF engines MuPDF or poppler.
 
 
 ## Screenshots
-These screenshots only show one possible way of using BeamerPresenter. The speaker could also see a different presentation (with additional information) or editable notes.
+These screenshots only a few examples how the speaker's screen can look. The audiance sees only the presentation except if you speficy something else.
 
 <table border="0px" >
 <tr>
 <td width=50%>
-One possible configuration of the graphical interface shows the previews of the last overlays of the current and next slide to the speaker:
-<img srcset=".readme/titleslide-640px.webp 640w, .readme/titleslide-960px.webp 960w" sizes="(max-width: 640px) 640px, 960px" src=".readme/titleslide-960px.webp" width=100% title="Two windows for speaker and audiance showing a title slide.">
-The small window in this image is the presentation window that is usually shown on a projector.
+Default configuration of the graphical interface with previews of the next slides:
+<img srcset=".readme/fusion-640px.webp 640w, .readme/fusion-960px.webp 960w" sizes="(max-width: 640px) 640px, 960px" src=".readme/fusion-960px.webp" width=100% title="BeamerPresenter speaker screen with default configuration and Fusion theme." alt="Large image of the current slide of a presentation. Next to it a clock, timer, page label, previews of the next slides, and some buttons.">
 </td>
 <td>
-A timer shows your current progress. When you have a tight schedule you can plan times for some slides and the color of the timer will indicate your progress relative to these planned times.
-<img srcset=".readme/timer-640px.webp 640w, .readme/timer-960px.webp 960w" sizes="(max-width: 640px) 640px, 960px" src=".readme/timer-960px.webp" width=100% title="Annotations on a slide explain the timer which is shown on the speaker's screen.">
-The annotations on this slide (red text and arrow) were also made directly in BeamerPresenter.
-Annotations can be saved in a format that is compatible with <a href="https://xournalpp.github.io">Xournal++</a>.
+Similar configuration with different Qt theme:
+<img srcset=".readme/widgets-640px.webp 640w, .readme/widgets-960px.webp 960w" sizes="(max-width: 640px) 640px, 960px" src=".readme/widgets-960px.webp" width=100% title="Slide listing the available widgets shown in BeamerPresenter with dark Qt theme.">
 </td>
 </tr>
 <tr>
 <td>
-Different highlighting tool, including magnifier, torch and pointer, can be used to draw attention to parts of your slide.
-<img srcset=".readme/magnifier-640px.webp 640w, .readme/magnifier-960px.webp 960w" sizes="(max-width: 640px) 640px, 960px" src=".readme/magnifier-960px.webp" width=100% title="Parts of a slide are magnified to show details of a figure.">
+Speaker screen for example configuration `gui-interactive.json`, can be used e.g. for lectures.
+Annotations can be saved in a format that is compatible with <a href="https://xournalpp.github.io">Xournal++</a>.
+<img srcset=".readme/interactive-640px.webp 640w, .readme/interactive-960px.webp 960w" sizes="(max-width: 640px) 640px, 960px" src=".readme/interactive-960px.webp" width=100% title="Speaker window with larger buttons and a widget showing text notes.">
 </td>
 <td>
-PDF documents can include videos, sounds, slide transitions and some primitive animations. These features are partially supported by BeamerPresenter.
-<img srcset=".readme/video-640px.webp 640w, .readme/video-960px.webp 960w" sizes="(max-width: 640px) 640px, 960px" src=".readme/video-960px.webp" width=100% title="Slide showing a video. The speaker window additionally shows a slider to control the video.">
+PDF documents can include videos, sounds, and slide transitions.
+<img srcset=".readme/video-640px.webp 640w, .readme/video-960px.webp 960w" sizes="(max-width: 640px) 640px, 960px" src=".readme/video-960px.webp" width=100% title="Slide with a video synchronized accross different slide previews.">
 </td>
 </tr>
 </table>
 
 
 ## Installation
-There exist different flavors of BeamerPresenter:
-You can choose the PDF engine (Poppler, MuPDF, or QtPDF) and the major Qt version (5 or 6).
+There exist different variants of BeamerPresenter:
+You can choose the PDF engine (Poppler, MuPDF, or QtPDF) and the Qt version (≥5.9 or ≥6.2).
 Some arguments for this choice, more customization options, and the manual installation are explained [here](https://github.com/stiglers-eponym/BeamerPresenter/blob/main/INSTALL.md).
 
+Packages are also available for Nix and in the AUR (for Arch/Manjaro).
 The [releases](https://github.com/stiglers-eponym/BeamerPresenter/releases) come with packages for Arch/Manjaro, Ubuntu 20.04 / 21.10 / 22.04, and flatpak.
-The simplest way to install BeamerPresenter (besides the AUR) is to directly install these packages.
 For example, the commands for installing BeamerPresenter with poppler as PDF engine and Qt 5 after downloading the corresponding file are:
 ```sh
 # Ubuntu 20.04:
@@ -81,7 +79,7 @@ gpg --verify SHA256SUMS.sig SHA256SUMS
 In Arch Linux and Manjaro you can also install one of the AUR packages [beamerpresenter](https://aur.archlinux.org/packages/beamerpresenter) and [beamerpresenter-git](https://aur.archlinux.org/packages/beamerpresenter-git).
 Note that in these packages by default MuPDF is selected as PDF engine.
 
-There exists a package for [Nix](https://nixos.org) (thanks to the maintainer!), which can also be an option for people using macOS. This package can be installed with
+There exists a package for [Nix](https://nixos.org) (thanks to the maintainer!). This package can be installed with
 ```sh
 nix-env -iA nixos.beamerpresenter    # on NixOS
 nix-env -iA nixpkgs.beamerpresenter  # on non-NixOS
