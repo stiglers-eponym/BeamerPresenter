@@ -36,7 +36,7 @@ Similar configuration with different Qt theme:
 </tr>
 <tr>
 <td>
-Speaker screen for example configuration `gui-interactive.json`, can be used e.g. for lectures.
+Speaker screen for example configuration gui-interactive.json, can be used e.g. for lectures.
 Annotations can be saved in a format that is compatible with <a href="https://xournalpp.github.io">Xournal++</a>.
 <img srcset=".readme/interactive-640px.webp 640w, .readme/interactive-960px.webp 960w" sizes="(max-width: 640px) 640px, 960px" src=".readme/interactive-960px.webp" width=100% title="Speaker window with larger buttons and a widget showing text notes.">
 </td>
@@ -136,14 +136,6 @@ When reporting bugs, please include the version string of BeamerPresenter
 * When compiling with both MuPDF and Poppler opening some PDF files with renderer=poppler can result in a segmentation fault (when loading the document or when rendering a certain page), apparently due to a linkage problem. It is recommended to compile with only one PDF engine.
 * In MuPDF only a smaller subset of PDF link types is supported (only internal navigation links and external links) as compared to the Poppler version.
 * Slide transitions and animations might not work as expected if (at least) one window showing the slide is currently hidden and not updated by the window manager.
-* Selecting and modifying drawings is experimental. The freehand selection tool is not immplemented yet.
-
-
-### Ideas for further development
-* tools to select and modify drawings (work in progress)
-* cache only required slides in previews showing specific overlays
-* improve keyboard shortcuts in other widgets than slide widget
-* option to insert extra slides for drawing
 
 
 ## License
