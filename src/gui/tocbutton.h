@@ -5,8 +5,10 @@
 #define TOCBUTTON_H
 
 #include <QPushButton>
-#include <QCheckBox>
 #include "src/config.h"
+
+class QCheckBox;
+class QString;
 
 /**
  * @brief Node in tree of outline entry buttons
@@ -50,7 +52,7 @@ public:
     TOCbutton(const QString &title, const int _page, QCheckBox *expand_button, QWidget *parent = NULL);
 
     /// Destructor: recursively delete the associated subtree.
-    ~TOCbutton() {delete expand_button; delete tree_child; delete tree_next;}
+    ~TOCbutton();
 
     /// Show all direct child nodes.
     void expand();

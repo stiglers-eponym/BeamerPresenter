@@ -4,8 +4,10 @@
 #ifndef SHAPESELECTIONBUTTON_H
 #define SHAPESELECTIONBUTTON_H
 
+#include "src/config.h"
 #include "src/gui/toolpropertybutton.h"
 
+class QWidget;
 class Tool;
 
 /**

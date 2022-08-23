@@ -5,17 +5,20 @@
 #define TOOLDIALOG_H
 
 #include <QDialog>
+#include <QString>
 #include <QMap>
-#include <QDoubleSpinBox>
-#include <QPushButton>
-#include <QComboBox>
-#include "src/names.h"
+#include "src/config.h"
 #include "src/drawing/tool.h"
 #include "src/drawing/drawtool.h"
 
-class QCheckBox;
+class Tool;
+class DrawTool;
 class TextTool;
 class PointingTool;
+class QPushButton;
+class QCheckBox;
+class QComboBox;
+class QDoubleSpinBox;
 
 /**
  * @brief DrawToolDetails: details for draw tools in a ToolDialog.
@@ -47,14 +50,11 @@ public:
     /// @return brush for filling path
     QBrush brush() const;
     /// @return width for stroking path
-    qreal width() const
-    {return width_box->value();}
+    qreal width() const;
     /// @return pen style for stroking path
-    Qt::PenStyle penStyle() const
-    {return string_to_pen_style.value(pen_style_box->currentText(), Qt::SolidLine);}
+    Qt::PenStyle penStyle() const;
     /// @return shape for draw tool
-    DrawTool::Shape shape() const
-    {return string_to_shape.value(shape_box->currentText(), DrawTool::Freehand);}
+    DrawTool::Shape shape() const;
 
 public slots:
     /// Choose color using a color dialog
@@ -86,9 +86,9 @@ public:
     /// Trivial destructor.
     ~PointingToolDetails() {}
     /// @return scale property of pointing tool
-    float scale() const {return scale_box ? scale_box->value() : -1.;}
+    float scale() const;
     /// @return radius (size) of the pointing tool
-    qreal radius() const {return radius_box->value();}
+    qreal radius() const;
 };
 
 /**
@@ -107,7 +107,7 @@ public:
     /// Trivial destructor.
     ~TextToolDetails() {}
     /// @return font of the text input tool
-    QFont font() const {return font_button->font();}
+    QFont font() const;
 
 public slots:
     /// Select font using QFontDialog

@@ -34,6 +34,7 @@ protected:
     Type _type = NoOperation;
 
     /// Properties needed to describe the transformation.
+    /// @todo replace union by a std::variant
     union {
         struct {
             /// start point as used by most tools, and always while selecting objects

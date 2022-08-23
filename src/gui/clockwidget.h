@@ -6,7 +6,7 @@
 
 #include <QLineEdit>
 #include "src/config.h"
-#include "src/enumerates_qt.h"
+#include "src/enumerates.h"
 
 class QSize;
 class QTimer;

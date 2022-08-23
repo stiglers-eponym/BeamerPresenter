@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later OR AGPL-3.0-or-later
 
 #include <QTabBar>
+#include <QSize>
 #include "src/gui/tabwidget.h"
 
 QSize TabWidget::sizeHint() const noexcept

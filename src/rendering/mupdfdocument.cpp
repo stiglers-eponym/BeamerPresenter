@@ -20,7 +20,6 @@
 #include <unistd.h>
 #endif
 #include "src/rendering/mupdfdocument.h"
-#include "src/enumerates.h"
 #include "src/preferences.h"
 #include "src/log.h"
 
@@ -778,7 +777,7 @@ void MuPdfDocument::loadOutline()
 
     // TODO: a huge outline will probably lead to a crash of the program.
     outline.clear();
-    outline.append({"", -1, 1});
+    outline.append(PdfOutlineEntry({"", -1, 1}));
     mutex->lock();
 
     fz_outline *root;
@@ -794,9 +793,9 @@ void MuPdfDocument::loadOutline()
             {
                 const int idx = outline.length();
 #if (FZ_VERSION_MAJOR >= 1) && (FZ_VERSION_MINOR >= 20)
-                outline.append({entry->title, entry->page.page, -1});
+                outline.append(PdfOutlineEntry({QString(entry->title), entry->page.page, -1}));
 #else
-                outline.append({entry->title, entry->page, -1});
+                outline.append(PdfOutlineEntry({QString(entry->title), entry->page, -1}));
 #endif
                 if (entry->down)
                     function(entry->down, function);

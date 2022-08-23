@@ -9,7 +9,7 @@
 #include <QToolButton>
 #include <QStringList>
 #include "src/config.h"
-#include "src/enumerates_qt.h"
+#include "src/enumerates.h"
 
 class ToolSelectorWidget;
 class QEvent;

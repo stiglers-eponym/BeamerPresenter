@@ -9,7 +9,7 @@
 #include <QMap>
 #include <QString>
 #include "src/config.h"
-#include "src/enumerates_qt.h"
+#include "src/enumerates.h"
 
 class SlideScene;
 class PathContainer;

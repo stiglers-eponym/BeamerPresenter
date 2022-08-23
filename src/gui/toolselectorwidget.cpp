@@ -2,11 +2,13 @@
 // SPDX-License-Identifier: GPL-3.0-or-later OR AGPL-3.0-or-later
 
 #include <QColor>
+#include <QSize>
 #include <QGridLayout>
 #include <QJsonValue>
 #include <QJsonObject>
 #include <QJsonArray>
 #include <QResizeEvent>
+#include "src/drawing/tool.h"
 #include "src/gui/toolselectorwidget.h"
 #include "src/gui/actionbutton.h"
 #include "src/gui/shapeselectionbutton.h"

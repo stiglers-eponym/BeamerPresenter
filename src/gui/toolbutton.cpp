@@ -4,6 +4,9 @@
 #include <QTabletEvent>
 #include <QTouchEvent>
 #include <QMouseEvent>
+#include <QString>
+#include <QSize>
+#include <QColor>
 #include <QBuffer>
 #include <QByteArray>
 #include <QFile>
@@ -20,7 +23,7 @@
 
 ToolButton::ToolButton(Tool *tool, QWidget *parent) noexcept :
         QToolButton(parent),
-        tool(NULL)
+        tool(nullptr)
 {
     setMinimumSize(12, 12);
     setIconSize({32,32});
@@ -29,6 +32,11 @@ ToolButton::ToolButton(Tool *tool, QWidget *parent) noexcept :
     setAttribute(Qt::WA_AcceptTouchEvents);
     setToolButtonStyle(Qt::ToolButtonIconOnly);
     setTool(tool);
+}
+
+ToolButton::~ToolButton()
+{
+    delete tool;
 }
 
 bool ToolButton::event(QEvent *event) noexcept

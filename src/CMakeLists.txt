@@ -69,7 +69,6 @@ add_executable(beamerpresenter
         pdfmaster.h pdfmaster.cpp
         master.h master.cpp
         preferences.h preferences.cpp
-        enumerates_qt.h
         enumerates.h
         names.h names.cpp
         log.h

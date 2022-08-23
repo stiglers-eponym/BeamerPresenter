@@ -5,9 +5,10 @@
 #define THUMBNAILTHREAD_H
 
 #include <QObject>
-#include <QPixmap>
 #include <QList>
+#include "src/config.h"
 
+class QPixmap;
 class PdfDocument;
 class ThumbnailButton;
 class AbstractRenderer;

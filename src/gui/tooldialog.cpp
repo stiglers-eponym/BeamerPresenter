@@ -3,12 +3,17 @@
 
 #include <QColorDialog>
 #include <QFontDialog>
+#include <QPushButton>
 #include <QCheckBox>
+#include <QComboBox>
+#include <QGroupBox>
+#include <QDoubleSpinBox>
 #include <QFormLayout>
 #include <QVBoxLayout>
-#include <QGroupBox>
 #include "src/gui/tooldialog.h"
 #include "src/log.h"
+#include "src/names.h"
+#include "src/enumerates.h"
 #include "src/drawing/drawtool.h"
 #include "src/drawing/texttool.h"
 #include "src/drawing/pointingtool.h"
@@ -82,6 +87,21 @@ DrawToolDetails::DrawToolDetails(Tool::BasicTool basic_tool, QWidget *parent, co
 
     changeShape(shape_box->currentText());
     setLayout(layout);
+}
+
+qreal DrawToolDetails::width() const
+{
+    return width_box->value();
+}
+
+Qt::PenStyle DrawToolDetails::penStyle() const
+{
+    return string_to_pen_style.value(pen_style_box->currentText(), Qt::SolidLine);
+}
+
+DrawTool::Shape DrawToolDetails::shape() const
+{
+    return string_to_shape.value(shape_box->currentText(), DrawTool::Freehand);
 }
 
 void DrawToolDetails::setBrushColor()
@@ -171,6 +191,16 @@ PointingToolDetails::PointingToolDetails(Tool::BasicTool basic_tool, QWidget *pa
     setLayout(layout);
 }
 
+float PointingToolDetails::scale() const
+{
+    return scale_box ? scale_box->value() : -1.;
+}
+
+qreal PointingToolDetails::radius() const
+{
+    return radius_box->value();
+}
+
 TextToolDetails::TextToolDetails(QWidget *parent, const TextTool *oldtool) :
     QWidget(parent),
     font_button(new QPushButton("font", this))
@@ -184,6 +214,11 @@ TextToolDetails::TextToolDetails(QWidget *parent, const TextTool *oldtool) :
         font_button->setFont(oldtool->font());
     }
     connect(font_button, &QPushButton::clicked, this, &TextToolDetails::selectFont);
+}
+
+QFont TextToolDetails::font() const
+{
+    return font_button->font();
 }
 
 void TextToolDetails::selectFont()

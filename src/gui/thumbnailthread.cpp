@@ -1,6 +1,7 @@
 // SPDX-FileCopyrightText: 2022 Valentin Bruch <software@vbruch.eu>
 // SPDX-License-Identifier: GPL-3.0-or-later OR AGPL-3.0-or-later
 
+#include <QPixmap>
 #include "src/gui/thumbnailthread.h"
 #include "src/gui/thumbnailbutton.h"
 #include "src/log.h"
@@ -50,9 +51,9 @@ ThumbnailThread::ThumbnailThread(const PdfDocument *document) :
     }
 
     // Check if the renderer is valid
-    if (renderer == NULL || !renderer->isValid())
+    if (renderer == nullptr || !renderer->isValid())
     {
-        renderer = NULL;
+        renderer = nullptr;
         qCritical() << "Creating renderer failed" << preferences()->renderer;
         return;
     }

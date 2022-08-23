@@ -4,6 +4,7 @@
 #ifndef COLORSELECTIONBUTTON_H
 #define COLORSELECTIONBUTTON_H
 
+#include "src/config.h"
 #include "src/gui/toolpropertybutton.h"
 
 class QJsonArray;

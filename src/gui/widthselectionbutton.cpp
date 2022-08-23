@@ -1,9 +1,10 @@
 // SPDX-FileCopyrightText: 2022 Valentin Bruch <software@vbruch.eu>
 // SPDX-License-Identifier: GPL-3.0-or-later OR AGPL-3.0-or-later
 
+#include <QJsonArray>
+#include <QString>
 #include "src/gui/widthselectionbutton.h"
 #include "src/drawing/drawtool.h"
-#include <QJsonArray>
 
 WidthSelectionButton::WidthSelectionButton(const QJsonArray &array, QWidget *parent) :
     ToolPropertyButton(parent)

@@ -8,7 +8,11 @@
 #include <QResizeEvent>
 #include <QLineEdit>
 #include <QLabel>
+#include <QDateTime>
+#include <QTime>
 #include <QTimer>
+#include <QPalette>
+#include <QFont>
 #include "src/gui/timerwidget.h"
 #include "src/preferences.h"
 #include "src/log.h"

@@ -4,7 +4,12 @@
 #ifndef WIDTHSELECTIONBUTTON_H
 #define WIDTHSELECTIONBUTTON_H
 
+#include "src/config.h"
 #include "src/gui/toolpropertybutton.h"
+
+class Tool;
+class QJsonArray;
+class QWidget;
 
 /**
  * @brief Drop down menu for changing the width of a draw tool.

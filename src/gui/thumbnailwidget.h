@@ -5,11 +5,15 @@
 #define THUMBNAILWIDGET_H
 
 #include <QScrollArea>
+#include <QSize>
+#include "src/config.h"
 #include "src/enumerates.h"
-#include "src/gui/thumbnailbutton.h"
 
+class QShowEvent;
+class QPixmap;
 class PdfDocument;
 class ThumbnailThread;
+class ThumbnailButton;
 
 /**
  * @brief Widget showing thumbnail slides on grid layout in scroll area.
@@ -80,8 +84,7 @@ public slots:
     void showEvent(QShowEvent*) override;
 
     /// Receive thumbnail from render_thread and show it on button.
-    void receiveThumbnail(ThumbnailButton *button, const QPixmap pixmap)
-    {if (button) button->setPixmap(pixmap);}
+    void receiveThumbnail(ThumbnailButton *button, const QPixmap pixmap);
 
     /// Handle actions: clear if files are reloaded.
     void handleAction(const Action action);

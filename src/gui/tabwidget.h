@@ -6,8 +6,9 @@
 
 #include <QTabWidget>
 #include <QSizePolicy>
-#include <QSize>
 #include "src/config.h"
+
+class QSize;
 
 /**
  * @brief QTabWidget with adjusted size hint

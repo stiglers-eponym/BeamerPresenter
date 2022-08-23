@@ -4,6 +4,7 @@
 #ifndef PENSTYLEBUTTON_H
 #define PENSTYLEBUTTON_H
 
+#include "src/config.h"
 #include "src/gui/toolpropertybutton.h"
 #include "src/preferences.h"
 

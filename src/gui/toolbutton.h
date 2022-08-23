@@ -4,15 +4,15 @@
 #ifndef TOOLBUTTON_H
 #define TOOLBUTTON_H
 
-#include <QObject>
-#include <QString>
-#include <QSize>
-#include <QColor>
-#include <QImage>
 #include <QToolButton>
-#include "src/drawing/tool.h"
+#include "src/config.h"
 
+class Tool;
+class QString;
 class QEvent;
+class QImage;
+class QSize;
+class QColor;
 
 /**
  * @brief Tool button for drawing and pointing tools.
@@ -27,15 +27,14 @@ class ToolButton : public QToolButton
 
     /// Tool which remains owned by this class.
     /// Only copies of this tool are send out using sendTool.
-    Tool *tool = NULL;
+    Tool *tool = nullptr;
 
 public:
     /// Constructor: takes ownership of tool.
-    explicit ToolButton(Tool *tool, QWidget *parent = NULL) noexcept;
+    explicit ToolButton(Tool *tool, QWidget *parent = nullptr) noexcept;
 
     /// Destruktor: deletes tool.
-    virtual ~ToolButton()
-    {delete tool;}
+    virtual ~ToolButton();
 
 protected:
     /// Emit sendTool based on input event with adjusted device.

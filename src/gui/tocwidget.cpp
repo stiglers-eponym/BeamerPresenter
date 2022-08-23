@@ -5,7 +5,11 @@
 #include <algorithm>
 #include <QGridLayout>
 #include <QScroller>
+#include <QCheckBox>
+#include <QVector>
+#include <QSizePolicy>
 #include "src/gui/tocwidget.h"
+#include "src/gui/tocbutton.h"
 #include "src/preferences.h"
 #include "src/rendering/pdfdocument.h"
 #include "src/log.h"
@@ -66,6 +70,11 @@ void TOCwidget::generateTOC(const PdfDocument *document)
     QScroller::grabGesture(this);
 }
 
+TOCwidget::~TOCwidget()
+{
+    delete first_button;
+}
+
 void TOCwidget::expandTo(const int page)
 {
     debug_msg(DebugWidgets, "expand to" << page);
@@ -101,7 +110,7 @@ void TOCwidget::expandTo(const int page)
         expand_to(child, expand_to);
 }
 
-void TOCwidget::showEvent(QShowEvent *event)
+void TOCwidget::showEvent(QShowEvent*)
 {
     if (first_button)
         expandTo(preferences()->page);

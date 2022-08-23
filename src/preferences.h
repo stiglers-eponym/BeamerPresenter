@@ -14,7 +14,7 @@
 #include <QKeySequence>
 #include <QDateTime>
 #include "src/config.h"
-#include "src/enumerates_qt.h"
+#include "src/enumerates.h"
 
 class DrawTool;
 class Tool;

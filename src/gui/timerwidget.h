@@ -5,15 +5,18 @@
 #define TIMERWIDGET_H
 
 #include <QWidget>
-#include <QTime>
 #include <QColor>
 #include <QMap>
-#include "src/enumerates_qt.h"
+#include <QSize>
+#include "src/config.h"
+#include "src/enumerates.h"
 
 class QResizeEvent;
+class QMouseEvent;
 class QLineEdit;
 class QLabel;
 class QTimer;
+class QTime;
 
 /// Map time (in ms) left for a slide to color.
 /// This is the default colormap for timer.

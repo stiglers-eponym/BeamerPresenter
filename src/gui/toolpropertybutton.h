@@ -5,9 +5,7 @@
 #define TOOLPROPERTYBUTTON_H
 
 #include <QComboBox>
-#include <QObject>
 #include "src/config.h"
-#include "src/preferences.h"
 
 class Tool;
 class QEvent;
@@ -30,8 +28,7 @@ protected:
     virtual void setToolProperty(Tool* tool) const = 0;
 
     /// Update currently selected tool property based on device.
-    virtual void updateTool()
-    {toolChanged(preferences()->currentTool(device));}
+    virtual void updateTool();
 
 public slots:
     /// Update currently selected tool property based on tool.

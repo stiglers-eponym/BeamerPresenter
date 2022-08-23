@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later OR AGPL-3.0-or-later
 
 #include <QtConfig>
+#include <QSize>
 #include <QMouseEvent>
 #include <QTabletEvent>
 #include "src/gui/toolpropertybutton.h"
@@ -21,6 +22,11 @@ ToolPropertyButton::ToolPropertyButton(QWidget *parent) :
 #else
     connect(this, QOverload<int>::of(&QComboBox::activated), this, &ToolPropertyButton::changed);
 #endif
+}
+
+void ToolPropertyButton::updateTool()
+{
+    toolChanged(preferences()->currentTool(device));
 }
 
 bool ToolPropertyButton::event(QEvent *event)

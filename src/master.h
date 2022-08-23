@@ -9,7 +9,7 @@
 #include <QMap>
 #include <QKeySequence>
 #include "src/config.h"
-#include "src/enumerates_qt.h"
+#include "src/enumerates.h"
 
 class Tool;
 class QColor;

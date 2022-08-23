@@ -167,6 +167,10 @@ enum Action
     ClearDrawingRight = ClearDrawing | PagePart::RightHalf, ///< clear all drawings on current page (only RightPage)
 };
 
+#include <QMetaType>
+Q_DECLARE_METATYPE(Action);
+
+
 /**
  * @brief Gestures to which actions can be assigned.
  */

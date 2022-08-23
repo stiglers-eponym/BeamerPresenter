@@ -6,9 +6,10 @@
 
 #include <QWidget>
 #include "src/config.h"
-#include "src/enumerates_qt.h"
+#include "src/enumerates.h"
 
 class Tool;
+class QSize;
 class QEvent;
 class QColor;
 class QJsonArray;

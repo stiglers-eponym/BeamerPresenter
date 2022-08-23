@@ -6,9 +6,14 @@
 #include <QThread>
 #include <QShowEvent>
 #include <QScroller>
+#include <QSizeF>
+#include <QList>
 #include <QGridLayout>
+#include <QLayoutItem>
+#include <QPixmap>
 #include "src/gui/thumbnailwidget.h"
 #include "src/gui/thumbnailthread.h"
+#include "src/gui/thumbnailbutton.h"
 #include "src/rendering/pdfdocument.h"
 #include "src/preferences.h"
 
@@ -36,6 +41,12 @@ void ThumbnailWidget::showEvent(QShowEvent *event)
         if (item && item->widget())
             item->widget()->setFocus();
     }
+}
+
+void ThumbnailWidget::receiveThumbnail(ThumbnailButton *button, const QPixmap pixmap)
+{
+    if (button)
+        button->setPixmap(pixmap);
 }
 
 void ThumbnailWidget::handleAction(const Action action)
