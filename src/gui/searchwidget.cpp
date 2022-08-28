@@ -38,8 +38,11 @@ void SearchWidget::search(qint8 forward)
 {
     if (!preferences()->document || !search_field)
         return;
+    const QString text = search_field->text();
+    if (text.isEmpty())
+        return;
     QPair<int,QRectF> result = preferences()->document->search(
-                search_field->text(),
+                text,
                 preferences()->page + forward,
                 forward >= 0);
     if (result.first >= 0)

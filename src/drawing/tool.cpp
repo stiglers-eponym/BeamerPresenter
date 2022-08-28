@@ -68,6 +68,10 @@ const QString tool_to_description(const Tool::BasicTool tool) noexcept
         return QObject::tr("add or edit text on slide");
     case Tool::BasicSelectionTool:
         return QObject::tr("Select objects by clicking on them");
+    case Tool::RectSelectionTool:
+        return QObject::tr("Select objects in a rectangle");
+    case Tool::FreehandSelectionTool:
+        return QObject::tr("Select objects inside a drawn shape");
     default:
         return QString();
     };

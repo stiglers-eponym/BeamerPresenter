@@ -36,6 +36,14 @@ public:
      */
     void search(qint8 forward = 0);
 
+    /// Size hint: based on estimated size.
+    QSize sizeHint() const noexcept override
+    {return {180,18};}
+
+    /// Height depends on width, this is required by the layout.
+    bool hasHeightForWidth() const noexcept override
+    {return true;}
+
 private slots:
     void searchCurrent() {search(0);}
     void searchForward() {search(1);}

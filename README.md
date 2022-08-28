@@ -54,13 +54,11 @@ You can choose the PDF engine (Poppler, MuPDF, or QtPDF) and the Qt version (≥
 Some arguments for this choice, more customization options, and the manual installation are explained [here](https://github.com/stiglers-eponym/BeamerPresenter/blob/main/INSTALL.md).
 
 Packages are also available for Nix and in the AUR (for Arch/Manjaro).
-The [releases](https://github.com/stiglers-eponym/BeamerPresenter/releases) come with packages for Arch/Manjaro, Ubuntu 20.04 / 21.10 / 22.04, and flatpak.
+The [releases](https://github.com/stiglers-eponym/BeamerPresenter/releases) come with packages for Arch/Manjaro, Ubuntu 20.04 / 22.04, and flatpak.
 For example, the commands for installing BeamerPresenter with poppler as PDF engine and Qt 5 after downloading the corresponding file are:
 ```sh
 # Ubuntu 20.04:
 sudo apt install ./beamerpresenter-poppler-0.2.2-qt5-focal-x86_64.deb
-# Ubuntu 21.10:
-sudo apt install ./beamerpresenter-poppler-0.2.2-qt5-impish-x86_64.deb
 # Ubuntu 22.04:
 sudo apt install ./beamerpresenter-poppler-0.2.2-qt5-jammy-x86_64.deb
 # Arch/Manjaro:
@@ -120,15 +118,13 @@ If you find bugs or have suggestions for improvements, please
 When reporting bugs, please include the version string of BeamerPresenter
 (`beamerpresenter --version`).
 
-
-## Development
-
 ### Known problems
 * Multimedia
     * Video performance can be bad while drawing or using the magnifier.
     * Sounds included as sound link (not sound annotation) are unsupported when using MuPDF (this affects LaTeX beamer's `\sound` command; workaround: use `\movie` instead).
     * Some slide transitions need to stop videos. Fly slide transitions during videos look strange.
 * Changing tool buttons via the user interface is non-permanent. Permanent changes in the user interface require manual changes in the JSON-formatted configuration file.
+* Clipboard compatibility with external applications using the SVG standard is experimental. SVGs generated with BeamerPresenter may be corrupt and might lead to the crash of other applications. Pasting from other applications will usually not work.
 * The detection of unsaved changes is not reliable. The warning of unsaved changes can be avoided by using the action "quit unsafe" instead of "quit".
 * Sometimes slides are not automatically rendered to the correct size when resizing the window. Changing or updating the page should solve this.
 * The cache of slides does not handle PDF files with varying page sizes correctly.

@@ -54,46 +54,77 @@ Gesture string_to_gesture(const QString &string) noexcept
 
 const QString action_to_description(const Action action) noexcept
 {
-    static const std::map<Action, const char*> lookup_table
+    switch (action)
     {
-        {PreviousPage, "go to previous page"},
-        {NextPage, "go to next page"},
-        {FirstPage, "go to first page"},
-        {LastPage, "go to last page"},
-        {Update, "update view (use if e.g. slide has bad resolution after resizing the window)"},
-        {NextSkippingOverlays, "go to next page which has not the same page label as the current page"},
-        {PreviousSkippingOverlays, "go to previous page which has not the same page label as the current page"},
-        {ReloadFiles, "reload PDF file(s)."},
-        {SaveDrawings, "save drawings, times and notes to file"},
-        {SaveDrawingsAs, "ask where to save drawings, times and notes"},
-        {LoadDrawings, "load drawings etc. from file"},
-        {LoadDrawingsNoClear, "load drawings etc. from file without first clearing existing drawings"},
-        {UndoDrawing, "undo last drawing/erasing step in the presentation on the current slide"},
-        {UndoDrawingLeft, "undo last drawing/erasing step on the left half of a pdf document which is split into notes and a presentation"},
-        {UndoDrawingRight, "undo last drawing/erasing step on the right half of a pdf document which is split into notes and a presentation"},
-        {RedoDrawing, "redo undone drawing/erasing step in the presentation on the current slide"},
-        {RedoDrawingLeft, "redo last drawing/erasing step on the left half of a pdf document which is split into notes and a presentation"},
-        {RedoDrawingRight, "redo last drawing/erasing step on the right half of a pdf document which is split into notes and a presentation"},
-        {ClearDrawing, "clear all drawings on the current presentation slide"},
-        {ClearDrawingLeft, "clear all drawings of the current slide on the left half of a pdf document which is split into notes and a presentation"},
-        {ClearDrawingRight, "clear all drawings of the current slide on the right half of a pdf document which is split into notes and a presentation"},
-        {StartTimer, "start or resume presentation timer"},
-        {StopTimer, "pause presentation timer"},
-        {StartStopTimer, "pause or continue presentation timer"},
-        {ScrollDown, "scroll down presentation view: adds extra space below the slide for drawing"},
-        {ScrollUp, "scroll up presentation view"},
-        {ScrollNormal, "reset view after scrolling to show full slide again"},
-        {PlayMedia, "play all videos on the current slide"},
-        {PauseMedia, "pause all videos on the current slide"},
-        {PlayPauseMedia, "If any video is playing: pause all videos. Otherwise: start all videos."},
-        {FullScreen, "toggle fullscreen mode for currently active window"},
-        {Quit, "quit and ask to save drawings if there are unsaved changes. Detection of unsaved chagnes is not reliable yet."},
-        {QuitNoConfirmation, "quit without asking to save drawings"},
-    };
-    const auto find = lookup_table.find(action);
-    if (find == lookup_table.end())
+    case PreviousPage:
+        return QObject::tr("go to previous page");
+    case NextPage:
+        return QObject::tr("go to next page");
+    case FirstPage:
+        return QObject::tr("go to first page");
+    case LastPage:
+        return QObject::tr("go to last page");
+    case Update:
+        return QObject::tr("update view (use if e.g. slide has bad resolution after resizing the window)");
+    case NextSkippingOverlays:
+        return QObject::tr("go to next page which has not the same page label as the current page");
+    case PreviousSkippingOverlays:
+        return QObject::tr("go to previous page which has not the same page label as the current page");
+    case ReloadFiles:
+        return QObject::tr("reload PDF file(s)");
+    case SaveDrawings:
+        return QObject::tr("save drawings, times and notes to file");
+    case SaveDrawingsAs:
+        return QObject::tr("ask where to save drawings, times and notes");
+    case LoadDrawings:
+        return QObject::tr("load drawings etc. from file");
+    case LoadDrawingsNoClear:
+        return QObject::tr("load drawings etc. from file without first clearing existing drawings");
+    case UndoDrawing:
+        return QObject::tr("undo last drawing/erasing step in the presentation on the current slide");
+    case UndoDrawingLeft:
+        return QObject::tr("undo last drawing/erasing step on the left half of a pdf document which is split into notes and a presentation");
+    case UndoDrawingRight:
+        return QObject::tr("undo last drawing/erasing step on the right half of a pdf document which is split into notes and a presentation");
+    case RedoDrawing:
+        return QObject::tr("redo undone drawing/erasing step in the presentation on the current slide");
+    case RedoDrawingLeft:
+        return QObject::tr("redo last drawing/erasing step on the left half of a pdf document which is split into notes and a presentation");
+    case RedoDrawingRight:
+        return QObject::tr("redo last drawing/erasing step on the right half of a pdf document which is split into notes and a presentation");
+    case ClearDrawing:
+        return QObject::tr("clear all drawings on the current presentation slide");
+    case ClearDrawingLeft:
+        return QObject::tr("clear all drawings of the current slide on the left half of a pdf document which is split into notes and a presentation");
+    case ClearDrawingRight:
+        return QObject::tr("clear all drawings of the current slide on the right half of a pdf document which is split into notes and a presentation");
+    case StartTimer:
+        return QObject::tr("start or resume presentation timer");
+    case StopTimer:
+        return QObject::tr("pause presentation timer");
+    case StartStopTimer:
+        return QObject::tr("pause or continue presentation timer");
+    case ScrollDown:
+        return QObject::tr("scroll down presentation view: adds extra space below the slide for drawing");
+    case ScrollUp:
+        return QObject::tr("scroll up presentation view");
+    case ScrollNormal:
+        return QObject::tr("reset view after scrolling to show full slide again");
+    case PlayMedia:
+        return QObject::tr("play all videos on the current slide");
+    case PauseMedia:
+        return QObject::tr("pause all videos on the current slide");
+    case PlayPauseMedia:
+        return QObject::tr("If any video is playing: pause all videos. Otherwise: start all videos.");
+    case FullScreen:
+        return QObject::tr("toggle fullscreen mode for currently active window");
+    case Quit:
+        return QObject::tr("quit and ask to save drawings if there are unsaved changes. Detection of unsaved chagnes is not reliable yet.");
+    case QuitNoConfirmation:
+        return QObject::tr("quit without asking to save drawings");
+    default:
         return "";
-    return QObject::tr(find->second);
+    };
 }
 
 
