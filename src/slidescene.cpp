@@ -1586,9 +1586,13 @@ void SlideScene::copyToClipboard() const
     writer.writeComment(" Created with BeamerPresenter ");
     writer.writeStartElement("svg");
     writer.writeAttribute("version", "1.1");
+    writer.writeAttribute("xmlns", "http://www.w3.org/2000/svg");
+    writer.writeAttribute("id", "svg1");
     const QRectF rect = selection_bounding_rect.sceneBoundingRect();
     writer.writeAttribute("width", QString::number(rect.width()));
     writer.writeAttribute("height", QString::number(rect.height()));
+    writer.writeAttribute("viewBox", "0 0 " + QString::number(width()) + " " + QString::number(height()));
+    int id_counter = 1;
     for (auto &item : selection)
     {
         const QTransform transform = item->transform();
@@ -1609,8 +1613,10 @@ void SlideScene::copyToClipboard() const
             writer.writeStartElement("g");
             writer.writeAttribute("x", QString::number(item->x()));
             writer.writeAttribute("y", QString::number(item->y()));
+            writer.writeAttribute("id", "g"+QString::number(++id_counter));
             writer.writeAttribute("transform", matrix);
             writer.writeStartElement("path");
+            writer.writeAttribute("id", "path"+QString::number(++id_counter));
             const DrawTool &tool = path->getTool();
             QString style = "fill:";
             style += tool.brush().style() == Qt::NoBrush ? "none" : tool.brush().color().name();
@@ -1629,6 +1635,7 @@ void SlideScene::copyToClipboard() const
         {
             const TextGraphicsItem *textItem = static_cast<const TextGraphicsItem*>(item);
             writer.writeStartElement("text");
+            writer.writeAttribute("id", "text"+QString::number(++id_counter));
             const QPointF origin = item->sceneBoundingRect().bottomLeft();
             // TODO: coordinates are shifted.
             writer.writeAttribute("x", QString::number(origin.x()));

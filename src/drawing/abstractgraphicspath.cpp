@@ -47,6 +47,11 @@ QPainterPath AbstractGraphicsPath::shape() const
     if (!shape_cache.isEmpty())
         return shape_cache;
     QPainterPath path;
+    if (coordinates.length() == 1)
+    {
+        path.addEllipse(coordinates.first(), _tool.width()/2, _tool.width()/2);
+        return path;
+    }
     path.addPolygon(QPolygonF(coordinates));
     QPen pen(_tool.pen());
     if (pen.widthF() < preferences()->path_min_selectable_width)
