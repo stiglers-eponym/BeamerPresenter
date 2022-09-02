@@ -4,10 +4,13 @@
 cmake_minimum_required(VERSION 3.16)
 
 project(beamerpresenter
-    VERSION 0.2.2
+    VERSION 0.2.3
     DESCRIPTION "Multi-screen PDF presentation viewer"
     HOMEPAGE_URL "https://github.com/stiglers-eponym/BeamerPresenter"
     LANGUAGES CXX)
+
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_EXTENSIONS OFF)
 
 # Define available build/config types
 set(QT_VERSION_MAJOR 6 CACHE STRING "Qt major version")
