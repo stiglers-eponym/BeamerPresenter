@@ -6,8 +6,8 @@ on:
       - "v*"
 
 env:
-  MUPDF_VERSION: 1.19.1
-  MUPDF_SHA256SUM: b5eac663fe74f33c430eda342f655cf41fa73d71610f0884768a856a82e3803e
+  MUPDF_VERSION: 1.20.3
+  MUPDF_SHA256SUM: 108c4ad87d5cdd3ad47a3a872acdf101693283442469629dabb7631f1f3a0b3f
 
 jobs:
   package:
@@ -22,6 +22,7 @@ jobs:
       run: >
         sudo apt-get install -y --no-install-recommends
         cmake
+        zstd
         zlib1g-dev
         libmupdf-dev
         libgumbo-dev
@@ -108,9 +109,9 @@ jobs:
 
     - name: Download and unpack MuPDF
       run: |
-        wget -q https://mupdf.com/downloads/archive/mupdf-${{ env.MUPDF_VERSION }}-source.tar.xz
-        sha256sum -c - <<< "${{ env.MUPDF_SHA256SUM }} mupdf-${{ env.MUPDF_VERSION }}-source.tar.xz"
-        tar -xf "mupdf-${{ env.MUPDF_VERSION }}-source.tar.xz"
+        wget -q https://mupdf.com/downloads/archive/mupdf-${{ env.MUPDF_VERSION }}-source.tar.zst
+        sha256sum -c - <<< "${{ env.MUPDF_SHA256SUM }} mupdf-${{ env.MUPDF_VERSION }}-source.tar.zst"
+        tar -xf "mupdf-${{ env.MUPDF_VERSION }}-source.tar.zst"
 
     - name: Build MuPDF
       run : |
