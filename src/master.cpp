@@ -475,7 +475,6 @@ QWidget* Master::createWidget(QJsonObject &object, QWidget *parent)
         // Mute slides by default, except if they are marked as master.
         if (!object.value("mute").toBool(!object.value("master").toBool(false)))
             scene->flags() &= ~SlideScene::MuteSlide;
-        connect(slide, &SlideView::sendKeyEvent, this, &Master::receiveKeyEvent);
         connect(slide, &SlideView::sendAction, this, &Master::handleAction);
         connect(scene, &SlideScene::navigationToViews, slide, &SlideView::pageChanged, Qt::DirectConnection);
         widget = slide;
@@ -605,6 +604,7 @@ QWidget* Master::createWidget(QJsonObject &object, QWidget *parent)
     }
     if (widget)
     {
+        widget->installEventFilter(this);
         // Add keyboard shortcut.
         if (object.contains("keys"))
         {
@@ -641,17 +641,24 @@ void Master::showAll() const
     }
 }
 
-void Master::receiveKeyEvent(const QKeyEvent* event)
+bool Master::eventFilter(QObject *obj, QEvent *event)
 {
+    if (event->type() != QEvent::KeyPress)
+        return QObject::eventFilter(obj, event);
+    event->ignore();
+    obj->event(event);
+    if (event->isAccepted())
+        return true;
+    const auto *kevent = static_cast<QKeyEvent*>(event);
 #if (QT_VERSION_MAJOR >= 6)
-    const QKeySequence key_code(event->keyCombination());
+    const QKeySequence key_code(kevent->keyCombination());
 #else
-    const quint32 key_code = event->key() | (event->modifiers() & ~Qt::KeypadModifier);
+    const quint32 key_code = kevent->key() | (kevent->modifiers() & ~Qt::KeypadModifier);
 #endif
     // Search shortcuts for given key sequence.
     {
         QWidget* widget = shortcuts.value(key_code);
-        debug_msg(DebugKeyInput, "Key action:" << widget << event << (event->key() | (event->modifiers() & ~Qt::KeypadModifier)));
+        debug_msg(DebugKeyInput, "Key action:" << widget << kevent << (kevent->key() | (kevent->modifiers() & ~Qt::KeypadModifier)));
         if (widget)
         {
             widget->show();
@@ -692,6 +699,8 @@ void Master::receiveKeyEvent(const QKeyEvent* event)
                 setTool(new Tool(*tool));
         }
     }
+    event->accept();
+    return true;
 }
 
 void Master::nextSlide() const noexcept

@@ -99,11 +99,11 @@ public:
     /// Get open file name from QFileDialog
     static QString getOpenFileName();
 
-public slots:
-    /// Handle key events collected by any other object.
-    /// By default all key events are redirected to this and handled here.
-    void receiveKeyEvent(const QKeyEvent* event);
+protected:
+    /// Filter key input events from other widgets
+    bool eventFilter(QObject *obj, QEvent *event) override;
 
+public slots:
     /// Read memory size restriction from preferences and distribute memory to pixcaches.
     void distributeMemory();
 

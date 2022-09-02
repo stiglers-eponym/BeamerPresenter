@@ -27,7 +27,7 @@ void ThumbnailButton::mouseReleaseEvent(QMouseEvent *event)
 
 void ThumbnailButton::focusInEvent(QFocusEvent*)
 {
-    setFrameStyle(QFrame::Panel);
+    setFrameStyle(QFrame::Panel | QFrame::Plain);
     setLineWidth(2);
     QPalette palette;
     palette.setColor(QPalette::WindowText, Qt::red);
