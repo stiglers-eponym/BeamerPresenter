@@ -4,6 +4,7 @@
 #ifndef PATHCONTAINER_H
 #define PATHCONTAINER_H
 
+#include <memory>
 #include <QPointF>
 #include <QTransform>
 #include <QString>
@@ -57,19 +58,19 @@ namespace drawHistory
      */
     struct Step {
         /// Items with the transformation applied in this history step.
-        QHash<QGraphicsItem*, QTransform> transformedItems;
+        QHash<std::shared_ptr<QGraphicsItem>, QTransform> transformedItems;
 
         /// Changes of draw tool.
-        QHash<QGraphicsItem*, DrawToolDifference> drawToolChanges;
+        QHash<std::shared_ptr<QGraphicsItem>, DrawToolDifference> drawToolChanges;
 
         /// Changes of text properties.
-        QHash<QGraphicsItem*, TextPropertiesDifference> textPropertiesChanges;
+        QHash<std::shared_ptr<QGraphicsItem>, TextPropertiesDifference> textPropertiesChanges;
 
         /// Newly created items with their index after the history step.
-        QMap<int, QGraphicsItem*> createdItems;
+        QMap<int, std::shared_ptr<QGraphicsItem>> createdItems;
 
         /// Deleted items with their indices before the history step.
-        QMap<int, QGraphicsItem*> deletedItems;
+        QMap<int, std::shared_ptr<QGraphicsItem>> deletedItems;
 
         /// Check whether this step includes any changes.
         bool isEmpty() const {
@@ -98,11 +99,11 @@ public:
 
 private:
     /// List of currently visible paths in the order in which they were created
-    QList<QGraphicsItem*> paths;
+    QList<std::shared_ptr<QGraphicsItem>> paths;
 
     /// List of changes forming the history of this, in the order in which they
     /// were created.
-    QList<drawHistory::Step*> history;
+    QList<std::shared_ptr<drawHistory::Step>> history;
 
     /**
      * Current position in history, measured from history.last().
@@ -141,12 +142,12 @@ public:
 
     /// Iterator over current paths.
     /// @see cend()
-    QList<QGraphicsItem*>::const_iterator cbegin() const noexcept
+    QList<std::shared_ptr<QGraphicsItem>>::const_iterator cbegin() const noexcept
     {return paths.cbegin();}
 
     /// End of iterator over current paths.
     /// @see cbegin()
-    QList<QGraphicsItem*>::const_iterator cend() const noexcept
+    QList<std::shared_ptr<QGraphicsItem>>::const_iterator cend() const noexcept
     {return paths.cend();}
 
     /// Clear history such that only n undo steps are possible.
@@ -231,10 +232,10 @@ public:
     /// Remove paths.
     void removeItems(const QList<QGraphicsItem*> &items);
 
-    /// Append drawHistory::Step.
-    void addHistoryStep(drawHistory::Step *step);
-
 public slots:
+    /// Append drawHistory::Step.
+    void addHistoryStep(std::shared_ptr<drawHistory::Step> step);
+
     // Remove the item in a new history step.
     void removeItem(QGraphicsItem *item)
     {replaceItem(item, NULL);}
@@ -242,6 +243,9 @@ public slots:
     /// Notify of a change in a text item, add the item to history if necessary.
     void addTextItem(QGraphicsItem *item)
     {replaceItem(NULL, item);}
+
+    /// Bring list of items to foreground and add history step.
+    void bringToForeground(const QList<QGraphicsItem*> &to_foreground);
 };
 
 

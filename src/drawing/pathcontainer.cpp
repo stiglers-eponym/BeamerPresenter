@@ -12,6 +12,7 @@
 #include "src/drawing/textgraphicsitem.h"
 #include "src/drawing/basicgraphicspath.h"
 #include "src/drawing/fullgraphicspath.h"
+#include "src/drawing/selectionrectitem.h"
 #include "src/names.h"
 #include "src/log.h"
 #include "src/preferences.h"
@@ -21,9 +22,7 @@ PathContainer::~PathContainer()
 {
     truncateHistory();
     clearHistory();
-    // This is dangerous: check which paths are owned by QGraphicsScene.
-    while (!paths.isEmpty())
-        delete paths.takeLast();
+    paths.clear();
 }
 
 bool PathContainer::undo(QGraphicsScene *scene)
@@ -35,7 +34,7 @@ bool PathContainer::undo(QGraphicsScene *scene)
     // Mark that we moved back in history.
     inHistory++;
 
-    const drawHistory::Step *step = history[history.length() - inHistory];
+    const std::shared_ptr<drawHistory::Step> step = history[history.length() - inHistory];
 
     // 1. Undo transformations.
     for (auto it = step->transformedItems.constBegin(); it != step->transformedItems.constEnd(); ++it)
@@ -50,7 +49,7 @@ bool PathContainer::undo(QGraphicsScene *scene)
             warn_msg("History of draw tool changes includes item of invalid type" << it.key()->type());
             continue;
         }
-        auto path = static_cast<AbstractGraphicsPath*>(it.key());
+        auto path = std::static_pointer_cast<AbstractGraphicsPath>(it.key());
         DrawTool tool = path->getTool();
         tool.setPen(it->old_pen);
         tool.brush() = it->old_brush;
@@ -67,7 +66,7 @@ bool PathContainer::undo(QGraphicsScene *scene)
             warn_msg("History of text propery changes includes item of invalid type" << it.key()->type());
             continue;
         }
-        auto text = static_cast<TextGraphicsItem*>(it.key());
+        auto text = std::static_pointer_cast<TextGraphicsItem>(it.key());
         text->setFont(it->old_font);
         text->setDefaultTextColor(text->defaultTextColor().rgba() ^ it->color_diff);
         text->update();
@@ -75,7 +74,7 @@ bool PathContainer::undo(QGraphicsScene *scene)
 
     // 4. Remove newly created items.
     // Get the (sorted) indices of items which should be removed.
-    const QMap<int, QGraphicsItem*> &removeItems = step->createdItems;
+    const QMap<int, std::shared_ptr<QGraphicsItem>> &removeItems = step->createdItems;
     // Iterate over the keys in reverse order, because otherwise the indices of
     // items which we still want to delete would change.
     for (auto it = removeItems.constEnd(); it != removeItems.constBegin();)
@@ -84,21 +83,21 @@ bool PathContainer::undo(QGraphicsScene *scene)
         if ((*it)->scene())
         {
             (*it)->clearFocus();
-            (*it)->scene()->removeItem(*it);
+            (*it)->scene()->removeItem(it->get());
         }
     }
 
     // 5. Restore old items.
     // Get the old items from history.
-    const QMap<int, QGraphicsItem*> &oldItems = step->deletedItems;
+    const QMap<int, std::shared_ptr<QGraphicsItem>> &oldItems = step->deletedItems;
     for (auto it = oldItems.constBegin(); it != oldItems.constEnd(); ++it)
     {
         paths.insert(it.key(), *it);
         if (scene)
         {
-            scene->addItem(*it);
+            scene->addItem(it->get());
             if (it.key() + 1 < paths.length())
-                (*it)->stackBefore(paths[it.key() + 1]);
+                (*it)->stackBefore(paths[it.key() + 1].get());
         }
         (*it)->show();
     }
@@ -112,13 +111,13 @@ bool PathContainer::redo(QGraphicsScene *scene)
     if (inHistory < 1)
         return false;
 
-    const drawHistory::Step *step = history[history.length() - inHistory];
+    const std::shared_ptr<drawHistory::Step> step = history[history.length() - inHistory];
     // Move forward in history.
     inHistory--;
 
     // 1. First remove items which were deleted in this step.
     // Get the (sorted) indices of items which should be removed.
-    const QMap<int, QGraphicsItem*> &oldItems = step->deletedItems;
+    const QMap<int, std::shared_ptr<QGraphicsItem>> &oldItems = step->deletedItems;
     // Iterate over the keys in reverse order, because otherwise the indices of
     // items which we still want to delete would change.
     for (auto it = oldItems.constEnd(); it != oldItems.constBegin();)
@@ -127,21 +126,21 @@ bool PathContainer::redo(QGraphicsScene *scene)
         if ((*it)->scene())
         {
             (*it)->clearFocus();
-            (*it)->scene()->removeItem(*it);
+            (*it)->scene()->removeItem(it->get());
         }
     }
 
     // 2. Restore newly created items.
     // Get the new items from history.
-    const QMap<int, QGraphicsItem*> &newItems = step->createdItems;
+    const QMap<int, std::shared_ptr<QGraphicsItem>> &newItems = step->createdItems;
     for (auto it = newItems.constBegin(); it != newItems.constEnd(); ++it)
     {
         paths.insert(it.key(), it.value());
         if (scene)
         {
-            scene->addItem(it.value());
+            scene->addItem(it->get());
             if (it.key() + 1 < paths.length())
-                it.value()->stackBefore(paths[it.key() + 1]);
+                (*it)->stackBefore(paths[it.key() + 1].get());
         }
     }
 
@@ -154,7 +153,7 @@ bool PathContainer::redo(QGraphicsScene *scene)
             warn_msg("History of draw tool changes includes item of invalid type" << it.key()->type());
             continue;
         }
-        auto path = static_cast<AbstractGraphicsPath*>(it.key());
+        auto path = std::static_pointer_cast<AbstractGraphicsPath>(it.key());
         DrawTool tool = path->getTool();
         tool.setPen(it->new_pen);
         tool.brush() = it->new_brush;
@@ -171,7 +170,7 @@ bool PathContainer::redo(QGraphicsScene *scene)
             warn_msg("History of text propery changes includes item of invalid type" << it.key()->type());
             continue;
         }
-        auto text = static_cast<TextGraphicsItem*>(it.key());
+        auto text = std::static_pointer_cast<TextGraphicsItem>(it.key());
         text->setFont(it->new_font);
         text->setDefaultTextColor(text->defaultTextColor().rgba() ^ it->color_diff);
         text->update();
@@ -197,13 +196,12 @@ void PathContainer::truncateHistory()
         while (inHistory > 0)
         {
             // Take the last step from history (removes it from history).
-            drawHistory::Step *step = history.takeLast();
+            std::shared_ptr<drawHistory::Step> step = history.takeLast();
             // Delete all future objects in this step. These objects are not visible.
             qDeleteAll(step->createdItems);
             step->createdItems.clear();
             // Delete the step. The past objects of the step are untouched, since
             // they are still owned by other history steps or by this.
-            delete step;
             --inHistory;
         }
     }
@@ -222,17 +220,11 @@ void PathContainer::clearHistory(int n)
 
     // Delete the first entries in history until
     // history.length() - inHistory <= n .
-    drawHistory::Step *step;
+    std::shared_ptr<drawHistory::Step> step;
     for (int i = history.length() - inHistory; i > n; i--)
     {
         // Take the first step from history (removes it from history).
-        step = history.takeFirst();
-        // Delete all past objects in this step. These objects are not visible.
-        // TODO: Does this delete the correct part?
-        qDeleteAll(step->deletedItems);
-        // Delete the step. The future objects of the step are untouched, since
-        // they are still owned by other history steps or by this.
-        delete step;
+        history.takeFirst();
     }
 }
 
@@ -240,7 +232,7 @@ void PathContainer::clearPaths()
 {
     truncateHistory();
     // Create a new history step.
-    drawHistory::Step *step = new drawHistory::Step();
+    std::shared_ptr<drawHistory::Step> step(new drawHistory::Step());
     // Append all paths to the history step.
     // If scene != NULL, additionally remove the items from the scene.
     auto it = paths.cbegin();
@@ -250,7 +242,7 @@ void PathContainer::clearPaths()
         if (*it && (*it)->scene())
         {
             (*it)->clearFocus();
-            (*it)->scene()->removeItem(*it);
+            (*it)->scene()->removeItem(it->get());
         }
     }
     // Add the scene to history.
@@ -268,10 +260,11 @@ void PathContainer::append(QGraphicsItem *item)
     // Remove all "redo" options.
     truncateHistory();
     // Create new history step which adds item.
-    drawHistory::Step *const step = new drawHistory::Step();
-    step->createdItems.insert(paths.length(), item);
+    std::shared_ptr<drawHistory::Step> const step(new drawHistory::Step());
+    const std::shared_ptr<QGraphicsItem> item_ptr(item);
+    step->createdItems.insert(paths.length(), item_ptr);
     // Add item to paths.
-    paths.append(item);
+    paths.append(item_ptr);
     // Add step to history.
     history.append(step);
     // Limit history size (if necessary).
@@ -284,7 +277,7 @@ void PathContainer::startMicroStep()
     // Remove all "redo" options.
     truncateHistory();
     // Create new, empty history step.
-    history.append(new drawHistory::Step());
+    history.append(std::shared_ptr<drawHistory::Step>(new drawHistory::Step()));
     inHistory = -1;
 }
 
@@ -297,7 +290,7 @@ void PathContainer::eraserMicroStep(const QPointF &scene_pos, const qreal size)
     }
 
     // Iterate over all paths and check whether they intersect with scene_pos.
-    QList<QGraphicsItem*>::iterator path_it = paths.begin();
+    QList<std::shared_ptr<QGraphicsItem>>::iterator path_it = paths.begin();
     for (int i=0; path_it != paths.end(); ++path_it, i++)
     {
         // Check if scene_pos lies within the path's bounding rect (plus extra
@@ -314,7 +307,7 @@ void PathContainer::eraserMicroStep(const QPointF &scene_pos, const qreal size)
             case FullGraphicsPath::Type:
             case BasicGraphicsPath::Type:
             {
-                AbstractGraphicsPath *path = static_cast<AbstractGraphicsPath*>(*path_it);
+                std::shared_ptr<AbstractGraphicsPath> path = std::static_pointer_cast<AbstractGraphicsPath>(*path_it);
                 // Apply eraser to path. Get a list of paths obtained by splitting
                 // path using the eraser.
                 QList<AbstractGraphicsPath*> list = path->splitErase(scene_pos, size);
@@ -325,7 +318,7 @@ void PathContainer::eraserMicroStep(const QPointF &scene_pos, const qreal size)
                     history.last()->deletedItems.insert(i, path);
                     // Hide the path, remove it from scene (if possible).
                     if (scene)
-                        scene->removeItem(path);
+                        scene->removeItem(path.get());
                     else
                         path->hide();
                     // Remove path from paths by settings paths[i] = NULL.
@@ -343,7 +336,7 @@ void PathContainer::eraserMicroStep(const QPointF &scene_pos, const qreal size)
                     // First mark this path as removed in history.
                     history.last()->deletedItems.insert(i, path);
                     // Create the QGraphicsItemGroup.
-                    QGraphicsItemGroup *group = new QGraphicsItemGroup();
+                    std::shared_ptr<QGraphicsItemGroup> group(new QGraphicsItemGroup());
                     // Add all paths in list (which were obtained by erasing in path)
                     // to group.
                     for (const auto item : qAsConst(list))
@@ -354,9 +347,9 @@ void PathContainer::eraserMicroStep(const QPointF &scene_pos, const qreal size)
                     // Replace path by group in scene (if possible).
                     if (scene)
                     {
-                        scene->addItem(group);
-                        group->stackBefore(path);
-                        scene->removeItem(path);
+                        scene->addItem(group.get());
+                        group->stackBefore(path.get());
+                        scene->removeItem(path.get());
                     }
                     else
                         path->hide();
@@ -371,7 +364,7 @@ void PathContainer::eraserMicroStep(const QPointF &scene_pos, const qreal size)
                 // Apply eraser again to all items of the group.
                 // Within the group, stacking order is irrelevant since all items were
                 // created from the same path by erasing.
-                QGraphicsItemGroup *group = static_cast<QGraphicsItemGroup*>(*path_it);
+                const auto group = std::static_pointer_cast<QGraphicsItemGroup>(*path_it);
                 for (const auto child : static_cast<const QList<QGraphicsItem*>>(group->childItems()))
                 {
                     // All items in the group should be paths. But we better check again.
@@ -420,7 +413,7 @@ bool PathContainer::applyMicroStep()
     // At each index i in oldItems.keys(), paths[i] has either been removed
     // or replaced by a QGraphicsItemGroup* containing new paths.
     // Here we add these new paths to history.last().
-    const QMap<int, QGraphicsItem*> &oldItems = history.last()->deletedItems;
+    const QMap<int, std::shared_ptr<QGraphicsItem>> &oldItems = history.last()->deletedItems;
     if (oldItems.isEmpty())
     {
         inHistory = 0;
@@ -433,23 +426,22 @@ bool PathContainer::applyMicroStep()
     {
         // item should be either NULL (if this path has been erased completely)
         // or a QGraphicsItemGroup* (if this path has been erased partially).
-        QGraphicsItem *item = paths.value(it.key());
+        std::shared_ptr<QGraphicsItem> item = paths.value(it.key());
         if (item && item->type() == QGraphicsItemGroup::Type)
         {
             // If item is a QGraphicsItemGroup*: Add all its child paths to
             // history.last().
-            QGraphicsItemGroup *group = static_cast<QGraphicsItemGroup*>(item);
+            const auto group = std::static_pointer_cast<QGraphicsItemGroup>(item);
             for (const auto child : static_cast<const QList<QGraphicsItem*>>(group->childItems()))
             {
                 // The index shift "shift" is given by #(new items) - #(delted items)
                 // which lie before it.key() in paths.
-                history.last()->createdItems.insert(it.key() + shift++, child);
+                history.last()->createdItems.insert(it.key() + shift++, std::shared_ptr<QGraphicsItem>(child));
                 group->removeFromGroup(child);
-                child->stackBefore(group);
+                child->stackBefore(group.get());
             }
             if (group->scene())
-                group->scene()->removeItem(group);
-            delete group;
+                group->scene()->removeItem(group.get());
         }
     }
 
@@ -463,7 +455,7 @@ bool PathContainer::applyMicroStep()
 
     // 3. Add newly created items to path.
     // Get the new items from history (as prepared in step 1.)
-    const QMap<int, QGraphicsItem*> &newItems = history.last()->createdItems;
+    const QMap<int, std::shared_ptr<QGraphicsItem>> &newItems = history.last()->createdItems;
     for (auto it = newItems.cbegin(); it != newItems.cend(); ++it)
     {
         paths.insert(it.key(), it.value());
@@ -472,7 +464,7 @@ bool PathContainer::applyMicroStep()
         case BasicGraphicsPath::Type:
         case FullGraphicsPath::Type:
             if (preferences()->global_flags & Preferences::FinalizeDrawnPaths)
-                static_cast<AbstractGraphicsPath*>(*it)->finalize();
+                std::static_pointer_cast<AbstractGraphicsPath>(*it)->finalize();
             break;
         }
     }
@@ -496,11 +488,11 @@ PathContainer *PathContainer::copy() const noexcept
         {
         case TextGraphicsItem::Type:
         {
-            TextGraphicsItem *olditem = static_cast<TextGraphicsItem*>(path);
+            auto olditem = std::static_pointer_cast<TextGraphicsItem>(path);
             if (!olditem->isEmpty())
             {
                 TextGraphicsItem *newitem = olditem->clone();
-                container->paths.append(newitem);
+                container->paths.append(std::shared_ptr<TextGraphicsItem>(newitem));
                 connect(newitem, &TextGraphicsItem::removeMe, container, &PathContainer::removeItem);
                 connect(newitem, &TextGraphicsItem::addMe, container, &PathContainer::addTextItem);
             }
@@ -508,7 +500,11 @@ PathContainer *PathContainer::copy() const noexcept
         }
         case FullGraphicsPath::Type:
         case BasicGraphicsPath::Type:
-            container->paths.append(static_cast<AbstractGraphicsPath*>(path)->copy());
+            container->paths.append(
+                        std::shared_ptr<AbstractGraphicsPath>(
+                            std::static_pointer_cast<AbstractGraphicsPath>(path)->copy()
+                            )
+                        );
             break;
         }
     }
@@ -523,7 +519,7 @@ void PathContainer::writeXml(QXmlStreamWriter &writer) const
         {
         case TextGraphicsItem::Type:
         {
-            const TextGraphicsItem *item = static_cast<TextGraphicsItem*>(path);
+            const auto item = std::static_pointer_cast<TextGraphicsItem>(path);
             writer.writeStartElement("text");
             writer.writeAttribute("font", QFontInfo(item->font()).family());
             writer.writeAttribute("size", QString::number(item->font().pointSizeF()));
@@ -537,7 +533,7 @@ void PathContainer::writeXml(QXmlStreamWriter &writer) const
         case FullGraphicsPath::Type:
         case BasicGraphicsPath::Type:
         {
-            const AbstractGraphicsPath *item = static_cast<AbstractGraphicsPath*>(path);
+            const auto item = std::static_pointer_cast<AbstractGraphicsPath>(path);
             const DrawTool &tool = item->getTool();
             writer.writeStartElement("stroke");
             switch (tool.tool())
@@ -663,7 +659,7 @@ void PathContainer::loadDrawings(QXmlStreamReader &reader)
             continue;
         }
         if (item)
-            paths.append(item);
+            paths.append(std::shared_ptr<QGraphicsItem>(item));
     }
 }
 
@@ -673,7 +669,7 @@ void PathContainer::loadDrawings(QXmlStreamReader &reader, PathContainer *left, 
     {
         if (reader.name().toUtf8() == "stroke")
         {
-            AbstractGraphicsPath *path = loadPath(reader);
+            auto path = std::shared_ptr<AbstractGraphicsPath>(loadPath(reader));
             if (!path)
                 continue;
             if (path->firstPoint().x() > page_half)
@@ -683,7 +679,7 @@ void PathContainer::loadDrawings(QXmlStreamReader &reader, PathContainer *left, 
         }
         else if (reader.name().toUtf8() == "text")
         {
-            TextGraphicsItem *item = loadTextItem(reader);
+            auto item = std::shared_ptr<TextGraphicsItem>(loadTextItem(reader));
             if (!item)
                 continue;
             if (item->pos().x() > page_half)
@@ -706,28 +702,51 @@ QRectF PathContainer::boundingBox() const noexcept
 
 void PathContainer::replaceItem(QGraphicsItem *olditem, QGraphicsItem *newitem)
 {
-    const int index = olditem ? (paths.last() == olditem ? paths.length()-1 : paths.indexOf(olditem)) : -1;
-    if (index < 0)
+    // TODO: rewrite this function!
+    // TODO: this will lead to problems if an item is hidden in a history step
+    std::shared_ptr<QGraphicsItem> newitem_ptr(nullptr);
+    const int new_index = newitem ? paths.indexOf(newitem) : -1;
+    if (new_index >= 0)
+        newitem_ptr = paths[new_index];
+    else
+        newitem_ptr = std::shared_ptr<QGraphicsItem>(newitem);
+    std::shared_ptr<QGraphicsItem> olditem_ptr(nullptr);
+    const int index = olditem ? (paths.last().get() == olditem ? paths.length()-1 : paths.indexOf(olditem)) : -1;
+    if (index >= 0)
+        olditem_ptr = paths[index];
+    else
     {
         /* This could be dangerous: maybe olditem is still contained in some history step? */
         delete olditem;
         if (newitem)
         {
-            if (!paths.contains(newitem))
-                append(newitem);
+            if (new_index >= 0)
+            {
+                truncateHistory();
+                const std::shared_ptr<drawHistory::Step> step(new drawHistory::Step());
+                step->createdItems.insert(paths.length(), newitem_ptr);
+                // Add item to paths.
+                paths.append(newitem_ptr);
+                // Add step to history.
+                history.append(step);
+            }
             else if (inHistory == -2)
                 inHistory = 0;
         }
         return;
     }
-    if (newitem)
+    if (newitem_ptr)
     {
         // Remove all "redo" options.
         truncateHistory();
-        paths[index] = newitem;
-        drawHistory::Step *const step = new drawHistory::Step();
-        step->deletedItems.insert(index, olditem);
-        step->createdItems.insert(index, newitem);
+        if (index >= 0)
+            paths[index] = newitem_ptr;
+        else
+            paths.append(newitem_ptr);
+        const std::shared_ptr<drawHistory::Step> step(new drawHistory::Step());
+        if (olditem_ptr)
+            step->deletedItems.insert(index, olditem_ptr);
+        step->createdItems.insert(index, newitem_ptr);
         history.append(step);
         // Remove item from it's scene (if it has one).
         if (olditem->scene())
@@ -742,8 +761,8 @@ void PathContainer::replaceItem(QGraphicsItem *olditem, QGraphicsItem *newitem)
         truncateHistory();
         // Remove item from list of currently visible paths.
         paths.removeAt(index);
-        drawHistory::Step *const step = new drawHistory::Step();
-        step->deletedItems.insert(index, olditem);
+        const std::shared_ptr<drawHistory::Step> step(new drawHistory::Step());
+        step->deletedItems.insert(index, olditem_ptr);
         history.append(step);
         // Remove item from it's scene (if it has one).
         if (olditem->scene())
@@ -761,19 +780,24 @@ void PathContainer::addItems(const QList<QGraphicsItem*> &items)
 {
     // Remove all "redo" options.
     truncateHistory();
-    drawHistory::Step *const step = new drawHistory::Step();
+    const std::shared_ptr<drawHistory::Step> step(new drawHistory::Step());
+    std::shared_ptr<QGraphicsItem> item_ptr(nullptr);
     for (const auto item : items)
     {
         if (!item)
             continue;
         if (paths.contains(item))
         {
+            const int idx = paths.indexOf(item);
+            item_ptr = paths[idx];
             // this should never happen
             warn_msg("Item already exists in history");
             continue;
         }
-        step->createdItems.insert(paths.length(), item);
-        paths.append(item);
+        else
+            item_ptr = std::shared_ptr<QGraphicsItem>(item);
+        step->createdItems.insert(paths.length(), item_ptr);
+        paths.append(item_ptr);
     }
     history.append(step);
     // Limit history size (if necessary).
@@ -785,7 +809,7 @@ void PathContainer::removeItems(const QList<QGraphicsItem*> &items)
 {
     // Remove all "redo" options.
     truncateHistory();
-    drawHistory::Step *const step = new drawHistory::Step();
+    const std::shared_ptr<drawHistory::Step> step(new drawHistory::Step());
     int index;
     for (const auto item : items)
     {
@@ -798,7 +822,7 @@ void PathContainer::removeItems(const QList<QGraphicsItem*> &items)
             warn_msg("Item does not exist in history");
             continue;
         }
-        step->deletedItems.insert(index, item);
+        step->deletedItems.insert(index, paths[index]);
     }
     for (auto it=step->deletedItems.cend(); it!=step->deletedItems.cbegin();)
     {
@@ -807,7 +831,7 @@ void PathContainer::removeItems(const QList<QGraphicsItem*> &items)
         if ((*it)->scene())
         {
             (*it)->clearFocus();
-            (*it)->scene()->removeItem(*it);
+            (*it)->scene()->removeItem(it->get());
         }
     }
     history.append(step);
@@ -816,7 +840,7 @@ void PathContainer::removeItems(const QList<QGraphicsItem*> &items)
         clearHistory(preferences()->history_length_visible_slides);
 }
 
-void PathContainer::addHistoryStep(drawHistory::Step *step)
+void PathContainer::addHistoryStep(std::shared_ptr<drawHistory::Step> step)
 {
     // Remove all "redo" options.
     truncateHistory();
@@ -996,4 +1020,23 @@ QDataStream &operator>>(QDataStream &stream, QGraphicsItem *&item)
         item->setTransform(transform);
     }
     return stream;
+}
+
+void PathContainer::bringToForeground(const QList<QGraphicsItem*> &to_foreground)
+{
+    const std::shared_ptr<drawHistory::Step> step(new drawHistory::Step());
+    for (const auto selected_item : to_foreground)
+        for (int i=0; i<paths.size(); ++i)
+        {
+            if (paths[i].get() == selected_item)
+                break;
+            if (paths[i]->parentItem() == selected_item->parentItem() && paths[i]->type() != SelectionRectItem::Type)
+            {
+                paths[i]->stackBefore(selected_item);
+                selected_item->update();
+                break;
+            }
+        }
+    if (!step->isEmpty())
+        addHistoryStep(step);
 }

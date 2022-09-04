@@ -55,6 +55,7 @@ SlideScene::SlideScene(const PdfMaster *master, const PagePart part, QObject *pa
     connect(this, &SlideScene::requestNewPathContainer, master, &PdfMaster::requestNewPathContainer, Qt::DirectConnection);
     connect(this, &SlideScene::sendRemovePaths, master, &PdfMaster::removeItems, Qt::DirectConnection);
     connect(this, &SlideScene::sendAddPaths, master, &PdfMaster::addItems, Qt::DirectConnection);
+    connect(this, &SlideScene::bringToForeground, master, &PdfMaster::bringToForeground, Qt::DirectConnection);
     connect(this, &SlideScene::selectionChanged, this, &SlideScene::updateSelectionRect, Qt::DirectConnection);
     pageItem->setZValue(-1e2);
     addItem(&selection_bounding_rect);
@@ -1697,7 +1698,7 @@ void SlideScene::pasteFromClipboard()
 
                 QString coordinates = reader.attributes().value("d").toString();
                 coordinates.replace(",", " ");
-                // TODO: currently all coordinates are interpreted as absolute coordinates.
+                // TODO: currently all coordinates are interpreted as absolute coordinates. This is wrong!
                 coordinates.remove("m");
                 coordinates.remove("l");
                 coordinates.remove("z");
@@ -1747,10 +1748,12 @@ void SlideScene::pasteFromClipboard()
     emit sendAddPaths(page | page_part, items);
 }
 
-void SlideScene::selectionToForeground() const
+void SlideScene::selectionToForeground()
 {
     const QList<QGraphicsItem*> selection = selectedItems();
-    // TODO: implement this
+    if (selection.isEmpty())
+        return;
+    emit bringToForeground(page | page_part, selection);
 }
 
 void SlideScene::toolChanged(const Tool *tool) noexcept

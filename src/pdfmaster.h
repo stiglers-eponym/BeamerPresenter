@@ -212,6 +212,9 @@ public slots:
     void newUnsavedDrawings() noexcept
     {_flags |= UnsavedDrawings;}
 
+    /// Bring given items to foreground and add history step.
+    void bringToForeground(int page, const QList<QGraphicsItem*> &to_foreground);
+
 signals:
     /// Write notes from notes widgets to stream writer.
     void writeNotes(QXmlStreamWriter &writer) const;

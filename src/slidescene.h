@@ -225,7 +225,7 @@ public:
     void pasteFromClipboard();
 
     /// Bring selected items to foreground.
-    void selectionToForeground() const;
+    void selectionToForeground();
 
 protected:
     /**
@@ -330,6 +330,9 @@ signals:
 
     /// Notify master that there are unsaved changes.
     void newUnsavedDrawings();
+
+    /// Bring given items to foreground and add history step.
+    void bringToForeground(int page, const QList<QGraphicsItem*> &to_foreground) const;
 };
 
 #endif // SLIDESCENE_H
