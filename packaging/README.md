@@ -35,7 +35,7 @@ sudo apt install --no-install-recommends qt6-multimedia-dev libqt6opengl6-dev li
 For version 0.2.3 the source can be downloaded [here](https://github.com/stiglers-eponym/BeamerPresenter/archive/refs/tags/v0.2.3.tar.gz).
 Check and unpack the download:
 ```sh
-#sha256sum -c - <<< "??? v0.2.3.tar.gz"
+sha256sum -c - <<< "ed4b76e1c51227b538cab4b736113800a1d5069d2131933d56103082c0eb5468 v0.2.3.tar.gz"
 tar -xvf v0.2.3.tar.gz
 cd BeamerPresenter-0.2.3
 ```
