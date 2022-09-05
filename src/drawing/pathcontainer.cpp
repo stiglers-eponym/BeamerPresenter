@@ -530,6 +530,16 @@ void PathContainer::writeXml(QXmlStreamWriter &writer) const
             writer.writeAttribute("color", color_to_rgba(item->defaultTextColor()).toLower());
             writer.writeAttribute("x", QString::number(item->x()));
             writer.writeAttribute("y", QString::number(item->y()));
+            const QTransform transform = item->transform();
+            if (!transform.isIdentity())
+                writer.writeAttribute("transform",
+                        QString("matrix(%1,%2,%3,%4,%5,%6)")
+                            .arg(transform.m11())
+                            .arg(transform.m12())
+                            .arg(transform.m21())
+                            .arg(transform.m22())
+                            .arg(transform.dx())
+                            .arg(transform.dy()));
             writer.writeCharacters(item->toPlainText());
             writer.writeEndElement();
             break;
@@ -638,6 +648,19 @@ TextGraphicsItem *loadTextItem(QXmlStreamReader &reader)
     font.setPointSizeF(reader.attributes().value("size").toDouble());
     item->setFont(font);
     item->setDefaultTextColor(rgba_to_color(reader.attributes().value("color").toString()));
+    QString transform_string = reader.attributes().value("transform").toString();
+    if (transform_string.length() >= 19 && transform_string.startsWith("matrix(") && transform_string.endsWith(")"))
+    {
+        // TODO: this is inefficient
+        transform_string.remove("matrix(");
+        transform_string.remove(")");
+        const QStringList list = transform_string.trimmed().replace(" ", ",").split(",");
+        if (list.length() == 6)
+            item->setTransform(QTransform(
+                    list[0].toDouble(), list[1].toDouble(),
+                    list[2].toDouble(), list[3].toDouble(),
+                    list[4].toDouble(), list[5].toDouble()));
+    }
     const QString text = reader.readElementText();
     if (text.isEmpty())
     {
