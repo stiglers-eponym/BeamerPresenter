@@ -10,9 +10,9 @@ The version with poppler as PDF engine and Qt 6 can be build using:
 _qt_version_major=6 makepkg -p PKGBUILD_poppler
 ```
 The packages for Qt 5 and with MuPDF can be built analogously.
-You can install the newly created package using (for version 0.2.2):
+You can install the newly created package using (for version 0.2.3):
 ```sh
-sudo pacman -U beamerpresenter-poppler-qt6-0.2.2-1-x86_64.pkg.tar.zst
+sudo pacman -U beamerpresenter-poppler-qt6-0.2.3-1-x86_64.pkg.tar.zst
 ```
 The "mupdf-small" packages are compiled with a custom build of MuPDF with disabled javascript that excludes some fonts (MuPDF compiled with `XCFLAGS+=' -DTOFU -DTOFU_CJK -DTOFU_SIL -DFZ_ENABLE_JS=0'`).
 
@@ -32,14 +32,13 @@ sudo apt install --no-install-recommends libmujs-dev libgumbo-dev
 sudo apt install --no-install-recommends qt6-multimedia-dev libqt6opengl6-dev libgl1-mesa-dev qt6-tools-dev qt6-tools-dev-tools qt6-l10n-tools
 ```
 
-For version 0.2.2 the source can be downloaded [here](https://github.com/stiglers-eponym/BeamerPresenter/archive/refs/tags/v0.2.2.tar.gz).
+For version 0.2.3 the source can be downloaded [here](https://github.com/stiglers-eponym/BeamerPresenter/archive/refs/tags/v0.2.3.tar.gz).
 Check and unpack the download:
 ```sh
-sha256sum -c - <<< "6a85e9fc6ab7b6e973c85f3146f370d8d48e6c995c4f4e2c712a8e73f8490707 v0.2.2.tar.gz"
-tar -xvf v0.2.2.tar.gz
-cd BeamerPresenter-0.2.2
+#sha256sum -c - <<< "??? v0.2.3.tar.gz"
+tar -xvf v0.2.3.tar.gz
+cd BeamerPresenter-0.2.3
 ```
-Note: The cmake files of BeamerPresenter-0.2.2 are not compatible with Ubuntu 22.04.
 
 Now configure the package using CMake. This requires the configuration of the Qt version (major and minor version), and the PDF engine (Poppler or MuPDF). The Qt minor version is only needed for version checking of dependencies.
 For building BeamerPresenter with poppler in Ubuntu 20.04 with Qt 5.12 use:
@@ -81,7 +80,7 @@ cpack --config build_dir/CPackConfig.cmake
 
 Now you can install the package:
 ```sh
-sudo apt install ./beamerpresenter-poppler-0.2.2-qt5.12-x86_64.deb
+sudo apt install ./beamerpresenter-poppler-0.2.3-qt5.12-x86_64.deb
 ```
 
 

@@ -7,13 +7,11 @@ The simplest way to install BeamerPresenter (besides the AUR) is to directly ins
 For example, the commands for installing BeamerPresenter with Poppler as PDF engine and Qt 5 after downloading the corresponding file are:
 ```sh
 # Ubuntu 20.04:
-sudo apt install ./beamerpresenter-poppler-0.2.2-qt5-focal-x86_64.deb
-# Ubuntu 21.10:
-sudo apt install ./beamerpresenter-poppler-0.2.2-qt5-impish-x86_64.deb
+sudo apt install ./beamerpresenter-poppler-0.2.3-qt5-focal-x86_64.deb
 # Ubuntu 22.04:
-sudo apt install ./beamerpresenter-poppler-0.2.2-qt5-jammy-x86_64.deb
+sudo apt install ./beamerpresenter-poppler-0.2.3-qt5-jammy-x86_64.deb
 # Arch/Manjaro
-sudo pacman -U beamerpresenter-poppler-qt5-0.2.2-1-x86_64.pkg.tar.zst
+sudo pacman -U beamerpresenter-poppler-qt5-0.2.3-1-x86_64.pkg.tar.zst
 # Flatpak
 flatpak install org.kde.Platform/x86_64/5.15-21.08 # can be skipped if already installed
 flatpak install beamerpresenter.flatpak
@@ -40,7 +38,7 @@ When installing BeamerPresenter you need to choose a PDF engine from MuPDF, Popp
 Enabling multiple PDF engines at compile time is also possible with some limitations (see below).
 
 * Qt PDF only provides a small subset of the features available with Poppler and MuPDF. Missing features include links, page labels, document outline, slide transitions, animations, videos, and sounds.
-* Compiling with Qt PDF can be simpler if Qt PDF is available on you system, because you do not need any external libraries besides Qt. Qt PDF is only available in Qt >= 5.10 (for Qt 5) or Qt >= 6.3 (for Qt 6), but the way how it is included here is probably only compatible with Qt >= 5.14 or Qt >= 6.3. Even Qt packages with compatible versions do not necessarily include Qt PDF.
+* Compiling with Qt PDF can be simpler if Qt PDF is available on you system, because you do not need any external libraries besides Qt. Qt PDF is only available in Qt ≥ 5.10 (for Qt 5) or Qt ≥ 6.3 (for Qt 6), but the way how it is included here is probably only compatible with Qt ≥ 5.14 or Qt ≥ 6.3. Even Qt packages with compatible versions do not necessarily include Qt PDF.
 * MuPDF produces a much larger package size compared to Poppler: 37MB instead of 1.3MB in Arch Linux in default configuration
     * MuPDF is statically linked
     * MuPDF contains about 30MB of fonts that end up in the executable by default
@@ -52,7 +50,7 @@ Enabling multiple PDF engines at compile time is also possible with some limitat
 
 
 ## General requirements
-Building is tested in Arch Linux, Manjaro, Xubuntu 20.04, Xubuntu 21.10, and Kubuntu 22.04.
+Building is tested in Arch Linux, Manjaro, Xubuntu 20.04, and Kubuntu 22.04.
 Older versions of Ubuntu are only compatible with [version 0.1](https://github.com/stiglers-eponym/BeamerPresenter/tree/0.1.x) of BeamerPresenter.
 
 In order to build BeamerPresenter you need to have CMake, zlib and Qt 5/6 including the multimedia module and the linguist tools (only for translations).
@@ -72,7 +70,7 @@ Additionally you need either the Qt 5/6 bindings of Poppler or the MuPDF librari
     * or when using Qt 6 in Ubuntu ≥22.04: `libqt6svg6`
 
 When compiling with Poppler:
-* `libpoppler-qt5-dev`: version 0.86.1 is tested, versions below 0.70 are explicitly not supported. (after the installation you can remove `libpoppler-qt5-dev` and keep only `libpoppler-qt5-1`
+* `libpoppler-qt5-dev`: version 0.86.1 or later. (after the installation you can remove `libpoppler-qt5-dev` and keep only `libpoppler-qt5-1`
 
 When compiling with MuPDF:
 * `libmupdf-dev` (only for building)
@@ -98,7 +96,7 @@ When compiling with Poppler:
 * `poppler-qt5`
 
 When compiling with MuPDF:
-* `libmupdf` (only for building, tested versions: 1.16.1 – 1.20.0)
+* `libmupdf` (only for building, tested versions: 1.16.1 – 1.20.3)
 * `jbig2dec`
 * `openjpeg2`
 * `gumbo-parser`
@@ -110,12 +108,12 @@ Optional, for showing videos:
 
 ## Manual installation
 ### Download
-Download the sources: (Note: version 0.2.2 is not compatible with Ubuntu 22.04)
+Download the sources:
 ```sh
-wget https://github.com/stiglers-eponym/BeamerPresenter/archive/v0.2.2.tar.gz
-sha256sum -c - <<< "6a85e9fc6ab7b6e973c85f3146f370d8d48e6c995c4f4e2c712a8e73f8490707 v0.2.2.tar.gz"
-tar -xf v0.2.2.tar.gz
-cd BeamerPresenter-0.2.2
+wget https://github.com/stiglers-eponym/BeamerPresenter/archive/v0.2.3.tar.gz
+#sha256sum -c - <<< "??? v0.2.3.tar.gz"
+tar -xf v0.2.3.tar.gz
+cd BeamerPresenter-0.2.3
 ```
 Alternatively, you can clone the git repository
 ```sh
@@ -189,7 +187,7 @@ Compiling only with Qt PDF (without Poppler and MuPDF) is probably simpler, but 
 * Qt is available for MinGW and for MS Visual Studio.
 * MuPDF provides a project file that can be compiled with MS Visual Studio.
 * Poppler is available in cygwin. It is possible to build BeamerPresenter with cygwin, MinGW and Poppler. It is probably also possible to build Poppler in Windows, but I gave up at some point.
-* Another option is the Windows subsystem for Linux. On Windows 11 this is probably the simplest way of installing BeamerPresenter on a Windows machine.
+* Another option is the Windows subsystem for Linux.
 
 ### Building
 * [download](https://www.qt.io/download-qt-installer) and install Qt
