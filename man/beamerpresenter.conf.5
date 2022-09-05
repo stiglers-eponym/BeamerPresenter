@@ -117,7 +117,7 @@ Parameter defining sensitivity of shape detection for ellipses. Larger values wi
 .
 .TP
 .BR "rectangle angle tolerance " "= 0.3"
-affects shape recognizer for rectangle: This defines the tolerance in angles of different sides of a rectangle (angle in radiants).
+affects shape recognizer for rectangle: This defines the tolerance in angles of different sides of a rectangle (angle in radiant).
 .
 .TP
 .BR "rectangle closing tolerance " "=0.1"
@@ -241,9 +241,6 @@ only text tool: anything that Qt can interpret as font name.
 .TP
 .B font size
 only text tool: font size (positive number).
-.TP
-.B linewidth
-only eraser: number, width of circle indicating the size of the eraser.
 .PP
 Example: {'tool':'pen', 'color':'green', 'width':2, 'device':['tablet pen', 'touch']}
 .RE

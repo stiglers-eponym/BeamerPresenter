@@ -637,6 +637,7 @@ TextGraphicsItem *loadTextItem(QXmlStreamReader &reader)
     QFont font(reader.attributes().value("font").toString());
     font.setPointSizeF(reader.attributes().value("size").toDouble());
     item->setFont(font);
+    item->setDefaultTextColor(rgba_to_color(reader.attributes().value("color").toString()));
     const QString text = reader.readElementText();
     if (text.isEmpty())
     {
@@ -644,7 +645,6 @@ TextGraphicsItem *loadTextItem(QXmlStreamReader &reader)
         return NULL;
     }
     item->setPlainText(text);
-    item->setDefaultTextColor(rgba_to_color(reader.attributes().value("color").toString()));
     return item;
 }
 

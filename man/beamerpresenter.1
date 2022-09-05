@@ -28,7 +28,7 @@ BeamerPresenter \- modular multi-screen PDF presenter
 is a Qt-based presentation viewer designed for showing extra information on the speaker's screen.
 The modular user interface is completely customizable and may include, among others, previews of upcoming slides, a different presentation file with additional information, text notes, a timer, and thumbnail slides.
 .PP
-The interpretation of multiple positional arguments depends on the user interface configuration (beamerpresenter-ui (5)). Readable file types are PDF files and (optionally gzip compressed) xml files in the format defined by Xournal++ (.xopp).
+The interpretation of multiple positional arguments depends on the user interface configuration (beamerpresenter-ui (5)). Readable file types are PDF files and gzip compressed xml files a format mostly compatible with Xournal++ (.xopp).
 .
 .
 .SH OPTIONS
@@ -47,7 +47,7 @@ Displays version information.
 .
 .TP
 .BI "\-\-renderer " option
-.RI "Define renderer and PDF engine. Depending on you installation, this may be just a PDF engine (MuPDF, poppler, or QtPDF), or \[dq]" ENGINE "-external\[dq] where " ENGINE " is a PDF engine. \[dq]external\[dq] indicates that instead of using the given PDF engine, the rendering should be delegated to an external program. The command for calling this program must be defined in the configuration, see beamerpresenter.conf(5).
+.RI "Define renderer and PDF engine. Depending on you installation, this may be just a PDF engine (MuPDF, Poppler, or QtPDF), or \[dq]" ENGINE "-external\[dq] where " ENGINE " is a PDF engine. \[dq]external\[dq] indicates that instead of using the given PDF engine, the rendering should be delegated to an external program. The command for calling this program must be defined in the configuration, see beamerpresenter.conf(5).
 .
 .TP
 .B \-\-log
@@ -59,7 +59,7 @@ Disable caching slides. This option may be helpful when using a presentation wit
 .
 .TP
 .BI "\-\-debug " "flag1,flag2,..."
-Show debugging messages. Only available if buit with the option CONFIG+=debug. Valid flags are: rendering, cache, drawing, media, key-input, other-input, settings, transitions, page-change, layout, widets, all, verbose. The "verbose" option does not turn on any logging by itself, but shows additional logging for the other flags set.
+Show debugging messages. Only available if built with the option CONFIG+=debug. Valid flags are: rendering, cache, drawing, media, key-input, other-input, settings, transitions, page-change, layout, widgets, all, verbose. The "verbose" option does not turn on any logging by itself, but shows additional logging for the other flags set.
 .
 .TP
 .BI "\-t \-\-time " number
@@ -100,8 +100,7 @@ The configuration consists of an ordinary config file (beamerpresenter.conf(5)) 
 .SH FILE FORMAT
 .
 BeamerPresenter can save drawings along with notes (from notes widget) and other file-specific settings to a gzipped xml file (.bpr). The pdf file is not included in this file.
-The file type aims for compatibility with Xournal++ in saving and loading drawings. BeamerPresenter can read Xournal(++) files and Xournal++ can open BeamerPresenter files. If this does not work, please open an issue on https://github.com/stiglers-eponym/BeamerPresenter.
-The compatibility is limited for filled paths since Xournal++ (to my knowledge) does not support paths filled with an arbitary color (independent of the color of the path).
+The file type aims for compatibility with Xournal++ in saving and loading drawings. BeamerPresenter can read Xournal(++) files and Xournal++ can open BeamerPresenter files. If this does not work, please open an issue on https://github.com/stiglers-eponym/BeamerPresenter. But BeamerPresenter can only handle a subset of the features provided by Xournal++ and also adds a few features which Xournal++ will ignore.
 When opening a file, it does not need to be gzipped. However, when saving to a file, it will always be gzipped.
 .
 .

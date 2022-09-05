@@ -55,7 +55,7 @@ This option requires a properly configured user interface (<code>man 5 beamerpre
 
 <p>The third option is to provide notes in a simple rich text editor.
 To use rich text notes you need the notes widget (<code>man 5 beamerpresenter-ui</code>).
-It allows you to save and load notes using the keyboard shortcuts CTRL+S and CTRL+O, respectively.
+It allows you to save and load notes using the keyboard shortcuts Ctrl+S and Ctrl+O, respectively.
 Note that the widget must have focus when using these shortcuts.
 The notes will be saved in a simple xml document.</p>
 
