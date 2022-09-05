@@ -27,7 +27,7 @@ Shortcuts can be configured in the settings widget. Buttons are defined in the u
 Both shortcuts and buttons can either cause an action (e.g. going to the next page) or select a tool.</p>
 
 <h3>Tools</h3>
-<p>Tools (pen, highlighter, eraser, pointer, ...) allow the presenter to draw or highlight in the presentation. All drawings and highlighting features are synchronized between slide widgets which show the same slide of a presentation.</p>
+<p>Tools (pen, highlighter, text, eraser, pointer, selection tools, ...) allow the presenter to draw or highlight in the presentation. All drawings and highlighting features are synchronized between slide widgets which show the same slide of a presentation.</p>
 
 <p>Tools are connected to a specific input device (e.g. the left mouse button, a touch screen, or a pen input).
 When selecting a tool by pushing a button, this tool is by default only connected to the tool with which the button was pressed. For example, you can select a tool only for the right mouse button or only for a touch screen. Other devices remain unchanged and keep their tools. Buttons can, however, be configured to change the tool for all devices or a selection of devices.
@@ -35,12 +35,12 @@ Also for keyboard shortcuts which select a tool it is possible to define a devic
 
 <p>Important actions when using draw tools are the "undo" and "redo" action. Note that and "undo" history is kept <em>per slide</em>, i.e., "undo" will only undo the last drawing or erasing step on the currently visible slide.</p>
 
-<p>For more details on tools and actions (e.g. how to use undo if a presentation combines presentation and notes for the speaker in a single file) see <code>man 5 beamerpresenter-ui</code>.</p>
+<p>For more details on tools and actions see <code>man 5 beamerpresenter-ui</code>.</p>
 
 <h3>Saving and Loading Drawings</h3>
 <p>Use the "open" (default shortcut: Ctrl+O) and "save" (Ctrl+S) or "save as" (Ctrl+Shift+S) actions to load or save drawings. Note that it is not possible to switch to a different pdf file while BeamerPresenter is running. It is only possible to load drawings for the pdf file which is currently opened.</p>
 
-<p>BeamerPresenter uses gzipped xml files (.bpr) aiming for compatibility with Xournal++ (.xopp files). These files do not include the pdf file. BeamerPresenter can read drawings and text annotations from .xoj or .xopp files (Xournal or Xournal++). But BeamerPresenter will always show the pages of the pdf, independent of pages added or removed in Xournal(++). Xournal++ can read files created by BeamerPresenter and convert them to Xournal's .xoj format if necessary.</p>
+<p>BeamerPresenter uses gzipped xml files (.bpr) aiming for compatibility with Xournal++ (.xopp files). These files do not include the pdf file. BeamerPresenter can read drawings and text annotations in a PDF from .xoj or .xopp files (Xournal or Xournal++). But BeamerPresenter will always show the pages of the pdf, independent of pages added or removed in Xournal(++). Xournal++ can read files created by BeamerPresenter and convert them to Xournal's .xoj format if necessary.</p>
 
 <p>BeamerPresenter files mainly include drawings and text added by the user, but they can also store the duration of the presentation, the overlay mode of the drawings, and times defined per slide. These times allow the speaker to easily check the time relative to a predefined schedule through the color of the timer widget. Additionally, it is possible to show rich text notes in BeamerPresenter. These notes are also included when saving or loading a file. Saving only these notes in an uncompressed xml format is also possible.</p>
 

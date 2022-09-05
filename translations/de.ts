@@ -94,42 +94,42 @@
         <translation>Dokumente (*.pdf);;BeamerPresenter/Xournal++-Dateien (*.bpr *.xoj *.xopp *.xml);;Alle Dateien (*)</translation>
     </message>
     <message>
-        <location filename="../src/master.cpp" line="603"/>
+        <location filename="../src/master.cpp" line="602"/>
         <source>Error while reading GUI config</source>
         <translation>Fehler beim Lesen der Konfiguration für die Benutzeroberfläche</translation>
     </message>
     <message>
-        <location filename="../src/master.cpp" line="604"/>
+        <location filename="../src/master.cpp" line="603"/>
         <source>Ignoring entry in GUI config with invalid type </source>
         <translation>Ignoriere Eintrag in der Konfiguration der Benutzeroberfläche mit ungültigem Typ </translation>
     </message>
     <message>
-        <location filename="../src/master.cpp" line="821"/>
+        <location filename="../src/master.cpp" line="830"/>
         <source>Unsaved changes</source>
         <translation>Nicht gespeicherte Anmerkungen</translation>
     </message>
     <message>
-        <location filename="../src/master.cpp" line="822"/>
+        <location filename="../src/master.cpp" line="831"/>
         <source>The document may contain unsaved changes. Quit anyway?</source>
         <translation>Das Dokument enthält eventuell nicht gespeicherte Anmerkungen. Trotzdem schließen?</translation>
     </message>
     <message>
-        <location filename="../src/master.cpp" line="1002"/>
+        <location filename="../src/master.cpp" line="1011"/>
         <source>Load drawings</source>
         <translation>Lade Anmerkungen</translation>
     </message>
     <message>
-        <location filename="../src/master.cpp" line="1004"/>
+        <location filename="../src/master.cpp" line="1013"/>
         <source>BeamerPresenter/Xournal++ files (*.bpr *.xoj *.xopp *.xml);;All files (*)</source>
         <translation>BeamerPresenter/Xournal++-Dateien (*.bpr *.xoj *.xopp *.xml);;Alle Dateien (*)</translation>
     </message>
     <message>
-        <location filename="../src/master.cpp" line="1012"/>
+        <location filename="../src/master.cpp" line="1021"/>
         <source>Save drawings</source>
         <translation>Speichere Anmerkungen</translation>
     </message>
     <message>
-        <location filename="../src/master.cpp" line="1014"/>
+        <location filename="../src/master.cpp" line="1023"/>
         <source>BeamerPresenter/Xournal++ files (*.bpr *.xopp);;All files (*)</source>
         <translation>BeamerPresenter/Xournal++-Dateien (*.bpr *.xopp);;Alle Dateien (*)</translation>
     </message>
