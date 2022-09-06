@@ -71,9 +71,10 @@ GNUInstallDirs_get_absolute_install_dir(ABS_ICON_PATH DEFAULT_ICON_PATH DATAROOT
 set(APPICON_PATH
     "${CMAKE_INSTALL_DATAROOTDIR}/icons/hicolor/scalable/apps"
     CACHE STRING
-    "Directory for storingthe app icon")
+    "Directory for storing the app icon")
 GNUInstallDirs_get_absolute_install_dir(ABS_APPICON_PATH APPICON_PATH DATAROOTDIR)
-set(ABS_APPICON_PATH "${ABS_APPICON_PATH}/beamerpresenter.svg")
+set(APPICON_NAME "beamerpresenter.svg" CACHE STRING "file name of app icon")
+set(ABS_APPICON_PATH "${ABS_APPICON_PATH}/${APPICON_NAME}")
 
 set(GUI_CONFIG_PATH
     "${CMAKE_INSTALL_SYSCONFDIR}/xdg/beamerpresenter"

@@ -1,4 +1,4 @@
-app-id: io.github.beamerpresenter
+app-id: io.github.beamerpresenter.beamerpresenter
 branch: master
 runtime: org.kde.Platform
 runtime-version: 5.15-21.08
@@ -11,13 +11,12 @@ finish-args:
   - "--socket=x11"
   - "--socket=wayland"
   - "--socket=pulseaudio"
-  - "--device=dri"
   - "--filesystem=xdg-documents"
   - "--filesystem=xdg-download"
   - "--filesystem=xdg-public-share"
   - "--filesystem=xdg-desktop"
   - "--filesystem=xdg-config/beamerpresenter"
-  - "--own-name=io.github.beamerpresenter"
+  - "--own-name=io.github.beamerpresenter.beamerpresenter"
 modules:
   - name: poppler
     buildsystem: cmake-ninja
@@ -39,8 +38,8 @@ modules:
     - "/bin"
     sources:
     - type: archive
-      url: https://poppler.freedesktop.org/poppler-22.06.0.tar.xz
-      sha256: a0f9aaa3918bad781039fc307a635652a14d1b391cd559b66edec4bedba3c5d7
+      url: https://poppler.freedesktop.org/poppler-22.09.0.tar.xz
+      sha256: d7a8f748211359cadb774ba3e18ecda6464b34027045c0648eb30d5852a41e2e
   - name: beamerpresenter
     buildsystem: cmake-ninja
     config-opts:
@@ -51,6 +50,7 @@ modules:
     - "-DUSE_QTPDF=OFF"
     - "-DUSE_EXTERNAL_RENDERER=OFF"
     - "-DUSE_TRANSLATIONS=ON"
+    - "-DAPPICON_NAME=io.github.beamerpresenter.beamerpresenter.svg"
     - "-DCMAKE_BUILD_TYPE=Release"
     - "-DCMAKE_INSTALL_PREFIX=/app"
     - "-DCMAKE_INSTALL_SYSCONFDIR=/app/etc"
@@ -61,3 +61,4 @@ modules:
     - type: git
       url: https://github.com/stiglers-eponym/BeamerPresenter.git
       branch: main
+rename-desktop-file: beamerpresenter.desktop
