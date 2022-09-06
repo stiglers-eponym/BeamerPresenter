@@ -99,6 +99,16 @@ set(TRANSLATION_PATH
 GNUInstallDirs_get_absolute_install_dir(ABS_TRANSLATION_PATH TRANSLATION_PATH DATAROOTDIR)
 set(ABS_TRANSLATION_PATH "${ABS_TRANSLATION_PATH}/")
 
+# Metainfo file is required by flathub
+option(INSTALL_METAINFO "install %{id}.metainfo.xml in .../share/metainfo as required by flathub" OFF)
+if (INSTALL_METAINFO)
+    install(FILES
+        "packaging/io.github.beamerpresenter.beamerpresenter.metainfo.xml"
+        DESTINATION "${CMAKE_INSTALL_DATAROOTDIR}/metainfo"
+        RENAME "${APPID_NAME}.metainfo.xml"
+        OPTIONAL)
+endif()
+
 
 # Set app version string
 set(APP_VERSION "${beamerpresenter_VERSION}")

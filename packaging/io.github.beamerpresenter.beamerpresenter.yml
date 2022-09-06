@@ -50,7 +50,7 @@ modules:
     - "-DUSE_QTPDF=OFF"
     - "-DUSE_EXTERNAL_RENDERER=OFF"
     - "-DUSE_TRANSLATIONS=ON"
-    - "-DAPPICON_NAME=io.github.beamerpresenter.beamerpresenter.svg"
+    - "-DAPPID_NAME=io.github.beamerpresenter.beamerpresenter"
     - "-DCMAKE_BUILD_TYPE=Release"
     - "-DCMAKE_INSTALL_PREFIX=/app"
     - "-DCMAKE_INSTALL_SYSCONFDIR=/app/etc"
@@ -61,4 +61,3 @@ modules:
     - type: git
       url: https://github.com/stiglers-eponym/BeamerPresenter.git
       branch: main
-rename-desktop-file: beamerpresenter.desktop
