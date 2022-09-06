@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2022 Valentin Bruch <software@vbruch.eu>
 # SPDX-License-Identifier: GPL-3.0-or-later OR AGPL-3.0-or-later
 
-configure_file(config.h.in config.h)
+configure_file(config.h.in config.h @ONLY)
 add_subdirectory(rendering)
 
 if (DEFINED MUPDF_INCLUDE_DIR)

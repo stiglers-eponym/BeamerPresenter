@@ -62,6 +62,10 @@ endif()
 # Define some default paths
 include(GNUInstallDirs)
 
+# APPID_NAME is mainly relevant for flatpak where icon and desktop files
+# should follow a certain naming convention.
+set(APPID_NAME "beamerpresenter" CACHE STRING "file name without file type extension of app icon and .desktop file")
+
 set(DEFAULT_ICON_PATH
     "${CMAKE_INSTALL_DATAROOTDIR}/beamerpresenter/icons"
     CACHE STRING
@@ -73,8 +77,7 @@ set(APPICON_PATH
     CACHE STRING
     "Directory for storing the app icon")
 GNUInstallDirs_get_absolute_install_dir(ABS_APPICON_PATH APPICON_PATH DATAROOTDIR)
-set(APPICON_NAME "beamerpresenter.svg" CACHE STRING "file name of app icon")
-set(ABS_APPICON_PATH "${ABS_APPICON_PATH}/${APPICON_NAME}")
+set(ABS_APPICON_PATH "${ABS_APPICON_PATH}/${APPID_NAME}.svg")
 
 set(GUI_CONFIG_PATH
     "${CMAKE_INSTALL_SYSCONFDIR}/xdg/beamerpresenter"
