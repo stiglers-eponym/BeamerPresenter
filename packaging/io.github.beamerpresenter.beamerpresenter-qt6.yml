@@ -1,7 +1,7 @@
-app-id: io.github.beamerpresenter.beamerpresenter
+app-id: io.github.beamerpresenter.beamerpresenter-qt6
 branch: master
 runtime: org.kde.Platform
-runtime-version: 5.15-21.08
+runtime-version: "6.3"
 sdk: org.kde.Sdk
 command: beamerpresenter
 build-options:
@@ -16,7 +16,7 @@ finish-args:
   - "--filesystem=xdg-public-share"
   - "--filesystem=xdg-desktop"
   - "--filesystem=xdg-config/beamerpresenter"
-  - "--own-name=io.github.beamerpresenter.beamerpresenter"
+  - "--own-name=io.github.beamerpresenter.beamerpresenter-qt6"
 modules:
   - name: poppler
     buildsystem: cmake-ninja
@@ -28,8 +28,8 @@ modules:
     - "-DENABLE_BOOST=OFF"
     - "-DENABLE_UTILS=OFF"
     - "-DENABLE_LIBCURL=OFF"
-    - "-DENABLE_QT5=ON"
-    - "-DENABLE_QT6=OFF"
+    - "-DENABLE_QT5=OFF"
+    - "-DENABLE_QT6=ON"
     - "-DENABLE_GLIB=OFF"
     - "-DENABLE_GOBJECT_INTROSPECTION=OFF"
     - "-DENABLE_GTK_DOC=OFF"
@@ -43,15 +43,15 @@ modules:
   - name: beamerpresenter
     buildsystem: cmake-ninja
     config-opts:
-    - "-DQT_VERSION_MAJOR=5"
-    - "-DQT_VERSION_MINOR=15"
+    - "-DQT_VERSION_MAJOR=6"
+    - "-DQT_VERSION_MINOR=3"
     - "-DUSE_POPPLER=ON"
     - "-DUSE_MUPDF=OFF"
     - "-DUSE_QTPDF=OFF"
     - "-DUSE_EXTERNAL_RENDERER=OFF"
     - "-DUSE_TRANSLATIONS=ON"
     - "-DGIT_VERSION=ON"
-    - "-DAPPID_NAME=io.github.beamerpresenter.beamerpresenter"
+    - "-DAPPID_NAME=io.github.beamerpresenter.beamerpresenter-qt6"
     - "-DINSTALL_METAINFO=ON"
     - "-DCMAKE_BUILD_TYPE=Release"
     - "-DCMAKE_INSTALL_PREFIX=/app"

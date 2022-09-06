@@ -7,7 +7,7 @@ name: "Flatpak"
 
 jobs:
   flatpak:
-    name: "Flatpak Builder with Qt 5.15 Poppler"
+    name: "Flatpak Builder with Qt 5.15 and Poppler"
     runs-on: ubuntu-22.04
     container:
       image: bilelmoussaoui/flatpak-github-actions:kde-5.15-21.08
