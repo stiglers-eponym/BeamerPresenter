@@ -1,6 +1,6 @@
 # Maintainer: Valentin Bruch <software@vbruch.eu>
-# This PKGBUILD file is less flexible than the one in the AUR to provide
-# reproducible builds and better dependency version checks.
+# This PKGBUILD file is less flexible than the one in the AUR to
+# provide reproducible builds and better dependency version checks.
 # Select the Qt version
 : ${_qt_version_major:=6}  # 5 or 6
 
@@ -10,7 +10,7 @@ _qt_max_version="${_qt_version_major}.$(( ${_qt_version_minor} + 1 )).0"
 
 pkgname="beamerpresenter-poppler-qt${_qt_version_major}"
 pkgver='0.2.3'
-pkgrel=1
+pkgrel=2
 pkgdesc="Modular multi-screen pdf presenter (using Poppler)"
 arch=('x86_64')
 url="https://github.com/stiglers-eponym/BeamerPresenter"
@@ -23,6 +23,11 @@ conflicts=('beamerpresenter')
 backup=('etc/xdg/beamerpresenter/beamerpresenter.conf' 'etc/xdg/beamerpresenter/gui.json')
 source=("${pkgname}-${pkgver}.tar.gz::${url}/archive/v${pkgver}.tar.gz")
 sha256sums=('ed4b76e1c51227b538cab4b736113800a1d5069d2131933d56103082c0eb5468')
+
+if [ "${_qt_version_major}" -eq "6" ] && [ "${_qt_version_minor}" -ge 4 ]
+then
+    makedepends+=('qt6-multimedia-ffmpeg' 'qt6-multimedia-gstreamer')
+fi
 
 build() {
     mkdir -p "${pkgname}-${pkgver}/build"

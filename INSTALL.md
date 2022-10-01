@@ -26,7 +26,7 @@ gpg --verify SHA256SUMS.sig SHA256SUMS
 In Arch Linux and Manjaro you can install one of the AUR packages [beamerpresenter](https://aur.archlinux.org/packages/beamerpresenter) and [beamerpresenter-git](https://aur.archlinux.org/packages/beamerpresenter-git).
 Note that in these packages by default MuPDF is selected as PDF engine.
 
-There exists a package for [Nix](https://nixos.org) (thanks to the maintainer!), which can also be an option for people using macOS. This package can be installed with
+There exists a package for [Nix](https://nixos.org), which can also be an option for people using macOS. This package can be installed with
 ```sh
 nix-env -iA nixos.beamerpresenter    # on NixOS
 nix-env -iA nixpkgs.beamerpresenter  # on non-NixOS
@@ -86,11 +86,12 @@ When compiling with Qt PDF (only Qt 5 and Ubuntu >= 21.04):
 * `qtpdf5-dev` (after the installation you can remove `qtpdf5-dev` and keep only `libqt5pdf5`)
 
 ### Dependencies in Arch Linux and Manjaro
-Replace qt5 with qt6 in all package names if you want to use Qt 6.
+Replace qt6 with qt5 in all package names if you want to use Qt 5.
 * `cmake` (only for building and only in the mainline version)
-* `qt5-multimedia` (depends on `qt5-base`, which is also required)
-* `qt5-tools` (only for building and only when creating translations. You can disable translations with `-DUSE_TRANSLATIONS=OFF` in the [CMake command](#configure))
-* optional: `qt5-svg` for showing icons
+* `qt6-multimedia`
+* since Qt ≥6.4: for building you need both backends `qt6-multimedia-ffmpeg` and `qt6-multimedia-gstreamer`
+* `qt6-tools` (only for building and only when creating translations. You can disable translations with `-DUSE_TRANSLATIONS=OFF` in the [CMake command](#configure))
+* `qt6-svg` for showing icons
 
 When compiling with Poppler:
 * `poppler-qt5`
@@ -154,7 +155,7 @@ The options `-B` and `-S` set the build and source directory, respectively. The 
 | `CMAKE_BUILD_TYPE` | Release | Release or Debug |
 | `USE_POPPLER` | ON | Include Poppler PDF engine (Poppler library and Qt 5/6 wrapper must be available) |
 | `USE_MUPDF` | OFF | Include MuPDF PDF engine (MuPDF static library and headers must be available) |
-| `USE_QTPDF` | OFF | Include Qt PDF engine. |
+| `USE_QTPDF` | OFF | Include Qt PDF engine. Note: Only the current git version of BeamerPresenter is compatible with Qt PDF in Qt ≥6.4. |
 | `USE_EXTERNAL_RENDERER` | OFF | Include option to use an external program for rendering PDF pages to images. |
 | `MUPDF_USE_SYSTEM_LIBS` | ON | MuPDF uses shared system libraries (default in common Linux distributions, disable if you compiled MuPDF from source with standard settings) |
 | `USE_MUJS` | OFF | link to MuJS, set ON in Ubuntu ≥21.10 |

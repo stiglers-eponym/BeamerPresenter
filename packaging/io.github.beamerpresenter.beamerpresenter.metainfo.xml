@@ -29,6 +29,20 @@
     <category>Office</category>
     <category>Qt5</category>
   </categories>
+  <screenshots>
+    <screenshot type="default">
+      <image>https://raw.githubusercontent.com/stiglers-eponym/BeamerPresenter/main/.readme/fusion-1920px.webp</image>
+    </screenshot>
+    <screenshot>
+      <image>https://raw.githubusercontent.com/stiglers-eponym/BeamerPresenter/main/.readme/widgets-1920px.webp</image>
+    </screenshot>
+    <screenshot>
+      <image>https://raw.githubusercontent.com/stiglers-eponym/BeamerPresenter/main/.readme/interactive-1920px.webp</image>
+    </screenshot>
+    <screenshot>
+      <image>https://raw.githubusercontent.com/stiglers-eponym/BeamerPresenter/main/.readme/video-1920px.webp</image>
+    </screenshot>
+  </screenshots>
   <releases>
     <release version="0.2.3" date="2022-09-05"/>
     <release version="0.2.2" date="2022-02-20"/>

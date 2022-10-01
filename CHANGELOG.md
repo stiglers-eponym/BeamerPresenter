@@ -1,4 +1,6 @@
 # Changelog
+## Upcoming
+* compatibility with Qt 6.4
 ## 0.2.3
 * select and manipulate drawn items
     * selection tools
