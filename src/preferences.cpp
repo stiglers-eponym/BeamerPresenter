@@ -221,8 +221,23 @@ void Preferences::loadSettings()
     {
         // Paths to required files / directories
         gui_config_file = settings.value("gui config", DEFAULT_GUI_CONFIG_PATH).toString();
+        if (!QFileInfo::exists(gui_config_file))
+        {
+            settings.remove("gui config");
+            gui_config_file = DEFAULT_GUI_CONFIG_PATH;
+        }
         manual_file = settings.value("manual", DOC_PATH "/README.html").toString();
+        if (!QFileInfo::exists(manual_file))
+        {
+            settings.remove("manual");
+            manual_file = DOC_PATH "/README.html";
+        }
         icon_path = settings.value("icon path", DEFAULT_ICON_PATH).toString();
+        if (!QFileInfo::exists(icon_path))
+        {
+            settings.remove("icon path");
+            icon_path = DEFAULT_ICON_PATH;
+        }
         const QString icontheme = settings.value("icon theme").toString();
         if (!icontheme.isEmpty())
             QIcon::setThemeName(icontheme);
@@ -700,7 +715,7 @@ QUrl Preferences::resolvePath(const QString &identifier) const noexcept
     if (basedir.exists(identifier))
         return QUrl::fromLocalFile(basedir.absoluteFilePath(identifier));
     // Next check if identifier is a path relative to the current directory.
-    if (QDir().exists(identifier))
+    if (QFileInfo::exists(identifier))
         return QUrl::fromLocalFile(QDir().absoluteFilePath(identifier));
     // Next use QUrl heuristics to find a url, interpreting local files relative to the presentation directory.
     const QUrl url = QUrl::fromUserInput(identifier, basedir.absolutePath());
@@ -709,13 +724,13 @@ QUrl Preferences::resolvePath(const QString &identifier) const noexcept
         const QString path = url.toLocalFile();
         if (QDir::isAbsolutePath(path))
         {
-            if (QDir(path).exists())
+            if (QFileInfo::exists(path))
                 return url;
             return QUrl();
         }
         if (basedir.exists(path))
             return QUrl::fromLocalFile(basedir.absoluteFilePath(path));
-        if (QDir().exists(path))
+        if (QFileInfo::exists(path))
             return QUrl::fromLocalFile(QDir().absoluteFilePath(path));
         return QUrl();
     }
