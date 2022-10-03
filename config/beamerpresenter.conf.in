@@ -2,9 +2,11 @@
 # maximum number of pages in cache (negative numbers treated as infinity)
 cache pages=-1
 # path to GUI configuration file
-gui config="@ABS_GUI_CONFIG_PATH@"
+#gui config="@ABS_GUI_CONFIG_PATH@"
 # path to HTML manual
-manual="@ABS_DOC_PATH@/README.html"
+#manual="@ABS_DOC_PATH@/README.html"
+# path to icons
+#icon path="@ABS_APPICON_PATH@"
 # maximum memory size (in bytes, default is 100MiB)
 memory=1.0486e+08
 # enable/disable gestures
@@ -73,4 +75,4 @@ P=toggle timer
 # if the ratio width/height of the slide is larger than this threshold.
 page part threshold=2.5
 # default renderer
-renderer=@DEFAULT_RENDERER@
+#renderer=@DEFAULT_RENDERER@
