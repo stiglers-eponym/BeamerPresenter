@@ -10,6 +10,7 @@
 
 class TOCbutton;
 class PdfDocument;
+class QKeyEvent;
 class QShowEvent;
 class QFocusEvent;
 
@@ -50,6 +51,9 @@ public:
 public slots:
     /// Show event: generate outline if necessary. Expand to current position.
     void showEvent(QShowEvent*) override;
+
+    /// Override key press events: Send page up and page down to master.
+    void keyPressEvent(QKeyEvent *event) override;
 
     /// Focus event: generate outline if necessary.
     void focusInEvent(QFocusEvent*) override

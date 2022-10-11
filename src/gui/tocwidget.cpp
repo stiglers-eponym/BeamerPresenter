@@ -8,6 +8,7 @@
 #include <QCheckBox>
 #include <QVector>
 #include <QSizePolicy>
+#include <QKeyEvent>
 #include "src/gui/tocwidget.h"
 #include "src/gui/tocbutton.h"
 #include "src/preferences.h"
@@ -116,4 +117,21 @@ void TOCwidget::showEvent(QShowEvent*)
         expandTo(preferences()->page);
     else
         generateTOC();
+}
+
+void TOCwidget::keyPressEvent(QKeyEvent *event)
+{
+#if (QT_VERSION_MAJOR >= 6)
+    switch (event->keyCombination().toCombined())
+#else
+    switch (event->key() | (event->modifiers() & ~Qt::KeypadModifier))
+#endif
+    {
+    case Qt::Key_PageUp:
+    case Qt::Key_PageDown:
+        event->ignore();
+        break;
+    default:
+        QScrollArea::keyPressEvent(event);
+    }
 }

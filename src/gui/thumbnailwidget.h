@@ -82,7 +82,7 @@ public:
 
 public slots:
     /// generate thumbnails if necessary and select currenlty visible page.
-    void showEvent(QShowEvent*) override;
+    void showEvent(QShowEvent *event) override;
 
     /// Override key press events: Send page up and page down to master.
     void keyPressEvent(QKeyEvent *event) override;
