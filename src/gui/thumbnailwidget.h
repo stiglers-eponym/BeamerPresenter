@@ -10,6 +10,7 @@
 #include "src/enumerates.h"
 
 class QShowEvent;
+class QKeyEvent;
 class QPixmap;
 class PdfDocument;
 class ThumbnailThread;
@@ -82,6 +83,9 @@ public:
 public slots:
     /// generate thumbnails if necessary and select currenlty visible page.
     void showEvent(QShowEvent*) override;
+
+    /// Override key press events: Send page up and page down to master.
+    void keyPressEvent(QKeyEvent *event) override;
 
     /// Receive thumbnail from render_thread and show it on button.
     void receiveThumbnail(ThumbnailButton *button, const QPixmap pixmap);

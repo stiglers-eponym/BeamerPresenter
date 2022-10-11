@@ -4,6 +4,7 @@
 #include <cstdlib>
 #include <algorithm>
 #include <QThread>
+#include <QKeyEvent>
 #include <QShowEvent>
 #include <QScroller>
 #include <QSizeF>
@@ -40,6 +41,23 @@ void ThumbnailWidget::showEvent(QShowEvent *event)
         QLayoutItem *item = layout->itemAt(page);
         if (item && item->widget())
             item->widget()->setFocus();
+    }
+}
+
+void ThumbnailWidget::keyPressEvent(QKeyEvent *event)
+{
+#if (QT_VERSION_MAJOR >= 6)
+    switch (event->keyCombination().toCombined())
+#else
+    switch (event->key() | (event->modifiers() & ~Qt::KeypadModifier))
+#endif
+    {
+    case Qt::Key_PageUp:
+    case Qt::Key_PageDown:
+        event->ignore();
+        break;
+    default:
+        QScrollArea::keyPressEvent(event);
     }
 }
 
