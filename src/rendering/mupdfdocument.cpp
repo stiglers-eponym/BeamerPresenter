@@ -285,9 +285,6 @@ bool MuPdfDocument::loadDocument()
 
     mutex->unlock();
 
-    // Load page labels.
-    loadPageLabels();
-
     debug_msg(DebugRendering, "Loaded PDF document in MuPDF");
     return number_of_pages > 0;
 }
@@ -482,6 +479,17 @@ void MuPdfDocument::loadPageLabels()
     // could easily produce segfaults.
     if (pageLabels.firstKey() != 0)
         pageLabels[0] = "";
+
+    // Add all pages explicitly to pageLabels, which have an own outline entry.
+    QMap<int, QString>::key_iterator it;
+    for (const auto &entry : qAsConst(outline))
+    {
+        if (entry.page < 0 || entry.page >= number_of_pages)
+            continue;
+        it = std::upper_bound(pageLabels.keyBegin(), pageLabels.keyEnd(), entry.page);
+        if (it != pageLabels.keyBegin() && *--it != entry.page)
+            pageLabels.insert(entry.page, pageLabels[*it]);
+    }
 }
 
 void MuPdfDocument::prepareRendering(fz_context **context, fz_rect *bbox, fz_display_list **list, const int pagenumber, const qreal resolution) const
@@ -768,6 +776,12 @@ bool MuPdfDocument::flexiblePageSizes() noexcept
     }
     mutex->unlock();
     return flexible_page_sizes;
+}
+
+void MuPdfDocument::loadLabels()
+{
+    loadOutline();
+    loadPageLabels();
 }
 
 void MuPdfDocument::loadOutline()

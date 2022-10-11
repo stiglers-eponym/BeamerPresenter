@@ -337,8 +337,8 @@ public:
     /// Check whether a file has been loaded successfully.
     virtual bool isValid() const = 0;
 
-    /// Load the PDF outline, fill PdfDocument::outline.
-    virtual void loadOutline() {};
+    /// Load the PDF labels and outline, fill PdfDocument::outline.
+    virtual void loadLabels() {};
 
     /// Search which pages contain text.
     virtual QPair<int,QRectF> search(const QString &needle, int start_page = 0, bool forward = true) const
@@ -353,12 +353,12 @@ public:
 
     /// Link at given position (in point = inch/72)
     virtual const PdfLink *linkAt(const int page, const QPointF &position) const
-    {return NULL;}
+    {return nullptr;}
 
     /// List all video annotations on given page. Returns NULL if list is
     /// empty.
     virtual QList<MediaAnnotation>* annotations(const int page) const
-    {return NULL;}
+    {return nullptr;}
 
     /// Path to PDF file.
     const QString &getPath() const

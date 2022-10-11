@@ -65,12 +65,17 @@ private:
     /// Total number of pages in document.
     int number_of_pages;
 
-    /// Map page numbers to labels: Only the first page number with a new label
-    /// is listed here.
+    /// Map page numbers to labels: Only the first page number with a
+    /// new label is listed here.
+    /// Exception: pages with an own TOC entry always have their label
+    /// explicitly defined.
     QMap<int, QString> pageLabels;
 
-    /// populate pageLabels.
+    /// populate pageLabels. Must be callsed after loadOutline.
     void loadPageLabels();
+
+    /// Load the PDF outline, fill PdfDocument::outline.
+    void loadOutline();
 
 public:
     /// Constructor: Create mutexes and load document using loadDocument().
@@ -127,8 +132,8 @@ public:
     pdf_document* getDocument() const
     {return doc;}
 
-    /// Load the PDF outline, fill PdfDocument::outline.
-    void loadOutline() override;
+    /// Load the PDF labels and outline, fill PdfDocument::outline.
+    void loadLabels() override;
 
     /// Search which pages contain text.
     QPair<int,QRectF> search(const QString &needle, int start_page, bool forward) const override;

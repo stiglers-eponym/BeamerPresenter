@@ -67,7 +67,7 @@ void PdfMaster::loadDocument(const QString &filename)
                         tr("Error while loading file"),
                         tr("Tried to load a pdf file, but a different file is already loaded!"));
         else if (document->loadDocument())
-            document->loadOutline();
+            document->loadLabels();
         return;
     }
 
@@ -96,14 +96,14 @@ void PdfMaster::loadDocument(const QString &filename)
                     tr("Error while loading file"),
                     tr("Loading PDF document failed!"));
     else
-        document->loadOutline();
+        document->loadLabels();
 }
 
 bool PdfMaster::loadDocument()
 {
     if (document && document->loadDocument())
     {
-        document->loadOutline();
+        document->loadLabels();
         return true;
     }
     return false;

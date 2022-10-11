@@ -34,12 +34,17 @@ class PopplerDocument : public PdfDocument
     /// Poppler document representing the PDF.
     std::unique_ptr<Poppler::Document> doc = NULL;
 
-    /// Map page numbers to labels: Only the first page number with a new label
-    /// is listed here.
+    /// Map page numbers to labels: Only the first page number with a
+    /// new label is listed here.
+    /// Exception: pages with an own TOC entry always have their label
+    /// explicitly defined.
     QMap<int, QString> pageLabels;
 
     /// populate pageLabels.
     void loadPageLabels();
+
+    /// Load the PDF outline, fill PdfDocument::outline.
+    void loadOutline();
 
 public:
     /// Constructor: calls loadDocument().
@@ -74,8 +79,8 @@ public:
     bool isValid() const override
     {return doc && !doc->isLocked();}
 
-    /// Load the PDF outline, fill PdfDocument::outline.
-    void loadOutline() override;
+    /// Load the PDF labels and outline, fill PdfDocument::outline.
+    void loadLabels() override;
 
     /// Search which pages contain text.
     QPair<int,QRectF> search(const QString &needle, int start_page = 0, bool forward = true) const override;

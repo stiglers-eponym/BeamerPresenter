@@ -241,15 +241,24 @@ int PopplerDocument::overlaysShifted(const int start, const int shift_overlay) c
     return it.key() - 1;
 }
 
+void PopplerDocument::loadLabels()
+{
+    loadOutline();
+    loadPageLabels();
+}
+
 void PopplerDocument::loadPageLabels()
 {
     // Poppler functions for converting between labels and numbers seem to be
     // optimized for normal documents and are probably inefficient for handling
     // page numbers in presentations with overlays.
     // Use a lookup table.
-    // This function for filling the lookup table is probably also inefficient.
+    // This function for filling the lookup table is probably also inefficient.
 
     pageLabels.clear();
+    if (!doc)
+        return;
+
     // Check whether it makes sense to create the lookup table.
     QString label = "\n\n\n\n";
     for (int i=0; i<doc->numPages(); i++)
@@ -263,6 +272,18 @@ void PopplerDocument::loadPageLabels()
     }
     if (pageLabels.firstKey() != 0)
         pageLabels[0] = "";
+
+    // Add all pages explicitly to pageLabels, which have an own outline entry.
+    const int num_pages = doc->numPages();
+    QMap<int, QString>::key_iterator it;
+    for (const auto &entry : qAsConst(outline))
+    {
+        if (entry.page < 0 || entry.page >= num_pages)
+            continue;
+        it = std::upper_bound(pageLabels.keyBegin(), pageLabels.keyEnd(), entry.page);
+        if (it != pageLabels.keyBegin() && *--it != entry.page)
+            pageLabels.insert(entry.page, pageLabels[*it]);
+    }
 }
 
 const PdfLink *PopplerDocument::linkAt(const int page, const QPointF &position) const
