@@ -571,13 +571,14 @@ void SlideScene::receiveAction(const Action action)
 #endif
         break;
     case Unmute:
-        for (const auto &m : qAsConst(mediaItems))
+        if (!(slide_flags & SlideFlags::MuteSlide))
+            for (const auto &m : qAsConst(mediaItems))
 #if (QT_VERSION_MAJOR >= 6)
-            if (m.audio_out)
-                m.audio_out->setMuted(false);
+                if (m.audio_out)
+                    m.audio_out->setMuted(false);
 #else
-            if (m.player)
-                m.player->setMuted(false);
+                if (m.player)
+                    m.player->setMuted(false);
 #endif
         break;
     case CopyClipboard:
@@ -763,7 +764,7 @@ void SlideScene::postRendering()
         debug_verbose(DebugMedia, "Start cleaning up media" << mediaItems.size());
         for (auto &media : mediaItems)
         {
-            if (media.player == NULL)
+            if (media.player == nullptr)
                 continue;
             if (!media.pages.empty())
             {
@@ -773,12 +774,12 @@ void SlideScene::postRendering()
             }
             debug_msg(DebugMedia, "Deleting media item:" << media.annotation.file << media.pages.size());
             delete media.player;
-            media.player = NULL;
+            media.player = nullptr;
             delete media.item;
-            media.item = NULL;
+            media.item = nullptr;
 #if (QT_VERSION_MAJOR >= 6)
             delete media.audio_out;
-            media.audio_out = NULL;
+            media.audio_out = nullptr;
 #endif
         }
     }

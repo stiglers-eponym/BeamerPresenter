@@ -394,7 +394,7 @@ void SlideView::showTorch(QPainter *painter, const PointingTool *tool) noexcept
 
 void SlideView::addMediaSlider(const slide::MediaItem &media)
 {
-    if (!(view_flags & MediaControls))
+    if (!(view_flags & MediaControls) || !media.player)
         return;
     MediaSlider *slider = new MediaSlider(this);
     sliders.append(slider);
