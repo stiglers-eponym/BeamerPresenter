@@ -71,7 +71,7 @@ private:
     /// explicitly defined.
     QMap<int, QString> pageLabels;
 
-    /// populate pageLabels. Must be callsed after loadOutline.
+    /// populate pageLabels. Must be called after loadOutline.
     void loadPageLabels();
 
     /// Load the PDF outline, fill PdfDocument::outline.

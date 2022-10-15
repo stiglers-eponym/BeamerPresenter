@@ -49,6 +49,9 @@ private:
     /// flags: currently only SkipOverlays.
     unsigned char _flags;
 
+    /// Set focus to given page.
+    void focusPage(int page);
+
 public:
     /// Nearly trivial constructor.
     explicit ThumbnailWidget(QWidget *parent = nullptr) : QScrollArea(parent)

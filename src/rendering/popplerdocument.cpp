@@ -144,7 +144,6 @@ bool PopplerDocument::loadDocument()
         doc.swap(newdoc);
     flexible_page_sizes = -1;
 
-    loadPageLabels();
     return true;
 }
 
