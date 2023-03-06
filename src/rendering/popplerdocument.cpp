@@ -311,9 +311,9 @@ const PdfLink *PopplerDocument::linkAt(const int page, const QPointF &position) 
                 const Poppler::LinkGoto *gotolink = static_cast<Poppler::LinkGoto*>(*it);
 #endif
                 if (gotolink->isExternal())
-                    return new ExternalLink({PdfLink::ExternalPDF, rect, gotolink->fileName()});
+                    return new ExternalLink(PdfLink::ExternalPDF, rect, gotolink->fileName());
                 else
-                    return new GotoLink({PdfLink::PageLink, rect, gotolink->destination().pageNumber() - 1});
+                    return new GotoLink(rect, gotolink->destination().pageNumber() - 1);
             }
             case Poppler::Link::Action:
             {
@@ -364,7 +364,7 @@ const PdfLink *PopplerDocument::linkAt(const int page, const QPointF &position) 
                     continue;
                 */
                 }
-                return new ActionLink({PdfLink::ActionLink, rect, action});
+                return new ActionLink(rect, action);
             }
             case Poppler::Link::Browse:
             {
@@ -390,10 +390,10 @@ const PdfLink *PopplerDocument::linkAt(const int page, const QPointF &position) 
                 {
                 case Poppler::LinkMovie::Pause:
                 case Poppler::LinkMovie::Stop:
-                    return new ActionLink({PdfLink::ActionLink, rect, PauseMedia});
+                    return new ActionLink(rect, PauseMedia);
                 case Poppler::LinkMovie::Play:
                 case Poppler::LinkMovie::Resume:
-                    return new ActionLink({PdfLink::ActionLink, rect, PlayMedia});
+                    return new ActionLink(rect, PlayMedia);
                 }
                 break;
             }
@@ -414,7 +414,7 @@ const PdfLink *PopplerDocument::linkAt(const int page, const QPointF &position) 
                         EmbeddedMedia media = embeddedSound(sound, rect);
                         media.volume = soundlink->volume();
                         media.mode = soundlink->repeat() ? MediaAnnotation::Once : MediaAnnotation::Repeat;
-                        return new MediaLink({PdfLink::SoundLink, rect, media});
+                        return new MediaLink(PdfLink::SoundLink, rect, media);
                     }
                     break;
                 case Poppler::SoundObject::External:
@@ -422,11 +422,11 @@ const PdfLink *PopplerDocument::linkAt(const int page, const QPointF &position) 
                     const QUrl url = preferences()->resolvePath(sound->url());
                     debug_verbose(DebugMedia, "Found sound annotation:" << url << "on page" << page);
                     if (url.isValid())
-                        return new MediaLink({
+                        return new MediaLink(
                                          PdfLink::SoundLink,
                                          rect,
                                          MediaAnnotation(url, false, rect)
-                                     });
+                                     );
                     break;
                 }
                 }

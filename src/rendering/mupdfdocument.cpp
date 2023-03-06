@@ -617,7 +617,7 @@ const PdfLink *MuPdfDocument::linkAt(const int page, const QPointF &position) co
                     // Internal navigation link
                     float x, y;
                     const int location = pdf_resolve_link(ctx, doc, link->uri, &x, &y);
-                    result = new GotoLink({PdfLink::PageLink, rect, location});
+                    result = new GotoLink(rect, location);
                     break;
                 }
                 else
@@ -626,7 +626,7 @@ const PdfLink *MuPdfDocument::linkAt(const int page, const QPointF &position) co
                     const QUrl url = preferences()->resolvePath(link->uri);
                     if (url.isValid())
                     {
-                        result = new ExternalLink({url.isLocalFile() ? PdfLink::LocalUrl : PdfLink::RemoteUrl, rect, url});
+                        result = new ExternalLink(url.isLocalFile() ? PdfLink::LocalUrl : PdfLink::RemoteUrl, rect, url);
                         break;
                     }
                 }

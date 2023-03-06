@@ -158,18 +158,24 @@ struct PdfLink {
     LinkType type = NoLink;
     /// Link area on slide
     QRectF area;
+    PdfLink(const LinkType type, const QRectF &area) : type(type), area(area) {}
+    virtual ~PdfLink() = default;
 };
 struct ExternalLink : PdfLink {
     QUrl url;
+    ExternalLink(const LinkType type, const QRectF &area, const QUrl &url) : PdfLink(type, area), url(url) {}
 };
 struct GotoLink : PdfLink {
     int page;
+    GotoLink(const QRectF &area, const int page) : PdfLink(PageLink, area), page(page) {}
 };
 struct ActionLink : PdfLink {
     Action action;
+    ActionLink(const QRectF &area, const Action action) : PdfLink(LinkType::ActionLink, area), action(action) {}
 };
 struct MediaLink : PdfLink {
     MediaAnnotation annotation;
+    MediaLink(const LinkType type, const QRectF &area, const MediaAnnotation &annotation) : PdfLink(type, area), annotation(annotation) {}
 };
 
 /// PDF outline (table of contents, TOC) entry for storing a tree in a list.
