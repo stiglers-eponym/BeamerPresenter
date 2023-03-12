@@ -150,7 +150,11 @@ public:
     {
         {Qt::Key_PageDown, Action::NextPage},
         {Qt::Key_PageUp, Action::PreviousPage},
+        {Qt::Key_Right, Action::NextPage},
+        {Qt::Key_Left, Action::PreviousPage},
         {Qt::Key_Space, Action::Update},
+        {Qt::Key_Home, Action::FirstPage},
+        {Qt::Key_End, Action::LastPage},
         {Qt::CTRL | Qt::Key_C, Action::CopyClipboard},
         {Qt::CTRL | Qt::Key_X, Action::CutClipboard},
         {Qt::CTRL | Qt::Key_V, Action::PasteClipboard},
