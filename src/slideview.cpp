@@ -56,12 +56,12 @@ void SlideView::pageChanged(const int page, SlideScene *scene)
     else
         // page is too high, determine resolution by y direction
         resolution = height() / pageSize.height();
-    if (resolution < 1e-9 || resolution > 1e9)
+    if (resolution < 1e-6 || resolution > 1e6)
         return;
     resetTransform();
     scale(resolution, resolution);
     waitingForPage = page;
-    debug_msg(DebugPageChange, "Request page" << page << "by" << this << "from" << scene);
+    debug_msg(DebugPageChange, "Request page" << page << "by" << this << "from" << scene << "with size" << scene->sceneRect().size() << size());
     emit requestPage(page, resolution);
 }
 

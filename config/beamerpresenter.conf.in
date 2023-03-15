@@ -8,7 +8,7 @@ cache pages=-1
 # path to icons
 #icon path="@ABS_APPICON_PATH@"
 # maximum memory size (in bytes, default is 200MiB)
-memory=2.0972e+08
+memory=2.09719e+08
 # enable/disable gestures
 gestures=true
 # minimum time per frame in animations

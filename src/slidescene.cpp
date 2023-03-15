@@ -49,6 +49,7 @@ SlideScene::SlideScene(const PdfMaster *master, const PagePart part, QObject *pa
     master(master),
     page_part(part)
 {
+    setSceneRect(0, 0, 40000, 30000);
     connect(this, &SlideScene::sendNewPath, master, &PdfMaster::receiveNewPath, Qt::DirectConnection);
     connect(this, &SlideScene::replacePath, master, &PdfMaster::replacePath, Qt::DirectConnection);
     connect(this, &SlideScene::sendHistoryStep, master, &PdfMaster::addHistoryStep, Qt::DirectConnection);
