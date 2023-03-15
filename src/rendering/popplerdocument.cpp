@@ -375,7 +375,7 @@ const PdfLink *PopplerDocument::linkAt(const int page, const QPointF &position) 
 #endif
                 const QUrl url = preferences()->resolvePath(browselink->url());
                 if (url.isValid())
-                    return new ExternalLink({url.isLocalFile() ? PdfLink::LocalUrl : PdfLink::RemoteUrl, rect, url});
+                    return new ExternalLink(url.isLocalFile() ? PdfLink::LocalUrl : PdfLink::RemoteUrl, rect, url);
                 break;
             }
             case Poppler::Link::Movie:

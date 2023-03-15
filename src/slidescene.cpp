@@ -688,7 +688,7 @@ void SlideScene::navigationEvent(const int newpage, SlideScene *newscene)
     if ((!newscene || newscene == this) && page != newpage && (slide_flags & ShowTransitions))
     {
         SlideTransition transition = master->transition(newpage > page ? newpage : page);
-        if (transition.type > 0)
+        if (transition.type > 0 && transition.duration > 1e-3)
         {
             if (newpage < page)
                 transition.invert();

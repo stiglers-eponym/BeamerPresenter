@@ -551,7 +551,7 @@ const SlideTransition MuPdfDocument::transition(const int page) const
         return trans;
 
     mutex->lock();
-    fz_transition doc_trans;
+    fz_transition doc_trans = {0, 0., 0, 0, 0, 0, 0};
     float duration;
     fz_var(doc_trans);
     fz_var(duration);
@@ -566,7 +566,10 @@ const SlideTransition MuPdfDocument::transition(const int page) const
 
     trans.properties = (doc_trans.vertical ? SlideTransition::Vertical : 0)
                     | (doc_trans.outwards ? SlideTransition::Outwards : 0);
-    trans.type = static_cast<SlideTransition::Type>(doc_trans.type);
+    if (doc_trans.type > 12 || doc_trans.type < 0)
+        trans.type = -1;
+    else
+        trans.type = static_cast<SlideTransition::Type>(doc_trans.type);
     trans.angle = doc_trans.direction;
     trans.duration = doc_trans.duration;
 
