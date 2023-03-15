@@ -7,8 +7,8 @@ cache pages=-1
 #manual="@ABS_DOC_PATH@/README.html"
 # path to icons
 #icon path="@ABS_APPICON_PATH@"
-# maximum memory size (in bytes, default is 100MiB)
-memory=1.0486e+08
+# maximum memory size (in bytes, default is 200MiB)
+memory=2.0972e+08
 # enable/disable gestures
 gestures=true
 # minimum time per frame in animations

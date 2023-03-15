@@ -7,7 +7,7 @@
 #include <QPushButton>
 #include "src/config.h"
 
-class QCheckBox;
+class QPushButton;
 class QString;
 
 /**
@@ -32,7 +32,7 @@ class TOCbutton : public QPushButton
     friend class TOCwidget;
 
     /// Button controlling whether the children of this node should be shown.
-    QCheckBox *expand_button;
+    QPushButton *expand_button;
 
     /// Target page in document of this outline entry.
     const int page;
@@ -49,7 +49,7 @@ class TOCbutton : public QPushButton
 public:
     /// Constructor: Only directly uses the given values to initialize
     /// properties of this. Takes ownership of expand_button.
-    TOCbutton(const QString &title, const int _page, QCheckBox *expand_button, QWidget *parent = NULL);
+    TOCbutton(const QString &title, const int _page, QPushButton *expand_button, QWidget *parent = NULL);
 
     /// Destructor: recursively delete the associated subtree.
     ~TOCbutton();

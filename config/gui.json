@@ -71,7 +71,8 @@
             "overlays" : "last",
             "transitions" : false,
             "media" : false,
-            "threads" : 0
+            "threads" : 1,
+            "cache hash" : 1
           },
           {
             "type" : "slide",
@@ -81,7 +82,8 @@
             "overlays" : "last",
             "transitions" : false,
             "media" : false,
-            "threads" : 0
+            "threads" : 0,
+            "cache hash" : 1
           },
           {
             "type" : "tool selector",

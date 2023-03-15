@@ -103,7 +103,7 @@
             "overlays" : "none",
             "transitions" : false,
             "media" : false,
-            "threads" : 0
+            "threads" : 1
           },
           {
             "type" : "notes",
