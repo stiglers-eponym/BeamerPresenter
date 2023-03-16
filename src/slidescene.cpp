@@ -875,7 +875,7 @@ slide::MediaItem &SlideScene::getMediaItem(const MediaAnnotation &annotation, co
     case MediaAnnotation::Repeat:
     default:
 #if (QT_VERSION_MAJOR >= 6)
-        connect(player, &MediaPlayer::mediaStatusChanged, player, &MediaPlayer::repeatIfFinished);
+        player->setLoops(QMediaPlayer::Infinite);
 #else
         if (player->playlist())
             player->playlist()->setPlaybackMode(QMediaPlaylist::CurrentItemInLoop);

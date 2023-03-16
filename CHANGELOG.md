@@ -1,8 +1,10 @@
 # Changelog
-## Upcoming
+## Upcoming (0.2.4)
 * compatibility with Qt 6.4
 * pages listed in TOC always start a new slide and are not considered overlays
 * page up and page down can be used to navigate pages also while showing TOC or thumbnails
+* more navigation keyboard shortcuts in default configuration
+* bug fixes
 ## 0.2.3
 * select and manipulate drawn items
     * selection tools

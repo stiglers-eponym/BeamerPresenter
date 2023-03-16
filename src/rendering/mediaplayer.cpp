@@ -1,6 +1,7 @@
 // SPDX-FileCopyrightText: 2022 Valentin Bruch <software@vbruch.eu>
 // SPDX-License-Identifier: GPL-3.0-or-later OR AGPL-3.0-or-later
 
+#include <algorithm>
 #include <QTimer>
 #include "src/rendering/mediaplayer.h"
 #include "src/log.h"
@@ -20,10 +21,11 @@ MediaPlayer::~MediaPlayer() noexcept
 
 void MediaPlayer::checkPosition()
 {
-    debug_msg(DebugMedia, "check position" << seekpos << position());
-    if (seekpos >= 0)
+    debug_msg(DebugMedia, "check position" << seekpos << position() << mediaStatus() << playbackState());
+    if (seekpos >= 0 && isSeekable())
     {
-        setPosition(seekpos);
+        setPosition(std::min(seekpos, duration()-1));
+        debug_msg(DebugMedia, "done:" << position() << duration() << mediaStatus() << playbackState());
         seekpos = -1;
     }
 }

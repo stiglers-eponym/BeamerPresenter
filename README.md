@@ -120,6 +120,7 @@ When reporting bugs, please include the version string of BeamerPresenter
 
 The following known problems have low priority. If one of these problems is relevant for you, please also open an issue.
 * Multimedia
+    * In Arch Linux the media player regularly hangs up when using qt6-multimedia-gstreamer. With qt6-multimedia-ffmpeg it should work.
     * Video performance can be bad while drawing or using the magnifier.
     * Some slide transitions need to stop videos. Fly slide transitions during videos look strange.
     * Sounds included as sound link (not sound annotation) are unsupported when using MuPDF (this affects LaTeX beamer's `\sound` command; workaround: use `\movie` instead).

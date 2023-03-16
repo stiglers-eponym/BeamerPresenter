@@ -89,7 +89,7 @@ When compiling with Qt PDF (only Qt 5 and Ubuntu >= 21.04):
 Replace qt6 with qt5 in all package names if you want to use Qt 5.
 * `cmake` (only for building and only in the mainline version)
 * `qt6-multimedia`
-* since Qt ≥6.4: for building you need both backends `qt6-multimedia-ffmpeg` and `qt6-multimedia-gstreamer`
+* since Qt ≥6.4: Using the backend `qt6-multimedia-ffmpeg` is recommended.
 * `qt6-tools` (only for building and only when creating translations. You can disable translations with `-DUSE_TRANSLATIONS=OFF` in the [CMake command](#configure))
 * `qt6-svg` for showing icons
 
