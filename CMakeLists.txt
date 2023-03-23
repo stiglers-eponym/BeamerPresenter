@@ -9,6 +9,10 @@ project(beamerpresenter
     HOMEPAGE_URL "https://github.com/stiglers-eponym/BeamerPresenter"
     LANGUAGES CXX)
 
+# Configure compilation basics
+set(CMAKE_CONFIGURATION_TYPES Release Debug)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_AUTOMOC ON)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
@@ -130,11 +134,6 @@ if (GIT_VERSION AND EXISTS "${PROJECT_SOURCE_DIR}/.git")
     endif()
 endif()
 
-# Configure compilation basics
-set(CMAKE_CONFIGURATION_TYPES Release Debug)
-set(CMAKE_CXX_STANDARD 17)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
-set(CMAKE_AUTOMOC ON)
 # Linker flags for debugging
 set(LFLAGS "${LFLAGS} $<$<CONFIG:Debug>:-rdynamic>>")
 

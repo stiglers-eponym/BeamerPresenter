@@ -398,6 +398,9 @@ only text tool: anything that Qt can interpret as font name.
 .TP
 .B font size
 only text tool: font size (positive number).
+.TP
+.B device
+all tools: tool name (e.g. "tablet pen", "touch"), "all", or "all+" (see also beamerpresenter.conf (5)). If this property is set, pushing this button will set the tool for the defined input devices. If this property is not set, then the tool will always be set only for the input device with which the button was pressed.
 .PP
 It is possible to select a different tool for a button while BeamerPresenter is running by clicking the button while pressing the ctrl key. But note that this changes the tool only temporarily and this modification will not be saved.
 .RE
