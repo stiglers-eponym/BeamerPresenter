@@ -22,9 +22,14 @@ MediaPlayer::~MediaPlayer() noexcept
 void MediaPlayer::checkPosition()
 {
     debug_msg(DebugMedia, "check position" << seekpos << position() << mediaStatus() << playbackState());
-    if (seekpos >= 0 && isSeekable())
+    /* It can happen that a video has duration()==0. In such a case I
+     * experienced that setPosition() does not work. It only restarts
+     * the video from the beginning. Therefore this disables seeking
+     * if duration()==0. */
+    if (seekpos >= 0 && isSeekable() && duration() > 0)
     {
-        setPosition(std::min(seekpos, duration()-1));
+        setPosition(std::min(seekpos, duration()));
+        //setPosition(seekpos <= duration() || duration() == 0 ? seekpos : duration());
         debug_msg(DebugMedia, "done:" << position() << duration() << mediaStatus() << playbackState());
         seekpos = -1;
     }

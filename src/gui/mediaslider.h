@@ -19,7 +19,7 @@ class MediaSlider : public QSlider
     Q_OBJECT
 
 public:
-    /// Trivial constructor.
+    /// Constructor: disable focus.
     explicit MediaSlider(QWidget *parent = NULL) :
         QSlider(Qt::Horizontal, parent)
         {setFocusPolicy(Qt::NoFocus);}
@@ -32,8 +32,11 @@ public slots:
     {setMaximum(int(maximum));}
 
     /// Set position (time in ms).
+    /* It can happen that a video has duration()==0, although the
+     * video has a finite length. In this case the slider adjusts to
+     * the video position it receives. */
     void setValueInt64(qint64 value)
-    {setValue(int(value));}
+    {if (value > maximum() + 250) setMaximum(value); setValue(int(value));}
 };
 
 #endif // MEDIASLIDER_H

@@ -401,11 +401,12 @@ void SlideView::addMediaSlider(const slide::MediaItem &media)
     const QPoint left = mapFromScene(media.annotation.rect.bottomLeft());
     const QPoint right = mapFromScene(media.annotation.rect.bottomRight());
     slider->setGeometry(left.x(), right.y(), right.x() - left.x(), 20);
-    slider->setMaximum(media.player->duration());
-    slider->setValue(media.player->position());
     connect(media.player, &MediaPlayer::durationChanged, slider, &MediaSlider::setMaximumInt64);
     connect(media.player, &MediaPlayer::positionChanged, slider, &MediaSlider::setValueInt64);
+    slider->setMaximum(media.player->duration());
+    slider->setValue(media.player->position());
     connect(slider, &MediaSlider::sliderMoved, media.player, &MediaPlayer::setPositionSoft);
+    debug_msg(DebugMedia, "created slider:" << slider->maximum() << slider->value());
     QPalette palette;
     palette.setColor(QPalette::Base, QColor(0,0,0,0));
     slider->setPalette(palette);
