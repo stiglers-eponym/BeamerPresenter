@@ -77,7 +77,7 @@ struct MediaAnnotation {
     {return     type == other.type
                 && file == other.file
                 && mode == other.mode
-                && rect == other.rect;}
+                && rect.toAlignedRect() == other.rect.toAlignedRect();}
 };
 
 /// Embedded media file.

@@ -803,8 +803,8 @@ slide::MediaItem &SlideScene::getMediaItem(const MediaAnnotation &annotation, co
     {
         if (mediaitem.annotation == annotation && mediaitem.player)
         {
-            debug_msg(DebugMedia, "Found media in cache" << annotation.file << annotation.rect);
             mediaitem.pages.insert(page);
+            debug_msg(DebugMedia, "Found media in cache" << annotation.file << annotation.rect << QList<int>(mediaitem.pages.cbegin(), mediaitem.pages.cend()));
             return mediaitem;
         }
     }

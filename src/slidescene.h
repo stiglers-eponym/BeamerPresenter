@@ -167,7 +167,7 @@ public:
     {return master;}
 
     /// Hash for this scene based on shift, master and page_part.
-    unsigned int identifier() const
+    size_t identifier() const
     {return qHash(QPair<int, const void*>(shift, master)) + page_part;}
 
     /// Currently visible page.
