@@ -21,7 +21,11 @@ MediaPlayer::~MediaPlayer() noexcept
 
 void MediaPlayer::checkPosition()
 {
+#if (QT_VERSION_MAJOR >= 6)
     debug_msg(DebugMedia, "check position" << seekpos << position() << mediaStatus() << playbackState());
+#else
+    debug_msg(DebugMedia, "check position" << seekpos << position() << mediaStatus() << state());
+#endif
     /* It can happen that a video has duration()==0. In such a case I
      * experienced that setPosition() does not work. It only restarts
      * the video from the beginning. Therefore this disables seeking
@@ -30,7 +34,11 @@ void MediaPlayer::checkPosition()
     {
         setPosition(std::min(seekpos, duration()));
         //setPosition(seekpos <= duration() || duration() == 0 ? seekpos : duration());
+#if (QT_VERSION_MAJOR >= 6)
         debug_msg(DebugMedia, "done:" << position() << duration() << mediaStatus() << playbackState());
+#else
+        debug_msg(DebugMedia, "done:" << position() << duration() << mediaStatus() << state());
+#endif
         seekpos = -1;
     }
 }
