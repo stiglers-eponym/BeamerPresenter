@@ -115,6 +115,7 @@ void SlideView::resizeEvent(QResizeEvent *event)
         if (media.pages.find(page) != media.pages.end())
 #endif
             addMediaSlider(media);
+    emit sendAction(ResizeViews);
 }
 
 void SlideView::keyPressEvent(QKeyEvent *event)

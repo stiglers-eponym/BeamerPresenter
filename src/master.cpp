@@ -808,6 +808,7 @@ void Master::handleAction(const Action action)
         if (changed)
         {
             writable_preferences()->number_of_pages = documents.first()->numberOfPages();
+            distributeMemory();
             for (const auto cache : qAsConst(caches))
                 cache->clear();
             emit sendAction(PdfFilesChanged);
@@ -815,6 +816,9 @@ void Master::handleAction(const Action action)
         }
         break;
     }
+    case ResizeViews:
+        distributeMemory();
+        break;
     case Quit:
         if (!documents.isEmpty())
         {
@@ -903,6 +907,7 @@ void Master::distributeMemory()
     if (scale <= 0)
         return;
     scale = preferences()->max_memory / scale;
+    debug_msg(DebugCache, "Distributing memory. scale =" << scale << ", max. memory =" << preferences()->max_memory);
     for (const auto cache : qAsConst(caches))
         cache->setScaledMemory(scale);
 }

@@ -157,6 +157,8 @@ enum Action
     FullScreen, ///< toggle full screen mode
     Quit, ///< quit program, ask to save if there are unsaved changes
     QuitNoConfirmation, ///< quit program ignoring about unsaved changes
+    // Internal actions
+    ResizeViews, ///< slide views have been resized
 
     // Actions containing flags
     UndoDrawingLeft = UndoDrawing | PagePart::LeftHalf, ///< undo last drawing step on current page (only LeftPage)

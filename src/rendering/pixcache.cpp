@@ -275,7 +275,7 @@ int PixCache::limitCacheSize()
     if (allowed_slides >= threads.length())
         return allowed_slides;
 
-    debug_msg(DebugCache, "prepared deleting from cache" << usedMemory << allowed_slides << cached_slides);
+    debug_msg(DebugCache, "prepared deleting from cache" << usedMemory << maxMemory << allowed_slides << cached_slides);
 
 
     // Deleting starts from first or last page in cache.
