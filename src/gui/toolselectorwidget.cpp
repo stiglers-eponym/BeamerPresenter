@@ -103,6 +103,7 @@ void ToolSelectorWidget::addButtons(const QJsonArray &full_array)
                         ColorSelectionButton *button = new ColorSelectionButton(array, this);
                         connect(this, &ToolSelectorWidget::sendTool, button, &ColorSelectionButton::toolChanged);
                         connect(button, &ColorSelectionButton::colorChanged, this, &ToolSelectorWidget::sendColor);
+                        connect(button, &ColorSelectionButton::sendUpdatedTool, this, &ToolSelectorWidget::updatedTool);
                         grid_layout->addWidget(button, i, j);
                     }
                     if (obj.value("select") == "width")
@@ -111,18 +112,21 @@ void ToolSelectorWidget::addButtons(const QJsonArray &full_array)
                         WidthSelectionButton *button = new WidthSelectionButton(array, this);
                         connect(this, &ToolSelectorWidget::sendTool, button, &WidthSelectionButton::toolChanged);
                         connect(button, &WidthSelectionButton::widthChanged, this, &ToolSelectorWidget::sendWidth);
+                        connect(button, &WidthSelectionButton::sendUpdatedTool, this, &ToolSelectorWidget::updatedTool);
                         grid_layout->addWidget(button, i, j);
                     }
                     else if(obj.value("select") == "shape")
                     {
                         ShapeSelectionButton *button = new ShapeSelectionButton(this);
                         connect(this, &ToolSelectorWidget::sendTool, button, &ShapeSelectionButton::toolChanged);
+                        connect(button, &ShapeSelectionButton::sendUpdatedTool, this, &ToolSelectorWidget::updatedTool);
                         grid_layout->addWidget(button, i, j);
                     }
                     else if(obj.value("select") == "style")
                     {
                         PenStyleButton *button = new PenStyleButton(this);
                         connect(this, &ToolSelectorWidget::sendTool, button, &PenStyleButton::toolChanged);
+                        connect(button, &PenStyleButton::sendUpdatedTool, this, &ToolSelectorWidget::updatedTool);
                         grid_layout->addWidget(button, i, j);
                     }
                 }

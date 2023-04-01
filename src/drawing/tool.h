@@ -75,6 +75,8 @@ public:
         AnyPointingDevice = AnyDevice ^ (TabletEraser | MouseRightButton | MouseMiddleButton),
         AnyNormalDevice = AnyPointingDevice ^ (TabletHover | MouseNoButton | TabletMod),
         PressureSensitiveDevices = TabletPen | TabletEraser | TabletCursor | TabletOther | TabletMod,
+        AnyTabletDevice = TabletPen | TabletEraser | TabletCursor | TabletOther | TabletMod | TabletHover,
+        AnyMouseDevice = MouseNoButton | MouseLeftButton | MouseRightButton | MouseMiddleButton,
     };
 
     /// Distinguish start, stop, update and cancel events.
@@ -171,6 +173,9 @@ static const QMap<QString, int> string_to_input_device
     {"tablet", Tool::TabletPen | Tool::TabletCursor | Tool::TabletOther | Tool::TabletMod},
     {"tablet eraser", Tool::TabletEraser},
     {"tablet hover", Tool::TabletHover},
+    {"tablet cursor", Tool::TabletCursor},
+    {"tablet mod", Tool::TabletMod},
+    {"tablet other", Tool::TabletOther},
     {"tablet all", Tool::TabletPen | Tool::TabletCursor | Tool::TabletOther | Tool::TabletEraser | Tool::TabletMod},
     {"all", Tool::AnyNormalDevice},
     {"all+", Tool::AnyPointingDevice},

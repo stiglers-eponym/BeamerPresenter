@@ -44,6 +44,10 @@ public:
 
     /// Trivial destructor.
     ~ToolPropertyButton() {}
+
+signals:
+    /// Notify master that tool has changed.
+    void sendUpdatedTool(const Tool *tool) const;
 };
 
 #endif // TOOLPROPERTYBUTTON_H

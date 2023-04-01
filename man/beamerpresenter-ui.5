@@ -1,4 +1,4 @@
-.TH beamerpresenter-ui 5 "2022-09-04" "0.2.3"
+.TH beamerpresenter-ui 5 "2023-04-02" "0.2.3"
 .
 .SH NAME
 beamerpresenter-ui \- user interface of BeamerPresenter
@@ -232,6 +232,23 @@ Default configuration:
 .TP
 .B toc
 outline / table of contents, shows document outline tree.
+.
+.TP
+.B tool widget
+shows current mapping of devices to tools. The tools can be changed using a pop-up dialog.
+.PP
+.RS
+Arguments:
+.TP
+.BI orientation " horizontal/vertical"
+arange different devices next to each other or above each other.
+.TP
+.BI "mouse devices " array
+list of devices that are included in the group of mouse devices. Possible values: "left button", "right button", "middle button", "no button"
+.TP
+.BI "tablet devices " array
+list of devices that are included in the group of tablet devices. Possible values: "tablet pen", "tablet eraser", "tablet hover", "tablet cursor", "tablet mod", "tablet other"
+.RE
 .
 .TP
 .B tool selector

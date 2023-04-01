@@ -62,6 +62,10 @@ signals:
     /// Send a new tool (copy of the tool of a button).
     /// Ownership of tool is transfered to receiver.
     void sendTool(Tool *tool) const;
+
+    /// Notify master that a tool has been updated.
+    /// Ownership of tool does not change.
+    void updatedTool(const Tool *tool) const;
 };
 
 #endif // TOOLSELECTORWIDGET_H

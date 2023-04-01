@@ -18,8 +18,8 @@ class QColor;
  * @brief Tool button for drawing and pointing tools.
  *
  * @see ActionButton
- * @see ToolSelectorWidget
- * @see ToolDialog
+ * @see ToolSelectorButton
+ * @see ToolWidgetButton
  */
 class ToolButton : public QToolButton
 {

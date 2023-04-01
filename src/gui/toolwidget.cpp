@@ -26,15 +26,14 @@ ToolWidget::ToolWidget(QWidget *parent, Qt::Orientation orientation)
     else
         setLayout(new QVBoxLayout(this));
     setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-    initialize();
 }
 
 QSize ToolWidget::sizeHint() const noexcept
 {
     if (orientation == Qt::Horizontal)
-        return {60+layout()->count()*24, 48};
+        return {4+total_columns*20, 44};
     else
-        return {48, 60+layout()->count()*24};
+        return {44, 4+total_columns*20};
 }
 
 void ToolWidget::initialize()
@@ -47,8 +46,8 @@ void ToolWidget::initialize()
         {
         case QInputDevice::DeviceType::Stylus:
         case QInputDevice::DeviceType::Airbrush:
-            if ((devices & (Tool::TabletPen | Tool::TabletEraser)) != (Tool::TabletPen | Tool::TabletEraser))
-                addDeviceGroup({Tool::TabletPen, Tool::TabletEraser});
+            if ((devices & tablet_devices.constFirst()) == 0)
+                addDeviceGroup(tablet_devices);
             break;
         case QInputDevice::DeviceType::TouchScreen:
             if ((devices & Tool::TouchInput) == 0)
@@ -56,19 +55,19 @@ void ToolWidget::initialize()
             break;
         case QInputDevice::DeviceType::Mouse:
         case QInputDevice::DeviceType::TouchPad:
-            if ((devices & (Tool::MouseLeftButton | Tool::MouseRightButton)) != (Tool::MouseLeftButton | Tool::MouseRightButton))
-                addDeviceGroup({Tool::MouseNoButton, Tool::MouseLeftButton, Tool::MouseRightButton});
+            if ((devices & mouse_devices.constFirst()) == 0)
+                addDeviceGroup(mouse_devices);
         default:
             break;
         }
     }
 #else
     if ((devices & (Tool::MouseLeftButton | Tool::MouseRightButton)) != (Tool::MouseLeftButton | Tool::MouseRightButton))
-        addDeviceGroup({Tool::MouseNoButton, Tool::MouseLeftButton, Tool::MouseRightButton});
+        addDeviceGroup({Tool::MouseLeftButton, Tool::MouseRightButton});
 #endif
 }
 
-void ToolWidget::addDeviceGroup(const QList<Tool::InputDevice> &new_devices)
+void ToolWidget::addDeviceGroup(const QList<int> &new_devices)
 {
     auto frame = new QFrame(this);
     frame->setFrameStyle(QFrame::Box | QFrame::Raised);
@@ -105,12 +104,10 @@ void ToolWidget::addDeviceGroup(const QList<Tool::InputDevice> &new_devices)
         }
         devices |= device;
         ++used_devices;
+        ++total_columns;
     }
     if (used_devices > 0)
-    {
-        frame->setMinimumWidth(20*used_devices);
         layout()->addWidget(frame);
-    }
     else
         delete frame;
 }
@@ -130,9 +127,8 @@ const char *device_icon(int device) noexcept
     case Tool::TabletPen:
     case Tool::TabletCursor:
     case Tool::TabletOther:
-        return "tablet-pen";
     case Tool::TabletMod:
-        return "";
+        return "tablet-pen";
     case Tool::TabletEraser:
         return "tablet-eraser";
     case Tool::TabletHover:
@@ -149,27 +145,27 @@ const char *device_description(int device) noexcept
     switch (device)
     {
     case Tool::MouseNoButton:
-        return QT_TR_NOOP("mouse pointer, no buttons pressed");
+        return QT_TRANSLATE_NOOP("ToolWidget", "mouse pointer, no buttons pressed");
     case Tool::MouseLeftButton:
-        return QT_TR_NOOP("left mouse button");
+        return QT_TRANSLATE_NOOP("ToolWidget", "left mouse button");
     case Tool::MouseMiddleButton:
-        return QT_TR_NOOP("middle mouse button");
+        return QT_TRANSLATE_NOOP("ToolWidget", "middle mouse button");
     case Tool::MouseRightButton:
-        return QT_TR_NOOP("right mouse button");
+        return QT_TRANSLATE_NOOP("ToolWidget", "right mouse button");
     case Tool::TabletPen:
     case Tool::TabletCursor:
     case Tool::TabletOther:
-        return QT_TR_NOOP("stylus or tablet pen");
+        return QT_TRANSLATE_NOOP("ToolWidget", "stylus or tablet pen");
     case Tool::TabletMod:
-        return QT_TR_NOOP("unsupported tablet device");
+        return QT_TRANSLATE_NOOP("ToolWidget", "unsupported tablet device");
     case Tool::TabletEraser:
-        return QT_TR_NOOP("eraser of stylus");
+        return QT_TRANSLATE_NOOP("ToolWidget", "eraser of stylus");
     case Tool::TabletHover:
-        return QT_TR_NOOP("stylus hover over tablet");
+        return QT_TRANSLATE_NOOP("ToolWidget", "stylus hover over tablet");
     case Tool::TouchInput:
-        return QT_TR_NOOP("touchscreen");
+        return QT_TRANSLATE_NOOP("ToolWidget", "touchscreen");
     default:
-        return QT_TR_NOOP("unknown devic");
+        return QT_TRANSLATE_NOOP("ToolWidget", "unknown device");
     }
 }
 

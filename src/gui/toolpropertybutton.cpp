@@ -80,4 +80,5 @@ void ToolPropertyButton::changed(const int index) const
 {
     Tool *tool = preferences()->currentTool(device);
     setToolProperty(tool);
+    emit sendUpdatedTool(tool);
 }

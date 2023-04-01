@@ -4,6 +4,7 @@
 * pages listed in TOC always start a new slide and are not considered overlays
 * page up and page down can be used to navigate pages also while showing TOC or thumbnails
 * more navigation keyboard shortcuts in default configuration
+* new widget: ToolWidget ("tools") showing tools currently connected to input devices
 * bug fixes
 ## 0.2.3
 * select and manipulate drawn items

@@ -266,50 +266,6 @@
         <translation>Ungültiges Passwort angegeben für gesperrtes Dokument</translation>
     </message>
     <message>
-        <source>pen with variable width if the input device supports variable pressure</source>
-        <translation>Stift variabler Stärke sofern das Eingabegerät dies unterstützt</translation>
-    </message>
-    <message>
-        <source>pen with fixed width (independent of input device pressure)</source>
-        <translation>Stift mit fixer stärke (unabhängig vom Druck des Eingabegeräts)</translation>
-    </message>
-    <message>
-        <source>eraser: deletes drawings</source>
-        <translation>Radiergummie: löscht Stifteingaben</translation>
-    </message>
-    <message>
-        <source>highlighter: fixed width drawing which only darkens colors (full color on white background, invisible on black background)</source>
-        <translation>Textmarker: nicht deckender Stift fixer Stärke (farbig auf weißem Grund, unsichtbar auf schwarzem Grund)</translation>
-    </message>
-    <message>
-        <source>pointer</source>
-        <translation>Laserpointer</translation>
-    </message>
-    <message>
-        <source>torch: darken the slide leaving only a disk unchanged to focus attention on this area</source>
-        <translation>Taschenlampe: Verdunkelt die Folie bis auf einen runden Bereich</translation>
-    </message>
-    <message>
-        <source>enlargen part of the slide</source>
-        <translation>Teil der Folie vergrößern</translation>
-    </message>
-    <message>
-        <source>add or edit text on slide</source>
-        <translation>Text auf der Folie hinzufügen oder bearbeiten</translation>
-    </message>
-    <message>
-        <source>Select objects by clicking on them</source>
-        <translation>Objekte durch Anklicken auswählen</translation>
-    </message>
-    <message>
-        <source>Select objects in a rectangle</source>
-        <translation>Objekte innerhalb eines Rechtecks auswählen</translation>
-    </message>
-    <message>
-        <source>Select objects inside a drawn shape</source>
-        <translation>Objekte innerhalb einer gemalten Form auswählen</translation>
-    </message>
-    <message>
         <source>go to previous page</source>
         <translation>zur vorherigen Seite gehen</translation>
     </message>
@@ -668,6 +624,53 @@ Konfiguriere Zwischenspeicher (Cache). Folien werden in gerendert und in einen k
     </message>
 </context>
 <context>
+    <name>Tool</name>
+    <message>
+        <source>pen with variable width if the input device supports variable pressure</source>
+        <translation>Stift variabler Stärke sofern das Eingabegerät dies unterstützt</translation>
+    </message>
+    <message>
+        <source>pen with fixed width (independent of input device pressure)</source>
+        <translation>Stift mit fixer stärke (unabhängig vom Druck des Eingabegeräts)</translation>
+    </message>
+    <message>
+        <source>eraser: deletes drawings</source>
+        <translation>Radiergummie: löscht Stifteingaben</translation>
+    </message>
+    <message>
+        <source>highlighter: fixed width drawing which only darkens colors (full color on white background, invisible on black background)</source>
+        <translation>Textmarker: nicht deckender Stift fixer Stärke (farbig auf weißem Grund, unsichtbar auf schwarzem Grund)</translation>
+    </message>
+    <message>
+        <source>pointer</source>
+        <translation>Laserpointer</translation>
+    </message>
+    <message>
+        <source>torch: darken the slide leaving only a disk unchanged to focus attention on this area</source>
+        <translation>Taschenlampe: Verdunkelt die Folie bis auf einen runden Bereich</translation>
+    </message>
+    <message>
+        <source>enlargen part of the slide</source>
+        <translation>Teil der Folie vergrößern</translation>
+    </message>
+    <message>
+        <source>add or edit text on slide</source>
+        <translation>Text auf der Folie hinzufügen oder bearbeiten</translation>
+    </message>
+    <message>
+        <source>Select objects by clicking on them</source>
+        <translation>Objekte durch Anklicken auswählen</translation>
+    </message>
+    <message>
+        <source>Select objects in a rectangle</source>
+        <translation>Objekte innerhalb eines Rechtecks auswählen</translation>
+    </message>
+    <message>
+        <source>Select objects inside a drawn shape</source>
+        <translation>Objekte innerhalb einer gemalten Form auswählen</translation>
+    </message>
+</context>
+<context>
     <name>ToolDialog</name>
     <message>
         <source>Tool:</source>
@@ -692,6 +695,49 @@ Konfiguriere Zwischenspeicher (Cache). Folien werden in gerendert und in einen k
     <message>
         <source>Tool color</source>
         <translation>Farbe des Werkzeugs</translation>
+    </message>
+</context>
+<context>
+    <name>ToolWidget</name>
+    <message>
+        <source>mouse pointer, no buttons pressed</source>
+        <translation>Mauszeiger, keine Taste gedrückt</translation>
+    </message>
+    <message>
+        <source>left mouse button</source>
+        <translation>linke Maustaste</translation>
+    </message>
+    <message>
+        <source>middle mouse button</source>
+        <translation>mittlere Maustaste</translation>
+    </message>
+    <message>
+        <source>right mouse button</source>
+        <translation>rechte Maustaste</translation>
+    </message>
+    <message>
+        <source>stylus or tablet pen</source>
+        <translation>Stylus oder Stift für Tableteingabe</translation>
+    </message>
+    <message>
+        <source>unsupported tablet device</source>
+        <translation>nicht unterstützte Tableteingabe</translation>
+    </message>
+    <message>
+        <source>eraser of stylus</source>
+        <translation>Radierer des Tablet-Stifts</translation>
+    </message>
+    <message>
+        <source>stylus hover over tablet</source>
+        <translation>Tablet-Stift, über dem Tablet schwebend</translation>
+    </message>
+    <message>
+        <source>touchscreen</source>
+        <translation>Touchscreen</translation>
+    </message>
+    <message>
+        <source>unknown device</source>
+        <translation>unbekanntes Gerät</translation>
     </message>
 </context>
 </TS>

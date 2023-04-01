@@ -395,7 +395,7 @@ QWidget* Master::createWidget(QJsonObject &object, QWidget *parent)
             connect(scene, &SlideScene::navigationSignal, this, &Master::navigateToPage, Qt::QueuedConnection);
             connect(scene, &SlideScene::sendAction, this, &Master::handleAction, Qt::QueuedConnection);
             connect(this, &Master::sendAction, scene, &SlideScene::receiveAction);
-            connect(this, &Master::sendNewTool, scene, &SlideScene::toolChanged);
+            connect(this, &Master::sendNewToolScene, scene, &SlideScene::toolChanged);
             connect(this, &Master::sendColor, scene, &SlideScene::colorChanged);
             connect(this, &Master::sendWidth, scene, &SlideScene::widthChanged);
             connect(cacheVideoTimer, &QTimer::timeout, scene, &SlideScene::postRendering, Qt::QueuedConnection);
@@ -523,6 +523,7 @@ QWidget* Master::createWidget(QJsonObject &object, QWidget *parent)
         connect(toolwidget, &ToolSelectorWidget::sendTool, this, &Master::setTool, Qt::QueuedConnection);
         connect(toolwidget, &ToolSelectorWidget::sendColor, this, &Master::sendColor);
         connect(toolwidget, &ToolSelectorWidget::sendWidth, this, &Master::sendWidth);
+        connect(toolwidget, &ToolSelectorWidget::updatedTool, this, &Master::sendNewToolSoft);
         widget = toolwidget;
         break;
     }
@@ -530,7 +531,34 @@ QWidget* Master::createWidget(QJsonObject &object, QWidget *parent)
     {
         Qt::Orientation orientation = object.value("orientation").toString("horizontal") == "horizontal" ? Qt::Horizontal : Qt::Vertical;
         ToolWidget *toolwidget = new ToolWidget(parent, orientation);
-        connect(this, &Master::sendNewTool, toolwidget, &ToolWidget::receiveTool);
+        if (object.contains("mouse devices"))
+        {
+            QList<int> devices;
+            int dev;
+            for (const auto &dev_obj : object.value("mouse devices").toArray())
+            {
+                dev = string_to_input_device.value(dev_obj.toString());
+                if (dev != 0 && (dev & Tool::AnyNormalDevice) != Tool::AnyNormalDevice)
+                    devices.append(dev);
+            }
+            if (!devices.isEmpty())
+                toolwidget->setMouseDevices(devices);
+        }
+        if (object.contains("tablet devices"))
+        {
+            QList<int> devices;
+            int dev;
+            for (const auto &dev_obj : object.value("tablet devices").toArray())
+            {
+                dev = string_to_input_device.value(dev_obj.toString());
+                if (dev != 0 && (dev & Tool::AnyNormalDevice) != Tool::AnyNormalDevice)
+                    devices.append(dev);
+            }
+            if (!devices.isEmpty())
+                toolwidget->setTabletDevices(devices);
+        }
+        toolwidget->initialize();
+        connect(this, &Master::sendNewToolSoft, toolwidget, &ToolWidget::receiveTool);
         connect(toolwidget, &ToolWidget::sendTool, this, &Master::setTool);
         widget = toolwidget;
         break;
@@ -968,7 +996,8 @@ void Master::setTool(Tool *tool) const noexcept
     }
     debug_msg(DebugDrawing|DebugKeyInput, "Set tool" << tool->tool() << tool->device());
     writable_preferences()->setCurrentTool(tool);
-    emit sendNewTool(tool);
+    emit sendNewToolScene(tool);
+    emit sendNewToolSoft(tool);
 
 #ifdef QT_DEBUG
     if ((preferences()->debug_level & DebugVerbose) && preferences()->debug_level & DebugDrawing)

@@ -72,27 +72,27 @@ const char *tool_to_description(const Tool::BasicTool tool) noexcept
     switch (tool)
     {
     case Tool::Pen:
-        return QT_TR_NOOP("pen with variable width if the input device supports variable pressure");
+        return QT_TRANSLATE_NOOP("Tool", "pen with variable width if the input device supports variable pressure");
     case Tool::FixedWidthPen:
-        return QT_TR_NOOP("pen with fixed width (independent of input device pressure)");
+        return QT_TRANSLATE_NOOP("Tool", "pen with fixed width (independent of input device pressure)");
     case Tool::Eraser:
-        return QT_TR_NOOP("eraser: deletes drawings");
+        return QT_TRANSLATE_NOOP("Tool", "eraser: deletes drawings");
     case Tool::Highlighter:
-        return QT_TR_NOOP("highlighter: fixed width drawing which only darkens colors (full color on white background, invisible on black background)");
+        return QT_TRANSLATE_NOOP("Tool", "highlighter: fixed width drawing which only darkens colors (full color on white background, invisible on black background)");
     case Tool::Pointer:
-        return QT_TR_NOOP("pointer");
+        return QT_TRANSLATE_NOOP("Tool", "pointer");
     case Tool::Torch:
-        return QT_TR_NOOP("torch: darken the slide leaving only a disk unchanged to focus attention on this area");
+        return QT_TRANSLATE_NOOP("Tool", "torch: darken the slide leaving only a disk unchanged to focus attention on this area");
     case Tool::Magnifier:
-        return QT_TR_NOOP("enlargen part of the slide");
+        return QT_TRANSLATE_NOOP("Tool", "enlargen part of the slide");
     case Tool::TextInputTool:
-        return QT_TR_NOOP("add or edit text on slide");
+        return QT_TRANSLATE_NOOP("Tool", "add or edit text on slide");
     case Tool::BasicSelectionTool:
-        return QT_TR_NOOP("Select objects by clicking on them");
+        return QT_TRANSLATE_NOOP("Tool", "Select objects by clicking on them");
     case Tool::RectSelectionTool:
-        return QT_TR_NOOP("Select objects in a rectangle");
+        return QT_TRANSLATE_NOOP("Tool", "Select objects in a rectangle");
     case Tool::FreehandSelectionTool:
-        return QT_TR_NOOP("Select objects inside a drawn shape");
+        return QT_TRANSLATE_NOOP("Tool", "Select objects inside a drawn shape");
     default:
         return "";
     };

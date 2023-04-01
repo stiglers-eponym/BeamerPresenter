@@ -55,6 +55,7 @@ bool PathContainer::undo(QGraphicsScene *scene)
         auto path = static_cast<AbstractGraphicsPath*>(it.key());
         DrawTool tool = path->getTool();
         tool.setPen(it->old_pen);
+        tool.setCompositionMode(it->old_mode);
         tool.brush() = it->old_brush;
         path->changeTool(tool);
         path->update();
@@ -159,6 +160,7 @@ bool PathContainer::redo(QGraphicsScene *scene)
         auto path = static_cast<AbstractGraphicsPath*>(it.key());
         DrawTool tool = path->getTool();
         tool.setPen(it->new_pen);
+        tool.setCompositionMode(it->new_mode);
         tool.brush() = it->new_brush;
         path->changeTool(tool);
         path->update();

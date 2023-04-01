@@ -32,8 +32,10 @@ namespace drawHistory
         QPen new_pen;
         QBrush old_brush;
         QBrush new_brush;
+        QPainter::CompositionMode old_mode;
+        QPainter::CompositionMode new_mode;
         DrawToolDifference(const DrawTool &old_tool, const DrawTool &new_tool) :
-            old_pen(old_tool.pen()), new_pen(new_tool.pen()), old_brush(old_pen.brush()), new_brush(new_tool.brush()) {}
+            old_pen(old_tool.pen()), new_pen(new_tool.pen()), old_brush(old_tool.brush()), new_brush(new_tool.brush()), old_mode(old_tool.compositionMode()), new_mode(new_tool.compositionMode()) {}
     };
     struct TextPropertiesDifference {
         QFont old_font;

@@ -135,8 +135,10 @@ public slots:
     void showErrorMessage(const QString &title, const QString &text) const;
 
 signals:
-    /// Send out new tool.
-    void sendNewTool(const Tool *tool) const;
+    /// Send out new tool to SlideScenes (changes selected items).
+    void sendNewToolScene(const Tool *tool) const;
+    /// Send out new tool only to tool buttons to update icons.
+    void sendNewToolSoft(const Tool *tool) const;
     /// Send out new stroke color.
     void sendColor(const QColor &color) const;
     /// Send out new stroke width.
