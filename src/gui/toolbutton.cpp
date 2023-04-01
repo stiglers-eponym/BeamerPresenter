@@ -20,6 +20,7 @@ ToolButton::ToolButton(Tool *tool, QWidget *parent) noexcept :
         QToolButton(parent),
         tool(nullptr)
 {
+    setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Ignored);
     setMinimumSize(16, 16);
     setIconSize({32,32});
     setContentsMargins(0,0,0,0);
@@ -81,7 +82,7 @@ void ToolButton::setTool(Tool *newtool)
     {
         delete tool;
         tool = newtool;
-        setToolTip(tool_to_description(tool->tool()));
+        setToolTip(tr(tool_to_description(tool->tool())));
     }
 }
 

@@ -9,6 +9,7 @@
 #include "src/config.h"
 
 class QSize;
+class QResizeEvent;
 class Tool;
 
 class ToolWidget : public QWidget
@@ -39,6 +40,7 @@ signals:
     void sendTool(Tool *tool);
 };
 
-const QString get_device_icon(int device) noexcept;
+const char *device_icon(int device) noexcept;
+const char *device_description(int device) noexcept;
 
 #endif // TOOLWIDGET_H

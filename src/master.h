@@ -43,7 +43,7 @@ class Master : public QObject
     QList<PdfMaster*> documents;
 
     /// Map of cache hashs to cache objects.
-    QMap<int, PixCache*> caches;
+    QMap<int, const PixCache*> caches;
 
     /// List of all windows of the applications.
     QList<QMainWindow*> windows;
@@ -145,6 +145,10 @@ signals:
     void sendAction(const Action action) const;
     /// Set status for an action (e.g. timer paused or running).
     void sendActionStatus(const Action action, const int status) const;
+    /// Set memory of each PixCache object to scale*(number of pixels)
+    void sendScaledMemory(const float scale);
+    /// Clear cache of all PixCache objects
+    void clearCache();
 
     /// Prepare navigation: Scenes update geometry, such that the layout can
     /// be recalculated.

@@ -58,6 +58,7 @@ Master::Master() :
 
 Master::~Master()
 {
+    emit clearCache();
     delete cacheVideoTimer;
     delete slideDurationTimer;
     for (const auto cache : qAsConst(caches))
@@ -67,7 +68,6 @@ Master::~Master()
         cache->thread()->wait(10000);
         delete cache;
     }
-    caches.clear();
     for (const auto doc : qAsConst(documents))
     {
         QList<SlideScene*> &scenes = doc->getScenes();
@@ -417,7 +417,7 @@ QWidget* Master::createWidget(QJsonObject &object, QWidget *parent)
         // TODO: read other properties from config
 
         // Get or create cache object.
-        PixCache *pixcache = NULL;
+        const PixCache *pixcache = NULL;
         int cache_hash = object.value("cache hash").toInt(-1);
         if (cache_hash == -1)
         {
@@ -437,15 +437,18 @@ QWidget* Master::createWidget(QJsonObject &object, QWidget *parent)
             // Read number of threads from GUI config.
             const int threads = object.value("threads").toInt(1);
             // Create the PixCache object.
-            pixcache = new PixCache(scene->getPdfMaster()->getDocument(), threads, page_part);
+            PixCache* newpixcache = new PixCache(scene->getPdfMaster()->getDocument(), threads, page_part);
+            pixcache = newpixcache;
+            // Set maximum number of pages in cache from settings.
+            newpixcache->setMaxNumber(preferences()->max_cache_pages);
             // Move the PixCache object to an own thread.
-            pixcache->moveToThread(new QThread());
+            newpixcache->moveToThread(new QThread());
             connect(pixcache, &PixCache::destroyed, pixcache->thread(), &QThread::deleteLater);
             // Make sure that pixcache is initialized when the thread is started.
             connect(pixcache->thread(), &QThread::started, pixcache, &PixCache::init, Qt::QueuedConnection);
             connect(this, &Master::navigationSignal, pixcache, &PixCache::pageNumberChanged, Qt::QueuedConnection);
-            // Set maximum number of pages in cache from settings.
-            pixcache->setMaxNumber(preferences()->max_cache_pages);
+            connect(this, &Master::sendScaledMemory, pixcache, &PixCache::setScaledMemory, Qt::QueuedConnection);
+            connect(this, &Master::clearCache, pixcache, &PixCache::clear, Qt::QueuedConnection);
             // Start the thread.
             pixcache->thread()->start();
             // Keep the new pixcache in caches.
@@ -805,8 +808,7 @@ void Master::handleAction(const Action action)
         {
             writable_preferences()->number_of_pages = documents.first()->numberOfPages();
             distributeMemory();
-            for (const auto cache : qAsConst(caches))
-                cache->clear();
+            emit clearCache();
             emit sendAction(PdfFilesChanged);
             navigateToPage(preferences()->page);
         }
@@ -904,8 +906,7 @@ void Master::distributeMemory()
         return;
     scale = preferences()->max_memory / scale;
     debug_msg(DebugCache, "Distributing memory. scale =" << scale << ", max. memory =" << preferences()->max_memory);
-    for (const auto cache : qAsConst(caches))
-        cache->setScaledMemory(scale);
+    emit sendScaledMemory(scale);
 }
 
 qint64 Master::getTotalCache() const

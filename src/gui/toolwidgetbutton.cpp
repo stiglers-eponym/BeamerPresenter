@@ -3,6 +3,7 @@
 
 #include "src/gui/toolwidgetbutton.h"
 #include "src/gui/tooldialog.h"
+#include "src/preferences.h"
 
 ToolWidgetButton::ToolWidgetButton(Tool *tool, const int device, QWidget *parent) noexcept
     : ToolButton(tool, parent), device(device)
@@ -22,10 +23,14 @@ void ToolWidgetButton::selectTool()
 
 void ToolWidgetButton::receiveNewTool(const Tool *newtool)
 {
-    if (newtool && newtool->device() & device)
+    if (!newtool)
+        return;
+    if (newtool->device() & device)
     {
         Tool *toolcopy = newtool->copy();
         toolcopy->setDevice(device);
         setTool(toolcopy);
     }
+    else if (!preferences()->currentTool(device))
+        setIcon(QIcon());
 }

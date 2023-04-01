@@ -91,9 +91,6 @@ public:
     /// Destructor: Stop and clean up threads, delete renderer, clear content.
     ~PixCache();
 
-    /// Clear cache, delete all cached pages.
-    void clear();
-
     /// Set maximum allowed bytes of memory used by this->cache.
     /// Clean up memory if necessary.
     void setMaxMemory(const float memory);
@@ -126,6 +123,9 @@ public slots:
     /// Create renderCacheTimer.
     /// This is an own function because it must be done in this thread.
     void init();
+
+    /// Clear cache, delete all cached pages.
+    void clear();
 
     /// Request rendering a page with high priority
     /// May only be called in this object's thread.

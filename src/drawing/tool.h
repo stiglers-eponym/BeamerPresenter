@@ -154,7 +154,7 @@ static const QMap<QString, Tool::BasicTool> string_to_tool
 };
 
 /// tool tip description of tools
-const QString tool_to_description(const Tool::BasicTool tool) noexcept;
+const char *tool_to_description(const Tool::BasicTool tool) noexcept;
 
 /**
  * @brief Get input device from tablet event

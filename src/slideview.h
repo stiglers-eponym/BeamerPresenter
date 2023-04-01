@@ -51,7 +51,7 @@ private:
 
 public:
     /// Constructor: initialize and connect a lot.
-    explicit SlideView(SlideScene *scene, PixCache *cache = NULL, QWidget *parent = NULL);
+    explicit SlideView(SlideScene *scene, const PixCache *cache = NULL, QWidget *parent = NULL);
 
     ~SlideView() noexcept;
 

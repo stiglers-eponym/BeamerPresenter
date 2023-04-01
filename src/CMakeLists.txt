@@ -59,6 +59,7 @@ add_executable(beamerpresenter
         gui/penstylebutton.h gui/penstylebutton.cpp
         gui/colorselectionbutton.h gui/colorselectionbutton.cpp
         gui/mediaslider.h
+        gui/iconlabel.h
         gui/containerwidget.h
         gui/toolwidget.h gui/toolwidget.cpp
         rendering/abstractrenderer.h

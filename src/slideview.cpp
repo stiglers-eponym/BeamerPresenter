@@ -17,7 +17,7 @@
 #include "src/rendering/mediaplayer.h"
 #include "src/gui/mediaslider.h"
 
-SlideView::SlideView(SlideScene *scene, PixCache *cache, QWidget *parent) :
+SlideView::SlideView(SlideScene *scene, const PixCache *cache, QWidget *parent) :
     QGraphicsView(scene, parent)
 {
     setMouseTracking(true);
@@ -30,11 +30,11 @@ SlideView::SlideView(SlideScene *scene, PixCache *cache, QWidget *parent) :
     setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
     setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
-    cache->updateFrame(size());
     connect(this, &SlideView::requestPage, cache, &PixCache::requestPage, Qt::QueuedConnection);
     connect(cache, &PixCache::pageReady, this, &SlideView::pageReady, Qt::QueuedConnection);
     connect(this, &SlideView::resizeCache, cache, &PixCache::updateFrame, Qt::QueuedConnection);
     connect(this, &SlideView::getPixmapBlocking, cache, &PixCache::getPixmap, Qt::BlockingQueuedConnection);
+    emit resizeCache(size());
 }
 
 SlideView::~SlideView() noexcept

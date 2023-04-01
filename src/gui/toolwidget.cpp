@@ -1,15 +1,19 @@
 // SPDX-FileCopyrightText: 2023 Valentin Bruch <software@vbruch.eu>
 // SPDX-License-Identifier: GPL-3.0-or-later OR AGPL-3.0-or-later
 
+#if (QT_VERSION_MAJOR >= 6)
 #include <QInputDevice>
+#endif
 #include <QBoxLayout>
 #include <QGridLayout>
 #include <QLabel>
+#include <QResizeEvent>
 #include <QImageReader>
 #include "src/drawing/tool.h"
 #include "src/gui/toolwidgetbutton.h"
 #include "src/preferences.h"
 #include "src/gui/toolwidget.h"
+#include "src/gui/iconlabel.h"
 #include "src/log.h"
 
 ToolWidget::ToolWidget(QWidget *parent, Qt::Orientation orientation)
@@ -35,8 +39,8 @@ QSize ToolWidget::sizeHint() const noexcept
 
 void ToolWidget::initialize()
 {
+#if (QT_VERSION_MAJOR >= 6)
     const auto all_devices = QInputDevice::devices();
-    debug_msg(DebugWidgets, "found devices:" << all_devices);
     for (const auto device : all_devices)
     {
         switch (device->type())
@@ -58,6 +62,10 @@ void ToolWidget::initialize()
             break;
         }
     }
+#else
+    if ((devices & (Tool::MouseLeftButton | Tool::MouseRightButton)) != (Tool::MouseLeftButton | Tool::MouseRightButton))
+        addDeviceGroup({Tool::MouseNoButton, Tool::MouseLeftButton, Tool::MouseRightButton});
+#endif
 }
 
 void ToolWidget::addDeviceGroup(const QList<Tool::InputDevice> &new_devices)
@@ -83,13 +91,8 @@ void ToolWidget::addDeviceGroup(const QList<Tool::InputDevice> &new_devices)
         button = new ToolWidgetButton(tool, device, this);
         connect(button, &ToolWidgetButton::sendTool, this, &ToolWidget::sendTool);
         connect(this, &ToolWidget::receiveTool, button, &ToolWidgetButton::receiveNewTool);
-        label = new QLabel(this);
-        QImageReader reader(preferences()->icon_path + "/devices/" + get_device_icon(device));
-        reader.setScaledSize({32,32});
-        if (reader.canRead())
-            label->setPixmap(QPixmap::fromImageReader(&reader));
-        else
-            label->setText("?");
+        label = new IconLabel(preferences()->icon_path + "/devices/" + device_icon(device) + ".svg", this);
+        label->setToolTip(tr(device_description(device)));
         if (orientation == Qt::Horizontal)
         {
             grid_layout->addWidget(button, 1, used_devices);
@@ -104,41 +107,83 @@ void ToolWidget::addDeviceGroup(const QList<Tool::InputDevice> &new_devices)
         ++used_devices;
     }
     if (used_devices > 0)
+    {
+        frame->setMinimumWidth(20*used_devices);
         layout()->addWidget(frame);
+    }
     else
         delete frame;
 }
 
-const QString get_device_icon(int device) noexcept
+const char *device_icon(int device) noexcept
 {
     switch (device)
     {
     case Tool::MouseNoButton:
-        return "";
+        return "mouse-no-button";
     case Tool::MouseLeftButton:
-        return "";
+        return "mouse-left";
     case Tool::MouseMiddleButton:
-        return "";
+        return "mouse-middle";
     case Tool::MouseRightButton:
-        return "";
+        return "mouse-right";
     case Tool::TabletPen:
+    case Tool::TabletCursor:
     case Tool::TabletOther:
-        return "";
+        return "tablet-pen";
     case Tool::TabletMod:
         return "";
     case Tool::TabletEraser:
-        return "";
+        return "tablet-eraser";
     case Tool::TabletHover:
-        return "";
+        return "tablet-hover";
     case Tool::TouchInput:
-        return "";
+        return "touch";
     default:
         return "";
+    }
+}
+
+const char *device_description(int device) noexcept
+{
+    switch (device)
+    {
+    case Tool::MouseNoButton:
+        return QT_TR_NOOP("mouse pointer, no buttons pressed");
+    case Tool::MouseLeftButton:
+        return QT_TR_NOOP("left mouse button");
+    case Tool::MouseMiddleButton:
+        return QT_TR_NOOP("middle mouse button");
+    case Tool::MouseRightButton:
+        return QT_TR_NOOP("right mouse button");
+    case Tool::TabletPen:
+    case Tool::TabletCursor:
+    case Tool::TabletOther:
+        return QT_TR_NOOP("stylus or tablet pen");
+    case Tool::TabletMod:
+        return QT_TR_NOOP("unsupported tablet device");
+    case Tool::TabletEraser:
+        return QT_TR_NOOP("eraser of stylus");
+    case Tool::TabletHover:
+        return QT_TR_NOOP("stylus hover over tablet");
+    case Tool::TouchInput:
+        return QT_TR_NOOP("touchscreen");
+    default:
+        return QT_TR_NOOP("unknown devic");
     }
 }
 
 void ToolWidget::checkNewTool(const Tool *tool)
 {
     if (tool->device() & ~(devices | Tool::MouseNoButton))
+#if (QT_VERSION_MAJOR >= 6)
         initialize();
+#else
+    {
+        if ((tool->device() & Tool::TouchInput) && (devices & Tool::TouchInput) == 0)
+            addDeviceGroup({Tool::TouchInput});
+        else if ((tool->device() & (Tool::TabletPen | Tool::TabletEraser)) && (devices & Tool::TabletPen) == 0)
+            addDeviceGroup({Tool::TabletPen, Tool::TabletEraser});
+    }
+#endif
 }
