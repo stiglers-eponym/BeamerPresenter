@@ -9,13 +9,15 @@
 
 class Tool;
 class QString;
-class QEvent;
 class QImage;
 class QSize;
 class QColor;
 
 /**
  * @brief Tool button for drawing and pointing tools.
+ *
+ * This button does not do anything when it is pushed. Subclasses
+ * implement different functions for pushing the button.
  *
  * @see ActionButton
  * @see ToolSelectorButton

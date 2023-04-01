@@ -9,7 +9,6 @@
 #include "src/config.h"
 
 class QSize;
-class QResizeEvent;
 class Tool;
 
 /**
@@ -27,6 +26,7 @@ class ToolWidget : public QWidget
 
     /// Devices which are currently included in the view.
     int devices {0};
+    /// Number of devices shown, used to calculate the layout.
     int total_columns {0};
     /// Orientation of the layout.
     Qt::Orientation orientation {Qt::Horizontal};
@@ -35,6 +35,7 @@ class ToolWidget : public QWidget
     /// Devices listed in the group for tablet devices.
     QList<int> tablet_devices {Tool::TabletPen, Tool::TabletEraser};
 
+    /// Add a given set of devices as a new group, in an own QFrame.
     void addDeviceGroup(const QList<int> &new_devices);
 
 public:
