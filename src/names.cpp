@@ -23,6 +23,7 @@ GuiWidget string_to_widget_type(const QString &string) noexcept
         {"outline", TOCType},
         {"notes", NotesType},
         {"tool selector", ToolSelectorType},
+        {"tools", ToolWidgetType},
         {"settings", SettingsType},
         {"search", SearchType},
         {"clock", ClockType},

@@ -25,6 +25,7 @@ class ToolButton : public QToolButton
 {
     Q_OBJECT
 
+protected:
     /// Tool which remains owned by this class.
     /// Only copies of this tool are send out using sendTool.
     Tool *tool = nullptr;
@@ -36,12 +37,8 @@ public:
     /// Destruktor: deletes tool.
     virtual ~ToolButton();
 
-protected:
-    /// Emit sendTool based on input event with adjusted device.
-    virtual bool event(QEvent *event) noexcept override;
-
 public slots:
-    /// Replace tool with newtool. Old tool gets deleted.
+    /// Replace tool with newtool. Old tool gets deleted. This takes ownership of newtool.
     void setTool(Tool *newtool);
 
 signals:

@@ -15,65 +15,97 @@
 
 const QString action_to_theme_icon(const Action action) noexcept
 {
-    static const std::map<Action, std::string> lookup_table {
+    switch (action)
+    {
         /* Nagivation actions */
-        {Update, "view-refresh"},
-        {NextPage, "go-next"},
-        {PreviousPage, "go-previous"},
-        {PreviousSkippingOverlays, "go-up"},
-        {NextSkippingOverlays, "go-down"},
-        {FirstPage, "go-first"},
-        {LastPage, "go-last"},
+    case Update:
+        return "view-refresh";
+    case NextPage:
+        return "go-next";
+    case PreviousPage:
+        return "go-previous";
+    case PreviousSkippingOverlays:
+        return "go-up";
+    case NextSkippingOverlays:
+        return "go-down";
+    case FirstPage:
+        return "go-first";
+    case LastPage:
+        return"go-last";
         /* Drawing */
-        {UndoDrawing, "edit-undo"},
-        {RedoDrawing, "edit-redo"},
-        {ClearDrawing, "edit-clear"},
-        {SaveDrawings, "document-save"},
-        {SaveDrawingsAs, "document-save-as"},
-        {LoadDrawings, "document-open"},
-        //{LoadDrawingsNoClear, "document-open"},
+    case UndoDrawing:
+        return "edit-undo";
+    case RedoDrawing:
+        return "edit-redo";
+    case ClearDrawing:
+        return "edit-clear";
+    case SaveDrawings:
+        return "document-save";
+    case SaveDrawingsAs:
+        return "document-save-as";
+    case LoadDrawings:
+        return "document-open";
+    //case LoadDrawingsNoClear: return "document-open";
         /* Modify drawn items */
-        {CopyClipboard, "edit-copy"},
-        {CutClipboard, "edit-cut"},
-        {PasteClipboard, "edit-paste"},
-        //{SelectionToForeground, "?"},
-        //{DuplicateSelectedItems, "?"},
-        {RemoveSelectedItems, "edit-delete"},
-        {SelectAll, "edit-select-all"},
-        //{ClearSelection, "?"},
+    case CopyClipboard:
+        return "edit-copy";
+    case CutClipboard:
+        return "edit-cut";
+    case PasteClipboard:
+        return "edit-paste";
+    //case SelectionToForeground: return "?";
+    //case DuplicateSelectedItems: return "?";
+    case RemoveSelectedItems:
+        return "edit-delete";
+    case SelectAll:
+        return "edit-select-all";
+    //case ClearSelection: return "?";
         /* Media */
-        {PlayMedia, "media-playback-start"},
-        {PauseMedia, "media-playback-stop"},
-        {PlayPauseMedia, "media-playback-pause"},
-        {Mute, "audio-volume-muted"},
-        {Unmute, "audio-volume-high"},
+    case PlayMedia:
+        return "media-playback-start";
+    case PauseMedia:
+        return "media-playback-stop";
+    case PlayPauseMedia:
+        return "media-playback-pause";
+    case Mute:
+        return "audio-volume-muted";
+    case Unmute:
+        return "audio-volume-high";
         /* Other actions */
-        {Quit, "application-exit"},
-        {QuitNoConfirmation, "application-exit"},
-        {FullScreen, "view-fullscreen"},
+    case Quit:
+        return "application-exit";
+    case QuitNoConfirmation:
+        return "application-exit";
+    case FullScreen:
+        return "view-fullscreen";
+    default:
+        return "";
     };
-    const auto find = lookup_table.find(action);
-    if (find == lookup_table.end())
-        return QString();
-    return QString::fromStdString(find->second);
 }
 
 const QStringList action_to_custom_icons(const Action action) noexcept
 {
-    static const std::map<Action, QStringList> lookup_table {
-        {StartStopTimer, {"timer-paused.svg", "timer-running.svg"}},
-        {StopTimer, {"timer-stop.svg"}},
-        {StartTimer, {"timer-start.svg"}},
-        {ResetTimePassed, {"timer-reset.svg"}},
-        {ReloadFiles, {"reload.svg"}},
-        {ScrollUp, {"scroll-up.svg"}},
-        {ScrollDown, {"scroll-down.svg"}},
-        {ScrollNormal, {"scroll-reset.svg"}},
-    };
-    const auto find = lookup_table.find(action);
-    if (find == lookup_table.end())
+    switch (action)
+    {
+    case StartStopTimer:
+        return {"timer-paused.svg", "timer-running.svg"};
+    case StopTimer:
+        return {"timer-stop.svg"};
+    case StartTimer:
+        return {"timer-start.svg"};
+    case ResetTimePassed:
+        return {"timer-reset.svg"};
+    case ReloadFiles:
+        return {"reload.svg"};
+    case ScrollUp:
+        return {"scroll-up.svg"};
+    case ScrollDown:
+        return {"scroll-down.svg"};
+    case ScrollNormal:
+        return {"scroll-reset.svg"};
+    default:
         return QStringList();
-    return find->second;
+    };
 }
 
 

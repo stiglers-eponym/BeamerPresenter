@@ -13,7 +13,7 @@ TOCbutton::TOCbutton(const QString &title, const int _page, QPushButton *expand_
     setMinimumSize(40, 26);
     setMaximumHeight(48);
     setFlat(true);
-    setStyleSheet("text-align:left;");
+    setStyleSheet("text-align:left;padding-left:8px;");
     if (expand_button)
     {
         expand_button->setParent(this);

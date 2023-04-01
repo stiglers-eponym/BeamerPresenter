@@ -129,6 +129,9 @@ public:
 
     /// set color. Useless for this class, but very helpfull for child classes.
     virtual void setColor(const QColor &color) noexcept {};
+
+    /// create copy of this.
+    Tool* copy() const;
 };
 
 

@@ -125,7 +125,7 @@ public slots:
     /// Handle an action, distribute it if necessary.
     void handleAction(const Action action);
 
-    /// This takes ownership of tool.
+    /// Set currently used tool. This takes ownership of tool.
     void setTool(Tool *tool) const noexcept;
 
     /// finish navigation event: called after page change or after slide transition.

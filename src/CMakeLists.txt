@@ -49,6 +49,8 @@ add_executable(beamerpresenter
         gui/tocbutton.h gui/tocbutton.cpp
         gui/tocwidget.h gui/tocwidget.cpp
         gui/toolbutton.h gui/toolbutton.cpp
+        gui/toolselectorbutton.h gui/toolselectorbutton.cpp
+        gui/toolwidgetbutton.h gui/toolwidgetbutton.cpp
         gui/tooldialog.h gui/tooldialog.cpp
         gui/toolselectorwidget.h gui/toolselectorwidget.cpp
         gui/toolpropertybutton.h gui/toolpropertybutton.cpp
@@ -58,6 +60,7 @@ add_executable(beamerpresenter
         gui/colorselectionbutton.h gui/colorselectionbutton.cpp
         gui/mediaslider.h
         gui/containerwidget.h
+        gui/toolwidget.h gui/toolwidget.cpp
         rendering/abstractrenderer.h
         rendering/mediaplayer.h rendering/mediaplayer.cpp
         rendering/pdfdocument.h rendering/pdfdocument.cpp

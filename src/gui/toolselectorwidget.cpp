@@ -14,7 +14,7 @@
 #include "src/gui/shapeselectionbutton.h"
 #include "src/gui/penstylebutton.h"
 #include "src/gui/colorselectionbutton.h"
-#include "src/gui/toolbutton.h"
+#include "src/gui/toolselectorbutton.h"
 #include "src/gui/widthselectionbutton.h"
 #include "src/log.h"
 #include "src/names.h"
@@ -90,8 +90,8 @@ void ToolSelectorWidget::addButtons(const QJsonArray &full_array)
                     Tool *tool = createTool(obj, 0);
                     if (tool)
                     {
-                        ToolButton *button = new ToolButton(tool, this);
-                        connect(button, &ToolButton::sendTool, this, &ToolSelectorWidget::sendTool);
+                        ToolSelectorButton *button = new ToolSelectorButton(tool, this);
+                        connect(button, &ToolSelectorButton::sendTool, this, &ToolSelectorWidget::sendTool);
                         grid_layout->addWidget(button, i, j);
                     }
                 }
@@ -137,24 +137,20 @@ void ToolSelectorWidget::addButtons(const QJsonArray &full_array)
     }
 }
 
-bool ToolSelectorWidget::event(QEvent *event)
+void ToolSelectorWidget::resizeEvent(QResizeEvent *event)
 {
-    if (event->type() == QEvent::Resize)
+    QGridLayout *grid_layout = static_cast<QGridLayout*>(layout());
+    const QSize &newsize = event->size();
+    int minsize = (newsize.height() - grid_layout->verticalSpacing()) / grid_layout->rowCount() - grid_layout->verticalSpacing() - 2,
+        i = 0;
+    if (minsize > 10)
+        while (i<grid_layout->rowCount())
+            grid_layout->setRowMinimumHeight(i++, minsize);
+    const int minwidth = (newsize.width() - grid_layout->horizontalSpacing()) / grid_layout->columnCount() - grid_layout->horizontalSpacing() - 6;
+    if (minsize > 10)
     {
-        QGridLayout *grid_layout = static_cast<QGridLayout*>(layout());
-        const QSize &newsize = static_cast<QResizeEvent*>(event)->size();
-        int minsize = (newsize.height() - grid_layout->verticalSpacing()) / grid_layout->rowCount() - grid_layout->verticalSpacing() - 2,
-            i = 0;
-        if (minsize > 10)
-            while (i<grid_layout->rowCount())
-                grid_layout->setRowMinimumHeight(i++, minsize);
-        const int minwidth = (newsize.width() - grid_layout->horizontalSpacing()) / grid_layout->columnCount() - grid_layout->horizontalSpacing() - 6;
-        if (minsize > 10)
-        {
-            i = 0;
-            while (i<grid_layout->columnCount())
-                grid_layout->setColumnMinimumWidth(i++, minwidth);
-        }
+        i = 0;
+        while (i<grid_layout->columnCount())
+            grid_layout->setColumnMinimumWidth(i++, minwidth);
     }
-    return QWidget::event(event);
 }

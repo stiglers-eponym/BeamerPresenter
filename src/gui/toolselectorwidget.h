@@ -10,7 +10,7 @@
 
 class Tool;
 class QSize;
-class QEvent;
+class QResizeEvent;
 class QColor;
 class QJsonArray;
 
@@ -20,7 +20,7 @@ class QJsonArray;
  * Emits sendTool and sendAction when buttons are pressed.
  *
  * @see ActionButton
- * @see ToolButton
+ * @see ToolSelectorButton
  */
 class ToolSelectorWidget : public QWidget
 {
@@ -43,8 +43,8 @@ public:
     {return true;}
 
 protected:
-    /// Override event: set equal row height when resizing.
-    bool event(QEvent *event) override;
+    /// ensure equal row height when resizing.
+    void resizeEvent(QResizeEvent *event) override;
 
 signals:
     /// Send out action to master.

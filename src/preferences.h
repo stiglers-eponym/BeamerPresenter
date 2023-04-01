@@ -276,6 +276,13 @@ public:
     /// Set new GUI configuration file.
     bool setGuiConfigFile(const QString &file);
 
+    /// Disconnect tools from the given device.
+    /// Deletes tools if necessary.
+    /// @param no_mouse_hover delete tools if only device MouseNoButton remains.
+    void removeCurrentTool(const int device, const bool no_mouse_hover = false) noexcept;
+    /// Append tool to currently used tools. This takes ownership of tool.
+    void setCurrentTool(Tool *tool) noexcept;
+
 public slots:
     /// Set maximum memory for cache. This function uses double instead of
     /// qreal because it is connected to a QDoubleSpinBox.

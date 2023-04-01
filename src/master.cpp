@@ -24,10 +24,7 @@
 #include "src/pdfmaster.h"
 #include "src/slidescene.h"
 #include "src/slideview.h"
-#include "src/drawing/drawtool.h"
-#include "src/drawing/pointingtool.h"
-#include "src/drawing/texttool.h"
-#include "src/drawing/selectiontool.h"
+#include "src/drawing/tool.h"
 #include "src/gui/flexlayout.h"
 #include "src/gui/clockwidget.h"
 #include "src/gui/analogclockwidget.h"
@@ -42,6 +39,7 @@
 #include "src/gui/tocwidget.h"
 #include "src/gui/thumbnailwidget.h"
 #include "src/gui/toolselectorwidget.h"
+#include "src/gui/toolwidget.h"
 #include "src/gui/searchwidget.h"
 #include "src/rendering/pixcache.h"
 #include "src/names.h"
@@ -525,6 +523,15 @@ QWidget* Master::createWidget(QJsonObject &object, QWidget *parent)
         widget = toolwidget;
         break;
     }
+    case ToolWidgetType:
+    {
+        Qt::Orientation orientation = object.value("orientation").toString("horizontal") == "horizontal" ? Qt::Horizontal : Qt::Vertical;
+        ToolWidget *toolwidget = new ToolWidget(parent, orientation);
+        connect(this, &Master::sendNewTool, toolwidget, &ToolWidget::receiveTool);
+        connect(toolwidget, &ToolWidget::sendTool, this, &Master::setTool);
+        widget = toolwidget;
+        break;
+    }
     case SettingsType:
         widget = new SettingsWidget(parent);
         break;
@@ -686,18 +693,7 @@ bool Master::eventFilter(QObject *obj, QEvent *event)
     for (const auto tool : static_cast<const QList<Tool*>>(preferences()->key_tools.values(key_code)))
     {
         if (tool && tool->device())
-        {
-            if (tool->tool() & Tool::AnyDrawTool)
-                setTool(new DrawTool(*static_cast<const DrawTool*>(tool)));
-            else if (tool->tool() & Tool::AnyPointingTool)
-                setTool(new PointingTool(*static_cast<const PointingTool*>(tool)));
-            else if (tool->tool() & Tool::AnySelectionTool)
-                setTool(new SelectionTool(*static_cast<const SelectionTool*>(tool)));
-            else if (tool->tool() == Tool::TextInputTool)
-                setTool(new TextTool(*static_cast<const TextTool*>(tool)));
-            else
-                setTool(new Tool(*tool));
-        }
+            setTool(tool->copy());
     }
     event->accept();
     return true;
@@ -970,36 +966,7 @@ void Master::setTool(Tool *tool) const noexcept
         return;
     }
     debug_msg(DebugDrawing|DebugKeyInput, "Set tool" << tool->tool() << tool->device());
-    int device = tool->device();
-    // Delete mouse no button devices if MouseLeftButton is overwritten.
-    if (tool->device() & Tool::MouseLeftButton)
-        device |= Tool::MouseNoButton;
-    // Delete tablet no pressure device if any tablet device is overwritten.
-    if (tool->device() & (Tool::TabletCursor | Tool::TabletPen | Tool::TabletEraser))
-        device |= Tool::TabletHover;
-    int newdevice;
-    for (auto tool_it = writable_preferences()->current_tools.begin(); tool_it != writable_preferences()->current_tools.end();)
-    {
-        if ((*tool_it)->device() & device)
-        {
-            newdevice = (*tool_it)->device() & ~device;
-            if (newdevice)
-                (*tool_it++)->setDevice(newdevice);
-            else
-            {
-                delete *tool_it;
-                tool_it = writable_preferences()->current_tools.erase(tool_it);
-            }
-        }
-        else if (((*tool_it)->device() == Tool::MouseNoButton) && (tool->device() & Tool::MouseLeftButton))
-        {
-            delete *tool_it;
-            tool_it = writable_preferences()->current_tools.erase(tool_it);
-        }
-        else
-            ++tool_it;
-    }
-    writable_preferences()->current_tools.append(tool);
+    writable_preferences()->setCurrentTool(tool);
     emit sendNewTool(tool);
 
 #ifdef QT_DEBUG

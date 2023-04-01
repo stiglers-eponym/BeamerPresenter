@@ -14,22 +14,15 @@
 #include <QImageReader>
 #include "src/gui/toolbutton.h"
 #include "src/preferences.h"
-#include "src/log.h"
-#include "src/gui/tooldialog.h"
 #include "src/drawing/drawtool.h"
-#include "src/drawing/texttool.h"
-#include "src/drawing/pointingtool.h"
-#include "src/drawing/selectiontool.h"
 
 ToolButton::ToolButton(Tool *tool, QWidget *parent) noexcept :
         QToolButton(parent),
         tool(nullptr)
 {
-    setMinimumSize(12, 12);
+    setMinimumSize(16, 16);
     setIconSize({32,32});
     setContentsMargins(0,0,0,0);
-    setFocusPolicy(Qt::NoFocus);
-    setAttribute(Qt::WA_AcceptTouchEvents);
     setToolButtonStyle(Qt::ToolButtonIconOnly);
     setTool(tool);
 }
@@ -37,90 +30,6 @@ ToolButton::ToolButton(Tool *tool, QWidget *parent) noexcept :
 ToolButton::~ToolButton()
 {
     delete tool;
-}
-
-bool ToolButton::event(QEvent *event) noexcept
-{
-    if (!tool)
-        return QToolButton::event(event);
-    switch (event->type())
-    {
-    case QEvent::TouchBegin:
-        event->accept();
-        setDown(true);
-        return true;
-    case QEvent::TouchEnd:
-    {
-        const QTouchEvent *touchevent = static_cast<const QTouchEvent*>(event);
-#if (QT_VERSION_MAJOR >= 6)
-        if (touchevent->points().size() != 1 || !rect().contains(touchevent->points().first().position().toPoint()))
-#else
-        if (touchevent->touchPoints().size() != 1 || !rect().contains(touchevent->touchPoints().first().pos().toPoint()))
-#endif
-        {
-            setDown(false);
-            return false;
-        }
-    }
-        [[clang::fallthrough]];
-    case QEvent::TabletMove:
-    case QEvent::TabletPress:
-    case QEvent::MouseButtonPress:
-        if (static_cast<QInputEvent*>(event)->modifiers() == Qt::CTRL)
-        {
-            setTool(ToolDialog::selectTool(tool));
-            debug_msg(DebugDrawing, "Changed tool button:" << tool->tool());
-            // TODO: save to GUI config
-        }
-        else
-        {
-            // If tool doesn't have a device, choose a device based on the input.
-            int device = tool->device();
-            if (event->type() == QEvent::TabletMove || event->type() == QEvent::TabletPress)
-            {
-                const QTabletEvent *tablet_event = static_cast<const QTabletEvent*>(event);
-                if (tablet_event->pressure() <= 0 || tablet_event->pressure() == 1)
-                    break;
-                if (device == Tool::NoDevice)
-                {
-                    device = tablet_event_to_input_device(tablet_event);
-                    if (tool->tool() == Tool::Pointer && (device & (Tool::TabletPen | Tool::TabletCursor)))
-                        device |= Tool::TabletHover;
-                }
-            }
-            else if (event->type() == QEvent::MouseButtonPress && device == Tool::NoDevice)
-            {
-                device = static_cast<const QMouseEvent*>(event)->button() << 1;
-                if (tool->tool() == Tool::Pointer)
-                    device |= Tool::MouseNoButton;
-            }
-            else if (event->type() == QEvent::TouchEnd && device == Tool::NoDevice)
-                device = Tool::TouchInput;
-
-            Tool *newtool;
-            if (tool->tool() & Tool::AnyDrawTool)
-                newtool = new DrawTool(*static_cast<const DrawTool*>(tool));
-            else if (tool->tool() & Tool::AnyPointingTool)
-                newtool = new PointingTool(*static_cast<const PointingTool*>(tool));
-            else if (tool->tool() & Tool::AnySelectionTool)
-                newtool = new SelectionTool(*static_cast<const SelectionTool*>(tool));
-            else if (tool->tool() == Tool::TextInputTool)
-                newtool = new TextTool(*static_cast<const TextTool*>(tool));
-            else
-                newtool = new Tool(*tool);
-            newtool->setDevice(device);
-            emit sendTool(newtool);
-        }
-        setDown(false);
-        event->accept();
-        return true;
-    case QEvent::Resize:
-        setTool(tool);
-        break;
-    default:
-        break;
-    }
-    return QToolButton::event(event);
 }
 
 void ToolButton::setTool(Tool *newtool)

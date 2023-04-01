@@ -200,6 +200,7 @@ enum GuiWidget
     TOCType, ///< TOCwidget
     NotesType, ///< NotesWidget
     ToolSelectorType, ///< ToolSelectorWidget
+    ToolWidgetType, ///< ToolWidget
     SettingsType, ///< SettingsWidget
     ClockType, ///< ClockWidget
     AnalogClockType, ///< AnalogClockWidget

@@ -906,3 +906,42 @@ bool Preferences::setGuiConfigFile(const QString &file)
     showErrorMessage(tr("Invalid file"), tr("GUI config file not set because it is not a valid file: ") + file);
     return false;
 }
+
+void Preferences::removeCurrentTool(const int device, const bool no_mouse_hover) noexcept
+{
+    int newdevice;
+    for (auto tool_it = current_tools.begin(); tool_it != current_tools.end();)
+    {
+        if ((*tool_it)->device() & device)
+        {
+            newdevice = (*tool_it)->device() & ~device;
+            if (newdevice)
+                (*tool_it++)->setDevice(newdevice);
+            else
+            {
+                delete *tool_it;
+                tool_it = current_tools.erase(tool_it);
+            }
+        }
+        else if (no_mouse_hover && ((*tool_it)->device() == Tool::MouseNoButton))
+        {
+            delete *tool_it;
+            tool_it = current_tools.erase(tool_it);
+        }
+        else
+            ++tool_it;
+    }
+}
+
+void Preferences::setCurrentTool(Tool *tool) noexcept
+{
+    int device = tool->device();
+    // Delete mouse no button devices if MouseLeftButton is overwritten.
+    if (tool->device() & Tool::MouseLeftButton)
+        device |= Tool::MouseNoButton;
+    // Delete tablet no pressure device if any tablet device is overwritten.
+    if (tool->device() & (Tool::TabletCursor | Tool::TabletPen | Tool::TabletEraser))
+        device |= Tool::TabletHover;
+    removeCurrentTool(device, tool->device() & Tool::MouseLeftButton);
+    current_tools.append(tool);
+}

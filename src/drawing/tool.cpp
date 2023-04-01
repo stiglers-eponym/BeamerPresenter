@@ -8,6 +8,27 @@
 #endif
 #include "src/log.h"
 #include "src/drawing/tool.h"
+#include "src/drawing/drawtool.h"
+#include "src/drawing/pointingtool.h"
+#include "src/drawing/selectiontool.h"
+#include "src/drawing/texttool.h"
+
+Tool* Tool::copy() const
+{
+    Tool *newtool;
+    if (_tool & Tool::AnyDrawTool)
+        newtool = new DrawTool(*static_cast<const DrawTool*>(this));
+    else if (_tool & Tool::AnyPointingTool)
+        newtool = new PointingTool(*static_cast<const PointingTool*>(this));
+    else if (_tool & Tool::AnySelectionTool)
+        newtool = new SelectionTool(*static_cast<const SelectionTool*>(this));
+    else if (_tool == Tool::TextInputTool)
+        newtool = new TextTool(*static_cast<const TextTool*>(this));
+    else
+        newtool = new Tool(*this);
+    newtool->setDevice(_device);
+    return newtool;
+}
 
 int tablet_event_to_input_device(const QTabletEvent* event)
 {
