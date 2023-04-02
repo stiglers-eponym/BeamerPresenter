@@ -25,7 +25,8 @@ ToolButton::ToolButton(Tool *tool, QWidget *parent) noexcept :
     setIconSize({32,32});
     setContentsMargins(0,0,0,0);
     setToolButtonStyle(Qt::ToolButtonIconOnly);
-    setTool(tool);
+    if (tool)
+        setTool(tool);
 }
 
 ToolButton::~ToolButton()

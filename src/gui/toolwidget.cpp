@@ -171,7 +171,7 @@ const char *device_description(int device) noexcept
 
 void ToolWidget::checkNewTool(const Tool *tool)
 {
-    if (tool->device() & ~(devices | Tool::MouseNoButton))
+    if (tool && tool->device() & ~(devices | Tool::MouseNoButton))
 #if (QT_VERSION_MAJOR >= 6)
         initialize();
 #else
