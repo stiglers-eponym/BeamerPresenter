@@ -150,6 +150,8 @@ void ActionButton::updateIcon()
     // Only weird custom icons require update
     if (display_status >= 0)
         setIcon(QIcon(preferences()->icon_path + "/actions/" + action_to_custom_icons(display_action).value(display_status)));
+    else
+        update();
 }
 
 void ActionButton::addAction(const Action action)

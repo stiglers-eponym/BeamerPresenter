@@ -49,8 +49,9 @@ public:
     /// Change the flexible coordinate of the line.
     void setSecondPoint(const QPointF &pos);
 
-    /// Convert to a BasicGraphicsPath for simpler erasing.
-    BasicGraphicsPath *toPath() const;
+    /// Convert to two BasicGraphicsPaths for simpler erasing.
+    /// Two paths are needed because an arrow consists of two separate paths.
+    QList<BasicGraphicsPath*> toPath() const;
 
     /// Paint line to painter.
     virtual void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget = NULL) override;

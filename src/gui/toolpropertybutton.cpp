@@ -75,6 +75,7 @@ void ToolPropertyButton::changed(const int index) const
 
 void ToolPropertyButton::updateIcon()
 {
-    const int px = std::min(width() - 10, height()) - 1;
+    const int px = std::min(width() - 12, height()) - 1;
     setIconSize({px,px});
+    update();
 }

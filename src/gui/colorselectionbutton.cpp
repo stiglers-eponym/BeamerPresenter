@@ -19,16 +19,12 @@ ColorSelectionButton::ColorSelectionButton(const QJsonArray &array, QWidget *par
     ToolPropertyButton(parent)
 {
     setToolTip(tr("select color for tools"));
+    const QSize rendersize {64, 64};
     QColor color;
-    QSize iconsize = size();
-    if (iconsize.width() > iconsize.height())
-        iconsize.rwidth() = --iconsize.rheight();
-    else
-        iconsize.rheight() = --iconsize.rwidth();
     for (const auto &item : array)
     {
         color = QColor(item.toString());
-        const QImage image = fancyIcon(preferences()->icon_path + "/tools/color.svg", iconsize, color);
+        const QImage image = fancyIcon(preferences()->icon_path + "/tools/color.svg", rendersize, color);
         if (!image.isNull())
             addItem(QIcon(QPixmap::fromImage(image)), "", color);
         else if (color.isValid())

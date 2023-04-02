@@ -7,31 +7,36 @@
 #include <algorithm>
 #include <QSize>
 #include <QLabel>
-#include <QImageReader>
-#include <QImage>
+#include <QIcon>
 #include <QPixmap>
 #include "src/config.h"
 
 class IconLabel : public QLabel
 {
     Q_OBJECT
-    QImageReader *reader;
+
+    /// Image reader for the icon.
+    QIcon icon;
 
 public:
+    /// Constructor: Show icon.
     IconLabel(const QString &iconpath, QWidget *parent = nullptr)
-        : QLabel(parent), reader(new QImageReader(iconpath, "svg")) {updateIcon();}
-    ~IconLabel() {delete reader;}
+        : QLabel(parent), icon(iconpath)
+    {
+        setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Ignored);
+        updateIcon();
+    }
+    /// Trivial destructor.
+    ~IconLabel() {}
 
 public slots:
+    /// Update icon: adjust icon to new size.
     void updateIcon()
     {
-        const int px = std::min(width(), height())-1;
-        reader->setFileName(reader->fileName()); // Workaround for a weird bug
-        reader->setScaledSize({px, px});
-        if (reader->canRead())
-            setPixmap(QPixmap::fromImageReader(reader));
-        else
+        if (icon.isNull())
             setText("?");
+        else
+            setPixmap(icon.pixmap(std::min(width(), height())-1));
     }
 };
 

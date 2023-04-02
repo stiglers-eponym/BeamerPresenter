@@ -9,12 +9,7 @@
 WidthSelectionButton::WidthSelectionButton(const QJsonArray &array, QWidget *parent) :
     ToolPropertyButton(parent)
 {
-    QSize iconsize = size();
     setToolTip(tr("select width of draw tool"));
-    if (iconsize.width() > iconsize.height())
-        iconsize.rwidth() = --iconsize.rheight();
-    else
-        iconsize.rheight() = --iconsize.rwidth();
     qreal width;
     for (const auto &item : array)
     {

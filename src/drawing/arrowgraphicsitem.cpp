@@ -40,13 +40,13 @@ void ArrowGraphicsItem::setSecondPoint(const QPointF &pos)
     setPath(newpath);
 }
 
-BasicGraphicsPath *ArrowGraphicsItem::toPath() const
+QList<BasicGraphicsPath*> ArrowGraphicsItem::toPath() const
 {
     const QPointF reference = boundingRect().center(),
             rbegin = origin - reference,
             rend = path().currentPosition() - reference;
     if (path().currentPosition().isNull() || rbegin == rend)
-        return NULL;
+        return {};
     const qreal length = QLineF(rbegin, rend).length();
     const int main_segments = length / 10 + 2,
             aux_segments = length / 40 + 2;
@@ -56,27 +56,27 @@ BasicGraphicsPath *ArrowGraphicsItem::toPath() const
           y = rbegin.y(),
           dx = (rend.x() - rbegin.x())/main_segments,
           dy = (rend.y() - rbegin.y())/main_segments;
-    QVector<QPointF> coordinates(main_segments+2*aux_segments+2);
+    QVector<QPointF> coordinates1(main_segments+1);
     for (int i=0; i<=main_segments; ++i)
-        coordinates[i] = {x+i*dx, y+i*dy};
-    coordinates[main_segments] = rend;
+        coordinates1[i] = {x+i*dx, y+i*dy};
+    auto path1 = new BasicGraphicsPath(tool, coordinates1);
+    path1->setPos(mapToScene(reference));
     x = p1.x();
     y = p1.y();
     dx = (rend.x() - p1.x())/aux_segments;
     dy = (rend.y() - p1.y())/aux_segments;
-    int index_shift = main_segments + 1;
+    QVector<QPointF> coordinates2(2*aux_segments+1);
     for (int i=0; i<aux_segments; ++i)
-        coordinates[index_shift + i] = {x+i*dx, y+i*dy};
+        coordinates2[i] = {x+i*dx, y+i*dy};
     x = rend.x();
     y = rend.y();
     dx = (p2.x() - rend.x())/aux_segments;
     dy = (p2.y() - rend.y())/aux_segments;
-    index_shift += aux_segments;
     for (int i=0; i<=aux_segments; ++i)
-        coordinates[index_shift + i] = {x+i*dx, y+i*dy};
-    BasicGraphicsPath *path = new BasicGraphicsPath(tool, coordinates, boundingRect().translated(-reference));
-    path->setPos(mapToScene(reference));
-    return path;
+        coordinates2[aux_segments + i] = {x+i*dx, y+i*dy};
+    auto path2 = new BasicGraphicsPath(tool, coordinates2);
+    path2->setPos(mapToScene(reference));
+    return {path1,path2};
 }
 
 void ArrowGraphicsItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)

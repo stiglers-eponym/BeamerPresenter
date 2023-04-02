@@ -125,8 +125,22 @@ void SlideScene::stopDrawing()
             newpath = static_cast<LineGraphicsItem*>(currentlyDrawnItem)->toPath();
             break;
         case ArrowGraphicsItem::Type:
-            newpath = static_cast<ArrowGraphicsItem*>(currentlyDrawnItem)->toPath();
+        {
+            const auto newpaths = static_cast<ArrowGraphicsItem*>(currentlyDrawnItem)->toPath();
+            removeItem(currentlyDrawnItem);
+            delete currentlyDrawnItem;
+            currentlyDrawnItem = NULL;
+            if (!newpaths.isEmpty())
+            {
+                for (auto item : newpaths)
+                {
+                    addItem(item);
+                    item->show();
+                }
+                emit sendAddPaths(page | page_part, reinterpret_cast<const QList<QGraphicsItem*>&>(newpaths));
+            }
             break;
+        }
         default:
             break;
         }
@@ -134,14 +148,15 @@ void SlideScene::stopDrawing()
         {
             removeItem(currentlyDrawnItem);
             delete currentlyDrawnItem;
+            currentlyDrawnItem = NULL;
             if (newpath)
             {
                 addItem(newpath);
                 newpath->show();
                 emit sendNewPath(page | page_part, newpath);
             }
+            currentlyDrawnItem = NULL;
         }
-        currentlyDrawnItem = NULL;
     }
     if (currentItemCollection)
     {
