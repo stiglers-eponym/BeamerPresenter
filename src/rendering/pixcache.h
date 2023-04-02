@@ -27,6 +27,9 @@ class AbstractRenderer;
  *
  * This does the job of rendering slides to images and storing these images
  * in compressed cache.
+ *
+ * Objects of this class are moved to separate threads. These objects
+ * should only be accessed via queued connections.
  */
 class PixCache : public QObject
 {
@@ -133,7 +136,7 @@ public slots:
 
     /// Write pixmap representing *page* to *target*.
     /// Additionally write pixmap to cache if it needs to be created.
-    void getPixmap(const int page, QPixmap *target, qreal resolution = -1.);
+    void getPixmap(const int page, QPixmap &target, qreal resolution = -1.);
 
     /// Request rendering a page with low priority
     /// May only be called in this object's thread.

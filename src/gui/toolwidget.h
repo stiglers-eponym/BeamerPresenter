@@ -9,6 +9,7 @@
 #include "src/config.h"
 
 class QSize;
+class QResizeEvent;
 class Tool;
 
 /**
@@ -62,6 +63,10 @@ public:
     /// Add all devices currently known to Qt
     void initialize();
 
+protected:
+    /// Resize event: tell child buttons to update icons.
+    void resizeEvent(QResizeEvent*) override {emit updateIcons();}
+
 public slots:
     /// Check if new tool adds a new device. Add that devices if necessary.
     void checkNewTool(const Tool *tool);
@@ -71,6 +76,8 @@ signals:
     void receiveTool(const Tool *tool);
     /// Send new tool to master. Master will take ownership of tool.
     void sendTool(Tool *tool);
+    /// Tell child buttons to update icons.
+    void updateIcons();
 };
 
 /// Get icon file name for device.

@@ -76,7 +76,7 @@ void ToolWidget::addDeviceGroup(const QList<int> &new_devices)
     int used_devices = 0;
     Tool *tool;
     ToolWidgetButton *button;
-    QLabel *label;
+    IconLabel *label;
     for (int device : new_devices)
     {
         if (devices & device)
@@ -90,7 +90,9 @@ void ToolWidget::addDeviceGroup(const QList<int> &new_devices)
         button = new ToolWidgetButton(tool, device, this);
         connect(button, &ToolWidgetButton::sendTool, this, &ToolWidget::sendTool);
         connect(this, &ToolWidget::receiveTool, button, &ToolWidgetButton::receiveNewTool);
+        connect(this, &ToolWidget::updateIcons, button, &ToolWidgetButton::updateIcon, Qt::QueuedConnection);
         label = new IconLabel(preferences()->icon_path + "/devices/" + device_icon(device) + ".svg", this);
+        connect(this, &ToolWidget::updateIcons, label, &IconLabel::updateIcon, Qt::QueuedConnection);
         label->setToolTip(tr(device_description(device)));
         if (orientation == Qt::Horizontal)
         {

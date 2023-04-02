@@ -73,9 +73,6 @@ static const QMap<QString, Action> string_to_action_map
 /// Convert string (from configuration file) to gesture
 Gesture string_to_gesture(const QString &string) noexcept;
 
-/// Get description for action
-const QString action_to_description(const Action action) noexcept;
-
 static const QMap<QString, Qt::PenStyle> string_to_pen_style
 {
     {"nopen", Qt::NoPen},

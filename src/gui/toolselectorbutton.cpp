@@ -81,9 +81,6 @@ bool ToolSelectorButton::event(QEvent *event) noexcept
         setDown(false);
         event->accept();
         return true;
-    case QEvent::Resize:
-        setTool(tool);
-        break;
     default:
         break;
     }

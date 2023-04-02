@@ -20,11 +20,14 @@
 class ToolSelectorButton : public ToolButton
 {
     Q_OBJECT
+
 public:
     /// Almost trivial constructor.
     ToolSelectorButton(Tool* tool, QWidget *parent = nullptr) noexcept;
+
     /// Trivial destructor.
     virtual ~ToolSelectorButton() {}
+
 protected:
     /// Emit sendTool based on input event with adjusted device.
     virtual bool event(QEvent *event) noexcept override;

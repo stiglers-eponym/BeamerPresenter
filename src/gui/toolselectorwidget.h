@@ -66,6 +66,9 @@ signals:
     /// Notify master that a tool has been updated.
     /// Ownership of tool does not change.
     void updatedTool(const Tool *tool) const;
+
+    /// Child buttons should update icons, called after resizing.
+    void updateIcons();
 };
 
 #endif // TOOLSELECTORWIDGET_H

@@ -2,7 +2,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later OR AGPL-3.0-or-later
 
 #include <QtConfig>
-#include <QObject>
 #include <QPointF>
 #include <QSizeF>
 #include <QRectF>
@@ -88,8 +87,8 @@ bool PopplerDocument::loadDocument()
     if (!fileinfo.exists() || !fileinfo.isFile())
     {
         preferences()->showErrorMessage(
-                    QObject::tr("Error while loading file"),
-                    QObject::tr("Given filename is not a file: ") + fileinfo.baseName());
+                    tr("Error while loading file"),
+                    tr("Given filename is not a file: ") + fileinfo.baseName());
         return false;
     }
     // Check if the file has changed since last (re)load
@@ -112,8 +111,8 @@ bool PopplerDocument::loadDocument()
         bool ok;
         QString const password = QInputDialog::getText(
                     NULL,
-                    QObject::tr("Document is locked!"),
-                    QObject::tr("Please enter password (leave empty to cancel)."),
+                    tr("Document is locked!"),
+                    tr("Please enter password (leave empty to cancel)."),
                     QLineEdit::Password,
                     QString(),
                     &ok
@@ -123,8 +122,8 @@ bool PopplerDocument::loadDocument()
         if (!ok || password.isEmpty() || newdoc->unlock(QByteArray(), password.toUtf8()))
         {
             preferences()->showErrorMessage(
-                        QObject::tr("Error while loading file"),
-                        QObject::tr("No or invalid password provided for locked document"));
+                        tr("Error while loading file"),
+                        tr("No or invalid password provided for locked document"));
             newdoc = NULL;
             return false;
         }

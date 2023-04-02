@@ -84,7 +84,7 @@ void SlideView::pageChangedBlocking(const int page, SlideScene *scene)
     scale(resolution, resolution);
     QPixmap pixmap;
     debug_msg(DebugPageChange, "Request page blocking" << page << this);
-    emit getPixmapBlocking(page, &pixmap, resolution);
+    emit getPixmapBlocking(page, pixmap, resolution);
     scene->pageBackground()->addPixmap(pixmap);
     updateScene({sceneRect()});
 }

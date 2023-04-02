@@ -1,7 +1,6 @@
 // SPDX-FileCopyrightText: 2022 Valentin Bruch <software@vbruch.eu>
 // SPDX-License-Identifier: GPL-3.0-or-later OR AGPL-3.0-or-later
 
-#include <QObject>
 #include <QVector>
 #include <QFileInfo>
 #include <QInputDialog>
@@ -47,8 +46,8 @@ bool QtDocument::loadDocument()
     if (!fileinfo.exists() || !fileinfo.isFile())
     {
         preferences()->showErrorMessage(
-                    QObject::tr("Error while loading file"),
-                    QObject::tr("Given filename is not a file: ") + fileinfo.baseName());
+                    tr("Error while loading file"),
+                    tr("Given filename is not a file: ") + fileinfo.baseName());
         return false;
     }
     // Check if the file has changed since last (re)load
@@ -92,8 +91,8 @@ bool QtDocument::loadDocument()
             bool ok;
             QString const password = QInputDialog::getText(
                         NULL,
-                        QObject::tr("Document is locked!"),
-                        QObject::tr("Please enter password (leave empty to cancel)."),
+                        tr("Document is locked!"),
+                        tr("Please enter password (leave empty to cancel)."),
                         QLineEdit::Password,
                         QString(),
                         &ok
@@ -103,8 +102,8 @@ bool QtDocument::loadDocument()
             if (!ok || password.isEmpty())
             {
                 preferences()->showErrorMessage(
-                            QObject::tr("Error while loading file"),
-                            QObject::tr("No password provided for locked document"));
+                            tr("Error while loading file"),
+                            tr("No password provided for locked document"));
                 return false;
             }
             doc->setPassword(password);
@@ -115,8 +114,8 @@ bool QtDocument::loadDocument()
 #endif
             {
                 preferences()->showErrorMessage(
-                            QObject::tr("Error while loading file"),
-                            QObject::tr("Invalid password provided for locked document"));
+                            tr("Error while loading file"),
+                            tr("Invalid password provided for locked document"));
                 return false;
             }
         }

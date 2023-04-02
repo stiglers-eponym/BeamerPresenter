@@ -70,10 +70,10 @@ void PixCache::init()
         qCritical() << "Creating renderer failed" << preferences()->renderer;
 
     // Create threads.
-    for (int i=0; i<threads.length(); i++)
+    for (auto &thread : threads)
     {
-        threads[i] = new PixCacheThread(pdfDoc, renderer->pagePart(), this);
-        connect(threads[i], &PixCacheThread::sendData, this, &PixCache::receiveData, Qt::QueuedConnection);
+        thread = new PixCacheThread(pdfDoc, renderer->pagePart(), this);
+        connect(thread, &PixCacheThread::sendData, this, &PixCache::receiveData, Qt::QueuedConnection);
     }
 
     renderCacheTimer = new QTimer();
@@ -113,8 +113,8 @@ void PixCache::setMaxNumber(const int number)
 
 void PixCache::clear()
 {
-    qDeleteAll(cache);
-    cache.clear();
+    for (auto it = cache.begin(); it != cache.end(); it=cache.erase(it))
+        delete *it;
     usedMemory = 0;
     region = {preferences()->page, preferences()->page};
 }
@@ -248,9 +248,9 @@ int PixCache::limitCacheSize()
     // Number of really cached slides:
     // subtract number of currently active threads, for which cache contains a NULL.
     int cached_slides = cache.size();
-    for (QVector<PixCacheThread*>::const_iterator it = threads.cbegin(); it != threads.cend(); ++it)
+    for (auto it = threads.cbegin(); it != threads.cend(); ++it)
     {
-        if ((*it)->isRunning())
+        if ((*it) && (*it)->isRunning())
             --cached_slides;
     }
     if (cached_slides <= 0)
@@ -388,9 +388,9 @@ void PixCache::startRendering()
     int allowed_pages = limitCacheSize();
     if (allowed_pages <= 0)
         return;
-    for (QVector<PixCacheThread*>::const_iterator thread = threads.cbegin(); thread != threads.cend(); ++thread)
+    for (auto thread = threads.cbegin(); thread != threads.cend(); ++thread)
     {
-        if (allowed_pages > 0 && !(*thread)->isRunning())
+        if (allowed_pages > 0 && *thread && !(*thread)->isRunning())
         {
             const int page = renderNext();
             if (page < 0 || page >= pdfDoc->numberOfPages())
@@ -406,7 +406,10 @@ void PixCache::receiveData(const PngPixmap *data)
 {
     // If a renderer failed, it should already have sent an error message.
     if (data == NULL || data->isNull())
+    {
+        delete data;
         return;
+    }
 
     // Check if the received image is still compatible with the current resolution.
     if (abs(getResolution(data->getPage()) - data->getResolution()) > MAX_RESOLUTION_DEVIATION)
@@ -482,7 +485,7 @@ void PixCache::requestPage(const int page, const qreal resolution, const bool ca
         return;
     }
 
-    debug_msg(DebugCache, "Rendering page in main thread" << this);
+    debug_msg(DebugCache, "Rendering page in PixCache thread" << this);
     const QPixmap pix = renderer->renderPixmap(page, resolution);
 
     if (pix.isNull())
@@ -516,7 +519,7 @@ void PixCache::requestPage(const int page, const qreal resolution, const bool ca
     renderCacheTimer->start();
 }
 
-void PixCache::getPixmap(const int page, QPixmap *target, qreal resolution)
+void PixCache::getPixmap(const int page, QPixmap &target, qreal resolution)
 {
-    *target = pixmap(page, resolution);
+    target = pixmap(page, resolution);
 }

@@ -12,16 +12,20 @@
 #include <QPixmap>
 #include "src/config.h"
 
-class QResizeEvent;
-
 class IconLabel : public QLabel
 {
     Q_OBJECT
     QImageReader *reader;
 
+public:
+    IconLabel(const QString &iconpath, QWidget *parent = nullptr)
+        : QLabel(parent), reader(new QImageReader(iconpath, "svg")) {updateIcon();}
+    ~IconLabel() {delete reader;}
+
+public slots:
     void updateIcon()
     {
-        const int px = std::min(width(), height());
+        const int px = std::min(width(), height())-1;
         reader->setFileName(reader->fileName()); // Workaround for a weird bug
         reader->setScaledSize({px, px});
         if (reader->canRead())
@@ -29,14 +33,6 @@ class IconLabel : public QLabel
         else
             setText("?");
     }
-
-public:
-    IconLabel(const QString &iconpath, QWidget *parent = nullptr)
-        : QLabel(parent), reader(new QImageReader(iconpath, "svg")) {updateIcon();}
-    ~IconLabel() {delete reader;}
-
-protected:
-    void resizeEvent(QResizeEvent *event) {updateIcon();}
 };
 
 #endif // ICONLABEL_H

@@ -9,6 +9,8 @@ ToolWidgetButton::ToolWidgetButton(Tool *tool, const int device, QWidget *parent
     : ToolButton(tool, parent), device(device)
 {
     connect(this, &ToolWidgetButton::clicked, this, &ToolWidgetButton::selectTool);
+    if (!tool && (device & Tool::AnyActiveDevice))
+        setTool(new Tool(Tool::NoTool, device));
 }
 
 void ToolWidgetButton::selectTool()
@@ -32,5 +34,10 @@ void ToolWidgetButton::receiveNewTool(const Tool *newtool)
         setTool(toolcopy);
     }
     else if (!preferences()->currentTool(device))
-        setIcon(QIcon());
+    {
+        if (!(device & Tool::AnyActiveDevice))
+            setIcon(QIcon());
+        else if (!tool || tool->tool() != Tool::NoTool)
+            setTool(new Tool(Tool::NoTool, device));
+    }
 }

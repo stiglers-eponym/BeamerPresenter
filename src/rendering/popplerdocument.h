@@ -9,6 +9,7 @@
 #include <QMap>
 #include <QList>
 #include <QtConfig>
+#include <QCoreApplication>
 #if (QT_VERSION_MAJOR == 6)
 #include <poppler/qt6/poppler-qt6.h>
 #elif (QT_VERSION_MAJOR == 5)
@@ -31,6 +32,8 @@ class PngPixmap;
  */
 class PopplerDocument : public PdfDocument
 {
+    Q_DECLARE_TR_FUNCTIONS(PopplerDocument)
+
     /// Poppler document representing the PDF.
     std::unique_ptr<Poppler::Document> doc = NULL;
 

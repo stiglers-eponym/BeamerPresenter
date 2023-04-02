@@ -16,7 +16,6 @@
 #include "src/gui/colorselectionbutton.h"
 #include "src/gui/toolselectorbutton.h"
 #include "src/gui/widthselectionbutton.h"
-#include "src/log.h"
 #include "src/names.h"
 
 ToolSelectorWidget::ToolSelectorWidget(QWidget *parent) : QWidget(parent)
@@ -51,18 +50,21 @@ void ToolSelectorWidget::addButtons(const QJsonArray &full_array)
                     {
                         ShapeSelectionButton *button = new ShapeSelectionButton(this);
                         connect(this, &ToolSelectorWidget::sendTool, button, &ShapeSelectionButton::toolChanged);
+                        connect(this, &ToolSelectorWidget::updateIcons, button, &ShapeSelectionButton::updateIcon, Qt::QueuedConnection);
                         grid_layout->addWidget(button, i, j);
                     }
                     else if (row[j].toString() == "style")
                     {
                         PenStyleButton *button = new PenStyleButton(this);
                         connect(this, &ToolSelectorWidget::sendTool, button, &PenStyleButton::toolChanged);
+                        connect(this, &ToolSelectorWidget::updateIcons, button, &PenStyleButton::updateIcon, Qt::QueuedConnection);
                         grid_layout->addWidget(button, i, j);
                     }
                 }
                 else
                 {
                     ActionButton *button = new ActionButton(action, this);
+                    connect(this, &ToolSelectorWidget::updateIcons, button, &ActionButton::updateIcon, Qt::QueuedConnection);
                     if (button->icon().isNull())
                         button->setText(row[j].toString());
                     grid_layout->addWidget(button, i, j);
@@ -75,6 +77,7 @@ void ToolSelectorWidget::addButtons(const QJsonArray &full_array)
                 if (array.isEmpty())
                     return;
                 ActionButton *button = new ActionButton(this);
+                connect(this, &ToolSelectorWidget::updateIcons, button, &ActionButton::updateIcon, Qt::QueuedConnection);
                 for (const auto &entry : array)
                     button->addAction(string_to_action_map.value(entry.toString(), InvalidAction));
                 if (button->icon().isNull())
@@ -92,42 +95,35 @@ void ToolSelectorWidget::addButtons(const QJsonArray &full_array)
                     {
                         ToolSelectorButton *button = new ToolSelectorButton(tool, this);
                         connect(button, &ToolSelectorButton::sendTool, this, &ToolSelectorWidget::sendTool);
+                        connect(this, &ToolSelectorWidget::updateIcons, button, &ToolSelectorButton::updateIcon, Qt::QueuedConnection);
                         grid_layout->addWidget(button, i, j);
                     }
                 }
                 else if (obj.contains("select"))
                 {
+                    ToolPropertyButton *button {nullptr};
                     if (obj.value("select") == "color")
                     {
-                        const QJsonArray array = obj.value("list").toArray();
-                        ColorSelectionButton *button = new ColorSelectionButton(array, this);
-                        connect(this, &ToolSelectorWidget::sendTool, button, &ColorSelectionButton::toolChanged);
-                        connect(button, &ColorSelectionButton::colorChanged, this, &ToolSelectorWidget::sendColor);
-                        connect(button, &ColorSelectionButton::sendUpdatedTool, this, &ToolSelectorWidget::updatedTool);
-                        grid_layout->addWidget(button, i, j);
+                        auto *cbutton = new ColorSelectionButton(obj.value("list").toArray(), this);
+                        connect(cbutton, &ColorSelectionButton::colorChanged, this, &ToolSelectorWidget::sendColor);
+                        button = cbutton;
                     }
-                    if (obj.value("select") == "width")
+                    else if (obj.value("select") == "width")
                     {
-                        const QJsonArray array = obj.value("list").toArray();
-                        WidthSelectionButton *button = new WidthSelectionButton(array, this);
-                        connect(this, &ToolSelectorWidget::sendTool, button, &WidthSelectionButton::toolChanged);
-                        connect(button, &WidthSelectionButton::widthChanged, this, &ToolSelectorWidget::sendWidth);
-                        connect(button, &WidthSelectionButton::sendUpdatedTool, this, &ToolSelectorWidget::updatedTool);
-                        grid_layout->addWidget(button, i, j);
+                        auto *wbutton = new WidthSelectionButton(obj.value("list").toArray(), this);
+                        connect(wbutton, &WidthSelectionButton::widthChanged, this, &ToolSelectorWidget::sendWidth);
+                        button = wbutton;
                     }
                     else if(obj.value("select") == "shape")
-                    {
-                        ShapeSelectionButton *button = new ShapeSelectionButton(this);
-                        connect(this, &ToolSelectorWidget::sendTool, button, &ShapeSelectionButton::toolChanged);
-                        connect(button, &ShapeSelectionButton::sendUpdatedTool, this, &ToolSelectorWidget::updatedTool);
-                        grid_layout->addWidget(button, i, j);
-                    }
+                        button = new ShapeSelectionButton(this);
                     else if(obj.value("select") == "style")
+                        button = new PenStyleButton(this);
+                    if (button)
                     {
-                        PenStyleButton *button = new PenStyleButton(this);
-                        connect(this, &ToolSelectorWidget::sendTool, button, &PenStyleButton::toolChanged);
-                        connect(button, &PenStyleButton::sendUpdatedTool, this, &ToolSelectorWidget::updatedTool);
                         grid_layout->addWidget(button, i, j);
+                        connect(this, &ToolSelectorWidget::sendTool, button, &ToolPropertyButton::toolChanged);
+                        connect(this, &ToolSelectorWidget::updateIcons, button, &ToolPropertyButton::updateIcon, Qt::QueuedConnection);
+                        connect(button, &ToolPropertyButton::sendUpdatedTool, this, &ToolSelectorWidget::updatedTool);
                     }
                 }
                 else
@@ -157,4 +153,5 @@ void ToolSelectorWidget::resizeEvent(QResizeEvent *event)
         while (i<grid_layout->columnCount())
             grid_layout->setColumnMinimumWidth(i++, minwidth);
     }
+    emit updateIcons();
 }

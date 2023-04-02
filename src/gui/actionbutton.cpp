@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later OR AGPL-3.0-or-later
 
 #include <map>
+#include <algorithm>
 #include <cstring>
 #include <QSize>
 #include <QIcon>
@@ -9,11 +10,10 @@
 #include <QEvent>
 #include <QImageReader>
 #include "src/gui/actionbutton.h"
-#include "src/names.h"
 #include "src/preferences.h"
 #include "src/gui/toolselectorwidget.h"
 
-const QString action_to_theme_icon(const Action action) noexcept
+const char *action_to_theme_icon(const Action action) noexcept
 {
     switch (action)
     {
@@ -116,6 +116,7 @@ ActionButton::ActionButton(ToolSelectorWidget *parent) :
     setIconSize({32,32});
     setContentsMargins(0,0,0,0);
     setFocusPolicy(Qt::NoFocus);
+    setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Ignored);
     setToolButtonStyle(Qt::ToolButtonIconOnly);
     connect(this, &QToolButton::clicked, this, &ActionButton::onClicked);
     connect(this, &ActionButton::sendAction, parent, &ToolSelectorWidget::sendAction);
@@ -126,7 +127,7 @@ ActionButton::ActionButton(const Action action, ToolSelectorWidget *parent) :
 {
     addAction(action);
     display_action = action;
-    setToolTip(action_to_description(action));
+    setToolTip(tr(action_to_description(action)));
     if (action_to_custom_icons(action).length() > 1)
         connect(parent, &ToolSelectorWidget::sendStatus, this, &ActionButton::setStatus);
 }
@@ -143,20 +144,12 @@ void ActionButton::setStatus(const Action action, const int status)
 
 void ActionButton::updateIcon()
 {
-    QSize newsize = size();
-    setIconSize(newsize);
+    const int px = std::min(width(), height()) - 1;
+    setIconSize({px,px});
 
     // Only weird custom icons require update
     if (display_status >= 0)
-    {
-        if (newsize.height() > newsize.width())
-            newsize.rheight() = newsize.width();
-        else
-            newsize.rwidth() = newsize.height();
-        QImageReader reader(preferences()->icon_path + "/actions/" + action_to_custom_icons(display_action).value(display_status));
-        reader.setScaledSize(newsize);
-        setIcon(QPixmap::fromImage(reader.read()));
-    }
+        setIcon(QIcon(preferences()->icon_path + "/actions/" + action_to_custom_icons(display_action).value(display_status)));
 }
 
 void ActionButton::addAction(const Action action)
@@ -166,7 +159,7 @@ void ActionButton::addAction(const Action action)
     actions.insert(action);
     if (icon().isNull())
     {
-        const QString &name = action_to_theme_icon(action);
+        const QString &name(action_to_theme_icon(action));
         if (name.isEmpty())
             setStatus(action, 0);
         else
@@ -187,9 +180,105 @@ void ActionButton::onClicked() const noexcept
         emit sendAction(action);
 }
 
-bool ActionButton::event(QEvent *event)
+const char *action_to_description(const Action action) noexcept
 {
-    if (event->type() == QEvent::Resize)
-        updateIcon();
-    return QToolButton::event(event);
+    switch (action)
+    {
+    // Navigation actions
+    case Update:
+        return QT_TRANSLATE_NOOP("ActionButton", "update view (use if e.g. slide has bad resolution after resizing the window)");
+    case NextPage:
+        return QT_TRANSLATE_NOOP("ActionButton", "go to next page");
+    case PreviousPage:
+        return QT_TRANSLATE_NOOP("ActionButton", "go to previous page");
+    case NextSkippingOverlays:
+        return QT_TRANSLATE_NOOP("ActionButton", "go to next page which has not the same page label as the current page");
+    case PreviousSkippingOverlays:
+        return QT_TRANSLATE_NOOP("ActionButton", "go to previous page which has not the same page label as the current page");
+    case FirstPage:
+        return QT_TRANSLATE_NOOP("ActionButton", "go to first page");
+    case LastPage:
+        return QT_TRANSLATE_NOOP("ActionButton", "go to last page");
+    // Drawing
+    case UndoDrawing:
+        return QT_TRANSLATE_NOOP("ActionButton", "undo last drawing/erasing step in the presentation on the current slide");
+    case UndoDrawingLeft:
+        return QT_TRANSLATE_NOOP("ActionButton", "undo last drawing/erasing step on the left half of a pdf document which is split into notes and a presentation");
+    case UndoDrawingRight:
+        return QT_TRANSLATE_NOOP("ActionButton", "undo last drawing/erasing step on the right half of a pdf document which is split into notes and a presentation");
+    case RedoDrawing:
+        return QT_TRANSLATE_NOOP("ActionButton", "redo undone drawing/erasing step in the presentation on the current slide");
+    case RedoDrawingLeft:
+        return QT_TRANSLATE_NOOP("ActionButton", "redo last drawing/erasing step on the left half of a pdf document which is split into notes and a presentation");
+    case RedoDrawingRight:
+        return QT_TRANSLATE_NOOP("ActionButton", "redo last drawing/erasing step on the right half of a pdf document which is split into notes and a presentation");
+    case ClearDrawing:
+        return QT_TRANSLATE_NOOP("ActionButton", "clear all drawings on the current presentation slide");
+    case ClearDrawingLeft:
+        return QT_TRANSLATE_NOOP("ActionButton", "clear all drawings of the current slide on the left half of a pdf document which is split into notes and a presentation");
+    case ClearDrawingRight:
+        return QT_TRANSLATE_NOOP("ActionButton", "clear all drawings of the current slide on the right half of a pdf document which is split into notes and a presentation");
+    case ScrollDown:
+        return QT_TRANSLATE_NOOP("ActionButton", "scroll down presentation view: adds extra space below the slide for drawing");
+    case ScrollUp:
+        return QT_TRANSLATE_NOOP("ActionButton", "scroll up presentation view");
+    case ScrollNormal:
+        return QT_TRANSLATE_NOOP("ActionButton", "reset view after scrolling to show full slide again");
+    case SaveDrawings:
+        return QT_TRANSLATE_NOOP("ActionButton", "save drawings, times and notes to file");
+    case SaveDrawingsAs:
+        return QT_TRANSLATE_NOOP("ActionButton", "ask where to save drawings, times and notes");
+    case LoadDrawings:
+        return QT_TRANSLATE_NOOP("ActionButton", "load drawings etc. from file");
+    case LoadDrawingsNoClear:
+        return QT_TRANSLATE_NOOP("ActionButton", "load drawings etc. from file without first clearing existing drawings");
+    // Modify drawn items
+    case CopyClipboard:
+        return QT_TRANSLATE_NOOP("ActionButton", "copy selected items to the clipboard");
+    case CutClipboard:
+        return QT_TRANSLATE_NOOP("ActionButton", "remove selected items and copy them to the clipboard");
+    case PasteClipboard:
+        return QT_TRANSLATE_NOOP("ActionButton", "paste from clipboard");
+    case SelectionToForeground:
+        return QT_TRANSLATE_NOOP("ActionButton", "bring selected items to the foregroud");
+    case RemoveSelectedItems:
+        return QT_TRANSLATE_NOOP("ActionButton", "remove selected items");
+    case DuplicateSelectedItems:
+        return QT_TRANSLATE_NOOP("ActionButton", "duplicate selected items and copy them to the clipboard");
+    case SelectAll:
+        return QT_TRANSLATE_NOOP("ActionButton", "select everything on the current slide");
+    case ClearSelection:
+        return QT_TRANSLATE_NOOP("ActionButton", "clear selection (select nothing)");
+    // Timer
+    case StartTimer:
+        return QT_TRANSLATE_NOOP("ActionButton", "start or resume presentation timer");
+    case StopTimer:
+        return QT_TRANSLATE_NOOP("ActionButton", "pause presentation timer");
+    case StartStopTimer:
+        return QT_TRANSLATE_NOOP("ActionButton", "pause or continue presentation timer");
+    case ResetTimePassed:
+        return QT_TRANSLATE_NOOP("ActionButton", "reset timer: sets passed time to zero");
+    // Media
+    case PlayMedia:
+        return QT_TRANSLATE_NOOP("ActionButton", "play all videos on the current slide");
+    case PauseMedia:
+        return QT_TRANSLATE_NOOP("ActionButton", "pause all videos on the current slide");
+    case PlayPauseMedia:
+        return QT_TRANSLATE_NOOP("ActionButton", "If any video is playing: pause all videos. Otherwise: start all videos.");
+    case Mute:
+        return QT_TRANSLATE_NOOP("ActionButton", "mute all media objects");
+    case Unmute:
+        return QT_TRANSLATE_NOOP("ActionButton", "unmute all media objects");
+    // Other actions
+    case ReloadFiles:
+        return QT_TRANSLATE_NOOP("ActionButton", "reload PDF file(s)");
+    case FullScreen:
+        return QT_TRANSLATE_NOOP("ActionButton", "toggle fullscreen mode for currently active window");
+    case Quit:
+        return QT_TRANSLATE_NOOP("ActionButton", "quit and ask to save drawings if there are unsaved changes. Detection of unsaved chagnes is not reliable yet.");
+    case QuitNoConfirmation:
+        return QT_TRANSLATE_NOOP("ActionButton", "quit without asking to save drawings");
+    default:
+        return "";
+    };
 }

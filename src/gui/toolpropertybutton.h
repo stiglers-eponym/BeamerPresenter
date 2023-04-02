@@ -12,6 +12,8 @@ class QEvent;
 
 /**
  * @brief Drop down menu for changing a property of a tool.
+ *
+ * @see ToolSelectorWidget
  */
 class ToolPropertyButton : public QComboBox
 {
@@ -33,6 +35,9 @@ protected:
 public slots:
     /// Update currently selected tool property based on tool.
     virtual void toolChanged(Tool *tool) = 0;
+
+    /// Update the icon.
+    virtual void updateIcon();
 
 protected slots:
     /// Choose tool and call setToolProperty.

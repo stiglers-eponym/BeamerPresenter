@@ -7,6 +7,7 @@
 #include <QColor>
 #include <QMap>
 #include <QString>
+#include <QCoreApplication>
 #include "src/config.h"
 
 class QTabletEvent;
@@ -19,6 +20,8 @@ class QTabletEvent;
  */
 class Tool
 {
+    Q_DECLARE_TR_FUNCTIONS(Tool)
+
 public:
     /// Tools for drawing and highlighting.
     /// The first 5 bits are used to encode a tool number.
@@ -77,6 +80,7 @@ public:
         PressureSensitiveDevices = TabletPen | TabletEraser | TabletCursor | TabletOther | TabletMod,
         AnyTabletDevice = TabletPen | TabletEraser | TabletCursor | TabletOther | TabletMod | TabletHover,
         AnyMouseDevice = MouseNoButton | MouseLeftButton | MouseRightButton | MouseMiddleButton,
+        AnyActiveDevice = AnyDevice ^ (MouseNoButton | TabletHover),
     };
 
     /// Distinguish start, stop, update and cancel events.

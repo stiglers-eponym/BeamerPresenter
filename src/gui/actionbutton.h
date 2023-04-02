@@ -12,7 +12,6 @@
 #include "src/enumerates.h"
 
 class ToolSelectorWidget;
-class QEvent;
 class QString;
 
 /**
@@ -32,8 +31,6 @@ class ActionButton : public QToolButton
     Action display_action;
     int display_status = -1;
 
-    void updateIcon();
-
 public:
     /// Constructor: connect to parent.
     explicit ActionButton(ToolSelectorWidget *parent = NULL);
@@ -44,9 +41,6 @@ public:
     /// Add new action to actions, set icon if necessary.
     void addAction(const Action action);
 
-protected:
-    bool event(QEvent *event) override;
-
 protected slots:
     /// Send out action(s).
     void onClicked() const noexcept;
@@ -55,13 +49,16 @@ public slots:
     /// Set status for given action. This changes the icon for some actions.
     void setStatus(const Action action, const int status);
 
+    /// Update the icon.
+    void updateIcon();
+
 signals:
     /// Send out an action.
     void sendAction(const Action action) const;
 };
 
 /// Map actions to icon names.
-const QString action_to_theme_icon(const Action action) noexcept;
+const char *action_to_theme_icon(const Action action) noexcept;
 
 /**
  * Map actions to lists of custom icon file names.
@@ -70,5 +67,8 @@ const QString action_to_theme_icon(const Action action) noexcept;
  */
 const QStringList action_to_custom_icons(const Action action) noexcept;
 
+
+/// Get description for action
+const char *action_to_description(const Action action) noexcept;
 
 #endif // ACTIONBUTTON_H

@@ -153,11 +153,11 @@ enum Action
     Unmute, ///< unmute all media objects
     // Other actions
     ReloadFiles, ///< reload PDF file(s) if it has changed
-    PdfFilesChanged, ///< notify widgets that PDF files have changed
     FullScreen, ///< toggle full screen mode
     Quit, ///< quit program, ask to save if there are unsaved changes
     QuitNoConfirmation, ///< quit program ignoring about unsaved changes
     // Internal actions
+    PdfFilesChanged, ///< notify widgets that PDF files have changed
     ResizeViews, ///< slide views have been resized
 
     // Actions containing flags

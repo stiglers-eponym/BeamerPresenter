@@ -8,6 +8,7 @@
 #include <QList>
 #include <QMap>
 #include <QVector>
+#include <QCoreApplication>
 #include "src/config.h"
 // old versions of MuPDF don't have 'extern "C"' in the header files.
 extern "C"
@@ -33,6 +34,8 @@ class QPointF;
  */
 class MuPdfDocument : public PdfDocument
 {
+    Q_DECLARE_TR_FUNCTIONS(MuPdfDocument)
+
 public:
     /// Item in PDF PageLabel list. This is only used internally in
     /// MuPdfDocument::loadPageLabels().

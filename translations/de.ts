@@ -2,273 +2,7 @@
 <!DOCTYPE TS>
 <TS version="2.1" language="de_DE">
 <context>
-    <name>AnalogClockWidget</name>
-    <message>
-        <source>double-click on clock to start or pause timer</source>
-        <translation>Starte/pausiere die Stoppuhr mit Doppelklick auf die Uhr</translation>
-    </message>
-</context>
-<context>
-    <name>ClockWidget</name>
-    <message>
-        <source>double-click on clock to start or pause timer</source>
-        <translation>Starte/pausiere die Stoppuhr mit Doppelklick auf die Uhr</translation>
-    </message>
-</context>
-<context>
-    <name>ColorSelectionButton</name>
-    <message>
-        <source>Tool color</source>
-        <translation>Farbe des Werkzeugs</translation>
-    </message>
-    <message>
-        <source>select color for tools</source>
-        <translation>wähle eine Farbe für Werkzeuge aus</translation>
-    </message>
-</context>
-<context>
-    <name>DrawToolDetails</name>
-    <message>
-        <source>stroke width (in pt)</source>
-        <translation>Linienbreite (in pt)</translation>
-    </message>
-    <message>
-        <source>fill color</source>
-        <translation>Farbe zum Füllen</translation>
-    </message>
-    <message>
-        <source>fill</source>
-        <translation>füllen</translation>
-    </message>
-    <message>
-        <source>shape</source>
-        <translation>Form</translation>
-    </message>
-    <message>
-        <source>pen style</source>
-        <translation>Stiftstil</translation>
-    </message>
-    <message>
-        <source>select color</source>
-        <translation>wähle Farbe</translation>
-    </message>
-    <message>
-        <source>brush style</source>
-        <translation>Füllung</translation>
-    </message>
-    <message>
-        <source>Fill color</source>
-        <translation>Farbe zum Füllen</translation>
-    </message>
-</context>
-<context>
-    <name>KeyInputLabel</name>
-    <message>
-        <source>Click here and press keyboard shortcut for this action or press delete to remove the shortcut.</source>
-        <translation>Klicke hier und drücke die gewünschte Tastenkombination für die Aktion, oder drücke Entfernen zum Löschen der Tastenkombination.</translation>
-    </message>
-    <message>
-        <source>Click here and press keyboard shortcut for this tool or press delete to remove the shortcut.</source>
-        <translation>Klicke hier und drücke die gewünschte Tastenkombination für das Werkzeug, oder drücke Entfernen zum Löschen der Tastenkombination.</translation>
-    </message>
-</context>
-<context>
-    <name>Master</name>
-    <message>
-        <source>Open file</source>
-        <translation>Öffne Datei</translation>
-    </message>
-    <message>
-        <source>Documents (*.pdf);;BeamerPresenter/Xournal++ files (*.bpr *.xoj *.xopp *.xml);;All files (*)</source>
-        <translation>Dokumente (*.pdf);;BeamerPresenter/Xournal++-Dateien (*.bpr *.xoj *.xopp *.xml);;Alle Dateien (*)</translation>
-    </message>
-    <message>
-        <source>Error while reading GUI config</source>
-        <translation>Fehler beim Lesen der Konfiguration für die Benutzeroberfläche</translation>
-    </message>
-    <message>
-        <source>Ignoring entry in GUI config with invalid type </source>
-        <translation>Ignoriere Eintrag in der Konfiguration der Benutzeroberfläche mit ungültigem Typ </translation>
-    </message>
-    <message>
-        <source>Unsaved changes</source>
-        <translation>Nicht gespeicherte Anmerkungen</translation>
-    </message>
-    <message>
-        <source>The document may contain unsaved changes. Quit anyway?</source>
-        <translation>Das Dokument enthält eventuell nicht gespeicherte Anmerkungen. Trotzdem schließen?</translation>
-    </message>
-    <message>
-        <source>Load drawings</source>
-        <translation>Lade Anmerkungen</translation>
-    </message>
-    <message>
-        <source>BeamerPresenter/Xournal++ files (*.bpr *.xoj *.xopp *.xml);;All files (*)</source>
-        <translation>BeamerPresenter/Xournal++-Dateien (*.bpr *.xoj *.xopp *.xml);;Alle Dateien (*)</translation>
-    </message>
-    <message>
-        <source>Save drawings</source>
-        <translation>Speichere Anmerkungen</translation>
-    </message>
-    <message>
-        <source>BeamerPresenter/Xournal++ files (*.bpr *.xopp);;All files (*)</source>
-        <translation>BeamerPresenter/Xournal++-Dateien (*.bpr *.xopp);;Alle Dateien (*)</translation>
-    </message>
-    <message>
-        <source>Error while loading GUI config</source>
-        <translation>Fehler beim Laden der Konfiguration der Benutzeroberfläche</translation>
-    </message>
-    <message>
-        <source>Loading GUI config file failed for filename &quot;</source>
-        <translation>Laden der Konfiguration der Benutzeroberfläche ist fehlgeschlagen für den Dateinamen &quot;</translation>
-    </message>
-    <message>
-        <source>&quot;. Using fallback GUI config file </source>
-        <translation>&quot;. Benutze stattdessen die Standardkonfiguration in </translation>
-    </message>
-</context>
-<context>
-    <name>NotesWidget</name>
-    <message>
-        <source>Save notes</source>
-        <translation>Speichere Notizen</translation>
-    </message>
-    <message>
-        <source>Note files (*.xml);;BeamerPresenter/Xournal++ files (*.bpr *.xopp);;All files (*)</source>
-        <translation>Notizdateien (*.xml);;BeamerPresenter/Xournal++-Dateien (*.bpr *.xopp);;Alle Dateien (*)</translation>
-    </message>
-    <message>
-        <source>Open notes</source>
-        <translation>Öffne Notizen</translation>
-    </message>
-    <message>
-        <source>Note files (*.xml);;BeamerPresenter/Xournal++ files (*.bpr *.xopp *.xoj *.xml);;All files (*)</source>
-        <translation>Notizdateien (*.xml);;BeamerPresenter/Xournal++-Dateien (*.bpr *.xopp *.xoj *.xml);;Alle Dateien (*)</translation>
-    </message>
-</context>
-<context>
-    <name>PdfMaster</name>
-    <message>
-        <source>Error while loading file</source>
-        <translation>Fehler beim Laden der Datei</translation>
-    </message>
-    <message>
-        <source>Tried to load a pdf file, but a different file is already loaded!</source>
-        <translation>Versuche eine PDF-Datei zu laden, aber  eine andere Datei ist bereits geladen!</translation>
-    </message>
-    <message>
-        <source>Loading PDF document failed!</source>
-        <translation>Laden des PDF-Dokuments fehlgeschlagen!</translation>
-    </message>
-    <message>
-        <source>Error while saving file</source>
-        <translation>Fehler beim Speichern der Datei</translation>
-    </message>
-    <message>
-        <source>Writing document resulted in error! Resulting document is probably corrupt.</source>
-        <translation>Schreiben des Dokuments hat einen Fehler erzeigt! Das resultierende Dokument ist vermutlich kaputt.</translation>
-    </message>
-    <message>
-        <source>Saving document failed for file path: </source>
-        <translation>Speichern des Dokuments ist fehlgeschlagen für den Dateipfad: </translation>
-    </message>
-    <message>
-        <source>Failed to read xopp document: </source>
-        <translation>Fehler beim Lesen des xopp-Dokuments: </translation>
-    </message>
-    <message>
-        <source>PDF file could not be opened, select the correct PDF file.</source>
-        <translation>PDF-Datei konnte nicht geöffnet werden, wähle die richtige PDF-Datei aus.</translation>
-    </message>
-    <message>
-        <source>Documents (*.pdf);;All files (*)</source>
-        <translation>Dokumente (*.pdf);;Alle Dateien (*)</translation>
-    </message>
-    <message>
-        <source>No PDF file found</source>
-        <translation>Keine PDF-Datei gefunden</translation>
-    </message>
-    <message>
-        <source>File does not exist: </source>
-        <translation>Datei existiert nicht: </translation>
-    </message>
-    <message>
-        <source>Loading drawings failed: file </source>
-        <translation>Laden der Anmerkungen fehlgeschlagen: Datei </translation>
-    </message>
-    <message>
-        <source> could not be opened</source>
-        <translation> konnte nicht geöffnet werden</translation>
-    </message>
-</context>
-<context>
-    <name>PointingToolDetails</name>
-    <message>
-        <source>radius (in pt)</source>
-        <translation>Radius (in pt)</translation>
-    </message>
-    <message>
-        <source>Magnification scale</source>
-        <translation>Vergrößerungsfaktor</translation>
-    </message>
-    <message>
-        <source>Eraser border width</source>
-        <translation>Linienbreite Radiergummie</translation>
-    </message>
-</context>
-<context>
-    <name>Preferences</name>
-    <message>
-        <source>Invalid file</source>
-        <translation>Keine valide Datei ausgewählt</translation>
-    </message>
-    <message>
-        <source>GUI config file not set because it is not a valid file: </source>
-        <translation>Konfiguration der Benutzeroberfläche konnte nicht geändert werden, da keine valide Datei ausgewählt wurde: </translation>
-    </message>
-</context>
-<context>
-    <name>QObject</name>
-    <message>
-        <source>Error while loading PDF file</source>
-        <translation>Fehler beim Laden der PDF-Datei</translation>
-    </message>
-    <message>
-        <source>Loaded PDF files with different numbers of pages. You should expect errors.</source>
-        <translation>PDF-Dateien mit unterschiedlicher Anzahl von Seiten geladen. Es ist mit Fehlern zu rechnen.</translation>
-    </message>
-    <message>
-        <source>Error while loading file</source>
-        <translation>Fehler beim Laden der Datei</translation>
-    </message>
-    <message>
-        <source>Given filename is not a file: </source>
-        <translation>Angegebener Dateiname ist keine Datei: </translation>
-    </message>
-    <message>
-        <source>MuPdf cannot open document: </source>
-        <translation>MuPDF can dieses Dokument nicht öffnen: </translation>
-    </message>
-    <message>
-        <source>Document is locked!</source>
-        <translation>Dokument ist verschlüsselt!</translation>
-    </message>
-    <message>
-        <source>Please enter password (leave empty to cancel).</source>
-        <translation>Bitte Passwort eingeben (oder leer lassen um abzubrechen).</translation>
-    </message>
-    <message>
-        <source>No or invalid password provided for locked document</source>
-        <translation>Kein oder ungültiges Passwort angegeben für ein verschlüsseltes Dokument</translation>
-    </message>
-    <message>
-        <source>No password provided for locked document</source>
-        <translation>Kein Passwort angegeben für gesperrtes Dokument</translation>
-    </message>
-    <message>
-        <source>Invalid password provided for locked document</source>
-        <translation>Ungültiges Passwort angegeben für gesperrtes Dokument</translation>
-    </message>
+    <name>ActionButton</name>
     <message>
         <source>go to previous page</source>
         <translation>zur vorherigen Seite gehen</translation>
@@ -400,6 +134,361 @@
     <message>
         <source>quit without asking to save drawings</source>
         <translation>Programm schließen ohne zum Speichern von Änderungen aufzufordern</translation>
+    </message>
+    <message>
+        <source>copy selected items to the clipboard</source>
+        <translation>kopiere die Auswahl in die Zwischenablage</translation>
+    </message>
+    <message>
+        <source>remove selected items and copy them to the clipboard</source>
+        <translation>entferne die ausgewählten Objekte und kopiere sie in die Zwischenablage</translation>
+    </message>
+    <message>
+        <source>paste from clipboard</source>
+        <translation>füge aus der Zwischenablage ein</translation>
+    </message>
+    <message>
+        <source>bring selected items to the foregroud</source>
+        <translation>bringe die ausgewählten Objekte in den Vordergrund</translation>
+    </message>
+    <message>
+        <source>remove selected items</source>
+        <translation>entferne die ausgewählten Objekte</translation>
+    </message>
+    <message>
+        <source>duplicate selected items and copy them to the clipboard</source>
+        <translation>dupliziere die ausgewählten Objekte und kopiere sie in die Zwischenablage</translation>
+    </message>
+    <message>
+        <source>select everything on the current slide</source>
+        <translation>wähle alles auf der aktuellen Folie aus</translation>
+    </message>
+    <message>
+        <source>clear selection (select nothing)</source>
+        <translation>setze die Auswahl zurück, wähle nichts aus</translation>
+    </message>
+    <message>
+        <source>reset timer: sets passed time to zero</source>
+        <translation>setze die Stoppuhr zurück: vergangene Zeit wird auf Null gesetzt</translation>
+    </message>
+    <message>
+        <source>mute all media objects</source>
+        <translation>schalte alle Medienobjekte stumm</translation>
+    </message>
+    <message>
+        <source>unmute all media objects</source>
+        <translation>entstumme alle Medienobjekte</translation>
+    </message>
+</context>
+<context>
+    <name>AnalogClockWidget</name>
+    <message>
+        <source>double-click on clock to start or pause timer</source>
+        <translation>Starte/pausiere die Stoppuhr mit Doppelklick auf die Uhr</translation>
+    </message>
+</context>
+<context>
+    <name>ClockWidget</name>
+    <message>
+        <source>double-click on clock to start or pause timer</source>
+        <translation>Starte/pausiere die Stoppuhr mit Doppelklick auf die Uhr</translation>
+    </message>
+</context>
+<context>
+    <name>ColorSelectionButton</name>
+    <message>
+        <source>Tool color</source>
+        <translation>Farbe des Werkzeugs</translation>
+    </message>
+    <message>
+        <source>select color for tools</source>
+        <translation>wähle eine Farbe für Werkzeuge aus</translation>
+    </message>
+</context>
+<context>
+    <name>DrawToolDetails</name>
+    <message>
+        <source>stroke width (in pt)</source>
+        <translation>Linienbreite (in pt)</translation>
+    </message>
+    <message>
+        <source>fill color</source>
+        <translation>Farbe zum Füllen</translation>
+    </message>
+    <message>
+        <source>fill</source>
+        <translation>füllen</translation>
+    </message>
+    <message>
+        <source>shape</source>
+        <translation>Form</translation>
+    </message>
+    <message>
+        <source>pen style</source>
+        <translation>Stiftstil</translation>
+    </message>
+    <message>
+        <source>select color</source>
+        <translation>wähle Farbe</translation>
+    </message>
+    <message>
+        <source>brush style</source>
+        <translation>Füllung</translation>
+    </message>
+    <message>
+        <source>Fill color</source>
+        <translation>Farbe zum Füllen</translation>
+    </message>
+</context>
+<context>
+    <name>KeyInputLabel</name>
+    <message>
+        <source>Click here and press keyboard shortcut for this action or press delete to remove the shortcut.</source>
+        <translation>Klicke hier und drücke die gewünschte Tastenkombination für die Aktion, oder drücke Entfernen zum Löschen der Tastenkombination.</translation>
+    </message>
+    <message>
+        <source>Click here and press keyboard shortcut for this tool or press delete to remove the shortcut.</source>
+        <translation>Klicke hier und drücke die gewünschte Tastenkombination für das Werkzeug, oder drücke Entfernen zum Löschen der Tastenkombination.</translation>
+    </message>
+</context>
+<context>
+    <name>Master</name>
+    <message>
+        <source>Open file</source>
+        <translation>Öffne Datei</translation>
+    </message>
+    <message>
+        <source>Documents (*.pdf);;BeamerPresenter/Xournal++ files (*.bpr *.xoj *.xopp *.xml);;All files (*)</source>
+        <translation>Dokumente (*.pdf);;BeamerPresenter/Xournal++-Dateien (*.bpr *.xoj *.xopp *.xml);;Alle Dateien (*)</translation>
+    </message>
+    <message>
+        <source>Error while reading GUI config</source>
+        <translation>Fehler beim Lesen der Konfiguration für die Benutzeroberfläche</translation>
+    </message>
+    <message>
+        <source>Ignoring entry in GUI config with invalid type </source>
+        <translation>Ignoriere Eintrag in der Konfiguration der Benutzeroberfläche mit ungültigem Typ </translation>
+    </message>
+    <message>
+        <source>Unsaved changes</source>
+        <translation>Nicht gespeicherte Anmerkungen</translation>
+    </message>
+    <message>
+        <source>The document may contain unsaved changes. Quit anyway?</source>
+        <translation>Das Dokument enthält eventuell nicht gespeicherte Anmerkungen. Trotzdem schließen?</translation>
+    </message>
+    <message>
+        <source>Load drawings</source>
+        <translation>Lade Anmerkungen</translation>
+    </message>
+    <message>
+        <source>BeamerPresenter/Xournal++ files (*.bpr *.xoj *.xopp *.xml);;All files (*)</source>
+        <translation>BeamerPresenter/Xournal++-Dateien (*.bpr *.xoj *.xopp *.xml);;Alle Dateien (*)</translation>
+    </message>
+    <message>
+        <source>Save drawings</source>
+        <translation>Speichere Anmerkungen</translation>
+    </message>
+    <message>
+        <source>BeamerPresenter/Xournal++ files (*.bpr *.xopp);;All files (*)</source>
+        <translation>BeamerPresenter/Xournal++-Dateien (*.bpr *.xopp);;Alle Dateien (*)</translation>
+    </message>
+    <message>
+        <source>Error while loading GUI config</source>
+        <translation>Fehler beim Laden der Konfiguration der Benutzeroberfläche</translation>
+    </message>
+    <message>
+        <source>Loading GUI config file failed for filename &quot;</source>
+        <translation>Laden der Konfiguration der Benutzeroberfläche ist fehlgeschlagen für den Dateinamen &quot;</translation>
+    </message>
+    <message>
+        <source>&quot;. Using fallback GUI config file </source>
+        <translation>&quot;. Benutze stattdessen die Standardkonfiguration in </translation>
+    </message>
+    <message>
+        <source>Error while loading PDF file</source>
+        <translation>Fehler beim Laden der PDF-Datei</translation>
+    </message>
+    <message>
+        <source>Loaded PDF files with different numbers of pages. You should expect errors.</source>
+        <translation>PDF-Dateien mit unterschiedlicher Anzahl von Seiten geladen. Es ist mit Fehlern zu rechnen.</translation>
+    </message>
+</context>
+<context>
+    <name>MuPdfDocument</name>
+    <message>
+        <source>Error while loading file</source>
+        <translation>Fehler beim Laden der Datei</translation>
+    </message>
+    <message>
+        <source>Given filename is not a file: </source>
+        <translation>Angegebener Dateiname ist keine Datei: </translation>
+    </message>
+    <message>
+        <source>MuPdf cannot open document: </source>
+        <translation>MuPDF can dieses Dokument nicht öffnen: </translation>
+    </message>
+    <message>
+        <source>Document is locked!</source>
+        <translation>Dokument ist verschlüsselt!</translation>
+    </message>
+    <message>
+        <source>Please enter password (leave empty to cancel).</source>
+        <translation>Bitte Passwort eingeben (oder leer lassen um abzubrechen).</translation>
+    </message>
+    <message>
+        <source>No or invalid password provided for locked document</source>
+        <translation>Kein oder ungültiges Passwort angegeben für ein verschlüsseltes Dokument</translation>
+    </message>
+</context>
+<context>
+    <name>NotesWidget</name>
+    <message>
+        <source>Save notes</source>
+        <translation>Speichere Notizen</translation>
+    </message>
+    <message>
+        <source>Note files (*.xml);;BeamerPresenter/Xournal++ files (*.bpr *.xopp);;All files (*)</source>
+        <translation>Notizdateien (*.xml);;BeamerPresenter/Xournal++-Dateien (*.bpr *.xopp);;Alle Dateien (*)</translation>
+    </message>
+    <message>
+        <source>Open notes</source>
+        <translation>Öffne Notizen</translation>
+    </message>
+    <message>
+        <source>Note files (*.xml);;BeamerPresenter/Xournal++ files (*.bpr *.xopp *.xoj *.xml);;All files (*)</source>
+        <translation>Notizdateien (*.xml);;BeamerPresenter/Xournal++-Dateien (*.bpr *.xopp *.xoj *.xml);;Alle Dateien (*)</translation>
+    </message>
+</context>
+<context>
+    <name>PdfMaster</name>
+    <message>
+        <source>Error while loading file</source>
+        <translation>Fehler beim Laden der Datei</translation>
+    </message>
+    <message>
+        <source>Tried to load a pdf file, but a different file is already loaded!</source>
+        <translation>Versuche eine PDF-Datei zu laden, aber  eine andere Datei ist bereits geladen!</translation>
+    </message>
+    <message>
+        <source>Loading PDF document failed!</source>
+        <translation>Laden des PDF-Dokuments fehlgeschlagen!</translation>
+    </message>
+    <message>
+        <source>Error while saving file</source>
+        <translation>Fehler beim Speichern der Datei</translation>
+    </message>
+    <message>
+        <source>Writing document resulted in error! Resulting document is probably corrupt.</source>
+        <translation>Schreiben des Dokuments hat einen Fehler erzeigt! Das resultierende Dokument ist vermutlich kaputt.</translation>
+    </message>
+    <message>
+        <source>Saving document failed for file path: </source>
+        <translation>Speichern des Dokuments ist fehlgeschlagen für den Dateipfad: </translation>
+    </message>
+    <message>
+        <source>Failed to read xopp document: </source>
+        <translation>Fehler beim Lesen des xopp-Dokuments: </translation>
+    </message>
+    <message>
+        <source>PDF file could not be opened, select the correct PDF file.</source>
+        <translation>PDF-Datei konnte nicht geöffnet werden, wähle die richtige PDF-Datei aus.</translation>
+    </message>
+    <message>
+        <source>Documents (*.pdf);;All files (*)</source>
+        <translation>Dokumente (*.pdf);;Alle Dateien (*)</translation>
+    </message>
+    <message>
+        <source>No PDF file found</source>
+        <translation>Keine PDF-Datei gefunden</translation>
+    </message>
+    <message>
+        <source>File does not exist: </source>
+        <translation>Datei existiert nicht: </translation>
+    </message>
+    <message>
+        <source>Loading drawings failed: file </source>
+        <translation>Laden der Anmerkungen fehlgeschlagen: Datei </translation>
+    </message>
+    <message>
+        <source> could not be opened</source>
+        <translation> konnte nicht geöffnet werden</translation>
+    </message>
+</context>
+<context>
+    <name>PointingToolDetails</name>
+    <message>
+        <source>radius (in pt)</source>
+        <translation>Radius (in pt)</translation>
+    </message>
+    <message>
+        <source>Magnification scale</source>
+        <translation>Vergrößerungsfaktor</translation>
+    </message>
+    <message>
+        <source>Eraser border width</source>
+        <translation>Linienbreite Radiergummie</translation>
+    </message>
+</context>
+<context>
+    <name>PopplerDocument</name>
+    <message>
+        <source>Error while loading file</source>
+        <translation>Fehler beim Laden der Datei</translation>
+    </message>
+    <message>
+        <source>Given filename is not a file: </source>
+        <translation>Angegebener Dateiname ist keine Datei: </translation>
+    </message>
+    <message>
+        <source>Document is locked!</source>
+        <translation>Dokument ist verschlüsselt!</translation>
+    </message>
+    <message>
+        <source>Please enter password (leave empty to cancel).</source>
+        <translation>Bitte Passwort eingeben (oder leer lassen um abzubrechen).</translation>
+    </message>
+    <message>
+        <source>No or invalid password provided for locked document</source>
+        <translation>Kein oder ungültiges Passwort angegeben für ein verschlüsseltes Dokument</translation>
+    </message>
+</context>
+<context>
+    <name>Preferences</name>
+    <message>
+        <source>Invalid file</source>
+        <translation>Keine valide Datei ausgewählt</translation>
+    </message>
+    <message>
+        <source>GUI config file not set because it is not a valid file: </source>
+        <translation>Konfiguration der Benutzeroberfläche konnte nicht geändert werden, da keine valide Datei ausgewählt wurde: </translation>
+    </message>
+</context>
+<context>
+    <name>QtDocument</name>
+    <message>
+        <source>Error while loading file</source>
+        <translation>Fehler beim Laden der Datei</translation>
+    </message>
+    <message>
+        <source>Given filename is not a file: </source>
+        <translation>Angegebener Dateiname ist keine Datei: </translation>
+    </message>
+    <message>
+        <source>Document is locked!</source>
+        <translation>Dokument ist verschlüsselt!</translation>
+    </message>
+    <message>
+        <source>Please enter password (leave empty to cancel).</source>
+        <translation>Bitte Passwort eingeben (oder leer lassen um abzubrechen).</translation>
+    </message>
+    <message>
+        <source>No password provided for locked document</source>
+        <translation>Kein Passwort angegeben für gesperrtes Dokument</translation>
+    </message>
+    <message>
+        <source>Invalid password provided for locked document</source>
+        <translation>Ungültiges Passwort angegeben für gesperrtes Dokument</translation>
     </message>
 </context>
 <context>
@@ -635,10 +724,14 @@ Konfiguriere Zwischenspeicher (Cache). Folien werden in gerendert und in einen k
     </message>
 </context>
 <context>
-    <name>ToolButton</name>
+    <name>Tool</name>
+    <message>
+        <source>no tool: follow links and control audio/video content</source>
+        <translation>kein Werkzeug: folge Links und kontrolliere Audio/Video-Inhalte</translation>
+    </message>
     <message>
         <source>pen with variable width if the input device supports variable pressure</source>
-        <translation>Stift variabler Stärke sofern das Eingabegerät dies unterstützt</translation>
+        <translation>Stift variabler Stärke, sofern das Eingabegerät dies unterstützt</translation>
     </message>
     <message>
         <source>pen with fixed width (independent of input device pressure)</source>
@@ -679,10 +772,6 @@ Konfiguriere Zwischenspeicher (Cache). Folien werden in gerendert und in einen k
     <message>
         <source>Select objects inside a drawn shape</source>
         <translation>Objekte innerhalb einer gemalten Form auswählen</translation>
-    </message>
-    <message>
-        <source>no tool: follow links and control audio/video content</source>
-        <translation>kein Werkzeug: folge Links und kontrolliere Audio/Video-Inhalte</translation>
     </message>
 </context>
 <context>

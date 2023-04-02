@@ -145,7 +145,7 @@ signals:
 
     /// Get pixmap from pixcache. This function renders the pixmap in the
     /// main thread and directly writes the result to pixmap.
-    void getPixmapBlocking(const int page, QPixmap *pixmap, qreal resolution);
+    void getPixmapBlocking(const int page, QPixmap &pixmap, qreal resolution);
 };
 
 #endif // SLIDE_H

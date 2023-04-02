@@ -13,9 +13,10 @@ ToolPropertyButton::ToolPropertyButton(QWidget *parent) :
     QComboBox(parent)
 {
     setMinimumSize(20, 12);
-    setIconSize({16,16});
+    setIconSize({24,24});
     setContentsMargins(0,0,0,0);
     setFocusPolicy(Qt::NoFocus);
+    setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Ignored);
     setAttribute(Qt::WA_AcceptTouchEvents);
 #if (QT_VERSION_MAJOR >= 6)
     connect(this, &QComboBox::activated, this, &ToolPropertyButton::changed);
@@ -57,17 +58,6 @@ bool ToolPropertyButton::event(QEvent *event)
     case QEvent::TouchEnd:
         device = Tool::TouchInput;
         break;
-    case QEvent::Resize:
-    {
-        QSize newsize = size();
-        newsize.rwidth() -= 10;
-        if (newsize.height() > newsize.width())
-            newsize.rheight() = newsize.width();
-        else
-            newsize.rwidth() = newsize.height();
-        setIconSize(newsize);
-        break;
-    }
     default:
         break;
     }
@@ -81,4 +71,10 @@ void ToolPropertyButton::changed(const int index) const
     Tool *tool = preferences()->currentTool(device);
     setToolProperty(tool);
     emit sendUpdatedTool(tool);
+}
+
+void ToolPropertyButton::updateIcon()
+{
+    const int px = std::min(width() - 10, height()) - 1;
+    setIconSize({px,px});
 }

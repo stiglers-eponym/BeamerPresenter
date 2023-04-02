@@ -43,6 +43,9 @@ public slots:
     /// Replace tool with newtool. Old tool gets deleted. This takes ownership of newtool.
     void setTool(Tool *newtool);
 
+    /// Update the tool icon.
+    void updateIcon();
+
 signals:
     /// Send a copy of tool. Ownership of toolcopy is handed to receiver.
     void sendTool(Tool *toolcopy) const;

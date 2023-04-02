@@ -3,7 +3,6 @@
 
 #include <string>
 #include <iterator>
-#include <QObject>
 #include <QPointF>
 #include <QSizeF>
 #include <QRectF>
@@ -144,8 +143,8 @@ bool MuPdfDocument::loadDocument()
     if (!fileinfo.exists() || !fileinfo.isFile())
     {
         preferences()->showErrorMessage(
-                    QObject::tr("Error while loading file"),
-                    QObject::tr("Given filename is not a file: ") + fileinfo.baseName());
+                    tr("Error while loading file"),
+                    tr("Given filename is not a file: ") + fileinfo.baseName());
         return false;
     }
 
@@ -215,8 +214,8 @@ bool MuPdfDocument::loadDocument()
         fz_catch(ctx)
         {
             preferences()->showErrorMessage(
-                        QObject::tr("Error while loading file"),
-                        QObject::tr("MuPdf cannot open document: ") + fz_caught_message(ctx));
+                        tr("Error while loading file"),
+                        tr("MuPdf cannot open document: ") + fz_caught_message(ctx));
             doc = NULL;
             fz_drop_context(ctx);
             ctx =  NULL;
@@ -232,8 +231,8 @@ bool MuPdfDocument::loadDocument()
         bool ok;
         QString const password = QInputDialog::getText(
                     NULL,
-                    QObject::tr("Document is locked!"),
-                    QObject::tr("Please enter password (leave empty to cancel)."),
+                    tr("Document is locked!"),
+                    tr("Please enter password (leave empty to cancel)."),
                     QLineEdit::Password,
                     QString(),
                     &ok
@@ -242,8 +241,8 @@ bool MuPdfDocument::loadDocument()
         if (!ok || password.isEmpty() || !pdf_authenticate_password(ctx, doc, password.toUtf8()))
         {
             preferences()->showErrorMessage(
-                        QObject::tr("Error while loading file"),
-                        QObject::tr("No or invalid password provided for locked document"));
+                        tr("Error while loading file"),
+                        tr("No or invalid password provided for locked document"));
             pdf_drop_document(ctx, doc);
             doc = NULL;
             fz_drop_context(ctx);
