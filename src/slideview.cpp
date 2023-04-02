@@ -43,6 +43,13 @@ SlideView::~SlideView() noexcept
         delete sliders.takeLast();
 }
 
+QSize SlideView::sizeHint() const noexcept
+{
+    QSizeF size = scene()->sceneRect().size();
+    size *= 2048./std::max(size.width(), size.height());
+    return size.toSize();
+}
+
 void SlideView::pageChanged(const int page, SlideScene *scene)
 {
     while (!sliders.isEmpty())

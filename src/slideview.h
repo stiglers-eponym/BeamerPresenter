@@ -53,6 +53,7 @@ public:
     /// Constructor: initialize and connect a lot.
     explicit SlideView(SlideScene *scene, const PixCache *cache = NULL, QWidget *parent = NULL);
 
+    /// Destructor: delete sliders.
     ~SlideView() noexcept;
 
     /// Preferred height of the layout depends on its width.
@@ -62,9 +63,8 @@ public:
     /// Preferred height at given width based on scene aspect ratio.
     int heightForWidth(int width) const noexcept override;
 
-    /// Size hint: scene size in points.
-    QSize sizeHint() const noexcept override
-    {return (3*scene()->sceneRect().size()).toSize();}
+    /// Size hint: scene size aspect ratio normalized to long side = 2048
+    QSize sizeHint() const noexcept override;
 
     /// Convert a position in widget coordinate (pixels) to scene coordinates
     /// (points).
