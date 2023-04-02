@@ -9,6 +9,7 @@
 ShapeSelectionButton::ShapeSelectionButton(QWidget *parent) :
     ToolPropertyButton(parent)
 {
+    setToolTip(tr("select shape to be drawn"));
     QIcon icon(preferences()->icon_path + "/tools/freehand.svg");
     if (icon.isNull())
         addItem("freehand");

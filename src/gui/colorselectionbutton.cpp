@@ -18,6 +18,7 @@
 ColorSelectionButton::ColorSelectionButton(const QJsonArray &array, QWidget *parent) :
     ToolPropertyButton(parent)
 {
+    setToolTip(tr("select color for tools"));
     QColor color;
     QSize iconsize = size();
     if (iconsize.width() > iconsize.height())

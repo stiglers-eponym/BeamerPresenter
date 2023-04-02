@@ -21,6 +21,10 @@
         <source>Tool color</source>
         <translation>Farbe des Werkzeugs</translation>
     </message>
+    <message>
+        <source>select color for tools</source>
+        <translation>wähle eine Farbe für Werkzeuge aus</translation>
+    </message>
 </context>
 <context>
     <name>DrawToolDetails</name>
@@ -546,6 +550,13 @@ Konfiguriere Zwischenspeicher (Cache). Folien werden in gerendert und in einen k
     </message>
 </context>
 <context>
+    <name>ShapeSelectionButton</name>
+    <message>
+        <source>select shape to be drawn</source>
+        <translation>wähle die zu zeichnende Form aus</translation>
+    </message>
+</context>
+<context>
     <name>SlideLabelWidget</name>
     <message>
         <source>last page label</source>
@@ -624,7 +635,7 @@ Konfiguriere Zwischenspeicher (Cache). Folien werden in gerendert und in einen k
     </message>
 </context>
 <context>
-    <name>Tool</name>
+    <name>ToolButton</name>
     <message>
         <source>pen with variable width if the input device supports variable pressure</source>
         <translation>Stift variabler Stärke sofern das Eingabegerät dies unterstützt</translation>
@@ -668,6 +679,10 @@ Konfiguriere Zwischenspeicher (Cache). Folien werden in gerendert und in einen k
     <message>
         <source>Select objects inside a drawn shape</source>
         <translation>Objekte innerhalb einer gemalten Form auswählen</translation>
+    </message>
+    <message>
+        <source>no tool: follow links and control audio/video content</source>
+        <translation>kein Werkzeug: folge Links und kontrolliere Audio/Video-Inhalte</translation>
     </message>
 </context>
 <context>
@@ -738,6 +753,13 @@ Konfiguriere Zwischenspeicher (Cache). Folien werden in gerendert und in einen k
     <message>
         <source>unknown device</source>
         <translation>unbekanntes Gerät</translation>
+    </message>
+</context>
+<context>
+    <name>WidthSelectionButton</name>
+    <message>
+        <source>select width of draw tool</source>
+        <translation>wähle die Breite des Zeichenwerkzeugs aus</translation>
     </message>
 </context>
 </TS>
