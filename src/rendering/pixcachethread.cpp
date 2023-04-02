@@ -32,10 +32,14 @@ PixCacheThread::~PixCacheThread()
     delete renderer;
 }
 
-void PixCacheThread::setNextPage(const int page_number, const qreal res)
+void PixCacheThread::setNextPage(const PixCacheThread *target, const int page_number, const qreal res)
 {
-    page = page_number;
-    resolution = res;
+    if (target == this && !isRunning())
+    {
+        page = page_number;
+        resolution = res;
+        start(QThread::LowPriority);
+    }
 }
 
 void PixCacheThread::run()

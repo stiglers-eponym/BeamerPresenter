@@ -74,6 +74,7 @@ void PixCache::init()
     {
         thread = new PixCacheThread(pdfDoc, renderer->pagePart(), this);
         connect(thread, &PixCacheThread::sendData, this, &PixCache::receiveData, Qt::QueuedConnection);
+        connect(this, &PixCache::setPixCacheThreadPage, thread, &PixCacheThread::setNextPage, Qt::QueuedConnection);
     }
 
     renderCacheTimer = new QTimer();
@@ -395,8 +396,7 @@ void PixCache::startRendering()
             const int page = renderNext();
             if (page < 0 || page >= pdfDoc->numberOfPages())
                 return;
-            (*thread)->setNextPage(page, getResolution(page));
-            (*thread)->start(QThread::LowPriority);
+            emit setPixCacheThreadPage(*thread, page, getResolution(page));
             --allowed_pages;
         }
     }

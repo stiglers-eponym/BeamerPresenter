@@ -159,6 +159,9 @@ public slots:
 signals:
     /// Send out new page.
     void pageReady(const QPixmap pixmap, const int page);
+
+    /// Notify target thread that it should work on given page.
+    void setPixCacheThreadPage(const PixCacheThread *target, const int page_number, const qreal res);
 };
 
 #endif // PIXCACHE_H
