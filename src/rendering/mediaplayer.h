@@ -7,7 +7,7 @@
 #include <QMediaPlayer>
 #include "src/config.h"
 
-class QTimer;
+class QTimerEvent;
 
 /**
  * @brief MediaPlayer class, extension of QMediaPlayer
@@ -31,14 +31,18 @@ class MediaPlayer : public QMediaPlayer
 
     /// Position (in ms) requested by user interaction or -1
     qint64 seekpos = -1;
-    /// Single shot timer for triggering calls to QMediaPlayer::setPosition.
-    QTimer *timer;
+    /// Id of currently used timer.
+    int timer_id = -1;
 
 public:
-    /// Constructor. Initialize timer for checkPosition.
-    explicit MediaPlayer(QObject *parent = nullptr);
-    /// Destructor. Delete timer.
-    ~MediaPlayer() noexcept;
+    /// Trivial constructor.
+    explicit MediaPlayer(QObject *parent = nullptr) : QMediaPlayer(parent) {};
+    /// Trivial destructor
+    ~MediaPlayer() noexcept {}
+
+protected:
+    /// Timeout event: kill timer and check position
+    void timerEvent(QTimerEvent *event);
 
 private slots:
     /// Check if new seek position has been set and change position if necessary.

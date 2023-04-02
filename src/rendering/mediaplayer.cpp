@@ -2,21 +2,15 @@
 // SPDX-License-Identifier: GPL-3.0-or-later OR AGPL-3.0-or-later
 
 #include <algorithm>
-#include <QTimer>
+#include <QTimerEvent>
 #include "src/rendering/mediaplayer.h"
 #include "src/log.h"
 
-MediaPlayer::MediaPlayer(QObject *parent) :
-    QMediaPlayer(parent),
-    timer(new QTimer(this))
+void MediaPlayer::timerEvent(QTimerEvent *event)
 {
-    timer->setSingleShot(true);
-    connect(timer, &QTimer::timeout, this, &MediaPlayer::checkPosition);
-}
-
-MediaPlayer::~MediaPlayer() noexcept
-{
-    delete timer;
+    killTimer(event->timerId());
+    timer_id = -1;
+    checkPosition();
 }
 
 void MediaPlayer::checkPosition()
@@ -46,5 +40,7 @@ void MediaPlayer::checkPosition()
 void MediaPlayer::setPositionSoft(int position) noexcept
 {
     seekpos = qint64(position);
-    timer->start(50);
+    if (timer_id != -1)
+        killTimer(timer_id);
+    timer_id = startTimer(50);
 }

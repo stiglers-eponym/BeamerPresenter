@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2022 Valentin Bruch <software@vbruch.eu>
 // SPDX-License-Identifier: GPL-3.0-or-later OR AGPL-3.0-or-later
 
-#include <QTimer>
+#include <QTimerEvent>
 #include <QThread>
 #include <QPixmap>
 
@@ -76,12 +76,6 @@ void PixCache::init()
         connect(thread, &PixCacheThread::sendData, this, &PixCache::receiveData, Qt::QueuedConnection);
         connect(this, &PixCache::setPixCacheThreadPage, thread, &PixCacheThread::setNextPage, Qt::QueuedConnection);
     }
-
-    renderCacheTimer = new QTimer();
-    connect(thread(), &QThread::finished, renderCacheTimer, &QTimer::deleteLater);
-    renderCacheTimer->setSingleShot(true);
-    renderCacheTimer->setInterval(0);
-    connect(renderCacheTimer, &QTimer::timeout, this, &PixCache::startRendering, Qt::QueuedConnection);
 }
 
 PixCache::~PixCache()
@@ -174,7 +168,7 @@ void PixCache::requestRenderPage(const int n)
         priority.append(n);
 
     // Start rendering next page.
-    renderCacheTimer->start();
+    startTimer(0);
 }
 
 void PixCache::pageNumberChanged(const int page)
@@ -220,7 +214,7 @@ void PixCache::pageNumberChanged(const int page)
     }
 
     // Start rendering next page.
-    renderCacheTimer->start();
+    startTimer(0);
 }
 
 int PixCache::limitCacheSize()
@@ -382,6 +376,12 @@ int PixCache::renderNext()
     }
 }
 
+void PixCache::timerEvent(QTimerEvent *event)
+{
+    killTimer(event->timerId());
+    startRendering();
+}
+
 void PixCache::startRendering()
 {
     debug_verbose(DebugCache, "Start rendering");
@@ -430,7 +430,7 @@ void PixCache::receiveData(const PngPixmap *data)
     }
 
     // Start rendering next page.
-    renderCacheTimer->start();
+    startTimer(0);
 }
 
 qreal PixCache::getResolution(const int page) const
@@ -442,10 +442,8 @@ qreal PixCache::getResolution(const int page) const
     if (renderer->pagePart() != FullPage)
         pageSize.rwidth() /= 2;
     if (pageSize.width() * frame.height() > pageSize.height() * frame.width())
-    {
         // page is too wide, determine resolution by x direction
         return frame.width() / pageSize.width();
-    }
     // page is too high, determine resolution by y direction
     return frame.height() / pageSize.height();
 }
@@ -516,7 +514,7 @@ void PixCache::requestPage(const int page, const qreal resolution, const bool ca
     }
 
     // Start rendering next page.
-    renderCacheTimer->start();
+    startTimer(0);
 }
 
 void PixCache::getPixmap(const int page, QPixmap &target, qreal resolution)

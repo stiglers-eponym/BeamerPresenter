@@ -16,7 +16,7 @@
 #define MAX_RESOLUTION_DEVIATION 1e-5
 
 class QPixmap;
-class QTimer;
+class QTimerEvent;
 class PngPixmap;
 class PdfDocument;
 class PixCacheThread;
@@ -69,9 +69,6 @@ private:
     /// Pdf document.
     const PdfDocument *pdfDoc;
 
-    /// Single shot, 0 duration timer for rendering pages.
-    QTimer *renderCacheTimer {NULL};
-
     /// Check cache size and delete pages if necessary.
     /// Return estimated number of pages which still fit in cache.
     /// Return INT_MAX if cache is unlimited or empty.
@@ -85,6 +82,9 @@ private:
     /// Calculate resolution for given page number based on this->frame.
     /// Return resolution in pixels per point (72*dpi)
     qreal getResolution(const int page) const;
+
+protected:
+    void timerEvent(QTimerEvent *event) override;
 
 public:
     /// Constructor: only very basic initialization.

@@ -9,7 +9,7 @@
 #include "src/enumerates.h"
 
 class QSize;
-class QTimer;
+class QTimerEvent;
 class QEvent;
 class QResizeEvent;
 class QMouseEvent;
@@ -22,21 +22,19 @@ class QMouseEvent;
  * is no need to recalculate the full layout every second because
  * the clock changes it's text.
  *
+ * @see AnalogClockWidget
  * @see TimerWidget
  */
 class ClockWidget : public QLineEdit
 {
     Q_OBJECT
 
-    /// Timer: regularly update clock.
-    QTimer *timer;
-
 public:
     /// Constructor
     explicit ClockWidget(QWidget *parent = nullptr, bool accept_touch_input = true);
 
-    /// Destructor: delete timer.
-    ~ClockWidget();
+    /// Trivial destructor
+    ~ClockWidget() {}
 
     /// Size hint: based on estimated size.
     QSize sizeHint() const noexcept override
@@ -47,6 +45,9 @@ public:
     {return true;}
 
 protected:
+    /// Timeout event: update view.
+    void timerEvent(QTimerEvent*) override;
+
     /// Resize event: adjust font size.
     void resizeEvent(QResizeEvent *event) noexcept override;
 
@@ -55,10 +56,6 @@ protected:
 
     /// Mouse double click starts/stops timer.
     void mouseDoubleClickEvent(QMouseEvent *event) noexcept override;
-
-private slots:
-    /// Update label to show current time.
-    void updateTime();
 
 signals:
     /// Send action (toggle timer) to master.

@@ -299,7 +299,7 @@ signals:
     void navigationToViews(const int page, SlideScene* scene) const;
 
     /// Send a navigation signal (to master).
-    void navigationSignal(const int page) const;
+    void navigationSignal(const int page);
 
     /// Send action (to master).
     void sendAction(const Action action) const;

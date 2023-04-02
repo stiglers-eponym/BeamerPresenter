@@ -14,7 +14,7 @@
 class Tool;
 class QColor;
 class QTime;
-class QTimer;
+class QTimerEvent;
 class QString;
 class QJsonObject;
 class QWidget;
@@ -52,10 +52,10 @@ class Master : public QObject
     QMap<QKeySequence, QWidget*> shortcuts;
 
     /// Timer to tell slides that they should start caching videos for the next slide.
-    QTimer *cacheVideoTimer {nullptr};
+    int cacheVideoTimer_id {-1};
 
     /// Timer for automatic slide changes.
-    QTimer *slideDurationTimer {nullptr};
+    int slideDurationTimer_id {-1};
 
 public:
     /// Constructor: initializes times.
@@ -100,6 +100,9 @@ public:
     static QString getOpenFileName();
 
 protected:
+    /// Timeout event: cache videos or change slide
+    void timerEvent(QTimerEvent *event) override;
+
     /// Filter key input events from other widgets
     bool eventFilter(QObject *obj, QEvent *event) override;
 
@@ -117,10 +120,10 @@ public slots:
      * 5. update page in preferences
      * 6. send out navigation signal
      */
-    void navigateToPage(const int page) const;
+    void navigateToPage(const int page);
 
     /// Navigate to next slide.
-    void nextSlide() const noexcept;
+    void nextSlide() noexcept;
 
     /// Handle an action, distribute it if necessary.
     void handleAction(const Action action);
@@ -129,7 +132,7 @@ public slots:
     void setTool(Tool *tool) const noexcept;
 
     /// finish navigation event: called after page change or after slide transition.
-    void postNavigation() const noexcept;
+    void postNavigation() noexcept;
 
     /// Show an error message as QMessageBox::critical
     void showErrorMessage(const QString &title, const QString &text) const;
@@ -151,6 +154,8 @@ signals:
     void sendScaledMemory(const float scale);
     /// Clear cache of all PixCache objects
     void clearCache();
+    /// Tell slide scenes to start post-rendering operations.
+    void postRendering();
 
     /// Prepare navigation: Scenes update geometry, such that the layout can
     /// be recalculated.

@@ -3,7 +3,7 @@
 
 #include <QtConfig>
 #include <algorithm>
-#include <QTimer>
+#include <QTimerEvent>
 #include <QString>
 #include <QThread>
 #include <QJsonObject>
@@ -45,22 +45,14 @@
 #include "src/names.h"
 #include "src/preferences.h"
 
-Master::Master() :
-    cacheVideoTimer(new QTimer(this)),
-    slideDurationTimer(new QTimer(this))
+Master::Master()
 {
-    cacheVideoTimer->setSingleShot(true);
-    cacheVideoTimer->setInterval(200);
-    slideDurationTimer->setSingleShot(true);
-    connect(slideDurationTimer, &QTimer::timeout, this, &Master::nextSlide);
     connect(preferences(), &Preferences::sendErrorMessage, this, &Master::showErrorMessage);
 }
 
 Master::~Master()
 {
     emit clearCache();
-    delete cacheVideoTimer;
-    delete slideDurationTimer;
     for (const auto cache : qAsConst(caches))
         cache->thread()->quit();
     for (const auto cache : qAsConst(caches))
@@ -398,7 +390,7 @@ QWidget* Master::createWidget(QJsonObject &object, QWidget *parent)
             connect(this, &Master::sendNewToolScene, scene, &SlideScene::toolChanged);
             connect(this, &Master::sendColor, scene, &SlideScene::colorChanged);
             connect(this, &Master::sendWidth, scene, &SlideScene::widthChanged);
-            connect(cacheVideoTimer, &QTimer::timeout, scene, &SlideScene::postRendering, Qt::QueuedConnection);
+            connect(this, &Master::postRendering, scene, &SlideScene::postRendering, Qt::QueuedConnection);
             connect(this, &Master::prepareNavigationSignal, scene, &SlideScene::prepareNavigationEvent);
             connect(preferences(), &Preferences::stopDrawing, scene, &SlideScene::stopDrawing);
         }
@@ -730,7 +722,7 @@ bool Master::eventFilter(QObject *obj, QEvent *event)
     return true;
 }
 
-void Master::nextSlide() const noexcept
+void Master::nextSlide() noexcept
 {
     navigateToPage(preferences()->page + 1);
 }
@@ -945,15 +937,23 @@ qint64 Master::getTotalCache() const
     return cache;
 }
 
-void Master::navigateToPage(const int page) const
+void Master::navigateToPage(const int page)
 {
     if (page < 0 || page >= preferences()->number_of_pages)
         return;
-    slideDurationTimer->stop();
-    cacheVideoTimer->stop();
+    if (cacheVideoTimer_id != -1)
+    {
+        killTimer(cacheVideoTimer_id);
+        cacheVideoTimer_id = -1;
+    }
+    if (slideDurationTimer_id != -1)
+    {
+        killTimer(slideDurationTimer_id);
+        slideDurationTimer_id = -1;
+    }
     leavePage(preferences()->page);
     emit prepareNavigationSignal(page);
-    for (auto window : windows)
+    for (const auto window : windows)
         window->updateGeometry();
     // Get duration of the slide: But only take a nontrivial value if
     // the new page is (old page + 1).
@@ -961,9 +961,9 @@ void Master::navigateToPage(const int page) const
     emit navigationSignal(page);
 }
 
-void Master::postNavigation() const noexcept
+void Master::postNavigation() noexcept
 {
-    if (slideDurationTimer->isActive() || cacheVideoTimer->isActive())
+    if (slideDurationTimer_id != -1 || cacheVideoTimer_id != -1)
         return;
     const int page = preferences()->page;
     const qreal duration =
@@ -971,11 +971,11 @@ void Master::postNavigation() const noexcept
             ? documents.first()->getDocument()->duration(preferences()->page)
             : -1.;
     if (duration == 0.)
-        slideDurationTimer->start(preferences()->slide_duration_animation);
+        slideDurationTimer_id = startTimer(preferences()->slide_duration_animation);
     else if (duration > 0.)
-        slideDurationTimer->start(1000*duration);
+        slideDurationTimer_id = startTimer(1000*duration);
     if (duration < 0. || duration > 0.5)
-        cacheVideoTimer->start();
+        cacheVideoTimer_id = startTimer(200);
 }
 
 void Master::showErrorMessage(const QString &title, const QString &text) const
@@ -1024,4 +1024,20 @@ QString Master::getSaveFileName()
                 "",
                 tr("BeamerPresenter/Xournal++ files (*.bpr *.xopp);;All files (*)")
             );
+}
+
+void Master::timerEvent(QTimerEvent *event)
+{
+    debug_msg(DebugPageChange, "timer event" << event->timerId() << cacheVideoTimer_id << slideDurationTimer_id);
+    killTimer(event->timerId());
+    if (event->timerId() == cacheVideoTimer_id)
+    {
+        cacheVideoTimer_id = -1;
+        emit postRendering();
+    }
+    else if (event->timerId() == slideDurationTimer_id)
+    {
+        slideDurationTimer_id = -1;
+        nextSlide();
+    }
 }

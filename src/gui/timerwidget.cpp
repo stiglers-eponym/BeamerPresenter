@@ -10,7 +10,6 @@
 #include <QLabel>
 #include <QDateTime>
 #include <QTime>
-#include <QTimer>
 #include <QPalette>
 #include <QFont>
 #include "src/gui/timerwidget.h"
@@ -21,8 +20,7 @@ TimerWidget::TimerWidget(QWidget *parent) :
      QWidget(parent),
      passed(new QLineEdit(this)),
      total(new QLineEdit(this)),
-     label(new QLabel(" / ", this)),
-     timer(new QTimer(this))
+     label(new QLabel(" / ", this))
 {
     setMinimumSize(24, 10);
     QHBoxLayout *layout = new QHBoxLayout();
@@ -30,8 +28,6 @@ TimerWidget::TimerWidget(QWidget *parent) :
     layout->addWidget(label);
     layout->addWidget(total);
     setLayout(layout);
-    connect(timer, &QTimer::timeout, this, &TimerWidget::updateText);
-    timer->setTimerType(Qt::CoarseTimer);
     connect(passed, &QLineEdit::returnPressed, this, &TimerWidget::changePassed);
     connect(total, &QLineEdit::editingFinished, this, &TimerWidget::changeTotal);
     passed->setAlignment(Qt::AlignCenter);
@@ -45,12 +41,8 @@ TimerWidget::TimerWidget(QWidget *parent) :
 
 TimerWidget::~TimerWidget()
 {
-    delete timer;
-    timer = NULL;
     delete passed;
-    passed = NULL;
     delete total;
-    total = NULL;
 }
 
 void TimerWidget::updateTimeout() noexcept
@@ -173,13 +165,17 @@ void TimerWidget::startTimer() noexcept
         writable_preferences()->target_time = QDateTime::currentDateTimeUtc().addMSecs(preferences()->msecs_total - preferences()->msecs_passed);
         writable_preferences()->msecs_passed = UINT_LEAST32_MAX;
     }
-    timer->start(999);
+    timer_id = QWidget::startTimer(1000);
     emit updateStatus(StartStopTimer, 1);
 }
 
 void TimerWidget::stopTimer() noexcept
 {
-    timer->stop();
+    if (timer_id != -1)
+    {
+        killTimer(timer_id);
+        timer_id = -1;
+    }
     QPalette palette(passed->palette());
     palette.setColor(QPalette::Text, Qt::gray);
     passed->setPalette(palette);

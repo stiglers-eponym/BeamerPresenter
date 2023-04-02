@@ -9,7 +9,7 @@
 #include "src/config.h"
 #include "src/enumerates.h"
 
-class QTimer;
+class QTimerEvent;
 class QSize;
 class QEvent;
 class QMouseEvent;
@@ -24,8 +24,10 @@ class AnalogClockWidget : public QWidget
 {
     Q_OBJECT
 
-    /// Timer: regularly update clock
-    QTimer *timer;
+    /// interval (ms) for updating clock
+    int timer_interval = 1000;
+    /// timer id
+    int timer_id;
     /// Enable/disable hand for seconds
     bool show_seconds = false;
     /// Enable/disable ticks every 6 degrees
@@ -45,8 +47,8 @@ public:
     /// Constructor: create timer, connect to update event
     explicit AnalogClockWidget(QWidget *parent = nullptr);
 
-    /// Destructor: delete timer
-    ~AnalogClockWidget();
+    /// Trivial destructor
+    ~AnalogClockWidget() {};
 
     /// Size hint: based on estimated size.
     QSize sizeHint() const noexcept override
@@ -60,6 +62,10 @@ public:
     void readConfig(const QJsonObject &config) noexcept;
 
 protected:
+    /// Timeout event: update view.
+    void timerEvent(QTimerEvent*) override
+    {update();}
+
     /// Event handler touch events.
     bool event(QEvent *event) override;
 
