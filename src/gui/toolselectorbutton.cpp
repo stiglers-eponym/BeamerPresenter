@@ -5,6 +5,7 @@
 #include <QTouchEvent>
 #include <QMouseEvent>
 #include "src/log.h"
+#include "src/drawing/tool.h"
 #include "src/gui/tooldialog.h"
 #include "src/gui/toolselectorbutton.h"
 

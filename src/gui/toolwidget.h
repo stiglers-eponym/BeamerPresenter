@@ -5,6 +5,7 @@
 #define TOOLWIDGET_H
 
 #include <QWidget>
+#include <QList>
 #include "src/drawing/tool.h"
 #include "src/config.h"
 
@@ -65,7 +66,8 @@ public:
 
 protected:
     /// Resize event: tell child buttons to update icons.
-    void resizeEvent(QResizeEvent*) override {emit updateIcons();}
+    void resizeEvent(QResizeEvent*) override
+    {emit updateIcons();}
 
 public slots:
     /// Check if new tool adds a new device. Add that devices if necessary.

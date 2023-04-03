@@ -1,18 +1,17 @@
 // SPDX-FileCopyrightText: 2023 Valentin Bruch <software@vbruch.eu>
 // SPDX-License-Identifier: GPL-3.0-or-later OR AGPL-3.0-or-later
 
+#include <QtConfig>
+#include <QSizePolicy>
+#include <QBoxLayout>
+#include <QGridLayout>
 #if (QT_VERSION_MAJOR >= 6)
 #include <QInputDevice>
 #endif
-#include <QBoxLayout>
-#include <QGridLayout>
-#include <QLabel>
-#include <QResizeEvent>
-#include <QImageReader>
+#include "src/gui/toolwidget.h"
 #include "src/drawing/tool.h"
 #include "src/gui/toolwidgetbutton.h"
 #include "src/preferences.h"
-#include "src/gui/toolwidget.h"
 #include "src/gui/iconlabel.h"
 #include "src/log.h"
 

@@ -5,12 +5,14 @@
 #define ICONLABEL_H
 
 #include <algorithm>
-#include <QSize>
 #include <QLabel>
+#include <QSizePolicy>
 #include <QIcon>
-#include <QPixmap>
 #include "src/config.h"
 
+/**
+ * @brief QLabel showing an icon
+ */
 class IconLabel : public QLabel
 {
     Q_OBJECT

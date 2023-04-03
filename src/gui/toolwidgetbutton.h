@@ -7,7 +7,7 @@
 #include "src/config.h"
 #include "src/gui/toolbutton.h"
 
-class QResizeEvent;
+class Tool;
 
 /**
  * @brief Button showing a tool in ToolWidget.

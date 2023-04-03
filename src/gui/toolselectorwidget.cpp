@@ -16,6 +16,7 @@
 #include "src/gui/colorselectionbutton.h"
 #include "src/gui/toolselectorbutton.h"
 #include "src/gui/widthselectionbutton.h"
+#include "src/log.h"
 #include "src/names.h"
 
 ToolSelectorWidget::ToolSelectorWidget(QWidget *parent) : QWidget(parent)

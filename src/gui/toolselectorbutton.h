@@ -7,6 +7,9 @@
 #include "src/config.h"
 #include "src/gui/toolbutton.h"
 
+class Tool;
+class QEvent;
+
 /**
  * @brief Button showing a tool in ToolSelectorWidget
  *
