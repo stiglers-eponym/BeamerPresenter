@@ -42,7 +42,7 @@ jobs:
 
     - name: Install Dependencies
       run: >
-        sudo apt-get update -y
+        sudo apt-get update -y;
         sudo apt-get install -y --no-install-recommends
         cmake
         zlib1g-dev
