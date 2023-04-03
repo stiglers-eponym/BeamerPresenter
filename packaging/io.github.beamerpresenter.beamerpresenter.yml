@@ -38,8 +38,8 @@ modules:
     - "/bin"
     sources:
     - type: archive
-      url: https://poppler.freedesktop.org/poppler-22.09.0.tar.xz
-      sha256: d7a8f748211359cadb774ba3e18ecda6464b34027045c0648eb30d5852a41e2e
+      url: https://poppler.freedesktop.org/poppler-23.04.0.tar.xz
+      sha256: b6d893dc7dcd4138b9e9df59a13c59695e50e80dc5c2cacee0674670693951a1
   - name: beamerpresenter
     buildsystem: cmake-ninja
     config-opts:
