@@ -629,16 +629,16 @@ AbstractGraphicsPath *loadPath(QXmlStreamReader &reader)
         else
             brush_style = Qt::NoBrush;
     }
-    DrawTool *tool = new DrawTool(
+    DrawTool tool(
                 basic_tool,
                 Tool::AnyNormalDevice,
                 pen,
                 QBrush(fill_color, brush_style),
                 basic_tool == Tool::Highlighter ? QPainter::CompositionMode_Darken : QPainter::CompositionMode_SourceOver);
     if (basic_tool == Tool::Pen)
-        return new FullGraphicsPath(*tool, reader.readElementText(), width_str);
+        return new FullGraphicsPath(tool, reader.readElementText(), width_str);
     else
-        return new BasicGraphicsPath(*tool, reader.readElementText());
+        return new BasicGraphicsPath(tool, reader.readElementText());
 }
 
 TextGraphicsItem *loadTextItem(QXmlStreamReader &reader)

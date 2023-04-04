@@ -59,13 +59,13 @@ friend QDataStream &operator>>(QDataStream &stream, QGraphicsItem *&item);
 public:
     /// Constructor: initialize tool.
     /// @param tool tool for stroking this path
-    AbstractGraphicsPath(const DrawTool tool) noexcept : _tool(tool)
+    AbstractGraphicsPath(const DrawTool &tool) noexcept : _tool(tool)
     {setFlags(QGraphicsItem::ItemIsSelectable);}
 
     /// Constructor: initialize tool and coordinates.
     /// @param tool tool for stroking this path
     /// @param coordinates vector of coordinates
-    AbstractGraphicsPath(const DrawTool tool, const QVector<QPointF> &coordinates) noexcept :
+    AbstractGraphicsPath(const DrawTool &tool, const QVector<QPointF> &coordinates) noexcept :
         _tool(tool), coordinates(coordinates)
     {setFlags(QGraphicsItem::ItemIsSelectable);}
 
