@@ -47,7 +47,7 @@ public:
 
 protected:
     /// Timeout event: update view.
-    inline void timerEvent(QTimerEvent*) override
+    void timerEvent(QTimerEvent*) override
     {setText(QTime::currentTime().toString(Qt::TextDate));}
 
     /// Resize event: adjust font size.

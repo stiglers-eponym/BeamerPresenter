@@ -46,7 +46,8 @@ public:
 
 protected slots:
     /// Send out action(s).
-    inline void onClicked() const noexcept;
+    void onClicked() const noexcept
+    {for (const auto action : actions) emit sendAction(action);}
 
 public slots:
     /// Set status for given action. This changes the icon for some actions.

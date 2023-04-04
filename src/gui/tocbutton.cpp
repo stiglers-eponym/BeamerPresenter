@@ -36,14 +36,6 @@ TOCbutton::~TOCbutton()
     delete tree_next;
 }
 
-void TOCbutton::toggleVisibility()
-{
-    if (expand_button->isChecked())
-        expand();
-    else
-        collapse();
-}
-
 void TOCbutton::expand()
 {
     show();

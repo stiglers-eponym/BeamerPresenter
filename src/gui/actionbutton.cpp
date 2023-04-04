@@ -176,12 +176,6 @@ void ActionButton::addAction(const Action action)
     }
 }
 
-void ActionButton::onClicked() const noexcept
-{
-    for (const auto action : actions)
-        emit sendAction(action);
-}
-
 const char *action_to_description(const Action action) noexcept
 {
     switch (action)
