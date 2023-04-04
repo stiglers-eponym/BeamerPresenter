@@ -246,20 +246,6 @@ bool SlideScene::event(QEvent* event)
     case QEvent::TouchCancel:
         device = int(Tool::TouchInput) | Tool::CancelEvent;
         break;
-    case QEvent::FocusIn:
-    case QEvent::FocusOut:
-        /* Focus events appear to be handled in a strange way.
-         * Ignoring them avoids the following bug:
-         * Say device A uses the text tool and device B uses a draw
-         * tool (with freehand shape or shape recognition). Device A
-         * clicks on a text item, giving it the focus. Next, the focus
-         * is cleared by the ClearSelection action (e.g. by a keyboard
-         * shortcut). If now device B starts drawing, a focus event
-         * occurs, which for some reason gives focus to the text item
-         * again. */
-        event->accept();
-        return true;
-        break;
     case QEvent::Leave:
     case QEvent::DragLeave:
     case QEvent::TabletLeaveProximity:
@@ -268,6 +254,8 @@ bool SlideScene::event(QEvent* event)
 #endif
     case QEvent::GraphicsSceneHoverLeave:
     case QEvent::GraphicsSceneDragLeave:
+        /* Try to clean up pointers on the slide scene when the device
+         * leaves the scene. */
         for (auto tool : qAsConst(preferences()->current_tools))
         {
             if (tool && tool->tool() == Tool::Pointer)

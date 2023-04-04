@@ -134,7 +134,7 @@ void SlideView::keyPressEvent(QKeyEvent *event)
         switch (event->key())
         {
         case Qt::Key_Escape:
-            scene()->clearFocus();
+            scene()->setFocusItem(nullptr);
             break;
         case Qt::Key_PageUp:
         case Qt::Key_PageDown:
@@ -142,6 +142,7 @@ void SlideView::keyPressEvent(QKeyEvent *event)
             break;
         default:
             QGraphicsView::keyPressEvent(event);
+            break;
         }
     }
     else
@@ -170,7 +171,7 @@ bool SlideView::event(QEvent *event)
     {
     case QEvent::Gesture:
     {
-        QGestureEvent *gesture_event = static_cast<QGestureEvent*>(event);
+        const QGestureEvent *gesture_event = static_cast<QGestureEvent*>(event);
         debug_verbose(DebugOtherInput, gesture_event);
         QSwipeGesture *swipe = static_cast<QSwipeGesture*>(gesture_event->gesture(Qt::SwipeGesture));
         if (swipe && swipe->state() == Qt::GestureFinished)
@@ -191,12 +192,12 @@ bool SlideView::event(QEvent *event)
                 return false;
             }
             debug_msg(DebugOtherInput, "Swipe gesture, angle:" << swipe->swipeAngle() << "interpret as:" << gesture);
-            QList<Action> actions = preferences()->gesture_actions.values(gesture);
+            const QList<Action> actions {preferences()->gesture_actions.values(gesture)};
             for (auto action : actions)
                 emit sendAction(action);
             return !actions.isEmpty();
         }
-        QPanGesture *pan = static_cast<QPanGesture*>(gesture_event->gesture(Qt::PanGesture));
+        const QPanGesture *pan = static_cast<QPanGesture*>(gesture_event->gesture(Qt::PanGesture));
         if (pan)
             debug_msg(DebugOtherInput, "Pan gesture:" << pan << pan->offset() << pan->acceleration());
         return QGraphicsView::event(event);
@@ -215,7 +216,7 @@ bool SlideView::event(QEvent *event)
     //    break;
     case QEvent::TabletPress:
     {
-        auto tabletevent = static_cast<QTabletEvent*>(event);
+        auto tabletevent = static_cast<const QTabletEvent*>(event);
 #if (QT_VERSION_MAJOR >= 6)
         static_cast<SlideScene*>(scene())->tabletPress(mapToScene(tabletevent->position()), tabletevent);
 #else
@@ -227,7 +228,7 @@ bool SlideView::event(QEvent *event)
     }
     case QEvent::TabletRelease:
     {
-        auto tabletevent = static_cast<QTabletEvent*>(event);
+        auto tabletevent = static_cast<const QTabletEvent*>(event);
 #if (QT_VERSION_MAJOR >= 6)
         static_cast<SlideScene*>(scene())->tabletRelease(mapToScene(tabletevent->position()), tabletevent);
 #else
@@ -238,7 +239,7 @@ bool SlideView::event(QEvent *event)
     }
     case QEvent::TabletMove:
     {
-        auto tabletevent = static_cast<QTabletEvent*>(event);
+        auto tabletevent = static_cast<const QTabletEvent*>(event);
 #if (QT_VERSION_MAJOR >= 6)
         static_cast<SlideScene*>(scene())->tabletMove(mapToScene(tabletevent->position()), tabletevent);
 #else
