@@ -256,10 +256,10 @@ bool SlideView::event(QEvent *event)
 
 void SlideView::showMagnifier(QPainter *painter, const PointingTool *tool) noexcept
 {
+    painter->setRenderHints(QPainter::SmoothPixmapTransform | QPainter::Antialiasing);
     painter->setCompositionMode(QPainter::CompositionMode_SourceOver);
-    painter->setRenderHints(QPainter::SmoothPixmapTransform);
-    painter->setRenderHints(QPainter::Antialiasing);
     painter->setPen(tool->color());
+    painter->setBrush(Qt::NoBrush);
     const qreal resolution = tool->scale() * painter->transform().m11();
     PixmapGraphicsItem *pageItem = static_cast<SlideScene*>(scene())->pageBackground();
     // Check whether an enlarged page is needed and not "in preparation" yet.
@@ -314,12 +314,12 @@ void SlideView::drawForeground(QPainter *painter, const QRectF &rect)
                 case Tool::Torch:
                     showTorch(painter, tool);
                     break;
-                case Tool::Magnifier:
-                    showMagnifier(painter, tool);
-                    break;
                 case Tool::Eraser:
                     if (hasFocus())
                         showEraser(painter, tool);
+                    break;
+                case Tool::Magnifier:
+                    showMagnifier(painter, tool);
                     break;
                 default:
                     break;
@@ -333,6 +333,7 @@ void SlideView::drawForeground(QPainter *painter, const QRectF &rect)
                 const QPolygonF polygon = tool->polygon();
                 if (polygon.length() < 3)
                     continue;
+                painter->setCompositionMode(QPainter::CompositionMode_SourceOver);
                 painter->setPen(QPen(QColor(128,128,160,96), 1, Qt::DashLine));
                 painter->setBrush(QColor(128,128,160,32));
                 painter->drawPolygon(polygon);
@@ -342,6 +343,7 @@ void SlideView::drawForeground(QPainter *painter, const QRectF &rect)
 #ifdef QT_DEBUG
     if (preferences()->debug_level & (DebugMedia|DebugVerbose))
     {
+        painter->setCompositionMode(QPainter::CompositionMode_SourceOver);
         painter->setBrush(Qt::NoBrush);
         const int page = static_cast<SlideScene*>(scene())->getPage();
         const QList<slide::MediaItem> &media = static_cast<SlideScene*>(scene())->getMedia();
@@ -365,8 +367,9 @@ void SlideView::drawForeground(QPainter *painter, const QRectF &rect)
 
 void SlideView::showEraser(QPainter *painter, const PointingTool *tool) noexcept
 {
-    painter->setPen(QPen(tool->brush(), tool->scale()));
     painter->setCompositionMode(QPainter::CompositionMode_SourceOver);
+    painter->setPen(QPen(tool->brush(), tool->scale()));
+    painter->setBrush(Qt::NoBrush);
     const float radius = tool->size() - tool->scale();
     for (const auto &pos : tool->pos())
         painter->drawEllipse(pos, radius, radius);
@@ -374,9 +377,9 @@ void SlideView::showEraser(QPainter *painter, const PointingTool *tool) noexcept
 
 void SlideView::showPointer(QPainter *painter, const PointingTool *tool) noexcept
 {
+    painter->setCompositionMode(QPainter::CompositionMode_Darken);
     painter->setPen(Qt::PenStyle::NoPen);
     painter->setBrush(tool->brush());
-    painter->setCompositionMode(QPainter::CompositionMode_Darken);
     for (const auto &pos : tool->pos())
         painter->drawEllipse(pos, tool->size(), tool->size());
     painter->setCompositionMode(QPainter::CompositionMode_SourceOver);
