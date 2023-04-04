@@ -8,13 +8,13 @@
 #include <QSize>
 #include "src/config.h"
 #include "src/enumerates.h"
+#include "src/gui/thumbnailbutton.h"
 
 class QShowEvent;
 class QKeyEvent;
 class QPixmap;
 class PdfDocument;
 class ThumbnailThread;
-class ThumbnailButton;
 
 /**
  * @brief Widget showing thumbnail slides on grid layout in scroll area.
@@ -91,7 +91,8 @@ public slots:
     void keyPressEvent(QKeyEvent *event) override;
 
     /// Receive thumbnail from render_thread and show it on button.
-    void receiveThumbnail(ThumbnailButton *button, const QPixmap pixmap);
+    void receiveThumbnail(ThumbnailButton *button, const QPixmap pixmap)
+    {if (button) button->setPixmap(pixmap);}
 
     /// Handle actions: clear if files are reloaded.
     void handleAction(const Action action);

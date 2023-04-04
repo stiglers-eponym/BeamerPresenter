@@ -5,6 +5,7 @@
 #define CLOCKWIDGET_H
 
 #include <QLineEdit>
+#include <QTime>
 #include "src/config.h"
 #include "src/enumerates.h"
 
@@ -46,7 +47,8 @@ public:
 
 protected:
     /// Timeout event: update view.
-    void timerEvent(QTimerEvent*) override;
+    inline void timerEvent(QTimerEvent*) override
+    {setText(QTime::currentTime().toString(Qt::TextDate));}
 
     /// Resize event: adjust font size.
     void resizeEvent(QResizeEvent *event) noexcept override;

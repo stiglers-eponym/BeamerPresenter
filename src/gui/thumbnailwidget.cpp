@@ -69,12 +69,6 @@ void ThumbnailWidget::keyPressEvent(QKeyEvent *event)
     }
 }
 
-void ThumbnailWidget::receiveThumbnail(ThumbnailButton *button, const QPixmap pixmap)
-{
-    if (button)
-        button->setPixmap(pixmap);
-}
-
 void ThumbnailWidget::handleAction(const Action action)
 {
     if (action == PdfFilesChanged)

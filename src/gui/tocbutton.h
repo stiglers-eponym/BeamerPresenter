@@ -44,7 +44,7 @@ class TOCbutton : public QPushButton
     TOCbutton *tree_child = NULL;
 
     /// Toggle show / hide children.
-    void toggleVisibility();
+    inline void toggleVisibility();
 
 public:
     /// Constructor: Only directly uses the given values to initialize

@@ -33,7 +33,7 @@ protected:
     QPen _pen;
 
     /// Brush for filling the path.
-    QBrush _brush = QBrush();
+    QBrush _brush;
 
     /// Composition mode used to stroking and filling the path.
     /// This mainly distinguishes between pen and highlighter.

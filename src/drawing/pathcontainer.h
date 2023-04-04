@@ -7,6 +7,7 @@
 #include <QPointF>
 #include <QTransform>
 #include <QString>
+#include <QLatin1Char>
 #include <QList>
 #include <QHash>
 #include <QMap>
@@ -249,11 +250,19 @@ public slots:
 
 /// Convert color to string with format #RRGGBBAA
 /// (required for Xournal++ format).
-QString color_to_rgba(const QColor &color);
+inline QString color_to_rgba(const QColor &color) noexcept
+{
+    return QLatin1Char('#') + QString::number((color.rgb() << 8) + color.alpha(), 16).rightJustified(8, '0', true);
+}
 
 /// Convert color string of format #RRGGBBAA to QColor
 /// (required for Xournal++ format).
-QColor rgba_to_color(const QString &string);
+inline QColor rgba_to_color(const QString &string) noexcept
+{
+    if (string.length() == 9)
+        return QColor('#' + string.right(2) + string.mid(1,6));
+    return QColor(string);
+}
 
 QDataStream &operator<<(QDataStream &stream, const QGraphicsItem *item);
 QDataStream &operator>>(QDataStream &stream, QGraphicsItem *&item);

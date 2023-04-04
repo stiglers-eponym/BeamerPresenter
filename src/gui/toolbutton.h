@@ -6,8 +6,8 @@
 
 #include <QToolButton>
 #include "src/config.h"
+#include "src/drawing/tool.h"
 
-class Tool;
 class QString;
 class QImage;
 class QSize;
@@ -37,7 +37,8 @@ public:
     explicit ToolButton(Tool *tool, QWidget *parent = nullptr) noexcept;
 
     /// Destruktor: deletes tool.
-    virtual ~ToolButton();
+    virtual ~ToolButton()
+    {delete tool;}
 
 public slots:
     /// Replace tool with newtool. Old tool gets deleted. This takes ownership of newtool.

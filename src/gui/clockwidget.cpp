@@ -79,8 +79,3 @@ bool ClockWidget::event(QEvent *event)
         return QLineEdit::event(event);
     }
 }
-
-void ClockWidget::timerEvent(QTimerEvent*)
-{
-    setText(QTime::currentTime().toString(Qt::TextDate));
-}

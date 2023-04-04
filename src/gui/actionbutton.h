@@ -28,7 +28,10 @@ class ActionButton : public QToolButton
     Q_OBJECT
     /// Set of one or more actions connected to this button.
     QSet<Action> actions;
+    /// Action represented by the currently visible icon.
     Action display_action;
+    /// Status index of the currently displayed action.
+    /// Some actions have multiple icons, depending on this status index.
     int display_status = -1;
 
 public:
@@ -43,7 +46,7 @@ public:
 
 protected slots:
     /// Send out action(s).
-    void onClicked() const noexcept;
+    inline void onClicked() const noexcept;
 
 public slots:
     /// Set status for given action. This changes the icon for some actions.

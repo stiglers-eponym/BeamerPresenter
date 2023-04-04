@@ -59,11 +59,6 @@ ThumbnailThread::ThumbnailThread(const PdfDocument *document) :
     }
 }
 
-ThumbnailThread::~ThumbnailThread()
-{
-    delete renderer;
-}
-
 void ThumbnailThread::renderImages()
 {
     if (!renderer || !document)

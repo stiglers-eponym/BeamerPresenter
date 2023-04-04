@@ -141,7 +141,7 @@ public:
 
 public slots:
     /// Add a pixmap.
-    void addPixmap(const QPixmap& pixmap);
+    void addPixmap(const QPixmap& pixmap) noexcept;
 
     /// Set (overwrite) bounding rect.
     void setRect(const QRectF &rect) noexcept

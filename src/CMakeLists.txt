@@ -40,7 +40,7 @@ add_executable(beamerpresenter
         gui/settingswidget.h gui/settingswidget.cpp
         gui/slidelabelwidget.h gui/slidelabelwidget.cpp
         gui/slidenumberwidget.h gui/slidenumberwidget.cpp
-        gui/stackedwidget.h gui/stackedwidget.cpp
+        gui/stackedwidget.h
         gui/tabwidget.h gui/tabwidget.cpp
         gui/thumbnailbutton.h gui/thumbnailbutton.cpp
         gui/thumbnailthread.h gui/thumbnailthread.cpp

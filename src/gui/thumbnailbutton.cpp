@@ -35,11 +35,6 @@ void ThumbnailButton::focusInEvent(QFocusEvent*)
 }
 
 
-void ThumbnailButton::focusOutEvent(QFocusEvent*)
-{
-    setFrameStyle(QFrame::NoFrame);
-}
-
 void ThumbnailButton::keyPressEvent(QKeyEvent *event)
 {
     switch (event->key())

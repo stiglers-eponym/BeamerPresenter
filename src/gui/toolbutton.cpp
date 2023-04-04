@@ -29,11 +29,6 @@ ToolButton::ToolButton(Tool *tool, QWidget *parent) noexcept :
         setTool(tool);
 }
 
-ToolButton::~ToolButton()
-{
-    delete tool;
-}
-
 void ToolButton::setTool(Tool *newtool)
 {
     if (!newtool)
