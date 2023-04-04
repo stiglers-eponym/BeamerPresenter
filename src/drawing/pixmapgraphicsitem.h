@@ -38,7 +38,7 @@ class PixmapGraphicsItem : public QObject, public QGraphicsItem
     Q_INTERFACES(QGraphicsItem)
 
     // This class is used in animations. Define properties for these animations.
-    // TODO: bundle these animation properties in a union or std::variant?
+    // TODO: bundle these animation properties in a std::variant?
     /// Opacity of this QGraphicsItem.
     Q_PROPERTY(qreal opacity READ opacity WRITE setOpacity)
     /// Position/shift in x direction.

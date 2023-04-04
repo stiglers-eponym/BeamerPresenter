@@ -4,6 +4,7 @@
 #ifndef SELECTIONTOOL_H
 #define SELECTIONTOOL_H
 
+#include <variant>
 #include <QPointF>
 #include <QHash>
 #include <QList>
@@ -33,27 +34,15 @@ protected:
     /// Type of transformation.
     Type _type = NoOperation;
 
+    /// start point as used by most tools, and always while selecting objects
+    struct general_properties {QPointF start_pos; QPointF current_pos;};
+    /// 2 Points as used for scaling
+    struct scale_properties {QPointF start_handle; QPointF reference;};
+    /// Properties needed for rotation
+    struct rotation_properties {QPointF rotation_center; qreal start_angle;};
     /// Properties needed to describe the transformation.
-    /// @todo replace union by a std::variant
-    union {
-        struct {
-            /// start point as used by most tools, and always while selecting objects
-            QPointF start_pos;
-            QPointF current_pos;
-        } general;
-        /// Polygon representing selection boundary
-        QPolygonF *polygon {nullptr};
-        /// 2 Points as used for scaling
-        struct {
-            QPointF start_handle;
-            QPointF reference;
-        } scale;
-        /// Properties needed for rotation
-        struct {
-            QPointF rotation_center;
-            qreal start_angle;
-        } rotate;
-    } properties {QPointF()};
+    /// Polygon represents a selection boundary
+    std::variant<general_properties,QPolygonF*,scale_properties,rotation_properties> properties;
 
     /// Pointer to scene at which this tool is currently active. _scene is used
     /// by slide views to determine whether this tool should be drawn.
@@ -74,8 +63,7 @@ public:
         Tool(other), properties(other.properties) {}
 
     /// trivial destructor
-    ~SelectionTool()
-    {if (_type == SelectPolygon) delete properties.polygon;}
+    ~SelectionTool();
 
     bool visible() const noexcept
     {return _type == SelectRect || _type == SelectPolygon;}
@@ -113,14 +101,14 @@ public:
     void liveUpdate(const QPointF &pos) noexcept;
 
     /// set live position of rotation.
-    void setLiveRotation(const QPointF &pos) noexcept;
+    void setLiveRotation(const QPointF &pos);
 
     /// set live position for resizing.
-    void setLiveScaling(const QPointF &pos) noexcept;
+    void setLiveScaling(const QPointF &pos);
 
     /// return reference position.
     const QPointF &startPos() const noexcept
-    {return properties.general.start_pos;}
+    {return std::get<general_properties>(properties).start_pos;}
 
     /// Initialize rotation with reference point and rotation center.
     void startRotation(const QPointF &reference, const QPointF &center) noexcept;
