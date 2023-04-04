@@ -86,7 +86,7 @@ SlideScene::~SlideScene()
 
 void SlideScene::stopDrawing()
 {
-    debug_msg(DebugDrawing, "Stop drawing" << page << page_part);
+    debug_msg(DebugDrawing, "Stop drawing" << page << page_part << currentlyDrawnItem << currentItemCollection);
     if (currentlyDrawnItem)
     {
         BasicGraphicsPath *newpath = NULL;
@@ -246,7 +246,28 @@ bool SlideScene::event(QEvent* event)
     case QEvent::TouchCancel:
         device = int(Tool::TouchInput) | Tool::CancelEvent;
         break;
+    case QEvent::FocusIn:
+    case QEvent::FocusOut:
+        /* Focus events appear to be handled in a strange way.
+         * Ignoring them avoids the following bug:
+         * Say device A uses the text tool and device B uses a draw
+         * tool (with freehand shape or shape recognition). Device A
+         * clicks on a text item, giving it the focus. Next, the focus
+         * is cleared by the ClearSelection action (e.g. by a keyboard
+         * shortcut). If now device B starts drawing, a focus event
+         * occurs, which for some reason gives focus to the text item
+         * again. */
+        event->accept();
+        return true;
+        break;
     case QEvent::Leave:
+    case QEvent::DragLeave:
+    case QEvent::TabletLeaveProximity:
+#if (QT_VERSION_MAJOR >= 6)
+    case QEvent::GraphicsSceneLeave:
+#endif
+    case QEvent::GraphicsSceneHoverLeave:
+    case QEvent::GraphicsSceneDragLeave:
         for (auto tool : qAsConst(preferences()->current_tools))
         {
             if (tool && tool->tool() == Tool::Pointer)
@@ -470,6 +491,7 @@ void SlideScene::handleSelectionStartEvents(SelectionTool *tool, const QPointF &
     if (tool->type() == SelectionTool::NoOperation)
     {
         clearSelection();
+        setFocusItem(nullptr);
         switch (tool->tool())
         {
         case Tool::BasicSelectionTool:
@@ -541,6 +563,7 @@ void SlideScene::handleSelectionStopEvents(SelectionTool *tool, const QPointF &p
          * However, because QTBUG-74935 is not fixed (since 3 years!), we need a workaround. */
         //setSelectionArea(path, Qt::ReplaceSelection, Qt::ContainsItemShape);
         clearSelection();
+        setFocusItem(nullptr);
         for (QGraphicsItem *item : items(path.boundingRect(), Qt::ContainsItemBoundingRect)) {
             if (path.contains(item->mapToScene(item->shape())))
                 item->setSelected(true);
@@ -635,6 +658,7 @@ void SlideScene::receiveAction(const Action action)
         break;
     case ClearSelection:
         clearSelection();
+        setFocusItem(nullptr);
         break;
     case PdfFilesChanged:
         for (const auto &media : mediaItems)
@@ -686,6 +710,7 @@ void SlideScene::navigationEvent(const int newpage, SlideScene *newscene)
     debug_msg(DebugPageChange, "scene" << this << "navigates to" << newpage << "as" << newscene);
     pauseMedia();
     clearSelection();
+    setFocusItem(nullptr);
     if (pageTransitionItem)
     {
         removeItem(pageTransitionItem);
@@ -1305,6 +1330,7 @@ void SlideScene::startInputEvent(const DrawTool *tool, const QPointF &pos, const
     if (currentItemCollection || currentlyDrawnItem)
         return;
     clearSelection();
+    setFocusItem(nullptr);
     currentItemCollection = new QGraphicsItemGroup();
     addItem(currentItemCollection);
     currentItemCollection->show();
@@ -1755,6 +1781,7 @@ void SlideScene::pasteFromClipboard()
     if (items.isEmpty())
         return;
     clearSelection();
+    setFocusItem(nullptr);
     for (const auto item : items)
     {
         if (item->scene() != this)
