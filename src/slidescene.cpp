@@ -552,7 +552,7 @@ void SlideScene::handleSelectionStopEvents(SelectionTool *tool, const QPointF &p
         //setSelectionArea(path, Qt::ReplaceSelection, Qt::ContainsItemShape);
         clearSelection();
         setFocusItem(nullptr);
-        for (QGraphicsItem *item : items(path.boundingRect(), Qt::ContainsItemBoundingRect)) {
+        for (QGraphicsItem *item : items(path.boundingRect(), Qt::IntersectsItemBoundingRect)) {
             if (path.contains(item->mapToScene(item->shape())))
                 item->setSelected(true);
         }
