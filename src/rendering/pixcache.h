@@ -44,7 +44,7 @@ private:
     QList<int> priority;
 
     /// Boundaries of simply connected region of cache containing current page.
-    QPair<int,int> region = {INT_MAX, -1};
+    QPair<int,int> region {INT_MAX, -1};
 
     /// Size in which the slides should be rendered.
     /// @todo make sure this is updated.

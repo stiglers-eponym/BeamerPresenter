@@ -295,22 +295,21 @@ void SlideView::drawForeground(QPainter *painter, const QRectF &rect)
     if (view_flags & ShowPointingTools)
     {
         painter->setRenderHint(QPainter::Antialiasing);
-        for (const auto basic_tool : preferences()->current_tools)
+        const auto &current_tools = preferences()->current_tools;
+        const auto end = current_tools.cend();
+        for (auto basic_tool = current_tools.cbegin(); basic_tool != end; ++basic_tool)
         {
             // Only pointing tools need painting in foreground (might change in the future).
-            if (!basic_tool)
+            if (!*basic_tool)
                 continue;
-            if (basic_tool->tool() & Tool::AnyPointingTool)
+            if ((*basic_tool)->tool() & Tool::AnyPointingTool)
             {
-                const PointingTool *tool = static_cast<PointingTool*>(basic_tool);
+                auto tool = static_cast<const PointingTool*>(*basic_tool);
                 if (tool->pos().isEmpty() || tool->scene() != scene())
                     continue;
                 debug_verbose(DebugDrawing, "drawing tool" << tool->tool() << tool->size() << tool->color());
                 switch (tool->tool())
                 {
-                case Tool::Pointer:
-                    showPointer(painter, tool);
-                    break;
                 case Tool::Torch:
                     showTorch(painter, tool);
                     break;
@@ -321,13 +320,16 @@ void SlideView::drawForeground(QPainter *painter, const QRectF &rect)
                 case Tool::Magnifier:
                     showMagnifier(painter, tool);
                     break;
+                case Tool::Pointer:
+                    showPointer(painter, tool);
+                    break;
                 default:
                     break;
                 }
             }
-            else if (basic_tool->tool() & Tool::AnySelectionTool)
+            else if ((*basic_tool)->tool() & Tool::AnySelectionTool)
             {
-                const SelectionTool *tool = static_cast<SelectionTool*>(basic_tool);
+                auto tool = static_cast<const SelectionTool*>(*basic_tool);
                 if (!tool->visible() || tool->scene() != scene())
                     continue;
                 const QPolygonF polygon = tool->polygon();

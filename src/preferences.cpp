@@ -185,7 +185,7 @@ Preferences::Preferences(QObject *parent) :
 {
     settings.setFallbacksEnabled(false);
     settings.setDefaultFormat(QSettings::IniFormat);
-    current_tools.append(new PointingTool(Tool::Eraser, 10., QColor(128,128,128,192), Tool::TabletEraser|Tool::MouseRightButton, 0.5));
+    current_tools.insert(Tool::Eraser, new PointingTool(Tool::Eraser, 10., QColor(128,128,128,192), Tool::TabletEraser|Tool::MouseRightButton, 0.5));
     // If settings is empty, copy system scope config to user space file.
     if (settings.allKeys().isEmpty() && settings.isWritable())
     {
@@ -200,13 +200,13 @@ Preferences::Preferences(const QString &file, QObject *parent) :
     settings(file, QSettings::NativeFormat)
 {
     settings.setDefaultFormat(QSettings::IniFormat);
-    current_tools.append(new PointingTool(Tool::Eraser, 10., QColor(128,128,128,192), Tool::TabletEraser|Tool::MouseRightButton, 0.5));
+    current_tools.insert(Tool::Eraser, new PointingTool(Tool::Eraser, 10., QColor(128,128,128,192), Tool::TabletEraser|Tool::MouseRightButton, 0.5));
 }
 
 Preferences::~Preferences()
 {
-    while (!current_tools.isEmpty())
-        delete current_tools.takeLast();
+    qDeleteAll(current_tools);
+    current_tools.clear();
     qDeleteAll(key_tools);
     key_tools.clear();
 }
@@ -381,9 +381,12 @@ void Preferences::loadSettings()
     {
         qDeleteAll(current_tools);
         current_tools.clear();
+        QList<Tool*> tools;
         for (const auto& dev : allKeys)
-            parseActionsTools(settings.value(dev), actions, current_tools, string_to_input_device.value(dev, Tool::AnyNormalDevice));
+            parseActionsTools(settings.value(dev), actions, tools, string_to_input_device.value(dev, Tool::AnyNormalDevice));
         actions.clear();
+        for (const auto tool : tools)
+            current_tools.insert(tool->tool(), tool);
     }
     settings.endGroup();
     // Keyboard shortcuts
@@ -742,9 +745,10 @@ QUrl Preferences::resolvePath(const QString &identifier) const noexcept
 
 Tool *Preferences::currentTool(const int device) const noexcept
 {
-    for (const auto tool : preferences()->current_tools)
-        if (tool && (tool->device() & device))
-            return tool;
+    const auto end = current_tools.cend();
+    for (auto tool = current_tools.cbegin(); tool != end; ++tool)
+        if (*tool && ((*tool)->device() & device))
+            return *tool;
     return NULL;
 }
 
@@ -943,5 +947,5 @@ void Preferences::setCurrentTool(Tool *tool) noexcept
     if (tool->device() & (Tool::TabletCursor | Tool::TabletPen | Tool::TabletEraser))
         device |= Tool::TabletHover;
     removeCurrentTool(device, tool->device() & Tool::MouseLeftButton);
-    current_tools.append(tool);
+    current_tools.insert(tool->tool(), tool);
 }

@@ -111,7 +111,8 @@ void PixCache::clear()
     for (auto it = cache.begin(); it != cache.end(); it=cache.erase(it))
         delete *it;
     usedMemory = 0;
-    region = {preferences()->page, preferences()->page};
+    region.first = preferences()->page;
+    region.second = region.first;
 }
 
 const QPixmap PixCache::pixmap(const int page, qreal resolution)
@@ -233,21 +234,20 @@ int PixCache::limitCacheSize()
         return 0;
     }
 
+    const int pref_page = preferences()->page;
     // Check if region is valid.
     if (region.first > region.second)
     {
-        region.first = preferences()->page;
-        region.second = preferences()->page;
+        region.first = pref_page;
+        region.second = pref_page;
     }
 
     // Number of really cached slides:
     // subtract number of currently active threads, for which cache contains a NULL.
     int cached_slides = cache.size();
     for (auto it = threads.cbegin(); it != threads.cend(); ++it)
-    {
         if ((*it) && (*it)->isRunning())
             --cached_slides;
-    }
     if (cached_slides <= 0)
         return INT_MAX >> 1;
 
@@ -289,15 +289,15 @@ int PixCache::limitCacheSize()
         // then stop rendering to cache.
         if (((maxNumber < 0 || cache.size() <= maxNumber)
                 && (maxMemory < 0 || usedMemory <= maxMemory)
-                && last > preferences()->page
+                && last > pref_page
                 && last - first <= cache.size()
-                && 2*last + 3*first > 5*preferences()->page)
+                && 2*last + 3*first > 5*pref_page)
                 // the case cache.size() < 2 would lead to segfaults.
                 || cache.size() < 2)
             return 0;
 
         // If more than 3/4 of the cached slides lie ahead of current page, clean up last.
-        if (last + 3*first > 4*preferences()->page)
+        if (last + 3*first > 4*pref_page)
         {
             const QMap<int, const PngPixmap*>::iterator it = std::prev(cache.end());
             remove = it.value();
@@ -351,17 +351,18 @@ int PixCache::renderNext()
             return page;
     }
 
+    const int pref_page = preferences()->page;
     // Check if region is valid.
     if (region.first > region.second)
     {
-        region.first = preferences()->page;
-        region.second = preferences()->page;
+        region.first = pref_page;
+        region.second = region.first;
     }
 
     // Select region.first or region.second for rendering.
     while (true)
     {
-        if (region.second + 3*region.first > 4*preferences()->page && region.first >= 0)
+        if (region.second + 3*region.first > 4*pref_page && region.first >= 0)
         {
             if (!cache.contains(region.first))
                 return region.first--;

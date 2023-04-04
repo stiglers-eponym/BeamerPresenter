@@ -1001,8 +1001,13 @@ void Master::setTool(Tool *tool) const noexcept
 
 #ifdef QT_DEBUG
     if ((preferences()->debug_level & DebugVerbose) && preferences()->debug_level & DebugDrawing)
-        for (const auto tool : preferences()->current_tools)
-            qDebug() << "tool:" << tool->device() << tool->tool() << tool;
+    {
+        const auto &current_tools = preferences()->current_tools;
+        const auto end = current_tools.cend();
+        for (auto tool = current_tools.cbegin(); tool != end; ++tool)
+            if (*tool)
+                qDebug() << "tool:" << (*tool)->device() << (*tool)->tool() << *tool;
+    }
 #endif
 }
 

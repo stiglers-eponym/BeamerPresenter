@@ -14,10 +14,9 @@
 #include <QKeySequence>
 #include <QDateTime>
 #include "src/config.h"
+#include "src/drawing/tool.h"
 #include "src/enumerates.h"
 
-class DrawTool;
-class Tool;
 class PdfDocument;
 class QCommandLineParser;
 class QJsonObject;
@@ -51,9 +50,9 @@ public:
         FinalizeDrawnPaths = 1 << 4,
     };
 
-    /************************/
-    /* GLOBAL CONFIGURATION */
-    /************************/
+    /* ********************** */
+    /*  GLOBAL CONFIGURATION  */
+    /* ********************** */
 
     // SETTINGS
     /// Path to GUI configuration file.
@@ -182,9 +181,9 @@ public:
         {SwipeDown, Action::PreviousPage},
     };
 
-    /****************************/
-    /* DEFINED PER PRESENTATION */
-    /****************************/
+    /* ************************** */
+    /*  DEFINED PER PRESENTATION  */
+    /* ************************** */
 
     /// Map "presentation", "notes", ... to file names.
     /// This is needed to interpret GUI config.
@@ -195,9 +194,9 @@ public:
     int number_of_pages = 0;
 
 
-    /*********************************/
-    /* VARIABLES WITHOUT FIXED VALUE */
-    /*********************************/
+    /* ******************************* */
+    /*  VARIABLES WITHOUT FIXED VALUE  */
+    /* ******************************* */
 
     /// Current page number in reference presentation view.
     int page = 0;
@@ -211,14 +210,17 @@ public:
     /// Total time for presentation.
     quint32 msecs_total = 0;
 
-    /// Tool used for other input device, owned by this.
-    /// The keys are taken from InputDevice.
-    QList<Tool*> current_tools;
+    /** Tools used for different input devices, owned by this.
+     * This is only a QMultiMap to keep it sorted. The sorting is
+     * important for the order in which pointing tools are drawn in
+     * SlideView.
+     * */
+    QMultiMap<Tool::BasicTool, Tool*> current_tools;
 
 
-    /*******************/
-    /*    FUNCTIONS    */
-    /*******************/
+    /* ***************** */
+    /*     FUNCTIONS     */
+    /* ***************** */
 
     /// Load settings from default config file location (defined by Qt).
     Preferences(QObject *parent = NULL);

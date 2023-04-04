@@ -47,10 +47,10 @@ public:
         Highlighter = 2   | AnyDrawTool,
 
         // Highlighting tools: next 2 bits, class PointingTool
-        Pointer = 0   | AnyPointingTool,
-        Torch = 1     | AnyPointingTool,
+        Torch = 0     | AnyPointingTool,
+        Eraser = 1    | AnyPointingTool,
         Magnifier = 2 | AnyPointingTool,
-        Eraser = 3    | AnyPointingTool,
+        Pointer = 3   | AnyPointingTool,
 
         // selection tools, class Tool
         BasicSelectionTool = 0 | AnySelectionTool,
