@@ -26,6 +26,9 @@ class ToolSelectorWidget : public QWidget
 {
     Q_OBJECT
 
+    /// Initialize a tool property button.
+    void initializeToolPropertyButton(const QString &type, const QJsonArray &list, const int row, const int column);
+
 public:
     /// Constructor: initialize layout.
     explicit ToolSelectorWidget(QWidget *parent = NULL);
@@ -59,8 +62,8 @@ signals:
     /// Send action status to action buttons.
     void sendStatus(const Action action, const int status);
 
-    /// Send a new tool (copy of the tool of a button).
-    /// Ownership of tool is transfered to receiver.
+    /// Send a new tool (copy of the tool of a button) to master.
+    /// Ownership of tool is transfered to receiver (master).
     void sendTool(Tool *tool) const;
 
     /// Notify master that a tool has been updated.

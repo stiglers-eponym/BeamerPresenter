@@ -14,6 +14,9 @@ class QWidget;
 class QPainter;
 class QStyleOptionGraphicsItem;
 
+/**
+ * @brief Visualization of rectangle selection.
+ */
 class SelectionRectItem : public QGraphicsItem
 {
     QRectF _rect;

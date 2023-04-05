@@ -21,7 +21,7 @@ void PenStyleButton::setToolProperty(Tool *tool) const
         static_cast<DrawTool*>(tool)->rpen().setStyle(currentData(Qt::UserRole).value<Qt::PenStyle>());
 }
 
-void PenStyleButton::toolChanged(Tool *tool)
+void PenStyleButton::toolChanged(const Tool *tool)
 {
     if (tool && tool->tool() & Tool::AnyDrawTool)
     {

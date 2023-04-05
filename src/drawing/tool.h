@@ -20,6 +20,7 @@ class QTabletEvent;
  */
 class Tool
 {
+    Q_GADGET
     Q_DECLARE_TR_FUNCTIONS(Tool)
 
 public:
@@ -57,6 +58,7 @@ public:
         RectSelectionTool = 1 | AnySelectionTool,
         FreehandSelectionTool = 2 | AnySelectionTool,
     };
+    Q_ENUM(BasicTool)
 
     /// Combinable flags defining input devices.
     /// Obtain Qt::MouseButton by taking InputDevice >> 1.
@@ -82,6 +84,7 @@ public:
         AnyMouseDevice = MouseNoButton | MouseLeftButton | MouseRightButton | MouseMiddleButton,
         AnyActiveDevice = AnyDevice ^ (MouseNoButton | TabletHover),
     };
+    Q_FLAG(InputDevice)
 
     /// Distinguish start, stop, update and cancel events.
     enum DeviceEventType

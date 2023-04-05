@@ -9,54 +9,39 @@
 ShapeSelectionButton::ShapeSelectionButton(QWidget *parent) :
     ToolPropertyButton(parent)
 {
+    static const QMap<DrawTool::Shape, const char*> shape_to_name = {
+        {DrawTool::Freehand, "freehand"},
+        {DrawTool::Rect, "rectangle"},
+        {DrawTool::Ellipse, "ellipse"},
+        {DrawTool::Arrow, "arrow"},
+        {DrawTool::Line, "line"},
+        {DrawTool::Recognize, "recognize"},
+    };
+
     setToolTip(tr("select shape to be drawn"));
-    QIcon icon(preferences()->icon_path + "/tools/freehand.svg");
-    if (icon.isNull())
-        addItem("freehand");
-    else
-        addItem(icon, "");
-    icon = QIcon(preferences()->icon_path + "/tools/rectangle.svg");
-    if (icon.isNull())
-        addItem("rectangle");
-    else
-        addItem(icon, "");
-    icon = QIcon(preferences()->icon_path + "/tools/ellipse.svg");
-    if (icon.isNull())
-        addItem("ellipse");
-    else
-        addItem(icon, "");
-    icon = QIcon(preferences()->icon_path + "/tools/arrow.svg");
-    if (icon.isNull())
-        addItem("arrow");
-    else
-        addItem(icon, "");
-    icon = QIcon(preferences()->icon_path + "/tools/line.svg");
-    if (icon.isNull())
-        addItem("line");
-    else
-        addItem(icon, "");
-    icon = QIcon(preferences()->icon_path + "/tools/recognize.svg");
-    if (icon.isNull())
-        addItem("recognize");
-    else
-        addItem(icon, "");
+    const QString &icon_path = preferences()->icon_path + "/tools/";
+    for (auto it = shape_to_name.cbegin(); it != shape_to_name.cend(); ++it)
+    {
+        QIcon icon(icon_path + *it + ".svg");
+        if (icon.isNull())
+            addItem(*it, it.key());
+        else
+            addItem(icon, "", it.key());
+    }
 }
 
 void ShapeSelectionButton::setToolProperty(Tool *tool) const
 {
     if (tool && tool->tool() & Tool::AnyDrawTool)
-        static_cast<DrawTool*>(tool)->setShape(DrawTool::Shape(currentIndex()));
+        static_cast<DrawTool*>(tool)->setShape(currentData().value<DrawTool::Shape>());
 }
 
-void ShapeSelectionButton::updateTool()
-{
-    const Tool *tool = preferences()->currentTool(device);
-    if (tool && tool->tool() & Tool::AnyDrawTool)
-        setCurrentIndex(int(static_cast<const DrawTool*>(tool)->shape()));
-}
-
-void ShapeSelectionButton::toolChanged(Tool *tool)
+void ShapeSelectionButton::toolChanged(const Tool *tool)
 {
     if (tool && tool->tool() & Tool::AnyDrawTool)
-        setCurrentIndex(int(static_cast<const DrawTool*>(tool)->shape()));
+    {
+        const int index = findData(static_cast<const DrawTool*>(tool)->shape());
+        if (index >= 0)
+            setCurrentIndex(index);
+    }
 }

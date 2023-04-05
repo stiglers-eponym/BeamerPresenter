@@ -30,7 +30,7 @@ protected:
 
 public slots:
     /// Update currently selected color based on tool.
-    void toolChanged(Tool *tool) override;
+    void toolChanged(const Tool *tool) override;
 
 signals:
     void colorChanged(const QColor &color) const;

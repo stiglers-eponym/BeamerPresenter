@@ -43,7 +43,7 @@ void ColorSelectionButton::setToolProperty(Tool *tool) const
     emit colorChanged(color);
 }
 
-void ColorSelectionButton::toolChanged(Tool *tool)
+void ColorSelectionButton::toolChanged(const Tool *tool)
 {
     if (tool)
     {

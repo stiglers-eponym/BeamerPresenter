@@ -9,6 +9,7 @@
 
 class Tool;
 class QEvent;
+class QJsonArray;
 
 /**
  * @brief Button showing a tool in ToolSelectorWidget

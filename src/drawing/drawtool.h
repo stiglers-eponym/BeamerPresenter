@@ -6,6 +6,7 @@
 
 #include <QPen>
 #include <QPainter>
+#include <QMetaEnum>
 #include "src/config.h"
 #include "src/drawing/tool.h"
 
@@ -16,6 +17,8 @@
  */
 class DrawTool : public Tool
 {
+    Q_GADGET
+
 public:
     enum Shape {
         Freehand,
@@ -25,6 +28,7 @@ public:
         Line,
         Recognize,
     };
+    Q_ENUM(Shape)
 
 protected:
     /// Pen for stroking the path. In case of FullGraphicsPath,

@@ -35,60 +35,46 @@ QSize ToolSelectorWidget::sizeHint() const noexcept
 void ToolSelectorWidget::addButtons(const QJsonArray &full_array)
 {
     QGridLayout *grid_layout = static_cast<QGridLayout*>(layout());
-    for (int i=0; i<full_array.size(); i++)
+    for (int row_index=0; row_index<full_array.size(); row_index++)
     {
-        const QJsonArray row = full_array[i].toArray();
-        for (int j=0; j<row.size(); j++)
+        const QJsonArray row = full_array[row_index].toArray();
+        for (int column_index=0; column_index<row.size(); column_index++)
         {
-            switch (row[j].type())
+            switch (row[column_index].type())
             {
             case QJsonValue::String:
             {
-                const Action action = string_to_action_map.value(row[j].toString(), InvalidAction);
+                const QString &name = row[column_index].toString();
+                const Action action = string_to_action_map.value(name, InvalidAction);
                 if (action == InvalidAction)
-                {
-                    if (row[j].toString() == "shape")
-                    {
-                        ShapeSelectionButton *button = new ShapeSelectionButton(this);
-                        connect(this, &ToolSelectorWidget::sendTool, button, &ShapeSelectionButton::toolChanged);
-                        connect(this, &ToolSelectorWidget::updateIcons, button, &ShapeSelectionButton::updateIcon, Qt::QueuedConnection);
-                        grid_layout->addWidget(button, i, j);
-                    }
-                    else if (row[j].toString() == "style")
-                    {
-                        PenStyleButton *button = new PenStyleButton(this);
-                        connect(this, &ToolSelectorWidget::sendTool, button, &PenStyleButton::toolChanged);
-                        connect(this, &ToolSelectorWidget::updateIcons, button, &PenStyleButton::updateIcon, Qt::QueuedConnection);
-                        grid_layout->addWidget(button, i, j);
-                    }
-                }
+                    initializeToolPropertyButton(name, {}, row_index, column_index);
                 else
                 {
                     ActionButton *button = new ActionButton(action, this);
                     connect(this, &ToolSelectorWidget::updateIcons, button, &ActionButton::updateIcon, Qt::QueuedConnection);
                     if (button->icon().isNull())
-                        button->setText(row[j].toString());
-                    grid_layout->addWidget(button, i, j);
+                        button->setText(name);
+                    grid_layout->addWidget(button, row_index, column_index);
                 }
                 break;
             }
             case QJsonValue::Array:
             {
-                QJsonArray array = row[j].toArray();
+                QJsonArray array = row[column_index].toArray();
                 if (array.isEmpty())
-                    return;
+                    break;
                 ActionButton *button = new ActionButton(this);
                 connect(this, &ToolSelectorWidget::updateIcons, button, &ActionButton::updateIcon, Qt::QueuedConnection);
                 for (const auto &entry : array)
                     button->addAction(string_to_action_map.value(entry.toString(), InvalidAction));
                 if (button->icon().isNull())
                     button->setText(array.first().toString());
-                grid_layout->addWidget(button, i, j);
+                grid_layout->addWidget(button, row_index, column_index);
                 break;
             }
             case QJsonValue::Object:
             {
-                const QJsonObject obj = row[j].toObject();
+                const QJsonObject obj = row[column_index].toObject();
                 if (obj.contains("tool"))
                 {
                     Tool *tool = createTool(obj, 0);
@@ -97,44 +83,47 @@ void ToolSelectorWidget::addButtons(const QJsonArray &full_array)
                         ToolSelectorButton *button = new ToolSelectorButton(tool, this);
                         connect(button, &ToolSelectorButton::sendTool, this, &ToolSelectorWidget::sendTool);
                         connect(this, &ToolSelectorWidget::updateIcons, button, &ToolSelectorButton::updateIcon, Qt::QueuedConnection);
-                        grid_layout->addWidget(button, i, j);
+                        grid_layout->addWidget(button, row_index, column_index);
                     }
                 }
                 else if (obj.contains("select"))
-                {
-                    ToolPropertyButton *button {nullptr};
-                    if (obj.value("select") == "color")
-                    {
-                        auto *cbutton = new ColorSelectionButton(obj.value("list").toArray(), this);
-                        connect(cbutton, &ColorSelectionButton::colorChanged, this, &ToolSelectorWidget::sendColor);
-                        button = cbutton;
-                    }
-                    else if (obj.value("select") == "width")
-                    {
-                        auto *wbutton = new WidthSelectionButton(obj.value("list").toArray(), this);
-                        connect(wbutton, &WidthSelectionButton::widthChanged, this, &ToolSelectorWidget::sendWidth);
-                        button = wbutton;
-                    }
-                    else if(obj.value("select") == "shape")
-                        button = new ShapeSelectionButton(this);
-                    else if(obj.value("select") == "style")
-                        button = new PenStyleButton(this);
-                    if (button)
-                    {
-                        grid_layout->addWidget(button, i, j);
-                        connect(this, &ToolSelectorWidget::sendTool, button, &ToolPropertyButton::toolChanged);
-                        connect(this, &ToolSelectorWidget::updateIcons, button, &ToolPropertyButton::updateIcon, Qt::QueuedConnection);
-                        connect(button, &ToolPropertyButton::sendUpdatedTool, this, &ToolSelectorWidget::updatedTool);
-                    }
-                }
+                    initializeToolPropertyButton(obj.value("select").toString(), obj.value("list").toArray(), row_index, column_index);
                 else
-                    qWarning() << "Failed to create button" << row[j].toObject();
+                    qWarning() << "Failed to create button" << row[column_index].toObject();
                 break;
             }
             default:
                 break;
             }
         }
+    }
+}
+
+void ToolSelectorWidget::initializeToolPropertyButton(const QString &type, const QJsonArray &list, const int row, const int column)
+{
+    ToolPropertyButton *button {nullptr};
+    if (type == "color")
+    {
+        auto *cbutton = new ColorSelectionButton(list, this);
+        connect(cbutton, &ColorSelectionButton::colorChanged, this, &ToolSelectorWidget::sendColor);
+        button = cbutton;
+    }
+    else if (type == "width")
+    {
+        auto *wbutton = new WidthSelectionButton(list, this);
+        connect(wbutton, &WidthSelectionButton::widthChanged, this, &ToolSelectorWidget::sendWidth);
+        button = wbutton;
+    }
+    else if(type == "shape")
+        button = new ShapeSelectionButton(this);
+    else if(type == "style")
+        button = new PenStyleButton(this);
+    if (button)
+    {
+        static_cast<QGridLayout*>(layout())->addWidget(button, row, column);
+        connect(this, &ToolSelectorWidget::sendTool, button, &ToolPropertyButton::toolChanged);
+        connect(this, &ToolSelectorWidget::updateIcons, button, &ToolPropertyButton::updateIcon, Qt::QueuedConnection);
+        connect(button, &ToolPropertyButton::sendUpdatedTool, this, &ToolSelectorWidget::updatedTool);
     }
 }
 

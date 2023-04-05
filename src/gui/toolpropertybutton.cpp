@@ -25,11 +25,6 @@ ToolPropertyButton::ToolPropertyButton(QWidget *parent) :
 #endif
 }
 
-void ToolPropertyButton::updateTool()
-{
-    toolChanged(preferences()->currentTool(device));
-}
-
 bool ToolPropertyButton::event(QEvent *event)
 {
     const int olddevice = device;
