@@ -18,6 +18,7 @@
 class QAbstractAnimation;
 class QTabletEvent;
 class QGraphicsItem;
+class QGraphicsRectItem;
 class QGraphicsVideoItem;
 class PdfMaster;
 class MediaPlayer;
@@ -80,6 +81,7 @@ public:
         MuteSlide = 1 << 4,
         ShowTransitions = 1 << 5,
         ShowDrawings = 1 << 6,
+        ShowSearchResults = 1 << 7,
         Default = 0xff,
     };
 
@@ -89,19 +91,22 @@ private:
 
     /// Path which is currently being drawn.
     /// NULL if currenty no path is drawn.
-    QGraphicsItem* currentlyDrawnItem {NULL};
+    QGraphicsItem* currentlyDrawnItem {nullptr};
 
     /// Group of path segments forming the currently drawn path.
     /// This collection of segments is directly made visible and gets deleted
     /// when drawing the path is completed and the path itself is shown
     /// instead.
-    QGraphicsItemGroup* currentItemCollection {NULL};
+    QGraphicsItemGroup* currentItemCollection {nullptr};
+
+    /// Searched results which should be highlighted
+    QGraphicsRectItem* searchResults {nullptr};
 
     /// Graphics item representing the PDF page background.
-    PixmapGraphicsItem *pageItem {NULL};
+    PixmapGraphicsItem *pageItem {nullptr};
     /// Graphics item required during a page transition, usually
     /// represents the old page.
-    PixmapGraphicsItem *pageTransitionItem {NULL};
+    PixmapGraphicsItem *pageTransitionItem {nullptr};
 
     /// List of (cached or active) video items.
     QList<slide::MediaItem> mediaItems;
@@ -292,6 +297,9 @@ public slots:
     void colorChanged(const QColor &color) noexcept;
     /// Update draw tool width, change selected items if necessary.
     void widthChanged(const qreal width) noexcept;
+
+    /// Show search results taken from PdfMaster.
+    void updateSearchResults();
 
 signals:
     /// Send navigation event to views.

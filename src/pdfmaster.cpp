@@ -716,3 +716,20 @@ bool PdfMaster::hasDrawings() const noexcept
             return true;
     return false;
 }
+
+void PdfMaster::search(const QString &text, const int &page, const bool forward)
+{
+    if (!document || page < 0)
+        return;
+    if (text == "")
+    {
+        search_results.second = QRectF();
+        emit updateSearch();
+        return;
+    }
+    search_results = document->search(text, page, forward);
+    if (search_results.first == preferences()->page)
+        emit updateSearch();
+    else if (search_results.first >= 0)
+        emit navigationSignal(search_results.first);
+}

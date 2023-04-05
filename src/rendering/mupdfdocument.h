@@ -4,6 +4,7 @@
 #ifndef MUPDFDOCUMENT_H
 #define MUPDFDOCUMENT_H
 
+#include <utility>
 #include <QString>
 #include <QList>
 #include <QMap>
@@ -139,7 +140,7 @@ public:
     void loadLabels() override;
 
     /// Search which pages contain text.
-    QPair<int,QRectF> search(const QString &needle, int start_page, bool forward) const override;
+    std::pair<int,QRectF> search(const QString &needle, int start_page, bool forward) const override;
 
     /// Link at given position (in point = inch/72)
     virtual const PdfLink *linkAt(const int page, const QPointF &position) const override;

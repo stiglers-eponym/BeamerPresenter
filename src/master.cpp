@@ -325,6 +325,7 @@ QWidget* Master::createWidget(QJsonObject &object, QWidget *parent)
             connect(doc, &PdfMaster::writeNotes, this, &Master::writeNotes, Qt::DirectConnection);
             connect(doc, &PdfMaster::readNotes, this, &Master::readNotes, Qt::DirectConnection);
             connect(doc, &PdfMaster::setTotalTime, this, &Master::setTotalTime);
+            connect(doc, &PdfMaster::navigationSignal, this, &Master::navigateToPage);
             // Initialize doc with file.
             doc->initialize(file);
             if (doc->getDocument() == NULL)
@@ -392,6 +393,7 @@ QWidget* Master::createWidget(QJsonObject &object, QWidget *parent)
             connect(this, &Master::sendWidth, scene, &SlideScene::widthChanged);
             connect(this, &Master::postRendering, scene, &SlideScene::postRendering, Qt::QueuedConnection);
             connect(this, &Master::prepareNavigationSignal, scene, &SlideScene::prepareNavigationEvent);
+            connect(doc, &PdfMaster::updateSearch, scene, &SlideScene::updateSearchResults);
             connect(preferences(), &Preferences::stopDrawing, scene, &SlideScene::stopDrawing);
         }
         else if (object.value("master").toBool())
@@ -561,7 +563,12 @@ QWidget* Master::createWidget(QJsonObject &object, QWidget *parent)
     case SearchType:
     {
         widget = new SearchWidget(parent);
-        connect(static_cast<SearchWidget*>(widget), &SearchWidget::foundPage, this, &Master::navigateToPage);
+        connect(
+            static_cast<SearchWidget*>(widget),
+            &SearchWidget::searchPdf,
+            this,
+            [&](const QString &text, const int page, const bool forward) {documents.first()->search(text, page, forward);}
+            );
         break;
     }
     case ClockType:

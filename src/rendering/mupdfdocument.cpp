@@ -841,9 +841,9 @@ void MuPdfDocument::loadOutline()
 #endif
 }
 
-QPair<int,QRectF> MuPdfDocument::search(const QString &needle, int start_page, bool forward) const
+std::pair<int,QRectF> MuPdfDocument::search(const QString &needle, int start_page, bool forward) const
 {
-    QPair<int,QRectF> result = {-1, QRectF()};
+    std::pair<int,QRectF> result = {-1, QRectF()};
     if (needle.isEmpty() || !doc)
         return result;
     if (start_page < 0)

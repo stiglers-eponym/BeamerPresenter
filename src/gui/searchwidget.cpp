@@ -8,7 +8,6 @@
 #include <QHBoxLayout>
 #include "src/gui/searchwidget.h"
 #include "src/preferences.h"
-#include "src/rendering/pdfdocument.h"
 #include "src/log.h"
 
 SearchWidget::SearchWidget(QWidget *parent) :
@@ -36,15 +35,6 @@ SearchWidget::~SearchWidget()
 
 void SearchWidget::search(qint8 forward)
 {
-    if (!preferences()->document || !search_field)
-        return;
-    const QString text = search_field->text();
-    if (text.isEmpty())
-        return;
-    QPair<int,QRectF> result = preferences()->document->search(
-                text,
-                preferences()->page + forward,
-                forward >= 0);
-    if (result.first >= 0)
-        emit foundPage(result.first);
+    const QString &text = search_field->text();
+    emit searchPdf(text, preferences()->page + forward, forward >= 0);
 }

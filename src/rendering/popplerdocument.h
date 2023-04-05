@@ -5,6 +5,7 @@
 #define POPPLERDOCUMENT_H
 
 #include <memory>
+#include <utility>
 #include <QString>
 #include <QMap>
 #include <QList>
@@ -86,7 +87,7 @@ public:
     void loadLabels() override;
 
     /// Search which pages contain text.
-    QPair<int,QRectF> search(const QString &needle, int start_page = 0, bool forward = true) const override;
+    std::pair<int,QRectF> search(const QString &needle, int start_page = 0, bool forward = true) const override;
 
     /// Page label of given page index. (Empty string if page is invalid.)
     const QString pageLabel(const int page) const override;

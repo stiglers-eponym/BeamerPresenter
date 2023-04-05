@@ -18,7 +18,6 @@ class QJsonArray;
  * tool for the device(s) defined in tool, or set the tool for the
  * device used to click the button.
  *
- * @inherits ToolButton
  * @see ToolSelectorWidget
  */
 class ToolSelectorButton : public ToolButton

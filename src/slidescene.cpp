@@ -66,6 +66,8 @@ SlideScene::SlideScene(const PdfMaster *master, const PagePart part, QObject *pa
 SlideScene::~SlideScene()
 {
     delete animation;
+    removeItem(searchResults);
+    delete searchResults;
     QList<QGraphicsItem*> list = items();
     while (!list.isEmpty())
         removeItem(list.takeLast());
@@ -746,6 +748,8 @@ void SlideScene::navigationEvent(const int newpage, SlideScene *newscene)
                     addItem(*it);
             }
         }
+        if (slide_flags & ShowSearchResults)
+            updateSearchResults();
     }
     invalidate();
     emit finishTransition();
@@ -1275,6 +1279,8 @@ void SlideScene::endTransition()
         animation = NULL;
     }
     loadMedia(page);
+    if (slide_flags & ShowSearchResults)
+        updateSearchResults();
     invalidate();
     emit finishTransition();
 }
@@ -1902,4 +1908,33 @@ void SlideScene::widthChanged(const qreal width) noexcept
         delete step;
     else
         emit sendHistoryStep(page | page_part, step);
+}
+
+void SlideScene::updateSearchResults()
+{
+    auto [page_found, rect] = master->searchResults();
+    if (rect.isNull() && searchResults)
+    {
+        removeItem(searchResults);
+        delete searchResults;
+        searchResults = nullptr;
+    }
+    if (page_found == page)
+    {
+        if (searchResults)
+        {
+            searchResults->setRect(rect);
+            if (!searchResults->scene())
+                addItem(searchResults);
+            searchResults->show();
+        }
+        else
+        {
+            searchResults = new QGraphicsRectItem(rect);
+            searchResults->setBrush(QColor(40, 100, 60, 100));
+            searchResults->setPen(Qt::NoPen);
+            addItem(searchResults);
+            searchResults->show();
+        }
+    }
 }

@@ -654,7 +654,7 @@ void PopplerDocument::loadOutline()
 #endif
 }
 
-QPair<int,QRectF> PopplerDocument::search(const QString &needle, int start_page, bool forward) const
+std::pair<int,QRectF> PopplerDocument::search(const QString &needle, int start_page, bool forward) const
 {
     if (needle.isEmpty() || !doc)
         return {-1, QRectF()};

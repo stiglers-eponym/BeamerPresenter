@@ -4,6 +4,7 @@
 #ifndef PDFDOCUMENT_H
 #define PDFDOCUMENT_H
 
+#include <utility>
 #include <QString>
 #include <QDateTime>
 #include <QUrl>
@@ -347,7 +348,7 @@ public:
     virtual void loadLabels() {};
 
     /// Search which pages contain text.
-    virtual QPair<int,QRectF> search(const QString &needle, int start_page = 0, bool forward = true) const
+    virtual std::pair<int,QRectF> search(const QString &needle, int start_page = 0, bool forward = true) const
     {return {-1,QRectF()};}
 
     /// get function for outline

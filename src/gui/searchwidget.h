@@ -12,23 +12,34 @@ class QPushButton;
 
 /**
  * @brief Widget for searching text in PDF
+ *
+ * Currently, this searches for the first occurrence of a text on a page.
+ * This first occurrence is highlighted. If the text is not found on the
+ * current page, the following pages are searched. This nagivates to the
+ * page on which the text is found.
+ *
  * @todo shift search to separate thread
  * @todo better interface
  * @todo indicate failed search
- * @todo highlight search results
+ * @todo highlight all results on a page
  */
 class SearchWidget : public QWidget
 {
     Q_OBJECT
+
+    /// text input widget
     QLineEdit *search_field;
+    /// button for forward search
     QPushButton *forward_button;
+    /// button for backward search
     QPushButton *backward_button;
 
 public:
     explicit SearchWidget(QWidget *parent = nullptr);
     ~SearchWidget();
     /**
-     * @brief search text of search_field and go to pages with matches
+     * @brief Search text of search_field and go to pages with matches.
+     * Emits foundPages(page) once and returns when the text is found.
      * @param forward
      *   -1 for backward search,
      *   0 for forward search starting from current page,
@@ -45,12 +56,16 @@ public:
     {return true;}
 
 private slots:
+    /// Search on current page and following pages until text is found.
     void searchCurrent() {search(0);}
+    /// Search starting on next page until text is found.
     void searchForward() {search(1);}
+    /// Search backwards starting on previous page.
     void searchBackward() {search(-1);}
 
 signals:
-    void foundPage(const int page);
+    /// Text has been found on given page.
+    void searchPdf(const QString &text, const int page, const bool forward);
 };
 
 #endif // SEARCHWIDGET_H

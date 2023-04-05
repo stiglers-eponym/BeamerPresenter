@@ -28,20 +28,22 @@ class TextGraphicsItem;
 
 namespace drawHistory
 {
+    /// Store changes in a draw tool used to stroke a path.
     struct DrawToolDifference {
-        QPen old_pen;
-        QPen new_pen;
-        QBrush old_brush;
-        QBrush new_brush;
-        QPainter::CompositionMode old_mode;
-        QPainter::CompositionMode new_mode;
+        QPen old_pen; ///< pen of the old tool
+        QPen new_pen; ///< pen of the new tool
+        QBrush old_brush; ///< brush of the old tool
+        QBrush new_brush; ///< brush of the new tool
+        QPainter::CompositionMode old_mode; ///< composition mode of the old tool
+        QPainter::CompositionMode new_mode; ///< composition mode of the new tool
         DrawToolDifference(const DrawTool &old_tool, const DrawTool &new_tool) :
             old_pen(old_tool.pen()), new_pen(new_tool.pen()), old_brush(old_tool.brush()), new_brush(new_tool.brush()), old_mode(old_tool.compositionMode()), new_mode(new_tool.compositionMode()) {}
     };
+    /// Store changes in text properties (not text content!).
     struct TextPropertiesDifference {
-        QFont old_font;
-        QFont new_font;
-        QRgb color_diff;
+        QFont old_font; ///< old font
+        QFont new_font; ///< new font
+        QRgb color_diff; ///< binary difference of colors in RGBA (4 byte) format
     };
 
     /**
@@ -96,8 +98,6 @@ Q_DECLARE_METATYPE(drawHistory::Step);
 class PathContainer : public QObject
 {
     Q_OBJECT
-
-public:
 
 private:
     /// List of currently visible paths in the order in which they were created
