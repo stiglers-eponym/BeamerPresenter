@@ -68,7 +68,7 @@ private:
     unsigned char _flags = 0;
 
     /// Search results (currently only one results)
-    std::pair<int, QRectF> search_results;
+    std::pair<int, QList<QRectF>> search_results;
 
 public:
     /// Create empty, uninitialized PdfMaster.
@@ -88,7 +88,7 @@ public:
     void initialize(const QString &filename);
 
     /// get function for search_results
-    const std::pair<int, QRectF> &searchResults() const noexcept
+    const std::pair<int, QList<QRectF>> &searchResults() const noexcept
     {return search_results;}
 
     /// get function for _flags

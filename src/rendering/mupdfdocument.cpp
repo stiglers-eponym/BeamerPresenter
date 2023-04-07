@@ -29,6 +29,8 @@
 #define FZ_VERSION_MINOR 0
 #endif
 
+#define MAX_SEARCH_RESULTS 20
+
 std::string roman(int number)
 {
     int tens = number / 10;
@@ -852,16 +854,12 @@ std::pair<int,QRectF> MuPdfDocument::search(const QString &needle, int start_pag
         start_page = number_of_pages - 1;
     const QByteArray byte_needle = needle.toUtf8();
     const char* raw_needle = byte_needle.data();
-    int hit;
+    int hit = 0;
 #if (FZ_VERSION_MAJOR >= 1) && (FZ_VERSION_MINOR >= 20)
-    int hit_mark;
+    int hit_mark = 0;
 #endif
     fz_quad rect;
-    fz_var(hit);
-#if (FZ_VERSION_MAJOR >= 1) && (FZ_VERSION_MINOR >= 20)
-    fz_var(hit_mark);
-#endif
-    fz_var(rect);
+    mutex->lock();
     if (forward)
         for (int page = start_page; page < number_of_pages; ++page)
         {
@@ -898,8 +896,69 @@ std::pair<int,QRectF> MuPdfDocument::search(const QString &needle, int start_pag
                 break;
             }
         }
+    mutex->unlock();
     return result;
 }
+
+std::pair<int,QList<QRectF>> MuPdfDocument::searchAll(const QString &needle, int start_page, bool forward) const
+{
+    std::pair<int,QList<QRectF>> result {-1, {}};
+    if (needle.isEmpty() || !doc)
+        return result;
+    if (start_page < 0)
+        start_page = 0;
+    else if (start_page >= number_of_pages)
+        start_page = number_of_pages - 1;
+    const QByteArray byte_needle = needle.toUtf8();
+    const char* raw_needle = byte_needle.data();
+    if (forward)
+    {
+        for (int page = start_page; page < number_of_pages; ++page)
+            if (searchPage(page, raw_needle, result.second))
+            {
+                result.first = page;
+                break;
+            }
+    }
+    else
+    {
+        for (int page = start_page; page >= 0; --page)
+            if (searchPage(page, raw_needle, result.second))
+            {
+                result.first = page;
+                break;
+            }
+    }
+    return result;
+}
+
+int MuPdfDocument::searchPage(const int page, const char *raw_needle, QList<QRectF> &target) const
+{
+    debug_msg(DebugRendering, "Start searching page" << page << raw_needle);
+    int count = 0;
+#if (FZ_VERSION_MAJOR >= 1) && (FZ_VERSION_MINOR >= 20)
+    int hit_mark[MAX_SEARCH_RESULTS];
+#endif
+    fz_quad rects[MAX_SEARCH_RESULTS];
+    mutex->lock();
+    fz_try(ctx)
+#if (FZ_VERSION_MAJOR >= 1) && (FZ_VERSION_MINOR >= 20)
+        count = fz_search_page(ctx, (fz_page*const)(pages[page]), raw_needle, hit_mark, rects, MAX_SEARCH_RESULTS);
+#else
+        count = fz_search_page(ctx, (fz_page*const)(pages[page]), raw_needle, rects, MAX_SEARCH_RESULTS);
+#endif
+    fz_always(ctx)
+        mutex->unlock();
+    fz_catch(ctx)
+        count = 0;
+    debug_msg(DebugRendering, "done with search: count =" << count);
+    if (count > MAX_SEARCH_RESULTS)
+        count = MAX_SEARCH_RESULTS;
+    for (int i=0; i<count; ++i)
+        target.append(QRectF(QPointF(rects[i].ll.x, rects[i].ll.y), QPoint(rects[i].ur.x, rects[i].ur.y)));
+    return count;
+}
+
 
 qreal MuPdfDocument::duration(const int page) const noexcept
 {

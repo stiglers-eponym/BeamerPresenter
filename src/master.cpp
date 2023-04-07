@@ -699,6 +699,7 @@ bool Master::eventFilter(QObject *obj, QEvent *event)
         if (widget)
         {
             widget->show();
+            widget->setFocus();
             QStackedWidget *stackwidget = dynamic_cast<QStackedWidget*>(widget->parentWidget());
             debug_msg(DebugKeyInput, widget << stackwidget << widget->parentWidget());
             if (stackwidget)

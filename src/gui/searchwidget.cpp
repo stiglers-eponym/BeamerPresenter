@@ -8,7 +8,6 @@
 #include <QHBoxLayout>
 #include "src/gui/searchwidget.h"
 #include "src/preferences.h"
-#include "src/log.h"
 
 SearchWidget::SearchWidget(QWidget *parent) :
     QWidget{parent},
@@ -18,8 +17,8 @@ SearchWidget::SearchWidget(QWidget *parent) :
 {
     QHBoxLayout *layout = new QHBoxLayout(this);
     layout->addWidget(search_field, 6);
-    layout->addWidget(forward_button, 1);
     layout->addWidget(backward_button, 1);
+    layout->addWidget(forward_button, 1);
     setLayout(layout);
     connect(search_field, &QLineEdit::returnPressed, this, &SearchWidget::searchCurrent);
     connect(forward_button, &QPushButton::clicked, this, &SearchWidget::searchForward);

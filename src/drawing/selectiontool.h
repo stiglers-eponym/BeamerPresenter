@@ -65,7 +65,7 @@ public:
     /// trivial destructor
     ~SelectionTool();
 
-    bool visible() const noexcept
+    bool visible() const noexcept override
     {return _type == SelectRect || _type == SelectPolygon;}
 
     /// Set reference position and set _type to Move.

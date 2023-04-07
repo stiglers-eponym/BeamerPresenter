@@ -142,6 +142,8 @@ signals:
     /// Send out new tool to SlideScenes (changes selected items).
     void sendNewToolScene(const Tool *tool) const;
     /// Send out new tool only to tool buttons to update icons.
+    /// This signal must always be sent when a tool changes,
+    /// which is currently connected to a device.
     void sendNewToolSoft(const Tool *tool) const;
     /// Send out new stroke color.
     void sendColor(const QColor &color) const;

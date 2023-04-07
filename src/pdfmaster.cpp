@@ -723,11 +723,11 @@ void PdfMaster::search(const QString &text, const int &page, const bool forward)
         return;
     if (text == "")
     {
-        search_results.second = QRectF();
+        search_results.second.clear();
         emit updateSearch();
         return;
     }
-    search_results = document->search(text, page, forward);
+    search_results = document->searchAll(text, page, forward);
     if (search_results.first == preferences()->page)
         emit updateSearch();
     else if (search_results.first >= 0)

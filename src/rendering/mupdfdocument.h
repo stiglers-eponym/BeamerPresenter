@@ -81,6 +81,10 @@ private:
     /// Load the PDF outline, fill PdfDocument::outline.
     void loadOutline();
 
+    /// Search for raw_needle on page and put results in target.
+    /// Return number of matches.
+    int searchPage(const int page, const char *raw_needle, QList<QRectF> &target) const;
+
 public:
     /// Constructor: Create mutexes and load document using loadDocument().
     MuPdfDocument(const QString &filename);
@@ -141,6 +145,10 @@ public:
 
     /// Search which pages contain text.
     std::pair<int,QRectF> search(const QString &needle, int start_page, bool forward) const override;
+
+    /// Search which page contains needle and return the
+    /// outline of all occurrences on that slide.
+    std::pair<int,QList<QRectF>> searchAll(const QString &needle, int start_page = 0, bool forward = true) const override;
 
     /// Link at given position (in point = inch/72)
     virtual const PdfLink *linkAt(const int page, const QPointF &position) const override;

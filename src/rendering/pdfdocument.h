@@ -347,9 +347,14 @@ public:
     /// Load the PDF labels and outline, fill PdfDocument::outline.
     virtual void loadLabels() {};
 
-    /// Search which pages contain text.
+    /// Search which page contains needle.
     virtual std::pair<int,QRectF> search(const QString &needle, int start_page = 0, bool forward = true) const
-    {return {-1,QRectF()};}
+    {const auto [page, list] = searchAll(needle, start_page, forward); return {page, list.isEmpty() ? QRectF() : list.first()};}
+
+    /// Search which page contains needle and return the
+    /// outline of all occurrences on that slide.
+    virtual std::pair<int,QList<QRectF>> searchAll(const QString &needle, int start_page = 0, bool forward = true) const
+    {return {-1,{}};}
 
     /// get function for outline
     const QVector<PdfOutlineEntry> &getOutline() const noexcept

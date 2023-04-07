@@ -66,7 +66,8 @@ SlideScene::SlideScene(const PdfMaster *master, const PagePart part, QObject *pa
 SlideScene::~SlideScene()
 {
     delete animation;
-    removeItem(searchResults);
+    if (searchResults)
+        removeItem(searchResults);
     delete searchResults;
     QList<QGraphicsItem*> list = items();
     while (!list.isEmpty())
@@ -131,7 +132,7 @@ void SlideScene::stopDrawing()
             const auto newpaths = static_cast<ArrowGraphicsItem*>(currentlyDrawnItem)->toPath();
             removeItem(currentlyDrawnItem);
             delete currentlyDrawnItem;
-            currentlyDrawnItem = NULL;
+            currentlyDrawnItem = nullptr;
             if (!newpaths.isEmpty())
             {
                 for (auto item : newpaths)
@@ -1388,8 +1389,6 @@ void SlideScene::stepInputEvent(const DrawTool *tool, const QPointF &pos, const 
             FlexGraphicsLineItem *item = new FlexGraphicsLineItem(QLineF(current_path->lastPoint(), pos), tool->compositionMode());
             current_path->addPoint(current_path->mapFromScene(pos));
             item->setPen(tool->pen());
-            item->show();
-            addItem(item);
             currentItemCollection->addToGroup(item);
             currentItemCollection->show();
             invalidate(item->sceneBoundingRect(), QGraphicsScene::ItemLayer);
@@ -1407,8 +1406,6 @@ void SlideScene::stepInputEvent(const DrawTool *tool, const QPointF &pos, const 
             QPen pen = tool->pen();
             pen.setWidthF(pen.widthF() * pressure);
             item->setPen(pen);
-            item->show();
-            addItem(item);
             currentItemCollection->addToGroup(item);
             currentItemCollection->show();
             invalidate(item->sceneBoundingRect(), QGraphicsScene::ItemLayer);
@@ -1912,29 +1909,38 @@ void SlideScene::widthChanged(const qreal width) noexcept
 
 void SlideScene::updateSearchResults()
 {
-    auto [page_found, rect] = master->searchResults();
-    if (rect.isNull() && searchResults)
+    const auto &pair = master->searchResults();
+    if (pair.second.isEmpty() && searchResults)
     {
-        removeItem(searchResults);
+        if (searchResults->scene())
+            removeItem(searchResults);
         delete searchResults;
         searchResults = nullptr;
     }
-    if (page_found == page)
+    else if (pair.first == page)
     {
         if (searchResults)
         {
-            searchResults->setRect(rect);
+            for (const auto &item : searchResults->childItems())
+            {
+                searchResults->removeFromGroup(item);
+                delete item;
+            }
             if (!searchResults->scene())
                 addItem(searchResults);
-            searchResults->show();
         }
         else
         {
-            searchResults = new QGraphicsRectItem(rect);
-            searchResults->setBrush(QColor(40, 100, 60, 100));
-            searchResults->setPen(Qt::NoPen);
+            searchResults = new QGraphicsItemGroup();
             addItem(searchResults);
-            searchResults->show();
+        }
+        QGraphicsRectItem *item;
+        for (const auto &rect : pair.second)
+        {
+            item = new QGraphicsRectItem(rect);
+            item->setBrush(QColor(40, 100, 60, 100));
+            item->setPen(Qt::NoPen);
+            searchResults->addToGroup(item);
         }
     }
 }

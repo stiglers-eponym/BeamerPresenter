@@ -10,8 +10,7 @@
 #include <QPixmap>
 #include <QSizeF>
 #include <QRectF>
-#include <QObject>
-#include <QGraphicsItem>
+#include <QGraphicsObject>
 #include "src/config.h"
 
 #define BLINDS_NUMBER_H 6
@@ -31,7 +30,7 @@ class QStyleOptionGraphicsItem;
  * while showing different pixmaps with the correct resolution for different
  * views of the QGraphicsScene.
  */
-class PixmapGraphicsItem : public QObject, public QGraphicsItem
+class PixmapGraphicsItem : public QGraphicsObject
 {
     Q_OBJECT
     // Not sure what this is good for...
@@ -91,7 +90,7 @@ public:
 
     /// Trivial constructor.
     explicit PixmapGraphicsItem(const QRectF &rect, QGraphicsItem *parent = NULL) :
-        QObject(NULL), QGraphicsItem(parent), bounding_rect(rect) {}
+        QGraphicsObject(parent), bounding_rect(rect) {}
 
     /// @return custom QGraphicsItem type
     int type() const noexcept override

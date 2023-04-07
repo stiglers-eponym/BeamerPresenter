@@ -100,7 +100,8 @@ private:
     QGraphicsItemGroup* currentItemCollection {nullptr};
 
     /// Searched results which should be highlighted
-    QGraphicsRectItem* searchResults {nullptr};
+    /// This item gets many rectangles as child objects.
+    QGraphicsItemGroup* searchResults {nullptr};
 
     /// Graphics item representing the PDF page background.
     PixmapGraphicsItem *pageItem {nullptr};

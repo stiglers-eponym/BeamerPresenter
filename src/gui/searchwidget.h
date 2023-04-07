@@ -4,10 +4,10 @@
 #ifndef SEARCHWIDGET_H
 #define SEARCHWIDGET_H
 
-#include <QWidget>
+#include <QLineEdit>
 #include "src/config.h"
 
-class QLineEdit;
+class QFocusEvent;
 class QPushButton;
 
 /**
@@ -33,6 +33,11 @@ class SearchWidget : public QWidget
     QPushButton *forward_button;
     /// button for backward search
     QPushButton *backward_button;
+
+protected:
+    /// Focus event: focus search_field by default
+    void focusInEvent(QFocusEvent*) override
+    {search_field->setFocus();}
 
 public:
     explicit SearchWidget(QWidget *parent = nullptr);

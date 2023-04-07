@@ -299,16 +299,19 @@ void SlideView::drawForeground(QPainter *painter, const QRectF &rect)
         const auto end = current_tools.cend();
         for (auto basic_tool = current_tools.cbegin(); basic_tool != end; ++basic_tool)
         {
-            // Only pointing tools need painting in foreground (might change in the future).
+            // We rely on the fact that basic_tool.key() == (*basic_tool)->tool()
+            // Only pointing tools and selection tools need painting in foreground.
             if (!*basic_tool)
                 continue;
-            if ((*basic_tool)->tool() & Tool::AnyPointingTool)
+            if (basic_tool.key() & Tool::AnyPointingTool)
             {
+                if (!(*basic_tool)->visible())
+                    continue;
                 auto tool = static_cast<const PointingTool*>(*basic_tool);
                 if (tool->pos().isEmpty() || tool->scene() != scene())
                     continue;
                 debug_verbose(DebugDrawing, "drawing tool" << tool->tool() << tool->size() << tool->color());
-                switch (tool->tool())
+                switch (basic_tool.key())
                 {
                 case Tool::Torch:
                     showTorch(painter, tool);
@@ -327,8 +330,10 @@ void SlideView::drawForeground(QPainter *painter, const QRectF &rect)
                     break;
                 }
             }
-            else if ((*basic_tool)->tool() & Tool::AnySelectionTool)
+            else if (basic_tool.key() & Tool::AnySelectionTool)
             {
+                if (!(*basic_tool)->visible())
+                    continue;
                 auto tool = static_cast<const SelectionTool*>(*basic_tool);
                 if (!tool->visible() || tool->scene() != scene())
                     continue;

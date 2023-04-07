@@ -120,6 +120,10 @@ public:
     virtual bool operator==(const Tool &other) const noexcept
     {return _tool == other._tool && _device == other._device;}
 
+    /// Return whether the tool itself should currently be visible.
+    virtual bool visible() const noexcept
+    {return true;}
+
     /// get function for _tool
     BasicTool tool() const noexcept
     {return _tool;}

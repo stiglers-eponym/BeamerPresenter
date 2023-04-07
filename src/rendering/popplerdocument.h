@@ -86,8 +86,9 @@ public:
     /// Load the PDF labels and outline, fill PdfDocument::outline.
     void loadLabels() override;
 
-    /// Search which pages contain text.
-    std::pair<int,QRectF> search(const QString &needle, int start_page = 0, bool forward = true) const override;
+    /// Search which page contains needle and return the
+    /// outline of all occurrences on that slide.
+    std::pair<int,QList<QRectF>> searchAll(const QString &needle, int start_page = 0, bool forward = true) const override;
 
     /// Page label of given page index. (Empty string if page is invalid.)
     const QString pageLabel(const int page) const override;
