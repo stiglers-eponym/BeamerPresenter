@@ -1937,5 +1937,6 @@ void SlideScene::updateSearchResults()
             item->setPen(Qt::NoPen);
             searchResults->addToGroup(item);
         }
+        invalidate(searchResults->boundingRect());
     }
 }

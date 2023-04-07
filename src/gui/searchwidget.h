@@ -8,7 +8,7 @@
 #include "src/config.h"
 
 class QFocusEvent;
-class QPushButton;
+class QToolButton;
 
 /**
  * @brief Widget for searching text in PDF
@@ -30,9 +30,9 @@ class SearchWidget : public QWidget
     /// text input widget
     QLineEdit *search_field;
     /// button for forward search
-    QPushButton *forward_button;
+    QToolButton *forward_button;
     /// button for backward search
-    QPushButton *backward_button;
+    QToolButton *backward_button;
 
 protected:
     /// Focus event: focus search_field by default
@@ -54,7 +54,7 @@ public:
 
     /// Size hint: based on estimated size.
     QSize sizeHint() const noexcept override
-    {return {180,18};}
+    {return {160,20};}
 
     /// Height depends on width, this is required by the layout.
     bool hasHeightForWidth() const noexcept override

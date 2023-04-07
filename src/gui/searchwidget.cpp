@@ -4,25 +4,49 @@
 #include <QLineEdit>
 #include <QPair>
 #include <QRectF>
-#include <QPushButton>
+#include <QToolButton>
 #include <QHBoxLayout>
 #include "src/gui/searchwidget.h"
 #include "src/preferences.h"
 
 SearchWidget::SearchWidget(QWidget *parent) :
     QWidget{parent},
-    search_field{new QLineEdit("search...", this)},
-    forward_button{new QPushButton("next", this)},
-    backward_button{new QPushButton("prev", this)}
+    search_field{new QLineEdit(this)},
+    forward_button{new QToolButton(this)},
+    backward_button{new QToolButton(this)}
 {
+    search_field->setPlaceholderText("search...");
+    // icons
+    QIcon icon = QIcon::fromTheme("go-previous");
+    if (icon.isNull())
+        // Sometimes name + "-symbolic" is a reasonable fallback icon.
+        icon = QIcon::fromTheme("go-previous-symbolic");
+    if (icon.isNull())
+        backward_button->setText("<");
+    else
+        backward_button->setIcon(icon);
+    icon = QIcon::fromTheme("go-next");
+    if (icon.isNull())
+        // Sometimes name + "-symbolic" is a reasonable fallback icon.
+        icon = QIcon::fromTheme("go-next-symbolic");
+    if (icon.isNull())
+        forward_button->setText(">");
+    else
+        forward_button->setIcon(icon);
+    // layout
+    setMinimumHeight(16);
+    search_field->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::MinimumExpanding);
+    backward_button->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::MinimumExpanding);
+    forward_button->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::MinimumExpanding);
     QHBoxLayout *layout = new QHBoxLayout(this);
-    layout->addWidget(search_field, 6);
-    layout->addWidget(backward_button, 1);
-    layout->addWidget(forward_button, 1);
+    layout->addWidget(search_field);
+    layout->addWidget(backward_button);
+    layout->addWidget(forward_button);
     setLayout(layout);
+    // connections
     connect(search_field, &QLineEdit::returnPressed, this, &SearchWidget::searchCurrent);
-    connect(forward_button, &QPushButton::clicked, this, &SearchWidget::searchForward);
-    connect(backward_button, &QPushButton::clicked, this, &SearchWidget::searchBackward);
+    connect(forward_button, &QToolButton::clicked, this, &SearchWidget::searchForward);
+    connect(backward_button, &QToolButton::clicked, this, &SearchWidget::searchBackward);
 }
 
 SearchWidget::~SearchWidget()
