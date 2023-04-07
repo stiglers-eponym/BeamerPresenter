@@ -210,7 +210,6 @@ bool MuPdfDocument::loadDocument()
         //const QByteArray &pathdecoded = path.toLatin1();
         const QByteArray &pathdecoded = path.toUtf8();
         const char *name = pathdecoded.data();
-        fz_var(doc);
         fz_try(ctx)
             doc = pdf_open_document(ctx, name);
         fz_catch(ctx)
@@ -262,7 +261,6 @@ bool MuPdfDocument::loadDocument()
 
     pages.resize(number_of_pages);
     int i=0;
-    fz_var(i);
 
 #ifdef SUPPRESS_MUPDF_WARNINGS
     fflush(stderr);
@@ -272,11 +270,10 @@ bool MuPdfDocument::loadDocument()
     close(nullfd);
 #endif
     do {
-        fz_var(pages[i]);
         fz_try(ctx)
             pages[i] = pdf_load_page(ctx, doc, i);
         fz_catch(ctx)
-            pages[i] = NULL;
+            pages[i] = nullptr;
     } while (++i < number_of_pages);
 #ifdef SUPPRESS_MUPDF_WARNINGS
     fflush(stderr);
@@ -298,7 +295,6 @@ const QSizeF MuPdfDocument::pageSize(const int page) const
 
     mutex->lock();
     fz_rect bbox;
-    fz_var(bbox);
     fz_try(ctx)
         // Get bounding box.
         bbox = pdf_bound_page(ctx, pages[page]);
@@ -518,10 +514,9 @@ void MuPdfDocument::prepareRendering(fz_context **context, fz_rect *bbox, fz_dis
     bbox->y0 *= resolution;
     bbox->y1 *= resolution;
 
-    fz_device *dev = NULL;
+    fz_device *dev = nullptr;
     fz_var(*list);
     fz_var(dev);
-    fz_var(pages[pagenumber]);
     fz_try(ctx)
     {
         // Prepare a display list for a drawing device.
@@ -541,7 +536,7 @@ void MuPdfDocument::prepareRendering(fz_context **context, fz_rect *bbox, fz_dis
     fz_catch(ctx)
     {
         fz_drop_display_list(ctx, *list);
-        *list = NULL;
+        *list = nullptr;
     }
 }
 
@@ -553,10 +548,7 @@ const SlideTransition MuPdfDocument::transition(const int page) const
 
     mutex->lock();
     fz_transition doc_trans = {0, 0., 0, 0, 0, 0, 0};
-    float duration;
-    fz_var(doc_trans);
-    fz_var(duration);
-    fz_var(pages[page]);
+    float duration = 0.;
     fz_try(ctx)
         pdf_page_presentation(ctx, pages[page], &doc_trans, &duration);
     fz_catch(ctx)
@@ -576,8 +568,6 @@ const SlideTransition MuPdfDocument::transition(const int page) const
 
     if (trans.type == SlideTransition::Fly)
     {
-        fz_var(trans.type);
-        fz_var(trans.scale);
         fz_try(ctx)
         {
             pdf_obj *transdict = pdf_dict_get(ctx, pages[page]->obj, PDF_NAME(Trans));
@@ -610,7 +600,11 @@ const PdfLink *MuPdfDocument::linkAt(const int page, const QPointF &position) co
         clink = pdf_load_links(ctx, pages[page]);
         for (fz_link* link = clink; link != NULL; link = link->next)
         {
-            if (link->uri && link->rect.x0 <= position.x() && link->rect.x1 >= position.x() && link->rect.y0 <= position.y() && link->rect.y1 >= position.y())
+            if (link->uri
+                && link->rect.x0 <= position.x()
+                && link->rect.x1 >= position.x()
+                && link->rect.y0 <= position.y()
+                && link->rect.y1 >= position.y())
             {
                 const QRectF rect = QRectF(link->rect.x0, link->rect.y0, link->rect.x1 - link->rect.x0, link->rect.y1 - link->rect.y0).normalized();
                 debug_verbose(DebugRendering, "Link to" << link->uri);
@@ -649,11 +643,11 @@ const PdfLink *MuPdfDocument::linkAt(const int page, const QPointF &position) co
     return result;
 }
 
-QList<MediaAnnotation> *MuPdfDocument::annotations(const int page) const
+QList<MediaAnnotation> MuPdfDocument::annotations(const int page) const
 {
+    QList<MediaAnnotation> list;
     if (!pages.value(page) || !ctx)
-        return NULL;
-    QList<MediaAnnotation>* list = NULL;
+        return {};
     mutex->lock();
     fz_var(list);
     fz_try(ctx)
@@ -679,10 +673,8 @@ QList<MediaAnnotation> *MuPdfDocument::annotations(const int page) const
                 //pdf_drop_obj(ctx, media_obj);
                 if (!url.isValid())
                     continue;
-                fz_rect bound = pdf_bound_annot(ctx, annot);
-                if (list == NULL)
-                    list = new QList<MediaAnnotation>();
-                list->append(MediaAnnotation(
+                const fz_rect bound = pdf_bound_annot(ctx, annot);
+                list.append(MediaAnnotation(
                             url,
                             true,
                             QRectF(bound.x0, bound.y0, bound.x1-bound.x0, bound.y1-bound.y0)
@@ -694,15 +686,15 @@ QList<MediaAnnotation> *MuPdfDocument::annotations(const int page) const
 #endif
                 if (activation_obj)
                 {
-                    QString mode = pdf_to_name(ctx, pdf_dict_gets(ctx, activation_obj, "Mode") );
+                    const QString mode(pdf_to_name(ctx, pdf_dict_gets(ctx, activation_obj, "Mode")));
                     if (!mode.isEmpty())
                     {
                         if (mode == "Open")
-                            list->last().mode = MediaAnnotation::Open;
+                            list.last().mode = MediaAnnotation::Open;
                         else if (mode == "Palindrome")
-                            list->last().mode = MediaAnnotation::Palindrome;
+                            list.last().mode = MediaAnnotation::Palindrome;
                         else if (mode == "Repeat")
-                            list->last().mode = MediaAnnotation::Repeat;
+                            list.last().mode = MediaAnnotation::Repeat;
                     }
                     //pdf_drop_obj(ctx, activation_obj);
                 }
@@ -728,10 +720,8 @@ QList<MediaAnnotation> *MuPdfDocument::annotations(const int page) const
                     warn_msg("Failed to load sound object: file not found or unsupported embedded sound");
                     continue;
                 }
-                fz_rect bound = pdf_bound_annot(ctx, annot);
-                if (list == NULL)
-                    list = new QList<MediaAnnotation>();
-                list->append(MediaAnnotation(
+                const fz_rect bound = pdf_bound_annot(ctx, annot);
+                list.append(MediaAnnotation(
                             url,
                             false,
                             QRectF(bound.x0, bound.y0, bound.x1-bound.x0, bound.y1-bound.y0)
@@ -750,13 +740,9 @@ QList<MediaAnnotation> *MuPdfDocument::annotations(const int page) const
         }
     }
     fz_always(ctx)
-    {
         mutex->unlock();
-    }
     fz_catch(ctx)
-    {
         warn_msg("Error while searching annotations:" << fz_caught_message(ctx));
-    }
     return list;
 }
 
@@ -798,7 +784,7 @@ void MuPdfDocument::loadOutline()
     outline.append(PdfOutlineEntry({"", -1, 1}));
     mutex->lock();
 
-    fz_outline *root;
+    fz_outline *root = nullptr;
     fz_var(root);
     fz_var(outline);
     fz_try(ctx)
@@ -965,8 +951,7 @@ qreal MuPdfDocument::duration(const int page) const noexcept
     if (!pages.value(page) || !ctx)
         return -1.;
     mutex->lock();
-    qreal duration;
-    fz_var(duration);
+    qreal duration = 0.;
     fz_try(ctx)
     {
         pdf_obj *obj = pdf_dict_get(ctx, pages[page]->obj, PDF_NAME(Dur));

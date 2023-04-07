@@ -447,19 +447,19 @@ const PdfLink *PopplerDocument::linkAt(const int page, const QPointF &position) 
     return NULL;
 }
 
-QList<MediaAnnotation> *PopplerDocument::annotations(const int page) const
+QList<MediaAnnotation> PopplerDocument::annotations(const int page) const
 {
     const std::unique_ptr<Poppler::Page> docpage(doc->page(page));
     if (!docpage)
-        return NULL;
+        return {};
     debug_verbose(DebugMedia, "Found" << docpage->annotations().size() << "annotations on page" << page);
     const auto annotations = docpage->annotations({Poppler::Annotation::AMovie, Poppler::Annotation::ASound, Poppler::Annotation::ARichMedia});
     const auto links = docpage->links();
     debug_verbose(DebugMedia, "Found" << links.size() << "links on page" << page);
     if (annotations.empty() && links.empty())
-        return NULL;
+        return {};
     const QSizeF pageSize = docpage->pageSizeF();
-    QList<MediaAnnotation> *list = new QList<MediaAnnotation>;
+    QList<MediaAnnotation> list;
     for (auto it = annotations.cbegin(); it != annotations.cend(); ++it)
     {
         // TODO: try to find better way of handling URLs
@@ -475,7 +475,7 @@ QList<MediaAnnotation> *PopplerDocument::annotations(const int page) const
             const QUrl url = preferences()->resolvePath(movie->url());
             if (url.isValid())
             {
-                list->append(MediaAnnotation(
+                list.append(MediaAnnotation(
                             url,
                             true,
                             QRectF(pageSize.width()*(*it)->boundary().x(), pageSize.height()*(*it)->boundary().y(), pageSize.width()*(*it)->boundary().width(), pageSize.height()*(*it)->boundary().height())
@@ -484,13 +484,13 @@ QList<MediaAnnotation> *PopplerDocument::annotations(const int page) const
                 switch (movie->playMode())
                 {
                 case Poppler::MovieObject::PlayOpen:
-                    list->last().mode = MediaAnnotation::Open;
+                    list.last().mode = MediaAnnotation::Open;
                     break;
                 case Poppler::MovieObject::PlayPalindrome:
-                    list->last().mode = MediaAnnotation::Palindrome;
+                    list.last().mode = MediaAnnotation::Palindrome;
                     break;
                 case Poppler::MovieObject::PlayRepeat:
-                    list->last().mode = MediaAnnotation::Repeat;
+                    list.last().mode = MediaAnnotation::Repeat;
                     break;
                 default:
                     break;
@@ -512,14 +512,14 @@ QList<MediaAnnotation> *PopplerDocument::annotations(const int page) const
             case Poppler::SoundObject::Embedded:
                 debug_verbose(DebugMedia, "Found sound annotation: embedded on page" << page);
                 if (!sound->data().isEmpty())
-                    list->append(embeddedSound(sound, area));
+                    list.append(embeddedSound(sound, area));
                 break;
             case Poppler::SoundObject::External:
             {
                 const QUrl url = preferences()->resolvePath(sound->url());
                 debug_verbose(DebugMedia, "Found sound annotation:" << url << "on page" << page);
                 if (url.isValid())
-                    list->append(MediaAnnotation(url, false, area));
+                    list.append(MediaAnnotation(url, false, area));
                 break;
             }
             }
@@ -553,7 +553,7 @@ QList<MediaAnnotation> *PopplerDocument::annotations(const int page) const
                     EmbeddedMedia media = embeddedSound(link->sound(), area);
                     media.volume = link->volume();
                     media.mode = link->repeat() ? MediaAnnotation::Once : MediaAnnotation::Repeat;
-                    list->append(media);
+                    list.append(media);
                 }
                 break;
             case Poppler::SoundObject::External:
@@ -561,17 +561,11 @@ QList<MediaAnnotation> *PopplerDocument::annotations(const int page) const
                 const QUrl url = preferences()->resolvePath(link->sound()->url());
                 debug_verbose(DebugMedia, "Found sound link:" << url << "on page" << page);
                 if (url.isValid())
-                    list->append(MediaAnnotation(url, false, area));
+                    list.append(MediaAnnotation(url, false, area));
                 break;
             }
             }
-            link->sound()->data();
         }
-    }
-    if (list->isEmpty())
-    {
-        delete list;
-        return NULL;
     }
     return list;
 }

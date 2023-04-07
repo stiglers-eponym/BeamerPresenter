@@ -367,10 +367,9 @@ public:
     virtual const PdfLink *linkAt(const int page, const QPointF &position) const
     {return nullptr;}
 
-    /// List all video annotations on given page. Returns NULL if list is
-    /// empty.
-    virtual QList<MediaAnnotation>* annotations(const int page) const
-    {return nullptr;}
+    /// List all video annotations on given page.
+    virtual QList<MediaAnnotation> annotations(const int page) const
+    {return {};}
 
     /// Path to PDF file.
     const QString &getPath() const
