@@ -17,6 +17,8 @@ frame time=50
 automatic slide changes=true
 # follow external links and load remote media
 external links=false
+# color for highlighting search results
+search highlight color=#6428643b
 
 [drawing]
 # number of history steps on the currently shown slide

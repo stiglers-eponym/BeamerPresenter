@@ -168,17 +168,15 @@ const PngPixmap * MuPdfRenderer::renderPng(const int page, const qreal resolutio
 
     // Convert the buffer data to QByteArray.
 #if (FZ_VERSION_MAJOR >= 1) && (FZ_VERSION_MINOR >= 17)
-    const QByteArray *data = buffer ? new QByteArray(reinterpret_cast<const char*>(buffer->data), buffer->len) : NULL;
+    const QByteArray *data = buffer ? new QByteArray(reinterpret_cast<const char*>(buffer->data), buffer->len) : nullptr;
 #else
-    const QByteArray *data;
+    const QByteArray *data = nullptr;
     if (buffer)
     {
         unsigned char *buffer_data;
         const int buffer_size = fz_buffer_storage(ctx, buffer, &buffer_data);
         data = new QByteArray(reinterpret_cast<const char*>(buffer_data), buffer_size);
     }
-    else
-        data = NULL;
 #endif
     fz_drop_buffer(ctx, buffer);
     fz_drop_context(ctx);

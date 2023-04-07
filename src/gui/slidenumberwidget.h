@@ -49,7 +49,7 @@ public:
 protected:
     /// Focus event: focus text field by default
     void focusInEvent(QFocusEvent*) override
-    {edit->setFocus();}
+    {edit->setFocus(); edit->selectAll();}
 
     /// Resize: adjust font size.
     void resizeEvent(QResizeEvent *event) noexcept override;

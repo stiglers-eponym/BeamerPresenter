@@ -72,6 +72,9 @@ public:
     /// Other flags.
     quint8 global_flags = AutoSlideChanges;
 
+    /// Color for filling rectangles highlighting search results.
+    QBrush search_highlighting_color {QColor(40, 100, 60, 100)};
+
 
     // DRAWING
     /// Maximum number of steps in drawing history of currently visible slide.
@@ -101,8 +104,12 @@ public:
     qreal rect_closing_tolerance = 0.1;
 
     // SELECTION
+    /// Minimal pen width for defining path shape. For thinner paths
+    /// the shape is defined with this width.
     qreal path_min_selectable_width = 3.;
+    /// Pen for drawing rectangle around selection.
     QPen selection_rect_pen {QPen(QColor(128,128,144,128), 0.5, Qt::DotLine)};
+    /// Pen for filling rectangle around selection.
     QBrush selection_rect_brush {QBrush(QColor(128,128,144,32))};
 
     // RENDERING

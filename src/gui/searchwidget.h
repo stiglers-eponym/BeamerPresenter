@@ -37,7 +37,7 @@ class SearchWidget : public QWidget
 protected:
     /// Focus event: focus search_field by default
     void focusInEvent(QFocusEvent*) override
-    {search_field->setFocus();}
+    {search_field->setFocus(); search_field->selectAll();}
 
 public:
     explicit SearchWidget(QWidget *parent = nullptr);

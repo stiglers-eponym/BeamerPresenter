@@ -271,6 +271,11 @@ void Preferences::loadSettings()
         slide_duration_animation = frame_time;
     if (!settings.value("gestures", true).toBool())
         gesture_actions.clear();
+    {
+        const QColor color(settings.value("search highlight color").toString());
+        if (color.isValid())
+            search_highlighting_color = color;
+    }
 
     // DRAWING
     settings.beginGroup("drawing");

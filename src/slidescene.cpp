@@ -1929,10 +1929,11 @@ void SlideScene::updateSearchResults()
             addItem(searchResults);
         }
         QGraphicsRectItem *item;
+        const QBrush brush(preferences()->search_highlighting_color);
         for (const auto &rect : pair.second)
         {
             item = new QGraphicsRectItem(rect);
-            item->setBrush(QColor(40, 100, 60, 100));
+            item->setBrush(brush);
             item->setPen(Qt::NoPen);
             searchResults->addToGroup(item);
         }
