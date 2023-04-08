@@ -97,7 +97,7 @@ set(DOC_PATH
 GNUInstallDirs_get_absolute_install_dir(ABS_DOC_PATH DOC_PATH DOCDIR)
 
 set(TRANSLATION_PATH
-    "${CMAKE_INSTALL_DATAROOTDIR}/beamerpresenter/translations"
+    "${CMAKE_INSTALL_DATAROOTDIR}/locale"
     CACHE STRING
     "Directory for storing internationalization/translation files")
 GNUInstallDirs_get_absolute_install_dir(ABS_TRANSLATION_PATH TRANSLATION_PATH DATAROOTDIR)
@@ -161,7 +161,10 @@ if (USE_TRANSLATIONS)
         qt6_add_lupdate(beamerpresenter TS_FILE ${ts_files})
         qt6_add_lrelease(beamerpresenter TS_FILES ${ts_files} QM_FILES_OUTPUT_VARIABLE qm_files)
     endif()
-    install(FILES ${qm_files} DESTINATION "${TRANSLATION_PATH}")
+    foreach (filename IN LISTS qm_files)
+        string(REGEX REPLACE "^.*/([^/]*)\\.qm$" "\\1" language ${filename})
+        install(FILES ${filename} DESTINATION "${CMAKE_INSTALL_DATAROOTDIR}/locale/${language}/LC_MESSAGES/" RENAME "beamerpresenter.qm")
+    endforeach()
 endif()
 
 # License
