@@ -99,8 +99,7 @@ void SlideScene::stopDrawing()
         case FullGraphicsPath::Type:
         {
             AbstractGraphicsPath *path = static_cast<AbstractGraphicsPath*>(currentlyDrawnItem);
-            if (preferences()->global_flags & Preferences::FinalizeDrawnPaths)
-                path->finalize();
+            path->finalize();
             emit sendNewPath(page | page_part, currentlyDrawnItem);
             if (path->getTool().shape() == DrawTool::Recognize)
             {

@@ -16,7 +16,8 @@ BasicGraphicsPath::BasicGraphicsPath(const DrawTool &tool, const QPointF &pos) n
     AbstractGraphicsPath(tool)
 {
     // Initialize bounding rect.
-    bounding_rect = QRectF(pos.x(), pos.y(), _tool.width(), _tool.width());
+    const qreal tw = _tool.width();
+    bounding_rect = QRectF(pos.x() - tw/2, pos.y() - tw/2, tw, tw);
     // Add first data point.
     coordinates.append(pos);
 }
@@ -86,12 +87,8 @@ void BasicGraphicsPath::paint(QPainter *painter, const QStyleOptionGraphicsItem 
     painter->setPen(_tool.pen());
     painter->setCompositionMode(_tool.compositionMode());
     if (coordinates.length() == 1)
-    {
         painter->drawPoint(coordinates.first());
-        return;
-    }
-
-    if (_tool.brush().style() == Qt::NoBrush)
+    else if (_tool.brush().style() == Qt::NoBrush)
         painter->drawPolyline(coordinates.constData(), coordinates.size());
     else
     {

@@ -15,7 +15,8 @@ FullGraphicsPath::FullGraphicsPath(const DrawTool &tool, const QPointF &pos, con
     AbstractGraphicsPath(tool)
 {
     // Initialize bounding rect.
-    bounding_rect = QRectF(pos.x(), pos.y(), _tool.width(), _tool.width());
+    const qreal tw = _tool.width();
+    bounding_rect = QRectF(pos.x() - tw/2, pos.y() - tw/2, tw, tw);
     // Add first data point.
     coordinates.append({pos.x(), pos.y()});
     pressures.append(_tool.width()*pressure);

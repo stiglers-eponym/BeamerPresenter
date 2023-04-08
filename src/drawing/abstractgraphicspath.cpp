@@ -3,6 +3,7 @@
 
 #include "src/drawing/abstractgraphicspath.h"
 #include "src/preferences.h"
+#include "src/log.h"
 
 const QString AbstractGraphicsPath::stringCoordinates() const noexcept
 {
@@ -44,12 +45,14 @@ const QString AbstractGraphicsPath::svgCoordinates() const noexcept
 
 QPainterPath AbstractGraphicsPath::shape() const
 {
-    if (!shape_cache.isEmpty())
+    if (!shape_cache.isEmpty() || coordinates.isEmpty())
         return shape_cache;
+    debug_verbose(DebugDrawing, "calculating shape" << coordinates.length() << this << bounding_rect);
     QPainterPath path;
     if (coordinates.length() == 1)
     {
-        path.addEllipse(coordinates.first(), _tool.width()/2, _tool.width()/2);
+        const qreal radius = _tool.width()/2;
+        path.addEllipse(coordinates.first(), radius, radius);
         return path;
     }
     path.addPolygon(QPolygonF(coordinates));
@@ -73,5 +76,5 @@ void AbstractGraphicsPath::finalize()
     resetTransform();
     setPos(new_scene_pos);
     shape_cache = shape();
-    bounding_rect = shape_cache.boundingRect();
+    bounding_rect = shape_cache.controlPointRect();
 }

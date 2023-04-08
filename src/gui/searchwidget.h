@@ -19,9 +19,7 @@ class QToolButton;
  * page on which the text is found.
  *
  * @todo shift search to separate thread
- * @todo better interface
  * @todo indicate failed search
- * @todo highlight all results on a page
  */
 class SearchWidget : public QWidget
 {
