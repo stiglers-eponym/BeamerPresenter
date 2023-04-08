@@ -321,7 +321,7 @@ void PathContainer::eraserMicroStep(const QPointF &scene_pos, const qreal size)
                 AbstractGraphicsPath *path = static_cast<AbstractGraphicsPath*>(*path_it);
                 // Apply eraser to path. Get a list of paths obtained by splitting
                 // path using the eraser.
-                QList<AbstractGraphicsPath*> list = path->splitErase(scene_pos, size);
+                const QList<AbstractGraphicsPath*> list = path->splitErase(scene_pos, size);
                 // If list is empty, the path was completely erased.
                 if (list.isEmpty())
                 {
@@ -333,7 +333,7 @@ void PathContainer::eraserMicroStep(const QPointF &scene_pos, const qreal size)
                     else
                         path->hide();
                     // Remove path from paths by settings paths[i] = NULL.
-                    *path_it = NULL;
+                    *path_it = nullptr;
                 }
                 // If nothing should change (the path is not affected by erasing),
                 // the list will only contain a NULL. In this case we do nothing.
@@ -350,11 +350,8 @@ void PathContainer::eraserMicroStep(const QPointF &scene_pos, const qreal size)
                     QGraphicsItemGroup *group = new QGraphicsItemGroup();
                     // Add all paths in list (which were obtained by erasing in path)
                     // to group.
-                    for (const auto item : qAsConst(list))
-                    {
+                    for (const auto item : list)
                         group->addToGroup(item);
-                        item->show(); // TODO: necessary?
-                    }
                     // Replace path by group in scene (if possible).
                     if (scene)
                     {

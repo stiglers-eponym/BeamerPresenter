@@ -37,7 +37,7 @@ class PixCache : public QObject
 
 private:
     /// Map page numbers to cached PNG pixmaps.
-    /// Pages which are currently being rendered are marked with a NULL here.
+    /// Pages which are currently being rendered are marked with a nullptr here.
     QMap<int, const PngPixmap*> cache;
 
     /// List of pages which should be rendered next.
@@ -71,7 +71,7 @@ private:
 
     /// Check cache size and delete pages if necessary.
     /// Return estimated number of pages which still fit in cache.
-    /// Return INT_MAX if cache is unlimited or empty.
+    /// Return INT_MAX >> 1 if cache is unlimited or empty.
     int limitCacheSize();
 
     /// Choose a page which should be rendered next.

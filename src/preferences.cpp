@@ -21,117 +21,6 @@
 Tool *createTool(const QJsonObject &obj, const int default_device)
 {
     const Tool::BasicTool base_tool = string_to_tool.value(obj.value("tool").toString());
-    Tool *tool;
-    switch (base_tool)
-    {
-    case Tool::Pen:
-    case Tool::FixedWidthPen:
-    {
-        const QColor color(obj.value("color").toString("black"));
-        const float width = obj.value("width").toDouble(2.);
-        if (width <= 0.)
-            return NULL;
-        const Qt::PenStyle pen_style = string_to_pen_style.value(obj.value("style").toString(), Qt::SolidLine);
-        const QColor brush_color(obj.value("fill").toString());
-        const Qt::BrushStyle brush_style = string_to_brush_style.value(obj.value("brush").toString(), brush_color.isValid() ? Qt::SolidPattern : Qt::NoBrush);
-        const DrawTool::Shape shape = string_to_shape.value(obj.value("shape").toString(), DrawTool::Freehand);
-        debug_msg(DebugSettings, "creating pen" << color << width);
-        tool = new DrawTool(
-                    base_tool,
-                    default_device,
-                    QPen(color, width, pen_style, Qt::RoundCap, Qt::RoundJoin),
-                    QBrush(brush_color, brush_style),
-                    QPainter::CompositionMode_SourceOver,
-                    shape);
-        break;
-    }
-    case Tool::Highlighter:
-    {
-        const QColor color(obj.value("color").toString("yellow"));
-        const float width = obj.value("width").toDouble(20.);
-        if (width <= 0.)
-            return NULL;
-        const Qt::PenStyle style = string_to_pen_style.value(obj.value("style").toString(), Qt::SolidLine);
-        const DrawTool::Shape shape = string_to_shape.value(obj.value("shape").toString(), DrawTool::Freehand);
-        const QColor brush_color(obj.value("fill").toString());
-        const Qt::BrushStyle brush_style = string_to_brush_style.value(obj.value("brush").toString(), brush_color.isValid() ? Qt::SolidPattern : Qt::NoBrush);
-        debug_msg(DebugSettings, "creating highlighter" << color << width);
-        tool = new DrawTool(
-                    Tool::Highlighter,
-                    default_device,
-                    QPen(color, width, style, Qt::RoundCap, Qt::RoundJoin),
-                    QBrush(brush_color, brush_style),
-                    QPainter::CompositionMode_Darken,
-                    shape);
-        break;
-    }
-    case Tool::Eraser:
-    {
-        debug_msg(DebugSettings, "creating eraser");
-        const QColor color(obj.value("color").toString("#c0808080"));
-        const float linewidth = obj.value("linewidth").toDouble(0.5);
-        tool = new PointingTool(Tool::Eraser, obj.value("size").toDouble(10.), QBrush(color), default_device, linewidth);
-        break;
-    }
-    case Tool::Pointer:
-    {
-        const QColor color(obj.value("color").toString("red"));
-        const float size = obj.value("size").toDouble(5.);
-        if (size <= 0.)
-            return NULL;
-        debug_msg(DebugSettings, "creating pointer" << color << size);
-        tool = new PointingTool(Tool::Pointer, size, color, default_device);
-        static_cast<PointingTool*>(tool)->initPointerBrush();
-        break;
-    }
-    case Tool::Torch:
-    {
-        const QColor color(obj.value("color").toString("#80000000"));
-        const float size = obj.value("size").toDouble(80.);
-        if (size <= 0.)
-            return NULL;
-        debug_msg(DebugSettings, "creating torch" << color << size);
-        tool = new PointingTool(Tool::Torch, size, color, default_device);
-        break;
-    }
-    case Tool::Magnifier:
-    {
-        const QColor color(obj.value("color").toString("#80c0c0c0"));
-        const float size = obj.value("size").toDouble(120.);
-        const float scale = obj.value("scale").toDouble(2.);
-        debug_msg(DebugSettings, "creating magnifier" << color << size << scale);
-        tool = new PointingTool(Tool::Magnifier, size, color, default_device, scale < 0.1 ? 0.1 : scale > 10. ? 5. : scale);
-        break;
-    }
-    case Tool::TextInputTool:
-    {
-        QFont font(obj.value("font").toString("black"));
-        if (obj.contains("font size"))
-            font.setPointSizeF(obj.value("font size").toDouble(12.));
-        const QColor color(obj.value("color").toString("black"));
-        debug_msg(DebugSettings, "creating text tool" << color << font);
-        tool = new TextTool(font, color, default_device);
-        break;
-    }
-    case Tool::BasicSelectionTool:
-    case Tool::RectSelectionTool:
-    case Tool::FreehandSelectionTool:
-        tool = new SelectionTool(base_tool, default_device);
-        break;
-    case Tool::InvalidTool:
-        debug_msg(DebugSettings, "tried to create invalid tool" << obj.value("tool"));
-        return NULL;
-    default:
-        debug_msg(DebugSettings, "creating default tool" << obj.value("tool"));
-        if (base_tool & Tool::AnyDrawTool)
-            // Shouldn't happen, but would lead to segmentation faults if it was not handled.
-            tool = new DrawTool(base_tool, default_device, QPen());
-        else if (base_tool & Tool::AnyPointingTool)
-            // Shouldn't happen, but would lead to segmentation faults if it was not handled.
-            tool = new PointingTool(base_tool, 10., Qt::black, default_device);
-        else
-            tool = new Tool(base_tool, default_device);
-    }
     const QJsonValue dev_obj = obj.value("device");
     int device = 0;
     if (dev_obj.isDouble())
@@ -142,8 +31,103 @@ Tool *createTool(const QJsonObject &obj, const int default_device)
         for (const auto &dev : static_cast<const QJsonArray>(obj.value("device").toArray()))
             device |= string_to_input_device.value(dev.toString());
     debug_msg(DebugSettings, "device:" << device);
-    if (device)
-        tool->setDevice(device);
+    if (device == 0)
+        device = default_device;
+    Tool *tool;
+    switch (base_tool)
+    {
+    case Tool::Pen:
+    case Tool::FixedWidthPen:
+    case Tool::Highlighter:
+    {
+        const QColor color(obj.value("color").toString(base_tool == DrawTool::Highlighter ? "yellow" : "black"));
+        const float width = obj.value("width").toDouble(base_tool == DrawTool::Highlighter ? 20. : 2.);
+        if (width <= 0.)
+            return nullptr;
+        const Qt::PenStyle pen_style = string_to_pen_style.value(obj.value("style").toString(), Qt::SolidLine);
+        const QColor brush_color(obj.value("fill").toString());
+        const Qt::BrushStyle brush_style = string_to_brush_style.value(obj.value("brush").toString(), brush_color.isValid() ? Qt::SolidPattern : Qt::NoBrush);
+        const DrawTool::Shape shape = string_to_shape.value(obj.value("shape").toString(), DrawTool::Freehand);
+        debug_msg(DebugSettings, "creating pen/highlighter" << base_tool << color << width);
+        tool = new DrawTool(
+                    base_tool,
+                    device,
+                    QPen(color, width, pen_style, Qt::RoundCap, Qt::RoundJoin),
+                    QBrush(brush_color, brush_style),
+                    base_tool == DrawTool::Highlighter ? QPainter::CompositionMode_Darken : QPainter::CompositionMode_SourceOver,
+                    shape);
+        break;
+    }
+    case Tool::Eraser:
+    {
+        debug_msg(DebugSettings, "creating eraser");
+        const QColor color(obj.value("color").toString("#c0808080"));
+        const float linewidth = obj.value("linewidth").toDouble(0.5);
+        tool = new PointingTool(Tool::Eraser, obj.value("size").toDouble(10.), QBrush(color), device, linewidth);
+        break;
+    }
+    case Tool::Pointer:
+    {
+        const QColor color(obj.value("color").toString("red"));
+        const float size = obj.value("size").toDouble(5.);
+        if (size <= 0.)
+            return nullptr;
+        debug_msg(DebugSettings, "creating pointer" << color << size);
+        tool = new PointingTool(Tool::Pointer, size, color, device);
+        static_cast<PointingTool*>(tool)->initPointerBrush();
+        break;
+    }
+    case Tool::Torch:
+    {
+        const QColor color(obj.value("color").toString("#80000000"));
+        const float size = obj.value("size").toDouble(80.);
+        if (size <= 0.)
+            return nullptr;
+        debug_msg(DebugSettings, "creating torch" << color << size);
+        tool = new PointingTool(Tool::Torch, size, color, device);
+        break;
+    }
+    case Tool::Magnifier:
+    {
+        const QColor color(obj.value("color").toString("#80c0c0c0"));
+        const float size = obj.value("size").toDouble(120.);
+        const float scale = obj.value("scale").toDouble(2.);
+        debug_msg(DebugSettings, "creating magnifier" << color << size << scale);
+        tool = new PointingTool(Tool::Magnifier, size, color, device, scale < 0.1 ? 0.1 : scale > 10. ? 5. : scale);
+        break;
+    }
+    case Tool::TextInputTool:
+    {
+        QFont font(obj.value("font").toString("black"));
+        if (obj.contains("font size"))
+            font.setPointSizeF(obj.value("font size").toDouble(12.));
+        const QColor color(obj.value("color").toString("black"));
+        debug_msg(DebugSettings, "creating text tool" << color << font);
+        tool = new TextTool(font, color, device);
+        break;
+    }
+    case Tool::BasicSelectionTool:
+    case Tool::RectSelectionTool:
+    case Tool::FreehandSelectionTool:
+        tool = new SelectionTool(base_tool, device);
+        break;
+    case Tool::InvalidTool:
+        debug_msg(DebugSettings, "tried to create invalid tool" << obj.value("tool"));
+        return nullptr;
+    default:
+        debug_msg(DebugSettings, "creating default tool" << obj.value("tool"));
+        /* These case of AnyDrawTool, AnyPointingTool, and AnySelectionTool
+         * should never occur. But if they did occur, they would lead to
+         * segmentation faults if they were not handled correctly. */
+        if (base_tool & Tool::AnyDrawTool)
+            tool = new DrawTool(base_tool, device, QPen());
+        else if (base_tool & Tool::AnyPointingTool)
+            tool = new PointingTool(base_tool, 10., Qt::black, device);
+        else if (base_tool & Tool::AnySelectionTool)
+            tool = new SelectionTool(base_tool, device);
+        else
+            tool = new Tool(base_tool, device);
+    }
     return tool;
 }
 

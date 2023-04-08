@@ -144,12 +144,12 @@ public:
 
     /// Iterator over current paths.
     /// @see cend()
-    QList<QGraphicsItem*>::const_iterator cbegin() const noexcept
+    QList<QGraphicsItem*>::const_iterator begin() const noexcept
     {return paths.cbegin();}
 
     /// End of iterator over current paths.
     /// @see cbegin()
-    QList<QGraphicsItem*>::const_iterator cend() const noexcept
+    QList<QGraphicsItem*>::const_iterator end() const noexcept
     {return paths.cend();}
 
     /// Clear history such that only n undo steps are possible.

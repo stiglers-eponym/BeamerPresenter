@@ -30,6 +30,7 @@ class DrawTool;
 class SelectionTool;
 class PathContainer;
 class PixmapGraphicsItem;
+class QPropertyAnimation;
 
 namespace drawHistory {
     struct Step;
@@ -139,6 +140,33 @@ private:
 
     /// Search video annotation in cache and create + add it to cache if necessary.
     slide::MediaItem &getMediaItem(const MediaAnnotation &annotation, const int page);
+
+    /// Create an animation object for a split slide transition.
+    void createSplitTransition(const SlideTransition &transition, PixmapGraphicsItem *pageTransitionItem);
+
+    /// Create an animation object for a blinds slide transition.
+    void createBlindsTransition(const SlideTransition &transition, PixmapGraphicsItem *pageTransitionItem);
+
+    /// Create an animation object for a box slide transition.
+    void createBoxTransition(const SlideTransition &transition, PixmapGraphicsItem *pageTransitionItem);
+
+    /// Create an animation object for a wipe slide transition.
+    void createWipeTransition(const SlideTransition &transition, PixmapGraphicsItem *pageTransitionItem);
+
+    /// Create an animation object for a fly slide transition.
+    void createFlyTransition(const SlideTransition &transition, PixmapGraphicsItem *pageTransitionItem, PixmapGraphicsItem *oldPage);
+
+    /// Create an animation object for a push slide transition.
+    void createPushTransition(const SlideTransition &transition, PixmapGraphicsItem *pageTransitionItem);
+
+    /// Create an animation object for a cover slide transition.
+    void createCoverTransition(const SlideTransition &transition, PixmapGraphicsItem *pageTransitionItem);
+
+    /// Create an animation object for an uncover slide transition.
+    void createUncoverTransition(const SlideTransition &transition, PixmapGraphicsItem *pageTransitionItem);
+
+    /// Create an animation object for a face slide transition.
+    void createFadeTransition(const SlideTransition &transition, PixmapGraphicsItem *pageTransitionItem);
 
 public:
     /// Constructor: initialize master, page_part, and QGraphisScene.
