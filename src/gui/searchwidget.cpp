@@ -15,7 +15,8 @@ SearchWidget::SearchWidget(QWidget *parent) :
     forward_button{new QToolButton(this)},
     backward_button{new QToolButton(this)}
 {
-    search_field->setPlaceholderText("search...");
+    search_field->setPlaceholderText(tr("search..."));
+    search_field->setToolTip(tr("enter search text"));
     // icons
     QIcon icon = QIcon::fromTheme("go-previous");
     if (icon.isNull())
@@ -25,6 +26,7 @@ SearchWidget::SearchWidget(QWidget *parent) :
         backward_button->setText("<");
     else
         backward_button->setIcon(icon);
+    backward_button->setToolTip(tr("go to previous matching slide"));
     icon = QIcon::fromTheme("go-next");
     if (icon.isNull())
         // Sometimes name + "-symbolic" is a reasonable fallback icon.
@@ -33,6 +35,7 @@ SearchWidget::SearchWidget(QWidget *parent) :
         forward_button->setText(">");
     else
         forward_button->setIcon(icon);
+    backward_button->setToolTip(tr("go to next matching slide"));
     // layout
     setMinimumHeight(16);
     search_field->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::MinimumExpanding);

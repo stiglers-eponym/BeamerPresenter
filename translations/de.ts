@@ -492,6 +492,25 @@
     </message>
 </context>
 <context>
+    <name>SearchWidget</name>
+    <message>
+        <source>enter search text</source>
+        <translation>Suchtext</translation>
+    </message>
+    <message>
+        <source>go to previous matching slide</source>
+        <translation>vorherige Folie mit Übereinstimmung</translation>
+    </message>
+    <message>
+        <source>go to next matching slide</source>
+        <translation>nächste Folie mit Übereinstimmung</translation>
+    </message>
+    <message>
+        <source>search...</source>
+        <translation>suche...</translation>
+    </message>
+</context>
+<context>
     <name>SettingsWidget</name>
     <message>
         <source>Change shortcuts by clicking on them and typing the new shortcut. Remove shortcuts with delete key. Actions are documented in man 5 beamerpresenter-ui (in &quot;tool selector&quot;).</source>
