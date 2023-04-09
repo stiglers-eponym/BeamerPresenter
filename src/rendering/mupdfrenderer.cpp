@@ -83,11 +83,6 @@ fz_pixmap *MuPdfRenderer::renderFzPixmap(const int page, const qreal resolution,
     return pixmap;
 }
 
-MuPdfRenderer::MuPdfRenderer(const PdfDocument *document, const PagePart part) :
-    AbstractRenderer(part),
-    doc(document && (document->type() == MuPdfEngine) ? static_cast<const MuPdfDocument*>(document) : nullptr)
-{}
-
 const QPixmap MuPdfRenderer::renderPixmap(const int page, const qreal resolution) const
 {
     QPixmap qpixmap;
@@ -137,11 +132,6 @@ const QPixmap MuPdfRenderer::renderPixmap(const int page, const qreal resolution
     fz_drop_buffer(ctx, buffer);
     fz_drop_context(ctx);
     return qpixmap;
-}
-
-bool MuPdfRenderer::isValid() const
-{
-    return doc && doc->isValid();
 }
 
 const PngPixmap * MuPdfRenderer::renderPng(const int page, const qreal resolution) const

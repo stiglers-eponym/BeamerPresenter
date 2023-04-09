@@ -64,7 +64,7 @@ add_executable(beamerpresenter
         gui/toolwidget.h gui/toolwidget.cpp
         rendering/abstractrenderer.h
         rendering/mediaplayer.h rendering/mediaplayer.cpp
-        rendering/pdfdocument.h rendering/pdfdocument.cpp
+        rendering/pdfdocument.h
         rendering/pixcache.h rendering/pixcache.cpp
         rendering/pixcachethread.h rendering/pixcachethread.cpp
         rendering/pngpixmap.h rendering/pngpixmap.cpp

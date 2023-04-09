@@ -31,8 +31,3 @@ TextGraphicsItem *TextGraphicsItem::clone() const
     newitem->setDocument(document()->clone());
     return newitem;
 }
-
-bool TextGraphicsItem::isEmpty() const noexcept
-{
-    return document()->isEmpty();
-}

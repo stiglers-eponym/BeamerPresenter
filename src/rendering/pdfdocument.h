@@ -4,6 +4,7 @@
 #ifndef PDFDOCUMENT_H
 #define PDFDOCUMENT_H
 
+#include <algorithm>
 #include <utility>
 #include <QString>
 #include <QDateTime>
@@ -259,6 +260,14 @@ struct SlideTransition {
     {properties ^= Outwards; angle = (angle + 180) % 360;}
 };
 
+
+/// Compare outline entries by their page.
+inline bool operator<(const int page, const PdfOutlineEntry& other)
+{
+    return page < other.page;
+}
+
+
 /**
  * @brief Abstract class for handling PDF documents.
  *
@@ -361,7 +370,13 @@ public:
     {return outline;}
 
     /// Return outline entry at given page.
-    const PdfOutlineEntry &outlineEntryAt(const int page) const;
+    const PdfOutlineEntry &outlineEntryAt(const int page) const
+    {
+        // Upper bound will always point to the next outline entry
+        // (or outline.cend() or outline.cbegin()).
+        const auto it = std::upper_bound(outline.cbegin(), outline.cend(), page);
+        return it == outline.cbegin() ? *it : *(it-1);
+    }
 
     /// Link at given position (in point = inch/72)
     virtual const PdfLink *linkAt(const int page, const QPointF &position) const
