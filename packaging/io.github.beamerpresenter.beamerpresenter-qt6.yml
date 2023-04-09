@@ -1,7 +1,7 @@
-app-id: io.github.beamerpresenter
+app-id: io.github.beamerpresenter.beamerpresenter-qt6
 branch: master
 runtime: org.kde.Platform
-runtime-version: 5.15-21.08
+runtime-version: "6.4"
 sdk: org.kde.Sdk
 command: beamerpresenter
 build-options:
@@ -11,13 +11,12 @@ finish-args:
   - "--socket=x11"
   - "--socket=wayland"
   - "--socket=pulseaudio"
-  - "--device=dri"
   - "--filesystem=xdg-documents"
   - "--filesystem=xdg-download"
   - "--filesystem=xdg-public-share"
   - "--filesystem=xdg-desktop"
   - "--filesystem=xdg-config/beamerpresenter"
-  - "--own-name=io.github.beamerpresenter"
+  - "--own-name=io.github.beamerpresenter.beamerpresenter-qt6"
 modules:
   - name: poppler
     buildsystem: cmake-ninja
@@ -29,8 +28,8 @@ modules:
     - "-DENABLE_BOOST=OFF"
     - "-DENABLE_UTILS=OFF"
     - "-DENABLE_LIBCURL=OFF"
-    - "-DENABLE_QT5=ON"
-    - "-DENABLE_QT6=OFF"
+    - "-DENABLE_QT5=OFF"
+    - "-DENABLE_QT6=ON"
     - "-DENABLE_GLIB=OFF"
     - "-DENABLE_GOBJECT_INTROSPECTION=OFF"
     - "-DENABLE_GTK_DOC=OFF"
@@ -39,24 +38,27 @@ modules:
     - "/bin"
     sources:
     - type: archive
-      url: https://poppler.freedesktop.org/poppler-22.06.0.tar.xz
-      sha256: a0f9aaa3918bad781039fc307a635652a14d1b391cd559b66edec4bedba3c5d7
-  - name: beamerpresenter
+      url: https://poppler.freedesktop.org/poppler-23.04.0.tar.xz
+      sha256: b6d893dc7dcd4138b9e9df59a13c59695e50e80dc5c2cacee0674670693951a1
+  - name: beamerpresenter-qt6
     buildsystem: cmake-ninja
     config-opts:
-    - "-DQT_VERSION_MAJOR=5"
-    - "-DQT_VERSION_MINOR=15"
+    - "-DQT_VERSION_MAJOR=6"
+    - "-DQT_VERSION_MINOR=4"
     - "-DUSE_POPPLER=ON"
     - "-DUSE_MUPDF=OFF"
     - "-DUSE_QTPDF=OFF"
     - "-DUSE_EXTERNAL_RENDERER=OFF"
     - "-DUSE_TRANSLATIONS=ON"
+    - "-DGIT_VERSION=ON"
+    - "-DAPPID_NAME=io.github.beamerpresenter.beamerpresenter-qt6"
+    - "-DINSTALL_METAINFO=ON"
     - "-DCMAKE_BUILD_TYPE=Release"
     - "-DCMAKE_INSTALL_PREFIX=/app"
     - "-DCMAKE_INSTALL_SYSCONFDIR=/app/etc"
-    - "-DCMAKE_INSTALL_DATAROOTDIR=/app/usr/share"
-    - "-DCMAKE_INSTALL_LIBDIR=/app/usr/lib"
-    - "-DCMAKE_INSTALL_INCLUDEDIR=/app/usr/include"
+    - "-DCMAKE_INSTALL_DATAROOTDIR=/app/share"
+    - "-DCMAKE_INSTALL_LIBDIR=/app/lib"
+    - "-DCMAKE_INSTALL_INCLUDEDIR=/app/include"
     sources:
     - type: git
       url: https://github.com/stiglers-eponym/BeamerPresenter.git

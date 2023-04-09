@@ -1,4 +1,4 @@
-.TH beamerpresenter-ui 5 "2022-04-18" "0.2.2"
+.TH beamerpresenter-ui 5 "2023-04-09" "0.2.3"
 .
 .SH NAME
 beamerpresenter-ui \- user interface of BeamerPresenter
@@ -16,7 +16,7 @@ Arguments shared by all widgets:
 widget type defined in section WIDGETS
 .TP
 .BI "keys " "keyboard shortcut"
-Key combination to set focus to this widget.
+Key combination to set focus to this widget. Example: use \[dq]keys\[dq]:\[dq]Ctrl+F\[dq] for a search widget.
 .TP
 .BI "title " "text"
 title of the widget, visible only if the widget is shown in a tabbed widget.
@@ -27,7 +27,7 @@ background color, color name known to Qt. Some Qt styles may override colors set
 Arguments for all top level widgets (widgets that are shown as windows):
 .TP
 .BI "always show " bool
-This window should always be shown on top of other windows if the window manager supports that. Default value is false except if the widget is of type "tool selector".
+This window should always be shown on top of other windows if the window manager supports that. Default value is false except if the widget is of type \[dq]tool selector\[dq].
 .
 .SH WIDGETS
 .
@@ -90,7 +90,7 @@ Arguments:
 zoom step for the widget (defined by QTextEdit).
 .TP
 .BI "file " "path"
-path to xml-file to read notes from. The notes file contains a root element <speakernotes> with child elements <page-notes> containing the rich text notes. Each page element has an attribute "label" or "number" to identify a page or a group of pages. Which of "label" or "number" is used must be specified by the attribute "identifier" or the root element.
+path to xml-file to read notes from. The notes file contains a root element <speakernotes> with child elements <page-notes> containing the rich text notes. Each page element has an attribute \[dq]label\[dq] or \[dq]number\[dq] to identify a page or a group of pages. Which of \[dq]label\[dq] or \[dq]number\[dq] is used must be specified by the attribute \[dq]identifier\[dq] or the root element.
 
 Example file:
 .nf
@@ -108,7 +108,7 @@ Example file:
 .
 .TP
 .B search
-search text in PDF document. This widget implements a very basic search. If you want to have a better search option for the document, please open an issue on github.
+search text in PDF document. This jumps to the next slide on which the searched text is found and highlights all occurrences (or up to 20 occurrences when using MuPDF) on this slide. To highlight occurrences of the text on another slide you need to start a new search. The search is case-insensitive. You can use the option \[dq]keys\[dq]:\[dq]Ctrl+F\[dq] to start a search with Ctrl+F.
 .
 .TP
 .B settings
@@ -122,7 +122,7 @@ slide of a presentation. This is the main widget shown to the audience and on th
 Arguments:
 .TP
 .BI "file " "path"
-pdf file shown in the presentation or alias name. Aliases such as "presentation" or "notes" will be filled with command line arguments or by asking in a file open dialog.
+pdf file shown in the presentation or alias name. Aliases such as \[dq]presentation\[dq] or \[dq]notes\[dq] will be filled with command line arguments or by asking in a file open dialog.
 .TP
 .BI "shift " "integer"
 shift slide number relative to the main presentation slide. E.g. shift=1 creates a preview of the next slide, which can be shown in the speaker's view.
@@ -143,7 +143,7 @@ If multiple widgets show the same slide, the configuration of one of these widge
 .TP
 .BI "mute " "= true"
 mute or unmute the slide connected to this widget.
-By default normal slides are muted and slides marked as "master" are unmuted.
+By default normal slides are muted and slides marked as \[dq]master\[dq] are unmuted.
 Make sure that exactly one slide widget is unmuted in the GUI configuration (typically the presentation slide widget).
 .TP
 .BI "transitions " "= true"
@@ -232,6 +232,23 @@ Default configuration:
 .TP
 .B toc
 outline / table of contents, shows document outline tree.
+.
+.TP
+.B tool widget
+shows current mapping of devices to tools. The tools can be changed using a pop-up dialog. Currently this shows a block of mouse buttons (a touch pad is treated like a mouse), the touch input (if available), and a block of tablet devices (if available). For simple usage this is best combined with a tool selector widget.
+.PP
+.RS
+Arguments:
+.TP
+.BI orientation " horizontal/vertical"
+arange different devices next to each other or above each other.
+.TP
+.BI "mouse devices " array
+list of devices that are included in the group of mouse devices. Possible values: \[dq]left button\[dq], \[dq]right button\[dq], \[dq]middle button\[dq], \[dq]no button\[dq]
+.TP
+.BI "tablet devices " array
+list of devices that are included in the group of tablet devices. Possible values: \[dq]tablet pen\[dq], \[dq]tablet eraser\[dq], \[dq]tablet hover\[dq], \[dq]tablet cursor\[dq], \[dq]tablet mod\[dq], \[dq]tablet other\[dq]
+.RE
 .
 .TP
 .B tool selector
@@ -355,13 +372,13 @@ drop-down menu of shapes.
 drop-down menu of pen styles.
 .TP
 .B color
-drop-down menu of colors. This must be provided as a JSON object in the form {"select":"color", "list":["red", "green", "blue"]} were the list of colors can be adapted.
+drop-down menu of colors. This must be provided as a JSON object in the form {\[dq]select\[dq]:\[dq]color\[dq], \[dq]list\[dq]:[\[dq]red\[dq], \[dq]green\[dq], \[dq]blue\[dq]]} were the list of colors can be adapted.
 .TP
 .B width
-drop-down menu of draw tool widths. This must be provided as a JSON object in the form {"select":"width", "list":[0.5,1,2,4]} were the list of widths (measured in point=1/72 inch in the PDF) can be adapted.
+drop-down menu of draw tool widths. This must be provided as a JSON object in the form {\[dq]select\[dq]:\[dq]width\[dq], \[dq]list\[dq]:[0.5,1,2,4]} were the list of widths (measured in point=1/72 inch in the PDF) can be adapted.
 .
 .PP
-Options in the dictionary for tools (all lengths are given in points (1/72 inch) in PDF):
+Options in the dictionary for tools. All lengths (e.g. stroke width) are given in points (1/72 inch) in the PDF:
 .TP
 .B tool
 mandatory: pen, fixed width pen, highlighter, eraser, pointer, magnifier, torch, text, click select, rectangle select, freehand select, or none
@@ -379,13 +396,13 @@ only pointing tools (eraser, pointer, torch, highlighter): radius of tool (posit
 only draw tools (pen, highlighter, fixed width pen): color to fill the path. Leave empty if paths should not be filled.
 .TP
 .BR style " = SolidLine"
-only draw tools: Pen style for stroking the path. Possible values are "nopen" , "solid", "dash", "dot", "dashdot", and "dashdotdot".
+only draw tools: Pen style for stroking the path. Possible values are \[dq]nopen\[dq] , \[dq]solid\[dq], \[dq]dash\[dq], \[dq]dot\[dq], \[dq]dashdot\[dq], and \[dq]dashdotdot\[dq].
 .TP
 .BR brush " = SolidPattern"
 only draw tools: Filling style of the path, see https://doc.qt.io/qt-6/qt.html#BrushStyle-enum for valid names. Gradients are not allowed.
 .TP
 .BR shape " = freehand"
-only draw tools (pen, highlighter, fixed width pen): Draw this shape instead of a freehand path. Allowed values are "freehand", "rectangle", "ellipse", "line", and "arrow".
+only draw tools (pen, highlighter, fixed width pen): Draw this shape instead of a freehand path. Allowed values are \[dq]freehand\[dq], \[dq]rectangle\[dq], \[dq]ellipse\[dq], \[dq]line\[dq], and \[dq]arrow\[dq].
 .TP
 .BR scale " = 2"
 only magnifier: magnification factor (number between 0.1 and 5).
@@ -398,6 +415,9 @@ only text tool: anything that Qt can interpret as font name.
 .TP
 .B font size
 only text tool: font size (positive number).
+.TP
+.B device
+all tools: tool name (e.g. \[dq]tablet pen\[dq], \[dq]touch\[dq]), \[dq]all\[dq], or \[dq]all+\[dq] (see also beamerpresenter.conf (5)). If this property is set, pushing this button will set the tool for the defined input devices. If this property is not set, then the tool will always be set only for the input device with which the button was pressed.
 .PP
 It is possible to select a different tool for a button while BeamerPresenter is running by clicking the button while pressing the ctrl key. But note that this changes the tool only temporarily and this modification will not be saved.
 .RE

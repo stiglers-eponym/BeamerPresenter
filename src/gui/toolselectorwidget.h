@@ -10,7 +10,7 @@
 
 class Tool;
 class QSize;
-class QEvent;
+class QResizeEvent;
 class QColor;
 class QJsonArray;
 
@@ -20,11 +20,14 @@ class QJsonArray;
  * Emits sendTool and sendAction when buttons are pressed.
  *
  * @see ActionButton
- * @see ToolButton
+ * @see ToolSelectorButton
  */
 class ToolSelectorWidget : public QWidget
 {
     Q_OBJECT
+
+    /// Initialize a tool property button.
+    void initializeToolPropertyButton(const QString &type, const QJsonArray &list, const int row, const int column);
 
 public:
     /// Constructor: initialize layout.
@@ -43,8 +46,8 @@ public:
     {return true;}
 
 protected:
-    /// Override event: set equal row height when resizing.
-    bool event(QEvent *event) override;
+    /// ensure equal row height when resizing.
+    void resizeEvent(QResizeEvent *event) override;
 
 signals:
     /// Send out action to master.
@@ -59,9 +62,16 @@ signals:
     /// Send action status to action buttons.
     void sendStatus(const Action action, const int status);
 
-    /// Send a new tool (copy of the tool of a button).
-    /// Ownership of tool is transfered to receiver.
+    /// Send a new tool (copy of the tool of a button) to master.
+    /// Ownership of tool is transfered to receiver (master).
     void sendTool(Tool *tool) const;
+
+    /// Notify master that a tool has been updated.
+    /// Ownership of tool does not change.
+    void updatedTool(const Tool *tool) const;
+
+    /// Child buttons should update icons, called after resizing.
+    void updateIcons();
 };
 
 #endif // TOOLSELECTORWIDGET_H

@@ -1,6 +1,8 @@
 // SPDX-FileCopyrightText: 2022 Valentin Bruch <software@vbruch.eu>
 // SPDX-License-Identifier: GPL-3.0-or-later OR AGPL-3.0-or-later
 
+#include <QStringList>
+#include <QTransform>
 #include <QGraphicsScene>
 #include <QGraphicsItem>
 #include <QGraphicsItemGroup>
@@ -52,6 +54,7 @@ bool PathContainer::undo(QGraphicsScene *scene)
         auto path = std::static_pointer_cast<AbstractGraphicsPath>(it.key());
         DrawTool tool = path->getTool();
         tool.setPen(it->old_pen);
+        tool.setCompositionMode(it->old_mode);
         tool.brush() = it->old_brush;
         path->changeTool(tool);
         path->update();
@@ -156,6 +159,7 @@ bool PathContainer::redo(QGraphicsScene *scene)
         auto path = std::static_pointer_cast<AbstractGraphicsPath>(it.key());
         DrawTool tool = path->getTool();
         tool.setPen(it->new_pen);
+        tool.setCompositionMode(it->new_mode);
         tool.brush() = it->new_brush;
         path->changeTool(tool);
         path->update();
@@ -310,7 +314,7 @@ void PathContainer::eraserMicroStep(const QPointF &scene_pos, const qreal size)
                 std::shared_ptr<AbstractGraphicsPath> path = std::static_pointer_cast<AbstractGraphicsPath>(*path_it);
                 // Apply eraser to path. Get a list of paths obtained by splitting
                 // path using the eraser.
-                QList<AbstractGraphicsPath*> list = path->splitErase(scene_pos, size);
+                const QList<AbstractGraphicsPath*> list = path->splitErase(scene_pos, size);
                 // If list is empty, the path was completely erased.
                 if (list.isEmpty())
                 {
@@ -322,7 +326,7 @@ void PathContainer::eraserMicroStep(const QPointF &scene_pos, const qreal size)
                     else
                         path->hide();
                     // Remove path from paths by settings paths[i] = NULL.
-                    *path_it = NULL;
+                    *path_it = nullptr;
                 }
                 // If nothing should change (the path is not affected by erasing),
                 // the list will only contain a NULL. In this case we do nothing.
@@ -339,11 +343,8 @@ void PathContainer::eraserMicroStep(const QPointF &scene_pos, const qreal size)
                     std::shared_ptr<QGraphicsItemGroup> group(new QGraphicsItemGroup());
                     // Add all paths in list (which were obtained by erasing in path)
                     // to group.
-                    for (const auto item : qAsConst(list))
-                    {
+                    for (const auto item : list)
                         group->addToGroup(item);
-                        item->show(); // TODO: necessary?
-                    }
                     // Replace path by group in scene (if possible).
                     if (scene)
                     {
@@ -526,6 +527,16 @@ void PathContainer::writeXml(QXmlStreamWriter &writer) const
             writer.writeAttribute("color", color_to_rgba(item->defaultTextColor()).toLower());
             writer.writeAttribute("x", QString::number(item->x()));
             writer.writeAttribute("y", QString::number(item->y()));
+            const QTransform transform = item->transform();
+            if (!transform.isIdentity())
+                writer.writeAttribute("transform",
+                        QString("matrix(%1,%2,%3,%4,%5,%6)")
+                            .arg(transform.m11())
+                            .arg(transform.m12())
+                            .arg(transform.m21())
+                            .arg(transform.m22())
+                            .arg(transform.dx())
+                            .arg(transform.dy()));
             writer.writeCharacters(item->toPlainText());
             writer.writeEndElement();
             break;
@@ -611,16 +622,16 @@ AbstractGraphicsPath *loadPath(QXmlStreamReader &reader)
         else
             brush_style = Qt::NoBrush;
     }
-    DrawTool *tool = new DrawTool(
+    DrawTool tool(
                 basic_tool,
                 Tool::AnyNormalDevice,
                 pen,
                 QBrush(fill_color, brush_style),
                 basic_tool == Tool::Highlighter ? QPainter::CompositionMode_Darken : QPainter::CompositionMode_SourceOver);
     if (basic_tool == Tool::Pen)
-        return new FullGraphicsPath(*tool, reader.readElementText(), width_str);
+        return new FullGraphicsPath(tool, reader.readElementText(), width_str);
     else
-        return new BasicGraphicsPath(*tool, reader.readElementText());
+        return new BasicGraphicsPath(tool, reader.readElementText());
 }
 
 TextGraphicsItem *loadTextItem(QXmlStreamReader &reader)
@@ -633,6 +644,20 @@ TextGraphicsItem *loadTextItem(QXmlStreamReader &reader)
     QFont font(reader.attributes().value("font").toString());
     font.setPointSizeF(reader.attributes().value("size").toDouble());
     item->setFont(font);
+    item->setDefaultTextColor(rgba_to_color(reader.attributes().value("color").toString()));
+    QString transform_string = reader.attributes().value("transform").toString();
+    if (transform_string.length() >= 19 && transform_string.startsWith("matrix(") && transform_string.endsWith(")"))
+    {
+        // TODO: this is inefficient
+        transform_string.remove("matrix(");
+        transform_string.remove(")");
+        const QStringList list = transform_string.trimmed().replace(" ", ",").split(",");
+        if (list.length() == 6)
+            item->setTransform(QTransform(
+                    list[0].toDouble(), list[1].toDouble(),
+                    list[2].toDouble(), list[3].toDouble(),
+                    list[4].toDouble(), list[5].toDouble()));
+    }
     const QString text = reader.readElementText();
     if (text.isEmpty())
     {
@@ -640,7 +665,6 @@ TextGraphicsItem *loadTextItem(QXmlStreamReader &reader)
         return NULL;
     }
     item->setPlainText(text);
-    item->setDefaultTextColor(rgba_to_color(reader.attributes().value("color").toString()));
     return item;
 }
 
@@ -885,23 +909,6 @@ void PathContainer::addHistoryStep(std::shared_ptr<drawHistory::Step> step)
     // Limit history size (if necessary).
     if (history.length() > preferences()->history_length_visible_slides)
         clearHistory(preferences()->history_length_visible_slides);
-}
-
-
-QString color_to_rgba(const QColor &color)
-{
-    return QLatin1Char('#') + QString::number((color.rgb() << 8) + color.alpha(), 16).rightJustified(8, '0', true);
-}
-
-QColor rgba_to_color(const QString &string)
-{
-    switch (string.length())
-    {
-    case 9:
-        return QColor('#' + string.right(2) + string.mid(1,6));
-    default:
-        return QColor(string);
-    }
 }
 
 

@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2022 Valentin Bruch <software@vbruch.eu>
 // SPDX-License-Identifier: GPL-3.0-or-later OR AGPL-3.0-or-later
 
-#include <QTimer>
+#include <QTimerEvent>
 #include <QThread>
 #include <QPixmap>
 
@@ -70,17 +70,12 @@ void PixCache::init()
         qCritical() << "Creating renderer failed" << preferences()->renderer;
 
     // Create threads.
-    for (int i=0; i<threads.length(); i++)
+    for (auto &thread : threads)
     {
-        threads[i] = new PixCacheThread(pdfDoc, renderer->pagePart(), this);
-        connect(threads[i], &PixCacheThread::sendData, this, &PixCache::receiveData, Qt::QueuedConnection);
+        thread = new PixCacheThread(pdfDoc, renderer->pagePart(), this);
+        connect(thread, &PixCacheThread::sendData, this, &PixCache::receiveData, Qt::QueuedConnection);
+        connect(this, &PixCache::setPixCacheThreadPage, thread, &PixCacheThread::setNextPage, Qt::QueuedConnection);
     }
-
-    renderCacheTimer = new QTimer();
-    connect(thread(), &QThread::finished, renderCacheTimer, &QTimer::deleteLater);
-    renderCacheTimer->setSingleShot(true);
-    renderCacheTimer->setInterval(0);
-    connect(renderCacheTimer, &QTimer::timeout, this, &PixCache::startRendering, Qt::QueuedConnection);
 }
 
 PixCache::~PixCache()
@@ -113,10 +108,11 @@ void PixCache::setMaxNumber(const int number)
 
 void PixCache::clear()
 {
-    qDeleteAll(cache);
-    cache.clear();
+    for (auto it = cache.begin(); it != cache.end(); it=cache.erase(it))
+        delete *it;
     usedMemory = 0;
-    region = {preferences()->page, preferences()->page};
+    region.first = preferences()->page;
+    region.second = region.first;
 }
 
 const QPixmap PixCache::pixmap(const int page, qreal resolution)
@@ -173,7 +169,7 @@ void PixCache::requestRenderPage(const int n)
         priority.append(n);
 
     // Start rendering next page.
-    renderCacheTimer->start();
+    startTimer(0);
 }
 
 void PixCache::pageNumberChanged(const int page)
@@ -219,7 +215,7 @@ void PixCache::pageNumberChanged(const int page)
     }
 
     // Start rendering next page.
-    renderCacheTimer->start();
+    startTimer(0);
 }
 
 int PixCache::limitCacheSize()
@@ -238,21 +234,20 @@ int PixCache::limitCacheSize()
         return 0;
     }
 
+    const int pref_page = preferences()->page;
     // Check if region is valid.
     if (region.first > region.second)
     {
-        region.first = preferences()->page;
-        region.second = preferences()->page;
+        region.first = pref_page;
+        region.second = pref_page;
     }
 
     // Number of really cached slides:
     // subtract number of currently active threads, for which cache contains a NULL.
     int cached_slides = cache.size();
-    for (QVector<PixCacheThread*>::const_iterator it = threads.cbegin(); it != threads.cend(); ++it)
-    {
-        if ((*it)->isRunning())
+    for (auto it = threads.cbegin(); it != threads.cend(); ++it)
+        if ((*it) && (*it)->isRunning())
             --cached_slides;
-    }
     if (cached_slides <= 0)
         return INT_MAX >> 1;
 
@@ -275,7 +270,7 @@ int PixCache::limitCacheSize()
     if (allowed_slides >= threads.length())
         return allowed_slides;
 
-    debug_msg(DebugCache, "prepared deleting from cache" << usedMemory << allowed_slides << cached_slides);
+    debug_msg(DebugCache, "prepared deleting from cache" << usedMemory << maxMemory << allowed_slides << cached_slides);
 
 
     // Deleting starts from first or last page in cache.
@@ -294,15 +289,15 @@ int PixCache::limitCacheSize()
         // then stop rendering to cache.
         if (((maxNumber < 0 || cache.size() <= maxNumber)
                 && (maxMemory < 0 || usedMemory <= maxMemory)
-                && last > preferences()->page
+                && last > pref_page
                 && last - first <= cache.size()
-                && 2*last + 3*first > 5*preferences()->page)
+                && 2*last + 3*first > 5*pref_page)
                 // the case cache.size() < 2 would lead to segfaults.
                 || cache.size() < 2)
             return 0;
 
         // If more than 3/4 of the cached slides lie ahead of current page, clean up last.
-        if (last + 3*first > 4*preferences()->page)
+        if (last + 3*first > 4*pref_page)
         {
             const QMap<int, const PngPixmap*>::iterator it = std::prev(cache.end());
             remove = it.value();
@@ -356,17 +351,18 @@ int PixCache::renderNext()
             return page;
     }
 
+    const int pref_page = preferences()->page;
     // Check if region is valid.
     if (region.first > region.second)
     {
-        region.first = preferences()->page;
-        region.second = preferences()->page;
+        region.first = pref_page;
+        region.second = region.first;
     }
 
     // Select region.first or region.second for rendering.
     while (true)
     {
-        if (region.second + 3*region.first > 4*preferences()->page && region.first >= 0)
+        if (region.second + 3*region.first > 4*pref_page && region.first >= 0)
         {
             if (!cache.contains(region.first))
                 return region.first--;
@@ -381,6 +377,12 @@ int PixCache::renderNext()
     }
 }
 
+void PixCache::timerEvent(QTimerEvent *event)
+{
+    killTimer(event->timerId());
+    startRendering();
+}
+
 void PixCache::startRendering()
 {
     debug_verbose(DebugCache, "Start rendering");
@@ -388,15 +390,14 @@ void PixCache::startRendering()
     int allowed_pages = limitCacheSize();
     if (allowed_pages <= 0)
         return;
-    for (QVector<PixCacheThread*>::const_iterator thread = threads.cbegin(); thread != threads.cend(); ++thread)
+    for (auto thread = threads.cbegin(); thread != threads.cend(); ++thread)
     {
-        if (allowed_pages > 0 && !(*thread)->isRunning())
+        if (allowed_pages > 0 && *thread && !(*thread)->isRunning())
         {
             const int page = renderNext();
             if (page < 0 || page >= pdfDoc->numberOfPages())
                 return;
-            (*thread)->setNextPage(page, getResolution(page));
-            (*thread)->start(QThread::LowPriority);
+            emit setPixCacheThreadPage(*thread, page, getResolution(page));
             --allowed_pages;
         }
     }
@@ -406,7 +407,10 @@ void PixCache::receiveData(const PngPixmap *data)
 {
     // If a renderer failed, it should already have sent an error message.
     if (data == NULL || data->isNull())
+    {
+        delete data;
         return;
+    }
 
     // Check if the received image is still compatible with the current resolution.
     if (abs(getResolution(data->getPage()) - data->getResolution()) > MAX_RESOLUTION_DEVIATION)
@@ -427,7 +431,7 @@ void PixCache::receiveData(const PngPixmap *data)
     }
 
     // Start rendering next page.
-    renderCacheTimer->start();
+    startTimer(0);
 }
 
 qreal PixCache::getResolution(const int page) const
@@ -439,10 +443,8 @@ qreal PixCache::getResolution(const int page) const
     if (renderer->pagePart() != FullPage)
         pageSize.rwidth() /= 2;
     if (pageSize.width() * frame.height() > pageSize.height() * frame.width())
-    {
         // page is too wide, determine resolution by x direction
         return frame.width() / pageSize.width();
-    }
     // page is too high, determine resolution by y direction
     return frame.height() / pageSize.height();
 }
@@ -482,7 +484,7 @@ void PixCache::requestPage(const int page, const qreal resolution, const bool ca
         return;
     }
 
-    debug_msg(DebugCache, "Rendering page in main thread" << this);
+    debug_msg(DebugCache, "Rendering page in PixCache thread" << this);
     const QPixmap pix = renderer->renderPixmap(page, resolution);
 
     if (pix.isNull())
@@ -513,10 +515,10 @@ void PixCache::requestPage(const int page, const qreal resolution, const bool ca
     }
 
     // Start rendering next page.
-    renderCacheTimer->start();
+    startTimer(0);
 }
 
-void PixCache::getPixmap(const int page, QPixmap *target, qreal resolution)
+void PixCache::getPixmap(const int page, QPixmap &target, qreal resolution)
 {
-    *target = pixmap(page, resolution);
+    target = pixmap(page, resolution);
 }

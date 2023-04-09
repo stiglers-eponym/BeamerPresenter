@@ -5,6 +5,7 @@
 #define TEXTGRAPHICSITEM_H
 
 #include <QGraphicsTextItem>
+#include <QTextDocument>
 #include "src/config.h"
 
 class QGraphicsSceneContextMenuEvent;
@@ -41,7 +42,8 @@ public:
     {return Type;}
 
     /// Check if text is empty.
-    bool isEmpty() const noexcept;
+    bool isEmpty() const noexcept
+    {return document()->isEmpty();}
 
 protected:
     /// Called when this looses focus.

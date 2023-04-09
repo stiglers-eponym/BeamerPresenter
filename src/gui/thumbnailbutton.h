@@ -36,7 +36,8 @@ protected:
     /// add red margin when this gets focus
     void focusInEvent(QFocusEvent*) override;
     /// remove red margin when this looses focus
-    void focusOutEvent(QFocusEvent*) override;
+    void focusOutEvent(QFocusEvent*) override
+    {setFrameStyle(QFrame::NoFrame);}
 
 signals:
     /// Send out navigation event for this page.

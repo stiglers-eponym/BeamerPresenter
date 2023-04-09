@@ -36,7 +36,7 @@ static void reshuffle_array(const int seed = 42)
 }
 
 /// Get random value between 0 and GLITTER_NUMBER from shuffled array.
-static int shuffled(const unsigned int i)
+inline static int shuffled(const unsigned int i)
 {
     return shuffled_array()[i % GLITTER_NUMBER];
 }
@@ -45,19 +45,19 @@ void PixmapGraphicsItem::paint(QPainter *painter, const QStyleOptionGraphicsItem
 {
     if (pixmaps.isEmpty())
         return;
-    const unsigned int hash = painter->transform().m11() * boundingRect().width() + 0.499;
+    const unsigned int hash = painter->transform().m11() * bounding_rect.width() + 0.499;
     QMap<unsigned int, QPixmap>::const_iterator it = pixmaps.lowerBound(hash);
     if (it == pixmaps.cend())
         --it;
 #ifdef QT_DEBUG
     if (it.key() != hash && it.key() != hash + 1)
     {
-        debug_msg(DebugRendering, "possibly wrong resolution:" << it.key() << painter->transform().m11() * boundingRect().width());
+        debug_msg(DebugRendering, "possibly wrong resolution:" << it.key() << painter->transform().m11() * bounding_rect.width());
         if (it != pixmaps.cbegin())
             debug_msg(DebugRendering, "possibly better:" << std::prev(it).key());
     }
 #endif
-    if (!_mask.isNull())
+    if (mask_type && !_mask.isNull())
         switch (mask_type)
         {
         case NoMask:
@@ -107,24 +107,21 @@ void PixmapGraphicsItem::paint(QPainter *painter, const QStyleOptionGraphicsItem
     painter->resetTransform();
     if (mask_type == Glitter && animation_progress != UINT_MAX)
     {
-        const unsigned int glitter_pixel = hash / GLITTER_ROW;
-        unsigned int const n = rect.width()*rect.height()/glitter_pixel, w = rect.width()/glitter_pixel+1;
+        const unsigned int
+            glitter_pixel = hash / GLITTER_ROW,
+            n = rect.width()*rect.height()/glitter_pixel,
+            w = rect.width()/glitter_pixel+1;
         for (unsigned int j=0; j<animation_progress; j++)
-        {
             for (unsigned int i=shuffled(j); i<n; i+=GLITTER_NUMBER)
                 painter->drawPixmap(rect.x()+glitter_pixel*(i%w), rect.y()+glitter_pixel*(i/w), *it, glitter_pixel*(i%w), glitter_pixel*(i/w), glitter_pixel, glitter_pixel);
-        }
     }
+    else if (it.key() == hash || it.key() == hash + 1)
+        painter->drawPixmap(rect.topLeft(), *it, it->rect());
     else
-    {
-        if (it.key() == hash || it.key() == hash + 1)
-            painter->drawPixmap(rect.topLeft(), *it, it->rect());
-        else
-            painter->drawPixmap(rect, *it, it->rect());
-    }
+        painter->drawPixmap(rect, *it, it->rect());
 }
 
-void PixmapGraphicsItem::addPixmap(const QPixmap &pixmap)
+void PixmapGraphicsItem::addPixmap(const QPixmap &pixmap) noexcept
 {
     if (!pixmap.isNull())
     {

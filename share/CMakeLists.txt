@@ -12,15 +12,19 @@ install(FILES
     "${PROJECT_BINARY_DIR}/share/doc/README.html"
     DESTINATION "${DOC_PATH}"
     OPTIONAL)
+configure_file(applications/beamerpresenter.desktop.in applications/beamerpresenter.desktop @ONLY)
 install(FILES
-    applications/beamerpresenter.desktop
+    "${PROJECT_BINARY_DIR}/share/applications/beamerpresenter.desktop"
     DESTINATION "${CMAKE_INSTALL_DATAROOTDIR}/applications"
+    RENAME "${APPID_NAME}.desktop"
     OPTIONAL)
 install(FILES
     icons/beamerpresenter.svg
     DESTINATION "${APPICON_PATH}"
+    RENAME "${APPID_NAME}.svg"
     OPTIONAL)
 install(DIRECTORY
     icons/tools
     icons/actions
+    icons/devices
     DESTINATION "${DEFAULT_ICON_PATH}")

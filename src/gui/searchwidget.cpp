@@ -4,27 +4,52 @@
 #include <QLineEdit>
 #include <QPair>
 #include <QRectF>
-#include <QPushButton>
+#include <QToolButton>
 #include <QHBoxLayout>
 #include "src/gui/searchwidget.h"
 #include "src/preferences.h"
-#include "src/rendering/pdfdocument.h"
-#include "src/log.h"
 
 SearchWidget::SearchWidget(QWidget *parent) :
     QWidget{parent},
-    search_field{new QLineEdit("search...", this)},
-    forward_button{new QPushButton("next", this)},
-    backward_button{new QPushButton("prev", this)}
+    search_field{new QLineEdit(this)},
+    forward_button{new QToolButton(this)},
+    backward_button{new QToolButton(this)}
 {
+    search_field->setPlaceholderText(tr("search..."));
+    search_field->setToolTip(tr("enter search text"));
+    // icons
+    QIcon icon = QIcon::fromTheme("go-previous");
+    if (icon.isNull())
+        // Sometimes name + "-symbolic" is a reasonable fallback icon.
+        icon = QIcon::fromTheme("go-previous-symbolic");
+    if (icon.isNull())
+        backward_button->setText("<");
+    else
+        backward_button->setIcon(icon);
+    backward_button->setToolTip(tr("go to previous matching slide"));
+    icon = QIcon::fromTheme("go-next");
+    if (icon.isNull())
+        // Sometimes name + "-symbolic" is a reasonable fallback icon.
+        icon = QIcon::fromTheme("go-next-symbolic");
+    if (icon.isNull())
+        forward_button->setText(">");
+    else
+        forward_button->setIcon(icon);
+    backward_button->setToolTip(tr("go to next matching slide"));
+    // layout
+    setMinimumHeight(16);
+    search_field->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::MinimumExpanding);
+    backward_button->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::MinimumExpanding);
+    forward_button->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::MinimumExpanding);
     QHBoxLayout *layout = new QHBoxLayout(this);
-    layout->addWidget(search_field, 6);
-    layout->addWidget(forward_button, 1);
-    layout->addWidget(backward_button, 1);
+    layout->addWidget(search_field);
+    layout->addWidget(backward_button);
+    layout->addWidget(forward_button);
     setLayout(layout);
+    // connections
     connect(search_field, &QLineEdit::returnPressed, this, &SearchWidget::searchCurrent);
-    connect(forward_button, &QPushButton::clicked, this, &SearchWidget::searchForward);
-    connect(backward_button, &QPushButton::clicked, this, &SearchWidget::searchBackward);
+    connect(forward_button, &QToolButton::clicked, this, &SearchWidget::searchForward);
+    connect(backward_button, &QToolButton::clicked, this, &SearchWidget::searchBackward);
 }
 
 SearchWidget::~SearchWidget()
@@ -36,15 +61,6 @@ SearchWidget::~SearchWidget()
 
 void SearchWidget::search(qint8 forward)
 {
-    if (!preferences()->document || !search_field)
-        return;
-    const QString text = search_field->text();
-    if (text.isEmpty())
-        return;
-    QPair<int,QRectF> result = preferences()->document->search(
-                text,
-                preferences()->page + forward,
-                forward >= 0);
-    if (result.first >= 0)
-        emit foundPage(result.first);
+    const QString &text = search_field->text();
+    emit searchPdf(text, preferences()->page + forward, forward >= 0);
 }

@@ -43,11 +43,10 @@ public:
     /// Do the work: renderer to actually renders the page. Emits sendData.
     void run() override;
 
-    /// Set page number and resolution.
-    /// Note that this is not thread save! But when starting to run the thread,
-    /// the values are locally copied. That should make it nearly impossible to
-    /// create problems using this function.
-    void setNextPage(const int page_number, const qreal res);
+public slots:
+    /// Set page number and resolution, then start the thread.
+    /// Only has an effect if target==this and if this is not running.
+    void setNextPage(const PixCacheThread *target, const int page_number, const qreal res);
 
 signals:
     /// Send out the data.

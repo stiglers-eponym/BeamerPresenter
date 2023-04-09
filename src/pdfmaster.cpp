@@ -67,7 +67,7 @@ void PdfMaster::loadDocument(const QString &filename)
                         tr("Error while loading file"),
                         tr("Tried to load a pdf file, but a different file is already loaded!"));
         else if (document->loadDocument())
-            document->loadOutline();
+            document->loadLabels();
         return;
     }
 
@@ -96,14 +96,14 @@ void PdfMaster::loadDocument(const QString &filename)
                     tr("Error while loading file"),
                     tr("Loading PDF document failed!"));
     else
-        document->loadOutline();
+        document->loadLabels();
 }
 
 bool PdfMaster::loadDocument()
 {
     if (document && document->loadDocument())
     {
-        document->loadOutline();
+        document->loadLabels();
         return true;
     }
     return false;
@@ -729,4 +729,21 @@ bool PdfMaster::hasDrawings() const noexcept
         if (!path->isCleared())
             return true;
     return false;
+}
+
+void PdfMaster::search(const QString &text, const int &page, const bool forward)
+{
+    if (!document || page < 0)
+        return;
+    if (text == "")
+    {
+        search_results.second.clear();
+        emit updateSearch();
+        return;
+    }
+    search_results = document->searchAll(text, page, forward);
+    if (search_results.first == preferences()->page)
+        emit updateSearch();
+    else if (search_results.first >= 0)
+        emit navigationSignal(search_results.first);
 }

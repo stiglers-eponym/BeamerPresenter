@@ -90,6 +90,7 @@ public:
     /// @param newwidth new tool width
     void changeWidth(const float newwidth) noexcept;
 
+    /// Overwrite the tool for drawing this path (in-place).
     void changeTool(const DrawTool &newtool) noexcept override;
 
     /// Write stroke widths to string for saving.

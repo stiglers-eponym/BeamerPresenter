@@ -5,6 +5,7 @@
 #define ENUMERATES_H
 
 #include <climits>
+#include <QMetaType>
 #include "src/config.h"
 
 /**
@@ -153,10 +154,12 @@ enum Action
     Unmute, ///< unmute all media objects
     // Other actions
     ReloadFiles, ///< reload PDF file(s) if it has changed
-    PdfFilesChanged, ///< notify widgets that PDF files have changed
     FullScreen, ///< toggle full screen mode
     Quit, ///< quit program, ask to save if there are unsaved changes
     QuitNoConfirmation, ///< quit program ignoring about unsaved changes
+    // Internal actions
+    PdfFilesChanged, ///< notify widgets that PDF files have changed
+    ResizeViews, ///< slide views have been resized
 
     // Actions containing flags
     UndoDrawingLeft = UndoDrawing | PagePart::LeftHalf, ///< undo last drawing step on current page (only LeftPage)
@@ -167,7 +170,6 @@ enum Action
     ClearDrawingRight = ClearDrawing | PagePart::RightHalf, ///< clear all drawings on current page (only RightPage)
 };
 
-#include <QMetaType>
 Q_DECLARE_METATYPE(Action);
 
 
@@ -198,6 +200,7 @@ enum GuiWidget
     TOCType, ///< TOCwidget
     NotesType, ///< NotesWidget
     ToolSelectorType, ///< ToolSelectorWidget
+    ToolWidgetType, ///< ToolWidget
     SettingsType, ///< SettingsWidget
     ClockType, ///< ClockWidget
     AnalogClockType, ///< AnalogClockWidget

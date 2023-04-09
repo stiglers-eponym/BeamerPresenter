@@ -177,7 +177,6 @@ PointingToolDetails::PointingToolDetails(Tool::BasicTool basic_tool, QWidget *pa
         scale_box->setMinimum(0.1);
         scale_box->setMaximum(5.);
         layout->addRow(tr("Magnification scale"), scale_box);
-        if (oldtool && oldtool->tool() == Tool::Magnifier)
         scale_box->setValue((oldtool && oldtool->tool() == Tool::Magnifier) ? oldtool->scale() : 2.);
     }
     else if (basic_tool == Tool::Eraser)
@@ -315,7 +314,7 @@ void ToolDialog::setDefault(const Tool *tool)
         return;
     tool_box->setCurrentText(string_to_tool.key(tool->tool()));
     for (auto it = device_buttons.cbegin(); it != device_buttons.cend(); ++it)
-        (*it)->setChecked(it.key() & tool->device());
+        (*it)->setChecked((it.key() & tool->device()) == it.key());
     QPalette button_palette = color_button->palette();
     QColor color;
 

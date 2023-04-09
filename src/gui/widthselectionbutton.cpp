@@ -9,11 +9,7 @@
 WidthSelectionButton::WidthSelectionButton(const QJsonArray &array, QWidget *parent) :
     ToolPropertyButton(parent)
 {
-    QSize iconsize = size();
-    if (iconsize.width() > iconsize.height())
-        iconsize.rwidth() = --iconsize.rheight();
-    else
-        iconsize.rheight() = --iconsize.rwidth();
+    setToolTip(tr("select width of draw tool"));
     qreal width;
     for (const auto &item : array)
     {
@@ -25,7 +21,7 @@ WidthSelectionButton::WidthSelectionButton(const QJsonArray &array, QWidget *par
 
 void WidthSelectionButton::setToolProperty(Tool *tool) const
 {
-    const qreal width = currentData(Qt::UserRole).value<qreal>();
+    const qreal width = currentData().value<qreal>();
     if (width <= 0.)
         return;
     if (tool && tool->tool() & Tool::AnyDrawTool)
@@ -33,7 +29,7 @@ void WidthSelectionButton::setToolProperty(Tool *tool) const
     emit widthChanged(width);
 }
 
-void WidthSelectionButton::toolChanged(Tool *tool)
+void WidthSelectionButton::toolChanged(const Tool *tool)
 {
     if (tool && tool->tool() & Tool::AnyDrawTool)
     {

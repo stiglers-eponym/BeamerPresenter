@@ -3,7 +3,7 @@
 
 #include <QtConfig>
 #include <algorithm>
-#include <QTimer>
+#include <QTimerEvent>
 #include <QString>
 #include <QThread>
 #include <QJsonObject>
@@ -24,10 +24,7 @@
 #include "src/pdfmaster.h"
 #include "src/slidescene.h"
 #include "src/slideview.h"
-#include "src/drawing/drawtool.h"
-#include "src/drawing/pointingtool.h"
-#include "src/drawing/texttool.h"
-#include "src/drawing/selectiontool.h"
+#include "src/drawing/tool.h"
 #include "src/gui/flexlayout.h"
 #include "src/gui/clockwidget.h"
 #include "src/gui/analogclockwidget.h"
@@ -42,26 +39,20 @@
 #include "src/gui/tocwidget.h"
 #include "src/gui/thumbnailwidget.h"
 #include "src/gui/toolselectorwidget.h"
+#include "src/gui/toolwidget.h"
 #include "src/gui/searchwidget.h"
 #include "src/rendering/pixcache.h"
 #include "src/names.h"
 #include "src/preferences.h"
 
-Master::Master() :
-    cacheVideoTimer(new QTimer(this)),
-    slideDurationTimer(new QTimer(this))
+Master::Master()
 {
-    cacheVideoTimer->setSingleShot(true);
-    cacheVideoTimer->setInterval(200);
-    slideDurationTimer->setSingleShot(true);
-    connect(slideDurationTimer, &QTimer::timeout, this, &Master::nextSlide);
     connect(preferences(), &Preferences::sendErrorMessage, this, &Master::showErrorMessage);
 }
 
 Master::~Master()
 {
-    delete cacheVideoTimer;
-    delete slideDurationTimer;
+    emit clearCache();
     for (const auto cache : qAsConst(caches))
         cache->thread()->quit();
     for (const auto cache : qAsConst(caches))
@@ -69,7 +60,6 @@ Master::~Master()
         cache->thread()->wait(10000);
         delete cache;
     }
-    caches.clear();
     for (const auto doc : qAsConst(documents))
     {
         QList<SlideScene*> &scenes = doc->getScenes();
@@ -335,6 +325,7 @@ QWidget* Master::createWidget(QJsonObject &object, QWidget *parent)
             connect(doc, &PdfMaster::writeNotes, this, &Master::writeNotes, Qt::DirectConnection);
             connect(doc, &PdfMaster::readNotes, this, &Master::readNotes, Qt::DirectConnection);
             connect(doc, &PdfMaster::setTotalTime, this, &Master::setTotalTime);
+            connect(doc, &PdfMaster::navigationSignal, this, &Master::navigateToPage);
             // Initialize doc with file.
             doc->initialize(file);
             if (doc->getDocument() == NULL)
@@ -348,8 +339,8 @@ QWidget* Master::createWidget(QJsonObject &object, QWidget *parent)
             if (writable_preferences()->number_of_pages && writable_preferences()->number_of_pages != doc->numberOfPages())
             {
                 showErrorMessage(
-                            QObject::tr("Error while loading PDF file"),
-                            QObject::tr("Loaded PDF files with different numbers of pages. You should expect errors."));
+                            tr("Error while loading PDF file"),
+                            tr("Loaded PDF files with different numbers of pages. You should expect errors."));
                 writable_preferences()->number_of_pages = std::max(writable_preferences()->number_of_pages, doc->numberOfPages());
             }
             else
@@ -397,11 +388,12 @@ QWidget* Master::createWidget(QJsonObject &object, QWidget *parent)
             connect(scene, &SlideScene::navigationSignal, this, &Master::navigateToPage, Qt::QueuedConnection);
             connect(scene, &SlideScene::sendAction, this, &Master::handleAction, Qt::QueuedConnection);
             connect(this, &Master::sendAction, scene, &SlideScene::receiveAction);
-            connect(this, &Master::sendNewTool, scene, &SlideScene::toolChanged);
+            connect(this, &Master::sendNewToolScene, scene, &SlideScene::toolChanged);
             connect(this, &Master::sendColor, scene, &SlideScene::colorChanged);
             connect(this, &Master::sendWidth, scene, &SlideScene::widthChanged);
-            connect(cacheVideoTimer, &QTimer::timeout, scene, &SlideScene::postRendering, Qt::QueuedConnection);
+            connect(this, &Master::postRendering, scene, &SlideScene::postRendering, Qt::QueuedConnection);
             connect(this, &Master::prepareNavigationSignal, scene, &SlideScene::prepareNavigationEvent);
+            connect(doc, &PdfMaster::updateSearch, scene, &SlideScene::updateSearchResults);
             connect(preferences(), &Preferences::stopDrawing, scene, &SlideScene::stopDrawing);
         }
         else if (object.value("master").toBool())
@@ -419,7 +411,7 @@ QWidget* Master::createWidget(QJsonObject &object, QWidget *parent)
         // TODO: read other properties from config
 
         // Get or create cache object.
-        PixCache *pixcache = NULL;
+        const PixCache *pixcache = NULL;
         int cache_hash = object.value("cache hash").toInt(-1);
         if (cache_hash == -1)
         {
@@ -439,15 +431,18 @@ QWidget* Master::createWidget(QJsonObject &object, QWidget *parent)
             // Read number of threads from GUI config.
             const int threads = object.value("threads").toInt(1);
             // Create the PixCache object.
-            pixcache = new PixCache(scene->getPdfMaster()->getDocument(), threads, page_part);
+            PixCache* newpixcache = new PixCache(scene->getPdfMaster()->getDocument(), threads, page_part);
+            pixcache = newpixcache;
+            // Set maximum number of pages in cache from settings.
+            newpixcache->setMaxNumber(preferences()->max_cache_pages);
             // Move the PixCache object to an own thread.
-            pixcache->moveToThread(new QThread());
+            newpixcache->moveToThread(new QThread());
             connect(pixcache, &PixCache::destroyed, pixcache->thread(), &QThread::deleteLater);
             // Make sure that pixcache is initialized when the thread is started.
             connect(pixcache->thread(), &QThread::started, pixcache, &PixCache::init, Qt::QueuedConnection);
             connect(this, &Master::navigationSignal, pixcache, &PixCache::pageNumberChanged, Qt::QueuedConnection);
-            // Set maximum number of pages in cache from settings.
-            pixcache->setMaxNumber(preferences()->max_cache_pages);
+            connect(this, &Master::sendScaledMemory, pixcache, &PixCache::setScaledMemory, Qt::QueuedConnection);
+            connect(this, &Master::clearCache, pixcache, &PixCache::clear, Qt::QueuedConnection);
             // Start the thread.
             pixcache->thread()->start();
             // Keep the new pixcache in caches.
@@ -522,6 +517,43 @@ QWidget* Master::createWidget(QJsonObject &object, QWidget *parent)
         connect(toolwidget, &ToolSelectorWidget::sendTool, this, &Master::setTool, Qt::QueuedConnection);
         connect(toolwidget, &ToolSelectorWidget::sendColor, this, &Master::sendColor);
         connect(toolwidget, &ToolSelectorWidget::sendWidth, this, &Master::sendWidth);
+        connect(toolwidget, &ToolSelectorWidget::updatedTool, this, &Master::sendNewToolSoft);
+        widget = toolwidget;
+        break;
+    }
+    case ToolWidgetType:
+    {
+        const QBoxLayout::Direction direction = object.value("orientation").toString("horizontal") == "horizontal" ? QBoxLayout::LeftToRight : QBoxLayout::RightToLeft;
+        ToolWidget *toolwidget = new ToolWidget(parent, direction);
+        if (object.contains("mouse devices"))
+        {
+            QList<int> devices;
+            int dev;
+            for (const auto &dev_obj : object.value("mouse devices").toArray())
+            {
+                dev = string_to_input_device.value(dev_obj.toString());
+                if (dev != 0 && (dev & Tool::AnyNormalDevice) != Tool::AnyNormalDevice)
+                    devices.append(dev);
+            }
+            if (!devices.isEmpty())
+                toolwidget->setMouseDevices(devices);
+        }
+        if (object.contains("tablet devices"))
+        {
+            QList<int> devices;
+            int dev;
+            for (const auto &dev_obj : object.value("tablet devices").toArray())
+            {
+                dev = string_to_input_device.value(dev_obj.toString());
+                if (dev != 0 && (dev & Tool::AnyNormalDevice) != Tool::AnyNormalDevice)
+                    devices.append(dev);
+            }
+            if (!devices.isEmpty())
+                toolwidget->setTabletDevices(devices);
+        }
+        toolwidget->initialize();
+        connect(this, &Master::sendNewToolSoft, toolwidget, &ToolWidget::receiveTool);
+        connect(toolwidget, &ToolWidget::sendTool, this, &Master::setTool);
         widget = toolwidget;
         break;
     }
@@ -531,7 +563,12 @@ QWidget* Master::createWidget(QJsonObject &object, QWidget *parent)
     case SearchType:
     {
         widget = new SearchWidget(parent);
-        connect(static_cast<SearchWidget*>(widget), &SearchWidget::foundPage, this, &Master::navigateToPage);
+        connect(
+            static_cast<SearchWidget*>(widget),
+            &SearchWidget::searchPdf,
+            this,
+            [&](const QString &text, const int page, const bool forward) {documents.first()->search(text, page, forward);}
+            );
         break;
     }
     case ClockType:
@@ -662,6 +699,7 @@ bool Master::eventFilter(QObject *obj, QEvent *event)
         if (widget)
         {
             widget->show();
+            widget->setFocus();
             QStackedWidget *stackwidget = dynamic_cast<QStackedWidget*>(widget->parentWidget());
             debug_msg(DebugKeyInput, widget << stackwidget << widget->parentWidget());
             if (stackwidget)
@@ -686,24 +724,13 @@ bool Master::eventFilter(QObject *obj, QEvent *event)
     for (const auto tool : static_cast<const QList<Tool*>>(preferences()->key_tools.values(key_code)))
     {
         if (tool && tool->device())
-        {
-            if (tool->tool() & Tool::AnyDrawTool)
-                setTool(new DrawTool(*static_cast<const DrawTool*>(tool)));
-            else if (tool->tool() & Tool::AnyPointingTool)
-                setTool(new PointingTool(*static_cast<const PointingTool*>(tool)));
-            else if (tool->tool() & Tool::AnySelectionTool)
-                setTool(new SelectionTool(*static_cast<const SelectionTool*>(tool)));
-            else if (tool->tool() == Tool::TextInputTool)
-                setTool(new TextTool(*static_cast<const TextTool*>(tool)));
-            else
-                setTool(new Tool(*tool));
-        }
+            setTool(tool->copy());
     }
     event->accept();
     return true;
 }
 
-void Master::nextSlide() const noexcept
+void Master::nextSlide() noexcept
 {
     navigateToPage(preferences()->page + 1);
 }
@@ -808,13 +835,16 @@ void Master::handleAction(const Action action)
         if (changed)
         {
             writable_preferences()->number_of_pages = documents.first()->numberOfPages();
-            for (const auto cache : qAsConst(caches))
-                cache->clear();
+            distributeMemory();
+            emit clearCache();
             emit sendAction(PdfFilesChanged);
             navigateToPage(preferences()->page);
         }
         break;
     }
+    case ResizeViews:
+        distributeMemory();
+        break;
     case Quit:
         if (!documents.isEmpty())
         {
@@ -903,8 +933,8 @@ void Master::distributeMemory()
     if (scale <= 0)
         return;
     scale = preferences()->max_memory / scale;
-    for (const auto cache : qAsConst(caches))
-        cache->setScaledMemory(scale);
+    debug_msg(DebugCache, "Distributing memory. scale =" << scale << ", max. memory =" << preferences()->max_memory);
+    emit sendScaledMemory(scale);
 }
 
 qint64 Master::getTotalCache() const
@@ -915,15 +945,23 @@ qint64 Master::getTotalCache() const
     return cache;
 }
 
-void Master::navigateToPage(const int page) const
+void Master::navigateToPage(const int page)
 {
     if (page < 0 || page >= preferences()->number_of_pages)
         return;
-    slideDurationTimer->stop();
-    cacheVideoTimer->stop();
+    if (cacheVideoTimer_id != -1)
+    {
+        killTimer(cacheVideoTimer_id);
+        cacheVideoTimer_id = -1;
+    }
+    if (slideDurationTimer_id != -1)
+    {
+        killTimer(slideDurationTimer_id);
+        slideDurationTimer_id = -1;
+    }
     leavePage(preferences()->page);
     emit prepareNavigationSignal(page);
-    for (auto window : windows)
+    for (const auto window : windows)
         window->updateGeometry();
     // Get duration of the slide: But only take a nontrivial value if
     // the new page is (old page + 1).
@@ -931,9 +969,9 @@ void Master::navigateToPage(const int page) const
     emit navigationSignal(page);
 }
 
-void Master::postNavigation() const noexcept
+void Master::postNavigation() noexcept
 {
-    if (slideDurationTimer->isActive() || cacheVideoTimer->isActive())
+    if (slideDurationTimer_id != -1 || cacheVideoTimer_id != -1)
         return;
     const int page = preferences()->page;
     const qreal duration =
@@ -941,11 +979,11 @@ void Master::postNavigation() const noexcept
             ? documents.first()->getDocument()->duration(preferences()->page)
             : -1.;
     if (duration == 0.)
-        slideDurationTimer->start(preferences()->slide_duration_animation);
+        slideDurationTimer_id = startTimer(preferences()->slide_duration_animation);
     else if (duration > 0.)
-        slideDurationTimer->start(1000*duration);
+        slideDurationTimer_id = startTimer(1000*duration);
     if (duration < 0. || duration > 0.5)
-        cacheVideoTimer->start();
+        cacheVideoTimer_id = startTimer(200);
 }
 
 void Master::showErrorMessage(const QString &title, const QString &text) const
@@ -965,42 +1003,19 @@ void Master::setTool(Tool *tool) const noexcept
         return;
     }
     debug_msg(DebugDrawing|DebugKeyInput, "Set tool" << tool->tool() << tool->device());
-    int device = tool->device();
-    // Delete mouse no button devices if MouseLeftButton is overwritten.
-    if (tool->device() & Tool::MouseLeftButton)
-        device |= Tool::MouseNoButton;
-    // Delete tablet no pressure device if any tablet device is overwritten.
-    if (tool->device() & (Tool::TabletCursor | Tool::TabletPen | Tool::TabletEraser))
-        device |= Tool::TabletHover;
-    int newdevice;
-    for (auto tool_it = writable_preferences()->current_tools.begin(); tool_it != writable_preferences()->current_tools.end();)
-    {
-        if ((*tool_it)->device() & device)
-        {
-            newdevice = (*tool_it)->device() & ~device;
-            if (newdevice)
-                (*tool_it++)->setDevice(newdevice);
-            else
-            {
-                delete *tool_it;
-                tool_it = writable_preferences()->current_tools.erase(tool_it);
-            }
-        }
-        else if (((*tool_it)->device() == Tool::MouseNoButton) && (tool->device() & Tool::MouseLeftButton))
-        {
-            delete *tool_it;
-            tool_it = writable_preferences()->current_tools.erase(tool_it);
-        }
-        else
-            ++tool_it;
-    }
-    writable_preferences()->current_tools.append(tool);
-    emit sendNewTool(tool);
+    writable_preferences()->setCurrentTool(tool);
+    emit sendNewToolScene(tool);
+    emit sendNewToolSoft(tool);
 
 #ifdef QT_DEBUG
     if ((preferences()->debug_level & DebugVerbose) && preferences()->debug_level & DebugDrawing)
-        for (const auto tool : preferences()->current_tools)
-            qDebug() << "tool:" << tool->device() << tool->tool() << tool;
+    {
+        const auto &current_tools = preferences()->current_tools;
+        const auto end = current_tools.cend();
+        for (auto tool = current_tools.cbegin(); tool != end; ++tool)
+            if (*tool)
+                qDebug() << "tool:" << (*tool)->device() << (*tool)->tool() << *tool;
+    }
 #endif
 }
 
@@ -1022,4 +1037,20 @@ QString Master::getSaveFileName()
                 "",
                 tr("BeamerPresenter/Xournal++ files (*.bpr *.xopp);;All files (*)")
             );
+}
+
+void Master::timerEvent(QTimerEvent *event)
+{
+    debug_msg(DebugPageChange, "timer event" << event->timerId() << cacheVideoTimer_id << slideDurationTimer_id);
+    killTimer(event->timerId());
+    if (event->timerId() == cacheVideoTimer_id)
+    {
+        cacheVideoTimer_id = -1;
+        emit postRendering();
+    }
+    else if (event->timerId() == slideDurationTimer_id)
+    {
+        slideDurationTimer_id = -1;
+        nextSlide();
+    }
 }

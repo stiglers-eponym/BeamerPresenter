@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop">
+  <id>io.github.beamerpresenter.beamerpresenter</id>
+  <name>BeamerPresenter</name>
+  <project_license>GPL-3.0</project_license>
+  <metadata_license>CC0-1.0</metadata_license>
+  <developer_name>Valentin Bruch</developer_name>
+  <summary>Show PDF presentation with extra information for the speaker.</summary>
+  <url type="homepage">https://github.com/stiglers-eponym/BeamerPresenter</url>
+  <update_contact>software@vbruch.eu</update_contact>
+  <description>
+    <p>BeamerPresenter shows a PDF presentation to speaker and audience in a
+    multi-screen setup with various control options and extra information
+    for the speaker.</p>
+    <p>Features:
+    <ul>
+      <li>draw, highlight and point on the presentation with tools selected per input device</li>
+      <li>supports pressure sensitive stylus input and different draw styles (e.g. Wacom tablet)</li>
+      <li>save drawings in format compatible with Xournal++</li>
+      <li>videos and sounds linked from a PDF file</li>
+      <li>slide transitions and basic animations</li>
+      <li>fast slide changes and browsing due to compressed cache of slides (configurable cache size)</li>
+      <li>modular, configurable user interface for maximal flexibility</li>
+      <li>does not try to take the role of your window manager</li>
+    </ul>
+    </p>
+  </description>
+  <categories>
+    <category>Office</category>
+    <category>Qt5</category>
+  </categories>
+  <screenshots>
+    <screenshot type="default">
+      <image>https://raw.githubusercontent.com/stiglers-eponym/BeamerPresenter/main/.readme/fusion-1920px.webp</image>
+    </screenshot>
+    <screenshot>
+      <image>https://raw.githubusercontent.com/stiglers-eponym/BeamerPresenter/main/.readme/widgets-1920px.webp</image>
+    </screenshot>
+    <screenshot>
+      <image>https://raw.githubusercontent.com/stiglers-eponym/BeamerPresenter/main/.readme/interactive-1920px.webp</image>
+    </screenshot>
+    <screenshot>
+      <image>https://raw.githubusercontent.com/stiglers-eponym/BeamerPresenter/main/.readme/video-1920px.webp</image>
+    </screenshot>
+  </screenshots>
+  <releases>
+    <release version="0.2.3" date="2022-09-05"/>
+    <release version="0.2.2" date="2022-02-20"/>
+    <release version="0.2.1" date="2021-11-20"/>
+    <release version="0.1.3" date="2020-12-11"/>
+    <release version="0.1.2" date="2020-07-13"/>
+    <release version="0.1.1" date="2020-03-01"/>
+  </releases>
+  <launchable type="desktop-id">io.github.beamerpresenter.beamerpresenter.desktop</launchable>
+  <content_rating type="oars-1.0" />
+</component>

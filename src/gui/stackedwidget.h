@@ -6,6 +6,7 @@
 
 #include <QStackedWidget>
 #include <QSizePolicy>
+#include <QSize>
 #include "src/config.h"
 
 class QSize;
@@ -25,7 +26,14 @@ public:
     {setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);}
 
     /// Return sizeHint based on layout.
-    QSize sizeHint() const noexcept override;
+    QSize sizeHint() const noexcept override
+    {
+        QSize size(0,0);
+        int i = 0;
+        while (i < count())
+            size = size.expandedTo(widget(i++)->sizeHint());
+        return size;
+    }
 
     /// height depends on width (required by FlexLayout).
     bool hasHeightForWidth() const noexcept override

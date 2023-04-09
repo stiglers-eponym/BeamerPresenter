@@ -16,7 +16,8 @@ BasicGraphicsPath::BasicGraphicsPath(const DrawTool &tool, const QPointF &pos) n
     AbstractGraphicsPath(tool)
 {
     // Initialize bounding rect.
-    bounding_rect = QRectF(pos.x(), pos.y(), _tool.width(), _tool.width());
+    const qreal tw = _tool.width();
+    bounding_rect = QRectF(pos.x() - tw/2, pos.y() - tw/2, tw, tw);
     // Add first data point.
     coordinates.append(pos);
 }
@@ -86,12 +87,8 @@ void BasicGraphicsPath::paint(QPainter *painter, const QStyleOptionGraphicsItem 
     painter->setPen(_tool.pen());
     painter->setCompositionMode(_tool.compositionMode());
     if (coordinates.length() == 1)
-    {
         painter->drawPoint(coordinates.first());
-        return;
-    }
-
-    if (_tool.brush().style() == Qt::NoBrush)
+    else if (_tool.brush().style() == Qt::NoBrush)
         painter->drawPolyline(coordinates.constData(), coordinates.size());
     else
     {
@@ -109,6 +106,8 @@ void BasicGraphicsPath::paint(QPainter *painter, const QStyleOptionGraphicsItem 
         painter->drawLine(bounding_rect.topRight(), {0,0});
         painter->drawLine(bounding_rect.bottomLeft(), {0,0});
         painter->drawLine(bounding_rect.bottomRight(), {0,0});
+        //painter->setPen(QPen(QBrush(Qt::red), 0.25));
+        //painter->drawPath(shape());
     }
 #endif
 }
@@ -181,7 +180,7 @@ void BasicGraphicsPath::changeTool(const DrawTool &newtool) noexcept
         qWarning() << "Cannot change draw tool to non-drawing base tool.";
         return;
     }
-    if (std::abs(newtool.pen().widthF() - _tool.tool()) > 0.2)
+    if (std::abs(newtool.pen().widthF() - _tool.tool()) > 0.01)
 #if (QT_VERSION >= QT_VERSION_CHECK(5,13,0))
         shape_cache.clear();
 #else
@@ -189,7 +188,11 @@ void BasicGraphicsPath::changeTool(const DrawTool &newtool) noexcept
 #endif
     _tool.setPen(newtool.pen());
     _tool.setWidth(newtool.width());
+    _tool.brush() = newtool.brush();
     _tool.setCompositionMode(newtool.compositionMode());
+    // cache shape
+    if (shape_cache.isEmpty())
+        shape_cache = shape();
 }
 
 AbstractGraphicsPath *BasicGraphicsPath::copy() const

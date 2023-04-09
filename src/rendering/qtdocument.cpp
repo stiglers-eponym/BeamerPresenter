@@ -1,7 +1,6 @@
 // SPDX-FileCopyrightText: 2022 Valentin Bruch <software@vbruch.eu>
 // SPDX-License-Identifier: GPL-3.0-or-later OR AGPL-3.0-or-later
 
-#include <QObject>
 #include <QVector>
 #include <QFileInfo>
 #include <QInputDialog>
@@ -17,6 +16,12 @@
 #include "src/preferences.h"
 #include "src/rendering/qtdocument.h"
 #include "src/rendering/pngpixmap.h"
+
+#if (QT_VERSION >= QT_VERSION_CHECK(6,4,0))
+    #define PAGESIZE_FUNCTION pagePointSize
+#else
+    #define PAGESIZE_FUNCTION pageSize
+#endif
 
 QtDocument::QtDocument(const QString &filename) :
     PdfDocument(filename),
@@ -41,28 +46,44 @@ bool QtDocument::loadDocument()
     if (!fileinfo.exists() || !fileinfo.isFile())
     {
         preferences()->showErrorMessage(
-                    QObject::tr("Error while loading file"),
-                    QObject::tr("Given filename is not a file: ") + fileinfo.baseName());
+                    tr("Error while loading file"),
+                    tr("Given filename is not a file: ") + fileinfo.baseName());
         return false;
     }
     // Check if the file has changed since last (re)load
-    if (doc->status() == QPdfDocument::Ready && fileinfo.lastModified() == lastModified)
+    if (doc->status() == QPdfDocument::Status::Ready && fileinfo.lastModified() == lastModified)
         return false;
 
     // Load the document.
     doc->close();
     switch (doc->load(path))
     {
+#if (QT_VERSION >= QT_VERSION_CHECK(6,4,0))
+    case QPdfDocument::Error::FileNotFound:
+#else
     case QPdfDocument::DocumentError::FileNotFoundError:
+#endif
         qCritical() << "Could not load document: file not found" << path;
         break;
+#if (QT_VERSION >= QT_VERSION_CHECK(6,4,0))
+    case QPdfDocument::Error::DataNotYetAvailable:
+#else
     case QPdfDocument::DocumentError::DataNotYetAvailableError:
+#endif
         qCritical() << "Could not load document: data not yet available" << path;
         break;
+#if (QT_VERSION >= QT_VERSION_CHECK(6,4,0))
+    case QPdfDocument::Error::InvalidFileFormat:
+#else
     case QPdfDocument::DocumentError::InvalidFileFormatError:
+#endif
         qCritical() << "Could not load document: invalid file format" << path;
         break;
+#if (QT_VERSION >= QT_VERSION_CHECK(6,4,0))
+    case QPdfDocument::Error::IncorrectPassword:
+#else
     case QPdfDocument::DocumentError::IncorrectPasswordError:
+#endif
         // Try to unlock a locked document.
         {
             qWarning() << "Document is locked.";
@@ -70,8 +91,8 @@ bool QtDocument::loadDocument()
             bool ok;
             QString const password = QInputDialog::getText(
                         NULL,
-                        QObject::tr("Document is locked!"),
-                        QObject::tr("Please enter password (leave empty to cancel)."),
+                        tr("Document is locked!"),
+                        tr("Please enter password (leave empty to cancel)."),
                         QLineEdit::Password,
                         QString(),
                         &ok
@@ -81,27 +102,43 @@ bool QtDocument::loadDocument()
             if (!ok || password.isEmpty())
             {
                 preferences()->showErrorMessage(
-                            QObject::tr("Error while loading file"),
-                            QObject::tr("No password provided for locked document"));
+                            tr("Error while loading file"),
+                            tr("No password provided for locked document"));
                 return false;
             }
             doc->setPassword(password);
+#if (QT_VERSION >= QT_VERSION_CHECK(6,4,0))
+            if (doc->load(path) != QPdfDocument::Error::None)
+#else
             if (doc->load(path) != QPdfDocument::NoError)
+#endif
             {
                 preferences()->showErrorMessage(
-                            QObject::tr("Error while loading file"),
-                            QObject::tr("Invalid password provided for locked document"));
+                            tr("Error while loading file"),
+                            tr("Invalid password provided for locked document"));
                 return false;
             }
         }
         break;
+#if (QT_VERSION >= QT_VERSION_CHECK(6,4,0))
+    case QPdfDocument::Error::UnsupportedSecurityScheme:
+#else
     case QPdfDocument::DocumentError::UnsupportedSecuritySchemeError:
+#endif
         qCritical() << "Could not load document: unsupported security scheme" << path;
         break;
+#if (QT_VERSION >= QT_VERSION_CHECK(6,4,0))
+    case QPdfDocument::Error::Unknown:
+#else
     case QPdfDocument::DocumentError::UnknownError:
+#endif
         qCritical() << "Could not load document: unknown error" << path;
         break;
+#if (QT_VERSION >= QT_VERSION_CHECK(6,4,0))
+    case QPdfDocument::Error::None:
+#else
     case QPdfDocument::DocumentError::NoError:
+#endif
         break;
     }
 
@@ -119,7 +156,7 @@ const QPixmap QtDocument::getPixmap(const int page, const qreal resolution, cons
         qWarning() << "Tried to render invalid page or invalid resolution" << page;
         return QPixmap();
     }
-    const QImage image = doc->render(page, (resolution*doc->pageSize(page)).toSize(), render_options);
+    const QImage image = doc->render(page, (resolution*doc->PAGESIZE_FUNCTION(page)).toSize(), render_options);
     switch (page_part)
     {
     case LeftHalf:
@@ -138,7 +175,7 @@ const PngPixmap * QtDocument::getPng(const int page, const qreal resolution, con
         qWarning() << "Tried to render invalid page or invalid resolution" << page;
         return nullptr;
     }
-    QImage image = doc->render(page, (resolution*doc->pageSize(page)).toSize(), render_options);
+    QImage image = doc->render(page, (resolution*doc->PAGESIZE_FUNCTION(page)).toSize(), render_options);
     if (image.isNull())
     {
         qWarning() << "Rendering page to image failed";
@@ -169,7 +206,7 @@ const PngPixmap * QtDocument::getPng(const int page, const qreal resolution, con
 
 const QSizeF QtDocument::pageSize(const int page) const
 {
-    return doc->pageSize(page);
+    return doc->PAGESIZE_FUNCTION(page);
 }
 
 int QtDocument::numberOfPages() const
@@ -186,10 +223,10 @@ bool QtDocument::flexiblePageSizes() noexcept
 {
     if (flexible_page_sizes >= 0 || !isValid())
         return flexible_page_sizes;
-    const QSizeF ref_size = doc->pageSize(0);
+    const QSizeF ref_size = doc->PAGESIZE_FUNCTION(0);
     for (int page=1; page<doc->pageCount(); page++)
     {
-        if (doc->pageSize(page) != ref_size)
+        if (doc->PAGESIZE_FUNCTION(page) != ref_size)
         {
             flexible_page_sizes = 1;
             return 1;

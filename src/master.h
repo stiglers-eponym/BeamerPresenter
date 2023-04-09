@@ -7,6 +7,7 @@
 #include <QObject>
 #include <QList>
 #include <QMap>
+#include <QRectF>
 #include <QKeySequence>
 #include "src/config.h"
 #include "src/enumerates.h"
@@ -14,7 +15,7 @@
 class Tool;
 class QColor;
 class QTime;
-class QTimer;
+class QTimerEvent;
 class QString;
 class QJsonObject;
 class QWidget;
@@ -43,7 +44,7 @@ class Master : public QObject
     QList<PdfMaster*> documents;
 
     /// Map of cache hashs to cache objects.
-    QMap<int, PixCache*> caches;
+    QMap<int, const PixCache*> caches;
 
     /// List of all windows of the applications.
     QList<QMainWindow*> windows;
@@ -52,10 +53,10 @@ class Master : public QObject
     QMap<QKeySequence, QWidget*> shortcuts;
 
     /// Timer to tell slides that they should start caching videos for the next slide.
-    QTimer *cacheVideoTimer {nullptr};
+    int cacheVideoTimer_id {-1};
 
     /// Timer for automatic slide changes.
-    QTimer *slideDurationTimer {nullptr};
+    int slideDurationTimer_id {-1};
 
 public:
     /// Constructor: initializes times.
@@ -100,6 +101,9 @@ public:
     static QString getOpenFileName();
 
 protected:
+    /// Timeout event: cache videos or change slide
+    void timerEvent(QTimerEvent *event) override;
+
     /// Filter key input events from other widgets
     bool eventFilter(QObject *obj, QEvent *event) override;
 
@@ -117,26 +121,30 @@ public slots:
      * 5. update page in preferences
      * 6. send out navigation signal
      */
-    void navigateToPage(const int page) const;
+    void navigateToPage(const int page);
 
     /// Navigate to next slide.
-    void nextSlide() const noexcept;
+    void nextSlide() noexcept;
 
     /// Handle an action, distribute it if necessary.
     void handleAction(const Action action);
 
-    /// This takes ownership of tool.
+    /// Set currently used tool. This takes ownership of tool.
     void setTool(Tool *tool) const noexcept;
 
     /// finish navigation event: called after page change or after slide transition.
-    void postNavigation() const noexcept;
+    void postNavigation() noexcept;
 
     /// Show an error message as QMessageBox::critical
     void showErrorMessage(const QString &title, const QString &text) const;
 
 signals:
-    /// Send out new tool.
-    void sendNewTool(const Tool *tool) const;
+    /// Send out new tool to SlideScenes (changes selected items).
+    void sendNewToolScene(const Tool *tool) const;
+    /// Send out new tool only to tool buttons to update icons.
+    /// This signal must always be sent when a tool changes,
+    /// which is currently connected to a device.
+    void sendNewToolSoft(const Tool *tool) const;
     /// Send out new stroke color.
     void sendColor(const QColor &color) const;
     /// Send out new stroke width.
@@ -145,6 +153,12 @@ signals:
     void sendAction(const Action action) const;
     /// Set status for an action (e.g. timer paused or running).
     void sendActionStatus(const Action action, const int status) const;
+    /// Set memory of each PixCache object to scale*(number of pixels)
+    void sendScaledMemory(const float scale);
+    /// Clear cache of all PixCache objects
+    void clearCache();
+    /// Tell slide scenes to start post-rendering operations.
+    void postRendering();
 
     /// Prepare navigation: Scenes update geometry, such that the layout can
     /// be recalculated.

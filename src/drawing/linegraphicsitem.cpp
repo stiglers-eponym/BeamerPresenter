@@ -5,20 +5,21 @@
 #include <QWidget>
 #include <QVector>
 #include <QRectF>
+#include <QStyleOptionGraphicsItem>
 #include "src/drawing/linegraphicsitem.h"
 #include "src/drawing/basicgraphicspath.h"
 
-void LineGraphicsItem::setSecondPoint(const QPointF &pos)
+void LineGraphicsItem::setSecondPoint(const QPointF &pos) noexcept
 {
     QLineF newline = line();
     newline.setP2(pos);
     setLine(newline);
 }
 
-BasicGraphicsPath *LineGraphicsItem::toPath() const
+BasicGraphicsPath *LineGraphicsItem::toPath() const noexcept
 {
     if (line().p1() == line().p2())
-        return NULL;
+        return nullptr;
     const int segments = line().length() / 10 + 2;
     const QPointF
             p1 = line().p1() - line().center(),

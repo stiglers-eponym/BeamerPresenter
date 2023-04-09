@@ -47,7 +47,7 @@ fz_pixmap *MuPdfRenderer::renderFzPixmap(const int page, const qreal resolution,
 
     // Create pixmap and render page to it.
     fz_device *dev = nullptr;
-    fz_pixmap *pixmap;
+    fz_pixmap *pixmap = nullptr;
     fz_var(pixmap);
     fz_var(dev);
     fz_try(ctx)
@@ -62,7 +62,7 @@ fz_pixmap *MuPdfRenderer::renderFzPixmap(const int page, const qreal resolution,
         // Create a device for rendering the given display list to pixmap.
         dev = fz_new_draw_device(ctx, fz_identity, pixmap);
         // Do the main work: Render the display list to pixmap.
-        fz_run_display_list(ctx, list, dev, fz_identity, bbox, NULL);
+        fz_run_display_list(ctx, list, dev, fz_identity, bbox, nullptr);
     }
     fz_always(ctx)
     {
@@ -78,28 +78,23 @@ fz_pixmap *MuPdfRenderer::renderFzPixmap(const int page, const qreal resolution,
         warn_msg("Fitz failed to create or render pixmap:" << fz_caught_message(ctx));
         fz_drop_pixmap(ctx, pixmap);
         fz_drop_context(ctx);
-        return NULL;
+        return nullptr;
     }
     return pixmap;
 }
 
-MuPdfRenderer::MuPdfRenderer(const PdfDocument *document, const PagePart part) :
-    AbstractRenderer(part),
-    doc(document && (document->type() == MuPdfEngine) ? static_cast<const MuPdfDocument*>(document) : nullptr)
-{}
-
 const QPixmap MuPdfRenderer::renderPixmap(const int page, const qreal resolution) const
 {
     QPixmap qpixmap;
-    fz_context *ctx = NULL;
+    fz_context *ctx = nullptr;
     fz_pixmap *pixmap = renderFzPixmap(page, resolution, ctx);
     if (!pixmap || !ctx)
         return qpixmap;
 
     // Assume that the pixmap is in RGB colorspace.
     // Write the pixmap in PNM format to a buffer using MuPDF tools.
-    fz_buffer *buffer = NULL;
-    fz_output *out = NULL;
+    fz_buffer *buffer = nullptr;
+    fz_output *out = nullptr;
     fz_var(pixmap);
     fz_var(buffer);
     fz_var(out);
@@ -139,22 +134,15 @@ const QPixmap MuPdfRenderer::renderPixmap(const int page, const qreal resolution
     return qpixmap;
 }
 
-bool MuPdfRenderer::isValid() const
-{
-    return doc && doc->isValid();
-}
-
 const PngPixmap * MuPdfRenderer::renderPng(const int page, const qreal resolution) const
 {
     fz_context *ctx;
     fz_pixmap *pixmap = renderFzPixmap(page, resolution, ctx);
     if (!pixmap || !ctx)
-        return NULL;
+        return nullptr;
 
     // Save the pixmap to buffer in PNG format.
-    fz_buffer *buffer = NULL;
-    fz_var(pixmap);
-    fz_var(buffer);
+    fz_buffer *buffer = nullptr;
     fz_try(ctx)
         // Here valgrind complained about "Use of uninitialised value of size 8"
         buffer = fz_new_buffer_from_pixmap_as_png(ctx, pixmap, fz_default_color_params);
@@ -165,22 +153,20 @@ const PngPixmap * MuPdfRenderer::renderPng(const int page, const qreal resolutio
         warn_msg("Fitz falied to allocate buffer:" << fz_caught_message(ctx));
         fz_drop_buffer(ctx, buffer);
         fz_drop_context(ctx);
-        return NULL;
+        return nullptr;
     }
 
     // Convert the buffer data to QByteArray.
 #if (FZ_VERSION_MAJOR >= 1) && (FZ_VERSION_MINOR >= 17)
-    const QByteArray *data = buffer ? new QByteArray(reinterpret_cast<const char*>(buffer->data), buffer->len) : NULL;
+    const QByteArray *data = buffer ? new QByteArray(reinterpret_cast<const char*>(buffer->data), buffer->len) : nullptr;
 #else
-    const QByteArray *data;
+    const QByteArray *data = nullptr;
     if (buffer)
     {
         unsigned char *buffer_data;
         const int buffer_size = fz_buffer_storage(ctx, buffer, &buffer_data);
         data = new QByteArray(reinterpret_cast<const char*>(buffer_data), buffer_size);
     }
-    else
-        data = NULL;
 #endif
     fz_drop_buffer(ctx, buffer);
     fz_drop_context(ctx);

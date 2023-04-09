@@ -17,6 +17,7 @@
 #include <QFileDialog>
 #include <QSizePolicy>
 #include "src/gui/settingswidget.h"
+#include "src/gui/actionbutton.h"
 #include "src/names.h"
 #include "src/preferences.h"
 #include "src/gui/keyinputlabel.h"
@@ -86,7 +87,7 @@ void SettingsWidget::initShortcuts()
     {
         input_shortcut = new KeyInputLabel(it.key(), *it, shortcuts);
         QLabel *label = new QLabel(action_to_string.value(*it, "unknown"), shortcuts);
-        label->setToolTip(action_to_description(*it));
+        label->setToolTip(ActionButton::tr(action_to_description(*it)));
         layout->addRow(label, input_shortcut);
     }
     QMap<int, QString> tool_to_string;
@@ -97,7 +98,7 @@ void SettingsWidget::initShortcuts()
     {
         input_shortcut = new KeyInputLabel(it.key(), *it, shortcuts);
         QLabel *label = new QLabel(tool_to_string.value((*it)->tool(), "unknown"), shortcuts);
-        label->setToolTip(tool_to_description((*it)->tool()));
+        label->setToolTip(Tool::tr(tool_to_description((*it)->tool())));
         layout->addRow(label, input_shortcut);
     }
     QPushButton *add_shortcut_button = new QPushButton(tr("Add new shortcut"), shortcuts);

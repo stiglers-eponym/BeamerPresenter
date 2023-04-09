@@ -58,11 +58,11 @@ The [releases](https://github.com/stiglers-eponym/BeamerPresenter/releases) come
 For example, the commands for installing BeamerPresenter with poppler as PDF engine and Qt 5 after downloading the corresponding file are:
 ```sh
 # Ubuntu 20.04:
-sudo apt install ./beamerpresenter-poppler-0.2.2-qt5-focal-x86_64.deb
+sudo apt install ./beamerpresenter-poppler-0.2.3-qt5-focal-x86_64.deb
 # Ubuntu 22.04:
-sudo apt install ./beamerpresenter-poppler-0.2.2-qt5-jammy-x86_64.deb
+sudo apt install ./beamerpresenter-poppler-0.2.3-qt5-jammy-x86_64.deb
 # Arch/Manjaro:
-sudo pacman -U beamerpresenter-poppler-qt5-0.2.2-1-x86_64.pkg.tar.zst
+sudo pacman -U beamerpresenter-poppler-qt5-0.2.3-1-x86_64.pkg.tar.zst
 # Flatpak:
 flatpak install org.kde.Platform/x86_64/5.15-21.08 # can be skipped if already installed
 flatpak install beamerpresenter.flatpak
@@ -118,20 +118,19 @@ If you find bugs or have suggestions for improvements, please
 When reporting bugs, please include the version string of BeamerPresenter
 (`beamerpresenter --version`).
 
-### Known problems
+The following known problems have low priority. If one of these problems is relevant for you, please also open an issue.
 * Multimedia
+    * In Arch Linux the media player regularly hangs up when using qt6-multimedia-gstreamer. With qt6-multimedia-ffmpeg it should work.
     * Video performance can be bad while drawing or using the magnifier.
-    * Sounds included as sound link (not sound annotation) are unsupported when using MuPDF (this affects LaTeX beamer's `\sound` command; workaround: use `\movie` instead).
     * Some slide transitions need to stop videos. Fly slide transitions during videos look strange.
+    * Sounds included as sound link (not sound annotation) are unsupported when using MuPDF (this affects LaTeX beamer's `\sound` command; workaround: use `\movie` instead).
 * Changing tool buttons via the user interface is non-permanent. Permanent changes in the user interface require manual changes in the JSON-formatted configuration file.
-* Clipboard compatibility with external applications using the SVG standard is experimental. SVGs generated with BeamerPresenter may be corrupt and might lead to the crash of other applications. Pasting from other applications will usually not work.
 * The detection of unsaved changes is not reliable. The warning of unsaved changes can be avoided by using the action "quit unsafe" instead of "quit".
-* Sometimes slides are not automatically rendered to the correct size when resizing the window. Changing or updating the page should solve this.
+* Sometimes slides are not automatically rendered to the correct size after resizing the window. Changing or updating the page should solve this.
 * The cache of slides does not handle PDF files with varying page sizes correctly.
 * If a preview shows specific overlays, slide changes adding or removing synchronization of this preview with another widget may lead to short flickering. Slide transitions during such slide changes can contain some ugly artifacts.
-* When compiling with both MuPDF and Poppler opening some PDF files with renderer=poppler can result in a segmentation fault (when loading the document or when rendering a certain page), apparently due to a linkage problem. It is recommended to compile with only one PDF engine.
-* In MuPDF only a smaller subset of PDF link types is supported (only internal navigation links and external links) as compared to the Poppler version.
-* Slide transitions and animations might not work as expected if (at least) one window showing the slide is currently hidden and not updated by the window manager.
+* When compiling with both MuPDF and Poppler, opening some PDF files with renderer=poppler can result in a segmentation fault (when loading the document or when rendering a certain page). It is recommended to compile with only one PDF engine.
+* When compiling with MuPDF, only internal navigation links and external links are supported. More link types are available in the Poppler version.
 
 
 ## License
@@ -143,4 +142,4 @@ When not using MuPDF in any way, this software may, alternatively to the AGPL, b
 BeamerPresenter is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-GNU General Public License for more details.
+[GNU General Public License](https://www.gnu.org/licenses/gpl-3.0.html) for more details.

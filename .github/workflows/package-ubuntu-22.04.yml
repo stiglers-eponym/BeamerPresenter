@@ -4,10 +4,11 @@ on:
   push:
     tags:
       - "v*"
+  workflow_dispatch:
 
 env:
-  MUPDF_VERSION: 1.20.3
-  MUPDF_SHA256SUM: 108c4ad87d5cdd3ad47a3a872acdf101693283442469629dabb7631f1f3a0b3f
+  MUPDF_VERSION: 1.21.1
+  MUPDF_SHA256SUM: 66a43490676c7f7c2ff74067328ef13285506fcc758d365ae27ea3668bd5e620
 
 jobs:
   package:
@@ -16,13 +17,14 @@ jobs:
 
     steps:
     - name: Checkout repository
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
 
     - name: Install Dependencies
       run: >
+        sudo apt-get update -y;
         sudo apt-get install -y --no-install-recommends
         cmake
-        zstd
+        lunzip
         zlib1g-dev
         libmupdf-dev
         libmujs-dev
@@ -73,7 +75,7 @@ jobs:
         mv beamerpresenter-poppler-qt5-x86_64.deb beamerpresenter-poppler-qt5-jammy-x86_64.deb
 
     - name: Archive package with Qt5 + Poppler
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       with:
         name: beamerpresenter-poppler-qt5-jammy-x86_64.deb
         path: /home/runner/work/BeamerPresenter/BeamerPresenter/beamerpresenter-poppler-qt5-jammy-x86_64.deb
@@ -108,7 +110,7 @@ jobs:
         mv beamerpresenter-mupdf-qt5-x86_64.deb beamerpresenter-mupdf-qt5-jammy-x86_64.deb
 
     - name: Archive package with Qt5 + MuPDF
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       with:
         name: beamerpresenter-mupdf-qt5-jammy-x86_64.deb
         path: /home/runner/work/BeamerPresenter/BeamerPresenter/beamerpresenter-mupdf-qt5-jammy-x86_64.deb
@@ -143,7 +145,7 @@ jobs:
         mv beamerpresenter-mupdf-qt6-x86_64.deb beamerpresenter-mupdf-qt6-jammy-x86_64.deb
 
     - name: Archive package with Qt6 + MuPDF
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       with:
         name: beamerpresenter-mupdf-qt6-jammy-x86_64.deb
         path: /home/runner/work/BeamerPresenter/BeamerPresenter/beamerpresenter-mupdf-qt6-jammy-x86_64.deb
@@ -151,9 +153,9 @@ jobs:
 
     - name: Download and unpack MuPDF
       run: |
-        wget -q https://mupdf.com/downloads/archive/mupdf-${{ env.MUPDF_VERSION }}-source.tar.zst
-        sha256sum -c - <<< "${{ env.MUPDF_SHA256SUM }} mupdf-${{ env.MUPDF_VERSION }}-source.tar.zst"
-        tar -xf "mupdf-${{ env.MUPDF_VERSION }}-source.tar.zst"
+        wget -q https://mupdf.com/downloads/archive/mupdf-${{ env.MUPDF_VERSION }}-source.tar.lz
+        sha256sum -c - <<< "${{ env.MUPDF_SHA256SUM }} mupdf-${{ env.MUPDF_VERSION }}-source.tar.lz"
+        tar -xf "mupdf-${{ env.MUPDF_VERSION }}-source.tar.lz"
 
     - name: Build MuPDF
       run : |
@@ -200,7 +202,7 @@ jobs:
         mv beamerpresenter-mupdf-small-qt5-x86_64.deb beamerpresenter-mupdf-small-qt5-jammy-x86_64.deb
 
     - name: Archive package with Qt5 + small MuPDF
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       with:
         name: beamerpresenter-mupdf-small-qt5-jammy-x86_64.deb
         path: /home/runner/work/BeamerPresenter/BeamerPresenter/beamerpresenter-mupdf-small-qt5-jammy-x86_64.deb
@@ -239,7 +241,7 @@ jobs:
         mv beamerpresenter-mupdf-small-qt6-x86_64.deb beamerpresenter-mupdf-small-qt6-jammy-x86_64.deb
 
     - name: Archive package with Qt6 + small MuPDF
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       with:
         name: beamerpresenter-mupdf-small-qt6-jammy-x86_64.deb
         path: /home/runner/work/BeamerPresenter/BeamerPresenter/beamerpresenter-mupdf-small-qt6-jammy-x86_64.deb

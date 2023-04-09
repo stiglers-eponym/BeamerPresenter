@@ -49,6 +49,7 @@ SlideScene::SlideScene(const PdfMaster *master, const PagePart part, QObject *pa
     master(master),
     page_part(part)
 {
+    setSceneRect(0, 0, 4000, 3000);
     connect(this, &SlideScene::sendNewPath, master, &PdfMaster::receiveNewPath, Qt::DirectConnection);
     connect(this, &SlideScene::replacePath, master, &PdfMaster::replacePath, Qt::DirectConnection);
     connect(this, &SlideScene::sendHistoryStep, master, &PdfMaster::addHistoryStep, Qt::DirectConnection);
@@ -66,6 +67,9 @@ SlideScene::SlideScene(const PdfMaster *master, const PagePart part, QObject *pa
 SlideScene::~SlideScene()
 {
     delete animation;
+    if (searchResults)
+        removeItem(searchResults);
+    delete searchResults;
     QList<QGraphicsItem*> list = items();
     while (!list.isEmpty())
         removeItem(list.takeLast());
@@ -86,7 +90,7 @@ SlideScene::~SlideScene()
 
 void SlideScene::stopDrawing()
 {
-    debug_msg(DebugDrawing, "Stop drawing" << page << page_part);
+    debug_msg(DebugDrawing, "Stop drawing" << page << page_part << currentlyDrawnItem << currentItemCollection);
     if (currentlyDrawnItem)
     {
         BasicGraphicsPath *newpath = NULL;
@@ -96,8 +100,7 @@ void SlideScene::stopDrawing()
         case FullGraphicsPath::Type:
         {
             AbstractGraphicsPath *path = static_cast<AbstractGraphicsPath*>(currentlyDrawnItem);
-            if (preferences()->global_flags & Preferences::FinalizeDrawnPaths)
-                path->finalize();
+            path->finalize();
             emit sendNewPath(page | page_part, currentlyDrawnItem);
             if (path->getTool().shape() == DrawTool::Recognize)
             {
@@ -125,8 +128,22 @@ void SlideScene::stopDrawing()
             newpath = static_cast<LineGraphicsItem*>(currentlyDrawnItem)->toPath();
             break;
         case ArrowGraphicsItem::Type:
-            newpath = static_cast<ArrowGraphicsItem*>(currentlyDrawnItem)->toPath();
+        {
+            const auto newpaths = static_cast<ArrowGraphicsItem*>(currentlyDrawnItem)->toPath();
+            removeItem(currentlyDrawnItem);
+            delete currentlyDrawnItem;
+            currentlyDrawnItem = nullptr;
+            if (!newpaths.isEmpty())
+            {
+                for (auto item : newpaths)
+                {
+                    addItem(item);
+                    item->show();
+                }
+                emit sendAddPaths(page | page_part, reinterpret_cast<const QList<QGraphicsItem*>&>(newpaths));
+            }
             break;
+        }
         default:
             break;
         }
@@ -134,14 +151,15 @@ void SlideScene::stopDrawing()
         {
             removeItem(currentlyDrawnItem);
             delete currentlyDrawnItem;
+            currentlyDrawnItem = NULL;
             if (newpath)
             {
                 addItem(newpath);
                 newpath->show();
                 emit sendNewPath(page | page_part, newpath);
             }
+            currentlyDrawnItem = NULL;
         }
-        currentlyDrawnItem = NULL;
     }
     if (currentItemCollection)
     {
@@ -232,6 +250,15 @@ bool SlideScene::event(QEvent* event)
         device = int(Tool::TouchInput) | Tool::CancelEvent;
         break;
     case QEvent::Leave:
+    case QEvent::DragLeave:
+    case QEvent::TabletLeaveProximity:
+#if (QT_VERSION_MAJOR >= 6)
+    case QEvent::GraphicsSceneLeave:
+#endif
+    case QEvent::GraphicsSceneHoverLeave:
+    case QEvent::GraphicsSceneDragLeave:
+        /* Try to clean up pointers on the slide scene when the device
+         * leaves the scene. */
         for (auto tool : qAsConst(preferences()->current_tools))
         {
             if (tool && tool->tool() == Tool::Pointer)
@@ -338,7 +365,7 @@ void SlideScene::handleEvents(const int device, const QList<QPointF> &pos, const
         }
         default:
         {
-            QRectF point_rect = QRectF({0,0}, ptool->size()*QSize(2,2));
+            QRectF point_rect({0,0}, ptool->size()*QSize(2,2));
             for (auto point : ptool->pos())
             {
                 point_rect.moveCenter(point);
@@ -384,20 +411,18 @@ void SlideScene::handleEvents(const int device, const QList<QPointF> &pos, const
         clearSelection();
         debug_msg(DebugDrawing, "Trying to start writing text" << (device & Tool::AnyDevice) << focusItem());
         for (auto item : static_cast<const QList<QGraphicsItem*>>(items(pos.constFirst())))
-        {
             if (item->type() == TextGraphicsItem::Type)
             {
                 setFocusItem(item);
                 return;
             }
-        }
         TextGraphicsItem *item = new TextGraphicsItem();
         item->setFont(QFont(static_cast<const TextTool*>(tool)->font()));
         item->setDefaultTextColor(static_cast<const TextTool*>(tool)->color());
         addItem(item);
         item->show();
         item->setPos(pos.constFirst());
-        emit sendNewPath(page | page_part, NULL);
+        emit sendNewPath(page | page_part, nullptr);
         PathContainer *container = master->pathContainer(page | page_part);
         if (container)
         {
@@ -455,6 +480,7 @@ void SlideScene::handleSelectionStartEvents(SelectionTool *tool, const QPointF &
     if (tool->type() == SelectionTool::NoOperation)
     {
         clearSelection();
+        setFocusItem(nullptr);
         switch (tool->tool())
         {
         case Tool::BasicSelectionTool:
@@ -526,7 +552,8 @@ void SlideScene::handleSelectionStopEvents(SelectionTool *tool, const QPointF &p
          * However, because QTBUG-74935 is not fixed (since 3 years!), we need a workaround. */
         //setSelectionArea(path, Qt::ReplaceSelection, Qt::ContainsItemShape);
         clearSelection();
-        for (QGraphicsItem *item : items(path.boundingRect(), Qt::ContainsItemBoundingRect)) {
+        setFocusItem(nullptr);
+        for (QGraphicsItem *item : items(path.boundingRect(), Qt::IntersectsItemBoundingRect)) {
             if (path.contains(item->mapToScene(item->shape())))
                 item->setSelected(true);
         }
@@ -572,13 +599,14 @@ void SlideScene::receiveAction(const Action action)
 #endif
         break;
     case Unmute:
-        for (const auto &m : qAsConst(mediaItems))
+        if (!(slide_flags & SlideFlags::MuteSlide))
+            for (const auto &m : qAsConst(mediaItems))
 #if (QT_VERSION_MAJOR >= 6)
-            if (m.audio_out)
-                m.audio_out->setMuted(false);
+                if (m.audio_out)
+                    m.audio_out->setMuted(false);
 #else
-            if (m.player)
-                m.player->setMuted(false);
+                if (m.player)
+                    m.player->setMuted(false);
 #endif
         break;
     case CopyClipboard:
@@ -619,6 +647,7 @@ void SlideScene::receiveAction(const Action action)
         break;
     case ClearSelection:
         clearSelection();
+        setFocusItem(nullptr);
         break;
     case PdfFilesChanged:
         for (const auto &media : mediaItems)
@@ -670,6 +699,7 @@ void SlideScene::navigationEvent(const int newpage, SlideScene *newscene)
     debug_msg(DebugPageChange, "scene" << this << "navigates to" << newpage << "as" << newscene);
     pauseMedia();
     clearSelection();
+    setFocusItem(nullptr);
     if (pageTransitionItem)
     {
         removeItem(pageTransitionItem);
@@ -688,7 +718,7 @@ void SlideScene::navigationEvent(const int newpage, SlideScene *newscene)
     if ((!newscene || newscene == this) && page != newpage && (slide_flags & ShowTransitions))
     {
         SlideTransition transition = master->transition(newpage > page ? newpage : page);
-        if (transition.type > 0)
+        if (transition.type > 0 && transition.duration > 1e-3)
         {
             if (newpage < page)
                 transition.invert();
@@ -708,15 +738,14 @@ void SlideScene::navigationEvent(const int newpage, SlideScene *newscene)
         loadMedia(page);
         if (slide_flags & ShowDrawings)
         {
-            PathContainer *paths;
+            PathContainer *paths {nullptr};
             emit requestNewPathContainer(&paths, page | page_part);
             if (paths)
-            {
-                const auto end = paths->cend();
-                for (auto it = paths->cbegin(); it != end; ++it)
-                    addItem(*it);
-            }
+                for (auto path : *paths)
+                    addItem(path);
         }
+        if (slide_flags & ShowSearchResults)
+            updateSearchResults();
     }
     invalidate();
     emit finishTransition();
@@ -726,10 +755,8 @@ void SlideScene::loadMedia(const int page)
 {
     if (!(slide_flags & LoadMedia))
         return;
-    const QList<MediaAnnotation> *list = master->getDocument()->annotations(page);
-    if (!list)
-        return;
-    for (const auto &annotation : *list)
+    const QList<MediaAnnotation> list = master->getDocument()->annotations(page);
+    for (const auto &annotation : list)
     {
         if (annotation.type != MediaAnnotation::InvalidAnnotation)
         {
@@ -747,7 +774,6 @@ void SlideScene::loadMedia(const int page)
                 item.player->play();
         }
     }
-    delete list;
 }
 
 void SlideScene::postRendering()
@@ -764,7 +790,7 @@ void SlideScene::postRendering()
         debug_verbose(DebugMedia, "Start cleaning up media" << mediaItems.size());
         for (auto &media : mediaItems)
         {
-            if (media.player == NULL)
+            if (media.player == nullptr)
                 continue;
             if (!media.pages.empty())
             {
@@ -774,12 +800,12 @@ void SlideScene::postRendering()
             }
             debug_msg(DebugMedia, "Deleting media item:" << media.annotation.file << media.pages.size());
             delete media.player;
-            media.player = NULL;
+            media.player = nullptr;
             delete media.item;
-            media.item = NULL;
+            media.item = nullptr;
 #if (QT_VERSION_MAJOR >= 6)
             delete media.audio_out;
-            media.audio_out = NULL;
+            media.audio_out = nullptr;
 #endif
         }
     }
@@ -787,13 +813,10 @@ void SlideScene::postRendering()
 
 void SlideScene::cacheMedia(const int page)
 {
-    const QList<MediaAnnotation> *list = master->getDocument()->annotations(page);
-    if (!list)
-        return;
-    for (const auto &annotation : *list)
+    const QList<MediaAnnotation> list = master->getDocument()->annotations(page);
+    for (const auto &annotation : list)
         if (annotation.type != MediaAnnotation::InvalidAnnotation)
             getMediaItem(annotation, page);
-    delete list;
 }
 
 slide::MediaItem &SlideScene::getMediaItem(const MediaAnnotation &annotation, const int page)
@@ -802,8 +825,8 @@ slide::MediaItem &SlideScene::getMediaItem(const MediaAnnotation &annotation, co
     {
         if (mediaitem.annotation == annotation && mediaitem.player)
         {
-            debug_msg(DebugMedia, "Found media in cache" << annotation.file << annotation.rect);
             mediaitem.pages.insert(page);
+            debug_msg(DebugMedia, "Found media in cache" << annotation.file << annotation.rect << QList<int>(mediaitem.pages.cbegin(), mediaitem.pages.cend()));
             return mediaitem;
         }
     }
@@ -874,6 +897,7 @@ slide::MediaItem &SlideScene::getMediaItem(const MediaAnnotation &annotation, co
     case MediaAnnotation::Repeat:
     default:
 #if (QT_VERSION_MAJOR >= 6)
+        player->setLoops(QMediaPlayer::Infinite);
         connect(player, &MediaPlayer::mediaStatusChanged, player, &MediaPlayer::repeatIfFinished);
 #else
         if (player->playlist())
@@ -896,140 +920,53 @@ void SlideScene::startTransition(const int newpage, const SlideTransition &trans
         static_cast<SlideView*>(view)->prepareTransition(pageTransitionItem);
     page = newpage;
     PixmapGraphicsItem *oldPage = pageTransitionItem;
-    if ((transition.type == SlideTransition::Fly || transition.type == SlideTransition::FlyRectangle) && !views().isEmpty())
+    if ((transition.type == SlideTransition::Fly || transition.type == SlideTransition::FlyRectangle)
+        && !views().isEmpty()
+        && (transition.properties & SlideTransition::Outwards) == 0)
     {
-        if (!(transition.properties & SlideTransition::Outwards))
-        {
-            pageTransitionItem = new PixmapGraphicsItem(sceneRect());
-            connect(pageTransitionItem, &QObject::destroyed, oldPage, &PixmapGraphicsItem::deleteLater);
-            oldPage->setZValue(1e1);
-        }
+        pageTransitionItem = new PixmapGraphicsItem(sceneRect());
+        connect(pageTransitionItem, &QObject::destroyed, oldPage, &PixmapGraphicsItem::deleteLater);
+        oldPage->setZValue(1e1);
     }
     else
         emit navigationToViews(page, this);
     debug_msg(DebugTransitions, "transition:" << transition.type << transition.duration << transition.angle << transition.properties);
     QList<QGraphicsItem*> list = items();
+    QGraphicsItem *item;
     while (!list.isEmpty())
-        removeItem(list.takeLast());
+    {
+        item = list.takeLast();
+        if (item != pageItem)
+            removeItem(item);
+    }
     pageItem->setOpacity(1.);
-    addItem(pageItem);
+    if (pageItem->scene() != this)
+        addItem(pageItem);
     loadMedia(page);
     if (slide_flags & ShowDrawings)
     {
-        PathContainer *paths;
+        PathContainer *paths {nullptr};
         emit requestNewPathContainer(&paths, page | page_part);
         if (paths)
-        {
-            const auto end = paths->cend();
-            for (auto it = paths->cbegin(); it != end; ++it)
-                addItem(*it);
-        }
+            for (const auto path : *paths)
+                addItem(path);
     }
     delete animation;
-    animation = NULL;
+    animation = nullptr;
     switch (transition.type)
     {
     case SlideTransition::Split:
-    {
-        const bool outwards = transition.properties & SlideTransition::Outwards;
-        pageTransitionItem->setMaskType(outwards ? PixmapGraphicsItem::NegativeClipping : PixmapGraphicsItem::PositiveClipping);
-        QPropertyAnimation *propanim = new QPropertyAnimation(pageTransitionItem, "mask");
-        propanim->setDuration(1000*transition.duration);
-        QRectF rect = sceneRect();
-        if (outwards)
-            propanim->setEndValue(rect);
-        else
-            propanim->setStartValue(rect);
-        if (transition.properties & SlideTransition::Vertical)
-        {
-            rect.moveTop(rect.top() + rect.height()/2);
-            rect.setHeight(0.);
-        }
-        else
-        {
-            rect.moveLeft(rect.left() + rect.width()/2);
-            rect.setWidth(0.);
-        }
-        if (outwards)
-        {
-            propanim->setStartValue(rect);
-            pageTransitionItem->setMask(rect);
-        }
-        else
-            propanim->setEndValue(rect);
-        animation = propanim;
+        createSplitTransition(transition, pageTransitionItem);
         break;
-    }
     case SlideTransition::Blinds:
-    {
-        const bool vertical = transition.properties & SlideTransition::Vertical;
-        pageTransitionItem->setMaskType(vertical ? PixmapGraphicsItem::VerticalBlinds : PixmapGraphicsItem::HorizontalBlinds);
-        QPropertyAnimation *propanim = new QPropertyAnimation(pageTransitionItem, "mask");
-        propanim->setDuration(1000*transition.duration);
-        QRectF rect = sceneRect();
-        if (vertical)
-            rect.setWidth(rect.width()/BLINDS_NUMBER_V);
-        else
-            rect.setHeight(rect.height()/BLINDS_NUMBER_H);
-        propanim->setStartValue(rect);
-        if (vertical)
-            rect.setWidth(0);
-        else
-            rect.setHeight(0);
-        propanim->setEndValue(rect);
-        animation = propanim;
+        createBlindsTransition(transition, pageTransitionItem);
         break;
-    }
     case SlideTransition::Box:
-    {
-        const bool outwards = transition.properties & SlideTransition::Outwards;
-        pageTransitionItem->setMaskType(outwards ? PixmapGraphicsItem::NegativeClipping : PixmapGraphicsItem::PositiveClipping);
-        QPropertyAnimation *propanim = new QPropertyAnimation(pageTransitionItem, "mask");
-        propanim->setDuration(1000*transition.duration);
-        QRectF rect = sceneRect();
-        if (outwards)
-            propanim->setEndValue(rect);
-        else
-            propanim->setStartValue(rect);
-        rect.moveTopLeft(rect.center());
-        rect.setSize({0,0});
-        if (outwards)
-        {
-            propanim->setStartValue(rect);
-            pageTransitionItem->setMask(rect);
-        }
-        else
-            propanim->setEndValue(rect);
-        animation = propanim;
+        createBoxTransition(transition, pageTransitionItem);
         break;
-    }
     case SlideTransition::Wipe:
-    {
-        QPropertyAnimation *propanim = new QPropertyAnimation(pageTransitionItem, "mask");
-        pageTransitionItem->setMaskType(PixmapGraphicsItem::PositiveClipping);
-        propanim->setDuration(1000*transition.duration);
-        QRectF rect = sceneRect();
-        pageTransitionItem->setMask(rect);
-        propanim->setStartValue(rect);
-        switch (transition.angle)
-        {
-        case 90:
-            rect.setBottom(rect.top()+1);
-            break;
-        case 180:
-            rect.setRight(rect.left()+1);
-            break;
-        case 270:
-            rect.setTop(rect.bottom()-1);
-            break;
-        default:
-            rect.setLeft(rect.right()-1);
-            break;
-        }
-        propanim->setEndValue(rect);
-        animation = propanim;
+        createWipeTransition(transition, pageTransitionItem);
         break;
-    }
     case SlideTransition::Dissolve:
     {
         pageTransitionItem->setOpacity(0.);
@@ -1053,173 +990,20 @@ void SlideScene::startTransition(const int newpage, const SlideTransition &trans
     }
     case SlideTransition::Fly:
     case SlideTransition::FlyRectangle:
-    {
-        const bool outwards = transition.properties & SlideTransition::Outwards;
-        for (const auto &view : static_cast<const QList<QGraphicsView*>>(views()))
-        {
-            SlideView *slideview = static_cast<SlideView*>(view);
-            slideview->pageChangedBlocking(page, this);
-            slideview->prepareFlyTransition(outwards, oldPage, pageTransitionItem);
-        }
-        if (!outwards)
-            addItem(oldPage);
-        pageItem->setZValue(-1e4);
-        pageTransitionItem->setZValue(1e5);
-
-        QPropertyAnimation *propanim = new QPropertyAnimation(pageTransitionItem, "x");
-        animation = propanim;
-        propanim->setDuration(1000*transition.duration);
-        switch (transition.angle)
-        {
-        case 90:
-            propanim->setPropertyName("y");
-            propanim->setStartValue(outwards ? 0. : sceneRect().height());
-            propanim->setEndValue(outwards ? -sceneRect().height() : 0.);
-            break;
-        case 180:
-            propanim->setStartValue(outwards ? 0. : sceneRect().width());
-            propanim->setEndValue(outwards ? -sceneRect().width() : 0.);
-            break;
-        case 270:
-            propanim->setPropertyName("y");
-            propanim->setStartValue(outwards ? 0. : -sceneRect().height());
-            propanim->setEndValue(outwards ? sceneRect().height() : 0.);
-            break;
-        default:
-            propanim->setStartValue(outwards ? 0. : -sceneRect().width());
-            propanim->setEndValue(outwards ? sceneRect().width() : 0.);
-            break;
-        }
-        propanim->setEasingCurve(outwards ? QEasingCurve::InSine : QEasingCurve::OutSine);
+        createFlyTransition(transition, pageTransitionItem, oldPage);
         break;
-    }
     case SlideTransition::Push:
-    {
-        /* TODO: For push transitions the new page is not ready when
-         * the animation starts. Instead of the new page, first the old
-         * page is shown where the new page is expected. However, this
-         * is usually only noted when the window geometry does not match
-         * the slide geometry. */
-        QPropertyAnimation *propanim = new QPropertyAnimation(this, "sceneRect");
-        propanim->setDuration(1000*transition.duration);
-        pageTransitionItem->setZValue(-1e3);
-        QRectF movedrect = sceneRect();
-        switch (transition.angle)
-        {
-        case 90:
-            movedrect.moveBottom(movedrect.top());
-            break;
-        case 180:
-            movedrect.moveRight(movedrect.left());
-            break;
-        case 270:
-            movedrect.moveTop(movedrect.bottom());
-            break;
-        default:
-            movedrect.moveLeft(movedrect.right());
-            break;
-        }
-        pageTransitionItem->setRect(movedrect);
-        propanim->setStartValue(movedrect);
-        propanim->setEndValue(sceneRect());
-        propanim->setEasingCurve(QEasingCurve::InOutSine);
-        animation = propanim;
+        createPushTransition(transition, pageTransitionItem);
         break;
-    }
     case SlideTransition::Cover:
-    {
-        QParallelAnimationGroup *groupanim = new QParallelAnimationGroup();
-        QPropertyAnimation *sceneanim = new QPropertyAnimation(this, "sceneRect", groupanim);
-        QPropertyAnimation *bganim = new QPropertyAnimation(pageTransitionItem, "x", groupanim);
-        sceneanim->setDuration(1000*transition.duration);
-        bganim->setDuration(1000*transition.duration);
-        pageTransitionItem->setZValue(-1e3);
-        QRectF movedrect = sceneRect();
-        switch (transition.angle)
-        {
-        case 90:
-            bganim->setPropertyName("y");
-            movedrect.moveBottom(movedrect.top());
-            bganim->setStartValue(movedrect.y());
-            bganim->setEndValue(sceneRect().y());
-            break;
-        case 180:
-            movedrect.moveRight(movedrect.left());
-            bganim->setStartValue(movedrect.x());
-            bganim->setEndValue(sceneRect().x());
-            break;
-        case 270:
-            bganim->setPropertyName("y");
-            movedrect.moveTop(movedrect.bottom());
-            bganim->setStartValue(movedrect.y());
-            bganim->setEndValue(sceneRect().y());
-            break;
-        default:
-            movedrect.moveLeft(movedrect.right());
-            bganim->setStartValue(movedrect.x());
-            bganim->setEndValue(sceneRect().x());
-            break;
-        }
-        sceneanim->setStartValue(movedrect);
-        sceneanim->setEndValue(sceneRect());
-        groupanim->addAnimation(sceneanim);
-        groupanim->addAnimation(bganim);
-        sceneanim->setEasingCurve(QEasingCurve::OutSine);
-        bganim->setEasingCurve(QEasingCurve::OutSine);
-        animation = groupanim;
+        createCoverTransition(transition, pageTransitionItem);
         break;
-    }
     case SlideTransition::Uncover:
-    {
-        QPropertyAnimation *propanim = new QPropertyAnimation();
-        propanim->setDuration(1000*transition.duration);
-        switch (transition.angle)
-        {
-        case 90:
-            propanim->setPropertyName("y");
-            propanim->setStartValue(0.);
-            propanim->setEndValue(-sceneRect().height());
-            break;
-        case 180:
-            propanim->setPropertyName("x");
-            propanim->setStartValue(0.);
-            propanim->setEndValue(-sceneRect().width());
-            break;
-        case 270:
-            propanim->setPropertyName("y");
-            propanim->setStartValue(0.);
-            propanim->setEndValue(sceneRect().height());
-            break;
-        default:
-            propanim->setPropertyName("x");
-            propanim->setStartValue(0.);
-            propanim->setEndValue(sceneRect().width());
-            break;
-        }
-        propanim->setTargetObject(pageTransitionItem);
-        propanim->setEasingCurve(QEasingCurve::InSine);
-        animation = propanim;
+        createUncoverTransition(transition, pageTransitionItem);
         break;
-    }
     case SlideTransition::Fade:
-    {
-        pageTransitionItem->setOpacity(0.);
-        QParallelAnimationGroup *groupanim = new QParallelAnimationGroup();
-        QPropertyAnimation *oldpageanim = new QPropertyAnimation(pageTransitionItem, "opacity", groupanim);
-        QPropertyAnimation *newpageanim = new QPropertyAnimation(pageItem, "opacity", groupanim);
-        oldpageanim->setDuration(1000*transition.duration);
-        oldpageanim->setStartValue(1.);
-        oldpageanim->setEndValue(0.);
-        newpageanim->setDuration(1000*transition.duration);
-        newpageanim->setStartValue(0.);
-        newpageanim->setEndValue(1.);
-        groupanim->addAnimation(oldpageanim);
-        groupanim->addAnimation(newpageanim);
-        oldpageanim->setEasingCurve(QEasingCurve::OutQuart);
-        newpageanim->setEasingCurve(QEasingCurve::InQuart);
-        animation = groupanim;
+        createFadeTransition(transition, pageTransitionItem);
         break;
-    }
     }
     if (animation)
     {
@@ -1229,6 +1013,275 @@ void SlideScene::startTransition(const int newpage, const SlideTransition &trans
     }
 }
 
+void SlideScene::createSplitTransition(const SlideTransition &transition, PixmapGraphicsItem *pageTransitionItem)
+{
+    const bool outwards = transition.properties & SlideTransition::Outwards;
+    pageTransitionItem->setMaskType(outwards ? PixmapGraphicsItem::NegativeClipping : PixmapGraphicsItem::PositiveClipping);
+    QPropertyAnimation *propanim = new QPropertyAnimation(pageTransitionItem, "mask");
+    propanim->setDuration(1000*transition.duration);
+    QRectF rect = sceneRect();
+    if (outwards)
+        propanim->setEndValue(rect);
+    else
+        propanim->setStartValue(rect);
+    if (transition.properties & SlideTransition::Vertical)
+    {
+        rect.moveTop(rect.top() + rect.height()/2);
+        rect.setHeight(0.);
+    }
+    else
+    {
+        rect.moveLeft(rect.left() + rect.width()/2);
+        rect.setWidth(0.);
+    }
+    if (outwards)
+    {
+        propanim->setStartValue(rect);
+        pageTransitionItem->setMask(rect);
+    }
+    else
+        propanim->setEndValue(rect);
+    animation = propanim;
+}
+
+void SlideScene::createBlindsTransition(const SlideTransition &transition, PixmapGraphicsItem *pageTransitionItem)
+{
+    const bool vertical = transition.properties & SlideTransition::Vertical;
+    pageTransitionItem->setMaskType(vertical ? PixmapGraphicsItem::VerticalBlinds : PixmapGraphicsItem::HorizontalBlinds);
+    QPropertyAnimation *propanim = new QPropertyAnimation(pageTransitionItem, "mask");
+    propanim->setDuration(1000*transition.duration);
+    QRectF rect = sceneRect();
+    if (vertical)
+        rect.setWidth(rect.width()/BLINDS_NUMBER_V);
+    else
+        rect.setHeight(rect.height()/BLINDS_NUMBER_H);
+    propanim->setStartValue(rect);
+    if (vertical)
+        rect.setWidth(0);
+    else
+        rect.setHeight(0);
+    propanim->setEndValue(rect);
+    animation = propanim;
+}
+
+void SlideScene::createBoxTransition(const SlideTransition &transition, PixmapGraphicsItem *pageTransitionItem)
+{
+    const bool outwards = transition.properties & SlideTransition::Outwards;
+    pageTransitionItem->setMaskType(outwards ? PixmapGraphicsItem::NegativeClipping : PixmapGraphicsItem::PositiveClipping);
+    QPropertyAnimation *propanim = new QPropertyAnimation(pageTransitionItem, "mask");
+    propanim->setDuration(1000*transition.duration);
+    QRectF rect = sceneRect();
+    if (outwards)
+        propanim->setEndValue(rect);
+    else
+        propanim->setStartValue(rect);
+    rect.moveTopLeft(rect.center());
+    rect.setSize({0,0});
+    if (outwards)
+    {
+        propanim->setStartValue(rect);
+        pageTransitionItem->setMask(rect);
+    }
+    else
+        propanim->setEndValue(rect);
+    animation = propanim;
+}
+
+void SlideScene::createWipeTransition(const SlideTransition &transition, PixmapGraphicsItem *pageTransitionItem)
+{
+    QPropertyAnimation *propanim = new QPropertyAnimation(pageTransitionItem, "mask");
+    pageTransitionItem->setMaskType(PixmapGraphicsItem::PositiveClipping);
+    propanim->setDuration(1000*transition.duration);
+    QRectF rect = sceneRect();
+    pageTransitionItem->setMask(rect);
+    propanim->setStartValue(rect);
+    switch (transition.angle)
+    {
+    case 90:
+        rect.setBottom(rect.top()+1);
+        break;
+    case 180:
+        rect.setRight(rect.left()+1);
+        break;
+    case 270:
+        rect.setTop(rect.bottom()-1);
+        break;
+    default:
+        rect.setLeft(rect.right()-1);
+        break;
+    }
+    propanim->setEndValue(rect);
+    animation = propanim;
+}
+
+void SlideScene::createFlyTransition(const SlideTransition &transition, PixmapGraphicsItem *pageTransitionItem, PixmapGraphicsItem *oldPage)
+{
+    const bool outwards = transition.properties & SlideTransition::Outwards;
+    for (const auto &view : static_cast<const QList<QGraphicsView*>>(views()))
+    {
+        SlideView *slideview = static_cast<SlideView*>(view);
+        slideview->pageChangedBlocking(page, this);
+        slideview->prepareFlyTransition(outwards, oldPage, pageTransitionItem);
+    }
+    if (!outwards)
+        addItem(oldPage);
+    pageItem->setZValue(-1e4);
+    pageTransitionItem->setZValue(1e5);
+
+    QPropertyAnimation *propanim = new QPropertyAnimation(pageTransitionItem, "x");
+    propanim->setDuration(1000*transition.duration);
+    switch (transition.angle)
+    {
+    case 90:
+        propanim->setPropertyName("y");
+        propanim->setStartValue(outwards ? 0. : sceneRect().height());
+        propanim->setEndValue(outwards ? -sceneRect().height() : 0.);
+        break;
+    case 180:
+        propanim->setStartValue(outwards ? 0. : sceneRect().width());
+        propanim->setEndValue(outwards ? -sceneRect().width() : 0.);
+        break;
+    case 270:
+        propanim->setPropertyName("y");
+        propanim->setStartValue(outwards ? 0. : -sceneRect().height());
+        propanim->setEndValue(outwards ? sceneRect().height() : 0.);
+        break;
+    default:
+        propanim->setStartValue(outwards ? 0. : -sceneRect().width());
+        propanim->setEndValue(outwards ? sceneRect().width() : 0.);
+        break;
+    }
+    propanim->setEasingCurve(outwards ? QEasingCurve::InSine : QEasingCurve::OutSine);
+    animation = propanim;
+}
+
+void SlideScene::createPushTransition(const SlideTransition &transition, PixmapGraphicsItem *pageTransitionItem)
+{
+    /* TODO: For push transitions the new page is not ready when
+     * the animation starts. Instead of the new page, first the old
+     * page is shown where the new page is expected. However, this
+     * is usually only noted when the window geometry does not match
+     * the slide geometry. */
+    QPropertyAnimation *propanim = new QPropertyAnimation(this, "sceneRect");
+    propanim->setDuration(1000*transition.duration);
+    pageTransitionItem->setZValue(-1e3);
+    QRectF movedrect = sceneRect();
+    switch (transition.angle)
+    {
+    case 90:
+        movedrect.moveBottom(movedrect.top());
+        break;
+    case 180:
+        movedrect.moveRight(movedrect.left());
+        break;
+    case 270:
+        movedrect.moveTop(movedrect.bottom());
+        break;
+    default:
+        movedrect.moveLeft(movedrect.right());
+        break;
+    }
+    pageTransitionItem->setRect(movedrect);
+    propanim->setStartValue(movedrect);
+    propanim->setEndValue(sceneRect());
+    propanim->setEasingCurve(QEasingCurve::InOutSine);
+    animation = propanim;
+}
+
+void SlideScene::createCoverTransition(const SlideTransition &transition, PixmapGraphicsItem *pageTransitionItem)
+{
+    QParallelAnimationGroup *groupanim = new QParallelAnimationGroup();
+    QPropertyAnimation *sceneanim = new QPropertyAnimation(this, "sceneRect", groupanim);
+    QPropertyAnimation *bganim = new QPropertyAnimation(pageTransitionItem, "x", groupanim);
+    sceneanim->setDuration(1000*transition.duration);
+    bganim->setDuration(1000*transition.duration);
+    pageTransitionItem->setZValue(-1e3);
+    QRectF movedrect = sceneRect();
+    switch (transition.angle)
+    {
+    case 90:
+        bganim->setPropertyName("y");
+        movedrect.moveBottom(movedrect.top());
+        bganim->setStartValue(movedrect.y());
+        bganim->setEndValue(sceneRect().y());
+        break;
+    case 180:
+        movedrect.moveRight(movedrect.left());
+        bganim->setStartValue(movedrect.x());
+        bganim->setEndValue(sceneRect().x());
+        break;
+    case 270:
+        bganim->setPropertyName("y");
+        movedrect.moveTop(movedrect.bottom());
+        bganim->setStartValue(movedrect.y());
+        bganim->setEndValue(sceneRect().y());
+        break;
+    default:
+        movedrect.moveLeft(movedrect.right());
+        bganim->setStartValue(movedrect.x());
+        bganim->setEndValue(sceneRect().x());
+        break;
+    }
+    sceneanim->setStartValue(movedrect);
+    sceneanim->setEndValue(sceneRect());
+    groupanim->addAnimation(sceneanim);
+    groupanim->addAnimation(bganim);
+    sceneanim->setEasingCurve(QEasingCurve::OutSine);
+    bganim->setEasingCurve(QEasingCurve::OutSine);
+    animation = groupanim;
+}
+
+void SlideScene::createUncoverTransition(const SlideTransition &transition, PixmapGraphicsItem *pageTransitionItem)
+{
+    QPropertyAnimation *propanim = new QPropertyAnimation();
+    propanim->setDuration(1000*transition.duration);
+    switch (transition.angle)
+    {
+    case 90:
+        propanim->setPropertyName("y");
+        propanim->setStartValue(0.);
+        propanim->setEndValue(-sceneRect().height());
+        break;
+    case 180:
+        propanim->setPropertyName("x");
+        propanim->setStartValue(0.);
+        propanim->setEndValue(-sceneRect().width());
+        break;
+    case 270:
+        propanim->setPropertyName("y");
+        propanim->setStartValue(0.);
+        propanim->setEndValue(sceneRect().height());
+        break;
+    default:
+        propanim->setPropertyName("x");
+        propanim->setStartValue(0.);
+        propanim->setEndValue(sceneRect().width());
+        break;
+    }
+    propanim->setTargetObject(pageTransitionItem);
+    propanim->setEasingCurve(QEasingCurve::InSine);
+    animation = propanim;
+}
+
+void SlideScene::createFadeTransition(const SlideTransition &transition, PixmapGraphicsItem *pageTransitionItem)
+{
+    pageTransitionItem->setOpacity(0.);
+    QParallelAnimationGroup *groupanim = new QParallelAnimationGroup();
+    QPropertyAnimation *oldpageanim = new QPropertyAnimation(pageTransitionItem, "opacity", groupanim);
+    QPropertyAnimation *newpageanim = new QPropertyAnimation(pageItem, "opacity", groupanim);
+    oldpageanim->setDuration(1000*transition.duration);
+    oldpageanim->setStartValue(1.);
+    oldpageanim->setEndValue(0.);
+    newpageanim->setDuration(1000*transition.duration);
+    newpageanim->setStartValue(0.);
+    newpageanim->setEndValue(1.);
+    groupanim->addAnimation(oldpageanim);
+    groupanim->addAnimation(newpageanim);
+    oldpageanim->setEasingCurve(QEasingCurve::OutQuart);
+    newpageanim->setEasingCurve(QEasingCurve::InQuart);
+    animation = groupanim;
+}
+
 void SlideScene::endTransition()
 {
     pageItem->setOpacity(1.);
@@ -1236,15 +1289,17 @@ void SlideScene::endTransition()
     {
         removeItem(pageTransitionItem);
         delete pageTransitionItem;
-        pageTransitionItem = NULL;
+        pageTransitionItem = nullptr;
     }
     if (animation)
     {
         animation->stop();
         delete animation;
-        animation = NULL;
+        animation = nullptr;
     }
     loadMedia(page);
+    if (slide_flags & ShowSearchResults)
+        updateSearchResults();
     invalidate();
     emit finishTransition();
 }
@@ -1288,6 +1343,7 @@ void SlideScene::startInputEvent(const DrawTool *tool, const QPointF &pos, const
     if (currentItemCollection || currentlyDrawnItem)
         return;
     clearSelection();
+    setFocusItem(nullptr);
     currentItemCollection = new QGraphicsItemGroup();
     addItem(currentItemCollection);
     currentItemCollection->show();
@@ -1341,54 +1397,50 @@ void SlideScene::stepInputEvent(const DrawTool *tool, const QPointF &pos, const 
         return;
     switch (currentlyDrawnItem->type())
     {
-        case BasicGraphicsPath::Type:
-        {
-            if (!currentItemCollection)
-                break;
-            BasicGraphicsPath *current_path = static_cast<BasicGraphicsPath*>(currentlyDrawnItem);
-            if (current_path->getTool() != *tool)
-                break;
-            FlexGraphicsLineItem *item = new FlexGraphicsLineItem(QLineF(current_path->lastPoint(), pos), tool->compositionMode());
-            current_path->addPoint(current_path->mapFromScene(pos));
-            item->setPen(tool->pen());
-            item->show();
-            addItem(item);
-            currentItemCollection->addToGroup(item);
-            currentItemCollection->show();
-            invalidate(item->sceneBoundingRect(), QGraphicsScene::ItemLayer);
+    case BasicGraphicsPath::Type:
+    {
+        if (!currentItemCollection)
             break;
-        }
-        case FullGraphicsPath::Type:
-        {
-            if (!currentItemCollection)
-                break;
-            FullGraphicsPath *current_path = static_cast<FullGraphicsPath*>(currentlyDrawnItem);
-            if (current_path->getTool() != *tool)
-                break;
-            FlexGraphicsLineItem *item = new FlexGraphicsLineItem(QLineF(current_path->lastPoint(), pos), tool->compositionMode());
-            current_path->addPoint(current_path->mapFromScene(pos), pressure);
-            QPen pen = tool->pen();
-            pen.setWidthF(pen.widthF() * pressure);
-            item->setPen(pen);
-            item->show();
-            addItem(item);
-            currentItemCollection->addToGroup(item);
-            currentItemCollection->show();
-            invalidate(item->sceneBoundingRect(), QGraphicsScene::ItemLayer);
+        BasicGraphicsPath *current_path = static_cast<BasicGraphicsPath*>(currentlyDrawnItem);
+        if (current_path->getTool() != *tool)
             break;
-        }
-        case RectGraphicsItem::Type:
-            static_cast<RectGraphicsItem*>(currentlyDrawnItem)->setSecondPoint(pos);
+        FlexGraphicsLineItem *item = new FlexGraphicsLineItem(QLineF(current_path->lastPoint(), pos), tool->compositionMode());
+        current_path->addPoint(current_path->mapFromScene(pos));
+        item->setPen(tool->pen());
+        currentItemCollection->addToGroup(item);
+        currentItemCollection->show();
+        invalidate(item->sceneBoundingRect(), QGraphicsScene::ItemLayer);
+        break;
+    }
+    case FullGraphicsPath::Type:
+    {
+        if (!currentItemCollection)
             break;
-        case EllipseGraphicsItem::Type:
-            static_cast<EllipseGraphicsItem*>(currentlyDrawnItem)->setSecondPoint(pos);
+        FullGraphicsPath *current_path = static_cast<FullGraphicsPath*>(currentlyDrawnItem);
+        if (current_path->getTool() != *tool)
             break;
-        case LineGraphicsItem::Type:
-            static_cast<LineGraphicsItem*>(currentlyDrawnItem)->setSecondPoint(pos);
-            break;
-        case ArrowGraphicsItem::Type:
-            static_cast<ArrowGraphicsItem*>(currentlyDrawnItem)->setSecondPoint(pos);
-            break;
+        FlexGraphicsLineItem *item = new FlexGraphicsLineItem(QLineF(current_path->lastPoint(), pos), tool->compositionMode());
+        current_path->addPoint(current_path->mapFromScene(pos), pressure);
+        QPen pen = tool->pen();
+        pen.setWidthF(pen.widthF() * pressure);
+        item->setPen(pen);
+        currentItemCollection->addToGroup(item);
+        currentItemCollection->show();
+        invalidate(item->sceneBoundingRect(), QGraphicsScene::ItemLayer);
+        break;
+    }
+    case RectGraphicsItem::Type:
+        static_cast<RectGraphicsItem*>(currentlyDrawnItem)->setSecondPoint(pos);
+        break;
+    case EllipseGraphicsItem::Type:
+        static_cast<EllipseGraphicsItem*>(currentlyDrawnItem)->setSecondPoint(pos);
+        break;
+    case LineGraphicsItem::Type:
+        static_cast<LineGraphicsItem*>(currentlyDrawnItem)->setSecondPoint(pos);
+        break;
+    case ArrowGraphicsItem::Type:
+        static_cast<ArrowGraphicsItem*>(currentlyDrawnItem)->setSecondPoint(pos);
+        break;
     }
 }
 
@@ -1412,7 +1464,6 @@ void SlideScene::noToolClicked(const QPointF &pos, const QPointF &startpos)
     debug_verbose(DebugMedia, "Clicked without tool" << pos << startpos);
     // Try to handle multimedia annotation.
     for (auto &item : mediaItems)
-    {
 #if __cplusplus >= 202002L
         // std::set<T>.contains is only available since C++ 20
         if (item.pages.contains(page &~NotFullPage) && item.annotation.rect.contains(pos) && item.player)
@@ -1434,10 +1485,8 @@ void SlideScene::noToolClicked(const QPointF &pos, const QPointF &startpos)
             }
             break;
         }
-    }
     const PdfLink *link = master->getDocument()->linkAt(page, pos);
     if (link && (startpos.isNull() || link->area.contains(startpos)))
-    {
         switch (link->type)
         {
         case PdfLink::PageLink:
@@ -1470,14 +1519,12 @@ void SlideScene::noToolClicked(const QPointF &pos, const QPointF &startpos)
         case PdfLink::NoLink:
             break;
         }
-    }
     delete link;
 }
 
 void SlideScene::createSliders() const
 {
     for (auto &item : mediaItems)
-    {
 #if __cplusplus >= 202002L
         if (item.pages.contains(page &~NotFullPage) && item.player)
 #else
@@ -1487,39 +1534,33 @@ void SlideScene::createSliders() const
             for (const auto view : static_cast<const QList<QGraphicsView*>>(views()))
                 static_cast<SlideView*>(view)->addMediaSlider(item);
         }
-    }
 }
 
 void SlideScene::playMedia() const
 {
     for (auto &item : mediaItems)
-    {
 #if __cplusplus >= 202002L
         if (item.pages.contains(page &~NotFullPage) && item.player)
 #else
         if (item.pages.find(page &~NotFullPage) != item.pages.end() && item.player)
 #endif
             item.player->play();
-    }
 }
 
 void SlideScene::pauseMedia() const
 {
     for (auto &item : mediaItems)
-    {
 #if __cplusplus >= 202002L
         if (item.pages.contains(page &~NotFullPage) && item.player)
 #else
         if (item.pages.find(page &~NotFullPage) != item.pages.end() && item.player)
 #endif
             item.player->pause();
-    }
 }
 
 void SlideScene::playPauseMedia() const
 {
     for (auto &item : mediaItems)
-    {
         if (
 #if __cplusplus >= 202002L
                 item.pages.contains(page &~NotFullPage)
@@ -1537,7 +1578,6 @@ void SlideScene::playPauseMedia() const
             pauseMedia();
             return;
         }
-    }
     playMedia();
 }
 
@@ -1545,7 +1585,7 @@ void SlideScene::updateSelectionRect() noexcept
 {
     // TODO: only call manually for higher efficiency?
     // (note: selection can also be changed by eraser / undo / redo / ...)
-    QList<QGraphicsItem*> items = selectedItems();
+    const QList<QGraphicsItem*> items = selectedItems();
     if (items.isEmpty())
     {
         selection_bounding_rect.hide();
@@ -1738,6 +1778,7 @@ void SlideScene::pasteFromClipboard()
     if (items.isEmpty())
         return;
     clearSelection();
+    setFocusItem(nullptr);
     for (const auto item : items)
     {
         if (item->scene() != this)
@@ -1768,8 +1809,7 @@ void SlideScene::toolChanged(const Tool *tool) noexcept
             return;
         step = new drawHistory::Step;
         const DrawTool *draw_tool = static_cast<const DrawTool*>(tool);
-        for (auto item : selection)
-        {
+        for (const auto item : selection)
             if (item->type() == BasicGraphicsPath::Type || item->type() == FullGraphicsPath::Type)
             {
                 auto path = static_cast<AbstractGraphicsPath*>(item);
@@ -1778,7 +1818,6 @@ void SlideScene::toolChanged(const Tool *tool) noexcept
                 path->changeTool(*draw_tool);
                 path->update();
             }
-        }
     }
     else if (tool->tool() == Tool::TextInputTool)
     {
@@ -1790,7 +1829,6 @@ void SlideScene::toolChanged(const Tool *tool) noexcept
         step = new drawHistory::Step;
         const TextTool *text_tool = static_cast<const TextTool*>(tool);
         for (auto item : selection)
-        {
             if (item->type() == TextGraphicsItem::Type)
             {
                 auto text = static_cast<TextGraphicsItem*>(item);
@@ -1799,7 +1837,6 @@ void SlideScene::toolChanged(const Tool *tool) noexcept
                 text->setFont(text_tool->font());
                 text->setDefaultTextColor(text_tool->color());
             }
-        }
     }
     if (!step)
         return;
@@ -1832,7 +1869,7 @@ void SlideScene::colorChanged(const QColor &color) noexcept
         }
         case TextGraphicsItem::Type:
         {
-            auto text = static_cast<TextGraphicsItem*>(item);
+            const auto text = static_cast<TextGraphicsItem*>(item);
             step->textPropertiesChanges.insert(item, {text->font(), text->font(), text->defaultTextColor().rgba() ^ color.rgba()});
             text->setDefaultTextColor(color);
             break;
@@ -1872,4 +1909,44 @@ void SlideScene::widthChanged(const qreal width) noexcept
         delete step;
     else
         emit sendHistoryStep(page | page_part, step);
+}
+
+void SlideScene::updateSearchResults()
+{
+    const auto &pair = master->searchResults();
+    if (pair.second.isEmpty() && searchResults)
+    {
+        if (searchResults->scene())
+            removeItem(searchResults);
+        delete searchResults;
+        searchResults = nullptr;
+    }
+    else if (pair.first == page)
+    {
+        if (searchResults)
+        {
+            for (const auto &item : searchResults->childItems())
+            {
+                searchResults->removeFromGroup(item);
+                delete item;
+            }
+            if (!searchResults->scene())
+                addItem(searchResults);
+        }
+        else
+        {
+            searchResults = new QGraphicsItemGroup();
+            addItem(searchResults);
+        }
+        QGraphicsRectItem *item;
+        const QBrush brush(preferences()->search_highlighting_color);
+        for (const auto &rect : pair.second)
+        {
+            item = new QGraphicsRectItem(rect);
+            item->setBrush(brush);
+            item->setPen(Qt::NoPen);
+            searchResults->addToGroup(item);
+        }
+        invalidate(searchResults->boundingRect());
+    }
 }

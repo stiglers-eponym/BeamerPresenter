@@ -17,7 +17,7 @@
 #include "src/rendering/mediaplayer.h"
 #include "src/gui/mediaslider.h"
 
-SlideView::SlideView(SlideScene *scene, PixCache *cache, QWidget *parent) :
+SlideView::SlideView(SlideScene *scene, const PixCache *cache, QWidget *parent) :
     QGraphicsView(scene, parent)
 {
     setMouseTracking(true);
@@ -30,17 +30,24 @@ SlideView::SlideView(SlideScene *scene, PixCache *cache, QWidget *parent) :
     setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
     setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
-    cache->updateFrame(size());
     connect(this, &SlideView::requestPage, cache, &PixCache::requestPage, Qt::QueuedConnection);
     connect(cache, &PixCache::pageReady, this, &SlideView::pageReady, Qt::QueuedConnection);
     connect(this, &SlideView::resizeCache, cache, &PixCache::updateFrame, Qt::QueuedConnection);
     connect(this, &SlideView::getPixmapBlocking, cache, &PixCache::getPixmap, Qt::BlockingQueuedConnection);
+    emit resizeCache(size());
 }
 
 SlideView::~SlideView() noexcept
 {
     while (!sliders.isEmpty())
         delete sliders.takeLast();
+}
+
+QSize SlideView::sizeHint() const noexcept
+{
+    QSizeF size = scene()->sceneRect().size();
+    size *= 2048./std::max(size.width(), size.height());
+    return size.toSize();
 }
 
 void SlideView::pageChanged(const int page, SlideScene *scene)
@@ -56,12 +63,12 @@ void SlideView::pageChanged(const int page, SlideScene *scene)
     else
         // page is too high, determine resolution by y direction
         resolution = height() / pageSize.height();
-    if (resolution < 1e-9 || resolution > 1e9)
+    if (resolution < 1e-6 || resolution > 1e6)
         return;
     resetTransform();
     scale(resolution, resolution);
     waitingForPage = page;
-    debug_msg(DebugPageChange, "Request page" << page << "by" << this << "from" << scene);
+    debug_msg(DebugPageChange, "Request page" << page << "by" << this << "from" << scene << "with size" << scene->sceneRect().size() << size());
     emit requestPage(page, resolution);
 }
 
@@ -84,7 +91,7 @@ void SlideView::pageChangedBlocking(const int page, SlideScene *scene)
     scale(resolution, resolution);
     QPixmap pixmap;
     debug_msg(DebugPageChange, "Request page blocking" << page << this);
-    emit getPixmapBlocking(page, &pixmap, resolution);
+    emit getPixmapBlocking(page, pixmap, resolution);
     scene->pageBackground()->addPixmap(pixmap);
     updateScene({sceneRect()});
 }
@@ -115,6 +122,7 @@ void SlideView::resizeEvent(QResizeEvent *event)
         if (media.pages.find(page) != media.pages.end())
 #endif
             addMediaSlider(media);
+    emit sendAction(ResizeViews);
 }
 
 void SlideView::keyPressEvent(QKeyEvent *event)
@@ -126,7 +134,7 @@ void SlideView::keyPressEvent(QKeyEvent *event)
         switch (event->key())
         {
         case Qt::Key_Escape:
-            scene()->clearFocus();
+            scene()->setFocusItem(nullptr);
             break;
         case Qt::Key_PageUp:
         case Qt::Key_PageDown:
@@ -134,6 +142,7 @@ void SlideView::keyPressEvent(QKeyEvent *event)
             break;
         default:
             QGraphicsView::keyPressEvent(event);
+            break;
         }
     }
     else
@@ -162,7 +171,7 @@ bool SlideView::event(QEvent *event)
     {
     case QEvent::Gesture:
     {
-        QGestureEvent *gesture_event = static_cast<QGestureEvent*>(event);
+        const QGestureEvent *gesture_event = static_cast<QGestureEvent*>(event);
         debug_verbose(DebugOtherInput, gesture_event);
         QSwipeGesture *swipe = static_cast<QSwipeGesture*>(gesture_event->gesture(Qt::SwipeGesture));
         if (swipe && swipe->state() == Qt::GestureFinished)
@@ -183,12 +192,12 @@ bool SlideView::event(QEvent *event)
                 return false;
             }
             debug_msg(DebugOtherInput, "Swipe gesture, angle:" << swipe->swipeAngle() << "interpret as:" << gesture);
-            QList<Action> actions = preferences()->gesture_actions.values(gesture);
+            const QList<Action> actions {preferences()->gesture_actions.values(gesture)};
             for (auto action : actions)
                 emit sendAction(action);
             return !actions.isEmpty();
         }
-        QPanGesture *pan = static_cast<QPanGesture*>(gesture_event->gesture(Qt::PanGesture));
+        const QPanGesture *pan = static_cast<QPanGesture*>(gesture_event->gesture(Qt::PanGesture));
         if (pan)
             debug_msg(DebugOtherInput, "Pan gesture:" << pan << pan->offset() << pan->acceleration());
         return QGraphicsView::event(event);
@@ -207,7 +216,7 @@ bool SlideView::event(QEvent *event)
     //    break;
     case QEvent::TabletPress:
     {
-        auto tabletevent = static_cast<QTabletEvent*>(event);
+        auto tabletevent = static_cast<const QTabletEvent*>(event);
 #if (QT_VERSION_MAJOR >= 6)
         static_cast<SlideScene*>(scene())->tabletPress(mapToScene(tabletevent->position()), tabletevent);
 #else
@@ -219,7 +228,7 @@ bool SlideView::event(QEvent *event)
     }
     case QEvent::TabletRelease:
     {
-        auto tabletevent = static_cast<QTabletEvent*>(event);
+        auto tabletevent = static_cast<const QTabletEvent*>(event);
 #if (QT_VERSION_MAJOR >= 6)
         static_cast<SlideScene*>(scene())->tabletRelease(mapToScene(tabletevent->position()), tabletevent);
 #else
@@ -230,7 +239,7 @@ bool SlideView::event(QEvent *event)
     }
     case QEvent::TabletMove:
     {
-        auto tabletevent = static_cast<QTabletEvent*>(event);
+        auto tabletevent = static_cast<const QTabletEvent*>(event);
 #if (QT_VERSION_MAJOR >= 6)
         static_cast<SlideScene*>(scene())->tabletMove(mapToScene(tabletevent->position()), tabletevent);
 #else
@@ -247,10 +256,10 @@ bool SlideView::event(QEvent *event)
 
 void SlideView::showMagnifier(QPainter *painter, const PointingTool *tool) noexcept
 {
+    painter->setRenderHints(QPainter::SmoothPixmapTransform | QPainter::Antialiasing);
     painter->setCompositionMode(QPainter::CompositionMode_SourceOver);
-    painter->setRenderHints(QPainter::SmoothPixmapTransform);
-    painter->setRenderHints(QPainter::Antialiasing);
     painter->setPen(tool->color());
+    painter->setBrush(Qt::NoBrush);
     const qreal resolution = tool->scale() * painter->transform().m11();
     PixmapGraphicsItem *pageItem = static_cast<SlideScene*>(scene())->pageBackground();
     // Check whether an enlarged page is needed and not "in preparation" yet.
@@ -286,44 +295,52 @@ void SlideView::drawForeground(QPainter *painter, const QRectF &rect)
     if (view_flags & ShowPointingTools)
     {
         painter->setRenderHint(QPainter::Antialiasing);
-        for (const auto basic_tool : preferences()->current_tools)
+        const auto &current_tools = preferences()->current_tools;
+        const auto end = current_tools.cend();
+        for (auto basic_tool = current_tools.cbegin(); basic_tool != end; ++basic_tool)
         {
-            // Only pointing tools need painting in foreground (might change in the future).
-            if (!basic_tool)
+            // We rely on the fact that basic_tool.key() == (*basic_tool)->tool()
+            // Only pointing tools and selection tools need painting in foreground.
+            if (!*basic_tool)
                 continue;
-            if (basic_tool->tool() & Tool::AnyPointingTool)
+            if (basic_tool.key() & Tool::AnyPointingTool)
             {
-                const PointingTool *tool = static_cast<PointingTool*>(basic_tool);
+                if (!(*basic_tool)->visible())
+                    continue;
+                auto tool = static_cast<const PointingTool*>(*basic_tool);
                 if (tool->pos().isEmpty() || tool->scene() != scene())
                     continue;
                 debug_verbose(DebugDrawing, "drawing tool" << tool->tool() << tool->size() << tool->color());
-                switch (tool->tool())
+                switch (basic_tool.key())
                 {
-                case Tool::Pointer:
-                    showPointer(painter, tool);
-                    break;
                 case Tool::Torch:
                     showTorch(painter, tool);
-                    break;
-                case Tool::Magnifier:
-                    showMagnifier(painter, tool);
                     break;
                 case Tool::Eraser:
                     if (hasFocus())
                         showEraser(painter, tool);
                     break;
+                case Tool::Magnifier:
+                    showMagnifier(painter, tool);
+                    break;
+                case Tool::Pointer:
+                    showPointer(painter, tool);
+                    break;
                 default:
                     break;
                 }
             }
-            else if (basic_tool->tool() & Tool::AnySelectionTool)
+            else if (basic_tool.key() & Tool::AnySelectionTool)
             {
-                const SelectionTool *tool = static_cast<SelectionTool*>(basic_tool);
+                if (!(*basic_tool)->visible())
+                    continue;
+                auto tool = static_cast<const SelectionTool*>(*basic_tool);
                 if (!tool->visible() || tool->scene() != scene())
                     continue;
                 const QPolygonF polygon = tool->polygon();
                 if (polygon.length() < 3)
                     continue;
+                painter->setCompositionMode(QPainter::CompositionMode_SourceOver);
                 painter->setPen(QPen(QColor(128,128,160,96), 1, Qt::DashLine));
                 painter->setBrush(QColor(128,128,160,32));
                 painter->drawPolygon(polygon);
@@ -333,6 +350,7 @@ void SlideView::drawForeground(QPainter *painter, const QRectF &rect)
 #ifdef QT_DEBUG
     if (preferences()->debug_level & (DebugMedia|DebugVerbose))
     {
+        painter->setCompositionMode(QPainter::CompositionMode_SourceOver);
         painter->setBrush(Qt::NoBrush);
         const int page = static_cast<SlideScene*>(scene())->getPage();
         const QList<slide::MediaItem> &media = static_cast<SlideScene*>(scene())->getMedia();
@@ -356,8 +374,9 @@ void SlideView::drawForeground(QPainter *painter, const QRectF &rect)
 
 void SlideView::showEraser(QPainter *painter, const PointingTool *tool) noexcept
 {
-    painter->setPen(QPen(tool->brush(), tool->scale()));
     painter->setCompositionMode(QPainter::CompositionMode_SourceOver);
+    painter->setPen(QPen(tool->brush(), tool->scale()));
+    painter->setBrush(Qt::NoBrush);
     const float radius = tool->size() - tool->scale();
     for (const auto &pos : tool->pos())
         painter->drawEllipse(pos, radius, radius);
@@ -365,9 +384,9 @@ void SlideView::showEraser(QPainter *painter, const PointingTool *tool) noexcept
 
 void SlideView::showPointer(QPainter *painter, const PointingTool *tool) noexcept
 {
+    painter->setCompositionMode(QPainter::CompositionMode_Darken);
     painter->setPen(Qt::PenStyle::NoPen);
     painter->setBrush(tool->brush());
-    painter->setCompositionMode(QPainter::CompositionMode_Darken);
     for (const auto &pos : tool->pos())
         painter->drawEllipse(pos, tool->size(), tool->size());
     painter->setCompositionMode(QPainter::CompositionMode_SourceOver);
@@ -394,18 +413,19 @@ void SlideView::showTorch(QPainter *painter, const PointingTool *tool) noexcept
 
 void SlideView::addMediaSlider(const slide::MediaItem &media)
 {
-    if (!(view_flags & MediaControls))
+    if (!(view_flags & MediaControls) || !media.player)
         return;
     MediaSlider *slider = new MediaSlider(this);
     sliders.append(slider);
     const QPoint left = mapFromScene(media.annotation.rect.bottomLeft());
     const QPoint right = mapFromScene(media.annotation.rect.bottomRight());
     slider->setGeometry(left.x(), right.y(), right.x() - left.x(), 20);
-    slider->setMaximum(media.player->duration());
-    slider->setValue(media.player->position());
     connect(media.player, &MediaPlayer::durationChanged, slider, &MediaSlider::setMaximumInt64);
     connect(media.player, &MediaPlayer::positionChanged, slider, &MediaSlider::setValueInt64);
+    slider->setMaximum(media.player->duration());
+    slider->setValue(media.player->position());
     connect(slider, &MediaSlider::sliderMoved, media.player, &MediaPlayer::setPositionSoft);
+    debug_msg(DebugMedia, "created slider:" << slider->maximum() << slider->value());
     QPalette palette;
     palette.setColor(QPalette::Base, QColor(0,0,0,0));
     slider->setPalette(palette);

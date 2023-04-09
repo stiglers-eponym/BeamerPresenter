@@ -5,10 +5,12 @@
 #define POPPLERDOCUMENT_H
 
 #include <memory>
+#include <utility>
 #include <QString>
 #include <QMap>
 #include <QList>
 #include <QtConfig>
+#include <QCoreApplication>
 #if (QT_VERSION_MAJOR == 6)
 #include <poppler/qt6/poppler-qt6.h>
 #elif (QT_VERSION_MAJOR == 5)
@@ -31,15 +33,22 @@ class PngPixmap;
  */
 class PopplerDocument : public PdfDocument
 {
+    Q_DECLARE_TR_FUNCTIONS(PopplerDocument)
+
     /// Poppler document representing the PDF.
     std::unique_ptr<Poppler::Document> doc = NULL;
 
-    /// Map page numbers to labels: Only the first page number with a new label
-    /// is listed here.
+    /// Map page numbers to labels: Only the first page number with a
+    /// new label is listed here.
+    /// Exception: pages with an own TOC entry always have their label
+    /// explicitly defined.
     QMap<int, QString> pageLabels;
 
-    /// populate pageLabels.
+    /// populate pageLabels. Must be called after loadOutline.
     void loadPageLabels();
+
+    /// Load the PDF outline, fill PdfDocument::outline.
+    void loadOutline();
 
 public:
     /// Constructor: calls loadDocument().
@@ -74,11 +83,12 @@ public:
     bool isValid() const override
     {return doc && !doc->isLocked();}
 
-    /// Load the PDF outline, fill PdfDocument::outline.
-    void loadOutline() override;
+    /// Load the PDF labels and outline, fill PdfDocument::outline.
+    void loadLabels() override;
 
-    /// Search which pages contain text.
-    QPair<int,QRectF> search(const QString &needle, int start_page = 0, bool forward = true) const override;
+    /// Search which page contains needle and return the
+    /// outline of all occurrences on that slide.
+    std::pair<int,QList<QRectF>> searchAll(const QString &needle, int start_page = 0, bool forward = true) const override;
 
     /// Page label of given page index. (Empty string if page is invalid.)
     const QString pageLabel(const int page) const override;
@@ -102,8 +112,8 @@ public:
     /// Link at given position (in point = inch/72).
     const PdfLink *linkAt(const int page, const QPointF &position) const override;
 
-    /// List all video annotations on given page. Returns NULL if list is empty.
-    virtual QList<MediaAnnotation>* annotations(const int page) const override;
+    /// List all video annotations on given page.
+    virtual QList<MediaAnnotation> annotations(const int page) const override;
 
     /// Slide transition when reaching the given page.
     const SlideTransition transition(const int page) const override;

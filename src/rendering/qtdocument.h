@@ -6,6 +6,7 @@
 
 #include <QtGlobal>
 #include <QPdfDocumentRenderOptions>
+#include <QCoreApplication>
 #include "src/config.h"
 #include "src/enumerates.h"
 #include "src/rendering/pdfdocument.h"
@@ -26,6 +27,8 @@ class QPdfDocument;
  */
 class QtDocument : public PdfDocument
 {
+    Q_DECLARE_TR_FUNCTIONS(QtDocument)
+
     QPdfDocumentRenderOptions render_options;
 
     /// QtPdfDocument representing the PDF.

@@ -6,10 +6,9 @@
 
 #include <QToolButton>
 #include "src/config.h"
+#include "src/drawing/tool.h"
 
-class Tool;
 class QString;
-class QEvent;
 class QImage;
 class QSize;
 class QColor;
@@ -17,14 +16,18 @@ class QColor;
 /**
  * @brief Tool button for drawing and pointing tools.
  *
+ * This button does not do anything when it is pushed. Subclasses
+ * implement different functions for pushing the button.
+ *
  * @see ActionButton
- * @see ToolSelectorWidget
- * @see ToolDialog
+ * @see ToolSelectorButton
+ * @see ToolWidgetButton
  */
 class ToolButton : public QToolButton
 {
     Q_OBJECT
 
+protected:
     /// Tool which remains owned by this class.
     /// Only copies of this tool are send out using sendTool.
     Tool *tool = nullptr;
@@ -34,15 +37,15 @@ public:
     explicit ToolButton(Tool *tool, QWidget *parent = nullptr) noexcept;
 
     /// Destruktor: deletes tool.
-    virtual ~ToolButton();
-
-protected:
-    /// Emit sendTool based on input event with adjusted device.
-    virtual bool event(QEvent *event) noexcept override;
+    virtual ~ToolButton()
+    {delete tool;}
 
 public slots:
-    /// Replace tool with newtool. Old tool gets deleted.
+    /// Replace tool with newtool. Old tool gets deleted. This takes ownership of newtool.
     void setTool(Tool *newtool);
+
+    /// Update the tool icon.
+    void updateIcon();
 
 signals:
     /// Send a copy of tool. Ownership of toolcopy is handed to receiver.

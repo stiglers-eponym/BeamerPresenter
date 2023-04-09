@@ -9,6 +9,10 @@ project(beamerpresenter
     HOMEPAGE_URL "https://github.com/stiglers-eponym/BeamerPresenter"
     LANGUAGES CXX)
 
+# Configure compilation basics
+set(CMAKE_CONFIGURATION_TYPES Release Debug)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_AUTOMOC ON)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
@@ -62,6 +66,10 @@ endif()
 # Define some default paths
 include(GNUInstallDirs)
 
+# APPID_NAME is mainly relevant for flatpak where icon and desktop files
+# should follow a certain naming convention.
+set(APPID_NAME "beamerpresenter" CACHE STRING "file name without file type extension of app icon and .desktop file")
+
 set(DEFAULT_ICON_PATH
     "${CMAKE_INSTALL_DATAROOTDIR}/beamerpresenter/icons"
     CACHE STRING
@@ -71,9 +79,9 @@ GNUInstallDirs_get_absolute_install_dir(ABS_ICON_PATH DEFAULT_ICON_PATH DATAROOT
 set(APPICON_PATH
     "${CMAKE_INSTALL_DATAROOTDIR}/icons/hicolor/scalable/apps"
     CACHE STRING
-    "Directory for storingthe app icon")
+    "Directory for storing the app icon")
 GNUInstallDirs_get_absolute_install_dir(ABS_APPICON_PATH APPICON_PATH DATAROOTDIR)
-set(ABS_APPICON_PATH "${ABS_APPICON_PATH}/beamerpresenter.svg")
+set(ABS_APPICON_PATH "${ABS_APPICON_PATH}/${APPID_NAME}.svg")
 
 set(GUI_CONFIG_PATH
     "${CMAKE_INSTALL_SYSCONFDIR}/xdg/beamerpresenter"
@@ -89,11 +97,21 @@ set(DOC_PATH
 GNUInstallDirs_get_absolute_install_dir(ABS_DOC_PATH DOC_PATH DOCDIR)
 
 set(TRANSLATION_PATH
-    "${CMAKE_INSTALL_DATAROOTDIR}/beamerpresenter/translations"
+    "${CMAKE_INSTALL_DATAROOTDIR}/locale"
     CACHE STRING
     "Directory for storing internationalization/translation files")
 GNUInstallDirs_get_absolute_install_dir(ABS_TRANSLATION_PATH TRANSLATION_PATH DATAROOTDIR)
 set(ABS_TRANSLATION_PATH "${ABS_TRANSLATION_PATH}/")
+
+# Metainfo file is required by flathub
+option(INSTALL_METAINFO "install %{id}.metainfo.xml in .../share/metainfo as required by flathub" OFF)
+if (INSTALL_METAINFO)
+    install(FILES
+        "packaging/io.github.beamerpresenter.beamerpresenter.metainfo.xml"
+        DESTINATION "${CMAKE_INSTALL_DATAROOTDIR}/metainfo"
+        RENAME "${APPID_NAME}.metainfo.xml"
+        OPTIONAL)
+endif()
 
 
 # Set app version string
@@ -116,11 +134,6 @@ if (GIT_VERSION AND EXISTS "${PROJECT_SOURCE_DIR}/.git")
     endif()
 endif()
 
-# Configure compilation basics
-set(CMAKE_CONFIGURATION_TYPES Release Debug)
-set(CMAKE_CXX_STANDARD 17)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
-set(CMAKE_AUTOMOC ON)
 # Linker flags for debugging
 set(LFLAGS "${LFLAGS} $<$<CONFIG:Debug>:-rdynamic>>")
 
@@ -140,14 +153,18 @@ target_compile_definitions(beamerpresenter PUBLIC
 option(USE_TRANSLATIONS "Enable translations" ON)
 if (USE_TRANSLATIONS)
     find_package(Qt${QT_VERSION_MAJOR} COMPONENTS LinguistTools REQUIRED)
+    file(GLOB ts_files translations/*.ts)
     if (${QT_VERSION_MAJOR} EQUAL 5)
-        qt5_add_translation(qm_files translations/de.ts)
+        qt5_add_translation(qm_files ${ts_files})
         add_custom_target(translations ALL DEPENDS ${qm_files})
     else()
-        qt_add_lupdate(beamerpresenter TS_FILE translations/de.ts)
-        qt_add_lrelease(beamerpresenter TS_FILES translations/de.ts QM_FILES_OUTPUT_VARIABLE qm_files)
+        qt6_add_lupdate(beamerpresenter TS_FILE ${ts_files})
+        qt6_add_lrelease(beamerpresenter TS_FILES ${ts_files} QM_FILES_OUTPUT_VARIABLE qm_files)
     endif()
-    install(FILES ${qm_files} DESTINATION "${TRANSLATION_PATH}")
+    foreach (filename IN LISTS qm_files)
+        string(REGEX REPLACE "^.*/([^/]*)\\.qm$" "\\1" language ${filename})
+        install(FILES ${filename} DESTINATION "${CMAKE_INSTALL_DATAROOTDIR}/locale/${language}/LC_MESSAGES/" RENAME "beamerpresenter.qm")
+    endforeach()
 endif()
 
 # License

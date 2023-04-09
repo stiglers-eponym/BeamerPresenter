@@ -18,6 +18,7 @@
 class QAbstractAnimation;
 class QTabletEvent;
 class QGraphicsItem;
+class QGraphicsRectItem;
 class QGraphicsVideoItem;
 class PdfMaster;
 class MediaPlayer;
@@ -29,6 +30,7 @@ class DrawTool;
 class SelectionTool;
 class PathContainer;
 class PixmapGraphicsItem;
+class QPropertyAnimation;
 
 namespace drawHistory {
     struct Step;
@@ -80,6 +82,7 @@ public:
         MuteSlide = 1 << 4,
         ShowTransitions = 1 << 5,
         ShowDrawings = 1 << 6,
+        ShowSearchResults = 1 << 7,
         Default = 0xff,
     };
 
@@ -89,19 +92,23 @@ private:
 
     /// Path which is currently being drawn.
     /// NULL if currenty no path is drawn.
-    QGraphicsItem* currentlyDrawnItem {NULL};
+    QGraphicsItem* currentlyDrawnItem {nullptr};
 
     /// Group of path segments forming the currently drawn path.
     /// This collection of segments is directly made visible and gets deleted
     /// when drawing the path is completed and the path itself is shown
     /// instead.
-    QGraphicsItemGroup* currentItemCollection {NULL};
+    QGraphicsItemGroup* currentItemCollection {nullptr};
+
+    /// Searched results which should be highlighted
+    /// This item gets many rectangles as child objects.
+    QGraphicsItemGroup* searchResults {nullptr};
 
     /// Graphics item representing the PDF page background.
-    PixmapGraphicsItem *pageItem {NULL};
+    PixmapGraphicsItem *pageItem {nullptr};
     /// Graphics item required during a page transition, usually
     /// represents the old page.
-    PixmapGraphicsItem *pageTransitionItem {NULL};
+    PixmapGraphicsItem *pageTransitionItem {nullptr};
 
     /// List of (cached or active) video items.
     QList<slide::MediaItem> mediaItems;
@@ -133,6 +140,33 @@ private:
 
     /// Search video annotation in cache and create + add it to cache if necessary.
     slide::MediaItem &getMediaItem(const MediaAnnotation &annotation, const int page);
+
+    /// Create an animation object for a split slide transition.
+    void createSplitTransition(const SlideTransition &transition, PixmapGraphicsItem *pageTransitionItem);
+
+    /// Create an animation object for a blinds slide transition.
+    void createBlindsTransition(const SlideTransition &transition, PixmapGraphicsItem *pageTransitionItem);
+
+    /// Create an animation object for a box slide transition.
+    void createBoxTransition(const SlideTransition &transition, PixmapGraphicsItem *pageTransitionItem);
+
+    /// Create an animation object for a wipe slide transition.
+    void createWipeTransition(const SlideTransition &transition, PixmapGraphicsItem *pageTransitionItem);
+
+    /// Create an animation object for a fly slide transition.
+    void createFlyTransition(const SlideTransition &transition, PixmapGraphicsItem *pageTransitionItem, PixmapGraphicsItem *oldPage);
+
+    /// Create an animation object for a push slide transition.
+    void createPushTransition(const SlideTransition &transition, PixmapGraphicsItem *pageTransitionItem);
+
+    /// Create an animation object for a cover slide transition.
+    void createCoverTransition(const SlideTransition &transition, PixmapGraphicsItem *pageTransitionItem);
+
+    /// Create an animation object for an uncover slide transition.
+    void createUncoverTransition(const SlideTransition &transition, PixmapGraphicsItem *pageTransitionItem);
+
+    /// Create an animation object for a face slide transition.
+    void createFadeTransition(const SlideTransition &transition, PixmapGraphicsItem *pageTransitionItem);
 
 public:
     /// Constructor: initialize master, page_part, and QGraphisScene.
@@ -167,7 +201,7 @@ public:
     {return master;}
 
     /// Hash for this scene based on shift, master and page_part.
-    unsigned int identifier() const
+    size_t identifier() const
     {return qHash(QPair<int, const void*>(shift, master)) + page_part;}
 
     /// Currently visible page.
@@ -293,13 +327,16 @@ public slots:
     /// Update draw tool width, change selected items if necessary.
     void widthChanged(const qreal width) noexcept;
 
+    /// Show search results taken from PdfMaster.
+    void updateSearchResults();
+
 signals:
     /// Send navigation event to views.
     /// Here page is already adapted to shift.
     void navigationToViews(const int page, SlideScene* scene) const;
 
     /// Send a navigation signal (to master).
-    void navigationSignal(const int page) const;
+    void navigationSignal(const int page);
 
     /// Send action (to master).
     void sendAction(const Action action) const;

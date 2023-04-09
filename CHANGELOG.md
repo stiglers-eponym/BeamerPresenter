@@ -1,4 +1,14 @@
 # Changelog
+## 0.2.4 (upcoming)
+* compatibility with Qt 6.4 and Qt 6.5
+* pages listed in TOC always start a new slide and are not considered overlays
+* page up and page down can be used to navigate pages also while showing TOC or thumbnails
+* more navigation keyboard shortcuts in default configuration
+* new widget: ToolWidget ("tools") showing tools currently connected to input devices
+* improved search widget
+* different installation path of translation files
+* bug fixes
+
 ## 0.2.3
 * select and manipulate drawn items
     * selection tools
@@ -11,6 +21,7 @@
 * compatibility with newer versions of MuPDF
 * tablet input: handle more buttons of the stylus
 * bug fixes
+
 ## 0.2.2
 * shape selection for draw tools (including a shape recognizer)
 * better layout and more icons for buttons
@@ -19,8 +30,10 @@
 * added German translation
 * new build system: cmake instead of qmake
 * various bug fixes
+
 ## 0.2.1
 * use Qt 5 or Qt 6
 * various bug fixes
+
 ## 0.2.0
 * initial version of completely rewritten program

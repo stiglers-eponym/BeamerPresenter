@@ -7,6 +7,7 @@
 #include <QColor>
 #include <QMap>
 #include <QString>
+#include <QCoreApplication>
 #include "src/config.h"
 
 class QTabletEvent;
@@ -19,6 +20,9 @@ class QTabletEvent;
  */
 class Tool
 {
+    Q_GADGET
+    Q_DECLARE_TR_FUNCTIONS(Tool)
+
 public:
     /// Tools for drawing and highlighting.
     /// The first 5 bits are used to encode a tool number.
@@ -44,16 +48,17 @@ public:
         Highlighter = 2   | AnyDrawTool,
 
         // Highlighting tools: next 2 bits, class PointingTool
-        Pointer = 0   | AnyPointingTool,
-        Torch = 1     | AnyPointingTool,
+        Torch = 0     | AnyPointingTool,
+        Eraser = 1    | AnyPointingTool,
         Magnifier = 2 | AnyPointingTool,
-        Eraser = 3    | AnyPointingTool,
+        Pointer = 3   | AnyPointingTool,
 
         // selection tools, class Tool
         BasicSelectionTool = 0 | AnySelectionTool,
         RectSelectionTool = 1 | AnySelectionTool,
         FreehandSelectionTool = 2 | AnySelectionTool,
     };
+    Q_ENUM(BasicTool)
 
     /// Combinable flags defining input devices.
     /// Obtain Qt::MouseButton by taking InputDevice >> 1.
@@ -75,7 +80,11 @@ public:
         AnyPointingDevice = AnyDevice ^ (TabletEraser | MouseRightButton | MouseMiddleButton),
         AnyNormalDevice = AnyPointingDevice ^ (TabletHover | MouseNoButton | TabletMod),
         PressureSensitiveDevices = TabletPen | TabletEraser | TabletCursor | TabletOther | TabletMod,
+        AnyTabletDevice = TabletPen | TabletEraser | TabletCursor | TabletOther | TabletMod | TabletHover,
+        AnyMouseDevice = MouseNoButton | MouseLeftButton | MouseRightButton | MouseMiddleButton,
+        AnyActiveDevice = AnyDevice ^ (MouseNoButton | TabletHover),
     };
+    Q_FLAG(InputDevice)
 
     /// Distinguish start, stop, update and cancel events.
     enum DeviceEventType
@@ -111,6 +120,10 @@ public:
     virtual bool operator==(const Tool &other) const noexcept
     {return _tool == other._tool && _device == other._device;}
 
+    /// Return whether the tool itself should currently be visible.
+    virtual bool visible() const noexcept
+    {return true;}
+
     /// get function for _tool
     BasicTool tool() const noexcept
     {return _tool;}
@@ -129,6 +142,9 @@ public:
 
     /// set color. Useless for this class, but very helpfull for child classes.
     virtual void setColor(const QColor &color) noexcept {};
+
+    /// create copy of this.
+    Tool* copy() const;
 };
 
 
@@ -151,7 +167,7 @@ static const QMap<QString, Tool::BasicTool> string_to_tool
 };
 
 /// tool tip description of tools
-const QString tool_to_description(const Tool::BasicTool tool) noexcept;
+const char *tool_to_description(const Tool::BasicTool tool) noexcept;
 
 /**
  * @brief Get input device from tablet event
@@ -168,6 +184,9 @@ static const QMap<QString, int> string_to_input_device
     {"tablet", Tool::TabletPen | Tool::TabletCursor | Tool::TabletOther | Tool::TabletMod},
     {"tablet eraser", Tool::TabletEraser},
     {"tablet hover", Tool::TabletHover},
+    {"tablet cursor", Tool::TabletCursor},
+    {"tablet mod", Tool::TabletMod},
+    {"tablet other", Tool::TabletOther},
     {"tablet all", Tool::TabletPen | Tool::TabletCursor | Tool::TabletOther | Tool::TabletEraser | Tool::TabletMod},
     {"all", Tool::AnyNormalDevice},
     {"all+", Tool::AnyPointingDevice},

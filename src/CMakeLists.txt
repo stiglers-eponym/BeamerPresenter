@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2022 Valentin Bruch <software@vbruch.eu>
 # SPDX-License-Identifier: GPL-3.0-or-later OR AGPL-3.0-or-later
 
-configure_file(config.h.in config.h)
+configure_file(config.h.in config.h @ONLY)
 add_subdirectory(rendering)
 
 if (DEFINED MUPDF_INCLUDE_DIR)
@@ -40,7 +40,7 @@ add_executable(beamerpresenter
         gui/settingswidget.h gui/settingswidget.cpp
         gui/slidelabelwidget.h gui/slidelabelwidget.cpp
         gui/slidenumberwidget.h gui/slidenumberwidget.cpp
-        gui/stackedwidget.h gui/stackedwidget.cpp
+        gui/stackedwidget.h
         gui/tabwidget.h gui/tabwidget.cpp
         gui/thumbnailbutton.h gui/thumbnailbutton.cpp
         gui/thumbnailthread.h gui/thumbnailthread.cpp
@@ -49,6 +49,8 @@ add_executable(beamerpresenter
         gui/tocbutton.h gui/tocbutton.cpp
         gui/tocwidget.h gui/tocwidget.cpp
         gui/toolbutton.h gui/toolbutton.cpp
+        gui/toolselectorbutton.h gui/toolselectorbutton.cpp
+        gui/toolwidgetbutton.h gui/toolwidgetbutton.cpp
         gui/tooldialog.h gui/tooldialog.cpp
         gui/toolselectorwidget.h gui/toolselectorwidget.cpp
         gui/toolpropertybutton.h gui/toolpropertybutton.cpp
@@ -57,10 +59,12 @@ add_executable(beamerpresenter
         gui/penstylebutton.h gui/penstylebutton.cpp
         gui/colorselectionbutton.h gui/colorselectionbutton.cpp
         gui/mediaslider.h
+        gui/iconlabel.h
         gui/containerwidget.h
+        gui/toolwidget.h gui/toolwidget.cpp
         rendering/abstractrenderer.h
         rendering/mediaplayer.h rendering/mediaplayer.cpp
-        rendering/pdfdocument.h rendering/pdfdocument.cpp
+        rendering/pdfdocument.h
         rendering/pixcache.h rendering/pixcache.cpp
         rendering/pixcachethread.h rendering/pixcachethread.cpp
         rendering/pngpixmap.h rendering/pngpixmap.cpp

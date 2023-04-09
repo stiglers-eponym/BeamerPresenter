@@ -15,7 +15,8 @@ FullGraphicsPath::FullGraphicsPath(const DrawTool &tool, const QPointF &pos, con
     AbstractGraphicsPath(tool)
 {
     // Initialize bounding rect.
-    bounding_rect = QRectF(pos.x(), pos.y(), _tool.width(), _tool.width());
+    const qreal tw = _tool.width();
+    bounding_rect = QRectF(pos.x() - tw/2, pos.y() - tw/2, tw, tw);
     // Add first data point.
     coordinates.append({pos.x(), pos.y()});
     pressures.append(_tool.width()*pressure);
@@ -98,9 +99,9 @@ void FullGraphicsPath::paint(QPainter *painter, const QStyleOptionGraphicsItem *
 {
     if (coordinates.isEmpty())
         return;
+    QPen pen = _tool.pen();
     if (coordinates.length() == 1)
     {
-        QPen pen = _tool.pen();
         pen.setWidthF(pressures.first());
         painter->setPen(pen);
         painter->drawPoint(coordinates.first());
@@ -112,12 +113,12 @@ void FullGraphicsPath::paint(QPainter *painter, const QStyleOptionGraphicsItem *
         painter->setBrush(_tool.brush());
         painter->drawPolygon(coordinates.constData(), coordinates.size());
     }
-    QPen pen = _tool.pen();
+    const auto &cend = coordinates.cend();
     auto cit = coordinates.cbegin();
     auto pit = pressures.cbegin();
     if (pen.style() == Qt::SolidLine)
     {
-        while (++cit != coordinates.cend())
+        while (++cit != cend)
         {
             pen.setWidthF(*++pit);
             painter->setPen(pen);
@@ -128,7 +129,7 @@ void FullGraphicsPath::paint(QPainter *painter, const QStyleOptionGraphicsItem *
     {
         qreal len = 0;
         QLineF line;
-        while (++cit != coordinates.cend())
+        while (++cit != cend)
         {
             pen.setWidthF(*++pit);
             pen.setDashOffset(len);
@@ -237,13 +238,15 @@ void FullGraphicsPath::changeTool(const DrawTool &newtool) noexcept
         qWarning() << "Cannot change draw tool to non-drawing base tool.";
         return;
     }
+    _tool.setPen(newtool.pen());
     const float newwidth = newtool.width();
     if (newwidth != _tool.width())
         changeWidth(newwidth);
-    _tool.setPen(newtool.pen());
+    _tool.brush() = newtool.brush();
     _tool.setCompositionMode(newtool.compositionMode());
     // cache shape
-    shape_cache = shape();
+    if (shape_cache.isEmpty())
+        shape_cache = shape();
 }
 
 const QString FullGraphicsPath::stringWidth() const noexcept

@@ -1,138 +1,57 @@
 // SPDX-FileCopyrightText: 2022 Valentin Bruch <software@vbruch.eu>
 // SPDX-License-Identifier: GPL-3.0-or-later OR AGPL-3.0-or-later
 
-#include <QTabletEvent>
-#include <QTouchEvent>
-#include <QMouseEvent>
+#include <algorithm>
 #include <QString>
 #include <QSize>
+#include <QSizePolicy>
 #include <QColor>
 #include <QBuffer>
 #include <QByteArray>
 #include <QFile>
 #include <QImage>
 #include <QImageReader>
+#include "src/config.h"
 #include "src/gui/toolbutton.h"
 #include "src/preferences.h"
-#include "src/log.h"
-#include "src/gui/tooldialog.h"
 #include "src/drawing/drawtool.h"
-#include "src/drawing/texttool.h"
-#include "src/drawing/pointingtool.h"
-#include "src/drawing/selectiontool.h"
 
 ToolButton::ToolButton(Tool *tool, QWidget *parent) noexcept :
         QToolButton(parent),
         tool(nullptr)
 {
-    setMinimumSize(12, 12);
-    setIconSize({32,32});
+    setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Ignored);
+    setMinimumSize(16, 16);
+    setIconSize({24,24});
     setContentsMargins(0,0,0,0);
-    setFocusPolicy(Qt::NoFocus);
-    setAttribute(Qt::WA_AcceptTouchEvents);
     setToolButtonStyle(Qt::ToolButtonIconOnly);
-    setTool(tool);
-}
-
-ToolButton::~ToolButton()
-{
-    delete tool;
-}
-
-bool ToolButton::event(QEvent *event) noexcept
-{
-    if (!tool)
-        return QToolButton::event(event);
-    switch (event->type())
-    {
-    case QEvent::TouchBegin:
-        event->accept();
-        setDown(true);
-        return true;
-    case QEvent::TouchEnd:
-    {
-        const QTouchEvent *touchevent = static_cast<const QTouchEvent*>(event);
-#if (QT_VERSION_MAJOR >= 6)
-        if (touchevent->points().size() != 1 || !rect().contains(touchevent->points().first().position().toPoint()))
-#else
-        if (touchevent->touchPoints().size() != 1 || !rect().contains(touchevent->touchPoints().first().pos().toPoint()))
-#endif
-        {
-            setDown(false);
-            return false;
-        }
-    }
-        [[clang::fallthrough]];
-    case QEvent::TabletMove:
-    case QEvent::TabletPress:
-    case QEvent::MouseButtonPress:
-        if (static_cast<QInputEvent*>(event)->modifiers() == Qt::CTRL)
-        {
-            setTool(ToolDialog::selectTool(tool));
-            debug_msg(DebugDrawing, "Changed tool button:" << tool->tool());
-            // TODO: save to GUI config
-        }
-        else
-        {
-            // If tool doesn't have a device, choose a device based on the input.
-            int device = tool->device();
-            if (event->type() == QEvent::TabletMove || event->type() == QEvent::TabletPress)
-            {
-                const QTabletEvent *tablet_event = static_cast<const QTabletEvent*>(event);
-                if (tablet_event->pressure() <= 0 || tablet_event->pressure() == 1)
-                    break;
-                if (device == Tool::NoDevice)
-                {
-                    device = tablet_event_to_input_device(tablet_event);
-                    if (tool->tool() == Tool::Pointer && (device & (Tool::TabletPen | Tool::TabletCursor)))
-                        device |= Tool::TabletHover;
-                }
-            }
-            else if (event->type() == QEvent::MouseButtonPress && device == Tool::NoDevice)
-            {
-                device = static_cast<const QMouseEvent*>(event)->button() << 1;
-                if (tool->tool() == Tool::Pointer)
-                    device |= Tool::MouseNoButton;
-            }
-            else if (event->type() == QEvent::TouchEnd && device == Tool::NoDevice)
-                device = Tool::TouchInput;
-
-            Tool *newtool;
-            if (tool->tool() & Tool::AnyDrawTool)
-                newtool = new DrawTool(*static_cast<const DrawTool*>(tool));
-            else if (tool->tool() & Tool::AnyPointingTool)
-                newtool = new PointingTool(*static_cast<const PointingTool*>(tool));
-            else if (tool->tool() & Tool::AnySelectionTool)
-                newtool = new SelectionTool(*static_cast<const SelectionTool*>(tool));
-            else if (tool->tool() == Tool::TextInputTool)
-                newtool = new TextTool(*static_cast<const TextTool*>(tool));
-            else
-                newtool = new Tool(*tool);
-            newtool->setDevice(device);
-            emit sendTool(newtool);
-        }
-        setDown(false);
-        event->accept();
-        return true;
-    case QEvent::Resize:
+    if (tool)
         setTool(tool);
-        break;
-    default:
-        break;
-    }
-    return QToolButton::event(event);
 }
 
 void ToolButton::setTool(Tool *newtool)
 {
     if (!newtool)
         return;
-    QColor color;
-    QString iconname = string_to_tool.key(newtool->tool());
-    iconname.replace(' ', '-');
-    if (newtool->tool() & Tool::AnyDrawTool)
+    if (tool != newtool)
     {
-        const DrawTool *drawtool = static_cast<const DrawTool*>(newtool);
+        delete tool;
+        tool = newtool;
+    }
+    setToolTip(Tool::tr(tool_to_description(tool->tool())));
+    updateIcon();
+}
+
+void ToolButton::updateIcon()
+{
+    if (!tool)
+        return;
+    QColor color;
+    QString iconname = string_to_tool.key(tool->tool());
+    iconname.replace(' ', '-');
+    if (tool->tool() & Tool::AnyDrawTool)
+    {
+        const DrawTool *drawtool = static_cast<const DrawTool*>(tool);
         if (drawtool->shape() != DrawTool::Freehand)
         {
             if (drawtool->tool() == Tool::FixedWidthPen && drawtool->shape() != DrawTool::Recognize)
@@ -142,38 +61,26 @@ void ToolButton::setTool(Tool *newtool)
         }
         if (drawtool->brush().style() != Qt::NoBrush && drawtool->shape() != DrawTool::Arrow && drawtool->shape() != DrawTool::Line)
             iconname += "-filled";
-        color = drawtool->color();
     }
-    else
-        color = newtool->color();
+    color = tool->color();
     if (!color.isValid())
         color = Qt::black;
     const QString filename = preferences()->icon_path + "/tools/" + iconname + ".svg";
-    QSize newsize = size();
-    setIconSize(newsize);
+    const int px = std::min(width(), height())-1;
+    setIconSize({px,px});
     QIcon icon;
     if (color.isValid())
     {
-        if (newsize.height() > newsize.width())
-            newsize.rheight() = newsize.width();
-        else
-            newsize.rwidth() = newsize.height();
-        const QImage image = fancyIcon(filename, newsize, color);
+        const QImage image = fancyIcon(filename, {px,px}, color);
         if (!image.isNull())
             icon = QIcon(QPixmap::fromImage(image));
     }
     if (icon.isNull())
         icon = QIcon(filename);
     if (icon.isNull())
-        setText(string_to_tool.key(newtool->tool()));
+        setText(string_to_tool.key(tool->tool()));
     else
         setIcon(icon);
-    if (tool != newtool)
-    {
-        delete tool;
-        tool = newtool;
-        setToolTip(tool_to_description(tool->tool()));
-    }
 }
 
 const QImage fancyIcon(const QString &filename, const QSize &size, const QColor &color)

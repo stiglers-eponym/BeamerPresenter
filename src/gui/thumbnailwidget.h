@@ -8,12 +8,13 @@
 #include <QSize>
 #include "src/config.h"
 #include "src/enumerates.h"
+#include "src/gui/thumbnailbutton.h"
 
 class QShowEvent;
+class QKeyEvent;
 class QPixmap;
 class PdfDocument;
 class ThumbnailThread;
-class ThumbnailButton;
 
 /**
  * @brief Widget showing thumbnail slides on grid layout in scroll area.
@@ -48,6 +49,9 @@ private:
     /// flags: currently only SkipOverlays.
     unsigned char _flags;
 
+    /// Set focus to given page.
+    void focusPage(int page);
+
 public:
     /// Nearly trivial constructor.
     explicit ThumbnailWidget(QWidget *parent = nullptr) : QScrollArea(parent)
@@ -81,10 +85,14 @@ public:
 
 public slots:
     /// generate thumbnails if necessary and select currenlty visible page.
-    void showEvent(QShowEvent*) override;
+    void showEvent(QShowEvent *event) override;
+
+    /// Override key press events: Send page up and page down to master.
+    void keyPressEvent(QKeyEvent *event) override;
 
     /// Receive thumbnail from render_thread and show it on button.
-    void receiveThumbnail(ThumbnailButton *button, const QPixmap pixmap);
+    void receiveThumbnail(ThumbnailButton *button, const QPixmap pixmap)
+    {if (button) button->setPixmap(pixmap);}
 
     /// Handle actions: clear if files are reloaded.
     void handleAction(const Action action);

@@ -4,9 +4,11 @@
 #ifndef PDFMASTER_H
 #define PDFMASTER_H
 
+#include <utility>
 #include <QObject>
 #include <QList>
 #include <QMap>
+#include <QRectF>
 #include <QString>
 #include "src/config.h"
 #include "src/enumerates.h"
@@ -65,6 +67,9 @@ private:
     /// Flags for unsaved changes.
     unsigned char _flags = 0;
 
+    /// Search results (currently only one results)
+    std::pair<int, QList<QRectF>> search_results;
+
 public:
     /// Create empty, uninitialized PdfMaster.
     /// Call this function, then connect this to events, then
@@ -81,6 +86,10 @@ public:
     /// Must be called after constructor before doing anything with this.
     /// Returns true if it was initialized successfully.
     void initialize(const QString &filename);
+
+    /// get function for search_results
+    const std::pair<int, QList<QRectF>> &searchResults() const noexcept
+    {return search_results;}
 
     /// get function for _flags
     unsigned char &flags() noexcept
@@ -215,6 +224,10 @@ public slots:
     /// Bring given items to foreground and add history step.
     void bringToForeground(int page, const QList<QGraphicsItem*> &to_foreground);
 
+    /// Handle the given action.
+    void search(const QString &text, const int &page, const bool forward);
+
+
 signals:
     /// Write notes from notes widgets to stream writer.
     void writeNotes(QXmlStreamWriter &writer) const;
@@ -222,6 +235,10 @@ signals:
     void readNotes(QXmlStreamReader &reader) const;
     /// Set total time of presentation (preferences().total_time).
     void setTotalTime(const QTime time) const;
+    /// Send navigation signal to master.
+    void navigationSignal(const int page);
+    /// Tell slides to update search results.
+    void updateSearch();
 };
 
 #endif // PDFMASTER_H

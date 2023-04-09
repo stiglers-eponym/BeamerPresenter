@@ -28,12 +28,12 @@ QSize FlexLayout::sizeHint() const
         {
             hint = child->widget()->sizeHint();
             if (child->widget()->hasHeightForWidth())
-                width += hint.height() ? 16384 * hint.width() / hint.height() : 0;
+                width += hint.height() ? 4096 * hint.width() / hint.height() : 0;
             else
                 width += hint.width();
         }
-        debug_msg(DebugLayout, "FlexLayout size hint:" << width << 16384);
-        return QSize(width, 16384);
+        debug_msg(DebugLayout, "FlexLayout size hint:" << width << 4096);
+        return QSize(width, 4096);
     }
     case QBoxLayout::TopToBottom:
     case QBoxLayout::BottomToTop:
@@ -43,12 +43,12 @@ QSize FlexLayout::sizeHint() const
         {
             hint = child->widget()->sizeHint();
             if (child->widget()->hasHeightForWidth())
-                height += hint.width() ? 16384 * hint.height() / hint.width() : 0;
+                height += hint.width() ? 4096 * hint.height() / hint.width() : 0;
             else
                 height += hint.height();
         }
-        debug_msg(DebugLayout, "FlexLayout size hint:" << 16384 << height);
-        return QSize(16384, height);
+        debug_msg(DebugLayout, "FlexLayout size hint:" << 4096 << height);
+        return QSize(4096, height);
     }
     default:
         return QSize();

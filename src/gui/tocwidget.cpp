@@ -5,9 +5,10 @@
 #include <algorithm>
 #include <QGridLayout>
 #include <QScroller>
-#include <QCheckBox>
+#include <QPushButton>
 #include <QVector>
 #include <QSizePolicy>
+#include <QKeyEvent>
 #include "src/gui/tocwidget.h"
 #include "src/gui/tocbutton.h"
 #include "src/preferences.h"
@@ -31,15 +32,22 @@ void TOCwidget::generateTOC(const PdfDocument *document)
 
     QGridLayout *layout = new QGridLayout();
     layout->setSizeConstraint(QGridLayout::SetNoConstraint);
-    QCheckBox *expand_button;
+    QPushButton *expand_button;
     int num_items = 0;
+    QIcon icon = QIcon::fromTheme("go-next");
+    if (icon.isNull())
+        icon = QIcon::fromTheme("go-next-symbolic");
     auto add_buttons = [&](const int idx, const int depth, auto &function) -> TOCbutton*
     {
         if (idx > outline.length() || num_items++ > outline.length())
             return NULL;
         if (std::abs(outline[idx].next) > idx + 1)
         {
-            expand_button = new QCheckBox(this);
+            if (icon.isNull())
+                expand_button = new QPushButton(">", this);
+            else
+                expand_button = new QPushButton(icon, "", this);
+            expand_button->setCheckable(true);
             layout->addWidget(expand_button, idx, depth, 1, 1);
         }
         else
@@ -116,4 +124,21 @@ void TOCwidget::showEvent(QShowEvent*)
         expandTo(preferences()->page);
     else
         generateTOC();
+}
+
+void TOCwidget::keyPressEvent(QKeyEvent *event)
+{
+#if (QT_VERSION_MAJOR >= 6)
+    switch (event->keyCombination().toCombined())
+#else
+    switch (event->key() | (event->modifiers() & ~Qt::KeypadModifier))
+#endif
+    {
+    case Qt::Key_PageUp:
+    case Qt::Key_PageDown:
+        event->ignore();
+        break;
+    default:
+        QScrollArea::keyPressEvent(event);
+    }
 }

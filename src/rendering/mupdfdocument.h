@@ -4,10 +4,12 @@
 #ifndef MUPDFDOCUMENT_H
 #define MUPDFDOCUMENT_H
 
+#include <utility>
 #include <QString>
 #include <QList>
 #include <QMap>
 #include <QVector>
+#include <QCoreApplication>
 #include "src/config.h"
 // old versions of MuPDF don't have 'extern "C"' in the header files.
 extern "C"
@@ -33,6 +35,8 @@ class QPointF;
  */
 class MuPdfDocument : public PdfDocument
 {
+    Q_DECLARE_TR_FUNCTIONS(MuPdfDocument)
+
 public:
     /// Item in PDF PageLabel list. This is only used internally in
     /// MuPdfDocument::loadPageLabels().
@@ -65,12 +69,21 @@ private:
     /// Total number of pages in document.
     int number_of_pages;
 
-    /// Map page numbers to labels: Only the first page number with a new label
-    /// is listed here.
+    /// Map page numbers to labels: Only the first page number with a
+    /// new label is listed here.
+    /// Exception: pages with an own TOC entry always have their label
+    /// explicitly defined.
     QMap<int, QString> pageLabels;
 
-    /// populate pageLabels.
+    /// populate pageLabels. Must be called after loadOutline.
     void loadPageLabels();
+
+    /// Load the PDF outline, fill PdfDocument::outline.
+    void loadOutline();
+
+    /// Search for raw_needle on page and put results in target.
+    /// Return number of matches.
+    int searchPage(const int page, const char *raw_needle, QList<QRectF> &target) const;
 
 public:
     /// Constructor: Create mutexes and load document using loadDocument().
@@ -127,18 +140,21 @@ public:
     pdf_document* getDocument() const
     {return doc;}
 
-    /// Load the PDF outline, fill PdfDocument::outline.
-    void loadOutline() override;
+    /// Load the PDF labels and outline, fill PdfDocument::outline.
+    void loadLabels() override;
 
     /// Search which pages contain text.
-    QPair<int,QRectF> search(const QString &needle, int start_page, bool forward) const override;
+    std::pair<int,QRectF> search(const QString &needle, int start_page, bool forward) const override;
+
+    /// Search which page contains needle and return the
+    /// outline of all occurrences on that slide.
+    std::pair<int,QList<QRectF>> searchAll(const QString &needle, int start_page = 0, bool forward = true) const override;
 
     /// Link at given position (in point = inch/72)
     virtual const PdfLink *linkAt(const int page, const QPointF &position) const override;
 
-    /// List all video annotations on given page. Returns NULL if list is
-    /// empty.
-    virtual QList<MediaAnnotation>* annotations(const int page) const override;
+    /// List all video annotations on given page.
+    virtual QList<MediaAnnotation> annotations(const int page) const override;
 
     /// Prepare rendering for other threads by initializing the given pointers.
     /// This gives the threads only access to objects which are thread save.

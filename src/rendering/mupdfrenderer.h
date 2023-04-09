@@ -13,11 +13,10 @@ extern "C"
 }
 #include "src/enumerates.h"
 #include "src/rendering/abstractrenderer.h"
+#include "src/rendering/mupdfdocument.h"
 
 class QPixmap;
 class PngPixmap;
-class PdfDocument;
-class MuPdfDocument;
 
 /**
  * @brief MuPDF implementation of AbstractRenderer.
@@ -37,7 +36,10 @@ class MuPdfRenderer : public AbstractRenderer
 
 public:
     /// Constructor: only initializes doc and page_part.
-    MuPdfRenderer(const PdfDocument *document, const PagePart part = FullPage);
+    MuPdfRenderer(const PdfDocument *document, const PagePart part = FullPage) :
+        AbstractRenderer(part),
+        doc(document && (document->type() == MuPdfEngine) ? static_cast<const MuPdfDocument*>(document) : nullptr)
+        {}
 
     /// Trivial destructor.
     ~MuPdfRenderer() override {}
@@ -51,7 +53,8 @@ public:
     const PngPixmap * renderPng(const int page, const qreal resolution) const override;
 
     /// In the current implementation this is always valid.
-    bool isValid() const override;
+    bool isValid() const override
+    {return doc && doc->isValid();}
 };
 
 #endif // MUPDFRENDERER_H

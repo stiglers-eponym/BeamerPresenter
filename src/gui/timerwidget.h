@@ -15,7 +15,7 @@ class QResizeEvent;
 class QMouseEvent;
 class QLineEdit;
 class QLabel;
-class QTimer;
+class QTimerEvent;
 class QTime;
 
 /// Map time (in ms) left for a slide to color.
@@ -63,14 +63,15 @@ private:
     QLineEdit *total;
     /// label "/" shown between passed and total
     QLabel *label;
-    /// timer which causes updates of passed every second
-    QTimer *timer;
     /// map relative times (in ms) to colors to indicate progress
     /// relative to a plan
     QMap<qint32, QRgb> colormap = default_timer_colormap;
     /// target time of current page (planned). This is used to adjust
     /// the color of passed.
     quint32 page_target_time = UINT32_MAX;
+
+    /// Id of the currently running timer.
+    int timer_id = -1;
 
     /// flags for timeout and for setting per page time (confirmation required or not)
     unsigned char _flags = 0;
@@ -109,6 +110,10 @@ public:
     {return _flags;}
 
 protected:
+    /// Timeout event: update timer text.
+    void timerEvent(QTimerEvent*) override
+    {updateText();}
+
     /// Resize event: adjust font size.
     void resizeEvent(QResizeEvent *event) noexcept override;
 

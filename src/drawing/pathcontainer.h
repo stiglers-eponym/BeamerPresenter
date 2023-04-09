@@ -8,6 +8,7 @@
 #include <QPointF>
 #include <QTransform>
 #include <QString>
+#include <QLatin1Char>
 #include <QList>
 #include <QHash>
 #include <QMap>
@@ -28,18 +29,22 @@ class TextGraphicsItem;
 
 namespace drawHistory
 {
+    /// Store changes in a draw tool used to stroke a path.
     struct DrawToolDifference {
-        QPen old_pen;
-        QPen new_pen;
-        QBrush old_brush;
-        QBrush new_brush;
+        QPen old_pen; ///< pen of the old tool
+        QPen new_pen; ///< pen of the new tool
+        QBrush old_brush; ///< brush of the old tool
+        QBrush new_brush; ///< brush of the new tool
+        QPainter::CompositionMode old_mode; ///< composition mode of the old tool
+        QPainter::CompositionMode new_mode; ///< composition mode of the new tool
         DrawToolDifference(const DrawTool &old_tool, const DrawTool &new_tool) :
-            old_pen(old_tool.pen()), new_pen(new_tool.pen()), old_brush(old_pen.brush()), new_brush(new_tool.brush()) {}
+            old_pen(old_tool.pen()), new_pen(new_tool.pen()), old_brush(old_tool.brush()), new_brush(new_tool.brush()), old_mode(old_tool.compositionMode()), new_mode(new_tool.compositionMode()) {}
     };
+    /// Store changes in text properties (not text content!).
     struct TextPropertiesDifference {
-        QFont old_font;
-        QFont new_font;
-        QRgb color_diff;
+        QFont old_font; ///< old font
+        QFont new_font; ///< new font
+        QRgb color_diff; ///< binary difference of colors in RGBA (4 byte) format
     };
 
     /**
@@ -95,8 +100,6 @@ class PathContainer : public QObject
 {
     Q_OBJECT
 
-public:
-
 private:
     /// List of currently visible paths in the order in which they were created
     QList<std::shared_ptr<QGraphicsItem>> paths;
@@ -142,12 +145,12 @@ public:
 
     /// Iterator over current paths.
     /// @see cend()
-    QList<std::shared_ptr<QGraphicsItem>>::const_iterator cbegin() const noexcept
+    QList<std::shared_ptr<QGraphicsItem>>::const_iterator begin() const noexcept
     {return paths.cbegin();}
 
     /// End of iterator over current paths.
     /// @see cbegin()
-    QList<std::shared_ptr<QGraphicsItem>>::const_iterator cend() const noexcept
+    QList<std::shared_ptr<QGraphicsItem>>::const_iterator end() const noexcept
     {return paths.cend();}
 
     /// Clear history such that only n undo steps are possible.
@@ -251,11 +254,19 @@ public slots:
 
 /// Convert color to string with format #RRGGBBAA
 /// (required for Xournal++ format).
-QString color_to_rgba(const QColor &color);
+inline QString color_to_rgba(const QColor &color) noexcept
+{
+    return QLatin1Char('#') + QString::number((color.rgb() << 8) + color.alpha(), 16).rightJustified(8, '0', true);
+}
 
 /// Convert color string of format #RRGGBBAA to QColor
 /// (required for Xournal++ format).
-QColor rgba_to_color(const QString &string);
+inline QColor rgba_to_color(const QString &string) noexcept
+{
+    if (string.length() == 9)
+        return QColor('#' + string.right(2) + string.mid(1,6));
+    return QColor(string);
+}
 
 QDataStream &operator<<(QDataStream &stream, const QGraphicsItem *item);
 QDataStream &operator>>(QDataStream &stream, QGraphicsItem *&item);

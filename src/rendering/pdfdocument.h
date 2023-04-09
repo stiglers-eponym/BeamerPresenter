@@ -4,6 +4,8 @@
 #ifndef PDFDOCUMENT_H
 #define PDFDOCUMENT_H
 
+#include <algorithm>
+#include <utility>
 #include <QString>
 #include <QDateTime>
 #include <QUrl>
@@ -77,7 +79,7 @@ struct MediaAnnotation {
     {return     type == other.type
                 && file == other.file
                 && mode == other.mode
-                && rect == other.rect;}
+                && rect.toAlignedRect() == other.rect.toAlignedRect();}
 };
 
 /// Embedded media file.
@@ -158,18 +160,24 @@ struct PdfLink {
     LinkType type = NoLink;
     /// Link area on slide
     QRectF area;
+    PdfLink(const LinkType type, const QRectF &area) : type(type), area(area) {}
+    virtual ~PdfLink() = default;
 };
 struct ExternalLink : PdfLink {
     QUrl url;
+    ExternalLink(const LinkType type, const QRectF &area, const QUrl &url) : PdfLink(type, area), url(url) {}
 };
 struct GotoLink : PdfLink {
     int page;
+    GotoLink(const QRectF &area, const int page) : PdfLink(PageLink, area), page(page) {}
 };
 struct ActionLink : PdfLink {
     Action action;
+    ActionLink(const QRectF &area, const Action action) : PdfLink(LinkType::ActionLink, area), action(action) {}
 };
 struct MediaLink : PdfLink {
     MediaAnnotation annotation;
+    MediaLink(const LinkType type, const QRectF &area, const MediaAnnotation &annotation) : PdfLink(type, area), annotation(annotation) {}
 };
 
 /// PDF outline (table of contents, TOC) entry for storing a tree in a list.
@@ -251,6 +259,14 @@ struct SlideTransition {
     void invert() noexcept
     {properties ^= Outwards; angle = (angle + 180) % 360;}
 };
+
+
+/// Compare outline entries by their page.
+inline bool operator<(const int page, const PdfOutlineEntry& other)
+{
+    return page < other.page;
+}
+
 
 /**
  * @brief Abstract class for handling PDF documents.
@@ -337,28 +353,38 @@ public:
     /// Check whether a file has been loaded successfully.
     virtual bool isValid() const = 0;
 
-    /// Load the PDF outline, fill PdfDocument::outline.
-    virtual void loadOutline() {};
+    /// Load the PDF labels and outline, fill PdfDocument::outline.
+    virtual void loadLabels() {};
 
-    /// Search which pages contain text.
-    virtual QPair<int,QRectF> search(const QString &needle, int start_page = 0, bool forward = true) const
-    {return {-1,QRectF()};}
+    /// Search which page contains needle.
+    virtual std::pair<int,QRectF> search(const QString &needle, int start_page = 0, bool forward = true) const
+    {const auto [page, list] = searchAll(needle, start_page, forward); return {page, list.isEmpty() ? QRectF() : list.first()};}
+
+    /// Search which page contains needle and return the
+    /// outline of all occurrences on that slide.
+    virtual std::pair<int,QList<QRectF>> searchAll(const QString &needle, int start_page = 0, bool forward = true) const
+    {return {-1,{}};}
 
     /// get function for outline
     const QVector<PdfOutlineEntry> &getOutline() const noexcept
     {return outline;}
 
     /// Return outline entry at given page.
-    const PdfOutlineEntry &outlineEntryAt(const int page) const;
+    const PdfOutlineEntry &outlineEntryAt(const int page) const
+    {
+        // Upper bound will always point to the next outline entry
+        // (or outline.cend() or outline.cbegin()).
+        const auto it = std::upper_bound(outline.cbegin(), outline.cend(), page);
+        return it == outline.cbegin() ? *it : *(it-1);
+    }
 
     /// Link at given position (in point = inch/72)
     virtual const PdfLink *linkAt(const int page, const QPointF &position) const
-    {return NULL;}
+    {return nullptr;}
 
-    /// List all video annotations on given page. Returns NULL if list is
-    /// empty.
-    virtual QList<MediaAnnotation>* annotations(const int page) const
-    {return NULL;}
+    /// List all video annotations on given page.
+    virtual QList<MediaAnnotation> annotations(const int page) const
+    {return {};}
 
     /// Path to PDF file.
     const QString &getPath() const

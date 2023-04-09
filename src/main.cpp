@@ -59,12 +59,6 @@ int main(int argc, char *argv[])
     app.setApplicationName("BeamerPresenter");
     app.setWindowIcon(QIcon(ICON_FILEPATH));
 
-#ifdef USE_TRANSLATIONS
-    QTranslator translator;
-    if (translator.load(QLocale(), "", "", TRANSLATION_PATH))
-        app.installTranslator(&translator);
-#endif
-
     // Set app version. The string APP_VERSION is defined in src/config.h.
     app.setApplicationVersion(
                 APP_VERSION
@@ -79,6 +73,16 @@ int main(int argc, char *argv[])
                 " debugging"
 #endif
             );
+
+#ifdef USE_TRANSLATIONS
+    QTranslator translator;
+    for (auto &lang : QLocale().uiLanguages())
+        if (translator.load("beamerpresenter.qm", TRANSLATION_PATH + lang.replace('-', '_') + "/LC_MESSAGES"))
+        {
+            app.installTranslator(&translator);
+            break;
+        }
+#endif
 
     // Set up command line argument parser.
     QCommandLineParser parser;

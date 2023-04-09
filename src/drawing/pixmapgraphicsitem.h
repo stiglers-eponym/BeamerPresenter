@@ -10,8 +10,7 @@
 #include <QPixmap>
 #include <QSizeF>
 #include <QRectF>
-#include <QObject>
-#include <QGraphicsItem>
+#include <QGraphicsObject>
 #include "src/config.h"
 
 #define BLINDS_NUMBER_H 6
@@ -31,14 +30,14 @@ class QStyleOptionGraphicsItem;
  * while showing different pixmaps with the correct resolution for different
  * views of the QGraphicsScene.
  */
-class PixmapGraphicsItem : public QObject, public QGraphicsItem
+class PixmapGraphicsItem : public QGraphicsObject
 {
     Q_OBJECT
     // Not sure what this is good for...
     Q_INTERFACES(QGraphicsItem)
 
     // This class is used in animations. Define properties for these animations.
-    // TODO: bundle these animation properties in a union or std::variant?
+    // TODO: bundle these animation properties in a std::variant?
     /// Opacity of this QGraphicsItem.
     Q_PROPERTY(qreal opacity READ opacity WRITE setOpacity)
     /// Position/shift in x direction.
@@ -91,7 +90,7 @@ public:
 
     /// Trivial constructor.
     explicit PixmapGraphicsItem(const QRectF &rect, QGraphicsItem *parent = NULL) :
-        QObject(NULL), QGraphicsItem(parent), bounding_rect(rect) {}
+        QGraphicsObject(parent), bounding_rect(rect) {}
 
     /// @return custom QGraphicsItem type
     int type() const noexcept override
@@ -141,7 +140,7 @@ public:
 
 public slots:
     /// Add a pixmap.
-    void addPixmap(const QPixmap& pixmap);
+    void addPixmap(const QPixmap& pixmap) noexcept;
 
     /// Set (overwrite) bounding rect.
     void setRect(const QRectF &rect) noexcept

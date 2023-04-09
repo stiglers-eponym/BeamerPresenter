@@ -8,7 +8,6 @@
 #include <QPointF>
 #include <QPen>
 #include <QPainter>
-#include <QTimer>
 #include <QTime>
 #include <QMouseEvent>
 #include <QTouchEvent>
@@ -19,19 +18,12 @@
 #include "src/gui/analogclockwidget.h"
 
 AnalogClockWidget::AnalogClockWidget(QWidget *parent)
-    : QWidget{parent}, timer(new QTimer(this))
+    : QWidget{parent}
 {
     setFocusPolicy(Qt::NoFocus);
-    timer->setTimerType(Qt::CoarseTimer);
-    timer->start(1000);
-    setMinimumSize(10, 10);
+    setMinimumSize(16, 16);
     setToolTip(tr("double-click on clock to start or pause timer"));
-    connect(timer, &QTimer::timeout, this, QOverload<>::of(&AnalogClockWidget::update));
-}
-
-AnalogClockWidget::~AnalogClockWidget()
-{
-    delete timer;
+    timer_id = startTimer(1000);
 }
 
 void AnalogClockWidget::mouseDoubleClickEvent(QMouseEvent *event) noexcept
@@ -113,7 +105,7 @@ void AnalogClockWidget::paintEvent(QPaintEvent*)
         // Show seconds
         painter.setPen(QPen(second_color, 0.02, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin));
         painter.save();
-        if (timer->interval() < 999)
+        if (timer_interval < 1000)
             painter.rotate(6*time.second() + 0.006*time.msec());
         else
             painter.rotate(6*time.second());
@@ -145,7 +137,11 @@ void AnalogClockWidget::readConfig(const QJsonObject &config) noexcept
     if (config.contains("small ticks"))
         small_ticks = config.value("small ticks").toBool(false);
     if (config.contains("interval"))
-        timer->setInterval(config.value("interval").toInt(1000));
+    {
+        killTimer(timer_id);
+        timer_interval = std::min(config.value("interval").toInt(1000), 20);
+        timer_id = startTimer(timer_interval);
+    }
     if (config.contains("hour color"))
         hour_color = QColor(config.value("hour color").toString());
     if (config.contains("minute color"))

@@ -103,6 +103,9 @@ public:
     /// set scale.
     void setScale(const float scale) noexcept
     {_scale = scale;}
+
+    bool visible() const noexcept override
+    {return !_pos.isEmpty() && _scene;}
 };
 
 #endif // POINTINGTOOL_H

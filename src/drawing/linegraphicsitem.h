@@ -35,17 +35,17 @@ public:
     {setPen(tool.pen());}
 
     /// Trivial destructor.
-    ~LineGraphicsItem() {}
+    ~LineGraphicsItem() noexcept {}
 
     /// @return custom QGraphicsItem type.
     int type() const noexcept override
     {return Type;}
 
     /// Change the flexible coordinate of the line.
-    void setSecondPoint(const QPointF &pos);
+    void setSecondPoint(const QPointF &pos) noexcept;
 
     /// Convert to a BasicGraphicsPath for simpler erasing.
-    BasicGraphicsPath *toPath() const;
+    BasicGraphicsPath *toPath() const noexcept;
 
     /// Paint line to painter.
     virtual void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget = NULL) override;

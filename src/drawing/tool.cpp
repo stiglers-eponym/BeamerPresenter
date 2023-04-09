@@ -8,6 +8,27 @@
 #endif
 #include "src/log.h"
 #include "src/drawing/tool.h"
+#include "src/drawing/drawtool.h"
+#include "src/drawing/pointingtool.h"
+#include "src/drawing/selectiontool.h"
+#include "src/drawing/texttool.h"
+
+Tool* Tool::copy() const
+{
+    Tool *newtool;
+    if (_tool & Tool::AnyDrawTool)
+        newtool = new DrawTool(*static_cast<const DrawTool*>(this));
+    else if (_tool & Tool::AnyPointingTool)
+        newtool = new PointingTool(*static_cast<const PointingTool*>(this));
+    else if (_tool & Tool::AnySelectionTool)
+        newtool = new SelectionTool(*static_cast<const SelectionTool*>(this));
+    else if (_tool == Tool::TextInputTool)
+        newtool = new TextTool(*static_cast<const TextTool*>(this));
+    else
+        newtool = new Tool(*this);
+    newtool->setDevice(_device);
+    return newtool;
+}
 
 int tablet_event_to_input_device(const QTabletEvent* event)
 {
@@ -46,33 +67,35 @@ int tablet_event_to_input_device(const QTabletEvent* event)
 }
 
 
-const QString tool_to_description(const Tool::BasicTool tool) noexcept
+const char *tool_to_description(const Tool::BasicTool tool) noexcept
 {
     switch (tool)
     {
+    case Tool::NoTool:
+        return QT_TRANSLATE_NOOP("Tool", "no tool: follow links and control audio/video content");
     case Tool::Pen:
-        return QObject::tr("pen with variable width if the input device supports variable pressure");
+        return QT_TRANSLATE_NOOP("Tool", "pen with variable width if the input device supports variable pressure");
     case Tool::FixedWidthPen:
-        return QObject::tr("pen with fixed width (independent of input device pressure)");
+        return QT_TRANSLATE_NOOP("Tool", "pen with fixed width (independent of input device pressure)");
     case Tool::Eraser:
-        return QObject::tr("eraser: deletes drawings");
+        return QT_TRANSLATE_NOOP("Tool", "eraser: deletes drawings");
     case Tool::Highlighter:
-        return QObject::tr("highlighter: fixed width drawing which only darkens colors (full color on white background, invisible on black background)");
+        return QT_TRANSLATE_NOOP("Tool", "highlighter: fixed width drawing which only darkens colors (full color on white background, invisible on black background)");
     case Tool::Pointer:
-        return QObject::tr("pointer");
+        return QT_TRANSLATE_NOOP("Tool", "pointer");
     case Tool::Torch:
-        return QObject::tr("torch: darken the slide leaving only a disk unchanged to focus attention on this area");
+        return QT_TRANSLATE_NOOP("Tool", "torch: darken the slide leaving only a disk unchanged to focus attention on this area");
     case Tool::Magnifier:
-        return QObject::tr("enlargen part of the slide");
+        return QT_TRANSLATE_NOOP("Tool", "enlargen part of the slide");
     case Tool::TextInputTool:
-        return QObject::tr("add or edit text on slide");
+        return QT_TRANSLATE_NOOP("Tool", "add or edit text on slide");
     case Tool::BasicSelectionTool:
-        return QObject::tr("Select objects by clicking on them");
+        return QT_TRANSLATE_NOOP("Tool", "Select objects by clicking on them");
     case Tool::RectSelectionTool:
-        return QObject::tr("Select objects in a rectangle");
+        return QT_TRANSLATE_NOOP("Tool", "Select objects in a rectangle");
     case Tool::FreehandSelectionTool:
-        return QObject::tr("Select objects inside a drawn shape");
+        return QT_TRANSLATE_NOOP("Tool", "Select objects inside a drawn shape");
     default:
-        return QString();
+        return "";
     };
 }

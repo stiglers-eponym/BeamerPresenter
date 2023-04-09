@@ -14,10 +14,9 @@
 #include <QKeySequence>
 #include <QDateTime>
 #include "src/config.h"
+#include "src/drawing/tool.h"
 #include "src/enumerates.h"
 
-class DrawTool;
-class Tool;
 class PdfDocument;
 class QCommandLineParser;
 class QJsonObject;
@@ -51,9 +50,9 @@ public:
         FinalizeDrawnPaths = 1 << 4,
     };
 
-    /************************/
-    /* GLOBAL CONFIGURATION */
-    /************************/
+    /* ********************** */
+    /*  GLOBAL CONFIGURATION  */
+    /* ********************** */
 
     // SETTINGS
     /// Path to GUI configuration file.
@@ -72,6 +71,9 @@ public:
 
     /// Other flags.
     quint8 global_flags = AutoSlideChanges;
+
+    /// Color for filling rectangles highlighting search results.
+    QBrush search_highlighting_color {QColor(40, 100, 60, 100)};
 
 
     // DRAWING
@@ -102,8 +104,12 @@ public:
     qreal rect_closing_tolerance = 0.1;
 
     // SELECTION
+    /// Minimal pen width for defining path shape. For thinner paths
+    /// the shape is defined with this width.
     qreal path_min_selectable_width = 3.;
+    /// Pen for drawing rectangle around selection.
     QPen selection_rect_pen {QPen(QColor(128,128,144,128), 0.5, Qt::DotLine)};
+    /// Pen for filling rectangle around selection.
     QBrush selection_rect_brush {QBrush(QColor(128,128,144,32))};
 
     // RENDERING
@@ -150,7 +156,11 @@ public:
     {
         {Qt::Key_PageDown, Action::NextPage},
         {Qt::Key_PageUp, Action::PreviousPage},
+        {Qt::Key_Right, Action::NextPage},
+        {Qt::Key_Left, Action::PreviousPage},
         {Qt::Key_Space, Action::Update},
+        {Qt::Key_Home, Action::FirstPage},
+        {Qt::Key_End, Action::LastPage},
         {Qt::CTRL | Qt::Key_C, Action::CopyClipboard},
         {Qt::CTRL | Qt::Key_X, Action::CutClipboard},
         {Qt::CTRL | Qt::Key_V, Action::PasteClipboard},
@@ -178,9 +188,9 @@ public:
         {SwipeDown, Action::PreviousPage},
     };
 
-    /****************************/
-    /* DEFINED PER PRESENTATION */
-    /****************************/
+    /* ************************** */
+    /*  DEFINED PER PRESENTATION  */
+    /* ************************** */
 
     /// Map "presentation", "notes", ... to file names.
     /// This is needed to interpret GUI config.
@@ -191,9 +201,9 @@ public:
     int number_of_pages = 0;
 
 
-    /*********************************/
-    /* VARIABLES WITHOUT FIXED VALUE */
-    /*********************************/
+    /* ******************************* */
+    /*  VARIABLES WITHOUT FIXED VALUE  */
+    /* ******************************* */
 
     /// Current page number in reference presentation view.
     int page = 0;
@@ -207,14 +217,17 @@ public:
     /// Total time for presentation.
     quint32 msecs_total = 0;
 
-    /// Tool used for other input device, owned by this.
-    /// The keys are taken from InputDevice.
-    QList<Tool*> current_tools;
+    /** Tools used for different input devices, owned by this.
+     * This is only a QMultiMap to keep it sorted. The sorting is
+     * important for the order in which pointing tools are drawn in
+     * SlideView.
+     * */
+    QMultiMap<Tool::BasicTool, Tool*> current_tools;
 
 
-    /*******************/
-    /*    FUNCTIONS    */
-    /*******************/
+    /* ***************** */
+    /*     FUNCTIONS     */
+    /* ***************** */
 
     /// Load settings from default config file location (defined by Qt).
     Preferences(QObject *parent = NULL);
@@ -271,6 +284,13 @@ public:
 
     /// Set new GUI configuration file.
     bool setGuiConfigFile(const QString &file);
+
+    /// Disconnect tools from the given device.
+    /// Deletes tools if necessary.
+    /// @param no_mouse_hover delete tools if only device MouseNoButton remains.
+    void removeCurrentTool(const int device, const bool no_mouse_hover = false) noexcept;
+    /// Append tool to currently used tools. This takes ownership of tool.
+    void setCurrentTool(Tool *tool) noexcept;
 
 public slots:
     /// Set maximum memory for cache. This function uses double instead of

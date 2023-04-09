@@ -3,7 +3,6 @@
 
 #include <string>
 #include <iterator>
-#include <QObject>
 #include <QPointF>
 #include <QSizeF>
 #include <QRectF>
@@ -29,6 +28,8 @@
 #ifndef FZ_VERSION_MINOR
 #define FZ_VERSION_MINOR 0
 #endif
+
+#define MAX_SEARCH_RESULTS 20
 
 std::string roman(int number)
 {
@@ -144,8 +145,8 @@ bool MuPdfDocument::loadDocument()
     if (!fileinfo.exists() || !fileinfo.isFile())
     {
         preferences()->showErrorMessage(
-                    QObject::tr("Error while loading file"),
-                    QObject::tr("Given filename is not a file: ") + fileinfo.baseName());
+                    tr("Error while loading file"),
+                    tr("Given filename is not a file: ") + fileinfo.baseName());
         return false;
     }
 
@@ -209,14 +210,13 @@ bool MuPdfDocument::loadDocument()
         //const QByteArray &pathdecoded = path.toLatin1();
         const QByteArray &pathdecoded = path.toUtf8();
         const char *name = pathdecoded.data();
-        fz_var(doc);
         fz_try(ctx)
             doc = pdf_open_document(ctx, name);
         fz_catch(ctx)
         {
             preferences()->showErrorMessage(
-                        QObject::tr("Error while loading file"),
-                        QObject::tr("MuPdf cannot open document: ") + fz_caught_message(ctx));
+                        tr("Error while loading file"),
+                        tr("MuPdf cannot open document: ") + fz_caught_message(ctx));
             doc = NULL;
             fz_drop_context(ctx);
             ctx =  NULL;
@@ -232,8 +232,8 @@ bool MuPdfDocument::loadDocument()
         bool ok;
         QString const password = QInputDialog::getText(
                     NULL,
-                    QObject::tr("Document is locked!"),
-                    QObject::tr("Please enter password (leave empty to cancel)."),
+                    tr("Document is locked!"),
+                    tr("Please enter password (leave empty to cancel)."),
                     QLineEdit::Password,
                     QString(),
                     &ok
@@ -242,8 +242,8 @@ bool MuPdfDocument::loadDocument()
         if (!ok || password.isEmpty() || !pdf_authenticate_password(ctx, doc, password.toUtf8()))
         {
             preferences()->showErrorMessage(
-                        QObject::tr("Error while loading file"),
-                        QObject::tr("No or invalid password provided for locked document"));
+                        tr("Error while loading file"),
+                        tr("No or invalid password provided for locked document"));
             pdf_drop_document(ctx, doc);
             doc = NULL;
             fz_drop_context(ctx);
@@ -261,7 +261,6 @@ bool MuPdfDocument::loadDocument()
 
     pages.resize(number_of_pages);
     int i=0;
-    fz_var(i);
 
 #ifdef SUPPRESS_MUPDF_WARNINGS
     fflush(stderr);
@@ -271,11 +270,10 @@ bool MuPdfDocument::loadDocument()
     close(nullfd);
 #endif
     do {
-        fz_var(pages[i]);
         fz_try(ctx)
             pages[i] = pdf_load_page(ctx, doc, i);
         fz_catch(ctx)
-            pages[i] = NULL;
+            pages[i] = nullptr;
     } while (++i < number_of_pages);
 #ifdef SUPPRESS_MUPDF_WARNINGS
     fflush(stderr);
@@ -284,9 +282,6 @@ bool MuPdfDocument::loadDocument()
 #endif
 
     mutex->unlock();
-
-    // Load page labels.
-    loadPageLabels();
 
     debug_msg(DebugRendering, "Loaded PDF document in MuPDF");
     return number_of_pages > 0;
@@ -300,7 +295,6 @@ const QSizeF MuPdfDocument::pageSize(const int page) const
 
     mutex->lock();
     fz_rect bbox;
-    fz_var(bbox);
     fz_try(ctx)
         // Get bounding box.
         bbox = pdf_bound_page(ctx, pages[page]);
@@ -482,6 +476,17 @@ void MuPdfDocument::loadPageLabels()
     // could easily produce segfaults.
     if (pageLabels.firstKey() != 0)
         pageLabels[0] = "";
+
+    // Add all pages explicitly to pageLabels, which have an own outline entry.
+    QMap<int, QString>::key_iterator it;
+    for (const auto &entry : qAsConst(outline))
+    {
+        if (entry.page < 0 || entry.page >= number_of_pages)
+            continue;
+        it = std::upper_bound(pageLabels.keyBegin(), pageLabels.keyEnd(), entry.page);
+        if (it != pageLabels.keyBegin() && *--it != entry.page)
+            pageLabels.insert(entry.page, pageLabels[*it]);
+    }
 }
 
 void MuPdfDocument::prepareRendering(fz_context **context, fz_rect *bbox, fz_display_list **list, const int pagenumber, const qreal resolution) const
@@ -509,10 +514,9 @@ void MuPdfDocument::prepareRendering(fz_context **context, fz_rect *bbox, fz_dis
     bbox->y0 *= resolution;
     bbox->y1 *= resolution;
 
-    fz_device *dev = NULL;
+    fz_device *dev = nullptr;
     fz_var(*list);
     fz_var(dev);
-    fz_var(pages[pagenumber]);
     fz_try(ctx)
     {
         // Prepare a display list for a drawing device.
@@ -532,7 +536,7 @@ void MuPdfDocument::prepareRendering(fz_context **context, fz_rect *bbox, fz_dis
     fz_catch(ctx)
     {
         fz_drop_display_list(ctx, *list);
-        *list = NULL;
+        *list = nullptr;
     }
 }
 
@@ -543,11 +547,8 @@ const SlideTransition MuPdfDocument::transition(const int page) const
         return trans;
 
     mutex->lock();
-    fz_transition doc_trans;
-    float duration;
-    fz_var(doc_trans);
-    fz_var(duration);
-    fz_var(pages[page]);
+    fz_transition doc_trans = {0, 0., 0, 0, 0, 0, 0};
+    float duration = 0.;
     fz_try(ctx)
         pdf_page_presentation(ctx, pages[page], &doc_trans, &duration);
     fz_catch(ctx)
@@ -558,14 +559,15 @@ const SlideTransition MuPdfDocument::transition(const int page) const
 
     trans.properties = (doc_trans.vertical ? SlideTransition::Vertical : 0)
                     | (doc_trans.outwards ? SlideTransition::Outwards : 0);
-    trans.type = static_cast<SlideTransition::Type>(doc_trans.type);
+    if (doc_trans.type > 12 || doc_trans.type < 0)
+        trans.type = -1;
+    else
+        trans.type = static_cast<SlideTransition::Type>(doc_trans.type);
     trans.angle = doc_trans.direction;
     trans.duration = doc_trans.duration;
 
     if (trans.type == SlideTransition::Fly)
     {
-        fz_var(trans.type);
-        fz_var(trans.scale);
         fz_try(ctx)
         {
             pdf_obj *transdict = pdf_dict_get(ctx, pages[page]->obj, PDF_NAME(Trans));
@@ -598,7 +600,11 @@ const PdfLink *MuPdfDocument::linkAt(const int page, const QPointF &position) co
         clink = pdf_load_links(ctx, pages[page]);
         for (fz_link* link = clink; link != NULL; link = link->next)
         {
-            if (link->uri && link->rect.x0 <= position.x() && link->rect.x1 >= position.x() && link->rect.y0 <= position.y() && link->rect.y1 >= position.y())
+            if (link->uri
+                && link->rect.x0 <= position.x()
+                && link->rect.x1 >= position.x()
+                && link->rect.y0 <= position.y()
+                && link->rect.y1 >= position.y())
             {
                 const QRectF rect = QRectF(link->rect.x0, link->rect.y0, link->rect.x1 - link->rect.x0, link->rect.y1 - link->rect.y0).normalized();
                 debug_verbose(DebugRendering, "Link to" << link->uri);
@@ -609,7 +615,7 @@ const PdfLink *MuPdfDocument::linkAt(const int page, const QPointF &position) co
                     // Internal navigation link
                     float x, y;
                     const int location = pdf_resolve_link(ctx, doc, link->uri, &x, &y);
-                    result = new GotoLink({PdfLink::PageLink, rect, location});
+                    result = new GotoLink(rect, location);
                     break;
                 }
                 else
@@ -618,7 +624,7 @@ const PdfLink *MuPdfDocument::linkAt(const int page, const QPointF &position) co
                     const QUrl url = preferences()->resolvePath(link->uri);
                     if (url.isValid())
                     {
-                        result = new ExternalLink({url.isLocalFile() ? PdfLink::LocalUrl : PdfLink::RemoteUrl, rect, url});
+                        result = new ExternalLink(url.isLocalFile() ? PdfLink::LocalUrl : PdfLink::RemoteUrl, rect, url);
                         break;
                     }
                 }
@@ -637,11 +643,11 @@ const PdfLink *MuPdfDocument::linkAt(const int page, const QPointF &position) co
     return result;
 }
 
-QList<MediaAnnotation> *MuPdfDocument::annotations(const int page) const
+QList<MediaAnnotation> MuPdfDocument::annotations(const int page) const
 {
+    QList<MediaAnnotation> list;
     if (!pages.value(page) || !ctx)
-        return NULL;
-    QList<MediaAnnotation>* list = NULL;
+        return {};
     mutex->lock();
     fz_var(list);
     fz_try(ctx)
@@ -667,10 +673,8 @@ QList<MediaAnnotation> *MuPdfDocument::annotations(const int page) const
                 //pdf_drop_obj(ctx, media_obj);
                 if (!url.isValid())
                     continue;
-                fz_rect bound = pdf_bound_annot(ctx, annot);
-                if (list == NULL)
-                    list = new QList<MediaAnnotation>();
-                list->append(MediaAnnotation(
+                const fz_rect bound = pdf_bound_annot(ctx, annot);
+                list.append(MediaAnnotation(
                             url,
                             true,
                             QRectF(bound.x0, bound.y0, bound.x1-bound.x0, bound.y1-bound.y0)
@@ -682,15 +686,15 @@ QList<MediaAnnotation> *MuPdfDocument::annotations(const int page) const
 #endif
                 if (activation_obj)
                 {
-                    QString mode = pdf_to_name(ctx, pdf_dict_gets(ctx, activation_obj, "Mode") );
+                    const QString mode(pdf_to_name(ctx, pdf_dict_gets(ctx, activation_obj, "Mode")));
                     if (!mode.isEmpty())
                     {
                         if (mode == "Open")
-                            list->last().mode = MediaAnnotation::Open;
+                            list.last().mode = MediaAnnotation::Open;
                         else if (mode == "Palindrome")
-                            list->last().mode = MediaAnnotation::Palindrome;
+                            list.last().mode = MediaAnnotation::Palindrome;
                         else if (mode == "Repeat")
-                            list->last().mode = MediaAnnotation::Repeat;
+                            list.last().mode = MediaAnnotation::Repeat;
                     }
                     //pdf_drop_obj(ctx, activation_obj);
                 }
@@ -716,10 +720,8 @@ QList<MediaAnnotation> *MuPdfDocument::annotations(const int page) const
                     warn_msg("Failed to load sound object: file not found or unsupported embedded sound");
                     continue;
                 }
-                fz_rect bound = pdf_bound_annot(ctx, annot);
-                if (list == NULL)
-                    list = new QList<MediaAnnotation>();
-                list->append(MediaAnnotation(
+                const fz_rect bound = pdf_bound_annot(ctx, annot);
+                list.append(MediaAnnotation(
                             url,
                             false,
                             QRectF(bound.x0, bound.y0, bound.x1-bound.x0, bound.y1-bound.y0)
@@ -738,13 +740,9 @@ QList<MediaAnnotation> *MuPdfDocument::annotations(const int page) const
         }
     }
     fz_always(ctx)
-    {
         mutex->unlock();
-    }
     fz_catch(ctx)
-    {
         warn_msg("Error while searching annotations:" << fz_caught_message(ctx));
-    }
     return list;
 }
 
@@ -770,6 +768,12 @@ bool MuPdfDocument::flexiblePageSizes() noexcept
     return flexible_page_sizes;
 }
 
+void MuPdfDocument::loadLabels()
+{
+    loadOutline();
+    loadPageLabels();
+}
+
 void MuPdfDocument::loadOutline()
 {
     if (!ctx || !doc)
@@ -780,7 +784,7 @@ void MuPdfDocument::loadOutline()
     outline.append(PdfOutlineEntry({"", -1, 1}));
     mutex->lock();
 
-    fz_outline *root;
+    fz_outline *root = nullptr;
     fz_var(root);
     fz_var(outline);
     fz_try(ctx)
@@ -825,9 +829,9 @@ void MuPdfDocument::loadOutline()
 #endif
 }
 
-QPair<int,QRectF> MuPdfDocument::search(const QString &needle, int start_page, bool forward) const
+std::pair<int,QRectF> MuPdfDocument::search(const QString &needle, int start_page, bool forward) const
 {
-    QPair<int,QRectF> result = {-1, QRectF()};
+    std::pair<int,QRectF> result = {-1, QRectF()};
     if (needle.isEmpty() || !doc)
         return result;
     if (start_page < 0)
@@ -836,16 +840,12 @@ QPair<int,QRectF> MuPdfDocument::search(const QString &needle, int start_page, b
         start_page = number_of_pages - 1;
     const QByteArray byte_needle = needle.toUtf8();
     const char* raw_needle = byte_needle.data();
-    int hit;
+    int hit = 0;
 #if (FZ_VERSION_MAJOR >= 1) && (FZ_VERSION_MINOR >= 20)
-    int hit_mark;
+    int hit_mark = 0;
 #endif
     fz_quad rect;
-    fz_var(hit);
-#if (FZ_VERSION_MAJOR >= 1) && (FZ_VERSION_MINOR >= 20)
-    fz_var(hit_mark);
-#endif
-    fz_var(rect);
+    mutex->lock();
     if (forward)
         for (int page = start_page; page < number_of_pages; ++page)
         {
@@ -882,16 +882,76 @@ QPair<int,QRectF> MuPdfDocument::search(const QString &needle, int start_page, b
                 break;
             }
         }
+    mutex->unlock();
     return result;
 }
+
+std::pair<int,QList<QRectF>> MuPdfDocument::searchAll(const QString &needle, int start_page, bool forward) const
+{
+    std::pair<int,QList<QRectF>> result {-1, {}};
+    if (needle.isEmpty() || !doc)
+        return result;
+    if (start_page < 0)
+        start_page = 0;
+    else if (start_page >= number_of_pages)
+        start_page = number_of_pages - 1;
+    const QByteArray byte_needle = needle.toUtf8();
+    const char* raw_needle = byte_needle.data();
+    if (forward)
+    {
+        for (int page = start_page; page < number_of_pages; ++page)
+            if (searchPage(page, raw_needle, result.second))
+            {
+                result.first = page;
+                break;
+            }
+    }
+    else
+    {
+        for (int page = start_page; page >= 0; --page)
+            if (searchPage(page, raw_needle, result.second))
+            {
+                result.first = page;
+                break;
+            }
+    }
+    return result;
+}
+
+int MuPdfDocument::searchPage(const int page, const char *raw_needle, QList<QRectF> &target) const
+{
+    debug_msg(DebugRendering, "Start searching page" << page << raw_needle);
+    int count = 0;
+#if (FZ_VERSION_MAJOR >= 1) && (FZ_VERSION_MINOR >= 20)
+    int hit_mark[MAX_SEARCH_RESULTS];
+#endif
+    fz_quad rects[MAX_SEARCH_RESULTS];
+    mutex->lock();
+    fz_try(ctx)
+#if (FZ_VERSION_MAJOR >= 1) && (FZ_VERSION_MINOR >= 20)
+        count = fz_search_page(ctx, (fz_page*const)(pages[page]), raw_needle, hit_mark, rects, MAX_SEARCH_RESULTS);
+#else
+        count = fz_search_page(ctx, (fz_page*const)(pages[page]), raw_needle, rects, MAX_SEARCH_RESULTS);
+#endif
+    fz_always(ctx)
+        mutex->unlock();
+    fz_catch(ctx)
+        count = 0;
+    debug_msg(DebugRendering, "done with search: count =" << count);
+    if (count > MAX_SEARCH_RESULTS)
+        count = MAX_SEARCH_RESULTS;
+    for (int i=0; i<count; ++i)
+        target.append(QRectF(QPointF(rects[i].ll.x, rects[i].ll.y), QPoint(rects[i].ur.x, rects[i].ur.y)));
+    return count;
+}
+
 
 qreal MuPdfDocument::duration(const int page) const noexcept
 {
     if (!pages.value(page) || !ctx)
         return -1.;
     mutex->lock();
-    qreal duration;
-    fz_var(duration);
+    qreal duration = 0.;
     fz_try(ctx)
     {
         pdf_obj *obj = pdf_dict_get(ctx, pages[page]->obj, PDF_NAME(Dur));

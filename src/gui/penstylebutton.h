@@ -33,7 +33,7 @@ protected:
 
 public slots:
     /// Update currently selected tool property based on tool.
-    void toolChanged(Tool *tool) override;
+    void toolChanged(const Tool *tool) override;
 };
 
 #endif // PENSTYLEBUTTON_H

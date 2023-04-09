@@ -4,6 +4,7 @@
 #include <cstdlib>
 #include <algorithm>
 #include <QThread>
+#include <QKeyEvent>
 #include <QShowEvent>
 #include <QScroller>
 #include <QSizeF>
@@ -22,31 +23,50 @@ void ThumbnailWidget::showEvent(QShowEvent *event)
     // generate the thumbnails if necessary
     generate();
     // select the currently visible page
-    QLayout *layout = widget() ? widget()->layout() : NULL;
-    if (layout && !event->spontaneous())
-    {
-        int page;
-        if (_flags & SkipOverlays)
-        {
-            // Get sorted list of page label indices from master document.
-            const QList<int> &list = preferences()->document->overlayIndices();
-            QList<int>::const_iterator it = std::upper_bound(list.cbegin(), list.cend(), preferences()->page);
-            if (it != list.cbegin())
-                --it;
-            page = it - list.cbegin();
-        }
-        else
-            page = preferences()->page;
-        QLayoutItem *item = layout->itemAt(page);
-        if (item && item->widget())
-            item->widget()->setFocus();
-    }
+    if (!event->spontaneous())
+        focusPage(preferences()->page);
 }
 
-void ThumbnailWidget::receiveThumbnail(ThumbnailButton *button, const QPixmap pixmap)
+void ThumbnailWidget::focusPage(int page)
 {
-    if (button)
-        button->setPixmap(pixmap);
+    if (page < 0 || page >= preferences()->number_of_pages)
+        return;
+    QLayout *layout = widget() ? widget()->layout() : nullptr;
+    if (!layout)
+        return;
+    if (_flags & SkipOverlays)
+    {
+        // Get sorted list of page label indices from master document.
+        const QList<int> &list = preferences()->document->overlayIndices();
+        QList<int>::const_iterator it = std::upper_bound(list.cbegin(), list.cend(), page);
+        if (it != list.cbegin())
+            --it;
+        page = it - list.cbegin();
+    }
+    QLayoutItem *item = layout->itemAt(page);
+    if (item && item->widget())
+        item->widget()->setFocus();
+}
+
+void ThumbnailWidget::keyPressEvent(QKeyEvent *event)
+{
+#if (QT_VERSION_MAJOR >= 6)
+    switch (event->keyCombination().toCombined())
+#else
+    switch (event->key() | (event->modifiers() & ~Qt::KeypadModifier))
+#endif
+    {
+    case Qt::Key_PageUp:
+        focusPage(preferences()->page - 1);
+        event->ignore();
+        break;
+    case Qt::Key_PageDown:
+        focusPage(preferences()->page + 1);
+        event->ignore();
+        break;
+    default:
+        QScrollArea::keyPressEvent(event);
+    }
 }
 
 void ThumbnailWidget::handleAction(const Action action)
