@@ -1,7 +1,7 @@
 app-id: io.github.beamerpresenter.beamerpresenter-qt6
 branch: master
 runtime: org.kde.Platform
-runtime-version: "6.3"
+runtime-version: "6.4"
 sdk: org.kde.Sdk
 command: beamerpresenter
 build-options:
@@ -40,11 +40,11 @@ modules:
     - type: archive
       url: https://poppler.freedesktop.org/poppler-23.04.0.tar.xz
       sha256: b6d893dc7dcd4138b9e9df59a13c59695e50e80dc5c2cacee0674670693951a1
-  - name: beamerpresenter
+  - name: beamerpresenter-qt6
     buildsystem: cmake-ninja
     config-opts:
     - "-DQT_VERSION_MAJOR=6"
-    - "-DQT_VERSION_MINOR=3"
+    - "-DQT_VERSION_MINOR=4"
     - "-DUSE_POPPLER=ON"
     - "-DUSE_MUPDF=OFF"
     - "-DUSE_QTPDF=OFF"

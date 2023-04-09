@@ -1,7 +1,7 @@
-app-id: io.github.beamerpresenter.beamerpresenter
+app-id: io.github.beamerpresenter.beamerpresenter-qt5
 branch: master
 runtime: org.kde.Platform
-runtime-version: 5.15-21.08
+runtime-version: 5.15-22.08
 sdk: org.kde.Sdk
 command: beamerpresenter
 build-options:
@@ -16,7 +16,7 @@ finish-args:
   - "--filesystem=xdg-public-share"
   - "--filesystem=xdg-desktop"
   - "--filesystem=xdg-config/beamerpresenter"
-  - "--own-name=io.github.beamerpresenter.beamerpresenter"
+  - "--own-name=io.github.beamerpresenter.beamerpresenter-qt5"
 modules:
   - name: poppler
     buildsystem: cmake-ninja
@@ -40,7 +40,7 @@ modules:
     - type: archive
       url: https://poppler.freedesktop.org/poppler-23.04.0.tar.xz
       sha256: b6d893dc7dcd4138b9e9df59a13c59695e50e80dc5c2cacee0674670693951a1
-  - name: beamerpresenter
+  - name: beamerpresenter-qt5
     buildsystem: cmake-ninja
     config-opts:
     - "-DQT_VERSION_MAJOR=5"
@@ -51,7 +51,7 @@ modules:
     - "-DUSE_EXTERNAL_RENDERER=OFF"
     - "-DUSE_TRANSLATIONS=ON"
     - "-DGIT_VERSION=ON"
-    - "-DAPPID_NAME=io.github.beamerpresenter.beamerpresenter"
+    - "-DAPPID_NAME=io.github.beamerpresenter.beamerpresenter-qt5"
     - "-DINSTALL_METAINFO=ON"
     - "-DCMAKE_BUILD_TYPE=Release"
     - "-DCMAKE_INSTALL_PREFIX=/app"

@@ -4,14 +4,14 @@ on:
       - "v*"
   workflow_dispatch:
 
-name: "Flatpak"
+name: "Flatpak Qt5"
 
 jobs:
   flatpak:
     name: "Flatpak Builder with Qt 5.15 and Poppler"
     runs-on: ubuntu-22.04
     container:
-      image: bilelmoussaoui/flatpak-github-actions:kde-5.15-21.08
+      image: bilelmoussaoui/flatpak-github-actions:kde-5.15-22.08
       options: --privileged
     steps:
     - name: Checkout
@@ -20,8 +20,8 @@ jobs:
     - name: Build flatpak
       uses: bilelmoussaoui/flatpak-github-actions/flatpak-builder@v6
       with:
-        bundle: beamerpresenter.flatpak
-        manifest-path: packaging/io.github.beamerpresenter.beamerpresenter.yml
+        bundle: beamerpresenter-qt5.flatpak
+        manifest-path: packaging/io.github.beamerpresenter.beamerpresenter-qt5.yml
         arch: x86_64
         cache-key: flatpak-builder-${{ github.sha }}
 
@@ -30,6 +30,6 @@ jobs:
       if: startsWith(github.ref, 'refs/tags/')
       with:
         files: |
-          beamerpresenter.flatpak
+          beamerpresenter-qt5.flatpak
         draft: true
         token: ${{ secrets.GITHUB_TOKEN }}
