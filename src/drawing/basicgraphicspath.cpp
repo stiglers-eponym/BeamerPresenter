@@ -180,7 +180,7 @@ void BasicGraphicsPath::changeTool(const DrawTool &newtool) noexcept
         qWarning() << "Cannot change draw tool to non-drawing base tool.";
         return;
     }
-    if (std::abs(newtool.pen().widthF() - _tool.tool()) > 0.2)
+    if (std::abs(newtool.pen().widthF() - _tool.tool()) > 0.01)
 #if (QT_VERSION >= QT_VERSION_CHECK(5,13,0))
         shape_cache.clear();
 #else
@@ -188,7 +188,11 @@ void BasicGraphicsPath::changeTool(const DrawTool &newtool) noexcept
 #endif
     _tool.setPen(newtool.pen());
     _tool.setWidth(newtool.width());
+    _tool.brush() = newtool.brush();
     _tool.setCompositionMode(newtool.compositionMode());
+    // cache shape
+    if (shape_cache.isEmpty())
+        shape_cache = shape();
 }
 
 AbstractGraphicsPath *BasicGraphicsPath::copy() const

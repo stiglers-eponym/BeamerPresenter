@@ -1,4 +1,4 @@
-.TH beamerpresenter-ui 5 "2023-04-02" "0.2.3"
+.TH beamerpresenter-ui 5 "2023-04-09" "0.2.3"
 .
 .SH NAME
 beamerpresenter-ui \- user interface of BeamerPresenter
@@ -235,7 +235,7 @@ outline / table of contents, shows document outline tree.
 .
 .TP
 .B tool widget
-shows current mapping of devices to tools. The tools can be changed using a pop-up dialog.
+shows current mapping of devices to tools. The tools can be changed using a pop-up dialog. Currently this shows a block of mouse buttons (a touch pad is treated like a mouse), the touch input (if available), and a block of tablet devices (if available). For simple usage this is best combined with a tool selector widget.
 .PP
 .RS
 Arguments:
@@ -378,7 +378,7 @@ drop-down menu of colors. This must be provided as a JSON object in the form {\[
 drop-down menu of draw tool widths. This must be provided as a JSON object in the form {\[dq]select\[dq]:\[dq]width\[dq], \[dq]list\[dq]:[0.5,1,2,4]} were the list of widths (measured in point=1/72 inch in the PDF) can be adapted.
 .
 .PP
-Options in the dictionary for tools (all lengths are given in points (1/72 inch) in PDF):
+Options in the dictionary for tools. All lengths (e.g. stroke width) are given in points (1/72 inch) in the PDF:
 .TP
 .B tool
 mandatory: pen, fixed width pen, highlighter, eraser, pointer, magnifier, torch, text, click select, rectangle select, freehand select, or none

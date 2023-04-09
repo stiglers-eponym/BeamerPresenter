@@ -259,7 +259,7 @@ public:
     void pasteFromClipboard();
 
     /// Bring selected items to foreground.
-    void selectionToForeground() const;
+    void selectionToForeground();
 
 protected:
     /**

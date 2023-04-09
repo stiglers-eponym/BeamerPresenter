@@ -1788,10 +1788,9 @@ void SlideScene::pasteFromClipboard()
     emit sendAddPaths(page | page_part, items);
 }
 
-void SlideScene::selectionToForeground() const
+void SlideScene::selectionToForeground()
 {
-    const QList<QGraphicsItem*> selection = selectedItems();
-    // TODO: implement this
+    // TODO: not implemented yet
 }
 
 void SlideScene::toolChanged(const Tool *tool) noexcept
@@ -1806,8 +1805,7 @@ void SlideScene::toolChanged(const Tool *tool) noexcept
             return;
         step = new drawHistory::Step;
         const DrawTool *draw_tool = static_cast<const DrawTool*>(tool);
-        for (auto item : selection)
-        {
+        for (const auto item : selection)
             if (item->type() == BasicGraphicsPath::Type || item->type() == FullGraphicsPath::Type)
             {
                 auto path = static_cast<AbstractGraphicsPath*>(item);
@@ -1816,7 +1814,6 @@ void SlideScene::toolChanged(const Tool *tool) noexcept
                 path->changeTool(*draw_tool);
                 path->update();
             }
-        }
     }
     else if (tool->tool() == Tool::TextInputTool)
     {
@@ -1828,7 +1825,6 @@ void SlideScene::toolChanged(const Tool *tool) noexcept
         step = new drawHistory::Step;
         const TextTool *text_tool = static_cast<const TextTool*>(tool);
         for (auto item : selection)
-        {
             if (item->type() == TextGraphicsItem::Type)
             {
                 auto text = static_cast<TextGraphicsItem*>(item);
@@ -1837,7 +1833,6 @@ void SlideScene::toolChanged(const Tool *tool) noexcept
                 text->setFont(text_tool->font());
                 text->setDefaultTextColor(text_tool->color());
             }
-        }
     }
     if (!step)
         return;
@@ -1870,7 +1865,7 @@ void SlideScene::colorChanged(const QColor &color) noexcept
         }
         case TextGraphicsItem::Type:
         {
-            auto text = static_cast<TextGraphicsItem*>(item);
+            const auto text = static_cast<TextGraphicsItem*>(item);
             step->textPropertiesChanges.insert(item, {text->font(), text->font(), text->defaultTextColor().rgba() ^ color.rgba()});
             text->setDefaultTextColor(color);
             break;

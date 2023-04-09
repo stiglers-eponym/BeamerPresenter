@@ -238,13 +238,15 @@ void FullGraphicsPath::changeTool(const DrawTool &newtool) noexcept
         qWarning() << "Cannot change draw tool to non-drawing base tool.";
         return;
     }
+    _tool.setPen(newtool.pen());
     const float newwidth = newtool.width();
     if (newwidth != _tool.width())
         changeWidth(newwidth);
-    _tool.setPen(newtool.pen());
+    _tool.brush() = newtool.brush();
     _tool.setCompositionMode(newtool.compositionMode());
     // cache shape
-    shape_cache = shape();
+    if (shape_cache.isEmpty())
+        shape_cache = shape();
 }
 
 const QString FullGraphicsPath::stringWidth() const noexcept
