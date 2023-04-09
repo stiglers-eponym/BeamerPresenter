@@ -15,21 +15,18 @@
 #include "src/gui/iconlabel.h"
 #include "src/log.h"
 
-ToolWidget::ToolWidget(QWidget *parent, Qt::Orientation orientation)
-    : QWidget{parent}, orientation{orientation}
+ToolWidget::ToolWidget(QWidget *parent, QBoxLayout::Direction direction)
+    : QWidget{parent}, direction{direction}
 {
     debug_msg(DebugWidgets, "Creating ToolWidget");
     connect(this, &ToolWidget::receiveTool, this, &ToolWidget::checkNewTool);
-    if (orientation == Qt::Horizontal)
-        setLayout(new QHBoxLayout(this));
-    else
-        setLayout(new QVBoxLayout(this));
+    setLayout(new QBoxLayout(direction, this));
     setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 }
 
 QSize ToolWidget::sizeHint() const noexcept
 {
-    if (orientation == Qt::Horizontal)
+    if (direction == QBoxLayout::LeftToRight || direction == QBoxLayout::RightToLeft)
         return {4+total_columns*20, 44};
     else
         return {44, 4+total_columns*20};
@@ -93,7 +90,7 @@ void ToolWidget::addDeviceGroup(const QList<int> &new_devices)
         label = new IconLabel(preferences()->icon_path + "/devices/" + device_icon(device) + ".svg", this);
         connect(this, &ToolWidget::updateIcons, label, &IconLabel::updateIcon, Qt::QueuedConnection);
         label->setToolTip(tr(device_description(device)));
-        if (orientation == Qt::Horizontal)
+        if (direction == QBoxLayout::LeftToRight || direction == QBoxLayout::RightToLeft)
         {
             grid_layout->addWidget(button, 1, used_devices);
             grid_layout->addWidget(label, 0, used_devices);
@@ -108,7 +105,7 @@ void ToolWidget::addDeviceGroup(const QList<int> &new_devices)
         ++total_columns;
     }
     if (used_devices > 0)
-        layout()->addWidget(frame);
+        static_cast<QBoxLayout*>(layout())->addWidget(frame, used_devices);
     else
         delete frame;
 }

@@ -523,8 +523,8 @@ QWidget* Master::createWidget(QJsonObject &object, QWidget *parent)
     }
     case ToolWidgetType:
     {
-        Qt::Orientation orientation = object.value("orientation").toString("horizontal") == "horizontal" ? Qt::Horizontal : Qt::Vertical;
-        ToolWidget *toolwidget = new ToolWidget(parent, orientation);
+        const QBoxLayout::Direction direction = object.value("orientation").toString("horizontal") == "horizontal" ? QBoxLayout::LeftToRight : QBoxLayout::RightToLeft;
+        ToolWidget *toolwidget = new ToolWidget(parent, direction);
         if (object.contains("mouse devices"))
         {
             QList<int> devices;

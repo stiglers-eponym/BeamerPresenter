@@ -6,6 +6,7 @@
 
 #include <QWidget>
 #include <QList>
+#include <QBoxLayout>
 #include "src/drawing/tool.h"
 #include "src/config.h"
 
@@ -30,8 +31,8 @@ class ToolWidget : public QWidget
     int devices {0};
     /// Number of devices shown, used to calculate the layout.
     int total_columns {0};
-    /// Orientation of the layout.
-    Qt::Orientation orientation {Qt::Horizontal};
+    /// Direction of the layout.
+    const QBoxLayout::Direction direction {QBoxLayout::LeftToRight};
     /// Devices listed in the group for mouse devices.
     QList<int> mouse_devices {Tool::MouseLeftButton, Tool::MouseRightButton};
     /// Devices listed in the group for tablet devices.
@@ -42,7 +43,7 @@ class ToolWidget : public QWidget
 
 public:
     /// Constructor: does not add devices, initialize() must be called separately.
-    explicit ToolWidget(QWidget *parent = nullptr, Qt::Orientation orientation = Qt::Horizontal);
+    explicit ToolWidget(QWidget *parent = nullptr, QBoxLayout::Direction direction = QBoxLayout::LeftToRight);
 
     /// Size hint for layout.
     QSize sizeHint() const noexcept override;

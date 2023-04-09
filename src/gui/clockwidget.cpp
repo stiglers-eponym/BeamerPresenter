@@ -25,7 +25,7 @@ ClockWidget::ClockWidget(QWidget *parent, bool accept_touch_input) :
     QFont thefont = font();
     thefont.setPointSize(16);
     setFont(thefont);
-    timerEvent(nullptr);
+    setText(QTime::currentTime().toString(Qt::TextDate));
     startTimer(1000);
     setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);
     setMinimumSize(20, 10);
