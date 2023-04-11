@@ -524,7 +524,7 @@ void SlideScene::handleSelectionStopEvents(SelectionTool *tool, const QPointF &p
             return;
         const bool finalize = preferences()->global_flags & Preferences::FinalizeDrawnPaths;
         QTransform transform;
-        std::unordered_map<QGraphicsItem*, QTransform> transforms;
+        std::map<QGraphicsItem*, QTransform> transforms;
         for (auto it=originalTransforms.cbegin(); it!=originalTransforms.cend(); ++it)
         {
             if (it.key() == &selection_bounding_rect)
@@ -1790,7 +1790,7 @@ void SlideScene::toolChanged(const Tool *tool) noexcept
         const QList<QGraphicsItem*> selection = selectedItems();
         if (selection.isEmpty())
             return;
-        std::unordered_map<QGraphicsItem*, drawHistory::DrawToolDifference> tool_changes;
+        std::map<QGraphicsItem*, drawHistory::DrawToolDifference> tool_changes;
         const DrawTool *draw_tool = static_cast<const DrawTool*>(tool);
         for (const auto item : selection)
             if (item->type() == BasicGraphicsPath::Type || item->type() == FullGraphicsPath::Type)
@@ -1811,7 +1811,7 @@ void SlideScene::toolChanged(const Tool *tool) noexcept
             selection.append(focusItem());
         if (selection.isEmpty())
             return;
-        std::unordered_map<QGraphicsItem*, drawHistory::TextPropertiesDifference> text_changes;
+        std::map<QGraphicsItem*, drawHistory::TextPropertiesDifference> text_changes;
         const TextTool *text_tool = static_cast<const TextTool*>(tool);
         for (auto item : selection)
             if (item->type() == TextGraphicsItem::Type)
@@ -1829,8 +1829,8 @@ void SlideScene::toolChanged(const Tool *tool) noexcept
 
 void SlideScene::colorChanged(const QColor &color) noexcept
 {
-    std::unordered_map<QGraphicsItem*,drawHistory::DrawToolDifference> tool_changes;
-    std::unordered_map<QGraphicsItem*,drawHistory::TextPropertiesDifference> text_changes;
+    std::map<QGraphicsItem*,drawHistory::DrawToolDifference> tool_changes;
+    std::map<QGraphicsItem*,drawHistory::TextPropertiesDifference> text_changes;
     for (auto item : selectedItems())
     {
         switch (item->type())
@@ -1864,7 +1864,7 @@ void SlideScene::colorChanged(const QColor &color) noexcept
 
 void SlideScene::widthChanged(const qreal width) noexcept
 {
-    std::unordered_map<QGraphicsItem*,drawHistory::DrawToolDifference> tool_changes;
+    std::map<QGraphicsItem*,drawHistory::DrawToolDifference> tool_changes;
     for (auto item : selectedItems())
     {
         switch (item->type())

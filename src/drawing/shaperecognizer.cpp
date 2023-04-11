@@ -326,7 +326,7 @@ BasicGraphicsPath *ShapeRecognizer::recognizeEllipse() const
     // Check path is approximately elliptic
     loss = ellipseLossFunc(mx, my, ax, ay) / (moments.s + 10);
     if (loss > 4*preferences()->ellipse_sensitivity)
-        return NULL;
+        return nullptr;
     // Optimize fit parameters
     for (int i=0; i<12; ++i)
     {
@@ -338,8 +338,8 @@ BasicGraphicsPath *ShapeRecognizer::recognizeEllipse() const
         if (std::abs(grad_mx)*(rx+ry) < 1e-3*moments.s && std::abs(grad_my)*(rx+ry) < 1e-3*moments.s && std::abs(grad_ax)*ax < 1e-3*moments.s && std::abs(grad_ay)*ay < 1e-3*moments.s)
             break;
         // TODO: reasonable choice of step size
-        mnorm = 0.05/((1+i*i)*std::sqrt(grad_mx*grad_mx + grad_my*grad_my));
-        anorm = 0.1/((1+i*i)*std::sqrt(grad_ax*grad_ax + grad_ay*grad_ay));
+        mnorm = 0.07/((1+i*i)*std::sqrt(grad_mx*grad_mx + grad_my*grad_my));
+        anorm = 0.15/((1+i*i)*std::sqrt(grad_ax*grad_ax + grad_ay*grad_ay));
         mx -= (rx+ry)*mnorm*grad_mx;
         my -= (rx+ry)*mnorm*grad_my;
         ax -= ax*anorm*grad_ax;
@@ -350,33 +350,14 @@ BasicGraphicsPath *ShapeRecognizer::recognizeEllipse() const
     loss = ellipseLossFunc(mx, my, ax, ay) / (moments.s + 10);
     debug_msg(DebugDrawing, "    found:" << mx << my << 1./std::sqrt(ax) << 1./std::sqrt(ay) << loss);
     if (loss > preferences()->ellipse_sensitivity)
-        return NULL;
+        return nullptr;
     rx = 1./std::sqrt(ax);
     ry = 1./std::sqrt(ay);
     if (std::abs(rx - ry) < preferences()->ellipse_to_circle_snapping*(rx+ry))
         rx = ry = (rx+ry)/2;
     // Check if a full ellipse was drawn (and not only a segment)
-    if (distance(path->lastPoint() - path->firstPoint()) > 0.05*(rx+ry))
-    {
-        const qreal first_angle = std::atan2(path->firstPoint().y()-my, path->firstPoint().x()-mx);
-        // Angle of last point relative to angle of first point
-        qreal rel_last_angle = std::atan2(path->lastPoint().y()-my, path->lastPoint().x()-mx) - first_angle;
-        if (rel_last_angle > M_PI)
-            rel_last_angle -= 2*M_PI;
-        else if (rel_last_angle < -M_PI)
-            rel_last_angle += 2*M_PI;
-        if (std::abs(rel_last_angle) > 0.1)
-        {
-            // diff_angle indicates the direction, in which the ellipse was drawn
-            qreal diff_angle = std::atan2(path->coordinates[path->size()/8+2].y()-my, path->coordinates[path->size()/8+2].x()-mx) - first_angle;
-            if (diff_angle > M_PI)
-                diff_angle -= 2*M_PI;
-            else if (diff_angle < -M_PI)
-                diff_angle += 2*M_PI;
-            if (rel_last_angle*diff_angle < 0)
-                return NULL;
-        }
-    }
+    if (distance(path->lastPoint() - path->firstPoint()) > 0.1*(rx+ry))
+        return nullptr;
 
     // Construct a path.
     const int segments = (rx + ry) * 0.67 + 10;

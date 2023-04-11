@@ -5,7 +5,7 @@
 #define SLIDESCENE_H
 
 #include <set>
-#include <unordered_map>
+#include <map>
 #include <QList>
 #include <QPointF>
 #include <QRectF>
@@ -374,9 +374,9 @@ signals:
 
     /// Send transformations for QGraphicsItems to PdfMaster.
     void sendHistoryStep(int page,
-             std::unordered_map<QGraphicsItem*,QTransform> *transforms,
-             std::unordered_map<QGraphicsItem*,drawHistory::DrawToolDifference> *tools,
-             std::unordered_map<QGraphicsItem*,drawHistory::TextPropertiesDifference> *texts) const;
+             std::map<QGraphicsItem*,QTransform> *transforms,
+             std::map<QGraphicsItem*,drawHistory::DrawToolDifference> *tools,
+             std::map<QGraphicsItem*,drawHistory::TextPropertiesDifference> *texts) const;
 
     /// Replace old path by new path in a single drawing history step.
     void replacePath(int page, QGraphicsItem *olditem, QGraphicsItem *newitem) const;

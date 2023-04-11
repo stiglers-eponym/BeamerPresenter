@@ -1,6 +1,7 @@
 // SPDX-FileCopyrightText: 2022 Valentin Bruch <software@vbruch.eu>
 // SPDX-License-Identifier: GPL-3.0-or-later OR AGPL-3.0-or-later
 
+#include <map>
 #include <algorithm>
 #include <zlib.h>
 #include <QFileInfo>
@@ -234,9 +235,9 @@ void PdfMaster::removeItems(int page, const QList<QGraphicsItem*> &items)
 }
 
 void PdfMaster::addHistoryStep(int page,
-        std::unordered_map<QGraphicsItem*, QTransform> *transforms,
-        std::unordered_map<QGraphicsItem*, drawHistory::DrawToolDifference> *tools,
-        std::unordered_map<QGraphicsItem*, drawHistory::TextPropertiesDifference> *texts)
+        std::map<QGraphicsItem*, QTransform> *transforms,
+        std::map<QGraphicsItem*, drawHistory::DrawToolDifference> *tools,
+        std::map<QGraphicsItem*, drawHistory::TextPropertiesDifference> *texts)
 {
     if (preferences()->overlay_mode == PerLabel)
         page = document->overlaysShifted((page & ~NotFullPage), FirstOverlay) | (page & NotFullPage);

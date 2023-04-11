@@ -1,6 +1,7 @@
 // SPDX-FileCopyrightText: 2022 Valentin Bruch <software@vbruch.eu>
 // SPDX-License-Identifier: GPL-3.0-or-later OR AGPL-3.0-or-later
 
+#include <iterator>
 #include <QStringList>
 #include <QTransform>
 #include <QGraphicsScene>
@@ -818,9 +819,9 @@ void PathContainer::removeItems(const QList<QGraphicsItem*> &items)
 }
 
 bool PathContainer::addChanges(
-        std::unordered_map<QGraphicsItem*, QTransform> *transforms,
-        std::unordered_map<QGraphicsItem*, drawHistory::DrawToolDifference> *tools,
-        std::unordered_map<QGraphicsItem*, drawHistory::TextPropertiesDifference> *texts)
+        std::map<QGraphicsItem*, QTransform> *transforms,
+        std::map<QGraphicsItem*, drawHistory::DrawToolDifference> *tools,
+        std::map<QGraphicsItem*, drawHistory::TextPropertiesDifference> *texts)
 {
     history.append(drawHistory::Step());
     auto &step = history.last();

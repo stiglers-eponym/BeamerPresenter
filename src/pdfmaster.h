@@ -5,7 +5,7 @@
 #define PDFMASTER_H
 
 #include <utility>
-#include <unordered_map>
+#include <map>
 #include <QObject>
 #include <QList>
 #include <QMap>
@@ -205,9 +205,9 @@ public slots:
     /// property changes (not text content changes!).
     /// Page (part) number is given as (page | page_part).
     void addHistoryStep(int page,
-            std::unordered_map<QGraphicsItem*, QTransform> *transforms,
-            std::unordered_map<QGraphicsItem*, drawHistory::DrawToolDifference> *tools,
-            std::unordered_map<QGraphicsItem*, drawHistory::TextPropertiesDifference> *texts);
+            std::map<QGraphicsItem*, QTransform> *transforms,
+            std::map<QGraphicsItem*, drawHistory::DrawToolDifference> *tools,
+            std::map<QGraphicsItem*, drawHistory::TextPropertiesDifference> *texts);
 
     /// Add new paths.
     void addItemsForeground(int page, const QList<QGraphicsItem*> &items);

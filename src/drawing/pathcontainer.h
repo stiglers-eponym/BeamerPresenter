@@ -5,7 +5,7 @@
 #define PATHCONTAINER_H
 
 #include <set>
-#include <memory>
+#include <map>
 #include <unordered_map>
 #include <QPointF>
 #include <QTransform>
@@ -58,34 +58,23 @@ namespace drawHistory
 
     /**
      * One single step in the history of drawing.
-     *  Save deleted and added GraphicsItems and their stacking position
-     *  (by their index).
-     *  A history step consists of
-     *  1. deleting QGraphicsItems. drawHistory::Step saves these items together
-     *     with their index in the stacking order before they were deleted.
-     *  2. creating QGraphicsItems. drawHistory::Step saves these items together
-     *     with their index after all new QGraphicsItems were added.
-     *  3. changing tools of items. For paths and text fields the tool or
-     *     properties are changed.
-     *  4. transforming items. drawHistory::Step saves the transformations
-     *     together with their index after all new QGraphicsItems were added.
+     * This uses std::map to enable ranged expressions also in Qt 5.
      */
     struct Step {
         // TODO: check if a std::variant would provide a more efficient history:
         //QHash<QGraphicsItem*, std::variant<ZValueChange,QTransform,DrawToolDifference,TextPropertiesDifference>> changes;
 
         /// Changes in the order of items.
-        /// the pair is of the form (old,new).
-        std::unordered_map<QGraphicsItem*, ZValueChange> z_value_changes;
+        std::map<QGraphicsItem*, ZValueChange> z_value_changes;
 
         /// Items with the transformation applied in this history step.
-        std::unordered_map<QGraphicsItem*, QTransform> transformedItems;
+        std::map<QGraphicsItem*, QTransform> transformedItems;
 
         /// Changes of draw tool.
-        std::unordered_map<QGraphicsItem*, DrawToolDifference> drawToolChanges;
+        std::map<QGraphicsItem*, DrawToolDifference> drawToolChanges;
 
         /// Changes of text properties.
-        std::unordered_map<QGraphicsItem*, TextPropertiesDifference> textPropertiesChanges;
+        std::map<QGraphicsItem*, TextPropertiesDifference> textPropertiesChanges;
 
         /// Newly created items with their index after the history step.
         QList<QGraphicsItem*> createdItems;
@@ -237,6 +226,7 @@ public:
         /// QHash on which this iterator is used.
         const std::unordered_map<QGraphicsItem*,LookUpProperties> &_map;
     };
+
     /// Const iterator over visible items.
     VisibleIterator begin() const
     {
@@ -370,9 +360,9 @@ public:
 
     /// Create history step with given changes. Pointers may be
     /// nullptr. This assumes that the items are already owned by this.
-    bool addChanges(std::unordered_map<QGraphicsItem*, QTransform> *transforms,
-                    std::unordered_map<QGraphicsItem*, drawHistory::DrawToolDifference> *tools,
-                    std::unordered_map<QGraphicsItem*, drawHistory::TextPropertiesDifference> *texts);
+    bool addChanges(std::map<QGraphicsItem*, QTransform> *transforms,
+                    std::map<QGraphicsItem*, drawHistory::DrawToolDifference> *tools,
+                    std::map<QGraphicsItem*, drawHistory::TextPropertiesDifference> *texts);
 
 public slots:
     // Remove the item in a new history step.
