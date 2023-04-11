@@ -33,16 +33,24 @@ void PathContainer::releaseItem(QGraphicsItem *item) noexcept
 {
     if (!item)
         return;
-    const int count = --_ref_count[item].ref_count;
-    if (count <= 0)
+    auto &prop = _ref_count[item];
+    --prop.ref_count;
+    if (prop.ref_count == 0)
     {
-        debug_verbose(DebugDrawing, "deleting item" << item);
-        _ref_count.remove(item);
-        if (count == 0)
+        if (!prop.visible)
         {
+            debug_msg(DebugDrawing, "deleting item" << item);
+            _ref_count.remove(item);
             _z_order.erase(item);
             delete item;
         }
+    }
+    else if (prop.ref_count < 0)
+    {
+        debug_msg(DebugDrawing, "deleting item, ref_count =" << prop.ref_count << item);
+        _ref_count.remove(item);
+        _z_order.erase(item);
+        delete item;
     }
 }
 

@@ -123,8 +123,11 @@ class PathContainer : public QObject
 
 private:
     struct LookUpProperties {
-        int ref_count;
-        bool visible;
+        /// Number of references to a QGraphicsItem*.
+        int ref_count = 0;
+        /// Visibility of the item if the correct page were shown.
+        /// Visible items are only deleted when ref_count reaches -1.
+        bool visible = false;
     };
     QHash<QGraphicsItem*,LookUpProperties> _ref_count;
 
