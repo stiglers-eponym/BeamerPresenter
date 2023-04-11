@@ -5,10 +5,10 @@
 * page up and page down can be used to navigate pages also while showing TOC or thumbnails
 * more navigation keyboard shortcuts in default configuration
 * new widget: ToolWidget ("tools") showing tools currently connected to input devices
-* improved search widget
-* different installation path of translation files
+* improved search widget: now highlights search results
+* different installation path for translation files
 * bug fixes
-* internal: different memory management in drawing history
+* internal: different drawing history, memory management, and stacking order mechanism
 
 ## 0.2.3
 * select and manipulate drawn items

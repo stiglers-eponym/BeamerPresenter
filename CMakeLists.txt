@@ -8,6 +8,7 @@ project(beamerpresenter
     DESCRIPTION "Multi-screen PDF presentation viewer"
     HOMEPAGE_URL "https://github.com/stiglers-eponym/BeamerPresenter"
     LANGUAGES CXX)
+set(version_suffix "")
 
 # Configure compilation basics
 set(CMAKE_CONFIGURATION_TYPES Release Debug)
@@ -19,7 +20,7 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 # Define available build/config types
 set(QT_VERSION_MAJOR 6 CACHE STRING "Qt major version")
 # Minor Qt version is required for defining dependencies when packaging
-set(QT_VERSION_MINOR 2 CACHE STRING "Qt minor version")
+set(QT_VERSION_MINOR 5 CACHE STRING "Qt minor version")
 
 # Check if the required Qt libraries are available
 find_package(Qt${QT_VERSION_MAJOR} COMPONENTS Core REQUIRED)
@@ -58,7 +59,7 @@ elseif (USE_MUPDF AND USE_POPPLER)
 endif()
 
 if (USE_QTPDF)
-    # TODO: This is probably not required in 5.14 > Qt >= 5.10
+    # This is probably not required in 5.14 > Qt >= 5.10.
     find_package(Qt${QT_VERSION_MAJOR} COMPONENTS Pdf REQUIRED)
 endif()
 
@@ -115,7 +116,7 @@ endif()
 
 
 # Set app version string
-set(APP_VERSION "${beamerpresenter_VERSION}")
+set(APP_VERSION "${beamerpresenter_VERSION}${version_suffix}")
 option(GIT_VERSION "include git commit count in version" ON)
 if (GIT_VERSION AND EXISTS "${PROJECT_SOURCE_DIR}/.git")
     execute_process(

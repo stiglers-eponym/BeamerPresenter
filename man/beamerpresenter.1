@@ -1,4 +1,4 @@
-.TH BeamerPresenter 1 "2022-09-04" "0.2.3"
+.TH BeamerPresenter 1 "2023-04-11" "0.2.3"
 .SH NAME
 BeamerPresenter \- modular multi-screen PDF presenter
 .
@@ -77,39 +77,82 @@ Path to user interface configuration file (json-formatted).
 .SH DEFAULT KEY BINDINGS
 .
 .TP
-.B PageUp
-.B previous
-Go to previous page.
+.BI "PageUp, Left " "= previous"
+Go to previous page
 .
 .TP
-.B PageDown
-.B next
-Go to next page.
+.BI "PageDown, Right " "= next"
+Go to next page
 .
 .TP
-.B space
-.B update
-Refresh view.
+.BI "space " "= update"
+Refresh view
+.
+.TP
+.BI "Home " "= first"
+Go to first page
+.
+.TP
+.BI "End " "= last"
+Go to last page
+.
+.TP
+.BI "Ctrl + C " "= copy"
+Copy the selection to the clipboard
+.
+.TP
+.BI "Ctrl + V " "= paste"
+Paste from the clipboard
+.
+.TP
+.BI "Ctrl + X " "= cut"
+Remove selection and copy it to the clipboard
+.
+.TP
+.BI "Ctrl + Z " "= undo"
+Undo (e.g. when drawing or adding text)
+.
+.TP
+.BI "Ctrl + Y " "= redo"
+.
+.TP
+.BI "Del " "= delete"
+Remove selection.
+.
+.TP
+.BI "Ctrl + S " "= save"
+Save drawings, notes, and times (see section FILE FORMAT below)
+.
+.TP
+.BI "Ctrl + Shift + S " "= save as"
+.
+.TP
+.BI "Ctrl + O " "= open"
+Load drawings etc. from file.
 .
 .
 .SH CONFIGURATION
 .
-The configuration consists of an ordinary config file (beamerpresenter.conf(5)) based on Qt's settings format, which is integrated in the system settings. This defines, e.g., the cache size and keyboard shortcuts. Additionally the graphical interface is defined in a json-formatted file gui.json (beamerpresenter-ui (5)). This is used to arrange and configure windows and widgets (such as sides, clock, timer, overview, ...).
+The configuration consists of an ordinary config file (beamerpresenter.conf(5)) based on Qt's settings format, which is integrated in the system settings. This defines, e.g., the cache size and keyboard shortcuts. Most settings in this settings file can be configured in the settings widget of the graphical user interface. See command line option -c or --config.
+.PP
+Additionally, the graphical interface is defined in a json-formatted file gui.json (beamerpresenter-ui(5)). This is used to arrange and configure windows and widgets (such as sides, clock, timer, overview, ...). This file can only be edited manually. See command line option -g or --gui-config.
 .
 .
 .SH FILE FORMAT
 .
 BeamerPresenter can save drawings along with notes (from notes widget) and other file-specific settings to a gzipped xml file (.bpr). The PDF file is not included in this file.
-The file type aims for compatibility with Xournal++ in saving and loading drawings. BeamerPresenter can read Xournal(++) files, but will only consider pages with a PDF page as background. Xournal++ can open BeamerPresenter files, but transformations of text boxes will be ignored. BeamerPresenter can only handle a subset of the features provided by Xournal++ and also adds a few features which Xournal++ will ignore.
-When opening a file it does not need to be gzipped. However, when saving to a file it will always be gzipped.
+The file type aims for compatibility with Xournal++'s .xopp in saving and loading drawings. BeamerPresenter can read .xoj and .xopp files, but will only consider pages with a PDF page as background. Xournal++ can open BeamerPresenter files, but transformations of text boxes will be ignored. BeamerPresenter can only handle a very basic subset of the features provided by Xournal++ and also adds a few features which Xournal++ will ignore.
+When opening a file, it does not need to be gzipped. However, when saving to a file it will always be gzipped.
 .
 .
 .SH BUGS
 .
-Bugs should be reported at the
+If you find bugs, please reported these at the
 .UR https://github.com/stiglers-eponym/BeamerPresenter/issues
 issue tracker
-.UE .
+.UE . Please include the output of "beamerpresenter --version" in the bug report.
+.PP
+The issue tracker can also be used to request features or to make suggestions, e.g., for default configurations or example configurations.
 .
 .
 .
