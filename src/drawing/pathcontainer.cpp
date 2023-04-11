@@ -537,7 +537,8 @@ void PathContainer::writeXml(QXmlStreamWriter &writer) const
 {
     std::multiset<QGraphicsItem*, decltype(&cmp_by_z)> itemlist{&cmp_by_z};
     for (const auto &[item,lookup] : _ref_count)
-        itemlist.insert(item);
+        if (lookup.visible)
+            itemlist.insert(item);
     for (const auto item : itemlist)
     {
         switch (item->type())
@@ -686,7 +687,7 @@ TextGraphicsItem *loadTextItem(QXmlStreamReader &reader)
     if (text.isEmpty())
     {
         delete item;
-        return NULL;
+        return nullptr;
     }
     item->setPlainText(text);
     return item;

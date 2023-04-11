@@ -117,6 +117,21 @@ inline bool cmp_by_z(QGraphicsItem *left, QGraphicsItem *right) noexcept
  *
  * This stores drawn paths for one slide even if the slide is not visible.
  * Access the history using undo and redo functions.
+ *
+ * Memory management
+ * From SlideScene we often get QGraphicsItem* pointers, which we need to
+ * handle. We keep some of these QGraphicsItem* objects in the history to
+ * be able to undo, e.g., deleting an item. To avoid leaking memory, we
+ * keep a reference count of the items in _ref_count. There we store for
+ * each object the number of references (pointers) to the object which
+ * are managed by this. When _ref_count reaches 0, the object is deleted
+ * except if it is currently visible.
+ *
+ * Stacking order
+ * The stacking order of items is defined by their z value. To be able to
+ * insert items anywhere in the stacking order, we keep a set of all
+ * items sorted by their z value in _z_order. When an item is deleted
+ * from _ref_count, it must also be removed from _z_order.
  */
 class PathContainer : public QObject
 {
@@ -202,13 +217,20 @@ public:
         using value_type        = QGraphicsItem*;
         using pointer           = QGraphicsItem* const*;
         using reference         = QGraphicsItem* const&;
-        VisibleIterator(const std::unordered_map<QGraphicsItem*,LookUpProperties>::const_iterator &it, const std::unordered_map<QGraphicsItem*,LookUpProperties> &map) : _it(it), _map(map) {}
+        VisibleIterator(
+            const std::unordered_map<QGraphicsItem*,LookUpProperties>::const_iterator &it,
+            const std::unordered_map<QGraphicsItem*,LookUpProperties> &map) :
+            _it(it), _map(map) {}
         reference operator*() const {return _it->first;}
         pointer operator->() {return &(_it->first);}
-        VisibleIterator& operator++() {while (++_it != _map.cend() && !_it->second.visible) {}; return *this;}
-        VisibleIterator operator++(int) {VisibleIterator tmp = *this; ++(*this); return tmp;}
-        friend bool operator== (const VisibleIterator& a, const VisibleIterator& b) {return a._it == b._it;};
-        friend bool operator!= (const VisibleIterator& a, const VisibleIterator& b) {return a._it != b._it;};
+        VisibleIterator& operator++()
+            {while (++_it != _map.cend() && !_it->second.visible) {}; return *this;}
+        VisibleIterator operator++(int)
+            {VisibleIterator tmp = *this; ++(*this); return tmp;}
+        friend bool operator== (const VisibleIterator& a, const VisibleIterator& b)
+            {return a._it == b._it;};
+        friend bool operator!= (const VisibleIterator& a, const VisibleIterator& b)
+            {return a._it != b._it;};
     private:
         /// underlying iterator, of which hidden elements are skipped.
         std::unordered_map<QGraphicsItem*,LookUpProperties>::const_iterator _it;
@@ -219,6 +241,8 @@ public:
     VisibleIterator begin() const
     {
         auto it = _ref_count.cbegin();
+        if (_ref_count.empty())
+            return VisibleIterator(it, _ref_count);
         const auto &end = _ref_count.cend();
         while (!it->second.visible && ++it != end) {}
         return VisibleIterator(it, _ref_count);

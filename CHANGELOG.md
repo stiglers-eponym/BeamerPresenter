@@ -8,6 +8,7 @@
 * improved search widget
 * different installation path of translation files
 * bug fixes
+* internal: different memory management in drawing history
 
 ## 0.2.3
 * select and manipulate drawn items
