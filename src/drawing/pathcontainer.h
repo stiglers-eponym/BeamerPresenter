@@ -6,6 +6,7 @@
 
 #include <set>
 #include <memory>
+#include <unordered_map>
 #include <QPointF>
 #include <QTransform>
 #include <QString>
@@ -27,7 +28,6 @@
 class QGraphicsScene;
 class QXmlStreamReader;
 class QXmlStreamWriter;
-class TextGraphicsItem;
 
 namespace drawHistory
 {
@@ -50,6 +50,7 @@ namespace drawHistory
         QFont new_font; ///< new font
         QRgb color_diff; ///< binary difference of colors in RGBA (4 byte) format
     };
+    /// Change in the Z value (of a QGraphicsItem)
     struct ZValueChange {
         qreal old_z; ///< old Z value
         qreal new_z;///< new Z value
@@ -75,16 +76,16 @@ namespace drawHistory
 
         /// Changes in the order of items.
         /// the pair is of the form (old,new).
-        QHash<QGraphicsItem*, ZValueChange> z_value_changes;
+        std::unordered_map<QGraphicsItem*, ZValueChange> z_value_changes;
 
         /// Items with the transformation applied in this history step.
-        QHash<QGraphicsItem*, QTransform> transformedItems;
+        std::unordered_map<QGraphicsItem*, QTransform> transformedItems;
 
         /// Changes of draw tool.
-        QHash<QGraphicsItem*, DrawToolDifference> drawToolChanges;
+        std::unordered_map<QGraphicsItem*, DrawToolDifference> drawToolChanges;
 
         /// Changes of text properties.
-        QHash<QGraphicsItem*, TextPropertiesDifference> textPropertiesChanges;
+        std::unordered_map<QGraphicsItem*, TextPropertiesDifference> textPropertiesChanges;
 
         /// Newly created items with their index after the history step.
         QList<QGraphicsItem*> createdItems;
@@ -93,12 +94,12 @@ namespace drawHistory
         QList<QGraphicsItem*> deletedItems;
 
         /// Check whether this step includes any changes.
-        bool isEmpty() const {
-            return transformedItems.isEmpty()
-                    && drawToolChanges.isEmpty()
-                    && textPropertiesChanges.isEmpty()
-                    && createdItems.isEmpty()
-                    && deletedItems.isEmpty();
+        bool empty() const {
+            return transformedItems.empty()
+                    && drawToolChanges.empty()
+                    && textPropertiesChanges.empty()
+                    && createdItems.empty()
+                    && deletedItems.empty();
         }
     };
 }
@@ -108,7 +109,7 @@ Q_DECLARE_METATYPE(drawHistory::Step);
 /// Compare QGraphicsItems by their z value.
 inline bool cmp_by_z(QGraphicsItem *left, QGraphicsItem *right) noexcept
 {
-    return left && right && left->zValue() > right->zValue();
+    return left && right && left->zValue() < right->zValue();
 }
 
 /**
@@ -122,6 +123,12 @@ class PathContainer : public QObject
     Q_OBJECT
 
 private:
+    /**
+     * Entries in the lookup table of all items.
+     * ref_count counts references to the given QGraphicsItem*.
+     * If ref_count reaches 0, the item is deleted except if it is marked
+     * visibe. Visible items are deleted when ref_count reaches -1.
+     */
     struct LookUpProperties {
         /// Number of references to a QGraphicsItem*.
         int ref_count = 0;
@@ -129,10 +136,13 @@ private:
         /// Visible items are only deleted when ref_count reaches -1.
         bool visible = false;
     };
-    QHash<QGraphicsItem*,LookUpProperties> _ref_count;
+    /// Lookup table of items managed by this container.
+    /// This includes all items in the history.
+    std::unordered_map<QGraphicsItem*,LookUpProperties> _ref_count;
 
-    /// owns nothing, sorted by z_value.
-    /// This allows for efficient lookup of items by z value.
+    /// Set of all items for efficient lookup of items by z value.
+    /// This set owns nothing and is sorted by z_value.
+    /// It contains all items, including history.
     std::multiset<QGraphicsItem*, decltype(&cmp_by_z)> _z_order{&cmp_by_z};
 
     /// List of changes forming the history of this, in the order in which they
@@ -182,32 +192,40 @@ private:
     }
 
 public:
+    /**
+     * Iterator over all items managed by this which are marked visible.
+     * Items in history which should not be visible are skipped.
+     */
     struct VisibleIterator {
         using iterator_category = std::forward_iterator_tag;
         using difference_type   = QHash<QGraphicsItem*,LookUpProperties>::difference_type;
         using value_type        = QGraphicsItem*;
         using pointer           = QGraphicsItem* const*;
         using reference         = QGraphicsItem* const&;
-        VisibleIterator(const QHash<QGraphicsItem*,LookUpProperties>::const_iterator &it, const QHash<QGraphicsItem*,LookUpProperties>::const_iterator &end) : _it(it), _end(end) {}
-        reference operator*() const {return _it.key();}
-        pointer operator->() {return &_it.key();}
-        VisibleIterator& operator++() {while (++_it != _end && !_it->visible) {}; return *this;}
+        VisibleIterator(const std::unordered_map<QGraphicsItem*,LookUpProperties>::const_iterator &it, const std::unordered_map<QGraphicsItem*,LookUpProperties> &map) : _it(it), _map(map) {}
+        reference operator*() const {return _it->first;}
+        pointer operator->() {return &(_it->first);}
+        VisibleIterator& operator++() {while (++_it != _map.cend() && !_it->second.visible) {}; return *this;}
         VisibleIterator operator++(int) {VisibleIterator tmp = *this; ++(*this); return tmp;}
         friend bool operator== (const VisibleIterator& a, const VisibleIterator& b) {return a._it == b._it;};
         friend bool operator!= (const VisibleIterator& a, const VisibleIterator& b) {return a._it != b._it;};
     private:
-        QHash<QGraphicsItem*,LookUpProperties>::const_iterator _it;
-        QHash<QGraphicsItem*,LookUpProperties>::const_iterator _end;
+        /// underlying iterator, of which hidden elements are skipped.
+        std::unordered_map<QGraphicsItem*,LookUpProperties>::const_iterator _it;
+        /// QHash on which this iterator is used.
+        const std::unordered_map<QGraphicsItem*,LookUpProperties> &_map;
     };
+    /// Const iterator over visible items.
     VisibleIterator begin() const
     {
         auto it = _ref_count.cbegin();
         const auto &end = _ref_count.cend();
-        while (!it->visible && ++it != end) {}
-        return VisibleIterator(it, end);
+        while (!it->second.visible && ++it != end) {}
+        return VisibleIterator(it, _ref_count);
     }
+    /// Const iterator over visible items.
     VisibleIterator end() const
-    {return VisibleIterator(_ref_count.cend(), _ref_count.cend());}
+    {return VisibleIterator(_ref_count.cend(), _ref_count);}
 
     /// Trivial constructor.
     explicit PathContainer(QObject *parent = nullptr) noexcept : QObject(parent) {}
@@ -217,14 +235,14 @@ public:
 
     /// Highest currently used z value
     qreal topZValue() const noexcept
-    {if (_z_order.empty()) return 10; return (*_z_order.cbegin())->zValue();}
+    {if (_z_order.empty()) return 10; return (*_z_order.crbegin())->zValue();}
 
     /// Get z value for stacking after item.
     qreal zValueAfter(const QGraphicsItem *item) const noexcept;
 
     /// Lowest currently used z value
     qreal bottomZValue() const noexcept
-    {if (_z_order.empty()) return 0; return (*_z_order.crbegin())->zValue();}
+    {if (_z_order.empty()) return 0; return (*_z_order.cbegin())->zValue();}
 
     /// Create a new PathContainer which is a copy of this but does not have any history.
     PathContainer *copy() const noexcept;
@@ -243,7 +261,7 @@ public:
     void clearHistory(int n = 0);
 
     /// Clear paths in a new history step.
-    void clearPaths();
+    bool clearPaths();
 
     /// Add a new QGraphisItem* in a new history step and bring it to the foreground.
     void appendForeground(QGraphicsItem *item);
@@ -281,8 +299,8 @@ public:
 
     /// Check if this contains any information.
     /// @return true if this contains any elements or history steps.
-    bool isEmpty() const noexcept
-    {return _ref_count.isEmpty();}
+    bool empty() const noexcept
+    {return _ref_count.empty();}
 
     /// Check if this currently has any paths (history is ignored).
     bool isCleared() const noexcept;
@@ -320,6 +338,18 @@ public:
     /// Remove paths.
     void removeItems(const QList<QGraphicsItem*> &items);
 
+    /// Bring list of items to foreground and add history step.
+    bool bringToForeground(const QList<QGraphicsItem*> &to_foreground);
+
+    /// Bring list of items to background and add history step.
+    bool bringToBackground(const QList<QGraphicsItem*> &to_background);
+
+    /// Create history step with given changes. Pointers may be
+    /// nullptr. This assumes that the items are already owned by this.
+    bool addChanges(std::unordered_map<QGraphicsItem*, QTransform> *transforms,
+                    std::unordered_map<QGraphicsItem*, drawHistory::DrawToolDifference> *tools,
+                    std::unordered_map<QGraphicsItem*, drawHistory::TextPropertiesDifference> *texts);
+
 public slots:
     // Remove the item in a new history step.
     void removeItem(QGraphicsItem *item)
@@ -328,13 +358,6 @@ public slots:
     /// Notify of a change in a text item, add the item to history if necessary.
     void addTextItem(QGraphicsItem *item)
     {replaceItem(nullptr, item);}
-
-    /// Bring list of items to foreground and add history step.
-    void bringToForeground(const QList<QGraphicsItem*> &to_foreground);
-
-    void addChanges(QHash<QGraphicsItem*, QTransform> *transforms,
-                    QHash<QGraphicsItem*, drawHistory::DrawToolDifference> *tools,
-                    QHash<QGraphicsItem*, drawHistory::TextPropertiesDifference> *texts);
 };
 
 
@@ -354,7 +377,11 @@ inline QColor rgba_to_color(const QString &string) noexcept
     return QColor(string);
 }
 
+/// Add item to stream. Currently this only supports
+/// BasicGraphicsPath, FullGraphicsPath, and TextGraphicsItem.
 QDataStream &operator<<(QDataStream &stream, const QGraphicsItem *item);
+/// Read item from stream. Currently this only supports
+/// BasicGraphicsPath, FullGraphicsPath, and TextGraphicsItem.
 QDataStream &operator>>(QDataStream &stream, QGraphicsItem *&item);
 
 #endif // PATHCONTAINER_H

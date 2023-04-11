@@ -54,6 +54,7 @@ const char *action_to_theme_icon(const Action action) noexcept
     case PasteClipboard:
         return "edit-paste";
     //case SelectionToForeground: return "?";
+    //case SelectionToBackground: return "?";
     //case DuplicateSelectedItems: return "?";
     case RemoveSelectedItems:
         return "edit-delete";
@@ -237,6 +238,8 @@ const char *action_to_description(const Action action) noexcept
         return QT_TRANSLATE_NOOP("ActionButton", "paste from clipboard");
     case SelectionToForeground:
         return QT_TRANSLATE_NOOP("ActionButton", "bring selected items to the foregroud");
+    case SelectionToBackground:
+        return QT_TRANSLATE_NOOP("ActionButton", "bring selected items to the backgroud");
     case RemoveSelectedItems:
         return QT_TRANSLATE_NOOP("ActionButton", "remove selected items");
     case DuplicateSelectedItems:

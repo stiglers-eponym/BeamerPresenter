@@ -5,6 +5,7 @@
 #define PDFMASTER_H
 
 #include <utility>
+#include <unordered_map>
 #include <QObject>
 #include <QList>
 #include <QMap>
@@ -12,9 +13,9 @@
 #include <QString>
 #include "src/config.h"
 #include "src/enumerates.h"
+#include "src/drawing/pathcontainer.h"
 
 class SlideScene;
-class PathContainer;
 class QGraphicsItem;
 class QBuffer;
 class PdfDocument;
@@ -72,6 +73,13 @@ private:
 
     /// Search results (currently only one results)
     std::pair<int, QList<QRectF>> search_results;
+
+    /// make sure paths[page] is a PathContainer*
+    void assertPageExists(const int page) noexcept
+    {
+        if (!paths.contains(page) || !paths[page])
+            paths[page] = new PathContainer(this);
+    }
 
 public:
     /// Create empty, uninitialized PdfMaster.
@@ -193,12 +201,13 @@ public slots:
     /// If both items are NULL, only the container is created (if it doesn't exist yet).
     void replacePath(int page, QGraphicsItem *olditem, QGraphicsItem *newitem);
 
-    /// Add history step with transformations and color changes.
+    /// Add history step with transformations, tool changes, and text
+    /// property changes (not text content changes!).
     /// Page (part) number is given as (page | page_part).
     void addHistoryStep(int page,
-                    QHash<QGraphicsItem*, QTransform> *transforms,
-                    QHash<QGraphicsItem*, drawHistory::DrawToolDifference> *tools,
-                    QHash<QGraphicsItem*, drawHistory::TextPropertiesDifference> *texts);
+            std::unordered_map<QGraphicsItem*, QTransform> *transforms,
+            std::unordered_map<QGraphicsItem*, drawHistory::DrawToolDifference> *tools,
+            std::unordered_map<QGraphicsItem*, drawHistory::TextPropertiesDifference> *texts);
 
     /// Add new paths.
     void addItemsForeground(int page, const QList<QGraphicsItem*> &items);
@@ -229,6 +238,8 @@ public slots:
 
     /// Bring given items to foreground and add history step.
     void bringToForeground(int page, const QList<QGraphicsItem*> &to_foreground);
+    /// Bring given items to background and add history step.
+    void bringToBackground(int page, const QList<QGraphicsItem*> &to_background);
 
     /// Handle the given action.
     void search(const QString &text, const int &page, const bool forward);

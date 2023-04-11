@@ -187,11 +187,11 @@ void PdfMaster::receiveAction(const Action action)
     case ClearDrawingRight:
     {
         PathContainer* const path = paths.value(preferences()->page | (action ^ ClearDrawing), NULL);
-        if (path && !path->isCleared())
+        if (path)
         {
             debug_msg(DebugDrawing, "clear:" << path);
-            path->clearPaths();
-            _flags |= UnsavedDrawings;
+            if (path->clearPaths())
+                _flags |= UnsavedDrawings;
         }
         break;
     }
@@ -202,72 +202,69 @@ void PdfMaster::receiveAction(const Action action)
 
 void PdfMaster::replacePath(int page, QGraphicsItem *olditem, QGraphicsItem *newitem)
 {
+    if (!olditem && !newitem)
+        return;
     if (preferences()->overlay_mode == PerLabel)
         page = document->overlaysShifted((page & ~NotFullPage), FirstOverlay) | (page & NotFullPage);
-    if (!paths.contains(page))
-        paths[page] = new PathContainer(this);
-    if (olditem || newitem)
-    {
-        paths[page]->replaceItem(olditem, newitem);
-        _flags |= UnsavedDrawings;
-    }
+    assertPageExists(page);
+    paths[page]->replaceItem(olditem, newitem);
+    _flags |= UnsavedDrawings;
 }
 
 void PdfMaster::addItemsForeground(int page, const QList<QGraphicsItem*> &items)
 {
+    if (items.empty())
+        return;
     if (preferences()->overlay_mode == PerLabel)
         page = document->overlaysShifted((page & ~NotFullPage), FirstOverlay) | (page & NotFullPage);
-    if (!paths.contains(page))
-        paths[page] = new PathContainer(this);
-    if (!items.isEmpty())
-    {
-        paths[page]->addItemsForeground(items);
-        _flags |= UnsavedDrawings;
-    }
+    assertPageExists(page);
+    paths[page]->addItemsForeground(items);
+    _flags |= UnsavedDrawings;
 }
 
 void PdfMaster::removeItems(int page, const QList<QGraphicsItem*> &items)
 {
+    if (items.empty())
+        return;
     if (preferences()->overlay_mode == PerLabel)
         page = document->overlaysShifted((page & ~NotFullPage), FirstOverlay) | (page & NotFullPage);
-    if (!paths.contains(page))
-        paths[page] = new PathContainer(this);
-    if (!items.isEmpty())
-    {
-        paths[page]->removeItems(items);
-        _flags |= UnsavedDrawings;
-    }
+    assertPageExists(page);
+    paths[page]->removeItems(items);
+    _flags |= UnsavedDrawings;
 }
 
 void PdfMaster::addHistoryStep(int page,
-                QHash<QGraphicsItem*, QTransform> *transforms,
-                QHash<QGraphicsItem*, drawHistory::DrawToolDifference> *tools,
-                QHash<QGraphicsItem*, drawHistory::TextPropertiesDifference> *texts)
+        std::unordered_map<QGraphicsItem*, QTransform> *transforms,
+        std::unordered_map<QGraphicsItem*, drawHistory::DrawToolDifference> *tools,
+        std::unordered_map<QGraphicsItem*, drawHistory::TextPropertiesDifference> *texts)
 {
     if (preferences()->overlay_mode == PerLabel)
         page = document->overlaysShifted((page & ~NotFullPage), FirstOverlay) | (page & NotFullPage);
-    if (!paths.contains(page))
-    {
-        // this should never happen
-        warn_msg("Trying to add new history step to page without history");
-        paths[page] = new PathContainer(this);
-    }
-    paths[page]->addChanges(transforms, tools, texts);
-    _flags |= UnsavedDrawings;
+    assertPageExists(page);
+    if (paths[page]->addChanges(transforms, tools, texts))
+        _flags |= UnsavedDrawings;
 }
 
 void PdfMaster::bringToForeground(int page, const QList<QGraphicsItem*> &to_foreground)
 {
+    if (to_foreground.empty())
+        return;
     if (preferences()->overlay_mode == PerLabel)
         page = document->overlaysShifted((page & ~NotFullPage), FirstOverlay) | (page & NotFullPage);
-    if (!paths.contains(page))
-    {
-        // this should never happen
-        warn_msg("Trying to add new history step to page without history");
-        paths[page] = new PathContainer(this);
-    }
-    paths[page]->bringToForeground(to_foreground);
-    _flags |= UnsavedDrawings;
+    assertPageExists(page);
+    if (paths[page]->bringToForeground(to_foreground))
+        _flags |= UnsavedDrawings;
+}
+
+void PdfMaster::bringToBackground(int page, const QList<QGraphicsItem*> &to_background)
+{
+    if (to_background.empty())
+        return;
+    if (preferences()->overlay_mode == PerLabel)
+        page = document->overlaysShifted((page & ~NotFullPage), FirstOverlay) | (page & NotFullPage);
+    assertPageExists(page);
+    if (paths[page]->bringToBackground(to_background))
+        _flags |= UnsavedDrawings;
 }
 
 void PdfMaster::distributeNavigationEvents(const int page) const
@@ -679,7 +676,7 @@ PathContainer *PdfMaster::pathContainerCreate(int page)
         return paths.value(page, NULL);
     case Cumulative:
         PathContainer *container = paths.value(page);
-        if (container && !container->isEmpty() && !container->isPlainCopy())
+        if (container && !container->empty() && !container->isPlainCopy())
             return container;
         const int page_part = page & NotFullPage;
         int basic_page = page ^ page_part;
@@ -714,7 +711,7 @@ void PdfMaster::clearAllDrawings()
 
 void PdfMaster::getTimeForPage(const int page, quint32 &time) const noexcept
 {
-    if (target_times.isEmpty() || page > target_times.lastKey())
+    if (target_times.empty() || page > target_times.lastKey())
         time = UINT32_MAX;
     else
         time = *target_times.lowerBound(page);

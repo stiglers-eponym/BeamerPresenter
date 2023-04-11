@@ -14,7 +14,6 @@
 #include "src/drawing/textgraphicsitem.h"
 #include "src/drawing/basicgraphicspath.h"
 #include "src/drawing/fullgraphicspath.h"
-#include "src/drawing/selectionrectitem.h"
 #include "src/names.h"
 #include "src/log.h"
 #include "src/preferences.h"
@@ -24,7 +23,7 @@ PathContainer::~PathContainer()
 {
     truncateHistory();
     clearHistory();
-    for (const auto &[item,count] : _ref_count.asKeyValueRange())
+    for (const auto &[item,count] : _ref_count)
         delete item;
     _ref_count.clear();
 }
@@ -40,7 +39,7 @@ void PathContainer::releaseItem(QGraphicsItem *item) noexcept
         if (!prop.visible)
         {
             debug_msg(DebugDrawing, "deleting item" << item);
-            _ref_count.remove(item);
+            _ref_count.erase(item);
             _z_order.erase(item);
             delete item;
         }
@@ -48,7 +47,7 @@ void PathContainer::releaseItem(QGraphicsItem *item) noexcept
     else if (prop.ref_count < 0)
     {
         debug_msg(DebugDrawing, "deleting item, ref_count =" << prop.ref_count << item);
-        _ref_count.remove(item);
+        _ref_count.erase(item);
         _z_order.erase(item);
         delete item;
     }
@@ -59,47 +58,25 @@ qreal PathContainer::zValueAfter(const QGraphicsItem *item) const noexcept
     if (_z_order.empty())
         return item ? item->zValue() + 10 : 10;
     else if (!item)
-        return (*_z_order.cbegin())->zValue() + 10;
+        return (*_z_order.crbegin())->zValue() + 10;
     const auto it = _z_order.find(const_cast<QGraphicsItem*>(item));
-    if (it == _z_order.cend())
-        return std::max(item->zValue(), (*_z_order.cbegin())->zValue()) + 10;
-    else if (it == _z_order.cbegin())
-        return (*_z_order.cbegin())->zValue() + 10;
+    if (it == _z_order.cend() || _z_order.size() == 1)
+        return std::max(item->zValue(), (*_z_order.crbegin())->zValue()) + 10;
     else
-        return ((*std::prev(it))->zValue() + item->zValue())/2;
+        return ((*std::next(it))->zValue() + item->zValue())/2;
 }
 
 void PathContainer::deleteStep(const drawHistory::Step &step) noexcept
 {
     debug_verbose(DebugDrawing, "deleting history step" << inHistory);
-    if (!step.z_value_changes.isEmpty())
-    {
-        auto it = step.z_value_changes.keyBegin();
-        const auto end = step.z_value_changes.keyEnd();
-        for (; it != end; ++it)
-            releaseItem(*it);
-    }
-    if (!step.transformedItems.isEmpty())
-    {
-        auto it = step.transformedItems.keyBegin();
-        const auto end = step.transformedItems.keyEnd();
-        for (; it != end; ++it)
-            releaseItem(*it);
-    }
-    if (!step.textPropertiesChanges.isEmpty())
-    {
-        auto it = step.textPropertiesChanges.keyBegin();
-        const auto end = step.textPropertiesChanges.keyEnd();
-        for (; it != end; ++it)
-            releaseItem(*it);
-    }
-    if (!step.drawToolChanges.isEmpty())
-    {
-        auto it = step.drawToolChanges.keyBegin();
-        const auto end = step.drawToolChanges.keyEnd();
-        for (; it != end; ++it)
-            releaseItem(*it);
-    }
+    for (const auto &[item,z] : step.z_value_changes)
+        releaseItem(item);
+    for (const auto &[item,z] : step.transformedItems)
+        releaseItem(item);
+    for (const auto &[item,z] : step.textPropertiesChanges)
+        releaseItem(item);
+    for (const auto &[item,z] : step.drawToolChanges)
+        releaseItem(item);
     for (const auto item : step.createdItems)
         releaseItem(item);
     for (const auto item : step.deletedItems)
@@ -118,13 +95,13 @@ bool PathContainer::undo(QGraphicsScene *scene)
     const drawHistory::Step &step = history[history.length() - inHistory];
 
     // 1. Undo transformations.
-    if (!step.transformedItems.isEmpty())
-        for (const auto &[item, trans] : step.transformedItems.asKeyValueRange())
+    if (!step.transformedItems.empty())
+        for (const auto &[item, trans] : step.transformedItems)
             item->setTransform(trans.inverted(), true);
 
     // 2. Undo z value changes
-    if (!step.z_value_changes.isEmpty())
-        for (const auto &[item, pair] : step.z_value_changes.asKeyValueRange())
+    if (!step.z_value_changes.empty())
+        for (const auto &[item, pair] : step.z_value_changes)
         {
             _z_order.erase(item);
             item->setZValue(pair.old_z);
@@ -132,8 +109,8 @@ bool PathContainer::undo(QGraphicsScene *scene)
         }
 
     // 3. Undo draw tool changes.
-    if (!step.drawToolChanges.isEmpty())
-        for (const auto &[item, diff] : step.drawToolChanges.asKeyValueRange())
+    if (!step.drawToolChanges.empty())
+        for (const auto &[item, diff] : step.drawToolChanges)
         {
             if (item->type() != FullGraphicsPath::Type && item->type() != BasicGraphicsPath::Type)
             {
@@ -151,8 +128,8 @@ bool PathContainer::undo(QGraphicsScene *scene)
         }
 
     // 4. Undo text tool changes.
-    if (!step.textPropertiesChanges.isEmpty())
-        for (const auto &[item, prop] : step.textPropertiesChanges.asKeyValueRange())
+    if (!step.textPropertiesChanges.empty())
+        for (const auto &[item, prop] : step.textPropertiesChanges)
         {
             if (item->type() != TextGraphicsItem::Type)
             {
@@ -221,8 +198,8 @@ bool PathContainer::redo(QGraphicsScene *scene)
         }
 
     // 3. Redo draw tool changes.
-    if (!step.textPropertiesChanges.isEmpty())
-        for (const auto &[item, prop] : step.textPropertiesChanges.asKeyValueRange())
+    if (!step.textPropertiesChanges.empty())
+        for (const auto &[item, prop] : step.textPropertiesChanges)
         {
             if (item->type() != TextGraphicsItem::Type)
             {
@@ -237,8 +214,8 @@ bool PathContainer::redo(QGraphicsScene *scene)
         }
 
     // 4. Redo text tool changes.
-    if (!step.drawToolChanges.isEmpty())
-        for (const auto &[item, diff] : step.drawToolChanges.asKeyValueRange())
+    if (!step.drawToolChanges.empty())
+        for (const auto &[item, diff] : step.drawToolChanges)
         {
             if (item->type() != FullGraphicsPath::Type && item->type() != BasicGraphicsPath::Type)
             {
@@ -256,8 +233,8 @@ bool PathContainer::redo(QGraphicsScene *scene)
         }
 
     // 5. Redo z value changes
-    if (!step.z_value_changes.isEmpty())
-        for (const auto &[item, pair] : step.z_value_changes.asKeyValueRange())
+    if (!step.z_value_changes.empty())
+        for (const auto &[item, pair] : step.z_value_changes)
         {
             _z_order.erase(item);
             item->setZValue(pair.new_z);
@@ -265,8 +242,8 @@ bool PathContainer::redo(QGraphicsScene *scene)
         }
 
     // 6. Redo transformations.
-    if (!step.transformedItems.isEmpty())
-        for (const auto &[item, trans] : step.transformedItems.asKeyValueRange())
+    if (!step.transformedItems.empty())
+        for (const auto &[item, trans] : step.transformedItems)
             item->setTransform(trans, true);
 
     return true;
@@ -306,33 +283,35 @@ void PathContainer::clearHistory(int n)
         deleteStep(history.takeFirst());
 }
 
-void PathContainer::clearPaths()
+bool PathContainer::clearPaths()
 {
+    if (_ref_count.empty())
+        return false;
     truncateHistory();
     // Create a new history step.
     history.append(drawHistory::Step());
     auto &deletedItems = history.last().deletedItems;
 
     // Remove all paths from scene and fill history step.
-    {
-        auto it = _ref_count.begin();
-        const auto end = _ref_count.end();
-        QGraphicsItem *item;
-        for (; it!=end; ++it)
-            if (it->visible)
+    for (auto &[item,lookup] : _ref_count)
+        if (lookup.visible)
+        {
+            lookup.visible = false;
+            if (item->scene())
             {
-                it->visible = false;
-                item = it.key();
-                if (item->scene())
-                {
-                    ++(it->ref_count);
-                    deletedItems.append(item);
-                    item->clearFocus();
-                    item->scene()->removeItem(item);
-                }
+                ++(lookup.ref_count);
+                deletedItems.append(item);
+                item->clearFocus();
+                item->scene()->removeItem(item);
             }
+        }
+    if (history.last().deletedItems.empty())
+    {
+        history.pop_back();
+        return false;
     }
     limitHistory();
+    return true;
 }
 
 void PathContainer::appendForeground(QGraphicsItem *item)
@@ -359,7 +338,7 @@ void PathContainer::startMicroStep()
 
 void PathContainer::eraserMicroStep(const QPointF &scene_pos, const qreal size)
 {
-    if (inHistory != -1 || history.isEmpty())
+    if (inHistory != -1 || history.empty())
     {
         qCritical() << "Tried microstep, but inHistory == " << inHistory;
         return;
@@ -367,29 +346,27 @@ void PathContainer::eraserMicroStep(const QPointF &scene_pos, const qreal size)
 
     // Iterate over all paths, filter out visible ones, and check whether they intersect with scene_pos.
     // TODO: how inefficient is it to iterate over all paths (including hidden paths)?
-    auto path_it = _ref_count.begin();
-    const auto end = _ref_count.end();
     auto &step = history.last();
-    for (; path_it != end; ++path_it)
+    for (const auto &[item, lookup] : _ref_count)
     {
-        if (path_it->visible
-            && path_it.key()->scene()
-            && path_it.key()->sceneBoundingRect().marginsAdded(QMargins(size, size, size, size)).contains(scene_pos))
+        if (lookup.visible
+            && item->scene()
+            && item->sceneBoundingRect().marginsAdded(QMargins(size, size, size, size)).contains(scene_pos))
         {
-            QGraphicsScene *scene = path_it.key()->scene();
-            switch (path_it.key()->type())
+            QGraphicsScene *scene = item->scene();
+            switch (item->type())
             {
             case AbstractGraphicsPath::Type:
             case FullGraphicsPath::Type:
             case BasicGraphicsPath::Type:
             {
-                auto path = static_cast<AbstractGraphicsPath*>(path_it.key());
+                auto path = static_cast<AbstractGraphicsPath*>(item);
                 // Apply eraser to path. Get a list of paths obtained by splitting
                 // path using the eraser.
                 const QList<AbstractGraphicsPath*> list = path->splitErase(scene_pos, size);
                 // The special case list == {nullptr} is used to indicate that
                 // the eraser did not touch the path.
-                if (!list.isEmpty() && !list.first())
+                if (!list.empty() && !list.first())
                     break;
                 // Mark in history step that this path is deleted.
                 step.deletedItems.append(path);
@@ -398,7 +375,7 @@ void PathContainer::eraserMicroStep(const QPointF &scene_pos, const qreal size)
                 if (scene)
                     scene->removeItem(path);
 
-                if (list.isEmpty())
+                if (list.empty())
                     break;
 
                 // Path has changed or was split into multiple paths by erasing.
@@ -430,7 +407,7 @@ void PathContainer::eraserMicroStep(const QPointF &scene_pos, const qreal size)
                 // Apply eraser again to all items of the group.
                 // Within the group, stacking order is irrelevant since all items were
                 // created from the same path by erasing.
-                const auto group = static_cast<QGraphicsItemGroup*>(path_it.key());
+                const auto group = static_cast<QGraphicsItemGroup*>(item);
                 for (const auto child : group->childItems())
                     // All items in the group should be paths. But we better check again.
                     if (child && (child->type() == FullGraphicsPath::Type || child->type() == BasicGraphicsPath::Type))
@@ -439,7 +416,7 @@ void PathContainer::eraserMicroStep(const QPointF &scene_pos, const qreal size)
                         const auto list = static_cast<AbstractGraphicsPath*>(child)->splitErase(scene_pos, size);
                         // Again, if list.first() == nullptr, we should do nothing
                         // because the eraser did not hit the path.
-                        if (list.isEmpty() || list.first())
+                        if (list.empty() || list.first())
                         {
                             for (auto item : list)
                                 group->addToGroup(item);
@@ -464,7 +441,7 @@ void PathContainer::eraserMicroStep(const QPointF &scene_pos, const qreal size)
 
 bool PathContainer::applyMicroStep()
 {
-    if (inHistory != -1 || history.isEmpty())
+    if (inHistory != -1 || history.empty())
     {
         qCritical() << "Should apply micro step, but inHistory ==" << inHistory;
         inHistory = 0;
@@ -479,8 +456,13 @@ bool PathContainer::applyMicroStep()
         QGraphicsScene *scene;
         QGraphicsItemGroup *group;
         QList<QGraphicsItem*> newItems;
+#if (QT_VERSION_MAJOR >= 6)
         auto it = step.createdItems.cbegin();
         while (it != step.createdItems.cend())
+#else
+        auto it = step.createdItems.begin();
+        while (it != step.createdItems.end())
+#endif
         {
             if (!*it)
                 it = step.createdItems.erase(it);
@@ -513,22 +495,20 @@ bool PathContainer::applyMicroStep()
     inHistory = 0;
 
     limitHistory();
-    return !step.deletedItems.isEmpty();
+    return !step.deletedItems.empty();
 }
 
 PathContainer *PathContainer::copy() const noexcept
 {
     PathContainer *container = new PathContainer(parent());
     container->inHistory = -2;
-    auto it = _ref_count.keyBegin();
-    const auto end = _ref_count.keyEnd();
-    for (; it != end; ++it)
-        if (*it && (*it)->scene())
-            switch ((*it)->type())
+    for (const auto &[item,lookup] : _ref_count)
+        if (lookup.visible)
+            switch (item->type())
             {
             case TextGraphicsItem::Type:
             {
-                auto olditem = static_cast<TextGraphicsItem*>(*it);
+                auto olditem = static_cast<TextGraphicsItem*>(item);
                 if (!olditem->isEmpty())
                 {
                     TextGraphicsItem *newitem = olditem->clone();
@@ -543,8 +523,8 @@ PathContainer *PathContainer::copy() const noexcept
             case FullGraphicsPath::Type:
             case BasicGraphicsPath::Type:
             {
-                auto newitem = static_cast<AbstractGraphicsPath*>(*it)->copy();
-                newitem->setZValue((*it)->zValue());
+                auto newitem = static_cast<AbstractGraphicsPath*>(item)->copy();
+                newitem->setZValue(item->zValue());
                 container->keepItem(newitem, true);
                 container->_z_order.insert(newitem);
                 break;
@@ -555,8 +535,9 @@ PathContainer *PathContainer::copy() const noexcept
 
 void PathContainer::writeXml(QXmlStreamWriter &writer) const
 {
-    QList<QGraphicsItem*> itemlist = _ref_count.keys();
-    std::sort(itemlist.begin(), itemlist.end(), [](QGraphicsItem *first, QGraphicsItem *second){return first->zValue() > second->zValue();});
+    std::multiset<QGraphicsItem*, decltype(&cmp_by_z)> itemlist{&cmp_by_z};
+    for (const auto &[item,lookup] : _ref_count)
+        itemlist.insert(item);
     for (const auto item : itemlist)
     {
         switch (item->type())
@@ -764,11 +745,9 @@ void PathContainer::loadDrawings(QXmlStreamReader &reader, PathContainer *left, 
 QRectF PathContainer::boundingBox() const noexcept
 {
     QRectF rect;
-    auto it = _ref_count.keyBegin();
-    const auto end = _ref_count.keyEnd();
-    for (; it != end; ++it)
-        if (*it && (*it)->scene())
-            rect = rect.united((*it)->sceneBoundingRect());
+    for (const auto &[item,lookup] : _ref_count)
+        if (lookup.visible)
+            rect = rect.united(item->sceneBoundingRect());
     return rect;
 }
 
@@ -789,8 +768,6 @@ void PathContainer::replaceItem(QGraphicsItem *olditem, QGraphicsItem *newitem)
     }
     if (newitem)
     {
-        // TODO: better handling of z values
-        //newitem->setZValue(topZValue() + 10);
         keepItem(newitem, true);
         step.createdItems.append(newitem);
         _z_order.insert(newitem);
@@ -800,6 +777,8 @@ void PathContainer::replaceItem(QGraphicsItem *olditem, QGraphicsItem *newitem)
 
 void PathContainer::addItemsForeground(const QList<QGraphicsItem*> &items)
 {
+    if (items.empty())
+        return;
     truncateHistory();
     history.append(drawHistory::Step());
     auto &createdItems = history.last().createdItems;
@@ -818,6 +797,8 @@ void PathContainer::addItemsForeground(const QList<QGraphicsItem*> &items)
 
 void PathContainer::removeItems(const QList<QGraphicsItem*> &items)
 {
+    if (items.empty())
+        return;
     truncateHistory();
     history.append(drawHistory::Step());
     auto &deletedItems = history.last().deletedItems;
@@ -835,80 +816,112 @@ void PathContainer::removeItems(const QList<QGraphicsItem*> &items)
     limitHistory();
 }
 
-void PathContainer::addChanges(
-        QHash<QGraphicsItem*, QTransform> *transforms,
-        QHash<QGraphicsItem*, drawHistory::DrawToolDifference> *tools,
-        QHash<QGraphicsItem*, drawHistory::TextPropertiesDifference> *texts)
+bool PathContainer::addChanges(
+        std::unordered_map<QGraphicsItem*, QTransform> *transforms,
+        std::unordered_map<QGraphicsItem*, drawHistory::DrawToolDifference> *tools,
+        std::unordered_map<QGraphicsItem*, drawHistory::TextPropertiesDifference> *texts)
 {
     history.append(drawHistory::Step());
     auto &step = history.last();
     if (transforms)
-        for (const auto &[item,trans] : transforms->asKeyValueRange())
+        for (const auto &[item,trans] : *transforms)
             if (item)
             {
-                step.transformedItems.insert(item, trans);
+                step.transformedItems.insert({item, trans});
                 keepItem(item);
             }
     if (tools)
-        for (const auto &[item,chng] : tools->asKeyValueRange())
+        for (const auto &[item,chng] : *tools)
             if (item)
             {
-                step.drawToolChanges.insert(item, chng);
+                step.drawToolChanges.insert({item, chng});
                 keepItem(item);
             }
     if (texts)
-        for (const auto &[item,text] : texts->asKeyValueRange())
+        for (const auto &[item,text] : *texts)
             if (item)
             {
-                step.textPropertiesChanges.insert(item, text);
+                step.textPropertiesChanges.insert({item, text});
                 keepItem(item);
             }
-    if (step.isEmpty())
+    if (step.empty())
+    {
         history.pop_back();
-    else
-        limitHistory();
+        return false;
+    }
+    limitHistory();
+    return true;
 }
 
 bool PathContainer::isCleared() const noexcept
 {
-    if (_ref_count.isEmpty())
-        return true;
-    auto it = _ref_count.cbegin();
-    const auto &end = _ref_count.cend();
-    do {
-        if (it->visible) return false;
-    } while (++it != end);
+    for (auto &[item,lookup] : _ref_count)
+        if (lookup.visible)
+            return false;
     return true;
 }
 
-void PathContainer::bringToForeground(const QList<QGraphicsItem*> &to_foreground)
+bool PathContainer::bringToForeground(const QList<QGraphicsItem*> &to_foreground)
 {
-    if (_z_order.empty())
-        return;
-    const qreal z_top = (*_z_order.cbegin())->zValue();
+    if (_z_order.empty() || to_foreground.empty())
+        return false;
+    const qreal z_top = (*_z_order.crbegin())->zValue();
+    // first calculate minimum z value in to_foreground
     qreal z = 1000;
     for (const auto *item : to_foreground)
         if (item->zValue() < z)
             z = item->zValue();
-    z = topZValue() - z;
-    debug_msg(DebugDrawing, "bringing to foreground" << to_foreground.length() << z << z_top << _z_order.size());
-    for (auto item : _z_order)
-        debug_msg(DebugDrawing, "_z_order:" << item << item->zValue());
-    if (z < 0 || (z == 0 && _z_order.size() > 1 && (*std::next(_z_order.cbegin()))->zValue() < z_top))
-        return;
+    // then assign z to a z shift required to bring to_foreground to the foreground
+    z = z_top - z;
+    if (z < 0 || (z == 0 && _z_order.size() > 1 && (*std::next(_z_order.crbegin()))->zValue() < z_top))
+        return false;
+    // add an offset of 10
     z += 10;
     history.append(drawHistory::Step());
     auto &changes = history.last().z_value_changes;
     for (const auto item : to_foreground)
         if (item)
         {
-            changes.insert(item, {item->zValue(), item->zValue() + z});
+            changes.insert({item, {item->zValue(), item->zValue() + z}});
             keepItem(item);
             _z_order.erase(item);
             item->setZValue(item->zValue() + z);
             _z_order.insert(item);
         }
     limitHistory();
+    return true;
+}
+
+bool PathContainer::bringToBackground(const QList<QGraphicsItem*> &to_background)
+{
+    if (_z_order.empty() || to_background.empty())
+        return false;
+    const qreal z_bottom = (*_z_order.cbegin())->zValue();
+    // first calculate maximum z value in to_background
+    qreal z = 0;
+    for (const auto *item : to_background)
+        if (item->zValue() > z)
+            z = item->zValue();
+    debug_msg(DebugDrawing, "trying to bring to background:" << z << z_bottom);
+    if (z <= 1e-100)
+        return false;
+    // z is now a scaling prefactor for z values
+    z = 0.9 * z_bottom / z;
+    if (z <= 0)
+        return false;
+    history.append(drawHistory::Step());
+    auto &changes = history.last().z_value_changes;
+    for (const auto item : to_background)
+        if (item)
+        {
+            changes.insert({item, {item->zValue(), z*item->zValue()}});
+            keepItem(item);
+            _z_order.erase(item);
+            item->setZValue(z*item->zValue());
+            _z_order.insert(item);
+        }
+    limitHistory();
+    return true;
 }
 
 

@@ -5,6 +5,7 @@
 #define SLIDESCENE_H
 
 #include <set>
+#include <unordered_map>
 #include <QList>
 #include <QPointF>
 #include <QRectF>
@@ -285,9 +286,6 @@ public:
     /// Paste from clipboard.
     void pasteFromClipboard();
 
-    /// Bring selected items to foreground.
-    void selectionToForeground();
-
 protected:
     /**
      * @brief handle pointing device events.
@@ -376,9 +374,9 @@ signals:
 
     /// Send transformations for QGraphicsItems to PdfMaster.
     void sendHistoryStep(int page,
-                         QHash<QGraphicsItem*,QTransform> *transforms,
-                         QHash<QGraphicsItem*,drawHistory::DrawToolDifference> *tools,
-                         QHash<QGraphicsItem*,drawHistory::TextPropertiesDifference> *texts) const;
+             std::unordered_map<QGraphicsItem*,QTransform> *transforms,
+             std::unordered_map<QGraphicsItem*,drawHistory::DrawToolDifference> *tools,
+             std::unordered_map<QGraphicsItem*,drawHistory::TextPropertiesDifference> *texts) const;
 
     /// Replace old path by new path in a single drawing history step.
     void replacePath(int page, QGraphicsItem *olditem, QGraphicsItem *newitem) const;
@@ -400,6 +398,8 @@ signals:
 
     /// Bring given items to foreground and add history step.
     void bringToForeground(int page, const QList<QGraphicsItem*> &to_foreground) const;
+    /// Bring given items to background and add history step.
+    void bringToBackground(int page, const QList<QGraphicsItem*> &to_background) const;
 };
 
 #endif // SLIDESCENE_H

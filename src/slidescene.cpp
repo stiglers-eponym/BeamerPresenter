@@ -57,6 +57,7 @@ SlideScene::SlideScene(const PdfMaster *master, const PagePart part, QObject *pa
     connect(this, &SlideScene::sendRemovePaths, master, &PdfMaster::removeItems, Qt::DirectConnection);
     connect(this, &SlideScene::sendAddPaths, master, &PdfMaster::addItemsForeground, Qt::DirectConnection);
     connect(this, &SlideScene::bringToForeground, master, &PdfMaster::bringToForeground, Qt::DirectConnection);
+    connect(this, &SlideScene::bringToBackground, master, &PdfMaster::bringToBackground, Qt::DirectConnection);
     connect(this, &SlideScene::selectionChanged, this, &SlideScene::updateSelectionRect, Qt::DirectConnection);
     pageItem->setZValue(-1e2);
     addItem(&selection_bounding_rect);
@@ -523,14 +524,14 @@ void SlideScene::handleSelectionStopEvents(SelectionTool *tool, const QPointF &p
             return;
         const bool finalize = preferences()->global_flags & Preferences::FinalizeDrawnPaths;
         QTransform transform;
-        QHash<QGraphicsItem*, QTransform> transforms;
+        std::unordered_map<QGraphicsItem*, QTransform> transforms;
         for (auto it=originalTransforms.cbegin(); it!=originalTransforms.cend(); ++it)
         {
             if (it.key() == &selection_bounding_rect)
                 continue;
             transform = it.key()->transform();
             transform *= it->inverted();
-            transforms.insert(it.key(), transform);
+            transforms.insert({it.key(), transform});
             if (finalize &&
                 (it.key()->type() == BasicGraphicsPath::Type
                      || it.key()->type() == FullGraphicsPath::Type))
@@ -642,7 +643,19 @@ void SlideScene::receiveAction(const Action action)
         break;
     case SelectionToForeground:
         if (slide_flags & ShowDrawings && hasFocus())
-            selectionToForeground();
+        {
+            const QList<QGraphicsItem*> selection = selectedItems();
+            if (!selection.empty())
+                emit bringToForeground(page | page_part, selection);
+        }
+        break;
+    case SelectionToBackground:
+        if (slide_flags & ShowDrawings && hasFocus())
+        {
+            const QList<QGraphicsItem*> selection = selectedItems();
+            if (!selection.empty())
+                emit bringToBackground(page | page_part, selection);
+        }
         break;
     case SelectAll:
         if (slide_flags & ShowDrawings && hasFocus())
@@ -1768,14 +1781,6 @@ void SlideScene::pasteFromClipboard()
     emit sendAddPaths(page | page_part, items);
 }
 
-void SlideScene::selectionToForeground()
-{
-    const QList<QGraphicsItem*> selection = selectedItems();
-    if (selection.isEmpty())
-        return;
-    emit bringToForeground(page | page_part, selection);
-}
-
 void SlideScene::toolChanged(const Tool *tool) noexcept
 {
     if (tool->tool() & (Tool::AnySelectionTool | Tool::AnyPointingTool))
@@ -1785,18 +1790,18 @@ void SlideScene::toolChanged(const Tool *tool) noexcept
         const QList<QGraphicsItem*> selection = selectedItems();
         if (selection.isEmpty())
             return;
-        QHash<QGraphicsItem*, drawHistory::DrawToolDifference> tool_changes;
+        std::unordered_map<QGraphicsItem*, drawHistory::DrawToolDifference> tool_changes;
         const DrawTool *draw_tool = static_cast<const DrawTool*>(tool);
         for (const auto item : selection)
             if (item->type() == BasicGraphicsPath::Type || item->type() == FullGraphicsPath::Type)
             {
                 const auto path = static_cast<AbstractGraphicsPath*>(item);
                 if (path->getTool() != *draw_tool)
-                    tool_changes.insert(path, drawHistory::DrawToolDifference(path->getTool(), *draw_tool));
+                    tool_changes.insert({path, drawHistory::DrawToolDifference(path->getTool(), *draw_tool)});
                 path->changeTool(*draw_tool);
                 path->update();
             }
-        if (!tool_changes.isEmpty())
+        if (!tool_changes.empty())
             emit sendHistoryStep(page | page_part, nullptr, &tool_changes, nullptr);
     }
     else if (tool->tool() == Tool::TextInputTool)
@@ -1806,26 +1811,26 @@ void SlideScene::toolChanged(const Tool *tool) noexcept
             selection.append(focusItem());
         if (selection.isEmpty())
             return;
-        QHash<QGraphicsItem*, drawHistory::TextPropertiesDifference> text_changes;
+        std::unordered_map<QGraphicsItem*, drawHistory::TextPropertiesDifference> text_changes;
         const TextTool *text_tool = static_cast<const TextTool*>(tool);
         for (auto item : selection)
             if (item->type() == TextGraphicsItem::Type)
             {
                 const auto text = static_cast<TextGraphicsItem*>(item);
                 if (text->font() != text_tool->font() || text->defaultTextColor() != text_tool->color())
-                    text_changes.insert(text, {text->font(), text_tool->font(), text_tool->color().rgba() ^ text->defaultTextColor().rgba()});
+                    text_changes.insert({text, {text->font(), text_tool->font(), text_tool->color().rgba() ^ text->defaultTextColor().rgba()}});
                 text->setFont(text_tool->font());
                 text->setDefaultTextColor(text_tool->color());
             }
-        if (!text_changes.isEmpty())
+        if (!text_changes.empty())
             emit sendHistoryStep(page | page_part, nullptr, nullptr, &text_changes);
     }
 }
 
 void SlideScene::colorChanged(const QColor &color) noexcept
 {
-    QHash<QGraphicsItem*,drawHistory::DrawToolDifference> tool_changes;
-    QHash<QGraphicsItem*,drawHistory::TextPropertiesDifference> text_changes;
+    std::unordered_map<QGraphicsItem*,drawHistory::DrawToolDifference> tool_changes;
+    std::unordered_map<QGraphicsItem*,drawHistory::TextPropertiesDifference> text_changes;
     for (auto item : selectedItems())
     {
         switch (item->type())
@@ -1838,7 +1843,7 @@ void SlideScene::colorChanged(const QColor &color) noexcept
             {
                 DrawTool tool = path->getTool();
                 tool.setColor(color);
-                tool_changes.insert(path, drawHistory::DrawToolDifference(path->getTool(), tool));
+                tool_changes.insert({path, drawHistory::DrawToolDifference(path->getTool(), tool)});
                 path->changeTool(tool);
                 path->update();
             }
@@ -1847,19 +1852,19 @@ void SlideScene::colorChanged(const QColor &color) noexcept
         case TextGraphicsItem::Type:
         {
             const auto text = static_cast<TextGraphicsItem*>(item);
-            text_changes.insert(item, {text->font(), text->font(), text->defaultTextColor().rgba() ^ color.rgba()});
+            text_changes.insert({item, {text->font(), text->font(), text->defaultTextColor().rgba() ^ color.rgba()}});
             text->setDefaultTextColor(color);
             break;
         }
         }
     }
-    if (!tool_changes.isEmpty() || !text_changes.isEmpty())
+    if (!tool_changes.empty() || !text_changes.empty())
         emit sendHistoryStep(page | page_part, nullptr, &tool_changes, &text_changes);
 }
 
 void SlideScene::widthChanged(const qreal width) noexcept
 {
-    QHash<QGraphicsItem*,drawHistory::DrawToolDifference> tool_changes;
+    std::unordered_map<QGraphicsItem*,drawHistory::DrawToolDifference> tool_changes;
     for (auto item : selectedItems())
     {
         switch (item->type())
@@ -1872,7 +1877,7 @@ void SlideScene::widthChanged(const qreal width) noexcept
             {
                 DrawTool tool = path->getTool();
                 tool.setWidth(width);
-                tool_changes.insert(path, drawHistory::DrawToolDifference(path->getTool(), tool));
+                tool_changes.insert({path, drawHistory::DrawToolDifference(path->getTool(), tool)});
                 path->changeTool(tool);
                 path->update();
             }
@@ -1880,7 +1885,7 @@ void SlideScene::widthChanged(const qreal width) noexcept
         }
         }
     }
-    if (!tool_changes.isEmpty())
+    if (!tool_changes.empty())
         emit sendHistoryStep(page | page_part, nullptr, &tool_changes, nullptr);
 }
 

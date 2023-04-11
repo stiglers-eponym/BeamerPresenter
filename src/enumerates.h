@@ -137,6 +137,7 @@ enum Action
     CutClipboard, ///< cut selection to clipboard
     PasteClipboard, ///< paste from clipboard
     SelectionToForeground, ///< bring selected items to foreground
+    SelectionToBackground, ///< bring selected items to background
     RemoveSelectedItems, ///< remove all selected items
     DuplicateSelectedItems, ///< duplicate all selected items (also copies to clipboard)
     SelectAll, ///< select all items on currently focussed slide
