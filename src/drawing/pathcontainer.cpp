@@ -51,14 +51,14 @@ qreal PathContainer::zValueAfter(const QGraphicsItem *item) const noexcept
     if (_z_order.empty())
         return item ? item->zValue() + 10 : 10;
     else if (!item)
-        return (*_z_order.crbegin())->zValue() + 10;
+        return (*_z_order.cbegin())->zValue() + 10;
     const auto it = _z_order.find(const_cast<QGraphicsItem*>(item));
-    if (it == _z_order.cbegin())
-        return (item->zValue() + (*_z_order.cbegin())->zValue())/2;
-    else if (it == _z_order.cend())
-        return item->zValue() + 10;
+    if (it == _z_order.cend())
+        return std::max(item->zValue(), (*_z_order.cbegin())->zValue()) + 10;
+    else if (it == _z_order.cbegin())
+        return (*_z_order.cbegin())->zValue() + 10;
     else
-        return ((*it)->zValue() + item->zValue())/2;
+        return ((*std::prev(it))->zValue() + item->zValue())/2;
 }
 
 void PathContainer::deleteStep(const drawHistory::Step &step) noexcept
@@ -331,8 +331,7 @@ void PathContainer::appendForeground(QGraphicsItem *item)
 {
     if (!item)
         return;
-    const qreal z = topZValue();
-    item->setZValue(z);
+    item->setZValue(topZValue() + 10);
     truncateHistory();
     keepItem(item, true);
     _z_order.insert(item);
@@ -525,8 +524,7 @@ PathContainer *PathContainer::copy() const noexcept
                 if (!olditem->isEmpty())
                 {
                     TextGraphicsItem *newitem = olditem->clone();
-                    const qreal z = olditem->zValue();
-                    newitem->setZValue(z);
+                    newitem->setZValue(olditem->zValue());
                     container->keepItem(newitem, true);
                     container->_z_order.insert(newitem);
                     connect(newitem, &TextGraphicsItem::removeMe, container, &PathContainer::removeItem);
@@ -537,9 +535,8 @@ PathContainer *PathContainer::copy() const noexcept
             case FullGraphicsPath::Type:
             case BasicGraphicsPath::Type:
             {
-                const qreal z = (*it)->zValue();
                 auto newitem = static_cast<AbstractGraphicsPath*>(*it)->copy();
-                newitem->setZValue(z);
+                newitem->setZValue((*it)->zValue());
                 container->keepItem(newitem, true);
                 container->_z_order.insert(newitem);
                 break;
@@ -785,7 +782,7 @@ void PathContainer::replaceItem(QGraphicsItem *olditem, QGraphicsItem *newitem)
     if (newitem)
     {
         // TODO: better handling of z values
-        newitem->setZValue(topZValue() + 10);
+        //newitem->setZValue(topZValue() + 10);
         keepItem(newitem, true);
         step.createdItems.append(newitem);
         _z_order.insert(newitem);
@@ -878,23 +875,29 @@ bool PathContainer::isCleared() const noexcept
 
 void PathContainer::bringToForeground(const QList<QGraphicsItem*> &to_foreground)
 {
+    if (_z_order.empty())
+        return;
+    const qreal z_top = (*_z_order.cbegin())->zValue();
     qreal z = 1000;
     for (const auto *item : to_foreground)
         if (item->zValue() < z)
             z = item->zValue();
     z = topZValue() - z;
-    if (z <= 0)
+    debug_msg(DebugDrawing, "bringing to foreground" << to_foreground.length() << z << z_top << _z_order.size());
+    for (auto item : _z_order)
+        debug_msg(DebugDrawing, "_z_order:" << item << item->zValue());
+    if (z < 0 || (z == 0 && _z_order.size() > 1 && (*std::next(_z_order.cbegin()))->zValue() < z_top))
         return;
+    z += 10;
     history.append(drawHistory::Step());
     auto &changes = history.last().z_value_changes;
     for (const auto item : to_foreground)
         if (item)
         {
-            z += 10;
-            changes.insert(item, {item->zValue(), z});
+            changes.insert(item, {item->zValue(), item->zValue() + z});
             keepItem(item);
             _z_order.erase(item);
-            item->setZValue(z);
+            item->setZValue(item->zValue() + z);
             _z_order.insert(item);
         }
     limitHistory();

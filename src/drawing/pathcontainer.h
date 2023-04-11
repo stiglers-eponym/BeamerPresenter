@@ -214,14 +214,14 @@ public:
 
     /// Highest currently used z value
     qreal topZValue() const noexcept
-    {if (_z_order.empty()) return 10; return (*_z_order.crbegin())->zValue();}
+    {if (_z_order.empty()) return 10; return (*_z_order.cbegin())->zValue();}
 
     /// Get z value for stacking after item.
     qreal zValueAfter(const QGraphicsItem *item) const noexcept;
 
     /// Lowest currently used z value
     qreal bottomZValue() const noexcept
-    {if (_z_order.empty()) return 0; return (*_z_order.cbegin())->zValue();}
+    {if (_z_order.empty()) return 0; return (*_z_order.crbegin())->zValue();}
 
     /// Create a new PathContainer which is a copy of this but does not have any history.
     PathContainer *copy() const noexcept;

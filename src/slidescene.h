@@ -8,15 +8,16 @@
 #include <QList>
 #include <QPointF>
 #include <QRectF>
+#include <QTabletEvent>
 #include <QGraphicsScene>
 #include "src/config.h"
 #include "src/enumerates.h"
+#include "src/drawing/tool.h"
 #include "src/rendering/pdfdocument.h"
 #include "src/drawing/textgraphicsitem.h"
 #include "src/drawing/selectionrectitem.h"
 
 class QAbstractAnimation;
-class QTabletEvent;
 class QGraphicsItem;
 class QGraphicsRectItem;
 class QGraphicsVideoItem;
@@ -25,7 +26,6 @@ class MediaPlayer;
 #if (QT_VERSION_MAJOR >= 6)
 class QAudioOutput;
 #endif
-class Tool;
 class DrawTool;
 class SelectionTool;
 class PathContainer;
@@ -221,15 +221,39 @@ public:
 
     /// Handle tablet move event, mainly for drawing.
     /// Called from SlideView.
-    void tabletMove(const QPointF &pos, const QTabletEvent *event);
+    void tabletMove(const QPointF &pos, const QTabletEvent *event)
+    {
+        handleEvents(
+                    tablet_event_to_input_device(event) | Tool::UpdateEvent,
+                    {pos},
+                    QPointF(),
+                    event->pressure()
+                );
+    }
 
     /// Handle tablet press event, mainly for drawing.
     /// Called from SlideView.
-    void tabletPress(const QPointF &pos, const QTabletEvent *event);
+    void tabletPress(const QPointF &pos, const QTabletEvent *event)
+    {
+        handleEvents(
+                    tablet_event_to_input_device(event) | Tool::StartEvent,
+                    {pos},
+                    QPointF(),
+                    event->pressure()
+                );
+    }
 
     /// Handle tablet release event, mainly for drawing.
     /// Called from SlideView.
-    void tabletRelease(const QPointF &pos, const QTabletEvent *event);
+    void tabletRelease(const QPointF &pos, const QTabletEvent *event)
+    {
+        handleEvents(
+                    tablet_event_to_input_device(event) | Tool::StopEvent,
+                    {pos},
+                    QPointF(),
+                    event->pressure()
+                );
+    }
 
     /// Update geometry in preparation of navigation event.
     /// newpage does not include the shift.

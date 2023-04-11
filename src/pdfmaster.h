@@ -184,7 +184,7 @@ public slots:
     /// Page (part) number is given as (page | page_part).
     /// If item is NULL: create the container if it does not exist yet.
     void receiveNewPath(int page, QGraphicsItem *item)
-    {replacePath(page, NULL, item);}
+    {replacePath(page, nullptr, item);}
 
     /// Replace an existing path (or QGraphicsItem) in paths[page] by the gievn new one.
     /// Old or new item can be NULL, then only a new item will be created or an

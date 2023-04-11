@@ -1309,36 +1309,6 @@ void SlideScene::endTransition()
     emit finishTransition();
 }
 
-void SlideScene::tabletPress(const QPointF &pos, const QTabletEvent *event)
-{
-    handleEvents(
-                tablet_event_to_input_device(event) | Tool::StartEvent,
-                {pos},
-                QPointF(),
-                event->pressure()
-            );
-}
-
-void SlideScene::tabletMove(const QPointF &pos, const QTabletEvent *event)
-{
-    handleEvents(
-                tablet_event_to_input_device(event) | Tool::UpdateEvent,
-                {pos},
-                QPointF(),
-                event->pressure()
-            );
-}
-
-void SlideScene::tabletRelease(const QPointF &pos, const QTabletEvent *event)
-{
-    handleEvents(
-                tablet_event_to_input_device(event) | Tool::StopEvent,
-                {pos},
-                QPointF(),
-                event->pressure()
-            );
-}
-
 void SlideScene::startInputEvent(const DrawTool *tool, const QPointF &pos, const float pressure)
 {
     if (!tool || !(tool->tool() & Tool::AnyDrawTool) || !(slide_flags & ShowDrawings))
@@ -1348,8 +1318,11 @@ void SlideScene::startInputEvent(const DrawTool *tool, const QPointF &pos, const
     if (currentItemCollection || currentlyDrawnItem)
         return;
     clearSelection();
+    const PathContainer *container = master->pathContainer(page | page_part);
+    const qreal z = container ? container->topZValue() + 10 : 10;
     setFocusItem(nullptr);
     currentItemCollection = new QGraphicsItemGroup();
+    currentItemCollection->setZValue(z);
     addItem(currentItemCollection);
     currentItemCollection->show();
     switch (tool->shape()) {
@@ -1390,6 +1363,7 @@ void SlideScene::startInputEvent(const DrawTool *tool, const QPointF &pos, const
         break;
     }
     }
+    currentlyDrawnItem->setZValue(z);
     addItem(currentlyDrawnItem);
 }
 
@@ -1454,7 +1428,7 @@ bool SlideScene::stopInputEvent(const DrawTool *tool)
     if (!tool || !(slide_flags & ShowDrawings))
         return false;
     debug_verbose(DebugDrawing, "Stop input event" << tool->tool() << tool->device() << tool);
-    const bool changes = currentlyDrawnItem != NULL;
+    const bool changes = currentlyDrawnItem != nullptr;
     stopDrawing();
     if (changes)
     {
