@@ -1,3 +1,5 @@
+# Configuration for BeamerPresenter, see man 5 beamerpresenter.conf
+
 [General]
 # maximum number of pages in cache (negative numbers treated as infinity)
 cache pages=-1
@@ -10,7 +12,7 @@ cache pages=-1
 # maximum memory size (in bytes, default is 200MiB)
 memory=2.09719e+08
 # enable/disable gestures
-gestures=true
+gestures=false
 # minimum time per frame in animations
 frame time=50
 # enable automatic slide changes as defined in the PDF
@@ -34,10 +36,10 @@ snap angle=0.05
 # sensiticity for detecting lines in paths (larger values categorize more
 # paths as lines)
 line sensitivity=0.005
-# sensitivity for detecting ellipses in paths
-circle threshold=0.025
 # ellipses with relative deviation of the two radii smaller than this number
 # will be recognized as circles
+circle threshold=0.025
+# sensitivity for detecting ellipses in paths
 ellipse sensitivity=0.05
 # shape recognizer for rectangle: tolerance in angles of different sides of
 # a rectangle (radiants)
@@ -50,6 +52,7 @@ rectangle closing tolerance=0.1
 finalize drawn paths=false
 
 [keys]
+# actions affecting drawings and the clipboard
 Ctrl+C=copy
 Ctrl+V=paste
 Ctrl+X=cut
@@ -61,17 +64,19 @@ Ctrl+S=save
 Ctrl+Shift+S=save as
 Ctrl+Y=redo left, redo right, redo
 Ctrl+Z=undo left, undo right, undo
-Ctrl+Q=quit
-F11=fullscreen
+# navigation
 PgDown=next
 PgUp=previous
 Right=next
 Left=previous
 Shift+PgDown=next skipping overlays
 Shift+PgUp=previous skipping overlays
-End=last
 Home=first
+End=last
 Space=update
+# general actions
+Ctrl+Q=quit
+F11=fullscreen
 P=toggle timer
 
 [rendering]

@@ -62,7 +62,7 @@ namespace drawHistory
      */
     struct Step {
         // TODO: check if a std::variant would provide a more efficient history:
-        //QHash<QGraphicsItem*, std::variant<ZValueChange,QTransform,DrawToolDifference,TextPropertiesDifference>> changes;
+        //std::map<QGraphicsItem*, std::variant<ZValueChange,QTransform,DrawToolDifference,TextPropertiesDifference>> changes;
 
         /// Changes in the order of items.
         std::map<QGraphicsItem*, ZValueChange> z_value_changes;

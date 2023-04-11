@@ -32,6 +32,7 @@ class SelectionTool;
 class PathContainer;
 class PixmapGraphicsItem;
 class QPropertyAnimation;
+class QXmlStreamReader;
 
 namespace drawHistory {
     struct DrawToolDifference;
@@ -401,5 +402,12 @@ signals:
     /// Bring given items to background and add history step.
     void bringToBackground(int page, const QList<QGraphicsItem*> &to_background) const;
 };
+
+/**
+ * highly experimental function for reading an SVG images from the clipboard
+ * @param reader read SVG image from this reader
+ * @param target add all QGraphicsItems constructed from the SVG to this list
+ */
+void readFromSVG(QXmlStreamReader &reader, QList<QGraphicsItem*> &target);
 
 #endif // SLIDESCENE_H

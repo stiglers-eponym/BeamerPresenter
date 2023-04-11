@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later OR AGPL-3.0-or-later
 
 #include <iterator>
+#include <algorithm>
 #include <QTransform>
 #include <QString>
 #include <QByteArray>
@@ -1601,9 +1602,11 @@ void SlideScene::removeSelection() const
 
 void SlideScene::copyToClipboard() const
 {
-    const QList<QGraphicsItem*> selection = selectedItems();
+    QList<QGraphicsItem*> selection = selectedItems();
     if (selection.isEmpty())
         return;
+    // Sort selection by z order
+    std::sort(selection.begin(), selection.end(), &cmp_by_z);
     // Write to native data type
     QByteArray data;
     QDataStream stream(&data, QIODevice::WriteOnly);
@@ -1704,81 +1707,44 @@ void SlideScene::pasteFromClipboard()
     else if (mimedata->hasFormat("image/svg+xml"))
     {
         QXmlStreamReader reader(mimedata->data("image/svg+xml"));
-        while (!reader.atEnd() && (reader.readNext() != QXmlStreamReader::StartElement || reader.name().toUtf8() != "svg")) {}
-        while (reader.readNextStartElement())
-        {
-            debug_msg(DebugDrawing, reader.name());
-            if (reader.name().toUtf8() == "g")
-            {
-                const QPointF pos(reader.attributes().value("x", "0.").toDouble(), reader.attributes().value("y", "0.").toDouble());
-                QTransform transform;
-                QString transform_string = reader.attributes().value("transform").toString();
-                if (transform_string.length() >= 19 && transform_string.startsWith("matrix(") && transform_string.endsWith(")"))
-                {
-                    // TODO: this is inefficient
-                    transform_string.remove("matrix(");
-                    transform_string.remove(")");
-                    const QStringList list = transform_string.trimmed().replace(" ", ",").split(",");
-                    if (list.length() == 6)
-                        transform.setMatrix(list[0].toDouble(), list[1].toDouble(), 0., list[2].toDouble(), list[3].toDouble(), 0., list[4].toDouble(), list[5].toDouble(), 1.);
-                }
-                while (reader.readNextStartElement() && reader.name().toUtf8() != "path" && !reader.isEndElement())
-                    reader.skipCurrentElement();
-                debug_msg(DebugDrawing, reader.name());
-                if (reader.name().toUtf8() != "path")
-                    continue;
-
-                QString coordinates = reader.attributes().value("d").toString();
-                coordinates.replace(",", " ");
-                // TODO: currently all coordinates are interpreted as absolute coordinates. This is wrong!
-                coordinates.remove("m");
-                coordinates.remove("l");
-                coordinates.remove("z");
-                coordinates.remove("L");
-                coordinates.remove("M");
-                QRegularExpression re;
-                re.setPattern(R"(\s\s+)");
-                coordinates.replace(re, " ");
-                coordinates = coordinates.trimmed();
-                QString style = reader.attributes().value("style").toString();
-                QColor color = Qt::black;
-                qreal width = 1.;
-                re.setPattern("stroke:(#[0-9a-fA-F]+)");
-                if (style.contains("stroke:"))
-                    color = QColor(re.match(style).captured(1));
-                re.setPattern("stroke-width:([0-9.]+)");
-                if (style.contains("stroke-width:"))
-                    width = re.match(style).captured(1).toDouble();
-                DrawTool tool(Tool::BasicSelectionTool, 0, QPen(color, width));
-                BasicGraphicsPath *path = new BasicGraphicsPath(tool, coordinates);
-                path->setPos(pos);
-                path->setPos(sceneRect().center());
-                path->setTransform(transform);
-                items.append(path);
-                if (!reader.isEndElement())
-                    reader.skipCurrentElement();
-            }
-            else if (reader.name().toUtf8() == "text")
-            {
-                // TODO
-            }
-            if (!reader.isEndElement())
-                reader.skipCurrentElement();
-        }
+        readFromSVG(reader, items);
         reader.clear();
     }
-    if (items.isEmpty())
+    if (items.empty())
         return;
     clearSelection();
     setFocusItem(nullptr);
+    QRectF pasted_rect = items.constFirst()->sceneBoundingRect();
+    PathContainer *container = master->pathContainer(page | page_part);
+    qreal z = 0;
+    if (container)
+        z = container->topZValue();
     for (const auto item : items)
     {
+        z += 10;
+        item->setZValue(z);
         if (item->scene() != this)
             addItem(item);
         item->show();
         item->setSelected(true);
+        pasted_rect = pasted_rect.united(item->sceneBoundingRect());
     }
+    // Check if selection is visible. If not, move it to the slide.
+    qreal dx=0, dy=0;
+    const auto &scene_rect = sceneRect();
+    if (pasted_rect.left() + 3 >= scene_rect.right())
+        dx = scene_rect.right() - pasted_rect.right();
+    else if (pasted_rect.right() <= scene_rect.left() + 3)
+        dx = scene_rect.left() - pasted_rect.left();
+    if (pasted_rect.top() + 3 >= scene_rect.bottom())
+        dy = scene_rect.bottom() - pasted_rect.bottom();
+    else if (pasted_rect.bottom() <= scene_rect.top() + 3)
+        dy = scene_rect.top() - pasted_rect.top();
+    if (dx != 0 || dy != 0)
+        for (const auto item : items)
+            item->moveBy(dx, dy);
     emit sendAddPaths(page | page_part, items);
+    updateSelectionRect();
 }
 
 void SlideScene::toolChanged(const Tool *tool) noexcept
@@ -1926,5 +1892,70 @@ void SlideScene::updateSearchResults()
             searchResults->addToGroup(item);
         }
         invalidate(searchResults->boundingRect());
+    }
+}
+
+
+void readFromSVG(QXmlStreamReader &reader, QList<QGraphicsItem*> &target)
+{
+    while (!reader.atEnd() && (reader.readNext() != QXmlStreamReader::StartElement || reader.name().toUtf8() != "svg")) {}
+    while (reader.readNextStartElement())
+    {
+        debug_msg(DebugDrawing, reader.name());
+        if (reader.name().toUtf8() == "g")
+        {
+            const QPointF pos(reader.attributes().value("x", "0.").toDouble(), reader.attributes().value("y", "0.").toDouble());
+            QTransform transform;
+            QString transform_string = reader.attributes().value("transform").toString();
+            if (transform_string.length() >= 19 && transform_string.startsWith("matrix(") && transform_string.endsWith(")"))
+            {
+                // TODO: this is inefficient
+                transform_string.remove("matrix(");
+                transform_string.remove(")");
+                const QStringList list = transform_string.trimmed().replace(" ", ",").split(",");
+                if (list.length() == 6)
+                    transform.setMatrix(list[0].toDouble(), list[1].toDouble(), 0., list[2].toDouble(), list[3].toDouble(), 0., list[4].toDouble(), list[5].toDouble(), 1.);
+            }
+            while (reader.readNextStartElement() && reader.name().toUtf8() != "path" && !reader.isEndElement())
+                reader.skipCurrentElement();
+            debug_msg(DebugDrawing, reader.name());
+            if (reader.name().toUtf8() != "path")
+                continue;
+
+            QString coordinates = reader.attributes().value("d").toString();
+            coordinates.replace(",", " ");
+            // TODO: currently all coordinates are interpreted as absolute coordinates. This is wrong!
+            coordinates.remove("m");
+            coordinates.remove("l");
+            coordinates.remove("z");
+            coordinates.remove("L");
+            coordinates.remove("M");
+            QRegularExpression re;
+            re.setPattern(R"(\s\s+)");
+            coordinates.replace(re, " ");
+            coordinates = coordinates.trimmed();
+            QString style = reader.attributes().value("style").toString();
+            QColor color = Qt::black;
+            qreal width = 1.;
+            re.setPattern("stroke:(#[0-9a-fA-F]+)");
+            if (style.contains("stroke:"))
+                color = QColor(re.match(style).captured(1));
+            re.setPattern("stroke-width:([0-9.]+)");
+            if (style.contains("stroke-width:"))
+                width = re.match(style).captured(1).toDouble();
+            DrawTool tool(Tool::BasicSelectionTool, 0, QPen(color, width));
+            BasicGraphicsPath *path = new BasicGraphicsPath(tool, coordinates);
+            path->setPos(pos);
+            path->setTransform(transform);
+            target.append(path);
+            if (!reader.isEndElement())
+                reader.skipCurrentElement();
+        }
+        else if (reader.name().toUtf8() == "text")
+        {
+            // TODO
+        }
+        if (!reader.isEndElement())
+            reader.skipCurrentElement();
     }
 }
