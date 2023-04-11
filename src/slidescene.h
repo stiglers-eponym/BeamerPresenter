@@ -33,6 +33,9 @@ class PixmapGraphicsItem;
 class QPropertyAnimation;
 
 namespace drawHistory {
+    struct DrawToolDifference;
+    struct TextPropertiesDifference;
+    struct ZValueChange;
     struct Step;
 }
 
@@ -348,7 +351,10 @@ signals:
     void sendNewPath(int page, QGraphicsItem *item) const;
 
     /// Send transformations for QGraphicsItems to PdfMaster.
-    void sendHistoryStep(int page, drawHistory::Step *step) const;
+    void sendHistoryStep(int page,
+                         QHash<QGraphicsItem*,QTransform> *transforms,
+                         QHash<QGraphicsItem*,drawHistory::DrawToolDifference> *tools,
+                         QHash<QGraphicsItem*,drawHistory::TextPropertiesDifference> *texts) const;
 
     /// Replace old path by new path in a single drawing history step.
     void replacePath(int page, QGraphicsItem *olditem, QGraphicsItem *newitem) const;

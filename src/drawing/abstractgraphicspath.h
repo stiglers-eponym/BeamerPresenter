@@ -103,7 +103,7 @@ public:
      *
      * Create list of paths obtained when erasing at position *scene_pos* with
      * round eraser of radius *size*. This list is empty if this path is
-     * completely erased.
+     * completely erased. Returns nullptr if nothing was erased.
      *
      * @param scene_pos position of eraser (scene coordinates)
      * @param size radius of eraser

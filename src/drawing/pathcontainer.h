@@ -4,6 +4,7 @@
 #ifndef PATHCONTAINER_H
 #define PATHCONTAINER_H
 
+#include <set>
 #include <memory>
 #include <QPointF>
 #include <QTransform>
@@ -18,10 +19,11 @@
 #include <QColor>
 #include <QFont>
 #include <QBrush>
+#include <QGraphicsItem>
 #include "src/config.h"
+#include "src/preferences.h"
 #include "src/drawing/drawtool.h"
 
-class QGraphicsItem;
 class QGraphicsScene;
 class QXmlStreamReader;
 class QXmlStreamWriter;
@@ -38,13 +40,19 @@ namespace drawHistory
         QPainter::CompositionMode old_mode; ///< composition mode of the old tool
         QPainter::CompositionMode new_mode; ///< composition mode of the new tool
         DrawToolDifference(const DrawTool &old_tool, const DrawTool &new_tool) :
-            old_pen(old_tool.pen()), new_pen(new_tool.pen()), old_brush(old_tool.brush()), new_brush(new_tool.brush()), old_mode(old_tool.compositionMode()), new_mode(new_tool.compositionMode()) {}
+            old_pen(old_tool.pen()), new_pen(new_tool.pen()),
+            old_brush(old_tool.brush()), new_brush(new_tool.brush()),
+            old_mode(old_tool.compositionMode()), new_mode(new_tool.compositionMode()) {}
     };
     /// Store changes in text properties (not text content!).
     struct TextPropertiesDifference {
         QFont old_font; ///< old font
         QFont new_font; ///< new font
         QRgb color_diff; ///< binary difference of colors in RGBA (4 byte) format
+    };
+    struct ZValueChange {
+        qreal old_z; ///< old Z value
+        qreal new_z;///< new Z value
     };
 
     /**
@@ -62,20 +70,27 @@ namespace drawHistory
      *     together with their index after all new QGraphicsItems were added.
      */
     struct Step {
+        // TODO: check if a std::variant would provide a more efficient history:
+        //QHash<QGraphicsItem*, std::variant<ZValueChange,QTransform,DrawToolDifference,TextPropertiesDifference>> changes;
+
+        /// Changes in the order of items.
+        /// the pair is of the form (old,new).
+        QHash<QGraphicsItem*, ZValueChange> z_value_changes;
+
         /// Items with the transformation applied in this history step.
-        QHash<std::shared_ptr<QGraphicsItem>, QTransform> transformedItems;
+        QHash<QGraphicsItem*, QTransform> transformedItems;
 
         /// Changes of draw tool.
-        QHash<std::shared_ptr<QGraphicsItem>, DrawToolDifference> drawToolChanges;
+        QHash<QGraphicsItem*, DrawToolDifference> drawToolChanges;
 
         /// Changes of text properties.
-        QHash<std::shared_ptr<QGraphicsItem>, TextPropertiesDifference> textPropertiesChanges;
+        QHash<QGraphicsItem*, TextPropertiesDifference> textPropertiesChanges;
 
         /// Newly created items with their index after the history step.
-        QMap<int, std::shared_ptr<QGraphicsItem>> createdItems;
+        QList<QGraphicsItem*> createdItems;
 
         /// Deleted items with their indices before the history step.
-        QMap<int, std::shared_ptr<QGraphicsItem>> deletedItems;
+        QList<QGraphicsItem*> deletedItems;
 
         /// Check whether this step includes any changes.
         bool isEmpty() const {
@@ -90,6 +105,12 @@ namespace drawHistory
 Q_DECLARE_METATYPE(drawHistory::Step);
 
 
+/// Compare QGraphicsItems by their z value.
+inline bool cmp_by_z(QGraphicsItem *left, QGraphicsItem *right) noexcept
+{
+    return left && right && left->zValue() > right->zValue();
+}
+
 /**
  * @brief Collection of QGraphicsItems including a history of changes to these items
  *
@@ -101,12 +122,39 @@ class PathContainer : public QObject
     Q_OBJECT
 
 private:
-    /// List of currently visible paths in the order in which they were created
-    QList<std::shared_ptr<QGraphicsItem>> paths;
+    struct LookUpProperties {
+        int ref_count;
+        bool visible;
+    };
+    QHash<QGraphicsItem*,LookUpProperties> _ref_count;
+
+    /// owns nothing, sorted by z_value.
+    /// This allows for efficient lookup of items by z value.
+    std::multiset<QGraphicsItem*, decltype(&cmp_by_z)> _z_order{&cmp_by_z};
 
     /// List of changes forming the history of this, in the order in which they
     /// were created.
-    QList<std::shared_ptr<drawHistory::Step>> history;
+    QList<drawHistory::Step> history;
+
+    /**
+     * Decrease reference count for item. Delete item if reference
+     * count reaches zero. Only deletes item if item was in _ref_count. */
+    void releaseItem(QGraphicsItem *item) noexcept;
+    /// Increase reference count for item
+    void keepItem(QGraphicsItem *item) noexcept
+    {++(_ref_count[item].ref_count);}
+    /**
+     * Increase reference count for item and mark item as visible/hidden.
+     * This does not show or hide the item, but only marks it as
+     * visible/hidden in a lookup table. */
+    void keepItem(QGraphicsItem *item, const bool visible) noexcept
+    {
+        LookUpProperties &prop = _ref_count[item];
+        ++prop.ref_count;
+        prop.visible = visible;
+    }
+    /// Cleans up items in a history step.
+    void deleteStep(const drawHistory::Step &step) noexcept;
 
     /**
      * Current position in history, measured from history.last().
@@ -122,13 +170,58 @@ private:
 
     /// Remove all "redo" options.
     void truncateHistory();
+    /// Limit history to default length.
+    void limitHistory()
+    {
+        const int target_length = preferences()->history_length_visible_slides;
+        if (history.length() > target_length)
+            clearHistory(target_length);
+    }
 
 public:
+    struct VisibleIterator {
+        using iterator_category = std::forward_iterator_tag;
+        using difference_type   = QHash<QGraphicsItem*,LookUpProperties>::difference_type;
+        using value_type        = QGraphicsItem*;
+        using pointer           = QGraphicsItem* const*;
+        using reference         = QGraphicsItem* const&;
+        VisibleIterator(const QHash<QGraphicsItem*,LookUpProperties>::const_iterator &it, const QHash<QGraphicsItem*,LookUpProperties>::const_iterator &end) : _it(it), _end(end) {}
+        reference operator*() const {return _it.key();}
+        pointer operator->() {return &_it.key();}
+        VisibleIterator& operator++() {while (++_it != _end && !_it->visible) {}; return *this;}
+        VisibleIterator operator++(int) {VisibleIterator tmp = *this; ++(*this); return tmp;}
+        friend bool operator== (const VisibleIterator& a, const VisibleIterator& b) {return a._it == b._it;};
+        friend bool operator!= (const VisibleIterator& a, const VisibleIterator& b) {return a._it != b._it;};
+    private:
+        QHash<QGraphicsItem*,LookUpProperties>::const_iterator _it;
+        QHash<QGraphicsItem*,LookUpProperties>::const_iterator _end;
+    };
+    VisibleIterator begin() const
+    {
+        auto it = _ref_count.cbegin();
+        const auto &end = _ref_count.cend();
+        while (!it->visible && ++it != end) {}
+        return VisibleIterator(it, end);
+    }
+    VisibleIterator end() const
+    {return VisibleIterator(_ref_count.cend(), _ref_count.cend());}
+
     /// Trivial constructor.
-    explicit PathContainer(QObject *parent = NULL) noexcept : QObject(parent) {}
+    explicit PathContainer(QObject *parent = nullptr) noexcept : QObject(parent) {}
 
     /// Destructor. Delete history and paths.
     ~PathContainer();
+
+    /// Highest currently used z value
+    qreal topZValue() const noexcept
+    {if (_z_order.empty()) return 10; return (*_z_order.crbegin())->zValue();}
+
+    /// Get z value for stacking after item.
+    qreal zValueAfter(const QGraphicsItem *item) const noexcept;
+
+    /// Lowest currently used z value
+    qreal bottomZValue() const noexcept
+    {if (_z_order.empty()) return 0; return (*_z_order.cbegin())->zValue();}
 
     /// Create a new PathContainer which is a copy of this but does not have any history.
     PathContainer *copy() const noexcept;
@@ -136,22 +229,12 @@ public:
     /// Undo latest change.
     /// @return true on success and false on failure.
     /// @see redo()
-    bool undo(QGraphicsScene *scene = NULL);
+    bool undo(QGraphicsScene *scene = nullptr);
 
     /// Redo latest change.
     /// @return true on success and false on failure.
     /// @see undo()
-    bool redo(QGraphicsScene *scene = NULL);
-
-    /// Iterator over current paths.
-    /// @see cend()
-    QList<std::shared_ptr<QGraphicsItem>>::const_iterator begin() const noexcept
-    {return paths.cbegin();}
-
-    /// End of iterator over current paths.
-    /// @see cbegin()
-    QList<std::shared_ptr<QGraphicsItem>>::const_iterator end() const noexcept
-    {return paths.cend();}
+    bool redo(QGraphicsScene *scene = nullptr);
 
     /// Clear history such that only n undo steps are possible.
     void clearHistory(int n = 0);
@@ -159,8 +242,8 @@ public:
     /// Clear paths in a new history step.
     void clearPaths();
 
-    /// Add a new QGraphisItem* in a new history step.
-    void append(QGraphicsItem *item);
+    /// Add a new QGraphisItem* in a new history step and bring it to the foreground.
+    void appendForeground(QGraphicsItem *item);
 
     /**
      * Start eraser step. An eraser step in history is caused by multiple
@@ -196,11 +279,10 @@ public:
     /// Check if this contains any information.
     /// @return true if this contains any elements or history steps.
     bool isEmpty() const noexcept
-    {return paths.isEmpty() && history.isEmpty();}
+    {return _ref_count.isEmpty();}
 
     /// Check if this currently has any paths (history is ignored).
-    bool isCleared() const noexcept
-    {return paths.isEmpty();}
+    bool isCleared() const noexcept;
 
     /// Check if this is an unchanged copy of another PathContainer.
     /// @return true if inHistory == -2
@@ -231,24 +313,25 @@ public:
     void replaceItem(QGraphicsItem *olditem, QGraphicsItem *newitem);
 
     /// Add new paths.
-    void addItems(const QList<QGraphicsItem*> &items);
+    void addItemsForeground(const QList<QGraphicsItem*> &items);
     /// Remove paths.
     void removeItems(const QList<QGraphicsItem*> &items);
 
 public slots:
-    /// Append drawHistory::Step.
-    void addHistoryStep(std::shared_ptr<drawHistory::Step> step);
-
     // Remove the item in a new history step.
     void removeItem(QGraphicsItem *item)
-    {replaceItem(item, NULL);}
+    {replaceItem(item, nullptr);}
 
     /// Notify of a change in a text item, add the item to history if necessary.
     void addTextItem(QGraphicsItem *item)
-    {replaceItem(NULL, item);}
+    {replaceItem(nullptr, item);}
 
     /// Bring list of items to foreground and add history step.
     void bringToForeground(const QList<QGraphicsItem*> &to_foreground);
+
+    void addChanges(QHash<QGraphicsItem*, QTransform> *transforms,
+                    QHash<QGraphicsItem*, drawHistory::DrawToolDifference> *tools,
+                    QHash<QGraphicsItem*, drawHistory::TextPropertiesDifference> *texts);
 };
 
 

@@ -23,6 +23,9 @@ class QXmlStreamWriter;
 struct SlideTransition;
 
 namespace drawHistory {
+    struct DrawToolDifference;
+    struct TextPropertiesDifference;
+    struct ZValueChange;
     struct Step;
 }
 
@@ -192,10 +195,13 @@ public slots:
 
     /// Add history step with transformations and color changes.
     /// Page (part) number is given as (page | page_part).
-    void addHistoryStep(int page, drawHistory::Step *step);
+    void addHistoryStep(int page,
+                    QHash<QGraphicsItem*, QTransform> *transforms,
+                    QHash<QGraphicsItem*, drawHistory::DrawToolDifference> *tools,
+                    QHash<QGraphicsItem*, drawHistory::TextPropertiesDifference> *texts);
 
     /// Add new paths.
-    void addItems(int page, const QList<QGraphicsItem*> &items);
+    void addItemsForeground(int page, const QList<QGraphicsItem*> &items);
     /// Remove paths.
     void removeItems(int page, const QList<QGraphicsItem*> &items);
 

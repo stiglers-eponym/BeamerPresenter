@@ -55,7 +55,7 @@ SlideScene::SlideScene(const PdfMaster *master, const PagePart part, QObject *pa
     connect(this, &SlideScene::sendHistoryStep, master, &PdfMaster::addHistoryStep, Qt::DirectConnection);
     connect(this, &SlideScene::requestNewPathContainer, master, &PdfMaster::requestNewPathContainer, Qt::DirectConnection);
     connect(this, &SlideScene::sendRemovePaths, master, &PdfMaster::removeItems, Qt::DirectConnection);
-    connect(this, &SlideScene::sendAddPaths, master, &PdfMaster::addItems, Qt::DirectConnection);
+    connect(this, &SlideScene::sendAddPaths, master, &PdfMaster::addItemsForeground, Qt::DirectConnection);
     connect(this, &SlideScene::bringToForeground, master, &PdfMaster::bringToForeground, Qt::DirectConnection);
     connect(this, &SlideScene::selectionChanged, this, &SlideScene::updateSelectionRect, Qt::DirectConnection);
     pageItem->setZValue(-1e2);
@@ -422,13 +422,16 @@ void SlideScene::handleEvents(const int device, const QList<QPointF> &pos, const
         addItem(item);
         item->show();
         item->setPos(pos.constFirst());
-        emit sendNewPath(page | page_part, nullptr);
+        emit sendNewPath(page | page_part, item);
         PathContainer *container = master->pathContainer(page | page_part);
         if (container)
         {
+            item->setZValue(container->topZValue() + 10);
             connect(item, &TextGraphicsItem::removeMe, container, &PathContainer::removeItem);
             connect(item, &TextGraphicsItem::addMe, container, &PathContainer::addTextItem);
         }
+        else
+            item->setZValue(10);
         setFocusItem(item);
     }
     else if ((device & Tool::AnyEvent) == Tool::StopEvent && pos.size() == 1)
@@ -518,20 +521,22 @@ void SlideScene::handleSelectionStopEvents(SelectionTool *tool, const QPointF &p
         const QHash<QGraphicsItem*, QTransform> &originalTransforms = tool->originalTransforms();
         if (originalTransforms.count() <= 1)
             return;
-        drawHistory::Step *step = new drawHistory::Step;
         const bool finalize = preferences()->global_flags & Preferences::FinalizeDrawnPaths;
         QTransform transform;
+        QHash<QGraphicsItem*, QTransform> transforms;
         for (auto it=originalTransforms.cbegin(); it!=originalTransforms.cend(); ++it)
         {
             if (it.key() == &selection_bounding_rect)
                 continue;
             transform = it.key()->transform();
             transform *= it->inverted();
-            step->transformedItems.insert(it.key(), transform);
-            if (finalize && (it.key()->type() == BasicGraphicsPath::Type || it.key()->type() == FullGraphicsPath::Type))
+            transforms.insert(it.key(), transform);
+            if (finalize &&
+                (it.key()->type() == BasicGraphicsPath::Type
+                     || it.key()->type() == FullGraphicsPath::Type))
                 static_cast<AbstractGraphicsPath*>(it.key())->finalize();
         }
-        emit sendHistoryStep(page | page_part, step);
+        emit sendHistoryStep(page | page_part, &transforms, nullptr, nullptr);
         updateSelectionRect();
         break;
     }
@@ -1801,23 +1806,24 @@ void SlideScene::toolChanged(const Tool *tool) noexcept
 {
     if (tool->tool() & (Tool::AnySelectionTool | Tool::AnyPointingTool))
         return;
-    drawHistory::Step *step = nullptr;
     if (tool->tool() & Tool::AnyDrawTool)
     {
         const QList<QGraphicsItem*> selection = selectedItems();
         if (selection.isEmpty())
             return;
-        step = new drawHistory::Step;
+        QHash<QGraphicsItem*, drawHistory::DrawToolDifference> tool_changes;
         const DrawTool *draw_tool = static_cast<const DrawTool*>(tool);
         for (const auto item : selection)
             if (item->type() == BasicGraphicsPath::Type || item->type() == FullGraphicsPath::Type)
             {
-                auto path = static_cast<AbstractGraphicsPath*>(item);
+                const auto path = static_cast<AbstractGraphicsPath*>(item);
                 if (path->getTool() != *draw_tool)
-                    step->drawToolChanges.insert(path, drawHistory::DrawToolDifference(path->getTool(), *draw_tool));
+                    tool_changes.insert(path, drawHistory::DrawToolDifference(path->getTool(), *draw_tool));
                 path->changeTool(*draw_tool);
                 path->update();
             }
+        if (!tool_changes.isEmpty())
+            emit sendHistoryStep(page | page_part, nullptr, &tool_changes, nullptr);
     }
     else if (tool->tool() == Tool::TextInputTool)
     {
@@ -1826,29 +1832,26 @@ void SlideScene::toolChanged(const Tool *tool) noexcept
             selection.append(focusItem());
         if (selection.isEmpty())
             return;
-        step = new drawHistory::Step;
+        QHash<QGraphicsItem*, drawHistory::TextPropertiesDifference> text_changes;
         const TextTool *text_tool = static_cast<const TextTool*>(tool);
         for (auto item : selection)
             if (item->type() == TextGraphicsItem::Type)
             {
-                auto text = static_cast<TextGraphicsItem*>(item);
+                const auto text = static_cast<TextGraphicsItem*>(item);
                 if (text->font() != text_tool->font() || text->defaultTextColor() != text_tool->color())
-                    step->textPropertiesChanges.insert(text, {text->font(), text_tool->font(), text_tool->color().rgba() ^ text->defaultTextColor().rgba()});
+                    text_changes.insert(text, {text->font(), text_tool->font(), text_tool->color().rgba() ^ text->defaultTextColor().rgba()});
                 text->setFont(text_tool->font());
                 text->setDefaultTextColor(text_tool->color());
             }
+        if (!text_changes.isEmpty())
+            emit sendHistoryStep(page | page_part, nullptr, nullptr, &text_changes);
     }
-    if (!step)
-        return;
-    else if (step->isEmpty())
-        delete step;
-    else
-        emit sendHistoryStep(page | page_part, step);
 }
 
 void SlideScene::colorChanged(const QColor &color) noexcept
 {
-    drawHistory::Step *step = new drawHistory::Step;
+    QHash<QGraphicsItem*,drawHistory::DrawToolDifference> tool_changes;
+    QHash<QGraphicsItem*,drawHistory::TextPropertiesDifference> text_changes;
     for (auto item : selectedItems())
     {
         switch (item->type())
@@ -1861,7 +1864,7 @@ void SlideScene::colorChanged(const QColor &color) noexcept
             {
                 DrawTool tool = path->getTool();
                 tool.setColor(color);
-                step->drawToolChanges.insert(path, drawHistory::DrawToolDifference(path->getTool(), tool));
+                tool_changes.insert(path, drawHistory::DrawToolDifference(path->getTool(), tool));
                 path->changeTool(tool);
                 path->update();
             }
@@ -1870,21 +1873,19 @@ void SlideScene::colorChanged(const QColor &color) noexcept
         case TextGraphicsItem::Type:
         {
             const auto text = static_cast<TextGraphicsItem*>(item);
-            step->textPropertiesChanges.insert(item, {text->font(), text->font(), text->defaultTextColor().rgba() ^ color.rgba()});
+            text_changes.insert(item, {text->font(), text->font(), text->defaultTextColor().rgba() ^ color.rgba()});
             text->setDefaultTextColor(color);
             break;
         }
         }
     }
-    if (step->isEmpty())
-        delete step;
-    else
-        emit sendHistoryStep(page | page_part, step);
+    if (!tool_changes.isEmpty() || !text_changes.isEmpty())
+        emit sendHistoryStep(page | page_part, nullptr, &tool_changes, &text_changes);
 }
 
 void SlideScene::widthChanged(const qreal width) noexcept
 {
-    drawHistory::Step *step = new drawHistory::Step;
+    QHash<QGraphicsItem*,drawHistory::DrawToolDifference> tool_changes;
     for (auto item : selectedItems())
     {
         switch (item->type())
@@ -1897,7 +1898,7 @@ void SlideScene::widthChanged(const qreal width) noexcept
             {
                 DrawTool tool = path->getTool();
                 tool.setWidth(width);
-                step->drawToolChanges.insert(path, drawHistory::DrawToolDifference(path->getTool(), tool));
+                tool_changes.insert(path, drawHistory::DrawToolDifference(path->getTool(), tool));
                 path->changeTool(tool);
                 path->update();
             }
@@ -1905,10 +1906,8 @@ void SlideScene::widthChanged(const qreal width) noexcept
         }
         }
     }
-    if (step->isEmpty())
-        delete step;
-    else
-        emit sendHistoryStep(page | page_part, step);
+    if (!tool_changes.isEmpty())
+        emit sendHistoryStep(page | page_part, nullptr, &tool_changes, nullptr);
 }
 
 void SlideScene::updateSearchResults()

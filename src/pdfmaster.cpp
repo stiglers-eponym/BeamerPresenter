@@ -213,7 +213,7 @@ void PdfMaster::replacePath(int page, QGraphicsItem *olditem, QGraphicsItem *new
     }
 }
 
-void PdfMaster::addItems(int page, const QList<QGraphicsItem*> &items)
+void PdfMaster::addItemsForeground(int page, const QList<QGraphicsItem*> &items)
 {
     if (preferences()->overlay_mode == PerLabel)
         page = document->overlaysShifted((page & ~NotFullPage), FirstOverlay) | (page & NotFullPage);
@@ -221,7 +221,7 @@ void PdfMaster::addItems(int page, const QList<QGraphicsItem*> &items)
         paths[page] = new PathContainer(this);
     if (!items.isEmpty())
     {
-        paths[page]->addItems(items);
+        paths[page]->addItemsForeground(items);
         _flags |= UnsavedDrawings;
     }
 }
@@ -239,7 +239,10 @@ void PdfMaster::removeItems(int page, const QList<QGraphicsItem*> &items)
     }
 }
 
-void PdfMaster::addHistoryStep(int page, drawHistory::Step *step)
+void PdfMaster::addHistoryStep(int page,
+                QHash<QGraphicsItem*, QTransform> *transforms,
+                QHash<QGraphicsItem*, drawHistory::DrawToolDifference> *tools,
+                QHash<QGraphicsItem*, drawHistory::TextPropertiesDifference> *texts)
 {
     if (preferences()->overlay_mode == PerLabel)
         page = document->overlaysShifted((page & ~NotFullPage), FirstOverlay) | (page & NotFullPage);
@@ -249,7 +252,7 @@ void PdfMaster::addHistoryStep(int page, drawHistory::Step *step)
         warn_msg("Trying to add new history step to page without history");
         paths[page] = new PathContainer(this);
     }
-    paths[page]->addHistoryStep(step);
+    paths[page]->addChanges(transforms, tools, texts);
     _flags |= UnsavedDrawings;
 }
 
