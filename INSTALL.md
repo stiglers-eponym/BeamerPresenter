@@ -66,8 +66,8 @@ Additionally you need either the Qt 5/6 bindings of Poppler or the MuPDF librari
 * `qttools5-dev` (only for building and only when creating translations. You can disable translations with `-DUSE_TRANSLATIONS=OFF` in the [CMake command](#configure))
     * or when using Qt 6 in Ubuntu ≥22.04: `qt6-tools-dev`, `qt6-tools-dev-tools`, and `qt6-l10n-tools`
 * optional: `gstreamer1.0-libav` and `libqt5multimedia5-plugins` (for showing videos)
-* `libqt5svg5`
-    * or when using Qt 6 in Ubuntu ≥22.04: `libqt6svg6`
+* `libqt5svg5-dev` (after the installation you can remove `libqt5svg5-dev` and keep only `libqt5svg5`)
+    * or when using Qt 6 in Ubuntu ≥22.04: `libqt6svg6-dev`
 
 When compiling with Poppler:
 * `libpoppler-qt5-dev`: version 0.86.1 or later. (after the installation you can remove `libpoppler-qt5-dev` and keep only `libpoppler-qt5-1`

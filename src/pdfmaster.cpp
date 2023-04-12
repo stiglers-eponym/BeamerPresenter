@@ -5,6 +5,7 @@
 #include <algorithm>
 #include <zlib.h>
 #include <QFileInfo>
+#include <QPainter>
 #include <QRegularExpression>
 #include <QBuffer>
 #include <QMimeDatabase>
@@ -12,6 +13,7 @@
 #include <QFileDialog>
 #include <QXmlStreamReader>
 #include <QXmlStreamWriter>
+#include <QStyleOptionGraphicsItem>
 
 #include "src/config.h"
 #include "src/log.h"
@@ -20,6 +22,7 @@
 #include "src/slidescene.h"
 #include "src/drawing/pathcontainer.h"
 #include "src/rendering/pdfdocument.h"
+#include "src/rendering/abstractrenderer.h"
 #ifdef USE_QTPDF
 #include "src/rendering/qtdocument.h"
 #endif
@@ -293,6 +296,20 @@ void PdfMaster::saveXopp(const QString &filename)
     writer.writeStartElement("xournal");
     writer.writeAttribute("creator", "beamerpresenter " APP_VERSION);
     writer.writeTextElement("title", "BeamerPresenter document, compatible with Xournal++ - see https://github.com/stiglers-eponym/BeamerPresenter");
+
+    {
+        // Write preview picture.
+        writer.writeStartElement("preview");
+        const QSizeF &pageSize = getPageSize(0);
+        const qreal resolution = 128 / std::max(pageSize.width(), pageSize.height());
+        const QPixmap pixmap = exportImage(0, resolution);
+        QByteArray data;
+        QBuffer buffer(&data);
+        pixmap.save(&buffer, "png");
+        buffer.close();
+        writer.writeCharacters(data.toBase64());
+        writer.writeEndElement();
+    }
 
     // Some attributes specific for beamerpresenter (Xournal++ will ignore that)
     writer.writeStartElement("beamerpresenter");
@@ -704,4 +721,32 @@ void PdfMaster::search(const QString &text, const int &page, const bool forward)
         emit updateSearch();
     else if (search_results.first >= 0)
         emit navigationSignal(search_results.first);
+}
+
+QPixmap PdfMaster::exportImage(const int page, const qreal resolution) const noexcept
+{
+    if (!document || resolution <= 0 || page < 0 || page >= document->numberOfPages())
+        return QPixmap();
+    debug_msg(DebugDrawing, "Export image" << page << resolution);
+    const auto *renderer = document->createRenderer(static_cast<PagePart>(page & PagePart::NotFullPage));
+    if (!renderer || !renderer->isValid())
+        return QPixmap();
+    QPixmap pixmap = renderer->renderPixmap(page & ~PagePart::NotFullPage, resolution);
+    const auto *container = paths.value(page, nullptr);
+    if (container)
+    {
+        debug_msg(DebugDrawing, "Exporting items");
+        QStyleOptionGraphicsItem style;
+        QPainter painter;
+        painter.begin(&pixmap);
+        for (auto item : *container)
+        {
+            painter.resetTransform();
+            painter.scale(resolution, resolution);
+            painter.setTransform(item->sceneTransform(), true);
+            item->paint(&painter, &style);
+        }
+        painter.end();
+    }
+    return pixmap;
 }

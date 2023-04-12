@@ -161,6 +161,9 @@ public:
     /// This does not check whether filename is valid and accessible!
     void saveXopp(const QString &filename);
 
+    /// Write page (part) to image, including drawings.
+    QPixmap exportImage(const int page, const qreal resolution) const noexcept;
+
     /// Load drawings from gzip-compressed xml file.
     /// This does not check whether filename is valid and accessible!
     /// If no document is loaded, this will call loadDocument(path)

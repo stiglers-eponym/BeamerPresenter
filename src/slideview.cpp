@@ -348,7 +348,7 @@ void SlideView::drawForeground(QPainter *painter, const QRectF &rect)
         }
     }
 #ifdef QT_DEBUG
-    if (preferences()->debug_level & (DebugMedia|DebugVerbose))
+    if ((preferences()->debug_level & (DebugMedia|DebugVerbose)) == (DebugMedia|DebugVerbose))
     {
         painter->setCompositionMode(QPainter::CompositionMode_SourceOver);
         painter->setBrush(Qt::NoBrush);
