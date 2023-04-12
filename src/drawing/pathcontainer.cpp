@@ -15,6 +15,7 @@
 #include "src/drawing/textgraphicsitem.h"
 #include "src/drawing/basicgraphicspath.h"
 #include "src/drawing/fullgraphicspath.h"
+#include "src/drawing/graphicspictureitem.h"
 #include "src/names.h"
 #include "src/log.h"
 #include "src/preferences.h"
@@ -509,7 +510,7 @@ PathContainer *PathContainer::copy() const noexcept
             {
             case TextGraphicsItem::Type:
             {
-                auto olditem = static_cast<TextGraphicsItem*>(item);
+                const auto *olditem = static_cast<TextGraphicsItem*>(item);
                 if (!olditem->isEmpty())
                 {
                     TextGraphicsItem *newitem = olditem->clone();
@@ -528,6 +529,18 @@ PathContainer *PathContainer::copy() const noexcept
                 newitem->setZValue(item->zValue());
                 container->keepItem(newitem, true);
                 container->_z_order.insert(newitem);
+                break;
+            }
+            case GraphicsPictureItem::Type:
+            {
+                const auto *olditem = static_cast<GraphicsPictureItem*>(item);
+                if (!olditem->empty())
+                {
+                    auto newitem = olditem->copy();
+                    newitem->setZValue(item->zValue());
+                    container->keepItem(newitem, true);
+                    container->_z_order.insert(newitem);
+                }
                 break;
             }
             }

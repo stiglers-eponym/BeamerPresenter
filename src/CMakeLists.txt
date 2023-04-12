@@ -30,6 +30,7 @@ add_executable(beamerpresenter
         drawing/abstractgraphicspath.h drawing/abstractgraphicspath.cpp
         drawing/basicgraphicspath.h drawing/basicgraphicspath.cpp
         drawing/fullgraphicspath.h drawing/fullgraphicspath.cpp
+        drawing/graphicspictureitem.h
         gui/actionbutton.h gui/actionbutton.cpp
         gui/searchwidget.h gui/searchwidget.cpp
         gui/clockwidget.h gui/clockwidget.cpp
@@ -97,6 +98,7 @@ target_link_libraries(beamerpresenter PRIVATE
         "Qt${QT_VERSION_MAJOR}::Multimedia"
         "Qt${QT_VERSION_MAJOR}::MultimediaWidgets"
         "Qt${QT_VERSION_MAJOR}::Xml"
+        "Qt${QT_VERSION_MAJOR}::Svg"
         ${EXTRA_LIBS}
     )
 

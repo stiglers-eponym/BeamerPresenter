@@ -7,6 +7,8 @@
 * new widget: ToolWidget ("tools") showing tools currently connected to input devices
 * improved search widget: now highlights search results
 * different installation path for translation files
+* copy paste to/from SVG: useable now, but paste only as picture (no erasing possible).
+    * this adds the Qt SVG module as a dependency
 * bug fixes
 * internal: different drawing history, memory management, and stacking order mechanism
 

@@ -29,6 +29,7 @@ find_package(Qt${QT_VERSION_MAJOR} COMPONENTS Widgets REQUIRED)
 find_package(Qt${QT_VERSION_MAJOR} COMPONENTS Multimedia REQUIRED)
 find_package(Qt${QT_VERSION_MAJOR} COMPONENTS MultimediaWidgets REQUIRED)
 find_package(Qt${QT_VERSION_MAJOR} COMPONENTS Xml REQUIRED)
+find_package(Qt${QT_VERSION_MAJOR} COMPONENTS Svg REQUIRED)
 
 
 # Options concerning the installation
