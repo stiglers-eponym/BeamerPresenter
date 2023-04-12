@@ -19,6 +19,7 @@
 #include <unistd.h>
 #endif
 #include "src/rendering/mupdfdocument.h"
+#include "src/rendering/mupdfrenderer.h"
 #include "src/preferences.h"
 #include "src/log.h"
 
@@ -285,6 +286,11 @@ bool MuPdfDocument::loadDocument()
 
     debug_msg(DebugRendering, "Loaded PDF document in MuPDF");
     return number_of_pages > 0;
+}
+
+AbstractRenderer *MuPdfDocument::createRenderer(const PagePart part) const
+{
+    return new MuPdfRenderer(this, part);
 }
 
 const QSizeF MuPdfDocument::pageSize(const int page) const

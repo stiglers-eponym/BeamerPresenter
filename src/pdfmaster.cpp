@@ -54,11 +54,6 @@ PdfMaster::~PdfMaster()
     delete document;
 }
 
-const QSizeF PdfMaster::getPageSize(const int page_number) const
-{
-    return document->pageSize(page_number);
-}
-
 void PdfMaster::loadDocument(const QString &filename)
 {
     if (document)
@@ -108,31 +103,6 @@ bool PdfMaster::loadDocument()
         return true;
     }
     return false;
-}
-
-const QString &PdfMaster::getFilename() const
-{
-    return document->getPath();
-}
-
-bool PdfMaster::flexiblePageSizes() const noexcept
-{
-    return document->flexiblePageSizes();
-}
-
-const SlideTransition PdfMaster::transition(const int page) const
-{
-    return document->transition(page);
-}
-
-int PdfMaster::numberOfPages() const
-{
-    return document->numberOfPages();
-}
-
-int PdfMaster::overlaysShifted(const int start, const int shift_overlay) const
-{
-    return document->overlaysShifted(start, shift_overlay);
 }
 
 void PdfMaster::receiveAction(const Action action)
@@ -659,13 +629,6 @@ void PdfMaster::readPropertiesFromStream(QXmlStreamReader &reader)
     }
 }
 
-void PdfMaster::clearHistory(const int page, const int remaining_entries) const
-{
-    PathContainer *container = paths.value(page, NULL);
-    if (container)
-        container->clearHistory(remaining_entries);
-}
-
 PathContainer *PdfMaster::pathContainerCreate(int page)
 {
     switch (preferences()->overlay_mode)
@@ -695,7 +658,7 @@ PathContainer *PdfMaster::pathContainerCreate(int page)
             }
         }
     }
-    return NULL;
+    return nullptr;
 }
 
 void PdfMaster::clearAllDrawings()
@@ -716,12 +679,6 @@ void PdfMaster::getTimeForPage(const int page, quint32 &time) const noexcept
         time = UINT32_MAX;
     else
         time = *target_times.lowerBound(page);
-}
-
-void PdfMaster::setTimeForPage(const int page, const quint32 time) noexcept
-{
-    target_times[page] = time;
-    _flags |= UnsavedTimes;
 }
 
 bool PdfMaster::hasDrawings() const noexcept

@@ -56,6 +56,9 @@ public:
     /// otherwise.
     bool loadDocument() override final;
 
+    /// Create a QtRenderer for this document.
+    virtual AbstractRenderer *createRenderer(const PagePart part = FullPage) const override;
+
     /// Size of page in points (inch/72). Empty if page is invalid.
     const QSizeF pageSize(const int page) const override;
 

@@ -55,10 +55,10 @@ private:
     QVector<pdf_page*> pages;
 
     /// context should be cloned for each separate thread.
-    fz_context *ctx{NULL};
+    fz_context *ctx{nullptr};
 
     /// document is global, don't clone if for threads.
-    pdf_document *doc{NULL};
+    pdf_document *doc{nullptr};
 
     /// Mutexes needed for parallel rendering in MuPDF.
     QVector<QMutex*> mutex_list;
@@ -98,6 +98,9 @@ public:
     /// Load or reload the PDF document if the file has been modified since
     /// it was loaded. Return true if the document was reloaded.
     bool loadDocument() override final;
+
+    /// Create a MuPdfRenderer for this document.
+    virtual AbstractRenderer *createRenderer(const PagePart part = FullPage) const override;
 
     /// Size of page in points (inch/72).
     const QSizeF pageSize(const int page) const override;

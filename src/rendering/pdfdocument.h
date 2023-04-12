@@ -15,6 +15,7 @@
 #include "src/config.h"
 #include "src/enumerates.h"
 
+class AbstractRenderer;
 
 /// Unified type of PDF media annotations for all PDF engines.
 struct MediaAnnotation {
@@ -325,6 +326,9 @@ public:
 
     /// Pdf engine.
     virtual PdfEngine type() const noexcept = 0;
+
+    /// Create a new renderer for this document.
+    virtual AbstractRenderer *createRenderer(const PagePart part = FullPage) const = 0;
 
     /// Label of page with given index.
     /// The default implementation returns a string representing the page number.

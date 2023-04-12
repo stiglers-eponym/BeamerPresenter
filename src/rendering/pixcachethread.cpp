@@ -60,29 +60,12 @@ void PixCacheThread::run()
 bool PixCacheThread::initializeRenderer(const PdfDocument * const doc, const PagePart page_part)
 {
     // Create the renderer without any checks.
-    switch (preferences()->renderer)
-    {
-#ifdef USE_QTPDF
-    case renderer::QtPDF:
-        renderer = new QtRenderer(static_cast<const QtDocument*>(doc), page_part);
-        break;
-#endif
-#ifdef USE_POPPLER
-    case renderer::Poppler:
-        renderer = new PopplerRenderer(static_cast<const PopplerDocument*>(doc), page_part);
-        break;
-#endif
-#ifdef USE_MUPDF
-    case renderer::MuPDF:
-        renderer = new MuPdfRenderer(static_cast<const MuPdfDocument*>(doc), page_part);
-        break;
-#endif
 #ifdef USE_EXTERNAL_RENDERER
-    case renderer::ExternalRenderer:
+    if (preferences()->renderer == renderer::ExternalRenderer)
         renderer = new ExternalRenderer(preferences()->rendering_command, preferences()->rendering_arguments, doc, page_part);
-        break;
+    else
 #endif
-    }
+        renderer = doc->createRenderer(page_part);
 
     // Check if the renderer was created successfully.
     if (renderer->isValid())

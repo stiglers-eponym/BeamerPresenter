@@ -6,15 +6,8 @@
 #include "src/gui/thumbnailbutton.h"
 #include "src/log.h"
 #include "src/preferences.h"
-#ifdef USE_QTPDF
-#include "src/rendering/qtrenderer.h"
-#endif
-#ifdef USE_POPPLER
-#include "src/rendering/popplerrenderer.h"
-#endif
-#ifdef USE_MUPDF
-#include "src/rendering/mupdfrenderer.h"
-#endif
+#include "src/rendering/pdfdocument.h"
+#include "src/rendering/abstractrenderer.h"
 #ifdef USE_EXTERNAL_RENDERER
 #include "src/rendering/externalrenderer.h"
 #endif
@@ -26,29 +19,12 @@ ThumbnailThread::ThumbnailThread(const PdfDocument *document) :
         return;
 
     // Create the renderer without any checks.
-    switch (preferences()->renderer)
-    {
-#ifdef USE_QTPDF
-    case renderer::QtPDF:
-        renderer = new QtRenderer(document, preferences()->default_page_part);
-        break;
-#endif
-#ifdef USE_POPPLER
-    case renderer::Poppler:
-        renderer = new PopplerRenderer(document, preferences()->default_page_part);
-        break;
-#endif
-#ifdef USE_MUPDF
-    case renderer::MuPDF:
-        renderer = new MuPdfRenderer(document, preferences()->default_page_part);
-        break;
-#endif
 #ifdef USE_EXTERNAL_RENDERER
-    case renderer::ExternalRenderer:
+    if (preferences()->renderer == renderer::ExternalRenderer)
         renderer = new ExternalRenderer(preferences()->rendering_command, preferences()->rendering_arguments, document, preferences()->default_page_part);
-        break;
+    else
 #endif
-    }
+        renderer = document->createRenderer(preferences()->default_page_part);
 
     // Check if the renderer is valid
     if (renderer == nullptr || !renderer->isValid())

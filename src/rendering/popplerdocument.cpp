@@ -17,6 +17,7 @@
 #include "src/log.h"
 #include "src/preferences.h"
 #include "src/rendering/popplerdocument.h"
+#include "src/rendering/popplerrenderer.h"
 #include "src/rendering/pngpixmap.h"
 
 EmbeddedMedia embeddedSound(const Poppler::SoundObject *sound, const QRectF &rect)
@@ -51,6 +52,11 @@ PopplerDocument::PopplerDocument(const QString &filename) :
     if (!loadDocument())
         qFatal("Loading document failed");
     debug_msg(DebugRendering, "Loaded PDF document in Poppler");
+}
+
+AbstractRenderer *PopplerDocument::createRenderer(const PagePart part) const
+{
+    return new PopplerRenderer(this, part);
 }
 
 const QString PopplerDocument::pageLabel(const int page) const

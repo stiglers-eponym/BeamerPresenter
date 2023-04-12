@@ -8,18 +8,8 @@
 #include "src/config.h"
 #include "src/log.h"
 #include "src/rendering/pixcache.h"
-#ifdef USE_POPPLER
-#include "src/rendering/popplerdocument.h"
-#include "src/rendering/popplerrenderer.h"
-#endif
-#ifdef USE_MUPDF
-#include "src/rendering/mupdfdocument.h"
-#include "src/rendering/mupdfrenderer.h"
-#endif
-#ifdef USE_QTPDF
-#include "src/rendering/qtdocument.h"
-#include "src/rendering/qtrenderer.h"
-#endif
+#include "src/rendering/pdfdocument.h"
+#include "src/rendering/abstractrenderer.h"
 #ifdef USE_EXTERNAL_RENDERER
 #include "src/rendering/externalrenderer.h"
 #endif
@@ -41,32 +31,15 @@ void PixCache::init()
     const PagePart page_part = static_cast<PagePart>(priority.isEmpty() ? 0 : priority.first());
     priority.clear();
     // Create the renderer without any checks.
-    switch (preferences()->renderer)
-    {
-#ifdef USE_QTPDF
-    case renderer::QtPDF:
-        renderer = new QtRenderer(static_cast<const QtDocument*>(pdfDoc), page_part);
-        break;
-#endif
-#ifdef USE_POPPLER
-    case renderer::Poppler:
-        renderer = new PopplerRenderer(static_cast<const PopplerDocument*>(pdfDoc), page_part);
-        break;
-#endif
-#ifdef USE_MUPDF
-    case renderer::MuPDF:
-        renderer = new MuPdfRenderer(static_cast<const MuPdfDocument*>(pdfDoc), page_part);
-        break;
-#endif
 #ifdef USE_EXTERNAL_RENDERER
-    case renderer::ExternalRenderer:
+    if (preferences()->renderer == renderer::ExternalRenderer)
         renderer = new ExternalRenderer(preferences()->rendering_command, preferences()->rendering_arguments, pdfDoc, page_part);
-        break;
+    else
 #endif
-    }
+        renderer = pdfDoc->createRenderer(page_part);
 
     // Check if the renderer is valid
-    if (renderer == NULL || !renderer->isValid())
+    if (!renderer->isValid())
         qCritical() << "Creating renderer failed" << preferences()->renderer;
 
     // Create threads.

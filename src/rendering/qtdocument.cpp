@@ -15,6 +15,7 @@
 #include "src/log.h"
 #include "src/preferences.h"
 #include "src/rendering/qtdocument.h"
+#include "src/rendering/qtrenderer.h"
 #include "src/rendering/pngpixmap.h"
 
 #if (QT_VERSION >= QT_VERSION_CHECK(6,4,0))
@@ -147,6 +148,11 @@ bool QtDocument::loadDocument()
     flexible_page_sizes = -1;
 
     return true;
+}
+
+AbstractRenderer *QtDocument::createRenderer(const PagePart part) const
+{
+    return new QtRenderer(this, part);
 }
 
 const QPixmap QtDocument::getPixmap(const int page, const qreal resolution, const PagePart page_part) const

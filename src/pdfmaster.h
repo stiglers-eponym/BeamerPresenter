@@ -13,12 +13,12 @@
 #include <QString>
 #include "src/config.h"
 #include "src/enumerates.h"
+#include "src/rendering/pdfdocument.h"
 #include "src/drawing/pathcontainer.h"
 
 class SlideScene;
 class QGraphicsItem;
 class QBuffer;
-class PdfDocument;
 class QXmlStreamReader;
 class QXmlStreamWriter;
 struct SlideTransition;
@@ -114,37 +114,48 @@ public:
     bool loadDocument();
 
     /// Get path to PDF file.
-    const QString &getFilename() const;
+    const QString &getFilename() const
+    {return document->getPath();}
 
     /// Get the list of SlideScenes connected to this PDF.
     QList<SlideScene*> &getScenes()
     {return scenes;}
 
     /// Get size of page in points (floating point precision).
-    const QSizeF getPageSize(const int page_number) const;
+    const QSizeF getPageSize(const int page_number) const
+    {return document->pageSize(page_number);}
 
     /// Get PdfDocument.
     PdfDocument *getDocument() const
     {return document;}
 
     /// Return true if document contains pages of different size.
-    bool flexiblePageSizes() const noexcept;
+    bool flexiblePageSizes() const noexcept
+    {return document->flexiblePageSizes();}
 
     /// Clear history of given page.
-    void clearHistory(const int page, const int remaining_entries) const;
+    void clearHistory(const int page, const int remaining_entries) const
+    {
+        PathContainer *container = paths.value(page, nullptr);
+        if (container)
+            container->clearHistory(remaining_entries);
+    }
 
     /// Slide transition when reaching the given page number.
-    const SlideTransition transition(const int page) const;
+    const SlideTransition transition(const int page) const
+    {return document->transition(page);}
 
     /// Number of pages in the document.
-    int numberOfPages() const;
+    int numberOfPages() const
+    {return document->numberOfPages();}
 
     /// Get page number of start shifted by shift_overlay.
     /// Here in shift_overlay the bits of ShiftOverlay::FirstOverlay and
     /// ShiftOverlay::LastOverlay control the interpretation of the shift.
     /// Shifting with overlays means that every page with a different page
     /// label starts a new "real" side.
-    int overlaysShifted(const int start, const int shift_overlay) const;
+    int overlaysShifted(const int start, const int shift_overlay) const
+    {return document->overlaysShifted(start, shift_overlay);}
 
     /// Save drawings to gzip-compressed xml file.
     /// This does not check whether filename is valid and accessible!
@@ -227,7 +238,11 @@ public slots:
     {*container = pathContainerCreate(page);}
 
     /// Set time for page and write it to target_times.
-    void setTimeForPage(const int page, const quint32 time) noexcept;
+    void setTimeForPage(const int page, const quint32 time) noexcept
+    {
+        target_times[page] = time;
+        _flags |= UnsavedTimes;
+    }
 
     /// Get time for given page and write it to time.
     void getTimeForPage(const int page, quint32 &time) const noexcept;
