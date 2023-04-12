@@ -427,7 +427,6 @@ void SlideScene::handleEvents(const int device, const QList<QPointF> &pos, const
         addItem(item);
         item->show();
         item->setPos(pos.constFirst());
-        emit sendNewPath(page | page_part, item);
         PathContainer *container = master->pathContainer(page | page_part);
         if (container)
         {
@@ -437,6 +436,7 @@ void SlideScene::handleEvents(const int device, const QList<QPointF> &pos, const
         }
         else
             item->setZValue(10);
+        emit sendNewPath(page | page_part, item);
         setFocusItem(item);
     }
     else if ((device & Tool::AnyEvent) == Tool::StopEvent && pos.size() == 1)
@@ -1148,7 +1148,7 @@ void SlideScene::createFlyTransition(const SlideTransition &transition, PixmapGr
     if (!outwards)
         addItem(oldPage);
     pageItem->setZValue(-1e4);
-    pageTransitionItem->setZValue(1e5);
+    pageTransitionItem->setZValue(1e10);
 
     QPropertyAnimation *propanim = new QPropertyAnimation(pageTransitionItem, "x");
     propanim->setDuration(1000*transition.duration);
@@ -1711,10 +1711,11 @@ void SlideScene::toolChanged(const Tool *tool) noexcept
             if (item->type() == TextGraphicsItem::Type)
             {
                 const auto text = static_cast<TextGraphicsItem*>(item);
-                if (text->font() != text_tool->font() || text->defaultTextColor() != text_tool->color())
-                    text_changes.insert({text, {text->font(), text_tool->font(), text_tool->color().rgba() ^ text->defaultTextColor().rgba()}});
+                const QColor &old_color = text->defaultTextColor(), &new_color = text_tool->color();
+                if (text->font() != text_tool->font() || old_color != new_color)
+                    text_changes.insert({text, {text->font(), text_tool->font(), old_color.rgba() ^ new_color.rgba()}});
                 text->setFont(text_tool->font());
-                text->setDefaultTextColor(text_tool->color());
+                text->setDefaultTextColor(new_color);
             }
         if (!text_changes.empty())
             emit sendHistoryStep(page | page_part, nullptr, nullptr, &text_changes);

@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2022 Valentin Bruch <software@vbruch.eu>
+// SPDX-FileCopyrightText: 2023 Valentin Bruch <software@vbruch.eu>
 // SPDX-License-Identifier: GPL-3.0-or-later OR AGPL-3.0-or-later
 
 #ifndef PATHCONTAINER_H
@@ -121,6 +121,9 @@ inline bool cmp_by_z(QGraphicsItem *left, QGraphicsItem *right) noexcept
  * insert items anywhere in the stacking order, we keep a set of all
  * items sorted by their z value in _z_order. When an item is deleted
  * from _ref_count, it must also be removed from _z_order.
+ *
+ * It is important that the z order of items managed by PathContainer
+ * remains constant!
  */
 class PathContainer : public QObject
 {
@@ -194,6 +197,11 @@ private:
         if (history.length() > target_length)
             clearHistory(target_length);
     }
+
+    /// Remove a given item from _z_order. If the item is not found in the
+    /// ordered array, the full array is sorted, assuming that z values have
+    /// changed.
+    void removeFromZOrder(QGraphicsItem *item) noexcept;
 
 public:
     /**

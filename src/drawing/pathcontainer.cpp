@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2022 Valentin Bruch <software@vbruch.eu>
+// SPDX-FileCopyrightText: 2023 Valentin Bruch <software@vbruch.eu>
 // SPDX-License-Identifier: GPL-3.0-or-later OR AGPL-3.0-or-later
 
 #include <iterator>
@@ -30,6 +30,36 @@ PathContainer::~PathContainer()
     _ref_count.clear();
 }
 
+void PathContainer::removeFromZOrder(QGraphicsItem *item) noexcept
+{
+    std::multiset<QGraphicsItem*, decltype(&cmp_by_z)>::const_iterator it = _z_order.lower_bound(item);
+    while (it != _z_order.cend())
+    {
+        if (*it == item)
+        {
+            _z_order.erase(it);
+            return;
+        }
+        else if ((*it)->zValue() > item->zValue())
+            break;
+        ++it;
+    }
+    // Make sure we don't get segfaults because of deleted items in _z_order
+    qCritical() << "Could not find item in _z_order! Searching full array.";
+    it = _z_order.cbegin();
+    const auto end = _z_order.cend();
+    while (it != end)
+    {
+        if (*it == item)
+        {
+            _z_order.erase(it);
+            return;
+        }
+        ++it;
+    }
+    qInfo() << "...did not find item in full array _z_order";
+}
+
 void PathContainer::releaseItem(QGraphicsItem *item) noexcept
 {
     if (!item)
@@ -42,7 +72,7 @@ void PathContainer::releaseItem(QGraphicsItem *item) noexcept
         {
             debug_msg(DebugDrawing, "deleting item" << item);
             _ref_count.erase(item);
-            _z_order.erase(item);
+            removeFromZOrder(item);
             delete item;
         }
     }
@@ -50,7 +80,7 @@ void PathContainer::releaseItem(QGraphicsItem *item) noexcept
     {
         debug_msg(DebugDrawing, "deleting item, ref_count =" << prop.ref_count << item);
         _ref_count.erase(item);
-        _z_order.erase(item);
+        removeFromZOrder(item);
         delete item;
     }
 }
@@ -105,7 +135,7 @@ bool PathContainer::undo(QGraphicsScene *scene)
     if (!step.z_value_changes.empty())
         for (const auto &[item, pair] : step.z_value_changes)
         {
-            _z_order.erase(item);
+            removeFromZOrder(item);
             item->setZValue(pair.old_z);
             _z_order.insert(item);
         }
@@ -141,7 +171,7 @@ bool PathContainer::undo(QGraphicsScene *scene)
             }
             auto text = static_cast<TextGraphicsItem*>(item);
             text->setFont(prop.old_font);
-            text->setDefaultTextColor(text->defaultTextColor().rgba() ^ prop.color_diff);
+            text->setDefaultTextColor(QColor::fromRgba(text->defaultTextColor().rgba() ^ prop.color_diff));
             text->update();
         }
 
@@ -211,7 +241,7 @@ bool PathContainer::redo(QGraphicsScene *scene)
             }
             auto text = static_cast<TextGraphicsItem*>(item);
             text->setFont(prop.new_font);
-            text->setDefaultTextColor(text->defaultTextColor().rgba() ^ prop.color_diff);
+            text->setDefaultTextColor(QColor::fromRgba(text->defaultTextColor().rgba() ^ prop.color_diff));
             text->update();
         }
 
@@ -238,7 +268,7 @@ bool PathContainer::redo(QGraphicsScene *scene)
     if (!step.z_value_changes.empty())
         for (const auto &[item, pair] : step.z_value_changes)
         {
-            _z_order.erase(item);
+            removeFromZOrder(item);
             item->setZValue(pair.new_z);
             _z_order.insert(item);
         }
@@ -768,6 +798,8 @@ QRectF PathContainer::boundingBox() const noexcept
 
 void PathContainer::replaceItem(QGraphicsItem *olditem, QGraphicsItem *newitem)
 {
+    if (olditem == newitem)
+        return;
     truncateHistory();
     history.append(drawHistory::Step());
     auto &step = history.last();
@@ -842,22 +874,22 @@ bool PathContainer::addChanges(
         for (const auto &[item,trans] : *transforms)
             if (item)
             {
-                step.transformedItems.insert({item, trans});
                 keepItem(item);
+                step.transformedItems.insert({item, trans});
             }
     if (tools)
         for (const auto &[item,chng] : *tools)
             if (item)
             {
-                step.drawToolChanges.insert({item, chng});
                 keepItem(item);
+                step.drawToolChanges.insert({item, chng});
             }
     if (texts)
         for (const auto &[item,text] : *texts)
             if (item)
             {
-                step.textPropertiesChanges.insert({item, text});
                 keepItem(item);
+                step.textPropertiesChanges.insert({item, text});
             }
     if (step.empty())
     {
@@ -899,7 +931,7 @@ bool PathContainer::bringToForeground(const QList<QGraphicsItem*> &to_foreground
         {
             changes.insert({item, {item->zValue(), item->zValue() + z}});
             keepItem(item);
-            _z_order.erase(item);
+            removeFromZOrder(item);
             item->setZValue(item->zValue() + z);
             _z_order.insert(item);
         }
@@ -931,7 +963,7 @@ bool PathContainer::bringToBackground(const QList<QGraphicsItem*> &to_background
         {
             changes.insert({item, {item->zValue(), z*item->zValue()}});
             keepItem(item);
-            _z_order.erase(item);
+            removeFromZOrder(item);
             item->setZValue(z*item->zValue());
             _z_order.insert(item);
         }
