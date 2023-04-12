@@ -1615,78 +1615,7 @@ void SlideScene::copyToClipboard() const
     mimedata->setData("application/beamerpresenter", data);
     data.clear();
     // Write svg data
-    QXmlStreamWriter writer(&data);
-    writer.setAutoFormatting(true);
-    writer.setAutoFormattingIndent(0);
-    writer.writeStartDocument();
-    writer.writeComment(" Created with BeamerPresenter ");
-    writer.writeStartElement("svg");
-    writer.writeAttribute("version", "1.1");
-    writer.writeAttribute("xmlns", "http://www.w3.org/2000/svg");
-    writer.writeAttribute("id", "svg1");
-    const QRectF rect = selection_bounding_rect.sceneBoundingRect();
-    writer.writeAttribute("width", QString::number(rect.width()));
-    writer.writeAttribute("height", QString::number(rect.height()));
-    writer.writeAttribute("viewBox", "0 0 " + QString::number(width()) + " " + QString::number(height()));
-    int id_counter = 1;
-    for (auto &item : selection)
-    {
-        const QTransform transform = item->transform();
-        QString matrix = QString("matrix(%1,%2,%3,%4,%5,%6)")
-                .arg(transform.m11())
-                .arg(transform.m12())
-                .arg(transform.m21())
-                .arg(transform.m22())
-                .arg(transform.dx())
-                .arg(transform.dy());
-        switch (item->type())
-        {
-        case BasicGraphicsPath::Type:
-        case FullGraphicsPath::Type:
-        {
-            // TODO: flexible width of FullGraphicsPath is ignored.
-            const AbstractGraphicsPath *path = static_cast<const AbstractGraphicsPath*>(item);
-            writer.writeStartElement("g");
-            writer.writeAttribute("x", QString::number(item->x()));
-            writer.writeAttribute("y", QString::number(item->y()));
-            writer.writeAttribute("id", "g"+QString::number(++id_counter));
-            writer.writeAttribute("transform", matrix);
-            writer.writeStartElement("path");
-            writer.writeAttribute("id", "path"+QString::number(++id_counter));
-            const DrawTool &tool = path->getTool();
-            QString style = "fill:";
-            style += tool.brush().style() == Qt::NoBrush ? "none" : tool.brush().color().name();
-            style += ";stroke:";
-            style += tool.color().name();
-            style += ";stroke-width:";
-            style += QString::number(tool.width());
-            style += ";stroke-linecap:round;stroke-linejoin:round;";
-            writer.writeAttribute("style", style);
-            writer.writeAttribute("d", path->svgCoordinates());
-            writer.writeEndElement();// "path" element
-            writer.writeEndElement(); // "g" element
-            break;
-        }
-        case TextGraphicsItem::Type:
-        {
-            const TextGraphicsItem *textItem = static_cast<const TextGraphicsItem*>(item);
-            writer.writeStartElement("text");
-            writer.writeAttribute("id", "text"+QString::number(++id_counter));
-            const QPointF origin = item->sceneBoundingRect().bottomLeft();
-            // TODO: coordinates are shifted.
-            writer.writeAttribute("x", QString::number(origin.x()));
-            writer.writeAttribute("y", QString::number(origin.y()));
-            writer.writeAttribute("transform", matrix);
-            writer.writeAttribute("style", "font-size:" + QString::number(textItem->font().pointSizeF()) + "pt");
-            // TODO: currently only plain text is supported.
-            writer.writeCharacters(textItem->toPlainText());
-            writer.writeEndElement();
-            break;
-        }
-        }
-    }
-    writer.writeEndElement(); // "svg" element
-    writer.writeEndDocument();
+    writeToSVG(data, selection, selection_bounding_rect.sceneBoundingRect());
     mimedata->setData("image/svg+xml", data);
     // Add data to clipboard
     QClipboard *clipboard = QGuiApplication::clipboard();
@@ -1705,11 +1634,7 @@ void SlideScene::pasteFromClipboard()
         items.removeAll(nullptr);
     }
     else if (mimedata->hasFormat("image/svg+xml"))
-    {
-        QXmlStreamReader reader(mimedata->data("image/svg+xml"));
-        readFromSVG(reader, items);
-        reader.clear();
-    }
+        readFromSVG(mimedata->data("image/svg+xml"), items);
     if (items.empty())
         return;
     clearSelection();
@@ -1896,8 +1821,9 @@ void SlideScene::updateSearchResults()
 }
 
 
-void readFromSVG(QXmlStreamReader &reader, QList<QGraphicsItem*> &target)
+void readFromSVG(const QByteArray &data, QList<QGraphicsItem*> &target)
 {
+    QXmlStreamReader reader(data);
     while (!reader.atEnd() && (reader.readNext() != QXmlStreamReader::StartElement || reader.name().toUtf8() != "svg")) {}
     while (reader.readNextStartElement())
     {
@@ -1958,4 +1884,75 @@ void readFromSVG(QXmlStreamReader &reader, QList<QGraphicsItem*> &target)
         if (!reader.isEndElement())
             reader.skipCurrentElement();
     }
+    reader.clear();
+}
+
+void writeToSVG(QByteArray &data, const QList<QGraphicsItem*> &source, const QRectF &rect)
+{
+    QXmlStreamWriter writer(&data);
+    writer.setAutoFormatting(true);
+    writer.setAutoFormattingIndent(0);
+    writer.writeStartDocument();
+    writer.writeComment(" Created with BeamerPresenter ");
+    writer.writeStartElement("svg");
+    writer.writeAttribute("version", "1.1");
+    writer.writeAttribute("xmlns", "http://www.w3.org/2000/svg");
+    //writer.writeAttribute("width", QString::number(rect.width()));
+    //writer.writeAttribute("height", QString::number(rect.height()));
+    writer.writeAttribute("viewBox", QString("%1 %2 %3 %4").arg(rect.x()).arg(rect.y()).arg(rect.width()).arg(rect.height()));
+    for (auto &item : source)
+    {
+        const QTransform transform = item->transform();
+        QString matrix = QString("matrix(%1,%2,%3,%4,%5,%6)")
+                .arg(transform.m11())
+                .arg(transform.m12())
+                .arg(transform.m21())
+                .arg(transform.m22())
+                .arg(transform.dx())
+                .arg(transform.dy());
+        switch (item->type())
+        {
+        case BasicGraphicsPath::Type:
+        case FullGraphicsPath::Type:
+        {
+            // TODO: flexible width of FullGraphicsPath is ignored.
+            const AbstractGraphicsPath *path = static_cast<const AbstractGraphicsPath*>(item);
+            writer.writeStartElement("g");
+            writer.writeAttribute("x", QString::number(item->x()));
+            writer.writeAttribute("y", QString::number(item->y()));
+            writer.writeAttribute("transform", matrix);
+            writer.writeStartElement("path");
+            const DrawTool &tool = path->getTool();
+            QString style = "fill:";
+            style += tool.brush().style() == Qt::NoBrush ? "none" : tool.brush().color().name();
+            style += ";stroke:";
+            style += tool.color().name();
+            style += ";stroke-width:";
+            style += QString::number(tool.width());
+            style += ";stroke-linecap:round;stroke-linejoin:round;";
+            writer.writeAttribute("style", style);
+            writer.writeAttribute("d", path->svgCoordinates());
+            writer.writeEndElement();// "path" element
+            writer.writeEndElement(); // "g" element
+            break;
+        }
+        case TextGraphicsItem::Type:
+        {
+            const TextGraphicsItem *textItem = static_cast<const TextGraphicsItem*>(item);
+            writer.writeStartElement("text");
+            const QPointF origin = item->sceneBoundingRect().bottomLeft();
+            // TODO: coordinates are shifted.
+            writer.writeAttribute("x", QString::number(origin.x()));
+            writer.writeAttribute("y", QString::number(origin.y()));
+            writer.writeAttribute("transform", matrix);
+            writer.writeAttribute("style", "font-size:" + QString::number(textItem->font().pointSizeF()) + "pt");
+            // TODO: currently only plain text is supported.
+            writer.writeCharacters(textItem->toPlainText());
+            writer.writeEndElement();
+            break;
+        }
+        }
+    }
+    writer.writeEndElement(); // "svg" element
+    writer.writeEndDocument();
 }

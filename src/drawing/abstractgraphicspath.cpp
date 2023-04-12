@@ -33,12 +33,14 @@ const QString AbstractGraphicsPath::stringCoordinates() const noexcept
 const QString AbstractGraphicsPath::svgCoordinates() const noexcept
 {
     QString str = "M";
+    QPointF scene_point;
     for (const auto &point : coordinates)
     {
+        scene_point = mapToScene(point);
         str += ' ';
-        str += QString::number(point.x());
+        str += QString::number(scene_point.x());
         str += ',';
-        str += QString::number(point.y());
+        str += QString::number(scene_point.y());
     }
     return str;
 }

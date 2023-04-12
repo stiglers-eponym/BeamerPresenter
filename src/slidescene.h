@@ -404,10 +404,18 @@ signals:
 };
 
 /**
- * highly experimental function for reading an SVG images from the clipboard
- * @param reader read SVG image from this reader
+ * highly experimental function for reading an SVG image
+ * @param data read SVG image from this QByteArray
  * @param target add all QGraphicsItems constructed from the SVG to this list
  */
-void readFromSVG(QXmlStreamReader &reader, QList<QGraphicsItem*> &target);
+void readFromSVG(const QByteArray &data, QList<QGraphicsItem*> &target);
+
+/**
+ * experimental function for writing items to an SVG image
+ * @param data write result here
+ * @param source take items from this list
+ * @param rect sets viewBox of the SVG image
+ */
+void writeToSVG(QByteArray &data, const QList<QGraphicsItem*> &source, const QRectF &rect);
 
 #endif // SLIDESCENE_H
