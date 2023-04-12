@@ -10,6 +10,7 @@
 #include <QRectF>
 #include <QKeySequence>
 #include "src/config.h"
+#include "src/preferences.h"
 #include "src/enumerates.h"
 
 class Tool;
@@ -58,6 +59,10 @@ class Master : public QObject
     /// Timer for automatic slide changes.
     int slideDurationTimer_id {-1};
 
+    /// Ask for confirmation when closing.
+    /// Return true when the program should quit.
+    bool askCloseConfirmation() const noexcept;
+
 public:
     /// Constructor: initializes times.
     Master();
@@ -69,15 +74,16 @@ public:
     /// Show all windows of the application.
     void showAll() const;
 
-    /**
-     *  Read configuration file and build up GUI. Return values are:
-     *  0 if at least one window was created and at least one document was loaded.
-     *  1 if reading the config file failed.
-     *  2 if parsing the config file failed.
-     *  3 if no windows were created for any other reason.
-     *  4 if no PDF file was loaded.
-     */
-    unsigned char readGuiConfig(const QString& filename);
+    enum Status {
+        Success = 0, ///< at least one window was created and at least one document was loaded.
+        ReadConfigFailed = 1, ///< reading the config file failed.
+        ParseConfigFailed = 2, ///< parsing the config file failed.
+        NoWindowsCreated = 3, ///< no windows were created for any other reason.
+        NoPDFLoaded = 4, ///< no PDF file was loaded.
+    };
+
+    /// Read configuration file and build up GUI.
+    Status readGuiConfig(const QString& filename);
 
     /// Create widgets recursively.
     QWidget* createWidget(QJsonObject& object, QWidget *parent = NULL);
@@ -124,7 +130,8 @@ public slots:
     void navigateToPage(const int page);
 
     /// Navigate to next slide.
-    void nextSlide() noexcept;
+    void nextSlide() noexcept
+    {navigateToPage(preferences()->page + 1);}
 
     /// Handle an action, distribute it if necessary.
     void handleAction(const Action action);

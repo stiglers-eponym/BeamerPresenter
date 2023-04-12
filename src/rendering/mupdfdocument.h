@@ -8,6 +8,7 @@
 #include <QString>
 #include <QList>
 #include <QMap>
+#include <QMutex>
 #include <QVector>
 #include <QCoreApplication>
 #include "src/config.h"
@@ -172,10 +173,18 @@ public:
 
 /// Lock mutex <lock> in vector <user> of mutexes.
 /// First argument must be of type QVector<QMutex*>*.
-void lock_mutex(void *user, int lock);
+inline void lock_mutex(void *user, int lock)
+{
+    QVector<QMutex*> *mutex = static_cast<QVector<QMutex*>*>(user);
+    (*mutex)[lock]->lock();
+}
 
 /// Lock mutex <lock> in vector <user> of mutexes.
 /// First argument must be of type QVector<QMutex*>*.
-void unlock_mutex(void *user, int lock);
+inline void unlock_mutex(void *user, int lock)
+{
+    QVector<QMutex*> *mutex = static_cast<QVector<QMutex*>*>(user);
+    (*mutex)[lock]->unlock();
+}
 
 #endif // MUPDFDOCUMENT_H

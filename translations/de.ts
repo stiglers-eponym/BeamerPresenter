@@ -179,6 +179,10 @@
         <source>unmute all media objects</source>
         <translation>entstumme alle Medienobjekte</translation>
     </message>
+    <message>
+        <source>bring selected items to the backgroud</source>
+        <translation>bringe die ausgewählten Objekte in den Hintergrund</translation>
+    </message>
 </context>
 <context>
     <name>AnalogClockWidget</name>

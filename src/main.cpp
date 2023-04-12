@@ -148,13 +148,13 @@ int main(int argc, char *argv[])
     {
         // Create the user interface.
         const QString gui_config_file = parser.value("g").isEmpty() ? preferences()->gui_config_file : parser.value("g");
-        const char status = master->readGuiConfig(gui_config_file);
-        if (status)
+        const Master::Status status = master->readGuiConfig(gui_config_file);
+        if (status != Master::Success)
         {
             // Creating GUI failed. Check status and try to load default GUI config.
             // status == 4 indicates that only loading PDF files failed. In this case
             // the GUI config should not be reloaded.
-            if (status < 4 && master->readGuiConfig(DEFAULT_GUI_CONFIG_PATH) == 0)
+            if (status != Master::NoPDFLoaded && master->readGuiConfig(DEFAULT_GUI_CONFIG_PATH) == Master::Success)
                 preferences()->showErrorMessage(
                             Master::tr("Error while loading GUI config"),
                             Master::tr("Loading GUI config file failed for filename \"")

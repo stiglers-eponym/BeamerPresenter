@@ -65,20 +65,6 @@ PixCache::~PixCache()
     clear();
 }
 
-void PixCache::setMaxMemory(const float memory)
-{
-    maxMemory = memory;
-    if (memory < usedMemory && memory >= 0)
-        limitCacheSize();
-}
-
-void PixCache::setMaxNumber(const int number)
-{
-    maxNumber = number;
-    if (number < usedMemory && number >= 0)
-        limitCacheSize();
-}
-
 void PixCache::clear()
 {
     for (auto it = cache.begin(); it != cache.end(); it=cache.erase(it))
@@ -191,7 +177,7 @@ void PixCache::pageNumberChanged(const int page)
     startTimer(0);
 }
 
-int PixCache::limitCacheSize()
+int PixCache::limitCacheSize() noexcept
 {
     // Check restrictions on memory usage and number of slides.
     if (maxMemory < 0 && maxNumber < 0)

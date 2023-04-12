@@ -100,20 +100,6 @@ std::string decode_pdf_label(int number, const MuPdfDocument::label_item &item)
 }
 
 
-void lock_mutex(void *user, int lock)
-{
-    QVector<QMutex*> *mutex = static_cast<QVector<QMutex*>*>(user);
-    (*mutex)[lock]->lock();
-}
-
-
-void unlock_mutex(void *user, int lock)
-{
-    QVector<QMutex*> *mutex = static_cast<QVector<QMutex*>*>(user);
-    (*mutex)[lock]->unlock();
-}
-
-
 MuPdfDocument::MuPdfDocument(const QString &filename) :
     PdfDocument(filename),
     mutex(new QMutex()),

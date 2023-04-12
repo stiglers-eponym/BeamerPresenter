@@ -72,14 +72,14 @@ Master::~Master()
         delete documents.takeLast();
 }
 
-unsigned char Master::readGuiConfig(const QString &filename)
+Master::Status Master::readGuiConfig(const QString &filename)
 {
     // Read file into JSON document
     QFile file(filename);
     if (!file.exists() || !file.open(QIODevice::ReadOnly | QIODevice::Text))
     {
         qCritical() << "Could not read GUI config:" << filename;
-        return 1;
+        return ReadConfigFailed;
     }
     QJsonParseError error;
     QJsonDocument doc = QJsonDocument::fromJson(file.readAll(), &error);
@@ -87,7 +87,7 @@ unsigned char Master::readGuiConfig(const QString &filename)
     {
         qCritical() << "GUI config file is empty or parsing failed:" << error.errorString();
         qInfo() << "Note that the GUI config file must represent a single JSON array.";
-        return 2;
+        return ParseConfigFailed;
     }
     const QJsonArray array = doc.array();
 #if (QT_VERSION >= QT_VERSION_CHECK(5,14,0))
@@ -119,15 +119,15 @@ unsigned char Master::readGuiConfig(const QString &filename)
     }
 
     if (documents.isEmpty())
-        return 4;
+        return NoPDFLoaded;
 
     writable_preferences()->document = documents.first()->getDocument();
     documents.first()->getScenes().first()->views().first()->setFocus();
 
     // Return true (success) if at least one window and one document were created.
     if (windows.isEmpty())
-        return 3;
-    return 0;
+        return NoWindowsCreated;
+    return Success;
 }
 
 QWidget* Master::createWidget(QJsonObject &object, QWidget *parent)
@@ -325,7 +325,7 @@ QWidget* Master::createWidget(QJsonObject &object, QWidget *parent)
             connect(doc, &PdfMaster::writeNotes, this, &Master::writeNotes, Qt::DirectConnection);
             connect(doc, &PdfMaster::readNotes, this, &Master::readNotes, Qt::DirectConnection);
             connect(doc, &PdfMaster::setTotalTime, this, &Master::setTotalTime);
-            connect(doc, &PdfMaster::navigationSignal, this, &Master::navigateToPage);
+            connect(doc, &PdfMaster::navigationSignal, this, &Master::navigateToPage, Qt::DirectConnection);
             // Initialize doc with file.
             doc->initialize(file);
             if (doc->getDocument() == NULL)
@@ -423,10 +423,10 @@ QWidget* Master::createWidget(QJsonObject &object, QWidget *parent)
         else
         {
             // Check if a PixCache object with the given hash already exists.
-            pixcache = caches.value(cache_hash, NULL);
+            pixcache = caches.value(cache_hash, nullptr);
         }
         // If necessary, create a new PixCache object an store it in caches.
-        if (pixcache == NULL)
+        if (pixcache == nullptr)
         {
             // Read number of threads from GUI config.
             const int threads = object.value("threads").toInt(1);
@@ -470,7 +470,7 @@ QWidget* Master::createWidget(QJsonObject &object, QWidget *parent)
         // Mute slides by default, except if they are marked as master.
         if (!object.value("mute").toBool(!object.value("master").toBool(false)))
             scene->flags() &= ~SlideScene::MuteSlide;
-        connect(slide, &SlideView::sendAction, this, &Master::handleAction);
+        connect(slide, &SlideView::sendAction, this, &Master::handleAction, Qt::QueuedConnection);
         connect(scene, &SlideScene::navigationToViews, slide, &SlideView::pageChanged, Qt::DirectConnection);
         widget = slide;
         break;
@@ -484,7 +484,7 @@ QWidget* Master::createWidget(QJsonObject &object, QWidget *parent)
         connect(twidget, &ThumbnailWidget::sendNavigationSignal, this, &Master::navigateToPage);
         if (object.value("overlays").toString() == "skip")
             twidget->flags() |= ThumbnailWidget::SkipOverlays;
-        connect(this, &Master::sendAction, twidget, &ThumbnailWidget::handleAction);
+        connect(this, &Master::sendAction, twidget, &ThumbnailWidget::handleAction, Qt::QueuedConnection);
         break;
     }
     case TOCType:
@@ -577,7 +577,7 @@ QWidget* Master::createWidget(QJsonObject &object, QWidget *parent)
         // This signal could also be connected directly to Master::sendAction,
         // but maybe the clock should be able to send different actions. Since
         // the clock rarely sends actions, this little overhead is unproblematic.
-        connect(static_cast<ClockWidget*>(widget), &ClockWidget::sendAction, this, &Master::handleAction);
+        connect(static_cast<ClockWidget*>(widget), &ClockWidget::sendAction, this, &Master::handleAction, Qt::QueuedConnection);
         break;
     }
     case AnalogClockType:
@@ -587,7 +587,7 @@ QWidget* Master::createWidget(QJsonObject &object, QWidget *parent)
         // but maybe the clock should be able to send different actions. Since
         // the clock rarely sends actions, this little overhead is unproblematic.
         clock_widget->readConfig(object);
-        connect(clock_widget, &AnalogClockWidget::sendAction, this, &Master::handleAction);
+        connect(clock_widget, &AnalogClockWidget::sendAction, this, &Master::handleAction, Qt::QueuedConnection);
         widget = clock_widget;
         break;
     }
@@ -596,7 +596,7 @@ QWidget* Master::createWidget(QJsonObject &object, QWidget *parent)
         TimerWidget *twidget = new TimerWidget(parent);
         connect(twidget, &TimerWidget::updateStatus, this, &Master::sendActionStatus);
         widget = twidget;
-        connect(this, &Master::sendAction, twidget, &TimerWidget::handleAction);
+        connect(this, &Master::sendAction, twidget, &TimerWidget::handleAction, Qt::QueuedConnection);
         connect(twidget, &TimerWidget::setTimeForPage, this, &Master::setTimeForPage);
         connect(twidget, &TimerWidget::getTimeForPage, this, &Master::getTimeForPage);
         connect(this, &Master::setTotalTime, twidget, &TimerWidget::setTotalTime);
@@ -722,17 +722,10 @@ bool Master::eventFilter(QObject *obj, QEvent *event)
     }
     // Search tools in preferences for given key sequence.
     for (const auto tool : static_cast<const QList<Tool*>>(preferences()->key_tools.values(key_code)))
-    {
         if (tool && tool->device())
             setTool(tool->copy());
-    }
     event->accept();
     return true;
-}
-
-void Master::nextSlide() noexcept
-{
-    navigateToPage(preferences()->page + 1);
 }
 
 void Master::handleAction(const Action action)
@@ -846,38 +839,8 @@ void Master::handleAction(const Action action)
         distributeMemory();
         break;
     case Quit:
-        if (!documents.isEmpty())
-        {
-            PdfMaster *doc = documents.first();
-            if (doc && (
-                    (doc->flags() & (PdfMaster::UnsavedNotes | PdfMaster::UnsavedTimes))
-                    || ((doc->flags() & PdfMaster::UnsavedDrawings) && doc->hasDrawings())
-                        ))
-            {
-                debug_msg(DebugWidgets, "Asking for close confirmation:" << doc->flags());
-                switch (QMessageBox::question(
-                            NULL,
-                            tr("Unsaved changes"),
-                            tr("The document may contain unsaved changes. Quit anyway?"),
-                            QMessageBox::Close | QMessageBox::Save | QMessageBox::Cancel,
-                            QMessageBox::Save
-                        ))
-                {
-                case QMessageBox::Cancel:
-                    return;
-                case QMessageBox::Save:
-                {
-                    QString filename = doc->drawingsPath();
-                    if (filename.isEmpty())
-                        filename = getSaveFileName();
-                    doc->saveXopp(filename);
-                    break;
-                }
-                default:
-                    break;
-                }
-            }
-        }
+        if (!askCloseConfirmation())
+            break;
         [[clang::fallthrough]];
     case QuitNoConfirmation:
         for (const auto window : qAsConst(windows))
@@ -896,6 +859,42 @@ void Master::handleAction(const Action action)
     default:
         emit sendAction(action);
     }
+}
+
+bool Master::askCloseConfirmation() const noexcept
+{
+    if (documents.isEmpty())
+        return true;
+    PdfMaster *doc = documents.first();
+    if (doc && (
+            (doc->flags() & (PdfMaster::UnsavedNotes | PdfMaster::UnsavedTimes))
+            || ((doc->flags() & PdfMaster::UnsavedDrawings) && doc->hasDrawings())
+                ))
+    {
+        debug_msg(DebugWidgets, "Asking for close confirmation:" << doc->flags());
+        switch (QMessageBox::question(
+                    NULL,
+                    tr("Unsaved changes"),
+                    tr("The document may contain unsaved changes. Quit anyway?"),
+                    QMessageBox::Close | QMessageBox::Save | QMessageBox::Cancel,
+                    QMessageBox::Save
+                ))
+        {
+        case QMessageBox::Cancel:
+            return false;
+        case QMessageBox::Save:
+        {
+            QString filename = doc->drawingsPath();
+            if (filename.isEmpty())
+                filename = getSaveFileName();
+            doc->saveXopp(filename);
+            break;
+        }
+        default:
+            break;
+        }
+    }
+    return true;
 }
 
 void Master::leavePage(const int page) const

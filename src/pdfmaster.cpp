@@ -305,7 +305,7 @@ void PdfMaster::saveXopp(const QString &filename)
         const QPixmap pixmap = exportImage(0, resolution);
         QByteArray data;
         QBuffer buffer(&data);
-        pixmap.save(&buffer, "png");
+        pixmap.save(&buffer, "PNG");
         buffer.close();
         writer.writeCharacters(data.toBase64());
         writer.writeEndElement();

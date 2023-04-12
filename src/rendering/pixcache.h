@@ -72,7 +72,7 @@ private:
     /// Check cache size and delete pages if necessary.
     /// Return estimated number of pages which still fit in cache.
     /// Return INT_MAX >> 1 if cache is unlimited or empty.
-    int limitCacheSize();
+    int limitCacheSize() noexcept;
 
     /// Choose a page which should be rendered next.
     /// The page is then marked as "being rendered".
@@ -96,21 +96,31 @@ public:
 
     /// Set maximum allowed bytes of memory used by this->cache.
     /// Clean up memory if necessary.
-    void setMaxMemory(const float memory);
+    void setMaxMemory(const float memory) noexcept
+    {
+        maxMemory = memory;
+        if (memory < usedMemory && memory >= 0)
+            limitCacheSize();
+    }
 
     /// Set maximum allowed number of cache slides.
     /// Clean up memory if necessary.
-    void setMaxNumber(const int number);
+    void setMaxNumber(const int number) noexcept
+    {
+        maxNumber = number;
+        if (number < usedMemory && number >= 0)
+            limitCacheSize();
+    }
 
     /// Get pixmap showing page and write it to cache.
     const QPixmap pixmap(const int page, qreal resolution = -1.);
 
     /// Total size of all cached pages in bytes
-    qint64 getUsedMemory() const
+    qint64 getUsedMemory() const noexcept
     {return usedMemory;}
 
     /// Number of pixels per page (maximum)
-    float getPixels() const
+    float getPixels() const noexcept
     {return frame.width() * frame.height();}
 
     /// Set memory based on scale factor (bytes per pixel).
