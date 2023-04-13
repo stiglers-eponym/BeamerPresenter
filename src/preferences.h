@@ -335,14 +335,24 @@ signals:
     void distributeMemory() const;
 };
 
+/// Globally shared pointer to global preferences.
+/// Should only be accessed using the functions
+/// preferences() or writable_preferences().
+inline Preferences *__global_preferences = nullptr;
 
 /// Get writable globally shared preferences object.
 /// Init globally accessible preferences on first call.
-Preferences *writable_preferences(Preferences *new_preferences = NULL);
+inline Preferences *writable_preferences() noexcept
+{
+    return __global_preferences;
+}
 
 /// Get read-only globally shared preferences object.
 /// This is the usual way of accessing preferences.
-const Preferences *preferences();
+inline const Preferences *preferences()
+{
+    return __global_preferences;
+}
 
 
 /// Create tool from JSON formatted input.

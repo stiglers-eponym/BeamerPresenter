@@ -17,33 +17,26 @@
 #endif
 
 #ifdef USE_POPPLER
+#if (QT_VERSION_MAJOR == 6)
+#if __has_include(<poppler/qt6/poppler-version.h>)
+#include <poppler/qt6/poppler-version.h>
+#else
+#define POPPLER_VERSION "OLD"
+#endif
+#elif (QT_VERSION_MAJOR == 5)
 #if __has_include(<poppler/qt5/poppler-version.h>)
 #include <poppler/qt5/poppler-version.h>
 #else
 #define POPPLER_VERSION "OLD"
 #endif
-#endif
+#endif // QT_VERSION_MAJOR
+#endif // USE_POPPLER
 #ifdef USE_MUPDF
 extern "C"
 {
 #include <mupdf/fitz/version.h>
 }
 #endif
-
-/// Provides globally available pointer to writable preferences.
-/// @return globally shared preferences, writable
-inline Preferences *writable_preferences(Preferences *new_preferences)
-{
-    static Preferences *preferences{new_preferences};
-    return preferences;
-}
-
-/// Provides globally available pointer to preferences.
-/// @return globally shared preferences, read only
-inline const Preferences *preferences()
-{
-    return writable_preferences();
-}
 
 int main(int argc, char *argv[])
 {
@@ -127,23 +120,19 @@ int main(int argc, char *argv[])
 #endif
     parser.process(app);
 
-    {
-        // Initialize preferences.
-        Preferences *wpreferences;
-        if (parser.isSet("c"))
-            // parser.value("c") should be the name of a configuration file.
-            // If that does not exist or cannot be read, the program can start
-            // anyway, if a valid gui config file is defined in parser.value("g").
-            wpreferences = new Preferences(parser.value("c"));
-        else
-            wpreferences = new Preferences();
-        writable_preferences(wpreferences);
+    // Initialize global preferences object.
+    if (parser.isSet("c"))
+        // parser.value("c") should be the name of a configuration file.
+        // If that does not exist or cannot be read, the program can start
+        // anyway, if a valid gui config file is defined in parser.value("g").
+        __global_preferences = new Preferences(parser.value("c"));
+    else
+        __global_preferences = new Preferences();
 #ifdef QT_DEBUG
-        wpreferences->loadDebugFromParser(parser);
+    writable_preferences()->loadDebugFromParser(parser);
 #endif
-        wpreferences->loadSettings();
-        wpreferences->loadFromParser(parser);
-    }
+    writable_preferences()->loadSettings();
+    writable_preferences()->loadFromParser(parser);
 
     Master *master = new Master();
     {
@@ -182,7 +171,7 @@ int main(int argc, char *argv[])
     // Run the program.
     const int status = app.exec();
     // Clean up. preferences() must be deleted after everything else.
-    // deleting master may take some time since this requires the interruption
+    // Deleting master may take some time since this requires the interruption
     // and deletion of multiple threads.
     delete master;
     delete preferences();
