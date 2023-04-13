@@ -48,7 +48,7 @@ BasicGraphicsPath::BasicGraphicsPath(const AbstractGraphicsPath * const other, i
     if (length <= 0)
     {
         // This should never happen.
-        warn_msg("Tried to construct a path with non-positive length");
+        qWarning() << "Tried to construct a path with non-positive length";
         return;
     }
 

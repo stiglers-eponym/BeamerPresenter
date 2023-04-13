@@ -45,7 +45,7 @@ void PathContainer::removeFromZOrder(QGraphicsItem *item) noexcept
         ++it;
     }
     // Make sure we don't get segfaults because of deleted items in _z_order
-    qCritical() << "Could not find item in _z_order! Searching full array.";
+    qCritical() << tr("Could not find item in _z_order! Searching full array.");
     it = _z_order.cbegin();
     const auto end = _z_order.cend();
     while (it != end)
@@ -147,7 +147,7 @@ bool PathContainer::undo(QGraphicsScene *scene)
             if (item->type() != FullGraphicsPath::Type && item->type() != BasicGraphicsPath::Type)
             {
                 // this should never happen
-                warn_msg("History of draw tool changes includes item of invalid type" << item->type());
+                qWarning() << "History of draw tool changes includes item of invalid type" << item->type();
                 continue;
             }
             auto path = static_cast<AbstractGraphicsPath*>(item);
@@ -166,7 +166,7 @@ bool PathContainer::undo(QGraphicsScene *scene)
             if (item->type() != TextGraphicsItem::Type)
             {
                 // this should never happen
-                warn_msg("History of text propery changes includes item of invalid type" << item->type());
+                qWarning() << "History of text propery changes includes item of invalid type" << item->type();
                 continue;
             }
             auto text = static_cast<TextGraphicsItem*>(item);
@@ -236,7 +236,7 @@ bool PathContainer::redo(QGraphicsScene *scene)
             if (item->type() != TextGraphicsItem::Type)
             {
                 // this should never happen
-                warn_msg("History of text propery changes includes item of invalid type" << item->type());
+                qWarning() << "History of text propery changes includes item of invalid type" << item->type();
                 continue;
             }
             auto text = static_cast<TextGraphicsItem*>(item);
@@ -252,7 +252,7 @@ bool PathContainer::redo(QGraphicsScene *scene)
             if (item->type() != FullGraphicsPath::Type && item->type() != BasicGraphicsPath::Type)
             {
                 // this should never happen
-                warn_msg("History of draw tool changes includes item of invalid type" << item->type());
+                qWarning() << "History of draw tool changes includes item of invalid type" << item->type();
                 continue;
             }
             auto path = static_cast<AbstractGraphicsPath*>(item);
@@ -372,7 +372,7 @@ void PathContainer::eraserMicroStep(const QPointF &scene_pos, const qreal size)
 {
     if (inHistory != -1 || history.empty())
     {
-        qCritical() << "Tried microstep, but inHistory == " << inHistory;
+        qCritical() << tr("Tried micro step, but inHistory ==") << inHistory;
         return;
     }
 
@@ -475,7 +475,7 @@ bool PathContainer::applyMicroStep()
 {
     if (inHistory != -1 || history.empty())
     {
-        qCritical() << "Should apply micro step, but inHistory ==" << inHistory;
+        qCritical() << tr("Should apply micro step, but inHistory ==") << inHistory;
         inHistory = 0;
         return true;
     }

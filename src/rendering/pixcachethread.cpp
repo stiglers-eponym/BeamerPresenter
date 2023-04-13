@@ -72,7 +72,7 @@ bool PixCacheThread::initializeRenderer(const PdfDocument * const doc, const Pag
         return true;
 
     // Creating renderer failed. Clean up and return false.
-    qCritical() << "Creating renderer failed" << preferences()->renderer;
+    qCritical() << tr("Creating renderer failed") << preferences()->renderer;
     delete renderer;
     renderer = NULL;
     return false;

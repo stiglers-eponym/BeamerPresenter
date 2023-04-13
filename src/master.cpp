@@ -78,14 +78,14 @@ Master::Status Master::readGuiConfig(const QString &filename)
     QFile file(filename);
     if (!file.exists() || !file.open(QIODevice::ReadOnly | QIODevice::Text))
     {
-        qCritical() << "Could not read GUI config:" << filename;
+        qCritical() << tr("Could not read GUI config:") << filename;
         return ReadConfigFailed;
     }
     QJsonParseError error;
     QJsonDocument doc = QJsonDocument::fromJson(file.readAll(), &error);
     if (error.error != QJsonParseError::NoError || doc.isNull() || doc.isEmpty() || !doc.isArray())
     {
-        qCritical() << "GUI config file is empty or parsing failed:" << error.errorString();
+        qCritical() << tr("GUI config file is empty or parsing failed:") << error.errorString();
         qInfo() << "Note that the GUI config file must represent a single JSON array.";
         return ParseConfigFailed;
     }
@@ -98,7 +98,7 @@ Master::Status Master::readGuiConfig(const QString &filename)
     {
         if (it->type() != QJsonValue::Object)
         {
-            qCritical() << "Ignoring invariant entry in GUI config.";
+            qCritical() << tr("Ignoring invariant entry in GUI config.");
             continue;
         }
         QJsonObject obj = it->toObject();
@@ -140,7 +140,7 @@ QWidget* Master::createWidget(QJsonObject &object, QWidget *parent)
             object.insert("type", "slide");
         else
         {
-            qCritical() << "Ignoring entry in GUI config without type." << object;
+            qCritical() << tr("Ignoring entry in GUI config without type.") << object;
             return NULL;
         }
     }
@@ -164,7 +164,7 @@ QWidget* Master::createWidget(QJsonObject &object, QWidget *parent)
         {
             if (it->type() != QJsonValue::Type::Object)
             {
-                qCritical() << "Ignoring invalid entry in GUI config.";
+                qCritical() << tr("Ignoring invalid entry in GUI config.");
                 continue;
             }
             QJsonObject obj = it->toObject();
@@ -188,7 +188,7 @@ QWidget* Master::createWidget(QJsonObject &object, QWidget *parent)
         {
             if (it->type() != QJsonValue::Type::Object)
             {
-                qCritical() << "Ignoring invalid entry in GUI config.";
+                qCritical() << tr("Ignoring invalid entry in GUI config.");
                 continue;
             }
             QJsonObject obj = it->toObject();
@@ -226,7 +226,7 @@ QWidget* Master::createWidget(QJsonObject &object, QWidget *parent)
         {
             if (it->type() != QJsonValue::Type::Object)
             {
-                qCritical() << "Ignoring invalid entry in GUI config.";
+                qCritical() << tr("Ignoring invalid entry in GUI config.");
                 continue;
             }
             QJsonObject obj = it->toObject();
@@ -270,7 +270,7 @@ QWidget* Master::createWidget(QJsonObject &object, QWidget *parent)
                                  ));
             if (!fileinfo.exists())
             {
-                qCritical() << "No valid file given";
+                qCritical() << tr("No valid file given");
                 writable_preferences()->file_alias.insert(file, "//INVALID");
                 writable_preferences()->file_alias.insert(object.value("file").toString(), "//INVALID");
                 break;
@@ -331,7 +331,7 @@ QWidget* Master::createWidget(QJsonObject &object, QWidget *parent)
             if (doc->getDocument() == NULL)
             {
                 delete doc;
-                qCritical() << "Failed to load PDF document. This will result in errors!";
+                qCritical() << tr("Failed to load PDF document. This will result in errors!");
                 writable_preferences()->file_alias.insert(file, "//INVALID");
                 writable_preferences()->file_alias.insert(object.value("file").toString(), "//INVALID");
                 return NULL;
@@ -665,7 +665,7 @@ QWidget* Master::createWidget(QJsonObject &object, QWidget *parent)
         widget->setPalette(palette);
     }
     else
-        qCritical() << "An error occured while trying to create a widget of type" << object.value("type");
+        qCritical() << tr("An error occured while trying to create a widget of type") << object.value("type");
     return widget;
 }
 
@@ -873,9 +873,9 @@ bool Master::askCloseConfirmation() const noexcept
     {
         debug_msg(DebugWidgets, "Asking for close confirmation:" << doc->flags());
         switch (QMessageBox::question(
-                    NULL,
-                    tr("Unsaved changes"),
-                    tr("The document may contain unsaved changes. Quit anyway?"),
+                    nullptr,
+                    Master::tr("Unsaved changes"),
+                    Master::tr("The document may contain unsaved changes. Quit anyway?"),
                     QMessageBox::Close | QMessageBox::Save | QMessageBox::Cancel,
                     QMessageBox::Save
                 ))

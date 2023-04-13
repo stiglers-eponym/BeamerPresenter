@@ -60,7 +60,7 @@ void NotesWidget::readNotes(QXmlStreamReader &reader)
     debug_msg(DebugWidgets, "start reading notes for notes widget");
     if (reader.name().toUtf8() != "speakernotes")
     {
-        warn_msg("Tried to read notes, but current element in xml tree is not speakernotes");
+        qWarning() << "Tried to read notes, but current element in xml tree is not speakernotes";
         return;
     }
     const QString identifier = reader.attributes().value("identifier").toString();
@@ -101,7 +101,7 @@ void NotesWidget::save(QString filename)
                 );
         if (filename.isNull())
         {
-            warn_msg("Saving notes cancelled: empty filename");
+            qWarning() << "Saving notes cancelled: empty filename";
             return;
         }
         if (filename.endsWith(".bpr", Qt::CaseInsensitive) || filename.endsWith(".xopp", Qt::CaseInsensitive))
@@ -123,7 +123,7 @@ void NotesWidget::load()
             );
     if (filename.isNull())
     {
-        warn_msg("Loading notes cancelled: empty filename");
+        qWarning() << "Loading notes cancelled: empty filename";
         return;
     }
     QMimeDatabase db;

@@ -43,7 +43,7 @@ void PdfMaster::initialize(const QString &filename)
         loadXopp(filename);
     else
     {
-        qCritical() << "File type of document not understood! Trying to load it anyway.";
+        qCritical() << tr("File type of document not understood! Trying to load it anyway.");
         loadDocument(filename);
         if (!document)
             loadXopp(filename);

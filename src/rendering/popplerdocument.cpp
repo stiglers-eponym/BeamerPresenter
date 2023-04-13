@@ -105,7 +105,7 @@ bool PopplerDocument::loadDocument()
     std::unique_ptr<Poppler::Document> newdoc(Poppler::Document::load(path));
     if (newdoc == NULL)
     {
-        qCritical() << "Failed to load document.";
+        qCritical() << tr("Failed to load document.");
         return false;
     }
 
@@ -532,7 +532,7 @@ QList<MediaAnnotation> PopplerDocument::annotations(const int page) const
             break;
         }
         case Poppler::Annotation::ARichMedia:
-            warn_msg("Unsupported media type: rich media");
+            qWarning() << "Unsupported media type: rich media";
             break;
         default:
             break;

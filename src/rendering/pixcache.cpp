@@ -40,7 +40,7 @@ void PixCache::init()
 
     // Check if the renderer is valid
     if (!renderer->isValid())
-        qCritical() << "Creating renderer failed" << preferences()->renderer;
+        qCritical() << tr("Creating renderer failed, default is") << preferences()->renderer;
 
     // Create threads.
     for (auto &thread : threads)
@@ -91,7 +91,7 @@ const QPixmap PixCache::pixmap(const int page, qreal resolution)
     // Check if the renderer is valid
     if (renderer == NULL || !renderer->isValid())
     {
-        qCritical() << "Invalid renderer";
+        qCritical() << tr("Invalid renderer");
         return QPixmap();
     }
 
@@ -100,7 +100,7 @@ const QPixmap PixCache::pixmap(const int page, qreal resolution)
 
     if (pix.isNull())
     {
-        qCritical() << "Rendering page failed" << page << resolution;
+        qCritical() << tr("Rendering page failed for (page, resolution) =") << page << resolution;
         return pix;
     }
 
@@ -439,7 +439,7 @@ void PixCache::requestPage(const int page, const qreal resolution, const bool ca
     // Check if the renderer is valid
     if (renderer == NULL || !renderer->isValid())
     {
-        qCritical() << "Invalid renderer";
+        qCritical() << tr("Invalid renderer");
         return;
     }
 
@@ -448,7 +448,7 @@ void PixCache::requestPage(const int page, const qreal resolution, const bool ca
 
     if (pix.isNull())
     {
-        qCritical() << "Rendering page failed" << page << resolution;
+        qCritical() << tr("Rendering page failed for (page, resolution) =") << page << resolution;
         return;
     }
 

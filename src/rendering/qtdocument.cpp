@@ -64,21 +64,21 @@ bool QtDocument::loadDocument()
 #else
     case QPdfDocument::DocumentError::FileNotFoundError:
 #endif
-        qCritical() << "Could not load document: file not found" << path;
+        qCritical() << tr("Could not load document: file not found") << path;
         break;
 #if (QT_VERSION >= QT_VERSION_CHECK(6,4,0))
     case QPdfDocument::Error::DataNotYetAvailable:
 #else
     case QPdfDocument::DocumentError::DataNotYetAvailableError:
 #endif
-        qCritical() << "Could not load document: data not yet available" << path;
+        qCritical() << tr("Could not load document: data not yet available") << path;
         break;
 #if (QT_VERSION >= QT_VERSION_CHECK(6,4,0))
     case QPdfDocument::Error::InvalidFileFormat:
 #else
     case QPdfDocument::DocumentError::InvalidFileFormatError:
 #endif
-        qCritical() << "Could not load document: invalid file format" << path;
+        qCritical() << tr("Could not load document: invalid file format") << path;
         break;
 #if (QT_VERSION >= QT_VERSION_CHECK(6,4,0))
     case QPdfDocument::Error::IncorrectPassword:
@@ -126,14 +126,14 @@ bool QtDocument::loadDocument()
 #else
     case QPdfDocument::DocumentError::UnsupportedSecuritySchemeError:
 #endif
-        qCritical() << "Could not load document: unsupported security scheme" << path;
+        qCritical() << tr("Could not load document: unsupported security scheme") << path;
         break;
 #if (QT_VERSION >= QT_VERSION_CHECK(6,4,0))
     case QPdfDocument::Error::Unknown:
 #else
     case QPdfDocument::DocumentError::UnknownError:
 #endif
-        qCritical() << "Could not load document: unknown error" << path;
+        qCritical() << tr("Could not load document: unknown error") << path;
         break;
 #if (QT_VERSION >= QT_VERSION_CHECK(6,4,0))
     case QPdfDocument::Error::None:

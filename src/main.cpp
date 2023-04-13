@@ -32,7 +32,7 @@ extern "C"
 
 /// Provides globally available pointer to writable preferences.
 /// @return globally shared preferences, writable
-Preferences *writable_preferences(Preferences *new_preferences)
+inline Preferences *writable_preferences(Preferences *new_preferences)
 {
     static Preferences *preferences{new_preferences};
     return preferences;
@@ -40,7 +40,7 @@ Preferences *writable_preferences(Preferences *new_preferences)
 
 /// Provides globally available pointer to preferences.
 /// @return globally shared preferences, read only
-const Preferences *preferences()
+inline const Preferences *preferences()
 {
     return writable_preferences();
 }
@@ -86,19 +86,19 @@ int main(int argc, char *argv[])
 
     // Set up command line argument parser.
     QCommandLineParser parser;
-    parser.setApplicationDescription("\nModular multi screen PDF presenter");
+    parser.setApplicationDescription(QCoreApplication::translate("main", "Modular multi screen PDF presenter"));
 
     // Define command line options.
     parser.addHelpOption();
     parser.addVersionOption();
 
-    parser.addPositionalArgument("<slides.pdf>", "Slides for a presentation");
-    parser.addOption({{"c", "config"}, "settings / configuration file", "file"});
-    parser.addOption({{"g", "gui-config"}, "user interface configuration file", "file"});
-    parser.addOption({{"t", "time"}, "timer total time in minutes", "number"});
-    parser.addOption({"log", "log slide changes to standard output"});
-    parser.addOption({"nocache", "disable cache"});
-    parser.addOption({"renderer", "available PDF renderers:"
+    parser.addPositionalArgument("<slides.pdf>", QCoreApplication::translate("main", "Slides for a presentation"));
+    parser.addOption({{"c", "config"}, QCoreApplication::translate("main", "settings / configuration file"), QCoreApplication::translate("main", "file")});
+    parser.addOption({{"g", "gui-config"}, QCoreApplication::translate("main", "user interface configuration file"), QCoreApplication::translate("main", "file")});
+    parser.addOption({{"t", "time"}, QCoreApplication::translate("main", "timer total time in minutes"), QCoreApplication::translate("main", "number")});
+    parser.addOption({"log", QCoreApplication::translate("main", "log slide changes to standard output")});
+    parser.addOption({"nocache", QCoreApplication::translate("main", "disable cache")});
+    parser.addOption({"renderer", QCoreApplication::translate("main", "available PDF renderers:") +
 #ifdef USE_MUPDF
                       " MuPDF"
 #endif
@@ -120,8 +120,9 @@ int main(int argc, char *argv[])
 #endif
 #endif // USE_EXTERNAL_RENDERER
                       ,
-                      "name"});
+                      QCoreApplication::translate("main", "name")});
 #ifdef QT_DEBUG
+    // debugging options and messages are not translated.
     parser.addOption({"debug", "debug flags, comma-separated", "flags"});
 #endif
     parser.process(app);
@@ -163,7 +164,7 @@ int main(int argc, char *argv[])
                             + DEFAULT_GUI_CONFIG_PATH);
             else
             {
-                qCritical() << "Parsing the GUI configuration failed. Probably the GUI config is unavailable or invalid, or no valid PDF files were found.";
+                qCritical() << QCoreApplication::translate("main", "Parsing the GUI configuration failed. Probably the GUI config is unavailable or invalid, or no valid PDF files were found.");
                 delete master;
                 delete preferences();
                 // Show help and exit.

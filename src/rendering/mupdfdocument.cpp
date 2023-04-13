@@ -171,7 +171,7 @@ bool MuPdfDocument::loadDocument()
 
         if (ctx == NULL)
         {
-            qCritical() << "Failed to create Fitz context";
+            qCritical() << tr("Failed to create Fitz context");
             doc = NULL;
             mutex->unlock();
             return false;
@@ -182,7 +182,7 @@ bool MuPdfDocument::loadDocument()
             fz_register_document_handlers(ctx);
         fz_catch(ctx)
         {
-            qCritical() << "MuPdf failed to register document handlers:" << fz_caught_message(ctx);
+            qCritical() << tr("MuPdf failed to register document handlers:") << fz_caught_message(ctx);
             doc = NULL;
             fz_drop_context(ctx);
             ctx =  NULL;
@@ -570,7 +570,7 @@ const SlideTransition MuPdfDocument::transition(const int page) const
                 trans.scale = pdf_to_real(ctx, ss_obj);
         }
         fz_catch(ctx)
-             warn_msg("failed to completely load slide transition" << fz_caught_message(ctx));
+             qWarning() << "failed to completely load slide transition" << fz_caught_message(ctx);
     }
 
     mutex->unlock();
@@ -629,9 +629,7 @@ const PdfLink *MuPdfDocument::linkAt(const int page, const QPointF &position) co
         mutex->unlock();
     }
     fz_catch(ctx)
-    {
-        warn_msg("Error while loading link" << fz_caught_message(ctx));
-    }
+        qWarning() << "Error while loading link" << fz_caught_message(ctx);
     return result;
 }
 
@@ -702,14 +700,14 @@ QList<MediaAnnotation> MuPdfDocument::annotations(const int page) const
 #endif
                 if (!media_obj)
                 {
-                    warn_msg("Error while reading sound annotation");
+                    qWarning() << "Error while reading sound annotation";
                     break;
                 }
                 const QUrl url = preferences()->resolvePath(pdf_dict_get_text_string(ctx, media_obj, PDF_NAME(F)));
                 //pdf_drop_obj(ctx, media_obj);
                 if (!url.isValid())
                 {
-                    warn_msg("Failed to load sound object: file not found or unsupported embedded sound");
+                    qWarning() << "Failed to load sound object: file not found or unsupported embedded sound";
                     continue;
                 }
                 const fz_rect bound = pdf_bound_annot(ctx, annot);
@@ -723,7 +721,7 @@ QList<MediaAnnotation> MuPdfDocument::annotations(const int page) const
 #if (FZ_VERSION_MAJOR >= 1) && (FZ_VERSION_MINOR >= 18)
             case PDF_ANNOT_RICH_MEDIA:
                 // TODO: check what that does
-                warn_msg("Unsupported media type: rich media");
+                qWarning() << "Unsupported media type: rich media";
                 break;
 #endif
             default:
@@ -734,7 +732,7 @@ QList<MediaAnnotation> MuPdfDocument::annotations(const int page) const
     fz_always(ctx)
         mutex->unlock();
     fz_catch(ctx)
-        warn_msg("Error while searching annotations:" << fz_caught_message(ctx));
+        qWarning() << "Error while searching annotations:" << fz_caught_message(ctx);
     return list;
 }
 

@@ -317,6 +317,38 @@
         <source>Loaded PDF files with different numbers of pages. You should expect errors.</source>
         <translation>PDF-Dateien mit unterschiedlicher Anzahl von Seiten geladen. Es ist mit Fehlern zu rechnen.</translation>
     </message>
+    <message>
+        <source>Could not read GUI config:</source>
+        <translation>Lesen der GUI-Konfigurationsdatei fehlgeschlagen:</translation>
+    </message>
+    <message>
+        <source>GUI config file is empty or parsing failed:</source>
+        <translation>GUI-Konfigurationsdatei ist leer oder das Einlesen ist fehlgeschlagen:</translation>
+    </message>
+    <message>
+        <source>Ignoring invariant entry in GUI config.</source>
+        <translation>Ignoriere fehlerhaften Eintrag in GUI-Konfigurationsdatei.</translation>
+    </message>
+    <message>
+        <source>Ignoring entry in GUI config without type.</source>
+        <translation>Ignoriere Eintrag in GUI-Konfigurationsdatei ohne Typ.</translation>
+    </message>
+    <message>
+        <source>Ignoring invalid entry in GUI config.</source>
+        <translation>Ignoriere fehlerhaften Eintrag in GUI-Konfigurationsdatei.</translation>
+    </message>
+    <message>
+        <source>No valid file given</source>
+        <translation>Keine valide Datei gegeben</translation>
+    </message>
+    <message>
+        <source>Failed to load PDF document. This will result in errors!</source>
+        <translation>Fehler beim Laden des PDF-Dokuments. Das wird zu weiteren Fehlern führen!</translation>
+    </message>
+    <message>
+        <source>An error occured while trying to create a widget of type</source>
+        <translation>Fehler beim Erstellen eines Widgets vom Typ</translation>
+    </message>
 </context>
 <context>
     <name>MuPdfDocument</name>
@@ -344,6 +376,14 @@
         <source>No or invalid password provided for locked document</source>
         <translation>Kein oder ungültiges Passwort angegeben für ein verschlüsseltes Dokument</translation>
     </message>
+    <message>
+        <source>Failed to create Fitz context</source>
+        <translation>Fehler beim Erstellen des Fitz-Kontexts</translation>
+    </message>
+    <message>
+        <source>MuPdf failed to register document handlers:</source>
+        <translation>Fehler in MuPDF beim Registrieren von Dokument-Handlern:</translation>
+    </message>
 </context>
 <context>
     <name>NotesWidget</name>
@@ -362,6 +402,21 @@
     <message>
         <source>Note files (*.xml);;BeamerPresenter/Xournal++ files (*.bpr *.xopp *.xoj *.xml);;All files (*)</source>
         <translation>Notizdateien (*.xml);;BeamerPresenter/Xournal++-Dateien (*.bpr *.xopp *.xoj *.xml);;Alle Dateien (*)</translation>
+    </message>
+</context>
+<context>
+    <name>PathContainer</name>
+    <message>
+        <source>Could not find item in _z_order! Searching full array.</source>
+        <translation>Konnte objekt in _z_order nicht finden! Durchsuche die gesamte Liste.</translation>
+    </message>
+    <message>
+        <source>Should apply micro step, but inHistory ==</source>
+        <translation>Sollte Mikroschritt anwernden, doch inHistory ==</translation>
+    </message>
+    <message>
+        <source>Tried micro step, but inHistory ==</source>
+        <translation>Versuche Mikroschritt, doch inHistory ==</translation>
     </message>
 </context>
 <context>
@@ -418,6 +473,32 @@
         <source> could not be opened</source>
         <translation> konnte nicht geöffnet werden</translation>
     </message>
+    <message>
+        <source>File type of document not understood! Trying to load it anyway.</source>
+        <translation>Dateityp des Dokuments nicht verstanden! Versuche trotzdem, es zu laden.</translation>
+    </message>
+</context>
+<context>
+    <name>PixCache</name>
+    <message>
+        <source>Creating renderer failed, default is</source>
+        <translation>Erstellen des Renderers fehlgeschlagen, Voreinstellung ist</translation>
+    </message>
+    <message>
+        <source>Invalid renderer</source>
+        <translation>Ungültiger Renderer</translation>
+    </message>
+    <message>
+        <source>Rendering page failed for (page, resolution) =</source>
+        <translation>Rendern fehlgeschlagen für (Seite, Auflösung) =</translation>
+    </message>
+</context>
+<context>
+    <name>PixCacheThread</name>
+    <message>
+        <source>Creating renderer failed</source>
+        <translation>Erstellen des Renderers fehlgeschlagen</translation>
+    </message>
 </context>
 <context>
     <name>PointingToolDetails</name>
@@ -456,6 +537,10 @@
         <source>No or invalid password provided for locked document</source>
         <translation>Kein oder ungültiges Passwort angegeben für ein verschlüsseltes Dokument</translation>
     </message>
+    <message>
+        <source>Failed to load document.</source>
+        <translation>Laden des Dokuments fehlgeschlagen</translation>
+    </message>
 </context>
 <context>
     <name>Preferences</name>
@@ -493,6 +578,26 @@
     <message>
         <source>Invalid password provided for locked document</source>
         <translation>Ungültiges Passwort angegeben für gesperrtes Dokument</translation>
+    </message>
+    <message>
+        <source>Could not load document: file not found</source>
+        <translation>Laden des Dokuments fehlgeschlagen: Datei nicht gefunden</translation>
+    </message>
+    <message>
+        <source>Could not load document: data not yet available</source>
+        <translation>Laden des Dokuments fehlgeschlagen: Daten noch nicht verfügbar</translation>
+    </message>
+    <message>
+        <source>Could not load document: invalid file format</source>
+        <translation>Laden des Dokuments fehlgeschlagen: falsches Dateiformat</translation>
+    </message>
+    <message>
+        <source>Could not load document: unsupported security scheme</source>
+        <translation>Laden des Dokuments fehlgeschlagen: nicht unterstüτztes Sicherheitsschema</translation>
+    </message>
+    <message>
+        <source>Could not load document: unknown error</source>
+        <translation>Laden des Dokuments fehlgeschlagen: unbekannter Fehler</translation>
     </message>
 </context>
 <context>
@@ -724,6 +829,13 @@ Konfiguriere Zwischenspeicher (Cache). Folien werden in gerendert und in einen k
     </message>
 </context>
 <context>
+    <name>ThumbnailThread</name>
+    <message>
+        <source>Creating renderer failed</source>
+        <translation>Erstellen des Renderers fehlgeschlagen</translation>
+    </message>
+</context>
+<context>
     <name>TimerWidget</name>
     <message>
         <source>time since beginning of the presentation</source>
@@ -872,6 +984,57 @@ Konfiguriere Zwischenspeicher (Cache). Folien werden in gerendert und in einen k
     <message>
         <source>select width of draw tool</source>
         <translation>wähle die Breite des Zeichenwerkzeugs aus</translation>
+    </message>
+</context>
+<context>
+    <name>main</name>
+    <message>
+        <source>Modular multi screen PDF presenter</source>
+        <translation>Modulares PDF-Presentationsprogramm</translation>
+    </message>
+    <message>
+        <source>Slides for a presentation</source>
+        <translation>Folien für die Präsentation</translation>
+    </message>
+    <message>
+        <source>settings / configuration file</source>
+        <translation>Einstellungs-/ Konfigurationsdatei</translation>
+    </message>
+    <message>
+        <source>file</source>
+        <translation>Datei</translation>
+    </message>
+    <message>
+        <source>user interface configuration file</source>
+        <translation>Konfigurationsdatei für graphische Oberfläche</translation>
+    </message>
+    <message>
+        <source>timer total time in minutes</source>
+        <translation>Dauer für Stoppuhr in Minuten</translation>
+    </message>
+    <message>
+        <source>number</source>
+        <translation>Zahl</translation>
+    </message>
+    <message>
+        <source>log slide changes to standard output</source>
+        <translation>Schreibe Folienwechsel in die Standardausgabe</translation>
+    </message>
+    <message>
+        <source>disable cache</source>
+        <translation>deaktiviere Zwischenspeichern von Folien</translation>
+    </message>
+    <message>
+        <source>available PDF renderers:</source>
+        <translation>verfügbare PDF-Renderer:</translation>
+    </message>
+    <message>
+        <source>name</source>
+        <translation>Name</translation>
+    </message>
+    <message>
+        <source>Parsing the GUI configuration failed. Probably the GUI config is unavailable or invalid, or no valid PDF files were found.</source>
+        <translation>Einlesen der GUI-Konfigurationsdatei ist fehlgeschlagen. Wahrscheinlich ist die GUI-Konfigurationsdatei nicht verfügbar oder nicht valide, oder es wurden keine PDF-Dateien gefunden.</translation>
     </message>
 </context>
 </TS>

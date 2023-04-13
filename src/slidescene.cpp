@@ -901,7 +901,7 @@ slide::MediaItem &SlideScene::getMediaItem(const MediaAnnotation &annotation, co
 #endif
     else
     {
-        warn_msg("Embedded media are currently not supported.");
+        qWarning() << "Embedded media are currently not supported.";
         //QBuffer *buffer = new QBuffer(player);
         //buffer->setData(static_cast<const EmbeddedMedia&>(annotation).data);
         //buffer->open(QBuffer::ReadOnly);
@@ -913,7 +913,7 @@ slide::MediaItem &SlideScene::getMediaItem(const MediaAnnotation &annotation, co
     case MediaAnnotation::Open:
         break;
     case MediaAnnotation::Palindrome:
-        warn_msg("Palindrome video: not implemented (yet)");
+        qWarning() << "Palindrome video: not implemented (yet)";
         // TODO
         [[clang::fallthrough]];
     case MediaAnnotation::Repeat:

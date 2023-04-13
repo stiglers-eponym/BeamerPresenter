@@ -30,7 +30,7 @@ ThumbnailThread::ThumbnailThread(const PdfDocument *document) :
     if (renderer == nullptr || !renderer->isValid())
     {
         renderer = nullptr;
-        qCritical() << "Creating renderer failed" << preferences()->renderer;
+        qCritical() << tr("Creating renderer failed") << preferences()->renderer;
         return;
     }
 }

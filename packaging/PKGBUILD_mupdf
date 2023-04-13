@@ -17,7 +17,6 @@ url="https://github.com/stiglers-eponym/BeamerPresenter"
 license=('AGPL3' 'GPL3')
 makedepends=('cmake' 'ninja' 'libmupdf' "qt${_qt_version_major}-tools")
 depends=("qt${_qt_version_major}-multimedia>=${_qt_min_version}" "qt${_qt_version_major}-multimedia<${_qt_max_version}" "qt${_qt_version_major}-svg>=${_qt_min_version}" "qt${_qt_version_major}-svg<${_qt_max_version}" 'jbig2dec>=0.19' 'openjpeg2>=2.4.0' 'gumbo-parser>=0.10.0')
-optdepends=('hicolor-icon-theme: icons for action buttons')
 provides=("beamerpresenter=${pkgver}")
 conflicts=('beamerpresenter')
 backup=('etc/xdg/beamerpresenter/beamerpresenter.conf' 'etc/xdg/beamerpresenter/gui.json')
@@ -26,7 +25,7 @@ sha256sums=('ed4b76e1c51227b538cab4b736113800a1d5069d2131933d56103082c0eb5468')
 
 if [ "${_qt_version_major}" -eq "5" ]
 then
-    optdepends+=('gst-libav: show videos' 'gst-plugins-good: show videos')
+    optdepends=('gst-libav: show videos' 'gst-plugins-good: show videos')
 fi
 
 build() {
