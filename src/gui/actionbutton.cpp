@@ -55,7 +55,6 @@ const char *action_to_theme_icon(const Action action) noexcept
         return "edit-paste";
     //case SelectionToForeground: return "?";
     //case SelectionToBackground: return "?";
-    //case DuplicateSelectedItems: return "?";
     case RemoveSelectedItems:
         return "edit-delete";
     case SelectAll:
@@ -242,8 +241,6 @@ const char *action_to_description(const Action action) noexcept
         return QT_TRANSLATE_NOOP("ActionButton", "bring selected items to the backgroud");
     case RemoveSelectedItems:
         return QT_TRANSLATE_NOOP("ActionButton", "remove selected items");
-    case DuplicateSelectedItems:
-        return QT_TRANSLATE_NOOP("ActionButton", "duplicate selected items and copy them to the clipboard");
     case SelectAll:
         return QT_TRANSLATE_NOOP("ActionButton", "select everything on the current slide");
     case ClearSelection:

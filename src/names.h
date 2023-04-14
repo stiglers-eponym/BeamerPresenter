@@ -49,7 +49,6 @@ static const QMap<QString, Action> string_to_action_map
     {"to foreground", SelectionToForeground},
     {"to background", SelectionToBackground},
     {"delete", RemoveSelectedItems},
-    {"duplicate", DuplicateSelectedItems},
     {"select all", SelectAll},
     {"clear selection", ClearSelection},
     // Timer

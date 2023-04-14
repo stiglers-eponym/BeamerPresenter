@@ -639,13 +639,6 @@ void SlideScene::receiveAction(const Action action)
         if (slide_flags & ShowDrawings && hasFocus())
             pasteFromClipboard();
         break;
-    case DuplicateSelectedItems:
-        if (slide_flags & ShowDrawings && hasFocus())
-        {
-            copyToClipboard();
-            pasteFromClipboard();
-        }
-        break;
     case SelectionToForeground:
         if (slide_flags & ShowDrawings && hasFocus())
         {

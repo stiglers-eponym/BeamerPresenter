@@ -156,10 +156,6 @@
         <translation>entferne die ausgewählten Objekte</translation>
     </message>
     <message>
-        <source>duplicate selected items and copy them to the clipboard</source>
-        <translation>dupliziere die ausgewählten Objekte und kopiere sie in die Zwischenablage</translation>
-    </message>
-    <message>
         <source>select everything on the current slide</source>
         <translation>wähle alles auf der aktuellen Folie aus</translation>
     </message>
