@@ -199,8 +199,7 @@ const PngPixmap * PopplerDocument::getPng(const int page, const qreal resolution
     }
     QByteArray* const bytes = new QByteArray();
     QBuffer buffer(bytes);
-    buffer.open(QIODevice::WriteOnly);
-    if (!image.save(&buffer, "PNG"))
+    if (!buffer.open(QIODevice::WriteOnly) || !image.save(&buffer, "PNG"))
     {
         qWarning() << "Saving page as PNG image failed";
         delete bytes;

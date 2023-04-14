@@ -990,7 +990,7 @@ Konfiguriere Zwischenspeicher (Cache). Folien werden in gerendert und in einen k
     <name>main</name>
     <message>
         <source>Modular multi screen PDF presenter</source>
-        <translation>Modulares PDF-Presentationsprogramm</translation>
+        <translation>Modulares PDF-Präsentationsprogramm</translation>
     </message>
     <message>
         <source>Slides for a presentation</source>

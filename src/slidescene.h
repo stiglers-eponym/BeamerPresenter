@@ -411,11 +411,19 @@ signals:
 void readFromSVG(const QByteArray &data, QList<QGraphicsItem*> &target);
 
 /**
- * experimental function for writing items to an SVG image
+ * write items to an SVG image
  * @param data write result here
  * @param source take items from this list
  * @param rect sets viewBox of the SVG image
  */
+
 void writeToSVG(QByteArray &data, const QList<QGraphicsItem*> &source, const QRectF &rect);
+/**
+ * write items to a PNG image
+ * @param data write result here
+ * @param source take items from this list
+ * @param rect sets viewBox of the SVG image
+ */
+void writeToPNG(QByteArray &data, const QList<QGraphicsItem*> &source, const QRectF &rect, const qreal resolution = 1.);
 
 #endif // SLIDESCENE_H

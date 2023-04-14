@@ -7,6 +7,7 @@
 #include <QString>
 #include <QSvgGenerator>
 #include <QSvgRenderer>
+#include <QBuffer>
 #include <QByteArray>
 #include <QDataStream>
 #include <QGraphicsVideoItem>
@@ -1617,9 +1618,16 @@ void SlideScene::copyToClipboard() const
     QMimeData *mimedata = new QMimeData();
     mimedata->setData("application/beamerpresenter", data);
     data.clear();
+    const QRectF rect = selection_bounding_rect.sceneRect().boundingRect();
     // Write svg data
-    writeToSVG(data, selection, selection_bounding_rect.sceneBoundingRect());
+    writeToSVG(data, selection, rect);
     mimedata->setData("image/svg+xml", data);
+    data.clear();
+    // Write png data
+    const qreal resolution = std::min(4., 1600./std::max(width(), height()));
+    writeToPNG(data, selection, rect, resolution);
+    mimedata->setData("image/png", data);
+    data.clear();
     // Add data to clipboard
     QClipboard *clipboard = QGuiApplication::clipboard();
     clipboard->setMimeData(mimedata);
@@ -1841,6 +1849,7 @@ void writeToSVG(QByteArray &data, const QList<QGraphicsItem*> &source, const QRe
 {
     QSvgGenerator generator;
     QBuffer buffer(&data);
+    buffer.open(QIODevice::WriteOnly);
     generator.setOutputDevice(&buffer);
     generator.setViewBox(rect);
     QPainter painter;
@@ -1853,4 +1862,28 @@ void writeToSVG(QByteArray &data, const QList<QGraphicsItem*> &source, const QRe
         item->paint(&painter, &style);
     }
     painter.end();
+}
+
+void writeToPNG(QByteArray &data, const QList<QGraphicsItem*> &source, const QRectF &rect, const qreal resolution)
+{
+    QImage image((rect.size()*resolution).toSize(), QImage::Format_ARGB32);
+    image.fill(0x00ffffff);
+    QPainter painter;
+    if (!painter.begin(&image))
+        return;
+    QStyleOptionGraphicsItem style;
+    const QPointF origin = -rect.topLeft();
+    for (const auto item : source)
+    {
+        painter.resetTransform();
+        painter.scale(resolution, resolution);
+        painter.translate(origin);
+        painter.setTransform(item->sceneTransform(), true);
+        item->paint(&painter, &style);
+    }
+    painter.end();
+    QBuffer buffer(&data);
+    buffer.open(QIODevice::WriteOnly);
+    image.save(&buffer, "PNG");
+    buffer.close();
 }

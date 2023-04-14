@@ -299,16 +299,18 @@ void PdfMaster::saveXopp(const QString &filename)
 
     {
         // Write preview picture.
-        writer.writeStartElement("preview");
         const QSizeF &pageSize = getPageSize(0);
         const qreal resolution = 128 / std::max(pageSize.width(), pageSize.height());
         const QPixmap pixmap = exportImage(0, resolution);
         QByteArray data;
-        QBuffer buffer(&data);
-        pixmap.save(&buffer, "PNG");
-        buffer.close();
-        writer.writeCharacters(data.toBase64());
-        writer.writeEndElement();
+        QBuffer preview_buffer(&data);
+        if (preview_buffer.open(QBuffer::WriteOnly) && pixmap.save(&preview_buffer, "PNG"))
+        {
+            preview_buffer.close();
+            writer.writeStartElement("preview");
+            writer.writeCharacters(data.toBase64());
+            writer.writeEndElement();
+        }
     }
 
     // Some attributes specific for beamerpresenter (Xournal++ will ignore that)
@@ -401,6 +403,8 @@ void PdfMaster::saveXopp(const QString &filename)
 void PdfMaster::loadXopp(const QString &filename)
 {
     QBuffer *buffer = loadZipToBuffer(filename);
+    if (!buffer)
+        return;
     QXmlStreamReader reader(buffer);
     while (!reader.atEnd() && (reader.readNext() != QXmlStreamReader::StartElement || reader.name().toUtf8() != "xournal")) {}
 
@@ -501,7 +505,7 @@ void PdfMaster::reloadXoppProperties()
 QBuffer *PdfMaster::loadZipToBuffer(const QString &filename)
 {
     // This is probably not how it should be done.
-    QBuffer *buffer(new QBuffer());
+    QBuffer *buffer = new QBuffer();
     buffer->open(QBuffer::ReadWrite);
     gzFile file = gzopen(filename.toUtf8(), "rb");
     if (!file)
@@ -510,7 +514,7 @@ QBuffer *PdfMaster::loadZipToBuffer(const QString &filename)
         preferences()->showErrorMessage(
                     tr("Error while loading file"),
                     tr("Loading drawings failed: file ") + filename + tr(" could not be opened"));
-        return NULL;
+        return nullptr;
     }
     gzbuffer(file, 32768);
     char chunk[512];
