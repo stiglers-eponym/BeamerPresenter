@@ -1623,11 +1623,28 @@ void SlideScene::copyToClipboard() const
     writeToSVG(data, selection, rect);
     mimedata->setData("image/svg+xml", data);
     data.clear();
-    // Write png data
+    // Calculate resolution for pixel image data (kind of random)
     const qreal resolution = std::min(4., 1600./std::max(width(), height()));
-    writeToPNG(data, selection, rect, resolution);
+    // Write png data
+    writeToPixelImage(data, selection, rect, resolution, "PNG");
     mimedata->setData("image/png", data);
     data.clear();
+    // Write jpeg data
+    writeToPixelImage(data, selection, rect, resolution, "JPEG");
+    mimedata->setData("image/jpeg", data);
+    data.clear();
+    /* Disable inefficient and hardly used formats.
+     * Since the clipboard has a memory leak in Wayland, we don't want
+     * to add these extra data.
+    // Write bmp data
+    writeToPixelImage(data, selection, rect, resolution, "BMP");
+    mimedata->setData("image/bmp", data);
+    data.clear();
+    // Write ppm data
+    writeToPixelImage(data, selection, rect, resolution, "PPM");
+    mimedata->setData("image/ppm", data);
+    data.clear();
+    */
     // Add data to clipboard
     QClipboard *clipboard = QGuiApplication::clipboard();
     clipboard->setMimeData(mimedata);
@@ -1646,6 +1663,16 @@ void SlideScene::pasteFromClipboard()
     }
     else if (mimedata->hasFormat("image/svg+xml"))
         readFromSVG(mimedata->data("image/svg+xml"), items);
+    else if (mimedata->hasFormat("image/png"))
+        readFromPixelImage(mimedata->data("image/png"), items, "PNG");
+    else if (mimedata->hasFormat("image/jpeg"))
+        readFromPixelImage(mimedata->data("image/jpeg"), items, "JPEG");
+    else if (mimedata->hasFormat("image/gif"))
+        readFromPixelImage(mimedata->data("image/gif"), items, "GIF");
+    else if (mimedata->hasFormat("image/bmp"))
+        readFromPixelImage(mimedata->data("image/bmp"), items, "BMP");
+    else if (mimedata->hasFormat("image/ppm"))
+        readFromPixelImage(mimedata->data("image/ppm"), items, "PPM");
     if (items.empty())
         return;
     clearSelection();
@@ -1845,6 +1872,18 @@ void readFromSVG(const QByteArray &data, QList<QGraphicsItem*> &target)
     target.append(new GraphicsPictureItem(picture));
 }
 
+void readFromPixelImage(const QByteArray &data, QList<QGraphicsItem*> &target, const char *format)
+{
+    QPicture picture;
+    QImage image{QImage::fromData(data, format)};
+    QPainter painter;
+    if (!painter.begin(&picture))
+        return;
+    painter.drawImage(0, 0, image);
+    painter.end();
+    target.append(new GraphicsPictureItem(picture));
+}
+
 void writeToSVG(QByteArray &data, const QList<QGraphicsItem*> &source, const QRectF &rect)
 {
     QSvgGenerator generator;
@@ -1864,7 +1903,7 @@ void writeToSVG(QByteArray &data, const QList<QGraphicsItem*> &source, const QRe
     painter.end();
 }
 
-void writeToPNG(QByteArray &data, const QList<QGraphicsItem*> &source, const QRectF &rect, const qreal resolution)
+void writeToPixelImage(QByteArray &data, const QList<QGraphicsItem*> &source, const QRectF &rect, const qreal resolution, const char *format)
 {
     QImage image((rect.size()*resolution).toSize(), QImage::Format_ARGB32);
     image.fill(0x00ffffff);
@@ -1884,6 +1923,6 @@ void writeToPNG(QByteArray &data, const QList<QGraphicsItem*> &source, const QRe
     painter.end();
     QBuffer buffer(&data);
     buffer.open(QIODevice::WriteOnly);
-    image.save(&buffer, "PNG");
+    image.save(&buffer, format);
     buffer.close();
 }

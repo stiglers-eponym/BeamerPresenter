@@ -404,11 +404,18 @@ signals:
 };
 
 /**
- * highly experimental function for reading an SVG image
+ * Read an SVG image. Create a GraphicsPictureItem which is added to target.
  * @param data read SVG image from this QByteArray
- * @param target add all QGraphicsItems constructed from the SVG to this list
+ * @param target add the GraphicsPictureItem constructed from the SVG image to this list
  */
 void readFromSVG(const QByteArray &data, QList<QGraphicsItem*> &target);
+
+/**
+ * Read a pixel-based image. Create a GraphicsPictureItem which is added to target.
+ * @param data read PNG image from this QByteArray
+ * @param target add the GraphicsPictureItem constructed from the image to this list
+ */
+void readFromPixelImage(const QByteArray &data, QList<QGraphicsItem*> &target, const char *format);
 
 /**
  * write items to an SVG image
@@ -419,11 +426,11 @@ void readFromSVG(const QByteArray &data, QList<QGraphicsItem*> &target);
 
 void writeToSVG(QByteArray &data, const QList<QGraphicsItem*> &source, const QRectF &rect);
 /**
- * write items to a PNG image
+ * write items to a pixel-based image
  * @param data write result here
  * @param source take items from this list
- * @param rect sets viewBox of the SVG image
+ * @param rect sets view box of the scene, which will be drawn to the image
  */
-void writeToPNG(QByteArray &data, const QList<QGraphicsItem*> &source, const QRectF &rect, const qreal resolution = 1.);
+void writeToPixelImage(QByteArray &data, const QList<QGraphicsItem*> &source, const QRectF &rect, const qreal resolution = 1., const char *format = "PNG");
 
 #endif // SLIDESCENE_H
