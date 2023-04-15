@@ -39,7 +39,11 @@ DrawToolDetails::DrawToolDetails(Tool::BasicTool basic_tool, QWidget *parent, co
             QVariant::fromValue(oldtool ? oldtool->shape() : DrawTool::Freehand)
             )
         );
+#if (QT_VERSION_MAJOR >= 6)
     connect(shape_box, &QComboBox::currentIndexChanged, this, &DrawToolDetails::changeShape);
+#else
+    connect(shape_box, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &DrawToolDetails::changeShape);
+#endif
 
     // Width selection
     layout->addRow(tr("stroke width (in pt)"), width_box);
@@ -100,7 +104,11 @@ DrawToolDetails::DrawToolDetails(Tool::BasicTool basic_tool, QWidget *parent, co
             QVariant::fromValue(oldtool ? oldtool->brush().style() : Qt::SolidPattern)
             )
         );
+#if (QT_VERSION_MAJOR >= 6)
     connect(brush_style_box, &QComboBox::currentIndexChanged, this, &DrawToolDetails::setBrushStyle);
+#else
+    connect(brush_style_box, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &DrawToolDetails::setBrushStyle);
+#endif
 
     changeShape(shape_box->currentIndex());
     setLayout(layout);
@@ -133,7 +141,7 @@ QBrush DrawToolDetails::brush() const
     return brush;
 }
 
-void DrawToolDetails::changeShape(const int index)
+void DrawToolDetails::changeShape(int index)
 {
     const DrawTool::Shape newshape = shape_box->itemData(index).value<DrawTool::Shape>();
     const bool disable = newshape == DrawTool::Arrow || newshape == DrawTool::Line;
@@ -144,7 +152,7 @@ void DrawToolDetails::changeShape(const int index)
     fill_checkbox->setDisabled(disable);
 }
 
-void DrawToolDetails::setBrushStyle(const int index)
+void DrawToolDetails::setBrushStyle(int index)
 {
     QPalette button_palette = brush_color_button->palette();
     QBrush brush = button_palette.brush(QPalette::Button);
@@ -234,7 +242,11 @@ ToolDialog::ToolDialog(QWidget *parent) :
     // Basic tool
     for (auto it = string_to_tool.cbegin(); it != string_to_tool.cend(); ++it)
         tool_box->addItem(Tool::tr(it.key().toLatin1().constData()), QVariant::fromValue(*it));
+#if (QT_VERSION_MAJOR >= 6)
     connect(tool_box, &QComboBox::currentIndexChanged, this, &ToolDialog::adaptToBasicToolIdx);
+#else
+    connect(tool_box, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &ToolDialog::adaptToBasicToolIdx);
+#endif
     tool_box->setCurrentIndex(
         tool_box->findData(QVariant::fromValue(DrawTool::InvalidTool))
         );

@@ -65,9 +65,9 @@ public slots:
     /// Choose color using a color dialog
     void setBrushColor();
     /// Shape changed by shape_box. Disable/enable brush.
-    void changeShape(const int index);
+    void changeShape(int index);
     /// Set brush style, apply it to brush color button.
-    void setBrushStyle(const int index);
+    void setBrushStyle(int index);
 };
 
 /**

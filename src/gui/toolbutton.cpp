@@ -57,7 +57,7 @@ void ToolButton::updateIcon()
             if (drawtool->tool() == Tool::FixedWidthPen && drawtool->shape() != DrawTool::Recognize)
                 iconname = "pen";
             iconname += "-";
-            iconname += string_to_shape.key(drawtool->shape());
+            iconname += string_to_shape.key(drawtool->shape()).c_str();
         }
         if (drawtool->brush().style() != Qt::NoBrush && drawtool->shape() != DrawTool::Arrow && drawtool->shape() != DrawTool::Line)
             iconname += "-filled";
