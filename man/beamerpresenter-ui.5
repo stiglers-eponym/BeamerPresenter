@@ -1,4 +1,4 @@
-.TH beamerpresenter-ui 5 "2023-04-09" "0.2.3"
+.TH beamerpresenter-ui 5 "2023-04-15" "0.2.3"
 .
 .SH NAME
 beamerpresenter-ui \- user interface of BeamerPresenter
@@ -66,7 +66,7 @@ Color for hour/minute/second hand.
 Color for ticks.
 .TP
 .BI "small ticks " true/false
-Show/hide small ticks (6 degrees interval).
+Show/hide small ticks (6̛° interval).
 .TP
 .BI "aspect " number
 Preferred aspect ratio (width/height) of the widget. Adjust this if the clock is too large or too small.
@@ -241,7 +241,7 @@ shows current mapping of devices to tools. The tools can be changed using a pop-
 Arguments:
 .TP
 .BI orientation " horizontal/vertical"
-arange different devices next to each other or above each other.
+arrange different devices next to each other or above each other.
 .TP
 .BI "mouse devices " array
 list of devices that are included in the group of mouse devices. Possible values: \[dq]left button\[dq], \[dq]right button\[dq], \[dq]middle button\[dq], \[dq]no button\[dq]
@@ -335,9 +335,6 @@ move selected items on currently focussed slide to the background.
 .B delete
 delete selected items on currently focussed slide.
 .TP
-.B duplicate
-duplicate selection on currently focussed slide.
-.TP
 .B select all
 select all items on currently focussed slide.
 .TP
@@ -411,10 +408,10 @@ only draw tools (pen, highlighter, fixed width pen): Draw this shape instead of 
 only magnifier: magnification factor (number between 0.1 and 5).
 .TP
 .BR linewidth " = 0"
-only eraser: draw a circle of given line width around the eraser (number). The circle is only drawn on the currently active widget.
+only eraser: draw a circle of given line width around the eraser. The circle is only drawn on the currently active widget.
 .TP
 .B font
-only text tool: anything that Qt can interpret as font name.
+only text tool: anything that Qt can interpret as a font name.
 .TP
 .B font size
 only text tool: font size (positive number).

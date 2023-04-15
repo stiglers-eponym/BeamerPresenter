@@ -32,6 +32,7 @@
 
 #define MAX_SEARCH_RESULTS 20
 
+#if (FZ_VERSION_MAJOR < 1) || ((FZ_VERSION_MAJOR == 1) && (FZ_VERSION_MINOR < 22))
 std::string roman(int number)
 {
     int tens = number / 10;
@@ -98,6 +99,7 @@ std::string decode_pdf_label(int number, const MuPdfDocument::label_item &item)
     debug_verbose(DebugRendering, number << QString::fromStdString(string));
     return string;
 }
+#endif // FZ_VERSION < 1.22
 
 
 MuPdfDocument::MuPdfDocument(const QString &filename) :
@@ -355,25 +357,63 @@ int MuPdfDocument::overlaysShifted(const int start, const int shift_overlay) con
     return it.key() - 1;
 }
 
+#if (FZ_VERSION_MAJOR > 1) || ((FZ_VERSION_MAJOR == 1) && (FZ_VERSION_MINOR >= 22))
 void MuPdfDocument::loadPageLabels()
 {
     if (!ctx || !doc)
         return;
-    // (My comments here are based on an old version of MuPDF)
-    // MuPDF doesn't support page labels (!!!)
-    // Here is an implementation which lets MuPdfDocument handle page labels.
+    pageLabels.clear();
 
-    // This function is designed for documents, in which page labels consist
-    // only of prefixes. This is the case for presentations created with
-    // LaTeX beamer with overlays.
-    // Numbering styles other than decimal which are not explicitly given as
-    // strings are currently not supported.
+    char buffer[32];
+    mutex->lock();
+    fz_var(pageLabels);
+    fz_try(ctx)
+    {
+        pdf_page_label(ctx, doc, 0, buffer, 32);
+        pageLabels[0] = QString(buffer);
+        for (int page=1; page<number_of_pages; ++page)
+        {
+            pdf_page_label(ctx, doc, page, buffer, 32);
+            if (pageLabels.last() != buffer)
+                pageLabels[page] = QString(buffer);
+        }
+    }
+    fz_always(ctx)
+        mutex->unlock();
+    fz_catch(ctx)
+    {
+        qWarning() << "Failed to load page labels:" << fz_caught_message(ctx);
+        return;
+    }
 
-    // If you want support for other styles, please open an issue on github.
+    // Add all pages explicitly to pageLabels, which have an own outline entry.
+    QMap<int, QString>::key_iterator it;
+    for (const auto &entry : qAsConst(outline))
+    {
+        if (entry.page < 0 || entry.page >= number_of_pages)
+            continue;
+        it = std::upper_bound(pageLabels.keyBegin(), pageLabels.keyEnd(), entry.page);
+        if (it != pageLabels.keyBegin() && *--it != entry.page)
+            pageLabels.insert(entry.page, pageLabels[*it]);
+    }
+}
+#else // FZ_VERSION < 1.22
+void MuPdfDocument::loadPageLabels()
+{
+    /* This implementation is designed for documents, in which page labels
+     * consist only of prefixes. This is the case for presentations created
+     * with LaTeX beamer with overlays.
+     * Numbering styles other than decimal which are not explicitly given as
+     * strings are currently not supported.
+     *
+     * This code is based on a patch by Stefan Radermacher and Albert Bloomfield
+     * https://bugs.ghostscript.com/show_bug.cgi?id=695351 */
+
+    if (!ctx || !doc)
+        return;
+    pageLabels.clear();
 
     mutex->lock();
-    // This code is based on a patch by Stefan Radermacher and Albert Bloomfield
-    // https://bugs.ghostscript.com/show_bug.cgi?id=695351
 
     QMap<int, label_item> raw_labels;
     fz_var(raw_labels);
@@ -436,8 +476,6 @@ void MuPdfDocument::loadPageLabels()
         return;
     }
 
-    pageLabels.clear();
-
     // Check if anything was found.
     if (raw_labels.isEmpty())
         return;
@@ -480,6 +518,7 @@ void MuPdfDocument::loadPageLabels()
             pageLabels.insert(entry.page, pageLabels[*it]);
     }
 }
+#endif // FZ_VERSION
 
 void MuPdfDocument::prepareRendering(fz_context **context, fz_rect *bbox, fz_display_list **list, const int pagenumber, const qreal resolution) const
 {
@@ -649,7 +688,7 @@ QList<MediaAnnotation> MuPdfDocument::annotations(const int page) const
             {
             case PDF_ANNOT_MOVIE:
             {
-#if (FZ_VERSION_MAJOR >= 1) && (FZ_VERSION_MINOR >= 19)
+#if (FZ_VERSION_MAJOR > 1) || ((FZ_VERSION_MAJOR == 1) && (FZ_VERSION_MINOR >= 19))
                 pdf_obj *media_obj = pdf_dict_gets(ctx, pdf_annot_obj(ctx, annot), "Movie");
 #else
                 pdf_obj *media_obj = pdf_dict_gets(ctx, annot->obj, "Movie");
@@ -669,7 +708,7 @@ QList<MediaAnnotation> MuPdfDocument::annotations(const int page) const
                             true,
                             QRectF(bound.x0, bound.y0, bound.x1-bound.x0, bound.y1-bound.y0)
                         ));
-#if (FZ_VERSION_MAJOR >= 1) && (FZ_VERSION_MINOR >= 19)
+#if (FZ_VERSION_MAJOR > 1) || ((FZ_VERSION_MAJOR == 1) && (FZ_VERSION_MINOR >= 19))
                 pdf_obj *activation_obj = pdf_dict_get(ctx, pdf_annot_obj(ctx, annot), PDF_NAME(A));
 #else
                 pdf_obj *activation_obj = pdf_dict_get(ctx, annot->obj, PDF_NAME(A));
@@ -693,7 +732,7 @@ QList<MediaAnnotation> MuPdfDocument::annotations(const int page) const
             case PDF_ANNOT_SOUND:
             {
                 // TODO: embedded sounds
-#if (FZ_VERSION_MAJOR >= 1) && (FZ_VERSION_MINOR >= 19)
+#if (FZ_VERSION_MAJOR > 1) || ((FZ_VERSION_MAJOR == 1) && (FZ_VERSION_MINOR >= 19))
                 pdf_obj *media_obj = pdf_dict_gets(ctx, pdf_annot_obj(ctx, annot), "Sound");
 #else
                 pdf_obj *media_obj = pdf_dict_gets(ctx, annot->obj, "Sound");
@@ -718,7 +757,7 @@ QList<MediaAnnotation> MuPdfDocument::annotations(const int page) const
                         ));
                 break;
             }
-#if (FZ_VERSION_MAJOR >= 1) && (FZ_VERSION_MINOR >= 18)
+#if (FZ_VERSION_MAJOR > 1) || ((FZ_VERSION_MAJOR == 1) && (FZ_VERSION_MINOR >= 18))
             case PDF_ANNOT_RICH_MEDIA:
                 // TODO: check what that does
                 qWarning() << "Unsupported media type: rich media";
@@ -786,7 +825,7 @@ void MuPdfDocument::loadOutline()
             auto fill_outline = [&](fz_outline *entry, auto& function) -> void
             {
                 const int idx = outline.length();
-#if (FZ_VERSION_MAJOR >= 1) && (FZ_VERSION_MINOR >= 20)
+#if (FZ_VERSION_MAJOR > 1) || ((FZ_VERSION_MAJOR == 1) && (FZ_VERSION_MINOR >= 20))
                 outline.append(PdfOutlineEntry({QString(entry->title), entry->page.page, -1}));
 #else
                 outline.append(PdfOutlineEntry({QString(entry->title), entry->page, -1}));
@@ -831,7 +870,7 @@ std::pair<int,QRectF> MuPdfDocument::search(const QString &needle, int start_pag
     const QByteArray byte_needle = needle.toUtf8();
     const char* raw_needle = byte_needle.data();
     int hit = 0;
-#if (FZ_VERSION_MAJOR >= 1) && (FZ_VERSION_MINOR >= 20)
+#if (FZ_VERSION_MAJOR > 1) || ((FZ_VERSION_MAJOR == 1) && (FZ_VERSION_MINOR >= 20))
     int hit_mark = 0;
 #endif
     fz_quad rect;
@@ -840,7 +879,7 @@ std::pair<int,QRectF> MuPdfDocument::search(const QString &needle, int start_pag
         for (int page = start_page; page < number_of_pages; ++page)
         {
             fz_try(ctx)
-#if (FZ_VERSION_MAJOR >= 1) && (FZ_VERSION_MINOR >= 20)
+#if (FZ_VERSION_MAJOR > 1) || ((FZ_VERSION_MAJOR == 1) && (FZ_VERSION_MINOR >= 20))
                 hit = fz_search_page(ctx, (fz_page*const)(pages[page]), raw_needle, &hit_mark, &rect, 1);
 #else
                 hit = fz_search_page(ctx, (fz_page*const)(pages[page]), raw_needle, &rect, 1);
@@ -858,7 +897,7 @@ std::pair<int,QRectF> MuPdfDocument::search(const QString &needle, int start_pag
         for (int page = start_page; page >= 0; --page)
         {
             fz_try(ctx)
-#if (FZ_VERSION_MAJOR >= 1) && (FZ_VERSION_MINOR >= 20)
+#if (FZ_VERSION_MAJOR > 1) || ((FZ_VERSION_MAJOR == 1) && (FZ_VERSION_MINOR >= 20))
                 hit = fz_search_page(ctx, (fz_page*const)(pages[page]), raw_needle, &hit_mark, &rect, 1);
 #else
                 hit = fz_search_page(ctx, (fz_page*const)(pages[page]), raw_needle, &rect, 1);
@@ -912,13 +951,13 @@ int MuPdfDocument::searchPage(const int page, const char *raw_needle, QList<QRec
 {
     debug_msg(DebugRendering, "Start searching page" << page << raw_needle);
     int count = 0;
-#if (FZ_VERSION_MAJOR >= 1) && (FZ_VERSION_MINOR >= 20)
+#if (FZ_VERSION_MAJOR > 1) || ((FZ_VERSION_MAJOR == 1) && (FZ_VERSION_MINOR >= 20))
     int hit_mark[MAX_SEARCH_RESULTS];
 #endif
     fz_quad rects[MAX_SEARCH_RESULTS];
     mutex->lock();
     fz_try(ctx)
-#if (FZ_VERSION_MAJOR >= 1) && (FZ_VERSION_MINOR >= 20)
+#if (FZ_VERSION_MAJOR > 1) || ((FZ_VERSION_MAJOR == 1) && (FZ_VERSION_MINOR >= 20))
         count = fz_search_page(ctx, (fz_page*const)(pages[page]), raw_needle, hit_mark, rects, MAX_SEARCH_RESULTS);
 #else
         count = fz_search_page(ctx, (fz_page*const)(pages[page]), raw_needle, rects, MAX_SEARCH_RESULTS);

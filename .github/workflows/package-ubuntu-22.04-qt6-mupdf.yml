@@ -54,6 +54,7 @@ jobs:
         libjpeg-dev
         libopenjp2-7-dev
         libjbig2dec0-dev
+        libqt6svg6-dev
         qt6-multimedia-dev
         libqt6opengl6-dev
         libgl1-mesa-dev

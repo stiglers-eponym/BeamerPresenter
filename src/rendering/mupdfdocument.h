@@ -38,6 +38,7 @@ class MuPdfDocument : public PdfDocument
 {
     Q_DECLARE_TR_FUNCTIONS(MuPdfDocument)
 
+#if (FZ_VERSION_MAJOR < 1) || ((FZ_VERSION_MAJOR == 1) && (FZ_VERSION_MINOR < 22))
 public:
     /// Item in PDF PageLabel list. This is only used internally in
     /// MuPdfDocument::loadPageLabels().
@@ -50,6 +51,7 @@ public:
         /// Page label start number
         int start_value;
     };
+#endif // FZ_VERSION < 1.22
 
 private:
     /// List of all pages.

@@ -48,6 +48,7 @@ jobs:
         zlib1g-dev
         qtmultimedia5-dev
         qttools5-dev
+        libqt5svg5-dev
         libpoppler-qt5-dev
         libmupdf-dev
         libfreetype-dev

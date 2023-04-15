@@ -7,8 +7,8 @@ on:
   workflow_dispatch:
 
 env:
-  MUPDF_VERSION: 1.21.1
-  MUPDF_SHA256SUM: 66a43490676c7f7c2ff74067328ef13285506fcc758d365ae27ea3668bd5e620
+  MUPDF_VERSION: 1.22.0
+  MUPDF_SHA256SUM: bed78a0abf8496b30c523497292de979db633eca57e02f6cd0f3c7c042551c3e
 
 jobs:
   package:
@@ -34,6 +34,7 @@ jobs:
         libjpeg-dev
         libopenjp2-7-dev
         libjbig2dec0-dev
+        libqt5svg5-dev
         qtmultimedia5-dev
         qttools5-dev
         libpoppler-qt5-dev
