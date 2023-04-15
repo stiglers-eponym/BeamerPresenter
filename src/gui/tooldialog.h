@@ -7,18 +7,16 @@
 #include <QDialog>
 #include <QString>
 #include <QMap>
+#include <QComboBox>
+#include <QDoubleSpinBox>
+#include <QPushButton>
 #include "src/config.h"
 #include "src/drawing/tool.h"
 #include "src/drawing/drawtool.h"
 
-class Tool;
-class DrawTool;
 class TextTool;
 class PointingTool;
-class QPushButton;
 class QCheckBox;
-class QComboBox;
-class QDoubleSpinBox;
 
 /**
  * @brief DrawToolDetails: details for draw tools in a ToolDialog.
@@ -47,22 +45,29 @@ public:
     DrawToolDetails(Tool::BasicTool basic_tool, QWidget *parent = NULL, const DrawTool *oldtool = NULL);
     /// Trivial destructor.
     ~DrawToolDetails() {}
+
     /// @return brush for filling path
     QBrush brush() const;
+
     /// @return width for stroking path
-    qreal width() const;
+    qreal width() const
+    {return width_box->value();}
+
     /// @return pen style for stroking path
-    Qt::PenStyle penStyle() const;
+    Qt::PenStyle penStyle() const
+    {return pen_style_box->currentData().value<Qt::PenStyle>();}
+
     /// @return shape for draw tool
-    DrawTool::Shape shape() const;
+    DrawTool::Shape shape() const
+    {return shape_box->currentData().value<DrawTool::Shape>();}
 
 public slots:
     /// Choose color using a color dialog
     void setBrushColor();
     /// Shape changed by shape_box. Disable/enable brush.
-    void changeShape(const QString &newshape);
+    void changeShape(const int index);
     /// Set brush style, apply it to brush color button.
-    void setBrushStyle(const QString &newstyle);
+    void setBrushStyle(const int index);
 };
 
 /**
@@ -78,17 +83,22 @@ class PointingToolDetails : public QWidget
     QDoubleSpinBox *radius_box;
     /// Double input box for scale property of pointing tool.
     /// This property is only used for magnifier and eraser.
-    QDoubleSpinBox *scale_box = NULL;
+    QDoubleSpinBox *scale_box = nullptr;
 
 public:
     /// Constructor: create layout, use default values from old tool.
     PointingToolDetails(Tool::BasicTool basic_tool, QWidget *parent = NULL, const PointingTool *oldtool = NULL);
+
     /// Trivial destructor.
     ~PointingToolDetails() {}
+
     /// @return scale property of pointing tool
-    float scale() const;
+    float scale() const
+    {return scale_box ? scale_box->value() : -1.;}
+
     /// @return radius (size) of the pointing tool
-    qreal radius() const;
+    qreal radius() const
+    {return radius_box->value();}
 };
 
 /**
@@ -107,7 +117,8 @@ public:
     /// Trivial destructor.
     ~TextToolDetails() {}
     /// @return font of the text input tool
-    QFont font() const;
+    QFont font() const
+    {return font_button->font();}
 
 public slots:
     /// Select font using QFontDialog
@@ -144,8 +155,8 @@ public:
     Tool *createTool() const;
 
     /// Adjust selection possibilities according to basic tool.
-    void adaptToBasicToolStr(const QString &text)
-    {adaptToBasicTool(string_to_tool.value(text));}
+    void adaptToBasicToolIdx(const int index)
+    {adaptToBasicTool(tool_box->itemData(index).value<Tool::BasicTool>());}
 
     /// Open a new dialog to select a tool.
     /// Default settings are taken from oldtool (if it exists).

@@ -671,7 +671,7 @@ AbstractGraphicsPath *loadPath(QXmlStreamReader &reader)
     QPen pen(
                 rgba_to_color(reader.attributes().value("color").toString()),
                 basic_tool == Tool::Pen ? 1. : width_str.toDouble(),
-                string_to_pen_style.value(reader.attributes().value("style").toString(), Qt::SolidLine),
+                string_to_pen_style.value(reader.attributes().value("style").toString().toStdString(), Qt::SolidLine),
                 Qt::RoundCap,
                 Qt::RoundJoin
                 );
@@ -681,7 +681,7 @@ AbstractGraphicsPath *loadPath(QXmlStreamReader &reader)
     // allows one to add transparency to the stroke color.
     int fill_xopp = reader.attributes().value("fill").toInt();
     // "brushcolor" is a BeamerPresenter extension of the Xournal++ file format
-    Qt::BrushStyle brush_style = string_to_brush_style.value(reader.attributes().value("brushstyle").toString(), Qt::SolidPattern);
+    Qt::BrushStyle brush_style = string_to_brush_style.value(reader.attributes().value("brushstyle").toString().toStdString(), Qt::SolidPattern);
     QColor fill_color = rgba_to_color(reader.attributes().value("brushcolor").toString());
     if (!fill_color.isValid())
     {

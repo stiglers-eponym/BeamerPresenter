@@ -18,6 +18,7 @@
 class DrawTool : public Tool
 {
     Q_GADGET
+    Q_DECLARE_TR_FUNCTIONS(DrawTool)
 
 public:
     enum Shape {
@@ -121,13 +122,42 @@ public:
     {_pen.setWidthF(width);}
 };
 
-static const QMap<QString, DrawTool::Shape> string_to_shape {
-    {"freehand", DrawTool::Freehand},
-    {"rectangle", DrawTool::Rect},
-    {"ellipse", DrawTool::Ellipse},
-    {"line", DrawTool::Line},
-    {"arrow", DrawTool::Arrow},
-    {"recognize", DrawTool::Recognize},
+static const QMap<std::string, DrawTool::Shape> string_to_shape {
+    {QT_TRANSLATE_NOOP("DrawTool", "freehand"), DrawTool::Freehand},
+    {QT_TRANSLATE_NOOP("DrawTool", "rectangle"), DrawTool::Rect},
+    {QT_TRANSLATE_NOOP("DrawTool", "ellipse"), DrawTool::Ellipse},
+    {QT_TRANSLATE_NOOP("DrawTool", "line"), DrawTool::Line},
+    {QT_TRANSLATE_NOOP("DrawTool", "arrow"), DrawTool::Arrow},
+    {QT_TRANSLATE_NOOP("DrawTool", "recognize"), DrawTool::Recognize},
+};
+
+static const QMap<std::string, Qt::PenStyle> string_to_pen_style
+{
+    {QT_TRANSLATE_NOOP("DrawTool", "nopen"), Qt::NoPen},
+    {QT_TRANSLATE_NOOP("DrawTool", "solid"), Qt::SolidLine},
+    {QT_TRANSLATE_NOOP("DrawTool", "dash"), Qt::DashLine},
+    {QT_TRANSLATE_NOOP("DrawTool", "dot"), Qt::DotLine},
+    {QT_TRANSLATE_NOOP("DrawTool", "dashdot"), Qt::DashDotLine},
+    {QT_TRANSLATE_NOOP("DrawTool", "dashdotdot"), Qt::DashDotDotLine},
+};
+
+static const QMap<std::string, Qt::BrushStyle> string_to_brush_style
+{
+    {QT_TRANSLATE_NOOP("DrawTool", "NoBrush"), Qt::NoBrush},
+    {QT_TRANSLATE_NOOP("DrawTool", "SolidPattern"), Qt::SolidPattern},
+    {QT_TRANSLATE_NOOP("DrawTool", "Dense1Pattern"), Qt::Dense1Pattern},
+    {QT_TRANSLATE_NOOP("DrawTool", "Dense2Pattern"), Qt::Dense2Pattern},
+    {QT_TRANSLATE_NOOP("DrawTool", "Dense3Pattern"), Qt::Dense3Pattern},
+    {QT_TRANSLATE_NOOP("DrawTool", "Dense4Pattern"), Qt::Dense4Pattern},
+    {QT_TRANSLATE_NOOP("DrawTool", "Dense5Pattern"), Qt::Dense5Pattern},
+    {QT_TRANSLATE_NOOP("DrawTool", "Dense6Pattern"), Qt::Dense6Pattern},
+    {QT_TRANSLATE_NOOP("DrawTool", "Dense7Pattern"), Qt::Dense7Pattern},
+    {QT_TRANSLATE_NOOP("DrawTool", "HorPattern"), Qt::HorPattern},
+    {QT_TRANSLATE_NOOP("DrawTool", "VerPattern"), Qt::VerPattern},
+    {QT_TRANSLATE_NOOP("DrawTool", "CrossPattern"), Qt::CrossPattern},
+    {QT_TRANSLATE_NOOP("DrawTool", "BDiagPattern"), Qt::BDiagPattern},
+    {QT_TRANSLATE_NOOP("DrawTool", "FDiagPattern"), Qt::FDiagPattern},
+    {QT_TRANSLATE_NOOP("DrawTool", "DiagCrossPattern"), Qt::DiagCrossPattern},
 };
 
 #endif // DRAWTOOL_H

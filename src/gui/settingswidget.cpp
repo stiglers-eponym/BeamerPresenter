@@ -16,6 +16,7 @@
 #include <QScroller>
 #include <QFileDialog>
 #include <QSizePolicy>
+#include <QVariant>
 #include "src/gui/settingswidget.h"
 #include "src/gui/actionbutton.h"
 #include "src/names.h"
@@ -86,7 +87,7 @@ void SettingsWidget::initShortcuts()
     for (auto it=key_actions.cbegin(); it!=key_actions.cend(); ++it)
     {
         input_shortcut = new KeyInputLabel(it.key(), *it, shortcuts);
-        QLabel *label = new QLabel(action_to_string.value(*it, "unknown"), shortcuts);
+        QLabel *label = new QLabel(tr(action_to_string.value(*it).toLatin1().constData()), shortcuts);
         label->setToolTip(ActionButton::tr(action_to_description(*it)));
         layout->addRow(label, input_shortcut);
     }
@@ -97,7 +98,7 @@ void SettingsWidget::initShortcuts()
     for (auto it=key_tools.cbegin(); it!=key_tools.cend(); ++it)
     {
         input_shortcut = new KeyInputLabel(it.key(), *it, shortcuts);
-        QLabel *label = new QLabel(tool_to_string.value((*it)->tool(), "unknown"), shortcuts);
+        QLabel *label = new QLabel(Tool::tr(tool_to_string.value((*it)->tool(), "none").toStdString().c_str()), shortcuts);
         label->setToolTip(Tool::tr(tool_to_description((*it)->tool())));
         layout->addRow(label, input_shortcut);
     }
@@ -359,10 +360,11 @@ void SettingsWidget::initMisc()
 void SettingsWidget::appendShortcut()
 {
     QComboBox *select_menu = new QComboBox(shortcuts);
-    select_menu->addItem("tool...");
+    select_menu->setPlaceholderText(tr("tool/action"));
+    select_menu->addItem(tr("tool..."), QVariant::fromValue(Action::InvalidAction));
     for (auto it=string_to_action_map.cbegin(); it!=string_to_action_map.cend(); ++it)
-        select_menu->addItem(it.key());
-    select_menu->setCurrentText("update");
+        select_menu->addItem(tr(it.key().toLatin1().constData()), QVariant::fromValue(*it));
+    select_menu->setCurrentText("");
     select_menu->setEditable(true);
     KeyInputLabel *input_shortcut = new KeyInputLabel(0, Action::InvalidAction, shortcuts);
     QFormLayout *layout = static_cast<QFormLayout*>(shortcuts->layout());

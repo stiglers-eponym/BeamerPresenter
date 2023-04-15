@@ -8,6 +8,7 @@
 #include "src/preferences.h"
 #include "src/drawing/tool.h"
 #include "src/gui/tooldialog.h"
+#include "src/gui/settingswidget.h"
 #include "src/names.h"
 
 KeyInputLabel::KeyInputLabel(const QKeySequence init, const Action action, QWidget *parent) :
@@ -82,35 +83,41 @@ void KeyInputLabel::keyPressEvent(QKeyEvent *event)
 
 void KeyInputLabel::changeAction(const QString &text) noexcept
 {
-    if (text == "tool...")
+    const auto box = dynamic_cast<const QComboBox*>(sender());
+    if (!box)
+        return;
+    const Action newaction = box->currentData().value<Action>();
+    if (newaction == InvalidAction)
     {
+        if (text != SettingsWidget::tr("tool..."))
+        {
+            // Invalid input detected. Reset input field.
+            if (action != InvalidAction)
+                emit sendName(SettingsWidget::tr(string_to_action_map.key(action).toLatin1().constData()));
+            else if (tool)
+                emit sendName(Tool::tr(string_to_tool.key(tool->tool()).toLatin1().constData()));
+            else
+                emit sendName("");
+            return;
+        }
         if (action != InvalidAction)
             writable_preferences()->removeKeyAction(keys, action);
         Tool *newtool = ToolDialog::selectTool(tool);
         if (newtool)
         {
-            writable_preferences()->removeKeyTool(tool, true);
-            delete tool;
+            if (tool)
+            {
+                writable_preferences()->removeKeyTool(tool, true);
+                delete tool;
+            }
             tool = newtool;
             action = InvalidAction;
             writable_preferences()->replaceKeyToolShortcut(0, keys, tool);
-            emit sendName(string_to_tool.key(tool->tool()));
+            emit sendName(Tool::tr(string_to_tool.key(tool->tool()).toLatin1().constData()));
         }
     }
     else
     {
-        const Action newaction = string_to_action_map.value(text, InvalidAction);
-        if (newaction == InvalidAction)
-        {
-            // Invalid input detected. Reset input field.
-            if (action != InvalidAction)
-                emit sendName(string_to_action_map.key(action));
-            else if (tool)
-                emit sendName(string_to_tool.key(tool->tool()));
-            else
-                emit sendName("");
-            return;
-        }
         if (action != InvalidAction)
             writable_preferences()->removeKeyAction(keys, action);
         action = newaction;
@@ -119,7 +126,7 @@ void KeyInputLabel::changeAction(const QString &text) noexcept
         {
             writable_preferences()->removeKeyTool(tool, true);
             delete tool;
-            tool = NULL;
+            tool = nullptr;
         }
     }
 }

@@ -531,7 +531,7 @@ QWidget* Master::createWidget(QJsonObject &object, QWidget *parent)
             int dev;
             for (const auto &dev_obj : object.value("mouse devices").toArray())
             {
-                dev = string_to_input_device.value(dev_obj.toString());
+                dev = string_to_input_device.value(dev_obj.toString().toStdString());
                 if (dev != 0 && (dev & Tool::AnyNormalDevice) != Tool::AnyNormalDevice)
                     devices.append(dev);
             }
@@ -544,7 +544,7 @@ QWidget* Master::createWidget(QJsonObject &object, QWidget *parent)
             int dev;
             for (const auto &dev_obj : object.value("tablet devices").toArray())
             {
-                dev = string_to_input_device.value(dev_obj.toString());
+                dev = string_to_input_device.value(dev_obj.toString().toStdString());
                 if (dev != 0 && (dev & Tool::AnyNormalDevice) != Tool::AnyNormalDevice)
                     devices.append(dev);
             }

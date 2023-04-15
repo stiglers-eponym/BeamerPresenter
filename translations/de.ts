@@ -206,6 +206,117 @@
     </message>
 </context>
 <context>
+    <name>DrawTool</name>
+    <message>
+        <source>freehand</source>
+        <translation>freihand</translation>
+    </message>
+    <message>
+        <source>rectangle</source>
+        <translation>Rechteck</translation>
+    </message>
+    <message>
+        <source>ellipse</source>
+        <translation>Ellipse</translation>
+    </message>
+    <message>
+        <source>line</source>
+        <translation>Linie</translation>
+    </message>
+    <message>
+        <source>arrow</source>
+        <translation>Pfeil</translation>
+    </message>
+    <message>
+        <source>recognize</source>
+        <translation>automatisch erkennen</translation>
+    </message>
+    <message>
+        <source>nopen</source>
+        <translation>kein Stift</translation>
+    </message>
+    <message>
+        <source>solid</source>
+        <translation>durchgezogen</translation>
+    </message>
+    <message>
+        <source>dash</source>
+        <translation>gestrichelt</translation>
+    </message>
+    <message>
+        <source>dot</source>
+        <translation>gepunktet</translation>
+    </message>
+    <message>
+        <source>dashdot</source>
+        <translation>Strich-Punkt-Muster</translation>
+    </message>
+    <message>
+        <source>dashdotdot</source>
+        <translation>Strich-Doppelpunkt</translation>
+    </message>
+    <message>
+        <source>NoBrush</source>
+        <translation>Keine Füllung</translation>
+    </message>
+    <message>
+        <source>SolidPattern</source>
+        <translation>homogen füllen</translation>
+    </message>
+    <message>
+        <source>Dense1Pattern</source>
+        <translation>dichtes Muster 1</translation>
+    </message>
+    <message>
+        <source>Dense2Pattern</source>
+        <translation>dichtes Muster 2</translation>
+    </message>
+    <message>
+        <source>Dense3Pattern</source>
+        <translation>dichtes Muster 3</translation>
+    </message>
+    <message>
+        <source>Dense4Pattern</source>
+        <translation>dichtes Muster 4</translation>
+    </message>
+    <message>
+        <source>Dense5Pattern</source>
+        <translation>dichtes Muster 5</translation>
+    </message>
+    <message>
+        <source>Dense6Pattern</source>
+        <translation>dichtes Muster 6</translation>
+    </message>
+    <message>
+        <source>Dense7Pattern</source>
+        <translation>dichtes Muster 7</translation>
+    </message>
+    <message>
+        <source>HorPattern</source>
+        <translation>horizontal schraffiert</translation>
+    </message>
+    <message>
+        <source>VerPattern</source>
+        <translation>vertikal schrafftiert</translation>
+    </message>
+    <message>
+        <source>CrossPattern</source>
+        <translation>horizontal und vertical schraffiert</translation>
+    </message>
+    <message>
+        <source>BDiagPattern</source>
+        <translation>diagonal schraffiert (nach rechts-oben)</translation>
+    </message>
+    <message>
+        <source>FDiagPattern</source>
+        <translation>diagonal schraffiert (nach rechts-unten)</translation>
+    </message>
+    <message>
+        <source>DiagCrossPattern</source>
+        <translation>diagonal schraffiert (beide Richtungen)</translation>
+    </message>
+</context>
+<context>
     <name>DrawToolDetails</name>
     <message>
         <source>stroke width (in pt)</source>
@@ -535,7 +646,7 @@
     </message>
     <message>
         <source>Failed to load document.</source>
-        <translation>Laden des Dokuments fehlgeschlagen</translation>
+        <translation>Laden des Dokuments fehlgeschlagen.</translation>
     </message>
 </context>
 <context>
@@ -761,6 +872,198 @@ Konfiguriere Zwischenspeicher (Cache). Folien werden in gerendert und in einen k
         <source>misc (restart required)</source>
         <translation>Allgemein (Neustart ausstehend)</translation>
     </message>
+    <message>
+        <source>tool...</source>
+        <translation>Werkzeug...</translation>
+    </message>
+    <message>
+        <source>tool/action</source>
+        <translation>Werkzeug/Aktion</translation>
+    </message>
+    <message>
+        <source>update</source>
+        <translation>aktualisieren</translation>
+    </message>
+    <message>
+        <source>next</source>
+        <translation>nächste Folie</translation>
+    </message>
+    <message>
+        <source>previous</source>
+        <translation>vorherige Folie</translation>
+    </message>
+    <message>
+        <source>next skipping overlays</source>
+        <translation>nächste, Overlays überspringen</translation>
+    </message>
+    <message>
+        <source>previous skipping overlays</source>
+        <translation>vorherige, Overlays überspringen</translation>
+    </message>
+    <message>
+        <source>first</source>
+        <translation>erste Folie</translation>
+    </message>
+    <message>
+        <source>last</source>
+        <translation>letzte Folie</translation>
+    </message>
+    <message>
+        <source>undo</source>
+        <translation>rückgängig</translation>
+    </message>
+    <message>
+        <source>undo left</source>
+        <translation>rückgängig links</translation>
+    </message>
+    <message>
+        <source>undo right</source>
+        <translation>rückgängig rechts</translation>
+    </message>
+    <message>
+        <source>redo</source>
+        <translation>wiederherstellen</translation>
+    </message>
+    <message>
+        <source>redo left</source>
+        <translation>wiederherstellen links</translation>
+    </message>
+    <message>
+        <source>redo right</source>
+        <translation>wiederherstellen rechts</translation>
+    </message>
+    <message>
+        <source>clear</source>
+        <translation>alles löschen</translation>
+    </message>
+    <message>
+        <source>clear left</source>
+        <translation>alles löschen links</translation>
+    </message>
+    <message>
+        <source>clear right</source>
+        <translation>alles löschen rechts</translation>
+    </message>
+    <message>
+        <source>scroll down</source>
+        <translation>Ansicht nach unten</translation>
+    </message>
+    <message>
+        <source>scroll up</source>
+        <translation>Ansicht nach oben</translation>
+    </message>
+    <message>
+        <source>scroll home</source>
+        <translation>Ansicht zurücksetzen</translation>
+    </message>
+    <message>
+        <source>scroll normal</source>
+        <translation>Ansicht zurücksetzen</translation>
+    </message>
+    <message>
+        <source>scroll reset</source>
+        <translation>Ansicht zurücksetzen</translation>
+    </message>
+    <message>
+        <source>save</source>
+        <translation>speichern</translation>
+    </message>
+    <message>
+        <source>save as</source>
+        <translation>speichern als</translation>
+    </message>
+    <message>
+        <source>open</source>
+        <translation>öffnen</translation>
+    </message>
+    <message>
+        <source>open unsafe</source>
+        <translation>öffnen ohne Bereinigen</translation>
+    </message>
+    <message>
+        <source>copy</source>
+        <translation>kopieren</translation>
+    </message>
+    <message>
+        <source>cut</source>
+        <translation>ausschneiden</translation>
+    </message>
+    <message>
+        <source>paste</source>
+        <translation>einfügen</translation>
+    </message>
+    <message>
+        <source>to foreground</source>
+        <translation>in den Vordergrund</translation>
+    </message>
+    <message>
+        <source>to background</source>
+        <translation>in den Hintergrund</translation>
+    </message>
+    <message>
+        <source>delete</source>
+        <translation>löschen</translation>
+    </message>
+    <message>
+        <source>select all</source>
+        <translation>alles auswählen</translation>
+    </message>
+    <message>
+        <source>clear selection</source>
+        <translation>Auswahl aufheben</translation>
+    </message>
+    <message>
+        <source>start timer</source>
+        <translation>Stoppuhr starten</translation>
+    </message>
+    <message>
+        <source>stop timer</source>
+        <translation>Stoppuhr anhalten</translation>
+    </message>
+    <message>
+        <source>toggle timer</source>
+        <translation>Stoppuhr starten/stoppen</translation>
+    </message>
+    <message>
+        <source>reset timer</source>
+        <translation>Stoppuhr zurücksetzen</translation>
+    </message>
+    <message>
+        <source>play media</source>
+        <translation>Medien abspielen</translation>
+    </message>
+    <message>
+        <source>stop media</source>
+        <translation>Medien anhalten</translation>
+    </message>
+    <message>
+        <source>pause media</source>
+        <translation>Medien pausieren/fortsetzen</translation>
+    </message>
+    <message>
+        <source>mute</source>
+        <translation>stumm schalten</translation>
+    </message>
+    <message>
+        <source>unmute</source>
+        <translation>entstummen</translation>
+    </message>
+    <message>
+        <source>reload</source>
+        <translation>neu laden</translation>
+    </message>
+    <message>
+        <source>fullscreen</source>
+        <translation>Vollbild</translation>
+    </message>
+    <message>
+        <source>quit</source>
+        <translation>verlassen</translation>
+    </message>
+    <message>
+        <source>quit unsafe</source>
+        <translation>verlassen ohne Warnungen</translation>
+    </message>
 </context>
 <context>
     <name>ShapeSelectionButton</name>
@@ -903,6 +1206,118 @@ Konfiguriere Zwischenspeicher (Cache). Folien werden in gerendert und in einen k
     <message>
         <source>Select objects inside a drawn shape</source>
         <translation>Objekte innerhalb einer gemalten Form auswählen</translation>
+    </message>
+    <message>
+        <source>none</source>
+        <translation>kein Werkzeug</translation>
+    </message>
+    <message>
+        <source>pen</source>
+        <translation>Stift</translation>
+    </message>
+    <message>
+        <source>fixed width pen</source>
+        <translation>Stift mit fester Stärke</translation>
+    </message>
+    <message>
+        <source>eraser</source>
+        <translation>Radiergummie</translation>
+    </message>
+    <message>
+        <source>highlighter</source>
+        <translation>Textmarker</translation>
+    </message>
+    <message>
+        <source>torch</source>
+        <translation>Taschenlampe</translation>
+    </message>
+    <message>
+        <source>magnifier</source>
+        <translation>Lupe</translation>
+    </message>
+    <message>
+        <source>text</source>
+        <translation>Text</translation>
+    </message>
+    <message>
+        <source>click select</source>
+        <translation>Klick-Auswahl</translation>
+    </message>
+    <message>
+        <source>rectangle select</source>
+        <translation>Rechteck-Auswahl</translation>
+    </message>
+    <message>
+        <source>freehand select</source>
+        <translation>Freihand-Auswahl</translation>
+    </message>
+    <message>
+        <source>touch</source>
+        <translation>Touchscreen-Eingabe</translation>
+    </message>
+    <message>
+        <source>tablet pen</source>
+        <translation>Tablet-Stift</translation>
+    </message>
+    <message>
+        <source>tablet</source>
+        <translation>Tablet</translation>
+    </message>
+    <message>
+        <source>tablet eraser</source>
+        <translation>Tablet-Radierer</translation>
+    </message>
+    <message>
+        <source>tablet hover</source>
+        <translation>Tablet-Zeiger</translation>
+    </message>
+    <message>
+        <source>tablet cursor</source>
+        <translation>Tablet-Cursor</translation>
+    </message>
+    <message>
+        <source>tablet mod</source>
+        <translation>Tablet mod</translation>
+    </message>
+    <message>
+        <source>tablet other</source>
+        <translation>Tablet sonstige</translation>
+    </message>
+    <message>
+        <source>tablet all</source>
+        <translation>Tablet alle</translation>
+    </message>
+    <message>
+        <source>all</source>
+        <translation>alle</translation>
+    </message>
+    <message>
+        <source>all+</source>
+        <translation>alle+</translation>
+    </message>
+    <message>
+        <source>all++</source>
+        <translation>alle++</translation>
+    </message>
+    <message>
+        <source>left button</source>
+        <translation>linke Maustaste</translation>
+    </message>
+    <message>
+        <source>mouse</source>
+        <translation>Maus</translation>
+    </message>
+    <message>
+        <source>right button</source>
+        <translation>rechte Maustaste</translation>
+    </message>
+    <message>
+        <source>middle button</source>
+        <translation>mittlere Maustaste</translation>
+    </message>
+    <message>
+        <source>no button</source>
+        <translation>keine Maustaste</translation>
     </message>
 </context>
 <context>

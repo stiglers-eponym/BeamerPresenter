@@ -26,10 +26,10 @@ Tool *createTool(const QJsonObject &obj, const int default_device)
     if (dev_obj.isDouble())
         device = dev_obj.toInt();
     else if (dev_obj.isString())
-        device |= string_to_input_device.value(dev_obj.toString());
+        device |= string_to_input_device.value(dev_obj.toString().toStdString());
     else if (dev_obj.isArray())
         for (const auto &dev : static_cast<const QJsonArray>(obj.value("device").toArray()))
-            device |= string_to_input_device.value(dev.toString());
+            device |= string_to_input_device.value(dev.toString().toStdString());
     debug_msg(DebugSettings, "device:" << device);
     if (device == 0)
         device = default_device;
@@ -44,10 +44,10 @@ Tool *createTool(const QJsonObject &obj, const int default_device)
         const float width = obj.value("width").toDouble(base_tool == DrawTool::Highlighter ? 20. : 2.);
         if (width <= 0.)
             return nullptr;
-        const Qt::PenStyle pen_style = string_to_pen_style.value(obj.value("style").toString(), Qt::SolidLine);
+        const Qt::PenStyle pen_style = string_to_pen_style.value(obj.value("style").toString().toStdString(), Qt::SolidLine);
         const QColor brush_color(obj.value("fill").toString());
-        const Qt::BrushStyle brush_style = string_to_brush_style.value(obj.value("brush").toString(), brush_color.isValid() ? Qt::SolidPattern : Qt::NoBrush);
-        const DrawTool::Shape shape = string_to_shape.value(obj.value("shape").toString(), DrawTool::Freehand);
+        const Qt::BrushStyle brush_style = string_to_brush_style.value(obj.value("brush").toString().toStdString(), brush_color.isValid() ? Qt::SolidPattern : Qt::NoBrush);
+        const DrawTool::Shape shape = string_to_shape.value(obj.value("shape").toString().toStdString(), DrawTool::Freehand);
         debug_msg(DebugSettings, "creating pen/highlighter" << base_tool << color << width);
         tool = new DrawTool(
                     base_tool,
@@ -146,10 +146,10 @@ void toolToJson(const Tool *tool, QJsonObject &obj)
         {
             obj.insert("fill", drawtool->brush().color().name());
             if (drawtool->brush().style() != Qt::SolidPattern)
-                obj.insert("brush", string_to_brush_style.key(drawtool->brush().style()));
+                obj.insert("brush", string_to_brush_style.key(drawtool->brush().style()).c_str());
         }
-        obj.insert("style", string_to_pen_style.key(drawtool->pen().style()));
-        obj.insert("shape", string_to_shape.key(drawtool->shape(), "freehand"));
+        obj.insert("style", string_to_pen_style.key(drawtool->pen().style()).c_str());
+        obj.insert("shape", string_to_shape.key(drawtool->shape(), "freehand").c_str());
     }
     else if (tool->tool() & Tool::AnyPointingTool)
     {
@@ -372,7 +372,7 @@ void Preferences::loadSettings()
         current_tools.clear();
         QList<Tool*> tools;
         for (const auto& dev : allKeys)
-            parseActionsTools(settings.value(dev), actions, tools, string_to_input_device.value(dev, Tool::AnyNormalDevice));
+            parseActionsTools(settings.value(dev), actions, tools, string_to_input_device.value(dev.toStdString(), Tool::AnyNormalDevice));
         actions.clear();
         for (const auto tool : tools)
             current_tools.insert(tool->tool(), tool);

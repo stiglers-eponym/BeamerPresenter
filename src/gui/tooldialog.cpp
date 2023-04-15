@@ -32,29 +32,43 @@ DrawToolDetails::DrawToolDetails(Tool::BasicTool basic_tool, QWidget *parent, co
 
     // Shape selection
     for (auto it=string_to_shape.cbegin(); it!=string_to_shape.cend(); ++it)
-        shape_box->addItem(it.key(), it.value());
+        shape_box->addItem(DrawTool::tr(it.key().c_str()), QVariant::fromValue(*it));
     layout->addRow(tr("shape"), shape_box);
-    if (oldtool)
-        shape_box->setCurrentText(string_to_shape.key(oldtool->shape()));
-    else
-        shape_box->setCurrentText("freehand");
-    connect(shape_box, &QComboBox::currentTextChanged, this, &DrawToolDetails::changeShape);
+    shape_box->setCurrentIndex(
+        shape_box->findData(
+            QVariant::fromValue(oldtool ? oldtool->shape() : DrawTool::Freehand)
+            )
+        );
+    connect(shape_box, &QComboBox::currentIndexChanged, this, &DrawToolDetails::changeShape);
 
     // Width selection
     layout->addRow(tr("stroke width (in pt)"), width_box);
     if (oldtool && oldtool->tool() == basic_tool)
         width_box->setValue(oldtool->width());
     else
-        width_box->setValue(default_widths.value(basic_tool, 0.));
+        switch (basic_tool)
+        {
+        case Tool::Pen:
+        case Tool::FixedWidthPen:
+            width_box->setValue(2.);
+            break;
+        case Tool::Highlighter:
+            width_box->setValue(10.);
+            break;
+        default:
+            width_box->setValue(0.);
+            break;
+        }
 
     // Pen style selection
     for (auto it=string_to_pen_style.cbegin(); it!=string_to_pen_style.cend(); ++it)
-        pen_style_box->addItem(it.key(), (int)*it);
+        pen_style_box->addItem(DrawTool::tr(it.key().c_str()), QVariant::fromValue(*it));
     layout->addRow(tr("pen style"), pen_style_box);
-    if (oldtool)
-        pen_style_box->setCurrentText(string_to_pen_style.key(oldtool->pen().style()));
-    else
-        pen_style_box->setCurrentText("solid");
+    pen_style_box->setCurrentIndex(
+        pen_style_box->findData(
+            QVariant::fromValue(oldtool ? oldtool->pen().style() : Qt::PenStyle::SolidLine)
+            )
+        );
 
     // Fill checkbox
     layout->addRow(tr("fill"), fill_checkbox);
@@ -63,12 +77,14 @@ DrawToolDetails::DrawToolDetails(Tool::BasicTool basic_tool, QWidget *parent, co
     // Brush color selection
     if (oldtool) {
         QPalette palette = brush_color_button->palette();
+        const QColor color = oldtool->color();
         if (oldtool->brush().style() == Qt::NoBrush)
-            palette.setColor(QPalette::Button, oldtool->color());
+            palette.setColor(QPalette::Button, color);
         else
             palette.setBrush(QPalette::Button, oldtool->brush());
         brush_color_button->setPalette(palette);
-        brush_color_button->setText(palette.color(QPalette::Button).name());
+        brush_color_button->setStyleSheet("background-color:" + color.name(QColor::HexArgb) + ";");
+        brush_color_button->setText(color.name(QColor::HexArgb));
     }
     else
         brush_color_button->setText(tr("select color"));
@@ -77,31 +93,17 @@ DrawToolDetails::DrawToolDetails(Tool::BasicTool basic_tool, QWidget *parent, co
 
     // Brush style selection
     for (auto it=string_to_brush_style.cbegin(); it!=string_to_brush_style.cend(); ++it)
-        brush_style_box->addItem(it.key(), (int)*it);
+        brush_style_box->addItem(DrawTool::tr(it.key().c_str()), QVariant::fromValue(*it));
     layout->addRow(tr("brush style"), brush_style_box);
-    if (oldtool)
-        brush_style_box->setCurrentText(string_to_brush_style.key(oldtool->brush().style()));
-    else
-        brush_style_box->setCurrentText("SolidPattern");
-    connect(brush_style_box, &QComboBox::currentTextChanged, this, &DrawToolDetails::setBrushStyle);
+    brush_style_box->setCurrentIndex(
+        brush_style_box->findData(
+            QVariant::fromValue(oldtool ? oldtool->brush().style() : Qt::SolidPattern)
+            )
+        );
+    connect(brush_style_box, &QComboBox::currentIndexChanged, this, &DrawToolDetails::setBrushStyle);
 
-    changeShape(shape_box->currentText());
+    changeShape(shape_box->currentIndex());
     setLayout(layout);
-}
-
-qreal DrawToolDetails::width() const
-{
-    return width_box->value();
-}
-
-Qt::PenStyle DrawToolDetails::penStyle() const
-{
-    return string_to_pen_style.value(pen_style_box->currentText(), Qt::SolidLine);
-}
-
-DrawTool::Shape DrawToolDetails::shape() const
-{
-    return string_to_shape.value(shape_box->currentText(), DrawTool::Freehand);
 }
 
 void DrawToolDetails::setBrushColor()
@@ -115,9 +117,12 @@ void DrawToolDetails::setBrushColor()
     fill_checkbox->setCheckState(Qt::Checked);
     button_palette.setBrush(QPalette::Button, brush);
     brush_color_button->setPalette(button_palette);
-    brush_color_button->setText(color.name());
-    if (brush_style_box->currentText() == "NoBrush")
-        brush_style_box->setCurrentText("SolidPattern");
+    brush_color_button->setStyleSheet("background-color:" + color.name(QColor::HexArgb) + ";");
+    brush_color_button->setText(color.name(QColor::HexArgb));
+    if (brush_style_box->currentData().value<Qt::BrushStyle>() == Qt::NoBrush)
+        brush_style_box->setCurrentIndex(
+                brush_style_box->findData(QVariant::fromValue(Qt::SolidPattern))
+            );
 }
 
 QBrush DrawToolDetails::brush() const
@@ -128,9 +133,10 @@ QBrush DrawToolDetails::brush() const
     return brush;
 }
 
-void DrawToolDetails::changeShape(const QString &newshape)
+void DrawToolDetails::changeShape(const int index)
 {
-    const bool disable = newshape == "arrow" || newshape == "line";
+    const DrawTool::Shape newshape = shape_box->itemData(index).value<DrawTool::Shape>();
+    const bool disable = newshape == DrawTool::Arrow || newshape == DrawTool::Line;
     brush_color_button->setDisabled(disable);
     brush_style_box->setDisabled(disable);
     if (disable)
@@ -138,28 +144,15 @@ void DrawToolDetails::changeShape(const QString &newshape)
     fill_checkbox->setDisabled(disable);
 }
 
-void DrawToolDetails::setBrushStyle(const QString &newstyle)
+void DrawToolDetails::setBrushStyle(const int index)
 {
     QPalette button_palette = brush_color_button->palette();
     QBrush brush = button_palette.brush(QPalette::Button);
-    brush.setStyle(string_to_brush_style.value(newstyle, Qt::SolidPattern));
+    brush.setStyle(brush_style_box->itemData(index).value<Qt::BrushStyle>());
     button_palette.setBrush(QPalette::Button, brush);
     brush_color_button->setPalette(button_palette);
     fill_checkbox->setCheckState(brush.style() == Qt::NoBrush ? Qt::Unchecked : Qt::Checked);
 }
-
-const QMap<Tool::BasicTool, qreal> DrawToolDetails::default_widths = {
-        {Tool::Pen, 2.},
-        {Tool::FixedWidthPen, 2.},
-        {Tool::Highlighter, 10.},
-    };
-
-const QMap<Tool::BasicTool, qreal> PointingToolDetails::default_sizes = {
-        {Tool::Pointer, 8.},
-        {Tool::Eraser, 20.},
-        {Tool::Torch, 80.},
-        {Tool::Magnifier, 100.},
-    };
 
 PointingToolDetails::PointingToolDetails(Tool::BasicTool basic_tool, QWidget *parent, const PointingTool *oldtool) :
     QWidget(parent),
@@ -170,7 +163,24 @@ PointingToolDetails::PointingToolDetails(Tool::BasicTool basic_tool, QWidget *pa
     if (oldtool && oldtool->tool() == basic_tool)
         radius_box->setValue(oldtool->size());
     else
-        radius_box->setValue(default_sizes.value(basic_tool, 0.));
+        switch (basic_tool)
+        {
+        case Tool::Pointer:
+            radius_box->setValue(8.);
+            break;
+        case Tool::Eraser:
+            radius_box->setValue(20.);
+            break;
+        case Tool::Torch:
+            radius_box->setValue(80.);
+            break;
+        case Tool::Magnifier:
+            radius_box->setValue(100.);
+            break;
+        default:
+            radius_box->setValue(0.);
+            break;
+        }
     if (basic_tool == Tool::Magnifier)
     {
         scale_box = new QDoubleSpinBox(this);
@@ -190,16 +200,6 @@ PointingToolDetails::PointingToolDetails(Tool::BasicTool basic_tool, QWidget *pa
     setLayout(layout);
 }
 
-float PointingToolDetails::scale() const
-{
-    return scale_box ? scale_box->value() : -1.;
-}
-
-qreal PointingToolDetails::radius() const
-{
-    return radius_box->value();
-}
-
 TextToolDetails::TextToolDetails(QWidget *parent, const TextTool *oldtool) :
     QWidget(parent),
     font_button(new QPushButton("font", this))
@@ -213,11 +213,6 @@ TextToolDetails::TextToolDetails(QWidget *parent, const TextTool *oldtool) :
         font_button->setFont(oldtool->font());
     }
     connect(font_button, &QPushButton::clicked, this, &TextToolDetails::selectFont);
-}
-
-QFont TextToolDetails::font() const
-{
-    return font_button->font();
 }
 
 void TextToolDetails::selectFont()
@@ -238,9 +233,11 @@ ToolDialog::ToolDialog(QWidget *parent) :
 
     // Basic tool
     for (auto it = string_to_tool.cbegin(); it != string_to_tool.cend(); ++it)
-        tool_box->addItem(it.key());
-    connect(tool_box, &QComboBox::currentTextChanged, this, &ToolDialog::adaptToBasicToolStr);
-    tool_box->setCurrentText("invalid");
+        tool_box->addItem(Tool::tr(it.key().toLatin1().constData()), QVariant::fromValue(*it));
+    connect(tool_box, &QComboBox::currentIndexChanged, this, &ToolDialog::adaptToBasicToolIdx);
+    tool_box->setCurrentIndex(
+        tool_box->findData(QVariant::fromValue(DrawTool::InvalidTool))
+        );
     layout->addRow(tr("Tool:"), tool_box);
 
     // Color
@@ -254,7 +251,7 @@ ToolDialog::ToolDialog(QWidget *parent) :
         QVBoxLayout *device_layout = new QVBoxLayout();
         for (auto it = string_to_input_device.cbegin(); it != string_to_input_device.cend(); ++it)
         {
-            QCheckBox *button = new QCheckBox(it.key(), device_group);
+            QCheckBox *button = new QCheckBox(Tool::tr(it.key().c_str()), device_group);
             device_layout->addWidget(button);
             device_buttons.insert(*it, button);
         }
@@ -273,7 +270,7 @@ ToolDialog::ToolDialog(QWidget *parent) :
 void ToolDialog::adaptToBasicTool(const Tool::BasicTool basic_tool)
 {
     delete tool_specific;
-    tool_specific = NULL;
+    tool_specific = nullptr;
     switch (basic_tool)
     {
     case Tool::TextInputTool:
@@ -312,14 +309,16 @@ void ToolDialog::setDefault(const Tool *tool)
 {
     if (!tool)
         return;
-    tool_box->setCurrentText(string_to_tool.key(tool->tool()));
+    tool_box->setCurrentIndex(
+        tool_box->findData(QVariant::fromValue(tool->tool()))
+        );
     for (auto it = device_buttons.cbegin(); it != device_buttons.cend(); ++it)
         (*it)->setChecked((it.key() & tool->device()) == it.key());
     QPalette button_palette = color_button->palette();
     QColor color;
 
     delete tool_specific;
-    tool_specific = NULL;
+    tool_specific = nullptr;
     switch (tool->tool())
     {
     case Tool::TextInputTool:
@@ -354,17 +353,18 @@ void ToolDialog::setDefault(const Tool *tool)
     if (tool_specific)
         static_cast<QFormLayout*>(layout())->insertRow(3, tool_specific);
 
-    color_button->setText(color.name());
+    color_button->setText(color.name(QColor::HexArgb));
     button_palette.setColor(QPalette::Button, color);
     color_button->setPalette(button_palette);
+    color_button->setStyleSheet("background-color:" + color.name(QColor::HexArgb) + ";");
 }
 
 Tool *ToolDialog::createTool() const
 {
-    const Tool::BasicTool basic_tool = string_to_tool.value(tool_box->currentText());
+    const Tool::BasicTool basic_tool = tool_box->currentData().value<Tool::BasicTool>();
     debug_verbose(DebugDrawing, "Dialog selected basic tool" << basic_tool);
     if (basic_tool == Tool::InvalidTool)
-        return NULL;
+        return nullptr;
     int device = 0;
     for (auto it = device_buttons.cbegin(); it != device_buttons.cend(); ++it)
         if ((*it)->isChecked())
@@ -374,10 +374,7 @@ Tool *ToolDialog::createTool() const
     switch (basic_tool)
     {
     case Tool::TextInputTool:
-    {
-        TextToolDetails *details = static_cast<TextToolDetails*>(tool_specific);
-        return new TextTool(details->font(), color, device);
-    }
+        return new TextTool(static_cast<TextToolDetails*>(tool_specific)->font(), color, device);
     case Tool::Pen:
     case Tool::Highlighter:
     case Tool::FixedWidthPen:
@@ -430,5 +427,6 @@ void ToolDialog::setColor()
         return;
     button_palette.setColor(QPalette::Button, color);
     color_button->setPalette(button_palette);
-    color_button->setText(color.name());
+    color_button->setText(color.name(QColor::HexArgb));
+    color_button->setStyleSheet("background-color:" + color.name(QColor::HexArgb) + ";");
 }

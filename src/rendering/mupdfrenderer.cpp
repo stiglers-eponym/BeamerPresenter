@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2022 Valentin Bruch <software@vbruch.eu>
+// SPDX-FileCopyrightText: 2023 Valentin Bruch <software@vbruch.eu>
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 #include <QByteArray>
@@ -53,7 +53,7 @@ fz_pixmap *MuPdfRenderer::renderFzPixmap(const int page, const qreal resolution,
     fz_try(ctx)
     {
         // Create the pixmap and fill it with white background.
-#if (FZ_VERSION_MAJOR >= 1) && (FZ_VERSION_MINOR > 12)
+#if (FZ_VERSION_MAJOR > 1) || ((FZ_VERSION_MAJOR == 1) && (FZ_VERSION_MINOR >= 13))
         pixmap = fz_new_pixmap_with_bbox(ctx, fz_device_rgb(ctx), fz_round_rect(bbox), NULL, 0);
 #else
         pixmap = fz_new_pixmap_with_bbox(ctx, fz_device_rgb(ctx), fz_irect_from_rect(bbox), NULL, 0);
@@ -118,7 +118,7 @@ const QPixmap MuPdfRenderer::renderPixmap(const int page, const qreal resolution
     }
 
     // Load the pixmap from buffer in Qt.
-#if (FZ_VERSION_MAJOR >= 1) && (FZ_VERSION_MINOR >= 17)
+#if (FZ_VERSION_MAJOR > 1) || ((FZ_VERSION_MAJOR == 1) && (FZ_VERSION_MINOR >= 17))
     if (!buffer || !qpixmap.loadFromData(buffer->data, buffer->len, "PNM"))
         qWarning() << "Failed to load PNM image from buffer";
 #else
@@ -157,7 +157,7 @@ const PngPixmap * MuPdfRenderer::renderPng(const int page, const qreal resolutio
     }
 
     // Convert the buffer data to QByteArray.
-#if (FZ_VERSION_MAJOR >= 1) && (FZ_VERSION_MINOR >= 17)
+#if (FZ_VERSION_MAJOR > 1) || ((FZ_VERSION_MAJOR == 1) && (FZ_VERSION_MINOR >= 17))
     const QByteArray *data = buffer ? new QByteArray(reinterpret_cast<const char*>(buffer->data), buffer->len) : nullptr;
 #else
     const QByteArray *data = nullptr;
