@@ -29,7 +29,7 @@ ToolSelectorWidget::ToolSelectorWidget(QWidget *parent) : QWidget(parent)
 QSize ToolSelectorWidget::sizeHint() const noexcept
 {
     QGridLayout *gridlayout = static_cast<QGridLayout*>(layout());
-    return {gridlayout->columnCount()*22, gridlayout->rowCount()*20};
+    return {gridlayout->columnCount()*20, gridlayout->rowCount()*20};
 }
 
 void ToolSelectorWidget::addButtons(const QJsonArray &full_array)
@@ -125,23 +125,4 @@ void ToolSelectorWidget::initializeToolPropertyButton(const QString &type, const
         connect(this, &ToolSelectorWidget::updateIcons, button, &ToolPropertyButton::updateIcon, Qt::QueuedConnection);
         connect(button, &ToolPropertyButton::sendUpdatedTool, this, &ToolSelectorWidget::updatedTool);
     }
-}
-
-void ToolSelectorWidget::resizeEvent(QResizeEvent *event)
-{
-    QGridLayout *grid_layout = static_cast<QGridLayout*>(layout());
-    const QSize &newsize = event->size();
-    int minsize = (newsize.height() - grid_layout->verticalSpacing()) / grid_layout->rowCount() - grid_layout->verticalSpacing() - 2,
-        i = 0;
-    if (minsize > 10)
-        while (i<grid_layout->rowCount())
-            grid_layout->setRowMinimumHeight(i++, minsize);
-    const int minwidth = (newsize.width() - grid_layout->horizontalSpacing()) / grid_layout->columnCount() - grid_layout->horizontalSpacing() - 6;
-    if (minsize > 10)
-    {
-        i = 0;
-        while (i<grid_layout->columnCount())
-            grid_layout->setColumnMinimumWidth(i++, minwidth);
-    }
-    emit updateIcons();
 }

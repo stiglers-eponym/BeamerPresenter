@@ -47,7 +47,8 @@ public:
 
 protected:
     /// ensure equal row height when resizing.
-    void resizeEvent(QResizeEvent *event) override;
+    void resizeEvent(QResizeEvent *event) override
+    {emit updateIcons();}
 
 signals:
     /// Send out action to master.
