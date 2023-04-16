@@ -74,12 +74,12 @@ BasicGraphicsPath *ShapeRecognizer::recognize()
 BasicGraphicsPath *ShapeRecognizer::recognizeLine() const
 {
     if (path->size() < 3 || moments.s == 0.)
-        return NULL;
+        return nullptr;
     const Line line = moments.line();
     const qreal margin = path->_tool.width();
     debug_msg(DebugDrawing, "recognize line:" << line.bx << line.by << line.angle << line.loss);
     if (line.loss > preferences()->line_sensitivity)
-        return NULL;
+        return nullptr;
 
     const qreal
             n = moments.sy*moments.sy - moments.s*moments.syy + moments.s*moments.sxx - moments.sx*moments.sx,
@@ -138,6 +138,7 @@ BasicGraphicsPath *ShapeRecognizer::recognizeLine() const
     else
         pathitem = new BasicGraphicsPath(path->_tool, coordinates, boundingRect);
     pathitem->setPos(reference + path->pos());
+    pathitem->setZValue(path->zValue());
     return pathitem;
 }
 
@@ -221,10 +222,10 @@ BasicGraphicsPath *ShapeRecognizer::recognizeRect() const
 {
     // Assert that path contains exactly 4 line segments.
     if (line_segments.size() != 4)
-        return NULL;
+        return nullptr;
     // Check if the path is approximately closed.
     if (distance_squared(path->lastPoint() - path->firstPoint()) > preferences()->rect_closing_tolerance*moments.var())
-        return NULL;
+        return nullptr;
     // Compute angle of the rectangle from the 4 segments.
     const qreal total_weight = line_segments[0].weight + line_segments[1].weight + line_segments[2].weight + line_segments[3].weight;
     qreal angle = line_segments[0].angle*line_segments[0].weight + line_segments[2].angle*line_segments[2].weight;
@@ -243,7 +244,7 @@ BasicGraphicsPath *ShapeRecognizer::recognizeRect() const
             || std::abs(line_segments[2].angle - angle)*line_segments[2].weight > angle_tolerance
             || (std::abs(line_segments[1].angle - M_PI/2 - angle)*line_segments[1].weight > angle_tolerance && std::abs(line_segments[1].angle + M_PI/2 - angle)*line_segments[1].weight > angle_tolerance)
             || (std::abs(line_segments[3].angle - M_PI/2 - angle)*line_segments[3].weight > angle_tolerance && std::abs(line_segments[3].angle + M_PI/2 - angle)*line_segments[3].weight > angle_tolerance))
-        return NULL;
+        return nullptr;
     // Snap angle to horizontal/vertical orientation.
     if (std::abs(angle) < preferences()->snap_angle || M_PI - std::abs(angle) < preferences()->snap_angle)
         angle = 0;
@@ -309,6 +310,7 @@ BasicGraphicsPath *ShapeRecognizer::recognizeRect() const
     else
         pathitem = new BasicGraphicsPath(path->_tool, coordinates, boundingRect);
     pathitem->setPos(reference + path->scenePos());
+    pathitem->setZValue(path->zValue());
     return pathitem;
 }
 
@@ -380,5 +382,6 @@ BasicGraphicsPath *ShapeRecognizer::recognizeEllipse() const
     else
         pathitem = new BasicGraphicsPath(path->_tool, coordinates, boundingRect);
     pathitem->setPos(QPointF(mx, my) + path->pos());
+    pathitem->setZValue(path->zValue());
     return pathitem;
 }

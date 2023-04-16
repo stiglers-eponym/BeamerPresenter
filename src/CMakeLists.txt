@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2022 Valentin Bruch <software@vbruch.eu>
+# SPDX-FileCopyrightText: 2023 Valentin Bruch <software@vbruch.eu>
 # SPDX-License-Identifier: GPL-3.0-or-later OR AGPL-3.0-or-later
 
 configure_file(config.h.in config.h @ONLY)
@@ -53,6 +53,7 @@ add_executable(beamerpresenter
         gui/toolselectorbutton.h gui/toolselectorbutton.cpp
         gui/toolwidgetbutton.h gui/toolwidgetbutton.cpp
         gui/tooldialog.h gui/tooldialog.cpp
+        gui/tooliconengine.h gui/tooliconengine.cpp
         gui/toolselectorwidget.h gui/toolselectorwidget.cpp
         gui/toolpropertybutton.h gui/toolpropertybutton.cpp
         gui/shapeselectionbutton.h gui/shapeselectionbutton.cpp

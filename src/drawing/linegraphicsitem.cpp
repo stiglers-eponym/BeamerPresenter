@@ -31,6 +31,7 @@ BasicGraphicsPath *LineGraphicsItem::toPath() const noexcept
     newrect.translate(-line().center());
     BasicGraphicsPath *path = new BasicGraphicsPath(tool, coordinates, newrect);
     path->setPos(mapToScene(line().center()));
+    path->setZValue(zValue());
     return path;
 }
 

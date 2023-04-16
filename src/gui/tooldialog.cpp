@@ -12,7 +12,6 @@
 #include <QVBoxLayout>
 #include "src/gui/tooldialog.h"
 #include "src/log.h"
-#include "src/names.h"
 #include "src/enumerates.h"
 #include "src/drawing/drawtool.h"
 #include "src/drawing/texttool.h"
@@ -80,14 +79,16 @@ DrawToolDetails::DrawToolDetails(Tool::BasicTool basic_tool, QWidget *parent, co
 
     // Brush color selection
     if (oldtool) {
+        QColor color = oldtool->brush().color();
+        if (!color.isValid())
+            color = oldtool->color();
+        brush_color_button->setStyleSheet("background-color:" + color.name(QColor::HexArgb) + ";");
         QPalette palette = brush_color_button->palette();
-        const QColor color = oldtool->color();
         if (oldtool->brush().style() == Qt::NoBrush)
             palette.setColor(QPalette::Button, color);
         else
             palette.setBrush(QPalette::Button, oldtool->brush());
         brush_color_button->setPalette(palette);
-        brush_color_button->setStyleSheet("background-color:" + color.name(QColor::HexArgb) + ";");
         brush_color_button->setText(color.name(QColor::HexArgb));
     }
     else
@@ -120,12 +121,12 @@ void DrawToolDetails::setBrushColor()
     const QColor color = QColorDialog::getColor(button_palette.button().color(), this, tr("Fill color"), QColorDialog::ShowAlphaChannel);
     if (!color.isValid())
         return;
+    brush_color_button->setStyleSheet("background-color:" + color.name(QColor::HexArgb) + ";");
     QBrush brush = button_palette.brush(QPalette::Button);
     brush.setColor(color);
     fill_checkbox->setCheckState(Qt::Checked);
     button_palette.setBrush(QPalette::Button, brush);
     brush_color_button->setPalette(button_palette);
-    brush_color_button->setStyleSheet("background-color:" + color.name(QColor::HexArgb) + ";");
     brush_color_button->setText(color.name(QColor::HexArgb));
     if (brush_style_box->currentData().value<Qt::BrushStyle>() == Qt::NoBrush)
         brush_style_box->setCurrentIndex(
@@ -300,7 +301,7 @@ void ToolDialog::adaptToBasicTool(const Tool::BasicTool basic_tool)
         tool_specific = new PointingToolDetails(basic_tool, this);
         break;
     default:
-        break;
+        return;
     }
     if (tool_specific)
         static_cast<QFormLayout*>(layout())->insertRow(3, tool_specific);
@@ -314,7 +315,7 @@ Tool *ToolDialog::selectTool(const Tool *oldtool)
     if (dialog.exec() == QDialog::Accepted)
         return dialog.createTool();
     else
-        return NULL;
+        return nullptr;
 }
 
 void ToolDialog::setDefault(const Tool *tool)

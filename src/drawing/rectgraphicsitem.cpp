@@ -71,5 +71,6 @@ BasicGraphicsPath *RectGraphicsItem::toPath() const
     newrect.translate(-newrect.center());
     BasicGraphicsPath *path = new BasicGraphicsPath(tool, coordinates, newrect);
     path->setPos(mapToScene((left+right)/2, (top+bottom)/2));
+    path->setZValue(zValue());
     return path;
 }

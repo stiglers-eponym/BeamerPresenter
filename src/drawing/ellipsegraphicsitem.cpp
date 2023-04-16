@@ -65,5 +65,6 @@ BasicGraphicsPath *EllipseGraphicsItem::toPath() const
     coordinates[segments] = {0, ry};
     BasicGraphicsPath *path = new BasicGraphicsPath(tool, coordinates, QRectF(-rx_plus_pen, -ry_plus_pen, 2*rx_plus_pen, 2*ry_plus_pen));
     path->setPos(mapToScene(cx, cy));
+    path->setZValue(zValue());
     return path;
 }

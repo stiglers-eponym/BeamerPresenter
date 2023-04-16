@@ -12,6 +12,7 @@
 #include <QColor>
 #include "src/gui/colorselectionbutton.h"
 #include "src/gui/toolbutton.h"
+#include "src/gui/tooliconengine.h"
 #include "src/drawing/tool.h"
 #include "src/preferences.h"
 
@@ -24,11 +25,13 @@ ColorSelectionButton::ColorSelectionButton(const QJsonArray &array, QWidget *par
     for (const auto &item : array)
     {
         color = QColor(item.toString());
-        const QImage image = fancyIcon(preferences()->icon_path + "/tools/color.svg", rendersize, color);
-        if (!image.isNull())
-            addItem(QIcon(QPixmap::fromImage(image)), "", color);
-        else if (color.isValid())
+        if (!color.isValid())
+            continue;
+        QIcon icon(new ToolIconEngine(preferences()->icon_path + "/tools/color.svg", color.rgba(), 0));
+        if (icon.isNull())
             addItem(color.name(), color);
+        else
+            addItem(icon, "", color);
     }
     addItem("?", QColor());
 }

@@ -76,6 +76,8 @@ QList<BasicGraphicsPath*> ArrowGraphicsItem::toPath() const
         coordinates2[aux_segments + i] = {x+i*dx, y+i*dy};
     auto path2 = new BasicGraphicsPath(tool, coordinates2);
     path2->setPos(mapToScene(reference));
+    path1->setZValue(zValue());
+    path2->setZValue(zValue());
     return {path1,path2};
 }
 
