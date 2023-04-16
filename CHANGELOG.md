@@ -1,5 +1,5 @@
 # Changelog
-## 0.2.4 (upcoming)
+## 0.2.4
 * compatibility with Qt 6.4 and Qt 6.5
 * pages listed in TOC always start a new slide and are not considered overlays
 * page up and page down can be used to navigate pages also while showing TOC or thumbnails
@@ -8,10 +8,10 @@
 * improved search widget: now highlights search results
 * different installation path for translation files
 * copy and paste to/from image formats:
-    * this adds the Qt SVG module as a dependency
     * paste only as picture (no erasing possible)
-* bug fixes
+    * this adds the Qt SVG module as a dependency
 * internal: different drawing history, memory management, and stacking order mechanism
+* various bug fixes
 
 ## 0.2.3
 * select and manipulate drawn items

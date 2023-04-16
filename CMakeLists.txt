@@ -4,11 +4,11 @@
 cmake_minimum_required(VERSION 3.16)
 
 project(beamerpresenter
-    VERSION 0.2.3
+    VERSION 0.2.4
     DESCRIPTION "Multi-screen PDF presentation viewer"
     HOMEPAGE_URL "https://github.com/stiglers-eponym/BeamerPresenter"
     LANGUAGES CXX)
-set(version_suffix "")
+set(version_suffix "-beta1")
 
 # Configure compilation basics
 set(CMAKE_CONFIGURATION_TYPES Release Debug)
