@@ -360,7 +360,9 @@ void SettingsWidget::initMisc()
 void SettingsWidget::appendShortcut()
 {
     QComboBox *select_menu = new QComboBox(shortcuts);
+#if (QT_VERSION >= QT_VERSION_CHECK(5,15,0))
     select_menu->setPlaceholderText(tr("tool/action"));
+#endif
     select_menu->addItem(tr("tool..."), QVariant::fromValue(Action::InvalidAction));
     for (auto it=string_to_action_map.cbegin(); it!=string_to_action_map.cend(); ++it)
         select_menu->addItem(tr(it.key().toLatin1().constData()), QVariant::fromValue(*it));
