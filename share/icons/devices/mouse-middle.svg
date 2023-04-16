@@ -46,15 +46,19 @@
     </rdf:RDF>
   </metadata>
   <path
-     style="fill:#ffffff;fill-opacity:1;stroke:none;stroke-width:1.16652;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none;stroke-opacity:1;paint-order:fill markers stroke"
-     d="M 34.194756,17.008978 C 33.57747,1.5768277 23.076,1.5768277 21.849036,1.5768277 c -1.543216,0 -11.778875,-0.030738 -12.3457223,15.4321503 -0.565341,15.421793 3.0864303,26.234657 12.3457223,26.234657 9.259289,0 12.962513,-10.814837 12.34572,-26.234657 z"
-     id="path8781" />
+     style="fill:#ffffff;fill-opacity:1;stroke:none;stroke-width:1.2;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none;stroke-opacity:1;paint-order:fill markers stroke"
+     d="M 34.395833,14.552083 C 33.072917,1.3229166 25.135417,1.3229167 21.166667,1.3229166 17.197917,1.3229165 9.2796356,1.3150166 7.9375006,14.552083 6.7364576,26.3976 10.583333,43.65625 21.166667,43.65625 31.75,43.65625 35.580549,26.399245 34.395833,14.552083 Z"
+     id="path8787" />
   <path
-     style="fill:none;fill-opacity:1;stroke:#ff0000;stroke-width:3.5;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none;stroke-opacity:1;paint-order:fill markers stroke"
-     d="M 21.849036,15.465764 V 7.7496885"
+     style="fill:none;fill-opacity:0.99;stroke:#808080;stroke-width:0.5;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none;stroke-opacity:1;paint-order:markers fill stroke"
+     d="M 21.166666,1.3229166 V 19.84375"
+     id="path5757" />
+  <path
+     style="fill:none;fill-opacity:1;stroke:#ff0000;stroke-width:4;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none;stroke-opacity:1;paint-order:fill markers stroke"
+     d="M 21.166667,15.764288 V 8.0482124"
      id="path8783" />
   <path
      style="fill:none;fill-opacity:1;stroke:#000000;stroke-width:1.2;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none;stroke-opacity:1;paint-order:fill markers stroke"
-     d="M 34.194756,17.008978 C 33.57747,1.5768277 23.076,1.5768277 21.849036,1.5768277 c -1.543216,0 -11.778875,-0.030738 -12.3457223,15.4321503 -0.565341,15.421793 3.0864303,26.234657 12.3457223,26.234657 9.259289,0 12.962513,-10.814837 12.34572,-26.234657 z"
-     id="path8787" />
+     d="M 34.395833,14.552083 C 33.072917,1.3229166 25.135417,1.3229167 21.166667,1.3229166 17.197917,1.3229165 9.2796356,1.3150166 7.9375006,14.552083 6.7364576,26.3976 10.583333,43.65625 21.166667,43.65625 31.75,43.65625 35.580549,26.399245 34.395833,14.552083 Z"
+     id="path1233" />
 </svg>

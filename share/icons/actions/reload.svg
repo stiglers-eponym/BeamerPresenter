@@ -5,10 +5,6 @@
    viewBox="0 0 21 21"
    version="1.1"
    id="svg8"
-   inkscape:version="1.1.1 (3bf5ae0d25, 2021-09-20, custom)"
-   sodipodi:docname="reload.svg"
-   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
-   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns="http://www.w3.org/2000/svg"
    xmlns:svg="http://www.w3.org/2000/svg"
    xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
@@ -21,9 +17,7 @@
        id="Arrow2Mend"
        refX="0.0"
        refY="0.0"
-       orient="auto"
-       inkscape:stockid="Arrow2Mend"
-       inkscape:isstock="true">
+       orient="auto">
       <path
          transform="scale(0.6) rotate(180) translate(0,0)"
          d="M 8.7185878,4.0337352 L -2.2072895,0.016013256 L 8.7185884,-4.0017078 C 6.9730900,-1.6296469 6.9831476,1.6157441 8.7185878,4.0337352 z "
@@ -35,9 +29,7 @@
        id="Arrow1Send"
        refX="0.0"
        refY="0.0"
-       orient="auto"
-       inkscape:stockid="Arrow1Send"
-       inkscape:isstock="true">
+       orient="auto">
       <path
          transform="scale(0.2) rotate(180) translate(6,0)"
          style="fill-rule:evenodd;fill:context-stroke;stroke:context-stroke;stroke-width:1.0pt;"
@@ -49,9 +41,7 @@
        id="Arrow1Mend"
        refX="0.0"
        refY="0.0"
-       orient="auto"
-       inkscape:stockid="Arrow1Mend"
-       inkscape:isstock="true">
+       orient="auto">
       <path
          transform="scale(0.4) rotate(180) translate(10,0)"
          style="fill-rule:evenodd;fill:context-stroke;stroke:context-stroke;stroke-width:1.0pt;"
@@ -63,9 +53,7 @@
        id="Arrow2Send"
        refX="0"
        refY="0"
-       orient="auto"
-       inkscape:stockid="Arrow2Send"
-       inkscape:isstock="true">
+       orient="auto">
       <path
          transform="matrix(-0.3,0,0,-0.3,0.69,0)"
          d="M 8.7185878,4.0337352 -2.2072895,0.01601326 8.7185884,-4.0017078 c -1.7454984,2.3720609 -1.7354408,5.6174519 -6e-7,8.035443 z"
@@ -77,9 +65,7 @@
        id="Arrow2Send-6"
        refX="0"
        refY="0"
-       orient="auto"
-       inkscape:stockid="Arrow2Send"
-       inkscape:isstock="true">
+       orient="auto">
       <path
          transform="matrix(-0.3,0,0,-0.3,0.69,0)"
          d="M 8.7185878,4.0337352 -2.2072895,0.01601326 8.7185884,-4.0017078 c -1.7454984,2.3720609 -1.7354408,5.6174519 -6e-7,8.035443 z"
@@ -87,41 +73,6 @@
          id="path1530-7" />
     </marker>
   </defs>
-  <sodipodi:namedview
-     id="base"
-     pagecolor="#ffffff"
-     bordercolor="#666666"
-     borderopacity="1.0"
-     inkscape:pageopacity="0.0"
-     inkscape:pageshadow="2"
-     inkscape:zoom="5.8442587"
-     inkscape:cx="28.318391"
-     inkscape:cy="53.556835"
-     inkscape:document-units="mm"
-     inkscape:current-layer="layer1"
-     inkscape:document-rotation="0"
-     showgrid="false"
-     inkscape:window-width="1920"
-     inkscape:window-height="1055"
-     inkscape:window-x="0"
-     inkscape:window-y="0"
-     inkscape:window-maximized="1"
-     inkscape:snap-global="true"
-     inkscape:snap-bbox="true"
-     inkscape:pagecheckerboard="0"
-     inkscape:bbox-paths="true"
-     inkscape:bbox-nodes="true"
-     inkscape:snap-bbox-edge-midpoints="true"
-     inkscape:snap-bbox-midpoints="true"
-     inkscape:snap-smooth-nodes="true"
-     inkscape:snap-intersection-paths="true"
-     inkscape:object-paths="true">
-    <inkscape:grid
-       type="xygrid"
-       id="grid833"
-       originx="-31.441402"
-       originy="-20.402084" />
-  </sodipodi:namedview>
   <metadata
      id="metadata5">
     <rdf:RDF>
@@ -133,33 +84,12 @@
       </cc:Work>
     </rdf:RDF>
   </metadata>
-  <g
-     inkscape:label="Layer 1"
-     inkscape:groupmode="layer"
-     id="layer1"
-     transform="translate(-31.441403,-20.402083)">
-    <g
-       id="g2850"
-       transform="matrix(0.97483533,0.11433296,-0.11438653,0.97516246,4.3122847,-4.0215784)"
-       style="stroke-width:2.54664765;stroke-miterlimit:4;stroke-dasharray:none">
-      <path
-         style="fill:none;stroke:#ff0000;stroke-width:2.54664765;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;paint-order:stroke markers fill"
-         id="path942"
-         sodipodi:type="arc"
-         sodipodi:cx="42.088879"
-         sodipodi:cy="31.07509"
-         sodipodi:rx="9"
-         sodipodi:ry="9"
-         sodipodi:start="0.3034629"
-         sodipodi:end="5.7595865"
-         sodipodi:open="true"
-         sodipodi:arc-type="arc"
-         d="m 50.677645,33.76453 a 9,9 0 0 1 -9.457688,6.268516 9,9 0 0 1 -8.076616,-7.969343 9,9 0 0 1 6.141506,-9.540654 9,9 0 0 1 10.59826,4.052041" />
-      <path
-         style="fill:none;stroke:#ff0000;stroke-width:2.54664765;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
-         d="m 44.011756,26.317162 5.87135,0.257928 -0.006,-5.80935"
-         id="path1580"
-         sodipodi:nodetypes="ccc" />
-    </g>
-  </g>
+  <path
+     id="path942"
+     style="fill:none;stroke:#ff0000;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;paint-order:stroke markers fill"
+     d="M 18.411033,14.296366 A 8.8336529,8.8366363 7.994925 0 1 8.4743112,19.327862 8.8336529,8.8366363 7.994925 0 1 1.512526,10.633035 8.8336529,8.8366363 7.994925 0 1 8.5908054,2.0315237 8.8336529,8.8366363 7.994925 0 1 18.458865,7.1946524" />
+  <path
+     style="fill:none;stroke:#ff0000;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+     d="m 12.764768,6.2718418 5.694096,0.9228105 0.658662,-5.665746"
+     id="path1580" />
 </svg>

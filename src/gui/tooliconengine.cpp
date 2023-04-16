@@ -2,6 +2,9 @@
 // SPDX-License-Identifier: GPL-3.0-or-later OR AGPL-3.0-or-later
 
 #include <QFile>
+#include <QPixmap>
+#include <QPainter>
+#include <QByteArray>
 #include "src/gui/tooliconengine.h"
 #include "src/drawing/tool.h"
 #include "src/drawing/drawtool.h"

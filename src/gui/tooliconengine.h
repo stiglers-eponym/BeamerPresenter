@@ -6,11 +6,13 @@
 
 #include <QIconEngine>
 #include <QSvgRenderer>
-#include <QPixmap>
+#include <QString>
+#include <QColor>
 #include <QPainter>
 #include "src/config.h"
 
 class Tool;
+class QPixmap;
 
 /**
  * @brief QIconEngine for fancy tool icons
@@ -48,7 +50,7 @@ public:
     {return new ToolIconEngine(filename, fg_color, bg_color);}
 
     /// Paint the icon to painter in given rectangle.
-    void paint(QPainter *painter, const QRect &rect, QIcon::Mode, QIcon::State state) override
+    void paint(QPainter *painter, const QRect &rect, QIcon::Mode, QIcon::State) override
     {renderer.render(painter, rect);}
 
     /// Return a pixmap of given size showing the icon.
