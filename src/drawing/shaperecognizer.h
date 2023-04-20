@@ -185,6 +185,25 @@ class ShapeRecognizer
                 - 4*bc*my*moments.sy;
     }
 
+    /// Compute third and fourth statistical moments of points in path.
+    void calc_higher_moments() noexcept;
+
+    /// Check if path is a line.
+    /// Return a BasicGraphicsPath* representing this line if successful, nullptr otherwise.
+    BasicGraphicsPath *recognizeLine() const;
+
+    /// Check if path is a rectangle.
+    /// Return a BasicGraphicsPath* representing this rectangle if successful, nullptr otherwise.
+    BasicGraphicsPath *recognizeRect() const;
+
+    /// Check if path is an ellipse.
+    /// Return a BasicGraphicsPath* representing this ellipse if successful, nullptr otherwise.
+    BasicGraphicsPath *recognizeEllipse() const;
+
+    /// Recognize line segments in this stoke. Populate moments and line_segments.
+    /// This function must be called before trying to fit any shapes.
+    void findLines() noexcept;
+
 public:
     /// Trivial constructor.
     ShapeRecognizer(const AbstractGraphicsPath *path) : path(path) {}
@@ -192,27 +211,9 @@ public:
     /// Trivial destructor.
     ~ShapeRecognizer() {}
 
-    /// Compute third and fourth statistical moments of points in path up.
-    void calc_higher_moments() noexcept;
-
-    /// Recognize line segments in this stoke.
-    void findLines() noexcept;
-
     /// Try to recognize a known shape in path.
     /// Return NULL if no shape was detected.
     BasicGraphicsPath *recognize();
-
-    /// Check if path is a line.
-    /// Return a BasicGraphicsPath* representing this line if successful, NULL otherwise.
-    BasicGraphicsPath *recognizeLine() const;
-
-    /// Check if path is a rectangle.
-    /// Return a BasicGraphicsPath* representing this line if successful, NULL otherwise.
-    BasicGraphicsPath *recognizeRect() const;
-
-    /// Check if path is an ellipse.
-    /// Return a BasicGraphicsPath* representing this line if successful, NULL otherwise.
-    BasicGraphicsPath *recognizeEllipse() const;
 };
 
 #endif // SHAPERECOGNIZER_H
