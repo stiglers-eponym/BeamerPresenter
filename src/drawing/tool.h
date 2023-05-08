@@ -180,6 +180,7 @@ static const QMap<std::string, int> string_to_input_device
 {
     {QT_TRANSLATE_NOOP("Tool", "touch"), Tool::TouchInput},
     {QT_TRANSLATE_NOOP("Tool", "tablet pen"), Tool::TabletPen},
+    {QT_TRANSLATE_NOOP("Tool", "tablet mod"), Tool::TabletMod},
     {QT_TRANSLATE_NOOP("Tool", "tablet"), Tool::TabletPen | Tool::TabletCursor | Tool::TabletOther | Tool::TabletMod},
     {QT_TRANSLATE_NOOP("Tool", "tablet eraser"), Tool::TabletEraser},
     {QT_TRANSLATE_NOOP("Tool", "tablet hover"), Tool::TabletHover},

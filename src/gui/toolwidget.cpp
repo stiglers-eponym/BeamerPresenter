@@ -125,8 +125,9 @@ const char *device_icon(int device) noexcept
     case Tool::TabletPen:
     case Tool::TabletCursor:
     case Tool::TabletOther:
-    case Tool::TabletMod:
         return "tablet-pen";
+    case Tool::TabletMod:
+        return "tablet-mod";
     case Tool::TabletEraser:
         return "tablet-eraser";
     case Tool::TabletHover:
