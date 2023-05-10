@@ -176,15 +176,6 @@ private:
     /// Create an animation object for a face slide transition.
     void createFadeTransition(const SlideTransition &transition, PixmapGraphicsItem *pageTransitionItem);
 
-    /// Helper function for handleEvents: draw tool events
-    void handleDrawEvents(const DrawTool *tool, const int device, const QList<QPointF> &pos, const float pressure);
-    /// Helper function for handleEvents: pointing tool events
-    void handlePointingEvents(PointingTool *tool, const int device, const QList<QPointF> &pos);
-    /// Helper function for handleEvents: selection tool events
-    void handleSelectionEvents(SelectionTool *tool, const int device, const QList<QPointF> &pos, const QPointF &start_pos);
-    /// Helper function for handleEvents: text tool events
-    void handleTextEvents(const TextTool *tool, const int device, const QList<QPointF> &pos);
-
 public:
     /// Constructor: initialize master, page_part, and QGraphisScene.
     /// Connect signals.
@@ -310,11 +301,19 @@ protected:
     bool event(QEvent *event) override;
 
     /// Clicked on slide without draw tool (follow link, play video, ...)
-    void noToolClicked(const QPointF &pos, const QPointF &startpos = QPointF());
+    bool noToolClicked(const QPointF &pos, const QPointF &startpos = QPointF());
 
     /// Handle events from different pointing devices.
-    void handleEvents(const int device, const QList<QPointF> &pos, const QPointF &start_pos, const float pressure);
+    bool handleEvents(const int device, const QList<QPointF> &pos, const QPointF &start_pos, const float pressure);
 
+    /// Helper function for handleEvents: draw tool events
+    void handleDrawEvents(const DrawTool *tool, const int device, const QList<QPointF> &pos, const float pressure);
+    /// Helper function for handleEvents: pointing tool events
+    void handlePointingEvents(PointingTool *tool, const int device, const QList<QPointF> &pos);
+    /// Helper function for handleEvents: selection tool events
+    void handleSelectionEvents(SelectionTool *tool, const int device, const QList<QPointF> &pos, const QPointF &start_pos);
+    /// Helper function for handleEvents: text tool events
+    bool handleTextEvents(const TextTool *tool, const int device, const QList<QPointF> &pos);
     /// Handle selection start events (only called from handleEvents().
     void handleSelectionStartEvents(SelectionTool *tool, const QPointF &pos);
     /// Handle selection update events (only called from handleEvents().

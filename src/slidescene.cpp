@@ -284,19 +284,22 @@ bool SlideScene::event(QEvent* event)
     default:
         return QGraphicsScene::event(event);
     }
-    event->accept();
-    handleEvents(device, pos, start_pos, 1.);
-    return true;
+    if (handleEvents(device, pos, start_pos, 1.))
+    {
+        event->accept();
+        return true;
+    }
+    return QGraphicsScene::event(event);
 }
 
-void SlideScene::handleEvents(const int device, const QList<QPointF> &pos, const QPointF &start_pos, const float pressure)
+bool SlideScene::handleEvents(const int device, const QList<QPointF> &pos, const QPointF &start_pos, const float pressure)
 {
     Tool *tool = preferences()->currentTool(device & Tool::AnyDevice);
     if (!tool)
     {
         if ((device & Tool::AnyEvent) == Tool::StopEvent && pos.size() == 1)
-            noToolClicked(pos.constFirst(), start_pos);
-        return;
+            return noToolClicked(pos.constFirst(), start_pos);
+        return false;
     }
 
     debug_verbose(DebugDrawing, "Handling event" << tool->tool() << tool->device() << device);
@@ -307,9 +310,12 @@ void SlideScene::handleEvents(const int device, const QList<QPointF> &pos, const
     else if (tool->tool() & Tool::AnySelectionTool)
         handleSelectionEvents(static_cast<SelectionTool*>(tool), device, pos, start_pos);
     else if (tool->tool() == Tool::TextInputTool && (device & Tool::AnyEvent) == Tool::StopEvent && pos.size() == 1)
-        handleTextEvents(static_cast<const TextTool*>(tool), device, pos);
+        return handleTextEvents(static_cast<const TextTool*>(tool), device, pos);
     else if ((device & Tool::AnyEvent) == Tool::StopEvent && pos.size() == 1)
         noToolClicked(pos.constFirst(), start_pos);
+    else
+        return false;
+    return true;
 }
 
 void SlideScene::handleDrawEvents(const DrawTool *tool, const int device, const QList<QPointF> &pos, const float pressure)
@@ -426,7 +432,7 @@ void SlideScene::handleSelectionEvents(SelectionTool *tool, const int device, co
     }
 }
 
-void SlideScene::handleTextEvents(const TextTool *tool, const int device, const QList<QPointF> &pos)
+bool SlideScene::handleTextEvents(const TextTool *tool, const int device, const QList<QPointF> &pos)
 {
     // TODO: bug fixes
     clearSelection();
@@ -435,7 +441,7 @@ void SlideScene::handleTextEvents(const TextTool *tool, const int device, const 
         if (item->type() == TextGraphicsItem::Type)
         {
             setFocusItem(item);
-            return;
+            return false;
         }
     setFocusItem(nullptr);
     TextGraphicsItem *item = new TextGraphicsItem();
@@ -459,6 +465,7 @@ void SlideScene::handleTextEvents(const TextTool *tool, const int device, const 
     }
     emit sendNewPath(page | page_part, item);
     setFocusItem(item);
+    return true;
 }
 
 void SlideScene::handleSelectionStartEvents(SelectionTool *tool, const QPointF &pos)
@@ -1466,7 +1473,7 @@ bool SlideScene::stopInputEvent(const DrawTool *tool)
     return false;
 }
 
-void SlideScene::noToolClicked(const QPointF &pos, const QPointF &startpos)
+bool SlideScene::noToolClicked(const QPointF &pos, const QPointF &startpos)
 {
     debug_verbose(DebugMedia, "Clicked without tool" << pos << startpos);
     // Try to handle multimedia annotation.
@@ -1488,24 +1495,28 @@ void SlideScene::noToolClicked(const QPointF &pos, const QPointF &startpos)
                     item.player->pause();
                 else
                     item.player->play();
-                return;
+                return true;
             }
             break;
         }
     const PdfLink *link = master->getDocument()->linkAt(page, pos);
+    bool did_something = false;
     if (link && (startpos.isNull() || link->area.contains(startpos)))
         switch (link->type)
         {
         case PdfLink::PageLink:
             emit navigationSignal(static_cast<const GotoLink*>(link)->page);
+            did_something = true;
             break;
         case PdfLink::ActionLink:
             emit sendAction(static_cast<const ActionLink*>(link)->action);
+            did_something = true;
             break;
         case PdfLink::RemoteUrl:
         case PdfLink::LocalUrl:
         case PdfLink::ExternalPDF:
             QDesktopServices::openUrl(static_cast<const ExternalLink*>(link)->url);
+            did_something = true;
             break;
         case PdfLink::SoundLink:
         case PdfLink::MovieLink:
@@ -1518,15 +1529,20 @@ void SlideScene::noToolClicked(const QPointF &pos, const QPointF &startpos)
                 item.item->setPos(item.annotation.rect.topLeft());
                 item.item->show();
                 addItem(item.item);
+                did_something = true;
             }
             if (item.player)
+            {
                 item.player->play();
+                did_something = true;
+            }
             break;
         }
         case PdfLink::NoLink:
             break;
         }
     delete link;
+    return did_something;
 }
 
 void SlideScene::createSliders() const
