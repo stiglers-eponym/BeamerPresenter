@@ -144,35 +144,21 @@ bool PathContainer::undo(QGraphicsScene *scene)
     if (!step.drawToolChanges.empty())
         for (const auto &[item, diff] : step.drawToolChanges)
         {
-            if (item->type() != FullGraphicsPath::Type && item->type() != BasicGraphicsPath::Type)
-            {
-                // this should never happen
-                qWarning() << "History of draw tool changes includes item of invalid type" << item->type();
-                continue;
-            }
-            auto path = static_cast<AbstractGraphicsPath*>(item);
-            DrawTool tool = path->getTool();
+            DrawTool tool = item->getTool();
             tool.setPen(diff.old_pen);
             tool.setCompositionMode(diff.old_mode);
             tool.brush() = diff.old_brush;
-            path->changeTool(tool);
-            path->update();
+            item->changeTool(tool);
+            item->update();
         }
 
     // 4. Undo text tool changes.
     if (!step.textPropertiesChanges.empty())
         for (const auto &[item, prop] : step.textPropertiesChanges)
         {
-            if (item->type() != TextGraphicsItem::Type)
-            {
-                // this should never happen
-                qWarning() << "History of text propery changes includes item of invalid type" << item->type();
-                continue;
-            }
-            auto text = static_cast<TextGraphicsItem*>(item);
-            text->setFont(prop.old_font);
-            text->setDefaultTextColor(QColor::fromRgba(text->defaultTextColor().rgba() ^ prop.color_diff));
-            text->update();
+            item->setFont(prop.old_font);
+            item->setDefaultTextColor(QColor::fromRgba(item->defaultTextColor().rgba() ^ prop.color_diff));
+            item->update();
         }
 
     // 5. Remove newly created items.
@@ -233,35 +219,21 @@ bool PathContainer::redo(QGraphicsScene *scene)
     if (!step.textPropertiesChanges.empty())
         for (const auto &[item, prop] : step.textPropertiesChanges)
         {
-            if (item->type() != TextGraphicsItem::Type)
-            {
-                // this should never happen
-                qWarning() << "History of text propery changes includes item of invalid type" << item->type();
-                continue;
-            }
-            auto text = static_cast<TextGraphicsItem*>(item);
-            text->setFont(prop.new_font);
-            text->setDefaultTextColor(QColor::fromRgba(text->defaultTextColor().rgba() ^ prop.color_diff));
-            text->update();
+            item->setFont(prop.new_font);
+            item->setDefaultTextColor(QColor::fromRgba(item->defaultTextColor().rgba() ^ prop.color_diff));
+            item->update();
         }
 
     // 4. Redo text tool changes.
     if (!step.drawToolChanges.empty())
         for (const auto &[item, diff] : step.drawToolChanges)
         {
-            if (item->type() != FullGraphicsPath::Type && item->type() != BasicGraphicsPath::Type)
-            {
-                // this should never happen
-                qWarning() << "History of draw tool changes includes item of invalid type" << item->type();
-                continue;
-            }
-            auto path = static_cast<AbstractGraphicsPath*>(item);
-            DrawTool tool = path->getTool();
+            DrawTool tool = item->getTool();
             tool.setPen(diff.new_pen);
             tool.setCompositionMode(diff.new_mode);
             tool.brush() = diff.new_brush;
-            path->changeTool(tool);
-            path->update();
+            item->changeTool(tool);
+            item->update();
         }
 
     // 5. Redo z value changes
@@ -921,8 +893,8 @@ void PathContainer::removeItems(const QList<QGraphicsItem*> &items)
 
 bool PathContainer::addChanges(
         std::map<QGraphicsItem*, QTransform> *transforms,
-        std::map<QGraphicsItem*, drawHistory::DrawToolDifference> *tools,
-        std::map<QGraphicsItem*, drawHistory::TextPropertiesDifference> *texts)
+        std::map<AbstractGraphicsPath*, drawHistory::DrawToolDifference> *tools,
+        std::map<TextGraphicsItem*, drawHistory::TextPropertiesDifference> *texts)
 {
     history.append(drawHistory::Step());
     auto &step = history.last();

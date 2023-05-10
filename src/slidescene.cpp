@@ -1729,7 +1729,7 @@ void SlideScene::toolChanged(const Tool *tool) noexcept
         const QList<QGraphicsItem*> selection = selectedItems();
         if (selection.isEmpty())
             return;
-        std::map<QGraphicsItem*, drawHistory::DrawToolDifference> tool_changes;
+        std::map<AbstractGraphicsPath*, drawHistory::DrawToolDifference> tool_changes;
         const DrawTool *draw_tool = static_cast<const DrawTool*>(tool);
         for (const auto item : selection)
             if (item->type() == BasicGraphicsPath::Type || item->type() == FullGraphicsPath::Type)
@@ -1750,7 +1750,7 @@ void SlideScene::toolChanged(const Tool *tool) noexcept
             selection.append(focusItem());
         if (selection.isEmpty())
             return;
-        std::map<QGraphicsItem*, drawHistory::TextPropertiesDifference> text_changes;
+        std::map<TextGraphicsItem*, drawHistory::TextPropertiesDifference> text_changes;
         const TextTool *text_tool = static_cast<const TextTool*>(tool);
         for (auto item : selection)
             if (item->type() == TextGraphicsItem::Type)
@@ -1769,8 +1769,8 @@ void SlideScene::toolChanged(const Tool *tool) noexcept
 
 void SlideScene::colorChanged(const QColor &color) noexcept
 {
-    std::map<QGraphicsItem*,drawHistory::DrawToolDifference> tool_changes;
-    std::map<QGraphicsItem*,drawHistory::TextPropertiesDifference> text_changes;
+    std::map<AbstractGraphicsPath*,drawHistory::DrawToolDifference> tool_changes;
+    std::map<TextGraphicsItem*,drawHistory::TextPropertiesDifference> text_changes;
     for (auto item : selectedItems())
     {
         switch (item->type())
@@ -1792,7 +1792,7 @@ void SlideScene::colorChanged(const QColor &color) noexcept
         case TextGraphicsItem::Type:
         {
             const auto text = static_cast<TextGraphicsItem*>(item);
-            text_changes.insert({item, {text->font(), text->font(), text->defaultTextColor().rgba() ^ color.rgba()}});
+            text_changes.insert({text, {text->font(), text->font(), text->defaultTextColor().rgba() ^ color.rgba()}});
             text->setDefaultTextColor(color);
             break;
         }
@@ -1804,7 +1804,7 @@ void SlideScene::colorChanged(const QColor &color) noexcept
 
 void SlideScene::widthChanged(const qreal width) noexcept
 {
-    std::map<QGraphicsItem*,drawHistory::DrawToolDifference> tool_changes;
+    std::map<AbstractGraphicsPath*,drawHistory::DrawToolDifference> tool_changes;
     for (auto item : selectedItems())
     {
         switch (item->type())

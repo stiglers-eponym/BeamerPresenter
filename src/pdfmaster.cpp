@@ -209,8 +209,8 @@ void PdfMaster::removeItems(int page, const QList<QGraphicsItem*> &items)
 
 void PdfMaster::addHistoryStep(int page,
         std::map<QGraphicsItem*, QTransform> *transforms,
-        std::map<QGraphicsItem*, drawHistory::DrawToolDifference> *tools,
-        std::map<QGraphicsItem*, drawHistory::TextPropertiesDifference> *texts)
+        std::map<AbstractGraphicsPath*, drawHistory::DrawToolDifference> *tools,
+        std::map<TextGraphicsItem*, drawHistory::TextPropertiesDifference> *texts)
 {
     if (preferences()->overlay_mode == PerLabel)
         page = document->overlaysShifted((page & ~NotFullPage), FirstOverlay) | (page & NotFullPage);

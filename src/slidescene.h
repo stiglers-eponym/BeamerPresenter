@@ -35,6 +35,7 @@ class PathContainer;
 class PixmapGraphicsItem;
 class QPropertyAnimation;
 class QXmlStreamReader;
+class AbstractGraphicsPath;
 
 namespace drawHistory {
     struct DrawToolDifference;
@@ -387,8 +388,8 @@ signals:
     /// Send transformations for QGraphicsItems to PdfMaster.
     void sendHistoryStep(int page,
              std::map<QGraphicsItem*,QTransform> *transforms,
-             std::map<QGraphicsItem*,drawHistory::DrawToolDifference> *tools,
-             std::map<QGraphicsItem*,drawHistory::TextPropertiesDifference> *texts) const;
+             std::map<AbstractGraphicsPath*,drawHistory::DrawToolDifference> *tools,
+             std::map<TextGraphicsItem*,drawHistory::TextPropertiesDifference> *texts) const;
 
     /// Replace old path by new path in a single drawing history step.
     void replacePath(int page, QGraphicsItem *olditem, QGraphicsItem *newitem) const;

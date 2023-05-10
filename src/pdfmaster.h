@@ -21,6 +21,8 @@ class QGraphicsItem;
 class QBuffer;
 class QXmlStreamReader;
 class QXmlStreamWriter;
+class AbstractGraphicsPath;
+class TextGraphicsItem;
 struct SlideTransition;
 
 namespace drawHistory {
@@ -220,8 +222,8 @@ public slots:
     /// Page (part) number is given as (page | page_part).
     void addHistoryStep(int page,
             std::map<QGraphicsItem*, QTransform> *transforms,
-            std::map<QGraphicsItem*, drawHistory::DrawToolDifference> *tools,
-            std::map<QGraphicsItem*, drawHistory::TextPropertiesDifference> *texts);
+            std::map<AbstractGraphicsPath*, drawHistory::DrawToolDifference> *tools,
+            std::map<TextGraphicsItem*, drawHistory::TextPropertiesDifference> *texts);
 
     /// Add new paths.
     void addItemsForeground(int page, const QList<QGraphicsItem*> &items);

@@ -26,6 +26,8 @@
 #include "src/drawing/drawtool.h"
 
 class QGraphicsScene;
+class AbstractGraphicsPath;
+class TextGraphicsItem;
 class QXmlStreamReader;
 class QXmlStreamWriter;
 
@@ -71,10 +73,10 @@ namespace drawHistory
         std::map<QGraphicsItem*, QTransform> transformedItems;
 
         /// Changes of draw tool.
-        std::map<QGraphicsItem*, DrawToolDifference> drawToolChanges;
+        std::map<AbstractGraphicsPath*, DrawToolDifference> drawToolChanges;
 
         /// Changes of text properties.
-        std::map<QGraphicsItem*, TextPropertiesDifference> textPropertiesChanges;
+        std::map<TextGraphicsItem*, TextPropertiesDifference> textPropertiesChanges;
 
         /// Newly created items with their index after the history step.
         QList<QGraphicsItem*> createdItems;
@@ -370,8 +372,8 @@ public:
     /// Create history step with given changes. Pointers may be
     /// nullptr. This assumes that the items are already owned by this.
     bool addChanges(std::map<QGraphicsItem*, QTransform> *transforms,
-                    std::map<QGraphicsItem*, drawHistory::DrawToolDifference> *tools,
-                    std::map<QGraphicsItem*, drawHistory::TextPropertiesDifference> *texts);
+                    std::map<AbstractGraphicsPath*, drawHistory::DrawToolDifference> *tools,
+                    std::map<TextGraphicsItem*, drawHistory::TextPropertiesDifference> *texts);
 
 public slots:
     // Remove the item in a new history step.
