@@ -798,9 +798,39 @@ QRectF PathContainer::boundingBox() const noexcept
 
 void PathContainer::replaceItem(QGraphicsItem *olditem, QGraphicsItem *newitem)
 {
+    debug_msg(DebugDrawing, "replace item" << olditem << newitem);
     if (olditem == newitem)
         return;
     truncateHistory();
+    if (olditem && !history.empty())
+    {
+        const auto &laststep = history.last();
+        if (laststep.createdItems.size() == 1
+            && laststep.createdItems.first() == olditem
+            && laststep.deletedItems.size() == 0
+            && laststep.z_value_changes.size() == 0
+            && laststep.transformedItems.size() == 0
+            && laststep.drawToolChanges.size() == 0
+            && laststep.textPropertiesChanges.size() == 0
+            && olditem->type() == TextGraphicsItem::Type
+            && static_cast<TextGraphicsItem*>(olditem)->isEmpty())
+        {
+            debug_msg(DebugDrawing, "Deleting empty text item" << olditem);
+            const auto it = _ref_count.find(olditem);
+            if (it != _ref_count.end())
+                it->second.visible = false;
+            if (olditem->scene())
+            {
+                olditem->clearFocus();
+                olditem->scene()->removeItem(olditem);
+            }
+            undo();
+            truncateHistory();
+            if (newitem == nullptr)
+                return;
+            olditem = nullptr;
+        }
+    }
     history.append(drawHistory::Step());
     auto &step = history.last();
     if (olditem)
@@ -815,9 +845,35 @@ void PathContainer::replaceItem(QGraphicsItem *olditem, QGraphicsItem *newitem)
     }
     if (newitem)
     {
-        keepItem(newitem, true);
+        auto &rec_count_entry = _ref_count[newitem];
+        rec_count_entry.visible = true;
+        if (++rec_count_entry.ref_count > 1)
+        {
+            auto it = _z_order.find(newitem);
+            while (it != _z_order.end() && *it != newitem && (*it)->zValue() <= newitem->zValue())
+                ++it;
+            if (*it != newitem)
+            {
+                // This should not happen!
+                // Make sure we don't get segfaults because of deleted items in _z_order
+                qCritical() << tr("New item existed before, but could not find it in _z_order! Searching full array.");
+                it = _z_order.begin();
+                const auto end = _z_order.end();
+                while (it != end)
+                {
+                    if (*it == newitem)
+                    {
+                        _z_order.erase(it);
+                        break;
+                    }
+                    ++it;
+                }
+                _z_order.insert(newitem);
+            }
+        }
+        else
+            _z_order.insert(newitem);
         step.createdItems.append(newitem);
-        _z_order.insert(newitem);
     }
     limitHistory();
 }

@@ -28,6 +28,8 @@ class MediaPlayer;
 class QAudioOutput;
 #endif
 class DrawTool;
+class TextTool;
+class PointingTool;
 class SelectionTool;
 class PathContainer;
 class PixmapGraphicsItem;
@@ -172,6 +174,15 @@ private:
 
     /// Create an animation object for a face slide transition.
     void createFadeTransition(const SlideTransition &transition, PixmapGraphicsItem *pageTransitionItem);
+
+    /// Helper function for handleEvents: draw tool events
+    void handleDrawEvents(const DrawTool *tool, const int device, const QList<QPointF> &pos, const float pressure);
+    /// Helper function for handleEvents: pointing tool events
+    void handlePointingEvents(PointingTool *tool, const int device, const QList<QPointF> &pos);
+    /// Helper function for handleEvents: selection tool events
+    void handleSelectionEvents(SelectionTool *tool, const int device, const QList<QPointF> &pos, const QPointF &start_pos);
+    /// Helper function for handleEvents: text tool events
+    void handleTextEvents(const TextTool *tool, const int device, const QList<QPointF> &pos);
 
 public:
     /// Constructor: initialize master, page_part, and QGraphisScene.
@@ -391,8 +402,11 @@ signals:
     /// Tell master that transition has ended.
     void finishTransition();
 
-    /// Get path container for given page, create one if necessary.
+    /// Get path container for given page, create one if cummulative drawing requires that.
     void requestNewPathContainer(PathContainer **container, int page);
+
+    /// Get path container for given page, create one if it does not exist.
+    void createPathContainer(PathContainer **container, int page);
 
     /// Notify master that there are unsaved changes.
     void newUnsavedDrawings();

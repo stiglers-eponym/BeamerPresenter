@@ -10,7 +10,7 @@ void TextGraphicsItem::focusOutEvent(QFocusEvent *event)
     if (document()->isEmpty()) {
         if (document()->availableUndoSteps() > 0)
             document()->undo();
-        else
+        else if (document()->availableRedoSteps() > 0)
             document()->redo();
         emit removeMe(this);
     }

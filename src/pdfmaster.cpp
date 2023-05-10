@@ -655,10 +655,10 @@ PathContainer *PdfMaster::pathContainerCreate(int page)
     switch (preferences()->overlay_mode)
     {
     case PerPage:
-        return paths.value(page, NULL);
+        return paths.value(page, nullptr);
     case PerLabel:
         page = document->overlaysShifted((page & ~NotFullPage), FirstOverlay) | (page & NotFullPage);
-        return paths.value(page, NULL);
+        return paths.value(page, nullptr);
     case Cumulative:
         PathContainer *container = paths.value(page);
         if (container && !container->empty() && !container->isPlainCopy())
@@ -669,7 +669,7 @@ PathContainer *PdfMaster::pathContainerCreate(int page)
         PathContainer *copy_container;
         while (basic_page-- > start_overlay)
         {
-            copy_container = paths.value(basic_page | page_part, NULL);
+            copy_container = paths.value(basic_page | page_part, nullptr);
             if (copy_container)
             {
                 delete container;
@@ -680,6 +680,14 @@ PathContainer *PdfMaster::pathContainerCreate(int page)
         }
     }
     return nullptr;
+}
+
+void PdfMaster::createPathContainer(PathContainer **container, int page)
+{
+    auto &target = paths[page];
+    if (!target)
+        target = new PathContainer(this);
+    *container = target;
 }
 
 void PdfMaster::clearAllDrawings()

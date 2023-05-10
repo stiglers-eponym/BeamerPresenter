@@ -88,7 +88,8 @@ namespace drawHistory
                     && drawToolChanges.empty()
                     && textPropertiesChanges.empty()
                     && createdItems.empty()
-                    && deletedItems.empty();
+                    && deletedItems.empty()
+                    && z_value_changes.empty();
         }
     };
 }

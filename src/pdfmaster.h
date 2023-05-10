@@ -186,7 +186,7 @@ public:
     /// Get path container at given page.
     /// page (part) number is given as (page | page_part).
     PathContainer *pathContainer(int page) const
-    {return paths.value(page, NULL);}
+    {return paths.value(page, nullptr);}
 
     /// Get file path at which drawings are saved.
     const QString &drawingsPath() const noexcept
@@ -239,6 +239,10 @@ public slots:
     /// page (part) number is given as (page | page_part).
     void requestNewPathContainer(PathContainer **container, int page)
     {*container = pathContainerCreate(page);}
+
+    /// Get path container at given page. Always create a new container if it
+    /// does not exist yet.
+    void createPathContainer(PathContainer **container, int page);
 
     /// Set time for page and write it to target_times.
     void setTimeForPage(const int page, const quint32 time) noexcept
