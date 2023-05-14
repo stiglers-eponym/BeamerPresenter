@@ -75,10 +75,6 @@ public slots:
     void checkNewTool(const Tool *tool);
 
 signals:
-    /// Tool sent by master, owned by preferences(), currently connected to input devices.
-    void receiveTool(const Tool *tool);
-    /// Send new tool to master. Master will take ownership of tool.
-    void sendTool(Tool *tool);
     /// Tell child buttons to update icons.
     void updateIcons();
 };

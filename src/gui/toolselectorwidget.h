@@ -51,9 +51,6 @@ protected:
     {emit updateIcons();}
 
 signals:
-    /// Send out action to master.
-    void sendAction(const Action action);
-
     /// Send out new color to master.
     void sendColor(const QColor &action);
 

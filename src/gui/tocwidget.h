@@ -61,10 +61,6 @@ public slots:
 
     /// Expand all sections, subsections, ... which contain the given page.
     void expandTo(const int page);
-
-signals:
-    /// Send navigation event to master.
-    void sendNavigationSignal(const int page);
 };
 
 #endif // TOCWIDGET_H

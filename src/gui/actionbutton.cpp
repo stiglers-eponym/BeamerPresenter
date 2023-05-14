@@ -11,6 +11,7 @@
 #include <QImageReader>
 #include "src/gui/actionbutton.h"
 #include "src/preferences.h"
+#include "src/master.h"
 #include "src/gui/toolselectorwidget.h"
 
 const char *action_to_theme_icon(const Action action) noexcept
@@ -119,7 +120,7 @@ ActionButton::ActionButton(ToolSelectorWidget *parent) :
     setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Ignored);
     setToolButtonStyle(Qt::ToolButtonIconOnly);
     connect(this, &QToolButton::clicked, this, &ActionButton::onClicked);
-    connect(this, &ActionButton::sendAction, parent, &ToolSelectorWidget::sendAction);
+    connect(this, &ActionButton::sendAction, master(), &Master::handleAction, Qt::QueuedConnection);
 }
 
 ActionButton::ActionButton(const Action action, ToolSelectorWidget *parent) :

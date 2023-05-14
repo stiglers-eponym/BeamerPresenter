@@ -98,8 +98,6 @@ public slots:
     void handleAction(const Action action);
 
 signals:
-    /// Navigate to page.
-    void sendNavigationSignal(int page);
     /// Tell render_thread to render page with resolution and associate it
     /// with button.
     void sendToRenderThread(ThumbnailButton *button, qreal resolution, int page);

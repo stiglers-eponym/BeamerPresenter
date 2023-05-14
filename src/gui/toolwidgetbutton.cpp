@@ -6,11 +6,13 @@
 #include "src/drawing/tool.h"
 #include "src/gui/tooldialog.h"
 #include "src/preferences.h"
+#include "src/master.h"
 
 ToolWidgetButton::ToolWidgetButton(Tool *tool, const int device, QWidget *parent) noexcept
     : ToolButton(tool, parent), device(device)
 {
     connect(this, &ToolWidgetButton::clicked, this, &ToolWidgetButton::selectTool);
+    connect(master(), &Master::sendNewToolSoft, this, &ToolWidgetButton::receiveNewTool);
     if (!tool && (device & Tool::AnyActiveDevice))
         setTool(new Tool(Tool::NoTool, device));
 }

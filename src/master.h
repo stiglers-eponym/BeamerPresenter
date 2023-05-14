@@ -35,6 +35,9 @@ class QXmlStreamWriter;
  * GUI. All changes to preferences must be done though this class (this will
  * change when a GUI for modifying preferences is implemented).
  * Only one master object may exist.
+ *
+ * Only a single Master object should be used. A pointer to this master object
+ * is accessible with the global master() function.
  */
 class Master : public QObject
 {

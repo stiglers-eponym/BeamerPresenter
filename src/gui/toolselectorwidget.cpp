@@ -16,6 +16,7 @@
 #include "src/gui/colorselectionbutton.h"
 #include "src/gui/toolselectorbutton.h"
 #include "src/gui/widthselectionbutton.h"
+#include "src/master.h"
 #include "src/log.h"
 #include "src/names.h"
 
@@ -81,7 +82,6 @@ void ToolSelectorWidget::addButtons(const QJsonArray &full_array)
                     if (tool)
                     {
                         ToolSelectorButton *button = new ToolSelectorButton(tool, this);
-                        connect(button, &ToolSelectorButton::sendTool, this, &ToolSelectorWidget::sendTool);
                         connect(this, &ToolSelectorWidget::updateIcons, button, &ToolSelectorButton::updateIcon, Qt::QueuedConnection);
                         grid_layout->addWidget(button, row_index, column_index);
                     }
@@ -121,7 +121,7 @@ void ToolSelectorWidget::initializeToolPropertyButton(const QString &type, const
     if (button)
     {
         static_cast<QGridLayout*>(layout())->addWidget(button, row, column);
-        connect(this, &ToolSelectorWidget::sendTool, button, &ToolPropertyButton::toolChanged);
+        connect(master(), &Master::sendNewToolSoft, button, &ToolPropertyButton::toolChanged);
         connect(this, &ToolSelectorWidget::updateIcons, button, &ToolPropertyButton::updateIcon, Qt::QueuedConnection);
         connect(button, &ToolPropertyButton::sendUpdatedTool, this, &ToolSelectorWidget::updatedTool);
     }

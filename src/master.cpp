@@ -481,7 +481,6 @@ QWidget* Master::createWidget(QJsonObject &object, QWidget *parent)
         widget = twidget;
         if (object.contains("columns"))
             twidget->setColumns(object.value("columns").toInt(4));
-        connect(twidget, &ThumbnailWidget::sendNavigationSignal, this, &Master::navigateToPage);
         if (object.value("overlays").toString() == "skip")
             twidget->flags() |= ThumbnailWidget::SkipOverlays;
         connect(this, &Master::sendAction, twidget, &ThumbnailWidget::handleAction, Qt::QueuedConnection);
@@ -489,7 +488,6 @@ QWidget* Master::createWidget(QJsonObject &object, QWidget *parent)
     }
     case TOCType:
         widget = new TOCwidget(parent);
-        connect(static_cast<TOCwidget*>(widget), &TOCwidget::sendNavigationSignal, this, &Master::navigateToPage);
         break;
     case NotesType:
     {
@@ -513,7 +511,6 @@ QWidget* Master::createWidget(QJsonObject &object, QWidget *parent)
         ToolSelectorWidget *toolwidget = new ToolSelectorWidget(parent);
         connect(this, &Master::sendActionStatus, toolwidget, &ToolSelectorWidget::sendStatus);
         toolwidget->addButtons(object.value("buttons").toArray());
-        connect(toolwidget, &ToolSelectorWidget::sendAction, this, &Master::handleAction, Qt::QueuedConnection);
         connect(toolwidget, &ToolSelectorWidget::sendTool, this, &Master::setTool, Qt::QueuedConnection);
         connect(toolwidget, &ToolSelectorWidget::sendColor, this, &Master::sendColor);
         connect(toolwidget, &ToolSelectorWidget::sendWidth, this, &Master::sendWidth);
@@ -552,8 +549,6 @@ QWidget* Master::createWidget(QJsonObject &object, QWidget *parent)
                 toolwidget->setTabletDevices(devices);
         }
         toolwidget->initialize();
-        connect(this, &Master::sendNewToolSoft, toolwidget, &ToolWidget::receiveTool);
-        connect(toolwidget, &ToolWidget::sendTool, this, &Master::setTool);
         widget = toolwidget;
         break;
     }

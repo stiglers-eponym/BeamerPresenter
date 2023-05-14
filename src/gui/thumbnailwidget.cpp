@@ -17,6 +17,7 @@
 #include "src/gui/thumbnailbutton.h"
 #include "src/rendering/pdfdocument.h"
 #include "src/preferences.h"
+#include "src/master.h"
 
 void ThumbnailWidget::showEvent(QShowEvent *event)
 {
@@ -114,7 +115,7 @@ void ThumbnailWidget::generate(const PdfDocument *document)
     auto create_button = [&](const int display_page, const int link_page, const int position)
     {
         button = new ThumbnailButton(link_page, this);
-        connect(button, &ThumbnailButton::sendNavigationSignal, this, &ThumbnailWidget::sendNavigationSignal);
+        connect(button, &ThumbnailButton::sendNavigationSignal, master(), &Master::navigateToPage);
         QSizeF size = document->pageSize(display_page);
         if (preferences()->default_page_part)
             size.rwidth() /= 2;

@@ -20,7 +20,7 @@
 class PdfDocument;
 class QCommandLineParser;
 class QJsonObject;
-
+class Master;
 
 /// Class storing various preferences.
 /// It should have only one instance, which is available globally through
@@ -34,6 +34,11 @@ class Preferences : public QObject
     /// The system-wide configuration file is copied to a user space file, if
     /// that one does not exist.
     QSettings settings;
+    /// Master object
+    Master *master;
+
+friend Master *master() noexcept;
+friend int main(int argc, char *argv[]);
 
 public:
     enum
@@ -349,9 +354,17 @@ inline Preferences *writable_preferences() noexcept
 
 /// Get read-only globally shared preferences object.
 /// This is the usual way of accessing preferences.
-inline const Preferences *preferences()
+inline const Preferences *preferences() noexcept
 {
     return __global_preferences;
+}
+
+/// Get global master object.
+/// Only a single master object should be used. (Using multiple master
+/// objects is not strictly forbitten, but does not make much sense.)
+inline Master *master() noexcept
+{
+    return __global_preferences->master;
 }
 
 

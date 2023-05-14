@@ -8,12 +8,14 @@
 #include "src/drawing/tool.h"
 #include "src/gui/tooldialog.h"
 #include "src/gui/toolselectorbutton.h"
+#include "src/master.h"
 
 ToolSelectorButton::ToolSelectorButton(Tool *tool, QWidget *parent) noexcept
     : ToolButton(tool, parent)
 {
     setFocusPolicy(Qt::NoFocus);
     setAttribute(Qt::WA_AcceptTouchEvents);
+    connect(this, &ToolSelectorButton::sendTool, master(), &Master::setTool, Qt::QueuedConnection);
 }
 
 

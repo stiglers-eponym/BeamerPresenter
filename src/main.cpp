@@ -128,23 +128,23 @@ int main(int argc, char *argv[])
         __global_preferences = new Preferences(parser.value("c"));
     else
         __global_preferences = new Preferences();
+    __global_preferences->master = new Master();
 #ifdef QT_DEBUG
     writable_preferences()->loadDebugFromParser(parser);
 #endif
     writable_preferences()->loadSettings();
     writable_preferences()->loadFromParser(parser);
 
-    Master *master = new Master();
     {
         // Create the user interface.
         const QString gui_config_file = parser.value("g").isEmpty() ? preferences()->gui_config_file : parser.value("g");
-        const Master::Status status = master->readGuiConfig(gui_config_file);
+        const Master::Status status = master()->readGuiConfig(gui_config_file);
         if (status != Master::Success)
         {
             // Creating GUI failed. Check status and try to load default GUI config.
             // status == 4 indicates that only loading PDF files failed. In this case
             // the GUI config should not be reloaded.
-            if (status != Master::NoPDFLoaded && master->readGuiConfig(DEFAULT_GUI_CONFIG_PATH) == Master::Success)
+            if (status != Master::NoPDFLoaded && master()->readGuiConfig(DEFAULT_GUI_CONFIG_PATH) == Master::Success)
                 preferences()->showErrorMessage(
                             Master::tr("Error while loading GUI config"),
                             Master::tr("Loading GUI config file failed for filename \"")
@@ -154,7 +154,7 @@ int main(int argc, char *argv[])
             else
             {
                 qCritical() << QCoreApplication::translate("main", "Parsing the GUI configuration failed. Probably the GUI config is unavailable or invalid, or no valid PDF files were found.");
-                delete master;
+                delete master();
                 delete preferences();
                 // Show help and exit.
                 parser.showHelp(status);
@@ -162,18 +162,18 @@ int main(int argc, char *argv[])
         }
     }
     // Show all windows.
-    master->showAll();
+    master()->showAll();
     // Navigate to first page.
-    master->navigateToPage(0);
+    master()->navigateToPage(0);
     // Distribute cache memory.
-    master->distributeMemory();
-    QObject::connect(preferences(), &Preferences::distributeMemory, master, &Master::distributeMemory);
+    master()->distributeMemory();
+    QObject::connect(preferences(), &Preferences::distributeMemory, master(), &Master::distributeMemory);
     // Run the program.
     const int status = app.exec();
     // Clean up. preferences() must be deleted after everything else.
     // Deleting master may take some time since this requires the interruption
     // and deletion of multiple threads.
-    delete master;
+    delete master();
     delete preferences();
     return status;
 }

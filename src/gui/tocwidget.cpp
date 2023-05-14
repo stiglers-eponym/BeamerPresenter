@@ -13,6 +13,7 @@
 #include "src/gui/tocbutton.h"
 #include "src/preferences.h"
 #include "src/rendering/pdfdocument.h"
+#include "src/master.h"
 #include "src/log.h"
 
 void TOCwidget::generateTOC(const PdfDocument *document)
@@ -54,7 +55,7 @@ void TOCwidget::generateTOC(const PdfDocument *document)
             expand_button = NULL;
         TOCbutton *button = new TOCbutton(outline[idx].title, outline[idx].page, expand_button, this);
         layout->addWidget(button, idx, depth+1, 1, std::max(30 - depth, 15));
-        connect(button, &TOCbutton::sendNavigationEvent, this, &TOCwidget::sendNavigationSignal);
+        connect(button, &TOCbutton::sendNavigationEvent, master(), &Master::navigateToPage);
         if (std::abs(outline[idx].next) - idx > 1 && idx + 1 < outline.length())
             button->tree_child = function(idx + 1, depth + 1, function);
         if (outline[idx].next > 0 && outline[idx].next < outline.length())

@@ -13,13 +13,14 @@
 #include "src/gui/toolwidgetbutton.h"
 #include "src/preferences.h"
 #include "src/gui/iconlabel.h"
+#include "src/master.h"
 #include "src/log.h"
 
 ToolWidget::ToolWidget(QWidget *parent, QBoxLayout::Direction direction)
     : QWidget{parent}, direction{direction}
 {
     debug_msg(DebugWidgets, "Creating ToolWidget");
-    connect(this, &ToolWidget::receiveTool, this, &ToolWidget::checkNewTool);
+    connect(master(), &Master::sendNewToolSoft, this, &ToolWidget::checkNewTool);
     setLayout(new QBoxLayout(direction, this));
     setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 }
@@ -84,8 +85,7 @@ void ToolWidget::addDeviceGroup(const QList<int> &new_devices)
             tool->setDevice(device);
         }
         button = new ToolWidgetButton(tool, device, this);
-        connect(button, &ToolWidgetButton::sendTool, this, &ToolWidget::sendTool);
-        connect(this, &ToolWidget::receiveTool, button, &ToolWidgetButton::receiveNewTool);
+        connect(button, &ToolWidgetButton::sendTool, master(), &Master::setTool, Qt::QueuedConnection);
         connect(this, &ToolWidget::updateIcons, button, &ToolWidgetButton::updateIcon, Qt::QueuedConnection);
         label = new IconLabel(preferences()->icon_path + "/devices/" + device_icon(device) + ".svg", this);
         connect(this, &ToolWidget::updateIcons, label, &IconLabel::updateIcon, Qt::QueuedConnection);
