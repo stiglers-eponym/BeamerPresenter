@@ -57,10 +57,16 @@ private:
     /// Delete widget, clear all thumbnails.
     void clear() noexcept
     {
+        emit interruptThread();
         focussed_button = nullptr;
         delete widget();
         setWidget(nullptr);
     }
+
+protected:
+    /// Resize: clear if necessary.
+    void resizeEvent(QResizeEvent *event) override
+    {generate();}
 
 public:
     /// Nearly trivial constructor.
@@ -83,7 +89,7 @@ public:
     /// preferences(). The function returns after (creating,) instructing
     /// and starting the rendering thread. Rendering is then done in
     /// background.
-    void generate(const PdfDocument *document = NULL);
+    void generate(const PdfDocument *document = nullptr);
 
     /// Preferred height depends on width.
     bool hasHeightForWidth() const noexcept override
@@ -101,8 +107,7 @@ public slots:
     void keyPressEvent(QKeyEvent *event) override;
 
     /// Receive thumbnail from render_thread and show it on button.
-    void receiveThumbnail(ThumbnailButton *button, const QPixmap pixmap)
-    {if (button) button->setPixmap(pixmap);}
+    void receiveThumbnail(int button_index, const QPixmap pixmap);
 
     /// Handle actions: clear if files are reloaded.
     void handleAction(const Action action);
@@ -112,10 +117,12 @@ public slots:
 
 signals:
     /// Tell render_thread to render page with resolution and associate it
-    /// with button.
-    void sendToRenderThread(ThumbnailButton *button, qreal resolution, int page);
+    /// with given button index.
+    void sendToRenderThread(int button_index, qreal resolution, int page);
     /// Tell render_thread to start rendering.
     void startRendering();
+    /// Tell thumbnail thread to clear queue.
+    void interruptThread();
 };
 
 #endif // THUMBNAILWIDGET_H

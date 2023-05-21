@@ -15,6 +15,7 @@ ThumbnailButton::ThumbnailButton(const int page, QWidget *parent) :
     setToolTip(tr("page ") + QString::number(page+1));
     setLineWidth(2);
     setFrameStyle(QFrame::Box | QFrame::Plain);
+    setStyleSheet("ThumbnailButton{background-color:#00000000;color:#00000000;}");
 }
 
 

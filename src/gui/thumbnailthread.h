@@ -35,7 +35,7 @@ class ThumbnailThread : public QObject
     struct queue_entry
     {
         /// Button which should receive the thumbnail
-        ThumbnailButton *button;
+        int button_index;
         /// thumbnail resolution
         qreal resolution;
         /// page index
@@ -43,15 +43,19 @@ class ThumbnailThread : public QObject
     };
 
     /// renderer, owned by this, created in constructor.
-    AbstractRenderer *renderer = NULL;
+    AbstractRenderer *renderer {nullptr};
     /// document, not owned by this.
     const PdfDocument *document;
     /// queue of pages/thumbnails which should be rendered
     QList<queue_entry> queue;
 
+protected:
+    /// Timer event: render next slide;
+    virtual void timerEvent(QTimerEvent* event);
+
 public:
     /// Constructor: create renderer if document is not NULL.
-    ThumbnailThread(const PdfDocument *document = NULL);
+    ThumbnailThread(const PdfDocument *document = nullptr);
 
     /// Destructor: delete renderer.
     ~ThumbnailThread()
@@ -59,16 +63,21 @@ public:
 
 public slots:
     /// Add entries to rendering queue.
-    void append(ThumbnailButton *button, qreal resolution, int page)
-    {queue.append({button, resolution, page});}
+    void append(int button_index, qreal resolution, int page)
+    {if (resolution > 0) queue.append({button_index, resolution, page});}
+
+    /// Clear the queue.
+    void clearQueue()
+    {queue.clear();}
 
     /// Do the work: render thumbnails for the queued pages.
-    void renderImages();
+    void renderImages()
+    {startTimer(0);}
 
 signals:
     /// Send thumbnail back to ThumbnailWidget, which sets the pixmap
     /// from the main thread.
-    void sendThumbnail(ThumbnailButton *button, const QPixmap pixmap);
+    void sendThumbnail(int button_index, const QPixmap pixmap);
 };
 
 #endif // THUMBNAILTHREAD_H

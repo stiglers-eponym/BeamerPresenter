@@ -35,16 +35,13 @@ ThumbnailThread::ThumbnailThread(const PdfDocument *document) :
     }
 }
 
-void ThumbnailThread::renderImages()
+void ThumbnailThread::timerEvent(QTimerEvent* event)
 {
-    if (!renderer || !document)
-        return;
-    queue_entry entry;
-    while (!queue.isEmpty())
+    if (!renderer || queue.isEmpty())
+        killTimer(event->timerId());
+    else
     {
-        entry = queue.takeFirst();
-        if (entry.button && entry.resolution)
-            emit sendThumbnail(entry.button, renderer->renderPixmap(entry.page, entry.resolution));
-            //entry.button->setPixmap(renderer->renderPixmap(entry.page, entry.resolution));
+        queue_entry entry = queue.takeFirst();
+        emit sendThumbnail(entry.button_index, renderer->renderPixmap(entry.page, entry.resolution));
     }
 }

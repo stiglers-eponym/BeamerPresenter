@@ -36,13 +36,13 @@ protected:
     /// add red margin when this gets focus
     void focusInEvent(QFocusEvent*) override
     {
-        setStyleSheet("background-color:#ff0000");
+        setStyleSheet("ThumbnailButton{background-color:#ffff0000;color:#ffff0000;}");
         emit updateFocus(this);
     }
 
 public slots:
     void defocus() noexcept
-    {setStyleSheet("background-color:#00000000");}
+    {setStyleSheet("ThumbnailButton{background-color:#00000000;color:#00000000;}");}
 
 signals:
     /// Send out navigation event for this page.
