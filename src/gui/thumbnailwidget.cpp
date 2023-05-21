@@ -154,7 +154,6 @@ void ThumbnailWidget::generate()
         initialize();
 
     emit interruptThread();
-    focussed_button = nullptr;
     if (!render_thread)
         initRenderingThread();
 

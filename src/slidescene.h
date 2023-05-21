@@ -208,10 +208,6 @@ public:
     const PdfMaster* getPdfMaster()
     {return master;}
 
-    /// Hash for this scene based on shift, master and page_part.
-    size_t identifier() const
-    {return qHash(QPair<int, const void*>(shift, master)) + page_part;}
-
     /// Currently visible page.
     int getPage() const
     {return page;}

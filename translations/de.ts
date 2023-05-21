@@ -456,6 +456,10 @@
         <source>An error occured while trying to create a widget of type</source>
         <translation>Fehler beim Erstellen eines Widgets vom Typ</translation>
     </message>
+    <message>
+        <source>Loaded PDF files with different numbers of pages.</source>
+        <translation>PDF-Dateien mit unterschiedlicher Anzahl von Seiten geladen.</translation>
+    </message>
 </context>
 <context>
     <name>MuPdfDocument</name>
@@ -524,6 +528,10 @@
     <message>
         <source>Tried micro step, but inHistory ==</source>
         <translation>Versuche Mikroschritt, doch inHistory ==</translation>
+    </message>
+    <message>
+        <source>New item existed before, but could not find it in _z_order! Searching full array.</source>
+        <translation>Neues Objekt existierte bereits, konnte aber nicht in _z_order gefunden werden! Durchsuchte die gesamte Liste.</translation>
     </message>
 </context>
 <context>

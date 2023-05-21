@@ -23,7 +23,6 @@ class ThumbnailThread;
  * @see ThumbnailThread
  *
  * @todo don't change slide after touch scroll event
- * @todo clear when resizing?
  */
 class ThumbnailWidget : public QScrollArea
 {

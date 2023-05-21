@@ -23,6 +23,7 @@ class QWidget;
 class QKeyEvent;
 class PdfMaster;
 class SlideScene;
+class SlideView;
 class PixCache;
 class QMainWindow;
 class QXmlStreamReader;
@@ -66,6 +67,16 @@ class Master : public QObject
     /// Return true when the program should quit.
     bool askCloseConfirmation() const noexcept;
 
+    /// Create widgets recursively.
+    QWidget* createWidget(QJsonObject& object, QWidget *parent, QMap<QString, PdfMaster*> &known_files);
+
+    /// Open pdf/xopp/xoj/bpr file.
+    /// Create globally accessible file alias in preferences.
+    PdfMaster *openFile(QString name, QMap<QString, PdfMaster*> &file_alias);
+
+    /// Create slide from config.
+    SlideView *createSlide(QJsonObject &object, PdfMaster *pdf, QWidget *parent);
+
 public:
     /// Constructor: initializes times.
     Master();
@@ -83,13 +94,11 @@ public:
         ParseConfigFailed = 2, ///< parsing the config file failed.
         NoWindowsCreated = 3, ///< no windows were created for any other reason.
         NoPDFLoaded = 4, ///< no PDF file was loaded.
+        NoScenesCreated = 5, ///< no scenes were created.
     };
 
     /// Read configuration file and build up GUI.
     Status readGuiConfig(const QString& filename);
-
-    /// Create widgets recursively.
-    QWidget* createWidget(QJsonObject& object, QWidget *parent = NULL);
 
     /// Calculate total cache size (sum up cache sizes from all PixCache objects).
     qint64 getTotalCache() const;

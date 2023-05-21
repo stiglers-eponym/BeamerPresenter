@@ -89,6 +89,11 @@ Master::Status Master::readGuiConfig(const QString &filename)
         qInfo() << "Note that the GUI config file must represent a single JSON array.";
         return ParseConfigFailed;
     }
+
+    /// Map "presentation", "notes", ... to PdfDocument pointers.
+    /// This is needed to interpret GUI config.
+    QMap<QString, PdfMaster*> known_files;
+
     const QJsonArray array = doc.array();
 #if (QT_VERSION >= QT_VERSION_CHECK(5,14,0))
     for (auto it = array.cbegin(); it != array.cend(); ++it)
@@ -103,7 +108,7 @@ Master::Status Master::readGuiConfig(const QString &filename)
         }
         QJsonObject obj = it->toObject();
         // Start recursive creation of widgets.
-        QWidget *const widget = createWidget(obj, NULL);
+        QWidget *const widget = createWidget(obj, nullptr, known_files);
         if (!widget)
             continue;
         // Root widgets should get their own QMainWindow.
@@ -120,17 +125,20 @@ Master::Status Master::readGuiConfig(const QString &filename)
 
     if (documents.isEmpty())
         return NoPDFLoaded;
-
-    writable_preferences()->document = documents.first()->getDocument();
-    documents.first()->getScenes().first()->views().first()->setFocus();
-
-    // Return true (success) if at least one window and one document were created.
     if (windows.isEmpty())
         return NoWindowsCreated;
+
+    writable_preferences()->document = documents.first()->getDocument();
+    const auto &scenes = documents.first()->getScenes();
+    if (scenes.empty())
+        return NoScenesCreated;
+    connect(scenes.first(), &SlideScene::finishTransition, this, &Master::postNavigation);
+    // Focus a scene view by default. This makes keyboard shortcuts available.
+    scenes.first()->views().first()->setFocus();
     return Success;
 }
 
-QWidget* Master::createWidget(QJsonObject &object, QWidget *parent)
+QWidget* Master::createWidget(QJsonObject &object, QWidget *parent, QMap<QString, PdfMaster*> &known_files)
 {
     if (!object.contains("type"))
     {
@@ -141,10 +149,10 @@ QWidget* Master::createWidget(QJsonObject &object, QWidget *parent)
         else
         {
             qCritical() << tr("Ignoring entry in GUI config without type.") << object;
-            return NULL;
+            return nullptr;
         }
     }
-    QWidget *widget = NULL;
+    QWidget *widget = nullptr;
     const GuiWidget type = string_to_widget_type(object.value("type").toString());
     switch (type)
     {
@@ -169,7 +177,7 @@ QWidget* Master::createWidget(QJsonObject &object, QWidget *parent)
             }
             QJsonObject obj = it->toObject();
             // Create child widgets recursively
-            QWidget* const newwidget = createWidget(obj, widget);
+            QWidget* const newwidget = createWidget(obj, widget, known_files);
             if (newwidget)
                 layout->addWidget(newwidget);
         }
@@ -193,7 +201,7 @@ QWidget* Master::createWidget(QJsonObject &object, QWidget *parent)
             }
             QJsonObject obj = it->toObject();
             // Create child widgets recursively
-            QWidget* const newwidget = createWidget(obj, widget);
+            QWidget* const newwidget = createWidget(obj, widget, known_files);
             if (newwidget)
             {
                 stackwidget->addWidget(newwidget);
@@ -231,7 +239,7 @@ QWidget* Master::createWidget(QJsonObject &object, QWidget *parent)
             }
             QJsonObject obj = it->toObject();
             // Create child widgets recursively
-            QWidget* const newwidget = createWidget(obj, widget);
+            QWidget* const newwidget = createWidget(obj, widget, known_files);
             if (obj.contains("title"))
                 tabwidget->addTab(newwidget, obj.value("title").toString());
             else
@@ -242,237 +250,9 @@ QWidget* Master::createWidget(QJsonObject &object, QWidget *parent)
     }
     case SlideType:
     {
-        // Calculate the shift for scene.
-        int shift = object.value("shift").toInt() & ~ShiftOverlays::AnyOverlay;
-        const QString overlays = object.value("overlays").toString().toLower();
-        if (overlays == "first")
-            shift |= ShiftOverlays::FirstOverlay;
-        else if (overlays == "last")
-            shift |= ShiftOverlays::LastOverlay;
-
-        // Find PDF file name.
-        // Usually "file" will be "presentation" or "notes". These keywords
-        // are mapped to filenames by preferences()->file_alias.
-        QString file = object.value("file").toString();
-        file = preferences()->file_alias.value(file.isEmpty() ? "presentation" : file, file);
-        if (file == "//INVALID")
-            break;
-        QFileInfo fileinfo(file);
-        if (fileinfo.exists())
-            file = fileinfo.absoluteFilePath();
-        else
-        {
-            fileinfo = QFileInfo(QFileDialog::getOpenFileName(
-                                     NULL,
-                                     tr("Open file") + " \"" + file + "\"",
-                                     "",
-                                     tr("Documents (*.pdf);;BeamerPresenter/Xournal++ files (*.bpr *.xoj *.xopp *.xml);;All files (*)")
-                                 ));
-            if (!fileinfo.exists())
-            {
-                qCritical() << tr("No valid file given");
-                writable_preferences()->file_alias.insert(file, "//INVALID");
-                writable_preferences()->file_alias.insert(object.value("file").toString(), "//INVALID");
-                break;
-            }
-            const QString oldfile = file;
-            file = fileinfo.absoluteFilePath();
-            writable_preferences()->file_alias.insert(oldfile, file);
-            writable_preferences()->file_alias.insert(object.value("file").toString(), file);
-        }
-        const QString page_part_str = object.value("page part").toString().toLower();
-        PagePart page_part = FullPage;
-        if (page_part_str == "left")
-            page_part = LeftHalf;
-        else if (page_part_str == "right")
-            page_part = RightHalf;
-
-        // Check whether the PDF has been loaded already, load it if necessary.
-        PdfMaster *doc = NULL;
-        SlideScene *scene = NULL;
-        for (auto docit = documents.begin(); docit != documents.end(); ++docit)
-        {
-            if ((*docit)->getFilename() == file || (*docit)->drawingsPath() == file)
-            {
-                doc = *docit;
-                if (page_part != FullPage && preferences()->page_part_threshold > 0.)
-                {
-                    const QSizeF reference = doc->getPageSize(0);
-                    if (reference.width() < preferences()->page_part_threshold * reference.height())
-                        page_part = FullPage;
-                }
-                if (object.value("master").toBool())
-                {
-                    documents.erase(docit);
-                    documents.prepend(doc);
-                    writable_preferences()->default_page_part = page_part;
-                }
-                break;
-            }
-        }
-        if (doc == NULL)
-        {
-            // First create an empty PdfMaster. Don't do anything with it,
-            // it's not initialized yet. Only connect it to signals, some of
-            // which may already be required in initialization.
-            doc = new PdfMaster();
-            connect(this, &Master::sendAction, doc, &PdfMaster::receiveAction);
-            connect(this, &Master::navigationSignal, doc, &PdfMaster::distributeNavigationEvents, Qt::QueuedConnection);
-            connect(this, &Master::setTimeForPage, doc, &PdfMaster::setTimeForPage);
-            connect(this, &Master::getTimeForPage, doc, &PdfMaster::getTimeForPage);
-            connect(this, &Master::saveDrawings, doc, &PdfMaster::saveXopp);
-            connect(this, &Master::loadDrawings, doc, &PdfMaster::loadXopp);
-            connect(doc, &PdfMaster::writeNotes, this, &Master::writeNotes, Qt::DirectConnection);
-            connect(doc, &PdfMaster::readNotes, this, &Master::readNotes, Qt::DirectConnection);
-            connect(doc, &PdfMaster::setTotalTime, this, &Master::setTotalTime);
-            connect(doc, &PdfMaster::navigationSignal, this, &Master::navigateToPage, Qt::DirectConnection);
-            // Initialize doc with file.
-            doc->initialize(file);
-            if (doc->getDocument() == NULL)
-            {
-                delete doc;
-                qCritical() << tr("Failed to load PDF document. This will result in errors!");
-                writable_preferences()->file_alias.insert(file, "//INVALID");
-                writable_preferences()->file_alias.insert(object.value("file").toString(), "//INVALID");
-                return NULL;
-            }
-            if (writable_preferences()->number_of_pages && writable_preferences()->number_of_pages != doc->numberOfPages())
-            {
-                showErrorMessage(
-                            tr("Error while loading PDF file"),
-                            tr("Loaded PDF files with different numbers of pages. You should expect errors."));
-                writable_preferences()->number_of_pages = std::max(writable_preferences()->number_of_pages, doc->numberOfPages());
-            }
-            else
-                writable_preferences()->number_of_pages = doc->numberOfPages();
-            if (preferences()->page_part_threshold > 0.)
-            {
-                const QSizeF reference = doc->getPageSize(0);
-                if (reference.width() < preferences()->page_part_threshold * reference.height())
-                    page_part = FullPage;
-            }
-            if (object.value("master").toBool())
-            {
-                documents.prepend(doc);
-                writable_preferences()->default_page_part = page_part;
-            }
-            else
-                documents.append(doc);
-        }
-        else {
-            // If PDF files existed before, check whether we need a new SlideScene.
-            for (auto &sceneit : doc->getScenes())
-            {
-                if (sceneit->identifier() == qHash(QPair<int, const void*>(shift, doc)) + page_part)
-                {
-                    scene = sceneit;
-                    break;
-                }
-            }
-        }
-
-        // Create new slide scene if necessary.
-        if (scene == NULL)
-        {
-            scene = new SlideScene(doc, page_part, parent);
-            if (shift)
-                scene->setPageShift(shift);
-            if (shift == 0 || object.value("master").toBool(false))
-            {
-                connect(scene, &SlideScene::finishTransition, this, &Master::postNavigation);
-                doc->getScenes().prepend(scene);
-            }
-            else
-                doc->getScenes().append(scene);
-            connect(scene, &SlideScene::newUnsavedDrawings, doc, &PdfMaster::newUnsavedDrawings);
-            connect(scene, &SlideScene::navigationSignal, this, &Master::navigateToPage, Qt::QueuedConnection);
-            connect(scene, &SlideScene::sendAction, this, &Master::handleAction, Qt::QueuedConnection);
-            connect(this, &Master::sendAction, scene, &SlideScene::receiveAction);
-            connect(this, &Master::sendNewToolScene, scene, &SlideScene::toolChanged);
-            connect(this, &Master::sendColor, scene, &SlideScene::colorChanged);
-            connect(this, &Master::sendWidth, scene, &SlideScene::widthChanged);
-            connect(this, &Master::postRendering, scene, &SlideScene::postRendering, Qt::QueuedConnection);
-            connect(this, &Master::prepareNavigationSignal, scene, &SlideScene::prepareNavigationEvent);
-            connect(doc, &PdfMaster::updateSearch, scene, &SlideScene::updateSearchResults);
-            connect(preferences(), &Preferences::stopDrawing, scene, &SlideScene::stopDrawing);
-        }
-        else if (object.value("master").toBool())
-        {
-#if (QT_VERSION >= QT_VERSION_CHECK(5,14,0))
-            doc->getScenes().swapItemsAt(doc->getScenes().indexOf(scene), 0);
-#else
-            QList<SlideScene*> &list = doc->getScenes();
-            SlideScene *const tmp_scene = list.first();
-            const int idx = list.indexOf(scene);
-            list[0] = list[idx];
-            list[idx] = tmp_scene;
-#endif
-        }
-        // TODO: read other properties from config
-
-        // Get or create cache object.
-        const PixCache *pixcache = NULL;
-        int cache_hash = object.value("cache hash").toInt(-1);
-        if (cache_hash == -1)
-        {
-            // -1 is the "default hash" and indicates that a new object has to
-            // be created.
-            // Set hash to -2 or smaller.
-            cache_hash = (caches.isEmpty() || caches.firstKey() >= 0) ? -2 : caches.firstKey() - 1;
-        }
-        else
-        {
-            // Check if a PixCache object with the given hash already exists.
-            pixcache = caches.value(cache_hash, nullptr);
-        }
-        // If necessary, create a new PixCache object an store it in caches.
-        if (pixcache == nullptr)
-        {
-            // Read number of threads from GUI config.
-            const int threads = object.value("threads").toInt(1);
-            // Create the PixCache object.
-            PixCache* newpixcache = new PixCache(scene->getPdfMaster()->getDocument(), threads, page_part);
-            pixcache = newpixcache;
-            // Set maximum number of pages in cache from settings.
-            newpixcache->setMaxNumber(preferences()->max_cache_pages);
-            // Move the PixCache object to an own thread.
-            newpixcache->moveToThread(new QThread());
-            connect(pixcache, &PixCache::destroyed, pixcache->thread(), &QThread::deleteLater);
-            // Make sure that pixcache is initialized when the thread is started.
-            connect(pixcache->thread(), &QThread::started, pixcache, &PixCache::init, Qt::QueuedConnection);
-            connect(this, &Master::navigationSignal, pixcache, &PixCache::pageNumberChanged, Qt::QueuedConnection);
-            connect(this, &Master::sendScaledMemory, pixcache, &PixCache::setScaledMemory, Qt::QueuedConnection);
-            connect(this, &Master::clearCache, pixcache, &PixCache::clear, Qt::QueuedConnection);
-            // Start the thread.
-            pixcache->thread()->start();
-            // Keep the new pixcache in caches.
-            caches[cache_hash] = pixcache;
-        }
-
-        // Create slide view.
-        SlideView *slide = new SlideView(scene, pixcache, parent);
-        // flags for slide view
-        if (object.value("media controls").toBool(false))
-            slide->flags() |= SlideView::MediaControls;
-        if (!object.value("show tools").toBool(true))
-            slide->flags() &= ~SlideView::ShowPointingTools;
-        // flags for slide scene
-        if (!object.value("autoplay").toBool(true))
-            scene->flags() &= ~(SlideScene::AutoplayVideo|SlideScene::AutoplaySounds);
-        if (!object.value("media").toBool(true))
-            scene->flags() &= ~(SlideScene::LoadMedia | SlideScene::CacheVideos | SlideScene::AutoplayVideo | SlideScene::AutoplaySounds);
-        if (!object.value("transitions").toBool(true))
-            scene->flags() &= ~SlideScene::ShowTransitions;
-        if (!object.value("cache videos").toBool(true))
-            scene->flags() &= ~SlideScene::CacheVideos;
-        if (!object.value("draw").toBool(true))
-            scene->flags() &= ~SlideScene::ShowDrawings;
-        // Mute slides by default, except if they are marked as master.
-        if (!object.value("mute").toBool(!object.value("master").toBool(false)))
-            scene->flags() &= ~SlideScene::MuteSlide;
-        connect(slide, &SlideView::sendAction, this, &Master::handleAction, Qt::QueuedConnection);
-        connect(scene, &SlideScene::navigationToViews, slide, &SlideView::pageChanged, Qt::DirectConnection);
-        widget = slide;
+        PdfMaster *pdf = openFile(object.value("file").toString(), known_files);
+        if (pdf)
+            widget = createSlide(object, pdf, parent);
         break;
     }
     case OverviewType:
@@ -633,6 +413,8 @@ QWidget* Master::createWidget(QJsonObject &object, QWidget *parent)
         showErrorMessage(
                     tr("Error while reading GUI config"),
                     tr("Ignoring entry in GUI config with invalid type ") + object.value("type").toString());
+        qCritical() << tr("Ignoring entry in GUI config with invalid type ") + object.value("type").toString();
+        break;
     }
     if (widget)
     {
@@ -662,6 +444,242 @@ QWidget* Master::createWidget(QJsonObject &object, QWidget *parent)
     else
         qCritical() << tr("An error occured while trying to create a widget of type") << object.value("type");
     return widget;
+}
+
+SlideView *Master::createSlide(QJsonObject &object, PdfMaster *pdf, QWidget *parent)
+{
+    if (!pdf)
+        return nullptr;
+
+    const bool is_master = object.value("master").toBool();
+    if (is_master && documents.first() != pdf)
+    {
+        documents.removeAll(pdf);
+        documents.prepend(pdf);
+    }
+
+    // Calculate the shift for scene.
+    int shift = object.value("shift").toInt() & ~ShiftOverlays::AnyOverlay;
+    const QString overlays = object.value("overlays").toString().toLower();
+    if (overlays == "first")
+        shift |= ShiftOverlays::FirstOverlay;
+    else if (overlays == "last")
+        shift |= ShiftOverlays::LastOverlay;
+
+    // Get the page part.
+    const QString page_part_str = object.value("page part").toString().toLower();
+    PagePart page_part = FullPage;
+    if (page_part_str == "left")
+        page_part = LeftHalf;
+    else if (page_part_str == "right")
+        page_part = RightHalf;
+    if (preferences()->page_part_threshold > 0.)
+    {
+        const QSizeF reference = pdf->getPageSize(0);
+        if (reference.width() < preferences()->page_part_threshold * reference.height())
+            page_part = FullPage;
+    }
+    if (is_master)
+        writable_preferences()->default_page_part = page_part;
+
+    SlideScene *scene {nullptr};
+    // Check whether we need a new SlideScene.
+    for (auto &sceneit : pdf->getScenes())
+        if (sceneit->getShift() == shift && sceneit->pagePart() == page_part)
+        {
+            scene = sceneit;
+            break;
+        }
+
+    // Create new slide scene if necessary.
+    if (scene == nullptr)
+    {
+        scene = new SlideScene(pdf, page_part, parent);
+        if (shift)
+            scene->setPageShift(shift);
+        if (shift == 0 || is_master)
+        {
+            connect(scene, &SlideScene::finishTransition, this, &Master::postNavigation);
+            pdf->getScenes().prepend(scene);
+        }
+        else
+            pdf->getScenes().append(scene);
+        connect(scene, &SlideScene::newUnsavedDrawings, pdf, &PdfMaster::newUnsavedDrawings);
+        connect(scene, &SlideScene::navigationSignal, this, &Master::navigateToPage, Qt::QueuedConnection);
+        connect(scene, &SlideScene::sendAction, this, &Master::handleAction, Qt::QueuedConnection);
+        connect(this, &Master::sendAction, scene, &SlideScene::receiveAction);
+        connect(this, &Master::sendNewToolScene, scene, &SlideScene::toolChanged);
+        connect(this, &Master::sendColor, scene, &SlideScene::colorChanged);
+        connect(this, &Master::sendWidth, scene, &SlideScene::widthChanged);
+        connect(this, &Master::postRendering, scene, &SlideScene::postRendering, Qt::QueuedConnection);
+        connect(this, &Master::prepareNavigationSignal, scene, &SlideScene::prepareNavigationEvent);
+        connect(pdf, &PdfMaster::updateSearch, scene, &SlideScene::updateSearchResults);
+        connect(preferences(), &Preferences::stopDrawing, scene, &SlideScene::stopDrawing);
+    }
+    else if (is_master)
+    {
+#if (QT_VERSION >= QT_VERSION_CHECK(5,14,0))
+        pdf->getScenes().swapItemsAt(pdf->getScenes().indexOf(scene), 0);
+#else
+        QList<SlideScene*> &list = pdf->getScenes();
+        SlideScene *const tmp_scene = list.first();
+        const int idx = list.indexOf(scene);
+        list[0] = list[idx];
+        list[idx] = tmp_scene;
+#endif
+    }
+
+    // Get or create cache object.
+    const PixCache *pixcache = nullptr;
+    int cache_hash = object.value("cache hash").toInt(-1);
+    if (cache_hash == -1)
+    {
+        // -1 is the "default hash" and indicates that a new object has to
+        // be created.
+        // Set hash to -2 or smaller.
+        cache_hash = (caches.isEmpty() || caches.firstKey() >= 0) ? -2 : caches.firstKey() - 1;
+    }
+    else
+    {
+        // Check if a PixCache object with the given hash already exists.
+        pixcache = caches.value(cache_hash, nullptr);
+    }
+    // If necessary, create a new PixCache object an store it in caches.
+    if (pixcache == nullptr)
+    {
+        // Read number of threads from GUI config.
+        const int threads = object.value("threads").toInt(1);
+        // Create the PixCache object.
+        PixCache* newpixcache = new PixCache(scene->getPdfMaster()->getDocument(), threads, page_part);
+        pixcache = newpixcache;
+        // Set maximum number of pages in cache from settings.
+        newpixcache->setMaxNumber(preferences()->max_cache_pages);
+        // Move the PixCache object to an own thread.
+        newpixcache->moveToThread(new QThread());
+        connect(pixcache, &PixCache::destroyed, pixcache->thread(), &QThread::deleteLater);
+        // Make sure that pixcache is initialized when the thread is started.
+        connect(pixcache->thread(), &QThread::started, pixcache, &PixCache::init, Qt::QueuedConnection);
+        connect(this, &Master::navigationSignal, pixcache, &PixCache::pageNumberChanged, Qt::QueuedConnection);
+        connect(this, &Master::sendScaledMemory, pixcache, &PixCache::setScaledMemory, Qt::QueuedConnection);
+        connect(this, &Master::clearCache, pixcache, &PixCache::clear, Qt::QueuedConnection);
+        // Start the thread.
+        pixcache->thread()->start();
+        // Keep the new pixcache in caches.
+        caches[cache_hash] = pixcache;
+    }
+
+    // Create slide view.
+    SlideView *slide = new SlideView(scene, pixcache, parent);
+    // flags for slide view
+    if (object.value("media controls").toBool(false))
+        slide->flags() |= SlideView::MediaControls;
+    if (!object.value("show tools").toBool(true))
+        slide->flags() &= ~SlideView::ShowPointingTools;
+    // flags for slide scene
+    if (!object.value("autoplay").toBool(true))
+        scene->flags() &= ~(SlideScene::AutoplayVideo|SlideScene::AutoplaySounds);
+    if (!object.value("media").toBool(true))
+        scene->flags() &= ~(SlideScene::LoadMedia | SlideScene::CacheVideos | SlideScene::AutoplayVideo | SlideScene::AutoplaySounds);
+    if (!object.value("transitions").toBool(true))
+        scene->flags() &= ~SlideScene::ShowTransitions;
+    if (!object.value("cache videos").toBool(true))
+        scene->flags() &= ~SlideScene::CacheVideos;
+    if (!object.value("draw").toBool(true))
+        scene->flags() &= ~SlideScene::ShowDrawings;
+    // Mute slides by default, except if they are marked as master.
+    if (!object.value("mute").toBool(!object.value("master").toBool(false)))
+        scene->flags() &= ~SlideScene::MuteSlide;
+    connect(slide, &SlideView::sendAction, this, &Master::handleAction, Qt::QueuedConnection);
+    connect(scene, &SlideScene::navigationToViews, slide, &SlideView::pageChanged, Qt::DirectConnection);
+    return slide;
+}
+
+PdfMaster *Master::openFile(QString name, QMap<QString, PdfMaster*> &known_files)
+{
+    // Check if name is known.
+    if (known_files.contains(name))
+        return known_files.value(name);
+    // Check if name is an alias.
+    if (name.isEmpty())
+        name = "presentation";
+    QString file = preferences()->file_alias.value(name);
+    if (file.isEmpty())
+        file = name;
+    // Check if the alias is known.
+    else if (known_files.contains(file))
+        return known_files.value(file);
+    // Check if file is a valid path.
+    QFileInfo fileinfo(file);
+    if (!fileinfo.isFile())
+        // Ask the user to open a file.
+        fileinfo = QFileInfo(QFileDialog::getOpenFileName(
+                                 nullptr,
+                                 tr("Open file") + " \"" + name + "\"",
+                                 "",
+                                 tr("Documents (*.pdf);;BeamerPresenter/Xournal++ files (*.bpr *.xoj *.xopp *.xml);;All files (*)")
+                             ));
+    if (!fileinfo.isFile())
+    {
+        // File does not exist, mark given aliases as invalid.
+        qCritical() << tr("No valid file given");
+        known_files[name] = nullptr;
+        if (file != name)
+            known_files[file] = nullptr;
+        known_files[fileinfo.absoluteFilePath()] = nullptr;
+        return nullptr;
+    }
+    // File exists, create a new PdfMaster object.
+    const QString abs_path = fileinfo.absoluteFilePath();
+    // First create an empty PdfMaster. Don't do anything with it,
+    // it's not initialized yet. Only connect it to signals, some of
+    // which may already be required in initialization.
+    auto pdf = new PdfMaster();
+
+    connect(this, &Master::sendAction, pdf, &PdfMaster::receiveAction);
+    connect(this, &Master::navigationSignal, pdf, &PdfMaster::distributeNavigationEvents, Qt::QueuedConnection);
+    connect(this, &Master::setTimeForPage, pdf, &PdfMaster::setTimeForPage);
+    connect(this, &Master::getTimeForPage, pdf, &PdfMaster::getTimeForPage);
+    connect(this, &Master::saveDrawings, pdf, &PdfMaster::saveXopp);
+    connect(this, &Master::loadDrawings, pdf, &PdfMaster::loadXopp);
+    connect(pdf, &PdfMaster::writeNotes, this, &Master::writeNotes, Qt::DirectConnection);
+    connect(pdf, &PdfMaster::readNotes, this, &Master::readNotes, Qt::DirectConnection);
+    connect(pdf, &PdfMaster::setTotalTime, this, &Master::setTotalTime);
+    connect(pdf, &PdfMaster::navigationSignal, this, &Master::navigateToPage, Qt::DirectConnection);
+
+    // Initialize document, try to laod PDF
+    // TODO: should this be done at this point?
+    pdf->initialize(abs_path);
+    if (pdf->getDocument() == nullptr)
+    {
+        delete pdf;
+        qCritical() << tr("Failed to load PDF document. This will result in errors!");
+        known_files[name] = nullptr;
+        known_files[abs_path] = nullptr;
+        if (file != name)
+            known_files[file] = nullptr;
+        return nullptr;
+    }
+
+    // Adjust number of pages in preferences
+    if (preferences()->number_of_pages && preferences()->number_of_pages != pdf->numberOfPages())
+    {
+        showErrorMessage(
+                    tr("Error while loading PDF file"),
+                    tr("Loaded PDF files with different numbers of pages. You should expect errors."));
+        qCritical() << tr("Loaded PDF files with different numbers of pages.");
+        writable_preferences()->number_of_pages = std::max(preferences()->number_of_pages, pdf->numberOfPages());
+    }
+    else
+        writable_preferences()->number_of_pages = pdf->numberOfPages();
+
+    documents.append(pdf);
+
+    known_files[name] = pdf;
+    known_files[abs_path] = pdf;
+    if (file != name)
+        known_files[file] = pdf;
+    known_files[pdf->getFilename()] = pdf;
+    return pdf;
 }
 
 void Master::showAll() const
