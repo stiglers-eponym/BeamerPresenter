@@ -28,6 +28,7 @@ ThumbnailWidget::ThumbnailWidget(const PdfDocument *doc, QWidget *parent) : QScr
     setFocusPolicy(Qt::NoFocus);
     setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
+    initialize();
 }
 
 void ThumbnailWidget::initialize()

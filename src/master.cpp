@@ -257,13 +257,23 @@ QWidget* Master::createWidget(QJsonObject &object, QWidget *parent, QMap<QString
     }
     case OverviewType:
     {
-        ThumbnailWidget *twidget = new ThumbnailWidget(nullptr, parent);
+        PdfDocument *document = nullptr;
+        const QString file = object.value("file").toString();
+        if (!file.isEmpty())
+        {
+            auto pdf = openFile(file, known_files);
+            if (pdf)
+                document = pdf->getDocument();
+        }
+        ThumbnailWidget *twidget = new ThumbnailWidget(document, parent);
+        twidget->widget()->installEventFilter(this);
         widget = twidget;
         if (object.contains("columns"))
             twidget->setColumns(object.value("columns").toInt(4));
         if (object.value("overlays").toString() == "skip")
             twidget->flags() |= ThumbnailWidget::SkipOverlays;
         connect(this, &Master::sendAction, twidget, &ThumbnailWidget::handleAction, Qt::QueuedConnection);
+        connect(this, &Master::navigationSignal, twidget, &ThumbnailWidget::focusPage, Qt::QueuedConnection);
         break;
     }
     case TOCType:

@@ -52,9 +52,6 @@ private:
     /// currently focussed page index
     ThumbnailButton *focussed_button {nullptr};
 
-    /// Set focus to given page.
-    void focusPage(int page);
-
     /// Create widget and layout.
     void initialize();
 
@@ -96,6 +93,9 @@ public:
     {return {100, 200};}
 
 public slots:
+    /// Set focus to given page.
+    void focusPage(int page);
+
     /// generate thumbnails if necessary and select currenlty visible page.
     void showEvent(QShowEvent *event) override;
 
