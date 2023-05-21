@@ -201,7 +201,7 @@ public:
     /// This is needed to interpret GUI config.
     QMap<QString, QString> file_alias;
     /// Main document
-    const PdfDocument *document = NULL;
+    const PdfDocument *document = nullptr;
     /// Number of pages in main document
     int number_of_pages = 0;
 

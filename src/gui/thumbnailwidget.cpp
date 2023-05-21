@@ -18,15 +18,36 @@
 #include "src/rendering/pdfdocument.h"
 #include "src/preferences.h"
 #include "src/master.h"
-#include "src/log.h"
 
 /// inverse tolerance for widget size changes for recalculating buttons
-#define INVERSE_TOLERANCE 20
+#define INVERSE_TOLERANCE 10
+
+/// Nearly trivial constructor.
+ThumbnailWidget::ThumbnailWidget(const PdfDocument *doc, QWidget *parent) : QScrollArea(parent), document(doc)
+{
+    setFocusPolicy(Qt::NoFocus);
+    setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
+}
+
+void ThumbnailWidget::initialize()
+{
+    delete widget();
+    delete layout();
+    setWidget(nullptr);
+    QGridLayout *layout = new QGridLayout(this);
+    layout->setSizeConstraint(QLayout::SetFixedSize);
+    QWidget *widget = new QWidget(this);
+    widget->setLayout(layout);
+    setWidget(widget);
+    QScroller::grabGesture(this);
+}
 
 void ThumbnailWidget::showEvent(QShowEvent *event)
 {
     // generate the thumbnails if necessary
-    generate();
+    if (std::abs(ref_width - width()) > ref_width/INVERSE_TOLERANCE)
+        generate();
     // select the currently visible page
     if (!event->spontaneous())
         focusPage(preferences()->page);
@@ -42,18 +63,25 @@ void ThumbnailWidget::focusPage(int page)
     if (_flags & SkipOverlays)
     {
         // Get sorted list of page label indices from master document.
-        const QList<int> &list = preferences()->document->overlayIndices();
+        const QList<int> &list = document->overlayIndices();
         QList<int>::const_iterator it = std::upper_bound(list.cbegin(), list.cend(), page);
         if (it != list.cbegin())
             --it;
         page = it - list.cbegin();
     }
     QLayoutItem *item = layout->itemAt(page);
-    if (item && item->widget())
-        item->widget()->setFocus();
+    if (!item)
+        return;
+    ThumbnailButton *button = dynamic_cast<ThumbnailButton*>(item->widget());
+    if (!button || button == focussed_button)
+        return;
+    if (focussed_button)
+        focussed_button->defocus();
+    focussed_button = button;
+    focussed_button->setFocus();
 }
 
-void ThumbnailWidget::setFocusIndex(ThumbnailButton *button)
+void ThumbnailWidget::setFocusButton(ThumbnailButton *button)
 {
     if (focussed_button != button)
     {
@@ -88,7 +116,8 @@ void ThumbnailWidget::handleAction(const Action action)
 {
     if (action == PdfFilesChanged)
     {
-        clear();
+        emit interruptThread();
+        focussed_button = nullptr;
         if (render_thread)
         {
             render_thread->thread()->quit();
@@ -96,49 +125,60 @@ void ThumbnailWidget::handleAction(const Action action)
             delete render_thread;
             render_thread = nullptr;
         }
+        ref_width = -100;
+        initialize();
+        if (isVisible())
+        {
+            generate();
+            focusPage(preferences()->page);
+        }
     }
 }
 
-void ThumbnailWidget::generate(const PdfDocument *document)
+void ThumbnailWidget::initRenderingThread()
 {
     if (!document)
         document = preferences()->document;
-    // Don't recalculate if changes in the widget's width lie below a threshold of 5%.
-    if (!document || std::abs(ref_width - width()) < ref_width/INVERSE_TOLERANCE)
-        return;
+    render_thread = new ThumbnailThread(document);
+    render_thread->moveToThread(new QThread(render_thread));
+    connect(this, &ThumbnailWidget::interruptThread, render_thread, &ThumbnailThread::clearQueue, Qt::QueuedConnection);
+    connect(this, &ThumbnailWidget::sendToRenderThread, render_thread, &ThumbnailThread::append, Qt::QueuedConnection);
+    connect(this, &ThumbnailWidget::startRendering, render_thread, &ThumbnailThread::renderImages, Qt::QueuedConnection);
+    connect(render_thread, &ThumbnailThread::sendThumbnail, this, &ThumbnailWidget::receiveThumbnail, Qt::QueuedConnection);
+    render_thread->thread()->start();
+}
 
-    // TODO: Correctly handle thread, this might lead to segfaults!
-    clear();
+void ThumbnailWidget::generate()
+{
+    if (!widget())
+        initialize();
+
+    emit interruptThread();
+    focussed_button = nullptr;
     if (!render_thread)
-    {
-        render_thread = new ThumbnailThread(document);
-        render_thread->moveToThread(new QThread(render_thread));
-        connect(this, &ThumbnailWidget::interruptThread, render_thread, &ThumbnailThread::clearQueue, Qt::QueuedConnection);
-        connect(this, &ThumbnailWidget::sendToRenderThread, render_thread, &ThumbnailThread::append, Qt::QueuedConnection);
-        connect(this, &ThumbnailWidget::startRendering, render_thread, &ThumbnailThread::renderImages, Qt::QueuedConnection);
-        connect(render_thread, &ThumbnailThread::sendThumbnail, this, &ThumbnailWidget::receiveThumbnail, Qt::QueuedConnection);
-        render_thread->thread()->start();
-    }
+        initRenderingThread();
 
-    QGridLayout *layout = new QGridLayout(this);
-    debug_msg(DebugWidgets, size() << maximumViewportSize() << viewport()->size());
-    setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
-    setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
-    debug_msg(DebugWidgets, size() << maximumViewportSize() << viewport()->size());
+    QGridLayout *layout = static_cast<QGridLayout*>(widget()->layout());
     const int col_width = (viewport()->width() - (columns+1)*layout->horizontalSpacing())/columns;
-    setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
     ref_width = width();
     ThumbnailButton* button;
+    QLayoutItem *item;
     auto create_button = [&](const int display_page, const int link_page, const int position)
     {
-        button = new ThumbnailButton(link_page, this);
-        connect(button, &ThumbnailButton::sendNavigationSignal, master(), &Master::navigateToPage);
-        connect(button, &ThumbnailButton::updateFocus, this, &ThumbnailWidget::setFocusIndex);
+        item = layout->itemAt(position);
+        if (item)
+            button = dynamic_cast<ThumbnailButton*>(item->widget());
+        if (!item || !button)
+        {
+            button = new ThumbnailButton(link_page, this);
+            connect(button, &ThumbnailButton::sendNavigationSignal, master(), &Master::navigateToPage);
+            connect(button, &ThumbnailButton::updateFocus, this, &ThumbnailWidget::setFocusButton);
+            layout->addWidget(button, position/columns, position%columns);
+        }
         QSizeF size = document->pageSize(display_page);
         if (preferences()->default_page_part)
             size.rwidth() /= 2;
         button->setMinimumSize(col_width, col_width*size.height()/size.width());
-        layout->addWidget(button, position/columns, position%columns);
         emit sendToRenderThread(position, (col_width - 4)/size.width(), display_page);
     };
     int position = 0;
@@ -158,16 +198,12 @@ void ThumbnailWidget::generate(const PdfDocument *document)
         for (; position < document->numberOfPages(); position++)
             create_button(position, position, position);
     }
-    QWidget *widget = new QWidget(this);
-    widget->setLayout(layout);
-    setWidget(widget);
-    QScroller::grabGesture(this);
     emit startRendering();
 }
 
 ThumbnailWidget::~ThumbnailWidget()
 {
-    clear();
+    emit interruptThread();
     if (render_thread)
     {
         render_thread->thread()->quit();
@@ -178,7 +214,6 @@ ThumbnailWidget::~ThumbnailWidget()
 
 void ThumbnailWidget::receiveThumbnail(int button_index, const QPixmap pixmap)
 {
-    debug_msg(DebugWidgets, "receiveThumbnail:" << button_index << pixmap);
     if (pixmap.isNull() || button_index < 0)
         return;
     QLayout *layout = widget() ? widget()->layout() : nullptr;
@@ -188,7 +223,13 @@ void ThumbnailWidget::receiveThumbnail(int button_index, const QPixmap pixmap)
     if (!item)
         return;
     ThumbnailButton *button = dynamic_cast<ThumbnailButton*>(item->widget());
-    debug_msg(DebugWidgets, "receiveThumbnail: -> " << button);
     if (button)
         button->setPixmap(pixmap);
+}
+
+void ThumbnailWidget::resizeEvent(QResizeEvent*)
+{
+    // Only recalculate if changes in the widget's width lie above a threshold of 10%.
+    if (std::abs(ref_width - width()) > ref_width/INVERSE_TOLERANCE)
+        generate();
 }

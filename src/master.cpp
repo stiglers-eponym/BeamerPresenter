@@ -477,7 +477,7 @@ QWidget* Master::createWidget(QJsonObject &object, QWidget *parent)
     }
     case OverviewType:
     {
-        ThumbnailWidget *twidget = new ThumbnailWidget(parent);
+        ThumbnailWidget *twidget = new ThumbnailWidget(nullptr, parent);
         widget = twidget;
         if (object.contains("columns"))
             twidget->setColumns(object.value("columns").toInt(4));

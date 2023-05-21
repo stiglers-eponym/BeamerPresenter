@@ -40,7 +40,9 @@ private:
     /// QObject for rendering. which is moved to an own thread.
     /// Communication to render_thread is almost exclusively done via the
     /// signal/slot mechanism since it lives in another thread.
-    ThumbnailThread *render_thread = nullptr;
+    ThumbnailThread *render_thread {nullptr};
+    /// Document shown by these thumbnails.
+    const PdfDocument *document {nullptr};
 
     /// width of widget when thumbnails were rendered, in pixels.
     int ref_width {0};
@@ -54,24 +56,19 @@ private:
     /// Set focus to given page.
     void focusPage(int page);
 
-    /// Delete widget, clear all thumbnails.
-    void clear() noexcept
-    {
-        emit interruptThread();
-        focussed_button = nullptr;
-        delete widget();
-        setWidget(nullptr);
-    }
+    /// Create widget and layout.
+    void initialize();
+
+    /// Initialize (create and start) rendering thread.
+    void initRenderingThread();
 
 protected:
     /// Resize: clear if necessary.
-    void resizeEvent(QResizeEvent *event) override
-    {generate();}
+    void resizeEvent(QResizeEvent*) override;
 
 public:
     /// Nearly trivial constructor.
-    explicit ThumbnailWidget(QWidget *parent = nullptr) : QScrollArea(parent)
-    {setFocusPolicy(Qt::NoFocus);}
+    explicit ThumbnailWidget(const PdfDocument *document = nullptr, QWidget *parent = nullptr);
 
     /// Destructor, stop and delete render thread.
     ~ThumbnailWidget();
@@ -89,7 +86,7 @@ public:
     /// preferences(). The function returns after (creating,) instructing
     /// and starting the rendering thread. Rendering is then done in
     /// background.
-    void generate(const PdfDocument *document = nullptr);
+    void generate();
 
     /// Preferred height depends on width.
     bool hasHeightForWidth() const noexcept override
@@ -113,7 +110,7 @@ public slots:
     void handleAction(const Action action);
 
     /// Remove focus from old button and focus this button.
-    void setFocusIndex(ThumbnailButton *button);
+    void setFocusButton(ThumbnailButton *button);
 
 signals:
     /// Tell render_thread to render page with resolution and associate it
