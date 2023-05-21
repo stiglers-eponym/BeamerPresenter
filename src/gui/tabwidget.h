@@ -6,6 +6,7 @@
 
 #include <QTabWidget>
 #include <QSizePolicy>
+#include "src/gui/containerbaseclass.h"
 #include "src/config.h"
 
 class QSize;
@@ -15,7 +16,7 @@ class QSize;
  * @see StackedWidget
  * @see ContainerWidget
  */
-class TabWidget : public QTabWidget
+class TabWidget : public QTabWidget, public ContainerBaseClass
 {
     Q_OBJECT
 
@@ -30,6 +31,10 @@ public:
     /// height depends on width (required by FlexLayout).
     bool hasHeightForWidth() const noexcept override
     {return true;}
+
+    /// Append a new widget to the layout.
+    virtual void addWidgetCommon(QWidget *widget, const QString &title) override
+    {addTab(widget, title);}
 };
 
 #endif // TABWIDGET_H

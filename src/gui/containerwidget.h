@@ -8,6 +8,8 @@
 #include <QSize>
 #include <QSizePolicy>
 #include <QLayout>
+#include "src/gui/containerbaseclass.h"
+#include "src/gui/flexlayout.h"
 #include "src/config.h"
 
 /**
@@ -19,14 +21,19 @@
  * @see StackedWidget
  * @see FlexLayout
  */
-class ContainerWidget : public QWidget
+class ContainerWidget : public QWidget, public ContainerBaseClass
 {
     Q_OBJECT
 
 public:
     /// Constructor: initialize QWidget and GuiWidget.
-    explicit ContainerWidget(QWidget *parent = NULL) : QWidget(parent)
-    {setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);}
+    explicit ContainerWidget(QBoxLayout::Direction direction, QWidget *parent = nullptr) : QWidget(parent)
+    {
+        setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+        FlexLayout* layout = new FlexLayout(direction);
+        layout->setContentsMargins(0, 0, 0, 0);
+        setLayout(layout);
+    }
 
     /// Return sizeHint based on layout.
     QSize sizeHint() const noexcept override
@@ -35,6 +42,10 @@ public:
     /// ContainerWidgets generally have a preferred aspect ratio. Thus hasHeightForWith()==true.
     bool hasHeightForWidth() const noexcept override
     {return true;}
+
+    /// Append a new widget to the layout.
+    virtual void addWidgetCommon(QWidget *widget, const QString &title) override
+    {if (layout()) layout()->addWidget(widget);}
 };
 
 #endif // CONTAINERWIDGET_H

@@ -140,18 +140,6 @@ Master::Status Master::readGuiConfig(const QString &filename)
 
 QWidget* Master::createWidget(QJsonObject &object, QWidget *parent, QMap<QString, PdfMaster*> &known_files)
 {
-    if (!object.contains("type"))
-    {
-        if (object.contains("children"))
-            object.insert("type", "container");
-        else if (object.contains("file"))
-            object.insert("type", "slide");
-        else
-        {
-            qCritical() << tr("Ignoring entry in GUI config without type.") << object;
-            return nullptr;
-        }
-    }
     QWidget *widget = nullptr;
     const GuiWidget type = string_to_widget_type(object.value("type").toString());
     switch (type)
@@ -159,62 +147,22 @@ QWidget* Master::createWidget(QJsonObject &object, QWidget *parent, QMap<QString
     case VBoxWidgetType:
     case HBoxWidgetType:
     {
-        widget = new ContainerWidget(parent);
-        FlexLayout* layout = new FlexLayout(type == VBoxWidgetType ? QBoxLayout::TopToBottom : QBoxLayout::LeftToRight);
-        layout->setContentsMargins(0, 0, 0, 0);
-
-        const QJsonArray array = object.value("children").toArray();
-#if (QT_VERSION >= QT_VERSION_CHECK(5,14,0))
-        for (auto it = array.cbegin(); it != array.cend(); ++it)
-#else
-        for (auto it = array.begin(); it != array.end(); ++it)
-#endif
-        {
-            if (it->type() != QJsonValue::Type::Object)
-            {
-                qCritical() << tr("Ignoring invalid entry in GUI config.");
-                continue;
-            }
-            QJsonObject obj = it->toObject();
-            // Create child widgets recursively
-            QWidget* const newwidget = createWidget(obj, widget, known_files);
-            if (newwidget)
-                layout->addWidget(newwidget);
-        }
-        widget->setLayout(layout);
+        auto cwidget = new ContainerWidget(type == VBoxWidgetType ? QBoxLayout::TopToBottom : QBoxLayout::LeftToRight, parent);
+        fillContainerWidget(cwidget, cwidget, object, known_files);
+        widget = cwidget;
         break;
     }
     case StackedWidgetType:
     {
-        StackedWidget *stackwidget = new StackedWidget(parent);
-        const QJsonArray array = object.value("children").toArray();
-#if (QT_VERSION >= QT_VERSION_CHECK(5,14,0))
-        for (auto it = array.cbegin(); it != array.cend(); ++it)
-#else
-        for (auto it = array.begin(); it != array.end(); ++it)
-#endif
-        {
-            if (it->type() != QJsonValue::Type::Object)
-            {
-                qCritical() << tr("Ignoring invalid entry in GUI config.");
-                continue;
-            }
-            QJsonObject obj = it->toObject();
-            // Create child widgets recursively
-            QWidget* const newwidget = createWidget(obj, widget, known_files);
-            if (newwidget)
-            {
-                stackwidget->addWidget(newwidget);
-                if (!obj.contains("keys"))
-                    qWarning() << "Widget in stack layout without key shortcuts is inaccessible.";
-            }
-        }
+        auto stackwidget = new StackedWidget(parent);
+        fillContainerWidget(stackwidget, stackwidget, object, known_files);
         widget = stackwidget;
         break;
     }
     case TabbedWidgetType:
     {
-        TabWidget *tabwidget = new TabWidget(parent);
+        auto tabwidget = new TabWidget(parent);
+        widget = tabwidget;
         const QString orientation = object.value("orientation").toString().toLower();
         if (orientation == "south")
             tabwidget->setTabPosition(QTabWidget::South);
@@ -224,33 +172,12 @@ QWidget* Master::createWidget(QJsonObject &object, QWidget *parent, QMap<QString
             tabwidget->setTabPosition(QTabWidget::East);
         else
             tabwidget->setTabPosition(QTabWidget::North);
-
-        const QJsonArray array = object.value("children").toArray();
-#if (QT_VERSION >= QT_VERSION_CHECK(5,14,0))
-        for (auto it = array.cbegin(); it != array.cend(); ++it)
-#else
-        for (auto it = array.begin(); it != array.end(); ++it)
-#endif
-        {
-            if (it->type() != QJsonValue::Type::Object)
-            {
-                qCritical() << tr("Ignoring invalid entry in GUI config.");
-                continue;
-            }
-            QJsonObject obj = it->toObject();
-            // Create child widgets recursively
-            QWidget* const newwidget = createWidget(obj, widget, known_files);
-            if (obj.contains("title"))
-                tabwidget->addTab(newwidget, obj.value("title").toString());
-            else
-                tabwidget->addTab(newwidget, obj.value("type").toString());
-        }
-        widget = tabwidget;
+        fillContainerWidget(tabwidget, tabwidget, object, known_files);
         break;
     }
     case SlideType:
     {
-        PdfMaster *pdf = openFile(object.value("file").toString(), known_files);
+        auto pdf = openFile(object.value("file").toString(), known_files);
         if (pdf)
             widget = createSlide(object, pdf, parent);
         break;
@@ -265,7 +192,7 @@ QWidget* Master::createWidget(QJsonObject &object, QWidget *parent, QMap<QString
             if (pdf)
                 document = pdf->getDocument();
         }
-        ThumbnailWidget *twidget = new ThumbnailWidget(document, parent);
+        auto twidget = new ThumbnailWidget(document, parent);
         twidget->widget()->installEventFilter(this);
         widget = twidget;
         if (object.contains("columns"))
@@ -281,7 +208,7 @@ QWidget* Master::createWidget(QJsonObject &object, QWidget *parent, QMap<QString
         break;
     case NotesType:
     {
-        NotesWidget *nwidget = new NotesWidget(object.value("identifier").toString() == "number", parent);
+        auto nwidget = new NotesWidget(object.value("identifier").toString() == "number", parent);
         widget = nwidget;
         connect(this, &Master::navigationSignal, nwidget, &NotesWidget::pageChanged, Qt::QueuedConnection);
         connect(this, &Master::writeNotes, nwidget, &NotesWidget::writeNotes, Qt::DirectConnection);
@@ -298,7 +225,7 @@ QWidget* Master::createWidget(QJsonObject &object, QWidget *parent, QMap<QString
     }
     case ToolSelectorType:
     {
-        ToolSelectorWidget *toolwidget = new ToolSelectorWidget(parent);
+        auto toolwidget = new ToolSelectorWidget(parent);
         connect(this, &Master::sendActionStatus, toolwidget, &ToolSelectorWidget::sendStatus);
         toolwidget->addButtons(object.value("buttons").toArray());
         connect(toolwidget, &ToolSelectorWidget::sendTool, this, &Master::setTool, Qt::QueuedConnection);
@@ -438,21 +365,22 @@ QWidget* Master::createWidget(QJsonObject &object, QWidget *parent, QMap<QString
             else
                 shortcuts[seq] = widget;
         }
-        // Read base color from config or take it from parent.
-        QPalette palette = widget->palette();
+        // Read base color from config.
         const QColor bg_color = QColor(object.value("color").toString());
         if (bg_color.isValid())
         {
-            palette.setColor(QPalette::All, QPalette::Base, bg_color);
             if (type == SlideType)
                 static_cast<SlideView*>(widget)->setBackgroundBrush(bg_color);
+            else
+            {
+                QPalette palette = widget->palette();
+                palette.setColor(QPalette::All, QPalette::Base, bg_color);
+                widget->setPalette(palette);
+            }
         }
-        else
-            palette.setColor(QPalette::All, QPalette::Base, QColor(0,0,0,0));
-        widget->setPalette(palette);
     }
     else
-        qCritical() << tr("An error occured while trying to create a widget of type") << object.value("type");
+        qCritical() << tr("An error occured while trying to create a widget with JSON object") << object;
     return widget;
 }
 
@@ -690,6 +618,30 @@ PdfMaster *Master::openFile(QString name, QMap<QString, PdfMaster*> &known_files
         known_files[file] = pdf;
     known_files[pdf->getFilename()] = pdf;
     return pdf;
+}
+
+void Master::fillContainerWidget(ContainerBaseClass *parent, QWidget *parent_widget, const QJsonObject &parent_obj, QMap<QString, PdfMaster*> &known_files)
+{
+    const QJsonArray array = parent_obj.value("children").toArray();
+#if (QT_VERSION >= QT_VERSION_CHECK(5,14,0))
+    for (auto it = array.cbegin(); it != array.cend(); ++it)
+#else
+    for (auto it = array.begin(); it != array.end(); ++it)
+#endif
+    {
+        if (it->type() != QJsonValue::Type::Object)
+        {
+            qCritical() << tr("Ignoring invalid entry in GUI config.") << *it;
+            continue;
+        }
+        QJsonObject obj = it->toObject();
+        // Create child widgets recursively
+        QWidget* const newwidget = createWidget(obj, parent_widget, known_files);
+        QString title = obj.value("title").toString();
+        if (title.isEmpty())
+            title = obj.value("type").toString();
+        parent->addWidgetCommon(newwidget, title);
+    }
 }
 
 void Master::showAll() const

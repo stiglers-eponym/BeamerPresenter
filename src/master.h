@@ -28,6 +28,7 @@ class PixCache;
 class QMainWindow;
 class QXmlStreamReader;
 class QXmlStreamWriter;
+class ContainerBaseClass;
 
 /**
  * @brief Central management of the program.
@@ -76,6 +77,9 @@ class Master : public QObject
 
     /// Create slide from config.
     SlideView *createSlide(QJsonObject &object, PdfMaster *pdf, QWidget *parent);
+
+    /// Create children of a container widget.
+    void fillContainerWidget(ContainerBaseClass *parent, QWidget *parent_widget, const QJsonObject &parent_obj, QMap<QString, PdfMaster*> &known_files);
 
 public:
     /// Constructor: initializes times.

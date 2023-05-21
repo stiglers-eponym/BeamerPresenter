@@ -62,6 +62,7 @@ add_executable(beamerpresenter
         gui/colorselectionbutton.h gui/colorselectionbutton.cpp
         gui/mediaslider.h
         gui/iconlabel.h
+        gui/containerbaseclass.h
         gui/containerwidget.h
         gui/toolwidget.h gui/toolwidget.cpp
         rendering/abstractrenderer.h

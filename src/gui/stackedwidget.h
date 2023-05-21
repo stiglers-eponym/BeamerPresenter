@@ -7,6 +7,7 @@
 #include <QStackedWidget>
 #include <QSizePolicy>
 #include <QSize>
+#include "src/gui/containerbaseclass.h"
 #include "src/config.h"
 
 class QSize;
@@ -16,13 +17,13 @@ class QSize;
  * @see TabWidget
  * @see ContainerWidget
  */
-class StackedWidget : public QStackedWidget
+class StackedWidget : public QStackedWidget, public ContainerBaseClass
 {
     Q_OBJECT
 
 public:
     /// Constructor: set size policy.
-    StackedWidget(QWidget *parent = NULL) noexcept : QStackedWidget(parent)
+    StackedWidget(QWidget *parent = nullptr) noexcept : QStackedWidget(parent)
     {setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);}
 
     /// Return sizeHint based on layout.
@@ -38,6 +39,10 @@ public:
     /// height depends on width (required by FlexLayout).
     bool hasHeightForWidth() const noexcept override
     {return true;}
+
+    /// Append a new widget to the layout.
+    virtual void addWidgetCommon(QWidget *widget, const QString &title) override
+    {addWidget(widget);}
 };
 
 #endif // STACKEDWIDGET_H
