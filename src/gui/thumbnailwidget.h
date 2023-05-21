@@ -49,10 +49,18 @@ private:
     /// flags: currently only SkipOverlays.
     unsigned char _flags {0};
     /// currently focussed page index
-    int focussed_index {0};
+    ThumbnailButton *focussed_button {nullptr};
 
     /// Set focus to given page.
     void focusPage(int page);
+
+    /// Delete widget, clear all thumbnails.
+    void clear() noexcept
+    {
+        focussed_button = nullptr;
+        delete widget();
+        setWidget(nullptr);
+    }
 
 public:
     /// Nearly trivial constructor.
@@ -100,7 +108,7 @@ public slots:
     void handleAction(const Action action);
 
     /// Remove focus from old button and focus this button.
-    void setFocusIndex(const ThumbnailButton *button);
+    void setFocusIndex(ThumbnailButton *button);
 
 signals:
     /// Tell render_thread to render page with resolution and associate it

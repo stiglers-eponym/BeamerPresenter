@@ -27,12 +27,6 @@ void ThumbnailButton::mouseReleaseEvent(QMouseEvent *event)
     }
 }
 
-void ThumbnailButton::focusInEvent(QFocusEvent *event)
-{
-    setStyleSheet("background-color:#ff0000");
-    emit updateFocus(this);
-}
-
 void ThumbnailButton::keyPressEvent(QKeyEvent *event)
 {
     switch (event->key())

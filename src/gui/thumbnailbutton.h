@@ -34,7 +34,11 @@ protected:
     /// Keyboard events for keyboard navigation
     void keyPressEvent(QKeyEvent *event) override;
     /// add red margin when this gets focus
-    void focusInEvent(QFocusEvent*) override;
+    void focusInEvent(QFocusEvent*) override
+    {
+        setStyleSheet("background-color:#ff0000");
+        emit updateFocus(this);
+    }
 
 public slots:
     void defocus() noexcept
@@ -44,7 +48,7 @@ signals:
     /// Send out navigation event for this page.
     void sendNavigationSignal(int page);
     /// Tell thumbnail widget to set focus to this button.
-    void updateFocus(const ThumbnailButton* self);
+    void updateFocus(ThumbnailButton* self);
 };
 
 #endif // THUMBNAILBUTTON_H

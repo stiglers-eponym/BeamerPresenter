@@ -49,17 +49,14 @@ void ThumbnailWidget::focusPage(int page)
         item->widget()->setFocus();
 }
 
-void ThumbnailWidget::setFocusIndex(const ThumbnailButton *button)
+void ThumbnailWidget::setFocusIndex(ThumbnailButton *button)
 {
-    QLayout *layout = widget() ? widget()->layout() : nullptr;
-    if (!layout)
-        return;
-    ThumbnailButton *oldbutton = dynamic_cast<ThumbnailButton*>(layout->itemAt(focussed_index)->widget());
-    if (oldbutton == button)
-        return;
-    if (oldbutton)
-        oldbutton->defocus();
-    focussed_index = layout->indexOf(button);
+    if (focussed_button != button)
+    {
+        if (focussed_button)
+            focussed_button->defocus();
+        focussed_button = button;
+    }
 }
 
 void ThumbnailWidget::keyPressEvent(QKeyEvent *event)
@@ -87,8 +84,7 @@ void ThumbnailWidget::handleAction(const Action action)
 {
     if (action == PdfFilesChanged)
     {
-        delete widget();
-        setWidget(nullptr);
+        clear();
         if (render_thread)
         {
             render_thread->thread()->quit();
@@ -107,9 +103,7 @@ void ThumbnailWidget::generate(const PdfDocument *document)
     if (!document || std::abs(ref_width - width()) < ref_width/20)
         return;
 
-    delete widget();
-    setWidget(nullptr);
-
+    clear();
     if (!render_thread)
     {
         render_thread = new ThumbnailThread(document);
