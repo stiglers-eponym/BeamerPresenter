@@ -49,6 +49,19 @@ void ThumbnailWidget::focusPage(int page)
         item->widget()->setFocus();
 }
 
+void ThumbnailWidget::setFocusIndex(const ThumbnailButton *button)
+{
+    QLayout *layout = widget() ? widget()->layout() : nullptr;
+    if (!layout)
+        return;
+    ThumbnailButton *oldbutton = dynamic_cast<ThumbnailButton*>(layout->itemAt(focussed_index)->widget());
+    if (oldbutton == button)
+        return;
+    if (oldbutton)
+        oldbutton->defocus();
+    focussed_index = layout->indexOf(button);
+}
+
 void ThumbnailWidget::keyPressEvent(QKeyEvent *event)
 {
 #if (QT_VERSION_MAJOR >= 6)
@@ -116,10 +129,11 @@ void ThumbnailWidget::generate(const PdfDocument *document)
     {
         button = new ThumbnailButton(link_page, this);
         connect(button, &ThumbnailButton::sendNavigationSignal, master(), &Master::navigateToPage);
+        connect(button, &ThumbnailButton::updateFocus, this, &ThumbnailWidget::setFocusIndex);
         QSizeF size = document->pageSize(display_page);
         if (preferences()->default_page_part)
             size.rwidth() /= 2;
-        emit sendToRenderThread(button, col_width/size.width(), display_page);
+        emit sendToRenderThread(button, (col_width - 4)/size.width(), display_page);
         button->setMinimumSize(col_width, col_width*size.height()/size.width());
         layout->addWidget(button, position/columns, position%columns);
     };

@@ -35,13 +35,16 @@ protected:
     void keyPressEvent(QKeyEvent *event) override;
     /// add red margin when this gets focus
     void focusInEvent(QFocusEvent*) override;
-    /// remove red margin when this looses focus
-    void focusOutEvent(QFocusEvent*) override
-    {setFrameStyle(QFrame::NoFrame);}
+
+public slots:
+    void defocus() noexcept
+    {setStyleSheet("background-color:#00000000");}
 
 signals:
     /// Send out navigation event for this page.
     void sendNavigationSignal(int page);
+    /// Tell thumbnail widget to set focus to this button.
+    void updateFocus(const ThumbnailButton* self);
 };
 
 #endif // THUMBNAILBUTTON_H

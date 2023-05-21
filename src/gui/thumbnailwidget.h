@@ -43,11 +43,13 @@ private:
     ThumbnailThread *render_thread = nullptr;
 
     /// width of widget when thumbnails were rendered, in pixels.
-    int ref_width = 0;
+    int ref_width {0};
     /// number of columns
-    unsigned char columns = 4;
+    unsigned char columns {4};
     /// flags: currently only SkipOverlays.
-    unsigned char _flags;
+    unsigned char _flags {0};
+    /// currently focussed page index
+    int focussed_index {0};
 
     /// Set focus to given page.
     void focusPage(int page);
@@ -96,6 +98,9 @@ public slots:
 
     /// Handle actions: clear if files are reloaded.
     void handleAction(const Action action);
+
+    /// Remove focus from old button and focus this button.
+    void setFocusIndex(const ThumbnailButton *button);
 
 signals:
     /// Tell render_thread to render page with resolution and associate it

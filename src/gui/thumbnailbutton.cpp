@@ -13,6 +13,8 @@ ThumbnailButton::ThumbnailButton(const int page, QWidget *parent) :
 {
     setFocusPolicy(Qt::FocusPolicy::StrongFocus);
     setToolTip(tr("page ") + QString::number(page+1));
+    setLineWidth(2);
+    setFrameStyle(QFrame::Box | QFrame::Plain);
 }
 
 
@@ -25,15 +27,11 @@ void ThumbnailButton::mouseReleaseEvent(QMouseEvent *event)
     }
 }
 
-void ThumbnailButton::focusInEvent(QFocusEvent*)
+void ThumbnailButton::focusInEvent(QFocusEvent *event)
 {
-    setFrameStyle(QFrame::Panel | QFrame::Plain);
-    setLineWidth(2);
-    QPalette palette;
-    palette.setColor(QPalette::WindowText, Qt::red);
-    setPalette(palette);
+    setStyleSheet("background-color:#ff0000");
+    emit updateFocus(this);
 }
-
 
 void ThumbnailButton::keyPressEvent(QKeyEvent *event)
 {
