@@ -15,7 +15,7 @@ ThumbnailButton::ThumbnailButton(const int page, QWidget *parent) :
     setToolTip(tr("page ") + QString::number(page+1));
     setLineWidth(2);
     setFrameStyle(QFrame::Box | QFrame::Plain);
-    setStyleSheet("ThumbnailButton{background-color:#00000000;color:#00000000;}");
+    defocus();
 }
 
 
@@ -46,6 +46,12 @@ void ThumbnailButton::keyPressEvent(QKeyEvent *event)
         break;
     case Qt::Key_Escape:
         clearFocus();
+        break;
+    case Qt::Key_Up:
+        emit focusUpDown(-1);
+        break;
+    case Qt::Key_Down:
+        emit focusUpDown(1);
         break;
     default:
         event->ignore();

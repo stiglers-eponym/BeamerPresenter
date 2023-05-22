@@ -102,7 +102,7 @@ Master::Status Master::readGuiConfig(const QString &filename)
     {
         if (it->type() != QJsonValue::Object)
         {
-            qCritical() << tr("Ignoring invariant entry in GUI config.");
+            qCritical() << tr("Ignoring invalid entry in GUI config.") << *it;
             continue;
         }
         QJsonObject obj = it->toObject();
@@ -114,7 +114,10 @@ Master::Status Master::readGuiConfig(const QString &filename)
         QMainWindow *const window = new QMainWindow();
         windows.append(window);
         window->setCentralWidget(widget); // window takes ownership of widget
-        window->setWindowTitle("BeamerPresenter");
+        if (obj.contains("title"))
+            window->setWindowTitle(obj.value("title").toString());
+        else
+            window->setWindowTitle("BeamerPresenter");
         // Check whether this window should alawys be shown on top. This is the
         // default if the window only contains a tool selector.
         if (obj.value("always show").toBool(obj.value("type") == "tool selector"))

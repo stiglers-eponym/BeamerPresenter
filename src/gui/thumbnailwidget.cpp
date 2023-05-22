@@ -56,7 +56,7 @@ void ThumbnailWidget::showEvent(QShowEvent *event)
 
 void ThumbnailWidget::focusPage(int page)
 {
-    if (!document || !isVisible() || page < 0 || page >= preferences()->number_of_pages)
+    if (!document || page < 0 || page >= preferences()->number_of_pages)
         return;
     QLayout *layout = widget() ? widget()->layout() : nullptr;
     if (!layout)
@@ -79,7 +79,8 @@ void ThumbnailWidget::focusPage(int page)
     if (focussed_button)
         focussed_button->defocus();
     focussed_button = button;
-    focussed_button->setFocus();
+    focussed_button->giveFocus();
+    ensureWidgetVisible(focussed_button);
 }
 
 void ThumbnailWidget::setFocusButton(ThumbnailButton *button)
@@ -89,6 +90,7 @@ void ThumbnailWidget::setFocusButton(ThumbnailButton *button)
         if (focussed_button)
             focussed_button->defocus();
         focussed_button = button;
+        ensureWidgetVisible(focussed_button);
     }
 }
 
@@ -173,6 +175,7 @@ void ThumbnailWidget::generate()
             button = new ThumbnailButton(link_page, this);
             connect(button, &ThumbnailButton::sendNavigationSignal, master(), &Master::navigateToPage);
             connect(button, &ThumbnailButton::updateFocus, this, &ThumbnailWidget::setFocusButton);
+            connect(button, &ThumbnailButton::focusUpDown, this, &ThumbnailWidget::moveFocusUpDown);
             layout->addWidget(button, position/columns, position%columns);
         }
         QSizeF size = document->pageSize(display_page);
@@ -232,4 +235,23 @@ void ThumbnailWidget::resizeEvent(QResizeEvent*)
     // Only recalculate if changes in the widget's width lie above a threshold of 10%.
     if (std::abs(ref_width - width()) > ref_width/INVERSE_TOLERANCE)
         generate();
+}
+
+void ThumbnailWidget::moveFocusUpDown(const char updown)
+{
+    QWidget *target = focussed_button;
+    if (updown > 0)
+        for (int i=0; target && i<columns; ++i)
+            target = target->nextInFocusChain();
+    else
+        for (int i=0; target && i<columns; ++i)
+            target = target->previousInFocusChain();
+    auto button = dynamic_cast<ThumbnailButton*>(target);
+    if (button)
+    {
+        focussed_button->defocus();
+        focussed_button = button;
+        focussed_button->giveFocus();
+        ensureWidgetVisible(focussed_button);
+    }
 }

@@ -111,6 +111,9 @@ public slots:
     /// Remove focus from old button and focus this button.
     void setFocusButton(ThumbnailButton *button);
 
+    /// Move focus to row above/below (updown=-1/+1)
+    void moveFocusUpDown(const char updown);
+
 signals:
     /// Tell render_thread to render page with resolution and associate it
     /// with given button index.

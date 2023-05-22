@@ -433,10 +433,6 @@
         <translation>GUI-Konfigurationsdatei ist leer oder das Einlesen ist fehlgeschlagen:</translation>
     </message>
     <message>
-        <source>Ignoring invariant entry in GUI config.</source>
-        <translation>Ignoriere fehlerhaften Eintrag in GUI-Konfigurationsdatei.</translation>
-    </message>
-    <message>
         <source>Ignoring invalid entry in GUI config.</source>
         <translation>Ignoriere fehlerhaften Eintrag in GUI-Konfigurationsdatei.</translation>
     </message>
