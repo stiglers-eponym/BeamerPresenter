@@ -62,7 +62,7 @@ sudo apt install ./beamerpresenter-poppler-0.2.3-qt5-jammy-x86_64.deb
 sudo pacman -U beamerpresenter-poppler-qt5-0.2.3-1-x86_64.pkg.tar.zst
 # Flatpak:
 flatpak install org.kde.Platform/x86_64/5.15-21.08 # can be skipped if already installed
-flatpak install beamerpresenter.flatpak
+flatpak install beamerpresenter-qt5.flatpak
 ```
 The build process for these packages is explained [here](https://github.com/stiglers-eponym/BeamerPresenter/tree/main/packaging).
 Verify the signature of the checksums in `SHA256SUMS`:

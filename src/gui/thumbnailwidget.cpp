@@ -56,7 +56,7 @@ void ThumbnailWidget::showEvent(QShowEvent *event)
 
 void ThumbnailWidget::focusPage(int page)
 {
-    if (page < 0 || page >= preferences()->number_of_pages)
+    if (!document || !isVisible() || page < 0 || page >= preferences()->number_of_pages)
         return;
     QLayout *layout = widget() ? widget()->layout() : nullptr;
     if (!layout)
@@ -138,8 +138,6 @@ void ThumbnailWidget::handleAction(const Action action)
 
 void ThumbnailWidget::initRenderingThread()
 {
-    if (!document)
-        document = preferences()->document;
     render_thread = new ThumbnailThread(document);
     render_thread->moveToThread(new QThread(render_thread));
     connect(this, &ThumbnailWidget::interruptThread, render_thread, &ThumbnailThread::clearQueue, Qt::QueuedConnection);
@@ -155,6 +153,8 @@ void ThumbnailWidget::generate()
         initialize();
 
     emit interruptThread();
+    if (!document)
+        document = preferences()->document;
     if (!render_thread)
         initRenderingThread();
 

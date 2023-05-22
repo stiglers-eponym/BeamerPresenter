@@ -572,7 +572,7 @@ void MuPdfDocument::prepareRendering(fz_context **context, fz_rect *bbox, fz_dis
     fz_always(ctx)
         mutex->unlock();
     fz_catch(ctx)
-        qWarning() << "Unhandled exception while preparing rendering";
+        qWarning() << "Unhandled exception while preparing rendering" << fz_caught_message(ctx);
 }
 
 const SlideTransition MuPdfDocument::transition(const int page) const
