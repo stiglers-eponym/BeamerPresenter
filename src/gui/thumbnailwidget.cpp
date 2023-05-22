@@ -65,10 +65,13 @@ void ThumbnailWidget::focusPage(int page)
     {
         // Get sorted list of page label indices from master document.
         const QList<int> &list = document->overlayIndices();
-        QList<int>::const_iterator it = std::upper_bound(list.cbegin(), list.cend(), page);
-        if (it != list.cbegin())
-            --it;
-        page = it - list.cbegin();
+        if (!list.empty())
+        {
+            QList<int>::const_iterator it = std::upper_bound(list.cbegin(), list.cend(), page);
+            if (it != list.cbegin())
+                --it;
+            page = it - list.cbegin();
+        }
     }
     QLayoutItem *item = layout->itemAt(page);
     if (!item)
@@ -188,7 +191,7 @@ void ThumbnailWidget::generate()
     if (_flags & SkipOverlays)
     {
         const QList<int> &list = document->overlayIndices();
-        if (!list.isEmpty())
+        if (!list.empty())
         {
             int link_page = list.first();
             for (auto it = list.cbegin()+1; it != list.cend(); link_page=*it++)

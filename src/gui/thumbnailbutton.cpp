@@ -18,7 +18,6 @@ ThumbnailButton::ThumbnailButton(const int page, QWidget *parent) :
     defocus();
 }
 
-
 void ThumbnailButton::mouseReleaseEvent(QMouseEvent *event)
 {
     if (event->button() == Qt::LeftButton)
