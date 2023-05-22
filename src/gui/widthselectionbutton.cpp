@@ -5,6 +5,7 @@
 #include <QString>
 #include "src/gui/widthselectionbutton.h"
 #include "src/drawing/drawtool.h"
+#include "src/gui/peniconengine.h"
 
 WidthSelectionButton::WidthSelectionButton(const QJsonArray &array, QWidget *parent) :
     ToolPropertyButton(parent)
@@ -15,7 +16,10 @@ WidthSelectionButton::WidthSelectionButton(const QJsonArray &array, QWidget *par
     {
         width = item.toDouble(-1.);
         if (width > 0.)
-            addItem(QString::number(width, 'g', 2), width);
+        {
+            QIcon icon(new PenIconEngine(width, Qt::SolidLine));
+            addItem(icon, QString::number(width, 'g', 2), width);
+        }
     }
 }
 

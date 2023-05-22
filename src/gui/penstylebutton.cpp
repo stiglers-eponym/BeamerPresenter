@@ -4,15 +4,16 @@
 #include <QVariant>
 #include "src/gui/penstylebutton.h"
 #include "src/drawing/drawtool.h"
+#include "src/gui/peniconengine.h"
 
 PenStyleButton::PenStyleButton(QWidget *parent) :
     ToolPropertyButton(parent)
 {
-    addItem("—", QVariant::fromValue(Qt::PenStyle::SolidLine));
-    addItem("- -", QVariant::fromValue(Qt::PenStyle::DashLine));
-    addItem(" : ", QVariant::fromValue(Qt::PenStyle::DotLine));
-    addItem("- ·", QVariant::fromValue(Qt::PenStyle::DashDotLine));
-    addItem("- · ·", QVariant::fromValue(Qt::PenStyle::DashDotDotLine));
+    for (Qt::PenStyle style : {Qt::SolidLine,Qt::DashLine,Qt::DotLine,Qt::DashDotLine,Qt::DashDotDotLine})
+    {
+        QIcon icon(new PenIconEngine(2.5, style));
+        addItem(icon, "", QVariant::fromValue(style));
+    }
 }
 
 void PenStyleButton::setToolProperty(Tool *tool) const

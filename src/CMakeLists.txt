@@ -54,6 +54,7 @@ add_executable(beamerpresenter
         gui/toolwidgetbutton.h gui/toolwidgetbutton.cpp
         gui/tooldialog.h gui/tooldialog.cpp
         gui/tooliconengine.h gui/tooliconengine.cpp
+        gui/peniconengine.h
         gui/toolselectorwidget.h gui/toolselectorwidget.cpp
         gui/toolpropertybutton.h gui/toolpropertybutton.cpp
         gui/shapeselectionbutton.h gui/shapeselectionbutton.cpp
