@@ -365,7 +365,7 @@ void PixCache::startRendering()
 void PixCache::receiveData(const PngPixmap *data)
 {
     // If a renderer failed, it should already have sent an error message.
-    if (data == NULL || data->isNull())
+    if (data == nullptr || data->isNull())
     {
         delete data;
         return;
@@ -374,13 +374,13 @@ void PixCache::receiveData(const PngPixmap *data)
     // Check if the received image is still compatible with the current resolution.
     if (abs(getResolution(data->getPage()) - data->getResolution()) > MAX_RESOLUTION_DEVIATION)
     {
-        if (cache.value(data->getPage()) == NULL)
+        if (cache.value(data->getPage()) == nullptr)
             cache.remove(data->getPage());
         delete data;
     }
     else
     {
-        if (cache.value(data->getPage(), NULL) != NULL)
+        if (cache.value(data->getPage(), nullptr) != nullptr)
         {
             usedMemory -= cache[data->getPage()]->size();
             delete cache[data->getPage()];

@@ -25,7 +25,6 @@
 #include "src/slidescene.h"
 #include "src/slideview.h"
 #include "src/drawing/tool.h"
-#include "src/gui/flexlayout.h"
 #include "src/gui/clockwidget.h"
 #include "src/gui/analogclockwidget.h"
 #include "src/gui/tabwidget.h"
@@ -468,43 +467,11 @@ SlideView *Master::createSlide(QJsonObject &object, PdfMaster *pdf, QWidget *par
     }
 
     // Get or create cache object.
-    const PixCache *pixcache = nullptr;
-    int cache_hash = object.value("cache hash").toInt(-1);
-    if (cache_hash == -1)
-    {
-        // -1 is the "default hash" and indicates that a new object has to
-        // be created.
-        // Set hash to -2 or smaller.
-        cache_hash = (caches.isEmpty() || caches.firstKey() >= 0) ? -2 : caches.firstKey() - 1;
-    }
-    else
-    {
-        // Check if a PixCache object with the given hash already exists.
-        pixcache = caches.value(cache_hash, nullptr);
-    }
-    // If necessary, create a new PixCache object an store it in caches.
-    if (pixcache == nullptr)
-    {
-        // Read number of threads from GUI config.
-        const int threads = object.value("threads").toInt(1);
-        // Create the PixCache object.
-        PixCache* newpixcache = new PixCache(scene->getPdfMaster()->getDocument(), threads, page_part);
-        pixcache = newpixcache;
-        // Set maximum number of pages in cache from settings.
-        newpixcache->setMaxNumber(preferences()->max_cache_pages);
-        // Move the PixCache object to an own thread.
-        newpixcache->moveToThread(new QThread());
-        connect(pixcache, &PixCache::destroyed, pixcache->thread(), &QThread::deleteLater);
-        // Make sure that pixcache is initialized when the thread is started.
-        connect(pixcache->thread(), &QThread::started, pixcache, &PixCache::init, Qt::QueuedConnection);
-        connect(this, &Master::navigationSignal, pixcache, &PixCache::pageNumberChanged, Qt::QueuedConnection);
-        connect(this, &Master::sendScaledMemory, pixcache, &PixCache::setScaledMemory, Qt::QueuedConnection);
-        connect(this, &Master::clearCache, pixcache, &PixCache::clear, Qt::QueuedConnection);
-        // Start the thread.
-        pixcache->thread()->start();
-        // Keep the new pixcache in caches.
-        caches[cache_hash] = pixcache;
-    }
+    const PixCache *pixcache = getPixcache(
+        pdf->getDocument(),
+        page_part,
+        object.value("cache hash").toInt(-1),
+        object.value("threads").toInt(1));
 
     // Create slide view.
     SlideView *slide = new SlideView(scene, pixcache, parent);
@@ -618,6 +585,40 @@ PdfMaster *Master::openFile(QString name, QMap<QString, PdfMaster*> &known_files
         known_files[file] = pdf;
     known_files[pdf->getFilename()] = pdf;
     return pdf;
+}
+
+const PixCache *Master::getPixcache(PdfDocument *doc, const PagePart page_part, int cache_hash, const int threads)
+{
+    if (cache_hash == -1)
+        // -1 is the "default hash" and indicates that a new object has to
+        // be created.
+        // Set hash to -2 or smaller.
+        cache_hash = (caches.isEmpty() || caches.firstKey() >= 0) ? -2 : caches.firstKey() - 1;
+    else
+    {
+        // Check if a PixCache object with the given hash already exists.
+        const PixCache *pixcache = caches.value(cache_hash, nullptr);
+        if (pixcache)
+            return pixcache;
+    }
+
+    // Create a new PixCache object an store it in caches.
+    // Create the PixCache object.
+    PixCache* pixcache = new PixCache(doc, threads, page_part);
+    // Keep the new pixcache in caches.
+    caches[cache_hash] = pixcache;
+    // Set maximum number of pages in cache from settings.
+    pixcache->setMaxNumber(preferences()->max_cache_pages);
+    // Move the PixCache object to an own thread.
+    pixcache->moveToThread(new QThread(pixcache));
+    // Make sure that pixcache is initialized when the thread is started.
+    connect(pixcache->thread(), &QThread::started, pixcache, &PixCache::init, Qt::QueuedConnection);
+    connect(this, &Master::navigationSignal, pixcache, &PixCache::pageNumberChanged, Qt::QueuedConnection);
+    connect(this, &Master::sendScaledMemory, pixcache, &PixCache::setScaledMemory, Qt::QueuedConnection);
+    connect(this, &Master::clearCache, pixcache, &PixCache::clear, Qt::QueuedConnection);
+    // Start the thread.
+    pixcache->thread()->start();
+    return pixcache;
 }
 
 void Master::fillContainerWidget(ContainerBaseClass *parent, QWidget *parent_widget, const QJsonObject &parent_obj, QMap<QString, PdfMaster*> &known_files)

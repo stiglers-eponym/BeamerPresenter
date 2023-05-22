@@ -437,10 +437,6 @@
         <translation>Ignoriere fehlerhaften Eintrag in GUI-Konfigurationsdatei.</translation>
     </message>
     <message>
-        <source>Ignoring entry in GUI config without type.</source>
-        <translation>Ignoriere Eintrag in GUI-Konfigurationsdatei ohne Typ.</translation>
-    </message>
-    <message>
         <source>Ignoring invalid entry in GUI config.</source>
         <translation>Ignoriere fehlerhaften Eintrag in GUI-Konfigurationsdatei.</translation>
     </message>
@@ -453,12 +449,12 @@
         <translation>Fehler beim Laden des PDF-Dokuments. Das wird zu weiteren Fehlern führen!</translation>
     </message>
     <message>
-        <source>An error occured while trying to create a widget of type</source>
-        <translation>Fehler beim Erstellen eines Widgets vom Typ</translation>
-    </message>
-    <message>
         <source>Loaded PDF files with different numbers of pages.</source>
         <translation>PDF-Dateien mit unterschiedlicher Anzahl von Seiten geladen.</translation>
+    </message>
+    <message>
+        <source>An error occured while trying to create a widget with JSON object</source>
+        <translation>Fehler beim Erstellen eines Widgets mit JSON-Objekt</translation>
     </message>
 </context>
 <context>
@@ -561,10 +557,6 @@
         <translation>Speichern des Dokuments ist fehlgeschlagen für den Dateipfad: </translation>
     </message>
     <message>
-        <source>Failed to read xopp document: </source>
-        <translation>Fehler beim Lesen des xopp-Dokuments: </translation>
-    </message>
-    <message>
         <source>PDF file could not be opened, select the correct PDF file.</source>
         <translation>PDF-Datei konnte nicht geöffnet werden, wähle die richtige PDF-Datei aus.</translation>
     </message>
@@ -591,6 +583,14 @@
     <message>
         <source>File type of document not understood! Trying to load it anyway.</source>
         <translation>Dateityp des Dokuments nicht verstanden! Versuche trotzdem, es zu laden.</translation>
+    </message>
+    <message>
+        <source>Failed to read bpr/xopp document: </source>
+        <translation>Fehler beim Lesen des bpr/xopp-Dokuments: </translation>
+    </message>
+    <message>
+        <source>Error while saving bpr/xopp file</source>
+        <translation>Fehler beim Speichern der bpr/xopp-Datei</translation>
     </message>
 </context>
 <context>

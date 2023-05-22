@@ -64,7 +64,7 @@ private:
     QVector<PixCacheThread*> threads;
 
     /// Own renderer for rendering in PixCache thread.
-    AbstractRenderer *renderer {NULL};
+    AbstractRenderer *renderer {nullptr};
 
     /// Pdf document.
     const PdfDocument *pdfDoc;
@@ -79,12 +79,16 @@ private:
     /// This page must then also be rendered.
     int renderNext();
 
+protected:
+    /// Timer event: stop the timer and start rendering next pixmap.
+    void timerEvent(QTimerEvent *event) override;
+
     /// Calculate resolution for given page number based on this->frame.
     /// Return resolution in pixels per point (72*dpi)
     qreal getResolution(const int page) const;
 
-protected:
-    void timerEvent(QTimerEvent *event) override;
+    /// Get pixmap showing page and write it to cache.
+    const QPixmap pixmap(const int page, qreal resolution = -1.);
 
 public:
     /// Constructor: only very basic initialization.
@@ -96,6 +100,7 @@ public:
 
     /// Set maximum allowed bytes of memory used by this->cache.
     /// Clean up memory if necessary.
+    /// Not thread save!
     void setMaxMemory(const float memory) noexcept
     {
         maxMemory = memory;
@@ -105,15 +110,13 @@ public:
 
     /// Set maximum allowed number of cache slides.
     /// Clean up memory if necessary.
+    /// Not thread save!
     void setMaxNumber(const int number) noexcept
     {
         maxNumber = number;
         if (number < usedMemory && number >= 0)
             limitCacheSize();
     }
-
-    /// Get pixmap showing page and write it to cache.
-    const QPixmap pixmap(const int page, qreal resolution = -1.);
 
     /// Total size of all cached pages in bytes
     qint64 getUsedMemory() const noexcept
@@ -123,6 +126,7 @@ public:
     float getPixels() const noexcept
     {return frame.width() * frame.height();}
 
+public slots:
     /// Set memory based on scale factor (bytes per pixel).
     void setScaledMemory(const float scale)
     {setMaxMemory(scale * frame.width() * frame.height());}
@@ -132,7 +136,6 @@ public:
     /// thread vector indicates flexible slide size.
     void updateFrame(QSizeF const& size);
 
-public slots:
     /// Create renderCacheTimer.
     /// This is an own function because it must be done in this thread.
     void init();

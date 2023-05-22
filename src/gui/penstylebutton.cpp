@@ -9,7 +9,7 @@
 PenStyleButton::PenStyleButton(QWidget *parent) :
     ToolPropertyButton(parent)
 {
-    for (Qt::PenStyle style : {Qt::SolidLine,Qt::DashLine,Qt::DotLine,Qt::DashDotLine,Qt::DashDotDotLine})
+    for (const Qt::PenStyle style : {Qt::SolidLine,Qt::DashLine,Qt::DotLine,Qt::DashDotLine,Qt::DashDotDotLine})
     {
         QIcon icon(new PenIconEngine(2.5, style));
         addItem(icon, "", QVariant::fromValue(style));

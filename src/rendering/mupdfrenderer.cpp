@@ -63,14 +63,11 @@ fz_pixmap *MuPdfRenderer::renderFzPixmap(const int page, const qreal resolution,
         dev = fz_new_draw_device(ctx, fz_identity, pixmap);
         // Do the main work: Render the display list to pixmap.
         fz_run_display_list(ctx, list, dev, fz_identity, bbox, nullptr);
+        fz_close_device(ctx, dev);
     }
     fz_always(ctx)
     {
-        if (dev)
-        {
-            fz_close_device(ctx, dev);
-            fz_drop_device(ctx, dev);
-        }
+        fz_drop_device(ctx, dev);
         fz_drop_display_list(ctx, list);
     }
     fz_catch(ctx)

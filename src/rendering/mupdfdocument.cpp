@@ -169,12 +169,12 @@ bool MuPdfDocument::loadDocument()
         // locking structure. This ctx will be used to parse all
         // the pages from the document.
 
-        ctx = fz_new_context(NULL, &locks, FZ_STORE_UNLIMITED);
+        ctx = fz_new_context(nullptr, &locks, FZ_STORE_UNLIMITED);
 
-        if (ctx == NULL)
+        if (ctx == nullptr)
         {
             qCritical() << tr("Failed to create Fitz context");
-            doc = NULL;
+            doc = nullptr;
             mutex->unlock();
             return false;
         }
@@ -185,9 +185,9 @@ bool MuPdfDocument::loadDocument()
         fz_catch(ctx)
         {
             qCritical() << tr("MuPdf failed to register document handlers:") << fz_caught_message(ctx);
-            doc = NULL;
+            doc = nullptr;
             fz_drop_context(ctx);
-            ctx =  NULL;
+            ctx =  nullptr;
             mutex->unlock();
             return false;
         }
@@ -206,9 +206,9 @@ bool MuPdfDocument::loadDocument()
             preferences()->showErrorMessage(
                         tr("Error while loading file"),
                         tr("MuPdf cannot open document: ") + fz_caught_message(ctx));
-            doc = NULL;
+            doc = nullptr;
             fz_drop_context(ctx);
-            ctx =  NULL;
+            ctx =  nullptr;
             mutex->unlock();
             return false;
         }
@@ -234,9 +234,9 @@ bool MuPdfDocument::loadDocument()
                         tr("Error while loading file"),
                         tr("No or invalid password provided for locked document"));
             pdf_drop_document(ctx, doc);
-            doc = NULL;
+            doc = nullptr;
             fz_drop_context(ctx);
-            ctx =  NULL;
+            ctx =  nullptr;
             mutex->unlock();
             return false;
         }
@@ -287,8 +287,8 @@ const QSizeF MuPdfDocument::pageSize(const int page) const
     if (!pages.value(page))
         return QSizeF();
 
-    mutex->lock();
     fz_rect bbox;
+    mutex->lock();
     fz_try(ctx)
         // Get bounding box.
         bbox = pdf_bound_page(ctx, pages[page]);
@@ -532,43 +532,47 @@ void MuPdfDocument::prepareRendering(fz_context **context, fz_rect *bbox, fz_dis
     // This is almost completely copied from a mupdf example.
 
     mutex->lock();
-    // sender gets a references to context.
-    *context = ctx;
-    // Get a page (must be done in the main thread!).
-    // This causes warnings if the page contains multimedia content.
-    *bbox = pdf_bound_page(ctx, pages[pagenumber]);
-    // Calculate the boundary box and rescale it to the given resolution.
-    // bbox is now given in points. Convert to pixels using resolution, which
-    // is given in pixels per point.
-    bbox->x0 *= resolution;
-    bbox->x1 *= resolution;
-    bbox->y0 *= resolution;
-    bbox->y1 *= resolution;
-
-    fz_device *dev = nullptr;
-    fz_var(*list);
-    fz_var(dev);
     fz_try(ctx)
     {
-        // Prepare a display list for a drawing device.
-        // The list (and not the page itself) will then be used to render the page.
-        *list = fz_new_display_list(ctx, *bbox);
-        // Use a fitz device to fill the list with the content of the page.
-        dev = fz_new_list_device(ctx, *list);
-        // One could use the "pdf_run_page_contents" function here instead to hide annotations.
-        // But there exist PDFs in which images are not rendered by that function.
-        pdf_run_page(ctx, pages[pagenumber], dev, fz_scale(resolution, resolution), NULL);
+        // sender gets a references to context.
+        *context = ctx;
+        // Get a page (must be done in the main thread!).
+        // This causes warnings if the page contains multimedia content.
+        *bbox = pdf_bound_page(ctx, pages[pagenumber]);
+        // Calculate the boundary box and rescale it to the given resolution.
+        // bbox is now given in points. Convert to pixels using resolution, which
+        // is given in pixels per point.
+        bbox->x0 *= resolution;
+        bbox->x1 *= resolution;
+        bbox->y0 *= resolution;
+        bbox->y1 *= resolution;
+
+        fz_device *dev = nullptr;
+        fz_var(*list);
+        fz_var(dev);
+        fz_try(ctx)
+        {
+            // Prepare a display list for a drawing device.
+            // The list (and not the page itself) will then be used to render the page.
+            *list = fz_new_display_list(ctx, *bbox);
+            // Use a fitz device to fill the list with the content of the page.
+            dev = fz_new_list_device(ctx, *list);
+            // One could use the "pdf_run_page_contents" function here instead to hide annotations.
+            // But there exist PDFs in which images are not rendered by that function.
+            pdf_run_page(ctx, pages[pagenumber], dev, fz_scale(resolution, resolution), nullptr);
+        }
+        fz_always(ctx)
+            fz_drop_device(ctx, dev);
+        fz_catch(ctx)
+        {
+            fz_drop_display_list(ctx, *list);
+            *list = nullptr;
+        }
     }
     fz_always(ctx)
-    {
-        fz_drop_device(ctx, dev);
         mutex->unlock();
-    }
     fz_catch(ctx)
-    {
-        fz_drop_display_list(ctx, *list);
-        *list = nullptr;
-    }
+        qWarning() << "Unhandled exception while preparing rendering";
 }
 
 const SlideTransition MuPdfDocument::transition(const int page) const
@@ -619,17 +623,17 @@ const SlideTransition MuPdfDocument::transition(const int page) const
 const PdfLink *MuPdfDocument::linkAt(const int page, const QPointF &position) const
 {
     if (!pages.value(page) || !ctx || !doc)
-        return NULL;
+        return nullptr;
 
     mutex->lock();
-    PdfLink *result = NULL;
-    fz_link *clink = NULL;
+    PdfLink *result = nullptr;
+    fz_link *clink = nullptr;
     fz_var(clink);
     fz_var(result);
     fz_try(ctx)
     {
         clink = pdf_load_links(ctx, pages[page]);
-        for (fz_link* link = clink; link != NULL; link = link->next)
+        for (fz_link* link = clink; link != nullptr; link = link->next)
         {
             if (link->uri
                 && link->rect.x0 <= position.x()
