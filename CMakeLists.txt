@@ -212,7 +212,7 @@ set(CPACK_STRIP_FILES ON)
 MATH(EXPR QT_VERSION_MINOR_PLUS "${QT_VERSION_MINOR} + 1")
 
 if (CPACK_GENERATOR MATCHES "DEB")
-    # configure debian package (tested in Ubuntu 20.04, Ubuntu 21.10, and partially Ubuntu 22.04)
+    # configure debian package (tested in Ubuntu 20.04 and Ubuntu 22.04)
     #
     # Required packages for building:
     # * cmake

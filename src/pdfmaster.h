@@ -173,10 +173,10 @@ public:
     void loadXopp(const QString &filename);
     /// Reload only the \<beamerpresenter\> element of Xopp file.
     void reloadXoppProperties();
-    /// Unzip file to buffer.
-    QBuffer *loadZipToBuffer(const QString &filename);
     /// Helper function for loadXopp: read a \<page\> element
     void readPageFromStream(QXmlStreamReader &reader, bool &nontrivial_page_part);
+    /// Load drawings from XML reader, must be in element <layer>
+    void readDrawingsFromStream(QXmlStreamReader &reader, const int page, const bool nontrivial_page_part);
     /// Helper function for loadXopp: read the \<beamerpresenter\> element
     void readPropertiesFromStream(QXmlStreamReader &reader);
 
@@ -199,6 +199,9 @@ public:
 
     /// Check if page currently contains any drawings (ignoring history).
     bool hasDrawings() const noexcept;
+
+    /// Write pages objects to XML
+    void writePages(QXmlStreamWriter &writer, const bool save_bp_specific);
 
 public slots:
     /// Handle the given action.
@@ -268,6 +271,8 @@ public slots:
     /// Handle the given action.
     void search(const QString &text, const int &page, const bool forward);
 
+    void setDrawingsPath(const QString &filename)
+    {drawings_path = filename;}
 
 signals:
     /// Write notes from notes widgets to stream writer.
@@ -281,5 +286,8 @@ signals:
     /// Tell slides to update search results.
     void updateSearch();
 };
+
+/// Unzip file to buffer.
+QBuffer *loadZipToBuffer(const QString &filename);
 
 #endif // PDFMASTER_H

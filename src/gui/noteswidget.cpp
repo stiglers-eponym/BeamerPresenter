@@ -23,6 +23,8 @@ NotesWidget::NotesWidget(const bool per_page, QWidget *parent) :
 
 void NotesWidget::loadNotes(const QString &filename)
 {
+    // TODO: maybe find better implementation for this:
+    // use direct function calls instead of signal-slot mechanism
     QFile file(filename);
     file.open(QFile::ReadOnly | QFile::Text);
     if (file.isReadable())
@@ -116,7 +118,7 @@ void NotesWidget::save(QString filename)
 void NotesWidget::load()
 {
     const QString filename = QFileDialog::getOpenFileName(
-                NULL,
+                nullptr,
                 tr("Open notes"),
                 "",
                 tr("Note files (*.xml);;BeamerPresenter/Xournal++ files (*.bpr *.xopp *.xoj *.xml);;All files (*)")

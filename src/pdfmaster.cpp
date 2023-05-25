@@ -329,50 +329,7 @@ void PdfMaster::saveXopp(const QString &filename)
         writer.writeEndElement(); // "beamerpresenter" element
     }
 
-    const PdfDocument *doc = preferences()->document;
-    PathContainer *container;
-    for (int i=0; i < preferences()->number_of_pages; i++)
-    {
-        QSizeF size = doc->pageSize(i);
-        QRectF drawing_rect;
-        for (const PagePart page_part : {FullPage, LeftHalf, RightHalf})
-        {
-            if (preferences()->overlay_mode == PerLabel)
-                container = paths.value(doc->overlaysShifted(i | page_part, FirstOverlay), nullptr);
-            else
-                container = paths.value(i | page_part, nullptr);
-            if (container)
-                drawing_rect = drawing_rect.united(container->boundingBox());
-        }
-        size.setWidth(std::max(size.width(), drawing_rect.right()));
-        size.setHeight(std::max(size.height(), drawing_rect.bottom()));
-        writer.writeStartElement("page");
-        writer.writeAttribute("width", QString::number(size.width()));
-        writer.writeAttribute("height", QString::number(size.height()));
-        writer.writeEmptyElement("background");
-        writer.writeAttribute("type", "pdf");
-        writer.writeAttribute("pageno", QString::number(i+1));
-        if (i == 0)
-        {
-            writer.writeAttribute("domain", "absolute");
-            writer.writeAttribute("filename", doc->getPath());
-        }
-        if (save_bp_specific && target_times.contains(i))
-            writer.writeAttribute("endtime", QTime::fromMSecsSinceStartOfDay(target_times[i]).toString("h:mm:ss"));
-
-        writer.writeStartElement("layer");
-        for (const auto page_part : {FullPage, LeftHalf, RightHalf})
-        {
-            if (preferences()->overlay_mode == PerLabel)
-                container = paths.value(doc->overlaysShifted(i | page_part, FirstOverlay), nullptr);
-            else
-                container = paths.value(i | page_part, nullptr);
-            if (container)
-                container->writeXml(writer);
-        }
-        writer.writeEndElement(); // "layer" element
-        writer.writeEndElement(); // "page" element
-    }
+    writePages(writer, save_bp_specific);
 
     writer.writeEndElement(); // "xournal" element
     writer.writeEndDocument();
@@ -407,7 +364,61 @@ void PdfMaster::saveXopp(const QString &filename)
         }
     }
     if (!saving_failed)
-        _flags &= ~(UnsavedDrawings|UnsavedTimes|UnsavedNotes);
+    {
+        _flags &= ~UnsavedDrawings;
+        if (save_bp_specific)
+            _flags &= ~(UnsavedTimes|UnsavedNotes);
+    }
+}
+
+void PdfMaster::writePages(QXmlStreamWriter &writer, const bool save_bp_specific)
+{
+    PathContainer *container;
+    for (int i=0; i < numberOfPages(); i++)
+    {
+        QSizeF size = document->pageSize(i);
+        QRectF drawing_rect;
+        for (const PagePart page_part : {FullPage, LeftHalf, RightHalf})
+        {
+            if (preferences()->overlay_mode == PerLabel)
+                container = paths.value(document->overlaysShifted(i | page_part, FirstOverlay), nullptr);
+            else
+                container = paths.value(i | page_part, nullptr);
+            if (container)
+                drawing_rect = drawing_rect.united(container->boundingBox());
+        }
+        size.setWidth(std::max(size.width(), drawing_rect.right()));
+        size.setHeight(std::max(size.height(), drawing_rect.bottom()));
+        writer.writeStartElement("page");
+        writer.writeAttribute("width", QString::number(size.width()));
+        writer.writeAttribute("height", QString::number(size.height()));
+        writer.writeEmptyElement("background");
+        writer.writeAttribute("type", "pdf");
+        writer.writeAttribute("pageno", QString::number(i+1));
+        if (i == 0)
+        {
+            writer.writeAttribute("domain", "absolute");
+            writer.writeAttribute("filename", document->getPath());
+        }
+        if (save_bp_specific && target_times.contains(i))
+            writer.writeAttribute("endtime", QTime::fromMSecsSinceStartOfDay(target_times[i]).toString("h:mm:ss"));
+
+        writer.writeStartElement("layer");
+        for (const auto page_part : {FullPage, LeftHalf, RightHalf})
+        {
+            if (preferences()->overlay_mode == PerLabel)
+                container = paths.value(document->overlaysShifted(i | page_part, FirstOverlay), nullptr);
+            else
+                container = paths.value(i | page_part, nullptr);
+            if (container)
+                container->writeXml(writer);
+        }
+        writer.writeEndElement(); // "layer" element
+        writer.writeEndElement(); // "page" element
+    }
+    _flags &= ~UnsavedDrawings;
+    if (save_bp_specific)
+        _flags &= ~UnsavedTimes;
 }
 
 void PdfMaster::loadXopp(const QString &filename)
@@ -448,7 +459,7 @@ void PdfMaster::loadXopp(const QString &filename)
         {
             qWarning() << "Failed to determine PDF document from xournal file." << filename;
             const QString filename = QFileDialog::getOpenFileName(
-                                     NULL,
+                                     nullptr,
                                      tr("PDF file could not be opened, select the correct PDF file."),
                                      "",
                                      tr("Documents (*.pdf);;All files (*)")
@@ -512,7 +523,7 @@ void PdfMaster::reloadXoppProperties()
     delete buffer;
 }
 
-QBuffer *PdfMaster::loadZipToBuffer(const QString &filename)
+QBuffer *loadZipToBuffer(const QString &filename)
 {
     // This is probably not how it should be done.
     QBuffer *buffer = new QBuffer();
@@ -522,8 +533,8 @@ QBuffer *PdfMaster::loadZipToBuffer(const QString &filename)
     {
         qWarning() << "Loading drawings failed: file" << filename << "could not be opened";
         preferences()->showErrorMessage(
-                    tr("Error while loading file"),
-                    tr("Loading drawings failed: file ") + filename + tr(" could not be opened"));
+                    PdfMaster::tr("Error while loading file"),
+                    PdfMaster::tr("Loading drawings failed: file ") + filename + PdfMaster::tr(" could not be opened"));
         return nullptr;
     }
     gzbuffer(file, 32768);
@@ -638,6 +649,39 @@ void PdfMaster::readPageFromStream(QXmlStreamReader &reader, bool &nontrivial_pa
             reader.skipCurrentElement();
     }
     reader.skipCurrentElement();
+}
+
+void PdfMaster::readDrawingsFromStream(QXmlStreamReader &reader, const int page, const bool nontrivial_page_part)
+{
+    if (page < 0 || page >= document->numberOfPages())
+        return;
+    if (nontrivial_page_part)
+    {
+        const qreal page_half = document ? document->pageSize(page).width()/2 : 226.772;
+        PathContainer *left = paths.value(page | LeftHalf, nullptr),
+                      *right = paths.value(page | RightHalf, nullptr);
+        if (!left)
+        {
+            left = new PathContainer(this);
+            paths[page | LeftHalf] = left;
+        }
+        if (!right)
+        {
+            right = new PathContainer(this);
+            paths[page | RightHalf] = right;
+        }
+        PathContainer::loadDrawings(reader, left, right, page_half);
+    }
+    else
+    {
+        PathContainer *container = paths.value(page);
+        if (!container)
+        {
+            container = new PathContainer(this);
+            paths[page] = container;
+        }
+        container->loadDrawings(reader);
+    }
 }
 
 void PdfMaster::readPropertiesFromStream(QXmlStreamReader &reader)

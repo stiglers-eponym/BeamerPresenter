@@ -9,6 +9,7 @@
 #include <QMap>
 #include <QRectF>
 #include <QKeySequence>
+#include <QBuffer>
 #include "src/config.h"
 #include "src/preferences.h"
 #include "src/enumerates.h"
@@ -47,6 +48,7 @@ class Master : public QObject
 
     /// List of all PDF documents.
     /// Master file is the first entry in this list.
+    /// This list may never be empty.
     QList<PdfMaster*> documents;
 
     /// Map of cache hashs to cache objects.
@@ -74,6 +76,9 @@ class Master : public QObject
     /// Open pdf/xopp/xoj/bpr/xml file.
     /// Create globally accessible file alias in preferences.
     PdfMaster *openFile(QString name, QMap<QString, PdfMaster*> &file_alias);
+
+    /// Load a PDF file and create new PdfMaster.
+    PdfMaster *createPdfMaster(QString name);
 
     /// Create slide from config.
     SlideView *createSlide(QJsonObject &object, PdfMaster *pdf, QWidget *parent);
@@ -124,6 +129,22 @@ public:
     static QString getSaveFileName();
     /// Get open file name from QFileDialog
     static QString getOpenFileName();
+
+    /// Save gzipped XML file.
+    /// Return true if file was written successfully.
+    bool saveBpr(const QString &filename);
+    /// Write XML to stream.
+    /// Return true if saving was successful.
+    bool writeXml(QBuffer &buffer, const bool save_bp_specific);
+
+    /// Load bpr or xopp file
+    bool loadBpr(const QString &filename, const bool create_documents, const bool clear_drawings);
+    /// Load XML from buffer
+    bool loadXml(QBuffer *buffer, const bool create_documents, const bool clear_drawings);
+    /// Read header (beamerpresenter tag) from XML
+    bool readXmlHeader(QXmlStreamReader &reader);
+    /// Read page tag from XML
+    PdfMaster *readXmlPage(QXmlStreamReader &reader, PdfMaster *pdf, const bool create_documents, const bool clear_drawings);
 
 protected:
     /// Timeout event: cache videos or change slide
