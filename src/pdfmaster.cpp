@@ -432,20 +432,11 @@ void PdfMaster::loadXopp(const QString &filename)
     if (!reader.atEnd())
     {
         drawings_path = filename;
-        bool nontrivial_page_part = false;
-        for (const auto scene : qAsConst(scenes))
-        {
-            if (scene->pagePart() != FullPage)
-            {
-                nontrivial_page_part = true;
-                break;
-            }
-        }
         while (reader.readNextStartElement())
         {
             debug_msg(DebugDrawing, "Reading element" << reader.name());
             if (reader.name().toUtf8() == "page")
-                readPageFromStream(reader, nontrivial_page_part);
+                readPageFromStream(reader);
             else if (reader.name().toUtf8() == "beamerpresenter")
                 readPropertiesFromStream(reader);
             else if (!reader.isEndElement())
@@ -489,40 +480,6 @@ void PdfMaster::loadXopp(const QString &filename)
     delete buffer;
 }
 
-void PdfMaster::reloadXoppProperties()
-{
-    debug_msg(DebugWidgets, "reloading Xopp properties" << drawings_path);
-    if (drawings_path.isEmpty())
-        return;
-    QBuffer *buffer = loadZipToBuffer(drawings_path);
-    if (!buffer)
-        return;
-    QXmlStreamReader reader(buffer);
-    while (!reader.atEnd() && (reader.readNext() != QXmlStreamReader::StartElement || reader.name().toUtf8() != "xournal")) {}
-
-    if (!reader.atEnd())
-    {
-        while (reader.readNextStartElement())
-        {
-            if (reader.name().toUtf8() == "beamerpresenter")
-                readPropertiesFromStream(reader);
-            else if (!reader.isEndElement())
-                reader.skipCurrentElement();
-        }
-        if (reader.hasError())
-            preferences()->showErrorMessage(
-                        tr("Error while loading file"),
-                        tr("Failed to read bpr/xopp document: ") + reader.errorString());
-    }
-    else
-        preferences()->showErrorMessage(
-                    tr("Error while loading file"),
-                    tr("Failed to read bpr/xopp document: ") + reader.errorString());
-    reader.clear();
-    buffer->close();
-    delete buffer;
-}
-
 QBuffer *loadZipToBuffer(const QString &filename)
 {
     // This is probably not how it should be done.
@@ -549,7 +506,7 @@ QBuffer *loadZipToBuffer(const QString &filename)
     return buffer;
 }
 
-void PdfMaster::readPageFromStream(QXmlStreamReader &reader, bool &nontrivial_page_part)
+void PdfMaster::readPageFromStream(QXmlStreamReader &reader)
 {
     debug_msg(DebugDrawing, "read page from stream" << reader.name());
     int page = -1;
@@ -579,27 +536,8 @@ void PdfMaster::readPageFromStream(QXmlStreamReader &reader, bool &nontrivial_pa
 #else
             const QStringRef filename = reader.attributes().value("filename");
 #endif
-            if (!filename.isEmpty())
-            {
-                if (!document)
-                {
-                    const QFileInfo fileinfo(filename.toString());
-                    if (fileinfo.exists())
-                    {
-                        loadDocument(fileinfo.absoluteFilePath());
-                        if (document && preferences()->page_part_threshold > 0.01)
-                        {
-                            const QSizeF size = document->pageSize(0);
-                            if (size.width() > preferences()->page_part_threshold*size.height())
-                                nontrivial_page_part = true;
-                        }
-                    }
-                    else
-                        qWarning() << "Document does not exist:" << filename;
-                }
-                else if (filename != document->getPath())
-                    qWarning() << "reading document for possibly wrong PDF file:" << filename << document->getPath();
-            }
+            if (!filename.isEmpty() && filename != document->getPath() && QFileInfo(filename.toString()).absoluteFilePath() != document->getPath())
+                return;
             if (!reader.isEndElement())
                 reader.skipCurrentElement();
             break;
@@ -611,77 +549,49 @@ void PdfMaster::readPageFromStream(QXmlStreamReader &reader, bool &nontrivial_pa
         return;
     while (reader.readNextStartElement())
     {
-        debug_msg(DebugDrawing, "Searching layer" << reader.name());
         if (reader.name().toUtf8() == "layer")
-        {
-            if (nontrivial_page_part)
-            {
-                const qreal page_half = document ? document->pageSize(page).width()/2 : 226.772;
-                PathContainer *left = paths.value(page | LeftHalf, NULL),
-                            *right = paths.value(page | RightHalf, NULL);
-                if (!left)
-                {
-                    left = new PathContainer(this);
-                    paths[page | LeftHalf] = left;
-                }
-                if (!right)
-                {
-                    right = new PathContainer(this);
-                    paths[page | RightHalf] = right;
-                }
-                PathContainer::loadDrawings(reader, left, right, page_half);
-            }
-            else
-            {
-                PathContainer *container = paths.value(page);
-                if (!container)
-                {
-                    container = new PathContainer(this);
-                    paths[page] = container;
-                }
-                container->loadDrawings(reader);
-            }
-            if (!reader.isEndElement())
-                reader.skipCurrentElement();
-            break;
-        }
+            readDrawingsFromStream(reader, page);
         if (!reader.isEndElement())
             reader.skipCurrentElement();
     }
     reader.skipCurrentElement();
 }
 
-void PdfMaster::readDrawingsFromStream(QXmlStreamReader &reader, const int page, const bool nontrivial_page_part)
+void PdfMaster::readDrawingsFromStream(QXmlStreamReader &reader, const int page)
 {
     if (page < 0 || page >= document->numberOfPages())
         return;
-    if (nontrivial_page_part)
+    if ((_flags & NotFullPage) == 0)
     {
-        const qreal page_half = document ? document->pageSize(page).width()/2 : 226.772;
-        PathContainer *left = paths.value(page | LeftHalf, nullptr),
-                      *right = paths.value(page | RightHalf, nullptr);
-        if (!left)
-        {
-            left = new PathContainer(this);
-            paths[page | LeftHalf] = left;
-        }
-        if (!right)
-        {
-            right = new PathContainer(this);
-            paths[page | RightHalf] = right;
-        }
-        PathContainer::loadDrawings(reader, left, right, page_half);
-    }
-    else
-    {
-        PathContainer *container = paths.value(page);
+        PathContainer *container = paths.value(page, nullptr);
         if (!container)
         {
             container = new PathContainer(this);
             paths[page] = container;
         }
         container->loadDrawings(reader);
+        return;
     }
+    PathContainer *left = paths.value(page | LeftHalf, nullptr),
+                  *right = paths.value(page | RightHalf, nullptr),
+                  *center = paths.value(page, nullptr);
+    const qreal page_half = document->pageSize(page).width()/2;
+    if (_flags & LeftHalfUsed && !left)
+    {
+        left = new PathContainer(this);
+        paths[page | LeftHalf] = left;
+    }
+    if (_flags & RightHalfUsed && !right)
+    {
+        right = new PathContainer(this);
+        paths[page | RightHalf] = right;
+    }
+    if (_flags & FullPageUsed && !center)
+    {
+        center = new PathContainer(this);
+        paths[page] = center;
+    }
+    PathContainer::loadDrawings(reader, center, left, right, page_half);
 }
 
 void PdfMaster::readPropertiesFromStream(QXmlStreamReader &reader)

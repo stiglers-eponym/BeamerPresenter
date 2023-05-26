@@ -10,6 +10,7 @@
 #include <QRectF>
 #include <QKeySequence>
 #include <QBuffer>
+#include <QRegularExpression>
 #include "src/config.h"
 #include "src/preferences.h"
 #include "src/enumerates.h"
@@ -31,6 +32,8 @@ class QXmlStreamReader;
 class QXmlStreamWriter;
 class ContainerBaseClass;
 
+static const QRegularExpression regexpr_2nondigits {"[^0-9]{2,2}$"};
+
 /**
  * @brief Central management of the program.
  *
@@ -50,6 +53,9 @@ class Master : public QObject
     /// Master file is the first entry in this list.
     /// This list may never be empty.
     QList<PdfMaster*> documents;
+
+    /// File name of file containing drawings etc.
+    QString master_file;
 
     /// Map of cache hashs to cache objects.
     QMap<int, const PixCache*> caches;
@@ -137,14 +143,24 @@ public:
     /// Return true if saving was successful.
     bool writeXml(QBuffer &buffer, const bool save_bp_specific);
 
-    /// Load bpr or xopp file
-    bool loadBpr(const QString &filename, const bool create_documents, const bool clear_drawings);
-    /// Load XML from buffer
-    bool loadXml(QBuffer *buffer, const bool create_documents, const bool clear_drawings);
+    /// Helper function for loadBprInit and loadBprDrawings
+    bool loadBpr(bool (Master::*function)(QBuffer*, const bool), const QString filename, const bool clear_drawings);
+    /// Load bpr or xopp file: Only initialize PDF documents, don't load drawings.
+    bool loadBprInit(const QString &filename, const bool clear_drawings)
+    {return loadBpr(&Master::loadXmlInit, filename, clear_drawings);}
+    /// Load drawings and times from bpr or xopp file.
+    bool loadBprDrawings(const QString &filename, const bool clear_drawings)
+    {return loadBpr(&Master::loadXmlDrawings, filename, clear_drawings);}
+    /// Load XML from buffer: only initialize PDF documents, don't load drawings.
+    bool loadXmlInit(QBuffer *buffer, const bool);
+    /// Load drawings and times from buffer.
+    bool loadXmlDrawings(QBuffer *buffer, const bool clear_drawings);
     /// Read header (beamerpresenter tag) from XML
     bool readXmlHeader(QXmlStreamReader &reader);
+    /// Read page tag from XML, only find required PDF documents
+    PdfMaster *readXmlPageBg(QXmlStreamReader &reader, PdfMaster *pdf);
     /// Read page tag from XML
-    PdfMaster *readXmlPage(QXmlStreamReader &reader, PdfMaster *pdf, const bool create_documents, const bool clear_drawings);
+    PdfMaster *readXmlPage(QXmlStreamReader &reader, PdfMaster *pdf, const bool clear_drawings);
 
 protected:
     /// Timeout event: cache videos or change slide

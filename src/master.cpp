@@ -139,6 +139,17 @@ Master::Status Master::readGuiConfig(const QString &filename)
     connect(scenes.first(), &SlideScene::finishTransition, this, &Master::postNavigation);
     // Focus a scene view by default. This makes keyboard shortcuts available.
     scenes.first()->views().first()->setFocus();
+
+    // Load drawings
+    // TODO: avoid loading drawings multiple times
+    QSet<QString> loaded_paths;
+    if (!master_file.isEmpty())
+        loaded_paths.insert(master_file);
+    for (const auto doc : documents)
+        if (!doc->drawingsPath().isEmpty())
+            loaded_paths.insert(doc->drawingsPath());
+    for (const auto &path : loaded_paths)
+        loadBprDrawings(path, true);
     return Success;
 }
 
@@ -212,7 +223,9 @@ QWidget* Master::createWidget(QJsonObject &object, QWidget *parent, QMap<QString
         break;
     case NotesType:
     {
-        auto nwidget = new NotesWidget(object.value("identifier").toString() == "number", parent);
+        const bool label_by_number = object.value("identifier").toString() == "number";
+        const QString id = object.value("id").toString();
+        auto nwidget = new NotesWidget(label_by_number, id, parent);
         widget = nwidget;
         connect(this, &Master::navigationSignal, nwidget, &NotesWidget::pageChanged, Qt::QueuedConnection);
         connect(this, &Master::writeNotes, nwidget, &NotesWidget::writeNotes, Qt::DirectConnection);
@@ -224,8 +237,6 @@ QWidget* Master::createWidget(QJsonObject &object, QWidget *parent, QMap<QString
         // TODO: maybe find better implementation for this:
         if (object.contains("file"))
             nwidget->loadNotes(object.value("file").toString());
-        else if (!documents.isEmpty())
-            documents.first()->reloadXoppProperties();
         break;
     }
     case ToolSelectorType:
@@ -424,6 +435,7 @@ SlideView *Master::createSlide(QJsonObject &object, PdfMaster *pdf, QWidget *par
     }
     if (is_master)
         writable_preferences()->default_page_part = page_part;
+    pdf->flags() |= page_part == FullPage ? PdfMaster::FullPageUsed : page_part;
 
     SlideScene *scene {nullptr};
     // Check whether we need a new SlideScene.
@@ -546,9 +558,13 @@ PdfMaster *Master::openFile(QString name, QMap<QString, PdfMaster*> &known_files
     if (type.inherits("application/gzip") || type.inherits("text/xml"))
     {
         debug_msg(DebugDrawing, "Loading drawing file:" << name << abs_path << known_files);
-        loadBpr(abs_path, true, false);
+        loadBprInit(abs_path, false);
         for (const auto doc : documents)
+        {
             known_files[doc->getFilename()] = doc;
+            if (!doc->drawingsPath().isEmpty())
+                known_files[doc->drawingsPath()] = doc;
+        }
         for (auto it = preferences()->file_alias.cbegin(); it != preferences()->file_alias.cend(); ++it)
         {
             const QString abs_alias_path = QFileInfo(*it).absoluteFilePath();
@@ -785,21 +801,18 @@ void Master::handleAction(const Action action)
         break;
     case SaveDrawings:
     {
-        PdfMaster *doc = documents.first();
-        if (!doc)
-            break;
-        QString filename = doc->drawingsPath();
+        QString filename = master_file;
         if (filename.isEmpty())
             filename = getSaveFileName();
-        if (saveBpr(filename))
-            doc->setDrawingsPath(filename);
+        if (!filename.isEmpty())
+            saveBpr(filename);
         break;
     }
     case SaveDrawingsAs:
     {
         const QString filename = getSaveFileName();
-        if (!filename.isEmpty() && documents.first() && saveBpr(filename))
-            documents.first()->setDrawingsPath(filename);
+        if (!filename.isEmpty())
+            saveBpr(filename);
         break;
     }
     case LoadDrawings:
@@ -807,7 +820,7 @@ void Master::handleAction(const Action action)
     {
         const QString filename = getOpenFileName();
         if (!filename.isEmpty())
-            loadBpr(filename, false, action == LoadDrawings);
+            loadBprDrawings(filename, action == LoadDrawings);
         navigateToPage(preferences()->page);
         break;
     }
@@ -1077,6 +1090,7 @@ bool Master::saveBpr(const QString &filename)
             return false;
         }
     }
+    master_file = filename;
     return true;
 }
 
@@ -1148,18 +1162,20 @@ bool Master::writeXml(QBuffer &buffer, const bool save_bp_specific)
     return true;
 }
 
-bool Master::loadBpr(const QString &filename, const bool create_documents, const bool clear_drawings)
+bool Master::loadBpr(bool (Master::*function)(QBuffer*, const bool), const QString filename, const bool clear_drawings)
 {
     QBuffer *buffer = loadZipToBuffer(filename);
     if (!buffer)
         return false;
-    const bool status = loadXml(buffer, create_documents, clear_drawings);
+    const bool status = (this->*function)(buffer, clear_drawings);
     buffer->close();
     delete buffer;
+    if (status)
+        master_file = filename;
     return status;
 }
 
-bool Master::loadXml(QBuffer *buffer, const bool create_documents, const bool clear_drawings)
+bool Master::loadXmlInit(QBuffer *buffer, const bool)
 {
     if (!buffer)
         return false;
@@ -1181,7 +1197,7 @@ bool Master::loadXml(QBuffer *buffer, const bool create_documents, const bool cl
         if (reader.name().toUtf8() == "beamerpresenter")
             readXmlHeader(reader);
         else if (reader.name().toUtf8() == "page")
-            pdf = readXmlPage(reader, pdf, create_documents, clear_drawings);
+            pdf = readXmlPageBg(reader, pdf);
         else if (!reader.isEndElement())
             reader.skipCurrentElement();
     }
@@ -1193,14 +1209,86 @@ bool Master::loadXml(QBuffer *buffer, const bool create_documents, const bool cl
     return true;
 }
 
-PdfMaster *Master::readXmlPage(QXmlStreamReader &reader, PdfMaster *pdf, const bool create_documents, const bool clear_drawings)
+bool Master::loadXmlDrawings(QBuffer *buffer, const bool clear_drawings)
+{
+    if (!buffer)
+        return false;
+    QXmlStreamReader reader(buffer);
+    while (!reader.atEnd() && (reader.readNext() != QXmlStreamReader::StartElement || reader.name().toUtf8() != "xournal")) {}
+    if (reader.atEnd())
+    {
+        preferences()->showErrorMessage(
+                    tr("Error while loading file"),
+                    tr("Failed to read bpr/xopp document: ") + reader.errorString());
+        reader.clear();
+        return false;
+    }
+
+    PdfMaster *pdf = nullptr;
+    while (reader.readNextStartElement())
+    {
+        debug_msg(DebugDrawing, "Reading element" << reader.name());
+        if (reader.name().toUtf8() == "beamerpresenter")
+            readXmlHeader(reader);
+        else if (reader.name().toUtf8() == "page")
+            pdf = readXmlPage(reader, pdf, clear_drawings);
+        else if (!reader.isEndElement())
+            reader.skipCurrentElement();
+    }
+    if (reader.hasError())
+        preferences()->showErrorMessage(
+                    tr("Error while loading file"),
+                    tr("Failed to read bpr/xopp document: ") + reader.errorString());
+    reader.clear();
+    return true;
+}
+
+PdfMaster *Master::readXmlPageBg(QXmlStreamReader &reader, PdfMaster *pdf)
 {
     if (reader.name().toUtf8() != "page")
         return pdf;
-    static const QRegularExpression regexpr_2nondigits("[^0-9]{2,2}$");
+    while (reader.readNextStartElement())
+    {
+        if (reader.name().toUtf8() == "background")
+        {
+            const QString filename = reader.attributes().value("filename").toString();
+            if (!filename.isEmpty())
+            {
+                const QString abs_filename = QFileInfo(filename).absoluteFilePath();
+                if (!pdf || (abs_filename != pdf->getFilename() && filename != pdf->getFilename()))
+                {
+                    pdf = nullptr;
+                    for (const auto doc : documents)
+                    {
+                        if (doc && (doc->getFilename() == filename || doc->getFilename() == abs_filename))
+                        {
+                            pdf = doc;
+                            break;
+                        }
+                    }
+                    if (!pdf)
+                    {
+                        pdf = createPdfMaster(abs_filename);
+                        if (!pdf)
+                            qWarning() << "Document does not exist:" << abs_filename;
+                    }
+                }
+            }
+            if (!reader.isEndElement())
+                reader.skipCurrentElement();
+        }
+        if (!reader.isEndElement())
+            reader.skipCurrentElement();
+    }
+    return pdf;
+}
+
+PdfMaster *Master::readXmlPage(QXmlStreamReader &reader, PdfMaster *pdf, const bool clear_drawings)
+{
+    if (reader.name().toUtf8() != "page")
+        return pdf;
     int page;
     bool ok;
-    // TODO: implement nontrivial_page_part
     while (reader.readNextStartElement())
     {
         if (reader.name().toUtf8() == "background")
@@ -1220,7 +1308,7 @@ PdfMaster *Master::readXmlPage(QXmlStreamReader &reader, PdfMaster *pdf, const b
             if (!filename.isEmpty())
             {
                 const QString abs_filename = QFileInfo(filename).absoluteFilePath();
-                if (!pdf || abs_filename != pdf->getFilename())
+                if (!pdf || (abs_filename != pdf->getFilename() && filename != pdf->getFilename()))
                 {
                     pdf = nullptr;
                     for (const auto doc : documents)
@@ -1231,17 +1319,10 @@ PdfMaster *Master::readXmlPage(QXmlStreamReader &reader, PdfMaster *pdf, const b
                             break;
                         }
                     }
-                    if (pdf == nullptr && create_documents)
+                    if (pdf && clear_drawings)
                     {
-                        pdf = createPdfMaster(abs_filename);
-                        if (pdf == nullptr)
-                            qWarning() << "Document does not exist:" << abs_filename;
-                    }
-                    if (pdf)
-                    {
+                        pdf->clearAllDrawings();
                         pdf->flags() &= ~PdfMaster::UnsavedDrawings;
-                        if (clear_drawings)
-                            pdf->clearAllDrawings();
                     }
                 }
             }
@@ -1254,7 +1335,6 @@ PdfMaster *Master::readXmlPage(QXmlStreamReader &reader, PdfMaster *pdf, const b
                 {
                     const QTime time = QTime::fromString(string, "h:mm:ss");
                     if (time.isValid())
-                        // TODO: make sure this information reaches the timer
                         pdf->setTimeForPage(page, time.msecsSinceStartOfDay());
                 }
             }
@@ -1264,8 +1344,7 @@ PdfMaster *Master::readXmlPage(QXmlStreamReader &reader, PdfMaster *pdf, const b
                 reader.skipCurrentElement();
         }
         else if (reader.name().toUtf8() == "layer" && pdf && page >= 0)
-            // TODO: implement nontrivial page part!
-            pdf->readDrawingsFromStream(reader, page, false);
+            pdf->readDrawingsFromStream(reader, page);
         if (!reader.isEndElement())
             reader.skipCurrentElement();
     }

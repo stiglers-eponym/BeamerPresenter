@@ -47,6 +47,9 @@ public:
         UnsavedDrawings = 1 << 0,
         UnsavedTimes = 1 << 1,
         UnsavedNotes = 1 << 2,
+        FullPageUsed = LeftHalf >> 1,
+        LeftHalfUsed = LeftHalf,
+        RightHalfUsed = RightHalf,
     };
 
 private:
@@ -171,12 +174,10 @@ public:
     /// If no document is loaded, this will call loadDocument(path)
     /// with the pdf file path from the xopp file.
     void loadXopp(const QString &filename);
-    /// Reload only the \<beamerpresenter\> element of Xopp file.
-    void reloadXoppProperties();
     /// Helper function for loadXopp: read a \<page\> element
-    void readPageFromStream(QXmlStreamReader &reader, bool &nontrivial_page_part);
+    void readPageFromStream(QXmlStreamReader &reader);
     /// Load drawings from XML reader, must be in element <layer>
-    void readDrawingsFromStream(QXmlStreamReader &reader, const int page, const bool nontrivial_page_part);
+    void readDrawingsFromStream(QXmlStreamReader &reader, const int page);
     /// Helper function for loadXopp: read the \<beamerpresenter\> element
     void readPropertiesFromStream(QXmlStreamReader &reader);
 
