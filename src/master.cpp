@@ -231,7 +231,8 @@ QWidget* Master::createWidget(QJsonObject &object, QWidget *parent, QMap<QString
         connect(this, &Master::writeNotes, nwidget, &NotesWidget::writeNotes, Qt::DirectConnection);
         connect(this, &Master::readNotes, nwidget, &NotesWidget::readNotes, Qt::DirectConnection);
         connect(nwidget, &NotesWidget::saveDrawings, this, &Master::saveDrawings);
-        connect(nwidget, &NotesWidget::loadDrawings, this, &Master::loadDrawings);
+        // TODO: reload initiated from notes widget
+        connect(nwidget, &NotesWidget::loadDrawings, this, [&](const QString name){loadBprDrawings(name, true);});
         connect(nwidget, &NotesWidget::newUnsavedChanges, this, [&](void){documents.first()->flags() |= PdfMaster::UnsavedNotes;});
         nwidget->zoomIn(object.value("zoom").toInt(10));
         // TODO: maybe find better implementation for this:
@@ -608,8 +609,6 @@ PdfMaster *Master::createPdfMaster(QString abs_path)
     connect(this, &Master::navigationSignal, pdf, &PdfMaster::distributeNavigationEvents, Qt::QueuedConnection);
     connect(this, &Master::setTimeForPage, pdf, &PdfMaster::setTimeForPage);
     connect(this, &Master::getTimeForPage, pdf, &PdfMaster::getTimeForPage);
-    connect(this, &Master::saveDrawings, pdf, &PdfMaster::saveXopp);
-    connect(this, &Master::loadDrawings, pdf, &PdfMaster::loadXopp);
     connect(pdf, &PdfMaster::writeNotes, this, &Master::writeNotes, Qt::DirectConnection);
     connect(pdf, &PdfMaster::readNotes, this, &Master::readNotes, Qt::DirectConnection);
     connect(pdf, &PdfMaster::setTotalTime, this, &Master::setTotalTime);
@@ -617,7 +616,7 @@ PdfMaster *Master::createPdfMaster(QString abs_path)
 
     // Initialize document, try to laod PDF
     // TODO: should this be done at this point?
-    pdf->initialize(abs_path);
+    pdf->loadDocument(abs_path);
     if (pdf->getDocument() == nullptr)
     {
         delete pdf;
@@ -743,12 +742,10 @@ bool Master::eventFilter(QObject *obj, QEvent *event)
         }
     }
     // Search actions in preferences for given key sequence.
+    for (Action action : static_cast<const QList<Action>>(preferences()->key_actions.values(key_code)))
     {
-        for (Action action : static_cast<const QList<Action>>(preferences()->key_actions.values(key_code)))
-        {
-            debug_msg(DebugKeyInput, "Global key action:" << action);
-            handleAction(action);
-        }
+        debug_msg(DebugKeyInput, "Global key action:" << action);
+        handleAction(action);
     }
     // Search tools in preferences for given key sequence.
     for (const auto tool : static_cast<const QList<Tool*>>(preferences()->key_tools.values(key_code)))
@@ -866,7 +863,7 @@ void Master::handleAction(const Action action)
     }
 }
 
-bool Master::askCloseConfirmation() const noexcept
+bool Master::askCloseConfirmation() noexcept
 {
     PdfMaster *doc = documents.first();
     if (doc && (
@@ -890,7 +887,7 @@ bool Master::askCloseConfirmation() const noexcept
             QString filename = doc->drawingsPath();
             if (filename.isEmpty())
                 filename = getSaveFileName();
-            doc->saveXopp(filename);
+            saveBpr(filename);
             break;
         }
         default:

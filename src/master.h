@@ -74,7 +74,7 @@ class Master : public QObject
 
     /// Ask for confirmation when closing.
     /// Return true when the program should quit.
-    bool askCloseConfirmation() const noexcept;
+    bool askCloseConfirmation() noexcept;
 
     /// Create widgets recursively.
     QWidget* createWidget(QJsonObject& object, QWidget *parent, QMap<QString, PdfMaster*> &known_files);
@@ -243,9 +243,6 @@ signals:
     void setTotalTime(const QTime time) const;
     /// Tell PdfMaster to save drawings.
     void saveDrawings(const QString filename);
-    /// Tell PdfMaster to load drawings. This does not clear old drawings
-    /// before loading new ones.
-    void loadDrawings(const QString filename);
 };
 
 #endif // MASTER_H

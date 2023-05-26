@@ -88,20 +88,10 @@ private:
 
 public:
     /// Create empty, uninitialized PdfMaster.
-    /// Call this function, then connect this to events, then
-    /// call PdfMaster::initialize(filename).
     explicit PdfMaster() {}
-
-    /// Create a new PdfMaster from a given file name.
-    explicit PdfMaster(const QString &filename)
-    {initialize(filename);}
 
     /// Destructor. Deletes paths and document.
     ~PdfMaster();
-
-    /// Must be called after constructor before doing anything with this.
-    /// Returns true if it was initialized successfully.
-    void initialize(const QString &filename);
 
     /// get function for search_results
     const std::pair<int, QList<QRectF>> &searchResults() const noexcept
@@ -162,23 +152,14 @@ public:
     int overlaysShifted(const int start, const int shift_overlay) const
     {return document->overlaysShifted(start, shift_overlay);}
 
-    /// Save drawings to gzip-compressed xml file.
-    /// This does not check whether filename is valid and accessible!
-    void saveXopp(const QString &filename);
-
     /// Write page (part) to image, including drawings.
     QPixmap exportImage(const int page, const qreal resolution) const noexcept;
 
-    /// Load drawings from gzip-compressed xml file.
-    /// This does not check whether filename is valid and accessible!
-    /// If no document is loaded, this will call loadDocument(path)
-    /// with the pdf file path from the xopp file.
-    void loadXopp(const QString &filename);
-    /// Helper function for loadXopp: read a \<page\> element
+    /// Read a page element from XML stream
     void readPageFromStream(QXmlStreamReader &reader);
     /// Load drawings from XML reader, must be in element <layer>
     void readDrawingsFromStream(QXmlStreamReader &reader, const int page);
-    /// Helper function for loadXopp: read the \<beamerpresenter\> element
+    /// Read a beamerpresenter element from XML stream
     void readPropertiesFromStream(QXmlStreamReader &reader);
 
     /// Get path container at given page. If overlay_mode==Cumulative, this may
@@ -210,15 +191,15 @@ public slots:
 
     /// Add a new path (or QGraphicsItem) to paths[page].
     /// Page (part) number is given as (page | page_part).
-    /// If item is NULL: create the container if it does not exist yet.
+    /// If item is nullptr: create the container if it does not exist yet.
     void receiveNewPath(int page, QGraphicsItem *item)
     {replacePath(page, nullptr, item);}
 
     /// Replace an existing path (or QGraphicsItem) in paths[page] by the gievn new one.
-    /// Old or new item can be NULL, then only a new item will be created or an
+    /// Old or new item can be nullptr, then only a new item will be created or an
     /// existing one will be removed, respectively.
     /// Page (part) number is given as (page | page_part).
-    /// If both items are NULL, only the container is created (if it doesn't exist yet).
+    /// If both items are nullptr, only the container is created (if it doesn't exist yet).
     void replacePath(int page, QGraphicsItem *olditem, QGraphicsItem *newitem);
 
     /// Add history step with transformations, tool changes, and text
