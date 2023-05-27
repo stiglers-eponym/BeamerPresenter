@@ -6,6 +6,7 @@
 * more navigation keyboard shortcuts in default configuration
 * new widget: ToolWidget ("tools") showing tools currently connected to input devices
 * improved search widget: now highlights search results
+* saving/loading files: single gzipped XML file (.bpr/.xopp) can now contain information about multiple PDF files
 * different installation path for translation files
 * copy and paste to/from image formats:
     * paste only as picture (no erasing possible)

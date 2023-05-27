@@ -159,8 +159,6 @@ public:
     void readPageFromStream(QXmlStreamReader &reader);
     /// Load drawings from XML reader, must be in element <layer>
     void readDrawingsFromStream(QXmlStreamReader &reader, const int page);
-    /// Read a beamerpresenter element from XML stream
-    void readPropertiesFromStream(QXmlStreamReader &reader);
 
     /// Get path container at given page. If overlay_mode==Cumulative, this may
     /// create and return a copy of a previous path container.
@@ -230,6 +228,10 @@ public slots:
     /// Get path container at given page. Always create a new container if it
     /// does not exist yet.
     void createPathContainer(PathContainer **container, int page);
+
+    /// Get target_times map reference
+    auto &targetTimes() noexcept
+    {return target_times;}
 
     /// Set time for page and write it to target_times.
     void setTimeForPage(const int page, const quint32 time) noexcept

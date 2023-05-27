@@ -140,6 +140,7 @@ Master::Status Master::readGuiConfig(const QString &filename)
     // Focus a scene view by default. This makes keyboard shortcuts available.
     scenes.first()->views().first()->setFocus();
 
+    debug_msg(DebugDrawing, "Initialized documents:" << known_files << preferences()->file_alias);
     // Load drawings
     // TODO: avoid loading drawings multiple times
     QSet<QString> loaded_paths;
@@ -150,6 +151,7 @@ Master::Status Master::readGuiConfig(const QString &filename)
             loaded_paths.insert(doc->drawingsPath());
     for (const auto &path : loaded_paths)
         loadBprDrawings(path, true);
+    debug_msg(DebugDrawing, "Loaded drawings:" << known_files << preferences()->file_alias);
     return Success;
 }
 
@@ -556,27 +558,27 @@ PdfMaster *Master::openFile(QString name, QMap<QString, PdfMaster*> &known_files
     const QString abs_path = fileinfo.absoluteFilePath();
     QMimeDatabase db;
     const QMimeType type = db.mimeTypeForFile(abs_path);
-    if (type.inherits("application/gzip") || type.inherits("text/xml"))
+    if (type.inherits("application/gzip") || type.inherits("text/xml") || type.inherits("application/x-xopp") || type.inherits("application/x-bpr"))
     {
         debug_msg(DebugDrawing, "Loading drawing file:" << name << abs_path << known_files);
-        loadBprInit(abs_path, false);
+        loadBprInit(abs_path);
         for (const auto doc : documents)
-        {
             known_files[doc->getFilename()] = doc;
-            if (!doc->drawingsPath().isEmpty())
-                known_files[doc->drawingsPath()] = doc;
-        }
         for (auto it = preferences()->file_alias.cbegin(); it != preferences()->file_alias.cend(); ++it)
         {
             const QString abs_alias_path = QFileInfo(*it).absoluteFilePath();
             for (const auto doc : documents)
-                if (doc->getFilename() == abs_alias_path || doc->getFilename() == *it)
+            {
+                debug_msg(DebugDrawing, "Comparing:" << name << abs_alias_path << doc->getFilename() << doc->drawingsPath());
+                if (doc->getFilename() == abs_alias_path || doc->getFilename() == *it || doc->drawingsPath() == *it || doc->drawingsPath() == abs_alias_path)
                 {
                     known_files[it.key()] = doc;
                     known_files[*it] = doc;
                     known_files[abs_alias_path] = doc;
+                    writable_preferences()->file_alias[it.key()] = doc->getFilename();
                     break;
                 }
+            }
         }
         if (known_files.contains(name))
             return known_files.value(name);
@@ -600,6 +602,7 @@ PdfMaster *Master::openFile(QString name, QMap<QString, PdfMaster*> &known_files
 
 PdfMaster *Master::createPdfMaster(QString abs_path)
 {
+    debug_msg(DebugDrawing, "Opening new document" << abs_path);
     // First create an empty PdfMaster. Don't do anything with it,
     // it's not initialized yet. Only connect it to signals, some of
     // which may already be required in initialization.
@@ -1159,12 +1162,12 @@ bool Master::writeXml(QBuffer &buffer, const bool save_bp_specific)
     return true;
 }
 
-bool Master::loadBpr(bool (Master::*function)(QBuffer*, const bool), const QString filename, const bool clear_drawings)
+bool Master::loadBprDrawings(const QString &filename, const bool clear_drawings)
 {
     QBuffer *buffer = loadZipToBuffer(filename);
     if (!buffer)
         return false;
-    const bool status = (this->*function)(buffer, clear_drawings);
+    const bool status = loadXmlDrawings(buffer, clear_drawings);
     buffer->close();
     delete buffer;
     if (status)
@@ -1172,7 +1175,20 @@ bool Master::loadBpr(bool (Master::*function)(QBuffer*, const bool), const QStri
     return status;
 }
 
-bool Master::loadXmlInit(QBuffer *buffer, const bool)
+bool Master::loadBprInit(const QString &filename)
+{
+    QBuffer *buffer = loadZipToBuffer(filename);
+    if (!buffer)
+        return false;
+    const bool status = loadXmlInit(buffer, filename);
+    buffer->close();
+    delete buffer;
+    if (status)
+        master_file = filename;
+    return status;
+}
+
+bool Master::loadXmlInit(QBuffer *buffer, const QString &abs_path)
 {
     if (!buffer)
         return false;
@@ -1190,11 +1206,10 @@ bool Master::loadXmlInit(QBuffer *buffer, const bool)
     PdfMaster *pdf = nullptr;
     while (reader.readNextStartElement())
     {
-        debug_msg(DebugDrawing, "Reading element" << reader.name());
         if (reader.name().toUtf8() == "beamerpresenter")
-            readXmlHeader(reader);
+            readXmlHeader(reader, false);
         else if (reader.name().toUtf8() == "page")
-            pdf = readXmlPageBg(reader, pdf);
+            pdf = readXmlPageBg(reader, pdf, abs_path);
         else if (!reader.isEndElement())
             reader.skipCurrentElement();
     }
@@ -1210,6 +1225,7 @@ bool Master::loadXmlDrawings(QBuffer *buffer, const bool clear_drawings)
 {
     if (!buffer)
         return false;
+    debug_msg(DebugDrawing, "Loading drawings from buffer");
     QXmlStreamReader reader(buffer);
     while (!reader.atEnd() && (reader.readNext() != QXmlStreamReader::StartElement || reader.name().toUtf8() != "xournal")) {}
     if (reader.atEnd())
@@ -1224,9 +1240,8 @@ bool Master::loadXmlDrawings(QBuffer *buffer, const bool clear_drawings)
     PdfMaster *pdf = nullptr;
     while (reader.readNextStartElement())
     {
-        debug_msg(DebugDrawing, "Reading element" << reader.name());
         if (reader.name().toUtf8() == "beamerpresenter")
-            readXmlHeader(reader);
+            readXmlHeader(reader, true);
         else if (reader.name().toUtf8() == "page")
             pdf = readXmlPage(reader, pdf, clear_drawings);
         else if (!reader.isEndElement())
@@ -1240,7 +1255,7 @@ bool Master::loadXmlDrawings(QBuffer *buffer, const bool clear_drawings)
     return true;
 }
 
-PdfMaster *Master::readXmlPageBg(QXmlStreamReader &reader, PdfMaster *pdf)
+PdfMaster *Master::readXmlPageBg(QXmlStreamReader &reader, PdfMaster *pdf, const QString &drawings_path)
 {
     if (reader.name().toUtf8() != "page")
         return pdf;
@@ -1259,13 +1274,16 @@ PdfMaster *Master::readXmlPageBg(QXmlStreamReader &reader, PdfMaster *pdf)
                     {
                         if (doc && (doc->getFilename() == filename || doc->getFilename() == abs_filename))
                         {
+                            debug_msg(DebugDrawing, "Found existing document" << doc->getFilename());
                             pdf = doc;
+                            pdf->setDrawingsPath(drawings_path);
                             break;
                         }
                     }
                     if (!pdf)
                     {
                         pdf = createPdfMaster(abs_filename);
+                        pdf->setDrawingsPath(drawings_path);
                         if (!pdf)
                             qWarning() << "Document does not exist:" << abs_filename;
                     }
@@ -1312,6 +1330,7 @@ PdfMaster *Master::readXmlPage(QXmlStreamReader &reader, PdfMaster *pdf, const b
                     {
                         if (doc && (doc->getFilename() == filename || doc->getFilename() == abs_filename))
                         {
+                            debug_msg(DebugDrawing, "Found existing document" << doc->getFilename());
                             pdf = doc;
                             break;
                         }
@@ -1332,11 +1351,10 @@ PdfMaster *Master::readXmlPage(QXmlStreamReader &reader, PdfMaster *pdf, const b
                 {
                     const QTime time = QTime::fromString(string, "h:mm:ss");
                     if (time.isValid())
-                        pdf->setTimeForPage(page, time.msecsSinceStartOfDay());
+                        pdf->targetTimes()[page] = time.msecsSinceStartOfDay();
                 }
             }
 
-            debug_msg(DebugDrawing, "Loaded page background:" << filename << page << pdf);
             if (!reader.isEndElement())
                 reader.skipCurrentElement();
         }
@@ -1348,8 +1366,9 @@ PdfMaster *Master::readXmlPage(QXmlStreamReader &reader, PdfMaster *pdf, const b
     return pdf;
 }
 
-bool Master::readXmlHeader(QXmlStreamReader &reader)
+bool Master::readXmlHeader(QXmlStreamReader &reader, const bool read_notes)
 {
+    debug_msg(DebugDrawing, "Reading header");
     const QTime time = QTime::fromString(reader.attributes().value("duration").toString(), "h:mm:ss");
     if (time.isValid())
     {
@@ -1361,8 +1380,8 @@ bool Master::readXmlHeader(QXmlStreamReader &reader)
     }
     while (reader.readNextStartElement())
     {
-        if (reader.name().toUtf8() == "speakernotes")
-            // TODO: This should be called later
+        if (read_notes && reader.name().toUtf8() == "speakernotes")
+            // TODO: multiple notes widgets with equal id (content) are not supported
             emit readNotes(reader);
         else if (reader.name().toUtf8() == "documents")
         {
@@ -1373,7 +1392,8 @@ bool Master::readXmlHeader(QXmlStreamReader &reader)
                     const QXmlStreamAttributes &attr = reader.attributes();
                     const QString alias = attr.value("alias").toString();
                     const QString path = attr.value("path").toString();
-                    if (!alias.isEmpty() && !path.isEmpty())
+                    const QString old_alias = preferences()->file_alias.value(alias);
+                    if (!alias.isEmpty() && !path.isEmpty() && (old_alias.isEmpty() || !old_alias.endsWith(".pdf", Qt::CaseInsensitive)))
                         writable_preferences()->file_alias[alias] = path;
                 }
                 if (!reader.isEndElement())

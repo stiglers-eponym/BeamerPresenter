@@ -430,26 +430,6 @@ void PdfMaster::readDrawingsFromStream(QXmlStreamReader &reader, const int page)
     PathContainer::loadDrawings(reader, center, left, right, page_half);
 }
 
-void PdfMaster::readPropertiesFromStream(QXmlStreamReader &reader)
-{
-    const QTime time = QTime::fromString(reader.attributes().value("duration").toString(), "h:mm:ss");
-    if (time.isValid())
-    {
-        emit setTotalTime(time);
-        // If may happen that this is called before a timer widget is created.
-        // Then setTotalTime(time) will do nothing and preferences()->msecs_total
-        // must be set directly.
-        writable_preferences()->msecs_total = time.msecsSinceStartOfDay();
-    }
-    while (reader.readNextStartElement())
-    {
-        if (reader.name().toUtf8() == "speakernotes")
-            emit readNotes(reader);
-        if (!reader.isEndElement())
-            reader.skipCurrentElement();
-    }
-}
-
 PathContainer *PdfMaster::pathContainerCreate(int page)
 {
     switch (preferences()->overlay_mode)
@@ -504,9 +484,7 @@ void PdfMaster::clearAllDrawings()
 
 void PdfMaster::getTimeForPage(const int page, quint32 &time) const noexcept
 {
-    if (target_times.empty() || page > target_times.lastKey())
-        time = UINT32_MAX;
-    else
+    if (!target_times.empty() && page <= target_times.lastKey())
         time = *target_times.lowerBound(page);
 }
 

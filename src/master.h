@@ -143,22 +143,18 @@ public:
     /// Return true if saving was successful.
     bool writeXml(QBuffer &buffer, const bool save_bp_specific);
 
-    /// Helper function for loadBprInit and loadBprDrawings
-    bool loadBpr(bool (Master::*function)(QBuffer*, const bool), const QString filename, const bool clear_drawings);
     /// Load bpr or xopp file: Only initialize PDF documents, don't load drawings.
-    bool loadBprInit(const QString &filename, const bool clear_drawings)
-    {return loadBpr(&Master::loadXmlInit, filename, clear_drawings);}
+    bool loadBprInit(const QString &filename);
     /// Load drawings and times from bpr or xopp file.
-    bool loadBprDrawings(const QString &filename, const bool clear_drawings)
-    {return loadBpr(&Master::loadXmlDrawings, filename, clear_drawings);}
+    bool loadBprDrawings(const QString &filename, const bool clear_drawings);
     /// Load XML from buffer: only initialize PDF documents, don't load drawings.
-    bool loadXmlInit(QBuffer *buffer, const bool);
+    bool loadXmlInit(QBuffer *buffer, const QString &abs_path);
     /// Load drawings and times from buffer.
     bool loadXmlDrawings(QBuffer *buffer, const bool clear_drawings);
     /// Read header (beamerpresenter tag) from XML
-    bool readXmlHeader(QXmlStreamReader &reader);
+    bool readXmlHeader(QXmlStreamReader &reader, const bool read_notes);
     /// Read page tag from XML, only find required PDF documents
-    PdfMaster *readXmlPageBg(QXmlStreamReader &reader, PdfMaster *pdf);
+    PdfMaster *readXmlPageBg(QXmlStreamReader &reader, PdfMaster *pdf, const QString &drawings_path);
     /// Read page tag from XML
     PdfMaster *readXmlPage(QXmlStreamReader &reader, PdfMaster *pdf, const bool clear_drawings);
 
