@@ -452,6 +452,30 @@
         <source>An error occured while trying to create a widget with JSON object</source>
         <translation>Fehler beim Erstellen eines Widgets mit JSON-Objekt</translation>
     </message>
+    <message>
+        <source>Error while saving file</source>
+        <translation>Fehler beim Speichern der Datei</translation>
+    </message>
+    <message>
+        <source>Saving document failed for file path: </source>
+        <translation>Speichern des Dokuments ist fehlgeschlagen für den Dateipfad: </translation>
+    </message>
+    <message>
+        <source>Error while saving bpr/xopp file</source>
+        <translation>Fehler beim Speichern der bpr/xopp-Datei</translation>
+    </message>
+    <message>
+        <source>Writing document resulted in error! Resulting document is probably corrupt.</source>
+        <translation>Schreiben des Dokuments fehlgeschlagen! Das resultierende Dokument ist vermutlich kaputt.</translation>
+    </message>
+    <message>
+        <source>Error while loading file</source>
+        <translation>Fehler beim Laden der Datei</translation>
+    </message>
+    <message>
+        <source>Failed to read bpr/xopp document: </source>
+        <translation>Fehler beim Lesen des bpr/xopp-Dokuments: </translation>
+    </message>
 </context>
 <context>
     <name>MuPdfDocument</name>
@@ -541,52 +565,12 @@
         <translation>Laden des PDF-Dokuments fehlgeschlagen!</translation>
     </message>
     <message>
-        <source>Error while saving file</source>
-        <translation>Fehler beim Speichern der Datei</translation>
-    </message>
-    <message>
-        <source>Writing document resulted in error! Resulting document is probably corrupt.</source>
-        <translation>Schreiben des Dokuments hat einen Fehler erzeigt! Das resultierende Dokument ist vermutlich kaputt.</translation>
-    </message>
-    <message>
-        <source>Saving document failed for file path: </source>
-        <translation>Speichern des Dokuments ist fehlgeschlagen für den Dateipfad: </translation>
-    </message>
-    <message>
-        <source>PDF file could not be opened, select the correct PDF file.</source>
-        <translation>PDF-Datei konnte nicht geöffnet werden, wähle die richtige PDF-Datei aus.</translation>
-    </message>
-    <message>
-        <source>Documents (*.pdf);;All files (*)</source>
-        <translation>Dokumente (*.pdf);;Alle Dateien (*)</translation>
-    </message>
-    <message>
-        <source>No PDF file found</source>
-        <translation>Keine PDF-Datei gefunden</translation>
-    </message>
-    <message>
-        <source>File does not exist: </source>
-        <translation>Datei existiert nicht: </translation>
-    </message>
-    <message>
         <source>Loading drawings failed: file </source>
         <translation>Laden der Anmerkungen fehlgeschlagen: Datei </translation>
     </message>
     <message>
         <source> could not be opened</source>
         <translation> konnte nicht geöffnet werden</translation>
-    </message>
-    <message>
-        <source>File type of document not understood! Trying to load it anyway.</source>
-        <translation>Dateityp des Dokuments nicht verstanden! Versuche trotzdem, es zu laden.</translation>
-    </message>
-    <message>
-        <source>Failed to read bpr/xopp document: </source>
-        <translation>Fehler beim Lesen des bpr/xopp-Dokuments: </translation>
-    </message>
-    <message>
-        <source>Error while saving bpr/xopp file</source>
-        <translation>Fehler beim Speichern der bpr/xopp-Datei</translation>
     </message>
 </context>
 <context>

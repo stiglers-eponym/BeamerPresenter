@@ -79,8 +79,8 @@ class Master : public QObject
     /// Create widgets recursively.
     QWidget* createWidget(QJsonObject& object, QWidget *parent, QMap<QString, PdfMaster*> &known_files);
 
-    /// Open pdf/xopp/xoj/bpr/xml file.
-    /// Create globally accessible file alias in preferences.
+    /// Open pdf/xopp/xoj/bpr/xml file or return already opened file.
+    /// Mark file alias in given map.
     PdfMaster *openFile(QString name, QMap<QString, PdfMaster*> &file_alias);
 
     /// Load a PDF file and create new PdfMaster.

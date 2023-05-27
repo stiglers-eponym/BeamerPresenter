@@ -230,7 +230,7 @@ public slots:
     void createPathContainer(PathContainer **container, int page);
 
     /// Get target_times map reference
-    auto &targetTimes() noexcept
+    QMap<int, quint32> &targetTimes() noexcept
     {return target_times;}
 
     /// Set time for page and write it to target_times.

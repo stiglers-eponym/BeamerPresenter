@@ -556,8 +556,7 @@ PdfMaster *Master::openFile(QString name, QMap<QString, PdfMaster*> &known_files
     }
     // File exists, create a new PdfMaster object.
     const QString abs_path = fileinfo.absoluteFilePath();
-    QMimeDatabase db;
-    const QMimeType type = db.mimeTypeForFile(abs_path);
+    const QMimeType type = QMimeDatabase().mimeTypeForFile(abs_path);
     if (type.inherits("application/gzip") || type.inherits("text/xml") || type.inherits("application/x-xopp") || type.inherits("application/x-bpr"))
     {
         debug_msg(DebugDrawing, "Loading drawing file:" << name << abs_path << known_files);
@@ -587,8 +586,11 @@ PdfMaster *Master::openFile(QString name, QMap<QString, PdfMaster*> &known_files
             return documents.first();
         return nullptr;
     }
-    if (!type.inherits("application/pdf"))
-        qCritical() << "Invalid file type given:" << type;
+    if (!type.inherits("application/pdf") && !type.inherits("application/x-pdf"))
+    {
+        qCritical() << "Invalid file type given:" << type << abs_path;
+        return nullptr;
+    }
     PdfMaster *pdf = createPdfMaster(abs_path);
 
     known_files[name] = pdf;
