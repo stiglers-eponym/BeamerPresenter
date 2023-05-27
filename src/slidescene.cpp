@@ -1235,7 +1235,7 @@ void SlideScene::createCoverTransition(const SlideTransition &transition, Pixmap
     QPropertyAnimation *bganim = new QPropertyAnimation(pageTransitionItem, "x", groupanim);
     sceneanim->setDuration(1000*transition.duration);
     bganim->setDuration(1000*transition.duration);
-    pageTransitionItem->setZValue(-1e3);
+    pageTransitionItem->setZValue(-1e9);
     QRectF movedrect = sceneRect();
     switch (transition.angle)
     {
@@ -1275,6 +1275,7 @@ void SlideScene::createUncoverTransition(const SlideTransition &transition, Pixm
 {
     QPropertyAnimation *propanim = new QPropertyAnimation();
     propanim->setDuration(1000*transition.duration);
+    pageTransitionItem->setZValue(1e9);
     switch (transition.angle)
     {
     case 90:

@@ -258,7 +258,14 @@ struct SlideTransition {
 
     /// Create time-reverse of slide transition (in place)
     void invert() noexcept
-    {properties ^= Outwards; angle = (angle + 180) % 360;}
+    {
+        properties ^= Outwards;
+        angle = (angle + 180) % 360;
+        if (type == Cover)
+            type = Uncover;
+        else if (type == Uncover)
+            type = Cover;
+    }
 };
 
 
