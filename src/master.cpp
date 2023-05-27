@@ -438,7 +438,7 @@ SlideView *Master::createSlide(QJsonObject &object, PdfMaster *pdf, QWidget *par
     }
     if (is_master)
         writable_preferences()->default_page_part = page_part;
-    pdf->flags() |= page_part == FullPage ? PdfMaster::FullPageUsed : page_part;
+    pdf->flags() |= page_part == FullPage ? PdfMaster::FullPageUsed : static_cast<PdfMaster::Flags>(page_part);
 
     SlideScene *scene {nullptr};
     // Check whether we need a new SlideScene.
