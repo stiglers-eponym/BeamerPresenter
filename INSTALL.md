@@ -144,7 +144,7 @@ cmake \
     -DUSE_TRANSLATIONS=ON \
     -DINSTALL_LICENSE=ON \
     -DQT_VERSION_MAJOR=6 \
-    -DQT_VERSION_MINOR=2 \
+    -DQT_VERSION_MINOR=5 \
     -DCMAKE_INSTALL_PREFIX=/usr \
     -DCMAKE_INSTALL_SYSCONFDIR=/etc
 ```
@@ -158,7 +158,7 @@ The options `-B` and `-S` set the build and source directory, respectively. The 
 | `USE_QTPDF` | OFF | Include Qt PDF engine. Note: Only the current git version of BeamerPresenter is compatible with Qt PDF in Qt ≥6.4. |
 | `USE_EXTERNAL_RENDERER` | OFF | Include option to use an external program for rendering PDF pages to images. |
 | `MUPDF_USE_SYSTEM_LIBS` | ON | MuPDF uses shared system libraries (default in common Linux distributions, disable if you compiled MuPDF from source with standard settings) |
-| `USE_MUJS` | OFF | link to MuJS, set ON in Ubuntu ≥21.10 |
+| `USE_MUJS` | OFF | link to MuJS, set ON in Ubuntu 21.10 |
 | `USE_MUPDF_THIRD` | ON | set OFF when libmupdf-third is not available (for Ubuntu 21.10) |
 | `USE_GUMBO` | ON | set ON when using MuPDF >= 1.18 with shared system libraries |
 | `GIT_VERSION` | ON | Include git commit count in version string |
@@ -166,7 +166,7 @@ The options `-B` and `-S` set the build and source directory, respectively. The 
 | `SUPPRESS_MUPDF_WARNINGS` | OFF | Suppress warnings of MuPDF while loading a document (only Unix-like systems) |
 | `INSTALL_LICENSE` | ON | Copy the license to /usr/share/licenses/beamerpresenter/LICENSE |
 | `QT_VERSION_MAJOR` | 6 | Qt major version, must be set manually! Valid values are "5" and "6". |
-| `QT_VERSION_MINOR` | 2 | only relevant for packaging (dependency version checking) |
+| `QT_VERSION_MINOR` | 5 | only relevant for packaging (dependency version checking) |
 | `CMAKE_INSTALL_PREFIX` | /usr | Install prefix. If not specified this will be /usr/local in Linux |
 | `CMAKE_INSTALL_SYSCONFDIR` | /etc | System config directory. |
 
@@ -180,11 +180,15 @@ Then install the package. For packaging the environment variable `$DESTDIR` may 
 cmake --install build-dir
 ```
 
+
 ## Windows
+In Windows it is recommended to use MinGW-w64. A documentation for building with MSYS2 and MinGW-w64 will follow soon.
+Alternatively, BeamerPresenter can be built using Microsoft Visual C++ (MSVC) as described in the following.
+
 It is possible to compile BeamerPresenter on Windows, but this requires some manual configuration.
 The following options have been tested (but are not regularly tested):
 * Qt 6.5.1 and QtPDF, compiled with MSVC → very limited features
-* Qt 6.5.1 and MuPDF 1.19.1, compiled with MSVC → you need to build MuPDF first
+* Qt 6.5.1 and MuPDF 1.20.3, compiled with MSVC → you need to build MuPDF first
 
 ### Summary
 * Qt is available for MinGW and for Microsoft Visual Studio (MSVC).
@@ -200,7 +204,7 @@ This roughly describes how I have built BeamerPresenter using MSVC.
     * required components are the basic installation, the multimedia module (QtMultimedia) and possibly QtPDF.
     * compatible Qt versions are ≥5.9 for Qt 5 and ≥6.2 for Qt 6 (when using QtPDF: ≥5.10 or ≥6.3)
 2. Only when using MuPDF: Build MuPDF
-    * [download the MuPDF source code](https://www.mupdf.com/releases/index.html). For me version 1.19.1 worked, but for 1.22.1 I got a linker error.
+    * [download the MuPDF source code](https://www.mupdf.com/releases/index.html). Versions 1.20.3 and 1.19.1 worked, but for 1.22.1 and 1.21.1 I got a linker error.
     * build libmupdf with MSVC. The MuPDF source code includes a file `platform/win32/mupdf.sln` which allows you to build libmupdf with MSVC
 3. Build zlib:
     * [download the zlib source code](https://www.zlib.net)

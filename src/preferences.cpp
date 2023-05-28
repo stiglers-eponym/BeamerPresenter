@@ -204,13 +204,16 @@ void Preferences::loadSettings()
     // GENERAL SETTINGS
     {
         // Paths to required files / directories
+        QString fallback_root = QCoreApplication::applicationDirPath();
+        if (fallback_root.contains(UNIX_LIKE))
+            fallback_root.remove(UNIX_LIKE);
         gui_config_file = settings.value("gui config", DEFAULT_GUI_CONFIG_PATH).toString();
         if (!QFileInfo::exists(gui_config_file))
         {
             settings.remove("gui config");
             gui_config_file = DEFAULT_GUI_CONFIG_PATH;
             if (!QFileInfo::exists(gui_config_file))
-                gui_config_file = QCoreApplication::applicationDirPath() + "/config/gui.json";
+                gui_config_file = fallback_root + DEFAULT_GUI_CONFIG_PATH;
         }
         manual_file = settings.value("manual", DOC_PATH "/README.html").toString();
         if (!QFileInfo::exists(manual_file))
@@ -218,7 +221,7 @@ void Preferences::loadSettings()
             settings.remove("manual");
             manual_file = DOC_PATH "/README.html";
             if (!QFileInfo::exists(manual_file))
-                manual_file = QCoreApplication::applicationDirPath() + "/share/doc/README.html";
+                manual_file = fallback_root + DOC_PATH "/README.html";
         }
         icon_path = settings.value("icon path", DEFAULT_ICON_PATH).toString();
         if (!QFileInfo::exists(icon_path))
@@ -226,7 +229,7 @@ void Preferences::loadSettings()
             settings.remove("icon path");
             icon_path = DEFAULT_ICON_PATH;
             if (!QFileInfo::exists(icon_path))
-                icon_path = QCoreApplication::applicationDirPath() + "/share/icons";
+                icon_path = fallback_root + DEFAULT_ICON_PATH;
         }
         const QString icontheme = settings.value("icon theme").toString();
         if (!icontheme.isEmpty())

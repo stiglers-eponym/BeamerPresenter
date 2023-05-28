@@ -4,6 +4,7 @@
 #include <QApplication>
 #include <QSettings>
 #include <QIcon>
+#include <QFileInfo>
 #include <QCommandLineParser>
 #include "src/config.h"
 #include "src/preferences.h"
@@ -51,11 +52,14 @@ int main(int argc, char *argv[])
     QApplication app(argc, argv);
     app.setApplicationName("BeamerPresenter");
 
+    QString fallback_root = QCoreApplication::applicationDirPath();
+        if (fallback_root.contains(UNIX_LIKE))
+            fallback_root.remove(UNIX_LIKE);
     // Load the icon
     {
         QIcon icon(ICON_FILEPATH);
         if (icon.isNull())
-            icon = QIcon(app.applicationDirPath() + "share/icons/beamerpresenter.svg");
+            icon = QIcon(fallback_root + ICON_FILEPATH);
         app.setWindowIcon(icon);
     }
 
@@ -76,12 +80,20 @@ int main(int argc, char *argv[])
 
 #ifdef USE_TRANSLATIONS
     QTranslator translator;
-    for (auto &lang : QLocale().uiLanguages())
-        if (translator.load("beamerpresenter.qm", TRANSLATION_PATH + lang.replace('-', '_') + "/LC_MESSAGES"))
+    {
+        QString translation_path = TRANSLATION_PATH;
+        if (!QFileInfo::exists(translation_path))
+            translation_path = fallback_root + translation_path;
+        for (auto &lang : QLocale().uiLanguages())
         {
-            app.installTranslator(&translator);
-            break;
+            qDebug() << translation_path + lang.replace('-', '_') + "/LC_MESSAGES";
+            if (translator.load("beamerpresenter.qm", translation_path + lang.replace('-', '_') + "/LC_MESSAGES"))
+            {
+                app.installTranslator(&translator);
+                break;
+            }
         }
+    }
 #endif
 
     // Set up command line argument parser.
@@ -145,27 +157,27 @@ int main(int argc, char *argv[])
     {
         // Create the user interface.
         const QString gui_config_file = parser.value("g").isEmpty() ? preferences()->gui_config_file : parser.value("g");
-        const Master::Status status = master()->readGuiConfig(gui_config_file);
-        if (status != Master::Success)
+        Master::Status status = master()->readGuiConfig(gui_config_file);
+        if (status == Master::ReadConfigFailed || status == Master::ParseConfigFailed)
         {
-            // Creating GUI failed. Check status and try to load default GUI config.
-            // status == 4 indicates that only loading PDF files failed. In this case
-            // the GUI config should not be reloaded.
-            if (status != Master::NoPDFLoaded && master()->readGuiConfig(DEFAULT_GUI_CONFIG_PATH) == Master::Success)
+            status = master()->readGuiConfig(DEFAULT_GUI_CONFIG_PATH);
+            if (status != Master::Success)
+                status = master()->readGuiConfig(fallback_root + DEFAULT_GUI_CONFIG_PATH);
+            if (status == Master::Success)
                 preferences()->showErrorMessage(
                             Master::tr("Error while loading GUI config"),
                             Master::tr("Loading GUI config file failed for filename \"")
                             + gui_config_file
-                            + Master::tr("\". Using fallback GUI config file ")
-                            + DEFAULT_GUI_CONFIG_PATH);
-            else
-            {
-                qCritical() << QCoreApplication::translate("main", "Parsing the GUI configuration failed. Probably the GUI config is unavailable or invalid, or no valid PDF files were found.");
-                delete master();
-                delete preferences();
-                // Show help and exit.
-                parser.showHelp(status);
-            }
+                            + Master::tr("\". Using fallback GUI config file.")
+                        );
+        }
+        if (status != Master::Success)
+        {
+            qCritical() << QCoreApplication::translate("main", "Parsing the GUI configuration failed with error code") << status;
+            delete master();
+            delete preferences();
+            // Show help and exit.
+            parser.showHelp(status);
         }
     }
     // Show all windows.
