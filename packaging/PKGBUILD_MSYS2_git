@@ -1,0 +1,86 @@
+# Maintainer: Valentin Bruch <software@vbruch.eu>
+# THIS FILE IS HARDLY TESTED! USE ONLY ON YOUR OWN RISK!
+# Recipe file for building BeamerPresenter in Windows using MSYS2.
+# This file is only tested for the environment UCRT64.
+# Currently this builds the dev branch of the git repository.
+
+: ${_qt_version_major:=6} # 5 or 6
+: ${_use_mupdf:=OFF} # ON or OFF
+: ${_use_poppler:=ON} # ON or OFF
+
+_qt_version_minor="$(pacman -Q "${MINGW_PACKAGE_PREFIX}-qt${_qt_version_major}-base" | sed -E "s/^.*qt${_qt_version_major}-base\\s*${_qt_version_major}\\.([0-9]+)\\..*$/\\1/")"
+_qt_min_version="${_qt_version_major}.${_qt_version_minor}.0"
+_qt_max_version="${_qt_version_major}.$(( ${_qt_version_minor} + 1 )).0"
+
+_renderer=''
+if [ "${_use_mupdf}" == 'ON' ]
+then
+    _renderer="${_renderer}-mupdf"
+fi
+if [ "${_use_poppler}" == 'ON' ]
+then
+    _renderer="${_renderer}-poppler"
+fi
+_basename='beamerpresenter'
+_pkgname="${_basename}${_renderer}-qt${_qt_version_major}-git"
+pkgname="${MINGW_PACKAGE_PREFIX}-${_pkgname}"
+pkgver=0.2.3_897.8d8d4bd
+pkgrel=1
+pkgdesc="Modular multi-screen pdf presenter (mingw-w64)"
+arch=('any')
+mingw_arch=('mingw64' 'ucrt64' 'clang64' 'clangarm64')
+url="https://github.com/stiglers-eponym/BeamerPresenter"
+license=('spdx:GPL-3.0-or-later')
+makedepends=('git' "${MINGW_PACKAGE_PREFIX}-cmake" "${MINGW_PACKAGE_PREFIX}-ninja" "${MINGW_PACKAGE_PREFIX}-qt${_qt_version_major}-tools")
+depends=("${MINGW_PACKAGE_PREFIX}-qt${_qt_version_major}-multimedia>=${_qt_min_version}" "${MINGW_PACKAGE_PREFIX}-qt${_qt_version_major}-multimedia<${_qt_max_version}" "${MINGW_PACKAGE_PREFIX}-qt${_qt_version_major}-svg>=${_qt_min_version}" "${MINGW_PACKAGE_PREFIX}-qt${_qt_version_major}-svg<${_qt_max_version}")
+optdepends=("${MINGW_PACKAGE_PREFIX}-ffmpeg: show videos (might crash if not installed!)")
+provides=("beamerpresenter=${pkgver}")
+conflicts=('beamerpresenter')
+backup=("etc/xdg/beamerpresenter/beamerpresenter.conf" "etc/xdg/beamerpresenter/gui.json")
+# TODO: point to main branch once this is merged
+source=("git+${url}.git#branch=dev")
+sha256sums=('SKIP')
+
+if [ "${_use_mupdf}" == 'ON' ]
+then
+    makedepends+=("${MINGW_PACKAGE_PREFIX}-mupdf-libmupdf")
+    depends+=("${MINGW_PACKAGE_PREFIX}-jbig2dec" "${MINGW_PACKAGE_PREFIX}-openjpeg2" "${MINGW_PACKAGE_PREFIX}-gumbo-parser" )
+    license=('spdx:GPL-3.0-or-later AND AGPL-3.0')
+fi
+
+if [ "${_use_poppler}" == 'ON' ]
+then
+    depends+=("${MINGW_PACKAGE_PREFIX}-poppler-qt${_qt_version_major}")
+fi
+
+pkgver() {
+    printf "0.2.3_%s.%s" \
+        "$(git -C "${srcdir}/BeamerPresenter" rev-list --count HEAD)" \
+        "$(git -C "${srcdir}/BeamerPresenter" rev-parse --short HEAD)"
+}
+
+build() {
+    mkdir -p "${srcdir}/build-${MSYSTEM}"
+    MSYS2_ARG_CONV_EXCL='-DCMAKE_INSTALL_PREFIX=;-DCMAKE_INSTALL_SYSCONFDIR=;' \
+      "${MINGW_PREFIX}/bin/cmake.exe" \
+        -B "${srcdir}/build-${MSYSTEM}" \
+        -S "${srcdir}/BeamerPresenter" \
+        -G Ninja \
+        -DCMAKE_BUILD_TYPE='Release' \
+        -DGIT_VERSION=ON \
+        -DUSE_POPPLER="${_use_poppler}" \
+        -DUSE_MUPDF="${_use_mupdf}" \
+        -DUSE_QTPDF=OFF \
+        -DUSE_EXTERNAL_RENDERER=OFF \
+        -DUSE_TRANSLATIONS=ON \
+        -DINSTALL_LICENSE=ON \
+        -DQT_VERSION_MAJOR="${_qt_version_major}" \
+        -DQT_VERSION_MINOR="${_qt_version_minor}" \
+        -DCMAKE_INSTALL_PREFIX="${MINGW_PREFIX}" \
+        -DCMAKE_INSTALL_SYSCONFDIR="/etc"
+    "${MINGW_PREFIX}/bin/cmake.exe" --build "${srcdir}/build-${MSYSTEM}"
+}
+
+package() {
+    DESTDIR="${pkgdir}" "${MINGW_PREFIX}/bin/cmake.exe" --install "${srcdir}/build-${MSYSTEM}"
+}

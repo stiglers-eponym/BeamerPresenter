@@ -182,22 +182,28 @@ cmake --install build-dir
 
 
 ## Windows
-In Windows it is recommended to use MinGW-w64. A documentation for building with MSYS2 and MinGW-w64 will follow soon.
-Alternatively, BeamerPresenter can be built using Microsoft Visual C++ (MSVC) as described in the following.
+In Windows it is recommended to use MinGW-w64.
+Alternatively, BeamerPresenter can be built using Microsoft Visual C++ (MSVC).
 
+### MinGW-w64 + MSYS2
+MinGW-w64 can be obtained in different ways. I have only tested MSYS2 using the UCRT64 environment.
+**This procedure is hardly tested. Use at your own risk!**
+
+1. Install [MSYS2](https://www.msys2.org). After the installation, a terminal for the UCRT64 environment should launch. All commands mentioned in the following should be entered in this terminal.
+2. Download the recipe file [packaging/PKGBUILD\_MSYS2\_git](https://github.com/stiglers-eponym/BeamerPresenter/blob/dev/packaging/PKGBUILD_MSYS2_git). This file contains the instructions to build BeamerPresenter. Place this file in the build directory (e.g. an empty directory) and enter this directory in the terminal.
+3. Install the basic build tools and Qt base (`pacman -S base-devel mingw-w64-ucrt-x86_64-{gcc,qt6-multimedia}`).
+4. Build using the command `MINGW_ARCH=ucrt64 makepkg-mingw -sp PKGBUILD_MSYS2_git`. By default, this uses Poppler as PDF engine. You can use MuPDF instead with the command `MINGW_ARCH=ucrt64 _use_poppler=OFF _use_mupdf=ON makepkg-mingw -sip PKGBUILD_MSYS2_git`. This should automatically install other dependencies and in the end install the package.
+5. Recommended: install ffmpeg (optional dependency), since otherwise videos in presentations might lead to a crash of BeamerPresenter: `pacman -S mingw-w64-ucrt-x86_64-ffmpeg`
+6. Test the installation: run `beamerpresenter` in the terminal.
+
+
+### MSVC
 It is possible to compile BeamerPresenter on Windows, but this requires some manual configuration.
 The following options have been tested (but are not regularly tested):
 * Qt 6.5.1 and QtPDF, compiled with MSVC → very limited features
 * Qt 6.5.1 and MuPDF 1.20.3, compiled with MSVC → you need to build MuPDF first
 
-### Summary
-* Qt is available for MinGW and for Microsoft Visual Studio (MSVC).
-* QtPDF appears to be missing in the MinGW version of Qt
-* MuPDF comes with a configuration for MSVC.
-* Poppler is available in cygwin. It should be possible to build BeamerPresenter with cygwin, MinGW and Poppler. I gave up on building Poppler in Windows using MinGW.
-* Another option is the Windows subsystem for Linux (WSL).
-
-### Building
+#### Building
 This roughly describes how I have built BeamerPresenter using MSVC.
 1. Install Qt
     * [download](https://www.qt.io/download-qt-installer) and install Qt
@@ -278,7 +284,7 @@ copy ..\..\share\icons share
 
 The generated directory `deploy` now contains the full program. It can probably be distributed to other systems which have the same runtime library installed.
 
-### Configuration
+#### Configuration
 The configuration in Windows does not work like on UNIX/LINUX systems. The configuration is stored in the Windows registry (in something like `HKEY_CURRENT_USER/software/beamerpresenter`).
 Once BeamerPresenter is running, you can set most of the settings in the settings widget in BeamerPresenter. But when just trying to run the executable, this might result in an error because the GUI configuration file path is invalid. In this case you should run BeamerPresenter on the command line:
 ```sh
