@@ -181,24 +181,32 @@ cmake --install build-dir
 ```
 
 ## Windows
-It is possible to compile BeamerPresenter with MuPDF on Windows, but it requires a manual configuration.
-Compiling only with Qt PDF (without Poppler and MuPDF) is probably simpler, but results in a very limited set of features.
+It is possible to compile BeamerPresenter on Windows, but this requires some manual configuration.
+The following options have been tested (but are not regularly tested):
+* Qt 6.5.1 and QtPDF, compiled with MSVC → very limited features
+* Qt 6.5.1 and MuPDF 1.19.1, compiled with MSVC → you need to build MuPDF first
 
 ### Summary
-* Qt is available for MinGW and for MS Visual Studio.
-* MuPDF provides a project file that can be compiled with MS Visual Studio.
-* Poppler is available in cygwin. It is possible to build BeamerPresenter with cygwin, MinGW and Poppler. It is probably also possible to build Poppler in Windows, but I gave up at some point.
-* Another option is the Windows subsystem for Linux.
+* Qt is available for MinGW and for Microsoft Visual Studio (MSVC).
+* QtPDF appears to be missing in the MinGW version of Qt
+* MuPDF comes with a configuration for MSVC.
+* Poppler is available in cygwin. It should be possible to build BeamerPresenter with cygwin, MinGW and Poppler. I gave up on building Poppler in Windows using MinGW.
+* Another option is the Windows subsystem for Linux (WSL).
 
 ### Building
-* [download](https://www.qt.io/download-qt-installer) and install Qt
-    * required components are the basic installation and the multimedia module (QtMultimedia)
-    * compatible Qt versions are >=5.9 for Qt 5 and >=6.2 for Qt 6
-* [download the MuPDF source code](https://www.mupdf.com/releases/index.html)
-* the MuPDF source code includes a file `platform/win32/mupdf.vcxproj` which can be built with MS Visual Studio
-* alternatively, one can try to build MuPDF with MinGW, but I gave up on that.
-* the library paths for MuPDF and zlib need to be configured manually in CMake:
-
+This roughly describes how I have built BeamerPresenter using MSVC.
+1. Install Qt
+    * [download](https://www.qt.io/download-qt-installer) and install Qt
+    * required components are the basic installation, the multimedia module (QtMultimedia) and possibly QtPDF.
+    * compatible Qt versions are ≥5.9 for Qt 5 and ≥6.2 for Qt 6 (when using QtPDF: ≥5.10 or ≥6.3)
+2. Only when using MuPDF: Build MuPDF
+    * [download the MuPDF source code](https://www.mupdf.com/releases/index.html). For me version 1.19.1 worked, but for 1.22.1 I got a linker error.
+    * build libmupdf with MSVC. The MuPDF source code includes a file `platform/win32/mupdf.sln` which allows you to build libmupdf with MSVC
+3. Build zlib:
+    * [download the zlib source code](https://www.zlib.net)
+    * build zlibstat using MSVC: The sources include a file `contrib/vstudio/vc14/zlibvc.sln` which can be opened with MSVC and allows you to build zlibstat.
+    * I use static linking (zlibstat.lib instead of zlib.lib) to simplify deployment.
+4. Adapt the library files and include paths for zlib and MuPDF (if enabled) in CMake:
 Configure the project with CMake (here an example using MuPDF):
 ```sh
 cmake \
@@ -212,46 +220,68 @@ cmake \
     -DGIT_VERSION=OFF \
     -DGENERATE_MANPAGES=OFF \
     -DGUI_CONFIG_PATH="config" \
-    -DUSE_TRANSLATIONS=ON \
+    -DUSE_TRANSLATIONS=OFF \
     -DQT_VERSION_MAJOR=6 \
     -DMUPDF_USE_SYSTEM_LIBS=OFF \
-    -DMUPDF_INCLUDE_DIR="path/to/mupdf/include" \
-    -DMUPDF_LIB_PATH="path/to/libmupdf.lib" \
-    -DMUPDF_THIRD_LIB_PATH="path/to/libthirdparty.lib" \
-    -DZLIB_INCLUDE_DIR="path/to/zlib/include" \
-    -DZLIB_LIBRARY="path/to/zlib.lib"
+    -DMUPDF_INCLUDE_DIR="full/path/to/mupdf-source/include" \
+    -DMUPDF_LIB_PATH="full/path/to/mupdf-source/platform/win32/x64/Release/libmupdf.lib" \
+    -DMUPDF_THIRD_LIB_PATH="full/path/to/mupdf-source/platform/win32/x64/Release/libthirdparty.lib" \
+    -DZLIB_INCLUDE_DIR="full/path/to/zlib" \
+    -DZLIB_LIBRARY="full/path/to/zlib/contrib/vstudio/vc14/x64/ZlibStatRelease/zlibstat.lib"
 ```
 The new options (compared to the table above) are:
 
 | Option | Value | Explanation (bold means you must provide a value) |
 |--------|-------|---------------------------------------------------|
-| `GENERATE_MANPAGES` | OFF | disable to exclude man pages from installation |
+| `GENERATE_MANPAGES` | OFF | disable to exclude man pages from installation (generating man pages requires gzip) |
 | `GUI_CONFIG_PATH` | "config" | default path for configuration files relative to program data directory |
 | `MUPDF_USE_SYSTEM_LIBS` | OFF | Disable when using MuPDF on Windows (except if you know what you are doing) |
-| `MUPDF_INCLUDE_DIR` | "" | **path to MuPDF include directory** |
-| `MUPDF_LIB_PATH` | "" | **path to libmupdf.lib** |
-| `MUPDF_THIRD_LIB_PATH` | "" | **path to libthirdparty.lib** |
-| `ZLIB_INCLUDE_DIR` | "" | **path to zlib include directory** |
-| `ZLIB_LIBRARY` | "" | **path to zlib.lib** |
+| `MUPDF_INCLUDE_DIR` | "" | **full path to MuPDF include directory** |
+| `MUPDF_LIB_PATH` | "" | **full path to libmupdf.lib** |
+| `MUPDF_THIRD_LIB_PATH` | "" | **full path to libthirdparty.lib** |
+| `ZLIB_INCLUDE_DIR` | "" | **full path to zlib source directory** |
+| `ZLIB_LIBRARY` | "" | **full path to zlibstat.lib** |
 
 Now build the project:
 ```sh
 cmake --build build-dir
 ```
 If this was successful, you can find the executable in "build-dir\src\beamerpresenter.exe".
-But note that this executable depends on shared libraries (Qt and (maybe) zlib).
+But this executable depends on shared libraries (Qt and compiler-dependent).
+When using MSVC, the following example might guide you to deploying the app.
 
-### Installing
-not yet tested
+Assume that the current directory is the root of the source code and build-dir contains the build.
+We want to bundle all files required for an installation in build-dir\deploy.
+```bat
+cd build-dir
+mkdir deploy
+copy build-dir\src\beamerpresenter.exe deploy
+cd deploy
+REM Set up the build environment for Qt
+C:\Qt\6.5.1\msvc2019_64\bin\qtenv2.bat
+REM include MSVC variables in build environment
+"C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Auxiliary\Build\vcvarsall.bat" amd64
+REM use Qt script to collect all requried shared libraries
+C:\Qt\6.5.1\msvc2019_64\bin\windeploy6.exe beamerpresenter.exe
+REM copy required files to deploy
+mkdir share\doc
+copy ..\share\doc\README.html share\doc
+mkdir config
+copy ..\config\beamerpresenter.conf config
+copy ..\..\config\gui.json config
+copy ..\..\share\icons share
+```
+
+The generated directory `deploy` now contains the full program. It can probably be distributed to other systems which have the same runtime library installed.
 
 ### Configuration
-The configuration in Windows does not work like on \*NIX systems. The configuration is stored in the Windows registry (in something like `HKEY_CURRENT_USER/software/beamerpresenter`).
-Once BeamerPresenter is running, you can set most of the settings in the settings widget in BeamerPresenter. But when just trying to run the executable, this will probably result in an error because the GUI configuration file path is invalid. You should therefore run BeamerPresenter on the command line:
+The configuration in Windows does not work like on UNIX/LINUX systems. The configuration is stored in the Windows registry (in something like `HKEY_CURRENT_USER/software/beamerpresenter`).
+Once BeamerPresenter is running, you can set most of the settings in the settings widget in BeamerPresenter. But when just trying to run the executable, this might result in an error because the GUI configuration file path is invalid. In this case you should run BeamerPresenter on the command line:
 ```sh
 path\to\beamerpresenter.exe -g "path\to\gui.json" "path\to\document.pdf"
 ```
 If no path to a pdf document is provided, a file dialog should appear.
 Then you should use the settings widget to change the GUI configuration path and any other option you'd like to change (e.g. the memory size).
 
-Probably the icons will then still not be available. To enable the icons you need to manually set "icon path" in the registry for BeamerPresenter to something like "C:\path\to\BeamerPresenter\share\icons".
+If icons for tools and devices are missing, you can try to manually set the "icon path" in the registry for BeamerPresenter to something like "C:\path\to\BeamerPresenter\share\icons".
 Also the icon theme can be adjusted in the registry. You can try to set a registry entry for "icon theme" to the theme name and hope that Qt finds the theme. Alternatively, you can provide the full path to the icon theme by setting "icon theme path" in the registry.

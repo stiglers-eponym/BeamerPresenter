@@ -209,18 +209,24 @@ void Preferences::loadSettings()
         {
             settings.remove("gui config");
             gui_config_file = DEFAULT_GUI_CONFIG_PATH;
+            if (!QFileInfo::exists(gui_config_file))
+                gui_config_file = QCoreApplication::applicationDirPath() + "/config/gui.json";
         }
         manual_file = settings.value("manual", DOC_PATH "/README.html").toString();
         if (!QFileInfo::exists(manual_file))
         {
             settings.remove("manual");
             manual_file = DOC_PATH "/README.html";
+            if (!QFileInfo::exists(manual_file))
+                manual_file = QCoreApplication::applicationDirPath() + "/share/doc/README.html";
         }
         icon_path = settings.value("icon path", DEFAULT_ICON_PATH).toString();
         if (!QFileInfo::exists(icon_path))
         {
             settings.remove("icon path");
             icon_path = DEFAULT_ICON_PATH;
+            if (!QFileInfo::exists(icon_path))
+                icon_path = QCoreApplication::applicationDirPath() + "/share/icons";
         }
         const QString icontheme = settings.value("icon theme").toString();
         if (!icontheme.isEmpty())

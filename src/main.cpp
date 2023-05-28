@@ -50,7 +50,14 @@ int main(int argc, char *argv[])
     // Set up the application.
     QApplication app(argc, argv);
     app.setApplicationName("BeamerPresenter");
-    app.setWindowIcon(QIcon(ICON_FILEPATH));
+
+    // Load the icon
+    {
+        QIcon icon(ICON_FILEPATH);
+        if (icon.isNull())
+            icon = QIcon(app.applicationDirPath() + "share/icons/beamerpresenter.svg");
+        app.setWindowIcon(icon);
+    }
 
     // Set app version. The string APP_VERSION is defined in src/config.h.
     app.setApplicationVersion(

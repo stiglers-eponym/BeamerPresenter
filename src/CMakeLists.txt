@@ -84,11 +84,9 @@ add_executable(beamerpresenter
         ${EXTRA_INCLUDE}
     )
 
-if (DEFINED "${ZLIB_LIBRARY}")
-    list(APPEND EXTRA_LIBS "${ZLIB_LIBRARY}")
-else()
-    list(APPEND EXTRA_LIBS "z")
-endif()
+
+set(ZLIB_LIBRARY "z" CACHE STRING "zlib library file")
+list(APPEND EXTRA_LIBS "${ZLIB_LIBRARY}")
 if (USE_QTPDF)
     # TODO: This is probably not required in 5.14 > Qt >= 5.10
     list(APPEND EXTRA_LIBS "Qt${QT_VERSION_MAJOR}::Pdf")
