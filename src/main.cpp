@@ -6,6 +6,7 @@
 #include <QIcon>
 #include <QFileInfo>
 #include <QCommandLineParser>
+#include <QtDebug>
 #include "src/config.h"
 #include "src/preferences.h"
 #include "src/master.h"
@@ -43,7 +44,11 @@ int main(int argc, char *argv[])
 {
     // Set format for debugging output, warnings etc.
     // To overwrite this you can set the environment variable QT_MESSAGE_PATTERN.
-    qSetMessagePattern("%{time process} %{if-debug}D%{endif}%{if-info}INFO%{endif}%{if-warning}WARNING%{endif}%{if-critical}CRITICAL%{endif}%{if-fatal}FATAL%{endif}%{if-category} %{category}%{endif} %{file}:%{line} - %{message}%{if-fatal} from %{backtrace [depth=3]}%{endif}");
+#ifdef QT_DEBUG
+    qSetMessagePattern("%{time process} %{if-debug}D%{endif}%{if-info}INFO%{endif}%{if-warning}WARNING%{endif}%{if-critical}CRITICAL%{endif}%{if-fatal}FATAL%{endif}%{if-category} %{category}%{endif} %{file}:%{line}:%{function} - %{message}%{if-fatal} from %{backtrace [depth=3]}%{endif}");
+#else
+    qSetMessagePattern("%{if-info}INFO%{endif}%{if-warning}WARNING%{endif}%{if-critical}CRITICAL%{endif}%{if-fatal}FATAL%{endif}%{if-category} %{category}%{endif} in %{function} - %{message}");
+#endif
     // Register meta types (required for connections).
     qRegisterMetaType<const PngPixmap*>("const PngPixmap*");
     qRegisterMetaType<Tool*>("Tool*");
@@ -55,13 +60,9 @@ int main(int argc, char *argv[])
     QString fallback_root = QCoreApplication::applicationDirPath();
         if (fallback_root.contains(UNIX_LIKE))
             fallback_root.remove(UNIX_LIKE);
+
     // Load the icon
-    {
-        QIcon icon(ICON_FILEPATH);
-        if (icon.isNull())
-            icon = QIcon(fallback_root + ICON_FILEPATH);
-        app.setWindowIcon(icon);
-    }
+    app.setWindowIcon(QIcon(QFileInfo::exists(ICON_FILEPATH) ? ICON_FILEPATH : fallback_root + ICON_FILEPATH));
 
     // Set app version. The string APP_VERSION is defined in src/config.h.
     app.setApplicationVersion(
@@ -85,14 +86,11 @@ int main(int argc, char *argv[])
         if (!QFileInfo::exists(translation_path))
             translation_path = fallback_root + translation_path;
         for (auto &lang : QLocale().uiLanguages())
-        {
-            qDebug() << translation_path + lang.replace('-', '_') + "/LC_MESSAGES";
             if (translator.load("beamerpresenter.qm", translation_path + lang.replace('-', '_') + "/LC_MESSAGES"))
             {
                 app.installTranslator(&translator);
                 break;
             }
-        }
     }
 #endif
 
@@ -137,6 +135,7 @@ int main(int argc, char *argv[])
     // debugging options and messages are not translated.
     parser.addOption({"debug", "debug flags, comma-separated", "flags"});
 #endif
+    parser.addOption({"test", QCoreApplication::translate("main", "only test the installation, don't start the app")});
     parser.process(app);
 
     // Initialize global preferences object.
@@ -154,15 +153,19 @@ int main(int argc, char *argv[])
     writable_preferences()->loadSettings();
     writable_preferences()->loadFromParser(parser);
 
+    QString gui_config_file = parser.value("g").isEmpty() ? preferences()->gui_config_file : parser.value("g");
     {
         // Create the user interface.
-        const QString gui_config_file = parser.value("g").isEmpty() ? preferences()->gui_config_file : parser.value("g");
         Master::Status status = master()->readGuiConfig(gui_config_file);
         if (status == Master::ReadConfigFailed || status == Master::ParseConfigFailed)
         {
-            status = master()->readGuiConfig(DEFAULT_GUI_CONFIG_PATH);
+            gui_config_file = DEFAULT_GUI_CONFIG_PATH;
+            status = master()->readGuiConfig(gui_config_file);
             if (status != Master::Success)
-                status = master()->readGuiConfig(fallback_root + DEFAULT_GUI_CONFIG_PATH);
+            {
+                gui_config_file = fallback_root + gui_config_file;
+                status = master()->readGuiConfig(gui_config_file);
+            }
             if (status == Master::Success)
                 preferences()->showErrorMessage(
                             Master::tr("Error while loading GUI config"),
@@ -177,7 +180,7 @@ int main(int argc, char *argv[])
             delete master();
             delete preferences();
             // Show help and exit.
-            parser.showHelp(status);
+            parser.showHelp(static_cast<int>(status));
         }
     }
     // Show all windows.
@@ -188,7 +191,15 @@ int main(int argc, char *argv[])
     master()->distributeMemory();
     QObject::connect(preferences(), &Preferences::distributeMemory, master(), &Master::distributeMemory);
     // Run the program.
-    const int status = app.exec();
+    int status = 0;
+    if (parser.isSet("test"))
+    {
+        qInfo() << "Test results:";
+        qInfo() << "GUI config file was:" << gui_config_file;
+        qInfo() << "PDF file alias:" << preferences()->file_alias;
+    }
+    else
+        status = app.exec();
     // Clean up. preferences() must be deleted after everything else.
     // Deleting master may take some time since this requires the interruption
     // and deletion of multiple threads.

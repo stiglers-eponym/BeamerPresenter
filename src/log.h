@@ -5,7 +5,7 @@
 #define LOG_H
 
 #include "src/config.h"
-#include <QDebug>
+#include <QtDebug>
 
 // Define macros for debugging.
 

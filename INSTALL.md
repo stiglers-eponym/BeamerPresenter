@@ -186,12 +186,12 @@ In Windows it is recommended to use MinGW-w64.
 Alternatively, BeamerPresenter can be built using Microsoft Visual C++ (MSVC).
 
 ### MinGW-w64 + MSYS2
-MinGW-w64 can be obtained in different ways. I have only tested MSYS2 using the UCRT64 environment.
+MinGW-w64 can be obtained in different ways. I have only tested MSYS2 using the UCRT64 or CLANG64 environment.
 **This procedure is hardly tested. Use at your own risk!**
 
 1. Install [MSYS2](https://www.msys2.org). After the installation, a terminal for the UCRT64 environment should launch. All commands mentioned in the following should be entered in this terminal.
 2. Download the recipe file [packaging/PKGBUILD\_MSYS2\_git](https://github.com/stiglers-eponym/BeamerPresenter/blob/dev/packaging/PKGBUILD_MSYS2_git). This file contains the instructions to build BeamerPresenter. Place this file in the build directory (e.g. an empty directory) and enter this directory in the terminal.
-3. Install the basic build tools and Qt base (`pacman -S base-devel mingw-w64-ucrt-x86_64-{gcc,qt6-multimedia}`).
+3. Install the basic build tools (`pacman -S base-devel mingw-w64-ucrt-x86_64-gcc`).
 4. Build using the command `MINGW_ARCH=ucrt64 makepkg-mingw -sp PKGBUILD_MSYS2_git`. By default, this uses Poppler as PDF engine. You can use MuPDF instead with the command `MINGW_ARCH=ucrt64 _use_poppler=OFF _use_mupdf=ON makepkg-mingw -sip PKGBUILD_MSYS2_git`. This should automatically install other dependencies and in the end install the package.
 5. Recommended: install ffmpeg (optional dependency), since otherwise videos in presentations might lead to a crash of BeamerPresenter: `pacman -S mingw-w64-ucrt-x86_64-ffmpeg`
 6. Test the installation: run `beamerpresenter` in the terminal.

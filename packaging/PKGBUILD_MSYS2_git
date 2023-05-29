@@ -8,10 +8,6 @@
 : ${_use_mupdf:=OFF} # ON or OFF
 : ${_use_poppler:=ON} # ON or OFF
 
-_qt_version_minor="$(pacman -Q "${MINGW_PACKAGE_PREFIX}-qt${_qt_version_major}-base" | sed -E "s/^.*qt${_qt_version_major}-base\\s*${_qt_version_major}\\.([0-9]+)\\..*$/\\1/")"
-_qt_min_version="${_qt_version_major}.${_qt_version_minor}.0"
-_qt_max_version="${_qt_version_major}.$(( ${_qt_version_minor} + 1 )).0"
-
 _renderer=''
 if [ "${_use_mupdf}" == 'ON' ]
 then
@@ -32,7 +28,7 @@ mingw_arch=('mingw64' 'ucrt64' 'clang64' 'clangarm64')
 url="https://github.com/stiglers-eponym/BeamerPresenter"
 license=('spdx:GPL-3.0-or-later')
 makedepends=('git' "${MINGW_PACKAGE_PREFIX}-cmake" "${MINGW_PACKAGE_PREFIX}-ninja" "${MINGW_PACKAGE_PREFIX}-qt${_qt_version_major}-tools")
-depends=("${MINGW_PACKAGE_PREFIX}-qt${_qt_version_major}-multimedia>=${_qt_min_version}" "${MINGW_PACKAGE_PREFIX}-qt${_qt_version_major}-multimedia<${_qt_max_version}" "${MINGW_PACKAGE_PREFIX}-qt${_qt_version_major}-svg>=${_qt_min_version}" "${MINGW_PACKAGE_PREFIX}-qt${_qt_version_major}-svg<${_qt_max_version}")
+depends=("${MINGW_PACKAGE_PREFIX}-qt${_qt_version_major}-multimedia" "${MINGW_PACKAGE_PREFIX}-qt${_qt_version_major}-svg")
 optdepends=("${MINGW_PACKAGE_PREFIX}-ffmpeg: show videos (might crash if not installed!)")
 provides=("beamerpresenter=${pkgver}")
 conflicts=('beamerpresenter')
@@ -75,7 +71,6 @@ build() {
         -DUSE_TRANSLATIONS=ON \
         -DINSTALL_LICENSE=ON \
         -DQT_VERSION_MAJOR="${_qt_version_major}" \
-        -DQT_VERSION_MINOR="${_qt_version_minor}" \
         -DCMAKE_INSTALL_PREFIX="${MINGW_PREFIX}" \
         -DCMAKE_INSTALL_SYSCONFDIR="/etc"
     "${MINGW_PREFIX}/bin/cmake.exe" --build "${srcdir}/build-${MSYSTEM}"

@@ -309,7 +309,7 @@ bool SlideScene::handleEvents(const int device, const QList<QPointF> &pos, const
         handlePointingEvents(static_cast<PointingTool*>(tool), device, pos);
     else if (tool->tool() & Tool::AnySelectionTool)
         handleSelectionEvents(static_cast<SelectionTool*>(tool), device, pos, start_pos);
-    else if (tool->tool() == Tool::TextInputTool && (device & Tool::AnyEvent) == Tool::StopEvent && pos.size() == 1)
+    else if (tool->tool() == Tool::TextInputTool && (device & Tool::AnyEvent) == Tool::StartEvent && pos.size() == 1)
         return handleTextEvents(static_cast<const TextTool*>(tool), device, pos);
     else if ((device & Tool::AnyEvent) == Tool::StopEvent && pos.size() == 1)
         noToolClicked(pos.constFirst(), start_pos);
