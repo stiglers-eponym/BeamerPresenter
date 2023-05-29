@@ -44,7 +44,8 @@ jobs:
 
     - name: '🚧 Build package'
       run: |
-        ln -s packaging/PKGBUILD_MSYS2_git
+        cp packaging/PKGBUILD_MSYS2_git .
+        dos2unix PKGBUILD_MSYS2_git
         makepkg-mingw --noconfirm --noprogressbar -sCLfp PKGBUILD_MSYS2_git
 
     - name: '📤 Upload artifact: package'
