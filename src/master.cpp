@@ -1,6 +1,7 @@
 // SPDX-FileCopyrightText: 2022 Valentin Bruch <software@vbruch.eu>
 // SPDX-License-Identifier: GPL-3.0-or-later OR AGPL-3.0-or-later
 
+#include <zlib.h>
 #include <QtConfig>
 #include <algorithm>
 #include <QTimerEvent>
@@ -18,6 +19,7 @@
 #include <QSizeF>
 #include <QXmlStreamReader>
 #include <QXmlStreamWriter>
+#include <QMimeDatabase>
 
 #include "src/log.h"
 #include "src/master.h"
@@ -46,7 +48,8 @@
 
 Master::Master()
 {
-    connect(preferences(), &Preferences::sendErrorMessage, this, &Master::showErrorMessage);
+    if (preferences())
+        connect(preferences(), &Preferences::sendErrorMessage, this, &Master::showErrorMessage);
 }
 
 Master::~Master()
@@ -81,7 +84,7 @@ Master::Status Master::readGuiConfig(const QString &filename)
         return ReadConfigFailed;
     }
     QJsonParseError error;
-    QJsonDocument doc = QJsonDocument::fromJson(file.readAll(), &error);
+    const QJsonDocument doc = QJsonDocument::fromJson(file.readAll(), &error);
     if (error.error != QJsonParseError::NoError || doc.isNull() || doc.isEmpty() || !doc.isArray())
     {
         qCritical() << tr("GUI config file is empty or parsing failed:") << error.errorString();
@@ -90,7 +93,7 @@ Master::Status Master::readGuiConfig(const QString &filename)
     }
 
     /// Map "presentation", "notes", ... to PdfDocument pointers.
-    /// This is needed to interpret GUI config.
+    /// This is needed to interpret GUI config and avoids asking for files multiple times.
     QMap<QString, PdfMaster*> known_files;
 
     const QJsonArray array = doc.array();
@@ -105,7 +108,7 @@ Master::Status Master::readGuiConfig(const QString &filename)
             qCritical() << tr("Ignoring invalid entry in GUI config.") << *it;
             continue;
         }
-        QJsonObject obj = it->toObject();
+        const QJsonObject obj = it->toObject();
         // Start recursive creation of widgets.
         QWidget *const widget = createWidget(obj, nullptr, known_files);
         if (!widget)
@@ -137,10 +140,23 @@ Master::Status Master::readGuiConfig(const QString &filename)
     connect(scenes.first(), &SlideScene::finishTransition, this, &Master::postNavigation);
     // Focus a scene view by default. This makes keyboard shortcuts available.
     scenes.first()->views().first()->setFocus();
+
+    debug_msg(DebugDrawing, "Initialized documents:" << known_files << preferences()->file_alias);
+    // Load drawings
+    // TODO: avoid loading drawings multiple times
+    QSet<QString> loaded_paths;
+    if (!master_file.isEmpty())
+        loaded_paths.insert(master_file);
+    for (const auto doc : documents)
+        if (!doc->drawingsPath().isEmpty())
+            loaded_paths.insert(doc->drawingsPath());
+    for (const auto &path : loaded_paths)
+        loadBprDrawings(path, true);
+    debug_msg(DebugDrawing, "Loaded drawings:" << known_files << preferences()->file_alias);
     return Success;
 }
 
-QWidget* Master::createWidget(QJsonObject &object, QWidget *parent, QMap<QString, PdfMaster*> &known_files)
+QWidget* Master::createWidget(const QJsonObject &object, QWidget *parent, QMap<QString, PdfMaster*> &known_files)
 {
     QWidget *widget = nullptr;
     const GuiWidget type = string_to_widget_type(object.value("type").toString());
@@ -186,7 +202,7 @@ QWidget* Master::createWidget(QJsonObject &object, QWidget *parent, QMap<QString
     }
     case OverviewType:
     {
-        PdfDocument *document = nullptr;
+        const PdfDocument *document = nullptr;
         const QString file = object.value("file").toString();
         if (!file.isEmpty())
         {
@@ -206,23 +222,35 @@ QWidget* Master::createWidget(QJsonObject &object, QWidget *parent, QMap<QString
         break;
     }
     case TOCType:
-        widget = new TOCwidget(parent);
+    {
+        const PdfDocument *document = nullptr;
+        const QString file = object.value("file").toString();
+        if (!file.isEmpty())
+        {
+            auto pdf = openFile(file, known_files);
+            if (pdf)
+                document = pdf->getDocument();
+        }
+        widget = new TOCwidget(document, parent);
         break;
+    }
     case NotesType:
     {
-        auto nwidget = new NotesWidget(object.value("identifier").toString() == "number", parent);
+        const bool label_by_number = object.value("identifier").toString() == "number";
+        const QString id = object.value("id").toString();
+        auto nwidget = new NotesWidget(label_by_number, id, parent);
         widget = nwidget;
         connect(this, &Master::navigationSignal, nwidget, &NotesWidget::pageChanged, Qt::QueuedConnection);
         connect(this, &Master::writeNotes, nwidget, &NotesWidget::writeNotes, Qt::DirectConnection);
         connect(this, &Master::readNotes, nwidget, &NotesWidget::readNotes, Qt::DirectConnection);
         connect(nwidget, &NotesWidget::saveDrawings, this, &Master::saveDrawings);
-        connect(nwidget, &NotesWidget::loadDrawings, this, &Master::loadDrawings);
+        // TODO: reload initiated from notes widget
+        connect(nwidget, &NotesWidget::loadDrawings, this, [&](const QString name){loadBprDrawings(name, true);});
         connect(nwidget, &NotesWidget::newUnsavedChanges, this, [&](void){documents.first()->flags() |= PdfMaster::UnsavedNotes;});
         nwidget->zoomIn(object.value("zoom").toInt(10));
+        // TODO: maybe find better implementation for this:
         if (object.contains("file"))
             nwidget->loadNotes(object.value("file").toString());
-        else if (!documents.isEmpty())
-            documents.first()->reloadXoppProperties();
         break;
     }
     case ToolSelectorType:
@@ -241,34 +269,29 @@ QWidget* Master::createWidget(QJsonObject &object, QWidget *parent, QMap<QString
     {
         const QBoxLayout::Direction direction = object.value("orientation").toString("horizontal") == "horizontal" ? QBoxLayout::LeftToRight : QBoxLayout::TopToBottom;
         ToolWidget *toolwidget = new ToolWidget(parent, direction);
-        if (object.contains("mouse devices"))
-        {
-            QList<int> devices;
-            int dev;
-            for (const auto &dev_obj : object.value("mouse devices").toArray())
-            {
-                dev = string_to_input_device.value(dev_obj.toString().toStdString());
-                if (dev != 0 && (dev & Tool::AnyNormalDevice) != Tool::AnyNormalDevice)
-                    devices.append(dev);
-            }
-            if (!devices.isEmpty())
-                toolwidget->setMouseDevices(devices);
-        }
-        if (object.contains("tablet devices"))
-        {
-            QList<int> devices;
-            int dev;
-            for (const auto &dev_obj : object.value("tablet devices").toArray())
-            {
-                dev = string_to_input_device.value(dev_obj.toString().toStdString());
-                if (dev != 0 && (dev & Tool::AnyNormalDevice) != Tool::AnyNormalDevice)
-                    devices.append(dev);
-            }
-            if (!devices.isEmpty())
-                toolwidget->setTabletDevices(devices);
-        }
-        toolwidget->initialize();
         widget = toolwidget;
+        int dev;
+        QList<int> devices;
+        auto collect_devices = [&](const QString& name) -> void
+        {
+            if (!object.contains(name))
+                return;
+            devices.clear();
+            const QJsonArray arr = object.value(name).toArray();
+            for (const auto &dev_obj : arr)
+            {
+                dev = string_to_input_device.value(dev_obj.toString().toStdString());
+                if (dev != 0 && (dev & Tool::AnyNormalDevice) != Tool::AnyNormalDevice)
+                    devices.append(dev);
+            }
+        };
+        collect_devices("mouse devices");
+        if (!devices.isEmpty())
+            toolwidget->setMouseDevices(devices);
+        collect_devices("tablet devices");
+        if (!devices.isEmpty())
+            toolwidget->setTabletDevices(devices);
+        toolwidget->initialize();
         break;
     }
     case SettingsType:
@@ -286,30 +309,26 @@ QWidget* Master::createWidget(QJsonObject &object, QWidget *parent, QMap<QString
         break;
     }
     case ClockType:
-    {
-        widget = new ClockWidget(parent, object.value("touch input").toBool(true));
+        widget = new ClockWidget(object.value("touch input").toBool(true), parent);
         // This signal could also be connected directly to Master::sendAction,
         // but maybe the clock should be able to send different actions. Since
         // the clock rarely sends actions, this little overhead is unproblematic.
         connect(static_cast<ClockWidget*>(widget), &ClockWidget::sendAction, this, &Master::handleAction, Qt::QueuedConnection);
         break;
-    }
     case AnalogClockType:
     {
-        AnalogClockWidget *clock_widget = new AnalogClockWidget(parent);
+        widget = new AnalogClockWidget(object, parent);
         // This signal could also be connected directly to Master::sendAction,
         // but maybe the clock should be able to send different actions. Since
         // the clock rarely sends actions, this little overhead is unproblematic.
-        clock_widget->readConfig(object);
-        connect(clock_widget, &AnalogClockWidget::sendAction, this, &Master::handleAction, Qt::QueuedConnection);
-        widget = clock_widget;
+        connect(static_cast<AnalogClockWidget*>(widget), &AnalogClockWidget::sendAction, this, &Master::handleAction, Qt::QueuedConnection);
         break;
     }
     case TimerType:
     {
         TimerWidget *twidget = new TimerWidget(parent);
-        connect(twidget, &TimerWidget::updateStatus, this, &Master::sendActionStatus);
         widget = twidget;
+        connect(twidget, &TimerWidget::updateStatus, this, &Master::sendActionStatus);
         connect(this, &Master::sendAction, twidget, &TimerWidget::handleAction, Qt::QueuedConnection);
         connect(twidget, &TimerWidget::setTimeForPage, this, &Master::setTimeForPage);
         connect(twidget, &TimerWidget::getTimeForPage, this, &Master::getTimeForPage);
@@ -355,38 +374,38 @@ QWidget* Master::createWidget(QJsonObject &object, QWidget *parent, QMap<QString
         qCritical() << tr("Ignoring entry in GUI config with invalid type ") + object.value("type").toString();
         break;
     }
-    if (widget)
+    if (!widget)
     {
-        widget->installEventFilter(this);
-        // Add keyboard shortcut.
-        if (object.contains("keys"))
+        qCritical() << tr("An error occured while trying to create a widget with JSON object") << object;
+        return nullptr;
+    }
+    widget->installEventFilter(this);
+    // Add keyboard shortcut.
+    if (object.contains("keys"))
+    {
+        const QKeySequence seq(object.value("keys").toString());
+        if (seq.isEmpty())
+            qWarning() << "Unknown key sequence in config:" << object.value("keys");
+        else
+            shortcuts[seq] = widget;
+    }
+    // Read base color from config.
+    const QColor bg_color = QColor(object.value("color").toString());
+    if (bg_color.isValid())
+    {
+        if (type == SlideType)
+            static_cast<SlideView*>(widget)->setBackgroundBrush(bg_color);
+        else
         {
-            const QKeySequence seq(object.value("keys").toString());
-            if (seq.isEmpty())
-                qWarning() << "Unknown key sequence in config:" << object.value("keys");
-            else
-                shortcuts[seq] = widget;
-        }
-        // Read base color from config.
-        const QColor bg_color = QColor(object.value("color").toString());
-        if (bg_color.isValid())
-        {
-            if (type == SlideType)
-                static_cast<SlideView*>(widget)->setBackgroundBrush(bg_color);
-            else
-            {
-                QPalette palette = widget->palette();
-                palette.setColor(QPalette::All, QPalette::Base, bg_color);
-                widget->setPalette(palette);
-            }
+            QPalette palette = widget->palette();
+            palette.setColor(QPalette::All, QPalette::Base, bg_color);
+            widget->setPalette(palette);
         }
     }
-    else
-        qCritical() << tr("An error occured while trying to create a widget with JSON object") << object;
     return widget;
 }
 
-SlideView *Master::createSlide(QJsonObject &object, PdfMaster *pdf, QWidget *parent)
+SlideView *Master::createSlide(const QJsonObject &object, PdfMaster *pdf, QWidget *parent)
 {
     if (!pdf)
         return nullptr;
@@ -421,6 +440,7 @@ SlideView *Master::createSlide(QJsonObject &object, PdfMaster *pdf, QWidget *par
     }
     if (is_master)
         writable_preferences()->default_page_part = page_part;
+    pdf->flags() |= page_part == FullPage ? PdfMaster::FullPageUsed : static_cast<PdfMaster::Flags>(page_part);
 
     SlideScene *scene {nullptr};
     // Check whether we need a new SlideScene.
@@ -538,6 +558,55 @@ PdfMaster *Master::openFile(QString name, QMap<QString, PdfMaster*> &known_files
     }
     // File exists, create a new PdfMaster object.
     const QString abs_path = fileinfo.absoluteFilePath();
+    const QMimeType type = QMimeDatabase().mimeTypeForFile(abs_path);
+    if (type.inherits("application/gzip") || type.inherits("text/xml") || type.inherits("application/x-xopp") || type.inherits("application/x-bpr"))
+    {
+        debug_msg(DebugDrawing, "Loading drawing file:" << name << abs_path << known_files);
+        loadBprInit(abs_path);
+        for (const auto doc : documents)
+            known_files[doc->getFilename()] = doc;
+        for (auto it = preferences()->file_alias.cbegin(); it != preferences()->file_alias.cend(); ++it)
+        {
+            const QString abs_alias_path = QFileInfo(*it).absoluteFilePath();
+            for (const auto doc : documents)
+            {
+                debug_msg(DebugDrawing, "Comparing:" << name << abs_alias_path << doc->getFilename() << doc->drawingsPath());
+                if (doc->getFilename() == abs_alias_path || doc->getFilename() == *it || doc->drawingsPath() == *it || doc->drawingsPath() == abs_alias_path)
+                {
+                    known_files[it.key()] = doc;
+                    known_files[*it] = doc;
+                    known_files[abs_alias_path] = doc;
+                    writable_preferences()->file_alias[it.key()] = doc->getFilename();
+                    break;
+                }
+            }
+        }
+        if (known_files.contains(name))
+            return known_files.value(name);
+        debug_msg(DebugDrawing, "Alias not found:" << name << known_files << preferences()->file_alias);
+        if (!documents.empty())
+            return documents.first();
+        return nullptr;
+    }
+    if (!type.inherits("application/pdf") && !type.inherits("application/x-pdf"))
+    {
+        qCritical() << "Invalid file type given:" << type << abs_path;
+        return nullptr;
+    }
+    PdfMaster *pdf = createPdfMaster(abs_path);
+
+    known_files[name] = pdf;
+    known_files[abs_path] = pdf;
+    if (file != name)
+        known_files[file] = pdf;
+    if (pdf)
+        known_files[pdf->getFilename()] = pdf;
+    return pdf;
+}
+
+PdfMaster *Master::createPdfMaster(QString abs_path)
+{
+    debug_msg(DebugDrawing, "Opening new document" << abs_path);
     // First create an empty PdfMaster. Don't do anything with it,
     // it's not initialized yet. Only connect it to signals, some of
     // which may already be required in initialization.
@@ -547,8 +616,6 @@ PdfMaster *Master::openFile(QString name, QMap<QString, PdfMaster*> &known_files
     connect(this, &Master::navigationSignal, pdf, &PdfMaster::distributeNavigationEvents, Qt::QueuedConnection);
     connect(this, &Master::setTimeForPage, pdf, &PdfMaster::setTimeForPage);
     connect(this, &Master::getTimeForPage, pdf, &PdfMaster::getTimeForPage);
-    connect(this, &Master::saveDrawings, pdf, &PdfMaster::saveXopp);
-    connect(this, &Master::loadDrawings, pdf, &PdfMaster::loadXopp);
     connect(pdf, &PdfMaster::writeNotes, this, &Master::writeNotes, Qt::DirectConnection);
     connect(pdf, &PdfMaster::readNotes, this, &Master::readNotes, Qt::DirectConnection);
     connect(pdf, &PdfMaster::setTotalTime, this, &Master::setTotalTime);
@@ -556,15 +623,11 @@ PdfMaster *Master::openFile(QString name, QMap<QString, PdfMaster*> &known_files
 
     // Initialize document, try to laod PDF
     // TODO: should this be done at this point?
-    pdf->initialize(abs_path);
+    pdf->loadDocument(abs_path);
     if (pdf->getDocument() == nullptr)
     {
         delete pdf;
         qCritical() << tr("Failed to load PDF document. This will result in errors!");
-        known_files[name] = nullptr;
-        known_files[abs_path] = nullptr;
-        if (file != name)
-            known_files[file] = nullptr;
         return nullptr;
     }
 
@@ -581,12 +644,6 @@ PdfMaster *Master::openFile(QString name, QMap<QString, PdfMaster*> &known_files
         writable_preferences()->number_of_pages = pdf->numberOfPages();
 
     documents.append(pdf);
-
-    known_files[name] = pdf;
-    known_files[abs_path] = pdf;
-    if (file != name)
-        known_files[file] = pdf;
-    known_files[pdf->getFilename()] = pdf;
     return pdf;
 }
 
@@ -638,9 +695,11 @@ void Master::fillContainerWidget(ContainerBaseClass *parent, QWidget *parent_wid
             qCritical() << tr("Ignoring invalid entry in GUI config.") << *it;
             continue;
         }
-        QJsonObject obj = it->toObject();
+        const QJsonObject obj = it->toObject();
         // Create child widgets recursively
         QWidget* const newwidget = createWidget(obj, parent_widget, known_files);
+        if (!newwidget)
+            continue;
         QString title = obj.value("title").toString();
         if (title.isEmpty())
             title = obj.value("type").toString();
@@ -692,12 +751,10 @@ bool Master::eventFilter(QObject *obj, QEvent *event)
         }
     }
     // Search actions in preferences for given key sequence.
+    for (Action action : static_cast<const QList<Action>>(preferences()->key_actions.values(key_code)))
     {
-        for (Action action : static_cast<const QList<Action>>(preferences()->key_actions.values(key_code)))
-        {
-            debug_msg(DebugKeyInput, "Global key action:" << action);
-            handleAction(action);
-        }
+        debug_msg(DebugKeyInput, "Global key action:" << action);
+        handleAction(action);
     }
     // Search tools in preferences for given key sequence.
     for (const auto tool : static_cast<const QList<Tool*>>(preferences()->key_tools.values(key_code)))
@@ -750,51 +807,26 @@ void Master::handleAction(const Action action)
         break;
     case SaveDrawings:
     {
-        if (documents.isEmpty())
-            break;
-        PdfMaster *doc = documents.first();
-        if (!doc)
-            break;
-        QString filename = doc->drawingsPath();
+        QString filename = master_file;
         if (filename.isEmpty())
             filename = getSaveFileName();
-        doc->saveXopp(filename);
+        if (!filename.isEmpty())
+            saveBpr(filename);
         break;
     }
     case SaveDrawingsAs:
     {
-        if (documents.isEmpty())
-            break;
         const QString filename = getSaveFileName();
-        if (!filename.isEmpty() && documents.first())
-            documents.first()->saveXopp(filename);
+        if (!filename.isEmpty())
+            saveBpr(filename);
         break;
     }
     case LoadDrawings:
-    {
-        if (documents.isEmpty())
-            break;
-        const QString filename = getOpenFileName();
-        if (!filename.isEmpty())
-        {
-            PdfMaster *doc = documents.first();
-            if (!doc)
-                break;
-            doc->clearAllDrawings();
-            doc->loadXopp(filename);
-            doc->flags() &= ~PdfMaster::UnsavedDrawings;
-        }
-        navigateToPage(preferences()->page);
-        break;
-    }
     case LoadDrawingsNoClear:
     {
-        if (documents.isEmpty())
-            break;
         const QString filename = getOpenFileName();
-        if (filename.isEmpty() || documents.first() == NULL)
-            break;
-        documents.first()->loadXopp(filename);
+        if (!filename.isEmpty())
+            loadBprDrawings(filename, action == LoadDrawings);
         navigateToPage(preferences()->page);
         break;
     }
@@ -840,10 +872,8 @@ void Master::handleAction(const Action action)
     }
 }
 
-bool Master::askCloseConfirmation() const noexcept
+bool Master::askCloseConfirmation() noexcept
 {
-    if (documents.isEmpty())
-        return true;
     PdfMaster *doc = documents.first();
     if (doc && (
             (doc->flags() & (PdfMaster::UnsavedNotes | PdfMaster::UnsavedTimes))
@@ -866,7 +896,7 @@ bool Master::askCloseConfirmation() const noexcept
             QString filename = doc->drawingsPath();
             if (filename.isEmpty())
                 filename = getSaveFileName();
-            doc->saveXopp(filename);
+            saveBpr(filename);
             break;
         }
         default:
@@ -1000,7 +1030,7 @@ void Master::setTool(Tool *tool) const noexcept
 QString Master::getOpenFileName()
 {
     return QFileDialog::getOpenFileName(
-                NULL,
+                nullptr,
                 tr("Load drawings"),
                 "",
                 tr("BeamerPresenter/Xournal++ files (*.bpr *.xoj *.xopp *.xml);;All files (*)")
@@ -1010,7 +1040,7 @@ QString Master::getOpenFileName()
 QString Master::getSaveFileName()
 {
     return QFileDialog::getSaveFileName(
-                NULL,
+                nullptr,
                 tr("Save drawings"),
                 "",
                 tr("BeamerPresenter/Xournal++ files (*.bpr *.xopp);;All files (*)")
@@ -1031,4 +1061,353 @@ void Master::timerEvent(QTimerEvent *event)
         slideDurationTimer_id = -1;
         nextSlide();
     }
+}
+
+bool Master::saveBpr(const QString &filename)
+{
+    // Save elements and attributes specific to BeamerPresenter only if file name does not end with ".xopp".
+    const bool save_bp_specific = !filename.endsWith(".xopp", Qt::CaseInsensitive);
+    QBuffer buffer;
+    buffer.open(QBuffer::WriteOnly);
+    if (!writeXml(buffer, save_bp_specific))
+        return false;
+
+    // Write to gzipped file.
+    gzFile file = gzopen(filename.toUtf8(), "wb");
+    if (file)
+    {
+        gzwrite(file, buffer.data().data(), buffer.data().length());
+        gzclose_w(file);
+    }
+    else
+    {
+        QFile file(filename);
+        if (file.open(QFile::WriteOnly))
+        {
+            qWarning() << "Compressing document failed. Saving without compression.";
+            file.write(buffer.data());
+            file.close();
+        }
+        else
+        {
+            preferences()->showErrorMessage(
+                        tr("Error while saving file"),
+                        tr("Saving document failed for file path: ") + filename);
+            return false;
+        }
+    }
+    master_file = filename;
+    return true;
+}
+
+bool Master::writeXml(QBuffer &buffer, const bool save_bp_specific)
+{
+    QXmlStreamWriter writer(&buffer);
+    writer.setAutoFormatting(true);
+    writer.setAutoFormattingIndent(0);
+    writer.writeStartDocument();
+
+    writer.writeStartElement("xournal");
+    writer.writeAttribute("creator", "beamerpresenter " APP_VERSION);
+
+    // Save elements and attributes specific to BeamerPresenter only if file name does not end with ".xopp".
+    if (save_bp_specific)
+        writer.writeTextElement("title", "BeamerPresenter document, compatible with Xournal++ - see https://github.com/stiglers-eponym/BeamerPresenter");
+    else
+        writer.writeTextElement("title", "Xournal++ document generated by BeamerPresenter in compatibility mode - see https://github.com/stiglers-eponym/BeamerPresenter");
+
+    {
+        // Write preview picture from default PDF.
+        const auto *pdf = documents.first();
+        const QSizeF &pageSize = pdf->getPageSize(0);
+        const qreal resolution = 128 / std::max(pageSize.width(), pageSize.height());
+        const QPixmap pixmap = pdf->exportImage(0, resolution);
+        QByteArray data;
+        QBuffer preview_buffer(&data);
+        if (preview_buffer.open(QBuffer::WriteOnly) && pixmap.save(&preview_buffer, "PNG"))
+        {
+            preview_buffer.close();
+            writer.writeStartElement("preview");
+            writer.writeCharacters(data.toBase64());
+            writer.writeEndElement();
+        }
+    }
+
+    if (save_bp_specific)
+    {
+        // Some attributes specific for beamerpresenter (Xournal++ will ignore that)
+        writer.writeStartElement("beamerpresenter");
+        if (preferences()->msecs_total)
+            writer.writeAttribute("duration", QTime::fromMSecsSinceStartOfDay(preferences()->msecs_total).toString("h:mm:ss"));
+        writer.writeStartElement("documents");
+        //for (auto &&[alias, filename] : preferences()->file_alias.asKeyValueRange())
+        for (auto it = preferences()->file_alias.cbegin(); it != preferences()->file_alias.cend(); ++it)
+        {
+            writer.writeStartElement("file");
+            writer.writeAttribute("alias", it.key());
+            writer.writeAttribute("path", it.value());
+            writer.writeEndElement(); // "file" element
+        }
+        writer.writeEndElement(); // "documents" element
+        emit writeNotes(writer);
+        writer.writeEndElement(); // "beamerpresenter" element
+    }
+
+    for (const auto pdf : documents)
+        pdf->writePages(writer, save_bp_specific);
+
+    writer.writeEndElement(); // "xournal" element
+    writer.writeEndDocument();
+    if (writer.hasError())
+    {
+        preferences()->showErrorMessage(
+                    tr("Error while saving bpr/xopp file"),
+                    tr("Writing document resulted in error! Resulting document is probably corrupt."));
+        return false;
+    }
+    return true;
+}
+
+bool Master::loadBprDrawings(const QString &filename, const bool clear_drawings)
+{
+    QBuffer *buffer = loadZipToBuffer(filename);
+    if (!buffer)
+        return false;
+    const bool status = loadXmlDrawings(buffer, clear_drawings);
+    buffer->close();
+    delete buffer;
+    if (status)
+        master_file = filename;
+    return status;
+}
+
+bool Master::loadBprInit(const QString &filename)
+{
+    QBuffer *buffer = loadZipToBuffer(filename);
+    if (!buffer)
+        return false;
+    const bool status = loadXmlInit(buffer, filename);
+    buffer->close();
+    delete buffer;
+    if (status)
+        master_file = filename;
+    return status;
+}
+
+bool Master::loadXmlInit(QBuffer *buffer, const QString &abs_path)
+{
+    if (!buffer)
+        return false;
+    QXmlStreamReader reader(buffer);
+    while (!reader.atEnd() && (reader.readNext() != QXmlStreamReader::StartElement || reader.name().toUtf8() != "xournal")) {}
+    if (reader.atEnd())
+    {
+        preferences()->showErrorMessage(
+                    tr("Error while loading file"),
+                    tr("Failed to read bpr/xopp document: ") + reader.errorString());
+        reader.clear();
+        return false;
+    }
+
+    PdfMaster *pdf = nullptr;
+    while (reader.readNextStartElement())
+    {
+        if (reader.name().toUtf8() == "beamerpresenter")
+            readXmlHeader(reader, false);
+        else if (reader.name().toUtf8() == "page")
+            pdf = readXmlPageBg(reader, pdf, abs_path);
+        else if (!reader.isEndElement())
+            reader.skipCurrentElement();
+    }
+    if (reader.hasError())
+        preferences()->showErrorMessage(
+                    tr("Error while loading file"),
+                    tr("Failed to read bpr/xopp document: ") + reader.errorString());
+    reader.clear();
+    return true;
+}
+
+bool Master::loadXmlDrawings(QBuffer *buffer, const bool clear_drawings)
+{
+    if (!buffer)
+        return false;
+    debug_msg(DebugDrawing, "Loading drawings from buffer");
+    QXmlStreamReader reader(buffer);
+    while (!reader.atEnd() && (reader.readNext() != QXmlStreamReader::StartElement || reader.name().toUtf8() != "xournal")) {}
+    if (reader.atEnd())
+    {
+        preferences()->showErrorMessage(
+                    tr("Error while loading file"),
+                    tr("Failed to read bpr/xopp document: ") + reader.errorString());
+        reader.clear();
+        return false;
+    }
+
+    PdfMaster *pdf = nullptr;
+    while (reader.readNextStartElement())
+    {
+        if (reader.name().toUtf8() == "beamerpresenter")
+            readXmlHeader(reader, true);
+        else if (reader.name().toUtf8() == "page")
+            pdf = readXmlPage(reader, pdf, clear_drawings);
+        else if (!reader.isEndElement())
+            reader.skipCurrentElement();
+    }
+    if (reader.hasError())
+        preferences()->showErrorMessage(
+                    tr("Error while loading file"),
+                    tr("Failed to read bpr/xopp document: ") + reader.errorString());
+    reader.clear();
+    return true;
+}
+
+PdfMaster *Master::readXmlPageBg(QXmlStreamReader &reader, PdfMaster *pdf, const QString &drawings_path)
+{
+    if (reader.name().toUtf8() != "page")
+        return pdf;
+    while (reader.readNextStartElement())
+    {
+        if (reader.name().toUtf8() == "background")
+        {
+            const QString filename = reader.attributes().value("filename").toString();
+            if (!filename.isEmpty())
+            {
+                const QString abs_filename = QFileInfo(filename).absoluteFilePath();
+                if (!pdf || (abs_filename != pdf->getFilename() && filename != pdf->getFilename()))
+                {
+                    pdf = nullptr;
+                    for (const auto doc : documents)
+                    {
+                        if (doc && (doc->getFilename() == filename || doc->getFilename() == abs_filename))
+                        {
+                            debug_msg(DebugDrawing, "Found existing document" << doc->getFilename());
+                            pdf = doc;
+                            pdf->setDrawingsPath(drawings_path);
+                            break;
+                        }
+                    }
+                    if (!pdf)
+                    {
+                        pdf = createPdfMaster(abs_filename);
+                        pdf->setDrawingsPath(drawings_path);
+                        if (!pdf)
+                            qWarning() << "Document does not exist:" << abs_filename;
+                    }
+                }
+            }
+            if (!reader.isEndElement())
+                reader.skipCurrentElement();
+        }
+        if (!reader.isEndElement())
+            reader.skipCurrentElement();
+    }
+    return pdf;
+}
+
+PdfMaster *Master::readXmlPage(QXmlStreamReader &reader, PdfMaster *pdf, const bool clear_drawings)
+{
+    if (reader.name().toUtf8() != "page")
+        return pdf;
+    int page;
+    bool ok;
+    while (reader.readNextStartElement())
+    {
+        if (reader.name().toUtf8() == "background")
+        {
+            // Read page number
+            const auto attr = reader.attributes();
+            QString string = attr.value("pageno").toString();
+            // For some reason Xournal++ adds "ll" as a sufix to the page number.
+            if (string.contains(regexpr_2nondigits))
+                string.chop(2);
+            page = string.toInt(&ok) - 1;
+            if (!ok)
+                page = -1;
+
+            // Read file name
+            const QString filename = attr.value("filename").toString();
+            if (!filename.isEmpty())
+            {
+                const QString abs_filename = QFileInfo(filename).absoluteFilePath();
+                if (!pdf || (abs_filename != pdf->getFilename() && filename != pdf->getFilename()))
+                {
+                    pdf = nullptr;
+                    for (const auto doc : documents)
+                    {
+                        if (doc && (doc->getFilename() == filename || doc->getFilename() == abs_filename))
+                        {
+                            debug_msg(DebugDrawing, "Found existing document" << doc->getFilename());
+                            pdf = doc;
+                            break;
+                        }
+                    }
+                    if (pdf && clear_drawings)
+                    {
+                        pdf->clearAllDrawings();
+                        pdf->flags() &= ~PdfMaster::UnsavedDrawings;
+                    }
+                }
+            }
+
+            // Read per-slide time
+            if (pdf)
+            {
+                string = attr.value("endtime").toString();
+                if (!string.isEmpty())
+                {
+                    const QTime time = QTime::fromString(string, "h:mm:ss");
+                    if (time.isValid())
+                        pdf->targetTimes()[page] = time.msecsSinceStartOfDay();
+                }
+            }
+
+            if (!reader.isEndElement())
+                reader.skipCurrentElement();
+        }
+        else if (reader.name().toUtf8() == "layer" && pdf && page >= 0)
+            pdf->readDrawingsFromStream(reader, page);
+        if (!reader.isEndElement())
+            reader.skipCurrentElement();
+    }
+    return pdf;
+}
+
+bool Master::readXmlHeader(QXmlStreamReader &reader, const bool read_notes)
+{
+    debug_msg(DebugDrawing, "Reading header");
+    const QTime time = QTime::fromString(reader.attributes().value("duration").toString(), "h:mm:ss");
+    if (time.isValid())
+    {
+        emit setTotalTime(time);
+        // If may happen that this is called before a timer widget is created.
+        // Then setTotalTime(time) will do nothing and preferences()->msecs_total
+        // must be set directly.
+        writable_preferences()->msecs_total = time.msecsSinceStartOfDay();
+    }
+    while (reader.readNextStartElement())
+    {
+        if (read_notes && reader.name().toUtf8() == "speakernotes")
+            // TODO: multiple notes widgets with equal id (content) are not supported
+            emit readNotes(reader);
+        else if (reader.name().toUtf8() == "documents")
+        {
+            while (reader.readNextStartElement())
+            {
+                if (reader.name().toUtf8() == "file")
+                {
+                    const QXmlStreamAttributes &attr = reader.attributes();
+                    const QString alias = attr.value("alias").toString();
+                    const QString path = attr.value("path").toString();
+                    const QString old_alias = preferences()->file_alias.value(alias);
+                    if (!alias.isEmpty() && !path.isEmpty() && (old_alias.isEmpty() || !old_alias.endsWith(".pdf", Qt::CaseInsensitive)))
+                        writable_preferences()->file_alias[alias] = path;
+                }
+                if (!reader.isEndElement())
+                    reader.skipCurrentElement();
+            }
+        }
+        if (!reader.isEndElement())
+            reader.skipCurrentElement();
+    }
+    return true;
 }

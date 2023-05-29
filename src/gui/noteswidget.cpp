@@ -13,8 +13,9 @@
 #include "src/rendering/pdfdocument.h"
 #include "src/preferences.h"
 
-NotesWidget::NotesWidget(const bool per_page, QWidget *parent) :
+NotesWidget::NotesWidget(const bool per_page, const QString &id, QWidget *parent) :
     QTextEdit(parent),
+    _id(id),
     per_page(per_page)
 {
     setReadOnly(false);
@@ -23,6 +24,8 @@ NotesWidget::NotesWidget(const bool per_page, QWidget *parent) :
 
 void NotesWidget::loadNotes(const QString &filename)
 {
+    // TODO: maybe find better implementation for this:
+    // use direct function calls instead of signal-slot mechanism
     QFile file(filename);
     file.open(QFile::ReadOnly | QFile::Text);
     if (file.isReadable())
@@ -63,7 +66,14 @@ void NotesWidget::readNotes(QXmlStreamReader &reader)
         qWarning() << "Tried to read notes, but current element in xml tree is not speakernotes";
         return;
     }
-    const QString identifier = reader.attributes().value("identifier").toString();
+    const auto attr = reader.attributes();
+    const QString new_id = attr.value("id").toString();
+    if (!new_id.isEmpty() && !_id.isEmpty() && new_id != _id)
+    {
+        qInfo() << "Ignoring notes due to id mismatch:" << new_id << _id;
+        return;
+    }
+    const QString identifier = attr.value("identifier").toString();
     if (identifier == "number")
         per_page = true;
     else if (identifier == "label")
@@ -94,7 +104,7 @@ void NotesWidget::save(QString filename)
     if (filename.isEmpty())
     {
         filename = QFileDialog::getSaveFileName(
-                    NULL,
+                    nullptr,
                     tr("Save notes"),
                     "",
                     tr("Note files (*.xml);;BeamerPresenter/Xournal++ files (*.bpr *.xopp);;All files (*)")
@@ -116,7 +126,7 @@ void NotesWidget::save(QString filename)
 void NotesWidget::load()
 {
     const QString filename = QFileDialog::getOpenFileName(
-                NULL,
+                nullptr,
                 tr("Open notes"),
                 "",
                 tr("Note files (*.xml);;BeamerPresenter/Xournal++ files (*.bpr *.xopp *.xoj *.xml);;All files (*)")
@@ -162,6 +172,8 @@ void NotesWidget::writeNotes(QXmlStreamWriter &writer)
         text_per_slide.insert(page_label, toHtml());
     writer.writeStartElement("speakernotes");
     writer.writeAttribute("identifier", per_page ? "number" : "label");
+    if (!_id.isEmpty())
+        writer.writeAttribute("id", _id);
     const QString label = per_page ? "number" : "label";
     for (auto it = text_per_slide.cbegin(); it != text_per_slide.cend(); ++it)
     {

@@ -32,7 +32,7 @@ class ClockWidget : public QLineEdit
 
 public:
     /// Constructor
-    explicit ClockWidget(QWidget *parent = nullptr, bool accept_touch_input = true);
+    explicit ClockWidget(bool accept_touch_input = true, QWidget *parent = nullptr);
 
     /// Trivial destructor
     ~ClockWidget() {}

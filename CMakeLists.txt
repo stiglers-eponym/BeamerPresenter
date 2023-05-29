@@ -14,6 +14,7 @@ set(version_suffix "-beta1")
 set(CMAKE_CONFIGURATION_TYPES Release Debug)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_AUTOMOC ON)
+set(CMAKE_C_STANDARD 17)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
@@ -212,7 +213,7 @@ set(CPACK_STRIP_FILES ON)
 MATH(EXPR QT_VERSION_MINOR_PLUS "${QT_VERSION_MINOR} + 1")
 
 if (CPACK_GENERATOR MATCHES "DEB")
-    # configure debian package (tested in Ubuntu 20.04, Ubuntu 21.10, and partially Ubuntu 22.04)
+    # configure debian package (tested in Ubuntu 20.04 and Ubuntu 22.04)
     #
     # Required packages for building:
     # * cmake

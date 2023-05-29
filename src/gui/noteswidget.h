@@ -33,6 +33,9 @@ class NotesWidget : public QTextEdit
 {
     Q_OBJECT
 
+    /// Identifier distinguishing this from other notes widgets.
+    QString _id;
+
     /// File where everything is loaded / saved.
     QString file_path;
 
@@ -49,7 +52,7 @@ public:
     /// Nearly trivial constructor.
     /// @param per_page if true, save notes per page number instead of per page label
     /// @param parent parent widget, passed to QTextEdit
-    NotesWidget(const bool per_page = false, QWidget *parent = NULL);
+    NotesWidget(const bool per_page = false, const QString &id = "", QWidget *parent = nullptr);
 
     /// Preferred height depends on width (as required for FlexLayout).
     /// @return true
@@ -71,6 +74,10 @@ public:
     /// @see saveDrawings()
     /// @see writeNotes()
     void saveNotes(const QString &filename);
+
+    /// Get id of this notes widget.
+    const QString &id() const noexcept
+    {return _id;}
 
 protected:
     /// Handle keyboard shortcuts (mainly save and load).

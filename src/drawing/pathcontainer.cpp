@@ -728,33 +728,29 @@ void PathContainer::loadDrawings(QXmlStreamReader &reader)
     }
 }
 
-void PathContainer::loadDrawings(QXmlStreamReader &reader, PathContainer *left, PathContainer *right, const qreal page_half)
+void PathContainer::loadDrawings(QXmlStreamReader &reader, PathContainer *center, PathContainer *left, PathContainer *right, const qreal page_half)
 {
-    if (!left || !right)
-        return;
+    QGraphicsItem *item;
     while (reader.readNextStartElement())
     {
+        item = nullptr;
         if (reader.name().toUtf8() == "stroke")
-        {
-            const auto path = loadPath(reader);
-            if (!path)
-                continue;
-            if (path->firstPoint().x() > page_half)
-                right->appendForeground(path);
-            else
-                left->appendForeground(path);
-        }
+            item = loadPath(reader);
         else if (reader.name().toUtf8() == "text")
+            item = loadTextItem(reader);
+        if (item)
         {
-            const auto item = loadTextItem(reader);
-            if (!item)
-                continue;
-            if (item->pos().x() > page_half)
+            if (center)
+                center->appendForeground(item);
+            if (item->sceneBoundingRect().center().x() < page_half)
+            {
+                if (left)
+                    left->appendForeground(item);
+            }
+            else if (right)
                 right->appendForeground(item);
-            else
-                left->appendForeground(item);
         }
-        else
+        if (!reader.isEndElement())
             reader.skipCurrentElement();
     }
 }

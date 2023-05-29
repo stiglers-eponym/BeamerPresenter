@@ -413,10 +413,6 @@
         <translation>Laden der Konfiguration der Benutzeroberfläche ist fehlgeschlagen für den Dateinamen &quot;</translation>
     </message>
     <message>
-        <source>&quot;. Using fallback GUI config file </source>
-        <translation>&quot;. Benutze stattdessen die Standardkonfiguration in </translation>
-    </message>
-    <message>
         <source>Error while loading PDF file</source>
         <translation>Fehler beim Laden der PDF-Datei</translation>
     </message>
@@ -451,6 +447,34 @@
     <message>
         <source>An error occured while trying to create a widget with JSON object</source>
         <translation>Fehler beim Erstellen eines Widgets mit JSON-Objekt</translation>
+    </message>
+    <message>
+        <source>Error while saving file</source>
+        <translation>Fehler beim Speichern der Datei</translation>
+    </message>
+    <message>
+        <source>Saving document failed for file path: </source>
+        <translation>Speichern des Dokuments ist fehlgeschlagen für den Dateipfad: </translation>
+    </message>
+    <message>
+        <source>Error while saving bpr/xopp file</source>
+        <translation>Fehler beim Speichern der bpr/xopp-Datei</translation>
+    </message>
+    <message>
+        <source>Writing document resulted in error! Resulting document is probably corrupt.</source>
+        <translation>Schreiben des Dokuments fehlgeschlagen! Das resultierende Dokument ist vermutlich kaputt.</translation>
+    </message>
+    <message>
+        <source>Error while loading file</source>
+        <translation>Fehler beim Laden der Datei</translation>
+    </message>
+    <message>
+        <source>Failed to read bpr/xopp document: </source>
+        <translation>Fehler beim Lesen des bpr/xopp-Dokuments: </translation>
+    </message>
+    <message>
+        <source>&quot;. Using fallback GUI config file.</source>
+        <translation>&quot;. Benutze stattdessen die Standardkonfiguration.</translation>
     </message>
 </context>
 <context>
@@ -541,52 +565,12 @@
         <translation>Laden des PDF-Dokuments fehlgeschlagen!</translation>
     </message>
     <message>
-        <source>Error while saving file</source>
-        <translation>Fehler beim Speichern der Datei</translation>
-    </message>
-    <message>
-        <source>Writing document resulted in error! Resulting document is probably corrupt.</source>
-        <translation>Schreiben des Dokuments hat einen Fehler erzeigt! Das resultierende Dokument ist vermutlich kaputt.</translation>
-    </message>
-    <message>
-        <source>Saving document failed for file path: </source>
-        <translation>Speichern des Dokuments ist fehlgeschlagen für den Dateipfad: </translation>
-    </message>
-    <message>
-        <source>PDF file could not be opened, select the correct PDF file.</source>
-        <translation>PDF-Datei konnte nicht geöffnet werden, wähle die richtige PDF-Datei aus.</translation>
-    </message>
-    <message>
-        <source>Documents (*.pdf);;All files (*)</source>
-        <translation>Dokumente (*.pdf);;Alle Dateien (*)</translation>
-    </message>
-    <message>
-        <source>No PDF file found</source>
-        <translation>Keine PDF-Datei gefunden</translation>
-    </message>
-    <message>
-        <source>File does not exist: </source>
-        <translation>Datei existiert nicht: </translation>
-    </message>
-    <message>
         <source>Loading drawings failed: file </source>
         <translation>Laden der Anmerkungen fehlgeschlagen: Datei </translation>
     </message>
     <message>
         <source> could not be opened</source>
         <translation> konnte nicht geöffnet werden</translation>
-    </message>
-    <message>
-        <source>File type of document not understood! Trying to load it anyway.</source>
-        <translation>Dateityp des Dokuments nicht verstanden! Versuche trotzdem, es zu laden.</translation>
-    </message>
-    <message>
-        <source>Failed to read bpr/xopp document: </source>
-        <translation>Fehler beim Lesen des bpr/xopp-Dokuments: </translation>
-    </message>
-    <message>
-        <source>Error while saving bpr/xopp file</source>
-        <translation>Fehler beim Speichern der bpr/xopp-Datei</translation>
     </message>
 </context>
 <context>
@@ -1448,8 +1432,12 @@ Konfiguriere Zwischenspeicher (Cache). Folien werden in gerendert und in einen k
         <translation>Name</translation>
     </message>
     <message>
-        <source>Parsing the GUI configuration failed. Probably the GUI config is unavailable or invalid, or no valid PDF files were found.</source>
-        <translation>Einlesen der GUI-Konfigurationsdatei ist fehlgeschlagen. Wahrscheinlich ist die GUI-Konfigurationsdatei nicht verfügbar oder nicht valide, oder es wurden keine PDF-Dateien gefunden.</translation>
+        <source>only test the installation, don&apos;t start the app</source>
+        <translation>teste nur die Installation, starte das Programm nicht wirklich</translation>
+    </message>
+    <message>
+        <source>Parsing the GUI configuration failed with error code</source>
+        <translation>Einlesen der GUI-Konfigurationsdatei ist fehlgeschlagen mit Fehlercode</translation>
     </message>
 </context>
 </TS>

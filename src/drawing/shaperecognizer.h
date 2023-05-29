@@ -8,6 +8,8 @@
 #include <QtGlobal>
 #include <QList>
 #include "src/config.h"
+// When switching to C++20 this can be replaced with std::numbers::pi
+#define PI 3.1415926535897932384626433
 
 class BasicGraphicsPath;
 class AbstractGraphicsPath;
@@ -63,7 +65,7 @@ class ShapeRecognizer
                     loss = (d*d*(s*syy-sy*sy) + ay*ay*(s*sxx-sx*sx) + 2*d*ay*(sx*sy-s*sxy)) / ((d*d+ay*ay) * (s*sxx - sx*sx + s*syy - sy*sy)),
                     weight = calc_weight ? std() : 0.,
                     angle = std::atan2(ay, d);
-            return {sx/s, sy/s, angle > M_PI ? angle - M_PI : angle < -M_PI ? angle + M_PI : angle, weight, loss};
+            return {sx/s, sy/s, angle > PI ? angle - PI : angle < -PI ? angle + PI : angle, weight, loss};
         }
     };
 

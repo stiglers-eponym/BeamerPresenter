@@ -234,8 +234,8 @@ void ShapeRecognizer::findLines() noexcept
         if (!line_segments.isEmpty())
         {
             if (std::abs(line_segments.last().angle - segment_lines[i].angle) < ANGLE_THRESHOLD
-                    || line_segments.last().angle + M_PI - segment_lines[i].angle < ANGLE_THRESHOLD
-                    || segment_lines[i].angle + M_PI - line_segments.last().angle < ANGLE_THRESHOLD)
+                    || line_segments.last().angle + PI - segment_lines[i].angle < ANGLE_THRESHOLD
+                    || segment_lines[i].angle + PI - line_segments.last().angle < ANGLE_THRESHOLD)
             {
                 oldmoments += segment_moments[i];
                 line = oldmoments.line();
@@ -267,33 +267,33 @@ BasicGraphicsPath *ShapeRecognizer::recognizeRect() const
     // Compute angle of the rectangle from the 4 segments.
     const qreal total_weight = line_segments[0].weight + line_segments[1].weight + line_segments[2].weight + line_segments[3].weight;
     qreal angle = line_segments[0].angle*line_segments[0].weight + line_segments[2].angle*line_segments[2].weight;
-    if (std::abs(line_segments[0].angle - line_segments[1].angle - M_PI/2) < M_PI/2)
-        angle += (line_segments[1].angle+M_PI/2)*line_segments[1].weight;
+    if (std::abs(line_segments[0].angle - line_segments[1].angle - PI/2) < PI/2)
+        angle += (line_segments[1].angle+PI/2)*line_segments[1].weight;
     else
-        angle += (line_segments[1].angle-M_PI/2)*line_segments[1].weight;
-    if (std::abs(line_segments[0].angle - line_segments[3].angle - M_PI/2) < M_PI/2)
-        angle += (line_segments[3].angle+M_PI/2)*line_segments[3].weight;
+        angle += (line_segments[1].angle-PI/2)*line_segments[1].weight;
+    if (std::abs(line_segments[0].angle - line_segments[3].angle - PI/2) < PI/2)
+        angle += (line_segments[3].angle+PI/2)*line_segments[3].weight;
     else
-        angle += (line_segments[3].angle-M_PI/2)*line_segments[3].weight;
+        angle += (line_segments[3].angle-PI/2)*line_segments[3].weight;
     angle /= total_weight;
     // Check if the angles agree form a rectangle (within some tolerance).
     const qreal angle_tolerance = total_weight * preferences()->rect_angle_tolerance;
     if (std::abs(line_segments[0].angle - angle)*line_segments[0].weight > angle_tolerance
             || std::abs(line_segments[2].angle - angle)*line_segments[2].weight > angle_tolerance
             || (
-                std::abs(line_segments[1].angle - M_PI/2 - angle)*line_segments[1].weight > angle_tolerance
-                && std::abs(line_segments[1].angle + M_PI/2 - angle)*line_segments[1].weight > angle_tolerance)
+                std::abs(line_segments[1].angle - PI/2 - angle)*line_segments[1].weight > angle_tolerance
+                && std::abs(line_segments[1].angle + PI/2 - angle)*line_segments[1].weight > angle_tolerance)
             || (
-                std::abs(line_segments[3].angle - M_PI/2 - angle)*line_segments[3].weight > angle_tolerance
-                && std::abs(line_segments[3].angle + M_PI/2 - angle)*line_segments[3].weight > angle_tolerance))
+                std::abs(line_segments[3].angle - PI/2 - angle)*line_segments[3].weight > angle_tolerance
+                && std::abs(line_segments[3].angle + PI/2 - angle)*line_segments[3].weight > angle_tolerance))
         return nullptr;
     // Snap angle to horizontal/vertical orientation.
     if (std::abs(angle) < preferences()->snap_angle
-            || M_PI - std::abs(angle) < preferences()->snap_angle)
+            || PI - std::abs(angle) < preferences()->snap_angle)
         angle = 0;
-    else if (std::abs(angle - M_PI/2) < preferences()->snap_angle
-            || std::abs(angle + M_PI/2) < preferences()->snap_angle)
-        angle = M_PI/2;
+    else if (std::abs(angle - PI/2) < preferences()->snap_angle
+            || std::abs(angle + PI/2) < preferences()->snap_angle)
+        angle = PI/2;
     // Compute the positions of the corners of the rectangle.
     const qreal
             ax = std::cos(angle),
@@ -411,7 +411,7 @@ BasicGraphicsPath *ShapeRecognizer::recognizeEllipse() const
     // Construct a path.
     const int segments = (rx + ry) * CURVED_POINT_DENSITY + CURVED_MIN_POINTS;
     const qreal
-            phasestep = 2*M_PI / segments,
+            phasestep = 2*PI / segments,
             margin = path->_tool.width();
     QVector<QPointF> coordinates(segments+1);
     for (int i=0; i<segments; ++i)

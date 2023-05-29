@@ -5,6 +5,7 @@
 #include <QGraphicsItem>
 #include "src/log.h"
 #include "src/drawing/selectiontool.h"
+#define PI 3.1415926535897932384626433
 
 /// Compute length of vector p.
 /// TODO: same function is defined in shape recognizer. Combine somewhere.
@@ -61,7 +62,7 @@ void SelectionTool::startRotation(const QPointF &reference, const QPointF &cente
 {
     changeType(Rotate);
     const QPointF vec = reference - center;
-    properties = rotation_properties{center, 180/M_PI*std::atan2(vec.y(), vec.x())};
+    properties = rotation_properties{center, 180/PI*std::atan2(vec.y(), vec.x())};
 }
 
 void SelectionTool::liveUpdate(const QPointF &pos) noexcept
@@ -111,7 +112,7 @@ void SelectionTool::setLiveRotation(const QPointF &pos)
 {
     const auto &prop = std::get<rotation_properties>(properties);
     const QPointF vec = pos - prop.rotation_center;
-    const qreal angle = 180/M_PI*std::atan2(vec.y(), vec.x()) - prop.start_angle;
+    const qreal angle = 180/PI*std::atan2(vec.y(), vec.x()) - prop.start_angle;
     QTransform rotation;
     rotation.rotate(angle);
     QTransform transform;

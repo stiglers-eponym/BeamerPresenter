@@ -16,7 +16,7 @@
 #include "src/master.h"
 #include "src/log.h"
 
-void TOCwidget::generateTOC(const PdfDocument *document)
+void TOCwidget::generateTOC()
 {
     if (!document)
         document = preferences()->document;
@@ -77,11 +77,6 @@ void TOCwidget::generateTOC(const PdfDocument *document)
     setWidget(base_widget);
     setWidgetResizable(true);
     QScroller::grabGesture(this);
-}
-
-TOCwidget::~TOCwidget()
-{
-    delete first_button;
 }
 
 void TOCwidget::expandTo(const int page)

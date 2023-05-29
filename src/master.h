@@ -9,6 +9,8 @@
 #include <QMap>
 #include <QRectF>
 #include <QKeySequence>
+#include <QBuffer>
+#include <QRegularExpression>
 #include "src/config.h"
 #include "src/preferences.h"
 #include "src/enumerates.h"
@@ -30,6 +32,8 @@ class QXmlStreamReader;
 class QXmlStreamWriter;
 class ContainerBaseClass;
 
+static const QRegularExpression regexpr_2nondigits {"[^0-9]{2,2}$"};
+
 /**
  * @brief Central management of the program.
  *
@@ -47,7 +51,11 @@ class Master : public QObject
 
     /// List of all PDF documents.
     /// Master file is the first entry in this list.
+    /// This list may never be empty.
     QList<PdfMaster*> documents;
+
+    /// File name of file containing drawings etc.
+    QString master_file;
 
     /// Map of cache hashs to cache objects.
     QMap<int, const PixCache*> caches;
@@ -66,17 +74,20 @@ class Master : public QObject
 
     /// Ask for confirmation when closing.
     /// Return true when the program should quit.
-    bool askCloseConfirmation() const noexcept;
+    bool askCloseConfirmation() noexcept;
 
     /// Create widgets recursively.
-    QWidget* createWidget(QJsonObject& object, QWidget *parent, QMap<QString, PdfMaster*> &known_files);
+    QWidget* createWidget(const QJsonObject& object, QWidget *parent, QMap<QString, PdfMaster*> &known_files);
 
-    /// Open pdf/xopp/xoj/bpr/xml file.
-    /// Create globally accessible file alias in preferences.
+    /// Open pdf/xopp/xoj/bpr/xml file or return already opened file.
+    /// Mark file alias in given map.
     PdfMaster *openFile(QString name, QMap<QString, PdfMaster*> &file_alias);
 
-    /// Create slide from config.
-    SlideView *createSlide(QJsonObject &object, PdfMaster *pdf, QWidget *parent);
+    /// Load a PDF file and create new PdfMaster.
+    PdfMaster *createPdfMaster(QString name);
+
+    /// Create slide view (and slide scene if necessary) from config.
+    SlideView *createSlide(const QJsonObject &object, PdfMaster *pdf, QWidget *parent);
 
     /// Create children of a container widget.
     void fillContainerWidget(ContainerBaseClass *parent, QWidget *parent_widget, const QJsonObject &parent_obj, QMap<QString, PdfMaster*> &known_files);
@@ -124,6 +135,28 @@ public:
     static QString getSaveFileName();
     /// Get open file name from QFileDialog
     static QString getOpenFileName();
+
+    /// Save gzipped XML file.
+    /// Return true if file was written successfully.
+    bool saveBpr(const QString &filename);
+    /// Write XML to stream.
+    /// Return true if saving was successful.
+    bool writeXml(QBuffer &buffer, const bool save_bp_specific);
+
+    /// Load bpr or xopp file: Only initialize PDF documents, don't load drawings.
+    bool loadBprInit(const QString &filename);
+    /// Load drawings and times from bpr or xopp file.
+    bool loadBprDrawings(const QString &filename, const bool clear_drawings);
+    /// Load XML from buffer: only initialize PDF documents, don't load drawings.
+    bool loadXmlInit(QBuffer *buffer, const QString &abs_path);
+    /// Load drawings and times from buffer.
+    bool loadXmlDrawings(QBuffer *buffer, const bool clear_drawings);
+    /// Read header (beamerpresenter tag) from XML
+    bool readXmlHeader(QXmlStreamReader &reader, const bool read_notes);
+    /// Read page tag from XML, only find required PDF documents
+    PdfMaster *readXmlPageBg(QXmlStreamReader &reader, PdfMaster *pdf, const QString &drawings_path);
+    /// Read page tag from XML
+    PdfMaster *readXmlPage(QXmlStreamReader &reader, PdfMaster *pdf, const bool clear_drawings);
 
 protected:
     /// Timeout event: cache videos or change slide
@@ -206,9 +239,6 @@ signals:
     void setTotalTime(const QTime time) const;
     /// Tell PdfMaster to save drawings.
     void saveDrawings(const QString filename);
-    /// Tell PdfMaster to load drawings. This does not clear old drawings
-    /// before loading new ones.
-    void loadDrawings(const QString filename);
 };
 
 #endif // MASTER_H

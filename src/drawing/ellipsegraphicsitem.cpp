@@ -10,6 +10,7 @@
 #include "src/drawing/ellipsegraphicsitem.h"
 #include "src/drawing/basicgraphicspath.h"
 #include "src/log.h"
+#define PI 3.1415926535897932384626433
 
 EllipseGraphicsItem::EllipseGraphicsItem(const DrawTool &tool, const QPointF &pos, QGraphicsItem *parent) :
     QGraphicsEllipseItem(pos.x(), pos.y(), 0, 0, parent),
@@ -56,7 +57,7 @@ BasicGraphicsPath *EllipseGraphicsItem::toPath() const
                 ry = therect.height() / 2,
                 rx_plus_pen = rx + pen().widthF()/2,
                 ry_plus_pen = ry + pen().widthF()/2,
-                phasestep = 2*M_PI / segments,
+                phasestep = 2*PI / segments,
                 cx = therect.center().x(),
                 cy = therect.center().y();
     QVector<QPointF> coordinates(segments+1);

@@ -14,7 +14,7 @@
 #include "src/log.h"
 #include "src/gui/clockwidget.h"
 
-ClockWidget::ClockWidget(QWidget *parent, bool accept_touch_input) :
+ClockWidget::ClockWidget(bool accept_touch_input, QWidget *parent) :
     QLineEdit(parent)
 {
     setReadOnly(true);

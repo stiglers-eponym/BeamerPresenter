@@ -13,6 +13,7 @@
 #include <QMultiMap>
 #include <QKeySequence>
 #include <QDateTime>
+#include <QRegularExpression>
 #include "src/config.h"
 #include "src/drawing/tool.h"
 #include "src/enumerates.h"
@@ -373,6 +374,10 @@ Tool *createTool(const QJsonObject &obj, const int default_device = 0);
 
 /// Write tool properties to JSON object.
 void toolToJson(const Tool *tool, QJsonObject &obj);
+
+
+/// Static regular expression requried to adapt paths.
+static const QRegularExpression UNIX_LIKE(R"(\/(usr|ucrt64|mingw32|mingw64|clang32|clang64|clangamd64)\/bin$)");
 
 
 #endif // PREFERENCES_H

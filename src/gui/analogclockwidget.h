@@ -46,6 +46,9 @@ class AnalogClockWidget : public QWidget
 public:
     /// Constructor: create timer, connect to update event
     explicit AnalogClockWidget(QWidget *parent = nullptr);
+    /// Constructor: create timer, connect to update event, read config
+    explicit AnalogClockWidget(const QJsonObject &config, QWidget *parent = nullptr) :
+        AnalogClockWidget(parent) {readConfig(config);}
 
     /// Trivial destructor
     ~AnalogClockWidget() {};

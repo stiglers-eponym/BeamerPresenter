@@ -260,6 +260,7 @@ QColor TimerWidget::time2color(const qint32 time) const noexcept
 
 void TimerWidget::updatePage(const int page) noexcept
 {
+    page_target_time = UINT32_MAX;
     emit getTimeForPage(page, page_target_time);
     updateText();
 }

@@ -7,8 +7,8 @@
 #include <QScrollArea>
 #include <QSize>
 #include "src/config.h"
+#include "src/gui/tocbutton.h"
 
-class TOCbutton;
 class PdfDocument;
 class QKeyEvent;
 class QShowEvent;
@@ -27,17 +27,21 @@ class TOCwidget : public QScrollArea
     Q_OBJECT
 
     /// Root of TOCbutton tree representing the outline.
-    TOCbutton *first_button = nullptr;
+    TOCbutton *first_button {nullptr};
+    /// Document, for which table of content is shown.
+    const PdfDocument *document {nullptr};
 
 public:
     /// Trivial constructor, does not create the outline tree.
-    explicit TOCwidget(QWidget *parent = nullptr) : QScrollArea(parent) {}
+    explicit TOCwidget(const PdfDocument *document, QWidget *parent = nullptr) :
+        QScrollArea(parent), document(document) {}
 
     /// Destructor: TOCbuttons are deleted recursively.
-    ~TOCwidget();
+    ~TOCwidget()
+    {delete first_button;}
 
     /// Generate the TOC from given document or preferences()->document.
-    void generateTOC(const PdfDocument *document = nullptr);
+    void generateTOC();
 
     /// Actually this is nonsense, but currently the layout only works with
     /// this option set.
