@@ -53,7 +53,7 @@ jobs:
       uses: actions/upload-artifact@v3
       with:
         name: ${{ matrix.sys }}-BeamerPresenter-${{ matrix.renderer }}-qt${{ matrix.qt }}
-        path: ${{ github.workspace }}\BeamerPresenter\mingw-w64-${{ matrix.env }}-beamerpresenter-${{ matrix.renderer }}-qt${{ matrix.qt }}-git-*.pkg.tar.zst
+        path: ${{ github.workspace }}\mingw-w64-${{ matrix.env }}-beamerpresenter-${{ matrix.renderer }}-qt${{ matrix.qt }}-git-*.pkg.tar.zst
 
     - name: '🛠️ Install package'
       run: pacman -U --noconfirm --noprogressbar mingw-w64-${{ matrix.env }}-beamerpresenter-${{ matrix.renderer }}-qt${{ matrix.qt }}-git-*.pkg.tar.zst
@@ -61,5 +61,7 @@ jobs:
     - name: '🚦 Test package'
       run: |
         which beamerpresenter
+        dos2unix tests/minimal.pdf
+        dos2unix tests/minimal.xml
         beamerpresenter --test tests/minimal.pdf
         beamerpresenter --test tests/minimal.xml

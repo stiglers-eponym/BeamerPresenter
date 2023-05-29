@@ -309,6 +309,8 @@ bool SlideScene::handleEvents(const int device, const QList<QPointF> &pos, const
         handlePointingEvents(static_cast<PointingTool*>(tool), device, pos);
     else if (tool->tool() & Tool::AnySelectionTool)
         handleSelectionEvents(static_cast<SelectionTool*>(tool), device, pos, start_pos);
+    // Here we detect start events and not stop events, because otherwise touch events will be discarded:
+    // If a touch start event is not handled, the whole touch event is treated as a mouse event.
     else if (tool->tool() == Tool::TextInputTool && (device & Tool::AnyEvent) == Tool::StartEvent && pos.size() == 1)
         return handleTextEvents(static_cast<const TextTool*>(tool), device, pos);
     else if ((device & Tool::AnyEvent) == Tool::StopEvent && pos.size() == 1)
