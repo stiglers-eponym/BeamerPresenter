@@ -16,7 +16,7 @@ sudo pacman -U beamerpresenter-poppler-qt5-0.2.3-1-x86_64.pkg.tar.zst
 flatpak install org.kde.Platform/x86_64/5.15-21.08 # can be skipped if already installed
 flatpak install beamerpresenter.flatpak
 ```
-The build process for these packages is explained [here](https://github.com/stiglers-eponym/BeamerPresenter/tree/main/packaging).
+The build process for these packages is explained [here](packaging).
 Verify the signature of the checksums in `SHA256SUMS`:
 ```sh
 gpg --keyserver hkps://keyserver.ubuntu.com --recv-keys DD11316A0D8E585F
@@ -189,7 +189,7 @@ Alternatively, BeamerPresenter can be built manually using Microsoft Visual Stud
 MinGW-w64 can be obtained in different ways. I have only tested MSYS2 using the native C runtime in Windows.
 
 1. Install [MSYS2](https://www.msys2.org). After the installation, a terminal for the UCRT64 environment should launch. All commands mentioned in the following should be entered in this terminal. I'd recommend to run `pacman -Syu` directly after the installation.
-2. Download the recipe file [packaging/PKGBUILD\_MSYS2\_git](https://github.com/stiglers-eponym/BeamerPresenter/blob/dev/packaging/PKGBUILD_MSYS2_git). This file contains the instructions to build BeamerPresenter. Place this file in the build directory (e.g. an empty directory) and enter this directory in the terminal.
+2. Download the recipe file [packaging/PKGBUILD\_MSYS2\_git](packaging/PKGBUILD_MSYS2_git). This file contains the instructions to build BeamerPresenter. Place this file in the build directory (e.g. an empty directory) and enter this directory in the terminal.
 3. Install the basic build tools (`pacman -S base-devel mingw-w64-ucrt-x86_64-gcc`).
 4. Build using the command `MINGW_ARCH=ucrt64 makepkg-mingw -sp PKGBUILD_MSYS2_git`. By default, this uses Poppler as PDF engine. You can use MuPDF instead with the command `MINGW_ARCH=ucrt64 _use_poppler=OFF _use_mupdf=ON makepkg-mingw -sip PKGBUILD_MSYS2_git`. This should automatically install other dependencies and in the end install the package.
 5. Test the installation: run `beamerpresenter` in the terminal.

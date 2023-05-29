@@ -48,7 +48,7 @@ PDF documents can include videos, sounds, and slide transitions.
 ## Installation
 There exist different variants of BeamerPresenter:
 You can choose the PDF engine (Poppler, MuPDF, or QtPDF) and the Qt version (≥5.9 or ≥6.2).
-More details can be found in the [installation manual](https://github.com/stiglers-eponym/BeamerPresenter/blob/main/INSTALL.md).
+More details can be found in the [installation manual](INSTALL.md).
 
 Packages are available for Nix and in the AUR (for Arch/Manjaro).
 The [releases](https://github.com/stiglers-eponym/BeamerPresenter/releases) come with packages for Arch/Manjaro/Endeavour, Ubuntu 20.04 / 22.04, and flatpak.
@@ -64,7 +64,7 @@ sudo pacman -U beamerpresenter-poppler-qt5-0.2.3-1-x86_64.pkg.tar.zst
 flatpak install org.kde.Platform/x86_64/5.15-21.08 # can be skipped if already installed
 flatpak install beamerpresenter-qt5.flatpak
 ```
-The build process for these packages is explained [here](https://github.com/stiglers-eponym/BeamerPresenter/tree/main/packaging).
+The build process for these packages is explained [here](packaging).
 Verify the signature of the checksums in `SHA256SUMS`:
 ```sh
 gpg --keyserver hkps://keyserver.ubuntu.com --recv-keys DD11316A0D8E585F
@@ -80,9 +80,9 @@ nix-env -iA nixos.beamerpresenter    # on NixOS
 nix-env -iA nixpkgs.beamerpresenter  # on non-NixOS
 ```
 
-In Windows it is possible to build and install BeamerPresenter using [MSYS2](https://www.msys2.org). See [INSTALL.md](https://github.com/stiglers-eponym/BeamerPresenter/blob/dev/INSTALL.md#windows) for details.
+In Windows it is possible to build and install BeamerPresenter using [MSYS2](https://www.msys2.org). See [INSTALL.md](INSTALL.md#windows) for details.
 
-The libraries required to build BeamerPresenter are also available on other platforms (see [installation manual](https://github.com/stiglers-eponym/BeamerPresenter/blob/main/INSTALL.md)).
+The libraries required to build BeamerPresenter are also available on other platforms (see [installation manual](INSTALL.md)).
 Issues or pull requests concerning building on any platform are welcome!
 
 ## Configuration
