@@ -413,10 +413,6 @@
         <translation>Laden der Konfiguration der Benutzeroberfläche ist fehlgeschlagen für den Dateinamen &quot;</translation>
     </message>
     <message>
-        <source>&quot;. Using fallback GUI config file </source>
-        <translation>&quot;. Benutze stattdessen die Standardkonfiguration in </translation>
-    </message>
-    <message>
         <source>Error while loading PDF file</source>
         <translation>Fehler beim Laden der PDF-Datei</translation>
     </message>
@@ -475,6 +471,10 @@
     <message>
         <source>Failed to read bpr/xopp document: </source>
         <translation>Fehler beim Lesen des bpr/xopp-Dokuments: </translation>
+    </message>
+    <message>
+        <source>&quot;. Using fallback GUI config file.</source>
+        <translation>&quot;. Benutze stattdessen die Standardkonfiguration.</translation>
     </message>
 </context>
 <context>
@@ -1432,8 +1432,12 @@ Konfiguriere Zwischenspeicher (Cache). Folien werden in gerendert und in einen k
         <translation>Name</translation>
     </message>
     <message>
-        <source>Parsing the GUI configuration failed. Probably the GUI config is unavailable or invalid, or no valid PDF files were found.</source>
-        <translation>Einlesen der GUI-Konfigurationsdatei ist fehlgeschlagen. Wahrscheinlich ist die GUI-Konfigurationsdatei nicht verfügbar oder nicht valide, oder es wurden keine PDF-Dateien gefunden.</translation>
+        <source>only test the installation, don&apos;t start the app</source>
+        <translation>teste nur die Installation, starte das Programm nicht wirklich</translation>
+    </message>
+    <message>
+        <source>Parsing the GUI configuration failed with error code</source>
+        <translation>Einlesen der GUI-Konfigurationsdatei ist fehlgeschlagen mit Fehlercode</translation>
     </message>
 </context>
 </TS>

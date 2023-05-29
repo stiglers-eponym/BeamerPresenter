@@ -47,7 +47,7 @@ int main(int argc, char *argv[])
 #ifdef QT_DEBUG
     qSetMessagePattern("%{time process} %{if-debug}D%{endif}%{if-info}INFO%{endif}%{if-warning}WARNING%{endif}%{if-critical}CRITICAL%{endif}%{if-fatal}FATAL%{endif}%{if-category} %{category}%{endif} %{file}:%{line}:%{function} - %{message}%{if-fatal} from %{backtrace [depth=3]}%{endif}");
 #else
-    qSetMessagePattern("%{if-info}INFO%{endif}%{if-warning}WARNING%{endif}%{if-critical}CRITICAL%{endif}%{if-fatal}FATAL%{endif}%{if-category} %{category}%{endif} in %{function} - %{message}");
+    qSetMessagePattern("%{if-info}INFO%{endif}%{if-warning}WARNING%{endif}%{if-critical}CRITICAL%{endif}%{if-fatal}FATAL%{endif}%{if-category} %{category}%{endif} - %{message}");
 #endif
     // Register meta types (required for connections).
     qRegisterMetaType<const PngPixmap*>("const PngPixmap*");

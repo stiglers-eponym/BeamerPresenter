@@ -48,7 +48,8 @@
 
 Master::Master()
 {
-    connect(preferences(), &Preferences::sendErrorMessage, this, &Master::showErrorMessage);
+    if (preferences())
+        connect(preferences(), &Preferences::sendErrorMessage, this, &Master::showErrorMessage);
 }
 
 Master::~Master()
@@ -83,7 +84,7 @@ Master::Status Master::readGuiConfig(const QString &filename)
         return ReadConfigFailed;
     }
     QJsonParseError error;
-    QJsonDocument doc = QJsonDocument::fromJson(file.readAll(), &error);
+    const QJsonDocument doc = QJsonDocument::fromJson(file.readAll(), &error);
     if (error.error != QJsonParseError::NoError || doc.isNull() || doc.isEmpty() || !doc.isArray())
     {
         qCritical() << tr("GUI config file is empty or parsing failed:") << error.errorString();
@@ -92,7 +93,7 @@ Master::Status Master::readGuiConfig(const QString &filename)
     }
 
     /// Map "presentation", "notes", ... to PdfDocument pointers.
-    /// This is needed to interpret GUI config.
+    /// This is needed to interpret GUI config and avoids asking for files multiple times.
     QMap<QString, PdfMaster*> known_files;
 
     const QJsonArray array = doc.array();
@@ -107,7 +108,7 @@ Master::Status Master::readGuiConfig(const QString &filename)
             qCritical() << tr("Ignoring invalid entry in GUI config.") << *it;
             continue;
         }
-        QJsonObject obj = it->toObject();
+        const QJsonObject obj = it->toObject();
         // Start recursive creation of widgets.
         QWidget *const widget = createWidget(obj, nullptr, known_files);
         if (!widget)
@@ -155,7 +156,7 @@ Master::Status Master::readGuiConfig(const QString &filename)
     return Success;
 }
 
-QWidget* Master::createWidget(QJsonObject &object, QWidget *parent, QMap<QString, PdfMaster*> &known_files)
+QWidget* Master::createWidget(const QJsonObject &object, QWidget *parent, QMap<QString, PdfMaster*> &known_files)
 {
     QWidget *widget = nullptr;
     const GuiWidget type = string_to_widget_type(object.value("type").toString());
@@ -201,7 +202,7 @@ QWidget* Master::createWidget(QJsonObject &object, QWidget *parent, QMap<QString
     }
     case OverviewType:
     {
-        PdfDocument *document = nullptr;
+        const PdfDocument *document = nullptr;
         const QString file = object.value("file").toString();
         if (!file.isEmpty())
         {
@@ -221,8 +222,18 @@ QWidget* Master::createWidget(QJsonObject &object, QWidget *parent, QMap<QString
         break;
     }
     case TOCType:
-        widget = new TOCwidget(parent);
+    {
+        const PdfDocument *document = nullptr;
+        const QString file = object.value("file").toString();
+        if (!file.isEmpty())
+        {
+            auto pdf = openFile(file, known_files);
+            if (pdf)
+                document = pdf->getDocument();
+        }
+        widget = new TOCwidget(document, parent);
         break;
+    }
     case NotesType:
     {
         const bool label_by_number = object.value("identifier").toString() == "number";
@@ -258,34 +269,29 @@ QWidget* Master::createWidget(QJsonObject &object, QWidget *parent, QMap<QString
     {
         const QBoxLayout::Direction direction = object.value("orientation").toString("horizontal") == "horizontal" ? QBoxLayout::LeftToRight : QBoxLayout::TopToBottom;
         ToolWidget *toolwidget = new ToolWidget(parent, direction);
-        if (object.contains("mouse devices"))
-        {
-            QList<int> devices;
-            int dev;
-            for (const auto &dev_obj : object.value("mouse devices").toArray())
-            {
-                dev = string_to_input_device.value(dev_obj.toString().toStdString());
-                if (dev != 0 && (dev & Tool::AnyNormalDevice) != Tool::AnyNormalDevice)
-                    devices.append(dev);
-            }
-            if (!devices.isEmpty())
-                toolwidget->setMouseDevices(devices);
-        }
-        if (object.contains("tablet devices"))
-        {
-            QList<int> devices;
-            int dev;
-            for (const auto &dev_obj : object.value("tablet devices").toArray())
-            {
-                dev = string_to_input_device.value(dev_obj.toString().toStdString());
-                if (dev != 0 && (dev & Tool::AnyNormalDevice) != Tool::AnyNormalDevice)
-                    devices.append(dev);
-            }
-            if (!devices.isEmpty())
-                toolwidget->setTabletDevices(devices);
-        }
-        toolwidget->initialize();
         widget = toolwidget;
+        int dev;
+        QList<int> devices;
+        auto collect_devices = [&](const QString& name) -> void
+        {
+            if (!object.contains(name))
+                return;
+            devices.clear();
+            const QJsonArray arr = object.value(name).toArray();
+            for (const auto &dev_obj : arr)
+            {
+                dev = string_to_input_device.value(dev_obj.toString().toStdString());
+                if (dev != 0 && (dev & Tool::AnyNormalDevice) != Tool::AnyNormalDevice)
+                    devices.append(dev);
+            }
+        };
+        collect_devices("mouse devices");
+        if (!devices.isEmpty())
+            toolwidget->setMouseDevices(devices);
+        collect_devices("tablet devices");
+        if (!devices.isEmpty())
+            toolwidget->setTabletDevices(devices);
+        toolwidget->initialize();
         break;
     }
     case SettingsType:
@@ -303,30 +309,26 @@ QWidget* Master::createWidget(QJsonObject &object, QWidget *parent, QMap<QString
         break;
     }
     case ClockType:
-    {
-        widget = new ClockWidget(parent, object.value("touch input").toBool(true));
+        widget = new ClockWidget(object.value("touch input").toBool(true), parent);
         // This signal could also be connected directly to Master::sendAction,
         // but maybe the clock should be able to send different actions. Since
         // the clock rarely sends actions, this little overhead is unproblematic.
         connect(static_cast<ClockWidget*>(widget), &ClockWidget::sendAction, this, &Master::handleAction, Qt::QueuedConnection);
         break;
-    }
     case AnalogClockType:
     {
-        AnalogClockWidget *clock_widget = new AnalogClockWidget(parent);
+        widget = new AnalogClockWidget(object, parent);
         // This signal could also be connected directly to Master::sendAction,
         // but maybe the clock should be able to send different actions. Since
         // the clock rarely sends actions, this little overhead is unproblematic.
-        clock_widget->readConfig(object);
-        connect(clock_widget, &AnalogClockWidget::sendAction, this, &Master::handleAction, Qt::QueuedConnection);
-        widget = clock_widget;
+        connect(static_cast<AnalogClockWidget*>(widget), &AnalogClockWidget::sendAction, this, &Master::handleAction, Qt::QueuedConnection);
         break;
     }
     case TimerType:
     {
         TimerWidget *twidget = new TimerWidget(parent);
-        connect(twidget, &TimerWidget::updateStatus, this, &Master::sendActionStatus);
         widget = twidget;
+        connect(twidget, &TimerWidget::updateStatus, this, &Master::sendActionStatus);
         connect(this, &Master::sendAction, twidget, &TimerWidget::handleAction, Qt::QueuedConnection);
         connect(twidget, &TimerWidget::setTimeForPage, this, &Master::setTimeForPage);
         connect(twidget, &TimerWidget::getTimeForPage, this, &Master::getTimeForPage);
@@ -372,38 +374,38 @@ QWidget* Master::createWidget(QJsonObject &object, QWidget *parent, QMap<QString
         qCritical() << tr("Ignoring entry in GUI config with invalid type ") + object.value("type").toString();
         break;
     }
-    if (widget)
+    if (!widget)
     {
-        widget->installEventFilter(this);
-        // Add keyboard shortcut.
-        if (object.contains("keys"))
+        qCritical() << tr("An error occured while trying to create a widget with JSON object") << object;
+        return nullptr;
+    }
+    widget->installEventFilter(this);
+    // Add keyboard shortcut.
+    if (object.contains("keys"))
+    {
+        const QKeySequence seq(object.value("keys").toString());
+        if (seq.isEmpty())
+            qWarning() << "Unknown key sequence in config:" << object.value("keys");
+        else
+            shortcuts[seq] = widget;
+    }
+    // Read base color from config.
+    const QColor bg_color = QColor(object.value("color").toString());
+    if (bg_color.isValid())
+    {
+        if (type == SlideType)
+            static_cast<SlideView*>(widget)->setBackgroundBrush(bg_color);
+        else
         {
-            const QKeySequence seq(object.value("keys").toString());
-            if (seq.isEmpty())
-                qWarning() << "Unknown key sequence in config:" << object.value("keys");
-            else
-                shortcuts[seq] = widget;
-        }
-        // Read base color from config.
-        const QColor bg_color = QColor(object.value("color").toString());
-        if (bg_color.isValid())
-        {
-            if (type == SlideType)
-                static_cast<SlideView*>(widget)->setBackgroundBrush(bg_color);
-            else
-            {
-                QPalette palette = widget->palette();
-                palette.setColor(QPalette::All, QPalette::Base, bg_color);
-                widget->setPalette(palette);
-            }
+            QPalette palette = widget->palette();
+            palette.setColor(QPalette::All, QPalette::Base, bg_color);
+            widget->setPalette(palette);
         }
     }
-    else
-        qCritical() << tr("An error occured while trying to create a widget with JSON object") << object;
     return widget;
 }
 
-SlideView *Master::createSlide(QJsonObject &object, PdfMaster *pdf, QWidget *parent)
+SlideView *Master::createSlide(const QJsonObject &object, PdfMaster *pdf, QWidget *parent)
 {
     if (!pdf)
         return nullptr;
@@ -693,7 +695,7 @@ void Master::fillContainerWidget(ContainerBaseClass *parent, QWidget *parent_wid
             qCritical() << tr("Ignoring invalid entry in GUI config.") << *it;
             continue;
         }
-        QJsonObject obj = it->toObject();
+        const QJsonObject obj = it->toObject();
         // Create child widgets recursively
         QWidget* const newwidget = createWidget(obj, parent_widget, known_files);
         if (!newwidget)

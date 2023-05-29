@@ -80,9 +80,10 @@ nix-env -iA nixos.beamerpresenter    # on NixOS
 nix-env -iA nixpkgs.beamerpresenter  # on non-NixOS
 ```
 
+In Windows it is possible to build and install BeamerPresenter using [MSYS2](https://www.msys2.org). See [INSTALL.md](https://github.com/stiglers-eponym/BeamerPresenter/blob/dev/INSTALL.md#windows) for details.
+
 The libraries required to build BeamerPresenter are also available on other platforms (see [installation manual](https://github.com/stiglers-eponym/BeamerPresenter/blob/main/INSTALL.md)).
 Issues or pull requests concerning building on any platform are welcome!
-
 
 ## Configuration
 There are two different aspects of the configuration:

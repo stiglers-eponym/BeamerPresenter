@@ -77,7 +77,7 @@ class Master : public QObject
     bool askCloseConfirmation() noexcept;
 
     /// Create widgets recursively.
-    QWidget* createWidget(QJsonObject& object, QWidget *parent, QMap<QString, PdfMaster*> &known_files);
+    QWidget* createWidget(const QJsonObject& object, QWidget *parent, QMap<QString, PdfMaster*> &known_files);
 
     /// Open pdf/xopp/xoj/bpr/xml file or return already opened file.
     /// Mark file alias in given map.
@@ -86,8 +86,8 @@ class Master : public QObject
     /// Load a PDF file and create new PdfMaster.
     PdfMaster *createPdfMaster(QString name);
 
-    /// Create slide from config.
-    SlideView *createSlide(QJsonObject &object, PdfMaster *pdf, QWidget *parent);
+    /// Create slide view (and slide scene if necessary) from config.
+    SlideView *createSlide(const QJsonObject &object, PdfMaster *pdf, QWidget *parent);
 
     /// Create children of a container widget.
     void fillContainerWidget(ContainerBaseClass *parent, QWidget *parent_widget, const QJsonObject &parent_obj, QMap<QString, PdfMaster*> &known_files);
