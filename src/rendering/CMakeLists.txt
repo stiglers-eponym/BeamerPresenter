@@ -8,7 +8,7 @@ if (USE_MUPDF)
     else()
         list(APPEND EXTRA_LIBS mupdf)
     endif()
-    if (USE_MUPDF_THIRD)
+    if (LINK_MUPDF_THIRD)
         # In Ubuntu 21.10 there is no mupdf-third.
         # In all systems with a mupdf-third library it's probably a good idea to link to it.
         if (DEFINED MUPDF_THIRD_LIB_PATH)
@@ -17,7 +17,7 @@ if (USE_MUPDF)
             list(APPEND EXTRA_LIBS mupdf-third)
         endif()
     endif()
-    if (USE_MUJS)
+    if (LINK_MUJS)
         # In Ubuntu >= 21.10 the program must be linked to MuJS.
         list(APPEND EXTRA_LIBS mujs)
     endif()
@@ -30,9 +30,13 @@ if (USE_MUPDF)
                     jpeg
                     jbig2dec
                     openjp2)
-        # Gumbo is only required since MuPDF 1.18 (for the tested Linux distributions)
-        if (USE_GUMBO)
+        # Gumbo parser is only required since MuPDF 1.18 (for the tested Linux distributions)
+        if (LINK_GUMBO)
             list(APPEND EXTRA_LIBS gumbo)
+        endif()
+        # In Fedora, mupdf is linked to tesseract (for OCR).
+        if (LINK_TESSERACT)
+            list(APPEND EXTRA_LIBS tesseract leptonica)
         endif()
     endif()
     list(APPEND EXTRA_INCLUDE

@@ -52,9 +52,9 @@ cmake \
     -DUSE_MUPDF=OFF \
     -DUSE_QTPDF=OFF \
     -DUSE_EXTERNAL_RENDERER=OFF \
-    -DUSE_MUPDF_THIRD=ON \
-    -DUSE_MUJS=OFF \
-    -DUSE_GUMBO=OFF \
+    -DLINK_MUPDF_THIRD=ON \
+    -DLINK_MUJS=OFF \
+    -DLINK_GUMBO=OFF \
     -DUSE_TRANSLATIONS=ON \
     -DQT_VERSION_MAJOR=5 \
     -DQT_VERSION_MINOR=12 \
@@ -64,8 +64,8 @@ cmake \
     -DCMAKE_INSTALL_SYSCONFDIR='/etc'
 ```
 * to use MuPDF instead of Poppler: set `-DUSE_POPPLER=OFF` and `-DUSE_MUPDF=ON`
-* in Ubuntu 21.10: set `-DQT_VERSION_MINOR=15`, `-DUSE_MUJS=ON`, and `-DUSE_MUPDF_THIRD=OFF`
-* in Ubuntu 22.04: set `-DUSE_MUJS=ON` and `-DUSE_GUMBO=ON`
+* in Ubuntu 21.10: set `-DQT_VERSION_MINOR=15`, `-DLINK_MUJS=ON`, and `-DLINK_MUPDF_THIRD=OFF`
+* in Ubuntu 22.04: set `-DLINK_MUJS=ON` and `-DLINK_GUMBO=ON`
     * when using Qt 5: set `-DQT_VERSION_MINOR=15`
     * when using Qt 6: set `-DQT_VERSION_MAJOR=6` and `-DQT_VERSION_MINOR=2`
 

@@ -43,9 +43,10 @@ option(USE_QTPDF "Include QtPDF (requires Qt >= 6.3 or Qt >= 5.10)" OFF)
 option(USE_MUPDF "Include MuPDF" ON)
 option(USE_POPPLER "Include Poppler" OFF)
 option(USE_EXTERNAL_RENDERER "Include option to use external renderer" OFF)
-option(USE_MUPDF_THIRD "Link to mupdf-third (only relevant when using MuPDF)" ON)
-option(USE_MUJS "Link to mujs (only relevant when using MuPDF)" OFF)
-option(USE_GUMBO "Link to gumbo-parser, should be on when using MuPDF >= 1.18" ON)
+option(LINK_MUPDF_THIRD "Link to mupdf-third (only relevant when using MuPDF)" ON)
+option(LINK_MUJS "Link to mujs (only relevant when using MuPDF)" OFF)
+option(LINK_GUMBO "Link to gumbo-parser, should be on when using MuPDF >= 1.18" ON)
+option(LINK_TESSERACT "Link to tesseract (only relevant when using MuPDF" OFF)
 option(MUPDF_USE_SYSTEM_LIBS "MuPDF uses system libraries that need to be included. This is the default for most Linux packages of MuPDF." ON)
 option(SUPPRESS_MUPDF_WARNINGS "Suppress warnings from MuPDF while loading the document pages" OFF)
 
@@ -220,7 +221,8 @@ if (CPACK_GENERATOR MATCHES "DEB")
     # * git (only when building mainline version)
     # * zlib1g-dev
     # * qtmultimedia5-dev (qt6-multimedia-dev for Qt 6)
-    # * qttools5-dev (or qt6-l10n-tools for Qt 6)
+    # * libqt5svg5-dev (libqt6svg6-dev for Qt 6)
+    # * qttools5-dev (qt6-tools-dev and qt6-tools-dev-tools for Qt 6)
     # * libqt6opengl6-dev (for Qt 6)
     # * libgl1-mesa-dev (for Qt 6)
     # For poppler:
@@ -233,7 +235,7 @@ if (CPACK_GENERATOR MATCHES "DEB")
     # * libopenjp2-7-dev
     # * libjbig2dec0-dev
     # * libgumbo-dev (for MuPDF >=1.18, probably not required for version <=1.17)
-    # * libmujs-dev (in Ubuntu >=21.10)
+    # * libmujs-dev (only in Ubuntu 21.10)
     set(CPACK_DEBIAN_PACKAGE_DEPENDS "zlib1g (>= 1:1.2.11)")
     set(QT_MEDIA_PACKAGE "libqt${QT_VERSION_MAJOR}multimediawidgets${QT_VERSION_MAJOR}")
     set(QT_SVG_PACKAGE "libqt${QT_VERSION_MAJOR}svg${QT_VERSION_MAJOR}")
@@ -242,10 +244,10 @@ if (CPACK_GENERATOR MATCHES "DEB")
     set(CPACK_DEBIAN_PACKAGE_DEPENDS "${CPACK_DEBIAN_PACKAGE_DEPENDS}, ${QT_MEDIA_PACKAGE} ${QT_VERSION_LOWER}, ${QT_MEDIA_PACKAGE} ${QT_VERSION_UPPER}, ${QT_SVG_PACKAGE} ${QT_VERSION_LOWER}, ${QT_SVG_PACKAGE} ${QT_VERSION_UPPER}")
     if (USE_MUPDF)
         set(CPACK_DEBIAN_PACKAGE_DEPENDS "${CPACK_DEBIAN_PACKAGE_DEPENDS}, libfreetype6, libharfbuzz0b, libjpeg8, libopenjp2-7, libjbig2dec0")
-        if (USE_GUMBO)
+        if (LINK_GUMBO)
             set(CPACK_DEBIAN_PACKAGE_DEPENDS "${CPACK_DEBIAN_PACKAGE_DEPENDS}, libgumbo1")
         endif()
-        if (USE_MUJS)
+        if (LINK_MUJS)
             set(CPACK_DEBIAN_PACKAGE_DEPENDS "${CPACK_DEBIAN_PACKAGE_DEPENDS}, libmujs1")
         endif()
     endif()
@@ -271,23 +273,47 @@ if (CPACK_GENERATOR MATCHES "DEB")
 endif()
 
 if (CPACK_GENERATOR MATCHES "RPM")
-    # configure RPM package (UNTESTED!)
+    # configure RPM package (hardly tested)
+    # Building with MuPDF in Fedora requires the option LINK_TESSERACT=ON.
     set(CPACK_RPM_PACKAGE_ARCHITECTURE "${PACKAGE_ARCH}")
     set(CPACK_RPM_PACKAGE_LICENSE "AGPLv3+")
-    set(QT_VERSION_LOWER "(>= ${QT_VERSION_MAJOR}.${QT_VERSION_MINOR}.0)")
-    set(QT_VERSION_UPPER "(< ${QT_VERSION_MAJOR}.${QT_VERSION_MINOR_PLUS}.0)")
-    set(CPACK_RPM_PACKAGE_REQUIRES "zlib, qt${QT_VERSION_MAJOR}-qtmultimedia ${QT_VERSION_LOWER}, qt${QT_VERSION_MAJOR}-qtmultimedia ${QT_VERSION_UPPER}")
-    if (USE_MUPDF)
-        # Probably mujs-devel is required for building if USE_MUJS is ON
-        set(CPACK_RPM_PACKAGE_REQUIRES "${CPACK_RPM_PACKAGE_REQUIRES}, freetype, harfbuzz, libjpeg-turbo, openjpeg2, jbig2dec0-libs")
-        if (USE_GUMBO)
-            set(CPACK_DEBIAN_PACKAGE_DEPENDS "${CPACK_DEBIAN_PACKAGE_DEPENDS}, gumbo-parser")
-        endif()
-        # for building mupdf: mupdf-devel
-    endif()
-    if (USE_POPPLER)
-        set(CPACK_RPM_PACKAGE_REQUIRES "${CPACK_RPM_PACKAGE_REQUIRES}, poppler-qt${QT_VERSION_MAJOR}")
-    endif()
+
+    # Required packages for building in fedora:
+    # * cmake
+    # * git (only when building mainline version)
+    # * zlib-devel
+    # * qt5-qtmultimedia-devel (qt6-qtmultimedia-devel for Qt 6)
+    # * qt5-qtsvg-devel (qt6-qtsvg-devel for Qt 6)
+    # * qt5-qttools-devel (qt6-qttools-devel for Qt 6)
+    # * fedora-packager
+    # For poppler:
+    # * poppler-qt5-devel (poppler-qt6-devel for Qt 6)
+    # For MuPDF:
+    # * mupdf-devel
+    # * freetype-devel
+    # * harfbuzz-devel
+    # * libjpeg-turbo-devel
+    # * openjpeg2-devel
+    # * jbig2dec-devel
+    # * gumbo-parser-devel
+    # * tesseract-devel
+
+    # Dependencies on libraries are automatically detected.
+    # Uncomment the following lines to manually specify dependencies:
+
+    #set(QT_VERSION_LOWER ">= ${QT_VERSION_MAJOR}.${QT_VERSION_MINOR}.0")
+    #set(QT_VERSION_UPPER "< ${QT_VERSION_MAJOR}.${QT_VERSION_MINOR_PLUS}.0")
+    #set(CPACK_RPM_PACKAGE_REQUIRES "zlib, qt${QT_VERSION_MAJOR}-qtmultimedia ${QT_VERSION_LOWER}, qt${QT_VERSION_MAJOR}-qtmultimedia ${QT_VERSION_UPPER}")
+    #if (USE_MUPDF)
+    #    set(CPACK_RPM_PACKAGE_REQUIRES "${CPACK_RPM_PACKAGE_REQUIRES}, freetype, harfbuzz, libjpeg-turbo, openjpeg2, tesseract")
+    #    if (LINK_GUMBO)
+    #        set(CPACK_RPM_PACKAGE_REQUIRES "${CPACK_RPM_PACKAGE_REQUIRES}, gumbo-parser")
+    #    endif()
+    #    # for building mupdf: mupdf-devel
+    #endif()
+    #if (USE_POPPLER)
+    #    set(CPACK_RPM_PACKAGE_REQUIRES "${CPACK_RPM_PACKAGE_REQUIRES}, poppler-qt${QT_VERSION_MAJOR}")
+    #endif()
     set(CPACK_RPM_PACKAGE_CONFLICTS "${CONFLICTING_PACKAGES}")
 endif()
 

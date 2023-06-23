@@ -48,8 +48,8 @@ jobs:
        -DUSE_POPPLER=ON
        -DUSE_QTPDF=OFF
        -DUSE_EXTERNAL_RENDERER=OFF
-       -DUSE_MUJS=OFF
-       -DUSE_GUMBO=OFF
+       -DLINK_MUJS=OFF
+       -DLINK_GUMBO=OFF
        -DUSE_TRANSLATIONS=ON
        -DQT_VERSION_MAJOR=5
        -DQT_VERSION_MINOR=12
@@ -83,8 +83,8 @@ jobs:
        -DUSE_POPPLER=OFF
        -DUSE_QTPDF=OFF
        -DUSE_EXTERNAL_RENDERER=OFF
-       -DUSE_MUJS=OFF
-       -DUSE_GUMBO=OFF
+       -DLINK_MUJS=OFF
+       -DLINK_GUMBO=OFF
        -DUSE_TRANSLATIONS=ON
        -DQT_VERSION_MAJOR=5
        -DQT_VERSION_MINOR=12
@@ -136,8 +136,8 @@ jobs:
         -DUSE_POPPLER=OFF
         -DUSE_QTPDF=OFF
         -DUSE_EXTERNAL_RENDERER=OFF
-        -DUSE_MUJS=OFF
-        -DUSE_GUMBO=ON
+        -DLINK_MUJS=OFF
+        -DLINK_GUMBO=ON
         -DMUPDF_LIB_PATH="$(pwd)/mupdf-${{ env.MUPDF_VERSION }}-source/build/release/libmupdf.a"
         -DMUPDF_THIRD_LIB_PATH="$(pwd)/mupdf-${{ env.MUPDF_VERSION }}-source/build/release/libmupdf-third.a"
         -DMUPDF_INCLUDE_DIR="$(pwd)/mupdf-${{ env.MUPDF_VERSION }}-source/include"

@@ -106,6 +106,29 @@ Optional, for showing videos:
 * `gst-libav`
 * `gst-plugins-good`
 
+### Dependencies in Fedora
+Fedora is the only RPM-based system tested so far, but it is only rarely tested. Please open an issue if these instructions seem wrong or outdated!
+
+General build dependencies in Fedora 38:
+* cmake
+* git (only when building mainline version)
+* zlib-devel
+* qt5-qtmultimedia-devel (qt6-qtmultimedia-devel for Qt 6)
+* qt5-qtsvg-devel (qt6-qtsvg-devel for Qt 6)
+* qt5-qttools-devel (qt6-qttools-devel for Qt 6)
+* fedora-packager
+When using poppler:
+* poppler-qt5-devel (poppler-qt6-devel for Qt 6)
+When using MuPDF:
+* mupdf-devel
+* freetype-devel
+* harfbuzz-devel
+* libjpeg-turbo-devel
+* openjpeg2-devel
+* jbig2dec-devel
+* gumbo-parser-devel
+* tesseract-devel (use the option `LINK_TESSERACT=ON` to avoid linker errors)
+
 
 ## Manual installation
 ### Download
@@ -136,9 +159,10 @@ cmake \
     -DUSE_MUPDF=OFF \
     -DUSE_QTPDF=OFF \
     -DUSE_EXTERNAL_RENDERER=OFF \
-    -DUSE_MUJS=OFF \
-    -DUSE_MUPDF_THIRD=ON \
-    -DUSE_GUMBO=ON \
+    -DLINK_MUJS=OFF \
+    -DLINK_MUPDF_THIRD=ON \
+    -DLINK_GUMBO=ON \
+    -DLINK_TESSERACT=OFF \
     -DMUPDF_USE_SYSTEM_LIBS=ON \
     -DGIT_VERSION=ON \
     -DUSE_TRANSLATIONS=ON \
@@ -158,9 +182,10 @@ The options `-B` and `-S` set the build and source directory, respectively. The 
 | `USE_QTPDF` | OFF | Include Qt PDF engine. Note: Only the current git version of BeamerPresenter is compatible with Qt PDF in Qt ≥6.4. |
 | `USE_EXTERNAL_RENDERER` | OFF | Include option to use an external program for rendering PDF pages to images. |
 | `MUPDF_USE_SYSTEM_LIBS` | ON | MuPDF uses shared system libraries (default in common Linux distributions, disable if you compiled MuPDF from source with standard settings) |
-| `USE_MUJS` | OFF | link to MuJS, set ON in Ubuntu 21.10 |
-| `USE_MUPDF_THIRD` | ON | set OFF when libmupdf-third is not available (for Ubuntu 21.10) |
-| `USE_GUMBO` | ON | set ON when using MuPDF >= 1.18 with shared system libraries |
+| `LINK_MUJS` | OFF | link to MuJS, set ON in Ubuntu 21.10 |
+| `LINK_MUPDF_THIRD` | ON | set OFF when libmupdf-third is not available (for Ubuntu 21.10) |
+| `LINK_GUMBO` | ON | set ON when using MuPDF >= 1.18 with shared system libraries |
+| `LINK_TESSERACT` | OFF | set ON when using MuPDF in Fedora |
 | `GIT_VERSION` | ON | Include git commit count in version string |
 | `USE_TRANSLATIONS` | ON | include translations (currently only German), disable if it causes errors |
 | `SUPPRESS_MUPDF_WARNINGS` | OFF | Suppress warnings of MuPDF while loading a document (only Unix-like systems) |
