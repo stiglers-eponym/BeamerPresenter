@@ -50,7 +50,7 @@ There exist different variants of BeamerPresenter:
 You can choose the PDF engine (Poppler, MuPDF, or QtPDF) and the Qt version (≥5.9 or ≥6.2).
 More details can be found in the [installation manual](INSTALL.md).
 
-Packages are available for Nix and in the AUR (for Arch/Manjaro).
+BeamerPresenter can be found in the [Nix repositories](https://search.nixos.org/packages?channel=unstable&type=packages&query=BeamerPresenter) and [in the AUR](https://aur.archlinux.org/packages/beamerpresenter) (for Arch/Manjaro/Endeavour, also as a [mainline version](https://aur.archlinux.org/packages/beamerpresenter-git)).
 The [releases](https://github.com/stiglers-eponym/BeamerPresenter/releases) come with packages for Arch/Manjaro/Endeavour, Ubuntu 20.04 / 22.04, and flatpak.
 For example, the commands for installing BeamerPresenter with Poppler as PDF engine and Qt 5 after downloading the corresponding file are:
 ```sh
@@ -71,16 +71,7 @@ gpg --keyserver hkps://keyserver.ubuntu.com --recv-keys DD11316A0D8E585F
 gpg --verify SHA256SUMS.sig SHA256SUMS
 ```
 
-In Arch Linux/Manjaro/Endeavour Linux you can also install one of the AUR packages [beamerpresenter](https://aur.archlinux.org/packages/beamerpresenter) and [beamerpresenter-git](https://aur.archlinux.org/packages/beamerpresenter-git).
-Note that in these packages by default MuPDF is selected as PDF engine. The PKGBUILD file can be edited to use Poppler instead.
-
-When using [Nix](https://nixos.org) you can install the latest release with
-```sh
-nix-env -iA nixos.beamerpresenter    # on NixOS
-nix-env -iA nixpkgs.beamerpresenter  # on non-NixOS
-```
-
-In Windows it is possible to build and install BeamerPresenter using [MSYS2](https://www.msys2.org). See [INSTALL.md](INSTALL.md#windows) for details.
+In Windows, it is possible to build and install BeamerPresenter using [MSYS2](https://www.msys2.org). See [INSTALL.md](INSTALL.md#windows) for details.
 
 The libraries required to build BeamerPresenter are also available on other platforms (see [installation manual](INSTALL.md)).
 Issues or pull requests concerning building on any platform are welcome!

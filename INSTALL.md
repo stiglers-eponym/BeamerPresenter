@@ -1,73 +1,58 @@
 # Installing BeamerPresenter
 There exist different flavors of BeamerPresenter:
-You can choose the PDF engine (Poppler or MuPDF) and the major Qt version (5 or 6), see [below](#choosing-mupdf-or-poppler).
+You can choose the PDF engine (Poppler, MuPDF, Qt PDF) and the major Qt version (5 or 6), see [below](#choosing-mupdf-or-poppler).
 
-The [releases](https://github.com/stiglers-eponym/BeamerPresenter/releases) come with packages for Arch/Manjaro, Ubuntu 20.04, Ubuntu 21.10 and flatpak.
-The simplest way to install BeamerPresenter (besides the AUR) is to directly install these packages.
-For example, the commands for installing BeamerPresenter with Poppler as PDF engine and Qt 5 after downloading the corresponding file are:
+BeamerPresenter can be found in the official [Nix repositories](https://search.nixos.org/packages?channel=unstable&type=packages&query=BeamerPresenter) and in the [AUR](https://aur.archlinux.org/packages/beamerpresenter) (also as a [mainline version](https://aur.archlinux.org/packages/beamerpresenter-git)).
+The [releases](https://github.com/stiglers-eponym/BeamerPresenter/releases) include packages for Arch/Manjaro/Endeavour, Ubuntu 22.04, Ubuntu 20.04, and flatpak.
+These packages can be installed as shown in the following example, which uses Qt 5 and Poppler as PDF engine (after downloading the corresponding file):
 ```sh
 # Ubuntu 20.04:
 sudo apt install ./beamerpresenter-poppler-0.2.3-qt5-focal-x86_64.deb
 # Ubuntu 22.04:
 sudo apt install ./beamerpresenter-poppler-0.2.3-qt5-jammy-x86_64.deb
-# Arch/Manjaro
+# Arch/Manjaro/Endeavour
 sudo pacman -U beamerpresenter-poppler-qt5-0.2.3-1-x86_64.pkg.tar.zst
 # Flatpak
 flatpak install org.kde.Platform/x86_64/5.15-21.08 # can be skipped if already installed
 flatpak install beamerpresenter.flatpak
 ```
-The build process for these packages is explained [here](packaging).
 Verify the signature of the checksums in `SHA256SUMS`:
 ```sh
 gpg --keyserver hkps://keyserver.ubuntu.com --recv-keys DD11316A0D8E585F
 gpg --verify SHA256SUMS.sig SHA256SUMS
 ```
 
-In Arch Linux and Manjaro you can install one of the AUR packages [beamerpresenter](https://aur.archlinux.org/packages/beamerpresenter) and [beamerpresenter-git](https://aur.archlinux.org/packages/beamerpresenter-git).
-Note that in these packages by default MuPDF is selected as PDF engine.
-
-There exists a package for [Nix](https://nixos.org), which can also be an option for people using macOS. This package can be installed with
-```sh
-nix-env -iA nixos.beamerpresenter    # on NixOS
-nix-env -iA nixpkgs.beamerpresenter  # on non-NixOS
-```
-
 
 ## Choosing the PDF engine
 When installing BeamerPresenter you need to choose a PDF engine from MuPDF, Poppler, and Qt PDF.
-Enabling multiple PDF engines at compile time is also possible with some limitations (see below).
 
-* Qt PDF only provides a small subset of the features available with Poppler and MuPDF. Missing features include links, page labels, document outline, slide transitions, animations, videos, and sounds.
-* Compiling with Qt PDF can be simpler if Qt PDF is available on you system, because you do not need any external libraries besides Qt. Qt PDF is only available in Qt ≥ 5.10 (for Qt 5) or Qt ≥ 6.3 (for Qt 6), but the way how it is included here is probably only compatible with Qt ≥ 5.14 or Qt ≥ 6.3. Even Qt packages with compatible versions do not necessarily include Qt PDF.
-* MuPDF produces a much larger package size compared to Poppler: 37MB instead of 1.3MB in Arch Linux in default configuration
-    * MuPDF is statically linked
-    * MuPDF contains about 30MB of fonts that end up in the executable by default
-    * Most built-in fonts can be excluded from MuPDF, shrinking the executable from 37MB to 6.5MB (or even smaller: compile MuPDF with `XCFLAGS+=' -DTOFU -DTOFU_CJK -DTOFU_SIL -DFZ_ENABLE_JS=0'`).
-* My impression is that in most cases MuPDF produces better-looking slides than Poppler. But this may depend on the presentation, the fonts, the resolution, ...
-* Enabling both Poppler and MuPDF at compile time is not recommended, because it can lead to program crashes when using Poppler for some documents.
-* Some features are only supported by Poppler and not by MuPDF. These features include most link types like action links and sound links. For example, the command `\sound{title}{filename}` in LaTeX beamer's multimedia package will only work with Poppler (workaround for MuPDF: use `\movie` instead of `\sound`).
-* Integrating MuPDF in BeamerPresenter requires much more code than integrating Poppler or Qt PDF, which might also lead to more bugs.
+* My personal impression is that in most cases MuPDF produces better-looking slides than Poppler.
+* Some features are only supported by Poppler and not by MuPDF. For example, the command `\sound{title}{filename}` in LaTeX beamer's multimedia package will only work with Poppler (workaround for MuPDF: use `\movie` instead of `\sound`).
+* Enabling both Poppler and MuPDF at compile time is not recommended. For some documents this might cause program crashes.
+* Qt PDF provides very limited features. Only use it as a fallback if MuPDF and Poppler cannot be used. Qt PDF requires a recent version of Qt (≥5.14 or ≥6.3).
+* MuPDF produces a larger package size. For some Linux distributions, using MuPDF from official repositories leads to very large packages (>20MB). Building MuPDF manually can significantly reduce the package size (use options like `XCFLAGS+=' -DTOFU -DTOFU_CJK -DTOFU_SIL -DFZ_ENABLE_JS=0'`).
 
 
-## General requirements
-Building is tested in Arch Linux, Manjaro, Xubuntu 20.04, and Kubuntu 22.04.
+## Requirements
+Building is mainly tested in Arch Linux, Xubuntu 20.04, and Kubuntu 22.04. Build instructions also exists for Fedora 38 and MSYS2 (on Windows), but these are not regularly tested.
 Older versions of Ubuntu are only compatible with [version 0.1](https://github.com/stiglers-eponym/BeamerPresenter/tree/0.1.x) of BeamerPresenter.
 
-In order to build BeamerPresenter you need to have CMake, zlib and Qt 5/6 including the multimedia module and the linguist tools (only for translations).
-In Qt 5 versions since 5.12 are tested, but other versions starting from 5.9 should also be supported. For installation in Qt 6 you need at least version 6.2.
-Additionally you need either the Qt 5/6 bindings of Poppler or the MuPDF libraries (which may also require some libraries).
+In order to compile BeamerPresenter you need to have CMake, zlib and Qt 5/6 including the multimedia and SVG modules installed.
+For translations you also need the linguist tools.
+Additionally, you need either the Qt bindings of Poppler, or the MuPDF libraries (which may require other libraries).
+Qt versions since 5.12 (for Qt 5) or 6.2 (Qt 6) are supported.
 
 ### Dependencies in Ubuntu
 * `cmake` (only for building)
     * cmake requires a compiler (e.g. `g++`) and a build system (e.g. Unix makefiles or ninja)
 * `zlib1g-dev` (after the installation you can remove `zlib1g-dev` and keep only `zlib1g`)
 * `qtmultimedia5-dev` (after the installation you can remove `qtmultimedia5-dev` and keep only `libqt5multimedia5` and `libqt5multimediawidgets5`)
-    * or when using Qt 6 in Ubuntu ≥22.04: `qt6-multimedia-dev` and keep `libqt6multimediawidgets6` after the installation
-* `qttools5-dev` (only for building and only when creating translations. You can disable translations with `-DUSE_TRANSLATIONS=OFF` in the [CMake command](#configure))
-    * or when using Qt 6 in Ubuntu ≥22.04: `qt6-tools-dev`, `qt6-tools-dev-tools`, and `qt6-l10n-tools`
-* optional: `gstreamer1.0-libav` and `libqt5multimedia5-plugins` (for showing videos)
+    * when using Qt 6 in Ubuntu ≥22.04: `qt6-multimedia-dev` and keep `libqt6multimediawidgets6` after the installation
 * `libqt5svg5-dev` (after the installation you can remove `libqt5svg5-dev` and keep only `libqt5svg5`)
-    * or when using Qt 6 in Ubuntu ≥22.04: `libqt6svg6-dev`
+    * when using Qt 6 in Ubuntu ≥22.04: `libqt6svg6-dev`
+* `qttools5-dev` (only for building and only when creating translations. You can disable translations with `-DUSE_TRANSLATIONS=OFF` in the [CMake command](#configure))
+    * when using Qt 6 in Ubuntu ≥22.04: `qt6-tools-dev`, `qt6-tools-dev-tools`, and `qt6-l10n-tools`
+* optional: `gstreamer1.0-libav` and `libqt5multimedia5-plugins` (for showing videos, when using Qt 5)
 
 When compiling with Poppler:
 * `libpoppler-qt5-dev`: version 0.86.1 or later. (after the installation you can remove `libpoppler-qt5-dev` and keep only `libpoppler-qt5-1`
@@ -85,19 +70,19 @@ When compiling with MuPDF:
 When compiling with Qt PDF (only Qt 5 and Ubuntu >= 21.04):
 * `qtpdf5-dev` (after the installation you can remove `qtpdf5-dev` and keep only `libqt5pdf5`)
 
-### Dependencies in Arch Linux and Manjaro
+### Dependencies in Arch Linux/Manjaro/Endeavour
 Replace qt6 with qt5 in all package names if you want to use Qt 5.
 * `cmake` (only for building and only in the mainline version)
 * `qt6-multimedia`
-* since Qt ≥6.4: Using the backend `qt6-multimedia-ffmpeg` is recommended.
+    * since Qt ≥6.4 the backend `qt6-multimedia-ffmpeg` is recommended.
+* `qt6-svg`
 * `qt6-tools` (only for building and only when creating translations. You can disable translations with `-DUSE_TRANSLATIONS=OFF` in the [CMake command](#configure))
-* `qt6-svg` for showing icons
 
 When compiling with Poppler:
 * `poppler-qt5`
 
 When compiling with MuPDF:
-* `libmupdf` (only for building, tested versions: 1.16.1 – 1.22.0)
+* `libmupdf` (only for building, tested versions: 1.16.1 – 1.22.1)
 * `jbig2dec`
 * `openjpeg2`
 * `gumbo-parser`
@@ -107,27 +92,29 @@ Optional, for showing videos:
 * `gst-plugins-good`
 
 ### Dependencies in Fedora
-Fedora is the only RPM-based system tested so far, but it is only rarely tested. Please open an issue if these instructions seem wrong or outdated!
+Fedora is the only RPM-based system tested so far. Please open an issue if these instructions seem wrong or outdated!
 
 General build dependencies in Fedora 38:
-* cmake
-* git (only when building mainline version)
-* zlib-devel
-* qt5-qtmultimedia-devel (qt6-qtmultimedia-devel for Qt 6)
-* qt5-qtsvg-devel (qt6-qtsvg-devel for Qt 6)
-* qt5-qttools-devel (qt6-qttools-devel for Qt 6)
-* fedora-packager
+* `cmake`
+* `git` (only when building mainline version)
+* `zlib-devel`
+* `qt5-qtmultimedia-devel` (`qt6-qtmultimedia-devel` for Qt 6)
+* `qt5-qtsvg-devel` (`qt6-qtsvg-devel` for Qt 6)
+* `qt5-qttools-devel` (`qt6-qttools-devel` for Qt 6)
+* `fedora-packager`
+
 When using poppler:
-* poppler-qt5-devel (poppler-qt6-devel for Qt 6)
+* `poppler-qt5-devel` (`poppler-qt6-devel` for Qt 6)
+
 When using MuPDF:
-* mupdf-devel
-* freetype-devel
-* harfbuzz-devel
-* libjpeg-turbo-devel
-* openjpeg2-devel
-* jbig2dec-devel
-* gumbo-parser-devel
-* tesseract-devel (use the option `LINK_TESSERACT=ON` to avoid linker errors)
+* `mupdf-devel`
+* `freetype-devel`
+* `harfbuzz-devel`
+* `libjpeg-turbo-devel`
+* `openjpeg2-devel`
+* `jbig2dec-devel`
+* `gumbo-parser-devel`
+* `tesseract-devel` (use the option `LINK_TESSERACT=ON`)
 
 
 ## Manual installation
@@ -147,9 +134,10 @@ cd BeamerPresenter
 
 ### Configure
 Now may you need to configure libraries and file paths in `CMakeLists.txt`. For Ubuntu and Arch the settings are tested, in other GNU+Linux systems you can try if it works, and other systems will probably require a manual configuration.
+Please open an issue if you have questions.
 Pull requests or issues with build instructions for other systems are welcome!
 
-The command line for configuring the build process look like this:
+The command line for configuring the build process looks like this (not all options are required):
 ```sh
 cmake \
     -B "build-dir"
@@ -177,43 +165,43 @@ The options `-B` and `-S` set the build and source directory, respectively. The 
 | Option | Value | Explanation |
 |--------|-------|-------------|
 | `CMAKE_BUILD_TYPE` | Release | Release or Debug |
-| `USE_POPPLER` | ON | Include Poppler PDF engine (Poppler library and Qt 5/6 wrapper must be available) |
+| `USE_POPPLER` | ON | Include Poppler PDF engine (Poppler library and Qt 5/6 headers must be available) |
 | `USE_MUPDF` | OFF | Include MuPDF PDF engine (MuPDF static library and headers must be available) |
-| `USE_QTPDF` | OFF | Include Qt PDF engine. Note: Only the current git version of BeamerPresenter is compatible with Qt PDF in Qt ≥6.4. |
+| `USE_QTPDF` | OFF | Include Qt PDF engine. |
 | `USE_EXTERNAL_RENDERER` | OFF | Include option to use an external program for rendering PDF pages to images. |
-| `MUPDF_USE_SYSTEM_LIBS` | ON | MuPDF uses shared system libraries (default in common Linux distributions, disable if you compiled MuPDF from source with standard settings) |
-| `LINK_MUJS` | OFF | link to MuJS, set ON in Ubuntu 21.10 |
-| `LINK_MUPDF_THIRD` | ON | set OFF when libmupdf-third is not available (for Ubuntu 21.10) |
+| `MUPDF_USE_SYSTEM_LIBS` | ON | MuPDF uses shared system libraries (default in common Linux distributions) |
+| `LINK_MUJS` | OFF | link to MuJS, set ON in Ubuntu ≥21.10 |
+| `LINK_MUPDF_THIRD` | ON | set OFF when libmupdf-third is not available (only Ubuntu 21.10) |
 | `LINK_GUMBO` | ON | set ON when using MuPDF >= 1.18 with shared system libraries |
 | `LINK_TESSERACT` | OFF | set ON when using MuPDF in Fedora |
 | `GIT_VERSION` | ON | Include git commit count in version string |
-| `USE_TRANSLATIONS` | ON | include translations (currently only German), disable if it causes errors |
+| `USE_TRANSLATIONS` | ON | include translations (currently only German) |
 | `SUPPRESS_MUPDF_WARNINGS` | OFF | Suppress warnings of MuPDF while loading a document (only Unix-like systems) |
 | `INSTALL_LICENSE` | ON | Copy the license to /usr/share/licenses/beamerpresenter/LICENSE |
 | `QT_VERSION_MAJOR` | 6 | Qt major version, must be set manually! Valid values are "5" and "6". |
 | `QT_VERSION_MINOR` | 5 | only relevant for packaging (dependency version checking) |
 | `CMAKE_INSTALL_PREFIX` | /usr | Install prefix. If not specified this will be /usr/local in Linux |
-| `CMAKE_INSTALL_SYSCONFDIR` | /etc | System config directory. |
+| `CMAKE_INSTALL_SYSCONFDIR` | /etc | System configuration directory. |
 
 ### Build and install
-After configuring with CMake you can build the project (hint: add ` -j 4` for compiling with 4 CPU cores)
+After configuring with CMake, you can build the project (add ` -j 4` for compiling with 4 CPU cores)
 ```sh
 cmake --build build-dir
 ```
-Then install the package. For packaging the environment variable `$DESTDIR` may be helpful.
+Then install the package.
 ```sh
 cmake --install build-dir
 ```
 
 
 ## Windows
-In Windows it is recommended to use MinGW-w64.
+In Windows, it is recommended to use MinGW-w64.
 Alternatively, BeamerPresenter can be built manually using Microsoft Visual Studio.
 
 ### MinGW-w64 + MSYS2
 MinGW-w64 can be obtained in different ways. I have only tested MSYS2 using the native C runtime in Windows.
 
-1. Install [MSYS2](https://www.msys2.org). After the installation, a terminal for the UCRT64 environment should launch. All commands mentioned in the following should be entered in this terminal. I'd recommend to run `pacman -Syu` directly after the installation.
+1. Install [MSYS2](https://www.msys2.org). After the installation, a terminal for the UCRT64 environment should launch. All commands mentioned in the following should be entered in this terminal. Run `pacman -Syu` directly after the installation.
 2. Download the recipe file [packaging/PKGBUILD\_MSYS2\_git](packaging/PKGBUILD_MSYS2_git). This file contains the instructions to build BeamerPresenter. Place this file in the build directory (e.g. an empty directory) and enter this directory in the terminal.
 3. Install the basic build tools (`pacman -S base-devel mingw-w64-ucrt-x86_64-gcc`).
 4. Build using the command `MINGW_ARCH=ucrt64 makepkg-mingw -sp PKGBUILD_MSYS2_git`. By default, this uses Poppler as PDF engine. You can use MuPDF instead with the command `MINGW_ARCH=ucrt64 _use_poppler=OFF _use_mupdf=ON makepkg-mingw -sip PKGBUILD_MSYS2_git`. This should automatically install other dependencies and in the end install the package.
@@ -282,7 +270,7 @@ copy ..\..\share\icons share
 The generated directory `deploy` now contains the full program. It can probably be distributed to other systems which have the same runtime library installed.
 
 #### Configuration
-In Windows the configuration is stored in the registry (in something like `HKEY_CURRENT_USER/software/beamerpresenter`).
+In Windows, the configuration is stored in the registry (in something like `HKEY_CURRENT_USER/software/beamerpresenter`).
 Once BeamerPresenter is running, you can set most of the settings in the settings widget in BeamerPresenter. But when just trying to run the executable for the first time, a wrong GUI configuration file path might lead to an error. In this case you should run BeamerPresenter on the command line:
 ```sh
 path\to\beamerpresenter.exe -g "path\to\gui.json" "path\to\document.pdf"
