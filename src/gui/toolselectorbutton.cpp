@@ -42,7 +42,6 @@ bool ToolSelectorButton::event(QEvent *event) noexcept
             return false;
         }
     }
-        [[clang::fallthrough]];
     case QEvent::TabletMove:
     case QEvent::TabletPress:
     case QEvent::MouseButtonPress:

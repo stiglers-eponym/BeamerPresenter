@@ -26,6 +26,7 @@ class PdfMaster;
 class MediaPlayer;
 #if (QT_VERSION_MAJOR >= 6)
 class QAudioOutput;
+class QMediaCaptureSession;
 #endif
 class DrawTool;
 class TextTool;
@@ -48,23 +49,32 @@ namespace slide
 {
     struct MediaItem
     {
+        enum {
+            InvalidMedia,
+            BasicMedia,
+            ControlledMedia,
+            LiveStream,
+            Camera,
+        } type = InvalidMedia;
+
         /// basic information about video from PDF
         MediaAnnotation annotation;
         /// QGraphicsItem representing the video
-        QGraphicsVideoItem *item;
-        /// Media player controling the video
-        MediaPlayer *player;
+        QGraphicsVideoItem *item = nullptr;
 #if (QT_VERSION_MAJOR >= 6)
-        /// Audio output for media player.
-        QAudioOutput *audio_out;
+        /// Audio output
+        QAudioOutput *audio_out = nullptr;
 #endif
         /// Set of pages on which this video item appears. This is updated
         /// when videos for a new page are loaded and an old video is found
         /// to be visible also on the new page.
         std::set<int> pages;
+
+        /// Type-dependent auxilliary objects
+        QObject *aux = nullptr;
     };
 }
-Q_DECLARE_METATYPE(slide::MediaItem);
+Q_DECLARE_METATYPE(slide::MediaItem)
 
 
 /**

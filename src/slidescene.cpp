@@ -1,6 +1,7 @@
 // SPDX-FileCopyrightText: 2023 Valentin Bruch <software@vbruch.eu>
 // SPDX-License-Identifier: GPL-3.0-or-later OR AGPL-3.0-or-later
 
+#include "src/config.h"
 #include <iterator>
 #include <algorithm>
 #include <QTransform>
@@ -11,6 +12,13 @@
 #include <QByteArray>
 #include <QDataStream>
 #include <QGraphicsVideoItem>
+#include <QVideoSink>
+#if defined(USE_WEBCAMS) && (QT_VERSION_MAJOR >= 6)
+#include <QCamera>
+#include <QCameraDevice>
+#include <QMediaCaptureSession>
+#include <QMediaDevices>
+#endif
 #include <QRegularExpression>
 #include <QXmlStreamWriter>
 #include <QGuiApplication>
@@ -85,7 +93,7 @@ SlideScene::~SlideScene()
     for (const auto &media : mediaItems)
     {
         delete media.item;
-        delete media.player;
+        delete media.aux;
 #if (QT_VERSION_MAJOR >= 6)
         delete media.audio_out;
 #endif
@@ -280,7 +288,6 @@ bool SlideScene::event(QEvent* event)
                 break;
             }
         }
-        [[clang::fallthrough]];
     default:
         return QGraphicsScene::event(event);
     }
@@ -388,7 +395,6 @@ void SlideScene::handlePointingEvents(PointingTool *tool, const int device, cons
         }
         if (tool->scale() <= 0.)
             break;
-        [[clang::fallthrough]];
     }
     default:
     {
@@ -695,7 +701,7 @@ void SlideScene::receiveAction(const Action action)
         for (const auto &media : mediaItems)
         {
             delete media.item;
-            delete media.player;
+            delete media.aux;
 #if (QT_VERSION_MAJOR >= 6)
             delete media.audio_out;
 #endif
@@ -812,8 +818,8 @@ void SlideScene::loadMedia(const int page)
                 addItem(item.item);
             }
             // TODO: control autoplay audio
-            if (item.player && slide_flags & AutoplayVideo)
-                item.player->play();
+            if (item.type == slide::MediaItem::ControlledMedia && slide_flags & AutoplayVideo)
+                static_cast<MediaPlayer*>(item.aux)->play();
         }
     }
 }
@@ -832,7 +838,7 @@ void SlideScene::postRendering()
         debug_verbose(DebugMedia, "Start cleaning up media" << mediaItems.size());
         for (auto &media : mediaItems)
         {
-            if (media.player == nullptr)
+            if (media.aux == nullptr)
                 continue;
             if (!media.pages.empty())
             {
@@ -841,8 +847,9 @@ void SlideScene::postRendering()
                     continue;
             }
             debug_msg(DebugMedia, "Deleting media item:" << media.annotation.file << media.pages.size());
-            delete media.player;
-            media.player = nullptr;
+            // TODO: clean up properly!
+            delete media.aux;
+            media.aux = nullptr;
             delete media.item;
             media.item = nullptr;
 #if (QT_VERSION_MAJOR >= 6)
@@ -865,93 +872,146 @@ slide::MediaItem &SlideScene::getMediaItem(const MediaAnnotation &annotation, co
 {
     for (auto &mediaitem : mediaItems)
     {
-        if (mediaitem.annotation == annotation && mediaitem.player)
+        if (mediaitem.annotation == annotation && mediaitem.type != slide::MediaItem::InvalidMedia)
         {
             mediaitem.pages.insert(page);
             debug_msg(DebugMedia, "Found media in cache" << annotation.file << annotation.rect << QList<int>(mediaitem.pages.cbegin(), mediaitem.pages.cend()));
             return mediaitem;
         }
     }
-    debug_msg(DebugMedia, "Loading new media" << annotation.file << annotation.rect);
-    MediaPlayer *player = new MediaPlayer(this);
+
+    // Determine media type from the URL scheme
+    // TODO: some more heuristic checks
+    slide::MediaItem new_item;
+    new_item.annotation = annotation;
+    new_item.pages = {page};
+    if (annotation.type != MediaAnnotation::VideoExternal)
+        new_item.type = slide::MediaItem::ControlledMedia;
+    else if (annotation.file.scheme() == "v4l" || annotation.file.scheme() == "v4l2" || annotation.file.scheme() == "cam")
+        new_item.type = slide::MediaItem::Camera;
+    else if (annotation.file.scheme() == "udp" || annotation.file.scheme() == "rtp")
+        new_item.type = slide::MediaItem::LiveStream;
+    else
+        new_item.type = slide::MediaItem::ControlledMedia;
+
+    const bool mute = (slide_flags & MuteSlide) || (preferences()->global_flags & Preferences::MuteApplication) || annotation.volume <= 0.;
 #if (QT_VERSION_MAJOR >= 6)
-    QAudioOutput *audio_out = NULL;
-    if (annotation.type & MediaAnnotation::HasAudio)
-    {
-        audio_out = new QAudioOutput(this);
-        if ((slide_flags & MuteSlide) || (preferences()->global_flags & Preferences::MuteApplication) || annotation.volume <= 0.)
-            audio_out->setMuted(true);
-        else
-            audio_out->setVolume(annotation.volume);
-        debug_msg(DebugMedia, "muted:" << audio_out->isMuted() << "volume:" << audio_out->volume());
-    }
-    player->setAudioOutput(audio_out);
-#else
-    if (annotation.type & MediaAnnotation::HasAudio)
-    {
-        if ((slide_flags & MuteSlide) || (preferences()->global_flags & Preferences::MuteApplication) || annotation.volume <= 0.)
-            player->setMuted(true);
-        else
-            player->setVolume(100*annotation.volume);
-        debug_msg(DebugMedia, "muted:" << player->isMuted() << "volume:" << player->volume());
-    }
+        if (annotation.type & MediaAnnotation::HasAudio)
+        {
+            new_item.audio_out = new QAudioOutput(this);
+            new_item.audio_out->setVolume(annotation.volume);
+            new_item.audio_out->setMuted(mute);
+        }
 #endif
-    QGraphicsVideoItem *item = NULL;
+
+    debug_msg(DebugMedia, "Loading new media" << annotation.file << annotation.rect << new_item.type);
+
     if (annotation.type & MediaAnnotation::HasVideo)
     {
-        item = new QGraphicsVideoItem;
-        player->setVideoOutput(item);
+        new_item.item = new QGraphicsVideoItem;
 #if (QT_VERSION_MAJOR < 6)
         // Ugly fix to cache videos: show invisible video pixel
-        item->setSize({1,1});
-        item->setPos(sceneRect().bottomRight());
-        addItem(item);
-        item->show();
+        new_item.item->setSize({1,1});
+        new_item.item->setPos(sceneRect().bottomRight());
+        addItem(new_item.item);
+        new_item.item->show();
 #endif
     }
-    if ((annotation.type & MediaAnnotation::Embedded) == 0)
+
+    // Handle different media types
+    switch (new_item.type)
+    {
+    case slide::MediaItem::BasicMedia:
+    case slide::MediaItem::LiveStream:
+    case slide::MediaItem::ControlledMedia:
+    {
+        const auto player = new MediaPlayer(this);
+        new_item.aux = player;
+        if (annotation.type & MediaAnnotation::HasVideo)
+            player->setVideoOutput(new_item.item);
 #if (QT_VERSION_MAJOR >= 6)
-        player->setSource(annotation.file);
+        player->setAudioOutput(new_item.audio_out);
 #else
-    {
-        QMediaPlaylist *playlist = new QMediaPlaylist(player);
-        playlist->addMedia(annotation.file);
-        player->setPlaylist(playlist);
-    }
+        if (annotation.type & MediaAnnotation::HasAudio)
+        {
+            player->setVolume(100*annotation.volume);
+            player->setMuted(mute);
+        }
 #endif
-    else
-    {
-        qWarning() << "Embedded media are currently not supported.";
-        //QBuffer *buffer = new QBuffer(player);
-        //buffer->setData(static_cast<const EmbeddedMedia&>(annotation).data);
-        //buffer->open(QBuffer::ReadOnly);
-        //player->setSourceDevice(buffer);
-    }
-    switch (annotation.mode)
-    {
-    case MediaAnnotation::Once:
-    case MediaAnnotation::Open:
+        if ((annotation.type & MediaAnnotation::Embedded) == 0)
+        {
+#if (QT_VERSION_MAJOR >= 6)
+            player->setSource(annotation.file);
+#else
+            QMediaPlaylist *playlist = new QMediaPlaylist(player);
+            playlist->addMedia(annotation.file);
+            player->setPlaylist(playlist);
+#endif
+        }
+        else
+        {
+            qWarning() << "Embedded media are currently not supported.";
+            //QBuffer *buffer = new QBuffer(player);
+            //buffer->setData(static_cast<const EmbeddedMedia&>(annotation).data);
+            //buffer->open(QBuffer::ReadOnly);
+            //player->setSourceDevice(buffer);
+        }
+
+        // Check playback mode (only relevant for controlled media)
+        switch (annotation.mode)
+        {
+        case MediaAnnotation::Once:
+        case MediaAnnotation::Open:
+            break;
+        case MediaAnnotation::Palindrome:
+            qWarning() << "Palindrome video: not implemented (yet)";
+            // TODO
+        case MediaAnnotation::Repeat:
+        default:
+#if (QT_VERSION_MAJOR >= 6)
+            player->setLoops(QMediaPlayer::Infinite);
+            connect(player, &MediaPlayer::mediaStatusChanged, player, &MediaPlayer::repeatIfFinished);
+#else
+            if (player->playlist())
+                player->playlist()->setPlaybackMode(QMediaPlaylist::CurrentItemInLoop);
+#endif
+            break;
+        }
         break;
-    case MediaAnnotation::Palindrome:
-        qWarning() << "Palindrome video: not implemented (yet)";
-        // TODO
-        [[clang::fallthrough]];
-    case MediaAnnotation::Repeat:
-    default:
-#if (QT_VERSION_MAJOR >= 6)
-        player->setLoops(QMediaPlayer::Infinite);
-        connect(player, &MediaPlayer::mediaStatusChanged, player, &MediaPlayer::repeatIfFinished);
-#else
-        if (player->playlist())
-            player->playlist()->setPlaybackMode(QMediaPlaylist::CurrentItemInLoop);
-#endif
+    }
+#if defined(USE_WEBCAMS) && (QT_VERSION_MAJOR >= 6)
+    case slide::MediaItem::Camera:
+    {
+        if (annotation.type & MediaAnnotation::HasVideo == 0)
+            break;
+        const auto cameras = QMediaDevices::videoInputs();
+        QCamera *camera = nullptr;
+        debug_msg(DebugMedia, annotation.file.scheme() << annotation.file.authority() << annotation.file.path());
+        for (const auto &cam : cameras)
+        {
+            debug_msg(DebugMedia, cam.id() << cam.description());
+            if (cam.id() == annotation.file.path())
+            {
+                camera = new QCamera(cam);
+                break;
+            }
+        }
+        if (camera == nullptr)
+            camera = new QCamera(QMediaDevices::defaultVideoInput());
+        if (camera == nullptr)
+            break;
+        const auto session = new QMediaCaptureSession();
+        new_item.aux = session;
+        session->setCamera(camera);
+        camera->start();
+        session->setVideoSink(new_item.item->videoSink());
+        if (annotation.type & MediaAnnotation::HasAudio)
+            session->setAudioOutput(new_item.audio_out);
         break;
     }
-#if (QT_VERSION_MAJOR >= 6)
-    mediaItems.append({annotation, item, player, audio_out, {page}});
-#else
-    mediaItems.append({annotation, item, player, {page}});
 #endif
+    }
+    mediaItems.append(new_item);
     return mediaItems.last();
 }
 
@@ -1483,21 +1543,21 @@ bool SlideScene::noToolClicked(const QPointF &pos, const QPointF &startpos)
     for (auto &item : mediaItems)
 #if __cplusplus >= 202002L
         // std::set<T>.contains is only available since C++ 20
-        if (item.pages.contains(page &~NotFullPage) && item.annotation.rect.contains(pos) && item.player)
+        if (item.pages.contains(page &~NotFullPage) && item.annotation.rect.contains(pos) && item.type == slide::MediaItem::ControlledMedia)
 #else
-        if (item.pages.find(page &~NotFullPage) != item.pages.end() && item.annotation.rect.contains(pos) && item.player)
+        if (item.pages.find(page &~NotFullPage) != item.pages.end() && item.annotation.rect.contains(pos) && item.type == slide::MediaItem::ControlledMedia)
 #endif
         {
             if (startpos.isNull() || item.annotation.rect.contains(startpos))
             {
 #if (QT_VERSION_MAJOR >= 6)
-                if (item.player->playbackState() == QMediaPlayer::PlayingState)
+                if (static_cast<MediaPlayer*>(item.aux)->playbackState() == QMediaPlayer::PlayingState)
 #else
-                if (item.player->state() == QMediaPlayer::PlayingState)
+                if (static_cast<MediaPlayer*>(item.aux)->state() == QMediaPlayer::PlayingState)
 #endif
-                    item.player->pause();
+                    static_cast<MediaPlayer*>(item.aux)->pause();
                 else
-                    item.player->play();
+                    static_cast<MediaPlayer*>(item.aux)->play();
                 return true;
             }
             break;
@@ -1534,9 +1594,9 @@ bool SlideScene::noToolClicked(const QPointF &pos, const QPointF &startpos)
                 addItem(item.item);
                 did_something = true;
             }
-            if (item.player)
+            if (item.type == slide::MediaItem::ControlledMedia)
             {
-                item.player->play();
+                static_cast<MediaPlayer*>(item.aux)->play();
                 did_something = true;
             }
             break;
@@ -1551,11 +1611,14 @@ bool SlideScene::noToolClicked(const QPointF &pos, const QPointF &startpos)
 void SlideScene::createSliders() const
 {
     for (auto &item : mediaItems)
+        if (
 #if __cplusplus >= 202002L
-        if (item.pages.contains(page &~NotFullPage) && item.player)
+            item.pages.contains(page &~NotFullPage)
 #else
-        if (item.pages.find(page &~NotFullPage) != item.pages.end() && item.player)
+            item.pages.find(page &~NotFullPage) != item.pages.end()
 #endif
+            && item.type == slide::MediaItem::ControlledMedia
+            && item.aux)
         {
             for (const auto view : static_cast<const QList<QGraphicsView*>>(views()))
                 static_cast<SlideView*>(view)->addMediaSlider(item);
@@ -1565,23 +1628,29 @@ void SlideScene::createSliders() const
 void SlideScene::playMedia() const
 {
     for (auto &item : mediaItems)
+        if (
 #if __cplusplus >= 202002L
-        if (item.pages.contains(page &~NotFullPage) && item.player)
+            item.pages.contains(page &~NotFullPage)
 #else
-        if (item.pages.find(page &~NotFullPage) != item.pages.end() && item.player)
+            item.pages.find(page &~NotFullPage) != item.pages.end()
 #endif
-            item.player->play();
+            && item.type == slide::MediaItem::ControlledMedia
+            && item.aux)
+            static_cast<MediaPlayer*>(item.aux)->play();
 }
 
 void SlideScene::pauseMedia() const
 {
     for (auto &item : mediaItems)
+        if (
 #if __cplusplus >= 202002L
-        if (item.pages.contains(page &~NotFullPage) && item.player)
+            item.pages.contains(page &~NotFullPage)
 #else
-        if (item.pages.find(page &~NotFullPage) != item.pages.end() && item.player)
+            item.pages.find(page &~NotFullPage) != item.pages.end()
 #endif
-            item.player->pause();
+            && item.type == slide::MediaItem::ControlledMedia
+            && item.aux)
+            static_cast<MediaPlayer*>(item.aux)->pause();
 }
 
 void SlideScene::playPauseMedia() const
@@ -1593,11 +1662,12 @@ void SlideScene::playPauseMedia() const
 #else
                 item.pages.find(page &~NotFullPage) != item.pages.end()
 #endif
-                && item.player
+                && item.type == slide::MediaItem::ControlledMedia
+                && item.aux
 #if (QT_VERSION_MAJOR >= 6)
-                && item.player->playbackState() == QMediaPlayer::PlayingState
+                && static_cast<MediaPlayer*>(item.aux)->playbackState() == QMediaPlayer::PlayingState
 #else
-                && item.player->state() == QMediaPlayer::PlayingState
+                && static_cast<MediaPlayer*>(item.aux)->state() == QMediaPlayer::PlayingState
 #endif
             )
         {

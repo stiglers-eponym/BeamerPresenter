@@ -852,7 +852,6 @@ void Master::handleAction(const Action action)
     case Quit:
         if (!askCloseConfirmation())
             break;
-        [[clang::fallthrough]];
     case QuitNoConfirmation:
         for (const auto window : qAsConst(windows))
             window->close();
