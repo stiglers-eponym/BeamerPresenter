@@ -4,6 +4,7 @@
 #ifndef SLIDESCENE_H
 #define SLIDESCENE_H
 
+#include "src/config.h"
 #include <set>
 #include <map>
 #include <QList>
@@ -11,23 +12,25 @@
 #include <QRectF>
 #include <QTabletEvent>
 #include <QGraphicsScene>
-#include "src/config.h"
+#include <QGraphicsVideoItem>
+#if (QT_VERSION_MAJOR >= 6)
+#include <QAudioOutput>
+#ifdef USE_WEBCAMS
+#include <QMediaCaptureSession>
+#include <QCamera>
+#endif
+#endif
 #include "src/enumerates.h"
 #include "src/drawing/tool.h"
 #include "src/rendering/pdfdocument.h"
+#include "src/rendering/mediaplayer.h"
 #include "src/drawing/textgraphicsitem.h"
 #include "src/drawing/selectionrectitem.h"
 
 class QAbstractAnimation;
 class QGraphicsItem;
 class QGraphicsRectItem;
-class QGraphicsVideoItem;
 class PdfMaster;
-class MediaPlayer;
-#if (QT_VERSION_MAJOR >= 6)
-class QAudioOutput;
-class QMediaCaptureSession;
-#endif
 class DrawTool;
 class TextTool;
 class PointingTool;
@@ -72,6 +75,55 @@ namespace slide
 
         /// Type-dependent auxilliary objects
         QObject *aux = nullptr;
+
+        /// Delete all dynamically allocated objects.
+        void clear()
+        {
+            delete item;
+            item = nullptr;
+#if (QT_VERSION_MAJOR >= 6)
+            delete audio_out;
+            audio_out = nullptr;
+#ifdef USE_WEBCAMS
+            if (type == Camera && aux)
+                delete static_cast<QMediaCaptureSession*>(aux)->camera();
+#endif
+#endif
+            delete aux;
+            aux = nullptr;
+        }
+
+        /// Play media if the player exists and controlls are enabled.
+        void play() const
+        {
+            if (type == ControlledMedia && aux)
+                static_cast<MediaPlayer*>(aux)->play();
+        }
+
+        /// Pause media if the player exists and controlls are enabled.
+        void pause() const
+        {
+            if (type == ControlledMedia && aux)
+                static_cast<MediaPlayer*>(aux)->pause();
+        }
+
+        /// Toggle play/pause if the player exists and controlls are enabled.
+        void toggle() const
+        {
+            if (type != ControlledMedia || !aux)
+                return;
+            const auto player = static_cast<MediaPlayer*>(aux);
+#if (QT_VERSION_MAJOR < 6)
+            if (player->state() == QMediaPlayer::PlayingState)
+#elif (QT_VERSION_MAJOR == 6) && (QT_VERSION_MINOR < 5)
+            if (player->playbackState() == QMediaPlayer::PlayingState)
+#else
+            if (player->isPlaying())
+#endif
+                player->pause();
+            else
+                player->play();
+        }
     };
 }
 Q_DECLARE_METATYPE(slide::MediaItem)

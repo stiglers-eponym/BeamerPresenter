@@ -11,6 +11,7 @@
 * copy and paste to/from image formats:
     * paste only as picture (no erasing possible)
     * this adds the Qt SVG module as a dependency
+* new feature: allow camera (webcam) output as input for videos
 * internal: different drawing history, memory management, and stacking order mechanism
 * various bug fixes
 

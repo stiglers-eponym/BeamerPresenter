@@ -147,6 +147,21 @@ When opening a file, it does not need to be gzipped. However, when saving to a f
 Note: When saving as .xopp file in BeamerPresenter, only annotations will be saved. Notes and duration will not be saved if the file name ends with .xopp.
 .
 .
+.SH PDF FEATURES / MULTIMEDIA
+.
+BeamerPresenter is aimed at implementing those features in the PDF standard that can reasonably be used in presentations. JavaScript is explicitly excluded and there is currently no plan to implement 3D artwork. Basic implementations exist for slide transitions and multimedia content.
+.PP
+Only external multimedia content (movies and sounds) is supported. Embedded files will be ignored. Furthermore, only the Poppler PDF engine currently supports sound links. Sounds may thus be missing when using the MuPDF engine. As a workaround, sounds can be included as if they were videos. Supported audio/video formats depend on the media player backend.
+.PP
+Media sources in the PDF may be local files or URLs. The following URL schemes are treated specially:
+.TP
+udp / rtp
+It is assumed that this shall be a live stream. Play/pause is disabled and there is no slider. Example: udp://127.0.0.1:8010
+.TP
+v4l / v4l2 / cam
+The URL path is interpreted as the id of a camera. In Linux, this is usually of the form /dev/video0. The live view of the camera with the given id (or the default camera) is shown without any media controls. Example: v4l2:///dev/video0
+.
+.
 .SH BUGS
 .
 If you find bugs, please reported these at the

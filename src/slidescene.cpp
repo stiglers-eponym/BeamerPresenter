@@ -90,14 +90,8 @@ SlideScene::~SlideScene()
         removeItem(list.takeLast());
     delete pageItem;
     delete pageTransitionItem;
-    for (const auto &media : mediaItems)
-    {
-        delete media.item;
-        delete media.aux;
-#if (QT_VERSION_MAJOR >= 6)
-        delete media.audio_out;
-#endif
-    }
+    for (auto &media : mediaItems)
+        media.clear();
     mediaItems.clear();
     delete currentlyDrawnItem;
     delete currentItemCollection;
@@ -698,14 +692,8 @@ void SlideScene::receiveAction(const Action action)
         setFocusItem(nullptr);
         break;
     case PdfFilesChanged:
-        for (const auto &media : mediaItems)
-        {
-            delete media.item;
-            delete media.aux;
-#if (QT_VERSION_MAJOR >= 6)
-            delete media.audio_out;
-#endif
-        }
+        for (auto &media : mediaItems)
+            media.clear();
         mediaItems.clear();
         break;
     default:
@@ -818,8 +806,8 @@ void SlideScene::loadMedia(const int page)
                 addItem(item.item);
             }
             // TODO: control autoplay audio
-            if (item.type == slide::MediaItem::ControlledMedia && slide_flags & AutoplayVideo)
-                static_cast<MediaPlayer*>(item.aux)->play();
+            if (slide_flags & AutoplayVideo)
+                item.play();
         }
     }
 }
@@ -847,15 +835,7 @@ void SlideScene::postRendering()
                     continue;
             }
             debug_msg(DebugMedia, "Deleting media item:" << media.annotation.file << media.pages.size());
-            // TODO: clean up properly!
-            delete media.aux;
-            media.aux = nullptr;
-            delete media.item;
-            media.item = nullptr;
-#if (QT_VERSION_MAJOR >= 6)
-            delete media.audio_out;
-            media.audio_out = nullptr;
-#endif
+            media.clear();
         }
     }
 }
@@ -1550,14 +1530,7 @@ bool SlideScene::noToolClicked(const QPointF &pos, const QPointF &startpos)
         {
             if (startpos.isNull() || item.annotation.rect.contains(startpos))
             {
-#if (QT_VERSION_MAJOR >= 6)
-                if (static_cast<MediaPlayer*>(item.aux)->playbackState() == QMediaPlayer::PlayingState)
-#else
-                if (static_cast<MediaPlayer*>(item.aux)->state() == QMediaPlayer::PlayingState)
-#endif
-                    static_cast<MediaPlayer*>(item.aux)->pause();
-                else
-                    static_cast<MediaPlayer*>(item.aux)->play();
+                item.toggle();
                 return true;
             }
             break;
@@ -1596,7 +1569,7 @@ bool SlideScene::noToolClicked(const QPointF &pos, const QPointF &startpos)
             }
             if (item.type == slide::MediaItem::ControlledMedia)
             {
-                static_cast<MediaPlayer*>(item.aux)->play();
+                item.play();
                 did_something = true;
             }
             break;
@@ -1634,9 +1607,8 @@ void SlideScene::playMedia() const
 #else
             item.pages.find(page &~NotFullPage) != item.pages.end()
 #endif
-            && item.type == slide::MediaItem::ControlledMedia
-            && item.aux)
-            static_cast<MediaPlayer*>(item.aux)->play();
+            )
+            item.play();
 }
 
 void SlideScene::pauseMedia() const
@@ -1648,9 +1620,8 @@ void SlideScene::pauseMedia() const
 #else
             item.pages.find(page &~NotFullPage) != item.pages.end()
 #endif
-            && item.type == slide::MediaItem::ControlledMedia
-            && item.aux)
-            static_cast<MediaPlayer*>(item.aux)->pause();
+            )
+            item.pause();
 }
 
 void SlideScene::playPauseMedia() const
