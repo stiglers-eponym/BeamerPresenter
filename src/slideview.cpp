@@ -362,7 +362,7 @@ void SlideView::drawForeground(QPainter *painter, const QRectF &rect)
             if (m.pages.find(page) != m.pages.end())
 #endif
                 painter->setPen(QPen(Qt::red, 1));
-            else if (m.type == slide::MediaItem::ControlledMedia && m.aux)
+            else if (m.aux)
                 painter->setPen(QPen(Qt::green, 0.75));
             else
                 painter->setPen(QPen(Qt::blue, 0.75));
@@ -413,7 +413,7 @@ void SlideView::showTorch(QPainter *painter, const PointingTool *tool) noexcept
 
 void SlideView::addMediaSlider(const slide::MediaItem &media)
 {
-    if (!(view_flags & MediaControls) || media.type != slide::MediaItem::ControlledMedia)
+    if (!((view_flags & MediaControls) && (media.flags & slide::MediaItem::ShowSlider)))
         return;
     const MediaPlayer *player = static_cast<const MediaPlayer*>(media.aux);
     MediaSlider *slider = new MediaSlider(this);

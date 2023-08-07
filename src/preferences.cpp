@@ -711,34 +711,45 @@ QUrl Preferences::resolvePath(const QString &identifier) const noexcept
         basedir = QDir(document->getPath());
         basedir.cdUp();
     }
-    // First check if identifier is a local file given as absoltue path or
-    // as path relative to the presentation directory.
-    if (basedir.exists(identifier))
-        return QUrl::fromLocalFile(basedir.absoluteFilePath(identifier));
-    // Next check if identifier is a path relative to the current directory.
-    if (QFileInfo::exists(identifier))
-        return QUrl::fromLocalFile(QDir().absoluteFilePath(identifier));
-    // Next use QUrl heuristics to find a url, interpreting local files relative to the presentation directory.
-    const QUrl url = QUrl::fromUserInput(identifier, basedir.absolutePath());
-    if (url.isLocalFile())
+    QUrl url(identifier);
+
+    // 1. If no scheme is specified: Check if URL refers to a local file
+    if (url.isRelative())
     {
-        const QString path = url.toLocalFile();
-        if (QDir::isAbsolutePath(path))
+        if (basedir.exists(url.path()))
         {
-            if (QFileInfo::exists(path))
-                return url;
-            return QUrl();
+            url.setScheme("file");
+            url.setPath(basedir.absoluteFilePath(url.path()));
+            return url;
         }
-        if (basedir.exists(path))
-            return QUrl::fromLocalFile(basedir.absoluteFilePath(path));
-        if (QFileInfo::exists(path))
-            return QUrl::fromLocalFile(QDir().absoluteFilePath(path));
-        return QUrl();
+        if (QFileInfo::exists(url.path()))
+        {
+            url.setScheme("file");
+            if (QDir::isRelativePath(url.path()))
+                url.setPath(QDir().absoluteFilePath(url.path()));
+            return url;
+        }
+        // Fall back to heuristics (might be unsafe!)
+        url = QUrl::fromUserInput(identifier, basedir.absolutePath());
     }
-    // Remote URLs are only returned if external links are enabled.
-    if ((global_flags & OpenExternalLinks))
+
+    // 2. If scheme to local file is explicitly specified
+    // Check basedir and relative to local path.
+    static const QStringList local_schemes {"v4l2", "v4l", "cam", "file"};
+    if (local_schemes.contains(url.scheme()))
+    {
+        if (basedir.exists(url.path()))
+            url.setPath(basedir.absoluteFilePath(url.path()));
+        if (QFileInfo::exists(url.path()) && QDir::isRelativePath(url.path()))
+            url.setPath(QDir().absoluteFilePath(url.path()));
         return url;
-    return QUrl();
+    }
+
+    // 3. If a scheme other than file is specified
+    if (global_flags & OpenExternalLinks)
+        return url;
+    else
+        return QUrl();
 }
 
 Tool *Preferences::currentTool(const int device) const noexcept

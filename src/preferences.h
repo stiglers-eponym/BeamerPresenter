@@ -259,7 +259,7 @@ public:
     /// Convert given file identifier to URL. If a relative path is provided,
     /// first check relative to the directory of the presentation PDF.
     /// Remote URLs are only returned if external links are enabled.
-    /// The returned URL may be invalid.
+    /// The returned URL may be empty or invalid.
     QUrl resolvePath(const QString &identifier) const noexcept;
 
     /// Get the current tool for a given input device or NULL if there is no

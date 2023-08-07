@@ -705,7 +705,10 @@ QList<MediaAnnotation> MuPdfDocument::annotations(const int page) const
                 const QUrl url = preferences()->resolvePath(pdf_dict_get_text_string(ctx, media_obj, PDF_NAME(F)));
                 //pdf_drop_obj(ctx, media_obj);
                 if (!url.isValid())
+                {
+                    debug_msg(DebugMedia, "Invalid URL given:" << url);
                     continue;
+                }
                 const fz_rect bound = pdf_bound_annot(ctx, annot);
                 list.append(MediaAnnotation(
                             url,

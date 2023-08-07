@@ -50,19 +50,27 @@ namespace drawHistory {
 
 namespace slide
 {
+    /// Everything needed to show a media annotation on the SlideScene.
     struct MediaItem
     {
-        enum {
-            InvalidMedia,
-            BasicMedia,
-            ControlledMedia,
-            LiveStream,
-            Camera,
-        } type = InvalidMedia;
+        enum Flags {
+            IsPlayer = 0x01, ///< aux is MediaPlayer*
+            IsCaptureSession = 0x02, ///< aux is QMediaCaptureSession*
+            IsLive = 0x04, ///< shows a live video
+            Autoplay = 0x08, ///< autoplay video
+            ShowSlider = 0x10, ///< show slider on control screen
+            AllowPause = 0x20, ///< allow pausing the video
+            Mute = 0x40, ///< mute audio
+            Default = 0x39, ///< player with autoplay and every possible user interaction
+            DefaultLive = 0x0d, ///< player with live view, autoplay, and no user interaction
+            DefaultCamera = 0x0e, ///< camera with live view, autoplay, and no user interaction
+        };
+        /// flags: defines type and user interaction
+        int flags = 0;
 
-        /// basic information about video from PDF
+        /// the PDF media annotation: basic information about video
         MediaAnnotation annotation;
-        /// QGraphicsItem representing the video
+        /// QGraphicsItem showing the video
         QGraphicsVideoItem *item = nullptr;
 #if (QT_VERSION_MAJOR >= 6)
         /// Audio output
@@ -73,7 +81,9 @@ namespace slide
         /// to be visible also on the new page.
         std::set<int> pages;
 
-        /// Type-dependent auxilliary objects
+        /// Type-dependent auxilliary object:
+        ///  * MediaPlayer* if type is one of BasicMedia, ControlledMedia, LiveStream
+        ///  * QMediaCaptureSession* if type is Camera
         QObject *aux = nullptr;
 
         /// Delete all dynamically allocated objects.
@@ -85,7 +95,7 @@ namespace slide
             delete audio_out;
             audio_out = nullptr;
 #ifdef USE_WEBCAMS
-            if (type == Camera && aux)
+            if ((flags & IsCaptureSession) && aux)
                 delete static_cast<QMediaCaptureSession*>(aux)->camera();
 #endif
 #endif
@@ -96,33 +106,38 @@ namespace slide
         /// Play media if the player exists and controlls are enabled.
         void play() const
         {
-            if (type == ControlledMedia && aux)
+            if ((flags & IsPlayer) && aux)
                 static_cast<MediaPlayer*>(aux)->play();
         }
 
         /// Pause media if the player exists and controlls are enabled.
         void pause() const
         {
-            if (type == ControlledMedia && aux)
+            if (((flags & (IsPlayer|AllowPause)) == (IsPlayer|AllowPause)) && aux)
                 static_cast<MediaPlayer*>(aux)->pause();
         }
 
         /// Toggle play/pause if the player exists and controlls are enabled.
-        void toggle() const
+        bool toggle() const
         {
-            if (type != ControlledMedia || !aux)
-                return;
-            const auto player = static_cast<MediaPlayer*>(aux);
+            if ((flags & IsPlayer) && aux)
+            {
+                const auto player = static_cast<MediaPlayer*>(aux);
 #if (QT_VERSION_MAJOR < 6)
-            if (player->state() == QMediaPlayer::PlayingState)
+                if (player->state() != QMediaPlayer::PlayingState)
 #elif (QT_VERSION_MAJOR == 6) && (QT_VERSION_MINOR < 5)
-            if (player->playbackState() == QMediaPlayer::PlayingState)
+                if (player->playbackState() != QMediaPlayer::PlayingState)
 #else
-            if (player->isPlaying())
+                if (!player->isPlaying())
 #endif
-                player->pause();
-            else
-                player->play();
+                    player->play();
+                else if (flags & AllowPause)
+                    player->pause();
+                else
+                    return false;
+                return true;
+            }
+            return false;
         }
     };
 }
