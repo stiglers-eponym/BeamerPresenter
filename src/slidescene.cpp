@@ -12,8 +12,8 @@
 #include <QByteArray>
 #include <QDataStream>
 #include <QGraphicsVideoItem>
-#include <QVideoSink>
 #if defined(USE_WEBCAMS) && (QT_VERSION_MAJOR >= 6)
+#include <QVideoSink>
 #include <QCamera>
 #include <QCameraDevice>
 #include <QMediaCaptureSession>
@@ -631,19 +631,19 @@ void SlideScene::receiveAction(const Action action)
             if (m.audio_out)
                 m.audio_out->setMuted(true);
 #else
-            if (m.player)
-                m.player->setMuted(true);
+            if ((m.flags & slide::MediaItem::IsPlayer) && m.aux)
+                static_cast<MediaPlayer*>(m.aux)->setMuted(true);
 #endif
         break;
     case Unmute:
         if (!(slide_flags & SlideFlags::MuteSlide))
             for (const auto &m : qAsConst(mediaItems))
 #if (QT_VERSION_MAJOR >= 6)
-                if (m.audio_out)
+                if (m.audio_out && !(m.flags & slide::MediaItem::Mute))
                     m.audio_out->setMuted(false);
 #else
-                if (m.player)
-                    m.player->setMuted(false);
+            if ((m.flags & slide::MediaItem::IsPlayer) && m.aux && !(m.flags & slide::MediaItem::Mute))
+                static_cast<MediaPlayer*>(m.aux)->setMuted(false);
 #endif
         break;
     case CopyClipboard:
