@@ -111,7 +111,7 @@ BasicGraphicsPath *ShapeRecognizer::recognizeLine() const
     if (path->size() < 3 || moments.s == 0.)
         return nullptr;
     const Line line = moments.line();
-    const qreal margin = path->_tool.width();
+    const qreal margin = path->_tool.width() / 2;
     debug_msg(DebugDrawing, "recognize line:" << line.bx << line.by << line.angle << line.loss);
     if (line.loss > preferences()->line_sensitivity)
         return nullptr;
@@ -180,7 +180,7 @@ BasicGraphicsPath *ShapeRecognizer::recognizeLine() const
 void ShapeRecognizer::findLines() noexcept
 {
     // 1. Collect line segments.
-    qreal oldloss=-1;
+    qreal oldloss = -1;
     const int step = path->size() >= 2*PATH_SEGMENTS_LINE ? path->size() / PATH_SEGMENTS_LINE : 1;
     const QPointF *p;
     QList<Line> segment_lines;
@@ -340,7 +340,7 @@ BasicGraphicsPath *ShapeRecognizer::recognizeRect() const
                 right = std::max(std::max(std::max(p1.x(), p2.x()), p3.x()), p4.x()),
                 top = std::min(std::min(std::min(p1.y(), p2.y()), p3.y()), p4.y()),
                 bottom = std::max(std::max(std::max(p1.y(), p2.y()), p3.y()), p4.y()),
-                margin = path->_tool.width();
+                margin = path->_tool.width() / 2;
     const QRectF boundingRect(left-margin, top-margin, right-left+2*margin, bottom-top+2*margin);
 
     // Compute the path width (only for FullGraphicsPath).
@@ -412,7 +412,7 @@ BasicGraphicsPath *ShapeRecognizer::recognizeEllipse() const
     const int segments = (rx + ry) * CURVED_POINT_DENSITY + CURVED_MIN_POINTS;
     const qreal
             phasestep = 2*PI / segments,
-            margin = path->_tool.width();
+            margin = path->_tool.width() / 2;
     QVector<QPointF> coordinates(segments+1);
     for (int i=0; i<segments; ++i)
         coordinates[i] = {rx*std::sin(phasestep*i), ry*std::cos(phasestep*i)};

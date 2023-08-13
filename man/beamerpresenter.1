@@ -160,7 +160,7 @@ Media sources in the PDF may be local files or URLs. BeamerPresenter interprets 
 It is assumed that this shall be a live stream. By default, play/pause is disabled and there is no slider.
 .TP
 .BR v4l ", " v4l2 ", " cam
-The URL path is interpreted as the id of a camera. In Linux, this is usually of the form /dev/video0. The live view of the camera with the given id is shown without any media controls. This option is only available in Qt 6.
+The URL path is interpreted as the id of a camera. In Linux, this is usually of the form /dev/video0. The live view of the camera with the given id is shown without any media controls. This option is only available in Qt 6 and must be enabled at compile time.
 .
 .PP
 .
@@ -187,7 +187,7 @@ udp://127.0.0.1:8010?mute=false&interaction=true
 Show a stream from given URL without audio. The udp scheme changes the default options to live=true, slider=false, interaction=false. Here we override the option for interaction. Note this source will be blocked unless external links are enabled in the configuration.
 .TP
 v4l2:///dev/video0?autoplay=false
-Show the output of the default webcam in GNU+Linux (Qt 6 only).
+Show the output of the default webcam in GNU+Linux (Qt 6 only, option must be enabled at compile time).
 .TP
 /tmp/movie.mp4
 Local file, specified as absolute path.
