@@ -208,6 +208,17 @@ bool SlideScene::event(QEvent* event)
         start_pos = mouseevent->buttonDownScenePos(mouseevent->button());
         break;
     }
+    case QEvent::GraphicsSceneMouseDoubleClick:
+    {
+        // Double click: These events are ignored, except if a text tool is used.
+        const auto *mouseevent = static_cast<QGraphicsSceneMouseEvent*>(event);
+        device = (mouseevent->buttons() << 1) | Tool::StartEvent;
+        Tool *tool = preferences()->currentTool(mouseevent->buttons() << 1);
+        if (tool && tool->tool() == Tool::TextInputTool)
+            return QGraphicsScene::event(event);
+        event->accept();
+        return false;
+    }
     case QEvent::TouchBegin:
     {
         device = int(Tool::TouchInput) | Tool::StartEvent;
@@ -296,11 +307,11 @@ bool SlideScene::event(QEvent* event)
 bool SlideScene::handleEvents(const int device, const QList<QPointF> &pos, const QPointF &start_pos, const float pressure)
 {
     Tool *tool = preferences()->currentTool(device & Tool::AnyDevice);
-    if (!tool)
+    if (!tool || tool->tool() == Tool::NoTool)
     {
         if ((device & Tool::AnyEvent) == Tool::StopEvent && pos.size() == 1)
-            return noToolClicked(pos.constFirst(), start_pos);
-        return false;
+            noToolClicked(pos.constFirst(), start_pos);
+        return true;
     }
 
     debug_verbose(DebugDrawing, "Handling event" << tool->tool() << tool->device() << device);
@@ -910,7 +921,7 @@ void SlideScene::loadMediaItem(slide::MediaItem &item)
                       || item.annotation.volume <= 0.
                       || (item.flags & slide::MediaItem::Mute);
 #if (QT_VERSION_MAJOR >= 6)
-    if (item.annotation.type & MediaAnnotation::HasAudio && !item.audio_out)
+    if (item.annotation.type & MediaAnnotation::HasAudio)
     {
         item.audio_out = new QAudioOutput(this);
         item.audio_out->setVolume(item.annotation.volume);
@@ -935,7 +946,6 @@ void SlideScene::loadMediaItem(slide::MediaItem &item)
     // Handle different media types
     if (item.flags & slide::MediaItem::IsPlayer)
     {
-        delete item.aux;
         const auto player = new MediaPlayer(this);
         item.aux = player;
         if (item.annotation.type & MediaAnnotation::HasVideo)
@@ -1005,7 +1015,6 @@ void SlideScene::loadMediaItem(slide::MediaItem &item)
         }
         if (camera)
         {
-            delete item.aux;
             const auto session = new QMediaCaptureSession();
             item.aux = session;
             session->setCamera(camera);
@@ -1028,6 +1037,7 @@ slide::MediaItem &SlideScene::getMediaItem(const MediaAnnotation &annotation, co
             if (!mediaitem.aux)
             {
                 debug_msg(DebugMedia, "Found cleared media item in cache" << annotation.file << annotation.rect << QList<int>(mediaitem.pages.cbegin(), mediaitem.pages.cend()));
+                mediaitem.clear();
                 loadMediaItem(mediaitem);
             }
             else
@@ -1575,7 +1585,7 @@ bool SlideScene::stopInputEvent(const DrawTool *tool)
 
 bool SlideScene::noToolClicked(const QPointF &pos, const QPointF &startpos)
 {
-    debug_verbose(DebugMedia, "Clicked without tool" << pos << startpos);
+    debug_verbose(DebugMedia|DebugDrawing, "Clicked without tool" << pos << startpos);
     // Try to handle multimedia annotation.
     for (auto &item : mediaItems)
 #if __cplusplus >= 202002L

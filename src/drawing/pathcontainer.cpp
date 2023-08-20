@@ -445,11 +445,18 @@ void PathContainer::eraserMicroStep(const QPointF &scene_pos, const qreal size)
 
 bool PathContainer::applyMicroStep()
 {
-    if (inHistory != -1 || history.empty())
+    if (inHistory != -1)
     {
-        qCritical() << tr("Should apply micro step, but inHistory ==") << inHistory;
+        // TODO: this happens for a double right click
+        qWarning() << "Should apply micro step, but inHistory ==" << inHistory;
+        return false;
+    }
+    if (history.empty())
+    {
+        // This should never happen.
+        qCritical() << tr("Should apply micro step, but history is empty");
         inHistory = 0;
-        return true;
+        return false;
     }
 
     debug_msg(DebugDrawing, "applying micro steps. Deleted items:" << history.last().deletedItems);
@@ -497,9 +504,13 @@ bool PathContainer::applyMicroStep()
         step.createdItems << newItems;
     }
     inHistory = 0;
-
+    if (step.empty())
+    {
+        history.removeLast();
+        return false;
+    }
     limitHistory();
-    return !step.deletedItems.empty();
+    return true;
 }
 
 PathContainer *PathContainer::copy() const noexcept

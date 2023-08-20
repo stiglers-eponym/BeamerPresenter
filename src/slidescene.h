@@ -98,7 +98,7 @@ namespace slide
             delete audio_out;
             audio_out = nullptr;
 #ifdef USE_WEBCAMS
-            if ((flags & IsCaptureSession) && aux)
+            if (aux && (flags & IsCaptureSession))
                 delete static_cast<QMediaCaptureSession*>(aux)->camera();
 #endif
 #endif
@@ -227,6 +227,8 @@ private:
     void startTransition(const int newpage, const SlideTransition &transition);
 
     /// Load content of a media item.
+    /// Before calling this function, the media item must be cleared!
+    /// Otherwise memory leaks will occur.
     void loadMediaItem(slide::MediaItem &item);
 
     /// Search video annotation in cache and create + add it to cache if necessary.

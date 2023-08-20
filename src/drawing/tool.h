@@ -76,6 +76,7 @@ public:
         TabletHover = 1 << 8,
         TouchInput = 1 << 9,
         TabletMod = 1 << 10,
+        MouseDoubleClick = 1 << 11,
         AnyDevice = 0x0fff,
         AnyPointingDevice = AnyDevice ^ (TabletEraser | MouseRightButton | MouseMiddleButton),
         AnyNormalDevice = AnyPointingDevice ^ (TabletHover | MouseNoButton | TabletMod),
@@ -86,15 +87,15 @@ public:
     };
     Q_FLAG(InputDevice)
 
-    /// Distinguish start, stop, update and cancel events.
+    /// Distinguish singular, start, stop, update, and cancel events.
     enum DeviceEventType
     {
-        NoEvent = 1 << 12,
-        StartEvent = 2 << 12,
-        UpdateEvent = 3 << 12,
-        StopEvent = 4 << 12,
-        CancelEvent = 5 << 12,
-        AnyEvent = 0xf000,
+        SingularEvent = 1 << 12, ///< Singular event, e.g. double-click
+        StartEvent = 2 << 12, ///< Start of an event, e.g. push mouse button
+        UpdateEvent = 3 << 12, ///< Update event, e.g. move mouse
+        StopEvent = 4 << 12, ///< End of event, e.g. release mouse button
+        CancelEvent = 5 << 12, ///< Cancel event, e.g. if touch event is recognized as gesture
+        AnyEvent = 0xf000, ///< Any of the mentioned events
     };
 
 protected:
@@ -196,6 +197,7 @@ static const QMap<std::string, int> string_to_input_device
     {QT_TRANSLATE_NOOP("Tool", "right button"), Tool::MouseRightButton},
     {QT_TRANSLATE_NOOP("Tool", "middle button"), Tool::MouseMiddleButton},
     {QT_TRANSLATE_NOOP("Tool", "no button"), Tool::MouseNoButton},
+    {QT_TRANSLATE_NOOP("Tool", "double click"), Tool::MouseDoubleClick},
 };
 
 #endif // TOOL_H
