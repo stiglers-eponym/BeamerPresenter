@@ -814,7 +814,7 @@ void SlideScene::loadMedia(const int page)
 void SlideScene::postRendering()
 {
     pageItem->clearOld();
-    int newpage = page + 1;
+    int newpage = page + 1; ///< newpage is the next page after the currently shown page.
     if (shift & AnyOverlay)
         newpage = master->getDocument()->overlaysShifted(page, 1 | (shift & AnyOverlay));
     if (slide_flags & CacheVideos)
@@ -829,8 +829,11 @@ void SlideScene::postRendering()
                 continue;
             if (!media.pages.empty())
             {
+                // Delete media if the media item is not shown on any of these pages:
+                // page (currently shown), newpage, page-1, page-2
                 const auto it = media.pages.lower_bound(page);
-                if ((it != media.pages.end() && *it <= newpage) || (it != media.pages.begin() && *(std::prev(it)) >= page-1))
+                if ((it != media.pages.end() && (*it == page || *it == newpage))
+                    || (it != media.pages.begin() && *(std::prev(it)) >= page-2))
                     continue;
             }
             debug_msg(DebugMedia, "Deleting media item:" << media.annotation.file << media.pages.size());
@@ -900,78 +903,59 @@ int parseMediaOptions(QUrl &url)
     return flags;
 }
 
-slide::MediaItem &SlideScene::getMediaItem(const MediaAnnotation &annotation, const int page)
+void SlideScene::loadMediaItem(slide::MediaItem &item)
 {
-    for (auto &mediaitem : mediaItems)
-    {
-        if (mediaitem.annotation == annotation && (mediaitem.flags & (slide::MediaItem::IsPlayer|slide::MediaItem::IsCaptureSession)))
-        {
-            mediaitem.pages.insert(page);
-            debug_msg(DebugMedia, "Found media in cache" << annotation.file << annotation.rect << QList<int>(mediaitem.pages.cbegin(), mediaitem.pages.cend()));
-            return mediaitem;
-        }
-    }
-
-#if (QT_VERSION_MAJOR >= 6)
-    slide::MediaItem new_item{0, annotation, nullptr, nullptr, {page}, nullptr};
-#else
-    slide::MediaItem new_item{0, annotation, nullptr, {page}, nullptr};
-#endif
-
-    // Determine media type from the URL
-    QUrl url = annotation.file;
-    new_item.flags = parseMediaOptions(url);
-
     const bool mute = (slide_flags & MuteSlide)
                       || (preferences()->global_flags & Preferences::MuteApplication)
-                      || annotation.volume <= 0.
-                      || (new_item.flags & slide::MediaItem::Mute);
+                      || item.annotation.volume <= 0.
+                      || (item.flags & slide::MediaItem::Mute);
 #if (QT_VERSION_MAJOR >= 6)
-    if (annotation.type & MediaAnnotation::HasAudio)
+    if (item.annotation.type & MediaAnnotation::HasAudio && !item.audio_out)
     {
-        new_item.audio_out = new QAudioOutput(this);
-        new_item.audio_out->setVolume(annotation.volume);
-        new_item.audio_out->setMuted(mute);
+        item.audio_out = new QAudioOutput(this);
+        item.audio_out->setVolume(item.annotation.volume);
+        item.audio_out->setMuted(mute);
     }
 #endif
 
-    debug_msg(DebugMedia, "Loading new media" << url << annotation.rect << new_item.flags);
+    debug_msg(DebugMedia, "Loading new media" << item.url << item.annotation.rect << item.flags);
 
-    if (annotation.type & MediaAnnotation::HasVideo)
+    if (item.annotation.type & MediaAnnotation::HasVideo)
     {
-        new_item.item = new QGraphicsVideoItem();
+        item.item = new QGraphicsVideoItem();
 #if (QT_VERSION_MAJOR < 6)
         // Ugly fix to cache videos: show invisible video pixel
-        new_item.item->setSize({1,1});
-        new_item.item->setPos(sceneRect().bottomRight());
-        addItem(new_item.item);
-        new_item.item->show();
+        item.item->setSize({1,1});
+        item.item->setPos(sceneRect().bottomRight());
+        addItem(item.item);
+        item.item->show();
 #endif
     }
 
     // Handle different media types
-    if (new_item.flags & slide::MediaItem::IsPlayer)
+    if (item.flags & slide::MediaItem::IsPlayer)
     {
+        delete item.aux;
         const auto player = new MediaPlayer(this);
-        new_item.aux = player;
-        if (annotation.type & MediaAnnotation::HasVideo)
-            player->setVideoOutput(new_item.item);
+        item.aux = player;
+        if (item.annotation.type & MediaAnnotation::HasVideo)
+            player->setVideoOutput(item.item);
 #if (QT_VERSION_MAJOR >= 6)
-        player->setAudioOutput(new_item.audio_out);
+        player->setAudioOutput(item.audio_out);
 #else
-        if (annotation.type & MediaAnnotation::HasAudio)
+        if (item.annotation.type & MediaAnnotation::HasAudio)
         {
-            player->setVolume(100*annotation.volume);
+            player->setVolume(100*item.annotation.volume);
             player->setMuted(mute);
         }
 #endif
-        if ((annotation.type & MediaAnnotation::Embedded) == 0)
+        if ((item.annotation.type & MediaAnnotation::Embedded) == 0)
         {
 #if (QT_VERSION_MAJOR >= 6)
-            player->setSource(url);
+            player->setSource(item.url);
 #else
             QMediaPlaylist *playlist = new QMediaPlaylist(player);
-            playlist->addMedia(url);
+            playlist->addMedia(item.url);
             player->setPlaylist(playlist);
 #endif
         }
@@ -985,7 +969,7 @@ slide::MediaItem &SlideScene::getMediaItem(const MediaAnnotation &annotation, co
         }
 
         // Check playback mode (only relevant for controlled media)
-        switch (annotation.mode)
+        switch (item.annotation.mode)
         {
         case MediaAnnotation::Once:
         case MediaAnnotation::Open:
@@ -1006,14 +990,14 @@ slide::MediaItem &SlideScene::getMediaItem(const MediaAnnotation &annotation, co
         }
     }
 #if defined(USE_WEBCAMS) && (QT_VERSION_MAJOR >= 6)
-    else if ((new_item.flags & slide::MediaItem::IsCaptureSession) && (annotation.type & MediaAnnotation::HasVideo))
+    else if ((item.flags & slide::MediaItem::IsCaptureSession) && (item.annotation.type & MediaAnnotation::HasVideo))
     {
         const QList<QCameraDevice> cameras = QMediaDevices::videoInputs();
         QCamera *camera = nullptr;
         for (const auto &cam : cameras)
         {
             debug_msg(DebugMedia, cam.id() << cam.description());
-            if (cam.id() == url.path())
+            if (cam.id() == item.url.path())
             {
                 camera = new QCamera(cam);
                 break;
@@ -1021,16 +1005,49 @@ slide::MediaItem &SlideScene::getMediaItem(const MediaAnnotation &annotation, co
         }
         if (camera)
         {
+            delete item.aux;
             const auto session = new QMediaCaptureSession();
-            new_item.aux = session;
+            item.aux = session;
             session->setCamera(camera);
             camera->start();
-            session->setVideoSink(new_item.item->videoSink());
-            if (annotation.type & MediaAnnotation::HasAudio)
-                session->setAudioOutput(new_item.audio_out);
+            session->setVideoSink(item.item->videoSink());
+            if (item.annotation.type & MediaAnnotation::HasAudio)
+                session->setAudioOutput(item.audio_out);
         }
     }
 #endif
+}
+
+slide::MediaItem &SlideScene::getMediaItem(const MediaAnnotation &annotation, const int page)
+{
+    for (auto &mediaitem : mediaItems)
+    {
+        if (mediaitem.annotation == annotation && (mediaitem.flags & (slide::MediaItem::IsPlayer|slide::MediaItem::IsCaptureSession)))
+        {
+            mediaitem.pages.insert(page);
+            if (!mediaitem.aux)
+            {
+                debug_msg(DebugMedia, "Found cleared media item in cache" << annotation.file << annotation.rect << QList<int>(mediaitem.pages.cbegin(), mediaitem.pages.cend()));
+                loadMediaItem(mediaitem);
+            }
+            else
+            {
+                debug_msg(DebugMedia, "Found media in cache" << annotation.file << annotation.rect << QList<int>(mediaitem.pages.cbegin(), mediaitem.pages.cend()));
+            }
+            return mediaitem;
+        }
+    }
+
+#if (QT_VERSION_MAJOR >= 6)
+    slide::MediaItem new_item{0, annotation.file, annotation, nullptr, nullptr, {page}, nullptr};
+#else
+    slide::MediaItem new_item{0, annotation.file, annotation, nullptr, {page}, nullptr};
+#endif
+
+    // Determine media type from the URL
+    new_item.flags = parseMediaOptions(new_item.url);
+    debug_msg(DebugMedia, "Loading new media" << new_item.url << annotation.rect << new_item.flags);
+    loadMediaItem(new_item);
     mediaItems.append(new_item);
     return mediaItems.last();
 }

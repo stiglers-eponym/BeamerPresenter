@@ -38,8 +38,8 @@ modules:
     - "/bin"
     sources:
     - type: archive
-      url: https://poppler.freedesktop.org/poppler-23.04.0.tar.xz
-      sha256: b6d893dc7dcd4138b9e9df59a13c59695e50e80dc5c2cacee0674670693951a1
+      url: https://poppler.freedesktop.org/poppler-23.08.0.tar.xz
+      sha256: 4a4bf7fc903b9f1a2ab7d04b7c5d8220db9bc6261cc73fdb9a826dc272f49aa8
   - name: beamerpresenter-qt5
     buildsystem: cmake-ninja
     config-opts:

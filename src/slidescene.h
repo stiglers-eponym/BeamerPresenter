@@ -68,6 +68,9 @@ namespace slide
         /// flags: defines type and user interaction
         int flags = 0;
 
+        /// URL of the media item.
+        QUrl url;
+
         /// the PDF media annotation: basic information about video
         MediaAnnotation annotation;
         /// QGraphicsItem showing the video
@@ -222,6 +225,9 @@ private:
 
     /// Start slide transition.
     void startTransition(const int newpage, const SlideTransition &transition);
+
+    /// Load content of a media item.
+    void loadMediaItem(slide::MediaItem &item);
 
     /// Search video annotation in cache and create + add it to cache if necessary.
     slide::MediaItem &getMediaItem(const MediaAnnotation &annotation, const int page);

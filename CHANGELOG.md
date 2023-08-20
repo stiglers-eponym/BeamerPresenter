@@ -1,6 +1,5 @@
 # Changelog
 ## 0.2.4
-* compatibility with Qt 6.4 and Qt 6.5
 * pages listed in TOC always start a new slide and are not considered overlays
 * page up and page down can be used to navigate pages also while showing TOC or thumbnails
 * more navigation keyboard shortcuts in default configuration
@@ -13,6 +12,9 @@
     * this adds the Qt SVG module as a dependency
 * new feature: allow camera (webcam) output as input for videos
 * internal: different drawing history, memory management, and stacking order mechanism
+* added build instructions for RPM, tested on fedora
+* compatibility with Qt 6.4 and Qt 6.5
+* compatibility with MuPDF 1.23
 * various bug fixes
 
 ## 0.2.3
