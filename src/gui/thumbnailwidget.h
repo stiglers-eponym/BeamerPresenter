@@ -49,8 +49,8 @@ private:
     unsigned char columns {4};
     /// flags: currently only SkipOverlays.
     unsigned char _flags {0};
-    /// currently focussed page index
-    ThumbnailButton *focussed_button {nullptr};
+    /// currently focused page index
+    ThumbnailButton *focused_button {nullptr};
 
     /// Create widget and layout.
     void initialize();

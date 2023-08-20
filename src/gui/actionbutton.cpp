@@ -200,21 +200,21 @@ const char *action_to_description(const Action action) noexcept
     case UndoDrawing:
         return QT_TRANSLATE_NOOP("ActionButton", "undo last drawing/erasing step in the presentation on the current slide");
     case UndoDrawingLeft:
-        return QT_TRANSLATE_NOOP("ActionButton", "undo last drawing/erasing step on the left half of a pdf document which is split into notes and a presentation");
+        return QT_TRANSLATE_NOOP("ActionButton", "undo last drawing/erasing step on the left half of a PDF document which is split into notes and a presentation");
     case UndoDrawingRight:
-        return QT_TRANSLATE_NOOP("ActionButton", "undo last drawing/erasing step on the right half of a pdf document which is split into notes and a presentation");
+        return QT_TRANSLATE_NOOP("ActionButton", "undo last drawing/erasing step on the right half of a PDF document which is split into notes and a presentation");
     case RedoDrawing:
         return QT_TRANSLATE_NOOP("ActionButton", "redo undone drawing/erasing step in the presentation on the current slide");
     case RedoDrawingLeft:
-        return QT_TRANSLATE_NOOP("ActionButton", "redo last drawing/erasing step on the left half of a pdf document which is split into notes and a presentation");
+        return QT_TRANSLATE_NOOP("ActionButton", "redo last drawing/erasing step on the left half of a PDF document which is split into notes and a presentation");
     case RedoDrawingRight:
-        return QT_TRANSLATE_NOOP("ActionButton", "redo last drawing/erasing step on the right half of a pdf document which is split into notes and a presentation");
+        return QT_TRANSLATE_NOOP("ActionButton", "redo last drawing/erasing step on the right half of a PDF document which is split into notes and a presentation");
     case ClearDrawing:
         return QT_TRANSLATE_NOOP("ActionButton", "clear all drawings on the current presentation slide");
     case ClearDrawingLeft:
-        return QT_TRANSLATE_NOOP("ActionButton", "clear all drawings of the current slide on the left half of a pdf document which is split into notes and a presentation");
+        return QT_TRANSLATE_NOOP("ActionButton", "clear all drawings of the current slide on the left half of a PDF document which is split into notes and a presentation");
     case ClearDrawingRight:
-        return QT_TRANSLATE_NOOP("ActionButton", "clear all drawings of the current slide on the right half of a pdf document which is split into notes and a presentation");
+        return QT_TRANSLATE_NOOP("ActionButton", "clear all drawings of the current slide on the right half of a PDF document which is split into notes and a presentation");
     case ScrollDown:
         return QT_TRANSLATE_NOOP("ActionButton", "scroll down presentation view: adds extra space below the slide for drawing");
     case ScrollUp:
@@ -237,9 +237,9 @@ const char *action_to_description(const Action action) noexcept
     case PasteClipboard:
         return QT_TRANSLATE_NOOP("ActionButton", "paste from clipboard");
     case SelectionToForeground:
-        return QT_TRANSLATE_NOOP("ActionButton", "bring selected items to the foregroud");
+        return QT_TRANSLATE_NOOP("ActionButton", "bring selected items to the foreground");
     case SelectionToBackground:
-        return QT_TRANSLATE_NOOP("ActionButton", "bring selected items to the backgroud");
+        return QT_TRANSLATE_NOOP("ActionButton", "bring selected items to the background");
     case RemoveSelectedItems:
         return QT_TRANSLATE_NOOP("ActionButton", "remove selected items");
     case SelectAll:
@@ -272,7 +272,7 @@ const char *action_to_description(const Action action) noexcept
     case FullScreen:
         return QT_TRANSLATE_NOOP("ActionButton", "toggle fullscreen mode for currently active window");
     case Quit:
-        return QT_TRANSLATE_NOOP("ActionButton", "quit and ask to save drawings if there are unsaved changes. Detection of unsaved chagnes is not reliable yet.");
+        return QT_TRANSLATE_NOOP("ActionButton", "quit and ask to save drawings if there are unsaved changes. Detection of unsaved changes is not reliable yet.");
     case QuitNoConfirmation:
         return QT_TRANSLATE_NOOP("ActionButton", "quit without asking to save drawings");
     default:

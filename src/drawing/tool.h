@@ -197,7 +197,7 @@ static const QMap<std::string, int> string_to_input_device
     {QT_TRANSLATE_NOOP("Tool", "right button"), Tool::MouseRightButton},
     {QT_TRANSLATE_NOOP("Tool", "middle button"), Tool::MouseMiddleButton},
     {QT_TRANSLATE_NOOP("Tool", "no button"), Tool::MouseNoButton},
-    {QT_TRANSLATE_NOOP("Tool", "double click"), Tool::MouseDoubleClick},
+    {QT_TRANSLATE_NOOP("Tool", "double-click"), Tool::MouseDoubleClick},
 };
 
 #endif // TOOL_H

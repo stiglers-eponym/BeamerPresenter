@@ -139,8 +139,8 @@ enum Action
     SelectionToForeground, ///< bring selected items to foreground
     SelectionToBackground, ///< bring selected items to background
     RemoveSelectedItems, ///< remove all selected items
-    SelectAll, ///< select all items on currently focussed slide
-    ClearSelection, ///< clear selection on currently focussed slide
+    SelectAll, ///< select all items on currently focused slide
+    ClearSelection, ///< clear selection on currently focused slide
     // Timer
     StartTimer, ///< start timer
     StopTimer, ///< stop (pause) timer

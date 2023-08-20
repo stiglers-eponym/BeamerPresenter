@@ -86,7 +86,7 @@ const char *tool_to_description(const Tool::BasicTool tool) noexcept
     case Tool::Torch:
         return QT_TRANSLATE_NOOP("Tool", "torch: darken the slide leaving only a disk unchanged to focus attention on this area");
     case Tool::Magnifier:
-        return QT_TRANSLATE_NOOP("Tool", "enlargen part of the slide");
+        return QT_TRANSLATE_NOOP("Tool", "enlarge part of the slide");
     case Tool::TextInputTool:
         return QT_TRANSLATE_NOOP("Tool", "add or edit text on slide");
     case Tool::BasicSelectionTool:

@@ -77,23 +77,23 @@ void ThumbnailWidget::focusPage(int page)
     if (!item)
         return;
     ThumbnailButton *button = dynamic_cast<ThumbnailButton*>(item->widget());
-    if (!button || button == focussed_button)
+    if (!button || button == focused_button)
         return;
-    if (focussed_button)
-        focussed_button->defocus();
-    focussed_button = button;
-    focussed_button->giveFocus();
-    ensureWidgetVisible(focussed_button);
+    if (focused_button)
+        focused_button->defocus();
+    focused_button = button;
+    focused_button->giveFocus();
+    ensureWidgetVisible(focused_button);
 }
 
 void ThumbnailWidget::setFocusButton(ThumbnailButton *button)
 {
-    if (focussed_button != button)
+    if (focused_button != button)
     {
-        if (focussed_button)
-            focussed_button->defocus();
-        focussed_button = button;
-        ensureWidgetVisible(focussed_button);
+        if (focused_button)
+            focused_button->defocus();
+        focused_button = button;
+        ensureWidgetVisible(focused_button);
     }
 }
 
@@ -123,7 +123,7 @@ void ThumbnailWidget::handleAction(const Action action)
     if (action == PdfFilesChanged)
     {
         emit interruptThread();
-        focussed_button = nullptr;
+        focused_button = nullptr;
         if (render_thread)
         {
             render_thread->thread()->quit();
@@ -242,7 +242,7 @@ void ThumbnailWidget::resizeEvent(QResizeEvent*)
 
 void ThumbnailWidget::moveFocusUpDown(const char updown)
 {
-    QWidget *target = focussed_button;
+    QWidget *target = focused_button;
     if (updown > 0)
         for (int i=0; target && i<columns; ++i)
             target = target->nextInFocusChain();
@@ -252,9 +252,9 @@ void ThumbnailWidget::moveFocusUpDown(const char updown)
     auto button = dynamic_cast<ThumbnailButton*>(target);
     if (button)
     {
-        focussed_button->defocus();
-        focussed_button = button;
-        focussed_button->giveFocus();
-        ensureWidgetVisible(focussed_button);
+        focused_button->defocus();
+        focused_button = button;
+        focused_button->giveFocus();
+        ensureWidgetVisible(focused_button);
     }
 }

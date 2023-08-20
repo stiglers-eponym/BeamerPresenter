@@ -342,9 +342,16 @@ void PathContainer::startMicroStep()
 
 void PathContainer::eraserMicroStep(const QPointF &scene_pos, const qreal size)
 {
-    if (inHistory != -1 || history.empty())
+    if (inHistory != -1)
     {
-        qCritical() << tr("Tried micro step, but inHistory ==") << inHistory;
+        qWarning() << "Tried micro step, but inHistory ==" << inHistory;
+        return;
+    }
+    if (history.empty())
+    {
+        // This should never happen.
+        qCritical() << tr("Should apply micro step, but history is empty.");
+        inHistory = 0;
         return;
     }
 
@@ -454,7 +461,7 @@ bool PathContainer::applyMicroStep()
     if (history.empty())
     {
         // This should never happen.
-        qCritical() << tr("Should apply micro step, but history is empty");
+        qCritical() << tr("Should apply micro step, but history is empty.");
         inHistory = 0;
         return false;
     }

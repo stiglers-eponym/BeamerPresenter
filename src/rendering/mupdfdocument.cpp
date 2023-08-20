@@ -184,7 +184,7 @@ bool MuPdfDocument::loadDocument()
             fz_register_document_handlers(ctx);
         fz_catch(ctx)
         {
-            qCritical() << tr("MuPdf failed to register document handlers:") << fz_caught_message(ctx);
+            qCritical() << tr("MuPDF failed to register document handlers:") << fz_caught_message(ctx);
             doc = nullptr;
             fz_drop_context(ctx);
             ctx =  nullptr;
@@ -205,7 +205,7 @@ bool MuPdfDocument::loadDocument()
         {
             preferences()->showErrorMessage(
                         tr("Error while loading file"),
-                        tr("MuPdf cannot open document: ") + fz_caught_message(ctx));
+                        tr("MuPDF cannot open document: ") + fz_caught_message(ctx));
             doc = nullptr;
             fz_drop_context(ctx);
             ctx =  nullptr;

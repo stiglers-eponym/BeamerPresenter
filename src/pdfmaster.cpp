@@ -47,7 +47,7 @@ void PdfMaster::loadDocument(const QString &filename)
         if (filename != document->getPath())
             preferences()->showErrorMessage(
                         tr("Error while loading file"),
-                        tr("Tried to load a pdf file, but a different file is already loaded!"));
+                        tr("Tried to load a PDF file, but a different file is already loaded!"));
         else if (document->loadDocument())
             document->loadLabels();
         return;

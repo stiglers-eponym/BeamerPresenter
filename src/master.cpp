@@ -376,7 +376,7 @@ QWidget* Master::createWidget(const QJsonObject &object, QWidget *parent, QMap<Q
     }
     if (!widget)
     {
-        qCritical() << tr("An error occured while trying to create a widget with JSON object") << object;
+        qCritical() << tr("An error occurred while trying to create a widget with JSON object") << object;
         return nullptr;
     }
     widget->installEventFilter(this);

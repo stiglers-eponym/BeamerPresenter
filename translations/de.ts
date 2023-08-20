@@ -56,11 +56,11 @@
         <translation>letzten Schritt (zeichnen, radieren) in der Präsentation auf der aktuellen Folie rückgängig machen</translation>
     </message>
     <message>
-        <source>undo last drawing/erasing step on the left half of a pdf document which is split into notes and a presentation</source>
+        <source>undo last drawing/erasing step on the left half of a PDF document which is split into notes and a presentation</source>
         <translation>letzten Schritt (zeichnen, radieren) auf der linken Seite eines in Notizen und Präsentation aufgespaltenen PDF-Dokuments rückgängig machen</translation>
     </message>
     <message>
-        <source>undo last drawing/erasing step on the right half of a pdf document which is split into notes and a presentation</source>
+        <source>undo last drawing/erasing step on the right half of a PDF document which is split into notes and a presentation</source>
         <translation>letzten Schritt (zeichnen, radieren) auf der rechten Seite eines in Notizen und Präsentation aufgespaltenen PDF-Dokuments rückgängig machen</translation>
     </message>
     <message>
@@ -68,11 +68,11 @@
         <translation>letzten gelöschten Schritt (zeichnen, radieren) in der Präsentation auf der aktuellen Folie wiederherstellen</translation>
     </message>
     <message>
-        <source>redo last drawing/erasing step on the left half of a pdf document which is split into notes and a presentation</source>
+        <source>redo last drawing/erasing step on the left half of a PDF document which is split into notes and a presentation</source>
         <translation>letzten gelöschten Schritt (zeichnen, radieren) auf der linken Seite eines in Notizen und Präsentation aufgespaltenen PDF-Dokuments wiederherstellen</translation>
     </message>
     <message>
-        <source>redo last drawing/erasing step on the right half of a pdf document which is split into notes and a presentation</source>
+        <source>redo last drawing/erasing step on the right half of a PDF document which is split into notes and a presentation</source>
         <translation>letzten gelöschten Schritt (zeichnen, radieren) auf der rechten Seite eines in Notizen und Präsentation aufgespaltenen PDF-Dokuments wiederherstellen</translation>
     </message>
     <message>
@@ -80,11 +80,11 @@
         <translation>alle Zeichnungen/Annotationen auf der aktuellen Folie der Präsentation löschen</translation>
     </message>
     <message>
-        <source>clear all drawings of the current slide on the left half of a pdf document which is split into notes and a presentation</source>
+        <source>clear all drawings of the current slide on the left half of a PDF document which is split into notes and a presentation</source>
         <translation>alle Zeichnungen/Annotationen auf der linken Seite eines in Notizen und Präsentation aufgespaltenen PDF-Dokuments löschen</translation>
     </message>
     <message>
-        <source>clear all drawings of the current slide on the right half of a pdf document which is split into notes and a presentation</source>
+        <source>clear all drawings of the current slide on the right half of a PDF document which is split into notes and a presentation</source>
         <translation>alle Zeichnungen/Annotationen auf der rechten Seite eines in Notizen und Präsentation aufgespaltenen PDF-Dokuments löschen</translation>
     </message>
     <message>
@@ -128,7 +128,7 @@
         <translation>wechsle zwischen Vollbildmodus und normaler Fensteransicht für das aktuelle Fenster</translation>
     </message>
     <message>
-        <source>quit and ask to save drawings if there are unsaved changes. Detection of unsaved chagnes is not reliable yet.</source>
+        <source>quit and ask to save drawings if there are unsaved changes. Detection of unsaved changes is not reliable yet.</source>
         <translation>Programm beenden und ggf. zum Speichern von Änderungen auffordern. Das Feststellen nicht gespeicherter Änderungen ist derzeit unzuverlässig.</translation>
     </message>
     <message>
@@ -148,7 +148,7 @@
         <translation>füge aus der Zwischenablage ein</translation>
     </message>
     <message>
-        <source>bring selected items to the foregroud</source>
+        <source>bring selected items to the foreground</source>
         <translation>bringe die ausgewählten Objekte in den Vordergrund</translation>
     </message>
     <message>
@@ -176,7 +176,7 @@
         <translation>entstumme alle Medienobjekte</translation>
     </message>
     <message>
-        <source>bring selected items to the backgroud</source>
+        <source>bring selected items to the background</source>
         <translation>bringe die ausgewählten Objekte in den Hintergrund</translation>
     </message>
 </context>
@@ -297,7 +297,7 @@
     </message>
     <message>
         <source>VerPattern</source>
-        <translation>vertikal schrafftiert</translation>
+        <translation>vertikal schraffiert</translation>
     </message>
     <message>
         <source>CrossPattern</source>
@@ -445,7 +445,7 @@
         <translation>PDF-Dateien mit unterschiedlicher Anzahl von Seiten geladen.</translation>
     </message>
     <message>
-        <source>An error occured while trying to create a widget with JSON object</source>
+        <source>An error occurred while trying to create a widget with JSON object</source>
         <translation>Fehler beim Erstellen eines Widgets mit JSON-Objekt</translation>
     </message>
     <message>
@@ -488,7 +488,7 @@
         <translation>Angegebener Dateiname ist keine Datei: </translation>
     </message>
     <message>
-        <source>MuPdf cannot open document: </source>
+        <source>MuPDF cannot open document: </source>
         <translation>MuPDF can dieses Dokument nicht öffnen: </translation>
     </message>
     <message>
@@ -508,7 +508,7 @@
         <translation>Fehler beim Erstellen des Fitz-Kontexts</translation>
     </message>
     <message>
-        <source>MuPdf failed to register document handlers:</source>
+        <source>MuPDF failed to register document handlers:</source>
         <translation>Fehler in MuPDF beim Registrieren von Dokument-Handlern:</translation>
     </message>
 </context>
@@ -535,19 +535,15 @@
     <name>PathContainer</name>
     <message>
         <source>Could not find item in _z_order! Searching full array.</source>
-        <translation>Konnte objekt in _z_order nicht finden! Durchsuche die gesamte Liste.</translation>
-    </message>
-    <message>
-        <source>Should apply micro step, but inHistory ==</source>
-        <translation>Sollte Mikroschritt anwernden, doch inHistory ==</translation>
-    </message>
-    <message>
-        <source>Tried micro step, but inHistory ==</source>
-        <translation>Versuche Mikroschritt, doch inHistory ==</translation>
+        <translation>Konnte Objekt in _z_order nicht finden! Durchsuche die gesamte Liste.</translation>
     </message>
     <message>
         <source>New item existed before, but could not find it in _z_order! Searching full array.</source>
         <translation>Neues Objekt existierte bereits, konnte aber nicht in _z_order gefunden werden! Durchsuchte die gesamte Liste.</translation>
+    </message>
+    <message>
+        <source>Should apply micro step, but history is empty.</source>
+        <translation>Sollte Mikroschritt anwenden, doch Verlauf ist leer.</translation>
     </message>
 </context>
 <context>
@@ -557,7 +553,7 @@
         <translation>Fehler beim Laden der Datei</translation>
     </message>
     <message>
-        <source>Tried to load a pdf file, but a different file is already loaded!</source>
+        <source>Tried to load a PDF file, but a different file is already loaded!</source>
         <translation>Versuche eine PDF-Datei zu laden, aber  eine andere Datei ist bereits geladen!</translation>
     </message>
     <message>
@@ -607,7 +603,7 @@
     </message>
     <message>
         <source>Eraser border width</source>
-        <translation>Linienbreite Radiergummie</translation>
+        <translation>Linienbreite Radiergummi</translation>
     </message>
 </context>
 <context>
@@ -688,7 +684,7 @@
     </message>
     <message>
         <source>Could not load document: unsupported security scheme</source>
-        <translation>Laden des Dokuments fehlgeschlagen: nicht unterstüτztes Sicherheitsschema</translation>
+        <translation>Laden des Dokuments fehlgeschlagen: nicht unterstütztes Sicherheitsschema</translation>
     </message>
     <message>
         <source>Could not load document: unknown error</source>
@@ -794,15 +790,15 @@ Konfiguriere Zwischenspeicher (Cache). Folien werden in gerendert und in einen k
     </message>
     <message>
         <source>Number of drawing history steps (undo/redo). Drawing history is kept separately for each slide.</source>
-        <translation>Anzahl von möglichen Schrittten zum Rückgängig machen. Die Historie der Anmerkungen wird für jede Seite separat gespeichert.</translation>
+        <translation>Anzahl von möglichen Schritte im Verlauf (rückgängig machen). Der Verlauf der Anmerkungen wird für jede Seite separat gespeichert.</translation>
     </message>
     <message>
         <source>History length visible slides</source>
-        <translation>Länge der Historie für sichtbare Folien</translation>
+        <translation>Länge des Verlaufs für sichtbare Folien</translation>
     </message>
     <message>
         <source>History length hidden slides</source>
-        <translation>Länge der Historie für nicht sichtbare Folien</translation>
+        <translation>Länge des Verlaufs für nicht sichtbare Folien</translation>
     </message>
     <message>
         <source>If opened in a terminal, slide changes can be logged to standard output with a time stamp.</source>
@@ -842,7 +838,7 @@ Konfiguriere Zwischenspeicher (Cache). Folien werden in gerendert und in einen k
     </message>
     <message>
         <source>when reaching a page with no drawings (and no drawings history), which has the same label as the previous page, the drawings from the previous page are copied to this page.</source>
-        <translation>Wenn eine Seite ohne Anmerkungen und ohne Historie von Anmerkungen, die das selbe Label wie die vorherige Seite hat, aufgerufen wird, werden die Anmerkungen der vorherigen Seite übernommen und dafür kopiert.</translation>
+        <translation>Wenn eine Seite ohne Anmerkungen und ohne Verlauf von Anmerkungen aufgerufen wird, wobei die Seite das selbe Label wie die vorherige Seite hat, werden die Anmerkungen der vorherigen Seite übernommen und dafür kopiert.</translation>
     </message>
     <message>
         <source>drawing mode for overlays</source>
@@ -1161,7 +1157,7 @@ Konfiguriere Zwischenspeicher (Cache). Folien werden in gerendert und in einen k
     </message>
     <message>
         <source>eraser: deletes drawings</source>
-        <translation>Radiergummie: löscht Stifteingaben</translation>
+        <translation>Radiergummi: löscht Stifteingaben</translation>
     </message>
     <message>
         <source>highlighter: fixed width drawing which only darkens colors (full color on white background, invisible on black background)</source>
@@ -1176,7 +1172,7 @@ Konfiguriere Zwischenspeicher (Cache). Folien werden in gerendert und in einen k
         <translation>Taschenlampe: Verdunkelt die Folie bis auf einen runden Bereich</translation>
     </message>
     <message>
-        <source>enlargen part of the slide</source>
+        <source>enlarge part of the slide</source>
         <translation>Teil der Folie vergrößern</translation>
     </message>
     <message>
@@ -1209,7 +1205,7 @@ Konfiguriere Zwischenspeicher (Cache). Folien werden in gerendert und in einen k
     </message>
     <message>
         <source>eraser</source>
-        <translation>Radiergummie</translation>
+        <translation>Radiergummi</translation>
     </message>
     <message>
         <source>highlighter</source>
@@ -1306,6 +1302,10 @@ Konfiguriere Zwischenspeicher (Cache). Folien werden in gerendert und in einen k
     <message>
         <source>no button</source>
         <translation>keine Maustaste</translation>
+    </message>
+    <message>
+        <source>double-click</source>
+        <translation>Doppelklick</translation>
     </message>
 </context>
 <context>
