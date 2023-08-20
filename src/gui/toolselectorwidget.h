@@ -4,6 +4,8 @@
 #ifndef TOOLSELECTORWIDGET_H
 #define TOOLSELECTORWIDGET_H
 
+#include <variant>
+#include <QPainter>
 #include <QWidget>
 #include "src/config.h"
 #include "src/enumerates.h"
@@ -51,11 +53,8 @@ protected:
     {emit updateIcons();}
 
 signals:
-    /// Send out new color to master.
-    void sendColor(const QColor &action);
-
-    /// Send out new color to master.
-    void sendWidth(const qreal width);
+    /// Notify master/scene that tool properties have been updated.
+    void sendToolProperties(const std::variant<qreal,Qt::PenStyle,Qt::BrushStyle,QPainter::CompositionMode,QColor,QFont> &properties) const;
 
     /// Send action status to action buttons.
     void sendStatus(const Action action, const int status);

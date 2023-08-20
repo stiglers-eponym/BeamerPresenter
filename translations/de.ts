@@ -232,7 +232,7 @@
         <translation>automatisch erkennen</translation>
     </message>
     <message>
-        <source>nopen</source>
+        <source>no pen</source>
         <translation>kein Stift</translation>
     </message>
     <message>
@@ -240,79 +240,79 @@
         <translation>durchgezogen</translation>
     </message>
     <message>
-        <source>dash</source>
+        <source>dashed</source>
         <translation>gestrichelt</translation>
     </message>
     <message>
-        <source>dot</source>
+        <source>dotted</source>
         <translation>gepunktet</translation>
     </message>
     <message>
-        <source>dashdot</source>
+        <source>dash-dotted</source>
         <translation>Strich-Punkt-Muster</translation>
     </message>
     <message>
-        <source>dashdotdot</source>
-        <translation>Strich-Doppelpunkt</translation>
+        <source>dash-dot-dot</source>
+        <translation>Strich-Punkt-Punkt</translation>
     </message>
     <message>
-        <source>NoBrush</source>
-        <translation>Keine Füllung</translation>
+        <source>no brush</source>
+        <translation>keine Füllung</translation>
     </message>
     <message>
-        <source>SolidPattern</source>
+        <source>solid pattern</source>
         <translation>homogen füllen</translation>
     </message>
     <message>
-        <source>Dense1Pattern</source>
+        <source>dense pattern 1</source>
         <translation>dichtes Muster 1</translation>
     </message>
     <message>
-        <source>Dense2Pattern</source>
+        <source>dense pattern 2</source>
         <translation>dichtes Muster 2</translation>
     </message>
     <message>
-        <source>Dense3Pattern</source>
+        <source>dense pattern 3</source>
         <translation>dichtes Muster 3</translation>
     </message>
     <message>
-        <source>Dense4Pattern</source>
+        <source>dense pattern 4</source>
         <translation>dichtes Muster 4</translation>
     </message>
     <message>
-        <source>Dense5Pattern</source>
+        <source>dense pattern 5</source>
         <translation>dichtes Muster 5</translation>
     </message>
     <message>
-        <source>Dense6Pattern</source>
+        <source>dense pattern 6</source>
         <translation>dichtes Muster 6</translation>
     </message>
     <message>
-        <source>Dense7Pattern</source>
+        <source>dense pattern 7</source>
         <translation>dichtes Muster 7</translation>
     </message>
     <message>
-        <source>HorPattern</source>
+        <source>horizontally hatched</source>
         <translation>horizontal schraffiert</translation>
     </message>
     <message>
-        <source>VerPattern</source>
+        <source>vertically hatched</source>
         <translation>vertikal schraffiert</translation>
     </message>
     <message>
-        <source>CrossPattern</source>
+        <source>cross pattern</source>
         <translation>horizontal und vertical schraffiert</translation>
     </message>
     <message>
-        <source>BDiagPattern</source>
+        <source>hatched towards top right</source>
         <translation>diagonal schraffiert (nach rechts-oben)</translation>
     </message>
     <message>
-        <source>FDiagPattern</source>
+        <source>hatched towards top left</source>
         <translation>diagonal schraffiert (nach rechts-unten)</translation>
     </message>
     <message>
-        <source>DiagCrossPattern</source>
+        <source>diagonal cross pattern</source>
         <translation>diagonal schraffiert (beide Richtungen)</translation>
     </message>
 </context>

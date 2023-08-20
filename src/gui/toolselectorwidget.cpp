@@ -13,6 +13,7 @@
 #include "src/gui/actionbutton.h"
 #include "src/gui/shapeselectionbutton.h"
 #include "src/gui/penstylebutton.h"
+#include "src/gui/brushstylebutton.h"
 #include "src/gui/colorselectionbutton.h"
 #include "src/gui/toolselectorbutton.h"
 #include "src/gui/widthselectionbutton.h"
@@ -103,24 +104,19 @@ void ToolSelectorWidget::initializeToolPropertyButton(const QString &type, const
 {
     ToolPropertyButton *button {nullptr};
     if (type == "color")
-    {
-        auto *cbutton = new ColorSelectionButton(list, this);
-        connect(cbutton, &ColorSelectionButton::colorChanged, this, &ToolSelectorWidget::sendColor);
-        button = cbutton;
-    }
+        button = new ColorSelectionButton(list, this);
     else if (type == "width")
-    {
-        auto *wbutton = new WidthSelectionButton(list, this);
-        connect(wbutton, &WidthSelectionButton::widthChanged, this, &ToolSelectorWidget::sendWidth);
-        button = wbutton;
-    }
+        button = new WidthSelectionButton(list, this);
     else if(type == "shape")
         button = new ShapeSelectionButton(this);
     else if(type == "style")
         button = new PenStyleButton(this);
+    else if(type == "brush")
+        button = new BrushStyleButton(this);
     if (button)
     {
         static_cast<QGridLayout*>(layout())->addWidget(button, row, column);
+        connect(button, &ToolPropertyButton::sendToolProperties, this, &ToolSelectorWidget::sendToolProperties, Qt::DirectConnection);
         connect(master(), &Master::sendNewToolSoft, button, &ToolPropertyButton::toolChanged);
         connect(this, &ToolSelectorWidget::updateIcons, button, &ToolPropertyButton::updateIcon, Qt::QueuedConnection);
         connect(button, &ToolPropertyButton::sendUpdatedTool, this, &ToolSelectorWidget::updatedTool);

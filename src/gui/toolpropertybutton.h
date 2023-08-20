@@ -4,11 +4,15 @@
 #ifndef TOOLPROPERTYBUTTON_H
 #define TOOLPROPERTYBUTTON_H
 
+#include <variant>
 #include <QComboBox>
-#include "src/preferences.h"
+#include <QPainter>
+#include <QColor>
 #include "src/config.h"
+#include "src/preferences.h"
 
 class Tool;
+class QFont;
 class QEvent;
 
 /**
@@ -53,8 +57,11 @@ public:
     ~ToolPropertyButton() {}
 
 signals:
-    /// Notify master that tool has changed.
+    /// Notify master/scene that tool has changed.
     void sendUpdatedTool(const Tool *tool) const;
+
+    /// Notify master/scene that tool properties have been updated.
+    void sendToolProperties(const std::variant<qreal,Qt::PenStyle,Qt::BrushStyle,QPainter::CompositionMode,QColor,QFont> &properties) const;
 };
 
 #endif // TOOLPROPERTYBUTTON_H

@@ -7,9 +7,12 @@
 #include "src/config.h"
 #include <set>
 #include <map>
+#include <variant>
 #include <QList>
+#include <QColor>
 #include <QPointF>
 #include <QRectF>
+#include <QPainter>
 #include <QTabletEvent>
 #include <QGraphicsScene>
 #include <QGraphicsVideoItem>
@@ -33,6 +36,7 @@ class QGraphicsRectItem;
 class PdfMaster;
 class DrawTool;
 class TextTool;
+class QFont;
 class PointingTool;
 class SelectionTool;
 class PathContainer;
@@ -440,10 +444,9 @@ public slots:
 
     /// Update tool, change selected items if necessary.
     void toolChanged(const Tool *tool) noexcept;
-    /// Update draw tool color, change selected items if necessary.
-    void colorChanged(const QColor &color) noexcept;
-    /// Update draw tool width, change selected items if necessary.
-    void widthChanged(const qreal width) noexcept;
+
+    /// Update tool properties for selected items.
+    void toolPropertiesChanged(const std::variant<qreal,Qt::PenStyle,Qt::BrushStyle,QPainter::CompositionMode,QColor,QFont> &properties) noexcept;
 
     /// Show search results taken from PdfMaster.
     void updateSearchResults();

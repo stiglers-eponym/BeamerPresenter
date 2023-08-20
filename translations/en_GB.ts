@@ -232,88 +232,88 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>nopen</source>
-        <translation>no pen</translation>
-    </message>
-    <message>
         <source>solid</source>
         <translation>solid</translation>
     </message>
     <message>
-        <source>dash</source>
-        <translation>dashed</translation>
+        <source>no pen</source>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>dot</source>
-        <translation>dotted</translation>
+        <source>dashed</source>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>dashdot</source>
-        <translation>dash-dotted</translation>
+        <source>dotted</source>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>dashdotdot</source>
-        <translation>dash-dot-dot pattern</translation>
+        <source>dash-dotted</source>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>NoBrush</source>
-        <translation>no filling</translation>
+        <source>dash-dot-dot</source>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>SolidPattern</source>
-        <translation>fill with one colour</translation>
+        <source>no brush</source>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>Dense1Pattern</source>
-        <translation>dense pattern 1</translation>
+        <source>solid pattern</source>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>Dense2Pattern</source>
-        <translation>dense pattern 2</translation>
+        <source>dense pattern 1</source>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>Dense3Pattern</source>
-        <translation>dense pattern 3</translation>
+        <source>dense pattern 2</source>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>Dense4Pattern</source>
-        <translation>dense pattern 4</translation>
+        <source>dense pattern 3</source>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>Dense5Pattern</source>
-        <translation>dense pattern 5</translation>
+        <source>dense pattern 4</source>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>Dense6Pattern</source>
-        <translation>dense pattern 6</translation>
+        <source>dense pattern 5</source>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>Dense7Pattern</source>
-        <translation>dense pattern 7</translation>
+        <source>dense pattern 6</source>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>HorPattern</source>
-        <translation>horizontally hatched</translation>
+        <source>dense pattern 7</source>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>VerPattern</source>
-        <translation>vertically hatched</translation>
+        <source>horizontally hatched</source>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>CrossPattern</source>
-        <translation>horizontally and vertically hatched</translation>
+        <source>vertically hatched</source>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>BDiagPattern</source>
-        <translation>diagonally hatched (towards top right)</translation>
+        <source>cross pattern</source>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>FDiagPattern</source>
-        <translation>diagonally hatched (towards top left)</translation>
+        <source>hatched towards top right</source>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>DiagCrossPattern</source>
-        <translation>diagonally hatched (both directions)</translation>
+        <source>hatched towards top left</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>diagonal cross pattern</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>

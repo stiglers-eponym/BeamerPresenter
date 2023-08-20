@@ -621,7 +621,7 @@ void PathContainer::writeXml(QXmlStreamWriter &writer) const
             writer.writeAttribute("color", color_to_rgba(tool.color()).toLower());
             writer.writeAttribute("width", path->stringWidth());
             if (tool.pen().style() != Qt::SolidLine)
-                writer.writeAttribute("style", string_to_pen_style.key(tool.pen().style()).c_str());
+                writer.writeAttribute("style", pen_style_codes.value(tool.pen().style()));
             if (tool.brush().style() != Qt::NoBrush)
             {
                 // Compare brush and stroke color.
@@ -640,7 +640,7 @@ void PathContainer::writeXml(QXmlStreamWriter &writer) const
                     writer.writeAttribute("brushcolor", color_to_rgba(fill).toLower());
                 }
                 if (tool.brush().style() != Qt::SolidPattern)
-                    writer.writeAttribute("brushstyle", string_to_brush_style.key(tool.brush().style()).c_str());
+                    writer.writeAttribute("brushstyle", brush_style_codes.value(tool.brush().style()));
             }
             writer.writeCharacters(path->stringCoordinates());
             writer.writeEndElement();
@@ -661,7 +661,7 @@ AbstractGraphicsPath *loadPath(QXmlStreamReader &reader)
     QPen pen(
                 rgba_to_color(reader.attributes().value("color").toString()),
                 basic_tool == Tool::Pen ? 1. : width_str.toDouble(),
-                string_to_pen_style.value(reader.attributes().value("style").toString().toStdString(), Qt::SolidLine),
+                pen_style_codes.key(reader.attributes().value("style").toString().toStdString(), Qt::SolidLine),
                 Qt::RoundCap,
                 Qt::RoundJoin
                 );
@@ -671,7 +671,7 @@ AbstractGraphicsPath *loadPath(QXmlStreamReader &reader)
     // allows one to add transparency to the stroke color.
     int fill_xopp = reader.attributes().value("fill").toInt();
     // "brushcolor" is a BeamerPresenter extension of the Xournal++ file format
-    Qt::BrushStyle brush_style = string_to_brush_style.value(reader.attributes().value("brushstyle").toString().toStdString(), Qt::SolidPattern);
+    Qt::BrushStyle brush_style = brush_style_codes.key(reader.attributes().value("brushstyle").toString().toStdString(), Qt::SolidPattern);
     QColor fill_color = rgba_to_color(reader.attributes().value("brushcolor").toString());
     if (!fill_color.isValid())
     {

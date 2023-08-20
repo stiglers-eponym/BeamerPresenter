@@ -751,7 +751,7 @@ void SlideScene::navigationEvent(const int newpage, SlideScene *newscene)
     {
         removeItem(pageTransitionItem);
         delete pageTransitionItem;
-        pageTransitionItem = NULL;
+        pageTransitionItem = nullptr;
     }
     if (animation)
     {
@@ -1075,10 +1075,11 @@ void SlideScene::startTransition(const int newpage, const SlideTransition &trans
     {
         pageTransitionItem = new PixmapGraphicsItem(sceneRect());
         connect(pageTransitionItem, &QObject::destroyed, oldPage, &PixmapGraphicsItem::deleteLater);
-        oldPage->setZValue(1e1);
+        oldPage->setZValue(1e9);
     }
     else
         emit navigationToViews(page, this);
+    pageTransitionItem->setZValue(1e10);
     debug_msg(DebugTransitions, "transition:" << transition.type << transition.duration << transition.angle << transition.properties);
     QList<QGraphicsItem*> list = items();
     QGraphicsItem *item;
@@ -1275,7 +1276,6 @@ void SlideScene::createFlyTransition(const SlideTransition &transition, PixmapGr
     if (!outwards)
         addItem(oldPage);
     pageItem->setZValue(-1e4);
-    pageTransitionItem->setZValue(1e10);
 
     QPropertyAnimation *propanim = new QPropertyAnimation(pageTransitionItem, "x");
     propanim->setDuration(1000*transition.duration);
@@ -1384,7 +1384,6 @@ void SlideScene::createUncoverTransition(const SlideTransition &transition, Pixm
 {
     QPropertyAnimation *propanim = new QPropertyAnimation();
     propanim->setDuration(1000*transition.duration);
-    pageTransitionItem->setZValue(1e9);
     switch (transition.angle)
     {
     case 90:
@@ -1876,10 +1875,11 @@ void SlideScene::toolChanged(const Tool *tool) noexcept
             return;
         std::map<TextGraphicsItem*, drawHistory::TextPropertiesDifference> text_changes;
         const TextTool *text_tool = static_cast<const TextTool*>(tool);
+        TextGraphicsItem *text;
         for (auto item : selection)
             if (item->type() == TextGraphicsItem::Type)
             {
-                const auto text = static_cast<TextGraphicsItem*>(item);
+                text = static_cast<TextGraphicsItem*>(item);
                 const QColor &old_color = text->defaultTextColor(), &new_color = text_tool->color();
                 if (text->font() != text_tool->font() || old_color != new_color)
                     text_changes.insert({text, {text->font(), text_tool->font(), old_color.rgba() ^ new_color.rgba()}});
@@ -1891,45 +1891,69 @@ void SlideScene::toolChanged(const Tool *tool) noexcept
     }
 }
 
-void SlideScene::colorChanged(const QColor &color) noexcept
+void SlideScene::toolPropertiesChanged(const std::variant<qreal,Qt::PenStyle,Qt::BrushStyle,QPainter::CompositionMode,QColor,QFont> &properties) noexcept
 {
-    std::map<AbstractGraphicsPath*,drawHistory::DrawToolDifference> tool_changes;
-    std::map<TextGraphicsItem*,drawHistory::TextPropertiesDifference> text_changes;
-    for (auto item : selectedItems())
+    QList<QGraphicsItem*> selection = selectedItems();
+    if (focusItem() && focusItem()->type() == TextGraphicsItem::Type)
+        selection.append(focusItem());
+    if (selection.empty())
+        return;
+    if (std::holds_alternative<QFont>(properties))
     {
-        switch (item->type())
-        {
-        case BasicGraphicsPath::Type:
-        case FullGraphicsPath::Type:
-        {
-            auto path = static_cast<AbstractGraphicsPath*>(item);
-            if (path->getTool().color() != color)
+        std::map<TextGraphicsItem*, drawHistory::TextPropertiesDifference> text_changes;
+        const QFont font = std::get<QFont>(properties);
+        TextGraphicsItem *text;
+        for (auto item : selection)
+            if (item->type() == TextGraphicsItem::Type)
             {
-                DrawTool tool = path->getTool();
-                tool.setColor(color);
-                tool_changes.insert({path, drawHistory::DrawToolDifference(path->getTool(), tool)});
-                path->changeTool(tool);
-                path->update();
+                text = static_cast<TextGraphicsItem*>(item);
+                if (text->font() != font)
+                    text_changes.insert({text, {text->font(), font, 0}});
+                text->setFont(font);
             }
-            break;
-        }
-        case TextGraphicsItem::Type:
-        {
-            const auto text = static_cast<TextGraphicsItem*>(item);
-            text_changes.insert({text, {text->font(), text->font(), text->defaultTextColor().rgba() ^ color.rgba()}});
-            text->setDefaultTextColor(color);
-            break;
-        }
-        }
+        if (!text_changes.empty())
+            emit sendHistoryStep(page | page_part, nullptr, nullptr, &text_changes);
+        return;
     }
-    if (!tool_changes.empty() || !text_changes.empty())
-        emit sendHistoryStep(page | page_part, nullptr, &tool_changes, &text_changes);
-}
+    if (std::holds_alternative<QColor>(properties))
+    {
+        const QColor color = std::get<QColor>(properties);
+        std::map<AbstractGraphicsPath*,drawHistory::DrawToolDifference> tool_changes;
+        std::map<TextGraphicsItem*,drawHistory::TextPropertiesDifference> text_changes;
+        for (auto item : selection)
+        {
+            switch (item->type())
+            {
+            case BasicGraphicsPath::Type:
+            case FullGraphicsPath::Type:
+            {
+                auto path = static_cast<AbstractGraphicsPath*>(item);
+                if (path->getTool().color() != color)
+                {
+                    DrawTool tool = path->getTool();
+                    tool.setColor(color);
+                    tool_changes.insert({path, drawHistory::DrawToolDifference(path->getTool(), tool)});
+                    path->changeTool(tool);
+                    path->update();
+                }
+                break;
+            }
+            case TextGraphicsItem::Type:
+            {
+                const auto text = static_cast<TextGraphicsItem*>(item);
+                text_changes.insert({text, {text->font(), text->font(), text->defaultTextColor().rgba() ^ color.rgba()}});
+                text->setDefaultTextColor(color);
+                break;
+            }
+            }
+        }
+        if (!tool_changes.empty() || !text_changes.empty())
+            emit sendHistoryStep(page | page_part, nullptr, &tool_changes, &text_changes);
+        return;
+    }
 
-void SlideScene::widthChanged(const qreal width) noexcept
-{
     std::map<AbstractGraphicsPath*,drawHistory::DrawToolDifference> tool_changes;
-    for (auto item : selectedItems())
+    for (auto item : selection)
     {
         switch (item->type())
         {
@@ -1937,14 +1961,45 @@ void SlideScene::widthChanged(const qreal width) noexcept
         case FullGraphicsPath::Type:
         {
             auto path = static_cast<AbstractGraphicsPath*>(item);
-            if (path->getTool().width() != width)
+            DrawTool newtool = path->getTool();
+            switch (properties.index())
             {
-                DrawTool tool = path->getTool();
-                tool.setWidth(width);
-                tool_changes.insert({path, drawHistory::DrawToolDifference(path->getTool(), tool)});
-                path->changeTool(tool);
-                path->update();
+            case 0:
+            {
+                if (newtool.width() == std::get<qreal>(properties))
+                    continue;
+                newtool.setWidth(std::get<qreal>(properties));
+                break;
             }
+            case 1:
+            {
+                QPen pen = newtool.pen();
+                if (pen.style() == std::get<Qt::PenStyle>(properties))
+                    continue;
+                pen.setStyle(std::get<Qt::PenStyle>(properties));
+                newtool.setPen(pen);
+                break;
+            }
+            case 2:
+            {
+                if (newtool.brush().style() == std::get<Qt::BrushStyle>(properties))
+                    continue;
+                if (newtool.brush().style() == Qt::NoBrush)
+                    newtool.brush().setColor(newtool.color());
+                newtool.brush().setStyle(std::get<Qt::BrushStyle>(properties));
+                break;
+            }
+            case 3:
+            {
+                if (newtool.compositionMode() == std::get<QPainter::CompositionMode>(properties))
+                    continue;
+                newtool.setCompositionMode(std::get<QPainter::CompositionMode>(properties));
+                break;
+            }
+            }
+            tool_changes.insert({path, drawHistory::DrawToolDifference(path->getTool(), newtool)});
+            path->changeTool(newtool);
+            path->update();
             break;
         }
         }

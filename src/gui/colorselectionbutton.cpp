@@ -43,7 +43,7 @@ void ColorSelectionButton::setToolProperty(Tool *tool) const
         color = QColorDialog::getColor(Qt::black, parentWidget(), tr("Tool color"), QColorDialog::ShowAlphaChannel);
     if (tool && !(tool->tool() & Tool::AnySelectionTool))
         tool->setColor(color);
-    emit colorChanged(color);
+    emit sendToolProperties(std::variant<qreal,Qt::PenStyle,Qt::BrushStyle,QPainter::CompositionMode,QColor,QFont>(color));
 }
 
 void ColorSelectionButton::toolChanged(const Tool *tool)

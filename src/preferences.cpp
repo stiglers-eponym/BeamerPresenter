@@ -44,9 +44,9 @@ Tool *createTool(const QJsonObject &obj, const int default_device)
         const float width = obj.value("width").toDouble(base_tool == DrawTool::Highlighter ? 20. : 2.);
         if (width <= 0.)
             return nullptr;
-        const Qt::PenStyle pen_style = string_to_pen_style.value(obj.value("style").toString().toStdString(), Qt::SolidLine);
+        const Qt::PenStyle pen_style = pen_style_codes.key(obj.value("style").toString().toStdString(), Qt::SolidLine);
         const QColor brush_color(obj.value("fill").toString());
-        const Qt::BrushStyle brush_style = string_to_brush_style.value(obj.value("brush").toString().toStdString(), brush_color.isValid() ? Qt::SolidPattern : Qt::NoBrush);
+        const Qt::BrushStyle brush_style = brush_style_codes.key(obj.value("brush").toString().toStdString(), brush_color.isValid() ? Qt::SolidPattern : Qt::NoBrush);
         const DrawTool::Shape shape = string_to_shape.value(obj.value("shape").toString().toStdString(), DrawTool::Freehand);
         debug_msg(DebugSettings, "creating pen/highlighter" << base_tool << color << width);
         tool = new DrawTool(
@@ -146,9 +146,9 @@ void toolToJson(const Tool *tool, QJsonObject &obj)
         {
             obj.insert("fill", drawtool->brush().color().name());
             if (drawtool->brush().style() != Qt::SolidPattern)
-                obj.insert("brush", string_to_brush_style.key(drawtool->brush().style()).c_str());
+                obj.insert("brush", brush_style_codes.value(drawtool->brush().style()).c_str());
         }
-        obj.insert("style", string_to_pen_style.key(drawtool->pen().style()).c_str());
+        obj.insert("style", pen_style_codes.value(drawtool->pen().style()).c_str());
         obj.insert("shape", string_to_shape.key(drawtool->shape(), "freehand").c_str());
     }
     else if (tool->tool() & Tool::AnyPointingTool)

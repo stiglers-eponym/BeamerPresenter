@@ -4,9 +4,11 @@
 #ifndef MASTER_H
 #define MASTER_H
 
+#include <variant>
 #include <QObject>
 #include <QList>
 #include <QMap>
+#include <QPainter>
 #include <QRectF>
 #include <QKeySequence>
 #include <QBuffer>
@@ -204,10 +206,8 @@ signals:
     /// This signal must always be sent when a tool changes,
     /// which is currently connected to a device.
     void sendNewToolSoft(const Tool *tool) const;
-    /// Send out new stroke color.
-    void sendColor(const QColor &color) const;
-    /// Send out new stroke width.
-    void sendWidth(const qreal width) const;
+    /// Send out updated tool properties.
+    void sendToolProperties(const std::variant<qreal,Qt::PenStyle,Qt::BrushStyle,QPainter::CompositionMode,QColor,QFont> &properties) const;
     /// Send out action.
     void sendAction(const Action action) const;
     /// Set status for an action (e.g. timer paused or running).

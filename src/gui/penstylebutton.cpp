@@ -1,6 +1,7 @@
 // SPDX-FileCopyrightText: 2022 Valentin Bruch <software@vbruch.eu>
 // SPDX-License-Identifier: GPL-3.0-or-later OR AGPL-3.0-or-later
 
+#include <variant>
 #include <QVariant>
 #include "src/gui/penstylebutton.h"
 #include "src/drawing/drawtool.h"
@@ -9,17 +10,19 @@
 PenStyleButton::PenStyleButton(QWidget *parent) :
     ToolPropertyButton(parent)
 {
-    for (const Qt::PenStyle style : {Qt::SolidLine,Qt::DashLine,Qt::DotLine,Qt::DashDotLine,Qt::DashDotDotLine})
+    for (auto it = pen_style_codes.keyBegin(); it != pen_style_codes.keyEnd(); ++it)
     {
-        QIcon icon(new PenIconEngine(2.5, style));
-        addItem(icon, "", QVariant::fromValue(style));
+        QIcon icon(new PenIconEngine(2.5, *it));
+        addItem(icon, "", QVariant::fromValue(*it));
     }
 }
 
 void PenStyleButton::setToolProperty(Tool *tool) const
 {
+    const Qt::PenStyle style = currentData().value<Qt::PenStyle>();
     if (tool && tool->tool() & Tool::AnyDrawTool)
-        static_cast<DrawTool*>(tool)->rpen().setStyle(currentData(Qt::UserRole).value<Qt::PenStyle>());
+        static_cast<DrawTool*>(tool)->rpen().setStyle(style);
+    emit sendToolProperties(std::variant<qreal,Qt::PenStyle,Qt::BrushStyle,QPainter::CompositionMode,QColor,QFont>(style));
 }
 
 void PenStyleButton::toolChanged(const Tool *tool)

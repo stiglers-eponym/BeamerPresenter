@@ -259,8 +259,7 @@ QWidget* Master::createWidget(const QJsonObject &object, QWidget *parent, QMap<Q
         connect(this, &Master::sendActionStatus, toolwidget, &ToolSelectorWidget::sendStatus);
         toolwidget->addButtons(object.value("buttons").toArray());
         connect(toolwidget, &ToolSelectorWidget::sendTool, this, &Master::setTool, Qt::QueuedConnection);
-        connect(toolwidget, &ToolSelectorWidget::sendColor, this, &Master::sendColor);
-        connect(toolwidget, &ToolSelectorWidget::sendWidth, this, &Master::sendWidth);
+        connect(toolwidget, &ToolSelectorWidget::sendToolProperties, this, &Master::sendToolProperties, Qt::DirectConnection);
         connect(toolwidget, &ToolSelectorWidget::updatedTool, this, &Master::sendNewToolSoft);
         widget = toolwidget;
         break;
@@ -469,8 +468,7 @@ SlideView *Master::createSlide(const QJsonObject &object, PdfMaster *pdf, QWidge
         connect(scene, &SlideScene::sendAction, this, &Master::handleAction, Qt::QueuedConnection);
         connect(this, &Master::sendAction, scene, &SlideScene::receiveAction);
         connect(this, &Master::sendNewToolScene, scene, &SlideScene::toolChanged);
-        connect(this, &Master::sendColor, scene, &SlideScene::colorChanged);
-        connect(this, &Master::sendWidth, scene, &SlideScene::widthChanged);
+        connect(this, &Master::sendToolProperties, scene, &SlideScene::toolPropertiesChanged, Qt::DirectConnection);
         connect(this, &Master::postRendering, scene, &SlideScene::postRendering, Qt::QueuedConnection);
         connect(this, &Master::prepareNavigationSignal, scene, &SlideScene::prepareNavigationEvent);
         connect(pdf, &PdfMaster::updateSearch, scene, &SlideScene::updateSearchResults);

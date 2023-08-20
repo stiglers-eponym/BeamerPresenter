@@ -64,8 +64,8 @@ DrawToolDetails::DrawToolDetails(Tool::BasicTool basic_tool, QWidget *parent, co
         }
 
     // Pen style selection
-    for (auto it=string_to_pen_style.cbegin(); it!=string_to_pen_style.cend(); ++it)
-        pen_style_box->addItem(DrawTool::tr(it.key().c_str()), QVariant::fromValue(*it));
+    for (const auto &pair : pen_style_names)
+        pen_style_box->addItem(DrawTool::tr(pair.second.c_str()), QVariant::fromValue(pair.first));
     layout->addRow(tr("pen style"), pen_style_box);
     pen_style_box->setCurrentIndex(
         pen_style_box->findData(
@@ -97,8 +97,8 @@ DrawToolDetails::DrawToolDetails(Tool::BasicTool basic_tool, QWidget *parent, co
     connect(brush_color_button, &QPushButton::clicked, this, &DrawToolDetails::setBrushColor);
 
     // Brush style selection
-    for (auto it=string_to_brush_style.cbegin(); it!=string_to_brush_style.cend(); ++it)
-        brush_style_box->addItem(DrawTool::tr(it.key().c_str()), QVariant::fromValue(*it));
+    for (const auto &pair : brush_style_names)
+        brush_style_box->addItem(DrawTool::tr(pair.second.c_str()), QVariant::fromValue(pair.first));
     layout->addRow(tr("brush style"), brush_style_box);
     brush_style_box->setCurrentIndex(
         brush_style_box->findData(
