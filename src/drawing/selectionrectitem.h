@@ -9,6 +9,7 @@
 #include <QPolygonF>
 #include <QMarginsF>
 #include "src/config.h"
+#include "src/preferences.h"
 
 class QWidget;
 class QPainter;
@@ -25,7 +26,7 @@ public:
     enum {Type = UserType + 10};
 
     /// Trivial constructor.
-    SelectionRectItem(QGraphicsItem *parent = NULL) : QGraphicsItem(parent)
+    SelectionRectItem(QGraphicsItem *parent = nullptr) : QGraphicsItem(parent)
     {setZValue(1e2);}
 
     /// @return custom type of QGraphicsItem.
@@ -36,7 +37,7 @@ public:
     /// @param painter paint to this painter.
     /// @param option currently ignored.
     /// @param widget currently ignored.
-    void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget = NULL) override;
+    void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget = nullptr) override;
 
     /// reset transform and set rect (in scene coordinates)
     void setRect(const QRectF &rect) noexcept;
@@ -51,12 +52,17 @@ public:
 
     /// return center or rotation handle in scene coordinates
     QPointF sceneRotationHandle() const noexcept
-    {return mapToScene(_rect.left()+_rect.width()/2, _rect.top()-10);}
+    {return mapToScene(_rect.left()+_rect.width()/2, _rect.top()-1.5*preferences()->selection_rect_handle_size);}
 
+    /// return a polygon containing the corners of this rectangle in scene coordinates
     QPolygonF scaleHandles() const noexcept;
 
     virtual QRectF boundingRect() const noexcept override
-    {return _rect.marginsAdded(QMarginsF(4,14,4,4));}
+    {
+        const qreal half_size = preferences()->selection_rect_handle_size/2;
+        const qreal stroke_width = preferences()->selection_rect_pen.widthF()/2;
+        return _rect.marginsAdded(QMarginsF(half_size+stroke_width,4*half_size+stroke_width,half_size+stroke_width,half_size+stroke_width));
+    }
 };
 
 #endif // SELECTIONRECTITEM_H

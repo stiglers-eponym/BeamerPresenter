@@ -31,9 +31,9 @@ history length hidden=20
 # allowed values: "per page", "per label", "cumulative".
 # see man 5 beamerpresenter.conf for details.
 mode=cumulative
-# max. slope for angle snapping when detecting shapes
+# maximal slope for angle snapping when detecting shapes
 snap angle=0.05
-# sensiticity for detecting lines in paths (larger values categorize more
+# sensitivity for detecting lines in paths (larger values categorize more
 # paths as lines)
 line sensitivity=0.005
 # ellipses with relative deviation of the two radii smaller than this number
@@ -42,7 +42,7 @@ circle threshold=0.025
 # sensitivity for detecting ellipses in paths
 ellipse sensitivity=0.05
 # shape recognizer for rectangle: tolerance in angles of different sides of
-# a rectangle (radiants)
+# a rectangle (radiant)
 rectangle angle tolerance=0.3
 # shape recognizer for rectangle: allowed distance between first and last
 # point in rectangle relative to variance of point coordinates.
@@ -50,6 +50,18 @@ rectangle closing tolerance=0.1
 # transform only path coordinates (not stroke width) when scaling a drawn
 # path by enabling path finalizing.
 finalize drawn paths=false
+
+[selection]
+# size (in points) of the handles of the selection.
+handle size=7
+# minimal line width (in points) assumed when clicking on a line to select it.
+minimal path width=3
+# filling color of the selection rectangle (should be semi-transparent).
+selection color=#20808090
+# outline color of the selection rectangle.
+selection outline color=#80808090
+# pen width for drawing the selection rectangle outline.
+selection outline width=0.5
 
 [keys]
 # actions affecting drawings and the clipboard

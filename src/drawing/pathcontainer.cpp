@@ -621,7 +621,7 @@ void PathContainer::writeXml(QXmlStreamWriter &writer) const
             writer.writeAttribute("color", color_to_rgba(tool.color()).toLower());
             writer.writeAttribute("width", path->stringWidth());
             if (tool.pen().style() != Qt::SolidLine)
-                writer.writeAttribute("style", pen_style_codes.value(tool.pen().style()));
+                writer.writeAttribute("style", pen_style_codes.value(tool.pen().style()).c_str());
             if (tool.brush().style() != Qt::NoBrush)
             {
                 // Compare brush and stroke color.
@@ -640,7 +640,7 @@ void PathContainer::writeXml(QXmlStreamWriter &writer) const
                     writer.writeAttribute("brushcolor", color_to_rgba(fill).toLower());
                 }
                 if (tool.brush().style() != Qt::SolidPattern)
-                    writer.writeAttribute("brushstyle", brush_style_codes.value(tool.brush().style()));
+                    writer.writeAttribute("brushstyle", brush_style_codes.value(tool.brush().style()).c_str());
             }
             writer.writeCharacters(path->stringCoordinates());
             writer.writeEndElement();

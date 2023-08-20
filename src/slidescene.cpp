@@ -493,13 +493,14 @@ void SlideScene::handleSelectionStartEvents(SelectionTool *tool, const QPointF &
         // 1. Check if the user clicked on some special point on the
         // bounding rect of the selection.
         const QPolygonF selection_rect = selection_bounding_rect.scaleHandles();
+        const qreal handle_size = preferences()->selection_rect_handle_size;
         for (const auto &point : selection_rect)
-            if ((pos - point).manhattanLength() < 4)
+            if ((pos - point).manhattanLength() <= handle_size)
             {
                 tool->startScaling(point, selection_bounding_rect.sceneCenter());
                 return;
             }
-        if ((pos - selection_bounding_rect.sceneRotationHandle()).manhattanLength() < 4)
+        if ((pos - selection_bounding_rect.sceneRotationHandle()).manhattanLength() <= handle_size)
         {
             tool->startRotation(pos, selection_bounding_rect.sceneCenter());
             return;

@@ -59,6 +59,8 @@ QPainterPath AbstractGraphicsPath::shape() const
     }
     path.addPolygon(QPolygonF(coordinates));
     QPen pen(_tool.pen());
+    // TODO: here we work in local coordinates, such that
+    // the minimum selectable width is scaled with the path.
     if (pen.widthF() < preferences()->path_min_selectable_width)
         pen.setWidthF(preferences()->path_min_selectable_width);
     return QPainterPathStroker(pen).createStroke(path);

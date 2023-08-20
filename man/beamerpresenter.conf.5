@@ -131,6 +131,30 @@ affects shape recognizer for rectangle: This defines the allowed distance betwee
 .BR "circle threshold " "= 0.025"
 Ellipses with a relative deviation of the two radii smaller than this number will be considered as circles.
 .
+.
+.SS [selection]
+.
+.TP
+.BR "handle size " "= 7"
+Size (in points) of the handles of the selection.
+.
+.TP
+.BR "minimal path width " "= 3"
+Minimal width (in points) of paths considered when selecting a path by clicking on it. A larger number makes it simpler to select thin lines by clicking on them.
+.
+.TP
+.BR "selection color " "= #20808090"
+Filling color of the selection rectangle. Make sure this is semi-transparent (in the form #aarrggbb).
+.
+.TP
+.BR "selection outline color " "= #80808090"
+Outline color of the selection rectangle.
+.
+.TP
+.BR "selection outline width " "= 0.5"
+Pen width for drawing the selection rectangle outline.
+.
+.
 .SS [rendering]
 .
 .TP

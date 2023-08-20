@@ -341,8 +341,8 @@ void SlideView::drawForeground(QPainter *painter, const QRectF &rect)
                 if (polygon.length() < 3)
                     continue;
                 painter->setCompositionMode(QPainter::CompositionMode_SourceOver);
-                painter->setPen(QPen(QColor(128,128,160,96), 1, Qt::DashLine));
-                painter->setBrush(QColor(128,128,160,32));
+                painter->setPen(preferences()->selection_rect_pen);
+                painter->setBrush(preferences()->selection_rect_brush);
                 painter->drawPolygon(polygon);
             }
         }

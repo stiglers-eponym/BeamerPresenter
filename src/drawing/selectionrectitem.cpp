@@ -25,7 +25,8 @@ void SelectionRectItem::paint(QPainter *painter, const QStyleOptionGraphicsItem 
     painter->setPen(preferences()->selection_rect_pen);
     painter->setBrush(preferences()->selection_rect_brush);
     painter->drawRect(_rect);
-    QRectF tmprect(-3.5,-3.5,7,7);
+    const qreal handle_size = preferences()->selection_rect_handle_size;
+    QRectF tmprect(-handle_size/2, -handle_size/2, handle_size, handle_size);
     painter->setPen(QPen(Qt::gray, 1));
     tmprect.translate(_rect.topLeft());
     painter->drawRect(tmprect);
@@ -43,7 +44,7 @@ void SelectionRectItem::paint(QPainter *painter, const QStyleOptionGraphicsItem 
     painter->drawRect(tmprect);
     tmprect.translate(-_rect.width()/2, 0);
     painter->drawRect(tmprect);
-    tmprect.translate(0, -10);
+    tmprect.translate(0, -1.5*handle_size);
     painter->drawEllipse(tmprect);
 }
 

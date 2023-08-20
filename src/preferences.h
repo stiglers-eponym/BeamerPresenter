@@ -117,6 +117,8 @@ public:
     QPen selection_rect_pen {QPen(QColor(128,128,144,128), 0.5, Qt::DotLine)};
     /// Pen for filling rectangle around selection.
     QBrush selection_rect_brush {QBrush(QColor(128,128,144,32))};
+    /// Size (in pt) of selection rectangle handles.
+    qreal selection_rect_handle_size = 7;
 
     // RENDERING
     /// Threshold of page aspect ratio for splitting pages in notes and

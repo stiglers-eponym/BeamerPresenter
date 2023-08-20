@@ -303,6 +303,25 @@ void Preferences::loadSettings()
         global_flags &= ~FinalizeDrawnPaths;
     settings.endGroup();
 
+    // SELECTION
+    settings.beginGroup("selection");
+    num = settings.value("handle size").toDouble(&ok);
+    if (ok && 0.1 < num && num < 100)
+        selection_rect_handle_size = num;
+    num = settings.value("minimal path width").toDouble(&ok);
+    if (ok && 0.1 < num && num < 100)
+        path_min_selectable_width = num;
+    QColor color = QColor(settings.value("selection color").toString());
+    if (color.isValid())
+        selection_rect_brush = color;
+    color = QColor(settings.value("selection outline color").toString());
+    if (color.isValid())
+        selection_rect_pen.setColor(color);
+    num = settings.value("selection outline width").toDouble(&ok);
+    if (ok && 0 <= num && num < 50)
+        selection_rect_pen.setWidthF(num);
+    settings.endGroup();
+
     // RENDERING
     settings.beginGroup("rendering");
     // page_part threshold
