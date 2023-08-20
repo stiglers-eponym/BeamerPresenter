@@ -291,7 +291,11 @@ const QSizeF MuPdfDocument::pageSize(const int page) const
     mutex->lock();
     fz_try(ctx)
         // Get bounding box.
+#if (FZ_VERSION_MAJOR > 1) || ((FZ_VERSION_MAJOR == 1) && (FZ_VERSION_MINOR >= 23))
+        bbox = pdf_bound_page(ctx, pages[page], FZ_MEDIA_BOX);
+#else
         bbox = pdf_bound_page(ctx, pages[page]);
+#endif
     fz_always(ctx)
         mutex->unlock();
     fz_catch(ctx)
@@ -538,7 +542,11 @@ void MuPdfDocument::prepareRendering(fz_context **context, fz_rect *bbox, fz_dis
         *context = ctx;
         // Get a page (must be done in the main thread!).
         // This causes warnings if the page contains multimedia content.
+#if (FZ_VERSION_MAJOR > 1) || ((FZ_VERSION_MAJOR == 1) && (FZ_VERSION_MINOR >= 23))
+        *bbox = pdf_bound_page(ctx, pages[pagenumber], FZ_MEDIA_BOX);
+#else
         *bbox = pdf_bound_page(ctx, pages[pagenumber]);
+#endif
         // Calculate the boundary box and rescale it to the given resolution.
         // bbox is now given in points. Convert to pixels using resolution, which
         // is given in pixels per point.
@@ -789,11 +797,19 @@ bool MuPdfDocument::flexiblePageSizes() noexcept
 
     flexible_page_sizes = 0;
     mutex->lock();
+#if (FZ_VERSION_MAJOR > 1) || ((FZ_VERSION_MAJOR == 1) && (FZ_VERSION_MINOR >= 23))
+    const fz_rect ref_bbox = pdf_bound_page(ctx, pages[0], FZ_MEDIA_BOX);
+#else
     const fz_rect ref_bbox = pdf_bound_page(ctx, pages[0]);
+#endif
     fz_rect bbox;
     for (auto page : qAsConst(pages))
     {
+#if (FZ_VERSION_MAJOR > 1) || ((FZ_VERSION_MAJOR == 1) && (FZ_VERSION_MINOR >= 23))
+        bbox = pdf_bound_page(ctx, page, FZ_MEDIA_BOX);
+#else
         bbox = pdf_bound_page(ctx, page);
+#endif
         if (bbox.x1 != ref_bbox.x1 || bbox.y1 != ref_bbox.y1)
         {
             flexible_page_sizes = 1;
