@@ -50,9 +50,16 @@ public:
     QPointF sceneCenter() const noexcept
     {return mapToScene(_rect.center());}
 
-    /// return center or rotation handle in scene coordinates
+    /// return center of rotation handle in scene coordinates
     QPointF sceneRotationHandle() const noexcept
     {return mapToScene(_rect.left()+_rect.width()/2, _rect.top()-1.5*preferences()->selection_rect_handle_size);}
+
+    // Return center of delete handle in scene coordinates
+    QPointF sceneDeleteHandle() const noexcept
+    {
+        const qreal handle_size = preferences()->selection_rect_handle_size;
+        return mapToScene(_rect.left()+_rect.width()/2+2*handle_size, _rect.top()-1.5*handle_size);
+    }
 
     /// return a polygon containing the corners of this rectangle in scene coordinates
     QPolygonF scaleHandles() const noexcept;

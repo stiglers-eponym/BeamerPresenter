@@ -8,6 +8,8 @@
 #include <QLineF>
 #include <QPainterPath>
 #include <QStyleOptionGraphicsItem>
+#include "src/config.h"
+#include "src/preferences.h"
 #include "src/drawing/arrowgraphicsitem.h"
 #include "src/drawing/basicgraphicspath.h"
 
@@ -21,9 +23,9 @@
  */
 void calcArrowPoints(const QPointF &start, const QPointF &end, QPointF &p1, QPointF &p2)
 {
-    const qreal length = QLineF(start, end).length();
+    const qreal length =  QLineF(start, end).length() / preferences()->arrow_tip_scale;
     const qreal scale1 = 8. / std::max(40., length) + 32. / std::max(320., length);
-    const qreal scale2 = 1.2*scale1;
+    const qreal scale2 = preferences()->arrow_tip_ratio * scale1;
     p1 = {scale2*start.x() + (1-scale2)*end.x() - scale1*(end.y() - start.y()), scale2*start.y() + (1-scale2)*end.y() + scale1*(end.x() - start.x())};
     p2 = {scale2*start.x() + (1-scale2)*end.x() + scale1*(end.y() - start.y()), scale2*start.y() + (1-scale2)*end.y() - scale1*(end.x() - start.x())};
 }

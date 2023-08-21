@@ -81,6 +81,8 @@ public:
     /// Color for filling rectangles highlighting search results.
     QBrush search_highlighting_color {QColor(40, 100, 60, 100)};
 
+    /// Duration of a slide in an animation, in ms.
+    int slide_duration_animation = 50;
 
     // DRAWING
     /// Maximum number of steps in drawing history of currently visible slide.
@@ -89,8 +91,6 @@ public:
     int history_length_hidden_slides;
     /// Define how should drawings be assigned to overlays.
     OverlayDrawingMode overlay_mode = Cumulative;
-    /// Duration of a slide in an animation, in ms.
-    int slide_duration_animation = 50;
 
     // SHAPE RECOGNITION
     /// Parameter for sensitivity of line detectoin.
@@ -108,6 +108,10 @@ public:
     qreal rect_angle_tolerance = 0.3;
     /// Allowed distance between first and last point in rectangle relative to variance of point coordinates.
     qreal rect_closing_tolerance = 0.1;
+    /// Scale for arrow tip size.
+    qreal arrow_tip_scale = 1.;
+    /// length of arrow tip relative to half width.
+    qreal arrow_tip_ratio = 1.2;
 
     // SELECTION
     /// Minimal pen width for defining path shape. For thinner paths

@@ -22,12 +22,15 @@ void SelectionRectItem::paint(QPainter *painter, const QStyleOptionGraphicsItem 
         return;
     // TODO: better control handles
     painter->setRenderHint(QPainter::Antialiasing);
-    painter->setPen(preferences()->selection_rect_pen);
+    QPen pen = preferences()->selection_rect_pen;
+    painter->setPen(pen);
     painter->setBrush(preferences()->selection_rect_brush);
     painter->drawRect(_rect);
+
     const qreal handle_size = preferences()->selection_rect_handle_size;
     QRectF tmprect(-handle_size/2, -handle_size/2, handle_size, handle_size);
-    painter->setPen(QPen(Qt::gray, 1));
+    pen.setStyle(Qt::SolidLine);
+    painter->setPen(pen);
     tmprect.translate(_rect.topLeft());
     painter->drawRect(tmprect);
     tmprect.translate(0, _rect.height()/2);
@@ -46,6 +49,13 @@ void SelectionRectItem::paint(QPainter *painter, const QStyleOptionGraphicsItem 
     painter->drawRect(tmprect);
     tmprect.translate(0, -1.5*handle_size);
     painter->drawEllipse(tmprect);
+    tmprect.translate(2*handle_size, 0);
+    painter->setBrush(QColor(255, 255, 255, 196));
+    pen.setColor(Qt::red);
+    painter->setPen(pen);
+    painter->drawRect(tmprect);
+    painter->drawLine(tmprect.bottomLeft(), tmprect.topRight());
+    painter->drawLine(tmprect.bottomRight(), tmprect.topLeft());
 }
 
 QPolygonF SelectionRectItem::scaleHandles() const noexcept

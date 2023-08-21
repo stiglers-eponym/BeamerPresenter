@@ -50,6 +50,10 @@ rectangle closing tolerance=0.1
 # transform only path coordinates (not stroke width) when scaling a drawn
 # path by enabling path finalizing.
 finalize drawn paths=false
+# size of the arrow tip relative to the default size
+arrow tip scale=1
+# length of the arrow tip relative to half of its width
+arrow tip ratio=1.2
 
 [selection]
 # size (in points) of the handles of the selection.

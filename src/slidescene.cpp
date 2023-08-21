@@ -505,6 +505,11 @@ void SlideScene::handleSelectionStartEvents(SelectionTool *tool, const QPointF &
             tool->startRotation(pos, selection_bounding_rect.sceneCenter());
             return;
         }
+        if ((pos - selection_bounding_rect.sceneDeleteHandle()).manhattanLength() <= handle_size)
+        {
+            removeSelection();
+            return;
+        }
         // 2. Check if the user clicked on a selected object.
         /* Option 1: Every click in the bounding rect activates dragging. */
         if (selection_bounding_rect.contains(selection_bounding_rect.mapFromScene(pos)))

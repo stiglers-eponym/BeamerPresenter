@@ -301,6 +301,12 @@ void Preferences::loadSettings()
         global_flags |= FinalizeDrawnPaths;
     else
         global_flags &= ~FinalizeDrawnPaths;
+    num = settings.value("arrow tip scale").toDouble(&ok);
+    if (ok && 0.01 < arrow_tip_scale && arrow_tip_scale < 100)
+        arrow_tip_scale = num;
+    num = settings.value("arrow tip ratio").toDouble(&ok);
+    if (ok && 0.01 < arrow_tip_scale && arrow_tip_scale < 100)
+        arrow_tip_ratio = num;
     settings.endGroup();
 
     // SELECTION
