@@ -308,33 +308,42 @@ bool SlideScene::event(QEvent* event)
 bool SlideScene::handleEvents(const int device, const QList<QPointF> &pos, const QPointF &start_pos, const float pressure)
 {
     Tool *tool = preferences()->currentTool(device & Tool::AnyDevice);
+    // Check if a selection is active. In this case we might use the temporary selection tool.
+    if (
+        selection_bounding_rect.isVisible()
+        && (!tool || tool->tool() & Tool::AnyDrawTool || tool->tool() == Tool::NoTool)
+        && pos.size() == 1
+        )
+    {
+        if (tmp_selection_tool && tmp_selection_tool->device() == (device & ~Tool::AnyEvent))
+            tool = tmp_selection_tool;
+        else if ((device & Tool::AnyEvent) == Tool::StartEvent && maybeStartSelectionEvent(pos.first(), (device & ~Tool::AnyEvent)))
+            return true;
+    }
+    // Handle events without any tool.
     if ((!tool || tool->tool() == Tool::NoTool) && pos.size() == 1)
     {
-        if (tmp_selection_tool && (tmp_selection_tool->device() == (device & ~Tool::AnyEvent)))
-            tool = tmp_selection_tool;
-        else
-        {
-            !(
-                (device & Tool::AnyEvent) == Tool::StartEvent
-                && maybeStartSelectionEvent(pos.first(), device & ~Tool::AnyEvent)
-            )
-            && ((device & Tool::AnyEvent) == Tool::StopEvent && pos.size() == 1)
-            && noToolClicked(pos.constFirst(), start_pos);
-            return true;
-        }
+        if ((device & Tool::AnyEvent) == Tool::StopEvent && pos.size() == 1)
+            noToolClicked(pos.constFirst(), start_pos);
+        return true;
     }
 
     debug_verbose(DebugDrawing, "Handling event" << tool->tool() << tool->device() << device);
+    // Handle draw tool events.
     if (tool->tool() & Tool::AnyDrawTool)
         handleDrawEvents(static_cast<const DrawTool*>(tool), device, pos, pressure);
+    // Handle pointing tool events.
     else if (tool->tool() & Tool::AnyPointingTool)
         handlePointingEvents(static_cast<PointingTool*>(tool), device, pos);
+    // Handle selection tool events.
     else if (tool->tool() & Tool::AnySelectionTool)
         handleSelectionEvents(static_cast<SelectionTool*>(tool), device, pos, start_pos);
+    // Handle text tool events.
     // Here we detect start events and not stop events, because otherwise touch events will be discarded:
     // If a touch start event is not handled, the whole touch event is treated as a mouse event.
     else if (tool->tool() == Tool::TextInputTool && (device & Tool::AnyEvent) == Tool::StartEvent && pos.size() == 1)
         return handleTextEvents(static_cast<const TextTool*>(tool), device, pos);
+    // Fall back to no tool.
     else if ((device & Tool::AnyEvent) == Tool::StopEvent && pos.size() == 1)
         noToolClicked(pos.constFirst(), start_pos);
     else
