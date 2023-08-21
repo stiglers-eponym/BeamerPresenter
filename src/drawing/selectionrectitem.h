@@ -70,6 +70,10 @@ public:
         const qreal stroke_width = preferences()->selection_rect_pen.widthF()/2;
         return _rect.marginsAdded(QMarginsF(half_size+stroke_width,4*half_size+stroke_width,half_size+stroke_width,half_size+stroke_width));
     }
+
+    /// return whether point in scene coordinates is contained in _rect
+    bool containsPoint(const QPointF scene_point) const noexcept
+    {return _rect.contains(mapFromScene(scene_point));}
 };
 
 #endif // SELECTIONRECTITEM_H

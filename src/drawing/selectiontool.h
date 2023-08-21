@@ -51,6 +51,7 @@ protected:
     /// Overwrite _type, delete polygon if necessary.
     void changeType(const Type newtype);
 
+    /// Initial transformations of all items.
     QHash<QGraphicsItem*, QTransform> initial_transforms;
 
 public:

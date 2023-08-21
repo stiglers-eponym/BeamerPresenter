@@ -211,7 +211,7 @@ private:
 
     /// Animation for slide transitions. Should be NULL while no
     /// slide transition is active.
-    QAbstractAnimation *animation {NULL};
+    QAbstractAnimation *animation {nullptr};
 
     /// Shift of currently shown page relative to the current presentation
     /// slide. Overlay specifications are stored in the nonzero bits of
@@ -226,6 +226,9 @@ private:
 
     /// Bounding rect of all currently selected items.
     SelectionRectItem selection_bounding_rect;
+
+    /// Selection tool that is tempoarily created when clicking on selection rectangle handles.
+    SelectionTool *tmp_selection_tool {nullptr};
 
     /// Start slide transition.
     void startTransition(const int newpage, const SlideTransition &transition);
@@ -374,6 +377,12 @@ public:
 
     /// Paste from clipboard.
     void pasteFromClipboard();
+
+    /// Check if a selection rect handle is clicked, start selection if necessary.
+    bool maybeStartSelectionEvent(const QPointF &pos, const int device) noexcept;
+
+    /// Initialize tmp_selection_tool with current selection.
+    void initTmpSelectionTool(const int device) noexcept;
 
 protected:
     /**

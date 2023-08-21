@@ -93,6 +93,7 @@ SlideScene::~SlideScene()
     for (auto &media : mediaItems)
         media.clear();
     mediaItems.clear();
+    delete tmp_selection_tool;
     delete currentlyDrawnItem;
     delete currentItemCollection;
 }
@@ -307,11 +308,20 @@ bool SlideScene::event(QEvent* event)
 bool SlideScene::handleEvents(const int device, const QList<QPointF> &pos, const QPointF &start_pos, const float pressure)
 {
     Tool *tool = preferences()->currentTool(device & Tool::AnyDevice);
-    if (!tool || tool->tool() == Tool::NoTool)
+    if ((!tool || tool->tool() == Tool::NoTool) && pos.size() == 1)
     {
-        if ((device & Tool::AnyEvent) == Tool::StopEvent && pos.size() == 1)
-            noToolClicked(pos.constFirst(), start_pos);
-        return true;
+        if (tmp_selection_tool && (tmp_selection_tool->device() == (device & ~Tool::AnyEvent)))
+            tool = tmp_selection_tool;
+        else
+        {
+            !(
+                (device & Tool::AnyEvent) == Tool::StartEvent
+                && maybeStartSelectionEvent(pos.first(), device & ~Tool::AnyEvent)
+            )
+            && ((device & Tool::AnyEvent) == Tool::StopEvent && pos.size() == 1)
+            && noToolClicked(pos.constFirst(), start_pos);
+            return true;
+        }
     }
 
     debug_verbose(DebugDrawing, "Handling event" << tool->tool() << tool->device() << device);
@@ -330,6 +340,56 @@ bool SlideScene::handleEvents(const int device, const QList<QPointF> &pos, const
     else
         return false;
     return true;
+}
+
+bool SlideScene::maybeStartSelectionEvent(const QPointF &pos, const int device) noexcept
+{
+    // Try to handle selection (if available)
+    if (!selection_bounding_rect.isVisible())
+        return false;
+
+    // 1. Check if the user clicked on some special point on the
+    // bounding rect of the selection.
+    const QPolygonF selection_rect = selection_bounding_rect.scaleHandles();
+    const qreal handle_size = preferences()->selection_rect_handle_size;
+    for (const auto &point : selection_rect)
+        if ((pos - point).manhattanLength() <= handle_size)
+        {
+            initTmpSelectionTool(device);
+            tmp_selection_tool->startScaling(point, selection_bounding_rect.sceneCenter());
+            return true;
+        }
+    if ((pos - selection_bounding_rect.sceneRotationHandle()).manhattanLength() <= handle_size)
+    {
+        initTmpSelectionTool(device);
+        tmp_selection_tool->startRotation(pos, selection_bounding_rect.sceneCenter());
+        return true;
+    }
+    if ((pos - selection_bounding_rect.sceneDeleteHandle()).manhattanLength() <= handle_size)
+    {
+        removeSelection();
+        return true;
+    }
+    // 2. Check if the user clicked on a selected object.
+    /* Option 1: Every click in the bounding rect activates dragging. */
+    if (selection_bounding_rect.containsPoint(pos))
+    {
+        initTmpSelectionTool(device);
+        tmp_selection_tool->startMove(pos);
+        return true;
+    }
+    // */
+    /* Option 2: Selection is only dragged when clicking directly on an object.
+    selection.pop_back();
+    for (auto item : selection)
+        if (item->contains(item->mapFromScene(pos)))
+        {
+            initTmpSelectionTool(device);
+            tmp_selection_tool->startMove(pos);
+            return;
+        }
+    // */
+    return false;
 }
 
 void SlideScene::handleDrawEvents(const DrawTool *tool, const int device, const QList<QPointF> &pos, const float pressure)
@@ -512,7 +572,7 @@ void SlideScene::handleSelectionStartEvents(SelectionTool *tool, const QPointF &
         }
         // 2. Check if the user clicked on a selected object.
         /* Option 1: Every click in the bounding rect activates dragging. */
-        if (selection_bounding_rect.contains(selection_bounding_rect.mapFromScene(pos)))
+        if (selection_bounding_rect.containsPoint(pos))
         {
             tool->startMove(pos);
             return;
@@ -569,7 +629,14 @@ void SlideScene::handleSelectionStopEvents(SelectionTool *tool, const QPointF &p
     {
         const QHash<QGraphicsItem*, QTransform> &originalTransforms = tool->originalTransforms();
         if (originalTransforms.count() <= 1)
+        {
+            if (tool == tmp_selection_tool)
+            {
+                delete tmp_selection_tool;
+                tmp_selection_tool = nullptr;
+            }
             return;
+        }
         const bool finalize = preferences()->global_flags & Preferences::FinalizeDrawnPaths;
         QTransform transform;
         std::map<QGraphicsItem*, QTransform> transforms;
@@ -616,7 +683,13 @@ void SlideScene::handleSelectionStopEvents(SelectionTool *tool, const QPointF &p
     default:
         break;
     }
-    tool->reset();
+    if (tool == tmp_selection_tool)
+    {
+        delete tmp_selection_tool;
+        tmp_selection_tool = nullptr;
+    }
+    else
+        tool->reset();
 }
 
 void SlideScene::receiveAction(const Action action)
@@ -1588,6 +1661,17 @@ bool SlideScene::stopInputEvent(const DrawTool *tool)
     return false;
 }
 
+void SlideScene::initTmpSelectionTool(const int device) noexcept
+{
+    if (tmp_selection_tool)
+        tmp_selection_tool->reset();
+    else
+        tmp_selection_tool = new SelectionTool(Tool::BasicSelectionTool, device);
+    QList<QGraphicsItem*> selection = selectedItems();
+    selection.append(&selection_bounding_rect);
+    tmp_selection_tool->initTransformations(selection);
+}
+
 bool SlideScene::noToolClicked(const QPointF &pos, const QPointF &startpos)
 {
     debug_verbose(DebugMedia|DebugDrawing, "Clicked without tool" << pos << startpos);
@@ -1604,6 +1688,7 @@ bool SlideScene::noToolClicked(const QPointF &pos, const QPointF &startpos)
                 return true;
             break;
         }
+    // Try to handle links.
     const PdfLink *link = master->getDocument()->linkAt(page, pos);
     bool did_something = false;
     if (link && (startpos.isNull() || link->area.contains(startpos)))
