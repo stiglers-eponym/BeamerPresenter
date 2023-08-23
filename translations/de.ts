@@ -545,6 +545,10 @@
         <source>Should apply micro step, but history is empty.</source>
         <translation>Sollte Mikroschritt anwenden, doch Verlauf ist leer.</translation>
     </message>
+    <message>
+        <source>Error in drawing history: inHistory &gt; history.size()</source>
+        <translation>Fehler im Verlauf der Anmerkungen: inHistory &gt; history.size()</translation>
+    </message>
 </context>
 <context>
     <name>PdfMaster</name>

@@ -545,6 +545,10 @@
         <source>New item existed before, but could not find it in _z_order! Searching full array.</source>
         <translation type="unfinished"></translation>
     </message>
+    <message>
+        <source>Error in drawing history: inHistory &gt; history.size()</source>
+        <translation type="unfinished"></translation>
+    </message>
 </context>
 <context>
     <name>PdfMaster</name>

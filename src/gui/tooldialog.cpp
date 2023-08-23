@@ -9,7 +9,7 @@
 #include <QGroupBox>
 #include <QDoubleSpinBox>
 #include <QFormLayout>
-#include <QVBoxLayout>
+#include <QGridLayout>
 #include "src/gui/tooldialog.h"
 #include "src/log.h"
 #include "src/enumerates.h"
@@ -261,12 +261,15 @@ ToolDialog::ToolDialog(QWidget *parent) :
     // Input devices
     {
         QGroupBox *device_group = new QGroupBox(tr("Input devices"), this);
-        QVBoxLayout *device_layout = new QVBoxLayout();
+        QGridLayout *device_layout = new QGridLayout();
+        device_layout->setSpacing(0);
+        int i = 0;
         for (auto it = string_to_input_device.cbegin(); it != string_to_input_device.cend(); ++it)
         {
             QCheckBox *button = new QCheckBox(Tool::tr(it.key().c_str()), device_group);
-            device_layout->addWidget(button);
+            device_layout->addWidget(button, i/2, i%2);
             device_buttons.insert(*it, button);
+            ++i;
         }
         device_group->setLayout(device_layout);
         layout->addWidget(device_group);
