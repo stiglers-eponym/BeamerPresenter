@@ -20,8 +20,8 @@ jobs:
     - name: Build flatpak
       uses: bilelmoussaoui/flatpak-github-actions/flatpak-builder@v6
       with:
-        bundle: beamerpresenter-qt6.flatpak
-        manifest-path: packaging/io.github.beamerpresenter.beamerpresenter-qt6.yml
+        bundle: BeamerPresenter.flatpak
+        manifest-path: packaging/io.github.stiglers_eponym.BeamerPresenter-qt6.yml
         arch: x86_64
         cache-key: flatpak-builder-${{ github.sha }}
 
@@ -30,6 +30,6 @@ jobs:
       if: startsWith(github.ref, 'refs/tags/')
       with:
         files: |
-          beamerpresenter-qt6.flatpak
+          BeamerPresenter.flatpak
         draft: true
         token: ${{ secrets.GITHUB_TOKEN }}

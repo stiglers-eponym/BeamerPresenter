@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <component type="desktop">
-  <id>io.github.beamerpresenter.beamerpresenter</id>
+  <id>io.github.stiglers_eponym.BeamerPresenter</id>
   <name>BeamerPresenter</name>
   <project_license>GPL-3.0</project_license>
   <metadata_license>CC0-1.0</metadata_license>
@@ -27,7 +27,7 @@
   </description>
   <categories>
     <category>Office</category>
-    <category>Qt5</category>
+    <category>Qt6</category>
   </categories>
   <screenshots>
     <screenshot type="default">
@@ -51,6 +51,6 @@
     <release version="0.1.2" date="2020-07-13"/>
     <release version="0.1.1" date="2020-03-01"/>
   </releases>
-  <launchable type="desktop-id">io.github.beamerpresenter.beamerpresenter.desktop</launchable>
+  <launchable type="desktop-id">io.github.stiglers-eponym.BeamerPresenter.desktop</launchable>
   <content_rating type="oars-1.0" />
 </component>

@@ -6,14 +6,17 @@
 * new widget: ToolWidget ("tools") showing tools currently connected to input devices
 * improved search widget: now highlights search results
 * saving/loading files: single gzipped XML file (.bpr/.xopp) can now contain information about multiple PDF files
+* selection:
+    * added delete button to selection rectangle
+    * draw tools and hand tool (no tool) can be use to manipulate selection rectangle
 * different installation path for translation files
 * copy and paste to/from image formats:
     * paste only as picture (no erasing possible)
     * this adds the Qt SVG module as a dependency
 * new feature: allow camera (webcam) output as input for videos
 * internal: different drawing history, memory management, and stacking order mechanism
-* added build instructions for RPM, tested on fedora
-* compatibility with Qt 6.4 and Qt 6.5
+* added build instructions for fedora Linux (RPM) and MSYS2
+* compatibility with Qt 6.4 - 6.6
 * compatibility with MuPDF 1.23
 * various bug fixes
 

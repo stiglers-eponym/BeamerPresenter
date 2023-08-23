@@ -1,7 +1,7 @@
-app-id: io.github.beamerpresenter.beamerpresenter-qt6
+app-id: io.github.stiglers_eponym.BeamerPresenter
 branch: master
 runtime: org.kde.Platform
-runtime-version: "6.4"
+runtime-version: 5.15-22.08
 sdk: org.kde.Sdk
 command: beamerpresenter
 build-options:
@@ -16,7 +16,7 @@ finish-args:
   - "--filesystem=xdg-public-share"
   - "--filesystem=xdg-desktop"
   - "--filesystem=xdg-config/beamerpresenter"
-  - "--own-name=io.github.beamerpresenter.beamerpresenter-qt6"
+  - "--own-name=io.github.stiglers_eponym.BeamerPresenter"
 modules:
   - name: poppler
     buildsystem: cmake-ninja
@@ -28,8 +28,8 @@ modules:
     - "-DENABLE_BOOST=OFF"
     - "-DENABLE_UTILS=OFF"
     - "-DENABLE_LIBCURL=OFF"
-    - "-DENABLE_QT5=OFF"
-    - "-DENABLE_QT6=ON"
+    - "-DENABLE_QT5=ON"
+    - "-DENABLE_QT6=OFF"
     - "-DENABLE_GLIB=OFF"
     - "-DENABLE_GOBJECT_INTROSPECTION=OFF"
     - "-DENABLE_GTK_DOC=OFF"
@@ -40,18 +40,18 @@ modules:
     - type: archive
       url: https://poppler.freedesktop.org/poppler-23.08.0.tar.xz
       sha256: 4a4bf7fc903b9f1a2ab7d04b7c5d8220db9bc6261cc73fdb9a826dc272f49aa8
-  - name: beamerpresenter-qt6
+  - name: beamerpresenter
     buildsystem: cmake-ninja
     config-opts:
-    - "-DQT_VERSION_MAJOR=6"
-    - "-DQT_VERSION_MINOR=4"
+    - "-DQT_VERSION_MAJOR=5"
+    - "-DQT_VERSION_MINOR=15"
     - "-DUSE_POPPLER=ON"
     - "-DUSE_MUPDF=OFF"
     - "-DUSE_QTPDF=OFF"
     - "-DUSE_EXTERNAL_RENDERER=OFF"
     - "-DUSE_TRANSLATIONS=ON"
     - "-DGIT_VERSION=ON"
-    - "-DAPPID_NAME=io.github.beamerpresenter.beamerpresenter-qt6"
+    - "-DAPPID_NAME=io.github.stiglers_eponym.BeamerPresenter"
     - "-DINSTALL_METAINFO=ON"
     - "-DCMAKE_BUILD_TYPE=Release"
     - "-DCMAKE_INSTALL_PREFIX=/app"
