@@ -103,7 +103,7 @@ void SlideScene::stopDrawing()
     debug_msg(DebugDrawing, "Stop drawing" << page << page_part << currentlyDrawnItem << currentItemCollection);
     if (currentlyDrawnItem)
     {
-        BasicGraphicsPath *newpath = NULL;
+        BasicGraphicsPath *newpath = nullptr;
         switch (currentlyDrawnItem->type())
         {
         case BasicGraphicsPath::Type:
@@ -125,7 +125,7 @@ void SlideScene::stopDrawing()
             }
             currentlyDrawnItem->show();
             invalidate(currentlyDrawnItem->sceneBoundingRect(), QGraphicsScene::ItemLayer);
-            currentlyDrawnItem = NULL;
+            currentlyDrawnItem = nullptr;
             break;
         }
         case RectGraphicsItem::Type:
@@ -2031,6 +2031,8 @@ void SlideScene::toolPropertiesChanged(const std::variant<qreal,Qt::PenStyle,Qt:
                 if (path->getTool().color() != color)
                 {
                     DrawTool tool = path->getTool();
+                    if (tool.brush().color() == tool.color())
+                        tool.brush().setColor(color);
                     tool.setColor(color);
                     tool_changes.insert({path, drawHistory::DrawToolDifference(path->getTool(), tool)});
                     path->changeTool(tool);

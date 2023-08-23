@@ -259,7 +259,13 @@ void PathContainer::truncateHistory()
         applyMicroStep();
     else if (inHistory == -2)
         inHistory = 0;
-    else
+    else {
+        // This should never happen, but better check:
+        if (inHistory > history.size())
+        {
+            qCritical() << tr("Error in drawing history: inHistory > history.size()");
+            inHistory = history.size();
+        }
         // Clean up all "redo" options:
         // Delete the last <inHistory> history entries.
         while (inHistory > 0)
@@ -267,6 +273,7 @@ void PathContainer::truncateHistory()
             deleteStep(history.takeLast());
             --inHistory;
         }
+    }
 }
 
 void PathContainer::clearHistory(int n)
@@ -910,8 +917,7 @@ bool PathContainer::addChanges(
         std::map<AbstractGraphicsPath*, drawHistory::DrawToolDifference> *tools,
         std::map<TextGraphicsItem*, drawHistory::TextPropertiesDifference> *texts)
 {
-    history.append(drawHistory::Step());
-    auto &step = history.last();
+    drawHistory::Step step;
     if (transforms)
         for (const auto &[item,trans] : *transforms)
             if (item)
@@ -934,10 +940,9 @@ bool PathContainer::addChanges(
                 step.textPropertiesChanges.insert({item, text});
             }
     if (step.empty())
-    {
-        history.pop_back();
         return false;
-    }
+    truncateHistory();
+    history.append(step);
     limitHistory();
     return true;
 }
