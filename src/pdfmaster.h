@@ -58,7 +58,7 @@ private:
 
     /// Graphics scenes of this application. For each combination of PDF file
     /// and page shift one scene is created.
-    /// Master scene is the first scene in the list.
+    /// The first scene in this list is the master scene.
     QList<SlideScene*> scenes;
 
     /// Path to file in which drawings are saved.
@@ -168,7 +168,12 @@ public:
     /// Get path container at given page.
     /// page (part) number is given as (page | page_part).
     PathContainer *pathContainer(int page) const
-    {return paths.value(page, nullptr);}
+    {
+        if (preferences()->overlay_mode == PerLabel)
+            return paths.value(overlaysShifted(page & ~NotFullPage, FirstOverlay) | (page & NotFullPage), nullptr);
+        else
+            return paths.value(page, nullptr);
+    }
 
     /// Get file path at which drawings are saved.
     const QString &drawingsPath() const noexcept

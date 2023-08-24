@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later OR AGPL-3.0-or-later
 
 #include <map>
+#include <utility>
 #include <algorithm>
 #include <zlib.h>
 #include <QFileInfo>
@@ -99,14 +100,21 @@ void PdfMaster::receiveAction(const Action action)
     case UndoDrawingLeft:
     case UndoDrawingRight:
     {
-        const int page = preferences()->page | (action ^ UndoDrawing);
+        int page = preferences()->page;
+        if (preferences()->overlay_mode == PerLabel)
+            page = document->overlaysShifted(page, FirstOverlay);
+        page |= action ^ UndoDrawing;
         PathContainer* const path = paths.value(page, nullptr);
         if (path)
         {
             debug_msg(DebugDrawing, "undo:" << path);
             auto scene_it = scenes.cbegin();
-            while ( scene_it != scenes.cend() && ( (*scene_it)->getPage() | (*scene_it)->pagePart() ) != page)
-                ++scene_it;
+            if (preferences()->overlay_mode == PerLabel)
+                while ( scene_it != scenes.cend() && ( overlaysShifted((*scene_it)->getPage(), FirstOverlay) | (*scene_it)->pagePart() ) != page)
+                    ++scene_it;
+            else
+                while ( scene_it != scenes.cend() && ( (*scene_it)->getPage() | (*scene_it)->pagePart() ) != page)
+                    ++scene_it;
             SlideScene * const scene = scene_it == scenes.cend() ? nullptr : *scene_it;
             if (path->undo(scene))
             {
@@ -121,14 +129,21 @@ void PdfMaster::receiveAction(const Action action)
     case RedoDrawingLeft:
     case RedoDrawingRight:
     {
-        const int page = preferences()->page | (action ^ RedoDrawing);
+        int page = preferences()->page;
+        if (preferences()->overlay_mode == PerLabel)
+            page = document->overlaysShifted(page, FirstOverlay);
+        page |= action ^ RedoDrawing;
         PathContainer* const path = paths.value(page, nullptr);
         if (path)
         {
             debug_msg(DebugDrawing, "redo:" << path);
             auto scene_it = scenes.cbegin();
-            while ( scene_it != scenes.cend() && ( (*scene_it)->getPage() | (*scene_it)->pagePart() ) != page)
-                ++scene_it;
+            if (preferences()->overlay_mode == PerLabel)
+                while ( scene_it != scenes.cend() && ( overlaysShifted((*scene_it)->getPage(), FirstOverlay) | (*scene_it)->pagePart() ) != page)
+                    ++scene_it;
+            else
+                while ( scene_it != scenes.cend() && ( (*scene_it)->getPage() | (*scene_it)->pagePart() ) != page)
+                    ++scene_it;
             SlideScene * const scene = scene_it == scenes.cend() ? nullptr : *scene_it;
             if (path->redo(scene))
             {
@@ -143,7 +158,11 @@ void PdfMaster::receiveAction(const Action action)
     case ClearDrawingLeft:
     case ClearDrawingRight:
     {
-        PathContainer* const path = paths.value(preferences()->page | (action ^ ClearDrawing), nullptr);
+        int page = preferences()->page;
+        if (preferences()->overlay_mode == PerLabel)
+            page = document->overlaysShifted(page, FirstOverlay);
+        page |= (action ^ ClearDrawing);
+        PathContainer* const path = paths.value(page, nullptr);
         if (path)
         {
             debug_msg(DebugDrawing, "clear:" << path);
@@ -233,26 +252,30 @@ void PdfMaster::distributeNavigationEvents(const int page) const
     QMap<int, SlideScene*> scenemap;
     if (preferences()->overlay_mode == PerLabel)
     {
-        for (const auto scene : qAsConst(scenes))
+        int scenepage, indexpage;
+        for (const auto scene : std::as_const(scenes))
         {
-            int shift = scene->getShift();
-            const int scenepage = overlaysShifted(page, shift) | scene->pagePart();
-            const int indexpage = overlaysShifted(page, (shift & ~AnyOverlay) | FirstOverlay) | scene->pagePart();
+            /// scenepage: the page index that will be shown by the scene.
+            scenepage = overlaysShifted(page, scene->getShift());
+            /// index page: the overlay root page, to which all drawings are attached.
+            indexpage = overlaysShifted(scenepage, FirstOverlay) | scene->pagePart();
             if (scenemap.contains(indexpage))
-                scene->navigationEvent(scenepage & ~NotFullPage, scenemap[indexpage]);
+                scene->navigationEvent(scenepage, scenemap[indexpage]);
             else
             {
                 scenemap[indexpage] = scene;
-                scene->navigationEvent(scenepage & ~NotFullPage);
+                scene->navigationEvent(scenepage);
             }
+            scenepage |= scene->pagePart();
         }
     }
     else
     {
         // Redistribute views to scenes.
-        for (const auto scene : qAsConst(scenes))
+        int scenepage;
+        for (const auto scene : std::as_const(scenes))
         {
-            const int scenepage = overlaysShifted(page, scene->getShift()) | scene->pagePart();
+            scenepage = overlaysShifted(page, scene->getShift()) | scene->pagePart();
             if (scenemap.contains(scenepage))
                 scene->navigationEvent(scenepage & ~NotFullPage, scenemap[scenepage]);
             else
@@ -262,7 +285,7 @@ void PdfMaster::distributeNavigationEvents(const int page) const
         for (auto it = scenemap.cbegin(); it != scenemap.cend(); ++it)
             (*it)->navigationEvent(it.key() & ~NotFullPage);
     }
-    for (const auto scene : qAsConst(scenes))
+    for (const auto scene : std::as_const(scenes))
         scene->createSliders();
 }
 
@@ -466,6 +489,8 @@ PathContainer *PdfMaster::pathContainerCreate(int page)
 
 void PdfMaster::createPathContainer(PathContainer **container, int page)
 {
+    if (preferences()->overlay_mode == PerLabel)
+        page = document->overlaysShifted((page & ~NotFullPage), FirstOverlay) | (page & NotFullPage);
     auto &target = paths[page];
     if (!target)
         target = new PathContainer(this);
