@@ -372,7 +372,9 @@ void PdfMaster::readPageFromStream(QXmlStreamReader &reader)
 #else
             const QStringRef filename = reader.attributes().value("filename");
 #endif
-            if (!filename.isEmpty() && filename != document->getPath() && QFileInfo(filename.toString()).absoluteFilePath() != document->getPath())
+            if (!filename.isEmpty()
+                && filename != document->getPath()
+                && QFileInfo(filename.toString()).absoluteFilePath() != document->getPath())
                 return;
             if (!reader.isEndElement())
                 reader.skipCurrentElement();
@@ -473,13 +475,8 @@ void PdfMaster::createPathContainer(PathContainer **container, int page)
 void PdfMaster::clearAllDrawings()
 {
     for (const auto container : qAsConst(paths))
-    {
         if (container)
-        {
             container->clearPaths();
-            container->clearHistory();
-        }
-    }
 }
 
 void PdfMaster::getTimeForPage(const int page, quint32 &time) const noexcept

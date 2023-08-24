@@ -736,7 +736,9 @@ TextGraphicsItem *loadTextItem(QXmlStreamReader &reader)
 
 void PathContainer::loadDrawings(QXmlStreamReader &reader)
 {
+    truncateHistory();
     QGraphicsItem *item;
+    history.append(drawHistory::Step());
     while (reader.readNextStartElement())
     {
         if (reader.name().toUtf8() == "stroke")
@@ -749,8 +751,18 @@ void PathContainer::loadDrawings(QXmlStreamReader &reader)
             continue;
         }
         if (item)
-            appendForeground(item);
+        {
+            // This is equivalent to appendForeground(item), but collects all items in a single history step.
+            item->setZValue(topZValue() + 10);
+            keepItem(item, true);
+            _z_order.insert(item);
+            history.last().createdItems.append(item);
+        }
     }
+    if (history.last().empty())
+        history.removeLast();
+    else
+        limitHistory();
 }
 
 void PathContainer::loadDrawings(QXmlStreamReader &reader, PathContainer *center, PathContainer *left, PathContainer *right, const qreal page_half)

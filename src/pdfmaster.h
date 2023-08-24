@@ -174,7 +174,7 @@ public:
     const QString &drawingsPath() const noexcept
     {return drawings_path;}
 
-    /// Clear all drawings including history.
+    /// Clear all drawings but keep history.
     void clearAllDrawings();
 
     /// Check if page currently contains any drawings (ignoring history).
