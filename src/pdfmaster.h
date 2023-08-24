@@ -147,8 +147,8 @@ public:
     /// Get page number of start shifted by shift_overlay.
     /// Here in shift_overlay the bits of ShiftOverlay::FirstOverlay and
     /// ShiftOverlay::LastOverlay control the interpretation of the shift.
-    /// Shifting with overlays means that every page with a different page
-    /// label starts a new "real" side.
+    /// Shifting with overlays means that only pages with a different page
+    /// label (or own outline entry) start a new "real" slide.
     int overlaysShifted(const int start, const int shift_overlay) const
     {return document->overlaysShifted(start, shift_overlay);}
 

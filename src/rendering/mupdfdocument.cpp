@@ -331,7 +331,7 @@ int MuPdfDocument::overlaysShifted(const int start, const int shift_overlay) con
     int shift = shift_overlay >= 0 ? shift_overlay & ~ShiftOverlays::AnyOverlay : shift_overlay | ShiftOverlays::AnyOverlay;
     // Check whether the document has non-trivial page labels and shift has
     // non-trivial overlay flags.
-    if (pageLabels.isEmpty() || shift == shift_overlay)
+    if (pageLabels.empty() || shift == shift_overlay)
         return start + shift;
     // Find the beginning of next slide.
     QMap<int, QString>::const_iterator it = pageLabels.upperBound(start);
@@ -362,6 +362,7 @@ int MuPdfDocument::overlaysShifted(const int start, const int shift_overlay) con
 }
 
 #if (FZ_VERSION_MAJOR > 1) || ((FZ_VERSION_MAJOR == 1) && (FZ_VERSION_MINOR >= 22))
+
 void MuPdfDocument::loadPageLabels()
 {
     if (!ctx || !doc)
@@ -390,6 +391,14 @@ void MuPdfDocument::loadPageLabels()
         return;
     }
 
+    if (pageLabels.empty())
+        return;
+    if (pageLabels.size() == 1 && pageLabels.contains(0) && pageLabels[0] == "")
+    {
+        pageLabels.clear();
+        return;
+    }
+
     // Add all pages explicitly to pageLabels, which have an own outline entry.
     QMap<int, QString>::key_iterator it;
     for (const auto &entry : qAsConst(outline))
@@ -400,8 +409,12 @@ void MuPdfDocument::loadPageLabels()
         if (it != pageLabels.keyBegin() && *--it != entry.page)
             pageLabels.insert(entry.page, pageLabels[*it]);
     }
+
+    debug_msg(DebugRendering, "Loaded page labels:" << pageLabels);
 }
+
 #else // FZ_VERSION < 1.22
+
 void MuPdfDocument::loadPageLabels()
 {
     /* This implementation is designed for documents, in which page labels
@@ -481,7 +494,7 @@ void MuPdfDocument::loadPageLabels()
     }
 
     // Check if anything was found.
-    if (raw_labels.isEmpty())
+    if (raw_labels.empty())
         return;
 
     // Convert raw labels to something useful.
@@ -522,6 +535,7 @@ void MuPdfDocument::loadPageLabels()
             pageLabels.insert(entry.page, pageLabels[*it]);
     }
 }
+
 #endif // FZ_VERSION
 
 void MuPdfDocument::prepareRendering(fz_context **context, fz_rect *bbox, fz_display_list **list, const int pagenumber, const qreal resolution) const

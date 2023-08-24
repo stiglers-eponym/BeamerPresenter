@@ -1,6 +1,7 @@
 // SPDX-FileCopyrightText: 2022 Valentin Bruch <software@vbruch.eu>
 // SPDX-License-Identifier: GPL-3.0-or-later OR AGPL-3.0-or-later
 
+#include <utility>
 #include <zlib.h>
 #include <QtConfig>
 #include <algorithm>
@@ -966,7 +967,7 @@ void Master::navigateToPage(const int page)
     }
     leavePage(preferences()->page);
     emit prepareNavigationSignal(page);
-    for (const auto window : windows)
+    for (const auto window : std::as_const(windows))
         window->updateGeometry();
     // Get duration of the slide: But only take a nontrivial value if
     // the new page is (old page + 1).
