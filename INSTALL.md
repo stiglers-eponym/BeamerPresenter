@@ -7,11 +7,11 @@ The [releases](https://github.com/stiglers-eponym/BeamerPresenter/releases) incl
 These packages can be installed as shown in the following example, which uses Qt 5 and Poppler as PDF engine (after downloading the corresponding file):
 ```sh
 # Ubuntu 20.04:
-sudo apt install ./beamerpresenter-poppler-0.2.3-qt5-focal-x86_64.deb
+sudo apt install ./beamerpresenter-poppler-0.2.4-qt5-focal-x86_64.deb
 # Ubuntu 22.04:
-sudo apt install ./beamerpresenter-poppler-0.2.3-qt5-jammy-x86_64.deb
+sudo apt install ./beamerpresenter-poppler-0.2.4-qt5-jammy-x86_64.deb
 # Arch/Manjaro/Endeavour
-sudo pacman -U beamerpresenter-poppler-qt5-0.2.3-1-x86_64.pkg.tar.zst
+sudo pacman -U beamerpresenter-poppler-qt5-0.2.4-1-x86_64.pkg.tar.zst
 # Flatpak
 flatpak install org.kde.Platform/x86_64/5.15-21.08 # can be skipped if already installed
 flatpak install beamerpresenter.flatpak
@@ -82,7 +82,7 @@ When compiling with Poppler:
 * `poppler-qt5`
 
 When compiling with MuPDF:
-* `libmupdf` (only for building, tested versions: 1.16.1 – 1.23.0)
+* `libmupdf` (only for building, tested versions: 1.16.1 – 1.23.3)
 * `jbig2dec`
 * `openjpeg2`
 * `gumbo-parser`

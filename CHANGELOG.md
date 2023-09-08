@@ -16,7 +16,7 @@
 * new feature: allow camera (webcam) output as input for videos
 * internal: different drawing history, memory management, and stacking order mechanism
 * added build instructions for fedora Linux (RPM) and MSYS2
-* compatibility with Qt 6.4 - 6.6
+* compatibility with Qt 6.4 - 6.6 (beta)
 * compatibility with MuPDF 1.23
 * various bug fixes
 

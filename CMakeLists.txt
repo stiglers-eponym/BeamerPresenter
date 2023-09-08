@@ -8,7 +8,7 @@ project(beamerpresenter
     DESCRIPTION "Multi-screen PDF presentation viewer"
     HOMEPAGE_URL "https://github.com/stiglers-eponym/BeamerPresenter"
     LANGUAGES CXX)
-set(version_suffix "-beta1")
+set(version_suffix "-rc1")
 
 # Configure compilation basics
 set(CMAKE_CONFIGURATION_TYPES Release Debug)

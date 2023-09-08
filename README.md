@@ -55,11 +55,11 @@ The [releases](https://github.com/stiglers-eponym/BeamerPresenter/releases) come
 For example, the commands for installing BeamerPresenter with Poppler as PDF engine and Qt 5 after downloading the corresponding file are:
 ```sh
 # Ubuntu 20.04:
-sudo apt install ./beamerpresenter-poppler-0.2.3-qt5-focal-x86_64.deb
+sudo apt install ./beamerpresenter-poppler-0.2.4-qt5-focal-x86_64.deb
 # Ubuntu 22.04:
-sudo apt install ./beamerpresenter-poppler-0.2.3-qt5-jammy-x86_64.deb
+sudo apt install ./beamerpresenter-poppler-0.2.4-qt5-jammy-x86_64.deb
 # Arch/Manjaro:
-sudo pacman -U beamerpresenter-poppler-qt5-0.2.3-1-x86_64.pkg.tar.zst
+sudo pacman -U beamerpresenter-poppler-qt5-0.2.4-1-x86_64.pkg.tar.zst
 # Flatpak:
 flatpak install org.kde.Platform/x86_64/5.15-21.08 # can be skipped if already installed
 flatpak install beamerpresenter-qt5.flatpak

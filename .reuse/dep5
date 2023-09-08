@@ -43,6 +43,10 @@ Files: config/*
 Copyright: 2022 Valentin Bruch <software@vbruch.eu>
 License: CC0-1.0
 
+Files: tests/*
+Copyright: 2023 Valentin Bruch <software@vbruch.eu>
+License: CC0-1.0
+
 Files: *.md
 Copyright: 2022 Valentin Bruch <software@vbruch.eu>
 License: CC0-1.0

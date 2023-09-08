@@ -9,8 +9,8 @@ _qt_min_version="${_qt_version_major}.${_qt_version_minor}.0"
 _qt_max_version="${_qt_version_major}.$(( ${_qt_version_minor} + 1 )).0"
 
 pkgname="beamerpresenter-poppler-qt${_qt_version_major}"
-pkgver='0.2.3'
-pkgrel=2
+pkgver='0.2.4'
+pkgrel=1
 pkgdesc="Modular multi-screen pdf presenter (using Poppler)"
 arch=('x86_64')
 url="https://github.com/stiglers-eponym/BeamerPresenter"
@@ -21,7 +21,7 @@ provides=("beamerpresenter=${pkgver}")
 conflicts=('beamerpresenter')
 backup=('etc/xdg/beamerpresenter/beamerpresenter.conf' 'etc/xdg/beamerpresenter/gui.json')
 source=("${pkgname}-${pkgver}.tar.gz::${url}/archive/v${pkgver}.tar.gz")
-sha256sums=('ed4b76e1c51227b538cab4b736113800a1d5069d2131933d56103082c0eb5468')
+sha256sums=('SKIP')
 
 if [ "${_qt_version_major}" -eq "5" ]
 then
