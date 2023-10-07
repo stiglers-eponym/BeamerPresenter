@@ -698,9 +698,9 @@ const PdfLink *MuPdfDocument::linkAt(const int page, const QPointF &position) co
     return result;
 }
 
-QList<MediaAnnotation> MuPdfDocument::annotations(const int page) const
+QList<MediaAnnotation*> MuPdfDocument::annotations(const int page) const
 {
-    QList<MediaAnnotation> list;
+    QList<MediaAnnotation*> list;
     if (!pages.value(page) || !ctx)
         return {};
     mutex->lock();
@@ -732,7 +732,7 @@ QList<MediaAnnotation> MuPdfDocument::annotations(const int page) const
                     continue;
                 }
                 const fz_rect bound = pdf_bound_annot(ctx, annot);
-                list.append(MediaAnnotation(
+                list.append(new MediaAnnotation(
                             url,
                             true,
                             QRectF(bound.x0, bound.y0, bound.x1-bound.x0, bound.y1-bound.y0)
@@ -748,11 +748,11 @@ QList<MediaAnnotation> MuPdfDocument::annotations(const int page) const
                     if (!mode.isEmpty())
                     {
                         if (mode == "Open")
-                            list.last().mode = MediaAnnotation::Open;
+                            list.last()->mode = MediaAnnotation::Open;
                         else if (mode == "Palindrome")
-                            list.last().mode = MediaAnnotation::Palindrome;
+                            list.last()->mode = MediaAnnotation::Palindrome;
                         else if (mode == "Repeat")
-                            list.last().mode = MediaAnnotation::Repeat;
+                            list.last()->mode = MediaAnnotation::Repeat;
                     }
                     //pdf_drop_obj(ctx, activation_obj);
                 }
@@ -779,7 +779,7 @@ QList<MediaAnnotation> MuPdfDocument::annotations(const int page) const
                     continue;
                 }
                 const fz_rect bound = pdf_bound_annot(ctx, annot);
-                list.append(MediaAnnotation(
+                list.append(new MediaAnnotation(
                             url,
                             false,
                             QRectF(bound.x0, bound.y0, bound.x1-bound.x0, bound.y1-bound.y0)

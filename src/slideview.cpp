@@ -366,7 +366,7 @@ void SlideView::drawForeground(QPainter *painter, const QRectF &rect)
                 painter->setPen(QPen(Qt::green, 0.75));
             else
                 painter->setPen(QPen(Qt::blue, 0.75));
-            painter->drawRect(m.annotation.rect);
+            painter->drawRect(m.annotation->rect);
         }
     }
 #endif
@@ -418,8 +418,8 @@ void SlideView::addMediaSlider(const slide::MediaItem &media)
     const MediaPlayer *player = static_cast<const MediaPlayer*>(media.aux);
     MediaSlider *slider = new MediaSlider(this);
     sliders.append(slider);
-    const QPoint left = mapFromScene(media.annotation.rect.bottomLeft());
-    const QPoint right = mapFromScene(media.annotation.rect.bottomRight());
+    const QPoint left = mapFromScene(media.annotation->rect.bottomLeft());
+    const QPoint right = mapFromScene(media.annotation->rect.bottomRight());
     slider->setGeometry(left.x(), right.y(), right.x() - left.x(), 20);
     connect(player, &MediaPlayer::durationChanged, slider, &MediaSlider::setMaximumInt64);
     connect(player, &MediaPlayer::positionChanged, slider, &MediaSlider::setValueInt64);

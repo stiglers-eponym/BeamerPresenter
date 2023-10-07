@@ -76,7 +76,7 @@ namespace slide
         QUrl url;
 
         /// the PDF media annotation: basic information about video
-        MediaAnnotation annotation;
+        const MediaAnnotation *annotation = nullptr;
         /// QGraphicsItem showing the video
         QGraphicsVideoItem *item = nullptr;
 #if (QT_VERSION_MAJOR >= 6)
@@ -108,6 +108,8 @@ namespace slide
 #endif
             delete aux;
             aux = nullptr;
+            delete annotation;
+            annotation = nullptr;
         }
 
         /// Play media if the player exists and controlls are enabled.
@@ -239,7 +241,7 @@ private:
     void loadMediaItem(slide::MediaItem &item);
 
     /// Search video annotation in cache and create + add it to cache if necessary.
-    slide::MediaItem &getMediaItem(const MediaAnnotation &annotation, const int page);
+    slide::MediaItem &getMediaItem(const MediaAnnotation *annotation, const int page);
 
     /// Create an animation object for a split slide transition.
     void createSplitTransition(const SlideTransition &transition, PixmapGraphicsItem *pageTransitionItem);

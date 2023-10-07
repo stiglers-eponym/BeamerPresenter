@@ -116,7 +116,7 @@ public:
     const PdfLink *linkAt(const int page, const QPointF &position) const override;
 
     /// List all video annotations on given page.
-    virtual QList<MediaAnnotation> annotations(const int page) const override;
+    virtual QList<MediaAnnotation*> annotations(const int page) const override;
 
     /// Slide transition when reaching the given page.
     const SlideTransition transition(const int page) const override;

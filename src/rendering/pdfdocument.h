@@ -41,10 +41,19 @@ struct MediaAnnotation {
         /// external audio-only file
         AudioExternal = HasAudio,
     };
-    /// Media type.
+    /// Media type
     Type type = InvalidAnnotation;
+    /// Subclass type
+    enum SubType
+    {
+        BasicMediaType,
+        EmbeddedMediaType,
+        AudioMediaType,
+    };
+    /// Subclass type
+    virtual SubType subType() const noexcept {return BasicMediaType;}
 
-    /// Play modes of media.
+    /// Play modes of media
     enum Mode
     {
         /// Invlid mode
@@ -77,16 +86,35 @@ struct MediaAnnotation {
     virtual ~MediaAnnotation() {}
     /// Comparison by media type, file, mode, and rect.
     virtual bool operator==(const MediaAnnotation &other) const noexcept
-    {return     type == other.type
+    {return     subType() == other.subType()
+                && type == other.type
                 && file == other.file
                 && mode == other.mode
                 && rect.toAlignedRect() == other.rect.toAlignedRect();}
 };
 
+struct EmbeddedMediaFile : MediaAnnotation {
+    QByteArray data;
+    virtual SubType subType() const noexcept override {return EmbeddedMediaType;}
+    EmbeddedMediaFile(const Type type, const QRectF &rect, const QByteArray &data) :
+        MediaAnnotation(type, rect), data(data) {}
+
+    /// Comparison by all properties. Data are only partially compared.
+    virtual bool operator==(const MediaAnnotation &other) const noexcept override
+    {return     subType() == other.subType()
+                && type == other.type
+                && data.size() == static_cast<const EmbeddedMediaFile&>(other).data.size()
+#if (QT_VERSION_MAJOR >= 6)
+                && static_cast<const EmbeddedMediaFile&>(other).data.startsWith(data.first(std::min(data.size(), qsizetype(32))))
+#endif
+                && mode == other.mode
+                && rect == other.rect;}
+};
+
 /// Embedded media file.
 /// Quite useless because currently these objects cannot be played.
 /// @todo implement embedded media files.
-struct EmbeddedMedia : MediaAnnotation {
+struct EmbeddedAudio : MediaAnnotation {
     /// Data stream.
     QByteArray data;
     /// Audio sampling rate
@@ -118,16 +146,19 @@ struct EmbeddedMedia : MediaAnnotation {
     /// Stream compression
     compression = Uncompressed;
 
+    virtual SubType subType() const noexcept override {return EmbeddedMediaType;}
+
     /// Constructor
-    EmbeddedMedia(const QByteArray &data, int sampling_rate, const QRectF &rect) :
+    EmbeddedAudio(const QByteArray &data, int sampling_rate, const QRectF &rect) :
         MediaAnnotation(AudioEmbedded, rect), data(data), sampling_rate(sampling_rate) {}
     /// Trivial destructor
-    virtual ~EmbeddedMedia() {}
+    virtual ~EmbeddedAudio() {}
     /// Comparison by all properties, including data.
     virtual bool operator==(const MediaAnnotation &other) const noexcept override
-    {return     type == other.type
+    {return     subType() == other.subType()
+                && type == other.type
                 && file == other.file
-                && data.data() == static_cast<const EmbeddedMedia&>(other).data.data()
+                && data.data() == static_cast<const EmbeddedAudio&>(other).data.data()
                 && mode == other.mode
                 && rect == other.rect;}
 };
@@ -177,8 +208,8 @@ struct ActionLink : PdfLink {
     ActionLink(const QRectF &area, const Action action) : PdfLink(LinkType::ActionLink, area), action(action) {}
 };
 struct MediaLink : PdfLink {
-    MediaAnnotation annotation;
-    MediaLink(const LinkType type, const QRectF &area, const MediaAnnotation &annotation) : PdfLink(type, area), annotation(annotation) {}
+    const MediaAnnotation *annotation;
+    MediaLink(const LinkType type, const QRectF &area, const MediaAnnotation *annotation) : PdfLink(type, area), annotation(annotation) {}
 };
 
 /// PDF outline (table of contents, TOC) entry for storing a tree in a list.
@@ -394,7 +425,7 @@ public:
     {return nullptr;}
 
     /// List all video annotations on given page.
-    virtual QList<MediaAnnotation> annotations(const int page) const
+    virtual QList<MediaAnnotation*> annotations(const int page) const
     {return {};}
 
     /// Path to PDF file.

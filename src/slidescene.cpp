@@ -890,17 +890,17 @@ void SlideScene::loadMedia(const int page)
 {
     if (!(slide_flags & LoadMedia))
         return;
-    const QList<MediaAnnotation> list = master->getDocument()->annotations(page);
-    for (const auto &annotation : list)
+    const QList<MediaAnnotation*> list = master->getDocument()->annotations(page);
+    for (const auto *annotation : list)
     {
-        debug_msg(DebugMedia, "loading media" << annotation.file << annotation.rect << annotation.type);
-        if (annotation.type != MediaAnnotation::InvalidAnnotation)
+        debug_msg(DebugMedia, "loading media" << annotation->file << annotation->rect << annotation->type);
+        if (annotation->type != MediaAnnotation::InvalidAnnotation)
         {
             slide::MediaItem &item = getMediaItem(annotation, page);
             if (item.item)
             {
-                item.item->setSize(item.annotation.rect.size());
-                item.item->setPos(item.annotation.rect.topLeft());
+                item.item->setSize(item.annotation->rect.size());
+                item.item->setPos(item.annotation->rect.topLeft());
                 item.item->show();
                 addItem(item.item);
             }
@@ -935,7 +935,7 @@ void SlideScene::postRendering()
                     || (it != media.pages.begin() && *(std::prev(it)) >= page-2))
                     continue;
             }
-            debug_msg(DebugMedia, "Deleting media item:" << media.annotation.file << media.pages.size());
+            debug_msg(DebugMedia, "Deleting media item:" << media.annotation->file << media.pages.size());
             media.clear();
         }
     }
@@ -943,9 +943,9 @@ void SlideScene::postRendering()
 
 void SlideScene::cacheMedia(const int page)
 {
-    const QList<MediaAnnotation> list = master->getDocument()->annotations(page);
-    for (const auto &annotation : list)
-        if (annotation.type != MediaAnnotation::InvalidAnnotation)
+    const QList<MediaAnnotation*> list = master->getDocument()->annotations(page);
+    for (const auto *annotation : list)
+        if (annotation->type != MediaAnnotation::InvalidAnnotation)
             getMediaItem(annotation, page);
 }
 
@@ -1006,20 +1006,20 @@ void SlideScene::loadMediaItem(slide::MediaItem &item)
 {
     const bool mute = (slide_flags & MuteSlide)
                       || (preferences()->global_flags & Preferences::MuteApplication)
-                      || item.annotation.volume <= 0.
+                      || item.annotation->volume <= 0.
                       || (item.flags & slide::MediaItem::Mute);
 #if (QT_VERSION_MAJOR >= 6)
-    if (item.annotation.type & MediaAnnotation::HasAudio)
+    if (item.annotation->type & MediaAnnotation::HasAudio)
     {
         item.audio_out = new QAudioOutput(this);
-        item.audio_out->setVolume(item.annotation.volume);
+        item.audio_out->setVolume(item.annotation->volume);
         item.audio_out->setMuted(mute);
     }
 #endif
 
-    debug_msg(DebugMedia, "Loading new media" << item.url << item.annotation.rect << item.flags);
+    debug_msg(DebugMedia, "Loading new media" << item.url << item.annotation->rect << item.flags);
 
-    if (item.annotation.type & MediaAnnotation::HasVideo)
+    if (item.annotation->type & MediaAnnotation::HasVideo)
     {
         item.item = new QGraphicsVideoItem();
 #if (QT_VERSION_MAJOR < 6)
@@ -1036,7 +1036,7 @@ void SlideScene::loadMediaItem(slide::MediaItem &item)
     {
         const auto player = new MediaPlayer(this);
         item.aux = player;
-        if (item.annotation.type & MediaAnnotation::HasVideo)
+        if (item.annotation->type & MediaAnnotation::HasVideo)
             player->setVideoOutput(item.item);
 #if (QT_VERSION_MAJOR >= 6)
         player->setAudioOutput(item.audio_out);
@@ -1047,7 +1047,7 @@ void SlideScene::loadMediaItem(slide::MediaItem &item)
             player->setMuted(mute);
         }
 #endif
-        if ((item.annotation.type & MediaAnnotation::Embedded) == 0)
+        if ((item.annotation->type & MediaAnnotation::Embedded) == 0)
         {
 #if (QT_VERSION_MAJOR >= 6)
             player->setSource(item.url);
@@ -1057,8 +1057,15 @@ void SlideScene::loadMediaItem(slide::MediaItem &item)
             player->setPlaylist(playlist);
 #endif
         }
-        else
+        else if (item.annotation->subType() == MediaAnnotation::EmbeddedMediaType)
         {
+            debug_msg(DebugMedia, "Loading embedded media.");
+            QBuffer *buffer = new QBuffer();
+            buffer->setData(static_cast<const EmbeddedMediaFile*>(item.annotation)->data);
+            buffer->open(QBuffer::ReadOnly);
+            player->setSourceDevice(buffer);
+        }
+        else {
             qWarning() << "Embedded media are currently not supported.";
             //QBuffer *buffer = new QBuffer(player);
             //buffer->setData(static_cast<const EmbeddedMedia&>(annotation).data);
@@ -1067,7 +1074,7 @@ void SlideScene::loadMediaItem(slide::MediaItem &item)
         }
 
         // Check playback mode (only relevant for controlled media)
-        switch (item.annotation.mode)
+        switch (item.annotation->mode)
         {
         case MediaAnnotation::Once:
         case MediaAnnotation::Open:
@@ -1088,7 +1095,7 @@ void SlideScene::loadMediaItem(slide::MediaItem &item)
         }
     }
 #if defined(USE_WEBCAMS) && (QT_VERSION_MAJOR >= 6)
-    else if ((item.flags & slide::MediaItem::IsCaptureSession) && (item.annotation.type & MediaAnnotation::HasVideo))
+    else if ((item.flags & slide::MediaItem::IsCaptureSession) && (item.annotation->type & MediaAnnotation::HasVideo))
     {
         const QList<QCameraDevice> cameras = QMediaDevices::videoInputs();
         QCamera *camera = nullptr;
@@ -1108,43 +1115,43 @@ void SlideScene::loadMediaItem(slide::MediaItem &item)
             session->setCamera(camera);
             camera->start();
             session->setVideoSink(item.item->videoSink());
-            if (item.annotation.type & MediaAnnotation::HasAudio)
+            if (item.annotation->type & MediaAnnotation::HasAudio)
                 session->setAudioOutput(item.audio_out);
         }
     }
 #endif
 }
 
-slide::MediaItem &SlideScene::getMediaItem(const MediaAnnotation &annotation, const int page)
+slide::MediaItem &SlideScene::getMediaItem(const MediaAnnotation *annotation, const int page)
 {
     for (auto &mediaitem : mediaItems)
     {
-        if (mediaitem.annotation == annotation && (mediaitem.flags & (slide::MediaItem::IsPlayer|slide::MediaItem::IsCaptureSession)))
+        if (*mediaitem.annotation == *annotation && (mediaitem.flags & (slide::MediaItem::IsPlayer|slide::MediaItem::IsCaptureSession)))
         {
             mediaitem.pages.insert(page);
             if (!mediaitem.aux)
             {
-                debug_msg(DebugMedia, "Found cleared media item in cache" << annotation.file << annotation.rect << QList<int>(mediaitem.pages.cbegin(), mediaitem.pages.cend()));
+                debug_msg(DebugMedia, "Found cleared media item in cache" << annotation->file << annotation->rect << QList<int>(mediaitem.pages.cbegin(), mediaitem.pages.cend()));
                 mediaitem.clear();
                 loadMediaItem(mediaitem);
             }
             else
             {
-                debug_msg(DebugMedia, "Found media in cache" << annotation.file << annotation.rect << QList<int>(mediaitem.pages.cbegin(), mediaitem.pages.cend()));
+                debug_msg(DebugMedia, "Found media in cache" << annotation->file << annotation->rect << QList<int>(mediaitem.pages.cbegin(), mediaitem.pages.cend()));
             }
             return mediaitem;
         }
     }
 
 #if (QT_VERSION_MAJOR >= 6)
-    slide::MediaItem new_item{0, annotation.file, annotation, nullptr, nullptr, {page}, nullptr};
+    slide::MediaItem new_item{0, annotation->file, annotation, nullptr, nullptr, {page}, nullptr};
 #else
     slide::MediaItem new_item{0, annotation.file, annotation, nullptr, {page}, nullptr};
 #endif
 
     // Determine media type from the URL
     new_item.flags = parseMediaOptions(new_item.url);
-    debug_msg(DebugMedia, "Loading new media" << new_item.url << annotation.rect << new_item.flags);
+    debug_msg(DebugMedia, "Loading new media" << new_item.url << annotation->rect << new_item.flags);
     loadMediaItem(new_item);
     mediaItems.append(new_item);
     return mediaItems.last();
@@ -1690,10 +1697,10 @@ bool SlideScene::noToolClicked(const QPointF &pos, const QPointF &startpos)
         // std::set<T>.contains is only available since C++ 20
         if (item.pages.contains(page &~NotFullPage) && item.annotation.rect.contains(pos) && item.type == slide::MediaItem::ControlledMedia)
 #else
-        if (item.pages.find(page &~NotFullPage) != item.pages.end() && item.annotation.rect.contains(pos))
+        if (item.pages.find(page &~NotFullPage) != item.pages.end() && item.annotation->rect.contains(pos))
 #endif
         {
-            if (startpos.isNull() || item.annotation.rect.contains(startpos) && item.toggle())
+            if (startpos.isNull() || item.annotation->rect.contains(startpos) && item.toggle())
                 return true;
             break;
         }
@@ -1724,8 +1731,8 @@ bool SlideScene::noToolClicked(const QPointF &pos, const QPointF &startpos)
             slide::MediaItem &item = getMediaItem(static_cast<const MediaLink*>(link)->annotation, page);
             if (item.item)
             {
-                item.item->setSize(item.annotation.rect.size());
-                item.item->setPos(item.annotation.rect.topLeft());
+                item.item->setSize(item.annotation->rect.size());
+                item.item->setPos(item.annotation->rect.topLeft());
                 item.item->show();
                 addItem(item.item);
                 did_something = true;
