@@ -5,6 +5,7 @@
 #define PDFDOCUMENT_H
 
 #include <algorithm>
+#include <memory>
 #include <utility>
 #include <QString>
 #include <QDateTime>
@@ -14,154 +15,10 @@
 #include <QVector>
 #include "src/config.h"
 #include "src/enumerates.h"
+#include "src/media/mediaannotation.h"
 
 class AbstractRenderer;
 
-/// Unified type of PDF media annotations for all PDF engines.
-struct MediaAnnotation {
-    /// URL for (external) media file.
-    QUrl file;
-    /// Media type. Embedded types are currently not supported.
-    enum Type
-    {
-        /// not initialized or invalid
-        InvalidAnnotation = 0,
-        /// flag for media annnotation that has audio
-        HasAudio = 1 << 0,
-        /// flag for media annnotation that has video
-        HasVideo = 1 << 1,
-        /// flag for embedded media annnotation. Not embedded means external file.
-        Embedded = 1 << 2,
-        /// embedded video (doesn't exist, but why not included it here)
-        VideoEmbedded = HasVideo | HasAudio | Embedded,
-        /// embedded audio (currently not supported)
-        AudioEmbedded = HasAudio | Embedded,
-        /// external video (with audio)
-        VideoExternal = HasVideo | HasAudio,
-        /// external audio-only file
-        AudioExternal = HasAudio,
-    };
-    /// Media type
-    Type type = InvalidAnnotation;
-    /// Subclass type
-    enum SubType
-    {
-        BasicMediaType,
-        EmbeddedMediaType,
-        AudioMediaType,
-    };
-    /// Subclass type
-    virtual SubType subType() const noexcept {return BasicMediaType;}
-
-    /// Play modes of media
-    enum Mode
-    {
-        /// Invlid mode
-        InvalidMode = -1,
-        /// Play media only once
-        Once = 0,
-        /// Play video and show controll bar. Currently ignored.
-        Open,
-        /// Play continuously forward and backward. Currently not implemented.
-        Palindrome,
-        /// Play repeatedly (infinite loop).
-        Repeat,
-    };
-    /// Play mode
-    Mode mode = Once;
-
-    /// Audio volume of media.
-    float volume = 1.;
-    /// Position of media on slide.
-    QRectF rect;
-    /// Trivial constructor.
-    MediaAnnotation() : file(), type(InvalidAnnotation), mode(InvalidMode), rect() {}
-    /// Constructor for full initialization.
-    MediaAnnotation(const QUrl &url, const bool hasvideo, const QRectF &rect) :
-        file(url), type(hasvideo ? VideoExternal : AudioExternal), mode(Once), rect(rect) {}
-    /// Constructor without file.
-    MediaAnnotation(const Type type, const QRectF &rect) :
-        file(QUrl()), type(type), mode(Once), rect(rect) {}
-    /// Trivial destructor.
-    virtual ~MediaAnnotation() {}
-    /// Comparison by media type, file, mode, and rect.
-    virtual bool operator==(const MediaAnnotation &other) const noexcept
-    {return     subType() == other.subType()
-                && type == other.type
-                && file == other.file
-                && mode == other.mode
-                && rect.toAlignedRect() == other.rect.toAlignedRect();}
-};
-
-struct EmbeddedMediaFile : MediaAnnotation {
-    QByteArray data;
-    virtual SubType subType() const noexcept override {return EmbeddedMediaType;}
-    EmbeddedMediaFile(const Type type, const QRectF &rect, const QByteArray &data) :
-        MediaAnnotation(type, rect), data(data) {}
-
-    /// Comparison by all properties. Data are only partially compared.
-    virtual bool operator==(const MediaAnnotation &other) const noexcept override
-    {return     subType() == other.subType()
-                && type == other.type
-                && data.size() == static_cast<const EmbeddedMediaFile&>(other).data.size()
-#if (QT_VERSION_MAJOR >= 6)
-                && static_cast<const EmbeddedMediaFile&>(other).data.startsWith(data.first(std::min(data.size(), qsizetype(32))))
-#endif
-                && mode == other.mode
-                && rect == other.rect;}
-};
-
-/// Embedded media file.
-/// Quite useless because currently these objects cannot be played.
-/// @todo implement embedded media files.
-struct EmbeddedAudio : MediaAnnotation {
-    /// Data stream.
-    QByteArray data;
-    /// Audio sampling rate
-    int sampling_rate;
-    /// Audio channels
-    int channels = 1;
-    /// Bit per sample
-    int bit_per_sample = 8;
-
-    /// Audio encoding modes as defined by PDF standard
-    enum Encoding {
-        /// Raw unsigned integers between 0 and 2^8-1
-        SoundEncodingRaw,
-        /// Twos-complement values
-        SoundEncodingSigned,
-        /// mu-law encoded samples
-        SoundEncodingMuLaw,
-        /// A-law-encoded samples
-        SoundEncodingALaw,
-    }
-    /// Audio encoding
-    encoding = SoundEncodingRaw;
-
-    /// Stream compression modes
-    enum Compression {
-        /// no compression
-        Uncompressed,
-    }
-    /// Stream compression
-    compression = Uncompressed;
-
-    virtual SubType subType() const noexcept override {return EmbeddedMediaType;}
-
-    /// Constructor
-    EmbeddedAudio(const QByteArray &data, int sampling_rate, const QRectF &rect) :
-        MediaAnnotation(AudioEmbedded, rect), data(data), sampling_rate(sampling_rate) {}
-    /// Trivial destructor
-    virtual ~EmbeddedAudio() {}
-    /// Comparison by all properties, including data.
-    virtual bool operator==(const MediaAnnotation &other) const noexcept override
-    {return     subType() == other.subType()
-                && type == other.type
-                && file == other.file
-                && data.data() == static_cast<const EmbeddedAudio&>(other).data.data()
-                && mode == other.mode
-                && rect == other.rect;}
-};
 
 /// Unified type of PDF links for all PDF engines.
 struct PdfLink {
@@ -208,8 +65,9 @@ struct ActionLink : PdfLink {
     ActionLink(const QRectF &area, const Action action) : PdfLink(LinkType::ActionLink, area), action(action) {}
 };
 struct MediaLink : PdfLink {
-    const MediaAnnotation *annotation;
-    MediaLink(const LinkType type, const QRectF &area, const MediaAnnotation *annotation) : PdfLink(type, area), annotation(annotation) {}
+    const std::shared_ptr<MediaAnnotation> annotation;
+    MediaLink(const LinkType type, const QRectF &area, const std::shared_ptr<MediaAnnotation> annotation) :
+        PdfLink(type, area), annotation(annotation) {}
 };
 
 /// PDF outline (table of contents, TOC) entry for storing a tree in a list.
@@ -425,7 +283,7 @@ public:
     {return nullptr;}
 
     /// List all video annotations on given page.
-    virtual QList<MediaAnnotation*> annotations(const int page) const
+    virtual QList<std::shared_ptr<MediaAnnotation>> annotations(const int page) const
     {return {};}
 
     /// Path to PDF file.

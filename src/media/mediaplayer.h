@@ -40,6 +40,11 @@ public:
     /// Trivial destructor
     ~MediaPlayer() noexcept {}
 
+#if (QT_VERSION_MAJOR < 6)
+    bool isPlaying() const noexcept
+    {return state() == PlayingState;}
+#endif
+
 protected:
     /// Timeout event: kill timer and check position
     void timerEvent(QTimerEvent *event);

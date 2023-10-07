@@ -11,11 +11,13 @@
 #include <QList>
 #include <QtConfig>
 #include <QCoreApplication>
+
 #if (QT_VERSION_MAJOR == 6)
 #include <poppler/qt6/poppler-qt6.h>
 #elif (QT_VERSION_MAJOR == 5)
 #include <poppler/qt5/poppler-qt5.h>
 #endif
+
 #include "src/config.h"
 #include "src/enumerates.h"
 #include "src/rendering/pdfdocument.h"
@@ -116,7 +118,7 @@ public:
     const PdfLink *linkAt(const int page, const QPointF &position) const override;
 
     /// List all video annotations on given page.
-    virtual QList<MediaAnnotation*> annotations(const int page) const override;
+    virtual QList<std::shared_ptr<MediaAnnotation>> annotations(const int page) const override;
 
     /// Slide transition when reaching the given page.
     const SlideTransition transition(const int page) const override;

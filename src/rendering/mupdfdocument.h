@@ -160,7 +160,7 @@ public:
     virtual const PdfLink *linkAt(const int page, const QPointF &position) const override;
 
     /// List all video annotations on given page.
-    virtual QList<MediaAnnotation*> annotations(const int page) const override;
+    virtual QList<std::shared_ptr<MediaAnnotation>> annotations(const int page) const override;
 
     /// Prepare rendering for other threads by initializing the given pointers.
     /// This gives the threads only access to objects which are thread save.

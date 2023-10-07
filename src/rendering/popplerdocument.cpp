@@ -14,7 +14,13 @@
 #include <QImage>
 #include <QPixmap>
 #include <QUrl>
+
+#if (QT_VERSION_MAJOR == 6)
 #include "poppler/qt6/poppler-media.h"
+#elif (QT_VERSION_MAJOR == 5)
+#include "poppler/qt5/poppler-media.h"
+#endif
+
 #include "src/log.h"
 #include "src/preferences.h"
 #include "src/rendering/popplerdocument.h"
@@ -24,7 +30,7 @@
 EmbeddedAudio *embeddedSound(const Poppler::SoundObject *sound, const QRectF &rect)
 {
     if (sound->soundType() != Poppler::SoundObject::Embedded)
-        return new EmbeddedAudio(QByteArray(), 0, rect);
+        return nullptr;
     EmbeddedAudio *media = new EmbeddedAudio(sound->data(), sound->samplingRate(), rect);
     media->channels = sound->channels();
     media->bit_per_sample = sound->bitsPerSample();
@@ -416,9 +422,9 @@ const PdfLink *PopplerDocument::linkAt(const int page, const QPointF &position) 
                     debug_verbose(DebugMedia, "Found sound annotation: embedded on page" << page);
                     if (!sound->data().isEmpty())
                     {
-                        EmbeddedAudio *media = embeddedSound(sound, rect);
-                        media->volume = soundlink->volume();
-                        media->mode = soundlink->repeat() ? MediaAnnotation::Once : MediaAnnotation::Repeat;
+                        std::shared_ptr<EmbeddedAudio> media(embeddedSound(sound, rect));
+                        media->setVolume(soundlink->volume());
+                        media->setMode(soundlink->repeat() ? MediaAnnotation::Once : MediaAnnotation::Repeat);
                         return new MediaLink(PdfLink::SoundLink, rect, media);
                     }
                     break;
@@ -428,10 +434,10 @@ const PdfLink *PopplerDocument::linkAt(const int page, const QPointF &position) 
                     debug_verbose(DebugMedia, "Found sound annotation:" << url << "on page" << page);
                     if (url.isValid())
                         return new MediaLink(
-                                         PdfLink::SoundLink,
-                                         rect,
-                                         new MediaAnnotation(url, false, rect)
-                                     );
+                                    PdfLink::SoundLink,
+                                    rect,
+                                    std::shared_ptr<MediaAnnotation>(new ExternalMedia(url, rect, MediaAnnotation::Once))
+                                 );
                     break;
                 }
                 }
@@ -453,7 +459,7 @@ const PdfLink *PopplerDocument::linkAt(const int page, const QPointF &position) 
     return NULL;
 }
 
-QList<MediaAnnotation*> PopplerDocument::annotations(const int page) const
+QList<std::shared_ptr<MediaAnnotation>> PopplerDocument::annotations(const int page) const
 {
     const std::unique_ptr<Poppler::Page> docpage(doc->page(page));
     if (!docpage)
@@ -467,7 +473,7 @@ QList<MediaAnnotation*> PopplerDocument::annotations(const int page) const
     if (annotations.empty() && links.empty())
         return {};
     const QSizeF pageSize = docpage->pageSizeF();
-    QList<MediaAnnotation*> list;
+    QList<std::shared_ptr<MediaAnnotation>> list;
     for (auto it = annotations.cbegin(); it != annotations.cend(); ++it)
     {
         debug_verbose(DebugMedia, "Checking annotation:" << (*it)->subType() << "on page" << page);
@@ -484,32 +490,37 @@ QList<MediaAnnotation*> PopplerDocument::annotations(const int page) const
             const QUrl url = preferences()->resolvePath(movie->url());
             if (url.isValid())
             {
-                list.append(new MediaAnnotation(
-                            url,
-                            true,
-                            QRectF(pageSize.width()*(*it)->boundary().x(), pageSize.height()*(*it)->boundary().y(), pageSize.width()*(*it)->boundary().width(), pageSize.height()*(*it)->boundary().height())
-                ));
-                debug_verbose(DebugMedia, "Found video annotation:" << url << "on page" << page);
+                MediaAnnotation::Mode mode;
                 switch (movie->playMode())
                 {
                 case Poppler::MovieObject::PlayOpen:
-                    list.last()->mode = MediaAnnotation::Open;
+                    mode = MediaAnnotation::Open;
                     break;
                 case Poppler::MovieObject::PlayPalindrome:
-                    list.last()->mode = MediaAnnotation::Palindrome;
+                    mode = MediaAnnotation::Palindrome;
                     break;
                 case Poppler::MovieObject::PlayRepeat:
-                    list.last()->mode = MediaAnnotation::Repeat;
+                    mode = MediaAnnotation::Repeat;
                     break;
                 default:
                     break;
                 }
+                list.append(std::shared_ptr<MediaAnnotation>(new ExternalMedia(
+                        url,
+                        QRectF(pageSize.width()*(*it)->boundary().x(), pageSize.height()*(*it)->boundary().y(), pageSize.width()*(*it)->boundary().width(), pageSize.height()*(*it)->boundary().height()),
+                        mode
+                    )));
+                debug_verbose(DebugMedia, "Found video annotation:" << url << "on page" << page);
             }
             break;
         }
         case Poppler::Annotation::AScreen:
         {
+#if (QT_VERSION_MAJOR >= 6)
             const auto sannotation = static_cast<Poppler::ScreenAnnotation*>(it->get());
+#else
+            const auto sannotation = static_cast<Poppler::ScreenAnnotation*>(*it);
+#endif
             if (!sannotation->action())
                 break;
             Poppler::MediaRendition* rendition = sannotation->action()->rendition();
@@ -519,21 +530,23 @@ QList<MediaAnnotation*> PopplerDocument::annotations(const int page) const
             const QStringList type = rendition->contentType().split("/");
             if (type.first() == "video")
             {
+                //rendition->autoPlay();
                 if (rendition->isEmbedded()) {
                     debug_verbose(DebugMedia, "Found embedded video (screen) annotation: on page" << page);
-                    list.append(new EmbeddedMediaFile(
-                        MediaAnnotation::VideoEmbedded,
+                    auto data = rendition->data();
+                    list.append(std::shared_ptr<MediaAnnotation>(new EmbeddedMedia(
+                        data,
                         rect,
-                        rendition->data()
-                        ));
+                        MediaAnnotation::Once
+                        )));
                 }
                 else {
                     debug_verbose(DebugMedia, "Found external video (screen) annotation: on page" << page);
-                    list.append(new MediaAnnotation(
+                    list.append(std::shared_ptr<MediaAnnotation>(new ExternalMedia(
                         rendition->fileName(),
-                        MediaAnnotation::VideoExternal,
-                        rect
-                        ));
+                        rect,
+                        MediaAnnotation::Once
+                        )));
                 }
             }
             else if (type.first() == "audio")
@@ -557,14 +570,14 @@ QList<MediaAnnotation*> PopplerDocument::annotations(const int page) const
             case Poppler::SoundObject::Embedded:
                 debug_verbose(DebugMedia, "Found sound annotation: embedded on page" << page);
                 if (!sound->data().isEmpty())
-                    list.append(embeddedSound(sound, area));
+                    list.append(std::shared_ptr<MediaAnnotation>(embeddedSound(sound, area)));
                 break;
             case Poppler::SoundObject::External:
             {
                 const QUrl url = preferences()->resolvePath(sound->url());
                 debug_verbose(DebugMedia, "Found sound annotation:" << url << "on page" << page);
                 if (url.isValid())
-                    list.append(new MediaAnnotation(url, false, area));
+                    list.append(std::shared_ptr<MediaAnnotation>(new ExternalMedia(url, area, MediaAnnotation::Once)));
                 break;
             }
             }
@@ -595,9 +608,9 @@ QList<MediaAnnotation*> PopplerDocument::annotations(const int page) const
                 debug_verbose(DebugMedia, "Found sound link: embedded on page" << page);
                 if (!link->sound()->data().isEmpty())
                 {
-                    EmbeddedAudio *media = embeddedSound(link->sound(), area);
-                    media->volume = link->volume();
-                    media->mode = link->repeat() ? MediaAnnotation::Once : MediaAnnotation::Repeat;
+                    auto media = std::shared_ptr<EmbeddedAudio>(embeddedSound(link->sound(), area));
+                    media->setVolume(link->volume());
+                    media->setMode(link->repeat() ? MediaAnnotation::Once : MediaAnnotation::Repeat);
                     list.append(media);
                 }
                 break;
@@ -606,7 +619,7 @@ QList<MediaAnnotation*> PopplerDocument::annotations(const int page) const
                 const QUrl url = preferences()->resolvePath(link->sound()->url());
                 debug_verbose(DebugMedia, "Found sound link:" << url << "on page" << page);
                 if (url.isValid())
-                    list.append(new MediaAnnotation(url, false, area));
+                    list.append(std::shared_ptr<MediaAnnotation>(new ExternalMedia(url, area, MediaAnnotation::Once)));
                 break;
             }
             }

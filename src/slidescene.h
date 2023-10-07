@@ -26,7 +26,8 @@
 #include "src/enumerates.h"
 #include "src/drawing/tool.h"
 #include "src/rendering/pdfdocument.h"
-#include "src/rendering/mediaplayer.h"
+#include "src/media/mediaplayer.h"
+#include "src/media/mediaitem.h"
 #include "src/drawing/textgraphicsitem.h"
 #include "src/drawing/selectionrectitem.h"
 
@@ -51,106 +52,6 @@ namespace drawHistory {
     struct ZValueChange;
     struct Step;
 }
-
-namespace slide
-{
-    /// Everything needed to show a media annotation on the SlideScene.
-    struct MediaItem
-    {
-        enum Flags {
-            IsPlayer = 0x01, ///< aux is MediaPlayer*
-            IsCaptureSession = 0x02, ///< aux is QMediaCaptureSession*
-            IsLive = 0x04, ///< shows a live video
-            Autoplay = 0x08, ///< autoplay video
-            ShowSlider = 0x10, ///< show slider on control screen
-            AllowPause = 0x20, ///< allow pausing the video
-            Mute = 0x40, ///< mute audio
-            Default = 0x39, ///< player with autoplay and every possible user interaction
-            DefaultLive = 0x0d, ///< player with live view, autoplay, and no user interaction
-            DefaultCamera = 0x0e, ///< camera with live view, autoplay, and no user interaction
-        };
-        /// flags: defines type and user interaction
-        int flags = 0;
-
-        /// URL of the media item.
-        QUrl url;
-
-        /// the PDF media annotation: basic information about video
-        const MediaAnnotation *annotation = nullptr;
-        /// QGraphicsItem showing the video
-        QGraphicsVideoItem *item = nullptr;
-#if (QT_VERSION_MAJOR >= 6)
-        /// Audio output
-        QAudioOutput *audio_out = nullptr;
-#endif
-        /// Set of pages on which this video item appears. This is updated
-        /// when videos for a new page are loaded and an old video is found
-        /// to be visible also on the new page.
-        std::set<int> pages;
-
-        /// Type-dependent auxilliary object:
-        ///  * MediaPlayer* if type is one of BasicMedia, ControlledMedia, LiveStream
-        ///  * QMediaCaptureSession* if type is Camera
-        QObject *aux = nullptr;
-
-        /// Delete all dynamically allocated objects.
-        void clear()
-        {
-            delete item;
-            item = nullptr;
-#if (QT_VERSION_MAJOR >= 6)
-            delete audio_out;
-            audio_out = nullptr;
-#ifdef USE_WEBCAMS
-            if (aux && (flags & IsCaptureSession))
-                delete static_cast<QMediaCaptureSession*>(aux)->camera();
-#endif
-#endif
-            delete aux;
-            aux = nullptr;
-            delete annotation;
-            annotation = nullptr;
-        }
-
-        /// Play media if the player exists and controlls are enabled.
-        void play() const
-        {
-            if ((flags & IsPlayer) && aux)
-                static_cast<MediaPlayer*>(aux)->play();
-        }
-
-        /// Pause media if the player exists and controlls are enabled.
-        void pause() const
-        {
-            if (((flags & (IsPlayer|AllowPause)) == (IsPlayer|AllowPause)) && aux)
-                static_cast<MediaPlayer*>(aux)->pause();
-        }
-
-        /// Toggle play/pause if the player exists and controlls are enabled.
-        bool toggle() const
-        {
-            if ((flags & IsPlayer) && aux)
-            {
-                const auto player = static_cast<MediaPlayer*>(aux);
-#if (QT_VERSION_MAJOR < 6)
-                if (player->state() != QMediaPlayer::PlayingState)
-#elif (QT_VERSION_MAJOR == 6) && (QT_VERSION_MINOR < 5)
-                if (player->playbackState() != QMediaPlayer::PlayingState)
-#else
-                if (!player->isPlaying())
-#endif
-                    player->play();
-                else if (flags & AllowPause)
-                    player->pause();
-                else
-                    return false;
-                return true;
-            }
-            return false;
-        }
-    };
-}
-Q_DECLARE_METATYPE(slide::MediaItem)
 
 
 /**
@@ -205,7 +106,7 @@ private:
     PixmapGraphicsItem *pageTransitionItem {nullptr};
 
     /// List of (cached or active) video items.
-    QList<slide::MediaItem> mediaItems;
+    QList<std::shared_ptr<MediaItem>> mediaItems;
 
     /// PDF document, including drawing paths.
     /// This is const, all data sent to master should be send via signals.
@@ -235,13 +136,8 @@ private:
     /// Start slide transition.
     void startTransition(const int newpage, const SlideTransition &transition);
 
-    /// Load content of a media item.
-    /// Before calling this function, the media item must be cleared!
-    /// Otherwise memory leaks will occur.
-    void loadMediaItem(slide::MediaItem &item);
-
     /// Search video annotation in cache and create + add it to cache if necessary.
-    slide::MediaItem &getMediaItem(const MediaAnnotation *annotation, const int page);
+    std::shared_ptr<MediaItem> &getMediaItem(std::shared_ptr<MediaAnnotation> annotation, const int page);
 
     /// Create an animation object for a split slide transition.
     void createSplitTransition(const SlideTransition &transition, PixmapGraphicsItem *pageTransitionItem);
@@ -287,7 +183,7 @@ public:
     {return slide_flags;}
 
     /// video items on all slides (cached or active).
-    QList<slide::MediaItem> &getMedia() noexcept
+    QList<std::shared_ptr<MediaItem>> &getMedia() noexcept
     {return mediaItems;}
 
     /// Get current page item (the pixmap graphics item showing the current page)

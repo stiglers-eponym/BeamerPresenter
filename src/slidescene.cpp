@@ -11,14 +11,6 @@
 #include <QBuffer>
 #include <QByteArray>
 #include <QDataStream>
-#include <QGraphicsVideoItem>
-#if defined(USE_WEBCAMS) && (QT_VERSION_MAJOR >= 6)
-#include <QVideoSink>
-#include <QCamera>
-#include <QCameraDevice>
-#include <QMediaCaptureSession>
-#include <QMediaDevices>
-#endif
 #include <QRegularExpression>
 #include <QXmlStreamWriter>
 #include <QGuiApplication>
@@ -29,11 +21,6 @@
 #include <QParallelAnimationGroup>
 #include <QTabletEvent>
 #include <QGraphicsSceneMouseEvent>
-#if (QT_VERSION_MAJOR >= 6)
-#include <QAudioOutput>
-#else
-#include <QMediaPlaylist>
-#endif
 
 #include "src/log.h"
 #include "src/preferences.h"
@@ -54,7 +41,7 @@
 #include "src/drawing/selectiontool.h"
 #include "src/drawing/pathcontainer.h"
 #include "src/drawing/shaperecognizer.h"
-#include "src/rendering/mediaplayer.h"
+#include "src/media/mediaplayer.h"
 
 SlideScene::SlideScene(const PdfMaster *master, const PagePart part, QObject *parent) :
     QGraphicsScene(parent),
@@ -90,8 +77,6 @@ SlideScene::~SlideScene()
         removeItem(list.takeLast());
     delete pageItem;
     delete pageTransitionItem;
-    for (auto &media : mediaItems)
-        media.clear();
     mediaItems.clear();
     delete tmp_selection_tool;
     delete currentlyDrawnItem;
@@ -726,24 +711,13 @@ void SlideScene::receiveAction(const Action action)
         break;
     case Mute:
         for (const auto &m : qAsConst(mediaItems))
-#if (QT_VERSION_MAJOR >= 6)
-            if (m.audio_out)
-                m.audio_out->setMuted(true);
-#else
-            if ((m.flags & slide::MediaItem::IsPlayer) && m.aux)
-                static_cast<MediaPlayer*>(m.aux)->setMuted(true);
-#endif
+            m->setMuted(true);
         break;
     case Unmute:
         if (!(slide_flags & SlideFlags::MuteSlide))
             for (const auto &m : qAsConst(mediaItems))
-#if (QT_VERSION_MAJOR >= 6)
-                if (m.audio_out && !(m.flags & slide::MediaItem::Mute))
-                    m.audio_out->setMuted(false);
-#else
-            if ((m.flags & slide::MediaItem::IsPlayer) && m.aux && !(m.flags & slide::MediaItem::Mute))
-                static_cast<MediaPlayer*>(m.aux)->setMuted(false);
-#endif
+                if (!(m->flags() & MediaItem::Mute))
+                    m->setMuted(false);
         break;
     case CopyClipboard:
         if (slide_flags & ShowDrawings && hasFocus())
@@ -791,8 +765,6 @@ void SlideScene::receiveAction(const Action action)
         setFocusItem(nullptr);
         break;
     case PdfFilesChanged:
-        for (auto &media : mediaItems)
-            media.clear();
         mediaItems.clear();
         break;
     default:
@@ -890,23 +862,15 @@ void SlideScene::loadMedia(const int page)
 {
     if (!(slide_flags & LoadMedia))
         return;
-    const QList<MediaAnnotation*> list = master->getDocument()->annotations(page);
-    for (const auto *annotation : list)
+    const QList<std::shared_ptr<MediaAnnotation>> list = master->getDocument()->annotations(page);
+    for (const auto &annotation : list)
     {
-        debug_msg(DebugMedia, "loading media" << annotation->file << annotation->rect << annotation->type);
-        if (annotation->type != MediaAnnotation::InvalidAnnotation)
-        {
-            slide::MediaItem &item = getMediaItem(annotation, page);
-            if (item.item)
-            {
-                item.item->setSize(item.annotation->rect.size());
-                item.item->setPos(item.annotation->rect.topLeft());
-                item.item->show();
-                addItem(item.item);
-            }
-            if ((slide_flags & AutoplayVideo) && (item.flags & slide::MediaItem::Autoplay))
-                item.play();
-        }
+        debug_msg(DebugMedia, "loading media" << annotation->type() << annotation->rect());
+        std::shared_ptr<MediaItem> &item = getMediaItem(annotation, page);
+        item->show();
+        addItem(item->asQGraphicsItem());
+        if ((slide_flags & AutoplayVideo) && (item->flags() & MediaItem::Autoplay))
+            item->play();
     }
 }
 
@@ -924,236 +888,40 @@ void SlideScene::postRendering()
         debug_verbose(DebugMedia, "Start cleaning up media" << mediaItems.size());
         for (auto &media : mediaItems)
         {
-            if (media.aux == nullptr)
-                continue;
-            if (!media.pages.empty())
+            if (!media->pages().empty())
             {
                 // Delete media if the media item is not shown on any of these pages:
                 // page (currently shown), newpage, page-1, page-2
-                const auto it = media.pages.lower_bound(page);
-                if ((it != media.pages.end() && (*it == page || *it == newpage))
-                    || (it != media.pages.begin() && *(std::prev(it)) >= page-2))
+                const auto it = media->pages().lower_bound(page);
+                if ((it != media->pages().end() && (*it == page || *it == newpage))
+                    || (it != media->pages().begin() && *(std::prev(it)) >= page-2))
                     continue;
             }
-            debug_msg(DebugMedia, "Deleting media item:" << media.annotation->file << media.pages.size());
-            media.clear();
+            // TODO: clear item
         }
     }
 }
 
 void SlideScene::cacheMedia(const int page)
 {
-    const QList<MediaAnnotation*> list = master->getDocument()->annotations(page);
-    for (const auto *annotation : list)
-        if (annotation->type != MediaAnnotation::InvalidAnnotation)
-            getMediaItem(annotation, page);
+    const QList<std::shared_ptr<MediaAnnotation>> list = master->getDocument()->annotations(page);
+    for (const auto &annotation : list)
+        getMediaItem(annotation, page);
 }
 
-/// Parse media information from URL. This modifies the given URL by removing parts of the query.
-int parseMediaOptions(QUrl &url)
-{
-    debug_msg(DebugMedia, "Parsing URL" << url);
-    // Get basic configuration from scheme.
-    int flags;
-    const QString scheme = url.scheme();
-    if (scheme == "v4l" || scheme == "v4l2" || scheme == "cam")
-        flags = slide::MediaItem::DefaultCamera;
-    else if (scheme == "udp" || scheme == "rtp")
-        flags = slide::MediaItem::DefaultLive;
-    else
-        flags = slide::MediaItem::Default;
 
-    // Read options from URL query.
-    if (url.hasQuery())
-    {
-        static const QMap<QString, int> flag_names {
-           {"live", slide::MediaItem::IsLive},
-           {"autoplay", slide::MediaItem::Autoplay},
-           {"slider", slide::MediaItem::ShowSlider},
-           {"mute", slide::MediaItem::Mute},
-           {"interaction", slide::MediaItem::AllowPause},
-        };
-        QStringList query = url.query().split("&");
-        for (auto it = query.begin(); it != query.end();)
-        {
-            const QStringList key_value = it->split("=");
-            if (key_value.length() == 2)
-            {
-                const int target = flag_names.value(key_value.first(), 0);
-                if (target != 0)
-                {
-                    if (key_value.last() == "true")
-                        flags |= target;
-                    else if (key_value.last() == "false")
-                        flags &= ~target;
-                    else
-                    {
-                        ++it;
-                        continue;
-                    }
-                    it = query.erase(it);
-                    continue;
-                }
-            }
-            ++it;
-        }
-        url.setQuery(query.join("&"));
-    }
-    return flags;
-}
-
-void SlideScene::loadMediaItem(slide::MediaItem &item)
-{
-    const bool mute = (slide_flags & MuteSlide)
-                      || (preferences()->global_flags & Preferences::MuteApplication)
-                      || item.annotation->volume <= 0.
-                      || (item.flags & slide::MediaItem::Mute);
-#if (QT_VERSION_MAJOR >= 6)
-    if (item.annotation->type & MediaAnnotation::HasAudio)
-    {
-        item.audio_out = new QAudioOutput(this);
-        item.audio_out->setVolume(item.annotation->volume);
-        item.audio_out->setMuted(mute);
-    }
-#endif
-
-    debug_msg(DebugMedia, "Loading new media" << item.url << item.annotation->rect << item.flags);
-
-    if (item.annotation->type & MediaAnnotation::HasVideo)
-    {
-        item.item = new QGraphicsVideoItem();
-#if (QT_VERSION_MAJOR < 6)
-        // Ugly fix to cache videos: show invisible video pixel
-        item.item->setSize({1,1});
-        item.item->setPos(sceneRect().bottomRight());
-        addItem(item.item);
-        item.item->show();
-#endif
-    }
-
-    // Handle different media types
-    if (item.flags & slide::MediaItem::IsPlayer)
-    {
-        const auto player = new MediaPlayer(this);
-        item.aux = player;
-        if (item.annotation->type & MediaAnnotation::HasVideo)
-            player->setVideoOutput(item.item);
-#if (QT_VERSION_MAJOR >= 6)
-        player->setAudioOutput(item.audio_out);
-#else
-        if (item.annotation.type & MediaAnnotation::HasAudio)
-        {
-            player->setVolume(100*item.annotation.volume);
-            player->setMuted(mute);
-        }
-#endif
-        if ((item.annotation->type & MediaAnnotation::Embedded) == 0)
-        {
-#if (QT_VERSION_MAJOR >= 6)
-            player->setSource(item.url);
-#else
-            QMediaPlaylist *playlist = new QMediaPlaylist(player);
-            playlist->addMedia(item.url);
-            player->setPlaylist(playlist);
-#endif
-        }
-        else if (item.annotation->subType() == MediaAnnotation::EmbeddedMediaType)
-        {
-            debug_msg(DebugMedia, "Loading embedded media.");
-            QBuffer *buffer = new QBuffer();
-            buffer->setData(static_cast<const EmbeddedMediaFile*>(item.annotation)->data);
-            buffer->open(QBuffer::ReadOnly);
-            player->setSourceDevice(buffer);
-        }
-        else {
-            qWarning() << "Embedded media are currently not supported.";
-            //QBuffer *buffer = new QBuffer(player);
-            //buffer->setData(static_cast<const EmbeddedMedia&>(annotation).data);
-            //buffer->open(QBuffer::ReadOnly);
-            //player->setSourceDevice(buffer);
-        }
-
-        // Check playback mode (only relevant for controlled media)
-        switch (item.annotation->mode)
-        {
-        case MediaAnnotation::Once:
-        case MediaAnnotation::Open:
-            break;
-        case MediaAnnotation::Palindrome:
-            qWarning() << "Palindrome video: not implemented (yet)";
-            // TODO
-        case MediaAnnotation::Repeat:
-        default:
-#if (QT_VERSION_MAJOR >= 6)
-            player->setLoops(QMediaPlayer::Infinite);
-            connect(player, &MediaPlayer::mediaStatusChanged, player, &MediaPlayer::repeatIfFinished);
-#else
-            if (player->playlist())
-                player->playlist()->setPlaybackMode(QMediaPlaylist::CurrentItemInLoop);
-#endif
-            break;
-        }
-    }
-#if defined(USE_WEBCAMS) && (QT_VERSION_MAJOR >= 6)
-    else if ((item.flags & slide::MediaItem::IsCaptureSession) && (item.annotation->type & MediaAnnotation::HasVideo))
-    {
-        const QList<QCameraDevice> cameras = QMediaDevices::videoInputs();
-        QCamera *camera = nullptr;
-        for (const auto &cam : cameras)
-        {
-            debug_msg(DebugMedia, cam.id() << cam.description());
-            if (cam.id() == item.url.path())
-            {
-                camera = new QCamera(cam);
-                break;
-            }
-        }
-        if (camera)
-        {
-            const auto session = new QMediaCaptureSession();
-            item.aux = session;
-            session->setCamera(camera);
-            camera->start();
-            session->setVideoSink(item.item->videoSink());
-            if (item.annotation->type & MediaAnnotation::HasAudio)
-                session->setAudioOutput(item.audio_out);
-        }
-    }
-#endif
-}
-
-slide::MediaItem &SlideScene::getMediaItem(const MediaAnnotation *annotation, const int page)
+std::shared_ptr<MediaItem> &SlideScene::getMediaItem(std::shared_ptr<MediaAnnotation> annotation, const int page)
 {
     for (auto &mediaitem : mediaItems)
     {
-        if (*mediaitem.annotation == *annotation && (mediaitem.flags & (slide::MediaItem::IsPlayer|slide::MediaItem::IsCaptureSession)))
+        if (*mediaitem->annotation() == *annotation)
         {
-            mediaitem.pages.insert(page);
-            if (!mediaitem.aux)
-            {
-                debug_msg(DebugMedia, "Found cleared media item in cache" << annotation->file << annotation->rect << QList<int>(mediaitem.pages.cbegin(), mediaitem.pages.cend()));
-                mediaitem.clear();
-                loadMediaItem(mediaitem);
-            }
-            else
-            {
-                debug_msg(DebugMedia, "Found media in cache" << annotation->file << annotation->rect << QList<int>(mediaitem.pages.cbegin(), mediaitem.pages.cend()));
-            }
+            mediaitem->insertPage(page);
+            // TODO: load media content if necessary
             return mediaitem;
         }
     }
-
-#if (QT_VERSION_MAJOR >= 6)
-    slide::MediaItem new_item{0, annotation->file, annotation, nullptr, nullptr, {page}, nullptr};
-#else
-    slide::MediaItem new_item{0, annotation.file, annotation, nullptr, {page}, nullptr};
-#endif
-
-    // Determine media type from the URL
-    new_item.flags = parseMediaOptions(new_item.url);
-    debug_msg(DebugMedia, "Loading new media" << new_item.url << annotation->rect << new_item.flags);
-    loadMediaItem(new_item);
-    mediaItems.append(new_item);
+    mediaItems.append(MediaItem::fromAnnotation(annotation));
     return mediaItems.last();
 }
 
@@ -1697,10 +1465,10 @@ bool SlideScene::noToolClicked(const QPointF &pos, const QPointF &startpos)
         // std::set<T>.contains is only available since C++ 20
         if (item.pages.contains(page &~NotFullPage) && item.annotation.rect.contains(pos) && item.type == slide::MediaItem::ControlledMedia)
 #else
-        if (item.pages.find(page &~NotFullPage) != item.pages.end() && item.annotation->rect.contains(pos))
+        if (item->pages().find(page &~NotFullPage) != item->pages().end() && item->rect().contains(pos))
 #endif
         {
-            if (startpos.isNull() || item.annotation->rect.contains(startpos) && item.toggle())
+            if (startpos.isNull() || item->rect().contains(startpos) && item->toggle())
                 return true;
             break;
         }
@@ -1728,20 +1496,11 @@ bool SlideScene::noToolClicked(const QPointF &pos, const QPointF &startpos)
         case PdfLink::MovieLink:
         {
             // This is untested!
-            slide::MediaItem &item = getMediaItem(static_cast<const MediaLink*>(link)->annotation, page);
-            if (item.item)
-            {
-                item.item->setSize(item.annotation->rect.size());
-                item.item->setPos(item.annotation->rect.topLeft());
-                item.item->show();
-                addItem(item.item);
-                did_something = true;
-            }
-            if (item.flags & slide::MediaItem::IsPlayer)
-            {
-                item.play();
-                did_something = true;
-            }
+            std::shared_ptr<MediaItem> &item = getMediaItem(static_cast<const MediaLink*>(link)->annotation, page);
+            item->show();
+            addItem(item->asQGraphicsItem());
+            item->play();
+            did_something = true;
             break;
         }
         case PdfLink::NoLink:
@@ -1758,10 +1517,9 @@ void SlideScene::createSliders() const
 #if __cplusplus >= 202002L
             item.pages.contains(page &~NotFullPage)
 #else
-            item.pages.find(page &~NotFullPage) != item.pages.end()
+            item->pages().find(page &~NotFullPage) != item->pages().end()
 #endif
-            && (item.flags & slide::MediaItem::ShowSlider)
-            && item.aux)
+            && (item->flags() & MediaItem::ShowSlider))
         {
             for (const auto view : static_cast<const QList<QGraphicsView*>>(views()))
                 static_cast<SlideView*>(view)->addMediaSlider(item);
@@ -1775,10 +1533,10 @@ void SlideScene::playMedia() const
 #if __cplusplus >= 202002L
             item.pages.contains(page &~NotFullPage)
 #else
-            item.pages.find(page &~NotFullPage) != item.pages.end()
+            item->pages().find(page &~NotFullPage) != item->pages().end()
 #endif
             )
-            item.play();
+            item->play();
 }
 
 void SlideScene::pauseMedia() const
@@ -1788,10 +1546,10 @@ void SlideScene::pauseMedia() const
 #if __cplusplus >= 202002L
             item.pages.contains(page &~NotFullPage)
 #else
-            item.pages.find(page &~NotFullPage) != item.pages.end()
+            item->pages().find(page &~NotFullPage) != item->pages().end()
 #endif
             )
-            item.pause();
+            item->pause();
 }
 
 void SlideScene::playPauseMedia() const
@@ -1801,15 +1559,10 @@ void SlideScene::playPauseMedia() const
 #if __cplusplus >= 202002L
                 item.pages.contains(page &~NotFullPage)
 #else
-                item.pages.find(page &~NotFullPage) != item.pages.end()
+                item->pages().find(page &~NotFullPage) != item->pages().end()
 #endif
-                && (item.flags & slide::MediaItem::AllowPause)
-                && item.aux
-#if (QT_VERSION_MAJOR >= 6)
-                && static_cast<MediaPlayer*>(item.aux)->playbackState() == QMediaPlayer::PlayingState
-#else
-                && static_cast<MediaPlayer*>(item.aux)->state() == QMediaPlayer::PlayingState
-#endif
+                && (item->flags() & MediaItem::AllowPause)
+                && item->isPlaying()
             )
         {
             pauseMedia();

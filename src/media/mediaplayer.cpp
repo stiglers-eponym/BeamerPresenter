@@ -3,7 +3,7 @@
 
 #include <algorithm>
 #include <QTimerEvent>
-#include "src/rendering/mediaplayer.h"
+#include "src/media/mediaplayer.h"
 #include "src/log.h"
 
 void MediaPlayer::timerEvent(QTimerEvent *event)

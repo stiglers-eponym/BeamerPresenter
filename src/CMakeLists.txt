@@ -63,17 +63,19 @@ add_executable(beamerpresenter
         gui/penstylebutton.h gui/penstylebutton.cpp
         gui/brushstylebutton.h gui/brushstylebutton.cpp
         gui/colorselectionbutton.h gui/colorselectionbutton.cpp
-        gui/mediaslider.h
         gui/iconlabel.h
         gui/containerbaseclass.h
         gui/containerwidget.h
         gui/toolwidget.h gui/toolwidget.cpp
         rendering/abstractrenderer.h
-        rendering/mediaplayer.h rendering/mediaplayer.cpp
         rendering/pdfdocument.h
         rendering/pixcache.h rendering/pixcache.cpp
         rendering/pixcachethread.h rendering/pixcachethread.cpp
         rendering/pngpixmap.h rendering/pngpixmap.cpp
+        media/mediaplayer.h media/mediaplayer.cpp
+        media/mediaannotation.h media/mediaannotation.cpp
+        media/mediaitem.h media/mediaitem.cpp
+        media/mediaslider.h
         slidescene.h slidescene.cpp
         slideview.h slideview.cpp
         pdfmaster.h pdfmaster.cpp

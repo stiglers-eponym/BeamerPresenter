@@ -698,9 +698,9 @@ const PdfLink *MuPdfDocument::linkAt(const int page, const QPointF &position) co
     return result;
 }
 
-QList<MediaAnnotation*> MuPdfDocument::annotations(const int page) const
+QList<std::shared_ptr<MediaAnnotation>> MuPdfDocument::annotations(const int page) const
 {
-    QList<MediaAnnotation*> list;
+    QList<std::shared_ptr<MediaAnnotation>> list;
     if (!pages.value(page) || !ctx)
         return {};
     mutex->lock();
@@ -732,30 +732,31 @@ QList<MediaAnnotation*> MuPdfDocument::annotations(const int page) const
                     continue;
                 }
                 const fz_rect bound = pdf_bound_annot(ctx, annot);
-                list.append(new MediaAnnotation(
-                            url,
-                            true,
-                            QRectF(bound.x0, bound.y0, bound.x1-bound.x0, bound.y1-bound.y0)
-                        ));
 #if (FZ_VERSION_MAJOR > 1) || ((FZ_VERSION_MAJOR == 1) && (FZ_VERSION_MINOR >= 19))
                 pdf_obj *activation_obj = pdf_dict_get(ctx, pdf_annot_obj(ctx, annot), PDF_NAME(A));
 #else
                 pdf_obj *activation_obj = pdf_dict_get(ctx, annot->obj, PDF_NAME(A));
 #endif
+                MediaAnnotation::Mode mode = MediaAnnotation::Once;
                 if (activation_obj)
                 {
-                    const QString mode(pdf_to_name(ctx, pdf_dict_gets(ctx, activation_obj, "Mode")));
-                    if (!mode.isEmpty())
+                    const QString mode_str(pdf_to_name(ctx, pdf_dict_gets(ctx, activation_obj, "Mode")));
+                    if (!mode_str.isEmpty())
                     {
-                        if (mode == "Open")
-                            list.last()->mode = MediaAnnotation::Open;
-                        else if (mode == "Palindrome")
-                            list.last()->mode = MediaAnnotation::Palindrome;
-                        else if (mode == "Repeat")
-                            list.last()->mode = MediaAnnotation::Repeat;
+                        if (mode_str == "Open")
+                            mode = MediaAnnotation::Open;
+                        else if (mode_str == "Palindrome")
+                            mode = MediaAnnotation::Palindrome;
+                        else if (mode_str == "Repeat")
+                            mode = MediaAnnotation::Repeat;
                     }
                     //pdf_drop_obj(ctx, activation_obj);
                 }
+                list.append(std::shared_ptr<MediaAnnotation>(new ExternalMedia(
+                            url,
+                            QRectF(bound.x0, bound.y0, bound.x1-bound.x0, bound.y1-bound.y0),
+                            mode
+                    )));
                 break;
             }
             case PDF_ANNOT_SOUND:
@@ -779,11 +780,11 @@ QList<MediaAnnotation*> MuPdfDocument::annotations(const int page) const
                     continue;
                 }
                 const fz_rect bound = pdf_bound_annot(ctx, annot);
-                list.append(new MediaAnnotation(
+                list.append(std::shared_ptr<MediaAnnotation>(new ExternalMedia(
                             url,
-                            false,
-                            QRectF(bound.x0, bound.y0, bound.x1-bound.x0, bound.y1-bound.y0)
-                        ));
+                            QRectF(bound.x0, bound.y0, bound.x1-bound.x0, bound.y1-bound.y0),
+                            MediaAnnotation::Once
+                    )));
                 break;
             }
 #if (FZ_VERSION_MAJOR > 1) || ((FZ_VERSION_MAJOR == 1) && (FZ_VERSION_MINOR >= 18))

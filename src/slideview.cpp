@@ -14,8 +14,8 @@
 #include "src/drawing/pointingtool.h"
 #include "src/drawing/selectiontool.h"
 #include "src/rendering/pixcache.h"
-#include "src/rendering/mediaplayer.h"
-#include "src/gui/mediaslider.h"
+#include "src/media/mediaplayer.h"
+#include "src/media/mediaslider.h"
 
 SlideView::SlideView(SlideScene *scene, const PixCache *cache, QWidget *parent) :
     QGraphicsView(scene, parent)
@@ -119,7 +119,7 @@ void SlideView::resizeEvent(QResizeEvent *event)
 #if __cplusplus >= 202002L
         if (media.pages.contains(page))
 #else
-        if (media.pages.find(page) != media.pages.end())
+        if (media->pages().find(page) != media->pages().end())
 #endif
             addMediaSlider(media);
     emit sendAction(ResizeViews);
@@ -353,20 +353,20 @@ void SlideView::drawForeground(QPainter *painter, const QRectF &rect)
         painter->setCompositionMode(QPainter::CompositionMode_SourceOver);
         painter->setBrush(Qt::NoBrush);
         const int page = static_cast<SlideScene*>(scene())->getPage();
-        const QList<slide::MediaItem> &media = static_cast<SlideScene*>(scene())->getMedia();
-        for (const slide::MediaItem &m : media)
+        const QList<std::shared_ptr<MediaItem>> &media = static_cast<SlideScene*>(scene())->getMedia();
+        for (const auto &m : media)
         {
 #if __cplusplus >= 202002L
             if (m.pages.contains(page))
 #else
-            if (m.pages.find(page) != m.pages.end())
+            if (m->pages().find(page) != m->pages().end())
 #endif
                 painter->setPen(QPen(Qt::red, 1));
-            else if (m.aux)
+            else if (m->hasProvider())
                 painter->setPen(QPen(Qt::green, 0.75));
             else
                 painter->setPen(QPen(Qt::blue, 0.75));
-            painter->drawRect(m.annotation->rect);
+            painter->drawRect(m->rect());
         }
     }
 #endif
@@ -411,15 +411,17 @@ void SlideView::showTorch(QPainter *painter, const PointingTool *tool) noexcept
     painter->fillPath(fullpath - path, tool->color());
 }
 
-void SlideView::addMediaSlider(const slide::MediaItem &media)
+void SlideView::addMediaSlider(const std::shared_ptr<MediaItem> media)
 {
-    if (!((view_flags & MediaControls) && (media.flags & slide::MediaItem::ShowSlider)))
+    if (!((view_flags & MediaControls) && (media->flags() & MediaItem::ShowSlider) && media->player()))
         return;
-    const MediaPlayer *player = static_cast<const MediaPlayer*>(media.aux);
+    const MediaPlayer *player = media->player();
+    if (!player)
+        return;
     MediaSlider *slider = new MediaSlider(this);
     sliders.append(slider);
-    const QPoint left = mapFromScene(media.annotation->rect.bottomLeft());
-    const QPoint right = mapFromScene(media.annotation->rect.bottomRight());
+    const QPoint left = mapFromScene(media->rect().bottomLeft());
+    const QPoint right = mapFromScene(media->rect().bottomRight());
     slider->setGeometry(left.x(), right.y(), right.x() - left.x(), 20);
     connect(player, &MediaPlayer::durationChanged, slider, &MediaSlider::setMaximumInt64);
     connect(player, &MediaPlayer::positionChanged, slider, &MediaSlider::setValueInt64);
