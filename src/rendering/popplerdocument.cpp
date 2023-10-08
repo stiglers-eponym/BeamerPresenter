@@ -490,7 +490,7 @@ QList<std::shared_ptr<MediaAnnotation>> PopplerDocument::annotations(const int p
             const QUrl url = preferences()->resolvePath(movie->url());
             if (url.isValid())
             {
-                MediaAnnotation::Mode mode;
+                MediaAnnotation::Mode mode = MediaAnnotation::Once;
                 switch (movie->playMode())
                 {
                 case Poppler::MovieObject::PlayOpen:
@@ -526,6 +526,14 @@ QList<std::shared_ptr<MediaAnnotation>> PopplerDocument::annotations(const int p
             Poppler::MediaRendition* rendition = sannotation->action()->rendition();
             if (!rendition)
                 break;
+            int flags = MediaAnnotation::HasVideo | MediaAnnotation::HasAudio | MediaAnnotation::Interactive;
+            if (rendition->autoPlay())
+                flags |= MediaAnnotation::Autoplay;
+            if (rendition->showControls())
+                flags |= MediaAnnotation::ShowSlider;
+            MediaAnnotation::Mode mode = MediaAnnotation::Once;
+            if (rendition->repeatCount() > 1)
+                mode = MediaAnnotation::Repeat;
             const auto rect = QRectF(pageSize.width()*sannotation->boundary().x(), pageSize.height()*sannotation->boundary().y(), pageSize.width()*sannotation->boundary().width(), pageSize.height()*sannotation->boundary().height());
             const QStringList type = rendition->contentType().split("/");
             if (type.first() == "video")
@@ -534,19 +542,11 @@ QList<std::shared_ptr<MediaAnnotation>> PopplerDocument::annotations(const int p
                 if (rendition->isEmbedded()) {
                     debug_verbose(DebugMedia, "Found embedded video (screen) annotation: on page" << page);
                     auto data = rendition->data();
-                    list.append(std::shared_ptr<MediaAnnotation>(new EmbeddedMedia(
-                        data,
-                        rect,
-                        MediaAnnotation::Once
-                        )));
+                    list.append(std::shared_ptr<MediaAnnotation>(new EmbeddedMedia(data, rect, mode, flags)));
                 }
                 else {
                     debug_verbose(DebugMedia, "Found external video (screen) annotation: on page" << page);
-                    list.append(std::shared_ptr<MediaAnnotation>(new ExternalMedia(
-                        rendition->fileName(),
-                        rect,
-                        MediaAnnotation::Once
-                        )));
+                    list.append(std::shared_ptr<MediaAnnotation>(new ExternalMedia(rendition->fileName(), rect, mode, flags)));
                 }
             }
             else if (type.first() == "audio")

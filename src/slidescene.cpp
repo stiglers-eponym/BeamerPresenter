@@ -716,7 +716,7 @@ void SlideScene::receiveAction(const Action action)
     case Unmute:
         if (!(slide_flags & SlideFlags::MuteSlide))
             for (const auto &m : qAsConst(mediaItems))
-                if (!(m->flags() & MediaItem::Mute))
+                if (!(m->flags() & MediaAnnotation::Mute))
                     m->setMuted(false);
         break;
     case CopyClipboard:
@@ -867,9 +867,11 @@ void SlideScene::loadMedia(const int page)
     {
         debug_msg(DebugMedia, "loading media" << annotation->type() << annotation->rect());
         std::shared_ptr<MediaItem> &item = getMediaItem(annotation, page);
+        if (item->asQGraphicsItem()->scene() != this)
+            addItem(item->asQGraphicsItem());
+        item->asQGraphicsItem()->setZValue(0);
         item->show();
-        addItem(item->asQGraphicsItem());
-        if ((slide_flags & AutoplayVideo) && (item->flags() & MediaItem::Autoplay))
+        if ((slide_flags & AutoplayVideo) && (item->flags() & MediaAnnotation::Autoplay))
             item->play();
     }
 }
@@ -897,7 +899,7 @@ void SlideScene::postRendering()
                     || (it != media->pages().begin() && *(std::prev(it)) >= page-2))
                     continue;
             }
-            // TODO: clear item
+            media->deleteProvider();
         }
     }
 }
@@ -906,7 +908,16 @@ void SlideScene::cacheMedia(const int page)
 {
     const QList<std::shared_ptr<MediaAnnotation>> list = master->getDocument()->annotations(page);
     for (const auto &annotation : list)
+    {
+#if (QT_VERSION_MAJOR >= 6)
         getMediaItem(annotation, page);
+#else
+        // workaround for strange behavior in Qt 5
+        auto &item = getMediaItem(annotation, page);
+        item->asQGraphicsItem()->setZValue(-1e9);
+        addItem(item->asQGraphicsItem());
+#endif
+    }
 }
 
 
@@ -917,11 +928,11 @@ std::shared_ptr<MediaItem> &SlideScene::getMediaItem(std::shared_ptr<MediaAnnota
         if (*mediaitem->annotation() == *annotation)
         {
             mediaitem->insertPage(page);
-            // TODO: load media content if necessary
+            mediaitem->initializeProvider();
             return mediaitem;
         }
     }
-    mediaItems.append(MediaItem::fromAnnotation(annotation));
+    mediaItems.append(MediaItem::fromAnnotation(annotation, page));
     return mediaItems.last();
 }
 
@@ -1463,7 +1474,7 @@ bool SlideScene::noToolClicked(const QPointF &pos, const QPointF &startpos)
     for (auto &item : mediaItems)
 #if __cplusplus >= 202002L
         // std::set<T>.contains is only available since C++ 20
-        if (item.pages.contains(page &~NotFullPage) && item.annotation.rect.contains(pos) && item.type == slide::MediaItem::ControlledMedia)
+        if (item->pages().contains(page &~NotFullPage) && item->rect().contains(pos))
 #else
         if (item->pages().find(page &~NotFullPage) != item->pages().end() && item->rect().contains(pos))
 #endif
@@ -1497,8 +1508,10 @@ bool SlideScene::noToolClicked(const QPointF &pos, const QPointF &startpos)
         {
             // This is untested!
             std::shared_ptr<MediaItem> &item = getMediaItem(static_cast<const MediaLink*>(link)->annotation, page);
+            if (item->asQGraphicsItem()->scene() != this)
+                addItem(item->asQGraphicsItem());
+            item->asQGraphicsItem()->setZValue(0);
             item->show();
-            addItem(item->asQGraphicsItem());
             item->play();
             did_something = true;
             break;
@@ -1515,11 +1528,11 @@ void SlideScene::createSliders() const
     for (auto &item : mediaItems)
         if (
 #if __cplusplus >= 202002L
-            item.pages.contains(page &~NotFullPage)
+            item->pages().contains(page &~NotFullPage)
 #else
             item->pages().find(page &~NotFullPage) != item->pages().end()
 #endif
-            && (item->flags() & MediaItem::ShowSlider))
+            && (item->flags() & MediaAnnotation::ShowSlider))
         {
             for (const auto view : static_cast<const QList<QGraphicsView*>>(views()))
                 static_cast<SlideView*>(view)->addMediaSlider(item);
@@ -1531,7 +1544,7 @@ void SlideScene::playMedia() const
     for (auto &item : mediaItems)
         if (
 #if __cplusplus >= 202002L
-            item.pages.contains(page &~NotFullPage)
+            item->pages().contains(page &~NotFullPage)
 #else
             item->pages().find(page &~NotFullPage) != item->pages().end()
 #endif
@@ -1544,7 +1557,7 @@ void SlideScene::pauseMedia() const
     for (auto &item : mediaItems)
         if (
 #if __cplusplus >= 202002L
-            item.pages.contains(page &~NotFullPage)
+            item->pages().contains(page &~NotFullPage)
 #else
             item->pages().find(page &~NotFullPage) != item->pages().end()
 #endif
@@ -1557,12 +1570,12 @@ void SlideScene::playPauseMedia() const
     for (auto &item : mediaItems)
         if (
 #if __cplusplus >= 202002L
-                item.pages.contains(page &~NotFullPage)
+            item->pages().contains(page &~NotFullPage)
 #else
-                item->pages().find(page &~NotFullPage) != item->pages().end()
+            item->pages().find(page &~NotFullPage) != item->pages().end()
 #endif
-                && (item->flags() & MediaItem::AllowPause)
-                && item->isPlaying()
+            && (item->flags() & MediaAnnotation::Interactive)
+            && item->isPlaying()
             )
         {
             pauseMedia();

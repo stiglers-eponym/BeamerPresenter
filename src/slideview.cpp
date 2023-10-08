@@ -413,7 +413,7 @@ void SlideView::showTorch(QPainter *painter, const PointingTool *tool) noexcept
 
 void SlideView::addMediaSlider(const std::shared_ptr<MediaItem> media)
 {
-    if (!((view_flags & MediaControls) && (media->flags() & MediaItem::ShowSlider) && media->player()))
+    if (!((view_flags & MediaControls) && (media->flags() & MediaAnnotation::ShowSlider) && media->player()))
         return;
     const MediaPlayer *player = media->player();
     if (!player)

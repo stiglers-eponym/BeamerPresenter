@@ -10,64 +10,46 @@
 #include "src/media/mediaitem.h"
 #include "src/media/mediaannotation.h"
 
-MediaItem::MediaItem(std::shared_ptr<MediaAnnotation> &annotation) :
-    _annotation(annotation)
+void MediaItem::createProvider()
 {
+    if (_provider)
+        return;
 #if (QT_VERSION_MAJOR >= 6)
-    if (annotation->type() == MediaAnnotation::ExternalURL && annotation->flags() & MediaAnnotation::IsCaptureSession)
+    if (_annotation->type() == MediaAnnotation::ExternalURL && _annotation->flags() & MediaAnnotation::IsCaptureSession)
         _provider.reset(new MediaCaptureProvider());
     else
 #endif
-    {
-        auto provider = new MediaPlayerProvider();
-        provider->setMode(annotation->mode());
-        _provider.reset(provider);
-    }
-    switch (annotation->type())
+        _provider.reset(new MediaPlayerProvider());
+
+    switch (_annotation->type())
     {
     case MediaAnnotation::ExternalURL:
-        _provider->setSource(std::static_pointer_cast<ExternalMedia>(annotation)->url());
+        _provider->setSource(std::static_pointer_cast<ExternalMedia>(_annotation)->url());
         break;
     case MediaAnnotation::EmbeddedFile:
-        _provider->setSourceDevice(&std::static_pointer_cast<EmbeddedMedia>(annotation)->buffer());
+        _provider->setSourceDevice(&std::static_pointer_cast<EmbeddedMedia>(_annotation)->buffer());
         break;
     case MediaAnnotation::EmbeddedAudioStream:
         break;
     }
+    _provider->setMode(_annotation->mode());
 }
 
 
-std::shared_ptr<MediaItem> MediaItem::fromAnnotation(std::shared_ptr<MediaAnnotation> annotation, QGraphicsItem *parent)
+std::shared_ptr<MediaItem> MediaItem::fromAnnotation(std::shared_ptr<MediaAnnotation> annotation, const int page, QGraphicsItem *parent)
 {
     if (annotation == nullptr)
         return nullptr;
     if (annotation->flags() & MediaAnnotation::HasVideo)
-        return std::shared_ptr<VideoItem>(new VideoItem(annotation, parent));
+        return std::shared_ptr<VideoItem>(new VideoItem(annotation, page, parent));
     else if (annotation->flags() & MediaAnnotation::HasAudio)
-        return std::shared_ptr<AudioItem>(new AudioItem(annotation, parent));
+        return std::shared_ptr<AudioItem>(new AudioItem(annotation, page, parent));
     return nullptr;
 }
 
 
 
-AudioItem::AudioItem(std::shared_ptr<MediaAnnotation> &annotation, QGraphicsItem *parent) :
-    QGraphicsRectItem(annotation->rect(), parent),
-    MediaItem(annotation)
-{}
-
-VideoItem::VideoItem(std::shared_ptr<MediaAnnotation> &annotation, QGraphicsItem *parent) :
-    QGraphicsVideoItem(parent),
-    MediaItem(annotation)
-{
-    setPos(annotation->rect().topLeft());
-    setSize(annotation->rect().size());
-    _provider->setVideoOutput(this);
-#if (QT_VERSION_MAJOR >= 6)
-    _provider->setVideoSink(videoSink());
-#endif
-}
-
-void MediaPlayerProvider::setMode(int mode) {
+void MediaPlayerProvider::setMode(const MediaAnnotation::Mode mode) {
     switch (mode)
     {
     case MediaAnnotation::Once:
@@ -88,5 +70,3 @@ void MediaPlayerProvider::setMode(int mode) {
         break;
     }
 }
-
-const QRectF &MediaItem::rect() const noexcept {return _annotation->rect();}

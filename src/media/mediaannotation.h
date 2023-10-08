@@ -10,7 +10,6 @@
 #include <QUrl>
 #include <QByteArray>
 #include <QBuffer>
-#include "src/media/mediaitem.h"
 
 
 class MediaAnnotation
@@ -69,7 +68,7 @@ protected:
     int _flags = 0;
 
 public:
-    MediaAnnotation(const QRectF &rect, Mode mode, const int flags) :
+    MediaAnnotation(const QRectF &rect, const Mode mode, const int flags) :
         _rect(rect), _mode(mode), _flags(flags) {}
 
     virtual ~MediaAnnotation() {}
@@ -103,7 +102,7 @@ class ExternalMedia : public MediaAnnotation
     QUrl _url;
 
 public:
-    ExternalMedia(const QUrl &url, const QRectF &rect, Mode mode);
+    ExternalMedia(const QUrl &url, const QRectF &rect, const Mode mode, const int flags=Interactive|ShowSlider|Autoplay|HasAudio|HasVideo);
 
     virtual Type type() const noexcept override
     {return ExternalURL;}
@@ -128,8 +127,8 @@ class EmbeddedMedia : public MediaAnnotation
     QBuffer _buffer;
 
 public:
-    EmbeddedMedia(QByteArray &data, const QRectF &rect, Mode mode) :
-        MediaAnnotation(rect, mode, Interactive|ShowSlider|Autoplay|HasAudio|HasVideo), _data(data), _buffer(&_data)
+    EmbeddedMedia(QByteArray &data, const QRectF &rect, const Mode mode, const int flags=Interactive|ShowSlider|Autoplay|HasAudio|HasVideo) :
+        MediaAnnotation(rect, mode, flags), _data(data), _buffer(&_data)
         {_buffer.open(QBuffer::ReadOnly);}
 
     virtual Type type() const noexcept override

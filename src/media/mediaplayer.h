@@ -6,6 +6,7 @@
 
 #include <QMediaPlayer>
 #include "src/config.h"
+#include "src/log.h"
 
 class QTimerEvent;
 
@@ -36,7 +37,9 @@ class MediaPlayer : public QMediaPlayer
 
 public:
     /// Trivial constructor.
-    explicit MediaPlayer(QObject *parent = nullptr) : QMediaPlayer(parent) {};
+    explicit MediaPlayer(QObject *parent = nullptr) :
+        QMediaPlayer(parent) {}
+
     /// Trivial destructor
     ~MediaPlayer() noexcept {}
 

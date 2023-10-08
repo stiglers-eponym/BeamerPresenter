@@ -1,4 +1,8 @@
 # Changelog
+## upcoming
+* embedded videos
+* internal restructuring of handling media
+
 ## 0.2.4
 * pages listed in TOC always start a new slide and are not considered overlays
 * page up and page down can be used to navigate pages also while showing TOC or thumbnails

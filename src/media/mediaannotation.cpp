@@ -1,10 +1,12 @@
 // SPDX-FileCopyrightText: 2023 Valentin Bruch <software@vbruch.eu>
 // SPDX-License-Identifier: GPL-3.0-or-later OR AGPL-3.0-or-later
 
+#include <QMap>
+#include <QStringList>
 #include "src/media/mediaannotation.h"
 
-ExternalMedia::ExternalMedia(const QUrl &url, const QRectF &rect, Mode mode) :
-    MediaAnnotation(rect, mode, Interactive|ShowSlider|Autoplay|HasAudio|HasVideo),
+ExternalMedia::ExternalMedia(const QUrl &url, const QRectF &rect, const Mode mode, const int flags) :
+    MediaAnnotation(rect, mode, flags),
     _url(url)
 {
     const QString scheme = url.scheme();

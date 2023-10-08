@@ -20,10 +20,12 @@
 #include <QMediaCaptureSession>
 #else
 #include <QMediaContent>
+#include <QMediaPlaylist>
 #endif
 
 #include "src/log.h"
 #include "src/media/mediaplayer.h"
+#include "src/media/mediaannotation.h"
 
 class MediaAnnotation;
 
@@ -98,6 +100,8 @@ public:
     {return false;}
 #endif
 
+    virtual void setMode(const MediaAnnotation::Mode mode) {};
+
     /// mute or unmute
     virtual void setMuted(const bool mute) const
 #if (QT_VERSION_MAJOR >= 6)
@@ -140,11 +144,15 @@ public:
     {return PlayerType;}
 
     void setSource(const QUrl &url) override
+    {
 #if (QT_VERSION_MAJOR >= 6)
-    {_player->setSource(url);}
+        _player->setSource(url);
 #else
-    {_player->setMedia(QMediaContent(url));}
+        auto playlist = new QMediaPlaylist(_player);
+        playlist->addMedia(url);
+        _player->setPlaylist(playlist);
 #endif
+    }
 
     void setSourceDevice(QIODevice *device) override
 #if (QT_VERSION_MAJOR >= 6)
@@ -187,7 +195,7 @@ public:
     bool isPlaying() const override
     {return _player->isPlaying();}
 
-    void setMode(int mode);
+    void setMode(const MediaAnnotation::Mode mode) override;
 
     MediaPlayer *player() const noexcept
     {return _player;}
@@ -274,22 +282,9 @@ public:
  */
 class MediaItem
 {
-public:
-    enum Flags
-    {
-        IsLive = 0x04, ///< shows a live video
-        Autoplay = 0x08, ///< autoplay video
-        ShowSlider = 0x10, ///< show slider on control screen
-        AllowPause = 0x20, ///< allow pausing the video
-        Mute = 0x40, ///< mute audio
-    };
-
 private:
     /// MediaAnnotation containing media information from the PDF
     std::shared_ptr<MediaAnnotation> _annotation = nullptr;
-
-    /// Flags... TODO!
-    int _flags = Autoplay|ShowSlider|AllowPause;
 
     /// Set of pages on which this video item appears. This is updated
     /// when videos for a new page are loaded and an old video is found
@@ -300,23 +295,38 @@ protected:
     /// Media provider providing the playback
     std::unique_ptr<MediaProvider> _provider = nullptr;
 
+    /// Create a provider if it does not exist yet.
+    void createProvider();
+
 public:
     /// Construct item from annotation, creating a new provider
-    MediaItem(std::shared_ptr<MediaAnnotation> &annotation);
+    MediaItem(std::shared_ptr<MediaAnnotation> &annotation, const int page) :
+        _annotation(annotation)
+    {
+        _pages.insert(page);
+        createProvider();
+    }
 
     virtual ~MediaItem() {};
 
+    /// Create media provider if necessary
+    virtual void initializeProvider()
+    {createProvider();}
+
+    /// Clear media provider to free memory
+    void deleteProvider() {debug_msg(DebugMedia, "delete provider" << _provider.get()); _provider.reset(nullptr);};
+
     /// Read information from annotation and create a derived class
     /// of MediaItem using the given information.
-    static std::shared_ptr<MediaItem> fromAnnotation(std::shared_ptr<MediaAnnotation> annotation, QGraphicsItem *parent=nullptr);
+    static std::shared_ptr<MediaItem> fromAnnotation(std::shared_ptr<MediaAnnotation> annotation, const int page, QGraphicsItem *parent=nullptr);
 
     /// annotation containing information fomr the PDF document
     const std::shared_ptr<MediaAnnotation> annotation() const noexcept
     {return _annotation;}
 
-    /// Flags... TODO!
+    /// annotation flags
     int flags() const noexcept
-    {return _flags;}
+    {return _annotation->flags();}
 
     /// pages on which the video item appears
     const std::set<int> &pages() const noexcept
@@ -361,7 +371,8 @@ public:
     virtual int type() const noexcept = 0;
 
     /// media annotation rectangle, taken from the geometry of the PDF annotation
-    const QRectF &rect() const noexcept;
+    const QRectF &rect() const noexcept
+    {return _annotation->rect();}
 
     /// check whether this item is currently playing
     bool isPlaying() const {return _provider && _provider->isPlaying();}
@@ -383,7 +394,11 @@ class AudioItem : public QGraphicsRectItem, public MediaItem
 {
 public:
     /// create AudioItem from PDF annotation
-    AudioItem(std::shared_ptr<MediaAnnotation> &annotation, QGraphicsItem *parent=nullptr);
+    AudioItem(std::shared_ptr<MediaAnnotation> &annotation, const int page, QGraphicsItem *parent=nullptr) :
+        QGraphicsRectItem(annotation->rect(), parent),
+        MediaItem(annotation, page)
+    {}
+
     virtual ~AudioItem() {}
 
     void show() override
@@ -407,8 +422,26 @@ class VideoItem : public QGraphicsVideoItem, public MediaItem
 
 public:
     /// create VideoItem from PDF annotation
-    VideoItem(std::shared_ptr<MediaAnnotation> &annotation, QGraphicsItem *parent=nullptr);
+    VideoItem(std::shared_ptr<MediaAnnotation> &annotation, const int page, QGraphicsItem *parent=nullptr) :
+        QGraphicsVideoItem(parent),
+        MediaItem(annotation, page)
+    {
+        setPos(annotation->rect().topLeft());
+        setSize(annotation->rect().size());
+        initializeProvider();
+    }
+
     virtual ~VideoItem() {}
+
+    /// Create media provider if necessary
+    void initializeProvider() override
+    {
+        createProvider();
+        _provider->setVideoOutput(this);
+#if (QT_VERSION_MAJOR >= 6)
+        _provider->setVideoSink(videoSink());
+#endif
+    }
 
     void show() override
     {QGraphicsVideoItem::show();}

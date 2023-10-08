@@ -712,6 +712,43 @@ QList<std::shared_ptr<MediaAnnotation>> MuPdfDocument::annotations(const int pag
             debug_verbose(DebugMedia, "PDF annotation:" << pdf_annot_type(ctx, annot) << page);
             switch (pdf_annot_type(ctx, annot))
             {
+            case PDF_ANNOT_SCREEN:
+            {
+                debug_verbose(DebugMedia, "PDF screen annotation:" << pdf_annot_type(ctx, annot) << page);
+#if (FZ_VERSION_MAJOR > 1) || ((FZ_VERSION_MAJOR == 1) && (FZ_VERSION_MINOR >= 19))
+                pdf_obj *action_obj = pdf_dict_get(ctx, pdf_annot_obj(ctx, annot), PDF_NAME(A));
+#else
+                pdf_obj *action_obj = pdf_dict_get(ctx, annot->obj, PDF_NAME(A));
+#endif
+                if (!action_obj || std::string(pdf_to_name(ctx, pdf_dict_get(ctx, action_obj, PDF_NAME(S)))) != "Rendition")
+                    break;
+
+                pdf_obj *rend_obj = pdf_dict_get(ctx, action_obj, PDF_NAME(R));
+                if (!rend_obj || std::string(pdf_to_name(ctx, pdf_dict_get(ctx, rend_obj, PDF_NAME(S)))) != "MR")
+                    break;
+
+                pdf_obj *media_criterion_obj = pdf_dict_get(ctx, rend_obj, PDF_NAME(C));
+                if (!media_criterion_obj || std::string(pdf_to_name(ctx, pdf_dict_get(ctx, media_criterion_obj, PDF_NAME(S)))) != "MCD")
+                    break;
+
+                const auto media_type = std::string(pdf_to_text_string(ctx, pdf_dict_gets(ctx, media_criterion_obj, "CT")));
+                debug_verbose(DebugMedia, media_type);
+                pdf_obj *data_obj = pdf_dict_get(ctx, media_criterion_obj, PDF_NAME(D));
+                const auto embed = std::string(pdf_dict_get_text_string(ctx, data_obj, PDF_NAME(F)));
+                debug_verbose(DebugMedia, embed);
+                pdf_obj *stream = pdf_dict_get(ctx, pdf_dict_get(ctx, data_obj, PDF_NAME(EF)), PDF_NAME(F));
+                if (!stream || !pdf_is_stream(ctx, stream))
+                    break;
+                fz_buffer* buffer = pdf_load_stream(ctx, stream);
+
+                QByteArray data((const char*) buffer->data, buffer->len);
+
+                MediaAnnotation::Mode mode = MediaAnnotation::Once;
+                const fz_rect bound = pdf_bound_annot(ctx, annot);
+                const QRectF rect = QRectF(bound.x0, bound.y0, bound.x1-bound.x0, bound.y1-bound.y0);
+                list.append(std::shared_ptr<EmbeddedMedia>(new EmbeddedMedia(data, rect, mode)));
+                break;
+            }
             case PDF_ANNOT_MOVIE:
             {
 #if (FZ_VERSION_MAJOR > 1) || ((FZ_VERSION_MAJOR == 1) && (FZ_VERSION_MINOR >= 19))
