@@ -4,6 +4,7 @@
 #ifndef MUPDFDOCUMENT_H
 #define MUPDFDOCUMENT_H
 
+#include <memory>
 #include <utility>
 #include <QString>
 #include <QList>
@@ -77,6 +78,9 @@ private:
     /// Exception: pages with an own TOC entry always have their label
     /// explicitly defined.
     QMap<int, QString> pageLabels;
+
+    /// Map of PDF object numbers to embedded media data streams
+    QMap<int, std::shared_ptr<QByteArray>> embedded_media;
 
     /// populate pageLabels. Must be called after loadOutline.
     void loadPageLabels();
@@ -160,7 +164,7 @@ public:
     virtual const PdfLink *linkAt(const int page, const QPointF &position) const override;
 
     /// List all video annotations on given page.
-    virtual QList<std::shared_ptr<MediaAnnotation>> annotations(const int page) const override;
+    virtual QList<std::shared_ptr<MediaAnnotation>> annotations(const int page) override;
 
     /// Prepare rendering for other threads by initializing the given pointers.
     /// This gives the threads only access to objects which are thread save.

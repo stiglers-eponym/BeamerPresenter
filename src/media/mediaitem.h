@@ -53,24 +53,28 @@ public:
     virtual Type type() const noexcept = 0;
 
     /// constructor: creates audio output
+    MediaProvider()
 #if (QT_VERSION_MAJOR >= 6)
-    MediaProvider() : audio_out(new QAudioOutput()) {}
-#else
-    MediaProvider() {}
+        : audio_out(new QAudioOutput())
 #endif
+    {debug_msg(DebugMedia, "creating media provider" << this);}
 
     /// destructor: deletes audio output
+    virtual ~MediaProvider()
+    {
 #if (QT_VERSION_MAJOR >= 6)
-    virtual ~MediaProvider() {delete audio_out;}
-#else
-    virtual ~MediaProvider() {}
+        delete audio_out;
 #endif
+        debug_msg(DebugMedia, "deleting media provider" << this);
+    }
+
+    //virtual QMediaObject *mediaObject() const = 0;
 
     /// set media source from a URL
     virtual void setSource(const QUrl &url) = 0;
 
     /// set media source from a bit stream provided as QIODevice
-    virtual void setSourceDevice(QIODevice *device) {};
+    virtual void setSourceData(std::shared_ptr<QByteArray> &data) {};
 
     /// set video output (QObject), see also setVideoSink
     virtual void setVideoOutput(QObject* out) = 0;
@@ -122,6 +126,7 @@ public:
 class MediaPlayerProvider : public MediaProvider
 {
     MediaPlayer *_player = nullptr;
+    QBuffer *_buffer = nullptr;
 
 public:
     MediaPlayerProvider() : _player(new MediaPlayer())
@@ -138,10 +143,14 @@ public:
 #endif
     }
 
-    ~MediaPlayerProvider() {delete _player;}
+    ~MediaPlayerProvider()
+    {delete _player; delete _buffer;}
 
     Type type() const noexcept override
     {return PlayerType;}
+
+    //virtual QMediaObject *mediaObject() const override
+    //{return _player;}
 
     void setSource(const QUrl &url) override
     {
@@ -154,12 +163,17 @@ public:
 #endif
     }
 
-    void setSourceDevice(QIODevice *device) override
+    void setSourceData(std::shared_ptr<QByteArray> &data) override
+    {
+        debug_verbose(DebugMedia, "setting embedded media data" << this);
+        _buffer = new QBuffer(data.get());
+        _buffer->open(QBuffer::ReadOnly);
 #if (QT_VERSION_MAJOR >= 6)
-    {_player->setSourceDevice(device);}
+        _player->setSourceDevice(_buffer);
 #else
-    {_player->setMedia(QMediaContent(), device);}
+        _player->setMedia(QMediaContent(), _buffer);
 #endif
+    }
 
     void setVideoOutput(QObject* out) override
 #if (QT_VERSION_MAJOR >= 6)
@@ -237,7 +251,11 @@ public:
         delete session;
     }
 
-    Type type() const noexcept override {return PlayerType;}
+    Type type() const noexcept override
+    {return PlayerType;}
+
+    //virtual QMediaObject *mediaObject() const override
+    //{return session ? session->camera() : nullptr;}
 
     bool isPlaying() const override
     {return session && session->camera();}
@@ -251,7 +269,8 @@ public:
     void setVideoSink(QVideoSink* sink) override
     {session->setVideoSink(sink);}
 
-    void setSource(const QUrl &url) override {
+    void setSource(const QUrl &url) override
+    {
         for (const auto &cam : QMediaDevices::videoInputs())
         {
             if (cam.id() == url.path())
@@ -303,6 +322,7 @@ public:
     MediaItem(std::shared_ptr<MediaAnnotation> &annotation, const int page) :
         _annotation(annotation)
     {
+        debug_msg(DebugMedia, "creating media item" << this);
         _pages.insert(page);
         createProvider();
     }
@@ -428,7 +448,10 @@ public:
     {
         setPos(annotation->rect().topLeft());
         setSize(annotation->rect().size());
-        initializeProvider();
+        _provider->setVideoOutput(this);
+#if (QT_VERSION_MAJOR >= 6)
+        _provider->setVideoSink(videoSink());
+#endif
     }
 
     virtual ~VideoItem() {}
@@ -436,7 +459,10 @@ public:
     /// Create media provider if necessary
     void initializeProvider() override
     {
+        if (_provider)
+            return;
         createProvider();
+        //setMediaObject(_provider->mediaObject());
         _provider->setVideoOutput(this);
 #if (QT_VERSION_MAJOR >= 6)
         _provider->setVideoSink(videoSink());

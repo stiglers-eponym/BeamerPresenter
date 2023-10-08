@@ -11,7 +11,6 @@
 #include <QDateTime>
 #include <QUrl>
 #include <QRectF>
-#include <QByteArray>
 #include <QVector>
 #include "src/config.h"
 #include "src/enumerates.h"
@@ -283,7 +282,7 @@ public:
     {return nullptr;}
 
     /// List all video annotations on given page.
-    virtual QList<std::shared_ptr<MediaAnnotation>> annotations(const int page) const
+    virtual QList<std::shared_ptr<MediaAnnotation>> annotations(const int page)
     {return {};}
 
     /// Path to PDF file.

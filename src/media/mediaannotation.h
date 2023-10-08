@@ -4,12 +4,14 @@
 #ifndef MEDIAANNOTATION_H
 #define MEDIAANNOTATION_H
 
+#include <memory>
 #include <algorithm>
 #include "src/config.h"
 #include <QRectF>
 #include <QUrl>
 #include <QByteArray>
 #include <QBuffer>
+#include "src/log.h"
 
 
 class MediaAnnotation
@@ -69,9 +71,11 @@ protected:
 
 public:
     MediaAnnotation(const QRectF &rect, const Mode mode, const int flags) :
-        _rect(rect), _mode(mode), _flags(flags) {}
+        _rect(rect), _mode(mode), _flags(flags)
+    {debug_verbose(DebugMedia, "creating media annotation" << this);}
 
-    virtual ~MediaAnnotation() {}
+    virtual ~MediaAnnotation()
+    {debug_verbose(DebugMedia, "deleting media annotation" << this);}
 
     void setVolume(const float vol) noexcept
     {_volume = vol;}
@@ -104,6 +108,8 @@ class ExternalMedia : public MediaAnnotation
 public:
     ExternalMedia(const QUrl &url, const QRectF &rect, const Mode mode, const int flags=Interactive|ShowSlider|Autoplay|HasAudio|HasVideo);
 
+    virtual ~ExternalMedia() {}
+
     virtual Type type() const noexcept override
     {return ExternalURL;}
 
@@ -123,19 +129,20 @@ public:
 
 class EmbeddedMedia : public MediaAnnotation
 {
-    QByteArray _data;
-    QBuffer _buffer;
+    std::shared_ptr<QByteArray> _data;
 
 public:
-    EmbeddedMedia(QByteArray &data, const QRectF &rect, const Mode mode, const int flags=Interactive|ShowSlider|Autoplay|HasAudio|HasVideo) :
-        MediaAnnotation(rect, mode, flags), _data(data), _buffer(&_data)
-        {_buffer.open(QBuffer::ReadOnly);}
+    EmbeddedMedia(std::shared_ptr<QByteArray> &data, const QRectF &rect, const Mode mode, const int flags=Interactive|ShowSlider|Autoplay|HasAudio|HasVideo) :
+        MediaAnnotation(rect, mode, flags), _data(data)
+    {}
+
+    virtual ~EmbeddedMedia() {}
 
     virtual Type type() const noexcept override
     {return EmbeddedFile;}
 
-    QBuffer &buffer() noexcept
-    {return _buffer;}
+    std::shared_ptr<QByteArray> &data() noexcept
+    {return _data;}
 
     virtual bool operator==(const MediaAnnotation &other) const noexcept override
     {
@@ -143,10 +150,10 @@ public:
             return false;
         const auto &other_em = static_cast<const EmbeddedMedia&>(other);
 #if (QT_VERSION_MAJOR >= 6)
-        return _data.size() == other_em._data.size()
-               && other_em._data.startsWith(_data.first(std::min(_data.size(), qsizetype(32))));
+        return _data->size() == other_em._data->size()
+               && other_em._data->startsWith(_data->first(std::min(_data->size(), qsizetype(32))));
 #else
-        return _data.size() == other_em._data.size();
+        return _data->size() == other_em._data->size();
 #endif
     }
 };
@@ -158,6 +165,7 @@ class EmbeddedAudio : public MediaAnnotation
 {
     /// Data stream.
     QByteArray data;
+
 public: // TODO: tidy up later
     /// Audio sampling rate
     int sampling_rate;
@@ -189,7 +197,8 @@ public: // TODO: tidy up later
     compression = Uncompressed;
 
 public:
-    virtual Type type() const noexcept override {return EmbeddedAudioStream;}
+    virtual Type type() const noexcept override
+    {return EmbeddedAudioStream;}
 
     /// Constructor
     EmbeddedAudio(const QByteArray &data, int sampling_rate, const QRectF &rect, const Mode mode=Once) :

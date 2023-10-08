@@ -6,6 +6,7 @@
 #if (QT_VERSION_MAJOR < 6)
 #include <QMediaPlaylist>
 #endif
+#include <QBuffer>
 
 #include "src/media/mediaitem.h"
 #include "src/media/mediaannotation.h"
@@ -27,7 +28,7 @@ void MediaItem::createProvider()
         _provider->setSource(std::static_pointer_cast<ExternalMedia>(_annotation)->url());
         break;
     case MediaAnnotation::EmbeddedFile:
-        _provider->setSourceDevice(&std::static_pointer_cast<EmbeddedMedia>(_annotation)->buffer());
+        _provider->setSourceData(std::static_pointer_cast<EmbeddedMedia>(_annotation)->data());
         break;
     case MediaAnnotation::EmbeddedAudioStream:
         break;

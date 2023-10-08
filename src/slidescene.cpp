@@ -817,7 +817,7 @@ void SlideScene::navigationEvent(const int newpage, SlideScene *newscene)
     {
         animation->stop();
         delete animation;
-        animation = NULL;
+        animation = nullptr;
     }
     pageItem->setOpacity(1.);
     pageItem->setRect(sceneRect());
@@ -932,6 +932,7 @@ std::shared_ptr<MediaItem> &SlideScene::getMediaItem(std::shared_ptr<MediaAnnota
             return mediaitem;
         }
     }
+    debug_msg(DebugMedia, "creating new media item" << page);
     mediaItems.append(MediaItem::fromAnnotation(annotation, page));
     return mediaItems.last();
 }

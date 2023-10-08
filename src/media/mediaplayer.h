@@ -38,10 +38,12 @@ class MediaPlayer : public QMediaPlayer
 public:
     /// Trivial constructor.
     explicit MediaPlayer(QObject *parent = nullptr) :
-        QMediaPlayer(parent) {}
+        QMediaPlayer(parent)
+    {debug_verbose(DebugMedia, "creating media player" << this);}
 
     /// Trivial destructor
-    ~MediaPlayer() noexcept {}
+    ~MediaPlayer() noexcept
+    {debug_verbose(DebugMedia, "deleting media player" << this);}
 
 #if (QT_VERSION_MAJOR < 6)
     bool isPlaying() const noexcept

@@ -459,7 +459,7 @@ const PdfLink *PopplerDocument::linkAt(const int page, const QPointF &position) 
     return NULL;
 }
 
-QList<std::shared_ptr<MediaAnnotation>> PopplerDocument::annotations(const int page) const
+QList<std::shared_ptr<MediaAnnotation>> PopplerDocument::annotations(const int page)
 {
     const std::unique_ptr<Poppler::Page> docpage(doc->page(page));
     if (!docpage)
@@ -526,7 +526,7 @@ QList<std::shared_ptr<MediaAnnotation>> PopplerDocument::annotations(const int p
             Poppler::MediaRendition* rendition = sannotation->action()->rendition();
             if (!rendition)
                 break;
-            int flags = MediaAnnotation::HasVideo | MediaAnnotation::HasAudio | MediaAnnotation::Interactive;
+            int flags = MediaAnnotation::HasAudio | MediaAnnotation::Interactive;
             if (rendition->autoPlay())
                 flags |= MediaAnnotation::Autoplay;
             if (rendition->showControls())
@@ -538,10 +538,10 @@ QList<std::shared_ptr<MediaAnnotation>> PopplerDocument::annotations(const int p
             const QStringList type = rendition->contentType().split("/");
             if (type.first() == "video")
             {
-                //rendition->autoPlay();
+                flags |= MediaAnnotation::HasVideo;
                 if (rendition->isEmbedded()) {
                     debug_verbose(DebugMedia, "Found embedded video (screen) annotation: on page" << page);
-                    auto data = rendition->data();
+                    std::shared_ptr<QByteArray> data = std::make_shared<QByteArray>(rendition->data());
                     list.append(std::shared_ptr<MediaAnnotation>(new EmbeddedMedia(data, rect, mode, flags)));
                 }
                 else {

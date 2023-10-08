@@ -698,7 +698,7 @@ const PdfLink *MuPdfDocument::linkAt(const int page, const QPointF &position) co
     return result;
 }
 
-QList<std::shared_ptr<MediaAnnotation>> MuPdfDocument::annotations(const int page) const
+QList<std::shared_ptr<MediaAnnotation>> MuPdfDocument::annotations(const int page)
 {
     QList<std::shared_ptr<MediaAnnotation>> list;
     if (!pages.value(page) || !ctx)
@@ -732,21 +732,25 @@ QList<std::shared_ptr<MediaAnnotation>> MuPdfDocument::annotations(const int pag
                     break;
 
                 const auto media_type = std::string(pdf_to_text_string(ctx, pdf_dict_gets(ctx, media_criterion_obj, "CT")));
-                debug_verbose(DebugMedia, media_type);
+                //debug_verbose(DebugMedia, media_type);
                 pdf_obj *data_obj = pdf_dict_get(ctx, media_criterion_obj, PDF_NAME(D));
                 const auto embed = std::string(pdf_dict_get_text_string(ctx, data_obj, PDF_NAME(F)));
-                debug_verbose(DebugMedia, embed);
+                //debug_verbose(DebugMedia, embed);
                 pdf_obj *stream = pdf_dict_get(ctx, pdf_dict_get(ctx, data_obj, PDF_NAME(EF)), PDF_NAME(F));
                 if (!stream || !pdf_is_stream(ctx, stream))
                     break;
-                fz_buffer* buffer = pdf_load_stream(ctx, stream);
 
-                QByteArray data((const char*) buffer->data, buffer->len);
+                const int obj_id = pdf_obj_parent_num(ctx, stream);
+                if (!embedded_media.contains(obj_id))
+                {
+                    fz_buffer* buffer = pdf_load_stream(ctx, stream);
+                    embedded_media[obj_id] = std::shared_ptr<QByteArray>(new QByteArray((const char*) buffer->data, buffer->len));
+                }
 
                 MediaAnnotation::Mode mode = MediaAnnotation::Once;
                 const fz_rect bound = pdf_bound_annot(ctx, annot);
                 const QRectF rect = QRectF(bound.x0, bound.y0, bound.x1-bound.x0, bound.y1-bound.y0);
-                list.append(std::shared_ptr<EmbeddedMedia>(new EmbeddedMedia(data, rect, mode)));
+                list.append(std::shared_ptr<EmbeddedMedia>(new EmbeddedMedia(embedded_media[obj_id], rect, mode)));
                 break;
             }
             case PDF_ANNOT_MOVIE:
