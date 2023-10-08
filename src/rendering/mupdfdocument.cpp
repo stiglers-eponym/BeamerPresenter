@@ -123,6 +123,14 @@ MuPdfDocument::~MuPdfDocument()
     fz_drop_context(ctx);
     while (!mutex_list.isEmpty())
         delete mutex_list.takeLast();
+    char *ptr;
+    for (auto it=embedded_media.begin(); it!=embedded_media.end();)
+    {
+        ptr = it.value()->data();
+        it = embedded_media.erase(it);
+        // this is a bit dangerous: values of embedded_media don't own data. TODO: find better solution!
+        delete ptr;
+    }
     mutex->unlock();
     delete mutex;
 }
@@ -744,7 +752,12 @@ QList<std::shared_ptr<MediaAnnotation>> MuPdfDocument::annotations(const int pag
                 if (!embedded_media.contains(obj_id))
                 {
                     fz_buffer* buffer = pdf_load_stream(ctx, stream);
-                    embedded_media[obj_id] = std::shared_ptr<QByteArray>(new QByteArray((const char*) buffer->data, buffer->len));
+                    if (!buffer)
+                        break;
+                    unsigned char* data;
+                    const auto size = fz_buffer_extract(ctx, buffer, &data);
+                    // TODO: with this definition, embedded_media[obj_id] does not ownt the data!
+                    embedded_media[obj_id] = std::make_shared<QByteArray>(QByteArray::fromRawData((const char*) data, size));
                 }
 
                 MediaAnnotation::Mode mode = MediaAnnotation::Once;
