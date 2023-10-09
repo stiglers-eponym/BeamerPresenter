@@ -31,9 +31,10 @@ EmbeddedAudio *embeddedSound(const Poppler::SoundObject *sound, const QRectF &re
 {
     if (sound->soundType() != Poppler::SoundObject::Embedded)
         return nullptr;
-    EmbeddedAudio *media = new EmbeddedAudio(sound->data(), sound->samplingRate(), rect);
+    std::shared_ptr<QByteArray> data = std::make_shared<QByteArray>(sound->data());
+    EmbeddedAudio *media = new EmbeddedAudio(data, sound->samplingRate(), rect);
     media->channels = sound->channels();
-    media->bit_per_sample = sound->bitsPerSample();
+    media->bits_per_sample = sound->bitsPerSample();
     switch (sound->soundEncoding())
     {
     case Poppler::SoundObject::Raw:
@@ -49,6 +50,7 @@ EmbeddedAudio *embeddedSound(const Poppler::SoundObject *sound, const QRectF &re
         media->encoding = EmbeddedAudio::SoundEncodingSigned;
         break;
     }
+    debug_msg(DebugMedia, "created embedded audio obejct" << media);
     return media;
 }
 

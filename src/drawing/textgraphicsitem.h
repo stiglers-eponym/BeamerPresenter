@@ -7,6 +7,7 @@
 #include <QGraphicsTextItem>
 #include <QTextDocument>
 #include "src/config.h"
+#include "src/enumerates.h"
 
 class QGraphicsSceneContextMenuEvent;
 class QFocusEvent;
@@ -25,10 +26,10 @@ class TextGraphicsItem : public QGraphicsTextItem
 
 public:
     /// QGraphicsItem type for this subclass
-    enum {Type = UserType + 5};
+    enum { Type = UserType + TextGraphicsItemType };
 
     /// almost trivial constructor
-    TextGraphicsItem(QGraphicsItem *parent = NULL) : QGraphicsTextItem(parent)
+    TextGraphicsItem(QGraphicsItem *parent = nullptr) : QGraphicsTextItem(parent)
     {
         setFlags(QGraphicsItem::ItemIsSelectable);
         setTextInteractionFlags(Qt::TextEditorInteraction);

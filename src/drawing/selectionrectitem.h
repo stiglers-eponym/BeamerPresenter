@@ -9,6 +9,7 @@
 #include <QPolygonF>
 #include <QMarginsF>
 #include "src/config.h"
+#include "src/enumerates.h"
 #include "src/preferences.h"
 
 class QWidget;
@@ -23,7 +24,7 @@ class SelectionRectItem : public QGraphicsItem
     QRectF _rect;
 public:
     /// QGraphicsItem type for this subclass
-    enum {Type = UserType + 10};
+    enum { Type = UserType + SelectionRectItemType };
 
     /// Trivial constructor.
     SelectionRectItem(QGraphicsItem *parent = nullptr) : QGraphicsItem(parent)

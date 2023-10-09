@@ -7,6 +7,7 @@
 #include <QPointF>
 #include <QGraphicsPathItem>
 #include "src/config.h"
+#include "src/enumerates.h"
 #include "src/drawing/drawtool.h"
 
 class QWidget;
@@ -28,8 +29,8 @@ class ArrowGraphicsItem : public QGraphicsPathItem
     const QPointF origin;
 
 public:
-    /// QGraphicsItem type for this subclass
-    enum {Type = UserType + 9};
+    /// Custom type of QGraphicsItem.
+    enum { Type = UserType + ArrowGraphicsItemType };
 
     /// Constructor for initializing QGraphicsLineItem
     /// @param pos origin of the rectangle. This coordinate is always fixed.

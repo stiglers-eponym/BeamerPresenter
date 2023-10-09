@@ -7,6 +7,7 @@
 #include <QPointF>
 #include <QGraphicsEllipseItem>
 #include "src/config.h"
+#include "src/enumerates.h"
 #include "src/drawing/drawtool.h"
 
 class QWidget;
@@ -36,12 +37,12 @@ class EllipseGraphicsItem : public QGraphicsEllipseItem
     quint8 origin = TopLeft;
 
 public:
-    /// QGraphicsItem type for this subclass
-    enum {Type = UserType + 7};
+    /// Custom type of QGraphicsItem.
+    enum { Type = UserType + EllipsisGraphicsItemType };
 
     /// Constructor for initializing QGraphicsEllipseItem
     /// @param pos origin of the rectangle. This coordinate is always fixed.
-    EllipseGraphicsItem(const DrawTool &tool, const QPointF &pos, QGraphicsItem *parent = NULL);
+    EllipseGraphicsItem(const DrawTool &tool, const QPointF &pos, QGraphicsItem *parent = nullptr);
 
     /// Trivial destructor.
     ~EllipseGraphicsItem() {}
@@ -58,7 +59,7 @@ public:
     BasicGraphicsPath *toPath() const;
 
     /// Paint line to painter.
-    virtual void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget = NULL) override
+    virtual void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget = nullptr) override
     {
         painter->setCompositionMode(tool.compositionMode());
         QGraphicsEllipseItem::paint(painter, option, widget);

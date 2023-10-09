@@ -9,6 +9,7 @@
 #include <QRectF>
 #include <QVector>
 #include "src/config.h"
+#include "src/enumerates.h"
 #include "src/drawing/drawtool.h"
 #include "src/drawing/abstractgraphicspath.h"
 
@@ -26,7 +27,7 @@ class BasicGraphicsPath : public AbstractGraphicsPath
 {
 public:
     /// Custom type of QGraphicsItem.
-    enum { Type = UserType + 1 };
+    enum { Type = UserType + BasicGraphicsPathType };
 
     /// Construct path starting at given position.
     /// @param tool draw tool for stroking path
@@ -63,7 +64,7 @@ public:
     /// @param painter paint to this painter.
     /// @param option currently ignored.
     /// @param widget currently ignored.
-    void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget = NULL) override;
+    void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget = nullptr) override;
 
     /// Add a point to coordinates and update bounding rect.
     /// @param point new node

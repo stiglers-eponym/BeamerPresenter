@@ -210,6 +210,25 @@ enum GuiWidget
     SlideLabelType, ///< SlideLabelWidget
 };
 
+/// Integer values added to QGraphicsItem::UserType to define custom
+/// QGraphicsItem types
+enum CustomGraphicsItemTypes
+{
+    BasicGraphicsPathType = 1,
+    FullGraphicsPathType = 2,
+    FlexGraphicsLineItemType = 3,
+    PixmapGraphicsItemType = 4,
+    TextGraphicsItemType = 5,
+    RectGraphicsItemType = 6,
+    EllipsisGraphicsItemType = 7,
+    LineGraphicsItemType = 8,
+    ArrowGraphicsItemType = 9,
+    SelectionRectItemType = 10,
+    GraphicsPictureItemType = 11,
+    AudioItemType = 12,
+    VideoItemType = 13,
+};
+
 #ifdef QT_DEBUG
 /// Debug flags: combinable debug flags
 enum DebugFlags

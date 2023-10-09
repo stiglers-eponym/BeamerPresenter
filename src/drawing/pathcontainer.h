@@ -352,8 +352,8 @@ public:
     QRectF boundingBox() const noexcept;
 
     /// Create history step that replaces the old item by the new one.
-    /// If the new item is NULL, the old item is deleted.
-    /// If the old item is NULL, the new one is just inserted.
+    /// If the new item is nullptr, the old item is deleted.
+    /// If the old item is nullptr, the new one is just inserted.
     /// Items (currently only text items) may detect that they should be removed.
     /// They can then inform this function, which removes them and adds this as a new history step.
     void replaceItem(QGraphicsItem *olditem, QGraphicsItem *newitem);

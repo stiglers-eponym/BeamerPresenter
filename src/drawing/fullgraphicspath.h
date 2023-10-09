@@ -10,6 +10,7 @@
 #include <QVector>
 #include <QList>
 #include "src/config.h"
+#include "src/enumerates.h"
 #include "src/drawing/drawtool.h"
 #include "src/drawing/abstractgraphicspath.h"
 
@@ -39,7 +40,7 @@ friend QDataStream &operator>>(QDataStream &stream, QGraphicsItem *&item);
 
 public:
     /// Custom type of QGraphicsItem.
-    enum { Type = UserType + 2 };
+    enum { Type = UserType + FullGraphicsPathType };
 
     /// Construct path starting at given position.
     /// @param tool draw tool for stroking path
@@ -77,7 +78,7 @@ public:
     /// @param painter paint to this painter.
     /// @param option currently ignored.
     /// @param widget currently ignored.
-    void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget = NULL) override;
+    void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget = nullptr) override;
 
     /// Add a point to data and update bounding rect.
     /// @param point new node

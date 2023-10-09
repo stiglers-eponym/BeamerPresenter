@@ -8,33 +8,36 @@
 #include <memory>
 #include <utility>
 #include "src/config.h"
-#include <QIODevice>
+#include <QBuffer>
 #include <QGraphicsRectItem>
 #include <QGraphicsVideoItem>
 
 #if (QT_VERSION_MAJOR >= 6)
 #include <QVideoSink>
 #include <QAudioOutput>
+#ifdef USE_WEBCAMS
 #include <QMediaDevices>
 #include <QCamera>
 #include <QMediaCaptureSession>
+#endif // USE_WEBCAMS
 #else
 #include <QMediaContent>
 #include <QMediaPlaylist>
 #endif
 
 #include "src/log.h"
+#include "src/enumerates.h"
 #include "src/media/mediaplayer.h"
 #include "src/media/mediaannotation.h"
 
-class MediaAnnotation;
 
 
 /**
  * @brief MediaProvider abstract class providing multimedia functionality
  *
  * Derived classes can use a media player or a media capture session
- * to provide media content.
+ * to provide media content. The MediaProvider is used by a MediaItem
+ * for playing media.
  */
 class MediaProvider
 {
@@ -45,9 +48,12 @@ protected:
 #endif
 
 public:
+    /// subclass type
     enum Type {
         PlayerType,
+#if (QT_VERSION_MAJOR >= 6) && defined(USE_WEBCAMS)
         CaptureType,
+#endif
     };
     /// type used to distinguish derived classes
     virtual Type type() const noexcept = 0;
@@ -68,16 +74,14 @@ public:
         debug_msg(DebugMedia, "deleting media provider" << this);
     }
 
-    //virtual QMediaObject *mediaObject() const = 0;
-
     /// set media source from a URL
     virtual void setSource(const QUrl &url) = 0;
 
-    /// set media source from a bit stream provided as QIODevice
+    /// set media source from (embedded) raw data
     virtual void setSourceData(std::shared_ptr<QByteArray> &data) {};
 
-    /// set video output (QObject), see also setVideoSink
-    virtual void setVideoOutput(QObject* out) = 0;
+    /// set video output, see also setVideoSink
+    virtual void setVideoOutput(QGraphicsVideoItem* out) = 0;
 
 #if (QT_VERSION_MAJOR >= 6)
     /// set video sink (output), see also setVideoOutput
@@ -104,6 +108,7 @@ public:
     {return false;}
 #endif
 
+    /// change playing mode
     virtual void setMode(const MediaAnnotation::Mode mode) {};
 
     /// mute or unmute
@@ -122,42 +127,60 @@ public:
 
 /**
  * @brief MediaPlayerProvider: Implements MediaProvider using a MediaPlayer
+ *
+ * This provider is used for all media types that acn be played using
+ * QMediaPlayer, including embedded, local, and remote files, embedded
+ * audio streams (not implemented yet!) and live streams.
  */
 class MediaPlayerProvider : public MediaProvider
 {
+    /// Media player, owned by this. _player should never be nullptr.
     MediaPlayer *_player = nullptr;
+
+    /// Buffer providing media data, owned by this. A buffer is only
+    /// created when playing an embedded file. Thus this will often
+    /// be nullptr.
     QBuffer *_buffer = nullptr;
 
 public:
-    MediaPlayerProvider() : _player(new MediaPlayer())
+    /// Basic constructor: creates media player
+    MediaPlayerProvider() :
+        MediaProvider(), _player(new MediaPlayer())
     {
 #if (QT_VERSION_MAJOR >= 6)
         _player->setAudioOutput(audio_out);
 #endif
     }
 
-    MediaPlayerProvider(MediaPlayer *player) : _player(player)
+    /// Constructor: Takes ownership of given player.
+    /// If player is nullptr, a new MediaPlayer object is created.
+    MediaPlayerProvider(MediaPlayer *player) :
+        MediaProvider(), _player(player)
     {
+        if (!player)
+            _player = new MediaPlayer();
 #if (QT_VERSION_MAJOR >= 6)
         _player->setAudioOutput(audio_out);
 #endif
     }
 
+    /// Destructor: delete _player and _buffer
     ~MediaPlayerProvider()
     {delete _player; delete _buffer;}
 
     Type type() const noexcept override
     {return PlayerType;}
 
-    //virtual QMediaObject *mediaObject() const override
-    //{return _player;}
-
     void setSource(const QUrl &url) override
     {
 #if (QT_VERSION_MAJOR >= 6)
         _player->setSource(url);
 #else
-        auto playlist = new QMediaPlaylist(_player);
+        auto playlist = _player->playlist();
+        if (!playlist)
+            playlist = new QMediaPlaylist(_player);
+        else
+            playlist->clear();
         playlist->addMedia(url);
         _player->setPlaylist(playlist);
 #endif
@@ -175,12 +198,8 @@ public:
 #endif
     }
 
-    void setVideoOutput(QObject* out) override
-#if (QT_VERSION_MAJOR >= 6)
+    void setVideoOutput(QGraphicsVideoItem* out) override
     {_player->setVideoOutput(out);}
-#else
-    {_player->setVideoOutput(dynamic_cast<QGraphicsVideoItem*>(out));}
-#endif
 
 #if (QT_VERSION_MAJOR >= 6)
     void setAudioOutput(QAudioOutput* out) override
@@ -211,17 +230,19 @@ public:
 
     void setMode(const MediaAnnotation::Mode mode) override;
 
+    /// get media player
     MediaPlayer *player() const noexcept
     {return _player;}
 
     virtual std::unique_ptr<MediaProvider> clone() const override
     {return std::make_unique<MediaPlayerProvider>(*this);}
 
-    /// mute or unmute
 #if (QT_VERSION_MAJOR < 6)
+    /// check whether this is muted
     bool muted() const noexcept override
     {return _player ? _player->isMuted() : true;}
 
+    /// mute or unmute
     void setMuted(const bool mute) const override
     {if (_player) _player->setMuted(mute);}
 #endif
@@ -229,45 +250,57 @@ public:
 
 
 
-#if (QT_VERSION_MAJOR >= 6)
+#if (QT_VERSION_MAJOR >= 6) && defined(USE_WEBCAMS)
 /**
  * @brief MediaCaptureProvider: Implements MediaProvider using a media capture session
+ *
+ * This MediaProvider uses the camera provided by a
+ * QMediaCaptureSession to show the output of a webcam as a video
+ * annotation.
  */
 class MediaCaptureProvider : public MediaProvider
 {
-    QMediaCaptureSession *session = nullptr;
+    /// media session providing the webcam, owned by this and should
+    /// never be nullptr
+    QMediaCaptureSession *_session = nullptr;
 
 public:
-    MediaCaptureProvider() : session(new QMediaCaptureSession())
-    {session->setAudioOutput(audio_out);}
+    /// Constructor: create new empty media capture session
+    MediaCaptureProvider() :
+        MediaProvider(), _session(new QMediaCaptureSession())
+    {_session->setAudioOutput(audio_out);}
 
-    MediaCaptureProvider(QMediaCaptureSession *session) : session(session)
-    {session->setAudioOutput(audio_out);}
+    /// Constructor: takes ownership of given session. If session is
+    /// nullptr, a new media session is created.
+    MediaCaptureProvider(QMediaCaptureSession *session) :
+        MediaProvider(), _session(session)
+    {
+        if (!_session)
+            _session = new QMediaCaptureSession();
+        session->setAudioOutput(audio_out);
+    }
 
+    /// Destructor: delete camera and session
     ~MediaCaptureProvider()
     {
-        if (session)
-            delete session->camera();
-        delete session;
+        delete _session->camera();
+        delete _session;
     }
 
     Type type() const noexcept override
     {return PlayerType;}
 
-    //virtual QMediaObject *mediaObject() const override
-    //{return session ? session->camera() : nullptr;}
-
     bool isPlaying() const override
-    {return session && session->camera();}
+    {return _session->camera();}
 
     void setAudioOutput(QAudioOutput* out) override
-    {session->setAudioOutput(out);}
+    {_session->setAudioOutput(out);}
 
-    void setVideoOutput(QObject* out) override
-    {session->setVideoOutput(out);}
+    void setVideoOutput(QGraphicsVideoItem* out) override
+    {_session->setVideoOutput(out);}
 
     void setVideoSink(QVideoSink* sink) override
-    {session->setVideoSink(sink);}
+    {_session->setVideoSink(sink);}
 
     void setSource(const QUrl &url) override
     {
@@ -278,7 +311,7 @@ public:
                 QCamera *camera = new QCamera(cam);
                 if (camera)
                 {
-                    session->setCamera(new QCamera(cam));
+                    _session->setCamera(new QCamera(cam));
                     camera->start();
                 }
                 return;
@@ -327,6 +360,7 @@ public:
         createProvider();
     }
 
+    /// Trivial destructor
     virtual ~MediaItem() {};
 
     /// Create media provider if necessary
@@ -412,6 +446,9 @@ public:
  */
 class AudioItem : public QGraphicsRectItem, public MediaItem
 {
+    /// Custom type of QGraphicsItem.
+    enum { Type = UserType + AudioItemType };
+
 public:
     /// create AudioItem from PDF annotation
     AudioItem(std::shared_ptr<MediaAnnotation> &annotation, const int page, QGraphicsItem *parent=nullptr) :
@@ -419,6 +456,7 @@ public:
         MediaItem(annotation, page)
     {}
 
+    /// Trivial destructor
     virtual ~AudioItem() {}
 
     void show() override
@@ -428,7 +466,7 @@ public:
     {return this;}
 
     virtual int type() const noexcept override
-    {return QGraphicsItem::UserType + 20;}
+    {return Type;}
 };
 
 
@@ -441,6 +479,9 @@ class VideoItem : public QGraphicsVideoItem, public MediaItem
     Q_OBJECT
 
 public:
+    /// Custom type of QGraphicsItem.
+    enum { Type = UserType + VideoItemType };
+
     /// create VideoItem from PDF annotation
     VideoItem(std::shared_ptr<MediaAnnotation> &annotation, const int page, QGraphicsItem *parent=nullptr) :
         QGraphicsVideoItem(parent),
@@ -454,6 +495,7 @@ public:
 #endif
     }
 
+    /// Trivial destructor
     virtual ~VideoItem() {}
 
     /// Create media provider if necessary
@@ -462,7 +504,6 @@ public:
         if (_provider)
             return;
         createProvider();
-        //setMediaObject(_provider->mediaObject());
         _provider->setVideoOutput(this);
 #if (QT_VERSION_MAJOR >= 6)
         _provider->setVideoSink(videoSink());
@@ -476,7 +517,7 @@ public:
     {return this;}
 
     virtual int type() const noexcept override
-    {return QGraphicsItem::UserType + 21;}
+    {return Type;}
 };
 
 #endif // MEDIAITEM_H

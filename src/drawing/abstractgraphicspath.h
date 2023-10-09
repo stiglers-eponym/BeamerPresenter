@@ -107,7 +107,7 @@ public:
      *
      * @param scene_pos position of eraser (scene coordinates)
      * @param size radius of eraser
-     * @return list of paths after erasing (possibly empty) or {NULL} if nothing was erased.
+     * @return list of paths after erasing (possibly empty) or {nullptr} if nothing was erased.
      */
     virtual QList<AbstractGraphicsPath*> splitErase(const QPointF &scene_pos, const qreal size) const = 0;
 

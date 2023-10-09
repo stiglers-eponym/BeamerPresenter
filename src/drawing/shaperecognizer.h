@@ -214,7 +214,7 @@ public:
     ~ShapeRecognizer() {}
 
     /// Try to recognize a known shape in path.
-    /// Return NULL if no shape was detected.
+    /// Return nullptr if no shape was detected.
     BasicGraphicsPath *recognize();
 };
 

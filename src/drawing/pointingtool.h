@@ -28,7 +28,7 @@ protected:
     QBrush _brush;
     /// Pointer to scene at which this tool is currently active. _scene is used
     /// by slide views to determine whether this tool should be drawn.
-    const void *_scene {NULL};
+    const void *_scene {nullptr};
     /// Radius of drawing tool (in points)
     float _size;
     /// Scale for magnification, only used by magnifier, or line width for eraser.

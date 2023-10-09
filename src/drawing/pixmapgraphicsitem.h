@@ -12,6 +12,7 @@
 #include <QRectF>
 #include <QGraphicsObject>
 #include "src/config.h"
+#include "src/enumerates.h"
 
 #define BLINDS_NUMBER_H 6
 #define BLINDS_NUMBER_V 8
@@ -86,10 +87,10 @@ private:
 
 public:
     /// Type of this custom QGraphicsItem.
-    enum {Type = UserType + 4};
+    enum { Type = UserType + PixmapGraphicsItemType };
 
     /// Trivial constructor.
-    explicit PixmapGraphicsItem(const QRectF &rect, QGraphicsItem *parent = NULL) :
+    explicit PixmapGraphicsItem(const QRectF &rect, QGraphicsItem *parent = nullptr) :
         QGraphicsObject(parent), bounding_rect(rect) {}
 
     /// @return custom QGraphicsItem type
@@ -103,7 +104,7 @@ public:
     /// @param painter paint to this painter.
     /// @param option currently ignored.
     /// @param widget currently ignored.
-    void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget = NULL) override;
+    void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget = nullptr) override;
 
     /// Bounding rect in scene coordinates
     QRectF boundingRect() const override

@@ -7,6 +7,7 @@
 #include <QPointF>
 #include <QGraphicsRectItem>
 #include "src/config.h"
+#include "src/enumerates.h"
 #include "src/drawing/drawtool.h"
 
 class QWidget;
@@ -37,11 +38,11 @@ class RectGraphicsItem : public QGraphicsRectItem
 
 public:
     /// QGraphicsItem type for this subclass
-    enum {Type = UserType + 6};
+    enum { Type = UserType + RectGraphicsItemType };
 
     /// Constructor for initializing QGraphicsRectItem
     /// @param pos origin of the rectangle. This coordinate is always fixed.
-    RectGraphicsItem(const DrawTool &tool, const QPointF &pos, QGraphicsItem *parent = NULL);
+    RectGraphicsItem(const DrawTool &tool, const QPointF &pos, QGraphicsItem *parent = nullptr);
 
     /// Trivial destructor.
     ~RectGraphicsItem() {}
@@ -58,7 +59,7 @@ public:
     BasicGraphicsPath *toPath() const;
 
     /// Paint line to painter.
-    virtual void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget = NULL) override
+    virtual void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget = nullptr) override
     {
         painter->setCompositionMode(tool.compositionMode());
         QGraphicsRectItem::paint(painter, option, widget);

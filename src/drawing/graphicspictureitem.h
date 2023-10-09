@@ -8,6 +8,7 @@
 #include <QPainter>
 #include <QGraphicsItem>
 #include "src/config.h"
+#include "src/enumerates.h"
 
 class QStyleOptionGraphicsItem;
 
@@ -18,8 +19,11 @@ class GraphicsPictureItem : public QGraphicsItem
 {
     /// Picture to be drawn on this item.
     QPicture _picture;
+
 public:
-    enum {Type = UserType + 11};
+    /// QGraphicsItem type for this subclass
+    enum { Type = UserType + GraphicsPictureItemType };
+
     /// Constructor: set default flags.
     GraphicsPictureItem(const QPicture &picture, QGraphicsItem *parent = nullptr) :
         QGraphicsItem(parent), _picture(picture)

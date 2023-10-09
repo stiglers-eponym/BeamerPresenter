@@ -11,11 +11,12 @@
 #include "src/media/mediaitem.h"
 #include "src/media/mediaannotation.h"
 
+
 void MediaItem::createProvider()
 {
     if (_provider)
         return;
-#if (QT_VERSION_MAJOR >= 6)
+#if (QT_VERSION_MAJOR >= 6) && defined(USE_WEBCAMS)
     if (_annotation->type() == MediaAnnotation::ExternalURL && _annotation->flags() & MediaAnnotation::IsCaptureSession)
         _provider.reset(new MediaCaptureProvider());
     else
@@ -50,7 +51,8 @@ std::shared_ptr<MediaItem> MediaItem::fromAnnotation(std::shared_ptr<MediaAnnota
 
 
 
-void MediaPlayerProvider::setMode(const MediaAnnotation::Mode mode) {
+void MediaPlayerProvider::setMode(const MediaAnnotation::Mode mode)
+{
     switch (mode)
     {
     case MediaAnnotation::Once:

@@ -8,6 +8,7 @@
 #include <QLineF>
 #include <QGraphicsLineItem>
 #include "src/config.h"
+#include "src/enumerates.h"
 #include "src/drawing/drawtool.h"
 
 class QWidget;
@@ -25,11 +26,11 @@ class LineGraphicsItem : public QGraphicsLineItem
 
 public:
     /// QGraphicsItem type for this subclass
-    enum {Type = UserType + 8};
+    enum { Type = UserType + LineGraphicsItemType };
 
     /// Constructor for initializing QGraphicsLineItem
     /// @param pos origin of the rectangle. This coordinate is always fixed.
-    LineGraphicsItem(const DrawTool &tool, const QPointF &pos, QGraphicsItem *parent = NULL) :
+    LineGraphicsItem(const DrawTool &tool, const QPointF &pos, QGraphicsItem *parent = nullptr) :
         QGraphicsLineItem(QLineF(pos, pos), parent),
         tool(tool)
     {setPen(tool.pen());}
@@ -48,7 +49,7 @@ public:
     BasicGraphicsPath *toPath() const noexcept;
 
     /// Paint line to painter.
-    virtual void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget = NULL) override;
+    virtual void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget = nullptr) override;
 };
 
 #endif // LINEGRAPHICSITEM_H
