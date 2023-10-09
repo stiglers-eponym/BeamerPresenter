@@ -75,6 +75,7 @@ add_executable(beamerpresenter
         media/mediaplayer.h media/mediaplayer.cpp
         media/mediaannotation.h media/mediaannotation.cpp
         media/mediaitem.h media/mediaitem.cpp
+        media/mediaprovider.h
         media/mediaslider.h
         slidescene.h slidescene.cpp
         slideview.h slideview.cpp

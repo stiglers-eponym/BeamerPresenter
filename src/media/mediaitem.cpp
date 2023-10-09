@@ -2,12 +2,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later OR AGPL-3.0-or-later
 
 #include "src/config.h"
-
-#if (QT_VERSION_MAJOR < 6)
-#include <QMediaPlaylist>
-#endif
-#include <QBuffer>
-
 #include "src/media/mediaitem.h"
 #include "src/media/mediaannotation.h"
 
@@ -47,29 +41,4 @@ std::shared_ptr<MediaItem> MediaItem::fromAnnotation(std::shared_ptr<MediaAnnota
     else if (annotation->flags() & MediaAnnotation::HasAudio)
         return std::shared_ptr<AudioItem>(new AudioItem(annotation, page, parent));
     return nullptr;
-}
-
-
-
-void MediaPlayerProvider::setMode(const MediaAnnotation::Mode mode)
-{
-    switch (mode)
-    {
-    case MediaAnnotation::Once:
-    case MediaAnnotation::Open:
-        break;
-    case MediaAnnotation::Palindrome:
-        qWarning() << "Palindrome video: not implemented (yet)";
-        // TODO
-    case MediaAnnotation::Repeat:
-    default:
-#if (QT_VERSION_MAJOR >= 6)
-        _player->setLoops(QMediaPlayer::Infinite);
-        _player->connect(_player, &MediaPlayer::mediaStatusChanged, _player, &MediaPlayer::repeatIfFinished);
-#else
-        if (_player->playlist())
-            _player->playlist()->setPlaybackMode(QMediaPlaylist::CurrentItemInLoop);
-#endif
-        break;
-    }
 }
