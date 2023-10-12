@@ -48,6 +48,9 @@ public:
 #if (QT_VERSION_MAJOR < 6)
     bool isPlaying() const noexcept
     {return state() == PlayingState;}
+#elif (QT_VERSION_MAJOR == 6 && QT_VERSION_MINOR < 5)
+    bool isPlaying() const noexcept
+    {return playbackState() == PlayingState;}
 #endif
 
 protected:
