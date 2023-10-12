@@ -6,6 +6,8 @@
 #include "src/media/mediaplayer.h"
 #include "src/log.h"
 
+#define MIN_SLIDER_TIME_STEP_MS 100
+
 void MediaPlayer::timerEvent(QTimerEvent *event)
 {
     killTimer(event->timerId());
@@ -28,19 +30,14 @@ void MediaPlayer::checkPosition()
     {
         setPosition(std::min(seekpos, duration()));
         //setPosition(seekpos <= duration() || duration() == 0 ? seekpos : duration());
-#if (QT_VERSION_MAJOR >= 6)
-        debug_msg(DebugMedia, "done:" << position() << duration() << mediaStatus() << playbackState());
-#else
-        debug_msg(DebugMedia, "done:" << position() << duration() << mediaStatus() << state());
-#endif
         seekpos = -1;
     }
 }
 
 void MediaPlayer::setPositionSoft(int position) noexcept
 {
+    debug_verbose(DebugMedia, "set position soft:" << position);
     seekpos = qint64(position);
-    if (timer_id != -1)
-        killTimer(timer_id);
-    timer_id = startTimer(50);
+    if (timer_id == -1)
+        timer_id = startTimer(MIN_SLIDER_TIME_STEP_MS);
 }

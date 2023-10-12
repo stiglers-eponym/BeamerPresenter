@@ -123,6 +123,11 @@ MuPdfDocument::~MuPdfDocument()
     fz_drop_context(ctx);
     while (!mutex_list.isEmpty())
         delete mutex_list.takeLast();
+    /*
+     * Accoding to the documentation, the embedded_media elements should
+     * not own the data. Testing with Qt 6.5.3 and 5.15.11, I find that
+     * the elements do own the data. (The elements delete the data when
+     * they are deleted.)
     char *ptr;
     for (auto it=embedded_media.begin(); it!=embedded_media.end();)
     {
@@ -131,6 +136,8 @@ MuPdfDocument::~MuPdfDocument()
         // this is a bit dangerous: values of embedded_media don't own data. TODO: find better solution!
         delete ptr;
     }
+    */
+    embedded_media.clear();
     mutex->unlock();
     delete mutex;
 }
@@ -722,6 +729,7 @@ QList<std::shared_ptr<MediaAnnotation>> MuPdfDocument::annotations(const int pag
             {
             case PDF_ANNOT_SCREEN:
             {
+                // TODO: structure this? This only seems to cover one edge case.
                 debug_verbose(DebugMedia, "PDF screen annotation:" << pdf_annot_type(ctx, annot) << page);
 #if (FZ_VERSION_MAJOR > 1) || ((FZ_VERSION_MAJOR == 1) && (FZ_VERSION_MINOR >= 19))
                 pdf_obj *action_obj = pdf_dict_get(ctx, pdf_annot_obj(ctx, annot), PDF_NAME(A));

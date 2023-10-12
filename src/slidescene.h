@@ -65,8 +65,6 @@ class SlideScene : public QGraphicsScene
     Q_OBJECT
 
 public:
-    /// Container of objects required to handle a video and/or audio.
-    /// @todo This implementation with different media players uses much memory.
     /// Settings for slide scenes, which apply to all views connected to the scene.
     enum SlideFlags
     {

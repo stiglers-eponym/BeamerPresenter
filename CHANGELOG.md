@@ -1,7 +1,7 @@
 # Changelog
 ## upcoming
 * embedded videos
-* internal restructuring of handling media
+* internal restructuring of handling media: The new setup is constructed for Qt 6. In the Qt 5 version only a limited set of features is available.
 
 ## 0.2.4
 * pages listed in TOC always start a new slide and are not considered overlays

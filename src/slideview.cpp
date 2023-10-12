@@ -415,7 +415,7 @@ void SlideView::addMediaSlider(const std::shared_ptr<MediaItem> media)
 {
     if (!((view_flags & MediaControls) && (media->flags() & MediaAnnotation::ShowSlider) && media->player()))
         return;
-    const MediaPlayer *player = media->player();
+    MediaPlayer *player = media->player();
     if (!player)
         return;
     MediaSlider *slider = new MediaSlider(this);
@@ -428,6 +428,7 @@ void SlideView::addMediaSlider(const std::shared_ptr<MediaItem> media)
     slider->setMaximum(player->duration());
     slider->setValue(player->position());
     connect(slider, &MediaSlider::sliderMoved, player, &MediaPlayer::setPositionSoft);
+    connect(slider, &MediaSlider::jumpTo, player, &MediaPlayer::setPosition);
     debug_msg(DebugMedia, "created slider:" << slider->maximum() << slider->value());
     QPalette palette;
     palette.setColor(QPalette::Base, QColor(0,0,0,0));

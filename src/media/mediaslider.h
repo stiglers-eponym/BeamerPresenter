@@ -20,11 +20,21 @@ class MediaSlider : public QSlider
 
 public:
     /// Constructor: disable focus.
-    explicit MediaSlider(QWidget *parent = NULL) :
+    explicit MediaSlider(QWidget *parent = nullptr) :
         QSlider(Qt::Horizontal, parent)
-        {setFocusPolicy(Qt::NoFocus);}
+    {
+        setFocusPolicy(Qt::NoFocus);
+        connect(this, &QSlider::sliderPressed, this, &MediaSlider::press, Qt::DirectConnection);
+    }
+
     /// Trivial destructor.
     ~MediaSlider() noexcept {}
+
+private slots:
+    /// Called when slider is pressed to change position. This emitts
+    /// a jumpTo signal with the current slider position.
+    void press()
+    {emit jumpTo(qint64(sliderPosition()));}
 
 public slots:
     /// Set maximum (time in ms).
@@ -36,7 +46,15 @@ public slots:
      * video has a finite length. In this case the slider adjusts to
      * the video position it receives. */
     void setValueInt64(qint64 value)
-    {if (value > maximum() + 250) setMaximum(value); setValue(int(value));}
+    {
+        if (value > maximum() + 250)
+            setMaximum(value);
+        setValue(int(value));
+    }
+
+signals:
+    /// jump to position, called after the slider was pressed (not moved).
+    void jumpTo(qint64 position);
 };
 
 #endif // MEDIASLIDER_H

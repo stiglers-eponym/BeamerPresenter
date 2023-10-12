@@ -127,9 +127,23 @@ public:
  * This provider is used for all media types that acn be played using
  * QMediaPlayer, including embedded, local, and remote files, embedded
  * audio streams (not implemented yet!) and live streams.
+ *
+ * In Qt 5, this is implemented as QObject to receive signals for the
+ * following reason: When playing media from a buffer, the media player
+ * may run into a ressource error at the end of the file. This is
+ * avoided by handling player error events here. If Qt 6, this does not
+ * seem necessary.
  */
-class MediaPlayerProvider : public MediaProvider
+class MediaPlayerProvider :
+#if (QT_VERSION_MAJOR < 6)
+                            public QObject,
+#endif
+                            public MediaProvider
 {
+#if (QT_VERSION_MAJOR < 6)
+    Q_OBJECT
+#endif
+
     /// Media player, owned by this. _player should never be nullptr.
     MediaPlayer *_player = nullptr;
 
@@ -138,25 +152,69 @@ class MediaPlayerProvider : public MediaProvider
     /// be nullptr.
     QBuffer *_buffer = nullptr;
 
+private slots:
+#if (QT_VERSION_MAJOR < 6)
+    /**
+     * Handle resource errors for media played from buffer by reconnecting
+     * to the buffer. This aims at handling an error that occurs when using
+     * Qt 5 and playing an embedded video file.
+     */
+    void handleCommonError(QMediaPlayer::Error error)
+    {
+        debug_msg(DebugMedia, "handling media error" << error << _player->errorString());
+        if (error == QMediaPlayer::ResourceError && _buffer)
+        {
+            _buffer->seek(0);
+            _player->setMedia(QMediaContent(), _buffer);
+            _player->play();
+        }
+    }
+#endif
+
 public:
     /// Basic constructor: creates media player
     MediaPlayerProvider() :
-        MediaProvider(), _player(new MediaPlayer())
+#if (QT_VERSION_MAJOR < 6)
+        QObject(),
+#endif
+        MediaProvider(),
+        _player(new MediaPlayer())
     {
 #if (QT_VERSION_MAJOR >= 6)
         _player->setAudioOutput(audio_out);
+#else
+        connect(_player, QOverload<QMediaPlayer::Error>::of(&QMediaPlayer::error), this, &MediaPlayerProvider::handleCommonError);
 #endif
     }
 
     /// Constructor: Takes ownership of given player.
     /// If player is nullptr, a new MediaPlayer object is created.
-    MediaPlayerProvider(MediaPlayer *player) :
-        MediaProvider(), _player(player)
+    MediaPlayerProvider(MediaPlayer *player, QObject *parent = nullptr) :
+#if (QT_VERSION_MAJOR < 6)
+        QObject(parent),
+#endif
+        MediaProvider(),
+        _player(player)
     {
         if (!player)
             _player = new MediaPlayer();
 #if (QT_VERSION_MAJOR >= 6)
         _player->setAudioOutput(audio_out);
+#else
+        connect(_player, QOverload<QMediaPlayer::Error>::of(&QMediaPlayer::error), this, &MediaPlayerProvider::handleCommonError);
+#endif
+    }
+
+    MediaPlayerProvider(const MediaPlayerProvider &other) :
+#if (QT_VERSION_MAJOR < 6)
+        QObject(other.parent()),
+#endif
+        MediaProvider(), _player(other._player)
+    {
+#if (QT_VERSION_MAJOR >= 6)
+        _player->setAudioOutput(audio_out);
+#else
+        connect(_player, QOverload<QMediaPlayer::Error>::of(&QMediaPlayer::error), this, &MediaPlayerProvider::handleCommonError);
 #endif
     }
 
@@ -213,11 +271,11 @@ public:
 
     bool toggle() override
     {
-        debug_msg(DebugMedia, "toggle play:" << _player->isPlaying());
+        debug_msg(DebugMedia, "toggle play:" << _player->isPlaying() << _player->mediaStatus());
         if (_player->isPlaying())
-            _player->pause();
+            pause();
         else
-            _player->play();
+            play();
         return true;
     }
 

@@ -1,20 +1,21 @@
 # Installing BeamerPresenter
 There exist different flavors of BeamerPresenter:
 You can choose the PDF engine (Poppler, MuPDF, Qt PDF) and the major Qt version (5 or 6), see [below](#choosing-mupdf-or-poppler).
+It is recommended to use Qt 6 (if available) because of noticable improvements when including videos in a presentation.
 
 BeamerPresenter can be found in the official [Nix repositories](https://search.nixos.org/packages?channel=unstable&type=packages&query=BeamerPresenter) and in the [AUR](https://aur.archlinux.org/packages/beamerpresenter) (also as a [mainline version](https://aur.archlinux.org/packages/beamerpresenter-git)).
 The [releases](https://github.com/stiglers-eponym/BeamerPresenter/releases) include packages for Arch/Manjaro/Endeavour, Ubuntu 22.04, Ubuntu 20.04, and flatpak.
-These packages can be installed as shown in the following example, which uses Qt 5 and Poppler as PDF engine (after downloading the corresponding file):
+These packages can be installed as shown in the following example, which uses Poppler as PDF engine (after downloading the corresponding file):
 ```sh
 # Ubuntu 20.04:
 sudo apt install ./beamerpresenter-poppler-0.2.4-qt5-focal-x86_64.deb
 # Ubuntu 22.04:
 sudo apt install ./beamerpresenter-poppler-0.2.4-qt5-jammy-x86_64.deb
 # Arch/Manjaro/Endeavour
-sudo pacman -U beamerpresenter-poppler-qt5-0.2.4-1-x86_64.pkg.tar.zst
+sudo pacman -U beamerpresenter-poppler-qt6-0.2.4-1-x86_64.pkg.tar.zst
 # Flatpak
-flatpak install org.kde.Platform/x86_64/5.15-21.08 # can be skipped if already installed
-flatpak install beamerpresenter.flatpak
+flatpak install org.kde.Platform/x86_64/6.4 # can be skipped if already installed
+flatpak install BeamerPresenter-Qt6.flatpak
 ```
 Verify the signature of the checksums in `SHA256SUMS`:
 ```sh
@@ -30,7 +31,7 @@ When installing BeamerPresenter you need to choose a PDF engine from MuPDF, Popp
 * Some features are only supported by Poppler and not by MuPDF. For example, the command `\sound{title}{filename}` in LaTeX beamer's multimedia package will only work with Poppler (workaround for MuPDF: use `\movie` instead of `\sound`).
 * Enabling both Poppler and MuPDF at compile time is not recommended. For some documents this leads to a crash of BeamerPresenter.
 * Qt PDF provides very limited features. Only use it as a fallback if MuPDF and Poppler cannot be used. Qt PDF requires a recent version of Qt (≥5.14 or ≥6.3).
-* MuPDF produces a larger package size. For some Linux distributions, using MuPDF from official repositories leads to very large packages (>20MB). Building MuPDF manually can significantly reduce the package size (use options like `XCFLAGS+=' -DTOFU -DTOFU_CJK -DTOFU_SIL -DFZ_ENABLE_JS=0'`).
+* On some platforms, MuPDF produces a larger package size. For some Linux distributions, using MuPDF from official repositories leads to very large packages (>20MB). Building MuPDF manually can significantly reduce the package size (use options like `XCFLAGS+=' -DTOFU -DTOFU_CJK -DTOFU_SIL -DFZ_ENABLE_JS=0'`).
 
 
 ## Requirements
@@ -46,15 +47,15 @@ Qt versions since 5.12 (for Qt 5) or 6.2 (Qt 6) are supported.
 * `cmake` (only for building)
     * cmake requires a compiler (e.g. `g++`) and a build system (e.g. Unix makefiles or ninja)
 * `zlib1g-dev` (after the installation you can remove `zlib1g-dev` and keep only `zlib1g`)
-* `qtmultimedia5-dev` (after the installation you can remove `qtmultimedia5-dev` and keep only `libqt5multimedia5` and `libqt5multimediawidgets5`)
-    * when using Qt 6 in Ubuntu ≥22.04: `qt6-multimedia-dev` and keep `libqt6multimediawidgets6` after the installation
-* `libqt5svg5-dev` (after the installation you can remove `libqt5svg5-dev` and keep only `libqt5svg5`)
-    * when using Qt 6 in Ubuntu ≥22.04: `libqt6svg6-dev`
-* `qttools5-dev` (only for building and only when creating translations. You can disable translations with `-DUSE_TRANSLATIONS=OFF` in the [CMake command](#configure))
-    * when using Qt 6 in Ubuntu ≥22.04: `qt6-tools-dev`, `qt6-tools-dev-tools`, and `qt6-l10n-tools`
-* optional: `gstreamer1.0-libav` and `libqt5multimedia5-plugins` (for showing videos, when using Qt 5)
+* `qt6-multimedia-dev` (after the installation, you can remove `qt6-multimedia6-dev` and keep only `libqt6multimediawidgets6`)
+    * for Qt 5 in Ubuntu 20.04: install `qtmultimedia5-dev`, and keep `libqt5multimedia5` and `libqt5multimediawidgets5` after the installation
+* `libqt6svg6-dev` (after the installation, you can remove `libqt6svg6-dev` and keep only `libqt6svg6`)
+    * when using Qt 5: `libqt5svg5-dev` and keep `libqt5svg5` after the installation
+* `qt6-tools-dev`, `qt6-tools-dev-tools`, and `qt6-l10n-tools` (only for building and only when creating translations. You can disable translations with `-DUSE_TRANSLATIONS=OFF` in the [CMake command](#configure))
+    * for Qt 5: `qttools5-dev`
+* optional and only for Qt 5: `gstreamer1.0-libav` and `libqt5multimedia5-plugins` (for showing videos, when using Qt 5)
 
-When compiling with Poppler:
+When compiling with Poppler (only available with Qt 5):
 * `libpoppler-qt5-dev`: version 0.86.1 or later. (after the installation you can remove `libpoppler-qt5-dev` and keep only `libpoppler-qt5-1`
 
 When compiling with MuPDF:

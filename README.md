@@ -46,8 +46,9 @@ PDF documents can include videos, sounds, and slide transitions.
 
 
 ## Installation
-There exist different variants of BeamerPresenter:
+To install BeamerPresenter, you first need to choose a variant that is compatible with you setup.
 You can choose the PDF engine (Poppler, MuPDF, or QtPDF) and the Qt version (≥5.9 or ≥6.2).
+It is recommended to use Qt 6 (if available) and Poppler or MuPDF.
 More details can be found in the [installation manual](INSTALL.md).
 
 BeamerPresenter can be found in the [Nix repositories](https://search.nixos.org/packages?channel=unstable&type=packages&query=BeamerPresenter) and [in the AUR](https://aur.archlinux.org/packages/beamerpresenter) (for Arch/Manjaro/Endeavour, also as a [mainline version](https://aur.archlinux.org/packages/beamerpresenter-git)).
@@ -109,6 +110,7 @@ When reporting bugs, please include the version string of BeamerPresenter
 
 The following known problems have low priority. If one of these problems is relevant for you, please also open an issue.
 * Multimedia
+    * Some bugs in the Qt 5 version are fixed when using Qt 6. For example, this affects media that are embedded in the PDF document.
     * In Arch Linux the media player regularly hangs up when using qt6-multimedia-gstreamer. With qt6-multimedia-ffmpeg it should work.
     * Sounds included as sound link (not sound annotation) are unsupported when using MuPDF (this affects LaTeX beamer's `\sound` command; workaround: use `\movie` instead).
 * Changing tool buttons via the user interface is non-permanent. Permanent changes in the user interface require manual changes in the JSON-formatted configuration file.
