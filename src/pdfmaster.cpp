@@ -499,7 +499,7 @@ void PdfMaster::createPathContainer(PathContainer **container, int page)
 
 void PdfMaster::clearAllDrawings()
 {
-    for (const auto container : qAsConst(paths))
+    for (const auto container : std::as_const(paths))
         if (container)
             container->clearPaths();
 }
@@ -512,7 +512,7 @@ void PdfMaster::getTimeForPage(const int page, quint32 &time) const noexcept
 
 bool PdfMaster::hasDrawings() const noexcept
 {
-    for (auto path : qAsConst(paths))
+    for (auto path : std::as_const(paths))
         if (!path->isCleared())
             return true;
     return false;

@@ -43,6 +43,9 @@ public:
     /// Append a new widget to the layout.
     virtual void addWidgetCommon(QWidget *widget, const QString &title) override
     {addWidget(widget);}
+
+    virtual QWidget *thisWidget() noexcept override
+    {return this;}
 };
 
 #endif // STACKEDWIDGET_H

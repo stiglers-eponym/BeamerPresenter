@@ -18,6 +18,7 @@ class TextTool;
 class PointingTool;
 class QCheckBox;
 
+
 /**
  * @brief DrawToolDetails: details for draw tools in a ToolDialog.
  */
@@ -42,7 +43,7 @@ class DrawToolDetails : public QWidget
 
 public:
     /// Constructor: create layout, use default values from old tool.
-    DrawToolDetails(Tool::BasicTool basic_tool, QWidget *parent = NULL, const DrawTool *oldtool = NULL);
+    DrawToolDetails(Tool::BasicTool basic_tool, QWidget *parent = nullptr, const DrawTool *oldtool = nullptr);
     /// Trivial destructor.
     ~DrawToolDetails() {}
 
@@ -70,6 +71,7 @@ public slots:
     void setBrushStyle(int index);
 };
 
+
 /**
  * @brief PointingToolDetails: details for pointing tools in a ToolDialog.
  */
@@ -87,7 +89,7 @@ class PointingToolDetails : public QWidget
 
 public:
     /// Constructor: create layout, use default values from old tool.
-    PointingToolDetails(Tool::BasicTool basic_tool, QWidget *parent = NULL, const PointingTool *oldtool = NULL);
+    PointingToolDetails(Tool::BasicTool basic_tool, QWidget *parent = nullptr, const PointingTool *oldtool = nullptr);
 
     /// Trivial destructor.
     ~PointingToolDetails() {}
@@ -101,6 +103,7 @@ public:
     {return radius_box->value();}
 };
 
+
 /**
  * @brief TextToolDetails: details for text tool in a ToolDialog.
  */
@@ -113,7 +116,7 @@ class TextToolDetails : public QWidget
 
 public:
     /// Constructor: create layout, use default values from old tool.
-    TextToolDetails(QWidget *parent = NULL, const TextTool *oldtool = NULL);
+    TextToolDetails(QWidget *parent = nullptr, const TextTool *oldtool = nullptr);
     /// Trivial destructor.
     ~TextToolDetails() {}
     /// @return font of the text input tool
@@ -125,6 +128,7 @@ public slots:
     void selectFont();
 };
 
+
 /**
  * @brief ToolDialog: select tool using GUI
  */
@@ -133,11 +137,11 @@ class ToolDialog : public QDialog
     Q_OBJECT
 
     /// Widget containing all tool-specific details
-    QWidget *tool_specific = NULL;
+    QWidget *tool_specific = nullptr;
     /// select basic tool
     QComboBox *tool_box;
     /// select color (opens QColorDialog)
-    QPushButton *color_button = NULL;
+    QPushButton *color_button = nullptr;
     /// list of checkboxes for input devices
     QMap<int, QCheckBox*> device_buttons;
 
@@ -146,7 +150,7 @@ class ToolDialog : public QDialog
 
 public:
     /// Constructor: initialize general tool selector.
-    ToolDialog(QWidget *parent = NULL);
+    ToolDialog(QWidget *parent = nullptr);
 
     /// Adjust current settings to values of tool.
     void setDefault(const Tool *tool);
@@ -160,8 +164,8 @@ public:
 
     /// Open a new dialog to select a tool.
     /// Default settings are taken from oldtool (if it exists).
-    /// Return NULL if basic_tool is invalid.
-    static Tool *selectTool(const Tool *oldtool = NULL);
+    /// Return nullptr if basic_tool is invalid.
+    static Tool *selectTool(const Tool *oldtool = nullptr);
 
 public slots:
     /// Set color button color from a color dialog.

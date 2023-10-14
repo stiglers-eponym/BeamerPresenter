@@ -40,7 +40,7 @@ class SettingsWidget : public QTabWidget
 
 public:
     /// Construct all 4 tabs.
-    explicit SettingsWidget(QWidget *parent = NULL);
+    explicit SettingsWidget(QWidget *parent = nullptr);
 
     /// Size hint for layout.
     QSize sizeHint() const noexcept override
@@ -56,8 +56,6 @@ private slots:
 
     /// Select GUI config file from QFileDialog
     void setGuiConfigFile();
-signals:
-
 };
 
 #endif // SETTINGSWIDGET_H

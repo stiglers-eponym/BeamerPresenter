@@ -7,7 +7,6 @@
 #include <QPushButton>
 #include "src/config.h"
 
-class QPushButton;
 class QString;
 
 /**
@@ -38,19 +37,24 @@ class TOCbutton : public QPushButton
     const int page;
 
     /// Next element on same level in tree structure.
-    TOCbutton *tree_next = NULL;
+    TOCbutton *tree_next = nullptr;
 
     /// First child element in tree structure.
-    TOCbutton *tree_child = NULL;
+    TOCbutton *tree_child = nullptr;
 
     /// Toggle show / hide children.
     void toggleVisibility()
-    {if (expand_button->isChecked()) expand(); else collapse();}
+    {
+        if (expand_button->isChecked())
+            expand();
+        else
+            collapse();
+    }
 
 public:
     /// Constructor: Only directly uses the given values to initialize
     /// properties of this. Takes ownership of expand_button.
-    TOCbutton(const QString &title, const int _page, QPushButton *expand_button, QWidget *parent = NULL);
+    TOCbutton(const QString &title, const int _page, QPushButton *expand_button, QWidget *parent = nullptr);
 
     /// Destructor: recursively delete the associated subtree.
     ~TOCbutton();
@@ -69,13 +73,13 @@ public:
     void collapse_hide();
 
     /// get function for tree_next:
-    /// return next outline element on same level or NULL if there is no
+    /// return next outline element on same level or nullptr if there is no
     /// next element.
     TOCbutton *next() const
     {return tree_next;}
 
     /// get function for tree_child:
-    /// return first child element or NULL if there is no child element.
+    /// return first child element or nullptr if there is no child element.
     TOCbutton *child() const
     {return tree_child;}
 

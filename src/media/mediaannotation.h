@@ -6,11 +6,11 @@
 
 #include <memory>
 #include <algorithm>
-#include "src/config.h"
 #include <QRectF>
 #include <QUrl>
 #include <QByteArray>
 #include <QBuffer>
+#include "src/config.h"
 #include "src/log.h"
 
 

@@ -1,6 +1,7 @@
 // SPDX-FileCopyrightText: 2022 Valentin Bruch <software@vbruch.eu>
 // SPDX-License-Identifier: GPL-3.0-or-later OR AGPL-3.0-or-later
 
+#include <utility>
 #include <QtConfig>
 #include <QPointF>
 #include <QSizeF>
@@ -107,12 +108,12 @@ bool PopplerDocument::loadDocument()
         return false;
     }
     // Check if the file has changed since last (re)load
-    if (doc != NULL && fileinfo.lastModified() == lastModified)
+    if (doc != nullptr && fileinfo.lastModified() == lastModified)
         return false;
 
     // Load the document.
     std::unique_ptr<Poppler::Document> newdoc(Poppler::Document::load(path));
-    if (newdoc == NULL)
+    if (newdoc == nullptr)
     {
         qCritical() << tr("Failed to load document.");
         return false;
@@ -125,7 +126,7 @@ bool PopplerDocument::loadDocument()
         // Use a QInputDialog to ask for the password.
         bool ok;
         QString const password = QInputDialog::getText(
-                    NULL,
+                    nullptr,
                     tr("Document is locked!"),
                     tr("Please enter password (leave empty to cancel)."),
                     QLineEdit::Password,
@@ -139,7 +140,7 @@ bool PopplerDocument::loadDocument()
             preferences()->showErrorMessage(
                         tr("Error while loading file"),
                         tr("No or invalid password provided for locked document"));
-            newdoc = NULL;
+            newdoc = nullptr;
             return false;
         }
     }
@@ -154,7 +155,7 @@ bool PopplerDocument::loadDocument()
     newdoc->setRenderHint(Poppler::Document::ThinLineShape);
 
     // Update document and delete old document.
-    if (newdoc != NULL)
+    if (newdoc != nullptr)
         doc.swap(newdoc);
     flexible_page_sizes = -1;
 
@@ -187,13 +188,13 @@ const PngPixmap * PopplerDocument::getPng(const int page, const qreal resolution
     if (resolution <= 0 || !docpage)
     {
         qWarning() << "Tried to render invalid page or invalid resolution" << page;
-        return NULL;
+        return nullptr;
     }
     QImage image = docpage->renderToImage(72.*resolution, 72.*resolution);
     if (image.isNull())
     {
         qWarning() << "Rendering page to image failed";
-        return NULL;
+        return nullptr;
     }
     switch (page_part)
     {
@@ -212,7 +213,7 @@ const PngPixmap * PopplerDocument::getPng(const int page, const qreal resolution
     {
         qWarning() << "Saving page as PNG image failed";
         delete bytes;
-        return NULL;
+        return nullptr;
     }
     return new PngPixmap(bytes, page, resolution);
 }
@@ -288,7 +289,7 @@ void PopplerDocument::loadPageLabels()
     // Add all pages explicitly to pageLabels, which have an own outline entry.
     const int num_pages = doc->numPages();
     QMap<int, QString>::key_iterator it;
-    for (const auto &entry : qAsConst(outline))
+    for (const auto &entry : std::as_const(outline))
     {
         if (entry.page < 0 || entry.page >= num_pages)
             continue;
@@ -302,7 +303,7 @@ const PdfLink *PopplerDocument::linkAt(const int page, const QPointF &position) 
 {
     const std::unique_ptr<Poppler::Page> docpage(doc->page(page));
     if (!docpage)
-        return NULL;
+        return nullptr;
     const QSizeF pageSize = docpage->pageSizeF();
     const QPointF relpos = {position.x()/pageSize.width(), position.y()/pageSize.height()};
     const auto links = docpage->links();
@@ -458,7 +459,7 @@ const PdfLink *PopplerDocument::linkAt(const int page, const QPointF &position) 
             }
         }
     }
-    return NULL;
+    return nullptr;
 }
 
 QList<std::shared_ptr<MediaAnnotation>> PopplerDocument::annotations(const int page)
@@ -656,7 +657,7 @@ const SlideTransition PopplerDocument::transition(const int page) const
 
 bool PopplerDocument::flexiblePageSizes() noexcept
 {
-    if (flexible_page_sizes >= 0 || doc == NULL)
+    if (flexible_page_sizes >= 0 || doc == nullptr)
         return flexible_page_sizes;
     const QSizeF ref_size = doc->page(0)->pageSizeF();
     for (int page=1; page<doc->numPages(); page++)

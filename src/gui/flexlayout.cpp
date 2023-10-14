@@ -2,6 +2,8 @@
 // SPDX-License-Identifier: GPL-3.0-or-later OR AGPL-3.0-or-later
 
 #include <algorithm>
+#include <utility>
+
 #include <QWidget>
 #include <QVector>
 #include "src/gui/flexlayout.h"
@@ -9,7 +11,7 @@
 
 FlexLayout::~FlexLayout()
 {
-    for (const auto item : qAsConst(items))
+    for (const auto item : std::as_const(items))
         delete item;
     items.clear();
 }
@@ -24,7 +26,7 @@ QSize FlexLayout::sizeHint() const
     case QBoxLayout::RightToLeft:
     {
         int width = 0;
-        for (const auto child : qAsConst(items))
+        for (const auto child : std::as_const(items))
         {
             hint = child->widget()->sizeHint();
             if (child->widget()->hasHeightForWidth())
@@ -39,7 +41,7 @@ QSize FlexLayout::sizeHint() const
     case QBoxLayout::BottomToTop:
     {
         int height = 0;
-        for (const auto child : qAsConst(items))
+        for (const auto child : std::as_const(items))
         {
             hint = child->widget()->sizeHint();
             if (child->widget()->hasHeightForWidth())

@@ -8,9 +8,9 @@
 #include <QSize>
 #include <QSizePolicy>
 #include <QLayout>
+#include "src/config.h"
 #include "src/gui/containerbaseclass.h"
 #include "src/gui/flexlayout.h"
-#include "src/config.h"
 
 /**
  * @brief  Widget for arangement of child widgets in QBoxLayout.
@@ -46,6 +46,9 @@ public:
     /// Append a new widget to the layout.
     virtual void addWidgetCommon(QWidget *widget, const QString &title) override
     {if (layout()) layout()->addWidget(widget);}
+
+    virtual QWidget *thisWidget() noexcept override
+    {return this;}
 };
 
 #endif // CONTAINERWIDGET_H

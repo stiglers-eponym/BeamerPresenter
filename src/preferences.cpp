@@ -1,6 +1,9 @@
 // SPDX-FileCopyrightText: 2022 Valentin Bruch <software@vbruch.eu>
 // SPDX-License-Identifier: GPL-3.0-or-later OR AGPL-3.0-or-later
 
+#include <utility>
+#include "src/config.h"
+
 #include <QDir>
 #include <QJsonObject>
 #include <QJsonDocument>
@@ -497,7 +500,7 @@ void Preferences::parseActionsTools(const QVariant &input, QList<Action> &action
         }
         return;
     }
-    for (const auto &value : qAsConst(array))
+    for (const auto &value : std::as_const(array))
     {
         if (value.isString())
         {
@@ -783,7 +786,7 @@ Tool *Preferences::currentTool(const int device) const noexcept
     for (auto tool = current_tools.cbegin(); tool != end; ++tool)
         if (*tool && ((*tool)->device() & device))
             return *tool;
-    return NULL;
+    return nullptr;
 }
 
 void Preferences::removeKeyTool(const Tool *tool, const bool remove_from_settings)

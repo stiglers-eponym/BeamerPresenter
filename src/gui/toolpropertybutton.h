@@ -23,6 +23,7 @@ class QEvent;
 class ToolPropertyButton : public QComboBox
 {
     Q_OBJECT
+
 protected:
     /// Device changed by this button.
     /// This is the last device used to press this button.
@@ -51,7 +52,7 @@ protected slots:
 
 public:
     /// Constructor: adjust some widget properties.
-    ToolPropertyButton(QWidget *parent = NULL);
+    ToolPropertyButton(QWidget *parent = nullptr);
 
     /// Trivial destructor.
     ~ToolPropertyButton() {}

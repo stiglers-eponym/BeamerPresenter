@@ -12,6 +12,7 @@
 #include <QMutex>
 #include <QVector>
 #include <QCoreApplication>
+
 #include "src/config.h"
 // old versions of MuPDF don't have 'extern "C"' in the header files.
 extern "C"

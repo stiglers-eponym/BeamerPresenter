@@ -16,9 +16,10 @@ class Tool;
 class BrushStyleButton : public ToolPropertyButton
 {
     Q_OBJECT
+
 public:
     /// Constructor: add all items to the drop down menu.
-    BrushStyleButton(QWidget *parent = NULL);
+    BrushStyleButton(QWidget *parent = nullptr);
 
     /// Trivial destructor.
     ~BrushStyleButton() {}

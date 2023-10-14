@@ -17,9 +17,10 @@ class Tool;
 class ColorSelectionButton : public ToolPropertyButton
 {
     Q_OBJECT
+
 public:
     /// Constructor: add all items to the drop down menu.
-    ColorSelectionButton(const QJsonArray &array, QWidget *parent = NULL);
+    ColorSelectionButton(const QJsonArray &array, QWidget *parent = nullptr);
 
     /// Trivial destructor.
     ~ColorSelectionButton() {}

@@ -51,18 +51,26 @@ struct PdfLink {
     PdfLink(const LinkType type, const QRectF &area) : type(type), area(area) {}
     virtual ~PdfLink() = default;
 };
+
+/// Link to external URL
 struct ExternalLink : PdfLink {
     QUrl url;
     ExternalLink(const LinkType type, const QRectF &area, const QUrl &url) : PdfLink(type, area), url(url) {}
 };
+
+/// Link to page
 struct GotoLink : PdfLink {
     int page;
     GotoLink(const QRectF &area, const int page) : PdfLink(PageLink, area), page(page) {}
 };
+
+/// Link triggering an action
 struct ActionLink : PdfLink {
     Action action;
     ActionLink(const QRectF &area, const Action action) : PdfLink(LinkType::ActionLink, area), action(action) {}
 };
+
+/// Link to media annotation
 struct MediaLink : PdfLink {
     const std::shared_ptr<MediaAnnotation> annotation;
     MediaLink(const LinkType type, const QRectF &area, const std::shared_ptr<MediaAnnotation> annotation) :

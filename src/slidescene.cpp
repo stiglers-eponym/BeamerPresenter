@@ -1,9 +1,11 @@
 // SPDX-FileCopyrightText: 2023 Valentin Bruch <software@vbruch.eu>
 // SPDX-License-Identifier: GPL-3.0-or-later OR AGPL-3.0-or-later
 
-#include "src/config.h"
 #include <iterator>
+#include <utility>
 #include <algorithm>
+#include "src/config.h"
+
 #include <QTransform>
 #include <QString>
 #include <QSvgGenerator>
@@ -265,7 +267,7 @@ bool SlideScene::event(QEvent* event)
     case QEvent::GraphicsSceneDragLeave:
         /* Try to clean up pointers on the slide scene when the device
          * leaves the scene. */
-        for (auto tool : qAsConst(preferences()->current_tools))
+        for (auto tool : std::as_const(preferences()->current_tools))
         {
             if (tool && tool->tool() == Tool::Pointer)
             {
@@ -468,7 +470,7 @@ void SlideScene::handlePointingEvents(PointingTool *tool, const int device, cons
         else
         {
             tool->setPos(pos);
-            for (auto point : qAsConst(pos))
+            for (auto point : std::as_const(pos))
             {
                 point_rect.moveCenter(point);
                 invalidate(point_rect, QGraphicsScene::ForegroundLayer);
@@ -710,12 +712,12 @@ void SlideScene::receiveAction(const Action action)
         playPauseMedia();
         break;
     case Mute:
-        for (const auto &m : qAsConst(mediaItems))
+        for (const auto &m : std::as_const(mediaItems))
             m->setMuted(true);
         break;
     case Unmute:
         if (!(slide_flags & SlideFlags::MuteSlide))
-            for (const auto &m : qAsConst(mediaItems))
+            for (const auto &m : std::as_const(mediaItems))
                 if (!(m->flags() & MediaAnnotation::Mute))
                     m->setMuted(false);
         break;

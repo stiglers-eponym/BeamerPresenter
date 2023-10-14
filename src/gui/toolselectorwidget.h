@@ -33,7 +33,7 @@ class ToolSelectorWidget : public QWidget
 
 public:
     /// Constructor: initialize layout.
-    explicit ToolSelectorWidget(QWidget *parent = NULL);
+    explicit ToolSelectorWidget(QWidget *parent = nullptr);
 
     /// Size hint for layout.
     QSize sizeHint() const noexcept override;

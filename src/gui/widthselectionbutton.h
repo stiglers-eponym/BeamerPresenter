@@ -17,8 +17,11 @@ class QWidget;
 class WidthSelectionButton : public ToolPropertyButton
 {
     Q_OBJECT
+
 public:
-    WidthSelectionButton(const QJsonArray &array, QWidget *parent = NULL);
+    /// Constructor: given array should contains numbers defining pen widths.
+    WidthSelectionButton(const QJsonArray &array, QWidget *parent = nullptr);
+    /// Trivial destructor
     ~WidthSelectionButton() {}
 
 protected:

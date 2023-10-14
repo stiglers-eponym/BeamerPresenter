@@ -15,6 +15,9 @@ public:
     /// Append a new widget to the layout.
     /// title will be ignored by most implementations.
     virtual void addWidgetCommon(QWidget *widget, const QString &title) = 0;
+
+    /// Return this as QWidget
+    virtual QWidget *thisWidget() noexcept = 0;
 };
 
 #endif // CONTAINERBASECLASS_H

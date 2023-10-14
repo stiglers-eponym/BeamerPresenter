@@ -4,7 +4,6 @@
 #ifndef ACTIONBUTTON_H
 #define ACTIONBUTTON_H
 
-#include <QObject>
 #include <QSet>
 #include <QToolButton>
 #include <QStringList>
@@ -12,7 +11,6 @@
 #include "src/enumerates.h"
 
 class ToolSelectorWidget;
-class QString;
 
 /**
  * @brief Button which sends Action(s) when clicked.
@@ -26,6 +24,7 @@ class QString;
 class ActionButton : public QToolButton
 {
     Q_OBJECT
+
     /// Set of one or more actions connected to this button.
     QSet<Action> actions;
     /// Action represented by the currently visible icon.
@@ -36,10 +35,10 @@ class ActionButton : public QToolButton
 
 public:
     /// Constructor: connect to parent.
-    explicit ActionButton(ToolSelectorWidget *parent = NULL);
+    explicit ActionButton(ToolSelectorWidget *parent = nullptr);
 
     /// Constructor: connect to parent, add action and set icon.
-    explicit ActionButton(const Action action, ToolSelectorWidget *parent = NULL);
+    explicit ActionButton(const Action action, ToolSelectorWidget *parent = nullptr);
 
     /// Add new action to actions, set icon if necessary.
     void addAction(const Action action);

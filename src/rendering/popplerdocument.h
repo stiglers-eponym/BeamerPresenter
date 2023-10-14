@@ -38,7 +38,7 @@ class PopplerDocument : public PdfDocument
     Q_DECLARE_TR_FUNCTIONS(PopplerDocument)
 
     /// Poppler document representing the PDF.
-    std::unique_ptr<Poppler::Document> doc = NULL;
+    std::unique_ptr<Poppler::Document> doc = nullptr;
 
     /// Map page numbers to labels: Only the first page number with a
     /// new label is listed here.

@@ -21,6 +21,7 @@ class Tool;
 class ToolWidgetButton : public ToolButton
 {
     Q_OBJECT
+
     /// Input device, for which the tool is shown.
     const int device;
 

@@ -6,8 +6,8 @@
 
 #include <QTabWidget>
 #include <QSizePolicy>
-#include "src/gui/containerbaseclass.h"
 #include "src/config.h"
+#include "src/gui/containerbaseclass.h"
 
 class QSize;
 
@@ -35,6 +35,9 @@ public:
     /// Append a new widget to the layout.
     virtual void addWidgetCommon(QWidget *widget, const QString &title) override
     {addTab(widget, title);}
+
+    virtual QWidget *thisWidget() noexcept override
+    {return this;}
 };
 
 #endif // TABWIDGET_H

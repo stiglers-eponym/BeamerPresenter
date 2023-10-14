@@ -7,10 +7,10 @@
 #include <set>
 #include <memory>
 #include <utility>
-#include "src/config.h"
 #include <QGraphicsRectItem>
 #include <QGraphicsVideoItem>
 
+#include "src/config.h"
 #include "src/log.h"
 #include "src/enumerates.h"
 #include "src/media/mediaprovider.h"

@@ -4,7 +4,6 @@
 #ifndef QTDOCUMENT_H
 #define QTDOCUMENT_H
 
-#include <QtGlobal>
 #include <QPdfDocumentRenderOptions>
 #include <QCoreApplication>
 #include "src/config.h"

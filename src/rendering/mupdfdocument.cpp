@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 #include <string>
+#include <utility>
 #include <iterator>
 #include <QPointF>
 #include <QSizeF>
@@ -117,7 +118,7 @@ MuPdfDocument::MuPdfDocument(const QString &filename) :
 MuPdfDocument::~MuPdfDocument()
 {
     mutex->lock();
-    for (auto page : qAsConst(pages))
+    for (auto page : std::as_const(pages))
         fz_drop_page(ctx, (fz_page*)page);
     pdf_drop_document(ctx, doc);
     fz_drop_context(ctx);
@@ -160,7 +161,7 @@ bool MuPdfDocument::loadDocument()
     mutex->lock();
     if (doc)
     {
-        for (auto page : qAsConst(pages))
+        for (auto page : std::as_const(pages))
             fz_drop_page(ctx, (fz_page*)page);
         pdf_drop_document(ctx, doc);
         flexible_page_sizes = -1;
@@ -416,7 +417,7 @@ void MuPdfDocument::loadPageLabels()
 
     // Add all pages explicitly to pageLabels, which have an own outline entry.
     QMap<int, QString>::key_iterator it;
-    for (const auto &entry : qAsConst(outline))
+    for (const auto &entry : std::as_const(outline))
     {
         if (entry.page < 0 || entry.page >= number_of_pages)
             continue;
@@ -541,7 +542,7 @@ void MuPdfDocument::loadPageLabels()
 
     // Add all pages explicitly to pageLabels, which have an own outline entry.
     QMap<int, QString>::key_iterator it;
-    for (const auto &entry : qAsConst(outline))
+    for (const auto &entry : std::as_const(outline))
     {
         if (entry.page < 0 || entry.page >= number_of_pages)
             continue;
@@ -880,7 +881,7 @@ bool MuPdfDocument::flexiblePageSizes() noexcept
     const fz_rect ref_bbox = pdf_bound_page(ctx, pages[0]);
 #endif
     fz_rect bbox;
-    for (auto page : qAsConst(pages))
+    for (auto page : std::as_const(pages))
     {
 #if (FZ_VERSION_MAJOR > 1) || ((FZ_VERSION_MAJOR == 1) && (FZ_VERSION_MINOR >= 23))
         bbox = pdf_bound_page(ctx, page, FZ_MEDIA_BOX);

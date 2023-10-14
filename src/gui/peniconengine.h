@@ -13,6 +13,7 @@
 #include <QPixmap>
 #include <QPainter>
 #include <QIconEngine>
+#include "src/config.h"
 
 /// Generate icon showing a single line with given width and style.
 class PenIconEngine : public QIconEngine

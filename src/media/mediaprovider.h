@@ -6,10 +6,10 @@
 
 #include <memory>
 #include <utility>
-#include "src/config.h"
 #include <QBuffer>
 #include <QGraphicsVideoItem>
 
+#include "src/config.h"
 #if (QT_VERSION_MAJOR >= 6)
 #include <QVideoSink>
 #include <QAudioOutput>
@@ -18,10 +18,10 @@
 #include <QCamera>
 #include <QMediaCaptureSession>
 #endif // USE_WEBCAMS
-#else
+#else // QT_VERSION_MAJOR
 #include <QMediaContent>
 #include <QMediaPlaylist>
-#endif
+#endif// QT_VERSION_MAJOR
 
 #include "src/log.h"
 #include "src/media/mediaplayer.h"
@@ -169,7 +169,7 @@ private slots:
             _player->play();
         }
     }
-#endif
+#endif// QT_VERSION_MAJOR
 
 public:
     /// Basic constructor: creates media player
@@ -386,7 +386,7 @@ public:
                 QCamera *camera = new QCamera(cam);
                 if (camera)
                 {
-                    _session->setCamera(new QCamera(cam));
+                    _session->setCamera(camera);
                     camera->start();
                 }
                 return;

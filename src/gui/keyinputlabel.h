@@ -24,16 +24,16 @@ class KeyInputLabel : public QLabel
     Q_OBJECT
     /// Key combinations entered here will be connected to this Action if it is valid.
     Action action = InvalidAction;
-    /// Key combinations entered here will be connected to this Tool if it is not NULL.
-    Tool *tool = NULL;
+    /// Key combinations entered here will be connected to this Tool if it is not nullptr.
+    Tool *tool = nullptr;
     /// key sequence
     QKeySequence keys;
 
 public:
     /// Create a new KeyInputLabel for an action.
-    explicit KeyInputLabel(const QKeySequence init, const Action action, QWidget *parent = NULL);
+    explicit KeyInputLabel(const QKeySequence init, const Action action, QWidget *parent = nullptr);
     /// Create a new KeyInputLabel for a tool.
-    explicit KeyInputLabel(const QKeySequence init, Tool *tool, QWidget *parent = NULL);
+    explicit KeyInputLabel(const QKeySequence init, Tool *tool, QWidget *parent = nullptr);
     /// Destructor: remove this tool from preferences.
     ~KeyInputLabel();
 

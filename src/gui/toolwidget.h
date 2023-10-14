@@ -7,8 +7,8 @@
 #include <QWidget>
 #include <QList>
 #include <QBoxLayout>
-#include "src/drawing/tool.h"
 #include "src/config.h"
+#include "src/drawing/tool.h"
 
 class QSize;
 class QResizeEvent;

@@ -5,6 +5,8 @@
 #include <zlib.h>
 #include <QtConfig>
 #include <algorithm>
+
+#include "src/config.h"
 #include <QTimerEvent>
 #include <QString>
 #include <QThread>
@@ -56,14 +58,14 @@ Master::Master()
 Master::~Master()
 {
     emit clearCache();
-    for (const auto cache : qAsConst(caches))
+    for (const auto cache : std::as_const(caches))
         cache->thread()->quit();
-    for (const auto cache : qAsConst(caches))
+    for (const auto cache : std::as_const(caches))
     {
         cache->thread()->wait(10000);
         delete cache;
     }
-    for (const auto doc : qAsConst(documents))
+    for (const auto doc : std::as_const(documents))
     {
         QList<SlideScene*> &scenes = doc->getScenes();
         while (!scenes.isEmpty())
@@ -167,14 +169,14 @@ QWidget* Master::createWidget(const QJsonObject &object, QWidget *parent, QMap<Q
     case HBoxWidgetType:
     {
         auto cwidget = new ContainerWidget(type == VBoxWidgetType ? QBoxLayout::TopToBottom : QBoxLayout::LeftToRight, parent);
-        fillContainerWidget(cwidget, cwidget, object, known_files);
+        fillContainerWidget(cwidget, object, known_files);
         widget = cwidget;
         break;
     }
     case StackedWidgetType:
     {
         auto stackwidget = new StackedWidget(parent);
-        fillContainerWidget(stackwidget, stackwidget, object, known_files);
+        fillContainerWidget(stackwidget, object, known_files);
         widget = stackwidget;
         break;
     }
@@ -191,7 +193,7 @@ QWidget* Master::createWidget(const QJsonObject &object, QWidget *parent, QMap<Q
             tabwidget->setTabPosition(QTabWidget::East);
         else
             tabwidget->setTabPosition(QTabWidget::North);
-        fillContainerWidget(tabwidget, tabwidget, object, known_files);
+        fillContainerWidget(tabwidget, object, known_files);
         break;
     }
     case SlideType:
@@ -680,7 +682,7 @@ const PixCache *Master::getPixcache(PdfDocument *doc, const PagePart page_part, 
     return pixcache;
 }
 
-void Master::fillContainerWidget(ContainerBaseClass *parent, QWidget *parent_widget, const QJsonObject &parent_obj, QMap<QString, PdfMaster*> &known_files)
+void Master::fillContainerWidget(ContainerBaseClass *parent, const QJsonObject &parent_obj, QMap<QString, PdfMaster*> &known_files)
 {
     const QJsonArray array = parent_obj.value("children").toArray();
 #if (QT_VERSION >= QT_VERSION_CHECK(5,14,0))
@@ -696,7 +698,7 @@ void Master::fillContainerWidget(ContainerBaseClass *parent, QWidget *parent_wid
         }
         const QJsonObject obj = it->toObject();
         // Create child widgets recursively
-        QWidget* const newwidget = createWidget(obj, parent_widget, known_files);
+        QWidget* const newwidget = createWidget(obj, parent->thisWidget(), known_files);
         if (!newwidget)
             continue;
         QString title = obj.value("title").toString();
@@ -708,7 +710,7 @@ void Master::fillContainerWidget(ContainerBaseClass *parent, QWidget *parent_wid
 
 void Master::showAll() const
 {
-    for (const auto widget : qAsConst(windows))
+    for (const auto widget : std::as_const(windows))
     {
         widget->setGeometry(0, 0, 400, 300);
         widget->show();
@@ -792,7 +794,7 @@ void Master::handleAction(const Action action)
         navigateToPage(preferences()->number_of_pages - 1);
         break;
     case FullScreen:
-        for (const auto win : qAsConst(windows))
+        for (const auto win : std::as_const(windows))
         {
             if (win->isActiveWindow())
             {
@@ -833,7 +835,7 @@ void Master::handleAction(const Action action)
     {
         // TODO: problems with slide labels, navigation, and videos after reloading files
         bool changed = false;
-        for (const auto doc : qAsConst(documents))
+        for (const auto doc : std::as_const(documents))
             changed |= doc->loadDocument();
         if (changed)
         {
@@ -852,7 +854,7 @@ void Master::handleAction(const Action action)
         if (!askCloseConfirmation())
             break;
     case QuitNoConfirmation:
-        for (const auto window : qAsConst(windows))
+        for (const auto window : std::as_const(windows))
             window->close();
         break;
     case Mute:
@@ -908,7 +910,7 @@ void Master::leavePage(const int page) const
 {
     writable_preferences()->previous_page = page;
     bool flexible_page_numbers = false;
-    for (const auto doc : qAsConst(documents))
+    for (const auto doc : std::as_const(documents))
     {
         doc->clearHistory(page, preferences()->history_length_hidden_slides);
         doc->clearHistory(page | PagePart::LeftHalf, preferences()->history_length_hidden_slides);
@@ -919,7 +921,7 @@ void Master::leavePage(const int page) const
     if (flexible_page_numbers)
     {
         QLayout *layout;
-        for (const auto window : qAsConst(windows))
+        for (const auto window : std::as_const(windows))
         {
             window->updateGeometry();
             layout = window->layout();
@@ -934,7 +936,7 @@ void Master::distributeMemory()
     if (preferences()->max_memory < 0)
         return;
     float scale = 0.;
-    for (const auto cache : qAsConst(caches))
+    for (const auto cache : std::as_const(caches))
         scale += cache->getPixels();
     if (scale <= 0)
         return;
@@ -946,7 +948,7 @@ void Master::distributeMemory()
 qint64 Master::getTotalCache() const
 {
     qint64 cache = 0;
-    for (const auto px : qAsConst(caches))
+    for (const auto px : std::as_const(caches))
         cache += px->getUsedMemory();
     return cache;
 }
