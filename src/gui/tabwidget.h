@@ -36,7 +36,7 @@ public:
     virtual void addWidgetCommon(QWidget *widget, const QString &title) override
     {addTab(widget, title);}
 
-    virtual QWidget *thisWidget() noexcept override
+    virtual QWidget *asWidget() noexcept override
     {return this;}
 };
 

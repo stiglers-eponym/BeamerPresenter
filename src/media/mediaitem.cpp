@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later OR AGPL-3.0-or-later
 
 #include "src/config.h"
+#include "src/log.h"
 #include "src/media/mediaitem.h"
 #include "src/media/mediaannotation.h"
 
@@ -26,7 +27,9 @@ void MediaItem::createProvider()
         _provider->setSourceData(std::static_pointer_cast<EmbeddedMedia>(_annotation)->data());
         break;
     case MediaAnnotation::EmbeddedAudioStream:
-        break;
+        qWarning() << "Embedded audio stream is currently not supported";
+    default:
+        return;
     }
     _provider->setMode(_annotation->mode());
 }

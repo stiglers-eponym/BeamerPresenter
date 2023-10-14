@@ -17,7 +17,7 @@ public:
     virtual void addWidgetCommon(QWidget *widget, const QString &title) = 0;
 
     /// Return this as QWidget
-    virtual QWidget *thisWidget() noexcept = 0;
+    virtual QWidget *asWidget() noexcept = 0;
 };
 
 #endif // CONTAINERBASECLASS_H

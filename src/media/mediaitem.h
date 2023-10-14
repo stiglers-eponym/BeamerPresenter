@@ -51,6 +51,13 @@ public:
         debug_msg(DebugMedia, "creating media item" << this);
         _pages.insert(page);
         createProvider();
+        if (annotation->flags() & MediaAnnotation::HasAudio)
+        {
+            if (annotation->flags() & MediaAnnotation::Mute)
+                setMuted(true);
+            else if (_provider)
+                _provider->setVolume(annotation->volume());
+        }
     }
 
     /// Trivial destructor
@@ -61,7 +68,14 @@ public:
     {createProvider();}
 
     /// Clear media provider to free memory
-    void deleteProvider() {debug_msg(DebugMedia, "delete provider" << _provider.get()); _provider.reset(nullptr);};
+    void deleteProvider()
+    {
+        if (_provider)
+        {
+            debug_msg(DebugMedia, "delete provider" << _provider.get());
+        }
+        _provider.reset(nullptr);
+    };
 
     /// Read information from annotation and create a derived class
     /// of MediaItem using the given information.
@@ -91,14 +105,9 @@ public:
     bool toggle() const
     {return _provider && _provider->toggle();}
 
-    /* TODO: use idea behind old code for muting in SlideScene:
-    const bool mute = (slide_flags & MuteSlide)
-                      || (preferences()->global_flags & Preferences::MuteApplication)
-                      || item->annotation()->volume() <= 0.
-                      || (item->flags() & MediaItem::Mute);
-     */
     /// mute or unmute this item
-    void setMuted(const bool mute) const {if (_provider) _provider->setMuted(mute);}
+    void setMuted(const bool mute) const
+    {if (_provider) _provider->setMuted(mute);}
 
     /// insert page into set of pages
     void insertPage(const int page) noexcept

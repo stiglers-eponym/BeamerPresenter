@@ -47,7 +47,7 @@ public:
     virtual void addWidgetCommon(QWidget *widget, const QString &title) override
     {if (layout()) layout()->addWidget(widget);}
 
-    virtual QWidget *thisWidget() noexcept override
+    virtual QWidget *asWidget() noexcept override
     {return this;}
 };
 

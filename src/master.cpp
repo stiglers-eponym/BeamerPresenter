@@ -698,7 +698,7 @@ void Master::fillContainerWidget(ContainerBaseClass *parent, const QJsonObject &
         }
         const QJsonObject obj = it->toObject();
         // Create child widgets recursively
-        QWidget* const newwidget = createWidget(obj, parent->thisWidget(), known_files);
+        QWidget* const newwidget = createWidget(obj, parent->asWidget(), known_files);
         if (!newwidget)
             continue;
         QString title = obj.value("title").toString();

@@ -922,7 +922,6 @@ void SlideScene::cacheMedia(const int page)
     }
 }
 
-
 std::shared_ptr<MediaItem> &SlideScene::getMediaItem(std::shared_ptr<MediaAnnotation> annotation, const int page)
 {
     for (auto &mediaitem : mediaItems)
@@ -931,11 +930,14 @@ std::shared_ptr<MediaItem> &SlideScene::getMediaItem(std::shared_ptr<MediaAnnota
         {
             mediaitem->insertPage(page);
             mediaitem->initializeProvider();
+            mediaitem->setMuted((slide_flags & SlideFlags::MuteSlide) || (preferences()->global_flags & Preferences::MuteApplication));
             return mediaitem;
         }
     }
     debug_msg(DebugMedia, "creating new media item" << page);
-    mediaItems.append(MediaItem::fromAnnotation(annotation, page));
+    const auto mediaitem = MediaItem::fromAnnotation(annotation, page);
+    mediaItems.append(mediaitem);
+    mediaitem->setMuted((slide_flags & SlideFlags::MuteSlide) || (preferences()->global_flags & Preferences::MuteApplication));
     return mediaItems.last();
 }
 

@@ -92,7 +92,9 @@ public:
     /// pause media
     virtual void pause() {};
     /// toggle play/pause
-    virtual bool toggle() {return false;};
+    virtual bool toggle()
+    {return false;};
+
     /// check whether this is currently playing
     virtual bool isPlaying() const = 0;
 
@@ -111,6 +113,14 @@ public:
     virtual void setMuted(const bool mute) const
 #if (QT_VERSION_MAJOR >= 6)
     {audio_out->setMuted(mute);}
+#else
+    {}
+#endif
+
+    /// change audio volume (number between 0 and 1)
+    virtual void setVolume(const qreal volume) const
+#if (QT_VERSION_MAJOR >= 6)
+    {audio_out->setVolume(volume);}
 #else
     {}
 #endif
@@ -183,8 +193,11 @@ public:
 #if (QT_VERSION_MAJOR >= 6)
         _player->setAudioOutput(audio_out);
 #else
+#if (QT_VERSION_MINOR >= 6)
+        _player->setAudioRole(QAudio::VideoRole);
+#endif // QT_VERSION_MINOR
         connect(_player, QOverload<QMediaPlayer::Error>::of(&QMediaPlayer::error), this, &MediaPlayerProvider::handleCommonError);
-#endif
+#endif// QT_VERSION_MAJOR
     }
 
     /// Constructor: Takes ownership of given player.
@@ -320,6 +333,10 @@ public:
     /// mute or unmute
     void setMuted(const bool mute) const override
     {if (_player) _player->setMuted(mute);}
+
+    /// set audio volume
+    void setVolume(const qreal volume) const override
+    {if (_player) _player->setVolume(100*volume);}
 #endif
 };
 
@@ -363,7 +380,7 @@ public:
     }
 
     Type type() const noexcept override
-    {return PlayerType;}
+    {return CaptureType;}
 
     bool isPlaying() const override
     {return _session->camera();}
