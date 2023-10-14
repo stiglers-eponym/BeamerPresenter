@@ -69,19 +69,19 @@ AbstractRenderer *PopplerDocument::createRenderer(const PagePart part) const
     return new PopplerRenderer(this, part);
 }
 
-int PopplerDocument::pageIndex(const QString &page) const
+int PopplerDocument::pageIndex(const QString &label) const
 {
     // Fastest way: if pageLabels is empty, that means that we may simply
     // convert the string to an integer.
     if (pageLabels.isEmpty())
-        return page.toInt() - 1;
+        return label.toInt() - 1;
     // Next try Poppler's bulit-in function. This sometimes fails,
     // maybe because of an encoding problem?
-    const std::unique_ptr<Poppler::Page> docpage(doc->page(page));
+    const std::unique_ptr<Poppler::Page> docpage(doc->page(label));
     if (docpage)
         return docpage->index();
     // If previous attempts fail, do something slow (linear time):
-    return pageLabels.key(page, -1);
+    return pageLabels.key(label, -1);
 }
 
 bool PopplerDocument::loadDocument()

@@ -239,8 +239,8 @@ public:
     {return QString::number(page+1);}
 
     /// Label of page with given index.
-    virtual int pageIndex(const QString &page) const
-    {return page.toInt() - 1;}
+    virtual int pageIndex(const QString &label) const
+    {return label.toInt() - 1;}
 
     /// Starting from page start, get the number (index) of the page shifted
     /// by shift_overlay.

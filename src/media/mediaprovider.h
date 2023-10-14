@@ -193,9 +193,9 @@ public:
 #if (QT_VERSION_MAJOR >= 6)
         _player->setAudioOutput(audio_out);
 #else
-#if (QT_VERSION_MINOR >= 6)
+#if (QT_VERSION >= QT_VERSION_CHECK(5, 6, 0))
         _player->setAudioRole(QAudio::VideoRole);
-#endif // QT_VERSION_MINOR
+#endif // QT_VERSION >= 5.6
         connect(_player, QOverload<QMediaPlayer::Error>::of(&QMediaPlayer::error), this, &MediaPlayerProvider::handleCommonError);
 #endif// QT_VERSION_MAJOR
     }

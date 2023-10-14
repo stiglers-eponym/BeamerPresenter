@@ -1,7 +1,9 @@
 // SPDX-FileCopyrightText: 2022 Valentin Bruch <software@vbruch.eu>
 // SPDX-License-Identifier: GPL-3.0-or-later OR AGPL-3.0-or-later
 
-#include <QtConfig>
+// QtGlobal loads all version check information in Qt 5 and Qt 6.
+// In Qt 6 it would be sufficient to include <QtVersionChecks>.
+#include <QtGlobal>
 
 #define APP_VERSION "@APP_VERSION@"
 #cmakedefine USE_QTPDF

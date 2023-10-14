@@ -8,7 +8,7 @@ project(beamerpresenter
     DESCRIPTION "Multi-screen PDF presentation viewer"
     HOMEPAGE_URL "https://github.com/stiglers-eponym/BeamerPresenter"
     LANGUAGES CXX)
-set(version_suffix "-rc1")
+set(version_suffix "")
 
 # Configure compilation basics
 set(CMAKE_CONFIGURATION_TYPES Release Debug)
@@ -21,7 +21,7 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 # Define available build/config types
 set(QT_VERSION_MAJOR 6 CACHE STRING "Qt major version")
 # Minor Qt version is required for defining dependencies when packaging
-set(QT_VERSION_MINOR 5 CACHE STRING "Qt minor version")
+set(QT_VERSION_MINOR 6 CACHE STRING "Qt minor version")
 
 # Check if the required Qt libraries are available
 find_package(Qt${QT_VERSION_MAJOR} COMPONENTS Core REQUIRED)

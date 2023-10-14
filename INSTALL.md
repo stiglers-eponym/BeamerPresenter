@@ -83,7 +83,7 @@ When compiling with Poppler:
 * `poppler-qt5`
 
 When compiling with MuPDF:
-* `libmupdf` (only for building, tested versions: 1.16.1 – 1.23.3)
+* `libmupdf` (only for building, tested versions: 1.16.1 – 1.23.4)
 * `jbig2dec`
 * `openjpeg2`
 * `gumbo-parser`
@@ -138,51 +138,52 @@ Now may you need to configure libraries and file paths in `CMakeLists.txt`. For 
 Please open an issue if you have questions.
 Pull requests or issues with build instructions for other systems are welcome!
 
-The command line for configuring the build process looks like this (not all options are required):
+The command line for configuring the build process with some basic options looks like this:
 ```sh
 cmake \
-    -B "build-dir"
-    -S .
+    -B "build-dir" \
+    -S . \
     -DCMAKE_BUILD_TYPE=Release \
+    -DQT_VERSION_MAJOR=6 \
     -DUSE_POPPLER=ON \
     -DUSE_MUPDF=OFF \
-    -DUSE_QTPDF=OFF \
-    -DUSE_EXTERNAL_RENDERER=OFF \
-    -DLINK_MUJS=OFF \
-    -DLINK_MUPDF_THIRD=ON \
-    -DLINK_GUMBO=ON \
-    -DLINK_TESSERACT=OFF \
-    -DMUPDF_USE_SYSTEM_LIBS=ON \
-    -DGIT_VERSION=ON \
-    -DUSE_TRANSLATIONS=ON \
-    -DINSTALL_LICENSE=ON \
-    -DQT_VERSION_MAJOR=6 \
-    -DQT_VERSION_MINOR=5 \
-    -DCMAKE_INSTALL_PREFIX=/usr \
-    -DCMAKE_INSTALL_SYSCONFDIR=/etc
+    -DGIT_VERSION=ON
 ```
-The options `-B` and `-S` set the build and source directory, respectively. The other options define (with recommended values indicated):
+The options `-B` and `-S` set the build and source directory, respectively.
+Other options are added in the form `-DOPTION=VALUE` as listed below.
 
+### CMake options
+#### Features and libraries
 | Option | Value | Explanation |
-|--------|-------|-------------|
-| `CMAKE_BUILD_TYPE` | Release | Release or Debug |
-| `USE_POPPLER` | ON | Include Poppler PDF engine (Poppler library and Qt 5/6 headers must be available) |
-| `USE_MUPDF` | OFF | Include MuPDF PDF engine (MuPDF static library and headers must be available) |
-| `USE_QTPDF` | OFF | Include Qt PDF engine. |
-| `USE_EXTERNAL_RENDERER` | OFF | Include option to use an external program for rendering PDF pages to images. |
-| `MUPDF_USE_SYSTEM_LIBS` | ON | MuPDF uses shared system libraries (default in common Linux distributions) |
+| ------ | ----- | ----------- |
+| `QT_VERSION_MAJOR` | 6 | Qt major version, must be set manually! Valid values are "5" and "6". |
+| `CMAKE_BUILD_TYPE` | Release | set to "Debug" to include debugging information |
+| `USE_POPPLER` | ON | include Poppler PDF engine (Poppler library and Qt 5/6 headers must be available) |
+| `USE_MUPDF` | OFF | include MuPDF PDF engine (MuPDF static library and headers must be available) |
+| `USE_QTPDF` | OFF | include Qt PDF engine, which only offers limited features. |
+| `USE_EXTERNAL_RENDERER` | OFF | include option to use an external program for rendering PDF pages to images. |
+| `USE_WEBCAMS` | ON | allow using webcams as video source. |
+| `USE_TRANSLATIONS` | ON | include translations (currently only German) |
+| `GIT_VERSION` | ON | include git commit count in version string |
+| `SUPPRESS_MUPDF_WARNINGS` | OFF | suppress warnings of MuPDF while loading a document (only Unix-like systems) |
+
+#### Linker options and technical details
+| Option | Value | Explanation |
+| ------ | ----- | ----------- |
+| `MUPDF_USE_SYSTEM_LIBS` | ON | MuPDF uses system libraries (default in common Linux distributions) |
 | `LINK_MUJS` | OFF | link to MuJS, set ON in Ubuntu ≥21.10 |
-| `LINK_MUPDF_THIRD` | ON | set OFF when libmupdf-third is not available (only Ubuntu 21.10) |
+| `LINK_MUPDF_THIRD` | ON | set OFF when libmupdf-third is not available (Ubuntu 21.10 and Arch Linux) |
 | `LINK_GUMBO` | ON | set ON when using MuPDF >= 1.18 with shared system libraries |
 | `LINK_TESSERACT` | OFF | set ON when using MuPDF in Fedora |
-| `GIT_VERSION` | ON | Include git commit count in version string |
-| `USE_TRANSLATIONS` | ON | include translations (currently only German) |
-| `SUPPRESS_MUPDF_WARNINGS` | OFF | Suppress warnings of MuPDF while loading a document (only Unix-like systems) |
-| `INSTALL_LICENSE` | ON | Copy the license to /usr/share/licenses/beamerpresenter/LICENSE |
-| `QT_VERSION_MAJOR` | 6 | Qt major version, must be set manually! Valid values are "5" and "6". |
-| `QT_VERSION_MINOR` | 5 | only relevant for packaging (dependency version checking) |
-| `CMAKE_INSTALL_PREFIX` | /usr | Install prefix. If not specified this will be /usr/local in Linux |
-| `CMAKE_INSTALL_SYSCONFDIR` | /etc | System configuration directory. |
+
+#### Options only affecting the installation
+| Option | Value | Explanation |
+| ------ | ----- | ----------- |
+| `INSTALL_LICENSE` | ON | copy the license to /usr/share/licenses/beamerpresenter/LICENSE |
+| `QT_VERSION_MINOR` | 6 | only relevant for packaging (dependency version checking) |
+| `CMAKE_INSTALL_PREFIX` | /usr | install prefix. If not specified, this will be /usr/local in Linux |
+| `CMAKE_INSTALL_SYSCONFDIR` | /etc | system configuration directory |
+| `GENERATE_MANPAGES` | ON | Generate man pages and include them in installation |
 
 ### Build and install
 After configuring with CMake, you can build the project (add ` -j 4` for compiling with 4 CPU cores)

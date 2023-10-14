@@ -215,3 +215,24 @@ bool QtDocument::flexiblePageSizes() noexcept
     flexible_page_sizes = 0;
     return 0;
 }
+
+#if (QT_VERSION >= QT_VERSION_CHECK(6, 5, 0))
+void QtDocument::loadLabels()
+{
+    pageLabels.clear();
+    if (!doc)
+        return;
+
+    QString label;
+    pageLabels.insert(0, "");
+    for (int i=0; i<doc->pageCount(); i++)
+    {
+        pageLabels.last();
+        label = doc->pageLabel(i);
+        if (label != pageLabels.last())
+            pageLabels.insert(i, label);
+    }
+    if (pageLabels.size() == 1 && pageLabels[0] == "")
+        pageLabels.clear();
+}
+#endif // QT_VERSION >= 6.5

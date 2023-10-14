@@ -124,7 +124,7 @@ public:
     qreal duration(const int page) const noexcept override;
 
     /// Label of page with given index.
-    int pageIndex(const QString &page) const override;
+    int pageIndex(const QString &label) const override;
 
     /// Starting from page start, get the number (index) of the page shifted
     /// by shift_overlay.

@@ -333,12 +333,12 @@ const QString MuPdfDocument::pageLabel(const int page) const
     return (--pageLabels.upperBound(page)).value();
 }
 
-int MuPdfDocument::pageIndex(const QString &page) const
+int MuPdfDocument::pageIndex(const QString &label) const
 {
     if (pageLabels.isEmpty())
-        return page.toInt() - 1;
+        return label.toInt() - 1;
     // This is slow (linear time):
-    return pageLabels.key(page, -1);
+    return pageLabels.key(label, -1);
 }
 
 int MuPdfDocument::overlaysShifted(const int start, const int shift_overlay) const

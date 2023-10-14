@@ -45,10 +45,10 @@ public:
     ~MediaPlayer() noexcept
     {debug_verbose(DebugMedia, "deleting media player" << this);}
 
-#if (QT_VERSION_MAJOR < 6)
+#if (QT_VERSION < QT_VERSION_CHECK(6, 0, 0))
     bool isPlaying() const noexcept
     {return state() == PlayingState;}
-#elif (QT_VERSION_MAJOR == 6 && QT_VERSION_MINOR < 5)
+#elif (QT_VERSION < QT_VERSION_CHECK(6, 5, 0))
     bool isPlaying() const noexcept
     {return playbackState() == PlayingState;}
 #endif
