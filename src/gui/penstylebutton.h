@@ -18,7 +18,7 @@ class PenStyleButton : public ToolPropertyButton
     Q_OBJECT
 public:
     /// Constructor: add all items to the drop down menu.
-    PenStyleButton(QWidget *parent = NULL);
+    PenStyleButton(QWidget *parent = nullptr);
 
     /// Trivial destructor.
     ~PenStyleButton() {}

@@ -78,7 +78,11 @@ public:
     virtual AbstractRenderer *createRenderer(const PagePart part = FullPage) const override;
 
     /// Size of page in points (inch/72). Empty if page is invalid.
-    const QSizeF pageSize(const int page) const override;
+    const QSizeF pageSize(const int page) const override
+    {
+        const std::unique_ptr<Poppler::Page> docpage(doc->page(page));
+        return docpage ? docpage->pageSizeF() : QSizeF();
+    }
 
     /// Number of pages (0 if doc is null).
     int numberOfPages() const override
@@ -89,14 +93,22 @@ public:
     {return doc && !doc->isLocked();}
 
     /// Load the PDF labels and outline, fill PdfDocument::outline.
-    void loadLabels() override;
+    void loadLabels() override
+    {
+        loadOutline();
+        loadPageLabels();
+    }
 
     /// Search which page contains needle and return the
     /// outline of all occurrences on that slide.
     std::pair<int,QList<QRectF>> searchAll(const QString &needle, int start_page = 0, bool forward = true) const override;
 
     /// Page label of given page index. (Empty string if page is invalid.)
-    const QString pageLabel(const int page) const override;
+    const QString pageLabel(const int page) const override
+    {
+        const std::unique_ptr<Poppler::Page> docpage(doc->page(page));
+        return docpage ? docpage->label() : "";
+    }
 
     /// Label of page with given index.
     int pageIndex(const QString &page) const override;
@@ -127,7 +139,11 @@ public:
     virtual bool flexiblePageSizes() noexcept override;
 
     /// Duration of given page in secons. Default value is -1 is interpreted as infinity.
-    qreal duration(const int page) const noexcept override;
+    qreal duration(const int page) const noexcept override
+    {
+        const std::unique_ptr<Poppler::Page> docpage(doc->page(page));
+        return docpage ? docpage->duration() : -1.;
+    }
 };
 
 #endif // POPPLERDOCUMENT_H

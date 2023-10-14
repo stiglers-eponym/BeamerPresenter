@@ -33,7 +33,7 @@ class SlideNumberWidget : public QWidget
 
 public:
     /// Constructor: construct and connect everything.
-    explicit SlideNumberWidget(QWidget *parent = NULL);
+    explicit SlideNumberWidget(QWidget *parent = nullptr);
 
     /// Trivial destructor: Qt should delete everything automatically.
     ~SlideNumberWidget() {}

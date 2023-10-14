@@ -6,14 +6,20 @@
 
 #include <QPdfDocumentRenderOptions>
 #include <QCoreApplication>
+#include <QPdfDocument>
 #include "src/config.h"
 #include "src/enumerates.h"
 #include "src/rendering/pdfdocument.h"
 
+#if (QT_VERSION >= QT_VERSION_CHECK(6,4,0))
+    #define PAGESIZE_FUNCTION pagePointSize
+#else
+    #define PAGESIZE_FUNCTION pageSize
+#endif
+
 class QSizeF;
 class QPixmap;
 class PngPixmap;
-class QPdfDocument;
 
 /**
  * @brief Implement PdfDocument using Qt PDF
@@ -38,7 +44,8 @@ public:
     QtDocument(const QString &filename);
 
     /// Destructor: trivial
-    ~QtDocument() noexcept override;
+    ~QtDocument() noexcept override
+    {delete doc;}
 
     PdfEngine type() const noexcept override
     {return QtPDFEngine;}
@@ -59,13 +66,16 @@ public:
     virtual AbstractRenderer *createRenderer(const PagePart part = FullPage) const override;
 
     /// Size of page in points (inch/72). Empty if page is invalid.
-    const QSizeF pageSize(const int page) const override;
+    const QSizeF pageSize(const int page) const override
+    {return doc->PAGESIZE_FUNCTION(page);}
 
     /// Number of pages (0 if doc is null).
-    int numberOfPages() const override;
+    int numberOfPages() const override
+    {return doc->pageCount();}
 
     /// Check whether a file has been loaded successfully.
-    bool isValid() const override;
+    bool isValid() const override
+    {return doc->status() == QPdfDocument::Status::Ready;}
 
     /// Return true if not all pages in the PDF have the same size.
     virtual bool flexiblePageSizes() noexcept override;

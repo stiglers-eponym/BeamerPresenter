@@ -997,7 +997,7 @@ void Master::postNavigation() noexcept
 void Master::showErrorMessage(const QString &title, const QString &text) const
 {
     QMessageBox::critical(
-                windows.isEmpty() ? NULL : windows.first(),
+                windows.isEmpty() ? nullptr : windows.first(),
                 title,
                 text);
 }

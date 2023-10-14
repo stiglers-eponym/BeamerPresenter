@@ -16,11 +16,12 @@ class Tool;
 class ShapeSelectionButton : public ToolPropertyButton
 {
     Q_OBJECT
+
 public:
     /// Constructor: add all items to the drop down menu.
     /// The index of an item is the same as the integer representation
     /// of DrawTool::Shape.
-    ShapeSelectionButton(QWidget *parent = NULL);
+    ShapeSelectionButton(QWidget *parent = nullptr);
 
     /// Trivial destructor.
     ~ShapeSelectionButton() {}

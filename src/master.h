@@ -34,6 +34,7 @@ class QXmlStreamReader;
 class QXmlStreamWriter;
 class ContainerBaseClass;
 
+/// Regular expression matching exactly 2 non-digit characters at the end of a string
 static const QRegularExpression regexpr_2nondigits {"[^0-9]{2,2}$"};
 
 /**

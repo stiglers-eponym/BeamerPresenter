@@ -33,7 +33,7 @@ class ThumbnailButton : public QLabel
 
 public:
     /// Boring constructor.
-    ThumbnailButton(const int page, QWidget *parent = NULL);
+    ThumbnailButton(const int page, QWidget *parent = nullptr);
 
 protected:
     /// Mouse released: send navigation signal.

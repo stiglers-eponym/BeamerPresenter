@@ -54,7 +54,7 @@ protected:
     virtual void timerEvent(QTimerEvent* event);
 
 public:
-    /// Constructor: create renderer if document is not NULL.
+    /// Constructor: create renderer if document is not nullptr.
     ThumbnailThread(const PdfDocument *document = nullptr);
 
     /// Destructor: delete renderer.

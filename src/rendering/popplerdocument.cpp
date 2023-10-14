@@ -69,12 +69,6 @@ AbstractRenderer *PopplerDocument::createRenderer(const PagePart part) const
     return new PopplerRenderer(this, part);
 }
 
-const QString PopplerDocument::pageLabel(const int page) const
-{
-    const std::unique_ptr<Poppler::Page> docpage(doc->page(page));
-    return docpage ? docpage->label() : "";
-}
-
 int PopplerDocument::pageIndex(const QString &page) const
 {
     // Fastest way: if pageLabels is empty, that means that we may simply
@@ -88,12 +82,6 @@ int PopplerDocument::pageIndex(const QString &page) const
         return docpage->index();
     // If previous attempts fail, do something slow (linear time):
     return pageLabels.key(page, -1);
-}
-
-const QSizeF PopplerDocument::pageSize(const int page) const
-{
-    const std::unique_ptr<Poppler::Page> docpage(doc->page(page));
-    return docpage ? docpage->pageSizeF() : QSizeF();
 }
 
 bool PopplerDocument::loadDocument()
@@ -252,12 +240,6 @@ int PopplerDocument::overlaysShifted(const int start, const int shift_overlay) c
     if (shift_overlay & FirstOverlay)
         return (--it).key();
     return it.key() - 1;
-}
-
-void PopplerDocument::loadLabels()
-{
-    loadOutline();
-    loadPageLabels();
 }
 
 void PopplerDocument::loadPageLabels()
@@ -733,10 +715,4 @@ std::pair<int,QList<QRectF>> PopplerDocument::searchAll(const QString &needle, i
                 return {page,results};
         }
     return {-1, {}};
-}
-
-qreal PopplerDocument::duration(const int page) const noexcept
-{
-    const std::unique_ptr<Poppler::Page> docpage(doc->page(page));
-    return docpage ? docpage->duration() : -1.;
 }

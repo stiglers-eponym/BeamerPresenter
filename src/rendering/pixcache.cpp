@@ -2,12 +2,11 @@
 // SPDX-License-Identifier: GPL-3.0-or-later OR AGPL-3.0-or-later
 
 #include <utility>
-
-#include "src/config.h"
 #include <QTimerEvent>
 #include <QThread>
 #include <QPixmap>
 
+#include "src/config.h"
 #include "src/log.h"
 #include "src/rendering/pixcache.h"
 #include "src/rendering/pdfdocument.h"

@@ -18,12 +18,6 @@
 #include "src/rendering/qtrenderer.h"
 #include "src/rendering/pngpixmap.h"
 
-#if (QT_VERSION >= QT_VERSION_CHECK(6,4,0))
-    #define PAGESIZE_FUNCTION pagePointSize
-#else
-    #define PAGESIZE_FUNCTION pageSize
-#endif
-
 QtDocument::QtDocument(const QString &filename) :
     PdfDocument(filename),
     doc(new QPdfDocument())
@@ -33,11 +27,6 @@ QtDocument::QtDocument(const QString &filename) :
     if (!loadDocument())
         qFatal("Loading document failed");
     debug_msg(DebugRendering, "Loaded PDF document in Qt");
-}
-
-QtDocument::~QtDocument() noexcept
-{
-    delete doc;
 }
 
 bool QtDocument::loadDocument()
@@ -91,7 +80,7 @@ bool QtDocument::loadDocument()
             // Use a QInputDialog to ask for the password.
             bool ok;
             QString const password = QInputDialog::getText(
-                        NULL,
+                        nullptr,
                         tr("Document is locked!"),
                         tr("Please enter password (leave empty to cancel)."),
                         QLineEdit::Password,
@@ -208,21 +197,6 @@ const PngPixmap * QtDocument::getPng(const int page, const qreal resolution, con
         return nullptr;
     }
     return new PngPixmap(bytes, page, resolution);
-}
-
-const QSizeF QtDocument::pageSize(const int page) const
-{
-    return doc->PAGESIZE_FUNCTION(page);
-}
-
-int QtDocument::numberOfPages() const
-{
-    return doc->pageCount();
-}
-
-bool QtDocument::isValid() const
-{
-    return doc->status() == QPdfDocument::Status::Ready;
 }
 
 bool QtDocument::flexiblePageSizes() noexcept

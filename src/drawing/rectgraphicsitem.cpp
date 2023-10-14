@@ -46,7 +46,7 @@ BasicGraphicsPath *RectGraphicsItem::toPath() const
 {
     const QRectF &therect = rect();
     if (therect.isEmpty())
-        return NULL;
+        return nullptr;
     const int nx = therect.width() / 10 + 2,
               ny = therect.height() / 10 + 2;
     const qreal xscale = therect.width() / nx,

@@ -148,21 +148,21 @@ void SlideScene::stopDrawing()
         {
             removeItem(currentlyDrawnItem);
             delete currentlyDrawnItem;
-            currentlyDrawnItem = NULL;
+            currentlyDrawnItem = nullptr;
             if (newpath)
             {
                 addItem(newpath);
                 newpath->show();
                 emit sendNewPath(page | page_part, newpath);
             }
-            currentlyDrawnItem = NULL;
+            currentlyDrawnItem = nullptr;
         }
     }
     if (currentItemCollection)
     {
         removeItem(currentItemCollection);
         delete currentItemCollection;
-        currentItemCollection = NULL;
+        currentItemCollection = nullptr;
     }
 }
 

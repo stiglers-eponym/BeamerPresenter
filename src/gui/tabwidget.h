@@ -6,10 +6,10 @@
 
 #include <QTabWidget>
 #include <QSizePolicy>
+#include <QSize>
 #include "src/config.h"
 #include "src/gui/containerbaseclass.h"
 
-class QSize;
 
 /**
  * @brief QTabWidget with adjusted size hint
@@ -22,7 +22,7 @@ class TabWidget : public QTabWidget, public ContainerBaseClass
 
 public:
     /// Constructor: set size policy.
-    TabWidget(QWidget *parent = NULL) noexcept : QTabWidget(parent)
+    TabWidget(QWidget *parent = nullptr) noexcept : QTabWidget(parent)
     {setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);}
 
     /// Return sizeHint based on layout.

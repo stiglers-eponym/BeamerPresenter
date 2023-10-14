@@ -7,10 +7,10 @@
 #include <QThread>
 #include "src/config.h"
 #include "src/enumerates.h"
+#include "src/rendering/abstractrenderer.h"
 
 class PngPixmap;
 class PdfDocument;
-class AbstractRenderer;
 
 /**
  * @brief Separate thread for rendering page pixmaps to (compressed) cache.
@@ -31,10 +31,13 @@ private:
 
 public:
     /// Constructor: initialize thread and renderer.
-    PixCacheThread(const PdfDocument * const doc, const PagePart page_part = FullPage, QObject *parent = nullptr);
+    PixCacheThread(const PdfDocument * const doc, const PagePart page_part = FullPage, QObject *parent = nullptr) :
+        QThread(parent)
+    {initializeRenderer(doc, page_part);}
 
     /// Destructor: delete renderer.
-    ~PixCacheThread();
+    ~PixCacheThread()
+    {delete renderer;}
 
     /// Create a renderer based on preferences.
     /// Return true if successful and false if no renderer was created.

@@ -41,7 +41,7 @@ void TOCwidget::generateTOC()
     auto add_buttons = [&](const int idx, const int depth, auto &function) -> TOCbutton*
     {
         if (idx > outline.length() || num_items++ > outline.length())
-            return NULL;
+            return nullptr;
         if (std::abs(outline[idx].next) > idx + 1)
         {
             if (icon.isNull())
@@ -52,7 +52,7 @@ void TOCwidget::generateTOC()
             layout->addWidget(expand_button, idx, depth, 1, 1);
         }
         else
-            expand_button = NULL;
+            expand_button = nullptr;
         TOCbutton *button = new TOCbutton(outline[idx].title, outline[idx].page, expand_button, this);
         layout->addWidget(button, idx, depth+1, 1, std::max(30 - depth, 15));
         connect(button, &TOCbutton::sendNavigationEvent, master(), &Master::navigateToPage);

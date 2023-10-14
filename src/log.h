@@ -4,8 +4,8 @@
 #ifndef LOG_H
 #define LOG_H
 
-#include "src/config.h"
 #include <QtDebug>
+#include "src/config.h"
 
 // Define macros for debugging.
 

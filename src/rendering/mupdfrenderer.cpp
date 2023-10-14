@@ -3,6 +3,7 @@
 
 #include <QByteArray>
 #include <QPixmap>
+#include "src/config.h"
 #include "src/rendering/mupdfdocument.h"
 #include "src/rendering/mupdfrenderer.h"
 #include "src/rendering/pngpixmap.h"
@@ -22,10 +23,10 @@ fz_pixmap *MuPdfRenderer::renderFzPixmap(const int page, const qreal resolution,
 
     // Let the main thread prepare everything.
     fz_rect bbox;
-    fz_display_list *list = NULL;
+    fz_display_list *list = nullptr;
     doc->prepareRendering(&ctx, &bbox, &list, page, resolution);
 
-    // If page is not valid (too large), the NULLs will be unchanged.
+    // If page is not valid (too large), the nullptr will be unchanged.
     if (ctx == nullptr || list == nullptr)
         return nullptr;
 
@@ -54,9 +55,9 @@ fz_pixmap *MuPdfRenderer::renderFzPixmap(const int page, const qreal resolution,
     {
         // Create the pixmap and fill it with white background.
 #if (FZ_VERSION_MAJOR > 1) || ((FZ_VERSION_MAJOR == 1) && (FZ_VERSION_MINOR >= 13))
-        pixmap = fz_new_pixmap_with_bbox(ctx, fz_device_rgb(ctx), fz_round_rect(bbox), NULL, 0);
+        pixmap = fz_new_pixmap_with_bbox(ctx, fz_device_rgb(ctx), fz_round_rect(bbox), nullptr, 0);
 #else
-        pixmap = fz_new_pixmap_with_bbox(ctx, fz_device_rgb(ctx), fz_irect_from_rect(bbox), NULL, 0);
+        pixmap = fz_new_pixmap_with_bbox(ctx, fz_device_rgb(ctx), fz_irect_from_rect(bbox), nullptr, 0);
 #endif
         fz_clear_pixmap_with_value(ctx, pixmap, 0xff);
         // Create a device for rendering the given display list to pixmap.

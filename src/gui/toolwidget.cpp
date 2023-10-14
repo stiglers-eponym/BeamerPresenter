@@ -25,14 +25,6 @@ ToolWidget::ToolWidget(QWidget *parent, QBoxLayout::Direction direction)
     setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 }
 
-QSize ToolWidget::sizeHint() const noexcept
-{
-    if (direction == QBoxLayout::LeftToRight || direction == QBoxLayout::RightToLeft)
-        return {4+total_columns*20, 44};
-    else
-        return {44, 4+total_columns*20};
-}
-
 void ToolWidget::initialize()
 {
 #if (QT_VERSION_MAJOR >= 6)

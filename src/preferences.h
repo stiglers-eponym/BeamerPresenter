@@ -242,10 +242,10 @@ public:
     /* ***************** */
 
     /// Load settings from default config file location (defined by Qt).
-    Preferences(QObject *parent = NULL);
+    Preferences(QObject *parent = nullptr);
 
     /// Load settings from given file.
-    Preferences(const QString &file, QObject *parent = NULL);
+    Preferences(const QString &file, QObject *parent = nullptr);
 
     /// Destructor. Deletes current_tools and key_tools.
     ~Preferences();
@@ -268,8 +268,8 @@ public:
     /// The returned URL may be empty or invalid.
     QUrl resolvePath(const QString &identifier) const noexcept;
 
-    /// Get the current tool for a given input device or NULL if there is no
-    /// tool for this device. The tool remains owned by preferences().
+    /// Get the current tool for a given input device or nullptr if there
+    /// is no tool for this device. The tool remains owned by preferences().
     Tool *currentTool(const int device) const noexcept;
     /// Remove (but don't delete) all occurences of tool in key_tools.
     /// This should be called by an object owning tool before it deletes tool.
@@ -382,7 +382,7 @@ Tool *createTool(const QJsonObject &obj, const int default_device = 0);
 void toolToJson(const Tool *tool, QJsonObject &obj);
 
 
-/// Static regular expression requried to adapt paths.
+/// Static regular expression required to adapt paths.
 static const QRegularExpression UNIX_LIKE(R"(\/(usr|ucrt64|mingw32|mingw64|clang32|clang64|clangamd64)\/bin$)");
 
 

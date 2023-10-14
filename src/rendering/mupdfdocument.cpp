@@ -236,7 +236,7 @@ bool MuPdfDocument::loadDocument()
         // Use a QInputDialog to ask for the password.
         bool ok;
         QString const password = QInputDialog::getText(
-                    NULL,
+                    nullptr,
                     tr("Document is locked!"),
                     tr("Please enter password (leave empty to cancel)."),
                     QLineEdit::Password,
@@ -471,11 +471,11 @@ void MuPdfDocument::loadPageLabels()
         };
         auto pdf_dict_to_name = [&](pdf_obj* obj, const char* key)->const char*{
             pdf_obj *value = pdf_dict_gets(ctx, obj, key);
-            return (value && pdf_is_name(ctx, value)) ? pdf_to_name(ctx, value) : NULL;
+            return (value && pdf_is_name(ctx, value)) ? pdf_to_name(ctx, value) : nullptr;
         };
         auto pdf_dict_to_string = [&](pdf_obj* obj, const char* key)->const char*{
             pdf_obj *value = pdf_dict_gets(ctx, obj, key);
-            return (value && pdf_is_string(ctx, value)) ? pdf_to_text_string(ctx, value) : NULL;
+            return (value && pdf_is_string(ctx, value)) ? pdf_to_text_string(ctx, value) : nullptr;
         };
 
         for (int i = 0, key; i < len_minus_one;)
@@ -723,7 +723,7 @@ QList<std::shared_ptr<MediaAnnotation>> MuPdfDocument::annotations(const int pag
     fz_var(list);
     fz_try(ctx)
     {
-        for (pdf_annot *annot = pdf_first_annot(ctx, pages[page]); annot != NULL; annot = pdf_next_annot(ctx, annot))
+        for (pdf_annot *annot = pdf_first_annot(ctx, pages[page]); annot != nullptr; annot = pdf_next_annot(ctx, annot))
         {
             debug_verbose(DebugMedia, "PDF annotation:" << pdf_annot_type(ctx, annot) << page);
             switch (pdf_annot_type(ctx, annot))

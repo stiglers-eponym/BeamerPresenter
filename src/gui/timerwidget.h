@@ -83,7 +83,7 @@ private:
 
 public:
     /// Constructor: create layout etc.
-    explicit TimerWidget(QWidget *parent = NULL);
+    explicit TimerWidget(QWidget *parent = nullptr);
     /// Destructor: delete timer etc.
     ~TimerWidget();
 

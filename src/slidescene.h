@@ -26,7 +26,6 @@
 #include "src/enumerates.h"
 #include "src/drawing/tool.h"
 #include "src/rendering/pdfdocument.h"
-#include "src/media/mediaplayer.h"
 #include "src/media/mediaitem.h"
 #include "src/drawing/textgraphicsitem.h"
 #include "src/drawing/selectionrectitem.h"
@@ -84,7 +83,7 @@ private:
     quint8 slide_flags = SlideFlags::Default;
 
     /// Path which is currently being drawn.
-    /// NULL if currenty no path is drawn.
+    /// nullptr if currenty no path is drawn.
     QGraphicsItem* currentlyDrawnItem {nullptr};
 
     /// Group of path segments forming the currently drawn path.
@@ -110,7 +109,7 @@ private:
     /// This is const, all data sent to master should be send via signals.
     const PdfMaster* master;
 
-    /// Animation for slide transitions. Should be NULL while no
+    /// Animation for slide transitions. Should be nullptr while no
     /// slide transition is active.
     QAbstractAnimation *animation {nullptr};
 
@@ -167,7 +166,7 @@ private:
 public:
     /// Constructor: initialize master, page_part, and QGraphisScene.
     /// Connect signals.
-    explicit SlideScene(const PdfMaster *master, const PagePart part = FullPage, QObject *parent = NULL);
+    explicit SlideScene(const PdfMaster *master, const PagePart part = FullPage, QObject *parent = nullptr);
 
     /// Destructor: delete all graphics items.
     ~SlideScene();
@@ -250,7 +249,7 @@ public:
 
     /// Receive navigation event from PdfMaster.
     /// The given page already includes the shift.
-    void navigationEvent(const int newpage, SlideScene* newscene = NULL);
+    void navigationEvent(const int newpage, SlideScene* newscene = nullptr);
 
     /// Start handling draw and erase events.
     void startInputEvent(const DrawTool *tool, const QPointF &pos, const float pressure = 1.);

@@ -46,7 +46,13 @@ public:
     explicit ToolWidget(QWidget *parent = nullptr, QBoxLayout::Direction direction = QBoxLayout::LeftToRight);
 
     /// Size hint for layout.
-    QSize sizeHint() const noexcept override;
+    QSize sizeHint() const noexcept override
+    {
+        if (direction == QBoxLayout::LeftToRight || direction == QBoxLayout::RightToLeft)
+            return {4+total_columns*20, 44};
+        else
+            return {44, 4+total_columns*20};
+    }
 
     /// Optimal height depends on width.
     bool hasHeightForWidth() const noexcept override

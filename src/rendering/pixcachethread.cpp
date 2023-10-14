@@ -2,18 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later OR AGPL-3.0-or-later
 
 #include "src/config.h"
-#ifdef USE_MUPDF
-#include "src/rendering/mupdfdocument.h"
-#include "src/rendering/mupdfrenderer.h"
-#endif
-#ifdef USE_QTPDF
-#include "src/rendering/qtdocument.h"
-#include "src/rendering/qtrenderer.h"
-#endif
-#ifdef USE_POPPLER
-#include "src/rendering/popplerdocument.h"
-#include "src/rendering/popplerrenderer.h"
-#endif
+#include "src/rendering/pdfdocument.h"
 #ifdef USE_EXTERNAL_RENDERER
 #include "src/rendering/externalrenderer.h"
 #endif
@@ -22,15 +11,6 @@
 #include "src/rendering/pngpixmap.h"
 #include "src/preferences.h"
 
-PixCacheThread::PixCacheThread(const PdfDocument * const doc, const PagePart page_part, QObject *parent) : QThread(parent)
-{
-    initializeRenderer(doc, page_part);
-}
-
-PixCacheThread::~PixCacheThread()
-{
-    delete renderer;
-}
 
 void PixCacheThread::setNextPage(const PixCacheThread *target, const int page_number, const qreal res)
 {
@@ -45,7 +25,7 @@ void PixCacheThread::setNextPage(const PixCacheThread *target, const int page_nu
 void PixCacheThread::run()
 {
     // Check if a renderer is available.
-    if (renderer == NULL || resolution <= 0. || page < 0)
+    if (renderer == nullptr || resolution <= 0. || page < 0)
         return;
 
     // Render the image. This is takes some time.
@@ -74,6 +54,6 @@ bool PixCacheThread::initializeRenderer(const PdfDocument * const doc, const Pag
     // Creating renderer failed. Clean up and return false.
     qCritical() << tr("Creating renderer failed") << preferences()->renderer;
     delete renderer;
-    renderer = NULL;
+    renderer = nullptr;
     return false;
 }

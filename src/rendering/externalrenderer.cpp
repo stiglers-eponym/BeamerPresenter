@@ -4,6 +4,7 @@
 #include <QProcess>
 #include <QPixmap>
 #include <QRegularExpression>
+#include "src/config.h"
 #include "src/rendering/externalrenderer.h"
 #include "src/rendering/pdfdocument.h"
 #include "src/rendering/pngpixmap.h"
@@ -43,7 +44,7 @@ const QStringList ExternalRenderer::getArguments(const int page, const qreal res
 const PngPixmap * ExternalRenderer::renderPng(const int page, const qreal resolution) const
 {
     if (resolution <= 0 || page < 0)
-        return NULL;
+        return nullptr;
 
     if (page_part == FullPage)
     {
@@ -54,7 +55,7 @@ const PngPixmap * ExternalRenderer::renderPng(const int page, const qreal resolu
             // TODO: clean up correctly
             process->kill();
             delete process;
-            return NULL;
+            return nullptr;
         }
         const QByteArray *data = new QByteArray(process->readAllStandardOutput());
         // TODO: handle error messages and exit code sent by process.

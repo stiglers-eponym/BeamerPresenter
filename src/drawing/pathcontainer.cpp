@@ -661,7 +661,7 @@ AbstractGraphicsPath *loadPath(QXmlStreamReader &reader)
 {
     Tool::BasicTool basic_tool = string_to_tool.value(reader.attributes().value("tool").toString());
     if (!(basic_tool & Tool::AnyDrawTool))
-        return NULL;
+        return nullptr;
     const QString width_str = reader.attributes().value("width").toString();
     if (basic_tool == Tool::Pen && !width_str.contains(' '))
         basic_tool = Tool::FixedWidthPen;

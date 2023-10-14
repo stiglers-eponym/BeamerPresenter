@@ -82,7 +82,7 @@ private:
     /// make sure paths[page] is a PathContainer*
     void assertPageExists(const int page) noexcept
     {
-        if (!paths.contains(page) || !paths[page])
+        if (!paths.value(page, nullptr))
             paths[page] = new PathContainer(this);
     }
 
@@ -260,7 +260,8 @@ public slots:
     /// Handle the given action.
     void search(const QString &text, const int &page, const bool forward);
 
-    void setDrawingsPath(const QString &filename)
+    /// change drawings_path.
+    void setDrawingsPath(const QString &filename) noexcept
     {drawings_path = filename;}
 
 signals:
