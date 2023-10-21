@@ -124,20 +124,17 @@ MuPdfDocument::~MuPdfDocument()
     fz_drop_context(ctx);
     while (!mutex_list.isEmpty())
         delete mutex_list.takeLast();
-    /*
-     * Accoding to the documentation, the embedded_media elements should
-     * not own the data. Testing with Qt 6.5.3 and 5.15.11, I find that
-     * the elements do own the data. (The elements delete the data when
-     * they are deleted.)
+
+    // Delete embedded media data. TODO: better memory management?
     char *ptr;
     for (auto it=embedded_media.begin(); it!=embedded_media.end();)
     {
-        ptr = it.value()->data();
+        ptr = const_cast<char*>(it.value()->constData());
         it = embedded_media.erase(it);
-        // this is a bit dangerous: values of embedded_media don't own data. TODO: find better solution!
-        delete ptr;
+        // memory was allocated by MuPDF using malloc
+        std::free(ptr);
+        //fz_free(ctx, ptr); // leads to a very weird error
     }
-    */
     embedded_media.clear();
     mutex->unlock();
     delete mutex;
@@ -765,7 +762,7 @@ QList<std::shared_ptr<MediaAnnotation>> MuPdfDocument::annotations(const int pag
                         break;
                     unsigned char* data;
                     const auto size = fz_buffer_extract(ctx, buffer, &data);
-                    // TODO: with this definition, embedded_media[obj_id] does not ownt the data!
+                    // TODO: with this definition, embedded_media[obj_id] does not own the data!
                     embedded_media[obj_id] = std::make_shared<QByteArray>(QByteArray::fromRawData((const char*) data, size));
                 }
 

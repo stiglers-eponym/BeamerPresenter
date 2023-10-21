@@ -160,7 +160,7 @@ Other options are added in the form `-DOPTION=VALUE` as listed below.
 | `CMAKE_BUILD_TYPE` | Release | set to "Debug" to include debugging information |
 | `USE_POPPLER` | ON | include Poppler PDF engine (Poppler library and Qt 5/6 headers must be available) |
 | `USE_MUPDF` | OFF | include MuPDF PDF engine (MuPDF static library and headers must be available) |
-| `USE_QTPDF` | OFF | include Qt PDF engine, which only offers limited features. |
+| `USE_QTPDF` | OFF | include Qt PDF engine, which offers limited features. |
 | `USE_EXTERNAL_RENDERER` | OFF | include option to use an external program for rendering PDF pages to images. |
 | `USE_WEBCAMS` | ON | allow using webcams as video source. |
 | `USE_TRANSLATIONS` | ON | include translations (currently only German) |
