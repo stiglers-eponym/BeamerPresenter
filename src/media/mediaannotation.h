@@ -141,7 +141,10 @@ class ExternalMedia : public MediaAnnotation
 
 public:
     /// Constructor: Detects type from given URL and adjusts flags based on URL query
-    ExternalMedia(const QUrl &url, const QRectF &rect, const Mode mode, const int flags=Interactive|ShowSlider|Autoplay|HasAudio|HasVideo);
+    ExternalMedia(const QUrl &url,
+                  const QRectF &rect,
+                  const Mode mode,
+                  const int flags=Interactive|ShowSlider|Autoplay|HasAudio|HasVideo);
 
     /// Trivial destructor
     virtual ~ExternalMedia() {}
@@ -155,7 +158,9 @@ public:
 
     virtual bool operator==(const MediaAnnotation &other) const noexcept override
     {
-        if (type() != other.type() || mode() != other.mode() || rect().toAlignedRect() != other.rect().toAlignedRect())
+        if (type() != other.type()
+            || mode() != other.mode()
+            || rect().toAlignedRect() != other.rect().toAlignedRect())
             return false;
         const auto &other_ext = static_cast<const ExternalMedia&>(other);
         return _url == other_ext._url;
@@ -180,7 +185,10 @@ class EmbeddedMedia : public MediaAnnotation
 
 public:
     /// Constructor: initialize given values
-    EmbeddedMedia(std::shared_ptr<QByteArray> &data, const QRectF &rect, const Mode mode, const int flags=Interactive|ShowSlider|Autoplay|HasAudio|HasVideo) :
+    EmbeddedMedia(std::shared_ptr<QByteArray> &data,
+                  const QRectF &rect,
+                  const Mode mode,
+                  const int flags=Interactive|ShowSlider|Autoplay|HasAudio|HasVideo) :
         MediaAnnotation(rect, mode, flags), _data(data)
     {}
 
@@ -196,7 +204,9 @@ public:
 
     virtual bool operator==(const MediaAnnotation &other) const noexcept override
     {
-        if (type() != other.type() || mode() != other.mode() || rect().toAlignedRect() != other.rect().toAlignedRect())
+        if (type() != other.type()
+            || mode() != other.mode()
+            || rect().toAlignedRect() != other.rect().toAlignedRect())
             return false;
         const auto &other_em = static_cast<const EmbeddedMedia&>(other);
 #if (QT_VERSION_MAJOR >= 6)

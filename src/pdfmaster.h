@@ -170,7 +170,9 @@ public:
     PathContainer *pathContainer(int page) const
     {
         if (preferences()->overlay_mode == PerLabel)
-            return paths.value(overlaysShifted(page & ~NotFullPage, FirstOverlay) | (page & NotFullPage), nullptr);
+            return paths.value(
+                overlaysShifted(page & ~NotFullPage, FirstOverlay) | (page & NotFullPage),
+                nullptr);
         else
             return paths.value(page, nullptr);
     }

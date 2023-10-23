@@ -34,7 +34,10 @@ public:
 
     /// Constructor for initializing QGraphicsLineItem
     /// @param pos origin of the rectangle. This coordinate is always fixed.
-    ArrowGraphicsItem(const DrawTool &tool, const QPointF &pos, QGraphicsItem *parent = nullptr) :
+    ArrowGraphicsItem(
+            const DrawTool &tool,
+            const QPointF &pos,
+            QGraphicsItem *parent = nullptr) :
         QGraphicsPathItem(parent),
         origin(pos),
         tool(tool)
@@ -55,7 +58,10 @@ public:
     QList<BasicGraphicsPath*> toPath() const;
 
     /// Paint line to painter.
-    virtual void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget = nullptr) override;
+    virtual void paint(
+            QPainter *painter,
+            const QStyleOptionGraphicsItem *option,
+            QWidget *widget = nullptr) override;
 };
 
 #endif // ARROWGRAPHICSITEM_H

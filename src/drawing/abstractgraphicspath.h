@@ -65,7 +65,9 @@ public:
     /// Constructor: initialize tool and coordinates.
     /// @param tool tool for stroking this path
     /// @param coordinates vector of coordinates
-    AbstractGraphicsPath(const DrawTool &tool, const QVector<QPointF> &coordinates) noexcept :
+    AbstractGraphicsPath(
+            const DrawTool &tool,
+            const QVector<QPointF> &coordinates) noexcept :
         _tool(tool), coordinates(coordinates)
     {setFlags(QGraphicsItem::ItemIsSelectable);}
 
@@ -101,15 +103,18 @@ public:
     /**
      * @brief Erase at position pos.
      *
-     * Create list of paths obtained when erasing at position *scene_pos* with
-     * round eraser of radius *size*. This list is empty if this path is
-     * completely erased. Returns nullptr if nothing was erased.
+     * Create list of paths obtained when erasing at position *scene_pos*
+     * with round eraser of radius *size*. This list is empty if this path
+     * is completely erased. Returns nullptr if nothing was erased.
      *
      * @param scene_pos position of eraser (scene coordinates)
      * @param size radius of eraser
-     * @return list of paths after erasing (possibly empty) or {nullptr} if nothing was erased.
+     * @return list of paths after erasing (possibly empty) or
+     * {nullptr} if nothing was erased.
      */
-    virtual QList<AbstractGraphicsPath*> splitErase(const QPointF &scene_pos, const qreal size) const = 0;
+    virtual QList<AbstractGraphicsPath*> splitErase(
+            const QPointF &scene_pos,
+            const qreal size) const = 0;
 
     /// @return _tool
     const DrawTool &getTool() const noexcept
@@ -122,7 +127,8 @@ public:
     /// @return list of coordinates formatted as string
     virtual const QString stringCoordinates() const noexcept;
 
-    /// Write nodes coordinates to string for writing to SVG using item coordinates.
+    /// Write nodes coordinates to string for writing to SVG using
+    /// item coordinates.
     /// @return list of coordinates formatted as string
     virtual const QString svgCoordinates() const noexcept;
 

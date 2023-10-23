@@ -4,7 +4,6 @@
 #ifndef SELECTIONTOOL_H
 #define SELECTIONTOOL_H
 
-#include <variant>
 #include <QPointF>
 #include <QHash>
 #include <QList>

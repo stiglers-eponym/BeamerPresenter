@@ -32,11 +32,16 @@ public:
     enum { Type = UserType + FlexGraphicsLineItemType };
 
     /// Constructor.
-    FlexGraphicsLineItem(const QLineF& line, QPainter::CompositionMode mode = QPainter::CompositionMode_SourceOver) :
+    FlexGraphicsLineItem(
+            const QLineF& line,
+            QPainter::CompositionMode mode = QPainter::CompositionMode_SourceOver) :
         QGraphicsLineItem(line), mode(mode) {}
 
     /// Paint line to painter.
-    virtual void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget = nullptr) override
+    virtual void paint(
+            QPainter *painter,
+            const QStyleOptionGraphicsItem *option,
+            QWidget *widget = nullptr) override
     {
         painter->setCompositionMode(mode);
         QGraphicsLineItem::paint(painter, option, widget);

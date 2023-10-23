@@ -1,7 +1,6 @@
 // SPDX-FileCopyrightText: 2022 Valentin Bruch <software@vbruch.eu>
 // SPDX-License-Identifier: GPL-3.0-or-later OR AGPL-3.0-or-later
 
-#include <variant>
 #include <QVariant>
 #include "src/gui/penstylebutton.h"
 #include "src/drawing/drawtool.h"
@@ -22,7 +21,7 @@ void PenStyleButton::setToolProperty(Tool *tool) const
     const Qt::PenStyle style = currentData().value<Qt::PenStyle>();
     if (tool && tool->tool() & Tool::AnyDrawTool)
         static_cast<DrawTool*>(tool)->rpen().setStyle(style);
-    emit sendToolProperties(std::variant<qreal,Qt::PenStyle,Qt::BrushStyle,QPainter::CompositionMode,QColor,QFont>(style));
+    emit sendToolProperties(tool_variant(style));
 }
 
 void PenStyleButton::toolChanged(const Tool *tool)

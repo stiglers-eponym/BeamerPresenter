@@ -1769,7 +1769,7 @@ void SlideScene::toolChanged(const Tool *tool) noexcept
     }
 }
 
-void SlideScene::toolPropertiesChanged(const std::variant<qreal,Qt::PenStyle,Qt::BrushStyle,QPainter::CompositionMode,QColor,QFont> &properties) noexcept
+void SlideScene::toolPropertiesChanged(const tool_variant &properties) noexcept
 {
     QList<QGraphicsItem*> selection = selectedItems();
     if (focusItem() && focusItem()->type() == TextGraphicsItem::Type)

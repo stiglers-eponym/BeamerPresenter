@@ -38,7 +38,10 @@ public:
     /// @param painter paint to this painter.
     /// @param option currently ignored.
     /// @param widget currently ignored.
-    void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget = nullptr) override;
+    void paint(
+            QPainter *painter,
+            const QStyleOptionGraphicsItem *option,
+            QWidget *widget = nullptr) override;
 
     /// reset transform and set rect (in scene coordinates)
     void setRect(const QRectF &rect) noexcept;
@@ -53,13 +56,19 @@ public:
 
     /// return center of rotation handle in scene coordinates
     QPointF sceneRotationHandle() const noexcept
-    {return mapToScene(_rect.left()+_rect.width()/2, _rect.top()-1.5*preferences()->selection_rect_handle_size);}
+    {
+        return mapToScene(
+                _rect.left() + _rect.width()/2,
+                _rect.top() - 1.5*preferences()->selection_rect_handle_size);
+    }
 
     // Return center of delete handle in scene coordinates
     QPointF sceneDeleteHandle() const noexcept
     {
         const qreal handle_size = preferences()->selection_rect_handle_size;
-        return mapToScene(_rect.left()+_rect.width()/2+2*handle_size, _rect.top()-1.5*handle_size);
+        return mapToScene(
+                _rect.left() + _rect.width()/2 + 2*handle_size,
+                _rect.top() - 1.5*handle_size);
     }
 
     /// return a polygon containing the corners of this rectangle in scene coordinates
@@ -69,7 +78,11 @@ public:
     {
         const qreal half_size = preferences()->selection_rect_handle_size/2;
         const qreal stroke_width = preferences()->selection_rect_pen.widthF()/2;
-        return _rect.marginsAdded(QMarginsF(half_size+stroke_width,4*half_size+stroke_width,half_size+stroke_width,half_size+stroke_width));
+        return _rect.marginsAdded(QMarginsF(
+                half_size + stroke_width,
+                4*half_size + stroke_width,
+                half_size + stroke_width,
+                half_size + stroke_width));
     }
 
     /// return whether point in scene coordinates is contained in _rect

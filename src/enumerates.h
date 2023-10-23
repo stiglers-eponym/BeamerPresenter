@@ -78,9 +78,11 @@ enum OverlayDrawingMode
 {
     /// Every page has independent drawings.
     PerPage,
-    /// All pages with the same label in a simply connected region have the same drawings.
+    /// All pages with the same label in a simply connected region
+    /// have the same drawings.
     PerLabel,
-    /// When going to the next page which has the same label, the current drawings are copied.
+    /// When going to the next page which has the same label, the
+    /// current drawings are copied.
     Cumulative,
 };
 
@@ -89,8 +91,8 @@ enum OverlayDrawingMode
  * @brief Use single bits of an integer to mark skipping of overlays.
  *
  * Page shifts are stored as integers in SlideScenes.
- * The information about whether overlays should be considered is stored in
- * the bits controlled by FirstOverlay and LastOverlay.
+ * The information about whether overlays should be considered is
+ * stored in the bits controlled by FirstOverlay and LastOverlay.
  * If shift is an int and overlay is of type ShiftOverlays:
  * * shift_overlay = (shift & ~AnyOverlay) | overlay
  * * overlay = shift & AnyOverlay

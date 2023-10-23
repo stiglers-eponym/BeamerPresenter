@@ -7,7 +7,6 @@
 #include "src/config.h"
 #include <set>
 #include <map>
-#include <variant>
 #include <QList>
 #include <QColor>
 #include <QPointF>
@@ -29,6 +28,7 @@
 #include "src/media/mediaitem.h"
 #include "src/drawing/textgraphicsitem.h"
 #include "src/drawing/selectionrectitem.h"
+#include "src/gui/toolpropertybutton.h"
 
 class QAbstractAnimation;
 class QGraphicsItem;
@@ -51,7 +51,6 @@ namespace drawHistory {
     struct ZValueChange;
     struct Step;
 }
-
 
 /**
  * @brief QGraphicsScene for a presentation slide.
@@ -134,39 +133,63 @@ private:
     void startTransition(const int newpage, const SlideTransition &transition);
 
     /// Search video annotation in cache and create + add it to cache if necessary.
-    std::shared_ptr<MediaItem> &getMediaItem(std::shared_ptr<MediaAnnotation> annotation, const int page);
+    std::shared_ptr<MediaItem> &getMediaItem(
+            std::shared_ptr<MediaAnnotation> annotation,
+            const int page);
 
     /// Create an animation object for a split slide transition.
-    void createSplitTransition(const SlideTransition &transition, PixmapGraphicsItem *pageTransitionItem);
+    void createSplitTransition(
+            const SlideTransition &transition,
+            PixmapGraphicsItem *pageTransitionItem);
 
     /// Create an animation object for a blinds slide transition.
-    void createBlindsTransition(const SlideTransition &transition, PixmapGraphicsItem *pageTransitionItem);
+    void createBlindsTransition(
+            const SlideTransition &transition,
+            PixmapGraphicsItem *pageTransitionItem);
 
     /// Create an animation object for a box slide transition.
-    void createBoxTransition(const SlideTransition &transition, PixmapGraphicsItem *pageTransitionItem);
+    void createBoxTransition(
+            const SlideTransition &transition,
+            PixmapGraphicsItem *pageTransitionItem);
 
     /// Create an animation object for a wipe slide transition.
-    void createWipeTransition(const SlideTransition &transition, PixmapGraphicsItem *pageTransitionItem);
+    void createWipeTransition(
+            const SlideTransition &transition,
+            PixmapGraphicsItem *pageTransitionItem);
 
     /// Create an animation object for a fly slide transition.
-    void createFlyTransition(const SlideTransition &transition, PixmapGraphicsItem *pageTransitionItem, PixmapGraphicsItem *oldPage);
+    void createFlyTransition(
+            const SlideTransition &transition,
+            PixmapGraphicsItem *pageTransitionItem,
+            PixmapGraphicsItem *oldPage);
 
     /// Create an animation object for a push slide transition.
-    void createPushTransition(const SlideTransition &transition, PixmapGraphicsItem *pageTransitionItem);
+    void createPushTransition(
+            const SlideTransition &transition,
+            PixmapGraphicsItem *pageTransitionItem);
 
     /// Create an animation object for a cover slide transition.
-    void createCoverTransition(const SlideTransition &transition, PixmapGraphicsItem *pageTransitionItem);
+    void createCoverTransition(
+            const SlideTransition &transition,
+            PixmapGraphicsItem *pageTransitionItem);
 
     /// Create an animation object for an uncover slide transition.
-    void createUncoverTransition(const SlideTransition &transition, PixmapGraphicsItem *pageTransitionItem);
+    void createUncoverTransition(
+            const SlideTransition &transition,
+            PixmapGraphicsItem *pageTransitionItem);
 
     /// Create an animation object for a face slide transition.
-    void createFadeTransition(const SlideTransition &transition, PixmapGraphicsItem *pageTransitionItem);
+    void createFadeTransition(
+            const SlideTransition &transition,
+            PixmapGraphicsItem *pageTransitionItem);
 
 public:
     /// Constructor: initialize master, page_part, and QGraphisScene.
     /// Connect signals.
-    explicit SlideScene(const PdfMaster *master, const PagePart part = FullPage, QObject *parent = nullptr);
+    explicit SlideScene(
+            const PdfMaster *master,
+            const PagePart part = FullPage,
+            QObject *parent = nullptr);
 
     /// Destructor: delete all graphics items.
     ~SlideScene();
@@ -252,10 +275,16 @@ public:
     void navigationEvent(const int newpage, SlideScene* newscene = nullptr);
 
     /// Start handling draw and erase events.
-    void startInputEvent(const DrawTool *tool, const QPointF &pos, const float pressure = 1.);
+    void startInputEvent(
+            const DrawTool *tool,
+            const QPointF &pos,
+            const float pressure = 1.);
 
     /// Handle draw and erase events.
-    void stepInputEvent(const DrawTool *tool, const QPointF &pos, const float pressure = 1.);
+    void stepInputEvent(
+            const DrawTool *tool,
+            const QPointF &pos,
+            const float pressure = 1.);
 
     /// Finish handling draw and erase events.
     bool stopInputEvent(const DrawTool *tool);
@@ -293,22 +322,48 @@ protected:
     bool noToolClicked(const QPointF &pos, const QPointF &startpos = QPointF());
 
     /// Handle events from different pointing devices.
-    bool handleEvents(const int device, const QList<QPointF> &pos, const QPointF &start_pos, const float pressure);
+    bool handleEvents(
+            const int device,
+            const QList<QPointF> &pos,
+            const QPointF &start_pos,
+            const float pressure);
 
     /// Helper function for handleEvents: draw tool events
-    void handleDrawEvents(const DrawTool *tool, const int device, const QList<QPointF> &pos, const float pressure);
+    void handleDrawEvents(
+            const DrawTool *tool,
+            const int device,
+            const QList<QPointF> &pos,
+            const float pressure);
     /// Helper function for handleEvents: pointing tool events
-    void handlePointingEvents(PointingTool *tool, const int device, const QList<QPointF> &pos);
+    void handlePointingEvents(
+            PointingTool *tool,
+            const int device,
+            const QList<QPointF> &pos);
     /// Helper function for handleEvents: selection tool events
-    void handleSelectionEvents(SelectionTool *tool, const int device, const QList<QPointF> &pos, const QPointF &start_pos);
+    void handleSelectionEvents(
+            SelectionTool *tool,
+            const int device,
+            const QList<QPointF> &pos,
+            const QPointF &start_pos);
     /// Helper function for handleEvents: text tool events
-    bool handleTextEvents(const TextTool *tool, const int device, const QList<QPointF> &pos);
+    bool handleTextEvents(
+            const TextTool *tool,
+            const int device,
+            const QList<QPointF> &pos);
     /// Handle selection start events (only called from handleEvents().
-    void handleSelectionStartEvents(SelectionTool *tool, const QPointF &pos);
+    void handleSelectionStartEvents(
+            SelectionTool *tool,
+            const QPointF &pos);
     /// Handle selection update events (only called from handleEvents().
-    void handleSelectionUpdateEvents(SelectionTool *tool, const QPointF &pos, const QPointF &start_pos);
+    void handleSelectionUpdateEvents(
+            SelectionTool *tool,
+            const QPointF &pos,
+            const QPointF &start_pos);
     /// Handle selection stop events (only called from handleEvents().
-    void handleSelectionStopEvents(SelectionTool *tool, const QPointF &pos, const QPointF &start_pos);
+    void handleSelectionStopEvents(
+            SelectionTool *tool,
+            const QPointF &pos,
+            const QPointF &start_pos);
 
 public slots:
     /// Stop drawing and convert just drawn path to regular path.
@@ -350,7 +405,7 @@ public slots:
     void toolChanged(const Tool *tool) noexcept;
 
     /// Update tool properties for selected items.
-    void toolPropertiesChanged(const std::variant<qreal,Qt::PenStyle,Qt::BrushStyle,QPainter::CompositionMode,QColor,QFont> &properties) noexcept;
+    void toolPropertiesChanged(const tool_variant &properties) noexcept;
 
     /// Show search results taken from PdfMaster.
     void updateSearchResults();
@@ -373,10 +428,11 @@ signals:
     void sendNewPath(int page, QGraphicsItem *item) const;
 
     /// Send transformations for QGraphicsItems to PdfMaster.
-    void sendHistoryStep(int page,
-             std::map<QGraphicsItem*,QTransform> *transforms,
-             std::map<AbstractGraphicsPath*,drawHistory::DrawToolDifference> *tools,
-             std::map<TextGraphicsItem*,drawHistory::TextPropertiesDifference> *texts) const;
+    void sendHistoryStep(
+            int page,
+            std::map<QGraphicsItem*,QTransform> *transforms,
+            std::map<AbstractGraphicsPath*,drawHistory::DrawToolDifference> *tools,
+            std::map<TextGraphicsItem*,drawHistory::TextPropertiesDifference> *texts) const;
 
     /// Replace old path by new path in a single drawing history step.
     void replacePath(int page, QGraphicsItem *olditem, QGraphicsItem *newitem) const;
@@ -390,7 +446,8 @@ signals:
     /// Tell master that transition has ended.
     void finishTransition();
 
-    /// Get path container for given page, create one if cummulative drawing requires that.
+    /// Get path container for given page, create one if cummulative
+    /// drawing requires that.
     void requestNewPathContainer(PathContainer **container, int page);
 
     /// Get path container for given page, create one if it does not exist.

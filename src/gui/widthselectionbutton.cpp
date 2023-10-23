@@ -30,7 +30,7 @@ void WidthSelectionButton::setToolProperty(Tool *tool) const
         return;
     if (tool && tool->tool() & Tool::AnyDrawTool)
         static_cast<DrawTool*>(tool)->setWidth(width);
-    emit sendToolProperties(std::variant<qreal,Qt::PenStyle,Qt::BrushStyle,QPainter::CompositionMode,QColor,QFont>(width));
+    emit sendToolProperties(tool_variant(width));
 }
 
 void WidthSelectionButton::toolChanged(const Tool *tool)

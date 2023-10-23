@@ -277,7 +277,9 @@ public:
     /// Change key sequence associated with tool from oldkeys to newkeys.
     /// oldkeys or newkeys may be left empty to add a new tool or remove
     /// an existing tool.
-    void replaceKeyToolShortcut(const QKeySequence oldkeys, const QKeySequence newkeys, Tool *tool);
+    void replaceKeyToolShortcut(const QKeySequence oldkeys,
+                                const QKeySequence newkeys,
+                                Tool *tool);
 
     /// Connect an action to a key code. This does not remove existing
     /// actions connected to the same key code.
@@ -289,7 +291,10 @@ public:
     /// Append these tools and actions to the given lists.
     /// This function is used for reading tools/actions for
     /// key shortcuts.
-    static void parseActionsTools(const QVariant &input, QList<Action> &actions, QList<Tool*> &tools, const int default_device = 0);
+    static void parseActionsTools(const QVariant &input,
+                                  QList<Action> &actions,
+                                  QList<Tool*> &tools,
+                                  const int default_device = 0);
 
     /// Show error message in dialog in front of main window.
     void showErrorMessage(const QString &title, const QString &text) const;

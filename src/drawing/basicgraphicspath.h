@@ -38,7 +38,10 @@ public:
     /// @param tool draw tool for stroking path
     /// @param coordinates vector
     /// @param bounding_rect bounding rectangle
-    BasicGraphicsPath(const DrawTool &tool, const QVector<QPointF> &coordinates, const QRectF &bounding_rect = QRectF()) noexcept;
+    BasicGraphicsPath(
+            const DrawTool &tool,
+            const QVector<QPointF> &coordinates,
+            const QRectF &bounding_rect = QRectF()) noexcept;
 
     /// Construct path from coordinate string.
     /// @param tool draw tool for stroking path
@@ -64,13 +67,18 @@ public:
     /// @param painter paint to this painter.
     /// @param option currently ignored.
     /// @param widget currently ignored.
-    void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget = nullptr) override;
+    void paint(
+            QPainter *painter,
+            const QStyleOptionGraphicsItem *option,
+            QWidget *widget = nullptr) override;
 
     /// Add a point to coordinates and update bounding rect.
     /// @param point new node
     void addPoint(const QPointF &point);
 
-    QList<AbstractGraphicsPath*> splitErase(const QPointF &scene_pos, const qreal size) const override;
+    QList<AbstractGraphicsPath*> splitErase(
+            const QPointF &scene_pos,
+            const qreal size) const override;
 
     void changeTool(const DrawTool &newtool) noexcept override;
 

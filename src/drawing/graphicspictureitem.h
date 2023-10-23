@@ -43,7 +43,10 @@ public:
     {return _picture;}
 
     /// Paint picture to the painter.
-    virtual void paint(QPainter *painter, const QStyleOptionGraphicsItem *, QWidget *widget = nullptr) override
+    virtual void paint(
+            QPainter *painter,
+            const QStyleOptionGraphicsItem*,
+            QWidget *widget = nullptr) override
     {_picture.play(painter);}
 
     /// Bounding rectangle of the picture

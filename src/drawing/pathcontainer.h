@@ -346,7 +346,12 @@ public:
     /// Load drawings for one specific page in left and right page part.
     /// @see loadDrawings(QXmlStreamReader &reader)
     /// @see writeXml(QXmlStreamWriter &writer) const
-    static void loadDrawings(QXmlStreamReader &reader, PathContainer *center, PathContainer *left, PathContainer *right, const qreal page_half);
+    static void loadDrawings(
+            QXmlStreamReader &reader,
+            PathContainer *center,
+            PathContainer *left,
+            PathContainer *right,
+            const qreal page_half);
 
     /// @return bounding box of all drawings
     QRectF boundingBox() const noexcept;
@@ -390,7 +395,9 @@ public slots:
 /// (required for Xournal++ format).
 inline QString color_to_rgba(const QColor &color) noexcept
 {
-    return QLatin1Char('#') + QString::number((color.rgb() << 8) + color.alpha(), 16).rightJustified(8, '0', true);
+    return QLatin1Char('#')
+           + QString::number((color.rgb() << 8) + color.alpha(), 16)
+                 .rightJustified(8, '0', true);
 }
 
 /// Convert color string of format #RRGGBBAA to QColor

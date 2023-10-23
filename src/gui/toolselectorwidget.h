@@ -4,11 +4,11 @@
 #ifndef TOOLSELECTORWIDGET_H
 #define TOOLSELECTORWIDGET_H
 
-#include <variant>
 #include <QPainter>
 #include <QWidget>
 #include "src/config.h"
 #include "src/enumerates.h"
+#include "src/gui/toolpropertybutton.h"
 
 class Tool;
 class QSize;
@@ -54,7 +54,7 @@ protected:
 
 signals:
     /// Notify master/scene that tool properties have been updated.
-    void sendToolProperties(const std::variant<qreal,Qt::PenStyle,Qt::BrushStyle,QPainter::CompositionMode,QColor,QFont> &properties) const;
+    void sendToolProperties(const tool_variant &properties) const;
 
     /// Send action status to action buttons.
     void sendStatus(const Action action, const int status);

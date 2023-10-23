@@ -104,7 +104,10 @@ public:
     /// @param painter paint to this painter.
     /// @param option currently ignored.
     /// @param widget currently ignored.
-    void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget = nullptr) override;
+    void paint(
+            QPainter *painter,
+            const QStyleOptionGraphicsItem *option,
+            QWidget *widget = nullptr) override;
 
     /// Bounding rect in scene coordinates
     QRectF boundingRect() const override
@@ -160,7 +163,8 @@ public slots:
     void trackNew() noexcept
     {newHashs.clear();}
 
-    /// Clear everything that was added or modified before the latest call to trackNew().
+    /// Clear everything that was added or modified before the latest
+    /// call to trackNew().
     /// @see trackNew()
     void clearOld() noexcept;
 

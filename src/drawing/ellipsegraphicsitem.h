@@ -42,7 +42,10 @@ public:
 
     /// Constructor for initializing QGraphicsEllipseItem
     /// @param pos origin of the rectangle. This coordinate is always fixed.
-    EllipseGraphicsItem(const DrawTool &tool, const QPointF &pos, QGraphicsItem *parent = nullptr);
+    EllipseGraphicsItem(
+            const DrawTool &tool,
+            const QPointF &pos,
+            QGraphicsItem *parent = nullptr);
 
     /// Trivial destructor.
     ~EllipseGraphicsItem() {}
@@ -59,7 +62,10 @@ public:
     BasicGraphicsPath *toPath() const;
 
     /// Paint line to painter.
-    virtual void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget = nullptr) override
+    virtual void paint(
+            QPainter *painter,
+            const QStyleOptionGraphicsItem *option,
+            QWidget *widget = nullptr) override
     {
         painter->setCompositionMode(tool.compositionMode());
         QGraphicsEllipseItem::paint(painter, option, widget);

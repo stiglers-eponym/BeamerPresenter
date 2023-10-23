@@ -30,7 +30,10 @@ public:
 
     /// Constructor for initializing QGraphicsLineItem
     /// @param pos origin of the rectangle. This coordinate is always fixed.
-    LineGraphicsItem(const DrawTool &tool, const QPointF &pos, QGraphicsItem *parent = nullptr) :
+    LineGraphicsItem(
+            const DrawTool &tool,
+            const QPointF &pos,
+            QGraphicsItem *parent = nullptr) :
         QGraphicsLineItem(QLineF(pos, pos), parent),
         tool(tool)
     {setPen(tool.pen());}
@@ -49,7 +52,10 @@ public:
     BasicGraphicsPath *toPath() const noexcept;
 
     /// Paint line to painter.
-    virtual void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget = nullptr) override;
+    virtual void paint(
+            QPainter *painter,
+            const QStyleOptionGraphicsItem *option,
+            QWidget *widget = nullptr) override;
 };
 
 #endif // LINEGRAPHICSITEM_H

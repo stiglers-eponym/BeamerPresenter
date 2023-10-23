@@ -196,7 +196,10 @@ public:
 #if (QT_VERSION >= QT_VERSION_CHECK(5, 6, 0))
         _player->setAudioRole(QAudio::VideoRole);
 #endif // QT_VERSION >= 5.6
-        connect(_player, QOverload<QMediaPlayer::Error>::of(&QMediaPlayer::error), this, &MediaPlayerProvider::handleCommonError);
+        connect(_player,
+                QOverload<QMediaPlayer::Error>::of(&QMediaPlayer::error),
+                this,
+                &MediaPlayerProvider::handleCommonError);
 #endif// QT_VERSION_MAJOR
     }
 
@@ -214,7 +217,10 @@ public:
 #if (QT_VERSION_MAJOR >= 6)
         _player->setAudioOutput(audio_out);
 #else
-        connect(_player, QOverload<QMediaPlayer::Error>::of(&QMediaPlayer::error), this, &MediaPlayerProvider::handleCommonError);
+        connect(_player,
+                QOverload<QMediaPlayer::Error>::of(&QMediaPlayer::error),
+                this,
+                &MediaPlayerProvider::handleCommonError);
 #endif
     }
 
@@ -227,7 +233,10 @@ public:
 #if (QT_VERSION_MAJOR >= 6)
         _player->setAudioOutput(audio_out);
 #else
-        connect(_player, QOverload<QMediaPlayer::Error>::of(&QMediaPlayer::error), this, &MediaPlayerProvider::handleCommonError);
+        connect(_player,
+                QOverload<QMediaPlayer::Error>::of(&QMediaPlayer::error),
+                this,
+                &MediaPlayerProvider::handleCommonError);
 #endif
     }
 
@@ -309,7 +318,10 @@ public:
         default:
     #if (QT_VERSION_MAJOR >= 6)
             _player->setLoops(QMediaPlayer::Infinite);
-            _player->connect(_player, &MediaPlayer::mediaStatusChanged, _player, &MediaPlayer::repeatIfFinished);
+            QObject::connect(_player,
+                             &MediaPlayer::mediaStatusChanged,
+                             _player,
+                             &MediaPlayer::repeatIfFinished);
     #else
             if (_player->playlist())
                 _player->playlist()->setPlaybackMode(QMediaPlaylist::CurrentItemInLoop);

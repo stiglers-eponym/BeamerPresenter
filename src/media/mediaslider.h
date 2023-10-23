@@ -24,7 +24,11 @@ public:
         QSlider(Qt::Horizontal, parent)
     {
         setFocusPolicy(Qt::NoFocus);
-        connect(this, &QSlider::sliderPressed, this, &MediaSlider::press, Qt::DirectConnection);
+        connect(this,
+                &QSlider::sliderPressed,
+                this,
+                &MediaSlider::press,
+                Qt::DirectConnection);
     }
 
     /// Trivial destructor.

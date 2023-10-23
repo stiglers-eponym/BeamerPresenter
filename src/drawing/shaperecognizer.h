@@ -40,21 +40,41 @@ class ShapeRecognizer
         qreal sxx = 0.; ///< weighted sum of x*x
         qreal sxy = 0.; ///< weighted sum of x*y
         qreal syy = 0.; ///< weighted sum of y*y
+
         /// Add moments (all moments are linear)
         Moments operator+(const Moments& other) const noexcept
-        {return {s+other.s, sx+other.sx, sy+other.sy, sxx+other.sxx, sxy+other.sxy, syy+other.syy};}
+        {
+            return {s + other.s,
+                    sx + other.sx,
+                    sy + other.sy,
+                    sxx + other.sxx,
+                    sxy + other.sxy,
+                    syy + other.syy};
+        }
+
         /// Add moments (all moments are linear)
         void operator+=(const Moments& other) noexcept
-        {s+=other.s; sx+=other.sx; sy+=other.sy; sxx+=other.sxx; sxy+=other.sxy; syy+=other.syy;}
+        {
+            s += other.s;
+            sx += other.sx;
+            sy += other.sy;
+            sxx += other.sxx;
+            sxy += other.sxy;
+            syy += other.syy;
+        }
+
         /// Reset all moments and weights to 0.
         void reset() noexcept
         {s=sx=sy=sxx=sxy=syy=0;}
+
         /// Compute variance (normalized to weights)
         qreal var() const noexcept
         {return (sxx - sx*sx/s + syy - sy*sy/s)/s;}
+
         /// Compute standard deviation (square root of variance, normalized to weights).
         qreal std() const noexcept
         {return std::sqrt(s*sxx - sx*sx + s*syy - sy*sy)/s;}
+
         /// Fit a line to the given moments.
         Line line(const bool calc_weight = true) const noexcept
         {
@@ -62,10 +82,15 @@ class ShapeRecognizer
                     n = sy*sy - s*syy + s*sxx - sx*sx,
                     d = 2*(sx*sy - s*sxy),
                     ay = n - std::sqrt(n*n + d*d),
-                    loss = (d*d*(s*syy-sy*sy) + ay*ay*(s*sxx-sx*sx) + 2*d*ay*(sx*sy-s*sxy)) / ((d*d+ay*ay) * (s*sxx - sx*sx + s*syy - sy*sy)),
+                    loss = ( d*d*(s*syy-sy*sy) + ay*ay*(s*sxx-sx*sx) + 2*d*ay*(sx*sy-s*sxy) )
+                            / ( (d*d+ay*ay) * (s*sxx - sx*sx + s*syy - sy*sy) ),
                     weight = calc_weight ? std() : 0.,
                     angle = std::atan2(ay, d);
-            return {sx/s, sy/s, angle > PI ? angle - PI : angle < -PI ? angle + PI : angle, weight, loss};
+            return {sx/s,
+                    sy/s,
+                    angle > PI ? angle - PI : angle < -PI ? angle + PI : angle,
+                    weight,
+                    loss};
         }
     };
 
@@ -120,7 +145,11 @@ class ShapeRecognizer
      * First derivative of ellipseLossFunc by mx.
      * @see ellipseLossFunc
      */
-    qreal ellipseLossGradient_mx(const qreal mx, const qreal my, const qreal ax, const qreal ay) const noexcept
+    qreal ellipseLossGradient_mx(
+            const qreal mx,
+            const qreal my,
+            const qreal ax,
+            const qreal ay) const noexcept
     {
         const qreal bc = mx*mx*ax + my*my*ay - 1;
         return
@@ -136,7 +165,11 @@ class ShapeRecognizer
      * First derivative of ellipseLossFunc by my.
      * @see ellipseLossFunc
      */
-    qreal ellipseLossGradient_my(const qreal mx, const qreal my, const qreal ax, const qreal ay) const noexcept
+    qreal ellipseLossGradient_my(
+            const qreal mx,
+            const qreal my,
+            const qreal ax,
+            const qreal ay) const noexcept
     {
         const qreal bc = mx*mx*ax + my*my*ay - 1;
         return
@@ -152,7 +185,11 @@ class ShapeRecognizer
      * First derivative of ellipseLossFunc by ax.
      * @see ellipseLossFunc
      */
-    qreal ellipseLossGradient_ax(const qreal mx, const qreal my, const qreal ax, const qreal ay) const noexcept
+    qreal ellipseLossGradient_ax(
+            const qreal mx,
+            const qreal my,
+            const qreal ax,
+            const qreal ay) const noexcept
     {
         const qreal bc = mx*mx*ax + my*my*ay - 1;
         return
@@ -171,7 +208,11 @@ class ShapeRecognizer
      * First derivative of ellipseLossFunc by ay.
      * @see ellipseLossFunc
      */
-    qreal ellipseLossGradient_ay(const qreal mx, const qreal my, const qreal ax, const qreal ay) const noexcept
+    qreal ellipseLossGradient_ay(
+            const qreal mx,
+            const qreal my,
+            const qreal ax,
+            const qreal ay) const noexcept
     {
         const qreal bc = mx*mx*ax + my*my*ay - 1;
         return
@@ -191,15 +232,18 @@ class ShapeRecognizer
     void calc_higher_moments() noexcept;
 
     /// Check if path is a line.
-    /// Return a BasicGraphicsPath* representing this line if successful, nullptr otherwise.
+    /// Return a BasicGraphicsPath* representing this line if
+    /// successful, nullptr otherwise.
     BasicGraphicsPath *recognizeLine() const;
 
     /// Check if path is a rectangle.
-    /// Return a BasicGraphicsPath* representing this rectangle if successful, nullptr otherwise.
+    /// Return a BasicGraphicsPath* representing this rectangle if
+    /// successful, nullptr otherwise.
     BasicGraphicsPath *recognizeRect() const;
 
     /// Check if path is an ellipse.
-    /// Return a BasicGraphicsPath* representing this ellipse if successful, nullptr otherwise.
+    /// Return a BasicGraphicsPath* representing this ellipse if
+    /// successful, nullptr otherwise.
     BasicGraphicsPath *recognizeEllipse() const;
 
     /// Recognize line segments in this stoke. Populate moments and line_segments.

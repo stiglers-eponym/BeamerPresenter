@@ -79,7 +79,10 @@ public:
 
     /// Read information from annotation and create a derived class
     /// of MediaItem using the given information.
-    static std::shared_ptr<MediaItem> fromAnnotation(std::shared_ptr<MediaAnnotation> annotation, const int page, QGraphicsItem *parent=nullptr);
+    static std::shared_ptr<MediaItem> fromAnnotation(
+            std::shared_ptr<MediaAnnotation> annotation,
+            const int page,
+            QGraphicsItem *parent=nullptr);
 
     /// annotation containing information fomr the PDF document
     const std::shared_ptr<MediaAnnotation> annotation() const noexcept

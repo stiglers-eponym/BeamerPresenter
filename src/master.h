@@ -4,7 +4,6 @@
 #ifndef MASTER_H
 #define MASTER_H
 
-#include <variant>
 #include <QObject>
 #include <QList>
 #include <QMap>
@@ -16,6 +15,7 @@
 #include "src/config.h"
 #include "src/preferences.h"
 #include "src/enumerates.h"
+#include "src/gui/toolpropertybutton.h"
 
 class Tool;
 class QColor;
@@ -80,7 +80,9 @@ class Master : public QObject
     bool askCloseConfirmation() noexcept;
 
     /// Create widgets recursively.
-    QWidget* createWidget(const QJsonObject& object, QWidget *parent, QMap<QString, PdfMaster*> &known_files);
+    QWidget* createWidget(const QJsonObject& object,
+                          QWidget *parent,
+                          QMap<QString, PdfMaster*> &known_files);
 
     /// Open pdf/xopp/xoj/bpr/xml file or return already opened file.
     /// Mark file alias in given map.
@@ -93,10 +95,15 @@ class Master : public QObject
     SlideView *createSlide(const QJsonObject &object, PdfMaster *pdf, QWidget *parent);
 
     /// Create children of a container widget.
-    void fillContainerWidget(ContainerBaseClass *parent, const QJsonObject &parent_obj, QMap<QString, PdfMaster*> &known_files);
+    void fillContainerWidget(ContainerBaseClass *parent,
+                             const QJsonObject &parent_obj,
+                             QMap<QString, PdfMaster*> &known_files);
 
     /// Get pixcache object for given parameters, create one if necessary.
-    const PixCache *getPixcache(PdfDocument *doc, const PagePart page_part, int cache_hash, const int threads);
+    const PixCache *getPixcache(PdfDocument *doc,
+                                const PagePart page_part,
+                                int cache_hash,
+                                const int threads);
 
 public:
     /// Constructor: initializes times.
@@ -157,9 +164,13 @@ public:
     /// Read header (beamerpresenter tag) from XML
     bool readXmlHeader(QXmlStreamReader &reader, const bool read_notes);
     /// Read page tag from XML, only find required PDF documents
-    PdfMaster *readXmlPageBg(QXmlStreamReader &reader, PdfMaster *pdf, const QString &drawings_path);
+    PdfMaster *readXmlPageBg(QXmlStreamReader &reader,
+                             PdfMaster *pdf,
+                             const QString &drawings_path);
     /// Read page tag from XML
-    PdfMaster *readXmlPage(QXmlStreamReader &reader, PdfMaster *pdf, const bool clear_drawings);
+    PdfMaster *readXmlPage(QXmlStreamReader &reader,
+                           PdfMaster *pdf,
+                           const bool clear_drawings);
 
 protected:
     /// Timeout event: cache videos or change slide
@@ -208,7 +219,7 @@ signals:
     /// which is currently connected to a device.
     void sendNewToolSoft(const Tool *tool) const;
     /// Send out updated tool properties.
-    void sendToolProperties(const std::variant<qreal,Qt::PenStyle,Qt::BrushStyle,QPainter::CompositionMode,QColor,QFont> &properties) const;
+    void sendToolProperties(const tool_variant &properties) const;
     /// Send out action.
     void sendAction(const Action action) const;
     /// Set status for an action (e.g. timer paused or running).

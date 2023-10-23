@@ -41,13 +41,27 @@ public:
     /// @param brush color or more advanced brush for the tool
     /// @param device input device(s) defined by combination of flags
     /// @param scale For magnifier: magnification factor. For eraser: width of drawn circle.
-    PointingTool(const BasicTool tool, const float size, const QBrush &brush, const int device = AnyDevice, const float scale = 2.) noexcept :
-        Tool(tool, device), _brush(brush), _size(size), _scale(scale) {}
+    PointingTool(
+            const BasicTool tool,
+            const float size,
+            const QBrush &brush,
+            const int device = AnyDevice,
+            const float scale = 2.) noexcept :
+        Tool(tool, device),
+        _brush(brush),
+        _size(size),
+        _scale(scale)
+    {}
 
     /// Copy constructor
     /// @param other tool to be copied
     PointingTool(const PointingTool &other) noexcept :
-        Tool(other._tool, other._device), _pos(other._pos), _brush(other._brush), _size(other._size), _scale(other._scale) {}
+        Tool(other._tool, other._device),
+        _pos(other._pos),
+        _brush(other._brush),
+        _size(other._size),
+        _scale(other._scale)
+    {}
 
     /// Initialize brush to a fancy pointer. Color and size are taken
     /// from the existing settings.

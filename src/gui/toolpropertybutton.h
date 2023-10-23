@@ -15,6 +15,16 @@ class Tool;
 class QFont;
 class QEvent;
 
+/// Variant bundling information about tool property changes
+typedef std::variant<qreal,
+                     Qt::PenStyle,
+                     Qt::BrushStyle,
+                     QPainter::CompositionMode,
+                     QColor,
+                     QFont>
+        tool_variant;
+
+
 /**
  * @brief Drop down menu for changing a property of a tool.
  *
@@ -62,7 +72,7 @@ signals:
     void sendUpdatedTool(const Tool *tool) const;
 
     /// Notify master/scene that tool properties have been updated.
-    void sendToolProperties(const std::variant<qreal,Qt::PenStyle,Qt::BrushStyle,QPainter::CompositionMode,QColor,QFont> &properties) const;
+    void sendToolProperties(const tool_variant &properties) const;
 };
 
 #endif // TOOLPROPERTYBUTTON_H

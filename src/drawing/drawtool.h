@@ -51,7 +51,11 @@ public:
     /// Copy constructor.
     /// @param other tool to be copied
     DrawTool(const DrawTool& other) :
-        Tool(other._tool, other._device), _pen(other._pen), _brush(other._brush), composition_mode(other.composition_mode), _shape(other._shape) {}
+        Tool(other._tool, other._device),
+        _pen(other._pen),
+        _brush(other._brush),
+        composition_mode(other.composition_mode),
+        _shape(other._shape) {}
 
     /// Constructor with full initialization.
     /// @param tool basic tool. Must be a tool for drawing.
@@ -59,16 +63,41 @@ public:
     /// @param pen pen used for stroking path
     /// @param brush brush used for filling path
     /// @param mode composition mode for stroking and filling path
-    DrawTool(const BasicTool tool, const int device, const QPen &pen, const QBrush &brush = QBrush(), const QPainter::CompositionMode mode = QPainter::CompositionMode_SourceOver, const Shape shape = Freehand) noexcept :
-        Tool(tool, device), _pen(pen), _brush(brush), composition_mode(mode), _shape(shape) {}
+    DrawTool(
+            const BasicTool tool,
+            const int device,
+            const QPen &pen,
+            const QBrush &brush = QBrush(),
+            const QPainter::CompositionMode mode = QPainter::CompositionMode_SourceOver,
+            const Shape shape = Freehand) noexcept :
+        Tool(tool, device),
+        _pen(pen),
+        _brush(brush),
+        composition_mode(mode),
+        _shape(shape)
+    {}
 
     /// Comparison by tool, device, pen, brush, and composition mode.
     virtual bool operator==(const DrawTool &other) const noexcept
-    {return _tool==other._tool && _device==other._device && _pen==other._pen && _brush==other._brush && composition_mode==other.composition_mode && _shape==other._shape;}
+    {
+        return _tool==other._tool
+               && _device==other._device
+               && _pen==other._pen
+               && _brush==other._brush
+               && composition_mode==other.composition_mode
+               && _shape==other._shape;
+    }
 
     /// Comparison by tool, device, pen, brush, and composition mode.
     virtual bool operator!=(const DrawTool &other) const noexcept
-    {return _tool!=other._tool || _device!=other._device || _pen!=other._pen || _brush!=other._brush || composition_mode!=other.composition_mode || _shape!=other._shape;}
+    {
+        return _tool!=other._tool
+               || _device!=other._device
+               || _pen!=other._pen
+               || _brush!=other._brush
+               || composition_mode!=other.composition_mode
+               || _shape!=other._shape;
+    }
 
     /// @return _pen
     QPen &rpen() noexcept

@@ -1,7 +1,6 @@
 // SPDX-FileCopyrightText: 2023 Valentin Bruch <software@vbruch.eu>
 // SPDX-License-Identifier: GPL-3.0-or-later OR AGPL-3.0-or-later
 
-#include <variant>
 #include <QVariant>
 #include "src/gui/brushstylebutton.h"
 #include "src/drawing/drawtool.h"
@@ -27,7 +26,7 @@ void BrushStyleButton::setToolProperty(Tool *tool) const
             draw_tool->brush().setColor(draw_tool->color());
         draw_tool->brush().setStyle(style);
     }
-    emit sendToolProperties(std::variant<qreal,Qt::PenStyle,Qt::BrushStyle,QPainter::CompositionMode,QColor,QFont>(style));
+    emit sendToolProperties(tool_variant(style));
 }
 
 void BrushStyleButton::toolChanged(const Tool *tool)
