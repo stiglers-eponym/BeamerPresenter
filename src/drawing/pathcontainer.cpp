@@ -765,7 +765,12 @@ void PathContainer::loadDrawings(QXmlStreamReader &reader)
         limitHistory();
 }
 
-void PathContainer::loadDrawings(QXmlStreamReader &reader, PathContainer *center, PathContainer *left, PathContainer *right, const qreal page_half)
+void PathContainer::loadDrawings(
+        QXmlStreamReader &reader,
+        PathContainer *center,
+        PathContainer *left,
+        PathContainer *right,
+        const qreal page_half)
 {
     QGraphicsItem *item;
     while (reader.readNextStartElement())

@@ -41,7 +41,10 @@ inline static int shuffled(const unsigned int i)
     return shuffled_array()[i % GLITTER_NUMBER];
 }
 
-void PixmapGraphicsItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
+void PixmapGraphicsItem::paint(
+        QPainter *painter,
+        const QStyleOptionGraphicsItem *option,
+        QWidget *widget)
 {
     if (pixmaps.isEmpty())
         return;
@@ -52,7 +55,8 @@ void PixmapGraphicsItem::paint(QPainter *painter, const QStyleOptionGraphicsItem
 #ifdef QT_DEBUG
     if (it.key() != hash && it.key() != hash + 1)
     {
-        debug_msg(DebugRendering, "possibly wrong resolution:" << it.key() << painter->transform().m11() * bounding_rect.width());
+        debug_msg(DebugRendering, "possibly wrong resolution:" << it.key()
+                                  << painter->transform().m11() * bounding_rect.width());
         if (it != pixmaps.cbegin())
             debug_msg(DebugRendering, "possibly better:" << std::prev(it).key());
     }
@@ -113,7 +117,14 @@ void PixmapGraphicsItem::paint(QPainter *painter, const QStyleOptionGraphicsItem
             w = rect.width()/glitter_pixel+1;
         for (unsigned int j=0; j<animation_progress; j++)
             for (unsigned int i=shuffled(j); i<n; i+=GLITTER_NUMBER)
-                painter->drawPixmap(rect.x()+glitter_pixel*(i%w), rect.y()+glitter_pixel*(i/w), *it, glitter_pixel*(i%w), glitter_pixel*(i/w), glitter_pixel, glitter_pixel);
+                painter->drawPixmap(
+                        rect.x() + glitter_pixel*(i%w),
+                        rect.y() + glitter_pixel*(i/w),
+                        *it,
+                        glitter_pixel*(i%w),
+                        glitter_pixel*(i/w),
+                        glitter_pixel,
+                        glitter_pixel);
     }
     else if (it.key() == hash || it.key() == hash + 1)
         painter->drawPixmap(rect.topLeft(), *it, it->rect());

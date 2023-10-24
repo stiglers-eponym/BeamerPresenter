@@ -43,21 +43,31 @@ Tool *createTool(const QJsonObject &obj, const int default_device)
     case Tool::FixedWidthPen:
     case Tool::Highlighter:
     {
-        const QColor color(obj.value("color").toString(base_tool == DrawTool::Highlighter ? "yellow" : "black"));
-        const float width = obj.value("width").toDouble(base_tool == DrawTool::Highlighter ? 20. : 2.);
+        const QColor color(obj.value("color").toString(
+                base_tool == DrawTool::Highlighter ? "yellow" : "black"));
+        const float width = obj.value("width").toDouble(
+                base_tool == DrawTool::Highlighter ? 20. : 2.);
         if (width <= 0.)
             return nullptr;
-        const Qt::PenStyle pen_style = pen_style_codes.key(obj.value("style").toString().toStdString(), Qt::SolidLine);
+        const Qt::PenStyle pen_style = pen_style_codes.key(
+                obj.value("style").toString().toStdString(),
+                Qt::SolidLine);
         const QColor brush_color(obj.value("fill").toString());
-        const Qt::BrushStyle brush_style = brush_style_codes.key(obj.value("brush").toString().toStdString(), brush_color.isValid() ? Qt::SolidPattern : Qt::NoBrush);
-        const DrawTool::Shape shape = string_to_shape.value(obj.value("shape").toString().toStdString(), DrawTool::Freehand);
+        const Qt::BrushStyle brush_style = brush_style_codes.key(
+                obj.value("brush").toString().toStdString(),
+                brush_color.isValid() ? Qt::SolidPattern : Qt::NoBrush);
+        const DrawTool::Shape shape = string_to_shape.value(
+                obj.value("shape").toString().toStdString(),
+                DrawTool::Freehand);
         debug_msg(DebugSettings, "creating pen/highlighter" << base_tool << color << width);
         tool = new DrawTool(
                     base_tool,
                     device,
                     QPen(color, width, pen_style, Qt::RoundCap, Qt::RoundJoin),
                     QBrush(brush_color, brush_style),
-                    base_tool == DrawTool::Highlighter ? QPainter::CompositionMode_Darken : QPainter::CompositionMode_SourceOver,
+                    base_tool == DrawTool::Highlighter
+                            ? QPainter::CompositionMode_Darken
+                            : QPainter::CompositionMode_SourceOver,
                     shape);
         break;
     }
@@ -66,7 +76,12 @@ Tool *createTool(const QJsonObject &obj, const int default_device)
         debug_msg(DebugSettings, "creating eraser");
         const QColor color(obj.value("color").toString("#c0808080"));
         const float linewidth = obj.value("linewidth").toDouble(0.5);
-        tool = new PointingTool(Tool::Eraser, obj.value("size").toDouble(10.), QBrush(color), device, linewidth);
+        tool = new PointingTool(
+                Tool::Eraser,
+                obj.value("size").toDouble(10.),
+                QBrush(color),
+                device,
+                linewidth);
         break;
     }
     case Tool::Pointer:
@@ -96,7 +111,12 @@ Tool *createTool(const QJsonObject &obj, const int default_device)
         const float size = obj.value("size").toDouble(120.);
         const float scale = obj.value("scale").toDouble(2.);
         debug_msg(DebugSettings, "creating magnifier" << color << size << scale);
-        tool = new PointingTool(Tool::Magnifier, size, color, device, scale < 0.1 ? 0.1 : scale > 10. ? 5. : scale);
+        tool = new PointingTool(
+                Tool::Magnifier,
+                size,
+                color,
+                device,
+                scale < 0.1 ? 0.1 : scale > 10. ? 5. : scale);
         break;
     }
     case Tool::TextInputTool:
@@ -149,7 +169,9 @@ void toolToJson(const Tool *tool, QJsonObject &obj)
         {
             obj.insert("fill", drawtool->brush().color().name());
             if (drawtool->brush().style() != Qt::SolidPattern)
-                obj.insert("brush", brush_style_codes.value(drawtool->brush().style()).c_str());
+                obj.insert(
+                        "brush",
+                        brush_style_codes.value(drawtool->brush().style()).c_str());
         }
         obj.insert("style", pen_style_codes.value(drawtool->pen().style()).c_str());
         obj.insert("shape", string_to_shape.key(drawtool->shape(), "freehand").c_str());
@@ -168,15 +190,29 @@ void toolToJson(const Tool *tool, QJsonObject &obj)
 
 Preferences::Preferences(QObject *parent) :
     QObject(parent),
-    settings(QSettings::NativeFormat, QSettings::UserScope, "beamerpresenter", "beamerpresenter")
+    settings(QSettings::NativeFormat,
+            QSettings::UserScope,
+            "beamerpresenter",
+            "beamerpresenter")
 {
     settings.setFallbacksEnabled(false);
     settings.setDefaultFormat(QSettings::IniFormat);
-    current_tools.insert(Tool::Eraser, new PointingTool(Tool::Eraser, 10., QColor(128,128,128,192), Tool::TabletEraser|Tool::MouseRightButton, 0.5));
+    current_tools.insert(
+            Tool::Eraser,
+            new PointingTool(
+                Tool::Eraser,
+                10.,
+                QColor(128,128,128,192),
+                Tool::TabletEraser|Tool::MouseRightButton,
+                0.5));
     // If settings is empty, copy system scope config to user space file.
     if (settings.allKeys().isEmpty() && settings.isWritable())
     {
-        QSettings globalsettings(QSettings::NativeFormat, QSettings::SystemScope, "beamerpresenter", "beamerpresenter");
+        QSettings globalsettings(
+                QSettings::NativeFormat,
+                QSettings::SystemScope,
+                "beamerpresenter",
+                "beamerpresenter");
         for (const auto &key : static_cast<const QList<QString>>(globalsettings.allKeys()))
             settings.setValue(key, globalsettings.value(key));
     }
@@ -187,7 +223,14 @@ Preferences::Preferences(const QString &file, QObject *parent) :
     settings(file, QSettings::NativeFormat)
 {
     settings.setDefaultFormat(QSettings::IniFormat);
-    current_tools.insert(Tool::Eraser, new PointingTool(Tool::Eraser, 10., QColor(128,128,128,192), Tool::TabletEraser|Tool::MouseRightButton, 0.5));
+    current_tools.insert(
+            Tool::Eraser,
+            new PointingTool(
+                Tool::Eraser,
+                10.,
+                QColor(128,128,128,192),
+                Tool::TabletEraser|Tool::MouseRightButton,
+                0.5));
 }
 
 Preferences::~Preferences()
@@ -281,7 +324,9 @@ void Preferences::loadSettings()
     value = settings.value("history length hidden").toUInt(&ok);
     if (ok)
         history_length_hidden_slides = value;
-    overlay_mode = string_to_overlay_mode.value(settings.value("mode").toString(), Cumulative);
+    overlay_mode = string_to_overlay_mode.value(
+            settings.value("mode").toString(),
+            Cumulative);
     qreal num = settings.value("line sensitifity").toDouble(&ok);
     if (ok && 0 < num && num < 0.1)
         line_sensitivity = num;
@@ -376,8 +421,10 @@ void Preferences::loadSettings()
             {
                 if (rendering_command.isEmpty() || rendering_arguments.isEmpty())
                 {
-                    qWarning() << "External renderer requested but no command or no arguments given. Falling back to Poppler.";
-                    qInfo() << "Note that both \"rendering command\" and \"rendering arguments\" are required.";
+                    qWarning() << "External renderer requested but no command "
+                                  "or no arguments given. Falling back to Poppler.";
+                    qInfo() << "Note that both \"rendering command\" and "
+                               "\"rendering arguments\" are required.";
                     understood_renderer = true;
                 }
                 else
@@ -408,10 +455,14 @@ void Preferences::loadSettings()
         qDeleteAll(current_tools);
         current_tools.clear();
         QList<Tool*> tools;
-        for (const auto& dev : allKeys)
-            parseActionsTools(settings.value(dev), actions, tools, string_to_input_device.value(dev.toStdString(), Tool::AnyNormalDevice));
+        for (const auto& dev : std::as_const(allKeys))
+            parseActionsTools(
+                    settings.value(dev),
+                    actions,
+                    tools,
+                    string_to_input_device.value(dev.toStdString(), Tool::AnyNormalDevice));
         actions.clear();
-        for (const auto tool : tools)
+        for (const auto tool : std::as_const(tools))
             current_tools.insert(tool->tool(), tool);
     }
     settings.endGroup();
@@ -422,7 +473,7 @@ void Preferences::loadSettings()
     {
         QList<Tool*> tools;
         key_actions.clear();
-        for (const auto& key : allKeys)
+        for (const auto& key : std::as_const(allKeys))
         {
             const QKeySequence seq(key);
             if (seq.isEmpty())
@@ -430,9 +481,9 @@ void Preferences::loadSettings()
             else
             {
                 parseActionsTools(settings.value(key), actions, tools);
-                for (const auto tool : tools)
+                for (const auto tool : std::as_const(tools))
                     key_tools.insert(seq, tool);
-                for (const auto action : actions)
+                for (const auto action : std::as_const(actions))
                     key_actions.insert(seq, action);
                 actions.clear();
                 tools.clear();
@@ -448,7 +499,7 @@ void Preferences::loadSettings()
         QList<Tool*> tools;
         gesture_actions.clear();
         Gesture gesture;
-        for (const auto& key : allKeys)
+        for (const auto& key : std::as_const(allKeys))
         {
             gesture = string_to_gesture(key);
             if (gesture != Gesture::InvalidGesture)
@@ -456,7 +507,7 @@ void Preferences::loadSettings()
             else
             {
                 parseActionsTools(settings.value(key), actions, tools);
-                for (const auto action : actions)
+                for (const auto action : std::as_const(actions))
                     gesture_actions.insert(gesture, action);
                 actions.clear();
                 if (!tools.isEmpty())
@@ -470,7 +521,11 @@ void Preferences::loadSettings()
     settings.endGroup();
 }
 
-void Preferences::parseActionsTools(const QVariant &input, QList<Action> &actions, QList<Tool*> &tools, const int default_device)
+void Preferences::parseActionsTools(
+        const QVariant &input,
+        QList<Action> &actions,
+        QList<Tool*> &tools,
+        const int default_device)
 {
     // First try to interpret sequence as json object.
     // Here the way how Qt changes the string is not really optimal.
@@ -478,7 +533,9 @@ void Preferences::parseActionsTools(const QVariant &input, QList<Action> &action
     // convenience it is allowed to use single quotation marks
     // instead.
     QJsonParseError error;
-    const QJsonDocument doc = QJsonDocument::fromJson(input.toStringList().join(",").replace("'", "\"").toUtf8(), &error);
+    const QJsonDocument doc = QJsonDocument::fromJson(
+            input.toStringList().join(",").replace("'", "\"").toUtf8(),
+            &error);
     QJsonArray array;
     if (error.error == QJsonParseError::NoError)
     {
@@ -494,7 +551,8 @@ void Preferences::parseActionsTools(const QVariant &input, QList<Action> &action
         {
             action = string_to_action_map.value(action_str.toLower(), Action::InvalidAction);
             if (action == InvalidAction)
-                qWarning() << "Unknown action in config" << action_str << "as part of input" << input;
+                qWarning() << "Unknown action in config" << action_str
+                           << "as part of input" << input;
             else
                 actions.append(action);
         }
@@ -504,9 +562,12 @@ void Preferences::parseActionsTools(const QVariant &input, QList<Action> &action
     {
         if (value.isString())
         {
-            const Action action = string_to_action_map.value(value.toString().toLower(), Action::InvalidAction);
+            const Action action = string_to_action_map.value(
+                    value.toString().toLower(),
+                    Action::InvalidAction);
             if (action == InvalidAction)
-                qWarning() << "Unknown action in config:" << value << "as part of input" << input;
+                qWarning() << "Unknown action in config:" << value
+                           << "as part of input" << input;
             else
                 actions.append(action);
         }
@@ -516,7 +577,8 @@ void Preferences::parseActionsTools(const QVariant &input, QList<Action> &action
             Tool *tool = createTool(object, default_device);
             if (tool)
             {
-                debug_msg(DebugSettings|DebugDrawing, "Adding tool" << tool << tool->tool() << tool->device());
+                debug_msg(DebugSettings|DebugDrawing, "Adding tool" << tool
+                                                      << tool->tool() << tool->device());
                 tools.append(tool);
             }
         }
@@ -597,8 +659,10 @@ void Preferences::loadFromParser(const QCommandLineParser &parser)
             rendering_arguments = settings.value("rendering arguments").toStringList();
             if (rendering_command.isEmpty() || rendering_arguments.isEmpty())
             {
-                qWarning() << "External renderer requested but no command or no arguments given. Falling back to Poppler.";
-                qInfo() << "Note that both \"rendering command\" and \"rendering arguments\" are required.";
+                qWarning() << "External renderer requested but no command "
+                              "or no arguments given. Falling back to Poppler.";
+                qInfo() << "Note that both \"rendering command\" and "
+                           "\"rendering arguments\" are required.";
                 understood_renderer = true;
             }
             else
@@ -622,7 +686,8 @@ void Preferences::loadFromParser(const QCommandLineParser &parser)
 
 void Preferences::addKeyAction(const QKeySequence sequence, const Action action)
 {
-    if (!key_actions.contains(sequence) || !key_actions.values(sequence).contains(action))
+    if (!key_actions.contains(sequence)
+        || !key_actions.values(sequence).contains(action))
         key_actions.insert(sequence, action);
     const QString keycode = sequence.toString();
     if (!keycode.isEmpty())
@@ -813,7 +878,10 @@ void Preferences::removeKeyTool(const Tool *tool, const bool remove_from_setting
         settings.endGroup();
 }
 
-void Preferences::replaceKeyToolShortcut(const QKeySequence oldkeys, const QKeySequence newkeys, Tool *tool)
+void Preferences::replaceKeyToolShortcut(
+        const QKeySequence oldkeys,
+        const QKeySequence newkeys,
+        Tool *tool)
 {
     key_tools.remove(oldkeys, tool);
     settings.beginGroup("keys");
@@ -944,7 +1012,9 @@ bool Preferences::setGuiConfigFile(const QString &file)
         gui_config_file = file;
         return true;
     }
-    showErrorMessage(tr("Invalid file"), tr("GUI config file not set because it is not a valid file: ") + file);
+    showErrorMessage(
+            tr("Invalid file"),
+            tr("GUI config file not set because it is not a valid file: ") + file);
     return false;
 }
 

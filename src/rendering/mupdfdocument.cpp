@@ -551,7 +551,12 @@ void MuPdfDocument::loadPageLabels()
 
 #endif // FZ_VERSION
 
-void MuPdfDocument::prepareRendering(fz_context **context, fz_rect *bbox, fz_display_list **list, const int pagenumber, const qreal resolution) const
+void MuPdfDocument::prepareRendering(
+        fz_context **context,
+        fz_rect *bbox,
+        fz_display_list **list,
+        const int pagenumber,
+        const qreal resolution) const
 {
     // Check if the page number is valid.
     // If it is not, return without changing the given pointers.
@@ -676,7 +681,11 @@ const PdfLink *MuPdfDocument::linkAt(const int page, const QPointF &position) co
                 && link->rect.y0 <= position.y()
                 && link->rect.y1 >= position.y())
             {
-                const QRectF rect = QRectF(link->rect.x0, link->rect.y0, link->rect.x1 - link->rect.x0, link->rect.y1 - link->rect.y0).normalized();
+                const QRectF rect = QRectF(
+                        link->rect.x0,
+                        link->rect.y0,
+                        link->rect.x1 - link->rect.x0,
+                        link->rect.y1 - link->rect.y0).normalized();
                 debug_verbose(DebugRendering, "Link to" << link->uri);
                 // Currently MuPDF only provides a simple way to access navigation
                 // links and links to URLs. Action links are not handled in MuPDF.

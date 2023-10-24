@@ -474,7 +474,10 @@ void readFromSVG(const QByteArray &data, QList<QGraphicsItem*> &target);
  * @param data read PNG image from this QByteArray
  * @param target add the GraphicsPictureItem constructed from the image to this list
  */
-void readFromPixelImage(const QByteArray &data, QList<QGraphicsItem*> &target, const char *format);
+void readFromPixelImage(
+        const QByteArray &data,
+        QList<QGraphicsItem*> &target,
+        const char *format);
 
 /**
  * write items to an SVG image
@@ -483,13 +486,21 @@ void readFromPixelImage(const QByteArray &data, QList<QGraphicsItem*> &target, c
  * @param rect sets viewBox of the SVG image
  */
 
-void writeToSVG(QByteArray &data, const QList<QGraphicsItem*> &source, const QRectF &rect);
+void writeToSVG(
+        QByteArray &data,
+        const QList<QGraphicsItem*> &source,
+        const QRectF &rect);
 /**
  * write items to a pixel-based image
  * @param data write result here
  * @param source take items from this list
  * @param rect sets view box of the scene, which will be drawn to the image
  */
-void writeToPixelImage(QByteArray &data, const QList<QGraphicsItem*> &source, const QRectF &rect, const qreal resolution = 1., const char *format = "PNG");
+void writeToPixelImage(
+        QByteArray &data,
+        const QList<QGraphicsItem*> &source,
+        const QRectF &rect,
+        const qreal resolution = 1.,
+        const char *format = "PNG");
 
 #endif // SLIDESCENE_H

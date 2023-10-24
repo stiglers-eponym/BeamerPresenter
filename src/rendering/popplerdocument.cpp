@@ -123,7 +123,9 @@ bool PopplerDocument::loadDocument()
                     );
         // Check if a password was entered and try to unlock document.
         // Only user password is required, since we only read the document.
-        if (!ok || password.isEmpty() || newdoc->unlock(QByteArray(), password.toUtf8()))
+        if (!ok
+            || password.isEmpty()
+            || newdoc->unlock(QByteArray(), password.toUtf8()))
         {
             preferences()->showErrorMessage(
                         tr("Error while loading file"),
@@ -150,7 +152,10 @@ bool PopplerDocument::loadDocument()
     return true;
 }
 
-const QPixmap PopplerDocument::getPixmap(const int page, const qreal resolution, const PagePart page_part) const
+const QPixmap PopplerDocument::getPixmap(
+        const int page,
+        const qreal resolution,
+        const PagePart page_part) const
 {
     const std::unique_ptr<Poppler::Page> docpage(doc->page(page));
     if (resolution <= 0 || !docpage)
@@ -164,13 +169,18 @@ const QPixmap PopplerDocument::getPixmap(const int page, const qreal resolution,
     case LeftHalf:
         return QPixmap::fromImage(image.copy(0, 0, image.width()/2, image.height()));
     case RightHalf:
-        return QPixmap::fromImage(image.copy((image.width()+1)/2, 0, image.width()/2, image.height()));
+        return QPixmap::fromImage(image.copy(
+                (image.width()+1)/2, 0,
+                image.width()/2, image.height()));
     default:
         return QPixmap::fromImage(image);
     }
 }
 
-const PngPixmap * PopplerDocument::getPng(const int page, const qreal resolution, const PagePart page_part) const
+const PngPixmap * PopplerDocument::getPng(
+        const int page,
+        const qreal resolution,
+        const PagePart page_part) const
 {
     const std::unique_ptr<Poppler::Page> docpage(doc->page(page));
     if (resolution <= 0 || !docpage)
@@ -209,7 +219,9 @@ const PngPixmap * PopplerDocument::getPng(const int page, const qreal resolution
 int PopplerDocument::overlaysShifted(const int start, const int shift_overlay) const
 {
     // Get the "number" part of shift_overlay by removing the "overlay" flags.
-    int shift = shift_overlay >= 0 ? shift_overlay & ~ShiftOverlays::AnyOverlay : shift_overlay | ShiftOverlays::AnyOverlay;
+    int shift = shift_overlay >= 0
+                    ? shift_overlay & ~ShiftOverlays::AnyOverlay
+                    : shift_overlay | ShiftOverlays::AnyOverlay;
     // Check whether the document has non-trivial page labels and shift has
     // non-trivial overlay flags.
     if (pageLabels.empty() || shift == shift_overlay)
@@ -287,36 +299,42 @@ const PdfLink *PopplerDocument::linkAt(const int page, const QPointF &position) 
     if (!docpage)
         return nullptr;
     const QSizeF pageSize = docpage->pageSizeF();
-    const QPointF relpos = {position.x()/pageSize.width(), position.y()/pageSize.height()};
+    const QPointF relpos = {position.x()/pageSize.width(),
+                            position.y()/pageSize.height()};
     const auto links = docpage->links();
     for (auto it = links.cbegin(); it != links.cend(); ++it)
     {
         if ((*it)->linkArea().normalized().contains(relpos))
         {
             QRectF rect = (*it)->linkArea().normalized();
-            rect.moveTop(rect.top()*pageSize.height());
-            rect.moveLeft(rect.left()*pageSize.width());
-            rect.setSize({pageSize.width() * rect.width(), pageSize.height() * rect.height()});
+            rect = {pageSize.width()*rect.x(),
+                    pageSize.height()*rect.y(),
+                    pageSize.width()*rect.width(),
+                    pageSize.height()*rect.height()};
             switch ((*it)->linkType())
             {
             case Poppler::Link::Goto:
             {
+                const Poppler::LinkGoto *gotolink =
 #if (QT_VERSION_MAJOR >= 6)
-                const Poppler::LinkGoto *gotolink = static_cast<Poppler::LinkGoto*>(it->get());
+                        static_cast<Poppler::LinkGoto*>(it->get());
 #else
-                const Poppler::LinkGoto *gotolink = static_cast<Poppler::LinkGoto*>(*it);
+                        static_cast<Poppler::LinkGoto*>(*it);
 #endif
                 if (gotolink->isExternal())
-                    return new ExternalLink(PdfLink::ExternalPDF, rect, gotolink->fileName());
+                    return new ExternalLink(PdfLink::ExternalPDF,
+                                            rect,
+                                            gotolink->fileName());
                 else
                     return new GotoLink(rect, gotolink->destination().pageNumber() - 1);
             }
             case Poppler::Link::Action:
             {
+                const Poppler::LinkAction *actionlink =
 #if (QT_VERSION_MAJOR >= 6)
-                const Poppler::LinkAction *actionlink = static_cast<Poppler::LinkAction*>(it->get());
+                        static_cast<Poppler::LinkAction*>(it->get());
 #else
-                const Poppler::LinkAction *actionlink = static_cast<Poppler::LinkAction*>(*it);
+                        static_cast<Poppler::LinkAction*>(*it);
 #endif
                 Action action = NoAction;
                 switch (actionlink->actionType())
@@ -354,7 +372,8 @@ const PdfLink *PopplerDocument::linkAt(const int page, const QPointF &position) 
                 case Poppler::LinkAction::Find:
                 // Print will probably never be implemented.
                 case Poppler::LinkAction::Print:
-                // Quit and close are intentionally not handled to avoid unintended closing of the program.
+                // Quit and close are intentionally not handled to avoid unintended
+                // closing of the program.
                 case Poppler::LinkAction::Quit:
                 case Poppler::LinkAction::Close:
                     continue;
@@ -364,22 +383,27 @@ const PdfLink *PopplerDocument::linkAt(const int page, const QPointF &position) 
             }
             case Poppler::Link::Browse:
             {
+                const Poppler::LinkBrowse *browselink =
 #if (QT_VERSION_MAJOR >= 6)
-                const Poppler::LinkBrowse *browselink = static_cast<Poppler::LinkBrowse*>(it->get());
+                        static_cast<Poppler::LinkBrowse*>(it->get());
 #else
-                const Poppler::LinkBrowse *browselink = static_cast<Poppler::LinkBrowse*>(*it);
+                        static_cast<Poppler::LinkBrowse*>(*it);
 #endif
                 const QUrl url = preferences()->resolvePath(browselink->url());
                 if (url.isValid())
-                    return new ExternalLink(url.isLocalFile() ? PdfLink::LocalUrl : PdfLink::RemoteUrl, rect, url);
+                    return new ExternalLink(
+                            url.isLocalFile() ? PdfLink::LocalUrl : PdfLink::RemoteUrl,
+                            rect,
+                            url);
                 break;
             }
             case Poppler::Link::Movie:
             {
+                const Poppler::LinkMovie *movielink =
 #if (QT_VERSION_MAJOR >= 6)
-                const Poppler::LinkMovie *movielink = static_cast<Poppler::LinkMovie*>(it->get());
+                        static_cast<Poppler::LinkMovie*>(it->get());
 #else
-                const Poppler::LinkMovie *movielink = static_cast<Poppler::LinkMovie*>(*it);
+                        static_cast<Poppler::LinkMovie*>(*it);
 #endif
                 // TODO: currently this action is not connected to one specific movie annotation.
                 switch (movielink->operation())
@@ -395,10 +419,11 @@ const PdfLink *PopplerDocument::linkAt(const int page, const QPointF &position) 
             }
             case Poppler::Link::Sound:
             {
+                const Poppler::LinkSound *soundlink =
 #if (QT_VERSION_MAJOR >= 6)
-                const Poppler::LinkSound *soundlink = static_cast<Poppler::LinkSound*>(it->get());
+                        static_cast<Poppler::LinkSound*>(it->get());
 #else
-                const Poppler::LinkSound *soundlink = static_cast<Poppler::LinkSound*>(*it);
+                        static_cast<Poppler::LinkSound*>(*it);
 #endif
                 const Poppler::SoundObject *sound = soundlink->sound();
                 switch (sound->soundType())
@@ -409,19 +434,24 @@ const PdfLink *PopplerDocument::linkAt(const int page, const QPointF &position) 
                     {
                         std::shared_ptr<EmbeddedAudio> media(embeddedSound(sound, rect));
                         media->setVolume(soundlink->volume());
-                        media->setMode(soundlink->repeat() ? MediaAnnotation::Once : MediaAnnotation::Repeat);
+                        media->setMode(
+                                soundlink->repeat()
+                                ? MediaAnnotation::Once
+                                : MediaAnnotation::Repeat);
                         return new MediaLink(PdfLink::SoundLink, rect, media);
                     }
                     break;
                 case Poppler::SoundObject::External:
                 {
                     const QUrl url = preferences()->resolvePath(sound->url());
-                    debug_verbose(DebugMedia, "Found sound annotation:" << url << "on page" << page);
+                    debug_verbose(DebugMedia, "Found sound annotation:"
+                                              << url << "on page" << page);
                     if (url.isValid())
                         return new MediaLink(
                                     PdfLink::SoundLink,
                                     rect,
-                                    std::shared_ptr<MediaAnnotation>(new ExternalMedia(url, rect, MediaAnnotation::Once))
+                                    std::shared_ptr<MediaAnnotation>(
+                                        new ExternalMedia(url, rect, MediaAnnotation::Once))
                                  );
                     break;
                 }
@@ -449,10 +479,15 @@ QList<std::shared_ptr<MediaAnnotation>> PopplerDocument::annotations(const int p
     const std::unique_ptr<Poppler::Page> docpage(doc->page(page));
     if (!docpage)
         return {};
-    debug_verbose(DebugMedia, "Found" << docpage->annotations().size() << "annotations on page" << page);
+    debug_verbose(DebugMedia, "Found" << docpage->annotations().size()
+                              << "annotations on page" << page);
     for (const auto &it : docpage->annotations())
         debug_verbose(DebugMedia, it->subType());
-    const auto annotations = docpage->annotations({Poppler::Annotation::AMovie, Poppler::Annotation::ASound, Poppler::Annotation::ARichMedia, Poppler::Annotation::AScreen});
+    const auto annotations = docpage->annotations({
+            Poppler::Annotation::AMovie,
+            Poppler::Annotation::ASound,
+            Poppler::Annotation::ARichMedia,
+            Poppler::Annotation::AScreen});
     const auto links = docpage->links();
     debug_verbose(DebugMedia, "Found" << links.size() << "links on page" << page);
     if (annotations.empty() && links.empty())
@@ -461,16 +496,18 @@ QList<std::shared_ptr<MediaAnnotation>> PopplerDocument::annotations(const int p
     QList<std::shared_ptr<MediaAnnotation>> list;
     for (auto it = annotations.cbegin(); it != annotations.cend(); ++it)
     {
-        debug_verbose(DebugMedia, "Checking annotation:" << (*it)->subType() << "on page" << page);
+        debug_verbose(DebugMedia, "Checking annotation:"
+                                  << (*it)->subType() << "on page" << page);
         // TODO: try to find better way of handling URLs
         switch ((*it)->subType())
         {
         case Poppler::Annotation::AMovie:
         {
+            const Poppler::MovieObject *movie =
 #if (QT_VERSION_MAJOR >= 6)
-            const Poppler::MovieObject *movie = static_cast<Poppler::MovieAnnotation*>(it->get())->movie();
+                    static_cast<Poppler::MovieAnnotation*>(it->get())->movie();
 #else
-            const Poppler::MovieObject *movie = static_cast<Poppler::MovieAnnotation*>(*it)->movie();
+                    static_cast<Poppler::MovieAnnotation*>(*it)->movie();
 #endif
             const QUrl url = preferences()->resolvePath(movie->url());
             if (url.isValid())
@@ -490,12 +527,15 @@ QList<std::shared_ptr<MediaAnnotation>> PopplerDocument::annotations(const int p
                 default:
                     break;
                 }
-                list.append(std::shared_ptr<MediaAnnotation>(new ExternalMedia(
-                        url,
-                        QRectF(pageSize.width()*(*it)->boundary().x(), pageSize.height()*(*it)->boundary().y(), pageSize.width()*(*it)->boundary().width(), pageSize.height()*(*it)->boundary().height()),
-                        mode
-                    )));
-                debug_verbose(DebugMedia, "Found video annotation:" << url << "on page" << page);
+                QRectF rect = (*it)->boundary();
+                rect = {pageSize.width()*rect.x(),
+                        pageSize.height()*rect.y(),
+                        pageSize.width()*rect.width(),
+                        pageSize.height()*rect.height()};
+                list.append(std::shared_ptr<MediaAnnotation>(
+                        new ExternalMedia(url, rect, mode)));
+                debug_verbose(DebugMedia, "Found video annotation:" << url
+                                          << "on page" << page);
             }
             break;
         }
@@ -519,50 +559,71 @@ QList<std::shared_ptr<MediaAnnotation>> PopplerDocument::annotations(const int p
             MediaAnnotation::Mode mode = MediaAnnotation::Once;
             if (rendition->repeatCount() > 1)
                 mode = MediaAnnotation::Repeat;
-            const auto rect = QRectF(pageSize.width()*sannotation->boundary().x(), pageSize.height()*sannotation->boundary().y(), pageSize.width()*sannotation->boundary().width(), pageSize.height()*sannotation->boundary().height());
+            QRectF rect = sannotation->boundary();
+            rect = {pageSize.width()*rect.x(),
+                    pageSize.height()*rect.y(),
+                    pageSize.width()*rect.width(),
+                    pageSize.height()*rect.height()};
             const QStringList type = rendition->contentType().split("/");
             if (type.first() == "video")
             {
                 flags |= MediaAnnotation::HasVideo;
                 if (rendition->isEmbedded()) {
-                    debug_verbose(DebugMedia, "Found embedded video (screen) annotation: on page" << page);
-                    std::shared_ptr<QByteArray> data = std::make_shared<QByteArray>(rendition->data());
-                    list.append(std::shared_ptr<MediaAnnotation>(new EmbeddedMedia(data, rect, mode, flags)));
+                    debug_verbose(DebugMedia,
+                            "Found embedded video (screen) annotation: on page"
+                            << page);
+                    std::shared_ptr<QByteArray> data =
+                            std::make_shared<QByteArray>(rendition->data());
+                    list.append(std::shared_ptr<MediaAnnotation>(
+                            new EmbeddedMedia(data, rect, mode, flags)));
                 }
                 else {
-                    debug_verbose(DebugMedia, "Found external video (screen) annotation: on page" << page);
-                    list.append(std::shared_ptr<MediaAnnotation>(new ExternalMedia(rendition->fileName(), rect, mode, flags)));
+                    debug_verbose(DebugMedia,
+                            "Found external video (screen) annotation: on page"
+                            << page);
+                    list.append(std::shared_ptr<MediaAnnotation>(
+                            new ExternalMedia(rendition->fileName(), rect, mode, flags)));
                 }
             }
             else if (type.first() == "audio")
             {
                 // TODO (is this actually relevant?)
-                debug_verbose(DebugMedia, "Found unsupported audio (screen) annotation: on page" << page);
+                debug_verbose(DebugMedia,
+                        "Found unsupported audio (screen) annotation: on page"
+                        << page);
             }
             break;
         }
         case Poppler::Annotation::ASound:
         {
+            const Poppler::SoundObject *sound =
 #if (QT_VERSION_MAJOR >= 6)
-            const Poppler::SoundObject *sound = static_cast<Poppler::SoundAnnotation*>(it->get())->sound();
+                    static_cast<Poppler::SoundAnnotation*>(it->get())->sound();
 #else
-            const Poppler::SoundObject *sound = static_cast<Poppler::SoundAnnotation*>(*it)->sound();
+                    static_cast<Poppler::SoundAnnotation*>(*it)->sound();
 #endif
-            QRectF area = (*it)->boundary();
-            area = {pageSize.width()*area.x(), pageSize.height()*area.y(), pageSize.width()*area.width(), pageSize.height()*area.height()};
+            QRectF rect = (*it)->boundary();
+            rect = {pageSize.width()*rect.x(),
+                    pageSize.height()*rect.y(),
+                    pageSize.width()*rect.width(),
+                    pageSize.height()*rect.height()};
             switch (sound->soundType())
             {
             case Poppler::SoundObject::Embedded:
-                debug_verbose(DebugMedia, "Found sound annotation: embedded on page" << page);
+                debug_verbose(DebugMedia, "Found sound annotation: embedded on page"
+                                          << page);
                 if (!sound->data().isEmpty())
-                    list.append(std::shared_ptr<MediaAnnotation>(embeddedSound(sound, area)));
+                    list.append(std::shared_ptr<MediaAnnotation>(
+                            embeddedSound(sound, rect)));
                 break;
             case Poppler::SoundObject::External:
             {
                 const QUrl url = preferences()->resolvePath(sound->url());
-                debug_verbose(DebugMedia, "Found sound annotation:" << url << "on page" << page);
+                debug_verbose(DebugMedia, "Found sound annotation:" << url
+                                          << "on page" << page);
                 if (url.isValid())
-                    list.append(std::shared_ptr<MediaAnnotation>(new ExternalMedia(url, area, MediaAnnotation::Once)));
+                    list.append(std::shared_ptr<MediaAnnotation>(
+                            new ExternalMedia(url, rect, MediaAnnotation::Once)));
                 break;
             }
             }
@@ -585,17 +646,24 @@ QList<std::shared_ptr<MediaAnnotation>> PopplerDocument::annotations(const int p
 #else
             const Poppler::LinkSound *link = static_cast<Poppler::LinkSound*>(*it);
 #endif
-            QRectF area = link->linkArea();
-            area = {pageSize.width()*area.x(), pageSize.height()*area.y(), pageSize.width()*area.width(), pageSize.height()*area.height()};
+            QRectF rect = link->linkArea();
+            rect = {pageSize.width()*rect.x(),
+                    pageSize.height()*rect.y(),
+                    pageSize.width()*rect.width(),
+                    pageSize.height()*rect.height()};
             switch (link->sound()->soundType())
             {
             case Poppler::SoundObject::Embedded:
                 debug_verbose(DebugMedia, "Found sound link: embedded on page" << page);
                 if (!link->sound()->data().isEmpty())
                 {
-                    auto media = std::shared_ptr<EmbeddedAudio>(embeddedSound(link->sound(), area));
+                    auto media = std::shared_ptr<EmbeddedAudio>(
+                            embeddedSound(link->sound(), rect));
                     media->setVolume(link->volume());
-                    media->setMode(link->repeat() ? MediaAnnotation::Once : MediaAnnotation::Repeat);
+                    media->setMode(
+                            link->repeat()
+                            ? MediaAnnotation::Once
+                            : MediaAnnotation::Repeat);
                     list.append(media);
                 }
                 break;
@@ -604,7 +672,8 @@ QList<std::shared_ptr<MediaAnnotation>> PopplerDocument::annotations(const int p
                 const QUrl url = preferences()->resolvePath(link->sound()->url());
                 debug_verbose(DebugMedia, "Found sound link:" << url << "on page" << page);
                 if (url.isValid())
-                    list.append(std::shared_ptr<MediaAnnotation>(new ExternalMedia(url, area, MediaAnnotation::Once)));
+                    list.append(std::shared_ptr<MediaAnnotation>(
+                            new ExternalMedia(url, rect, MediaAnnotation::Once)));
                 break;
             }
             }
@@ -625,8 +694,13 @@ const SlideTransition PopplerDocument::transition(const int page) const
     SlideTransition trans;
     trans.type = static_cast<SlideTransition::Type>(doc_trans->type());
     trans.duration = doc_trans->durationReal();
-    trans.properties = (doc_trans->alignment() == Poppler::PageTransition::Vertical ? SlideTransition::Vertical : 0)
-            | (doc_trans->direction() == Poppler::PageTransition::Outward ? SlideTransition::Outwards : 0);
+    trans.properties = (
+                doc_trans->alignment() == Poppler::PageTransition::Vertical
+                ? SlideTransition::Vertical : 0
+            ) | (
+                doc_trans->direction() == Poppler::PageTransition::Outward
+                ? SlideTransition::Outwards : 0
+            );
     trans.angle = doc_trans->angle();
     if (trans.type == SlideTransition::Fly)
     {
@@ -664,7 +738,9 @@ void PopplerDocument::loadOutline()
     if (root.isEmpty())
         return;
     // dangerous anonymous recursion
-    auto fill_outline = [&](const Poppler::OutlineItem &entry, const char sign, auto& function) -> void
+    auto fill_outline = [&](const Poppler::OutlineItem &entry,
+                            const char sign,
+                            auto& function) -> void
     {
         const int idx = outline.length();
         outline.append({entry.name(), entry.destination()->pageNumber() - 1, -1});
@@ -685,13 +761,18 @@ void PopplerDocument::loadOutline()
         fill_outline(*it++, 1, fill_outline);
     fill_outline(*it, -1, fill_outline);
 #ifdef QT_DEBUG
-    if ((preferences()->debug_level & (DebugRendering|DebugVerbose)) == (DebugRendering|DebugVerbose))
+    if ((preferences()->debug_level & (DebugRendering|DebugVerbose))
+        == (DebugRendering|DebugVerbose))
         for (int i=0; i<outline.length(); i++)
-            qDebug() << DebugRendering << i << outline[i].page << outline[i].next << outline[i].title;
+            qDebug() << DebugRendering << i << outline[i].page
+                     << outline[i].next << outline[i].title;
 #endif
 }
 
-std::pair<int,QList<QRectF>> PopplerDocument::searchAll(const QString &needle, int start_page, bool forward) const
+std::pair<int,QList<QRectF>> PopplerDocument::searchAll(
+        const QString &needle,
+        int start_page,
+        bool forward) const
 {
     if (needle.isEmpty() || !doc)
         return {-1, {}};
@@ -703,14 +784,18 @@ std::pair<int,QList<QRectF>> PopplerDocument::searchAll(const QString &needle, i
     if (forward)
         for (int page = start_page; page < doc->numPages(); ++page)
         {
-            results = doc->page(page)->search(needle, Poppler::Page::IgnoreCase|Poppler::Page::IgnoreDiacritics);
+            results = doc->page(page)->search(
+                    needle,
+                    Poppler::Page::IgnoreCase|Poppler::Page::IgnoreDiacritics);
             if (!results.isEmpty())
                 return {page,results};
         }
     else
         for (int page = start_page; page >= 0; --page)
         {
-            results = doc->page(page)->search(needle, Poppler::Page::IgnoreCase|Poppler::Page::IgnoreDiacritics);
+            results = doc->page(page)->search(
+                    needle,
+                    Poppler::Page::IgnoreCase|Poppler::Page::IgnoreDiacritics);
             if (!results.isEmpty())
                 return {page,results};
         }

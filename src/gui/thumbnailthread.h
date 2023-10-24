@@ -11,7 +11,6 @@
 
 class QPixmap;
 class PdfDocument;
-class ThumbnailButton;
 
 /**
  * @brief Worker object for rendering thumbnails in own thread

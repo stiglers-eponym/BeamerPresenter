@@ -52,7 +52,11 @@
 Master::Master()
 {
     if (preferences())
-        connect(preferences(), &Preferences::sendErrorMessage, this, &Master::showErrorMessage);
+        connect(
+                preferences(),
+                &Preferences::sendErrorMessage,
+                this,
+                &Master::showErrorMessage);
 }
 
 Master::~Master()
@@ -88,9 +92,13 @@ Master::Status Master::readGuiConfig(const QString &filename)
     }
     QJsonParseError error;
     const QJsonDocument doc = QJsonDocument::fromJson(file.readAll(), &error);
-    if (error.error != QJsonParseError::NoError || doc.isNull() || doc.isEmpty() || !doc.isArray())
+    if (error.error != QJsonParseError::NoError
+        || doc.isNull()
+        || doc.isEmpty()
+        || !doc.isArray())
     {
-        qCritical() << tr("GUI config file is empty or parsing failed:") << error.errorString();
+        qCritical() << tr("GUI config file is empty or parsing failed:")
+                    << error.errorString();
         qInfo() << "Note that the GUI config file must represent a single JSON array.";
         return ParseConfigFailed;
     }
@@ -144,7 +152,8 @@ Master::Status Master::readGuiConfig(const QString &filename)
     // Focus a scene view by default. This makes keyboard shortcuts available.
     scenes.first()->views().first()->setFocus();
 
-    debug_msg(DebugDrawing, "Initialized documents:" << known_files << preferences()->file_alias);
+    debug_msg(DebugDrawing, "Initialized documents:" << known_files
+                            << preferences()->file_alias);
     // Load drawings
     // TODO: avoid loading drawings multiple times
     QSet<QString> loaded_paths;
@@ -159,7 +168,10 @@ Master::Status Master::readGuiConfig(const QString &filename)
     return Success;
 }
 
-QWidget* Master::createWidget(const QJsonObject &object, QWidget *parent, QMap<QString, PdfMaster*> &known_files)
+QWidget* Master::createWidget(
+        const QJsonObject &object,
+        QWidget *parent,
+        QMap<QString, PdfMaster*> &known_files)
 {
     QWidget *widget = nullptr;
     const GuiWidget type = string_to_widget_type(object.value("type").toString());
@@ -168,7 +180,9 @@ QWidget* Master::createWidget(const QJsonObject &object, QWidget *parent, QMap<Q
     case VBoxWidgetType:
     case HBoxWidgetType:
     {
-        auto cwidget = new ContainerWidget(type == VBoxWidgetType ? QBoxLayout::TopToBottom : QBoxLayout::LeftToRight, parent);
+        auto cwidget = new ContainerWidget(
+                type == VBoxWidgetType ? QBoxLayout::TopToBottom : QBoxLayout::LeftToRight,
+                parent);
         fillContainerWidget(cwidget, object, known_files);
         widget = cwidget;
         break;
@@ -220,8 +234,12 @@ QWidget* Master::createWidget(const QJsonObject &object, QWidget *parent, QMap<Q
             twidget->setColumns(object.value("columns").toInt(4));
         if (object.value("overlays").toString() == "skip")
             twidget->flags() |= ThumbnailWidget::SkipOverlays;
-        connect(this, &Master::sendAction, twidget, &ThumbnailWidget::handleAction, Qt::QueuedConnection);
-        connect(this, &Master::navigationSignal, twidget, &ThumbnailWidget::focusPage, Qt::QueuedConnection);
+        connect(this, &Master::sendAction,
+                twidget, &ThumbnailWidget::handleAction,
+                Qt::QueuedConnection);
+        connect(this, &Master::navigationSignal,
+                twidget, &ThumbnailWidget::focusPage,
+                Qt::QueuedConnection);
         break;
     }
     case TOCType:
@@ -243,13 +261,26 @@ QWidget* Master::createWidget(const QJsonObject &object, QWidget *parent, QMap<Q
         const QString id = object.value("id").toString();
         auto nwidget = new NotesWidget(label_by_number, id, parent);
         widget = nwidget;
-        connect(this, &Master::navigationSignal, nwidget, &NotesWidget::pageChanged, Qt::QueuedConnection);
-        connect(this, &Master::writeNotes, nwidget, &NotesWidget::writeNotes, Qt::DirectConnection);
-        connect(this, &Master::readNotes, nwidget, &NotesWidget::readNotes, Qt::DirectConnection);
-        connect(nwidget, &NotesWidget::saveDrawings, this, &Master::saveDrawings);
+        connect(this, &Master::navigationSignal,
+                nwidget, &NotesWidget::pageChanged,
+                Qt::QueuedConnection);
+        connect(this, &Master::writeNotes,
+                nwidget, &NotesWidget::writeNotes,
+                Qt::DirectConnection);
+        connect(this, &Master::readNotes,
+                nwidget, &NotesWidget::readNotes,
+                Qt::DirectConnection);
+        connect(nwidget, &NotesWidget::saveDrawings,
+                this, &Master::saveDrawings);
         // TODO: reload initiated from notes widget
-        connect(nwidget, &NotesWidget::loadDrawings, this, [&](const QString name){loadBprDrawings(name, true);});
-        connect(nwidget, &NotesWidget::newUnsavedChanges, this, [&](void){documents.first()->flags() |= PdfMaster::UnsavedNotes;});
+        connect(nwidget,
+                &NotesWidget::loadDrawings,
+                this,
+                [&](const QString name){loadBprDrawings(name, true);});
+        connect(nwidget,
+                &NotesWidget::newUnsavedChanges,
+                this,
+                [&](void){documents.first()->flags() |= PdfMaster::UnsavedNotes;});
         nwidget->zoomIn(object.value("zoom").toInt(10));
         // TODO: maybe find better implementation for this:
         if (object.contains("file"))
@@ -259,17 +290,25 @@ QWidget* Master::createWidget(const QJsonObject &object, QWidget *parent, QMap<Q
     case ToolSelectorType:
     {
         auto toolwidget = new ToolSelectorWidget(parent);
-        connect(this, &Master::sendActionStatus, toolwidget, &ToolSelectorWidget::sendStatus);
+        connect(this, &Master::sendActionStatus,
+                toolwidget, &ToolSelectorWidget::sendStatus);
         toolwidget->addButtons(object.value("buttons").toArray());
-        connect(toolwidget, &ToolSelectorWidget::sendTool, this, &Master::setTool, Qt::QueuedConnection);
-        connect(toolwidget, &ToolSelectorWidget::sendToolProperties, this, &Master::sendToolProperties, Qt::DirectConnection);
-        connect(toolwidget, &ToolSelectorWidget::updatedTool, this, &Master::sendNewToolSoft);
+        connect(toolwidget, &ToolSelectorWidget::sendTool,
+                this, &Master::setTool,
+                Qt::QueuedConnection);
+        connect(toolwidget, &ToolSelectorWidget::sendToolProperties,
+                this, &Master::sendToolProperties,
+                Qt::DirectConnection);
+        connect(toolwidget, &ToolSelectorWidget::updatedTool,
+                this, &Master::sendNewToolSoft);
         widget = toolwidget;
         break;
     }
     case ToolWidgetType:
     {
-        const QBoxLayout::Direction direction = object.value("orientation").toString("horizontal") == "horizontal" ? QBoxLayout::LeftToRight : QBoxLayout::TopToBottom;
+        const QBoxLayout::Direction direction =
+                object.value("orientation").toString("horizontal") == "horizontal"
+                    ? QBoxLayout::LeftToRight : QBoxLayout::TopToBottom;
         ToolWidget *toolwidget = new ToolWidget(parent, direction);
         widget = toolwidget;
         int dev;
@@ -306,7 +345,8 @@ QWidget* Master::createWidget(const QJsonObject &object, QWidget *parent, QMap<Q
             static_cast<SearchWidget*>(widget),
             &SearchWidget::searchPdf,
             this,
-            [&](const QString &text, const int page, const bool forward) {documents.first()->search(text, page, forward);}
+            [&](const QString &text, const int page, const bool forward)
+                {documents.first()->search(text, page, forward);}
             );
         break;
     }
@@ -315,7 +355,11 @@ QWidget* Master::createWidget(const QJsonObject &object, QWidget *parent, QMap<Q
         // This signal could also be connected directly to Master::sendAction,
         // but maybe the clock should be able to send different actions. Since
         // the clock rarely sends actions, this little overhead is unproblematic.
-        connect(static_cast<ClockWidget*>(widget), &ClockWidget::sendAction, this, &Master::handleAction, Qt::QueuedConnection);
+        connect(static_cast<ClockWidget*>(widget),
+                &ClockWidget::sendAction,
+                this,
+                &Master::handleAction,
+                Qt::QueuedConnection);
         break;
     case AnalogClockType:
     {
@@ -323,19 +367,31 @@ QWidget* Master::createWidget(const QJsonObject &object, QWidget *parent, QMap<Q
         // This signal could also be connected directly to Master::sendAction,
         // but maybe the clock should be able to send different actions. Since
         // the clock rarely sends actions, this little overhead is unproblematic.
-        connect(static_cast<AnalogClockWidget*>(widget), &AnalogClockWidget::sendAction, this, &Master::handleAction, Qt::QueuedConnection);
+        connect(static_cast<AnalogClockWidget*>(widget),
+                &AnalogClockWidget::sendAction,
+                this,
+                &Master::handleAction,
+                Qt::QueuedConnection);
         break;
     }
     case TimerType:
     {
         TimerWidget *twidget = new TimerWidget(parent);
         widget = twidget;
-        connect(twidget, &TimerWidget::updateStatus, this, &Master::sendActionStatus);
-        connect(this, &Master::sendAction, twidget, &TimerWidget::handleAction, Qt::QueuedConnection);
-        connect(twidget, &TimerWidget::setTimeForPage, this, &Master::setTimeForPage);
-        connect(twidget, &TimerWidget::getTimeForPage, this, &Master::getTimeForPage);
-        connect(this, &Master::setTotalTime, twidget, &TimerWidget::setTotalTime);
-        connect(this, &Master::navigationSignal, twidget, &TimerWidget::updatePage, Qt::QueuedConnection);
+        connect(twidget, &TimerWidget::updateStatus,
+                this, &Master::sendActionStatus);
+        connect(this, &Master::sendAction,
+                twidget, &TimerWidget::handleAction,
+                Qt::QueuedConnection);
+        connect(twidget, &TimerWidget::setTimeForPage,
+                this, &Master::setTimeForPage);
+        connect(twidget, &TimerWidget::getTimeForPage,
+                this, &Master::getTimeForPage);
+        connect(this, &Master::setTotalTime,
+                twidget, &TimerWidget::setTotalTime);
+        connect(this, &Master::navigationSignal,
+                twidget, &TimerWidget::updatePage,
+                Qt::QueuedConnection);
         if (object.contains("colormap"))
         {
             const QJsonObject cmap_obj = object.value("colormap").toObject();
@@ -361,24 +417,41 @@ QWidget* Master::createWidget(const QJsonObject &object, QWidget *parent, QMap<Q
     }
     case SlideNumberType:
         widget = new SlideNumberWidget(parent);
-        connect(static_cast<SlideNumberWidget*>(widget), &SlideNumberWidget::navigationSignal, this, &Master::navigateToPage);
-        connect(this, &Master::navigationSignal, static_cast<SlideNumberWidget*>(widget), &SlideNumberWidget::updateText, Qt::QueuedConnection);
+        connect(static_cast<SlideNumberWidget*>(widget),
+                &SlideNumberWidget::navigationSignal,
+                this,
+                &Master::navigateToPage);
+        connect(this,
+                &Master::navigationSignal,
+                static_cast<SlideNumberWidget*>(widget),
+                &SlideNumberWidget::updateText,
+                Qt::QueuedConnection);
         break;
     case SlideLabelType:
         widget = new SlideLabelWidget(parent);
-        connect(static_cast<SlideLabelWidget*>(widget), &SlideLabelWidget::navigationSignal, this, &Master::navigateToPage);
-        connect(this, &Master::navigationSignal, static_cast<SlideLabelWidget*>(widget), &SlideLabelWidget::updateText, Qt::QueuedConnection);
+        connect(static_cast<SlideLabelWidget*>(widget),
+                &SlideLabelWidget::navigationSignal,
+                this,
+                &Master::navigateToPage);
+        connect(this,
+                &Master::navigationSignal,
+                static_cast<SlideLabelWidget*>(widget),
+                &SlideLabelWidget::updateText,
+                Qt::QueuedConnection);
         break;
     case GuiWidget::InvalidType:
         showErrorMessage(
                     tr("Error while reading GUI config"),
-                    tr("Ignoring entry in GUI config with invalid type ") + object.value("type").toString());
-        qCritical() << tr("Ignoring entry in GUI config with invalid type ") + object.value("type").toString();
+                    tr("Ignoring entry in GUI config with invalid type ")
+                        + object.value("type").toString());
+        qCritical() << tr("Ignoring entry in GUI config with invalid type ")
+                            + object.value("type").toString();
         break;
     }
     if (!widget)
     {
-        qCritical() << tr("An error occurred while trying to create a widget with JSON object") << object;
+        qCritical() << tr("An error occurred while trying to create a widget with JSON object")
+                    << object;
         return nullptr;
     }
     widget->installEventFilter(this);
@@ -442,7 +515,10 @@ SlideView *Master::createSlide(const QJsonObject &object, PdfMaster *pdf, QWidge
     }
     if (is_master)
         writable_preferences()->default_page_part = page_part;
-    pdf->flags() |= page_part == FullPage ? PdfMaster::FullPageUsed : static_cast<PdfMaster::Flags>(page_part);
+    pdf->flags() |=
+            page_part == FullPage
+                ? PdfMaster::FullPageUsed
+                : static_cast<PdfMaster::Flags>(page_part);
 
     SlideScene *scene {nullptr};
     // Check whether we need a new SlideScene.
@@ -466,16 +542,30 @@ SlideView *Master::createSlide(const QJsonObject &object, PdfMaster *pdf, QWidge
         }
         else
             pdf->getScenes().append(scene);
-        connect(scene, &SlideScene::newUnsavedDrawings, pdf, &PdfMaster::newUnsavedDrawings);
-        connect(scene, &SlideScene::navigationSignal, this, &Master::navigateToPage, Qt::QueuedConnection);
-        connect(scene, &SlideScene::sendAction, this, &Master::handleAction, Qt::QueuedConnection);
-        connect(this, &Master::sendAction, scene, &SlideScene::receiveAction);
-        connect(this, &Master::sendNewToolScene, scene, &SlideScene::toolChanged);
-        connect(this, &Master::sendToolProperties, scene, &SlideScene::toolPropertiesChanged, Qt::DirectConnection);
-        connect(this, &Master::postRendering, scene, &SlideScene::postRendering, Qt::QueuedConnection);
-        connect(this, &Master::prepareNavigationSignal, scene, &SlideScene::prepareNavigationEvent);
-        connect(pdf, &PdfMaster::updateSearch, scene, &SlideScene::updateSearchResults);
-        connect(preferences(), &Preferences::stopDrawing, scene, &SlideScene::stopDrawing);
+        connect(scene, &SlideScene::newUnsavedDrawings,
+                pdf, &PdfMaster::newUnsavedDrawings);
+        connect(scene, &SlideScene::navigationSignal,
+                this, &Master::navigateToPage,
+                Qt::QueuedConnection);
+        connect(scene, &SlideScene::sendAction,
+                this, &Master::handleAction,
+                Qt::QueuedConnection);
+        connect(this, &Master::sendAction,
+                scene, &SlideScene::receiveAction);
+        connect(this, &Master::sendNewToolScene,
+                scene, &SlideScene::toolChanged);
+        connect(this, &Master::sendToolProperties,
+                scene, &SlideScene::toolPropertiesChanged,
+                Qt::DirectConnection);
+        connect(this, &Master::postRendering,
+                scene, &SlideScene::postRendering,
+                Qt::QueuedConnection);
+        connect(this, &Master::prepareNavigationSignal,
+                scene, &SlideScene::prepareNavigationEvent);
+        connect(pdf, &PdfMaster::updateSearch,
+                scene, &SlideScene::updateSearchResults);
+        connect(preferences(), &Preferences::stopDrawing,
+                scene, &SlideScene::stopDrawing);
     }
     else if (is_master)
     {
@@ -508,7 +598,8 @@ SlideView *Master::createSlide(const QJsonObject &object, PdfMaster *pdf, QWidge
     if (!object.value("autoplay").toBool(true))
         scene->flags() &= ~(SlideScene::AutoplayVideo|SlideScene::AutoplaySounds);
     if (!object.value("media").toBool(true))
-        scene->flags() &= ~(SlideScene::LoadMedia | SlideScene::CacheVideos | SlideScene::AutoplayVideo | SlideScene::AutoplaySounds);
+        scene->flags() &= ~(SlideScene::LoadMedia | SlideScene::CacheVideos
+                            | SlideScene::AutoplayVideo | SlideScene::AutoplaySounds);
     if (!object.value("transitions").toBool(true))
         scene->flags() &= ~SlideScene::ShowTransitions;
     if (!object.value("cache videos").toBool(true))
@@ -518,8 +609,12 @@ SlideView *Master::createSlide(const QJsonObject &object, PdfMaster *pdf, QWidge
     // Mute slides by default, except if they are marked as master.
     if (!object.value("mute").toBool(!object.value("master").toBool(false)))
         scene->flags() &= ~SlideScene::MuteSlide;
-    connect(slide, &SlideView::sendAction, this, &Master::handleAction, Qt::QueuedConnection);
-    connect(scene, &SlideScene::navigationToViews, slide, &SlideView::pageChanged, Qt::DirectConnection);
+    connect(slide, &SlideView::sendAction,
+            this, &Master::handleAction,
+            Qt::QueuedConnection);
+    connect(scene, &SlideScene::navigationToViews,
+            slide, &SlideView::pageChanged,
+            Qt::DirectConnection);
     return slide;
 }
 
@@ -542,11 +637,12 @@ PdfMaster *Master::openFile(QString name, QMap<QString, PdfMaster*> &known_files
     if (!fileinfo.isFile())
         // Ask the user to open a file.
         fileinfo = QFileInfo(QFileDialog::getOpenFileName(
-                                 nullptr,
-                                 tr("Open file") + " \"" + name + "\"",
-                                 "",
-                                 tr("Documents (*.pdf);;BeamerPresenter/Xournal++ files (*.bpr *.xoj *.xopp *.xml);;All files (*)")
-                             ));
+                nullptr,
+                tr("Open file") + " \"" + name + "\"",
+                "",
+                tr("Documents (*.pdf);;BeamerPresenter/Xournal++ files "
+                   "(*.bpr *.xoj *.xopp *.xml);;All files (*)")
+            ));
     if (!fileinfo.isFile())
     {
         // File does not exist, mark given aliases as invalid.
@@ -560,19 +656,29 @@ PdfMaster *Master::openFile(QString name, QMap<QString, PdfMaster*> &known_files
     // File exists, create a new PdfMaster object.
     const QString abs_path = fileinfo.absoluteFilePath();
     const QMimeType type = QMimeDatabase().mimeTypeForFile(abs_path);
-    if (type.inherits("application/gzip") || type.inherits("text/xml") || type.inherits("application/x-xopp") || type.inherits("application/x-bpr"))
+    if (type.inherits("application/gzip")
+        || type.inherits("text/xml")
+        || type.inherits("application/x-xopp")
+        || type.inherits("application/x-bpr"))
     {
         debug_msg(DebugDrawing, "Loading drawing file:" << name << abs_path << known_files);
         loadBprInit(abs_path);
         for (const auto doc : documents)
             known_files[doc->getFilename()] = doc;
-        for (auto it = preferences()->file_alias.cbegin(); it != preferences()->file_alias.cend(); ++it)
+        for (auto it = preferences()->file_alias.cbegin();
+             it != preferences()->file_alias.cend();
+             ++it)
         {
             const QString abs_alias_path = QFileInfo(*it).absoluteFilePath();
             for (const auto doc : documents)
             {
-                debug_msg(DebugDrawing, "Comparing:" << name << abs_alias_path << doc->getFilename() << doc->drawingsPath());
-                if (doc->getFilename() == abs_alias_path || doc->getFilename() == *it || doc->drawingsPath() == *it || doc->drawingsPath() == abs_alias_path)
+                debug_msg(DebugDrawing, "Comparing:" << name << abs_alias_path
+                                        << doc->getFilename()
+                                        << doc->drawingsPath());
+                if (doc->getFilename() == abs_alias_path
+                    || doc->getFilename() == *it
+                    || doc->drawingsPath() == *it
+                    || doc->drawingsPath() == abs_alias_path)
                 {
                     known_files[it.key()] = doc;
                     known_files[*it] = doc;
@@ -584,7 +690,8 @@ PdfMaster *Master::openFile(QString name, QMap<QString, PdfMaster*> &known_files
         }
         if (known_files.contains(name))
             return known_files.value(name);
-        debug_msg(DebugDrawing, "Alias not found:" << name << known_files << preferences()->file_alias);
+        debug_msg(DebugDrawing, "Alias not found:" << name
+                                << known_files << preferences()->file_alias);
         if (!documents.empty())
             return documents.first();
         return nullptr;
@@ -613,14 +720,26 @@ PdfMaster *Master::createPdfMaster(QString abs_path)
     // which may already be required in initialization.
     auto pdf = new PdfMaster();
 
-    connect(this, &Master::sendAction, pdf, &PdfMaster::receiveAction);
-    connect(this, &Master::navigationSignal, pdf, &PdfMaster::distributeNavigationEvents, Qt::QueuedConnection);
-    connect(this, &Master::setTimeForPage, pdf, &PdfMaster::setTimeForPage);
-    connect(this, &Master::getTimeForPage, pdf, &PdfMaster::getTimeForPage);
-    connect(pdf, &PdfMaster::writeNotes, this, &Master::writeNotes, Qt::DirectConnection);
-    connect(pdf, &PdfMaster::readNotes, this, &Master::readNotes, Qt::DirectConnection);
-    connect(pdf, &PdfMaster::setTotalTime, this, &Master::setTotalTime);
-    connect(pdf, &PdfMaster::navigationSignal, this, &Master::navigateToPage, Qt::DirectConnection);
+    connect(this, &Master::sendAction,
+            pdf, &PdfMaster::receiveAction);
+    connect(this, &Master::navigationSignal,
+            pdf, &PdfMaster::distributeNavigationEvents,
+            Qt::QueuedConnection);
+    connect(this, &Master::setTimeForPage,
+            pdf, &PdfMaster::setTimeForPage);
+    connect(this, &Master::getTimeForPage,
+            pdf, &PdfMaster::getTimeForPage);
+    connect(pdf, &PdfMaster::writeNotes,
+            this, &Master::writeNotes,
+            Qt::DirectConnection);
+    connect(pdf, &PdfMaster::readNotes,
+            this, &Master::readNotes,
+            Qt::DirectConnection);
+    connect(pdf, &PdfMaster::setTotalTime,
+            this, &Master::setTotalTime);
+    connect(pdf, &PdfMaster::navigationSignal,
+            this, &Master::navigateToPage,
+            Qt::DirectConnection);
 
     // Initialize document, try to laod PDF
     // TODO: should this be done at this point?
@@ -633,13 +752,16 @@ PdfMaster *Master::createPdfMaster(QString abs_path)
     }
 
     // Adjust number of pages in preferences
-    if (preferences()->number_of_pages && preferences()->number_of_pages != pdf->numberOfPages())
+    if (preferences()->number_of_pages
+        && preferences()->number_of_pages != pdf->numberOfPages())
     {
         showErrorMessage(
                     tr("Error while loading PDF file"),
-                    tr("Loaded PDF files with different numbers of pages. You should expect errors."));
+                    tr("Loaded PDF files with different numbers of pages. "
+                       "You should expect errors."));
         qCritical() << tr("Loaded PDF files with different numbers of pages.");
-        writable_preferences()->number_of_pages = std::max(preferences()->number_of_pages, pdf->numberOfPages());
+        writable_preferences()->number_of_pages =
+                std::max(preferences()->number_of_pages, pdf->numberOfPages());
     }
     else
         writable_preferences()->number_of_pages = pdf->numberOfPages();
@@ -648,13 +770,18 @@ PdfMaster *Master::createPdfMaster(QString abs_path)
     return pdf;
 }
 
-const PixCache *Master::getPixcache(PdfDocument *doc, const PagePart page_part, int cache_hash, const int threads)
+const PixCache *Master::getPixcache(
+        PdfDocument *doc,
+        const PagePart page_part,
+        int cache_hash,
+        const int threads)
 {
     if (cache_hash == -1)
         // -1 is the "default hash" and indicates that a new object has to
         // be created.
         // Set hash to -2 or smaller.
-        cache_hash = (caches.isEmpty() || caches.firstKey() >= 0) ? -2 : caches.firstKey() - 1;
+        cache_hash = (caches.isEmpty() || caches.firstKey() >= 0)
+                        ? -2 : caches.firstKey() - 1;
     else
     {
         // Check if a PixCache object with the given hash already exists.
@@ -673,16 +800,27 @@ const PixCache *Master::getPixcache(PdfDocument *doc, const PagePart page_part, 
     // Move the PixCache object to an own thread.
     pixcache->moveToThread(new QThread(pixcache));
     // Make sure that pixcache is initialized when the thread is started.
-    connect(pixcache->thread(), &QThread::started, pixcache, &PixCache::init, Qt::QueuedConnection);
-    connect(this, &Master::navigationSignal, pixcache, &PixCache::pageNumberChanged, Qt::QueuedConnection);
-    connect(this, &Master::sendScaledMemory, pixcache, &PixCache::setScaledMemory, Qt::QueuedConnection);
-    connect(this, &Master::clearCache, pixcache, &PixCache::clear, Qt::QueuedConnection);
+    connect(pixcache->thread(), &QThread::started,
+            pixcache, &PixCache::init,
+            Qt::QueuedConnection);
+    connect(this, &Master::navigationSignal,
+            pixcache, &PixCache::pageNumberChanged,
+            Qt::QueuedConnection);
+    connect(this, &Master::sendScaledMemory,
+            pixcache, &PixCache::setScaledMemory,
+            Qt::QueuedConnection);
+    connect(this, &Master::clearCache,
+            pixcache, &PixCache::clear,
+            Qt::QueuedConnection);
     // Start the thread.
     pixcache->thread()->start();
     return pixcache;
 }
 
-void Master::fillContainerWidget(ContainerBaseClass *parent, const QJsonObject &parent_obj, QMap<QString, PdfMaster*> &known_files)
+void Master::fillContainerWidget(
+        ContainerBaseClass *parent,
+        const QJsonObject &parent_obj,
+        QMap<QString, PdfMaster*> &known_files)
 {
     const QJsonArray array = parent_obj.value("children").toArray();
 #if (QT_VERSION >= QT_VERSION_CHECK(5,14,0))
@@ -734,16 +872,19 @@ bool Master::eventFilter(QObject *obj, QEvent *event)
     // Search shortcuts for given key sequence.
     {
         QWidget* widget = shortcuts.value(key_code);
-        debug_msg(DebugKeyInput, "Key action:" << widget << kevent << (kevent->key() | (kevent->modifiers() & ~Qt::KeypadModifier)));
+        debug_msg(DebugKeyInput, "Key action:" << widget << kevent
+                                 << (kevent->key() | (kevent->modifiers() & ~Qt::KeypadModifier)));
         if (widget)
         {
             widget->show();
             widget->setFocus();
-            QStackedWidget *stackwidget = dynamic_cast<QStackedWidget*>(widget->parentWidget());
+            QStackedWidget *stackwidget =
+                    dynamic_cast<QStackedWidget*>(widget->parentWidget());
             debug_msg(DebugKeyInput, widget << stackwidget << widget->parentWidget());
             if (stackwidget)
             {
-                QTabWidget *tabwidget = dynamic_cast<QTabWidget*>(stackwidget->parentWidget());
+                QTabWidget *tabwidget =
+                        dynamic_cast<QTabWidget*>(stackwidget->parentWidget());
                 if (tabwidget)
                     tabwidget->setCurrentWidget(widget);
                 else
@@ -752,13 +893,15 @@ bool Master::eventFilter(QObject *obj, QEvent *event)
         }
     }
     // Search actions in preferences for given key sequence.
-    for (Action action : static_cast<const QList<Action>>(preferences()->key_actions.values(key_code)))
+    for (Action action : static_cast<const QList<Action>>(
+            preferences()->key_actions.values(key_code)))
     {
         debug_msg(DebugKeyInput, "Global key action:" << action);
         handleAction(action);
     }
     // Search tools in preferences for given key sequence.
-    for (const auto tool : static_cast<const QList<Tool*>>(preferences()->key_tools.values(key_code)))
+    for (const auto tool : static_cast<const QList<Tool*>>(
+            preferences()->key_tools.values(key_code)))
         if (tool && tool->device())
             setTool(tool->copy());
     event->accept();
@@ -782,10 +925,12 @@ void Master::handleAction(const Action action)
         navigateToPage(preferences()->page - 1);
         break;
     case NextSkippingOverlays:
-        navigateToPage(documents.first()->overlaysShifted(preferences()->page, 1 | FirstOverlay));
+        navigateToPage(documents.first()->overlaysShifted(
+                preferences()->page, 1 | FirstOverlay));
         break;
     case PreviousSkippingOverlays:
-        navigateToPage(documents.first()->overlaysShifted(preferences()->page, -1 & ~FirstOverlay));
+        navigateToPage(documents.first()->overlaysShifted(
+                preferences()->page, -1 & ~FirstOverlay));
         break;
     case FirstPage:
         navigateToPage(0);
@@ -913,8 +1058,12 @@ void Master::leavePage(const int page) const
     for (const auto doc : std::as_const(documents))
     {
         doc->clearHistory(page, preferences()->history_length_hidden_slides);
-        doc->clearHistory(page | PagePart::LeftHalf, preferences()->history_length_hidden_slides);
-        doc->clearHistory(page | PagePart::RightHalf, preferences()->history_length_hidden_slides);
+        doc->clearHistory(
+                page | PagePart::LeftHalf,
+                preferences()->history_length_hidden_slides);
+        doc->clearHistory(
+                page | PagePart::RightHalf,
+                preferences()->history_length_hidden_slides);
         if (doc->flexiblePageSizes())
             flexible_page_numbers = true;
     }
@@ -941,7 +1090,8 @@ void Master::distributeMemory()
     if (scale <= 0)
         return;
     scale = preferences()->max_memory / scale;
-    debug_msg(DebugCache, "Distributing memory. scale =" << scale << ", max. memory =" << preferences()->max_memory);
+    debug_msg(DebugCache, "Distributing memory. scale =" << scale
+                          << ", max. memory =" << preferences()->max_memory);
     emit sendScaledMemory(scale);
 }
 
@@ -983,7 +1133,8 @@ void Master::postNavigation() noexcept
         return;
     const int page = preferences()->page;
     const qreal duration =
-            preferences()->global_flags & Preferences::AutoSlideChanges && page == preferences()->previous_page + 1
+            preferences()->global_flags & Preferences::AutoSlideChanges
+                && page == preferences()->previous_page + 1
             ? documents.first()->getDocument()->duration(preferences()->page)
             : -1.;
     if (duration == 0.)
@@ -1016,7 +1167,8 @@ void Master::setTool(Tool *tool) const noexcept
     emit sendNewToolSoft(tool);
 
 #ifdef QT_DEBUG
-    if ((preferences()->debug_level & DebugVerbose) && preferences()->debug_level & DebugDrawing)
+    if ((preferences()->debug_level & DebugVerbose)
+        && preferences()->debug_level & DebugDrawing)
     {
         const auto &current_tools = preferences()->current_tools;
         const auto end = current_tools.cend();
@@ -1049,7 +1201,8 @@ QString Master::getSaveFileName()
 
 void Master::timerEvent(QTimerEvent *event)
 {
-    debug_msg(DebugPageChange, "timer event" << event->timerId() << cacheVideoTimer_id << slideDurationTimer_id);
+    debug_msg(DebugPageChange, "timer event" << event->timerId()
+                               << cacheVideoTimer_id << slideDurationTimer_id);
     killTimer(event->timerId());
     if (event->timerId() == cacheVideoTimer_id)
     {
@@ -1065,7 +1218,8 @@ void Master::timerEvent(QTimerEvent *event)
 
 bool Master::saveBpr(const QString &filename)
 {
-    // Save elements and attributes specific to BeamerPresenter only if file name does not end with ".xopp".
+    // Save elements and attributes specific to BeamerPresenter
+    // only if file name does not end with ".xopp".
     const bool save_bp_specific = !filename.endsWith(".xopp", Qt::CaseInsensitive);
     QBuffer buffer;
     buffer.open(QBuffer::WriteOnly);
@@ -1110,11 +1264,18 @@ bool Master::writeXml(QBuffer &buffer, const bool save_bp_specific)
     writer.writeStartElement("xournal");
     writer.writeAttribute("creator", "beamerpresenter " APP_VERSION);
 
-    // Save elements and attributes specific to BeamerPresenter only if file name does not end with ".xopp".
+    // Save elements and attributes specific to BeamerPresenter only if
+    // file name does not end with ".xopp".
     if (save_bp_specific)
-        writer.writeTextElement("title", "BeamerPresenter document, compatible with Xournal++ - see https://github.com/stiglers-eponym/BeamerPresenter");
+        writer.writeTextElement(
+                "title",
+                "BeamerPresenter document, compatible with Xournal++ "
+                "- see https://github.com/stiglers-eponym/BeamerPresenter");
     else
-        writer.writeTextElement("title", "Xournal++ document generated by BeamerPresenter in compatibility mode - see https://github.com/stiglers-eponym/BeamerPresenter");
+        writer.writeTextElement(
+                "title",
+                "Xournal++ document generated by BeamerPresenter in compatibility "
+                "mode - see https://github.com/stiglers-eponym/BeamerPresenter");
 
     {
         // Write preview picture from default PDF.
@@ -1138,10 +1299,15 @@ bool Master::writeXml(QBuffer &buffer, const bool save_bp_specific)
         // Some attributes specific for beamerpresenter (Xournal++ will ignore that)
         writer.writeStartElement("beamerpresenter");
         if (preferences()->msecs_total)
-            writer.writeAttribute("duration", QTime::fromMSecsSinceStartOfDay(preferences()->msecs_total).toString("h:mm:ss"));
+            writer.writeAttribute(
+                    "duration",
+                    QTime::fromMSecsSinceStartOfDay(
+                        preferences()->msecs_total).toString("h:mm:ss"));
         writer.writeStartElement("documents");
         //for (auto &&[alias, filename] : preferences()->file_alias.asKeyValueRange())
-        for (auto it = preferences()->file_alias.cbegin(); it != preferences()->file_alias.cend(); ++it)
+        for (auto it = preferences()->file_alias.cbegin();
+             it != preferences()->file_alias.cend();
+             ++it)
         {
             writer.writeStartElement("file");
             writer.writeAttribute("alias", it.key());
@@ -1162,7 +1328,8 @@ bool Master::writeXml(QBuffer &buffer, const bool save_bp_specific)
     {
         preferences()->showErrorMessage(
                     tr("Error while saving bpr/xopp file"),
-                    tr("Writing document resulted in error! Resulting document is probably corrupt."));
+                    tr("Writing document resulted in error! Resulting "
+                       "document is probably corrupt."));
         return false;
     }
     return true;
@@ -1199,12 +1366,15 @@ bool Master::loadXmlInit(QBuffer *buffer, const QString &abs_path)
     if (!buffer)
         return false;
     QXmlStreamReader reader(buffer);
-    while (!reader.atEnd() && (reader.readNext() != QXmlStreamReader::StartElement || reader.name().toUtf8() != "xournal")) {}
+    while (!reader.atEnd()
+           && (reader.readNext() != QXmlStreamReader::StartElement
+               || reader.name().toUtf8() != "xournal")) {}
     if (reader.atEnd())
     {
         preferences()->showErrorMessage(
                     tr("Error while loading file"),
-                    tr("Failed to read bpr/xopp document: ") + reader.errorString());
+                    tr("Failed to read bpr/xopp document: ")
+                        + reader.errorString());
         reader.clear();
         return false;
     }
@@ -1222,7 +1392,8 @@ bool Master::loadXmlInit(QBuffer *buffer, const QString &abs_path)
     if (reader.hasError())
         preferences()->showErrorMessage(
                     tr("Error while loading file"),
-                    tr("Failed to read bpr/xopp document: ") + reader.errorString());
+                    tr("Failed to read bpr/xopp document: ")
+                        + reader.errorString());
     reader.clear();
     return true;
 }
@@ -1233,12 +1404,15 @@ bool Master::loadXmlDrawings(QBuffer *buffer, const bool clear_drawings)
         return false;
     debug_msg(DebugDrawing, "Loading drawings from buffer");
     QXmlStreamReader reader(buffer);
-    while (!reader.atEnd() && (reader.readNext() != QXmlStreamReader::StartElement || reader.name().toUtf8() != "xournal")) {}
+    while (!reader.atEnd()
+           && (reader.readNext() != QXmlStreamReader::StartElement
+               || reader.name().toUtf8() != "xournal")) {}
     if (reader.atEnd())
     {
         preferences()->showErrorMessage(
                     tr("Error while loading file"),
-                    tr("Failed to read bpr/xopp document: ") + reader.errorString());
+                    tr("Failed to read bpr/xopp document: ")
+                        + reader.errorString());
         reader.clear();
         return false;
     }
@@ -1256,12 +1430,16 @@ bool Master::loadXmlDrawings(QBuffer *buffer, const bool clear_drawings)
     if (reader.hasError())
         preferences()->showErrorMessage(
                     tr("Error while loading file"),
-                    tr("Failed to read bpr/xopp document: ") + reader.errorString());
+                    tr("Failed to read bpr/xopp document: ")
+                        + reader.errorString());
     reader.clear();
     return true;
 }
 
-PdfMaster *Master::readXmlPageBg(QXmlStreamReader &reader, PdfMaster *pdf, const QString &drawings_path)
+PdfMaster *Master::readXmlPageBg(
+        QXmlStreamReader &reader,
+        PdfMaster *pdf,
+        const QString &drawings_path)
 {
     if (reader.name().toUtf8() != "page")
         return pdf;
@@ -1273,14 +1451,19 @@ PdfMaster *Master::readXmlPageBg(QXmlStreamReader &reader, PdfMaster *pdf, const
             if (!filename.isEmpty())
             {
                 const QString abs_filename = QFileInfo(filename).absoluteFilePath();
-                if (!pdf || (abs_filename != pdf->getFilename() && filename != pdf->getFilename()))
+                if (!pdf ||
+                    (abs_filename != pdf->getFilename()
+                        && filename != pdf->getFilename()))
                 {
                     pdf = nullptr;
                     for (const auto doc : documents)
                     {
-                        if (doc && (doc->getFilename() == filename || doc->getFilename() == abs_filename))
+                        if (doc &&
+                            (doc->getFilename() == filename
+                                || doc->getFilename() == abs_filename))
                         {
-                            debug_msg(DebugDrawing, "Found existing document" << doc->getFilename());
+                            debug_msg(DebugDrawing, "Found existing document"
+                                                    << doc->getFilename());
                             pdf = doc;
                             pdf->setDrawingsPath(drawings_path);
                             break;
@@ -1304,7 +1487,10 @@ PdfMaster *Master::readXmlPageBg(QXmlStreamReader &reader, PdfMaster *pdf, const
     return pdf;
 }
 
-PdfMaster *Master::readXmlPage(QXmlStreamReader &reader, PdfMaster *pdf, const bool clear_drawings)
+PdfMaster *Master::readXmlPage(
+        QXmlStreamReader &reader,
+        PdfMaster *pdf,
+        const bool clear_drawings)
 {
     if (reader.name().toUtf8() != "page")
         return pdf;
@@ -1329,14 +1515,19 @@ PdfMaster *Master::readXmlPage(QXmlStreamReader &reader, PdfMaster *pdf, const b
             if (!filename.isEmpty())
             {
                 const QString abs_filename = QFileInfo(filename).absoluteFilePath();
-                if (!pdf || (abs_filename != pdf->getFilename() && filename != pdf->getFilename()))
+                if (!pdf ||
+                    (abs_filename != pdf->getFilename()
+                            && filename != pdf->getFilename()))
                 {
                     pdf = nullptr;
                     for (const auto doc : documents)
                     {
-                        if (doc && (doc->getFilename() == filename || doc->getFilename() == abs_filename))
+                        if (doc &&
+                            (doc->getFilename() == filename
+                                    || doc->getFilename() == abs_filename))
                         {
-                            debug_msg(DebugDrawing, "Found existing document" << doc->getFilename());
+                            debug_msg(DebugDrawing, "Found existing document"
+                                                    << doc->getFilename());
                             pdf = doc;
                             break;
                         }
@@ -1375,7 +1566,9 @@ PdfMaster *Master::readXmlPage(QXmlStreamReader &reader, PdfMaster *pdf, const b
 bool Master::readXmlHeader(QXmlStreamReader &reader, const bool read_notes)
 {
     debug_msg(DebugDrawing, "Reading header");
-    const QTime time = QTime::fromString(reader.attributes().value("duration").toString(), "h:mm:ss");
+    const QTime time = QTime::fromString(
+            reader.attributes().value("duration").toString(),
+            "h:mm:ss");
     if (time.isValid())
     {
         emit setTotalTime(time);
@@ -1399,7 +1592,10 @@ bool Master::readXmlHeader(QXmlStreamReader &reader, const bool read_notes)
                     const QString alias = attr.value("alias").toString();
                     const QString path = attr.value("path").toString();
                     const QString old_alias = preferences()->file_alias.value(alias);
-                    if (!alias.isEmpty() && !path.isEmpty() && (old_alias.isEmpty() || !old_alias.endsWith(".pdf", Qt::CaseInsensitive)))
+                    if (!alias.isEmpty()
+                            && !path.isEmpty()
+                            && (old_alias.isEmpty()
+                                || !old_alias.endsWith(".pdf", Qt::CaseInsensitive)))
                         writable_preferences()->file_alias[alias] = path;
                 }
                 if (!reader.isEndElement())

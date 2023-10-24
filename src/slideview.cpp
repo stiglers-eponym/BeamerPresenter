@@ -23,17 +23,27 @@ SlideView::SlideView(SlideScene *scene, const PixCache *cache, QWidget *parent) 
     setMouseTracking(true);
     setAttribute(Qt::WA_AcceptTouchEvents);
     grabGesture(Qt::SwipeGesture);
-    setRenderHints(QPainter::Antialiasing | QPainter::TextAntialiasing | QPainter::RenderHint::SmoothPixmapTransform);
+    setRenderHints(QPainter::Antialiasing
+                   | QPainter::TextAntialiasing
+                   | QPainter::RenderHint::SmoothPixmapTransform);
     setMinimumSize(4, 3);
     setFocusPolicy(Qt::StrongFocus);
     setFrameShape(QFrame::NoFrame);
     setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
     setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
-    connect(this, &SlideView::requestPage, cache, &PixCache::requestPage, Qt::QueuedConnection);
-    connect(cache, &PixCache::pageReady, this, &SlideView::pageReady, Qt::QueuedConnection);
-    connect(this, &SlideView::resizeCache, cache, &PixCache::updateFrame, Qt::QueuedConnection);
-    connect(this, &SlideView::getPixmapBlocking, cache, &PixCache::getPixmap, Qt::BlockingQueuedConnection);
+    connect(this, &SlideView::requestPage,
+            cache, &PixCache::requestPage,
+            Qt::QueuedConnection);
+    connect(cache, &PixCache::pageReady,
+            this, &SlideView::pageReady,
+            Qt::QueuedConnection);
+    connect(this, &SlideView::resizeCache,
+            cache, &PixCache::updateFrame,
+            Qt::QueuedConnection);
+    connect(this, &SlideView::getPixmapBlocking,
+            cache, &PixCache::getPixmap,
+            Qt::BlockingQueuedConnection);
     emit resizeCache(size());
 }
 
@@ -68,7 +78,9 @@ void SlideView::pageChanged(const int page, SlideScene *scene)
     resetTransform();
     scale(resolution, resolution);
     waitingForPage = page;
-    debug_msg(DebugPageChange, "Request page" << page << "by" << this << "from" << scene << "with size" << scene->sceneRect().size() << size());
+    debug_msg(DebugPageChange, "Request page" << page << "by" << this
+                               << "from" << scene << "with size"
+                               << scene->sceneRect().size() << size());
     emit requestPage(page, resolution);
 }
 
@@ -173,7 +185,8 @@ bool SlideView::event(QEvent *event)
     {
         const QGestureEvent *gesture_event = static_cast<QGestureEvent*>(event);
         debug_verbose(DebugOtherInput, gesture_event);
-        QSwipeGesture *swipe = static_cast<QSwipeGesture*>(gesture_event->gesture(Qt::SwipeGesture));
+        QSwipeGesture *swipe = static_cast<QSwipeGesture*>(
+                gesture_event->gesture(Qt::SwipeGesture));
         if (swipe && swipe->state() == Qt::GestureFinished)
         {
             event->accept();
@@ -188,18 +201,22 @@ bool SlideView::event(QEvent *event)
                 gesture = SwipeUp;
             else
             {
-                debug_msg(DebugOtherInput, "Swipe gesture ignored, angle:" << swipe->swipeAngle());
+                debug_msg(DebugOtherInput, "Swipe gesture ignored, angle:"
+                                           << swipe->swipeAngle());
                 return false;
             }
-            debug_msg(DebugOtherInput, "Swipe gesture, angle:" << swipe->swipeAngle() << "interpret as:" << gesture);
+            debug_msg(DebugOtherInput, "Swipe gesture, angle:" << swipe->swipeAngle()
+                                       << "interpret as:" << gesture);
             const QList<Action> actions {preferences()->gesture_actions.values(gesture)};
             for (auto action : actions)
                 emit sendAction(action);
             return !actions.isEmpty();
         }
-        const QPanGesture *pan = static_cast<QPanGesture*>(gesture_event->gesture(Qt::PanGesture));
+        const QPanGesture *pan = static_cast<QPanGesture*>(
+                gesture_event->gesture(Qt::PanGesture));
         if (pan)
-            debug_msg(DebugOtherInput, "Pan gesture:" << pan << pan->offset() << pan->acceleration());
+            debug_msg(DebugOtherInput, "Pan gesture:" << pan << pan->offset()
+                                       << pan->acceleration());
         return QGraphicsView::event(event);
     }
     /* Native gesture does not work like this.
@@ -220,7 +237,8 @@ bool SlideView::event(QEvent *event)
 #if (QT_VERSION_MAJOR >= 6)
         static_cast<SlideScene*>(scene())->tabletPress(mapToScene(tabletevent->position()), tabletevent);
 #else
-        static_cast<SlideScene*>(scene())->tabletPress(mapToScene(tabletevent->posF()), tabletevent);
+        static_cast<SlideScene*>(scene())->tabletPress(
+                mapToScene(tabletevent->posF()), tabletevent);
 #endif
         event->accept();
         setFocus();
@@ -230,9 +248,11 @@ bool SlideView::event(QEvent *event)
     {
         auto tabletevent = static_cast<const QTabletEvent*>(event);
 #if (QT_VERSION_MAJOR >= 6)
-        static_cast<SlideScene*>(scene())->tabletRelease(mapToScene(tabletevent->position()), tabletevent);
+        static_cast<SlideScene*>(scene())->tabletRelease(
+                mapToScene(tabletevent->position()), tabletevent);
 #else
-        static_cast<SlideScene*>(scene())->tabletRelease(mapToScene(tabletevent->posF()), tabletevent);
+        static_cast<SlideScene*>(scene())->tabletRelease(
+                mapToScene(tabletevent->posF()), tabletevent);
 #endif
         event->accept();
         return true;
@@ -241,9 +261,11 @@ bool SlideView::event(QEvent *event)
     {
         auto tabletevent = static_cast<const QTabletEvent*>(event);
 #if (QT_VERSION_MAJOR >= 6)
-        static_cast<SlideScene*>(scene())->tabletMove(mapToScene(tabletevent->position()), tabletevent);
+        static_cast<SlideScene*>(scene())->tabletMove(
+                mapToScene(tabletevent->position()), tabletevent);
 #else
-        static_cast<SlideScene*>(scene())->tabletMove(mapToScene(tabletevent->posF()), tabletevent);
+        static_cast<SlideScene*>(scene())->tabletMove(
+                mapToScene(tabletevent->posF()), tabletevent);
 #endif
         event->accept();
         setFocus();
@@ -263,9 +285,12 @@ void SlideView::showMagnifier(QPainter *painter, const PointingTool *tool) noexc
     const qreal resolution = tool->scale() * painter->transform().m11();
     PixmapGraphicsItem *pageItem = static_cast<SlideScene*>(scene())->pageBackground();
     // Check whether an enlarged page is needed and not "in preparation" yet.
-    if (waitingForPage == INT_MAX && !pageItem->hasWidth(resolution*sceneRect().width() + 0.499))
+    if (waitingForPage == INT_MAX
+        && !pageItem->hasWidth(resolution*sceneRect().width() + 0.499))
     {
-        debug_msg(DebugRendering, "Enlarged page: searched for" << resolution*sceneRect().width() + 1 << ", available" << pageItem->widths());
+        debug_msg(DebugRendering, "Enlarged page: searched for"
+                                  << resolution*sceneRect().width() + 1
+                                  << ", available" << pageItem->widths());
         waitingForPage = static_cast<SlideScene*>(scene())->getPage();
         emit requestPage(waitingForPage, resolution);
     }
@@ -273,7 +298,11 @@ void SlideView::showMagnifier(QPainter *painter, const PointingTool *tool) noexc
     for (const auto &pos : tool->pos())
     {
         // calculate target rect: size of the magnifier
-        const QRectF scene_rect(pos.x()-tool->size(), pos.y()-tool->size(), 2*tool->size(), 2*tool->size());
+        const QRectF scene_rect(
+                pos.x()-tool->size(),
+                pos.y()-tool->size(),
+                2*tool->size(),
+                2*tool->size());
         // clip painter to target circle in target rect.
         QPainterPath path;
         path.addEllipse(scene_rect);
@@ -310,7 +339,8 @@ void SlideView::drawForeground(QPainter *painter, const QRectF &rect)
                 auto tool = static_cast<const PointingTool*>(*basic_tool);
                 if (tool->pos().isEmpty() || tool->scene() != scene())
                     continue;
-                debug_verbose(DebugDrawing, "drawing tool" << tool->tool() << tool->size() << tool->color());
+                debug_verbose(DebugDrawing, "drawing tool" << tool->tool()
+                                            << tool->size() << tool->color());
                 switch (basic_tool.key())
                 {
                 case Tool::Torch:
@@ -353,7 +383,8 @@ void SlideView::drawForeground(QPainter *painter, const QRectF &rect)
         painter->setCompositionMode(QPainter::CompositionMode_SourceOver);
         painter->setBrush(Qt::NoBrush);
         const int page = static_cast<SlideScene*>(scene())->getPage();
-        const QList<std::shared_ptr<MediaItem>> &media = static_cast<SlideScene*>(scene())->getMedia();
+        const QList<std::shared_ptr<MediaItem>> &media =
+                static_cast<SlideScene*>(scene())->getMedia();
         for (const auto &m : media)
         {
 #if __cplusplus >= 202002L
@@ -413,7 +444,9 @@ void SlideView::showTorch(QPainter *painter, const PointingTool *tool) noexcept
 
 void SlideView::addMediaSlider(const std::shared_ptr<MediaItem> media)
 {
-    if (!((view_flags & MediaControls) && (media->flags() & MediaAnnotation::ShowSlider) && media->player()))
+    if (!((view_flags & MediaControls)
+            && (media->flags() & MediaAnnotation::ShowSlider)
+            && media->player()))
         return;
     MediaPlayer *player = media->player();
     if (!player)
@@ -452,7 +485,10 @@ void SlideView::prepareTransition(PixmapGraphicsItem *transitionItem)
     transitionItem->addPixmap(pixmap);
 }
 
-void SlideView::prepareFlyTransition(const bool outwards, const PixmapGraphicsItem *old, PixmapGraphicsItem *target)
+void SlideView::prepareFlyTransition(
+        const bool outwards,
+        const PixmapGraphicsItem *old,
+        PixmapGraphicsItem *target)
 {
     if (!old || !target)
         return;
@@ -484,7 +520,11 @@ void SlideView::prepareFlyTransition(const bool outwards, const PixmapGraphicsIt
         newimg.fill(0);
         painter.begin(&newimg);
     }
-    if (oldimg.isNull() || newimg.isNull() || oldimg.size() != newimg.size() || oldimg.format() != QImage::Format_ARGB32 || newimg.format() != QImage::Format_ARGB32)
+    if (oldimg.isNull()
+        || newimg.isNull()
+        || oldimg.size() != newimg.size()
+        || oldimg.format() != QImage::Format_ARGB32
+        || newimg.format() != QImage::Format_ARGB32)
     {
         qWarning() << "Failed to prepare fly transition";
         return;
@@ -527,11 +567,18 @@ void SlideView::prepareFlyTransition(const bool outwards, const PixmapGraphicsIt
                  * g := minimum alpha required for the green channel
                  * b := minimum alpha required for the blue channel
                  */
-                r = (0xff0000 & *oldpixel) == (0xff0000 & *newpixel) // Check whether the red components of the two pixels differ.
-                        ? 0 // Both pixels have the same red component. New pixel could be completely transparent.
-                        : ((0xff0000 & *oldpixel) > (0xff0000 & *newpixel) // Check which pixel has higher red component.
-                           ? 255 - 255*qRed(*newpixel)/qRed(*oldpixel) // oldpixel has more red. This amount of alpha is needed if newpixel is semitransparent black.
-                           : 255*(qRed(*newpixel)-qRed(*oldpixel))/(255-qRed(*oldpixel))); // newpixel has more red. This amount of alpha is needed if newpixel is semitransparent white.
+                r = (0xff0000 & *oldpixel) == (0xff0000 & *newpixel)
+                    // Check whether the red components of the two pixels differ.
+                        ? 0 // Both pixels have the same red component.
+                            // New pixel could be completely transparent.
+                        : ((0xff0000 & *oldpixel) > (0xff0000 & *newpixel)
+                        // Check which pixel has higher red component.
+                           ? 255 - 255*qRed(*newpixel)/qRed(*oldpixel)
+                               // oldpixel has more red. This amount of alpha is
+                               // needed if newpixel is semitransparent black.
+                           : 255*(qRed(*newpixel)-qRed(*oldpixel))/(255-qRed(*oldpixel)));
+                               // newpixel has more red. This amount of alpha
+                               // is needed if newpixel is semitransparent white.
                 g = (0x00ff00 & *oldpixel) == (0x00ff00 & *newpixel)
                         ? 0
                         : ((0x00ff00 & *oldpixel) > (0x00ff00 & *newpixel)
@@ -555,7 +602,8 @@ void SlideView::prepareFlyTransition(const bool outwards, const PixmapGraphicsIt
                     b = (255*qBlue(*newpixel) - qBlue(*oldpixel)*(255-a))/a;
                     *newpixel = qRgba(r, g, b, a);
                 }
-                // The case a==255 can be ignored, because in that case *newpixel should remain unchanged.
+                // The case a==255 can be ignored, because in that case *newpixel should
+                // remain unchanged.
             }
         }
     }

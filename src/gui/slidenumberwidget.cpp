@@ -47,10 +47,16 @@ void SlideNumberWidget::resizeEvent(QResizeEvent *event) noexcept
 
 void SlideNumberWidget::updateText(const int page) noexcept
 {
-    if ((preferences()->global_flags & Preferences::LogSlideChanges) && edit->text().toInt() != page+1)
+    if ((preferences()->global_flags & Preferences::LogSlideChanges)
+        && edit->text().toInt() != page+1)
     {
-        const quint32 msecs_passed = preferences()->msecs_passed == UINT_LEAST32_MAX ? preferences()->msecs_total - QDateTime::currentDateTimeUtc().msecsTo(preferences()->target_time) : preferences()->msecs_passed;
-        const QString string = QTime::fromMSecsSinceStartOfDay(msecs_passed + 500).toString(msecs_passed < 3600000 ? "m:ss" : "h:mm:ss");
+        const quint32 msecs_passed =
+            preferences()->msecs_passed == UINT_LEAST32_MAX
+            ? preferences()->msecs_total
+              - QDateTime::currentDateTimeUtc().msecsTo(preferences()->target_time)
+            : preferences()->msecs_passed;
+        const QString string = QTime::fromMSecsSinceStartOfDay(msecs_passed + 500)
+                               .toString(msecs_passed < 3600000 ? "m:ss" : "h:mm:ss");
         std::cout << "Changed page"
             << std::setw(9) << string.toStdString()
             << std::setw(4) << edit->text().toStdString()

@@ -3,7 +3,6 @@
 
 #include <QPixmap>
 #include "src/gui/thumbnailthread.h"
-#include "src/gui/thumbnailbutton.h"
 #include "src/log.h"
 #include "src/preferences.h"
 #include "src/rendering/pdfdocument.h"
@@ -21,7 +20,11 @@ ThumbnailThread::ThumbnailThread(const PdfDocument *document) :
     // Create the renderer without any checks.
 #ifdef USE_EXTERNAL_RENDERER
     if (preferences()->renderer == renderer::ExternalRenderer)
-        renderer = new ExternalRenderer(preferences()->rendering_command, preferences()->rendering_arguments, document, preferences()->default_page_part);
+        renderer = new ExternalRenderer(
+                preferences()->rendering_command,
+                preferences()->rendering_arguments,
+                document,
+                preferences()->default_page_part);
     else
 #endif
         renderer = document->createRenderer(preferences()->default_page_part);
@@ -42,6 +45,8 @@ void ThumbnailThread::timerEvent(QTimerEvent* event)
     else
     {
         queue_entry entry = queue.takeFirst();
-        emit sendThumbnail(entry.button_index, renderer->renderPixmap(entry.page, entry.resolution));
+        emit sendThumbnail(
+                entry.button_index,
+                renderer->renderPixmap(entry.page, entry.resolution));
     }
 }

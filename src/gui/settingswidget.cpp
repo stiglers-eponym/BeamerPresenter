@@ -211,9 +211,13 @@ void SettingsWidget::initRendering()
     page_part_box->setMaximum(20.);
     page_part_box->setValue(preferences()->page_part_threshold);
 #if (QT_VERSION_MAJOR >= 6)
-    connect(page_part_box, &QDoubleSpinBox::valueChanged, writable_preferences(), &Preferences::setPagePartThreshold);
+    connect(page_part_box, &QDoubleSpinBox::valueChanged,
+            writable_preferences(), &Preferences::setPagePartThreshold);
 #else
-    connect(page_part_box, QOverload<double>::of(&QDoubleSpinBox::valueChanged), writable_preferences(), &Preferences::setPagePartThreshold);
+    connect(page_part_box,
+            QOverload<double>::of(&QDoubleSpinBox::valueChanged),
+            writable_preferences(),
+            &Preferences::setPagePartThreshold);
 #endif
     layout->addRow(tr("page part threshold"), page_part_box);
 

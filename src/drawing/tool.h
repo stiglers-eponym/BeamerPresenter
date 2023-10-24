@@ -80,9 +80,12 @@ public:
         AnyDevice = 0x0fff,
         AnyPointingDevice = AnyDevice ^ (TabletEraser | MouseRightButton | MouseMiddleButton),
         AnyNormalDevice = AnyPointingDevice ^ (TabletHover | MouseNoButton | TabletMod),
-        PressureSensitiveDevices = TabletPen | TabletEraser | TabletCursor | TabletOther | TabletMod,
-        AnyTabletDevice = TabletPen | TabletEraser | TabletCursor | TabletOther | TabletMod | TabletHover,
-        AnyMouseDevice = MouseNoButton | MouseLeftButton | MouseRightButton | MouseMiddleButton,
+        PressureSensitiveDevices = TabletPen | TabletEraser | TabletCursor
+                                   | TabletOther | TabletMod,
+        AnyTabletDevice = TabletPen | TabletEraser | TabletCursor
+                          | TabletOther | TabletMod | TabletHover,
+        AnyMouseDevice = MouseNoButton | MouseLeftButton
+                         | MouseRightButton | MouseMiddleButton,
         AnyActiveDevice = AnyDevice ^ (MouseNoButton | TabletHover),
     };
     Q_FLAG(InputDevice)
@@ -182,13 +185,16 @@ static const QMap<std::string, int> string_to_input_device
     {QT_TRANSLATE_NOOP("Tool", "touch"), Tool::TouchInput},
     {QT_TRANSLATE_NOOP("Tool", "tablet pen"), Tool::TabletPen},
     {QT_TRANSLATE_NOOP("Tool", "tablet mod"), Tool::TabletMod},
-    {QT_TRANSLATE_NOOP("Tool", "tablet"), Tool::TabletPen | Tool::TabletCursor | Tool::TabletOther | Tool::TabletMod},
+    {QT_TRANSLATE_NOOP("Tool", "tablet"), Tool::TabletPen | Tool::TabletCursor
+                                          | Tool::TabletOther | Tool::TabletMod},
     {QT_TRANSLATE_NOOP("Tool", "tablet eraser"), Tool::TabletEraser},
     {QT_TRANSLATE_NOOP("Tool", "tablet hover"), Tool::TabletHover},
     {QT_TRANSLATE_NOOP("Tool", "tablet cursor"), Tool::TabletCursor},
     {QT_TRANSLATE_NOOP("Tool", "tablet mod"), Tool::TabletMod},
     {QT_TRANSLATE_NOOP("Tool", "tablet other"), Tool::TabletOther},
-    {QT_TRANSLATE_NOOP("Tool", "tablet all"), Tool::TabletPen | Tool::TabletCursor | Tool::TabletOther | Tool::TabletEraser | Tool::TabletMod},
+    {QT_TRANSLATE_NOOP("Tool", "tablet all"), Tool::TabletPen | Tool::TabletCursor
+                                              | Tool::TabletOther | Tool::TabletEraser
+                                              | Tool::TabletMod},
     {QT_TRANSLATE_NOOP("Tool", "all"), Tool::AnyNormalDevice},
     {QT_TRANSLATE_NOOP("Tool", "all+"), Tool::AnyPointingDevice},
     {QT_TRANSLATE_NOOP("Tool", "all++"), Tool::AnyDevice},

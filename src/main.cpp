@@ -45,9 +45,25 @@ int main(int argc, char *argv[])
     // Set format for debugging output, warnings etc.
     // To overwrite this you can set the environment variable QT_MESSAGE_PATTERN.
 #ifdef QT_DEBUG
-    qSetMessagePattern("%{time process} %{if-debug}D%{endif}%{if-info}INFO%{endif}%{if-warning}WARNING%{endif}%{if-critical}CRITICAL%{endif}%{if-fatal}FATAL%{endif}%{if-category} %{category}%{endif} %{file}:%{line}:%{function} - %{message}%{if-fatal} from %{backtrace [depth=3]}%{endif}");
+    qSetMessagePattern(
+            "%{time process} "
+            "%{if-debug}D%{endif}"
+            "%{if-info}INFO%{endif}"
+            "%{if-warning}WARNING%{endif}"
+            "%{if-critical}CRITICAL%{endif}"
+            "%{if-fatal}FATAL%{endif}"
+            "%{if-category} %{category}%{endif} "
+            "%{file}:%{line}:%{function} - "
+            "%{message}"
+            "%{if-fatal} from %{backtrace [depth=3]}%{endif}");
 #else
-    qSetMessagePattern("%{if-info}INFO%{endif}%{if-warning}WARNING%{endif}%{if-critical}CRITICAL%{endif}%{if-fatal}FATAL%{endif}%{if-category} %{category}%{endif} - %{message}");
+    qSetMessagePattern(
+            "%{if-info}INFO%{endif}"
+            "%{if-warning}WARNING%{endif}"
+            "%{if-critical}CRITICAL%{endif}"
+            "%{if-fatal}FATAL%{endif}"
+            "%{if-category} %{category}%{endif} - "
+            "%{message}");
 #endif
     // Register meta types (required for connections).
     qRegisterMetaType<const PngPixmap*>("const PngPixmap*");
@@ -62,7 +78,10 @@ int main(int argc, char *argv[])
             fallback_root.remove(UNIX_LIKE);
 
     // Load the icon
-    app.setWindowIcon(QIcon(QFileInfo::exists(ICON_FILEPATH) ? ICON_FILEPATH : fallback_root + ICON_FILEPATH));
+    app.setWindowIcon(QIcon(QFileInfo::exists(
+                                    ICON_FILEPATH)
+                                    ? ICON_FILEPATH
+                                    : fallback_root + ICON_FILEPATH));
 
     // Set app version. The string APP_VERSION is defined in src/config.h.
     app.setApplicationVersion(
@@ -86,7 +105,9 @@ int main(int argc, char *argv[])
         if (!QFileInfo::exists(translation_path))
             translation_path = fallback_root + translation_path;
         for (auto &lang : QLocale().uiLanguages())
-            if (translator.load("beamerpresenter.qm", translation_path + lang.replace('-', '_') + "/LC_MESSAGES"))
+            if (translator.load(
+                    "beamerpresenter.qm",
+                    translation_path + lang.replace('-', '_') + "/LC_MESSAGES"))
             {
                 app.installTranslator(&translator);
                 break;
@@ -96,19 +117,37 @@ int main(int argc, char *argv[])
 
     // Set up command line argument parser.
     QCommandLineParser parser;
-    parser.setApplicationDescription(QCoreApplication::translate("main", "Modular multi screen PDF presenter"));
+    parser.setApplicationDescription(
+            QCoreApplication::translate("main", "Modular multi screen PDF presenter"));
 
     // Define command line options.
     parser.addHelpOption();
     parser.addVersionOption();
 
-    parser.addPositionalArgument("<slides.pdf>", QCoreApplication::translate("main", "Slides for a presentation"));
-    parser.addOption({{"c", "config"}, QCoreApplication::translate("main", "settings / configuration file"), QCoreApplication::translate("main", "file")});
-    parser.addOption({{"g", "gui-config"}, QCoreApplication::translate("main", "user interface configuration file"), QCoreApplication::translate("main", "file")});
-    parser.addOption({{"t", "time"}, QCoreApplication::translate("main", "timer total time in minutes"), QCoreApplication::translate("main", "number")});
-    parser.addOption({"log", QCoreApplication::translate("main", "log slide changes to standard output")});
-    parser.addOption({"nocache", QCoreApplication::translate("main", "disable cache")});
-    parser.addOption({"renderer", QCoreApplication::translate("main", "available PDF renderers:") +
+    parser.addPositionalArgument(
+            "<slides.pdf>",
+            QCoreApplication::translate("main", "Slides for a presentation"));
+    parser.addOption({
+            {"c", "config"},
+            QCoreApplication::translate("main", "settings / configuration file"),
+            QCoreApplication::translate("main", "file")});
+    parser.addOption({
+            {"g", "gui-config"},
+            QCoreApplication::translate("main", "user interface configuration file"),
+            QCoreApplication::translate("main", "file")});
+    parser.addOption({
+            {"t", "time"},
+            QCoreApplication::translate("main", "timer total time in minutes"),
+            QCoreApplication::translate("main", "number")});
+    parser.addOption({
+            "log",
+            QCoreApplication::translate("main", "log slide changes to standard output")});
+    parser.addOption({
+            "nocache",
+            QCoreApplication::translate("main", "disable cache")});
+    parser.addOption({
+            "renderer",
+            QCoreApplication::translate("main", "available PDF renderers:") +
 #ifdef USE_MUPDF
                       " MuPDF"
 #endif
@@ -135,7 +174,11 @@ int main(int argc, char *argv[])
     // debugging options and messages are not translated.
     parser.addOption({"debug", "debug flags, comma-separated", "flags"});
 #endif
-    parser.addOption({"test", QCoreApplication::translate("main", "only test the installation, don't start the app")});
+    parser.addOption({
+            "test",
+            QCoreApplication::translate(
+                    "main",
+                    "only test the installation, don't start the app")});
     parser.process(app);
 
     // Initialize global preferences object.
@@ -153,7 +196,10 @@ int main(int argc, char *argv[])
     writable_preferences()->loadSettings();
     writable_preferences()->loadFromParser(parser);
 
-    QString gui_config_file = parser.value("g").isEmpty() ? preferences()->gui_config_file : parser.value("g");
+    QString gui_config_file =
+            parser.value("g").isEmpty()
+                ? preferences()->gui_config_file
+                : parser.value("g");
     {
         // Create the user interface.
         Master::Status status = master()->readGuiConfig(gui_config_file);
@@ -176,7 +222,10 @@ int main(int argc, char *argv[])
         }
         if (status != Master::Success)
         {
-            qCritical() << QCoreApplication::translate("main", "Parsing the GUI configuration failed with error code") << status;
+            qCritical() << QCoreApplication::translate(
+                            "main",
+                            "Parsing the GUI configuration failed with error code")
+                        << status;
             delete master();
             delete preferences();
             // Show help and exit.
@@ -189,7 +238,11 @@ int main(int argc, char *argv[])
     master()->navigateToPage(0);
     // Distribute cache memory.
     master()->distributeMemory();
-    QObject::connect(preferences(), &Preferences::distributeMemory, master(), &Master::distributeMemory);
+    QObject::connect(
+            preferences(),
+            &Preferences::distributeMemory,
+            master(),
+            &Master::distributeMemory);
     // Run the program.
     int status = 0;
     if (parser.isSet("test"))

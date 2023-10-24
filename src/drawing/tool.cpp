@@ -72,19 +72,32 @@ const char *tool_to_description(const Tool::BasicTool tool) noexcept
     switch (tool)
     {
     case Tool::NoTool:
-        return QT_TRANSLATE_NOOP("Tool", "no tool: follow links and control audio/video content");
+        return QT_TRANSLATE_NOOP(
+                "Tool",
+                "no tool: follow links and control audio/video content");
     case Tool::Pen:
-        return QT_TRANSLATE_NOOP("Tool", "pen with variable width if the input device supports variable pressure");
+        return QT_TRANSLATE_NOOP(
+                "Tool",
+                "pen with variable width if the input device supports "
+                "variable pressure");
     case Tool::FixedWidthPen:
-        return QT_TRANSLATE_NOOP("Tool", "pen with fixed width (independent of input device pressure)");
+        return QT_TRANSLATE_NOOP(
+                "Tool",
+                "pen with fixed width (independent of input device pressure)");
     case Tool::Eraser:
         return QT_TRANSLATE_NOOP("Tool", "eraser: deletes drawings");
     case Tool::Highlighter:
-        return QT_TRANSLATE_NOOP("Tool", "highlighter: fixed width drawing which only darkens colors (full color on white background, invisible on black background)");
+        return QT_TRANSLATE_NOOP(
+                "Tool",
+                "highlighter: fixed width drawing which only darkens colors "
+                "(full color on white background, invisible on black background)");
     case Tool::Pointer:
         return QT_TRANSLATE_NOOP("Tool", "pointer");
     case Tool::Torch:
-        return QT_TRANSLATE_NOOP("Tool", "torch: darken the slide leaving only a disk unchanged to focus attention on this area");
+        return QT_TRANSLATE_NOOP(
+                "Tool",
+                "torch: darken the slide leaving only a disk unchanged "
+                "to focus attention on this area");
     case Tool::Magnifier:
         return QT_TRANSLATE_NOOP("Tool", "enlarge part of the slide");
     case Tool::TextInputTool:

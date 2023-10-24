@@ -19,7 +19,10 @@
 #include "src/preferences.h"
 
 
-PixCache::PixCache(PdfDocument *doc, const int thread_number, const PagePart page_part, QObject *parent) noexcept :
+PixCache::PixCache(PdfDocument *doc,
+                   const int thread_number,
+                   const PagePart page_part,
+                   QObject *parent) noexcept :
     QObject(parent),
     priority({page_part}),
     pdfDoc(doc)
@@ -29,12 +32,17 @@ PixCache::PixCache(PdfDocument *doc, const int thread_number, const PagePart pag
 
 void PixCache::init()
 {
-    const PagePart page_part = static_cast<PagePart>(priority.isEmpty() ? 0 : priority.first());
+    const PagePart page_part = static_cast<PagePart>(
+            priority.isEmpty() ? 0 : priority.first());
     priority.clear();
     // Create the renderer without any checks.
 #ifdef USE_EXTERNAL_RENDERER
     if (preferences()->renderer == renderer::ExternalRenderer)
-        renderer = new ExternalRenderer(preferences()->rendering_command, preferences()->rendering_arguments, pdfDoc, page_part);
+        renderer = new ExternalRenderer(
+                preferences()->rendering_command,
+                preferences()->rendering_arguments,
+                pdfDoc,
+                page_part);
     else
 #endif
         renderer = pdfDoc->createRenderer(page_part);
@@ -47,8 +55,16 @@ void PixCache::init()
     for (auto &thread : threads)
     {
         thread = new PixCacheThread(pdfDoc, renderer->pagePart(), this);
-        connect(thread, &PixCacheThread::sendData, this, &PixCache::receiveData, Qt::QueuedConnection);
-        connect(this, &PixCache::setPixCacheThreadPage, thread, &PixCacheThread::setNextPage, Qt::QueuedConnection);
+        connect(thread,
+                &PixCacheThread::sendData,
+                this,
+                &PixCache::receiveData,
+                Qt::QueuedConnection);
+        connect(this,
+                &PixCache::setPixCacheThreadPage,
+                thread,
+                &PixCacheThread::setNextPage,
+                Qt::QueuedConnection);
     }
 }
 
@@ -82,7 +98,9 @@ const QPixmap PixCache::pixmap(const int page, qreal resolution)
     // Try to return a page from cache.
     {
         const auto it = cache.constFind(page);
-        if (it != cache.cend() && *it != nullptr && abs((*it)->getResolution() - resolution) < MAX_RESOLUTION_DEVIATION)
+        if (it != cache.cend()
+            && *it != nullptr
+            && abs((*it)->getResolution() - resolution) < MAX_RESOLUTION_DEVIATION)
             return (*it)->pixmap();
     }
     // Check if page number is valid.
@@ -101,7 +119,9 @@ const QPixmap PixCache::pixmap(const int page, qreal resolution)
 
     if (pix.isNull())
     {
-        qCritical() << tr("Rendering page failed for (page, resolution) =") << page << resolution;
+        qCritical() << tr("Rendering page failed for (page, resolution) =")
+                    << page
+                    << resolution;
         return pix;
     }
 
@@ -221,7 +241,9 @@ int PixCache::limitCacheSize() noexcept
             allowed_slides = (maxMemory - usedMemory) * cached_slides / usedMemory;
         else
             allowed_slides = threads.length();
-        debug_verbose(DebugCache, "set allowed_slides" << usedMemory << cached_slides << allowed_slides << maxMemory << threads.length());
+        debug_verbose(DebugCache, "set allowed_slides" << usedMemory
+                                  << cached_slides << allowed_slides
+                                  << maxMemory << threads.length());
     }
     if (maxNumber > 0 && allowed_slides + cache.size() > maxNumber)
         allowed_slides = maxNumber - cache.size();
@@ -230,7 +252,8 @@ int PixCache::limitCacheSize() noexcept
     if (allowed_slides >= threads.length())
         return allowed_slides;
 
-    debug_msg(DebugCache, "prepared deleting from cache" << usedMemory << maxMemory << allowed_slides << cached_slides);
+    debug_msg(DebugCache, "prepared deleting from cache" << usedMemory
+                          << maxMemory << allowed_slides << cached_slides);
 
 
     // Deleting starts from first or last page in cache.
@@ -273,7 +296,8 @@ int PixCache::limitCacheSize() noexcept
         // TODO: make sure this case is correctly handled when the thread finishes.
         if (remove == nullptr)
             continue;
-        debug_msg(DebugCache, "removing page from cache" << usedMemory << allowed_slides << cached_slides << remove->getPage());
+        debug_msg(DebugCache, "removing page from cache" << usedMemory
+                              << allowed_slides << cached_slides << remove->getPage());
         // Delete removed cache page and update memory size.
         usedMemory -= remove->size();
         delete remove;
@@ -373,7 +397,8 @@ void PixCache::receiveData(const PngPixmap *data)
     }
 
     // Check if the received image is still compatible with the current resolution.
-    if (abs(getResolution(data->getPage()) - data->getResolution()) > MAX_RESOLUTION_DEVIATION)
+    if (abs(getResolution(data->getPage()) - data->getResolution())
+            > MAX_RESOLUTION_DEVIATION)
     {
         if (cache.value(data->getPage()) == nullptr)
             cache.remove(data->getPage());
@@ -425,8 +450,14 @@ void PixCache::requestPage(const int page, const qreal resolution, const bool ca
     // Try to return a page from cache.
     {
         const auto it = cache.constFind(page);
-        debug_verbose(DebugCache, "searched for page" << page << (it == cache.cend()) << (it != cache.cend() && *it != nullptr) << (it == cache.cend() ? -1024 : ((*it)->getResolution() - resolution)));
-        if (it != cache.cend() && *it != nullptr && abs((*it)->getResolution() - resolution) < MAX_RESOLUTION_DEVIATION)
+        debug_verbose(DebugCache, "searched for page" << page
+                                  << (it == cache.cend())
+                                  << (it != cache.cend() && *it != nullptr)
+                                  << (it == cache.cend() ? -1024
+                                        : ((*it)->getResolution() - resolution)));
+        if (it != cache.cend()
+            && *it != nullptr
+            && abs((*it)->getResolution() - resolution) < MAX_RESOLUTION_DEVIATION)
         {
             emit pageReady((*it)->pixmap(), page);
             return;
@@ -449,7 +480,8 @@ void PixCache::requestPage(const int page, const qreal resolution, const bool ca
 
     if (pix.isNull())
     {
-        qCritical() << tr("Rendering page failed for (page, resolution) =") << page << resolution;
+        qCritical() << tr("Rendering page failed for (page, resolution) =")
+                    << page << resolution;
         return;
     }
 

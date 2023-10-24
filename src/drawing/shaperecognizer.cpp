@@ -112,12 +112,14 @@ BasicGraphicsPath *ShapeRecognizer::recognizeLine() const
         return nullptr;
     const Line line = moments.line();
     const qreal margin = path->_tool.width() / 2;
-    debug_msg(DebugDrawing, "recognize line:" << line.bx << line.by << line.angle << line.loss);
+    debug_msg(DebugDrawing, "recognize line:" << line.bx << line.by
+                            << line.angle << line.loss);
     if (line.loss > preferences()->line_sensitivity)
         return nullptr;
 
     const qreal
-            n = moments.sy*moments.sy - moments.s*moments.syy + moments.s*moments.sxx - moments.sx*moments.sx,
+            n = moments.sy*moments.sy - moments.s*moments.syy
+                + moments.s*moments.sxx - moments.sx*moments.sx,
             ax = 2*(moments.sx*moments.sy - moments.s*moments.sxy),
             ay = n - std::sqrt(n*n + ax*ax);
     QPointF p1, p2;
@@ -130,8 +132,10 @@ BasicGraphicsPath *ShapeRecognizer::recognizeLine() const
         }
         else
         {
-            p1 = {line.bx + ax/ay*(path->bounding_rect.top() + margin - line.by), path->bounding_rect.top() + margin};
-            p2 = {line.bx + ax/ay*(path->bounding_rect.bottom() - margin - line.by), path->bounding_rect.bottom() - margin};
+            p1 = {line.bx + ax/ay*(path->bounding_rect.top() + margin - line.by),
+                  path->bounding_rect.top() + margin};
+            p2 = {line.bx + ax/ay*(path->bounding_rect.bottom() - margin - line.by),
+                  path->bounding_rect.bottom() - margin};
         }
     }
     else
@@ -143,8 +147,10 @@ BasicGraphicsPath *ShapeRecognizer::recognizeLine() const
         }
         else
         {
-            p1 = {path->bounding_rect.left() + margin, line.by + ay/ax*(path->bounding_rect.left() + margin - line.bx)};
-            p2 = {path->bounding_rect.right() - margin, line.by + ay/ax*(path->bounding_rect.right() - margin - line.bx)};
+            p1 = {path->bounding_rect.left() + margin,
+                  line.by + ay/ax*(path->bounding_rect.left() + margin - line.bx)};
+            p2 = {path->bounding_rect.right() - margin,
+                  line.by + ay/ax*(path->bounding_rect.right() - margin - line.bx)};
         }
     }
     // Create path.
@@ -181,14 +187,19 @@ void ShapeRecognizer::findLines() noexcept
 {
     // 1. Collect line segments.
     qreal oldloss = -1;
-    const int step = path->size() >= 2*PATH_SEGMENTS_LINE ? path->size() / PATH_SEGMENTS_LINE : 1;
+    const int step =
+            path->size() >= 2*PATH_SEGMENTS_LINE
+            ? path->size() / PATH_SEGMENTS_LINE : 1;
     const QPointF *p;
     QList<Line> segment_lines;
     QList<Moments> segment_moments;
     Moments newmoments, oldmoments;
     Line line;
     float weight = 1.;
-    const auto *pressures = path->type() == FullGraphicsPath::Type ? &static_cast<const FullGraphicsPath*>(path)->pressures : nullptr;
+    const auto *pressures =
+            path->type() == FullGraphicsPath::Type
+            ? &static_cast<const FullGraphicsPath*>(path)->pressures
+            : nullptr;
     debug_msg(DebugDrawing, "Start searching lines");
     for (int i=0, start=0; i<path->size(); ++i)
     {
@@ -204,7 +215,9 @@ void ShapeRecognizer::findLines() noexcept
         if (i > start + 2 && i % step == 0)
         {
             line = newmoments.line(false);
-            if (oldloss >= 0 && (line.loss > LINE_LOSS_THRESHOLD || (oldloss - line.loss) > 8*step/(i-start)*line.loss))
+            if (oldloss >= 0 && (
+                    line.loss > LINE_LOSS_THRESHOLD
+                    || (oldloss - line.loss) > 8*step/(i-start)*line.loss))
             {
                 segment_moments.append(oldmoments);
                 moments += newmoments;
@@ -252,7 +265,8 @@ void ShapeRecognizer::findLines() noexcept
 
 #ifdef QT_DEBUG
     for (const auto &line : line_segments)
-        debug_msg(DebugDrawing, "Line segment" << line.bx << line.by << line.angle << line.weight << line.loss);
+        debug_msg(DebugDrawing, "Line segment" << line.bx << line.by <<
+                                line.angle << line.weight << line.loss);
 #endif
 }
 
@@ -262,11 +276,16 @@ BasicGraphicsPath *ShapeRecognizer::recognizeRect() const
     if (line_segments.size() != 4)
         return nullptr;
     // Check if the path is approximately closed.
-    if (distance_squared(path->lastPoint() - path->firstPoint()) > preferences()->rect_closing_tolerance*moments.var())
+    if (distance_squared(path->lastPoint() - path->firstPoint())
+            > preferences()->rect_closing_tolerance*moments.var())
         return nullptr;
     // Compute angle of the rectangle from the 4 segments.
-    const qreal total_weight = line_segments[0].weight + line_segments[1].weight + line_segments[2].weight + line_segments[3].weight;
-    qreal angle = line_segments[0].angle*line_segments[0].weight + line_segments[2].angle*line_segments[2].weight;
+    const qreal total_weight = line_segments[0].weight
+                               + line_segments[1].weight
+                               + line_segments[2].weight
+                               + line_segments[3].weight;
+    qreal angle = line_segments[0].angle*line_segments[0].weight
+                  + line_segments[2].angle*line_segments[2].weight;
     if (std::abs(line_segments[0].angle - line_segments[1].angle - PI/2) < PI/2)
         angle += (line_segments[1].angle+PI/2)*line_segments[1].weight;
     else
@@ -279,13 +298,18 @@ BasicGraphicsPath *ShapeRecognizer::recognizeRect() const
     // Check if the angles agree form a rectangle (within some tolerance).
     const qreal angle_tolerance = total_weight * preferences()->rect_angle_tolerance;
     if (std::abs(line_segments[0].angle - angle)*line_segments[0].weight > angle_tolerance
-            || std::abs(line_segments[2].angle - angle)*line_segments[2].weight > angle_tolerance
+            || std::abs(line_segments[2].angle - angle)*line_segments[2].weight
+                > angle_tolerance
             || (
-                std::abs(line_segments[1].angle - PI/2 - angle)*line_segments[1].weight > angle_tolerance
-                && std::abs(line_segments[1].angle + PI/2 - angle)*line_segments[1].weight > angle_tolerance)
+                std::abs(line_segments[1].angle - PI/2 - angle)*line_segments[1].weight
+                    > angle_tolerance
+                && std::abs(line_segments[1].angle + PI/2 - angle)*line_segments[1].weight
+                    > angle_tolerance)
             || (
-                std::abs(line_segments[3].angle - PI/2 - angle)*line_segments[3].weight > angle_tolerance
-                && std::abs(line_segments[3].angle + PI/2 - angle)*line_segments[3].weight > angle_tolerance))
+                std::abs(line_segments[3].angle - PI/2 - angle)*line_segments[3].weight
+                    > angle_tolerance
+                && std::abs(line_segments[3].angle + PI/2 - angle)*line_segments[3].weight
+                    > angle_tolerance))
         return nullptr;
     // Snap angle to horizontal/vertical orientation.
     if (std::abs(angle) < preferences()->snap_angle
@@ -298,13 +322,17 @@ BasicGraphicsPath *ShapeRecognizer::recognizeRect() const
     const qreal
             ax = std::cos(angle),
             ay = std::sin(angle);
-    qreal alpha = (line_segments[1].bx - line_segments[0].bx)*ax + (line_segments[1].by - line_segments[0].by)*ay;
+    qreal alpha = (line_segments[1].bx - line_segments[0].bx)*ax
+                  + (line_segments[1].by - line_segments[0].by)*ay;
     QPointF p1(line_segments[0].bx + alpha*ax, line_segments[0].by + alpha*ay);
-    alpha = (line_segments[3].bx - line_segments[0].bx)*ax + (line_segments[3].by - line_segments[0].by)*ay;
+    alpha = (line_segments[3].bx - line_segments[0].bx)*ax
+            + (line_segments[3].by - line_segments[0].by)*ay;
     QPointF p4(line_segments[0].bx + alpha*ax, line_segments[0].by + alpha*ay);
-    alpha = (line_segments[1].bx - line_segments[2].bx)*ax + (line_segments[1].by - line_segments[2].by)*ay;
+    alpha = (line_segments[1].bx - line_segments[2].bx)*ax
+            + (line_segments[1].by - line_segments[2].by)*ay;
     QPointF p2(line_segments[2].bx + alpha*ax, line_segments[2].by + alpha*ay);
-    alpha = (line_segments[3].bx - line_segments[2].bx)*ax + (line_segments[3].by - line_segments[2].by)*ay;
+    alpha = (line_segments[3].bx - line_segments[2].bx)*ax
+            + (line_segments[3].by - line_segments[2].by)*ay;
     QPointF p3(line_segments[2].bx + alpha*ax, line_segments[2].by + alpha*ay);
     const QPointF reference = (p1 + p2 + p3 + p4)/4;
     p1 -= reference;
@@ -341,7 +369,11 @@ BasicGraphicsPath *ShapeRecognizer::recognizeRect() const
                 top = std::min(std::min(std::min(p1.y(), p2.y()), p3.y()), p4.y()),
                 bottom = std::max(std::max(std::max(p1.y(), p2.y()), p3.y()), p4.y()),
                 margin = path->_tool.width() / 2;
-    const QRectF boundingRect(left-margin, top-margin, right-left+2*margin, bottom-top+2*margin);
+    const QRectF boundingRect(
+            left-margin,
+            top-margin,
+            right-left+2*margin,
+            bottom-top+2*margin);
 
     // Compute the path width (only for FullGraphicsPath).
     BasicGraphicsPath *pathitem;
@@ -380,7 +412,10 @@ BasicGraphicsPath *ShapeRecognizer::recognizeEllipse() const
         grad_ay = ellipseLossGradient_ay(mx, my, ax, ay);
         grad_mx = ellipseLossGradient_mx(mx, my, ax, ay);
         grad_my = ellipseLossGradient_my(mx, my, ax, ay);
-        debug_verbose(DebugDrawing, grad_mx*(rx+ry)/moments.s << grad_my*(rx+ry)/moments.s << grad_ax*ax/moments.s << grad_ay*ay/moments.s);
+        debug_verbose(DebugDrawing, grad_mx*(rx+ry)/moments.s
+                                    << grad_my*(rx+ry)/moments.s
+                                    << grad_ax*ax/moments.s
+                                    << grad_ay*ay/moments.s);
         if (std::abs(grad_mx)*(rx+ry) < ELLIPSE_STOP_OPTIMIZING_THRESHOLD*moments.s
                 && std::abs(grad_my)*(rx+ry) < ELLIPSE_STOP_OPTIMIZING_THRESHOLD*moments.s
                 && std::abs(grad_ax)*ax < ELLIPSE_STOP_OPTIMIZING_THRESHOLD*moments.s
@@ -393,11 +428,15 @@ BasicGraphicsPath *ShapeRecognizer::recognizeEllipse() const
         my -= (rx+ry)*mnorm*grad_my;
         ax -= ax*anorm*grad_ax;
         ay -= ay*anorm*grad_ay;
-        debug_verbose(DebugDrawing, mx << my << ax << ay << 1./std::sqrt(std::abs(ax)) << 1./std::sqrt(std::abs(ay)) << ellipseLossFunc(mx, my, ax, ay) / moments.s);
+        debug_verbose(DebugDrawing, mx << my << ax << ay
+                                    << 1./std::sqrt(std::abs(ax))
+                                    << 1./std::sqrt(std::abs(ay))
+                                    << ellipseLossFunc(mx, my, ax, ay) / moments.s);
     }
     // Check if the path points lie on an ellipse
     loss = ellipseLossFunc(mx, my, ax, ay) / (moments.s + 10);
-    debug_msg(DebugDrawing, "    found:" << mx << my << 1./std::sqrt(ax) << 1./std::sqrt(ay) << loss);
+    debug_msg(DebugDrawing, "    found:" << mx << my
+                            << 1./std::sqrt(ax) << 1./std::sqrt(ay) << loss);
     if (loss > preferences()->ellipse_sensitivity)
         return nullptr;
     rx = 1./std::sqrt(ax);
@@ -405,7 +444,8 @@ BasicGraphicsPath *ShapeRecognizer::recognizeEllipse() const
     if (std::abs(rx - ry) < preferences()->ellipse_to_circle_snapping*(rx+ry))
         rx = ry = (rx+ry)/2;
     // Check if a full ellipse was drawn (and not only a segment)
-    if (distance(path->lastPoint() - path->firstPoint()) > ELLIPSE_START_END_MAX_DISTANCE*(rx+ry))
+    if (distance(path->lastPoint() - path->firstPoint())
+            > ELLIPSE_START_END_MAX_DISTANCE*(rx+ry))
         return nullptr;
 
     // Construct a path.

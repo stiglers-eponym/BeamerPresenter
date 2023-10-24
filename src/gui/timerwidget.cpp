@@ -34,7 +34,8 @@ TimerWidget::TimerWidget(QWidget *parent) :
     total->setAlignment(Qt::AlignCenter);
     passed->setToolTip(tr("time since beginning of the presentation"));
     total->setToolTip(tr("total duration of the presentation"));
-    setToolTip(tr("double-click here to set time for this slide for your orientation while presenting"));
+    setToolTip(tr("double-click here to set time for this slide "
+                  "for your orientation while presenting"));
     updateFullText();
     stopTimer();
 }
@@ -59,7 +60,8 @@ void TimerWidget::updateTimeout() noexcept
 void TimerWidget::resizeEvent(QResizeEvent *event) noexcept
 {
     QFont thefont = passed->font();
-    thefont.setPointSizeF(std::min(event->size().height()/2, event->size().width()/12));
+    thefont.setPointSizeF(std::min(event->size().height()/2,
+                                   event->size().width()/12));
     passed->setFont(thefont);
     total->setFont(thefont);
     thefont.setPointSizeF(0.75*thefont.pointSizeF());
@@ -82,7 +84,9 @@ void TimerWidget::updateText() noexcept
                             msecs_passed < 3600000 ? "m:ss" : "h:mm:ss"
                     )
                 );
-    if (!(_flags & Timeout) && msecs_passed >= preferences()->msecs_total && preferences()->msecs_total > 0)
+    if (!(_flags & Timeout)
+        && msecs_passed >= preferences()->msecs_total
+        && preferences()->msecs_total > 0)
     {
         _flags |= Timeout;
         updateTimeout();
@@ -104,10 +108,15 @@ void TimerWidget::updateText() noexcept
 
 void TimerWidget::changePassed()
 {
-    const quint32 new_msecs_passed = QTime::fromString(passed->text(), passed->text().count(":") == 2 ? "h:mm:ss" : "m:ss").msecsSinceStartOfDay();
+    const quint32 new_msecs_passed =
+            QTime::fromString(passed->text(),
+                              passed->text().count(":") == 2 ? "h:mm:ss" : "m:ss"
+                              ).msecsSinceStartOfDay();
     debug_msg(DebugWidgets, "new msecs passed:" << new_msecs_passed);
     if (preferences()->msecs_passed == UINT_LEAST32_MAX)
-        writable_preferences()->target_time = QDateTime::currentDateTimeUtc().addMSecs(preferences()->msecs_total - new_msecs_passed);
+        writable_preferences()->target_time =
+            QDateTime::currentDateTimeUtc()
+                    .addMSecs(preferences()->msecs_total - new_msecs_passed);
     else
         writable_preferences()->msecs_passed = new_msecs_passed;
     if (preferences()->msecs_total > 0 && new_msecs_passed >= preferences()->msecs_total)
@@ -136,8 +145,11 @@ void TimerWidget::setTotalTime(const QTime time) noexcept
         const quint32 msecs_total = time.msecsSinceStartOfDay();
         if (preferences()->msecs_passed == UINT_LEAST32_MAX)
         {
-            writable_preferences()->target_time = preferences()->target_time.addMSecs(msecs_total - preferences()->msecs_total);
-            if (msecs_total > 0 && QDateTime::currentDateTimeUtc() >= preferences()->target_time)
+            writable_preferences()->target_time =
+                    preferences()->target_time.addMSecs(
+                        msecs_total - preferences()->msecs_total);
+            if (msecs_total > 0
+                && QDateTime::currentDateTimeUtc() >= preferences()->target_time)
                 _flags |= Timeout;
             else
                 _flags &= ~Timeout;
@@ -162,7 +174,9 @@ void TimerWidget::startTimer() noexcept
     passed->setPalette(timer_palette);
     if (preferences()->msecs_passed != UINT_LEAST32_MAX)
     {
-        writable_preferences()->target_time = QDateTime::currentDateTimeUtc().addMSecs(preferences()->msecs_total - preferences()->msecs_passed);
+        writable_preferences()->target_time =
+                QDateTime::currentDateTimeUtc().addMSecs(
+                    preferences()->msecs_total - preferences()->msecs_passed);
         writable_preferences()->msecs_passed = UINT_LEAST32_MAX;
     }
     timer_id = QWidget::startTimer(1000);
@@ -181,7 +195,9 @@ void TimerWidget::stopTimer() noexcept
     passed->setPalette(palette);
     if (preferences()->msecs_passed == UINT_LEAST32_MAX)
     {
-        writable_preferences()->msecs_passed = preferences()->msecs_total - QDateTime::currentDateTimeUtc().msecsTo(preferences()->target_time);
+        writable_preferences()->msecs_passed =
+                preferences()->msecs_total
+                - QDateTime::currentDateTimeUtc().msecsTo(preferences()->target_time);
         updateFullText();
     }
     emit updateStatus(StartStopTimer, 0);
@@ -205,7 +221,8 @@ void TimerWidget::handleAction(const Action action) noexcept
         break;
     case ResetTimePassed:
         if (preferences()->msecs_passed == UINT_LEAST32_MAX)
-            writable_preferences()->target_time = QDateTime::currentDateTimeUtc().addMSecs(preferences()->msecs_total);
+            writable_preferences()->target_time =
+                    QDateTime::currentDateTimeUtc().addMSecs(preferences()->msecs_total);
         else
             writable_preferences()->msecs_passed = 0;
         _flags &= ~Timeout;
@@ -220,7 +237,8 @@ void TimerWidget::handleAction(const Action action) noexcept
 quint32 TimerWidget::timePassed() const noexcept
 {
     return preferences()->msecs_passed == UINT_LEAST32_MAX
-        ? preferences()->msecs_total - QDateTime::currentDateTimeUtc().msecsTo(preferences()->target_time)
+        ? preferences()->msecs_total
+            - QDateTime::currentDateTimeUtc().msecsTo(preferences()->target_time)
         : preferences()->msecs_passed;
 }
 
@@ -255,7 +273,10 @@ QColor TimerWidget::time2color(const qint32 time) const noexcept
 
     const int diff = next_it.key() - time;
     const int total = next_it.key() - std::prev(next_it).key();
-    return QColor(((total-diff)*qRed(*next_it) + diff*qRed(*std::prev(next_it)))/total, ((total-diff)*qGreen(*next_it) + diff*qGreen(*std::prev(next_it)))/total, ((total-diff)*qBlue(*next_it) + diff*qBlue(*std::prev(next_it)))/total);
+    return QColor(
+        ((total-diff)*qRed(*next_it) + diff*qRed(*std::prev(next_it)))/total,
+        ((total-diff)*qGreen(*next_it) + diff*qGreen(*std::prev(next_it)))/total,
+        ((total-diff)*qBlue(*next_it) + diff*qBlue(*std::prev(next_it)))/total);
 }
 
 void TimerWidget::updatePage(const int page) noexcept

@@ -831,7 +831,11 @@ void SlideScene::navigationEvent(const int newpage, SlideScene *newscene)
         {
             if (newpage < page)
                 transition.invert();
-            debug_msg(DebugTransitions, "Transition:" << transition.type << transition.duration << transition.properties << transition.angle << transition.scale);
+            debug_msg(DebugTransitions, "Transition:" << transition.type
+                                        << transition.duration
+                                        << transition.properties
+                                        << transition.angle
+                                        << transition.scale);
             startTransition(newpage, transition);
             return;
         }
@@ -1143,7 +1147,10 @@ void SlideScene::createWipeTransition(const SlideTransition &transition, PixmapG
     animation = propanim;
 }
 
-void SlideScene::createFlyTransition(const SlideTransition &transition, PixmapGraphicsItem *pageTransitionItem, PixmapGraphicsItem *oldPage)
+void SlideScene::createFlyTransition(
+        const SlideTransition &transition,
+        PixmapGraphicsItem *pageTransitionItem,
+        PixmapGraphicsItem *oldPage)
 {
     const bool outwards = transition.properties & SlideTransition::Outwards;
     for (const auto &view : static_cast<const QList<QGraphicsView*>>(views()))
@@ -1972,7 +1979,12 @@ void writeToSVG(QByteArray &data, const QList<QGraphicsItem*> &source, const QRe
     painter.end();
 }
 
-void writeToPixelImage(QByteArray &data, const QList<QGraphicsItem*> &source, const QRectF &rect, const qreal resolution, const char *format)
+void writeToPixelImage(
+        QByteArray &data,
+        const QList<QGraphicsItem*> &source,
+        const QRectF &rect,
+        const qreal resolution,
+        const char *format)
 {
     QImage image((rect.size()*resolution).toSize(), QImage::Format_ARGB32);
     image.fill(0x00ffffff);

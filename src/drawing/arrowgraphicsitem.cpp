@@ -26,8 +26,10 @@ void calcArrowPoints(const QPointF &start, const QPointF &end, QPointF &p1, QPoi
     const qreal length =  QLineF(start, end).length() / preferences()->arrow_tip_scale;
     const qreal scale1 = 8. / std::max(40., length) + 32. / std::max(320., length);
     const qreal scale2 = preferences()->arrow_tip_ratio * scale1;
-    p1 = {scale2*start.x() + (1-scale2)*end.x() - scale1*(end.y() - start.y()), scale2*start.y() + (1-scale2)*end.y() + scale1*(end.x() - start.x())};
-    p2 = {scale2*start.x() + (1-scale2)*end.x() + scale1*(end.y() - start.y()), scale2*start.y() + (1-scale2)*end.y() - scale1*(end.x() - start.x())};
+    p1 = {scale2*start.x() + (1-scale2)*end.x() - scale1*(end.y() - start.y()),
+          scale2*start.y() + (1-scale2)*end.y() + scale1*(end.x() - start.x())};
+    p2 = {scale2*start.x() + (1-scale2)*end.x() + scale1*(end.y() - start.y()),
+          scale2*start.y() + (1-scale2)*end.y() - scale1*(end.x() - start.x())};
 }
 
 void ArrowGraphicsItem::setSecondPoint(const QPointF &pos)
@@ -83,7 +85,10 @@ QList<BasicGraphicsPath*> ArrowGraphicsItem::toPath() const
     return {path1,path2};
 }
 
-void ArrowGraphicsItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
+void ArrowGraphicsItem::paint(
+        QPainter *painter,
+        const QStyleOptionGraphicsItem *option,
+        QWidget *widget)
 {
     painter->setCompositionMode(tool.compositionMode());
     QGraphicsPathItem::paint(painter, option, widget);

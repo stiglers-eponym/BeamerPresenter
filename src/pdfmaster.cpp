@@ -110,10 +110,13 @@ void PdfMaster::receiveAction(const Action action)
             debug_msg(DebugDrawing, "undo:" << path);
             auto scene_it = scenes.cbegin();
             if (preferences()->overlay_mode == PerLabel)
-                while ( scene_it != scenes.cend() && ( overlaysShifted((*scene_it)->getPage(), FirstOverlay) | (*scene_it)->pagePart() ) != page)
+                while (scene_it != scenes.cend()
+                       && (overlaysShifted((*scene_it)->getPage(), FirstOverlay)
+                            | (*scene_it)->pagePart()) != page)
                     ++scene_it;
             else
-                while ( scene_it != scenes.cend() && ( (*scene_it)->getPage() | (*scene_it)->pagePart() ) != page)
+                while (scene_it != scenes.cend()
+                       && ((*scene_it)->getPage() | (*scene_it)->pagePart() ) != page)
                     ++scene_it;
             SlideScene * const scene = scene_it == scenes.cend() ? nullptr : *scene_it;
             if (path->undo(scene))
@@ -139,10 +142,13 @@ void PdfMaster::receiveAction(const Action action)
             debug_msg(DebugDrawing, "redo:" << path);
             auto scene_it = scenes.cbegin();
             if (preferences()->overlay_mode == PerLabel)
-                while ( scene_it != scenes.cend() && ( overlaysShifted((*scene_it)->getPage(), FirstOverlay) | (*scene_it)->pagePart() ) != page)
+                while (scene_it != scenes.cend()
+                       && (overlaysShifted((*scene_it)->getPage(), FirstOverlay)
+                           | (*scene_it)->pagePart() ) != page)
                     ++scene_it;
             else
-                while ( scene_it != scenes.cend() && ( (*scene_it)->getPage() | (*scene_it)->pagePart() ) != page)
+                while (scene_it != scenes.cend()
+                       && ((*scene_it)->getPage() | (*scene_it)->pagePart() ) != page)
                     ++scene_it;
             SlideScene * const scene = scene_it == scenes.cend() ? nullptr : *scene_it;
             if (path->redo(scene))

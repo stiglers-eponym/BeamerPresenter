@@ -11,7 +11,11 @@
 #include "src/enumerates.h"
 #include "src/log.h"
 
-ExternalRenderer::ExternalRenderer(const QString& command, const QStringList &arguments, const PdfDocument * const doc, const PagePart part) :
+ExternalRenderer::ExternalRenderer(
+        const QString& command,
+        const QStringList &arguments,
+        const PdfDocument * const doc,
+        const PagePart part) :
     AbstractRenderer(part),
     renderingCommand(command),
     renderingArguments(arguments),
@@ -20,7 +24,10 @@ ExternalRenderer::ExternalRenderer(const QString& command, const QStringList &ar
     renderingArguments.replaceInStrings("%file", doc->getPath());
 }
 
-const QStringList ExternalRenderer::getArguments(const int page, const qreal resolution, const QString &format) const
+const QStringList ExternalRenderer::getArguments(
+        const int page,
+        const qreal resolution,
+        const QString &format) const
 {
     QStringList command = renderingArguments;
     // In mutools %page argument starts counting from 1, but internally we
@@ -49,7 +56,10 @@ const PngPixmap * ExternalRenderer::renderPng(const int page, const qreal resolu
     if (page_part == FullPage)
     {
         QProcess *process = new QProcess();
-        process->start(renderingCommand, getArguments(page, resolution, "png"), QProcess::ReadOnly);
+        process->start(
+                renderingCommand,
+                getArguments(page, resolution, "png"),
+                QProcess::ReadOnly);
         if (!process->waitForFinished(MAX_PROCESS_TIME_MS))
         {
             // TODO: clean up correctly
@@ -74,7 +84,10 @@ const QPixmap ExternalRenderer::renderPixmap(const int page, const qreal resolut
     if (resolution <= 0 || page < 0)
         return QPixmap();
     QProcess *process = new QProcess();
-    process->start(renderingCommand, getArguments(page, resolution, "pnm"), QProcess::ReadOnly);
+    process->start(
+            renderingCommand,
+            getArguments(page, resolution, "pnm"),
+            QProcess::ReadOnly);
     if (!process->waitForFinished(MAX_PROCESS_TIME_MS))
     {
         // TODO: clean up correctly
