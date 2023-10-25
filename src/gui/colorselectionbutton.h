@@ -16,22 +16,22 @@ class Tool;
  */
 class ColorSelectionButton : public ToolPropertyButton
 {
-    Q_OBJECT
+  Q_OBJECT
 
-public:
-    /// Constructor: add all items to the drop down menu.
-    ColorSelectionButton(const QJsonArray &array, QWidget *parent = nullptr);
+ public:
+  /// Constructor: add all items to the drop down menu.
+  ColorSelectionButton(const QJsonArray &array, QWidget *parent = nullptr);
 
-    /// Trivial destructor.
-    ~ColorSelectionButton() {}
+  /// Trivial destructor.
+  ~ColorSelectionButton() {}
 
-protected:
-    /// Set color of tool to selected value.
-    void setToolProperty(Tool *tool) const override;
+ protected:
+  /// Set color of tool to selected value.
+  void setToolProperty(Tool *tool) const override;
 
-public slots:
-    /// Update currently selected color based on tool.
-    void toolChanged(const Tool *tool) override;
+ public slots:
+  /// Update currently selected color based on tool.
+  void toolChanged(const Tool *tool) override;
 };
 
-#endif // COLORSELECTIONBUTTON_H
+#endif  // COLORSELECTIONBUTTON_H

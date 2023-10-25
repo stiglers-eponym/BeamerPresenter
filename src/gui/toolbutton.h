@@ -5,6 +5,7 @@
 #define TOOLBUTTON_H
 
 #include <QToolButton>
+
 #include "src/config.h"
 #include "src/drawing/tool.h"
 
@@ -25,34 +26,36 @@ class QColor;
  */
 class ToolButton : public QToolButton
 {
-    Q_OBJECT
+  Q_OBJECT
 
-protected:
-    /// Tool which remains owned by this class.
-    /// Only copies of this tool are send out using sendTool.
-    Tool *tool = nullptr;
+ protected:
+  /// Tool which remains owned by this class.
+  /// Only copies of this tool are send out using sendTool.
+  Tool *tool = nullptr;
 
-public:
-    /// Constructor: takes ownership of tool.
-    explicit ToolButton(Tool *tool, QWidget *parent = nullptr) noexcept;
+ public:
+  /// Constructor: takes ownership of tool.
+  explicit ToolButton(Tool *tool, QWidget *parent = nullptr) noexcept;
 
-    /// Destruktor: deletes tool.
-    virtual ~ToolButton()
-    {delete tool;}
+  /// Destruktor: deletes tool.
+  virtual ~ToolButton() { delete tool; }
 
-public slots:
-    /// Replace tool with newtool. Old tool gets deleted. This takes ownership of newtool.
-    void setTool(Tool *newtool);
+ public slots:
+  /// Replace tool with newtool. Old tool gets deleted. This takes ownership of
+  /// newtool.
+  void setTool(Tool *newtool);
 
-    /// Update the tool icon.
-    void updateIcon();
+  /// Update the tool icon.
+  void updateIcon();
 
-signals:
-    /// Send a copy of tool. Ownership of toolcopy is handed to receiver.
-    void sendTool(Tool *toolcopy) const;
+ signals:
+  /// Send a copy of tool. Ownership of toolcopy is handed to receiver.
+  void sendTool(Tool *toolcopy) const;
 };
 
-/// Take an svg file, replace #ff0000 by given color, render it to given size and return the QImage.
-const QImage fancyIcon(const QString &filename, const QSize &size, const QColor &color);
+/// Take an svg file, replace #ff0000 by given color, render it to given size
+/// and return the QImage.
+const QImage fancyIcon(const QString &filename, const QSize &size,
+                       const QColor &color);
 
-#endif // TOOLBUTTON_H
+#endif  // TOOLBUTTON_H

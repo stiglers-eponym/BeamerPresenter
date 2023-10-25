@@ -6,6 +6,7 @@
 
 #include <QPainter>
 #include <QWidget>
+
 #include "src/config.h"
 #include "src/enumerates.h"
 #include "src/gui/toolpropertybutton.h"
@@ -26,49 +27,48 @@ class QJsonArray;
  */
 class ToolSelectorWidget : public QWidget
 {
-    Q_OBJECT
+  Q_OBJECT
 
-    /// Initialize a tool property button.
-    void initializeToolPropertyButton(const QString &type, const QJsonArray &list, const int row, const int column);
+  /// Initialize a tool property button.
+  void initializeToolPropertyButton(const QString &type, const QJsonArray &list,
+                                    const int row, const int column);
 
-public:
-    /// Constructor: initialize layout.
-    explicit ToolSelectorWidget(QWidget *parent = nullptr);
+ public:
+  /// Constructor: initialize layout.
+  explicit ToolSelectorWidget(QWidget *parent = nullptr);
 
-    /// Size hint for layout.
-    QSize sizeHint() const noexcept override;
+  /// Size hint for layout.
+  QSize sizeHint() const noexcept override;
 
-    /// Create and add all buttons from a JSON array.
-    /// This JSON array must be an array of arrays (a matrix) of entries
-    /// which define a single button.
-    void addButtons(const QJsonArray &full_array);
+  /// Create and add all buttons from a JSON array.
+  /// This JSON array must be an array of arrays (a matrix) of entries
+  /// which define a single button.
+  void addButtons(const QJsonArray &full_array);
 
-    /// Optimal height depends on width.
-    bool hasHeightForWidth() const noexcept override
-    {return true;}
+  /// Optimal height depends on width.
+  bool hasHeightForWidth() const noexcept override { return true; }
 
-protected:
-    /// ensure equal row height when resizing.
-    void resizeEvent(QResizeEvent *event) override
-    {emit updateIcons();}
+ protected:
+  /// ensure equal row height when resizing.
+  void resizeEvent(QResizeEvent *event) override { emit updateIcons(); }
 
-signals:
-    /// Notify master/scene that tool properties have been updated.
-    void sendToolProperties(const tool_variant &properties) const;
+ signals:
+  /// Notify master/scene that tool properties have been updated.
+  void sendToolProperties(const tool_variant &properties) const;
 
-    /// Send action status to action buttons.
-    void sendStatus(const Action action, const int status);
+  /// Send action status to action buttons.
+  void sendStatus(const Action action, const int status);
 
-    /// Send a new tool (copy of the tool of a button) to master.
-    /// Ownership of tool is transfered to receiver (master).
-    void sendTool(Tool *tool) const;
+  /// Send a new tool (copy of the tool of a button) to master.
+  /// Ownership of tool is transfered to receiver (master).
+  void sendTool(Tool *tool) const;
 
-    /// Notify master that a tool has been updated.
-    /// Ownership of tool does not change.
-    void updatedTool(const Tool *tool) const;
+  /// Notify master that a tool has been updated.
+  /// Ownership of tool does not change.
+  void updatedTool(const Tool *tool) const;
 
-    /// Child buttons should update icons, called after resizing.
-    void updateIcons();
+  /// Child buttons should update icons, called after resizing.
+  void updateIcons();
 };
 
-#endif // TOOLSELECTORWIDGET_H
+#endif  // TOOLSELECTORWIDGET_H

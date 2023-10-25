@@ -4,11 +4,12 @@
 #ifndef STACKEDWIDGET_H
 #define STACKEDWIDGET_H
 
-#include <QStackedWidget>
-#include <QSizePolicy>
 #include <QSize>
-#include "src/gui/containerbaseclass.h"
+#include <QSizePolicy>
+#include <QStackedWidget>
+
 #include "src/config.h"
+#include "src/gui/containerbaseclass.h"
 
 class QSize;
 
@@ -19,33 +20,34 @@ class QSize;
  */
 class StackedWidget : public QStackedWidget, public ContainerBaseClass
 {
-    Q_OBJECT
+  Q_OBJECT
 
-public:
-    /// Constructor: set size policy.
-    StackedWidget(QWidget *parent = nullptr) noexcept : QStackedWidget(parent)
-    {setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);}
+ public:
+  /// Constructor: set size policy.
+  StackedWidget(QWidget *parent = nullptr) noexcept : QStackedWidget(parent)
+  {
+    setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+  }
 
-    /// Return sizeHint based on layout.
-    QSize sizeHint() const noexcept override
-    {
-        QSize size(0,0);
-        int i = 0;
-        while (i < count())
-            size = size.expandedTo(widget(i++)->sizeHint());
-        return size;
-    }
+  /// Return sizeHint based on layout.
+  QSize sizeHint() const noexcept override
+  {
+    QSize size(0, 0);
+    int i = 0;
+    while (i < count()) size = size.expandedTo(widget(i++)->sizeHint());
+    return size;
+  }
 
-    /// height depends on width (required by FlexLayout).
-    bool hasHeightForWidth() const noexcept override
-    {return true;}
+  /// height depends on width (required by FlexLayout).
+  bool hasHeightForWidth() const noexcept override { return true; }
 
-    /// Append a new widget to the layout.
-    virtual void addWidgetCommon(QWidget *widget, const QString &title) override
-    {addWidget(widget);}
+  /// Append a new widget to the layout.
+  virtual void addWidgetCommon(QWidget *widget, const QString &title) override
+  {
+    addWidget(widget);
+  }
 
-    virtual QWidget *asWidget() noexcept override
-    {return this;}
+  virtual QWidget *asWidget() noexcept override { return this; }
 };
 
-#endif // STACKEDWIDGET_H
+#endif  // STACKEDWIDGET_H

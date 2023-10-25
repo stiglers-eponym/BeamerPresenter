@@ -5,10 +5,10 @@
 #define MUPDFRENDERER_H
 
 #include <QtGlobal>
+
 #include "src/config.h"
 // old versions of MuPDF don't have 'extern "C"' in the header files.
-extern "C"
-{
+extern "C" {
 #include <mupdf/fitz.h>
 }
 #include "src/enumerates.h"
@@ -28,33 +28,38 @@ class PngPixmap;
  */
 class MuPdfRenderer : public AbstractRenderer
 {
-    /// Document used for rendering. doc is not owned by this.
-    const MuPdfDocument *doc;
+  /// Document used for rendering. doc is not owned by this.
+  const MuPdfDocument *doc;
 
-    /// Helper function for rendering functions.
-    fz_pixmap *renderFzPixmap(const int page, const qreal resolution, fz_context *&ctx) const;
+  /// Helper function for rendering functions.
+  fz_pixmap *renderFzPixmap(const int page, const qreal resolution,
+                            fz_context *&ctx) const;
 
-public:
-    /// Constructor: only initializes doc and page_part.
-    MuPdfRenderer(const PdfDocument *document, const PagePart part = FullPage) :
-        AbstractRenderer(part),
-        doc(document && (document->type() == MuPdfEngine) ? static_cast<const MuPdfDocument*>(document) : nullptr)
-        {}
+ public:
+  /// Constructor: only initializes doc and page_part.
+  MuPdfRenderer(const PdfDocument *document, const PagePart part = FullPage)
+      : AbstractRenderer(part),
+        doc(document && (document->type() == MuPdfEngine)
+                ? static_cast<const MuPdfDocument *>(document)
+                : nullptr)
+  {
+  }
 
-    /// Trivial destructor.
-    ~MuPdfRenderer() override {}
+  /// Trivial destructor.
+  ~MuPdfRenderer() override {}
 
-    /// Render page to a QPixmap. Resolution is given in pixels per point
-    /// (dpi/72).
-    const QPixmap renderPixmap(const int page, const qreal resolution) const override;
+  /// Render page to a QPixmap. Resolution is given in pixels per point
+  /// (dpi/72).
+  const QPixmap renderPixmap(const int page,
+                             const qreal resolution) const override;
 
-    /// Render page to PNG image stored in a QByteArray as part of a PngPixmap.
-    /// Resolution is given in pixels per point (dpi/72).
-    const PngPixmap * renderPng(const int page, const qreal resolution) const override;
+  /// Render page to PNG image stored in a QByteArray as part of a PngPixmap.
+  /// Resolution is given in pixels per point (dpi/72).
+  const PngPixmap *renderPng(const int page,
+                             const qreal resolution) const override;
 
-    /// In the current implementation this is always valid.
-    bool isValid() const override
-    {return doc && doc->isValid();}
+  /// In the current implementation this is always valid.
+  bool isValid() const override { return doc && doc->isValid(); }
 };
 
-#endif // MUPDFRENDERER_H
+#endif  // MUPDFRENDERER_H

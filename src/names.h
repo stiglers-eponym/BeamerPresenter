@@ -4,8 +4,9 @@
 #ifndef NAMES_H
 #define NAMES_H
 
-#include <QString>
 #include <QMap>
+#include <QString>
+
 #include "src/config.h"
 #include "src/enumerates.h"
 
@@ -13,14 +14,15 @@
 GuiWidget string_to_widget_type(const QString &string) noexcept;
 
 /// Translate strings appearing in config to Actions
-static const QMap<QString, Action> string_to_action_map
-{
+static const QMap<QString, Action> string_to_action_map{
     // Nagivation actions
     {QT_TRANSLATE_NOOP("SettingsWidget", "update"), Update},
     {QT_TRANSLATE_NOOP("SettingsWidget", "next"), NextPage},
     {QT_TRANSLATE_NOOP("SettingsWidget", "previous"), PreviousPage},
-    {QT_TRANSLATE_NOOP("SettingsWidget", "next skipping overlays"), NextSkippingOverlays},
-    {QT_TRANSLATE_NOOP("SettingsWidget", "previous skipping overlays"), PreviousSkippingOverlays},
+    {QT_TRANSLATE_NOOP("SettingsWidget", "next skipping overlays"),
+     NextSkippingOverlays},
+    {QT_TRANSLATE_NOOP("SettingsWidget", "previous skipping overlays"),
+     PreviousSkippingOverlays},
     {QT_TRANSLATE_NOOP("SettingsWidget", "first"), FirstPage},
     {QT_TRANSLATE_NOOP("SettingsWidget", "last"), LastPage},
     // Drawing
@@ -46,8 +48,10 @@ static const QMap<QString, Action> string_to_action_map
     {QT_TRANSLATE_NOOP("SettingsWidget", "copy"), CopyClipboard},
     {QT_TRANSLATE_NOOP("SettingsWidget", "cut"), CutClipboard},
     {QT_TRANSLATE_NOOP("SettingsWidget", "paste"), PasteClipboard},
-    {QT_TRANSLATE_NOOP("SettingsWidget", "to foreground"), SelectionToForeground},
-    {QT_TRANSLATE_NOOP("SettingsWidget", "to background"), SelectionToBackground},
+    {QT_TRANSLATE_NOOP("SettingsWidget", "to foreground"),
+     SelectionToForeground},
+    {QT_TRANSLATE_NOOP("SettingsWidget", "to background"),
+     SelectionToBackground},
     {QT_TRANSLATE_NOOP("SettingsWidget", "delete"), RemoveSelectedItems},
     {QT_TRANSLATE_NOOP("SettingsWidget", "select all"), SelectAll},
     {QT_TRANSLATE_NOOP("SettingsWidget", "clear selection"), ClearSelection},
@@ -74,8 +78,7 @@ Gesture string_to_gesture(const QString &string) noexcept;
 
 /// Map human readable string to overlay mode.
 /// @see PdfMaster
-static const QMap<QString, OverlayDrawingMode> string_to_overlay_mode
-{
+static const QMap<QString, OverlayDrawingMode> string_to_overlay_mode{
     {"per page", PerPage},
     {"per label", PerLabel},
     {"cumulative", Cumulative},
@@ -83,6 +86,6 @@ static const QMap<QString, OverlayDrawingMode> string_to_overlay_mode
 
 #ifdef QT_DEBUG
 DebugFlags string_to_debug_flags(const QString &string) noexcept;
-#endif // QT_DEBUG
+#endif  // QT_DEBUG
 
-#endif // NAMES_H
+#endif  // NAMES_H

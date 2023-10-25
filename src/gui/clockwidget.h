@@ -6,6 +6,7 @@
 
 #include <QLineEdit>
 #include <QTime>
+
 #include "src/config.h"
 #include "src/enumerates.h"
 
@@ -28,40 +29,41 @@ class QMouseEvent;
  */
 class ClockWidget : public QLineEdit
 {
-    Q_OBJECT
+  Q_OBJECT
 
-public:
-    /// Constructor
-    explicit ClockWidget(bool accept_touch_input = true, QWidget *parent = nullptr);
+ public:
+  /// Constructor
+  explicit ClockWidget(bool accept_touch_input = true,
+                       QWidget *parent = nullptr);
 
-    /// Trivial destructor
-    ~ClockWidget() {}
+  /// Trivial destructor
+  ~ClockWidget() {}
 
-    /// Size hint: based on estimated size.
-    QSize sizeHint() const noexcept override
-    {return {125,20};}
+  /// Size hint: based on estimated size.
+  QSize sizeHint() const noexcept override { return {125, 20}; }
 
-    /// Height depends on width through font size.
-    bool hasHeightForWidth() const noexcept override
-    {return true;}
+  /// Height depends on width through font size.
+  bool hasHeightForWidth() const noexcept override { return true; }
 
-protected:
-    /// Timeout event: update view.
-    void timerEvent(QTimerEvent*) override
-    {setText(QTime::currentTime().toString(Qt::TextDate));}
+ protected:
+  /// Timeout event: update view.
+  void timerEvent(QTimerEvent *) override
+  {
+    setText(QTime::currentTime().toString(Qt::TextDate));
+  }
 
-    /// Resize event: adjust font size.
-    void resizeEvent(QResizeEvent *event) noexcept override;
+  /// Resize event: adjust font size.
+  void resizeEvent(QResizeEvent *event) noexcept override;
 
-    /// Event handler touch events.
-    bool event(QEvent *event) override;
+  /// Event handler touch events.
+  bool event(QEvent *event) override;
 
-    /// Mouse double click starts/stops timer.
-    void mouseDoubleClickEvent(QMouseEvent *event) noexcept override;
+  /// Mouse double click starts/stops timer.
+  void mouseDoubleClickEvent(QMouseEvent *event) noexcept override;
 
-signals:
-    /// Send action (toggle timer) to master.
-    void sendAction(const Action);
+ signals:
+  /// Send action (toggle timer) to master.
+  void sendAction(const Action);
 };
 
-#endif // CLOCKWIDGET_H
+#endif  // CLOCKWIDGET_H

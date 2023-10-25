@@ -20,25 +20,26 @@ class Tool;
  */
 class ToolWidgetButton : public ToolButton
 {
-    Q_OBJECT
+  Q_OBJECT
 
-    /// Input device, for which the tool is shown.
-    const int device;
+  /// Input device, for which the tool is shown.
+  const int device;
 
-public:
-    /// Almost trivial constructor.
-    ToolWidgetButton(Tool *tool, const int device, QWidget *parent = nullptr) noexcept;
-    /// Trivial desctructor.
-    virtual ~ToolWidgetButton() {}
+ public:
+  /// Almost trivial constructor.
+  ToolWidgetButton(Tool *tool, const int device,
+                   QWidget *parent = nullptr) noexcept;
+  /// Trivial desctructor.
+  virtual ~ToolWidgetButton() {}
 
-protected slots:
-    /// Select a new tool using ToolDialog.
-    virtual void selectTool();
+ protected slots:
+  /// Select a new tool using ToolDialog.
+  virtual void selectTool();
 
-public slots:
-    /// Receive a new tool from master. Only changes the tool if the
-    /// new tool is connected to this->device.
-    void receiveNewTool(const Tool *newtool);
+ public slots:
+  /// Receive a new tool from master. Only changes the tool if the
+  /// new tool is connected to this->device.
+  void receiveNewTool(const Tool *newtool);
 };
 
-#endif // TOOLWIDGETBUTTON_H
+#endif  // TOOLWIDGETBUTTON_H

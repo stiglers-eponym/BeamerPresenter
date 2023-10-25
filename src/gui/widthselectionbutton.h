@@ -16,21 +16,21 @@ class QWidget;
  */
 class WidthSelectionButton : public ToolPropertyButton
 {
-    Q_OBJECT
+  Q_OBJECT
 
-public:
-    /// Constructor: given array should contains numbers defining pen widths.
-    WidthSelectionButton(const QJsonArray &array, QWidget *parent = nullptr);
-    /// Trivial destructor
-    ~WidthSelectionButton() {}
+ public:
+  /// Constructor: given array should contains numbers defining pen widths.
+  WidthSelectionButton(const QJsonArray &array, QWidget *parent = nullptr);
+  /// Trivial destructor
+  ~WidthSelectionButton() {}
 
-protected:
-    /// Set width of tool to selected value.
-    void setToolProperty(Tool* tool) const override;
+ protected:
+  /// Set width of tool to selected value.
+  void setToolProperty(Tool *tool) const override;
 
-public slots:
-    /// Update currently selected width based on tool.
-    void toolChanged(const Tool *tool) override;
+ public slots:
+  /// Update currently selected width based on tool.
+  void toolChanged(const Tool *tool) override;
 };
 
-#endif // WIDTHSELECTIONBUTTON_H
+#endif  // WIDTHSELECTIONBUTTON_H

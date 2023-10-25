@@ -6,6 +6,7 @@
 
 #include <QLineEdit>
 #include <QSize>
+
 #include "src/config.h"
 
 class QLabel;
@@ -23,47 +24,48 @@ class QResizeEvent;
  */
 class SlideLabelWidget : public QWidget
 {
-    Q_OBJECT
+  Q_OBJECT
 
-    /// Show total number of pages here.
-    QLabel *total;
+  /// Show total number of pages here.
+  QLabel *total;
 
-    /// Show and edit current page number here.
-    QLineEdit *edit;
+  /// Show and edit current page number here.
+  QLineEdit *edit;
 
-public:
-    /// Constructor: construct and connect everything.
-    explicit SlideLabelWidget(QWidget *parent = nullptr);
+ public:
+  /// Constructor: construct and connect everything.
+  explicit SlideLabelWidget(QWidget *parent = nullptr);
 
-    /// Trivial destructor: Qt should delete everything automatically.
-    ~SlideLabelWidget() {}
+  /// Trivial destructor: Qt should delete everything automatically.
+  ~SlideLabelWidget() {}
 
-    /// This should usually be a good estimate.
-    QSize sizeHint() const noexcept override
-    {return {150, 25};}
+  /// This should usually be a good estimate.
+  QSize sizeHint() const noexcept override { return {150, 25}; }
 
-    /// Currently necessary because FlexLayout is kind of broken.
-    bool hasHeightForWidth() const noexcept override
-    {return true;}
+  /// Currently necessary because FlexLayout is kind of broken.
+  bool hasHeightForWidth() const noexcept override { return true; }
 
-protected:
-    /// Focus event: focus text field by default
-    void focusInEvent(QFocusEvent*) override
-    {edit->setFocus(); edit->selectAll();}
+ protected:
+  /// Focus event: focus text field by default
+  void focusInEvent(QFocusEvent *) override
+  {
+    edit->setFocus();
+    edit->selectAll();
+  }
 
-    /// Resize: adjust font size.
-    void resizeEvent(QResizeEvent *event) noexcept override;
+  /// Resize: adjust font size.
+  void resizeEvent(QResizeEvent *event) noexcept override;
 
-public slots:
-    /// Update current slide and total number of slides.
-    void updateText(const int page) noexcept;
+ public slots:
+  /// Update current slide and total number of slides.
+  void updateText(const int page) noexcept;
 
-    /// Read from edit and send navigation event.
-    void readText() noexcept;
+  /// Read from edit and send navigation event.
+  void readText() noexcept;
 
-signals:
-    /// Slide changed, send new page.
-    void navigationSignal(const int page);
+ signals:
+  /// Slide changed, send new page.
+  void navigationSignal(const int page);
 };
 
-#endif // SLIDELABELWIDGET_H
+#endif  // SLIDELABELWIDGET_H

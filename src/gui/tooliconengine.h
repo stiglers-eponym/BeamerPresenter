@@ -4,11 +4,12 @@
 #ifndef TOOLICONENGINE_H
 #define TOOLICONENGINE_H
 
-#include <QIconEngine>
-#include <QSvgRenderer>
-#include <QString>
 #include <QColor>
+#include <QIconEngine>
 #include <QPainter>
+#include <QString>
+#include <QSvgRenderer>
+
 #include "src/config.h"
 
 class Tool;
@@ -26,35 +27,40 @@ class QPixmap;
  */
 class ToolIconEngine : public QIconEngine
 {
-    /// Renderer for icon, reads a modified version of the given SVG image.
-    QSvgRenderer renderer;
-    /// full path to SVG file
-    QString filename;
-    /// foreground (pen) color, including alpha channel
-    QRgb fg_color;
-    /// background (filling) color, including alpha channel
-    QRgb bg_color;
+  /// Renderer for icon, reads a modified version of the given SVG image.
+  QSvgRenderer renderer;
+  /// full path to SVG file
+  QString filename;
+  /// foreground (pen) color, including alpha channel
+  QRgb fg_color;
+  /// background (filling) color, including alpha channel
+  QRgb bg_color;
 
-public:
-    /// Create fancy icons for given tool.
-    ToolIconEngine(const Tool *tool);
+ public:
+  /// Create fancy icons for given tool.
+  ToolIconEngine(const Tool *tool);
 
-    /// Create fancy icons from filename and colors.
-    ToolIconEngine(const QString &filename, QRgb fg_color, QRgb bg_color);
+  /// Create fancy icons from filename and colors.
+  ToolIconEngine(const QString &filename, QRgb fg_color, QRgb bg_color);
 
-    /// Trivial destructor.
-    ~ToolIconEngine() {}
+  /// Trivial destructor.
+  ~ToolIconEngine() {}
 
-    /// Create a copy of this.
-    QIconEngine *clone() const override
-    {return new ToolIconEngine(filename, fg_color, bg_color);}
+  /// Create a copy of this.
+  QIconEngine *clone() const override
+  {
+    return new ToolIconEngine(filename, fg_color, bg_color);
+  }
 
-    /// Paint the icon to painter in given rectangle.
-    void paint(QPainter *painter, const QRect &rect, QIcon::Mode, QIcon::State) override
-    {renderer.render(painter, rect);}
+  /// Paint the icon to painter in given rectangle.
+  void paint(QPainter *painter, const QRect &rect, QIcon::Mode,
+             QIcon::State) override
+  {
+    renderer.render(painter, rect);
+  }
 
-    /// Return a pixmap of given size showing the icon.
-    QPixmap pixmap(const QSize &size, QIcon::Mode, QIcon::State) override;
+  /// Return a pixmap of given size showing the icon.
+  QPixmap pixmap(const QSize &size, QIcon::Mode, QIcon::State) override;
 };
 
-#endif // TOOLICONENGINE_H
+#endif  // TOOLICONENGINE_H

@@ -51,6 +51,11 @@ option(LINK_TESSERACT "Link to tesseract (only relevant when using MuPDF" OFF)
 option(MUPDF_USE_SYSTEM_LIBS "MuPDF uses system libraries that need to be included. This is the default for most Linux packages of MuPDF." ON)
 option(SUPPRESS_MUPDF_WARNINGS "Suppress warnings from MuPDF while loading the document pages" OFF)
 
+option(CHECK_CLANG_TIDY "Run clang-tidy when compiling" OFF)
+if (CHECK_CLANG_TIDY)
+    set(CMAKE_CXX_CLANG_TIDY "clang-tidy;-checks=-*,clang-analyzer-*,-clang-analyzer-cplusplus*,cppcoreguidelines-*")
+endif()
+
 # Warnings and errors based on the selection of PDF engines
 if ((NOT USE_MUPDF) AND (NOT USE_POPPLER))
     if (USE_QTPDF)

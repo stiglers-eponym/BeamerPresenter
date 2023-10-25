@@ -4,11 +4,12 @@
 #ifndef ARROWGRAPHICSITEM_H
 #define ARROWGRAPHICSITEM_H
 
-#include <QPointF>
 #include <QGraphicsPathItem>
+#include <QPointF>
+
 #include "src/config.h"
-#include "src/enumerates.h"
 #include "src/drawing/drawtool.h"
+#include "src/enumerates.h"
 
 class QWidget;
 class QPainter;
@@ -23,45 +24,40 @@ class QStyleOptionGraphicsItem;
  */
 class ArrowGraphicsItem : public QGraphicsPathItem
 {
-    /// DrawTool for this path.
-    const DrawTool tool;
-    /// Origin of the arrow
-    const QPointF origin;
+  /// DrawTool for this path.
+  const DrawTool tool;
+  /// Origin of the arrow
+  const QPointF origin;
 
-public:
-    /// Custom type of QGraphicsItem.
-    enum { Type = UserType + ArrowGraphicsItemType };
+ public:
+  /// Custom type of QGraphicsItem.
+  enum { Type = UserType + ArrowGraphicsItemType };
 
-    /// Constructor for initializing QGraphicsLineItem
-    /// @param pos origin of the rectangle. This coordinate is always fixed.
-    ArrowGraphicsItem(
-            const DrawTool &tool,
-            const QPointF &pos,
-            QGraphicsItem *parent = nullptr) :
-        QGraphicsPathItem(parent),
-        origin(pos),
-        tool(tool)
-    {setPen(tool.pen());}
+  /// Constructor for initializing QGraphicsLineItem
+  /// @param pos origin of the rectangle. This coordinate is always fixed.
+  ArrowGraphicsItem(const DrawTool &tool, const QPointF &pos,
+                    QGraphicsItem *parent = nullptr)
+      : QGraphicsPathItem(parent), origin(pos), tool(tool)
+  {
+    setPen(tool.pen());
+  }
 
-    /// Trivial destructor.
-    ~ArrowGraphicsItem() {}
+  /// Trivial destructor.
+  ~ArrowGraphicsItem() {}
 
-    /// @return custom QGraphicsItem type.
-    int type() const noexcept override
-    {return Type;}
+  /// @return custom QGraphicsItem type.
+  int type() const noexcept override { return Type; }
 
-    /// Change the flexible coordinate of the line.
-    void setSecondPoint(const QPointF &pos);
+  /// Change the flexible coordinate of the line.
+  void setSecondPoint(const QPointF &pos);
 
-    /// Convert to two BasicGraphicsPaths for simpler erasing.
-    /// Two paths are needed because an arrow consists of two separate paths.
-    QList<BasicGraphicsPath*> toPath() const;
+  /// Convert to two BasicGraphicsPaths for simpler erasing.
+  /// Two paths are needed because an arrow consists of two separate paths.
+  QList<BasicGraphicsPath *> toPath() const;
 
-    /// Paint line to painter.
-    virtual void paint(
-            QPainter *painter,
-            const QStyleOptionGraphicsItem *option,
-            QWidget *widget = nullptr) override;
+  /// Paint line to painter.
+  virtual void paint(QPainter *painter, const QStyleOptionGraphicsItem *option,
+                     QWidget *widget = nullptr) override;
 };
 
-#endif // ARROWGRAPHICSITEM_H
+#endif  // ARROWGRAPHICSITEM_H

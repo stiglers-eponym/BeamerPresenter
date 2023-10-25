@@ -15,26 +15,28 @@ class Tool;
  */
 class BrushStyleButton : public ToolPropertyButton
 {
-    Q_OBJECT
+  Q_OBJECT
 
-public:
-    /// Constructor: add all items to the drop down menu.
-    BrushStyleButton(QWidget *parent = nullptr);
+ public:
+  /// Constructor: add all items to the drop down menu.
+  BrushStyleButton(QWidget *parent = nullptr);
 
-    /// Trivial destructor.
-    ~BrushStyleButton() {}
+  /// Trivial destructor.
+  ~BrushStyleButton() {}
 
-protected:
-    /// Set style of tool to selected value.
-    void setToolProperty(Tool* tool) const override;
+ protected:
+  /// Set style of tool to selected value.
+  void setToolProperty(Tool *tool) const override;
 
-    /// Update currently selected style based on the tool for device.
-    void updateTool() override
-    {toolChanged(preferences()->currentTool(device));}
+  /// Update currently selected style based on the tool for device.
+  void updateTool() override
+  {
+    toolChanged(preferences()->currentTool(device));
+  }
 
-public slots:
-    /// Update currently selected tool property based on tool.
-    void toolChanged(const Tool *tool) override;
+ public slots:
+  /// Update currently selected tool property based on tool.
+  void toolChanged(const Tool *tool) override;
 };
 
-#endif // BRUSHSTYLEBUTTON_H
+#endif  // BRUSHSTYLEBUTTON_H

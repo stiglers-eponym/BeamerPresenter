@@ -15,24 +15,24 @@ class Tool;
  */
 class ShapeSelectionButton : public ToolPropertyButton
 {
-    Q_OBJECT
+  Q_OBJECT
 
-public:
-    /// Constructor: add all items to the drop down menu.
-    /// The index of an item is the same as the integer representation
-    /// of DrawTool::Shape.
-    ShapeSelectionButton(QWidget *parent = nullptr);
+ public:
+  /// Constructor: add all items to the drop down menu.
+  /// The index of an item is the same as the integer representation
+  /// of DrawTool::Shape.
+  ShapeSelectionButton(QWidget *parent = nullptr);
 
-    /// Trivial destructor.
-    ~ShapeSelectionButton() {}
+  /// Trivial destructor.
+  ~ShapeSelectionButton() {}
 
-protected:
-    /// Set shape of tool to selected value.
-    void setToolProperty(Tool* tool) const override;
+ protected:
+  /// Set shape of tool to selected value.
+  void setToolProperty(Tool *tool) const override;
 
-public slots:
-    /// Update currently selected tool property based on tool.
-    void toolChanged(const Tool *tool) override;
+ public slots:
+  /// Update currently selected tool property based on tool.
+  void toolChanged(const Tool *tool) override;
 };
 
-#endif // SHAPESELECTIONBUTTON_H
+#endif  // SHAPESELECTIONBUTTON_H

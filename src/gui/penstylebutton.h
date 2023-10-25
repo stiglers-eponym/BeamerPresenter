@@ -15,25 +15,27 @@ class Tool;
  */
 class PenStyleButton : public ToolPropertyButton
 {
-    Q_OBJECT
-public:
-    /// Constructor: add all items to the drop down menu.
-    PenStyleButton(QWidget *parent = nullptr);
+  Q_OBJECT
+ public:
+  /// Constructor: add all items to the drop down menu.
+  PenStyleButton(QWidget *parent = nullptr);
 
-    /// Trivial destructor.
-    ~PenStyleButton() {}
+  /// Trivial destructor.
+  ~PenStyleButton() {}
 
-protected:
-    /// Set style of tool to selected value.
-    void setToolProperty(Tool* tool) const override;
+ protected:
+  /// Set style of tool to selected value.
+  void setToolProperty(Tool *tool) const override;
 
-    /// Update currently selected style based on the tool for device.
-    void updateTool() override
-    {toolChanged(preferences()->currentTool(device));}
+  /// Update currently selected style based on the tool for device.
+  void updateTool() override
+  {
+    toolChanged(preferences()->currentTool(device));
+  }
 
-public slots:
-    /// Update currently selected tool property based on tool.
-    void toolChanged(const Tool *tool) override;
+ public slots:
+  /// Update currently selected tool property based on tool.
+  void toolChanged(const Tool *tool) override;
 };
 
-#endif // PENSTYLEBUTTON_H
+#endif  // PENSTYLEBUTTON_H

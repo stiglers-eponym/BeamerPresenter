@@ -4,9 +4,10 @@
 #ifndef TOOLWIDGET_H
 #define TOOLWIDGET_H
 
-#include <QWidget>
-#include <QList>
 #include <QBoxLayout>
+#include <QList>
+#include <QWidget>
+
 #include "src/config.h"
 #include "src/drawing/tool.h"
 
@@ -25,64 +26,63 @@ class Tool;
  */
 class ToolWidget : public QWidget
 {
-    Q_OBJECT
+  Q_OBJECT
 
-    /// Devices which are currently included in the view.
-    int devices {0};
-    /// Number of devices shown, used to calculate the layout.
-    int total_columns {0};
-    /// Direction of the layout.
-    const QBoxLayout::Direction direction {QBoxLayout::LeftToRight};
-    /// Devices listed in the group for mouse devices.
-    QList<int> mouse_devices {Tool::MouseLeftButton, Tool::MouseRightButton};
-    /// Devices listed in the group for tablet devices.
-    QList<int> tablet_devices {Tool::TabletPen, Tool::TabletEraser};
+  /// Devices which are currently included in the view.
+  int devices{0};
+  /// Number of devices shown, used to calculate the layout.
+  int total_columns{0};
+  /// Direction of the layout.
+  const QBoxLayout::Direction direction{QBoxLayout::LeftToRight};
+  /// Devices listed in the group for mouse devices.
+  QList<int> mouse_devices{Tool::MouseLeftButton, Tool::MouseRightButton};
+  /// Devices listed in the group for tablet devices.
+  QList<int> tablet_devices{Tool::TabletPen, Tool::TabletEraser};
 
-    /// Add a given set of devices as a new group, in an own QFrame.
-    void addDeviceGroup(const QList<int> &new_devices);
+  /// Add a given set of devices as a new group, in an own QFrame.
+  void addDeviceGroup(const QList<int> &new_devices);
 
-public:
-    /// Constructor: does not add devices, initialize() must be called separately.
-    explicit ToolWidget(QWidget *parent = nullptr, QBoxLayout::Direction direction = QBoxLayout::LeftToRight);
+ public:
+  /// Constructor: does not add devices, initialize() must be called separately.
+  explicit ToolWidget(
+      QWidget *parent = nullptr,
+      QBoxLayout::Direction direction = QBoxLayout::LeftToRight);
 
-    /// Size hint for layout.
-    QSize sizeHint() const noexcept override
-    {
-        if (direction == QBoxLayout::LeftToRight || direction == QBoxLayout::RightToLeft)
-            return {4+total_columns*20, 44};
-        else
-            return {44, 4+total_columns*20};
-    }
+  /// Size hint for layout.
+  QSize sizeHint() const noexcept override
+  {
+    if (direction == QBoxLayout::LeftToRight ||
+        direction == QBoxLayout::RightToLeft)
+      return {4 + total_columns * 20, 44};
+    else
+      return {44, 4 + total_columns * 20};
+  }
 
-    /// Optimal height depends on width.
-    bool hasHeightForWidth() const noexcept override
-    {return true;}
+  /// Optimal height depends on width.
+  bool hasHeightForWidth() const noexcept override { return true; }
 
-    /// Set the devices included in the group for mouse devices.
-    /// Should only be called before initialization.
-    void setMouseDevices(QList<int> devices)
-    {mouse_devices = devices;}
+  /// Set the devices included in the group for mouse devices.
+  /// Should only be called before initialization.
+  void setMouseDevices(QList<int> devices) { mouse_devices = devices; }
 
-    /// Set the devices included in the group for tablet devices.
-    /// Should only be called before initialization.
-    void setTabletDevices(QList<int> devices)
-    {tablet_devices = devices;}
+  /// Set the devices included in the group for tablet devices.
+  /// Should only be called before initialization.
+  void setTabletDevices(QList<int> devices) { tablet_devices = devices; }
 
-    /// Add all devices currently known to Qt
-    void initialize();
+  /// Add all devices currently known to Qt
+  void initialize();
 
-protected:
-    /// Resize event: tell child buttons to update icons.
-    void resizeEvent(QResizeEvent*) override
-    {emit updateIcons();}
+ protected:
+  /// Resize event: tell child buttons to update icons.
+  void resizeEvent(QResizeEvent *) override { emit updateIcons(); }
 
-public slots:
-    /// Check if new tool adds a new device. Add that devices if necessary.
-    void checkNewTool(const Tool *tool);
+ public slots:
+  /// Check if new tool adds a new device. Add that devices if necessary.
+  void checkNewTool(const Tool *tool);
 
-signals:
-    /// Tell child buttons to update icons.
-    void updateIcons();
+ signals:
+  /// Tell child buttons to update icons.
+  void updateIcons();
 };
 
 /// Get icon file name for device.
@@ -90,4 +90,4 @@ const char *device_icon(int device) noexcept;
 /// Get tool tip description for device.
 const char *device_description(int device) noexcept;
 
-#endif // TOOLWIDGET_H
+#endif  // TOOLWIDGET_H

@@ -4,12 +4,12 @@
 #ifndef TABWIDGET_H
 #define TABWIDGET_H
 
-#include <QTabWidget>
-#include <QSizePolicy>
 #include <QSize>
+#include <QSizePolicy>
+#include <QTabWidget>
+
 #include "src/config.h"
 #include "src/gui/containerbaseclass.h"
-
 
 /**
  * @brief QTabWidget with adjusted size hint
@@ -18,26 +18,28 @@
  */
 class TabWidget : public QTabWidget, public ContainerBaseClass
 {
-    Q_OBJECT
+  Q_OBJECT
 
-public:
-    /// Constructor: set size policy.
-    TabWidget(QWidget *parent = nullptr) noexcept : QTabWidget(parent)
-    {setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);}
+ public:
+  /// Constructor: set size policy.
+  TabWidget(QWidget *parent = nullptr) noexcept : QTabWidget(parent)
+  {
+    setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+  }
 
-    /// Return sizeHint based on layout.
-    QSize sizeHint() const noexcept override;
+  /// Return sizeHint based on layout.
+  QSize sizeHint() const noexcept override;
 
-    /// height depends on width (required by FlexLayout).
-    bool hasHeightForWidth() const noexcept override
-    {return true;}
+  /// height depends on width (required by FlexLayout).
+  bool hasHeightForWidth() const noexcept override { return true; }
 
-    /// Append a new widget to the layout.
-    virtual void addWidgetCommon(QWidget *widget, const QString &title) override
-    {addTab(widget, title);}
+  /// Append a new widget to the layout.
+  virtual void addWidgetCommon(QWidget *widget, const QString &title) override
+  {
+    addTab(widget, title);
+  }
 
-    virtual QWidget *asWidget() noexcept override
-    {return this;}
+  virtual QWidget *asWidget() noexcept override { return this; }
 };
 
-#endif // TABWIDGET_H
+#endif  // TABWIDGET_H

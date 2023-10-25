@@ -4,8 +4,9 @@
 #ifndef SETTINGSWIDGET_H
 #define SETTINGSWIDGET_H
 
-#include <QTabWidget>
 #include <QSize>
+#include <QTabWidget>
+
 #include "src/config.h"
 
 class QTextEdit;
@@ -18,44 +19,42 @@ class QTextEdit;
  */
 class SettingsWidget : public QTabWidget
 {
-    Q_OBJECT
+  Q_OBJECT
 
-    /// Manual
-    QTextEdit *manual;
-    /// General settings
-    QWidget *misc;
-    /// List and modify keyboard shortcuts
-    QWidget *shortcuts;
-    /// Settings affecting rendering and cache
-    QWidget *rendering;
+  /// Manual
+  QTextEdit *manual;
+  /// General settings
+  QWidget *misc;
+  /// List and modify keyboard shortcuts
+  QWidget *shortcuts;
+  /// Settings affecting rendering and cache
+  QWidget *rendering;
 
-    /// Initialize manual tab.
-    void initManual();
-    /// Initialize misc tab.
-    void initMisc();
-    /// Initialize shortcuts tab.
-    void initShortcuts();
-    /// Initialize rendering tab.
-    void initRendering();
+  /// Initialize manual tab.
+  void initManual();
+  /// Initialize misc tab.
+  void initMisc();
+  /// Initialize shortcuts tab.
+  void initShortcuts();
+  /// Initialize rendering tab.
+  void initRendering();
 
-public:
-    /// Construct all 4 tabs.
-    explicit SettingsWidget(QWidget *parent = nullptr);
+ public:
+  /// Construct all 4 tabs.
+  explicit SettingsWidget(QWidget *parent = nullptr);
 
-    /// Size hint for layout.
-    QSize sizeHint() const noexcept override
-    {return {100,200};}
+  /// Size hint for layout.
+  QSize sizeHint() const noexcept override { return {100, 200}; }
 
-    /// required by layout.
-    bool hasHeightForWidth() const noexcept override
-    {return true;}
+  /// required by layout.
+  bool hasHeightForWidth() const noexcept override { return true; }
 
-private slots:
-    /// Create a new keyboard shortcut.
-    void appendShortcut();
+ private slots:
+  /// Create a new keyboard shortcut.
+  void appendShortcut();
 
-    /// Select GUI config file from QFileDialog
-    void setGuiConfigFile();
+  /// Select GUI config file from QFileDialog
+  void setGuiConfigFile();
 };
 
-#endif // SETTINGSWIDGET_H
+#endif  // SETTINGSWIDGET_H
