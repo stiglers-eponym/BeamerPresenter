@@ -6,6 +6,7 @@
 
 #include <QScrollArea>
 #include <QSize>
+#include <memory>
 
 #include "src/config.h"
 #include "src/enumerates.h"
@@ -41,7 +42,7 @@ class ThumbnailWidget : public QScrollArea
   /// signal/slot mechanism since it lives in another thread.
   ThumbnailThread *render_thread{nullptr};
   /// Document shown by these thumbnails.
-  const PdfDocument *document{nullptr};
+  std::shared_ptr<const PdfDocument> document;
 
   /// width of widget when thumbnails were rendered, in pixels.
   int ref_width{0};
@@ -64,8 +65,9 @@ class ThumbnailWidget : public QScrollArea
 
  public:
   /// Nearly trivial constructor.
-  explicit ThumbnailWidget(const PdfDocument *document = nullptr,
-                           QWidget *parent = nullptr);
+  explicit ThumbnailWidget(
+      std::shared_ptr<const PdfDocument> document = nullptr,
+      QWidget *parent = nullptr);
 
   /// Destructor, stop and delete render thread.
   ~ThumbnailWidget();

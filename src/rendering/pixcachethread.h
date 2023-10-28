@@ -33,7 +33,7 @@ class PixCacheThread : public QThread
 
  public:
   /// Constructor: initialize thread and renderer.
-  PixCacheThread(const PdfDocument *const doc,
+  PixCacheThread(const std::shared_ptr<const PdfDocument> &doc,
                  const PagePart page_part = FullPage, QObject *parent = nullptr)
       : QThread(parent)
   {
@@ -45,7 +45,7 @@ class PixCacheThread : public QThread
 
   /// Create a renderer based on preferences.
   /// Return true if successful and false if no renderer was created.
-  bool initializeRenderer(const PdfDocument *const doc,
+  bool initializeRenderer(const std::shared_ptr<const PdfDocument> &doc,
                           const PagePart page_part = FullPage);
 
   /// Do the work: renderer to actually renders the page. Emits sendData.

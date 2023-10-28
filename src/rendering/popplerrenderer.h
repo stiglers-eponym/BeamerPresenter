@@ -5,7 +5,7 @@
 #define POPPLERRENDERER_H
 
 #include <QPixmap>
-#include <QtGlobal>
+#include <memory>
 
 #include "src/config.h"
 #include "src/enumerates.h"
@@ -23,16 +23,17 @@ class PngPixmap;
 class PopplerRenderer : public AbstractRenderer
 {
   /// Poppler PDF document.
-  const PopplerDocument *doc;
+  const std::shared_ptr<const PopplerDocument> doc;
 
  public:
   /// Constructor: Only initializes doc and page_part.
   /// This does not perform any checks on the given document.
   /// Also rendering hints are not set here and have to be set before.
-  PopplerRenderer(const PdfDocument *document, const PagePart part = FullPage)
+  PopplerRenderer(const std::shared_ptr<const PdfDocument> &document,
+                  const PagePart part = FullPage)
       : AbstractRenderer(part),
-        doc(document && (document->type() == PopplerEngine)
-                ? static_cast<const PopplerDocument *>(document)
+        doc(document && document->type() == PopplerEngine
+                ? std::dynamic_pointer_cast<const PopplerDocument>(document)
                 : nullptr){};
 
   /// Trivial destructor.

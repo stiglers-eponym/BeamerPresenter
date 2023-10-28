@@ -105,8 +105,9 @@ class Master : public QObject
       QMap<QString, std::shared_ptr<PdfMaster>> &known_files);
 
   /// Get pixcache object for given parameters, create one if necessary.
-  const PixCache *getPixcache(PdfDocument *doc, const PagePart page_part,
-                              int cache_hash, const int threads);
+  const PixCache *getPixcache(const std::shared_ptr<PdfDocument> &doc,
+                              const PagePart page_part, int cache_hash,
+                              const int threads);
 
  public:
   /// Constructor: initializes times.

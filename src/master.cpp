@@ -200,7 +200,7 @@ QWidget *Master::createWidget(
       break;
     }
     case OverviewType: {
-      const PdfDocument *document = nullptr;
+      std::shared_ptr<const PdfDocument> document;
       const QString file = object.value("file").toString();
       if (!file.isEmpty()) {
         auto pdf = openFile(file, known_files);
@@ -220,7 +220,7 @@ QWidget *Master::createWidget(
       break;
     }
     case TOCType: {
-      const PdfDocument *document = nullptr;
+      std::shared_ptr<const PdfDocument> document;
       const QString file = object.value("file").toString();
       if (!file.isEmpty()) {
         auto pdf = openFile(file, known_files);
@@ -656,8 +656,9 @@ std::shared_ptr<PdfMaster> Master::createPdfMaster(QString abs_path)
   return pdf;
 }
 
-const PixCache *Master::getPixcache(PdfDocument *doc, const PagePart page_part,
-                                    int cache_hash, const int threads)
+const PixCache *Master::getPixcache(const std::shared_ptr<PdfDocument> &doc,
+                                    const PagePart page_part, int cache_hash,
+                                    const int threads)
 {
   if (cache_hash == -1)
     // -1 is the "default hash" and indicates that a new object has to

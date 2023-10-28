@@ -68,7 +68,7 @@ add_executable(beamerpresenter
         gui/containerwidget.h
         gui/toolwidget.h gui/toolwidget.cpp
         rendering/abstractrenderer.h
-        rendering/pdfdocument.h
+        rendering/pdfdocument.h rendering/pdfdocument.cpp
         rendering/pixcache.h rendering/pixcache.cpp
         rendering/pixcachethread.h rendering/pixcachethread.cpp
         rendering/pngpixmap.h rendering/pngpixmap.cpp

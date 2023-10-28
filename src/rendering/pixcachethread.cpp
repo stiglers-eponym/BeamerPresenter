@@ -40,8 +40,8 @@ void PixCacheThread::run()
   if (image) emit sendData(image);
 }
 
-bool PixCacheThread::initializeRenderer(const PdfDocument *const doc,
-                                        const PagePart page_part)
+bool PixCacheThread::initializeRenderer(
+    const std::shared_ptr<const PdfDocument> &doc, const PagePart page_part)
 {
   // Create the renderer without any checks.
 #ifdef USE_EXTERNAL_RENDERER
@@ -51,7 +51,7 @@ bool PixCacheThread::initializeRenderer(const PdfDocument *const doc,
                                     page_part);
   else
 #endif
-    renderer = doc->createRenderer(page_part);
+    renderer = createRenderer(doc, page_part);
 
   // Check if the renderer was created successfully.
   if (renderer->isValid()) return true;

@@ -19,8 +19,9 @@
 #include "src/rendering/pixcachethread.h"
 #include "src/rendering/pngpixmap.h"
 
-PixCache::PixCache(PdfDocument *doc, const int thread_number,
-                   const PagePart page_part, QObject *parent) noexcept
+PixCache::PixCache(const std::shared_ptr<PdfDocument> &doc,
+                   const int thread_number, const PagePart page_part,
+                   QObject *parent) noexcept
     : QObject(parent), priority({page_part}), pdfDoc(doc)
 {
   threads =
@@ -46,7 +47,7 @@ void PixCache::init()
                                     page_part);
   else
 #endif
-    renderer = pdfDoc->createRenderer(page_part);
+    renderer = createRenderer(pdfDoc, page_part);
 
   // Check if the renderer is valid
   if (!renderer->isValid())

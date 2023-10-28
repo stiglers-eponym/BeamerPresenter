@@ -4,7 +4,7 @@
 #ifndef MUPDFRENDERER_H
 #define MUPDFRENDERER_H
 
-#include <QtGlobal>
+#include <memory>
 
 #include "src/config.h"
 // old versions of MuPDF don't have 'extern "C"' in the header files.
@@ -29,7 +29,7 @@ class PngPixmap;
 class MuPdfRenderer : public AbstractRenderer
 {
   /// Document used for rendering. doc is not owned by this.
-  const MuPdfDocument *doc;
+  const std::shared_ptr<const MuPdfDocument> doc;
 
   /// Helper function for rendering functions.
   fz_pixmap *renderFzPixmap(const int page, const qreal resolution,
@@ -37,10 +37,11 @@ class MuPdfRenderer : public AbstractRenderer
 
  public:
   /// Constructor: only initializes doc and page_part.
-  MuPdfRenderer(const PdfDocument *document, const PagePart part = FullPage)
+  MuPdfRenderer(const std::shared_ptr<const PdfDocument> &document,
+                const PagePart part = FullPage)
       : AbstractRenderer(part),
-        doc(document && (document->type() == MuPdfEngine)
-                ? static_cast<const MuPdfDocument *>(document)
+        doc(document && document->type() == MuPdfEngine
+                ? std::dynamic_pointer_cast<const MuPdfDocument>(document)
                 : nullptr)
   {
   }

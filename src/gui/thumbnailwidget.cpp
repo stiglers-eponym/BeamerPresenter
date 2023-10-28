@@ -25,7 +25,8 @@
 #define INVERSE_TOLERANCE 10
 
 /// Nearly trivial constructor.
-ThumbnailWidget::ThumbnailWidget(const PdfDocument *doc, QWidget *parent)
+ThumbnailWidget::ThumbnailWidget(std::shared_ptr<const PdfDocument> doc,
+                                 QWidget *parent)
     : QScrollArea(parent), document(doc)
 {
   setFocusPolicy(Qt::NoFocus);

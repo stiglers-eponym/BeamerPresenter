@@ -63,11 +63,6 @@ PopplerDocument::PopplerDocument(const QString &filename)
   debug_msg(DebugRendering, "Loaded PDF document in Poppler");
 }
 
-AbstractRenderer *PopplerDocument::createRenderer(const PagePart part) const
-{
-  return new PopplerRenderer(this, part);
-}
-
 int PopplerDocument::pageIndex(const QString &label) const
 {
   // Fastest way: if pageLabels is empty, that means that we may simply

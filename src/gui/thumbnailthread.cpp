@@ -13,7 +13,7 @@
 #include "src/rendering/externalrenderer.h"
 #endif
 
-ThumbnailThread::ThumbnailThread(const PdfDocument* document)
+ThumbnailThread::ThumbnailThread(std::shared_ptr<const PdfDocument> document)
     : document(document)
 {
   if (!document) return;
@@ -26,7 +26,7 @@ ThumbnailThread::ThumbnailThread(const PdfDocument* document)
                                     document, preferences()->default_page_part);
   else
 #endif
-    renderer = document->createRenderer(preferences()->default_page_part);
+    renderer = createRenderer(document, preferences()->default_page_part);
 
   // Check if the renderer is valid
   if (renderer == nullptr || !renderer->isValid()) {

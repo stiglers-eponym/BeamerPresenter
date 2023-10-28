@@ -240,10 +240,6 @@ class PdfDocument
   /// Pdf engine.
   virtual PdfEngine type() const noexcept = 0;
 
-  /// Create a new renderer for this document.
-  virtual AbstractRenderer *createRenderer(
-      const PagePart part = FullPage) const = 0;
-
   /// Label of page with given index.
   /// The default implementation returns a string representing the page number.
   virtual const QString pageLabel(const int page) const
@@ -341,5 +337,8 @@ class PdfDocument
   /// infinity.
   virtual qreal duration(const int page) const noexcept { return -1.; }
 };
+
+AbstractRenderer *createRenderer(const std::shared_ptr<const PdfDocument> &doc,
+                                 const PagePart page_part = FullPage);
 
 #endif  // PDFDOCUMENT_H

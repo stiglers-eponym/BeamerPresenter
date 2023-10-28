@@ -5,6 +5,7 @@
 #define EXTERNALRENDERER_H
 
 #include <QStringList>
+#include <memory>
 
 #include "src/config.h"
 #include "src/rendering/abstractrenderer.h"
@@ -31,7 +32,7 @@ class ExternalRenderer : public AbstractRenderer
   QStringList renderingArguments;
 
   /// Document which should be rendered.
-  const PdfDocument* const doc;
+  const std::shared_ptr<const PdfDocument> doc;
 
   /// Arguments to renderingCommand for rendering given page.
   /// Here all macros in renderingArguments are expanded using the arguments
@@ -45,7 +46,7 @@ class ExternalRenderer : public AbstractRenderer
   /// Additionally at least one of the fields %resolution or %width and
   /// %height is required.
   ExternalRenderer(const QString& command, const QStringList& arguments,
-                   const PdfDocument* const doc,
+                   const std::shared_ptr<const PdfDocument>& doc,
                    const PagePart page = FullPage);
 
   /// Trivial destructor.

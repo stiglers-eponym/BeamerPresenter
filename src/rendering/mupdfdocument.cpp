@@ -256,11 +256,6 @@ bool MuPdfDocument::loadDocument()
   return number_of_pages > 0;
 }
 
-AbstractRenderer *MuPdfDocument::createRenderer(const PagePart part) const
-{
-  return new MuPdfRenderer(this, part);
-}
-
 const QSizeF MuPdfDocument::pageSize(const int page) const
 {
   // Check if the page number is valid.

@@ -10,6 +10,7 @@
 #include <QRectF>
 #include <QString>
 #include <map>
+#include <memory>
 #include <utility>
 
 #include "src/config.h"
@@ -55,7 +56,7 @@ class PdfMaster : public QObject
 
  private:
   /// Document representing the PDF
-  PdfDocument *document{nullptr};
+  std::shared_ptr<PdfDocument> document;
 
   /// Graphics scenes of this application. For each combination of PDF file
   /// and page shift one scene is created.
@@ -122,7 +123,7 @@ class PdfMaster : public QObject
   }
 
   /// Get PdfDocument.
-  PdfDocument *getDocument() const { return document; }
+  std::shared_ptr<PdfDocument> getDocument() const { return document; }
 
   /// Return true if document contains pages of different size.
   bool flexiblePageSizes() const noexcept

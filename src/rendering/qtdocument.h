@@ -71,10 +71,6 @@ class QtDocument : public PdfDocument
   /// otherwise.
   bool loadDocument() override final;
 
-  /// Create a QtRenderer for this document.
-  virtual AbstractRenderer *createRenderer(
-      const PagePart part = FullPage) const override;
-
 #if (QT_VERSION >= QT_VERSION_CHECK(6, 5, 0))
   /// populate pageLabels.
   void loadLabels() override;

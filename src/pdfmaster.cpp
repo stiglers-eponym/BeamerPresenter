@@ -40,7 +40,6 @@ PdfMaster::~PdfMaster()
 {
   qDeleteAll(paths);
   paths.clear();
-  delete document;
 }
 
 void PdfMaster::loadDocument(const QString &filename)
@@ -59,17 +58,17 @@ void PdfMaster::loadDocument(const QString &filename)
   switch (preferences()->pdf_engine) {
 #ifdef USE_POPPLER
     case PopplerEngine:
-      document = new PopplerDocument(filename);
+      document = std::shared_ptr<PdfDocument>(new PopplerDocument(filename));
       break;
 #endif
 #ifdef USE_MUPDF
     case MuPdfEngine:
-      document = new MuPdfDocument(filename);
+      document = std::shared_ptr<PdfDocument>(new MuPdfDocument(filename));
       break;
 #endif
 #ifdef USE_QTPDF
     case QtPDFEngine:
-      document = new QtDocument(filename);
+      document = std::shared_ptr<PdfDocument>(new QtDocument(filename));
       break;
 #endif
   }
@@ -509,8 +508,8 @@ QPixmap PdfMaster::exportImage(const int page,
       page >= document->numberOfPages())
     return QPixmap();
   debug_msg(DebugDrawing, "Export image" << page << resolution);
-  const auto *renderer = document->createRenderer(
-      static_cast<PagePart>(page & PagePart::NotFullPage));
+  const auto *renderer = createRenderer(
+      document, static_cast<PagePart>(page & PagePart::NotFullPage));
   if (!renderer || !renderer->isValid()) return QPixmap();
   QPixmap pixmap =
       renderer->renderPixmap(page & ~PagePart::NotFullPage, resolution);

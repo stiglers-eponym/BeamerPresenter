@@ -6,6 +6,7 @@
 
 #include <QScrollArea>
 #include <QSize>
+#include <memory>
 
 #include "src/config.h"
 #include "src/gui/tocbutton.h"
@@ -30,11 +31,12 @@ class TOCwidget : public QScrollArea
   /// Root of TOCbutton tree representing the outline.
   TOCbutton *first_button{nullptr};
   /// Document, for which table of content is shown.
-  const PdfDocument *document{nullptr};
+  std::shared_ptr<const PdfDocument> document;
 
  public:
   /// Trivial constructor, does not create the outline tree.
-  explicit TOCwidget(const PdfDocument *document, QWidget *parent = nullptr)
+  explicit TOCwidget(std::shared_ptr<const PdfDocument> document,
+                     QWidget *parent = nullptr)
       : QScrollArea(parent), document(document)
   {
   }

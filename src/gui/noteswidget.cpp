@@ -228,7 +228,7 @@ void NotesWidget::pageChanged(const int page)
   if (per_page)
     page_label = QString::number(page);
   else {
-    const PdfDocument *doc = preferences()->document;
+    const auto doc = preferences()->document;
     page_label = doc ? doc->pageLabel(page) : "0";
   }
   // Load text from new page_label.

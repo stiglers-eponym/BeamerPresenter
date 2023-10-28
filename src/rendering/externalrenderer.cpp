@@ -13,10 +13,9 @@
 #include "src/rendering/pdfdocument.h"
 #include "src/rendering/pngpixmap.h"
 
-ExternalRenderer::ExternalRenderer(const QString &command,
-                                   const QStringList &arguments,
-                                   const PdfDocument *const doc,
-                                   const PagePart part)
+ExternalRenderer::ExternalRenderer(
+    const QString &command, const QStringList &arguments,
+    const std::shared_ptr<const PdfDocument> &doc, const PagePart part)
     : AbstractRenderer(part),
       renderingCommand(command),
       renderingArguments(arguments),

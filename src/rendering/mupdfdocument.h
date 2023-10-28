@@ -106,10 +106,6 @@ class MuPdfDocument : public PdfDocument
   /// it was loaded. Return true if the document was reloaded.
   bool loadDocument() override final;
 
-  /// Create a MuPdfRenderer for this document.
-  virtual AbstractRenderer *createRenderer(
-      const PagePart part = FullPage) const override;
-
   /// Size of page in points (inch/72).
   const QSizeF pageSize(const int page) const override;
 

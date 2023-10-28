@@ -6,6 +6,7 @@
 
 #include <QList>
 #include <QObject>
+#include <memory>
 
 #include "src/config.h"
 #include "src/rendering/abstractrenderer.h"
@@ -44,7 +45,7 @@ class ThumbnailThread : public QObject
   /// renderer, owned by this, created in constructor.
   AbstractRenderer *renderer{nullptr};
   /// document, not owned by this.
-  const PdfDocument *document;
+  std::shared_ptr<const PdfDocument> document;
   /// queue of pages/thumbnails which should be rendered
   QList<queue_entry> queue;
 
@@ -54,7 +55,7 @@ class ThumbnailThread : public QObject
 
  public:
   /// Constructor: create renderer if document is not nullptr.
-  ThumbnailThread(const PdfDocument *document = nullptr);
+  ThumbnailThread(std::shared_ptr<const PdfDocument> document = nullptr);
 
   /// Destructor: delete renderer.
   ~ThumbnailThread() { delete renderer; }

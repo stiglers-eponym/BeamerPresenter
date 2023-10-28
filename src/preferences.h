@@ -14,6 +14,7 @@
 #include <QRegularExpression>
 #include <QSettings>
 #include <QStringList>
+#include <memory>
 
 #include "src/config.h"
 #include "src/drawing/tool.h"
@@ -206,7 +207,7 @@ class Preferences : public QObject
   /// This is needed to interpret GUI config.
   QMap<QString, QString> file_alias;
   /// Main document
-  const PdfDocument *document = nullptr;
+  std::shared_ptr<const PdfDocument> document;
   /// Number of pages in main document
   int number_of_pages = 0;
 

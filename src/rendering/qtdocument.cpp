@@ -134,11 +134,6 @@ bool QtDocument::loadDocument()
   return true;
 }
 
-AbstractRenderer *QtDocument::createRenderer(const PagePart part) const
-{
-  return new QtRenderer(this, part);
-}
-
 const QPixmap QtDocument::getPixmap(const int page, const qreal resolution,
                                     const PagePart page_part) const
 {

@@ -75,7 +75,7 @@ class PixCache : public QObject
   AbstractRenderer *renderer{nullptr};
 
   /// Pdf document.
-  const PdfDocument *pdfDoc;
+  std::shared_ptr<const PdfDocument> pdfDoc;
 
   /// Check cache size and delete pages if necessary.
   /// Return estimated number of pages which still fit in cache.
@@ -101,7 +101,8 @@ class PixCache : public QObject
  public:
   /// Constructor: only very basic initialization.
   /// Full initialization is done afterwards by init().
-  explicit PixCache(PdfDocument *doc, const int thread_number,
+  explicit PixCache(const std::shared_ptr<PdfDocument> &doc,
+                    const int thread_number,
                     const PagePart page_part = FullPage,
                     QObject *parent = nullptr) noexcept;
 
