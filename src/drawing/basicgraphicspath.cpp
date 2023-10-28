@@ -123,14 +123,14 @@ void BasicGraphicsPath::addPoint(const QPointF &point)
 #else
   shape_cache = QPainterPath();
 #endif
-  const qreal half_tool_width = 0.55 * _tool.width();
   coordinates.append(point);
   bool change = false;
+  const qreal half_tool_width = 0.55 * _tool.width();
   if (point.x() < bounding_rect.left() + half_tool_width) {
     bounding_rect.setLeft(point.x() - half_tool_width);
     change = true;
   } else if (point.x() + half_tool_width > bounding_rect.right()) {
-    bounding_rect.setRight(point.x() + _tool.width() * 0.55);
+    bounding_rect.setRight(point.x() + half_tool_width);
     change = true;
   }
   if (point.y() < bounding_rect.top() + half_tool_width) {

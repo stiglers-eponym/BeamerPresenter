@@ -25,6 +25,7 @@ PixCache::PixCache(PdfDocument *doc, const int thread_number,
 {
   threads =
       QVector<PixCacheThread *>(doc->flexiblePageSizes() ? 0 : thread_number);
+  threads.fill(nullptr);
 }
 
 void PixCache::init()
@@ -108,9 +109,9 @@ const QPixmap PixCache::pixmap(const int page, qreal resolution)
 
   // Write pixmap to cache.
   const PngPixmap *png = new PngPixmap(pix, page, resolution);
-  if (png == nullptr)
+  if (png == nullptr) {
     qWarning() << "Converting pixmap to PNG failed";
-  else {
+  } else {
     if (cache.value(page, nullptr) != nullptr) {
       usedMemory -= cache[page]->size();
       delete cache[page];

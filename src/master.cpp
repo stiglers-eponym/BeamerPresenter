@@ -59,10 +59,11 @@ Master::Master()
 
 Master::~Master()
 {
+  constexpr int thread_wait_time_ms = 10000;
   emit clearCache();
   for (const auto cache : std::as_const(caches)) cache->thread()->quit();
   for (const auto cache : std::as_const(caches)) {
-    cache->thread()->wait(10000);
+    cache->thread()->wait(thread_wait_time_ms);
     delete cache;
   }
   for (const auto doc : std::as_const(documents)) {
@@ -245,7 +246,8 @@ QWidget *Master::createWidget(const QJsonObject &object, QWidget *parent,
       connect(nwidget, &NotesWidget::newUnsavedChanges, this, [&](void) {
         documents.first()->flags() |= PdfMaster::UnsavedNotes;
       });
-      nwidget->zoomIn(object.value("zoom").toInt(10));
+      constexpr int notes_widget_default_zoom = 10;
+      nwidget->zoomIn(object.value("zoom").toInt(notes_widget_default_zoom));
       // TODO: maybe find better implementation for this:
       if (object.contains("file"))
         nwidget->loadNotes(object.value("file").toString());
@@ -272,12 +274,12 @@ QWidget *Master::createWidget(const QJsonObject &object, QWidget *parent,
               : QBoxLayout::TopToBottom;
       ToolWidget *toolwidget = new ToolWidget(parent, direction);
       widget = toolwidget;
-      int dev;
       QList<int> devices;
       auto collect_devices = [&](const QString &name) -> void {
         if (!object.contains(name)) return;
         devices.clear();
         const QJsonArray arr = object.value(name).toArray();
+        int dev;
         for (const auto &dev_obj : arr) {
           dev = string_to_input_device.value(dev_obj.toString().toStdString());
           if (dev != 0 &&
@@ -720,9 +722,11 @@ void Master::fillContainerWidget(ContainerBaseClass *parent,
 
 void Master::showAll() const
 {
-  for (const auto widget : std::as_const(windows)) {
-    widget->setGeometry(0, 0, 400, 300);
-    widget->show();
+  for (const auto window : std::as_const(windows)) {
+    constexpr int default_window_width = 400;
+    constexpr int default_window_height = 300;
+    window->setGeometry(0, 0, default_window_width, default_window_height);
+    window->show();
   }
 }
 
@@ -977,7 +981,10 @@ void Master::postNavigation() noexcept
     slideDurationTimer_id = startTimer(preferences()->slide_duration_animation);
   else if (duration > 0.)
     slideDurationTimer_id = startTimer(1000 * duration);
-  if (duration < 0. || duration > 0.5) cacheVideoTimer_id = startTimer(200);
+  constexpr qreal min_duration_cache_videos = 0.5;
+  constexpr int cache_videos_after_ms = 200;
+  if (duration < 0. || duration > min_duration_cache_videos)
+    cacheVideoTimer_id = startTimer(cache_videos_after_ms);
 }
 
 void Master::showErrorMessage(const QString &title, const QString &text) const
@@ -1278,7 +1285,7 @@ PdfMaster *Master::readXmlPage(QXmlStreamReader &reader, PdfMaster *pdf,
                                const bool clear_drawings)
 {
   if (reader.name().toUtf8() != "page") return pdf;
-  int page;
+  int page = -1;
   bool ok;
   while (reader.readNextStartElement()) {
     if (reader.name().toUtf8() == "background") {
@@ -1314,7 +1321,7 @@ PdfMaster *Master::readXmlPage(QXmlStreamReader &reader, PdfMaster *pdf,
       }
 
       // Read per-slide time
-      if (pdf) {
+      if (pdf && page >= 0) {
         string = attr.value("endtime").toString();
         if (!string.isEmpty()) {
           const QTime time = QTime::fromString(string, "h:mm:ss");
@@ -1324,8 +1331,9 @@ PdfMaster *Master::readXmlPage(QXmlStreamReader &reader, PdfMaster *pdf,
       }
 
       if (!reader.isEndElement()) reader.skipCurrentElement();
-    } else if (reader.name().toUtf8() == "layer" && pdf && page >= 0)
+    } else if (reader.name().toUtf8() == "layer" && pdf && page >= 0) {
       pdf->readDrawingsFromStream(reader, page);
+    }
     if (!reader.isEndElement()) reader.skipCurrentElement();
   }
   return pdf;

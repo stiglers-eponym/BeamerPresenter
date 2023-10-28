@@ -14,7 +14,7 @@
 #include "src/config.h"
 #include "src/enumerates.h"
 
-#define MAX_RESOLUTION_DEVIATION 1e-5
+constexpr qreal MAX_RESOLUTION_DEVIATION = 1e-5;
 
 class QPixmap;
 class QTimerEvent;

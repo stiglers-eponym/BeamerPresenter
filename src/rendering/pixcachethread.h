@@ -22,13 +22,13 @@ class PixCacheThread : public QThread
 
  private:
   /// Renderer doing the main work.
-  AbstractRenderer *renderer{nullptr};
+  AbstractRenderer *renderer = nullptr;
 
   /// resolution in pixels per point (dpi/72).
-  qreal resolution;
+  qreal resolution = 0.;
 
   /// page number (index)
-  int page;
+  int page = -1;
 
  public:
   /// Constructor: initialize thread and renderer.

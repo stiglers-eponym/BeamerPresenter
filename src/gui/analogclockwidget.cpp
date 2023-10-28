@@ -17,12 +17,12 @@
 #include "src/gui/analogclockwidget.h"
 #include "src/log.h"
 
-AnalogClockWidget::AnalogClockWidget(QWidget *parent) : QWidget{parent}
+AnalogClockWidget::AnalogClockWidget(QWidget *parent)
+    : QWidget{parent}, timer_id(startTimer(1000)), aspect_ratio(1.)
 {
   setFocusPolicy(Qt::NoFocus);
   setMinimumSize(16, 16);
   setToolTip(tr("double-click on clock to start or pause timer"));
-  timer_id = startTimer(1000);
 }
 
 void AnalogClockWidget::mouseDoubleClickEvent(QMouseEvent *event) noexcept
@@ -65,28 +65,40 @@ bool AnalogClockWidget::event(QEvent *event)
 
 void AnalogClockWidget::paintEvent(QPaintEvent *)
 {
+  constexpr qreal minute_tick_start = 0.97;
+  constexpr qreal hour_tick_start = 0.94;
+  constexpr qreal second_hand_length = 0.93;
+  constexpr qreal minute_hand_length = 0.87;
+  constexpr qreal hour_hand_length = 0.7;
+  constexpr qreal second_hand_width = 0.02;
+  constexpr qreal minute_hand_width = 0.08;
+  constexpr qreal hour_hand_width = 0.1;
+  constexpr qreal minute_tick_width = 0.02;
+  constexpr qreal hour_tick_width = 0.05;
   const int side = std::min(width(), height());
   QPainter painter(this);
   painter.setRenderHint(QPainter::Antialiasing);
   painter.translate(width() / 2., height() / 2.);
   painter.scale(0.45 * side, 0.45 * side);
   // Show ticks
-  painter.setPen(QPen(tick_color, 0.05, Qt::SolidLine, Qt::RoundCap));
+  painter.setPen(
+      QPen(tick_color, hour_tick_width, Qt::SolidLine, Qt::RoundCap));
   for (int n = 0; n < 3; ++n) {
-    painter.drawLine(QPointF(0.94, 0.), QPointF(1., 0.));
-    painter.drawLine(QPointF(0., 0.94), QPointF(0., 1.));
-    painter.drawLine(QPointF(-0.94, 0.), QPointF(-1., 0.));
-    painter.drawLine(QPointF(0., -0.94), QPointF(0., -1.));
+    painter.drawLine(QPointF(hour_tick_start, 0.), QPointF(1., 0.));
+    painter.drawLine(QPointF(0., hour_tick_start), QPointF(0., 1.));
+    painter.drawLine(QPointF(-hour_tick_start, 0.), QPointF(-1., 0.));
+    painter.drawLine(QPointF(0., -hour_tick_start), QPointF(0., -1.));
     painter.rotate(120);
   }
   if (small_ticks) {
-    painter.setPen(QPen(tick_color, 0.02, Qt::SolidLine, Qt::RoundCap));
+    painter.setPen(
+        QPen(tick_color, minute_tick_width, Qt::SolidLine, Qt::RoundCap));
     for (int n = 0; n < 15; ++n) {
       if (n % 5 != 0) {
-        painter.drawLine(QPointF(0.97, 0.), QPointF(1., 0.));
-        painter.drawLine(QPointF(0., 0.97), QPointF(0., 1.));
-        painter.drawLine(QPointF(-0.97, 0.), QPointF(-1., 0.));
-        painter.drawLine(QPointF(0., -0.97), QPointF(0., -1.));
+        painter.drawLine(QPointF(minute_tick_start, 0.), QPointF(1., 0.));
+        painter.drawLine(QPointF(0., minute_tick_start), QPointF(0., 1.));
+        painter.drawLine(QPointF(-minute_tick_start, 0.), QPointF(-1., 0.));
+        painter.drawLine(QPointF(0., -minute_tick_start), QPointF(0., -1.));
       }
       painter.rotate(24);
     }
@@ -94,29 +106,29 @@ void AnalogClockWidget::paintEvent(QPaintEvent *)
   const QTime time = QTime::currentTime();
   if (show_seconds) {
     // Show seconds
-    painter.setPen(
-        QPen(second_color, 0.02, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin));
+    painter.setPen(QPen(second_color, second_hand_width, Qt::SolidLine,
+                        Qt::RoundCap, Qt::RoundJoin));
     painter.save();
     if (timer_interval < 1000)
       painter.rotate(6 * time.second() + 0.006 * time.msec());
     else
       painter.rotate(6 * time.second());
-    painter.drawLine(QPointF(0., 0.), QPointF(0., -0.93));
+    painter.drawLine(QPointF(0., 0.), QPointF(0., -second_hand_length));
     painter.restore();
   }
   // Show minutes
-  painter.setPen(
-      QPen(minute_color, 0.08, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin));
+  painter.setPen(QPen(minute_color, minute_hand_width, Qt::SolidLine,
+                      Qt::RoundCap, Qt::RoundJoin));
   painter.save();
   painter.rotate(6 * time.minute() + 0.1 * time.second());
-  painter.drawLine(QPointF(0., 0.), QPointF(0., -0.87));
+  painter.drawLine(QPointF(0., 0.), QPointF(0., -minute_hand_length));
   painter.restore();
   // Show hours
-  painter.setPen(
-      QPen(hour_color, 0.1, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin));
+  painter.setPen(QPen(hour_color, hour_hand_width, Qt::SolidLine, Qt::RoundCap,
+                      Qt::RoundJoin));
   painter.save();
   painter.rotate(30 * time.hour() + 0.5 * time.minute());
-  painter.drawLine(QPointF(0., 0.), QPointF(0., -0.7));
+  painter.drawLine(QPointF(0., 0.), QPointF(0., -hour_hand_length));
   painter.restore();
 }
 

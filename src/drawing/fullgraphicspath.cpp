@@ -161,18 +161,19 @@ void FullGraphicsPath::addPoint(const QPointF &point, const float pressure)
   coordinates.append(point);
   pressures.append(_tool.width() * pressure);
   bool change = false;
-  if (point.x() < bounding_rect.left() + _tool.width() * 0.55) {
-    bounding_rect.setLeft(point.x() - _tool.width() * 0.55);
+  const qreal half_tool_width = 0.55 * pressure * _tool.width();
+  if (point.x() < bounding_rect.left() + half_tool_width) {
+    bounding_rect.setLeft(point.x() - half_tool_width);
     change = true;
-  } else if (point.x() + _tool.width() * 0.55 > bounding_rect.right()) {
-    bounding_rect.setRight(point.x() + _tool.width() * 0.55);
+  } else if (point.x() + half_tool_width > bounding_rect.right()) {
+    bounding_rect.setRight(point.x() + half_tool_width);
     change = true;
   }
-  if (point.y() < bounding_rect.top() + _tool.width() * 0.55) {
-    bounding_rect.setTop(point.y() - _tool.width() * 0.55);
+  if (point.y() < bounding_rect.top() + half_tool_width) {
+    bounding_rect.setTop(point.y() - half_tool_width);
     change = true;
-  } else if (point.y() + _tool.width() * 0.55 > bounding_rect.bottom()) {
-    bounding_rect.setBottom(point.y() + _tool.width() * 0.55);
+  } else if (point.y() + half_tool_width > bounding_rect.bottom()) {
+    bounding_rect.setBottom(point.y() + half_tool_width);
     change = true;
   }
   if (change) prepareGeometryChange();

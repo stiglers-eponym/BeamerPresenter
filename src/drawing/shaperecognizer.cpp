@@ -16,34 +16,34 @@
 
 /* Parameters for fitting lines (or rectangles) */
 /// minimum number of points in a path used to recognize a line
-#define PATH_SEGMENTS_LINE 50
+constexpr int PATH_SEGMENTS_LINE = 50;
 /// line loss function threshold
-#define LINE_LOSS_THRESHOLD 0.005
+constexpr qreal LINE_LOSS_THRESHOLD = 0.005;
 /// threshold for small angles
-#define ANGLE_THRESHOLD 0.3
+constexpr qreal ANGLE_THRESHOLD = 0.3;
 /// negligible weight of a line segment
-#define LINE_SEGMENT_NEGLIGIBLE_THRESHOLD 0.025
+constexpr qreal LINE_SEGMENT_NEGLIGIBLE_THRESHOLD = 0.025;
 
 /* Density of points in different shapes */
 /// density of points in recognized lines, rectangles, arrows
-#define FLAT_POINT_DENSITY 10
+constexpr int FLAT_POINT_DENSITY = 10;
 /// minimum number of points in recognized ellipses
-#define CURVED_MIN_POINTS 10
+constexpr int CURVED_MIN_POINTS = 10;
 /// density of points in ellipse relative to radii (a constant density
 /// is added separately)
-#define CURVED_POINT_DENSITY 0.67
+constexpr qreal CURVED_POINT_DENSITY = 0.67;
 
 /* Parameters in ellipse fit */
 /// number of iterations in optimization of ellipse fit parameters
-#define ELLIPSE_OPTIMIZE_ITERATIONS 12
+constexpr int ELLIPSE_OPTIMIZE_ITERATIONS = 12;
 /// Step in ellipse optimization, coordinates of the center
-#define ELLIPSE_STEP_CENTER 0.07
+constexpr qreal ELLIPSE_STEP_CENTER = 0.07;
 /// Step in ellipse optimization, radii
-#define ELLIPSE_STEP_RADII 0.15
+constexpr qreal ELLIPSE_STEP_RADII = 0.15;
 /// Threshold for fit quality to stop optimizing ellipse parameters
-#define ELLIPSE_STOP_OPTIMIZING_THRESHOLD 1e-3
+constexpr qreal ELLIPSE_STOP_OPTIMIZING_THRESHOLD = 1e-3;
 /// Maximal distance of path start and end point relative to radii in ellipse
-#define ELLIPSE_START_END_MAX_DISTANCE 0.1
+constexpr qreal ELLIPSE_START_END_MAX_DISTANCE = 0.1;
 
 /// Compute length of vector p.
 inline qreal distance(const QPointF &p) noexcept
@@ -434,8 +434,9 @@ BasicGraphicsPath *ShapeRecognizer::recognizeEllipse() const
     DrawTool tool(path->_tool);
     tool.setWidth(moments.s / path->size());
     pathitem = new BasicGraphicsPath(tool, coordinates, boundingRect);
-  } else
+  } else {
     pathitem = new BasicGraphicsPath(path->_tool, coordinates, boundingRect);
+  }
   pathitem->setPos(QPointF(mx, my) + path->pos());
   pathitem->setZValue(path->zValue());
   return pathitem;
