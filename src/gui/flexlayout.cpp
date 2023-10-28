@@ -10,6 +10,8 @@
 
 #include "src/log.h"
 
+constexpr int ref_width = 4096;
+
 FlexLayout::~FlexLayout()
 {
   for (const auto item : std::as_const(items)) delete item;
@@ -27,12 +29,12 @@ QSize FlexLayout::sizeHint() const
       for (const auto child : std::as_const(items)) {
         hint = child->widget()->sizeHint();
         if (child->widget()->hasHeightForWidth())
-          width += hint.height() ? 4096 * hint.width() / hint.height() : 0;
+          width += hint.height() ? ref_width * hint.width() / hint.height() : 0;
         else
           width += hint.width();
       }
-      debug_msg(DebugLayout, "FlexLayout size hint:" << width << 4096);
-      return QSize(width, 4096);
+      debug_msg(DebugLayout, "FlexLayout size hint:" << width << ref_width);
+      return QSize(width, ref_width);
     }
     case QBoxLayout::TopToBottom:
     case QBoxLayout::BottomToTop: {
@@ -40,12 +42,12 @@ QSize FlexLayout::sizeHint() const
       for (const auto child : std::as_const(items)) {
         hint = child->widget()->sizeHint();
         if (child->widget()->hasHeightForWidth())
-          height += hint.width() ? 4096 * hint.height() / hint.width() : 0;
+          height += hint.width() ? ref_width * hint.height() / hint.width() : 0;
         else
           height += hint.height();
       }
-      debug_msg(DebugLayout, "FlexLayout size hint:" << 4096 << height);
-      return QSize(4096, height);
+      debug_msg(DebugLayout, "FlexLayout size hint:" << ref_width << height);
+      return QSize(ref_width, height);
     }
     default:
       return QSize();

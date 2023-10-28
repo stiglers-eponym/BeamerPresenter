@@ -16,6 +16,7 @@
 
 #include "src/config.h"
 #include "src/enumerates.h"
+#include "src/log.h"
 #include "src/rendering/pngpixmap.h"
 
 constexpr qreal MAX_RESOLUTION_DEVIATION = 1e-5;
@@ -114,6 +115,7 @@ class PixCache : public QObject
   /// Not thread save!
   void setMaxMemory(const float memory) noexcept
   {
+    debug_verbose(DebugFunctionCalls, memory << usedMemory << this);
     maxMemory = memory;
     if (memory < usedMemory && memory >= 0) limitCacheSize();
   }
@@ -123,8 +125,9 @@ class PixCache : public QObject
   /// Not thread save!
   void setMaxNumber(const int number) noexcept
   {
+    debug_verbose(DebugFunctionCalls, number << cache.size() << this);
     maxNumber = number;
-    if (number < usedMemory && number >= 0) limitCacheSize();
+    if (number < cache.size() && number >= 0) limitCacheSize();
   }
 
   /// Total size of all cached pages in bytes
@@ -137,6 +140,7 @@ class PixCache : public QObject
   /// Set memory based on scale factor (bytes per pixel).
   void setScaledMemory(const float scale)
   {
+    debug_verbose(DebugFunctionCalls, scale << this);
     setMaxMemory(scale * frame.width() * frame.height());
   }
 

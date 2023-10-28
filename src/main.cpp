@@ -47,6 +47,7 @@ int main(int argc, char *argv[])
 #ifdef QT_DEBUG
   qSetMessagePattern(
       "%{time process} "
+      "%{qthreadptr} "
       "%{if-debug}D%{endif}"
       "%{if-info}INFO%{endif}"
       "%{if-warning}WARNING%{endif}"

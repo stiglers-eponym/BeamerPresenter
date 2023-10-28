@@ -24,6 +24,7 @@ PixCache::PixCache(const std::shared_ptr<PdfDocument> &doc,
                    QObject *parent) noexcept
     : QObject(parent), priority({page_part}), pdfDoc(doc)
 {
+  debug_verbose(DebugFunctionCalls, "CREATING PixCache" << this);
   threads =
       QVector<PixCacheThread *>(doc->flexiblePageSizes() ? 0 : thread_number);
   threads.fill(nullptr);
@@ -31,6 +32,7 @@ PixCache::PixCache(const std::shared_ptr<PdfDocument> &doc,
 
 void PixCache::init()
 {
+  debug_verbose(DebugFunctionCalls, this);
   if (QThread::currentThread() != this->thread()) {
     qCritical() << "Called PixCache::init from wrong thread!";
     return;
@@ -67,6 +69,7 @@ void PixCache::init()
 
 PixCache::~PixCache()
 {
+  debug_verbose(DebugFunctionCalls, "DELETING PixCache" << this);
   delete renderer;
   // TODO: correctly clean up threads!
   for (const auto &thread : std::as_const(threads)) thread->quit();
@@ -81,6 +84,7 @@ PixCache::~PixCache()
 
 void PixCache::clear()
 {
+  debug_verbose(DebugFunctionCalls, this);
   cache.clear();
   usedMemory = 0;
   region.first = preferences()->page;
@@ -134,9 +138,9 @@ const QPixmap PixCache::pixmap(const int page, qreal resolution)
     qWarning() << "Converting pixmap to PNG failed";
   } else {
     mutex.lock();
-    const auto it = cache.find(page);
-    if (it != cache.end() && it->second) usedMemory -= it->second->size();
     usedMemory += png->size();
+    const auto [it, inserted] = cache.try_emplace(page, nullptr);
+    if (it->second) usedMemory -= it->second->size();
     it->second.swap(png);
     mutex.unlock();
   }
@@ -145,6 +149,7 @@ const QPixmap PixCache::pixmap(const int page, qreal resolution)
 
 void PixCache::requestRenderPage(const int n)
 {
+  debug_verbose(DebugFunctionCalls, n << this);
   mutex.lock();
   if (!priority.contains(n) && cache.find(n) == cache.end()) priority.append(n);
   mutex.unlock();
@@ -155,6 +160,7 @@ void PixCache::requestRenderPage(const int n)
 
 void PixCache::pageNumberChanged(const int page)
 {
+  debug_verbose(DebugFunctionCalls, page << this);
   mutex.lock();
   // Update boundaries of the simply connected region.
   if (cache.find(page) == cache.end()) {
@@ -178,13 +184,11 @@ void PixCache::pageNumberChanged(const int page)
 
   // Extend the region as far as possible by searching for gaps.
   // Use that keys in QMap are sorted and can be accessed by iterators.
-  auto left = cache.find(region.first), right = cache.find(region.second);
-  if (left != cache.cend()) {
-    const auto limit = std::prev(cache.cbegin());
-    while (left != limit && left->first == region.first) {
-      --left;
-      --region.first;
-    }
+  auto left = std::make_reverse_iterator(cache.find(region.first));
+  auto right = cache.find(region.second);
+  while (left != cache.rend() && left->first == region.first) {
+    ++left;
+    --region.first;
   }
   while (right != cache.cend() && right->first == region.second) {
     ++right;
@@ -198,6 +202,8 @@ void PixCache::pageNumberChanged(const int page)
 
 int PixCache::limitCacheSize() noexcept
 {
+  debug_verbose(DebugFunctionCalls,
+                usedMemory << maxMemory << cache.size() << maxNumber << this);
   // Check restrictions on memory usage and number of slides.
   if (maxMemory < 0 && maxNumber < 0) {
     // Check if all pages are already in memory.
@@ -321,6 +327,7 @@ int PixCache::limitCacheSize() noexcept
 
 int PixCache::renderNext()
 {
+  debug_verbose(DebugFunctionCalls, this);
   // Check if priority contains pages which are not yet rendered.
   int page;
   mutex.lock();
@@ -359,13 +366,14 @@ int PixCache::renderNext()
 
 void PixCache::timerEvent(QTimerEvent *event)
 {
+  debug_verbose(DebugFunctionCalls, event << this);
   killTimer(event->timerId());
   startRendering();
 }
 
 void PixCache::startRendering()
 {
-  debug_verbose(DebugCache, "Start rendering");
+  debug_verbose(DebugCache | DebugFunctionCalls, "Start rendering" << this);
   // Clean up cache and check if there is enough space for more cached pages.
   int allowed_pages = limitCacheSize();
   if (allowed_pages <= 0) return;
@@ -381,6 +389,7 @@ void PixCache::startRendering()
 
 void PixCache::receiveData(const PngPixmap *data)
 {
+  debug_verbose(DebugFunctionCalls, data << this);
   if (QThread::currentThread() != this->thread()) {
     qCritical() << "Called PixCache::receiveData from wrong thread!";
     delete data;
@@ -396,13 +405,18 @@ void PixCache::receiveData(const PngPixmap *data)
   // Check if the received image is still compatible with the current
   // resolution.
   mutex.lock();
-  if (abs(getResolution(data->getPage()) - data->getResolution()) >
-      MAX_RESOLUTION_DEVIATION) {
+  const qreal good_resolution = getResolution(data->getPage());
+  if (abs(good_resolution - data->getResolution()) > MAX_RESOLUTION_DEVIATION) {
     // got page of wrong size, don't use it
     const auto it = cache.find(data->getPage());
     if (it != cache.end()) {
-      if (it->second) usedMemory -= it->second->size();
-      cache.erase(it);
+      if (it->second == nullptr) {
+        cache.erase(it);
+      } else if (abs(it->second->getResolution() - good_resolution) >
+                 MAX_RESOLUTION_DEVIATION) {
+        usedMemory -= it->second->size();
+        cache.erase(it);
+      }
     }
     delete data;
   } else {
@@ -419,6 +433,7 @@ void PixCache::receiveData(const PngPixmap *data)
 
 qreal PixCache::getResolution(const int page) const
 {
+  debug_verbose(DebugFunctionCalls, page << this);
   // Get page size in points
   QSizeF pageSize = pdfDoc->pageSize(page);
   if (pageSize.isEmpty()) return -1.;
@@ -432,6 +447,7 @@ qreal PixCache::getResolution(const int page) const
 
 void PixCache::updateFrame(const QSizeF &size)
 {
+  debug_verbose(DebugFunctionCalls, size << frame << this);
   if (frame != size && threads.length() > 0) {
     debug_msg(DebugCache, "update frame" << frame << size);
     mutex.lock();
@@ -444,7 +460,8 @@ void PixCache::updateFrame(const QSizeF &size)
 void PixCache::requestPage(const int page, const qreal resolution,
                            const bool cache_page)
 {
-  debug_verbose(DebugCache, "requested page" << page << resolution);
+  debug_verbose(DebugCache | DebugFunctionCalls,
+                "requested page" << page << resolution << this);
   // Try to return a page from cache.
   {
     mutex.lock();
@@ -513,5 +530,6 @@ void PixCache::requestPage(const int page, const qreal resolution,
 
 void PixCache::getPixmap(const int page, QPixmap &target, qreal resolution)
 {
+  debug_verbose(DebugFunctionCalls, page << resolution << this);
   target = pixmap(page, resolution);
 }

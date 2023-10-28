@@ -66,6 +66,7 @@ DebugFlags string_to_debug_flags(const QString &string) noexcept
       {"debug layout", DebugLayout},
       {"debug widgets", DebugWidgets},
       {"debug threads", DebugThreads},
+      {"debug calls", DebugFunctionCalls},
       {"debug all", DebugAll},
       {"debug verbose", DebugVerbose},
   };
