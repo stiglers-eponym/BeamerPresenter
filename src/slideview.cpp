@@ -43,11 +43,6 @@ SlideView::SlideView(SlideScene *scene, const PixCache *cache, QWidget *parent)
   emit resizeCache(size());
 }
 
-SlideView::~SlideView() noexcept
-{
-  while (!sliders.isEmpty()) delete sliders.takeLast();
-}
-
 QSize SlideView::sizeHint() const noexcept
 {
   QSizeF size = scene()->sceneRect().size();
@@ -57,7 +52,7 @@ QSize SlideView::sizeHint() const noexcept
 
 void SlideView::pageChanged(const int page, SlideScene *scene)
 {
-  while (!sliders.isEmpty()) sliders.takeLast()->deleteLater();
+  sliders.clear();
   setScene(scene);
   const QSizeF &pageSize = scene->sceneRect().size();
   qreal resolution;
@@ -80,7 +75,7 @@ void SlideView::pageChanged(const int page, SlideScene *scene)
 
 void SlideView::pageChangedBlocking(const int page, SlideScene *scene)
 {
-  while (!sliders.isEmpty()) sliders.takeLast()->deleteLater();
+  sliders.clear();
   setScene(scene);
   const QSizeF &pageSize = scene->sceneRect().size();
   qreal resolution;
@@ -418,8 +413,8 @@ void SlideView::addMediaSlider(const std::shared_ptr<MediaItem> media)
     return;
   MediaPlayer *player = media->player();
   if (!player) return;
-  MediaSlider *slider = new MediaSlider(this);
-  sliders.append(slider);
+  sliders.push_back(std::make_unique<MediaSlider>(new MediaSlider(this)));
+  const auto slider = sliders.back().get();
   const QPoint left = mapFromScene(media->rect().bottomLeft());
   const QPoint right = mapFromScene(media->rect().bottomRight());
   slider->setGeometry(left.x(), right.y(), right.x() - left.x(), 20);

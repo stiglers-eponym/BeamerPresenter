@@ -45,31 +45,31 @@
 #include "src/preferences.h"
 #include "src/slideview.h"
 
-SlideScene::SlideScene(const PdfMaster *master, const PagePart part,
-                       QObject *parent)
+SlideScene::SlideScene(std::shared_ptr<const PdfMaster> master,
+                       const PagePart part, QObject *parent)
     : QGraphicsScene(parent),
       pageItem(new PixmapGraphicsItem(sceneRect())),
       master(master),
       page_part(part)
 {
   setSceneRect(0, 0, 4000, 3000);
-  connect(this, &SlideScene::sendNewPath, master, &PdfMaster::receiveNewPath,
+  connect(this, &SlideScene::sendNewPath, master.get(),
+          &PdfMaster::receiveNewPath, Qt::DirectConnection);
+  connect(this, &SlideScene::replacePath, master.get(), &PdfMaster::replacePath,
           Qt::DirectConnection);
-  connect(this, &SlideScene::replacePath, master, &PdfMaster::replacePath,
-          Qt::DirectConnection);
-  connect(this, &SlideScene::sendHistoryStep, master,
+  connect(this, &SlideScene::sendHistoryStep, master.get(),
           &PdfMaster::addHistoryStep, Qt::DirectConnection);
-  connect(this, &SlideScene::requestNewPathContainer, master,
+  connect(this, &SlideScene::requestNewPathContainer, master.get(),
           &PdfMaster::requestNewPathContainer, Qt::DirectConnection);
-  connect(this, &SlideScene::createPathContainer, master,
+  connect(this, &SlideScene::createPathContainer, master.get(),
           &PdfMaster::createPathContainer, Qt::DirectConnection);
-  connect(this, &SlideScene::sendRemovePaths, master, &PdfMaster::removeItems,
-          Qt::DirectConnection);
-  connect(this, &SlideScene::sendAddPaths, master,
+  connect(this, &SlideScene::sendRemovePaths, master.get(),
+          &PdfMaster::removeItems, Qt::DirectConnection);
+  connect(this, &SlideScene::sendAddPaths, master.get(),
           &PdfMaster::addItemsForeground, Qt::DirectConnection);
-  connect(this, &SlideScene::bringToForeground, master,
+  connect(this, &SlideScene::bringToForeground, master.get(),
           &PdfMaster::bringToForeground, Qt::DirectConnection);
-  connect(this, &SlideScene::bringToBackground, master,
+  connect(this, &SlideScene::bringToBackground, master.get(),
           &PdfMaster::bringToBackground, Qt::DirectConnection);
   connect(this, &SlideScene::selectionChanged, this,
           &SlideScene::updateSelectionRect, Qt::DirectConnection);

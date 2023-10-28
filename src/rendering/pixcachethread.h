@@ -5,6 +5,7 @@
 #define PIXCACHETHREAD_H
 
 #include <QThread>
+#include <memory>
 
 #include "src/config.h"
 #include "src/enumerates.h"

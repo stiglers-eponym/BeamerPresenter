@@ -13,6 +13,7 @@
 #include <QRectF>
 #include <QTabletEvent>
 #include <map>
+#include <memory>
 #include <set>
 
 #include "src/config.h"
@@ -108,7 +109,7 @@ class SlideScene : public QGraphicsScene
 
   /// PDF document, including drawing paths.
   /// This is const, all data sent to master should be send via signals.
-  const PdfMaster *master;
+  std::shared_ptr<const PdfMaster> master;
 
   /// Animation for slide transitions. Should be nullptr while no
   /// slide transition is active.
@@ -180,7 +181,8 @@ class SlideScene : public QGraphicsScene
  public:
   /// Constructor: initialize master, page_part, and QGraphisScene.
   /// Connect signals.
-  explicit SlideScene(const PdfMaster *master, const PagePart part = FullPage,
+  explicit SlideScene(std::shared_ptr<const PdfMaster> master,
+                      const PagePart part = FullPage,
                       QObject *parent = nullptr);
 
   /// Destructor: delete all graphics items.
@@ -202,7 +204,7 @@ class SlideScene : public QGraphicsScene
   void setPageShift(const int relative_shift) { shift = relative_shift; }
 
   /// Get PdfMaster master.
-  const PdfMaster *getPdfMaster() { return master; }
+  std::shared_ptr<const PdfMaster> getPdfMaster() { return master; }
 
   /// Currently visible page.
   int getPage() const { return page; }

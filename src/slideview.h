@@ -10,12 +10,12 @@
 
 #include "src/config.h"
 #include "src/enumerates.h"
+#include "src/media/mediaslider.h"
 
 class QResizeEvent;
 class PointingTool;
 class PixCache;
 class QWidget;
-class MediaSlider;
 class SlideScene;
 class PixmapGraphicsItem;
 class MediaItem;
@@ -39,7 +39,7 @@ class SlideView : public QGraphicsView
 
  private:
   /// List of slides for video annotations in this view.
-  QList<MediaSlider *> sliders;
+  std::list<std::unique_ptr<MediaSlider>> sliders;
 
   /// Currently waiting for page: INT_MAX if not waiting for any page.
   int waitingForPage = INT_MAX;
@@ -52,8 +52,8 @@ class SlideView : public QGraphicsView
   explicit SlideView(SlideScene *scene, const PixCache *cache = nullptr,
                      QWidget *parent = nullptr);
 
-  /// Destructor: delete sliders.
-  ~SlideView() noexcept;
+  /// Trivial destructor.
+  ~SlideView() { sliders.clear(); }
 
   /// Preferred height of the layout depends on its width.
   bool hasHeightForWidth() const noexcept override { return true; }

@@ -34,7 +34,7 @@ void PixCacheThread::run()
   // Render the image. This is takes some time.
   debug_msg(DebugCache,
             "Rendering in cache thread:" << page << resolution << this);
-  const PngPixmap *image = renderer->renderPng(page, resolution);
+  auto image = renderer->renderPng(page, resolution);
 
   // Send the image to pixcache master.
   if (image) emit sendData(image);

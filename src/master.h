@@ -12,6 +12,7 @@
 #include <QPainter>
 #include <QRectF>
 #include <QRegularExpression>
+#include <memory>
 
 #include "src/config.h"
 #include "src/enumerates.h"
@@ -57,7 +58,7 @@ class Master : public QObject
   /// List of all PDF documents.
   /// Master file is the first entry in this list.
   /// This list may never be empty.
-  QList<PdfMaster *> documents;
+  QList<std::shared_ptr<PdfMaster>> documents;
 
   /// File name of file containing drawings etc.
   QString master_file;
@@ -84,23 +85,24 @@ class Master : public QObject
 
   /// Create widgets recursively.
   QWidget *createWidget(const QJsonObject &object, QWidget *parent,
-                        QMap<QString, PdfMaster *> &known_files);
+                        QMap<QString, std::shared_ptr<PdfMaster>> &known_files);
 
   /// Open pdf/xopp/xoj/bpr/xml file or return already opened file.
   /// Mark file alias in given map.
-  PdfMaster *openFile(QString name, QMap<QString, PdfMaster *> &file_alias);
+  std::shared_ptr<PdfMaster> openFile(
+      QString name, QMap<QString, std::shared_ptr<PdfMaster>> &file_alias);
 
   /// Load a PDF file and create new PdfMaster.
-  PdfMaster *createPdfMaster(QString name);
+  std::shared_ptr<PdfMaster> createPdfMaster(QString name);
 
   /// Create slide view (and slide scene if necessary) from config.
-  SlideView *createSlide(const QJsonObject &object, PdfMaster *pdf,
-                         QWidget *parent);
+  SlideView *createSlide(const QJsonObject &object,
+                         std::shared_ptr<PdfMaster> pdf, QWidget *parent);
 
   /// Create children of a container widget.
-  void fillContainerWidget(ContainerBaseClass *parent,
-                           const QJsonObject &parent_obj,
-                           QMap<QString, PdfMaster *> &known_files);
+  void fillContainerWidget(
+      ContainerBaseClass *parent, const QJsonObject &parent_obj,
+      QMap<QString, std::shared_ptr<PdfMaster>> &known_files);
 
   /// Get pixcache object for given parameters, create one if necessary.
   const PixCache *getPixcache(PdfDocument *doc, const PagePart page_part,
@@ -166,11 +168,13 @@ class Master : public QObject
   /// Read header (beamerpresenter tag) from XML
   bool readXmlHeader(QXmlStreamReader &reader, const bool read_notes);
   /// Read page tag from XML, only find required PDF documents
-  PdfMaster *readXmlPageBg(QXmlStreamReader &reader, PdfMaster *pdf,
-                           const QString &drawings_path);
+  std::shared_ptr<PdfMaster> readXmlPageBg(QXmlStreamReader &reader,
+                                           std::shared_ptr<PdfMaster> pdf,
+                                           const QString &drawings_path);
   /// Read page tag from XML
-  PdfMaster *readXmlPage(QXmlStreamReader &reader, PdfMaster *pdf,
-                         const bool clear_drawings);
+  std::shared_ptr<PdfMaster> readXmlPage(QXmlStreamReader &reader,
+                                         std::shared_ptr<PdfMaster> pdf,
+                                         const bool clear_drawings);
 
  protected:
   /// Timeout event: cache videos or change slide

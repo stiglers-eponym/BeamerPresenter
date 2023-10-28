@@ -80,8 +80,7 @@ PixCache::~PixCache()
 
 void PixCache::clear()
 {
-  for (auto it = cache.begin(); it != cache.end(); it = cache.erase(it))
-    delete *it;
+  cache.clear();
   usedMemory = 0;
   region.first = preferences()->page;
   region.second = region.first;
@@ -97,16 +96,13 @@ const QPixmap PixCache::pixmap(const int page, qreal resolution)
   // Try to return a page from cache.
   {
     mutex.lock();
-#if (QT_VERSION_MAJOR >= 6)
-    const auto it = cache.constFind(page);
-#else
     const auto it = cache.find(page);
-#endif
-    if (it != cache.cend() && *it != nullptr &&
-        abs((*it)->getResolution() - resolution) < MAX_RESOLUTION_DEVIATION) {
-      QPixmap pix = (*it)->pixmap();
+    if (it != cache.cend() && it->second &&
+        abs(it->second->getResolution() - resolution) <
+            MAX_RESOLUTION_DEVIATION) {
+      QPixmap pix = it->second->pixmap();
       if (pix.isNull()) {
-        delete *it;
+        usedMemory -= it->second->size();
         cache.erase(it);
       }
       mutex.unlock();
@@ -131,27 +127,25 @@ const QPixmap PixCache::pixmap(const int page, qreal resolution)
   }
 
   // Write pixmap to cache.
-  const PngPixmap *png = new PngPixmap(pix, page, resolution);
+  auto png =
+      std::unique_ptr<const PngPixmap>(new PngPixmap(pix, page, resolution));
   if (png == nullptr) {
     qWarning() << "Converting pixmap to PNG failed";
   } else {
     mutex.lock();
-    if (cache.value(page, nullptr) != nullptr) {
-      usedMemory -= cache[page]->size();
-      delete cache[page];
-    }
-    cache[page] = png;
+    const auto it = cache.find(page);
+    if (it != cache.end() && it->second) usedMemory -= it->second->size();
     usedMemory += png->size();
+    it->second.swap(png);
     mutex.unlock();
   }
-
   return pix;
 }
 
 void PixCache::requestRenderPage(const int n)
 {
   mutex.lock();
-  if (!priority.contains(n) && !cache.contains(n)) priority.append(n);
+  if (!priority.contains(n) && cache.find(n) == cache.end()) priority.append(n);
   mutex.unlock();
 
   // Start rendering next page.
@@ -162,7 +156,7 @@ void PixCache::pageNumberChanged(const int page)
 {
   mutex.lock();
   // Update boundaries of the simply connected region.
-  if (!cache.contains(page)) {
+  if (cache.find(page) == cache.end()) {
     // If current page is not yet in cache: make sure it is first in priority
     // queue.
     if (!priority.isEmpty() && priority.first() != page) {
@@ -183,18 +177,15 @@ void PixCache::pageNumberChanged(const int page)
 
   // Extend the region as far as possible by searching for gaps.
   // Use that keys in QMap are sorted and can be accessed by iterators.
-  QMap<int, const PngPixmap *>::const_iterator left = cache.constFind(
-                                                   region.first),
-                                               right = cache.constFind(
-                                                   region.second);
+  auto left = cache.find(region.first), right = cache.find(region.second);
   if (left != cache.cend()) {
     const auto limit = std::prev(cache.cbegin());
-    while (left != limit && left.key() == region.first) {
+    while (left != limit && left->first == region.first) {
       --left;
       --region.first;
     }
   }
-  while (right != cache.cend() && right.key() == region.second) {
+  while (right != cache.cend() && right->first == region.second) {
     ++right;
     ++region.second;
   }
@@ -268,10 +259,10 @@ int PixCache::limitCacheSize() noexcept
   // Deleting starts from first or last page in cache.
   // The aim is to shrink the cache to a simply connected region
   // around the current page.
-  int first = cache.firstKey();
-  int last = cache.lastKey();
+  int first = cache.cbegin()->first;
+  int last = cache.crbegin()->first;
   /// Cached page which should be removed.
-  const PngPixmap *remove;
+  std::unique_ptr<const PngPixmap> remove;
 
   // Delete pages while allowed_slides is negative or too small to
   // allow updates.
@@ -292,23 +283,21 @@ int PixCache::limitCacheSize() noexcept
     // last.
     if (last + 3 * first > 4 * pref_page) {
       const auto it = std::prev(cache.end());
-      remove = it.value();
-      last = std::prev(cache.erase(it)).key();
+      remove.swap(it->second);
+      last = std::prev(cache.erase(it))->first;
     } else {
       const auto it = cache.begin();
-      remove = it.value();
-      first = cache.erase(it).key();
+      remove.swap(it->second);
+      first = cache.erase(it)->first;
     }
     // Check if remove is nullptr (which means that a thread is just rendering
     // it).
-    // TODO: make sure this case is correctly handled when the thread finishes.
     if (remove == nullptr) continue;
     debug_msg(DebugCache, "removing page from cache"
                               << usedMemory << allowed_slides << cached_slides
                               << remove->getPage());
     // Delete removed cache page and update memory size.
     usedMemory -= remove->size();
-    delete remove;
     --cached_slides;
 
     // Update allowed_slides
@@ -336,7 +325,7 @@ int PixCache::renderNext()
   mutex.lock();
   while (!priority.isEmpty()) {
     page = priority.takeFirst();
-    if (!cache.contains(page)) {
+    if (cache.find(page) == cache.end()) {
       mutex.unlock();
       return page;
     }
@@ -352,13 +341,13 @@ int PixCache::renderNext()
   // Select region.first or region.second for rendering.
   while (true) {
     if (region.second + 3 * region.first > 4 * pref_page && region.first >= 0) {
-      if (!cache.contains(region.first)) {
+      if (cache.find(region.first) == cache.end()) {
         mutex.unlock();
         return region.first--;
       }
       --region.first;
     } else {
-      if (!cache.contains(region.second)) {
+      if (cache.find(region.second) == cache.end()) {
         mutex.unlock();
         return region.second++;
       }
@@ -408,15 +397,18 @@ void PixCache::receiveData(const PngPixmap *data)
   mutex.lock();
   if (abs(getResolution(data->getPage()) - data->getResolution()) >
       MAX_RESOLUTION_DEVIATION) {
-    if (cache.value(data->getPage()) == nullptr) cache.remove(data->getPage());
+    // got page of wrong size, don't use it
+    const auto it = cache.find(data->getPage());
+    if (it != cache.end()) {
+      if (it->second) usedMemory -= it->second->size();
+      cache.erase(it);
+    }
     delete data;
   } else {
-    if (cache.value(data->getPage(), nullptr) != nullptr) {
-      usedMemory -= cache[data->getPage()]->size();
-      delete cache[data->getPage()];
-    }
-    cache[data->getPage()] = data;
     usedMemory += data->size();
+    const auto [it, inserted] = cache.try_emplace(data->getPage(), nullptr);
+    if (it->second) usedMemory -= it->second->size();
+    it->second.reset(data);
   }
   mutex.unlock();
 
@@ -455,23 +447,20 @@ void PixCache::requestPage(const int page, const qreal resolution,
   // Try to return a page from cache.
   {
     mutex.lock();
-#if (QT_VERSION_MAJOR >= 6)
-    const auto it = cache.constFind(page);
-#else
     const auto it = cache.find(page);
-#endif
-    debug_verbose(
-        DebugCache,
-        "searched for page"
-            << page << (it == cache.cend())
-            << (it != cache.cend() && *it != nullptr)
-            << (it == cache.cend() ? -1024
-                                   : ((*it)->getResolution() - resolution)));
-    if (it != cache.cend() && *it != nullptr &&
-        abs((*it)->getResolution() - resolution) < MAX_RESOLUTION_DEVIATION) {
-      QPixmap pix = (*it)->pixmap();
+    debug_verbose(DebugCache,
+                  "searched for page"
+                      << page << (it == cache.cend())
+                      << (it != cache.cend() && it->second != nullptr)
+                      << (it == cache.cend()
+                              ? -1024
+                              : (it->second->getResolution() - resolution)));
+    if (it != cache.cend() && it->second &&
+        abs(it->second->getResolution() - resolution) <
+            MAX_RESOLUTION_DEVIATION) {
+      QPixmap pix = it->second->pixmap();
       if (pix.isNull()) {
-        delete *it;
+        usedMemory -= it->second->size();
         cache.erase(it);
       }
       mutex.unlock();
@@ -503,17 +492,15 @@ void PixCache::requestPage(const int page, const qreal resolution,
 
   if (cache_page) {
     // Write pixmap to cache.
-    const PngPixmap *png = new PngPixmap(pix, page, resolution);
+    std::unique_ptr<const PngPixmap> png(new PngPixmap(pix, page, resolution));
     if (png == nullptr)
       qWarning() << "Converting pixmap to PNG failed";
     else {
       mutex.lock();
-      if (cache.value(page, nullptr) != nullptr) {
-        usedMemory -= cache[page]->size();
-        delete cache[page];
-      }
-      cache[page] = png;
       usedMemory += png->size();
+      const auto [it, inserted] = cache.try_emplace(page, nullptr);
+      if (it->second) usedMemory -= it->second->size();
+      it->second.swap(png);
       debug_verbose(DebugCache, "writing page to cache" << page << usedMemory);
       mutex.unlock();
     }

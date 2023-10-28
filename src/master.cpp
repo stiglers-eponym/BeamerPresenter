@@ -71,7 +71,7 @@ Master::~Master()
     while (!scenes.isEmpty()) delete scenes.takeLast();
   }
   while (!windows.isEmpty()) delete windows.takeLast();
-  while (!documents.isEmpty()) delete documents.takeLast();
+  documents.clear();
 }
 
 Master::Status Master::readGuiConfig(const QString &filename)
@@ -96,7 +96,7 @@ Master::Status Master::readGuiConfig(const QString &filename)
   /// Map "presentation", "notes", ... to PdfDocument pointers.
   /// This is needed to interpret GUI config and avoids asking for files
   /// multiple times.
-  QMap<QString, PdfMaster *> known_files;
+  QMap<QString, std::shared_ptr<PdfMaster>> known_files;
 
   const QJsonArray array = doc.array();
 #if (QT_VERSION >= QT_VERSION_CHECK(5, 14, 0))
@@ -139,8 +139,9 @@ Master::Status Master::readGuiConfig(const QString &filename)
   // Focus a scene view by default. This makes keyboard shortcuts available.
   scenes.first()->views().first()->setFocus();
 
-  debug_msg(DebugDrawing, "Initialized documents:"
-                              << known_files << preferences()->file_alias);
+  debug_msg(DebugDrawing,
+            "Initialized documents:" << known_files.size()
+                                     << preferences()->file_alias);
   // Load drawings
   // TODO: avoid loading drawings multiple times
   QSet<QString> loaded_paths;
@@ -149,13 +150,14 @@ Master::Status Master::readGuiConfig(const QString &filename)
     if (!doc->drawingsPath().isEmpty())
       loaded_paths.insert(doc->drawingsPath());
   for (const auto &path : loaded_paths) loadBprDrawings(path, true);
-  debug_msg(DebugDrawing,
-            "Loaded drawings:" << known_files << preferences()->file_alias);
+  debug_msg(DebugDrawing, "Loaded drawings:" << known_files.size()
+                                             << preferences()->file_alias);
   return Success;
 }
 
-QWidget *Master::createWidget(const QJsonObject &object, QWidget *parent,
-                              QMap<QString, PdfMaster *> &known_files)
+QWidget *Master::createWidget(
+    const QJsonObject &object, QWidget *parent,
+    QMap<QString, std::shared_ptr<PdfMaster>> &known_files)
 {
   QWidget *widget = nullptr;
   const GuiWidget type = string_to_widget_type(object.value("type").toString());
@@ -413,8 +415,8 @@ QWidget *Master::createWidget(const QJsonObject &object, QWidget *parent,
   return widget;
 }
 
-SlideView *Master::createSlide(const QJsonObject &object, PdfMaster *pdf,
-                               QWidget *parent)
+SlideView *Master::createSlide(const QJsonObject &object,
+                               std::shared_ptr<PdfMaster> pdf, QWidget *parent)
 {
   if (!pdf) return nullptr;
 
@@ -468,7 +470,7 @@ SlideView *Master::createSlide(const QJsonObject &object, PdfMaster *pdf,
       pdf->getScenes().prepend(scene);
     } else
       pdf->getScenes().append(scene);
-    connect(scene, &SlideScene::newUnsavedDrawings, pdf,
+    connect(scene, &SlideScene::newUnsavedDrawings, pdf.get(),
             &PdfMaster::newUnsavedDrawings);
     connect(scene, &SlideScene::navigationSignal, this, &Master::navigateToPage,
             Qt::QueuedConnection);
@@ -482,7 +484,7 @@ SlideView *Master::createSlide(const QJsonObject &object, PdfMaster *pdf,
             Qt::QueuedConnection);
     connect(this, &Master::prepareNavigationSignal, scene,
             &SlideScene::prepareNavigationEvent);
-    connect(pdf, &PdfMaster::updateSearch, scene,
+    connect(pdf.get(), &PdfMaster::updateSearch, scene,
             &SlideScene::updateSearchResults);
     connect(preferences(), &Preferences::stopDrawing, scene,
             &SlideScene::stopDrawing);
@@ -532,8 +534,8 @@ SlideView *Master::createSlide(const QJsonObject &object, PdfMaster *pdf,
   return slide;
 }
 
-PdfMaster *Master::openFile(QString name,
-                            QMap<QString, PdfMaster *> &known_files)
+std::shared_ptr<PdfMaster> Master::openFile(
+    QString name, QMap<QString, std::shared_ptr<PdfMaster>> &known_files)
 {
   // Check if name is known.
   if (known_files.contains(name)) return known_files.value(name);
@@ -566,8 +568,8 @@ PdfMaster *Master::openFile(QString name,
   if (type.inherits("application/gzip") || type.inherits("text/xml") ||
       type.inherits("application/x-xopp") ||
       type.inherits("application/x-bpr")) {
-    debug_msg(DebugDrawing,
-              "Loading drawing file:" << name << abs_path << known_files);
+    debug_msg(DebugDrawing, "Loading drawing file:" << name << abs_path
+                                                    << known_files.size());
     loadBprInit(abs_path);
     for (const auto doc : documents) known_files[doc->getFilename()] = doc;
     for (auto it = preferences()->file_alias.cbegin();
@@ -589,7 +591,7 @@ PdfMaster *Master::openFile(QString name,
       }
     }
     if (known_files.contains(name)) return known_files.value(name);
-    debug_msg(DebugDrawing, "Alias not found:" << name << known_files
+    debug_msg(DebugDrawing, "Alias not found:" << name << known_files.size()
                                                << preferences()->file_alias);
     if (!documents.empty()) return documents.first();
     return nullptr;
@@ -599,7 +601,7 @@ PdfMaster *Master::openFile(QString name,
     qCritical() << "Invalid file type given:" << type << abs_path;
     return nullptr;
   }
-  PdfMaster *pdf = createPdfMaster(abs_path);
+  auto pdf = createPdfMaster(abs_path);
 
   known_files[name] = pdf;
   known_files[abs_path] = pdf;
@@ -608,32 +610,31 @@ PdfMaster *Master::openFile(QString name,
   return pdf;
 }
 
-PdfMaster *Master::createPdfMaster(QString abs_path)
+std::shared_ptr<PdfMaster> Master::createPdfMaster(QString abs_path)
 {
   debug_msg(DebugDrawing, "Opening new document" << abs_path);
   // First create an empty PdfMaster. Don't do anything with it,
   // it's not initialized yet. Only connect it to signals, some of
   // which may already be required in initialization.
-  auto pdf = new PdfMaster();
+  std::shared_ptr<PdfMaster> pdf(new PdfMaster);
 
-  connect(this, &Master::sendAction, pdf, &PdfMaster::receiveAction);
-  connect(this, &Master::navigationSignal, pdf,
+  connect(this, &Master::sendAction, pdf.get(), &PdfMaster::receiveAction);
+  connect(this, &Master::navigationSignal, pdf.get(),
           &PdfMaster::distributeNavigationEvents, Qt::QueuedConnection);
-  connect(this, &Master::setTimeForPage, pdf, &PdfMaster::setTimeForPage);
-  connect(this, &Master::getTimeForPage, pdf, &PdfMaster::getTimeForPage);
-  connect(pdf, &PdfMaster::writeNotes, this, &Master::writeNotes,
+  connect(this, &Master::setTimeForPage, pdf.get(), &PdfMaster::setTimeForPage);
+  connect(this, &Master::getTimeForPage, pdf.get(), &PdfMaster::getTimeForPage);
+  connect(pdf.get(), &PdfMaster::writeNotes, this, &Master::writeNotes,
           Qt::DirectConnection);
-  connect(pdf, &PdfMaster::readNotes, this, &Master::readNotes,
+  connect(pdf.get(), &PdfMaster::readNotes, this, &Master::readNotes,
           Qt::DirectConnection);
-  connect(pdf, &PdfMaster::setTotalTime, this, &Master::setTotalTime);
-  connect(pdf, &PdfMaster::navigationSignal, this, &Master::navigateToPage,
-          Qt::DirectConnection);
+  connect(pdf.get(), &PdfMaster::setTotalTime, this, &Master::setTotalTime);
+  connect(pdf.get(), &PdfMaster::navigationSignal, this,
+          &Master::navigateToPage, Qt::DirectConnection);
 
   // Initialize document, try to laod PDF
   // TODO: should this be done at this point?
   pdf->loadDocument(abs_path);
   if (pdf->getDocument() == nullptr) {
-    delete pdf;
     qCritical() << tr(
         "Failed to load PDF document. This will result in errors!");
     return nullptr;
@@ -694,9 +695,9 @@ const PixCache *Master::getPixcache(PdfDocument *doc, const PagePart page_part,
   return pixcache;
 }
 
-void Master::fillContainerWidget(ContainerBaseClass *parent,
-                                 const QJsonObject &parent_obj,
-                                 QMap<QString, PdfMaster *> &known_files)
+void Master::fillContainerWidget(
+    ContainerBaseClass *parent, const QJsonObject &parent_obj,
+    QMap<QString, std::shared_ptr<PdfMaster>> &known_files)
 {
   const QJsonArray array = parent_obj.value("children").toArray();
 #if (QT_VERSION >= QT_VERSION_CHECK(5, 14, 0))
@@ -881,7 +882,7 @@ void Master::handleAction(const Action action)
 
 bool Master::askCloseConfirmation() noexcept
 {
-  PdfMaster *doc = documents.first();
+  std::shared_ptr<PdfMaster> doc = documents.first();
   if (doc &&
       ((doc->flags() & (PdfMaster::UnsavedNotes | PdfMaster::UnsavedTimes)) ||
        ((doc->flags() & PdfMaster::UnsavedDrawings) && doc->hasDrawings()))) {
@@ -1104,7 +1105,7 @@ bool Master::writeXml(QBuffer &buffer, const bool save_bp_specific)
 
   {
     // Write preview picture from default PDF.
-    const auto *pdf = documents.first();
+    const std::shared_ptr<PdfMaster> pdf = documents.first();
     const QSizeF &pageSize = pdf->getPageSize(0);
     const qreal resolution =
         128 / std::max(pageSize.width(), pageSize.height());
@@ -1194,7 +1195,7 @@ bool Master::loadXmlInit(QBuffer *buffer, const QString &abs_path)
     return false;
   }
 
-  PdfMaster *pdf = nullptr;
+  std::shared_ptr<PdfMaster> pdf(nullptr);
   while (reader.readNextStartElement()) {
     if (reader.name().toUtf8() == "beamerpresenter")
       readXmlHeader(reader, false);
@@ -1228,7 +1229,7 @@ bool Master::loadXmlDrawings(QBuffer *buffer, const bool clear_drawings)
     return false;
   }
 
-  PdfMaster *pdf = nullptr;
+  std::shared_ptr<PdfMaster> pdf(nullptr);
   while (reader.readNextStartElement()) {
     if (reader.name().toUtf8() == "beamerpresenter")
       readXmlHeader(reader, true);
@@ -1245,8 +1246,9 @@ bool Master::loadXmlDrawings(QBuffer *buffer, const bool clear_drawings)
   return true;
 }
 
-PdfMaster *Master::readXmlPageBg(QXmlStreamReader &reader, PdfMaster *pdf,
-                                 const QString &drawings_path)
+std::shared_ptr<PdfMaster> Master::readXmlPageBg(QXmlStreamReader &reader,
+                                                 std::shared_ptr<PdfMaster> pdf,
+                                                 const QString &drawings_path)
 {
   if (reader.name().toUtf8() != "page") return pdf;
   while (reader.readNextStartElement()) {
@@ -1281,8 +1283,9 @@ PdfMaster *Master::readXmlPageBg(QXmlStreamReader &reader, PdfMaster *pdf,
   return pdf;
 }
 
-PdfMaster *Master::readXmlPage(QXmlStreamReader &reader, PdfMaster *pdf,
-                               const bool clear_drawings)
+std::shared_ptr<PdfMaster> Master::readXmlPage(QXmlStreamReader &reader,
+                                               std::shared_ptr<PdfMaster> pdf,
+                                               const bool clear_drawings)
 {
   if (reader.name().toUtf8() != "page") return pdf;
   int page = -1;

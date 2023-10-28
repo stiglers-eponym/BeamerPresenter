@@ -11,15 +11,17 @@
 #include <QPair>
 #include <QSizeF>
 #include <QVector>
+#include <map>
+#include <memory>
 
 #include "src/config.h"
 #include "src/enumerates.h"
+#include "src/rendering/pngpixmap.h"
 
 constexpr qreal MAX_RESOLUTION_DEVIATION = 1e-5;
 
 class QPixmap;
 class QTimerEvent;
-class PngPixmap;
 class PdfDocument;
 class PixCacheThread;
 class AbstractRenderer;
@@ -40,7 +42,8 @@ class PixCache : public QObject
  private:
   /// Map page numbers to cached PNG pixmaps.
   /// Pages which are currently being rendered are marked with a nullptr here.
-  QMap<int, const PngPixmap *> cache;
+  /// std::map seems better than QMap for handling std::unique_ptr
+  std::map<int, std::unique_ptr<const PngPixmap>> cache;
 
   /// Mutex to lock this thread.
   QMutex mutex;
