@@ -6,6 +6,7 @@
 
 #include <QList>
 #include <QMap>
+#include <QMutex>
 #include <QObject>
 #include <QPair>
 #include <QSizeF>
@@ -40,6 +41,9 @@ class PixCache : public QObject
   /// Map page numbers to cached PNG pixmaps.
   /// Pages which are currently being rendered are marked with a nullptr here.
   QMap<int, const PngPixmap *> cache;
+
+  /// Mutex to lock this thread.
+  QMutex mutex;
 
   /// List of pages which should be rendered next.
   QList<int> priority;
@@ -80,16 +84,16 @@ class PixCache : public QObject
   /// This page must then also be rendered.
   int renderNext();
 
- protected:
-  /// Timer event: stop the timer and start rendering next pixmap.
-  void timerEvent(QTimerEvent *event) override;
-
   /// Calculate resolution for given page number based on this->frame.
   /// Return resolution in pixels per point (72*dpi)
   qreal getResolution(const int page) const;
 
   /// Get pixmap showing page and write it to cache.
   const QPixmap pixmap(const int page, qreal resolution = -1.);
+
+ protected:
+  /// Timer event: stop the timer and start rendering next pixmap.
+  void timerEvent(QTimerEvent *event) override;
 
  public:
   /// Constructor: only very basic initialization.

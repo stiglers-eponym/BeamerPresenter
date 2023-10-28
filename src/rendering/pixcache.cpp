@@ -30,6 +30,11 @@ PixCache::PixCache(PdfDocument *doc, const int thread_number,
 
 void PixCache::init()
 {
+  if (QThread::currentThread() != this->thread()) {
+    qCritical() << "Called PixCache::init from wrong thread!";
+    return;
+  }
+  mutex.lock();
   const PagePart page_part =
       static_cast<PagePart>(priority.isEmpty() ? 0 : priority.first());
   priority.clear();
@@ -56,6 +61,7 @@ void PixCache::init()
     connect(this, &PixCache::setPixCacheThreadPage, thread,
             &PixCacheThread::setNextPage, Qt::QueuedConnection);
   }
+  mutex.unlock();
 }
 
 PixCache::~PixCache()
@@ -67,7 +73,9 @@ PixCache::~PixCache()
     thread->wait(10000);
     delete thread;
   }
+  mutex.lock();
   clear();
+  mutex.unlock();
 }
 
 void PixCache::clear()
@@ -81,16 +89,31 @@ void PixCache::clear()
 
 const QPixmap PixCache::pixmap(const int page, qreal resolution)
 {
-  if (resolution <= 0.) resolution = getResolution(page);
-  // Try to return a page from cache.
-  {
-    const auto it = cache.constFind(page);
-    if (it != cache.cend() && *it != nullptr &&
-        abs((*it)->getResolution() - resolution) < MAX_RESOLUTION_DEVIATION)
-      return (*it)->pixmap();
-  }
   // Check if page number is valid.
   if (page < 0 || page >= pdfDoc->numberOfPages()) return QPixmap();
+
+  if (resolution <= 0.) resolution = getResolution(page);
+
+  // Try to return a page from cache.
+  {
+    mutex.lock();
+#if (QT_VERSION_MAJOR >= 6)
+    const auto it = cache.constFind(page);
+#else
+    const auto it = cache.find(page);
+#endif
+    if (it != cache.cend() && *it != nullptr &&
+        abs((*it)->getResolution() - resolution) < MAX_RESOLUTION_DEVIATION) {
+      QPixmap pix = (*it)->pixmap();
+      if (pix.isNull()) {
+        delete *it;
+        cache.erase(it);
+      }
+      mutex.unlock();
+      return pix;
+    }
+    mutex.unlock();
+  }
 
   // Check if the renderer is valid
   if (renderer == nullptr || !renderer->isValid()) {
@@ -112,12 +135,14 @@ const QPixmap PixCache::pixmap(const int page, qreal resolution)
   if (png == nullptr) {
     qWarning() << "Converting pixmap to PNG failed";
   } else {
+    mutex.lock();
     if (cache.value(page, nullptr) != nullptr) {
       usedMemory -= cache[page]->size();
       delete cache[page];
     }
     cache[page] = png;
     usedMemory += png->size();
+    mutex.unlock();
   }
 
   return pix;
@@ -125,14 +150,17 @@ const QPixmap PixCache::pixmap(const int page, qreal resolution)
 
 void PixCache::requestRenderPage(const int n)
 {
+  mutex.lock();
   if (!priority.contains(n) && !cache.contains(n)) priority.append(n);
+  mutex.unlock();
 
   // Start rendering next page.
-  startTimer(0);
+  if (thread() == QThread::currentThread()) startTimer(0);
 }
 
 void PixCache::pageNumberChanged(const int page)
 {
+  mutex.lock();
   // Update boundaries of the simply connected region.
   if (!cache.contains(page)) {
     // If current page is not yet in cache: make sure it is first in priority
@@ -143,6 +171,7 @@ void PixCache::pageNumberChanged(const int page)
     }
     region.first = page;
     region.second = page;
+    mutex.unlock();
     return;
   }
 
@@ -169,9 +198,10 @@ void PixCache::pageNumberChanged(const int page)
     ++right;
     ++region.second;
   }
+  mutex.unlock();
 
   // Start rendering next page.
-  startTimer(0);
+  if (thread() == QThread::currentThread()) startTimer(0);
 }
 
 int PixCache::limitCacheSize() noexcept
@@ -183,11 +213,14 @@ int PixCache::limitCacheSize() noexcept
     return INT_MAX >> 1;
   }
   if (maxNumber == 0 || maxMemory == 0) {
+    mutex.lock();
     clear();
+    mutex.unlock();
     return 0;
   }
 
   const int pref_page = preferences()->page;
+  mutex.lock();
   // Check if region is valid.
   if (region.first > region.second) {
     region.first = pref_page;
@@ -200,7 +233,10 @@ int PixCache::limitCacheSize() noexcept
   int cached_slides = cache.size();
   for (auto it = threads.cbegin(); it != threads.cend(); ++it)
     if ((*it) && (*it)->isRunning()) --cached_slides;
-  if (cached_slides <= 0) return INT_MAX >> 1;
+  if (cached_slides <= 0) {
+    mutex.unlock();
+    return INT_MAX >> 1;
+  }
 
   // Calculate how many slides still fit in available memory
   int allowed_slides = INT_MAX >> 1;
@@ -220,7 +256,10 @@ int PixCache::limitCacheSize() noexcept
     allowed_slides = maxNumber - cache.size();
 
   // If threads.length() pages can be rendered without problems: return
-  if (allowed_slides >= threads.length()) return allowed_slides;
+  if (allowed_slides >= threads.length()) {
+    mutex.unlock();
+    return allowed_slides;
+  }
 
   debug_msg(DebugCache, "prepared deleting from cache"
                             << usedMemory << maxMemory << allowed_slides
@@ -244,17 +283,19 @@ int PixCache::limitCacheSize() noexcept
          (maxMemory < 0 || usedMemory <= maxMemory) && last > pref_page &&
          last - first <= cache.size() && 2 * last + 3 * first > 5 * pref_page)
         // the case cache.size() < 2 would lead to segfaults.
-        || cache.size() < 2)
+        || cache.size() < 2) {
+      mutex.unlock();
       return 0;
+    }
 
     // If more than 3/4 of the cached slides lie ahead of current page, clean up
     // last.
     if (last + 3 * first > 4 * pref_page) {
-      const QMap<int, const PngPixmap *>::iterator it = std::prev(cache.end());
+      const auto it = std::prev(cache.end());
       remove = it.value();
       last = std::prev(cache.erase(it)).key();
     } else {
-      const QMap<int, const PngPixmap *>::iterator it = cache.begin();
+      const auto it = cache.begin();
       remove = it.value();
       first = cache.erase(it).key();
     }
@@ -284,6 +325,7 @@ int PixCache::limitCacheSize() noexcept
   if (first > region.first + 1) region.first = first - 1;
   if (last + 1 < region.second) region.second = last + 1;
 
+  mutex.unlock();
   return allowed_slides;
 }
 
@@ -291,9 +333,13 @@ int PixCache::renderNext()
 {
   // Check if priority contains pages which are not yet rendered.
   int page;
+  mutex.lock();
   while (!priority.isEmpty()) {
     page = priority.takeFirst();
-    if (!cache.contains(page)) return page;
+    if (!cache.contains(page)) {
+      mutex.unlock();
+      return page;
+    }
   }
 
   const int pref_page = preferences()->page;
@@ -306,10 +352,16 @@ int PixCache::renderNext()
   // Select region.first or region.second for rendering.
   while (true) {
     if (region.second + 3 * region.first > 4 * pref_page && region.first >= 0) {
-      if (!cache.contains(region.first)) return region.first--;
+      if (!cache.contains(region.first)) {
+        mutex.unlock();
+        return region.first--;
+      }
       --region.first;
     } else {
-      if (!cache.contains(region.second)) return region.second++;
+      if (!cache.contains(region.second)) {
+        mutex.unlock();
+        return region.second++;
+      }
       ++region.second;
     }
   }
@@ -339,6 +391,12 @@ void PixCache::startRendering()
 
 void PixCache::receiveData(const PngPixmap *data)
 {
+  if (QThread::currentThread() != this->thread()) {
+    qCritical() << "Called PixCache::receiveData from wrong thread!";
+    delete data;
+    return;
+  }
+
   // If a renderer failed, it should already have sent an error message.
   if (data == nullptr || data->isNull()) {
     delete data;
@@ -347,6 +405,7 @@ void PixCache::receiveData(const PngPixmap *data)
 
   // Check if the received image is still compatible with the current
   // resolution.
+  mutex.lock();
   if (abs(getResolution(data->getPage()) - data->getResolution()) >
       MAX_RESOLUTION_DEVIATION) {
     if (cache.value(data->getPage()) == nullptr) cache.remove(data->getPage());
@@ -359,6 +418,7 @@ void PixCache::receiveData(const PngPixmap *data)
     cache[data->getPage()] = data;
     usedMemory += data->size();
   }
+  mutex.unlock();
 
   // Start rendering next page.
   startTimer(0);
@@ -381,8 +441,10 @@ void PixCache::updateFrame(const QSizeF &size)
 {
   if (frame != size && threads.length() > 0) {
     debug_msg(DebugCache, "update frame" << frame << size);
+    mutex.lock();
     frame = size;
     clear();
+    mutex.unlock();
   }
 }
 
@@ -392,7 +454,12 @@ void PixCache::requestPage(const int page, const qreal resolution,
   debug_verbose(DebugCache, "requested page" << page << resolution);
   // Try to return a page from cache.
   {
+    mutex.lock();
+#if (QT_VERSION_MAJOR >= 6)
     const auto it = cache.constFind(page);
+#else
+    const auto it = cache.find(page);
+#endif
     debug_verbose(
         DebugCache,
         "searched for page"
@@ -402,9 +469,16 @@ void PixCache::requestPage(const int page, const qreal resolution,
                                    : ((*it)->getResolution() - resolution)));
     if (it != cache.cend() && *it != nullptr &&
         abs((*it)->getResolution() - resolution) < MAX_RESOLUTION_DEVIATION) {
-      emit pageReady((*it)->pixmap(), page);
+      QPixmap pix = (*it)->pixmap();
+      if (pix.isNull()) {
+        delete *it;
+        cache.erase(it);
+      }
+      mutex.unlock();
+      emit pageReady(pix, page);
       return;
     }
+    mutex.unlock();
   }
   // Check if page number is valid.
   if (page < 0 || page >= pdfDoc->numberOfPages()) return;
@@ -433,6 +507,7 @@ void PixCache::requestPage(const int page, const qreal resolution,
     if (png == nullptr)
       qWarning() << "Converting pixmap to PNG failed";
     else {
+      mutex.lock();
       if (cache.value(page, nullptr) != nullptr) {
         usedMemory -= cache[page]->size();
         delete cache[page];
@@ -440,11 +515,12 @@ void PixCache::requestPage(const int page, const qreal resolution,
       cache[page] = png;
       usedMemory += png->size();
       debug_verbose(DebugCache, "writing page to cache" << page << usedMemory);
+      mutex.unlock();
     }
   }
 
   // Start rendering next page.
-  startTimer(0);
+  if (thread() == QThread::currentThread()) startTimer(0);
 }
 
 void PixCache::getPixmap(const int page, QPixmap &target, qreal resolution)

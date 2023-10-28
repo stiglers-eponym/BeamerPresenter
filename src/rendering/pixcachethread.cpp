@@ -23,6 +23,11 @@ void PixCacheThread::setNextPage(const PixCacheThread *target,
 
 void PixCacheThread::run()
 {
+  if (this != QThread::currentThread()) {
+    qCritical() << "Called PixCacheThread::run from wrong thread!";
+    return;
+  }
+
   // Check if a renderer is available.
   if (renderer == nullptr || resolution <= 0. || page < 0) return;
 

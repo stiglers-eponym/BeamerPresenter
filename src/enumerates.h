@@ -257,6 +257,7 @@ enum DebugFlags {
   DebugPageChange = 1 << 8,
   DebugLayout = 1 << 9,
   DebugWidgets = 1 << 10,
+  DebugThreads = 1 << 11,
   DebugAll = 0x7fff,
   DebugVerbose = 1 << 15,
 };
