@@ -52,6 +52,7 @@ SlideScene::SlideScene(std::shared_ptr<const PdfMaster> master,
       master(master),
       page_part(part)
 {
+  debug_verbose(DebugFunctionCalls, "CREATING SlideScene" << this);
   setSceneRect(0, 0, 4000, 3000);
   connect(this, &SlideScene::sendNewPath, master.get(),
           &PdfMaster::receiveNewPath, Qt::DirectConnection);
@@ -81,6 +82,7 @@ SlideScene::SlideScene(std::shared_ptr<const PdfMaster> master,
 
 SlideScene::~SlideScene()
 {
+  debug_verbose(DebugFunctionCalls, "DELETING SlideScene" << this);
   delete animation;
   if (searchResults) removeItem(searchResults);
   delete searchResults;
@@ -96,9 +98,9 @@ SlideScene::~SlideScene()
 
 void SlideScene::stopDrawing()
 {
-  debug_msg(DebugDrawing, "Stop drawing" << page << page_part
-                                         << currentlyDrawnItem
-                                         << currentItemCollection);
+  debug_msg(DebugDrawing | DebugFunctionCalls,
+            "Stop drawing" << page << page_part << currentlyDrawnItem
+                           << currentItemCollection << this);
   if (currentlyDrawnItem) {
     BasicGraphicsPath *newpath = nullptr;
     switch (currentlyDrawnItem->type()) {
@@ -174,7 +176,8 @@ void SlideScene::stopDrawing()
 
 bool SlideScene::event(QEvent *event)
 {
-  debug_verbose(DebugDrawing, event);
+  debug_verbose(DebugDrawing | DebugFunctionCalls,
+                event->type() << event->spontaneous() << event << this);
   int device = 0;
   QList<QPointF> pos;
   QPointF start_pos;
@@ -204,6 +207,8 @@ bool SlideScene::event(QEvent *event)
       const auto *mouseevent = static_cast<QGraphicsSceneMouseEvent *>(event);
       device = (mouseevent->buttons() << 1) | Tool::StartEvent;
       Tool *tool = preferences()->currentTool(mouseevent->buttons() << 1);
+      debug_verbose(DebugFunctionCalls,
+                    "complete event handling" << event << this);
       if (tool && tool->tool() == Tool::TextInputTool)
         return QGraphicsScene::event(event);
       event->accept();
@@ -276,18 +281,25 @@ bool SlideScene::event(QEvent *event)
         }
       }
     default:
+      debug_verbose(DebugFunctionCalls,
+                    "complete event handling" << event << this);
       return QGraphicsScene::event(event);
   }
   if (handleEvents(device, pos, start_pos, 1.)) {
     event->accept();
+    debug_verbose(DebugFunctionCalls,
+                  "complete event handling" << event << this);
     return true;
   }
+  debug_verbose(DebugFunctionCalls, "complete event handling" << event << this);
   return QGraphicsScene::event(event);
 }
 
 bool SlideScene::handleEvents(const int device, const QList<QPointF> &pos,
                               const QPointF &start_pos, const float pressure)
 {
+  debug_verbose(DebugFunctionCalls,
+                device << pos << start_pos << pressure << this);
   Tool *tool = preferences()->currentTool(device & Tool::AnyDevice);
   // Check if a selection is active. In this case we might use the temporary
   // selection tool.
@@ -340,6 +352,7 @@ bool SlideScene::handleEvents(const int device, const QList<QPointF> &pos,
 bool SlideScene::maybeStartSelectionEvent(const QPointF &pos,
                                           const int device) noexcept
 {
+  debug_verbose(DebugFunctionCalls, pos << device << this);
   // Try to handle selection (if available)
   if (!selection_bounding_rect.isVisible()) return false;
 
@@ -391,6 +404,7 @@ void SlideScene::handleDrawEvents(const DrawTool *tool, const int device,
                                   const QList<QPointF> &pos,
                                   const float pressure)
 {
+  debug_verbose(DebugFunctionCalls, tool << device << pos << pressure << this);
   // TODO: multi-touch for draw tools
   switch (device & Tool::AnyEvent) {
     case Tool::UpdateEvent:
@@ -414,6 +428,7 @@ void SlideScene::handleDrawEvents(const DrawTool *tool, const int device,
 void SlideScene::handlePointingEvents(PointingTool *tool, const int device,
                                       const QList<QPointF> &pos)
 {
+  debug_verbose(DebugFunctionCalls, tool << device << pos << this);
   tool->scene() = this;
   switch (tool->tool()) {
     case Tool::Torch:
@@ -474,6 +489,7 @@ void SlideScene::handleSelectionEvents(SelectionTool *tool, const int device,
                                        const QList<QPointF> &pos,
                                        const QPointF &start_pos)
 {
+  debug_verbose(DebugFunctionCalls, tool << device << pos << start_pos << this);
   const QPointF &single_pos = pos.constFirst();
   switch (device & Tool::DeviceEventType::AnyEvent) {
     case Tool::DeviceEventType::StartEvent:
@@ -494,6 +510,7 @@ void SlideScene::handleSelectionEvents(SelectionTool *tool, const int device,
 bool SlideScene::handleTextEvents(const TextTool *tool, const int device,
                                   const QList<QPointF> &pos)
 {
+  debug_verbose(DebugFunctionCalls, tool << device << pos << this);
   // TODO: bug fixes
   clearSelection();
   debug_msg(DebugDrawing, "Trying to start writing text"
@@ -531,6 +548,7 @@ bool SlideScene::handleTextEvents(const TextTool *tool, const int device,
 void SlideScene::handleSelectionStartEvents(SelectionTool *tool,
                                             const QPointF &pos)
 {
+  debug_verbose(DebugFunctionCalls, tool << pos << this);
   QList<QGraphicsItem *> selection = selectedItems();
   // Check if anything is selected.
   tool->reset();
@@ -604,6 +622,7 @@ void SlideScene::handleSelectionStopEvents(SelectionTool *tool,
                                            const QPointF &pos,
                                            const QPointF &start_pos)
 {
+  debug_verbose(DebugFunctionCalls, tool << pos << start_pos << this);
   switch (tool->type()) {
     case SelectionTool::Move:
     case SelectionTool::Rotate:
@@ -672,6 +691,7 @@ void SlideScene::handleSelectionStopEvents(SelectionTool *tool,
 
 void SlideScene::receiveAction(const Action action)
 {
+  debug_verbose(DebugFunctionCalls, action << this);
   debug_msg(DebugKeyInput, "SlideScene received action" << action);
   switch (action) {
     case ScrollDown:
@@ -749,6 +769,7 @@ void SlideScene::receiveAction(const Action action)
 
 void SlideScene::prepareNavigationEvent(const int newpage)
 {
+  debug_verbose(DebugFunctionCalls, newpage << this);
   // Adjust scene size.
   /// Page size in points.
   QSizeF pagesize =
@@ -780,7 +801,7 @@ void SlideScene::prepareNavigationEvent(const int newpage)
 
 void SlideScene::navigationEvent(const int newpage, SlideScene *newscene)
 {
-  debug_msg(DebugPageChange,
+  debug_msg(DebugPageChange | DebugFunctionCalls,
             "scene" << this << "navigates to" << newpage << "as" << newscene);
   pauseMedia();
   clearSelection();
@@ -852,6 +873,7 @@ void SlideScene::loadMedia(const int page)
 
 void SlideScene::postRendering()
 {
+  debug_verbose(DebugFunctionCalls, this);
   pageItem->clearOld();
   int newpage =
       page + 1;  ///< newpage is the next page after the currently shown page.
@@ -878,6 +900,7 @@ void SlideScene::postRendering()
 
 void SlideScene::cacheMedia(const int page)
 {
+  debug_verbose(DebugFunctionCalls, page << this);
   const QList<std::shared_ptr<MediaAnnotation>> list =
       master->getDocument()->annotations(page);
   for (const auto &annotation : list) {
@@ -895,6 +918,7 @@ void SlideScene::cacheMedia(const int page)
 std::shared_ptr<MediaItem> &SlideScene::getMediaItem(
     std::shared_ptr<MediaAnnotation> annotation, const int page)
 {
+  debug_verbose(DebugFunctionCalls, annotation.get() << page << this);
   for (auto &mediaitem : mediaItems) {
     if (*mediaitem->annotation() == *annotation) {
       mediaitem->insertPage(page);
@@ -917,6 +941,7 @@ std::shared_ptr<MediaItem> &SlideScene::getMediaItem(
 void SlideScene::startTransition(const int newpage,
                                  const SlideTransition &transition)
 {
+  debug_verbose(DebugFunctionCalls, newpage << transition.type << this);
   pageTransitionItem = new PixmapGraphicsItem(sceneRect());
   for (const auto view : static_cast<const QList<QGraphicsView *>>(views()))
     static_cast<SlideView *>(view)->prepareTransition(pageTransitionItem);
@@ -1015,6 +1040,8 @@ void SlideScene::startTransition(const int newpage,
 void SlideScene::createSplitTransition(const SlideTransition &transition,
                                        PixmapGraphicsItem *pageTransitionItem)
 {
+  debug_verbose(DebugFunctionCalls,
+                transition.type << pageTransitionItem << this);
   const bool outwards = transition.properties & SlideTransition::Outwards;
   pageTransitionItem->setMaskType(outwards
                                       ? PixmapGraphicsItem::NegativeClipping
@@ -1045,6 +1072,8 @@ void SlideScene::createSplitTransition(const SlideTransition &transition,
 void SlideScene::createBlindsTransition(const SlideTransition &transition,
                                         PixmapGraphicsItem *pageTransitionItem)
 {
+  debug_verbose(DebugFunctionCalls,
+                transition.type << pageTransitionItem << this);
   const bool vertical = transition.properties & SlideTransition::Vertical;
   pageTransitionItem->setMaskType(vertical
                                       ? PixmapGraphicsItem::VerticalBlinds
@@ -1069,6 +1098,8 @@ void SlideScene::createBlindsTransition(const SlideTransition &transition,
 void SlideScene::createBoxTransition(const SlideTransition &transition,
                                      PixmapGraphicsItem *pageTransitionItem)
 {
+  debug_verbose(DebugFunctionCalls,
+                transition.type << pageTransitionItem << this);
   const bool outwards = transition.properties & SlideTransition::Outwards;
   pageTransitionItem->setMaskType(outwards
                                       ? PixmapGraphicsItem::NegativeClipping
@@ -1094,6 +1125,8 @@ void SlideScene::createBoxTransition(const SlideTransition &transition,
 void SlideScene::createWipeTransition(const SlideTransition &transition,
                                       PixmapGraphicsItem *pageTransitionItem)
 {
+  debug_verbose(DebugFunctionCalls,
+                transition.type << pageTransitionItem << this);
   QPropertyAnimation *propanim =
       new QPropertyAnimation(pageTransitionItem, "mask");
   pageTransitionItem->setMaskType(PixmapGraphicsItem::PositiveClipping);
@@ -1123,6 +1156,8 @@ void SlideScene::createFlyTransition(const SlideTransition &transition,
                                      PixmapGraphicsItem *pageTransitionItem,
                                      PixmapGraphicsItem *oldPage)
 {
+  debug_verbose(DebugFunctionCalls,
+                transition.type << pageTransitionItem << oldPage << this);
   const bool outwards = transition.properties & SlideTransition::Outwards;
   for (const auto &view : static_cast<const QList<QGraphicsView *>>(views())) {
     SlideView *slideview = static_cast<SlideView *>(view);
@@ -1163,6 +1198,8 @@ void SlideScene::createFlyTransition(const SlideTransition &transition,
 void SlideScene::createPushTransition(const SlideTransition &transition,
                                       PixmapGraphicsItem *pageTransitionItem)
 {
+  debug_verbose(DebugFunctionCalls,
+                transition.type << pageTransitionItem << this);
   /* TODO: For push transitions the new page is not ready when
    * the animation starts. Instead of the new page, first the old
    * page is shown where the new page is expected. However, this
@@ -1196,6 +1233,8 @@ void SlideScene::createPushTransition(const SlideTransition &transition,
 void SlideScene::createCoverTransition(const SlideTransition &transition,
                                        PixmapGraphicsItem *pageTransitionItem)
 {
+  debug_verbose(DebugFunctionCalls,
+                transition.type << pageTransitionItem << this);
   QParallelAnimationGroup *groupanim = new QParallelAnimationGroup();
   QPropertyAnimation *sceneanim =
       new QPropertyAnimation(this, "sceneRect", groupanim);
@@ -1241,6 +1280,8 @@ void SlideScene::createCoverTransition(const SlideTransition &transition,
 void SlideScene::createUncoverTransition(const SlideTransition &transition,
                                          PixmapGraphicsItem *pageTransitionItem)
 {
+  debug_verbose(DebugFunctionCalls,
+                transition.type << pageTransitionItem << this);
   QPropertyAnimation *propanim = new QPropertyAnimation();
   propanim->setDuration(1000 * transition.duration);
   switch (transition.angle) {
@@ -1273,6 +1314,8 @@ void SlideScene::createUncoverTransition(const SlideTransition &transition,
 void SlideScene::createFadeTransition(const SlideTransition &transition,
                                       PixmapGraphicsItem *pageTransitionItem)
 {
+  debug_verbose(DebugFunctionCalls,
+                transition.type << pageTransitionItem << this);
   pageTransitionItem->setOpacity(0.);
   QParallelAnimationGroup *groupanim = new QParallelAnimationGroup();
   QPropertyAnimation *oldpageanim =
@@ -1294,6 +1337,7 @@ void SlideScene::createFadeTransition(const SlideTransition &transition,
 
 void SlideScene::endTransition()
 {
+  debug_verbose(DebugFunctionCalls, this);
   pageItem->setOpacity(1.);
   if (pageTransitionItem) {
     removeItem(pageTransitionItem);
@@ -1314,6 +1358,7 @@ void SlideScene::endTransition()
 void SlideScene::startInputEvent(const DrawTool *tool, const QPointF &pos,
                                  const float pressure)
 {
+  debug_verbose(DebugFunctionCalls, tool << pos << pressure << this);
   if (!tool || !(tool->tool() & Tool::AnyDrawTool) ||
       !(slide_flags & ShowDrawings))
     return;
@@ -1372,6 +1417,7 @@ void SlideScene::startInputEvent(const DrawTool *tool, const QPointF &pos,
 void SlideScene::stepInputEvent(const DrawTool *tool, const QPointF &pos,
                                 const float pressure)
 {
+  debug_verbose(DebugFunctionCalls, tool << pos << pressure << this);
   if (pressure <= 0 || !tool || !(slide_flags & ShowDrawings)) return;
   debug_verbose(DebugDrawing, "Step input event" << tool->tool()
                                                  << tool->device() << tool
@@ -1426,6 +1472,7 @@ void SlideScene::stepInputEvent(const DrawTool *tool, const QPointF &pos,
 
 bool SlideScene::stopInputEvent(const DrawTool *tool)
 {
+  debug_verbose(DebugFunctionCalls, tool << this);
   if (!tool || !(slide_flags & ShowDrawings)) return false;
   debug_verbose(DebugDrawing,
                 "Stop input event" << tool->tool() << tool->device() << tool);
@@ -1440,6 +1487,7 @@ bool SlideScene::stopInputEvent(const DrawTool *tool)
 
 void SlideScene::initTmpSelectionTool(const int device) noexcept
 {
+  debug_verbose(DebugFunctionCalls, device << this);
   if (tmp_selection_tool)
     tmp_selection_tool->reset();
   else
@@ -1451,6 +1499,7 @@ void SlideScene::initTmpSelectionTool(const int device) noexcept
 
 bool SlideScene::noToolClicked(const QPointF &pos, const QPointF &startpos)
 {
+  debug_verbose(DebugFunctionCalls, pos << startpos << this);
   debug_verbose(DebugMedia | DebugDrawing,
                 "Clicked without tool" << pos << startpos);
   // Try to handle multimedia annotation.
@@ -1510,6 +1559,7 @@ bool SlideScene::noToolClicked(const QPointF &pos, const QPointF &startpos)
 
 void SlideScene::createSliders() const
 {
+  debug_verbose(DebugFunctionCalls, mediaItems.size() << this);
   for (auto &item : mediaItems)
     if (
 #if __cplusplus >= 202002L
@@ -1525,6 +1575,7 @@ void SlideScene::createSliders() const
 
 void SlideScene::playMedia() const
 {
+  debug_verbose(DebugFunctionCalls, mediaItems.size() << this);
   for (auto &item : mediaItems)
     if (
 #if __cplusplus >= 202002L
@@ -1538,6 +1589,7 @@ void SlideScene::playMedia() const
 
 void SlideScene::pauseMedia() const
 {
+  debug_verbose(DebugFunctionCalls, mediaItems.size() << this);
   for (auto &item : mediaItems)
     if (
 #if __cplusplus >= 202002L
@@ -1551,6 +1603,7 @@ void SlideScene::pauseMedia() const
 
 void SlideScene::playPauseMedia() const
 {
+  debug_verbose(DebugFunctionCalls, mediaItems.size() << this);
   for (auto &item : mediaItems)
     if (
 #if __cplusplus >= 202002L
@@ -1571,6 +1624,7 @@ void SlideScene::updateSelectionRect() noexcept
   // TODO: only call manually for higher efficiency?
   // (note: selection can also be changed by eraser / undo / redo / ...)
   const QList<QGraphicsItem *> items = selectedItems();
+  debug_verbose(DebugFunctionCalls, items << this);
   if (items.isEmpty()) {
     selection_bounding_rect.hide();
     return;
@@ -1590,12 +1644,14 @@ void SlideScene::updateSelectionRect() noexcept
 void SlideScene::removeSelection() const
 {
   const QList<QGraphicsItem *> selection = selectedItems();
+  debug_verbose(DebugFunctionCalls, selection << this);
   emit sendRemovePaths(page | page_part, selection);
 }
 
 void SlideScene::copyToClipboard() const
 {
   QList<QGraphicsItem *> selection = selectedItems();
+  debug_verbose(DebugFunctionCalls, selection << this);
   if (selection.isEmpty()) return;
   // Sort selection by z order
   std::sort(selection.begin(), selection.end(), &cmp_by_z);
@@ -1640,6 +1696,7 @@ void SlideScene::copyToClipboard() const
 
 void SlideScene::pasteFromClipboard()
 {
+  debug_verbose(DebugFunctionCalls, this);
   const QMimeData *mimedata = QGuiApplication::clipboard()->mimeData();
   QList<QGraphicsItem *> items;
   if (mimedata->hasFormat("application/beamerpresenter")) {
@@ -1693,6 +1750,7 @@ void SlideScene::pasteFromClipboard()
 
 void SlideScene::toolChanged(const Tool *tool) noexcept
 {
+  debug_verbose(DebugFunctionCalls, tool << this);
   if (tool->tool() & (Tool::AnySelectionTool | Tool::AnyPointingTool)) return;
   if (tool->tool() & Tool::AnyDrawTool) {
     const QList<QGraphicsItem *> selection = selectedItems();
@@ -1740,6 +1798,7 @@ void SlideScene::toolChanged(const Tool *tool) noexcept
 
 void SlideScene::toolPropertiesChanged(const tool_variant &properties) noexcept
 {
+  debug_verbose(DebugFunctionCalls, this);
   QList<QGraphicsItem *> selection = selectedItems();
   if (focusItem() && focusItem()->type() == TextGraphicsItem::Type)
     selection.append(focusItem());
@@ -1852,6 +1911,7 @@ void SlideScene::toolPropertiesChanged(const tool_variant &properties) noexcept
 
 void SlideScene::updateSearchResults()
 {
+  debug_verbose(DebugFunctionCalls, this);
   const auto &pair = master->searchResults();
   if (pair.second.isEmpty() && searchResults) {
     if (searchResults->scene()) removeItem(searchResults);
@@ -1882,6 +1942,7 @@ void SlideScene::updateSearchResults()
 
 void readFromSVG(const QByteArray &data, QList<QGraphicsItem *> &target)
 {
+  debug_verbose(DebugFunctionCalls, data.size() << target);
   QSvgRenderer renderer(data);
   QPicture picture;
   QPainter painter;
@@ -1894,6 +1955,7 @@ void readFromSVG(const QByteArray &data, QList<QGraphicsItem *> &target)
 void readFromPixelImage(const QByteArray &data, QList<QGraphicsItem *> &target,
                         const char *format)
 {
+  debug_verbose(DebugFunctionCalls, data.size() << target << format);
   QPicture picture;
   QImage image{QImage::fromData(data, format)};
   QPainter painter;
@@ -1906,6 +1968,7 @@ void readFromPixelImage(const QByteArray &data, QList<QGraphicsItem *> &target,
 void writeToSVG(QByteArray &data, const QList<QGraphicsItem *> &source,
                 const QRectF &rect)
 {
+  debug_verbose(DebugFunctionCalls, data.size() << source << rect);
   QSvgGenerator generator;
   QBuffer buffer(&data);
   buffer.open(QIODevice::WriteOnly);
@@ -1925,6 +1988,8 @@ void writeToPixelImage(QByteArray &data, const QList<QGraphicsItem *> &source,
                        const QRectF &rect, const qreal resolution,
                        const char *format)
 {
+  debug_verbose(DebugFunctionCalls,
+                data.size() << source << rect << resolution << format);
   QImage image((rect.size() * resolution).toSize(), QImage::Format_ARGB32);
   image.fill(0x00ffffff);
   QPainter painter;

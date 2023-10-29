@@ -167,7 +167,7 @@ void toolToJson(const Tool *tool, QJsonObject &obj)
 
 Preferences::Preferences(QObject *parent)
     : QObject(parent),
-      settings(QSettings::IniFormat, QSettings::UserScope, "beamerpresenter",
+      settings(QSettings::NativeFormat, QSettings::UserScope, "beamerpresenter",
                "beamerpresenter")
 {
   settings.setFallbacksEnabled(false);
@@ -187,7 +187,7 @@ Preferences::Preferences(QObject *parent)
 }
 
 Preferences::Preferences(const QString &file, QObject *parent)
-    : QObject(parent), settings(file, QSettings::NativeFormat)
+    : QObject(parent), settings(file, QSettings::IniFormat)
 {
   settings.setDefaultFormat(QSettings::IniFormat);
   current_tools.insert(
@@ -243,8 +243,7 @@ void Preferences::loadSettings()
       icon_path = DEFAULT_ICON_PATH;
       if (!QFileInfo::exists(icon_path)) {
         icon_path = fallback_root + DEFAULT_ICON_PATH;
-        if (!QFileInfo::exists(icon_path))
-          icon_path = fallback_root + "/icons";
+        if (!QFileInfo::exists(icon_path)) icon_path = fallback_root + "/icons";
       }
     }
     const QString icontheme = settings.value("icon theme").toString();
@@ -843,9 +842,9 @@ void Preferences::setRenderingArguments(const QString &string)
 
 void Preferences::setOverlayMode(const QString &string)
 {
-  const OverlayDrawingMode mode = string_to_overlay_mode.value(string, InvalidOverlayMode);
-  if (mode == InvalidOverlayMode)
-    return;
+  const OverlayDrawingMode mode =
+      string_to_overlay_mode.value(string, InvalidOverlayMode);
+  if (mode == InvalidOverlayMode) return;
   overlay_mode = mode;
   settings.beginGroup("drawing");
   settings.setValue("mode", string);

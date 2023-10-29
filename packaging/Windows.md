@@ -14,7 +14,7 @@ Bundling all required dependencies in one directory (e.g. on a USB key) is exper
 I do not know what level of compatibility with the build system is required to use this portable version.
 Feedback (issues, pull requests) is welcome!
 
-For these instructions it is assumed that BeamerPresenter has been installed in MSYS2 using UCRT64 and that a portable version of BeamerPresenter shall be stored in the directory `output` (which can be renamed and moved afterwards).
+For these instructions it is assumed that BeamerPresenter has been installed in MSYS2 using UCRT64 ([PKGBUILD\_MSYS2\_git](PKGBUILD_MSYS2_git) is recommended) and that a portable version of BeamerPresenter shall be stored in the directory `output` (which can be renamed and moved afterwards).
 Run the following commands in a UCRT64 terminal:
 ```sh
 # Make sure the following command outputs "/ucrt64/bin/beamerpresenter.exe".
@@ -54,6 +54,7 @@ The output directory can now be copied to a USB key for a portable version of Be
 Known limitations
 * Some icons are missing. To include icons, copy an icon theme directory to `output/root` and specify it as your preferred icon theme in beamerpresenter.conf.
 * The style is ugly, it looks like very old versions of Windows.
+* The portal build can only be used on computers running the same (major) version of Windows.
 * This is only tested with Qt 6 and MuPDF. It should work analogously for other configurations.
 
 
