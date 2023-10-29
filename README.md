@@ -72,7 +72,8 @@ gpg --keyserver hkps://keyserver.ubuntu.com --recv-keys DD11316A0D8E585F
 gpg --verify SHA256SUMS.sig SHA256SUMS
 ```
 
-In Windows, it is possible to build and install BeamerPresenter using [MSYS2](https://www.msys2.org). See [INSTALL.md](INSTALL.md#windows) for details.
+In Windows, it is possible to build and install BeamerPresenter using [MSYS2](https://www.msys2.org).
+See [INSTALL.md](INSTALL.md#windows) and [packaging/Windows.md](packaging/Windows.md) for details.
 
 The libraries required to build BeamerPresenter are also available on other platforms (see [installation manual](INSTALL.md)).
 Issues or pull requests concerning building on any platform are welcome!

@@ -100,8 +100,11 @@ int main(int argc, char *argv[])
   QTranslator translator;
   {
     QString translation_path = TRANSLATION_PATH;
-    if (!QFileInfo::exists(translation_path))
+    if (!QFileInfo::exists(translation_path)) {
       translation_path = fallback_root + translation_path;
+      if (!QFileInfo::exists(translation_path))
+        translation_path = fallback_root + "/locale";
+    }
     for (auto &lang : QLocale().uiLanguages())
       if (translator.load(
               "beamerpresenter.qm",

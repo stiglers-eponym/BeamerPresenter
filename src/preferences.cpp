@@ -167,7 +167,7 @@ void toolToJson(const Tool *tool, QJsonObject &obj)
 
 Preferences::Preferences(QObject *parent)
     : QObject(parent),
-      settings(QSettings::NativeFormat, QSettings::UserScope, "beamerpresenter",
+      settings(QSettings::IniFormat, QSettings::UserScope, "beamerpresenter",
                "beamerpresenter")
 {
   settings.setFallbacksEnabled(false);
@@ -214,28 +214,38 @@ void Preferences::loadSettings()
   {
     // Paths to required files / directories
     QString fallback_root = QCoreApplication::applicationDirPath();
+    debug_msg(DebugSettings, "fallback root:" << fallback_root);
     if (fallback_root.contains(UNIX_LIKE)) fallback_root.remove(UNIX_LIKE);
     gui_config_file =
         settings.value("gui config", DEFAULT_GUI_CONFIG_PATH).toString();
     if (!QFileInfo::exists(gui_config_file)) {
       settings.remove("gui config");
       gui_config_file = DEFAULT_GUI_CONFIG_PATH;
-      if (!QFileInfo::exists(gui_config_file))
+      if (!QFileInfo::exists(gui_config_file)) {
         gui_config_file = fallback_root + DEFAULT_GUI_CONFIG_PATH;
+        if (!QFileInfo::exists(gui_config_file))
+          gui_config_file = fallback_root + "/gui.json";
+      }
     }
     manual_file = settings.value("manual", DOC_PATH "/README.html").toString();
     if (!QFileInfo::exists(manual_file)) {
       settings.remove("manual");
       manual_file = DOC_PATH "/README.html";
-      if (!QFileInfo::exists(manual_file))
+      if (!QFileInfo::exists(manual_file)) {
         manual_file = fallback_root + DOC_PATH "/README.html";
+        if (!QFileInfo::exists(manual_file))
+          manual_file = fallback_root + "/doc/README.html";
+      }
     }
     icon_path = settings.value("icon path", DEFAULT_ICON_PATH).toString();
     if (!QFileInfo::exists(icon_path)) {
       settings.remove("icon path");
       icon_path = DEFAULT_ICON_PATH;
-      if (!QFileInfo::exists(icon_path))
+      if (!QFileInfo::exists(icon_path)) {
         icon_path = fallback_root + DEFAULT_ICON_PATH;
+        if (!QFileInfo::exists(icon_path))
+          icon_path = fallback_root + "/icons";
+      }
     }
     const QString icontheme = settings.value("icon theme").toString();
     if (!icontheme.isEmpty()) QIcon::setThemeName(icontheme);
