@@ -15,22 +15,22 @@ then
     _renderer="${_renderer}-poppler"
 fi
 _basename='beamerpresenter'
-_pkgname="${_basename}${_renderer}-qt${_qt_version_major}-git"
+_pkgname="${_basename}${_renderer}-qt${_qt_version_major}"
 pkgname="${MINGW_PACKAGE_PREFIX}-${_pkgname}"
-pkgver=0.2.4_929.56cd52a
+pkgver=0.2.4
 pkgrel=1
 pkgdesc="Modular multi-screen pdf presenter (mingw-w64)"
 arch=('any')
 mingw_arch=('mingw64' 'ucrt64' 'clang64' 'clangarm64')
 url="https://github.com/stiglers-eponym/BeamerPresenter"
 license=('spdx:GPL-3.0-or-later')
-makedepends=('git' "${MINGW_PACKAGE_PREFIX}-cmake" "${MINGW_PACKAGE_PREFIX}-ninja" "${MINGW_PACKAGE_PREFIX}-qt${_qt_version_major}-tools")
+makedepends=("${MINGW_PACKAGE_PREFIX}-cmake" "${MINGW_PACKAGE_PREFIX}-ninja" "${MINGW_PACKAGE_PREFIX}-qt${_qt_version_major}-tools")
 depends=("${MINGW_PACKAGE_PREFIX}-qt${_qt_version_major}-multimedia" "${MINGW_PACKAGE_PREFIX}-qt${_qt_version_major}-svg")
 provides=("beamerpresenter=${pkgver}")
 conflicts=('beamerpresenter')
 backup=("etc/xdg/beamerpresenter/beamerpresenter.conf" "etc/xdg/beamerpresenter/gui.json")
-source=("git+${url}.git")
-sha256sums=('SKIP')
+source=("${pkgname}-${pkgver}.tar.gz::${url}/archive/v${pkgver}.tar.gz")
+sha256sums=('4ccdd747b2c829411de3f33548a125f8e7f16a768e03f56f71bd6b3f27f5bca1')
 
 if [ "${_use_mupdf}" == 'ON' ]
 then
@@ -44,12 +44,6 @@ then
     depends+=("${MINGW_PACKAGE_PREFIX}-poppler-qt${_qt_version_major}")
 fi
 
-pkgver() {
-    printf "0.2.4_%s.%s" \
-        "$(git -C "${srcdir}/BeamerPresenter" rev-list --count HEAD)" \
-        "$(git -C "${srcdir}/BeamerPresenter" rev-parse --short HEAD)"
-}
-
 build() {
     mkdir -p "${srcdir}/build-${MSYSTEM}"
     MSYS2_ARG_CONV_EXCL='-DCMAKE_INSTALL_PREFIX=;-DCMAKE_INSTALL_SYSCONFDIR=;' \
@@ -58,7 +52,7 @@ build() {
         -S "${srcdir}/BeamerPresenter" \
         -G Ninja \
         -DCMAKE_BUILD_TYPE='Release' \
-        -DGIT_VERSION=ON \
+        -DGIT_VERSION=OFF \
         -DUSE_POPPLER="${_use_poppler}" \
         -DUSE_MUPDF="${_use_mupdf}" \
         -DUSE_QTPDF=OFF \

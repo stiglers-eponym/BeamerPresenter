@@ -32,15 +32,15 @@ When installing BeamerPresenter you need to choose a PDF engine from MuPDF, Popp
 * Enabling both Poppler and MuPDF at compile time is not recommended. For some documents this leads to a crash of BeamerPresenter.
 * Qt PDF provides very limited features. Only use it as a fallback if MuPDF and Poppler cannot be used. Qt PDF requires a recent version of Qt (≥5.14 or ≥6.3).
 * On some platforms, MuPDF produces a larger package size. For some Linux distributions, using MuPDF from official repositories leads to very large packages (>20MB). Building MuPDF manually can significantly reduce the package size (use options like `XCFLAGS+=' -DTOFU -DTOFU_CJK -DTOFU_SIL -DFZ_ENABLE_JS=0'`).
+* It is possible to use an external program for rendering slides. However, you still need to provide a PDF engine.
 
 
 ## Requirements
-Building is mainly tested in Arch Linux, Xubuntu 20.04, and Kubuntu 22.04. Build instructions also exists for Fedora 38 and MSYS2 (on Windows), but these are not regularly tested.
-Older versions of Ubuntu are only compatible with [version 0.1](https://github.com/stiglers-eponym/BeamerPresenter/tree/0.1.x) of BeamerPresenter.
+Building is currently tested in Arch Linux, Xubuntu 20.04, Kubuntu 22.04, Xubuntu 23.10, Fedora 38, and MinGW-w64 in MSYS2 (Windows).
 
 In order to compile BeamerPresenter you need to have CMake, zlib and Qt 5/6 including the multimedia and SVG modules installed.
 For translations you also need the linguist tools.
-Additionally, you need either the Qt bindings of Poppler, or the MuPDF libraries (which may require other libraries).
+Additionally, you need either the Qt bindings of Poppler, or the MuPDF libraries (which may require other libraries), or Qt PDF.
 Qt versions since 5.12 (for Qt 5) or 6.2 (Qt 6) are supported.
 
 ### Dependencies in Ubuntu
@@ -65,7 +65,7 @@ When compiling with MuPDF:
 * `libjpeg-dev` (after the installation you can remove `libjpeg-dev` and keep only `libjpeg8`)
 * `libopenjp2-7-dev` (after the installation you can remove `libopenjp2-7-dev` and keep only `libopenjp2-7`)
 * `libjbig2dec0-dev` (after the installation you can remove `libjbig2dec0-dev` and keep only `libjbig2dec0`)
-* only Ubuntu ≥21.10: `libmujs-dev` (after the installation you can remove `libmujs-dev` and keep only `libmujs1`)
+* only Ubuntu ≥21.10: `libmujs-dev` (after the installation you can remove `libmujs-dev` and keep only `libmujs1` or `libmujs3`)
 * only Ubuntu ≥22.04: `libgumbo-dev` (after the installation you can remove `libgumbo-dev` and keep only `libgumbo1`)
 
 When compiling with Qt PDF (only Qt 5 and Ubuntu >= 21.04):
@@ -204,23 +204,23 @@ Alternatively, BeamerPresenter can be built manually using Microsoft Visual Stud
 MinGW-w64 can be obtained in different ways. I have only tested MSYS2 using the native C runtime in Windows.
 
 1. Install [MSYS2](https://www.msys2.org). After the installation, a terminal for the UCRT64 environment should launch. All commands mentioned in the following should be entered in this terminal. Run `pacman -Syu` directly after the installation.
-2. Download the recipe file [packaging/PKGBUILD\_MSYS2\_git](packaging/PKGBUILD_MSYS2_git). This file contains the instructions to build BeamerPresenter. Place this file in the build directory (e.g. an empty directory) and enter this directory in the terminal.
-3. Install the basic build tools (`pacman -S base-devel mingw-w64-ucrt-x86_64-gcc`).
-4. Build using the command `MINGW_ARCH=ucrt64 makepkg-mingw -sp PKGBUILD_MSYS2_git`. By default, this uses Poppler as PDF engine. You can use MuPDF instead with the command `MINGW_ARCH=ucrt64 _use_poppler=OFF _use_mupdf=ON makepkg-mingw -sip PKGBUILD_MSYS2_git`. This should automatically install other dependencies and in the end install the package.
+2. Download the recipe file [packaging/PKGBUILD\_MSYS2](packaging/PKGBUILD_MSYS2). This file contains the instructions to build BeamerPresenter. Place this file in the build directory (e.g. an empty directory) and enter this directory in the terminal.
+3. Install the basic build tools: `pacman -S base-devel mingw-w64-ucrt-x86_64-gcc`
+4. Build using the command `MINGW_ARCH=ucrt64 makepkg-mingw -sip PKGBUILD_MSYS2`. By default, this uses MuPDF as PDF engine. You can use Poppler instead with the command `MINGW_ARCH=ucrt64 _use_poppler=ON _use_mupdf=OFF makepkg-mingw -sip PKGBUILD_MSYS2`. This should automatically install dependencies and eventually install the package.
 5. Test the installation: run `beamerpresenter` in the terminal.
 
 ### Microsoft Visual Studio
 It is possible to compile BeamerPresenter on Windows using Microsoft Visual Studio and QtCreator, but this requires some manual configuration.
 The following options have been tested (but are not regularly tested):
-* Qt 6.5.1 and QtPDF → very limited features
+* Qt 6.5.1 and Qt PDF → very limited features
 * Qt 6.5.1 and MuPDF 1.20.3 → you need to build MuPDF first
 
 #### Building
 This roughly describes how I have built BeamerPresenter.
 1. Install Qt
     * [download](https://www.qt.io/download-qt-installer) and install Qt
-    * required components are the basic installation, the multimedia module (QtMultimedia) and possibly QtPDF.
-    * compatible Qt versions are ≥5.9 for Qt 5 and ≥6.2 for Qt 6 (when using QtPDF: ≥5.10 or ≥6.3)
+    * required components are the basic installation, the multimedia module (QtMultimedia) and possibly Qt PDF.
+    * compatible Qt versions are ≥5.9 for Qt 5 and ≥6.2 for Qt 6 (when using Qt PDF: ≥5.10 or ≥6.3)
 2. Only when using MuPDF: Build MuPDF
     * [download the MuPDF source code](https://www.mupdf.com/releases/index.html). Versions 1.20.3 and 1.19.1 worked, but for 1.22.1 and 1.21.1 I got a linker error.
     * build libmupdf with MSVC. The MuPDF source code includes a file `platform/win32/mupdf.sln` which allows you to build libmupdf with MSVC

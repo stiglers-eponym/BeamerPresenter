@@ -76,6 +76,8 @@ enum Renderer {
 /// Mode for handling drawings in overlays.
 /// Overlays are PDF pages sharing the same label.
 enum OverlayDrawingMode {
+  /// Unknown mode, used to indicate invalid user input
+  InvalidOverlayMode,
   /// Every page has independent drawings.
   PerPage,
   /// All pages with the same label in a simply connected region

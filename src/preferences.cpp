@@ -321,7 +321,7 @@ void Preferences::loadSettings()
   // RENDERING
   settings.beginGroup("rendering");
   // page_part threshold
-  float threshold = settings.value("page part threshold").toReal(&ok);
+  const float threshold = settings.value("page part threshold").toReal(&ok);
   if (ok) page_part_threshold = threshold;
   {  // renderer
 #ifdef USE_EXTERNAL_RENDERER
@@ -560,9 +560,6 @@ void Preferences::loadFromParser(const QCommandLineParser &parser)
 #endif
 #ifdef USE_EXTERNAL_RENDERER
     if (renderer_str.count("extern", Qt::CaseInsensitive) > 0) {
-      rendering_command = settings.value("rendering command").toString();
-      rendering_arguments =
-          settings.value("rendering arguments").toStringList();
       if (rendering_command.isEmpty() || rendering_arguments.isEmpty()) {
         qWarning() << "External renderer requested but no command "
                       "or no arguments given. Falling back to Poppler.";
@@ -829,14 +826,17 @@ void Preferences::setRenderingArguments(const QString &string)
 {
   rendering_arguments = string.split(",");
   settings.beginGroup("rendering");
-  settings.setValue("rendering arguments", rendering_command);
+  settings.setValue("rendering arguments", rendering_arguments);
   settings.endGroup();
 }
 #endif
 
 void Preferences::setOverlayMode(const QString &string)
 {
-  overlay_mode = string_to_overlay_mode.value(string);
+  const OverlayDrawingMode mode = string_to_overlay_mode.value(string, InvalidOverlayMode);
+  if (mode == InvalidOverlayMode)
+    return;
+  overlay_mode = mode;
   settings.beginGroup("drawing");
   settings.setValue("mode", string);
   settings.endGroup();
