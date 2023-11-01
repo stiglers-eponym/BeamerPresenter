@@ -300,13 +300,14 @@ bool SlideScene::handleEvents(const int device, const QList<QPointF> &pos,
 {
   debug_verbose(DebugFunctionCalls,
                 device << pos << start_pos << pressure << this);
+  if (pos.size() < 1) return false;
+
   Tool *tool = preferences()->currentTool(device & Tool::AnyDevice);
   // Check if a selection is active. In this case we might use the temporary
   // selection tool.
   if (selection_bounding_rect.isVisible() &&
       (!tool || tool->tool() & Tool::AnyDrawTool ||
-       tool->tool() == Tool::NoTool) &&
-      pos.size() == 1) {
+       tool->tool() == Tool::NoTool)) {
     if (tmp_selection_tool &&
         tmp_selection_tool->device() == (device & ~Tool::AnyEvent))
       tool = tmp_selection_tool;
@@ -315,8 +316,8 @@ bool SlideScene::handleEvents(const int device, const QList<QPointF> &pos,
       return true;
   }
   // Handle events without any tool.
-  if ((!tool || tool->tool() == Tool::NoTool) && pos.size() == 1) {
-    if ((device & Tool::AnyEvent) == Tool::StopEvent && pos.size() == 1)
+  if (!tool || tool->tool() == Tool::NoTool) {
+    if (pos.size() == 1 && (device & Tool::AnyEvent) == Tool::StopEvent)
       noToolClicked(pos.constFirst(), start_pos);
     return true;
   }
