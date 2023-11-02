@@ -17,7 +17,7 @@
 #include "src/config.h"
 #include "src/gui/tooliconengine.h"
 
-ToolButton::ToolButton(Tool *tool, QWidget *parent) noexcept
+ToolButton::ToolButton(std::shared_ptr<Tool> tool, QWidget *parent) noexcept
     : QToolButton(parent), tool(nullptr)
 {
   setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Ignored);
@@ -28,13 +28,10 @@ ToolButton::ToolButton(Tool *tool, QWidget *parent) noexcept
   if (tool) setTool(tool);
 }
 
-void ToolButton::setTool(Tool *newtool)
+void ToolButton::setTool(std::shared_ptr<Tool> newtool)
 {
   if (!newtool) return;
-  if (tool != newtool) {
-    delete tool;
-    tool = newtool;
-  }
+  tool = newtool;
   QIcon icon(new ToolIconEngine(tool));
   if (icon.isNull())
     setText(string_to_tool.key(tool->tool()));

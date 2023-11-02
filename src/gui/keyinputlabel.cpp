@@ -30,8 +30,8 @@ KeyInputLabel::KeyInputLabel(const QKeySequence init, const Action action,
          "delete to remove the shortcut."));
 }
 
-KeyInputLabel::KeyInputLabel(const QKeySequence init, Tool *tool,
-                             QWidget *parent)
+KeyInputLabel::KeyInputLabel(const QKeySequence init,
+                             std::shared_ptr<Tool> tool, QWidget *parent)
     : QLabel(parent), tool(tool), keys(init)
 {
   setFrameStyle(int(QFrame::Panel) | QFrame::Sunken);
@@ -49,10 +49,7 @@ KeyInputLabel::KeyInputLabel(const QKeySequence init, Tool *tool,
 
 KeyInputLabel::~KeyInputLabel()
 {
-  if (tool) {
-    writable_preferences()->removeKeyTool(tool, false);
-    delete tool;
-  }
+  if (tool) writable_preferences()->removeKeyTool(tool, false);
 }
 
 void KeyInputLabel::keyPressEvent(QKeyEvent *event)
@@ -102,12 +99,9 @@ void KeyInputLabel::changeAction(const QString &text) noexcept
     }
     if (action != InvalidAction)
       writable_preferences()->removeKeyAction(keys, action);
-    Tool *newtool = ToolDialog::selectTool(tool);
+    std::shared_ptr<Tool> newtool = ToolDialog::selectTool(tool);
     if (newtool) {
-      if (tool) {
-        writable_preferences()->removeKeyTool(tool, true);
-        delete tool;
-      }
+      if (tool) writable_preferences()->removeKeyTool(tool, true);
       tool = newtool;
       action = InvalidAction;
       writable_preferences()->replaceKeyToolShortcut(0, keys, tool);
@@ -121,7 +115,6 @@ void KeyInputLabel::changeAction(const QString &text) noexcept
     writable_preferences()->addKeyAction(keys, action);
     if (tool) {
       writable_preferences()->removeKeyTool(tool, true);
-      delete tool;
       tool = nullptr;
     }
   }

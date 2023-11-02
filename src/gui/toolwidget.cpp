@@ -62,12 +62,11 @@ void ToolWidget::addDeviceGroup(const QList<int> &new_devices)
   auto grid_layout = new QGridLayout(frame);
   frame->setLayout(grid_layout);
   int used_devices = 0;
-  Tool *tool;
   ToolWidgetButton *button;
   IconLabel *label;
   for (int device : new_devices) {
     if (devices & device) continue;
-    tool = preferences()->currentTool(device);
+    std::shared_ptr<Tool> tool = preferences()->currentTool(device);
     if (tool) {
       tool = tool->copy();
       tool->setDevice(device);
@@ -158,7 +157,7 @@ const char *device_description(int device) noexcept
   }
 }
 
-void ToolWidget::checkNewTool(const Tool *tool)
+void ToolWidget::checkNewTool(std::shared_ptr<const Tool> tool)
 {
   if (tool && tool->device() & ~(devices | Tool::MouseNoButton))
 #if (QT_VERSION_MAJOR >= 6)

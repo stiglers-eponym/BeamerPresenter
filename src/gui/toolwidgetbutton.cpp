@@ -10,7 +10,7 @@
 #include "src/master.h"
 #include "src/preferences.h"
 
-ToolWidgetButton::ToolWidgetButton(Tool *tool, const int device,
+ToolWidgetButton::ToolWidgetButton(std::shared_ptr<Tool> tool, const int device,
                                    QWidget *parent) noexcept
     : ToolButton(tool, parent), device(device)
 {
@@ -19,29 +19,29 @@ ToolWidgetButton::ToolWidgetButton(Tool *tool, const int device,
   connect(master(), &Master::sendNewToolSoft, this,
           &ToolWidgetButton::receiveNewTool);
   if (!tool && (device & Tool::AnyActiveDevice))
-    setTool(new Tool(Tool::NoTool, device));
+    setTool(std::shared_ptr<Tool>(new Tool(Tool::NoTool, device)));
 }
 
 void ToolWidgetButton::selectTool()
 {
-  Tool *newtool = ToolDialog::selectTool(tool);
+  const std::shared_ptr<Tool> newtool = ToolDialog::selectTool(tool);
   if (newtool) {
     newtool->setDevice(newtool->device() | device);
     emit sendTool(newtool);
   }
 }
 
-void ToolWidgetButton::receiveNewTool(const Tool *newtool)
+void ToolWidgetButton::receiveNewTool(std::shared_ptr<const Tool> newtool)
 {
   if (!newtool) return;
   if (newtool->device() & device) {
-    Tool *toolcopy = newtool->copy();
+    std::shared_ptr<Tool> toolcopy = newtool->copy();
     toolcopy->setDevice(device);
     setTool(toolcopy);
   } else if (!preferences()->currentTool(device)) {
     if (!(device & Tool::AnyActiveDevice))
       setIcon(QIcon());
     else if (!tool || tool->tool() != Tool::NoTool)
-      setTool(new Tool(Tool::NoTool, device));
+      setTool(std::shared_ptr<Tool>(new Tool(Tool::NoTool, device)));
   }
 }

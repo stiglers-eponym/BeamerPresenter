@@ -776,7 +776,7 @@ bool Master::eventFilter(QObject *obj, QEvent *event)
     handleAction(action);
   }
   // Search tools in preferences for given key sequence.
-  for (const auto tool : static_cast<const QList<Tool *>>(
+  for (const auto tool : static_cast<const QList<std::shared_ptr<Tool>>>(
            preferences()->key_tools.values(key_code)))
     if (tool && tool->device()) setTool(tool->copy());
   event->accept();
@@ -995,12 +995,9 @@ void Master::showErrorMessage(const QString &title, const QString &text) const
                         text);
 }
 
-void Master::setTool(Tool *tool) const noexcept
+void Master::setTool(std::shared_ptr<Tool> tool) const noexcept
 {
-  if (!tool || !tool->device()) {
-    delete tool;
-    return;
-  }
+  if (!tool || !tool->device()) return;
   debug_msg(DebugDrawing | DebugKeyInput,
             "Set tool" << tool->tool() << tool->device());
   writable_preferences()->setCurrentTool(tool);
@@ -1014,7 +1011,8 @@ void Master::setTool(Tool *tool) const noexcept
     const auto end = current_tools.cend();
     for (auto tool = current_tools.cbegin(); tool != end; ++tool)
       if (*tool)
-        qDebug() << "tool:" << (*tool)->device() << (*tool)->tool() << *tool;
+        qDebug() << "tool:" << (*tool)->device() << (*tool)->tool()
+                 << tool->get();
   }
 #endif
 }

@@ -7,6 +7,7 @@
 #include <QIcon>
 #include <QSettings>
 #include <QtDebug>
+#include <memory>
 
 #include "src/config.h"
 #include "src/drawing/tool.h"
@@ -69,6 +70,7 @@ int main(int argc, char *argv[])
   // Register meta types (required for connections).
   qRegisterMetaType<const PngPixmap *>("const PngPixmap*");
   qRegisterMetaType<Tool *>("Tool*");
+  qRegisterMetaType<std::shared_ptr<Tool>>("shared_ptr<Tool>");
 
   // Set up the application.
   QApplication app(argc, argv);

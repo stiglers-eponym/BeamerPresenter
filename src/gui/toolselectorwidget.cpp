@@ -74,7 +74,7 @@ void ToolSelectorWidget::addButtons(const QJsonArray &full_array)
         case QJsonValue::Object: {
           const QJsonObject obj = row[column_index].toObject();
           if (obj.contains("tool")) {
-            Tool *tool = createTool(obj, 0);
+            std::shared_ptr<Tool> tool = createTool(obj, 0);
             if (tool) {
               ToolSelectorButton *button = new ToolSelectorButton(tool, this);
               connect(this, &ToolSelectorWidget::updateIcons, button,

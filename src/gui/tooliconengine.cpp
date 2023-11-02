@@ -12,14 +12,14 @@
 #include "src/drawing/tool.h"
 #include "src/preferences.h"
 
-ToolIconEngine::ToolIconEngine(const Tool *tool)
+ToolIconEngine::ToolIconEngine(std::shared_ptr<const Tool> tool)
 {
   if (!tool) return;
   QString iconname = string_to_tool.key(tool->tool());
   iconname.replace(' ', '-');
   QColor bg_full_color;
   if (tool->tool() & Tool::AnyDrawTool) {
-    const DrawTool *drawtool = static_cast<const DrawTool *>(tool);
+    auto drawtool = std::static_pointer_cast<const DrawTool>(tool);
     if (drawtool->shape() != DrawTool::Freehand) {
       if (drawtool->tool() == Tool::FixedWidthPen &&
           drawtool->shape() != DrawTool::Recognize)

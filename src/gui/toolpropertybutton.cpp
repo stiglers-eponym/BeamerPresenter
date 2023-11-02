@@ -68,7 +68,7 @@ bool ToolPropertyButton::event(QEvent *event)
 
 void ToolPropertyButton::changed(const int index) const
 {
-  Tool *tool = preferences()->currentTool(device);
+  std::shared_ptr<Tool> tool = preferences()->currentTool(device);
   setToolProperty(tool);
   emit sendUpdatedTool(tool);
 }

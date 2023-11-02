@@ -17,11 +17,11 @@ BrushStyleButton::BrushStyleButton(QWidget *parent) : ToolPropertyButton(parent)
   }
 }
 
-void BrushStyleButton::setToolProperty(Tool *tool) const
+void BrushStyleButton::setToolProperty(std::shared_ptr<Tool> tool) const
 {
   const Qt::BrushStyle style = currentData().value<Qt::BrushStyle>();
   if (tool && tool->tool() & Tool::AnyDrawTool) {
-    auto draw_tool = static_cast<DrawTool *>(tool);
+    auto draw_tool = std::static_pointer_cast<DrawTool>(tool);
     if (draw_tool->brush().style() == Qt::NoBrush)
       draw_tool->brush().setColor(draw_tool->color());
     draw_tool->brush().setStyle(style);
@@ -29,11 +29,11 @@ void BrushStyleButton::setToolProperty(Tool *tool) const
   emit sendToolProperties(tool_variant(style));
 }
 
-void BrushStyleButton::toolChanged(const Tool *tool)
+void BrushStyleButton::toolChanged(std::shared_ptr<const Tool> tool)
 {
   if (tool && tool->tool() & Tool::AnyDrawTool) {
     const int index = findData(QVariant::fromValue(
-        static_cast<const DrawTool *>(tool)->brush().style()));
+        std::static_pointer_cast<const DrawTool>(tool)->brush().style()));
     if (index >= 0) setCurrentIndex(index);
   }
 }

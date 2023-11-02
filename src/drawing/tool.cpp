@@ -13,7 +13,7 @@
 #include "src/drawing/tool.h"
 #include "src/log.h"
 
-Tool* Tool::copy() const
+std::shared_ptr<Tool> Tool::copy() const
 {
   Tool* newtool;
   if (_tool & Tool::AnyDrawTool)
@@ -27,7 +27,7 @@ Tool* Tool::copy() const
   else
     newtool = new Tool(*this);
   newtool->setDevice(_device);
-  return newtool;
+  return std::shared_ptr<Tool>(newtool);
 }
 
 int tablet_event_to_input_device(const QTabletEvent* event)

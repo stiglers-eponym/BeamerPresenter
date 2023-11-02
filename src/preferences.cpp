@@ -21,7 +21,8 @@
 #include "src/names.h"
 #include "src/rendering/pdfdocument.h"
 
-Tool *createTool(const QJsonObject &obj, const int default_device)
+std::shared_ptr<Tool> createTool(const QJsonObject &obj,
+                                 const int default_device)
 {
   const Tool::BasicTool base_tool =
       string_to_tool.value(obj.value("tool").toString());
@@ -135,16 +136,16 @@ Tool *createTool(const QJsonObject &obj, const int default_device)
       else
         tool = new Tool(base_tool, device);
   }
-  return tool;
+  return std::shared_ptr<Tool>(tool);
 }
 
-void toolToJson(const Tool *tool, QJsonObject &obj)
+void toolToJson(std::shared_ptr<const Tool> tool, QJsonObject &obj)
 {
   if (!tool) return;
   obj.insert("tool", string_to_tool.key(tool->tool()));
   obj.insert("device", tool->device());
   if (tool->tool() & Tool::AnyDrawTool) {
-    const DrawTool *drawtool = static_cast<const DrawTool *>(tool);
+    const auto drawtool = std::static_pointer_cast<const DrawTool>(tool);
     obj.insert("width", drawtool->width());
     obj.insert("color", drawtool->color().name());
     if (drawtool->brush().style() != Qt::NoBrush) {
@@ -157,11 +158,14 @@ void toolToJson(const Tool *tool, QJsonObject &obj)
     obj.insert("shape",
                string_to_shape.key(drawtool->shape(), "freehand").c_str());
   } else if (tool->tool() & Tool::AnyPointingTool) {
-    obj.insert("size", static_cast<const PointingTool *>(tool)->size());
+    obj.insert("size",
+               std::static_pointer_cast<const PointingTool>(tool)->size());
     obj.insert("color", tool->color().name());
   } else if (tool->tool() == Tool::TextInputTool) {
     obj.insert("color", tool->color().name());
-    obj.insert("font", static_cast<const TextTool *>(tool)->font().toString());
+    obj.insert(
+        "font",
+        std::static_pointer_cast<const TextTool>(tool)->font().toString());
   }
 }
 
@@ -172,10 +176,10 @@ Preferences::Preferences(QObject *parent)
 {
   settings.setFallbacksEnabled(false);
   settings.setDefaultFormat(QSettings::IniFormat);
-  current_tools.insert(
-      Tool::Eraser,
-      new PointingTool(Tool::Eraser, 10., QColor(128, 128, 128, 192),
-                       Tool::TabletEraser | Tool::MouseRightButton, 0.5));
+  current_tools.insert(Tool::Eraser,
+                       std::shared_ptr<Tool>(new PointingTool(
+                           Tool::Eraser, 10., QColor(128, 128, 128, 192),
+                           Tool::TabletEraser | Tool::MouseRightButton, 0.5)));
   // If settings is empty, copy system scope config to user space file.
   if (settings.allKeys().isEmpty() && settings.isWritable()) {
     QSettings globalsettings(QSettings::NativeFormat, QSettings::SystemScope,
@@ -190,17 +194,15 @@ Preferences::Preferences(const QString &file, QObject *parent)
     : QObject(parent), settings(file, QSettings::IniFormat)
 {
   settings.setDefaultFormat(QSettings::IniFormat);
-  current_tools.insert(
-      Tool::Eraser,
-      new PointingTool(Tool::Eraser, 10., QColor(128, 128, 128, 192),
-                       Tool::TabletEraser | Tool::MouseRightButton, 0.5));
+  current_tools.insert(Tool::Eraser,
+                       std::shared_ptr<Tool>(new PointingTool(
+                           Tool::Eraser, 10., QColor(128, 128, 128, 192),
+                           Tool::TabletEraser | Tool::MouseRightButton, 0.5)));
 }
 
 Preferences::~Preferences()
 {
-  qDeleteAll(current_tools);
   current_tools.clear();
-  qDeleteAll(key_tools);
   key_tools.clear();
 }
 
@@ -393,9 +395,8 @@ void Preferences::loadSettings()
   QStringList allKeys = settings.allKeys();
   QList<Action> actions;
   if (!allKeys.isEmpty()) {
-    qDeleteAll(current_tools);
     current_tools.clear();
-    QList<Tool *> tools;
+    QList<std::shared_ptr<Tool>> tools;
     for (const auto &dev : std::as_const(allKeys))
       parseActionsTools(settings.value(dev), actions, tools,
                         string_to_input_device.value(dev.toStdString(),
@@ -409,7 +410,7 @@ void Preferences::loadSettings()
   settings.beginGroup("keys");
   allKeys = settings.allKeys();
   if (!allKeys.isEmpty()) {
-    QList<Tool *> tools;
+    QList<std::shared_ptr<Tool>> tools;
     key_actions.clear();
     for (const auto &key : std::as_const(allKeys)) {
       const QKeySequence seq(key);
@@ -431,7 +432,7 @@ void Preferences::loadSettings()
   settings.beginGroup("gestures");
   allKeys = settings.allKeys();
   if (!allKeys.isEmpty()) {
-    QList<Tool *> tools;
+    QList<std::shared_ptr<Tool>> tools;
     gesture_actions.clear();
     Gesture gesture;
     for (const auto &key : std::as_const(allKeys)) {
@@ -455,7 +456,7 @@ void Preferences::loadSettings()
 
 void Preferences::parseActionsTools(const QVariant &input,
                                     QList<Action> &actions,
-                                    QList<Tool *> &tools,
+                                    QList<std::shared_ptr<Tool>> &tools,
                                     const int default_device)
 {
   // First try to interpret sequence as json object.
@@ -498,10 +499,11 @@ void Preferences::parseActionsTools(const QVariant &input,
         actions.append(action);
     } else if (value.isObject()) {
       const QJsonObject object = value.toObject();
-      Tool *tool = createTool(object, default_device);
+      std::shared_ptr<Tool> tool = createTool(object, default_device);
       if (tool) {
-        debug_msg(DebugSettings | DebugDrawing,
-                  "Adding tool" << tool << tool->tool() << tool->device());
+        debug_msg(
+            DebugSettings | DebugDrawing,
+            "Adding tool" << tool.get() << tool->tool() << tool->device());
         tools.append(tool);
       }
     }
@@ -741,7 +743,7 @@ QUrl Preferences::resolvePath(const QString &identifier) const noexcept
     return QUrl();
 }
 
-Tool *Preferences::currentTool(const int device) const noexcept
+std::shared_ptr<Tool> Preferences::currentTool(const int device) const noexcept
 {
   const auto end = current_tools.cend();
   for (auto tool = current_tools.cbegin(); tool != end; ++tool)
@@ -749,7 +751,7 @@ Tool *Preferences::currentTool(const int device) const noexcept
   return nullptr;
 }
 
-void Preferences::removeKeyTool(const Tool *tool,
+void Preferences::removeKeyTool(std::shared_ptr<const Tool> tool,
                                 const bool remove_from_settings)
 {
   if (remove_from_settings) settings.beginGroup("keys");
@@ -768,8 +770,10 @@ void Preferences::removeKeyTool(const Tool *tool,
 }
 
 void Preferences::replaceKeyToolShortcut(const QKeySequence oldkeys,
-                                         const QKeySequence newkeys, Tool *tool)
+                                         const QKeySequence newkeys,
+                                         std::shared_ptr<Tool> tool)
 {
+  // TODO: check if this really removes the tools!
   key_tools.remove(oldkeys, tool);
   settings.beginGroup("keys");
   const QString oldcode = QKeySequence(oldkeys).toString();
@@ -908,20 +912,18 @@ void Preferences::removeCurrentTool(const int device,
       newdevice = (*tool_it)->device() & ~device;
       if (newdevice)
         (*tool_it++)->setDevice(newdevice);
-      else {
-        delete *tool_it;
+      else
         tool_it = current_tools.erase(tool_it);
-      }
     } else if (no_mouse_hover &&
                ((*tool_it)->device() == Tool::MouseNoButton)) {
-      delete *tool_it;
       tool_it = current_tools.erase(tool_it);
-    } else
+    } else {
       ++tool_it;
+    }
   }
 }
 
-void Preferences::setCurrentTool(Tool *tool) noexcept
+void Preferences::setCurrentTool(std::shared_ptr<Tool> tool) noexcept
 {
   int device = tool->device();
   // Delete mouse no button devices if MouseLeftButton is overwritten.

@@ -4,6 +4,8 @@
 #ifndef TOOLSELECTORBUTTON_H
 #define TOOLSELECTORBUTTON_H
 
+#include <memory>
+
 #include "src/config.h"
 #include "src/gui/toolbutton.h"
 
@@ -26,7 +28,8 @@ class ToolSelectorButton : public ToolButton
 
  public:
   /// Almost trivial constructor.
-  ToolSelectorButton(Tool *tool, QWidget *parent = nullptr) noexcept;
+  ToolSelectorButton(std::shared_ptr<Tool> tool,
+                     QWidget *parent = nullptr) noexcept;
 
   /// Trivial destructor.
   virtual ~ToolSelectorButton() {}

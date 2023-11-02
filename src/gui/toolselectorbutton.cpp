@@ -12,7 +12,8 @@
 #include "src/log.h"
 #include "src/master.h"
 
-ToolSelectorButton::ToolSelectorButton(Tool *tool, QWidget *parent) noexcept
+ToolSelectorButton::ToolSelectorButton(std::shared_ptr<Tool> tool,
+                                       QWidget *parent) noexcept
     : ToolButton(tool, parent)
 {
   setFocusPolicy(Qt::NoFocus);
@@ -73,7 +74,7 @@ bool ToolSelectorButton::event(QEvent *event) noexcept
                    device == Tool::NoDevice)
           device = Tool::TouchInput;
 
-        Tool *newtool = tool->copy();
+        std::shared_ptr<Tool> newtool = tool->copy();
         newtool->setDevice(device);
         emit sendTool(newtool);
       }

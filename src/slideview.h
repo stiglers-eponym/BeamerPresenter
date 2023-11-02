@@ -98,15 +98,19 @@ class SlideView : public QGraphicsView
 
   /// Draw magnifier to painter. tool should have BasicTool Magnifier, but this
   /// is not checked.
-  void showMagnifier(QPainter *painter, const PointingTool *tool) noexcept;
+  void showMagnifier(QPainter *painter,
+                     std::shared_ptr<const PointingTool> tool) noexcept;
   /// Draw pointer to painter. tool should have BasicTool Pointer, but this is
   /// not checked.
-  void showPointer(QPainter *painter, const PointingTool *tool) noexcept;
+  void showPointer(QPainter *painter,
+                   std::shared_ptr<const PointingTool> tool) noexcept;
   /// Draw torch to painter. tool should have BasicTool Torch, but this is not
   /// checked.
-  void showTorch(QPainter *painter, const PointingTool *tool) noexcept;
+  void showTorch(QPainter *painter,
+                 std::shared_ptr<const PointingTool> tool) noexcept;
   /// Draw circle representing eraser.
-  void showEraser(QPainter *painter, const PointingTool *tool) noexcept;
+  void showEraser(QPainter *painter,
+                  std::shared_ptr<const PointingTool> tool) noexcept;
 
   /// Draw pointing tools in foreground.
   void drawForeground(QPainter *painter, const QRectF &rect) override;

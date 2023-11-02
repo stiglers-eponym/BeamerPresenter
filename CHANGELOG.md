@@ -1,7 +1,13 @@
 # Changelog
-## upcoming
-* embedded videos
-* internal restructuring of handling media: The new setup is constructed for Qt 6. In the Qt 5 version only a limited set of features is available.
+## 0.2.5 (upcoming)
+* embedded videos: media files embedded in the PDF file can now be played
+* bug fixes (includes crash on multi-touch)
+* page labels available in Qt PDF version
+* define some fallback file paths relative to directory of the binary to allow for a portable installation
+* internal:
+    * restructuring of handling media: The new setup is constructed for Qt 6. In the Qt 5 version only a limited set of features is available.
+    * (hopefully) more robust parallelization and memory management
+    * use clang-format
 
 ## 0.2.4
 * pages listed in TOC always start a new slide and are not considered overlays

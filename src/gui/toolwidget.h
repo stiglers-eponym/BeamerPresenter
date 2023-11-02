@@ -78,7 +78,7 @@ class ToolWidget : public QWidget
 
  public slots:
   /// Check if new tool adds a new device. Add that devices if necessary.
-  void checkNewTool(const Tool *tool);
+  void checkNewTool(std::shared_ptr<const Tool> tool);
 
  signals:
   /// Tell child buttons to update icons.

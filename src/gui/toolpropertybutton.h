@@ -7,6 +7,7 @@
 #include <QColor>
 #include <QComboBox>
 #include <QPainter>
+#include <memory>
 #include <variant>
 
 #include "src/config.h"
@@ -40,14 +41,14 @@ class ToolPropertyButton : public QComboBox
   bool event(QEvent *event) override;
 
   /// Set property for given tool.
-  virtual void setToolProperty(Tool *tool) const = 0;
+  virtual void setToolProperty(std::shared_ptr<Tool> tool) const = 0;
 
   /// Update currently selected tool property based on device.
   virtual void updateTool() { toolChanged(preferences()->currentTool(device)); }
 
  public slots:
   /// Update currently selected tool property based on tool.
-  virtual void toolChanged(const Tool *tool) = 0;
+  virtual void toolChanged(std::shared_ptr<const Tool> tool) = 0;
 
   /// Update the icon.
   virtual void updateIcon();
@@ -65,7 +66,7 @@ class ToolPropertyButton : public QComboBox
 
  signals:
   /// Notify master/scene that tool has changed.
-  void sendUpdatedTool(const Tool *tool) const;
+  void sendUpdatedTool(std::shared_ptr<const Tool> tool) const;
 
   /// Notify master/scene that tool properties have been updated.
   void sendToolProperties(const tool_variant &properties) const;

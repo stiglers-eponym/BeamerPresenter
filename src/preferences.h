@@ -189,7 +189,7 @@ class Preferences : public QObject
   /// of preferences().
   /// Objects owning a tool which is listed here should always call
   /// writable_preferences().removeKeyTool before deleting this tool.
-  QMultiMap<QKeySequence, Tool *> key_tools;
+  QMultiMap<QKeySequence, std::shared_ptr<Tool>> key_tools;
 
   /// Map gestures to actions
   QMultiMap<Gesture, Action> gesture_actions{
@@ -232,7 +232,7 @@ class Preferences : public QObject
    * important for the order in which pointing tools are drawn in
    * SlideView.
    * */
-  QMultiMap<Tool::BasicTool, Tool *> current_tools;
+  QMultiMap<Tool::BasicTool, std::shared_ptr<Tool>> current_tools;
 
   /* ***************** */
   /*     FUNCTIONS     */
@@ -267,15 +267,17 @@ class Preferences : public QObject
 
   /// Get the current tool for a given input device or nullptr if there
   /// is no tool for this device. The tool remains owned by preferences().
-  Tool *currentTool(const int device) const noexcept;
+  std::shared_ptr<Tool> currentTool(const int device) const noexcept;
   /// Remove (but don't delete) all occurences of tool in key_tools.
   /// This should be called by an object owning tool before it deletes tool.
-  void removeKeyTool(const Tool *tool, const bool remove_from_settings);
+  void removeKeyTool(std::shared_ptr<const Tool> tool,
+                     const bool remove_from_settings);
   /// Change key sequence associated with tool from oldkeys to newkeys.
   /// oldkeys or newkeys may be left empty to add a new tool or remove
   /// an existing tool.
   void replaceKeyToolShortcut(const QKeySequence oldkeys,
-                              const QKeySequence newkeys, Tool *tool);
+                              const QKeySequence newkeys,
+                              std::shared_ptr<Tool> tool);
 
   /// Connect an action to a key code. This does not remove existing
   /// actions connected to the same key code.
@@ -288,7 +290,7 @@ class Preferences : public QObject
   /// This function is used for reading tools/actions for
   /// key shortcuts.
   static void parseActionsTools(const QVariant &input, QList<Action> &actions,
-                                QList<Tool *> &tools,
+                                QList<std::shared_ptr<Tool>> &tools,
                                 const int default_device = 0);
 
   /// Show error message in dialog in front of main window.
@@ -303,7 +305,7 @@ class Preferences : public QObject
   void removeCurrentTool(const int device,
                          const bool no_mouse_hover = false) noexcept;
   /// Append tool to currently used tools. This takes ownership of tool.
-  void setCurrentTool(Tool *tool) noexcept;
+  void setCurrentTool(std::shared_ptr<Tool> tool) noexcept;
 
  public slots:
   /// Set maximum memory for cache. This function uses double instead of
@@ -373,10 +375,11 @@ inline const Preferences *preferences() noexcept
 inline Master *master() noexcept { return __global_preferences->master; }
 
 /// Create tool from JSON formatted input.
-Tool *createTool(const QJsonObject &obj, const int default_device = 0);
+std::shared_ptr<Tool> createTool(const QJsonObject &obj,
+                                 const int default_device = 0);
 
 /// Write tool properties to JSON object.
-void toolToJson(const Tool *tool, QJsonObject &obj);
+void toolToJson(std::shared_ptr<const Tool> tool, QJsonObject &obj);
 
 /// Static regular expression required to adapt paths.
 static const QRegularExpression UNIX_LIKE(
