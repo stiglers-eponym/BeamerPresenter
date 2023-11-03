@@ -208,6 +208,10 @@ int main(int argc, char *argv[])
       if (status != Master::Success) {
         gui_config_file = fallback_root + gui_config_file;
         status = master()->readGuiConfig(gui_config_file);
+        if (status != Master::Success) {
+          gui_config_file = fallback_root + "/gui.json";
+          status = master()->readGuiConfig(gui_config_file);
+        }
       }
       if (status == Master::Success)
         preferences()->showErrorMessage(
@@ -241,8 +245,9 @@ int main(int argc, char *argv[])
     qInfo() << "Test results:";
     qInfo() << "GUI config file was:" << gui_config_file;
     qInfo() << "PDF file alias:" << preferences()->file_alias;
-  } else
+  } else {
     status = app.exec();
+  }
   // Clean up. preferences() must be deleted after everything else.
   // Deleting master may take some time since this requires the interruption
   // and deletion of multiple threads.

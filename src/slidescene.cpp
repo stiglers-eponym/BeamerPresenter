@@ -1757,7 +1757,9 @@ void SlideScene::pasteFromClipboard()
 void SlideScene::toolChanged(std::shared_ptr<const Tool> tool) noexcept
 {
   debug_verbose(DebugFunctionCalls, tool.get() << this);
-  if (tool->tool() & (Tool::AnySelectionTool | Tool::AnyPointingTool)) return;
+  if (!tool ||
+      (tool->tool() & (Tool::AnySelectionTool | Tool::AnyPointingTool)))
+    return;
   if (tool->tool() & Tool::AnyDrawTool) {
     const QList<QGraphicsItem *> selection = selectedItems();
     if (selection.isEmpty()) return;

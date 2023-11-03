@@ -7,6 +7,7 @@
 #include <QBoxLayout>
 #include <QList>
 #include <QWidget>
+#include <memory>
 
 #include "src/config.h"
 #include "src/drawing/tool.h"
