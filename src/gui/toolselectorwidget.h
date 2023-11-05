@@ -4,13 +4,17 @@
 #ifndef TOOLSELECTORWIDGET_H
 #define TOOLSELECTORWIDGET_H
 
+#include <QPainter>
 #include <QWidget>
+#include <memory>
+
 #include "src/config.h"
 #include "src/enumerates.h"
+#include "src/gui/toolpropertybutton.h"
 
 class Tool;
 class QSize;
-class QEvent;
+class QResizeEvent;
 class QColor;
 class QJsonArray;
 
@@ -20,48 +24,52 @@ class QJsonArray;
  * Emits sendTool and sendAction when buttons are pressed.
  *
  * @see ActionButton
- * @see ToolButton
+ * @see ToolSelectorButton
  */
 class ToolSelectorWidget : public QWidget
 {
-    Q_OBJECT
+  Q_OBJECT
 
-public:
-    /// Constructor: initialize layout.
-    explicit ToolSelectorWidget(QWidget *parent = NULL);
+  /// Initialize a tool property button.
+  void initializeToolPropertyButton(const QString &type, const QJsonArray &list,
+                                    const int row, const int column);
 
-    /// Size hint for layout.
-    QSize sizeHint() const noexcept override;
+ public:
+  /// Constructor: initialize layout.
+  explicit ToolSelectorWidget(QWidget *parent = nullptr);
 
-    /// Create and add all buttons from a JSON array.
-    /// This JSON array must be an array of arrays (a matrix) of entries
-    /// which define a single button.
-    void addButtons(const QJsonArray &full_array);
+  /// Size hint for layout.
+  QSize sizeHint() const noexcept override;
 
-    /// Optimal height depends on width.
-    bool hasHeightForWidth() const noexcept override
-    {return true;}
+  /// Create and add all buttons from a JSON array.
+  /// This JSON array must be an array of arrays (a matrix) of entries
+  /// which define a single button.
+  void addButtons(const QJsonArray &full_array);
 
-protected:
-    /// Override event: set equal row height when resizing.
-    bool event(QEvent *event) override;
+  /// Optimal height depends on width.
+  bool hasHeightForWidth() const noexcept override { return true; }
 
-signals:
-    /// Send out action to master.
-    void sendAction(const Action action);
+ protected:
+  /// ensure equal row height when resizing.
+  void resizeEvent(QResizeEvent *event) override { emit updateIcons(); }
 
-    /// Send out new color to master.
-    void sendColor(const QColor &action);
+ signals:
+  /// Notify master/scene that tool properties have been updated.
+  void sendToolProperties(const tool_variant &properties) const;
 
-    /// Send out new color to master.
-    void sendWidth(const qreal width);
+  /// Send action status to action buttons.
+  void sendStatus(const Action action, const int status);
 
-    /// Send action status to action buttons.
-    void sendStatus(const Action action, const int status);
+  /// Send a new tool (copy of the tool of a button) to master.
+  /// Ownership of tool is transfered to receiver (master).
+  void sendTool(std::shared_ptr<Tool> tool) const;
 
-    /// Send a new tool (copy of the tool of a button).
-    /// Ownership of tool is transfered to receiver.
-    void sendTool(Tool *tool) const;
+  /// Notify master that a tool has been updated.
+  /// Ownership of tool does not change.
+  void updatedTool(std::shared_ptr<const Tool> tool) const;
+
+  /// Child buttons should update icons, called after resizing.
+  void updateIcons();
 };
 
-#endif // TOOLSELECTORWIDGET_H
+#endif  // TOOLSELECTORWIDGET_H

@@ -11,11 +11,11 @@ Files: .github/*
 Copyright: 2022 Valentin Bruch <software@vbruch.eu>
 License: CC0-1.0
 
-Files: share/*
+Files: share/*/*
 Copyright: 2022 Valentin Bruch <software@vbruch.eu>
 License: CC-BY-4.0
 
-Files: man/*
+Files: man/*.1 man/*.5
 Copyright: 2022 Valentin Bruch <software@vbruch.eu>
 License: CC-BY-4.0
 
@@ -39,9 +39,17 @@ Files: packaging/*
 Copyright: 2022 Valentin Bruch <software@vbruch.eu>
 License: CC0-1.0
 
-Files: config/*
+Files: config/*.json config/*.conf.in
 Copyright: 2022 Valentin Bruch <software@vbruch.eu>
 License: CC0-1.0
+
+Files: tests/*
+Copyright: 2023 Valentin Bruch <software@vbruch.eu>
+License: CC0-1.0
+
+Files: src/.clang-format
+Copyright: Clang Authors
+License:
 
 Files: *.md
 Copyright: 2022 Valentin Bruch <software@vbruch.eu>

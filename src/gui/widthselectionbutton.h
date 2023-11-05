@@ -4,6 +4,8 @@
 #ifndef WIDTHSELECTIONBUTTON_H
 #define WIDTHSELECTIONBUTTON_H
 
+#include <memory>
+
 #include "src/config.h"
 #include "src/gui/toolpropertybutton.h"
 
@@ -16,21 +18,21 @@ class QWidget;
  */
 class WidthSelectionButton : public ToolPropertyButton
 {
-    Q_OBJECT
-public:
-    WidthSelectionButton(const QJsonArray &array, QWidget *parent = NULL);
-    ~WidthSelectionButton() {}
+  Q_OBJECT
 
-protected:
-    /// Set width of tool to selected value.
-    void setToolProperty(Tool* tool) const override;
+ public:
+  /// Constructor: given array should contains numbers defining pen widths.
+  WidthSelectionButton(const QJsonArray &array, QWidget *parent = nullptr);
+  /// Trivial destructor
+  ~WidthSelectionButton() {}
 
-public slots:
-    /// Update currently selected width based on tool.
-    void toolChanged(Tool *tool) override;
+ protected:
+  /// Set width of tool to selected value.
+  void setToolProperty(std::shared_ptr<Tool> tool) const override;
 
-signals:
-    void widthChanged(const qreal width) const;
+ public slots:
+  /// Update currently selected width based on tool.
+  void toolChanged(std::shared_ptr<const Tool> tool) override;
 };
 
-#endif // WIDTHSELECTIONBUTTON_H
+#endif  // WIDTHSELECTIONBUTTON_H

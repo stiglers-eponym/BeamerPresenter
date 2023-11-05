@@ -5,9 +5,9 @@
 #define TOCBUTTON_H
 
 #include <QPushButton>
+
 #include "src/config.h"
 
-class QCheckBox;
 class QString;
 
 /**
@@ -27,60 +27,65 @@ class QString;
  */
 class TOCbutton : public QPushButton
 {
-    Q_OBJECT
+  Q_OBJECT
 
-    friend class TOCwidget;
+  friend class TOCwidget;
 
-    /// Button controlling whether the children of this node should be shown.
-    QCheckBox *expand_button;
+  /// Button controlling whether the children of this node should be shown.
+  QPushButton *expand_button;
 
-    /// Target page in document of this outline entry.
-    const int page;
+  /// Target page in document of this outline entry.
+  const int page;
 
-    /// Next element on same level in tree structure.
-    TOCbutton *tree_next = NULL;
+  /// Next element on same level in tree structure.
+  TOCbutton *tree_next = nullptr;
 
-    /// First child element in tree structure.
-    TOCbutton *tree_child = NULL;
+  /// First child element in tree structure.
+  TOCbutton *tree_child = nullptr;
 
-    /// Toggle show / hide children.
-    void toggleVisibility();
+  /// Toggle show / hide children.
+  void toggleVisibility()
+  {
+    if (expand_button->isChecked())
+      expand();
+    else
+      collapse();
+  }
 
-public:
-    /// Constructor: Only directly uses the given values to initialize
-    /// properties of this. Takes ownership of expand_button.
-    TOCbutton(const QString &title, const int _page, QCheckBox *expand_button, QWidget *parent = NULL);
+ public:
+  /// Constructor: Only directly uses the given values to initialize
+  /// properties of this. Takes ownership of expand_button.
+  TOCbutton(const QString &title, const int _page, QPushButton *expand_button,
+            QWidget *parent = nullptr);
 
-    /// Destructor: recursively delete the associated subtree.
-    ~TOCbutton();
+  /// Destructor: recursively delete the associated subtree.
+  ~TOCbutton();
 
-    /// Show all direct child nodes.
-    void expand();
+  /// Show all direct child nodes.
+  void expand();
 
-    /// Recursively show the full subtree (all child nodes).
-    void expand_full();
+  /// Recursively show the full subtree (all child nodes).
+  void expand_full();
 
-    /// Hide all child nodes.
-    void collapse();
+  /// Hide all child nodes.
+  void collapse();
 
-    /// Hide this and all child nodes (required for recursive implementation
-    /// of collapse());
-    void collapse_hide();
+  /// Hide this and all child nodes (required for recursive implementation
+  /// of collapse());
+  void collapse_hide();
 
-    /// get function for tree_next:
-    /// return next outline element on same level or NULL if there is no
-    /// next element.
-    TOCbutton *next() const
-    {return tree_next;}
+  /// get function for tree_next:
+  /// return next outline element on same level or nullptr if there is no
+  /// next element.
+  TOCbutton *next() const { return tree_next; }
 
-    /// get function for tree_child:
-    /// return first child element or NULL if there is no child element.
-    TOCbutton *child() const
-    {return tree_child;}
+  /// get function for tree_child:
+  /// return first child element or nullptr if there is no child element.
+  TOCbutton *child() const { return tree_child; }
 
-signals:
-    /// Send out navigation event.
-    void sendNavigationEvent(const int page);
+ signals:
+  /// Send out navigation event.
+  void sendNavigationEvent(const int page);
 };
 
-#endif // TOCBUTTON_H
+#endif  // TOCBUTTON_H

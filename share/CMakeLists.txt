@@ -26,4 +26,5 @@ install(FILES
 install(DIRECTORY
     icons/tools
     icons/actions
+    icons/devices
     DESTINATION "${DEFAULT_ICON_PATH}")

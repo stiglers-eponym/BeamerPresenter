@@ -1,8 +1,35 @@
 # Changelog
-## Upcoming
-* compatibility with Qt 6.4
+## 0.2.5 (upcoming)
+* embedded videos: media files embedded in the PDF file can now be played
+* bug fixes (includes crash on multi-touch)
+* page labels available in Qt PDF version
+* define some fallback file paths relative to directory of the binary to allow for a portable installation
+* internal:
+    * restructuring of handling media: The new setup is constructed for Qt 6. In the Qt 5 version only a limited set of features is available.
+    * (hopefully) more robust parallelization and memory management
+    * use clang-format
+
+## 0.2.4
 * pages listed in TOC always start a new slide and are not considered overlays
 * page up and page down can be used to navigate pages also while showing TOC or thumbnails
+* more navigation keyboard shortcuts in default configuration
+* new widget: ToolWidget ("tools") showing tools currently connected to input devices
+* improved search widget: now highlights search results
+* saving/loading files: single gzipped XML file (.bpr/.xopp) can now contain information about multiple PDF files
+* selection:
+    * added delete button to selection rectangle
+    * draw tools and hand tool (no tool) can be use to manipulate selection rectangle
+* different installation path for translation files
+* copy and paste to/from image formats:
+    * paste only as picture (no erasing possible)
+    * this adds the Qt SVG module as a dependency
+* new feature: allow camera (webcam) output as input for videos
+* internal: different drawing history, memory management, and stacking order mechanism
+* added build instructions for fedora Linux (RPM) and MSYS2
+* compatibility with Qt 6.4 - 6.6 (beta)
+* compatibility with MuPDF 1.23
+* various bug fixes
+
 ## 0.2.3
 * select and manipulate drawn items
     * selection tools
@@ -15,6 +42,7 @@
 * compatibility with newer versions of MuPDF
 * tablet input: handle more buttons of the stylus
 * bug fixes
+
 ## 0.2.2
 * shape selection for draw tools (including a shape recognizer)
 * better layout and more icons for buttons
@@ -23,8 +51,10 @@
 * added German translation
 * new build system: cmake instead of qmake
 * various bug fixes
+
 ## 0.2.1
 * use Qt 5 or Qt 6
 * various bug fixes
+
 ## 0.2.0
 * initial version of completely rewritten program

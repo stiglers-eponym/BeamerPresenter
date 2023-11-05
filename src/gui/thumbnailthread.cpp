@@ -1,79 +1,48 @@
 // SPDX-FileCopyrightText: 2022 Valentin Bruch <software@vbruch.eu>
 // SPDX-License-Identifier: GPL-3.0-or-later OR AGPL-3.0-or-later
 
-#include <QPixmap>
 #include "src/gui/thumbnailthread.h"
-#include "src/gui/thumbnailbutton.h"
+
+#include <QPixmap>
+
 #include "src/log.h"
 #include "src/preferences.h"
-#ifdef USE_QTPDF
-#include "src/rendering/qtrenderer.h"
-#endif
-#ifdef USE_POPPLER
-#include "src/rendering/popplerrenderer.h"
-#endif
-#ifdef USE_MUPDF
-#include "src/rendering/mupdfrenderer.h"
-#endif
+#include "src/rendering/abstractrenderer.h"
+#include "src/rendering/pdfdocument.h"
 #ifdef USE_EXTERNAL_RENDERER
 #include "src/rendering/externalrenderer.h"
 #endif
 
-ThumbnailThread::ThumbnailThread(const PdfDocument *document) :
-    document(document)
+ThumbnailThread::ThumbnailThread(std::shared_ptr<const PdfDocument> document)
+    : document(document)
 {
-    if (!document)
-        return;
+  if (!document) return;
 
     // Create the renderer without any checks.
-    switch (preferences()->renderer)
-    {
-#ifdef USE_QTPDF
-    case renderer::QtPDF:
-        renderer = new QtRenderer(document, preferences()->default_page_part);
-        break;
-#endif
-#ifdef USE_POPPLER
-    case renderer::Poppler:
-        renderer = new PopplerRenderer(document, preferences()->default_page_part);
-        break;
-#endif
-#ifdef USE_MUPDF
-    case renderer::MuPDF:
-        renderer = new MuPdfRenderer(document, preferences()->default_page_part);
-        break;
-#endif
 #ifdef USE_EXTERNAL_RENDERER
-    case renderer::ExternalRenderer:
-        renderer = new ExternalRenderer(preferences()->rendering_command, preferences()->rendering_arguments, document, preferences()->default_page_part);
-        break;
+  if (preferences()->renderer == renderer::ExternalRenderer)
+    renderer = new ExternalRenderer(preferences()->rendering_command,
+                                    preferences()->rendering_arguments,
+                                    document, preferences()->default_page_part);
+  else
 #endif
-    }
+    renderer = createRenderer(document, preferences()->default_page_part);
 
-    // Check if the renderer is valid
-    if (renderer == nullptr || !renderer->isValid())
-    {
-        renderer = nullptr;
-        qCritical() << "Creating renderer failed" << preferences()->renderer;
-        return;
-    }
+  // Check if the renderer is valid
+  if (renderer == nullptr || !renderer->isValid()) {
+    renderer = nullptr;
+    qCritical() << tr("Creating renderer failed") << preferences()->renderer;
+    return;
+  }
 }
 
-ThumbnailThread::~ThumbnailThread()
+void ThumbnailThread::timerEvent(QTimerEvent* event)
 {
-    delete renderer;
-}
-
-void ThumbnailThread::renderImages()
-{
-    if (!renderer || !document)
-        return;
-    queue_entry entry;
-    while (!queue.isEmpty())
-    {
-        entry = queue.takeFirst();
-        if (entry.button && entry.resolution)
-            emit sendThumbnail(entry.button, renderer->renderPixmap(entry.page, entry.resolution));
-            //entry.button->setPixmap(renderer->renderPixmap(entry.page, entry.resolution));
-    }
+  if (!renderer || queue.isEmpty())
+    killTimer(event->timerId());
+  else {
+    queue_entry entry = queue.takeFirst();
+    emit sendThumbnail(entry.button_index,
+                       renderer->renderPixmap(entry.page, entry.resolution));
+  }
 }

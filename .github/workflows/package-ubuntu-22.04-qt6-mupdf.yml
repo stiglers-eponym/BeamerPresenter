@@ -28,7 +28,7 @@ jobs:
 
     steps:
     - name: Checkout repository
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
 
     # Initializes the CodeQL tools for scanning.
     - name: Initialize CodeQL
@@ -42,6 +42,7 @@ jobs:
 
     - name: Install Dependencies
       run: >
+        sudo apt-get update -y;
         sudo apt-get install -y --no-install-recommends
         cmake
         zlib1g-dev
@@ -53,6 +54,7 @@ jobs:
         libjpeg-dev
         libopenjp2-7-dev
         libjbig2dec0-dev
+        libqt6svg6-dev
         qt6-multimedia-dev
         libqt6opengl6-dev
         libgl1-mesa-dev
@@ -68,8 +70,8 @@ jobs:
        -DUSE_POPPLER=OFF
        -DUSE_QTPDF=OFF
        -DUSE_EXTERNAL_RENDERER=OFF
-       -DUSE_MUJS=ON
-       -DUSE_GUMBO=ON
+       -DLINK_MUJS=ON
+       -DLINK_GUMBO=ON
        -DUSE_TRANSLATIONS=ON
        -DQT_VERSION_MAJOR=6
        -DQT_VERSION_MINOR=2
@@ -87,7 +89,7 @@ jobs:
       uses: github/codeql-action/analyze@v2
 
     - name: Archive performance analysis report
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       with:
         name: codeql-report.sarif
         path: /home/runner/work/BeamerPresenter/results/cpp.sarif
@@ -96,7 +98,7 @@ jobs:
       run: cpack --config build_dir/CPackConfig.cmake
 
     - name: Archive debian package
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       with:
         name: beamerpresenter-mupdf-qt6-x86_64.deb
         path: /home/runner/work/BeamerPresenter/BeamerPresenter/beamerpresenter-mupdf-qt6-x86_64.deb

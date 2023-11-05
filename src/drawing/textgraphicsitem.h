@@ -5,7 +5,10 @@
 #define TEXTGRAPHICSITEM_H
 
 #include <QGraphicsTextItem>
+#include <QTextDocument>
+
 #include "src/config.h"
+#include "src/enumerates.h"
 
 class QGraphicsSceneContextMenuEvent;
 class QFocusEvent;
@@ -20,50 +23,49 @@ class QFocusEvent;
  */
 class TextGraphicsItem : public QGraphicsTextItem
 {
-    Q_OBJECT
+  Q_OBJECT
 
-public:
-    /// QGraphicsItem type for this subclass
-    enum {Type = UserType + 5};
+ public:
+  /// QGraphicsItem type for this subclass
+  enum { Type = UserType + TextGraphicsItemType };
 
-    /// almost trivial constructor
-    TextGraphicsItem(QGraphicsItem *parent = NULL) : QGraphicsTextItem(parent)
-    {
-        setFlags(QGraphicsItem::ItemIsSelectable);
-        setTextInteractionFlags(Qt::TextEditorInteraction);
-    }
+  /// almost trivial constructor
+  TextGraphicsItem(QGraphicsItem *parent = nullptr) : QGraphicsTextItem(parent)
+  {
+    setFlags(QGraphicsItem::ItemIsSelectable);
+    setTextInteractionFlags(Qt::TextEditorInteraction);
+  }
 
-    /// @return copy this item
-    TextGraphicsItem *clone() const;
+  /// @return copy this item
+  TextGraphicsItem *clone() const;
 
-    /// @return custom QGraphicsItem type.
-    int type() const noexcept override
-    {return Type;}
+  /// @return custom QGraphicsItem type.
+  int type() const noexcept override { return Type; }
 
-    /// Check if text is empty.
-    bool isEmpty() const noexcept;
+  /// Check if text is empty.
+  bool isEmpty() const noexcept { return document()->isEmpty(); }
 
-protected:
-    /// Called when this looses focus.
-    /// Notify PathContainer of new or removed text items.
-    /// @see removeMe()
-    /// @see addMe()
-    void focusOutEvent(QFocusEvent *event) override;
+ protected:
+  /// Called when this looses focus.
+  /// Notify PathContainer of new or removed text items.
+  /// @see removeMe()
+  /// @see addMe()
+  void focusOutEvent(QFocusEvent *event) override;
 
-    /// disable context menu event by disabling this function
-    void contextMenuEvent(QGraphicsSceneContextMenuEvent*) override {}
+  /// disable context menu event by disabling this function
+  void contextMenuEvent(QGraphicsSceneContextMenuEvent *) override {}
 
-signals:
-    /// Tell PathContainer to add this to history.
-    /// Emitted when focus is removed and this is not empty.
-    /// @see focusOutEvent()
-    void addMe(QGraphicsItem *me);
+ signals:
+  /// Tell PathContainer to add this to history.
+  /// Emitted when focus is removed and this is not empty.
+  /// @see focusOutEvent()
+  void addMe(QGraphicsItem *me);
 
-    /// Tell PathContainer to remove this.
-    /// Add history step in PathContainer that removes this.
-    /// Emitted when all text is deleted and this looses focus.
-    /// @see focusOutEvent()
-    void removeMe(QGraphicsItem *me);
+  /// Tell PathContainer to remove this.
+  /// Add history step in PathContainer that removes this.
+  /// Emitted when all text is deleted and this looses focus.
+  /// @see focusOutEvent()
+  void removeMe(QGraphicsItem *me);
 };
 
-#endif // TEXTGRAPHICSITEM_H
+#endif  // TEXTGRAPHICSITEM_H

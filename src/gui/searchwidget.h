@@ -4,53 +4,73 @@
 #ifndef SEARCHWIDGET_H
 #define SEARCHWIDGET_H
 
-#include <QWidget>
+#include <QLineEdit>
+
 #include "src/config.h"
 
-class QLineEdit;
-class QPushButton;
+class QFocusEvent;
+class QToolButton;
 
 /**
  * @brief Widget for searching text in PDF
+ *
+ * Currently, this searches for the first occurrence of a text on a page.
+ * This first occurrence is highlighted. If the text is not found on the
+ * current page, the following pages are searched. This nagivates to the
+ * page on which the text is found.
+ *
  * @todo shift search to separate thread
- * @todo better interface
  * @todo indicate failed search
- * @todo highlight search results
  */
 class SearchWidget : public QWidget
 {
-    Q_OBJECT
-    QLineEdit *search_field;
-    QPushButton *forward_button;
-    QPushButton *backward_button;
+  Q_OBJECT
 
-public:
-    explicit SearchWidget(QWidget *parent = nullptr);
-    ~SearchWidget();
-    /**
-     * @brief search text of search_field and go to pages with matches
-     * @param forward
-     *   -1 for backward search,
-     *   0 for forward search starting from current page,
-     *   1 for forward search starting from next page
-     */
-    void search(qint8 forward = 0);
+  /// text input widget
+  QLineEdit *search_field;
+  /// button for forward search
+  QToolButton *forward_button;
+  /// button for backward search
+  QToolButton *backward_button;
 
-    /// Size hint: based on estimated size.
-    QSize sizeHint() const noexcept override
-    {return {180,18};}
+ protected:
+  /// Focus event: focus search_field by default
+  void focusInEvent(QFocusEvent *) override
+  {
+    search_field->setFocus();
+    search_field->selectAll();
+  }
 
-    /// Height depends on width, this is required by the layout.
-    bool hasHeightForWidth() const noexcept override
-    {return true;}
+ public:
+  explicit SearchWidget(QWidget *parent = nullptr);
+  ~SearchWidget();
+  /**
+   * @brief Search text of search_field and go to pages with matches.
+   * Emits foundPages(page) once and returns when the text is found.
+   * @param forward
+   *   -1 for backward search,
+   *   0 for forward search starting from current page,
+   *   1 for forward search starting from next page
+   */
+  void search(qint8 forward = 0);
 
-private slots:
-    void searchCurrent() {search(0);}
-    void searchForward() {search(1);}
-    void searchBackward() {search(-1);}
+  /// Size hint: based on estimated size.
+  QSize sizeHint() const noexcept override { return {160, 20}; }
 
-signals:
-    void foundPage(const int page);
+  /// Height depends on width, this is required by the layout.
+  bool hasHeightForWidth() const noexcept override { return true; }
+
+ private slots:
+  /// Search on current page and following pages until text is found.
+  void searchCurrent() { search(0); }
+  /// Search starting on next page until text is found.
+  void searchForward() { search(1); }
+  /// Search backwards starting on previous page.
+  void searchBackward() { search(-1); }
+
+ signals:
+  /// Text has been found on given page.
+  void searchPdf(const QString &text, const int page, const bool forward);
 };
 
-#endif // SEARCHWIDGET_H
+#endif  // SEARCHWIDGET_H

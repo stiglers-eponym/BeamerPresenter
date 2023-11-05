@@ -1,7 +1,7 @@
-app-id: io.github.beamerpresenter.beamerpresenter
+app-id: io.github.stiglers_eponym.BeamerPresenter
 branch: master
 runtime: org.kde.Platform
-runtime-version: 5.15-21.08
+runtime-version: 5.15-22.08
 sdk: org.kde.Sdk
 command: beamerpresenter
 build-options:
@@ -16,7 +16,7 @@ finish-args:
   - "--filesystem=xdg-public-share"
   - "--filesystem=xdg-desktop"
   - "--filesystem=xdg-config/beamerpresenter"
-  - "--own-name=io.github.beamerpresenter.beamerpresenter"
+  - "--own-name=io.github.stiglers_eponym.BeamerPresenter"
 modules:
   - name: poppler
     buildsystem: cmake-ninja
@@ -38,8 +38,8 @@ modules:
     - "/bin"
     sources:
     - type: archive
-      url: https://poppler.freedesktop.org/poppler-22.09.0.tar.xz
-      sha256: d7a8f748211359cadb774ba3e18ecda6464b34027045c0648eb30d5852a41e2e
+      url: https://poppler.freedesktop.org/poppler-23.08.0.tar.xz
+      sha256: 4a4bf7fc903b9f1a2ab7d04b7c5d8220db9bc6261cc73fdb9a826dc272f49aa8
   - name: beamerpresenter
     buildsystem: cmake-ninja
     config-opts:
@@ -51,7 +51,7 @@ modules:
     - "-DUSE_EXTERNAL_RENDERER=OFF"
     - "-DUSE_TRANSLATIONS=ON"
     - "-DGIT_VERSION=ON"
-    - "-DAPPID_NAME=io.github.beamerpresenter.beamerpresenter"
+    - "-DAPPID_NAME=io.github.stiglers_eponym.BeamerPresenter"
     - "-DINSTALL_METAINFO=ON"
     - "-DCMAKE_BUILD_TYPE=Release"
     - "-DCMAKE_INSTALL_PREFIX=/app"

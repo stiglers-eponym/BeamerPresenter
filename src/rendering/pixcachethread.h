@@ -5,53 +5,61 @@
 #define PIXCACHETHREAD_H
 
 #include <QThread>
+#include <memory>
+
 #include "src/config.h"
 #include "src/enumerates.h"
+#include "src/rendering/abstractrenderer.h"
 
 class PngPixmap;
 class PdfDocument;
-class AbstractRenderer;
 
 /**
  * @brief Separate thread for rendering page pixmaps to (compressed) cache.
  */
 class PixCacheThread : public QThread
 {
-    Q_OBJECT
+  Q_OBJECT
 
-private:
-    /// Renderer doing the main work.
-    AbstractRenderer *renderer {nullptr};
+ private:
+  /// Renderer doing the main work.
+  AbstractRenderer *renderer = nullptr;
 
-    /// resolution in pixels per point (dpi/72).
-    qreal resolution;
+  /// resolution in pixels per point (dpi/72).
+  qreal resolution = 0.;
 
-    /// page number (index)
-    int page;
+  /// page number (index)
+  int page = -1;
 
-public:
-    /// Constructor: initialize thread and renderer.
-    PixCacheThread(const PdfDocument * const doc, const PagePart page_part = FullPage, QObject *parent = nullptr);
+ public:
+  /// Constructor: initialize thread and renderer.
+  PixCacheThread(const std::shared_ptr<const PdfDocument> &doc,
+                 const PagePart page_part = FullPage, QObject *parent = nullptr)
+      : QThread(parent)
+  {
+    initializeRenderer(doc, page_part);
+  }
 
-    /// Destructor: delete renderer.
-    ~PixCacheThread();
+  /// Destructor: delete renderer.
+  ~PixCacheThread() { delete renderer; }
 
-    /// Create a renderer based on preferences.
-    /// Return true if successful and false if no renderer was created.
-    bool initializeRenderer(const PdfDocument * const doc, const PagePart page_part = FullPage);
+  /// Create a renderer based on preferences.
+  /// Return true if successful and false if no renderer was created.
+  bool initializeRenderer(const std::shared_ptr<const PdfDocument> &doc,
+                          const PagePart page_part = FullPage);
 
-    /// Do the work: renderer to actually renders the page. Emits sendData.
-    void run() override;
+  /// Do the work: renderer to actually renders the page. Emits sendData.
+  void run() override;
 
-    /// Set page number and resolution.
-    /// Note that this is not thread save! But when starting to run the thread,
-    /// the values are locally copied. That should make it nearly impossible to
-    /// create problems using this function.
-    void setNextPage(const int page_number, const qreal res);
+ public slots:
+  /// Set page number and resolution, then start the thread.
+  /// Only has an effect if target==this and if this is not running.
+  void setNextPage(const PixCacheThread *target, const int page_number,
+                   const qreal res);
 
-signals:
-    /// Send out the data.
-    void sendData(const PngPixmap *data);
+ signals:
+  /// Send out the data.
+  void sendData(const PngPixmap *data);
 };
 
-#endif // PIXCACHETHREAD_H
+#endif  // PIXCACHETHREAD_H

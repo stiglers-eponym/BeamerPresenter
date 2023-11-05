@@ -1,1873 +1,2019 @@
-// SPDX-FileCopyrightText: 2022 Valentin Bruch <software@vbruch.eu>
+// SPDX-FileCopyrightText: 2023 Valentin Bruch <software@vbruch.eu>
 // SPDX-License-Identifier: GPL-3.0-or-later OR AGPL-3.0-or-later
 
-#include <iterator>
-#include <QTransform>
-#include <QString>
+#include "src/slidescene.h"
+
+#include <QBuffer>
 #include <QByteArray>
+#include <QClipboard>
 #include <QDataStream>
-#include <QGraphicsVideoItem>
-#include <QRegularExpression>
-#include <QXmlStreamWriter>
+#include <QDesktopServices>
+#include <QGraphicsSceneMouseEvent>
 #include <QGuiApplication>
 #include <QMimeData>
-#include <QClipboard>
-#include <QDesktopServices>
-#include <QPropertyAnimation>
 #include <QParallelAnimationGroup>
+#include <QPropertyAnimation>
+#include <QRegularExpression>
+#include <QString>
+#include <QSvgGenerator>
+#include <QSvgRenderer>
 #include <QTabletEvent>
-#include <QGraphicsSceneMouseEvent>
-#if (QT_VERSION_MAJOR >= 6)
-#include <QAudioOutput>
-#else
-#include <QMediaPlaylist>
-#endif
+#include <QTransform>
+#include <QXmlStreamWriter>
+#include <algorithm>
+#include <iterator>
+#include <utility>
 
-#include "src/log.h"
-#include "src/preferences.h"
-#include "src/slidescene.h"
-#include "src/slideview.h"
-#include "src/pdfmaster.h"
-#include "src/drawing/fullgraphicspath.h"
-#include "src/drawing/basicgraphicspath.h"
-#include "src/drawing/flexgraphicslineitem.h"
-#include "src/drawing/pixmapgraphicsitem.h"
-#include "src/drawing/rectgraphicsitem.h"
-#include "src/drawing/ellipsegraphicsitem.h"
-#include "src/drawing/linegraphicsitem.h"
+#include "src/config.h"
 #include "src/drawing/arrowgraphicsitem.h"
-#include "src/drawing/pointingtool.h"
-#include "src/drawing/texttool.h"
-#include "src/drawing/selectiontool.h"
+#include "src/drawing/basicgraphicspath.h"
+#include "src/drawing/ellipsegraphicsitem.h"
+#include "src/drawing/flexgraphicslineitem.h"
+#include "src/drawing/fullgraphicspath.h"
+#include "src/drawing/graphicspictureitem.h"
+#include "src/drawing/linegraphicsitem.h"
 #include "src/drawing/pathcontainer.h"
+#include "src/drawing/pixmapgraphicsitem.h"
+#include "src/drawing/pointingtool.h"
+#include "src/drawing/rectgraphicsitem.h"
+#include "src/drawing/selectiontool.h"
 #include "src/drawing/shaperecognizer.h"
-#include "src/rendering/mediaplayer.h"
+#include "src/drawing/texttool.h"
+#include "src/log.h"
+#include "src/media/mediaplayer.h"
+#include "src/pdfmaster.h"
+#include "src/preferences.h"
+#include "src/slideview.h"
 
-SlideScene::SlideScene(const PdfMaster *master, const PagePart part, QObject *parent) :
-    QGraphicsScene(parent),
-    pageItem(new PixmapGraphicsItem(sceneRect())),
-    master(master),
-    page_part(part)
+SlideScene::SlideScene(std::shared_ptr<const PdfMaster> master,
+                       const PagePart part, QObject *parent)
+    : QGraphicsScene(parent),
+      pageItem(new PixmapGraphicsItem(sceneRect())),
+      master(master),
+      page_part(part)
 {
-    connect(this, &SlideScene::sendNewPath, master, &PdfMaster::receiveNewPath, Qt::DirectConnection);
-    connect(this, &SlideScene::replacePath, master, &PdfMaster::replacePath, Qt::DirectConnection);
-    connect(this, &SlideScene::sendHistoryStep, master, &PdfMaster::addHistoryStep, Qt::DirectConnection);
-    connect(this, &SlideScene::requestNewPathContainer, master, &PdfMaster::requestNewPathContainer, Qt::DirectConnection);
-    connect(this, &SlideScene::sendRemovePaths, master, &PdfMaster::removeItems, Qt::DirectConnection);
-    connect(this, &SlideScene::sendAddPaths, master, &PdfMaster::addItems, Qt::DirectConnection);
-    connect(this, &SlideScene::selectionChanged, this, &SlideScene::updateSelectionRect, Qt::DirectConnection);
-    pageItem->setZValue(-1e2);
-    addItem(&selection_bounding_rect);
-    addItem(pageItem);
-    pageItem->show();
+  debug_verbose(DebugFunctionCalls, "CREATING SlideScene" << this);
+  setSceneRect(0, 0, 4000, 3000);
+  connect(this, &SlideScene::sendNewPath, master.get(),
+          &PdfMaster::receiveNewPath, Qt::DirectConnection);
+  connect(this, &SlideScene::replacePath, master.get(), &PdfMaster::replacePath,
+          Qt::DirectConnection);
+  connect(this, &SlideScene::sendHistoryStep, master.get(),
+          &PdfMaster::addHistoryStep, Qt::DirectConnection);
+  connect(this, &SlideScene::requestNewPathContainer, master.get(),
+          &PdfMaster::requestNewPathContainer, Qt::DirectConnection);
+  connect(this, &SlideScene::createPathContainer, master.get(),
+          &PdfMaster::createPathContainer, Qt::DirectConnection);
+  connect(this, &SlideScene::sendRemovePaths, master.get(),
+          &PdfMaster::removeItems, Qt::DirectConnection);
+  connect(this, &SlideScene::sendAddPaths, master.get(),
+          &PdfMaster::addItemsForeground, Qt::DirectConnection);
+  connect(this, &SlideScene::bringToForeground, master.get(),
+          &PdfMaster::bringToForeground, Qt::DirectConnection);
+  connect(this, &SlideScene::bringToBackground, master.get(),
+          &PdfMaster::bringToBackground, Qt::DirectConnection);
+  connect(this, &SlideScene::selectionChanged, this,
+          &SlideScene::updateSelectionRect, Qt::DirectConnection);
+  pageItem->setZValue(-1e2);
+  addItem(&selection_bounding_rect);
+  addItem(pageItem);
+  pageItem->show();
 }
 
 SlideScene::~SlideScene()
 {
-    delete animation;
-    QList<QGraphicsItem*> list = items();
-    while (!list.isEmpty())
-        removeItem(list.takeLast());
-    delete pageItem;
-    delete pageTransitionItem;
-    for (const auto &media : mediaItems)
-    {
-        delete media.item;
-        delete media.player;
-#if (QT_VERSION_MAJOR >= 6)
-        delete media.audio_out;
-#endif
-    }
-    mediaItems.clear();
-    delete currentlyDrawnItem;
-    delete currentItemCollection;
+  debug_verbose(DebugFunctionCalls, "DELETING SlideScene" << this);
+  delete animation;
+  if (searchResults) removeItem(searchResults);
+  delete searchResults;
+  QList<QGraphicsItem *> list = items();
+  while (!list.isEmpty()) removeItem(list.takeLast());
+  delete pageItem;
+  delete pageTransitionItem;
+  mediaItems.clear();
+  delete currentlyDrawnItem;
+  delete currentItemCollection;
 }
 
 void SlideScene::stopDrawing()
 {
-    debug_msg(DebugDrawing, "Stop drawing" << page << page_part);
-    if (currentlyDrawnItem)
-    {
-        BasicGraphicsPath *newpath = NULL;
-        switch (currentlyDrawnItem->type())
-        {
-        case BasicGraphicsPath::Type:
-        case FullGraphicsPath::Type:
-        {
-            AbstractGraphicsPath *path = static_cast<AbstractGraphicsPath*>(currentlyDrawnItem);
-            if (preferences()->global_flags & Preferences::FinalizeDrawnPaths)
-                path->finalize();
-            emit sendNewPath(page | page_part, currentlyDrawnItem);
-            if (path->getTool().shape() == DrawTool::Recognize)
-            {
-                ShapeRecognizer recognizer(path);
-                newpath = recognizer.recognize();
-                if (newpath)
-                {
-                    addItem(newpath);
-                    emit replacePath(page | page_part, currentlyDrawnItem, newpath);
-                    currentlyDrawnItem = newpath;
-                }
-            }
-            currentlyDrawnItem->show();
-            invalidate(currentlyDrawnItem->sceneBoundingRect(), QGraphicsScene::ItemLayer);
-            currentlyDrawnItem = NULL;
-            break;
+  debug_msg(DebugDrawing | DebugFunctionCalls,
+            "Stop drawing" << page << page_part << currentlyDrawnItem
+                           << currentItemCollection << this);
+  if (currentlyDrawnItem) {
+    BasicGraphicsPath *newpath = nullptr;
+    switch (currentlyDrawnItem->type()) {
+      case BasicGraphicsPath::Type:
+      case FullGraphicsPath::Type: {
+        AbstractGraphicsPath *path =
+            static_cast<AbstractGraphicsPath *>(currentlyDrawnItem);
+        path->finalize();
+        emit sendNewPath(page | page_part, currentlyDrawnItem);
+        if (path->getTool().shape() == DrawTool::Recognize) {
+          ShapeRecognizer recognizer(path);
+          newpath = recognizer.recognize();
+          if (newpath) {
+            addItem(newpath);
+            emit replacePath(page | page_part, currentlyDrawnItem, newpath);
+            currentlyDrawnItem = newpath;
+          }
         }
-        case RectGraphicsItem::Type:
-            newpath = static_cast<RectGraphicsItem*>(currentlyDrawnItem)->toPath();
-            break;
-        case EllipseGraphicsItem::Type:
-            newpath = static_cast<EllipseGraphicsItem*>(currentlyDrawnItem)->toPath();
-            break;
-        case LineGraphicsItem::Type:
-            newpath = static_cast<LineGraphicsItem*>(currentlyDrawnItem)->toPath();
-            break;
-        case ArrowGraphicsItem::Type:
-            newpath = static_cast<ArrowGraphicsItem*>(currentlyDrawnItem)->toPath();
-            break;
-        default:
-            break;
+        currentlyDrawnItem->show();
+        invalidate(currentlyDrawnItem->sceneBoundingRect(),
+                   QGraphicsScene::ItemLayer);
+        currentlyDrawnItem = nullptr;
+        break;
+      }
+      case RectGraphicsItem::Type:
+        newpath = static_cast<RectGraphicsItem *>(currentlyDrawnItem)->toPath();
+        break;
+      case EllipseGraphicsItem::Type:
+        newpath =
+            static_cast<EllipseGraphicsItem *>(currentlyDrawnItem)->toPath();
+        break;
+      case LineGraphicsItem::Type:
+        newpath = static_cast<LineGraphicsItem *>(currentlyDrawnItem)->toPath();
+        break;
+      case ArrowGraphicsItem::Type: {
+        const auto newpaths =
+            static_cast<ArrowGraphicsItem *>(currentlyDrawnItem)->toPath();
+        removeItem(currentlyDrawnItem);
+        delete currentlyDrawnItem;
+        currentlyDrawnItem = nullptr;
+        if (!newpaths.isEmpty()) {
+          for (auto item : newpaths) {
+            addItem(item);
+            item->show();
+          }
+          emit sendAddPaths(
+              page | page_part,
+              reinterpret_cast<const QList<QGraphicsItem *> &>(newpaths));
         }
-        if (currentlyDrawnItem)
-        {
-            removeItem(currentlyDrawnItem);
-            delete currentlyDrawnItem;
-            if (newpath)
-            {
-                addItem(newpath);
-                newpath->show();
-                emit sendNewPath(page | page_part, newpath);
-            }
-        }
-        currentlyDrawnItem = NULL;
+        break;
+      }
+      default:
+        break;
     }
-    if (currentItemCollection)
-    {
-        removeItem(currentItemCollection);
-        delete currentItemCollection;
-        currentItemCollection = NULL;
+    if (currentlyDrawnItem) {
+      removeItem(currentlyDrawnItem);
+      delete currentlyDrawnItem;
+      currentlyDrawnItem = nullptr;
+      if (newpath) {
+        addItem(newpath);
+        newpath->show();
+        emit sendNewPath(page | page_part, newpath);
+      }
+      currentlyDrawnItem = nullptr;
     }
+  }
+  if (currentItemCollection) {
+    removeItem(currentItemCollection);
+    delete currentItemCollection;
+    currentItemCollection = nullptr;
+  }
 }
 
-bool SlideScene::event(QEvent* event)
+bool SlideScene::event(QEvent *event)
 {
-    debug_verbose(DebugDrawing, event);
-    int device = 0;
-    QList<QPointF> pos;
-    QPointF start_pos;
-    switch (event->type())
-    {
-    case QEvent::GraphicsSceneMousePress:
-    {
-        const auto *mouseevent = static_cast<QGraphicsSceneMouseEvent*>(event);
-        device = (mouseevent->buttons() << 1) | Tool::StartEvent;
-        pos.append(mouseevent->scenePos());
-        break;
+  debug_verbose(DebugDrawing | DebugFunctionCalls,
+                event->type() << event->spontaneous() << event << this);
+  int device = 0;
+  QList<QPointF> pos;
+  QPointF start_pos;
+  switch (event->type()) {
+    case QEvent::GraphicsSceneMousePress: {
+      const auto *mouseevent = static_cast<QGraphicsSceneMouseEvent *>(event);
+      device = (mouseevent->buttons() << 1) | Tool::StartEvent;
+      pos.append(mouseevent->scenePos());
+      break;
     }
-    case QEvent::GraphicsSceneMouseMove:
-    {
-        const auto *mouseevent = static_cast<QGraphicsSceneMouseEvent*>(event);
-        device = (mouseevent->buttons() ? mouseevent->buttons() << 1 : 1) | Tool::UpdateEvent;
-        pos.append(mouseevent->scenePos());
-        break;
+    case QEvent::GraphicsSceneMouseMove: {
+      const auto *mouseevent = static_cast<QGraphicsSceneMouseEvent *>(event);
+      device = (mouseevent->buttons() ? mouseevent->buttons() << 1 : 1) |
+               Tool::UpdateEvent;
+      pos.append(mouseevent->scenePos());
+      break;
     }
-    case QEvent::GraphicsSceneMouseRelease:
-    {
-        const auto *mouseevent = static_cast<QGraphicsSceneMouseEvent*>(event);
-        device = (mouseevent->button() << 1) | Tool::StopEvent;
-        pos.append(mouseevent->scenePos());
-        start_pos = mouseevent->buttonDownScenePos(mouseevent->button());
-        break;
+    case QEvent::GraphicsSceneMouseRelease: {
+      const auto *mouseevent = static_cast<QGraphicsSceneMouseEvent *>(event);
+      device = (mouseevent->button() << 1) | Tool::StopEvent;
+      pos.append(mouseevent->scenePos());
+      start_pos = mouseevent->buttonDownScenePos(mouseevent->button());
+      break;
     }
-    case QEvent::TouchBegin:
-    {
-        device = int(Tool::TouchInput) | Tool::StartEvent;
-        const auto touchevent = static_cast<QTouchEvent*>(event);
+    case QEvent::GraphicsSceneMouseDoubleClick: {
+      // Double click: These events are ignored, except if a text tool is used.
+      const auto *mouseevent = static_cast<QGraphicsSceneMouseEvent *>(event);
+      device = (mouseevent->buttons() << 1) | Tool::StartEvent;
+      std::shared_ptr<Tool> tool =
+          preferences()->currentTool(mouseevent->buttons() << 1);
+      debug_verbose(DebugFunctionCalls,
+                    "complete event handling" << event << this);
+      if (tool && tool->tool() == Tool::TextInputTool)
+        return QGraphicsScene::event(event);
+      event->accept();
+      return false;
+    }
+    case QEvent::TouchBegin: {
+      device = int(Tool::TouchInput) | Tool::StartEvent;
+      const auto touchevent = static_cast<QTouchEvent *>(event);
 #if (QT_VERSION_MAJOR >= 6)
+      for (const auto &point : touchevent->points())
+        pos.append(point.scenePosition());
+#else
+      for (const auto &point : touchevent->touchPoints())
+        pos.append(point.scenePos());
+#endif
+      break;
+    }
+    case QEvent::TouchUpdate: {
+      device = int(Tool::TouchInput) | Tool::UpdateEvent;
+      const auto touchevent = static_cast<QTouchEvent *>(event);
+#if (QT_VERSION_MAJOR >= 6)
+      for (const auto &point : touchevent->points())
+        pos.append(point.scenePosition());
+#else
+      for (const auto &point : touchevent->touchPoints())
+        pos.append(point.scenePos());
+#endif
+      break;
+    }
+    case QEvent::TouchEnd: {
+      device = int(Tool::TouchInput) | Tool::StopEvent;
+      const auto touchevent = static_cast<QTouchEvent *>(event);
+#if (QT_VERSION_MAJOR >= 6)
+      if (touchevent->points().size() > 0) {
         for (const auto &point : touchevent->points())
-            pos.append(point.scenePosition());
+          pos.append(point.scenePosition());
+        start_pos = touchevent->points().constFirst().scenePressPosition();
+      }
 #else
+      if (touchevent->touchPoints().size() > 0) {
         for (const auto &point : touchevent->touchPoints())
-            pos.append(point.scenePos());
+          pos.append(point.scenePos());
+        start_pos = touchevent->touchPoints().constFirst().startScenePos();
+      }
 #endif
-        break;
-    }
-    case QEvent::TouchUpdate:
-    {
-        device = int(Tool::TouchInput) | Tool::UpdateEvent;
-        const auto touchevent = static_cast<QTouchEvent*>(event);
-#if (QT_VERSION_MAJOR >= 6)
-        for (const auto &point : touchevent->points())
-            pos.append(point.scenePosition());
-#else
-        for (const auto &point : touchevent->touchPoints())
-            pos.append(point.scenePos());
-#endif
-        break;
-    }
-    case QEvent::TouchEnd:
-    {
-        device = int(Tool::TouchInput) | Tool::StopEvent;
-        const auto touchevent = static_cast<QTouchEvent*>(event);
-#if (QT_VERSION_MAJOR >= 6)
-        if (touchevent->points().size() > 0)
-        {
-            for (const auto &point : touchevent->points())
-                pos.append(point.scenePosition());
-            start_pos = touchevent->points().constFirst().scenePressPosition();
-        }
-#else
-        if (touchevent->touchPoints().size() > 0)
-        {
-            for (const auto &point : touchevent->touchPoints())
-                pos.append(point.scenePos());
-            start_pos = touchevent->touchPoints().constFirst().startScenePos();
-        }
-#endif
-        break;
+      break;
     }
     case QEvent::TouchCancel:
-        device = int(Tool::TouchInput) | Tool::CancelEvent;
-        break;
+      device = int(Tool::TouchInput) | Tool::CancelEvent;
+      break;
     case QEvent::Leave:
-        for (auto tool : qAsConst(preferences()->current_tools))
-        {
-            if (tool && tool->tool() == Tool::Pointer)
-            {
-                PointingTool *ptool = static_cast<PointingTool*>(tool);
-                if (ptool->pos().isEmpty())
-                    continue;
-                QRectF rect({0,0}, ptool->size()*QSizeF(2,2));
-                rect.moveCenter(ptool->pos().constFirst());
-                ptool->clearPos();
-                invalidate(rect);
-                break;
-            }
+    case QEvent::DragLeave:
+    case QEvent::TabletLeaveProximity:
+#if (QT_VERSION_MAJOR >= 6)
+    case QEvent::GraphicsSceneLeave:
+#endif
+    case QEvent::GraphicsSceneHoverLeave:
+    case QEvent::GraphicsSceneDragLeave:
+      /* Try to clean up pointers on the slide scene when the device
+       * leaves the scene. */
+      for (auto tool : std::as_const(preferences()->current_tools)) {
+        if (tool && tool->tool() == Tool::Pointer) {
+          auto ptool = std::static_pointer_cast<PointingTool>(tool);
+          if (ptool->pos().isEmpty()) continue;
+          QRectF rect({0, 0}, ptool->size() * QSizeF(2, 2));
+          rect.moveCenter(ptool->pos().constFirst());
+          ptool->clearPos();
+          invalidate(rect);
+          break;
         }
-        [[clang::fallthrough]];
+      }
     default:
-        return QGraphicsScene::event(event);
-    }
+      debug_verbose(DebugFunctionCalls,
+                    "complete event handling" << event << this);
+      return QGraphicsScene::event(event);
+  }
+  if (handleEvents(device, pos, start_pos, 1.)) {
     event->accept();
-    handleEvents(device, pos, start_pos, 1.);
+    debug_verbose(DebugFunctionCalls,
+                  "complete event handling" << event << this);
     return true;
+  }
+  debug_verbose(DebugFunctionCalls, "complete event handling" << event << this);
+  return QGraphicsScene::event(event);
 }
 
-void SlideScene::handleEvents(const int device, const QList<QPointF> &pos, const QPointF &start_pos, const float pressure)
+bool SlideScene::handleEvents(const int device, const QList<QPointF> &pos,
+                              const QPointF &start_pos, const float pressure)
 {
-    Tool *tool = preferences()->currentTool(device & Tool::AnyDevice);
-    if (!tool)
-    {
-        if ((device & Tool::AnyEvent) == Tool::StopEvent && pos.size() == 1)
-            noToolClicked(pos.constFirst(), start_pos);
-        return;
-    }
+  debug_verbose(DebugFunctionCalls,
+                device << pos << start_pos << pressure << this);
+  if (pos.size() < 1) return false;
 
-    debug_verbose(DebugDrawing, "Handling event" << tool->tool() << tool->device() << device);
-    if (tool->tool() & Tool::AnyDrawTool)
-    {
-        // TODO: multi-touch for draw tools
-        switch (device & Tool::AnyEvent)
-        {
-        case Tool::UpdateEvent:
-            stepInputEvent(static_cast<const DrawTool*>(tool), pos.constFirst(), pressure);
-            break;
-        case Tool::StartEvent:
-            startInputEvent(static_cast<const DrawTool*>(tool), pos.constFirst(), pressure);
-            break;
-        case Tool::StopEvent:
-            stopInputEvent(static_cast<const DrawTool*>(tool));
-            break;
-        case Tool::CancelEvent:
-            if (stopInputEvent(static_cast<const DrawTool*>(tool)))
-            {
-                PathContainer *container = master->pathContainer(page | page_part);
-                if (container)
-                    container->undo(this);
-                break;
-            }
-        }
+  std::shared_ptr<Tool> tool =
+      preferences()->currentTool(device & Tool::AnyDevice);
+  // Check if a selection is active. In this case we might use the temporary
+  // selection tool.
+  if (selection_bounding_rect.isVisible() &&
+      (!tool || tool->tool() & Tool::AnyDrawTool ||
+       tool->tool() == Tool::NoTool)) {
+    if (tmp_selection_tool &&
+        tmp_selection_tool->device() == (device & ~Tool::AnyEvent))
+      tool = tmp_selection_tool;
+    else if ((device & Tool::AnyEvent) == Tool::StartEvent &&
+             maybeStartSelectionEvent(pos.first(), (device & ~Tool::AnyEvent)))
+      return true;
+  }
+  // Handle events without any tool.
+  if (!tool || tool->tool() == Tool::NoTool) {
+    if (pos.size() == 1 && (device & Tool::AnyEvent) == Tool::StopEvent)
+      noToolClicked(pos.constFirst(), start_pos);
+    return true;
+  }
+
+  debug_verbose(DebugDrawing,
+                "Handling event" << tool->tool() << tool->device() << device);
+  // Handle draw tool events.
+  if (tool->tool() & Tool::AnyDrawTool)
+    handleDrawEvents(std::static_pointer_cast<const DrawTool>(tool), device,
+                     pos, pressure);
+  // Handle pointing tool events.
+  else if (tool->tool() & Tool::AnyPointingTool)
+    handlePointingEvents(std::static_pointer_cast<PointingTool>(tool), device,
+                         pos);
+  // Handle selection tool events.
+  else if (tool->tool() & Tool::AnySelectionTool)
+    handleSelectionEvents(std::static_pointer_cast<SelectionTool>(tool), device,
+                          pos, start_pos);
+  // Handle text tool events.
+  // Here we detect start events and not stop events, because otherwise touch
+  // events will be discarded: If a touch start event is not handled, the whole
+  // touch event is treated as a mouse event.
+  else if (tool->tool() == Tool::TextInputTool &&
+           (device & Tool::AnyEvent) == Tool::StartEvent && pos.size() == 1)
+    return handleTextEvents(std::static_pointer_cast<const TextTool>(tool),
+                            device, pos);
+  // Fall back to no tool.
+  else if ((device & Tool::AnyEvent) == Tool::StopEvent && pos.size() == 1)
+    noToolClicked(pos.constFirst(), start_pos);
+  else
+    return false;
+  return true;
+}
+
+bool SlideScene::maybeStartSelectionEvent(const QPointF &pos,
+                                          const int device) noexcept
+{
+  debug_verbose(DebugFunctionCalls, pos << device << this);
+  // Try to handle selection (if available)
+  if (!selection_bounding_rect.isVisible()) return false;
+
+  // 1. Check if the user clicked on some special point on the
+  // bounding rect of the selection.
+  const QPolygonF selection_rect = selection_bounding_rect.scaleHandles();
+  const qreal handle_size = preferences()->selection_rect_handle_size;
+  for (const auto &point : selection_rect)
+    if ((pos - point).manhattanLength() <= handle_size) {
+      initTmpSelectionTool(device);
+      tmp_selection_tool->startScaling(point,
+                                       selection_bounding_rect.sceneCenter());
+      return true;
     }
-    else if (tool->tool() & Tool::AnyPointingTool)
-    {
-        PointingTool *ptool = static_cast<PointingTool*>(tool);
-        ptool->scene() = this;
-        switch (ptool->tool())
-        {
-        case Tool::Torch:
-            if ((device & Tool::AnyEvent) == Tool::StopEvent)
-                ptool->clearPos();
-            else
-                ptool->setPos(pos);
-            invalidate();
-            break;
-        case Tool::Eraser:
-        {
-            PathContainer *container = master->pathContainer(page | page_part);
-            if (container)
-            {
-                switch (device & Tool::AnyEvent)
-                {
-                case Tool::UpdateEvent:
-                    for (const QPointF &point : pos)
-                        container->eraserMicroStep(point, ptool->size());
-                    break;
-                case Tool::StartEvent:
-                    container->startMicroStep();
-                    for (const QPointF &point : pos)
-                        container->eraserMicroStep(point, ptool->size());
-                    break;
-                case Tool::StopEvent:
-                    if (container->applyMicroStep())
-                        emit newUnsavedDrawings();
-                    break;
-                case Tool::CancelEvent:
-                    if (container->applyMicroStep())
-                    {
-                        container->undo(this);
-                        emit newUnsavedDrawings();
-                    }
-                    break;
-                }
-            }
-            if (ptool->scale() <= 0.)
-                break;
-            [[clang::fallthrough]];
-        }
-        default:
-        {
-            QRectF point_rect = QRectF({0,0}, ptool->size()*QSize(2,2));
-            for (auto point : ptool->pos())
-            {
-                point_rect.moveCenter(point);
-                invalidate(point_rect, ForegroundLayer);
-            }
-            if ((device & Tool::AnyEvent) == Tool::StopEvent && !(tool->device() & (Tool::TabletHover | Tool::MouseNoButton)))
-                ptool->clearPos();
-            else
-            {
-                ptool->setPos(pos);
-                for (auto point : qAsConst(pos))
-                {
-                    point_rect.moveCenter(point);
-                    invalidate(point_rect, QGraphicsScene::ForegroundLayer);
-                }
-            }
-            break;
-        }
-        }
-    }
-    else if (tool->tool() & Tool::AnySelectionTool)
-    {
-        const QPointF &single_pos = pos.constFirst();
-        SelectionTool *selection_tool = static_cast<SelectionTool*>(tool);
-        switch (device & Tool::DeviceEventType::AnyEvent)
-        {
-        case Tool::DeviceEventType::StartEvent:
-            handleSelectionStartEvents(selection_tool, single_pos);
-            break;
-        case Tool::DeviceEventType::UpdateEvent:
-            selection_tool->liveUpdate(single_pos);
-            // TODO: select area for higher efficiency
-            invalidate(QRectF(), QGraphicsScene::ForegroundLayer);
-            break;
-        case Tool::DeviceEventType::StopEvent:
-            handleSelectionStopEvents(selection_tool, single_pos, start_pos);
-            invalidate(QRectF(), QGraphicsScene::ForegroundLayer);
-            break;
-        }
-    }
-    else if (tool->tool() == Tool::TextInputTool && (device & Tool::AnyEvent) == Tool::StopEvent && pos.size() == 1)
-    {
-        clearSelection();
-        debug_msg(DebugDrawing, "Trying to start writing text" << (device & Tool::AnyDevice) << focusItem());
-        for (auto item : static_cast<const QList<QGraphicsItem*>>(items(pos.constFirst())))
-        {
-            if (item->type() == TextGraphicsItem::Type)
-            {
-                setFocusItem(item);
-                return;
-            }
-        }
-        TextGraphicsItem *item = new TextGraphicsItem();
-        item->setFont(QFont(static_cast<const TextTool*>(tool)->font()));
-        item->setDefaultTextColor(static_cast<const TextTool*>(tool)->color());
-        addItem(item);
-        item->show();
-        item->setPos(pos.constFirst());
-        emit sendNewPath(page | page_part, NULL);
+  if ((pos - selection_bounding_rect.sceneRotationHandle()).manhattanLength() <=
+      handle_size) {
+    initTmpSelectionTool(device);
+    tmp_selection_tool->startRotation(pos,
+                                      selection_bounding_rect.sceneCenter());
+    return true;
+  }
+  if ((pos - selection_bounding_rect.sceneDeleteHandle()).manhattanLength() <=
+      handle_size) {
+    removeSelection();
+    return true;
+  }
+  // 2. Check if the user clicked on a selected object.
+  /* Option 1: Every click in the bounding rect activates dragging. */
+  if (selection_bounding_rect.containsPoint(pos)) {
+    initTmpSelectionTool(device);
+    tmp_selection_tool->startMove(pos);
+    return true;
+  }
+  // */
+  /* Option 2: Selection is only dragged when clicking directly on an object.
+  selection.pop_back();
+  for (auto item : selection)
+      if (item->contains(item->mapFromScene(pos)))
+      {
+          initTmpSelectionTool(device);
+          tmp_selection_tool->startMove(pos);
+          return;
+      }
+  // */
+  return false;
+}
+
+void SlideScene::handleDrawEvents(std::shared_ptr<const DrawTool> tool,
+                                  const int device, const QList<QPointF> &pos,
+                                  const float pressure)
+{
+  debug_verbose(DebugFunctionCalls, tool.get()
+                                        << device << pos << pressure << this);
+  // TODO: multi-touch for draw tools
+  switch (device & Tool::AnyEvent) {
+    case Tool::UpdateEvent:
+      stepInputEvent(tool, pos.constFirst(), pressure);
+      break;
+    case Tool::StartEvent:
+      startInputEvent(tool, pos.constFirst(), pressure);
+      break;
+    case Tool::StopEvent:
+      stopInputEvent(tool);
+      break;
+    case Tool::CancelEvent:
+      if (stopInputEvent(tool)) {
         PathContainer *container = master->pathContainer(page | page_part);
-        if (container)
-        {
-            connect(item, &TextGraphicsItem::removeMe, container, &PathContainer::removeItem);
-            connect(item, &TextGraphicsItem::addMe, container, &PathContainer::addTextItem);
-        }
-        setFocusItem(item);
-    }
-    else if ((device & Tool::AnyEvent) == Tool::StopEvent && pos.size() == 1)
-        noToolClicked(pos.constFirst(), start_pos);
+        if (container) container->undo(this);
+        break;
+      }
+  }
 }
 
-void SlideScene::handleSelectionStartEvents(SelectionTool *tool, const QPointF &pos)
+void SlideScene::handlePointingEvents(std::shared_ptr<PointingTool> tool,
+                                      const int device,
+                                      const QList<QPointF> &pos)
 {
-    QList<QGraphicsItem*> selection = selectedItems();
-    // Check if anything is selected.
-    tool->reset();
-    if (!selection.isEmpty())
-    {
+  debug_verbose(DebugFunctionCalls, tool.get() << device << pos << this);
+  tool->scene() = this;
+  switch (tool->tool()) {
+    case Tool::Torch:
+      if ((device & Tool::AnyEvent) == Tool::StopEvent)
+        tool->clearPos();
+      else
+        tool->setPos(pos);
+      invalidate();
+      break;
+    case Tool::Eraser: {
+      PathContainer *container = master->pathContainer(page | page_part);
+      if (container) {
+        switch (device & Tool::AnyEvent) {
+          case Tool::UpdateEvent:
+            for (const QPointF &point : pos)
+              container->eraserMicroStep(point, tool->size());
+            break;
+          case Tool::StartEvent:
+            container->startMicroStep();
+            for (const QPointF &point : pos)
+              container->eraserMicroStep(point, tool->size());
+            break;
+          case Tool::StopEvent:
+            if (container->applyMicroStep()) emit newUnsavedDrawings();
+            break;
+          case Tool::CancelEvent:
+            if (container->applyMicroStep()) {
+              container->undo(this);
+              emit newUnsavedDrawings();
+            }
+            break;
+        }
+      }
+      if (tool->scale() <= 0.) break;
+    }
+    default: {
+      QRectF point_rect({0, 0}, tool->size() * QSize(2, 2));
+      for (auto point : tool->pos()) {
+        point_rect.moveCenter(point);
+        invalidate(point_rect, ForegroundLayer);
+      }
+      if ((device & Tool::AnyEvent) == Tool::StopEvent &&
+          !(tool->device() & (Tool::TabletHover | Tool::MouseNoButton)))
+        tool->clearPos();
+      else {
+        tool->setPos(pos);
+        for (auto point : std::as_const(pos)) {
+          point_rect.moveCenter(point);
+          invalidate(point_rect, QGraphicsScene::ForegroundLayer);
+        }
+      }
+      break;
+    }
+  }
+}
+
+void SlideScene::handleSelectionEvents(std::shared_ptr<SelectionTool> tool,
+                                       const int device,
+                                       const QList<QPointF> &pos,
+                                       const QPointF &start_pos)
+{
+  debug_verbose(DebugFunctionCalls, tool.get()
+                                        << device << pos << start_pos << this);
+  const QPointF &single_pos = pos.constFirst();
+  switch (device & Tool::DeviceEventType::AnyEvent) {
+    case Tool::DeviceEventType::StartEvent:
+      handleSelectionStartEvents(tool, single_pos);
+      break;
+    case Tool::DeviceEventType::UpdateEvent:
+      tool->liveUpdate(single_pos);
+      // TODO: select area for higher efficiency
+      invalidate(QRectF(), QGraphicsScene::ForegroundLayer);
+      break;
+    case Tool::DeviceEventType::StopEvent:
+      handleSelectionStopEvents(tool, single_pos, start_pos);
+      invalidate(QRectF(), QGraphicsScene::ForegroundLayer);
+      break;
+  }
+}
+
+bool SlideScene::handleTextEvents(std::shared_ptr<const TextTool> tool,
+                                  const int device, const QList<QPointF> &pos)
+{
+  debug_verbose(DebugFunctionCalls, tool.get() << device << pos << this);
+  // TODO: bug fixes
+  clearSelection();
+  debug_msg(DebugDrawing, "Trying to start writing text"
+                              << (device & Tool::AnyDevice) << focusItem());
+  for (auto item :
+       static_cast<const QList<QGraphicsItem *>>(items(pos.constFirst())))
+    if (item->type() == TextGraphicsItem::Type) {
+      setFocusItem(item);
+      return false;
+    }
+  setFocusItem(nullptr);
+  TextGraphicsItem *item = new TextGraphicsItem();
+  item->setFont(QFont(tool->font()));
+  item->setDefaultTextColor(tool->color());
+  addItem(item);
+  item->show();
+  item->setPos(pos.constFirst());
+  PathContainer *container{nullptr};
+  emit createPathContainer(&container, page | page_part);
+  if (container) {
+    item->setZValue(container->topZValue() + 10);
+    connect(item, &TextGraphicsItem::removeMe, container,
+            &PathContainer::removeItem);
+    connect(item, &TextGraphicsItem::addMe, container,
+            &PathContainer::addTextItem);
+  } else {
+    qWarning() << "Failed to get graph container";
+    item->setZValue(10);
+  }
+  emit sendNewPath(page | page_part, item);
+  setFocusItem(item);
+  return true;
+}
+
+void SlideScene::handleSelectionStartEvents(std::shared_ptr<SelectionTool> tool,
+                                            const QPointF &pos)
+{
+  debug_verbose(DebugFunctionCalls, tool.get() << pos << this);
+  QList<QGraphicsItem *> selection = selectedItems();
+  // Check if anything is selected.
+  tool->reset();
+  if (!selection.isEmpty()) {
+    selection.append(&selection_bounding_rect);
+    tool->initTransformations(selection);
+    // 1. Check if the user clicked on some special point on the
+    // bounding rect of the selection.
+    const QPolygonF selection_rect = selection_bounding_rect.scaleHandles();
+    const qreal handle_size = preferences()->selection_rect_handle_size;
+    for (const auto &point : selection_rect)
+      if ((pos - point).manhattanLength() <= handle_size) {
+        tool->startScaling(point, selection_bounding_rect.sceneCenter());
+        return;
+      }
+    if ((pos - selection_bounding_rect.sceneRotationHandle())
+            .manhattanLength() <= handle_size) {
+      tool->startRotation(pos, selection_bounding_rect.sceneCenter());
+      return;
+    }
+    if ((pos - selection_bounding_rect.sceneDeleteHandle()).manhattanLength() <=
+        handle_size) {
+      removeSelection();
+      return;
+    }
+    // 2. Check if the user clicked on a selected object.
+    /* Option 1: Every click in the bounding rect activates dragging. */
+    if (selection_bounding_rect.containsPoint(pos)) {
+      tool->startMove(pos);
+      return;
+    }
+    // */
+    /* Option 2: Selection is only dragged when clicking directly on an object.
+    selection.pop_back();
+    for (auto item : selection)
+        if (item->contains(item->mapFromScene(pos)))
+        {
+            tool->startMove(pos);
+            return;
+        }
+    // */
+    selection.clear();
+  }
+  if (tool->type() == SelectionTool::NoOperation) {
+    clearSelection();
+    setFocusItem(nullptr);
+    switch (tool->tool()) {
+      case Tool::BasicSelectionTool: {
+        QGraphicsItem *item = itemAt(pos, QTransform());
+        if (!(item && item->flags() & QGraphicsItem::ItemIsSelectable)) break;
+        item->setSelected(true);
+        selection.append(item);
         selection.append(&selection_bounding_rect);
         tool->initTransformations(selection);
-        // 1. Check if the user clicked on some special point on the
-        // bounding rect of the selection.
-        const QPolygonF selection_rect = selection_bounding_rect.scaleHandles();
-        for (const auto &point : selection_rect)
-            if ((pos - point).manhattanLength() < 4)
-            {
-                tool->startScaling(point, selection_bounding_rect.sceneCenter());
-                return;
-            }
-        if ((pos - selection_bounding_rect.sceneRotationHandle()).manhattanLength() < 4)
-        {
-            tool->startRotation(pos, selection_bounding_rect.sceneCenter());
-            return;
-        }
-        // 2. Check if the user clicked on a selected object.
-        /* Option 1: Every click in the bounding rect activates dragging. */
-        if (selection_bounding_rect.contains(selection_bounding_rect.mapFromScene(pos)))
-        {
-            tool->startMove(pos);
-            return;
-        }
-        // */
-        /* Option 2: Selection is only dragged when clicking directly on an object.
-        selection.pop_back();
-        for (auto item : selection)
-            if (item->contains(item->mapFromScene(pos)))
-            {
-                tool->startMove(pos);
-                return;
-            }
-        // */
-        selection.clear();
+        tool->startMove(pos);
+        break;
+      }
+      case Tool::RectSelectionTool:
+        tool->startRectSelection(pos, this);
+        break;
+      case Tool::FreehandSelectionTool:
+        tool->startFreehandSelection(pos, this);
+        break;
+      default:
+        break;
     }
-    if (tool->type() == SelectionTool::NoOperation)
-    {
-        clearSelection();
-        switch (tool->tool())
-        {
-        case Tool::BasicSelectionTool:
-        {
-            QGraphicsItem *item = itemAt(pos, QTransform());
-            if (!(item && item->flags() & QGraphicsItem::ItemIsSelectable))
-                break;
-            item->setSelected(true);
-            selection.append(item);
-            selection.append(&selection_bounding_rect);
-            tool->initTransformations(selection);
-            tool->startMove(pos);
-            break;
-        }
-        case Tool::RectSelectionTool:
-            tool->startRectSelection(pos, this);
-            break;
-        case Tool::FreehandSelectionTool:
-            tool->startFreehandSelection(pos, this);
-            break;
-        default:
-            break;
-        }
-    }
+  }
 }
 
-void SlideScene::handleSelectionStopEvents(SelectionTool *tool, const QPointF &pos, const QPointF &start_pos)
+void SlideScene::handleSelectionStopEvents(std::shared_ptr<SelectionTool> tool,
+                                           const QPointF &pos,
+                                           const QPointF &start_pos)
 {
-    switch (tool->type())
-    {
+  debug_verbose(DebugFunctionCalls, tool.get() << pos << start_pos << this);
+  switch (tool->type()) {
     case SelectionTool::Move:
     case SelectionTool::Rotate:
-    case SelectionTool::Resize:
-    {
-        const QHash<QGraphicsItem*, QTransform> &originalTransforms = tool->originalTransforms();
-        if (originalTransforms.count() <= 1)
-            return;
-        drawHistory::Step *step = new drawHistory::Step;
-        const bool finalize = preferences()->global_flags & Preferences::FinalizeDrawnPaths;
-        QTransform transform;
-        for (auto it=originalTransforms.cbegin(); it!=originalTransforms.cend(); ++it)
-        {
-            if (it.key() == &selection_bounding_rect)
-                continue;
-            transform = it.key()->transform();
-            transform *= it->inverted();
-            step->transformedItems.insert(it.key(), transform);
-            if (finalize && (it.key()->type() == BasicGraphicsPath::Type || it.key()->type() == FullGraphicsPath::Type))
-                static_cast<AbstractGraphicsPath*>(it.key())->finalize();
-        }
-        emit sendHistoryStep(page | page_part, step);
-        updateSelectionRect();
-        break;
+    case SelectionTool::Resize: {
+      const QHash<QGraphicsItem *, QTransform> &originalTransforms =
+          tool->originalTransforms();
+      if (originalTransforms.count() <= 1) {
+        if (tool == tmp_selection_tool) tmp_selection_tool = nullptr;
+        return;
+      }
+      const bool finalize =
+          preferences()->global_flags & Preferences::FinalizeDrawnPaths;
+      QTransform transform;
+      std::map<QGraphicsItem *, QTransform> transforms;
+      for (auto it = originalTransforms.cbegin();
+           it != originalTransforms.cend(); ++it) {
+        if (it.key() == &selection_bounding_rect) continue;
+        transform = it.key()->transform();
+        transform *= it->inverted();
+        transforms.insert({it.key(), transform});
+        if (finalize && (it.key()->type() == BasicGraphicsPath::Type ||
+                         it.key()->type() == FullGraphicsPath::Type))
+          static_cast<AbstractGraphicsPath *>(it.key())->finalize();
+      }
+      emit sendHistoryStep(page | page_part, &transforms, nullptr, nullptr);
+      updateSelectionRect();
+      break;
     }
-    case SelectionTool::SelectRect:
-    {
-        tool->liveUpdate(pos);
-        QPainterPath path;
-        path.addPolygon(tool->polygon());
-        setSelectionArea(path, Qt::ReplaceSelection, Qt::ContainsItemBoundingRect);
-        break;
+    case SelectionTool::SelectRect: {
+      tool->liveUpdate(pos);
+      QPainterPath path;
+      path.addPolygon(tool->polygon());
+      setSelectionArea(path, Qt::ReplaceSelection,
+                       Qt::ContainsItemBoundingRect);
+      break;
     }
-    case SelectionTool::SelectPolygon:
-    {
-        tool->liveUpdate(pos);
-        QPainterPath path;
-        path.addPolygon(tool->polygon());
-        /* It should be possible to select all items inside path with the following commented line of code.
-         * However, because QTBUG-74935 is not fixed (since 3 years!), we need a workaround. */
-        //setSelectionArea(path, Qt::ReplaceSelection, Qt::ContainsItemShape);
-        clearSelection();
-        for (QGraphicsItem *item : items(path.boundingRect(), Qt::ContainsItemBoundingRect)) {
-            if (path.contains(item->mapToScene(item->shape())))
-                item->setSelected(true);
-        }
-        break;
+    case SelectionTool::SelectPolygon: {
+      tool->liveUpdate(pos);
+      QPainterPath path;
+      path.addPolygon(tool->polygon());
+      /* It should be possible to select all items inside path with the
+       * following commented line of code. However, because QTBUG-74935 is not
+       * fixed (since 3 years!), we need a workaround. */
+      // setSelectionArea(path, Qt::ReplaceSelection, Qt::ContainsItemShape);
+      clearSelection();
+      setFocusItem(nullptr);
+      for (QGraphicsItem *item :
+           items(path.boundingRect(), Qt::IntersectsItemBoundingRect)) {
+        if (path.contains(item->mapToScene(item->shape())))
+          item->setSelected(true);
+      }
+      break;
     }
     default:
-        break;
-    }
+      break;
+  }
+  if (tool == tmp_selection_tool)
+    tmp_selection_tool = nullptr;
+  else
     tool->reset();
 }
 
 void SlideScene::receiveAction(const Action action)
 {
-    debug_msg(DebugKeyInput, "SlideScene received action" << action);
-    switch (action)
-    {
+  debug_verbose(DebugFunctionCalls, action << this);
+  debug_msg(DebugKeyInput, "SlideScene received action" << action);
+  switch (action) {
     case ScrollDown:
-        setSceneRect(sceneRect().translated(0, sceneRect().height()/5));
-        break;
+      setSceneRect(sceneRect().translated(0, sceneRect().height() / 5));
+      break;
     case ScrollUp:
-        setSceneRect(sceneRect().translated(0, -sceneRect().height()/5));
-        break;
+      setSceneRect(sceneRect().translated(0, -sceneRect().height() / 5));
+      break;
     case ScrollNormal:
-        setSceneRect({{0,0}, sceneRect().size()});
-        break;
+      setSceneRect({{0, 0}, sceneRect().size()});
+      break;
     case PauseMedia:
-        pauseMedia();
-        break;
+      pauseMedia();
+      break;
     case PlayMedia:
-        playMedia();
-        break;
+      playMedia();
+      break;
     case PlayPauseMedia:
-        playPauseMedia();
-        break;
+      playPauseMedia();
+      break;
     case Mute:
-        for (const auto &m : qAsConst(mediaItems))
-#if (QT_VERSION_MAJOR >= 6)
-            if (m.audio_out)
-                m.audio_out->setMuted(true);
-#else
-            if (m.player)
-                m.player->setMuted(true);
-#endif
-        break;
+      for (const auto &m : std::as_const(mediaItems)) m->setMuted(true);
+      break;
     case Unmute:
-        if (!(slide_flags & SlideFlags::MuteSlide))
-            for (const auto &m : qAsConst(mediaItems))
-#if (QT_VERSION_MAJOR >= 6)
-                if (m.audio_out)
-                    m.audio_out->setMuted(false);
-#else
-                if (m.player)
-                    m.player->setMuted(false);
-#endif
-        break;
+      if (!(slide_flags & SlideFlags::MuteSlide))
+        for (const auto &m : std::as_const(mediaItems))
+          if (!(m->flags() & MediaAnnotation::Mute)) m->setMuted(false);
+      break;
     case CopyClipboard:
-        if (slide_flags & ShowDrawings && hasFocus())
-            copyToClipboard();
-        break;
+      if (slide_flags & ShowDrawings && hasFocus()) copyToClipboard();
+      break;
     case CutClipboard:
-        if (slide_flags & ShowDrawings && hasFocus())
-        {
-            copyToClipboard();
-            removeSelection();
-        }
-        break;
+      if (slide_flags & ShowDrawings && hasFocus()) {
+        copyToClipboard();
+        removeSelection();
+      }
+      break;
     case RemoveSelectedItems:
-        if (slide_flags & ShowDrawings && hasFocus())
-            removeSelection();
-        break;
+      if (slide_flags & ShowDrawings && hasFocus()) removeSelection();
+      break;
     case PasteClipboard:
-        if (slide_flags & ShowDrawings && hasFocus())
-            pasteFromClipboard();
-        break;
-    case DuplicateSelectedItems:
-        if (slide_flags & ShowDrawings && hasFocus())
-        {
-            copyToClipboard();
-            pasteFromClipboard();
-        }
-        break;
+      if (slide_flags & ShowDrawings && hasFocus()) pasteFromClipboard();
+      break;
     case SelectionToForeground:
-        if (slide_flags & ShowDrawings && hasFocus())
-            selectionToForeground();
-        break;
+      if (slide_flags & ShowDrawings && hasFocus()) {
+        const QList<QGraphicsItem *> selection = selectedItems();
+        if (!selection.empty())
+          emit bringToForeground(page | page_part, selection);
+      }
+      break;
+    case SelectionToBackground:
+      if (slide_flags & ShowDrawings && hasFocus()) {
+        const QList<QGraphicsItem *> selection = selectedItems();
+        if (!selection.empty())
+          emit bringToBackground(page | page_part, selection);
+      }
+      break;
     case SelectAll:
-        if (slide_flags & ShowDrawings && hasFocus())
-            for (const auto item : items())
-                if (item->flags() & QGraphicsItem::ItemIsSelectable)
-                    item->setSelected(true);
-        break;
+      if (slide_flags & ShowDrawings && hasFocus())
+        for (const auto item : items())
+          if (item->flags() & QGraphicsItem::ItemIsSelectable)
+            item->setSelected(true);
+      break;
     case ClearSelection:
-        clearSelection();
-        break;
+      clearSelection();
+      setFocusItem(nullptr);
+      break;
     case PdfFilesChanged:
-        for (const auto &media : mediaItems)
-        {
-            delete media.item;
-            delete media.player;
-#if (QT_VERSION_MAJOR >= 6)
-            delete media.audio_out;
-#endif
-        }
-        mediaItems.clear();
-        break;
+      mediaItems.clear();
+      break;
     default:
-        break;
-    }
+      break;
+  }
 }
 
 void SlideScene::prepareNavigationEvent(const int newpage)
 {
-    // Adjust scene size.
-    /// Page size in points.
-    QSizeF pagesize = master->getPageSize(master->overlaysShifted(newpage, shift));
-    debug_verbose(DebugPageChange, newpage << pagesize << master->getDocument()->flexiblePageSizes());
-    // Don't do anything if page size ist not valid. This avoids cleared slide
-    // scenes which could mess up the layout and invalidate cache.
-    if ((pagesize.isNull() || !pagesize.isValid()) && !master->getDocument()->flexiblePageSizes())
-    {
-        pageItem->clearPixmaps();
-        return;
-    }
-    switch (page_part)
-    {
+  debug_verbose(DebugFunctionCalls, newpage << this);
+  // Adjust scene size.
+  /// Page size in points.
+  QSizeF pagesize =
+      master->getPageSize(master->overlaysShifted(newpage, shift));
+  debug_verbose(
+      DebugPageChange,
+      newpage << pagesize << master->getDocument()->flexiblePageSizes());
+  // Don't do anything if page size ist not valid. This avoids cleared slide
+  // scenes which could mess up the layout and invalidate cache.
+  if ((pagesize.isNull() || !pagesize.isValid()) &&
+      !master->getDocument()->flexiblePageSizes()) {
+    pageItem->clearPixmaps();
+    return;
+  }
+  switch (page_part) {
     case LeftHalf:
-        pagesize.rwidth() /= 2;
-        setSceneRect(0., 0., pagesize.width(), pagesize.height());
-        break;
+      pagesize.rwidth() /= 2;
+      setSceneRect(0., 0., pagesize.width(), pagesize.height());
+      break;
     case RightHalf:
-        pagesize.rwidth() /= 2;
-        setSceneRect(pagesize.width(), 0., pagesize.width(), pagesize.height());
-        break;
+      pagesize.rwidth() /= 2;
+      setSceneRect(pagesize.width(), 0., pagesize.width(), pagesize.height());
+      break;
     default:
-        setSceneRect(0., 0., pagesize.width(), pagesize.height());
-        break;
-    }
+      setSceneRect(0., 0., pagesize.width(), pagesize.height());
+      break;
+  }
 }
 
 void SlideScene::navigationEvent(const int newpage, SlideScene *newscene)
 {
-    debug_msg(DebugPageChange, "scene" << this << "navigates to" << newpage << "as" << newscene);
-    pauseMedia();
-    clearSelection();
-    if (pageTransitionItem)
-    {
-        removeItem(pageTransitionItem);
-        delete pageTransitionItem;
-        pageTransitionItem = NULL;
+  debug_msg(DebugPageChange | DebugFunctionCalls,
+            "scene" << this << "navigates to" << newpage << "as" << newscene);
+  pauseMedia();
+  clearSelection();
+  setFocusItem(nullptr);
+  if (pageTransitionItem) {
+    removeItem(pageTransitionItem);
+    delete pageTransitionItem;
+    pageTransitionItem = nullptr;
+  }
+  if (animation) {
+    animation->stop();
+    delete animation;
+    animation = nullptr;
+  }
+  pageItem->setOpacity(1.);
+  pageItem->setRect(sceneRect());
+  pageItem->trackNew();
+  if ((!newscene || newscene == this) && page != newpage &&
+      (slide_flags & ShowTransitions)) {
+    SlideTransition transition =
+        master->transition(newpage > page ? newpage : page);
+    if (transition.type > 0 && transition.duration > 1e-3) {
+      if (newpage < page) transition.invert();
+      debug_msg(DebugTransitions,
+                "Transition:" << transition.type << transition.duration
+                              << transition.properties << transition.angle
+                              << transition.scale);
+      startTransition(newpage, transition);
+      return;
     }
-    if (animation)
-    {
-        animation->stop();
-        delete animation;
-        animation = NULL;
+  }
+  page = newpage;
+  emit navigationToViews(page, newscene ? newscene : this);
+  QList<QGraphicsItem *> list = items();
+  while (!list.isEmpty()) removeItem(list.takeLast());
+  if (!newscene || newscene == this) {
+    addItem(pageItem);
+    loadMedia(page);
+    if (slide_flags & ShowDrawings) {
+      PathContainer *paths{nullptr};
+      emit requestNewPathContainer(&paths, page | page_part);
+      if (paths)
+        for (auto path : *paths) addItem(path);
     }
-    pageItem->setOpacity(1.);
-    pageItem->setRect(sceneRect());
-    pageItem->trackNew();
-    if ((!newscene || newscene == this) && page != newpage && (slide_flags & ShowTransitions))
-    {
-        SlideTransition transition = master->transition(newpage > page ? newpage : page);
-        if (transition.type > 0)
-        {
-            if (newpage < page)
-                transition.invert();
-            debug_msg(DebugTransitions, "Transition:" << transition.type << transition.duration << transition.properties << transition.angle << transition.scale);
-            startTransition(newpage, transition);
-            return;
-        }
-    }
-    page = newpage;
-    emit navigationToViews(page, newscene ? newscene : this);
-    QList<QGraphicsItem*> list = items();
-    while (!list.isEmpty())
-        removeItem(list.takeLast());
-    if (!newscene || newscene == this)
-    {
-        addItem(pageItem);
-        loadMedia(page);
-        if (slide_flags & ShowDrawings)
-        {
-            PathContainer *paths;
-            emit requestNewPathContainer(&paths, page | page_part);
-            if (paths)
-            {
-                const auto end = paths->cend();
-                for (auto it = paths->cbegin(); it != end; ++it)
-                    addItem(*it);
-            }
-        }
-    }
-    invalidate();
-    emit finishTransition();
+    if (slide_flags & ShowSearchResults) updateSearchResults();
+  }
+  invalidate();
+  emit finishTransition();
 }
 
 void SlideScene::loadMedia(const int page)
 {
-    if (!(slide_flags & LoadMedia))
-        return;
-    const QList<MediaAnnotation> *list = master->getDocument()->annotations(page);
-    if (!list)
-        return;
-    for (const auto &annotation : *list)
-    {
-        if (annotation.type != MediaAnnotation::InvalidAnnotation)
-        {
-            debug_msg(DebugMedia, "loading media" << annotation.file << annotation.rect);
-            slide::MediaItem &item = getMediaItem(annotation, page);
-            if (item.item)
-            {
-                item.item->setSize(item.annotation.rect.size());
-                item.item->setPos(item.annotation.rect.topLeft());
-                item.item->show();
-                addItem(item.item);
-            }
-            // TODO: control autoplay audio
-            if (item.player && slide_flags & AutoplayVideo)
-                item.player->play();
-        }
-    }
-    delete list;
+  if (!(slide_flags & LoadMedia)) return;
+  const QList<std::shared_ptr<MediaAnnotation>> list =
+      master->getDocument()->annotations(page);
+  for (const auto &annotation : list) {
+    debug_msg(DebugMedia,
+              "loading media" << annotation->type() << annotation->rect());
+    std::shared_ptr<MediaItem> &item = getMediaItem(annotation, page);
+    if (item->asQGraphicsItem()->scene() != this)
+      addItem(item->asQGraphicsItem());
+    item->asQGraphicsItem()->setZValue(0);
+    item->show();
+    if ((slide_flags & AutoplayVideo) &&
+        (item->flags() & MediaAnnotation::Autoplay))
+      item->play();
+  }
 }
 
 void SlideScene::postRendering()
 {
-    pageItem->clearOld();
-    int newpage = page + 1;
-    if (shift & AnyOverlay)
-        newpage = master->getDocument()->overlaysShifted(page, 1 | (shift & AnyOverlay));
-    if (slide_flags & CacheVideos)
-        cacheMedia(newpage);
-    // Clean up media
-    if (mediaItems.size() > 2)
-    {
-        debug_verbose(DebugMedia, "Start cleaning up media" << mediaItems.size());
-        for (auto &media : mediaItems)
-        {
-            if (media.player == nullptr)
-                continue;
-            if (!media.pages.empty())
-            {
-                const auto it = media.pages.lower_bound(page);
-                if ((it != media.pages.end() && *it <= newpage) || (it != media.pages.begin() && *(std::prev(it)) >= page-1))
-                    continue;
-            }
-            debug_msg(DebugMedia, "Deleting media item:" << media.annotation.file << media.pages.size());
-            delete media.player;
-            media.player = nullptr;
-            delete media.item;
-            media.item = nullptr;
-#if (QT_VERSION_MAJOR >= 6)
-            delete media.audio_out;
-            media.audio_out = nullptr;
-#endif
-        }
+  debug_verbose(DebugFunctionCalls, this);
+  pageItem->clearOld();
+  int newpage =
+      page + 1;  ///< newpage is the next page after the currently shown page.
+  if (shift & AnyOverlay)
+    newpage =
+        master->getDocument()->overlaysShifted(page, 1 | (shift & AnyOverlay));
+  if (slide_flags & CacheVideos) cacheMedia(newpage);
+  // Clean up media
+  if (mediaItems.size() > 2) {
+    debug_verbose(DebugMedia, "Start cleaning up media" << mediaItems.size());
+    for (auto &media : mediaItems) {
+      if (!media->pages().empty()) {
+        // Delete media if the media item is not shown on any of these pages:
+        // page (currently shown), newpage, page-1, page-2
+        const auto it = media->pages().lower_bound(page);
+        if ((it != media->pages().end() && (*it == page || *it == newpage)) ||
+            (it != media->pages().begin() && *(std::prev(it)) >= page - 2))
+          continue;
+      }
+      media->deleteProvider();
     }
+  }
 }
 
 void SlideScene::cacheMedia(const int page)
 {
-    const QList<MediaAnnotation> *list = master->getDocument()->annotations(page);
-    if (!list)
-        return;
-    for (const auto &annotation : *list)
-        if (annotation.type != MediaAnnotation::InvalidAnnotation)
-            getMediaItem(annotation, page);
-    delete list;
+  debug_verbose(DebugFunctionCalls, page << this);
+  const QList<std::shared_ptr<MediaAnnotation>> list =
+      master->getDocument()->annotations(page);
+  for (const auto &annotation : list) {
+#if (QT_VERSION_MAJOR >= 6)
+    getMediaItem(annotation, page);
+#else
+    // workaround for strange behavior in Qt 5
+    auto &item = getMediaItem(annotation, page);
+    item->asQGraphicsItem()->setZValue(-1e9);
+    addItem(item->asQGraphicsItem());
+#endif
+  }
 }
 
-slide::MediaItem &SlideScene::getMediaItem(const MediaAnnotation &annotation, const int page)
+std::shared_ptr<MediaItem> &SlideScene::getMediaItem(
+    std::shared_ptr<MediaAnnotation> annotation, const int page)
 {
-    for (auto &mediaitem : mediaItems)
-    {
-        if (mediaitem.annotation == annotation && mediaitem.player)
-        {
-            debug_msg(DebugMedia, "Found media in cache" << annotation.file << annotation.rect);
-            mediaitem.pages.insert(page);
-            return mediaitem;
-        }
+  debug_verbose(DebugFunctionCalls, annotation.get() << page << this);
+  for (auto &mediaitem : mediaItems) {
+    if (*mediaitem->annotation() == *annotation) {
+      mediaitem->insertPage(page);
+      mediaitem->initializeProvider();
+      mediaitem->setMuted(
+          (slide_flags & SlideFlags::MuteSlide) ||
+          (preferences()->global_flags & Preferences::MuteApplication));
+      return mediaitem;
     }
-    debug_msg(DebugMedia, "Loading new media" << annotation.file << annotation.rect);
-    MediaPlayer *player = new MediaPlayer(this);
-#if (QT_VERSION_MAJOR >= 6)
-    QAudioOutput *audio_out = NULL;
-    if (annotation.type & MediaAnnotation::HasAudio)
-    {
-        audio_out = new QAudioOutput(this);
-        if ((slide_flags & MuteSlide) || (preferences()->global_flags & Preferences::MuteApplication) || annotation.volume <= 0.)
-            audio_out->setMuted(true);
-        else
-            audio_out->setVolume(annotation.volume);
-        debug_msg(DebugMedia, "muted:" << audio_out->isMuted() << "volume:" << audio_out->volume());
-    }
-    player->setAudioOutput(audio_out);
-#else
-    if (annotation.type & MediaAnnotation::HasAudio)
-    {
-        if ((slide_flags & MuteSlide) || (preferences()->global_flags & Preferences::MuteApplication) || annotation.volume <= 0.)
-            player->setMuted(true);
-        else
-            player->setVolume(100*annotation.volume);
-        debug_msg(DebugMedia, "muted:" << player->isMuted() << "volume:" << player->volume());
-    }
-#endif
-    QGraphicsVideoItem *item = NULL;
-    if (annotation.type & MediaAnnotation::HasVideo)
-    {
-        item = new QGraphicsVideoItem;
-        player->setVideoOutput(item);
-#if (QT_VERSION_MAJOR < 6)
-        // Ugly fix to cache videos: show invisible video pixel
-        item->setSize({1,1});
-        item->setPos(sceneRect().bottomRight());
-        addItem(item);
-        item->show();
-#endif
-    }
-    if ((annotation.type & MediaAnnotation::Embedded) == 0)
-#if (QT_VERSION_MAJOR >= 6)
-        player->setSource(annotation.file);
-#else
-    {
-        QMediaPlaylist *playlist = new QMediaPlaylist(player);
-        playlist->addMedia(annotation.file);
-        player->setPlaylist(playlist);
-    }
-#endif
-    else
-    {
-        warn_msg("Embedded media are currently not supported.");
-        //QBuffer *buffer = new QBuffer(player);
-        //buffer->setData(static_cast<const EmbeddedMedia&>(annotation).data);
-        //buffer->open(QBuffer::ReadOnly);
-        //player->setSourceDevice(buffer);
-    }
-    switch (annotation.mode)
-    {
-    case MediaAnnotation::Once:
-    case MediaAnnotation::Open:
-        break;
-    case MediaAnnotation::Palindrome:
-        warn_msg("Palindrome video: not implemented (yet)");
-        // TODO
-        [[clang::fallthrough]];
-    case MediaAnnotation::Repeat:
-    default:
-#if (QT_VERSION_MAJOR >= 6)
-        connect(player, &MediaPlayer::mediaStatusChanged, player, &MediaPlayer::repeatIfFinished);
-#else
-        if (player->playlist())
-            player->playlist()->setPlaybackMode(QMediaPlaylist::CurrentItemInLoop);
-#endif
-        break;
-    }
-#if (QT_VERSION_MAJOR >= 6)
-    mediaItems.append({annotation, item, player, audio_out, {page}});
-#else
-    mediaItems.append({annotation, item, player, {page}});
-#endif
-    return mediaItems.last();
+  }
+  debug_msg(DebugMedia, "creating new media item" << page);
+  const auto mediaitem = MediaItem::fromAnnotation(annotation, page);
+  mediaItems.append(mediaitem);
+  mediaitem->setMuted(
+      (slide_flags & SlideFlags::MuteSlide) ||
+      (preferences()->global_flags & Preferences::MuteApplication));
+  return mediaItems.last();
 }
 
-void SlideScene::startTransition(const int newpage, const SlideTransition &transition)
+void SlideScene::startTransition(const int newpage,
+                                 const SlideTransition &transition)
 {
+  debug_verbose(DebugFunctionCalls, newpage << transition.type << this);
+  pageTransitionItem = new PixmapGraphicsItem(sceneRect());
+  for (const auto view : static_cast<const QList<QGraphicsView *>>(views()))
+    static_cast<SlideView *>(view)->prepareTransition(pageTransitionItem);
+  page = newpage;
+  PixmapGraphicsItem *oldPage = pageTransitionItem;
+  if ((transition.type == SlideTransition::Fly ||
+       transition.type == SlideTransition::FlyRectangle) &&
+      !views().isEmpty() &&
+      (transition.properties & SlideTransition::Outwards) == 0) {
     pageTransitionItem = new PixmapGraphicsItem(sceneRect());
-    for (const auto view : static_cast<const QList<QGraphicsView*>>(views()))
-        static_cast<SlideView*>(view)->prepareTransition(pageTransitionItem);
-    page = newpage;
-    PixmapGraphicsItem *oldPage = pageTransitionItem;
-    if ((transition.type == SlideTransition::Fly || transition.type == SlideTransition::FlyRectangle) && !views().isEmpty())
-    {
-        if (!(transition.properties & SlideTransition::Outwards))
-        {
-            pageTransitionItem = new PixmapGraphicsItem(sceneRect());
-            connect(pageTransitionItem, &QObject::destroyed, oldPage, &PixmapGraphicsItem::deleteLater);
-            oldPage->setZValue(1e1);
-        }
-    }
-    else
-        emit navigationToViews(page, this);
-    debug_msg(DebugTransitions, "transition:" << transition.type << transition.duration << transition.angle << transition.properties);
-    QList<QGraphicsItem*> list = items();
-    while (!list.isEmpty())
-        removeItem(list.takeLast());
-    pageItem->setOpacity(1.);
-    addItem(pageItem);
-    loadMedia(page);
-    if (slide_flags & ShowDrawings)
-    {
-        PathContainer *paths;
-        emit requestNewPathContainer(&paths, page | page_part);
-        if (paths)
-        {
-            const auto end = paths->cend();
-            for (auto it = paths->cbegin(); it != end; ++it)
-                addItem(*it);
-        }
-    }
-    delete animation;
-    animation = NULL;
-    switch (transition.type)
-    {
+    connect(pageTransitionItem, &QObject::destroyed, oldPage,
+            &PixmapGraphicsItem::deleteLater);
+    oldPage->setZValue(1e9);
+  } else
+    emit navigationToViews(page, this);
+  pageTransitionItem->setZValue(1e10);
+  debug_msg(DebugTransitions,
+            "transition:" << transition.type << transition.duration
+                          << transition.angle << transition.properties);
+  QList<QGraphicsItem *> list = items();
+  QGraphicsItem *item;
+  while (!list.isEmpty()) {
+    item = list.takeLast();
+    if (item != pageItem) removeItem(item);
+  }
+  pageItem->setOpacity(1.);
+  if (pageItem->scene() != this) addItem(pageItem);
+  loadMedia(page);
+  if (slide_flags & ShowDrawings) {
+    PathContainer *paths{nullptr};
+    emit requestNewPathContainer(&paths, page | page_part);
+    if (paths)
+      for (const auto path : *paths) addItem(path);
+  }
+  delete animation;
+  animation = nullptr;
+  switch (transition.type) {
     case SlideTransition::Split:
-    {
-        const bool outwards = transition.properties & SlideTransition::Outwards;
-        pageTransitionItem->setMaskType(outwards ? PixmapGraphicsItem::NegativeClipping : PixmapGraphicsItem::PositiveClipping);
-        QPropertyAnimation *propanim = new QPropertyAnimation(pageTransitionItem, "mask");
-        propanim->setDuration(1000*transition.duration);
-        QRectF rect = sceneRect();
-        if (outwards)
-            propanim->setEndValue(rect);
-        else
-            propanim->setStartValue(rect);
-        if (transition.properties & SlideTransition::Vertical)
-        {
-            rect.moveTop(rect.top() + rect.height()/2);
-            rect.setHeight(0.);
-        }
-        else
-        {
-            rect.moveLeft(rect.left() + rect.width()/2);
-            rect.setWidth(0.);
-        }
-        if (outwards)
-        {
-            propanim->setStartValue(rect);
-            pageTransitionItem->setMask(rect);
-        }
-        else
-            propanim->setEndValue(rect);
-        animation = propanim;
-        break;
-    }
+      createSplitTransition(transition, pageTransitionItem);
+      break;
     case SlideTransition::Blinds:
-    {
-        const bool vertical = transition.properties & SlideTransition::Vertical;
-        pageTransitionItem->setMaskType(vertical ? PixmapGraphicsItem::VerticalBlinds : PixmapGraphicsItem::HorizontalBlinds);
-        QPropertyAnimation *propanim = new QPropertyAnimation(pageTransitionItem, "mask");
-        propanim->setDuration(1000*transition.duration);
-        QRectF rect = sceneRect();
-        if (vertical)
-            rect.setWidth(rect.width()/BLINDS_NUMBER_V);
-        else
-            rect.setHeight(rect.height()/BLINDS_NUMBER_H);
-        propanim->setStartValue(rect);
-        if (vertical)
-            rect.setWidth(0);
-        else
-            rect.setHeight(0);
-        propanim->setEndValue(rect);
-        animation = propanim;
-        break;
-    }
+      createBlindsTransition(transition, pageTransitionItem);
+      break;
     case SlideTransition::Box:
-    {
-        const bool outwards = transition.properties & SlideTransition::Outwards;
-        pageTransitionItem->setMaskType(outwards ? PixmapGraphicsItem::NegativeClipping : PixmapGraphicsItem::PositiveClipping);
-        QPropertyAnimation *propanim = new QPropertyAnimation(pageTransitionItem, "mask");
-        propanim->setDuration(1000*transition.duration);
-        QRectF rect = sceneRect();
-        if (outwards)
-            propanim->setEndValue(rect);
-        else
-            propanim->setStartValue(rect);
-        rect.moveTopLeft(rect.center());
-        rect.setSize({0,0});
-        if (outwards)
-        {
-            propanim->setStartValue(rect);
-            pageTransitionItem->setMask(rect);
-        }
-        else
-            propanim->setEndValue(rect);
-        animation = propanim;
-        break;
-    }
+      createBoxTransition(transition, pageTransitionItem);
+      break;
     case SlideTransition::Wipe:
-    {
-        QPropertyAnimation *propanim = new QPropertyAnimation(pageTransitionItem, "mask");
-        pageTransitionItem->setMaskType(PixmapGraphicsItem::PositiveClipping);
-        propanim->setDuration(1000*transition.duration);
-        QRectF rect = sceneRect();
-        pageTransitionItem->setMask(rect);
-        propanim->setStartValue(rect);
-        switch (transition.angle)
-        {
-        case 90:
-            rect.setBottom(rect.top()+1);
-            break;
-        case 180:
-            rect.setRight(rect.left()+1);
-            break;
-        case 270:
-            rect.setTop(rect.bottom()-1);
-            break;
-        default:
-            rect.setLeft(rect.right()-1);
-            break;
-        }
-        propanim->setEndValue(rect);
-        animation = propanim;
-        break;
+      createWipeTransition(transition, pageTransitionItem);
+      break;
+    case SlideTransition::Dissolve: {
+      pageTransitionItem->setOpacity(0.);
+      QPropertyAnimation *propanim =
+          new QPropertyAnimation(pageTransitionItem, "opacity");
+      propanim->setDuration(1000 * transition.duration);
+      propanim->setStartValue(1.);
+      propanim->setEndValue(0.);
+      animation = propanim;
+      break;
     }
-    case SlideTransition::Dissolve:
-    {
-        pageTransitionItem->setOpacity(0.);
-        QPropertyAnimation *propanim = new QPropertyAnimation(pageTransitionItem, "opacity");
-        propanim->setDuration(1000*transition.duration);
-        propanim->setStartValue(1.);
-        propanim->setEndValue(0.);
-        animation = propanim;
-        break;
-    }
-    case SlideTransition::Glitter:
-    {
-        pageTransitionItem->setMaskType(PixmapGraphicsItem::Glitter);
-        QPropertyAnimation *propanim = new QPropertyAnimation(pageTransitionItem, "progress");
-        propanim->setDuration(1000*transition.duration);
-        propanim->setStartValue(GLITTER_NUMBER);
-        propanim->setEndValue(0);
-        propanim->setEasingCurve(QEasingCurve::InOutSine);
-        animation = propanim;
-        break;
+    case SlideTransition::Glitter: {
+      pageTransitionItem->setMaskType(PixmapGraphicsItem::Glitter);
+      QPropertyAnimation *propanim =
+          new QPropertyAnimation(pageTransitionItem, "progress");
+      propanim->setDuration(1000 * transition.duration);
+      propanim->setStartValue(GLITTER_NUMBER);
+      propanim->setEndValue(0);
+      propanim->setEasingCurve(QEasingCurve::InOutSine);
+      animation = propanim;
+      break;
     }
     case SlideTransition::Fly:
     case SlideTransition::FlyRectangle:
-    {
-        const bool outwards = transition.properties & SlideTransition::Outwards;
-        for (const auto &view : static_cast<const QList<QGraphicsView*>>(views()))
-        {
-            SlideView *slideview = static_cast<SlideView*>(view);
-            slideview->pageChangedBlocking(page, this);
-            slideview->prepareFlyTransition(outwards, oldPage, pageTransitionItem);
-        }
-        if (!outwards)
-            addItem(oldPage);
-        pageItem->setZValue(-1e4);
-        pageTransitionItem->setZValue(1e5);
-
-        QPropertyAnimation *propanim = new QPropertyAnimation(pageTransitionItem, "x");
-        animation = propanim;
-        propanim->setDuration(1000*transition.duration);
-        switch (transition.angle)
-        {
-        case 90:
-            propanim->setPropertyName("y");
-            propanim->setStartValue(outwards ? 0. : sceneRect().height());
-            propanim->setEndValue(outwards ? -sceneRect().height() : 0.);
-            break;
-        case 180:
-            propanim->setStartValue(outwards ? 0. : sceneRect().width());
-            propanim->setEndValue(outwards ? -sceneRect().width() : 0.);
-            break;
-        case 270:
-            propanim->setPropertyName("y");
-            propanim->setStartValue(outwards ? 0. : -sceneRect().height());
-            propanim->setEndValue(outwards ? sceneRect().height() : 0.);
-            break;
-        default:
-            propanim->setStartValue(outwards ? 0. : -sceneRect().width());
-            propanim->setEndValue(outwards ? sceneRect().width() : 0.);
-            break;
-        }
-        propanim->setEasingCurve(outwards ? QEasingCurve::InSine : QEasingCurve::OutSine);
-        break;
-    }
+      createFlyTransition(transition, pageTransitionItem, oldPage);
+      break;
     case SlideTransition::Push:
-    {
-        /* TODO: For push transitions the new page is not ready when
-         * the animation starts. Instead of the new page, first the old
-         * page is shown where the new page is expected. However, this
-         * is usually only noted when the window geometry does not match
-         * the slide geometry. */
-        QPropertyAnimation *propanim = new QPropertyAnimation(this, "sceneRect");
-        propanim->setDuration(1000*transition.duration);
-        pageTransitionItem->setZValue(-1e3);
-        QRectF movedrect = sceneRect();
-        switch (transition.angle)
-        {
-        case 90:
-            movedrect.moveBottom(movedrect.top());
-            break;
-        case 180:
-            movedrect.moveRight(movedrect.left());
-            break;
-        case 270:
-            movedrect.moveTop(movedrect.bottom());
-            break;
-        default:
-            movedrect.moveLeft(movedrect.right());
-            break;
-        }
-        pageTransitionItem->setRect(movedrect);
-        propanim->setStartValue(movedrect);
-        propanim->setEndValue(sceneRect());
-        propanim->setEasingCurve(QEasingCurve::InOutSine);
-        animation = propanim;
-        break;
-    }
+      createPushTransition(transition, pageTransitionItem);
+      break;
     case SlideTransition::Cover:
-    {
-        QParallelAnimationGroup *groupanim = new QParallelAnimationGroup();
-        QPropertyAnimation *sceneanim = new QPropertyAnimation(this, "sceneRect", groupanim);
-        QPropertyAnimation *bganim = new QPropertyAnimation(pageTransitionItem, "x", groupanim);
-        sceneanim->setDuration(1000*transition.duration);
-        bganim->setDuration(1000*transition.duration);
-        pageTransitionItem->setZValue(-1e3);
-        QRectF movedrect = sceneRect();
-        switch (transition.angle)
-        {
-        case 90:
-            bganim->setPropertyName("y");
-            movedrect.moveBottom(movedrect.top());
-            bganim->setStartValue(movedrect.y());
-            bganim->setEndValue(sceneRect().y());
-            break;
-        case 180:
-            movedrect.moveRight(movedrect.left());
-            bganim->setStartValue(movedrect.x());
-            bganim->setEndValue(sceneRect().x());
-            break;
-        case 270:
-            bganim->setPropertyName("y");
-            movedrect.moveTop(movedrect.bottom());
-            bganim->setStartValue(movedrect.y());
-            bganim->setEndValue(sceneRect().y());
-            break;
-        default:
-            movedrect.moveLeft(movedrect.right());
-            bganim->setStartValue(movedrect.x());
-            bganim->setEndValue(sceneRect().x());
-            break;
-        }
-        sceneanim->setStartValue(movedrect);
-        sceneanim->setEndValue(sceneRect());
-        groupanim->addAnimation(sceneanim);
-        groupanim->addAnimation(bganim);
-        sceneanim->setEasingCurve(QEasingCurve::OutSine);
-        bganim->setEasingCurve(QEasingCurve::OutSine);
-        animation = groupanim;
-        break;
-    }
+      createCoverTransition(transition, pageTransitionItem);
+      break;
     case SlideTransition::Uncover:
-    {
-        QPropertyAnimation *propanim = new QPropertyAnimation();
-        propanim->setDuration(1000*transition.duration);
-        switch (transition.angle)
-        {
-        case 90:
-            propanim->setPropertyName("y");
-            propanim->setStartValue(0.);
-            propanim->setEndValue(-sceneRect().height());
-            break;
-        case 180:
-            propanim->setPropertyName("x");
-            propanim->setStartValue(0.);
-            propanim->setEndValue(-sceneRect().width());
-            break;
-        case 270:
-            propanim->setPropertyName("y");
-            propanim->setStartValue(0.);
-            propanim->setEndValue(sceneRect().height());
-            break;
-        default:
-            propanim->setPropertyName("x");
-            propanim->setStartValue(0.);
-            propanim->setEndValue(sceneRect().width());
-            break;
-        }
-        propanim->setTargetObject(pageTransitionItem);
-        propanim->setEasingCurve(QEasingCurve::InSine);
-        animation = propanim;
-        break;
-    }
+      createUncoverTransition(transition, pageTransitionItem);
+      break;
     case SlideTransition::Fade:
-    {
-        pageTransitionItem->setOpacity(0.);
-        QParallelAnimationGroup *groupanim = new QParallelAnimationGroup();
-        QPropertyAnimation *oldpageanim = new QPropertyAnimation(pageTransitionItem, "opacity", groupanim);
-        QPropertyAnimation *newpageanim = new QPropertyAnimation(pageItem, "opacity", groupanim);
-        oldpageanim->setDuration(1000*transition.duration);
-        oldpageanim->setStartValue(1.);
-        oldpageanim->setEndValue(0.);
-        newpageanim->setDuration(1000*transition.duration);
-        newpageanim->setStartValue(0.);
-        newpageanim->setEndValue(1.);
-        groupanim->addAnimation(oldpageanim);
-        groupanim->addAnimation(newpageanim);
-        oldpageanim->setEasingCurve(QEasingCurve::OutQuart);
-        newpageanim->setEasingCurve(QEasingCurve::InQuart);
-        animation = groupanim;
-        break;
-    }
-    }
-    if (animation)
-    {
-        connect(animation, &QAbstractAnimation::finished, this, &SlideScene::endTransition);
-        addItem(pageTransitionItem);
-        animation->start(QAbstractAnimation::KeepWhenStopped);
-    }
+      createFadeTransition(transition, pageTransitionItem);
+      break;
+  }
+  if (animation) {
+    connect(animation, &QAbstractAnimation::finished, this,
+            &SlideScene::endTransition);
+    addItem(pageTransitionItem);
+    animation->start(QAbstractAnimation::KeepWhenStopped);
+  }
+}
+
+void SlideScene::createSplitTransition(const SlideTransition &transition,
+                                       PixmapGraphicsItem *pageTransitionItem)
+{
+  debug_verbose(DebugFunctionCalls,
+                transition.type << pageTransitionItem << this);
+  const bool outwards = transition.properties & SlideTransition::Outwards;
+  pageTransitionItem->setMaskType(outwards
+                                      ? PixmapGraphicsItem::NegativeClipping
+                                      : PixmapGraphicsItem::PositiveClipping);
+  QPropertyAnimation *propanim =
+      new QPropertyAnimation(pageTransitionItem, "mask");
+  propanim->setDuration(1000 * transition.duration);
+  QRectF rect = sceneRect();
+  if (outwards)
+    propanim->setEndValue(rect);
+  else
+    propanim->setStartValue(rect);
+  if (transition.properties & SlideTransition::Vertical) {
+    rect.moveTop(rect.top() + rect.height() / 2);
+    rect.setHeight(0.);
+  } else {
+    rect.moveLeft(rect.left() + rect.width() / 2);
+    rect.setWidth(0.);
+  }
+  if (outwards) {
+    propanim->setStartValue(rect);
+    pageTransitionItem->setMask(rect);
+  } else
+    propanim->setEndValue(rect);
+  animation = propanim;
+}
+
+void SlideScene::createBlindsTransition(const SlideTransition &transition,
+                                        PixmapGraphicsItem *pageTransitionItem)
+{
+  debug_verbose(DebugFunctionCalls,
+                transition.type << pageTransitionItem << this);
+  const bool vertical = transition.properties & SlideTransition::Vertical;
+  pageTransitionItem->setMaskType(vertical
+                                      ? PixmapGraphicsItem::VerticalBlinds
+                                      : PixmapGraphicsItem::HorizontalBlinds);
+  QPropertyAnimation *propanim =
+      new QPropertyAnimation(pageTransitionItem, "mask");
+  propanim->setDuration(1000 * transition.duration);
+  QRectF rect = sceneRect();
+  if (vertical)
+    rect.setWidth(rect.width() / BLINDS_NUMBER_V);
+  else
+    rect.setHeight(rect.height() / BLINDS_NUMBER_H);
+  propanim->setStartValue(rect);
+  if (vertical)
+    rect.setWidth(0);
+  else
+    rect.setHeight(0);
+  propanim->setEndValue(rect);
+  animation = propanim;
+}
+
+void SlideScene::createBoxTransition(const SlideTransition &transition,
+                                     PixmapGraphicsItem *pageTransitionItem)
+{
+  debug_verbose(DebugFunctionCalls,
+                transition.type << pageTransitionItem << this);
+  const bool outwards = transition.properties & SlideTransition::Outwards;
+  pageTransitionItem->setMaskType(outwards
+                                      ? PixmapGraphicsItem::NegativeClipping
+                                      : PixmapGraphicsItem::PositiveClipping);
+  QPropertyAnimation *propanim =
+      new QPropertyAnimation(pageTransitionItem, "mask");
+  propanim->setDuration(1000 * transition.duration);
+  QRectF rect = sceneRect();
+  if (outwards)
+    propanim->setEndValue(rect);
+  else
+    propanim->setStartValue(rect);
+  rect.moveTopLeft(rect.center());
+  rect.setSize({0, 0});
+  if (outwards) {
+    propanim->setStartValue(rect);
+    pageTransitionItem->setMask(rect);
+  } else
+    propanim->setEndValue(rect);
+  animation = propanim;
+}
+
+void SlideScene::createWipeTransition(const SlideTransition &transition,
+                                      PixmapGraphicsItem *pageTransitionItem)
+{
+  debug_verbose(DebugFunctionCalls,
+                transition.type << pageTransitionItem << this);
+  QPropertyAnimation *propanim =
+      new QPropertyAnimation(pageTransitionItem, "mask");
+  pageTransitionItem->setMaskType(PixmapGraphicsItem::PositiveClipping);
+  propanim->setDuration(1000 * transition.duration);
+  QRectF rect = sceneRect();
+  pageTransitionItem->setMask(rect);
+  propanim->setStartValue(rect);
+  switch (transition.angle) {
+    case 90:
+      rect.setBottom(rect.top() + 1);
+      break;
+    case 180:
+      rect.setRight(rect.left() + 1);
+      break;
+    case 270:
+      rect.setTop(rect.bottom() - 1);
+      break;
+    default:
+      rect.setLeft(rect.right() - 1);
+      break;
+  }
+  propanim->setEndValue(rect);
+  animation = propanim;
+}
+
+void SlideScene::createFlyTransition(const SlideTransition &transition,
+                                     PixmapGraphicsItem *pageTransitionItem,
+                                     PixmapGraphicsItem *oldPage)
+{
+  debug_verbose(DebugFunctionCalls,
+                transition.type << pageTransitionItem << oldPage << this);
+  const bool outwards = transition.properties & SlideTransition::Outwards;
+  for (const auto &view : static_cast<const QList<QGraphicsView *>>(views())) {
+    SlideView *slideview = static_cast<SlideView *>(view);
+    slideview->pageChangedBlocking(page, this);
+    slideview->prepareFlyTransition(outwards, oldPage, pageTransitionItem);
+  }
+  if (!outwards) addItem(oldPage);
+  pageItem->setZValue(-1e4);
+
+  QPropertyAnimation *propanim =
+      new QPropertyAnimation(pageTransitionItem, "x");
+  propanim->setDuration(1000 * transition.duration);
+  switch (transition.angle) {
+    case 90:
+      propanim->setPropertyName("y");
+      propanim->setStartValue(outwards ? 0. : sceneRect().height());
+      propanim->setEndValue(outwards ? -sceneRect().height() : 0.);
+      break;
+    case 180:
+      propanim->setStartValue(outwards ? 0. : sceneRect().width());
+      propanim->setEndValue(outwards ? -sceneRect().width() : 0.);
+      break;
+    case 270:
+      propanim->setPropertyName("y");
+      propanim->setStartValue(outwards ? 0. : -sceneRect().height());
+      propanim->setEndValue(outwards ? sceneRect().height() : 0.);
+      break;
+    default:
+      propanim->setStartValue(outwards ? 0. : -sceneRect().width());
+      propanim->setEndValue(outwards ? sceneRect().width() : 0.);
+      break;
+  }
+  propanim->setEasingCurve(outwards ? QEasingCurve::InSine
+                                    : QEasingCurve::OutSine);
+  animation = propanim;
+}
+
+void SlideScene::createPushTransition(const SlideTransition &transition,
+                                      PixmapGraphicsItem *pageTransitionItem)
+{
+  debug_verbose(DebugFunctionCalls,
+                transition.type << pageTransitionItem << this);
+  /* TODO: For push transitions the new page is not ready when
+   * the animation starts. Instead of the new page, first the old
+   * page is shown where the new page is expected. However, this
+   * is usually only noted when the window geometry does not match
+   * the slide geometry. */
+  QPropertyAnimation *propanim = new QPropertyAnimation(this, "sceneRect");
+  propanim->setDuration(1000 * transition.duration);
+  pageTransitionItem->setZValue(-1e3);
+  QRectF movedrect = sceneRect();
+  switch (transition.angle) {
+    case 90:
+      movedrect.moveBottom(movedrect.top());
+      break;
+    case 180:
+      movedrect.moveRight(movedrect.left());
+      break;
+    case 270:
+      movedrect.moveTop(movedrect.bottom());
+      break;
+    default:
+      movedrect.moveLeft(movedrect.right());
+      break;
+  }
+  pageTransitionItem->setRect(movedrect);
+  propanim->setStartValue(movedrect);
+  propanim->setEndValue(sceneRect());
+  propanim->setEasingCurve(QEasingCurve::InOutSine);
+  animation = propanim;
+}
+
+void SlideScene::createCoverTransition(const SlideTransition &transition,
+                                       PixmapGraphicsItem *pageTransitionItem)
+{
+  debug_verbose(DebugFunctionCalls,
+                transition.type << pageTransitionItem << this);
+  QParallelAnimationGroup *groupanim = new QParallelAnimationGroup();
+  QPropertyAnimation *sceneanim =
+      new QPropertyAnimation(this, "sceneRect", groupanim);
+  QPropertyAnimation *bganim =
+      new QPropertyAnimation(pageTransitionItem, "x", groupanim);
+  sceneanim->setDuration(1000 * transition.duration);
+  bganim->setDuration(1000 * transition.duration);
+  pageTransitionItem->setZValue(-1e9);
+  QRectF movedrect = sceneRect();
+  switch (transition.angle) {
+    case 90:
+      bganim->setPropertyName("y");
+      movedrect.moveBottom(movedrect.top());
+      bganim->setStartValue(movedrect.y());
+      bganim->setEndValue(sceneRect().y());
+      break;
+    case 180:
+      movedrect.moveRight(movedrect.left());
+      bganim->setStartValue(movedrect.x());
+      bganim->setEndValue(sceneRect().x());
+      break;
+    case 270:
+      bganim->setPropertyName("y");
+      movedrect.moveTop(movedrect.bottom());
+      bganim->setStartValue(movedrect.y());
+      bganim->setEndValue(sceneRect().y());
+      break;
+    default:
+      movedrect.moveLeft(movedrect.right());
+      bganim->setStartValue(movedrect.x());
+      bganim->setEndValue(sceneRect().x());
+      break;
+  }
+  sceneanim->setStartValue(movedrect);
+  sceneanim->setEndValue(sceneRect());
+  groupanim->addAnimation(sceneanim);
+  groupanim->addAnimation(bganim);
+  sceneanim->setEasingCurve(QEasingCurve::OutSine);
+  bganim->setEasingCurve(QEasingCurve::OutSine);
+  animation = groupanim;
+}
+
+void SlideScene::createUncoverTransition(const SlideTransition &transition,
+                                         PixmapGraphicsItem *pageTransitionItem)
+{
+  debug_verbose(DebugFunctionCalls,
+                transition.type << pageTransitionItem << this);
+  QPropertyAnimation *propanim = new QPropertyAnimation();
+  propanim->setDuration(1000 * transition.duration);
+  switch (transition.angle) {
+    case 90:
+      propanim->setPropertyName("y");
+      propanim->setStartValue(0.);
+      propanim->setEndValue(-sceneRect().height());
+      break;
+    case 180:
+      propanim->setPropertyName("x");
+      propanim->setStartValue(0.);
+      propanim->setEndValue(-sceneRect().width());
+      break;
+    case 270:
+      propanim->setPropertyName("y");
+      propanim->setStartValue(0.);
+      propanim->setEndValue(sceneRect().height());
+      break;
+    default:
+      propanim->setPropertyName("x");
+      propanim->setStartValue(0.);
+      propanim->setEndValue(sceneRect().width());
+      break;
+  }
+  propanim->setTargetObject(pageTransitionItem);
+  propanim->setEasingCurve(QEasingCurve::InSine);
+  animation = propanim;
+}
+
+void SlideScene::createFadeTransition(const SlideTransition &transition,
+                                      PixmapGraphicsItem *pageTransitionItem)
+{
+  debug_verbose(DebugFunctionCalls,
+                transition.type << pageTransitionItem << this);
+  pageTransitionItem->setOpacity(0.);
+  QParallelAnimationGroup *groupanim = new QParallelAnimationGroup();
+  QPropertyAnimation *oldpageanim =
+      new QPropertyAnimation(pageTransitionItem, "opacity", groupanim);
+  QPropertyAnimation *newpageanim =
+      new QPropertyAnimation(pageItem, "opacity", groupanim);
+  oldpageanim->setDuration(1000 * transition.duration);
+  oldpageanim->setStartValue(1.);
+  oldpageanim->setEndValue(0.);
+  newpageanim->setDuration(1000 * transition.duration);
+  newpageanim->setStartValue(0.);
+  newpageanim->setEndValue(1.);
+  groupanim->addAnimation(oldpageanim);
+  groupanim->addAnimation(newpageanim);
+  oldpageanim->setEasingCurve(QEasingCurve::OutQuart);
+  newpageanim->setEasingCurve(QEasingCurve::InQuart);
+  animation = groupanim;
 }
 
 void SlideScene::endTransition()
 {
-    pageItem->setOpacity(1.);
-    if (pageTransitionItem)
-    {
-        removeItem(pageTransitionItem);
-        delete pageTransitionItem;
-        pageTransitionItem = NULL;
-    }
-    if (animation)
-    {
-        animation->stop();
-        delete animation;
-        animation = NULL;
-    }
-    loadMedia(page);
-    invalidate();
-    emit finishTransition();
+  debug_verbose(DebugFunctionCalls, this);
+  pageItem->setOpacity(1.);
+  if (pageTransitionItem) {
+    removeItem(pageTransitionItem);
+    delete pageTransitionItem;
+    pageTransitionItem = nullptr;
+  }
+  if (animation) {
+    animation->stop();
+    delete animation;
+    animation = nullptr;
+  }
+  loadMedia(page);
+  if (slide_flags & ShowSearchResults) updateSearchResults();
+  invalidate();
+  emit finishTransition();
 }
 
-void SlideScene::tabletPress(const QPointF &pos, const QTabletEvent *event)
+void SlideScene::startInputEvent(std::shared_ptr<const DrawTool> tool,
+                                 const QPointF &pos, const float pressure)
 {
-    handleEvents(
-                tablet_event_to_input_device(event) | Tool::StartEvent,
-                {pos},
-                QPointF(),
-                event->pressure()
-            );
-}
-
-void SlideScene::tabletMove(const QPointF &pos, const QTabletEvent *event)
-{
-    handleEvents(
-                tablet_event_to_input_device(event) | Tool::UpdateEvent,
-                {pos},
-                QPointF(),
-                event->pressure()
-            );
-}
-
-void SlideScene::tabletRelease(const QPointF &pos, const QTabletEvent *event)
-{
-    handleEvents(
-                tablet_event_to_input_device(event) | Tool::StopEvent,
-                {pos},
-                QPointF(),
-                event->pressure()
-            );
-}
-
-void SlideScene::startInputEvent(const DrawTool *tool, const QPointF &pos, const float pressure)
-{
-    if (!tool || !(tool->tool() & Tool::AnyDrawTool) || !(slide_flags & ShowDrawings))
-        return;
-    debug_verbose(DebugDrawing, "Start input event" << tool->tool() << tool->device() << tool << pressure);
-    stopDrawing();
-    if (currentItemCollection || currentlyDrawnItem)
-        return;
-    clearSelection();
-    currentItemCollection = new QGraphicsItemGroup();
-    addItem(currentItemCollection);
-    currentItemCollection->show();
-    switch (tool->shape()) {
+  debug_verbose(DebugFunctionCalls, tool.get() << pos << pressure << this);
+  if (!tool || !(tool->tool() & Tool::AnyDrawTool) ||
+      !(slide_flags & ShowDrawings))
+    return;
+  debug_verbose(DebugDrawing, "Start input event" << tool->tool()
+                                                  << tool->device()
+                                                  << tool.get() << pressure);
+  stopDrawing();
+  if (currentItemCollection || currentlyDrawnItem) return;
+  clearSelection();
+  const PathContainer *container = master->pathContainer(page | page_part);
+  const qreal z = container ? container->topZValue() + 10 : 10;
+  setFocusItem(nullptr);
+  currentItemCollection = new QGraphicsItemGroup();
+  currentItemCollection->setZValue(z);
+  addItem(currentItemCollection);
+  currentItemCollection->show();
+  switch (tool->shape()) {
     case DrawTool::Freehand:
     case DrawTool::Recognize:
-        if (tool->tool() == Tool::Pen && (tool->device() & Tool::PressureSensitiveDevices))
-            currentlyDrawnItem = new FullGraphicsPath(*tool, pos, pressure);
-        else
-            currentlyDrawnItem = new BasicGraphicsPath(*tool, pos);
-        currentlyDrawnItem->hide();
-        break;
-    case DrawTool::Rect:
-    {
-        RectGraphicsItem *rect_item = new RectGraphicsItem(*tool, pos);
-        rect_item->show();
-        currentlyDrawnItem = rect_item;
-        break;
+      if (tool->tool() == Tool::Pen &&
+          (tool->device() & Tool::PressureSensitiveDevices))
+        currentlyDrawnItem = new FullGraphicsPath(*tool, pos, pressure);
+      else
+        currentlyDrawnItem = new BasicGraphicsPath(*tool, pos);
+      currentlyDrawnItem->hide();
+      break;
+    case DrawTool::Rect: {
+      RectGraphicsItem *rect_item = new RectGraphicsItem(*tool, pos);
+      rect_item->show();
+      currentlyDrawnItem = rect_item;
+      break;
     }
-    case DrawTool::Ellipse:
-    {
-        EllipseGraphicsItem *rect_item = new EllipseGraphicsItem(*tool, pos);
-        rect_item->show();
-        currentlyDrawnItem = rect_item;
-        break;
+    case DrawTool::Ellipse: {
+      EllipseGraphicsItem *rect_item = new EllipseGraphicsItem(*tool, pos);
+      rect_item->show();
+      currentlyDrawnItem = rect_item;
+      break;
     }
-    case DrawTool::Line:
-    {
-        LineGraphicsItem *line_item = new LineGraphicsItem(*tool, pos);
-        line_item->show();
-        currentlyDrawnItem = line_item;
-        break;
+    case DrawTool::Line: {
+      LineGraphicsItem *line_item = new LineGraphicsItem(*tool, pos);
+      line_item->show();
+      currentlyDrawnItem = line_item;
+      break;
     }
-    case DrawTool::Arrow:
-    {
-        ArrowGraphicsItem *arrow_item = new ArrowGraphicsItem(*tool, pos);
-        arrow_item->show();
-        currentlyDrawnItem = arrow_item;
-        break;
+    case DrawTool::Arrow: {
+      ArrowGraphicsItem *arrow_item = new ArrowGraphicsItem(*tool, pos);
+      arrow_item->show();
+      currentlyDrawnItem = arrow_item;
+      break;
     }
-    }
-    addItem(currentlyDrawnItem);
+  }
+  currentlyDrawnItem->setZValue(z);
+  addItem(currentlyDrawnItem);
 }
 
-void SlideScene::stepInputEvent(const DrawTool *tool, const QPointF &pos, const float pressure)
+void SlideScene::stepInputEvent(std::shared_ptr<const DrawTool> tool,
+                                const QPointF &pos, const float pressure)
 {
-    if (pressure <= 0 || !tool || !(slide_flags & ShowDrawings))
-        return;
-    debug_verbose(DebugDrawing, "Step input event" << tool->tool() << tool->device() << tool << pressure);
-    if (!currentlyDrawnItem)
-        return;
-    switch (currentlyDrawnItem->type())
-    {
-        case BasicGraphicsPath::Type:
-        {
-            if (!currentItemCollection)
-                break;
-            BasicGraphicsPath *current_path = static_cast<BasicGraphicsPath*>(currentlyDrawnItem);
-            if (current_path->getTool() != *tool)
-                break;
-            FlexGraphicsLineItem *item = new FlexGraphicsLineItem(QLineF(current_path->lastPoint(), pos), tool->compositionMode());
-            current_path->addPoint(current_path->mapFromScene(pos));
-            item->setPen(tool->pen());
-            item->show();
-            addItem(item);
-            currentItemCollection->addToGroup(item);
-            currentItemCollection->show();
-            invalidate(item->sceneBoundingRect(), QGraphicsScene::ItemLayer);
-            break;
-        }
-        case FullGraphicsPath::Type:
-        {
-            if (!currentItemCollection)
-                break;
-            FullGraphicsPath *current_path = static_cast<FullGraphicsPath*>(currentlyDrawnItem);
-            if (current_path->getTool() != *tool)
-                break;
-            FlexGraphicsLineItem *item = new FlexGraphicsLineItem(QLineF(current_path->lastPoint(), pos), tool->compositionMode());
-            current_path->addPoint(current_path->mapFromScene(pos), pressure);
-            QPen pen = tool->pen();
-            pen.setWidthF(pen.widthF() * pressure);
-            item->setPen(pen);
-            item->show();
-            addItem(item);
-            currentItemCollection->addToGroup(item);
-            currentItemCollection->show();
-            invalidate(item->sceneBoundingRect(), QGraphicsScene::ItemLayer);
-            break;
-        }
-        case RectGraphicsItem::Type:
-            static_cast<RectGraphicsItem*>(currentlyDrawnItem)->setSecondPoint(pos);
-            break;
-        case EllipseGraphicsItem::Type:
-            static_cast<EllipseGraphicsItem*>(currentlyDrawnItem)->setSecondPoint(pos);
-            break;
-        case LineGraphicsItem::Type:
-            static_cast<LineGraphicsItem*>(currentlyDrawnItem)->setSecondPoint(pos);
-            break;
-        case ArrowGraphicsItem::Type:
-            static_cast<ArrowGraphicsItem*>(currentlyDrawnItem)->setSecondPoint(pos);
-            break;
+  debug_verbose(DebugFunctionCalls, tool.get() << pos << pressure << this);
+  if (pressure <= 0 || !tool || !(slide_flags & ShowDrawings)) return;
+  debug_verbose(DebugDrawing, "Step input event" << tool->tool()
+                                                 << tool->device() << tool.get()
+                                                 << pressure);
+  if (!currentlyDrawnItem) return;
+  switch (currentlyDrawnItem->type()) {
+    case BasicGraphicsPath::Type: {
+      if (!currentItemCollection) break;
+      BasicGraphicsPath *current_path =
+          static_cast<BasicGraphicsPath *>(currentlyDrawnItem);
+      if (current_path->getTool() != *tool) break;
+      FlexGraphicsLineItem *item = new FlexGraphicsLineItem(
+          QLineF(current_path->lastPoint(), pos), tool->compositionMode());
+      current_path->addPoint(current_path->mapFromScene(pos));
+      item->setPen(tool->pen());
+      currentItemCollection->addToGroup(item);
+      currentItemCollection->show();
+      invalidate(item->sceneBoundingRect(), QGraphicsScene::ItemLayer);
+      break;
     }
+    case FullGraphicsPath::Type: {
+      if (!currentItemCollection) break;
+      FullGraphicsPath *current_path =
+          static_cast<FullGraphicsPath *>(currentlyDrawnItem);
+      if (current_path->getTool() != *tool) break;
+      FlexGraphicsLineItem *item = new FlexGraphicsLineItem(
+          QLineF(current_path->lastPoint(), pos), tool->compositionMode());
+      current_path->addPoint(current_path->mapFromScene(pos), pressure);
+      QPen pen = tool->pen();
+      pen.setWidthF(pen.widthF() * pressure);
+      item->setPen(pen);
+      currentItemCollection->addToGroup(item);
+      currentItemCollection->show();
+      invalidate(item->sceneBoundingRect(), QGraphicsScene::ItemLayer);
+      break;
+    }
+    case RectGraphicsItem::Type:
+      static_cast<RectGraphicsItem *>(currentlyDrawnItem)->setSecondPoint(pos);
+      break;
+    case EllipseGraphicsItem::Type:
+      static_cast<EllipseGraphicsItem *>(currentlyDrawnItem)
+          ->setSecondPoint(pos);
+      break;
+    case LineGraphicsItem::Type:
+      static_cast<LineGraphicsItem *>(currentlyDrawnItem)->setSecondPoint(pos);
+      break;
+    case ArrowGraphicsItem::Type:
+      static_cast<ArrowGraphicsItem *>(currentlyDrawnItem)->setSecondPoint(pos);
+      break;
+  }
 }
 
-bool SlideScene::stopInputEvent(const DrawTool *tool)
+bool SlideScene::stopInputEvent(std::shared_ptr<const DrawTool> tool)
 {
-    if (!tool || !(slide_flags & ShowDrawings))
-        return false;
-    debug_verbose(DebugDrawing, "Stop input event" << tool->tool() << tool->device() << tool);
-    const bool changes = currentlyDrawnItem != NULL;
-    stopDrawing();
-    if (changes)
-    {
-        invalidate({QRect()}, QGraphicsScene::ItemLayer);
-        return true;
-    }
-    return false;
+  debug_verbose(DebugFunctionCalls, tool.get() << this);
+  if (!tool || !(slide_flags & ShowDrawings)) return false;
+  debug_verbose(DebugDrawing, "Stop input event" << tool->tool()
+                                                 << tool->device()
+                                                 << tool.get());
+  const bool changes = currentlyDrawnItem != nullptr;
+  stopDrawing();
+  if (changes) {
+    invalidate({QRect()}, QGraphicsScene::ItemLayer);
+    return true;
+  }
+  return false;
 }
 
-void SlideScene::noToolClicked(const QPointF &pos, const QPointF &startpos)
+void SlideScene::initTmpSelectionTool(const int device) noexcept
 {
-    debug_verbose(DebugMedia, "Clicked without tool" << pos << startpos);
-    // Try to handle multimedia annotation.
-    for (auto &item : mediaItems)
-    {
+  debug_verbose(DebugFunctionCalls, device << this);
+  if (tmp_selection_tool)
+    tmp_selection_tool->reset();
+  else
+    tmp_selection_tool = std::shared_ptr<SelectionTool>(
+        new SelectionTool(Tool::BasicSelectionTool, device));
+  QList<QGraphicsItem *> selection = selectedItems();
+  selection.append(&selection_bounding_rect);
+  tmp_selection_tool->initTransformations(selection);
+}
+
+bool SlideScene::noToolClicked(const QPointF &pos, const QPointF &startpos)
+{
+  debug_verbose(DebugFunctionCalls, pos << startpos << this);
+  debug_verbose(DebugMedia | DebugDrawing,
+                "Clicked without tool" << pos << startpos);
+  // Try to handle multimedia annotation.
+  for (auto &item : mediaItems)
 #if __cplusplus >= 202002L
-        // std::set<T>.contains is only available since C++ 20
-        if (item.pages.contains(page &~NotFullPage) && item.annotation.rect.contains(pos) && item.player)
+    // std::set<T>.contains is only available since C++ 20
+    if (item->pages().contains(page & ~NotFullPage) &&
+        item->rect().contains(pos))
 #else
-        if (item.pages.find(page &~NotFullPage) != item.pages.end() && item.annotation.rect.contains(pos) && item.player)
+    if (item->pages().find(page & ~NotFullPage) != item->pages().end() &&
+        item->rect().contains(pos))
 #endif
-        {
-            if (startpos.isNull() || item.annotation.rect.contains(startpos))
-            {
-#if (QT_VERSION_MAJOR >= 6)
-                if (item.player->playbackState() == QMediaPlayer::PlayingState)
-#else
-                if (item.player->state() == QMediaPlayer::PlayingState)
-#endif
-                    item.player->pause();
-                else
-                    item.player->play();
-                return;
-            }
-            break;
-        }
-    }
-    const PdfLink *link = master->getDocument()->linkAt(page, pos);
-    if (link && (startpos.isNull() || link->area.contains(startpos)))
     {
-        switch (link->type)
-        {
-        case PdfLink::PageLink:
-            emit navigationSignal(static_cast<const GotoLink*>(link)->page);
-            break;
-        case PdfLink::ActionLink:
-            emit sendAction(static_cast<const ActionLink*>(link)->action);
-            break;
-        case PdfLink::RemoteUrl:
-        case PdfLink::LocalUrl:
-        case PdfLink::ExternalPDF:
-            QDesktopServices::openUrl(static_cast<const ExternalLink*>(link)->url);
-            break;
-        case PdfLink::SoundLink:
-        case PdfLink::MovieLink:
-        {
-            // This is untested!
-            slide::MediaItem &item = getMediaItem(static_cast<const MediaLink*>(link)->annotation, page);
-            if (item.item)
-            {
-                item.item->setSize(item.annotation.rect.size());
-                item.item->setPos(item.annotation.rect.topLeft());
-                item.item->show();
-                addItem(item.item);
-            }
-            if (item.player)
-                item.player->play();
-            break;
-        }
-        case PdfLink::NoLink:
-            break;
-        }
+      if (startpos.isNull() ||
+          item->rect().contains(startpos) && item->toggle())
+        return true;
+      break;
     }
-    delete link;
+  // Try to handle links.
+  const PdfLink *link = master->getDocument()->linkAt(page, pos);
+  bool did_something = false;
+  if (link && (startpos.isNull() || link->area.contains(startpos)))
+    switch (link->type) {
+      case PdfLink::PageLink:
+        emit navigationSignal(static_cast<const GotoLink *>(link)->page);
+        did_something = true;
+        break;
+      case PdfLink::ActionLink:
+        emit sendAction(static_cast<const ActionLink *>(link)->action);
+        did_something = true;
+        break;
+      case PdfLink::RemoteUrl:
+      case PdfLink::LocalUrl:
+      case PdfLink::ExternalPDF:
+        QDesktopServices::openUrl(static_cast<const ExternalLink *>(link)->url);
+        did_something = true;
+        break;
+      case PdfLink::SoundLink:
+      case PdfLink::MovieLink: {
+        // This is untested!
+        std::shared_ptr<MediaItem> &item = getMediaItem(
+            static_cast<const MediaLink *>(link)->annotation, page);
+        if (item->asQGraphicsItem()->scene() != this)
+          addItem(item->asQGraphicsItem());
+        item->asQGraphicsItem()->setZValue(0);
+        item->show();
+        item->play();
+        did_something = true;
+        break;
+      }
+      case PdfLink::NoLink:
+        break;
+    }
+  delete link;
+  return did_something;
 }
 
 void SlideScene::createSliders() const
 {
-    for (auto &item : mediaItems)
-    {
+  debug_verbose(DebugFunctionCalls, mediaItems.size() << this);
+  for (auto &item : mediaItems)
+    if (
 #if __cplusplus >= 202002L
-        if (item.pages.contains(page &~NotFullPage) && item.player)
+        item->pages().contains(page & ~NotFullPage)
 #else
-        if (item.pages.find(page &~NotFullPage) != item.pages.end() && item.player)
+        item->pages().find(page & ~NotFullPage) != item->pages().end()
 #endif
-        {
-            for (const auto view : static_cast<const QList<QGraphicsView*>>(views()))
-                static_cast<SlideView*>(view)->addMediaSlider(item);
-        }
+        && (item->flags() & MediaAnnotation::ShowSlider)) {
+      for (const auto view : static_cast<const QList<QGraphicsView *>>(views()))
+        static_cast<SlideView *>(view)->addMediaSlider(item);
     }
 }
 
 void SlideScene::playMedia() const
 {
-    for (auto &item : mediaItems)
-    {
+  debug_verbose(DebugFunctionCalls, mediaItems.size() << this);
+  for (auto &item : mediaItems)
+    if (
 #if __cplusplus >= 202002L
-        if (item.pages.contains(page &~NotFullPage) && item.player)
+        item->pages().contains(page & ~NotFullPage)
 #else
-        if (item.pages.find(page &~NotFullPage) != item.pages.end() && item.player)
+        item->pages().find(page & ~NotFullPage) != item->pages().end()
 #endif
-            item.player->play();
-    }
+    )
+      item->play();
 }
 
 void SlideScene::pauseMedia() const
 {
-    for (auto &item : mediaItems)
-    {
+  debug_verbose(DebugFunctionCalls, mediaItems.size() << this);
+  for (auto &item : mediaItems)
+    if (
 #if __cplusplus >= 202002L
-        if (item.pages.contains(page &~NotFullPage) && item.player)
+        item->pages().contains(page & ~NotFullPage)
 #else
-        if (item.pages.find(page &~NotFullPage) != item.pages.end() && item.player)
+        item->pages().find(page & ~NotFullPage) != item->pages().end()
 #endif
-            item.player->pause();
-    }
+    )
+      item->pause();
 }
 
 void SlideScene::playPauseMedia() const
 {
-    for (auto &item : mediaItems)
-    {
-        if (
+  debug_verbose(DebugFunctionCalls, mediaItems.size() << this);
+  for (auto &item : mediaItems)
+    if (
 #if __cplusplus >= 202002L
-                item.pages.contains(page &~NotFullPage)
+        item->pages().contains(page & ~NotFullPage)
 #else
-                item.pages.find(page &~NotFullPage) != item.pages.end()
+        item->pages().find(page & ~NotFullPage) != item->pages().end()
 #endif
-                && item.player
-#if (QT_VERSION_MAJOR >= 6)
-                && item.player->playbackState() == QMediaPlayer::PlayingState
-#else
-                && item.player->state() == QMediaPlayer::PlayingState
-#endif
-            )
-        {
-            pauseMedia();
-            return;
-        }
+        && (item->flags() & MediaAnnotation::Interactive) &&
+        item->isPlaying()) {
+      pauseMedia();
+      return;
     }
-    playMedia();
+  playMedia();
 }
 
 void SlideScene::updateSelectionRect() noexcept
 {
-    // TODO: only call manually for higher efficiency?
-    // (note: selection can also be changed by eraser / undo / redo / ...)
-    QList<QGraphicsItem*> items = selectedItems();
-    if (items.isEmpty())
-    {
-        selection_bounding_rect.hide();
-        return;
-    }
-    // TODO: This is probably quite slow
-    QRectF newrect = items.first()->mapToScene(items.first()->shape()).controlPointRect();
-    for (const auto &item : items)
-        newrect = newrect.united(item->mapToScene(item->shape()).controlPointRect());
-    selection_bounding_rect.setRect(newrect);
-    if (selection_bounding_rect.scene() != this)
-        addItem(&selection_bounding_rect);
-    selection_bounding_rect.show();
+  // TODO: only call manually for higher efficiency?
+  // (note: selection can also be changed by eraser / undo / redo / ...)
+  const QList<QGraphicsItem *> items = selectedItems();
+  debug_verbose(DebugFunctionCalls, items << this);
+  if (items.isEmpty()) {
+    selection_bounding_rect.hide();
+    return;
+  }
+  // TODO: This is probably quite slow
+  QRectF newrect =
+      items.first()->mapToScene(items.first()->shape()).controlPointRect();
+  for (const auto &item : items)
+    newrect =
+        newrect.united(item->mapToScene(item->shape()).controlPointRect());
+  selection_bounding_rect.setRect(newrect);
+  if (selection_bounding_rect.scene() != this)
+    addItem(&selection_bounding_rect);
+  selection_bounding_rect.show();
 }
 
 void SlideScene::removeSelection() const
 {
-    const QList<QGraphicsItem*> selection = selectedItems();
-    emit sendRemovePaths(page | page_part, selection);
+  const QList<QGraphicsItem *> selection = selectedItems();
+  debug_verbose(DebugFunctionCalls, selection << this);
+  emit sendRemovePaths(page | page_part, selection);
 }
 
 void SlideScene::copyToClipboard() const
 {
-    const QList<QGraphicsItem*> selection = selectedItems();
-    if (selection.isEmpty())
-        return;
-    // Write to native data type
-    QByteArray data;
-    QDataStream stream(&data, QIODevice::WriteOnly);
-    stream << selection;
-    QMimeData *mimedata = new QMimeData();
-    mimedata->setData("application/beamerpresenter", data);
-    data.clear();
-    // Write svg data
-    QXmlStreamWriter writer(&data);
-    writer.setAutoFormatting(true);
-    writer.setAutoFormattingIndent(0);
-    writer.writeStartDocument();
-    writer.writeComment(" Created with BeamerPresenter ");
-    writer.writeStartElement("svg");
-    writer.writeAttribute("version", "1.1");
-    writer.writeAttribute("xmlns", "http://www.w3.org/2000/svg");
-    writer.writeAttribute("id", "svg1");
-    const QRectF rect = selection_bounding_rect.sceneBoundingRect();
-    writer.writeAttribute("width", QString::number(rect.width()));
-    writer.writeAttribute("height", QString::number(rect.height()));
-    writer.writeAttribute("viewBox", "0 0 " + QString::number(width()) + " " + QString::number(height()));
-    int id_counter = 1;
-    for (auto &item : selection)
-    {
-        const QTransform transform = item->transform();
-        QString matrix = QString("matrix(%1,%2,%3,%4,%5,%6)")
-                .arg(transform.m11())
-                .arg(transform.m12())
-                .arg(transform.m21())
-                .arg(transform.m22())
-                .arg(transform.dx())
-                .arg(transform.dy());
-        switch (item->type())
-        {
-        case BasicGraphicsPath::Type:
-        case FullGraphicsPath::Type:
-        {
-            // TODO: flexible width of FullGraphicsPath is ignored.
-            const AbstractGraphicsPath *path = static_cast<const AbstractGraphicsPath*>(item);
-            writer.writeStartElement("g");
-            writer.writeAttribute("x", QString::number(item->x()));
-            writer.writeAttribute("y", QString::number(item->y()));
-            writer.writeAttribute("id", "g"+QString::number(++id_counter));
-            writer.writeAttribute("transform", matrix);
-            writer.writeStartElement("path");
-            writer.writeAttribute("id", "path"+QString::number(++id_counter));
-            const DrawTool &tool = path->getTool();
-            QString style = "fill:";
-            style += tool.brush().style() == Qt::NoBrush ? "none" : tool.brush().color().name();
-            style += ";stroke:";
-            style += tool.color().name();
-            style += ";stroke-width:";
-            style += QString::number(tool.width());
-            style += ";stroke-linecap:round;stroke-linejoin:round;";
-            writer.writeAttribute("style", style);
-            writer.writeAttribute("d", path->svgCoordinates());
-            writer.writeEndElement();// "path" element
-            writer.writeEndElement(); // "g" element
-            break;
-        }
-        case TextGraphicsItem::Type:
-        {
-            const TextGraphicsItem *textItem = static_cast<const TextGraphicsItem*>(item);
-            writer.writeStartElement("text");
-            writer.writeAttribute("id", "text"+QString::number(++id_counter));
-            const QPointF origin = item->sceneBoundingRect().bottomLeft();
-            // TODO: coordinates are shifted.
-            writer.writeAttribute("x", QString::number(origin.x()));
-            writer.writeAttribute("y", QString::number(origin.y()));
-            writer.writeAttribute("transform", matrix);
-            writer.writeAttribute("style", "font-size:" + QString::number(textItem->font().pointSizeF()) + "pt");
-            // TODO: currently only plain text is supported.
-            writer.writeCharacters(textItem->toPlainText());
-            writer.writeEndElement();
-            break;
-        }
-        }
-    }
-    writer.writeEndElement(); // "svg" element
-    writer.writeEndDocument();
-    mimedata->setData("image/svg+xml", data);
-    // Add data to clipboard
-    QClipboard *clipboard = QGuiApplication::clipboard();
-    clipboard->setMimeData(mimedata);
+  QList<QGraphicsItem *> selection = selectedItems();
+  debug_verbose(DebugFunctionCalls, selection << this);
+  if (selection.isEmpty()) return;
+  // Sort selection by z order
+  std::sort(selection.begin(), selection.end(), &cmp_by_z);
+  // Write to native data type
+  QByteArray data;
+  QDataStream stream(&data, QIODevice::WriteOnly);
+  stream << selection;
+  QMimeData *mimedata = new QMimeData();
+  mimedata->setData("application/beamerpresenter", data);
+  data.clear();
+  const QRectF rect = selection_bounding_rect.sceneRect().boundingRect();
+  // Write svg data
+  writeToSVG(data, selection, rect);
+  mimedata->setData("image/svg+xml", data);
+  data.clear();
+  // Calculate resolution for pixel image data (kind of random)
+  const qreal resolution = std::min(4., 1600. / std::max(width(), height()));
+  // Write png data
+  writeToPixelImage(data, selection, rect, resolution, "PNG");
+  mimedata->setData("image/png", data);
+  data.clear();
+  // Write jpeg data
+  writeToPixelImage(data, selection, rect, resolution, "JPEG");
+  mimedata->setData("image/jpeg", data);
+  data.clear();
+  /* Disable inefficient and hardly used formats.
+   * Since the clipboard has a memory leak in Wayland, we don't want
+   * to add these extra data.
+  // Write bmp data
+  writeToPixelImage(data, selection, rect, resolution, "BMP");
+  mimedata->setData("image/bmp", data);
+  data.clear();
+  // Write ppm data
+  writeToPixelImage(data, selection, rect, resolution, "PPM");
+  mimedata->setData("image/ppm", data);
+  data.clear();
+  */
+  // Add data to clipboard
+  QClipboard *clipboard = QGuiApplication::clipboard();
+  clipboard->setMimeData(mimedata);
 }
 
 void SlideScene::pasteFromClipboard()
 {
-    const QMimeData *mimedata = QGuiApplication::clipboard()->mimeData();
-    QList<QGraphicsItem*> items;
-    if (mimedata->hasFormat("application/beamerpresenter"))
-    {
-        const QByteArray data = mimedata->data("application/beamerpresenter");
-        QDataStream stream(data);
-        stream >> items;
-        items.removeAll(nullptr);
-    }
-    else if (mimedata->hasFormat("image/svg+xml"))
-    {
-        QXmlStreamReader reader(mimedata->data("image/svg+xml"));
-        while (!reader.atEnd() && (reader.readNext() != QXmlStreamReader::StartElement || reader.name().toUtf8() != "svg")) {}
-        while (reader.readNextStartElement())
-        {
-            debug_msg(DebugDrawing, reader.name());
-            if (reader.name().toUtf8() == "g")
-            {
-                const QPointF pos(reader.attributes().value("x", "0.").toDouble(), reader.attributes().value("y", "0.").toDouble());
-                QTransform transform;
-                QString transform_string = reader.attributes().value("transform").toString();
-                if (transform_string.length() >= 19 && transform_string.startsWith("matrix(") && transform_string.endsWith(")"))
-                {
-                    // TODO: this is inefficient
-                    transform_string.remove("matrix(");
-                    transform_string.remove(")");
-                    const QStringList list = transform_string.trimmed().replace(" ", ",").split(",");
-                    if (list.length() == 6)
-                        transform.setMatrix(list[0].toDouble(), list[1].toDouble(), 0., list[2].toDouble(), list[3].toDouble(), 0., list[4].toDouble(), list[5].toDouble(), 1.);
-                }
-                while (reader.readNextStartElement() && reader.name().toUtf8() != "path" && !reader.isEndElement())
-                    reader.skipCurrentElement();
-                debug_msg(DebugDrawing, reader.name());
-                if (reader.name().toUtf8() != "path")
-                    continue;
-
-                QString coordinates = reader.attributes().value("d").toString();
-                coordinates.replace(",", " ");
-                // TODO: currently all coordinates are interpreted as absolute coordinates.
-                coordinates.remove("m");
-                coordinates.remove("l");
-                coordinates.remove("z");
-                coordinates.remove("L");
-                coordinates.remove("M");
-                QRegularExpression re;
-                re.setPattern(R"(\s\s+)");
-                coordinates.replace(re, " ");
-                coordinates = coordinates.trimmed();
-                QString style = reader.attributes().value("style").toString();
-                QColor color = Qt::black;
-                qreal width = 1.;
-                re.setPattern("stroke:(#[0-9a-fA-F]+)");
-                if (style.contains("stroke:"))
-                    color = QColor(re.match(style).captured(1));
-                re.setPattern("stroke-width:([0-9.]+)");
-                if (style.contains("stroke-width:"))
-                    width = re.match(style).captured(1).toDouble();
-                DrawTool tool(Tool::BasicSelectionTool, 0, QPen(color, width));
-                BasicGraphicsPath *path = new BasicGraphicsPath(tool, coordinates);
-                path->setPos(pos);
-                path->setPos(sceneRect().center());
-                path->setTransform(transform);
-                items.append(path);
-                if (!reader.isEndElement())
-                    reader.skipCurrentElement();
-            }
-            else if (reader.name().toUtf8() == "text")
-            {
-                // TODO
-            }
-            if (!reader.isEndElement())
-                reader.skipCurrentElement();
-        }
-        reader.clear();
-    }
-    if (items.isEmpty())
-        return;
-    clearSelection();
-    for (const auto item : items)
-    {
-        if (item->scene() != this)
-            addItem(item);
-        item->show();
-        item->setSelected(true);
-    }
-    emit sendAddPaths(page | page_part, items);
+  debug_verbose(DebugFunctionCalls, this);
+  const QMimeData *mimedata = QGuiApplication::clipboard()->mimeData();
+  QList<QGraphicsItem *> items;
+  if (mimedata->hasFormat("application/beamerpresenter")) {
+    const QByteArray data = mimedata->data("application/beamerpresenter");
+    QDataStream stream(data);
+    stream >> items;
+    items.removeAll(nullptr);
+  } else if (mimedata->hasFormat("image/svg+xml"))
+    readFromSVG(mimedata->data("image/svg+xml"), items);
+  else if (mimedata->hasFormat("image/png"))
+    readFromPixelImage(mimedata->data("image/png"), items, "PNG");
+  else if (mimedata->hasFormat("image/jpeg"))
+    readFromPixelImage(mimedata->data("image/jpeg"), items, "JPEG");
+  else if (mimedata->hasFormat("image/gif"))
+    readFromPixelImage(mimedata->data("image/gif"), items, "GIF");
+  else if (mimedata->hasFormat("image/bmp"))
+    readFromPixelImage(mimedata->data("image/bmp"), items, "BMP");
+  else if (mimedata->hasFormat("image/ppm"))
+    readFromPixelImage(mimedata->data("image/ppm"), items, "PPM");
+  if (items.empty()) return;
+  clearSelection();
+  setFocusItem(nullptr);
+  QRectF pasted_rect = items.constFirst()->sceneBoundingRect();
+  PathContainer *container = master->pathContainer(page | page_part);
+  qreal z = 0;
+  if (container) z = container->topZValue();
+  for (const auto item : items) {
+    z += 10;
+    item->setZValue(z);
+    if (item->scene() != this) addItem(item);
+    item->show();
+    item->setSelected(true);
+    pasted_rect = pasted_rect.united(item->sceneBoundingRect());
+  }
+  // Check if selection is visible. If not, move it to the slide.
+  qreal dx = 0, dy = 0;
+  const auto &scene_rect = sceneRect();
+  if (pasted_rect.left() + 3 >= scene_rect.right())
+    dx = scene_rect.right() - pasted_rect.right();
+  else if (pasted_rect.right() <= scene_rect.left() + 3)
+    dx = scene_rect.left() - pasted_rect.left();
+  if (pasted_rect.top() + 3 >= scene_rect.bottom())
+    dy = scene_rect.bottom() - pasted_rect.bottom();
+  else if (pasted_rect.bottom() <= scene_rect.top() + 3)
+    dy = scene_rect.top() - pasted_rect.top();
+  if (dx != 0 || dy != 0)
+    for (const auto item : items) item->moveBy(dx, dy);
+  emit sendAddPaths(page | page_part, items);
+  updateSelectionRect();
 }
 
-void SlideScene::selectionToForeground() const
+void SlideScene::toolChanged(std::shared_ptr<const Tool> tool) noexcept
 {
-    const QList<QGraphicsItem*> selection = selectedItems();
-    // TODO: implement this
+  debug_verbose(DebugFunctionCalls, tool.get() << this);
+  if (!tool ||
+      (tool->tool() & (Tool::AnySelectionTool | Tool::AnyPointingTool)))
+    return;
+  if (tool->tool() & Tool::AnyDrawTool) {
+    const QList<QGraphicsItem *> selection = selectedItems();
+    if (selection.isEmpty()) return;
+    std::map<AbstractGraphicsPath *, drawHistory::DrawToolDifference>
+        tool_changes;
+    const auto draw_tool = std::static_pointer_cast<const DrawTool>(tool);
+    for (const auto item : selection)
+      if (item->type() == BasicGraphicsPath::Type ||
+          item->type() == FullGraphicsPath::Type) {
+        const auto path = static_cast<AbstractGraphicsPath *>(item);
+        if (path->getTool() != *draw_tool)
+          tool_changes.insert({path, drawHistory::DrawToolDifference(
+                                         path->getTool(), *draw_tool)});
+        path->changeTool(*draw_tool);
+        path->update();
+      }
+    if (!tool_changes.empty())
+      emit sendHistoryStep(page | page_part, nullptr, &tool_changes, nullptr);
+  } else if (tool->tool() == Tool::TextInputTool) {
+    QList<QGraphicsItem *> selection = selectedItems();
+    if (focusItem() && focusItem()->type() == TextGraphicsItem::Type)
+      selection.append(focusItem());
+    if (selection.isEmpty()) return;
+    std::map<TextGraphicsItem *, drawHistory::TextPropertiesDifference>
+        text_changes;
+    const auto text_tool = std::static_pointer_cast<const TextTool>(tool);
+    TextGraphicsItem *text;
+    for (auto item : selection)
+      if (item->type() == TextGraphicsItem::Type) {
+        text = static_cast<TextGraphicsItem *>(item);
+        const QColor &old_color = text->defaultTextColor(),
+                     &new_color = text_tool->color();
+        if (text->font() != text_tool->font() || old_color != new_color)
+          text_changes.insert({text,
+                               {text->font(), text_tool->font(),
+                                old_color.rgba() ^ new_color.rgba()}});
+        text->setFont(text_tool->font());
+        text->setDefaultTextColor(new_color);
+      }
+    if (!text_changes.empty())
+      emit sendHistoryStep(page | page_part, nullptr, nullptr, &text_changes);
+  }
 }
 
-void SlideScene::toolChanged(const Tool *tool) noexcept
+void SlideScene::toolPropertiesChanged(const tool_variant &properties) noexcept
 {
-    if (tool->tool() & (Tool::AnySelectionTool | Tool::AnyPointingTool))
-        return;
-    drawHistory::Step *step = nullptr;
-    if (tool->tool() & Tool::AnyDrawTool)
-    {
-        const QList<QGraphicsItem*> selection = selectedItems();
-        if (selection.isEmpty())
-            return;
-        step = new drawHistory::Step;
-        const DrawTool *draw_tool = static_cast<const DrawTool*>(tool);
-        for (auto item : selection)
-        {
-            if (item->type() == BasicGraphicsPath::Type || item->type() == FullGraphicsPath::Type)
-            {
-                auto path = static_cast<AbstractGraphicsPath*>(item);
-                if (path->getTool() != *draw_tool)
-                    step->drawToolChanges.insert(path, drawHistory::DrawToolDifference(path->getTool(), *draw_tool));
-                path->changeTool(*draw_tool);
-                path->update();
-            }
-        }
-    }
-    else if (tool->tool() == Tool::TextInputTool)
-    {
-        QList<QGraphicsItem*> selection = selectedItems();
-        if (focusItem() && focusItem()->type() == TextGraphicsItem::Type)
-            selection.append(focusItem());
-        if (selection.isEmpty())
-            return;
-        step = new drawHistory::Step;
-        const TextTool *text_tool = static_cast<const TextTool*>(tool);
-        for (auto item : selection)
-        {
-            if (item->type() == TextGraphicsItem::Type)
-            {
-                auto text = static_cast<TextGraphicsItem*>(item);
-                if (text->font() != text_tool->font() || text->defaultTextColor() != text_tool->color())
-                    step->textPropertiesChanges.insert(text, {text->font(), text_tool->font(), text_tool->color().rgba() ^ text->defaultTextColor().rgba()});
-                text->setFont(text_tool->font());
-                text->setDefaultTextColor(text_tool->color());
-            }
-        }
-    }
-    if (!step)
-        return;
-    else if (step->isEmpty())
-        delete step;
-    else
-        emit sendHistoryStep(page | page_part, step);
-}
-
-void SlideScene::colorChanged(const QColor &color) noexcept
-{
-    drawHistory::Step *step = new drawHistory::Step;
-    for (auto item : selectedItems())
-    {
-        switch (item->type())
-        {
+  debug_verbose(DebugFunctionCalls, this);
+  QList<QGraphicsItem *> selection = selectedItems();
+  if (focusItem() && focusItem()->type() == TextGraphicsItem::Type)
+    selection.append(focusItem());
+  if (selection.empty()) return;
+  if (std::holds_alternative<QFont>(properties)) {
+    std::map<TextGraphicsItem *, drawHistory::TextPropertiesDifference>
+        text_changes;
+    const QFont font = std::get<QFont>(properties);
+    TextGraphicsItem *text;
+    for (auto item : selection)
+      if (item->type() == TextGraphicsItem::Type) {
+        text = static_cast<TextGraphicsItem *>(item);
+        if (text->font() != font)
+          text_changes.insert({text, {text->font(), font, 0}});
+        text->setFont(font);
+      }
+    if (!text_changes.empty())
+      emit sendHistoryStep(page | page_part, nullptr, nullptr, &text_changes);
+    return;
+  }
+  if (std::holds_alternative<QColor>(properties)) {
+    const QColor color = std::get<QColor>(properties);
+    std::map<AbstractGraphicsPath *, drawHistory::DrawToolDifference>
+        tool_changes;
+    std::map<TextGraphicsItem *, drawHistory::TextPropertiesDifference>
+        text_changes;
+    for (auto item : selection) {
+      switch (item->type()) {
         case BasicGraphicsPath::Type:
-        case FullGraphicsPath::Type:
-        {
-            auto path = static_cast<AbstractGraphicsPath*>(item);
-            if (path->getTool().color() != color)
-            {
-                DrawTool tool = path->getTool();
-                tool.setColor(color);
-                step->drawToolChanges.insert(path, drawHistory::DrawToolDifference(path->getTool(), tool));
-                path->changeTool(tool);
-                path->update();
-            }
-            break;
+        case FullGraphicsPath::Type: {
+          auto path = static_cast<AbstractGraphicsPath *>(item);
+          if (path->getTool().color() != color) {
+            DrawTool tool = path->getTool();
+            if (tool.brush().color() == tool.color())
+              tool.brush().setColor(color);
+            tool.setColor(color);
+            tool_changes.insert(
+                {path, drawHistory::DrawToolDifference(path->getTool(), tool)});
+            path->changeTool(tool);
+            path->update();
+          }
+          break;
         }
-        case TextGraphicsItem::Type:
-        {
-            auto text = static_cast<TextGraphicsItem*>(item);
-            step->textPropertiesChanges.insert(item, {text->font(), text->font(), text->defaultTextColor().rgba() ^ color.rgba()});
-            text->setDefaultTextColor(color);
-            break;
+        case TextGraphicsItem::Type: {
+          const auto text = static_cast<TextGraphicsItem *>(item);
+          text_changes.insert(
+              {text,
+               {text->font(), text->font(),
+                text->defaultTextColor().rgba() ^ color.rgba()}});
+          text->setDefaultTextColor(color);
+          break;
         }
-        }
+      }
     }
-    if (step->isEmpty())
-        delete step;
-    else
-        emit sendHistoryStep(page | page_part, step);
+    if (!tool_changes.empty() || !text_changes.empty())
+      emit sendHistoryStep(page | page_part, nullptr, &tool_changes,
+                           &text_changes);
+    return;
+  }
+
+  std::map<AbstractGraphicsPath *, drawHistory::DrawToolDifference>
+      tool_changes;
+  for (auto item : selection) {
+    switch (item->type()) {
+      case BasicGraphicsPath::Type:
+      case FullGraphicsPath::Type: {
+        auto path = static_cast<AbstractGraphicsPath *>(item);
+        DrawTool newtool = path->getTool();
+        switch (properties.index()) {
+          case 0: {
+            if (newtool.width() == std::get<qreal>(properties)) continue;
+            newtool.setWidth(std::get<qreal>(properties));
+            break;
+          }
+          case 1: {
+            QPen pen = newtool.pen();
+            if (pen.style() == std::get<Qt::PenStyle>(properties)) continue;
+            pen.setStyle(std::get<Qt::PenStyle>(properties));
+            newtool.setPen(pen);
+            break;
+          }
+          case 2: {
+            if (newtool.brush().style() == std::get<Qt::BrushStyle>(properties))
+              continue;
+            if (newtool.brush().style() == Qt::NoBrush)
+              newtool.brush().setColor(newtool.color());
+            newtool.brush().setStyle(std::get<Qt::BrushStyle>(properties));
+            break;
+          }
+          case 3: {
+            if (newtool.compositionMode() ==
+                std::get<QPainter::CompositionMode>(properties))
+              continue;
+            newtool.setCompositionMode(
+                std::get<QPainter::CompositionMode>(properties));
+            break;
+          }
+        }
+        tool_changes.insert(
+            {path, drawHistory::DrawToolDifference(path->getTool(), newtool)});
+        path->changeTool(newtool);
+        path->update();
+        break;
+      }
+    }
+  }
+  if (!tool_changes.empty())
+    emit sendHistoryStep(page | page_part, nullptr, &tool_changes, nullptr);
 }
 
-void SlideScene::widthChanged(const qreal width) noexcept
+void SlideScene::updateSearchResults()
 {
-    drawHistory::Step *step = new drawHistory::Step;
-    for (auto item : selectedItems())
-    {
-        switch (item->type())
-        {
-        case BasicGraphicsPath::Type:
-        case FullGraphicsPath::Type:
-        {
-            auto path = static_cast<AbstractGraphicsPath*>(item);
-            if (path->getTool().width() != width)
-            {
-                DrawTool tool = path->getTool();
-                tool.setWidth(width);
-                step->drawToolChanges.insert(path, drawHistory::DrawToolDifference(path->getTool(), tool));
-                path->changeTool(tool);
-                path->update();
-            }
-            break;
-        }
-        }
+  debug_verbose(DebugFunctionCalls, this);
+  const auto &pair = master->searchResults();
+  if (pair.second.isEmpty() && searchResults) {
+    if (searchResults->scene()) removeItem(searchResults);
+    delete searchResults;
+    searchResults = nullptr;
+  } else if (pair.first == page) {
+    if (searchResults) {
+      for (const auto &item : searchResults->childItems()) {
+        searchResults->removeFromGroup(item);
+        delete item;
+      }
+      if (!searchResults->scene()) addItem(searchResults);
+    } else {
+      searchResults = new QGraphicsItemGroup();
+      addItem(searchResults);
     }
-    if (step->isEmpty())
-        delete step;
-    else
-        emit sendHistoryStep(page | page_part, step);
+    QGraphicsRectItem *item;
+    const QBrush brush(preferences()->search_highlighting_color);
+    for (const auto &rect : pair.second) {
+      item = new QGraphicsRectItem(rect);
+      item->setBrush(brush);
+      item->setPen(Qt::NoPen);
+      searchResults->addToGroup(item);
+    }
+    invalidate(searchResults->boundingRect());
+  }
+}
+
+void readFromSVG(const QByteArray &data, QList<QGraphicsItem *> &target)
+{
+  debug_verbose(DebugFunctionCalls, data.size() << target);
+  QSvgRenderer renderer(data);
+  QPicture picture;
+  QPainter painter;
+  if (!painter.begin(&picture)) return;
+  renderer.render(&painter);
+  painter.end();
+  target.append(new GraphicsPictureItem(picture));
+}
+
+void readFromPixelImage(const QByteArray &data, QList<QGraphicsItem *> &target,
+                        const char *format)
+{
+  debug_verbose(DebugFunctionCalls, data.size() << target << format);
+  QPicture picture;
+  QImage image{QImage::fromData(data, format)};
+  QPainter painter;
+  if (!painter.begin(&picture)) return;
+  painter.drawImage(0, 0, image);
+  painter.end();
+  target.append(new GraphicsPictureItem(picture));
+}
+
+void writeToSVG(QByteArray &data, const QList<QGraphicsItem *> &source,
+                const QRectF &rect)
+{
+  debug_verbose(DebugFunctionCalls, data.size() << source << rect);
+  QSvgGenerator generator;
+  QBuffer buffer(&data);
+  buffer.open(QIODevice::WriteOnly);
+  generator.setOutputDevice(&buffer);
+  generator.setViewBox(rect);
+  QPainter painter;
+  if (!painter.begin(&generator)) return;
+  QStyleOptionGraphicsItem style;
+  for (const auto item : source) {
+    painter.setTransform(item->sceneTransform(), false);
+    item->paint(&painter, &style);
+  }
+  painter.end();
+}
+
+void writeToPixelImage(QByteArray &data, const QList<QGraphicsItem *> &source,
+                       const QRectF &rect, const qreal resolution,
+                       const char *format)
+{
+  debug_verbose(DebugFunctionCalls,
+                data.size() << source << rect << resolution << format);
+  QImage image((rect.size() * resolution).toSize(), QImage::Format_ARGB32);
+  image.fill(0x00ffffff);
+  QPainter painter;
+  if (!painter.begin(&image)) return;
+  QStyleOptionGraphicsItem style;
+  const QPointF origin = -rect.topLeft();
+  for (const auto item : source) {
+    painter.resetTransform();
+    painter.scale(resolution, resolution);
+    painter.translate(origin);
+    painter.setTransform(item->sceneTransform(), true);
+    item->paint(&painter, &style);
+  }
+  painter.end();
+  QBuffer buffer(&data);
+  buffer.open(QIODevice::WriteOnly);
+  image.save(&buffer, format);
+  buffer.close();
 }

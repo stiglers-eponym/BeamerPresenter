@@ -4,14 +4,18 @@
 #ifndef MUPDFDOCUMENT_H
 #define MUPDFDOCUMENT_H
 
-#include <QString>
+#include <QCoreApplication>
 #include <QList>
 #include <QMap>
+#include <QMutex>
+#include <QString>
 #include <QVector>
+#include <memory>
+#include <utility>
+
 #include "src/config.h"
 // old versions of MuPDF don't have 'extern "C"' in the header files.
-extern "C"
-{
+extern "C" {
 #include <mupdf/fitz.h>
 #include <mupdf/pdf.h>
 }
@@ -33,135 +37,164 @@ class QPointF;
  */
 class MuPdfDocument : public PdfDocument
 {
-public:
-    /// Item in PDF PageLabel list. This is only used internally in
-    /// MuPdfDocument::loadPageLabels().
-    struct label_item
-    {
-        /// Page label style
-        const char* style;
-        /// Page label prefix
-        const char* prefix;
-        /// Page label start number
-        int start_value;
-    };
+  Q_DECLARE_TR_FUNCTIONS(MuPdfDocument)
 
-private:
-    /// List of all pages.
-    QVector<pdf_page*> pages;
+#if (FZ_VERSION_MAJOR < 1) || \
+    ((FZ_VERSION_MAJOR == 1) && (FZ_VERSION_MINOR < 22))
+ public:
+  /// Item in PDF PageLabel list. This is only used internally in
+  /// MuPdfDocument::loadPageLabels().
+  struct label_item {
+    /// Page label style
+    const char *style;
+    /// Page label prefix
+    const char *prefix;
+    /// Page label start number
+    int start_value;
+  };
+#endif  // FZ_VERSION < 1.22
 
-    /// context should be cloned for each separate thread.
-    fz_context *ctx{NULL};
+ private:
+  /// List of all pages.
+  QVector<pdf_page *> pages;
 
-    /// document is global, don't clone if for threads.
-    pdf_document *doc{NULL};
+  /// context should be cloned for each separate thread.
+  fz_context *ctx{nullptr};
 
-    /// Mutexes needed for parallel rendering in MuPDF.
-    QVector<QMutex*> mutex_list;
+  /// document is global, don't clone if for threads.
+  pdf_document *doc{nullptr};
 
-    /// Single mutex for this.
-    QMutex* mutex;
+  /// Mutexes needed for parallel rendering in MuPDF.
+  QVector<QMutex *> mutex_list;
 
-    /// Total number of pages in document.
-    int number_of_pages;
+  /// Single mutex for this.
+  QMutex *mutex;
 
-    /// Map page numbers to labels: Only the first page number with a
-    /// new label is listed here.
-    /// Exception: pages with an own TOC entry always have their label
-    /// explicitly defined.
-    QMap<int, QString> pageLabels;
+  /// Total number of pages in document.
+  int number_of_pages;
 
-    /// populate pageLabels. Must be called after loadOutline.
-    void loadPageLabels();
+  /// Map page numbers to labels: Only the first page number with a
+  /// new label is listed here.
+  /// Exception: pages with an own TOC entry always have their label
+  /// explicitly defined.
+  QMap<int, QString> pageLabels;
 
-    /// Load the PDF outline, fill PdfDocument::outline.
-    void loadOutline();
+  /// Map of PDF object numbers to embedded media data streams
+  QMap<int, std::shared_ptr<QByteArray>> embedded_media;
 
-public:
-    /// Constructor: Create mutexes and load document using loadDocument().
-    MuPdfDocument(const QString &filename);
+  /// populate pageLabels. Must be called after loadOutline.
+  void loadPageLabels();
 
-    /// Destructor: delete mutexes, drop doc and ctx.
-    ~MuPdfDocument() override;
+  /// Load the PDF outline, fill PdfDocument::outline.
+  void loadOutline();
 
-    PdfEngine type() const noexcept override
-    {return MuPdfEngine;}
+  /// Search for raw_needle on page and put results in target.
+  /// Return number of matches.
+  int searchPage(const int page, const char *raw_needle,
+                 QList<QRectF> &target) const;
 
-    /// Load or reload the PDF document if the file has been modified since
-    /// it was loaded. Return true if the document was reloaded.
-    bool loadDocument() override final;
+ public:
+  /// Constructor: Create mutexes and load document using loadDocument().
+  MuPdfDocument(const QString &filename);
 
-    /// Size of page in points (inch/72).
-    const QSizeF pageSize(const int page) const override;
+  /// Destructor: delete mutexes, drop doc and ctx.
+  ~MuPdfDocument() override;
 
-    /// Check whether a file has been loaded successfully.
-    bool isValid() const override
-    {return doc && ctx && number_of_pages > 0;}
+  PdfEngine type() const noexcept override { return MuPdfEngine; }
 
-    /// Label of given page. This currently only supports numerical values.
-    const QString pageLabel(const int page) const override;
+  /// Load or reload the PDF document if the file has been modified since
+  /// it was loaded. Return true if the document was reloaded.
+  bool loadDocument() override final;
 
-    /// Duration of given page in secons. Default value is -1 is interpreted as infinity.
-    qreal duration(const int page) const noexcept override;
+  /// Size of page in points (inch/72).
+  const QSizeF pageSize(const int page) const override;
 
-    /// Label of page with given index.
-    int pageIndex(const QString &page) const override;
+  /// Check whether a file has been loaded successfully.
+  bool isValid() const override { return doc && ctx && number_of_pages > 0; }
 
-    /// Starting from page start, get the number (index) of the page shifted
-    /// by shift_overlay.
-    /// If shift is an int and overlay is of type ShiftOverlays:
-    /// shift_overlay = (shift & ~AnyOverlay) | overlay
-    /// overlay = shift & AnyOverlay
-    /// shift = shift >= 0 ? shift & ~AnyOverlay : shift | AnyOverlay
-    int overlaysShifted(const int start, const int shift_overlay) const override;
+  /// Label of given page. This currently only supports numerical values.
+  const QString pageLabel(const int page) const override;
 
-    /// List of indices, at which slide labels change. An empty list indicates
-    /// that all consecutive slides have different labels.
-    virtual QList<int> overlayIndices() const noexcept override
-    {return pageLabels.size() == number_of_pages ? QList<int>() : pageLabels.keys();}
+  /// Duration of given page in secons. Default value is -1 is interpreted as
+  /// infinity.
+  qreal duration(const int page) const noexcept override;
 
-    /// Total number of pages in document.
-    int numberOfPages() const override
-    {return number_of_pages;}
+  /// Label of page with given index.
+  int pageIndex(const QString &label) const override;
 
-    /// Fitz context.
-    fz_context* getContext() const
-    {return ctx;}
+  /// Starting from page start, get the number (index) of the page shifted
+  /// by shift_overlay.
+  /// If shift is an int and overlay is of type ShiftOverlays:
+  /// shift_overlay = (shift & ~AnyOverlay) | overlay
+  /// overlay = shift & AnyOverlay
+  /// shift = shift >= 0 ? shift & ~AnyOverlay : shift | AnyOverlay
+  int overlaysShifted(const int start, const int shift_overlay) const override;
 
-    /// Fitz document.
-    pdf_document* getDocument() const
-    {return doc;}
+  /// List of indices, at which slide labels change. An empty list indicates
+  /// that all consecutive slides have different labels.
+  virtual QList<int> overlayIndices() const noexcept override
+  {
+    return pageLabels.size() == number_of_pages ? QList<int>()
+                                                : pageLabels.keys();
+  }
 
-    /// Load the PDF labels and outline, fill PdfDocument::outline.
-    void loadLabels() override;
+  /// Total number of pages in document.
+  int numberOfPages() const override { return number_of_pages; }
 
-    /// Search which pages contain text.
-    QPair<int,QRectF> search(const QString &needle, int start_page, bool forward) const override;
+  /// Fitz context.
+  fz_context *getContext() const { return ctx; }
 
-    /// Link at given position (in point = inch/72)
-    virtual const PdfLink *linkAt(const int page, const QPointF &position) const override;
+  /// Fitz document.
+  pdf_document *getDocument() const { return doc; }
 
-    /// List all video annotations on given page. Returns NULL if list is
-    /// empty.
-    virtual QList<MediaAnnotation>* annotations(const int page) const override;
+  /// Load the PDF labels and outline, fill PdfDocument::outline.
+  void loadLabels() override;
 
-    /// Prepare rendering for other threads by initializing the given pointers.
-    /// This gives the threads only access to objects which are thread save.
-    void prepareRendering(fz_context **context, fz_rect *bbox, fz_display_list **list, const int pagenumber, const qreal resolution) const;
+  /// Search which pages contain text.
+  std::pair<int, QRectF> search(const QString &needle, int start_page,
+                                bool forward) const override;
 
-    /// Slide transition when reaching the given page.
-    const SlideTransition transition(const int page) const override;
+  /// Search which page contains needle and return the
+  /// outline of all occurrences on that slide.
+  std::pair<int, QList<QRectF>> searchAll(const QString &needle,
+                                          int start_page = 0,
+                                          bool forward = true) const override;
 
-    /// Return true if not all pages in the PDF have the same size.
-    virtual bool flexiblePageSizes() noexcept override;
+  /// Link at given position (in point = inch/72)
+  virtual const PdfLink *linkAt(const int page,
+                                const QPointF &position) const override;
+
+  /// List all video annotations on given page.
+  virtual QList<std::shared_ptr<MediaAnnotation>> annotations(
+      const int page) override;
+
+  /// Prepare rendering for other threads by initializing the given pointers.
+  /// This gives the threads only access to objects which are thread save.
+  void prepareRendering(fz_context **context, fz_rect *bbox,
+                        fz_display_list **list, const int pagenumber,
+                        const qreal resolution) const;
+
+  /// Slide transition when reaching the given page.
+  const SlideTransition transition(const int page) const override;
+
+  /// Return true if not all pages in the PDF have the same size.
+  virtual bool flexiblePageSizes() noexcept override;
 };
 
 /// Lock mutex <lock> in vector <user> of mutexes.
 /// First argument must be of type QVector<QMutex*>*.
-void lock_mutex(void *user, int lock);
+inline void lock_mutex(void *user, int lock)
+{
+  QVector<QMutex *> *mutex = static_cast<QVector<QMutex *> *>(user);
+  (*mutex)[lock]->lock();
+}
 
 /// Lock mutex <lock> in vector <user> of mutexes.
 /// First argument must be of type QVector<QMutex*>*.
-void unlock_mutex(void *user, int lock);
+inline void unlock_mutex(void *user, int lock)
+{
+  QVector<QMutex *> *mutex = static_cast<QVector<QMutex *> *>(user);
+  (*mutex)[lock]->unlock();
+}
 
-#endif // MUPDFDOCUMENT_H
+#endif  // MUPDFDOCUMENT_H

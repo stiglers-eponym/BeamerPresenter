@@ -4,6 +4,8 @@
 #ifndef COLORSELECTIONBUTTON_H
 #define COLORSELECTIONBUTTON_H
 
+#include <memory>
+
 #include "src/config.h"
 #include "src/gui/toolpropertybutton.h"
 
@@ -16,24 +18,22 @@ class Tool;
  */
 class ColorSelectionButton : public ToolPropertyButton
 {
-    Q_OBJECT
-public:
-    /// Constructor: add all items to the drop down menu.
-    ColorSelectionButton(const QJsonArray &array, QWidget *parent = NULL);
+  Q_OBJECT
 
-    /// Trivial destructor.
-    ~ColorSelectionButton() {}
+ public:
+  /// Constructor: add all items to the drop down menu.
+  ColorSelectionButton(const QJsonArray &array, QWidget *parent = nullptr);
 
-protected:
-    /// Set color of tool to selected value.
-    void setToolProperty(Tool *tool) const override;
+  /// Trivial destructor.
+  ~ColorSelectionButton() {}
 
-public slots:
-    /// Update currently selected color based on tool.
-    void toolChanged(Tool *tool) override;
+ protected:
+  /// Set color of tool to selected value.
+  void setToolProperty(std::shared_ptr<Tool> tool) const override;
 
-signals:
-    void colorChanged(const QColor &color) const;
+ public slots:
+  /// Update currently selected color based on tool.
+  void toolChanged(std::shared_ptr<const Tool> tool) override;
 };
 
-#endif // COLORSELECTIONBUTTON_H
+#endif  // COLORSELECTIONBUTTON_H

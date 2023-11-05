@@ -1,19 +1,36 @@
 // SPDX-FileCopyrightText: 2022 Valentin Bruch <software@vbruch.eu>
 // SPDX-License-Identifier: GPL-3.0-or-later OR AGPL-3.0-or-later
 
-#include <algorithm>
 #include "src/rendering/pdfdocument.h"
 
-/// Compare outline entries by their page.
-bool operator<(const int page, const PdfOutlineEntry& other)
-{
-    return page < other.page;
-}
+#include "src/enumerates.h"
+#ifdef USE_MUPDF
+#include "src/rendering/mupdfrenderer.h"
+#endif
+#ifdef USE_POPPLER
+#include "src/rendering/popplerrenderer.h"
+#endif
+#ifdef USE_QTPDF
+#include "src/rendering/qtrenderer.h"
+#endif
 
-const PdfOutlineEntry &PdfDocument::outlineEntryAt(const int page) const
+AbstractRenderer *createRenderer(const std::shared_ptr<const PdfDocument> &doc,
+                                 const PagePart page_part)
 {
-    // Upper bound will always point to the next outline entry
-    // (or outline.cend() or outline.cbegin()).
-    const auto it = std::upper_bound(outline.cbegin(), outline.cend(), page);
-    return it == outline.cbegin() ? *it : *(it-1);
+  switch (doc->type()) {
+#ifdef USE_MUPDF
+    case MuPdfEngine:
+      return new MuPdfRenderer(doc, page_part);
+#endif
+#ifdef USE_POPPLER
+    case PopplerEngine:
+      return new PopplerRenderer(doc, page_part);
+#endif
+#ifdef USE_QTPDF
+    case QtPDFEngine:
+      return new QtRenderer(doc, page_part);
+#endif
+    default:
+      return nullptr;
+  }
 }

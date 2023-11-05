@@ -4,8 +4,9 @@
 #ifndef NAMES_H
 #define NAMES_H
 
-#include <QString>
 #include <QMap>
+#include <QString>
+
 #include "src/config.h"
 #include "src/enumerates.h"
 
@@ -13,102 +14,71 @@
 GuiWidget string_to_widget_type(const QString &string) noexcept;
 
 /// Translate strings appearing in config to Actions
-static const QMap<QString, Action> string_to_action_map
-{
+static const QMap<QString, Action> string_to_action_map{
     // Nagivation actions
-    {"update", Update},
-    {"next", NextPage},
-    {"previous", PreviousPage},
-    {"next skipping overlays", NextSkippingOverlays},
-    {"previous skipping overlays", PreviousSkippingOverlays},
-    {"first", FirstPage},
-    {"last", LastPage},
+    {QT_TRANSLATE_NOOP("SettingsWidget", "update"), Update},
+    {QT_TRANSLATE_NOOP("SettingsWidget", "next"), NextPage},
+    {QT_TRANSLATE_NOOP("SettingsWidget", "previous"), PreviousPage},
+    {QT_TRANSLATE_NOOP("SettingsWidget", "next skipping overlays"),
+     NextSkippingOverlays},
+    {QT_TRANSLATE_NOOP("SettingsWidget", "previous skipping overlays"),
+     PreviousSkippingOverlays},
+    {QT_TRANSLATE_NOOP("SettingsWidget", "first"), FirstPage},
+    {QT_TRANSLATE_NOOP("SettingsWidget", "last"), LastPage},
     // Drawing
-    {"undo", UndoDrawing},
-    {"undo left", UndoDrawingLeft},
-    {"undo right", UndoDrawingRight},
-    {"redo", RedoDrawing},
-    {"redo left", RedoDrawingLeft},
-    {"redo right", RedoDrawingRight},
-    {"clear", ClearDrawing},
-    {"clear left", ClearDrawingLeft},
-    {"clear right", ClearDrawingRight},
-    {"scroll down", ScrollDown},
-    {"scroll up", ScrollUp},
-    {"scroll home", ScrollNormal},
-    {"scroll normal", ScrollNormal},
-    {"scroll reset", ScrollNormal},
-    {"save", SaveDrawings},
-    {"save as", SaveDrawingsAs},
-    {"open", LoadDrawings},
-    {"open unsafe", LoadDrawingsNoClear},
+    {QT_TRANSLATE_NOOP("SettingsWidget", "undo"), UndoDrawing},
+    {QT_TRANSLATE_NOOP("SettingsWidget", "undo left"), UndoDrawingLeft},
+    {QT_TRANSLATE_NOOP("SettingsWidget", "undo right"), UndoDrawingRight},
+    {QT_TRANSLATE_NOOP("SettingsWidget", "redo"), RedoDrawing},
+    {QT_TRANSLATE_NOOP("SettingsWidget", "redo left"), RedoDrawingLeft},
+    {QT_TRANSLATE_NOOP("SettingsWidget", "redo right"), RedoDrawingRight},
+    {QT_TRANSLATE_NOOP("SettingsWidget", "clear"), ClearDrawing},
+    {QT_TRANSLATE_NOOP("SettingsWidget", "clear left"), ClearDrawingLeft},
+    {QT_TRANSLATE_NOOP("SettingsWidget", "clear right"), ClearDrawingRight},
+    {QT_TRANSLATE_NOOP("SettingsWidget", "scroll down"), ScrollDown},
+    {QT_TRANSLATE_NOOP("SettingsWidget", "scroll up"), ScrollUp},
+    {QT_TRANSLATE_NOOP("SettingsWidget", "scroll home"), ScrollNormal},
+    {QT_TRANSLATE_NOOP("SettingsWidget", "scroll normal"), ScrollNormal},
+    {QT_TRANSLATE_NOOP("SettingsWidget", "scroll reset"), ScrollNormal},
+    {QT_TRANSLATE_NOOP("SettingsWidget", "save"), SaveDrawings},
+    {QT_TRANSLATE_NOOP("SettingsWidget", "save as"), SaveDrawingsAs},
+    {QT_TRANSLATE_NOOP("SettingsWidget", "open"), LoadDrawings},
+    {QT_TRANSLATE_NOOP("SettingsWidget", "open unsafe"), LoadDrawingsNoClear},
     // Modify drawn items
-    {"copy", CopyClipboard},
-    {"cut", CutClipboard},
-    {"paste", PasteClipboard},
-    {"to foreground", SelectionToForeground},
-    {"delete", RemoveSelectedItems},
-    {"duplicate", DuplicateSelectedItems},
-    {"select all", SelectAll},
-    {"clear selection", ClearSelection},
+    {QT_TRANSLATE_NOOP("SettingsWidget", "copy"), CopyClipboard},
+    {QT_TRANSLATE_NOOP("SettingsWidget", "cut"), CutClipboard},
+    {QT_TRANSLATE_NOOP("SettingsWidget", "paste"), PasteClipboard},
+    {QT_TRANSLATE_NOOP("SettingsWidget", "to foreground"),
+     SelectionToForeground},
+    {QT_TRANSLATE_NOOP("SettingsWidget", "to background"),
+     SelectionToBackground},
+    {QT_TRANSLATE_NOOP("SettingsWidget", "delete"), RemoveSelectedItems},
+    {QT_TRANSLATE_NOOP("SettingsWidget", "select all"), SelectAll},
+    {QT_TRANSLATE_NOOP("SettingsWidget", "clear selection"), ClearSelection},
     // Timer
-    {"start timer", StartTimer},
-    {"stop timer", StopTimer},
-    {"toggle timer", StartStopTimer},
-    {"reset timer", ResetTimePassed},
+    {QT_TRANSLATE_NOOP("SettingsWidget", "start timer"), StartTimer},
+    {QT_TRANSLATE_NOOP("SettingsWidget", "stop timer"), StopTimer},
+    {QT_TRANSLATE_NOOP("SettingsWidget", "toggle timer"), StartStopTimer},
+    {QT_TRANSLATE_NOOP("SettingsWidget", "reset timer"), ResetTimePassed},
     // Media
-    {"play media", PlayMedia},
-    {"stop media", PauseMedia},
-    {"pause media", PlayPauseMedia},
-    {"mute", Mute},
-    {"unmute", Unmute},
+    {QT_TRANSLATE_NOOP("SettingsWidget", "play media"), PlayMedia},
+    {QT_TRANSLATE_NOOP("SettingsWidget", "stop media"), PauseMedia},
+    {QT_TRANSLATE_NOOP("SettingsWidget", "pause media"), PlayPauseMedia},
+    {QT_TRANSLATE_NOOP("SettingsWidget", "mute"), Mute},
+    {QT_TRANSLATE_NOOP("SettingsWidget", "unmute"), Unmute},
     // Other actions
-    {"reload", ReloadFiles},
-    {"full screen", FullScreen},
-    {"fullscreen", FullScreen},
-    {"quit", Quit},
-    {"quit unsafe", QuitNoConfirmation},
+    {QT_TRANSLATE_NOOP("SettingsWidget", "reload"), ReloadFiles},
+    {QT_TRANSLATE_NOOP("SettingsWidget", "fullscreen"), FullScreen},
+    {QT_TRANSLATE_NOOP("SettingsWidget", "quit"), Quit},
+    {QT_TRANSLATE_NOOP("SettingsWidget", "quit unsafe"), QuitNoConfirmation},
 };
 
 /// Convert string (from configuration file) to gesture
 Gesture string_to_gesture(const QString &string) noexcept;
 
-/// Get description for action
-const QString action_to_description(const Action action) noexcept;
-
-static const QMap<QString, Qt::PenStyle> string_to_pen_style
-{
-    {"nopen", Qt::NoPen},
-    {"solid", Qt::SolidLine},
-    {"dash", Qt::DashLine},
-    {"dot", Qt::DotLine},
-    {"dashdot", Qt::DashDotLine},
-    {"dashdotdot", Qt::DashDotDotLine},
-};
-
-static const QMap<QString, Qt::BrushStyle> string_to_brush_style
-{
-    {"NoBrush", Qt::NoBrush},
-    {"SolidPattern", Qt::SolidPattern},
-    {"Dense1Pattern", Qt::Dense1Pattern},
-    {"Dense2Pattern", Qt::Dense2Pattern},
-    {"Dense3Pattern", Qt::Dense3Pattern},
-    {"Dense4Pattern", Qt::Dense4Pattern},
-    {"Dense5Pattern", Qt::Dense5Pattern},
-    {"Dense6Pattern", Qt::Dense6Pattern},
-    {"Dense7Pattern", Qt::Dense7Pattern},
-    {"HorPattern", Qt::HorPattern},
-    {"VerPattern", Qt::VerPattern},
-    {"CrossPattern", Qt::CrossPattern},
-    {"BDiagPattern", Qt::BDiagPattern},
-    {"FDiagPattern", Qt::FDiagPattern},
-    {"DiagCrossPattern", Qt::DiagCrossPattern},
-};
-
 /// Map human readable string to overlay mode.
 /// @see PdfMaster
-static const QMap<QString, OverlayDrawingMode> string_to_overlay_mode
-{
+static const QMap<QString, OverlayDrawingMode> string_to_overlay_mode{
     {"per page", PerPage},
     {"per label", PerLabel},
     {"cumulative", Cumulative},
@@ -116,6 +86,6 @@ static const QMap<QString, OverlayDrawingMode> string_to_overlay_mode
 
 #ifdef QT_DEBUG
 DebugFlags string_to_debug_flags(const QString &string) noexcept;
-#endif // QT_DEBUG
+#endif  // QT_DEBUG
 
-#endif // NAMES_H
+#endif  // NAMES_H

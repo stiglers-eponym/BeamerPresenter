@@ -4,16 +4,14 @@
 #ifndef ACTIONBUTTON_H
 #define ACTIONBUTTON_H
 
-#include <QObject>
 #include <QSet>
-#include <QToolButton>
 #include <QStringList>
+#include <QToolButton>
+
 #include "src/config.h"
 #include "src/enumerates.h"
 
 class ToolSelectorWidget;
-class QEvent;
-class QString;
 
 /**
  * @brief Button which sends Action(s) when clicked.
@@ -26,42 +24,48 @@ class QString;
  */
 class ActionButton : public QToolButton
 {
-    Q_OBJECT
-    /// Set of one or more actions connected to this button.
-    QSet<Action> actions;
-    Action display_action;
-    int display_status = -1;
+  Q_OBJECT
 
-    void updateIcon();
+  /// Set of one or more actions connected to this button.
+  QSet<Action> actions;
+  /// Action represented by the currently visible icon.
+  Action display_action;
+  /// Status index of the currently displayed action.
+  /// Some actions have multiple icons, depending on this status index.
+  int display_status = -1;
 
-public:
-    /// Constructor: connect to parent.
-    explicit ActionButton(ToolSelectorWidget *parent = NULL);
+ public:
+  /// Constructor: connect to parent.
+  explicit ActionButton(ToolSelectorWidget *parent = nullptr);
 
-    /// Constructor: connect to parent, add action and set icon.
-    explicit ActionButton(const Action action, ToolSelectorWidget *parent = NULL);
+  /// Constructor: connect to parent, add action and set icon.
+  explicit ActionButton(const Action action,
+                        ToolSelectorWidget *parent = nullptr);
 
-    /// Add new action to actions, set icon if necessary.
-    void addAction(const Action action);
+  /// Add new action to actions, set icon if necessary.
+  void addAction(const Action action);
 
-protected:
-    bool event(QEvent *event) override;
+ protected slots:
+  /// Send out action(s).
+  void onClicked() const noexcept
+  {
+    for (const auto action : actions) emit sendAction(action);
+  }
 
-protected slots:
-    /// Send out action(s).
-    void onClicked() const noexcept;
+ public slots:
+  /// Set status for given action. This changes the icon for some actions.
+  void setStatus(const Action action, const int status);
 
-public slots:
-    /// Set status for given action. This changes the icon for some actions.
-    void setStatus(const Action action, const int status);
+  /// Update the icon.
+  void updateIcon();
 
-signals:
-    /// Send out an action.
-    void sendAction(const Action action) const;
+ signals:
+  /// Send out an action.
+  void sendAction(const Action action) const;
 };
 
 /// Map actions to icon names.
-const QString action_to_theme_icon(const Action action) noexcept;
+const char *action_to_theme_icon(const Action action) noexcept;
 
 /**
  * Map actions to lists of custom icon file names.
@@ -70,5 +74,7 @@ const QString action_to_theme_icon(const Action action) noexcept;
  */
 const QStringList action_to_custom_icons(const Action action) noexcept;
 
+/// Get description for action
+const char *action_to_description(const Action action) noexcept;
 
-#endif // ACTIONBUTTON_H
+#endif  // ACTIONBUTTON_H

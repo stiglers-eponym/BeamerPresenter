@@ -1,3 +1,5 @@
+# Configuration for BeamerPresenter, see man 5 beamerpresenter.conf
+
 [General]
 # maximum number of pages in cache (negative numbers treated as infinity)
 cache pages=-1
@@ -7,16 +9,18 @@ cache pages=-1
 #manual="@ABS_DOC_PATH@/README.html"
 # path to icons
 #icon path="@ABS_APPICON_PATH@"
-# maximum memory size (in bytes, default is 100MiB)
-memory=1.0486e+08
+# maximum memory size (in bytes, default is 200MiB)
+memory=2.09719e+08
 # enable/disable gestures
-gestures=true
+gestures=false
 # minimum time per frame in animations
 frame time=50
 # enable automatic slide changes as defined in the PDF
 automatic slide changes=true
 # follow external links and load remote media
 external links=false
+# color for highlighting search results
+search highlight color=#6428643b
 
 [drawing]
 # number of history steps on the currently shown slide
@@ -27,18 +31,18 @@ history length hidden=20
 # allowed values: "per page", "per label", "cumulative".
 # see man 5 beamerpresenter.conf for details.
 mode=cumulative
-# max. slope for angle snapping when detecting shapes
+# maximal slope for angle snapping when detecting shapes
 snap angle=0.05
-# sensiticity for detecting lines in paths (larger values categorize more
+# sensitivity for detecting lines in paths (larger values categorize more
 # paths as lines)
 line sensitivity=0.005
-# sensitivity for detecting ellipses in paths
-circle threshold=0.025
 # ellipses with relative deviation of the two radii smaller than this number
 # will be recognized as circles
+circle threshold=0.025
+# sensitivity for detecting ellipses in paths
 ellipse sensitivity=0.05
 # shape recognizer for rectangle: tolerance in angles of different sides of
-# a rectangle (radiants)
+# a rectangle (radiant)
 rectangle angle tolerance=0.3
 # shape recognizer for rectangle: allowed distance between first and last
 # point in rectangle relative to variance of point coordinates.
@@ -46,8 +50,25 @@ rectangle closing tolerance=0.1
 # transform only path coordinates (not stroke width) when scaling a drawn
 # path by enabling path finalizing.
 finalize drawn paths=false
+# size of the arrow tip relative to the default size
+arrow tip scale=1
+# length of the arrow tip relative to half of its width
+arrow tip ratio=1.2
+
+[selection]
+# size (in points) of the handles of the selection.
+handle size=7
+# minimal line width (in points) assumed when clicking on a line to select it.
+minimal path width=3
+# filling color of the selection rectangle (should be semi-transparent).
+selection color=#20808090
+# outline color of the selection rectangle.
+selection outline color=#80808090
+# pen width for drawing the selection rectangle outline.
+selection outline width=0.5
 
 [keys]
+# actions affecting drawings and the clipboard
 Ctrl+C=copy
 Ctrl+V=paste
 Ctrl+X=cut
@@ -59,15 +80,19 @@ Ctrl+S=save
 Ctrl+Shift+S=save as
 Ctrl+Y=redo left, redo right, redo
 Ctrl+Z=undo left, undo right, undo
-Ctrl+Q=quit
-F11=fullscreen
+# navigation
 PgDown=next
 PgUp=previous
+Right=next
+Left=previous
 Shift+PgDown=next skipping overlays
 Shift+PgUp=previous skipping overlays
-End=last
 Home=first
+End=last
 Space=update
+# general actions
+Ctrl+Q=quit
+F11=fullscreen
 P=toggle timer
 
 [rendering]

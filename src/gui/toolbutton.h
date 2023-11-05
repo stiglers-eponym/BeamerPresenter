@@ -5,11 +5,12 @@
 #define TOOLBUTTON_H
 
 #include <QToolButton>
-#include "src/config.h"
+#include <memory>
 
-class Tool;
+#include "src/config.h"
+#include "src/drawing/tool.h"
+
 class QString;
-class QEvent;
 class QImage;
 class QSize;
 class QColor;
@@ -17,39 +18,46 @@ class QColor;
 /**
  * @brief Tool button for drawing and pointing tools.
  *
+ * This button does not do anything when it is pushed. Subclasses
+ * implement different functions for pushing the button.
+ *
  * @see ActionButton
- * @see ToolSelectorWidget
- * @see ToolDialog
+ * @see ToolSelectorButton
+ * @see ToolWidgetButton
  */
 class ToolButton : public QToolButton
 {
-    Q_OBJECT
+  Q_OBJECT
 
-    /// Tool which remains owned by this class.
-    /// Only copies of this tool are send out using sendTool.
-    Tool *tool = nullptr;
+ protected:
+  /// Tool which remains owned by this class.
+  /// Only copies of this tool are send out using sendTool.
+  std::shared_ptr<Tool> tool = nullptr;
 
-public:
-    /// Constructor: takes ownership of tool.
-    explicit ToolButton(Tool *tool, QWidget *parent = nullptr) noexcept;
+ public:
+  /// Constructor: takes ownership of tool.
+  explicit ToolButton(std::shared_ptr<Tool> tool,
+                      QWidget *parent = nullptr) noexcept;
 
-    /// Destruktor: deletes tool.
-    virtual ~ToolButton();
+  /// Trivial destruktor
+  virtual ~ToolButton() {}
 
-protected:
-    /// Emit sendTool based on input event with adjusted device.
-    virtual bool event(QEvent *event) noexcept override;
+ public slots:
+  /// Replace tool with newtool. Old tool gets deleted. This takes ownership of
+  /// newtool.
+  void setTool(std::shared_ptr<Tool> newtool);
 
-public slots:
-    /// Replace tool with newtool. Old tool gets deleted.
-    void setTool(Tool *newtool);
+  /// Update the tool icon.
+  void updateIcon();
 
-signals:
-    /// Send a copy of tool. Ownership of toolcopy is handed to receiver.
-    void sendTool(Tool *toolcopy) const;
+ signals:
+  /// Send a copy of tool. Ownership of toolcopy is handed to receiver.
+  void sendTool(std::shared_ptr<Tool> toolcopy) const;
 };
 
-/// Take an svg file, replace #ff0000 by given color, render it to given size and return the QImage.
-const QImage fancyIcon(const QString &filename, const QSize &size, const QColor &color);
+/// Take an svg file, replace #ff0000 by given color, render it to given size
+/// and return the QImage.
+const QImage fancyIcon(const QString &filename, const QSize &size,
+                       const QColor &color);
 
-#endif // TOOLBUTTON_H
+#endif  // TOOLBUTTON_H

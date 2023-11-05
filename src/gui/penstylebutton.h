@@ -4,6 +4,8 @@
 #ifndef PENSTYLEBUTTON_H
 #define PENSTYLEBUTTON_H
 
+#include <memory>
+
 #include "src/config.h"
 #include "src/gui/toolpropertybutton.h"
 #include "src/preferences.h"
@@ -15,25 +17,27 @@ class Tool;
  */
 class PenStyleButton : public ToolPropertyButton
 {
-    Q_OBJECT
-public:
-    /// Constructor: add all items to the drop down menu.
-    PenStyleButton(QWidget *parent = NULL);
+  Q_OBJECT
+ public:
+  /// Constructor: add all items to the drop down menu.
+  PenStyleButton(QWidget *parent = nullptr);
 
-    /// Trivial destructor.
-    ~PenStyleButton() {}
+  /// Trivial destructor.
+  ~PenStyleButton() {}
 
-protected:
-    /// Set style of tool to selected value.
-    void setToolProperty(Tool* tool) const override;
+ protected:
+  /// Set style of tool to selected value.
+  void setToolProperty(std::shared_ptr<Tool> tool) const override;
 
-    /// Update currently selected style based on the tool for device.
-    void updateTool() override
-    {toolChanged(preferences()->currentTool(device));}
+  /// Update currently selected style based on the tool for device.
+  void updateTool() override
+  {
+    toolChanged(preferences()->currentTool(device));
+  }
 
-public slots:
-    /// Update currently selected tool property based on tool.
-    void toolChanged(Tool *tool) override;
+ public slots:
+  /// Update currently selected tool property based on tool.
+  void toolChanged(std::shared_ptr<const Tool> tool) override;
 };
 
-#endif // PENSTYLEBUTTON_H
+#endif  // PENSTYLEBUTTON_H

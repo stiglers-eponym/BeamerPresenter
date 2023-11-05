@@ -4,10 +4,11 @@ on:
   push:
     tags:
       - "v*"
+  workflow_dispatch:
 
 env:
-  MUPDF_VERSION: 1.20.3
-  MUPDF_SHA256SUM: 108c4ad87d5cdd3ad47a3a872acdf101693283442469629dabb7631f1f3a0b3f
+  MUPDF_VERSION: 1.23.3
+  MUPDF_SHA256SUM: f57e68b4532d089354497cc685a4faccea2dfdc84b7681c3608abfb6a338e7e9
 
 jobs:
   package:
@@ -16,13 +17,14 @@ jobs:
 
     steps:
     - name: Checkout repository
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
 
     - name: Install Dependencies
       run: >
+        sudo apt-get update -y;
         sudo apt-get install -y --no-install-recommends
         cmake
-        zstd
+        lunzip
         zlib1g-dev
         libmupdf-dev
         libgumbo-dev
@@ -32,6 +34,7 @@ jobs:
         libjpeg-dev
         libopenjp2-7-dev
         libjbig2dec0-dev
+        libqt5svg5-dev
         qtmultimedia5-dev
         qttools5-dev
         libpoppler-qt5-dev
@@ -45,8 +48,8 @@ jobs:
        -DUSE_POPPLER=ON
        -DUSE_QTPDF=OFF
        -DUSE_EXTERNAL_RENDERER=OFF
-       -DUSE_MUJS=OFF
-       -DUSE_GUMBO=OFF
+       -DLINK_MUJS=OFF
+       -DLINK_GUMBO=OFF
        -DUSE_TRANSLATIONS=ON
        -DQT_VERSION_MAJOR=5
        -DQT_VERSION_MINOR=12
@@ -66,7 +69,7 @@ jobs:
         mv beamerpresenter-poppler-qt5-x86_64.deb beamerpresenter-poppler-qt5-focal-x86_64.deb
 
     - name: Archive package with Qt5 + Poppler
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       with:
         name: beamerpresenter-poppler-qt5-focal-x86_64.deb
         path: /home/runner/work/BeamerPresenter/BeamerPresenter/beamerpresenter-poppler-qt5-focal-x86_64.deb
@@ -80,8 +83,8 @@ jobs:
        -DUSE_POPPLER=OFF
        -DUSE_QTPDF=OFF
        -DUSE_EXTERNAL_RENDERER=OFF
-       -DUSE_MUJS=OFF
-       -DUSE_GUMBO=OFF
+       -DLINK_MUJS=OFF
+       -DLINK_GUMBO=OFF
        -DUSE_TRANSLATIONS=ON
        -DQT_VERSION_MAJOR=5
        -DQT_VERSION_MINOR=12
@@ -101,7 +104,7 @@ jobs:
         mv beamerpresenter-mupdf-qt5-x86_64.deb beamerpresenter-mupdf-qt5-focal-x86_64.deb
 
     - name: Archive package with Qt5 + MuPDF
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       with:
         name: beamerpresenter-mupdf-qt5-focal-x86_64.deb
         path: /home/runner/work/BeamerPresenter/BeamerPresenter/beamerpresenter-mupdf-qt5-focal-x86_64.deb
@@ -109,9 +112,9 @@ jobs:
 
     - name: Download and unpack MuPDF
       run: |
-        wget -q https://mupdf.com/downloads/archive/mupdf-${{ env.MUPDF_VERSION }}-source.tar.zst
-        sha256sum -c - <<< "${{ env.MUPDF_SHA256SUM }} mupdf-${{ env.MUPDF_VERSION }}-source.tar.zst"
-        tar -xf "mupdf-${{ env.MUPDF_VERSION }}-source.tar.zst"
+        wget -q https://mupdf.com/downloads/archive/mupdf-${{ env.MUPDF_VERSION }}-source.tar.lz
+        sha256sum -c - <<< "${{ env.MUPDF_SHA256SUM }} mupdf-${{ env.MUPDF_VERSION }}-source.tar.lz"
+        tar -xf "mupdf-${{ env.MUPDF_VERSION }}-source.tar.lz"
 
     - name: Build MuPDF
       run : |
@@ -133,8 +136,8 @@ jobs:
         -DUSE_POPPLER=OFF
         -DUSE_QTPDF=OFF
         -DUSE_EXTERNAL_RENDERER=OFF
-        -DUSE_MUJS=OFF
-        -DUSE_GUMBO=ON
+        -DLINK_MUJS=OFF
+        -DLINK_GUMBO=ON
         -DMUPDF_LIB_PATH="$(pwd)/mupdf-${{ env.MUPDF_VERSION }}-source/build/release/libmupdf.a"
         -DMUPDF_THIRD_LIB_PATH="$(pwd)/mupdf-${{ env.MUPDF_VERSION }}-source/build/release/libmupdf-third.a"
         -DMUPDF_INCLUDE_DIR="$(pwd)/mupdf-${{ env.MUPDF_VERSION }}-source/include"
@@ -158,7 +161,7 @@ jobs:
         mv beamerpresenter-mupdf-small-qt5-x86_64.deb beamerpresenter-mupdf-small-qt5-focal-x86_64.deb
 
     - name: Archive package with Qt5 + small MuPDF
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       with:
         name: beamerpresenter-mupdf-small-qt5-focal-x86_64.deb
         path: /home/runner/work/BeamerPresenter/BeamerPresenter/beamerpresenter-mupdf-small-qt5-focal-x86_64.deb

@@ -5,11 +5,13 @@
 #define FLEXGRAPHICSLINEITEM_H
 
 #include <QGraphicsLineItem>
-#include <QPainter>
 #include <QLineF>
+#include <QPainter>
 #include <QStyleOptionGraphicsItem>
 #include <QWidget>
+
 #include "src/config.h"
+#include "src/enumerates.h"
 
 class QWidget;
 class QStyleOptionGraphicsItem;
@@ -23,20 +25,31 @@ class QStyleOptionGraphicsItem;
  */
 class FlexGraphicsLineItem : public QGraphicsLineItem
 {
-    /// Composition mode used for this line.
-    const QPainter::CompositionMode mode;
+  /// Composition mode used for this line.
+  const QPainter::CompositionMode mode;
 
-public:
-    /// @return custom QGraphicsItem type
-    enum {Type = UserType + 3};
+ public:
+  /// Custom type of QGraphicsItem.
+  enum { Type = UserType + FlexGraphicsLineItemType };
 
-    /// Constructor.
-    FlexGraphicsLineItem(const QLineF& line, QPainter::CompositionMode mode = QPainter::CompositionMode_SourceOver) :
-        QGraphicsLineItem(line), mode(mode) {}
+  /// Constructor.
+  FlexGraphicsLineItem(
+      const QLineF &line,
+      QPainter::CompositionMode mode = QPainter::CompositionMode_SourceOver)
+      : QGraphicsLineItem(line), mode(mode)
+  {
+  }
 
-    /// Paint line to painter.
-    virtual void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget = NULL) override
-    {painter->setCompositionMode(mode); QGraphicsLineItem::paint(painter, option, widget);}
+  /// Paint line to painter.
+  virtual void paint(QPainter *painter, const QStyleOptionGraphicsItem *option,
+                     QWidget *widget = nullptr) override
+  {
+    painter->setCompositionMode(mode);
+    QGraphicsLineItem::paint(painter, option, widget);
+  }
+
+  /// @return custom QGraphicsItem type
+  int type() const noexcept override { return Type; }
 };
 
-#endif // FLEXGRAPHICSLINEITEM_H
+#endif  // FLEXGRAPHICSLINEITEM_H

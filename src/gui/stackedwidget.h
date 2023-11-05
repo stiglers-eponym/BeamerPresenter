@@ -4,9 +4,12 @@
 #ifndef STACKEDWIDGET_H
 #define STACKEDWIDGET_H
 
-#include <QStackedWidget>
+#include <QSize>
 #include <QSizePolicy>
+#include <QStackedWidget>
+
 #include "src/config.h"
+#include "src/gui/containerbaseclass.h"
 
 class QSize;
 
@@ -15,21 +18,36 @@ class QSize;
  * @see TabWidget
  * @see ContainerWidget
  */
-class StackedWidget : public QStackedWidget
+class StackedWidget : public QStackedWidget, public ContainerBaseClass
 {
-    Q_OBJECT
+  Q_OBJECT
 
-public:
-    /// Constructor: set size policy.
-    StackedWidget(QWidget *parent = NULL) noexcept : QStackedWidget(parent)
-    {setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);}
+ public:
+  /// Constructor: set size policy.
+  StackedWidget(QWidget *parent = nullptr) noexcept : QStackedWidget(parent)
+  {
+    setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+  }
 
-    /// Return sizeHint based on layout.
-    QSize sizeHint() const noexcept override;
+  /// Return sizeHint based on layout.
+  QSize sizeHint() const noexcept override
+  {
+    QSize size(0, 0);
+    int i = 0;
+    while (i < count()) size = size.expandedTo(widget(i++)->sizeHint());
+    return size;
+  }
 
-    /// height depends on width (required by FlexLayout).
-    bool hasHeightForWidth() const noexcept override
-    {return true;}
+  /// height depends on width (required by FlexLayout).
+  bool hasHeightForWidth() const noexcept override { return true; }
+
+  /// Append a new widget to the layout.
+  virtual void addWidgetCommon(QWidget *widget, const QString &title) override
+  {
+    addWidget(widget);
+  }
+
+  virtual QWidget *asWidget() noexcept override { return this; }
 };
 
-#endif // STACKEDWIDGET_H
+#endif  // STACKEDWIDGET_H

@@ -6,9 +6,11 @@
 
 #include <QScrollArea>
 #include <QSize>
-#include "src/config.h"
+#include <memory>
 
-class TOCbutton;
+#include "src/config.h"
+#include "src/gui/tocbutton.h"
+
 class PdfDocument;
 class QKeyEvent;
 class QShowEvent;
@@ -24,47 +26,46 @@ class QFocusEvent;
  */
 class TOCwidget : public QScrollArea
 {
-    Q_OBJECT
+  Q_OBJECT
 
-    /// Root of TOCbutton tree representing the outline.
-    TOCbutton *first_button = nullptr;
+  /// Root of TOCbutton tree representing the outline.
+  TOCbutton *first_button{nullptr};
+  /// Document, for which table of content is shown.
+  std::shared_ptr<const PdfDocument> document;
 
-public:
-    /// Trivial constructor, does not create the outline tree.
-    explicit TOCwidget(QWidget *parent = nullptr) : QScrollArea(parent) {}
+ public:
+  /// Trivial constructor, does not create the outline tree.
+  explicit TOCwidget(std::shared_ptr<const PdfDocument> document,
+                     QWidget *parent = nullptr)
+      : QScrollArea(parent), document(document)
+  {
+  }
 
-    /// Destructor: TOCbuttons are deleted recursively.
-    ~TOCwidget();
+  /// Destructor: TOCbuttons are deleted recursively.
+  ~TOCwidget() { delete first_button; }
 
-    /// Generate the TOC from given document or preferences()->document.
-    void generateTOC(const PdfDocument *document = nullptr);
+  /// Generate the TOC from given document or preferences()->document.
+  void generateTOC();
 
-    /// Actually this is nonsense, but currently the layout only works with
-    /// this option set.
-    bool hasHeightForWidth() const override
-    {return true;}
+  /// Actually this is nonsense, but currently the layout only works with
+  /// this option set.
+  bool hasHeightForWidth() const override { return true; }
 
-    /// Size hint required by layout.
-    QSize sizeHint() const noexcept override
-    {return {100, 200};}
+  /// Size hint required by layout.
+  QSize sizeHint() const noexcept override { return {100, 200}; }
 
-public slots:
-    /// Show event: generate outline if necessary. Expand to current position.
-    void showEvent(QShowEvent*) override;
+ public slots:
+  /// Show event: generate outline if necessary. Expand to current position.
+  void showEvent(QShowEvent *) override;
 
-    /// Override key press events: Send page up and page down to master.
-    void keyPressEvent(QKeyEvent *event) override;
+  /// Override key press events: Send page up and page down to master.
+  void keyPressEvent(QKeyEvent *event) override;
 
-    /// Focus event: generate outline if necessary.
-    void focusInEvent(QFocusEvent*) override
-    {generateTOC();}
+  /// Focus event: generate outline if necessary.
+  void focusInEvent(QFocusEvent *) override { generateTOC(); }
 
-    /// Expand all sections, subsections, ... which contain the given page.
-    void expandTo(const int page);
-
-signals:
-    /// Send navigation event to master.
-    void sendNavigationSignal(const int page);
+  /// Expand all sections, subsections, ... which contain the given page.
+  void expandTo(const int page);
 };
 
-#endif // TOCWIDGET_H
+#endif  // TOCWIDGET_H

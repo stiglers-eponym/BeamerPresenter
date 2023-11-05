@@ -4,10 +4,11 @@
 #ifndef NOTESWIDGET_H
 #define NOTESWIDGET_H
 
-#include <QtConfig>
-#include <QString>
 #include <QMap>
+#include <QString>
 #include <QTextEdit>
+#include <QtConfig>
+
 #include "src/config.h"
 
 class QKeyEvent;
@@ -31,104 +32,112 @@ class QXmlStreamWriter;
  */
 class NotesWidget : public QTextEdit
 {
-    Q_OBJECT
+  Q_OBJECT
 
-    /// File where everything is loaded / saved.
-    QString file_path;
+  /// Identifier distinguishing this from other notes widgets.
+  QString _id;
 
-    /// Map slide labels to HTML text
-    QMap<QString, QString> text_per_slide;
+  /// File where everything is loaded / saved.
+  QString file_path;
 
-    /// Currently shown page label.
-    QString page_label;
+  /// Map slide labels to HTML text
+  QMap<QString, QString> text_per_slide;
 
-    /// Are notes saved per page? Otherwise per page label.
-    bool per_page;
+  /// Currently shown page label.
+  QString page_label;
 
-public:
-    /// Nearly trivial constructor.
-    /// @param per_page if true, save notes per page number instead of per page label
-    /// @param parent parent widget, passed to QTextEdit
-    NotesWidget(const bool per_page = false, QWidget *parent = NULL);
+  /// Are notes saved per page? Otherwise per page label.
+  bool per_page;
 
-    /// Preferred height depends on width (as required for FlexLayout).
-    /// @return true
-    bool hasHeightForWidth() const noexcept override
-    {return true;}
+ public:
+  /// Nearly trivial constructor.
+  /// @param per_page if true, save notes per page number instead of per page
+  /// label
+  /// @param parent parent widget, passed to QTextEdit
+  NotesWidget(const bool per_page = false, const QString &id = "",
+              QWidget *parent = nullptr);
 
-    /// Load (only) notes from file. (Not the same as loading drawings and notes!)
-    /// @param filename file from which notes should be loaded.
-    /// @see saveNotes()
-    /// @see load()
-    /// @see loadDrawings()
-    /// @see readNotes()
-    void loadNotes(const QString &filename);
+  /// Preferred height depends on width (as required for FlexLayout).
+  /// @return true
+  bool hasHeightForWidth() const noexcept override { return true; }
 
-    /// Save (only) notes to file. (Not the same as saving drawings and notes!)
-    /// @param filename file to which notes should be saved.
-    /// @see loadNotes()
-    /// @see save()
-    /// @see saveDrawings()
-    /// @see writeNotes()
-    void saveNotes(const QString &filename);
+  /// Load (only) notes from file. (Not the same as loading drawings and notes!)
+  /// @param filename file from which notes should be loaded.
+  /// @see saveNotes()
+  /// @see load()
+  /// @see loadDrawings()
+  /// @see readNotes()
+  void loadNotes(const QString &filename);
 
-protected:
-    /// Handle keyboard shortcuts (mainly save and load).
-    void keyPressEvent(QKeyEvent *event) override;
+  /// Save (only) notes to file. (Not the same as saving drawings and notes!)
+  /// @param filename file to which notes should be saved.
+  /// @see loadNotes()
+  /// @see save()
+  /// @see saveDrawings()
+  /// @see writeNotes()
+  void saveNotes(const QString &filename);
 
-public slots:
-    /// Choose a file using file dialog and load notes from that file.
-    /// @see save()
-    /// @see loadNotes()
-    /// @see readNotes()
-    /// @see loadDrawings()
-    void load();
+  /// Get id of this notes widget.
+  const QString &id() const noexcept { return _id; }
 
-    /// Save notes to given file name. If *filename* is empty, choose from file dialog.
-    /// @see load()
-    /// @see saveNotes()
-    /// @see writeNotes()
-    /// @see saveDrawings()
-    void save(QString filename);
+ protected:
+  /// Handle keyboard shortcuts (mainly save and load).
+  void keyPressEvent(QKeyEvent *event) override;
 
-    /// Switch page, show notes for new page.
-    /// @param page page index of target page
-    void pageChanged(const int page);
+ public slots:
+  /// Choose a file using file dialog and load notes from that file.
+  /// @see save()
+  /// @see loadNotes()
+  /// @see readNotes()
+  /// @see loadDrawings()
+  void load();
 
-    /// Write notes to stream. This is used for saving as own notes file and
-    /// for saving notes as part of a BeamerPresenter file including also
-    /// drawings and slide times.
-    /// @param writer XML stream writer. A \<speakernotes\> element will be
-    ///        written to writer.
-    /// @see readNotes()
-    /// @see save()
-    /// @see saveNotes()
-    /// @see saveDrawings()
-    void writeNotes(QXmlStreamWriter &writer);
+  /// Save notes to given file name. If *filename* is empty, choose from file
+  /// dialog.
+  /// @see load()
+  /// @see saveNotes()
+  /// @see writeNotes()
+  /// @see saveDrawings()
+  void save(QString filename);
 
-    /// Load notes from stream. This is used for loading as own notes file and
-    /// for loading notes as part of a BeamerPresenter file including also
-    /// drawings and slide times.
-    /// @param reader XML stream reader which initially points to xml element
-    ///        \<speakernotes\>. The whole \<speakernotes\> element will be
-    ///        read.
-    /// @see writeNotes()
-    /// @see load()
-    /// @see loadNotes()
-    /// @see loadDrawings()
-    void readNotes(QXmlStreamReader &reader);
+  /// Switch page, show notes for new page.
+  /// @param page page index of target page
+  void pageChanged(const int page);
 
-signals:
-    /// Notify Master of new unsaved changes.
-    void newUnsavedChanges() const;
+  /// Write notes to stream. This is used for saving as own notes file and
+  /// for saving notes as part of a BeamerPresenter file including also
+  /// drawings and slide times.
+  /// @param writer XML stream writer. A \<speakernotes\> element will be
+  ///        written to writer.
+  /// @see readNotes()
+  /// @see save()
+  /// @see saveNotes()
+  /// @see saveDrawings()
+  void writeNotes(QXmlStreamWriter &writer);
 
-    /// Notify Master that drawings should be saved.
-    /// @param filename file path for saving drawings, should never be empty.
-    void saveDrawings(const QString filename);
+  /// Load notes from stream. This is used for loading as own notes file and
+  /// for loading notes as part of a BeamerPresenter file including also
+  /// drawings and slide times.
+  /// @param reader XML stream reader which initially points to xml element
+  ///        \<speakernotes\>. The whole \<speakernotes\> element will be
+  ///        read.
+  /// @see writeNotes()
+  /// @see load()
+  /// @see loadNotes()
+  /// @see loadDrawings()
+  void readNotes(QXmlStreamReader &reader);
 
-    /// Notify Master that drawings should be loaded.
-    /// @param filename file path for loading drawings, should never be empty.
-    void loadDrawings(const QString filename);
+ signals:
+  /// Notify Master of new unsaved changes.
+  void newUnsavedChanges() const;
+
+  /// Notify Master that drawings should be saved.
+  /// @param filename file path for saving drawings, should never be empty.
+  void saveDrawings(const QString filename);
+
+  /// Notify Master that drawings should be loaded.
+  /// @param filename file path for loading drawings, should never be empty.
+  void loadDrawings(const QString filename);
 };
 
 #if (QT_VERSION_MAJOR >= 6)
@@ -137,4 +146,4 @@ signals:
 #define combine_keys(keys) (keys)
 #endif
 
-#endif // NOTESWIDGET_H
+#endif  // NOTESWIDGET_H

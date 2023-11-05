@@ -4,46 +4,72 @@
 #ifndef TOOLPROPERTYBUTTON_H
 #define TOOLPROPERTYBUTTON_H
 
+#include <QColor>
 #include <QComboBox>
+#include <QPainter>
+#include <memory>
+#include <variant>
+
 #include "src/config.h"
+#include "src/preferences.h"
 
 class Tool;
+class QFont;
 class QEvent;
+
+/// Variant bundling information about tool property changes
+typedef std::variant<qreal, Qt::PenStyle, Qt::BrushStyle,
+                     QPainter::CompositionMode, QColor, QFont>
+    tool_variant;
 
 /**
  * @brief Drop down menu for changing a property of a tool.
+ *
+ * @see ToolSelectorWidget
  */
 class ToolPropertyButton : public QComboBox
 {
-    Q_OBJECT
-protected:
-    /// Device changed by this button.
-    /// This is the last device used to press this button.
-    int device;
+  Q_OBJECT
 
-    /// Set device to the device producing this action, then continue with QComboBox::action.
-    bool event(QEvent *event) override;
+ protected:
+  /// Device changed by this button.
+  /// This is the last device used to press this button.
+  int device;
 
-    /// Set property for given tool.
-    virtual void setToolProperty(Tool* tool) const = 0;
+  /// Set device to the device producing this action, then continue with
+  /// QComboBox::action.
+  bool event(QEvent *event) override;
 
-    /// Update currently selected tool property based on device.
-    virtual void updateTool();
+  /// Set property for given tool.
+  virtual void setToolProperty(std::shared_ptr<Tool> tool) const = 0;
 
-public slots:
-    /// Update currently selected tool property based on tool.
-    virtual void toolChanged(Tool *tool) = 0;
+  /// Update currently selected tool property based on device.
+  virtual void updateTool() { toolChanged(preferences()->currentTool(device)); }
 
-protected slots:
-    /// Choose tool and call setToolProperty.
-    void changed(const int index) const;
+ public slots:
+  /// Update currently selected tool property based on tool.
+  virtual void toolChanged(std::shared_ptr<const Tool> tool) = 0;
 
-public:
-    /// Constructor: adjust some widget properties.
-    ToolPropertyButton(QWidget *parent = NULL);
+  /// Update the icon.
+  virtual void updateIcon();
 
-    /// Trivial destructor.
-    ~ToolPropertyButton() {}
+ protected slots:
+  /// Choose tool and call setToolProperty.
+  void changed(const int index) const;
+
+ public:
+  /// Constructor: adjust some widget properties.
+  ToolPropertyButton(QWidget *parent = nullptr);
+
+  /// Trivial destructor.
+  ~ToolPropertyButton() {}
+
+ signals:
+  /// Notify master/scene that tool has changed.
+  void sendUpdatedTool(std::shared_ptr<const Tool> tool) const;
+
+  /// Notify master/scene that tool properties have been updated.
+  void sendToolProperties(const tool_variant &properties) const;
 };
 
-#endif // TOOLPROPERTYBUTTON_H
+#endif  // TOOLPROPERTYBUTTON_H

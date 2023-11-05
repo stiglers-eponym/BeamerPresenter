@@ -1,4 +1,4 @@
-.TH beamerpresenter.conf 5 "2022-09-04" "0.2.3"
+.TH beamerpresenter.conf 5 "2023-09-08" "0.2.4"
 .
 .SH NAME
 beamerpresenter.conf \- configuration file for BeamerPresenter
@@ -54,8 +54,8 @@ Note that it is not guaranteed that this limit is always strictly obeyed, since 
 Frame time (integer, in ms) when showing slides in rapid succession as an animation.
 .
 .TP
-.BR gestures " = true"
-Enable or disable gesture navigation (if available). In wayland and Xorg 3 fingers swiping on a touch screen trigger a gesture event. Currently not configurable in the GUI.
+.BR gestures " = false"
+Enable or disable gesture navigation (if available). In wayland and Xorg, 3 fingers swiping on a touch screen trigger a gesture event. Currently not configurable in the GUI.
 .
 .TP
 .BR "log " "= false"
@@ -68,6 +68,10 @@ Automatically switch slides if the PDF defines a duration for the slide. This ca
 .TP
 .BR "external links " "= false"
 Open external links using default programs (e.g. browser) and load remote resources (e.g. remote media linked from a presentation). If disabled, external links and remote media are ignored.
+.TP
+.BR "search highlight color " "= #6428643b"
+Color (#AARRGGBB) used to highlight search results. This should include transparency, because it is drawn on top of the search results.
+.
 .
 .TP
 .BR "debug " "= flag1,flag2,..."
@@ -127,6 +131,38 @@ affects shape recognizer for rectangle: This defines the allowed distance betwee
 .BR "circle threshold " "= 0.025"
 Ellipses with a relative deviation of the two radii smaller than this number will be considered as circles.
 .
+.TP
+.BR "arrow tip scale " "= 1."
+Size of the arrow tip relative to the default size.
+.
+.TP
+.BR "arrow tip ratio " "= 1.2"
+Length of the arrow tip relative to half of its width.
+.
+.
+.SS [selection]
+.
+.TP
+.BR "handle size " "= 7"
+Size (in points) of the handles of the selection.
+.
+.TP
+.BR "minimal path width " "= 3"
+Minimal width (in points) of paths considered when selecting a path by clicking on it. A larger number makes it simpler to select thin lines by clicking on them.
+.
+.TP
+.BR "selection color " "= #20808090"
+Filling color of the selection rectangle. Make sure this is semi-transparent (in the form #aarrggbb).
+.
+.TP
+.BR "selection outline color " "= #80808090"
+Outline color of the selection rectangle.
+.
+.TP
+.BR "selection outline width " "= 0.5"
+Pen width for drawing the selection rectangle outline.
+.
+.
 .SS [rendering]
 .
 .TP
@@ -137,7 +173,7 @@ defines, which parts of the page should be shown on which screen.
 .
 .TP
 .BR "renderer " "= mupdf"
-mode for rendering pdf pages. Allowed values are the engines which are defined at compile time. Possible values are \[dq]mupdf\[dq], \[dq]poppler\[dq], \[dq]qtpdf\[dq], and \[dq]external\[dq]. An external renderer requires the configuration of
+mode for rendering PDF pages. Allowed values are the engines which are defined at compile time. Possible values are \[dq]mupdf\[dq], \[dq]poppler\[dq], \[dq]qtpdf\[dq], and \[dq]external\[dq]. An external renderer requires the configuration of
 .BR "rendering command" " and " "rendering arguments" .
 Note that renderer and PDF engine must agree, i.e., it is not possible to use the Poppler engine and MuPDF for rendering.
 .
@@ -154,7 +190,7 @@ The following replacements in the arguments are available:
 .RS
 .TP
 .B %file
-absolute path to pdf file
+absolute path to PDF file
 .TP
 .B %page
 page number, start counting from 1
@@ -207,7 +243,7 @@ Entries in the dictionary are:
 mandatory: pen, fixed width pen, highlighter, eraser, pointer, magnifier, torch, text, click select, rectangle select, freehand select, or none
 .TP
 .B device
-optional, use the tool for the given devices leaving other devices unchanged. Either a single device or a list (JSON array) of device names is allowed. Available device names are: left button (equivalent: mouse), right button, middle button, no button (only mouse cursor moves), touch, tablet pen, tablet (may include table input which is not recognized as pen), tablet eraser, tablet hover (tablet event with zero pressure), tablet all (any tablet input device), all (devices which are commonly used like left mouse button), all+ (devices except right mouse button, middle mouse button, tablet eraser), all++ (really all devices).
+optional, use the tool for the given devices leaving other devices unchanged. Either a single device or a list (JSON array) of device names is allowed. Available device names are: left button (equivalent: mouse), right button, middle button, no button (only mouse cursor moves), touch, tablet pen, tablet (may include table input which is not recognized as pen), tablet eraser, tablet hover (tablet event with zero pressure), tablet cursor, tablet other, tablet mod, tablet all (any tablet input device), all (devices which are commonly used like left mouse button), all+ (devices except right mouse button, middle mouse button, tablet eraser), all++ (really all devices).
 .TP
 .B color
 color name known to Qt or #RRGGBB or #AARRGGBB
@@ -222,7 +258,7 @@ only pointing tools (pointer, torch, eraser): radius of tool (positive number).
 only draw tools (pen, highlighter, fixed width pen): color to fill the path. Leave empty if paths should not be filled.
 .TP
 .BR style " = solid"
-only draw tools: Pen style for stroking the path. Possible values are "nopen" , "solid", "dash", "dot", "dashdot", and "dashdotdot".
+only draw tools: Pen style for stroking the path. Possible values are \[dq]nopen\[dq] , \[dq]solid\[dq], \[dq]dash\[dq], \[dq]dot\[dq], \[dq]dashdot\[dq], and \[dq]dashdotdot\[dq].
 .TP
 .BR brush " = SolidPattern"
 only draw tools: Filling style of the path, see https://doc.qt.io/qt-6/qt.html#BrushStyle-enum for valid names. Gradients are not allowed.
@@ -272,7 +308,7 @@ Define tools which are initially associated with a devices. The syntax is as fol
 An example configuration:
 .RS
 right button = {'tool':'eraser', 'size':10, 'linewidth':0.5}
-table eraser = {'tool':'eraser', 'size':15, 'linewidth':0}
+tablet eraser = {'tool':'eraser', 'size':15, 'linewidth':0}
 .RE
 .
 .SH FILES

@@ -28,7 +28,7 @@ jobs:
 
     steps:
     - name: Checkout repository
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
 
     # Initializes the CodeQL tools for scanning.
     - name: Initialize CodeQL
@@ -42,11 +42,13 @@ jobs:
 
     - name: Install Dependencies
       run: >
+        sudo apt-get update -y;
         sudo apt-get install -y --no-install-recommends
         cmake
         zlib1g-dev
         qtmultimedia5-dev
         qttools5-dev
+        libqt5svg5-dev
         libpoppler-qt5-dev
         libmupdf-dev
         libfreetype-dev
@@ -62,8 +64,8 @@ jobs:
        -DUSE_POPPLER=ON
        -DUSE_QTPDF=OFF
        -DUSE_EXTERNAL_RENDERER=OFF
-       -DUSE_MUJS=OFF
-       -DUSE_GUMBO=OFF
+       -DLINK_MUJS=OFF
+       -DLINK_GUMBO=OFF
        -DUSE_TRANSLATIONS=ON
        -DQT_VERSION_MAJOR=5
        -DQT_VERSION_MINOR=12
@@ -81,7 +83,7 @@ jobs:
       uses: github/codeql-action/analyze@v2
 
     - name: Archive performance analysis report
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       with:
         name: codeql-report.sarif
         path: /home/runner/work/BeamerPresenter/results/cpp.sarif
@@ -90,7 +92,7 @@ jobs:
       run: cpack --config build_dir/CPackConfig.cmake
 
     - name: Archive debian package
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       with:
         name: beamerpresenter-full-qt5-x86_64.deb
         path: /home/runner/work/BeamerPresenter/BeamerPresenter/beamerpresenter-full-qt5-x86_64.deb

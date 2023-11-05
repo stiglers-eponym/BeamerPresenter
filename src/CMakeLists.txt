@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2022 Valentin Bruch <software@vbruch.eu>
+# SPDX-FileCopyrightText: 2023 Valentin Bruch <software@vbruch.eu>
 # SPDX-License-Identifier: GPL-3.0-or-later OR AGPL-3.0-or-later
 
 configure_file(config.h.in config.h @ONLY)
@@ -30,6 +30,7 @@ add_executable(beamerpresenter
         drawing/abstractgraphicspath.h drawing/abstractgraphicspath.cpp
         drawing/basicgraphicspath.h drawing/basicgraphicspath.cpp
         drawing/fullgraphicspath.h drawing/fullgraphicspath.cpp
+        drawing/graphicspictureitem.h
         gui/actionbutton.h gui/actionbutton.cpp
         gui/searchwidget.h gui/searchwidget.cpp
         gui/clockwidget.h gui/clockwidget.cpp
@@ -40,7 +41,7 @@ add_executable(beamerpresenter
         gui/settingswidget.h gui/settingswidget.cpp
         gui/slidelabelwidget.h gui/slidelabelwidget.cpp
         gui/slidenumberwidget.h gui/slidenumberwidget.cpp
-        gui/stackedwidget.h gui/stackedwidget.cpp
+        gui/stackedwidget.h
         gui/tabwidget.h gui/tabwidget.cpp
         gui/thumbnailbutton.h gui/thumbnailbutton.cpp
         gui/thumbnailthread.h gui/thumbnailthread.cpp
@@ -49,21 +50,33 @@ add_executable(beamerpresenter
         gui/tocbutton.h gui/tocbutton.cpp
         gui/tocwidget.h gui/tocwidget.cpp
         gui/toolbutton.h gui/toolbutton.cpp
+        gui/toolselectorbutton.h gui/toolselectorbutton.cpp
+        gui/toolwidgetbutton.h gui/toolwidgetbutton.cpp
         gui/tooldialog.h gui/tooldialog.cpp
+        gui/tooliconengine.h gui/tooliconengine.cpp
+        gui/peniconengine.h
+        gui/brushiconengine.h
         gui/toolselectorwidget.h gui/toolselectorwidget.cpp
         gui/toolpropertybutton.h gui/toolpropertybutton.cpp
         gui/shapeselectionbutton.h gui/shapeselectionbutton.cpp
         gui/widthselectionbutton.h gui/widthselectionbutton.cpp
         gui/penstylebutton.h gui/penstylebutton.cpp
+        gui/brushstylebutton.h gui/brushstylebutton.cpp
         gui/colorselectionbutton.h gui/colorselectionbutton.cpp
-        gui/mediaslider.h
+        gui/iconlabel.h
+        gui/containerbaseclass.h
         gui/containerwidget.h
+        gui/toolwidget.h gui/toolwidget.cpp
         rendering/abstractrenderer.h
-        rendering/mediaplayer.h rendering/mediaplayer.cpp
         rendering/pdfdocument.h rendering/pdfdocument.cpp
         rendering/pixcache.h rendering/pixcache.cpp
         rendering/pixcachethread.h rendering/pixcachethread.cpp
         rendering/pngpixmap.h rendering/pngpixmap.cpp
+        media/mediaplayer.h media/mediaplayer.cpp
+        media/mediaannotation.h media/mediaannotation.cpp
+        media/mediaitem.h media/mediaitem.cpp
+        media/mediaprovider.h
+        media/mediaslider.h
         slidescene.h slidescene.cpp
         slideview.h slideview.cpp
         pdfmaster.h pdfmaster.cpp
@@ -76,11 +89,9 @@ add_executable(beamerpresenter
         ${EXTRA_INCLUDE}
     )
 
-if (DEFINED "${ZLIB_LIBRARY}")
-    list(APPEND EXTRA_LIBS "${ZLIB_LIBRARY}")
-else()
-    list(APPEND EXTRA_LIBS "z")
-endif()
+
+set(ZLIB_LIBRARY "z" CACHE STRING "zlib library file")
+list(APPEND EXTRA_LIBS "${ZLIB_LIBRARY}")
 if (USE_QTPDF)
     # TODO: This is probably not required in 5.14 > Qt >= 5.10
     list(APPEND EXTRA_LIBS "Qt${QT_VERSION_MAJOR}::Pdf")
@@ -93,6 +104,7 @@ target_link_libraries(beamerpresenter PRIVATE
         "Qt${QT_VERSION_MAJOR}::Multimedia"
         "Qt${QT_VERSION_MAJOR}::MultimediaWidgets"
         "Qt${QT_VERSION_MAJOR}::Xml"
+        "Qt${QT_VERSION_MAJOR}::Svg"
         ${EXTRA_LIBS}
     )
 

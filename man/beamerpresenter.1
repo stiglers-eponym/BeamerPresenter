@@ -1,4 +1,5 @@
-.TH BeamerPresenter 1 "2022-09-04" "0.2.3"
+.TH BeamerPresenter 1 "2023-09-08" "0.2.4"
+.
 .SH NAME
 BeamerPresenter \- modular multi-screen PDF presenter
 .
@@ -9,10 +10,10 @@ BeamerPresenter \- modular multi-screen PDF presenter
 .IR config-file ]
 .RB [ \-g
 .IR ui-file ]
-.RB [ \-\-log ]
-.RB [ \-\-nocache ]
 .RB [ \-t
 .IR time ]
+.RB [ \-\-log ]
+.RB [ \-\-nocache ]
 .RB [ \-\-renderer
 .IR name ]
 .I presentation
@@ -28,7 +29,7 @@ BeamerPresenter \- modular multi-screen PDF presenter
 is a Qt-based presentation viewer designed for showing extra information on the speaker's screen.
 The modular user interface is completely customizable and may include, among others, previews of upcoming slides, a different presentation file with additional information, text notes, a timer, and thumbnail slides.
 .PP
-The interpretation of multiple positional arguments depends on the user interface configuration (beamerpresenter-ui (5)). Readable file types are PDF files and gzip compressed xml files a format mostly compatible with Xournal++ (.xopp).
+The interpretation of multiple positional arguments depends on the user interface configuration (beamerpresenter-ui (5)). Readable file types are PDF files and gzip compressed xml files in a format mostly compatible with Xournal++ (.xopp).
 .
 .
 .SH OPTIONS
@@ -47,19 +48,19 @@ Displays version information.
 .
 .TP
 .BI "\-\-renderer " option
-.RI "Define renderer and PDF engine. Depending on you installation, this may be just a PDF engine (MuPDF, Poppler, or QtPDF), or \[dq]" ENGINE "-external\[dq] where " ENGINE " is a PDF engine. \[dq]external\[dq] indicates that instead of using the given PDF engine, the rendering should be delegated to an external program. The command for calling this program must be defined in the configuration, see beamerpresenter.conf(5).
+.RI "Define renderer and PDF engine. Depending on your installation, this may be just a PDF engine (MuPDF, Poppler, or QtPDF), or \[dq]" ENGINE "-external\[dq] where " ENGINE " is a PDF engine. \[dq]external\[dq] indicates that instead of using the given PDF engine, the rendering should be delegated to an external program. The command for calling this program must be defined in the configuration, see beamerpresenter.conf(5).
 .
 .TP
 .B \-\-log
-Print times of slide changes to standard output. Only has an effect if a page label/number widget is contained in GUI.
+Print times of slide changes to standard output. Only has an effect if a page label/number widget is contained in the user interface.
 .
 .TP
 .B \-\-nocache
-Disable caching slides. This option may be helpful when using a presentation with slides of different geometry.
+Disable caching slides. This option may be helpful for debugging or when using a presentation with slides of different geometry.
 .
 .TP
 .BI "\-\-debug " "flag1,flag2,..."
-Show debugging messages. Only available if built with the option CONFIG+=debug. Valid flags are: rendering, cache, drawing, media, key-input, other-input, settings, transitions, page-change, layout, widgets, all, verbose. The "verbose" option does not turn on any logging by itself, but shows additional logging for the other flags set.
+Show debugging messages. Only available if built with the option CONFIG+=debug. Valid flags are: rendering, cache, drawing, media, key-input, other-input, settings, transitions, page-change, layout, widgets, all, verbose. The \[dq]verbose\[dq] option does not turn on any logging by itself, but shows additional messages for the other flags set.
 .
 .TP
 .BI "\-t \-\-time " number
@@ -67,49 +68,145 @@ Timer preset in minutes (floating point number).
 .
 .TP
 .BI "\-c \-\-config " file
-Path to config (settings) file.
+Path to config (settings) file. In Windows, using this command line is the only way of making BeamerPresenter use a configuration file instead of the Windows registry.
 .
 .TP
 .BI "\-g \-\-gui-config " file
-Path to user interface configuration file (json-formatted).
+Path to user interface configuration file (JSON-formatted).
 .
 .
 .SH DEFAULT KEY BINDINGS
 .
 .TP
-.B PageUp
-.B previous
-Go to previous page.
+.BI "PageUp, Left " "= previous"
+Go to previous page
 .
 .TP
-.B PageDown
-.B next
-Go to next page.
+.BI "PageDown, Right " "= next"
+Go to next page
 .
 .TP
-.B space
-.B update
-Refresh view.
+.BI "space " "= update"
+Refresh view
+.
+.TP
+.BI "Home " "= first"
+Go to first page
+.
+.TP
+.BI "End " "= last"
+Go to last page
+.
+.TP
+.BI "Ctrl + C " "= copy"
+Copy the selection to the clipboard
+.
+.TP
+.BI "Ctrl + V " "= paste"
+Paste from the clipboard
+.
+.TP
+.BI "Ctrl + X " "= cut"
+Remove selection and copy it to the clipboard
+.
+.TP
+.BI "Ctrl + Z " "= undo"
+Undo (e.g. when drawing or adding text)
+.
+.TP
+.BI "Ctrl + Y " "= redo"
+.
+.TP
+.BI "Del " "= delete"
+Remove selection.
+.
+.TP
+.BI "Ctrl + S " "= save"
+Save drawings, notes, and times (see section FILE FORMAT below)
+.
+.TP
+.BI "Ctrl + Shift + S " "= save as"
+.
+.TP
+.BI "Ctrl + O " "= open"
+Load drawings etc. from file.
 .
 .
 .SH CONFIGURATION
 .
-The configuration consists of an ordinary config file (beamerpresenter.conf(5)) based on Qt's settings format, which is integrated in the system settings. This defines, e.g., the cache size and keyboard shortcuts. Additionally the graphical interface is defined in a json-formatted file gui.json (beamerpresenter-ui (5)). This is used to arrange and configure windows and widgets (such as sides, clock, timer, overview, ...).
+The configuration consists of an ordinary configuration file (beamerpresenter.conf(5)) based on Qt's settings format, which is integrated in the system settings. This defines, e.g., the cache size and keyboard shortcuts. Most settings in this settings file can be configured in the settings widget of the graphical user interface. See command line option -c or --config.
+.PP
+Additionally, the graphical interface is defined in a JSON-formatted file gui.json (beamerpresenter-ui(5)). This file defines the user interface. It can only be edited manually. See command line option -g or --gui-config.
 .
 .
 .SH FILE FORMAT
 .
-BeamerPresenter can save drawings along with notes (from notes widget) and other file-specific settings to a gzipped xml file (.bpr). The PDF file is not included in this file.
-The file type aims for compatibility with Xournal++ in saving and loading drawings. BeamerPresenter can read Xournal(++) files, but will only consider pages with a PDF page as background. Xournal++ can open BeamerPresenter files, but transformations of text boxes will be ignored. BeamerPresenter can only handle a subset of the features provided by Xournal++ and also adds a few features which Xournal++ will ignore.
-When opening a file it does not need to be gzipped. However, when saving to a file it will always be gzipped.
+BeamerPresenter can save drawings along with text notes (from a notes widget) and other file-specific settings to a gzipped xml file (.bpr). The PDF document is not included in this file.
+The file type aims for compatibility with Xournal++'s .xopp in saving and loading drawings. BeamerPresenter can read .xoj and .xopp files, but will only consider pages with a PDF page as background. Xournal++ can open BeamerPresenter files, but transformations of text boxes will be ignored. BeamerPresenter can only handle a small subset of the features provided by Xournal++ and also adds a few features which Xournal++ will ignore.
+When opening a file, it does not need to be gzipped. However, when saving to a file it will always be gzipped.
+.PP
+Note: When saving with the file extension .xopp in BeamerPresenter, only annotations will be saved. Text notes and times set for slides will not be saved in this case.
+.
+.
+.SH PDF FEATURES / MULTIMEDIA
+.
+BeamerPresenter is aimed at implementing those features in the PDF standard that can reasonably be used in presentations. JavaScript is explicitly excluded and there is currently no plan to implement 3D artwork. Basic implementations exist for slide transitions and multimedia content.
+.PP
+Only external multimedia content (movies and sounds) is supported. Embedded files will be ignored. Furthermore, only the Poppler PDF engine currently supports sound links. Sounds may thus be missing when using the MuPDF engine. As a workaround, sounds can be included as if they were videos. Supported audio/video formats depend on the media player backend.
+.PP
+Media sources in the PDF may be local files or URLs. BeamerPresenter interprets the scheme and query of a URL to allow settings beyond the PDF standard. The following schemes are treated specially:
+.TP
+.BR udp ", " rtp
+It is assumed that this shall be a live stream. By default, play/pause is disabled and there is no slider.
+.TP
+.BR v4l ", " v4l2 ", " cam
+The URL path is interpreted as the id of a camera. In Linux, this is usually of the form /dev/video0. The live view of the camera with the given id is shown without any media controls. This option is only available in Qt 6 and must be enabled at compile time.
+.
+.PP
+.
+The following URL query options can take the values \[dq]true\[dq] or \[dq]false\[dq]:
+.TP
+.BR autoplay " = true"
+show and play media when reaching a slide.
+.TP
+.BR mute " = false"
+Mute audio (can also be achieved with the volume option in the PDF standard)
+.TP
+.BR slider " = true"
+Show a slider for showing the progress of the video on the control screen.
+.TP
+.BR interaction " = true"
+Allow the user to pause the video.
+.TP
+.BR live " = false"
+Media shows a live stream. Currently this option has no effect.
+.PP
+Examples:
+.TP
+udp://127.0.0.1:8010?mute=false&interaction=true
+Show a stream from given URL without audio. The udp scheme changes the default options to live=true, slider=false, interaction=false. Here we override the option for interaction. Note this source will be blocked unless external links are enabled in the configuration.
+.TP
+v4l2:///dev/video0?autoplay=false
+Show the output of the default webcam in GNU+Linux (Qt 6 only, option must be enabled at compile time).
+.TP
+/tmp/movie.mp4
+Local file, specified as absolute path.
+.TP
+relative/path/to/movie.mp4
+Relative paths to local files are resolved relative to the directory containing the PDF file or, if that fails, relative to the current directory.
+.TP
+file:movie.mp4?slider=false
+Local file, specified as relative path. Starting with \[dq]file:\[dq] ensures that the path is not falsely interpreted as a remote URL by prepending \[dq]http://\[dq].
 .
 .
 .SH BUGS
 .
-Bugs should be reported at the
+If you find bugs, please reported these at the
 .UR https://github.com/stiglers-eponym/BeamerPresenter/issues
 issue tracker
-.UE .
+.UE . Please include the output of "beamerpresenter --version" in the bug report.
+.PP
+The issue tracker can also be used to request features or to make suggestions, e.g., for default configurations or example configurations.
 .
 .
 .

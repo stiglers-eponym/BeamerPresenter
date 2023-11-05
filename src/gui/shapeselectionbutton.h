@@ -4,6 +4,8 @@
 #ifndef SHAPESELECTIONBUTTON_H
 #define SHAPESELECTIONBUTTON_H
 
+#include <memory>
+
 #include "src/config.h"
 #include "src/gui/toolpropertybutton.h"
 
@@ -15,26 +17,24 @@ class Tool;
  */
 class ShapeSelectionButton : public ToolPropertyButton
 {
-    Q_OBJECT
-public:
-    /// Constructor: add all items to the drop down menu.
-    /// The index of an item is the same as the integer representation
-    /// of DrawTool::Shape.
-    ShapeSelectionButton(QWidget *parent = NULL);
+  Q_OBJECT
 
-    /// Trivial destructor.
-    ~ShapeSelectionButton() {}
+ public:
+  /// Constructor: add all items to the drop down menu.
+  /// The index of an item is the same as the integer representation
+  /// of DrawTool::Shape.
+  ShapeSelectionButton(QWidget *parent = nullptr);
 
-protected:
-    /// Set shape of tool to selected value.
-    void setToolProperty(Tool* tool) const override;
+  /// Trivial destructor.
+  ~ShapeSelectionButton() {}
 
-    /// Update currently selected shape based on the tool for device.
-    void updateTool() override;
+ protected:
+  /// Set shape of tool to selected value.
+  void setToolProperty(std::shared_ptr<Tool> tool) const override;
 
-public slots:
-    /// Update currently selected tool property based on tool.
-    void toolChanged(Tool *tool) override;
+ public slots:
+  /// Update currently selected tool property based on tool.
+  void toolChanged(std::shared_ptr<const Tool> tool) override;
 };
 
-#endif // SHAPESELECTIONBUTTON_H
+#endif  // SHAPESELECTIONBUTTON_H

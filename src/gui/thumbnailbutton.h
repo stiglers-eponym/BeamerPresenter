@@ -5,6 +5,7 @@
 #define THUMBNAILBUTTON_H
 
 #include <QLabel>
+
 #include "src/config.h"
 
 class QMouseEvent;
@@ -19,28 +20,52 @@ class QFocusEvent;
  */
 class ThumbnailButton : public QLabel
 {
-    Q_OBJECT
+  Q_OBJECT
 
-    /// index of the page represented by this thumbnail
-    const int page;
+  /// index of the page represented by this thumbnail
+  const int page;
 
-public:
-    /// Boring constructor.
-    ThumbnailButton(const int page, QWidget *parent = NULL);
+  /// add red margin when this gets focus
+  void showMargin()
+  {
+    setStyleSheet(
+        "ThumbnailButton{background-color:#ffff0000;color:#ffff0000;}");
+    emit updateFocus(this);
+  }
 
-protected:
-    /// Mouse released: send navigation signal.
-    void mouseReleaseEvent(QMouseEvent *event) override;
-    /// Keyboard events for keyboard navigation
-    void keyPressEvent(QKeyEvent *event) override;
-    /// add red margin when this gets focus
-    void focusInEvent(QFocusEvent*) override;
-    /// remove red margin when this looses focus
-    void focusOutEvent(QFocusEvent*) override;
+ public:
+  /// Boring constructor.
+  ThumbnailButton(const int page, QWidget *parent = nullptr);
 
-signals:
-    /// Send out navigation event for this page.
-    void sendNavigationSignal(int page);
+ protected:
+  /// Mouse released: send navigation signal.
+  void mouseReleaseEvent(QMouseEvent *event) override;
+  /// Keyboard events for keyboard navigation
+  void keyPressEvent(QKeyEvent *event) override;
+  /// focus in: add red margin
+  void focusInEvent(QFocusEvent *) override { showMargin(); }
+
+ public slots:
+  /// give focus: add red margin
+  void giveFocus() noexcept
+  {
+    setFocus();
+    if (!hasFocus()) showMargin();
+  }
+  /// take focus: remove red margin
+  void defocus() noexcept
+  {
+    setStyleSheet(
+        "ThumbnailButton{background-color:#00000000;color:#00000000;}");
+  }
+
+ signals:
+  /// Send out navigation event for this page.
+  void sendNavigationSignal(int page);
+  /// Tell thumbnail widget to set focus to this button.
+  void updateFocus(ThumbnailButton *self);
+  /// Tell thumbnail widget to move focus to the row above/below (updown=-1/+1).
+  void focusUpDown(const char updown);
 };
 
-#endif // THUMBNAILBUTTON_H
+#endif  // THUMBNAILBUTTON_H
