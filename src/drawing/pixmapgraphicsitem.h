@@ -15,10 +15,10 @@
 #include "src/config.h"
 #include "src/enumerates.h"
 
-#define BLINDS_NUMBER_H 6
-#define BLINDS_NUMBER_V 8
-#define GLITTER_ROW 71
-#define GLITTER_NUMBER 137
+constexpr int BLINDS_NUMBER_H = 6;
+constexpr int BLINDS_NUMBER_V = 8;
+constexpr int GLITTER_ROW = 71;
+constexpr int GLITTER_NUMBER = 137;
 
 class QPainter;
 class QWidget;
@@ -64,10 +64,10 @@ class PixmapGraphicsItem : public QGraphicsObject
   };
 
  private:
-  /// map pixmap width (in pixels) to pixmaps
-  QMap<unsigned int, QPixmap> pixmaps;
+  /// List of pixmaps
+  QList<QPixmap> pixmaps;
 
-  /// Bouding rect of this QGraphicsItem.
+  /// Bounding rect of this QGraphicsItem.
   QRectF bounding_rect;
 
   /// Rectangular mask. Depending on mask_type, painting will be clipped to
@@ -129,12 +129,6 @@ class PixmapGraphicsItem : public QGraphicsObject
 
   /// @return number of pixmaps.
   int number() const noexcept { return pixmaps.size(); }
-
-#ifdef QT_DEBUG
-  /// Only for debugging.
-  /// @return list all available widths
-  QList<unsigned int> widths() const { return pixmaps.keys(); }
-#endif
 
  public slots:
   /// Add a pixmap.

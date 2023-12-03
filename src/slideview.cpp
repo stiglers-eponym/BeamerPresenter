@@ -268,8 +268,7 @@ void SlideView::showMagnifier(QPainter *painter,
   if (waitingForPage == INT_MAX &&
       !pageItem->hasWidth(resolution * sceneRect().width() + 0.499)) {
     debug_msg(DebugRendering, "Enlarged page: searched for"
-                                  << resolution * sceneRect().width() + 1
-                                  << ", available" << pageItem->widths());
+                                  << resolution * sceneRect().width() + 1);
     waitingForPage = static_cast<SlideScene *>(scene())->getPage();
     emit requestPage(waitingForPage, resolution);
   }
@@ -439,8 +438,8 @@ void SlideView::addMediaSlider(const std::shared_ptr<MediaItem> media)
 
 void SlideView::prepareTransition(PixmapGraphicsItem *transitionItem)
 {
-  const qreal resolution = transform().m11();
-  QPixmap pixmap((sceneRect().size() * resolution).toSize());
+  const QSizeF size = sceneRect().size() * transform().m11();
+  QPixmap pixmap(std::ceil(size.width()), std::ceil(size.height()));
   QPainter painter(&pixmap);
   painter.setRenderHint(QPainter::Antialiasing);
   QRect sourceRect(mapFromScene({0, 0}), pixmap.size());
@@ -459,7 +458,8 @@ void SlideView::prepareFlyTransition(const bool outwards,
 {
   if (!old || !target) return;
 
-  const unsigned int width = transform().m11() * sceneRect().width() + 0.499;
+  debug_msg(DebugTransitions, "preparing fly transition");
+  const unsigned int width = transform().m11() * sceneRect().width();
   QImage newimg, oldimg;
   QPainter painter;
   if (outwards) {
