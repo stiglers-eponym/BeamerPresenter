@@ -49,12 +49,12 @@ void PixmapGraphicsItem::paint(QPainter *painter,
   debug_msg(DebugRendering, "start rendering pixmap" << this);
   if (pixmaps.isEmpty()) return;
   QRect viewrect = painter->viewport();
-  const int ref_width=viewrect.width(), ref_height=viewrect.height();
+  const int ref_width = viewrect.width(), ref_height = viewrect.height();
   const auto aspect_ratio = bounding_rect.height() / bounding_rect.width();
   QPixmap pixmap;
   if (aspect_ratio * ref_width >= ref_height) {
     viewrect.setWidth(std::ceil(ref_height / aspect_ratio));
-    viewrect.moveTo(x() + (ref_width - viewrect.width())/2, y());
+    viewrect.moveTo(x() + (ref_width - viewrect.width()) / 2, y());
     for (const auto &pix : pixmaps) {
       if (pix.height() >= ref_height) {
         pixmap = pix;
@@ -63,7 +63,7 @@ void PixmapGraphicsItem::paint(QPainter *painter,
     }
   } else {
     viewrect.setHeight(std::ceil(aspect_ratio * ref_width));
-    viewrect.moveTo(x(), y() + (ref_height - viewrect.height())/2);
+    viewrect.moveTo(x(), y() + (ref_height - viewrect.height()) / 2);
     for (const auto &pix : pixmaps) {
       if (pix.width() >= ref_width) {
         pixmap = pix;
@@ -138,7 +138,7 @@ void PixmapGraphicsItem::paint(QPainter *painter,
 void PixmapGraphicsItem::addPixmap(const QPixmap &pixmap) noexcept
 {
   if (pixmap.isNull()) return;
-  for (auto it=pixmaps.begin(); it!=pixmaps.end(); ++it) {
+  for (auto it = pixmaps.begin(); it != pixmaps.end(); ++it) {
     if (pixmap.width() <= it->width()) {
       if (pixmap.width() == it->width())
         *it = pixmap;
@@ -176,7 +176,8 @@ QPixmap PixmapGraphicsItem::getPixmap(const unsigned int width) const noexcept
     if (pix.width() >= width) {
 #ifdef QT_DEBUG
       if (pix.width() != width)
-        debug_msg(DebugRendering, "possibly wrong resolution:" << pix.width() << width);
+        debug_msg(DebugRendering,
+                  "possibly wrong resolution:" << pix.width() << width);
 #endif
       return pix;
     }

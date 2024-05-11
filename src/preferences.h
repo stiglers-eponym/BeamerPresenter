@@ -87,9 +87,9 @@ class Preferences : public QObject
 
   // DRAWING
   /// Maximum number of steps in drawing history of currently visible slide.
-  int history_length_visible_slides;
+  int history_length_visible_slides = 50;
   /// Maximum number of steps in drawing history of hidden slide.
-  int history_length_hidden_slides;
+  int history_length_hidden_slides = 20;
   /// Define how should drawings be assigned to overlays.
   OverlayDrawingMode overlay_mode = Cumulative;
 
@@ -158,10 +158,10 @@ class Preferences : public QObject
 
   /// Maximally allowed memory size in bytes.
   /// Negative numbers are interpreted as infinity.
-  float max_memory{-1.};
+  float max_memory = -1.;
   /// Maximally allowed number of pages in cache.
   /// Negative numbers are interpreted as infinity.
-  int max_cache_pages{-1};
+  int max_cache_pages = -1;
 
   // INTERACTION
   /// Map key combinations to actions for global keyboard shortcuts.

@@ -7,8 +7,8 @@ on:
   workflow_dispatch:
 
 env:
-  MUPDF_VERSION: 1.23.3
-  MUPDF_SHA256SUM: f57e68b4532d089354497cc685a4faccea2dfdc84b7681c3608abfb6a338e7e9
+  MUPDF_VERSION: 1.24.2
+  MUPDF_SHA256SUM: b86ba258c5cc6711367e4bbe2d283389a33ac19f00a513462f6c60d05b00601c
 
 jobs:
   package:
@@ -42,23 +42,24 @@ jobs:
 
     - name: Configure with Qt5 + Poppler
       run: >
-       cmake
-       -B build_qt5_poppler
-       -DUSE_MUPDF=OFF
-       -DUSE_POPPLER=ON
-       -DUSE_QTPDF=OFF
-       -DUSE_EXTERNAL_RENDERER=OFF
-       -DLINK_MUJS=OFF
-       -DLINK_GUMBO=OFF
-       -DUSE_TRANSLATIONS=ON
-       -DQT_VERSION_MAJOR=5
-       -DQT_VERSION_MINOR=12
-       -DGIT_VERSION=OFF
-       -DCMAKE_BUILD_TYPE='Release'
-       -DCPACK_GENERATOR='DEB;'
-       -DCMAKE_INSTALL_PREFIX='/usr'
-       -DCMAKE_INSTALL_SYSCONFDIR='/etc'
-       -DINSTALL_LICENSE=OFF
+        cmake
+        -B build_qt5_poppler
+        -DUBUNTU_VERSION=20.04
+        -DUSE_MUPDF=OFF
+        -DUSE_POPPLER=ON
+        -DUSE_QTPDF=OFF
+        -DUSE_EXTERNAL_RENDERER=OFF
+        -DLINK_MUJS=OFF
+        -DLINK_GUMBO=OFF
+        -DUSE_TRANSLATIONS=ON
+        -DQT_VERSION_MAJOR=5
+        -DQT_VERSION_MINOR=12
+        -DGIT_VERSION=OFF
+        -DCMAKE_BUILD_TYPE='Release'
+        -DCPACK_GENERATOR='DEB;'
+        -DCMAKE_INSTALL_PREFIX='/usr'
+        -DCMAKE_INSTALL_SYSCONFDIR='/etc'
+        -DINSTALL_LICENSE=OFF
 
     - name: Build with Qt5 + Poppler
       run: cmake --build build_qt5_poppler
@@ -77,23 +78,24 @@ jobs:
 
     - name: Configure with Qt5 + MuPDF
       run: >
-       cmake
-       -B build_qt5_mupdf
-       -DUSE_MUPDF=ON
-       -DUSE_POPPLER=OFF
-       -DUSE_QTPDF=OFF
-       -DUSE_EXTERNAL_RENDERER=OFF
-       -DLINK_MUJS=OFF
-       -DLINK_GUMBO=OFF
-       -DUSE_TRANSLATIONS=ON
-       -DQT_VERSION_MAJOR=5
-       -DQT_VERSION_MINOR=12
-       -DGIT_VERSION=OFF
-       -DCMAKE_BUILD_TYPE='Release'
-       -DCPACK_GENERATOR='DEB;'
-       -DCMAKE_INSTALL_PREFIX='/usr'
-       -DCMAKE_INSTALL_SYSCONFDIR='/etc'
-       -DINSTALL_LICENSE=OFF
+        cmake
+        -B build_qt5_mupdf
+        -DUBUNTU_VERSION=20.04
+        -DUSE_MUPDF=ON
+        -DUSE_POPPLER=OFF
+        -DUSE_QTPDF=OFF
+        -DUSE_EXTERNAL_RENDERER=OFF
+        -DLINK_MUJS=OFF
+        -DLINK_GUMBO=OFF
+        -DUSE_TRANSLATIONS=ON
+        -DQT_VERSION_MAJOR=5
+        -DQT_VERSION_MINOR=12
+        -DGIT_VERSION=OFF
+        -DCMAKE_BUILD_TYPE='Release'
+        -DCPACK_GENERATOR='DEB;'
+        -DCMAKE_INSTALL_PREFIX='/usr'
+        -DCMAKE_INSTALL_SYSCONFDIR='/etc'
+        -DINSTALL_LICENSE=OFF
 
     - name: Build with Qt5 + MuPDF
       run: cmake --build build_qt5_mupdf
@@ -132,6 +134,7 @@ jobs:
       run: >
         cmake
         -B build_qt5_mupdf_small
+        -DUBUNTU_VERSION=20.04
         -DUSE_MUPDF=ON
         -DUSE_POPPLER=OFF
         -DUSE_QTPDF=OFF
