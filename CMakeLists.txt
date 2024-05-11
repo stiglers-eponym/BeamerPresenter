@@ -21,7 +21,7 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 # Define available build/config types
 set(QT_VERSION_MAJOR 6 CACHE STRING "Qt major version")
 # Minor Qt version is required for defining dependencies when packaging
-set(QT_VERSION_MINOR 6 CACHE STRING "Qt minor version")
+set(QT_VERSION_MINOR 7 CACHE STRING "Qt minor version")
 
 # Check if the required Qt libraries are available
 find_package(Qt${QT_VERSION_MAJOR} COMPONENTS Core REQUIRED)
@@ -220,19 +220,20 @@ set(CPACK_STRIP_FILES ON)
 MATH(EXPR QT_VERSION_MINOR_PLUS "${QT_VERSION_MINOR} + 1")
 
 if (CPACK_GENERATOR MATCHES "DEB")
-    # configure debian package (tested in Ubuntu 20.04 and Ubuntu 22.04)
+    set(UBUNTU_VERSION "24.04" CACHE STRING "Ubuntu version, used for dependencies")
+    # configure debian package (tested in Ubuntu 20.04, 22.04, and 24.04)
     #
     # Required packages for building:
     # * cmake
     # * git (only when building mainline version)
     # * zlib1g-dev
-    # * qtmultimedia5-dev (qt6-multimedia-dev for Qt 6)
-    # * libqt5svg5-dev (libqt6svg6-dev for Qt 6)
-    # * qttools5-dev (qt6-tools-dev and qt6-tools-dev-tools for Qt 6)
-    # * libqt6opengl6-dev (for Qt 6)
-    # * libgl1-mesa-dev (for Qt 6)
+    # * qtmultimedia5-dev or qt6-multimedia-dev
+    # * libqt5svg5-dev or libqt6svg6-dev
+    # * qttools5-dev or (qt6-tools-dev and qt6-tools-dev-tools)
+    # * libqt6opengl6-dev (Qt 6 only)
+    # * libgl1-mesa-dev (Qt 6 only)
     # For poppler:
-    # * libpoppler-qt5-dev
+    # * libpoppler-qt5-dev or libpoppler-qt6-dev
     # For MuPDF:
     # * libmupdf-dev
     # * libfreetype-dev
@@ -251,11 +252,14 @@ if (CPACK_GENERATOR MATCHES "DEB")
     if (USE_MUPDF)
         set(CPACK_DEBIAN_PACKAGE_DEPENDS "${CPACK_DEBIAN_PACKAGE_DEPENDS}, libfreetype6, libharfbuzz0b, libjpeg8, libopenjp2-7, libjbig2dec0")
         if (LINK_GUMBO)
-            set(CPACK_DEBIAN_PACKAGE_DEPENDS "${CPACK_DEBIAN_PACKAGE_DEPENDS}, libgumbo1")
+            if ("${UBUNTU_VERSION}" GREATER_EQUAL "24.04")
+                set(CPACK_DEBIAN_PACKAGE_DEPENDS "${CPACK_DEBIAN_PACKAGE_DEPENDS}, libgumbo2")
+            else()
+                set(CPACK_DEBIAN_PACKAGE_DEPENDS "${CPACK_DEBIAN_PACKAGE_DEPENDS}, libgumbo1")
+            endif()
         endif()
         if (LINK_MUJS)
-            # Ugly workaround: Ubuntu 23.10 uses Qt 6.4 and libmujs3. Ubuntu 22.04 uses Qt 6.2 and libmujs1.
-            if (QT_VERSION_MINOR GREATER_EQUAL 4)
+            if ("${UBUNTU_VERSION}" GREATER_EQUAL "23.10")
                 set(CPACK_DEBIAN_PACKAGE_DEPENDS "${CPACK_DEBIAN_PACKAGE_DEPENDS}, libmujs3")
             else()
                 set(CPACK_DEBIAN_PACKAGE_DEPENDS "${CPACK_DEBIAN_PACKAGE_DEPENDS}, libmujs1")
@@ -263,7 +267,15 @@ if (CPACK_GENERATOR MATCHES "DEB")
         endif()
     endif()
     if (USE_POPPLER)
-        set(CPACK_DEBIAN_PACKAGE_DEPENDS "${CPACK_DEBIAN_PACKAGE_DEPENDS}, libpoppler-qt${QT_VERSION_MAJOR}-1 (>= 0.86.1)")
+        if ("${UBUNTU_VERSION}" GREATER_EQUAL "24.04")
+            if ("${QT_VERSION_MAJOR}" EQUAL "5")
+                set(CPACK_DEBIAN_PACKAGE_DEPENDS "${CPACK_DEBIAN_PACKAGE_DEPENDS}, libpoppler-qt5-1t64")
+            elseif ("${QT_VERSION_MAJOR}" EQUAL "6")
+                set(CPACK_DEBIAN_PACKAGE_DEPENDS "${CPACK_DEBIAN_PACKAGE_DEPENDS}, libpoppler-qt6-3t64")
+            endif()
+        else()
+            set(CPACK_DEBIAN_PACKAGE_DEPENDS "${CPACK_DEBIAN_PACKAGE_DEPENDS}, libpoppler-qt${QT_VERSION_MAJOR}-1")
+        endif()
     endif()
     if (USE_QTPDF)
         set(QT_PDF_PACKAGE "libqt${QT_VERSION_MAJOR}pdf${QT_VERSION_MAJOR}")

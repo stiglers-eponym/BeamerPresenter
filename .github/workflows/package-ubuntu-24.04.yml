@@ -1,4 +1,4 @@
-name: "Package for Ubuntu 22.04"
+name: "Package for Ubuntu 24.04"
 
 on:
   push:
@@ -13,7 +13,7 @@ env:
 jobs:
   package:
     name: Package
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
 
     steps:
     - name: Checkout repository
@@ -24,6 +24,7 @@ jobs:
         sudo apt-get update -y;
         sudo apt-get install -y --no-install-recommends
         cmake
+        g++
         lunzip
         zlib1g-dev
         libmupdf-dev
@@ -37,11 +38,8 @@ jobs:
         libjbig2dec0-dev
         libqt6svg6-dev
         qt6-multimedia-dev
-        libqt6opengl6-dev
-        libgl1-mesa-dev
         qt6-tools-dev
-        qt6-tools-dev-tools
-        qt6-l10n-tools
+        libpoppler-qt6-dev
         libqt5svg5-dev
         qtmultimedia5-dev
         qttools5-dev
@@ -52,7 +50,7 @@ jobs:
       run: >
         cmake
         -B build_qt5_poppler
-        -DUBUNTU_VERSION=22.04
+        -DUBUNTU_VERSION=24.04
         -DUSE_MUPDF=OFF
         -DUSE_POPPLER=ON
         -DUSE_QTPDF=OFF
@@ -75,20 +73,56 @@ jobs:
     - name: Package with Qt5 + Poppler
       run: |
         cpack --config build_qt5_poppler/CPackConfig.cmake
-        mv beamerpresenter-poppler-qt5-x86_64.deb beamerpresenter-poppler-qt5-jammy-x86_64.deb
+        mv beamerpresenter-poppler-qt5-x86_64.deb beamerpresenter-poppler-qt5-noble-x86_64.deb
 
     - name: Archive package with Qt5 + Poppler
       uses: actions/upload-artifact@v3
       with:
-        name: beamerpresenter-poppler-qt5-jammy-x86_64.deb
-        path: /home/runner/work/BeamerPresenter/BeamerPresenter/beamerpresenter-poppler-qt5-jammy-x86_64.deb
+        name: beamerpresenter-poppler-qt5-noble-x86_64.deb
+        path: /home/runner/work/BeamerPresenter/BeamerPresenter/beamerpresenter-poppler-qt5-noble-x86_64.deb
+
+
+    - name: Configure with Qt6 + Poppler
+      run: >
+        cmake
+        -B build_qt6_poppler
+        -DUBUNTU_VERSION=24.04
+        -DUSE_MUPDF=OFF
+        -DUSE_POPPLER=ON
+        -DUSE_QTPDF=OFF
+        -DUSE_EXTERNAL_RENDERER=OFF
+        -DLINK_MUJS=ON
+        -DLINK_GUMBO=ON
+        -DUSE_TRANSLATIONS=ON
+        -DQT_VERSION_MAJOR=6
+        -DQT_VERSION_MINOR=4
+        -DGIT_VERSION=OFF
+        -DCMAKE_BUILD_TYPE='Release'
+        -DCPACK_GENERATOR='DEB;'
+        -DCMAKE_INSTALL_PREFIX='/usr'
+        -DCMAKE_INSTALL_SYSCONFDIR='/etc'
+        -DINSTALL_LICENSE=OFF
+
+    - name: Build with Qt6 + Poppler
+      run: cmake --build build_qt6_poppler
+
+    - name: Package with Qt6 + Poppler
+      run: |
+        cpack --config build_qt6_poppler/CPackConfig.cmake
+        mv beamerpresenter-poppler-qt6-x86_64.deb beamerpresenter-poppler-qt6-noble-x86_64.deb
+
+    - name: Archive package with Qt6 + Poppler
+      uses: actions/upload-artifact@v3
+      with:
+        name: beamerpresenter-poppler-qt6-noble-x86_64.deb
+        path: /home/runner/work/BeamerPresenter/BeamerPresenter/beamerpresenter-poppler-qt6-noble-x86_64.deb
 
 
     - name: Configure with Qt5 + MuPDF
       run: >
         cmake
         -B build_qt5_mupdf
-        -DUBUNTU_VERSION=22.04
+        -DUBUNTU_VERSION=24.04
         -DUSE_MUPDF=ON
         -DUSE_POPPLER=OFF
         -DUSE_QTPDF=OFF
@@ -111,20 +145,20 @@ jobs:
     - name: Package with Qt5 + MuPDF
       run: |
         cpack --config build_qt5_mupdf/CPackConfig.cmake
-        mv beamerpresenter-mupdf-qt5-x86_64.deb beamerpresenter-mupdf-qt5-jammy-x86_64.deb
+        mv beamerpresenter-mupdf-qt5-x86_64.deb beamerpresenter-mupdf-qt5-noble-x86_64.deb
 
     - name: Archive package with Qt5 + MuPDF
       uses: actions/upload-artifact@v3
       with:
-        name: beamerpresenter-mupdf-qt5-jammy-x86_64.deb
-        path: /home/runner/work/BeamerPresenter/BeamerPresenter/beamerpresenter-mupdf-qt5-jammy-x86_64.deb
+        name: beamerpresenter-mupdf-qt5-noble-x86_64.deb
+        path: /home/runner/work/BeamerPresenter/BeamerPresenter/beamerpresenter-mupdf-qt5-noble-x86_64.deb
 
 
     - name: Configure with Qt6 + MuPDF
       run: >
         cmake
         -B build_qt6_mupdf
-        -DUBUNTU_VERSION=22.04
+        -DUBUNTU_VERSION=24.04
         -DUSE_MUPDF=ON
         -DUSE_POPPLER=OFF
         -DUSE_QTPDF=OFF
@@ -133,7 +167,7 @@ jobs:
         -DLINK_GUMBO=ON
         -DUSE_TRANSLATIONS=ON
         -DQT_VERSION_MAJOR=6
-        -DQT_VERSION_MINOR=2
+        -DQT_VERSION_MINOR=4
         -DGIT_VERSION=OFF
         -DCMAKE_BUILD_TYPE='Release'
         -DCPACK_GENERATOR='DEB;'
@@ -147,13 +181,13 @@ jobs:
     - name: Package with Qt6 + MuPDF
       run: |
         cpack --config build_qt6_mupdf/CPackConfig.cmake
-        mv beamerpresenter-mupdf-qt6-x86_64.deb beamerpresenter-mupdf-qt6-jammy-x86_64.deb
+        mv beamerpresenter-mupdf-qt6-x86_64.deb beamerpresenter-mupdf-qt6-noble-x86_64.deb
 
     - name: Archive package with Qt6 + MuPDF
       uses: actions/upload-artifact@v3
       with:
-        name: beamerpresenter-mupdf-qt6-jammy-x86_64.deb
-        path: /home/runner/work/BeamerPresenter/BeamerPresenter/beamerpresenter-mupdf-qt6-jammy-x86_64.deb
+        name: beamerpresenter-mupdf-qt6-noble-x86_64.deb
+        path: /home/runner/work/BeamerPresenter/BeamerPresenter/beamerpresenter-mupdf-qt6-noble-x86_64.deb
 
 
     - name: Download and unpack MuPDF
@@ -178,7 +212,7 @@ jobs:
       run: >
         cmake
         -B build_qt5_mupdf_small
-        -DUBUNTU_VERSION=22.04
+        -DUBUNTU_VERSION=24.04
         -DUSE_MUPDF=ON
         -DUSE_POPPLER=OFF
         -DUSE_QTPDF=OFF
@@ -205,20 +239,20 @@ jobs:
     - name: Package with Qt5 + small MuPDF
       run: |
         cpack --config build_qt5_mupdf_small/CPackConfig.cmake
-        mv beamerpresenter-mupdf-small-qt5-x86_64.deb beamerpresenter-mupdf-small-qt5-jammy-x86_64.deb
+        mv beamerpresenter-mupdf-small-qt5-x86_64.deb beamerpresenter-mupdf-small-qt5-noble-x86_64.deb
 
     - name: Archive package with Qt5 + small MuPDF
       uses: actions/upload-artifact@v3
       with:
-        name: beamerpresenter-mupdf-small-qt5-jammy-x86_64.deb
-        path: /home/runner/work/BeamerPresenter/BeamerPresenter/beamerpresenter-mupdf-small-qt5-jammy-x86_64.deb
+        name: beamerpresenter-mupdf-small-qt5-noble-x86_64.deb
+        path: /home/runner/work/BeamerPresenter/BeamerPresenter/beamerpresenter-mupdf-small-qt5-noble-x86_64.deb
 
 
     - name: Configure with Qt6 + small MuPDF
       run: >
         cmake
         -B build_qt6_mupdf_small
-        -DUBUNTU_VERSION=22.04
+        -DUBUNTU_VERSION=24.04
         -DUSE_MUPDF=ON
         -DUSE_POPPLER=OFF
         -DUSE_QTPDF=OFF
@@ -230,7 +264,7 @@ jobs:
         -DMUPDF_INCLUDE_DIR="$(pwd)/mupdf-${{ env.MUPDF_VERSION }}-source/include"
         -DUSE_TRANSLATIONS=ON
         -DQT_VERSION_MAJOR=6
-        -DQT_VERSION_MINOR=2
+        -DQT_VERSION_MINOR=4
         -DMARK_AS_SMALL=ON
         -DGIT_VERSION=OFF
         -DCMAKE_BUILD_TYPE='Release'
@@ -245,13 +279,13 @@ jobs:
     - name: Package with Qt6 + small MuPDF
       run: |
         cpack --config build_qt6_mupdf_small/CPackConfig.cmake
-        mv beamerpresenter-mupdf-small-qt6-x86_64.deb beamerpresenter-mupdf-small-qt6-jammy-x86_64.deb
+        mv beamerpresenter-mupdf-small-qt6-x86_64.deb beamerpresenter-mupdf-small-qt6-noble-x86_64.deb
 
     - name: Archive package with Qt6 + small MuPDF
       uses: actions/upload-artifact@v3
       with:
-        name: beamerpresenter-mupdf-small-qt6-jammy-x86_64.deb
-        path: /home/runner/work/BeamerPresenter/BeamerPresenter/beamerpresenter-mupdf-small-qt6-jammy-x86_64.deb
+        name: beamerpresenter-mupdf-small-qt6-noble-x86_64.deb
+        path: /home/runner/work/BeamerPresenter/BeamerPresenter/beamerpresenter-mupdf-small-qt6-noble-x86_64.deb
 
 
     - name: Release
@@ -259,10 +293,11 @@ jobs:
       if: startsWith(github.ref, 'refs/tags/')
       with:
         files: |
-          beamerpresenter-mupdf-small-qt5-jammy-x86_64.deb
-          beamerpresenter-mupdf-small-qt6-jammy-x86_64.deb
-          beamerpresenter-mupdf-qt5-jammy-x86_64.deb
-          beamerpresenter-mupdf-qt6-jammy-x86_64.deb
-          beamerpresenter-poppler-qt5-jammy-x86_64.deb
+          beamerpresenter-mupdf-small-qt5-noble-x86_64.deb
+          beamerpresenter-mupdf-small-qt6-noble-x86_64.deb
+          beamerpresenter-mupdf-qt5-noble-x86_64.deb
+          beamerpresenter-mupdf-qt6-noble-x86_64.deb
+          beamerpresenter-poppler-qt5-noble-x86_64.deb
+          beamerpresenter-poppler-qt6-noble-x86_64.deb
         draft: true
         token: ${{ secrets.GITHUB_TOKEN }}

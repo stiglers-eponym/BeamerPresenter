@@ -24,11 +24,11 @@ Install the build dependencies. Make sure you select all of the lines below whic
 sudo apt install --no-install-recommends cmake zlib1g-dev libmupdf-dev libfreetype-dev libharfbuzz-dev libjpeg-dev libopenjp2-7-dev libjbig2dec0-dev
 # When using Qt 5:
 sudo apt install --no-install-recommends qtmultimedia5-dev qttools5-dev libpoppler-qt5-dev
-# Ubuntu 21.10 (only relevant for MuPDF):
+# Ubuntu == 21.10 (only relevant for MuPDF):
 sudo apt install --no-install-recommends libmujs-dev
-# Ubuntu 22.04 (only relevant for MuPDF):
+# Ubuntu >= 22.04 (only relevant for MuPDF):
 sudo apt install --no-install-recommends libmujs-dev libgumbo-dev
-# When using Qt 6 (only Ubuntu 22.04):
+# When using Qt 6 (only Ubuntu >= 22.04):
 sudo apt install --no-install-recommends qt6-multimedia-dev libqt6opengl6-dev libgl1-mesa-dev qt6-tools-dev qt6-tools-dev-tools qt6-l10n-tools
 ```
 
@@ -41,11 +41,12 @@ cd BeamerPresenter-0.2.4
 ```
 
 Now configure the package using CMake. This requires the configuration of the Qt version (major and minor version), and the PDF engine (Poppler or MuPDF). The Qt minor version is only needed for version checking of dependencies.
-For building BeamerPresenter with poppler in Ubuntu 20.04 with Qt 5.12 use:
+For building BeamerPresenter with poppler in Ubuntu 24.04 with Qt6.4 use:
 ```sh
 mkdir -p build_dir
 cmake \
     -B build_dir \
+    -DUBUNTU_VERSION=24.04 \
     -DCMAKE_BUILD_TYPE='Release' \
     -DGIT_VERSION=OFF \
     -DUSE_POPPLER=ON \
@@ -53,19 +54,19 @@ cmake \
     -DUSE_QTPDF=OFF \
     -DUSE_EXTERNAL_RENDERER=OFF \
     -DLINK_MUPDF_THIRD=ON \
-    -DLINK_MUJS=OFF \
-    -DLINK_GUMBO=OFF \
+    -DLINK_MUJS=ON \
+    -DLINK_GUMBO=ON \
     -DUSE_TRANSLATIONS=ON \
-    -DQT_VERSION_MAJOR=5 \
-    -DQT_VERSION_MINOR=12 \
+    -DQT_VERSION_MAJOR=6 \
+    -DQT_VERSION_MINOR=4 \
     -DINSTALL_LICENSE=OFF \
     -DCPACK_GENERATOR='DEB;' \
     -DCMAKE_INSTALL_PREFIX='/usr' \
     -DCMAKE_INSTALL_SYSCONFDIR='/etc'
 ```
 * to use MuPDF instead of Poppler: set `-DUSE_POPPLER=OFF` and `-DUSE_MUPDF=ON`
-* in Ubuntu 21.10: set `-DQT_VERSION_MINOR=15`, `-DLINK_MUJS=ON`, and `-DLINK_MUPDF_THIRD=OFF`
-* in Ubuntu 22.04: set `-DLINK_MUJS=ON` and `-DLINK_GUMBO=ON`
+* in Ubuntu 21.10: set `-DQT_VERSION_MAJOR=5`, `-DQT_VERSION_MINOR=15`, and `-DLINK_MUPDF_THIRD=OFF`
+* in Ubuntu 22.04:
     * when using Qt 5: set `-DQT_VERSION_MINOR=15`
     * when using Qt 6: set `-DQT_VERSION_MAJOR=6` and `-DQT_VERSION_MINOR=2`
 
@@ -80,7 +81,7 @@ cpack --config build_dir/CPackConfig.cmake
 
 Now you can install the package:
 ```sh
-sudo apt install ./beamerpresenter-poppler-0.2.4-qt5.12-x86_64.deb
+sudo apt install ./beamerpresenter-poppler-0.2.4-qt6.4-x86_64.deb
 ```
 
 

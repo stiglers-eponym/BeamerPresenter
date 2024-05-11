@@ -4,13 +4,15 @@ You can choose the PDF engine (Poppler, MuPDF, Qt PDF) and the major Qt version 
 It is recommended to use Qt 6 (if available) because of noticable improvements when including videos in a presentation.
 
 BeamerPresenter can be found in the official [Nix repositories](https://search.nixos.org/packages?channel=unstable&type=packages&query=BeamerPresenter) and in the [AUR](https://aur.archlinux.org/packages/beamerpresenter) (also as a [mainline version](https://aur.archlinux.org/packages/beamerpresenter-git)).
-The [releases](https://github.com/stiglers-eponym/BeamerPresenter/releases) include packages for Arch/Manjaro/Endeavour, Ubuntu 22.04, Ubuntu 20.04, and flatpak.
+The [releases](https://github.com/stiglers-eponym/BeamerPresenter/releases) include packages for Arch/Manjaro/Endeavour, Ubuntu (24.04, 22.04 and 20.04), and flatpak.
 These packages can be installed as shown in the following example, which uses Poppler as PDF engine (after downloading the corresponding file):
 ```sh
-# Ubuntu 20.04:
-sudo apt install ./beamerpresenter-poppler-0.2.4-qt5-focal-x86_64.deb
+# Ubuntu 24.04:
+sudo apt install ./beamerpresenter-poppler-0.2.4-qt6-noble-x86_64.deb
 # Ubuntu 22.04:
 sudo apt install ./beamerpresenter-poppler-0.2.4-qt5-jammy-x86_64.deb
+# Ubuntu 20.04:
+sudo apt install ./beamerpresenter-poppler-0.2.4-qt5-focal-x86_64.deb
 # Arch/Manjaro/Endeavour
 sudo pacman -U beamerpresenter-poppler-qt6-0.2.4-1-x86_64.pkg.tar.zst
 # Flatpak
@@ -36,7 +38,7 @@ When installing BeamerPresenter you need to choose a PDF engine from MuPDF, Popp
 
 
 ## Requirements
-Building is currently tested in Arch Linux, Xubuntu 20.04, Kubuntu 22.04, Xubuntu 23.10, Fedora 38, and MinGW-w64 in MSYS2 (Windows).
+Building is currently tested in Arch Linux, Xubuntu 20.04, Kubuntu 24.04 and 22.04, Fedora 38, and MinGW-w64 in MSYS2 (Windows).
 
 In order to compile BeamerPresenter you need to have CMake, zlib and Qt 5/6 including the multimedia and SVG modules installed.
 For translations you also need the linguist tools.
@@ -46,30 +48,30 @@ Qt versions since 5.12 (for Qt 5) or 6.2 (Qt 6) are supported.
 ### Dependencies in Ubuntu
 * `cmake` (only for building)
     * cmake requires a compiler (e.g. `g++`) and a build system (e.g. Unix makefiles or ninja)
-* `zlib1g-dev` (after the installation you can remove `zlib1g-dev` and keep only `zlib1g`)
-* `qt6-multimedia-dev` (after the installation, you can remove `qt6-multimedia6-dev` and keep only `libqt6multimediawidgets6`)
-    * for Qt 5 in Ubuntu 20.04: install `qtmultimedia5-dev`, and keep `libqt5multimedia5` and `libqt5multimediawidgets5` after the installation
-* `libqt6svg6-dev` (after the installation, you can remove `libqt6svg6-dev` and keep only `libqt6svg6`)
-    * when using Qt 5: `libqt5svg5-dev` and keep `libqt5svg5` after the installation
-* `qt6-tools-dev`, `qt6-tools-dev-tools`, and `qt6-l10n-tools` (only for building and only when creating translations. You can disable translations with `-DUSE_TRANSLATIONS=OFF` in the [CMake command](#configure))
-    * for Qt 5: `qttools5-dev`
-* optional and only for Qt 5: `gstreamer1.0-libav` and `libqt5multimedia5-plugins` (for showing videos, when using Qt 5)
+* `zlib1g-dev`
+* `qt6-multimedia-dev` (Qt 6) or qtmultimedia5-dev (Qt 5)
+* `libqt6svg6-dev` (Qt 6) or `libqt5svg5-dev` (Qt 5)
+* for translations (only for building, you can disable translations with `-DUSE_TRANSLATIONS=OFF` in the [CMake command](#configure))
+    * Qt 6: `qt6-tools-dev`, `qt6-tools-dev-tools`, and `qt6-l10n-tools`
+    * Qt 5: `qttools5-dev`
+* optional, only for Qt 5: `gstreamer1.0-libav` and `libqt5multimedia5-plugins` (for showing videos)
 
-When compiling with Poppler (only available with Qt 5):
-* `libpoppler-qt5-dev`: version 0.86.1 or later. (after the installation you can remove `libpoppler-qt5-dev` and keep only `libpoppler-qt5-1`
+When compiling with Poppler:
+* Qt 5: `libpoppler-qt5-dev`, version 0.86.1 or later
+* Qt 6: `libpoppler-qt6-dev`
 
 When compiling with MuPDF:
 * `libmupdf-dev` (only for building)
-* `libfreetype-dev` (after the installation you can remove `libfreetype-dev` and keep only `libfreetype6`)
-* `libharfbuzz-dev` (after the installation you can remove `libharfbuzz-dev` and keep only `libharfbuzz0b`)
-* `libjpeg-dev` (after the installation you can remove `libjpeg-dev` and keep only `libjpeg8`)
-* `libopenjp2-7-dev` (after the installation you can remove `libopenjp2-7-dev` and keep only `libopenjp2-7`)
-* `libjbig2dec0-dev` (after the installation you can remove `libjbig2dec0-dev` and keep only `libjbig2dec0`)
-* only Ubuntu ≥21.10: `libmujs-dev` (after the installation you can remove `libmujs-dev` and keep only `libmujs1` or `libmujs3`)
-* only Ubuntu ≥22.04: `libgumbo-dev` (after the installation you can remove `libgumbo-dev` and keep only `libgumbo1`)
+* `libfreetype-dev`
+* `libharfbuzz-dev`
+* `libjpeg-dev`
+* `libopenjp2-7-dev`
+* `libjbig2dec0-dev`
+* only Ubuntu ≥21.10: `libmujs-dev`
+* only Ubuntu ≥22.04: `libgumbo-dev`
 
-When compiling with Qt PDF (only Qt 5 and Ubuntu >= 21.04):
-* `qtpdf5-dev` (after the installation you can remove `qtpdf5-dev` and keep only `libqt5pdf5`)
+When compiling with Qt PDF:
+* `qtpdf5-dev` (Qt 5) or `qtpdf6-dev` (Qt 6)
 
 ### Dependencies in Arch Linux/Manjaro/Endeavour
 Replace qt6 with qt5 in all package names if you want to use Qt 5.
@@ -80,10 +82,10 @@ Replace qt6 with qt5 in all package names if you want to use Qt 5.
 * `qt6-tools` (only for building and only when creating translations. You can disable translations with `-DUSE_TRANSLATIONS=OFF` in the [CMake command](#configure))
 
 When compiling with Poppler:
-* `poppler-qt5`
+* `poppler-qt6`
 
 When compiling with MuPDF:
-* `libmupdf` (only for building, tested versions: 1.16.1 – 1.23.4)
+* `libmupdf` (tested versions: 1.16.1 – 1.24.0)
 * `jbig2dec`
 * `openjpeg2`
 * `gumbo-parser`
@@ -184,6 +186,7 @@ Other options are added in the form `-DOPTION=VALUE` as listed below.
 | `CMAKE_INSTALL_PREFIX` | /usr | install prefix. If not specified, this will be /usr/local in Linux |
 | `CMAKE_INSTALL_SYSCONFDIR` | /etc | system configuration directory |
 | `GENERATE_MANPAGES` | ON | Generate man pages and include them in installation |
+| `UBUNTU_VERSION` | 24.04 | Adjust package dependencies to given Ubuntu version when building debian package |
 
 ### Build and install
 After configuring with CMake, you can build the project (add ` -j 4` for compiling with 4 CPU cores)
