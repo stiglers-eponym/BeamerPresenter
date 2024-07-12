@@ -50,7 +50,7 @@ class ExternalRenderer : public AbstractRenderer
                    const PagePart page = FullPage);
 
   /// Trivial destructor.
-  ~ExternalRenderer() override{};
+  ~ExternalRenderer() override {};
 
   /// Render page to a QPixmap.
   /// Try to set %format to pnm. Resolution is given in pixels per point

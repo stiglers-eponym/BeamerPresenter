@@ -70,7 +70,7 @@ int main(int argc, char *argv[])
   // Register meta types (required for connections).
   qRegisterMetaType<const PngPixmap *>("const PngPixmap*");
   qRegisterMetaType<Tool *>("Tool*");
-  qRegisterMetaType<std::shared_ptr<Tool>>("shared_ptr<Tool>");
+  qRegisterMetaType<std::shared_ptr<Tool>>("std::shared_ptr<Tool>");
 
   // Set up the application.
   QApplication app(argc, argv);

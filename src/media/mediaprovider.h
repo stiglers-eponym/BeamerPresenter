@@ -75,7 +75,7 @@ class MediaProvider
   virtual void setSource(const QUrl &url) = 0;
 
   /// set media source from (embedded) raw data
-  virtual void setSourceData(std::shared_ptr<QByteArray> &data){};
+  virtual void setSourceData(std::shared_ptr<QByteArray> &data) {};
 
   /// set video output, see also setVideoSink
   virtual void setVideoOutput(QGraphicsVideoItem *out) = 0;
@@ -89,9 +89,9 @@ class MediaProvider
 #endif
 
   /// play media
-  virtual void play(){};
+  virtual void play() {};
   /// pause media
-  virtual void pause(){};
+  virtual void pause() {};
   /// toggle play/pause
   virtual bool toggle() { return false; };
 
@@ -111,7 +111,7 @@ class MediaProvider
 #endif
 
   /// change playing mode
-  virtual void setMode(const MediaAnnotation::Mode mode){};
+  virtual void setMode(const MediaAnnotation::Mode mode) {};
 
   /// mute or unmute
   virtual void setMuted(const bool mute) const

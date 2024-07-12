@@ -56,7 +56,7 @@ class AnalogClockWidget : public QWidget
   }
 
   /// Trivial destructor
-  ~AnalogClockWidget(){};
+  ~AnalogClockWidget() {};
 
   /// Size hint: based on estimated size.
   QSize sizeHint() const noexcept override

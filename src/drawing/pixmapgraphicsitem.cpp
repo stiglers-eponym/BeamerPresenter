@@ -48,27 +48,17 @@ void PixmapGraphicsItem::paint(QPainter *painter,
 {
   debug_msg(DebugRendering, "start rendering pixmap" << this);
   if (pixmaps.isEmpty()) return;
-  QRect viewrect = painter->viewport();
-  const int ref_width = viewrect.width(), ref_height = viewrect.height();
-  const auto aspect_ratio = bounding_rect.height() / bounding_rect.width();
+  const QRectF rect = painter->transform().mapRect(bounding_rect);
+  const QRectF viewport = painter->viewport();
+  int ref_width = std::ceil(rect.width());
+  int ref_height = std::ceil(rect.height());
+  if (ref_width == viewport.width() + 1) ref_width -= 1;
+  if (ref_height == viewport.height() + 1) ref_height -= 1;
   QPixmap pixmap;
-  if (aspect_ratio * ref_width >= ref_height) {
-    viewrect.setWidth(std::ceil(ref_height / aspect_ratio));
-    viewrect.moveTo(x() + (ref_width - viewrect.width()) / 2, y());
-    for (const auto &pix : pixmaps) {
-      if (pix.height() >= ref_height) {
-        pixmap = pix;
-        break;
-      }
-    }
-  } else {
-    viewrect.setHeight(std::ceil(aspect_ratio * ref_width));
-    viewrect.moveTo(x(), y() + (ref_height - viewrect.height()) / 2);
-    for (const auto &pix : pixmaps) {
-      if (pix.width() >= ref_width) {
-        pixmap = pix;
-        break;
-      }
+  for (const auto &pix : pixmaps) {
+    if (pix.height() >= ref_height || pix.width() >= ref_width) {
+      pixmap = pix;
+      break;
     }
   }
   if (pixmap.isNull()) {
@@ -119,37 +109,36 @@ void PixmapGraphicsItem::paint(QPainter *painter,
   painter->resetTransform();
   if (mask_type == Glitter && animation_progress != UINT_MAX) {
     const unsigned int glitter_pixel = pixmap.width() / GLITTER_ROW,
-                       n = viewrect.width() / glitter_pixel * viewrect.height(),
-                       w = viewrect.width() / glitter_pixel + 1;
+                       n = rect.width() / glitter_pixel * rect.height(),
+                       w = rect.width() / glitter_pixel + 1;
     for (unsigned int j = 0; j < animation_progress; j++) {
       for (unsigned int i = shuffled(j); i < n; i += GLITTER_NUMBER) {
-        painter->drawPixmap(viewrect.x() + glitter_pixel * (i % w),
-                            viewrect.y() + glitter_pixel * (i / w), pixmap,
+        painter->drawPixmap(rect.x() + glitter_pixel * (i % w),
+                            rect.y() + glitter_pixel * (i / w), pixmap,
                             glitter_pixel * (i % w), glitter_pixel * (i / w),
                             glitter_pixel, glitter_pixel);
       }
     }
-  } else if (viewrect.size() == pixmap.size())
-    painter->drawPixmap(viewrect.topLeft(), pixmap, pixmap.rect());
+  } else if (rect.size() == pixmap.size())
+    painter->drawPixmap(rect.topLeft(), pixmap, pixmap.rect());
   else
-    painter->drawPixmap(viewrect, pixmap, pixmap.rect());
+    painter->drawPixmap(rect, pixmap, pixmap.rect());
 }
 
 void PixmapGraphicsItem::addPixmap(const QPixmap &pixmap) noexcept
 {
   if (pixmap.isNull()) return;
-  for (auto it = pixmaps.begin(); it != pixmaps.end(); ++it) {
-    if (pixmap.width() <= it->width()) {
-      if (pixmap.width() == it->width())
-        *it = pixmap;
-      else
-        pixmaps.insert(it, pixmap);
-      newHashs.insert(pixmap.width());
-      update();
-      return;
-    }
+  auto it = pixmaps.begin();
+  for (; it != pixmaps.end(); ++it) {
+    if (pixmap.width() <= it->width()) break;
   }
-  pixmaps.append(pixmap);
+  if (it == pixmaps.end())
+    pixmaps.append(pixmap);
+  else if (pixmap.width() == it->width())
+    *it = pixmap;
+  else
+    pixmaps.insert(it, pixmap);
+  newHashs.insert(pixmap.width());
   update();
 }
 
@@ -191,6 +180,15 @@ bool PixmapGraphicsItem::hasWidth(const unsigned int width) const noexcept
   for (const auto &pix : pixmaps) {
     if (pix.width() == width) return true;
     if (pix.width() > width) return false;
+  }
+  return false;
+}
+
+bool PixmapGraphicsItem::hasWidth(const qreal width) const noexcept
+{
+  for (const auto &pix : pixmaps) {
+    if (pix.width() > width + 0.6) return false;
+    if (pix.width() > width - 0.6) return true;
   }
   return false;
 }

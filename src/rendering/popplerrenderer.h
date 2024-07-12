@@ -34,7 +34,7 @@ class PopplerRenderer : public AbstractRenderer
       : AbstractRenderer(part),
         doc(document && document->type() == PopplerEngine
                 ? std::dynamic_pointer_cast<const PopplerDocument>(document)
-                : nullptr){};
+                : nullptr) {};
 
   /// Trivial destructor.
   ~PopplerRenderer() override {}

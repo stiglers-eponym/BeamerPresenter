@@ -274,7 +274,7 @@ class PdfDocument
   virtual bool isValid() const = 0;
 
   /// Load the PDF labels and outline, fill PdfDocument::outline.
-  virtual void loadLabels(){};
+  virtual void loadLabels() {};
 
   /// Search which page contains needle.
   virtual std::pair<int, QRectF> search(const QString &needle,

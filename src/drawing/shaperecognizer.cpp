@@ -105,12 +105,13 @@ BasicGraphicsPath *ShapeRecognizer::recognizeLine() const
 {
   if (path->size() < 3 || moments.s == 0.) return nullptr;
   const Line line = moments.line();
-  const qreal margin = path->_tool.width() / 2;
   debug_msg(DebugDrawing,
             "recognize line:" << line.bx << line.by << line.angle << line.loss);
-  if (line.loss > preferences()->line_sensitivity) return nullptr;
+  if (line.loss < 0 || line.loss > preferences()->line_sensitivity)
+    return nullptr;
 
-  const qreal n = moments.sy * moments.sy - moments.s * moments.syy +
+  const qreal margin = path->_tool.width() / 2,
+              n = moments.sy * moments.sy - moments.s * moments.syy +
                   moments.s * moments.sxx - moments.sx * moments.sx,
               ax = 2 * (moments.sx * moments.sy - moments.s * moments.sxy),
               ay = n - std::sqrt(n * n + ax * ax);
@@ -366,6 +367,7 @@ BasicGraphicsPath *ShapeRecognizer::recognizeEllipse() const
   my = center.y();
   rx = (path->bounding_rect.right() - path->bounding_rect.left()) / 2;
   ry = (path->bounding_rect.bottom() - path->bounding_rect.top()) / 2;
+  if (rx < 1e-6 || ry < 1e-6) return nullptr;
   debug_msg(DebugDrawing, "try to recognized ellipse" << mx << my << rx << ry);
   ax = 1. / (rx * rx);
   ay = 1. / (ry * ry);

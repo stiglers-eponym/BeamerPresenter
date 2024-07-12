@@ -59,7 +59,7 @@ class MediaItem
   }
 
   /// Trivial destructor
-  virtual ~MediaItem(){};
+  virtual ~MediaItem() {};
 
   /// Create media provider if necessary
   virtual void initializeProvider() { createProvider(); }

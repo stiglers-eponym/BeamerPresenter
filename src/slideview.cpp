@@ -266,9 +266,9 @@ void SlideView::showMagnifier(QPainter *painter,
       static_cast<SlideScene *>(scene())->pageBackground();
   // Check whether an enlarged page is needed and not "in preparation" yet.
   if (waitingForPage == INT_MAX &&
-      !pageItem->hasWidth(resolution * sceneRect().width() + 0.499)) {
+      !pageItem->hasWidth(resolution * sceneRect().width())) {
     debug_msg(DebugRendering, "Enlarged page: searched for"
-                                  << resolution * sceneRect().width() + 1);
+                                  << resolution * sceneRect().width());
     waitingForPage = static_cast<SlideScene *>(scene())->getPage();
     emit requestPage(waitingForPage, resolution);
   }

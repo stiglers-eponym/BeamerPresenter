@@ -35,17 +35,9 @@ class QStyleOptionGraphicsItem;
 class PixmapGraphicsItem : public QGraphicsObject
 {
   Q_OBJECT
-  // Not sure what this is good for...
-  Q_INTERFACES(QGraphicsItem)
 
   // This class is used in animations. Define properties for these animations.
   // TODO: bundle these animation properties in a std::variant?
-  /// Opacity of this QGraphicsItem.
-  Q_PROPERTY(qreal opacity READ opacity WRITE setOpacity)
-  /// Position/shift in x direction.
-  Q_PROPERTY(qreal x READ x WRITE setX)
-  /// Position/shift in y direction.
-  Q_PROPERTY(qreal y READ y WRITE setY)
   /// mask for rendering this
   Q_PROPERTY(QRectF mask READ mask WRITE setMask)
   /// progress of glitter animation.
@@ -99,8 +91,12 @@ class PixmapGraphicsItem : public QGraphicsObject
   /// @return custom QGraphicsItem type
   int type() const noexcept override { return Type; }
 
-  /// Check whether this contains a pixmap with the given width or with width+1.
+  /// Check whether this contains a pixmap with the given width
   bool hasWidth(const unsigned int width) const noexcept;
+
+  /// Check whether this contains a pixmap with the given width within tolerance
+  /// 0.6
+  bool hasWidth(const qreal width) const noexcept;
 
   /// Paint this on given painter.
   /// @param painter paint to this painter.

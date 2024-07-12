@@ -32,7 +32,7 @@ jobs:
 
     steps:
     - name: '🧰 Checkout'
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
       with:
         fetch-depth: 0
 
@@ -51,7 +51,7 @@ jobs:
         makepkg-mingw --noconfirm --noprogressbar -sCLfp PKGBUILD_MSYS2_git
 
     - name: '📤 Upload artifact: package'
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: ${{ matrix.sys }}-BeamerPresenter-${{ matrix.renderer }}-qt${{ matrix.qt }}
         path: ${{ github.workspace }}\mingw-w64-${{ matrix.env }}-beamerpresenter-${{ matrix.renderer }}-qt${{ matrix.qt }}-git-*.pkg.tar.zst

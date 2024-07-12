@@ -20,10 +20,10 @@ class AbstractRenderer
 
  public:
   /// Constructor: only initializes page_part.
-  AbstractRenderer(const PagePart part = FullPage) : page_part(part){};
+  AbstractRenderer(const PagePart part = FullPage) : page_part(part) {};
 
   /// Trivial virtual destructor.
-  virtual ~AbstractRenderer(){};
+  virtual ~AbstractRenderer() {};
 
   /// get page_part;
   PagePart pagePart() const { return page_part; }
