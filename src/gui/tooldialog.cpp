@@ -21,7 +21,7 @@
 #include "src/log.h"
 
 DrawToolDetails::DrawToolDetails(Tool::BasicTool basic_tool, QWidget *parent,
-                                 const DrawTool *oldtool)
+                                 std::shared_ptr<const DrawTool> oldtool)
     : QWidget(parent),
       width_box(new QDoubleSpinBox(this)),
       brush_color_button(new QPushButton(this)),
@@ -168,9 +168,9 @@ void DrawToolDetails::setBrushStyle(int index)
                                                             : Qt::Checked);
 }
 
-PointingToolDetails::PointingToolDetails(Tool::BasicTool basic_tool,
-                                         QWidget *parent,
-                                         const PointingTool *oldtool)
+PointingToolDetails::PointingToolDetails(
+    Tool::BasicTool basic_tool, QWidget *parent,
+    std::shared_ptr<const PointingTool> oldtool)
     : QWidget(parent), radius_box(new QDoubleSpinBox(this))
 {
   QFormLayout *layout = new QFormLayout(this);
@@ -214,7 +214,8 @@ PointingToolDetails::PointingToolDetails(Tool::BasicTool basic_tool,
   setLayout(layout);
 }
 
-TextToolDetails::TextToolDetails(QWidget *parent, const TextTool *oldtool)
+TextToolDetails::TextToolDetails(QWidget *parent,
+                                 std::shared_ptr<const TextTool> oldtool)
     : QWidget(parent), font_button(new QPushButton("font", this))
 {
   QFormLayout *layout = new QFormLayout(this);
@@ -316,7 +317,8 @@ void ToolDialog::adaptToBasicTool(const Tool::BasicTool basic_tool)
     static_cast<QFormLayout *>(layout())->insertRow(3, tool_specific);
 }
 
-Tool *ToolDialog::selectTool(const Tool *oldtool)
+std::shared_ptr<Tool> ToolDialog::selectTool(
+    std::shared_ptr<const Tool> oldtool)
 {
   ToolDialog dialog;
   if (oldtool) dialog.setDefault(oldtool);
@@ -326,7 +328,7 @@ Tool *ToolDialog::selectTool(const Tool *oldtool)
     return nullptr;
 }
 
-void ToolDialog::setDefault(const Tool *tool)
+void ToolDialog::setDefault(std::shared_ptr<const Tool> tool)
 {
   if (!tool) return;
   tool_box->setCurrentIndex(
@@ -340,7 +342,7 @@ void ToolDialog::setDefault(const Tool *tool)
   tool_specific = nullptr;
   switch (tool->tool()) {
     case Tool::TextInputTool: {
-      const TextTool *text_tool = static_cast<const TextTool *>(tool);
+      const auto text_tool = std::static_pointer_cast<const TextTool>(tool);
       tool_specific = new TextToolDetails(this, text_tool);
       color = text_tool->color();
       break;
@@ -348,7 +350,7 @@ void ToolDialog::setDefault(const Tool *tool)
     case Tool::Pen:
     case Tool::Highlighter:
     case Tool::FixedWidthPen: {
-      const DrawTool *draw_tool = static_cast<const DrawTool *>(tool);
+      const auto draw_tool = std::static_pointer_cast<const DrawTool>(tool);
       tool_specific = new DrawToolDetails(tool->tool(), this, draw_tool);
       color = draw_tool->color();
       break;
@@ -357,8 +359,8 @@ void ToolDialog::setDefault(const Tool *tool)
     case Tool::Eraser:
     case Tool::Torch:
     case Tool::Pointer: {
-      const PointingTool *pointing_tool =
-          static_cast<const PointingTool *>(tool);
+      const auto pointing_tool =
+          std::static_pointer_cast<const PointingTool>(tool);
       tool_specific =
           new PointingToolDetails(tool->tool(), this, pointing_tool);
       color = pointing_tool->color();
@@ -377,7 +379,7 @@ void ToolDialog::setDefault(const Tool *tool)
       "background-color:" + color.name(QColor::HexArgb) + ";");
 }
 
-Tool *ToolDialog::createTool() const
+std::shared_ptr<Tool> ToolDialog::createTool() const
 {
   const Tool::BasicTool basic_tool =
       tool_box->currentData().value<Tool::BasicTool>();
@@ -390,51 +392,53 @@ Tool *ToolDialog::createTool() const
 
   switch (basic_tool) {
     case Tool::TextInputTool:
-      return new TextTool(static_cast<TextToolDetails *>(tool_specific)->font(),
-                          color, device);
+      return std::shared_ptr<Tool>(
+          new TextTool(static_cast<TextToolDetails *>(tool_specific)->font(),
+                       color, device));
     case Tool::Pen:
     case Tool::Highlighter:
     case Tool::FixedWidthPen: {
       DrawToolDetails *details = static_cast<DrawToolDetails *>(tool_specific);
-      return new DrawTool(basic_tool, device,
-                          QPen(color, details->width(), details->penStyle(),
-                               Qt::RoundCap, Qt::RoundJoin),
-                          details->brush(),
-                          basic_tool == Tool::Highlighter
-                              ? QPainter::CompositionMode_Darken
-                              : QPainter::CompositionMode_SourceOver,
-                          details->shape());
+      return std::shared_ptr<Tool>(
+          new DrawTool(basic_tool, device,
+                       QPen(color, details->width(), details->penStyle(),
+                            Qt::RoundCap, Qt::RoundJoin),
+                       details->brush(),
+                       basic_tool == Tool::Highlighter
+                           ? QPainter::CompositionMode_Darken
+                           : QPainter::CompositionMode_SourceOver,
+                       details->shape()));
     }
     case Tool::Torch: {
       PointingToolDetails *details =
           static_cast<PointingToolDetails *>(tool_specific);
-      PointingTool *tool =
-          new PointingTool(basic_tool, details->radius(), color, device);
-      return tool;
+      return std::shared_ptr<PointingTool>(
+          new PointingTool(basic_tool, details->radius(), color, device));
     }
     case Tool::Magnifier:
     case Tool::Eraser: {
       PointingToolDetails *details =
           static_cast<PointingToolDetails *>(tool_specific);
-      PointingTool *tool =
-          new PointingTool(basic_tool, details->radius(), color, device);
+      const auto tool = std::shared_ptr<PointingTool>(
+          new PointingTool(basic_tool, details->radius(), color, device));
       tool->setScale(details->scale());
       return tool;
     }
     case Tool::Pointer: {
       PointingToolDetails *details =
           static_cast<PointingToolDetails *>(tool_specific);
-      PointingTool *tool =
-          new PointingTool(basic_tool, details->radius(), color, device);
+      const auto tool = std::shared_ptr<PointingTool>(
+          new PointingTool(basic_tool, details->radius(), color, device));
       tool->initPointerBrush();
       return tool;
     }
     case Tool::BasicSelectionTool:
     case Tool::RectSelectionTool:
     case Tool::FreehandSelectionTool:
-      return new SelectionTool(basic_tool, device);
+      return std::shared_ptr<SelectionTool>(
+          new SelectionTool(basic_tool, device));
     default:
-      return new Tool(basic_tool, device);
+      return std::shared_ptr<Tool>(new Tool(basic_tool, device));
   }
 }
 

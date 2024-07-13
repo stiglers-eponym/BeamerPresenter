@@ -7,6 +7,7 @@
 #include <QKeySequence>
 #include <QLabel>
 #include <QString>
+#include <memory>
 
 #include "src/config.h"
 #include "src/enumerates.h"
@@ -28,7 +29,7 @@ class KeyInputLabel : public QLabel
   Action action = InvalidAction;
   /// Key combinations entered here will be connected to this Tool if it is not
   /// nullptr.
-  Tool *tool = nullptr;
+  std::shared_ptr<Tool> tool = nullptr;
   /// key sequence
   QKeySequence keys;
 
@@ -37,7 +38,7 @@ class KeyInputLabel : public QLabel
   explicit KeyInputLabel(const QKeySequence init, const Action action,
                          QWidget *parent = nullptr);
   /// Create a new KeyInputLabel for a tool.
-  explicit KeyInputLabel(const QKeySequence init, Tool *tool,
+  explicit KeyInputLabel(const QKeySequence init, std::shared_ptr<Tool> tool,
                          QWidget *parent = nullptr);
   /// Destructor: remove this tool from preferences.
   ~KeyInputLabel();

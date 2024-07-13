@@ -4,6 +4,8 @@
 #ifndef BRUSHSTYLEBUTTON_H
 #define BRUSHSTYLEBUTTON_H
 
+#include <memory>
+
 #include "src/config.h"
 #include "src/gui/toolpropertybutton.h"
 #include "src/preferences.h"
@@ -26,7 +28,7 @@ class BrushStyleButton : public ToolPropertyButton
 
  protected:
   /// Set style of tool to selected value.
-  void setToolProperty(Tool *tool) const override;
+  void setToolProperty(std::shared_ptr<Tool> tool) const override;
 
   /// Update currently selected style based on the tool for device.
   void updateTool() override
@@ -36,7 +38,7 @@ class BrushStyleButton : public ToolPropertyButton
 
  public slots:
   /// Update currently selected tool property based on tool.
-  void toolChanged(const Tool *tool) override;
+  void toolChanged(std::shared_ptr<const Tool> tool) override;
 };
 
 #endif  // BRUSHSTYLEBUTTON_H

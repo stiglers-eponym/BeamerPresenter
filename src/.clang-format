@@ -46,8 +46,6 @@ AlwaysBreakAfterDefinitionReturnType: None
 AlwaysBreakAfterReturnType: None
 AlwaysBreakBeforeMultilineStrings: true
 AlwaysBreakTemplateDeclarations: Yes
-AttributeMacros:
-  - __capability
 BinPackArguments: true
 BinPackParameters: true
 BitFieldColonSpacing: Both
@@ -95,9 +93,6 @@ FixNamespaceComments: true
 ForEachMacros:
   - foreach
   - Q_FOREACH
-  - BOOST_FOREACH
-IfMacros:
-  - KJ_IF_MAYBE
 IncludeBlocks:   Regroup
 IncludeCategories:
   - Regex:           '^<ext/.*\.h>'

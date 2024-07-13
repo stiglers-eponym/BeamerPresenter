@@ -6,6 +6,7 @@
 
 #include <QPainter>
 #include <QWidget>
+#include <memory>
 
 #include "src/config.h"
 #include "src/enumerates.h"
@@ -61,11 +62,11 @@ class ToolSelectorWidget : public QWidget
 
   /// Send a new tool (copy of the tool of a button) to master.
   /// Ownership of tool is transfered to receiver (master).
-  void sendTool(Tool *tool) const;
+  void sendTool(std::shared_ptr<Tool> tool) const;
 
   /// Notify master that a tool has been updated.
   /// Ownership of tool does not change.
-  void updatedTool(const Tool *tool) const;
+  void updatedTool(std::shared_ptr<const Tool> tool) const;
 
   /// Child buttons should update icons, called after resizing.
   void updateIcons();

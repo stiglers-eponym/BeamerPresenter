@@ -8,6 +8,7 @@
 #include <QCoreApplication>
 #include <QMap>
 #include <QString>
+#include <memory>
 
 #include "src/config.h"
 
@@ -150,7 +151,7 @@ class Tool
   virtual void setColor(const QColor &color) noexcept {};
 
   /// create copy of this.
-  Tool *copy() const;
+  std::shared_ptr<Tool> copy() const;
 };
 
 /// convert string (from configuration files or saved file) to tool

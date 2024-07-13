@@ -4,6 +4,8 @@
 #ifndef SHAPESELECTIONBUTTON_H
 #define SHAPESELECTIONBUTTON_H
 
+#include <memory>
+
 #include "src/config.h"
 #include "src/gui/toolpropertybutton.h"
 
@@ -28,11 +30,11 @@ class ShapeSelectionButton : public ToolPropertyButton
 
  protected:
   /// Set shape of tool to selected value.
-  void setToolProperty(Tool *tool) const override;
+  void setToolProperty(std::shared_ptr<Tool> tool) const override;
 
  public slots:
   /// Update currently selected tool property based on tool.
-  void toolChanged(const Tool *tool) override;
+  void toolChanged(std::shared_ptr<const Tool> tool) override;
 };
 
 #endif  // SHAPESELECTIONBUTTON_H

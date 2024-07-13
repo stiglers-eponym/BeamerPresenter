@@ -4,6 +4,8 @@
 #ifndef WIDTHSELECTIONBUTTON_H
 #define WIDTHSELECTIONBUTTON_H
 
+#include <memory>
+
 #include "src/config.h"
 #include "src/gui/toolpropertybutton.h"
 
@@ -26,11 +28,11 @@ class WidthSelectionButton : public ToolPropertyButton
 
  protected:
   /// Set width of tool to selected value.
-  void setToolProperty(Tool *tool) const override;
+  void setToolProperty(std::shared_ptr<Tool> tool) const override;
 
  public slots:
   /// Update currently selected width based on tool.
-  void toolChanged(const Tool *tool) override;
+  void toolChanged(std::shared_ptr<const Tool> tool) override;
 };
 
 #endif  // WIDTHSELECTIONBUTTON_H

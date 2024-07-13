@@ -131,7 +131,7 @@ class SlideScene : public QGraphicsScene
 
   /// Selection tool that is tempoarily created when clicking on selection
   /// rectangle handles.
-  SelectionTool *tmp_selection_tool{nullptr};
+  std::shared_ptr<SelectionTool> tmp_selection_tool{nullptr};
 
   /// Start slide transition.
   void startTransition(const int newpage, const SlideTransition &transition);
@@ -248,15 +248,15 @@ class SlideScene : public QGraphicsScene
   void navigationEvent(const int newpage, SlideScene *newscene = nullptr);
 
   /// Start handling draw and erase events.
-  void startInputEvent(const DrawTool *tool, const QPointF &pos,
+  void startInputEvent(std::shared_ptr<const DrawTool> tool, const QPointF &pos,
                        const float pressure = 1.);
 
   /// Handle draw and erase events.
-  void stepInputEvent(const DrawTool *tool, const QPointF &pos,
+  void stepInputEvent(std::shared_ptr<const DrawTool> tool, const QPointF &pos,
                       const float pressure = 1.);
 
   /// Finish handling draw and erase events.
-  bool stopInputEvent(const DrawTool *tool);
+  bool stopInputEvent(std::shared_ptr<const DrawTool> tool);
 
   /// Check if currently text is beeing edited.
   bool isTextEditing() const noexcept
@@ -298,26 +298,28 @@ class SlideScene : public QGraphicsScene
                     const QPointF &start_pos, const float pressure);
 
   /// Helper function for handleEvents: draw tool events
-  void handleDrawEvents(const DrawTool *tool, const int device,
+  void handleDrawEvents(std::shared_ptr<const DrawTool> tool, const int device,
                         const QList<QPointF> &pos, const float pressure);
   /// Helper function for handleEvents: pointing tool events
-  void handlePointingEvents(PointingTool *tool, const int device,
-                            const QList<QPointF> &pos);
+  void handlePointingEvents(std::shared_ptr<PointingTool> tool,
+                            const int device, const QList<QPointF> &pos);
   /// Helper function for handleEvents: selection tool events
-  void handleSelectionEvents(SelectionTool *tool, const int device,
-                             const QList<QPointF> &pos,
+  void handleSelectionEvents(std::shared_ptr<SelectionTool> tool,
+                             const int device, const QList<QPointF> &pos,
                              const QPointF &start_pos);
   /// Helper function for handleEvents: text tool events
-  bool handleTextEvents(const TextTool *tool, const int device,
+  bool handleTextEvents(std::shared_ptr<const TextTool> tool, const int device,
                         const QList<QPointF> &pos);
   /// Handle selection start events (only called from handleEvents().
-  void handleSelectionStartEvents(SelectionTool *tool, const QPointF &pos);
+  void handleSelectionStartEvents(std::shared_ptr<SelectionTool> tool,
+                                  const QPointF &pos);
   /// Handle selection update events (only called from handleEvents().
-  void handleSelectionUpdateEvents(SelectionTool *tool, const QPointF &pos,
+  void handleSelectionUpdateEvents(std::shared_ptr<SelectionTool> tool,
+                                   const QPointF &pos,
                                    const QPointF &start_pos);
   /// Handle selection stop events (only called from handleEvents().
-  void handleSelectionStopEvents(SelectionTool *tool, const QPointF &pos,
-                                 const QPointF &start_pos);
+  void handleSelectionStopEvents(std::shared_ptr<SelectionTool> tool,
+                                 const QPointF &pos, const QPointF &start_pos);
 
  public slots:
   /// Stop drawing and convert just drawn path to regular path.
@@ -358,7 +360,7 @@ class SlideScene : public QGraphicsScene
   void updateSelectionRect() noexcept;
 
   /// Update tool, change selected items if necessary.
-  void toolChanged(const Tool *tool) noexcept;
+  void toolChanged(std::shared_ptr<const Tool> tool) noexcept;
 
   /// Update tool properties for selected items.
   void toolPropertiesChanged(const tool_variant &properties) noexcept;

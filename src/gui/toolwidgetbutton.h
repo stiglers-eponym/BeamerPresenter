@@ -4,6 +4,8 @@
 #ifndef TOOLWIDGETBUTTON_H
 #define TOOLWIDGETBUTTON_H
 
+#include <memory>
+
 #include "src/config.h"
 #include "src/gui/toolbutton.h"
 
@@ -27,7 +29,7 @@ class ToolWidgetButton : public ToolButton
 
  public:
   /// Almost trivial constructor.
-  ToolWidgetButton(Tool *tool, const int device,
+  ToolWidgetButton(std::shared_ptr<Tool> tool, const int device,
                    QWidget *parent = nullptr) noexcept;
   /// Trivial desctructor.
   virtual ~ToolWidgetButton() {}
@@ -39,7 +41,7 @@ class ToolWidgetButton : public ToolButton
  public slots:
   /// Receive a new tool from master. Only changes the tool if the
   /// new tool is connected to this->device.
-  void receiveNewTool(const Tool *newtool);
+  void receiveNewTool(std::shared_ptr<const Tool> newtool);
 };
 
 #endif  // TOOLWIDGETBUTTON_H

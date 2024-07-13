@@ -33,11 +33,11 @@ class FlexLayout : public QLayout
  public:
   /// Trivial constructor.
   FlexLayout(QBoxLayout::Direction direction) noexcept
-      : QLayout(), direction(direction){};
+      : QLayout(), direction(direction) {};
 
   /// Trivial constructor.
   FlexLayout(QBoxLayout::Direction direction, QWidget *parent) noexcept
-      : QLayout(parent), direction(direction){};
+      : QLayout(parent), direction(direction) {};
 
   /// Destructor: delete all items
   ~FlexLayout();

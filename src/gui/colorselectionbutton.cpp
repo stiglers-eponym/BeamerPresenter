@@ -37,7 +37,7 @@ ColorSelectionButton::ColorSelectionButton(const QJsonArray &array,
   addItem("?", QColor());
 }
 
-void ColorSelectionButton::setToolProperty(Tool *tool) const
+void ColorSelectionButton::setToolProperty(std::shared_ptr<Tool> tool) const
 {
   QColor color = currentData(Qt::UserRole).value<QColor>();
   if (!color.isValid())
@@ -47,7 +47,7 @@ void ColorSelectionButton::setToolProperty(Tool *tool) const
   emit sendToolProperties(tool_variant(color));
 }
 
-void ColorSelectionButton::toolChanged(const Tool *tool)
+void ColorSelectionButton::toolChanged(std::shared_ptr<const Tool> tool)
 {
   if (tool) {
     const int idx = findData(tool->color());

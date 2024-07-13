@@ -82,12 +82,14 @@ class ShapeRecognizer
       const qreal n = sy * sy - s * syy + s * sxx - sx * sx,
                   d = 2 * (sx * sy - s * sxy),
                   ay = n - std::sqrt(n * n + d * d),
-                  loss = (d * d * (s * syy - sy * sy) +
-                          ay * ay * (s * sxx - sx * sx) +
-                          2 * d * ay * (sx * sy - s * sxy)) /
-                         ((d * d + ay * ay) *
-                          (s * sxx - sx * sx + s * syy - sy * sy)),
-                  weight = calc_weight ? std() : 0., angle = std::atan2(ay, d);
+                  weight = calc_weight ? std() : 0., angle = std::atan2(ay, d),
+                  loss_denom = (d * d + ay * ay) *
+                               (s * sxx - sx * sx + s * syy - sy * sy),
+                  loss = loss_denom <= 0 ? -1
+                                         : (d * d * (s * syy - sy * sy) +
+                                            ay * ay * (s * sxx - sx * sx) +
+                                            2 * d * ay * (sx * sy - s * sxy)) /
+                                               loss_denom;
       return {sx / s, sy / s,
               angle > PI    ? angle - PI
               : angle < -PI ? angle + PI

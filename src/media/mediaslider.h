@@ -7,6 +7,7 @@
 #include <QSlider>
 
 #include "src/config.h"
+#include "src/log.h"
 
 /**
  * @brief extension of QSlider
@@ -27,10 +28,14 @@ class MediaSlider : public QSlider
     setFocusPolicy(Qt::NoFocus);
     connect(this, &QSlider::sliderPressed, this, &MediaSlider::press,
             Qt::DirectConnection);
+    debug_verbose(DebugMedia, "new slider" << this);
   }
 
   /// Trivial destructor.
-  ~MediaSlider() noexcept {}
+  ~MediaSlider() noexcept
+  {
+    debug_verbose(DebugMedia, "deleting slider" << this);
+  }
 
  private slots:
   /// Called when slider is pressed to change position. This emitts

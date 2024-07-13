@@ -10,6 +10,7 @@
 #include <QMap>
 #include <QPushButton>
 #include <QString>
+#include <memory>
 
 #include "src/config.h"
 #include "src/drawing/drawtool.h"
@@ -45,7 +46,7 @@ class DrawToolDetails : public QWidget
  public:
   /// Constructor: create layout, use default values from old tool.
   DrawToolDetails(Tool::BasicTool basic_tool, QWidget *parent = nullptr,
-                  const DrawTool *oldtool = nullptr);
+                  std::shared_ptr<const DrawTool> oldtool = nullptr);
   /// Trivial destructor.
   ~DrawToolDetails() {}
 
@@ -94,7 +95,7 @@ class PointingToolDetails : public QWidget
  public:
   /// Constructor: create layout, use default values from old tool.
   PointingToolDetails(Tool::BasicTool basic_tool, QWidget *parent = nullptr,
-                      const PointingTool *oldtool = nullptr);
+                      std::shared_ptr<const PointingTool> oldtool = nullptr);
 
   /// Trivial destructor.
   ~PointingToolDetails() {}
@@ -118,7 +119,8 @@ class TextToolDetails : public QWidget
 
  public:
   /// Constructor: create layout, use default values from old tool.
-  TextToolDetails(QWidget *parent = nullptr, const TextTool *oldtool = nullptr);
+  TextToolDetails(QWidget *parent = nullptr,
+                  std::shared_ptr<const TextTool> oldtool = nullptr);
   /// Trivial destructor.
   ~TextToolDetails() {}
   /// @return font of the text input tool
@@ -153,10 +155,10 @@ class ToolDialog : public QDialog
   ToolDialog(QWidget *parent = nullptr);
 
   /// Adjust current settings to values of tool.
-  void setDefault(const Tool *tool);
+  void setDefault(std::shared_ptr<const Tool> tool);
 
   /// Create and return a new tool based on current settings.
-  Tool *createTool() const;
+  std::shared_ptr<Tool> createTool() const;
 
   /// Adjust selection possibilities according to basic tool.
   void adaptToBasicToolIdx(const int index)
@@ -167,7 +169,8 @@ class ToolDialog : public QDialog
   /// Open a new dialog to select a tool.
   /// Default settings are taken from oldtool (if it exists).
   /// Return nullptr if basic_tool is invalid.
-  static Tool *selectTool(const Tool *oldtool = nullptr);
+  static std::shared_ptr<Tool> selectTool(
+      std::shared_ptr<const Tool> oldtool = nullptr);
 
  public slots:
   /// Set color button color from a color dialog.

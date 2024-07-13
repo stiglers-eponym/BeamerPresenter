@@ -7,8 +7,8 @@ on:
   workflow_dispatch:
 
 env:
-  MUPDF_VERSION: 1.24.2
-  MUPDF_SHA256SUM: b86ba258c5cc6711367e4bbe2d283389a33ac19f00a513462f6c60d05b00601c
+  MUPDF_VERSION: 1.24.6
+  MUPDF_SHA256SUM: acbdbdc7c0f598aad1ef0fb29313cfe12200147b9ff3616f016370a9b63e9ea7
 
 jobs:
   package:
@@ -17,7 +17,7 @@ jobs:
 
     steps:
     - name: Checkout repository
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
 
     - name: Install Dependencies
       run: >
@@ -76,7 +76,7 @@ jobs:
         mv beamerpresenter-poppler-qt5-x86_64.deb beamerpresenter-poppler-qt5-noble-x86_64.deb
 
     - name: Archive package with Qt5 + Poppler
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: beamerpresenter-poppler-qt5-noble-x86_64.deb
         path: /home/runner/work/BeamerPresenter/BeamerPresenter/beamerpresenter-poppler-qt5-noble-x86_64.deb
@@ -112,7 +112,7 @@ jobs:
         mv beamerpresenter-poppler-qt6-x86_64.deb beamerpresenter-poppler-qt6-noble-x86_64.deb
 
     - name: Archive package with Qt6 + Poppler
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: beamerpresenter-poppler-qt6-noble-x86_64.deb
         path: /home/runner/work/BeamerPresenter/BeamerPresenter/beamerpresenter-poppler-qt6-noble-x86_64.deb
@@ -148,7 +148,7 @@ jobs:
         mv beamerpresenter-mupdf-qt5-x86_64.deb beamerpresenter-mupdf-qt5-noble-x86_64.deb
 
     - name: Archive package with Qt5 + MuPDF
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: beamerpresenter-mupdf-qt5-noble-x86_64.deb
         path: /home/runner/work/BeamerPresenter/BeamerPresenter/beamerpresenter-mupdf-qt5-noble-x86_64.deb
@@ -184,7 +184,7 @@ jobs:
         mv beamerpresenter-mupdf-qt6-x86_64.deb beamerpresenter-mupdf-qt6-noble-x86_64.deb
 
     - name: Archive package with Qt6 + MuPDF
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: beamerpresenter-mupdf-qt6-noble-x86_64.deb
         path: /home/runner/work/BeamerPresenter/BeamerPresenter/beamerpresenter-mupdf-qt6-noble-x86_64.deb
@@ -242,7 +242,7 @@ jobs:
         mv beamerpresenter-mupdf-small-qt5-x86_64.deb beamerpresenter-mupdf-small-qt5-noble-x86_64.deb
 
     - name: Archive package with Qt5 + small MuPDF
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: beamerpresenter-mupdf-small-qt5-noble-x86_64.deb
         path: /home/runner/work/BeamerPresenter/BeamerPresenter/beamerpresenter-mupdf-small-qt5-noble-x86_64.deb
@@ -282,14 +282,14 @@ jobs:
         mv beamerpresenter-mupdf-small-qt6-x86_64.deb beamerpresenter-mupdf-small-qt6-noble-x86_64.deb
 
     - name: Archive package with Qt6 + small MuPDF
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: beamerpresenter-mupdf-small-qt6-noble-x86_64.deb
         path: /home/runner/work/BeamerPresenter/BeamerPresenter/beamerpresenter-mupdf-small-qt6-noble-x86_64.deb
 
 
     - name: Release
-      uses: softprops/action-gh-release@v1
+      uses: softprops/action-gh-release@v2
       if: startsWith(github.ref, 'refs/tags/')
       with:
         files: |

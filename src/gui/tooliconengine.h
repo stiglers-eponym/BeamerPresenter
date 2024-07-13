@@ -9,6 +9,7 @@
 #include <QPainter>
 #include <QString>
 #include <QSvgRenderer>
+#include <memory>
 
 #include "src/config.h"
 
@@ -38,7 +39,7 @@ class ToolIconEngine : public QIconEngine
 
  public:
   /// Create fancy icons for given tool.
-  ToolIconEngine(const Tool *tool);
+  ToolIconEngine(std::shared_ptr<const Tool> tool);
 
   /// Create fancy icons from filename and colors.
   ToolIconEngine(const QString &filename, QRgb fg_color, QRgb bg_color);

@@ -208,7 +208,7 @@ class Master : public QObject
   void handleAction(const Action action);
 
   /// Set currently used tool. This takes ownership of tool.
-  void setTool(Tool *tool) const noexcept;
+  void setTool(std::shared_ptr<Tool> tool) const noexcept;
 
   /// finish navigation event: called after page change or after slide
   /// transition.
@@ -219,11 +219,11 @@ class Master : public QObject
 
  signals:
   /// Send out new tool to SlideScenes (changes selected items).
-  void sendNewToolScene(const Tool *tool) const;
+  void sendNewToolScene(std::shared_ptr<const Tool> tool) const;
   /// Send out new tool only to tool buttons to update icons.
   /// This signal must always be sent when a tool changes,
   /// which is currently connected to a device.
-  void sendNewToolSoft(const Tool *tool) const;
+  void sendNewToolSoft(std::shared_ptr<const Tool> tool) const;
   /// Send out updated tool properties.
   void sendToolProperties(const tool_variant &properties) const;
   /// Send out action.

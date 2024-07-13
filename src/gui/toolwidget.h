@@ -7,6 +7,7 @@
 #include <QBoxLayout>
 #include <QList>
 #include <QWidget>
+#include <memory>
 
 #include "src/config.h"
 #include "src/drawing/tool.h"
@@ -78,7 +79,7 @@ class ToolWidget : public QWidget
 
  public slots:
   /// Check if new tool adds a new device. Add that devices if necessary.
-  void checkNewTool(const Tool *tool);
+  void checkNewTool(std::shared_ptr<const Tool> tool);
 
  signals:
   /// Tell child buttons to update icons.

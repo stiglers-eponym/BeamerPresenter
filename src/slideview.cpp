@@ -254,7 +254,7 @@ bool SlideView::event(QEvent *event)
 }
 
 void SlideView::showMagnifier(QPainter *painter,
-                              const PointingTool *tool) noexcept
+                              std::shared_ptr<const PointingTool> tool) noexcept
 {
   painter->setRenderHints(QPainter::SmoothPixmapTransform |
                           QPainter::Antialiasing);
@@ -266,10 +266,9 @@ void SlideView::showMagnifier(QPainter *painter,
       static_cast<SlideScene *>(scene())->pageBackground();
   // Check whether an enlarged page is needed and not "in preparation" yet.
   if (waitingForPage == INT_MAX &&
-      !pageItem->hasWidth(resolution * sceneRect().width() + 0.499)) {
+      !pageItem->hasWidth(resolution * sceneRect().width())) {
     debug_msg(DebugRendering, "Enlarged page: searched for"
-                                  << resolution * sceneRect().width() + 1
-                                  << ", available" << pageItem->widths());
+                                  << resolution * sceneRect().width());
     waitingForPage = static_cast<SlideScene *>(scene())->getPage();
     emit requestPage(waitingForPage, resolution);
   }
@@ -307,7 +306,7 @@ void SlideView::drawForeground(QPainter *painter, const QRectF &rect)
       if (!*basic_tool) continue;
       if (basic_tool.key() & Tool::AnyPointingTool) {
         if (!(*basic_tool)->visible()) continue;
-        auto tool = static_cast<const PointingTool *>(*basic_tool);
+        auto tool = std::static_pointer_cast<const PointingTool>(*basic_tool);
         if (tool->pos().isEmpty() || tool->scene() != scene()) continue;
         debug_verbose(DebugDrawing, "drawing tool" << tool->tool()
                                                    << tool->size()
@@ -330,7 +329,7 @@ void SlideView::drawForeground(QPainter *painter, const QRectF &rect)
         }
       } else if (basic_tool.key() & Tool::AnySelectionTool) {
         if (!(*basic_tool)->visible()) continue;
-        auto tool = static_cast<const SelectionTool *>(*basic_tool);
+        auto tool = std::static_pointer_cast<const SelectionTool>(*basic_tool);
         if (!tool->visible() || tool->scene() != scene()) continue;
         const QPolygonF polygon = tool->polygon();
         if (polygon.length() < 3) continue;
@@ -366,7 +365,8 @@ void SlideView::drawForeground(QPainter *painter, const QRectF &rect)
 #endif
 }
 
-void SlideView::showEraser(QPainter *painter, const PointingTool *tool) noexcept
+void SlideView::showEraser(QPainter *painter,
+                           std::shared_ptr<const PointingTool> tool) noexcept
 {
   painter->setCompositionMode(QPainter::CompositionMode_SourceOver);
   painter->setPen(QPen(tool->brush(), tool->scale()));
@@ -376,7 +376,7 @@ void SlideView::showEraser(QPainter *painter, const PointingTool *tool) noexcept
 }
 
 void SlideView::showPointer(QPainter *painter,
-                            const PointingTool *tool) noexcept
+                            std::shared_ptr<const PointingTool> tool) noexcept
 {
   painter->setCompositionMode(QPainter::CompositionMode_Darken);
   painter->setPen(Qt::PenStyle::NoPen);
@@ -388,7 +388,8 @@ void SlideView::showPointer(QPainter *painter,
     painter->drawEllipse(pos, tool->size(), tool->size());
 }
 
-void SlideView::showTorch(QPainter *painter, const PointingTool *tool) noexcept
+void SlideView::showTorch(QPainter *painter,
+                          std::shared_ptr<const PointingTool> tool) noexcept
 {
   painter->setCompositionMode(QPainter::CompositionMode_SourceOver);
   painter->setPen(Qt::PenStyle::NoPen);
@@ -413,7 +414,7 @@ void SlideView::addMediaSlider(const std::shared_ptr<MediaItem> media)
     return;
   MediaPlayer *player = media->player();
   if (!player) return;
-  sliders.push_back(std::make_unique<MediaSlider>(new MediaSlider(this)));
+  sliders.push_back(std::unique_ptr<MediaSlider>(new MediaSlider(this)));
   const auto slider = sliders.back().get();
   const QPoint left = mapFromScene(media->rect().bottomLeft());
   const QPoint right = mapFromScene(media->rect().bottomRight());
@@ -429,16 +430,13 @@ void SlideView::addMediaSlider(const std::shared_ptr<MediaItem> media)
   connect(slider, &MediaSlider::jumpTo, player, &MediaPlayer::setPosition);
   debug_msg(DebugMedia,
             "created slider:" << slider->maximum() << slider->value());
-  QPalette palette;
-  palette.setColor(QPalette::Base, QColor(0, 0, 0, 0));
-  slider->setPalette(palette);
   slider->show();
 }
 
 void SlideView::prepareTransition(PixmapGraphicsItem *transitionItem)
 {
-  const qreal resolution = transform().m11();
-  QPixmap pixmap((sceneRect().size() * resolution).toSize());
+  const QSizeF size = sceneRect().size() * transform().m11();
+  QPixmap pixmap(std::ceil(size.width()), std::ceil(size.height()));
   QPainter painter(&pixmap);
   painter.setRenderHint(QPainter::Antialiasing);
   QRect sourceRect(mapFromScene({0, 0}), pixmap.size());
@@ -457,7 +455,8 @@ void SlideView::prepareFlyTransition(const bool outwards,
 {
   if (!old || !target) return;
 
-  const unsigned int width = transform().m11() * sceneRect().width() + 0.499;
+  debug_msg(DebugTransitions, "preparing fly transition");
+  const unsigned int width = transform().m11() * sceneRect().width();
   QImage newimg, oldimg;
   QPainter painter;
   if (outwards) {

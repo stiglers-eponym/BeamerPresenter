@@ -5,6 +5,7 @@
 #define TOOLBUTTON_H
 
 #include <QToolButton>
+#include <memory>
 
 #include "src/config.h"
 #include "src/drawing/tool.h"
@@ -31,26 +32,27 @@ class ToolButton : public QToolButton
  protected:
   /// Tool which remains owned by this class.
   /// Only copies of this tool are send out using sendTool.
-  Tool *tool = nullptr;
+  std::shared_ptr<Tool> tool = nullptr;
 
  public:
   /// Constructor: takes ownership of tool.
-  explicit ToolButton(Tool *tool, QWidget *parent = nullptr) noexcept;
+  explicit ToolButton(std::shared_ptr<Tool> tool,
+                      QWidget *parent = nullptr) noexcept;
 
-  /// Destruktor: deletes tool.
-  virtual ~ToolButton() { delete tool; }
+  /// Trivial destruktor
+  virtual ~ToolButton() {}
 
  public slots:
   /// Replace tool with newtool. Old tool gets deleted. This takes ownership of
   /// newtool.
-  void setTool(Tool *newtool);
+  void setTool(std::shared_ptr<Tool> newtool);
 
   /// Update the tool icon.
   void updateIcon();
 
  signals:
   /// Send a copy of tool. Ownership of toolcopy is handed to receiver.
-  void sendTool(Tool *toolcopy) const;
+  void sendTool(std::shared_ptr<Tool> toolcopy) const;
 };
 
 /// Take an svg file, replace #ff0000 by given color, render it to given size

@@ -133,6 +133,9 @@ inline bool cmp_by_z(QGraphicsItem *left, QGraphicsItem *right) noexcept
  *
  * It is important that the z order of items managed by PathContainer
  * remains constant!
+ *
+ * Currently, memory management is not simply done by using smart pointers
+ * because plain pointers from QItemScene are used frequently.
  */
 class PathContainer : public QObject
 {

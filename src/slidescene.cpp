@@ -91,7 +91,6 @@ SlideScene::~SlideScene()
   delete pageItem;
   delete pageTransitionItem;
   mediaItems.clear();
-  delete tmp_selection_tool;
   delete currentlyDrawnItem;
   delete currentItemCollection;
 }
@@ -206,7 +205,8 @@ bool SlideScene::event(QEvent *event)
       // Double click: These events are ignored, except if a text tool is used.
       const auto *mouseevent = static_cast<QGraphicsSceneMouseEvent *>(event);
       device = (mouseevent->buttons() << 1) | Tool::StartEvent;
-      Tool *tool = preferences()->currentTool(mouseevent->buttons() << 1);
+      std::shared_ptr<Tool> tool =
+          preferences()->currentTool(mouseevent->buttons() << 1);
       debug_verbose(DebugFunctionCalls,
                     "complete event handling" << event << this);
       if (tool && tool->tool() == Tool::TextInputTool)
@@ -271,7 +271,7 @@ bool SlideScene::event(QEvent *event)
        * leaves the scene. */
       for (auto tool : std::as_const(preferences()->current_tools)) {
         if (tool && tool->tool() == Tool::Pointer) {
-          PointingTool *ptool = static_cast<PointingTool *>(tool);
+          auto ptool = std::static_pointer_cast<PointingTool>(tool);
           if (ptool->pos().isEmpty()) continue;
           QRectF rect({0, 0}, ptool->size() * QSizeF(2, 2));
           rect.moveCenter(ptool->pos().constFirst());
@@ -302,7 +302,8 @@ bool SlideScene::handleEvents(const int device, const QList<QPointF> &pos,
                 device << pos << start_pos << pressure << this);
   if (pos.size() < 1) return false;
 
-  Tool *tool = preferences()->currentTool(device & Tool::AnyDevice);
+  std::shared_ptr<Tool> tool =
+      preferences()->currentTool(device & Tool::AnyDevice);
   // Check if a selection is active. In this case we might use the temporary
   // selection tool.
   if (selection_bounding_rect.isVisible() &&
@@ -326,22 +327,24 @@ bool SlideScene::handleEvents(const int device, const QList<QPointF> &pos,
                 "Handling event" << tool->tool() << tool->device() << device);
   // Handle draw tool events.
   if (tool->tool() & Tool::AnyDrawTool)
-    handleDrawEvents(static_cast<const DrawTool *>(tool), device, pos,
-                     pressure);
+    handleDrawEvents(std::static_pointer_cast<const DrawTool>(tool), device,
+                     pos, pressure);
   // Handle pointing tool events.
   else if (tool->tool() & Tool::AnyPointingTool)
-    handlePointingEvents(static_cast<PointingTool *>(tool), device, pos);
+    handlePointingEvents(std::static_pointer_cast<PointingTool>(tool), device,
+                         pos);
   // Handle selection tool events.
   else if (tool->tool() & Tool::AnySelectionTool)
-    handleSelectionEvents(static_cast<SelectionTool *>(tool), device, pos,
-                          start_pos);
+    handleSelectionEvents(std::static_pointer_cast<SelectionTool>(tool), device,
+                          pos, start_pos);
   // Handle text tool events.
   // Here we detect start events and not stop events, because otherwise touch
   // events will be discarded: If a touch start event is not handled, the whole
   // touch event is treated as a mouse event.
   else if (tool->tool() == Tool::TextInputTool &&
            (device & Tool::AnyEvent) == Tool::StartEvent && pos.size() == 1)
-    return handleTextEvents(static_cast<const TextTool *>(tool), device, pos);
+    return handleTextEvents(std::static_pointer_cast<const TextTool>(tool),
+                            device, pos);
   // Fall back to no tool.
   else if ((device & Tool::AnyEvent) == Tool::StopEvent && pos.size() == 1)
     noToolClicked(pos.constFirst(), start_pos);
@@ -401,11 +404,12 @@ bool SlideScene::maybeStartSelectionEvent(const QPointF &pos,
   return false;
 }
 
-void SlideScene::handleDrawEvents(const DrawTool *tool, const int device,
-                                  const QList<QPointF> &pos,
+void SlideScene::handleDrawEvents(std::shared_ptr<const DrawTool> tool,
+                                  const int device, const QList<QPointF> &pos,
                                   const float pressure)
 {
-  debug_verbose(DebugFunctionCalls, tool << device << pos << pressure << this);
+  debug_verbose(DebugFunctionCalls, tool.get()
+                                        << device << pos << pressure << this);
   // TODO: multi-touch for draw tools
   switch (device & Tool::AnyEvent) {
     case Tool::UpdateEvent:
@@ -426,10 +430,11 @@ void SlideScene::handleDrawEvents(const DrawTool *tool, const int device,
   }
 }
 
-void SlideScene::handlePointingEvents(PointingTool *tool, const int device,
+void SlideScene::handlePointingEvents(std::shared_ptr<PointingTool> tool,
+                                      const int device,
                                       const QList<QPointF> &pos)
 {
-  debug_verbose(DebugFunctionCalls, tool << device << pos << this);
+  debug_verbose(DebugFunctionCalls, tool.get() << device << pos << this);
   tool->scene() = this;
   switch (tool->tool()) {
     case Tool::Torch:
@@ -486,11 +491,13 @@ void SlideScene::handlePointingEvents(PointingTool *tool, const int device,
   }
 }
 
-void SlideScene::handleSelectionEvents(SelectionTool *tool, const int device,
+void SlideScene::handleSelectionEvents(std::shared_ptr<SelectionTool> tool,
+                                       const int device,
                                        const QList<QPointF> &pos,
                                        const QPointF &start_pos)
 {
-  debug_verbose(DebugFunctionCalls, tool << device << pos << start_pos << this);
+  debug_verbose(DebugFunctionCalls, tool.get()
+                                        << device << pos << start_pos << this);
   const QPointF &single_pos = pos.constFirst();
   switch (device & Tool::DeviceEventType::AnyEvent) {
     case Tool::DeviceEventType::StartEvent:
@@ -508,10 +515,10 @@ void SlideScene::handleSelectionEvents(SelectionTool *tool, const int device,
   }
 }
 
-bool SlideScene::handleTextEvents(const TextTool *tool, const int device,
-                                  const QList<QPointF> &pos)
+bool SlideScene::handleTextEvents(std::shared_ptr<const TextTool> tool,
+                                  const int device, const QList<QPointF> &pos)
 {
-  debug_verbose(DebugFunctionCalls, tool << device << pos << this);
+  debug_verbose(DebugFunctionCalls, tool.get() << device << pos << this);
   // TODO: bug fixes
   clearSelection();
   debug_msg(DebugDrawing, "Trying to start writing text"
@@ -546,10 +553,10 @@ bool SlideScene::handleTextEvents(const TextTool *tool, const int device,
   return true;
 }
 
-void SlideScene::handleSelectionStartEvents(SelectionTool *tool,
+void SlideScene::handleSelectionStartEvents(std::shared_ptr<SelectionTool> tool,
                                             const QPointF &pos)
 {
-  debug_verbose(DebugFunctionCalls, tool << pos << this);
+  debug_verbose(DebugFunctionCalls, tool.get() << pos << this);
   QList<QGraphicsItem *> selection = selectedItems();
   // Check if anything is selected.
   tool->reset();
@@ -619,11 +626,11 @@ void SlideScene::handleSelectionStartEvents(SelectionTool *tool,
   }
 }
 
-void SlideScene::handleSelectionStopEvents(SelectionTool *tool,
+void SlideScene::handleSelectionStopEvents(std::shared_ptr<SelectionTool> tool,
                                            const QPointF &pos,
                                            const QPointF &start_pos)
 {
-  debug_verbose(DebugFunctionCalls, tool << pos << start_pos << this);
+  debug_verbose(DebugFunctionCalls, tool.get() << pos << start_pos << this);
   switch (tool->type()) {
     case SelectionTool::Move:
     case SelectionTool::Rotate:
@@ -631,10 +638,7 @@ void SlideScene::handleSelectionStopEvents(SelectionTool *tool,
       const QHash<QGraphicsItem *, QTransform> &originalTransforms =
           tool->originalTransforms();
       if (originalTransforms.count() <= 1) {
-        if (tool == tmp_selection_tool) {
-          delete tmp_selection_tool;
-          tmp_selection_tool = nullptr;
-        }
+        if (tool == tmp_selection_tool) tmp_selection_tool = nullptr;
         return;
       }
       const bool finalize =
@@ -683,10 +687,9 @@ void SlideScene::handleSelectionStopEvents(SelectionTool *tool,
     default:
       break;
   }
-  if (tool == tmp_selection_tool) {
-    delete tmp_selection_tool;
+  if (tool == tmp_selection_tool)
     tmp_selection_tool = nullptr;
-  } else
+  else
     tool->reset();
 }
 
@@ -1356,16 +1359,16 @@ void SlideScene::endTransition()
   emit finishTransition();
 }
 
-void SlideScene::startInputEvent(const DrawTool *tool, const QPointF &pos,
-                                 const float pressure)
+void SlideScene::startInputEvent(std::shared_ptr<const DrawTool> tool,
+                                 const QPointF &pos, const float pressure)
 {
-  debug_verbose(DebugFunctionCalls, tool << pos << pressure << this);
+  debug_verbose(DebugFunctionCalls, tool.get() << pos << pressure << this);
   if (!tool || !(tool->tool() & Tool::AnyDrawTool) ||
       !(slide_flags & ShowDrawings))
     return;
   debug_verbose(DebugDrawing, "Start input event" << tool->tool()
-                                                  << tool->device() << tool
-                                                  << pressure);
+                                                  << tool->device()
+                                                  << tool.get() << pressure);
   stopDrawing();
   if (currentItemCollection || currentlyDrawnItem) return;
   clearSelection();
@@ -1415,13 +1418,13 @@ void SlideScene::startInputEvent(const DrawTool *tool, const QPointF &pos,
   addItem(currentlyDrawnItem);
 }
 
-void SlideScene::stepInputEvent(const DrawTool *tool, const QPointF &pos,
-                                const float pressure)
+void SlideScene::stepInputEvent(std::shared_ptr<const DrawTool> tool,
+                                const QPointF &pos, const float pressure)
 {
-  debug_verbose(DebugFunctionCalls, tool << pos << pressure << this);
+  debug_verbose(DebugFunctionCalls, tool.get() << pos << pressure << this);
   if (pressure <= 0 || !tool || !(slide_flags & ShowDrawings)) return;
   debug_verbose(DebugDrawing, "Step input event" << tool->tool()
-                                                 << tool->device() << tool
+                                                 << tool->device() << tool.get()
                                                  << pressure);
   if (!currentlyDrawnItem) return;
   switch (currentlyDrawnItem->type()) {
@@ -1471,12 +1474,13 @@ void SlideScene::stepInputEvent(const DrawTool *tool, const QPointF &pos,
   }
 }
 
-bool SlideScene::stopInputEvent(const DrawTool *tool)
+bool SlideScene::stopInputEvent(std::shared_ptr<const DrawTool> tool)
 {
-  debug_verbose(DebugFunctionCalls, tool << this);
+  debug_verbose(DebugFunctionCalls, tool.get() << this);
   if (!tool || !(slide_flags & ShowDrawings)) return false;
-  debug_verbose(DebugDrawing,
-                "Stop input event" << tool->tool() << tool->device() << tool);
+  debug_verbose(DebugDrawing, "Stop input event" << tool->tool()
+                                                 << tool->device()
+                                                 << tool.get());
   const bool changes = currentlyDrawnItem != nullptr;
   stopDrawing();
   if (changes) {
@@ -1492,7 +1496,8 @@ void SlideScene::initTmpSelectionTool(const int device) noexcept
   if (tmp_selection_tool)
     tmp_selection_tool->reset();
   else
-    tmp_selection_tool = new SelectionTool(Tool::BasicSelectionTool, device);
+    tmp_selection_tool = std::shared_ptr<SelectionTool>(
+        new SelectionTool(Tool::BasicSelectionTool, device));
   QList<QGraphicsItem *> selection = selectedItems();
   selection.append(&selection_bounding_rect);
   tmp_selection_tool->initTransformations(selection);
@@ -1749,16 +1754,18 @@ void SlideScene::pasteFromClipboard()
   updateSelectionRect();
 }
 
-void SlideScene::toolChanged(const Tool *tool) noexcept
+void SlideScene::toolChanged(std::shared_ptr<const Tool> tool) noexcept
 {
-  debug_verbose(DebugFunctionCalls, tool << this);
-  if (tool->tool() & (Tool::AnySelectionTool | Tool::AnyPointingTool)) return;
+  debug_verbose(DebugFunctionCalls, tool.get() << this);
+  if (!tool ||
+      (tool->tool() & (Tool::AnySelectionTool | Tool::AnyPointingTool)))
+    return;
   if (tool->tool() & Tool::AnyDrawTool) {
     const QList<QGraphicsItem *> selection = selectedItems();
     if (selection.isEmpty()) return;
     std::map<AbstractGraphicsPath *, drawHistory::DrawToolDifference>
         tool_changes;
-    const DrawTool *draw_tool = static_cast<const DrawTool *>(tool);
+    const auto draw_tool = std::static_pointer_cast<const DrawTool>(tool);
     for (const auto item : selection)
       if (item->type() == BasicGraphicsPath::Type ||
           item->type() == FullGraphicsPath::Type) {
@@ -1778,7 +1785,7 @@ void SlideScene::toolChanged(const Tool *tool) noexcept
     if (selection.isEmpty()) return;
     std::map<TextGraphicsItem *, drawHistory::TextPropertiesDifference>
         text_changes;
-    const TextTool *text_tool = static_cast<const TextTool *>(tool);
+    const auto text_tool = std::static_pointer_cast<const TextTool>(tool);
     TextGraphicsItem *text;
     for (auto item : selection)
       if (item->type() == TextGraphicsItem::Type) {
