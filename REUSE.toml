@@ -1,0 +1,44 @@
+version = 1
+SPDX-PackageName = "BeamerPresenter"
+SPDX-PackageSupplier = "Valentin Bruch <software@vbruch.eu>"
+SPDX-PackageDownloadLocation = "https://github.com/stiglers-eponym/BeamerPresenter"
+
+[[annotations]]
+path = ["*.md", ".readme/**"]
+SPDX-FileCopyrightText = "2022 Valentin Bruch <software@vbruch.eu>"
+SPDX-License-Identifier = "CC0-1.0"
+
+[[annotations]]
+path = ".github/**"
+SPDX-FileCopyrightText = "2022 Valentin Bruch <software@vbruch.eu>"
+SPDX-License-Identifier = "CC0-1.0"
+
+[[annotations]]
+path = ["config/**.json", "config/**conf.in", "share/**/**"]
+SPDX-FileCopyrightText = "2022 Valentin Bruch <software@vbruch.eu>"
+SPDX-License-Identifier = "CC-BY-4.0"
+
+[[annotations]]
+path = ["man/**.1", "man/**.5", "doc/**"]
+SPDX-FileCopyrightText = "2022 Valentin Bruch <software@vbruch.eu>"
+SPDX-License-Identifier = "CC-BY-4.0"
+
+[[annotations]]
+path = "translations/**"
+SPDX-FileCopyrightText = "2022 Valentin Bruch <software@vbruch.eu>"
+SPDX-License-Identifier = "CC0-1.0"
+
+[[annotations]]
+path = "packaging/**"
+SPDX-FileCopyrightText = "2022 Valentin Bruch <software@vbruch.eu>"
+SPDX-License-Identifier = "CC0-1.0"
+
+[[annotations]]
+path = "tests/**"
+SPDX-FileCopyrightText = "2023 Valentin Bruch <software@vbruch.eu>"
+SPDX-License-Identifier = "CC0-1.0"
+
+[[annotations]]
+path = ["doxyfile", ".gitignore", "src/.clang-format", "REUSE.toml"]
+SPDX-FileCopyrightText = "NONE"
+SPDX-License-Identifier = "CC0-1.0"
