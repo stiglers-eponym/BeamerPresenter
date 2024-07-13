@@ -32,8 +32,10 @@ static std::array<unsigned int, GLITTER_NUMBER> &shuffled_array()
 /// Shuffle the glitter array.
 static void reshuffle_array(const int seed = 42)
 {
+  static std::random_device rd;
+  static std::default_random_engine re(rd());
   std::array<unsigned int, GLITTER_NUMBER> &array = shuffled_array();
-  std::shuffle(array.begin(), array.end(), std::default_random_engine(seed));
+  std::shuffle(array.begin(), array.end(), re);
 }
 
 /// Get random value between 0 and GLITTER_NUMBER from shuffled array.
@@ -46,17 +48,14 @@ void PixmapGraphicsItem::paint(QPainter *painter,
                                const QStyleOptionGraphicsItem *option,
                                QWidget *widget)
 {
-  debug_msg(DebugRendering, "start rendering pixmap" << this);
+  debug_msg(DebugRendering, "start painting pixmap" << this);
   if (pixmaps.isEmpty()) return;
-  const QRectF rect = painter->transform().mapRect(bounding_rect);
+  const QRectF target_rect = painter->transform().mapRect(bounding_rect);
   const QRectF viewport = painter->viewport();
-  int ref_width = std::ceil(rect.width());
-  int ref_height = std::ceil(rect.height());
-  if (ref_width == viewport.width() + 1) ref_width -= 1;
-  if (ref_height == viewport.height() + 1) ref_height -= 1;
+  const int ref_width = target_rect.width();
   QPixmap pixmap;
   for (const auto &pix : pixmaps) {
-    if (pix.height() >= ref_height || pix.width() >= ref_width) {
+    if (pix.width() >= ref_width) {
       pixmap = pix;
       break;
     }
@@ -82,24 +81,26 @@ void PixmapGraphicsItem::paint(QPainter *painter,
       }
       case VerticalBlinds: {
         QPainterPath path;
-        QRectF rect(_mask);
-        path.addRect(rect);
+        QRectF rect_bl(_mask);
+        path.addRect(rect_bl);
         int i = 0;
         while (++i < BLINDS_NUMBER_V) {
-          rect.moveLeft(rect.left() + bounding_rect.width() / BLINDS_NUMBER_V);
-          path.addRect(rect);
+          rect_bl.moveLeft(rect_bl.left() +
+                           bounding_rect.width() / BLINDS_NUMBER_V);
+          path.addRect(rect_bl);
         }
         painter->setClipPath(path);
         break;
       }
       case HorizontalBlinds: {
         QPainterPath path;
-        QRectF rect(_mask);
-        path.addRect(rect);
+        QRectF rect_bl(_mask);
+        path.addRect(rect_bl);
         int i = 0;
         while (++i < BLINDS_NUMBER_H) {
-          rect.moveTop(rect.top() + bounding_rect.height() / BLINDS_NUMBER_H);
-          path.addRect(rect);
+          rect_bl.moveTop(rect_bl.top() +
+                          bounding_rect.height() / BLINDS_NUMBER_H);
+          path.addRect(rect_bl);
         }
         painter->setClipPath(path);
         break;
@@ -109,20 +110,22 @@ void PixmapGraphicsItem::paint(QPainter *painter,
   painter->resetTransform();
   if (mask_type == Glitter && animation_progress != UINT_MAX) {
     const unsigned int glitter_pixel = pixmap.width() / GLITTER_ROW,
-                       n = rect.width() / glitter_pixel * rect.height(),
-                       w = rect.width() / glitter_pixel + 1;
+                       n = ref_width * target_rect.height() / glitter_pixel,
+                       w = ref_width / glitter_pixel + 1;
     for (unsigned int j = 0; j < animation_progress; j++) {
       for (unsigned int i = shuffled(j); i < n; i += GLITTER_NUMBER) {
-        painter->drawPixmap(rect.x() + glitter_pixel * (i % w),
-                            rect.y() + glitter_pixel * (i / w), pixmap,
+        painter->drawPixmap(target_rect.x() + glitter_pixel * (i % w),
+                            target_rect.y() + glitter_pixel * (i / w), pixmap,
                             glitter_pixel * (i % w), glitter_pixel * (i / w),
                             glitter_pixel, glitter_pixel);
       }
     }
-  } else if (rect.size() == pixmap.size())
-    painter->drawPixmap(rect.topLeft(), pixmap, pixmap.rect());
-  else
-    painter->drawPixmap(rect, pixmap, pixmap.rect());
+  } else if (std::abs(ref_width - pixmap.width()) < 2) {
+    painter->drawPixmap(target_rect.topLeft().toPoint(), pixmap);
+  } else {
+    debug_msg(DebugRendering, "painting pixmap not pixel-aligned" << this);
+    painter->drawPixmap(target_rect.toRect(), pixmap);
+  }
 }
 
 void PixmapGraphicsItem::addPixmap(const QPixmap &pixmap) noexcept
