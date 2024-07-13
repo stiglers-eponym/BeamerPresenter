@@ -414,7 +414,7 @@ void SlideView::addMediaSlider(const std::shared_ptr<MediaItem> media)
     return;
   MediaPlayer *player = media->player();
   if (!player) return;
-  sliders.push_back(std::make_unique<MediaSlider>(new MediaSlider(this)));
+  sliders.push_back(std::unique_ptr<MediaSlider>(new MediaSlider(this)));
   const auto slider = sliders.back().get();
   const QPoint left = mapFromScene(media->rect().bottomLeft());
   const QPoint right = mapFromScene(media->rect().bottomRight());
@@ -430,9 +430,6 @@ void SlideView::addMediaSlider(const std::shared_ptr<MediaItem> media)
   connect(slider, &MediaSlider::jumpTo, player, &MediaPlayer::setPosition);
   debug_msg(DebugMedia,
             "created slider:" << slider->maximum() << slider->value());
-  QPalette palette;
-  palette.setColor(QPalette::Base, QColor(0, 0, 0, 0));
-  slider->setPalette(palette);
   slider->show();
 }
 
