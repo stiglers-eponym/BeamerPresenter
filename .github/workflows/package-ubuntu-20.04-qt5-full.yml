@@ -59,7 +59,9 @@ jobs:
 
     - name: Configure
       run: >
-       cmake -B build_dir
+       cmake
+       -B build_dir
+       -DUBUNTU_VERSION=20.04
        -DUSE_MUPDF=ON
        -DUSE_POPPLER=ON
        -DUSE_QTPDF=OFF

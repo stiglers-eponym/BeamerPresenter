@@ -409,16 +409,23 @@ void SlideView::showTorch(QPainter *painter,
 
 void SlideView::addMediaSlider(const std::shared_ptr<MediaItem> media)
 {
+  // check if slider can and should be created
   if (!((view_flags & MediaControls) &&
         (media->flags() & MediaAnnotation::ShowSlider) && media->player()))
     return;
   MediaPlayer *player = media->player();
   if (!player) return;
+  // create a new slider and add it to sliders
   sliders.push_back(std::unique_ptr<MediaSlider>(new MediaSlider(this)));
   const auto slider = sliders.back().get();
-  const QPoint left = mapFromScene(media->rect().bottomLeft());
+  // determine the slider geometry such that it is placed on the visible area
+  QPoint left = mapFromScene(media->rect().bottomLeft());
+  if (left.x() < 5) left.setX(5);
   const QPoint right = mapFromScene(media->rect().bottomRight());
-  slider->setGeometry(left.x(), right.y(), right.x() - left.x(), 20);
+  slider->setGeometry(left.x(), std::min(left.y(), height() - 20),
+                      std::max(std::min(right.x(), width() - 5) - left.x(), 20),
+                      20);
+  // connect events and set properties
   connect(player, &MediaPlayer::durationChanged, slider,
           &MediaSlider::setMaximumInt64);
   connect(player, &MediaPlayer::positionChanged, slider,
