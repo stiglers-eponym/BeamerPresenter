@@ -30,6 +30,12 @@ class ThumbnailWidget : public QScrollArea
 {
   Q_OBJECT
 
+  /// inverse tolerance for widget size changes for recalculating buttons
+  static constexpr int inverse_tolerance = 10;
+
+  /// maximum waiting time for rendering (ms)
+  static constexpr int max_render_time_ms = 2000;
+
  public:
   enum ThumbnailFlag {
     /// show one thumbnail per page label instead of per page
@@ -60,6 +66,11 @@ class ThumbnailWidget : public QScrollArea
 
   /// Initialize (create and start) rendering thread.
   void initRenderingThread();
+
+  /// Create or replace thumbnail button.
+  /// Ask render thread to render page preview.
+  void createButton(const int display_page, const int link_page,
+                    const int position, const int col_width);
 
  protected:
   /// Resize: clear if necessary.

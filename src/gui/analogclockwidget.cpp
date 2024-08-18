@@ -46,7 +46,7 @@ bool AnalogClockWidget::event(QEvent *event)
       const QEventPoint &point = tevent->point(0);
       // Short touch with a single point should start/stop the timer.
       if (point.position() == point.pressPosition() &&
-          point.lastTimestamp() - point.pressTimestamp() < 100)
+          point.lastTimestamp() - point.pressTimestamp() < double_click_ms)
         emit sendAction(Action::StartStopTimer);
 #else
       if (tevent->touchPoints().length() != 1) return false;
@@ -65,20 +65,10 @@ bool AnalogClockWidget::event(QEvent *event)
 
 void AnalogClockWidget::paintEvent(QPaintEvent *)
 {
-  constexpr qreal minute_tick_start = 0.97;
-  constexpr qreal hour_tick_start = 0.94;
-  constexpr qreal second_hand_length = 0.93;
-  constexpr qreal minute_hand_length = 0.87;
-  constexpr qreal hour_hand_length = 0.7;
-  constexpr qreal second_hand_width = 0.02;
-  constexpr qreal minute_hand_width = 0.08;
-  constexpr qreal hour_hand_width = 0.1;
-  constexpr qreal minute_tick_width = 0.02;
-  constexpr qreal hour_tick_width = 0.05;
   const int side = std::min(width(), height());
   QPainter painter(this);
   painter.setRenderHint(QPainter::Antialiasing);
-  painter.translate(width() / 2., height() / 2.);
+  painter.translate(0.5 * width(), 0.5 * height());
   painter.scale(0.45 * side, 0.45 * side);
   // Show ticks
   painter.setPen(

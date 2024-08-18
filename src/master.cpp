@@ -59,7 +59,6 @@ Master::Master()
 
 Master::~Master()
 {
-  constexpr int thread_wait_time_ms = 10000;
   emit clearCache();
   for (const auto cache : std::as_const(caches)) cache->thread()->quit();
   for (const auto cache : std::as_const(caches)) {
@@ -248,7 +247,6 @@ QWidget *Master::createWidget(
       connect(nwidget, &NotesWidget::newUnsavedChanges, this, [&](void) {
         documents.first()->flags() |= PdfMaster::UnsavedNotes;
       });
-      constexpr int notes_widget_default_zoom = 10;
       nwidget->zoomIn(object.value("zoom").toInt(notes_widget_default_zoom));
       // TODO: maybe find better implementation for this:
       if (object.contains("file"))
@@ -728,8 +726,6 @@ void Master::fillContainerWidget(
 void Master::showAll() const
 {
   for (const auto window : std::as_const(windows)) {
-    constexpr int default_window_width = 400;
-    constexpr int default_window_height = 300;
     window->setGeometry(0, 0, default_window_width, default_window_height);
     window->show();
   }
@@ -986,8 +982,6 @@ void Master::postNavigation() noexcept
     slideDurationTimer_id = startTimer(preferences()->slide_duration_animation);
   else if (duration > 0.)
     slideDurationTimer_id = startTimer(1000 * duration);
-  constexpr qreal min_duration_cache_videos = 0.5;
-  constexpr int cache_videos_after_ms = 200;
   if (duration < 0. || duration > min_duration_cache_videos)
     cacheVideoTimer_id = startTimer(cache_videos_after_ms);
 }

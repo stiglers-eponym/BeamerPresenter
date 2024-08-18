@@ -18,13 +18,15 @@ constexpr int RANDOM_INT = 42;
 /// Generate a random array for glitter transitions.
 /// Once shuffled, this array contains the numbers between 0 and GLITTER_NUMBER
 /// in random order.
-static std::array<unsigned int, GLITTER_NUMBER> &shuffled_array()
+static std::array<unsigned int, PixmapGraphicsItem::glitter_number> &
+shuffled_array()
 {
-  static std::array<unsigned int, GLITTER_NUMBER> array = {GLITTER_NUMBER + 1};
-  if (array[0] == GLITTER_NUMBER + 1) {
-    unsigned int i = 0;
+  static std::array<unsigned int, PixmapGraphicsItem::glitter_number> array = {
+      PixmapGraphicsItem::glitter_number + 1};
+  if (array[0] == PixmapGraphicsItem::glitter_number + 1) {
+    int i = 0;
     do array[i] = i;
-    while (++i < GLITTER_NUMBER);
+    while (++i < PixmapGraphicsItem::glitter_number);
   }
   return array;
 }
@@ -34,14 +36,15 @@ static void reshuffle_array(const int seed = 42)
 {
   static std::random_device rd;
   static std::default_random_engine re(rd());
-  std::array<unsigned int, GLITTER_NUMBER> &array = shuffled_array();
+  std::array<unsigned int, PixmapGraphicsItem::glitter_number> &array =
+      shuffled_array();
   std::shuffle(array.begin(), array.end(), re);
 }
 
 /// Get random value between 0 and GLITTER_NUMBER from shuffled array.
-inline static int shuffled(const unsigned int i)
+inline static int shuffled(const int i)
 {
-  return shuffled_array()[i % GLITTER_NUMBER];
+  return shuffled_array()[i % PixmapGraphicsItem::glitter_number];
 }
 
 void PixmapGraphicsItem::paint(QPainter *painter,
@@ -84,9 +87,9 @@ void PixmapGraphicsItem::paint(QPainter *painter,
         QRectF rect_bl(_mask);
         path.addRect(rect_bl);
         int i = 0;
-        while (++i < BLINDS_NUMBER_V) {
+        while (++i < blinds_number_v) {
           rect_bl.moveLeft(rect_bl.left() +
-                           bounding_rect.width() / BLINDS_NUMBER_V);
+                           bounding_rect.width() / blinds_number_v);
           path.addRect(rect_bl);
         }
         painter->setClipPath(path);
@@ -97,9 +100,9 @@ void PixmapGraphicsItem::paint(QPainter *painter,
         QRectF rect_bl(_mask);
         path.addRect(rect_bl);
         int i = 0;
-        while (++i < BLINDS_NUMBER_H) {
+        while (++i < blinds_number_h) {
           rect_bl.moveTop(rect_bl.top() +
-                          bounding_rect.height() / BLINDS_NUMBER_H);
+                          bounding_rect.height() / blinds_number_h);
           path.addRect(rect_bl);
         }
         painter->setClipPath(path);
@@ -109,11 +112,11 @@ void PixmapGraphicsItem::paint(QPainter *painter,
   }
   painter->resetTransform();
   if (mask_type == Glitter && animation_progress != UINT_MAX) {
-    const unsigned int glitter_pixel = pixmap.width() / GLITTER_ROW,
+    const unsigned int glitter_pixel = pixmap.width() / glitter_row,
                        n = ref_width * target_rect.height() / glitter_pixel,
                        w = ref_width / glitter_pixel + 1;
     for (unsigned int j = 0; j < animation_progress; j++) {
-      for (unsigned int i = shuffled(j); i < n; i += GLITTER_NUMBER) {
+      for (unsigned int i = shuffled(j); i < n; i += glitter_number) {
         painter->drawPixmap(target_rect.x() + glitter_pixel * (i % w),
                             target_rect.y() + glitter_pixel * (i / w), pixmap,
                             glitter_pixel * (i % w), glitter_pixel * (i / w),
@@ -190,8 +193,8 @@ bool PixmapGraphicsItem::hasWidth(const unsigned int width) const noexcept
 bool PixmapGraphicsItem::hasWidth(const qreal width) const noexcept
 {
   for (const auto &pix : pixmaps) {
-    if (pix.width() > width + 0.6) return false;
-    if (pix.width() > width - 0.6) return true;
+    if (pix.width() > width + max_width_tolerance) return false;
+    if (pix.width() > width - max_width_tolerance) return true;
   }
   return false;
 }

@@ -29,38 +29,13 @@ void TOCwidget::generateTOC()
 
   QWidget *base_widget = new QWidget(this);
   base_widget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-
   QGridLayout *layout = new QGridLayout();
   layout->setSizeConstraint(QGridLayout::SetNoConstraint);
-  QPushButton *expand_button;
-  int num_items = 0;
-  QIcon icon = QIcon::fromTheme("go-next");
-  if (icon.isNull()) icon = QIcon::fromTheme("go-next-symbolic");
-  auto add_buttons = [&](const int idx, const int depth,
-                         auto &function) -> TOCbutton * {
-    if (idx > outline.length() || num_items++ > outline.length())
-      return nullptr;
-    if (std::abs(outline[idx].next) > idx + 1) {
-      if (icon.isNull())
-        expand_button = new QPushButton(">", this);
-      else
-        expand_button = new QPushButton(icon, "", this);
-      expand_button->setCheckable(true);
-      layout->addWidget(expand_button, idx, depth, 1, 1);
-    } else
-      expand_button = nullptr;
-    TOCbutton *button = new TOCbutton(outline[idx].title, outline[idx].page,
-                                      expand_button, this);
-    layout->addWidget(button, idx, depth + 1, 1, std::max(30 - depth, 15));
-    connect(button, &TOCbutton::sendNavigationEvent, master(),
-            &Master::navigateToPage);
-    if (std::abs(outline[idx].next) - idx > 1 && idx + 1 < outline.length())
-      button->tree_child = function(idx + 1, depth + 1, function);
-    if (outline[idx].next > 0 && outline[idx].next < outline.length())
-      button->tree_next = function(outline[idx].next, depth, function);
-    return button;
-  };
-  first_button = add_buttons(1, 0, add_buttons);
+
+  num_items = 0;
+  expand_icon = QIcon::fromTheme("go-next");
+  if (expand_icon.isNull()) expand_icon = QIcon::fromTheme("go-next-symbolic");
+  first_button = addButtons(outline, layout, 1, 0);
   // Collaps items by default if there are more than 20 items in total.
   if (num_items > 20) {
     TOCbutton *button = first_button;
@@ -73,6 +48,42 @@ void TOCwidget::generateTOC()
   setWidget(base_widget);
   setWidgetResizable(true);
   QScroller::grabGesture(this);
+}
+
+TOCbutton *TOCwidget::addButtons(const QVector<PdfOutlineEntry> &outline,
+                                 QGridLayout *layout, int idx, const int depth)
+{
+  if (!layout) return nullptr;
+  TOCbutton *button = nullptr;
+  TOCbutton *root_button = nullptr;
+  QPushButton *expand_button;
+  while (idx >= 0 && idx < outline.length() && num_items <= outline.length()) {
+    if (std::abs(outline[idx].next) > idx + 1) {
+      if (expand_icon.isNull())
+        expand_button = new QPushButton(">", this);
+      else
+        expand_button = new QPushButton(expand_icon, "", this);
+      expand_button->setCheckable(true);
+      layout->addWidget(expand_button, idx, depth, 1, 1);
+    } else
+      expand_button = nullptr;
+    TOCbutton *tmp_button = new TOCbutton(outline[idx].title, outline[idx].page,
+                                          expand_button, this);
+    if (button)
+      button->tree_next = tmp_button;
+    else
+      root_button = tmp_button;
+    button = tmp_button;
+
+    ++num_items;
+    layout->addWidget(button, idx, depth + 1, 1, std::max(30 - depth, 15));
+    connect(button, &TOCbutton::sendNavigationEvent, master(),
+            &Master::navigateToPage);
+    if (std::abs(outline[idx].next) > idx + 1)
+      button->tree_child = addButtons(outline, layout, idx + 1, depth + 1);
+    idx = outline[idx].next;
+  }
+  return root_button;
 }
 
 void TOCwidget::expandTo(const int page)

@@ -4,8 +4,6 @@
 #ifndef PENICONENGINE_H
 #define PENICONENGINE_H
 
-#define PIXEL_PT_CONVERSION 1.5
-
 #include <QColor>
 #include <QIcon>
 #include <QIconEngine>
@@ -22,10 +20,12 @@ class PenIconEngine : public QIconEngine
   /// Pen used to draw on the icon.
   QPen pen;
 
+  static constexpr qreal pixel_pt_conversion = 1.5;
+
  public:
   /// Constructor: initialize pen.
   PenIconEngine(qreal width, Qt::PenStyle style)
-      : pen(Qt::black, PIXEL_PT_CONVERSION * width, style)
+      : pen(Qt::black, pixel_pt_conversion * width, style)
   {
   }
 

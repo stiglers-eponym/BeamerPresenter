@@ -6,10 +6,6 @@
 #include <QRadialGradient>
 #include <QtConfig>
 
-constexpr qreal POINTER_INNER_RADIUS = 0.1;
-constexpr qreal POINTER_OUTER_RADIUS = 0.9;
-constexpr int POINTER_OUTER_ALPHA = 12;
-
 void PointingTool::initPointerBrush() noexcept
 {
   QRadialGradient grad(.5, .5, .5);
@@ -19,10 +15,10 @@ void PointingTool::initPointerBrush() noexcept
   grad.setCoordinateMode(QGradient::ObjectBoundingMode);
 #endif
   const QColor color = _brush.color();
-  grad.setColorAt(POINTER_INNER_RADIUS, color);
+  grad.setColorAt(pointer_inner_radius, color);
   QColor semitransparent = color;
-  semitransparent.setAlpha(POINTER_OUTER_ALPHA);
-  grad.setColorAt(POINTER_OUTER_RADIUS, semitransparent);
+  semitransparent.setAlpha(pointer_outer_alpha);
+  grad.setColorAt(pointer_outer_radius, semitransparent);
   semitransparent.setAlpha(0);
   grad.setColorAt(1, semitransparent);
   _brush = QBrush(grad);

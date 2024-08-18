@@ -31,8 +31,6 @@
 #define FZ_VERSION_MINOR 0
 #endif
 
-#define MAX_SEARCH_RESULTS 20
-
 #if (FZ_VERSION_MAJOR < 1) || \
     ((FZ_VERSION_MAJOR == 1) && (FZ_VERSION_MINOR < 22))
 std::string roman(int number)
@@ -860,7 +858,6 @@ void MuPdfDocument::loadOutline()
 {
   if (!ctx || !doc) return;
 
-  // TODO: a huge outline will probably lead to a crash of the program.
   outline.clear();
   outline.append(PdfOutlineEntry({"", -1, 1}));
   mutex->lock();
@@ -871,27 +868,7 @@ void MuPdfDocument::loadOutline()
   fz_try(ctx)
   {
     root = pdf_load_outline(ctx, doc);
-    if (root) {
-      // dangerous anonymous recursion
-      auto fill_outline = [&](fz_outline *entry, auto &function) -> void {
-        const int idx = outline.length();
-#if (FZ_VERSION_MAJOR > 1) || \
-    ((FZ_VERSION_MAJOR == 1) && (FZ_VERSION_MINOR >= 20))
-        outline.append(
-            PdfOutlineEntry({QString(entry->title), entry->page.page, -1}));
-#else
-        outline.append(
-            PdfOutlineEntry({QString(entry->title), entry->page, -1}));
-#endif
-        if (entry->down) function(entry->down, function);
-        if (entry->next) {
-          outline[idx].next = outline.length();
-          function(entry->next, function);
-        } else
-          outline[idx].next = -outline.length();
-      };
-      fill_outline(root, fill_outline);
-    }
+    if (root) fillOutline(root);
   }
   fz_always(ctx)
   {
@@ -909,6 +886,23 @@ void MuPdfDocument::loadOutline()
                << outline[i].title;
 #endif
 }
+
+void MuPdfDocument::fillOutline(fz_outline *entry)
+{
+  while (entry) {
+    const int idx = outline.length();
+#if (FZ_VERSION_MAJOR > 1) || \
+    ((FZ_VERSION_MAJOR == 1) && (FZ_VERSION_MINOR >= 20))
+    outline.append(
+        PdfOutlineEntry({QString(entry->title), entry->page.page, -1}));
+#else
+    outline.append(PdfOutlineEntry({QString(entry->title), entry->page, -1}));
+#endif
+    if (entry->down) fillOutline(entry->down);
+    entry = entry->next;
+    outline[idx].next = entry ? outline.length() : -outline.length();
+  }
+};
 
 std::pair<int, QRectF> MuPdfDocument::search(const QString &needle,
                                              int start_page, bool forward) const
@@ -1005,23 +999,23 @@ int MuPdfDocument::searchPage(const int page, const char *raw_needle,
   int count = 0;
 #if (FZ_VERSION_MAJOR > 1) || \
     ((FZ_VERSION_MAJOR == 1) && (FZ_VERSION_MINOR >= 20))
-  int hit_mark[MAX_SEARCH_RESULTS];
+  int hit_mark[max_search_results];
 #endif
-  fz_quad rects[MAX_SEARCH_RESULTS];
+  fz_quad rects[max_search_results];
   mutex->lock();
   fz_try(ctx)
 #if (FZ_VERSION_MAJOR > 1) || \
     ((FZ_VERSION_MAJOR == 1) && (FZ_VERSION_MINOR >= 20))
       count = fz_search_page(ctx, (fz_page *const)(pages[page]), raw_needle,
-                             hit_mark, rects, MAX_SEARCH_RESULTS);
+                             hit_mark, rects, max_search_results);
 #else
       count = fz_search_page(ctx, (fz_page *const)(pages[page]), raw_needle,
-                             rects, MAX_SEARCH_RESULTS);
+                             rects, max_search_results);
 #endif
   fz_always(ctx) mutex->unlock();
   fz_catch(ctx) count = 0;
   debug_msg(DebugRendering, "done with search: count =" << count);
-  if (count > MAX_SEARCH_RESULTS) count = MAX_SEARCH_RESULTS;
+  if (count > max_search_results) count = max_search_results;
   for (int i = 0; i < count; ++i)
     target.append(QRectF(QPointF(rects[i].ll.x, rects[i].ll.y),
                          QPoint(rects[i].ur.x, rects[i].ur.y)));

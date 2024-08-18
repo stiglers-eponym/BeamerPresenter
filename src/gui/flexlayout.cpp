@@ -10,8 +10,6 @@
 
 #include "src/log.h"
 
-constexpr int ref_width = 4096;
-
 FlexLayout::~FlexLayout()
 {
   for (const auto item : std::as_const(items)) delete item;

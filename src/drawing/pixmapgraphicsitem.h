@@ -15,11 +15,6 @@
 #include "src/config.h"
 #include "src/enumerates.h"
 
-constexpr int BLINDS_NUMBER_H = 6;
-constexpr int BLINDS_NUMBER_V = 8;
-constexpr int GLITTER_ROW = 71;
-constexpr int GLITTER_NUMBER = 137;
-
 class QPainter;
 class QWidget;
 class QStyleOptionGraphicsItem;
@@ -54,6 +49,12 @@ class PixmapGraphicsItem : public QGraphicsObject
     VerticalBlinds,
     Glitter,
   };
+
+  static constexpr int blinds_number_h = 6;
+  static constexpr int blinds_number_v = 8;
+  static constexpr int glitter_row = 71;
+  static constexpr int glitter_number = 137;
+  static constexpr qreal max_width_tolerance = 0.6;
 
  private:
   /// List of pixmaps

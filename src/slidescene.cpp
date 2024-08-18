@@ -1010,7 +1010,7 @@ void SlideScene::startTransition(const int newpage,
       QPropertyAnimation *propanim =
           new QPropertyAnimation(pageTransitionItem, "progress");
       propanim->setDuration(1000 * transition.duration);
-      propanim->setStartValue(GLITTER_NUMBER);
+      propanim->setStartValue(PixmapGraphicsItem::glitter_number);
       propanim->setEndValue(0);
       propanim->setEasingCurve(QEasingCurve::InOutSine);
       animation = propanim;
@@ -1087,9 +1087,9 @@ void SlideScene::createBlindsTransition(const SlideTransition &transition,
   propanim->setDuration(1000 * transition.duration);
   QRectF rect = sceneRect();
   if (vertical)
-    rect.setWidth(rect.width() / BLINDS_NUMBER_V);
+    rect.setWidth(rect.width() / PixmapGraphicsItem::blinds_number_v);
   else
-    rect.setHeight(rect.height() / BLINDS_NUMBER_H);
+    rect.setHeight(rect.height() / PixmapGraphicsItem::blinds_number_h);
   propanim->setStartValue(rect);
   if (vertical)
     rect.setWidth(0);

@@ -31,6 +31,8 @@ class ClockWidget : public QLineEdit
 {
   Q_OBJECT
 
+  static constexpr int double_click_ms = 100;
+
  public:
   /// Constructor
   explicit ClockWidget(bool accept_touch_input = true,

@@ -8,8 +8,6 @@
 
 #include "src/log.h"
 
-#define MIN_SLIDER_TIME_STEP_MS 100
-
 void MediaPlayer::timerEvent(QTimerEvent *event)
 {
   killTimer(event->timerId());
@@ -42,5 +40,5 @@ void MediaPlayer::setPositionSoft(int position) noexcept
 {
   debug_verbose(DebugMedia, "set position soft:" << position);
   seekpos = qint64(position);
-  if (timer_id == -1) timer_id = startTimer(MIN_SLIDER_TIME_STEP_MS);
+  if (timer_id == -1) timer_id = startTimer(min_slider_time_step_ms);
 }

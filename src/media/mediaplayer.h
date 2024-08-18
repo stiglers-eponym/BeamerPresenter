@@ -31,6 +31,8 @@ class MediaPlayer : public QMediaPlayer
 {
   Q_OBJECT
 
+  static constexpr int min_slider_time_step_ms = 100;
+
   /// Position (in ms) requested by user interaction or -1
   qint64 seekpos = -1;
   /// Id of currently used timer.

@@ -104,7 +104,7 @@ const QPixmap PixCache::pixmap(const int page, qreal resolution)
     const auto it = cache.find(page);
     if (it != cache.cend() && it->second &&
         abs(it->second->getResolution() - resolution) <
-            MAX_RESOLUTION_DEVIATION) {
+            max_resolution_deviation) {
       QPixmap pix = it->second->pixmap();
       if (pix.isNull()) {
         usedMemory -= it->second->size();
@@ -406,14 +406,14 @@ void PixCache::receiveData(const PngPixmap *data)
   // resolution.
   mutex.lock();
   const qreal good_resolution = getResolution(data->getPage());
-  if (abs(good_resolution - data->getResolution()) > MAX_RESOLUTION_DEVIATION) {
+  if (abs(good_resolution - data->getResolution()) > max_resolution_deviation) {
     // got page of wrong size, don't use it
     const auto it = cache.find(data->getPage());
     if (it != cache.end()) {
       if (it->second == nullptr) {
         cache.erase(it);
       } else if (abs(it->second->getResolution() - good_resolution) >
-                 MAX_RESOLUTION_DEVIATION) {
+                 max_resolution_deviation) {
         usedMemory -= it->second->size();
         cache.erase(it);
       }
@@ -475,7 +475,7 @@ void PixCache::requestPage(const int page, const qreal resolution,
                               : (it->second->getResolution() - resolution)));
     if (it != cache.cend() && it->second &&
         abs(it->second->getResolution() - resolution) <
-            MAX_RESOLUTION_DEVIATION) {
+            max_resolution_deviation) {
       QPixmap pix = it->second->pixmap();
       if (pix.isNull()) {
         usedMemory -= it->second->size();

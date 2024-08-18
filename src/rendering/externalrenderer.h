@@ -10,8 +10,6 @@
 #include "src/config.h"
 #include "src/rendering/abstractrenderer.h"
 
-#define MAX_PROCESS_TIME_MS 60000
-
 class QPixmap;
 class PngPixmap;
 class PdfDocument;
@@ -19,6 +17,8 @@ class PdfDocument;
 /// Render PDF pages by calling an external program.
 class ExternalRenderer : public AbstractRenderer
 {
+  static constexpr int max_process_time_ms = 60000;
+
   /// Program used to render pages.
   QString const renderingCommand;
 

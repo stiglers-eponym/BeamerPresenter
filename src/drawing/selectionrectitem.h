@@ -22,6 +22,9 @@ class QStyleOptionGraphicsItem;
  */
 class SelectionRectItem : public QGraphicsItem
 {
+  static constexpr qreal selection_handle_separation = 1.5;
+  static constexpr int selection_rect_line_alpha = 196;
+
   QRectF _rect;
 
  public:

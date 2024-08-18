@@ -93,7 +93,7 @@ FullGraphicsPath::FullGraphicsPath(const DrawTool &tool,
     }
     pressures[i++] = w;
   }
-  max_weight *= 1.05;
+  max_weight *= tool_width_prefactor;
   _tool.setWidth(max_weight);
   finalize();
 }

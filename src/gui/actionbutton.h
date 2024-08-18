@@ -29,7 +29,7 @@ class ActionButton : public QToolButton
   /// Set of one or more actions connected to this button.
   QSet<Action> actions;
   /// Action represented by the currently visible icon.
-  Action display_action;
+  Action display_action = Action::NoAction;
   /// Status index of the currently displayed action.
   /// Some actions have multiple icons, depending on this status index.
   int display_status = -1;
