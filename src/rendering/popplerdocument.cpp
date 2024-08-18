@@ -488,7 +488,8 @@ QList<std::shared_ptr<MediaAnnotation>> PopplerDocument::annotations(
         if (!sannotation->action()) break;
         Poppler::MediaRendition *rendition = sannotation->action()->rendition();
         if (!rendition) break;
-        int flags = MediaAnnotation::HasAudio | MediaAnnotation::Interactive;
+        MediaAnnotation::MediaFlags flags = {MediaAnnotation::HasAudio |
+                                             MediaAnnotation::Interactive};
         if (rendition->autoPlay()) flags |= MediaAnnotation::Autoplay;
         if (rendition->showControls()) flags |= MediaAnnotation::ShowSlider;
         MediaAnnotation::Mode mode = MediaAnnotation::Once;

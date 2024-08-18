@@ -257,7 +257,7 @@ void Preferences::loadSettings()
   if (debug_level == 0) {
     const QStringList debug_flags = settings.value("debug").toStringList();
     for (const auto &flag : debug_flags)
-      debug_level |= string_to_debug_flags(flag);
+      debug_level |= string_to_debug_flag(flag);
   }
 #endif
   if (settings.contains("log") && settings.value("log", false).toBool())
@@ -515,7 +515,7 @@ void Preferences::loadDebugFromParser(const QCommandLineParser &parser)
     debug_level = 0;
     for (const auto &flag :
          static_cast<const QStringList>(parser.value("debug").split(",")))
-      debug_level |= string_to_debug_flags("debug " + flag);
+      debug_level |= string_to_debug_flag("debug " + flag);
   }
 }
 #endif

@@ -448,9 +448,12 @@ SlideView *Master::createSlide(const QJsonObject &object,
       page_part = FullPage;
   }
   if (is_master) writable_preferences()->default_page_part = page_part;
-  pdf->flags() |= page_part == FullPage
-                      ? PdfMaster::FullPageUsed
-                      : static_cast<PdfMaster::Flags>(page_part);
+  if (page_part == FullPage)
+    pdf->flags() |= PdfMaster::FullPageUsed;
+  else if (page_part == LeftHalf)
+    pdf->flags() |= PdfMaster::LeftHalfUsed;
+  else if (page_part == RightHalf)
+    pdf->flags() |= PdfMaster::RightHalfUsed;
 
   SlideScene *scene{nullptr};
   // Check whether we need a new SlideScene.

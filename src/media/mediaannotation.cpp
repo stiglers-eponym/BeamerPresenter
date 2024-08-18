@@ -7,7 +7,7 @@
 #include <QStringList>
 
 ExternalMedia::ExternalMedia(const QUrl &url, const QRectF &rect,
-                             const Mode mode, const int flags)
+                             const Mode mode, const MediaFlags flags)
     : MediaAnnotation(rect, mode, flags), _url(url)
 {
   const QString scheme = url.scheme();
@@ -16,7 +16,7 @@ ExternalMedia::ExternalMedia(const QUrl &url, const QRectF &rect,
   else if (scheme == "udp" || scheme == "rtp")
     _flags |= IsLive;
   if (url.hasQuery()) {
-    static const QMap<QString, int> flag_names{
+    static const QMap<QString, MediaFlag> flag_names{
         {"live", IsLive}, {"autoplay", Autoplay},       {"slider", ShowSlider},
         {"mute", Mute},   {"interaction", Interactive},
     };
@@ -24,8 +24,9 @@ ExternalMedia::ExternalMedia(const QUrl &url, const QRectF &rect,
     for (auto it = query.begin(); it != query.end();) {
       const QStringList key_value = it->split("=");
       if (key_value.length() == 2) {
-        const int target = flag_names.value(key_value.first(), 0);
-        if (target != 0) {
+        const MediaFlag target =
+            flag_names.value(key_value.first(), InvalidFlag);
+        if (target != InvalidFlag) {
           if (key_value.last() == "true")
             _flags |= target;
           else if (key_value.last() == "false")

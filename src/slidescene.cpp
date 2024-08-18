@@ -720,7 +720,7 @@ void SlideScene::receiveAction(const Action action)
       for (const auto &m : std::as_const(mediaItems)) m->setMuted(true);
       break;
     case Unmute:
-      if (!(slide_flags & SlideFlags::MuteSlide))
+      if (!(slide_flags & SlideFlag::MuteSlide))
         for (const auto &m : std::as_const(mediaItems))
           if (!(m->flags() & MediaAnnotation::Mute)) m->setMuted(false);
       break;
@@ -928,7 +928,7 @@ std::shared_ptr<MediaItem> &SlideScene::getMediaItem(
       mediaitem->insertPage(page);
       mediaitem->initializeProvider();
       mediaitem->setMuted(
-          (slide_flags & SlideFlags::MuteSlide) ||
+          (slide_flags & SlideFlag::MuteSlide) ||
           (preferences()->global_flags & Preferences::MuteApplication));
       return mediaitem;
     }
@@ -937,7 +937,7 @@ std::shared_ptr<MediaItem> &SlideScene::getMediaItem(
   const auto mediaitem = MediaItem::fromAnnotation(annotation, page);
   mediaItems.append(mediaitem);
   mediaitem->setMuted(
-      (slide_flags & SlideFlags::MuteSlide) ||
+      (slide_flags & SlideFlag::MuteSlide) ||
       (preferences()->global_flags & Preferences::MuteApplication));
   return mediaItems.last();
 }

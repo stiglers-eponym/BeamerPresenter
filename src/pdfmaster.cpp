@@ -398,7 +398,7 @@ void PdfMaster::readPageFromStream(QXmlStreamReader &reader)
 void PdfMaster::readDrawingsFromStream(QXmlStreamReader &reader, const int page)
 {
   if (page < 0 || page >= document->numberOfPages()) return;
-  if ((_flags & NotFullPage) == 0) {
+  if ((_flags & HalfPageUsed) == 0) {
     PathContainer *container = paths.value(page, nullptr);
     if (!container) {
       container = new PathContainer(this);
@@ -435,7 +435,7 @@ PathContainer *PdfMaster::pathContainerCreate(int page)
       page = document->overlaysShifted((page & ~NotFullPage), FirstOverlay) |
              (page & NotFullPage);
       return paths.value(page, nullptr);
-    case Cumulative:
+    case Cumulative: {
       PathContainer *container = paths.value(page);
       if (container && !container->empty() && !container->isPlainCopy())
         return container;
@@ -453,8 +453,11 @@ PathContainer *PdfMaster::pathContainerCreate(int page)
           return container;
         }
       }
+      return nullptr;
+    }
+    default:
+      return nullptr;
   }
-  return nullptr;
 }
 
 void PdfMaster::createPathContainer(PathContainer **container, int page)

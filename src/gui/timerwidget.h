@@ -42,7 +42,7 @@ class TimerWidget : public QWidget
   Q_OBJECT
 
  public:
-  enum {
+  enum TimerFlag {
     /// passed time is larger than total time
     Timeout = 1 << 0,
     /// Double click on the widget will set time for current slide without
@@ -52,6 +52,8 @@ class TimerWidget : public QWidget
     /// the default selection is *yes*.
     SetTimerConfirmationDefault = 2 << 1,
   };
+  Q_DECLARE_FLAGS(TimerFlags, TimerFlag);
+  Q_FLAG(TimerFlags);
 
  private:
   /// timer widget showing time since beginning of the presentation
@@ -72,7 +74,7 @@ class TimerWidget : public QWidget
 
   /// flags for timeout and for setting per page time (confirmation required or
   /// not)
-  unsigned char _flags = 0;
+  TimerFlags _flags = {};
 
   /// Handle timeout: change color, notify master.
   /// This function does not check or change the timout flag, but should
@@ -101,7 +103,7 @@ class TimerWidget : public QWidget
   QColor time2color(const qint32 time) const noexcept;
 
   /// get function for _flags
-  unsigned char &flags() noexcept { return _flags; }
+  TimerFlags &flags() noexcept { return _flags; }
 
  protected:
   /// Timeout event: update timer text.
@@ -146,5 +148,7 @@ class TimerWidget : public QWidget
   /// Ask to adjust time as per-page time for given page (sent to PdfMaster).
   void getTimeForPage(const int page, quint32 &time) const;
 };
+
+Q_DECLARE_OPERATORS_FOR_FLAGS(TimerWidget::TimerFlags);
 
 #endif  // TIMERWIDGET_H

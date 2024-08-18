@@ -448,7 +448,7 @@ void SlideView::prepareTransition(PixmapGraphicsItem *transitionItem)
   painter.setRenderHint(QPainter::Antialiasing);
   QRect sourceRect(mapFromScene({0, 0}), pixmap.size());
   // temporarily disable foreground painting while painting slide.
-  const int show_foreground = view_flags & ShowPointingTools;
+  const ViewFlags show_foreground = view_flags & ShowPointingTools;
   view_flags ^= show_foreground;
   render(&painter, pixmap.rect(), sourceRect);
   painter.end();
@@ -496,7 +496,7 @@ void SlideView::prepareFlyTransition(const bool outwards,
   painter.setRenderHint(QPainter::Antialiasing);
   QRect sourceRect(mapFromScene({0, 0}), newimg.size());
   // temporarily disable foreground painting while painting slide.
-  const int show_foreground = view_flags & ShowPointingTools;
+  const ViewFlags show_foreground = view_flags & ShowPointingTools;
   view_flags ^= show_foreground;
   render(&painter, newimg.rect(), sourceRect);
   painter.end();

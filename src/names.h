@@ -85,7 +85,7 @@ static const QMap<QString, OverlayDrawingMode> string_to_overlay_mode{
 };
 
 #ifdef QT_DEBUG
-DebugFlags string_to_debug_flags(const QString &string) noexcept;
+DebugFlag string_to_debug_flag(const QString &string) noexcept;
 #endif  // QT_DEBUG
 
 #endif  // NAMES_H

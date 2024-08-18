@@ -44,7 +44,7 @@ class Preferences : public QObject
   friend int main(int argc, char *argv[]);
 
  public:
-  enum {
+  enum GlobalFlag {
     /// Automatically change slides if the pdf defines a duration for the slide.
     AutoSlideChanges = 1 << 0,
     /// Log slide changes to standard output.
@@ -56,6 +56,8 @@ class Preferences : public QObject
     /// Finalize drawing paths
     FinalizeDrawnPaths = 1 << 4,
   };
+  Q_DECLARE_FLAGS(GlobalFlags, GlobalFlag);
+  Q_FLAG(GlobalFlags);
 
   /* ********************** */
   /*  GLOBAL CONFIGURATION  */
@@ -76,8 +78,8 @@ class Preferences : public QObject
   quint16 debug_level = NoLog;
 #endif
 
-  /// Other flags.
-  quint8 global_flags = AutoSlideChanges;
+  /// Global flags.
+  GlobalFlags global_flags = AutoSlideChanges;
 
   /// Color for filling rectangles highlighting search results.
   QBrush search_highlighting_color{QColor(40, 100, 60, 100)};
@@ -349,6 +351,8 @@ class Preferences : public QObject
   /// Tell master to redistribute cache memory.
   void distributeMemory() const;
 };
+
+Q_DECLARE_OPERATORS_FOR_FLAGS(Preferences::GlobalFlags);
 
 /// Globally shared pointer to global preferences.
 /// Should only be accessed using the functions

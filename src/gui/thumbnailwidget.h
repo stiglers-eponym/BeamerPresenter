@@ -31,10 +31,12 @@ class ThumbnailWidget : public QScrollArea
   Q_OBJECT
 
  public:
-  enum {
+  enum ThumbnailFlag {
     /// show one thumbnail per page label instead of per page
     SkipOverlays = 1 << 0,
   };
+  Q_DECLARE_FLAGS(ThumbnailFlags, ThumbnailFlag);
+  Q_FLAG(ThumbnailFlags);
 
  private:
   /// QObject for rendering. which is moved to an own thread.
@@ -49,7 +51,7 @@ class ThumbnailWidget : public QScrollArea
   /// number of columns
   unsigned char columns{4};
   /// flags: currently only SkipOverlays.
-  unsigned char _flags{0};
+  ThumbnailFlags _flags = {};
   /// currently focused page index
   ThumbnailButton *focused_button{nullptr};
 
@@ -79,7 +81,7 @@ class ThumbnailWidget : public QScrollArea
   }
 
   /// get function for _flags
-  unsigned char &flags() noexcept { return _flags; }
+  ThumbnailFlags &flags() noexcept { return _flags; }
 
   /// (re)generate and show the thumbnails. This initializes render_thread
   /// if it does not exist yet. By default it takes document from
@@ -125,5 +127,7 @@ class ThumbnailWidget : public QScrollArea
   /// Tell thumbnail thread to clear queue.
   void interruptThread();
 };
+
+Q_DECLARE_OPERATORS_FOR_FLAGS(ThumbnailWidget::ThumbnailFlags);
 
 #endif  // THUMBNAILWIDGET_H
