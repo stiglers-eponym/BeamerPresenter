@@ -572,7 +572,8 @@ void PathContainer::writeXml(QXmlStreamWriter &writer) const
         writer.writeAttribute("width", path->stringWidth());
         if (tool.pen().style() != Qt::SolidLine)
           writer.writeAttribute(
-              "style", pen_style_codes.value(tool.pen().style()).c_str());
+              "style", pen_style_codes.value(tool.pen().style()).c_str(),
+              "solid");
         if (tool.brush().style() != Qt::NoBrush) {
           // Compare brush and stroke color.
           const QColor &fill = tool.brush().color(),
@@ -594,8 +595,14 @@ void PathContainer::writeXml(QXmlStreamWriter &writer) const
           if (tool.brush().style() != Qt::SolidPattern)
             writer.writeAttribute(
                 "brushstyle",
-                brush_style_codes.value(tool.brush().style()).c_str());
+                brush_style_codes.value(tool.brush().style(), "unknown")
+                    .c_str());
         }
+        if (tool.compositionMode() != QPainter::CompositionMode_SourceOver)
+          writer.writeAttribute(
+              "composition",
+              composition_mode_codes.value(tool.compositionMode(), "unknown")
+                  .c_str());
         writer.writeCharacters(path->stringCoordinates());
         writer.writeEndElement();
         break;
@@ -606,28 +613,26 @@ void PathContainer::writeXml(QXmlStreamWriter &writer) const
 
 AbstractGraphicsPath *loadPath(QXmlStreamReader &reader)
 {
+  const auto attr = reader.attributes();
   Tool::BasicTool basic_tool =
-      string_to_tool.value(reader.attributes().value("tool").toString());
+      string_to_tool.value(attr.value("tool").toString(), Tool::InvalidTool);
   if (!(basic_tool & Tool::AnyDrawTool)) return nullptr;
-  const QString width_str = reader.attributes().value("width").toString();
+  const QString width_str = attr.value("width").toString();
   if (basic_tool == Tool::Pen && !width_str.contains(' '))
     basic_tool = Tool::FixedWidthPen;
-  QPen pen(rgba_to_color(reader.attributes().value("color").toString()),
+  QPen pen(rgba_to_color(attr.value("color").toString()),
            basic_tool == Tool::Pen ? 1. : width_str.toDouble(),
-           pen_style_codes.key(
-               reader.attributes().value("style").toString().toStdString(),
-               Qt::SolidLine),
+           pen_style_codes.key(attr.value("style").toString().toStdString(),
+                               Qt::SolidLine),
            Qt::RoundCap, Qt::RoundJoin);
   if (pen.widthF() <= 0) pen.setWidthF(1.);
   // "fill" is the Xournal++ way of storing filling colors. However, it only
   // allows one to add transparency to the stroke color.
-  int fill_xopp = reader.attributes().value("fill").toInt();
+  int fill_xopp = attr.value("fill").toInt();
   // "brushcolor" is a BeamerPresenter extension of the Xournal++ file format
   Qt::BrushStyle brush_style = brush_style_codes.key(
-      reader.attributes().value("brushstyle").toString().toStdString(),
-      Qt::SolidPattern);
-  QColor fill_color =
-      rgba_to_color(reader.attributes().value("brushcolor").toString());
+      attr.value("brushstyle").toString().toStdString(), Qt::SolidPattern);
+  QColor fill_color = rgba_to_color(attr.value("brushcolor").toString());
   if (!fill_color.isValid()) {
     fill_color = pen.color();
     if (fill_xopp > 0 && fill_xopp < 256)
@@ -639,6 +644,12 @@ AbstractGraphicsPath *loadPath(QXmlStreamReader &reader)
       basic_tool, Tool::AnyNormalDevice, pen, QBrush(fill_color, brush_style),
       basic_tool == Tool::Highlighter ? QPainter::CompositionMode_Darken
                                       : QPainter::CompositionMode_SourceOver);
+  if (attr.hasAttribute("composition")) {
+    const QPainter::CompositionMode composition = composition_mode_codes.key(
+        attr.value("composition").toString().toStdString(),
+        tool.compositionMode());
+    tool.setCompositionMode(composition);
+  }
   if (basic_tool == Tool::Pen)
     return new FullGraphicsPath(tool, reader.readElementText(), width_str);
   else

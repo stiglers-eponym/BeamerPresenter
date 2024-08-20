@@ -103,6 +103,7 @@ void FullGraphicsPath::paint(QPainter *painter,
                              QWidget *widget)
 {
   if (coordinates.isEmpty()) return;
+  painter->setCompositionMode(_tool.compositionMode());
   QPen pen = _tool.pen();
   if (coordinates.length() == 1) {
     pen.setWidthF(pressures.first());
@@ -214,6 +215,7 @@ void FullGraphicsPath::changeWidth(const float newwidth) noexcept
   shape_cache = QPainterPath();
 #endif
   const float scale = newwidth / _tool.width();
+  _tool.setWidth(newwidth);
   auto it = pressures.begin();
   while (++it != pressures.end()) *it *= scale;
   // cache shape
@@ -226,9 +228,10 @@ void FullGraphicsPath::changeTool(const DrawTool &newtool) noexcept
     qWarning() << "Cannot change draw tool to non-drawing base tool.";
     return;
   }
-  _tool.setPen(newtool.pen());
+  debug_msg(DebugDrawing, "change tool" << newtool.pen() << newtool.width());
   const float newwidth = newtool.width();
   if (newwidth != _tool.width()) changeWidth(newwidth);
+  _tool.setPen(newtool.pen());
   _tool.brush() = newtool.brush();
   _tool.setCompositionMode(newtool.compositionMode());
   // cache shape
