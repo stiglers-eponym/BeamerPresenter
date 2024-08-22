@@ -31,6 +31,8 @@ class QStyleOptionGraphicsItem;
 class FullGraphicsPath : public AbstractGraphicsPath
 {
  private:
+  static constexpr qreal tool_width_prefactor = 1.05;
+
   /// Vector of pressures (for each stroke segment).
   /// coordinates and pressures must always have the same length.
   QVector<float> pressures;

@@ -52,6 +52,10 @@ class PopplerDocument : public PdfDocument
   /// Load the PDF outline, fill PdfDocument::outline.
   void loadOutline();
 
+  /// Helper for loadOutline(): add entry and its children to outline.
+  /// Sign is +1 if next element exists, otherwise -1.
+  void fillOutline(const Poppler::OutlineItem &entry, const char sign);
+
  public:
   /// Constructor: calls loadDocument().
   PopplerDocument(const QString &filename);

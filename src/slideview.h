@@ -36,6 +36,8 @@ class SlideView : public QGraphicsView
     ShowSelection = 1 << 3,
     ShowAll = 0xff,
   };
+  Q_DECLARE_FLAGS(ViewFlags, ViewFlag);
+  Q_FLAG(ViewFlags);
 
  private:
   /// List of slides for video annotations in this view.
@@ -45,7 +47,7 @@ class SlideView : public QGraphicsView
   int waitingForPage = INT_MAX;
 
   /// Show slide transitions, multimedia, etc. (all not implemented yet).
-  quint8 view_flags = ShowAll ^ MediaControls;
+  ViewFlags view_flags = {ShowAll ^ MediaControls};
 
  public:
   /// Constructor: initialize and connect a lot.
@@ -69,10 +71,10 @@ class SlideView : public QGraphicsView
   const QPointF mapToScene(const QPointF &pos) const;
 
   /// Modifiable flags.
-  quint8 &flags() noexcept { return view_flags; }
+  ViewFlags &flags() noexcept { return view_flags; }
 
   /// read-only flags.
-  const quint8 &flags() const noexcept { return view_flags; }
+  const ViewFlags &flags() const noexcept { return view_flags; }
 
  protected slots:
   /// Handle tablet events. The tablet events are mainly handed over to
@@ -153,5 +155,6 @@ class SlideView : public QGraphicsView
   /// main thread and directly writes the result to pixmap.
   void getPixmapBlocking(const int page, QPixmap &pixmap, qreal resolution);
 };
+Q_DECLARE_OPERATORS_FOR_FLAGS(SlideView::ViewFlags);
 
 #endif  // SLIDE_H

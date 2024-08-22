@@ -34,7 +34,8 @@ class MediaAnnotation
   };
 
   /// Properties of MediaAnnotations
-  enum Flags {
+  enum MediaFlag {
+    InvalidFlag = 0,
     /// flag for media annnotation that has audio
     HasAudio = 1 << 0,
     /// flag for media annnotation that has video
@@ -52,6 +53,8 @@ class MediaAnnotation
     /// mute audio
     Mute = 1 << 7,
   };
+  Q_DECLARE_FLAGS(MediaFlags, MediaFlag);
+  Q_FLAGS(MediaFlags);
 
   /// Play modes of media
   enum Mode {
@@ -75,11 +78,11 @@ class MediaAnnotation
   /// playing mode
   Mode _mode = Once;
   /// flags
-  int _flags = 0;
+  MediaFlags _flags = {};
 
  public:
   /// Constructor: initialize given parameters
-  MediaAnnotation(const QRectF &rect, const Mode mode, const int flags)
+  MediaAnnotation(const QRectF &rect, const Mode mode, const MediaFlags flags)
       : _rect(rect), _mode(mode), _flags(flags)
   {
     debug_verbose(DebugMedia, "creating media annotation" << this);
@@ -110,7 +113,7 @@ class MediaAnnotation
   const QRectF &rect() const noexcept { return _rect; }
 
   /// Flags (properties) of this object
-  int flags() const noexcept { return _flags; }
+  MediaFlags flags() const noexcept { return _flags; }
 
   /// Compare content to other media annotation
   virtual bool operator==(const MediaAnnotation &other) const noexcept = 0;
@@ -136,8 +139,8 @@ class ExternalMedia : public MediaAnnotation
   /// Constructor: Detects type from given URL and adjusts flags based on URL
   /// query
   ExternalMedia(const QUrl &url, const QRectF &rect, const Mode mode,
-                const int flags = Interactive | ShowSlider | Autoplay |
-                                  HasAudio | HasVideo);
+                const MediaFlags flags = {Interactive | ShowSlider | Autoplay |
+                                          HasAudio | HasVideo});
 
   /// Trivial destructor
   virtual ~ExternalMedia() {}
@@ -175,8 +178,8 @@ class EmbeddedMedia : public MediaAnnotation
   /// Constructor: initialize given values
   EmbeddedMedia(std::shared_ptr<QByteArray> &data, const QRectF &rect,
                 const Mode mode,
-                const int flags = Interactive | ShowSlider | Autoplay |
-                                  HasAudio | HasVideo)
+                const MediaFlags flags = {Interactive | ShowSlider | Autoplay |
+                                          HasAudio | HasVideo})
       : MediaAnnotation(rect, mode, flags), _data(data)
   {
   }
@@ -256,7 +259,7 @@ class EmbeddedAudio : public MediaAnnotation
   EmbeddedAudio(std::shared_ptr<QByteArray> &data, int sampling_rate,
                 const QRectF &rect, const Mode mode = Once)
       : MediaAnnotation(rect, mode,
-                        Interactive | ShowSlider | Autoplay | HasAudio),
+                        {Interactive | ShowSlider | Autoplay | HasAudio}),
         _data(data),
         sampling_rate(sampling_rate)
   {
@@ -282,5 +285,7 @@ class EmbeddedAudio : public MediaAnnotation
            bits_per_sample == other_em.bits_per_sample;
   }
 };
+
+Q_DECLARE_OPERATORS_FOR_FLAGS(MediaAnnotation::MediaFlags);
 
 #endif  // MEDIAANNOTATION_H

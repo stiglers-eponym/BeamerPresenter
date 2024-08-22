@@ -21,9 +21,6 @@
 #include "src/preferences.h"
 #include "src/rendering/pdfdocument.h"
 
-/// inverse tolerance for widget size changes for recalculating buttons
-#define INVERSE_TOLERANCE 10
-
 /// Nearly trivial constructor.
 ThumbnailWidget::ThumbnailWidget(std::shared_ptr<const PdfDocument> doc,
                                  QWidget *parent)
@@ -51,7 +48,7 @@ void ThumbnailWidget::initialize()
 void ThumbnailWidget::showEvent(QShowEvent *event)
 {
   // generate the thumbnails if necessary
-  if (std::abs(ref_width - width()) > ref_width / INVERSE_TOLERANCE) generate();
+  if (std::abs(ref_width - width()) > ref_width / inverse_tolerance) generate();
   // select the currently visible page
   if (!event->spontaneous()) focusPage(preferences()->page);
 }
@@ -118,7 +115,7 @@ void ThumbnailWidget::handleAction(const Action action)
     focused_button = nullptr;
     if (render_thread) {
       render_thread->thread()->quit();
-      render_thread->thread()->wait(2000);
+      render_thread->thread()->wait(max_render_time_ms);
       delete render_thread;
       render_thread = nullptr;
     }
@@ -154,48 +151,56 @@ void ThumbnailWidget::generate()
   if (!document) document = preferences()->document;
   if (!render_thread) initRenderingThread();
 
-  QGridLayout *layout = static_cast<QGridLayout *>(widget()->layout());
+  QGridLayout *layout = dynamic_cast<QGridLayout *>(widget()->layout());
+  if (!layout) {
+    initialize();
+    layout = dynamic_cast<QGridLayout *>(widget()->layout());
+  }
   const int col_width =
       (viewport()->width() - (columns + 1) * layout->horizontalSpacing()) /
       columns;
   ref_width = width();
-  ThumbnailButton *button;
-  QLayoutItem *item;
-  auto create_button = [&](const int display_page, const int link_page,
-                           const int position) {
-    item = layout->itemAt(position);
-    if (item) button = dynamic_cast<ThumbnailButton *>(item->widget());
-    if (!item || !button) {
-      button = new ThumbnailButton(link_page, this);
-      connect(button, &ThumbnailButton::sendNavigationSignal, master(),
-              &Master::navigateToPage);
-      connect(button, &ThumbnailButton::updateFocus, this,
-              &ThumbnailWidget::setFocusButton);
-      connect(button, &ThumbnailButton::focusUpDown, this,
-              &ThumbnailWidget::moveFocusUpDown);
-      layout->addWidget(button, position / columns, position % columns);
-    }
-    QSizeF size = document->pageSize(display_page);
-    if (preferences()->default_page_part) size.rwidth() /= 2;
-    button->setMinimumSize(col_width, col_width * size.height() / size.width());
-    emit sendToRenderThread(position, (col_width - 4) / size.width(),
-                            display_page);
-  };
   int position = 0;
   if (_flags & SkipOverlays) {
     const QList<int> &list = document->overlayIndices();
     if (!list.empty()) {
       int link_page = list.first();
       for (auto it = list.cbegin() + 1; it != list.cend(); link_page = *it++)
-        create_button(*it - 1, link_page, position++);
-      create_button(document->numberOfPages() - 1, list.last(), position++);
+        createButton(*it - 1, link_page, position++, col_width);
+      createButton(document->numberOfPages() - 1, list.last(), position++,
+                   col_width);
     }
   }
   if (position == 0) {
     for (; position < document->numberOfPages(); position++)
-      create_button(position, position, position);
+      createButton(position, position, position, col_width);
   }
   emit startRendering();
+}
+
+void ThumbnailWidget::createButton(const int display_page, const int link_page,
+                                   const int position, const int col_width)
+{
+  QGridLayout *layout = dynamic_cast<QGridLayout *>(widget()->layout());
+  if (!layout) return;
+  QLayoutItem *item = layout->itemAt(position);
+  ThumbnailButton *button =
+      item ? dynamic_cast<ThumbnailButton *>(item->widget()) : nullptr;
+  if (!item || !button) {
+    button = new ThumbnailButton(link_page, this);
+    connect(button, &ThumbnailButton::sendNavigationSignal, master(),
+            &Master::navigateToPage);
+    connect(button, &ThumbnailButton::updateFocus, this,
+            &ThumbnailWidget::setFocusButton);
+    connect(button, &ThumbnailButton::focusUpDown, this,
+            &ThumbnailWidget::moveFocusUpDown);
+    layout->addWidget(button, position / columns, position % columns);
+  }
+  QSizeF size = document->pageSize(display_page);
+  if (preferences()->default_page_part) size.rwidth() /= 2;
+  button->setMinimumSize(col_width, col_width * size.height() / size.width());
+  emit sendToRenderThread(position, (col_width - 4) / size.width(),
+                          display_page);
 }
 
 ThumbnailWidget::~ThumbnailWidget()
@@ -223,7 +228,7 @@ void ThumbnailWidget::resizeEvent(QResizeEvent *)
 {
   // Only recalculate if changes in the widget's width lie above a threshold of
   // 10%.
-  if (std::abs(ref_width - width()) > ref_width / INVERSE_TOLERANCE) generate();
+  if (std::abs(ref_width - width()) > ref_width / inverse_tolerance) generate();
 }
 
 void ThumbnailWidget::moveFocusUpDown(const char updown)

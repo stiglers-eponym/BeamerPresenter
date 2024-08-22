@@ -12,9 +12,11 @@
 #include "src/gui/tocbutton.h"
 
 class PdfDocument;
+class PdfOutlineEntry;
 class QKeyEvent;
 class QShowEvent;
 class QFocusEvent;
+class QGridLayout;
 
 /**
  * @brief Widget showing document outline.
@@ -30,8 +32,18 @@ class TOCwidget : public QScrollArea
 
   /// Root of TOCbutton tree representing the outline.
   TOCbutton *first_button{nullptr};
+
   /// Document, for which table of content is shown.
   std::shared_ptr<const PdfDocument> document;
+
+  /// Icon for expanding the tree view.
+  QIcon expand_icon;
+
+  /// Number of items in TOC.
+  int num_items = 0;
+
+  TOCbutton *addButtons(const QVector<PdfOutlineEntry> &output,
+                        QGridLayout *layout, int idx, const int depth);
 
  public:
   /// Trivial constructor, does not create the outline tree.

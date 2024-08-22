@@ -25,17 +25,17 @@ std::shared_ptr<Tool> createTool(const QJsonObject &obj,
                                  const int default_device)
 {
   const Tool::BasicTool base_tool =
-      string_to_tool.value(obj.value("tool").toString());
+      string_to_tool.value(obj.value("tool").toString(), Tool::InvalidTool);
   const QJsonValue dev_obj = obj.value("device");
   int device = 0;
   if (dev_obj.isDouble())
     device = dev_obj.toInt();
   else if (dev_obj.isString())
-    device |= string_to_input_device.value(dev_obj.toString().toStdString());
+    device |= string_to_input_device.value(dev_obj.toString().toStdString(), 0);
   else if (dev_obj.isArray())
     for (const auto &dev :
          static_cast<const QJsonArray>(obj.value("device").toArray()))
-      device |= string_to_input_device.value(dev.toString().toStdString());
+      device |= string_to_input_device.value(dev.toString().toStdString(), 0);
   debug_msg(DebugSettings, "device:" << device);
   if (device == 0) device = default_device;
   Tool *tool;
@@ -58,14 +58,17 @@ std::shared_ptr<Tool> createTool(const QJsonObject &obj,
           obj.value("shape").toString().toStdString(), DrawTool::Freehand);
       debug_msg(DebugSettings,
                 "creating pen/highlighter" << base_tool << color << width);
+      QPainter::CompositionMode composition =
+          base_tool == DrawTool::Highlighter
+              ? QPainter::CompositionMode_Darken
+              : QPainter::CompositionMode_SourceOver;
+      if (obj.contains("composition"))
+        composition = composition_mode_codes.key(
+            obj.value("composition").toString().toStdString(), composition);
       tool = new DrawTool(
           base_tool, device,
           QPen(color, width, pen_style, Qt::RoundCap, Qt::RoundJoin),
-          QBrush(brush_color, brush_style),
-          base_tool == DrawTool::Highlighter
-              ? QPainter::CompositionMode_Darken
-              : QPainter::CompositionMode_SourceOver,
-          shape);
+          QBrush(brush_color, brush_style), composition, shape);
       break;
     }
     case Tool::Eraser: {
@@ -157,6 +160,11 @@ void toolToJson(std::shared_ptr<const Tool> tool, QJsonObject &obj)
     obj.insert("style", pen_style_codes.value(drawtool->pen().style()).c_str());
     obj.insert("shape",
                string_to_shape.key(drawtool->shape(), "freehand").c_str());
+    if (drawtool->compositionMode() != QPainter::CompositionMode_SourceOver)
+      obj.insert(
+          "composition",
+          composition_mode_codes.value(drawtool->compositionMode(), "unknown")
+              .c_str());
   } else if (tool->tool() & Tool::AnyPointingTool) {
     obj.insert("size",
                std::static_pointer_cast<const PointingTool>(tool)->size());
@@ -257,7 +265,7 @@ void Preferences::loadSettings()
   if (debug_level == 0) {
     const QStringList debug_flags = settings.value("debug").toStringList();
     for (const auto &flag : debug_flags)
-      debug_level |= string_to_debug_flags(flag);
+      debug_level |= string_to_debug_flag(flag);
   }
 #endif
   if (settings.contains("log") && settings.value("log", false).toBool())
@@ -515,7 +523,7 @@ void Preferences::loadDebugFromParser(const QCommandLineParser &parser)
     debug_level = 0;
     for (const auto &flag :
          static_cast<const QStringList>(parser.value("debug").split(",")))
-      debug_level |= string_to_debug_flags("debug " + flag);
+      debug_level |= string_to_debug_flag("debug " + flag);
   }
 }
 #endif

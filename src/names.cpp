@@ -51,9 +51,9 @@ Gesture string_to_gesture(const QString &string) noexcept
 }
 
 #ifdef QT_DEBUG
-DebugFlags string_to_debug_flags(const QString &string) noexcept
+DebugFlag string_to_debug_flag(const QString &string) noexcept
 {
-  static const std::map<const std::string, DebugFlags> lookup_table = {
+  static const std::map<const std::string, DebugFlag> lookup_table = {
       {"debug rendering", DebugRendering},
       {"debug cache", DebugCache},
       {"debug drawing", DebugDrawing},

@@ -10,9 +10,6 @@
 
 #include "src/preferences.h"
 
-constexpr qreal SELECTION_HANDLE_SEPARATION = 1.5;
-constexpr int SELECTION_RECT_LINE_ALPHA = 196;
-
 void SelectionRectItem::setRect(const QRectF &rect) noexcept
 {
   resetTransform();
@@ -53,10 +50,10 @@ void SelectionRectItem::paint(QPainter *painter,
   painter->drawRect(tmprect);
   tmprect.translate(-_rect.width() / 2, 0);
   painter->drawRect(tmprect);
-  tmprect.translate(0, -SELECTION_HANDLE_SEPARATION * handle_size);
+  tmprect.translate(0, -selection_handle_separation * handle_size);
   painter->drawEllipse(tmprect);
   tmprect.translate(2 * handle_size, 0);
-  painter->setBrush(QColor(255, 255, 255, SELECTION_RECT_LINE_ALPHA));
+  painter->setBrush(QColor(255, 255, 255, selection_rect_line_alpha));
   pen.setColor(Qt::red);
   painter->setPen(pen);
   painter->drawRect(tmprect);

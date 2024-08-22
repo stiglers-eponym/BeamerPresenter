@@ -68,7 +68,7 @@ class SlideScene : public QGraphicsScene
  public:
   /// Settings for slide scenes, which apply to all views connected to the
   /// scene.
-  enum SlideFlags {
+  enum SlideFlag {
     LoadMedia = 1 << 0,
     CacheVideos = 1 << 1,
     AutoplayVideo = 1 << 2,
@@ -79,10 +79,12 @@ class SlideScene : public QGraphicsScene
     ShowSearchResults = 1 << 7,
     Default = 0xff,
   };
+  Q_DECLARE_FLAGS(SlideFlags, SlideFlag);
+  Q_FLAGS(SlideFlags);
 
  private:
   /// settings for this slide scene.
-  quint8 slide_flags = SlideFlags::Default;
+  SlideFlags slide_flags = SlideFlag::Default;
 
   /// Path which is currently being drawn.
   /// nullptr if currenty no path is drawn.
@@ -189,10 +191,10 @@ class SlideScene : public QGraphicsScene
   ~SlideScene();
 
   /// modifiable slide flags.
-  quint8 &flags() noexcept { return slide_flags; }
+  SlideFlags &flags() noexcept { return slide_flags; }
 
   /// read-only slide flags
-  const quint8 &flags() const noexcept { return slide_flags; }
+  const SlideFlags &flags() const noexcept { return slide_flags; }
 
   /// video items on all slides (cached or active).
   QList<std::shared_ptr<MediaItem>> &getMedia() noexcept { return mediaItems; }
@@ -422,6 +424,8 @@ class SlideScene : public QGraphicsScene
   void bringToBackground(int page,
                          const QList<QGraphicsItem *> &to_background) const;
 };
+
+Q_DECLARE_OPERATORS_FOR_FLAGS(SlideScene::SlideFlags);
 
 /**
  * Read an SVG image. Create a GraphicsPictureItem which is added to target.

@@ -26,6 +26,9 @@ class QStyleOptionGraphicsItem;
  */
 class BasicGraphicsPath : public AbstractGraphicsPath
 {
+ protected:
+  static constexpr qreal width_tolerance = 0.01;
+
  public:
   /// Custom type of QGraphicsItem.
   enum { Type = UserType + BasicGraphicsPathType };

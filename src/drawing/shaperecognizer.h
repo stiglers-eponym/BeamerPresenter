@@ -9,8 +9,9 @@
 #include <cmath>
 
 #include "src/config.h"
+
 // When switching to C++20 this can be replaced with std::numbers::pi
-#define PI 3.1415926535897932384626433
+constexpr qreal PI = 3.1415926535897932384626433;
 
 class BasicGraphicsPath;
 class AbstractGraphicsPath;

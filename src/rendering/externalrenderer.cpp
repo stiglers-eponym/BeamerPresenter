@@ -56,7 +56,7 @@ const PngPixmap *ExternalRenderer::renderPng(const int page,
     QProcess *process = new QProcess();
     process->start(renderingCommand, getArguments(page, resolution, "png"),
                    QProcess::ReadOnly);
-    if (!process->waitForFinished(MAX_PROCESS_TIME_MS)) {
+    if (!process->waitForFinished(max_process_time_ms)) {
       // TODO: clean up correctly
       process->kill();
       delete process;
@@ -81,7 +81,7 @@ const QPixmap ExternalRenderer::renderPixmap(const int page,
   QProcess *process = new QProcess();
   process->start(renderingCommand, getArguments(page, resolution, "pnm"),
                  QProcess::ReadOnly);
-  if (!process->waitForFinished(MAX_PROCESS_TIME_MS)) {
+  if (!process->waitForFinished(max_process_time_ms)) {
     // TODO: clean up correctly
     process->kill();
     delete process;

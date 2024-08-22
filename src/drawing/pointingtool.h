@@ -20,6 +20,10 @@
  */
 class PointingTool : public Tool
 {
+  static constexpr qreal pointer_inner_radius = 0.1;
+  static constexpr qreal pointer_outer_radius = 0.9;
+  static constexpr int pointer_outer_alpha = 12;
+
  protected:
   /// Pointing positions in scene (i.e. page) coordinates.
   /// Multiple positions are possible since some input devices can have

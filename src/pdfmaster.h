@@ -45,14 +45,17 @@ class PdfMaster : public QObject
 
  public:
   /// Flags for different kinds of unsaved changes.
-  enum Flags {
+  enum PdfMasterFlag {
     UnsavedDrawings = 1 << 0,
     UnsavedTimes = 1 << 1,
     UnsavedNotes = 1 << 2,
     FullPageUsed = LeftHalf >> 1,
     LeftHalfUsed = LeftHalf,
     RightHalfUsed = RightHalf,
+    HalfPageUsed = NotFullPage,
   };
+  Q_DECLARE_FLAGS(PdfMasterFlags, PdfMasterFlag);
+  Q_FLAG(PdfMasterFlags);
 
  private:
   /// Document representing the PDF
@@ -76,7 +79,7 @@ class PdfMaster : public QObject
   QMap<int, quint32> target_times;
 
   /// Flags for unsaved changes.
-  unsigned char _flags = 0;
+  PdfMasterFlags _flags = {};
 
   /// Search results (currently only one results)
   std::pair<int, QList<QRectF>> search_results;
@@ -101,7 +104,7 @@ class PdfMaster : public QObject
   }
 
   /// get function for _flags
-  unsigned char &flags() noexcept { return _flags; }
+  PdfMasterFlags &flags() noexcept { return _flags; }
 
   /// Load PDF file.
   void loadDocument(const QString &filename);
@@ -287,6 +290,8 @@ class PdfMaster : public QObject
   /// Tell slides to update search results.
   void updateSearch();
 };
+
+Q_DECLARE_OPERATORS_FOR_FLAGS(PdfMaster::PdfMasterFlags);
 
 /// Unzip file to buffer.
 QBuffer *loadZipToBuffer(const QString &filename);

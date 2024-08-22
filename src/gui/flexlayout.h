@@ -25,6 +25,8 @@ class FlexLayout : public QLayout
 {
   Q_OBJECT
 
+  static constexpr int ref_width = 4096;
+
   /// Box layout direction (horizontal or vertical)
   QBoxLayout::Direction direction;
   /// Items managed by this layout (see QLayout documentation)

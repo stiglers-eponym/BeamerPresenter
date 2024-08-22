@@ -66,6 +66,7 @@ jobs:
       run: >
        cmake
        -B build_dir
+       -DUBUNTU_VERSION=22.04
        -DUSE_MUPDF=ON
        -DUSE_POPPLER=OFF
        -DUSE_QTPDF=OFF

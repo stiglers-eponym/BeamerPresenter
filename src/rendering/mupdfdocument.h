@@ -39,6 +39,8 @@ class MuPdfDocument : public PdfDocument
 {
   Q_DECLARE_TR_FUNCTIONS(MuPdfDocument)
 
+  static constexpr int max_search_results = 20;
+
 #if (FZ_VERSION_MAJOR < 1) || \
     ((FZ_VERSION_MAJOR == 1) && (FZ_VERSION_MINOR < 22))
  public:
@@ -92,6 +94,8 @@ class MuPdfDocument : public PdfDocument
   /// Return number of matches.
   int searchPage(const int page, const char *raw_needle,
                  QList<QRectF> &target) const;
+
+  void fillOutline(fz_outline *entry);
 
  public:
   /// Constructor: Create mutexes and load document using loadDocument().

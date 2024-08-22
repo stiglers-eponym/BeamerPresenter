@@ -31,6 +31,9 @@ class ToolPropertyButton : public QComboBox
 {
   Q_OBJECT
 
+  /// Width of a drop down arrow in QComboBox.
+  static constexpr int down_arrow_width = 12;
+
  protected:
   /// Device changed by this button.
   /// This is the last device used to press this button.

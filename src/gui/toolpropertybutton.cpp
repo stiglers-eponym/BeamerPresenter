@@ -11,17 +11,13 @@
 #include "src/drawing/tool.h"
 #include "src/preferences.h"
 
-/// Width of a drop down arrow in QComboBox.
-#define DOWN_ARROW_WIDTH 12
-#define STR1(x) #x
-#define STR(x) STR1(x)
-
 ToolPropertyButton::ToolPropertyButton(QWidget *parent) : QComboBox(parent)
 {
-  setMinimumSize(12 + DOWN_ARROW_WIDTH, 12);
+  setMinimumSize(12 + down_arrow_width, 12);
   setIconSize({24, 24});
-  setStyleSheet("QComboBox{margin:0px;}QComboBox::drop-down{max-width:" STR(
-      DOWN_ARROW_WIDTH) "px;}QAbstractItemView{min-width:4em;}");
+  setStyleSheet("QComboBox{margin:0px;}QComboBox::drop-down{max-width:" +
+                QString::number(down_arrow_width) +
+                "px;}QAbstractItemView{min-width:4em;}");
   setFocusPolicy(Qt::NoFocus);
   setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Ignored);
   setAttribute(Qt::WA_AcceptTouchEvents);
@@ -75,7 +71,7 @@ void ToolPropertyButton::changed(const int index) const
 
 void ToolPropertyButton::updateIcon()
 {
-  const int px = std::min(width() - DOWN_ARROW_WIDTH - 1, height()) - 1;
+  const int px = std::min(width() - down_arrow_width - 1, height()) - 1;
   setIconSize({px, px});
   update();
 }

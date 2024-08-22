@@ -30,11 +30,19 @@ class ThumbnailWidget : public QScrollArea
 {
   Q_OBJECT
 
+  /// inverse tolerance for widget size changes for recalculating buttons
+  static constexpr int inverse_tolerance = 10;
+
+  /// maximum waiting time for rendering (ms)
+  static constexpr int max_render_time_ms = 2000;
+
  public:
-  enum {
+  enum ThumbnailFlag {
     /// show one thumbnail per page label instead of per page
     SkipOverlays = 1 << 0,
   };
+  Q_DECLARE_FLAGS(ThumbnailFlags, ThumbnailFlag);
+  Q_FLAG(ThumbnailFlags);
 
  private:
   /// QObject for rendering. which is moved to an own thread.
@@ -49,7 +57,7 @@ class ThumbnailWidget : public QScrollArea
   /// number of columns
   unsigned char columns{4};
   /// flags: currently only SkipOverlays.
-  unsigned char _flags{0};
+  ThumbnailFlags _flags = {};
   /// currently focused page index
   ThumbnailButton *focused_button{nullptr};
 
@@ -58,6 +66,11 @@ class ThumbnailWidget : public QScrollArea
 
   /// Initialize (create and start) rendering thread.
   void initRenderingThread();
+
+  /// Create or replace thumbnail button.
+  /// Ask render thread to render page preview.
+  void createButton(const int display_page, const int link_page,
+                    const int position, const int col_width);
 
  protected:
   /// Resize: clear if necessary.
@@ -79,7 +92,7 @@ class ThumbnailWidget : public QScrollArea
   }
 
   /// get function for _flags
-  unsigned char &flags() noexcept { return _flags; }
+  ThumbnailFlags &flags() noexcept { return _flags; }
 
   /// (re)generate and show the thumbnails. This initializes render_thread
   /// if it does not exist yet. By default it takes document from
@@ -125,5 +138,7 @@ class ThumbnailWidget : public QScrollArea
   /// Tell thumbnail thread to clear queue.
   void interruptThread();
 };
+
+Q_DECLARE_OPERATORS_FOR_FLAGS(ThumbnailWidget::ThumbnailFlags);
 
 #endif  // THUMBNAILWIDGET_H

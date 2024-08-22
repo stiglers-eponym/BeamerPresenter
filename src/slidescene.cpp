@@ -720,7 +720,7 @@ void SlideScene::receiveAction(const Action action)
       for (const auto &m : std::as_const(mediaItems)) m->setMuted(true);
       break;
     case Unmute:
-      if (!(slide_flags & SlideFlags::MuteSlide))
+      if (!(slide_flags & SlideFlag::MuteSlide))
         for (const auto &m : std::as_const(mediaItems))
           if (!(m->flags() & MediaAnnotation::Mute)) m->setMuted(false);
       break;
@@ -928,7 +928,7 @@ std::shared_ptr<MediaItem> &SlideScene::getMediaItem(
       mediaitem->insertPage(page);
       mediaitem->initializeProvider();
       mediaitem->setMuted(
-          (slide_flags & SlideFlags::MuteSlide) ||
+          (slide_flags & SlideFlag::MuteSlide) ||
           (preferences()->global_flags & Preferences::MuteApplication));
       return mediaitem;
     }
@@ -937,7 +937,7 @@ std::shared_ptr<MediaItem> &SlideScene::getMediaItem(
   const auto mediaitem = MediaItem::fromAnnotation(annotation, page);
   mediaItems.append(mediaitem);
   mediaitem->setMuted(
-      (slide_flags & SlideFlags::MuteSlide) ||
+      (slide_flags & SlideFlag::MuteSlide) ||
       (preferences()->global_flags & Preferences::MuteApplication));
   return mediaItems.last();
 }
@@ -1010,7 +1010,7 @@ void SlideScene::startTransition(const int newpage,
       QPropertyAnimation *propanim =
           new QPropertyAnimation(pageTransitionItem, "progress");
       propanim->setDuration(1000 * transition.duration);
-      propanim->setStartValue(GLITTER_NUMBER);
+      propanim->setStartValue(PixmapGraphicsItem::glitter_number);
       propanim->setEndValue(0);
       propanim->setEasingCurve(QEasingCurve::InOutSine);
       animation = propanim;
@@ -1087,9 +1087,9 @@ void SlideScene::createBlindsTransition(const SlideTransition &transition,
   propanim->setDuration(1000 * transition.duration);
   QRectF rect = sceneRect();
   if (vertical)
-    rect.setWidth(rect.width() / BLINDS_NUMBER_V);
+    rect.setWidth(rect.width() / PixmapGraphicsItem::blinds_number_v);
   else
-    rect.setHeight(rect.height() / BLINDS_NUMBER_H);
+    rect.setHeight(rect.height() / PixmapGraphicsItem::blinds_number_h);
   propanim->setStartValue(rect);
   if (vertical)
     rect.setWidth(0);

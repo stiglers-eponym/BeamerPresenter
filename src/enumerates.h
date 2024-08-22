@@ -246,7 +246,7 @@ enum CustomGraphicsItemTypes {
 
 #ifdef QT_DEBUG
 /// Debug flags: combinable debug flags
-enum DebugFlags {
+enum DebugFlag {
   NoLog = 0,
   DebugRendering = 1 << 0,
   DebugCache = 1 << 1,

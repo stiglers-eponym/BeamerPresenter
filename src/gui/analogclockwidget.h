@@ -25,6 +25,18 @@ class AnalogClockWidget : public QWidget
 {
   Q_OBJECT
 
+  static constexpr int double_click_ms = 100;
+  static constexpr qreal minute_tick_start = 0.97;
+  static constexpr qreal hour_tick_start = 0.94;
+  static constexpr qreal second_hand_length = 0.93;
+  static constexpr qreal minute_hand_length = 0.87;
+  static constexpr qreal hour_hand_length = 0.7;
+  static constexpr qreal second_hand_width = 0.02;
+  static constexpr qreal minute_hand_width = 0.08;
+  static constexpr qreal hour_hand_width = 0.1;
+  static constexpr qreal minute_tick_width = 0.02;
+  static constexpr qreal hour_tick_width = 0.05;
+
   /// interval (ms) for updating clock
   int timer_interval = 1000;
   /// timer id

@@ -156,6 +156,18 @@ static const QMap<Qt::PenStyle, std::string> pen_style_codes{
     {Qt::DashDotLine, "dashdot"}, {Qt::DashDotDotLine, "dashdotdot"},
 };
 
+static const QMap<QPainter::CompositionMode, std::string>
+    composition_mode_codes{
+        {QPainter::CompositionMode_SourceOver, "source over"},
+        {QPainter::CompositionMode_Darken, "darken"},
+        {QPainter::CompositionMode_Lighten, "lighten"},
+        {QPainter::CompositionMode_Difference, "difference"},
+        {QPainter::CompositionMode_Plus, "plus"},
+        {QPainter::CompositionMode_Multiply, "multiply"},
+        {QPainter::CompositionMode_Screen, "screen"},
+        {QPainter::CompositionMode_Overlay, "overlay"},
+    };
+
 static const QList<QPair<Qt::PenStyle, std::string>> pen_style_names{
     {Qt::NoPen, QT_TRANSLATE_NOOP("DrawTool", "no pen")},
     {Qt::SolidLine, QT_TRANSLATE_NOOP("DrawTool", "solid")},

@@ -176,7 +176,7 @@ void BasicGraphicsPath::changeTool(const DrawTool &newtool) noexcept
     qWarning() << "Cannot change draw tool to non-drawing base tool.";
     return;
   }
-  if (std::abs(newtool.pen().widthF() - _tool.tool()) > 0.01)
+  if (std::abs(newtool.pen().widthF() - _tool.tool()) > width_tolerance)
 #if (QT_VERSION >= QT_VERSION_CHECK(5, 13, 0))
     shape_cache.clear();
 #else
