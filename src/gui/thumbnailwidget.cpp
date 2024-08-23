@@ -34,6 +34,7 @@ ThumbnailWidget::ThumbnailWidget(std::shared_ptr<const PdfDocument> doc,
 
 void ThumbnailWidget::initialize()
 {
+  debug_msg(DebugWidgets, "initializing ThumbnailWidget");
   delete widget();
   delete layout();
   setWidget(nullptr);
@@ -130,6 +131,7 @@ void ThumbnailWidget::handleAction(const Action action)
 
 void ThumbnailWidget::initRenderingThread()
 {
+  debug_msg(DebugWidgets, "initializing rendering thread");
   render_thread = new ThumbnailThread(document);
   render_thread->moveToThread(new QThread(render_thread));
   connect(this, &ThumbnailWidget::interruptThread, render_thread,
@@ -141,10 +143,12 @@ void ThumbnailWidget::initRenderingThread()
   connect(render_thread, &ThumbnailThread::sendThumbnail, this,
           &ThumbnailWidget::receiveThumbnail, Qt::QueuedConnection);
   render_thread->thread()->start();
+  debug_msg(DebugWidgets, "started rendering thread");
 }
 
 void ThumbnailWidget::generate()
 {
+  debug_msg(DebugWidgets, "(re-)generating thumbnail widget" << size());
   if (!widget()) initialize();
 
   emit interruptThread();

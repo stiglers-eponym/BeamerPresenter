@@ -44,6 +44,8 @@ class ThumbnailButton : public QLabel
   void keyPressEvent(QKeyEvent *event) override;
   /// focus in: add red margin
   void focusInEvent(QFocusEvent *) override { showMargin(); }
+  /// only implements workaround for allowing touchscreen scrolling
+  bool event(QEvent *event) override;
 
  public slots:
   /// give focus: add red margin

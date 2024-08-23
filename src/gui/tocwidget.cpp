@@ -86,37 +86,29 @@ TOCbutton *TOCwidget::addButtons(const QVector<PdfOutlineEntry> &outline,
   return root_button;
 }
 
-void TOCwidget::expandTo(const int page)
+void TOCwidget::expandToPage(const int page)
 {
   debug_msg(DebugWidgets, "expand to" << page);
-  TOCbutton *child = first_button;
-  auto expand_to = [&](TOCbutton *button, auto &function) -> void {
-    button->expand();
-    child = button->tree_child;
-    if (!child || child->page > page) return;
-    while (child && child->tree_next) {
-      if (child->tree_next && child->tree_next->page > page) {
-        function(child, function);
-        return;
-      }
-      child = child->tree_next;
-    }
-    if (child) function(child, function);
-  };
-  while (child && child->tree_next) {
-    if (child->tree_next && child->tree_next->page > page) {
-      expand_to(child, expand_to);
-      return;
-    }
-    child = child->tree_next;
+  expandToButton(first_button, page);
+}
+
+void TOCwidget::expandToButton(TOCbutton *button, const int page)
+{
+  if (!button) return;
+  button->expand();
+  button = button->tree_child;
+  if (!button || button->page > page) return;
+  while (button) {
+    if (button->page > page) break;
+    button = button->tree_next;
   }
-  if (child) expand_to(child, expand_to);
+  if (button) expandToButton(button, page);
 }
 
 void TOCwidget::showEvent(QShowEvent *)
 {
   if (first_button)
-    expandTo(preferences()->page);
+    expandToPage(preferences()->page);
   else
     generateTOC();
 }

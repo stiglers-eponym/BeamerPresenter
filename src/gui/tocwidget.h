@@ -45,6 +45,8 @@ class TOCwidget : public QScrollArea
   TOCbutton *addButtons(const QVector<PdfOutlineEntry> &output,
                         QGridLayout *layout, int idx, const int depth);
 
+  void expandToButton(TOCbutton *button, const int page);
+
  public:
   /// Trivial constructor, does not create the outline tree.
   explicit TOCwidget(std::shared_ptr<const PdfDocument> document,
@@ -77,7 +79,7 @@ class TOCwidget : public QScrollArea
   void focusInEvent(QFocusEvent *) override { generateTOC(); }
 
   /// Expand all sections, subsections, ... which contain the given page.
-  void expandTo(const int page);
+  void expandToPage(const int page);
 };
 
 #endif  // TOCWIDGET_H

@@ -15,6 +15,7 @@ ThumbnailButton::ThumbnailButton(const int page, QWidget *parent)
   setToolTip(tr("page ") + QString::number(page + 1));
   setLineWidth(2);
   setFrameStyle(QFrame::Box | QFrame::Plain);
+  setAttribute(Qt::WA_AcceptTouchEvents);
   defocus();
 }
 
@@ -52,5 +53,18 @@ void ThumbnailButton::keyPressEvent(QKeyEvent *event)
       break;
     default:
       event->ignore();
+  }
+}
+
+bool ThumbnailButton::event(QEvent *event)
+{
+  // workaround for allowing touchscreen scrolling
+  switch (event->type()) {
+    case QEvent::TouchBegin:
+      emit sendNavigationSignal(page);
+      event->accept();
+      return true;
+    default:
+      return QLabel::event(event);
   }
 }
