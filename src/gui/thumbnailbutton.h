@@ -7,6 +7,7 @@
 #include <QLabel>
 
 #include "src/config.h"
+#include "src/preferences.h"
 
 class QMouseEvent;
 class QKeyEvent;
@@ -25,41 +26,70 @@ class ThumbnailButton : public QLabel
   /// index of the page represented by this thumbnail
   const int page;
 
-  /// add red margin when this gets focus
-  void showMargin()
+  /// Sent current page to master, adjust style
+  void sendPage()
   {
-    setStyleSheet(
-        "ThumbnailButton{background-color:#ffff0000;color:#ffff0000;}");
+    setFocus();
+    setStyleCurrent();
+    emit sendNavigationSignal(page);
+  }
+
+  void giveFocusInner()
+  {
+    if (page == preferences()->page)
+      setStyleCurrent();
+    else
+      setStyleFocus();
     emit updateFocus(this);
   }
 
+  void setStyleDefault()
+  {
+    setStyleSheet(
+        "ThumbnailButton{background-color:#00000000;color:#00000000;}");
+  }
+
+  void setStyleFocus()
+  {
+    setStyleSheet(
+        "ThumbnailButton{background-color:#80ff0080;color:#80f00080;}");
+  }
+
+  void setStyleCurrent()
+  {
+    setStyleSheet(
+        "ThumbnailButton{background-color:#ffff0000;color:#ffff0000;}");
+  }
+
  public:
+  static constexpr int line_width = 4;
+
   /// Boring constructor.
   ThumbnailButton(const int page, QWidget *parent = nullptr);
+
+  void giveFocus()
+  {
+    setFocus();
+    giveFocusInner();
+  }
+
+  void clearFocus()
+  {
+    if (page == preferences()->page)
+      setStyleCurrent();
+    else
+      setStyleDefault();
+  }
 
  protected:
   /// Mouse released: send navigation signal.
   void mouseReleaseEvent(QMouseEvent *event) override;
   /// Keyboard events for keyboard navigation
   void keyPressEvent(QKeyEvent *event) override;
-  /// focus in: add red margin
-  void focusInEvent(QFocusEvent *) override { showMargin(); }
+  /// focus in: adjust/add margin
+  void focusInEvent(QFocusEvent *) override { giveFocusInner(); }
   /// only implements workaround for allowing touchscreen scrolling
   bool event(QEvent *event) override;
-
- public slots:
-  /// give focus: add red margin
-  void giveFocus() noexcept
-  {
-    setFocus();
-    if (!hasFocus()) showMargin();
-  }
-  /// take focus: remove red margin
-  void defocus() noexcept
-  {
-    setStyleSheet(
-        "ThumbnailButton{background-color:#00000000;color:#00000000;}");
-  }
 
  signals:
   /// Send out navigation event for this page.

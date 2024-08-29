@@ -30,6 +30,8 @@ class ThumbnailWidget : public QScrollArea
 {
   Q_OBJECT
 
+  int current_page = 0;
+
   /// inverse tolerance for widget size changes for recalculating buttons
   static constexpr int inverse_tolerance = 10;
 
@@ -107,6 +109,8 @@ class ThumbnailWidget : public QScrollArea
   /// Size hint for layout.
   QSize sizeHint() const noexcept override { return {100, 200}; }
 
+  ThumbnailButton *buttonAtPage(int page);
+
  public slots:
   /// Set focus to given page.
   void focusPage(int page);
@@ -127,7 +131,7 @@ class ThumbnailWidget : public QScrollArea
   void setFocusButton(ThumbnailButton *button);
 
   /// Move focus to row above/below (updown=-1/+1)
-  void moveFocusUpDown(const char updown);
+  void moveFocusUpDown(const qint8 updown);
 
  signals:
   /// Tell render_thread to render page with resolution and associate it

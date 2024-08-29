@@ -13,16 +13,17 @@ ThumbnailButton::ThumbnailButton(const int page, QWidget *parent)
 {
   setFocusPolicy(Qt::FocusPolicy::StrongFocus);
   setToolTip(tr("page ") + QString::number(page + 1));
-  setLineWidth(2);
-  setFrameStyle(QFrame::Box | QFrame::Plain);
   setAttribute(Qt::WA_AcceptTouchEvents);
-  defocus();
+  QFrame::setFrameStyle(QFrame::Panel | QFrame::Plain);
+  QFrame::setLineWidth(line_width);
+  setStyleDefault();
 }
 
 void ThumbnailButton::mouseReleaseEvent(QMouseEvent *event)
 {
   if (event->button() == Qt::LeftButton) {
-    emit sendNavigationSignal(page);
+    emit updateFocus(this);
+    sendPage();
     event->accept();
   }
 }
@@ -33,23 +34,24 @@ void ThumbnailButton::keyPressEvent(QKeyEvent *event)
     case Qt::Key_Enter:
     case Qt::Key_Return:
     case Qt::Key_Space:
-      emit sendNavigationSignal(page);
+      sendPage();
       event->accept();
       break;
     case Qt::Key_Left:
       focusPreviousChild();
+      event->accept();
       break;
     case Qt::Key_Right:
       focusNextChild();
-      break;
-    case Qt::Key_Escape:
-      clearFocus();
+      event->accept();
       break;
     case Qt::Key_Up:
       emit focusUpDown(-1);
+      event->accept();
       break;
     case Qt::Key_Down:
       emit focusUpDown(1);
+      event->accept();
       break;
     default:
       event->ignore();
@@ -61,7 +63,7 @@ bool ThumbnailButton::event(QEvent *event)
   // workaround for allowing touchscreen scrolling
   switch (event->type()) {
     case QEvent::TouchBegin:
-      emit sendNavigationSignal(page);
+      sendPage();
       event->accept();
       return true;
     default:
